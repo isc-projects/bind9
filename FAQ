@@ -49,13 +49,13 @@ number of threads running is n+4, where n is the number of CPUs.
 
 
 Q: Why does BIND 9 log "permission denied" errors accessing its
-configuration files on my Linux system even though it is running as
-root?
+configuration files or zones on my Linux system even though it is running
+as root?
 
 A: On Linux, BIND 9 drops most of its root privileges on startup.
 This including the privilege to open files owned by other users.
 Therefore, if the server is running as root, the configuration files
-should also be owned by root.
+and zone files should also be owned by root.
 
 
 Q: Why do I get errors like "dns_zone_load: zone foo/IN: loading master file
@@ -65,7 +65,7 @@ A: This is often caused by TXT records with missing close quotes.  Check that
 all TXT records containing quoted strings have both open and close quotes.
 
 
-Q: How do I produce a useful core file on Linux?
+Q: How do I produce a usable core file on Linux?
 
 A: Apply the kernel patch found in bind9/linux/coredump-patch and rebuild
 the kernel.  This patch causes multithreaded programs to dump the correct
@@ -97,3 +97,12 @@ caveats of the previous answer still apply, of course.
 	  };
   };
 
+
+Q: What do "no source of entropy found" or "could not open entropy source foo"
+mean?
+
+A: The server requires a source of entropy to perform certain operations,
+mostly DNSSEC related.  These messages indicate that you have no source
+of entropy.  On systems with /dev/random or an equivalent, it is used by
+default.  A source of entropy can also be defined using the random-device
+option in named.conf.
