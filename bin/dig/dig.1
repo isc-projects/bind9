@@ -274,7 +274,7 @@ Sets the timeout for a query to
 An attempt to set \fIT\fR to less than 1 will result
 in a query timeout of 1 second being applied.
 .TP
-\fB+tries=A\fR
+\fB+tries=T\fR
 Sets the number of times to retry UDP queries to server to
 \fIT\fR instead of the default, 3. If
 \fIT\fR is less than or equal to zero, the number of
@@ -301,6 +301,19 @@ Print records like the SOA records in a verbose multi-line
 format with human-readable comments. The default is to print
 each record on a single line, to facilitate machine parsing 
 of the \fBdig\fR output.
+.TP
+\fB+[no]fail\fR
+Do not try the next server if you receive a SERVFAIL. The default is
+to not try the next server which is the reverse of normal stub resolver
+behaviour.
+.TP
+\fB+[no]besteffort\fR
+Attempt to display the contents of messages which are malformed.
+The default is to not display malformed answers.
+.TP
+\fB+[no]dnssec\fR
+Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
+in the the OPT record in the additional section of the query.
 .SH "MULTIPLE QUERIES"
 .PP
 The BIND 9 implementation of \fBdig \fR supports
