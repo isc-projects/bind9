@@ -19,6 +19,7 @@
 1712:	DNS Encoding of Geographical Location
 1750:	Randomness Recommendations for Security
 1876:	A Means for Expressing Location Information in the Domain Name System
+1886:	DNS Extensions to support IP version 6
 1982:	Serial Number Arithmetic
 1995:	Incremental Zone Transfer in DNS
 1996:	A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)
@@ -64,3 +65,13 @@
 3008:   Domain Name System Security (DNSSEC) Signing Authority
 3090:	DNS Security Extension Clarification on Zone Status
 3110:	RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)
+3123:	A DNS RR Type for Lists of Address Prefixes (APL RR)
+3225:	Indicating Resolver Support of DNSSEC
+3226:	DNSSEC and IPv6 A6 aware server/resolver message size requirements
+3258:	Distributing Authoritative Name Servers via Shared Unicast Addresses
+3363:	Representing Internet Protocol version 6 (IPv6)
+	 Addresses in the Domain Name System (DNS)
+3364:	Tradeoffs in Domain Name System (DNS) Support
+	 for Internet Protocol version 6 (IPv6)
+3445:	Limiting the Scope of the KEY Resource Record (RR)
+3493:	Basic Socket Interface Extensions for IPv6
