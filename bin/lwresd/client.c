@@ -67,6 +67,7 @@ clientmgr_can_die(clientmgr_t *cm)
 	if (ISC_LIST_HEAD(cm->running) != NULL)
 		return;
 
+	dns_view_detach(&cm->view);
 	isc_task_detach(&cm->task);
 }
 
