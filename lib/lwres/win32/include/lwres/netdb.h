@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.1 2001/07/18 02:37:15 mayer Exp $ */
+/* $Id: netdb.h,v 1.2 2001/07/18 18:29:58 gson Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
+
 #include <stddef.h>	/* Required on FreeBSD (and  others?) for size_t. */
 
 #define off_t _off_t

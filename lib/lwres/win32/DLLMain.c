@@ -15,19 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: DLLMain.c,v 1.2 2001/07/18 18:27:11 gson Exp $ */
+
 #include <windows.h>
 #include <signal.h>
 
 BOOL InitSockets(void);
 
- 
 /*
  * Called when we enter the DLL
  */
-__declspec(dllexport) BOOL WINAPI DllMain( HINSTANCE hinstDLL,
-					   DWORD fdwReason, LPVOID lpvReserved)
+__declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
+					  DWORD fdwReason, LPVOID lpvReserved)
 {
-
 	switch (fdwReason) 
 	{ 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.1 2001/07/18 02:37:15 mayer Exp $ */
+/* $Id: platform.h,v 1.2 2001/07/18 18:29:59 gson Exp $ */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -71,19 +71,19 @@
  * Define some Macros
  */
 #ifdef LIBLWRES_EXPORTS
-#define LIBLWRES_EXTERNAL_DATA __declspec( dllexport )
+#define LIBLWRES_EXTERNAL_DATA __declspec(dllexport)
 #else
-#define LIBLWRES_EXTERNAL_DATA __declspec( dllimport )
+#define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
 #endif
 
 /*
  * Define the MAKE_NONBLOCKING Macro here since it can get used in
  * a number of places.
  */
-#define MAKE_NONBLOCKING(sd, retval)\
-do {\
-	int _on = 1;\
-	retval = ioctlsocket((SOCKET) sd, FIONBIO, &_on);\
+#define MAKE_NONBLOCKING(sd, retval) \
+do { \
+	int _on = 1; \
+	retval = ioctlsocket((SOCKET) sd, FIONBIO, &_on); \
 } while (0)
 
 /*
