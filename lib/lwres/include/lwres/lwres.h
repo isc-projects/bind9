@@ -88,6 +88,7 @@
 
 #define LWRES_UDP_PORT		921	/* XXXMLG */
 #define LWRES_RECVLENGTH	2048	/* XXXMLG */
+#define LWRES_ADDR_MAXLEN	16	/* XXXMLG changing this breaks ABI */
 
 /*
  * XXXMLG
@@ -124,7 +125,7 @@ typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
 struct lwres_addr {
 	lwres_uint32_t			family;
 	lwres_uint16_t			length;
-	const unsigned char	       *address;
+	unsigned char			address[LWRES_ADDR_MAXLEN];
 	LWRES_LINK(lwres_addr_t)	link;
 };
 
@@ -174,7 +175,7 @@ typedef struct {
 /*
  * resolv.conf DATA
  */
-	
+
 #define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
 #define LWRES_CONFMAXSEARCH 6		/* max 6 domains in "search" entry */
 #define LWRES_CONFMAXLINELEN 256	/* max size of a line */

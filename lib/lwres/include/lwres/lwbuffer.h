@@ -369,7 +369,8 @@ lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val);
  */
 
 void
-lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int length);
+lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base,
+		    unsigned int length);
 /*
  * Copy 'length' bytes of memory at 'base' into 'b'.
  *
@@ -378,6 +379,20 @@ lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int l
  *
  *	'base' points to 'length' bytes of valid memory.
  *
+ */
+
+void
+lwres_buffer_getmem(lwres_buffer_t *b, unsigned char *base,
+		    unsigned int length);
+/*
+ * Copy 'length' bytes of memory from 'b' into 'base'.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ *	'base' points to at least 'length' bytes of valid memory.
+ *
+ *	'b' have at least 'length' bytes remaining.
  */
 
 LWRES_LANG_ENDDECLS

@@ -350,7 +350,7 @@ client_init_aliases(client_t *client)
 	for (i = 0 ; i < LWRES_MAX_ADDRS ; i++) {
 		client->addrs[i].family = 0;
 		client->addrs[i].length = 0;
-		client->addrs[i].address = NULL;
+		memset(client->addrs[i].address, 0, LWRES_ADDR_MAXLEN);
 		LWRES_LINK_INIT(&client->addrs[i], link);
 	}
 }

@@ -93,13 +93,13 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at)
 		case AF_INET:
 			sin = &ai->sockaddr->type.sin;
 			addr->family = LWRES_ADDRTYPE_V4;
-			addr->address = (unsigned char *)&sin->sin_addr;
+			memcpy(addr->address, &sin->sin_addr, 4);
 			addr->length = 4;
 			break;
 		case AF_INET6:
 			sin6 = &ai->sockaddr->type.sin6;
 			addr->family = LWRES_ADDRTYPE_V6;
-			addr->address = (unsigned char *)&sin6->sin6_addr;
+			memcpy(addr->address, &sin6->sin6_addr, 16);
 			addr->length = 16;
 			break;
 		default:

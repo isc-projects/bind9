@@ -85,11 +85,10 @@ static lwres_result_t
 lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp);
 
 static void
-lwres_resetaddr(lwres_context_t *ctx, lwres_addr_t *addr, int freeit);
+lwres_resetaddr(lwres_addr_t *addr);
 
 static lwres_result_t
-lwres_create_addr(lwres_context_t *ctx, const char *buff,
-		  lwres_addr_t *addr);
+lwres_create_addr(const char *buff, lwres_addr_t *addr);
 
 /*
  * Skip over any leading whitespace and then read in the next sequence of
@@ -130,14 +129,11 @@ getword(FILE *fp, char *buffer, size_t size)
 }
 
 static void
-lwres_resetaddr(lwres_context_t *ctx, lwres_addr_t *addr, int freeit)
+lwres_resetaddr(lwres_addr_t *addr)
 {
 	REQUIRE(addr != NULL);
 
-	if (freeit && addr->address != NULL)
-		CTXFREE((void *)addr->address, addr->length);
-
-	addr->address = NULL;
+	memset(addr->address, 0, LWRES_ADDR_MAXLEN);
 	addr->family = 0;
 	addr->length = 0;
 }
@@ -175,14 +171,14 @@ lwres_conf_init(lwres_context_t *ctx)
 	confdata->no_tld_query = 0;
 
 	for (i = 0 ; i < LWRES_CONFMAXNAMESERVERS ; i++)
-		lwres_resetaddr(NULL, &confdata->nameservers[i], 0);
+		lwres_resetaddr(&confdata->nameservers[i]);
 
 	for (i = 0 ; i < LWRES_CONFMAXSEARCH ; i++)
 		confdata->search[i] = NULL;
 
 	for (i = 0 ; i < LWRES_CONFMAXSORTLIST ; i++) {
-		lwres_resetaddr(NULL, &confdata->sortlist[i].addr, 0);
-		lwres_resetaddr(NULL, &confdata->sortlist[i].mask, 0);
+		lwres_resetaddr(&confdata->sortlist[i].addr);
+		lwres_resetaddr(&confdata->sortlist[i].mask);
 	}
 }
 
@@ -196,7 +192,7 @@ lwres_conf_clear(lwres_context_t *ctx)
 	confdata = &ctx->confdata;
 
 	for (i = 0 ; i < confdata->nsnext ; i++)
-		lwres_resetaddr(ctx, &confdata->nameservers[i], 1);
+		lwres_resetaddr(&confdata->nameservers[i]);
 
 	if (confdata->domainname != NULL) {
 		CTXFREE(confdata->domainname,
@@ -213,8 +209,8 @@ lwres_conf_clear(lwres_context_t *ctx)
 	}
 
 	for (i = 0 ; i < LWRES_CONFMAXSORTLIST ; i++) {
-		lwres_resetaddr(ctx, &confdata->sortlist[i].addr, 1);
-		lwres_resetaddr(ctx, &confdata->sortlist[i].mask, 1);
+		lwres_resetaddr(&confdata->sortlist[i].addr);
+		lwres_resetaddr(&confdata->sortlist[i].mask);
 	}
 
 	confdata->nsnext = 0;
@@ -244,7 +240,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp)
 	else if (res != EOF && res != '\n')
 		return (LWRES_R_FAILURE); /* extra junk on line */
 
-	res = lwres_create_addr(ctx, word,
+	res = lwres_create_addr(word,
 				&confdata->nameservers[confdata->nsnext++]);
 	if (res != LWRES_R_SUCCESS)
 		return (res);
@@ -340,25 +336,26 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
 }
 
 static lwres_result_t
-lwres_create_addr(lwres_context_t *ctx, const char *buffer, lwres_addr_t *addr)
+lwres_create_addr(const char *buffer, lwres_addr_t *addr)
 {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
+	unsigned int len;
 
 	if (lwres_net_pton(AF_INET, buffer, &addrbuff) == 1) {
-		addr->family = AF_INET;
+		addr->family = LWRES_ADDRTYPE_V4;
 		addr->length = NS_INADDRSZ;
-		addr->address = CTXMALLOC(NS_INADDRSZ);
+		len = 4;
 #if defined(AF_INET6)
 	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
-		addr->family = AF_INET6;
+		addr->family = LWRES_ADDRTYPE_V6;
 		addr->length = NS_IN6ADDRSZ;
-		addr->address = CTXMALLOC(NS_IN6ADDRSZ);
+		len = 16;
 #endif
 	} else {
 		return (LWRES_R_FAILURE); /* unrecongnised format */
 	}
 
-	memcpy((void *)addr->address, addrbuff, 4);
+	memcpy((void *)addr->address, addrbuff, len);
 
 	return (LWRES_R_SUCCESS);
 }
@@ -386,16 +383,22 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp)
 			*p++ = '\0';
 
 		idx = confdata->sortlistnxt;
-		res = lwres_create_addr(ctx, word,
-					&confdata->sortlist[idx].addr);
+		res = lwres_create_addr(word, &confdata->sortlist[idx].addr);
 		if (res != LWRES_R_SUCCESS)
 			return (res);
 
 		if (p != NULL) {
-			res = lwres_create_addr(ctx, p,
+			res = lwres_create_addr(p,
 						&confdata->sortlist[idx].mask);
 			if (res != LWRES_R_SUCCESS)
 				return (res);
+		} else {
+			/* Make up a mask. */
+			confdata->sortlist[idx].mask =
+				confdata->sortlist[idx].addr;
+
+			memset(&confdata->sortlist[idx].mask, 0xff,
+			       confdata->sortlist[idx].addr.length);
 		}
 
 		confdata->sortlistnxt++;

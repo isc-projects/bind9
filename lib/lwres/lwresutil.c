@@ -102,8 +102,10 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 
 	if (!SPACE_REMAINING(b, addr->length))
 		return (LWRES_R_UNEXPECTEDEND);
-	addr->address = b->base + b->current;
-	lwres_buffer_forward(b, addr->length);
+	if (addr->length > LWRES_ADDR_MAXLEN)
+		return (LWRES_R_FAILURE);
+
+	lwres_buffer_getmem(b, addr->address, addr->length);
 
 	return (LWRES_R_SUCCESS);
 }
@@ -335,7 +337,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	 */
 	request.addr.family = addrtype;
 	request.addr.length = addrlen;
-	request.addr.address = addr;
+	memcpy(request.addr.address, addr, addrlen);
 	pkt.flags = 0;
 	pkt.serial = serial;
 	pkt.result = 0;

@@ -256,7 +256,8 @@ lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val)
 }
 
 void
-lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int length)
+lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base,
+		    unsigned int length)
 {
 	unsigned char *cp;
 
@@ -266,4 +267,20 @@ lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int l
 	cp = (unsigned char *)b->base + b->used;
 	memcpy(cp, base, length);
 	b->used += length;
+}	
+
+void
+lwres_buffer_getmem(lwres_buffer_t *b, unsigned char *base,
+		    unsigned int length)
+{
+	unsigned char *cp;
+
+	REQUIRE(LWRES_BUFFER_VALID(b));
+	REQUIRE(b->used - b->current >= length);
+
+	cp = b->base;
+	cp += b->current;
+	b->current += length;
+
+	memcpy(base, cp, length);
 }	
