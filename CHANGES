@@ -1,3 +1,7 @@
+
+ 549.	[bug]		"make" did not immediately abort the build when a
+			subdirectory make failed [RT #450].
+
  548.	[func]		The lexer now ungets tokens more correctly.
 
  546.	[func]		Option 'lame-ttl' is now implemented.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.22 2000/08/01 01:33:23 tale Exp $
+# $Id: rules.in,v 1.23 2000/11/09 17:49:37 gson Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -65,7 +65,7 @@ subdirs:
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making all in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} all); \
+			(cd $$i; ${MAKE} ${MAKEDEFS} all) || exit 1; \
 		fi \
 	done
 
@@ -73,7 +73,7 @@ install clean distclean::
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
+			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
 		fi \
 	done
 
@@ -132,7 +132,7 @@ depend:
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making depend in `pwd`/$$i"; \
-			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
+			(cd $$i; ${MAKE} ${MAKEDEFS} $@) || exit 1; \
 		fi \
 	done
 	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
