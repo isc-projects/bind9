@@ -15,12 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_p.h,v 1.2.4.1 2001/01/09 22:51:26 bwelling Exp $ */
+/* $Id: socket_p.h,v 1.2.4.2 2001/06/14 13:37:46 gson Exp $ */
 
 /* ISC_PLATFORM_USETHREADS_DELETE */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H
+
+#ifdef ISC_PLATFORM_NEEDSYSSELECTH
+#include <sys/select.h>
+#endif
 
 void
 isc__socketmgr_getfdsets(fd_set *readset, fd_set *writeset, int *maxfd);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.54.2.3 2001/04/10 00:24:47 gson Exp $ */
+/* $Id: entropy.c,v 1.54.2.4 2001/06/14 13:37:47 gson Exp $ */
 
 #include <config.h>
 
@@ -34,11 +34,16 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/mutex.h>
+#include <isc/platform.h>
 #include <isc/region.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_NEEDSYSSELECTH
+#include <sys/select.h>
+#endif
 
 /*
  * Much of this code is modeled after the NetBSD /dev/random implementation,
