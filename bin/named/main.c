@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.78 2000/08/09 23:40:16 tale Exp $ */
+/* $Id: main.c,v 1.79 2000/08/17 01:30:31 gson Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 			      isc_assertion_typetotext(type), cond);
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "exiting (due assertion failure)");
+			      "exiting (due to assertion failure)");
 	} else {
 		fprintf(stderr, "%s:%d: %s(%s) failed\n",
 			file, line, isc_assertion_typetotext(type), cond);
