@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.68 2001/08/02 23:36:23 gson Exp $ */
+/* $Id: parser.c,v 1.69 2001/08/03 05:56:12 marka Exp $ */
 
 #include <config.h>
 
@@ -3465,6 +3465,24 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndcconf = {
 	"rndcconf", parse_mapbody, print_mapbody, &cfg_rep_map,
 	rndcconf_clausesets
 };
+
+static cfg_clausedef_t
+rndckey_clauses[] = {
+	{ "key", &cfg_type_key, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_clausedef_t *
+rndckey_clausesets[] = {
+	rndckey_clauses,
+	NULL
+};
+
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_rndckey = {
+	"rndckey", parse_mapbody, print_mapbody, &cfg_rep_map,
+	rndckey_clausesets
+};
+
 
 static isc_result_t
 cfg_gettoken(cfg_parser_t *pctx, int options) {

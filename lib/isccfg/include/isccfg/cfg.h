@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.28 2001/07/23 16:58:18 gson Exp $ */
+/* $Id: cfg.h,v 1.29 2001/08/03 05:56:11 marka Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -405,6 +405,9 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
 /* A complete named.conf file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
+/* A complete rndc.conf file. */
+
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndckey;
 /* A complete rndc.conf file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;

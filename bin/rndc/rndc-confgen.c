@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.2 2001/06/29 23:32:09 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.3 2001/08/03 05:56:15 marka Exp $ */
 
 #include <config.h>
 
@@ -40,6 +40,7 @@
 #include <dns/name.h>
 
 #include <dst/dst.h>
+#include <rndc/os.h>
 
 #include "util.h"
 
@@ -51,18 +52,26 @@
 char progname[256];
 isc_boolean_t verbose = ISC_FALSE;
 
+const char *keyfile, *keydef;
+
 static void
 usage(int status) {
+
 	fprintf(stderr, "\
 Usage:\n\
- %s [-b bits] [-k keyname] [-P] [-p port] [-r randomfile] [-s addr]\n\
+ %s [-a] [-b bits] [-c keyfile] [-k keyname] [-P] [-p port] [-r randomfile] \
+[-s addr] [-t chrootdir] [-u user]\n\
+  -a:		generate just the key clause and write it to keyfile (%s)\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
+  -c keyfile:	specify a alterate keyfile (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
   -P:		using pseudorandom data for key generation is ok\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
-  -s addr:	the address to which rndc should connect\n",
-		progname, DEFAULT_KEYLENGTH);
+  -s addr:	the address to which rndc should connect\n\
+  -t chrootdir:	write a keyfile in chrootdir as well (requires -a)\n\
+  -u user:	set the keyfile owner to \"user\" (requires -a)\n",
+		progname, keydef, DEFAULT_KEYLENGTH);
 
 	exit (status);
 }
@@ -91,25 +100,39 @@ main(int argc, char **argv) {
 	int entropy_flags = 0;
 	int open_keyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 	struct in_addr addr;
+	char *chrootdir = NULL;
+	char *user = NULL;
+	isc_boolean_t keyonly = ISC_FALSE;
+	int len;
+	FILE *fd;
+	char *buf;
+
+ 	keydef = keyfile = RNDC_KEYFILE;
 
 	result = isc_file_progname(*argv, progname, sizeof(progname));
 	if (result != ISC_R_SUCCESS)
-		memcpy(progname, "rndc", 5);
+		memcpy(progname, "rndc-confgen", 13);
 
 	keyname = DEFAULT_KEYNAME;
 	keysize = DEFAULT_KEYLENGTH;
 	serveraddr = DEFAULT_SERVER;
 	port = DEFAULT_PORT;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:hk:MmPp:r:s:Vy"))
-	       != -1) {
+	while ((ch = isc_commandline_parse(argc, argv,
+					   "ab:c:hk:MmPp:r:s:t:u:Vy")) != -1) {
 		switch (ch) {
+		case 'a':
+			keyonly = ISC_TRUE;
+			break;
 		case 'b':
 			keysize = strtol(isc_commandline_argument, &p, 10);
 			if (*p != '\0' || keysize < 0)
 				fatal("-b requires a non-negative number");
 			if (keysize < 1 || keysize > 512)
 				fatal("-b must be in the range 1 through 512");
+			break;
+		case 'c':
+			keyfile = isc_commandline_argument;
 			break;
 		case 'h':
 			usage(0);
@@ -142,6 +165,12 @@ main(int argc, char **argv) {
 			if (inet_aton(serveraddr, &addr) == 0)
 				fatal("-s should be an IPv4 or IPv6 address");
 				
+			break;
+		case 't':
+			chrootdir = isc_commandline_argument;
+			break;
+		case 'u':
+			user = isc_commandline_argument;
 			break;
 		case 'V':
 			verbose = ISC_TRUE;
@@ -211,7 +240,77 @@ main(int argc, char **argv) {
 		 */
 		printf("\n\n");
 
-	printf("\
+	if (keyonly) {
+		fd = safe_create(keyfile);
+		if (fd == NULL) {
+			fprintf(stderr, "unable to create \"%s\"\n", keyfile);
+			goto cleanup;
+		}
+		if (user != NULL && chrootdir == NULL) {
+			if (set_user(fd, user) == -1) {
+				fprintf(stderr, "unable to set file owner\n");
+				fclose(fd);
+				goto cleanup;
+			}
+		}
+		fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
+			   "\tsecret \"%.*s\";\n};\n", keyname,
+			   (int)isc_buffer_usedlength(&key_txtbuffer),
+			   (char *)isc_buffer_base(&key_txtbuffer));
+		fflush(fd);
+		if (ferror(fd)) {
+			fprintf(stderr, "write to %s failed\n", keyfile);
+			fclose(fd);
+			goto cleanup;
+		}
+		if (fclose(fd)) {
+			fprintf(stderr, "fclose(%s) failed\n", keyfile);
+			goto cleanup;
+		}
+		if (chrootdir == NULL)
+			goto cleanup;
+
+		len = strlen(chrootdir) + strlen(keyfile) + 2;
+		buf = isc_mem_get(mctx, len);
+		if (buf != NULL) {
+			fprintf(stderr, "isc_mem_get(%d) failed\n", len);
+			goto cleanup;
+		}
+		snprintf(buf, len, "%s" "/" "%s", chrootdir, keyfile);
+		fd = safe_create(buf);
+		if (fd == NULL) {
+			fprintf(stderr, "unable to create \"%s\"\n",
+				buf);
+			isc_mem_put(mctx, buf, len);
+			goto cleanup;
+		}
+		if (user != NULL) {
+			if (set_user(fd, user) == -1) {
+				fprintf(stderr, "unable to set file owner\n");
+				fclose(fd);
+				isc_mem_put(mctx, buf, len);
+				goto cleanup;
+			}
+		}
+		fprintf(fd, "key \"%s\" {\n\talgorithm hmac-md5;\n"
+			   "\tsecret \"%.*s\";\n};\n", keyname,
+			   (int)isc_buffer_usedlength(&key_txtbuffer),
+			   (char *)isc_buffer_base(&key_txtbuffer));
+		fflush(fd);
+		if (ferror(fd)) {
+			fprintf(stderr, "write to %s failed\n", buf);
+			fclose(fd);
+			isc_mem_put(mctx, buf, len);
+			goto cleanup;
+		}
+		if (fclose(fd)) {
+			fprintf(stderr, "fclose(%s) failed\n", buf);
+			isc_mem_put(mctx, buf, len);
+			goto cleanup;
+		}
+		isc_mem_put(mctx, buf, len);
+	} else {
+		printf("\
 # Start of rndc.conf\n\
 key \"%s\" {\n\
 	algorithm hmac-md5;\n\
@@ -236,15 +335,17 @@ options {\n\
 # 		allow { %s; } keys { \"%s\"; };\n\
 # };\n\
 # End of named.conf\n",
-	       keyname,
-	       (int)isc_buffer_usedlength(&key_txtbuffer),
-	       (char *)isc_buffer_base(&key_txtbuffer),
-	       keyname, serveraddr, port,
-	       keyname,
-	       (int)isc_buffer_usedlength(&key_txtbuffer),
-	       (char *)isc_buffer_base(&key_txtbuffer),
-	       serveraddr, port, serveraddr, keyname);
+		       keyname,
+		       (int)isc_buffer_usedlength(&key_txtbuffer),
+		       (char *)isc_buffer_base(&key_txtbuffer),
+		       keyname, serveraddr, port,
+		       keyname,
+		       (int)isc_buffer_usedlength(&key_txtbuffer),
+		       (char *)isc_buffer_base(&key_txtbuffer),
+		       serveraddr, port, serveraddr, keyname);
+	}
 
+ cleanup:
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
 
