@@ -27,15 +27,16 @@ typedef struct isc_sockaddr {
 	union {
 		struct sockaddr		sa;
 		struct sockaddr_in	sin;
-#ifdef notyet
 		struct sockaddr_in6	sin6;
-#endif
-	} type;
+	}				type;
 	unsigned int			length;		/* XXXRTH beginning? */
 } isc_sockaddr_t;
 
 isc_boolean_t
-isc_sockaddr_equal(isc_sockaddr_t *, isc_sockaddr_t *);
+isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b);
+
+unsigned int
+isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 
 ISC_LANG_ENDDECLS
 
