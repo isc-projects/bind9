@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.263 2000/11/30 19:38:01 gson Exp $ */
+/* $Id: server.c,v 1.264 2000/11/30 20:47:53 gson Exp $ */
 
 #include <config.h>
 
@@ -44,6 +44,7 @@
 #include <dns/keytable.h>
 #include <dns/master.h>
 #include <dns/peer.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
@@ -2117,11 +2118,13 @@ static isc_result_t
 zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	char *input, *ptr;
 	const char *zonetxt;
-	const char *viewtxt;
+	char *classtxt;
+	const char *viewtxt = NULL;
 	dns_fixedname_t name;
 	isc_result_t result;
 	isc_buffer_t buf;
 	dns_view_t *view = NULL;
+	dns_rdataclass_t rdclass;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 
@@ -2139,22 +2142,39 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 		return (ISC_R_SUCCESS);
 	}
 
-	/* Look for the optional view name. */	
-	viewtxt = next_token(&input, " \t");
+	/* Look for the optional class name. */
+	classtxt = next_token(&input, " \t");
+	if (classtxt != NULL) {
+		/* Look for the optional view name. */
+		viewtxt = next_token(&input, " \t");
+	}
 
 	isc_buffer_init(&buf, zonetxt, strlen(zonetxt));
 	isc_buffer_add(&buf, strlen(zonetxt));
 	dns_fixedname_init(&name);
-	result = dns_name_fromtext(&(name.name), &buf, dns_rootname,
-				   ISC_FALSE, NULL);
+	result = dns_name_fromtext(dns_fixedname_name(&name),
+				   &buf, dns_rootname, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
+
+	if (classtxt != NULL) {
+		isc_textregion_t r;
+		r.base = classtxt;
+		r.length = strlen(classtxt);
+		result = dns_rdataclass_fromtext(&rdclass, &r);
+		if (result != ISC_R_SUCCESS)
+			goto fail1;
+	} else {
+		rdclass = dns_rdataclass_in;
+	}
+	
 	if (viewtxt == NULL)
 		viewtxt = "_default";
 	result = dns_viewlist_find(&server->viewlist, viewtxt,
-				   dns_rdataclass_in, &view); /* XXX class */
+				   rdclass, &view);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
+	
 	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
 			     0, NULL, zonep);
 	if (result != ISC_R_SUCCESS)
@@ -2162,7 +2182,6 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
  fail2:
 	dns_view_detach(&view);
  fail1:
-	isc_buffer_invalidate(&buf);
 	return (result);
 }
 
