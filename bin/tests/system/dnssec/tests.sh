@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.21 2000/07/11 00:36:44 bwelling Exp $
+# $Id: tests.sh,v 1.22 2000/07/19 19:54:50 gson Exp $
 
 #
 # Perform tests
@@ -65,8 +65,8 @@ status=`expr $status + $ret`
 
 echo "I:checking multi-stage positive validation"
 ret=0
-$DIG $DIGOPTS a.secure.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS a.secure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$DIG $DIGOPTS +noauth a.secure.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.secure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
