@@ -86,7 +86,7 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 				
-		dns_rdatacallbacks_init(&callbacks);
+		dns_rdatacallbacks_init_stdio(&callbacks);
 		callbacks.add = print_dataset;
 		
 		result = dns_master_loadfile(argv[1], &origin, &origin, 1,

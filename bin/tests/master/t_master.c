@@ -105,7 +105,7 @@ test_master(char *testfile, char *origin, char *class,
 		return(T_UNRESOLVED);
 	}
 
-	dns_rdatacallbacks_init(&callbacks);
+	dns_rdatacallbacks_init_stdio(&callbacks);
 	callbacks.add = t1_add_callback;
 	
 	textregion.base = class;

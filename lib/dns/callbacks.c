@@ -15,16 +15,74 @@
  * SOFTWARE.
  */
 
- /* $Id: callbacks.c,v 1.3 1999/07/30 23:32:51 halley Exp $ */
+ /* $Id: callbacks.c,v 1.4 2000/01/22 01:38:57 gson Exp $ */
 
 #include <config.h>
 
 #include <stdarg.h>
 
 #include <isc/assertions.h>
-#include <dns/callbacks.h>
+#include <isc/util.h>
 
-static void default_error_warn_callback(dns_rdatacallbacks_t *, char *, ...);
+#include <dns/callbacks.h>
+#include <dns/log.h>
+
+static void stdio_error_warn_callback(dns_rdatacallbacks_t *, char *, ...);
+
+/*
+ * Private
+ */
+
+static void
+stdio_error_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+	va_list ap;
+
+	UNUSED(callbacks);
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
+}
+
+static void
+isclog_error_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+	va_list ap;
+
+	UNUSED(callbacks);
+	
+	va_start(ap, fmt);
+	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		       DNS_LOGMODULE_MASTER, /* XXX */
+		       ISC_LOG_ERROR, fmt, ap);
+	va_end(ap);
+}
+
+static void
+isclog_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
+	va_list ap;
+
+	UNUSED(callbacks);
+
+	va_start(ap, fmt);
+
+	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		       DNS_LOGMODULE_MASTER, /* XXX */
+		       ISC_LOG_WARNING, fmt, ap);
+	va_end(ap);
+}
+
+static void
+dns_rdatacallbacks_initcommon(dns_rdatacallbacks_t *callbacks)
+
+{
+	REQUIRE(callbacks != NULL);
+
+	callbacks->add = NULL;
+	callbacks->add_private = NULL;
+	callbacks->error_private = NULL;
+	callbacks->warn_private = NULL;
+}
 
 /*
  * Public.
@@ -32,28 +90,15 @@ static void default_error_warn_callback(dns_rdatacallbacks_t *, char *, ...);
 
 void
 dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks) {
-
-	REQUIRE(callbacks != NULL);
-
-	callbacks->add = NULL;
-	callbacks->error = default_error_warn_callback;
-	callbacks->warn = default_error_warn_callback;
-	callbacks->add_private = NULL;
-	callbacks->error_private = NULL;
-	callbacks->warn_private = NULL;
+	dns_rdatacallbacks_initcommon(callbacks);
+	callbacks->error = isclog_error_callback;
+	callbacks->warn = isclog_warn_callback;
 }
 
-/*
- * Private
- */
-
-static void
-default_error_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
-	va_list ap;
-
-	callbacks = callbacks; /*unused*/
-
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
+void
+dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks) {
+	dns_rdatacallbacks_initcommon(callbacks);
+	callbacks->error = stdio_error_warn_callback;
+	callbacks->warn = stdio_error_warn_callback;
 }
+

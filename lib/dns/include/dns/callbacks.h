@@ -35,10 +35,6 @@ ISC_LANG_BEGINDECLS
  ***	Types
  ***/
 
-/*
- * XXXRTH  These are likely to change once we've got a logging system.
- */
-
 typedef struct dns_rdatacallbacks {
 	/* dns_load_master calls this when it has rdatasets to commit */
 	dns_addrdatasetfunc_t add;
@@ -57,15 +53,20 @@ typedef struct dns_rdatacallbacks {
  ***/
 
 void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
-
 /*
  * Initalise 'callbacks'.
  * 	'error' and 'warn' are set to default callbacks that print the
- *	error message to stderr.
+ *	error message through the DNS library log context.
+ * 
  *	All other elements are initalised to NULL.
  *
  * Requires:
  *      'callbacks' is a valid dns_rdatacallbacks_t,
+ */
+
+void dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
+/*
+ * Like dns_rdatacallbacks_init, but logs to stdio.
  */
 
 ISC_LANG_ENDDECLS
