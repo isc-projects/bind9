@@ -18,23 +18,29 @@
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 
+/*
+ * Including this file gives you type declarations suitable for use in
+ * .h files, which lets us avoid circular type reference problems.
+ *
+ * To actually use a type or get declarations of its methods, you must
+ * include the appropriate .h file too.
+ */
+
 #include <isc/region.h>
 #include <isc/boolean.h>
 
-typedef isc_region_t				dns_label_t;
+#define DNS_TRUE				ISC_TRUE
+#define DNS_FALSE				ISC_FALSE
+
+typedef isc_boolean_t				dns_boolean_t;
+typedef isc_region_t				dns_region_t;
+typedef dns_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef struct dns_lex				dns_lex_t;
 typedef struct dns_compression			dns_compression_t;
 typedef struct dns_decompression		dns_decompression_t;
-
-typedef enum {
-	dns_labeltype_ordinary = 0,
-	dns_labeltype_bitstring = 1
-} dns_labeltype_t;
-
-typedef enum {
-	dns_bitlabel_0 = 0,
-	dns_bitlabel_1 = 1
-} dns_bitlabel_t;
+typedef unsigned int				dns_rdataclass_t;
+typedef unsigned int				dns_rdatatype_t;
+typedef struct dns_rdata			dns_rdata_t;
 
 #endif /* DNS_TYPES_H */
