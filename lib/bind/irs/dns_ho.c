@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.4 2001/06/21 08:26:08 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5 2001/07/02 00:44:50 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -94,11 +94,7 @@ static const char rcsid[] = "$Id: dns_ho.c,v 1.4 2001/06/21 08:26:08 marka Exp $
 #define	MAXALIASES	35
 #define	MAXADDRS	35
 
-#if PACKETSZ > 1024
-#define	MAXPACKET	PACKETSZ
-#else
-#define	MAXPACKET	1024
-#endif
+#define MAXPACKET (1024*64)
 
 #define BOUNDS_CHECK(ptr, count) \
 	if ((ptr) + (count) > eom) { \
