@@ -411,8 +411,7 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp) {
 }
 
 static lwres_result_t
-lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
-{
+lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp) {
 	int delim;
 	long ndots;
 	char *p;
@@ -434,6 +433,8 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
 		} else if (strncmp("ndots:", word, 6) == 0) {
 			ndots = strtol(word + 6, &p, 10);
 			if (*p != '\0') /* Bad string. */
+				return (LWRES_R_FAILURE);
+			if (ndots < 0 || ndots > 0xff) /* Out of range. */
 				return (LWRES_R_FAILURE);
 			confdata->ndots = ndots;
 		}
