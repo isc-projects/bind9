@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.12 2001/02/23 00:15:55 gson Exp $ */
+/* $Id: cfg.h,v 1.13 2001/02/23 00:24:34 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -187,13 +187,13 @@ cfg_obj_istuple(cfg_obj_t *obj);
  */
 
 cfg_obj_t *
-cfg_tuple_get(cfg_obj_t *tupleobj, const char* name);
+cfg_tuple_get(cfg_obj_t *tupleobj, const char *name);
 /*
  * Extract an element from a configuration object, which
  * must be of a tuple type.
  *
  * Requires:
- *      'tupleobj' ponts to a valid configuraration object of a tuple type.
+ *      'tupleobj' ponts to a valid configuration object of a tuple type.
  *      'name' points to a null-terminated string naming one of the
  *	fields of said tuple type.
  */
