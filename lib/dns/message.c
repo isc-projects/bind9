@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.131 2000/06/23 20:47:23 mws Exp $ */
+/* $Id: message.c,v 1.132 2000/06/29 18:58:32 gson Exp $ */
 
 /***
  *** Imports
@@ -2014,7 +2014,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	attributes = 0;
 	if (atype == dns_rdatatype_cname)
 		attributes = DNS_NAMEATTR_CNAME;
-	else if (atype == dns_rdatatype_cname)
+	else if (atype == dns_rdatatype_dname)
 		attributes = DNS_NAMEATTR_DNAME;
 	
 	/*
