@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.14.2.5 2004/07/20 07:00:21 marka Exp $
+# $Id: Makefile.in,v 1.14.2.6 2004/12/05 22:57:01 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,7 +47,7 @@ libt_api.@SA@: ${OBJS}
 libt_api.la: ${OBJS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libt_api.la -rpath ${libdir} \
-		${OBJS} ${ISCLIBS} ${LIBS} -allow-undefined
+		${OBJS} ${ISCLIBS} ${LIBS} @LIBTOOL_ALLOW_UNDEFINED@
 
 timestamp: libt_api.@A@
 	touch timestamp
