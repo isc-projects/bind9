@@ -1,3 +1,6 @@
+ 957.	[bug]		sys/select.h inclusion was broken on older platforms.
+			[RT #1607]
+
  956.	[bug]		ns_g_autorndcfile changed to ns_g_keyfile
 			in named/win32/os.c due to code changes in
 			change #953. win32 .make file for rndc-confgen

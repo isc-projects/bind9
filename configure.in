@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.286 $)
+AC_REVISION($Revision: 1.287 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -242,7 +242,7 @@ AC_TRY_COMPILE([
 	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#undef LWRES_PLATFORM_NEEDSYSSELECTH"],
 	[AC_MSG_RESULT(no)
-	case ac_cv_header_sys_select_h in
+	case $ac_cv_header_sys_select_h in
 	yes)
          ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
@@ -254,7 +254,7 @@ AC_TRY_COMPILE([
 	])
 	;;
 no)
-	case ac_cv_header_sys_select_h in
+	case $ac_cv_header_sys_select_h in
 	yes)
              ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
