@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.11 1999/06/08 10:35:23 gson Exp $ */
+ /* $Id: wks_11.c,v 1.12 1999/07/05 05:50:52 gson Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
@@ -77,7 +77,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 		proto = pe->p_proto;
 	else
 		return (DNS_R_UNEXPECTED);
-	if (proto < 0 || proto > 0xffff)
+	if (proto < 0 || proto > 0xff)
 		return (DNS_R_RANGE);
 
 	if (proto == IPPROTO_TCP)
@@ -85,7 +85,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	else if (proto == IPPROTO_UDP)
 		ps = "udp";
 
-	RETERR(uint16_tobuffer(proto, target));
+	RETERR(uint8_tobuffer(proto, target));
 
 	memset(bm, 0, sizeof bm);
 	while (1) {
@@ -134,7 +134,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_buffer_add(target, strlen((char *)tr.base));
 	isc_region_consume(&sr, 4);
 
-	proto = uint16_fromregion(&sr);
+	proto = uint8_fromregion(&sr);
 	sprintf(buf, "%u", proto);
 	RETERR(str_totext(" ", target));
 	RETERR(str_totext(buf, target));
@@ -171,9 +171,9 @@ fromwire_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_active(source, &sr);
 	isc_buffer_available(target, &tr);
 
-	if (sr.length < 6)
+	if (sr.length < 5)
 		return (DNS_R_UNEXPECTEDEND);
-	if (sr.length > 8 * 1024 + 6)
+	if (sr.length > 8 * 1024 + 5)
 		return (DNS_R_EXTRADATA);
 	if (tr.length < sr.length)
 		return (DNS_R_NOSPACE);
