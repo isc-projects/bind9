@@ -674,7 +674,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		DNS_R_NXDOMAIN			The desired name does not
  *						exist.
  *
- *		DNS_R_NXRDATASET		The desired name exists, but
+ *		DNS_R_NXRRSET			The desired name exists, but
  *						the desired type does not.
  *
  *		DNS_R_NXGLUE			The desired name exists, but
@@ -694,8 +694,17 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						use its nameserver(s) of last
  *						resort (e.g. root hints).
  *
- *		XXX There will be a result codes for negative cache entries
- *		    in the future.
+ *		DNS_R_NCACHENXDOMAIN		The desired name does not
+ *						exist.  'node' is bound to the
+ *						cache node with the desired
+ *						name, and 'rdataset' contains
+ *						the negative caching proof.
+ *
+ *		DNS_R_NCACHENXRRSET		The desired type does not
+ *						exist.  'node' is bound to the
+ *						cache node with the desired
+ *						name, and 'rdataset' contains
+ *						the negative caching proof.
  *
  *	Error results:
  *

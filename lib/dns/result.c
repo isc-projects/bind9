@@ -78,6 +78,8 @@ static char *text[DNS_R_NRESULTS] = {
 	"hint",					/* 48 */
 	"drop",					/* 49 */
 	"zone not loaded",			/* 50 */
+	"ncache nxdomain",			/* 51 */
+	"ncache nxrrset",			/* 52 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {

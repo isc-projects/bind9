@@ -98,8 +98,10 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_HINT			(ISC_RESULTCLASS_DNS + 48)
 #define DNS_R_DROP			(ISC_RESULTCLASS_DNS + 49)
 #define DNS_R_NOTLOADED			(ISC_RESULTCLASS_DNS + 50)
+#define DNS_R_NCACHENXDOMAIN		(ISC_RESULTCLASS_DNS + 51)
+#define DNS_R_NCACHENXRRSET		(ISC_RESULTCLASS_DNS + 52)
 
-#define DNS_R_NRESULTS			51	/* Number of results */
+#define DNS_R_NRESULTS			53	/* Number of results */
 
 /*
  * DNS wire format rcodes
