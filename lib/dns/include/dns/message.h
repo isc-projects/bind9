@@ -201,6 +201,7 @@ struct dns_message {
 	void			       *tsigctx;
 	int				sigstart;
 
+	dns_name_t		       *sig0name;
 	dst_key_t		       *sig0key;
 	dns_rcode_t			sig0status;
 	isc_region_t		       *query;
@@ -955,13 +956,14 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner);
  */
 
 dns_rdataset_t *
-dns_message_getsig0(dns_message_t *msg);
+dns_message_getsig0(dns_message_t *msg, dns_name_t **owner);
 /*
- * Get the SIG(0) record for 'msg'.
+ * Get the SIG(0) record and owner for 'msg'.
  *
  * Requires:
  *
  *	'msg' is a valid message.
+ *	'owner' is not NULL, and *owner is NULL.  Contains the owner on return.
  *
  * Returns:
  *

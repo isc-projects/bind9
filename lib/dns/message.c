@@ -320,6 +320,7 @@ msginitprivate(dns_message_t *m) {
 	}
 	m->opt = NULL;
 	m->sig0 = NULL;
+	m->sig0name = NULL;
 	m->tsigset = NULL;
 	m->tsigname = NULL;
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
@@ -419,7 +420,10 @@ msgresetsigs(dns_message_t *msg) {
 		INSIST(dns_rdataset_isassociated(msg->sig0));
 		dns_rdataset_disassociate(msg->sig0);
 		isc_mempool_put(msg->rdspool, msg->sig0);
+		if (msg->sig0name != NULL)
+			isc_mempool_put(msg->namepool, msg->sig0name);
 		msg->sig0 = NULL;
+		msg->sig0name = NULL;
 	}
 }
 
@@ -1344,9 +1348,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    sectionid == DNS_SECTION_ADDITIONAL)
 		{
 			msg->sig0 = rdataset;
+			msg->sig0name = name;
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
-			isc_mempool_put(msg->namepool, name);
 			free_name = ISC_FALSE;
 		}
 		else if (rdtype == dns_rdatatype_tsig) {
@@ -1784,6 +1788,11 @@ dns_message_renderend(dns_message_t *msg) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		count = 0;
+		/*
+		 * Note: dns_rootname is used here, not msg->sig0name, since
+		 * the owner name of a SIG(0) is irrelevant, and will not
+		 * be set in a message being rendered.
+		 */
 		result = dns_rdataset_towire(msg->sig0, dns_rootname,
 					     &msg->cctx, msg->buffer, &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
@@ -2211,7 +2220,7 @@ dns_message_gettsig(dns_message_t *msg, dns_name_t **owner) {
 }
 
 dns_rdataset_t *
-dns_message_getsig0(dns_message_t *msg) {
+dns_message_getsig0(dns_message_t *msg, dns_name_t **owner) {
 
 	/*
 	 * Get the SIG(0) record for 'msg'.
@@ -2219,7 +2228,21 @@ dns_message_getsig0(dns_message_t *msg) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
-	return (msg->sig0);
+	if (msg->sig0 != NULL) {
+		/* If dns_message_getsig0 is called on a rendered message
+		 * after the SIG(0) has been applied, we need to return the
+		 * root name, not NULL.
+		 */
+		if (msg->sig0name == NULL)
+			*owner = dns_rootname;
+		else
+			*owner = msg->sig0name;
+		return (msg->sig0);
+	}
+	else {
+		*owner = NULL;
+		return (NULL);
+	}
 }
 
 void
@@ -2501,12 +2524,12 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		return (result);
 		break;
 	case DNS_PSEUDOSECTION_SIG0:
-		ps = dns_message_getsig0(msg);
+		ps = dns_message_getsig0(msg, &name);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
 		if (comments)
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
-		result = dns_rdataset_totext(ps, dns_rootname, omit_final_dot,
+		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
 		ADD_STRING(target, "\n");
 		return (result);
