@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.90 2002/01/04 02:32:06 gson Exp $ */
+/* $Id: rndc.c,v 1.91 2002/01/30 00:20:50 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -95,6 +95,10 @@ command is one of the following:\n\
 		Schedule immediate maintenance for a zone.\n\
   retransfer zone [class [view]]\n\
 		Retransfer a single zone without checking serial number.\n\
+  freeze zone [class [view]]\n\
+  		Suspend updates to a dynamic zone.\n\
+  unfreeze zone [class [view]]\n\
+  		Enable updates to a frozen dynamic zone and reload it.\n\
   reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
