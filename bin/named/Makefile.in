@@ -36,7 +36,7 @@ named: ${OBJS} ${DEPLIBS}
 	${CC} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::
-	rm -f ${TARGETS} parser.c parser_p.h
+	rm -f ${TARGETS} confparser.c confparser_p.h
 
 confparser.c: confparser.y
 	${YACC} -d confparser.y
