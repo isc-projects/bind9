@@ -21,7 +21,6 @@
 #include <windows.h>
 
 #include <isc/lang.h>
-#include <isc/result.h>
 #include <isc/mutex.h>
 #include <isc/types.h>
 
