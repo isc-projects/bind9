@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.38 2000/11/14 22:29:48 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.39 2000/11/15 01:20:18 tale Exp $ -->
 
 <book>
 
@@ -3099,31 +3099,18 @@ except zone transfers are performed using IPv6.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>coresize</command></para></entry>
 <entry colname = "2"><para>The maximum size of a core dump. The default
-is <literal>default</literal>.</para><note>
-                    <simpara>Not yet implemented in <acronym>BIND</acronym>
-9.</simpara></note></entry>
+is <literal>default</literal>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>datasize</command></para></entry>
 <entry colname = "2"><para>The maximum amount of data memory the server
-may use. The default is <literal>default</literal>.</para><note>
-<simpara>Not
-yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+may use. The default is <literal>default</literal>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>files</command></para></entry>
 <entry colname = "2"><para>The maximum number of files the server
 may have open concurrently. The default is <literal>unlimited</literal>.
-</para><note>
-                    <simpara>on some operating systems the server cannot set an unlimited
-value and cannot determine the maximum number of open files the
-kernel can support. On such systems, choosing 
-<literal>unlimited</literal> will
-cause the server to use the larger of the <command>rlim_max</command> for <command>RLIMIT_NOFILE</command> and
-the value returned by <command>sysconf(_SC_OPEN_MAX)</command>.
-If the actual kernel limit is larger than this value, use <command>limit
-files</command> to specify the limit explicitly.</simpara></note><note><simpara>Not yet
-implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>max-ixfr-log-size</command></para></entry>
@@ -3139,9 +3126,7 @@ is <literal>1000</literal>.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>stacksize</command></para></entry>
 <entry colname = "2"><para>The maximum amount of stack memory the server
-may use. The default is <literal>default</literal>.</para><note>
-<simpara>Not
-yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+may use. The default is <literal>default</literal>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>tcp-clients</command></para></entry>
