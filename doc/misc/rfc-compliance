@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: rfc-compliance,v 1.1 2001/02/22 19:53:08 gson Exp $
+$Id: rfc-compliance,v 1.2 2001/02/22 20:21:39 gson Exp $
 
 BIND 9 is striving for strict compliance with IETF standards.  We
 believe this release of BIND 9 complies with the following RFCs, with
@@ -28,7 +28,7 @@ or Best Current Practice (BCP) documents.
   RFC2181
   RFC2230
   RFC2308
-  RFC2535 [3] [4] [5]
+  RFC2535 [3] [4]
   RFC2536
   RFC2537
   RFC2538
@@ -37,6 +37,11 @@ or Best Current Practice (BCP) documents.
   RFC2672
   RFC2673
   RFC2782
+  RFC2915
+  RFC2930
+  RFC2931 [5]
+  RFC3007
+
 
 [1] Queries to zones that have failed to load return SERVFAIL rather
 than a non-authoritative response.  This is considered a feature.
@@ -50,3 +55,7 @@ must support EDNS0 (RFC2671), and must return all relevant SIGs and
 NXTs in responses rather than relying on the resolving server to
 perform separate queries for missing SIGs and NXTs.
 
+[5] When receiving a query signed with a SIG(0), the server will only
+be able to verify the signature if it has the key in its local
+authoritative data; it will not do recursion or validation to
+retrieve unknown keys.
