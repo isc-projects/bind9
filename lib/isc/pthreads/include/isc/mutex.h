@@ -42,7 +42,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 	((pthread_mutex_unlock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 #define isc_mutex_trylock(mp) \
-	((pthread_mutex_trylock((mp)) == 0 ? \
+	((pthread_mutex_trylock((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 #define isc_mutex_destroy(mp) \
 	((pthread_mutex_destroy((mp)) == 0) ? \
