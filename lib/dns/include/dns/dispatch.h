@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.40 2001/02/07 05:11:58 bwelling Exp $ */
+/* $Id: dispatch.h,v 1.41 2001/02/09 00:23:16 gson Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -157,8 +157,8 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp);
 void
 dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole);
 /*
- * Sets the list of addresses that will be blackholed (ignored)
- * by all dispatchers created by the dispatchmgr.
+ * Sets the dispatcher's "blackhole list," a list of addresses that will
+ * be ignored by all dispatchers created by the dispatchmgr.
  *
  * Requires:
  * 	mgrp is a valid dispatchmgr
@@ -166,15 +166,16 @@ dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole);
  */
 
 
-isc_result_t
-dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr, dns_acl_t **blackholep);
+dns_acl_t *
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
 /*
- * Gets the list of addresses that will be blackholed (ignored)
- * by all dispatchers created by the dispatchmgr.
+ * Gets a pointer to the dispatcher's current blackhole list,
+ * without incrementing its reference count.
  *
  * Requires:
  * 	mgr is a valid dispatchmgr
- * 	blackholep != NULL && *blackholep == NULL
+ * Returns:
+ *	A pointer to the current blackhole list, or NULL.
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.199 2001/02/09 00:13:53 gson Exp $ */
+/* $Id: resolver.c,v 1.200 2001/02/09 00:23:13 gson Exp $ */
 
 #include <config.h>
 
@@ -850,7 +850,7 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_acl_t *blackhole = NULL;
+	dns_acl_t *blackhole;
 	dns_peer_t *peer = NULL;
 	isc_boolean_t bogus;
 	isc_boolean_t aborted = ISC_FALSE;
@@ -1039,7 +1039,8 @@ resquery_send(resquery_t *query) {
 		address = &query->addrinfo->sockaddr;
 	isc_buffer_usedregion(buffer, &r);
 
-	(void)dns_dispatchmgr_getblackhole(query->dispatchmgr, &blackhole);
+
+	blackhole = dns_dispatchmgr_getblackhole(query->dispatchmgr);
 	if (blackhole != NULL) {
 		int match;
 
@@ -1047,7 +1048,6 @@ resquery_send(resquery_t *query) {
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			aborted = ISC_TRUE;
-		dns_acl_detach(&blackhole);
 	}
 
 	peer = NULL;

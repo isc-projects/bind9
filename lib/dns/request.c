@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.54 2001/01/27 02:28:32 bwelling Exp $ */
+/* $Id: request.c,v 1.55 2001/02/09 00:23:14 gson Exp $ */
 
 #include <config.h>
 
@@ -467,20 +467,19 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp) {
 
 static isc_boolean_t
 isblackholed(dns_dispatchmgr_t *dispatchmgr, isc_sockaddr_t *destaddr) {
-	dns_acl_t *blackhole = NULL;
+	dns_acl_t *blackhole;
 	isc_netaddr_t netaddr;
 	int match;
 	isc_boolean_t drop = ISC_FALSE;
 	char netaddrstr[ISC_NETADDR_FORMATSIZE];
 
-	(void)dns_dispatchmgr_getblackhole(dispatchmgr, &blackhole);
+	blackhole = dns_dispatchmgr_getblackhole(dispatchmgr);
 	if (blackhole != NULL) {
 		isc_netaddr_fromsockaddr(&netaddr, destaddr);
 		if (dns_acl_match(&netaddr, NULL, blackhole,
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			drop = ISC_TRUE;
-		dns_acl_detach(&blackhole);
 	}
 	if (drop) {
 		isc_netaddr_format(&netaddr, netaddrstr, sizeof(netaddrstr));

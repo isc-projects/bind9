@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.91 2001/02/08 18:25:09 gson Exp $ */
+/* $Id: dispatch.c,v 1.92 2001/02/09 00:23:12 gson Exp $ */
 
 #include <config.h>
 
@@ -1121,15 +1121,10 @@ dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole) {
 	dns_acl_attach(blackhole, &mgr->blackhole);
 }
 
-isc_result_t
-dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr, dns_acl_t **blackholep) {
+dns_acl_t *
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
-	REQUIRE(blackholep != NULL && *blackholep == NULL);
-
-	if (mgr->blackhole == NULL)
-		return (ISC_R_NOTFOUND);
-	dns_acl_attach(mgr->blackhole, blackholep);
-	return (ISC_R_SUCCESS);
+	return (mgr->blackhole);
 }
 
 static isc_result_t
