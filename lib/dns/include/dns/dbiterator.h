@@ -102,7 +102,6 @@ struct dns_dbiterator {
 	unsigned int			magic;
 	dns_dbiteratormethods_t *	methods;
 	dns_db_t *			db;
-	dns_dbversion_t *		version;
 	isc_boolean_t			relative_names;
 };
 
@@ -219,13 +218,9 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
  *
  * Requires:
  *
- *	'iterator' is a relative_names iterator.
+ *	'iterator' is a valid relative_names iterator.
  *
  *	'name' is a valid name with a dedicated buffer.
- *
- * Ensures:
- *
- *	On success, if 'target' is not NULL, then 'name' is attached to it.
  *
  * Returns:
  *
