@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\" 
-.\" $Id: dnssec-makekeyset.8,v 1.6 2000/07/31 15:28:19 bwelling Exp $
+.\" $Id: dnssec-makekeyset.8,v 1.7 2000/07/31 19:39:38 bwelling Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
@@ -29,6 +29,7 @@
 .Op Fl e Ar end-time
 .Op Fl t Ar TTL
 .Op Fl r Ar randomdev
+.Op Fl p
 .Op Fl v Ar level
 .Ar keyfile ....
 .Sh DESCRIPTION
@@ -111,6 +112,14 @@ option is used,
 .Nm dnssec-makekeyset
 will prompt the user for input from the keyboard and use the time
 between keystrokes to derive some random data.
+.Pp
+The
+.Fl p
+option instructs
+.Nm dnssec-makekeyset
+to use pseudo-random data when self-signing the keyset.  This is faster, but
+less secure, than using genuinely random data for signing.
+This option may be useful when the entropy source is limited.
 .Pp
 The
 .Fl t

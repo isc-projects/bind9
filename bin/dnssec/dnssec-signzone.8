@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\" 
-.\" $Id: dnssec-signzone.8,v 1.9 2000/07/31 15:28:21 bwelling Exp $
+.\" $Id: dnssec-signzone.8,v 1.10 2000/07/31 19:39:42 bwelling Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -163,18 +163,6 @@ by default, with a cycle period of 7.5 days.  Therefore, if any SIG records
 are due to expire in less than 7.5 days, they would be replaced
 with new ones.
 .Pp
-The
-.Fl p
-option instructs
-.Nm dnssec-signkey
-to use pseudo-random data when signing the keys.  This is faster, but
-less secure, than using genuinely random data for signing.
-This option may be useful when there are many child zone keysets to
-sign or if the entropy source is limited.
-It could also be used for short-lived keys and signatures that don't
-require as much protection against cryptanalysis, such as when the key
-will be discarded long before it could be compromised.
-.Pp
 .Nm dnssec-signzone
 may need random numbers in the process of signing the zone.
 If the system does not have a
@@ -190,6 +178,18 @@ option overrides this behaviour, making
 use
 .Ar randomdev
 as a source of random data.
+.Pp
+The
+.Fl p
+option instructs
+.Nm dnssec-signkey
+to use pseudo-random data when signing the keys.  This is faster, but
+less secure, than using genuinely random data for signing.
+This option may be useful when there are many child zone keysets to
+sign or if the entropy source is limited.
+It could also be used for short-lived keys and signatures that don't
+require as much protection against cryptanalysis, such as when the key
+will be discarded long before it could be compromised.
 .Pp
 An option of
 .Fl h
