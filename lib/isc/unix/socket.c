@@ -603,7 +603,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_controllen = 0;
 #if defined(USE_CMSG) /* XXXMLG implement! */
 	if (sock->type == isc_sockettype_udp) {
-		msg->msg_control = &sock->cmsg[0];
+		msg->msg_control = (void *)&sock->cmsg[0];
 		msg->msg_controllen = sizeof(sock->cmsg);
 	}
 #endif
