@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.21 2000/07/11 20:13:09 brister Exp $ */
+/* $Id: confndc.c,v 1.22 2000/07/18 13:19:26 brister Exp $ */
 
 /*
 **	options {
@@ -1381,7 +1381,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
 	pctx->thecontext = NULL;
 	pctx->errors = 0;
 	pctx->warnings = 0;
-	pctx->debug_lexer = ISC_TF(getenv("DEBUG_LEXER") != NULL);
+	pctx->debug_lexer = ISC_FALSE;
 
 	pctx->prevtok = pctx->currtok = 0;
 
@@ -1610,9 +1610,6 @@ getnexttoken(ndcpcontext *pctx) {
         case ISC_R_SUCCESS:
 		switch (token.type) {
 		case isc_tokentype_unknown:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "unknown token\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
@@ -1628,12 +1625,6 @@ getnexttoken(ndcpcontext *pctx) {
 					CONF_MAX_IDENT);
 				tokstr[CONF_MAX_IDENT - 1] = '\0';
 			}
-
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: %s : %s\n",
-					(token.type == isc_tokentype_special ?
-					 "special" : "string"),
-					tokstr);
 
 			result = isc_symtab_lookup(pctx->thekeywords, tokstr,
 						   KEYWORD_SYM_TYPE,
@@ -1659,11 +1650,6 @@ getnexttoken(ndcpcontext *pctx) {
 			pctx->currtok = L_INTEGER;
 			sprintf(pctx->tokstr, "%lu",
 				(unsigned long)pctx->intval);
-
-			if(pctx->debug_lexer)
-				fprintf(stderr, "lexer token: number : %lu\n",
-					(unsigned long)pctx->intval);
-
 			break;
 
 		case isc_tokentype_qstring:
@@ -1672,12 +1658,6 @@ getnexttoken(ndcpcontext *pctx) {
 				CONF_MAX_IDENT);
 			pctx->tokstr[CONF_MAX_IDENT - 1] = '\0';
 			pctx->currtok = L_QSTRING;
-
-			if (pctx->debug_lexer)
-				fprintf(stderr,
-					"lexer token: qstring : \"%s\"\n",
-					pctx->tokstr);
-
 			break;
 
 		case isc_tokentype_eof:
@@ -1690,39 +1670,23 @@ getnexttoken(ndcpcontext *pctx) {
 				 * The only way to tell that we closed the
 				 * main file and not an included file.
 				 */
-				if (pctx->debug_lexer)
-					fprintf(stderr, "lexer token: EOF\n");
-
 				pctx->currtok = L_END_INPUT;
 
 			} else {
-				if (pctx->debug_lexer)
-					fprintf(stderr,
-						"lexer token: EOF (main)\n");
-
 				pctx->currtok = L_END_INCLUDE;
 			}
 			result = ISC_R_SUCCESS;
 			break;
 
 		case isc_tokentype_initialws:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: initial ws\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_eol:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: eol\n");
-
 			result = ISC_R_FAILURE;
 			break;
 
 		case isc_tokentype_nomore:
-			if (pctx->debug_lexer)
-				fprintf(stderr, "lexer token: nomore\n");
-
 			result = ISC_R_FAILURE;
 			break;
 		}
