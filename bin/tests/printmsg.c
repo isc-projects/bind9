@@ -177,6 +177,14 @@ printmessage(dns_message_t *msg) {
 		printf("%sra", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
+	if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
+		printf("%sad", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
+	if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
+		printf("%scd", did_flag ? " " : "");
+		did_flag = ISC_TRUE;
+	}
 	printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
 	       msg->counts[DNS_SECTION_QUESTION],
 	       msg->counts[DNS_SECTION_ANSWER],
