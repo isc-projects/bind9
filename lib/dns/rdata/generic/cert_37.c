@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.19 2000/03/16 01:43:42 tale Exp $ */
+/* $Id: cert_37.c,v 1.20 2000/03/16 02:15:52 tale Exp $ */
+
+/* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
 /* RFC 2538 */
 
