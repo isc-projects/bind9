@@ -40,7 +40,7 @@ cp ns2/example2.db ns2/example.db
 sleep 5
 kill -HUP `cat ns2/named.pid`
 kill -HUP `cat ns3/named.pid`
-sleep 10
+sleep 60
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 	-b 10.53.0.4 a.example. @10.53.0.4 any -p 5300 > dig.out.ns4.2
