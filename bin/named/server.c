@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.420 2004/04/08 00:10:42 marka Exp $ */
+/* $Id: server.c,v 1.421 2004/04/10 05:03:27 marka Exp $ */
 
 #include <config.h>
 
@@ -1102,8 +1102,9 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	CHECK(configure_view_acl(vconfig, config, "allow-query",
 				 actx, ns_g_mctx, &view->queryacl));
 
-	CHECK(configure_view_acl(vconfig, config, "allow-recursion",
-				 actx, ns_g_mctx, &view->recursionacl));
+	if (strcmp(view->name, "_bind") != 0)
+		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
+					 actx, ns_g_mctx, &view->recursionacl));
 
 	/*
 	 * Warning if both "recursion no;" and allow-recursion are active
