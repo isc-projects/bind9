@@ -9,8 +9,8 @@
 ./bin/.cvsignore				X	1999,2000
 ./bin/Makefile.in				MAKE	1998,1999,2000
 ./bin/check/Makefile.in				MAKE	2000
-./bin/check/check-zone.c			C	1999,2000
-./bin/check/check-conf.c			C	1999,2000
+./bin/check/named-checkzone.c			C	1999,2000
+./bin/check/named-checkconf.c			C	1999,2000
 ./bin/check/check-tool.c			C	2000
 ./bin/dig/.cvsignore				X	2000
 ./bin/dig/Makefile.in				MAKE	2000

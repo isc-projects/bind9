@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.70 2000/12/15 21:17:23 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.71 2000/12/19 19:48:06 gson Exp $ -->
 
 <book>
 
@@ -619,29 +619,22 @@ behavior, we do not recommend the use of <command>nslookup</command>.
 Use <command>dig</command> instead.</para>
             </listitem>
           </varlistentry>
-        </variablelist>
-      </sect3>
-      <sect3 id="admin_tools">
-        <title>Administrative Tools</title>
-        <para>Administrative tools play an integral part in the management
-of a server.</para>
-        <variablelist>
-	  <varlistentry id="check-conf" xreflabel="Named Configuration Checking application">
-            <term><command>check-conf</command></term>
+	  <varlistentry id="named-checkconf" xreflabel="Named Configuration Checking application">
+            <term><command>named-checkconf</command></term>
             <listitem>
-	      <para>Performs syntax consistancy checks on <filename>named.conf</filename>.</para>
+	      <para>Checks the syntax of <filename>named.conf</filename>.</para>
               <cmdsynopsis label="Usage">
-                <command>check-conf</command>
+                <command>named-checkconf</command>
                 <arg><replaceable>filename</replaceable></arg>
               </cmdsynopsis>
             </listitem>
 	  </varlistentry>
-	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
-            <term><command>check-zone</command></term>
+	  <varlistentry id="named-checkzone" xreflabel="Zone Checking application">
+            <term><command>named-checkzone</command></term>
             <listitem>
-	      <para>Perform consistancy checks on a individual zone.</para>
+	      <para>Performs syntax and consistency checks on a individual zone.</para>
               <cmdsynopsis label="Usage">
-                <command>check-zone</command>
+                <command>named-checkzone</command>
                 <arg>-dq</arg>
                 <arg>-c <replaceable>class</replaceable></arg>
                 <arg choice="plain"><replaceable>zone</replaceable></arg>
@@ -649,6 +642,13 @@ of a server.</para>
               </cmdsynopsis>
             </listitem>
 	  </varlistentry>
+        </variablelist>
+      </sect3>
+      <sect3 id="admin_tools">
+        <title>Administrative Tools</title>
+        <para>Administrative tools play an integral part in the management
+of a server.</para>
+        <variablelist>
           <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
             <term><command>rndc</command></term>
             <listitem>

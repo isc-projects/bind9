@@ -1,3 +1,8 @@
+
+ 623.	[func]		Added "named-checkconf" and "named-checkzone" program
+			for syntax checking named.conf files and zone files,
+			respectively.
+
  622.	[bug]		A canceled request could be destroyed before
 			dns_request_destroy() was called. [RT #562]
 
