@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.24 2001/03/27 20:07:53 bwelling Exp $
+# $Id: update_copyrights,v 1.25 2001/06/10 14:01:10 tale Exp $
 
 require 5.002;
 
@@ -36,6 +36,8 @@ my %owner2filename = (
 # the lines of the copyright message.
 
 my %owner2text = ();
+
+my $keyword_pat = '\$(Id|Revision):.*\$';
 
 foreach $owner (keys %owner2filename) {
         my $f = $owner2filename{$owner};
@@ -164,7 +166,8 @@ while (<>) {
                         next;
                 }
                 while (<SOURCE>) {
-                        if ($_ !~ /^\Q$nonspaceprefix\E/) {
+                        if ($_ !~ /^\Q$nonspaceprefix\E/ ||
+                            $_ =~ /$keyword_pat/) {
                                 $first = $_;
                                 last;
                         }
@@ -259,14 +262,18 @@ while (<>) {
         if ($first eq "") {
                 $first = <SOURCE>;
         }
+
         if (defined($first)) {
-                print TARGET "\n";
+          	if ($type eq 'MAN') {
+                	print TARGET "$nonspaceprefix\n";
+		} else {
+	                print TARGET "\n";
+                }
 
                 undef $/;
                 $_ = <SOURCE>;
                 $/ = "\n";
 
-                my $pat = '\$(Id|Revision):.*\$';
                 my ($start, $end);
                 if ($start_comment ne "") {
                         ($start = $start_comment) =~ s/\s*\n/ /;
@@ -279,7 +286,7 @@ while (<>) {
                         $end = "\n";
                 }
 
-                if ($first !~ /$pat/ && $_ !~ /$pat/) {
+                if ($first !~ /$keyword_pat/ && $_ !~ /$keyword_pat/) {
                         print TARGET "$start\$";
                         print TARGET "Id: ";
                         print TARGET "\$$end\n";
