@@ -35,6 +35,17 @@
 #define BUFSIZE 512
 #define COMMSIZE 65536
 #define RESOLVCONF "/etc/resolv.conf"
+#define LOOKUP_LIMIT 64
+/* Lookup_limit is just a limiter, keeping too many lookups from being
+ * created.  It's job is mainly to prevent the program from running away
+ * in a tight loop of constant lookups.  It's value is arbitrary.
+ */
+#define ROOTNS 1
+/* Set the number of root servers to ask for information when running in
+ * trace mode.
+ * XXXMWS -- trace mode is currently semi-broken, and this number *MUST*
+ * be 1.
+ */
 
 ISC_LANG_BEGINDECLS
 
@@ -50,7 +61,9 @@ struct dig_lookup {
 		ns_search_only,
 		use_my_server_list,
 		identify,
-		recurse;
+		recurse,
+		trace,
+		trace_root;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
@@ -71,6 +84,7 @@ struct dig_lookup {
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
 	int retries;
+	int nsfound;
 	isc_boolean_t comments,
 		section_question,
 		section_answer,

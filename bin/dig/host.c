@@ -76,6 +76,7 @@ extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
+extern int lookup_counter;
 
 isc_boolean_t short_form=ISC_TRUE,
 	filter=ISC_FALSE,
@@ -165,17 +166,17 @@ static char *rtypetext[] = {
 	"has optional information"};	/* 41 */
 
 void
-check_next_lookup (dig_lookup_t *lookup) {
+check_next_lookup(dig_lookup_t *lookup) {
 	dig_lookup_t *next;
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
-	debug("check_next_lookup()");
+	debug("In check_next_lookup", stderr);
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
-			debug("Still have a worker.");
+			debug("Still have a worker.", stderr);
 			still_working=ISC_TRUE;
 		}
 	}
@@ -186,7 +187,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 	debug ("Have %d retries left for %s\n",
 	       lookup->retries, lookup->textname);
 	if ((next == NULL)&&((lookup->retries <= 1)
-			     ||tcp_mode)) {
+			     ||tcp_mode || !lookup->pending)) {
 		debug("Shutting Down.", stderr);
 		isc_app_shutdown();
 		return;
@@ -196,29 +197,15 @@ check_next_lookup (dig_lookup_t *lookup) {
 		setup_lookup(next);
 		do_lookup_tcp(next);
 	} else {
-		if (lookup->retries > 1) {
+		if ((lookup->retries > 1) && (lookup->pending)) {
 			lookup->retries --;
 			send_udp(lookup);
 		} else {
+			ENSURE (next != NULL);
 			setup_lookup(next);
 			do_lookup_udp(next);
 		}
 	}
-
-#ifdef NEVER
-	next = ISC_LIST_NEXT (lookup, link);
-	if (next == NULL) {
-		debug ("Shutting Down.");
-		isc_app_shutdown();
-		return;
-	}
-	
-	setup_lookup(next);
-	if (tcp_mode)
-		do_lookup_tcp(next);
-	else
-		do_lookup_udp(next);
-#endif
 }
 
 static void
@@ -630,6 +617,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (queryclass[0] == 0)
 		strcpy (queryclass, "in");
 
+	lookup_counter++;
+	if (lookup_counter > LOOKUP_LIMIT)
+		fatal ("Too many lookups.");
 	lookup = isc_mem_allocate (mctx, 
 				   sizeof(struct dig_lookup));
 	if (lookup == NULL)	
@@ -652,6 +642,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->ns_search_only = showallsoa;
 	lookup->use_my_server_list = ISC_FALSE;
 	lookup->retries = tries;
+	lookup->nsfound = 0;
+	lookup->trace = showallsoa;
+	lookup->trace_root = ISC_FALSE;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;

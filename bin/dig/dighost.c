@@ -60,8 +60,7 @@ ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t tcp_mode = ISC_FALSE, have_ipv6 = ISC_FALSE,
-	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
-	trace = ISC_FALSE;
+	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE;
 #ifdef TWIDDLE
 isc_boolean_t twiddle = ISC_FALSE;
 #endif
@@ -78,6 +77,7 @@ isc_buffer_t rootbuf;
 int sendcount = 0;
 int ndots = -1;
 int tries = 3;
+int lookup_counter = 0;
 char fixeddomain[MXNAME]="";
 
 static void
@@ -167,8 +167,8 @@ isclass(char *text) {
 	 * initialized.  This list will have to be manually kept in 
 	 * sync with what the libs support.
 	 */
-	const char *classlist[] = {"in", "hs", "any"};
-	const int numclasses = 3;
+	const char *classlist[] = {"in", "hs"};
+	const int numclasses = 2;
 	int i;
 
 	for (i = 0; i < numclasses; i++)
@@ -193,8 +193,8 @@ istype(char *text) {
 				  "gpos", "aaaa", "loc", "nxt",
 				  "srv", "naptr", "kx", "cert",
 				  "a6", "dname", "opt", "unspec",
-				  "tkey", "tsig", "axfr"};
-	const int numtypes = 41;
+				  "tkey", "tsig", "axfr", "any"};
+	const int numtypes = 42;
 	int i;
 
 	for (i = 0; i < numtypes; i++) {
@@ -245,7 +245,8 @@ setup_system(void) {
 	if (fixeddomain[0]!=0) {
 		search = isc_mem_allocate( mctx, sizeof(struct dig_server));
 		if (search == NULL)
-			fatal("Memory allocation failure.");
+			fatal("Memory allocation failure in %s:%d",
+			      __FILE__, __LINE__);
 		strncpy(search->origin, fixeddomain, MXNAME - 1);
 		ISC_LIST_PREPEND(search_list, search, link);
 	}
@@ -268,7 +269,10 @@ setup_system(void) {
 						if (srv == NULL)
 							fatal("Memory "
 							      "allocation "
-							      "failure.");
+							      "failure in "
+							      "%s:%d",
+							      __FILE__,
+							      __LINE__);
 							strncpy((char *)srv->
 								servername,
 								ptr,
@@ -300,7 +304,9 @@ setup_system(void) {
 						if (search == NULL)
 							fatal("Memory "
 							      "allocation "
-							      "failure.");
+							      "failure in %s:"
+							      "%d", __FILE__, 
+							      __LINE__);
 						strncpy(search->
 							origin,
 							ptr,
@@ -320,7 +326,9 @@ setup_system(void) {
 						if (search == NULL)
 							fatal("Memory "
 							      "allocation "
-							      "failure.");
+							      "failure in %s:"
+							      "%d", __FILE__, 
+							      __LINE__);
 						strncpy(search->
 							origin,
 							ptr,
@@ -406,7 +414,8 @@ add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 static void
-followup_lookup(dns_message_t *msg, dig_query_t *query) {
+followup_lookup(dns_message_t *msg, dig_query_t *query,
+		dns_section_t section) {
 	dig_lookup_t *lookup = NULL;
 	dig_server_t *srv = NULL;
 	dns_rdataset_t *rdataset = NULL;
@@ -415,13 +424,17 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 	isc_result_t result, loopresult;
 	isc_buffer_t *b = NULL;
 	isc_region_t r;
+	isc_boolean_t success = ISC_FALSE;
 	int len;
 
 	debug ("followup_lookup()"); 
-	result = dns_message_firstname (msg, DNS_SECTION_ANSWER);
+	result = dns_message_firstname (msg,section);
 	if (result != ISC_R_SUCCESS) {
 		debug ("Firstname returned %s",
 			isc_result_totext(result));
+		if ((section == DNS_SECTION_ANSWER) &&
+		    query->lookup->trace)
+			followup_lookup (msg, query, DNS_SECTION_AUTHORITY);
                 return;
 	}
 
@@ -429,15 +442,20 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 
 	for (;;) {
 		name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_ANSWER,
-					&name);
+		dns_message_currentname(msg, section, &name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
-				if (rdata.type == dns_rdatatype_ns) {
+				debug ("Got rdata with type %d",
+				       rdata.type);
+				if ((rdata.type == dns_rdatatype_ns) &&
+				    (!query->lookup->trace_root ||
+				     (query->lookup->nsfound < ROOTNS)))
+				{
+					query->lookup->nsfound++;
 					result = isc_buffer_allocate(mctx, &b,
 								     BUFSIZE);
 					check_result (result,
@@ -455,65 +473,114 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 					debug ("Found NS %d %.*s",
 						 (int)r.length, (int)r.length,
 						 (char *)r.base);
-					lookup = isc_mem_allocate
-						(mctx,
-						 sizeof(struct
-							dig_lookup));
-					if (lookup == NULL)
-						fatal ("Memory "
-						       "allocation "
-						       "failure.");
-					lookup->pending = ISC_FALSE;
-					strncpy (lookup->textname,
-						 query->lookup->
-						 textname, MXNAME);
-					strncpy (lookup->rttext, 
-						 query->lookup->
-						 rttext, 32);
-					strncpy (lookup->rctext,
-						 query->lookup->
-						 rctext, 32);
-					lookup->namespace[0]=0;
-					lookup->sendspace[0]=0;
-					lookup->sendmsg=NULL;
-					lookup->name=NULL;
-					lookup->oname=NULL;
-					lookup->timer = NULL;
-					lookup->xfr_q = NULL;
-					lookup->origin = NULL;
-					lookup->doing_xfr = ISC_FALSE;
-					lookup->identify = ISC_TRUE;
-					lookup->recurse = query->lookup->
-						recurse;
-					lookup->ns_search_only = 
-						ISC_FALSE;
-					lookup->use_my_server_list = 
-						ISC_TRUE;
-					lookup->retries = tries;
-					lookup->comments =
-						query->lookup->comments;
-					lookup->section_question =
-						query->lookup->
-						section_question;
-					lookup->section_answer =
-						query->lookup->
-						section_answer;
-					lookup->section_authority =
-						query->lookup->
-						section_authority;
-					lookup->section_additional =
-						query->lookup->
-						section_additional;
-					ISC_LIST_INIT(lookup->
-						      my_server_list);
-					ISC_LIST_INIT(lookup->q);
+					if (!success) {
+						success = ISC_TRUE;
+						lookup_counter++;
+						if (lookup_counter >
+						    LOOKUP_LIMIT)
+							fatal ("Too many "
+							       "lookups.");
+						lookup = isc_mem_allocate
+							(mctx,
+							 sizeof(struct
+								dig_lookup));
+						if (lookup == NULL)
+							fatal ("Memory "
+							       "allocation "
+							       "failure in %s:"
+							       "%d", __FILE__,
+							       __LINE__);
+						lookup->pending = ISC_FALSE;
+						strncpy (lookup->textname,
+							 query->lookup->
+							 textname, MXNAME);
+						strncpy (lookup->rttext, 
+							 query->lookup->
+							 rttext, 32);
+						strncpy (lookup->rctext,
+							 query->lookup->
+							 rctext, 32);
+						lookup->namespace[0]=0;
+						lookup->sendspace[0]=0;
+						lookup->sendmsg=NULL;
+						lookup->name=NULL;
+						lookup->oname=NULL;
+						lookup->timer = NULL;
+						lookup->xfr_q = NULL;
+						lookup->origin = NULL;
+						lookup->doing_xfr = ISC_FALSE;
+						lookup->identify = 
+		       				      query->lookup->identify;
+						lookup->recurse =
+							query->lookup->
+							recurse;
+						lookup->ns_search_only = 
+							query->lookup->
+							ns_search_only;
+						lookup->use_my_server_list = 
+							ISC_TRUE;
+						if (section ==
+						    DNS_SECTION_ANSWER)
+							lookup->trace =
+								ISC_FALSE;
+						else
+							lookup->trace =
+								query->
+								lookup->trace;
+						lookup->trace_root = ISC_FALSE;
+						lookup->retries = tries;
+						lookup->nsfound = 0;
+						lookup->comments =
+							query->lookup->
+							comments;
+						lookup->section_question =
+							query->lookup->
+							section_question;
+						lookup->section_answer =
+							query->lookup->
+							section_answer;
+						lookup->section_authority =
+							query->lookup->
+							section_authority;
+						lookup->section_additional =
+							query->lookup->
+							section_additional;
+						ISC_LIST_INIT(lookup->
+							      my_server_list);
+						ISC_LIST_INIT(lookup->q);
+						debug ("Before insertion, "
+						       "init@%lx "
+						       "-> %lx, new@%lx "
+						       "-> %lx",
+						       (long int)query->lookup,
+						       (long int)query->
+						       lookup->link.next,
+						       (long int)lookup,
+						       (long int)lookup->
+						       link.next);
+						ISC_LIST_INSERTAFTER(
+								lookup_list,
+								query->lookup,
+								lookup,
+								link);
+						debug ("After insertion, "
+						       "init -> "
+						       "%lx, new = %lx, "
+						       "new -> %lx",
+						       (long int)query->
+						       lookup->link.next,
+						       (long int)lookup,
+						       (long int)lookup->
+						       link.next);
+					}
 					srv = isc_mem_allocate (mctx,
 								sizeof(
 								struct
 								dig_server));
 					if (srv == NULL)
 						fatal("Memory allocation "
-						      "failure.");
+						      "failure in %s:%d",
+						      __FILE__, __LINE__);
 					strncpy(srv->servername, 
 						(char *)r.base, len);
 					srv->servername[len]=0;
@@ -522,30 +589,16 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 						 srv, link);
 					isc_buffer_free (&b);
 				}
-				debug ("Before insertion, init@%lx "
-					 "-> %lx, new@%lx "
-					 "-> %lx", (long int)query->lookup,
-					 (long int)query->lookup->link.next,
-					 (long int)lookup, (long int)lookup->
-					 link.next);
-				ISC_LIST_INSERTAFTER(lookup_list, query->
-						     lookup, lookup,
-						     link);
-				debug ("After insertion, init -> "
-					 "%lx, new = %lx, "
-					 "new -> %lx", (long int)query->
-					 lookup->link.next,
-					 (long int)lookup, (long int)lookup->
-					 link.next);
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
-	result = dns_message_nextname (msg, DNS_SECTION_ANSWER);
-	if (result != ISC_R_SUCCESS)
-		break;
+		result = dns_message_nextname (msg, section);
+		if (result != ISC_R_SUCCESS)
+			break;
 	}
-	if (lookup == NULL)
-		return; /* We didn't get a NS.  Just give up. */
+	if ((lookup == NULL) && (section == DNS_SECTION_ANSWER) &&
+	    query->lookup->trace)
+		followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
 }
 
 static void
@@ -564,10 +617,14 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		debug ("Made it to the root whith nowhere to go.");
 		return;
 	}
+	lookup_counter++;
+	if (lookup_counter > LOOKUP_LIMIT)
+		fatal ("Too many lookups.");
 	lookup = isc_mem_allocate
 		(mctx, sizeof(struct dig_lookup));
 	if (lookup == NULL)
-		fatal ("Memory allocation failure.");
+		fatal ("Memory allocation failure in %s:%d",
+		       __FILE__, __LINE__);
 	lookup->pending = ISC_FALSE;
 	strncpy (lookup->textname, query->lookup-> textname, MXNAME);
 	strncpy (lookup->rttext, query->lookup-> rttext, 32);
@@ -580,12 +637,15 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->doing_xfr = ISC_FALSE;
+	lookup->trace = query->lookup->trace;
+	lookup->trace_root = query->lookup->trace_root;
 	lookup->identify = query->lookup->identify;
 	lookup->recurse = query->lookup->recurse;
 	lookup->ns_search_only = query->lookup->ns_search_only;
 	lookup->use_my_server_list = query->lookup->use_my_server_list;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
 	lookup->retries = tries;
+	lookup->nsfound = 0;
 	lookup->comments = query->lookup->comments;
 	lookup->section_question = query->lookup->section_question;
 	lookup->section_answer = query->lookup->section_answer;
@@ -600,7 +660,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 			srv = isc_mem_allocate (mctx, sizeof(struct
 							     dig_server));
 			if (srv == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure in %s:%d", __FILE__, __LINE__);
 			strncpy(srv->servername, s->servername, MXNAME);
 			ISC_LIST_ENQUEUE(lookup->my_server_list, srv,
 					 link);
@@ -680,11 +740,20 @@ setup_lookup(dig_lookup_t *lookup) {
 			      lookup->origin->origin,
 			      dns_result_totext(result));
 		}
-		len=strlen(lookup->textname);
-		isc_buffer_init(&b, lookup->textname, len);
-		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->name, &b, lookup->oname,
-					   ISC_FALSE, &lookup->namebuf);
+		if (!lookup->trace_root) {
+			len=strlen(lookup->textname);
+			isc_buffer_init(&b, lookup->textname, len);
+			isc_buffer_add(&b, len);
+			result = dns_name_fromtext(lookup->name, &b,
+						   lookup->oname, ISC_FALSE, 
+						   &lookup->namebuf);
+		} else {
+			isc_buffer_init(&b, ". ", 1);
+			isc_buffer_add(&b, 1);
+			result = dns_name_fromtext(lookup->name, &b,
+						   lookup->oname, ISC_FALSE, 
+						   &lookup->namebuf);
+		}			
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
@@ -696,11 +765,22 @@ setup_lookup(dig_lookup_t *lookup) {
 		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
 	} else {
 		debug ("Using root origin.");
-		len = strlen (lookup->textname);
-		isc_buffer_init(&b, lookup->textname, len);
-		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->name, &b, dns_rootname,
-					   ISC_FALSE, &lookup->namebuf);
+		if (!lookup->trace_root) {
+			len = strlen (lookup->textname);
+			isc_buffer_init(&b, lookup->textname, len);
+			isc_buffer_add(&b, len);
+			result = dns_name_fromtext(lookup->name, &b,
+						   dns_rootname,
+						   ISC_FALSE,
+						   &lookup->namebuf);
+		} else {
+			isc_buffer_init(&b, ". ", 1);
+			isc_buffer_add(&b, 1);
+			result = dns_name_fromtext(lookup->name, &b,
+						   dns_rootname,
+						   ISC_FALSE,
+						   &lookup->namebuf);
+		}
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
@@ -731,7 +811,9 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->sendmsg->id = id++;
 	lookup->sendmsg->opcode = dns_opcode_query;
-	if (lookup->recurse) {
+	/* If this is a trace request, completely disallow recursion, since
+	 * it's meaningless for traces */
+	if (lookup->recurse && !lookup->trace) {
 		debug ("Recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
 	}
@@ -740,12 +822,12 @@ setup_lookup(dig_lookup_t *lookup) {
 			    DNS_SECTION_QUESTION);
 	
 	
-	if (!lookup->ns_search_only) {
+	if (lookup->trace_root) {
+		tr.base="SOA";
+		tr.length=3;
+	} else {
 		tr.base=lookup->rttext;
 		tr.length=strlen(lookup->rttext);
-	} else {
-		tr.base="NS";
-		tr.length=2;
 	}
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	check_result(result, "dns_rdatatype_fromtext");
@@ -756,12 +838,12 @@ setup_lookup(dig_lookup_t *lookup) {
 		 */
 		tcp_mode = ISC_TRUE;
 	}
-	if (!lookup->ns_search_only) {
-		tr.base=lookup->rctext;
-		tr.length=strlen(lookup->rctext);
-	} else {
+	if (lookup->trace_root) {
 		tr.base="IN";
 		tr.length=2;
+	} else {
+		tr.base=lookup->rctext;
+		tr.length=strlen(lookup->rctext);
 	}
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	check_result(result, "dns_rdataclass_fromtext");
@@ -788,7 +870,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)
-			fatal("Memory allocation failure.");
+			fatal("Memory allocation failure in %s:%d", __FILE__, __LINE__);
 		query->lookup = lookup;
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -1129,7 +1211,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	sevent = (isc_socketevent_t *)event;
 	query = event->ev_arg;
 
-	if (!query->lookup->pending) {
+	if (!query->lookup->pending && !query->lookup->ns_search_only) {
 		debug("No longer pending.  Got %s",
 			isc_result_totext(sevent->result));
 		query->working = ISC_FALSE;
@@ -1153,15 +1235,24 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (query->lookup->xfr_q == NULL)
 			query->lookup->xfr_q = query;
 		if (query->lookup->xfr_q == query) {
-			if (query->lookup->ns_search_only) {
-				if (show_details) {
-				       printmessage(query, msg, ISC_TRUE);
+			if (query->lookup->trace) {
+				if (show_details || ((dns_message_firstname
+						  (msg, DNS_SECTION_ANSWER)==
+						  ISC_R_SUCCESS) &&
+						  !query->lookup->trace_root)) {
+					printmessage(query, msg, ISC_TRUE);
 				}
 				if ((msg->rcode != 0) &&
 				    (query->lookup->origin != NULL)) {
 					next_origin(msg, query);
-				} else
-					followup_lookup(msg, query);
+				} else {
+					result = dns_message_firstname
+						(msg,DNS_SECTION_ANSWER);
+					if ((result != ISC_R_SUCCESS) ||
+					    query->lookup->trace_root)
+						followup_lookup(msg, query,
+							DNS_SECTION_AUTHORITY);
+				}
 			} else if ((msg->rcode != 0) &&
 				 (query->lookup->origin != NULL)) {
 				next_origin(msg, query);
@@ -1175,7 +1266,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				else
 					printmessage(query, msg, ISC_TRUE);
 			}
+		} else if (( dns_message_firstname(msg, DNS_SECTION_ANSWER)
+			    == ISC_R_SUCCESS) &&
+			   query->lookup->ns_search_only &&
+			   !query->lookup->trace_root ) {
+			printmessage (query, msg, ISC_TRUE);
 		}
+		
 #ifdef DEBUG
 		if (query->lookup->pending)
 			debug("Still pending.");
@@ -1201,8 +1298,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			else {
 				if (msg_contains_soa(msg, query)) {
 					isc_buffer_init(&ab, abspace, MXNAME);
-					check_result(result,
-						     "isc_buffer_init");
 					result = isc_sockaddr_totext(&sevent->
 								     address,
 								     &ab);
@@ -1227,7 +1322,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if ((msg->rcode == 0) ||
 			    (query->lookup->origin == NULL)) {
 				isc_buffer_init(&ab, abspace, MXNAME);
-				check_result(result, "isc_buffer_init");
 				result = isc_sockaddr_totext(&sevent->address,
 							     &ab);
 				check_result(result, "isc_sockaddr_totext");
@@ -1236,9 +1330,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					 query);
 			}
 			query->working = ISC_FALSE;
-			cancel_lookup(query->lookup);
-		}
-		if (!query->lookup->pending) {
+			query->lookup->pending = ISC_FALSE;
+			if (!query->lookup->ns_search_only ||
+			    query->lookup->trace_root ) {
+				cancel_lookup(query->lookup);
+			}
 			check_next_lookup(query->lookup);
 		}
 		dns_message_destroy(&msg);
@@ -1359,10 +1455,8 @@ free_lists(void) {
 
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
-		debug ("Freeing the lookup of %s", l->textname);
 		q = ISC_LIST_HEAD(l->q);
 		while (q != NULL) {
-			debug ("Freeing the query of %s", q->servname);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
@@ -1383,8 +1477,6 @@ free_lists(void) {
 		if (l->use_my_server_list) {
 			s = ISC_LIST_HEAD(l->my_server_list);
 			while (s != NULL) {
-				debug ("Freeing lookup server %s",
-				       s->servername);
 				ptr = s;
 				s = ISC_LIST_NEXT(s, link);
 				isc_mem_free(mctx, ptr);
@@ -1399,19 +1491,14 @@ free_lists(void) {
 		l = ISC_LIST_NEXT(l, link);
 		isc_mem_free(mctx, ptr);
 	}
-	debug ("Starting to free things globally.");
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
-		debug ("Freeing global server list entry %s",
-		       s->servername);
 		ptr = s;
 		s = ISC_LIST_NEXT(s, link);
 		isc_mem_free(mctx, ptr);
 	}
 	o = ISC_LIST_HEAD(search_list);
 	while (o != NULL) {
-		debug ("Freeing origin list entry %s",
-		       o->origin);
 		ptr = o;
 		o = ISC_LIST_NEXT(o, link);
 		isc_mem_free(mctx, ptr);
