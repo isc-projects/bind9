@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.31 2000/07/18 00:47:00 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.32 2000/07/19 18:24:40 mws Exp $ */
 
 #include <config.h>
 
@@ -334,15 +334,6 @@ setup_system(void) {
 	int i;
 
 	ddebug("setup_system()");
-
-	/*
-	 * Warning: This is not particularly good randomness.  We'll
-	 * just use random() now for getting id values, but doing so
-	 * does NOT insure that id's can't be guessed.
-	 *
-	 * XXX Shouldn't random() be called somewhere if this is here?
-	 */
-	srandom(getpid() + (int)&setup_system);
 
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
