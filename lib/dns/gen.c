@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.14 1999/02/18 01:24:31 halley Exp $ */
+ /* $Id: gen.c,v 1.15 1999/03/06 04:08:29 halley Exp $ */
 
 #include <sys/types.h>
 

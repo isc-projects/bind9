@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.12 1999/03/04 02:47:18 halley Exp $ */
+ /* $Id: master.c,v 1.13 1999/03/06 04:08:29 halley Exp $ */
 
 #include <config.h>
 

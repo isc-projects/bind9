@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.5 1999/03/04 21:03:29 tale Exp $ */
+ /* $Id: compress.c,v 1.6 1999/03/06 04:08:29 halley Exp $ */
 
 #include <config.h>
 
