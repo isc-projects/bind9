@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.20 2003/07/18 04:18:46 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.21 2003/07/21 05:55:03 marka Exp $ */
 
 #include <config.h>
 
@@ -3738,6 +3738,8 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (message != NULL)
 		dns_message_destroy(&message);
   unlock:
+        if (key != NULL)
+		dns_tsigkey_detach(&key);
 	UNLOCK_ZONE(zone);
 	return;
 }

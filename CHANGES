@@ -54,6 +54,8 @@
 			interfaces.  It now takes a optional arguement
 			to specify the first interface number. [RT #3907]
 
+1477.	[bug]		memory leak using stub zones and TSIG.
+
 1476.	[port]		win32: port unreachables were blocking further i/o
 			on sockets (Windows 2000 SP2 and later).
 
