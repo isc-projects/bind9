@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-pullups.pl,v 1.4 2001/05/31 22:51:43 bwelling Exp $
+# $Id: check-pullups.pl,v 1.5 2001/10/18 00:44:32 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
@@ -54,15 +54,20 @@ sub readfile {
 	return $changes;
 }
 
-@ARGV == 2 or die "usage: $0 changes-file-1 changes-file-2\n";
+@ARGV == 2 || @ARGV == 3 or die "usage: $0 changes-file-1 changes-file-2\n";
 
 my $c1 = readfile($ARGV[0]);
 my $c2 = readfile($ARGV[1]);
+if (@ARGV == 3) {
+	$c3 = readfile($ARGV[2]);
+} else {
+	my $c3 = { };
+}
 
 foreach my $c (sort {$a <=> $b} keys %$c1) {
 	my $category = $c1->{$c}->{category};
 	if (($category eq "bug" || $category eq "port") &&
-	    !exists($c2->{$c})) {
+	    !exists($c2->{$c}) && !exists($c3->{$c})) {
 		print $c1->{$c}->{text};
 	}
 }
