@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.4 2001/03/03 23:05:23 bwelling Exp $ */
+/* $Id: check.c,v 1.5 2001/03/03 23:09:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 
 #include <isc/log.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
@@ -192,6 +193,51 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 	return (result);
 }
 
+static isc_result_t
+check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx) {
+	cfg_obj_t *zones = NULL;
+	cfg_obj_t *keys = NULL;
+	cfg_listelt_t *element;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	UNUSED(vname);
+
+	(void)cfg_map_get(vconfig, "zone", &zones);
+	for (element = cfg_list_first(zones);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *zone = cfg_listelt_value(element);
+
+		if (check_zoneconf(zone, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
+
+	(void)cfg_map_get(vconfig, "key", &keys);
+	for (element = cfg_list_first(keys);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *key = cfg_listelt_value(element);
+		cfg_obj_t *keyname = cfg_map_getname(key);
+		cfg_obj_t *algobj = NULL;
+		cfg_obj_t *secretobj = NULL;
+		
+		cfg_map_get(key, "algorithm", &algobj);
+		cfg_map_get(key, "secret", &secretobj);
+		if (secretobj == NULL || algobj == NULL) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "key '%s' must have both 'secret' and "
+				    "algorithm defined",
+				    cfg_obj_asstring(keyname));
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	return (result);
+}
+
+
 isc_result_t
 cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	cfg_obj_t *options = NULL;
@@ -205,19 +251,9 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	(void)cfg_map_get(config, "view", &views);
 
 	if (views == NULL) {
-		cfg_obj_t *zones = NULL;
-		cfg_listelt_t *zelement;
-
-		(void)cfg_map_get(config, "zone", &zones);
-		for (zelement = cfg_list_first(zones);
-		     zelement != NULL;
-		     zelement = cfg_list_next(zelement))
-		{
-			cfg_obj_t *zone = cfg_listelt_value(zelement);
-
-			if (check_zoneconf(zone, logctx) != ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
-		}
+		if (check_viewconf(config, "_default", logctx)
+				   != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
 	} else {
 		cfg_obj_t *zones = NULL;
 		cfg_obj_t *peers = NULL;
@@ -244,20 +280,12 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	     velement = cfg_list_next(velement))
 	{
 		cfg_obj_t *view = cfg_listelt_value(velement);
+		cfg_obj_t *vname = cfg_map_getname(view);
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
-		cfg_obj_t *zones = NULL;
-		cfg_listelt_t *zelement;
 
-		(void)cfg_map_get(voptions, "zone", &zones);
-		for (zelement = cfg_list_first(zones);
-		     zelement != NULL;
-		     zelement = cfg_list_next(zelement))
-		{
-			cfg_obj_t *zone = cfg_listelt_value(zelement);
-
-			if (check_zoneconf(zone, logctx) != ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
-		}
+		if (check_viewconf(voptions, cfg_obj_asstring(vname), logctx)
+		    != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
 	}
 
 	if (views != NULL && options != NULL) {
