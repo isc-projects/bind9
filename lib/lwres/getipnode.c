@@ -8,8 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef INADDRSZ
 #define INADDRSZ 4
+#endif
+#ifndef IN6ADDRSZ
 #define IN6ADDRSZ 16
+#endif
 
 #ifndef IN6_IS_ADDR_V4COMPAT
 static const unsigned char in6addr_compat[12] = {
