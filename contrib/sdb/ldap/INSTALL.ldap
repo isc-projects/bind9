@@ -1,4 +1,4 @@
-This is the INSTALL file for 0.3. See
+This is the INSTALL file for 0.4. See
 http://www.venaas.no/ldap/bind-sdb/ for updates or other information.
 
 BUILDING
@@ -31,29 +31,25 @@ Before you do any configuring of LDAP stuff, please try to configure
 and start bind as usual to see if things work.
 
 To do anything useful, you need to store a zone in some LDAP server.
-If you like, you could try to use my LDAP server as a test. To test,
-add the following to your named.conf:
-
-zone "ldap" {
-        type master;
-        database "ldap ldap://129.241.20.67/dc=venaas,dc=com,o=DNS,dc=venaas,dc=no 86400";
-};
-
-and then try to do for instance host www.ldap. localhost
-
-The LDAP URL consists of a hostport part and the base (the node above
-where the zone is stored). BIND will do a one-level search with this
-base. Finally, the number 86400 is the TTL which will be used for all
-entries that haven't got the dNSTTL attribute.
-
-To store data in your own LDAP server you can use the Cosine dNSDomain
-class, or even better dNSDomain2. Your LDAP server probably comes
-with dNSDomain, you can find dNSDomain2 and further details on how
-to store the data in your LDAP server at
-
+From this release on, you must use a schema called dNSZone. Note that
+it relies on some attribute definitions in the Cosine schema, so that
+must be included as well. The Cosine schema probably comes with your
+LDAP server. You can find dNSZone and further details on how to store
+the data in your LDAP server at
 http://www.venaas.no/ldap/bind-sdb/
 
-You can also see how I did it by searching in my LDAP server, the
-address and base is as in the LDAP URL above.
+For an example, have a look at my venaas.com zone. Try a subtree search
+for objectClass=* at
+ldap ldap://129.241.20.67/dc=venaas,dc=com,o=DNS,dc=venaas,dc=no
 
-Stig Venaas <venaas@uninett.no> 2001-03-03
+To use it with BIND, I've added the following to named.conf:
+zone "venaas.com" {
+        type master;
+        database "ldap ldap://129.241.20.67/dc=venaas,dc=com,o=DNS,dc=venaas,dc=no 172800";
+};
+
+When doing lookups BIND will do a sub-tree search below the base in the
+URL. The number 172800 is the TTL which will be used for all entries that
+haven't got the dNSTTL attribute.
+
+Stig Venaas <venaas@uninett.no> 2001-04-12
