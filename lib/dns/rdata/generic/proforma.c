@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 1998, 1999 Internet Software Consortium.
- *
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.14 1999/08/31 22:05:54 halley Exp $ */
+ /* $Id: proforma.c,v 1.15 1999/09/15 23:03:31 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C

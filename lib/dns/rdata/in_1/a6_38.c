@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.14 1999/08/31 22:03:59 halley Exp $ */
+ /* $Id: a6_38.c,v 1.15 1999/09/15 23:03:34 explorer Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 

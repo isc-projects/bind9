@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.20 1999/09/02 06:40:14 marka Exp $ */
+ /* $Id: a_1.c,v 1.21 1999/09/15 23:03:34 explorer Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C

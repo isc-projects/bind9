@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.60 1999/09/08 07:35:27 gson Exp $ */
+ /* $Id: rdata.c,v 1.61 1999/09/15 23:03:25 explorer Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.c,v 1.12 1999/08/31 22:05:54 halley Exp $ */
+ /* $Id: rt_21.c,v 1.13 1999/09/15 23:03:32 explorer Exp $ */
 
  /* RFC 1183 */
 

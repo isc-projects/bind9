@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998, 1999 Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.h,v 1.13 1999/05/07 03:24:06 marka Exp $ */
+ /* $Id: cname_5.h,v 1.14 1999/09/15 23:03:28 explorer Exp $ */
 

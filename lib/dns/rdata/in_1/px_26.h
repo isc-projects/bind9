@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.h,v 1.6 1999/05/07 03:24:15 marka Exp $ */
+ /* $Id: px_26.h,v 1.7 1999/09/15 23:03:37 explorer Exp $ */
 
  /* RFC 2163 */
 

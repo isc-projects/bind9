@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
- *
+ * Copyright (C) 1999  Internet Software Consortium.
+ * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -15,5 +15,5 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.10 1999/05/07 03:24:15 marka Exp $ */
+ /* $Id: wks_11.h,v 1.11 1999/09/15 23:03:38 explorer Exp $ */
 
