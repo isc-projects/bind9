@@ -1,3 +1,6 @@
+ 887.	[port]		Detect broken compilers that can't call static
+			functions from inline functions.  [RT #1212]
+
  866.	[func]		Close debug only file channels when debug is set to
 			zero. [RT #1246]
 
