@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.76 2001/01/25 02:33:47 bwelling Exp $ */
+/* $Id: confzone.c,v 1.77 2001/01/27 02:11:35 gson Exp $ */
 
 #include <config.h>
 
@@ -2541,7 +2541,7 @@ dns_c_zone_getmasterport(dns_c_zone_t *zone, in_port_t *retval) {
 
 isc_result_t
 dns_c_zone_setmasterips(dns_c_zone_t *zone, dns_c_iplist_t *newval) {
-	dns_c_iplist_t **p;
+	dns_c_iplist_t **p = NULL;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(DNS_C_IPLIST_VALID(newval));
@@ -2589,7 +2589,7 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone, dns_c_iplist_t *newval) {
 
 isc_result_t
 dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
-	dns_c_iplist_t *p;
+	dns_c_iplist_t *p = NULL;
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
