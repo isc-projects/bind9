@@ -2530,7 +2530,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    sizeof (rdatasetheader_t));
 	if (result != DNS_R_SUCCESS)
 		return (result);
-
 	newheader = (rdatasetheader_t *)region.base;
 	newheader->ttl = 0;
 	newheader->type = rdataset->type;
@@ -2596,7 +2595,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * If we're here, we want to link newheader in front of
 		 * header.
 		 */
-		
 		INSIST(rbtversion->serial >= header->serial);
 		if (header_prev != NULL)
 			header_prev->next = newheader;
