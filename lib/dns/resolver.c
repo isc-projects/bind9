@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.192 2001/01/03 00:05:14 bwelling Exp $ */
+/* $Id: resolver.c,v 1.193 2001/01/03 20:31:34 halley Exp $ */
 
 #include <config.h>
 
@@ -152,6 +152,7 @@ struct fetchctx {
 	/* Locked by appropriate bucket lock. */
 	fetchstate			state;
 	isc_boolean_t			want_shutdown;
+	isc_boolean_t			cloned;
 	unsigned int			references;
 	isc_event_t			control_event;
 	ISC_LINK(struct fetchctx)	link;
@@ -2056,6 +2057,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->bucketnum = bucketnum;
 	fctx->state = fetchstate_init;
 	fctx->want_shutdown = ISC_FALSE;
+	fctx->cloned = ISC_FALSE;
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->forwaddrs);
@@ -2310,6 +2312,7 @@ clone_results(fetchctx_t *fctx) {
 	 * Caller must be holding the appropriate lock.
 	 */
 
+	fctx->cloned = ISC_TRUE;
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent == NULL)
 		return;
@@ -4850,7 +4853,16 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 		}
 	}
 
-	if (fctx == NULL || fctx->state == fetchstate_done) {
+	/*
+	 * If we didn't have a fetch, would attach to a done fetch, this
+	 * fetch has already cloned its results, or if the fetch has gone
+	 * "idle" (no one was interested in it), we need to start a new
+	 * fetch instead of joining with the existing one.
+	 */
+	if (fctx == NULL ||
+	    fctx->state == fetchstate_done ||
+	    fctx->cloned ||
+	    ISC_LIST_EMPTY(fctx->events)) {
 		fctx = NULL;
 		result = fctx_create(res, name, type, domain, nameservers,
 				     options, bucketnum, &fctx);
@@ -4858,6 +4870,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			goto unlock;
 		new_fctx = ISC_TRUE;
 	}
+
 	result = fctx_join(fctx, task, action, arg,
 			   rdataset, sigrdataset, fetch);
 	if (new_fctx) {
