@@ -171,11 +171,12 @@ enum {
 	dns_trust_none = 0,
 	dns_trust_pending = 1,
 	dns_trust_additional = 2,
-	dns_trust_answer = 3,
-	dns_trust_authauthority = 4,
-	dns_trust_authanswer = 5,
-	dns_trust_secure = 6,
-	dns_trust_authsecure = 7
+	dns_trust_glue = 3,
+	dns_trust_answer = 4,
+	dns_trust_authauthority = 5,
+	dns_trust_authanswer = 6,
+	dns_trust_secure = 7,
+	dns_trust_authsecure = 8
 };
 
 /*
