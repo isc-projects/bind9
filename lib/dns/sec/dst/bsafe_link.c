@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.11 1999/10/29 12:56:56 marka Exp $
+ * $Id: bsafe_link.c,v 1.12 2000/03/06 20:05:58 bwelling Exp $
  */
 
 #include <config.h>
@@ -80,7 +80,7 @@ static unsigned char pkcs1[] =
 	0x04, 0x10
 };
 
-static dst_result_t	dst_bsafe_md5digest(const unsigned int mode,
+static isc_result_t	dst_bsafe_md5digest(const unsigned int mode,
 					    B_ALGORITHM_OBJ *digest_obj,
 					    isc_region_t *data,
 					    isc_buffer_t *digest);
@@ -88,25 +88,25 @@ static dst_result_t	dst_bsafe_md5digest(const unsigned int mode,
 static int		dst_bsafe_key_size(RSA_Key *r_key);
 static isc_boolean_t	dst_s_bsafe_itemcmp(ITEM i1, ITEM i2);
 
-static dst_result_t	dst_bsafe_sign(const unsigned int mode, dst_key_t *key,
+static isc_result_t	dst_bsafe_sign(const unsigned int mode, dst_key_t *key,
 				       void **context, isc_region_t *data,
 				       isc_buffer_t *sig, isc_mem_t *mctx);
-static dst_result_t	dst_bsafe_verify(const unsigned int mode,
+static isc_result_t	dst_bsafe_verify(const unsigned int mode,
 					 dst_key_t *key,
 					 void **context, isc_region_t *data,
 					 isc_region_t *sig, isc_mem_t *mctx);
 static isc_boolean_t	dst_bsafe_compare(const dst_key_t *key1,
 					  const dst_key_t *key2);
-static dst_result_t	dst_bsafe_generate(dst_key_t *key, int exp,
+static isc_result_t	dst_bsafe_generate(dst_key_t *key, int exp,
 					   isc_mem_t *mctx);
 static isc_boolean_t	dst_bsafe_isprivate(const dst_key_t *key);
 static void		dst_bsafe_destroy(void *key, isc_mem_t *mctx);
-static dst_result_t	dst_bsafe_to_dns(const dst_key_t *in_key,
+static isc_result_t	dst_bsafe_to_dns(const dst_key_t *in_key,
 					 isc_buffer_t *data);
-static dst_result_t	dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data,
+static isc_result_t	dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data,
 					   isc_mem_t *mctx);
-static dst_result_t	dst_bsafe_to_file(const dst_key_t *key);
-static dst_result_t	dst_bsafe_from_file(dst_key_t *key,
+static isc_result_t	dst_bsafe_to_file(const dst_key_t *key);
+static isc_result_t	dst_bsafe_from_file(dst_key_t *key,
 					    const isc_uint16_t id,
 					    isc_mem_t *mctx);
 
@@ -150,7 +150,7 @@ dst_s_bsafersa_init() {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_bsafe_sign(const unsigned int mode, dst_key_t *key, void **context,
 	       isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
 {
@@ -159,7 +159,7 @@ dst_bsafe_sign(const unsigned int mode, dst_key_t *key, void **context,
 	unsigned char digest_array[DNS_SIG_RSAMAXSIZE];
 	isc_buffer_t digest;
 	isc_region_t sig_region, digest_region;
-	dst_result_t ret;
+	isc_result_t ret;
 	
 	if (mode & DST_SIGMODE_INIT) { 
 		md5_ctx = (B_ALGORITHM_OBJ *) isc_mem_get(mctx,
@@ -277,7 +277,7 @@ dst_bsafe_sign(const unsigned int mode, dst_key_t *key, void **context,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 		 isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
 {
@@ -286,7 +286,7 @@ dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 	unsigned char work_area[DST_HASH_SIZE + sizeof(pkcs1)];
 	isc_buffer_t work, digest;
 	isc_region_t work_region, digest_region;
-	dst_result_t ret;
+	isc_result_t ret;
 	int status = 0;
 
 	if (mode & DST_SIGMODE_INIT) { 
@@ -407,7 +407,7 @@ dst_bsafe_isprivate(const dst_key_t *key) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 dst_bsafe_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	B_KEY_OBJ public;
 	A_RSA_KEY *pub = NULL;
@@ -452,7 +452,7 @@ dst_bsafe_to_dns(const dst_key_t *key, isc_buffer_t *data) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	unsigned int bytes;
 	RSA_Key *rkey;
@@ -558,7 +558,7 @@ dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_bsafe_to_file(const dst_key_t *key) {
 	int cnt = 0;
 	B_KEY_OBJ rkey;
@@ -622,10 +622,10 @@ dst_bsafe_to_file(const dst_key_t *key) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t 
+static isc_result_t 
 dst_bsafe_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_private_t priv;
-	dst_result_t ret;
+	isc_result_t ret;
 	isc_buffer_t b;
 	int i;
 	RSA_Key *rkey = NULL;
@@ -771,7 +771,7 @@ dst_bsafe_destroy(void *key, isc_mem_t *mctx)
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 dst_bsafe_generate(dst_key_t *key, int exp, isc_mem_t *mctx) {
 	int status;
 	B_KEY_OBJ private;
@@ -785,7 +785,7 @@ dst_bsafe_generate(dst_key_t *key, int exp, isc_mem_t *mctx) {
 	unsigned char randomSeed[256];
 	isc_buffer_t b, rand;
 	A_RSA_KEY *pub = NULL;
-	dst_result_t ret;
+	isc_result_t ret;
 
 	rsa = (RSA_Key *) isc_mem_get(mctx, sizeof(RSA_Key));
 	if (rsa == NULL)
@@ -1019,7 +1019,7 @@ dst_bsafe_key_size(RSA_Key *key)
  * dst_bsafe_md5digest(): function to digest data using MD5 digest function 
  * if needed 
  */
-static dst_result_t
+static isc_result_t
 dst_bsafe_md5digest(const unsigned int mode, B_ALGORITHM_OBJ *digest_obj,
 		    isc_region_t *data, isc_buffer_t *digest)
 {

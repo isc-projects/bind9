@@ -79,7 +79,7 @@ dst_supported_algorithm(const int alg);
  *	All allocated memory will be freed after the FINAL call.  "sig"
  *	will contain a signature if all operations completed successfully.
  */
-dst_result_t
+isc_result_t
 dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	 isc_region_t *data, isc_buffer_t *sig);
 
@@ -96,7 +96,7 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  * Ensures:
  *	All allocated memory will be freed after the FINAL call.
  */
-dst_result_t
+isc_result_t
 dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	   isc_region_t *data, isc_region_t *sig);
 
@@ -114,7 +114,7 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *	All allocated memory will be freed after the FINAL call.  "digest"
  *	will contain a digest if all operations completed successfully.
  */
-dst_result_t
+isc_result_t
 dst_digest(const unsigned int mode, const unsigned int alg,
 	   dst_context_t *context, isc_region_t *data, isc_buffer_t *digest);
 
@@ -130,7 +130,7 @@ dst_digest(const unsigned int mode, const unsigned int alg,
  * Ensures:
  *      If successful, secret will contain the derived shared secret.
  */
-dst_result_t
+isc_result_t
 dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
                   isc_buffer_t *secret);
 
@@ -147,7 +147,7 @@ dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  * Ensures:
  *	If successful, *keyp will contain a valid key.
  */
-dst_result_t
+isc_result_t
 dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 		 const int type, isc_mem_t *mctx, dst_key_t **keyp);
 
@@ -157,7 +157,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
  *	"key" is a valid key.
  *	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or both.
  */
-dst_result_t
+isc_result_t
 dst_key_tofile(const dst_key_t *key, const int type);
 
 /* Converts a DNS KEY record into a DST key.
@@ -172,7 +172,7 @@ dst_key_tofile(const dst_key_t *key, const int type);
  *	If successful, *keyp will contain a valid key, and the consumed
  *	pointer in data will be advanced.
  */
-dst_result_t
+isc_result_t
 dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 		dst_key_t **keyp);
 
@@ -185,7 +185,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced by at least 4.
  */
-dst_result_t
+isc_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
 
 /* Converts a buffer containing DNS KEY RDATA into a DST key.
@@ -201,7 +201,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
  *	If successful, *keyp will contain a valid key, and the consumed
  *	pointer in source will be advanced.
  */
-dst_result_t
+isc_result_t
 dst_key_frombuffer(const char *name, const int alg, const int flags,
 		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
 		   dst_key_t **keyp);
@@ -215,7 +215,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced.
  */
-dst_result_t
+isc_result_t
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
 
 /* Generate a DST key (or keypair)
@@ -229,7 +229,7 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  * Ensures:
  *	If successful, *keyp will contain a valid key.
  */
-dst_result_t
+isc_result_t
 dst_key_generate(const char *name, const int alg, const int bits,
 		 const int param, const int flags, const int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp);
@@ -324,7 +324,7 @@ dst_secret_size(const dst_key_t *key, unsigned int *n);
  *	<= wanted bytes will be written to "data", and the used pointer will
  *		be advanced.
  */
-dst_result_t
+isc_result_t
 dst_random_get(const unsigned int wanted, isc_buffer_t *data);
 
 ISC_LANG_ENDDECLS

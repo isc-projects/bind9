@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.20 1999/12/23 00:09:04 explorer Exp $
+ * $Id: dst_api.c,v 1.21 2000/03/06 20:05:58 bwelling Exp $
  */
 
 #include <config.h>
@@ -61,10 +61,10 @@ static void		initialize(void);
 static dst_key_t *	get_key_struct(const char *name, const int alg,
 				       const int flags, const int protocol,
 				       const int bits, isc_mem_t *mctx);
-static dst_result_t	read_public_key(const char *name,
+static isc_result_t	read_public_key(const char *name,
 					const isc_uint16_t id, int in_alg,
 					isc_mem_t *mctx, dst_key_t **keyp);
-static dst_result_t	write_public_key(const dst_key_t *key);
+static isc_result_t	write_public_key(const dst_key_t *key);
 
 /*
  *  dst_supported_algorithm
@@ -106,7 +106,7 @@ dst_supported_algorithm(const int alg) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
 	 isc_region_t *data, isc_buffer_t *sig)
 {
@@ -155,7 +155,7 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *	!ISC_R_SUCCESS	Failure
  */
 
-dst_result_t
+isc_result_t
 dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context, 
 	   isc_region_t *data, isc_region_t *sig)
 {
@@ -202,7 +202,7 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_digest(const unsigned int mode, const unsigned int alg,
            dst_context_t *context, isc_region_t *data, isc_buffer_t *digest)
 {
@@ -233,7 +233,7 @@ dst_digest(const unsigned int mode, const unsigned int alg,
  *      ISC_R_SUCCESS   Success
  *      !ISC_R_SUCCESS  Failure
  */
-dst_result_t
+isc_result_t
 dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		  isc_buffer_t *secret) 
 {
@@ -271,7 +271,7 @@ dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t 
+isc_result_t 
 dst_key_tofile(const dst_key_t *key, const int type) {
 	int ret = ISC_R_SUCCESS;
 
@@ -314,12 +314,12 @@ dst_key_tofile(const dst_key_t *key, const int type) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 		 const int type, isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key = NULL, *pubkey = NULL;
-	dst_result_t ret;
+	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
@@ -376,7 +376,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_region_t r;
 
@@ -422,14 +422,14 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-dst_result_t
+isc_result_t
 dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 		dst_key_t **keyp)
 {
 	isc_region_t r;
 	isc_uint8_t alg, proto;
 	isc_uint32_t flags, extflags;
-	dst_result_t ret;
+	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE (name != NULL);
@@ -482,12 +482,12 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_key_frombuffer(const char *name, const int alg, const int flags,
 		   const int protocol, isc_buffer_t *source, isc_mem_t *mctx,
 		   dst_key_t **keyp)
 {
-	dst_result_t ret;
+	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
@@ -521,7 +521,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t 
+isc_result_t 
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
@@ -560,12 +560,12 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_key_generate(const char *name, const int alg, const int bits,
 		 const int exp, const int flags, const int protocol,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
-	dst_result_t ret;
+	isc_result_t ret;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(name != NULL);
@@ -793,7 +793,7 @@ dst_secret_size(const dst_key_t *key, unsigned int *n) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t 
+isc_result_t 
 dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 	isc_region_t r;
 
@@ -910,7 +910,7 @@ get_key_struct(const char *name, const int alg, const int flags,
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 read_public_key(const char *name, const isc_uint16_t id, int alg,
 		      isc_mem_t *mctx, dst_key_t **keyp)
 {
@@ -1007,7 +1007,7 @@ cleanup:
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 write_public_key(const dst_key_t *key) {
 	FILE *fp;
 	isc_buffer_t keyb, textb;
@@ -1015,7 +1015,7 @@ write_public_key(const dst_key_t *key) {
 	char filename[ISC_DIR_NAMEMAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXSIZE];
-	dst_result_t ret;
+	isc_result_t ret;
 	isc_result_t dnsret;
 	dns_rdata_t rdata;
 

@@ -7,8 +7,6 @@
 
 ISC_LANG_BEGINDECLS
 
-typedef unsigned int dst_result_t;
-
 #define DST_R_UNSUPPORTEDALG		(ISC_RESULTCLASS_DST + 0)
 #define DST_R_UNSUPPORTEDTYPE		(ISC_RESULTCLASS_DST + 1)
 #define DST_R_UNSUPPORTEDMODE		(ISC_RESULTCLASS_DST + 2)
@@ -32,7 +30,7 @@ typedef unsigned int dst_result_t;
 #define DST_R_NRESULTS			19	/* Number of results */
 
 
-char *                                  dst_result_totext(dst_result_t);
+char *                                  dst_result_totext(isc_result_t);
 void					dst_result_register(void);
 
 ISC_LANG_ENDDECLS

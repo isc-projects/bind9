@@ -57,27 +57,27 @@ struct dst_key {
 };
 
 struct dst_func {
-	dst_result_t (*sign)(const unsigned int mode, dst_key_t *key,
+	isc_result_t (*sign)(const unsigned int mode, dst_key_t *key,
 			     void **context, isc_region_t *data,
 			     isc_buffer_t *sig, isc_mem_t *mctx);
-	dst_result_t (*verify)(const unsigned int mode, dst_key_t *key,
+	isc_result_t (*verify)(const unsigned int mode, dst_key_t *key,
 			       void **context, isc_region_t *data,
 			       isc_region_t *sig, isc_mem_t *mctx);
-	dst_result_t (*computesecret)(const dst_key_t *pub,
+	isc_result_t (*computesecret)(const dst_key_t *pub,
 				      const dst_key_t *priv,
 				      isc_buffer_t *secret);
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	isc_boolean_t (*paramcompare)(const dst_key_t *key1,
 				      const dst_key_t *key2);
-	dst_result_t (*generate)(dst_key_t *key, int parms, isc_mem_t *mctx);
+	isc_result_t (*generate)(dst_key_t *key, int parms, isc_mem_t *mctx);
 	isc_boolean_t (*isprivate)(const dst_key_t *key);
 	void (*destroy)(void *key, isc_mem_t *mctx);
 	/* conversion functions */
-	dst_result_t (*to_dns)(const dst_key_t *key, isc_buffer_t *data);
-	dst_result_t (*from_dns)(dst_key_t *key, isc_buffer_t *data,
+	isc_result_t (*to_dns)(const dst_key_t *key, isc_buffer_t *data);
+	isc_result_t (*from_dns)(dst_key_t *key, isc_buffer_t *data,
 				 isc_mem_t *mctx);
-	dst_result_t (*to_file)(const dst_key_t *key);
-	dst_result_t (*from_file)(dst_key_t *key, const isc_uint16_t id,
+	isc_result_t (*to_file)(const dst_key_t *key);
+	isc_result_t (*from_file)(dst_key_t *key, const isc_uint16_t id,
 				  isc_mem_t *mctx);
 };
 
@@ -107,7 +107,7 @@ int		dst_s_build_filename(char *filename, const char *name,
 
 
 /* digest functions */
-dst_result_t	dst_s_md5(const unsigned int mode, void **context,
+isc_result_t	dst_s_md5(const unsigned int mode, void **context,
 			  isc_region_t *data, isc_buffer_t *digest,
 			  isc_mem_t *mctx);
 

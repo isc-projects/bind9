@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.3 1999/09/27 16:55:44 bwelling Exp $
+ * $Id: dst_result.c,v 1.4 2000/03/06 20:05:59 bwelling Exp $
  */
 
 #include <config.h>
@@ -75,7 +75,7 @@ initialize(void) {
 }
 
 char *
-dst_result_totext(dst_result_t result) {
+dst_result_totext(isc_result_t result) {
 	initialize();
 
 	return (isc_result_totext(result));

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.2 1999/10/20 22:14:15 bwelling Exp $
+ * $Id: opensslmd5_link.c,v 1.3 2000/03/06 20:06:01 bwelling Exp $
  */
 
 #include <config.h>
@@ -62,7 +62,7 @@
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-dst_result_t
+isc_result_t
 dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	  isc_buffer_t *digest, isc_mem_t *mctx)
 {

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.6 1999/10/29 12:56:57 marka Exp $
+ * $Id: openssldh_link.c,v 1.7 2000/03/06 20:06:00 bwelling Exp $
  */
 
 #include <config.h>
@@ -50,24 +50,24 @@
 
 static struct dst_func openssldh_functions;
 
-static dst_result_t	dst_openssldh_computesecret(const dst_key_t *pub,
+static isc_result_t	dst_openssldh_computesecret(const dst_key_t *pub,
 						    const dst_key_t *priv,
 						    isc_buffer_t *secret);
 static isc_boolean_t	dst_openssldh_compare(const dst_key_t *key1,
 					      const dst_key_t *key2);
 static isc_boolean_t	dst_openssldh_paramcompare(const dst_key_t *key1,
 						   const dst_key_t *key2);
-static dst_result_t	dst_openssldh_generate(dst_key_t *key, int generator,
+static isc_result_t	dst_openssldh_generate(dst_key_t *key, int generator,
 					       isc_mem_t *mctx);
 static isc_boolean_t	dst_openssldh_isprivate(const dst_key_t *key);
 static void		dst_openssldh_destroy(void *key, isc_mem_t *mctx);
-static dst_result_t	dst_openssldh_to_dns(const dst_key_t *in_key,
+static isc_result_t	dst_openssldh_to_dns(const dst_key_t *in_key,
 					     isc_buffer_t *data);
-static dst_result_t	dst_openssldh_from_dns(dst_key_t *key,
+static isc_result_t	dst_openssldh_from_dns(dst_key_t *key,
 					       isc_buffer_t *data,
 					       isc_mem_t *mctx);
-static dst_result_t	dst_openssldh_to_file(const dst_key_t *key);
-static dst_result_t	dst_openssldh_from_file(dst_key_t *key,
+static isc_result_t	dst_openssldh_to_file(const dst_key_t *key);
+static isc_result_t	dst_openssldh_from_file(dst_key_t *key,
 						const isc_uint16_t id,
 						isc_mem_t *mctx);
 
@@ -120,7 +120,7 @@ dst_s_openssldh_init()
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 			    isc_buffer_t *secret)
 {
@@ -173,7 +173,7 @@ dst_openssldh_isprivate(const dst_key_t *key) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	DH *dh;
 	isc_region_t r;
@@ -234,7 +234,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	DH *dh;
 	isc_region_t r;
@@ -363,7 +363,7 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
  *	ISC_R_SUCCESS	Success
  *	!ISC_R_SUCCESS	Failure
  */
-static dst_result_t
+static isc_result_t
 dst_openssldh_to_file(const dst_key_t *key) {
 	int cnt = 0;
 	DH *dh;
@@ -417,10 +417,10 @@ dst_openssldh_to_file(const dst_key_t *key) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t 
+static isc_result_t 
 dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dst_private_t priv;
-	dst_result_t ret;
+	isc_result_t ret;
 	isc_buffer_t dns;
 	isc_region_t r;
 	unsigned char dns_array[1024];
@@ -535,7 +535,7 @@ dst_openssldh_destroy(void *key, isc_mem_t *mctx) {
  *	!ISC_R_SUCCESS	Failure
  */
 
-static dst_result_t
+static isc_result_t
 dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 	DH *dh = NULL;
 	unsigned char dns_array[1024];
