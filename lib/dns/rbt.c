@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.64 1999/10/16 19:44:54 tale Exp $ */
+/* $Id: rbt.c,v 1.65 1999/10/25 17:01:30 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1544,7 +1544,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 
 	child = NULL;
 
-	if (LEFT(delete) == NULL)
+	if (LEFT(delete) == NULL) {
 		if (RIGHT(delete) == NULL) {
 			if (chain->ancestors[chain->ancestor_count - 1]
 			    == NULL) {
@@ -1560,7 +1560,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 			 */
 			child = RIGHT(delete);
 
-	else if (RIGHT(delete) == NULL)
+	} else if (RIGHT(delete) == NULL)
 		/*
 		 * This node has one child, on the left.
 		 */
@@ -1607,12 +1607,12 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		chain->ancestors[depth] = successor;
 		parent = chain->ancestors[depth - 1];
 
-		if (parent)
+		if (parent) {
 			if (LEFT(parent) == delete)
 				LEFT(parent) = successor;
 			else
 				RIGHT(parent) = successor;
-		else
+		} else
 			*rootp = successor;
 
 		LEFT(successor)  = LEFT(delete);
