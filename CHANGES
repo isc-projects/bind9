@@ -1,3 +1,6 @@
+ 314.	[func]		Inet controls named.conf statement can now have 
+			any non-negative number of keys specified.
+
  313.	[bug]		When parsing resolv.conf, don't terminate on an
 			error.  Instead, parse as much as possible, but
 			still return an error if one was found.

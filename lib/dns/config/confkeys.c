@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.23 2000/06/05 09:17:07 brister Exp $ */
+/* $Id: confkeys.c,v 1.24 2000/07/07 23:11:43 brister Exp $ */
 
 #include <config.h>
 
@@ -558,7 +558,7 @@ dns_c_kidlist_print(FILE *fp, int indent,
 	}
 	
 	dns_c_printtabs(fp, indent);
-	fprintf(fp, "};\n");
+	fprintf(fp, "}");
 }
 
 

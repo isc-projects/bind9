@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.16 2000/07/07 13:56:13 brister Exp $ */
+/* $Id: confctl.h,v 1.17 2000/07/07 23:11:47 brister Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -61,6 +61,7 @@
 #include <isc/magic.h>
 
 #include <dns/confip.h>
+#include <dns/confkeys.h>
 
 #define DNS_C_CONFCTL_MAGIC	0x4363746cU
 #define DNS_C_CONFCTLLIST_MAGIC	0x4354424cU
@@ -87,7 +88,6 @@ struct dns_c_ctrl {
 			isc_sockaddr_t addr;
 			in_port_t port;
 			dns_c_ipmatchlist_t *matchlist;
-			char *key;
 		} inet_v; /* when control_type == dns_c_inet_control  */
 		struct {
 			char *pathname;
@@ -96,6 +96,7 @@ struct dns_c_ctrl {
 			gid_t group;
 		} unix_v; /* when control_type == dns_c_unix_control  */
 	} u;
+	dns_c_kidlist_t *keyidlist;
 	
 	ISC_LINK(dns_c_ctrl_t) next;
 };
@@ -117,7 +118,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   isc_sockaddr_t addr, in_port_t port,
-		   dns_c_ipmatchlist_t *iml, const char *key,
+		   dns_c_ipmatchlist_t *iml, dns_c_kidlist_t *keylist,
 		   isc_boolean_t copy);
 /*
  * Creates a new INET control object. If COPY is true then a deep copy is

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.22 2000/07/07 14:30:00 brister Exp $ */
+/* $Id: confctl.c,v 1.23 2000/07/07 23:11:42 brister Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,7 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list) {
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   isc_sockaddr_t addr, in_port_t port,
-		   dns_c_ipmatchlist_t *iml, const char *key,
+		   dns_c_ipmatchlist_t *iml, dns_c_kidlist_t *keylist,
 		   isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
@@ -124,14 +124,10 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->control_type = dns_c_inet_control;
 	ctrl->u.inet_v.addr = addr;
 	ctrl->u.inet_v.port = port;
-	ctrl->u.inet_v.key = NULL;
+	ctrl->keyidlist = NULL;
 
-	if (key != NULL) {
-		ctrl->u.inet_v.key = isc_mem_strdup(mem, key);
-		if (ctrl->u.inet_v.key == NULL) {
-			isc_mem_put(mem, ctrl, sizeof *ctrl);
-			return (ISC_R_NOMEMORY);
-		}
+	if (keylist != NULL) {
+		ctrl->keyidlist = keylist;
 	}
 
 	if (copy) {
@@ -177,6 +173,8 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->u.unix_v.perm = perm;
 	ctrl->u.unix_v.owner = uid;
 	ctrl->u.unix_v.group = gid;
+
+	ctrl->keyidlist = NULL;
 	
 	*control = ctrl;
 
@@ -206,16 +204,16 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 		else
 			res = ISC_R_SUCCESS;
 
-		if (ctrl->u.inet_v.key != NULL) {
-			isc_mem_free(mem, ctrl->u.inet_v.key);
-		}
-		
 		break;
 
 	case dns_c_unix_control:
 		isc_mem_free(mem, ctrl->u.unix_v.pathname);
 		res = ISC_R_SUCCESS;
 		break;
+	}
+
+	if (ctrl->keyidlist != NULL) {
+		dns_c_kidlist_delete(&ctrl->keyidlist);
 	}
 
 	ctrl->magic = 0;
@@ -253,11 +251,11 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 		fprintf(fp, "allow ");
 		dns_c_ipmatchlist_print(fp, indent + 2, iml);
 
-		if (ctl->u.inet_v.key != NULL) {
+		if (ctl->keyidlist != NULL) {
 			fprintf(fp, "\n");
-			dns_c_printtabs(fp, indent + 1);
-			fprintf(fp, "keys { \"%s\" ; }", ctl->u.inet_v.key);
+			dns_c_kidlist_print(fp, indent + 1, ctl->keyidlist);
 		}
+
 		fprintf(fp, ";\n");
 	} else {
 		/* The "#" means force a leading zero */
