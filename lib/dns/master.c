@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.144 2003/04/17 05:40:45 marka Exp $ */
+/* $Id: master.c,v 1.145 2003/04/17 11:31:02 marka Exp $ */
 
 #include <config.h>
 
@@ -869,6 +869,8 @@ load(dns_loadctx_t *lctx) {
 	unsigned long line = 0;
 	isc_boolean_t explicit_ttl;
 	isc_stdtime_t now;
+	char classname1[DNS_RDATACLASS_FORMATSIZE];
+	char classname2[DNS_RDATACLASS_FORMATSIZE];
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
@@ -1060,24 +1062,6 @@ load(dns_loadctx_t *lctx) {
 			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$GENERATE") == 0) {
 				/*
-				 * Use default ttl if known otherwise
-				 * inherit or error.
-				 */
-				if (!lctx->ttl_known &&
-				    !lctx->default_ttl_known) {
-					(*callbacks->error)(callbacks,
-					    "%s: %s:%lu: no TTL specified",
-					    "dns_master_load", source, line);
-					result = DNS_R_NOTTL;
-					if (MANYERRS(lctx, result)) {
-						SETRESULT(lctx, result);
-						lctx->ttl = 0;
-					} else if (result != ISC_R_SUCCESS)
-						goto insist_and_cleanup;
-				} else if (lctx->default_ttl_known) {
-					lctx->ttl = lctx->default_ttl;
-				}
-				/*
 				 * Lazy cleanup.
 				 */
 				if (range != NULL)
@@ -1088,7 +1072,7 @@ load(dns_loadctx_t *lctx) {
 					isc_mem_free(mctx, gtype);
 				if (rhs != NULL)
 					isc_mem_free(mctx, rhs);
-				/* range */
+				/* RANGE */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				range = isc_mem_strdup(mctx,
 						     DNS_AS_STR(token));
@@ -1103,8 +1087,35 @@ load(dns_loadctx_t *lctx) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
 				}
-				/* TYPE */
+				rdclass = 0;
+				explicit_ttl = ISC_FALSE;
+				/* CLASS? */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
+				if (dns_rdataclass_fromtext(&rdclass,
+                                            &token.value.as_textregion)
+						== ISC_R_SUCCESS) {
+					GETTOKEN(lctx->lex, 0, &token,
+						 ISC_FALSE);
+				}
+				/* TTL? */
+				if (dns_ttl_fromtext(&token.value.as_textregion,
+						     &lctx->ttl)
+						== ISC_R_SUCCESS) {
+					limit_ttl(callbacks, source, line,
+						  &lctx->ttl);
+					lctx->ttl_known = ISC_TRUE;
+					explicit_ttl = ISC_TRUE;
+					GETTOKEN(lctx->lex, 0, &token,
+						 ISC_FALSE);
+				}
+				/* CLASS? */
+				if (rdclass == 0 &&
+				    dns_rdataclass_fromtext(&rdclass,
+						    &token.value.as_textregion)
+						== ISC_R_SUCCESS)
+					GETTOKEN(lctx->lex, 0, &token,
+						 ISC_FALSE);
+				/* TYPE */
 				gtype = isc_mem_strdup(mctx,
 						       DNS_AS_STR(token));
 				if (gtype == NULL) {
@@ -1117,6 +1128,29 @@ load(dns_loadctx_t *lctx) {
 				if (rhs == NULL) {
 					result = ISC_R_NOMEMORY;
 					goto log_and_cleanup;
+				}
+				if (!lctx->ttl_known &&
+				    !lctx->default_ttl_known) {
+					(*callbacks->error)(callbacks,
+					    "%s: %s:%lu: no TTL specified",
+					    "dns_master_load", source, line);
+					result = DNS_R_NOTTL;
+					if (MANYERRS(lctx, result)) {
+						SETRESULT(lctx, result);
+						lctx->ttl = 0;
+					} else if (result != ISC_R_SUCCESS)
+						goto insist_and_cleanup;
+				} else if (!explicit_ttl &&
+					   lctx->default_ttl_known) {
+					lctx->ttl = lctx->default_ttl;
+				}
+				/*
+				 * If the class specified does not match the
+				 * zone's class print out a error message and
+				 * exit.
+				 */
+				if (rdclass != 0 && rdclass != lctx->zclass) {
+					goto bad_class;
 				}
 				result = generate(lctx, range, lhs, gtype, rhs,
 						  source, line);
@@ -1405,8 +1439,7 @@ load(dns_loadctx_t *lctx) {
 		 * print out a error message and exit.
 		 */
 		if (rdclass != 0 && rdclass != lctx->zclass) {
-			char classname1[DNS_RDATACLASS_FORMATSIZE];
-			char classname2[DNS_RDATACLASS_FORMATSIZE];
+  bad_class:
 
 			dns_rdataclass_format(rdclass, classname1,
 					      sizeof(classname1));

@@ -1,3 +1,5 @@
+1467.	[func]		$GENERATES now supports optional class and ttl.
+			
 1466.	[bug]		lwresd configuration errors resulted in memory
 			and lock leaks.  [RT #5228]
 			
