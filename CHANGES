@@ -3,6 +3,9 @@
 1656.	[doc]		Update DNSSEC description in ARM to cover DS, NSEC
 			DNSKEY and RRSIG.  [RT #11542]
 
+1655.	[bug]		Logging multiple versions w/o a size was broken.
+			[RT #11446]
+
 1654.	[bug]		isc_result_totext() contained array bounds read
 			error.
 
