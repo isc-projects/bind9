@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -12,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2.2.2 2004/03/06 10:21:50 marka Exp $
+# $Id: clean.sh,v 1.2.2.3 2004/03/09 04:23:43 marka Exp $
 
 rm -f dig.out.ns?.test*
 rm -f nsupdate.out.test*
