@@ -20,7 +20,7 @@ distclean:: FORCE
 kit: kitclean
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)
-	tar cLvf - bind-${VERSION} | gzip -c > bind-${VERSION}.tar.gz
+	gtar -c -v -z -h --exclude '*CVS*' -f bind-${VERSION}.tar.gz bind-${VERSION}
 	rm -rf bind-${VERSION}
 
 kitclean: distclean
