@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.39 2000/09/12 10:07:47 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.40 2000/09/12 11:50:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -144,10 +144,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_mem_strdup(mctx,
-						    isc_commandline_argument);
-			if (randomfile == NULL)
-				fatal("out of memory");
+			randomfile = isc_commandline_argument;
 			break;
 
 		case 'v':
@@ -175,8 +172,6 @@ main(int argc, char *argv[]) {
 		usage();
 
 	setup_entropy(mctx, randomfile, &ectx);
-	if (randomfile != NULL)
-		isc_mem_free(mctx, randomfile);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;

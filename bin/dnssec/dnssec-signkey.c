@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.35 2000/09/12 10:07:48 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.36 2000/09/12 11:50:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -195,10 +195,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_mem_strdup(mctx,
-						    isc_commandline_argument);
-			if (randomfile == NULL)
-				fatal("out of memory");
+			randomfile = isc_commandline_argument;
 			break;
 
 		case 'v':
@@ -231,8 +228,6 @@ main(int argc, char *argv[]) {
 		rdclass = dns_rdataclass_in;
 
 	setup_entropy(mctx, randomfile, &ectx);
-	if (randomfile != NULL)
-		isc_mem_free(mctx, randomfile);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;

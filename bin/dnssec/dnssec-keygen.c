@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.39 2000/09/12 10:07:46 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.40 2000/09/12 11:50:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -171,8 +171,6 @@ main(int argc, char **argv) {
 			break;
 		case 'r':
 			randomfile = isc_commandline_argument;
-			if (randomfile == NULL)
-				fatal("out of memory");
 			break;
 		case 'v':
 			endp = NULL;
@@ -191,8 +189,6 @@ main(int argc, char **argv) {
 	}
 
 	setup_entropy(mctx, randomfile, &ectx);
-	if (randomfile != NULL)
-		isc_mem_free(mctx, randomfile);
 	ret = dst_lib_init(mctx, ectx,
 			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)
