@@ -118,11 +118,11 @@ BIND 9.0.0rc1
 
 		On some systems, IPv6 and IPv4 sockets interact in
 		unexpected ways.  For details, see doc/misc/ipv6.
-		If your system supports IPv6 but you do not wish to
-		use it, you can avoid these problems by specifying
-		"listen-on-v6 { none; };" in the named.conf
-		options statement to turn off listening on IPv6
-		sockets.
+		To reduce the impact of these problems, the server
+		no longer listens for requests on IPv6 addresses
+		by default.  If you need to accept DNS queries over
+		IPv6, you must specify "listen-on-v6 { any; };"
+		in the named.conf options statement.
 
 		There are known problems with thread signal handling 
 		under Solaris 2.6.
