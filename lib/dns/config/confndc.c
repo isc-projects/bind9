@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.6 2000/03/28 22:58:19 brister Exp $ */
+/* $Id: confndc.c,v 1.7 2000/04/05 16:39:24 brister Exp $ */
 
 /*
 **	options {
@@ -35,8 +35,6 @@
 **	
 */
 
-
-#include <config.h>
 
 #include <config.h>
 
