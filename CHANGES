@@ -32,7 +32,7 @@
  888.	[bug]		Don't die when using TKEY to delete a nonexistent
 			TSIG key. [RT #1392]
 
- 860.	[func]		Drop cross class glue in zone transfers.
+ 860.	[interop]	Drop cross class glue in zone transfers.
 
  852.	[bug]		Handle responses from servers which do not
 			now about IXFR.
