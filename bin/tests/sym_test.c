@@ -28,19 +28,6 @@
 isc_mem_t *mctx;
 isc_symtab_t *st;
 
-static char *
-mem_strdup(isc_mem_t *mctx, const char *s) {
-	size_t len;
-	char *ns;
-
-	len = strlen(s);
-	ns = isc_mem_allocate(mctx, len + 1);
-	if (ns == NULL)
-		return (NULL);
-	strncpy(ns, s, len + 1);
-	return (ns);
-}
-
 static void
 undefine_action(char *key, unsigned int type, isc_symvalue_t value) {
 	INSIST(type == 1);
@@ -104,8 +91,8 @@ main(int argc, char *argv[]) {
 				}
 			} else {
 				*cp++ = '\0';
-				key = mem_strdup(mctx, key);
-				value.as_pointer = mem_strdup(mctx, cp);
+				key = isc_mem_strdup(mctx, key);
+				value.as_pointer = isc_mem_strdup(mctx, cp);
 				result = isc_symtab_define(st, key, 1, value,
 							   exists_policy);
 				if (trace || result != ISC_R_SUCCESS) {
