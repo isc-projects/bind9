@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.64 2001/07/23 05:00:43 mayer Exp $ */
+/* $Id: parser.c,v 1.65 2001/07/26 20:42:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -902,6 +902,8 @@ view_clauses[] = {
 static cfg_clausedef_t
 view_only_clauses[] = {
 	{ "match-clients", &cfg_type_bracketed_aml, 0 },
+	{ "match-destinations", &cfg_type_bracketed_aml, 0 },
+	{ "match-recursive-only", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

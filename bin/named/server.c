@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.335 2001/07/23 17:31:33 gson Exp $ */
+/* $Id: server.c,v 1.336 2001/07/26 20:42:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -728,10 +728,22 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_aclenv_copy(&view->aclenv, &ns_g_server->aclenv);
 
 	/*
-	 * Configure the "match-clients" ACL.
+	 * Configure the "match-clients" and "match-destinations" ACL.
 	 */
 	CHECK(configure_view_acl(vconfig, config, "match-clients", actx,
 				 ns_g_mctx, &view->matchclients));
+	CHECK(configure_view_acl(vconfig, config, "match-destinations", actx,
+				 ns_g_mctx, &view->matchdestinations));
+
+	/*
+	 * Configure the "match-recursive-only" option.
+	 */
+	obj = NULL;
+	(void) ns_config_get(maps, "match-recursive-only", &obj);
+	if (obj != NULL && cfg_obj_asboolean(obj))
+		view->matchrecursiveonly = ISC_TRUE;
+	else
+		view->matchrecursiveonly = ISC_FALSE;
 
 	/*
 	 * Configure other configurable data.

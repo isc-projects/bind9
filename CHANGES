@@ -1,4 +1,7 @@
 
+ 945.	[func]		Add the new view-specific options
+ 			"match-destinations" and "match-recursive-only".
+
  944.	[func]		Check for expired signatures on load.
 
  943.	[bug]		The server could crash when receiving a command

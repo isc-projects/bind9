@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.148 2001/07/06 20:39:43 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.149 2001/07/26 20:42:42 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4054,6 +4054,8 @@ key data.</para></sect2>
 <sect2><title><command>view</command> Statement Grammar</title>
 <programlisting>view <replaceable>view_name</replaceable> <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
+      match-destinations { <replaceable>address_match_list</replaceable> } ;
+      match-recursive-only { <replaceable>yes_or_no</replaceable> } ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
       <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
@@ -4065,11 +4067,19 @@ of <acronym>BIND</acronym> 9 that lets a name server answer a DNS query differen
 depending on who is asking. It is particularly useful for implementing
 split DNS setups without having to run multiple servers.</para>
 <para>Each <command>view</command> statement defines a view of the
-DNS namespace that will be seen by those clients whose IP addresses
-match the <varname>address_match_list</varname> of the view's <command>match-clients</command> clause.
- The order of the <command>view</command> statements is significant-a
-client query will be resolved in the context of the first <command>view</command> whose <command>match-clients</command> list
-matches the client's IP address.</para>
+DNS namespace that will be seen by a subset of clients.  A client matches
+a view if its source IP address matches the 
+<varname>address_match_list</varname> of the view's
+<command>match-clients</command> clause and its destination IP address matches
+the <varname>address_match_list</varname> of the view's
+<command>match-destinations</command> clause.  If not specified, both
+<command>match-clients</command> and <command>match-destinations</command>
+default to matching all addresses.  A view can also be specified
+as <command>match-recursive-only</command>, which means that only recursive
+queries from matching clients will match that view.
+ The order of the <command>view</command> statements is significant - a
+client query will be resolved in the context of the first
+<command>view</command> that it matches.
 <para>Zones defined within a <command>view</command> statement will
 be only be accessible to clients that match the <command>view</command>.
  By defining a zone of the same name in multiple views, different

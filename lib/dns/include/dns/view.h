@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.71 2001/05/07 23:34:09 gson Exp $ */
+/* $Id: view.h,v 1.72 2001/07/26 20:42:45 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -123,6 +123,8 @@ struct dns_view {
 	 * locked by server configuration lock.
 	 */
 	dns_acl_t *			matchclients;
+	dns_acl_t *			matchdestinations;
+	isc_boolean_t			matchrecursiveonly;
 
 	/* Locked by themselves. */
 	isc_refcount_t			references;

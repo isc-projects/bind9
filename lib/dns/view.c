@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.100 2001/05/07 23:34:04 gson Exp $ */
+/* $Id: view.c,v 1.101 2001/07/26 20:42:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -133,6 +133,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
+	view->matchdestinations = NULL;
+	view->matchrecursiveonly = ISC_FALSE;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_fwdtable;
@@ -242,6 +244,8 @@ destroy(dns_view_t *view) {
 		dns_cache_detach(&view->cache);
 	if (view->matchclients != NULL)
 		dns_acl_detach(&view->matchclients);
+	if (view->matchdestinations != NULL)
+		dns_acl_detach(&view->matchdestinations);
 	if (view->queryacl != NULL)
 		dns_acl_detach(&view->queryacl);
 	if (view->recursionacl != NULL)
