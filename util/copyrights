@@ -121,6 +121,7 @@
 ./bin/tests/generic-b9t.cron			X	1999
 ./bin/tests/keygen.c				PORTION	1999
 ./bin/tests/lex_test.c				C	1998,1999
+./bin/tests/lfsr_test.c				C	1999
 ./bin/tests/log_test.c				C	1999
 ./bin/tests/master-b9t.cron			X	1999
 ./bin/tests/master/.cvsignore			X	1999
@@ -551,6 +552,7 @@
 ./lib/isc/include/isc/interfaceiter.h		C	1999
 ./lib/isc/include/isc/lang.h			C	1999
 ./lib/isc/include/isc/lex.h			C	1998,1999
+./lib/isc/include/isc/lfsr.h			C	1999
 ./lib/isc/include/isc/lib.h			C	1999
 ./lib/isc/include/isc/list.h			C	1997,1999
 ./lib/isc/include/isc/log.h			C	1999
@@ -581,6 +583,7 @@
 ./lib/isc/inet_ntop.c				FIXME	1999
 ./lib/isc/inet_pton.c				FIXME	1999
 ./lib/isc/lex.c					C	1998,1999
+./lib/isc/lfsr.c				C	1999
 ./lib/isc/lib.c					C	1999
 ./lib/isc/log.c					C	1999
 ./lib/isc/mem.c					C	1997,1998,1999
