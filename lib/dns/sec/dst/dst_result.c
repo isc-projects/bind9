@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.14 2000/08/01 01:27:51 tale Exp $
+ * $Id: dst_result.c,v 1.15 2000/08/10 22:28:32 bwelling Exp $
  */
 
 #include <config.h>
@@ -30,7 +30,7 @@
 
 static const char *text[DST_R_NRESULTS] = {
 	"algorithm is unsupported",		/*  0 */
-	"UNUSED1",				/*  1 */
+	"openssl failure",			/*  1 */
 	"UNUSED2",				/*  2 */
 	"illegal operation for a null key",	/*  3 */
 	"public key is invalid",		/*  4 */

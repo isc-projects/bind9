@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.34 2000/08/08 16:13:39 bwelling Exp $
+ * $Id: openssl_link.c,v 1.35 2000/08/10 22:28:33 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -194,11 +194,11 @@ openssldsa_generate(dst_key_t *key, int unused) {
 				      NULL, NULL);
 
 	if (dsa == NULL)
-		return (ISC_R_NOMEMORY);
+		return (DST_R_OPENSSLFAILURE);
 
 	if (DSA_generate_key(dsa) == 0) {
 		DSA_free(dsa);
-		return (ISC_R_NOMEMORY);
+		return (DST_R_OPENSSLFAILURE);
 	}
 
 	key->opaque = dsa;

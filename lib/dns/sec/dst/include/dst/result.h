@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.17 2000/08/01 01:28:00 tale Exp $ */
+/* $Id: result.h,v 1.18 2000/08/10 22:28:36 bwelling Exp $ */
 
 #ifndef DST_RESULT_H
 #define DST_RESULT_H 1
@@ -32,7 +32,7 @@
 #include <isc/result.h>		/* Contractual promise. */
 
 #define DST_R_UNSUPPORTEDALG		(ISC_RESULTCLASS_DST + 0)
-/* 1 is unused */
+#define DST_R_OPENSSLFAILURE		(ISC_RESULTCLASS_DST + 1)
 /* 2 is unused */
 #define DST_R_NULLKEY			(ISC_RESULTCLASS_DST + 3)
 #define DST_R_INVALIDPUBLICKEY		(ISC_RESULTCLASS_DST + 4)

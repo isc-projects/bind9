@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.28 2000/08/08 16:13:40 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.29 2000/08/10 22:28:34 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -155,11 +155,11 @@ openssldh_generate(dst_key_t *key, int generator) {
 					    NULL, NULL);
 
 	if (dh == NULL)
-		return (DST_R_INVALIDPARAM);
+		return (DST_R_OPENSSLFAILURE);
 
 	if (DH_generate_key(dh) == 0) {
 		DH_free(dh);
-		return (ISC_R_NOMEMORY);
+		return (DST_R_OPENSSLFAILURE);
 	}
 
 	key->opaque = dh;
