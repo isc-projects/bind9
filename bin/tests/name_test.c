@@ -85,7 +85,7 @@ main(int argc, char *argv[]) {
 		origin = dns_rootname;
 
 	if (argc > 1) {
-		if (strcasecmp("none", argv[0]) == 0)
+		if (strcasecmp("none", argv[1]) == 0)
 			comp = NULL;
 		else {
 			len = strlen(argv[1]);
@@ -96,7 +96,7 @@ main(int argc, char *argv[]) {
 					ISC_BUFFERTYPE_BINARY);
 			dns_name_init(&compname, compoffsets);
 			result = dns_name_fromtext(&compname, &source,
-						   dns_rootname, 0,
+						   origin, 0,
 						   &target);
 			if (result != 0) {
 				fprintf(stderr,
