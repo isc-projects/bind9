@@ -2069,10 +2069,17 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		 * "Unlike traditional dynamic update, the client
 		 * is forbidden from updating NXT records."
 		 */
-		if (dns_db_issecure(db) && rdata.type == dns_rdatatype_nxt) {
-			FAILC(DNS_R_REFUSED,
-			      "explicit NXT updates are not allowed "
-			      "in secure zones");
+		if (dns_db_issecure(db)) {
+			if (rdata.type == dns_rdatatype_nxt) {
+				FAILC(DNS_R_REFUSED,
+				      "explicit NXT updates are not allowed "
+				      "in secure zones");
+			}
+			else if (rdata.type == dns_rdatatype_sig) {
+				FAILC(DNS_R_REFUSED,
+				      "explicit SIG updates are currently not "
+				      "supported in secure zones");
+			}
 		}
 
 		if (ssutable != NULL && client->signer != NULL) {
