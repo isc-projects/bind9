@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.264 2000/11/30 20:47:53 gson Exp $ */
+/* $Id: server.c,v 1.265 2000/12/01 02:01:26 gson Exp $ */
 
 #include <config.h>
 
@@ -1751,6 +1751,24 @@ load_configuration(const char *filename, ns_server_t *server,
 			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
 			      "now using logging configuration from "
 			      "config file");
+	}
+
+	/*
+	 * Set the default value of the query logging flag depending
+	 * whether a "queries" category has been defined.  This is
+	 * a disgusting hack, but we need to do this for BIND 8
+	 * compatibility.
+	 */
+	if (first_time) {
+		dns_c_logginglist_t *clog = NULL;		
+		dns_c_logcat_t *ccat;
+		(void)dns_c_ctx_getlogging(cctx, &clog);
+		for (ccat = ISC_LIST_HEAD(clog->categories);
+		     ccat != NULL;
+		     ccat = ISC_LIST_NEXT(ccat, next)) {
+			if (strcmp(ccat->catname, "queries") == 0)
+				server->log_queries = ISC_TRUE;
+		}
 	}
 
 	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) != ISC_R_NOTFOUND)
