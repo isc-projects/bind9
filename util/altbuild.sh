@@ -15,14 +15,13 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.2 2000/08/30 17:04:55 gson Exp $
+# $Id: altbuild.sh,v 1.3 2000/12/01 18:23:45 gson Exp $
 
 #
 # "Alternative build" test.
 #
 # Build BIND9 with build options that are seldom tested otherwise.
-# It is built directly from CVS; specify the CVS tag as a command
-# line argument.
+# Specify the CVS tag as a command line argument.
 #
 
 case $# in 
@@ -30,9 +29,13 @@ case $# in
     *) echo "usage: $0 cvs-tag" >&2; exit 1 ;;
 esac
 
+kitdir=/tmp/kit
 srcdir=/tmp/src
 builddir=/tmp/build
 instdir=/tmp/inst
+
+test ! -d $kitdir || rm -rf $kitdir
+mkdir $kitdir
 
 test ! -d $srcdir || rm -rf $srcdir
 mkdir $srcdir
@@ -43,16 +46,17 @@ mkdir $builddir
 test ! -d $instdir || rm -rf $instdir
 mkdir $instdir
 
-cd $srcdir || exit 1
+sh util/kit.sh $tag $kitdir || exit 1
 
-cvs export -r $tag bind9
+cd $srcdir || exit 1
+zcat $kitdir/*.tar.gz | tar xf -
 
 cd $builddir || exit 1
 
 # Test a libtool / separate object dir build.
 
 CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0" \
-    sh $srcdir/bind9/configure --with-libtool --prefix=$instdir
+    sh $srcdir/bind-*/configure --with-libtool --prefix=$instdir
 gmake clean
 gmake
 gmake install
@@ -60,7 +64,7 @@ gmake install
 # Rebuild in the source tree so that the test suite
 # works, then run it.
 
-cd $srcdir/bind9 || exit 1
+cd $srcdir/bind-* || exit 1
 CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0" \
     sh configure --with-libtool --prefix=$instdir
 make
