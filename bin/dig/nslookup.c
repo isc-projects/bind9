@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.80 2001/01/24 19:28:33 gson Exp $ */
+/* $Id: nslookup.c,v 1.81 2001/03/13 01:03:43 mws Exp $ */
 
 #include <config.h>
 
@@ -884,6 +884,7 @@ main(int argc, char **argv) {
 	debug("done, and starting to shut down");
 	if (global_event != NULL)
 		isc_event_free(&global_event);
+	cancel_all();
 	destroy_libs();
 	isc_app_finish();
 
