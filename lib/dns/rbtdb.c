@@ -2706,12 +2706,10 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
 		newheader->trust = 0;
-		merge = ISC_TRUE;
 		now = 0;
 	} else {
 		newheader->serial = 1;
 		newheader->trust = rdataset->trust;
-		merge = ISC_FALSE;
 	}
 
 	/*
