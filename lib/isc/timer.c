@@ -15,22 +15,23 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.59 2000/12/06 00:30:13 tale Exp $ */
+/* $Id: timer.c,v 1.60 2000/12/26 21:12:23 tale Exp $ */
 
 #include <config.h>
 
-#include <isc/condition.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/task.h>
-#include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#ifndef ISC_PLATFORM_USETHREADS
+#ifdef ISC_PLATFORM_USETHREADS
+#include <isc/condition.h>
+#include <isc/thread.h>
+#else /* ISC_PLATFORM_USETHREADS */
 #include "timer_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
 
