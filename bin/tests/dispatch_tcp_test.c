@@ -107,7 +107,7 @@ my_accept(isc_task_t *task, isc_event_t *ev_in)
 	 */
 	disp = NULL;
 	RUNTIME_CHECK(dns_dispatch_create(mctx, ev->newsocket, task,
-					  512, 6, 1024, 17, 19, &disp)
+					  512, 6, 1024, 17, 19, NULL, &disp)
 		      == ISC_R_SUCCESS);
 
 	resp = NULL;

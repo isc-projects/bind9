@@ -45,7 +45,7 @@
 
 struct dns_dispentry {
 	unsigned int			magic;
-	dns_messageid_t			id;
+	isc_uint32_t			id;
 	unsigned int			bucket;
 	isc_sockaddr_t			host;
 	isc_task_t		       *task;
@@ -87,6 +87,7 @@ struct dns_dispatch {
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
+	dns_dispatchmethods_t	methods;	/* methods to use */
 	isc_lfsr_t		qid_lfsr1;	/* state generator info */
 	isc_lfsr_t		qid_lfsr2;	/* state generator info */
 	unsigned int		qid_nbuckets;	/* hash table size */
@@ -112,8 +113,8 @@ static void destroy(dns_dispatch_t *);
 static void udp_recv(isc_task_t *, isc_event_t *);
 static void tcp_recv(isc_task_t *, isc_event_t *);
 static inline void startrecv(dns_dispatch_t *);
-static dns_messageid_t randomid(dns_dispatch_t *);
-static unsigned int hash(dns_dispatch_t *, isc_sockaddr_t *, dns_messageid_t);
+static isc_uint32_t dns_randomid(dns_dispatch_t *);
+static isc_uint32_t dns_hash(dns_dispatch_t *, isc_sockaddr_t *, isc_uint32_t);
 static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_buffer(dns_dispatch_t *disp, unsigned int len);
 static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
@@ -138,15 +139,37 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 /*
  * Return an unpredictable message ID.
  */
-static inline dns_messageid_t
-randomid(dns_dispatch_t *disp)
+static isc_uint32_t
+dns_randomid(dns_dispatch_t *disp)
 {
 	isc_uint32_t id;
 
 	id = isc_lfsr_generate32(&disp->qid_lfsr1, &disp->qid_lfsr2);
 
-	return ((dns_messageid_t)(id & 0x0000ffff));
+	return (id & 0x0000ffffU);
 }
+
+/*
+ * Return a hash of the destination and message id.
+ */
+static isc_uint32_t
+dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id)
+{
+	unsigned int ret;
+
+	ret = isc_sockaddr_hash(dest, ISC_TRUE);
+	ret ^= (id & 0x0000ffff); /* important to mask off garbage bits */
+	ret %= disp->qid_nbuckets;
+
+	INSIST(ret < disp->qid_nbuckets);
+
+	return (ret);
+}
+
+static dns_dispatchmethods_t dns_wire_methods = {
+	dns_randomid,
+	dns_hash
+};
 
 static dns_dispentry_t *
 linear_first(dns_dispatch_t *disp)
@@ -185,23 +208,6 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	}
 
 	return (NULL);
-}
-
-/*
- * Return a hash of the destination and message id.
- */
-static unsigned int
-hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
-{
-	unsigned int ret;
-
-	ret = isc_sockaddr_hash(dest, ISC_TRUE);
-	ret ^= (id & 0x0000ffff); /* important to mask off garbage bits */
-	ret %= disp->qid_nbuckets;
-
-	INSIST(ret < disp->qid_nbuckets);
-
-	return (ret);
 }
 
 /*
@@ -476,7 +482,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		/* query */
 	} else {
  		/* response */
-		bucket = hash(disp, &ev->address, id);
+		bucket = disp->methods.hash(disp, &ev->address, id);
 		resp = bucket_search(disp, &ev->address, id, bucket);
 		XDEBUG(("Search for response in bucket %d: %s\n",
 			bucket, (resp == NULL ? "NOT FOUND" : "FOUND")));
@@ -662,7 +668,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 		/* query */
 	} else {
  		/* response */
-		bucket = hash(disp, &tcpmsg->address, id);
+		bucket = disp->methods.hash(disp, &tcpmsg->address, id);
 		resp = bucket_search(disp, &tcpmsg->address, id, bucket);
 		XDEBUG(("Search for response in bucket %d: %s\n",
 			bucket, (resp == NULL ? "NOT FOUND" : "FOUND")));
@@ -785,6 +791,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
+		    dns_dispatchmethods_t *methods,
 		    dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
@@ -830,6 +837,11 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->buffers = 0;
 	ISC_LIST_INIT(disp->rq_handlers);
 	ISC_LIST_INIT(disp->rq_events);
+
+	if (methods == NULL)
+		disp->methods = dns_wire_methods;
+	else
+		disp->methods = *methods;
 
 	disp->qid_table = isc_mem_get(disp->mctx,
 				      buckets * sizeof(dns_displist_t));
@@ -1023,8 +1035,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	/*
 	 * Try somewhat hard to find an unique ID.
 	 */
-	id = randomid(disp);
-	bucket = hash(disp, dest, id);
+	id = disp->methods.randomid(disp);
+	bucket = disp->methods.hash(disp, dest, id);
 	ok = ISC_FALSE;
 	for (i = 0 ; i < 64 ; i++) {
 		if (bucket_search(disp, dest, id, bucket) == NULL) {
@@ -1033,7 +1045,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		}
 		id += disp->qid_increment;
 		id &= 0x0000ffff;
-		bucket = hash(disp, dest, id);
+		bucket = disp->methods.hash(disp, dest, id);
 	}
 
 	if (!ok) {

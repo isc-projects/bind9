@@ -82,16 +82,32 @@ ISC_LANG_BEGINDECLS
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t);	/* standard event common */
 	isc_result_t		result;		/* result code */
-	isc_int16_t		id;		/* message id */
+	isc_int32_t		id;		/* message id */
 	isc_sockaddr_t		addr;		/* address recv'd from */
 	isc_buffer_t	        buffer;		/* data buffer */
 };
+
+/*
+ * Functions to:
+ *
+ *	Return if a packet is a query or a response,
+ *	Hash IDs,
+ *	Generate a new random ID,
+ *	Compare entries (IDs) for equality,
+ */
+struct dns_dispatchmethods {
+	isc_uint32_t (*randomid)(dns_dispatch_t *);
+	isc_uint32_t (*hash)(dns_dispatch_t *, isc_sockaddr_t *,
+			     isc_uint32_t);
+};
+typedef struct dns_dispatchmethods dns_dispatchmethods_t;
 
 isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
+		    dns_dispatchmethods_t *methods,
 		    dns_dispatch_t **dispp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
@@ -107,6 +123,10 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  *
  * "increment" is used in a collision avoidance function, and needs to be
  * a prime > buckets, and not 2.
+ *
+ * "methods" be NULL for normal DNS wire format, or all elements in that
+ * structure be filled in with function pointers to control dispatch
+ * behavior.
  *
  * Requires:
  *
