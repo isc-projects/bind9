@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_ho.c,v 1.1.206.1 2004/03/09 08:33:37 marka Exp $";
+static const char rcsid[] = "$Id: lcl_ho.c,v 1.1.206.2 2004/03/17 00:29:50 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -569,7 +569,7 @@ init(struct irs_ho *this) {
 	
 	if (!pvt->res && !ho_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);

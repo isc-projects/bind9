@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.7.4.1 2004/03/09 08:33:34 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.7.4.2 2004/03/17 00:29:48 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -386,7 +386,7 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 		q2->qtype = T_PTR;
 		q2->answer = q2->qbuf.buf;
 		q2->anslen = sizeof(q2->qbuf);
-		if ((pvt->res->options & RES_NO_NIBBLE2) != 0)
+		if ((pvt->res->options & RES_NO_NIBBLE2) != 0U)
 			q2->action = RESTGT_IGNORE;
 		else
 			q2->action = RESTGT_AFTERFAILURE;
@@ -1149,7 +1149,7 @@ init(struct irs_ho *this) {
 	
 	if (!pvt->res && !ho_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);

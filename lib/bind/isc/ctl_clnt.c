@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4.2.1.4.1 2004/03/09 08:33:39 marka Exp $";
+static const char rcsid[] = "$Id: ctl_clnt.c,v 1.4.2.1.4.2 2004/03/17 00:29:50 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -528,7 +528,7 @@ readable(evContext ev, void *uap, int fd, int evmask) {
 		(*tran->donefunc)(ctx, tran->uap, ctx->inbuf.text,
 				  (done ? 0 : CTL_MORE));
 		ctx->inbuf.used -= ((eos - ctx->inbuf.text) + 1);
-		if (ctx->inbuf.used == 0)
+		if (ctx->inbuf.used == 0U)
 			ctl_bufput(&ctx->inbuf);
 		else
 			memmove(ctx->inbuf.text, eos + 1, ctx->inbuf.used);

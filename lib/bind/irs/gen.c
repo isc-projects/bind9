@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gen.c,v 1.3.206.1 2004/03/09 08:33:35 marka Exp $";
+static const char rcsid[] = "$Id: gen.c,v 1.3.206.2 2004/03/17 00:29:48 marka Exp $";
 #endif
 
 /*
@@ -175,7 +175,7 @@ gen_res_get(struct irs_acc *this) {
 		gen_res_set(this, res, free);
 	}
 
-	if (((irs->res->options & RES_INIT) == 0) && res_ninit(irs->res) < 0)
+	if (((irs->res->options & RES_INIT) == 0U) && res_ninit(irs->res) < 0)
 		return (NULL);
 
 	return (irs->res);

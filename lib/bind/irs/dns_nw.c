@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_nw.c,v 1.3.2.4.4.1 2004/03/09 08:33:34 marka Exp $";
+static const char rcsid[] = "$Id: dns_nw.c,v 1.3.2.4.4.2 2004/03/17 00:29:48 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -587,7 +587,7 @@ init(struct irs_nw *this) {
 	
 	if (!pvt->res && !nw_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);

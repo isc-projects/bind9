@@ -16,13 +16,13 @@
  */
 
 /*
- * $Id: dns_p.h,v 1.1.206.1 2004/03/09 08:33:34 marka Exp $
+ * $Id: dns_p.h,v 1.1.206.2 2004/03/17 00:29:48 marka Exp $
  */
 
 #ifndef _DNS_P_H_INCLUDED
 #define	_DNS_P_H_INCLUDED
 
-#define	maybe_ok(res, nm, ok) (((res)->options & RES_NOCHECKNAME) != 0 || \
+#define	maybe_ok(res, nm, ok) (((res)->options & RES_NOCHECKNAME) != 0U || \
 			       (ok)(nm) != 0)
 #define maybe_hnok(res, hn) maybe_ok((res), (hn), res_hnok)
 #define maybe_dnok(res, dn) maybe_ok((res), (dn), res_dnok)

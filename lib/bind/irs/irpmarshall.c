@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irpmarshall.c,v 1.3.206.1 2004/03/09 08:33:37 marka Exp $";
+static const char rcsid[] = "$Id: irpmarshall.c,v 1.3.206.2 2004/03/17 00:29:49 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #if 0
@@ -508,7 +508,7 @@ irp_unmarshall_gr(struct group *gr, char *buffer) {
 
 	/* gr_name field */
 	name = NULL;
-	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0) {
+	if (getfield(&name, 0, &p, fieldsep) == NULL || strlen(name) == 0U) {
 		goto error;
 	}
 

@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: lcl.c,v 1.1.206.1 2004/03/09 08:33:37 marka Exp $";
+static const char rcsid[] = "$Id: lcl.c,v 1.1.206.2 2004/03/17 00:29:49 marka Exp $";
 #endif
 
 /* Imports */
@@ -106,7 +106,7 @@ lcl_res_get(struct irs_acc *this) {
 		lcl_res_set(this, res, free);
 	}
 
-	if ((lcl->res->options & RES_INIT) == 0 &&
+	if ((lcl->res->options & RES_INIT) == 0U &&
 	    res_ninit(lcl->res) < 0)
 		return (NULL);
 

@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.3.206.2 2004/03/16 12:34:16 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.3.206.3 2004/03/17 00:29:52 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -396,7 +396,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 		free(mem);
 #endif
 
-		INSIST(stats[max_size].gets != 0);
+		INSIST(stats[max_size].gets != 0U);
 		stats[max_size].gets--;
 		return;
 	}
