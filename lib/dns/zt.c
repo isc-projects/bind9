@@ -217,9 +217,9 @@ dns_zt_print(dns_zt_t *zt) {
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 }
 
-void
-dns_zt_load(dns_zt_t *zt) {
-	(void)dns_zt_apply(zt, ISC_FALSE, load, NULL);
+isc_result_t
+dns_zt_load(dns_zt_t *zt, isc_boolean_t stop) {
+	return (dns_zt_apply(zt, stop, load, NULL));
 }
 
 static isc_result_t

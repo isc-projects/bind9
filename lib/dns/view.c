@@ -798,12 +798,12 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_view_load(dns_view_t *view) {
+isc_result_t
+dns_view_load(dns_view_t *view, isc_boolean_t stop) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	dns_zt_load(view->zonetable);
+	return (dns_zt_load(view->zonetable, stop));
 }
 
 isc_result_t

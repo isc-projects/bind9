@@ -433,10 +433,12 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone);
  * XXX
  */
 
-void
-dns_view_load(dns_view_t *view);
+isc_result_t
+dns_view_load(dns_view_t *view, isc_boolean_t stop);
 /*
- * Load all zones attached to this view.
+ * Load all zones attached to this view.  If 'stop' is ISC_TRUE,
+ * stop on the first error and return it.  If 'stop'
+ * is ISC_FALSE, ignore errors. 
  *
  * Requires:
  *

@@ -552,24 +552,6 @@ load_configuration(const char *filename, ns_server_t *server) {
 	}
 
 	/*
-	 * Load zones.
-	 */
-	for (view = ISC_LIST_HEAD(lctx.viewlist);
-	     view != NULL;
-	     view = view_next) {
-		view_next = ISC_LIST_NEXT(view, link);
-		/* XXX error checking */
-		dns_view_load(view);
-	}
-
-	/*
-	 * Force zone maintenance.  Do this after loading
-	 * so that we know when we need to force AXFR of
-	 * slave zones whose master files are missing.
-	 */
-	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
-		
-	/*
 	 * Swap our new view list with the production one.
 	 */
 	RWLOCK(&server->viewlock, isc_rwlocktype_write);
@@ -611,6 +593,31 @@ load_configuration(const char *filename, ns_server_t *server) {
 	return (result);
 }
 
+static isc_result_t
+load_zones(ns_server_t *server, isc_boolean_t stop) {
+	isc_result_t result;
+	dns_view_t *view;
+	
+	/*
+	 * Load zone data from disk.
+	 */
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		CHECK(dns_view_load(view, stop));
+	}
+
+	/*
+	 * Force zone maintenance.  Do this after loading
+	 * so that we know when we need to force AXFR of
+	 * slave zones whose master files are missing.
+	 */
+	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
+ cleanup:
+	return (result);
+}
+
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -630,6 +637,9 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	CHECKFATAL(load_configuration(ns_g_conffile, server),
 		   "loading configuration");
+
+	CHECKFATAL(load_zones(server, ISC_TRUE),
+		   "loading zones");
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");

@@ -112,10 +112,12 @@ void dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
  *	'*ztp' to be NULL
  */
 
-void dns_zt_load(dns_zt_t *zt);
+isc_result_t dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
 
 /*
- * Load all zones in the table.
+ * Load all zones in the table.  If 'stop' is ISC_TRUE,
+ * stop on the first error and return it.  If 'stop'
+ * is ISC_FALSE, ignore errors.
  *
  * Requires:
  *	'zt' to be valid
