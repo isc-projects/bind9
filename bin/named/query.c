@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.116 2000/07/25 01:06:18 bwelling Exp $ */
+/* $Id: query.c,v 1.117 2000/07/25 21:37:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -169,6 +169,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.qname = NULL;
 	client->query.qrdataset = NULL;
 	client->query.dboptions = 0;
+	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
 }
 
@@ -1818,7 +1819,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
-	unsigned int options = 0;
 
 	/*
 	 * We are about to recurse, which means that this client will
@@ -1860,7 +1860,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	result = dns_resolver_createfetch(client->view->resolver,
 					  client->query.qname,
 					  qtype, qdomain, nameservers,
-					  NULL, options, client->task,
+					  NULL, client->query.fetchoptions,
+					  client->task,
 					  query_resume, client,
 					  rdataset, sigrdataset,
 					  &client->query.fetch);
@@ -2957,10 +2958,13 @@ ns_query_start(ns_client_t *client) {
 
 	/*
 	 * If the client has requested that DNSSEC checking be disabled,
-	 * allow lookups to return pending data.
+	 * allow lookups to return pending data and instruct the resolver
+	 * to return data before validation has completed.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD)
+	if (message->flags & DNS_MESSAGEFLAG_CD) {
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
+		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
+	}
 
 	/*
 	 * This is an ordinary query.
