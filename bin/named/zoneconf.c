@@ -114,7 +114,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 #ifdef notyet
 	dns_c_severity_t severity;
 #endif
-	dns_c_iplist_t *iplist = NULL;
+	dns_c_iplist_t *iplist;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
@@ -177,7 +177,12 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			boolean = ISC_TRUE;
 		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 
+		iplist = NULL;
 		result = dns_c_zone_getalsonotify(czone, &iplist);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getalsonotify(cview, &iplist);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getalsonotify(cctx, &iplist);
 		if (result == ISC_R_SUCCESS)
 			RETERR(dns_zone_setalsonotify(zone, iplist->ips,
 						      iplist->nextidx));
@@ -242,6 +247,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	switch (czone->ztype) {
 	case dns_c_zone_slave:
 	case dns_c_zone_stub:
+		iplist = NULL;
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
 			result = dns_zone_setmasters(zone, iplist->ips,
