@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.11 1998/12/05 00:28:13 explorer Exp $ */
+/* $Id: socket.h,v 1.12 1998/12/10 16:14:05 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -288,7 +288,7 @@ isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_listen(isc_socket_t sock, int backlog);
+isc_socket_listen(isc_socket_t sock, unsigned int backlog);
 /*
  * Set listen mode on the socket.  After this call, the only function that
  * can be used (other than attach and detach) is isc_socket_accept().
@@ -298,10 +298,12 @@ isc_socket_listen(isc_socket_t sock, int backlog);
  *	'backlog' is as in the UNIX system call listen() and may be
  *	ignored by non-UNIX implementations.
  *
+ *	If 'backlog' is zero, a reasonable system default is used, usually
+ *	SOMAXCONN.
+ *
  * Requires:
  *
  *	'socket' is a valid TCP socket.
- *	'backlog' be >= 0.
  *
  * Returns:
  *
@@ -496,6 +498,41 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
  *	ISC_R_SUCCESS
  *	ISC_R_UNEXPECTED
  *	XXX needs other net-type errors
+ */
+
+isc_result_t
+isc_socket_recvmark(isc_socket_t sock,
+		    isc_task_t task, isc_taskaction_t action, void *arg);
+isc_result_t
+isc_socket_sendmark(isc_socket_t sock,
+		    isc_task_t task, isc_taskaction_t action, void *arg);
+/*
+ * Insert a recv/send marker for the socket.
+ *
+ * This marker is processed when all I/O requests in the proper queue
+ * have been processed.
+ *
+ * Requires:
+ *
+ *	'sock' to be a valid socket.
+ *
+ *	'task' is a valid task, 'action' is a valid action.
+ *
+ * Notes:
+ *
+ *	If the queue is empty, the event will be posted immediately to the
+ * 	task.
+ *
+ *	On return, the event's 'result' member will sometimes contain useful
+ *	information.  If the mark was processed after a fatal error, it will
+ *	contain the same error that the last isc_socket_recv(), _send(),
+ *	or sendto() returned, depending on the mark type.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t

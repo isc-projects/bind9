@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.18 1998/12/05 01:44:38 halley Exp $ */
+/* $Id: socket.c,v 1.19 1998/12/10 16:14:04 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -41,11 +41,17 @@
 	XTRACE(TRACE_LOCK, ("%d unlocked socket %p\n", __LINE__, lp)); \
 } while (0)
 
+#define ISC_TASK_SEND(a, b) do { \
+	INSIST(isc_task_send(a, b) == ISC_R_SUCCESS); \
+} while (0);
+
 #define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR)
 
-/*
- * Debugging
- */
+#if 0
+#define ISC_SOCKET_DEBUG
+#endif
+
+#if defined(ISC_SOCKET_DEBUG)
 #define TRACE_WATCHER	0x0001
 #define TRACE_LISTEN	0x0002
 #define TRACE_CONNECT	0x0004
@@ -54,7 +60,6 @@
 #define TRACE_MANAGER	0x0020
 #define TRACE_LOCK	0x0040
 
-#if 1
 int trace_level = 0xffffffff;
 #define XTRACE(l, a)	if (l & trace_level) printf a
 #define XENTER(l, a)	if (l & trace_level) printf("ENTER %s\n", (a))
@@ -109,6 +114,8 @@ struct isc_socket {
 	/* Locked by socket lock. */
 	unsigned int			references;
 	int				fd;
+	isc_result_t			recv_result;
+	isc_result_t			send_result;
 	LIST(struct rwintev)		recv_list;
 	LIST(struct rwintev)		send_list;
 	LIST(struct ncintev)		accept_list;
@@ -134,7 +141,6 @@ struct isc_socketmgr {
 	isc_memctx_t			mctx;
 	isc_mutex_t			lock;
 	/* Locked by manager lock. */
-	isc_boolean_t			done;
 	unsigned int			nsockets;  /* sockets managed */
 	isc_thread_t			watcher;
 	fd_set				read_fds;
@@ -232,6 +238,7 @@ make_nonblock(int fd)
 	return (ISC_R_SUCCESS);
 }
 
+#ifdef ISC_SOCKET_DEBUG
 static void
 socket_dump(isc_socket_t sock)
 {
@@ -270,6 +277,7 @@ socket_dump(isc_socket_t sock)
 
 	printf("--------\n");
 }
+#endif
 
 /*
  * Handle freeing a done event when needed.
@@ -350,6 +358,7 @@ allocate_socket(isc_socketmgr_t manager, isc_sockettype_t type,
 
 	sock->manager = manager;
 	sock->type = type;
+	sock->fd = -1;
 
 	/*
 	 * set up list of readers and writers to be initially empty
@@ -362,6 +371,9 @@ allocate_socket(isc_socketmgr_t manager, isc_sockettype_t type,
 	sock->pending_accept = ISC_FALSE;
 	sock->listener = ISC_FALSE;
 	sock->connecting = ISC_FALSE;
+
+	sock->recv_result = ISC_R_SUCCESS;
+	sock->send_result = ISC_R_SUCCESS;
 
 	/*
 	 * initialize the lock
@@ -460,11 +472,12 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	}
 
 	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "make_nonblock(%d) failed.", sock->fd);
 		free_socket(&sock);
 		return (ISC_R_UNEXPECTED);
 	}
+
+	sock->references = 1;
+	*socketp = sock;
 
 	LOCK(&manager->lock);
 
@@ -481,9 +494,6 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 		manager->maxfd = sock->fd;
 
 	UNLOCK(&manager->lock);
-
-	sock->references = 1;
-	*socketp = sock;
 
 	XEXIT(TRACE_MANAGER, "isc_socket_create");
 
@@ -563,7 +573,7 @@ dispatch_read(isc_socket_t sock)
 
 	iev->posted = ISC_TRUE;
 
-	INSIST(isc_task_send(iev->task, &ev) == ISC_R_SUCCESS);
+	ISC_TASK_SEND(iev->task, &ev);
 }
 
 static void
@@ -580,7 +590,7 @@ dispatch_write(isc_socket_t sock)
 
 	iev->posted = ISC_TRUE;
 
-	isc_task_send(iev->task, &ev);
+	ISC_TASK_SEND(iev->task, &ev);
 }
 
 static void
@@ -598,7 +608,7 @@ dispatch_listen(isc_socket_t sock)
 
 	iev->posted = ISC_TRUE;
 
-	isc_task_send(iev->task, &ev);
+	ISC_TASK_SEND(iev->task, &ev);
 }
 
 static void
@@ -612,7 +622,7 @@ dispatch_connect(isc_socket_t sock)
 
 	iev->posted = ISC_TRUE;
 
-	isc_task_send(iev->task, (isc_event_t *)&iev);
+	ISC_TASK_SEND(iev->task, (isc_event_t *)&iev);
 }
 
 /*
@@ -634,7 +644,7 @@ send_recvdone_event(isc_socket_t sock, rwintev_t *iev,
 
 	DEQUEUE(sock->recv_list, *iev, link);
 	(*dev)->result = resultcode;
-	isc_task_send((*iev)->task, (isc_event_t *)dev);
+	ISC_TASK_SEND((*iev)->task, (isc_event_t *)dev);
 	(*iev)->done_ev = NULL;
 	isc_event_free((isc_event_t *)iev);
 }
@@ -650,7 +660,7 @@ send_senddone_event(isc_socket_t sock, rwintev_t *iev,
 
 	DEQUEUE(sock->send_list, *iev, link);
 	(*dev)->result = resultcode;
-	isc_task_send((*iev)->task, (isc_event_t *)dev);
+	ISC_TASK_SEND((*iev)->task, (isc_event_t *)dev);
 	(*iev)->done_ev = NULL;
 	isc_event_free((isc_event_t *)iev);
 }
@@ -665,7 +675,7 @@ send_ncdone_event(ncintev_t *iev,
 	REQUIRE(*dev != NULL);
 
 	(*dev)->result = resultcode;
-	isc_task_send((*iev)->task, (isc_event_t *)dev);
+	ISC_TASK_SEND((*iev)->task, (isc_event_t *)dev);
 	(*iev)->done_ev = NULL;
 
 	isc_event_free((isc_event_t *)iev);
@@ -682,14 +692,20 @@ static isc_boolean_t
 internal_accept(isc_task_t task, isc_event_t ev)
 {
 	isc_socket_t sock;
+	isc_socketmgr_t manager;
 	isc_socket_newconnev_t dev;
 	ncintev_t iev;
 	struct sockaddr addr;
 	u_int addrlen;
 	int fd;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	sock = ev->sender;
+	REQUIRE(VALID_SOCKET(sock));
+
 	iev = (ncintev_t)ev;
+	manager = sock->manager;
+	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&sock->lock);
 	XTRACE(TRACE_LISTEN,
@@ -713,7 +729,7 @@ internal_accept(isc_task_t task, isc_event_t ev)
 
 		UNLOCK(&sock->lock);
 
-		return (0);
+		return (ISC_FALSE);
 	}
 
 	/*
@@ -727,7 +743,7 @@ internal_accept(isc_task_t task, isc_event_t ev)
 		if (SOFT_ERROR(errno)) {
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
-			return (0);
+			return (ISC_FALSE);
 		}
 
 		/*
@@ -741,16 +757,18 @@ internal_accept(isc_task_t task, isc_event_t ev)
 		 */
 		XTRACE(TRACE_LISTEN, ("internal_accept: accept returned %s\n",
 				      strerror(errno)));
-		select_poke(sock->manager, sock->fd);
-		UNLOCK(&sock->lock);
-		return (0);
+
+		fd = -1;
+		result = ISC_R_UNEXPECTED;
 	}
-	if (make_nonblock(fd) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "make_nonblock(%d) failed.", fd);
+
+	if (fd != -1 && (make_nonblock(fd) != ISC_R_SUCCESS)) {
 		close(fd);
-		UNLOCK(&sock->lock);
-		return (ISC_R_UNEXPECTED);
+		fd = -1;
+
+		result = ISC_R_UNEXPECTED;
+
+		free_socket(&dev->newsocket);
 	}
 
 	DEQUEUE(sock->accept_list, iev, link);
@@ -768,35 +786,35 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	dev = iev->done_ev;
 	iev->done_ev = NULL;
 
-	dev->newsocket->fd = fd;
-
 	/*
-	 * Save away the remote address
+	 * -1 means the new socket didn't happen.
 	 */
-	dev->newsocket->addrlength = addrlen;
-	memcpy(&dev->newsocket->address, &addr, addrlen);
-	dev->addrlength = addrlen;
-	memcpy(&dev->address, &addr, addrlen);
+	if (fd != -1) {
+		dev->newsocket->fd = fd;
 
-	/*
-	 * It's safe to do this, since the done event's free routine will
-	 * detach from the socket, so sock can't disappear out from under
-	 * us.
-	 */
-	LOCK(&sock->manager->lock);
-	sock->manager->fds[fd] = dev->newsocket;
-	sock->manager->fdstate[fd] = MANAGED;
-	if (sock->manager->maxfd < fd)
-		sock->manager->maxfd = fd;
-	sock->manager->nsockets++;
-	UNLOCK(&sock->manager->lock);
+		/*
+		 * Save away the remote address
+		 */
+		dev->newsocket->addrlength = addrlen;
+		memcpy(&dev->newsocket->address, &addr, addrlen);
+		dev->addrlength = addrlen;
+		memcpy(&dev->address, &addr, addrlen);
 
-	XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
-			      dev->newsocket, fd));
+		LOCK(&manager->lock);
+		manager->fds[fd] = dev->newsocket;
+		manager->fdstate[fd] = MANAGED;
+		if (manager->maxfd < fd)
+			manager->maxfd = fd;
+		manager->nsockets++;
+		UNLOCK(&manager->lock);
 
-	send_ncdone_event(&iev, &dev, ISC_R_SUCCESS);
+		XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
+				      dev->newsocket, fd));
+	}
 
-	return (0);
+	send_ncdone_event(&iev, &dev, result);
+
+	return (ISC_FALSE);
 }
 
 static isc_boolean_t
@@ -854,7 +872,8 @@ internal_recv(isc_task_t task, isc_event_t ev)
 		 * continue the loop.
 		 */
 		if (dev->common.type == ISC_SOCKEVENT_RECVMARK) {
-			send_recvdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_recvdone_event(sock, &iev, &dev,
+					    sock->recv_result);
 			continue;
 		}
 
@@ -889,9 +908,13 @@ internal_recv(isc_task_t task, isc_event_t ev)
 			if (SOFT_ERROR(errno))
 				goto poke;
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal read: %s",
-					 strerror(errno));
-			INSIST(cc >= 0);
+					 "internal read: %s", strerror(errno));
+
+			sock->recv_result = ISC_R_UNEXPECTED;  /* XXX */
+			send_recvdone_event(sock, &iev, &dev,
+					    ISC_R_UNEXPECTED); /* XXX */
+
+			continue;
 		}
 		/*
 		 * read of 0 means the remote end was closed.  Run through
@@ -951,7 +974,7 @@ internal_recv(isc_task_t task, isc_event_t ev)
 
 	UNLOCK(&sock->lock);
 
-	return (0);
+	return (ISC_FALSE);
 }
 
 static isc_boolean_t
@@ -1007,7 +1030,8 @@ internal_send(isc_task_t task, isc_event_t ev)
 		 * continue the loop.
 		 */
 		if (dev->common.type == ISC_SOCKEVENT_SENDMARK) {
-			send_senddone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_senddone_event(sock, &iev, &dev,
+					    sock->send_result);
 			continue;
 		}
 
@@ -1021,12 +1045,10 @@ internal_send(isc_task_t task, isc_event_t ev)
 				    write_count, 0,
 				    (struct sockaddr *)&dev->address,
 				    dev->addrlength);
+
 		else
 			cc = send(sock->fd, dev->region.base + dev->n,
 				  write_count, 0);
-
-		XTRACE(TRACE_SEND,
-		       ("internal_send:  send(%d) %d\n", sock->fd, cc));
 
 		/*
 		 * check for error or block condition
@@ -1034,26 +1056,30 @@ internal_send(isc_task_t task, isc_event_t ev)
 		if (cc < 0) {
 			if (SOFT_ERROR(errno))
 				goto poke;
+
+			/*
+			 * The other error types depend on wether or not the
+			 * socket is UDP or TCP.  If it is UDP, some errors
+			 * that we expect to be fatal under TCP are merely
+			 * annoying, and are really soft errors.
+			 *
+			 * However, these soft errors are still returned as
+			 * a status.
+			 */
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_send: %s",
 					 strerror(errno));
-			INSIST(cc >= 0);
-		}
-		/*
-		 * write of 0 means the remote end was closed.  Run through
-		 * the event queue and dispatch all the events with an EOF
-		 * result code.  This will set the EOF flag in markers as
-		 * well, but that's really ok.
-		 */
-		if (cc == 0) {
-			do {
-				send_senddone_event(sock, &iev, &dev,
-						  ISC_R_EOF);
-				iev = HEAD(sock->send_list);
-			} while (iev != NULL);
 
-			goto poke;
+			sock->send_result = ISC_R_UNEXPECTED;  /* XXX */
+			send_senddone_event(sock, &iev, &dev,
+					    ISC_R_UNEXPECTED); /* XXX */
+
+			continue;
 		}
+
+		if (cc == 0)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_send: send() returned 0");
 
 		/*
 		 * if we write less than we expected, update counters,
@@ -1072,6 +1098,8 @@ internal_send(isc_task_t task, isc_event_t ev)
 		if ((size_t)cc == write_count) {
 			dev->n += write_count;
 			send_senddone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+
+			continue;
 		}
 
 	} while (!EMPTY(sock->send_list));
@@ -1082,7 +1110,7 @@ internal_send(isc_task_t task, isc_event_t ev)
 
 	UNLOCK(&sock->lock);
 
-	return (0);
+	return (ISC_FALSE);
 }
 
 /*
@@ -1123,6 +1151,7 @@ watcher(void *uap)
 			writefds = manager->write_fds;
 			maxfd = manager->maxfd + 1;
 
+#ifdef ISC_SOCKET_DEBUG
 			XTRACE(TRACE_WATCHER, ("select maxfd %d\n", maxfd));
 			for (i = 0 ; i < FD_SETSIZE ; i++) {
 				int printit;
@@ -1141,6 +1170,7 @@ watcher(void *uap)
 				if (printit && manager->fds[i] != NULL)
 					socket_dump(manager->fds[i]);
 			}
+#endif
 					
 			UNLOCK(&manager->lock);
 
@@ -1299,7 +1329,6 @@ watcher(void *uap)
 					i, manager->fds[i]));
 				unlock_sock = ISC_TRUE;
 				LOCK(&sock->lock);
-				socket_dump(sock);
 				if (sock->listener)
 					dispatch_listen(sock);
 				else
@@ -1354,7 +1383,6 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 	
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = mctx;
-	manager->done = ISC_FALSE;
 	memset(manager->fds, 0, sizeof(manager->fds));
 	manager->nsockets = 0;
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
@@ -1399,6 +1427,8 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_create() failed");
+		close(manager->pipe_fds[0]);
+		close(manager->pipe_fds[1]);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -1425,7 +1455,6 @@ isc_socketmgr_destroy(isc_socketmgr_t *managerp)
 	LOCK(&manager->lock);
 	XTRACE(TRACE_MANAGER, ("nsockets == %d\n", manager->nsockets));
 	REQUIRE(manager->nsockets == 0);
-	manager->done = ISC_TRUE;
 	UNLOCK(&manager->lock);
 
 	/*
@@ -1538,15 +1567,23 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		if (cc < 0) {
 			if (SOFT_ERROR(errno))
 				goto queue;
+
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_socket_recv: %s",
 					 strerror(errno));
-			INSIST(cc >= 0);	/* XXX */
+
+			sock->recv_result = ISC_R_UNEXPECTED;  /* XXX */
+
+			ev->result = ISC_R_UNEXPECTED; /* XXX */
+			ISC_TASK_SEND(task, (isc_event_t *)&ev);
+
+			UNLOCK(&sock->lock);
+			return (ISC_R_SUCCESS);
 		}
 
 		if (cc == 0) {
 			ev->result = ISC_R_EOF;
-			isc_task_send(task, (isc_event_t *)&ev);
+			ISC_TASK_SEND(task, (isc_event_t *)&ev);
 
 			UNLOCK(&sock->lock);
 			return (ISC_R_SUCCESS);
@@ -1563,7 +1600,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		/*
 		 * full reads are posted, or partials if partials are ok.
 		 */
-		isc_task_send(task, (isc_event_t *)&ev);
+		ISC_TASK_SEND(task, (isc_event_t *)&ev);
 
 		UNLOCK(&sock->lock);
 
@@ -1681,6 +1718,7 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		ev->address = sock->address;
 		ev->addrlength = sock->addrlength;
 	}
+
 	if (EMPTY(sock->send_list)) {
 		if (sock->type == isc_socket_udp)
 			cc = sendto(sock->fd, ev->region.base,
@@ -1703,12 +1741,16 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_socket_send: %s",
 					 strerror(errno));
+
+			sock->send_result = ISC_R_UNEXPECTED;
+
+			UNLOCK(&sock->lock);
 			return (ISC_R_UNEXPECTED);
 		}
 
 		if (cc == 0) {
 			ev->result = ISC_R_EOF;
-			isc_task_send(task, (isc_event_t *)&ev);
+			ISC_TASK_SEND(task, (isc_event_t *)&ev);
 
 			UNLOCK(&sock->lock);
 			return (ISC_R_SUCCESS);
@@ -1725,7 +1767,7 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		/*
 		 * full writes are posted.
 		 */
-		isc_task_send(task, (isc_event_t *)&ev);
+		ISC_TASK_SEND(task, (isc_event_t *)&ev);
 
 		UNLOCK(&sock->lock);
 
@@ -1819,31 +1861,19 @@ isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *sockaddr,
  * as well keep things simple rather than having to track them.
  */
 isc_result_t
-isc_socket_listen(isc_socket_t sock, int backlog)
+isc_socket_listen(isc_socket_t sock, unsigned int backlog)
 {
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(backlog >= 0);
 
 	LOCK(&sock->lock);
 
-	if (sock->type != isc_socket_tcp) {
-		UNLOCK(&sock->lock);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "Socket is not isc_socket_tcp");
-		return (ISC_R_UNEXPECTED);
-	}
-
-	if (sock->listener) {
-		UNLOCK(&sock->lock);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "Socket already listener");
-		return (ISC_R_UNEXPECTED);
-	}
+	REQUIRE(!sock->listener);
+	REQUIRE(sock->type == isc_socket_tcp);
 
 	if (backlog == 0)
 		backlog = SOMAXCONN;
 
-	if (listen(sock->fd, backlog) < 0) {
+	if (listen(sock->fd, (int)backlog) < 0) {
 		UNLOCK(&sock->lock);
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "listen: %s",
 				 strerror(errno));
@@ -2005,9 +2035,10 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
 	if (cc < 0) {
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS)
 			goto queue;
-		/* XXX check for normal errors here */
+
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "%s", strerror(errno));
+
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -2016,7 +2047,7 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
 	 */
 	if (cc == 0) {
 		dev->result = ISC_R_SUCCESS;
-		isc_task_send(task, (isc_event_t *)&dev);
+		ISC_TASK_SEND(task, (isc_event_t *)&dev);
 		UNLOCK(&sock->lock);
 
 		return (ISC_R_SUCCESS);
@@ -2075,7 +2106,7 @@ internal_connect(isc_task_t task, isc_event_t ev)
 	       ("internal_connect called, locked parent sock %p\n", sock));
 
 	REQUIRE(sock->connecting);
-	REQUIRE(sock->connect_ev != NULL);
+	REQUIRE(sock->connect_ev == (cnintev_t)ev);
 	REQUIRE(iev->task == task);
 
 	sock->connecting = ISC_FALSE;
@@ -2088,7 +2119,7 @@ internal_connect(isc_task_t task, isc_event_t ev)
 
 		UNLOCK(&sock->lock);
 
-		return (0);
+		return (ISC_FALSE);
 	}
 
 	dev = iev->done_ev;
@@ -2113,7 +2144,7 @@ internal_connect(isc_task_t task, isc_event_t ev)
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
 
-			return (0);
+			return (ISC_FALSE);
 		}
 
 		/*
@@ -2141,15 +2172,11 @@ internal_connect(isc_task_t task, isc_event_t ev)
 
 	UNLOCK(&sock->lock);
 
-	/*
-	 * It's safe to do this, since the done event's free routine will
-	 * detach from the socket, so sock can't disappear out from under
-	 * us.
-	 */
-	isc_task_send(iev->task, (isc_event_t *)&dev);
+	ISC_TASK_SEND(iev->task, (isc_event_t *)&dev);
 	iev->done_ev = NULL;
+	isc_event_free((isc_event_t *)&iev);
 
-	return (0);
+	return (ISC_FALSE);
 }
 
 isc_result_t
@@ -2232,13 +2259,10 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 
 	LOCK(&sock->lock);
 
-	printf("Cancel how == %d\n", how);
-	socket_dump(sock);
-
 	/*
 	 * All of these do the same thing, more or less.
 	 * Each will:
-	 *	o If the internal event is marked as "dispatched" try to
+	 *	o If the internal event is marked as "posted" try to
 	 *	  remove it from the task's queue.  If this fails, mark it
 	 *	  as canceled instead, and let the task clean it up later.
 	 *	o For each I/O request for that task of that type, post
@@ -2271,7 +2295,7 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 					dev = iev->done_ev;
 					iev->done_ev = NULL;
 					dev->result = ISC_R_CANCELED;
-					isc_task_send(iev->task,
+					ISC_TASK_SEND(iev->task,
 						      (isc_event_t *)&dev);
 
 					iev = NEXT(iev, link);
@@ -2314,7 +2338,7 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 					dev->result = ISC_R_CANCELED;
 					dev->newsocket->references--;
 					free_socket(&dev->newsocket);
-					isc_task_send(iev->task,
+					ISC_TASK_SEND(iev->task,
 						      (isc_event_t *)&dev);
 
 					iev = NEXT(iev, link);
@@ -2340,8 +2364,6 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 	if (how & ISC_SOCKCANCEL_CONNECT) {
 	}
 
-	socket_dump(sock);
-
 	/*
 	 * Need to guess if we need to poke or not... XXX
 	 */
@@ -2349,3 +2371,156 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 
 	UNLOCK(&sock->lock);
 }
+
+isc_result_t
+isc_socket_recvmark(isc_socket_t sock,
+		    isc_task_t task, isc_taskaction_t action, void *arg)
+{
+	isc_socketevent_t dev;
+	rwintev_t iev;
+	isc_socketmgr_t manager;
+	isc_task_t ntask = NULL;
+
+	manager = sock->manager;
+
+	dev = (isc_socketevent_t)isc_event_allocate(manager->mctx, sock,
+						    ISC_SOCKEVENT_RECVMARK,
+						    action, arg, sizeof(*dev));
+	if (dev == NULL)
+		return (ISC_R_NOMEMORY);
+
+	LOCK(&sock->lock);
+
+	/*
+	 * If the queue is empty, simply return the last error we got on
+	 * this socket as the result code, and send off the done event.
+	 */
+	if (EMPTY(sock->recv_list)) {
+		dev->result = sock->recv_result;
+
+		dev->common.destroy = done_event_destroy;
+		sock->references++;
+
+		ISC_TASK_SEND(task, (isc_event_t *)&dev);
+
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Bad luck.  The queue wasn't empty.  Insert this in the proper
+	 * place.
+	 */
+	iev = (rwintev_t)isc_event_allocate(manager->mctx,
+					    sock,
+					    ISC_SOCKEVENT_INTRECV,
+					    internal_recv,
+					    sock,
+					    sizeof(*iev));
+
+	if (iev == NULL) {
+		isc_event_free((isc_event_t *)&dev);
+		return (ISC_R_NOMEMORY);
+	}
+
+	INIT_LINK(iev, link);
+	iev->posted = ISC_FALSE;
+
+	sock->references++;
+	dev->common.destroy = done_event_destroy;
+	dev->result = ISC_R_SUCCESS;
+
+	isc_task_attach(task, &ntask);
+
+	iev->done_ev = dev;
+	iev->task = ntask;
+	iev->partial = ISC_FALSE; /* doesn't matter */
+
+	ENQUEUE(sock->send_list, iev, link);
+
+	XTRACE(TRACE_RECV,
+	       ("isc_socket_recvmark: posted ievent %p, dev %p, task %p\n",
+		iev, dev, task));
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_sendmark(isc_socket_t sock,
+		    isc_task_t task, isc_taskaction_t action, void *arg)
+{
+	isc_socketevent_t dev;
+	rwintev_t iev;
+	isc_socketmgr_t manager;
+	isc_task_t ntask = NULL;
+
+	manager = sock->manager;
+
+	dev = (isc_socketevent_t)isc_event_allocate(manager->mctx, sock,
+						    ISC_SOCKEVENT_SENDMARK,
+						    action, arg, sizeof(*dev));
+	if (dev == NULL)
+		return (ISC_R_NOMEMORY);
+
+	LOCK(&sock->lock);
+
+	/*
+	 * If the queue is empty, simply return the last error we got on
+	 * this socket as the result code, and send off the done event.
+	 */
+	if (EMPTY(sock->send_list)) {
+		dev->result = sock->send_result;
+
+		dev->common.destroy = done_event_destroy;
+		sock->references++;
+
+		ISC_TASK_SEND(task, (isc_event_t *)&dev);
+
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Bad luck.  The queue wasn't empty.  Insert this in the proper
+	 * place.
+	 */
+	iev = (rwintev_t)isc_event_allocate(manager->mctx,
+					    sock,
+					    ISC_SOCKEVENT_INTSEND,
+					    internal_send,
+					    sock,
+					    sizeof(*iev));
+
+	if (iev == NULL) {
+		isc_event_free((isc_event_t *)&dev);
+		return (ISC_R_NOMEMORY);
+	}
+
+	INIT_LINK(iev, link);
+	iev->posted = ISC_FALSE;
+
+	sock->references++;
+	dev->common.destroy = done_event_destroy;
+	dev->result = ISC_R_SUCCESS;
+
+	isc_task_attach(task, &ntask);
+
+	iev->done_ev = dev;
+	iev->task = ntask;
+	iev->partial = ISC_FALSE; /* doesn't matter */
+
+	ENQUEUE(sock->send_list, iev, link);
+
+	XTRACE(TRACE_SEND,
+	       ("isc_socket_sendmark: posted ievent %p, dev %p, task %p\n",
+		iev, dev, task));
+
+	UNLOCK(&sock->lock);
+
+	return (ISC_R_SUCCESS);
+}
+
