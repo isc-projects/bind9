@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.36 2000/06/01 17:20:23 tale Exp $ */
+/* $Id: log.c,v 1.37 2000/06/02 18:15:45 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -522,6 +522,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 			    sizeof(ISC_LIST(isc_logchannellist_t)));
 
 	lcfg->dynamic = ISC_FALSE;
+	if (lcfg->tag != NULL)
+		isc_mem_free(lcfg->lctx->mctx, lcfg->tag);	
 	lcfg->tag = NULL;
 	lcfg->highest_level = 0;
 	lcfg->duplicate_interval = 0;
