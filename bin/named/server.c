@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.299 2001/03/08 00:06:19 gson Exp $ */
+/* $Id: server.c,v 1.300 2001/03/08 00:55:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1609,7 +1609,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Check the validity of the configuration.
 	 */
-	CHECK(cfg_check_namedconf(config, ns_g_lctx));
+	CHECK(cfg_check_namedconf(config, ns_g_lctx, ns_g_mctx));
 
 	/*
 	 * Fill in the maps array, used for resolving defaults.

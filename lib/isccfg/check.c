@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.7 2001/03/07 23:36:26 bwelling Exp $ */
+/* $Id: check.c,v 1.8 2001/03/08 00:55:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 
 #include <isc/log.h>
 #include <isc/result.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
@@ -41,13 +42,15 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
+check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	const char *zname;
 	const char *typestr;
 	unsigned int ztype;
 	cfg_obj_t *zoptions;
 	cfg_obj_t *obj = NULL;
+	isc_symvalue_t symvalue;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 	unsigned int i;
 
 	static optionstable options[] = {
@@ -120,6 +123,23 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 		return (ISC_R_FAILURE);
 	}
 
+	/*
+	 * Look for an already existing zone.
+	 */
+	symvalue.as_pointer = NULL;
+	tresult = isc_symtab_define(symtab, zname,
+				    ztype == HINTZONE ? 1 : 2,
+				    symvalue, isc_symexists_reject);
+	if (tresult == ISC_R_EXISTS) {
+		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+			    "zone '%s': already exists ", zname);
+		result = ISC_R_FAILURE;
+	} else if (tresult != ISC_R_SUCCESS)
+		return (tresult);
+
+	/*
+	 * Look for inappropriate options for the given zone type.
+	 */
 	for (i = 0; i < sizeof(options) / sizeof(options[0]); i++) {
 		obj = NULL;
 		if ((options[i].allowed & ztype) == 0 &&
@@ -134,6 +154,9 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 		}
 	}
 
+	/*
+	 * Slave & stub zones must have a "masters" field.
+	 */
 	if (ztype == SLAVEZONE || ztype == STUBZONE) {
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
@@ -144,6 +167,9 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 		}
 	}
 
+	/*
+	 * Master zones can't have both "allow-update" and "update-policy".
+	 */
 	if (ztype == MASTERZONE) {
 		isc_result_t res1, res2;
 		obj = NULL;
@@ -159,6 +185,9 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 		}
 	}
 
+	/*
+	 * Check the excessively complicated "dialup" option.
+	 */
 	if (ztype == MASTERZONE || ztype == SLAVEZONE || ztype == STUBZONE) {
 		cfg_obj_t *dialup = NULL;
 		cfg_map_get(zoptions, "dialup", &dialup);
@@ -194,13 +223,24 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 }
 
 static isc_result_t
-check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx) {
+check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
+	       isc_mem_t *mctx)
+{
 	cfg_obj_t *zones = NULL;
 	cfg_obj_t *keys = NULL;
 	cfg_listelt_t *element;
+	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	UNUSED(vname);
+
+	/*
+	 * Check that all zone statements are syntactically correct and
+	 * there are no duplicate zones.
+	 */
+	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_NOMEMORY);
 
 	(void)cfg_map_get(vconfig, "zone", &zones);
 	for (element = cfg_list_first(zones);
@@ -209,9 +249,19 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx) {
 	{
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		if (check_zoneconf(zone, logctx) != ISC_R_SUCCESS)
+		if (check_zoneconf(zone, symtab, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+
+	isc_symtab_destroy(&symtab);
+
+	/*
+	 * Check that all key statements are syntactically correct and
+	 * there are no duplicate keys.
+	 */
+	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_NOMEMORY);
 
 	(void)cfg_map_get(vconfig, "key", &keys);
 	for (element = cfg_list_first(keys);
@@ -219,27 +269,42 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx) {
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *key = cfg_listelt_value(element);
-		cfg_obj_t *keyname = cfg_map_getname(key);
+		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
 		cfg_obj_t *algobj = NULL;
 		cfg_obj_t *secretobj = NULL;
+		isc_symvalue_t symvalue;
+		isc_result_t tresult;
 		
+		symvalue.as_pointer = NULL;
+		tresult = isc_symtab_define(symtab, keyname, 1,
+					    symvalue, isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "key '%s': already exists ", keyname);
+			result = ISC_R_FAILURE;
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_symtab_destroy(&symtab);
+			return (tresult);
+		}
 		cfg_map_get(key, "algorithm", &algobj);
 		cfg_map_get(key, "secret", &secretobj);
 		if (secretobj == NULL || algobj == NULL) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "key '%s' must have both 'secret' and "
 				    "algorithm defined",
-				    cfg_obj_asstring(keyname));
+				    keyname);
 			result = ISC_R_FAILURE;
 		}
 	}
+
+	isc_symtab_destroy(&symtab);
 
 	return (result);
 }
 
 
 isc_result_t
-cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
+cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *options = NULL;
 	cfg_obj_t *views = NULL;
 	cfg_obj_t *obj;
@@ -251,7 +316,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 	(void)cfg_map_get(config, "view", &views);
 
 	if (views == NULL) {
-		if (check_viewconf(config, "_default", logctx)
+		if (check_viewconf(config, "_default", logctx, mctx)
 				   != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	} else {
@@ -283,8 +348,8 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 		cfg_obj_t *vname = cfg_tuple_get(view, "name");
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
 
-		if (check_viewconf(voptions, cfg_obj_asstring(vname), logctx)
-		    != ISC_R_SUCCESS)
+		if (check_viewconf(voptions, cfg_obj_asstring(vname), logctx,
+				   mctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 

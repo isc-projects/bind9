@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.5 2001/03/03 23:11:35 bwelling Exp $ */
+/* $Id: named-checkconf.c,v 1.6 2001/03/08 00:55:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -116,7 +116,7 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	RUNTIME_CHECK(cfg_check_namedconf(config, log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(cfg_check_namedconf(config, log, mctx) == ISC_R_SUCCESS);
 
 	cfg_obj_destroy(parser, &config);
 

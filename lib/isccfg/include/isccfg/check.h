@@ -15,19 +15,20 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.2 2001/03/02 00:49:31 bwelling Exp $ */
+/* $Id: check.h,v 1.3 2001/03/08 00:55:50 bwelling Exp $ */
 
 #ifndef ISCCFG_CHECK_H
 #define ISCCFG_CHECK_H 1
 
 #include <isc/lang.h>
+#include <isc/types.h>
 
 #include <isccfg/cfg.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx);
+cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
 /*
  * Check the syntactic validity of a configuration parse tree generated from
  * a named.conf file.
