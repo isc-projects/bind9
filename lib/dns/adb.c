@@ -1261,7 +1261,8 @@ a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type,
 	 *         isc_stdtime_get() on every dns_view_find().
 	 */
 	
-	return (dns_view_find(adb->view, a6name, type, 0, 0, ISC_FALSE,
+	return (dns_view_find(adb->view, a6name, type, 0,
+			      DNS_DBFIND_GLUEOK, ISC_FALSE,
 			      rdataset, sigrdataset));
 }
 
