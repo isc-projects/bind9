@@ -79,7 +79,7 @@ BIND 9.0.0rc6
 	experimental.  For detailed information about the state of the
 	DNSSEC implementation, see the file doc/misc/dnssec.
 
-	A small number of bugs found in rc5 have been fixed.  For a 
+	A number of bugs found in rc5 have been fixed.  For a 
 	detailed list of user-visible changes, see the CHANGES file.
 
 	There are a few known bugs:
