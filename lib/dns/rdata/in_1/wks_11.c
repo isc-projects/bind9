@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.21 2000/03/18 00:19:26 explorer Exp $ */
+/* $Id: wks_11.c,v 1.22 2000/03/20 19:29:44 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -138,7 +138,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	sprintf(buf, "%u", proto);
 	RETERR(str_totext(" ", target));
 	RETERR(str_totext(buf, target));
-	isc_region_consume(&sr, 2);
+	isc_region_consume(&sr, 1);
 	RETERR(str_totext(" (", target));
 
 	for (i = 0 ; i < sr.length ; i++) {
