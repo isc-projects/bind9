@@ -1,5 +1,5 @@
 1238.	[bug]		It is possible to lockup the server when shutting down
-			if a notifies were being processed. [RT #2591]
+			if notifies were being processed. [RT #2591]
 
 1237.	[bug]		nslookup: "set q=type" failed.
 
