@@ -98,14 +98,10 @@ typedef struct {
 	unsigned int			flags;
 	unsigned int			rcode;
 	unsigned int			opcode;
-	dns_rdataclass_t		class;
-
-	unsigned int			qcount;
-	unsigned int			ancount;
-	unsigned int			aucount;
-	unsigned int			adcount;
+	dns_rdataclass_t		rdclass;
 
 	/* 4 real, 2 pseudo */
+	unsigned int			counts[DNS_SECTION_MAX];
 	dns_namelist_t			sections[DNS_SECTION_MAX];
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
 
