@@ -21,6 +21,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
+#include <dns/nxt.h>
 
 static isc_mem_t *mctx = NULL;
 
@@ -37,87 +38,6 @@ check_result(isc_result_t result, char *message) {
 			isc_result_totext(result));
 		exit(1);
 	}
-}
-
-static void
-set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
-	unsigned int byte, shift, mask;
-	
-	byte = array[index / 8];
-	shift = 7 - (index % 8);
-	mask = 1 << shift;
-
-	if (bit)
-		array[index / 8] |= mask;
-	else
-		array[index / 8] &= (~mask & 0xFF);
-}
-
-/*
- * XXXRTH  Something like this will become a library function.
- */
-static void
-build_nxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	  dns_name_t *target)
-{
-	isc_result_t result;
-	dns_rdata_t rdata;
-	dns_rdataset_t rdataset;
-	dns_rdatalist_t rdatalist;
-	isc_region_t r;
-	unsigned char data[256 + 16];
-	unsigned char *nxt_bits;
-	unsigned int max_type;
-	dns_rdatasetiter_t *rdsiter;
-
-	memset(data, 0, sizeof data);
-	dns_name_toregion(target, &r);
-	memcpy(data, r.base, r.length);
-	r.base = data;
-	nxt_bits = r.base + r.length;
-	set_bit(nxt_bits, dns_rdatatype_nxt, 1);
-	max_type = dns_rdatatype_nxt;
-	dns_rdataset_init(&rdataset);
-	rdsiter = NULL;
-	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		dns_rdatasetiter_current(rdsiter, &rdataset);
-		if (rdataset.type > 127)
-			fatal("rdataset type too large");
-		if (rdataset.type != dns_rdatatype_nxt) {
-			if (rdataset.type > max_type)
-				max_type = rdataset.type;
-			set_bit(nxt_bits, rdataset.type, 1);
-		}
-		dns_rdataset_disassociate(&rdataset);
-		result = dns_rdatasetiter_next(rdsiter);
-	}
-	if (result != DNS_R_NOMORE)
-		fatal("rdataset iteration failed");
-	dns_rdatasetiter_destroy(&rdsiter);
-
-	dns_rdata_init(&rdata);
-	r.length += (max_type / 8);
-	if (max_type % 8 != 0)
-		r.length++;
-	dns_rdata_fromregion(&rdata, dns_rdataclass_in,
-			     dns_rdatatype_nxt,
-			     &r);
-	rdatalist.rdclass = dns_rdataclass_in;
-	rdatalist.type = dns_rdatatype_nxt;
-	rdatalist.ttl = 3600;			/* XXXRTH */
-	ISC_LIST_INIT(rdatalist.rdata);
-	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	check_result(result, "dns_rdatalist_tordataset");
-	result = dns_db_addrdataset(db, node, version, 0, &rdataset,
-				    ISC_FALSE, NULL);
-	if (result == DNS_R_UNCHANGED)
-		result = ISC_R_SUCCESS;
-	check_result(result, "dns_db_addrdataset");
-	dns_rdataset_disassociate(&rdataset);
 }
 
 static inline isc_boolean_t
@@ -241,7 +161,7 @@ nxtify(char *filename) {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
 		}
-		build_nxt(db, wversion, node, target);
+		dns_buildnxt(db, wversion, node, target);
 		dns_db_detachnode(db, &node);
 		node = nextnode;
 	}
