@@ -80,7 +80,7 @@ typedef struct isc_socketmgr isc_socketmgr_t;
 
 typedef struct isc_socketevent  isc_socketevent_t;
 struct isc_socketevent {
-	isc_event_t		common;		/* Sender is the socket. */
+	ISC_EVENT_COMMON(isc_socketevent_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	isc_boolean_t		partial;	/* partial i/o ok */
 	unsigned int		n;		/* bytes read or written */
@@ -96,10 +96,11 @@ struct isc_socket_newconnev {
 	isc_sockaddr_t		address;	/* source address */
 };
 
-typedef struct isc_socket_connev {
-	isc_event_t		common;
+typedef struct isc_socket_connev isc_socket_connev_t;
+struct isc_socket_connev {
+	ISC_EVENT_COMMON(isc_socket_connev_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
-} isc_socket_connev_t;
+};
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
@@ -117,6 +118,7 @@ typedef struct isc_socket_connev {
 #define ISC_SOCKEVENT_INTACCEPT	(ISC_EVENTCLASS_SOCKET + 259)
 #define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 260)
 #define ISC_SOCKEVENT_INTR	(ISC_EVENTCLASS_SOCKET + 261)
+#define ISC_SOCKEVENT_INTW	(ISC_EVENTCLASS_SOCKET + 262)
 
 typedef enum {
 	isc_sockettype_udp = 1,
