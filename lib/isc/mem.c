@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.54 2000/07/26 19:06:19 explorer Exp $ */
+/* $Id: mem.c,v 1.55 2000/07/26 20:56:39 explorer Exp $ */
 
 #include <config.h>
 
@@ -272,7 +272,7 @@ quantize(size_t size) {
 	if (size == 0)
 		return (ALIGNMENT_SIZE);
 	temp = size + (ALIGNMENT_SIZE - 1);
-	return (temp - temp % ALIGNMENT_SIZE); 
+	return (temp - temp % ALIGNMENT_SIZE);
 }
 
 static inline void
