@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 	 * Create a dispatch context
 	 */
 	disp = NULL;
-	RUNTIME_CHECK(dns_dispatch_create(mctx, s0, t0, 512, 1024, 1024,
+	RUNTIME_CHECK(dns_dispatch_create(mctx, s0, t0, 512, 6, 1024,
 					 16, &disp) == ISC_R_SUCCESS);
 
 	resp = NULL;

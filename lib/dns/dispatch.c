@@ -68,6 +68,8 @@ struct dns_dispatch {
 	isc_task_t	       *task;		/* internal task */
 	isc_socket_t	       *socket;		/* isc socket attached to */
 	unsigned int		buffersize;	/* size of each buffer */
+	unsigned int		maxrequests;	/* max requests */
+	unsigned int		maxbuffers;	/* max buffers */
 
 	/* Locked. */
 	isc_mutex_t		lock;		/* locks all below */
@@ -82,6 +84,7 @@ struct dns_dispatch {
 				shutdown_out : 1;
 	dns_result_t		shutdown_why;
 	unsigned int		requests;	/* how many requests we have */
+	unsigned int		buffers;	/* allocated buffers */
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	isc_int32_t		qid_state;	/* state generator info */
@@ -240,6 +243,10 @@ destroy(dns_dispatch_t *disp)
 		ev = ISC_LIST_HEAD(disp->rq_events);
 	}
 
+	INSIST(disp->buffers == 0);
+	INSIST(disp->requests == 0);
+	INSIST(disp->recvs == 0);
+
 	isc_mempool_put(disp->epool, disp->failsafe_ev);
 	disp->failsafe_ev = NULL;
 
@@ -273,8 +280,12 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 static void
 free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 {
-	printf("Freeing buffer %p, length %d, into %s\n",
-	       buf, len, (len == disp->buffersize ? "mempool" : "mctx"));
+	INSIST(disp->buffers > 0);
+	disp->buffers--;
+
+	printf("Freeing buffer %p, length %d, into %s, %d remain\n",
+	       buf, len, (len == disp->buffersize ? "mempool" : "mctx"),
+	       disp->buffers);
 	if (len == disp->buffersize)
 		isc_mempool_put(disp->bpool, buf);
 	else
@@ -292,6 +303,15 @@ allocate_buffer(dns_dispatch_t *disp, unsigned int len)
 		temp = isc_mempool_get(disp->bpool);
 	else
 		temp = isc_mem_get(disp->mctx, len);
+
+	if (temp != NULL) {
+		disp->buffers++;
+
+		printf("Allocated buffer %p, length %d, from %s, %d total\n",
+		       temp, len,
+		       (len == disp->buffersize ? "mempool" : "mctx"),
+		       disp->buffers);
+	}
 
 	return (temp);
 }
@@ -513,7 +533,8 @@ startrecv(dns_dispatch_t *disp)
 	if (disp->recvs >= wanted)
 		return;
 
-	printf("Starting receive\n");
+	if (disp->buffers >= disp->maxbuffers)
+		return;
 
 	socktype = isc_socket_gettype(disp->socket);
 
@@ -568,7 +589,6 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(hashsize <= 24);
 	REQUIRE(maxbuffersize >= 512 && maxbuffersize < (64 * 1024));
 	REQUIRE(maxbuffers > 0);
-	REQUIRE(maxrequests <= maxbuffers);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
 	socktype = isc_socket_gettype(sock);
@@ -583,16 +603,19 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->magic = 0;
 	disp->mctx = mctx;
 	disp->buffersize = maxbuffersize;
+	disp->maxrequests = maxrequests;
+	disp->maxbuffers = maxbuffers;
 	disp->refcount = 1;
 	disp->recvs = 0;
 	if (socktype == isc_socket_udp)
-		disp->recvs_wanted = 8; /* XXXMLG config option */
+		disp->recvs_wanted = 4; /* XXXMLG config option */
 	else
 		disp->recvs_wanted = 1;
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->shutdown_why = ISC_R_UNEXPECTED;
 	disp->requests = 0;
+	disp->buffers = 0;
 	ISC_LIST_INIT(disp->rq_handlers);
 	ISC_LIST_INIT(disp->rq_events);
 
@@ -630,6 +653,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		res = DNS_R_NOMEMORY;
 		goto out4;
 	}
+	isc_mempool_setmaxalloc(disp->bpool, maxbuffers);
 
 	disp->rpool = NULL;
 	if (isc_mempool_create(mctx, sizeof(dns_dispentry_t),
@@ -746,6 +770,11 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 	LOCK(&disp->lock);
 
+	if (disp->requests == disp->maxrequests) {
+		UNLOCK(&disp->lock);
+		return (DNS_R_NOMORE); /* XXXMLG really a quota */
+	}
+
 	/*
 	 * Try somewhat hard to find an unique ID.
 	 */
@@ -844,13 +873,13 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	isc_task_detach(&res->task);
 
-	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
 		REQUIRE(res->item_out = ISC_TRUE);
 		res->item_out = ISC_FALSE;
 		free_buffer(disp, ev->buffer.base, ev->buffer.length);
 		free_event(disp, ev);
 	}
+	isc_mempool_put(disp->rpool, res);
 	if (disp->shutting_down == 1)
 		do_cancel(disp, NULL);
 
@@ -874,6 +903,11 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	REQUIRE(resp != NULL && *resp == NULL);
 
 	LOCK(&disp->lock);
+
+	if (disp->requests == disp->maxrequests) {
+		UNLOCK(&disp->lock);
+		return (DNS_R_NOMORE); /* XXXMLG really a quota */
+	}
 
 	res = isc_mempool_get(disp->rpool);
 	if (res == NULL) {
