@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13 2003/07/22 04:03:50 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.14 2004/01/05 08:21:09 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -806,11 +806,17 @@ socket_event_add(isc_socket_t *sock, long type) {
 	hEvent = WSACreateEvent();
 	if (hEvent == WSA_INVALID_EVENT) {
 		stat = WSAGetLastError();
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSACreateEvent: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	if (WSAEventSelect(sock->fd, hEvent, type) != 0) {
 		stat = WSAGetLastError();
 		WSACloseEvent(hEvent);
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "WSAEventSelect: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	sock->hEvent = hEvent;
@@ -1072,8 +1078,13 @@ connection_reset_fix(SOCKET fd) {
 			  &dwBytesReturned, NULL, NULL);
 	if (status != SOCKET_ERROR)
 		return (ISC_R_SUCCESS);
-	else
+	else {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "WSAIoctl(SIO_UDP_CONNRESET, oldBehaviour) %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
+	}
 }
 
 /*
@@ -1786,7 +1797,7 @@ isc_result_t
 isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		  isc_socket_t **socketp) {
 	isc_socket_t *sock = NULL;
-	isc_result_t ret;
+	isc_result_t result;
 #if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
 	int on = 1;
 #endif
@@ -1796,18 +1807,19 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
-	ret = allocate_socket(manager, type, &sock);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
+	result = allocate_socket(manager, type, &sock);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	sock->pf = pf;
 	switch (type) {
 	case isc_sockettype_udp:
 		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
-		if (connection_reset_fix(sock->fd) != ISC_R_SUCCESS) {
+		result = connection_reset_fix(sock->fd);
+		if (result != ISC_R_SUCCESS) {
 			closesocket(sock->fd);
 			free_socket(&sock);
-			return (ISC_R_UNEXPECTED);
+			return (result);
 		}
 		break;
 	case isc_sockettype_tcp:
@@ -1842,9 +1854,10 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 	}
 
-	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
+	result = make_nonblock(sock->fd);
+	if (result != ISC_R_SUCCESS) {
 		free_socket(&sock);
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 
 
@@ -2125,10 +2138,14 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 
 	UNLOCK(&sock->lock);
 
-	if (fd != INVALID_SOCKET && (make_nonblock(fd) != ISC_R_SUCCESS)) {
-		closesocket(fd);
-		fd = INVALID_SOCKET;
-		result = ISC_R_UNEXPECTED;
+	if (fd != INVALID_SOCKET) {
+		isc_result_t tresult;
+		tresult = make_nonblock(fd);
+		if (tresult != ISC_R_SUCCESS)) {
+			closesocket(fd);
+			fd = INVALID_SOCKET;
+			result = tresult;
+		}
 	}
 
 	/*
@@ -2562,13 +2579,14 @@ event_wait(void *uap) {
 		if (wsock == NULL)
 			continue;
 
-		if (WSAEnumNetworkEvents( wsock->fd, 0,
+		if (WSAEnumNetworkEvents(wsock->fd, 0,
 			&NetworkEvents) == SOCKET_ERROR) {
 			err = WSAGetLastError();
 			isc__strerror(err, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "event_wait: WSAEnumNetworkEvents() %s",
 					 strbuf);
+			/* XXXMPA */
 		}
 
 		if(NetworkEvents.lNetworkEvents == 0 ) {
@@ -2610,6 +2628,7 @@ isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
 	events_thread_t *evthread = NULL;
+	isc_result_t result;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
@@ -2650,10 +2669,11 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	/*
 	 * Start up the initial event wait thread.
 	 */
-	if (event_thread_create(&evthread, manager) != ISC_R_SUCCESS) {
+	result = event_thread_create(&evthread, manager);
+	if (result != ISC_R_SUCCESS) {
 		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 
 	manager->prime_alert = evthread->sockev_list.aEventList[0];

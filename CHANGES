@@ -13,6 +13,9 @@
 1539.	[bug]		Open UDP sockets for notify-source and transfer-source
 			that use reserved ports at startup. [RT #9475]
 
+1536.	[bug]		Windows socket code failed to log a error description
+			when returning ISC_R_UNEXPECTED. [RT #9998]
+
 1535.	[bug]		dig -x of a partial IPv4 address broken. [RT# 9949]
 
 1534.	[bug]		Race condition when priming cache. [RT# 9940]
