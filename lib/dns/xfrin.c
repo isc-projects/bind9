@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.74 2000/05/30 23:14:55 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.75 2000/06/01 13:48:55 tale Exp $ */
 
 #include <config.h>
 
@@ -207,8 +207,10 @@ static void xfrin_timeout(isc_task_t *task, isc_event_t *event);
 
 static void maybe_free(dns_xfrin_ctx_t *xfr);
 
-static void xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, char *msg);
-static isc_result_t render(dns_message_t *msg, isc_buffer_t *buf);
+static void
+xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg);
+static isc_result_t
+render(dns_message_t *msg, isc_buffer_t *buf);
 
 static void
 xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
@@ -268,7 +270,9 @@ axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	return (result);
 }
 
-/* Store a set of AXFR RRs in the database. */
+/*
+ * Store a set of AXFR RRs in the database.
+ */
 static isc_result_t
 axfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
@@ -514,20 +518,9 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 	(void) dns_zone_getdb(zone, &db);
 	
-	result = xfrin_create(mctx,
-			      zone,
-			      db,
-			      task,
-			      timermgr,
-			      socketmgr,
-			      zonename,
-			      dns_zone_getclass(zone), xfrtype,
-			      masteraddr, tsigkey, &xfr);
-	if (result != ISC_R_SUCCESS)
-		goto unlock;
-
- unlock:
-	CHECK(result);
+	CHECK(xfrin_create(mctx, zone, db, task, timermgr, socketmgr, zonename,
+			   dns_zone_getclass(zone), xfrtype, masteraddr,
+			   tsigkey, &xfr));
 
 	CHECK(xfrin_start(xfr));
 
@@ -544,12 +537,14 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	return (result);
 }
 
-void dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr) {
+void
+dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr) {
 	if (! xfr->shuttingdown)
 		xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
 }
 
-void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp) {
+void
+dns_xfrin_detach(dns_xfrin_ctx_t **xfrp) {
 	dns_xfrin_ctx_t *xfr = *xfrp;
 	INSIST(xfr->refcount > 0);
 	xfr->refcount--;
@@ -558,7 +553,7 @@ void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp) {
 }
 
 static void
-xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
+xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 	if (result != DNS_R_UPTODATE) {
 		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
 			  msg, isc_result_totext(result));
