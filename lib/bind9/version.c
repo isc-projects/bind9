@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.3.200.1 2003/08/04 04:23:55 marka Exp $ */
+/* $Id: version.c,v 1.3.200.2 2003/08/27 01:27:34 marka Exp $ */
 
-char bind9_version[] = VERSION;
+#include <bind9/version.h>
 
-unsigned int bind9_libinterface = LIBINTERFACE;
-unsigned int bind9_librevision = LIBREVISION;
-unsigned int bind9_libage = LIBAGE;
+const char bind9_version[] = VERSION;
+
+const unsigned int bind9_libinterface = LIBINTERFACE;
+const unsigned int bind9_librevision = LIBREVISION;
+const unsigned int bind9_libage = LIBAGE;
