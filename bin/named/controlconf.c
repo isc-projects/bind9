@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.9 2003/07/22 04:03:33 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.9.2.1 2003/08/04 04:20:08 marka Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,8 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
-#include <isccfg/check.h>
+
+#include <bind9/check.h>
 
 #include <isccc/alist.h>
 #include <isccc/cc.h>
@@ -835,7 +836,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	if (keyid->keyname == NULL) 
 		CHECK(ISC_R_NOMEMORY);
 
-	CHECK(cfg_check_key(key, ns_g_lctx));
+	CHECK(bind9_check_key(key, ns_g_lctx));
 
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.2 2001/11/14 22:08:35 bwelling Exp $
+# $Id: Makefile.in,v 1.2.200.1 2003/08/04 04:23:55 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -36,10 +36,10 @@ LIBS =		@LIBS@
 SUBDIRS =	include
 
 # Alphabetically
-OBJS =		check.@O@ getaddresses.@O@ version.@O@
+OBJS =		check.@O@ version.@O@
 
 # Alphabetically
-SRCS =		check.c getaddresses.c version.c
+SRCS =		check.c version.c
 
 TARGETS = 	timestamp
 

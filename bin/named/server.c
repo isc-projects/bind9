@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.2 2003/08/04 02:04:45 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.3 2003/08/04 04:20:08 marka Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,8 @@
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
-#include <isccfg/check.h>
+
+#include <bind9/check.h>
 
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -1707,7 +1708,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Check the validity of the configuration.
 	 */
-	CHECK(cfg_check_namedconf(config, ns_g_lctx, ns_g_mctx));
+	CHECK(bind9_check_namedconf(config, ns_g_lctx, ns_g_mctx));
 
 	/*
 	 * Fill in the maps array, used for resolving defaults.

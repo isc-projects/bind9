@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.1 2001/09/20 15:17:07 marka Exp $ */
+/* $Id: check.h,v 1.1.200.1 2003/08/04 04:23:56 marka Exp $ */
 
 #ifndef BIND9_CHECK_H
 #define BIND9_CHECK_H 1
@@ -51,4 +51,4 @@ bind9_check_key(cfg_obj_t *config, isc_log_t *logctx);
 
 ISC_LANG_ENDDECLS
 
-#endif /* BIND9_CHECK_H */
+#endif /* ISCCFG_CHECK_H */

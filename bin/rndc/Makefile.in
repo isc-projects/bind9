@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32.2.3 2002/02/12 12:02:03 marka Exp $
+# $Id: Makefile.in,v 1.32.2.3.8.1 2003/08/04 04:20:10 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-@BIND9_INCLUDES@
+@BIND9_MAKE_INCLUDES@
 
 CINCLUDES = -I${srcdir}/include ${ISC_INCLUDES} ${ISCCC_INCLUDES} \
 	${ISCCFG_INCLUDES} ${DNS_INCLUDES}
