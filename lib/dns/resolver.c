@@ -92,6 +92,8 @@ typedef struct query {
 	unsigned int			magic;
 	fetchctx_t *			fctx;
 	dns_dispatch_t *		dispatch;
+	dns_adbaddrinfo_t *		addrinfo;
+	isc_time_t			start;
 	/* Locked by fctx lock. */
 	dns_messageid_t			id;
 	dns_dispentry_t *		dispentry;	/* XXX name */
@@ -138,9 +140,10 @@ struct fetchctx {
 	dns_message_t *			qmessage;
 	dns_message_t *			rmessage;
 	ISC_LIST(resquery_t)		queries;
-	ISC_LIST(dns_adbfind_t)		finds;
+	dns_adbfindlist_t		finds;
 	dns_adbfind_t *			find;
 	unsigned int			pending;
+	unsigned int			restarts;
 };
 
 #define FCTX_MAGIC			0x46212121U	/* F!!! */
@@ -246,16 +249,41 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	}
 }
 
-
 static inline void
-fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp) {
+fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
+		 isc_time_t *finish)
+{
 	fetchctx_t *fctx;
 	resquery_t *query;
+	unsigned int rtt;
+	isc_time_t now;
+	unsigned int factor;
 
 	query = *queryp;
 	fctx = query->fctx;
 
 	FCTXTRACE("cancelquery");
+
+	if (finish != NULL) {
+		rtt = (unsigned int)isc_time_microdiff(finish, &query->start);
+		factor = 0;
+	} else {
+		/*
+		 * We don't have an RTT for this query.  Maybe the packet
+		 * was lost, or maybe this server is very slow.  We don't
+		 * know.  Increase the RTT.
+		 */
+		rtt = query->addrinfo->srtt + (100000 * fctx->restarts);
+		if (rtt > 10000000)
+			rtt = 10000000;
+		/*
+		 * We set 'factor' to 1, so that we will replace the current
+		 * RTT.
+		 */
+		factor = 1;
+	}
+	dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt, factor);
+
 
 	dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
 				    deventp);
@@ -277,13 +305,15 @@ fctx_cancelqueries(fetchctx_t *fctx) {
 	     query != NULL;
 	     query = next_query) {
 		next_query = ISC_LIST_NEXT(query, link);
-		fctx_cancelquery(&query, NULL);
+		fctx_cancelquery(&query, NULL, NULL);
 	}
 }
 
 static void
 fctx_cleanupfinds(fetchctx_t *fctx) {
 	dns_adbfind_t *find, *next_find;
+
+	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
 
 	for (find = ISC_LIST_HEAD(fctx->finds);
 	     find != NULL;
@@ -298,8 +328,8 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 static inline void
 fctx_stopeverything(fetchctx_t *fctx) {
 	FCTXTRACE("stopeverything");
-	fctx_cleanupfinds(fctx);
 	fctx_cancelqueries(fctx);
+	fctx_cleanupfinds(fctx);
 	fctx_stoptimer(fctx);
 }
 
@@ -364,13 +394,13 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 
 	if (sevent->result != ISC_R_SUCCESS)
-		fctx_cancelquery(&query, NULL);
+		fctx_cancelquery(&query, NULL, NULL);
 				 
 	isc_event_free(&event);
 }
 
 static isc_result_t
-fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
+fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	resquery_t *query;
 	isc_result_t result;
 	dns_rdataset_t *qrdataset;
@@ -400,10 +430,20 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 		goto cleanup_temps;
 
 	query = isc_mem_get(res->mctx, sizeof *query);
-	if (query == NULL)
-		return (ISC_R_NOMEMORY);
+	if (query == NULL) {
+		result = ISC_R_NOMEMORY; 
+		goto cleanup_temps;
+	}
 	isc_buffer_init(&query->buffer, query->data, sizeof query->data,
 			ISC_BUFFERTYPE_BINARY);
+	/*
+	 * Note that the caller MUST guarantee that 'addrinfo' will remain
+	 * valid until this query is canceled.
+	 */
+	query->addrinfo = addrinfo;
+	result = isc_time_now(&query->start);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_query;
 	
 	/*
 	 * If this is a TCP query, then we need to make a socket and
@@ -417,7 +457,7 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 		result = DNS_R_NOTIMPLEMENTED;
 		goto cleanup_query;
 	} else {
-		switch (isc_sockaddr_pf(address)) {
+		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
 		case AF_INET:
 			query->dispatch = res->dispatch4;
 			break;
@@ -443,7 +483,7 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	 */
 	query->dispentry = NULL;
 	result = dns_dispatch_addresponse(query->dispatch,
-					  address,
+					  addrinfo->sockaddr,
 					  task,
 					  resquery_response,
 					  query,
@@ -513,7 +553,7 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	isc_buffer_used(&query->buffer, &r);
 	result = isc_socket_sendto(dns_dispatch_getsocket(query->dispatch),
 				   &r, task, resquery_senddone,
-				   query, address);
+				   query, addrinfo->sockaddr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 
@@ -612,6 +652,61 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		empty_bucket(res);
 }
 
+static void
+sort_adbfind(dns_adbfind_t *find) {
+	dns_adbaddrinfo_t *best, *curr;
+	dns_adbaddrinfolist_t sorted;
+
+	/*
+	 * Lame N^2 bubble sort.
+	 */
+
+	ISC_LIST_INIT(sorted);
+	while (!ISC_LIST_EMPTY(find->list)) {
+		best = ISC_LIST_HEAD(find->list);
+		curr = ISC_LIST_NEXT(best, publink);
+		while (curr != NULL) {
+			if (curr->srtt < best->srtt)
+				best = curr;
+			curr = ISC_LIST_NEXT(curr, publink);
+		}
+		ISC_LIST_UNLINK(find->list, best, publink);
+		ISC_LIST_APPEND(sorted, best, publink);
+	} 
+	find->list = sorted;
+}
+
+static void
+sort_finds(fetchctx_t *fctx) {
+	dns_adbfind_t *best, *curr;
+	dns_adbfindlist_t sorted;
+	dns_adbaddrinfo_t *addrinfo, *bestaddrinfo;
+
+	/*
+	 * Lame N^2 bubble sort.
+	 */
+
+	ISC_LIST_INIT(sorted);
+	while (!ISC_LIST_EMPTY(fctx->finds)) {
+		best = ISC_LIST_HEAD(fctx->finds);
+		bestaddrinfo = ISC_LIST_HEAD(best->list);
+		INSIST(bestaddrinfo != NULL);
+		curr = ISC_LIST_NEXT(best, publink);
+		while (curr != NULL) {
+			addrinfo = ISC_LIST_HEAD(curr->list);
+			INSIST(addrinfo != NULL);
+			if (addrinfo->srtt < bestaddrinfo->srtt) {
+				best = curr;
+				bestaddrinfo = addrinfo;
+			}
+			curr = ISC_LIST_NEXT(curr, publink);
+		}
+		ISC_LIST_UNLINK(fctx->finds, best, publink);
+		ISC_LIST_APPEND(sorted, best, publink);
+	}
+	fctx->finds = sorted;
+}
+
 static isc_result_t
 fctx_getaddresses(fetchctx_t *fctx) {
 	dns_rdata_t rdata;
@@ -625,6 +720,13 @@ fctx_getaddresses(fetchctx_t *fctx) {
 
 	FCTXTRACE("getaddresses");
 
+	/*
+	 * Don't pound on remote servers.
+	 */
+	fctx->restarts++;
+	if (fctx->restarts > 10)
+		return (DNS_R_SERVFAIL);
+
 	res = fctx->res;
 	options = DNS_ADBFIND_WANTEVENT|DNS_ADBFIND_EMPTYEVENT;
 	if (res->dispatch4 != NULL)
@@ -635,7 +737,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	fctx_cleanupfinds(fctx);
+	INSIST(ISC_LIST_EMPTY(fctx->finds));
 
 	result = dns_rdataset_first(&fctx->nameservers);
 	while (result == ISC_R_SUCCESS) {
@@ -647,7 +749,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &r);
 		/*
-		 * XXXRTH  If this name is the same as QNAME, remember
+		 * XXXRTH  If this name is the same as QNAME, remember to
 		 *         skip it, and remember that we did so so we can
 		 *         use an ancestor QDOMAIN if we find no addresses.
 		 */
@@ -668,9 +770,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			 * name.
 			 */
 			INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
-			/*
-			 * XXXRTH  Sort.
-			 */
+			sort_adbfind(find);
 			ISC_LIST_APPEND(fctx->finds, find, publink);
 		} else {
 			/*
@@ -713,11 +813,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
 		 */
-
-		/*
-		 * XXXRTH  Sort.
-		 */
-
+		sort_finds(fctx);
 		result = ISC_R_SUCCESS;
 	}
 
@@ -732,7 +828,6 @@ static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
 	dns_adbfind_t *find;
 	dns_adbaddrinfo_t *addrinfo;
-	int count = 0;
 
 	/*
 	 * Return the next untried address, if any.
@@ -755,8 +850,6 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	 */
 	addrinfo = NULL;
 	while (find != fctx->find) {
-		count++;
-		INSIST(count < 1000);
 		for (addrinfo = ISC_LIST_HEAD(find->list);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
@@ -773,6 +866,10 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	}
 
 	fctx->find = find;
+
+	/* XXX */
+	if (addrinfo != NULL)
+		printf("RTT = %u\n", addrinfo->srtt);
 
 	return (addrinfo);
 }
@@ -796,6 +893,7 @@ fctx_try(fetchctx_t *fctx) {
 		 * We have no more addresses.  Start over.
 		 */
 		fctx_cancelqueries(fctx);
+		fctx_cleanupfinds(fctx);
 		result = fctx_getaddresses(fctx);
 		if (result == DNS_R_WAIT) {
 			/*
@@ -826,7 +924,7 @@ fctx_try(fetchctx_t *fctx) {
 	 *	   just send a single query.
 	 */
 
-	result = fctx_sendquery(fctx, addrinfo->sockaddr);
+	result = fctx_sendquery(fctx, addrinfo);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
 }
@@ -1083,6 +1181,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->finds);
 	fctx->find = NULL;
 	fctx->pending = 0;
+	fctx->restarts = 0;
 	fctx->attributes = 0;
 
 	fctx->qmessage = NULL;
@@ -2265,6 +2364,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *fname;
 	dns_fixedname_t foundname;
 	isc_stdtime_t now;
+	isc_time_t tnow, *finish;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -2280,10 +2380,21 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	broken_server = ISC_FALSE;
 	get_nameservers = ISC_FALSE;
 	covers = 0;
+	finish = NULL;
 
+	/*
+	 * XXXRTH  We should really get the current time just once.  We
+	 *         need a routine to convert from an isc_time_t to an
+	 *	   isc_stdtime_t.
+	 */
+	result = isc_time_now(&tnow);
+	if (result != ISC_R_SUCCESS)
+		goto done;
+	finish = &tnow;
 	result = isc_stdtime_get(&now);
 	if (result != ISC_R_SUCCESS)
 		goto done;
+
 
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;
@@ -2429,14 +2540,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
  done:
 	/*
-	 * Give the event back to the dispatcher.
+	 * Cancel the query.
 	 */
-	dns_dispatch_freeevent(query->dispatch, query->dispentry, &devent);
+	fctx_cancelquery(&query, &devent, finish);
 
-	/*
-	 * XXXRTH  Record round-trip statistics here.  Note that 'result'
-	 *         MUST NOT be changed by this recording process.
-	 */
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
@@ -2496,6 +2603,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
+			fctx_cancelqueries(fctx);
 			fctx_cleanupfinds(fctx);
 		}					  
 		/*
