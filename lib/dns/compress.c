@@ -15,9 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.11 1999/04/14 06:03:15 marka Exp $ */
+ /* $Id: compress.c,v 1.12 1999/04/14 17:40:22 halley Exp $ */
 
 #include <config.h>
+#include <string.h>
 
 #include <isc/types.h>
 #include <isc/assertions.h>
