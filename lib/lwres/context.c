@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.31 2000/10/12 21:39:23 bwelling Exp $ */
+/* $Id: context.c,v 1.32 2000/10/17 20:09:19 gson Exp $ */
 
 #include <config.h>
 
@@ -189,11 +189,14 @@ context_connect(lwres_context_t *ctx) {
 		       sizeof(lwres_addr_t));
 		LWRES_LINK_INIT(&ctx->address, link);
 	} else {
-		char localhost[] = "127.0.0.1";
-		lwres_buffer_t b;
-		lwres_buffer_init(&b, localhost, sizeof(localhost));
-		lwres_buffer_add(&b, strlen(localhost));
-		(void)lwres_addr_parse(&b, &ctx->address);
+		/* The default is the IPv4 loopback address 127.0.0.1. */
+		memset(&ctx->address, 0, sizeof(ctx->address));
+		ctx->address.family = LWRES_ADDRTYPE_V4;
+		ctx->address.length = 4;
+		ctx->address.address[0] = 127;
+		ctx->address.address[1] = 0;
+		ctx->address.address[2] = 0;
+		ctx->address.address[3] = 1;
 	}
 
 	if (ctx->address.family == LWRES_ADDRTYPE_V4) {
