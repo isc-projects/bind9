@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.190 2000/08/18 22:51:36 gson Exp $ */
+/* $Id: zone.c,v 1.191 2000/08/19 00:47:57 gson Exp $ */
 
 #include <config.h>
 
@@ -3432,7 +3432,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			return (ISC_R_SUCCESS);
 		}
 	} else
-#endif
+#endif /* NOMINUM_PUBLIC */
 	if (i >= zone->masterscnt) {
 		UNLOCK(&zone->lock);
 		zone_log(zone, me, ISC_LOG_DEBUG(3),
