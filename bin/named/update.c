@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.62 2000/09/12 18:45:34 explorer Exp $ */
+/* $Id: update.c,v 1.63 2000/09/13 01:30:32 marka Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,6 @@
 
 /*
   XXX TODO:
-  - forwarding
   - document strict minimality
 */
 
@@ -157,6 +156,7 @@ struct update_event {
 
 static void update_action(isc_task_t *task, isc_event_t *event);
 static void updatedone_action(isc_task_t *task, isc_event_t *event);
+static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 
 /**************************************************************************/
 
@@ -1822,7 +1822,7 @@ respond(ns_client_t *client, isc_result_t result) {
 }
 
 void
-ns_update_start(ns_client_t *client) {
+ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 	dns_message_t *request = client->message;
 	isc_result_t result;
 	dns_name_t *zonename;
@@ -1865,11 +1865,20 @@ ns_update_start(ns_client_t *client) {
 
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
+		/*
+		 * We can now fail due to a bad signature as we now know
+		 * that we are the master.
+		 */
+		if (sigresult != ISC_R_SUCCESS)
+			FAIL(sigresult);
 		CHECK(send_update_event(client, zone));
 		break;	/* OK. */
 	case dns_zone_slave:
-		FAILS(DNS_R_NOTIMP,
-		      "update forwarding"); /* XXX implement */
+		if (dns_message_gettsig(client->message, NULL) == NULL)
+			FAILS(DNS_R_NOTIMP,
+			      "unsigned updates not forwarded");
+		CHECK(send_forward_event(client, zone));
+		break;	/* OK. */
 	default:
 		FAILC(DNS_R_NOTAUTH,
 		      "not authoritative for update zone");
@@ -1883,6 +1892,8 @@ ns_update_start(ns_client_t *client) {
 	 * simply give an error response without switching tasks.
 	 */
 	respond(client, result);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 }
 
 static void
@@ -2371,4 +2382,71 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	respond(client, uev->result);
 	ns_client_detach(&client);
 	isc_event_free(&event);
+}
+
+/*
+ * Update forwarding support.
+ */
+
+static void
+forward_fail(ns_client_t *client, isc_result_t result) {
+	UNUSED(result);
+	respond(client, DNS_R_SERVFAIL);
+}
+
+static void
+forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
+	ns_client_t *client = arg;
+
+	if (result != ISC_R_SUCCESS)
+		forward_fail(client, result);
+	else
+		ns_client_sendraw(client, answer);
+	ns_client_detach(&client);
+}
+
+static void
+forward_action(isc_task_t *task, isc_event_t *event) {
+	update_event_t *uev = (update_event_t *) event;
+	dns_zone_t *zone = uev->zone;
+	ns_client_t *client = (ns_client_t *)event->ev_arg;
+	isc_result_t result;
+
+	result = dns_zone_forwardupdate(zone, client->message,
+					forward_callback, client);
+	if (result != ISC_R_SUCCESS) {
+		forward_fail(client, result);
+		ns_client_detach(&client);
+	}
+	dns_zone_detach(&zone);
+	isc_event_free(&event);
+	isc_task_detach(&task);
+}
+
+static isc_result_t
+send_forward_event(ns_client_t *client, dns_zone_t *zone) {
+	isc_result_t result = ISC_R_SUCCESS;
+	update_event_t *event = NULL;
+	isc_task_t *zonetask = NULL;
+	ns_client_t *evclient;
+
+	event = (update_event_t *)
+		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
+				   forward_action, NULL, sizeof(*event));
+	if (event == NULL)
+		FAIL(ISC_R_NOMEMORY);
+	event->zone = zone;
+	event->result = ISC_R_SUCCESS;
+
+	evclient = NULL;
+	ns_client_attach(client, &evclient);
+	event->ev_arg = evclient;
+
+	dns_zone_gettask(zone, &zonetask);
+	isc_task_send(zonetask, (isc_event_t **)&event);
+
+ failure:
+	if (event != NULL)
+		isc_event_free((isc_event_t **)&event);
+	return (result);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.111 2000/09/12 18:45:30 explorer Exp $ */
+/* $Id: client.c,v 1.112 2000/09/13 01:30:30 marka Exp $ */
 
 #include <config.h>
 
@@ -642,6 +642,93 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 void
+ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
+	isc_result_t result;
+	unsigned char *data;
+	isc_buffer_t buffer;
+	isc_region_t r;
+	isc_region_t *mr;
+	isc_socket_t *socket;
+	isc_sockaddr_t *address;
+	struct in6_pktinfo *pktinfo;
+	unsigned int bufsize = 512;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	CTRACE("sendraw");
+
+	mr = dns_message_getrawmessage(message);
+	if (mr == NULL) {
+		result = ISC_R_UNEXPECTEDEND;
+		goto done;
+	}
+
+	if (TCP_CLIENT(client)) {
+		INSIST(client->tcpbuf == NULL);
+		if (mr->length + 2 > TCP_BUFFER_SIZE) {
+			result = ISC_R_NOSPACE;
+			goto done;
+		}
+		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
+		if (client->tcpbuf == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto done;
+		}
+		data = client->tcpbuf;
+		isc_buffer_init(&buffer, data, TCP_BUFFER_SIZE);
+		isc_buffer_putuint16(&buffer, mr->length);
+	} else {
+		data = client->sendbuf;
+		if (client->udpsize < SEND_BUFFER_SIZE)
+			bufsize = client->udpsize;
+		else
+			bufsize = SEND_BUFFER_SIZE;
+		if (mr->length + 2 > bufsize) {
+			result = ISC_R_NOSPACE;
+			goto done;
+		}
+		isc_buffer_init(&buffer, data, bufsize);
+	}
+
+	/*
+	 * Copy message to buffer and fixup id.
+	 */
+	isc_buffer_availableregion(&buffer, &r);
+	result = isc_buffer_copyregion(&buffer, mr);
+	if (result != ISC_R_SUCCESS)
+		goto done;
+	r.base[0] = (client->message->id >> 8) & 0xff;
+	r.base[1] = client->message->id & 0xff;
+
+	if (TCP_CLIENT(client)) {
+		socket = client->tcpsocket;
+		address = NULL;
+	} else {
+		socket = dns_dispatch_getsocket(client->dispatch);
+		address = &client->dispevent->addr;
+	}
+	isc_buffer_usedregion(&buffer, &r);
+	CTRACE("sendto");
+	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
+		pktinfo = &client->pktinfo;
+	else
+		pktinfo = NULL;
+	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
+				   client, address, pktinfo);
+	if (result == ISC_R_SUCCESS) {
+		client->nsends++;
+		return;
+	}
+
+ done:
+	if (client->tcpbuf != NULL) {
+		isc_mem_put(client->mctx, client->tcpbuf, TCP_BUFFER_SIZE);
+		client->tcpbuf = NULL;
+	}
+	ns_client_next(client, result);
+}
+
+void
 ns_client_send(ns_client_t *client) {
 	isc_result_t result;
 	unsigned char *data;
@@ -861,6 +948,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 	dns_dispatchevent_t *devent;
 	isc_result_t result;
+	isc_result_t sigresult;
 	isc_buffer_t *buffer;
 	dns_view_t *view;
 	dns_rdataset_t *opt;
@@ -1064,12 +1152,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * not.  We do not log the lack of a signature unless we are
 	 * debugging.
 	 */
-	result = dns_message_checksig(client->message, client->view);
-	if (result != ISC_R_SUCCESS) {
-		ns_client_error(client, result);
-		goto cleanup_viewlock;
-	}
-
+	sigresult = dns_message_checksig(client->message, client->view);
 	client->signer = NULL;
 	dns_name_init(&client->signername, NULL);
 	result = dns_message_signer(client->message, &client->signername);
@@ -1086,12 +1169,22 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request is signed by a nonauthoritative key");
+		if (client->message->tsigstatus != dns_tsigerror_badkey &&
+		    client->message->opcode != dns_opcode_update) {
+			ns_client_error(client, sigresult);
+			goto cleanup_viewlock;
+		}
 	} else {
 		/* There is a signature, but it is bad. */
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "request has invalid signature: %s",
 			      isc_result_totext(result));
+		if (client->message->tsigstatus != dns_tsigerror_badkey &&
+		    client->message->opcode != dns_opcode_update) {
+			ns_client_error(client, sigresult);
+			goto cleanup_viewlock;
+		}
 	}
 
 	/*
@@ -1122,7 +1215,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
-		ns_update_start(client);
+		ns_update_start(client, sigresult);
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
@@ -1437,6 +1530,9 @@ ns_client_attach(ns_client_t *source, ns_client_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	source->references++;
+	ns_client_log(source, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+		      "ns_client_attach: ref = %d", source->references);
 	*targetp = source;
 }
 
@@ -1447,6 +1543,9 @@ ns_client_detach(ns_client_t **clientp) {
 	client->references--;
 	INSIST(client->references >= 0);
 	*clientp = NULL;
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+		      "ns_client_detach: ref = %d", client->references);
 	(void) exit_check(client);
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.h,v 1.6 2000/08/01 01:12:18 tale Exp $ */
+/* $Id: update.h,v 1.7 2000/09/13 01:30:34 marka Exp $ */
 
 #ifndef NAMED_UPDATE_H
 #define NAMED_UPDATE_H 1
@@ -44,6 +44,6 @@
  ***/
 
 void
-ns_update_start(ns_client_t *client);
+ns_update_start(ns_client_t *client, isc_result_t sigresult);
 
 #endif /* NAMED_UPDATE_H */
