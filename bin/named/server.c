@@ -543,6 +543,9 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
+	CHECK(dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
+			      &view));
+
 	dns_diff_init(ns_g_mctx, &diff);
 
 	dns_name_init(&origin, NULL);
@@ -565,6 +568,8 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
+	dns_zone_setview(zone, view);	
+	
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
 
 	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
@@ -578,9 +583,6 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 	CHECK(dns_diff_apply(&diff, db, dbver));
 
 	dns_db_closeversion(db, &dbver, ISC_TRUE);
-
-	CHECK(dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
-			      &view));
 
 	CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
 
@@ -825,6 +827,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	if (zone == NULL) {
 		CHECK(dns_zone_create(&zone, lctx->mctx));
 		CHECK(dns_zone_setorigin(zone, origin));
+		dns_zone_setview(zone, view);
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr,
 					     zone));
 	}
