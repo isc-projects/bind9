@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.18 2000/03/18 00:19:24 explorer Exp $ */
+/* $Id: afsdb_18.c,v 1.19 2000/03/18 01:46:15 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -224,7 +224,6 @@ static inline isc_result_t
 digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 {
 	isc_region_t r1, r2;
-	isc_result_t result;
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 18);
@@ -236,6 +235,7 @@ digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
+
 	return (dns_name_digest(&name, digest, arg));
 }
 
