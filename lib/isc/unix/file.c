@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>            /* Required for mkstemp on NetBSD. */
 
@@ -84,10 +85,15 @@ isc_file_settime(const char *file, isc_time_t *time) {
 	 *   * isc_time_seconds is changed to be > 32 bits but long is 32 bits
 	 *      and isc_time_seconds has at least 33 significant bits.
 	 */
-	times[0].tv_sec = times[1].tv_sec =
-		(long)isc_time_seconds(time);
+	times[0].tv_sec = times[1].tv_sec = (long)isc_time_seconds(time);
 
-	if ((times[0].tv_sec & (1 << (sizeof(times[0].tv_sec) * 8 - 1))) != 0)
+	/*
+	 * Solaris 5.6 gives this warning about the left shift:
+	 *	warning: integer overflow detected: op "<<"
+	 * if the U(nsigned) qualifier is not on the 1.
+	 */
+	if ((times[0].tv_sec &
+	     (1U << (sizeof(times[0].tv_sec) * CHAR_BIT - 1))) != 0)
 		return (ISC_R_RANGE);
 
 	/*

@@ -342,8 +342,13 @@ isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
 	 * pretty much only true if time_t is a signed integer of the same
 	 * size as the return value of isc_time_seconds. 
 	 *
-	 * The use of a 64 bit integer takes advantage of C's conversion rules
-	 * to either zero fill or sign extend the widened type.
+	 * The use of the 64 bit integer ``i'' takes advantage of C's
+	 * conversion rules to either zero fill or sign extend the widened
+	 * type.
+	 *
+	 * Solaris 5.6 gives this warning about the left shift:
+	 *	warning: integer overflow detected: op "<<"
+	 * if the U(nsigned) qualifier is not on the 1.
 	 */
 	seconds = (time_t)t->seconds;
 
@@ -353,9 +358,10 @@ isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
 	if (sizeof(time_t) == sizeof(isc_uint32_t) &&	       /* Same size. */
 	    (time_t)0.5 != 0.5 &&	       /* Not a floating point type. */
 	    (i = (time_t)-1) != 4294967295u &&		       /* Is signed. */
-	    (seconds & (1 << (sizeof(time_t) * 8 - 1))) != 0) {	/* Negative. */
+	    (seconds &
+	     (1U << (sizeof(time_t) * CHAR_BIT - 1))) != 0) {   /* Negative. */
 		/*
-		 * This is here to shut up the IRIX compiler:
+		 * This UNUSED() is here to shut up the IRIX compiler:
 		 *	variable "i" was set but never used
 		 * when the value of i *was* used in the third test.
 		 * (Let's hope the compiler got the actual test right.)
