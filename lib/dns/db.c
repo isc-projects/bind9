@@ -229,6 +229,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 	 *
 	 * WARNING:  THIS API WILL BE CHANGING IN THE NEAR FUTURE.
 	 *
+	 * XXX Add options parameter (e.g. so we can say "longest match").
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
