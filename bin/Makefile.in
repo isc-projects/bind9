@@ -13,13 +13,13 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2000/06/22 21:48:58 tale Exp $
+# $Id: Makefile.in,v 1.15.2.1 2000/06/27 00:40:49 explorer Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS =	named lwresd rndc dig dnssec tests
+SUBDIRS =	named rndc dig dnssec tests
 TARGETS =
 
 @BIND9_MAKE_RULES@
