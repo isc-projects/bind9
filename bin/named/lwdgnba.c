@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.13.2.1 2003/07/25 04:36:45 marka Exp $ */
+/* $Id: lwdgnba.c,v 1.13.2.1.2.1 2003/08/20 05:33:12 marka Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		bevent = NULL;
 
 		if (client->na.family != AF_INET6 ||
-		    (client->options & DNS_BYADDROPT_IPV6NIBBLE) == 0) {
+		    (client->options & DNS_BYADDROPT_IPV6INT) != 0) {
 			if (result == DNS_R_NCACHENXDOMAIN ||
 			    result == DNS_R_NCACHENXRRSET ||
 			    result == DNS_R_NXDOMAIN ||
@@ -80,12 +80,9 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		/*
-		 * Fall back to IP6.INT nibble then IP6.ARPA bitstring.
+		 * Fall back to IP6.INT reverse.
 		 */
-		if ((client->options & DNS_BYADDROPT_IPV6INT) == 0)
-			client->options |= DNS_BYADDROPT_IPV6INT;
-		else
-			client->options &= ~DNS_BYADDROPT_IPV6NIBBLE;
+		client->options |= DNS_BYADDROPT_IPV6INT;
 
 		start_byaddr(client);
 		return;
@@ -224,9 +221,9 @@ ns_lwdclient_processgnba(ns_lwdclient_t *client, lwres_buffer_t *b) {
 		goto out;
 
 	/*
-	 * Start with IP6.ARPA NIBBLE lookups.
+	 * Start with IP6.ARPA lookups.
 	 */
-	client->options = DNS_BYADDROPT_IPV6NIBBLE;
+	client->options = 0;
 	if (req->addr.family == LWRES_ADDRTYPE_V4) {
 		client->na.family = AF_INET;
 		if (req->addr.length != 4)

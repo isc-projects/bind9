@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.9 2003/08/20 03:29:44 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.10 2003/08/20 05:33:12 marka Exp $ */
 
 #include <config.h>
 
@@ -101,6 +101,18 @@ static dns_name_t ip6int_name = {
 	{NULL, NULL}
 };
 
+static unsigned char ip6arpa_ndata[] = "\003ip6\004arpa";
+static unsigned char ip6arpa_offsets[] = { 0, 4, 9 };
+
+static dns_name_t ip6arpa_name = {
+	DNS_NAME_MAGIC,
+	ip6arpa_ndata, 10, 3,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	ip6arpa_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 isc_stdtime_t now,
@@ -139,6 +151,9 @@ synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event);
 
 static void
 synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
+
+static isc_result_t
+nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na);
 
 /*
  * Increment query statistics counters.
@@ -3638,8 +3653,13 @@ ns_query_start(ns_client_t *client) {
 		} else {
 			INSIST(qtype == dns_rdatatype_ptr);
 			 /* Must be 32 nibbles + "ip6" + "int" + root */
-			if (dns_name_countlabels(client->query.qname) == 32 + 3 &&
-			    dns_name_issubdomain(client->query.qname, &ip6int_name)) {
+			if (dns_name_countlabels(client->query.qname) == 35 &&
+			    (dns_name_issubdomain(client->query.qname,
+					          &ip6int_name) ||
+			     dns_name_issubdomain(client->query.qname,
+					          &ip6arpa_name)) &&
+			    nibbles2netaddr(client->query.qname,
+				   &client->query.synth.na) == ISC_R_SUCCESS) {
 				qclient = NULL;
 				ns_client_attach(client, &qclient);
 				synth_rev_start(qclient);
@@ -3953,22 +3973,14 @@ synth_rev_start(ns_client_t *client) {
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 		      ISC_LOG_DEBUG(5), "generating synthetic PTR response");
 
-	result = nibbles2netaddr(client->query.qname, &client->query.synth.na);
-	if (result != ISC_R_SUCCESS) {
-		result = DNS_R_NXDOMAIN;
-		goto cleanup;
-	}
-
 	/* Try IP6.ARPA first. */
 	result = dns_byaddr_create(client->mctx,
 				   &client->query.synth.na,
-				   client->view,
-				   0, client->task,
+				   client->view, 0, client->task,
 				   synth_rev_byaddrdone_arpa,
 				   client, &byaddr_dummy);
 	if (result == ISC_R_SUCCESS)
 		return; /* Wait for completion event. */
- cleanup:
 	synth_finish(client, result);
 }
 
@@ -3989,7 +4001,7 @@ synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
 		result = dns_byaddr_create(client->mctx,
 					   &client->query.synth.na,
 					   client->view,
-					   DNS_BYADDROPT_IPV6NIBBLE,
+					   DNS_BYADDROPT_IPV6INT,
 					   client->task,
 					   synth_rev_byaddrdone_int,
 					   client, &byaddr_dummy);
@@ -4005,28 +4017,16 @@ synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
 	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
 	ns_client_t *client = event->ev_arg;
 	dns_byaddr_t *byaddr = event->ev_sender;
-	
+
 	UNUSED(task);
 
-	if (bevent->result == ISC_R_SUCCESS) {
+	if (bevent->result == ISC_R_SUCCESS)
 		synth_rev_respond(client, bevent);
-	} else if (bevent->result == DNS_R_NCACHENXDOMAIN ||
-		   bevent->result == DNS_R_NCACHENXRRSET ||
-		   bevent->result == DNS_R_NXDOMAIN ||
-		   bevent->result == DNS_R_NXRRSET) {
-		/*
-		 * We could give a NOERROR/NODATA response instead
-		 * in some cases, but since there may be any combination
-		 * of NXDOMAIN and NXRRSET results from the IP6.INT
-		 * and IP6.ARPA lookups, it could still be wrong with
-		 * respect to one or the other.
-		 */
-		synth_finish(client, DNS_R_NXDOMAIN);
-	} else {
+	else
 		synth_finish(client, bevent->result);
-	}
+
+	dns_byaddr_destroy(&byaddr);
 	isc_event_free(&event);
-	dns_byaddr_destroy(&byaddr);	
 }
 
 static void

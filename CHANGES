@@ -1,3 +1,5 @@
+1368.	[func]		remove support for bitstring labels.
+
 1367.	[func]		Use response times to select forwarders.
 
 1365.	[func]		"localhost" and "localnet" acls now include IPv6

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.81.2.7.2.4 2003/08/19 07:26:09 marka Exp $ */
+/* $Id: result.h,v 1.81.2.7.2.5 2003/08/20 05:33:18 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -38,8 +38,13 @@
  */
 #define DNS_R_LABELTOOLONG		(ISC_RESULTCLASS_DNS + 0)
 #define DNS_R_BADESCAPE			(ISC_RESULTCLASS_DNS + 1)
+/*
+ * Since we dropped the support of bitstring labels, deprecate the related
+ * result codes too.
+
 #define DNS_R_BADBITSTRING		(ISC_RESULTCLASS_DNS + 2)
 #define DNS_R_BITSTRINGTOOLONG		(ISC_RESULTCLASS_DNS + 3)
+*/
 #define DNS_R_EMPTYLABEL		(ISC_RESULTCLASS_DNS + 4)
 #define DNS_R_BADDOTTEDQUAD		(ISC_RESULTCLASS_DNS + 5)
 #define DNS_R_INVALIDNS			(ISC_RESULTCLASS_DNS + 6)

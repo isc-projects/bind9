@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.12.2.1 2003/07/25 04:36:46 marka Exp $ */
+/* $Id: byaddr.h,v 1.12.2.1.2.1 2003/08/20 05:33:17 marka Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
@@ -68,8 +68,11 @@ typedef struct dns_byaddrevent {
 	dns_namelist_t			names;
 } dns_byaddrevent_t;
 
+/*
+ * This option is deprecated since we now only consider nibbles.
 #define DNS_BYADDROPT_IPV6NIBBLE	0x0001
-#define DNS_BYADDROPT_IPV6INT		0x0002	/* Use IP6.INT nibble lookups */
+ */
+#define DNS_BYADDROPT_IPV6INT		0x0002
 
 isc_result_t
 dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
@@ -80,7 +83,8 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
  *
  * Notes:
  *
- *	There is a reverse lookup format for IPv6 addresses, 'nibble'
+ *	The is a reverse lookup format for IPv6 addresses is 'nibble'
+ *	IP6.ARPA.  The (now) expermental 'bitstring' is no-longer supported.
  *
  *	The 'nibble' format for that address is
  *
@@ -151,8 +155,9 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 /*
  * Creates a name that would be used in a PTR query for this address.  The
  * nibble flag indicates that the 'nibble' format is to be used if an IPv6
- * address is provided, instead of the 'bitstring' format.  'options' are
- * the same as for dns_byaddr_create().
+ * address is provided, instead of the 'bitstring' format.  Since we dropped
+ * the support of the bitstring labels, it is expected that the flag is always
+ * set.  'options' are the same as for dns_byaddr_create().
  *
  * Requires:
  * 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.3.2.2 2003/08/19 04:11:24 marka Exp $ */
+/* $Id: name.h,v 1.95.2.3.2.3 2003/08/20 05:33:17 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -87,86 +87,16 @@ ISC_LANG_BEGINDECLS
  ***** Labels
  *****
  ***** A 'label' is basically a region.  It contains one DNS wire format
- ***** label of either type 00 (ordinary) or type 01000001 (bitstring).
+ ***** label of type 00 (ordinary).
  *****/
-
-/***
- *** Extended Label Types
- ***/
-
-#define DNS_LABELTYPE_BITSTRING		0x41
-
-/***
- *** Properties
- ***/
-
-dns_labeltype_t
-dns_label_type(dns_label_t *label);
-/*
- * Get the type of 'label'.
- *
- * Requires:
- *	'label' is a valid label (i.e. not NULL, points to a
- *	struct dns_label)
- *	'label' is a type 00 or type 01000001 label (i.e. not compressed).
- *
- * Returns:
- *	dns_labeltype_ordinary		type 00 label
- *	dns_labeltype_bitstring		type 01000001 label
- */
-
-/***
- *** Bitstring Labels
- ***/
-
-unsigned int
-dns_label_countbits(dns_label_t *label);
-/*
- * The number of bits in a bitstring label.
- *
- * Requires:
- *	'label' is a valid label
- *
- *	dns_label_type(label) == dns_labeltype_bitstring
- *
- * Ensures:
- *	Result is <= 256.
- *
- * Returns:
- *	The number of bits in the bitstring label.
- */
-
-dns_bitlabel_t
-dns_label_getbit(dns_label_t *label, unsigned int n);
-/*
- * The 'n'th most significant bit of 'label'.
- *
- * Notes:
- *	Numbering starts at 0.
- *
- * Require:
- *	n < dns_label_countbits(label)
- *
- * Returns:
- *	dns_bitlabel_0		The bit was 0.
- *	dns_bitlabel_1		The bit was 1.
- */
-
-/***
- *** Note
- ***
- *** Some provision still needs to be made for splitting bitstring labels.
- ***/
-
-
 
 /*****
  ***** Names
  *****
  ***** A 'name' is a handle to a binary region.  It contains a sequence of one
- ***** or more DNS wire format labels of either type 00 (ordinary) or type
- ***** 01000001 (bitstring).  Note that all names are not required to end
- ***** with the root label, as they are in the actual DNS wire protocol.
+ ***** or more DNS wire format labels of type 00 (ordinary).
+ ***** Note that all names are not required to end with the root label,
+ ***** as they are in the actual DNS wire protocol.
  *****/
 
 /***
@@ -445,9 +375,8 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
  *
  *	*nlabelsp is the number of common significant labels.
  *
- *	If *nbitsp is non-zero, then the least-signficant of the
- *	common significant labels is a bitstring label, and the
- *	two names have *nbitsp significant bits in common.
+ *	Since we dropped the support of bitstring labels, *nbitsp is always
+ *	set to 0.
  *
  * Returns:
  *	dns_namereln_none		There's no hierarchical relationship
@@ -600,8 +529,7 @@ dns_name_depth(const dns_name_t *name);
  * Notes:
  *	The "depth" of a name represents how far down the DNS tree of trees
  *	the name is.  For each wire-encoding label in name, the depth is
- *	increased by 1 for an ordinary label, and by the number of bits in
- *	a bitstring label.
+ *	increased by 1 for an ordinary label.
  *
  *	Depth is used when creating or validating DNSSEC signatures.
  *
@@ -622,9 +550,7 @@ dns_name_countlabels(const dns_name_t *name);
  * How many labels does 'name' have?
  *
  * Notes:
- *	In this case, as in other places, a 'label' is an ordinary label
- *	or a bitstring label.  The term is not meant to refer to individual
- *	bit labels.  For that purpose, use dns_name_depth().
+ *	In this case, as in other places, a 'label' is an ordinary label.
  *
  * Requires:
  *	'name' is a valid name
@@ -775,9 +701,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
  *		Uppercase letters are downcased in the copy iff. 'downcase' is
  *		true.
  *
- *		Any bitstring labels in source are canonicalized.
- *		(i.e. maximally packed and any padding bits zeroed.)
- *
  *		The current location in source is advanced, and the used space
  *		in target is updated.
  *
@@ -856,8 +779,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *	If result is success:
  *	 	If 'target' is not NULL, 'name' is attached to it.
  *
- *		Any bitstring labels in source are canonicalized.
- *
  *		Uppercase letters are downcased in the copy iff. 'downcase' is
  *		true.
  *
@@ -869,8 +790,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *	DNS_R_EMPTYLABEL
  *	DNS_R_LABELTOOLONG
  *	DNS_R_BADESCAPE
- *	DNS_R_BADBITSTRING
- *	DNS_R_BITSTRINGTOOLONG
+ *	(DNS_R_BADBITSTRING: should not be returned)
+ *	(DNS_R_BITSTRINGTOOLONG: should not be returned)
  *	DNS_R_BADDOTTEDQUAD
  *	ISC_R_NOSPACE
  *	ISC_R_UNEXPECTEDEND
@@ -1015,8 +936,6 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *	 	If 'target' is not NULL and 'name' is not NULL, then 'name'
  *		is attached to it.
  *
- *		Any bitstring labels are in canonical form.
- *
  *		The used space in target is updated.
  *
  * Returns:
@@ -1035,34 +954,25 @@ dns_name_split(dns_name_t *name,
  *
  * Notes:
  *      'name' is split such that 'suffix' holds the most significant
- *      'suffixlabels' labels, except that if the least significant
- *      suffix label is a bitstring label, then only the 'nbits' most
- *      significant bits of that label are included in 'suffix'.  All 
- *      other labels and bits are stored in 'prefix'.
+ *      'suffixlabels' labels.  All other labels and bits are stored
+ *	in 'prefix'. 
  *
  *	Copying name data is avoided as much as possible, so 'prefix'
- *	and 'suffix' will usually end up pointing at the data for 'name',
- *	except when 'nbits' > 0.  The name data is copied to the
- *	the dedicated buffers when splitting on bitlabel boundaries
- *	because of the bit fiddling that must be done.
+ *	and 'suffix' will end up pointing at the data for 'name'.
  *
  *	It is legitimate to pass a 'prefix' or 'suffix' that has
  *	its name data stored someplace other than the dedicated buffer.
  *	This is useful to avoid name copying in the calling function.
  *
  *	It is also legitimate to pass a 'prefix' or 'suffix' that is
- *	the same dns_name_t as 'name', but note well the requirement
- *	below if splitting on a bitlabel boundary.
+ *	the same dns_name_t as 'name'.
  *
  * Requires:
  *	'name' is a valid name.
  *
  * 	'suffixlabels' cannot exceed the number of labels in 'name'.
  *
- *	'nbits' can be greater than zero only when the least significant
- *	label of 'suffix' is a bitstring label.
- *
- *	'nbits' cannot exceed the number of bits in the bitstring label.
+ *	'nbits' must be 0, since we dropped the support of bitstring labels.
  *
  *	'prefix' is a valid name or NULL, and cannot be read-only.
  *
@@ -1072,28 +982,22 @@ dns_name_split(dns_name_t *name,
  *
  *	'prefix' and 'suffix' cannot point to the same buffer.
  *
- *	If 'nbits' > 0 and 'prefix' and 'suffix' are both non-NULL,
- *	the buffer for 'prefix' cannot be storing the labels for 'name'.
- *
  * Ensures:
  *
  *	On success:
  *		If 'prefix' is not NULL it will contain the least significant
- *		labels and bits.
+ *		labels.
  *
  *		If 'suffix' is not NULL it will contain the most significant
- *		labels and bits.  dns_name_countlabels(suffix) will be
- *		equal to suffixlabels.
+ *		labels.  dns_name_countlabels(suffix) will be equal to
+ *		suffixlabels.
  *
  *	On failure:
  *		Either 'prefix' or 'suffix' is invalidated (depending
  *		on which one the problem was encountered with).
  *
  * Returns:
- *	ISC_R_SUCCESS	No worries.
- *	ISC_R_NOSPACE	An attempt was made to split a name on a bitlabel
- *			boundary but either 'prefix' or 'suffix' did not
- *			have enough room to receive the split name.
+ *	ISC_R_SUCCESS	No worries.  (This function should always success).
  */
 
 isc_result_t
@@ -1115,11 +1019,11 @@ dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
  *
  *	On success:
  *		If 'prefix' is not NULL it will contain the least significant
- *		labels and bits.
+ *		labels.
  *
  *		If 'suffix' is not NULL it will contain the most significant
- *		labels and bits.  dns_name_countlabels(suffix) will be
- *		equal to suffixlabels.
+ *		labels.  dns_name_countlabels(suffix) will be equal to
+ *		suffixlabels.
  *
  *	On failure:
  *		Either 'prefix' or 'suffix' is invalidated (depending

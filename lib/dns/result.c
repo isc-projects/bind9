@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.4 2003/08/19 07:26:09 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.5 2003/08/20 05:33:16 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,10 @@
 static const char *text[DNS_R_NRESULTS] = {
 	"label too long",		       /*  0 DNS_R_LABELTOOLONG	     */
 	"bad escape",			       /*  1 DNS_R_BADESCAPE	     */
+	/*
+	 * Note that DNS_R_BADBITSTRING and DNS_R_BITSTRINGTOOLONG are
+	 * deprecated.
+	 */
 	"bad bitstring",		       /*  2 DNS_R_BADBITSTRING	     */
 	"bitstring too long",		       /*  3 DNS_R_BITSTRINGTOOLONG  */
 	"empty label",			       /*  4 DNS_R_EMPTYLABEL	     */
@@ -226,14 +230,14 @@ dns_result_torcode(isc_result_t result) {
 	case ISC_R_RANGE:
 	case ISC_R_UNEXPECTEDEND:
 	case DNS_R_BADAAAA:
-	case DNS_R_BADBITSTRING:
+	/* case DNS_R_BADBITSTRING: deprecated */
 	case DNS_R_BADCKSUM:
 	case DNS_R_BADCLASS:
 	case DNS_R_BADLABELTYPE:
 	case DNS_R_BADPOINTER:
 	case DNS_R_BADTTL:
 	case DNS_R_BADZONE:
-	case DNS_R_BITSTRINGTOOLONG:
+	/* case DNS_R_BITSTRINGTOOLONG: deprecated */
 	case DNS_R_EXTRADATA:
 	case DNS_R_LABELTOOLONG:
 	case DNS_R_NOREDATA:
