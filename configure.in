@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.254 $)
+AC_REVISION($Revision: 1.255 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1401,6 +1401,9 @@ esac
 # a developer editing the documentation source.
 #
 
+# Directory trees where SGML files are commonly found.
+sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml"
+
 #
 # Look for openjade.  Plain jade is no longer supported.
 #
@@ -1418,23 +1421,40 @@ AC_SUBST(JADETEX)
 AC_PATH_PROGS(PDFJADETEX, pdfjadetex, pdfjadetex)
 AC_SUBST(PDFJADETEX)
 
-AC_MSG_CHECKING(for SGML catalog)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+#
+# Subroutine for searching for an ordinary file (e.g., a stylesheet)
+# in a number of directories:
+#
+#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
+#
+# If the file FILENAME is found in one of the DIRECTORIES, the shell
+# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# it is set to FILENAME, with no directory prefix (that's not terribly
+# useful, but looks less confusing in substitutions than leaving it
+# empty).  The variable VARIABLE will be substituted into output files.
+# 
+
+AC_DEFUN(NOM_PATH_FILE, [
+AC_MSG_CHECKING(for $2)
+for d in $3
 do
-	f=$d/catalog
+	f=$d/$2
 	if test -f $f
 	then
-		SGMLCATALOG=$f
+		$1=$f
 		AC_MSG_RESULT($f)
 		break
 	fi
 done
-if test "X$SGMLCATALOG" = "X"
+if test "X$1" = "X"
 then
 	AC_MSG_RESULT("not found");
-	SGMLCATALOG=catalog
+	$1=$2
 fi
-AC_SUBST(SGMLCATALOG)
+AC_SUBST($1)
+])
+
+NOM_PATH_FILE(SGMLCATALOG, catalog, $sgmltrees)
 
 #
 # Look for the HTML stylesheet html/docbook.dsl, used for
@@ -1445,95 +1465,31 @@ AC_SUBST(SGMLCATALOG)
 # 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
 #
+# Ditto for the print stylesheet print/docbook.dsl.
+#
 
-HTMLSTYLE=""
-AC_MSG_CHECKING(for html/docbook.dsl)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+stylepath=""
+for d in $sgmltrees 
 do
 	for s in docbook/dsssl/modular dsssl/docbook
 	do
-		f=$d/$s/html/docbook.dsl
-		if test -f $f
-		then
-			HTMLSTYLE=$f
-			AC_MSG_RESULT($f)
-			break
-		fi
+		stylepath="$stylepath $d/$s"
 	done
 done
-if test "X$HTMLSTYLE" = "X"
-then
-	AC_MSG_RESULT("not found");
-	HTMLSTYLE=docbook.dsl
-fi
-AC_SUBST(HTMLSTYLE)
-
-PRINTSTYLE=""
-AC_MSG_CHECKING(for print/docbook.dsl)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
-do
-	for s in docbook/dsssl/modular dsssl/docbook
-	do
-		f=$d/$s/print/docbook.dsl
-		if test -f $f
-		then
-			PRINTSTYLE=$f
-			AC_MSG_RESULT($f)
-			break
-		fi
-	done
-done
-if test "X$PRINTSTYLE" = "X"
-then
-	AC_MSG_RESULT("not found");
-	PRINTSTYLE=docbook.dsl
-fi
-AC_SUBST(PRINTSTYLE)
+NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
+NOM_PATH_FILE(PRINTTYLE, print/docbook.dsl, $stylepath)
 
 #
 # Look for XML declarations
 #
-XMLDCL=""
-AC_MSG_CHECKING(for xml.dcl)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
-do
-	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
-	if test -f $f
-	then
-		XMLDCL=$f
-		AC_MSG_RESULT($f)
-		break
-	fi
-done
-if test "X$XMLDCL" = "X"
-then
-	AC_MSG_RESULT("not found");
-	XMLDCL=xml.dcl
-fi
-AC_SUBST(XMLDCL)
+
+NOM_PATH_FILE(XMLDCL, docbook/dsssl/modular/dtds/decls/xml.dcl, $sgmltrees)
 
 #
-# Look for the docbook2X directory
+# Look for docbook2man-spec.pl
 #
 
-AC_MSG_CHECKING(for docbook2X)
-DOCBOOK2X=""
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
-do
-    	dd=$d/docbook2X
-	if test -f $dd/docbook2man-spec.pl
-	then
-		DOCBOOK2X=$dd
-		AC_MSG_RESULT($dd)
-		break
-	fi
-done
-if test "X$DOCBOOK2X" = "X"
-then
-	AC_MSG_RESULT("not found");
-	DOCBOOK2X=.
-fi
-AC_SUBST(DOCBOOK2X)
+NOM_PATH_FILE(DOCBOOK2MANSPEC, docbook2X/docbook2man-spec.pl, $sgmltrees)
 
 #
 # Substitutions
