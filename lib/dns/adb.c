@@ -2799,9 +2799,6 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
 
-	if (adb->view == NULL)
-		return (ISC_R_NOTIMPLEMENTED);
-
 	result = ISC_R_UNEXPECTED;
 
 	dns_rdataset_init(&rdataset);
@@ -2856,9 +2853,6 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(!NAME_FETCH_V6(adbname));
-
-	if (adb->view == NULL)
-		return (ISC_R_NOTIMPLEMENTED);
 
 	result = ISC_R_UNEXPECTED;
 
@@ -2981,8 +2975,15 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	 * Did we get back junk?  If so, and there are no more fetches
 	 * sitting out there, tell all the finds about it.
 	 */
-	if (dev->result != ISC_R_SUCCESS)
+	if (dev->result != ISC_R_SUCCESS) {
+		/* XXXMLG Don't pound on bad servers. */
+		if (address_type == DNS_ADBFIND_INET)
+			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
+		else
+			name->expire_v6 = ISC_MIN(name->expire_v6, now + 300);
+
 		goto out;
+	}
 
 	/*
 	 * We got something potentially useful.
