@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.10 1999/12/23 00:08:29 explorer Exp $ */
+/* $Id: log.c,v 1.11 2000/01/06 14:47:37 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -78,7 +78,7 @@ dns_log_init(isc_log_t *lctx) {
 
 	if (result == ISC_R_SUCCESS) {
 		isc_log_registermodules(lctx, dns_modules);
-		dns_lctx = lctx;
+		result = isc_log_registercontext(lctx, &dns_lctx);
 	}
 
 	return (result);

@@ -84,6 +84,9 @@
 
 #ifndef ISC_PLATFORM_HAVEIPV6
 #include <isc/ipv6.h>
+#else
+/* XXXDCL this is just for BSD/OS 4.01 to compile. */
+#include <netinet6/in6.h>
 #endif
 
 /*

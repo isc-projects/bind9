@@ -85,6 +85,9 @@ ns_log_init(void) {
 	result = dns_log_init(ns_g_lctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+	result = isc_log_usecontext(ns_g_lctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	/*
 	 * Create and install the default channel.
