@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.184 $)
+AC_REVISION($Revision: 1.185 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -536,7 +536,7 @@ else
                         #   "prototyped function redeclared without prototype"
                         # and 11 instances of
                         #   "variable ... was set but never used"
-                        # from lib/dns/sec/{dnssafe,openssl}.
+                        # from lib/dns/sec/openssl.
                         #
                         IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
                         ;;
@@ -1153,7 +1153,6 @@ AC_OUTPUT(
 	lib/dns/sec/openssl/Makefile
 	lib/dns/sec/openssl/include/Makefile
 	lib/dns/sec/openssl/include/openssl/Makefile
-	lib/dns/sec/dnssafe/Makefile
 	lib/dns/sec/dst/Makefile
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
