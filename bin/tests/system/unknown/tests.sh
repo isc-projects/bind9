@@ -1,4 +1,5 @@
 #!/bin/sh
+#
 # Copyright (C) 2000  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -14,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.2 2000/11/15 23:55:07 bwelling Exp $
+# $Id: tests.sh,v 1.3 2000/11/18 02:57:22 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh

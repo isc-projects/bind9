@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 2000  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.7 2000/11/15 23:40:00 tale Exp $ */
+/* $Id: opt.c,v 1.8 2000/11/18 03:01:04 bwelling Exp $ */
 
 #include <config.h>
 

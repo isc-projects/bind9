@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 2000  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.3 2000/08/30 19:13:30 gson Exp $
+# $Id: ans.pl,v 1.4 2000/11/18 02:57:17 bwelling Exp $
 
 #
 # Ad hoc name server

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 2000  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.h,v 1.3 2000/11/13 21:34:03 bwelling Exp $ */
+/* $Id: opt.h,v 1.4 2000/11/18 03:01:07 bwelling Exp $ */
 
 #ifndef DNS_OPT_H
 #define DNS_OPT_H 1

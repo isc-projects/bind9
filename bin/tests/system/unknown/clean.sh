@@ -1,4 +1,5 @@
 #!/bin/sh
+#
 # Copyright (C) 2000  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -14,6 +15,6 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.1 2000/11/10 03:05:52 bwelling Exp $
+# $Id: clean.sh,v 1.2 2000/11/18 02:57:19 bwelling Exp $
 
 rm -f dig.out
