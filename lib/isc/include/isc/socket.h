@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.7 1998/11/26 00:10:33 explorer Exp $ */
+/* $Id: socket.h,v 1.8 1998/12/01 17:58:34 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -147,9 +147,10 @@ isc_socket_create(isc_socketmgr_t manager,
  *
  * Returns:
  *
- *	Success
- *	No memory
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_NORESOURCES
+ *	ISC_R_UNEXPECTED
  */
 
 
@@ -253,43 +254,44 @@ isc_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
  *
  * Returns:
  *
- *	Success
- *	Address not available
- *	Address in use
- *	Permission denied
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOPERM
+ *	ISC_R_ADDRNOTAVAIL
+ *	ISC_R_ADDRINUSE
+ *	ISC_R_BOUND
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t
 isc_socket_listen(isc_socket_t socket, int backlog);
 /*
- * Listen on 'socket'.  Every time a new connection request arrives,
- * a NEWCONN event with action 'action' and arg 'arg' will be posted
- * to the event queue for 'task'.
+ * Set listen mode on the socket.  After this call, the only function that
+ * can be used (other than attach and detach) is isc_socket_accept().
  *
  * Notes:
  *
- *	'backlog' is as in the UNIX system call listen().
+ *	'backlog' is as in the UNIX system call listen() and may be
+ *	ignored by non-UNIX implementations.
  *
  * Requires:
  *
  *	'socket' is a valid TCP socket.
- *
- *	'task' is a valid task
- *
- *	'action' is a valid action
+ *	'backlog' be >= 0.
  *
  * Returns:
  *
- *	Success
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t
 isc_socket_accept(isc_socket_t socket,
 		  isc_task_t task, isc_taskaction_t action, void *arg);
 /*
- * Queue accept event.
+ * Queue accept event.  When a new connection is received, the task will
+ * get an ISC_SOCKEVENT_NEWCONN event with the sender set to the listen
+ * socket.  The new socket structure is sent inside the isc_socket_newconnev_t
+ * event type, and is attached to the task 'task'.
  *
  * REQUIRES:
  *	'socket' is a valid TCP socket that isc_socket_listen() has been
@@ -328,14 +330,17 @@ isc_socket_connect(isc_socket_t socket, struct isc_sockaddr *addressp,
  *
  * Returns:
  *
- *	Success
- *	No memory
- *	Address not available
- *	Address in use
- *	Host unreachable
- *	Network unreachable
- *	Connection refused
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
+ *
+ * Posted event's result code:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_TIMEDOUT
+ *	ISC_R_CONNREFUSED
+ *	ISC_R_NETUNREACH
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t
@@ -409,9 +414,15 @@ isc_socket_recv(isc_socket_t socket, isc_region_t region,
  *
  * Returns:
  *
- *	Success
- *	No memory
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
+ *
+ * Event results:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
+ *	XXX needs other net-type errors
  */
 
 isc_result_t
@@ -447,18 +458,17 @@ isc_socket_sendto(isc_socket_t socket, isc_region_t region,
  *
  * Returns:
  *
- *	Success
- *	No memory
- *	Unexpected error
- */
-
-/* XXX this is some of how to do a read
- *	generate new net_request
- *	generate new read-result net_event
- *	attach to requestor
- *	lock socket
- *	queue request
- *	unlock socket
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
+ *
+ * Event results:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
+ *	XXX needs other net-type errors
  */
 
 isc_result_t
@@ -482,13 +492,13 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp);
  *
  * Returns:
  *
- *	Success
- *	No memory
- *	Unexpected error
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  */
 
 void
-isc_socketmgr_destroy(isc_socketmgr_t *);
+isc_socketmgr_destroy(isc_socketmgr_t *managerp);
 /*
  * Destroy a socket manager.
  *
@@ -502,6 +512,8 @@ isc_socketmgr_destroy(isc_socketmgr_t *);
  * Requires:
  *
  *	'*managerp' is a valid isc_socketmgr_t.
+ *
+ *	All sockets managed by this manager are fully detached.
  *
  * Ensures:
  *

@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.11 1998/11/26 00:29:12 explorer Exp $ */
+/* $Id: socket.c,v 1.12 1998/12/01 17:58:34 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -286,7 +286,7 @@ allocate_socket(isc_socketmgr_t manager, isc_sockettype_t type,
 	sock = isc_mem_get(manager->mctx, sizeof *sock);
 
 	if (sock == NULL)
-		return (NULL);
+		return (ISC_R_NOMEMORY);
 
 	sock->magic = SOCKET_MAGIC;
 	sock->references = 0;
@@ -373,7 +373,6 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	XENTER(TRACE_MANAGER, "isc_socket_create");
-
 	
 	ret = allocate_socket(manager, type, &sock);
 	if (ret != ISC_R_SUCCESS)
@@ -1704,6 +1703,7 @@ isc_socket_accept(isc_socket_t sock,
 	isc_result_t ret;
 
 	XENTER(TRACE_LISTEN, "isc_socket_accept");
+
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
@@ -1789,6 +1789,7 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addr, int addrlen,
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(addr != NULL);
 
 	LOCK(&sock->lock);
 
