@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.83.2.1 2000/07/10 23:54:33 gson Exp $ */
+/* $Id: rbt.c,v 1.83.2.2 2000/12/11 21:17:09 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -560,40 +560,70 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * end of the truncated name, and then
 				 * updating PADBYTES to reflect the truncation.
 				 *
-				 * When bitstring labels are involved, things
-				 * are just a tad more complicated (aren't
-				 * they always?) because the splitting
-				 * has shifted the bits that this name needs,
-				 * as well as adjusted the bit count.
-				 * So there are convolutions to deal with it.
-				 * There are compromises here between
-				 * abstraction and efficiency.
-				 */
+  				 * When bitstring labels are involved, things
+  				 * are just a tad more complicated (aren't
+  				 * they always?) because the splitting
+				 * has shifted the bits that this name needs
+				 * from the end of the label they were in
+				 * to either the beginning of the label or
+				 * even to the previous (lesser significance)
+				 * label if the split was done in a maximally
+				 * sized bitstring label.  The bit count has
+				 * been adjusted too, so there are convolutions
+				 * to deal with all the bit movement.  Yay,
+				 * I *love* bit labels.  Grumble grumble.
+  				 */
+  				if (common_bits > 0) {
+					unsigned char *p;
+					unsigned int skip_width;
+					unsigned int start_label =
+  					    FAST_COUNTLABELS(&current_name)
+						- common_labels;
 
-				if (common_bits > 0) {
-					dns_label_t label;
+					/*
+					 * If it is not the first label which
+					 * was split, also copy the label
+					 * before it -- which will essentially
+					 * be a NO-OP unless the preceding
+					 * label is a bitstring and the split
+					 * label was 256 bits.  Testing for
+					 * that case is probably roughly
+					 * as expensive as just unconditionally
+					 * copying the preceding label.
+					 */
+					if (start_label > 0)
+						start_label--;
 
-					dns_name_getlabel(prefix,
-					      FAST_COUNTLABELS(&current_name) -
-							  common_labels,
-							  &label);
+					skip_width =
+						prefix->offsets[start_label];
 
-					INSIST(dns_label_type(&label) ==
-					       dns_labeltype_bitstring);
+					memcpy(NAME(current) + skip_width,
+					       prefix->ndata + skip_width,
+					       prefix->length - skip_width);
 
-					memcpy(NAME(current) +
-					       (label.base - prefix->ndata),
-					       label.base,
-					       label.length);
+					/*
+					 * Now add_bits is set to the total
+					 * number of bits in the split label of
+					 * the name being added, and used later
+					 * to determine if the job was
+					 * completed by pushing the
+					 * not-in-common bits down one level.
+					 */
+					start_label =
+						FAST_COUNTLABELS(add_name)
+						- common_labels;
 
-					dns_name_getlabel(add_name,
-						   FAST_COUNTLABELS(add_name) -
-							  common_labels,
-							  &label);
-					INSIST(dns_label_type(&label) ==
-					       dns_labeltype_bitstring);
+					p = add_name->ndata +
+						add_name->offsets[start_label];
+					INSIST(*p == DNS_LABELTYPE_BITSTRING);
 
-					add_bits = dns_label_countbits(&label);
+					add_bits = *(p + 1);
+
+					/*
+					 * A bitstring that was split would not
+					 * result in a part of maximal length.
+					 */
+					INSIST(add_bits != 0);
 				} else
 					add_bits = 0;
 
