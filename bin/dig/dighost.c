@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.182 2001/01/09 21:39:15 bwelling Exp $ */
+/* $Id: dighost.c,v 1.183 2001/01/16 23:15:54 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -596,7 +596,7 @@ setup_system(void) {
 	FILE *fp;
 	char *ptr;
 	dig_server_t *srv;
-	dig_searchlist_t *search;
+	dig_searchlist_t *search, *domain = NULL;
 	isc_boolean_t get_servers;
 	char *input;
 
@@ -662,23 +662,19 @@ setup_system(void) {
 					have_domain = ISC_TRUE;
 					while ((ptr = next_token(&input, " \t\r\n"))
 					       != NULL) {
-						search = isc_mem_allocate(
-						   mctx, sizeof(*search));
-						if (search == NULL)
+						domain = isc_mem_allocate(
+						   mctx, sizeof(*domain));
+						if (domain == NULL)
 							fatal("Memory "
 							      "allocation "
 							      "failure in %s:"
 							      "%d", __FILE__,
 							      __LINE__);
-						strncpy(search->
+						strncpy(domain->
 							origin,
 							ptr,
 							MXNAME - 1);
-						search->origin[MXNAME-1] = 0;
-						ISC_LIST_INITANDPREPEND
-							(search_list,
-							 search,
-							 link);
+						domain->origin[MXNAME-1] = 0;
 					}
 				}
 			}
@@ -686,6 +682,8 @@ setup_system(void) {
 		fclose(fp);
 	}
 
+	if (domain != NULL)
+		ISC_LIST_INITANDAPPEND(search_list, domain, link);
 	if (ndots == -1)
 		ndots = 1;
 
