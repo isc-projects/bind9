@@ -1,5 +1,5 @@
 
- 330.   [bug]		Many debugging messages were partially formatted
+ 330.	[bug]		Many debugging messages were partially formatted
 			even when debugging was turned off, causing a
 			significant decrease in query performance.
 
@@ -77,7 +77,7 @@
  370.	[bug]		The error messages for rollforward failures were
 			overly terse.
 
- 367.   [bug]		Allow proper selection of server on nslookup command
+ 367.	[bug]		Allow proper selection of server on nslookup command
 			line.
 
  365.	[bug]		nsupdate -k leaked memory.
