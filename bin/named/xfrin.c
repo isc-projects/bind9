@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.3 1999/08/25 06:39:19 gson Exp $ */
+ /* $Id: xfrin.c,v 1.4 1999/08/25 10:52:57 gson Exp $ */
 
 #include <config.h>
 
@@ -259,6 +259,7 @@ axfr_apply(xfrin_ctx_t *xfr) {
         CHECK(dns_diff_load(&xfr->diff,
 			    xfr->axfr.add_func, xfr->axfr.add_private));
 	xfr->difflen = 0;
+	dns_diff_clear(&xfr->diff);
 	result = DNS_R_SUCCESS;
  failure:
 	return (result);
@@ -513,7 +514,7 @@ xfrin_test(dns_view_t *view) {
 		     ns_g_socketmgr,
 		     &name,
 		     dns_rdataclass_in, xfrtype,
-		     "193.100.32.81", 53, &xfr);
+		     "194.100.32.81", 53, &xfr);
 
 	xfrin_start(xfr);
 }
@@ -735,6 +736,7 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	return;
 	
  failure:
+	isc_event_free(&event);
 	if (soatuple != NULL)
 		dns_difftuple_free(&soatuple);
 	if (event != NULL)
@@ -766,8 +768,7 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 	return;
 	
  failure:
-	if (event != NULL)
-		isc_event_free(&event);
+	isc_event_free(&event);
 	xfrin_fail(xfr, result, "sending request length prefix");
 }
 
@@ -794,8 +795,7 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event)
 	return;
 	
  failure:
-	if (event != NULL)
-		isc_event_free(&event);
+	isc_event_free(&event);
 	xfrin_fail(xfr, result, "sending request");
 }
 
@@ -814,7 +814,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	tcpmsg = ev->sender;
 	isc_event_free(&ev);
 	
-	/* printf("tcp msg recv done\n"); */
+	printf("got tcp message\n");
 	xfr->recvs--;
 	if (maybe_free(xfr))
 		return;
@@ -844,7 +844,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 			{
 				dns_rdata_t rdata;
 				dns_rdataset_current(rds, &rdata);
-				/* printf("got rr type %d\n", rdata.type); */
 				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
 			}
 		}
@@ -875,6 +874,7 @@ xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
 	task = task; /* Unused */ 
 	INSIST(event->type == ISC_TIMEREVENT_IDLE);
+	isc_event_free(&event);
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "giving up");
 }
 
@@ -883,6 +883,7 @@ xfrin_shutdown(isc_task_t *task, isc_event_t *event) {
 	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
 	task = task; /* Unused */ 
 	INSIST(event->type == ISC_TASKEVENT_SHUTDOWN);
+	isc_event_free(&event);	
 	printf("xfrin_shutdown task=%p\n", task);
 	xfr->tasks--;
 	maybe_free(xfr);
