@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.46 2000/07/24 22:59:32 explorer Exp $ */
+/* $Id: zoneconf.c,v 1.47 2000/07/25 20:26:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -190,10 +190,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_c_view_getalsonotify(cview, &iplist);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getalsonotify(cctx, &iplist);
-		if (result == ISC_R_SUCCESS)
-			RETERR(dns_zone_setalsonotify(zone, iplist->ips,
-						      iplist->nextidx));
-		else
+		if (result == ISC_R_SUCCESS) {
+			result = dns_zone_setalsonotify(zone, iplist->ips,
+						        iplist->nextidx);
+			dns_c_iplist_detach(&iplist);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+
+		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
 		
 		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
