@@ -45,7 +45,7 @@ my_tick(task_t __attribute__((unused)) task,
 {
 	char *name = event->arg;
 
-	printf("tick %s\n", name);
+	printf("task %p tick %s\n", task, name);
 	return (FALSE);
 }
 
@@ -58,7 +58,8 @@ simple_timer_run(void *arg) {
 	for (i = 0; i < 10; i++) {
 		sleep(1);
 		printf("sending timer to %p\n", task);
-		event = task_event_allocate(mctx, 2, my_tick, "foo",
+		event = task_event_allocate(mctx, simple_timer_run,
+					    2, my_tick, "foo",
 					    sizeof *event);
 		INSIST(event != NULL);
 		(void)task_send_event(task, &event);
@@ -108,34 +109,52 @@ main(int argc, char *argv[]) {
 	printf("task 2 = %p\n", t2);
 	sleep(2);
 
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "1", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
 	task_send_event(t1, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "2", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "1",
+				    sizeof *event);
+	task_send_event(t1, &event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "2",
+				    sizeof *event);
 	task_send_event(t2, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "3", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "3",
+				    sizeof *event);
 	task_send_event(t3, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "4", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "4",
+				    sizeof *event);
 	task_send_event(t4, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "2", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "2",
+				    sizeof *event);
 	task_send_event(t2, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "3", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "3",
+				    sizeof *event);
 	task_send_event(t3, &event);
-	event = task_event_allocate(mctx, 1, my_callback, "4", sizeof *event);
+	event = task_event_allocate(mctx, main, 1, my_callback, "4",
+				    sizeof *event);
 	task_send_event(t4, &event);
+	task_purge_events(t3, NULL, 0);
 
 	task_detach(&t1);
 	task_detach(&t2);

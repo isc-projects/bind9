@@ -27,6 +27,8 @@ typedef struct task_manager *		task_manager_t;
 
 /*
  * Negative event types are reserved for use by the task manager.
+ *
+ * Type 0 means "any type".
  */
 typedef int				task_eventtype_t;
 
@@ -39,6 +41,7 @@ typedef boolean_t			(*task_action_t)(task_t, task_event_t);
 struct task_event {
 	mem_context_t			mctx;
 	size_t				size;
+	void *				sender;
 	task_eventtype_t		type;
 	task_action_t			action;
 	void *				arg;
@@ -51,6 +54,7 @@ struct task_event {
 typedef LIST(struct task_event)		task_eventlist_t;
 
 task_event_t				task_event_allocate(mem_context_t,
+							    void *,
 							    task_eventtype_t,
 							    task_action_t,
 							    void *arg,
@@ -71,6 +75,8 @@ void					task_attach(task_t, task_t *);
 void					task_detach(task_t *);
 boolean_t				task_send_event(task_t,
 							task_event_t *);
+void					task_purge_events(task_t, void *,
+							  task_eventtype_t);
 void					task_shutdown(task_t);
 void					task_destroy(task_t *);
 

@@ -24,7 +24,8 @@
 #define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
 
 #ifdef DEBUGTRACE
-#define XTRACE(m)		printf("%s %p\n", (m), os_thread_self())
+#define XTRACE(m)		printf("%s task %p thread %p\n", (m), \
+				       task, os_thread_self())
 #else
 #define XTRACE(m)
 #endif
@@ -88,7 +89,7 @@ struct task_manager {
  ***/
 
 static inline task_event_t
-event_allocate(mem_context_t mctx, task_eventtype_t type,
+event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
 	       task_action_t action, void *arg, size_t size)
 {
 	task_event_t event;
@@ -98,6 +99,7 @@ event_allocate(mem_context_t mctx, task_eventtype_t type,
 		return (NULL);
 	event->mctx = mctx;
 	event->size = size;
+	event->sender = sender;
 	event->type = type;
 	event->action = action;
 	event->arg = arg;
@@ -106,7 +108,7 @@ event_allocate(mem_context_t mctx, task_eventtype_t type,
 }
 
 task_event_t
-task_event_allocate(mem_context_t mctx, task_eventtype_t type,
+task_event_allocate(mem_context_t mctx, void *sender, task_eventtype_t type,
 		    task_action_t action, void *arg, size_t size)
 {
 	if (size < sizeof (struct task_event))
@@ -116,7 +118,7 @@ task_event_allocate(mem_context_t mctx, task_eventtype_t type,
 	if (action == NULL)
 		return (NULL);
 
-	return (event_allocate(mctx, type, action, arg, size));
+	return (event_allocate(mctx, sender, type, action, arg, size));
 }
 
 void
@@ -187,6 +189,7 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 	task->quantum = quantum;
 	task->enqueue_allowed = TRUE;
 	task->shutdown_event = event_allocate(manager->mctx,
+					      NULL,
 					      TASK_EVENT_SHUTDOWN,
 					      shutdown_action,
 					      shutdown_arg,
@@ -257,7 +260,8 @@ task_send_event(task_t task, task_event_t *eventp) {
 	REQUIRE(eventp != NULL);
 	event = *eventp;
 	REQUIRE(event != NULL);
-	REQUIRE(event->type >= 0);
+	REQUIRE(event->sender != NULL);
+	REQUIRE(event->type > 0);
 
 	XTRACE("sending");
 	/*
@@ -329,6 +333,43 @@ task_send_event(task_t task, task_event_t *eventp) {
 
 	XTRACE("sent");
 	return (TRUE);
+}
+
+void
+task_purge_events(task_t task, void *sender, task_eventtype_t type) {
+	task_event_t event, next_event;
+	task_eventlist_t purgeable;
+
+	REQUIRE(VALID_TASK(task));
+	REQUIRE(type >= 0);
+
+	/*
+	 * Purge events matching 'sender' and 'type'.  sender == NULL means
+	 * "any sender".  type == NULL means any type.  Task manager events
+	 * cannot be purged.
+	 */
+
+	INIT_LIST(purgeable);
+
+	LOCK(&task->lock);
+	for (event = HEAD(task->events);
+	     event != NULL;
+	     event = next_event) {
+		next_event = NEXT(event, link);
+		if ((sender == NULL || event->sender == sender) &&
+		    ((type == 0 && event->type > 0) || event->type == type)) {
+			DEQUEUE(task->events, event, link);
+			ENQUEUE(purgeable, event, link);
+		}
+	}
+	UNLOCK(&task->lock);
+
+	for (event = HEAD(purgeable);
+	     event != NULL;
+	     event = next_event) {
+		next_event = NEXT(event, link);
+		task_event_free(&event);
+	}
 }
 
 void
@@ -493,7 +534,18 @@ void *task_manager_run(void *uap) {
 			UNLOCK(&manager->lock);
 
 			LOCK(&task->lock);
-			task->state = task_state_running;
+			INSIST(task->state == task_state_ready);
+			if (EMPTY(task->events)) {
+				/*
+				 * The task became runnable, but all events
+				 * in the run queue were subsequently purged.
+				 * Put the task to sleep.
+				 */
+				task->state = task_state_idle;
+				done = TRUE;
+				XTRACE("ready but empty");
+			} else
+				task->state = task_state_running;
 			while (!done) {
 				INSIST(!EMPTY(task->events));
 				event = HEAD(task->events);
@@ -549,6 +601,7 @@ void *task_manager_run(void *uap) {
 					 * Nothing else to do for this task.
 					 * Put it to sleep.
 					 */
+					XTRACE("empty");
 					task->state = task_state_idle;
 					done = TRUE;
 				} else if (dispatch_count >= task->quantum) {
@@ -562,6 +615,7 @@ void *task_manager_run(void *uap) {
 					 * dispatching at least one event,
 					 * so the minimum quantum is one.
 					 */
+					XTRACE("quantum");
 					task->state = task_state_ready;
 					requeue = TRUE;
 					done = TRUE;
