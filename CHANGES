@@ -97,7 +97,7 @@
 
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level, causing
-			zones to not reload when an included files was touched
+			zones to not reload when an included file was touched
 			but the top-level zone file was not.
 
  805.	[bug]		When using "forward only", missing root hints should
