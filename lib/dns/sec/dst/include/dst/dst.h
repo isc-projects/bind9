@@ -136,7 +136,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 		 const int type, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.
- G*
+ *
  * Requires:
  *	"name" is not NULL.
  *	"id" is a valid key tag identifier.
