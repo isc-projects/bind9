@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.24 2002/07/11 04:40:07 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.25 2002/07/11 04:49:24 marka Exp $ */
 
 #include <config.h>
 
@@ -198,13 +198,13 @@ main(int argc, char **argv) {
 	int exit_status = 0;
 	isc_boolean_t load_zones = ISC_FALSE;
 	
-	while ((c = isc_commandline_parse(argc, argv, "dmt:vz")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "djt:vz")) != EOF) {
 		switch (c) {
 		case 'd':
 			debug++;
 			break;
 
-		case 'm':
+		case 'j':
 			nomerge = ISC_FALSE;
 			break;
 
