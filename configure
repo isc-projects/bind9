@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.208 
+# From configure.in Revision: 1.209 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -136,7 +136,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-randomdev=PATH Specify path for random device"
 ac_help="$ac_help
-  --enable-threads	use multithreading"
+  --disable-threads	disable multithreading"
 ac_help="$ac_help
   --with-ptl2		on NetBSD, use the ptl2 thread library (experimental)"
 ac_help="$ac_help
