@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.107 2001/11/30 01:58:51 gson Exp $ */
+/* $Id: xfrout.c,v 1.108 2002/06/25 04:08:43 marka Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/timer.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -889,6 +890,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	char *journalfile;
 	char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
 		 + sizeof("zone transfer '/'")];
+	char keyname[DNS_NAME_FORMATSIZE];
 	isc_boolean_t is_poll = ISC_FALSE;
 
 	switch (reqtype) {
@@ -1134,12 +1136,18 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
+	if (xfr->tsigkey != NULL) {
+		dns_name_format(&xfr->tsigkey->name, keyname, sizeof(keyname));
+	} else
+		keyname[0] = '\0';
 	if (is_poll)
 		xfrout_log1(client, question_name, question_class,
-			    ISC_LOG_DEBUG(1), "IXFR poll up to date");
+			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s",
+			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
 	else
 		xfrout_log1(client, question_name, question_class,
-			    ISC_LOG_INFO, "%s started", mnemonic);
+			    ISC_LOG_INFO, "%s started%s%s", mnemonic,
+			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
 
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;
