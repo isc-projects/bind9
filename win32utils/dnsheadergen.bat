@@ -17,7 +17,7 @@ rem  WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 cd ..\lib\dns
 cd win32
-nmake /nologo /f gen.mak CFG="gen - Win32 Release"
+nmake /nologo /f gen.mak CFG="gen - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..
 gen -s . -t > include/dns/enumtype.h
 gen -s . -c > include/dns/enumclass.h
