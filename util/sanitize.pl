@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.11 2000/10/10 22:46:46 bwelling Exp $
+# $Id: sanitize.pl,v 1.12 2000/10/10 23:07:35 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -84,7 +84,9 @@ exit(0);
 
 
 sub runfile($) {
-	$state = 0;
+	for ($i = 0 ; $i < $curkeys; $i++) {
+		$state[$i] = 0;
+	}
 	$deletefile = 0;
 
 	open(INFILE, $_[0]) || die ("$_[0]");
