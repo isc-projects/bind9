@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.11 2001/08/06 05:34:25 mayer Exp $ */
+/* $Id: ntpaths.h,v 1.12 2001/08/09 02:55:41 mayer Exp $ */
 
 /*
  * Windows-specific path definitions
@@ -38,7 +38,6 @@ enum NtPaths {
 	RNDC_CONF_PATH,
 	NAMED_PID_PATH,
 	LWRESD_PID_PATH,
-	NAMED_KEY_PATH,
 	LOCAL_STATE_DIR,
 	SYS_CONF_DIR,
 	RNDC_KEY_PATH
@@ -49,7 +48,6 @@ enum NtPaths {
  */
 #define NAMED_CONFFILE isc_ntpaths_get(NAMED_CONF_PATH)
 #define RNDC_CONFFILE isc_ntpaths_get(RNDC_CONF_PATH)
-#define RNDC_AUTOCONFFILE isc_ntpaths_get(NAMED_KEY_PATH)
 #define RNDC_KEYFILE isc_ntpaths_get(RNDC_KEY_PATH)
 
 /*

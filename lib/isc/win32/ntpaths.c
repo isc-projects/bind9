@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.5 2001/08/06 05:34:23 mayer Exp $ */
+/* $Id: ntpaths.c,v 1.6 2001/08/09 02:55:39 mayer Exp $ */
 
 /*
  * This module fetches the required path information that is specific
@@ -41,7 +41,6 @@ static char lwresd_resolvconfFile[MAX_PATH];
 static char rndc_confFile[MAX_PATH];
 static char ns_defaultpidfile[MAX_PATH];
 static char lwresd_defaultpidfile[MAX_PATH];
-static char named_key_file[MAX_PATH];
 static char local_state_dir[MAX_PATH];
 static char sys_conf_dir[MAX_PATH];
 static char rndc_keyFile[MAX_PATH];
@@ -94,9 +93,6 @@ isc_ntpaths_init() {
 	strcpy(lwresd_defaultpidfile, namedBase);
 	strcat(lwresd_defaultpidfile, "\\etc\\lwresd.pid");
 
-	strcpy(named_key_file, namedBase);
-	strcat(named_key_file, "\\etc\\named.key");
-
 	strcpy(local_state_dir, namedBase);
 	strcat(local_state_dir, "\\bin");
 
@@ -129,9 +125,6 @@ isc_ntpaths_get(int ind) {
 		break;
 	case LWRESD_PID_PATH:
 		return (lwresd_defaultpidfile);
-		break;
-	case NAMED_KEY_PATH:
-		return (named_key_file);
 		break;
 	case LOCAL_STATE_DIR:
 		return (local_state_dir);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.3 2001/07/27 05:02:11 mayer Exp $ */
+/* $Id: os.c,v 1.4 2001/08/09 02:55:38 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -57,7 +57,7 @@ ns_paths_init() {
 	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
 	ns_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
 	lwresd_g_defaultpidfile = isc_ntpaths_get(LWRESD_PID_PATH);
-	ns_g_autorndckeyfile = isc_ntpaths_get(NAMED_KEY_PATH);
+	ns_g_autorndckeyfile = isc_ntpaths_get(RNDC_KEY_PATH);
 
 	Initialized = TRUE;
 }
