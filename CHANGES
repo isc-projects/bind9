@@ -1,5 +1,5 @@
  483.	[bug]		nslookup: "set all" showed search but it was not
-			setable.
+			settable.
 
  482.	[bug]		nslookup: a plain "server" or "lserver" should be
 			treated as a lookup.
