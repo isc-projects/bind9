@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.21 2002/06/17 04:01:33 marka Exp $ */
+/* $Id: validator.h,v 1.22 2002/07/15 03:27:44 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -108,6 +108,8 @@ struct dns_validator {
 	dns_rdataset_t *		keyset;
 	dns_rdataset_t *		dsset;
 	dns_rdataset_t *		soaset;
+	dns_rdataset_t *		nxtset;
+	dns_name_t *			soaname;
 	dns_rdataset_t			frdataset;
 	dns_rdataset_t			fsigrdataset;
 	dns_fixedname_t			fname;
