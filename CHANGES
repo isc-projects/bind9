@@ -1,14 +1,15 @@
  518.	[bug]		The resolver did not realize that a DNAME which was
 			"the answer" to the client's query was "the answer",
-			and such queries would fail.
+			and such queries would fail. [RT #399]
 
  517.	[bug]		The resolver's DNAME code would trigger an assertion
 			if there was more than one DNAME in the chain.
+			[RT #399]
 
  516.	[bug]		Cache lookups which had a NULL node pointer, e.g.
 			those by dns_view_find(), and which would match a
 			DNAME, would trigger an INSIST(!search.need_cleanup)
-			assertion.
+			assertion. [RT #399]
 
  515.	[bug]		The ssu table was not beinge attached / detached
 			by dns_zone_[sg]etssutable.  [RT#397]
