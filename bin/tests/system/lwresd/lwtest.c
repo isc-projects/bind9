@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.14 2000/08/30 23:35:34 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.15 2000/10/05 22:29:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -296,7 +296,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 			fails++;
 			return;
 		}
-		if (len != hp->h_length ||
+		if (len != (int)hp->h_length ||
 		    memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0)
 		{
 			char outbuf[16];
@@ -353,7 +353,7 @@ test_getipnodebyname(const char *name, const char *address, int af,
 			fails++;
 			return;
 		}
-		if (len != hp->h_length ||
+		if (len != (int)hp->h_length ||
 		    memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0)
 		{
 			char outbuf[16];
@@ -600,6 +600,7 @@ main(void) {
 	lwres_result_t ret;
 
 	lwres_udp_port = 9210;
+	lwres_resolv_conf = "resolv.conf";
 
 	ret = lwres_context_create(&ctx, NULL, NULL, NULL, 0);
 	CHECK(ret, "lwres_context_create");
@@ -714,5 +715,7 @@ main(void) {
 	test_getnameinfo("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
 			 AF_INET6, "bitstring.example");
 
+	if (fails == 0)
+		printf("I:ok\n");
 	return (fails);
 }
