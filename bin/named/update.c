@@ -955,18 +955,28 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 
 /*
  * Check that the new SOA record at 'update_rdata' does not
- * illegally cause the SOA serial number to decrease relative to the
- * existing SOA in 'db'.
- *
- * Sets '*changed' to ISC_TRUE if the update changed the serial
- * number, to ISC_FALSE if not.
+ * illegally cause the SOA serial number to decrease or stay
+ * unchanged relative to the existing SOA in 'db'.
  *
  * Sets '*ok' to ISC_TRUE if the update is legal, ISC_FALSE if not.
+ *
+ * William King points out that RFC2136 is inconsistent about
+ * the case where the serial number stays unchanged:
+ * 
+ *   section 3.4.2.2 requires a server to ignore a SOA update request
+ *   if the serial number on the update SOA is less_than_or_equal to
+ *   the zone SOA serial.
+ * 
+ *   section 3.6 requires a server to ignore a SOA update request if
+ *   the serial is less_than the zone SOA serial.
+ *
+ * Paul says 3.4.2.2 is correct.
+ *
  */
 static dns_result_t
 check_soa_increment(dns_db_t *db, dns_dbversion_t *ver, 
 		    dns_rdata_t *update_rdata,
-		    isc_boolean_t *changed, isc_boolean_t *ok)
+		    isc_boolean_t *ok)
 {
 	isc_uint32_t db_serial;
 	isc_uint32_t update_serial;
@@ -978,12 +988,7 @@ check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	if (db_serial != update_serial) {
-		*changed = ISC_TRUE;
-	} else {
-		*changed = ISC_FALSE;
-	}
-	if (DNS_SERIAL_GT(db_serial, update_serial)) {
+	if (DNS_SERIAL_GE(db_serial, update_serial)) {
 		*ok = ISC_FALSE;
 	} else {
 		*ok = ISC_TRUE;
@@ -1881,7 +1886,7 @@ ns_req_update(ns_client_t *client,
 				}
 			}
 			if (rdata.type == dns_rdatatype_soa) {
-				isc_boolean_t changed, ok;
+				isc_boolean_t ok;
 				CHECK(rrset_exists(db, ver, name, 
 						   dns_rdatatype_soa, 0,
 						   &flag));
@@ -1891,14 +1896,13 @@ ns_req_update(ns_client_t *client,
 					continue;
 				}
 				CHECK(check_soa_increment(db, ver, &rdata,
-							  &changed, &ok));
+							  &ok));
 				if (! ok) {
 					printf("attempt to decrement SOA "
 					       "serial ignored\n");
 					continue;
 				}
-				if (changed)
-					soa_serial_changed = ISC_TRUE;
+				soa_serial_changed = ISC_TRUE;
 			}
 			/*
 			 * Add an RR.  If an identical RR already exists,
