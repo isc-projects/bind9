@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.87 2000/08/02 20:27:14 tale Exp $ */
+/* $Id: dnssec-signzone.c,v 1.88 2000/08/03 13:42:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -991,9 +991,9 @@ minimumttl(dns_db_t *db, dns_dbversion_t *version) {
 static void
 signzone(dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result, nxtresult;
-	dns_dbnode_t *node, *nextnode, *curnode;
-	dns_fixedname_t fname, fnextname, fcurname;
-	dns_name_t *name, *nextname, *target, *curname, *lastcut;
+	dns_dbnode_t *node, *nextnode;
+	dns_fixedname_t fname, fnextname;
+	dns_name_t *name, *nextname, *target, *lastcut;
 	dns_dbiterator_t *dbiter;
 	dns_name_t *origin;
 
@@ -1003,8 +1003,6 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	name = dns_fixedname_name(&fname);
 	dns_fixedname_init(&fnextname);
 	nextname = dns_fixedname_name(&fnextname);
-	dns_fixedname_init(&fcurname);
-	curname = dns_fixedname_name(&fcurname);
 
 	origin = dns_db_origin(db);
 
@@ -1014,19 +1012,17 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	check_result(result, "dns_db_createiterator()");
 	result = dns_dbiterator_first(dbiter);
 	node = NULL;
-	dns_name_clone(origin, name);
+	dns_name_concatenate(origin, NULL, name, NULL);
 	result = next_nonglue(db, version, dbiter, name, &node, origin,
 			      lastcut);
 	while (result == ISC_R_SUCCESS) {
 		nextnode = NULL;
-		curnode = NULL;
-		dns_dbiterator_current(dbiter, &curnode, curname);
-		if (!dns_name_equal(curname, dns_db_origin(db))) {
+		if (!dns_name_equal(name, dns_db_origin(db))) {
 			dns_rdatasetiter_t *rdsiter = NULL;
 			dns_rdataset_t set;
 
 			dns_rdataset_init(&set);
-			result = dns_db_allrdatasets(db, curnode, version,
+			result = dns_db_allrdatasets(db, node, version,
 						     0, &rdsiter);
 			check_result(result, "dns_db_allrdatasets");
 			result = dns_rdatasetiter_first(rdsiter);
@@ -1052,7 +1048,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 						fatal("out of memory");
 				}
 				dns_name_init(lastcut, NULL);
-				result = dns_name_dup(curname, mctx, lastcut);
+				result = dns_name_dup(name, mctx, lastcut);
 				check_result(result, "dns_name_dup()");
 			}
 			dns_rdatasetiter_destroy(&rdsiter);
@@ -1072,10 +1068,10 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		}
 		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
 		check_result(nxtresult, "dns_buildnxt()");
-		signname(db, version, node, curname);
+		signname(db, version, node, name);
 		dns_db_detachnode(db, &node);
-		dns_db_detachnode(db, &curnode);
 		node = nextnode;
+		dns_name_concatenate(nextname, NULL, name, NULL);
 	}
 	if (result != ISC_R_NOMORE)
 		fatal("iterating through the database failed: %s",
