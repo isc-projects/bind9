@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2000/06/23 21:19:05 bwelling Exp $
+# $Id: Makefile.in,v 1.21 2000/06/23 21:22:20 tale Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-SUBDIRS =	make lib bin util
+SUBDIRS =	make lib bin
 TARGETS =
 DISTFILES =	CHANGES Makefile.in README \
 		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
@@ -34,8 +34,9 @@ DOCDIRS =	arm draft misc rfc
 @BIND9_MAKE_RULES@
 
 distclean::
-	rm -f config.cache config.h config.log config.status libtool TAGS
-	rm -f isc-config.sh
+	rm -f config.cache config.h config.log config.status TAGS
+	rm -f libtool isc-config.sh
+	rm -f util/conf.sh
 
 cleandir: distclean
 
@@ -46,7 +47,8 @@ kit: kitclean
 	mkdir bind-${VERSION}
 	@(cd bind-${VERSION}; for i in ${DISTFILES}; do ln -s ../$$i $$i; done)
 	mkdir bind-${VERSION}/doc
-	@(cd bind-${VERSION}/doc; for i in ${DOCDIRS}; do ln -s ../../doc/$$i $$i; done)
+	@(cd bind-${VERSION}/doc; for i in ${DOCDIRS}; do \
+		ln -s ../../doc/$$i $$i; done)
 	gtar -c -v -z -h --exclude '*CVS*' -f bind-${VERSION}.tar.gz \
 		bind-${VERSION}
 	rm -rf bind-${VERSION}
