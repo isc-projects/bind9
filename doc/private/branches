@@ -16,9 +16,9 @@ rt5044		review		explorer
 rt5041		review		explorer
 ipl		review		explorer	(rt5021)
 rt5066		review		explorer
-rt5099		feedback	marka
 rt5084		review		explorer
 rt5127		review		explorer
+rt5124		review		explorer
 
 a6_remove	closed
 adb_race	closed		explorer
@@ -53,3 +53,4 @@ rt4687		closed
 rt4764		closed
 rt4802		closed
 rt4898		closed
+rt5099		closed
