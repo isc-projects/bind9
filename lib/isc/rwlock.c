@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.32 2001/04/17 13:42:32 tale Exp $ */
+/* $Id: rwlock.c,v 1.33 2001/04/17 14:36:45 tale Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
-#define RWLOCK_MAGIC		0x52574C6BU	/* RWLk. */
+#define RWLOCK_MAGIC		ISC_MAGIC('R', 'W', 'L', 'k')
 #define VALID_RWLOCK(rwl)	ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
 #ifdef ISC_PLATFORM_USETHREADS
