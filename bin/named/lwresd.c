@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.39 2001/11/30 01:58:46 gson Exp $ */
+/* $Id: lwresd.c,v 1.40 2002/01/04 02:32:02 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -38,7 +38,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <dns/log.h>
 #include <dns/result.h>

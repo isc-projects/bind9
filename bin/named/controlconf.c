@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.36 2001/11/27 21:51:31 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.37 2002/01/04 02:32:01 gson Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 

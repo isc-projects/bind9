@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.30 2001/08/03 23:19:01 gson Exp $ */
+/* $Id: cfg.h,v 1.31 2002/01/04 02:32:14 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -27,7 +27,6 @@
 /*
  * This is the new, table-driven, YACC-free configuration file parser.
  */
-
 
 /***
  *** Imports
@@ -397,21 +396,6 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...)
  * channel of 'pctx', at log level 'level'.  The message will be prefixed
  * with the file name(s) and line number where 'obj' was defined.
  */
-
-/*
- * Configuration object types.
- */
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
-/* A complete named.conf file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
-/* A complete rndc.conf file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndckey;
-/* A complete rndc.key file. */
-
-LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
-/* A key reference, used as an ACL element */
 
 ISC_LANG_ENDDECLS
 

@@ -15,13 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.27 2001/04/12 21:02:46 tale Exp $ */
+/* $Id: aclconf.c,v 1.28 2002/01/04 02:31:59 gson Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
+
+#include <isccfg/namedconf.h>
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>

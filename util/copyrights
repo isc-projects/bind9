@@ -2073,8 +2073,10 @@
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001
 ./lib/isccfg/include/isccfg/check.h		C	2001
 ./lib/isccfg/include/isccfg/log.h		C	2001
+./lib/isccfg/include/isccfg/namedconf.h		C	2001,2002
 ./lib/isccfg/include/isccfg/version.h		C	2001
 ./lib/isccfg/log.c				C	2001
+./lib/isccfg/namedconf.c			C	2001,2002
 ./lib/isccfg/parser.c				C	2000,2001
 ./lib/isccfg/version.c				C	1998,1999,2000,2001
 ./lib/isccfg/win32/DLLMain.c			C	2001

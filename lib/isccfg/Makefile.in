@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.7 2001/09/20 15:16:57 marka Exp $
+# $Id: Makefile.in,v 1.8 2002/01/04 02:32:10 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -41,10 +41,10 @@ LIBS =		@LIBS@
 SUBDIRS =	include
 
 # Alphabetically
-OBJS =		log.@O@ parser.@O@ version.@O@
+OBJS =		log.@O@ namedconf.@O@ parser.@O@ version.@O@
 
 # Alphabetically
-SRCS =		log.c parser.c version.c
+SRCS =		log.c namedconf.c parser.c version.c
 
 TARGETS = 	timestamp
 

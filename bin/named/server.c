@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.366 2001/12/01 00:39:22 marka Exp $ */
+/* $Id: server.c,v 1.367 2002/01/04 02:32:04 gson Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 

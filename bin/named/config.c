@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.23 2001/11/30 01:58:44 gson Exp $ */
+/* $Id: config.c,v 1.24 2002/01/04 02:32:00 gson Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <dns/fixedname.h>
 #include <dns/name.h>

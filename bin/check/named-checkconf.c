@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.19 2001/10/02 22:53:35 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.20 2002/01/04 02:31:57 gson Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <isccfg/cfg.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 
