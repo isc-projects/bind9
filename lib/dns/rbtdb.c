@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168 2001/08/27 03:58:44 marka Exp $ */
+/* $Id: rbtdb.c,v 1.169 2001/09/18 14:30:10 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -66,6 +66,13 @@
 
 #ifdef DNS_RBTDB_VERSION64
 typedef isc_uint64_t			rbtdb_serial_t;
+/*
+ * Make casting easier in symbolic debuggers by using different names
+ * for the 64 bit version.
+ */
+#define dns_rbtdb_t dns_rbtdb64_t
+#define rdatasetheader_t rdatasetheader64_t
+#define rbtdb_version_t rbtdb_version64_t
 #else
 typedef isc_uint32_t			rbtdb_serial_t;
 #endif
