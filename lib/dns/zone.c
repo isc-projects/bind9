@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.140 2000/06/02 17:31:29 gson Exp $ */
+/* $Id: zone.c,v 1.141 2000/06/05 03:44:17 marka Exp $ */
 
 #include <config.h>
 
@@ -3135,7 +3135,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	} else {
-		if (dump) {
+		if (dump && zone->dbname != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "dumping new zone version");

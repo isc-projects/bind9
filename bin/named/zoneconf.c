@@ -135,8 +135,12 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/* XXX needs to be an zone option */
 	RETERR(dns_zone_setdbtype(zone, "rbt"));
 
-	RETERR(dns_c_zone_getfile(czone, &filename));
-	RETERR(dns_zone_setdatabase(zone, filename));
+	result = dns_c_zone_getfile(czone, &filename);
+	if (result == ISC_R_SUCCESS)
+		RETERR(dns_zone_setdatabase(zone, filename));
+	else if (czone->ztype != dns_c_zone_slave &&
+		 czone->ztype != dns_c_zone_stub)
+		return (result);
 
 #ifdef notyet
 	result = dns_c_zone_getchecknames(czone, &severity);

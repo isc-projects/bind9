@@ -1,3 +1,5 @@
+ 232.	[bug]		Allow slave zones to not have a file.
+
  231.	[func]		Support new 'port' clause in config file options
 			section. Causes 'listen-on', 'masters' and
 			'also-notify' statements to use its value instead of
