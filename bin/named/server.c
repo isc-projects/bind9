@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.17 2003/08/15 03:10:04 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.18 2003/08/15 04:14:31 marka Exp $ */
 
 #include <config.h>
 
@@ -675,7 +675,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 */
 	obj = NULL;
 	result = ns_config_get(maps, "cache-file", &obj);
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0) {
 		CHECK(dns_cache_setfilename(cache, cfg_obj_asstring(obj)));
 		if (!reused_cache)
 			CHECK(dns_cache_load(cache));
