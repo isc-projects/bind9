@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.25 2001/08/30 04:55:34 marka Exp $ */
+/* $Id: file.h,v 1.26 2001/08/30 20:40:27 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -244,7 +244,7 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen);
 isc_result_t
 isc_file_truncate(const char *filename, isc_offset_t size);
 /*
- * Truncate/Extend the file specified to 'size' bytes.
+ * Truncate/extend the file specified to 'size' bytes.
  */
 
 ISC_LANG_ENDDECLS
