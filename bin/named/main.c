@@ -163,7 +163,7 @@ library_unexpected_error(char *file, int line, char *format, va_list args) {
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named [-c conffile] [-d debuglevel] [-f[f]] [-N number_of_cpus]\n"
+		"usage: named [-c conffile] [-d debuglevel] [-f[f]] [-n number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
 }
 
@@ -174,7 +174,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fN:p:st:u:x:")) !=
+					   "c:d:fn:N:p:st:u:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -188,7 +188,8 @@ parse_command_line(int argc, char *argv[]) {
 				ns_g_logstderr = ISC_TRUE;
 			ns_g_foreground = ISC_TRUE;
 			break;
-		case 'N':
+		case 'N': /* Deprecated. */
+		case 'n':
 			ns_g_cpus = atoi(isc_commandline_argument);
 			if (ns_g_cpus == 0)
 				ns_g_cpus = 1;
