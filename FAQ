@@ -45,7 +45,9 @@ BIND 8 incorrectly accepted files that had neither.
 Q: Why do I see 5 (or more) copies of named on Linux?
 
 A: Linux threads each show up as a process under ps.  The approximate
-number of threads running is n+4, where n is the number of CPUs.
+number of threads running is n+4, where n is the number of CPUs.  Note that
+the amount of memory used is not cumulative; if each process is using 10M of
+memory, only a total of 10M is used.
 
 
 Q: Why does BIND 9 log "permission denied" errors accessing its
