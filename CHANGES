@@ -1,3 +1,8 @@
+
+	--- 9.2.0rc9 released ---
+
+1084.	[cleanup]	libbind: gai_strerror() rewritten.
+
 1083.	[bug]		The default control channel listened on the
 			wildcard adress, not the loopback as documented.
 			[RT #1975]
@@ -5,9 +10,6 @@
 1082.	[bug]		The -g option to named incorrectly caused logging
 			to be sent to syslog in addition to stderr.
 			[RT #1974]
-
-
-	--- 9.2.0rc9 released ---
 
 1078.	[bug]		We failed to correct bad tv_usec values in one case.
 			[RT #1966]
