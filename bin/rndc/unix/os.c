@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.3 2001/08/06 04:25:08 marka Exp $ */
+/* $Id: os.c,v 1.4 2001/08/08 23:13:16 gson Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,7 @@ safe_create(const char *filename) {
 	} else
 		flags = O_WRONLY|O_TRUNC;
 
-	fd = open(filename, flags, S_IRUSR|S_IWUSR);
+	fd = open(filename, flags, S_IRUSR | S_IWUSR);
 	if (fd == -1)
 		return (NULL);
 	f = fdopen(fd, "w");
