@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: lwres.3,v 1.7 2000/11/18 02:59:12 bwelling Exp $
+.\" $Id: lwres.3,v 1.8 2000/12/04 18:37:35 gson Exp $
 
 .Dd Jun 30, 2000
 .Dt LWRES 3
@@ -30,7 +30,7 @@ independent stub resolver library.  It provides hostname-to-address
 and address-to-hostname lookup services to applications by
 transmitting lookup requests to a resolver daemon
 .Nm lwresd
-running on the local host.  The resover daemon performs the
+running on the local host. The resover daemon performs the
 lookup using the DNS or possibly other name service protocols,
 and returns the results to the application through the library.  
 The library and resolver daemon communicate using a simple
@@ -68,6 +68,13 @@ and
 These may be called by applications that require more detailed
 control over the lookup process than the standard functions
 provide.
+.Pp
+In addition to these name service independent address lookup
+functions, the library implements a new, experimental API
+for looking up arbitrary DNS resource records, using the
+.Fn lwres_getaddrsbyname
+function.
+.Pp
 Finally, there is a low-level API for converting lookup
 requests and responses to and from raw lwres protocol packets.  
 This API can be used by clients requiring nonblocking operation, 

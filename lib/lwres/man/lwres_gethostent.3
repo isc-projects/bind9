@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: lwres_gethostent.3,v 1.5 2000/11/18 03:00:21 bwelling Exp $
+.\" $Id: lwres_gethostent.3,v 1.6 2000/12/04 18:37:38 gson Exp $
 
 .Dd Jun 30, 2000
 .Dt LWRES_GETHOSTENT 3
@@ -345,17 +345,9 @@ and
 .Fn lwres_gethostbyaddr_r
 respectively.
 .Pp
-Although the above functions can be considered as drop-in replacements
-for their equivalents in the system software, there are limitations.
-The functions that are documented here only use the BIND9 lighweight
-resolver daemon
-That implies that they only use the DNS for host and address lookups.
-Therefore these functions do not perform lookups in
+The resolver daemon does not currently support any non-DNS
+name services such as 
 .Pa /etc/hosts
-or in
-.Dv NIS/YP
 or
-.Dv NIS+
-maps which could be supported by the operating system's
-.Xr gethostent 3
-functions.
+.Dv NIS ,
+consequently the above functions don't, either.
