@@ -5153,6 +5153,33 @@ address match lists designed for IPv4 to fail to match.
 The use of this option for any other purpose is discouraged.
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>ixfr-from-differences</B
+></DT
+><DD
+><P
+>&#13;When 'yes' and the server loads a new version of a master
+zone from its zone file or receives a new version of a slave
+file by a non-incremental zone transfer, it will compare
+the new version to the previous one and calculate a set
+of differences.  The differences are then logged in the
+zone's journal file such that the changes can be transmitted
+to downstream slaves as an incremental zone transfer.
+</P
+><P
+>&#13;By allowing incremental zone transfers to be used for
+non-dynamic zones, this option saves bandwidth at the
+expense of increased CPU and memory consumption at the master.
+In particular, if the new version of a zone is completely
+different from the previous one, the set of differences
+will be of a size comparable to the combined size of the
+old and new zone version, and the server will need to
+temporarily allocate memory to hold this complete
+difference set.
+</P
+></DD
 ></DL
 ></DIV
 ></DIV
@@ -8972,6 +8999,22 @@ HREF="Bv9ARM.ch06.html#tuning"
 >Section 6.2.14.14</A
 >.
 </P
+></DD
+><DT
+><B
+CLASS="command"
+>ixfr-from-differences</B
+></DT
+><DD
+><P
+>See the description of
+<B
+CLASS="command"
+>ixfr-from-differences</B
+> in <A
+HREF="Bv9ARM.ch06.html#boolean_options"
+>Section 6.2.14.1</A
+>.</P
 ></DD
 ></DL
 ></DIV

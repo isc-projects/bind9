@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.1 2003/07/31 06:56:51 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.2 2003/08/02 00:38:59 marka Exp $ */
 
 #include <config.h>
 
@@ -922,6 +922,7 @@ zone_clauses[] = {
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
+	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },

@@ -1,3 +1,8 @@
+ 983.	[func]		The server now supports generating IXFR difference
+			sequences for non-dynamic zones by comparing zone
+			versions, when enabled using the new config
+			option "ixfr-from-differences". [RT #1727]
+
  982.	[func]		If "memstatistics-file" is set in options the memory
 			statistics will be written to it.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.1 2003/07/31 06:56:49 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.2 2003/08/02 00:38:51 marka Exp $ */
 
 #include <config.h>
 
@@ -143,6 +143,7 @@ options {\n\
 	sig-validity-interval 30; /* days */\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
+	ixfr-from-differences false;\n\
 };";
 
 isc_result_t

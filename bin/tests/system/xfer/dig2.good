@@ -31,6 +31,10 @@ loc01.example.		3600	IN	LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
 loc02.example.		3600	IN	LOC	60 9 0.000 N 24 39 0.000 E 10.00m 20m 2000m 20m
 mb01.example.		3600	IN	MG	madname.example.
 mb02.example.		3600	IN	MG	.
+md01.example.		3600	IN	MD	.
+md01.example.		3600	IN	MD	madname.example.
+mf01.example.		3600	IN	MF	.
+mf01.example.		3600	IN	MF	madname.example.
 mg01.example.		3600	IN	MG	mgmname.example.
 mg02.example.		3600	IN	MG	.
 minfo01.example.	3600	IN	MINFO	rmailbx.example. emailbx.example.
