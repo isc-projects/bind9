@@ -1,6 +1,9 @@
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
 
+1578.	[bug]		Don't use CLASS E IPv4 addresses when resolving.
+			[RT #10346]
+
 1576.	[bug]		Race condition in dns_dispatch_addresponse().
 			[RT# 10272]
 

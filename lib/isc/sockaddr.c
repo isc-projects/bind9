@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.2 2003/10/09 07:32:49 marka Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.3 2004/02/20 00:50:14 marka Exp $ */
 
 #include <config.h>
 
@@ -415,4 +415,15 @@ isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 	return (isc_netaddr_ismulticast(&netaddr));
+}
+
+isc_boolean_t
+isc_sockaddr_isexperimental(isc_sockaddr_t *sockaddr) {
+	isc_netaddr_t netaddr;
+
+	if (sockaddr->type.sa.sa_family == AF_INET) {
+		isc_netaddr_fromsockaddr(&netaddr, sockaddr);
+		return (isc_netaddr_isexperimental(&netaddr));
+	}
+	return (ISC_FALSE);
 }
