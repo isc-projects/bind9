@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.21 2001/03/08 02:59:46 bwelling Exp $
+# $Id: tests.sh,v 1.22 2001/03/08 18:44:59 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -148,6 +148,9 @@ update add updated4.example.nil. 600 A 10.10.10.3
 send
 END
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+# Removing the journal file and restarting the server means
+# that the data served by the new server process are exactly
+# those dumped to the master file by "rndc stop".
 rm -f ns1/*jnl
 $PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
