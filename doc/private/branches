@@ -1,6 +1,5 @@
 Name		Status		Whom
 ------------------------------------
-a6_remove	review		marka
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3746		open		marka
@@ -8,6 +7,7 @@ v6source
 rt4663		review		explorer
 rt4687		review		explorer
 
+a6_remove	closed
 adb_race	closed		explorer
 blabel-cleanup	closed
 ds_12		closed
