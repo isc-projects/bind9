@@ -23,6 +23,7 @@
 /*
  * Any LFSR added to this table needs to have a large period.
  * Entries should be added from longest bit state to smallest bit state.
+ * XXXMLG Need to pull some from Applied Crypto.
  */
 isc_lfsr_t isc_lfsr_standard[] = {
 	{ 0, 32, 0x80000057U },	/* 32-bit, x^31 + x^6 + x^4 + x^2 + x + 1 */
@@ -34,6 +35,25 @@ isc_lfsr_t isc_lfsr_standard[] = {
 };
 
 #define VALID_LFSR(x)	(x != NULL)
+
+isc_lfsr_t *
+isc_lfsr_findlfsr(unsigned int bits)
+{
+	return (NULL);  /* XXXMLG implement? */
+}
+
+void
+isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
+	      isc_uint32_t tap)
+{
+	REQUIRE(VALID_LFSR(lfsr));
+	REQUIRE(8 <= bits && bits <= 32);
+	REQUIRE(tap != 0);
+
+	lfsr->state = state;
+	lfsr->bits = bits;
+	lfsr->tap = tap;
+}
 
 /*
  * Return the next state of the lfsr.
