@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.26 2000/06/01 18:26:11 tale Exp $ */
+/* $Id: key_25.c,v 1.26.2.1 2000/08/07 16:46:38 gson Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -25,6 +25,8 @@
 
 #ifndef RDATA_GENERIC_KEY_25_C
 #define RDATA_GENERIC_KEY_25_C
+
+#include <dst/dst.h>
 
 #define RRTYPE_KEY_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
@@ -69,8 +71,6 @@ totext_key(ARGS_TOTEXT) {
 	char buf[sizeof "64000"];
 	unsigned int flags;
 
-	UNUSED(tctx);
-
 	REQUIRE(rdata->type == 25);
 
 	dns_rdata_toregion(rdata, &sr);
@@ -106,7 +106,15 @@ totext_key(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
 
-	return ISC_R_SUCCESS;
+	if ((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0) {
+		isc_region_t tmpr;
+
+		RETERR(str_totext(" ; key id = ", target));
+		dns_rdata_toregion(rdata, &tmpr);
+		sprintf(buf, "%u", dst_region_computeid(&tmpr));
+		RETERR(str_totext(buf, target));
+	}
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
