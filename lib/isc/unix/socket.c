@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.150 2000/07/13 01:22:56 bwelling Exp $ */
+/* $Id: socket.c,v 1.151 2000/07/13 01:38:40 gson Exp $ */
 
 #include <config.h>
 
@@ -233,6 +233,9 @@ manager_log(isc_socketmgr_t *sockmgr,
 {
 	char msgbuf[2048];
 	va_list ap;
+
+	if (! isc_log_wouldlog(isc_lctx, level))
+		return;
 
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
