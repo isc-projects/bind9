@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.276 2000/12/13 00:15:16 tale Exp $ */
+/* $Id: zone.c,v 1.277 2000/12/13 01:42:23 tale Exp $ */
 
 #include <config.h>
 
@@ -3883,7 +3883,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 	int match = 0;
 	isc_netaddr_t netaddr;
-#ifdef NOMINUM_PUBLIC
+#ifndef NOMINUM_PUBLIC
 	isc_boolean_t forward = ISC_FALSE;
 #endif /* NOMINUM_PUBLIC */
 
