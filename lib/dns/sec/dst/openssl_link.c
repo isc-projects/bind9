@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.45 2001/07/10 04:01:18 bwelling Exp $
+ * $Id: openssl_link.c,v 1.46 2001/07/31 03:45:04 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -36,7 +36,6 @@
 #include "dst_internal.h"
 
 #include <openssl/rand.h>
-#include <openssl/crypto.h>
 #include <openssl/crypto.h>
 
 #ifdef CRYPTO_LOCK_ENGINE
