@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.75.2.4 2001/04/11 19:05:39 gson Exp $ */
+/* $Id: nsupdate.c,v 1.75.2.5 2001/04/12 17:36:55 gson Exp $ */
 
 #include <config.h>
 
@@ -1188,8 +1188,10 @@ get_next_command(void) {
 
 	if (feof(input))
 		return (STATUS_QUIT);
-	if (*word == 0)
+	if (word == 0)
 		return (STATUS_SEND);
+	if (word[0] == ';')
+		return (STATUS_MORE);
 	if (strcasecmp(word, "quit") == 0)
 		return (STATUS_QUIT);
 	if (strcasecmp(word, "prereq") == 0)
