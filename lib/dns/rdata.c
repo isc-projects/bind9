@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.54 1999/07/09 12:48:51 gson Exp $ */
+ /* $Id: rdata.c,v 1.55 1999/07/24 01:01:08 halley Exp $ */
 
 #include <config.h>
 
@@ -150,10 +150,7 @@ static const char octdigits[] = "01234567";
 	{ dns_rcode_notauth, "NOTAUTH", 0}, \
 	{ dns_rcode_notzone, "NOTZONE", 0}, \
 	/* extended rcodes */ \
-	{ dns_rcode_badsig, "BADSIG", 0}, \
-	{ dns_rcode_badkey, "BADKEY", 0}, \
-	{ dns_rcode_badtime, "BADTIME", 0}, \
-	{ dns_rcode_badmode, "BADMODE", 0}, \
+	{ dns_rcode_badvers, "BADVERS", 0}, \
 	{ 0, NULL, 0 }
 
 #define CERTNAMES \
