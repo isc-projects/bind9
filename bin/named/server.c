@@ -75,13 +75,13 @@ static isc_task_t *		server_task;
 
 
 static isc_result_t
-create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-		    dns_view_t **viewp)
+create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
+		    dns_rdataclass_t rdclass, dns_view_t **viewp)
 {
 	dns_view_t *view;
 	dns_cache_t *cache;
-	
 	isc_result_t result;
+	isc_int32_t cleaning_interval;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
@@ -102,6 +102,9 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	dns_view_setcache(view, cache);
+	cleaning_interval = 3600; /* Default is 1 hour. */
+	(void) dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
+	dns_cache_setcleaninginterval(cache, cleaning_interval);
 	dns_cache_detach(&cache);
 
 	/*
@@ -282,7 +285,7 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			 * Create a default view.
 			 */
 			tview = NULL;
-			result = create_default_view(ctx->mem, czone->zclass,
+			result = create_default_view(ctx, ns_g_mctx, czone->zclass,
 						     &tview);
 			if (result != ISC_R_SUCCESS)
 				return (result);
@@ -398,7 +401,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	isc_result_t result;
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
-	dns_c_ctx_t *configctx, *oconfigctx;
+	dns_c_ctx_t *configctx;
 	dns_view_t *view, *view_next;
 	dns_viewlist_t oviewlist;
 	dns_aclconfctx_t aclconfctx;
@@ -456,8 +459,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 */
 	if (ISC_LIST_EMPTY(lctx.viewlist)) {
 		view = NULL;
-		result = create_default_view(ns_g_mctx, dns_rdataclass_in,
-					     &view);
+		result = create_default_view(configctx, ns_g_mctx,
+					      dns_rdataclass_in, &view);
 		if (result != ISC_R_SUCCESS)
 			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 					"could not create default view");

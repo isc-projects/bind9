@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.4 1999/12/16 23:29:04 explorer Exp $ */
+ /* $Id: cache.c,v 1.5 1999/12/17 01:02:49 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -59,7 +59,7 @@ typedef enum {
 struct cache_cleaner {
 	dns_cache_t	*cache;
 	isc_task_t 	*task;
-	int		cleaning_interval; /* The cleaning-interval from
+	unsigned int	cleaning_interval; /* The cleaning-interval from
 					      named.conf, in seconds. */
 	isc_timer_t 	*cleaning_timer;
 	isc_event_t	*resched_event;	/* Sent by cleaner task to 
@@ -278,6 +278,22 @@ dns_cache_dump(dns_cache_t *cache) {
 
 #endif
 
+void
+dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
+	LOCK(&cache->lock);
+	cache->cleaner.cleaning_interval = t;
+	if (t == 0) {
+		isc_timer_reset(cache->cleaner.cleaning_timer, isc_timertype_inactive,
+				NULL, NULL, ISC_TRUE);
+	} else {
+		isc_interval_t interval;
+		isc_interval_set(&interval, cache->cleaner.cleaning_interval, 0);
+		isc_timer_reset(cache->cleaner.cleaning_timer, isc_timertype_ticker,
+				NULL, &interval, ISC_FALSE);
+	}
+	UNLOCK(&cache->lock);	
+}
+
 /*
  * Initialize the cache cleaner object at *cleaner.  
  * Space for the object must be allocated by the caller.
@@ -290,7 +306,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
         isc_result_t iresult;
 	dns_result_t dresult;
 
-	cleaner->increment = 10; /* XXX debugging value; 100 realistic? */
+	cleaner->increment = 100;
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
 
@@ -305,8 +321,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->resched_event = NULL;
 	
 	if (taskmgr != NULL && timermgr != NULL) {
-		isc_interval_t interval;
-
 		iresult = isc_task_create(taskmgr, cache->mctx,
 					  1, &cleaner->task);
 		if (iresult != ISC_R_SUCCESS) {
@@ -322,11 +336,9 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					      cleaner_shutdown_action, cache);
 		RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
 
-		/* XXX get this from the configuration file */
-		cleaner->cleaning_interval = 2 * 3600; /* seconds */
-		isc_interval_set(&interval, cleaner->cleaning_interval, 0);
-		iresult = isc_timer_create(timermgr, isc_timertype_ticker,
-					   NULL, &interval,
+		cleaner->cleaning_interval = 0; /* Initially turned off. */
+		iresult = isc_timer_create(timermgr, isc_timertype_inactive,
+					   NULL, NULL,
 					   cleaner->task,
 					   cleaning_timer_action, cleaner,
 					   &cleaner->cleaning_timer);

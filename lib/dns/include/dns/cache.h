@@ -215,6 +215,12 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now);
  * references.
  */
 
+void
+dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
+/*
+ * Set the periodic cache cleaning interval to 'interval' seconds.
+ */ 
+
 ISC_LANG_ENDDECLS
 
 #endif	/* DNS_CACHE_H */
