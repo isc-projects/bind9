@@ -115,6 +115,14 @@ typedef int dns_section_t;
 #define DNS_SECTION_ADDITIONAL		3
 #define DNS_SECTION_MAX			4
 
+typedef int dns_pseudosection_t;
+#define DNS_PSEUDOSECTION_ANY		(-1)
+#define DNS_PSEUDOSECTION_OPT           0
+#define DNS_PSEUDOSECTION_TSIG          1
+#define DNS_PSEUDOSECTION_SIG0          2
+#define DNS_PSEUDOSECTION_MAX           3
+
+
 /*
  * Dynamic update names for these sections.
  */
@@ -269,8 +277,16 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  isc_boolean_t comments,
 			  isc_boolean_t omit_final_dot,
 			  isc_buffer_t *target);
+
+isc_result_t
+dns_message_pseudosectiontotext(dns_message_t *msg,
+				dns_pseudosection_t section,
+				isc_boolean_t comments,
+				isc_boolean_t omit_final_dot,
+				isc_buffer_t *target);
 /*
- * Convert section 'section' of message 'msg' to a cleartext representation
+ * Convert section 'section' or 'pseudosection' of message 'msg' to 
+ * a cleartext representation
  *
  * Notes:
  *	If 'omit_final_dot' is true, then the final '.' in absolute names
