@@ -137,23 +137,3 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 
 	return (result);
 }
-
-isc_result_t
-process_gnba(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
-{
-	lwres_lwpacket_t rpkt;
-	lwres_gnbarequest_t *req;
-	lwres_gnbaresponse_t resp;
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
-process_noop(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
-{
-	lwres_lwpacket_t rpkt;
-	lwres_nooprequest_t *req;
-	lwres_noopresponse_t resp;
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
