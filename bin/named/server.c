@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.46 2004/03/14 22:44:47 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.47 2004/03/14 23:01:51 marka Exp $ */
 
 #include <config.h>
 
@@ -2031,8 +2031,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_viewlist_t viewlist;
 	dns_viewlist_t tmpviewlist;
 	ns_aclconfctx_t aclconfctx;
-	dns_dispatch_t *dispatchv4 = NULL;
-	dns_dispatch_t *dispatchv6 = NULL;
 	isc_uint32_t interface_interval;
 	isc_uint32_t heartbeat_interval;
 	isc_uint32_t udpsize;
@@ -2650,11 +2648,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		adjust_interfaces(server, ns_g_mctx);
-
-	if (dispatchv4 != NULL)
-		dns_dispatch_detach(&dispatchv4);
-	if (dispatchv6 != NULL)
-		dns_dispatch_detach(&dispatchv6);
 
 	/* Relinquish exclusive access to configuration data. */
 	isc_task_endexclusive(server->task);
