@@ -1,10 +1,13 @@
+
 INTERNET-DRAFT                                             Stuart Kwan
                                                           James Gilroy
                                                        Microsoft Corp.
-                                                             June 1999
-<draft-skwan-utf8-dns-02.txt>                     Expires January 2000
+                                                         February 2000
+<draft-skwan-utf8-dns-03.txt>                      Expires August 2000
+
 
      Using the UTF-8 Character Set in the Domain Name System
+
 
 Status of this Memo
 
@@ -28,16 +31,29 @@ http://www.ietf.org/ietf/1id-abstracts.txt
 The list of Internet-Draft Shadow Directories can be accessed at
 http://www.ietf.org/shadow.html.
 
+
 Abstract
 
-The Domain Name System standard specifies that names are represented
-using the ASCII character encoding.  This document expands that
+The Domain Name System standard specifies that names are represented 
+using the ASCII character encoding.  This document expands that 
 specification to allow the use of the UTF-8 character encoding, a
 superset of ASCII and a translation of the UCS-2 character encoding.
 
-Expires January 2000                                          [Page 1]
 
-INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+
+
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 1]
+
+
+INTERNET-DRAFT                  UTF-8 DNS                February 2000
 
 1. Introduction
 
@@ -61,6 +77,7 @@ For example, some protocols place restrictions on the characters
 allowed in a name.  In addition, names that are intended to be
 globally visible [RFC1958] should contain ASCII-only characters
 per [RFC1123].
+
 
 2. Protocol Description
 
@@ -86,9 +103,14 @@ and record data before transmitting those names in any message.
 A UTF-8-aware DNS client/resolver must downcase all names containing
 UTF-8 characters before transmitting those names in any message.
 
-Expires January 2000                                          [Page 2]
 
-INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+
+Expires August 2000                                           [Page 2]
+
+
+INTERNET-DRAFT                  UTF-8 DNS                February 2000
+
 
 For consistency, UTF-8-aware DNS servers must compare names that
 contain UTF-8 characters byte-for-byte, as opposed to using Unicode
@@ -105,6 +127,7 @@ characters.
 Names encoded in UTF-8 must not exceed the size limits clarified in
 [RFC2181]. Character count is insufficient to determine size, since
 some UTF-8 characters exceed one octet in length.
+
 
 3. Interoperability Considerations
 
@@ -125,10 +148,12 @@ names to a zone file or reload those names from a zone file.
 Administrators should exercise caution when transferring a zone
 containing UTF-8 names to a non-UTF-8-aware DNS server.
 
+
 4. Security Considerations
 
 The choice of character encoding for names does not impact the
-security of the DNS protocol.
+security of the DNS protocol. 
+
 
 5. Acknowledgements
 
@@ -136,16 +161,20 @@ The authors of this document would like to thank the following people
 for their contribution to this specification:  John McConnell,
 Cliff Van Dyke and Bjorn Rettig.
 
-Expires January 2000                                          [Page 3]
 
-INTERNET-DRAFT                  UTF-8 DNS                    June 1999
+
+Expires August 2000                                           [Page 3]
+
+
+INTERNET-DRAFT                  UTF-8 DNS                February 2000
+
 
 6. References
 
 [RFC1035]     P.V. Mockapetris, "Domain Names - Implementation and
               Specification," RFC 1035, ISI, Nov 1987.
 
-[RFC2044]     F. Yergeau, "UTF-8, a transformation format of Unicode
+[RFC2044]     F. Yergeau, "UTF-8, a transformation format of Unicode 
               and ISO 10646," RFC 2044, Alis Technologies, Oct 1996.
 
 [RFC1958]     B. Carpenter, "Architectural Principles of the
@@ -154,16 +183,17 @@ INTERNET-DRAFT                  UTF-8 DNS                    June 1999
 [RFC1123]     R. Braden, "Requirements for Internet Hosts -
               Application and Support," STD 3, RFC 1123, January 1989.
 
-[RFC2130]     C. Weider et. al., "The Report of the IAB Character
+[RFC2130]     C. Weider et. al., "The Report of the IAB Character 
               Set Workshop held 29 February - 1 March 1996",
               RFC 2130, Apr 1997.
 
-[RFC2181]     R. Elz and R. Bush, "Clarifications to the DNS
+[RFC2181]     R. Elz and R. Bush, "Clarifications to the DNS 
               Specification," RFC 2181, University of Melbourne and
               RGnet Inc, July 1997.
 
 [UNICODE 2.0] The Unicode Consortium, "The Unicode Standard, Version
               2.0," Addison-Wesley, 1996. ISBN 0-201-48345-9.
+
 
 7. Author's Addresses
 
@@ -174,4 +204,22 @@ Redmond, WA  98052                  Redmond, WA  98052
 USA                                 USA
 <skwan@microsoft.com>               <jamesg@microsoft.com>
 
-Expires January 2000                                          [Page 4]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 4]
+
+

@@ -2,10 +2,12 @@ INTERNET-DRAFT                                             Stuart Kwan
                                                           Praerit Garg
                                                           James Gilroy
                                                        Microsoft Corp.
-                                                             June 1999
-<draft-skwan-gss-tsig-04.txt>                     Expires January 2000
+                                                         February 2000
+<draft-skwan-gss-tsig-05.txt>                      Expires August 2000
+
 
                  GSS Algorithm for TSIG (GSS-TSIG)
+
 
 Status of this Memo
 
@@ -29,6 +31,7 @@ http://www.ietf.org/ietf/1id-abstracts.txt
 The list of Internet-Draft Shadow Directories can be accessed at
 http://www.ietf.org/shadow.html.
 
+
 Abstract
 
 The TSIG protocol provides transaction level authentication for DNS.
@@ -36,9 +39,21 @@ TSIG is extensible through the definition of new algorithms.  This
 document specifies an algorithm based on the Generic Security Service
 Application Program Interface (GSS-API) [RFC2078].
 
-Expires January 2000                                          [Page 1]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 1]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 Table of Contents
 
@@ -65,6 +80,7 @@ Table of Contents
 7: Acknowledgements.................................................13
 8: References.......................................................13
 
+
 1. Introduction
 
 The Secret Key Transaction Signature for DNS [TSIG] protocol was
@@ -87,15 +103,21 @@ over time.  For example, a client and server may use Kerberos for one
 transaction, whereas that same server may use TLS with a different
 client.
 
-Expires January 2000                                          [Page 2]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+Expires August 2000                                           [Page 2]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 * The protocol developer is removed from the responsibility of
 creating and managing a security infrastructure.  For example, the
 developer does not need to create new key distribution or key
 management systems.  Instead the developer relies on the security
 service mechanism to manage this on its behalf.
+
 
 2. Protocol Overview
 
@@ -113,6 +135,7 @@ Creating a security context involves a negotiation between client and
 server.  Once a context has been established, it has a finite lifetime
 for which it can be used to secure messages.  Thus there are three
 states of a context associated with a connection:
+
 
                            +----------+
                            |          |
@@ -138,9 +161,13 @@ states of a context associated with a connection:
 
 Every connection begins in the uninitialized state.
 
-Expires January 2000                                          [Page 3]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+Expires August 2000                                           [Page 3]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 2.1 GSS Details
 
@@ -155,6 +182,7 @@ Not all error return values from GSS-API interfaces are specified in
 this document.  When errors are encountered, the caller should act
 appropriately.
 
+
 3.  Client Protocol Details
 
 A unique context is required for each server to which the client sends
@@ -166,6 +194,7 @@ client maintains a mapping of handles to servers,
 The value key_name also identifies a context handle, and is used on
 the wire to indicate to a server which context should be used to
 process the current request.
+
 
 3.1  Negotiating Context
 
@@ -183,9 +212,19 @@ tokens between client and server.  The TKEY record is a general
 mechanism for establishing secret keys for use with TSIG.  For more
 information, see [TKEY].
 
-Expires January 2000                                          [Page 4]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 4]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 3.1.1 Call GSS_Init_sec_context
 
@@ -227,9 +266,22 @@ The handle output_context_handle is unique to this negotiation and
 is stored in the client's mapping table as the context_handle that
 maps to target_server_name.
 
-Expires January 2000                                          [Page 5]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 5]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 3.1.2 Send TKEY Query to Server
 
@@ -261,6 +313,7 @@ and Verifying Signed Messages, for the signing procedure.
 
 The query is transmitted to the server.
 
+
 3.1.3 Receive TKEY Query-Response from Server
 
 The server will return a standard TKEY query-response (see [TKEY]).
@@ -277,9 +330,15 @@ next processing step depends on the value of major_status from the
 most recent call to GSS_Init_sec_context: either GSS_S_COMPLETE or
 GSS_S_CONTINUE.
 
-Expires January 2000                                          [Page 6]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+Expires August 2000                                           [Page 6]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 3.1.3.1 Value of major_status == GSS_S_COMPLETE
 
@@ -298,6 +357,7 @@ If the message verification completes without an error, or if a TSIG
 signature was not included, the context state is advanced to Context
 Established.  Proceed to section 3.2 for usage of the security
 context.
+
 
 3.1.3.2 Value of major_status == GSS_S_CONTINUE
 
@@ -327,9 +387,15 @@ with section 3.1.2.  The client should place a limit on the number
 of continuations in a context negotiation to prevent endless
 looping.
 
-Expires January 2000                                          [Page 7]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+Expires August 2000                                           [Page 7]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 If major_status is GSS_S_COMPLETE and output_token is non-NULL,
 the client-side component of the negotiation is complete but the
@@ -347,6 +413,7 @@ signature was not included, the context state is advanced to Context
 Established.  Proceed to section 3.2 for usage of the security
 context.
 
+
 3.2  Context Established
 
 When context negotiation is complete, the handle context_handle is
@@ -354,6 +421,7 @@ used for the generation and verification of transaction signatures.
 
 The procedures for sending and receiving signed messages are given in
 section 5, Sending and Verifying Signed Messages.
+
 
 4.  Server Protocol Details
 
@@ -366,14 +434,25 @@ request.  The server maintains a mapping of key names to handles:
 
      (key_name, context_handle)
 
+
 4.1 Negotiating Context
 
 A server recognizes TKEY queries as security context negotiation
 messages.
 
-Expires January 2000                                          [Page 8]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 8]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 4.1.1 Receive TKEY Query from Client
 
@@ -383,6 +462,7 @@ match, the (key_name, context_handle) mapping table is searched for
 the NAME value of the TKEY record.  If the name is found in the table,
 the corresponding context_handle is used in following GSS operations.
 If the name is not found a new negotiation is started.
+
 
 4.1.2 Call GSS_Accept_sec_context
 
@@ -407,6 +487,7 @@ negotiation, then output_context_handle is stored in the server's
 key-mapping table as the context_handle that maps to the name of the
 TKEY record.
 
+
 4.1.3 Send TKEY Query-Response to Client
 
 If major_status returns a GSS failure code, the negotiation has
@@ -416,9 +497,19 @@ BADKEY.
 
 Success values for major_status are GSS_S_COMPLETE or GSS_S_CONTINUE.
 
-Expires January 2000                                          [Page 9]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+Expires August 2000                                           [Page 9]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 If major_status is GSS_S_COMPLETE the server component of the
 negotiation is finished. The message from the client may be signed
@@ -442,6 +533,7 @@ repeats beginning with section 4.1.1.  The server must limit the
 number of times that a given context is allowed to repeat, to prevent
 endless looping.
 
+
 4.2 Context Established
 
 When context negotiation is complete, the handle context_handle
@@ -453,6 +545,7 @@ a context at any time.
 The procedures for sending and receiving signed messages are given in
 section 5, Sending and Verifying Signed Messages.
 
+
 4.2.1 Terminating a Context
 
 A server can terminate any established context at any time.  The
@@ -463,9 +556,17 @@ by including a TKEY RR in a response with the mode field set to
 An active context is deleted by calling GSS_Delete_sec_context
 providing the associated context_handle.
 
-Expires January 2000                                         [Page 10]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+Expires August 2000                                          [Page 10]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 5. Sending and Verifying Signed Messages
 
@@ -475,7 +576,7 @@ The procedure for sending a signature-protected message is specified
 in [TSIG].  The data to be passed to the signature routine includes
 the whole DNS message with specific TSIG variables appended.  For the
 exact format, see [TSIG].  For this protocol, use the following
-TSIG variable values:
+TSIG variable values: 
 
    TSIG Record
      NAME = key_name that identifies this context
@@ -505,9 +606,24 @@ If major_status is GSS_S_CONTEXT_EXPIRED or GSS_S_CREDENTIALS_EXPIRED,
 the caller needs to return to the uninitialized state and negotiate
 a new security context.
 
-Expires January 2000                                         [Page 11]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+
+
+
+
+
+
+
+Expires August 2000                                          [Page 11]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 5.2 Verifying a Signed Message - Call GSS_VerifyMIC
 
@@ -547,21 +663,31 @@ If this error checking fails when a server is processing a client
 request, the appropriate error response must be sent to the client
 per [TSIG].
 
+
 6. Security Considerations
 
 This document describes a protocol for DNS security using GSS-API.
 The security provided by this protocol is only as effective as the
 security provided by the underlying GSS mechanisms.
 
-Expires January 2000                                         [Page 12]
 
-INTERNET-DRAFT                   GSS-TSIG                    June 1999
+
+
+
+
+
+Expires August 2000                                          [Page 12]
+
+
+INTERNET-DRAFT                   GSS-TSIG                February 2000
+
 
 7. Acknowledgements
 
 The authors of this document would like to thank the following people
 for their contribution to this specification:  Chuck Chan, Mike Swift,
 Ram Viswanathan and Donald E. Eastlake 3rd.
+
 
 8. References
 
@@ -582,6 +708,7 @@ Ram Viswanathan and Donald E. Eastlake 3rd.
 [RFC2137] D. Eastlake 3rd, "Secure Domain Name System Dynamic Update,"
           RFC 2137, CyberCash, April 1997.
 
+
 9. Author's Addresses
 
 Stuart Kwan                         Praerit Garg
@@ -597,3 +724,15 @@ One Microsoft Way
 Redmond, WA  98052
 USA
 <jamesg@microsoft.com>
+
+
+
+
+
+
+
+
+
+Expires August 2000                                          [Page 13]
+
+
