@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.12 2001/11/27 00:56:12 gson Exp $ */
+/* $Id: lfsr.c,v 1.13 2002/12/05 04:01:54 marka Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ lfsr_generate(isc_lfsr_t *lfsr)
 	}
 
 	if (lfsr->state & 0x01) {
-		lfsr->state = ((lfsr->state ^ lfsr->tap) >> 1) | highbit;
+		lfsr->state = (lfsr->state >> 1) ^ lfsr->tap;
 		return (1);
 	} else {
 		lfsr->state >>= 1;
