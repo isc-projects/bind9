@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.18 2000/11/18 01:35:13 bwelling Exp $ */
+/* $Id: sdb.c,v 1.19 2000/12/01 01:00:47 gson Exp $ */
 
 #include <config.h>
 
@@ -634,6 +634,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	UNUSED(name);
+	UNUSED(create);
 
 	imp = sdb->implementation;
 
@@ -701,6 +702,7 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	UNUSED(options);
 	UNUSED(sigrdataset);
+	UNUSED(sdb);
 
 	if (!dns_name_issubdomain(name, &db->origin))
 		return (DNS_R_NXDOMAIN);
@@ -853,6 +855,9 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	dns_sdbnode_t *node = (dns_sdbnode_t *)source;
 
 	REQUIRE(VALID_SDB(sdb));
+
+	UNUSED(sdb);
+
 	LOCK(&node->lock);
 	INSIST(node->references > 0);
 	node->references++;
@@ -870,6 +875,8 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 
 	REQUIRE(VALID_SDB(sdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
+
+	UNUSED(sdb);
 
 	node = (dns_sdbnode_t *)(*targetp);
 
