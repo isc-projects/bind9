@@ -960,6 +960,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_serverlock;
 	}
 
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
+		      "using view '%s'", view->name);
+	
 	/*
 	 * Lock the view's configuration data for reading.
 	 * We must attach a separate view reference for this
@@ -1014,20 +1018,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * set the RA bit correctly on all kinds of responses, not just
 	 * responses to ordinary queries.
 	 */
-	if (client->view->resolver == NULL) {
-		ra = ISC_FALSE;
-	} else {
+	ra = ISC_FALSE;
+	if (client->view->resolver != NULL &&
+	    client->view->recursion == ISC_TRUE &&
+	    /* XXX this will log too much too early */
+	    ns_client_checkacl(client, "recursion",
+			       ns_g_server->recursionacl,
+			       ISC_TRUE) == DNS_R_SUCCESS)
 		ra = ISC_TRUE;
-		if (ns_g_server->recursion == ISC_TRUE) {
-			/* XXX ACL should be view specific. */
-			/* XXX this will log too much too early */
-			result = ns_client_checkacl(client, "recursion",
-						    ns_g_server->recursionacl,
-						    ISC_TRUE);
-			if (result != DNS_R_SUCCESS)
-				ra = ISC_FALSE;
-		}
-	}
+
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
 
