@@ -5,7 +5,9 @@
 			multiple dnssec-lookaside namespaces (not yet
 			implemented).  
 
-1647.	[placeholder]	rt11445
+1647.	[bug]		It was possible trigger a INSIST when chasing a DS
+			record that required walking back over a empty node.
+			[RT #11445]
 
 1646.	[bug]		win32: logging file versions didn't work with
 			non-UNC filenames.  [RT#11486]
@@ -124,7 +126,6 @@
 1606.	[bug]	 	DLV insecurity proof was failing.
 
 1605.	[func]		New dns_db_find() option DNS_DBFIND_COVERINGNSEC.
-
 
 1604.	[bug]		A xfrout_ctx_create() failure would result in
 			xfrout_ctx_destroy() being called with a
