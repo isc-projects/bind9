@@ -6,6 +6,9 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up
 			AAAA records.
 
+1474.	[port]		Provide strtoul() and memmove() for platforms
+			without them.
+
 1467.	[func]		$GENERATES now supports optional class and ttl.
 			
 1458.	[cleanup]	sprintf() -> snprintf().

@@ -15,13 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.22.2.3 2003/07/22 04:03:47 marka Exp $ */
+/* $Id: print.c,v 1.22.2.3.2.1 2003/09/02 01:49:46 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <stdio.h>		/* for sprintf */
-#include <stdlib.h>
 
 #define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
 
@@ -29,6 +28,7 @@
 #include <isc/int.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
+#include <isc/stdlib.h>
 #include <isc/util.h>
 
 /*

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.71.2.2.2.3 2003/08/22 05:15:02 marka Exp $
+# $Id: Makefile.in,v 1.71.2.2.2.4 2003/09/02 01:49:46 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -57,8 +57,8 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		mem.@O@ mutexblock.@O@ netaddr.@O@ netscope.@O@ ondestroy.@O@ \
 		parseint.@O@ quota.@O@ random.@O@ \
 		ratelimiter.@O@ region.@O@ result.@O@ rwlock.@O@ \
-		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
-		task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
+		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ strtoul.@O@ \
+		symtab.@O@ task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 
 # Alphabetically
@@ -70,7 +70,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		md5.c mem.c mutexblock.c netaddr.c netscope.c ondestroy.c \
 		parseint.c quota.c random.c \
 		ratelimiter.c result.c rwlock.c \
-		serial.c sha1.c sockaddr.c string.c symtab.c \
+		serial.c sha1.c sockaddr.c string.c strtoul.c symtab.c \
 		task.c taskpool.c timer.c version.c
 
 LIBS =		@LIBS@

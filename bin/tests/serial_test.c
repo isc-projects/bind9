@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: serial_test.c,v 1.10 2001/01/09 21:41:37 bwelling Exp $ */
+/* $Id: serial_test.c,v 1.10.12.1 2003/09/02 01:49:45 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <isc/serial.h>
+#include <isc/stdlib.h>
 
 int
 main() {

@@ -16,20 +16,21 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.4.2.3.2.1 2003/08/27 07:22:39 marka Exp $ */
+/* $Id: cc.c,v 1.4.2.3.2.2 2003/09/02 01:49:47 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
-#include <isccc/alist.h>
 #include <isc/assertions.h>
+#include <isc/hmacmd5.h>
+#include <isc/stdlib.h>
+
+#include <isccc/alist.h>
 #include <isccc/base64.h>
 #include <isccc/cc.h>
-#include <isc/hmacmd5.h>
 #include <isccc/result.h>
 #include <isccc/sexpr.h>
 #include <isccc/symtab.h>

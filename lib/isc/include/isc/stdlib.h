@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdlib.h,v 1.1 2003/06/24 05:10:33 marka Exp $ */
+/* $Id: stdlib.h,v 1.1.32.1 2003/09/02 01:49:47 marka Exp $ */
 
 #ifndef ISC_STDLIB_H
 #define ISC_STDLIB_H 1

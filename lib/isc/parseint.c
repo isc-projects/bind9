@@ -15,17 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parseint.c,v 1.3.26.2 2003/08/14 00:38:32 marka Exp $ */
+/* $Id: parseint.c,v 1.3.26.3 2003/09/02 01:49:46 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdlib.h>
 
 #include <isc/parseint.h>
 #include <isc/result.h>
+#include <isc/stdlib.h>
 
 isc_result_t
 isc_parse_uint32(isc_uint32_t *uip, const char *string, int base) {
