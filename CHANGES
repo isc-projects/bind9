@@ -93,7 +93,8 @@
 1553.	[bug]		The windows socket code could stop accepting
 			connections. [RT#10115]
 
-1552.	[placeholder]	rt10049
+1552.	[bug]		Accept NOTIFY requests from mapped masters if
+			matched-mapped is set. [RT #10049]
 
 1551.	[port]		Open "/dev/null" before calling chroot().
 
