@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.246 2005/03/15 01:41:28 marka Exp $ */
+/* $Id: socket.c,v 1.247 2005/03/16 23:39:06 marka Exp $ */
 
 #include <config.h>
 
@@ -2891,27 +2891,27 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 #endif
 
 	if (active) {
-		if (stat(sockaddr->type.sun.sun_path, &sb) < 0) {
+		if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "isc_socket_cleanunix: stat(%s): %s",
-				      sockaddr->type.sun.sun_path, strbuf);
+				      sockaddr->type.sunix.sun_path, strbuf);
 			return;
 		}
 		if (!(S_ISSOCK(sb.st_mode) || S_ISFIFO(sb.st_mode))) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "isc_socket_cleanunix: %s: not a socket",
-				      sockaddr->type.sun.sun_path);
+				      sockaddr->type.sunix.sun_path);
 			return;
 		}
-		if (unlink(sockaddr->type.sun.sun_path) < 0) {
+		if (unlink(sockaddr->type.sunix.sun_path) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "isc_socket_cleanunix: unlink(%s): %s",
-				      sockaddr->type.sun.sun_path, strbuf);
+				      sockaddr->type.sunix.sun_path, strbuf);
 		}
 		return;
 	}
@@ -2922,11 +2922,11 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 			      "isc_socket_cleanunix: socket(%s): %s",
-			      sockaddr->type.sun.sun_path, strbuf);
+			      sockaddr->type.sunix.sun_path, strbuf);
 		return;
 	}
 
-	if (stat(sockaddr->type.sun.sun_path, &sb) < 0) {
+	if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
 		switch (errno) {
 		case ENOENT:    /* We exited cleanly last time */
 			break;
@@ -2935,7 +2935,7 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: stat(%s): %s",
-				      sockaddr->type.sun.sun_path, strbuf);
+				      sockaddr->type.sunix.sun_path, strbuf);
 			break;
 		}
 		goto cleanup;
@@ -2945,23 +2945,23 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 			      "isc_socket_cleanunix: %s: not a socket",
-			      sockaddr->type.sun.sun_path);
+			      sockaddr->type.sunix.sun_path);
 		goto cleanup;
 	}
 
-	if (connect(s, (struct sockaddr *)&sockaddr->type.sun,
-		    sizeof(sockaddr->type.sun)) < 0) {
+	if (connect(s, (struct sockaddr *)&sockaddr->type.sunix,
+		    sizeof(sockaddr->type.sunix)) < 0) {
 		switch (errno) {
 		case ECONNREFUSED:
 		case ECONNRESET:
-			if (unlink(sockaddr->type.sun.sun_path) < 0) {
+			if (unlink(sockaddr->type.sunix.sun_path) < 0) {
 				isc__strerror(errno, strbuf, sizeof(strbuf));
 				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 					      ISC_LOGMODULE_SOCKET,
 					      ISC_LOG_WARNING,
 					      "isc_socket_cleanunix: "
 					      "unlink(%s): %s",
-					      sockaddr->type.sun.sun_path,
+					      sockaddr->type.sunix.sun_path,
 					      strbuf);
 			}
 			break;
@@ -2970,7 +2970,7 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: connect(%s): %s",
-				      sockaddr->type.sun.sun_path, strbuf);
+				      sockaddr->type.sunix.sun_path, strbuf);
 			break;
 		}
 	}
@@ -2989,14 +2989,14 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
-	char path[sizeof(sockaddr->type.sun.sun_path)];
+	char path[sizeof(sockaddr->type.sunix.sun_path)];
 #ifdef NEED_SECURE_DIRECTORY
 	char *slash;
 #endif
 
 	REQUIRE(sockaddr->type.sa.sa_family == AF_UNIX);
-	INSIST(strlen(sockaddr->type.sun.sun_path) < sizeof(path));
-	strcpy(path, sockaddr->type.sun.sun_path);
+	INSIST(strlen(sockaddr->type.sunix.sun_path) < sizeof(path));
+	strcpy(path, sockaddr->type.sunix.sun_path);
 
 #ifdef NEED_SECURE_DIRECTORY
 	slash = strrchr(path, '/');

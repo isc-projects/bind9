@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.63 2005/02/24 00:33:33 marka Exp $ */
+/* $Id: sockaddr.c,v 1.64 2005/03/16 23:39:05 marka Exp $ */
 
 #include <config.h>
 
@@ -132,11 +132,11 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 		break;
 #ifdef ISC_PLAFORM_HAVESYSUNH
 	case AF_UNIX:
-		plen = strlen(sockaddr->type.sun.sun_path);
+		plen = strlen(sockaddr->type.sunix.sun_path);
 		if (plen >= isc_buffer_availablelength(target))
 			return (ISC_R_NOSPACE);
 
-		isc_buffer_putmem(target, sockaddr->type.sun.sun_path, plen);
+		isc_buffer_putmem(target, sockaddr->type.sunix.sun_path, plen);
 
 		/*
 		 * Null terminate after used region.
@@ -482,15 +482,15 @@ isc_sockaddr_islinklocal(isc_sockaddr_t *sockaddr) {
 isc_result_t
 isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
 #ifdef ISC_PLATFORM_HAVESYSUNH
-	if (strlen(path) >= sizeof(sockaddr->type.sun.sun_path))
+	if (strlen(path) >= sizeof(sockaddr->type.sunix.sun_path))
 		return (ISC_R_NOSPACE);
 	memset(sockaddr, 0, sizeof(*sockaddr));
-	sockaddr->length = sizeof(sockaddr->type.sun);
-	sockaddr->type.sun.sun_family = AF_UNIX;
+	sockaddr->length = sizeof(sockaddr->type.sunix);
+	sockaddr->type.sunix.sun_family = AF_UNIX;
 #ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sun.sun_len = sizeof(sockaddr->type.sun);
+	sockaddr->type.sunix.sun_len = sizeof(sockaddr->type.sunix);
 #endif
-	strcpy(sockaddr->type.sun.sun_path, path);
+	strcpy(sockaddr->type.sunix.sun_path, path);
 	return (ISC_R_SUCCESS);
 #else
 	UNUSED(sockaddr);

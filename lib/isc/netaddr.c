@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.33 2005/03/16 20:15:08 marka Exp $ */
+/* $Id: netaddr.c,v 1.34 2005/03/16 23:39:05 marka Exp $ */
 
 #include <config.h>
 
@@ -349,7 +349,7 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 		break;
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	case AF_UNIX:
-		memcpy(t->type.un, s->type.sun.sun_path, sizeof(t->type.un));
+		memcpy(t->type.un, s->type.sunix.sun_path, sizeof(t->type.un));
 		t->zone = 0;
 		break;
 #endif
