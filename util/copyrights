@@ -506,7 +506,6 @@
 ./bin/tests/wire_test.data2			X	1999,2000
 ./bin/tests/wire_test.data3			X	1999,2000
 ./bin/tests/wire_test.data4			X	1999,2000
-./bin/tests/zone2_test.c			C	1999,2000
 ./bin/tests/zone_test.c				C	1999,2000
 ./config.guess					X	1999,2000
 ./config.h.in					X	1999,2000
