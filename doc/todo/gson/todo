@@ -1,3 +1,7 @@
+Use util/kit.sh for building snapshots, taking care to set the version
+number to something that can be distinguished from release version
+numbers
+
 Fix lwres man pages
 
 Inspect dig and nsupdate (with Mike)
