@@ -115,7 +115,7 @@ unsigned long len;
 		sw=c->num>>2;
 		sc=c->num&0x03;
 
-		if ((c->num+len) >= MD5_CBLOCK)
+		if ((c->num+len) >= (size_t)MD5_CBLOCK)
 			{
 			l= p[sw];
 			p_c2l(data,l,sc);
@@ -163,7 +163,7 @@ unsigned long len;
 	/* we now can process the input data in blocks of MD5_CBLOCK
 	 * chars and save the leftovers to c->data. */
 	p=c->data;
-	while (len >= MD5_CBLOCK)
+	while (len >= (size_t)MD5_CBLOCK)
 		{
 #if defined(L_ENDIAN) || defined(B_ENDIAN)
 		memcpy(p,data,MD5_CBLOCK);
