@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.9 2004/04/20 06:52:53 marka Exp $ */
+/* $Id: main.c,v 1.119.2.10 2004/04/20 13:54:17 marka Exp $ */
 
 #include <config.h>
 
@@ -580,13 +580,12 @@ main(int argc, char *argv[]) {
 	 * Record version in core image.
 	 * strings named.core | grep "named version:"
 	 */
-	strncat(version,
 #ifdef __DATE__
-		"named version: BIND " VERSION " (" __DATE__ ")",
-#else
-		"named version: BIND " VERSION,
-#endif
+	strncat(version, "named version: BIND " VERSION " (" __DATE__ ")", 
 		sizeof(version));
+#else
+	strncat(version, "named version: BIND " VERSION, sizeof(version));
+#endif
 	version[sizeof(version) - 1] = '\0';
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
