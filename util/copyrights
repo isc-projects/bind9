@@ -1,7 +1,9 @@
+./bin/tests/lex_test.c				1998
 ./bin/tests/mem_test.c				1998
 ./bin/tests/name_test.c				1998
 ./bin/tests/rwlock_test.c			1998
 ./bin/tests/sock_test.c				1998
+./bin/tests/sym_test.c				1998
 ./bin/tests/task_test.c				1998
 ./bin/tests/timer_test.c			1998
 ./lib/dns/include/dns/name.h			1998
@@ -18,6 +20,7 @@
 ./lib/isc/include/isc/error.h			1998
 ./lib/isc/include/isc/event.h			1998
 ./lib/isc/include/isc/heap.h			1997,1998
+./lib/isc/include/isc/lex.h			1998
 ./lib/isc/include/isc/list.h			1997
 ./lib/isc/include/isc/socket.h			1998
 ./lib/isc/include/isc/rbtgen.h			1998
@@ -46,6 +49,7 @@
 ./lib/isc/buffer.c				1998
 ./lib/isc/error.c				1998
 ./lib/isc/heap.c				1997,1998
+./lib/isc/lex.c					1998
 ./lib/isc/mem.c					1997,1998
 ./lib/isc/rbtgen.c				1998
 ./lib/isc/rwlock.c				1998
