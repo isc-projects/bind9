@@ -93,8 +93,6 @@ Write a paper on the flaws of DNSSEC
 Improve logging infrastructure to simplify providing context
 information
 
-Use zone logging function in dynamic update logging
-
 Decide on one set of CHECK()/RETERR() macros and put it in a common
 header file
 
@@ -112,8 +110,6 @@ Support $DATE fully
 Look at all the XXXes in the code
 
 Persistent cache option
-
-Implement diagnostic dumping of databases
 
 From the old TODO file at the top of the source tree:
 
