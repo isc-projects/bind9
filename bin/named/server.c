@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.273 2000/12/13 07:18:42 tale Exp $ */
+/* $Id: server.c,v 1.274 2000/12/15 00:29:59 gson Exp $ */
 
 #include <config.h>
 
@@ -1293,6 +1293,10 @@ options_callback(dns_c_ctx_t *cctx, void *uap) {
 static void
 scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 	ns_interfacemgr_scan(server->interfacemgr, verbose);
+	/*
+	 * Update the "localhost" and "localnets" ACLs to match the
+	 * current set of network interfaces.
+	 */
 	dns_aclenv_copy(&server->aclenv,
 			ns_interfacemgr_getaclenv(server->interfacemgr));
 }
