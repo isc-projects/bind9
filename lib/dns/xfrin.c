@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.25 1999/10/30 01:08:52 gson Exp $ */
+ /* $Id: xfrin.c,v 1.26 1999/10/30 01:23:45 gson Exp $ */
 
 #include <config.h>
 
@@ -525,8 +525,7 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 }
 
 static void xfrin_cleanup(xfrin_ctx_t *xfr) {
-	xfrin_log(xfr, ISC_LOG_DEBUG(3),
-		  "end of transfer - destroying task %p", xfr->task);
+	xfrin_log(xfr, ISC_LOG_INFO, "end of transfer");
 	isc_socket_cancel(xfr->socket, xfr->task, ISC_SOCKSHUT_ALL); /* XXX? */
 	isc_socket_detach(&xfr->socket);
 	isc_timer_detach(&xfr->timer);
