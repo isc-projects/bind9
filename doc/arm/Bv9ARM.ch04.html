@@ -1,11 +1,11 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >Advanced Concepts</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -70,8 +70,8 @@ CLASS="chapter"
 ><H1
 ><A
 NAME="ch04"
->Chapter 4. Advanced Concepts</A
-></H1
+></A
+>Chapter 4. Advanced Concepts</H1
 ><DIV
 CLASS="TOC"
 ><DL
@@ -117,9 +117,9 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ><DT
 >4.8. <A
 HREF="Bv9ARM.ch04.html#AEN989"
->IPv6 Support in <SPAN
+>IPv6 Support in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9</A
 ></DT
 ></DL
@@ -254,9 +254,9 @@ HREF="Bv9ARM.ch09.html#proposed_standards"
 >Proposed Standards</A
 >.</P
 ><P
->When acting as a master, <SPAN
+>When acting as a master, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 supports IXFR for those zones
 where the necessary change history information is available. These
 include master zones maintained by dynamic update and slave zones
@@ -264,9 +264,9 @@ whose data was obtained by IXFR, but not manually maintained master
 zones nor slave zones obtained by performing a full zone transfer
 (AXFR).</P
 ><P
->When acting as a slave, <SPAN
+>When acting as a slave, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 will attempt to use IXFR unless
 it is explicitly disabled. For more information about disabling
 IXFR, see the description of the <B
@@ -430,9 +430,9 @@ internal hosts.</P
 >Here's an example of a wildcard MX record:</P
 ><PRE
 CLASS="programlisting"
-><TT
+><VAR
 CLASS="literal"
->*   IN MX 10 external1.example.com.</TT
+>*   IN MX 10 external1.example.com.</VAR
 ></PRE
 ><P
 >Now that they accept mail on behalf of anything in the internal
@@ -469,24 +469,24 @@ internal clients will now be able to:</P
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1.internal</TT
+>site1.internal</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.internal</TT
+>site2.internal</VAR
 > domains.</P
 ></LI
 ><LI
@@ -505,24 +505,24 @@ CLASS="literal"
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ><LI
 ><P
->Exchange mail with anyone in the <TT
+>Exchange mail with anyone in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ></UL
@@ -540,9 +540,9 @@ CLASS="programlisting"
 >&#13;
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
 
-acl externals { <TT
+acl externals { <VAR
 CLASS="varname"
->bastion-ips-go-here</TT
+>bastion-ips-go-here</VAR
 >; };
 
 options {
@@ -550,9 +550,9 @@ options {
     ...
     forward only;
     forwarders {                                // forward to external servers
-        <TT
+        <VAR
 CLASS="varname"
->bastion-ips-go-here</TT
+>bastion-ips-go-here</VAR
 >; 
     };
     allow-transfer { none; };                   // sample allow-transfer (no one)
@@ -654,25 +654,25 @@ NAME="tsig"
 ></H1
 ><P
 >This is a short guide to setting up Transaction SIGnatures
-(TSIG) based transaction security in <SPAN
+(TSIG) based transaction security in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >. It describes changes
 to the configuration file as well as what changes are required for
 different features, including the process of creating transaction
-keys and using transaction signatures with <SPAN
+keys and using transaction signatures with <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >.</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > primarily supports TSIG for server to server communication.
 This includes zone transfer, notify, and recursive query messages.
-Resolvers based on newer versions of <SPAN
+Resolvers based on newer versions of <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 8 have limited support
 for TSIG.</P
 ><P
@@ -686,13 +686,13 @@ HREF="Bv9ARM.ch09.html#proposed_standards"
 CLASS="command"
 >nsupdate</B
 >
-    program supports TSIG via the <TT
+    program supports TSIG via the <VAR
 CLASS="option"
->-k</TT
+>-k</VAR
 > and
-    <TT
+    <VAR
 CLASS="option"
->-y</TT
+>-y</VAR
 > command line options.</P
 ><DIV
 CLASS="sect2"
@@ -733,11 +733,9 @@ are easier to read. Note that the maximum key length is 512 bits;
 keys longer than that will be digested with MD5 to produce a 128
 bit key.</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</B
-></TT
+>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</KBD
 ></P
 ><P
 >The key is in the file <TT
@@ -745,18 +743,18 @@ CLASS="filename"
 >Khost1-host2.+157+00000.private</TT
 >.
 Nothing directly uses this file, but the base-64 encoded string
-following "<TT
+following "<VAR
 CLASS="literal"
->Key:</TT
+>Key:</VAR
 >"
 can be extracted from the file and used as a shared secret:</P
 ><PRE
 CLASS="programlisting"
 >Key: La/E5CjG9O+os1jq0a2jdA==</PRE
 ><P
->The string "<TT
+>The string "<VAR
 CLASS="literal"
->La/E5CjG9O+os1jq0a2jdA==</TT
+>La/E5CjG9O+os1jq0a2jdA==</VAR
 >" can
 be used as the shared secret.</P
 ></DIV
@@ -827,9 +825,9 @@ CLASS="programlisting"
 };
 </PRE
 ><P
->The algorithm, hmac-md5, is the only one supported by <SPAN
+>The algorithm, hmac-md5, is the only one supported by <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >.
 The secret is the one generated above. Since this is a secret, it
 is recommended that either <TT
@@ -940,9 +938,9 @@ NAME="AEN872"
 >4.4.5. TSIG Key Based Access Control</A
 ></H2
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > allows IP addresses and ranges to be specified in ACL
 definitions and
 <B
@@ -1024,9 +1022,9 @@ CLASS="command"
 CLASS="command"
 >TKEY</B
 > that specify how the key is
-    generated or assigned.  <SPAN
+    generated or assigned.  <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > implements only one of these modes,
     the Diffie-Hellman key exchange.  Both hosts are required to have
     a Diffie-Hellman KEY record (although this record is not required
@@ -1081,9 +1079,9 @@ NAME="AEN904"
 >4.6. SIG(0)</A
 ></H1
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 partially supports DNSSEC SIG(0) transaction
     signatures as specified in RFC 2535.  SIG(0) uses public/private
     keys to authenticate messages.  Access control is performed in the
@@ -1097,9 +1095,9 @@ CLASS="acronym"
 >SIG(0) signing of multiple-message TCP streams is not
     supported.</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 does not ship with any tools that generate SIG(0)
     signed messages.</P
 ></DIV
@@ -1124,15 +1122,15 @@ CLASS="emphasis"
     of DNSSEC signed zones.</P
 ><P
 >In order to set up a DNSSEC secure zone, there are a series
-    of steps which must be followed.  <SPAN
+    of steps which must be followed.  <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 ships
     with several tools
     that are used in this process, which are explained in more detail
-    below.  In all cases, the "<TT
+    below.  In all cases, the "<VAR
 CLASS="option"
->-h</TT
+>-h</VAR
 >" option prints a
     full list of parameters.  Note that the DNSSEC tools require the
     keyset and signedkey files to be in the working directory, and
@@ -1181,11 +1179,9 @@ CLASS="filename"
 >child.example</TT
 > zone:</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-keygen -a DSA -b 768 -n ZONE child.example.</B
-></TT
+>dnssec-keygen -a DSA -b 768 -n ZONE child.example.</KBD
 ></P
 ><P
 >Two output files will be produced:
@@ -1263,11 +1259,9 @@ CLASS="command"
       3600 and a signature validity period of 10 days starting from
       now.</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-makekeyset -t 3600 -e +864000 Kchild.example.+003+12345 Kchild.example.+003+23456</B
-></TT
+>dnssec-makekeyset -t 3600 -e +864000 Kchild.example.+003+12345 Kchild.example.+003+23456</KBD
 ></P
 ><P
 >One output file is produced:
@@ -1314,11 +1308,9 @@ CLASS="filename"
 >The following command signs the child's key set with the
       zone keys:</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-signkey keyset-grand.child.example. Kchild.example.+003+12345 Kchild.example.+003+23456</B
-></TT
+>dnssec-signkey keyset-grand.child.example. Kchild.example.+003+12345 Kchild.example.+003+23456</KBD
 ></P
 ><P
 >One output file is produced:
@@ -1355,12 +1347,12 @@ CLASS="filename"
 >signedkey</TT
 > file for this zone generated by
       the parent (if there is one). The zone signer will generate
-      <TT
+      <VAR
 CLASS="literal"
->NXT</TT
-> and <TT
+>NXT</VAR
+> and <VAR
 CLASS="literal"
->SIG</TT
+>SIG</VAR
 > records for
       the zone, as well as incorporate the zone key signature from the
       parent and indicate the security status at all delegation
@@ -1374,11 +1366,9 @@ CLASS="filename"
       default, all zone keys which have an available private key are
       used to generate signatures.</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-signzone -o child.example zone.child.example</B
-></TT
+>dnssec-signzone -o child.example zone.child.example</KBD
 ></P
 ><P
 >One output file is produced:
@@ -1401,13 +1391,13 @@ NAME="AEN982"
 >4.7.5. Configuring Servers</A
 ></H2
 ><P
->Unlike in <SPAN
+>Unlike in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 8, 
-data is not verified on load in <SPAN
+data is not verified on load in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9,
 so zone keys for authoritative zones do not need to be specified
 in the configuration file.</P
@@ -1426,23 +1416,23 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="AEN989"
->4.8. IPv6 Support in <SPAN
+>4.8. IPv6 Support in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9</A
 ></H1
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 fully supports all currently
     defined forms of IPv6 name to address and address to name
     lookups.  It will also use IPv6 addresses to make queries when
     running on an IPv6 capable system.</P
 ><P
->For forward lookups, <SPAN
+>For forward lookups, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 supports
     both A6 and AAAA records.  The use of A6 records has been moved
     to experimental (RFC 3363) and should be treated as deprecated.</P
@@ -1450,27 +1440,27 @@ CLASS="acronym"
 >The use of "bitstring" labels for IPv6 has been moved to
     experimental (RFC 3363) reverting to a nibble format.  The
     suffix for the IPv6 reverse lookups has also changed from
-    <TT
+    <VAR
 CLASS="literal"
->IP6.INT</TT
-> to <TT
+>IP6.INT</VAR
+> to <VAR
 CLASS="literal"
->IP6.ARPA</TT
+>IP6.ARPA</VAR
 > (RFC
     3152).</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 now defaults to nibble
-    <TT
+    <VAR
 CLASS="literal"
->IP6.ARPA</TT
+>IP6.ARPA</VAR
 > format lookups.</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 includes a new lightweight resolver library and
     resolver daemon which new applications may choose to use to avoid
     the complexities of A6 chain following and bitstring labels, see <A
@@ -1512,15 +1502,15 @@ NAME="AEN1011"
 ><P
 >When looking up an address in nibble format, the address
       components are simply reversed, just as in IPv4, and
-      <TT
+      <VAR
 CLASS="literal"
->IP6.ARPA.</TT
+>IP6.ARPA.</VAR
 > is appended to the resulting name.
       For example, the following would provide reverse name lookup for
       a host with address
-      <TT
+      <VAR
 CLASS="literal"
->2001:db8::1</TT
+>2001:db8::1</VAR
 >.</P
 ><PRE
 CLASS="programlisting"
@@ -1584,9 +1574,9 @@ VALIGN="top"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->The <SPAN
+>The <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 Lightweight Resolver</TD
 ></TR
 ></TABLE

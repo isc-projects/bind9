@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signkey.html,v 1.4.2.3 2004/06/03 05:21:11 marka Exp $ -->
+<!-- $Id: dnssec-signkey.html,v 1.4.2.4 2004/08/22 23:35:42 marka Exp $ -->
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >dnssec-signkey</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -35,10 +35,10 @@ ALINK="#0000FF"
 ><H1
 ><A
 NAME="AEN1"
+></A
 ><SPAN
 CLASS="APPLICATION"
 >dnssec-signkey</SPAN
-></A
 ></H1
 ><DIV
 CLASS="REFNAMEDIV"
@@ -62,55 +62,45 @@ NAME="AEN13"
 ><B
 CLASS="COMMAND"
 >dnssec-signkey</B
->  [<TT
+>  [<VAR
 CLASS="OPTION"
->-a</TT
->] [<TT
+>-a</VAR
+>] [<VAR
 CLASS="OPTION"
->-c <TT
+>-c <VAR
 CLASS="REPLACEABLE"
-><I
->class</I
-></TT
-></TT
->] [<TT
+>class</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></TT
->] [<TT
+>start-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
-></TT
->] [<TT
+>end-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-h</TT
->] [<TT
+>-h</VAR
+>] [<VAR
 CLASS="OPTION"
->-p</TT
->] [<TT
+>-p</VAR
+>] [<VAR
 CLASS="OPTION"
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
-></TT
->] [<TT
+>randomdev</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
-></TT
+>level</VAR
+></VAR
 >] {keyset} {key...}</P
 ></DIV
 ><DIV
@@ -161,11 +151,9 @@ CLASS="VARIABLELIST"
 	  </P
 ></DD
 ><DT
->-c <TT
+>-c <VAR
 CLASS="REPLACEABLE"
-><I
->class</I
-></TT
+>class</VAR
 ></DT
 ><DD
 ><P
@@ -173,11 +161,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
+>start-time</VAR
 ></DT
 ><DD
 ><P
@@ -187,33 +173,31 @@ CLASS="REPLACEABLE"
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
-	       If no <TT
+	       If no <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 > is specified, the current
 	       time is used.
 	  </P
 ></DD
 ><DT
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
+>end-time</VAR
 ></DT
 ><DD
 ><P
 >	       Specify the date and time when the generated SIG records
-	       expire.  As with <TT
+	       expire.  As with <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 >, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
 	       the start time.  A time relative to the current time is
-	       indicated with now+N.  If no <TT
+	       indicated with now+N.  If no <VAR
 CLASS="OPTION"
->end-time</TT
+>end-time</VAR
 > is
 	       specified, 30 days from the start time is used as a default.
 	  </P
@@ -240,11 +224,9 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
+>randomdev</VAR
 ></DT
 ><DD
 ><P
@@ -268,11 +250,9 @@ CLASS="FILENAME"
 	  </P
 ></DD
 ><DT
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
+>level</VAR
 ></DT
 ><DD
 ><P
@@ -304,21 +284,17 @@ NAME="AEN101"
 ><H2
 >EXAMPLE</H2
 ><P
->        The DNS administrator for a DNSSEC-aware <TT
+>        The DNS administrator for a DNSSEC-aware <KBD
 CLASS="USERINPUT"
-><B
->.com</B
-></TT
+>.com</KBD
 >
 	zone would use the following command to sign the
 	<TT
 CLASS="FILENAME"
 >keyset</TT
-> file for <TT
+> file for <KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 >
 	created by <B
 CLASS="COMMAND"
@@ -330,11 +306,9 @@ CLASS="COMMAND"
 >:
     </P
 ><P
->        <TT
+>        <KBD
 CLASS="USERINPUT"
-><B
->dnssec-signkey keyset-example.com. Kcom.+003+51944</B
-></TT
+>dnssec-signkey keyset-example.com. Kcom.+003+51944</KBD
 >
     </P
 ><P
@@ -346,17 +320,13 @@ CLASS="COMMAND"
 CLASS="FILENAME"
 >signedkey-example.com.</TT
 >, which
-	contains the <TT
+	contains the <KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 > keys and the
-	signatures by the <TT
+	signatures by the <KBD
 CLASS="USERINPUT"
-><B
->.com</B
-></TT
+>.com</KBD
 > keys.
     </P
 ></DIV

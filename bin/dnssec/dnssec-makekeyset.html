@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-makekeyset.html,v 1.4.2.4 2004/06/03 05:21:11 marka Exp $ -->
+<!-- $Id: dnssec-makekeyset.html,v 1.4.2.5 2004/08/22 23:35:42 marka Exp $ -->
 
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >dnssec-makekeyset</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -35,10 +35,10 @@ ALINK="#0000FF"
 ><H1
 ><A
 NAME="AEN1"
+></A
 ><SPAN
 CLASS="APPLICATION"
 >dnssec-makekeyset</SPAN
-></A
 ></H1
 ><DIV
 CLASS="REFNAMEDIV"
@@ -62,55 +62,45 @@ NAME="AEN13"
 ><B
 CLASS="COMMAND"
 >dnssec-makekeyset</B
->  [<TT
+>  [<VAR
 CLASS="OPTION"
->-a</TT
->] [<TT
+>-a</VAR
+>] [<VAR
 CLASS="OPTION"
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></TT
->] [<TT
+>start-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
-></TT
->] [<TT
+>end-time</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-h</TT
->] [<TT
+>-h</VAR
+>] [<VAR
 CLASS="OPTION"
->-p</TT
->] [<TT
+>-p</VAR
+>] [<VAR
 CLASS="OPTION"
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
-></TT
->] [<TT
+>randomdev</VAR
+></VAR
+>] [<VAR
 CLASS="OPTION"
->-t</TT
-><TT
+>-t</VAR
+><VAR
 CLASS="REPLACEABLE"
-><I
->ttl</I
-></TT
->] [<TT
+>ttl</VAR
+>] [<VAR
 CLASS="OPTION"
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
-></TT
+>level</VAR
+></VAR
 >] {key...}</P
 ></DIV
 ><DIV
@@ -161,11 +151,9 @@ CLASS="VARIABLELIST"
 	  </P
 ></DD
 ><DT
->-s <TT
+>-s <VAR
 CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
+>start-time</VAR
 ></DT
 ><DD
 ><P
@@ -175,33 +163,31 @@ CLASS="REPLACEABLE"
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
-	       If no <TT
+	       If no <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 > is specified, the current
 	       time is used.
 	  </P
 ></DD
 ><DT
->-e <TT
+>-e <VAR
 CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
+>end-time</VAR
 ></DT
 ><DD
 ><P
 >	       Specify the date and time when the generated SIG records
-	       expire.  As with <TT
+	       expire.  As with <VAR
 CLASS="OPTION"
->start-time</TT
+>start-time</VAR
 >, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
 	       the start time.  A time relative to the current time is
-	       indicated with now+N.  If no <TT
+	       indicated with now+N.  If no <VAR
 CLASS="OPTION"
->end-time</TT
+>end-time</VAR
 > is
 	       specified, 30 days from the start time is used as a default.
 	  </P
@@ -228,11 +214,9 @@ CLASS="COMMAND"
 	  </P
 ></DD
 ><DT
->-r <TT
+>-r <VAR
 CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
+>randomdev</VAR
 ></DT
 ><DD
 ><P
@@ -256,11 +240,9 @@ CLASS="FILENAME"
 	  </P
 ></DD
 ><DT
->-t <TT
+>-t <VAR
 CLASS="REPLACEABLE"
-><I
->ttl</I
-></TT
+>ttl</VAR
 ></DT
 ><DD
 ><P
@@ -269,11 +251,9 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
->-v <TT
+>-v <VAR
 CLASS="REPLACEABLE"
-><I
->level</I
-></TT
+>level</VAR
 ></DT
 ><DD
 ><P
@@ -307,11 +287,9 @@ NAME="AEN98"
 >EXAMPLE</H2
 ><P
 >        The following command generates a keyset containing the DSA key for
-	<TT
+	<KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 > generated in the
 	<B
 CLASS="COMMAND"
@@ -319,11 +297,9 @@ CLASS="COMMAND"
 > man page.
     </P
 ><P
->        <TT
+>        <KBD
 CLASS="USERINPUT"
-><B
->dnssec-makekeyset -t 86400 -s 20000701120000 -e +2592000 Kexample.com.+003+26160</B
-></TT
+>dnssec-makekeyset -t 86400 -s 20000701120000 -e +2592000 Kexample.com.+003+26160</KBD
 >
     </P
 ><P
@@ -338,21 +314,17 @@ CLASS="FILENAME"
 	contains the specified key and a self-generated signature.
     </P
 ><P
->        The DNS administrator for <TT
+>        The DNS administrator for <KBD
 CLASS="USERINPUT"
-><B
->example.com</B
-></TT
+>example.com</KBD
 > could
 	send <TT
 CLASS="FILENAME"
 >keyset-example.com.</TT
 > to the DNS
-	administrator for <TT
+	administrator for <KBD
 CLASS="USERINPUT"
-><B
->.com</B
-></TT
+>.com</KBD
 > for signing, if the
 	.com zone is DNSSEC-aware and the administrators of the two zones
 	have some mechanism for authenticating each other and exchanging
