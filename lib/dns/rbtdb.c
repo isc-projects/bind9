@@ -3135,6 +3135,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		topheader_prev = topheader;
 	}
 
+	/*
+	 * XXXRTH  Need to check for CNAME and other data.
+	 */
+
  find_header:
 	/*
 	 * If header isn't NULL, we've found the right type.  There may be
