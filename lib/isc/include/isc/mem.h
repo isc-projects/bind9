@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_MEMCLUSTER_H
-#define ISC_MEMCLUSTER_H 1
+#ifndef ISC_MEM_H
+#define ISC_MEM_H 1
 
 #include <stdio.h>
 #include <stddef.h>
@@ -24,31 +24,28 @@
 #include <isc/boolean.h>
 #include <isc/result.h>
 
-typedef struct isc_memctx	isc_memctx_t;
+typedef struct isc_mem		isc_mem_t;
 
-#ifdef ISC_MEMCLUSTER_DEBUG
-#define isc_mem_get(c, s)	isc_mem_getdebug(c, s, __FILE__, \
-				  		 __LINE__)
-#define isc_mem_put(c, p, s)	isc_mem_putdebug(c, p, s, __FILE__, \
-						 __LINE__)
+#ifdef ISC_MEM_DEBUG
+#define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
+#define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
 #else
-#define isc_mem_get		isc_mem_get
-#define isc_mem_put		isc_mem_put
-#endif /* ISC_MEMCLUSTER_DEBUG */
+#define isc_mem_get		__isc_mem_get
+#define isc_mem_put		__isc_mem_put
+#endif /* ISC_MEM_DEBUG */
 
-isc_result_t			isc_memctx_create(size_t, size_t,
-						  isc_memctx_t **);
-void				isc_memctx_destroy(isc_memctx_t **);
-void *				isc_mem_get(isc_memctx_t *, size_t);
-void 				isc_mem_put(isc_memctx_t *, void *, size_t);
-void *				isc_mem_getdebug(isc_memctx_t *, size_t,
+isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
+void				isc_mem_destroy(isc_mem_t **);
+void *				__isc_mem_get(isc_mem_t *, size_t);
+void 				__isc_mem_put(isc_mem_t *, void *, size_t);
+void *				__isc_mem_getdebug(isc_mem_t *, size_t,
 						   const char *, int);
-void 				isc_mem_putdebug(isc_memctx_t *, void *,
-						 size_t, const char *, int);
-isc_boolean_t			isc_mem_valid(isc_memctx_t *, void *);
-void 				isc_mem_stats(isc_memctx_t *, FILE *);
-void *				isc_mem_allocate(isc_memctx_t *, size_t);
-void				isc_mem_free(isc_memctx_t *, void *);
+void 				__isc_mem_putdebug(isc_mem_t *, void *,
+						   size_t, const char *, int);
+void 				isc_mem_stats(isc_mem_t *, FILE *);
+isc_boolean_t			isc_mem_valid(isc_mem_t *, void *);
+void *				isc_mem_allocate(isc_mem_t *, size_t);
+void				isc_mem_free(isc_mem_t *, void *);
 
 #ifdef ISC_MEMCLUSTER_LEGACY
 
@@ -69,7 +66,7 @@ void				isc_mem_free(isc_memctx_t *, void *);
 #define memstats		__memstats
 
 int				meminit(size_t, size_t);
-isc_memctx_t *			mem_default_context(void);
+isc_mem_t *			mem_default_context(void);
 void *				__memget(size_t);
 void 				__memput(void *, size_t);
 void *				__memget_debug(size_t, const char *, int);
@@ -80,4 +77,4 @@ void 				memstats(FILE *);
 
 #endif /* ISC_MEMCLUSTER_LEGACY */
 
-#endif /* MEMCLUSTER_H */
+#endif /* MEM_H */

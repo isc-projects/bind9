@@ -56,11 +56,10 @@ struct stats {
 	unsigned long		freefrags;
 };
 
-#define MEM_MAGIC			0x4D656d43U	/* MemC. */
-#define VALID_CONTEXT(c)		((c) != NULL && \
-					 (c)->magic == MEM_MAGIC)
+#define MEM_MAGIC		0x4D656d43U	/* MemC. */
+#define VALID_CONTEXT(c)	((c) != NULL && (c)->magic == MEM_MAGIC)
 
-struct isc_memctx {
+struct isc_mem {
 	unsigned int		magic;
 	isc_mutex_t		lock;
 	size_t			max_size;
@@ -112,10 +111,10 @@ quantize(size_t size) {
 /* Public. */
 
 isc_result_t
-isc_memctx_create(size_t init_max_size, size_t target_size,
-		  isc_memctx_t **ctxp)
+isc_mem_create(size_t init_max_size, size_t target_size,
+	       isc_mem_t **ctxp)
 {
-	isc_memctx_t *ctx;
+	isc_mem_t *ctx;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
@@ -162,9 +161,9 @@ isc_memctx_create(size_t init_max_size, size_t target_size,
 }
 
 void
-isc_memctx_destroy(isc_memctx_t **ctxp) {
+isc_mem_destroy(isc_mem_t **ctxp) {
 	unsigned int i;
-	isc_memctx_t *ctx;
+	isc_mem_t *ctx;
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
@@ -186,8 +185,10 @@ isc_memctx_destroy(isc_memctx_t **ctxp) {
 	*ctxp = NULL;
 }
 
+
+
 static void
-more_basic_blocks(isc_memctx_t *ctx) {
+more_basic_blocks(isc_mem_t *ctx) {
 	void *new;
 	unsigned char *curr, *next;
 	unsigned char *first, *last;
@@ -240,7 +241,7 @@ more_basic_blocks(isc_memctx_t *ctx) {
 }
 
 void *
-isc_mem_get(isc_memctx_t *ctx, size_t size) {
+__isc_mem_get(isc_mem_t *ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
 
@@ -315,12 +316,8 @@ isc_mem_get(isc_memctx_t *ctx, size_t size) {
 	return (ret);
 }
 
-/* 
- * This is a call from an external caller, 
- * so we want to count this as a user "put". 
- */
 void
-isc_mem_put(isc_memctx_t *ctx, void *mem, size_t size) {
+__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
 	REQUIRE(size > 0);
@@ -354,29 +351,29 @@ isc_mem_put(isc_memctx_t *ctx, void *mem, size_t size) {
 }
 
 void *
-isc_mem_getdebug(isc_memctx_t *ctx, size_t size, const char *file, int line) {
+__isc_mem_getdebug(isc_mem_t *ctx, size_t size, const char *file, int line) {
 	void *ptr;
 
-	ptr = isc_mem_get(ctx, size);
+	ptr = __isc_mem_get(ctx, size);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
-isc_mem_putdebug(isc_memctx_t *ctx, void *ptr, size_t size, const char *file,
+__isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
 		 int line)
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
-	isc_mem_put(ctx, ptr, size);
+	__isc_mem_put(ctx, ptr, size);
 }
 
 /*
  * Print the stats[] on the stream "out" with suitable formatting.
  */
 void
-isc_mem_stats(isc_memctx_t *ctx, FILE *out) {
+isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	size_t i;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -402,7 +399,7 @@ isc_mem_stats(isc_memctx_t *ctx, FILE *out) {
 }
 
 isc_boolean_t
-isc_mem_valid(isc_memctx_t *ctx, void *ptr) {
+isc_mem_valid(isc_mem_t *ctx, void *ptr) {
 	unsigned char *cp = ptr;
 	isc_boolean_t result = ISC_FALSE;
 
@@ -422,7 +419,7 @@ isc_mem_valid(isc_memctx_t *ctx, void *ptr) {
  */
 
 void *
-isc_mem_allocate(isc_memctx_t *ctx, size_t size) {
+isc_mem_allocate(isc_mem_t *ctx, size_t size) {
 	size_info *si;
 
 	size += ALIGNMENT_SIZE;
@@ -434,7 +431,7 @@ isc_mem_allocate(isc_memctx_t *ctx, size_t size) {
 }
 
 void
-isc_mem_free(isc_memctx_t *ctx, void *ptr) {
+isc_mem_free(isc_mem_t *ctx, void *ptr) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
@@ -447,7 +444,7 @@ isc_mem_free(isc_memctx_t *ctx, void *ptr) {
  * Public Legacy.
  */
 
-static isc_memctx_t *default_context = NULL;
+static isc_mem_t *default_context = NULL;
 
 int
 meminit(size_t init_max_size, size_t target_size) {
@@ -457,7 +454,7 @@ meminit(size_t init_max_size, size_t target_size) {
 	return (isc_mem_create(init_max_size, target_size, &default_context));
 }
 
-isc_memctx_t
+isc_mem_t *
 mem_default_context(void) {
 	/* need default_context lock here */
 	if (default_context == NULL && meminit(0, 0) == -1)
