@@ -286,7 +286,6 @@ struct	addrinfo {
 #define getprotoent_r lwres_getprotoent_r
 #define setprotoent_r lwres_setprotoent_r
 #define endprotoent_r lwres_endprotoent_r
-#endif
 
 #ifdef getnetbyname
 #undef getnetbyname
@@ -338,13 +337,14 @@ struct	addrinfo {
 #undef endnetent_r
 #endif
 #define endnetent_r lwres_endnetent_r
+#endif	/* notyet */
 
 #ifdef h_errno
 #undef h_errno
 #endif
 #define h_errno lwres_h_errno
 
-#endif
+#endif	/* LWRES_NAMESPACE */
 
 LWRES_LANG_BEGINDECLS
 
@@ -368,13 +368,13 @@ void		lwres_sethostent(int);
 /* void		lwres_sethostfile(const char *); */
 void		lwres_freehostent(struct hostent *);
 
+#ifdef notyet
 struct netent	*lwres_getnetbyaddr(unsigned long, int);
 struct netent	*lwres_getnetbyname(const char *);
 struct netent	*lwres_getnetent(void);
 void		lwres_endnetent(void);
 void		lwres_setnetent(int);
 
-#ifdef notyet
 struct protoent	*lwres_getprotobyname(const char *);
 struct protoent	*lwres_getprotobynumber(int);
 struct protoent	*lwres_getprotoent(void);
@@ -401,6 +401,7 @@ struct hostent	*lwres_gethostent_r(struct hostent *, char *, int, int *);
 void		lwres_sethostent_r(int);
 void		lwres_endhostent_r(void);
 
+#ifdef notyet
 struct netent	*lwres_getnetbyname_r(const char *, struct netent *,
 					char *, int);
 struct netent	*lwres_getnetbyaddr_r(long, int, struct netent *,
@@ -409,7 +410,6 @@ struct netent	*lwres_getnetent_r(struct netent *, char *, int);
 void		lwres_setnetent_r(int);
 void		lwres_endnetent_r(void);
 
-#ifdef notyet
 struct protoent	*lwres_getprotobyname_r(const char *,
 				struct protoent *, char *, int);
 struct protoent	*lwres_getprotobynumber_r(int,
