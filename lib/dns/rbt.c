@@ -700,11 +700,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					dns_name_init(tmp_name, name1_offsets);
 
 					if (foundname != NULL) {
-						current_foundname =
-						 dns_fixedname_name(&foundname1);
-						new_foundname =
-						 dns_fixedname_name(&foundname2);
-						dns_fixedname_init(&foundname2);
+					    current_foundname =
+					       dns_fixedname_name(&foundname1);
+					    new_foundname =
+					       dns_fixedname_name(&foundname2);
+					    dns_fixedname_init(&foundname2);
 					}
 
 				} else {
@@ -713,11 +713,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					dns_name_init(tmp_name, name2_offsets);
 
 					if (foundname != NULL) {
-						current_foundname =
-						 dns_fixedname_name(&foundname2);
-						new_foundname =
-						 dns_fixedname_name(&foundname1);
-						dns_fixedname_init(&foundname1);
+					    current_foundname =
+					       dns_fixedname_name(&foundname2);
+					    new_foundname =
+					       dns_fixedname_name(&foundname1);
+					    dns_fixedname_init(&foundname1);
 					}
 				}
 
@@ -727,26 +727,26 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 				if (foundname != NULL) {
 					/*
-					 * Build foundname by getting the common
-					 * labels and prefixing them to the
-					 * current foundname.
+					 * Build foundname by getting the
+					 * common labels and prefixing them
+					 * to the current foundname.
 					 */
 					dns_name_getlabelsequence(search_name,
-							      first_common_label,
-							      current_labels,
-							      tmp_name);
+							    first_common_label,
+							    current_labels,
+							    tmp_name);
 
 					result = dns_name_concatenate(tmp_name,
-							      current_foundname,
-							      new_foundname,
-							      NULL);
+						            current_foundname,
+						            new_foundname,
+						            NULL);
 					if (result != DNS_R_SUCCESS)
 						return (result);
 				}
 
 				/*
-				 * Whack off the common labels of the current
-				 * node for the name to search in the next level.
+				 * Whack off the current node's common labels
+				 * for the name to search in the next level.
 				 */
 				dns_name_getlabelsequence(search_name, 0,
 							  first_common_label,
@@ -768,7 +768,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				if (DATA(current) != NULL) {
 					*node = current;
 					foundname_labels =
-						FAST_COUNTLABELS(new_foundname);
+					       FAST_COUNTLABELS(new_foundname);
 				}
 
 				/*
@@ -810,7 +810,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 							  &name1);
 				result = dns_name_concatenate(&name1, NULL,
 							      foundname, NULL);
-				printf("HEY!\n");
 			} else
 				result = dns_name_concatenate(new_foundname,
 							      NULL,
@@ -836,7 +835,6 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 	dns_rbtnode_t *node = NULL;
 	dns_result_t result;
 
-	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(data != NULL && *data == NULL);
 
 	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL);
