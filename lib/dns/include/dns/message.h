@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_MSG_H
-#define DNS_MSG_H 1
+#ifndef DNS_MESSAGE_H
+#define DNS_MESSAGE_H 1
 
 /***
  ***	Imports
@@ -33,7 +33,7 @@
 /*
  * How this beast works:
  *
- * When a dns message is received in a buffer, dns_msg_fromwire() is called
+ * When a dns message is received in a buffer, dns_message_fromwire() is called
  * on the memory region.  Various items are checked including the format
  * of the message (if counts are right, if counts consume the entire sections,
  * and if sections consume the entire message) and known pseudo-RRs in the
@@ -42,10 +42,10 @@
  * TSIG checking is also done at this layer, and any DNSSEC information should
  * also be performed at this time.
  *
- * If dns_msg_fromwire() returns DNS_R_MOREDATA additional
+ * If dns_message_fromwire() returns DNS_R_MOREDATA additional
  * message packets are required.  This implies an EDNS message.
  *
- * When going from structure to wire, dns_msg_towire() will return
+ * When going from structure to wire, dns_message_towire() will return
  * DNS_R_MOREDATA if there is more data left in the output buffer that
  * could not be rendered into the exisiting buffer.
  *
@@ -56,15 +56,15 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_MSG_QR			0x8000U
-#define DNS_MSG_AA			0x0400U
-#define DNS_MSG_TC			0x0200U
-#define DNS_MSG_RD			0x0100U
-#define DNS_MSG_RA			0x0080U
+#define DNS_MESSAGE_QR			0x8000U
+#define DNS_MESSAGE_AA			0x0400U
+#define DNS_MESSAGE_TC			0x0200U
+#define DNS_MESSAGE_RD			0x0100U
+#define DNS_MESSAGE_RA			0x0080U
 
-#define DNS_MSG_OPCODE_MASK		0x7000U
-#define DNS_MSG_OPCODE_SHIFT		11
-#define DNS_MSG_RCODE_MASK		0x000fU
+#define DNS_MESSAGE_OPCODE_MASK		0x7000U
+#define DNS_MESSAGE_OPCODE_SHIFT	    11
+#define DNS_MESSAGE_RCODE_MASK		0x000fU
 
 typedef struct {
 	unsigned int			magic;		/* magic */
@@ -86,8 +86,8 @@ typedef struct {
 	unsigned char		       *data;		/* start of raw data */
 	unsigned int			datalen;	/* length of data */
 
-	ISC_LINK(dns_msgelem_t)		link;		/* next msg */
-} dns_msgelem_t;
+	ISC_LINK(dns_messageelem_t)	link;		/* next msg */
+} dns_messageelem_t;
 
 
 /*
@@ -119,10 +119,10 @@ typedef struct {
 	dns_namelist_t			additional;
 
 	unsigned int			nmsgs;
-	ISC_LIST(dns_msgelem_t)		msgs;
-} dns_msg_t;
+	ISC_LIST(dns_messageelem_t)	msgs;
+} dns_message_t;
 
-void dns_msg_init(dns_msg_t *msg);
+void dns_message_init(dns_message_t *msg);
 /*
  * initialize msg structure.  Must be called on a new (or reused) structure.
  *
@@ -131,7 +131,8 @@ void dns_msg_init(dns_msg_t *msg);
  *	structure.
  */
 
-dns_result_t dns_msg_associate(dns_msg_t *msg, void *buffer, size_t buflen);
+dns_result_t dns_message_associate(dns_message_t *msg,
+				   void *buffer, size_t buflen);
 /*
  * Associate a buffer with a message structure.  This function will
  * validate the buffer, allocate an internal message element to hold
@@ -161,7 +162,7 @@ dns_result_t dns_msg_associate(dns_msg_t *msg, void *buffer, size_t buflen);
  *	DNS_R_???		-- bad signature (XXX need more of these)
  */
 
-dns_msgelem_t *dns_msgelem_first(dns_msg_t *msg);
+dns_messageelem_t *dns_messageelem_first(dns_message_t *msg);
 /*
  * Return the first message element's pointer.
  *
@@ -173,7 +174,8 @@ dns_msgelem_t *dns_msgelem_first(dns_msg_t *msg);
  *	are associated.
  */
 
-dns_msgelem_t *dns_msgelem_next(dns_msg_t *msg, dns_msgelem_t *elem);
+dns_messageelem_t *dns_messageelem_next(dns_message_t *msg,
+					dns_messageelem_t *elem);
 /*
  * Return the next message element pointer.
  *
@@ -187,25 +189,25 @@ dns_msgelem_t *dns_msgelem_next(dns_msg_t *msg, dns_msgelem_t *elem);
  *	exist.
  */
 
-dns_name_t *dns_msg_firstname(dns_msg_t *msg, dns_namelist_t *section);
+dns_name_t *dns_message_firstname(dns_message_t *msg, dns_namelist_t *section);
 /*
  * Returns a pointer to the first name in the specified section.
  */
 
-dns_name_t *dns_msg_nextname(dns_msg_t *msg, dns_namelist_t *section,
-			     dns_name_t *name);
+dns_name_t *dns_message_nextname(dns_message_t *msg, dns_namelist_t *section,
+				 dns_name_t *name);
 /*
  * Returns a pointer to the next name in the specified section.
  */
 
-void dns_msg_movename(dns_msg_t *msg, dns_namelist_t *fromsection,
-		      dns_namelist_t *tosection);
+void dns_message_movename(dns_message_t *msg, dns_namelist_t *fromsection,
+			  dns_namelist_t *tosection);
 /*
  * Move a name from one section to another.
  */
 
-dns_result_t dns_msg_addname(dns_msg_t *msg, dns_namelist_t *section,
-			     dns_name_t *name);
+dns_result_t dns_message_addname(dns_message_t *msg, dns_namelist_t *section,
+				 dns_name_t *name);
 /*
  * Adds the name to the given section.
  *
