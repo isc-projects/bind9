@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.63 $)
+AC_REVISION($Revision: 1.64 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -83,38 +83,17 @@ AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 
 #
-# Special processing of paths depending on whether --prefix,
-# --sysconfdir or --localstatedir arguments were given.  What's
-# desired is some compatability with the way previous versions
-# of BIND built; they defaulted to /usr/local for most parts of
-# the installation, but named.boot/named.conf was in /etc
-# and named.pid was in /var/run.
+# isc/list.h and others clash with the rest of BIND 9
 #
-# So ... if none of --prefix, --sysconfdir or --localstatedir are
-# specified, set things up that way.  If --prefix is given, use
-# it for sysconfdir and localstatedir the way configure normally
-# would.  To change the prefix for everything but leave named.conf
-# in /etc or named.pid in /var/run, then do this the usual configure way:
-# ./configure --prefix=/somewhere --sysconfdir=/etc
-# ./configure --prefix=/somewhere --localstatedir=/var
-#
-# To put named.conf and named.pid in /usr/local with everything else,
-# set the prefix explicitly to /usr/local even though that's the default:
-# ./configure --prefix=/usr/local
-#
-case "$prefix" in
-        NONE)
-                case "$sysconfdir" in
-                        '${prefix}/etc')
-                                sysconfdir=/etc
-                                ;;
-                esac
-                case "$localstatedir" in
-                        '${prefix}/var')
-                                localstatedir=/var
-                                ;;
-                esac
-                ;;
+case "$includedir" in
+	'${prefix}/include')
+		includedir='${prefix}/bind/include'
+		;;
+esac
+case "$libdir" in
+	'${prefix}/lib')
+		libdir='${prefix}/bind/lib'
+		;;
 esac
 
 #
