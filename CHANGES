@@ -14,6 +14,8 @@
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
 
+1773.	[bug]		Fast retry on host / net unreachable. [RT #13153]
+
 1770.	[bug]		named-checkconf failed to report missing a missing
 			file clause for rbt{64} master/hint zones. [RT#13009]
 
