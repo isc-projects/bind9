@@ -37,6 +37,7 @@ rm -f ns2/named.conf ns3/named.conf ns2/example.db
 cp ns2/named2.conf ns2/named.conf
 cp ns3/named2.conf ns3/named.conf
 cp ns2/example2.db ns2/example.db
+sleep 5
 kill -HUP `cat ns2/named.pid`
 kill -HUP `cat ns3/named.pid`
 sleep 10
