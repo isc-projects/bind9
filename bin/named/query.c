@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.163.2.2 2001/01/09 22:32:12 bwelling Exp $ */
+/* $Id: query.c,v 1.163.2.3 2001/03/06 01:28:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2757,12 +2757,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			 * below, and it needs to use the name buffer.
 			 */
 			query_keepname(client, fname, dbuf);
-			/*
-			 * We don't want the cleanup code to try to release
-			 * fname if we fail below, so we set it to NULL.
-			 */
-			tname = fname;
-			fname = NULL;
 		} else {
 			/*
 			 * We're not going to use fname, and need to release
@@ -2786,12 +2780,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		if (dns_rdataset_isassociated(rdataset)) {
 			if (WANTDNSSEC(client))
-				query_addrrset(client, &tname, &rdataset,
+				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);
-			if (tname != NULL)
-				dns_message_puttempname(client->message,
-							&tname);
 		}
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
@@ -2810,12 +2801,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			 * below, and it needs to use the name buffer.
 			 */
 			query_keepname(client, fname, dbuf);
-			/*
-			 * We don't want the cleanup code to try to release
-			 * fname if we fail below, so we set it to NULL.
-			 */
-			tname = fname;
-			fname = NULL;
 		} else {
 			/*
 			 * We're not going to use fname, and need to release
@@ -2845,12 +2830,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		if (dns_rdataset_isassociated(rdataset)) {
 			if (WANTDNSSEC(client))
-				query_addrrset(client, &tname, &rdataset,
+				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);
-			if (tname != NULL)
-				dns_message_puttempname(client->message,
-							&tname);
 		}
 		/*
 		 * Set message rcode.
@@ -3071,10 +3053,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * more than once.  That means we have to call query_keepname()
 		 * now, and pass a NULL dbuf to query_addrrset().
 		 *
-		 * Since we've done the keepname, it's important that we
-		 * set fname to NULL before we leave this 'if' block
-		 * otherwise we might try to cleanup fname even though we've
-		 * kept it!
+		 * If we do a query_addrrset() below, we must set fname to
+		 * NULL before leaving this block, otherwise we might try to
+		 * cleanup fname even though we're using it!
 		 */
 		query_keepname(client, fname, dbuf);
 		result = dns_rdatasetiter_first(rdsiter);
@@ -3102,15 +3083,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			}
 			result = dns_rdatasetiter_next(rdsiter);
 		}
-		/*
-		 * As mentioned above, we must now clear fname since we have
-		 * kept it.
-		 */
-		fname = NULL;
-		if (n == 0) {
+		if (n > 0) {
+			/*
+			 * As mentioned above, we must now clear fname
+			 * since we're using it.
+			 */
+			fname = NULL;
+		} else {
 			/*
 			 * We didn't match any rdatasets.
 			 */
+			dns_message_puttempname(client->message, &fname);
 			if (qtype == dns_rdatatype_sig &&
 			    result == ISC_R_NOMORE) {
 				/*
