@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.35 2000/07/27 09:38:22 tale Exp $ */
+/* $Id: rbt_test.c,v 1.36 2000/07/28 02:59:05 tale Exp $ */
 
 #include <config.h>
 
@@ -96,6 +96,7 @@ delete_name(void *data, void *arg) {
 static void
 print_name(dns_name_t *name) {
 	char buffer[1024];
+
 	dns_name_format(name, buffer, sizeof(buffer));
 	printf("%s", buffer);
 }
