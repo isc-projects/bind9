@@ -15,21 +15,24 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.42 2001/11/30 01:59:42 gson Exp $ */
+/* $Id: file.c,v 1.43 2002/05/09 09:08:56 marka Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <time.h>		/* Required for utimes on some platforms. */
 #include <unistd.h>		/* Required for mkstemp on NetBSD. */
+
 
 #include <sys/stat.h>
 #include <sys/time.h>
 
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -182,32 +185,59 @@ isc_file_renameunique(const char *file, char *templet) {
 	return (result);
 }
 
+static char alphnum[] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
+	char *x;
+	char *cp;
+	isc_uint32_t which;
+	int mode;
 
 	REQUIRE(templet != NULL);
 	REQUIRE(fp != NULL && *fp == NULL);
 
-	/*
-	 * Win32 does not have mkstemp.
-	 */
-	fd = mkstemp(templet);
-
-	if (fd == -1)
-		result = isc__errno2result(errno);
-	if (result == ISC_R_SUCCESS) {
-		f = fdopen(fd, "w+");
-		if (f == NULL) {
-			result = isc__errno2result(errno);
-			(void)remove(templet);
-			(void)close(fd);
-
-		} else
-			*fp = f;
+	cp = templet;
+	while (*cp != '\0')
+		cp++;
+	if (cp == templet)
+		return (ISC_R_FAILURE);
+	x = cp--;
+	while (*cp == 'X' && cp >= templet) {
+		isc_random_get(&which);
+		*cp = alphnum[which % (sizeof(alphnum) - 1)];
+		x = cp--;
 	}
+
+	mode = S_IWUSR|S_IRUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
+
+	while ((fd = open(templet, O_RDWR|O_CREAT|O_EXCL, mode)) == -1) {
+		if (errno != EEXIST)
+			return (isc__errno2result(errno));
+		for (cp = x;;) {
+			char *t;
+			if (*cp == '\0')
+				return (ISC_R_FAILURE);
+			t = strchr(alphnum, *cp);
+			if (t == NULL || *++t == '\0')
+				*cp++ = alphnum[0];
+			else {
+				*cp = *t;
+				break;
+			}
+		}
+	}
+	f = fdopen(fd, "w+");
+	if (f == NULL) {
+		result = isc__errno2result(errno);
+		(void)remove(templet);
+		(void)close(fd);
+	} else
+		*fp = f;
 
 	return (result);
 }
