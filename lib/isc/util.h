@@ -24,6 +24,9 @@
  *** General Macros.
  ***/
 
+#define ISC_MAX(a, b)  ((a) > (b) ? (a) : (b))
+#define ISC_MIN(a, b)  ((a) < (b) ? (a) : (b))
+
 /*
  * We use macros instead of calling the routines directly because
  * the capital letters make the locking stand out.
