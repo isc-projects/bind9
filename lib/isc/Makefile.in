@@ -74,7 +74,7 @@ version.@O@: version.c
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
 		-DLIBAGE=${LIBAGE} \
-		-c version.c
+		-c ${srcdir}/version.c
 
 libisc.@A@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
