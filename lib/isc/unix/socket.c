@@ -418,7 +418,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	 * Initialize readable event
 	 */
 	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
-		       ISC_EVENTATTR_NOPURGE, ISC_SOCKEVENT_INTR,
+		       ISC_EVENTATTR_NOPURGE, 0, ISC_SOCKEVENT_INTR,
 		       NULL, sock, sock, NULL, NULL);
 
 	sock->magic = SOCKET_MAGIC;
@@ -2527,7 +2527,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			ISC_LIST_DEQUEUE(sock->recv_list, iev, link);
 			if (iev->posted) {
 				if (isc_task_purge(current_task, sock,
-						   ISC_SOCKEVENT_INTRECV)
+						   ISC_SOCKEVENT_INTRECV, 0)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
@@ -2578,7 +2578,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			ISC_LIST_DEQUEUE(sock->send_list, iev, link);
 			if (iev->posted) {
 				if (isc_task_purge(current_task, sock,
-						   ISC_SOCKEVENT_INTSEND)
+						   ISC_SOCKEVENT_INTSEND, 0)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
@@ -2654,7 +2654,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			sock->connect_ev = NULL;
 			if (iev->posted) {
 				if (isc_task_purge(current_task, sock,
-						   ISC_SOCKEVENT_INTCONN)
+						   ISC_SOCKEVENT_INTCONN, 0)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
