@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.6 2001/07/02 18:48:26 gson Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.7 2001/07/14 18:26:38 bwelling Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -177,8 +177,9 @@ Every update request consists of zero or more prerequisites
 and zero or more updates.
 This allows a suitably authenticated update request to proceed if some
 specified resource records are present or missing from the zone.
-A blank input line causes the accumulated commands to be sent as one Dynamic
-DNS update request to the name server.
+A blank input line (or the <command>send</command> command causes the
+accumulated commands to be sent as one Dynamic DNS update request to the
+name server.
 </para>
 <para>
 The command formats and their meaning are as follows:
@@ -400,6 +401,31 @@ Adds a new resource record with the specified
 <parameter>class</parameter>
 and
 <parameter>data</parameter>.
+</para>
+</listitem>
+</variablelist>
+
+<varlistentry><term>
+<cmdsynopsis>
+<command>show</command>
+</cmdsynopsis>
+</term>
+<listitem>
+<para>
+Displays the current message, containing all of the prerequisites and
+updates specified since the last send.
+</para>
+</listitem>
+</variablelist>
+
+<varlistentry><term>
+<cmdsynopsis>
+<command>send</command>
+</cmdsynopsis>
+</term>
+<listitem>
+<para>
+Sends the current message.  This is equivalent to entering a blank line.
 </para>
 </listitem>
 </variablelist>
