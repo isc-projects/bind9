@@ -778,6 +778,31 @@ dns_name_getlabelsequence(dns_name_t *source,
 }
 
 void
+dns_name_clone(dns_name_t *source, dns_name_t *target) {
+
+	/*
+	 * Make 'target' refer to the same name as 'source'.
+	 */
+
+	REQUIRE(VALID_NAME(source));
+	REQUIRE(VALID_NAME(target));
+	REQUIRE((target->attributes & DNS_NAMEATTR_READONLY) == 0);
+
+	target->ndata = source->ndata;
+	target->length = source->length;
+	target->labels = source->labels;
+	target->attributes = source->attributes;
+	if (target->offsets != NULL && source->labels > 0) {
+		if (source->offsets != NULL)
+			memcpy(target->offsets, source->offsets,
+			       source->labels);
+		else
+			set_offsets(target, target->offsets, ISC_FALSE,
+				    ISC_FALSE, ISC_FALSE);
+	}
+}
+
+void
 dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 	unsigned char *offsets;
 	dns_offsets_t odata;

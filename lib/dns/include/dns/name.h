@@ -501,6 +501,33 @@ void dns_name_getlabelsequence(dns_name_t *source,
  *	first + n <= dns_label_countlabels(name)
  */
 
+
+void
+dns_name_clone(dns_name_t *source, dns_name_t *target);
+/*
+ * Make 'target' refer to the same name as 'source'.
+ *
+ * Notes:
+ *
+ *	'target' refers to the same memory as 'source', so 'source'
+ *	must not be changed while 'target' is still in use.
+ *
+ *	This call is functionally equivalent to:
+ *
+ *		dns_name_getlabelsequence(source, 0, 
+ *					  dns_label_countlabels(source),
+ *					  target);
+ *
+ *	but is more efficient.  Also, dns_name_clone() works even if 'source'
+ *	is empty.
+ *
+ * Requires:
+ *
+ *	'source' is a valid name.
+ *
+ *	'target' is a valid name that is not read-only.
+ */
+
 /***
  *** Conversions
  ***/
