@@ -26,7 +26,7 @@
 # The port defaults to 53.
 #
 # The "Special NS rules" tests will only work correctly if the
-# has no NS records to begin with, or alternatively has a
+# zone has no NS records to begin with, or alternatively has a
 # single NS record pointing at the name "ns1" (relative to
 # the zone name).
 #
@@ -37,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.6 2001/01/09 21:44:06 bwelling Exp $
+# $Id: update_test.pl,v 1.7 2001/06/14 22:24:16 gson Exp $
 #
 
 use Getopt::Std;
