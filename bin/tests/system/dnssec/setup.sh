@@ -15,7 +15,9 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.8 2000/08/01 01:14:32 tale Exp $
+# $Id: setup.sh,v 1.9 2000/08/08 21:47:55 bwelling Exp $
+
+../../genrandom 400 random.data
 
 cd ns1 && sh sign.sh
 
