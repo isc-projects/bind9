@@ -77,7 +77,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_name;
 	}
-	result = isc_rwlock_init(&view->conflock, UINT_MAX, UINT_MAX);
+	result = isc_rwlock_init(&view->conflock, 1, 1);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",

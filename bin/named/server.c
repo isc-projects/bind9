@@ -898,7 +898,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->mctx = mctx;
 	server->task = NULL;
 	
-	CHECKFATAL(isc_rwlock_init(&server->conflock, UINT_MAX, UINT_MAX),
+	CHECKFATAL(isc_rwlock_init(&server->conflock, 1, 1),
 		   "initializing server configuration lock");
 
 	/* Initialize configuration data with default values. */
