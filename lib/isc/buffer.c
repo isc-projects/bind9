@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,21 +22,52 @@
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 
-#define VALID_BUFFER(b)			((b) != NULL)
+#define VALID_BUFFER(b)			((b) != NULL && \
+					 (b)->magic == BUFFER_MAGIC)
+#define BUFFER_MAGIC			0x42756621U	/* Buf!. */
 
 void
-isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length) {
+isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length,
+		unsigned int type) {
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at base.
 	 */
 
-	REQUIRE(VALID_BUFFER(b));
-	REQUIRE(length > 0);
+	REQUIRE(b != NULL);
 
+	b->magic = BUFFER_MAGIC;
+	b->type = type;
 	b->base = base;
 	b->length = length;
 	b->used = 0;
-	b->current = base;
+	b->current = 0;
+}
+
+void
+isc_buffer_invalidate(isc_buffer_t *b) {
+	/*
+	 * Make 'b' an invalid buffer.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+	
+	b->magic = 0;
+	b->type = 0;
+	b->base = NULL;
+	b->length = 0;
+	b->used = 0;
+	b->current = 0;
+}
+
+unsigned int
+isc_buffer_type(isc_buffer_t *b) {
+	/*
+	 * The type of 'b'.
+	 */
+
+	REQUIRE(VALID_BUFFER(b));
+
+	return (b->type);
 }
 
 void
@@ -110,6 +141,7 @@ isc_buffer_clear(isc_buffer_t *b) {
 	 */
 
 	REQUIRE(VALID_BUFFER(b));
+
 	b->used = 0;
 }
 
@@ -123,7 +155,7 @@ isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(r != NULL);
 
 	r->base = b->base;
-	r->length = (unsigned int)(b->current - b->base);
+	r->length = b->current;
 }
 
 void
@@ -135,8 +167,8 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(VALID_BUFFER(b));
 	REQUIRE(r != NULL);
 
-	r->base = b->current;
-	r->length = (unsigned int)((b->base + b->used) - b->current);
+	r->base = (unsigned char *)b->base + b->current;
+	r->length = b->used - b->current;
 }
 
 void
@@ -147,17 +179,17 @@ isc_buffer_first(isc_buffer_t *b) {
 
 	REQUIRE(VALID_BUFFER(b));
 
-	b->current = b->base;
+	b->current = 0;
 }
 
 void
 isc_buffer_forward(isc_buffer_t *b, unsigned int n) {
 	/*
-	 * Decrease the 'used' region of 'b' by 'n' bytes.
+	 * Increase the 'consumed' region of 'b' by 'n' bytes.
 	 */
 
 	REQUIRE(VALID_BUFFER(b));
-	REQUIRE(b->current + n <= b->base + b->used);
+	REQUIRE(b->current + n <= b->used);
 
 	b->current += n;
 }
@@ -169,7 +201,7 @@ isc_buffer_back(isc_buffer_t *b, unsigned int n) {
 	 */
 
 	REQUIRE(VALID_BUFFER(b));
-	REQUIRE(b->base + n <= b->current);
+	REQUIRE(n <= b->current);
 
 	b->current -= n;
 }
@@ -177,6 +209,7 @@ isc_buffer_back(isc_buffer_t *b, unsigned int n) {
 void
 isc_buffer_compact(isc_buffer_t *b) {
 	unsigned int length;
+	void *src;
 
 	/*
 	 * Compact the used region by moving the remaining region so it occurs
@@ -186,10 +219,10 @@ isc_buffer_compact(isc_buffer_t *b) {
 
 	REQUIRE(VALID_BUFFER(b));
 
-	length = (unsigned int)((b->base + b->used) - b->current);
+	src = (unsigned char *)b->base + b->current;
+	length = b->used - b->current;
+	(void)memmove(b->base, src, (size_t)length);
 
-	(void)memmove(b->base, b->current, length);
-
-	b->current = b->base;
+	b->current = 0;
 	b->used = length;
 }

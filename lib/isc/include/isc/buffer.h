@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,8 +38,8 @@
  * The used region is further subdivided into two disjoint regions: the
  * 'consumed region' and the 'remaining region'.  The union of these two
  * regions is the used region.  The consumed region extends from the beginning
- * of the used region to the 'current' pointer.  The 'remaining' region
- * extends from one byte beyond the current pointer to the end of the used
+ * of the used region to the byte before the 'current' offset (if any).  The
+ * 'remaining' region the current pointer to the end of the used
  * region.  The size of the consumed region can be changed using various
  * buffer commands.  Initially, the consumed region is empty.
  *
@@ -51,7 +51,7 @@
  *
  *	0 <= used <= length
  *
- *	base <= current <= base + used
+ *	0 <= current <= used
  *
  * MP:
  *	Buffers have no synchronization.  Clients must ensure exclusive
@@ -81,6 +81,12 @@
  *** Types
  ***/
 
+#define ISC_BUFFERTYPE_GENERIC			0
+#define ISC_BUFFERTYPE_BINARY			1
+#define ISC_BUFFERTYPE_TEXT			2
+
+/* Types >= 1024 are reserved for application use. */
+
 /*
  * Note that the buffer structure is public.  This is principally so buffer
  * operations can be implemented using macros.  Applications are strongly
@@ -88,10 +94,13 @@
  */
 
 typedef struct isc_buffer {
-	unsigned char *	base;
-	unsigned char *	current;
+	unsigned int	magic;
+	unsigned int	type;
+	void *		base;
+	/* The following integers are byte offsets from 'base'. */
 	unsigned int	length;
 	unsigned int	used;
+	unsigned int 	current;
 } isc_buffer_t;
 
 
@@ -101,7 +110,8 @@ typedef struct isc_buffer {
 
 
 void
-isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length);
+isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length,
+		unsigned int type);
 /*
  * Make 'b' refer to the 'length'-byte region starting at base.
  *
@@ -112,7 +122,34 @@ isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length);
  *	'base' is a pointer to a sequence of 'length' bytes.
  *
  */
-					
+
+void
+isc_buffer_invalidate(isc_buffer_t *b);
+/*
+ * Make 'b' an invalid buffer.
+ *
+ * Requires:
+ *	'b' is a valid buffer.
+ *
+ * Ensures:
+ *	If assertion checking is enabled, future attempts to use 'b' without
+ *	calling isc_buffer_init() on it will cause an assertion failure.
+ */
+		
+unsigned int
+isc_buffer_type(isc_buffer_t *b);
+/*
+ * The type of 'b'.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ * Returns:
+ *
+ *	The type of 'b'.
+ */
+			
 void
 isc_buffer_region(isc_buffer_t *b, isc_region_t *r);
 /*
@@ -226,20 +263,20 @@ isc_buffer_first(isc_buffer_t *b);
  *
  * Ensures:
  *
- *	current = base
+ *	current == 0
  *
  */
 
 void
 isc_buffer_forward(isc_buffer_t *b, unsigned int n);
 /*
- * Decrease the 'used' region of 'b' by 'n' bytes.
+ * Increase the 'consumed' region of 'b' by 'n' bytes.
  *
  * Requires:
  *
  *	'b' is a valid buffer
  *
- *	current + n <= base + used
+ *	current + n <= used
  *
  */
 
@@ -252,7 +289,7 @@ isc_buffer_back(isc_buffer_t *b, unsigned int n);
  *
  *	'b' is a valid buffer
  *
- *	base + n <= current
+ *	n <= current
  *
  */
 
@@ -269,7 +306,7 @@ isc_buffer_compact(isc_buffer_t *b);
  *
  * Ensures:
  *
- *	current = base
+ *	current == 0
  *
  *	The size of the used region is now equal to the size of the remaining
  *	region (as it was before the call).  The contents of the used region
