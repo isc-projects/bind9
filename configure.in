@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.298 $)
+AC_REVISION($Revision: 1.299 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -448,12 +448,8 @@ case $host in
 	use_threads=true ;;
 *-sgi-irix*)
 	use_threads=true ;;
-*-sco-sysv*uw*)
+*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
         # UnixWare
-	use_threads=false ;;
-*-*-sysv*UnixW*)
-	use_threads=false ;;
-*-*-sysv*OpenUNIX*)
 	use_threads=false ;;
 *-netbsd*)
 	# Socket I/O optimizations introduced in 9.2 expose a
@@ -613,13 +609,7 @@ then
 		#
 		# UnixWare does things its own way.
 		#
-		*-sco-sysv*uw*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-			;;
-		*-*-sysv*UnixWare*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-			;;
-		*-*-sysv*OpenUNIX*)
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 			;;
 	esac
@@ -660,15 +650,7 @@ then
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
-		*-sco-sysv*uw*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			;;
-		*-*-sysv*UnixWare*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			;;
-		*-*-sysv*OpenUNIX*)
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			CC="$CC -Kthread"
 			CCOPT="$CCOPT -Kthread"
 			;;
@@ -760,15 +742,7 @@ else
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
 		;;
-	*-sco-sysv*uw*)
-                # UnixWare
-		CC="$CC -w"
-		;;
-	*-*-sysv*UnixWare*)
-                # UnixWare
-		CC="$CC -w"
-		;;
-	*-*-sysv*OpenUNIX*)
+	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
                 # UnixWare
 		CC="$CC -w"
 		;;
@@ -995,21 +969,7 @@ changequote([, ])
 # This is similar to the netinet6/in6.h issue.
 #
 case "$host" in
-*-sco-sysv*uw*)
-        # UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
-        ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*-*-sysv*UnixWare*)
-        # UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
-        ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*-*-sysv*OpenUNIX*)
+*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
         # UnixWare
 	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
 	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
