@@ -97,3 +97,12 @@ caveats of the previous answer still apply, of course.
 	  };
   };
 
+
+Q: What do "no source of entropy found" or "failed to open entropy source foo"
+mean?
+
+A: The server requires a source of entropy to perform certain operations,
+mostly DNSSEC related.  These messages indicate that you have no source
+of entropy.  On systems with /dev/random or an equivalent, it is used by
+default.  A source of entropy can also be defined using the random-device
+option in named.conf.
