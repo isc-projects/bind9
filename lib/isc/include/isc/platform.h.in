@@ -69,7 +69,7 @@
  ***/
 
 /*
- * If this system needs vsnprintf() and snprintf(), ISC_PRINT_NEEDVSNPRINTF
+ * If this system needs vsnprintf() and snprintf(), ISC_PLATFORM_NEEDVSNPRINTF
  * will be defined.
  */
 @ISC_PLATFORM_NEEDVSNPRINTF@
