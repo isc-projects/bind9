@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.3 1999/10/22 19:31:06 halley Exp $ */
+/* $Id: log.c,v 1.4 1999/10/25 11:21:03 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -55,6 +55,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/cache", 		0 },
 	{ "dns/config",		0 },
 	{ "dns/resolver",	0 },
+	{ "dns/zone",		0 },
 	{ NULL, 		0 }
 };
 
