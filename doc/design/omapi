@@ -61,6 +61,12 @@ authid = a 32-bit authenticator handle.
 	hash.   The mechanism for doing this has yet to be finalized.
 	If authid is zero, the message is not authenticated.
 
+[[
+  This is not consistent with what the code does (as originally written),
+  which is read a header that has, in order:
+        authid, authlen, op, handle, id, rid
+]]
+
 op = 32-bit opcode, one of:
 	open = 1
 	refresh = 2
