@@ -311,10 +311,12 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_sockaddr_t *sa, *next_sa;
 	dns_view_t *pview = NULL;	/* Production view */
 	unsigned int i;
+	isc_mem_t *cmctx;
 	
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	ISC_LIST_INIT(addresses);
+	cmctx = NULL;
 
 	RWLOCK(&view->conflock, isc_rwlocktype_write);
 	
@@ -344,7 +346,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_cache_attach(pview->cache, &cache);
 		dns_view_detach(&pview);
 	} else {
-		CHECK(dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
+		CHECK(isc_mem_create(0, 0, &cmctx));
+		CHECK(dns_cache_create(cmctx, ns_g_taskmgr, ns_g_timermgr,
 				       view->rdclass, "rbt", 0, NULL, &cache));
 	}
 	dns_view_setcache(view, cache);
@@ -531,6 +534,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		next_sa = ISC_LIST_NEXT(sa, link);
 		isc_mem_put(view->mctx, sa, sizeof *sa);
 	}
+
+	if (cmctx != NULL)
+		isc_mem_detach(&cmctx);
 
 	return (result);
 }
@@ -1511,7 +1517,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	 * Setup the server task, which is responsible for coordinating
 	 * startup and shutdown of the server.
 	 */
-	CHECKFATAL(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &server->task),
+	CHECKFATAL(isc_task_create(ns_g_taskmgr, 0, &server->task),
 		   "creating server task");
 	isc_task_setname(server->task, "server", server);
 	CHECKFATAL(isc_task_onshutdown(server->task, shutdown_server, server),
