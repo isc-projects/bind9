@@ -12,20 +12,12 @@ upgrading an existing BIND 8 installation to use BIND 9.
 
 1.1. Unimplemented Options and Changed Defaults
 
-BIND 9.1 supports most, but not all but not of the named.conf options
-of BIND 8.  For a complete list of implmented options, see
-doc/misc/options.
+BIND 9.1 supports most, but not all of the named.conf options of BIND 8.
+For a complete list of implemented options, see doc/misc/options.
 
 If your named.conf file uses an unimplemented option, named will log a
 warning message.  A message is also logged about each option whose
 default has changed unless the option is set explicitly in named.conf.
-
-In particular, if you see a warning message about the default for the
-"auth-nxdomain" option having changed, you can suppress it by adding
-one of the following lines to the named.conf options { } block:
-
-   auth-nxdomain no;	# conform to RFC1035
-   auth-nxdomain yes;	# do what BIND 8 did by default
 
 1.2. Handling of Configuration File Errors
 
@@ -187,4 +179,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.25 2001/03/05 20:58:57 gson Exp $
+$Id: migration,v 1.26 2001/03/11 18:39:19 bwelling Exp $
