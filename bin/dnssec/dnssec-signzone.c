@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.86 2000/08/02 13:51:02 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.87 2000/08/02 20:27:14 tale Exp $ */
 
 #include <config.h>
 
@@ -528,7 +528,7 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	check_result(result, "dns_name_totext()");
 	if (isc_buffer_availablelength(&b) == 0)
 		fatal("name '%s' is too long", nametostr(name));
-	isc_buffer_putmem(&b, "", 1);
+	isc_buffer_putuint8(&b, 0);
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			       dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
@@ -611,7 +611,7 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	check_result(result, "dns_name_totext()");
 	if (isc_buffer_availablelength(&b) == 0)
 		fatal("name '%s' is too long", nametostr(name));
-	isc_buffer_putmem(&b, "", 1);
+	isc_buffer_putuint8(&b, 0); /* Add a NUL. */
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			      dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
