@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.182 2001/02/18 05:56:16 bwelling Exp $ */
+/* $Id: query.c,v 1.183 2001/02/18 21:20:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -959,7 +959,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	}
 
 	/*
-	 * If the dns_name_t we're lookup up is already in the message,
+	 * If the dns_name_t we're looking up is already in the message,
 	 * we don't want to trigger the caller's name replacement logic.
 	 */
 	if (name == mname)
