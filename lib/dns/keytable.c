@@ -45,8 +45,8 @@ struct dns_keytable {
 	dns_rbt_t		*table; 
 };
 
-#define KEYTABLEMAGIC			0x4b54626cU	/* KTbl */
-#define VALID_KEYTABLE(kt)	 	ISC_MAGIC_VALID(kt, KEYTABLEMAGIC)
+#define KEYTABLE_MAGIC			0x4b54626cU	/* KTbl */
+#define VALID_KEYTABLE(kt)	 	ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)
 
 struct dns_keynode {
         unsigned int		magic;
@@ -54,8 +54,8 @@ struct dns_keynode {
 	struct dns_keynode *	next;
 };
 
-#define KEYNODEMAGIC			0x4b4e6f64U	/* KNod */
-#define VALID_KEYNODE(kn)	 	ISC_MAGIC_VALID(kn, KEYNODEMAGIC)
+#define KEYNODE_MAGIC			0x4b4e6f64U	/* KNod */
+#define VALID_KEYNODE(kn)	 	ISC_MAGIC_VALID(kn, KEYNODE_MAGIC)
 
 isc_result_t
 dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
@@ -98,7 +98,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	keytable->mctx = mctx;
 	keytable->active_nodes = 0;
 	keytable->references = 1;
-	keytable->magic = KEYTABLEMAGIC;
+	keytable->magic = KEYTABLE_MAGIC;
 	*keytablep = keytable;
 
 	return (ISC_R_SUCCESS);
@@ -211,6 +211,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 				 &node);
 
 	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
+		knode->magic = KEYNODE_MAGIC;
 		knode->key = *keyp;
 		knode->next = node->data;
 		node->data = knode;
