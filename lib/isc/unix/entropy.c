@@ -510,7 +510,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 				goto zeroize;
 			if (blocking
 			    && (ent->pool.entropy
-				<= RND_ENTROPY_THRESHOLD * 8))
+				< RND_ENTROPY_THRESHOLD * 8))
 			    goto zeroize;
 		} else {
 			/*
