@@ -15,16 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.1 2000/06/28 19:40:12 gson Exp $ */
+/* $Id: dig.c,v 1.51.2.2 2000/07/10 19:11:34 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 
-extern int h_errno;
-
 #include <isc/app.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/task.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
@@ -38,10 +37,12 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-#define ADD_STRING(b, s)        {if (strlen(s) >= \
-                                   isc_buffer_availablelength(b)) \
-                                       return(ISC_R_NOSPACE); else \
-                                       isc_buffer_putstr(b, s);}
+#define ADD_STRING(b, s) { 				\
+	if (strlen(s) >= isc_buffer_availablelength(b)) \
+ 		return (ISC_R_NOSPACE); 		\
+	else 						\
+		isc_buffer_putstr(b, s); 		\
+}
 
 
 extern isc_boolean_t have_ipv6, show_details, specified_source,
@@ -63,6 +64,8 @@ extern char keynametext[MXNAME];
 extern char keysecret[MXNAME];
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
+extern isc_taskmgr_t *taskmgr;
+extern isc_task_t *global_task;
 
 extern isc_boolean_t debugging;
 extern isc_boolean_t isc_mem_debugging;
@@ -70,15 +73,23 @@ extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
 isc_uint16_t bufsize = 0;
-isc_boolean_t identify = ISC_FALSE,
-	trace = ISC_FALSE, ns_search_only = ISC_FALSE,
-	forcecomment = ISC_FALSE, stats = ISC_TRUE,
-	comments = ISC_TRUE, section_question = ISC_TRUE,
-	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
-	section_additional = ISC_TRUE, recurse = ISC_TRUE,
-	defname = ISC_TRUE, aaonly = ISC_FALSE, tcpmode = ISC_FALSE,
-	adflag = ISC_FALSE, cdflag = ISC_FALSE;
-
+isc_boolean_t
+	identify = ISC_FALSE,
+	trace = ISC_FALSE,
+	ns_search_only = ISC_FALSE,
+	forcecomment = ISC_FALSE,
+	stats = ISC_TRUE,
+	comments = ISC_TRUE,
+	section_question = ISC_TRUE,
+	section_answer = ISC_TRUE,
+	section_authority = ISC_TRUE,
+	section_additional = ISC_TRUE,
+	recurse = ISC_TRUE,
+	defname = ISC_TRUE,
+	aaonly = ISC_FALSE,
+	tcpmode = ISC_FALSE,
+	adflag = ISC_FALSE,
+	cdflag = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -119,9 +130,11 @@ static const char *rcodetext[] = {
 	"BADVERS"
 };
 
+extern char *progname;
+
 static void
 show_usage(void) {
-	fputs (
+	fputs(
 "Usage:  dig [@global-server] [domain] [q-type] [q-class] {q-opt}\n"
 "        {global-d-opt} host [@local-server] {local-d-opt}\n"
 "        [ host [@local-server] {local-d-opt} [...]]\n"
@@ -169,6 +182,7 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
+	free_lists();
 	isc_app_shutdown();
 }
 
@@ -180,24 +194,24 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	time_t tnow;
 
 	result = isc_time_now(&now);
-	check_result (result, "isc_time_now");
+	check_result(result, "isc_time_now");
 	
 	if (query->lookup->stats) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
 		printf(";; SERVER: %.*s\n", frmsize, frm);
-		time (&tnow);
+		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
-		printf (";; MSG SIZE  rcvd: %d\n", bytes);
+		printf(";; MSG SIZE  rcvd: %d\n", bytes);
 		if (key != NULL) {
 			if (!validated)
-				puts (";; WARNING -- Some TSIG could not "
-				      "be validated");
+				puts(";; WARNING -- Some TSIG could not "
+				     "be validated");
 		}
 		if ((key == NULL) && (keysecret[0] != 0)) {
-			puts (";; WARNING -- TSIG key was not used.");
+			puts(";; WARNING -- TSIG key was not used.");
 		}
-		puts ("");
+		puts("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Received %u bytes from %.*s in %d ms\n",
@@ -207,10 +221,9 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup) {
-	UNUSED (frmsize);
-	UNUSED (frm);
-	UNUSED (lookup);
-
+	UNUSED(frmsize);
+	UNUSED(frm);
+	UNUSED(lookup);
 }
 
 static isc_result_t
@@ -235,10 +248,10 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
-		snprintf (store, 19, " in %d ms.", (int)diff/1000);
+		snprintf(store, 19, " in %d ms.", (int)diff/1000);
 		ADD_STRING(buf, store);
 	}
-	ADD_STRING(buf,"\n");
+	ADD_STRING(buf, "\n");
 	return (ISC_R_SUCCESS);
 }
 
@@ -254,7 +267,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	char t[4096];
 	dns_rdata_t rdata;
 	
-	UNUSED (flags);
+	UNUSED(flags);
 
 	dns_name_init(&empty_name, NULL);
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
@@ -277,11 +290,9 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 				dns_rdataset_current(rdataset, &rdata);
 				result = say_message(&rdata, query,
 						     buf);
-				check_result (result, "say_message");
-				loopresult = dns_rdataset_next(
-							       rdataset);
+				check_result(result, "say_message");
+				loopresult = dns_rdataset_next(rdataset);
 			}
-			
 		}
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 		if (result == ISC_R_NOMORE)
@@ -302,9 +313,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
 
-	UNUSED (query);
+	UNUSED(query);
 
-	debug ("printmessage(%s)",headers?"headers":"noheaders");
+	debug("printmessage(%s)", headers ? "headers" : "noheaders");
 
 	/*
 	 * Exitcode 9 means we timed out, but if we're printing a message,
@@ -325,14 +336,14 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	result = ISC_R_SUCCESS;
 
 	result = isc_buffer_allocate(mctx, &buf, len);
-	check_result (result, "isc_buffer_allocate");
+	check_result(result, "isc_buffer_allocate");
 
 	if (query->lookup->comments && !short_form) {
 		if (!query->lookup->doing_xfr) {
 			if (msg == query->lookup->sendmsg)
-				printf (";; Sending:\n");
+				printf(";; Sending:\n");
 			else
-				printf (";; Got answer:\n");
+				printf(";; Got answer:\n");
 		}
 
 		if (headers) {
@@ -386,7 +397,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (query->lookup->section_question && headers) {
 		if (!short_form) {
- question_again:
+		question_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_QUESTION,
 						       flags, buf);
@@ -402,7 +413,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}			
 	if (query->lookup->section_answer) {
 		if (!short_form) {
- answer_again:
+		answer_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_ANSWER,
 						       flags, buf);
@@ -414,15 +425,14 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 					goto answer_again;
 			}
 			check_result(result, "dns_message_sectiontotext");
-		}
-		else {
+		} else {
 			result = short_answer(msg, flags, buf, query);
-			check_result (result, "short_answer");
+			check_result(result, "short_answer");
 		}
 	}			
 	if (query->lookup->section_authority) {
 		if (!short_form) {
- authority_again:
+		authority_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_AUTHORITY,
 						       flags, buf);
@@ -438,7 +448,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}			
 	if (query->lookup->section_additional) {
 		if (!short_form) {
- additional_again:
+		additional_again:
 			result = dns_message_sectiontotext(msg,
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
@@ -450,7 +460,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 					goto additional_again;
 			}
 			check_result(result, "dns_message_sectiontotext");
-			/* Only print the signature on the first record */
+			/*
+			 * Only print the signature on the first record.
+			 */
 			if (headers) {
 				result = dns_message_pseudosectiontotext(
 						   msg,
@@ -471,8 +483,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (headers && query->lookup->comments && !short_form)
 		printf("\n");
 
-	printf ("%.*s",(int)isc_buffer_usedlength(buf),
-		(char *)isc_buffer_base(buf));
+	printf("%.*s", (int)isc_buffer_usedlength(buf),
+	       (char *)isc_buffer_base(buf));
 	isc_buffer_free(&buf);
 	return (result);
 }
@@ -482,15 +494,15 @@ printgreeting(int argc, char **argv) {
 	int i = 1;
 
 	if (printcmd) {
-		puts ("");
-		printf ("; <<>> DiG 9.0 <<>>");
+		puts("");
+		printf("; <<>> DiG 9.0 <<>>");
 		while (i < argc) {
-			printf (" %s", argv[i++]);
+			printf(" %s", argv[i++]);
 		}
-		puts ("");
-		printf (";; global options: %s %s\n",
-			short_form?"short_form":"",
-			printcmd?"printcmd":"");
+		puts("");
+		printf(";; global options: %s %s\n",
+		       short_form ? "short_form" : "",
+		       printcmd ? "printcmd" : "");
 	}
 }
 
@@ -505,24 +517,24 @@ reorder_args(int argc, char *argv[]) {
 	char *ptr;
 	int end;
 
-	debug ("reorder_args()");
-	end = argc-1;
+	debug("reorder_args()");
+	end = argc - 1;
 	while (argv[end][0] == '@') {
 		end--;
 		if (end == 0)
 			return;
 	}
-	debug ("arg[end]=%s",argv[end]);
-	for (i = 1; i<end-1; i++) {
+	debug("arg[end]=%s", argv[end]);
+	for (i = 1; i < end - 1; i++) {
 		if (argv[i][0] == '@') {
-			debug ("Arg[%d]=%s", i, argv[i]);
+			debug("arg[%d]=%s", i, argv[i]);
 			ptr = argv[i];
-			for (j = i+1; j<end; j++) {
-				debug ("Moving %s to %d", argv[j], j-1);
-				argv[j-1] = argv[j];
+			for (j = i + 1; j < end; j++) {
+				debug("Moving %s to %d", argv[j], j - 1);
+				argv[j - 1] = argv[j];
 			}
-			debug ("Moving %s to end, %d", ptr, end-1);
-			argv[end-1] = ptr;
+			debug("moving %s to end, %d", ptr, end - 1);
+			argv[end - 1] = ptr;
 			end--;
 			if (end < 1)
 				return;
@@ -564,19 +576,19 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		debug ("Main parsing %s", rv[0]);
+		debug("main parsing %s", rv[0]);
 		if (strncmp(rv[0], "%", 1) == 0) 
 			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
 			srv = isc_mem_allocate(mctx,
 					       sizeof(struct dig_server));
 			if (srv == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			strncpy(srv->servername, &rv[0][1], MXNAME-1);
 			if (is_batchfile && have_host) {
 				if (!lookup->use_my_server_list) {
-					ISC_LIST_INIT (lookup->
-						       my_server_list);
+					ISC_LIST_INIT(lookup->
+						      my_server_list);
 					lookup->use_my_server_list =
 						ISC_TRUE;
 				}
@@ -611,7 +623,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				tcpmode = ISC_FALSE;
 		} else if (strncmp(rv[0], "+domain=", 8) == 0) {
 			/* Global option always */
-			strncpy (fixeddomain, &rv[0][8], MXNAME);
+			strncpy(fixeddomain, &rv[0][8], MXNAME);
 		} else if (strncmp(rv[0], "+sea", 4) == 0) {
 			/* Global option always */
 			usesearch = ISC_TRUE;
@@ -958,13 +970,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ptr = strtok(ptr,":");
 			if (ptr == NULL) {
 				show_usage();
-				exit (exitcode);
+				exit(exitcode);
 			}
 			strncpy(keynametext, ptr, MXNAME);
 			ptr = strtok(NULL, "");
 			if (ptr == NULL) {
 				show_usage();
-				exit (exitcode);
+				exit(exitcode);
 			}
 			strncpy(keysecret, ptr, MXNAME);
 		} else if (strncmp(rv[0], "-p", 2) == 0) {
@@ -989,20 +1001,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			specified_source = ISC_TRUE;
 		} else if (strncmp(rv[0], "-h", 2) == 0) {
 			show_usage();
-			exit (exitcode);
+			exit(exitcode);
 		} else if (strcmp(rv[0], "-memdebug") == 0) {
-			isc_mem_debugging = ISC_TRUE;
+			isc_mem_debugging = 1;
 		} else if (strcmp(rv[0], "-debug") == 0) {
 			debugging = ISC_TRUE;
 		} else if (strncmp(rv[0], "-x", 2) == 0) {
 			/*
-			 *XXXMWS Only works for ipv4 now.
+			 * XXXMWS Only works for ipv4 now.
 			 * Can't use inet_pton here, since we allow
 			 * partial addresses.
 			 */
 			if (rc == 1) {
 				show_usage();
-				exit (exitcode);
+				exit(exitcode);
 			}
 			n = sscanf(rv[1], "%d.%d.%d.%d", &adrs[0], &adrs[1],
 				    &adrs[2], &adrs[3]);
@@ -1011,7 +1023,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup = isc_mem_allocate(mctx,
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			lookup->pending = ISC_FALSE;
 			lookup->textname[0] = 0;
 			for (i = n - 1; i >= 0; i--) {
@@ -1020,7 +1032,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strncat(lookup->textname, batchline, MXNAME);
 			}
 			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-			debug("Looking up %s", lookup->textname);
+			debug("looking up %s", lookup->textname);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
 			lookup->namespace[0] = 0;
@@ -1065,7 +1077,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else {
  			if (have_host) {
 				ENSURE(lookup != NULL);
-				if (strncmp(rv[0],"ixfr=",5) == 0) {
+				if (strncmp(rv[0], "ixfr=", 5) == 0) {
 					strcpy(lookup->rttext, "ixfr");
 					lookup->ixfr_serial = 
 						atoi(&rv[0][5]);
@@ -1083,7 +1095,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup = isc_mem_allocate(mctx, 
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			lookup->pending = ISC_FALSE;
 			strncpy(lookup->textname, rv[0], MXNAME-1);
 			lookup->rttext[0] = 0;
@@ -1125,7 +1137,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->origin = NULL;
 			ISC_LIST_INIT(lookup->my_server_list);
 			have_host = ISC_TRUE;
-			debug("Looking up %s", lookup->textname);
+			debug("looking up %s", lookup->textname);
 		}
 	}
 	if (batchname != NULL) {
@@ -1134,10 +1146,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			perror(batchname);
 			if (exitcode < 10)
 				exitcode = 10;
-			fatal("Couldn't open specified batch file.");
+			fatal("Couldn't open specified batch file");
 		}
-		while (fgets(batchline, MXNAME, fp) != 0) {
-			debug ("Batch line %s", batchline);
+		while (fgets(batchline, sizeof(batchline), fp) != 0) {
+			debug("batch line %s", batchline);
 			bargc = 1;
 			bargv[bargc] = strtok(batchline, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14 )) {
@@ -1162,7 +1174,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (lookup_list.head == NULL) {
 		lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 		if (lookup == NULL)
-			fatal("Memory allocation failure.");
+			fatal("Memory allocation failure");
 		lookup->pending = ISC_FALSE;
 		lookup->rctext[0] = 0;
 		lookup->namespace[0] = 0;
@@ -1205,22 +1217,41 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 	if (!is_batchfile)
-		printgreeting (argc, argv);
+		printgreeting(argc, argv);
 }
 
 int
 main(int argc, char **argv) {
+	isc_result_t result;
+
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
-	debug ("dhmain()");
+	debug("main()");
+	progname = argv[0];
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	start_lookup();
+	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
+	check_result(result, "isc_app_onrun");
 	isc_app_run();
-	free_lists(0);
+	/*
+	 * XXXMWS This code should really NOT be bypassed.  However,
+	 * until the proper code can be added to handle SIGTERM/INT
+	 * correctly, just exit out "hard" and deal as best we can.
+	 */
+#if 0
+	if (taskmgr != NULL) {
+		debug ("Freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
+	if (mctx != NULL)
+		isc_mem_destroy(&mctx);	
+	isc_app_finish();
+#endif
 	return (exitcode);
 }
 

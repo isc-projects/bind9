@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.25.2.1 2000/07/03 22:15:37 gson Exp $ */
+/* $Id: dig.h,v 1.25.2.2 2000/07/10 19:11:40 bwelling Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -39,13 +39,23 @@
 #define COMMSIZE 0xffff
 #define RESOLVCONF "/etc/resolv.conf"
 #define OUTPUTBUF 32767
+
+/*
+ * Default timeout values
+ */
+#define TCP_TIMEOUT 60
+#define UDP_TIMEOUT 30
+
 #define LOOKUP_LIMIT 64
-/* Lookup_limit is just a limiter, keeping too many lookups from being
+/*
+ * Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away
  * in a tight loop of constant lookups.  It's value is arbitrary.
  */
+
 #define ROOTNS 1
-/* Set the number of root servers to ask for information when running in
+/*
+ * Set the number of root servers to ask for information when running in
  * trace mode.
  * XXXMWS -- trace mode is currently semi-broken, and this number *MUST*
  * be 1.
@@ -153,32 +163,49 @@ struct dig_searchlist {
  */
 void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
+
 void
 fatal(const char *format, ...);
+
 void
 debug(const char *format, ...);
+
 void
 check_result(isc_result_t result, const char *msg);
+
 isc_boolean_t
 isclass(char *text);
+
 isc_boolean_t
 istype(char *text);
+
 void
 setup_lookup(dig_lookup_t *lookup);
+
 void
 do_lookup(dig_lookup_t *lookup);
+
 void
-start_lookup (void);
+start_lookup(void);
+
+void
+onrun_callback(isc_task_t *task, isc_event_t *event);
+
 void
 send_udp(dig_lookup_t *lookup);
+
 int
 dhmain(int argc, char **argv);
+
 void
 setup_libs(void);
+
 void
 setup_system(void);
+
 void
-free_lists(int exitcode);
+free_lists(void);
+
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
@@ -188,10 +215,13 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
  */
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers);
+
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query);
+
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup);
+
 void
 dighost_shutdown(void);
 

@@ -15,21 +15,24 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.2 2000/07/03 22:11:48 gson Exp $ */
+/* $Id: host.c,v 1.29.2.3 2000/07/10 19:11:37 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
+#include <limits.h>
 
 extern int h_errno;
+
+#include <isc/app.h>
+#include <isc/commandline.h>
+#include <isc/string.h>
+#include <isc/util.h>
+#include <isc/task.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
-#include <isc/app.h>
-#include <isc/commandline.h>
-#include <isc/string.h>
-#include <isc/util.h>
 
 #include <dig/dig.h>
 
@@ -50,8 +53,12 @@ extern int ndots;
 extern int tries;
 extern int lookup_counter;
 extern int exitcode;
+extern isc_taskmgr_t *taskmgr;
+extern char *progname;
+extern isc_task_t *global_task;
 
-isc_boolean_t short_form = ISC_TRUE,
+isc_boolean_t 
+	short_form = ISC_TRUE,
 	filter = ISC_FALSE,
 	showallsoa = ISC_FALSE,
 	tcpmode = ISC_FALSE;
@@ -203,7 +210,7 @@ static const char *rtypetext[] = {
 
 static void
 show_usage(void) {
-	fputs (
+	fputs(
 "Usage: host [-aCdlrTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
@@ -219,11 +226,12 @@ show_usage(void) {
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n", stderr);
-	exit (exitcode);
+	exit(exitcode);
 }				
 
 void
 dighost_shutdown(void) {
+	free_lists();
 	isc_app_shutdown();
 }
 
@@ -235,7 +243,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 
 	if ((!short_form) || (show_details)) {
 		result = isc_time_now(&now);
-		check_result (result, "isc_time_now");
+		check_result(result, "isc_time_now");
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf("Received %u bytes from %.*s in %d ms\n",
 		       bytes, frmsize, frm, diff/1000);
@@ -244,7 +252,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup) {
-	UNUSED (lookup);
+	UNUSED(lookup);
 
 	if (!short_form)
 		printf ("Trying \"%.*s\"\n", frmsize, frm);
@@ -259,9 +267,9 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	isc_result_t result;
 
 	result = isc_buffer_allocate(mctx, &b, BUFSIZE);
-	check_result (result, "isc_buffer_allocate");
+	check_result(result, "isc_buffer_allocate");
 	result = isc_buffer_allocate(mctx, &b2, BUFSIZE);
-	check_result (result, "isc_buffer_allocate");
+	check_result(result, "isc_buffer_allocate");
 	result = dns_name_totext(name, ISC_FALSE, b);
 	check_result(result, "dns_name_totext");
 	isc_buffer_usedregion(b, &r);
@@ -411,7 +419,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_buffer_t *b = NULL;
 	isc_region_t r;
 
-	UNUSED (headers);
+	UNUSED(headers);
 
 	/*
 	 * Exitcode 9 means we timed out, but if we're printing a message,
@@ -423,15 +431,15 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
-		check_result (result, "isc_buffer_allocate");
+		check_result(result, "isc_buffer_allocate");
 		result = dns_name_totext(query->lookup->name, ISC_FALSE,
 					 b);
-		check_result (result, "dns_name_totext");
-		isc_buffer_usedregion (b, &r);
-		printf ("Host %.*s not found: %d(%s)\n",
-			(int)r.length, (char *)r.base,
-			msg->rcode, rcodetext[msg->rcode]);
-		isc_buffer_free (&b);
+		check_result(result, "dns_name_totext");
+		isc_buffer_usedregion(b, &r);
+		printf("Host %.*s not found: %d(%s)\n",
+		       (int)r.length, (char *)r.base,
+		       msg->rcode, rcodetext[msg->rcode]);
+		isc_buffer_free(&b);
 		return (ISC_R_SUCCESS);
 	}
 	if (!short_form) {
@@ -484,7 +492,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			printf(";; PSEUDOSECTIONS: TSIG\n");
 	}
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION]) &&
-	    !short_form ) {
+	    !short_form) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION",
 				      ISC_TRUE, query);
@@ -500,7 +508,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			return (result);
 	}
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&
-	    !short_form ) {
+	    !short_form) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY",
 				      ISC_TRUE, query);
@@ -508,7 +516,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			return (result);
 	}
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL]) &&
-	    !short_form ) {
+	    !short_form) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_ADDITIONAL,
 				      "ADDITIONAL", ISC_TRUE, query);
@@ -567,9 +575,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			short_form = ISC_FALSE;
 			break;
 		case 'w':
-			/* XXXMWS This should be a system-indep.
-			 * thing! */
-			timeout = 32767;
+			/*
+			 * The timer routines are coded such that
+			 * timeout==MAXINT doesn't enable the timer
+			 */
+			timeout = INT_MAX;
 			break;
 		case 'W':
 			timeout = atoi(isc_commandline_argument);
@@ -585,17 +595,17 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			tcpmode = ISC_TRUE;
 			break;
 		case 'C':
-			debug ("Showing all SOA's");
+			debug("showing all SOAs");
 			if (querytype[0] == 0)
-				strcpy (querytype, "soa");
+				strcpy(querytype, "soa");
 			if (queryclass[0] == 0)
-				strcpy (queryclass, "in");
+				strcpy(queryclass, "in");
 			showallsoa = ISC_TRUE;
 			show_details = ISC_TRUE;
 			break;
 		case 'N':
-			debug ("Setting NDOTS to %s", 
-			       isc_commandline_argument);
+			debug("setting NDOTS to %s", 
+			      isc_commandline_argument);
 			ndots = atoi(isc_commandline_argument);
 			break;
 		case 'D':
@@ -606,22 +616,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (isc_commandline_index >= argc) {
 		show_usage();
 	}
-	strncpy (hostname, argv[isc_commandline_index], MXNAME);
-	if (argc > isc_commandline_index+1) {
-			srv = isc_mem_allocate(mctx,
-					       sizeof(struct dig_server));
-			if (srv == NULL)
-				fatal ("Memory allocation failure.");
-			strncpy(srv->servername,
-				argv[isc_commandline_index+1], MXNAME-1);
-			debug("Server is %s", srv->servername);
-			ISC_LIST_APPEND(server_list, srv, link);
+	strncpy(hostname, argv[isc_commandline_index], MXNAME);
+	if (argc > isc_commandline_index + 1) {
+		srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
+		if (srv == NULL)
+			fatal("Memory allocation failure.");
+		strncpy(srv->servername,
+			argv[isc_commandline_index+1], MXNAME-1);
+		debug("server is %s", srv->servername);
+		ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
-	lookup = isc_mem_allocate (mctx, 
-				   sizeof(struct dig_lookup));
+	lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 	if (lookup == NULL)	
-		fatal ("Memory allocation failure.");
+		fatal("Memory allocation failure.");
 	lookup->pending = ISC_FALSE;
 	/* 
 	 * XXXMWS Add IPv6 translation here, probably using inet_pton
@@ -633,7 +641,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				   &adrs[2], &adrs[3]);
 		if (n == 0) {
 			show_usage();
-			exit (exitcode);
+			exit(exitcode);
 		}
 		for (i = n - 1; i >= 0; i--) {
 			snprintf(store, MXNAME/8, "%d.",
@@ -642,15 +650,16 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		}
 		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
 		if (querytype[0] == 0)
-			strcpy (querytype, "ptr");
-	} else
-		strncpy (lookup->textname, hostname, MXNAME);
+			strcpy(querytype, "ptr");
+	} else {
+		strncpy(lookup->textname, hostname, MXNAME);
+	}
 	if (querytype[0] == 0)
-		strcpy (querytype, "a");
+		strcpy(querytype, "a");
 	if (queryclass[0] == 0)
-		strcpy (queryclass, "in");
-	strncpy (lookup->rttext, querytype, 32);
-	strncpy (lookup->rctext, queryclass, 32);
+		strcpy(queryclass, "in");
+	strncpy(lookup->rttext, querytype, 32);
+	strncpy(lookup->rctext, queryclass, 32);
 	lookup->namespace[0] = 0;
 	lookup->sendspace[0] = 0;
 	lookup->sendmsg = NULL;
@@ -685,17 +694,36 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
+	isc_result_t result;
+
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
-	debug ("dhmain()");
+	debug("main()");
+	progname = argv[0];
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
-	start_lookup();
+	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
+	check_result(result, "isc_app_onrun");
 	isc_app_run();
-	free_lists(0);
+	/*
+	 * XXXMWS This code should really NOT be bypassed.  However,
+	 * until the proper code can be added to handle SIGTERM/INT
+	 * correctly, just exit out "hard" and deal as best we can.
+	 */
+#if 0
+	if (taskmgr != NULL) {
+		debug("freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
+	isc_app_finish();
+	if (mctx != NULL)
+		isc_mem_destroy(&mctx);	
+#endif
 	return (0);
 }
 

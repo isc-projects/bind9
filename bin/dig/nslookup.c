@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20 2000/06/21 17:48:30 mws Exp $ */
+/* $Id: nslookup.c,v 1.20.2.1 2000/07/10 19:11:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@ extern int h_errno;
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/task.h>
 
 #include <dig/dig.h>
 
@@ -57,6 +58,8 @@ extern int tries;
 extern int lookup_counter;
 extern char fixeddomain[MXNAME];
 extern int exitcode;
+extern isc_taskmgr_t *taskmgr;
+extern char *progname;
 
 isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
 	filter = ISC_FALSE, showallsoa = ISC_FALSE,
@@ -150,8 +153,11 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
+
+	debug ("dighost_dhutdown()");
 	isc_mutex_lock(&lock);
 	busy = ISC_FALSE;
+	debug ("signalling out");
 	isc_condition_signal(&cond);
 	isc_mutex_unlock(&lock);
 
@@ -346,7 +352,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 
 	UNUSED (query);
 
-	debug("printsection()");
+	debug("detailsection()");
 
 	/*
 	 * Exitcode 9 means we timed out, but if we're printing a message,
@@ -499,10 +505,10 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		       (int)r.length, (char*)r.base,
 		       rcodetext[msg->rcode]);
 		isc_buffer_free(&b);
-		debug ("Returning with rcode == 0");
+		debug ("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
-	debug ("Continuing on with rcode != 0");
+	debug ("continuing on with rcode != 0");
 	result = isc_buffer_allocate(mctx, &b, MXNAME);
 	check_result(result, "isc_buffer_allocate");
 	printf("Server:\t\t%s\n", query->servname);
@@ -680,7 +686,7 @@ addlookup(char *opt) {
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
-	debug("Looking up %s", lookup->textname);
+	debug("looking up %s", lookup->textname);
 }
 
 static void
@@ -747,7 +753,7 @@ parse_args(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
-		debug ("Main parsing %s", argv[0]);
+		debug ("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
 			if ((argv[0][1] == 'h') &&
 			    (argv[0][2] == 0)) {
@@ -826,6 +832,7 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	setup_libs();
+	progname = argv[0];
 	result = isc_mutex_init(&lock);
 	check_result(result, "isc_mutex_init");
 	result = isc_condition_init(&cond);
@@ -866,15 +873,25 @@ main(int argc, char **argv) {
 				result = isc_condition_wait(&cond, &lock);
 				check_result(result, "isc_condition_wait");
 			}
+			debug ("out of the condition wait");
 			flush_lookup_list();
 		}
 	}
 
 	puts ("");
-	debug ("Fell through app_run");
-	free_lists(0);
+	debug ("done, and starting to shut down");
+	free_lists();
 	isc_mutex_destroy(&lock);
 	isc_condition_destroy(&cond);
+	if (taskmgr != NULL) {
+		debug ("freeing taskmgr");
+		isc_taskmgr_destroy(&taskmgr);
+        }
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
+	isc_app_finish();
+	if (mctx != NULL)
+		isc_mem_destroy(&mctx);	
 	
 	return (0);
 }
