@@ -227,5 +227,11 @@ created with different file permissions than they did in BIND 8.  If
 necessary, the umask should be set explicitly in the script used to
 start the named process.
 
+8. Nsupdate
 
-$Id: migration,v 1.37 2001/06/28 23:28:34 gson Exp $
+The BIND 8 implementation had a undocumented feature where a update
+request would be broken down into multiple requests based upon the
+discovered zones that contained the records.  This behaviour has
+not been implemented in BIND 9.
+
+$Id: migration,v 1.38 2001/09/21 01:15:16 marka Exp $
