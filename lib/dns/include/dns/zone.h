@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.10 2003/08/27 02:13:50 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.11 2003/10/14 03:48:08 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -436,7 +436,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
  * Require:
  *	'zone' to be a valid zone.
  *	'notify' to be non-NULL if count != 0.
- *	'count' to be the number of notifyees
+ *	'count' to be the number of notifyees.
  *
  * Returns:
  *	ISC_R_SUCCESS
@@ -1373,14 +1373,6 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
 void
 dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
 	ISC_FORMAT_PRINTF(3, 4);
-/*
- * Log the message 'msg...' at 'level', including text that identifies
- * the message as applying to 'zone'.
- */
-
-void
-dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category, int level,
-	      const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
 /*
  * Log the message 'msg...' at 'level', including text that identifies
  * the message as applying to 'zone'.

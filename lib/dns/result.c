@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.5 2003/08/20 05:33:16 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.6 2003/10/14 03:48:03 marka Exp $ */
 
 #include <config.h>
 
@@ -123,8 +123,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unknown protocol",		       /* 75 DNS_R_UNKNOWNPROTO	     */
 	"clocks are unsynchronized",	       /* 76 DNS_R_CLOCKSKEW	     */
 	"IXFR failed",			       /* 77 DNS_R_BADIXFR	     */
-	"<unused 78>",			       /* 78 unused		     */
-	"no valid KEY",			       /* 79 DNS_R_NOVALIDKEY	     */
+	"not authoritative",		       /* 78 DNS_R_NOTAUTHORITATIVE  */
+	"no valid KEY",		       	       /* 79 DNS_R_NOVALIDKEY	     */
 
 	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
 	"already frozen",		       /* 81 DNS_R_FROZEN	     */
@@ -140,9 +140,9 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"unexpected OPCODE",		       /* 90 DNS_R_UNEXPECTEDOPCODE  */
 	"<unused 91>",
-	"empty name",				/* 92 DNS_R_EMPTYNAME	     */
-	"empty wild",				/* 93 DNS_R_EMPTYWILD	     */
-	"bad bitmap"				/* 94 DNS_R_BADBITMAP	     */
+	"empty name",			       /* 92 DNS_R_EMPTYNAME	     */
+	"empty wild",			       /* 93 DNS_R_EMPTYWILD	     */
+	"bad bitmap"			       /* 94 DNS_R_BADBITMAP	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

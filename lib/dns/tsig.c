@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.3.8.1 2003/08/11 05:28:17 marka Exp $
+ * $Id: tsig.c,v 1.112.2.3.8.2 2003/10/14 03:48:03 marka Exp $
  */
 
 #include <config.h>
@@ -79,7 +79,7 @@ static dns_name_t gsstsig = {
 	{NULL, NULL}
 };
 
-dns_name_t *dns_tsig_gssapi_name = &gsstsig;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
 /* It's nice of Microsoft to conform to their own standard. */
 static unsigned char gsstsigms_ndata[] = "\003gss\011microsoft\003com";
@@ -94,7 +94,7 @@ static dns_name_t gsstsigms = {
 	{NULL, NULL}
 };
 
-dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);

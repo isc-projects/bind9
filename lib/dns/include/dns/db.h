@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.67.12.2 2003/10/03 04:04:03 marka Exp $ */
+/* $Id: db.h,v 1.67.12.3 2003/10/14 03:48:06 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -186,7 +186,7 @@ struct dns_db {
 #define DNS_DBFIND_NOWILD		0x04
 #define DNS_DBFIND_PENDINGOK		0x08
 #define DNS_DBFIND_NOEXACT		0x10
-#define DNS_DBFIND_INDICATEWILD		0x40
+#define DNS_DBFIND_FORCENXT		0x20
 
 /*
  * Options that can be specified for dns_db_addrdataset().
@@ -288,7 +288,7 @@ dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp);
  * Causes 'eventp' to be sent to be sent to 'task' when the database is
  * destroyed.
  *
- * Note; ownrship of the eventp is taken from the caller (and *eventp is
+ * Note; ownership of the eventp is taken from the caller (and *eventp is
  * set to NULL). The sender field of the event is set to 'db' before it is
  * sent to the task.
  */
@@ -641,6 +641,11 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	If the DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
  *
+ *	If the DNS_DBFIND_FORCENNXT option is set, the database is assumed to
+ *	have NSEC records, and these will be returned when appropriate.  This
+ *	is only necessary when querying a database that was not secure
+ *	when created.
+ *
  *	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.
  *
@@ -760,6 +765,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						cache node with the desired
  *						name, and 'rdataset' contains
  *						the negative caching proof.
+ *
+ *		DNS_R_EMPTYNAME			The name exists but there is
+ *						no data at the name. 
  *
  *	Error results:
  *

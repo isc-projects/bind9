@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.51.2.3 2003/07/30 01:04:15 marka Exp $ */
+/* $Id: rdata.h,v 1.51.2.3.2.1 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -602,6 +602,17 @@ dns_rdatatype_notquestion(dns_rdatatype_t type);
  *
  */
 
+isc_boolean_t
+dns_rdatatype_atparent(dns_rdatatype_t type);
+/*
+ * Return true iff rdata of type 'type' should appear at the parent of
+ * a zone cut.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
 unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 /*
@@ -632,6 +643,8 @@ dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 #define DNS_RDATATYPEATTR_QUESTIONONLY		0x00000080U
 /* is META, and can NOT be in a question section */
 #define DNS_RDATATYPEATTR_NOTQUESTION		0x00000100U
+/* Is present at zone cuts in the parent, not the child */
+#define DNS_RDATATYPEATTR_ATPARENT		0x00000200U
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata);

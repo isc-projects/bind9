@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.10 2003/10/10 00:37:32 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.11 2003/10/14 03:47:58 marka Exp $ */
 
 /*
  * Implementation notes
@@ -287,6 +287,7 @@ static void print_namehook_list(FILE *, const char *legend,
 static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline isc_boolean_t dec_adb_irefcnt(dns_adb_t *);
+static inline void inc_adb_irefcnt(dns_adb_t *);
 static inline void inc_adb_erefcnt(dns_adb_t *);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
@@ -2830,7 +2831,6 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
 		print_dns_name(f, &zi->zone);
 		fprintf(f, " [lame TTL %d]\n", zi->lame_timer - now);
 	}
-	fprintf(f, "\n");
 }
 
 void
@@ -3518,7 +3518,9 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
 		nextname = ISC_LIST_NEXT(adbname, plink);
 		if (!NAME_DEAD(adbname) &&
 		    dns_name_equal(name, &adbname->name)) {
-			kill_name(&adbname, DNS_EVENT_ADBCANCELED);
+			RUNTIME_CHECK(kill_name(&adbname,
+						DNS_EVENT_ADBCANCELED) ==
+				      ISC_FALSE);
 		}
 		adbname = nextname;
 	}

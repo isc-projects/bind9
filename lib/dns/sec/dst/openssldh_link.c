@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.38.2.2.8.3 2003/08/14 04:08:24 marka Exp $
+ * $Id: openssldh_link.c,v 1.38.2.2.8.4 2003/10/14 03:48:10 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -49,9 +49,19 @@
 	"5F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406" \
 	"B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381FFFFFFFFFFFFFFFF"
 
+#define PRIME1536 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1" \
+	"29024E088A67CC74020BBEA63B139B22514A08798E3404DD" \
+	"EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245" \
+	"E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" \
+	"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D" \
+	"C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" \
+	"83655D23DCA3AD961C62F356208552BB9ED529077096966D" \
+	"670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF"
+
+
 static isc_result_t openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
 
-static BIGNUM bn2, bn768, bn1024;
+static BIGNUM bn2, bn768, bn1024, bn1536;
 
 static isc_result_t
 openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
@@ -134,14 +144,19 @@ openssldh_generate(dst_key_t *key, int generator) {
 	DH *dh = NULL;
 
 	if (generator == 0) {
-		if (key->key_size == 768 || key->key_size == 1024) {
+		if (key->key_size == 768 ||
+		    key->key_size == 1024 ||
+		    key->key_size == 1536)
+		{
 			dh = DH_new();
 			if (dh == NULL)
 				return (ISC_R_NOMEMORY);
 			if (key->key_size == 768)
 				dh->p = &bn768;
-			else
+			else if (key->key_size == 1024)
 				dh->p = &bn1024;
+			else
+				dh->p = &bn1536;
 			dh->g = &bn2;
 		}
 		else
@@ -179,7 +194,7 @@ openssldh_destroy(dst_key_t *key) {
 	if (dh == NULL)
 		return;
 
-	if (dh->p == &bn768 || dh->p == &bn1024)
+	if (dh->p == &bn768 || dh->p == &bn1024 || dh->p == &bn1536)
 		dh->p = NULL;
 	if (dh->g == &bn2)
 		dh->g = NULL;
@@ -217,7 +232,8 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_availableregion(data, &r);
 
-	if (dh->g == &bn2 && (dh->p == &bn768 || dh->p == &bn1024)) {
+	if (dh->g == &bn2 &&
+	    (dh->p == &bn768 || dh->p == &bn1024 || dh->p == &bn1536)) {
 		plen = 1;
 		glen = 0;
 	}
@@ -234,8 +250,10 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 	if (plen == 1) {
 		if (dh->p == &bn768)
 			*r.base = 1;
-		else
+		else if (dh->p == &bn1024)
 			*r.base = 2;
+		else
+			*r.base = 3;
 	}
 	else
 		BN_bn2bin(dh->p, r.base);
@@ -299,6 +317,9 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 				break;
 			case 2:
 				dh->p = &bn1024;
+				break;
+			case 3:
+				dh->p = &bn1536;
 				break;
 			default:
 				DH_free(dh);
@@ -475,7 +496,9 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
 
 	key->key_size = BN_num_bits(dh->p);
 
-	if ((key->key_size == 768 || key->key_size == 1024) &&
+	if ((key->key_size == 768 ||
+	     key->key_size == 1024 ||
+	     key->key_size == 1536) &&
 	    BN_cmp(dh->g, &bn2) == 0)
 	{
 		if (key->key_size == 768 && BN_cmp(dh->p, &bn768) == 0) {
@@ -488,6 +511,12 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
 			BN_free(dh->p);
 			BN_free(dh->g);
 			dh->p = &bn1024;
+			dh->g = &bn2;
+		} else if (key->key_size == 1536 &&
+			   BN_cmp(dh->p, &bn1536) == 0) {
+			BN_free(dh->p);
+			BN_free(dh->g);
+			dh->p = &bn1536;
 			dh->g = &bn2;
 		}
 	}
@@ -527,11 +556,12 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	RUNTIME_CHECK(out != NULL);
 }
 
-void
+static void
 openssldh_cleanup(void) {
 	BN_free(&bn2);
 	BN_free(&bn768);
 	BN_free(&bn1024);
+	BN_free(&bn1536);
 }
 
 static dst_func_t openssldh_functions = {
@@ -555,15 +585,25 @@ static dst_func_t openssldh_functions = {
 
 isc_result_t
 dst__openssldh_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	BN_init(&bn2);
-	BN_init(&bn768);
-	BN_init(&bn1024);
-	BN_set_word(&bn2, 2);
-	BN_fromhex(&bn768, PRIME768);
-	BN_fromhex(&bn1024, PRIME1024);
-	*funcp = &openssldh_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL) {
+		BN_init(&bn2);
+		BN_init(&bn768);
+		BN_init(&bn1024);
+		BN_init(&bn1536);
+		BN_set_word(&bn2, 2);
+		BN_fromhex(&bn768, PRIME768);
+		BN_fromhex(&bn1024, PRIME1024);
+		BN_fromhex(&bn1536, PRIME1536);
+		*funcp = &openssldh_functions;
+	}
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

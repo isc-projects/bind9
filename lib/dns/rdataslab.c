@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.29.2.2.2.2 2003/08/13 06:22:14 marka Exp $ */
+/* $Id: rdataslab.c,v 1.29.2.2.2.3 2003/10/14 03:48:03 marka Exp $ */
 
 #include <config.h>
 
@@ -186,7 +186,7 @@ rdataset_next(dns_rdataset_t *rdataset) {
 	unsigned int length;
 	unsigned char *raw;
 
-	count = (unsigned int)rdataset->privateuint4;
+	count = rdataset->privateuint4;
 	if (count == 0)
 		return (ISC_R_NOMORE);
 	count--;

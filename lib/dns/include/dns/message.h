@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100.2.3.8.4 2003/08/14 05:56:09 marka Exp $ */
+/* $Id: message.h,v 1.100.2.3.8.5 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -222,14 +222,14 @@ struct dns_message {
 
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
-	dns_name_t		       *tsigname;
+	dns_name_t		       *tsigname; /* Owner name of TSIG, if any */
 	dns_rdataset_t		       *querytsig;
 	dns_tsigkey_t		       *tsigkey;
 	dst_context_t		       *tsigctx;
 	int				sigstart;
 	int				timeadjust;
 
-	dns_name_t		       *sig0name;
+	dns_name_t		       *sig0name; /* Owner name of SIG0, if any */
 	dst_key_t		       *sig0key;
 	dns_rcode_t			sig0status;
 	isc_region_t			query;
@@ -628,7 +628,7 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *
  * Returns:
  *	ISC_R_SUCCESS		-- All is well.
- *	ISC_R_NOMORE		-- No names in given section.
+ *	ISC_R_NOMORE		-- No more names in given section.
  */
 
 void
@@ -741,7 +741,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  *
  *	'msg' be valid, and be a renderable message.
  *
- *	'name' be a valid name.
+ *	'name' be a valid absolute name.
  *
  *	'section' be a named section.
  */
@@ -1190,7 +1190,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  *	DNS_R_SIGINVALID	- the message was signed by a SIG(0), but
  *				  the signature failed to verify
  *
- *	DNS_R_SIGNOTVERIFIEDYET	- the message was signed by a TSIG or SIG(0),
+ *	DNS_R_NOTVERIFIEDYET	- the message was signed by a TSIG or SIG(0),
  *				  but the signature has not been verified yet
  */
 

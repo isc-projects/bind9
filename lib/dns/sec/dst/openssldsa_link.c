@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.4.2.1.8.3 2003/08/14 04:08:24 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.4.2.1.8.4 2003/10/14 03:48:10 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -429,9 +429,16 @@ static dst_func_t openssldsa_functions = {
 
 isc_result_t
 dst__openssldsa_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	*funcp = &openssldsa_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL)
+		*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

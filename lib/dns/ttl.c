@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.21.12.2 2003/09/11 00:18:07 marka Exp $ */
+/* $Id: ttl.c,v 1.21.12.3 2003/10/14 03:48:04 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -156,18 +157,17 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	 * No legal counter / ttl is longer that 63 characters.
 	 */
 	if (source->length > sizeof(buf) - 1)
-		return(DNS_R_SYNTAX);
+		return (DNS_R_SYNTAX);
 	strncpy(buf, source->base, source->length);
 	buf[source->length] = '\0';
 	s = buf;
 
 	do {
 		isc_result_t result;
-		char *np = nbuf;
 
-		while (*s != '\0' && isdigit((unsigned char)*s)) {
+		char *np = nbuf;
+		while (*s != '\0' && isdigit((unsigned char)*s))
 			*np++ = *s++;
-		}
 		*np++ = '\0';
 		INSIST(np - nbuf <= (int)sizeof(nbuf));
 		result = isc_parse_uint32(&n, nbuf, 10);
@@ -208,7 +208,7 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 		default:
 			return (DNS_R_SYNTAX);
 		}
-	} while (*s != 0);
+	} while (*s != '\0');
 	*ttl = tmp;
 	return (ISC_R_SUCCESS);
 }

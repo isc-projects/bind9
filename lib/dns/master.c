@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.9 2003/09/02 01:11:37 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.10 2003/10/14 03:48:00 marka Exp $ */
 
 #include <config.h>
 
@@ -374,9 +374,9 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 		incctx_destroy(lctx->mctx, lctx->inc);
 
 	/* isc_lex_destroy() will close all open streams */
-	if (lctx->lex != NULL && !lctx->keep_lex) {
+	if (lctx->lex != NULL && !lctx->keep_lex)
 		isc_lex_destroy(&lctx->lex);
-	}
+
 	if (lctx->task != NULL)
 		isc_task_detach(&lctx->task);
 	DESTROYLOCK(&lctx->lock);
@@ -966,7 +966,9 @@ load(dns_loadctx_t *lctx) {
 			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$INCLUDE") == 0) {
 				COMMITALL;
-				if ((lctx->options & DNS_MASTER_NOINCLUDE) != 0) {
+				if ((lctx->options & DNS_MASTER_NOINCLUDE)
+				    != 0)
+				{
 					(callbacks->error)(callbacks,
 					   "%s: %s:%lu: $INCLUDE not allowed",
 					   "dns_master_load",
@@ -1465,6 +1467,7 @@ load(dns_loadctx_t *lctx) {
 		 * master files.
 		 */
 		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
 		    (type == dns_rdatatype_md || type == dns_rdatatype_mf)) {
 			char typename[DNS_RDATATYPE_FORMATSIZE];
 

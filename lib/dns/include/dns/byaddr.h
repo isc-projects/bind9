@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.12.2.1.2.1 2003/08/20 05:33:17 marka Exp $ */
+/* $Id: byaddr.h,v 1.12.2.1.2.2 2003/10/14 03:48:06 marka Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
@@ -83,8 +83,7 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
  *
  * Notes:
  *
- *	The is a reverse lookup format for IPv6 addresses is 'nibble'
- *	IP6.ARPA.  The (now) expermental 'bitstring' is no-longer supported.
+ *	There is a reverse lookup format for IPv6 addresses, 'nibble'
  *
  *	The 'nibble' format for that address is
  *

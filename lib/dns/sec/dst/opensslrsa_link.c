@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12.2.4.2.3 2003/08/14 04:08:24 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.4.2.4 2003/10/14 03:48:11 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -39,6 +39,41 @@
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
+
+	/*
+	 * XXXMPA  Temporarially disable RSA_BLINDING as it requires
+	 * good quality random data that cannot currently be guarenteed.
+	 * XXXMPA  Find which versions of openssl use pseudo random data
+	 * and set RSA_FLAG_BLINDING for those.
+	 */
+
+#if 0
+#if OPENSSL_VERSION_NUMBER < 0x0090601fL
+#define SET_FLAGS(rsa) \
+	do { \
+	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
+	(rsa)->flags |= RSA_FLAG_BLINDING; \
+	} while (0)
+#else
+#define SET_FLAGS(rsa) \
+	do { \
+		(rsa)->flags |= RSA_FLAG_BLINDING; \
+	} while (0)
+#endif
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x0090601fL
+#define SET_FLAGS(rsa) \
+	do { \
+	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
+	(rsa)->flags &= ~RSA_FLAG_BLINDING; \
+	} while (0)
+#else
+#define SET_FLAGS(rsa) \
+	do { \
+		(rsa)->flags &= ~RSA_FLAG_BLINDING; \
+	} while (0)
+#endif
 
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -110,10 +145,14 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t r;
 	/* note: ISC_SHA1_DIGESTLENGTH > ISC_MD5_DIGESTLENGTH */
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	unsigned int siglen;
+	unsigned int siglen = 0;
 	int status;
 	int type;
 	unsigned int digestlen;
+	char *message;
+	unsigned long err;
+	const char* file;
+	int line;
 
 	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
 		dctx->key->key_alg == DST_ALG_RSASHA1);
@@ -222,10 +261,9 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	else
 		e = RSA_F4;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
-
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
-	rsa->flags |= RSA_FLAG_BLINDING;
-
+	if (rsa == NULL)
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	SET_FLAGS(rsa);
 	key->opaque = rsa;
 
 	return (ISC_R_SUCCESS);
@@ -298,8 +336,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
-	rsa->flags |= RSA_FLAG_BLINDING;
+	SET_FLAGS(rsa);
 
 	if (r.length < 1) {
 		RSA_free(rsa);
@@ -437,8 +474,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
-	rsa->flags |= RSA_FLAG_BLINDING;
+	SET_FLAGS(rsa);
 	key->opaque = rsa;
 
 	for (i = 0; i < priv.nelements; i++) {
@@ -509,9 +545,16 @@ static dst_func_t opensslrsa_functions = {
 
 isc_result_t
 dst__opensslrsa_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL && *funcp == NULL);
-	*funcp = &opensslrsa_functions;
+	REQUIRE(funcp != NULL);
+	if (*funcp == NULL)
+		*funcp = &opensslrsa_functions;
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

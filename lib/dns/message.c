@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.11 2003/09/24 03:47:14 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.12 2003/10/14 03:48:00 marka Exp $ */
 
 /***
  *** Imports
@@ -1462,8 +1462,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
 			free_name = ISC_FALSE;
-		}
-		else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
+		} else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
 			msg->tsig = rdataset;
 			msg->tsigname = name;
 			rdataset = NULL;
@@ -2474,15 +2473,16 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->state == DNS_SECTION_ANY);
-	REQUIRE(msg->tsigkey == NULL && msg->sig0key == NULL);
 
 	if (key != NULL) {
+		REQUIRE(msg->tsigkey == NULL && msg->sig0key == NULL);
 		dns_tsigkey_attach(key, &msg->tsigkey);
 		if (msg->from_to_wire == DNS_MESSAGE_INTENTRENDER) {
 			msg->sig_reserved = spacefortsig(msg->tsigkey, 0);
 			result = dns_message_renderreserve(msg,
 							   msg->sig_reserved);
 			if (result != ISC_R_SUCCESS) {
+				dns_tsigkey_detach(&msg->tsigkey);
 				msg->sig_reserved = 0;
 				return (result);
 			}
@@ -2640,10 +2640,9 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
-	REQUIRE(msg->sig0key == NULL && msg->tsigkey == NULL);
 
-	msg->sig0key = key;
 	if (key != NULL) {
+		REQUIRE(msg->sig0key == NULL && msg->tsigkey == NULL);
 		dns_name_toregion(dst_key_name(key), &r);
 		result = dst_key_sigsize(key, &x);
 		if (result != ISC_R_SUCCESS) {
@@ -2656,6 +2655,7 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 			msg->sig_reserved = 0;
 			return (result);
 		}
+		msg->sig0key = key;
 	}
 	return (ISC_R_SUCCESS);
 }

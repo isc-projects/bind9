@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.4 2003/08/27 07:22:34 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.5 2003/10/14 03:48:00 marka Exp $ */
 
 #include <config.h>
 
@@ -161,7 +161,7 @@ static dns_name_t root =
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_rootname = &root;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_rootname = &root;
 
 static unsigned char wild_ndata[] = { '\001', '*' };
 static unsigned char wild_offsets[] = { 0 };
@@ -177,7 +177,7 @@ static dns_name_t wild =
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_wildcardname = &wild;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_wildcardname = &wild;
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,
@@ -293,20 +293,13 @@ dns_name_requiresedns(const dns_name_t *name) {
 	return (ISC_FALSE);
 }
 
-unsigned int
-dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+static inline unsigned int
+name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned char c;
 
-	/*
-	 * Provide a hash value for 'name'.
-	 */
-	REQUIRE(VALID_NAME(name));
-
-	if (name->labels == 0)
-		return (0);
 	length = name->length;
 	if (length > 16)
 		length = 16;
@@ -335,6 +328,19 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 }
 
 unsigned int
+dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+
+	return (name_hash(name, case_sensitive));
+}
+
+unsigned int
 dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	/*
 	 * Provide a hash value for 'name'.
@@ -346,6 +352,40 @@ dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 
 	return (isc_hash_calc((const unsigned char *)name->ndata,
 			      name->length, case_sensitive));
+}
+
+unsigned int
+dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive) {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+	dns_name_t tname;
+	unsigned int h = 0;
+	unsigned int i;
+
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+	else if (name->labels == 1)
+		return (name_hash(name, case_sensitive));
+
+	SETUP_OFFSETS(name, offsets, odata);
+	DNS_NAME_INIT(&tname, NULL);
+	tname.labels = 1;
+	h = 0;
+	for (i = 0; i < name->labels; i++) {
+		tname.ndata = name->ndata + offsets[i];
+		if (i == name->labels - 1)
+			tname.length = name->length - offsets[i];
+		else
+			tname.length = offsets[i + 1] - offsets[i];
+		h += name_hash(&tname, case_sensitive);
+	}
+
+	return (h);
 }
 
 dns_namereln_t
@@ -2090,8 +2130,7 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 
 isc_result_t
 dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
-	unsigned char *ndata, *offsets;
-	dns_offsets_t odata;
+	unsigned char *ndata;
 
 	/*
 	 * Make dest a copy of source.
@@ -2128,8 +2167,10 @@ dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
 		dest->attributes = 0;
 
 	if (dest->labels > 0 && dest->offsets != NULL) {
-		INIT_OFFSETS(dest, offsets, odata);
-		set_offsets(dest, offsets, NULL);
+		if (source->offsets != NULL)
+			memcpy(dest->offsets, source->offsets, source->labels);
+		else
+			set_offsets(dest, dest->offsets, NULL);
 	}
 
 	isc_buffer_add(target, dest->length);

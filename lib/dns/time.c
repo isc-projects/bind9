@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18.2.4.2.3 2003/09/24 03:47:14 marka Exp $ */
+/* $Id: time.c,v 1.18.2.4.2.4 2003/10/14 03:48:03 marka Exp $ */
 
 #include <config.h>
 
@@ -115,7 +115,7 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 }
 
 isc_result_t
-dns_time64_fromtext(char *source, isc_int64_t *target) {
+dns_time64_fromtext(const char *source, isc_int64_t *target) {
 	int year, month, day, hour, minute, second;
 	isc_int64_t value;
 	int secs;
@@ -159,13 +159,13 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 }
 
 isc_result_t
-dns_time32_fromtext(char *source, isc_uint32_t *target) {
+dns_time32_fromtext(const char *source, isc_uint32_t *target) {
 	isc_int64_t value64;
 	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	*target = (isc_uint32_t)value64;
+	*target = value64;
 
 	return (ISC_R_SUCCESS);
 }

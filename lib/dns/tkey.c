@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.71.2.1.10.1 2003/08/11 05:28:17 marka Exp $
+ * $Id: tkey.c,v 1.71.2.1.10.2 2003/10/14 03:48:03 marka Exp $
  */
 
 #include <config.h>
@@ -232,8 +232,7 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 		for (i = 0; i < sizeof(digests); i++)
 			r.base[i] ^= digests[i];
 		isc_buffer_add(secret, r2.length);
-	}
-	else {
+	} else {
 		memcpy(r.base, digests, sizeof(digests));
 		for (i = 0; i < r2.length; i++)
 			r.base[i] ^= r2.base[i];
@@ -309,8 +308,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 					found_key = ISC_TRUE;
 					ttl = keyset->ttl;
 					break;
-				}
-				else
+				} else
 					found_incompatible = ISC_TRUE;
 			}
 			dst_key_free(&pubkey);
@@ -646,8 +644,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			RUNTIME_CHECK(dns_name_copy(qname, keyname, NULL)
 				      == ISC_R_SUCCESS);
 			dns_name_getlabelsequence(keyname, 0, n - 1, keyname);
-		}
-		else {
+		} else {
 			static char hexdigits[16] = {
 				'0', '1', '2', '3', '4', '5', '6', '7',
 				'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
@@ -685,11 +682,9 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			tkeyout.error = dns_tsigerror_badname;
 			dns_tsigkey_detach(&tsigkey);
 			goto failure_with_tkey;
-		}
-		else if (result != ISC_R_NOTFOUND)
+		} else if (result != ISC_R_NOTFOUND)
 			goto failure;
-	}
-	else
+	} else
 		keyname = qname;
 
 	switch (tkeyin.mode) {

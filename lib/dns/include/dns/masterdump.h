@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22.12.3 2003/08/14 06:32:46 marka Exp $ */
+/* $Id: masterdump.h,v 1.22.12.4 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -122,7 +122,7 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t
  * A master style format designed for cache files.  It prints explicit TTL
  * values on each record line and never uses $ORIGIN or relative names.
  */
-extern const dns_master_style_t dns_master_style_cache;
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_cache;
 
 /*
  * A master style that prints name, ttl, class, type, and value on 
@@ -130,7 +130,7 @@ extern const dns_master_style_t dns_master_style_cache;
  * Intended for generating master files which can be easily parsed 
  * by perl scripts and similar applications.
  */
-extern const dns_master_style_t dns_master_style_simple;
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_simple;
 
 /*
  * The style used for debugging, "dig" output, etc.

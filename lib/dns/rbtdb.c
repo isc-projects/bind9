@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.5 2003/10/08 01:22:51 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.6 2003/10/14 03:48:02 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -66,6 +66,13 @@
 
 #ifdef DNS_RBTDB_VERSION64
 typedef isc_uint64_t			rbtdb_serial_t;
+/*
+ * Make casting easier in symbolic debuggers by using different names
+ * for the 64 bit version.
+ */
+#define dns_rbtdb_t dns_rbtdb64_t
+#define rdatasetheader_t rdatasetheader64_t
+#define rbtdb_version_t rbtdb_version64_t
 #else
 typedef isc_uint32_t			rbtdb_serial_t;
 #endif
@@ -100,8 +107,21 @@ typedef struct rdatasetheader {
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
 	 */
+
 	struct rdatasetheader		*next;
+	/*
+	 * If this is the top header for an rdataset, 'next' points
+	 * to the top header for the next rdataset (i.e., the next type).
+	 * Otherwise, it points up to the header whose down pointer points
+	 * at this header.
+	 */
+	  
 	struct rdatasetheader		*down;
+	/*
+	 * Points to the header for the next older version of
+	 * this rdataset.
+	 */
+
 } rdatasetheader_t;
 
 #define RDATASET_ATTR_NONEXISTENT	0x0001
@@ -1363,7 +1383,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	/*
 	 * If we have to set foundname, we do it before anything else.
 	 * If we were to set foundname after we had set nodep or bound the
-	 * rdataset, then we'd have to undo that work if dns_name_concatenate()
+	 * rdataset, then we'd have to undo that work if dns_name_copy()
 	 * failed.  By setting foundname first, there's nothing to undo if
 	 * we have trouble.
 	 */
@@ -1768,7 +1788,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 static inline isc_result_t
 find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset)
+		 dns_rdataset_t *sigrdataset, isc_boolean_t need_sig)
 {
 	dns_rbtnode_t *node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
@@ -1831,7 +1851,9 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 			}
 		}
 		if (!empty_node) {
-			if (found != NULL && foundsig != NULL) {
+			if (found != NULL &&
+			    (foundsig != NULL || !need_sig))
+			{
 				/*
 				 * We've found the right NXT record.
 				 *
@@ -1852,9 +1874,12 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 					bind_rdataset(search->rbtdb, node,
 						      found, search->now,
 						      rdataset);
-					bind_rdataset(search->rbtdb, node,
-						      foundsig, search->now,
-						      sigrdataset);
+					if (foundsig != NULL)
+						bind_rdataset(search->rbtdb,
+							      node,
+							      foundsig,
+							      search->now,
+							      sigrdataset);
 				}
 			} else if (found == NULL && foundsig == NULL) {
 				/*
@@ -1999,9 +2024,12 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
-		if (search.rbtdb->secure) {
+		if (search.rbtdb->secure ||
+		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		{
 			result = find_closest_nxt(&search, nodep, foundname,
-						  rdataset, sigrdataset);
+						  rdataset, sigrdataset,
+						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
 				result = active ? DNS_R_EMPTYNAME :
 						  DNS_R_NXDOMAIN;
@@ -2030,7 +2058,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 */
 		if (node->find_callback &&
 		    (node != search.rbtdb->origin_node ||
-		     IS_STUB(search.rbtdb)))
+		     IS_STUB(search.rbtdb)) &&
+		    !dns_rdatatype_atparent(type))
 			maybe_zonecut = ISC_TRUE;
 	}
 
@@ -2226,22 +2255,37 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				result = DNS_R_BADDB;
 				goto node_exit;
 			}
+			
 			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 			result = find_closest_nxt(&search, nodep, foundname,
-						  rdataset, sigrdataset);
+						  rdataset, sigrdataset,
+						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
 				result = DNS_R_EMPTYWILD;
 			goto tree_exit;
+		}
+		if ((search.options & DNS_DBFIND_FORCENXT) != 0 &&
+		    nxtheader == NULL)
+		{
+			/*
+			 * There's no NXT record, and we were told
+			 * to find one.
+			 */
+			result = DNS_R_BADDB;
+			goto node_exit;
 		}
 		if (nodep != NULL) {
 			new_reference(search.rbtdb, node);
 			*nodep = node;
 		}
-		if (search.rbtdb->secure) {
+		if (search.rbtdb->secure ||
+		    (search.options & DNS_DBFIND_FORCENXT) != 0)
+		{
 			bind_rdataset(search.rbtdb, node, nxtheader,
 				      0, rdataset);
-			bind_rdataset(search.rbtdb, node, nxtsig,
-				      0, sigrdataset);
+			if (nxtsig != NULL)
+				bind_rdataset(search.rbtdb, node,
+					      nxtsig, 0, sigrdataset);
 		}
 		if (wild)
 			foundname->attributes |= DNS_NAMEATTR_WILDCARD;

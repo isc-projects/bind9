@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.3 2003/08/27 07:22:33 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.4 2003/10/14 03:48:00 marka Exp $ */
 
 #include <config.h>
 
@@ -111,7 +111,7 @@ dns_master_style_explicitttl = {
 	24, 32, 32, 40, 80, 8
 };
 
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_cache = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -121,7 +121,7 @@ dns_master_style_cache = {
 	24, 32, 32, 40, 80, 8
 };
 
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_simple = {
 	0,
 	24, 32, 32, 40, 80, 8
@@ -143,8 +143,6 @@ static char spaces[N_SPACES+1] = "          ";
 #define N_TABS 10
 static char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
-#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
-
 struct dns_dumpctx {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
@@ -165,8 +163,10 @@ struct dns_dumpctx {
 	unsigned int		nodes;
 	/* dns_master_dumpinc() */
 	char			*file;
-	char			*tmpfile;
+	char 			*tmpfile;
 };
+
+#define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) 
 
 /*
  * Output tabs and spaces to go from column '*current' to
@@ -1095,6 +1095,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 
 	dns_fixedname_init(&fixname);
 	name = dns_fixedname_name(&fixname);
+
 	if (dctx->first) {
 		/*
 		 * If the database has cache semantics, output an RFC2540
@@ -1128,14 +1129,9 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 				dns_fixedname_name(&dctx->tctx.origin_fixname);
 			result = dns_dbiterator_origin(dctx->dbiter, origin);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_clear(&buffer);
-			result = dns_name_totext(origin, ISC_FALSE, &buffer);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_usedregion(&buffer, &r);
-			fprintf(dctx->f, "$ORIGIN %.*s\n", (int) r.length,
-				(char *) r.base);
 			if ((dctx->tctx.style.flags & DNS_STYLEFLAG_REL_DATA) != 0)
 				dctx->tctx.origin = origin;
+			dctx->tctx.neworigin = origin;
 		}
 		result = dns_db_allrdatasets(dctx->db, node, dctx->version,
 					     dctx->now, &rdsiter);
@@ -1181,6 +1177,7 @@ dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
 
 	result = dumpctx_create(mctx, db, version, style, f, &dctx);
 	if (result != ISC_R_SUCCESS)
+		return (result);
 	isc_task_attach(task, &dctx->task);
 	dctx->done = done;
 	dctx->done_arg = done_arg;

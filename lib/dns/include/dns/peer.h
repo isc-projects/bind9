@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.16.2.1.10.1 2003/08/11 05:28:19 marka Exp $ */
+/* $Id: peer.h,v 1.16.2.1.10.2 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -72,6 +72,7 @@ struct dns_peer {
 	isc_boolean_t		request_ixfr;
 	isc_boolean_t		support_edns;
 	dns_name_t	       *key;
+	isc_sockaddr_t	       *transfer_source;
 
 	isc_uint32_t		bitflags;
 
@@ -164,6 +165,12 @@ dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval);
 
 isc_result_t
 dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
+
+isc_result_t
+dns_peer_settransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
+
+isc_result_t
+dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
 
 ISC_LANG_ENDDECLS
 

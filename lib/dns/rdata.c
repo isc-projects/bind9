@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.10 2003/09/02 01:49:45 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.11 2003/10/14 03:48:02 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -277,6 +277,7 @@ static const char decdigits[] = "0123456789";
 
 #define SECALGNAMES \
 	{ DNS_KEYALG_RSAMD5, "RSAMD5", 0 }, \
+	{ DNS_KEYALG_RSAMD5, "RSA", 0 }, \
 	{ DNS_KEYALG_DH, "DH", 0 }, \
 	{ DNS_KEYALG_DSA, "DSA", 0 }, \
 	{ DNS_KEYALG_ECC, "ECC", 0 }, \
@@ -345,6 +346,7 @@ static struct keyflag {
 	{ "SIG13",  0x000D, 0x000F },
 	{ "SIG14",  0x000E, 0x000F },
 	{ "SIG15",  0x000F, 0x000F },
+	{ "KSK",  DNS_KEYFLAG_KSK, DNS_KEYFLAG_KSK },
 	{ NULL,     0, 0 }
 };
 
@@ -763,7 +765,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
-	char buf[sizeof("65536")];
+	char buf[sizeof("65535")];
 	isc_region_t sr;
 
 	REQUIRE(rdata != NULL);
@@ -1192,7 +1194,7 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	char buf[sizeof("TYPE65536")];
+	char buf[sizeof("TYPE65535")];
 
 	if (type < (sizeof(typeattr)/sizeof(typeattr[0])))
 		return (str_totext(typeattr[type].name, target));
@@ -2040,6 +2042,13 @@ isc_boolean_t
 dns_rdatatype_questiononly(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_QUESTIONONLY)
 	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_rdatatype_atparent(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }

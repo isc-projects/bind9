@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.3 2003/08/27 02:13:48 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.4 2003/10/14 03:48:04 marka Exp $ */
 
 #include <config.h>
 
@@ -73,8 +73,6 @@
  * when the first two (2) response RRs have already been received.
  */
 typedef enum {
-	XFRST_SOAQUERY,
-	XFRST_GOTSOA,
 	XFRST_INITIALSOA,
 	XFRST_FIRSTDATA,
 	XFRST_IXFR_DELSOA,
@@ -422,31 +420,6 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 
  redo:
 	switch (xfr->state) {
-	case XFRST_SOAQUERY:
-		if (rdata->type != dns_rdatatype_soa) {
-			xfrin_log(xfr, ISC_LOG_ERROR,
-				  "non-SOA response to SOA query");
-			FAIL(DNS_R_FORMERR);
-		}
-		xfr->end_serial = dns_soa_getserial(rdata);
-		if (!DNS_SERIAL_GT(xfr->end_serial,
-				   xfr->ixfr.request_serial) &&
-		    !dns_zone_isforced(xfr->zone)) {
-			xfrin_log(xfr, ISC_LOG_DEBUG(3),
-				  "requested serial %u, "
-				  "master has %u, not updating",
-				  xfr->ixfr.request_serial, xfr->end_serial);
-			FAIL(DNS_R_UPTODATE);
-		}
-		xfr->state = XFRST_GOTSOA;
-		break;
-
-	case XFRST_GOTSOA:
-		/*
-		 * Skip other records in the answer section.
-		 */
-		break;
-
 	case XFRST_INITIALSOA:
 		if (rdata->type != dns_rdatatype_soa) {
 			xfrin_log(xfr, ISC_LOG_ERROR,
@@ -538,6 +511,9 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 				goto redo;
 			}
 		}
+		if (rdata->type == dns_rdatatype_ns &&
+		    dns_name_iswildcard(name))
+			FAIL(DNS_R_INVALIDNS);
 		CHECK(ixfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
 		break;
 
@@ -1166,8 +1142,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
  try_axfr:
 		dns_message_destroy(&msg);
 		xfrin_reset(xfr);
-		xfr->reqtype = dns_rdatatype_soa;
-		xfr->state = XFRST_SOAQUERY;
+		xfr->reqtype = dns_rdatatype_axfr;
+		xfr->state = XFRST_INITIALSOA;
 		(void)xfrin_start(xfr);
 		return;
 	}
@@ -1184,6 +1160,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3),
 			  "empty answer section, retrying with AXFR");
 		goto try_axfr;
+	}
+
+	if (xfr->reqtype == dns_rdatatype_soa &&
+	    (msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
+		FAIL(DNS_R_NOTAUTHORITATIVE);
 	}
 
 
@@ -1259,11 +1240,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	dns_message_destroy(&msg);
 
-	if (xfr->state == XFRST_GOTSOA) {
-		xfr->reqtype = dns_rdatatype_axfr;
-		xfr->state = XFRST_INITIALSOA;
-		CHECK(xfrin_send_request(xfr));
-	} else if (xfr->state == XFRST_END) {
+	if (xfr->state == XFRST_END) {
 		/*
 		 * Inform the caller we succeeded.
 		 */

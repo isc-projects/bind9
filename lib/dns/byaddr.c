@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.29.2.1.2.3 2003/09/11 00:18:04 marka Exp $ */
+/* $Id: byaddr.c,v 1.29.2.1.2.4 2003/10/14 03:47:59 marka Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,7 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 	 * We dropped bitstring labels, so all lookups will use nibbles.
 	 */
 	UNUSED(nibble);
-	
+
 	return (dns_byaddr_createptrname2(address,
 					  DNS_BYADDROPT_IPV6INT, name));
 }
@@ -244,7 +244,7 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 
 	dns_fixedname_init(&byaddr->name);
 
-	result = dns_byaddr_createptrname2(address, byaddr->options,
+	result = dns_byaddr_createptrname2(address, options,
 					   dns_fixedname_name(&byaddr->name));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;

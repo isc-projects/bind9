@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.53.12.2 2003/09/11 00:18:10 marka Exp $ */
+/* $Id: soa_6.c,v 1.53.12.3 2003/10/14 03:48:09 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -40,7 +40,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 
-	for (i = 0 ; i < 2 ; i++) {
+	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
 					      ISC_FALSE));
@@ -111,7 +111,7 @@ totext_soa(ARGS_TOTEXT) {
 		RETERR(str_totext(" (" , target));
 	RETERR(str_totext(tctx->linebreak, target));
 
-	for (i = 0; i < 5 ; i++) {
+	for (i = 0; i < 5; i++) {
 		char buf[sizeof("2147483647")];
 		unsigned long num;
 		unsigned int numlen;

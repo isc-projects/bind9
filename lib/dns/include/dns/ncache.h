@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.12.12.2 2003/08/13 02:18:19 marka Exp $ */
+/* $Id: ncache.h,v 1.12.12.3 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -123,6 +123,34 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
  *
  *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
  *	dns_name_towire().
+ */
+
+isc_result_t
+dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
+		       dns_rdatatype_t type, dns_rdataset_t *rdataset);
+/*
+ * Search the negative caching rdataset for an rdataset with the
+ * specified name and type.
+ *
+ * Requires:
+ *	'ncacherdataset' is a valid negative caching rdataset.
+ *
+ *	'ncacherdataset' is not empty.
+ *
+ *	'name' is a valid name.
+ *
+ *	'type' is not SIG, or a meta-RR type.
+ *
+ *	'rdataset' is a valid disassociated rdataset.
+ *
+ * Ensures:
+ *	On a return of ISC_R_SUCCESS, 'rdataset' is bound to the found
+ *	rdataset.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		- the rdataset was found.
+ *	ISC_R_NOTFOUND		- the rdataset was not found.
+ *
  */
 
 ISC_LANG_ENDDECLS

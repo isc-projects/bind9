@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.6 2001/01/09 21:52:58 bwelling Exp $ */
+/* $Id: lib.h,v 1.6.12.1 2003/10/14 03:48:06 marka Exp $ */
 
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
@@ -25,7 +25,7 @@
 
 ISC_LANG_BEGINDECLS
 
-extern isc_msgcat_t *dns_msgcat;
+LIBDNS_EXTERNAL_DATA extern isc_msgcat_t *dns_msgcat;
 
 void
 dns_lib_initmsgcat(void);

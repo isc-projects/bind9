@@ -18,11 +18,11 @@
 #ifndef GENERIC_TKEY_249_H
 #define GENERIC_TKEY_249_H 1
 
-/* $Id: tkey_249.h,v 1.18 2001/01/09 21:54:50 bwelling Exp $ */
+/* $Id: tkey_249.h,v 1.18.206.1 2003/10/14 03:48:09 marka Exp $ */
 
 /* draft-ietf-dnsind-tkey-00.txt */
 
-typedef struct dns_rdata_key {
+typedef struct dns_rdata_tkey {
         dns_rdatacommon_t	common;
         isc_mem_t *		mctx;
         dns_name_t		algorithm;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.3.2.3 2003/08/20 05:33:17 marka Exp $ */
+/* $Id: name.h,v 1.95.2.3.2.4 2003/10/14 03:48:07 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -143,7 +143,7 @@ struct dns_name {
 #define DNS_NAMEATTR_WILDCARD		0x2000		/* Used by server */
 
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_rootname;
-extern dns_name_t *dns_wildcardname;
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
 
 /*
  * Standard size of a wire format name
@@ -326,6 +326,22 @@ dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.  Unlike dns_name_hash(), this function
  * always takes into account of the entire name to calculate the hash value.
+ *
+ * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
+ * case will have the same hash value.
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ * Returns:
+ *	A hash value
+ */
+
+unsigned int
+dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive);
+/*
+ * Provide a hash value for 'name', where the hash value is the sum
+ * of the hash values of each label.
  *
  * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
  * case will have the same hash value.

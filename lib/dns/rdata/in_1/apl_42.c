@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.4.200.2 2003/09/02 04:13:43 marka Exp $ */
+/* $Id: apl_42.c,v 1.4.200.3 2003/10/14 03:48:09 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -53,7 +53,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		neg = ISC_TF(*cp == '!');
 		if (neg)
 			cp++;
-		afi = strtoul(cp, &ap, 10);
+		afi = (isc_uint16_t) strtoul(cp, &ap, 10);
 		if (*ap++ != ':' || cp == ap)
 			RETTOK(DNS_R_SYNTAX);
 		if (afi > 0xffff)
@@ -62,7 +62,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		if (slash == NULL || slash == ap)
 			RETTOK(DNS_R_SYNTAX);
 		*slash++ = '\0';
-		prefix = strtoul(slash, &cp, 10);
+		prefix = (isc_uint8_t) strtoul(slash, &cp, 10);
 		if (*cp != '\0' || slash == cp)
 			RETTOK(DNS_R_SYNTAX);
 		switch (afi) {
