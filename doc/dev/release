@@ -1,12 +1,14 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.28 2001/03/20 02:18:57 gson Exp $
+$Id: release,v 1.29 2001/04/16 21:54:13 gson Exp $
 
 Preparing a bind9 release
 
 Here's a rough outline of the steps to follow in preparing a new bind9
 release.
+
+ - Do a "cvs update" to check that all changes have been committed.
 
  - Update the README file
 
@@ -20,8 +22,6 @@ release.
 
  - Update the lib/*/api files as needed.  See the libtool 
    info file for information about what the various numbers mean.
-
- - Do a "cvs update" to check that all changes have been committed.
 
  - Check that http://status.isc.org/bind9/bind9.html shows
    a clean build and test status for all supported systems.
@@ -71,7 +71,7 @@ release.
    or
 
       cd $top_of_9_1_tree
-      sh util/altbuild.sh v9_1_1rc4
+      sh util/altbuild.sh v9_1
 
  - If you can (= your system is similar enough to the one Tale is using),
    check the header files for cruft by running the command
@@ -132,14 +132,14 @@ release.
 
  - Tag the CVS source tree with the final tag, as in
    "cvs rtag v9_0_0rc1 bind9" (mainline) or
-   "cvs rtag -r v9_1 v9_1_1rc4 bind9" (release branch).
+   "cvs rtag -r v9_1 v9_1_1rc7 bind9" (release branch).
 
  - Build the release kit.  This procedure differs
-   between the 9.0 release branch and the mainline.
-   On the release branch,
+   between the 9.0 release branch and later versions.
+   On the 9.0 release branch,
 
         cd <temporary directory>
-	cvs export -r v9_0_0rc6 bind9
+	cvs export -r v9_0_0rc7 bind9
 	cd bind9
 	sh configure
 	make kit
@@ -158,12 +158,12 @@ release.
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
   
-   	pgp -sba bind-9.1.1rc5.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.1.1rc5.tar.gz.asc
+   	pgp -sba bind-9.1.1rc7.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-9.1.1rc7.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.1.1rc5.tar.gz.asc bind-9.1.1rc5.tar.gz
+	pgp bind-9.1.1rc7.tar.gz.asc bind-9.1.1rc7.tar.gz
 
    (Look for the words "Good signature" in the output.)
 
@@ -171,7 +171,7 @@ release.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.1.1rc5
+     ver=9.1.1rc7
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
