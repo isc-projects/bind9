@@ -70,7 +70,8 @@
 			in the additional section or TC is set to tell the
 			client to retry using TCP. [RT #10114]
 
-1803.	[placeholder]	rt13483
+1803.	[bug]		dnssec-signzone sometimes failed to remove old
+			RRSIGs. [RT #13483]
 
 1802.	[bug]		Handle connection resets better. [RT #11280]
 
