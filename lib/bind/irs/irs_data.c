@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.2 2001/06/21 08:26:10 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.3 2001/07/04 08:10:23 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -68,7 +68,7 @@ void
 net_data_destroy(void *p) {
 	struct net_data *net_data = p;
 
-	res_nclose(net_data->res);
+	res_ndestroy(net_data->res);
 	if (net_data->gr != NULL) {
 		(*net_data->gr->close)(net_data->gr);
 		net_data->gr = NULL;
