@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.16 2002/08/01 03:25:34 mayer Exp $ */
+/* $Id: os.c,v 1.17 2002/08/03 01:31:48 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -37,8 +37,10 @@
 #include <isc/string.h>
 #include <isc/ntpaths.h>
 #include <isc/util.h>
+#include <isc/win32os.h>
 
 #include <named/main.h>
+#include <named/log.h>
 #include <named/os.h>
 #include <named/globals.h>
 #include <named/ntservice.h>
@@ -47,6 +49,9 @@
 static char *pidfile = NULL;
 
 static BOOL Initialized = FALSE;
+
+static char *version_error = 
+	"named requires Windows 2000 Service Pack 2 or later to run correctly";
 
 void
 ns_paths_init() {
@@ -64,6 +69,22 @@ ns_paths_init() {
 	Initialized = TRUE;
 }
 
+/*
+ * Due to Knowledge base article Q263823 we need to make sure that
+ * Windows 2000 systems have Service Pack 2 or later installed and
+ * warn when it isn't.
+ */
+static void
+version_check(const char *progname) {
+
+	if(isc_win32os_majorversion() < 5)
+		return;	/* No problem with Version 4.0 */
+	if(isc_win32os_versioncheck(5, 0, 2, 0) < 0)
+		if (ntservice_isservice())
+			NTReportError(progname, version_error);
+		else 
+			fprintf(stderr, "%s\n", version_error);
+}
 
 static void
 setup_syslog(const char *progname) {
@@ -82,6 +103,7 @@ ns_os_init(const char *progname) {
 	ns_paths_init();
 	setup_syslog(progname);
 	ntservice_init();
+	version_check(progname);
 }
 
 void

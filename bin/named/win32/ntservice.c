@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.6 2002/02/20 03:33:36 marka Exp $ */
+/* $Id: ntservice.c,v 1.7 2002/08/03 01:31:48 mayer Exp $ */
 
 #include <config.h>
 #include <stdio.h>
@@ -30,7 +30,7 @@
 
 /* Handle to SCM for updating service status */
 static SERVICE_STATUS_HANDLE hServiceStatus = 0;
-static int foreground = FALSE;
+static BOOL foreground = FALSE;
 static char ConsoleTitle[128];
 
 /*
@@ -122,7 +122,13 @@ void
 ntservice_shutdown() {
 	UpdateSCM(SERVICE_STOPPED);
 }
-
+/*
+ * Routine to check if this is a service or a foreground program
+ */
+BOOL
+ntservice_isservice() {
+	return(!foreground);
+}
 /* 
  * ServiceControl(): Handles requests from the SCM and passes them on
  * to named.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.h,v 1.1 2001/07/18 03:43:18 mayer Exp $ */
+/* $Id: ntservice.h,v 1.2 2002/08/03 01:31:48 mayer Exp $ */
 
 #ifndef NTSERVICE_H
 #define NTSERVICE_H
@@ -31,4 +31,5 @@ void UpdateSCM(DWORD);
 void ServiceControl(DWORD dwCtrlCode);
 void 
 ntservice_shutdown();
+BOOL ntservice_isservice();
 #endif
