@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.2 1999/10/08 22:27:00 tale Exp $
+ * $Id: dst_support.c,v 1.3 1999/11/02 19:52:29 bwelling Exp $
  */
 
 #include <config.h>
@@ -102,6 +102,7 @@ dst_s_build_filename(char *filename, const char *name, isc_uint16_t id,
 		     int alg, const char *suffix, size_t filename_length)
 {
 	isc_uint32_t my_id;
+	char *dot;
 	if (filename == NULL)
 		return (-1);
 	memset(filename, 0, filename_length);
@@ -109,10 +110,14 @@ dst_s_build_filename(char *filename, const char *name, isc_uint16_t id,
 		return (-1);
 	if (suffix == NULL)
 		return (-1);
-	if (filename_length < 1 + strlen(name) + 4 + 6 + 1 + strlen(suffix))
+	if (filename_length < 1 + strlen(name) + 1 + 4 + 6 + 1 + strlen(suffix))
 		return (-1);
 	my_id = id;
-	sprintf(filename, "K%s+%03d+%05d.%s", name, alg, my_id,
+	if (name[strlen(name) - 1] == '.')
+		dot = "";
+	else
+		dot = ".";
+	sprintf(filename, "K%s%s+%03d+%05d.%s", name, dot, alg, my_id,
 		(char *) suffix);
 	if (strrchr(filename, '/'))
 		return (-1);
