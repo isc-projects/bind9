@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.81 2000/08/17 19:17:51 bwelling Exp $ */
+/* $Id: main.c,v 1.82 2000/08/30 20:40:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,7 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "C:d:fgi:n:p:P:st:u:")) !=
+					   "C:d:fgi:n:p:P:st:u:v")) !=
 	       -1) {
 		switch (ch) {
 		case 'C':
@@ -286,6 +286,9 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 		case 'u':
 			ns_g_username = isc_commandline_argument;
 			break;
+		case 'v':
+			printf("BIND %s\n", ns_g_version);
+			exit(0);
 		case '?':
 			lwresd_usage();
 			ns_main_earlyfatal("unknown option '-%c'",
@@ -325,7 +328,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fgn:N:p:st:u:x:")) !=
+					   "c:d:fgn:N:p:st:u:vx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -365,6 +368,9 @@ parse_command_line(int argc, char *argv[]) {
 		case 'u':
 			ns_g_username = isc_commandline_argument;
 			break;
+		case 'v':
+			printf("BIND %s\n", ns_g_version);
+			exit(0);
 		case 'x':
 			/* XXXRTH temporary syntax */
 			ns_g_cachefile = isc_commandline_argument;
