@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.41 2000/02/14 17:20:35 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.42 2000/02/15 17:05:11 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2439,19 +2439,58 @@ address_name: any_string
 		dns_c_ipmatchelement_t *elem;
 		dns_c_acl_t *acl;
 
-		tmpres = dns_c_acltable_getacl(currcfg->acls,
-					       $1, &acl);
-		if (tmpres == ISC_R_NOTFOUND) {
-			parser_warning(ISC_FALSE,
-				       "undefined acl ``%s'' referenced",
-				       $1);
-			elem = NULL;
-		} else {
-			tmpres = dns_c_ipmatch_aclnew(currcfg->mem, &elem, $1);
+		if (strcmp($1, "any") == 0) {
+			tmpres = dns_c_ipmatchany_new(currcfg->mem, &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create IPE-ACL");
+					     "failed to create ``any''"
+					     " ipmatch element");
 				YYABORT;
+			}
+		} else if (strcmp($1, "none") == 0) {
+			tmpres = dns_c_ipmatchany_new(currcfg->mem, &elem);
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "failed to create ``any''"
+					     " ipmatch element");
+				YYABORT;
+			}
+			dns_c_ipmatch_negate(elem);
+		} else if (strcmp($1, "localhost") == 0) {
+			tmpres = dns_c_ipmatchlocalhost_new(currcfg->mem,
+							    &elem);
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "failed to create ``localhost''"
+					     " ipmatch element");
+				YYABORT;
+			}
+		} else if (strcmp($1, "localnets") == 0) {
+			tmpres = dns_c_ipmatchlocalnets_new(currcfg->mem,
+							    &elem);
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "failed to create ``localnets''"
+					     " ipmatch element");
+				YYABORT;
+			}
+		} else {
+			tmpres = dns_c_acltable_getacl(currcfg->acls,
+						       $1, &acl);
+			if (tmpres == ISC_R_NOTFOUND) {
+				parser_warning(ISC_FALSE,
+					       "undefined acl ``%s'' "
+					       "referenced", $1);
+				elem = NULL;
+			} else {
+				tmpres = dns_c_ipmatch_aclnew(currcfg->mem,
+							      &elem, $1);
+				if (tmpres != ISC_R_SUCCESS) {
+					parser_error(ISC_FALSE,
+						     "failed to create "
+						     "IPE-ACL");
+					YYABORT;
+				}
 			}
 		}
 
