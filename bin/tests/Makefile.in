@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.113.2.1.8.7 2004/07/20 07:01:50 marka Exp $
+# $Id: Makefile.in,v 1.113.2.1.8.8 2005/03/16 13:45:15 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -188,7 +188,7 @@ sym_test@EXEEXT@: sym_test.@O@ ${ISCDEPLIBS}
 		${ISCLIBS} ${LIBS}
 
 task_test@EXEEXT@: task_test.@O@ ${ISCDEPLIBS}
-	${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ task_test.@O@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ task_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 shutdown_test@EXEEXT@: shutdown_test.@O@ ${ISCDEPLIBS}
