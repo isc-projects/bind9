@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.316 2001/04/11 20:37:34 bwelling Exp $ */
+/* $Id: server.c,v 1.317 2001/04/12 21:07:39 tale Exp $ */
 
 #include <config.h>
 
@@ -1191,7 +1191,6 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	const char *zname;
 	dns_rdataclass_t zclass;
 	const char *ztypestr;
-	dns_zonetype_t ztype;
 
 	options = NULL;
 	(void)cfg_map_get(config, "options", &options);
@@ -1275,8 +1274,6 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 					   forwardtype);
 		goto cleanup;
 	}
-
-	ztype = ns_config_getzonetype(typeobj);
 
 	/*
 	 * Check for duplicates in the new zone table.
