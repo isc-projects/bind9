@@ -16,13 +16,130 @@ Then follow the instructions described in `README.idnkit' to compile
 and install.
 
 
+Index: README.idnkit
+--- /dev/null	Mon May 17 23:13:53 2004
++++ README.idnkit	Mon May 17 20:30:40 2004
+@@ -0,0 +1,113 @@
++
++			BIND-9 IDN patch
++
++	       Japan Network Information Center (JPNIC)
++
++
++* What is this patch for?
++
++This patch adds internationalized domain name (IDN) support to BIND-9.
++You'll get internationalized version of dig/host/nslookup commands.
++
++    + internationalized dig/host/nslookup
++	dig/host/nslookup accepts non-ASCII domain names in the local
++	codeset (such as Shift JIS, Big5 or ISO8859-1) determined by
++	the locale information.  The domain names are normalized and
++	converted to the encoding on the DNS protocol, and sent to DNS
++	servers.  The replies are converted back to the local codeset
++	and displayed.
++
++
++* Compilation & installation
++
++0. Prerequisite
++
++You have to build and install idnkit before building this patched version
++of bind-9.
++
++1. Running configure script
++
++Run `configure' in the top directory.  See `README' for the
++configuration options.
++
++This patch adds the following 4 options to `configure'.  You should
++at least specify `--with-idn' option to enable IDN support.
++
++    --with-idn[=IDN_PREFIX]
++	To enable IDN support, you have to specify `--with-idn' option.
++	The argument IDN_PREFIX is the install prefix of idnkit.  If
++	IDN_PREFIX is omitted, PREFIX (derived from `--prefix=PREFIX')
++	is assumed.
++
++    --with-libiconv[=LIBICONV_PREFIX]
++	Specify this option if idnkit you have installed links GNU
++	libiconv.  The argument LIBICONV_PREFIX is install prefix of
++	GNU libiconv.  If the argument is omitted, PREFIX (derived
++	from `--prefix=PREFIX') is assumed.
++
++	`--with-libiconv' is shorthand option for GNU libiconv.
++
++	    --with-libiconv=/usr/local
++
++	This is equivalent to:
++
++	    --with-iconv='-L/usr/local/lib -R/usr/local/lib -liconv'
++
++	`--with-libiconv' assumes that your C compiler has `-R'
++	option, and that the option adds the specified run-time path
++	to an exacutable binary.  If `-R' option of your compiler has
++	different meaning, or your compiler lacks the option, you
++	should use `--with-iconv' option instead.  Binary command
++	without run-time path information might be unexecutable.
++	In that case, you would see an error message like:
++
++	    error in loading shared libraries: libiconv.so.2: cannot
++	    open shared object file
++
++	If both `--with-libiconv' and `--with-iconv' options are
++	specified, `--with-iconv' is prior to `--with-libiconv'.
++
++    --with-iconv=ICONV_LIBSPEC
++	If your libc doens't provide iconv(), you need to specify the
++	library containing iconv() with this option.  `ICONV_LIBSPEC'
++	is the argument(s) to `cc' or `ld' to link the library, for
++	example, `--with-iconv="-L/usr/local/lib -liconv"'.
++	You don't need to specify the header file directory for "iconv.h"
++	to the compiler, as it isn't included directly by bind-9 with
++	this patch.
++
++    --with-idnlib=IDN_LIBSPEC
++	With this option, you can explicitly specify the argument(s)
++	to `cc' or `ld' to link the idnkit's library, `libidnkit'.  If
++	this option is not specified, `-L${PREFIX}/lib -lidnkit' is
++	assumed, where ${PREFIX} is the installation prefix specified
++	with `--with-idn' option above.  You may need to use this
++	option to specify extra argments, for example,
++	`--with-idnlib="-L/usr/local/lib -R/usr/local/lib -lidnkit"'.
++
++Please consult `README' for other configuration options.
++
++Note that if you want to specify some extra header file directories,
++you should use the environment variable STD_CINCLUDES instead of
++CFLAGS, as described in README.
++
++2. Compilation and installation
++
++After running "configure", just do
++
++	make
++	make install
++
++for compiling and installing.
++
++
++* Contact information
++
++Please see http//www.nic.ad.jp/en/idn/ for the latest news
++about idnkit and this patch.
++
++Bug reports and comments on this kit should be sent to
++mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
++
++
++; $Id: bind-9.2.2-patch,v 1.1.1.1 2003/06/04 00:27:32 marka Exp $
 Index: config.h.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/config.h.in,v
 retrieving revision 1.47.2.3.2.9
 diff -U2 -r1.47.2.3.2.9 config.h.in
 --- config.h.in	14 Mar 2004 23:55:14 -0000	1.47.2.3.2.9
-+++ config.h.in	17 May 2004 12:59:18 -0000
++++ config.h.in	17 May 2004 13:17:58 -0000
 @@ -17,5 +17,5 @@
   */
  
@@ -60,7 +177,7 @@ RCS file: /proj/cvs/prod/bind9/configure,v
 retrieving revision 1.284.2.19.2.20
 diff -U2 -r1.284.2.19.2.20 configure
 --- configure	3 May 2004 10:49:33 -0000	1.284.2.19.2.20
-+++ configure	17 May 2004 13:00:22 -0000
++++ configure	17 May 2004 13:19:02 -0000
 @@ -15,5 +15,5 @@
  # PERFORMANCE OF THIS SOFTWARE.
  #
@@ -627,7 +744,7 @@ RCS file: /proj/cvs/prod/bind9/configure.in,v
 retrieving revision 1.294.2.23.2.24
 diff -U2 -r1.294.2.23.2.24 configure.in
 --- configure.in	3 May 2004 10:47:32 -0000	1.294.2.23.2.24
-+++ configure.in	17 May 2004 13:00:26 -0000
++++ configure.in	17 May 2004 13:19:07 -0000
 @@ -1994,4 +1994,80 @@
  
  #
@@ -715,7 +832,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.12.10
 diff -U2 -r1.25.12.10 Makefile.in
 --- bin/dig/Makefile.in	13 Apr 2004 05:47:32 -0000	1.25.12.10
-+++ bin/dig/Makefile.in	17 May 2004 13:00:27 -0000
++++ bin/dig/Makefile.in	17 May 2004 13:19:07 -0000
 @@ -46,5 +46,5 @@
  
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
@@ -729,7 +846,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.4.2.5
 diff -U2 -r1.14.2.4.2.5 dig.1
 --- bin/dig/dig.1	13 Apr 2004 04:11:03 -0000	1.14.2.4.2.5
-+++ bin/dig/dig.1	17 May 2004 13:00:28 -0000
++++ bin/dig/dig.1	17 May 2004 13:19:08 -0000
 @@ -385,4 +385,15 @@
  will not print the initial query when it looks up the NS records for
  isc.org.
@@ -752,7 +869,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.7.4.8
 diff -U2 -r1.4.2.7.4.8 dig.docbook
 --- bin/dig/dig.docbook	13 Apr 2004 03:00:05 -0000	1.4.2.7.4.8
-+++ bin/dig/dig.docbook	17 May 2004 13:00:29 -0000
++++ bin/dig/dig.docbook	17 May 2004 13:19:09 -0000
 @@ -575,4 +575,19 @@
  
  <refsect1>
@@ -779,7 +896,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
 retrieving revision 1.221.2.19.2.11
 diff -U2 -r1.221.2.19.2.11 dighost.c
 --- bin/dig/dighost.c	13 Apr 2004 03:00:06 -0000	1.221.2.19.2.11
-+++ bin/dig/dighost.c	17 May 2004 13:00:39 -0000
++++ bin/dig/dighost.c	17 May 2004 13:19:19 -0000
 @@ -42,4 +42,15 @@
  #endif 
  
@@ -1020,7 +1137,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.1.4.4
 diff -U2 -r1.11.2.1.4.4 host.1
 --- bin/dig/host.1	13 Apr 2004 04:11:03 -0000	1.11.2.1.4.4
-+++ bin/dig/host.1	17 May 2004 13:00:40 -0000
++++ bin/dig/host.1	17 May 2004 13:19:20 -0000
 @@ -128,4 +128,15 @@
  will be set to the number of seconds given by the hardware's maximum
  value for an integer quantity.
@@ -1043,7 +1160,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.2.4.5
 diff -U2 -r1.2.2.2.4.5 host.docbook
 --- bin/dig/host.docbook	13 Apr 2004 01:26:26 -0000	1.2.2.2.4.5
-+++ bin/dig/host.docbook	17 May 2004 13:00:40 -0000
++++ bin/dig/host.docbook	17 May 2004 13:19:21 -0000
 @@ -192,4 +192,19 @@
  
  <refsect1>
@@ -1070,7 +1187,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.7.2.10
 diff -U2 -r1.127.2.7.2.10 name.c
 --- lib/dns/name.c	19 Apr 2004 21:55:38 -0000	1.127.2.7.2.10
-+++ lib/dns/name.c	17 May 2004 13:00:44 -0000
++++ lib/dns/name.c	17 May 2004 13:19:24 -0000
 @@ -180,4 +180,11 @@
  LIBDNS_EXTERNAL_DATA dns_name_t *dns_wildcardname = &wild;
  
@@ -1116,7 +1233,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.3.2.8
 diff -U2 -r1.95.2.3.2.8 name.h
 --- lib/dns/include/dns/name.h	16 Mar 2004 12:57:17 -0000	1.95.2.3.2.8
-+++ lib/dns/include/dns/name.h	17 May 2004 13:00:46 -0000
++++ lib/dns/include/dns/name.h	17 May 2004 13:19:27 -0000
 @@ -156,4 +156,15 @@
  #define DNS_NAME_MAXWIRE 255
  
