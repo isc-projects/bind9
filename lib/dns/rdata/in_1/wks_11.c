@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.5 1999/01/30 04:27:47 explorer Exp $ */
+ /* $Id: wks_11.c,v 1.6 1999/02/02 01:17:49 halley Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_H
 #define RDATA_IN_1_WKS_11_H
@@ -125,9 +125,10 @@ totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	origin = origin;
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_available(target, &tr);
-	if (isc_inet_ntop(AF_INET, sr.base, tr.base, tr.length) == NULL)
+	if (isc_inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length)
+	    == NULL)
 		return (DNS_R_NOSPACE);
-	isc_buffer_add(target, strlen(tr.base));
+	isc_buffer_add(target, strlen((char *)tr.base));
 	isc_region_consume(&sr, 4);
 
 	proto = uint16_fromregion(&sr);

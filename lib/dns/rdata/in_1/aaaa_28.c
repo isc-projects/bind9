@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.2 1999/02/02 00:38:50 halley Exp $ */
+ /* $Id: aaaa_28.c,v 1.3 1999/02/02 01:17:48 halley Exp $ */
 
  /* RFC 1886 */
 
@@ -70,10 +70,10 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &region);
 	if (isc_inet_ntop(AF_INET6, rdata->data,
-			  region.base, region.length) == NULL)
+			  (char *)region.base, region.length) == NULL)
 		return (DNS_R_NOSPACE);
 
-	isc_buffer_add(target, strlen(region.base));
+	isc_buffer_add(target, strlen((char *)region.base));
 	return (DNS_R_SUCCESS);
 }
 
