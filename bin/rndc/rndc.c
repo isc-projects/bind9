@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.64 2001/06/15 01:20:09 gson Exp $ */
+/* $Id: rndc.c,v 1.65 2001/06/22 17:22:25 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -50,7 +50,7 @@
 #include <isccc/types.h>
 #include <isccc/util.h>
 
-#define NS_CONTROL_PORT		953
+#include "util.h"
 
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
@@ -64,6 +64,9 @@
 extern int h_errno;
 #endif
 
+char progname[256];
+isc_boolean_t verbose;
+
 static const char *admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
 static const char *auto_conffile = NS_LOCALSTATEDIR "/run/named.key";
 static const char *version = VERSION;
@@ -71,27 +74,13 @@ static const char *servername = NULL;
 static unsigned int remoteport = NS_CONTROL_PORT;
 static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
-static char progname[256];
 static isccc_ccmsg_t ccmsg;
 static isccc_region_t secret;
-static isc_boolean_t verbose;
 static isc_boolean_t failed = ISC_FALSE;
 static isc_mem_t *mctx;
 static int sends, recvs, connects;
 static char *command;
 static char *args;
-
-static void
-notify(const char *fmt, ...) {
-	va_list ap;
-
-	if (verbose) {
-		va_start(ap, fmt);
-		vfprintf(stderr, fmt, ap);
-		va_end(ap);
-		fputs("\n", stderr);
-	}
-}
 
 static void
 usage(int status) {
@@ -125,30 +114,6 @@ Version: %s\n",
 
 	exit(status);
 }
-
-static void            
-fatal(const char *format, ...) {
-	va_list args;
-
-	fprintf(stderr, "%s: ", progname);
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}               
-
-
-#undef DO
-#define DO(name, function) \
-	do { \
-		result = function; \
-		if (result != ISC_R_SUCCESS) \
-			fatal("%s: %s", name, isc_result_totext(result)); \
-		else \
-			notify(name); \
-	} while (0)
-
 
 static void
 get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
