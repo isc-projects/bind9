@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.33.12.5 2004/05/05 01:32:14 marka Exp $
+# $Id: tests.sh,v 1.33.12.6 2004/05/18 03:06:24 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -441,14 +441,14 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking dnssec-lookaside-validation works ($n)"
-ret=0
-$DIG $DIGOPTS private.secure.example. SOA @10.53.0.6 \
-	> dig.out.ns6.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+#echo "I:checking dnssec-lookaside-validation works ($n)"
+#ret=0
+#$DIG $DIGOPTS private.secure.example. SOA @10.53.0.6 \
+#	> dig.out.ns6.test$n || ret=1
+#grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null || ret=1
+#n=`expr $n + 1`
+#if [ $ret != 0 ]; then echo "I:failed"; fi
+#status=`expr $status + $ret`
 
 echo "I:checking that we can load a rfc2535 signed zone ($n)"
 ret=0
