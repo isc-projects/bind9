@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/netaddr.h>
 #include <isc/region.h>
@@ -30,8 +31,7 @@
 #include <isc/types.h>
 
 isc_boolean_t
-isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
-{
+isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->length != b->length)
@@ -66,13 +66,11 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
 	return (ISC_TRUE);
 }
 
-
 /*
  * Compare just the addresses (ignore ports)
  */
 isc_boolean_t
-isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b)
-{
+isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->length != b->length)

@@ -18,13 +18,9 @@
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
-#include <isc/buffer.h>
 #include <isc/net.h>
-#include <isc/list.h>
 #include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 struct isc_sockaddr {
 	union {
@@ -37,6 +33,8 @@ struct isc_sockaddr {
 };
 
 typedef ISC_LIST(struct isc_sockaddr)	isc_sockaddrlist_t;
+
+ISC_LANG_BEGINDECLS
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
