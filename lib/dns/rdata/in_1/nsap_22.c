@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.4 1999/05/07 03:24:14 marka Exp $ */
+ /* $Id: nsap_22.c,v 1.5 1999/05/19 09:15:52 gson Exp $ */
 
  /* RFC 1706 */
 
@@ -50,7 +50,7 @@ fromtext_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_textregion_consume(sr, 2);
 	digits = 0;
 	n = 0;
-	while (sr->length > 1) {
+	while (sr->length > 0) {
 		if (sr->base[0] == '.') {
 			isc_textregion_consume(sr, 1);
 			continue;
@@ -60,13 +60,13 @@ fromtext_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
 		c <<= 4;
 		c += n;
 		if (++digits == 2) {
-			RETERR(mem_tobuffer(target, &n, 1));
+			RETERR(mem_tobuffer(target, &c, 1));
 			digits = 0;
 		}
+		isc_textregion_consume(sr, 1);
 	}
 	if (digits) {
-		c <<= 4;
-		return (mem_tobuffer(target, &c, 1));
+		return (DNS_R_UNEXPECTEDEND);
 	}
 	return (DNS_R_SUCCESS);
 }
@@ -78,7 +78,6 @@ totext_in_nsap(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->class == 1);
-	REQUIRE(rdata->length == 4);
 
 	origin = origin;	/* unused */
 
@@ -130,7 +129,7 @@ compare_in_nsap(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->type);
+	REQUIRE(rdata1->class == rdata2->class);
 	REQUIRE(rdata1->type == 22);
 	REQUIRE(rdata1->class == 1);
 
