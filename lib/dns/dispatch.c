@@ -59,6 +59,8 @@ struct dns_dispentry {
 
 #define INVALID_BUCKET (0xffffdead)
 
+typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
+
 struct dns_dispatch {
 	/* Unlocked. */
 	unsigned int		magic;		/* magic */
@@ -79,12 +81,13 @@ struct dns_dispatch {
 	unsigned int		shutting_down : 1,
 				shutdown_out : 1;
 	dns_result_t		shutdown_why;
+	unsigned int		requests;	/* how many requests we have */
 	ISC_LIST(dns_dispentry_t) rq_handlers;	/* request handler list */
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	isc_int32_t		qid_state;	/* state generator info */
 	unsigned int		qid_hashsize;	/* hash table size */
 	unsigned int		qid_mask;	/* mask for hash table */
-	ISC_LIST(dns_dispentry_t) *qid_table;	/* the table itself */
+	dns_displist_t	        *qid_table;	/* the table itself */
 };
 
 #define REQUEST_MAGIC	0x53912051 /* "random" value */
@@ -225,6 +228,8 @@ ok_to_kill(dns_dispatch_t *disp)
 	if (disp->refcount > 0)
 		return (ISC_FALSE);
 
+	INSIST(disp->requests == 0);
+
 	return (ISC_TRUE);
 }
 
@@ -363,6 +368,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispentry_t *resp;
 	dns_dispatchevent_t *rev;
 	unsigned int bucket;
+	isc_boolean_t killit;
 
 	(void)task;  /* shut up compiler */
 
@@ -379,13 +385,17 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 		 */
 		if (ev->result == ISC_R_CANCELED) {
 			free_buffer(disp, ev->region.base, ev->region.length);
-			isc_event_free(&ev_in);
 
-			if (disp->recvs == 0 && disp->shutting_down == 0) {
-				disp->shutdown_why = ISC_R_CANCELED;
-				disp->shutting_down = 1;
-				do_cancel(disp, NULL);
-			}
+			killit = ISC_FALSE;
+			if (disp->recvs == 0 && disp->refcount == 0)
+				killit = ISC_TRUE;
+
+			UNLOCK(&disp->lock);
+
+			if (killit)
+				destroy(disp);
+
+			isc_event_free(&ev_in);
 			return;
 		}
 
@@ -459,11 +469,14 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	 * resp contains the information on the place to send it to.
 	 * Send the event off.
 	 */
+	ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
+		       resp->action, resp->arg, resp, NULL, NULL);
 	isc_buffer_init(&rev->buffer, ev->region.base, ev->region.length,
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&rev->buffer, ev->n);
-	ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
-		       resp->action, resp->arg, resp, NULL, NULL);
+	rev->result = DNS_R_SUCCESS;
+	rev->id = id;
+	rev->addr = ev->address;
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
 
 	/*
@@ -486,18 +499,23 @@ startrecv(dns_dispatch_t *disp)
 	isc_sockettype_t socktype;
 	isc_result_t res;
 	isc_region_t region;
+	unsigned int wanted;
 
 	if (disp->shutting_down == 1)
 		return;
 
-	if (disp->recvs >= disp->recvs_wanted)
+	wanted = ISC_MIN(disp->recvs_wanted, disp->requests + 2);
+	if (wanted == 0)
+		return;
+
+	if (disp->recvs >= wanted)
 		return;
 
 	printf("Starting receive\n");
 
 	socktype = isc_socket_gettype(disp->socket);
 
-	while (disp->recvs < disp->recvs_wanted) {
+	while (disp->recvs < wanted) {
 		switch (socktype) {
 			/*
 			 * UDP reads are always maximal.
@@ -540,6 +558,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	unsigned int tablesize;
 	dns_result_t res;
 	isc_sockettype_t socktype;
+	unsigned int i;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
@@ -561,25 +580,31 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	disp->magic = 0;
 	disp->mctx = mctx;
-	disp->task = NULL; /* set below */
-	disp->socket = NULL; /* set below */
 	disp->buffersize = maxbuffersize;
 	disp->refcount = 1;
 	disp->recvs = 0;
-	disp->recvs_wanted = 1;
+	if (socktype == isc_socket_udp)
+		disp->recvs_wanted = 8; /* XXXMLG config option */
+	else
+		disp->recvs_wanted = 1;
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->shutdown_why = ISC_R_UNEXPECTED;
+	disp->requests = 0;
 	ISC_LIST_INIT(disp->rq_handlers);
 	ISC_LIST_INIT(disp->rq_events);
 
 	tablesize = (1 << hashsize);
 
-	disp->qid_table = isc_mem_get(disp->mctx, tablesize * sizeof(void *));
+	disp->qid_table = isc_mem_get(disp->mctx,
+				      tablesize * sizeof(dns_displist_t));
 	if (disp->qid_table == NULL) {
 		res = DNS_R_NOMEMORY;
 		goto out1;
 	}
+
+	for (i = 0 ; i < tablesize ; i++)
+		ISC_LIST_INIT(disp->qid_table[i]);
 
 	disp->qid_mask = tablesize - 1;
 	disp->qid_hashsize = tablesize;
@@ -640,7 +665,9 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	disp->magic = DISPATCH_MAGIC;
 
+	disp->task = NULL;
 	isc_task_attach(task, &disp->task);
+	disp->socket = NULL;
 	isc_socket_attach(sock, &disp->socket);
 
 	*dispp = disp;
@@ -681,7 +708,16 @@ dns_dispatch_destroy(dns_dispatch_t **dispp)
 
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
-	killit = ok_to_kill(disp);
+	killit = ISC_FALSE;
+	if (disp->refcount == 0) {
+		if (disp->recvs > 0)
+			isc_socket_cancel(disp->socket, NULL,
+					  ISC_SOCKCANCEL_RECV);
+		else
+			killit = ISC_TRUE;
+	}
+
+	printf("dns_dispatch_destory:  refcount = %d\n", disp->refcount);
 
 	UNLOCK(&disp->lock);
 
@@ -707,8 +743,6 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	REQUIRE(idp != NULL);
 
 	LOCK(&disp->lock);
-
-	disp->refcount++;
 
 	/*
 	 * Try somewhat hard to find an unique ID.
@@ -736,11 +770,15 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		return (DNS_R_NOMEMORY);
 	}
 
+	disp->refcount++;
+	disp->requests++;
+	res->task = NULL;
+	isc_task_attach(task, &res->task);
+
 	res->magic = RESPONSE_MAGIC;
 	res->id = id;
 	res->bucket = bucket;
 	res->host = *dest;
-	res->task = task;
 	res->action = action;
 	res->arg = arg;
 	res->item_out = ISC_FALSE;
@@ -748,12 +786,12 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LINK_INIT(res, link);
 	ISC_LIST_APPEND(disp->qid_table[bucket], res, link);
 
+	startrecv(disp);
+
 	UNLOCK(&disp->lock);
 
 	*idp = id;
 	*resp = res;
-
-	startrecv(disp);
 
 	return (DNS_R_SUCCESS);
 }
@@ -784,14 +822,25 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	LOCK(&disp->lock);
 
+	INSIST(disp->requests > 0);
+	disp->requests--;
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
-	killit = ok_to_kill(disp);
+	killit = ISC_FALSE;
+	if (disp->refcount == 0) {
+		if (disp->recvs > 0)
+			isc_socket_cancel(disp->socket, NULL,
+					  ISC_SOCKCANCEL_RECV);
+		else
+			killit = ISC_TRUE;
+	}
 
 	res->magic = 0;
 	bucket = res->bucket;
 
 	ISC_LIST_UNLINK(disp->qid_table[bucket], res, link);
+
+	isc_task_detach(&res->task);
 
 	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
@@ -828,9 +877,13 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 		return (DNS_R_NOMEMORY);
 	}
 
+	disp->refcount++;
+	disp->requests++;
+	res->task = NULL;
+	isc_task_attach(task, &res->task);
+
 	res->magic = REQUEST_MAGIC;
 	res->bucket = INVALID_BUCKET;
-	res->task = task;
 	res->action = action;
 	res->arg = arg;
 	res->item_out = ISC_FALSE;
@@ -838,11 +891,11 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	ISC_LINK_INIT(res, link);
 	ISC_LIST_APPEND(disp->rq_handlers, res, link);
 
+	startrecv(disp);
+
 	UNLOCK(&disp->lock);
 
 	*resp = res;
-
-	startrecv(disp);
 
 	return (DNS_R_SUCCESS);
 }
@@ -872,13 +925,24 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	LOCK(&disp->lock);
 
+	INSIST(disp->requests > 0);
+	disp->requests--;
 	INSIST(disp->refcount > 0);
 	disp->refcount--;
-	killit = ok_to_kill(disp);
+	killit = ISC_FALSE;
+	if (disp->refcount == 0) {
+		if (disp->recvs > 0)
+			isc_socket_cancel(disp->socket, NULL,
+					  ISC_SOCKCANCEL_RECV);
+		else
+			killit = ISC_TRUE;
+	}
 
 	res->magic = 0;
 
 	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
+
+	isc_task_detach(&res->task);
 
 	isc_mempool_put(disp->rpool, res);
 	if (ev != NULL) {
@@ -947,9 +1011,8 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 
 	ISC_LIST_UNLINK(disp->rq_events, ev, link);
 
-	ev->action = resp->action;
-	ev->arg = resp->arg;
-	ev->sender = resp;
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
+		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
@@ -970,9 +1033,8 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 
 	ISC_LIST_UNLINK(disp->rq_events, ev, link);
 
-	ev->action = resp->action;
-	ev->arg = resp->arg;
-	ev->sender = resp;
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
+		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
 	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }
@@ -980,6 +1042,8 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 static void
 do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 {
+	dns_dispatchevent_t *ev;
+
 	if (disp->shutdown_out == 1)
 		return;
 
@@ -998,8 +1062,8 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	 * Search for the first responce handler without packets outstanding.
 	 */
 	if (resp == NULL) {
-		resp = linear_first(disp);  /* no first item? */
-		if (resp == NULL)
+		resp = linear_first(disp);
+		if (resp == NULL)  /* no first item? */
 			return;
 
 		do {
@@ -1017,7 +1081,13 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	}
 
 	/*
-	 * Send the shutdown failsafe event to this response critter IFF
-	 * the queue is empty.  If it is not empty, defer.
+	 * Send the shutdown failsafe event to this resp.
 	 */
+	ev = disp->failsafe_ev;
+	ISC_EVENT_INIT(ev, sizeof (*ev), 0, 0, DNS_EVENT_DISPATCH,
+		       resp->action, resp->arg, resp, NULL, NULL);
+	ev->result = ISC_R_CANCELED;
+	ev->buffer.base = NULL;
+	ev->buffer.length = 0;
+	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
 }

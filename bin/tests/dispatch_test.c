@@ -58,12 +58,32 @@ got_packet(isc_task_t *task, isc_event_t *ev_in)
 
 	printf("App:  got packet!\n");
 
+#if 0
+	sleep (4);
+	printf("App:  Ready.\n");
+#endif
+
 	cnt++;
-	if (cnt > 3) {
+	switch (cnt) {
+	case 6:
+		printf("--- removing request\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
+		printf("--- destroying dispatcher\n");
 		dns_dispatch_destroy(&disp);
-	} else {
+		break;
+		
+	case 3:
+		printf("--- removing request\n");
+		dns_dispatch_removerequest(disp, &resp, &ev);
+		printf("--- adding request\n");
+		RUNTIME_CHECK(dns_dispatch_addrequest(disp, task, got_packet,
+						      NULL, &resp)
+			      == DNS_R_SUCCESS);
+		break;
+
+	default:
 		dns_dispatch_freeevent(disp, resp, &ev);
+		break;
 	}
 }
 
@@ -90,7 +110,7 @@ main(int argc, char *argv[])
 	 * The task manager is independent (other than memory context)
 	 */
 	manager = NULL;
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, 1, 0, &manager) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, 5, 0, &manager) ==
 		      ISC_R_SUCCESS);
 
 	t0 = NULL;
