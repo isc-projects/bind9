@@ -2,14 +2,14 @@
 
 DNSEXT Working Group                                            M. Stapp
 Internet-Draft                                       Cisco Systems, Inc.
-Expires: May 22, 2002                                           T. Lemon
+Expires: May 2, 2003                                            T. Lemon
                                                            A. Gustafsson
                                                            Nominum, Inc.
-                                                       November 21, 2001
+                                                        November 1, 2002
 
 
            A DNS RR for Encoding DHCP Information (DHCID RR)
-                  <draft-ietf-dnsext-dhcid-rr-04.txt>
+                  <draft-ietf-dnsext-dhcid-rr-06.txt>
 
 Status of this Memo
 
@@ -32,11 +32,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on May 22, 2002.
+   This Internet-Draft will expire on May 2, 2003.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2001). All Rights Reserved.
+   Copyright (C) The Internet Society (2002). All Rights Reserved.
 
 Abstract
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Stapp, et. al.            Expires May 22, 2002                  [Page 1]
+Stapp, et. al.            Expires May 2, 2003                   [Page 1]
 
-Internet-Draft                The DHCID RR                 November 2001
+Internet-Draft                The DHCID RR                 November 2002
 
 
 Table of Contents
@@ -65,7 +65,7 @@ Table of Contents
    3.1   DHCID RDATA format . . . . . . . . . . . . . . . . . . . . .  4
    3.2   DHCID Presentation Format  . . . . . . . . . . . . . . . . .  4
    3.3   The DHCID RR Type Codes  . . . . . . . . . . . . . . . . . .  4
-   3.4   Computation of the RDATA . . . . . . . . . . . . . . . . . .  4
+   3.4   Computation of the RDATA . . . . . . . . . . . . . . . . . .  5
    3.5   Examples . . . . . . . . . . . . . . . . . . . . . . . . . .  6
    3.5.1 Example 1  . . . . . . . . . . . . . . . . . . . . . . . . .  6
    3.5.2 Example 2  . . . . . . . . . . . . . . . . . . . . . . . . .  6
@@ -73,9 +73,10 @@ Table of Contents
    5.    Updater Behavior . . . . . . . . . . . . . . . . . . . . . .  6
    6.    Security Considerations  . . . . . . . . . . . . . . . . . .  7
    7.    IANA Considerations  . . . . . . . . . . . . . . . . . . . .  7
+   8.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  7
          References . . . . . . . . . . . . . . . . . . . . . . . . .  7
          Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  8
-         Full Copyright Statement . . . . . . . . . . . . . . . . . .  9
+         Full Copyright Statement . . . . . . . . . . . . . . . . . . 10
 
 
 
@@ -107,10 +108,9 @@ Table of Contents
 
 
 
-
-Stapp, et. al.            Expires May 22, 2002                  [Page 2]
+Stapp, et. al.            Expires May 2, 2003                   [Page 2]
 
-Internet-Draft                The DHCID RR                 November 2001
+Internet-Draft                The DHCID RR                 November 2002
 
 
 1. Terminology
@@ -164,9 +164,9 @@ Internet-Draft                The DHCID RR                 November 2001
 
 
 
-Stapp, et. al.            Expires May 22, 2002                  [Page 3]
+Stapp, et. al.            Expires May 2, 2003                   [Page 3]
 
-Internet-Draft                The DHCID RR                 November 2001
+Internet-Draft                The DHCID RR                 November 2002
 
 
 3.1 DHCID RDATA format
@@ -197,33 +197,38 @@ Internet-Draft                The DHCID RR                 November 2001
 
 3.3 The DHCID RR Type Codes
 
-   The type code can have one of three classes of values.  The first
-   class contains just the value zero.  This type indicates that the
-   remaining contents of the DHCID record encode an identifier that is
-   based on the client's link-layer network address.
+   The DHCID RR Type Code specifies what data from the DHCP client's
+   request was used as input into the hash function. The type codes are
+   defined in a registry maintained by IANA, as specified in Section 7.
+   The initial list of assigned values for the type code is:
 
-   The second class of types contains just the value 0xFFFF.  This type
-   code is reserved for future extensibility.
+     0x0000 = htype, chaddr from a DHCPv4 client's
+              DHCPREQUEST (RFC 2131)
+     0x0001 = The data portion from a DHCPv4 client's Client
+              Identifier option (RFC 2132)
+     0x0002 = The data portion (i.e., the DUID) from a DHCPv6
+              client's Client Identifier option
+   	   (draft-ietf-dhc-dhcpv6-*.txt)
 
-   The third class of types contains all the values not included in the
-   first two - that is, every value other than zero or 0xFFFF. Types in
-   this class indicate that the remaining contents of the DHCID record
-   encode an identifier that is based on the DHCP option whose code is
-   the same as the specified type.  The most common value in this class
-   at the time of the writing of this specification is 0x3d (61
-   decimal), which is the DHCP option code for the Client Identifier
-   option [8].
+     0x0003 - 0xfffe = Available to be assigned by IANA
+
+     0xffff = RESERVED
+
+
+
+
+
+
+
+Stapp, et. al.            Expires May 2, 2003                   [Page 4]
+
+Internet-Draft                The DHCID RR                 November 2002
+
 
 3.4 Computation of the RDATA
 
    The DHCID RDATA is formed by concatenating the two type bytes with
    some variable-length identifying data.
-
-
-Stapp, et. al.            Expires May 22, 2002                  [Page 4]
-
-Internet-Draft                The DHCID RR                 November 2001
-
 
        < type > < data >
 
@@ -239,19 +244,6 @@ Internet-Draft                The DHCID RR                 November 2001
    identifier are related as specified in Section 3.3: the type code
    describes the source of the identifier.
 
-       type code           identifier
-
-       0x0000              htype,hlen,chaddr from the client's DHCPREQUEST
-
-       0x0001-             'data' portion of a DHCP option from the
-       0xfffe              client's DHCPREQUEST
-
-       0xffff              RESERVED
-
-   The "Resolution of DNS Name Conflicts"[1] specification describes
-   the selection process that updaters follow to choose an identifier
-   from the information presented in a client's DHCPREQUEST message.
-
    When the updater is using the client's link-layer address as the
    identifier, the first two bytes of the DHCID RDATA MUST be zero. To
    generate the rest of the resource record, the updater computes a
@@ -266,22 +258,28 @@ Internet-Draft                The DHCID RR                 November 2001
    the 'hlen' field of the DHCPREQUEST message. The FQDN data, as
    specified above, follows.
 
-   When the updater is using a DHCP option sent by the client in its
-   DHCPREQUEST message, the first two bytes of the DHCID RR MUST be the
-   option code of that option, in network byte order. For example, if
-   the DHCP client identifier option is being used, the first byte of
-   the DHCID RR should be zero, and the second byte should be 61
-   decimal. The rest of the DHCID RR MUST contain the results of
-   computing an MD5 hash across the payload of the option being used,
-   followed by the FQDN. The payload of a DHCP option consists of the
+   When the updater is using the DHCPv4 Client Identifier option sent
+   by the client in its DHCPREQUEST message, the first two bytes of the
+   DHCID RR MUST be 0x0001, in network byte order. The rest of the
+   DHCID RR MUST contain the results of computing an MD5 hash across
+   the payload of the option, followed by the FQDN. The payload of the
+   option consists of the bytes of the option following the option code
+   and length.
 
-
-Stapp, et. al.            Expires May 22, 2002                  [Page 5]
-
-Internet-Draft                The DHCID RR                 November 2001
-
-
+   When the updater is using the DHCPv6 DUID sent by the client in its
+   REQUEST message, the first two bytes of the DHCID RR MUST be 0x0002,
+   in network byte order. The rest of the DHCID RR MUST contain the
+   results of computing an MD5 hash across the payload of the option,
+   followed by the FQDN. The payload of the option consists of the
    bytes of the option following the option code and length.
+
+
+
+
+Stapp, et. al.            Expires May 2, 2003                   [Page 5]
+
+Internet-Draft                The DHCID RR                 November 2002
+
 
 3.5 Examples
 
@@ -306,13 +304,13 @@ Internet-Draft                The DHCID RR                 November 2001
    01:07:08:09:0a:0b:0c in its DHCP request. The server updates the
    name "chi.example.com" on the client's behalf, and uses the DHCP
    client identifier option data as input in forming a DHCID RR. The
-   DHCID RDATA is formed by setting the two type bytes to the option
-   code, 0x003d, and performing an MD5 hash computation across a buffer
+   DHCID RDATA is formed by setting the two type bytes to the value
+   0x0001, and performing an MD5 hash computation across a buffer
    containing the seven bytes from the client-id option and the FQDN
    (represented as specified in Section 3.4).
 
      chi.example.com.	A    	10.0.12.99
-     chi.example.com.	DHCID 	AD3dquu0xNqYn/4zw2FXy8X3
+     chi.example.com.	DHCID 	AAHdd5jiQ3kEjANDm82cbObk\012
 
 4. Use of the DHCID RR
 
@@ -330,15 +328,15 @@ Internet-Draft                The DHCID RR                 November 2001
    site administrators to establish policy about DNS updates. The DHCID
    RR does not establish any policy itself.
 
-
-
-Stapp, et. al.            Expires May 22, 2002                  [Page 6]
-
-Internet-Draft                The DHCID RR                 November 2001
-
-
    Updaters use data from a DHCP client's request and the domain name
    that the client desires to use to compute a client identity hash,
+
+
+Stapp, et. al.            Expires May 2, 2003                   [Page 6]
+
+Internet-Draft                The DHCID RR                 November 2002
+
+
    and then compare that hash to the data in any DHCID RRs on the name
    that they wish to associate with the client's IP address. If an
    updater discovers DHCID RRs whose RDATA does not match the client
@@ -362,49 +360,72 @@ Internet-Draft                The DHCID RR                 November 2001
    Administrators should be wary of permitting unsecured DNS updates to
    zones which are exposed to the global Internet. Both DHCP clients
    and servers SHOULD use some form of update authentication (e.g.,
-   TSIG[9]) when performing DNS updates.
+   TSIG[10]) when performing DNS updates.
 
 7. IANA Considerations
 
    IANA is requested to allocate an RR type number for the DHCID record
    type.
 
+   This specification defines a new number-space for the 16-bit type
+   codes associated with the DHCID RR. IANA is requested to establish a
+   registry of the values for this number-space.
+
+   Three initial values are assigned in Section 3.3, and the value
+   0xFFFF is reserved for future use. New DHCID RR type codes are
+   tentatively assigned after the specification for the associated type
+   code, published as an Internet Draft, has received expert review by
+   a designated expert. The final assignment of DHCID RR type codes is
+   through Standards Action, as defined in RFC2434[11].
+
+8. Acknowledgements
+
+   Many thanks to Josh Littlefield, Olafur Gudmundsson, Bernie Volz,
+   and Ralph Droms for their review and suggestions.
+
 References
 
-   [1]  Stapp, M., "Resolution of DNS Name Conflicts Among DHCP Clients
-        (draft-ietf-dhc-dns-resolution-*)", March 2001.
-
-   [2]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
-        Levels", RFC 2119, March 1997.
-
-   [3]  Droms, R., "Dynamic Host Configuration Protocol", RFC 2131, Mar
-        1997.
-
-   [4]  Mockapetris, P., "Domain names - Concepts and Facilities", RFC
-        1034, Nov 1987.
-
-   [5]  Mockapetris, P., "Domain names - Implementation and
-        Specification", RFC 1035, Nov 1987.
+   [1]   Stapp, M., "Resolution of DNS Name Conflicts Among DHCP
 
 
-
-Stapp, et. al.            Expires May 22, 2002                  [Page 7]
+Stapp, et. al.            Expires May 2, 2003                   [Page 7]
 
-Internet-Draft                The DHCID RR                 November 2001
+Internet-Draft                The DHCID RR                 November 2002
 
 
-   [6]  Rivest, R., "The MD5 Message Digest Algorithm", RFC 1321, April
-        1992.
+         Clients (draft-ietf-dhc-dns-resolution-*)", March 2001.
 
-   [7]  Eastlake, D., "Domain Name System Security Extensions", RFC
-        2535, March 1999.
+   [2]   Bradner, S., "Key words for use in RFCs to Indicate
+         Requirement Levels", RFC 2119, March 1997.
 
-   [8]  Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
-        Extensions", RFC 2132, Mar 1997.
+   [3]   Droms, R., "Dynamic Host Configuration Protocol", RFC 2131,
+         Mar 1997.
 
-   [9]  Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
-        "Secret Key Transaction Authentication for DNS (TSIG)", RFC
-        2845, May 2000.
+   [4]   Mockapetris, P., "Domain names - Concepts and Facilities", RFC
+         1034, Nov 1987.
+
+   [5]   Mockapetris, P., "Domain names - Implementation and
+         Specification", RFC 1035, Nov 1987.
+
+   [6]   Rivest, R., "The MD5 Message Digest Algorithm", RFC 1321,
+         April 1992.
+
+   [7]   Eastlake, D., "Domain Name System Security Extensions", RFC
+         2535, March 1999.
+
+   [8]   Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
+         Extensions", RFC 2132, Mar 1997.
+
+   [9]   Droms, R., Bound, J., Volz, B., Lemon, T., Perkins, C. and M.
+         Carney, "Dynamic Host Configuration Protocol for IPv6 (DHCPv6)
+         (draft-ietf-dhc-dhcpv6-*.txt)", November 2002.
+
+   [10]  Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
+         "Secret Key Transaction Authentication for DNS (TSIG)", RFC
+         2845, May 2000.
+
+   [11]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+         Considerations Section in RFCs", RFC 2434, October 1998.
 
 
 Authors' Addresses
@@ -417,6 +438,15 @@ Authors' Addresses
 
    Phone: 978.244.8498
    EMail: mjs@cisco.com
+
+
+
+
+
+
+Stapp, et. al.            Expires May 2, 2003                   [Page 8]
+
+Internet-Draft                The DHCID RR                 November 2002
 
 
    Ted Lemon
@@ -444,14 +474,40 @@ Authors' Addresses
 
 
 
-Stapp, et. al.            Expires May 22, 2002                  [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Stapp, et. al.            Expires May 2, 2003                   [Page 9]
 
-Internet-Draft                The DHCID RR                 November 2001
+Internet-Draft                The DHCID RR                 November 2002
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2001). All Rights Reserved.
+   Copyright (C) The Internet Society (2002). All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -500,5 +556,5 @@ Acknowledgement
 
 
 
-Stapp, et. al.            Expires May 22, 2002                  [Page 9]
+Stapp, et. al.            Expires May 2, 2003                  [Page 10]
 
