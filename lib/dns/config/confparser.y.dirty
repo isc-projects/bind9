@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.2 2001/01/09 22:44:49 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.3 2001/01/16 18:12:08 gson Exp $ */
 
 #include <config.h>
 
@@ -3723,6 +3723,7 @@ view_option: L_FORWARD zone_forward_opt
 				     "failed to set view forwarders");
 			YYABORT;
 		}
+		dns_c_iplist_detach(&$3);
 	}
 	| L_ALLOW_NOTIFY L_LBRACE address_match_list L_RBRACE
 	{
