@@ -12,10 +12,10 @@
  642.	[bug]		Break the exit_check() race in the zone module.
 			[RT #598]
 
+	--- 9.1.0b2 released ---
+
  641.	[bug]		$GENERATE caused a uninitialized link to be used.
 			[RT #595]
-
-	--- 9.1.0b2 released ---
 
  640.	[bug]		Memory leak in error path could cause
 			"mpctx->allocated == 0" failure. [RT #584]
