@@ -1,3 +1,6 @@
+1548.	[bug]		When parsing APL records it was possible to silently
+			accept out of range ADDRESSFAMILY values. [RT# 9979]
+
 1547.	[bug]		Named wasted memory recording duplicate lame zone
 			entries. [RT #9341]
 
@@ -27,9 +30,6 @@
 
 1536.	[bug]		Windows socket code failed to log a error description
 			when returning ISC_R_UNEXPECTED. [RT #9998]
-
-1535.	[bug]		When parsing APL records it was possible to silently
-			accept out of range ADDRESSFAMILY values. [RT# 9979]
 
 1534.	[bug]		Race condition when priming cache. [RT# 9940]
 
