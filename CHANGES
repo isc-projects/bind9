@@ -4,6 +4,9 @@
 1357.	[bug]		--enable-libbind would fail when not built in the
 			source tree for certain OS's.
 
+1356.	[security]	Support patches OpenSSL libraries.
+			http://www.cert.org/advisories/CA-2002-23.html
+
 1355.	[bug]		It was possible to trigger a INSIST when debugging
 			large dynamic updates. [RT #3390]
 

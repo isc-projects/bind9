@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.14 $)
+AC_REVISION($Revision: 1.294.2.15 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -350,26 +350,51 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 		[AC_MSG_RESULT(assuming it does work on target platform)]
 		)
 		 
-		
-
-
+#
+#	OpenSSLDie is new with CERT CS-2002-23.  If we see it we have may
+#	have a patched library otherwise check that we are greater than
+#	the fixed versions
+#
+		AC_CHECK_FUNC(OpenSSLDie,
 		AC_MSG_CHECKING(OpenSSL library version)
 		AC_TRY_RUN([
 #include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
-        if (OPENSSL_VERSION_NUMBER >= 0x0090605fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
 		OPENSSL_VERSION_NUMBER);
-	printf("Require OPENSSL_VERSION_NUMBER 0x0090605f or greater\n\n");
+	printf("Require OPENSSL_VERSION_NUMBER 0x0090581f or greater\n\n");
         return (1);
 }
 ],
 	        [AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-		 AC_MSG_ERROR(you need OpenSSL 0.9.6e or newer)],
+		 AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)],
 		[AC_MSG_RESULT(assuming target platform has compatible version)])
+		,
+	        AC_MSG_RESULT(did not find fixes for CERT CA-2002-23)
+		AC_MSG_CHECKING(OpenSSL library version)
+		AC_TRY_RUN([
+#include <stdio.h>
+#include <openssl/opensslv.h>
+int main() {
+        if ((OPENSSL_VERSION_NUMBER >= 0x0090605fL &&
+	     OPENSSL_VERSION_NUMBER < 0x009070000L) ||
+	     OPENSSL_VERSION_NUMBER >= 0x00907003L)
+                return (0);
+	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
+		OPENSSL_VERSION_NUMBER);
+	printf("Require OPENSSL_VERSION_NUMBER 0x0090605f or greater (0.9.6e)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x00907003 or greater (0.9.7-beta2)\n\n");
+        return (1);
+}
+],
+	        [AC_MSG_RESULT(ok)],
+		[AC_MSG_RESULT(not compatible)
+		 AC_MSG_ERROR(you need OpenSSL 0.9.6e/0.9.7-beta2 (or newer): CERT CA-2002-23)],
+		[AC_MSG_RESULT(assuming target platform has compatible version)]))
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		;;
