@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.274 $)
+AC_REVISION($Revision: 1.275 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -321,14 +321,14 @@ case "$use_openssl" in
 		AC_TRY_RUN([
 #include <openssl/opensslv.h>
 int main() {
-        if (OPENSSL_VERSION_NUMBER >= 0x0090500fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
                 return (0);
         return (1);
 }
 ],
 	        [AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-		AC_MSG_ERROR(you need OpenSSL 0.9.5 or newer)])
+		AC_MSG_ERROR(you need OpenSSL 0.9.5a or newer)])
 		CFLAGS="$saved_cflags"
 		LIBS="$saved_libs"
 		;;

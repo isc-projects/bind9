@@ -10,7 +10,7 @@ this release of BIND9.
 
 OpenSSL Library Required
 
-To support DNSSEC, BIND 9 must be lined with version 0.9.5 or newer of
+To support DNSSEC, BIND 9 must be lined with version 0.9.5a or newer of
 the OpenSSL library.  As of BIND 9.2, the library is no longer
 included in the distribution - it must be provided by the operating
 system or installed separately.
@@ -81,4 +81,4 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.12 2001/07/13 00:43:58 gson Exp $
+$Id: dnssec,v 1.13 2001/07/13 00:48:46 gson Exp $
