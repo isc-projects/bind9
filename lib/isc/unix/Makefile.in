@@ -34,7 +34,7 @@ OBJS =		@ISC_IPV6_O@ \
 # Alphabetically
 SRCS =		@ISC_IPV6_C@ \
 		app.c dir.c file.c interfaceiter.c net.c \
-		socket.c stdtime.c time.c ufile.c
+		socket.c stdtime.c time.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
