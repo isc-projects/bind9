@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.95 2000/07/20 19:41:42 mws Exp $ */
+/* $Id: dighost.c,v 1.96 2000/07/21 22:25:15 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -85,7 +85,6 @@ isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 isc_sockaddr_t bind_address;
 isc_sockaddr_t bind_any;
-char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
 int recvcount = 0;
@@ -1727,7 +1726,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_region_t r;
-	char *abspace[MXNAME];
+	char abspace[MXNAME];
 	isc_boolean_t atlimit=ISC_FALSE;
 
 	debug("check_for_more_data()");
