@@ -1,3 +1,6 @@
+1191.	[bug]		A dynamic update removing the last non-apex name in
+			a secure zone would fail. [RT #2399]
+
 1190.	[func]		Add the "rndc freeze" and "rndc unfreeze" commands.
 			[RT #2394]
 
