@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.3 2001/02/14 00:13:33 bwelling Exp $ */
+/* $Id: keydelete.c,v 1.4 2001/02/28 03:05:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@
 
 #define CHECK(str, x) { \
 	if ((x) != ISC_R_SUCCESS) { \
-		fprintf(stderr, "I: %s: %s\n", (str), isc_result_totext(x)); \
+		fprintf(stderr, "I:%s: %s\n", (str), isc_result_totext(x)); \
 		exit(-1); \
 	} \
 }
@@ -74,7 +74,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(reqev != NULL);
 
 	if (reqev->result != ISC_R_SUCCESS) {
-		fprintf(stderr, "I: request event result: %s\n",
+		fprintf(stderr, "I:request event result: %s\n",
 			isc_result_totext(reqev->result));
 		exit(-1);
 	}
@@ -91,7 +91,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 
 	if (response->rcode != dns_rcode_noerror) {
 		result = ISC_RESULTCLASS_DNSRCODE + response->rcode;
-		fprintf(stderr, "I: response rcode: %s\n",
+		fprintf(stderr, "I:response rcode: %s\n",
 			isc_result_totext(result));
 			exit(-1);
 	}
@@ -157,7 +157,7 @@ main(int argc, char **argv) {
 	RUNCHECK(isc_app_start());
 
 	if (argc < 2) {
-		fprintf(stderr, "I: no key to delete\n");
+		fprintf(stderr, "I:no key to delete\n");
 		exit(-1);
 	}
 	keyname = argv[1];
