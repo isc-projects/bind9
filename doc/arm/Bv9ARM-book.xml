@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.68 2000/12/14 01:45:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.69 2000/12/14 22:28:01 marka Exp $ -->
 
 <book>
 
@@ -626,6 +626,16 @@ Use <command>dig</command> instead.</para>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
+	  <varlistentry id="check-conf" xreflabel="Named Configuration Checking application">
+            <term><command>check-conf</command></term>
+            <listitem>
+	      <para>Performs syntax consistancy checks on <filename>named.conf</filename>.</para>
+              <cmdsynopsis label="Usage">
+                <command>check-conf</command>
+                <arg><replaceable>filename</replaceable></arg>
+              </cmdsynopsis>
+            </listitem>
+	  </varlistentry>
 	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
             <term><command>check-zone</command></term>
             <listitem>
