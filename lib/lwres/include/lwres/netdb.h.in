@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.28 2000/11/02 01:52:31 bwelling Exp $ */
+/* $Id: netdb.h.in,v 1.29 2000/11/15 20:47:54 tale Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
@@ -305,12 +305,12 @@ struct rrsetinfo {
 
 #ifdef getrrsetbyname
 #undef getrrsetbyname
-#endif getrrsetbyname
+#endif
 #define getrrsetbyname lwres_getrrsetbyname
 
 #ifdef freerrset
 #undef freerrset
-#endif freerrset
+#endif
 #define freerrset lwres_freerrset
 
 #ifdef notyet
