@@ -18,7 +18,6 @@ Libraries:
 	isc
 	dns
 	lwres
-	omapi
 EOF
 	exit $1
 }
@@ -69,9 +68,6 @@ while test $# -gt 0; do
 	lwres)
 		liblwres=true;
 		;;
-	omapi)
-		libomapi=true;
-		;;
 	*)
 		usage 1 1>&2
 	esac
@@ -89,17 +85,19 @@ if test x"$echo_cflags" = x"true"; then
 fi
 if test x"$echo_libs" = x"true"; then
 	libs=-L${exec_prefix}/lib
-	if test x"$libomapi" = x"true" ; then
-		libs="$libs -lomapi"
-	fi
 	if test x"$liblwres" = x"true" ; then
 		libs="$libs -llwres"
 	fi
 	if test x"$libdns" = x"true" ; then
 		libs="$libs -ldns @DNS_OPENSSL_LIBS@"
+		needothers=true
 	fi
 	if test x"$libisc" = x"true" ; then
 		libs="$libs -lisc"
+		needothers=true
 	fi
-	echo $libs @LIBS@
+	if test x"$needothers" = x"true" ; then
+		libs="$libs @LIBS@"
+	fi
+	echo $libs
 fi
