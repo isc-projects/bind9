@@ -1,4 +1,6 @@
 
+1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
+
  987.	[bug]		"dig -help" didn't show "+[no]stats".
 
  986.	[bug]		"dig +noall" failed to clear stats and command
