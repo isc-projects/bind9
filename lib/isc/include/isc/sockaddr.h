@@ -67,6 +67,9 @@ isc_sockaddr_pf(isc_sockaddr_t *sockaddr);
  *	The protocol family of 'sockaddr', e.g. PF_INET or PF_INET6.
  */
 
+char * 
+isc_sockaddr_totext(isc_sockaddr_t *sockaddr, isc_mem_t *mctx);
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */
