@@ -89,6 +89,23 @@ add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 static void
+hex_dump(isc_buffer_t *b)
+{
+	unsigned int len;
+	isc_region_t r;
+
+	isc_buffer_remaining(b, &r);
+
+	for (len = 0 ; len < r.length ; len++) {
+		printf("%02x ", r.base[len]);
+		if (len != 0 && len % 16 == 0)
+			printf("\n");
+	}
+	if (len % 16 != 0)
+		printf("\n");
+}
+
+static void
 get_address(char *hostname, unsigned int port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
@@ -127,6 +144,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_add(&b, sevent->n);
 		dns_message_reset(message, DNS_MESSAGE_INTENTPARSE);
 		result = dns_message_parse(message, &b);
+		if (result != ISC_R_SUCCESS)
+			hex_dump(&b);
 		check_result(result, "dns_message_parse()");
 		result = printmessage(message);
 		check_result(result, "printmessage()");
