@@ -147,7 +147,7 @@ lwres_strdup(lwres_context_t *ctx, const char *str)
 {
 	char *p;
 
-	REQUIRE(*str != NULL);
+	REQUIRE(str != NULL);
 	REQUIRE(strlen(str) > 0);
 
 	p = CTXMALLOC(strlen(str) + 1);
@@ -480,6 +480,7 @@ lwres_conf_parse(lwres_context_t *ctx,  const char *filename,
 	REQUIRE(strlen(filename) > 0);
 	REQUIRE(confdata != NULL);
 
+	rval = LWRES_R_FAILURE;		/* Make compiler happy. */
 	errno = 0;
 	if ((fp = fopen(filename, "r")) == NULL)
 		return (LWRES_R_FAILURE);
