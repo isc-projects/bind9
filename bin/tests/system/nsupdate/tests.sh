@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.19 2001/02/14 02:11:17 gson Exp $
+# $Id: tests.sh,v 1.20 2001/02/15 01:04:06 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -82,8 +82,15 @@ cd ns1
 kill -KILL `cat named.pid`
 rm named.pid
 cd ..
-sleep 3
-$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
+sleep 10
+if 
+	$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
+then
+	echo "I:restarted server ns1"	
+else
+	echo "I:could not restart server ns1"
+	exit 1
+fi
 sleep 10
 
 echo "I:fetching ns1 after hard restart"
