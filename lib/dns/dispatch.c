@@ -508,7 +508,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	} else if (queue_response) {
 		ISC_LIST_APPEND(resp->items, rev, link);
 	} else {
-		ISC_EVENT_INIT(rev, sizeof(*rev), 0, 0, DNS_EVENT_DISPATCH,
+		ISC_EVENT_INIT(rev, sizeof(*rev), 0, NULL, DNS_EVENT_DISPATCH,
 			       resp->action, resp->arg, resp, NULL, NULL);
 		XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
 			rev->buffer.base, rev->buffer.length, resp->task));
@@ -1078,7 +1078,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 
 	ISC_LIST_UNLINK(disp->rq_events, ev, link);
 
-	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
 	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
@@ -1102,7 +1102,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 
 	ISC_LIST_UNLINK(disp->rq_events, ev, link);
 
-	ISC_EVENT_INIT(ev, sizeof(*ev), 0, 0, DNS_EVENT_DISPATCH,
+	ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	resp->item_out = ISC_TRUE;
 	XDEBUG(("Sent event for buffer %p (len %d) to task %p\n",
@@ -1155,7 +1155,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	 * Send the shutdown failsafe event to this resp.
 	 */
 	ev = disp->failsafe_ev;
-	ISC_EVENT_INIT(ev, sizeof (*ev), 0, 0, DNS_EVENT_DISPATCH,
+	ISC_EVENT_INIT(ev, sizeof (*ev), 0, NULL, DNS_EVENT_DISPATCH,
 		       resp->action, resp->arg, resp, NULL, NULL);
 	ev->result = ISC_R_CANCELED;
 	ev->buffer.base = NULL;

@@ -201,7 +201,7 @@ destroy(isc_timer_t *timer) {
 			    timer,
 			    ISC_TASKEVENT_FIRSTEVENT,
 			    ISC_TASKEVENT_LASTEVENT,
-			    0);
+			    NULL);
 	deschedule(timer);
 	UNLINK(manager->timers, timer, link);
 
@@ -377,7 +377,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 				    timer,
 				    ISC_TASKEVENT_FIRSTEVENT,
 				    ISC_TASKEVENT_LASTEVENT,
-				    0);
+				    NULL);
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;

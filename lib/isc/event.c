@@ -50,7 +50,7 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	event = isc_mem_get(mctx, size);
 	if (event == NULL)
 		return (NULL);
-	ISC_EVENT_INIT(event, size, 0, 0, type, action, arg, sender,
+	ISC_EVENT_INIT(event, size, 0, NULL, type, action, arg, sender,
 		       destroy, mctx);
 
 	return (event);
