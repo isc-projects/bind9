@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.9 2001/07/03 06:55:04 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.9.2.1 2002/01/23 02:31:15 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -169,6 +169,9 @@ __res_vinit(res_state statp, int preinit) {
 		statp->id = res_randomid();
 	}
 
+	if ((statp->options & RES_INIT) != 0)
+		res_ndestroy(statp);
+
 #ifdef USELOOPBACK
 	statp->nsaddr.sin_addr = inet_makeaddr(IN_LOOPBACKNET, 1);
 #else
@@ -187,14 +190,12 @@ __res_vinit(res_state statp, int preinit) {
 	statp->qhook = NULL;
 	statp->rhook = NULL;
 	statp->_u._ext.nscount = 0;
-	if (statp->_u._ext.ext == NULL) {
-	    statp->_u._ext.ext = malloc(sizeof(*statp->_u._ext.ext));
-	    if (statp->_u._ext.ext != NULL) {
+	statp->_u._ext.ext = malloc(sizeof(*statp->_u._ext.ext));
+	if (statp->_u._ext.ext != NULL) {
 	        memset(statp->_u._ext.ext, 0, sizeof(*statp->_u._ext.ext));
 		statp->_u._ext.ext->nsaddrs[0].sin = statp->nsaddr;
 		strcpy(statp->_u._ext.ext->nsuffix, "ip6.int");
 		strcpy(statp->_u._ext.ext->bsuffix, "ip6.arpa");
-	    }
 	}
 #ifdef RESOLVSORT
 	statp->nsort = 0;
