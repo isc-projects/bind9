@@ -49,7 +49,7 @@
 
 #define TCP_CLIENT(c)	(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
 
-#define SEND_BUFFER_SIZE		512
+#define SEND_BUFFER_SIZE		2048
 
 struct ns_clientmgr {
 	/* Unlocked. */
@@ -271,10 +271,8 @@ ns_client_send(ns_client_t *client) {
 	}
 
 	/*
-	 * XXXRTH  The following doesn't deal with truncation, TSIGs,
-	 *         or ENDS1 more data packets.  Nor do we try to use a
-	 *	   buffer bigger than 512 bytes, even if we're using
-	 *	   TCP.
+	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
+	 *         EDNS0 UDP buffer limits, or ENDS1 more data packets.
 	 */
 	if (TCP_CLIENT(client)) {
 		/*
@@ -285,7 +283,7 @@ ns_client_send(ns_client_t *client) {
 		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2,
 				ISC_BUFFERTYPE_BINARY);
 	} else {
-		isc_buffer_init(&buffer, data, SEND_BUFFER_SIZE,
+		isc_buffer_init(&buffer, data, 512,
 				ISC_BUFFERTYPE_BINARY);
 	}
 
