@@ -216,6 +216,7 @@
 ./bin/tests/rbt/dns_rbtnodechain_prev.data	X	1999
 ./bin/tests/rbt/dns_rbtnodechain_prev_data	X	1999
 ./bin/tests/rbt/t_rbt.c				C	1998,1999
+./bin/tests/ratelimiter_test.c			C	1999
 ./bin/tests/rbt_test.c				C	1999
 ./bin/tests/rbt_test.out			X	1999
 ./bin/tests/rbt_test.txt			X	1999
@@ -556,6 +557,7 @@
 ./lib/isc/include/isc/platform.h.in		C	1999
 ./lib/isc/include/isc/print.h			C	1999
 ./lib/isc/include/isc/random.h			C	1999
+./lib/isc/include/isc/ratelimiter.h		C	1999
 ./lib/isc/include/isc/rbtgen.h			C	1998,1999
 ./lib/isc/include/isc/region.h			C	1998,1999
 ./lib/isc/include/isc/result.h			C	1998,1999
@@ -594,6 +596,7 @@
 ./lib/isc/pthreads/include/isc/once.h		C	1999
 ./lib/isc/pthreads/include/isc/thread.h		C	1998,1999
 ./lib/isc/random.c				C	1999
+./lib/isc/ratelimiter.c				C	1999
 ./lib/isc/rbtgen.c				C	1998,1999
 ./lib/isc/result.c				C	1998,1999
 ./lib/isc/rwlock.c				C	1998,1999
