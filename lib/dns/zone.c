@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.18 2003/08/20 06:37:16 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.19 2003/08/21 02:50:34 marka Exp $ */
 
 #include <config.h>
 
@@ -4469,7 +4469,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		/* Accept notify. */
 	} else if (i >= zone->masterscnt) {
 		UNLOCK_ZONE(zone);
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refused notify from non-master: %s", fromtext);
 		return (DNS_R_REFUSED);
 	}
@@ -4498,7 +4498,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			if (result == ISC_R_SUCCESS) {
 				serial = soa.serial;
 				if (isc_serial_le(serial, zone->serial)) {
-					dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					dns_zone_log(zone, ISC_LOG_INFO,
 						     "notify from %s: "
 						     "zone is up to date",
 						     fromtext);
@@ -4518,7 +4518,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 		zone->notifyfrom = *from;
 		UNLOCK_ZONE(zone);
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		dns_zone_log(zone, ISC_LOG_INFO,
 			     "notify from %s: refresh in progress, "
 			     "refresh check queued",
 			     fromtext);
@@ -4989,7 +4989,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 			   "notify response from %s: %.*s",
 			   addrbuf, (int)buf.used, rcode);
 	else
-		notify_log(notify->zone, ISC_LOG_DEBUG(1),
+		notify_log(notify->zone, ISC_LOG_DEBUG(2),
 			   "notify to %s failed: %s", addrbuf,
 			   dns_result_totext(result));
 
@@ -5431,18 +5431,18 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 * Decide whether we should request IXFR or AXFR.
 	 */
 	if (zone->db == NULL) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "no database exists yet, "
 			     "requesting AXFR of "
 			     "initial version from %s", mastertext);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (dns_zone_isforced(zone)) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "forced reload, requesting AXFR of "
 			     "initial version from %s", mastertext);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLAG_NOIXFR)) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "retrying with AXFR from %s due to "
 			     "previous IXFR failure", mastertext);
 		xfrtype = dns_rdatatype_axfr;
@@ -5459,13 +5459,13 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			use_ixfr = zone->view->requestixfr;
 		}
 		if (use_ixfr == ISC_FALSE) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "IXFR disabled, "
 				     "requesting AXFR from %s",
 				     mastertext);
 			xfrtype = dns_rdatatype_axfr;
 		} else {
-			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "requesting IXFR from %s",
 				     mastertext);
 			xfrtype = dns_rdatatype_ixfr;
@@ -6066,7 +6066,7 @@ zmgr_resume_xfrs(dns_zonemgr_t *zmgr, isc_boolean_t multi) {
 			 */
 			continue;
 		} else {
-			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "starting zone transfer: %s",
 				     isc_result_totext(result));
 			break;
@@ -6157,6 +6157,7 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = &zmgr->xfrin_in_progress;
 	isc_task_send(zone->task, &e);
+	dns_zone_log(zone, ISC_LOG_INFO, "Transfer started.");
 	UNLOCK_ZONE(zone);
 
 	return (ISC_R_SUCCESS);

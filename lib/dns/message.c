@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.6 2003/08/19 07:26:08 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.7 2003/08/21 02:50:34 marka Exp $ */
 
 /***
  *** Imports
@@ -1580,7 +1580,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	isc_buffer_remainingregion(source, &r);
 	if (r.length != 0) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(1),
+			      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(3),
 			      "message has %u byte(s) of trailing garbage",
 			      r.length);
 	}
