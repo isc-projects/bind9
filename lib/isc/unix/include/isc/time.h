@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.27 2001/09/05 17:22:52 gson Exp $ */
+/* $Id: time.h,v 1.28 2001/09/20 06:50:08 marka Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -231,7 +231,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
  */
 
 isc_uint32_t
-isc_time_seconds(isc_time_t *t);
+isc_time_seconds(const isc_time_t *t);
 /*
  * Return the number of seconds since the epoch stored in a time structure.
  *
