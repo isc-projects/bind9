@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.176 $)
+AC_REVISION($Revision: 1.177 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -242,7 +242,7 @@ case "$use_gssapi" in
 		USE_GSSAPI=''
 		DST_GSSAPI_INC=''
 		DNS_GSSAPI_LIBS=''
-		AC_MSG_RESULT(none found)
+		AC_MSG_RESULT(not specified)
 		;;
 	yes)
 		AC_MSG_ERROR([--with-gssapi must specify a path])
@@ -258,6 +258,39 @@ esac
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
 AC_SUBST(DNS_GSSAPI_LIBS)
+
+#
+# was --with-randomdev specified?
+#
+AC_MSG_CHECKING(for random device)
+AC_ARG_WITH(randomdev,
+[  --with-randomdev=PATH Specify path for random device],
+    use_randomdev="$withval", use_randomdev="unspec")
+
+case "$use_randomdev" in
+	unspec)
+		case "$host" in
+			*-openbsd*)
+				AC_DEFINE(HAVE_RANDOMDEV, "/dev/srandom")
+				AC_MSG_RESULT(using /dev/srandom)
+				;;
+			*-linux*|*-freebsd*|*-netbsd*)
+				AC_DEFINE(HAVE_RANDOMDEV, "/dev/random")
+				AC_MSG_RESULT(using /dev/random)
+				;;
+			*)
+				AC_MSG_RESULT(not found)
+				;;
+		esac
+		;;
+	yes)
+		AC_MSG_ERROR([--with-randomdev must specify a path])
+		;;
+	*)
+		AC_DEFINE_UNQUOTED(HAVE_RANDOMDEV, "$use_randomdev")
+		AC_MSG_RESULT(using "$use_randomdev")
+		;;
+esac
 
 #
 # NetBSD has multiple pthreads implementations.  The recommended

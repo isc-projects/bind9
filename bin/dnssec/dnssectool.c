@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.18 2000/08/17 01:22:10 gson Exp $ */
+/* $Id: dnssectool.c,v 1.19 2000/08/17 18:56:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -190,7 +190,7 @@ kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 		if (!wantkeyboard) {
 			fprintf(stderr, "You must use the keyboard to create "
 				"entropy, since your system is lacking\n");
-			fprintf(stderr, "/dev/random\n\n");
+			fprintf(stderr, "/dev/random (or equivalent)\n\n");
 		}
 		first = ISC_FALSE;
 	}
@@ -258,13 +258,15 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 			      isc_result_totext(result));
 	}
 	else {
+#ifdef HAVE_RANDOMDEV
 		if (randomfile == NULL) {
 			result = isc_entropy_createfilesource(*ectx,
-							      "/dev/random");
+							      HAVE_RANDOMDEV);
 			if (result == ISC_R_SUCCESS)
 				return;
 		}
 		else
+#endif
 			wantkeyboard = ISC_TRUE;
 		result = isc_entropy_createcallbacksource(*ectx, kbdstart,
 							  kbdget, kbdstop,

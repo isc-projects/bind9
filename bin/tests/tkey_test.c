@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.29 2000/08/01 01:13:27 tale Exp $ */
+/* $Id: tkey_test.c,v 1.30 2000/08/17 18:56:46 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -375,10 +375,14 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 
-	result = isc_entropy_createfilesource(ectx, "/dev/random");
+#ifdef HAVE_RANDOMDEV
+	result = isc_entropy_createfilesource(ectx, HAVE_RANDOMDEV);
+#else
+	result = ISC_R_NOTFOUND;
+#endif
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr,
-			"%s only runs when /dev/random is available.\n",
+			"%s only runs when a random device is available.\n",
 			argv[0]);
 		exit(-1);
 	}
