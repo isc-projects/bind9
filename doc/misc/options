@@ -56,7 +56,6 @@ options {
         recursion <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
-        try-edns <boolean>;
         fetch-glue <boolean>; // obsolete
         rfc2308-type1 <boolean>; // not yet implemented
         additional-from-auth <boolean>;
@@ -72,7 +71,6 @@ options {
         max-cache-ttl <integer>;
         transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
-        max-adb-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
@@ -196,7 +194,6 @@ view <string> <optional_class> {
         recursion <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
-        try-edns <boolean>;
         fetch-glue <boolean>; // obsolete
         rfc2308-type1 <boolean>; // not yet implemented
         additional-from-auth <boolean>;
@@ -212,7 +209,6 @@ view <string> <optional_class> {
         max-cache-ttl <integer>;
         transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
-        max-adb-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
