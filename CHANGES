@@ -1,4 +1,6 @@
- 125.   [cleanup]       <isc/magic.h> does not need <isc/lang.h>.
+ 125.   [cleanup]       <isc/eventclass.h>, <isc/ipv6.h>, <isc/magic.h>,
+                        <isc/mutex.h>, <isc/once.h>, <isc/region.h>, and
+                        <isc/resultclass.h> do not need <isc/lang.h>.
 
  124.   [func]		signer now imports parent's zone key signature
 			and creates null keys/sets zone status bit for
@@ -120,8 +122,7 @@
   97.   [cleanup]       <isc/ondestroy.h> does not need <stddef.h> or
                         <isc/event.h>.
 
-  96.   [cleanup]       <isc/mutex.h> does not need <isc/lang.h> or
-                        <isc/result.h>.
+  96.   [cleanup]       <isc/mutex.h> does not need <isc/result.h>.
 
   95.   [cleanup]       <isc/mutexblock.h> does not need <isc/result.h>.
 

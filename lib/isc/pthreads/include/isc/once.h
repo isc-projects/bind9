@@ -20,10 +20,7 @@
 
 #include <pthread.h>
 
-#include <isc/lang.h>
 #include <isc/result.h>
-
-ISC_LANG_BEGINDECLS
 
 typedef pthread_once_t	isc_once_t;
 
@@ -34,7 +31,5 @@ typedef pthread_once_t	isc_once_t;
 #define isc_once_do(op, f) \
 	((pthread_once((op), (f)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_ONCE_H */

@@ -18,10 +18,7 @@
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
 
-#include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 struct isc_region {
 	unsigned char *	base;
@@ -55,7 +52,5 @@ struct isc_textregion {
 		__r->base += __l; \
 		__r->length -= __l; \
 	} while (0)
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_REGION_H */

@@ -45,10 +45,7 @@
  *** Imports.
  ***/
 
-#include <isc/lang.h>
 #include <isc/int.h>
-
-ISC_LANG_BEGINDECLS
 
 /***
  *** Types.
@@ -129,7 +126,5 @@ struct in6_pktinfo {
         (((a)->s6_addr32[0] == 0) &&          \
          ((a)->s6_addr32[1] == 0) &&          \
          ((a)->s6_addr32[2] == htonl(0x0000ffff)))
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_IPV6_H */

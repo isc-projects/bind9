@@ -18,10 +18,6 @@
 #ifndef ISC_EVENTCLASS_H
 #define ISC_EVENTCLASS_H 1
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
 /*****
  ***** Registry of Predefined Event Type Classes
  *****/
@@ -50,7 +46,5 @@ ISC_LANG_BEGINDECLS
 /*
  * Event classes >= 1024 and <= 65535 are reserved for application use.
  */
-
-ISC_LANG_ENDDECLS
 
 #endif /* ISC_EVENTCLASS_H */
