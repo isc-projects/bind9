@@ -311,6 +311,12 @@ isc_boolean_t		dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr);
 void			dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr);
 isc_result_t		dns_c_charptoname(isc_mem_t *mem, const char *keyval,
 					  dns_name_t **name);
+void			dns_c_peer_print(FILE *fp, int indent,
+					 dns_peer_t *peer);
+void			dns_c_peerlist_print(FILE *fp, int indent,
+					     dns_peerlist_t *peers);
+void			dns_c_ssutable_print(FILE *fp, int indent,
+					     dns_ssutable_t *ssutable);
 
 isc_result_t		dns_c_checkcategory(const char *name);
 /*
@@ -320,7 +326,6 @@ isc_result_t		dns_c_checkcategory(const char *name);
  *	ISC_R_SUCCESS if the category is known.
  *	ISC_R_FAILURE if it isn't.
  */
-
 
 
 #endif /* DNS_CONFIG_CONFCOMMON_H */
