@@ -1,9 +1,9 @@
 1052.	[bug]		Journals were not being created in binary mode
 			resulting in "journal format not recognized" error
-			under Windows NT/2000.  [RT #1889]
+			under Windows NT/2000. [RT #1889]
 
 1051.	[bug]		Do not ignore a network interface completely just
-			because it has a noncontiguous netmask.  Instead,
+			because it has a noncontiguous netmask.	 Instead,
 			omit it from the localnets ACL and issue a warning.
 			[RT #1891]
 
@@ -20,7 +20,7 @@
 
 1047.	[bug]		named was incorrectly refusing all requests signed
 			with a TSIG key derived from an unsigned TKEY
-			negotiation with a NOERROR response.  [RT #1886]
+			negotiation with a NOERROR response. [RT #1886]
 
 1046.	[bug]		The help message for the --with-openssl configure
 			option was inaccurate. [RT #1880]
@@ -95,7 +95,7 @@
 1026.	[placeholder]	
 
 1025.	[bug]		Don't use multicast addresses to resolve iterative
-			queries.  [RT #101]
+			queries. [RT #101]
 
 1024.	[port]		Compilation failed on HP-UX 11.11 due to
 			incompatible use of the SIOCGLIFCONF macro
@@ -121,7 +121,7 @@
 			correctly. [RT #1813]
 
 1017.	[bug]		When specifying TSIG keys to dig and nsupdate using
-			the -k option, they must be HMAC-MD5 keys.  [RT #1810]
+			the -k option, they must be HMAC-MD5 keys. [RT #1810]
 
 1016.	[bug]		Slave zones with no backup file were re-transferred
 			on every server reload.
@@ -231,7 +231,7 @@
 			statistics will be written to it.
 
  981.	[func]		The dnssec tools can now take multiple '-r randomfile'
- 			arguments.
+			arguments.
 
  980.	[bug]		Incoming zone transfers restarting after an error
 			could trigger an assertion failure. [RT #1692]
@@ -328,7 +328,7 @@
 			named and rndc will look for this file and use
 			it to configure a default control channel key
 			if not already configured using a different
-			method (rndc.conf / controls).  Unlike
+			method (rndc.conf / controls).	Unlike
 			named.key, rndc.key is not created automatically;
 			it must be created by manually running
 			"rndc-confgen -a".
@@ -345,7 +345,7 @@
 			due to a bug in change 834. [RT #1558]
 
  949.	[bug]		host was unable to print records larger than 512
- 			bytes. [RT #1557]
+			bytes. [RT #1557]
 
 	--- 9.2.0b2 released ---
 
@@ -383,7 +383,7 @@
 	--- 9.2.0b1 released ---
 
  939.	[port]		Add the --disable-linux-caps option to configure for
- 			systems that manage capabilities outside of named.
+			systems that manage capabilities outside of named.
 			[RT #1503]
 
  938.	[placeholder]
