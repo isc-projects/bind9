@@ -1,4 +1,7 @@
 
+1022.	[bug]		Don't report empty root hints as "extra data".
+			[RT #1802]
+
 	--- 9.2.0rc5 released ---
 
 1021.	[bug]		On Win32, log message timestamps were one month
