@@ -39,6 +39,9 @@
 1560.	[port]		FreeBSD: work around FreeBSD 5.2 mapping EAI_NODATA
 			and EAI_NONAME to the same value.
 
+1556.	[bug]		nsupdate now treats all names as fully qualified.
+			[RT #6427]
+
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
 			point. [RT #7572]
 
