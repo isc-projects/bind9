@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.22 2000/08/01 01:30:08 tale Exp $ */
+/* $Id: event.h,v 1.23 2000/09/27 22:53:33 marka Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
@@ -85,8 +85,25 @@ struct isc_event {
 ISC_LANG_BEGINDECLS
 
 isc_event_t *
-isc_event_allocate(isc_mem_t *, void *, isc_eventtype_t, isc_taskaction_t,
-		   const void *arg, size_t);
+isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
+		   isc_taskaction_t action, const void *arg, size_t size);
+/*
+ * Allocate and initalise in a structure with initial elements
+ * defined by:
+ *
+ *	struct {
+ *		ISC_EVENT_COMMON(struct isc_event);
+ *		...
+ *	};
+ *	
+ * Requires:
+ *	'size' >= sizeof(struct isc_event)
+ *	'action' to be non NULL
+ *
+ * Returns:
+ *	a pointer to a initalised structure of the requested size.
+ *	NULL if unable to allocate memory.
+ */
 
 void
 isc_event_free(isc_event_t **);

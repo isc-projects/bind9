@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.c,v 1.13 2000/08/01 01:29:21 tale Exp $ */
+/* $Id: event.c,v 1.14 2000/09/27 22:53:31 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -45,10 +45,8 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	isc_event_t *event;
 	void *deconst_arg;
 
-	if (size < sizeof (struct isc_event))
-		return (NULL);
-	if (action == NULL)
-		return (NULL);
+	REQUIRE(size >= sizeof (struct isc_event));
+	REQUIRE(action != NULL);
 
 	event = isc_mem_get(mctx, size);
 	if (event == NULL)
