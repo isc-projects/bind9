@@ -37,6 +37,7 @@ struct timezone;        /* silence warning */
 @NET_R_SET_RESULT@
 @NET_R_SETANSWER@
 @NET_R_SET_RETURN@
+@NETENT_DATA@
 
 @GROUP_R_RETURN@
 @GROUP_R_SET_RETURN@
