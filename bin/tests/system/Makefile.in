@@ -13,6 +13,14 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+@BIND9_INCLUDES@
+TARGETS = 
+
+@BIND9_MAKE_RULES@
+
+clean:: xfer_test_clean dnssec_test_clean xferquota_test_clean \
+	notify_test_clean views_test_clean
+
 test: xfer_test dnssec_test xferquota_test notify_test views_test
 
 xfer_test:
@@ -29,3 +37,19 @@ notify_test:
 
 views_test:
 	sh ./run.sh views
+
+xfer_test_clean:
+	sh ./clean.sh xfer
+
+xferquota_test_clean:
+	sh ./clean.sh xferquota
+
+dnssec_test_clean:
+	sh ./clean.sh dnssec
+
+notify_test_clean:
+	sh ./clean.sh notify
+
+views_test_clean:
+	sh ./clean.sh views
+
