@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.38 2000/12/05 22:42:23 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.39 2000/12/05 23:27:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6628,6 +6628,7 @@ static char *
 token_to_text(int token, YYSTYPE lval) {
 	static char buffer[1024];
 	const char *tk;
+	const char *p;
 
 	/*
 	 * Yacc keeps token numbers above 128, it seems.
@@ -6635,6 +6636,8 @@ token_to_text(int token, YYSTYPE lval) {
 	if (token < 128) {
 		if (token == 0)
 			strncpy(buffer, "<end of file>", sizeof buffer);
+		else if (token < 0)
+			strncpy(buffer, "<invalid token>", sizeof buffer);
 		else
 			if ((unsigned int) sprintf(buffer, "'%c'", token)
 			    >= sizeof buffer) {
@@ -6657,32 +6660,49 @@ token_to_text(int token, YYSTYPE lval) {
 			}
 			break;
 		case L_IP6ADDR:
-			strcpy(buffer, "UNAVAILABLE-IPV6-ADDRESS");
-			inet_ntop(AF_INET6, lval.ip6_addr.s6_addr,
-				  buffer, sizeof buffer);
+			p = inet_ntop(AF_INET6, lval.ip6_addr.s6_addr,
+				      &buffer[1], (sizeof buffer) - 2);
+			if (p == NULL)
+				strcpy(buffer, "UNAVAILABLE-IPV6-ADDRESS");
+			else {
+				buffer[0] = '\'';
+				strcat(buffer, "'");
+			}
 			break;
 		case L_IP4ADDR:
-			strcpy(buffer, "UNAVAILABLE-IPV4-ADDRESS");
-			inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
-				  buffer, sizeof buffer);
+			p = inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
+				      &buffer[1], (sizeof buffer) - 2);
+			if (p == NULL)
+				strcpy(buffer, "UNAVAILABLE-IPV4-ADDRESS");
+			else {
+				buffer[0] = '\'';
+				strcat(buffer, "'");
+			}
 			break;
 		case L_IP4PREFIX: {
 			int i;
-			strcpy(buffer, "UNAVAILABLE-IPV4-ADDRESS");
-			inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
-				  buffer, sizeof buffer);
-			/*
-			 * Remove trailing zeros added in. We may remove too
-			 * many but we need to remove at least one.
-			 */
-			for (i = 0; i < 3; i++)
-				if (strcmp(&buffer[strlen(buffer) - 2],
-				   	   ".0") == 0)
-					buffer[strlen(buffer) - 2] = '\0';
+			p = inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
+				      &buffer[1], (sizeof buffer) - 2);
+			if (p == NULL)
+				strcpy(buffer, "UNAVAILABLE-IPV4-ADDRESS");
+			else {
+				buffer[0] = '\'';
+				/*
+				 * Remove trailing zeros added in. We may
+				 * remove too many but we need to remove at
+				 * least one.
+				 */
+				for (i = 0; i < 3; i++)
+					if (strcmp(&buffer[strlen(buffer) - 2],
+						   ".0") == 0)
+						buffer[strlen(buffer) - 2] =
+							'\0';
+				strcat(buffer, "'");
+			}
 			break;
 		}
 		case L_INTEGER:
-			sprintf(buffer, "%lu", (unsigned long)lval.ul_int);
+			sprintf(buffer, "'%lu'", (unsigned long)lval.ul_int);
 			break;
 		case L_END_INCLUDE:
 			strcpy (buffer, "<end of include>");
@@ -6750,10 +6770,10 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 		if (dns_lctx != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
-				      "%s%s near '%s'", where, message,
+				      "%s%s near %s", where, message,
 				       token_to_text(lasttoken, lastyylval));
 		} else {
-			fprintf(stderr, "%s%s near '%s'\n", where, message,
+			fprintf(stderr, "%s%s near %s\n", where, message,
 				token_to_text(lasttoken, lastyylval));
 		}
 	} else {
