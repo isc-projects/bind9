@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.20 2001/08/31 22:31:18 gson Exp $ */
+/* $Id: time.h,v 1.21 2001/09/01 00:18:43 gson Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -279,8 +279,6 @@ isc_time_nanoseconds(isc_time_t *t);
  *	The returned value is less than 1*10^9.
  */
 
-ISC_LANG_ENDDECLS
-
 void
 isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
 /*
@@ -294,5 +292,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *      'buf' points to an array of at least len chars
  *
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_TIME_H */
