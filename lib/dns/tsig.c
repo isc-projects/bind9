@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.18 1999/10/09 00:00:54 tale Exp $
+ * $Id: tsig.c,v 1.19 1999/10/14 18:35:25 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -62,7 +62,7 @@ dns_name_t *dns_tsig_hmacmd5_name = NULL;
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
-		   unsigned char *secret, int length, isc_boolean_t transient,
+		   unsigned char *secret, int length, dst_key_t *creator,
 		   isc_mem_t *mctx, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
@@ -108,6 +108,8 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		goto cleanup_algorithm;
 
 	if (length > 0) {
+		dns_tsigkey_t *tmp;
+
 		isc_buffer_init(&b, secret, length, ISC_BUFFERTYPE_BINARY);
 		isc_buffer_add(&b, length);
 		ret = dst_key_frombuffer(namestr, alg,
@@ -119,6 +121,16 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 
 		ISC_LINK_INIT(tkey, link);
 		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
+		tmp = ISC_LIST_HEAD(tsigkeys);
+		while (tmp != NULL) {
+			if (dns_name_equal(&tkey->name, &tmp->name)) {
+				ret = ISC_R_EXISTS;
+				isc_rwlock_unlock(&tsiglock,
+						  isc_rwlocktype_write);
+				goto cleanup_algorithm;
+			}
+			tmp = ISC_LIST_NEXT(tmp, link);
+		}
 		ISC_LIST_APPEND(tsigkeys, tkey, link);
 		isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
 	}
@@ -126,7 +138,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		tkey->key = NULL;
 
 	tkey->refs = 0;
-	tkey->transient = transient;
+	tkey->creator = creator;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
 	tkey->magic = TSIG_MAGIC;
@@ -164,6 +176,8 @@ dns_tsigkey_free(dns_tsigkey_t **key) {
 	dns_name_free(&tkey->algorithm, tkey->mctx);
 	if (tkey->key != NULL)
 		dst_key_free(tkey->key);
+	if (tkey->creator != NULL)
+		dst_key_free(tkey->creator);
 	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
 }
 
@@ -540,7 +554,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		 * by calling dns_tsigkey_empty()
 		 */
 		ret = dns_tsigkey_create(keyname, &tsig->algorithm, NULL, 0,
-					 ISC_TRUE, mctx, &msg->tsigkey);
+					 NULL, mctx, &msg->tsigkey);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_struct;
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -870,13 +884,13 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 	REQUIRE(tsigkey != NULL);
 	REQUIRE(*tsigkey == NULL);
 	REQUIRE(name != NULL);
-	REQUIRE(algorithm != NULL);
 
 	isc_rwlock_lock(&tsiglock, isc_rwlocktype_read);
 	key = ISC_LIST_HEAD(tsigkeys);
 	while (key != NULL) {
 		if (dns_name_equal(&key->name, name) &&
-		    dns_name_equal(&key->algorithm, algorithm) &&
+		    (algorithm == NULL ||
+		     dns_name_equal(&key->algorithm, algorithm)) &&
 		    !key->deleted)
 		{
 			key->refs++;

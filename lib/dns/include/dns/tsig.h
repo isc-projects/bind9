@@ -43,7 +43,7 @@ struct dns_tsigkey {
 	dns_name_t		name;		/* Key name */
 	dns_name_t		algorithm;	/* Algorithm name */
 	isc_uint32_t		refs;		/* reference counter */
-	isc_boolean_t		transient;	/* dynamically created? */
+	dst_key_t		*creator;	/* key that created secret */
 	isc_boolean_t		deleted;	/* has this been deleted? */
 	ISC_LINK(dns_tsigkey_t)	link;
 };
@@ -52,8 +52,8 @@ struct dns_tsigkey {
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
-		    unsigned char *secret, int length, isc_boolean_t transient,
-		    isc_mem_t *mctx, dns_tsigkey_t **key);
+		   unsigned char *secret, int length, dst_key_t *creator,
+		   isc_mem_t *mctx, dns_tsigkey_t **key);
 /*
  *	Creates a tsig key structure pointed to by 'key'.
  *
@@ -68,6 +68,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *
  *	Returns:
  *		ISC_R_SUCCESS
+ *		ISC_R_EXISTS - a key with this name already exists
  *		DNS_R_NOTIMPLEMENTED - algorithm is not implemented
  *		ISC_R_NOMEMORY
  */
@@ -152,14 +153,14 @@ isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm);
 /*
- *	Returns the TSIG key corresponding to this name and algorithm and
- *	increments the keys reference counter.
+ *	Returns the TSIG key corresponding to this name and (possibly)
+ *	algorithm.  Also increments the key's reference counter.
  *
  *	Requires:
  *		'tsigkey' is not NULL
  *		'*tsigkey' is NULL
  *		'name' is a valid dns_name_t
- *		'algorithm' is a valid dns_name_t
+ *		'algorithm' is a valid dns_name_t or NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
