@@ -95,13 +95,6 @@ struct dns_c_view
 	char 		       *name;
 	dns_c_ipmatchlist_t    *allowquery;
 
-	/* XXX these next three need real types. */
-
-	/* next-view-nxdomain */
-	/* next-view-nodata */
-	/* next-view-noerror */ 
-
-	/* bit set if corresponding field in struct was set. */
 	dns_c_setbits_t		setflags;
 
 	ISC_LINK(dns_c_view_t)	next;

@@ -30,19 +30,19 @@
  * 
  *
  * MP:
- *      
+ *	
  *
  * Reliability:
- *      
+ *	
  *
  * Resources:
- *      
+ *	
  *
  * Security:
- *      
+ *	
  *
  * Standards:
- *      
+ *	
  */
 
 /***
@@ -84,9 +84,9 @@ struct dns_c_srv
 	dns_transfer_format_t	transfer_format;
 	int			transfers;
 	isc_boolean_t		support_ixfr;
-	dns_c_kidlist_t       *keys;
+	dns_c_kidlist_t	      *keys;
 
-	dns_setbits_t		bitflags;
+	dns_c_setbits_t		bitflags;
 	
 	ISC_LINK(dns_c_srv_t)	next;
 };
@@ -96,34 +96,38 @@ struct dns_c_srv
  *** Functions
  ***/
 
-isc_result_t	dns_c_srvlist_new(isc_mem_t *mem,
-				   dns_c_srvlist_t **list);
-isc_result_t	dns_c_srvlist_delete(dns_c_srvlist_t **list);
-void		dns_c_srvlist_print(FILE *fp, int indent,
-				     dns_c_srvlist_t *servers);
+isc_result_t	dns_c_srvlist_new(isc_log_t *lctx, isc_mem_t *mem,
+				  dns_c_srvlist_t **list);
+isc_result_t	dns_c_srvlist_delete(isc_log_t *lctx, dns_c_srvlist_t **list);
+void		dns_c_srvlist_print(isc_log_t *lctx, FILE *fp, int indent,
+				    dns_c_srvlist_t *servers);
 
-isc_result_t	dns_c_srv_new(isc_mem_t *mem, isc_sockaddr_t ipaddr,
+isc_result_t	dns_c_srv_new(isc_log_t *lctx, isc_mem_t *mem,
+			      isc_sockaddr_t ipaddr,
 			      dns_c_srv_t **server);
-isc_result_t	dns_c_srv_delete(dns_c_srv_t **server);
-void		dns_c_srv_print(FILE *fp, int indent, dns_c_srv_t *server);
+isc_result_t	dns_c_srv_delete(isc_log_t *lctx, dns_c_srv_t **server);
+void		dns_c_srv_print(isc_log_t *lctx, FILE *fp, int indent,
+				dns_c_srv_t *server);
 
-isc_result_t	dns_c_srv_setbogus(dns_c_srv_t *server,
-				    isc_boolean_t newval);
-isc_result_t	dns_c_srv_getbogus(dns_c_srv_t *server,
-				    isc_boolean_t *retval);
-isc_result_t	dns_c_srv_setsupportixfr(dns_c_srv_t *server,
-					   isc_boolean_t newval);
-isc_result_t	dns_c_srv_getsupportixfr(dns_c_srv_t *server,
-					   isc_boolean_t *retval);
-isc_result_t	dns_c_srv_settransfers(dns_c_srv_t *server,
-					isc_int32_t newval);
-isc_result_t	dns_c_srv_gettransfers(dns_c_srv_t *server,
-					isc_int32_t *retval);
-isc_result_t	dns_c_srv_settransferformat(dns_c_srv_t *server,
-					      dns_transfer_format_t newval);
-isc_result_t	dns_c_srv_gettransferformat(dns_c_srv_t *server,
-					      dns_transfer_format_t *retval);
-isc_result_t	dns_c_srv_get_keylist(dns_c_srv_t *server,
+isc_result_t	dns_c_srv_setbogus(isc_log_t *lctx, dns_c_srv_t *server,
+				   isc_boolean_t newval);
+isc_result_t	dns_c_srv_getbogus(isc_log_t *lctx, dns_c_srv_t *server,
+				   isc_boolean_t *retval);
+isc_result_t	dns_c_srv_setsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
+					 isc_boolean_t newval);
+isc_result_t	dns_c_srv_getsupportixfr(isc_log_t *lctx, dns_c_srv_t *server,
+					 isc_boolean_t *retval);
+isc_result_t	dns_c_srv_settransfers(isc_log_t *lctx, dns_c_srv_t *server,
+				       isc_int32_t newval);
+isc_result_t	dns_c_srv_gettransfers(isc_log_t *lctx, dns_c_srv_t *server,
+				       isc_int32_t *retval);
+isc_result_t	dns_c_srv_settransferformat(isc_log_t *lctx,
+					    dns_c_srv_t *server,
+					    dns_transfer_format_t newval);
+isc_result_t	dns_c_srv_gettransferformat(isc_log_t *lctx,
+					    dns_c_srv_t *server,
+					    dns_transfer_format_t *retval);
+isc_result_t	dns_c_srv_get_keylist(isc_log_t *lctx, dns_c_srv_t *server,
 				      dns_c_kidlist_t **keylist);
 
 

@@ -75,9 +75,9 @@ struct dns_c_acl
 {
 	dns_c_acltable_t      *mytable;
 	
-	char		       *name;
+	char		      *name;
 	dns_c_ipmatchlist_t   *ipml;
-	isc_boolean_t		is_special;
+	isc_boolean_t	       is_special;
 
 	ISC_LINK(dns_c_acl_t)	next;
 };
@@ -96,8 +96,8 @@ struct dns_c_acl_table
  *** Functions
  ***/
 
-isc_result_t	dns_c_acltable_new(isc_mem_t *mem,
-				    dns_c_acltable_t **newtable);
+isc_result_t	dns_c_acltable_new(isc_log_t *lctx, isc_mem_t *mem,
+				   dns_c_acltable_t **newtable);
 
 /*
  * Creates a new ACL table. Returns pointer to the new table through
@@ -115,7 +115,8 @@ isc_result_t	dns_c_acltable_new(isc_mem_t *mem,
  */
 
 
-isc_result_t	dns_c_acltable_delete(dns_c_acltable_t **table);
+isc_result_t	dns_c_acltable_delete(isc_log_t *lctx,
+				      dns_c_acltable_t **table);
 
 /*
  * Destroys the table pointed to by *TABLE and all the ACLs in it. The
@@ -131,9 +132,10 @@ isc_result_t	dns_c_acltable_delete(dns_c_acltable_t **table);
  */
 
 
-isc_result_t	dns_c_acltable_getacl(dns_c_acltable_t *table,
-					const char *aclname,
-					dns_c_acl_t **retval);
+isc_result_t	dns_c_acltable_getacl(isc_log_t *lctx,
+				      dns_c_acltable_t *table,
+				      const char *aclname,
+				      dns_c_acl_t **retval);
 
 /*
  * Looks up an ACL by name in the given table. The result is returned
@@ -148,8 +150,9 @@ isc_result_t	dns_c_acltable_getacl(dns_c_acltable_t *table,
  * 
  */
 
-isc_result_t	dns_c_acltable_removeacl(dns_c_acltable_t *table,
-					   const char *aclname);
+isc_result_t	dns_c_acltable_removeacl(isc_log_t *lctx,
+					 dns_c_acltable_t *table,
+					 const char *aclname);
 
 /*
  * Removes an acl from a table. The acl is looked up by name.
@@ -164,8 +167,8 @@ isc_result_t	dns_c_acltable_removeacl(dns_c_acltable_t *table,
  * 
  */
 
-void		dns_c_acltable_print(FILE *fp, int indent,
-				      dns_c_acltable_t *table);
+void		dns_c_acltable_print(isc_log_t *lctx, FILE *fp, int indent,
+				     dns_c_acltable_t *table);
 /*
  * Prints the ACL table and the ACLs in it to the give stdio stream.
  * indent is the indentation level (number of tabs) printed before
@@ -179,7 +182,7 @@ void		dns_c_acltable_print(FILE *fp, int indent,
 */
 
 
-isc_result_t	dns_c_acltable_clear(dns_c_acltable_t *table);
+isc_result_t	dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table);
 
 /*
  * Deletes all the acls from the table.
@@ -194,7 +197,8 @@ isc_result_t	dns_c_acltable_clear(dns_c_acltable_t *table);
 
 
 
-isc_result_t	dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
+isc_result_t	dns_c_acl_new(isc_log_t *lctx, dns_c_acltable_t *table,
+			      const char *aclname,
 			      isc_boolean_t isspecial,
 			      dns_c_acl_t **newacl);
 /*
@@ -214,7 +218,8 @@ isc_result_t	dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
  */
 
 
-void		dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl);
+void		dns_c_acl_print(isc_log_t *lctx, FILE *fp, int indent,
+				dns_c_acl_t *acl);
 /*
  * Prints out the acl to the stdio stream. The outupt is indented by INDENT 
  * tabs.
@@ -227,9 +232,9 @@ void		dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl);
  */
 
 
-isc_result_t	dns_c_acl_setipml(dns_c_acl_t *acl,
-				   dns_c_ipmatchlist_t *ipml,
-				   isc_boolean_t deepcopy);
+isc_result_t	dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
+				  dns_c_ipmatchlist_t *ipml,
+				  isc_boolean_t deepcopy);
 
 /*
  * Sets the ipmatch list of the ACL to the IPML. If DEEPCOPY is true, then
@@ -251,8 +256,9 @@ isc_result_t	dns_c_acl_setipml(dns_c_acl_t *acl,
  */
 
 
-isc_result_t	dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
-					    dns_c_ipmatchlist_t **retval);
+isc_result_t	dns_c_acl_getipmlexpanded(isc_log_t *lctx,
+					  isc_mem_t *mem, dns_c_acl_t *acl,
+					  dns_c_ipmatchlist_t **retval);
 
 /*
  * Retuns a copy through the RETVAL parameter (the caller is responsible
@@ -274,7 +280,20 @@ isc_result_t	dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
  */
 
 
-			    
 
+isc_result_t dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
+				  dns_c_ipmatchlist_t *list);
 
+/*
+ * Goes through all the entires (direct and indirect) of LIST and
+ * expands all references to ACLs using the definitions in TABLE
+ *
+ * Requires:
+ *	table be a pointer to a valid dns_c_acltable_t
+ *	list be a pointer to a valid (but possibly empty dns_c_ipmatchlist_t
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		-- all is well
+ *	ISC_R_FAILURE		-- some acl(s) couldn't be resolved.
+ */
 #endif /* DNS_CONFIG_CONFACL_H */
