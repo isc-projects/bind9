@@ -1,7 +1,7 @@
 1194.	[bug]		Not all duplicate zone definitions were being detected
-			at the named.conf stage. [RT #2431]
+			at the named.conf checking stage. [RT #2431]
 
-1193.	[bug]		best effort parsing didn't handle packet truncation.
+1193.	[bug]		Best effort parsing didn't handle packet truncation.
 
 1192.	[bug]		The seconds fields in LOC records were restricted
 			to three decimal places.  More decimal places should
