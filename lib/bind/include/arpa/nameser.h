@@ -49,7 +49,7 @@
  */
 
 /*
- *	$Id: nameser.h,v 1.4 2002/05/06 06:29:39 marka Exp $
+ *	$Id: nameser.h,v 1.5 2002/06/28 05:41:56 marka Exp $
  */
 
 #ifndef _ARPA_NAMESER_H_
@@ -203,7 +203,9 @@ typedef	enum __ns_rcode {
 	ns_r_notauth = 9,	/* Not authoritative for zone */
 	ns_r_notzone = 10,	/* Zone of record different from zone section */
 	ns_r_max = 11,
-	/* The following are TSIG extended errors */
+	/* The following are EDNS extended rcodes */
+	ns_r_badvers = 16,
+	/* The following are TSIG errors */
 	ns_r_badsig = 16,
 	ns_r_badkey = 17,
 	ns_r_badtime = 18
