@@ -1,11 +1,10 @@
 <!--
  - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000, 2001  Internet Software Consortium.
- - 
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
+ -
  - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
@@ -14,6 +13,9 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
+
+<!-- $Id: named.conf.html,v 1.1.2.2 2004/08/21 07:35:35 marka Exp $ -->
+
 <HTML
 ><HEAD
 ><TITLE
@@ -97,6 +99,441 @@ CLASS="REFSECT1"
 NAME="AEN24"
 ></A
 ><H2
+>ACL</H2
+><P
+CLASS="LITERALLAYOUT"
+>acl&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>&nbsp;{&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>address_match_element</I
+></TT
+>;&nbsp;...&nbsp;};<br>&#13;</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN29"
+></A
+><H2
+>KEY</H2
+><P
+CLASS="LITERALLAYOUT"
+>key&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>domain_name</I
+></TT
+>&nbsp;{<br>
+	algorithm&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>;<br>
+	secret&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>;<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN35"
+></A
+><H2
+>MASTERS</H2
+><P
+CLASS="LITERALLAYOUT"
+>masters&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>&nbsp;[<SPAN
+CLASS="OPTIONAL"
+> port <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> </SPAN
+>]&nbsp;{<br>
+	(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>masters</I
+></TT
+>&nbsp;|&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv4_address</I
+></TT
+>&nbsp;[<SPAN
+CLASS="OPTIONAL"
+>port <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+></SPAN
+>]&nbsp;|<br>
+	<TT
+CLASS="REPLACEABLE"
+><I
+>ipv6_address</I
+></TT
+>&nbsp;[<SPAN
+CLASS="OPTIONAL"
+>port <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+></SPAN
+>]&nbsp;)&nbsp;[<SPAN
+CLASS="OPTIONAL"
+> key <TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+> </SPAN
+>];&nbsp;...<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN50"
+></A
+><H2
+>SERVER</H2
+><P
+CLASS="LITERALLAYOUT"
+>server&nbsp;(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv4_address</I
+></TT
+>&nbsp;|&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv6_address</I
+></TT
+>&nbsp;)&nbsp;{<br>
+	bogus&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+	edns&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+	provide-ixfr&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+	request-ixfr&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+	keys&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>server_key</I
+></TT
+>;<br>
+	transfers&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+>;<br>
+	transfer-format&nbsp;(&nbsp;many-answers&nbsp;|&nbsp;one-answer&nbsp;);<br>
+	transfer-source&nbsp;(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv4_address</I
+></TT
+>&nbsp;|&nbsp;*&nbsp;)<br>
+		[<SPAN
+CLASS="OPTIONAL"
+> port ( <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> | * ) </SPAN
+>];<br>
+	transfer-source-v6&nbsp;(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv6_address</I
+></TT
+>&nbsp;|&nbsp;*&nbsp;)<br>
+		[<SPAN
+CLASS="OPTIONAL"
+> port ( <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> | * ) </SPAN
+>];<br>
+<br>
+	support-ixfr&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN68"
+></A
+><H2
+>TRUSTED-KEYS</H2
+><P
+CLASS="LITERALLAYOUT"
+>trusted-keys&nbsp;{<br>
+	<TT
+CLASS="REPLACEABLE"
+><I
+>domain_name</I
+></TT
+>&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>flags</I
+></TT
+>&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>protocol</I
+></TT
+>&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>algorithm</I
+></TT
+>&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>key</I
+></TT
+>;&nbsp;...&nbsp;<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN76"
+></A
+><H2
+>CONTROLS</H2
+><P
+CLASS="LITERALLAYOUT"
+>controls&nbsp;{<br>
+	inet&nbsp;(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv4_address</I
+></TT
+>&nbsp;|&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv6_address</I
+></TT
+>&nbsp;|&nbsp;*&nbsp;)<br>
+		[<SPAN
+CLASS="OPTIONAL"
+> port ( <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> | * ) </SPAN
+>]<br>
+		allow&nbsp;{&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>address_match_element</I
+></TT
+>;&nbsp;...&nbsp;}<br>
+		[<SPAN
+CLASS="OPTIONAL"
+> keys { <TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>; ... } </SPAN
+>];<br>
+	unix&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>unsupported</I
+></TT
+>;&nbsp;//&nbsp;not&nbsp;implemented<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN87"
+></A
+><H2
+>LOGGING</H2
+><P
+CLASS="LITERALLAYOUT"
+>logging&nbsp;{<br>
+	channel&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>&nbsp;{<br>
+		file&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>log_file</I
+></TT
+>;<br>
+		syslog&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>optional_facility</I
+></TT
+>;<br>
+		null;<br>
+		stderr;<br>
+		severity&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>log_severity</I
+></TT
+>;<br>
+		print-time&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+		print-severity&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+		print-category&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;<br>
+	};<br>
+	category&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>&nbsp;{&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>;&nbsp;...&nbsp;};<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN99"
+></A
+><H2
+>LWRES</H2
+><P
+CLASS="LITERALLAYOUT"
+>lwres&nbsp;{<br>
+	listen-on&nbsp;[<SPAN
+CLASS="OPTIONAL"
+> port <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> </SPAN
+>]&nbsp;{<br>
+		(&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv4_address</I
+></TT
+>&nbsp;|&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>ipv6_address</I
+></TT
+>&nbsp;)&nbsp;[<SPAN
+CLASS="OPTIONAL"
+> port <TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+> </SPAN
+>];&nbsp;...<br>
+	};<br>
+	view&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>optional_class</I
+></TT
+>;<br>
+	search&nbsp;{&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>string</I
+></TT
+>;&nbsp;...&nbsp;};<br>
+	ndots&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+>;<br>
+};</P
+></DIV
+><DIV
+CLASS="REFSECT1"
+><A
+NAME="AEN112"
+></A
+><H2
 >OPTIONS</H2
 ><P
 CLASS="LITERALLAYOUT"
@@ -131,12 +568,6 @@ CLASS="REPLACEABLE"
 >size</I
 ></TT
 >;<br>
-	deallocate-on-exit&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	directory&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -149,24 +580,12 @@ CLASS="REPLACEABLE"
 >quoted_string</I
 ></TT
 >;<br>
-	fake-iquery&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	files&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >size</I
 ></TT
 >;<br>
-	has-old-clients&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	heartbeat-interval&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -231,18 +650,6 @@ CLASS="REPLACEABLE"
 >quoted_string</I
 ></TT
 >;<br>
-	multiple-cnames&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	named-xfer&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	pid-file&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -279,12 +686,6 @@ CLASS="REPLACEABLE"
 >integer</I
 ></TT
 >;<br>
-	serial-queries&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	serial-query-rate&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -368,18 +769,6 @@ CLASS="REPLACEABLE"
 >integer</I
 ></TT
 >;<br>
-	treat-cr-as-space&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	use-id-pool&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	use-ixfr&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -398,12 +787,6 @@ CLASS="REPLACEABLE"
 >address_match_element</I
 ></TT
 >;&nbsp;...&nbsp;};<br>
-	allow-v6-synthesis&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
 	sortlist&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -484,12 +867,6 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
-	fetch-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	rfc2308-type1&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -683,12 +1060,20 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
+<br>
+	dialup&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>dialuptype</I
+></TT
+>;<br>
 	ixfr-from-differences&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >ixfrdiff</I
 ></TT
 >;<br>
+<br>
 	allow-query&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -707,12 +1092,7 @@ CLASS="REPLACEABLE"
 >address_match_element</I
 ></TT
 >;&nbsp;...&nbsp;};<br>
-	allow-notify&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+<br>
 	notify&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -775,12 +1155,13 @@ CLASS="REPLACEABLE"
 ></TT
 > </SPAN
 >];&nbsp;...&nbsp;};<br>
-	dialup&nbsp;<TT
+	allow-notify&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->dialuptype</I
+>address_match_element</I
 ></TT
->;<br>
+>;&nbsp;...&nbsp;};<br>
+<br>
 	forward&nbsp;(&nbsp;first&nbsp;|&nbsp;only&nbsp;);<br>
 	forwarders&nbsp;[<SPAN
 CLASS="OPTIONAL"
@@ -811,18 +1192,7 @@ CLASS="REPLACEABLE"
 > </SPAN
 >];&nbsp;...<br>
 	};<br>
-	maintain-ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	max-ixfr-log-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
+<br>
 	max-journal-size&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -889,6 +1259,7 @@ CLASS="REPLACEABLE"
 >integer</I
 ></TT
 >;<br>
+<br>
 	transfer-source&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -919,6 +1290,7 @@ CLASS="REPLACEABLE"
 ></TT
 > | * ) </SPAN
 >];<br>
+<br>
 	alt-transfer-source&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -955,6 +1327,7 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
+<br>
 	zone-statistics&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -967,227 +1340,91 @@ CLASS="REPLACEABLE"
 >quoted_string</I
 ></TT
 >;<br>
-};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN183"
-></A
-><H2
->CONTROLS</H2
-><P
-CLASS="LITERALLAYOUT"
->controls&nbsp;{<br>
-	inet&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->]<br>
-		allow&nbsp;{&nbsp;<TT
+<br>
+	allow-v6-synthesis&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >address_match_element</I
 ></TT
->;&nbsp;...&nbsp;}<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> keys { <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->; ... } </SPAN
->];<br>
-	unix&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->unsupported</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN194"
-></A
-><H2
->ACL</H2
-><P
-CLASS="LITERALLAYOUT"
->acl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN199"
-></A
-><H2
->MASTERS</H2
-><P
-CLASS="LITERALLAYOUT"
->masters&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-	(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->masters</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-	<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> key <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->];&nbsp;...<br>
-};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN214"
-></A
-><H2
->LOGGING</H2
-><P
-CLASS="LITERALLAYOUT"
->logging&nbsp;{<br>
-	channel&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{<br>
-		file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->log_file</I
-></TT
->;<br>
-		syslog&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_facility</I
-></TT
->;<br>
-		null;<br>
-		stderr;<br>
-		severity&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->log_severity</I
-></TT
->;<br>
-		print-time&nbsp;<TT
+>;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
+	deallocate-on-exit&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >boolean</I
 ></TT
->;<br>
-		print-severity&nbsp;<TT
+>;&nbsp;//&nbsp;obsolete<br>
+	fake-iquery&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >boolean</I
 ></TT
->;<br>
-		print-category&nbsp;<TT
+>;&nbsp;//&nbsp;obsolete<br>
+	fetch-glue&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >boolean</I
 ></TT
->;<br>
-	};<br>
-	category&nbsp;<TT
+>;&nbsp;//&nbsp;obsolete<br>
+	has-old-clients&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->string</I
+>boolean</I
 ></TT
->&nbsp;{&nbsp;<TT
+>;&nbsp;//&nbsp;obsolete<br>
+	maintain-ixfr-base&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->string</I
+>boolean</I
 ></TT
->;&nbsp;...&nbsp;};<br>
+>;&nbsp;//&nbsp;obsolete<br>
+	max-ixfr-log-size&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>size</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+	multiple-cnames&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+	named-xfer&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>quoted_string</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+	serial-queries&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>integer</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+	treat-cr-as-space&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
+	use-id-pool&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>boolean</I
+></TT
+>;&nbsp;//&nbsp;obsolete<br>
 };</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN226"
+NAME="AEN271"
 ></A
 ><H2
 >VIEW</H2
 ><P
 CLASS="LITERALLAYOUT"
-><br>
-view&nbsp;<TT
+>view&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >string</I
@@ -1216,6 +1453,7 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
+<br>
 	key&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1235,6 +1473,7 @@ CLASS="REPLACEABLE"
 ></TT
 >;<br>
 	};<br>
+<br>
 	zone&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1248,6 +1487,7 @@ CLASS="REPLACEABLE"
 >&nbsp;{<br>
 		...<br>
 	};<br>
+<br>
 	server&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1261,6 +1501,7 @@ CLASS="REPLACEABLE"
 >&nbsp;)&nbsp;{<br>
 		...<br>
 	};<br>
+<br>
 	trusted-keys&nbsp;{<br>
 		<TT
 CLASS="REPLACEABLE"
@@ -1289,18 +1530,13 @@ CLASS="REPLACEABLE"
 ></TT
 >;&nbsp;...<br>
 	};<br>
+<br>
 	allow-recursion&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >address_match_element</I
 ></TT
 >;&nbsp;...&nbsp;};<br>
-	allow-v6-synthesis&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
 	sortlist&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1381,12 +1617,6 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
-	fetch-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
 	rfc2308-type1&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1569,6 +1799,7 @@ CLASS="REPLACEABLE"
 >string</I
 ></TT
 >;<br>
+<br>
 	dnssec-must-be-secure&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1580,12 +1811,19 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
+	dialup&nbsp;<TT
+CLASS="REPLACEABLE"
+><I
+>dialuptype</I
+></TT
+>;<br>
 	ixfr-from-differences&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
 >ixfrdiff</I
 ></TT
 >;<br>
+<br>
 	allow-query&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1604,12 +1842,7 @@ CLASS="REPLACEABLE"
 >address_match_element</I
 ></TT
 >;&nbsp;...&nbsp;};<br>
-	allow-notify&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+<br>
 	notify&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1672,12 +1905,13 @@ CLASS="REPLACEABLE"
 ></TT
 > </SPAN
 >];&nbsp;...&nbsp;};<br>
-	dialup&nbsp;<TT
+	allow-notify&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->dialuptype</I
+>address_match_element</I
 ></TT
->;<br>
+>;&nbsp;...&nbsp;};<br>
+<br>
 	forward&nbsp;(&nbsp;first&nbsp;|&nbsp;only&nbsp;);<br>
 	forwarders&nbsp;[<SPAN
 CLASS="OPTIONAL"
@@ -1708,18 +1942,7 @@ CLASS="REPLACEABLE"
 > </SPAN
 >];&nbsp;...<br>
 	};<br>
-	maintain-ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	max-ixfr-log-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
+<br>
 	max-journal-size&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1786,6 +2009,7 @@ CLASS="REPLACEABLE"
 >integer</I
 ></TT
 >;<br>
+<br>
 	transfer-source&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1816,6 +2040,7 @@ CLASS="REPLACEABLE"
 ></TT
 > | * ) </SPAN
 >];<br>
+<br>
 	alt-transfer-source&nbsp;(&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1852,6 +2077,7 @@ CLASS="REPLACEABLE"
 >boolean</I
 ></TT
 >;<br>
+<br>
 	zone-statistics&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -1864,105 +2090,37 @@ CLASS="REPLACEABLE"
 >quoted_string</I
 ></TT
 >;<br>
-};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN352"
-></A
-><H2
->LWRES</H2
-><P
-CLASS="LITERALLAYOUT"
->lwres&nbsp;{<br>
-	listen-on&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
+<br>
+	allow-v6-synthesis&nbsp;{&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->integer</I
+>address_match_element</I
 ></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
+>;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
+	fetch-glue&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->ipv4_address</I
+>boolean</I
 ></TT
->&nbsp;|&nbsp;<TT
+>;&nbsp;//&nbsp;obsolete<br>
+	maintain-ixfr-base&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->ipv6_address</I
+>boolean</I
 ></TT
->&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
+>;&nbsp;//&nbsp;obsolete<br>
+	max-ixfr-log-size&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
->integer</I
+>size</I
 ></TT
-> </SPAN
->];&nbsp;...<br>
-	};<br>
-	view&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_class</I
-></TT
->;<br>
-	search&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	ndots&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN365"
-></A
-><H2
->KEY</H2
-><P
-CLASS="LITERALLAYOUT"
->key&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->domain_name</I
-></TT
->&nbsp;{<br>
-	algorithm&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	secret&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
+>;&nbsp;//&nbsp;obsolete<br>
 };</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN371"
+NAME="AEN397"
 ></A
 ><H2
 >ZONE</H2
@@ -2111,6 +2269,7 @@ CLASS="REPLACEABLE"
 ></TT
 >;&nbsp;...<br>
 	};<br>
+<br>
 	notify&nbsp;<TT
 CLASS="REPLACEABLE"
 ><I
@@ -2404,139 +2563,6 @@ CLASS="REPLACEABLE"
 >quoted_string</I
 ></TT
 >;&nbsp;//&nbsp;obsolete<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN453"
-></A
-><H2
->SERVER</H2
-><P
-CLASS="LITERALLAYOUT"
->server&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)&nbsp;{<br>
-	bogus&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	edns&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	provide-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	request-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	support-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	keys&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->server_key</I
-></TT
->;<br>
-	transfers&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfer-format&nbsp;(&nbsp;many-answers&nbsp;|&nbsp;one-answer&nbsp;);<br>
-	transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN471"
-></A
-><H2
->TRUSTED-KEYS</H2
-><P
-CLASS="LITERALLAYOUT"
->trusted-keys&nbsp;{<br>
-	<TT
-CLASS="REPLACEABLE"
-><I
->domain_name</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->flags</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->protocol</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->algorithm</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->key</I
-></TT
->;&nbsp;...&nbsp;<br>
 };</P
 ></DIV
 ><DIV
