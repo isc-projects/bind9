@@ -50,7 +50,8 @@ typedef enum {
 	ft_maybeslash,
 	ft_finishbitstring,
 	ft_bitlength,
-	ft_eatdot
+	ft_eatdot,
+	ft_at
 } ft_state;
 
 typedef enum {
@@ -685,6 +686,13 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				done = ISC_TRUE;
 				break;
 			}
+			if (c == '@') {
+				if (tlen == 0) {
+					state = ft_at;
+					break;
+				}
+			}
+				
 			/* FALLTHROUGH */
 		case ft_start:
 			label = ndata;
@@ -1032,7 +1040,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		if (nrem == 0)
 			return (DNS_R_NOSPACE);
 		INSIST(tlen == 0);
-		if (state != ft_ordinary && state != ft_eatdot)
+		if (state != ft_ordinary && state != ft_eatdot &&
+		    state != ft_at)
 			return (DNS_R_UNEXPECTEDEND);
 		if (state == ft_ordinary) {
 			INSIST(count != 0);
