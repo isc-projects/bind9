@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.41 2000/12/11 23:38:25 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.42 2000/12/12 21:33:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -276,6 +276,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
+%token		L_CACHE_FILE
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
@@ -789,6 +790,21 @@ option: /* Empty */
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "set dumpfile error %s: %s",
+				     isc_result_totext(tmpres), $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	}
+	| L_CACHE_FILE L_QSTRING
+	{
+		tmpres = dns_c_ctx_setcachefile(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine cache-file");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "set cachefile error %s: %s",
 				     isc_result_totext(tmpres), $2);
 			YYABORT;
 		}
@@ -4612,6 +4628,25 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_CACHE_FILE L_QSTRING
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setcachefile(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine cache-file");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "set cachefile error %s: %s",
+				     isc_result_totext(tmpres), $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	}
 	| key_stmt
 	| zone_stmt
 	| server_stmt
@@ -6209,6 +6244,7 @@ static struct token keyword_tokens [] = {
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
 	{ "bogus",			L_BOGUS },
+	{ "cache-file",			L_CACHE_FILE },
 	{ "category",			L_CATEGORY },
 	{ "channel",			L_CHANNEL },
 	{ "check-names",		L_CHECK_NAMES },

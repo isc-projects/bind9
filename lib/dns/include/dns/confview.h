@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.46 2000/12/01 23:27:43 marka Exp $ */
+/* $Id: confview.h,v 1.47 2000/12/12 21:33:20 bwelling Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -166,6 +166,8 @@ struct dns_c_view {
 	dns_peerlist_t	       *peerlist;
 
 	dns_c_tkeylist_t       *trusted_keys;
+
+	char		       *cache_file;
 
 #if 0
 	/*
@@ -616,6 +618,12 @@ isc_result_t dns_c_view_unsettrustedkeys(dns_c_view_t *view);
 isc_result_t dns_c_view_settrustedkeys(dns_c_view_t *view,
 				       dns_c_tkeylist_t *newval,
 				       isc_boolean_t copy);
+
+isc_result_t dns_c_view_getcachefile(dns_c_view_t *view,
+				     char **cachefile);
+isc_result_t dns_c_view_unsetcachefile(dns_c_view_t *view);
+isc_result_t dns_c_view_setcachefile(dns_c_view_t *view,
+				       const char *newval);
 
 
 #if 0

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.47 2000/12/01 23:49:52 gson Exp $ */
+/* $Id: server.h,v 1.48 2000/12/12 21:33:11 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -71,6 +71,8 @@ struct ns_server {
 
 	char *			statsfile;	/* Statistics file name */
 	isc_uint64_t *		querystats;	/* Query statistics counters */
+
+	char *			dumpfile;	/* Dump file name */
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
@@ -125,9 +127,15 @@ ns_server_togglequerylog(ns_server_t *server);
  */
 
 /*
- * Dump the current statistics to the statstics file.
+ * Dump the current statistics to the statistics file.
  */
 isc_result_t
 ns_server_dumpstats(ns_server_t *server);
+
+/*
+ * Dump the current cache to the dump file.
+ */
+isc_result_t
+ns_server_dumpdb(ns_server_t *server);
 
 #endif /* NAMED_SERVER_H */

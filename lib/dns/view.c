@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.85 2000/11/10 03:16:20 gson Exp $ */
+/* $Id: view.c,v 1.86 2000/12/12 21:33:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <dns/forward.h>
 #include <dns/keytable.h>
 #include <dns/master.h>
+#include <dns/masterdump.h>
 #include <dns/peer.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
@@ -162,6 +163,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
 	view->dstport = 53;
+	view->cachefile = NULL;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
@@ -251,6 +253,8 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->recursionacl);
 	if (view->sortlist != NULL)
 		dns_acl_detach(&view->sortlist);
+	if (view->cachefile != NULL)
+		isc_mem_free(view->mctx, view->cachefile);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
@@ -1050,5 +1054,25 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 
 	return (dns_tsig_verify(source, msg, view->statickeys,
 				view->dynamickeys));
+}
+
+isc_result_t
+dns_view_dumpcache(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->cachefile == NULL)
+		return (ISC_R_IGNORE);
+	return (dns_master_dump(view->mctx, view->cachedb, NULL,
+				&dns_master_style_default, view->cachefile));
+
+}
+
+isc_result_t
+dns_view_dumpcachetostream(dns_view_t *view, FILE *fp) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	return (dns_master_dumptostream(view->mctx, view->cachedb, NULL,
+				&dns_master_style_default, fp));
+
 }
 

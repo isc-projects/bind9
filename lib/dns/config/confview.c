@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.64 2000/12/07 01:45:55 brister Exp $ */
+/* $Id: confview.c,v 1.65 2000/12/12 21:33:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -143,6 +143,8 @@ PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view) {	\
 	}							\
 }
 
+
+
 #define BYTYPE_FUNCS(TYPE, FUNC, FIELD) \
 	SETBYTYPE(TYPE, FUNC, FIELD) \
 	GETBYTYPE(TYPE, FUNC, FIELD) \
@@ -209,6 +211,64 @@ PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view,		\
 	GETIPMLIST(FUNC, FIELD) \
 	UNSETIPMLIST(FUNC, FIELD)
 
+
+#define SETSTRING(FUNC, FIELD)						     \
+isc_result_t								     \
+PVT_CONCAT(dns_c_view_set, FUNC)(dns_c_view_t *view, const char *newval)     \
+{									     \
+	char *p = NULL;							     \
+									     \
+	REQUIRE(DNS_C_VIEW_VALID(view));				     \
+	REQUIRE(newval != NULL);					     \
+	REQUIRE(*newval != '\0');					     \
+									     \
+	if (newval != NULL) {						     \
+		p = isc_mem_strdup(view->mem, newval);			     \
+		if (p == NULL)						     \
+			return (ISC_R_NOMEMORY);			     \
+	}								     \
+	if (view->FIELD != NULL) {					     \
+		isc_mem_free(view->mem, view->FIELD);			     \
+		view->FIELD = NULL;					     \
+	}						 		     \
+	view->FIELD = p;						     \
+	return (ISC_R_SUCCESS);						     \
+}
+
+
+#define GETSTRING(FUNC, FIELD)						\
+isc_result_t								\
+PVT_CONCAT(dns_c_view_get, FUNC)(dns_c_view_t *view, char **retval)	\
+{									\
+	REQUIRE(DNS_C_VIEW_VALID(view));				\
+	REQUIRE(retval != NULL);					\
+									\
+	*retval = view->FIELD;						\
+									\
+	return (*retval == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);	\
+}
+
+
+#define UNSETSTRING(FUNC, FIELD)				\
+isc_result_t							\
+PVT_CONCAT(dns_c_view_unset, FUNC)(dns_c_view_t *view)		\
+{								\
+	REQUIRE(DNS_C_VIEW_VALID(view));			\
+								\
+	if (view->FIELD == NULL) {				\
+		return (ISC_R_NOTFOUND);			\
+	}							\
+								\
+	isc_mem_free(view->mem, view->FIELD);			\
+	view->FIELD = NULL;					\
+								\
+	return (ISC_R_SUCCESS);					\
+}
+
+#define STRING_FUNCS(FUNC, FIELD) \
+	SETSTRING(FUNC, FIELD) \
+	GETSTRING(FUNC, FIELD) \
+	UNSETSTRING(FUNC, FIELD)
 
 isc_result_t
 dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
@@ -532,6 +592,8 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->peerlist = NULL;
 
 	view->trusted_keys = NULL;
+
+	view->cache_file = NULL;
 
 #if 0
 	view->max_transfer_time_in = NULL;
@@ -957,6 +1019,8 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	dns_c_view_unsetpeerlist(view);
 
 	dns_c_view_unsettrustedkeys(view);
+
+	dns_c_view_unsetcachefile(view);
 
 #if 0
 	FREEFIELD(max_transfer_time_in);
@@ -1577,6 +1641,8 @@ SOCKADDR_FUNCS(transfersource, transfer_source)
 SOCKADDR_FUNCS(transfersourcev6, transfer_source_v6)
 SOCKADDR_FUNCS(querysource, query_source)
 SOCKADDR_FUNCS(querysourcev6, query_source_v6)
+
+STRING_FUNCS(cachefile, cache_file)
 
 UINT32_FUNCS(maxtransfertimeout, max_transfer_time_out)
 UINT32_FUNCS(maxtransferidleout, max_transfer_idle_out)

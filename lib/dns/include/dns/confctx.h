@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.58 2000/11/25 02:43:52 marka Exp $ */
+/* $Id: confctx.h,v 1.59 2000/12/12 21:33:19 bwelling Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -118,6 +118,7 @@ struct dns_c_options {
 	char		       *pid_filename;
 	char		       *stats_filename;
 	char		       *memstats_filename;
+	char		       *cache_filename;
 	char		       *named_xfer;
 	char		       *random_device;
 	char		       *random_seed_file;
@@ -334,6 +335,11 @@ isc_result_t dns_c_ctx_setmemstatsfilename(dns_c_ctx_t *ctx,
 					   const char *newval);
 isc_result_t dns_c_ctx_getmemstatsfilename(dns_c_ctx_t *ctx, char **retval);
 isc_result_t dns_c_ctx_unsetmemstatsfilename(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setcachefile(dns_c_ctx_t *ctx, const char *newval);
+isc_result_t dns_c_ctx_getcachefile(dns_c_ctx_t *ctx, char **retval);
+isc_result_t dns_c_ctx_unsetcachefile(dns_c_ctx_t *ctx);
 
 
 isc_result_t dns_c_ctx_setnamedxfer(dns_c_ctx_t *ctx, const char *newval);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.111 2000/12/07 01:45:53 brister Exp $ */
+/* $Id: confctx.c,v 1.112 2000/12/12 21:33:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -349,12 +349,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "option 'named-xfer' is obsolete");
 	}
 
-	if (dns_c_ctx_getdumpfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'dump-file' is not yet implemented");
-	}
-
 	if (dns_c_ctx_getmemstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -526,6 +520,16 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		if (tmpres != ISC_R_SUCCESS) {
 			result = tmpres;
 		}
+	}
+
+	if (dns_c_ctx_getcachefile(cfg, &cpval) == ISC_R_SUCCESS &&
+	    cfg->views != NULL)
+	{
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'cachefile' cannot be present if views "
+			      "are present");
+		result = ISC_R_FAILURE;
 	}
 
 	return (result);
@@ -976,6 +980,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_CHAR_P(pid_filename, "pid-file");
 	PRINT_CHAR_P(stats_filename, "statistics-file");
 	PRINT_CHAR_P(memstats_filename, "memstatistics-file");
+	PRINT_CHAR_P(cache_filename, "cache-file");
 	PRINT_CHAR_P(named_xfer, "named-xfer");
 	PRINT_CHAR_P(random_device, "random-device");
 	PRINT_CHAR_P(random_seed_file, "random-seed-file");
@@ -1526,6 +1531,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->pid_filename = NULL;
 	opts->stats_filename = NULL;
 	opts->memstats_filename = NULL;
+	opts->cache_filename = NULL;
 	opts->named_xfer = NULL;
 	opts->random_device = NULL;
 	opts->random_seed_file = NULL;
@@ -1682,6 +1688,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREESTRING(pid_filename);
 	FREESTRING(stats_filename);
 	FREESTRING(memstats_filename);
+	FREESTRING(cache_filename);
 	FREESTRING(named_xfer);
 	FREESTRING(random_device);
 	FREESTRING(random_seed_file);
@@ -1829,6 +1836,7 @@ STRING_FUNCS(dumpfilename, dump_filename)
 STRING_FUNCS(pidfilename, pid_filename)
 STRING_FUNCS(statsfilename, stats_filename)
 STRING_FUNCS(memstatsfilename, memstats_filename)
+STRING_FUNCS(cachefile, cache_filename)
 STRING_FUNCS(namedxfer, named_xfer)
 STRING_FUNCS(randomdevice, random_device)
 STRING_FUNCS(randomseedfile, random_seed_file)
