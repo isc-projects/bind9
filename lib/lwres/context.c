@@ -38,9 +38,9 @@
 
 static void *lwres_malloc(void *, size_t);
 static void lwres_free(void *, void *, size_t);
-static int context_connect(lwres_context_t *);
+static lwres_result_t context_connect(lwres_context_t *);
 
-int
+lwres_result_t
 lwres_context_create(lwres_context_t **contextp, void *arg,
 		     lwres_malloc_t malloc_function,
 		     lwres_free_t free_function)
@@ -157,7 +157,7 @@ lwres_free(void *arg, void *mem, size_t len)
 	free(mem);
 }
 
-static int
+static lwres_result_t
 context_connect(lwres_context_t *ctx)
 {
 	int s;
@@ -184,7 +184,7 @@ context_connect(lwres_context_t *ctx)
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_context_sendrecv(lwres_context_t *ctx,
 		       void *sendbase, int sendlen,
 		       void *recvbase, int recvlen,
@@ -203,7 +203,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
 	if (ret < 0)
-		return (ret);
+		return (LWRES_R_IOERROR);
 	if (ret != sendlen)
 		return (LWRES_R_IOERROR);
 

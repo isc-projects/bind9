@@ -21,9 +21,9 @@
 #include <stddef.h>
 
 #include <lwres/lang.h>
-#include <lwres/int.h>
-
 #include <lwres/lwbuffer.h>
+#include <lwres/int.h>
+#include <lwres/result.h>
 
 typedef struct lwres_lwpacket lwres_lwpacket_t;
 
@@ -115,10 +115,10 @@ struct lwres_lwpacket {
 
 LWRES_LANG_BEGINDECLS
 
-int
+lwres_result_t
 lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
 
-int
+lwres_result_t
 lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
 
 LWRES_LANG_ENDDECLS

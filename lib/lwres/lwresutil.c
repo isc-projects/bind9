@@ -49,7 +49,7 @@
  *	following the string length, the string, and the trailing NULL.
  *
  */
-int
+lwres_result_t
 lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len)
 {
 	lwres_uint16_t datalen;
@@ -60,7 +60,7 @@ lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len)
 	/*
 	 * Pull off the length (2 bytes)
 	 */
-	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t)))
+	if (!SPACE_REMAINING(b, 2))
 		return (LWRES_R_UNEXPECTEDEND);
 	datalen = lwres_buffer_getuint16(b);
 
@@ -89,15 +89,17 @@ lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len)
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 {
 	REQUIRE(addr != NULL);
 
-	if (!SPACE_REMAINING(b, sizeof(lwres_uint32_t) + sizeof(lwres_uint16_t)))
+	if (!SPACE_REMAINING(b, 6))
 		return (LWRES_R_UNEXPECTEDEND);
+
 	addr->family = lwres_buffer_getuint32(b);
 	addr->length = lwres_buffer_getuint16(b);
+
 	if (!SPACE_REMAINING(b, addr->length))
 		return (LWRES_R_UNEXPECTEDEND);
 	addr->address = b->base + b->current;
@@ -106,7 +108,7 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp)
 {
@@ -164,7 +166,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	 * Parse the packet header.
 	 */
 	ret = lwres_lwpacket_parseheader(&b_in, &pkt);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	/*
@@ -191,7 +193,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	 * Parse the response.
 	 */
 	ret = lwres_gabnresponse_parse(ctx, &b_in, &pkt, &response);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 	response->base = buffer;
 	response->baselen = LWRES_RECVLENGTH;
@@ -212,7 +214,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 }
 
 
-int
+lwres_result_t
 lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp)
@@ -257,7 +259,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 
  again:
 	ret = lwres_gnbarequest_render(ctx, &request, &pkt, &b_out);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
@@ -272,7 +274,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	 * Parse the packet header.
 	 */
 	ret = lwres_lwpacket_parseheader(&b_in, &pkt);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	/*
@@ -299,7 +301,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	 * Parse the response.
 	 */
 	ret = lwres_gnbaresponse_parse(ctx, &b_in, &pkt, &response);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 	response->base = buffer;
 	response->baselen = LWRES_RECVLENGTH;

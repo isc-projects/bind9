@@ -18,12 +18,7 @@
 #ifndef LWRES_RESULT_H
 #define LWRES_RESULT_H 1
 
-/*
- * XXXMLG
- * should be unsigned when functions are fixed to return a status, not both
- * a status and an FD or whatever.
- */
-typedef int lwres_result_t;
+typedef unsigned int lwres_result_t;
 
 #define LWRES_R_SUCCESS			0
 #define LWRES_R_NOMEMORY	       -1

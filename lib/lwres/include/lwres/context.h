@@ -22,6 +22,7 @@
 
 #include <lwres/lang.h>
 #include <lwres/int.h>
+#include <lwres/result.h>
 
 /*
  * Used to set various options such as timeout, authentication, etc
@@ -33,7 +34,7 @@ LWRES_LANG_BEGINDECLS
 typedef void *(*lwres_malloc_t)(void *arg, size_t length);
 typedef void (*lwres_free_t)(void *arg, void *mem, size_t length);
 
-int
+lwres_result_t
 lwres_context_create(lwres_context_t **contextp, void *arg,
 		     lwres_malloc_t malloc_function,
 		     lwres_free_t free_function);
@@ -77,7 +78,7 @@ lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);
 void *
 lwres_context_allocmem(lwres_context_t *ctx, size_t len);
 
-int
+lwres_result_t
 lwres_context_sendrecv(lwres_context_t *ctx,
 		       void *sendbase, int sendlen,
 		       void *recvbase, int recvlen,

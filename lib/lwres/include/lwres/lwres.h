@@ -21,11 +21,11 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <lwres/lang.h>
-#include <lwres/int.h>
-
 #include <lwres/context.h>
+#include <lwres/int.h>
+#include <lwres/lang.h>
 #include <lwres/lwpacket.h>
+#include <lwres/result.h>
 
 /*
  * Design notes:
@@ -206,19 +206,19 @@ typedef struct {
 
 LWRES_LANG_BEGINDECLS
 
-int
+lwres_result_t
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
-int
+lwres_result_t
 lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
-int
+lwres_result_t
 lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_gabnrequest_t **structp);
 
-int
+lwres_result_t
 lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			 lwres_lwpacket_t *pkt,
 			 lwres_gabnresponse_t **structp);
@@ -262,19 +262,19 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp);
  */
 
 
-int
+lwres_result_t
 lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
-int
+lwres_result_t
 lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
-int
+lwres_result_t
 lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp);
 
-int
+lwres_result_t
 lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			 lwres_lwpacket_t *pkt,
 			 lwres_gnbaresponse_t **structp);
@@ -317,7 +317,7 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp);
  *	system via the context's free function.
  */
 
-int
+lwres_result_t
 lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 /*
@@ -342,11 +342,11 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
  *	packet.  It can be transmitted in any way, including lwres_sendblock().
  */
 
-int
+lwres_result_t
 lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
-int
+lwres_result_t
 lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_nooprequest_t **structp);
 /*
@@ -357,7 +357,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
  * The function verifies bits of the header, but does not modify it.
  */
 
-int
+lwres_result_t
 lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			 lwres_lwpacket_t *pkt,
 			 lwres_noopresponse_t **structp);
@@ -385,9 +385,8 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  *	system via the context's free function.
  */
 
-
-
-int lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
+int
+lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
 /*
  * parses a resolv.conf-format file and puts the results into *confdata;
  *
@@ -400,7 +399,8 @@ int lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
  *	-1 on failure (errno will be != 0 on failure like file not found.
  */
 
-void lwres_conf_free(lwres_conf_t *confdata);
+void
+lwres_conf_free(lwres_conf_t *confdata);
 /*
  * Returns the data in confdata to the system.
  *
@@ -409,19 +409,22 @@ void lwres_conf_free(lwres_conf_t *confdata);
  *	that confdata had been previously passed to lwres_conf_parse()
  */
 
-int lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
+int
+lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
 /*
  * Prints a resolv.conf-format of confdata output to fp.
  */
 
-void lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata);
+void
+lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata);
 /*
  * sets all internal fields to a default state. Used to initialize a new
  * lwres_conf_t structure (not reset a used on).
  */
 
 
-void lwres_conf_clear(lwres_conf_t *confdata);
+void
+lwres_conf_clear(lwres_conf_t *confdata);
 /*
  * frees all internally allocated memory in confdata. Uses the memory 
  * routines supplies by ctx (so that should probably be the same value as
@@ -432,17 +435,17 @@ void lwres_conf_clear(lwres_conf_t *confdata);
  * Helper functions
  */
 
-int
+lwres_result_t
 lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len);
 
-int
+lwres_result_t
 lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr);
 
-int
+lwres_result_t
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp);
 
-int
+lwres_result_t
 lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);

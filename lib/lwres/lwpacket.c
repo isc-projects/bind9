@@ -29,7 +29,7 @@
 
 #define LWPACKET_LENGTH (sizeof(lwres_uint16_t) * 4 + sizeof(lwres_uint32_t) * 5)
 
-int
+lwres_result_t
 lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
 	REQUIRE(b != NULL);
@@ -51,7 +51,7 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
 	lwres_uint32_t space;
