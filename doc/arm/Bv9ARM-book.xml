@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.149 2001/07/26 20:42:42 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.150 2001/07/26 22:19:57 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4062,10 +4062,12 @@ key data.</para></sect2>
 };
 </programlisting></sect2>
 <sect2><title><command>view</command> Statement Definition and Usage</title>
+
 <para>The <command>view</command> statement is a powerful new feature
 of <acronym>BIND</acronym> 9 that lets a name server answer a DNS query differently
 depending on who is asking. It is particularly useful for implementing
 split DNS setups without having to run multiple servers.</para>
+
 <para>Each <command>view</command> statement defines a view of the
 DNS namespace that will be seen by a subset of clients.  A client matches
 a view if its source IP address matches the 
@@ -4077,30 +4079,36 @@ the <varname>address_match_list</varname> of the view's
 default to matching all addresses.  A view can also be specified
 as <command>match-recursive-only</command>, which means that only recursive
 queries from matching clients will match that view.
- The order of the <command>view</command> statements is significant - a
-client query will be resolved in the context of the first
-<command>view</command> that it matches.
+The order of the <command>view</command> statements is significant &mdash; 
+a client query will be resolved in the context of the first
+<command>view</command> that it matches.</para>
+
 <para>Zones defined within a <command>view</command> statement will
 be only be accessible to clients that match the <command>view</command>.
  By defining a zone of the same name in multiple views, different
 zone data can be given to different clients, for example, "internal"
 and "external" clients in a split DNS setup.</para>
+
 <para>Many of the options given in the <command>options</command> statement
 can also be used within a <command>view</command> statement, and then
 apply only when resolving queries with that view.  When no view-specific
 value is given, the value in the <command>options</command> statement
 is used as a default.  Also, zone options can have default values specified
 in the <command>view</command> statement; these view-specific defaults
-take precedence over those in the <command>options</command> statement. </para>
+take precedence over those in the <command>options</command> statement.</para>
+
 <para>Views are class specific.  If no class is given, class IN
 is assumed.  Note that all non-IN views must contain a hint zone,
 since only the IN class has compiled-in default hints.</para>
-<para>If there are no <command>view</command> statements in the
-config file, a default view that matches any client is automatically
-created in class IN, and any <command>zone</command> statements
-specified on the top level of the configuration file are considered
-to be part of this default view.  If any explicit <command>view</command> statements
-are present, all <command>zone</command> statements must occur inside <command>view</command> statements.</para>
+
+<para>If there are no <command>view</command> statements in the config
+file, a default view that matches any client is automatically created
+in class IN, and any <command>zone</command> statements specified on
+the top level of the configuration file are considered to be part of
+this default view.  If any explicit <command>view</command> statements
+are present, all <command>zone</command> statements must occur inside
+<command>view</command> statements.</para>
+
 <para>Here is an example of a typical split DNS setup implemented
 using <command>view</command> statements.</para>
 <programlisting>view "internal" {
