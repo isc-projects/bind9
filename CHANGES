@@ -1,4 +1,8 @@
 
+ 807.	[bug]		When setting up TCP connections for incoming zone
+			transfers, the transfer-source port was not
+			ignored like it should be.
+
  804.	[bug]		Attempting to obtain entropy could fail in some
  			situations.  This would be most common on systems
 			with user-space threads. [RT #1131]

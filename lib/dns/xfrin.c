@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.109.2.1 2001/01/09 22:44:30 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.109.2.2 2001/04/11 19:21:32 gson Exp $ */
 
 #include <config.h>
 
@@ -754,6 +754,7 @@ xfrin_create(isc_mem_t *mctx,
 	default:
 		INSIST(0);
 	}
+	isc_sockaddr_setport(&xfr->sourceaddr, 0);
 
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
 			sizeof(xfr->qbuffer_data));
