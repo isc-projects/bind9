@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.293 2001/03/04 21:21:26 bwelling Exp $ */
+/* $Id: server.c,v 1.294 2001/03/05 17:20:48 halley Exp $ */
 
 #include <config.h>
 
@@ -1495,12 +1495,12 @@ set_limit(cfg_obj_t **maps, const char *configname, const char *description,
 
 	if (cfg_obj_isstring(obj)) {
 		resource = cfg_obj_asstring(obj);
-		if (strcasecmp(resource, "default") == 0)
-			value = defaultvalue;
-		else if (strcasecmp(resource, "unlimited") == 0)
+		if (strcasecmp(resource, "unlimited") == 0)
 			value = ISC_RESOURCE_UNLIMITED;
-		else
-			INSIST(0);
+		else {
+			INSIST(strcasecmp(resource, "default") == 0);
+			value = defaultvalue;
+		}
 	} else
 		value = cfg_obj_asuint64(obj);
 
@@ -1747,6 +1747,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	result = ns_config_get(maps, "heartbeat-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
+	heartbeat_interval = cfg_obj_asuint32(obj);
 	if (heartbeat_interval == 0) {
 		isc_timer_reset(server->heartbeat_timer,
 				isc_timertype_inactive,
