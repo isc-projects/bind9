@@ -80,7 +80,7 @@ HREF="Bv9ARM.ch03.html#sample_configuration"
 ></DT
 ><DT
 >3.2. <A
-HREF="Bv9ARM.ch03.html#AEN285"
+HREF="Bv9ARM.ch03.html#AEN273"
 >Load Balancing</A
 ></DT
 ><DT
@@ -90,7 +90,7 @@ HREF="Bv9ARM.ch03.html#notify"
 ></DT
 ><DT
 >3.4. <A
-HREF="Bv9ARM.ch03.html#AEN373"
+HREF="Bv9ARM.ch03.html#AEN361"
 >Nameserver Operations</A
 ></DT
 ></DL
@@ -112,7 +112,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN275"
+NAME="AEN263"
 >3.1.1. A Caching-only Nameserver</A
 ></H2
 ><P
@@ -143,7 +143,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN279"
+NAME="AEN267"
 >3.1.2. An Authoritative-only Nameserver</A
 ></H2
 ><P
@@ -198,7 +198,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN285"
+NAME="AEN273"
 >3.2. Load Balancing</A
 ></H1
 ><P
@@ -472,7 +472,8 @@ CLASS="acronym"
     of the zone option <B
 CLASS="command"
 >also-notify</B
->, see <A
+>, see
+    <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
 >Section 6.2.14.6</A
 >. For more information about
@@ -489,7 +490,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN373"
+NAME="AEN361"
 >3.4. Nameserver Operations</A
 ></H1
 ><DIV
@@ -497,7 +498,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN375"
+NAME="AEN363"
 >3.4.1. Tools for Use With the Nameserver Daemon</A
 ></H2
 ><P
@@ -510,7 +511,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN378"
+NAME="diagnostic_tools"
 >3.4.1.1. Diagnostic Tools</A
 ></H3
 ><P
@@ -700,24 +701,44 @@ CLASS="command"
 >dig</B
 > instead.</P
 ></DD
+></DL
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="admin_tools"
+>3.4.1.2. Administrative Tools</A
+></H3
+><P
+>Administrative tools play an integral part in the management
+of a server.</P
+><P
+></P
+><DL
 ><DT
 ><A
-NAME="named-checkconf"
+NAME="check-conf"
 ><B
 CLASS="command"
->named-checkconf</B
+>check-conf</B
 ></A
 ></DT
 ><DD
 ><P
->Checks the syntax of <TT
+>The <B
+CLASS="command"
+>check-conf</B
+> program
+	      checks the syntax of a <TT
 CLASS="filename"
 >named.conf</TT
->.</P
+> file.</P
 ><P
 ><B
 CLASS="command"
->named-checkconf</B
+>check-conf</B
 >  [<TT
 CLASS="replaceable"
 ><I
@@ -727,19 +748,23 @@ CLASS="replaceable"
 ></DD
 ><DT
 ><A
-NAME="named-checkzone"
+NAME="check-zone"
 ><B
 CLASS="command"
->named-checkzone</B
+>check-zone</B
 ></A
 ></DT
 ><DD
 ><P
->Performs syntax and consistency checks on a individual zone.</P
+>The <B
+CLASS="command"
+>check-zone</B
+> program checks a master file for
+	      syntax and consistency.</P
 ><P
 ><B
 CLASS="command"
->named-checkzone</B
+>check-zone</B
 >  [-dq] [-c <TT
 CLASS="replaceable"
 ><I
@@ -757,22 +782,6 @@ CLASS="replaceable"
 ></TT
 >]</P
 ></DD
-></DL
-></DIV
-><DIV
-CLASS="sect3"
-><H3
-CLASS="sect3"
-><A
-NAME="admin_tools"
->3.4.1.2. Administrative Tools</A
-></H3
-><P
->Administrative tools play an integral part in the management
-of a server.</P
-><P
-></P
-><DL
 ><DT
 ><A
 NAME="rndc"
@@ -987,37 +996,6 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Toggle query logging.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
-><TT
-CLASS="userinput"
-><B
->dumpdb</B
-></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Dump the current contents of the cache
-(or caches if there are multiple views) into the file named by the
-<B
-CLASS="command"
->dump-file</B
-> option
-(by default, <TT
-CLASS="filename"
->named_dump.db</TT
->).
-</P
 ></TD
 ></TR
 ><TR
@@ -1279,7 +1257,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN620"
+NAME="AEN602"
 >3.4.2. Signals</A
 ></H2
 ><P

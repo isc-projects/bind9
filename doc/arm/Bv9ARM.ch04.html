@@ -85,7 +85,7 @@ HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
 ></DT
 ><DT
 >4.3. <A
-HREF="Bv9ARM.ch04.html#AEN674"
+HREF="Bv9ARM.ch04.html#AEN656"
 >Split DNS</A
 ></DT
 ><DT
@@ -95,12 +95,12 @@ HREF="Bv9ARM.ch04.html#tsig"
 ></DT
 ><DT
 >4.5. <A
-HREF="Bv9ARM.ch04.html#AEN834"
+HREF="Bv9ARM.ch04.html#AEN816"
 >TKEY</A
 ></DT
 ><DT
 >4.6. <A
-HREF="Bv9ARM.ch04.html#AEN849"
+HREF="Bv9ARM.ch04.html#AEN831"
 >SIG(0)</A
 ></DT
 ><DT
@@ -110,7 +110,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.8. <A
-HREF="Bv9ARM.ch04.html#AEN933"
+HREF="Bv9ARM.ch04.html#AEN916"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -229,7 +229,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN674"
+NAME="AEN656"
 >4.3. Split DNS</A
 ></H1
 ><P
@@ -397,24 +397,24 @@ internal clients will now be able to:</P
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <SPAN
-CLASS="systemitem"
->site1</SPAN
+>Look up any hostnames in the <TT
+CLASS="literal"
+>site1</TT
 > and 
-<SPAN
-CLASS="systemitem"
->site2.example.com</SPAN
+<TT
+CLASS="literal"
+>site2.example.com</TT
 > zones.</P
 ></LI
 ><LI
 ><P
->Look up any hostnames in the <SPAN
-CLASS="systemitem"
->site1.internal</SPAN
+>Look up any hostnames in the <TT
+CLASS="literal"
+>site1.internal</TT
 > and 
-<SPAN
-CLASS="systemitem"
->site2.internal</SPAN
+<TT
+CLASS="literal"
+>site2.internal</TT
 > domains.</P
 ></LI
 ><LI
@@ -433,24 +433,24 @@ CLASS="systemitem"
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <SPAN
-CLASS="systemitem"
->site1</SPAN
+>Look up any hostnames in the <TT
+CLASS="literal"
+>site1</TT
 > and 
-<SPAN
-CLASS="systemitem"
->site2.example.com</SPAN
+<TT
+CLASS="literal"
+>site2.example.com</TT
 > zones.</P
 ></LI
 ><LI
 ><P
->Exchange mail with anyone in the <SPAN
-CLASS="systemitem"
->site1</SPAN
+>Exchange mail with anyone in the <TT
+CLASS="literal"
+>site1</TT
 > and 
-<SPAN
-CLASS="systemitem"
->site2.example.com</SPAN
+<TT
+CLASS="literal"
+>site2.example.com</TT
 > zones.</P
 ></LI
 ></UL
@@ -629,7 +629,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN765"
+NAME="AEN747"
 >4.4.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
@@ -647,7 +647,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN770"
+NAME="AEN752"
 >4.4.1.1. Automatic Generation</A
 ></H3
 ><P
@@ -689,7 +689,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN781"
+NAME="AEN763"
 >4.4.1.2. Manual Generation</A
 ></H3
 ><P
@@ -710,7 +710,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN786"
+NAME="AEN768"
 >4.4.2. Copying the Shared Secret to Both Machines</A
 ></H2
 ><P
@@ -722,7 +722,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN789"
+NAME="AEN771"
 >4.4.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
@@ -770,7 +770,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN801"
+NAME="AEN783"
 >4.4.4. Instructing the Server to Use the Key</A
 ></H2
 ><P
@@ -830,7 +830,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN817"
+NAME="AEN799"
 >4.4.5. TSIG Key Based Access Control</A
 ></H2
 ><P
@@ -876,7 +876,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN830"
+NAME="AEN812"
 >4.4.6. Errors</A
 ></H2
 ><P
@@ -905,7 +905,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN834"
+NAME="AEN816"
 >4.5. TKEY</A
 ></H1
 ><P
@@ -971,7 +971,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN849"
+NAME="AEN831"
 >4.6. SIG(0)</A
 ></H1
 ><P
@@ -987,6 +987,9 @@ CLASS="acronym"
 >When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
     will not attempt to locate and/or validate the key.</P
+><P
+>SIG(0) signing of multiple-message TCP streams is not
+    supported.</P
 ><P
 ><SPAN
 CLASS="acronym"
@@ -1040,7 +1043,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN865"
+NAME="AEN848"
 >4.7.1. Generating Keys</A
 ></H2
 ><P
@@ -1119,7 +1122,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN885"
+NAME="AEN868"
 >4.7.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1172,7 +1175,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN897"
+NAME="AEN880"
 >4.7.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1222,7 +1225,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN910"
+NAME="AEN893"
 >4.7.4. Signing the Zone</A
 ></H2
 ><P
@@ -1284,7 +1287,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN926"
+NAME="AEN909"
 >4.7.5. Configuring Servers</A
 ></H2
 ><P
@@ -1311,7 +1314,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN933"
+NAME="AEN916"
 >4.8. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1365,7 +1368,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN947"
+NAME="AEN930"
 >4.8.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1387,7 +1390,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN952"
+NAME="AEN935"
 >4.8.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1407,7 +1410,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN956"
+NAME="AEN939"
 >4.8.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1440,9 +1443,9 @@ CLASS="programlisting"
 company		3600	IN	A6	0 1234:5678:90ab:fffa::
 </PRE
 ><P
->When <SPAN
-CLASS="systemitem"
->host.example.com</SPAN
+>When <TT
+CLASS="literal"
+>host.example.com</TT
 > is looked up,
         the resolver (in the resolver daemon or caching name server)
         will find two partial A6 records, and will use the additional
@@ -1453,7 +1456,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN967"
+NAME="AEN950"
 >4.8.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1483,7 +1486,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN973"
+NAME="AEN956"
 >4.8.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1514,7 +1517,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN980"
+NAME="AEN963"
 >4.8.4. Address to Name Lookups Using Bitstring Format</A
 ></H2
 ><P
@@ -1541,7 +1544,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN987"
+NAME="AEN970"
 >4.8.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
@@ -1555,13 +1558,13 @@ CLASS="command"
       need to be maintained.</P
 ><P
 >For example, consider a host which has two providers
-      (<SPAN
-CLASS="systemitem"
->example.net</SPAN
+      (<TT
+CLASS="literal"
+>example.net</TT
 > and
-      <SPAN
-CLASS="systemitem"
->example2.net</SPAN
+      <TT
+CLASS="literal"
+>example2.net</TT
 >) and
       therefore two IPv6 addresses.  Since the host chooses its own 64
       bit host address portion, the provider address is the only part
@@ -1580,9 +1583,9 @@ ipv6net2		A6	0	6666:5555:4::
 </PRE
 ><P
 >This sets up forward lookups.  To handle the reverse lookups,
-the provider <SPAN
-CLASS="systemitem"
->example.net</SPAN
+the provider <TT
+CLASS="literal"
+>example.net</TT
 >
 would have:</P
 ><PRE
@@ -1591,9 +1594,9 @@ CLASS="programlisting"
 \[xdddd/16]		DNAME		ipv6-rev.example.com.
 </PRE
 ><P
->and <SPAN
-CLASS="systemitem"
->example2.net</SPAN
+>and <TT
+CLASS="literal"
+>example2.net</TT
 > would have:</P
 ><PRE
 CLASS="programlisting"
@@ -1601,9 +1604,9 @@ CLASS="programlisting"
 \[x0001/16]		DNAME		ipv6-rev.example.com.
 </PRE
 ><P
-><SPAN
-CLASS="systemitem"
->example.com</SPAN
+><TT
+CLASS="literal"
+>example.com</TT
 >
       needs only one zone file to handle both of these reverse
       mappings:</P
