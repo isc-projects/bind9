@@ -2,10 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
 
-<!-- Validate with: nsgmls -sv /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
-<!-- Generate html doc with: jade -d /usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl -t sgml  -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
-<!-- Generate tex doc with: jade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl -t tex  -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
-<!-- You can substitute "rtf" for "tex" as well. -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.5 2000/09/11 17:09:46 scanner Exp $ -->
 
 <book>
 
