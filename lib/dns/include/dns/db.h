@@ -770,7 +770,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	'node' is a valid node.
  *
- *	'rdataset' is a valid, associated rdataset.
+ *	'rdataset' is a valid, associated rdataset with the same class
+ *	as 'db'.
  *
  *	The database has zone semantics and 'version' is a valid
  *	read-write version, or the database has cache semantics

@@ -406,6 +406,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
+	REQUIRE(rdataset->rdclass == db->rdclass);
 
 	return ((db->methods->addrdataset)(db, node, version, now, rdataset));
 }
