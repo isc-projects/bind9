@@ -57,12 +57,15 @@ case "$1" in
 		    *-pc-bsdi4.*)
 			ifconfig lo0 add 10.53.0.$ns
 			;;
+		    *-sgi-irix6.*)
+			/usr/etc/ifconfig lo0 alias 10.53.0.$ns
+			;;
 	            *)
 			echo "Don't know how to set up interface.  Giving up."
 			exit 1
 		esac
-		touch /var/run/system_test_ifsetup
 	done
+	touch /var/run/system_test_ifsetup
 	;;
 
     'stop')
@@ -93,12 +96,16 @@ case "$1" in
 		    *-pc-bsdi4.*)
 			ifconfig lo0 remove 10.53.0.$ns
 			;;
+		    *-sgi-irix6.*)
+			ifconfig lo0 -alias 10.53.0.$ns
+			;;
 	            *)
 			echo "Don't know how to destroy interface.  Giving up."
 			exit 1
 		esac
-		rm -f /var/run/system_test_ifsetup
 	done
+	rm -f /var/run/system_test_ifsetup
+	
 	;;
 
 	*)
