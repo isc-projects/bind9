@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/event.h>
 #include <isc/ondestroy.h>
 #include <isc/result.h>
 #include <isc/task.h>
@@ -26,8 +27,7 @@
 #define VALID_ONDESTROY(s)	(s != NULL && (s->magic == ONDESTROY_MAGIC))
 
 void
-isc_ondestroy_init(isc_ondestroy_t *ondest)
-{
+isc_ondestroy_init(isc_ondestroy_t *ondest) {
 	ondest->magic = ONDESTROY_MAGIC;
 	ISC_LIST_INIT(ondest->events);
 }
@@ -60,8 +60,7 @@ isc_ondestroy_register(isc_ondestroy_t *ondest,
 
 
 void
-isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender)
-{
+isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender) {
 	isc_event_t *eventp;
 	isc_task_t *task;
 	

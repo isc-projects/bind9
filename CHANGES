@@ -1,3 +1,6 @@
+  97.   [cleanup]       <isc/ondestroy.h> does not need <stddef.h> or
+                        <isc/event.h>.
+
   96.   [cleanup]       <isc/mutex.h> does not need <isc/lang.h> or
                         <isc/result.h>.
 

@@ -18,9 +18,8 @@
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1
 
-#include <stddef.h>
-
-#include <isc/event.h>
+#include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -74,15 +73,16 @@ typedef struct {
 	isc_eventlist_t events;
 } isc_ondestroy_t;
 
-void		isc_ondestroy_init(isc_ondestroy_t *ondest);
+void
+isc_ondestroy_init(isc_ondestroy_t *ondest);
 /*
  * Initialize the on ondest structure. *must* be called before first call
  * to isc_ondestroy_register().
  */
 
-isc_result_t	isc_ondestroy_register(isc_ondestroy_t *ondest,
-				       isc_task_t *task,
-				       isc_event_t **eventp);
+isc_result_t
+isc_ondestroy_register(isc_ondestroy_t *ondest, isc_task_t *task,
+		       isc_event_t **eventp);
 
 /*
  * Stores task and *eventp away inside *ondest.  Ownership of **event is
@@ -90,8 +90,8 @@ isc_result_t	isc_ondestroy_register(isc_ondestroy_t *ondest,
  * to.
  */
 
-
-void 		isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender);
+void
+isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender);
 /*
  * Dispatches the event(s) to the task(s) that were given in
  * isc_ondestroy_register call(s) (done via calls to
