@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.2 1999/07/29 17:21:23 bwelling Exp $
+ * $Id: dst_api.c,v 1.3 1999/08/03 19:48:10 bwelling Exp $
  */
 
 #include <config.h>
@@ -529,15 +529,19 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
  */
 void
 dst_key_free(dst_key_t *key) {
+	isc_mem_t *mctx;
+
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 
-	if (key->opaque != NULL)
-		key->func->destroy(key->opaque, key->mctx);
+	mctx = key->mctx;
 
-	isc_mem_free(key->mctx, key->key_name);
+	if (key->opaque != NULL)
+		key->func->destroy(key->opaque, mctx);
+
+	isc_mem_free(mctx, key->key_name);
 	memset(key, 0, sizeof(dst_key_t));
-	isc_mem_put(key->mctx, key, sizeof(dst_key_t));
+	isc_mem_put(mctx, key, sizeof(dst_key_t));
 }
 
 char *
