@@ -66,11 +66,8 @@ struct node_chain {
 #define DATA(node)	((node)->data)
 #define COLOR(node) 	((node)->color)
 #define DIRTY(node)	((node)->dirty)
+#define LOCK(node)	((node)->locknum)
 #define REFS(node)	((node)->references)
-
-#define SET_COLOR(node, value)	((node)->color  = (value))
-#define SET_LEFT(node, child)	((node)->left   = (child))
-#define SET_RIGHT(node, child)	((node)->right  = (child))
 
 #define IS_RED(node)		((node) != NULL && (node)->color == RED)
 #define IS_BLACK(node)		((node) == NULL || (node)->color == BLACK)
@@ -128,8 +125,7 @@ static dns_result_t dns_rbt_addonlevel(dns_rbtnode_t *node,
 static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
 				    dns_rbtnode_t *delete,
 				    node_chain_t *chain);
-static void dns_rbt_deletetree(dns_rbt_t *rbt,
-				dns_rbtnode_t *node, dns_rbtnode_t **root);
+static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
 
 /*
@@ -167,7 +163,7 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 
 	rbt = *rbtp;
 
-	dns_rbt_deletetree(rbt, rbt->root, &rbt->root);
+	dns_rbt_deletetree(rbt, rbt->root);
 
 	rbt->magic = 0;
 
@@ -326,9 +322,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 */
 				if (parent != NULL)
 					if (LEFT(parent) == current)
-						SET_LEFT(parent, new_current);
+						LEFT(parent) = new_current;
 					else
-						SET_RIGHT(parent, new_current);
+						RIGHT(parent) = new_current;
 				if (*root == current)
 					*root = new_current;
 
@@ -360,6 +356,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				DOWN(new_node) = DOWN(current);
 				REFS(new_node) = REFS(current);	  /* @@@ ? */
 				DIRTY(new_node) = DIRTY(current); /* @@@ ? */
+				/* @@@ ? locknum */
 
 				/*
 				 * Now that the old name in the existing
@@ -623,15 +620,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name) {
 }
 
 /*
- * @@@ WHEN DELETING, IF A TREE IS LEFT WITH NO RIGHT OR LEFT NODES
- * THEN IT SHOULD HAVE ITS NAME GLOMMED INTO THE NAME ABOVE IT.  THIS
- * COULD STAND A dns_name_prefix_name FUNCTION OR SOME SUCH.
- */
-
-/*
  * Delete a name from the tree of trees.
- * @@@ this function does yet completely do all the fixups I want.
- * @@@ need a way to free the data pointer
  */
 dns_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
@@ -653,7 +642,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * match in the first layer.  Should it be a requirement that
 	 * that the name have been added with data?  For now, it is.
 	 *
-	 * @@@ what about ->dirty and ->references?
+	 * @@@ how to ->dirty, ->locknum and ->references figure in?
 	 */
 
 	node = dns_rbt_findnode(rbt, name, &chain);
@@ -665,8 +654,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 
 	if (down != NULL) {
 		if (recurse) {
-			/* @@@ free all ->data in down */
-			dns_rbt_deletetree(rbt, down, &DOWN(node));
+			dns_rbt_deletetree(rbt, down);
 			down = NULL;
 
 		} else {
@@ -785,6 +773,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	DOWN(node) = NULL;
 	DATA(node) = NULL;
 
+	LOCK(node) = 0;		/* @@@ ? */
 	REFS(node) = 0;
 	DIRTY(node) = 0;
 
@@ -872,15 +861,14 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) {
 	child = RIGHT(node);
 	REQUIRE(child != NULL);
 
-	SET_RIGHT(node, LEFT(child));
-	SET_LEFT(child, node);
+	RIGHT(node) = LEFT(child);
+	LEFT(child) = node;
 
 	if (parent != NULL) {
 		if (LEFT(parent) == node)
-			SET_LEFT(parent, child);
-		else {
-			SET_RIGHT(parent, child);
-		}
+			LEFT(parent) = child;
+		else
+			RIGHT(parent) = child;
 	} else
 		*rootp = child;
 }
@@ -895,14 +883,14 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) 
 	child = LEFT(node);
 	REQUIRE(child != NULL);
 
-	SET_LEFT(node, RIGHT(child));
-	SET_RIGHT(child, node);
+	LEFT(node)   = RIGHT(child);
+	RIGHT(child) = node;
 
 	if (parent != NULL) {
 		if (LEFT(parent) == node)
-			SET_LEFT(parent, child);
+			LEFT(parent) = child;
 		else
-			SET_RIGHT(parent, child);
+			RIGHT(parent) = child;
 	} else
 		*rootp = child;
 }
@@ -959,9 +947,9 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	ancestors[depth] = current;
 
 	if (i < 0)
-		SET_LEFT(current, node);
+		LEFT(current) = node;
 	else
-		SET_RIGHT(current, node);
+		RIGHT(current) = node;
 	MAKE_RED(node);
 
 	while (node != root && IS_RED(ancestors[depth])) {
@@ -1125,15 +1113,15 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 
 		if (parent)
 			if (LEFT(parent) == delete)
-				SET_LEFT(parent, successor);
+				LEFT(parent) = successor;
 			else
-				SET_RIGHT(parent, successor);
+				RIGHT(parent) = successor;
 		else
 			*rootp = successor;
 
-		SET_LEFT(successor, LEFT(delete));
-		SET_RIGHT(successor, RIGHT(delete));
-		SET_COLOR(successor, COLOR(delete));
+		LEFT(successor)  = LEFT(delete);
+		RIGHT(successor) = RIGHT(delete);
+		COLOR(successor) = COLOR(delete);
 
 		/*
 		 * Now relink the node to be deleted into the
@@ -1141,17 +1129,17 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		 */
 		parent = chain->ancestors[chain->ancestor_count - 1];
 		if (parent == successor)
-			SET_RIGHT(parent, delete);
+			RIGHT(parent) = delete;
 		else
-			SET_LEFT(parent, delete);
+			LEFT(parent) = delete;
 
 		/*
 		 * Original location of successor node has no left.
 		 */
 
-		SET_LEFT(delete, NULL);
-		SET_RIGHT(delete, RIGHT(tmp));
-		SET_COLOR(delete, COLOR(tmp));
+		LEFT(delete)  = NULL;
+		RIGHT(delete) = RIGHT(tmp);
+		COLOR(delete) = COLOR(tmp);
 	}
 
 	parent = chain->ancestors[chain->ancestor_count - 1];
@@ -1161,10 +1149,10 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 	 */
 	if (parent != NULL) {
 		if (LEFT(parent) == delete) {
-			SET_LEFT(parent, child);
+			LEFT(parent) = child;
 			sibling = RIGHT(parent);
 		} else {
-			SET_RIGHT(parent, child);
+			RIGHT(parent) = child;
 			sibling = LEFT(parent);
 		}
 
@@ -1210,7 +1198,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 							     rootp);
 						sibling = RIGHT(parent);
 					}
-					SET_COLOR(sibling, COLOR(parent));
+					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(RIGHT(sibling));
 					rotate_left(parent, grandparent,
@@ -1239,7 +1227,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 							    rootp);
 						sibling = LEFT(parent);
 					}
-					SET_COLOR(sibling, COLOR(parent));
+					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(LEFT(sibling));
 					rotate_right(parent, grandparent,
@@ -1258,10 +1246,20 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 /*
  * This should only be used on the root of a tree, because no color fixup
  * is done at all.
+ *
+ * NOTE: No root pointer maintenance is done, because the function is only
+ * used for two cases:
+ * + deleting everything DOWN from a node that is itself being deleted
+ * + deleting the entire tree of trees from dns_rbt_destroy.
+ * In each case, the root pointer is no longer relevant, so there
+ * is no need for a root parameter to this function.
+ *
+ * If the function is ever intended to be used to delete something where
+ * a pointer needs to be told that this tree no longer exists,
+ * this function would need to adjusted accordinly.
  */
 static void
-dns_rbt_deletetree(dns_rbt_t *rbt,
-		    dns_rbtnode_t *node, dns_rbtnode_t **root) {
+dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 
 	REQUIRE(VALID_RBT(rbt));
 
@@ -1269,28 +1267,16 @@ dns_rbt_deletetree(dns_rbt_t *rbt,
 		return;
 
 	if (LEFT(node) != NULL)
-		dns_rbt_deletetree(rbt, LEFT(node), root);
+		dns_rbt_deletetree(rbt, LEFT(node));
 	if (RIGHT(node) != NULL)
-		dns_rbt_deletetree(rbt, RIGHT(node), root);
+		dns_rbt_deletetree(rbt, RIGHT(node));
 	if (DOWN(node) != NULL)
-		dns_rbt_deletetree(rbt, DOWN(node), &DOWN(node));
+		dns_rbt_deletetree(rbt, DOWN(node));
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node));
 
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-
-	/*
-	 * @@@ is this necessary?  only if the function is ever intended
-	 * to be used to delete something where the root pointer needs to
-	 * be told the tree is gone.  At the moment, this is not the case,
-	 * because the function is only used for two cases:
-	 * + deleting everything DOWN from a node that is itself being deleted
-	 * + deleting the entire tree of trees from dns_rbt_destroy.
-	 * In each case, the root pointer is no longer relevant, so there
-	 * is no need for a root parameter to this function.
-	 */
-	*root = NULL;
 }
 
 /**
