@@ -42,6 +42,7 @@ if NOT Exist ..\Build\Release mkdir ..\Build\Release
 
 echo Copying the ARM and the Installation Notes.
  
+copy ..\COPYRIGHT ..\Build\Release
 copy readme1st.txt ..\Build\Release
 copy ..\doc\arm\*.html ..\Build\Release
 copy ..\CHANGES ..\Build\Release
