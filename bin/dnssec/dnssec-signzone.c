@@ -70,7 +70,7 @@ static isc_boolean_t tryverify = ISC_FALSE;
 
 static isc_mem_t *mctx = NULL;
 
-static inline void
+static void
 fatal(char *format, ...) {
 	va_list args;
 

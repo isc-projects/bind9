@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.21 2000/05/18 22:03:58 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.22 2000/05/18 23:28:26 tale Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,7 @@
 
 static int verbose;
 
-static inline void
+static void
 fatal(char *format, ...) {
 	va_list args;
 

@@ -54,7 +54,7 @@ static isc_mem_t *mctx = NULL;
 
 static keylist_t keylist;
 
-static inline void
+static void
 fatal(char *format, ...) {
 	va_list args;
 
