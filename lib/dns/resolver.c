@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.211 2001/03/15 02:00:15 bwelling Exp $ */
+/* $Id: resolver.c,v 1.212 2001/03/16 21:50:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -119,6 +119,7 @@ typedef struct query {
 	unsigned int			options;
 	unsigned int			attributes;
 	unsigned int			sends;
+	unsigned int			connects;
 	unsigned char			data[512];
 } resquery_t;
 
@@ -126,11 +127,9 @@ typedef struct query {
 #define VALID_QUERY(query)		((query) != NULL && \
 					 (query)->magic == QUERY_MAGIC)
 
-#define RESQUERY_ATTR_CONNECTING	0x01
 #define RESQUERY_ATTR_CANCELED		0x02
 
-#define RESQUERY_CONNECTING(q)		(((q)->attributes & \
-					  RESQUERY_ATTR_CONNECTING) != 0)
+#define RESQUERY_CONNECTING(q)		((q)->connects > 0)
 #define RESQUERY_CANCELED(q)		(((q)->attributes & \
 					  RESQUERY_ATTR_CANCELED) != 0)
 #define RESQUERY_SENDING(q)		((q)->sends > 0)
@@ -729,6 +728,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->options = options;
 	query->attributes = 0;
 	query->sends = 0;
+	query->connects = 0;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.
@@ -823,7 +823,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 					    resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_socket;
-		query->attributes |= RESQUERY_ATTR_CONNECTING;
+		query->connects++;
 		QTRACE("connecting via TCP");
 	} else {
 		result = resquery_send(query);
@@ -1168,7 +1168,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 	 * up doing extra work!
 	 */
 
-	query->attributes &= ~RESQUERY_ATTR_CONNECTING;
+	query->connects--;
 
 	if (RESQUERY_CANCELED(query)) {
 		/*
