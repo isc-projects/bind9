@@ -149,6 +149,9 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
  * (non-indirect) address match list element that matched.
  *
  * If there is no match, *match will be set to zero.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		Always succeeds.
  */
 
 ISC_LANG_ENDDECLS
