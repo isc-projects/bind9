@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.5 2000/12/21 02:58:49 gson Exp $
+# $Id: altbuild.sh,v 1.6 2000/12/22 23:05:17 gson Exp $
 
 #
 # "Alternative build" test.
@@ -28,6 +28,8 @@ case $# in
     1) tag=$1 ;;
     *) echo "usage: $0 cvs-tag" >&2; exit 1 ;;
 esac
+
+here=`pwd`
 
 kitdir=/tmp/kit
 srcdir=/tmp/src
@@ -75,4 +77,5 @@ make install
 
 # Check the installed header files
 
+cd $here
 sh util/check-instincludes.sh $instdir
