@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.1 2000/07/21 22:13:05 gson Exp $
+ * $Id: tsig.c,v 1.72.2.2 2000/07/27 23:45:51 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -47,10 +47,22 @@
 
 static isc_once_t once = ISC_ONCE_INIT;
 static dns_name_t hmacmd5_name;
-dns_name_t *dns_tsig_hmacmd5_name = NULL;
+dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5_name;
 
 static isc_result_t
 tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
+
+static void
+dns_tsig_inithmac(void) {
+	isc_constregion_t r;
+	const char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
+
+	dns_name_init(&hmacmd5_name, NULL);
+	r.base = str;
+	r.length = strlen(str) + 1;
+	dns_name_fromregion(&hmacmd5_name, (isc_region_t *)&r);
+	dns_tsig_hmacmd5_name = &hmacmd5_name;
+}
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
@@ -72,6 +84,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		REQUIRE(secret != NULL);
 	REQUIRE(mctx != NULL);
 
+	RUNTIME_CHECK(isc_once_do(&once, dns_tsig_inithmac) == ISC_R_SUCCESS);
 	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
 		return (ISC_R_NOTFOUND);
 	else
@@ -109,8 +122,10 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->creator = NULL;
 
+	ISC_LINK_INIT(tkey, link);
 	tkey->key = NULL;
-	tkey->ring = NULL;
+	tkey->ring = ring;
+
 	if (length > 0) {
 		dns_tsigkey_t *tmp;
 
@@ -123,23 +138,23 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_algorithm;
 
-		ISC_LINK_INIT(tkey, link);
-		isc_rwlock_lock(&ring->lock, isc_rwlocktype_write);
-		tmp = ISC_LIST_HEAD(ring->keys);
-		while (tmp != NULL) {
-			if (dns_name_equal(&tkey->name, &tmp->name) &&
-			    !tmp->deleted)
-			{
-				ret = ISC_R_EXISTS;
-				isc_rwlock_unlock(&ring->lock,
-						  isc_rwlocktype_write);
-				goto cleanup_algorithm;
+		if (ring != NULL) {
+			RWLOCK(&ring->lock, isc_rwlocktype_write);
+			tmp = ISC_LIST_HEAD(ring->keys);
+			while (tmp != NULL) {
+				if (dns_name_equal(&tkey->name, &tmp->name) &&
+				    !tmp->deleted)
+				{
+					ret = ISC_R_EXISTS;
+					RWUNLOCK(&ring->lock,
+						 isc_rwlocktype_write);
+					goto cleanup_algorithm;
+				}
+				tmp = ISC_LIST_NEXT(tmp, link);
 			}
-			tmp = ISC_LIST_NEXT(tmp, link);
+			ISC_LIST_APPEND(ring->keys, tkey, link);
+			RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 		}
-		ISC_LIST_APPEND(ring->keys, tkey, link);
-		isc_rwlock_unlock(&ring->lock, isc_rwlocktype_write);
-		tkey->ring = ring;
 	}
 
 	tkey->refs = 0;
@@ -180,9 +195,9 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp) {
 	REQUIRE(VALID_TSIG_KEY(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_mutex_lock(&source->lock);
+	LOCK(&source->lock);
 	source->refs++;
-	isc_mutex_unlock(&source->lock);
+	UNLOCK(&source->lock);
 	*targetp = source;
 }
 
@@ -194,10 +209,10 @@ tsigkey_free(dns_tsigkey_t *key) {
 	ring = key->ring;
 
 	key->magic = 0;
-	if (key->key != NULL) {
-		isc_rwlock_lock(&ring->lock, isc_rwlocktype_write);
+	if (ring != NULL) {
+		RWLOCK(&ring->lock, isc_rwlocktype_write);
 		ISC_LIST_UNLINK(ring->keys, key, link);
-		isc_rwlock_unlock(&ring->lock, isc_rwlocktype_write);
+		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 	}
 	dns_name_free(&key->name, key->mctx);
 	dns_name_free(&key->algorithm, key->mctx);
@@ -213,28 +228,28 @@ tsigkey_free(dns_tsigkey_t *key) {
 void
 dns_tsigkey_detach(dns_tsigkey_t **key) {
 	dns_tsigkey_t *tkey;
+	isc_boolean_t should_free = ISC_FALSE;
 
 	REQUIRE(key != NULL);
 	REQUIRE(VALID_TSIG_KEY(*key));
 	tkey = *key;
 	*key = NULL;
 
-	isc_mutex_lock(&tkey->lock);
+	LOCK(&tkey->lock);
 	tkey->refs--;
-	if (tkey->refs > 0 || (!tkey->deleted && tkey->key != NULL)) {
-		isc_mutex_unlock(&tkey->lock);
-		return;
-	}
-	isc_mutex_unlock(&tkey->lock);
-	tsigkey_free(tkey);
+	if (tkey->refs == 0 && (tkey->deleted || tkey->key == NULL))
+		should_free = ISC_TRUE;
+	UNLOCK(&tkey->lock);
+	if (should_free)
+		tsigkey_free(tkey);
 }
 
 void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
 	INSIST(VALID_TSIG_KEY(key));
-	isc_mutex_lock(&key->lock);
+	LOCK(&key->lock);
 	key->deleted = ISC_TRUE;
-	isc_mutex_unlock(&key->lock);
+	UNLOCK(&key->lock);
 }
 
 isc_result_t
@@ -637,7 +652,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			ret = dns_tsigkey_create(keyname, &tsig.algorithm,
 						 NULL, 0, ISC_FALSE, NULL,
 						 now, now,
-						 mctx, dring, &msg->tsigkey);
+						 mctx, NULL, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS)
 				return (ret);
 			return (DNS_R_TSIGVERIFYFAILURE);
@@ -1021,7 +1036,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 	REQUIRE(ring != NULL);
 
 	isc_stdtime_get(&now);
-	isc_rwlock_lock(&ring->lock, isc_rwlocktype_read);
+	RWLOCK(&ring->lock, isc_rwlocktype_read);
 	key = ISC_LIST_HEAD(ring->keys);
 	while (key != NULL) {
 		if (dns_name_equal(&key->name, name) &&
@@ -1038,30 +1053,18 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 				key->deleted = ISC_TRUE;
 				continue;
 			}
-			isc_mutex_lock(&key->lock);
+			LOCK(&key->lock);
 			key->refs++;
-			isc_mutex_unlock(&key->lock);
+			UNLOCK(&key->lock);
 			*tsigkey = key;
-			isc_rwlock_unlock(&ring->lock, isc_rwlocktype_read);
+			RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 			return (ISC_R_SUCCESS);
 		}
 		key = ISC_LIST_NEXT(key, link);
 	}
-	isc_rwlock_unlock(&ring->lock, isc_rwlocktype_read);
+	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 	*tsigkey = NULL;
 	return (ISC_R_NOTFOUND);
-}
-
-static void
-dns_tsig_inithmac(void) {
-	isc_constregion_t r;
-	const char *str = "\010HMAC-MD5\007SIG-ALG\003REG\003INT";
-
-	dns_name_init(&hmacmd5_name, NULL);
-	r.base = str;
-	r.length = strlen(str) + 1;
-	dns_name_fromregion(&hmacmd5_name, (isc_region_t *)&r);
-	dns_tsig_hmacmd5_name = &hmacmd5_name;
 }
 
 isc_result_t
@@ -1072,7 +1075,6 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring) {
 	REQUIRE(ring != NULL);
 	REQUIRE(*ring == NULL);
 
-	RUNTIME_CHECK(isc_once_do(&once, dns_tsig_inithmac) == ISC_R_SUCCESS);
 	*ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
 	if (ring == NULL)
 		return (ISC_R_NOMEMORY);

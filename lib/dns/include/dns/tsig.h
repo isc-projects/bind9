@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.24 2000/06/22 21:56:17 tale Exp $ */
+/* $Id: tsig.h,v 1.24.2.1 2000/07/27 23:45:53 gson Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -93,7 +93,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *		'length' is an integer greater than 0
  *		'creator' points to a valid dns_name_t or is NULL
  *		'mctx' is a valid memory context
- *		'ring' is a valid TSIG keyring
+ *		'ring' is a valid TSIG keyring or NULL
  *		'key' or '*key' must be NULL
  *
  *	Returns:
