@@ -73,9 +73,9 @@ enum {
 
 #include <dns/enumclass.h>
 enum {
-	ns_c_none = 0,
 	CLASSENUM
-	ns_c_any = 255
+	ns_c_none = 0,
+	/* ns_c_any = 255  TSIG is class ANY specific */
 } ns_class_t;
 
 #endif /* DNS_TYPES_H */
