@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2001/02/01 23:41:55 sjacob Exp $
+# $Id: Makefile.in,v 1.21 2001/08/01 22:06:22 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,7 +43,7 @@ SRCS =		t_timers.c
 @BIND9_MAKE_RULES@
 
 t_timers: t_timers.@O@ ${DEPLIBS} ${TLIB}
-	${LIBTOOL} ${PURIFY} ${CC} -o $@ t_timers.@O@ ${TLIB} ${LIBS}
+	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ t_timers.@O@ ${TLIB} ${LIBS}
 
 test: t_timers
 	-@./t_timers -c @top_srcdir@/t_config -b @srcdir@ -q 60 -a

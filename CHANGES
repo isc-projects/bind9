@@ -1,4 +1,8 @@
 
+ 951.	[bug]		CFLAGS was not passed to the linker when
+			linking some of the test programs under
+			bin/tests. [RT #1555].
+
  950.	[bug]		Explicit TTLs did not properly override $TTL
 			due to a bug in change 834. [RT #1558]
 

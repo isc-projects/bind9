@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2001/02/01 23:41:41 sjacob Exp $
+# $Id: Makefile.in,v 1.21 2001/08/01 22:06:09 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -45,7 +45,7 @@ TARGETS =	t_db
 @BIND9_MAKE_RULES@
 
 t_db: t_db.@O@ ${DEPLIBS} ${TLIB}
-	${LIBTOOL} ${PURIFY} ${CC} -o $@ t_db.@O@ ${TLIB} ${LIBS}
+	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ t_db.@O@ ${TLIB} ${LIBS}
 
 test: t_db
 	-@./t_db -c @top_srcdir@/t_config -b @srcdir@ -a
