@@ -134,7 +134,10 @@ BIND 9.1.3rc1
 
 		--with-libtool does not work on AIX.
 
-
+	A bug in the Windows 2000 DNS server can cause zone transfers
+	from a BIND 9 server to a W2K server to fail.  For details,
+	see the "Zone Transfers" section in doc/misc/migration.
+ 
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
 

@@ -46,3 +46,9 @@ ignoring the DNSSEC records (SIG, NXT, KEY) that BIND 4 did not support.
 BIND 9 is less tolerant of errors in master files, so check your logs and
 fix any errors reported.  The named-checkzone program can also be to check
 master files.
+
+Outgoing zone transfers now use the "many-answers" format by default.
+This format is not understood by certain old versions of BIND 4.  
+You can work around this problem using the option "transfer-format
+one-answer;", but since these old versions all have known security
+problems, the correct fix is to upgrade the slave servers.
