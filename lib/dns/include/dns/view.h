@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.48 2000/08/17 00:18:12 gson Exp $ */
+/* $Id: view.h,v 1.49 2000/08/17 23:45:12 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -31,9 +31,6 @@
  * forwarding policy.  A "DNS namespace" is a (possibly empty) set of
  * authoritative zones together with an optional cache and optional
  * "hints" information.
- *
- * XXXRTH  Not all of this items can be set currently, but future revisions
- * of this code will support them.
  *
  * Views start out "unfrozen".  In this state, core attributes like
  * the cache, set of zones, and forwarding policy may be set.  While
@@ -59,7 +56,8 @@
  *	No anticipated impact.
  *
  * Standards:
- * None.  */
+ *	None.
+ */
 
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -511,13 +509,34 @@ isc_result_t
 dns_viewlist_find(dns_viewlist_t *list, const char *name,
 		  dns_rdataclass_t rdclass, dns_view_t **viewp);
 /*
- * XXX
+ * Search for a view with name 'name' and class 'rdclass' in 'list'.
+ * If found, '*viewp' is (strongly) attached to it.
+ *
+ * Requires:
+ *
+ *	'viewp' points to a NULL dns_view_t *.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		A matching view was found.
+ *	ISC_R_NOTFOUND		No matching view was found.
  */
 
 isc_result_t
-dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone);
+dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep);
 /*
- * XXX
+ * Search for the zone 'name' in the zone table of 'view'.
+ * If found, 'zonep' is (strongly) attached to it.  There
+ * are no partial matches.
+ *
+ * Requires:
+ *
+ *	'zonep' points to a NULL dns_zone_t *.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS		A matching zone was found.
+ *	ISC_R_NOTFOUND		No matching zone was found.
+ *	others			An error occurred.
  */
 
 isc_result_t
@@ -529,7 +548,7 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop);
  *
  * Requires:
  *
- *	'view' is a valid.
+ *	'view' is valid.
  */
 
 isc_result_t
