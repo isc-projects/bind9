@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15 2003/07/25 03:31:42 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.16 2004/03/02 00:58:11 marka Exp $ */
 
 #include <config.h>
 
@@ -114,8 +114,6 @@ static isc_timermgr_t *timermgr = NULL;
 static dns_dispatch_t *dispatchv4 = NULL;
 static dns_dispatch_t *dispatchv6 = NULL;
 static dns_message_t *updatemsg = NULL;
-static dns_fixedname_t resolvdomain; /* from resolv.conf's domain line */
-static dns_name_t *origin; /* Points to one of above, or dns_rootname */
 static dns_fixedname_t fuserzone;
 static dns_name_t *userzone = NULL;
 static dns_tsigkey_t *key = NULL;
@@ -240,20 +238,6 @@ nsu_strsep(char **stringp, const char *delim) {
 	}
 	*stringp = NULL;
 	return (string);
-}
-
-static unsigned int
-count_dots(char *s, isc_boolean_t *last_was_dot) {
-	int i = 0;
-	*last_was_dot = ISC_FALSE;
-	while (*s != 0) {
-		if (*s++ == '.') {
-			i++;
-			*last_was_dot = ISC_TRUE;
-		} else
-			*last_was_dot = ISC_FALSE;
-	}
-	return (i);
 }
 
 static void
@@ -430,7 +414,6 @@ static void
 setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
-	isc_buffer_t buf;
 	lwres_result_t lwresult;
 	unsigned int attrs, attrmask;
 	int i;
@@ -548,20 +531,6 @@ setup_system(void) {
 				       socketmgr, taskmgr, dispatchmgr,
 				       dispatchv4, dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
-
-	if (lwconf->domainname != NULL) {
-		dns_fixedname_init(&resolvdomain);
-		isc_buffer_init(&buf, lwconf->domainname,
-				strlen(lwconf->domainname));
-		isc_buffer_add(&buf, strlen(lwconf->domainname));
-		result = dns_name_fromtext(dns_fixedname_name(&resolvdomain),
-					   &buf, dns_rootname, ISC_FALSE,
-					   NULL);
-		check_result(result, "dns_name_fromtext");
-		origin = dns_fixedname_name(&resolvdomain);
-	}
-	else
-		origin = dns_rootname;
 
 	if (keystr != NULL)
 		setup_keystr();
@@ -710,9 +679,6 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	char *word;
 	isc_buffer_t *namebuf = NULL;
 	isc_buffer_t source;
-	unsigned int dots;
-	isc_boolean_t last;
-	dns_name_t *rn;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
@@ -729,14 +695,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	dns_message_takebuffer(msg, &namebuf);
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
-	dots = count_dots(word, &last);
-	if (dots > lwconf->ndots || last)
-		rn = dns_rootname;
-	else if (userzone != NULL)
-		rn = userzone;
-	else
-		rn = origin;
-	result = dns_name_fromtext(*namep, &source, rn,
+	result = dns_name_fromtext(*namep, &source, dns_rootname,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
 	isc_buffer_invalidate(&source);
@@ -754,17 +713,12 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	isc_lex_t *lex = NULL;
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
-	dns_name_t *rn;
 
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
 
 	if (*cmdline != 0) {
 		dns_rdatacallbacks_init(&callbacks);
-		if (userzone != NULL)
-			rn = userzone;
-		else
-			rn = origin;
 		result = isc_lex_create(mctx, strlen(cmdline), &lex);
 		check_result(result, "isc_lex_create");
 		isc_buffer_init(&source, cmdline, strlen(cmdline));
@@ -774,7 +728,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
 		check_result(result, "isc_buffer_allocate");
 		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
-					    rn, ISC_FALSE, mctx, buf,
+					    dns_rootname, ISC_FALSE, mctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {
