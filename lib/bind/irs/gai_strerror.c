@@ -9,7 +9,6 @@ you didn't get a copy, you may request one from <license@inner.net>.
 
 #include <port_before.h>
 #include <netdb.h>
-#include <errno.h>
 #include <port_after.h>
 
 const char *

@@ -86,13 +86,14 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.3 2001/05/10 05:38:33 marka Exp $
+ *	$Id: netdb.h,v 1.4 2001/05/10 07:33:30 marka Exp $
  */
 
 #ifndef _NETDB_H_
 #define _NETDB_H_
 
 #include <sys/param.h>
+#include <sys/types.h>
 #if (!defined(BSD)) || (BSD < 199306)
 # include <sys/bitypes.h>
 #endif
