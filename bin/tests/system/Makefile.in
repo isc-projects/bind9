@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2000/08/01 01:14:19 tale Exp $
+# $Id: Makefile.in,v 1.21 2000/12/01 02:17:15 gson Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -21,11 +21,14 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
+# Running the scripts below is bypassed when a separate
+# build directory is used.
+
 test: subdirs
-	sh ./runall.sh
+	if test -f ./runall.sh; then sh ./runall.sh; fi
 
 clean distclean::
-	sh ./cleanall.sh
+	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
 
 distclean::
 	rm -f conf.sh
