@@ -427,6 +427,17 @@ void dns_rdata_freestruct(void *source);
  *	'source' to point to the structure previously filled in by
  *	dns_rdata_tostruct().
  */
+
+isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
+/*
+ * Find out whether the rdata type 'type' is a meta type
+ * like ANY or AXFR.
+ *
+ * Requires:
+ * 	'type' is a valid rdata type.
+ *
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATA_H */
