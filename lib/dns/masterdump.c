@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.36 2000/11/09 19:33:49 gson Exp $ */
+/* $Id: masterdump.c,v 1.37 2000/12/06 01:36:36 tale Exp $ */
 
 #include <config.h>
 
@@ -678,8 +678,8 @@ dump_order(const dns_rdataset_t *rds) {
 
 static int
 dump_order_compare(const void *a, const void *b) {
-	return (dump_order(*((const dns_rdataset_t **) a)) -
-		dump_order(*((const dns_rdataset_t **) b)));
+	return (dump_order(*((const dns_rdataset_t * const *) a)) -
+		dump_order(*((const dns_rdataset_t * const *) b)));
 }
 
 /*
