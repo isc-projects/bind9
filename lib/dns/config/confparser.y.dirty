@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.8 2001/03/21 18:34:31 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.9 2001/07/11 13:31:01 marka Exp $ */
 
 #include <config.h>
 
@@ -6501,31 +6501,39 @@ keyword_init(void)
 {
 	struct token *tok;
 	isc_symvalue_t symval;
+	isc_result_t result;
 
-	RUNTIME_CHECK(isc_symtab_create(memctx, 97 /* prime < 100 */,
-					NULL, NULL, ISC_FALSE,
-					&keywords) == ISC_R_SUCCESS);
+	result = isc_symtab_create(memctx, 97 /* prime < 100 */,
+				   NULL, NULL, ISC_FALSE, &keywords);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 
 	/* Stick all the keywords into the main symbol table. */
 	for (tok = &keyword_tokens[0] ; tok->token != NULL ; tok++) {
 		symval.as_integer = tok->yaccval;
-		RUNTIME_CHECK(isc_symtab_define(keywords, tok->token,
-						KEYWORD_SYM_TYPE, symval,
-						isc_symexists_reject) ==
-			      ISC_R_SUCCESS);
+		result = isc_symtab_define(keywords, tok->token,
+					   KEYWORD_SYM_TYPE, symval,
+		                           isc_symexists_reject);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
 	}
 
 	/* Now the class names */
 	for (tok = &class_symbol_tokens[0] ; tok->token != NULL ; tok++) {
 		symval.as_integer = tok->yaccval;
-		RUNTIME_CHECK(isc_symtab_define(keywords, tok->token,
-						CLASS_SYM_TYPE, symval,
-						isc_symexists_reject) ==
-			      ISC_R_SUCCESS);
+		result = isc_symtab_define(keywords, tok->token,
+					   CLASS_SYM_TYPE, symval,
+					   isc_symexists_reject);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
 	}
 
 	return (ISC_R_SUCCESS);
+
+ fail:
+	isc_symtab_destroy(&keywords);
+	return (result);
 }
 
 
