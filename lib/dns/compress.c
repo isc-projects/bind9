@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.15 1999/05/03 03:07:16 marka Exp $ */
+ /* $Id: compress.c,v 1.16 1999/05/10 00:38:52 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -41,12 +41,6 @@ isc_boolean_t		compress_find(dns_rbt_t *root, dns_name_t *name,
 void			compress_add(dns_rbt_t *root, dns_name_t *prefix,
 				     dns_name_t *suffix, isc_uint16_t offset,
 				     isc_boolean_t global16, isc_mem_t *mctx);
-
-#undef MPADCL
-#ifdef MPADCL
-isc_buffer_t x;
-char xxxx[1024];
-#endif
 
 /***
  ***	Compression
@@ -129,16 +123,6 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 			if (data == NULL)
 				return (DNS_R_SUCCESS);
 			*data = ll;
-
-#ifdef MPADCL
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(&name, ISC_FALSE, &x);
-			fprintf(stdout,
-				"dns_rbt_addname(local, \"%.*s\", %d)\n",
-				(int)x.used, (char*)x.base, *data);
-#endif
-		
 			result = dns_rbt_addname(cctx->local, &name, data);
 			if (result != DNS_R_SUCCESS) {
 				isc_mem_put(cctx->mctx, data, sizeof *data);
@@ -153,8 +137,6 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 		/*
 		 * Have to compute logical for bit string labels.
 		 */
-
-		/* XXX MPA need to test once rbt supports bit labels fully */
 
 		bits = dns_label_countbits(&label);
 		INSIST(label.length < sizeof buf);
@@ -190,17 +172,6 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 			if (data == NULL)
 				return (DNS_R_SUCCESS);
 			*data = ll;
-
-#ifdef MPADCL
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(&name, ISC_FALSE, &x);
-			fprintf(stdout,
-				"dns_rbt_addname(local, \"%.*s\", %d)\n",
-				(int)x.used, (char *)x.base,
-				*data);
-#endif
-		
 			result = dns_rbt_addname(cctx->local, &name, data);
 			if (result != DNS_R_SUCCESS) {
 				isc_mem_put(cctx->mctx, data, sizeof *data);
@@ -275,15 +246,6 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(offset != NULL);
 
-
-#ifdef MPADCL
-	isc_buffer_init(&x, xxxx, sizeof xxxx,
-			ISC_BUFFERTYPE_TEXT);
-	dns_name_totext(name, ISC_FALSE, &x);
-	fprintf(stdout, "compress_find(global, name \"%.*s\", ...)\n",
-		(int)x.used, (char*)x.base);
-#endif
-
 	return (compress_find(cctx->global, name, prefix, suffix, offset,
 			      workspace));
 }
@@ -299,16 +261,6 @@ dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 
 	if (cctx->local == NULL)
 		return (ISC_FALSE);
-
-#ifdef MPADCL
-	isc_buffer_init(&x, xxxx, sizeof xxxx,
-			ISC_BUFFERTYPE_TEXT);
-	dns_name_totext(name, ISC_FALSE, &x);
-	fprintf(stdout, "compress_find(local, name \"%.*s\", ...)\n",
-		(int)x.used, (char*)x.base);
-#endif
-
-
 	return (compress_find(cctx->local, name, prefix, suffix, offset,
 			      workspace));
 }
@@ -324,19 +276,12 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
 	if (cctx->local != NULL && (cctx->allowed & DNS_COMPRESS_LOCAL) != 0) {
 		REQUIRE(cctx->rdata <= offset);
 		localoffset = offset - cctx->rdata + 256;
-#ifdef MPADCL
-		fprintf(stdout, "compress_add(local, ...)\n");
-#endif
 		compress_add(cctx->local, prefix, suffix, localoffset, ISC_TRUE,
 			     cctx->mctx);
 	}
-	if ((cctx->edns > -1) || !local) {
-#ifdef MPADCL
-		fprintf(stdout, "compress_add(global, ...)\n");
-#endif
+	if ((cctx->edns > -1) || !local)
 		compress_add(cctx->global, prefix, suffix, offset,
 			     cctx->global16, cctx->mctx);
-	}
 }
 
 void
@@ -529,16 +474,6 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 		if (data == NULL)
 			return;
 		*data = offset;
-
-#ifdef MPADCL
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(&full, ISC_FALSE, &x);
-			fprintf(stdout,
-				"dns_rbt_addname(root, \"%.*s\", %d)\n",
-				(int)x.used, (char*)x.base, *data);
-#endif
-		
 		result = dns_rbt_addname(root, &full, data);
 		if (result != DNS_R_SUCCESS) {
 			isc_mem_put(mctx, data, sizeof *data);
@@ -589,15 +524,6 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 		return (ISC_FALSE);
 	if (data == NULL)		/* root label */
 		return (ISC_FALSE);
-		
-#ifdef MPADCL
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(foundname, ISC_FALSE, &x);
-			fprintf(stdout, "foundname \"%.*s\" %d\n",
-				(int)x.used, (char*)x.base, *data);
-#endif
-		
 	/*
 	 * Do we have to do bit string processing?
 	 */
@@ -623,27 +549,8 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 			dns_name_getlabelsequence(name, 0, prefixlen, prefix);
 		dns_name_getlabelsequence(foundname, 0, foundlabels, suffix);
 		*offset = *data;
-
-#ifdef MPADCL
-			if (prefixlen != 0) {
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(prefix, ISC_FALSE, &x);
-			fprintf(stdout, "prefix \"%.*s\"\n",
-				(int)x.used, (char*)x.base);
-			} else 
-				fprintf(stdout, "prefix <EMPTY>\n");
-		
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(suffix, ISC_FALSE, &x);
-			fprintf(stdout, "suffix \"%.*s\"\n",
-				(int)x.used, (char*)x.base);
-#endif
-		
 		return (ISC_TRUE);
 	}
-	/* XXX MPA needs to be tested */
 	/*
 	 * At this stage we have a bit string label to split in two.
 	 * There is potentially a prefix before this label and definitly
@@ -681,20 +588,5 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	if (result != DNS_R_SUCCESS)
 		return (ISC_FALSE);
 	*offset = *data;
-
-#ifdef MPADCL
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(prefix, ISC_FALSE, &x);
-			fprintf(stdout, "prefix \"%.*s\"\n",
-				(int)x.used, (char*)x.base);
-		
-			isc_buffer_init(&x, xxxx, sizeof xxxx,
-					ISC_BUFFERTYPE_TEXT);
-			dns_name_totext(suffix, ISC_FALSE, &x);
-			fprintf(stdout, "suffix \"%.*s\"\n",
-				(int)x.used, (char*)x.base);
-#endif
-		
 	return (ISC_TRUE);
 }
