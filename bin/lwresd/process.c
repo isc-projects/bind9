@@ -38,6 +38,62 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 {
 }
 
+static isc_result_t
+start_v4find(client_t *client, dns_name_t *name)
+{
+	unsigned int options;
+	isc_result_t result;
+
+	/*
+	 * Issue a find for the name contained in the request.  We won't
+	 * set the bit that says "anything is good enough" -- we want it
+	 * all.
+	 */
+	options = 0;
+	options |= DNS_ADBFIND_WANTEVENT;
+	options |= DNS_ADBFIND_INET;
+
+	result = dns_adb_createfind(client->clientmgr->view->adb,
+				    client->clientmgr->task,
+				    process_gabn_finddone, client,
+				    name, dns_rootname, options,
+				    0, NULL /*XXX*/, &client->v4find);
+
+	/*
+	 * If there is an event pending, wait for it.  The event callback
+	 * will kill this fetch and reissue it.
+	 */
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+static isc_result_t
+start_v6find(client_t *client, dns_name_t *name)
+{
+	unsigned int options;
+	isc_result_t result;
+
+	/*
+	 * Issue a find for the name contained in the request.  We won't
+	 * set the bit that says "anything is good enough" -- we want it
+	 * all.
+	 */
+	options = 0;
+	options |= DNS_ADBFIND_WANTEVENT;
+	options |= DNS_ADBFIND_INET6;
+
+	result = dns_adb_createfind(client->clientmgr->view->adb,
+				    client->clientmgr->task,
+				    process_gabn_finddone, client,
+				    name, dns_rootname, options,
+				    0, NULL /*XXX*/, &client->v6find);
+
+	/*
+	 * If there is an event pending, wait for it.  The event callback
+	 * will kill this fetch and reissue it.
+	 */
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
 isc_result_t
 process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
@@ -45,7 +101,6 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	lwres_lwpacket_t rpkt;
 	lwres_gabnrequest_t *req;
 	lwres_gabnresponse_t resp;
-	unsigned int options;
 	dns_fixedname_t name;
 	isc_buffer_t namebuf;
 
@@ -64,32 +119,14 @@ process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 	result = dns_name_fromtext(dns_fixedname_name(&name), &namebuf,
 				   dns_rootname, ISC_FALSE, NULL);
 
-	/*
-	 * Issue a find for the name contained in the request.  We won't
-	 * set the bit that says "anything is good enough" -- we want it
-	 * all.
-	 */
-	options = 0;
-	options |= DNS_ADBFIND_WANTEVENT;
-
 	if ((req->addrtypes & LWRES_ADDRTYPE_V4) != 0) {
-		result = dns_adb_createfind(client->clientmgr->view->adb,
-					    client->clientmgr->task,
-					    process_gabn_finddone, client,
-					    dns_fixedname_name(&name),
-					    dns_rootname,
-					    options | DNS_ADBFIND_INET,
-					    0, NULL /*XXX*/, &client->v4find);
+		result = start_v4find(client, dns_fixedname_name(&name));
+		INSIST(result == ISC_R_SUCCESS);
 	}
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V6) != 0) {
-		result = dns_adb_createfind(client->clientmgr->view->adb,
-					    client->clientmgr->task,
-					    process_gabn_finddone, client,
-					    dns_fixedname_name(&name),
-					    dns_rootname,
-					    options | DNS_ADBFIND_INET6,
-					    0, NULL /*XXX*/, &client->v6find);
+		result = start_v6find(client, dns_fixedname_name(&name));
+		INSIST(result == ISC_R_SUCCESS);
 	}
 
 	return (ISC_R_SUCCESS);

@@ -393,11 +393,6 @@ main(int argc, char **argv)
 	cmgr = NULL;
 
 	/*
-	 * Clean up hints database.
-	 */
-	
-
-	/*
 	 * Kill the memory system.
 	 */
 	isc_mem_stats(mem, stdout);
