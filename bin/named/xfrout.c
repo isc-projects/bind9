@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.92 2001/01/12 10:25:15 marka Exp $ */
+/* $Id: xfrout.c,v 1.93 2001/01/12 19:01:39 gson Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,6 @@ struct db_rr_iterator {
 	isc_result_t		result;
 	dns_db_t		*db;
     	dns_dbiterator_t 	*dbit;
-	isc_boolean_t		paused;
 	dns_dbversion_t 	*ver;
 	isc_stdtime_t		now;
 	dns_dbnode_t		*node;
@@ -139,7 +138,6 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	result = dns_db_createiterator(it->db, ISC_FALSE, &it->dbit);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	it->paused = ISC_FALSE;
 	it->rdatasetit = NULL;
 	dns_rdata_init(&it->rdata);
 	dns_rdataset_init(&it->rdataset);
@@ -196,7 +194,6 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		while (it->result == ISC_R_NOMORE) {
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
-			it->paused = ISC_FALSE;
 			it->result = dns_dbiterator_next(it->dbit);
 			if (it->result == ISC_R_NOMORE) {
 				/* We are at the end of the entire database. */
@@ -228,10 +225,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 
 static void
 db_rr_iterator_pause(db_rr_iterator_t *it) {
-	if (!it->paused) {
-		dns_dbiterator_pause(it->dbit);
-		it->paused = ISC_TRUE;
-	}
+	dns_dbiterator_pause(it->dbit);
 }
 
 static void
