@@ -1,7 +1,5 @@
 
- 330.	[bug]		Many debugging messages were partially formatted
-			even when debugging was turned off, causing a
-			significant decrease in query performance.
+	--- 9.0.0rc4 released ---
 
  403.	[bug]		"host" did not use the search list.
 
@@ -22,6 +20,10 @@
 
  398.	[bug]		"dig" sometimes caught an assertion failure when
 			using TSIG, depending on the key length.
+
+ 330.	[bug]		Many debugging messages were partially formatted
+			even when debugging was turned off, causing a
+			significant decrease in query performance.
 
 	--- 9.0.0rc3 released ---
 
