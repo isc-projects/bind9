@@ -1,7 +1,8 @@
-1054.	[bug]		On Win32, cfg_categories and cfg_modules need to be
-			exported from the libisccfg DLL.
 
 	--- 9.2.0rc7 released ---
+
+1054.	[bug]		On Win32, cfg_categories and cfg_modules need to be
+			exported from the libisccfg DLL.
 
 1053.	[bug]		Dig did not increase its timeout when receiving
 			AXFRs unless the +time option was used. [RT #1904]
