@@ -12,6 +12,7 @@ dispatch_test
 gxba_test
 gxbn_test
 headerdep_test.sh
+hash_test
 inter_test
 lex_test
 lfsr_test
@@ -33,7 +34,6 @@ res_test
 rwlock_test
 sdig
 serial_test
-sha1_test
 shutdown_test
 sock_test
 sym_test

@@ -15,17 +15,20 @@
  * SOFTWARE.
  */
 
+#include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
 
 #include <stdio.h>
 
 static void
-print_digest(char *s, unsigned char d[20]) {
-	int i, j;
+print_digest(char *s, const char *hash, unsigned char *d,
+	     unsigned int words)
+{
+	unsigned int i, j;
 
-	printf("hashed %s:\n\t", s);
-	for (i = 0 ; i < 5 ; i++) {
+	printf("hash (%s) %s:\n\t", hash, s);
+	for (i = 0 ; i < words ; i++) {
 		printf(" ");
 		for (j = 0 ; j < 4 ; j++)
 			printf("%02x", d[i * 4 + j]);
@@ -36,6 +39,7 @@ print_digest(char *s, unsigned char d[20]) {
 int
 main(int argc, char **argv) {
 	isc_sha1_t sha1;
+	isc_md5_t md5;
 	unsigned char digest[20];
 	unsigned char buffer[1024];
 	const unsigned char *s;
@@ -43,20 +47,26 @@ main(int argc, char **argv) {
 	UNUSED(argc);
 	UNUSED(argv);
 
-
 	s = "abc";
 	isc_sha1_init(&sha1);
 	strcpy(buffer, s);
 	isc_sha1_update(&sha1, buffer, strlen(s));
 	isc_sha1_final(&sha1, digest);
-	print_digest(buffer, digest);
+	print_digest(buffer, "sha1", digest, 5);
 
 	s = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
 	isc_sha1_init(&sha1);
 	strcpy(buffer, s);
 	isc_sha1_update(&sha1, buffer, strlen(s));
 	isc_sha1_final(&sha1, digest);
-	print_digest(buffer, digest);
+	print_digest(buffer, "sha1", digest, 5);
+
+	s = "abc";
+	isc_md5_init(&md5);
+	strcpy(buffer, s);
+	isc_md5_update(&md5, buffer, strlen(s));
+	isc_md5_final(&md5, digest);
+	print_digest(buffer, "md5", digest, 4);
 
 	return (0);
 }

@@ -51,6 +51,7 @@ XTARGETS =	adb_test \
 		dispatch_test \
 		gxba_test \
 		gxbn_test \
+		hash_test \
 		inter_test \
 		lex_test \
 		lfsr_test \
@@ -69,7 +70,6 @@ XTARGETS =	adb_test \
 		rdata_test \
 		rwlock_test \
 		serial_test \
-		sha1_test \
 		shutdown_test \
 		sock_test \
 		sym_test \
@@ -89,6 +89,7 @@ SRCS =		adb_test.c \
 		dispatch_test.c \
 		gxba_test.c \
 		gxbn_test.c \
+		hash_test.c \
 		inter_test.c \
 		lex_test.c \
 		lfsr_test.c \
@@ -108,7 +109,6 @@ SRCS =		adb_test.c \
 		rdata_test.c \
 		rwlock_test.c \
 		serial_test.c \
-		sha1_test.c \
 		shutdown_test.c \
 		sock_test.c \
 		sym_test.c \
@@ -159,8 +159,8 @@ omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${OMAPIDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ omapi_test.@O@ \
 		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-sha1_test: sha1_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sha1_test.@O@ \
+hash_test: hash_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ hash_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.@O@ ${ISCDEPLIBS}
