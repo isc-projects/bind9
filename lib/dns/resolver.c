@@ -65,6 +65,7 @@
 #define QTRACERESULT(m, r)
 #endif
 
+
 typedef struct fetchctx fetchctx_t;
 
 typedef struct query {
@@ -1110,7 +1111,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 		if (!CACHE(rdataset))
 			continue;
 		if (need_validation) {
-			INSIST(0);
+			/*
+			 * XXXRTH.
+			 */
+			return (DNS_R_NOTIMPLEMENTED);
 		} else if (!EXTERNAL(rdataset)) {
 			/*
 			 * It's OK to cache this rdataset now.
@@ -1135,15 +1139,21 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 						    addedrdataset);
 			if (result == DNS_R_UNCHANGED) {
 				if (ANSWER(rdataset) &&
-				    ardataset != NULL) {
+				    ardataset != NULL &&
+				    ardataset->type == 0) {
 					/*
-					 * Deal with the case where
-					 * addedrdataset is an NXDOMAIN
-					 * or NXRRSET negative cache
-					 * rdataset; i.e. set eresult
-					 * correctly
+					 * The answer in the cache is better
+					 * than the answer we found, and is
+					 * a negative cache entry, so we
+					 * must set eresult appropriately.
 					 */
-					INSIST(0);
+					 if (ardataset->covers ==
+					     dns_rdatatype_any)
+						 eresult =
+							 DNS_R_NCACHENXDOMAIN;
+					 else
+						 eresult =
+							 DNS_R_NCACHENXRRSET;
 				}
 				result = ISC_R_SUCCESS;
 			} else if (result != ISC_R_SUCCESS)
@@ -1273,7 +1283,30 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers) {
 	result = dns_ncache_add(fctx->rmessage, res->view->cachedb, node,
 				covers, now, ardataset);
 	if (result == DNS_R_UNCHANGED) {
-		INSIST(0);
+		/*
+		 * The data in the cache is better than the negative cache
+		 * entry we're trying to add.
+		 */
+		if (ardataset != NULL && ardataset->type == 0) {
+			/*
+			 * The cache data is also a negative cache
+			 * entry.
+			 */
+			if (ardataset->covers == dns_rdatatype_any)
+				eresult = DNS_R_NCACHENXDOMAIN;
+			else
+				eresult = DNS_R_NCACHENXRRSET;
+		} else {
+			/*
+			 * Either we don't care about the nature of the
+			 * cache rdataset (because no fetch is interested
+			 * in the outcome), or the cache rdataset is not
+			 * a negative cache entry.  Whichever case it is,
+			 * we can return success.  In the latter case,
+			 * 'eresult' is already set correctly.
+			 */
+			result = ISC_R_SUCCESS;
+		}
 	} else if (result == ISC_R_SUCCESS) {
 		if (covers == dns_rdatatype_any)
 			eresult = DNS_R_NCACHENXDOMAIN;
