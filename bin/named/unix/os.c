@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.43 2001/05/03 19:06:23 bwelling Exp $ */
+/* $Id: os.c,v 1.44 2001/05/25 07:42:15 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
 
+#include <sys/types.h>  /* dev_t FreeBSD 2.1 */
 #include <sys/stat.h>
 
 #include <ctype.h>
