@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.4 1999/10/01 01:12:04 tale Exp $ */
+/* $Id: dir.c,v 1.5 1999/10/31 19:08:11 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -25,6 +25,7 @@
 
 #include <isc/dir.h>
 #include <isc/assertions.h>
+#include <isc/error.h>
 
 #define ISC_DIR_MAGIC		0x4449522aU	/* DIR*. */
 #define VALID_DIR(dir)		((dir) != NULL && \
@@ -47,11 +48,11 @@ isc_dir_init(isc_dir_t *dir) {
  * NULL will be returned.
  */
 isc_result_t
-isc_dir_open(const char *dirname, isc_dir_t *dir) {
+isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	REQUIRE(dirname != NULL);
 	REQUIRE(VALID_DIR(dir));
+	REQUIRE(dirname != NULL);
 
 	/*
 	 * Open stream.
@@ -65,7 +66,12 @@ isc_dir_open(const char *dirname, isc_dir_t *dir) {
 			result = ISC_R_NOPERM;
 		else if (errno == ENOENT)
 			result = ISC_R_NOTFOUND;
-
+		else {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "opendir(%s) failed: %s",
+					 dirname, strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
 	}
 
 	return (result);
@@ -113,7 +119,7 @@ void
 isc_dir_close(isc_dir_t *dir) {
        REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
 
-       closedir(dir->handle);
+       (void)closedir(dir->handle);
        dir->handle = NULL;
 }
 
@@ -125,6 +131,36 @@ isc_dir_reset(isc_dir_t *dir) {
 	REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
 
 	rewinddir(dir->handle);
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * XXX Is there a better place for this?
+ */
+
+isc_result_t
+isc_dir_chdir(const char *dirname) {
+	/*
+	 * Change the current directory to 'dirname'.
+	 */
+
+	REQUIRE(dirname != NULL);
+
+	if (chdir(dirname) < 0) {
+		if (errno == ENOENT)
+			return (ISC_R_NOTFOUND);
+		else if (errno == EACCES)
+			return (ISC_R_NOPERM);
+		else if (errno == ENOMEM)
+			return (ISC_R_NOMEMORY);
+		else {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "chdir(%s) failed: %s",
+					 dirname, strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+	}
 
 	return (ISC_R_SUCCESS);
 }

@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.3 1999/10/06 19:36:13 tale Exp $ */
+/* $Id: dir.h,v 1.4 1999/10/31 19:08:11 halley Exp $ */
 
 /* Principal Authors: DCL */
 
-#ifndef DIRENT_H
-#define DIRENT_H 1
+#ifndef ISC_DIR_H
+#define ISC_DIR_H 1
 
 #include <sys/types.h>
 #include <dirent.h>
@@ -60,7 +60,7 @@ void
 isc_dir_init(isc_dir_t *dir);
 
 isc_result_t
-isc_dir_open(const char *dirname, isc_dir_t *dir);
+isc_dir_open(isc_dir_t *dir, const char *dirname);
 
 isc_result_t
 isc_dir_read(isc_dir_t *dir);
@@ -71,6 +71,9 @@ isc_dir_reset(isc_dir_t *dir);
 void
 isc_dir_close(isc_dir_t *dir);
 
+isc_result_t
+isc_dir_chdir(const char *dirname);
+
 ISC_LANG_BEGINDECLS
 
-#endif /* DIRENT_H */
+#endif /* ISC_DIR_H */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.2 1999/10/08 21:55:31 tale Exp $ */
+/* $Id: dir.c,v 1.3 1999/10/31 19:08:17 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -52,7 +52,7 @@ isc_dir_init(isc_dir_t *dir) {
  * NULL will be returned.
  */
 isc_result_t
-isc_dir_open(const char *dirname, isc_dir_t *dir) {
+isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	char *p;
 	isc_result_t result;
 
@@ -209,4 +209,15 @@ start_directory(isc_dir_t *dir)
 	dir->entry_filled = ISC_TRUE;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_dir_chdir(const char *dirname) {
+	/*
+	 * Change the current directory to 'dirname'.
+	 */
+
+	REQUIRE(dirname != NULL);
+
+	return (ISC_R_NOTIMPLEMENTED);
 }
