@@ -1,7 +1,7 @@
 
 			Zones
 
-	$Id: zone,v 1.3 1999/03/03 12:20:05 marka Exp $
+	$Id: zone,v 1.4 1999/03/04 01:47:40 marka Exp $
 
 Overview
 	 
@@ -80,7 +80,7 @@ Overview
 	* validated 
 	* generate a delta between two given versions.
 	* signed / resigned
-	* maintaince
+	* maintenance
 		validate current soa
 		remove old deltas / consolidation
 		purge stale rrsets (cache)
@@ -103,7 +103,7 @@ Types:
 	typedef struct dns_ixfr	dns_ixfr_t;
 
 	struct dns_ixfr {
-		unsigned int		magic;	/*IXFR*/
+		unsigned int		magic;	/* IXFR */
 		isc_uint32_t		serial;
 		time_t			expire;
 		unsigned int		offset;
@@ -115,7 +115,7 @@ Types:
 		dns_name_t		name;
 		dns_rdataclass_t	class;
 		dns_zonetypes_t		type;
-		dns_rbt_t		top;
+		dns_bt_t		top;
 		isc_uint32_t		version;
 		isc_uint32_t		serial;
 		isc_uint32_t		refresh;
@@ -137,17 +137,96 @@ Operations:
 Loading:
 
 Functions:
-	void
-	dns_zone_init(dns_zone_t * zone, dns_rdataclass_t class,
-			isc_mem_t *mxtc);
 
-	void
-	dns_zone_invalidate(dns_zone_t *zone);
+    void
+    dns_zone_init(dns_zone_t *zone, dns_rdataclass_t class, isc_mem_t *mxtc);
+
+    void
+    dns_zone_invalidate(dns_zone_t *zone);
 	
-	void
-	dns_ixfr_init(dns_ixfr_t *ixfr, unsigned long serial, time_t expire);
+    void
+    dns_ixfr_init(dns_ixfr_t *ixfr, unsigned long serial, time_t expire);
 
-	void
-	dns_ixfr_invalidate(dns_ixfr_t *ixfr);
+    void
+    dns_ixfr_invalidate(dns_ixfr_t *ixfr);
 
-	dns_zone_axfrout(dns_zone_t *zone);
+    dns_zone_axfrout(dns_zone_t *zone);
+
+	Initiate outgoing zone transfer.
+
+    dns_zone_axfrin(dns_zone_t *zone, isc_sockaddr_t *addr);
+
+	Initiate transfer of the zone from the given server or the
+	masters masters listed in the zone structure.
+
+    dns_zone_maintenance(dns_zone_t *zone);
+
+	Perform any maintenance operations required on the zone
+	* initiate up to date checks
+	* expire zones
+	* initiate ixfr version expire consolidation
+
+    dns_zone_locateprimary(dns_zone_t *zone);
+
+	Working from the root zone locate the primary master for the zone.
+	Used if masters are not given in named.conf.
+
+    dns_zone_locateservers(dns_zone_t *zone);
+
+	Working from the root zone locate the servers for the zone.
+	Primary master moved to first in list if in NS set.  Remove self
+	from list.
+	Used if masters are not given in named.conf.
+
+    dns_zone_notify(dns_zone_t *);
+
+	Queue notify messages.
+
+    dns_zone_checkparents(dns_zone_t *);
+
+	check that the parent nameservers NS lists for this zone agree with
+	the NS list this zone, check glue A records. Warn if not identical.
+	This operation is performed on master zones.
+
+    dns_zone_checkchildren(dns_zone_t *);
+
+	check that the child zones NS lists agree with the NS lists in this
+	zone, check glue records.  Warn if not identical. 
+
+    dns_zone_checkservers(dns_zone_t *);
+	
+	check that all the listed servers for the zone agree on NS list and
+	serial number. NOTE only errors which continue over several refresh
+	periods to be reported.
+
+    dns_zone_dump(dns_zone_t *, FILE *fp);
+
+	Write the contents of the zone to the file associated with fp.
+
+    dns_zone_validate(dns_zone_t *);
+
+	Validate the zone contents using DNSSEC.
+
+    dns_zone_tordatalist(dns_zone_t *zone, dns_rdatalist_t *list)
+
+    dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *addr);
+
+	Add addr to the set of masters for the zone. 
+
+    dns_zone_clearmasters(dns_zone_t *zone);
+
+	Clear the master set.
+
+    dns_zone_setreadacl(dns_zone_t *, dns_acl_t *)
+
+    dns_zone_setxfracl(dns_zone_t *, dns_acl_t *)
+
+    dns_zone_addnotify(dns_zone_t *, isc_sockaddr_t *addr, isc_boolean_t perm);
+
+    dns_zone_clearnotify(dns_zone_t *)
+
+    dns_zone_load(dns_zone_t *);
+
+    dns_zone_consolidate(dns_zone_t *);
+	
+	Consolidate on disk copy of zone.
