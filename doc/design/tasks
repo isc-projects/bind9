@@ -27,3 +27,40 @@ Task termination occurs when:
 	The task has no references
 
 	The task has an empty event queue
+
+Notes from the task/event discussion led by Bob Halley on 13 March 2000:
+
+A task is an event queue.
+
+     (task) --V
+            (event)-->(event)-->(event)
+
+      (runnable queue)--V
+                      (task)-->(task)-->(task)
+
+Normally only one task manager in an application.
+
+Task becomes runnable if it has a non-empty event queue.
+
+One or more worker threads run tasks.
+
+Event routines should be relatively short.
+
+Only one runnable queue that all workers share.
+
+Events for a task are always posted serially.  Multiple worker threads
+will not be working on multiple events for one task at the same time.
+
+isc_event_send, posting an event, can't fail.  It just adds an event
+to the task queue.
+
+Event action (callback) rules:
+  * no locks held on your behald when entering a callback.
+  * not allowed to block, except when aquiring a lock.
+  * not allowed to hold a lock when exiting the callback.
+
+
+TIMERS?
+
+OMAPI -- need taskmgr to omapi_lib_init
+  -- one task per client connection
