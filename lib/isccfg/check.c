@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.9 2001/03/09 19:07:30 bwelling Exp $ */
+/* $Id: check.c,v 1.10 2001/06/03 23:53:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -368,7 +368,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 		(void)cfg_map_get(config, "server", &peers);
 		if (peers != NULL) {
-			cfg_obj_log(zones, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(peers, logctx, ISC_LOG_ERROR,
 				    "when using 'view' statements, "
 				    "all server statements must be in views");
 			result = ISC_R_FAILURE;
