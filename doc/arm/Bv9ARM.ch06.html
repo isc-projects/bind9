@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -161,16 +161,16 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->acl_name</VAR
+>acl_name</CODE
 ></P
 ></TD
 ><TD
 ><P
->The name of an <VAR
+>The name of an <CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 > as
 defined by the <B
 CLASS="command"
@@ -181,27 +181,27 @@ CLASS="command"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 ></P
 ></TD
 ><TD
 ><P
->A list of one or more <VAR
+>A list of one or more <CODE
 CLASS="varname"
->ip_addr</VAR
+>ip_addr</CODE
 >, 
-<VAR
+<CODE
 CLASS="varname"
->ip_prefix</VAR
->, <VAR
+>ip_prefix</CODE
+>, <CODE
 CLASS="varname"
->key_id</VAR
+>key_id</CODE
 >, 
-or <VAR
+or <CODE
 CLASS="varname"
->acl_name</VAR
+>acl_name</CODE
 > elements, see
 <A
 HREF="Bv9ARM.ch06.html#address_match_lists"
@@ -212,26 +212,26 @@ HREF="Bv9ARM.ch06.html#address_match_lists"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->domain_name</VAR
+>domain_name</CODE
 ></P
 ></TD
 ><TD
 ><P
 >A quoted string which will be used as
-a DNS name, for example "<VAR
+a DNS name, for example "<TT
 CLASS="literal"
->my.test.domain</VAR
+>my.test.domain</TT
 >".</P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->dotted_decimal</VAR
+>dotted_decimal</CODE
 ></P
 ></TD
 ><TD
@@ -253,26 +253,26 @@ CLASS="command"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->ip4_addr</VAR
+>ip4_addr</CODE
 ></P
 ></TD
 ><TD
 ><P
 >An IPv4 address with exactly four elements
-in <VAR
+in <CODE
 CLASS="varname"
->dotted_decimal</VAR
+>dotted_decimal</CODE
 > notation.</P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->ip6_addr</VAR
+>ip6_addr</CODE
 ></P
 ></TD
 ><TD
@@ -309,39 +309,39 @@ ambiguity, and need to be disambiguated.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->ip_addr</VAR
+>ip_addr</CODE
 ></P
 ></TD
 ><TD
 ><P
->An <VAR
+>An <CODE
 CLASS="varname"
->ip4_addr</VAR
-> or <VAR
+>ip4_addr</CODE
+> or <CODE
 CLASS="varname"
->ip6_addr</VAR
+>ip6_addr</CODE
 >.</P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->ip_port</VAR
+>ip_port</CODE
 ></P
 ></TD
 ><TD
 ><P
->An IP port <VAR
+>An IP port <CODE
 CLASS="varname"
->number</VAR
+>number</CODE
 >.
-<VAR
+<CODE
 CLASS="varname"
->number</VAR
+>number</CODE
 > is limited to 0 through 65535, with values
 below 1024 typically restricted to use by processes running as root.
 In some cases an asterisk (`*') character can be used as a placeholder to
@@ -351,21 +351,21 @@ select a random high-numbered port.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->ip_prefix</VAR
+>ip_prefix</CODE
 ></P
 ></TD
 ><TD
 ><P
->An IP network specified as an <VAR
+>An IP network specified as an <CODE
 CLASS="varname"
->ip_addr</VAR
+>ip_addr</CODE
 >,
 followed by a slash (`/') and then the number of bits in the netmask.
-Trailing zeros in a <VAR
+Trailing zeros in a <CODE
 CLASS="varname"
->ip_addr</VAR
+>ip_addr</CODE
 > may omitted.
 For example, <B
 CLASS="command"
@@ -393,16 +393,16 @@ CLASS="command"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->key_id</VAR
+>key_id</CODE
 ></P
 ></TD
 ><TD
 ><P
->A <VAR
+>A <CODE
 CLASS="varname"
->domain_name</VAR
+>domain_name</CODE
 > representing
 the name of a shared key, to be used for transaction security.</P
 ></TD
@@ -410,16 +410,16 @@ the name of a shared key, to be used for transaction security.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->key_list</VAR
+>key_list</CODE
 ></P
 ></TD
 ><TD
 ><P
->A list of one or more <VAR
+>A list of one or more <CODE
 CLASS="varname"
->key_id</VAR
+>key_id</CODE
 >s,
 separated by semicolons and ending with a semicolon.</P
 ></TD
@@ -427,9 +427,9 @@ separated by semicolons and ending with a semicolon.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->number</VAR
+>number</CODE
 ></P
 ></TD
 ><TD
@@ -443,9 +443,9 @@ be limited by the context in which it is used.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->path_name</VAR
+>path_name</CODE
 ></P
 ></TD
 ><TD
@@ -460,9 +460,9 @@ CLASS="filename"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->size_spec</VAR
+>size_spec</CODE
 ></P
 ></TD
 ><TD
@@ -476,22 +476,22 @@ CLASS="userinput"
 >default</KBD
 >.</P
 ><P
->&#13;An <VAR
+>&#13;An <CODE
 CLASS="varname"
->unlimited</VAR
-> <VAR
+>unlimited</CODE
+> <CODE
 CLASS="varname"
->size_spec</VAR
+>size_spec</CODE
 > requests unlimited
-use, or the maximum available amount. A <VAR
+use, or the maximum available amount. A <CODE
 CLASS="varname"
->default size_spec</VAR
+>default size_spec</CODE
 > uses
 the limit that was in force when the server was started.</P
 ><P
->A <VAR
+>A <CODE
 CLASS="varname"
->number</VAR
+>number</CODE
 > can
 optionally be followed by a scaling factor: <KBD
 CLASS="userinput"
@@ -519,9 +519,9 @@ which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.</P
 <P
 >The value must be representable as a 64-bit unsigned integer
 (0 to 18446744073709551615, inclusive).
-Using <VAR
+Using <CODE
 CLASS="varname"
->unlimited</VAR
+>unlimited</CODE
 > is the best way
 to safely set a really large number.</P
 ></TD
@@ -529,9 +529,9 @@ to safely set a really large number.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->yes_or_no</VAR
+>yes_or_no</CODE
 ></P
 ></TD
 ><TD
@@ -562,9 +562,9 @@ CLASS="userinput"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->dialup_option</VAR
+>dialup_option</CODE
 ></P
 ></TD
 ><TD
@@ -628,17 +628,17 @@ NAME="AEN1251"
 ></H3
 ><PRE
 CLASS="programlisting"
-><VAR
+><CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 > = address_match_list_element ;
   [<SPAN
 CLASS="optional"
 > address_match_list_element; ... </SPAN
 >]
-<VAR
+<CODE
 CLASS="varname"
->address_match_list_element</VAR
+>address_match_list_element</CODE
 > = [<SPAN
 CLASS="optional"
 > ! </SPAN
@@ -862,9 +862,9 @@ CLASS="programlisting"
 ></P
 ><P
 >Shell-style (or perl-style, if you prefer) comments start
-with the character <VAR
+with the character <TT
 CLASS="literal"
->#</VAR
+>#</TT
 > (number sign) and continue to the end of the
 physical line, as in C++ comments.</P
 ><P
@@ -1279,13 +1279,17 @@ CLASS="command"
    inet ( ip_addr | * ) [<SPAN
 CLASS="optional"
 > port ip_port </SPAN
->] allow { <VAR
+>] allow { <TT
 CLASS="replaceable"
-> address_match_list </VAR
+><I
+> address_match_list </I
+></TT
 > }
-                keys { <VAR
+                keys { <TT
 CLASS="replaceable"
-> key_list </VAR
+><I
+> key_list </I
+></TT
 > };
    [<SPAN
 CLASS="optional"
@@ -1335,38 +1339,38 @@ CLASS="command"
 CLASS="command"
 >ip_addr</B
 >
-      of <VAR
+      of <TT
 CLASS="literal"
->*</VAR
+>*</TT
 > is interpreted as the IPv4 wildcard
       address; connections will be accepted on any of the system's
       IPv4 addresses.  To listen on the IPv6 wildcard address,
       use an <B
 CLASS="command"
 >ip_addr</B
-> of <VAR
+> of <TT
 CLASS="literal"
->::</VAR
+>::</TT
 >.
       If you will only use <B
 CLASS="command"
 >rndc</B
 > on the local host,
-      using the loopback address (<VAR
+      using the loopback address (<TT
 CLASS="literal"
->127.0.0.1</VAR
+>127.0.0.1</TT
 >
-      or <VAR
+      or <TT
 CLASS="literal"
->::1</VAR
+>::1</TT
 >) is recommended for maximum
       security.
       </P
 ><P
 >&#13;      If no port is specified, port 953
-      is used.  "<VAR
+      is used.  "<TT
 CLASS="literal"
->*</VAR
+>*</TT
 >" cannot be used for
       <B
 CLASS="command"
@@ -1458,9 +1462,9 @@ CLASS="filename"
 <TT
 CLASS="filename"
 >/etc</TT
-> (or whatever <VAR
+> (or whatever <CODE
 CLASS="varname"
->sysconfdir</VAR
+>sysconfdir</CODE
 >
 was specified as when <ACRONYM
 CLASS="acronym"
@@ -1586,9 +1590,11 @@ CLASS="command"
 ></H2
 ><PRE
 CLASS="programlisting"
->include <VAR
+>include <TT
 CLASS="replaceable"
->filename</VAR
+><I
+>filename</I
+></TT
 >;</PRE
 ></DIV
 ><DIV
@@ -1633,17 +1639,23 @@ CLASS="command"
 ></H2
 ><PRE
 CLASS="programlisting"
->key <VAR
+>key <TT
 CLASS="replaceable"
->key_id</VAR
+><I
+>key_id</I
+></TT
 > {
-    algorithm <VAR
+    algorithm <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 >;
-    secret <VAR
+    secret <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 >;
 };
 </PRE
@@ -1699,9 +1711,11 @@ HREF="Bv9ARM.ch06.html#controls_statement_definition_and_usage"
 must be defined at the top level.
 </P
 ><P
->The <VAR
+>The <TT
 CLASS="replaceable"
->key_id</VAR
+><I
+>key_id</I
+></TT
 >, also known as the
 key name, is a domain name uniquely identifying the key. It can
 be used in a <B
@@ -1713,19 +1727,23 @@ server to be signed with this key, or in address match lists to
 verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.</P
 ><P
->The <VAR
+>The <TT
 CLASS="replaceable"
->algorithm_id</VAR
+><I
+>algorithm_id</I
+></TT
 > is a string
 that specifies a security/authentication algorithm. The only
 algorithm currently supported with TSIG authentication is
-<VAR
+<TT
 CLASS="literal"
->hmac-md5</VAR
+>hmac-md5</TT
 >.  The
-<VAR
+<TT
 CLASS="replaceable"
->secret_string</VAR
+><I
+>secret_string</I
+></TT
 > is the secret to be
 used by the algorithm, and is treated as a base-64 encoded
 string.</P
@@ -1750,40 +1768,50 @@ CLASS="command"
    [ <B
 CLASS="command"
 >channel</B
-> <VAR
+> <TT
 CLASS="replaceable"
->channel_name</VAR
+><I
+>channel_name</I
+></TT
 > {
      ( <B
 CLASS="command"
 >file</B
-> <VAR
+> <TT
 CLASS="replaceable"
->path name</VAR
+><I
+>path name</I
+></TT
 >
          [ <B
 CLASS="command"
 >versions</B
-> ( <VAR
+> ( <TT
 CLASS="replaceable"
->number</VAR
-> | <VAR
+><I
+>number</I
+></TT
+> | <TT
 CLASS="literal"
->unlimited</VAR
+>unlimited</TT
 > ) ]
          [ <B
 CLASS="command"
 >size</B
-> <VAR
+> <TT
 CLASS="replaceable"
->size spec</VAR
+><I
+>size spec</I
+></TT
 > ]
        | <B
 CLASS="command"
 >syslog</B
-> <VAR
+> <TT
 CLASS="replaceable"
->syslog_facility</VAR
+><I
+>syslog_facility</I
+></TT
 >
        | <B
 CLASS="command"
@@ -1796,76 +1824,84 @@ CLASS="command"
      [ <B
 CLASS="command"
 >severity</B
-> (<VAR
+> (<CODE
 CLASS="option"
->critical</VAR
-> | <VAR
+>critical</CODE
+> | <CODE
 CLASS="option"
->error</VAR
-> | <VAR
+>error</CODE
+> | <CODE
 CLASS="option"
->warning</VAR
-> | <VAR
+>warning</CODE
+> | <CODE
 CLASS="option"
->notice</VAR
+>notice</CODE
 > |
-                 <VAR
+                 <CODE
 CLASS="option"
->info</VAR
-> | <VAR
+>info</CODE
+> | <CODE
 CLASS="option"
->debug</VAR
-> [ <VAR
+>debug</CODE
+> [ <TT
 CLASS="replaceable"
->level</VAR
-> ] | <VAR
+><I
+>level</I
+></TT
+> ] | <CODE
 CLASS="option"
->dynamic</VAR
+>dynamic</CODE
 > ); ]
      [ <B
 CLASS="command"
 >print-category</B
-> <VAR
+> <CODE
 CLASS="option"
->yes</VAR
-> or <VAR
+>yes</CODE
+> or <CODE
 CLASS="option"
->no</VAR
+>no</CODE
 >; ]
      [ <B
 CLASS="command"
 >print-severity</B
-> <VAR
+> <CODE
 CLASS="option"
->yes</VAR
-> or <VAR
+>yes</CODE
+> or <CODE
 CLASS="option"
->no</VAR
+>no</CODE
 >; ]
      [ <B
 CLASS="command"
 >print-time</B
-> <VAR
+> <CODE
 CLASS="option"
->yes</VAR
-> or <VAR
+>yes</CODE
+> or <CODE
 CLASS="option"
->no</VAR
+>no</CODE
 >; ]
    }; ]
    [ <B
 CLASS="command"
 >category</B
-> <VAR
+> <TT
 CLASS="replaceable"
->category_name</VAR
+><I
+>category_name</I
+></TT
 > {
-     <VAR
+     <TT
 CLASS="replaceable"
->channel_name</VAR
-> ; [ <VAR
+><I
+>channel_name</I
+></TT
+> ; [ <TT
 CLASS="replaceable"
->channel_nam</VAR
+><I
+>channel_nam</I
+></TT
 >e ; ... ]
    }; ]
    ...
@@ -1930,9 +1966,9 @@ CLASS="command"
 > statement
 was parsed. When the server is starting up, all logging messages
 regarding syntax errors in the configuration file go to the default
-channels, or to standard error if the "<VAR
+channels, or to standard error if the "<CODE
 CLASS="option"
->-g</VAR
+>-g</CODE
 >" option
 was specified.</P
 ><DIV
@@ -2242,9 +2278,9 @@ level is set either by starting the <B
 CLASS="command"
 >named</B
 > server
-with the <VAR
+with the <CODE
 CLASS="option"
->-d</VAR
+>-d</CODE
 > flag followed by a positive integer,
 or by running <B
 CLASS="command"
@@ -2367,9 +2403,9 @@ CLASS="filename"
 >
 in the server's working directory.</P
 ><P
->For security reasons, when the "<VAR
+>For security reasons, when the "<CODE
 CLASS="option"
->-u</VAR
+>-u</CODE
 >"
 command line option is used, the <TT
 CLASS="filename"
@@ -2384,9 +2420,9 @@ CLASS="command"
 >named</B
 > is
 starting up and still running as root is discarded.  If you need
-to capture this output, you must run the server with the "<VAR
+to capture this output, you must run the server with the "<CODE
 CLASS="option"
->-g</VAR
+>-g</CODE
 >"
 option and redirect standard error to a file.</P
 ><P
@@ -2806,54 +2842,70 @@ CLASS="command"
 > {
     [<SPAN
 CLASS="optional"
-> listen-on { <VAR
+> listen-on { <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; ... </SPAN
 >] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> view <VAR
+> view <TT
 CLASS="replaceable"
->view_name</VAR
+><I
+>view_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> search { <VAR
+> search { <TT
 CLASS="replaceable"
->domain_name</VAR
+><I
+>domain_name</I
+></TT
 > ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->domain_name</VAR
+><I
+>domain_name</I
+></TT
 > ; ... </SPAN
 >] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> ndots <VAR
+> ndots <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
 };
@@ -2949,32 +3001,44 @@ CLASS="programlisting"
 >&#13;<B
 CLASS="command"
 >masters</B
-> <VAR
+> <TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
->] { ( <VAR
+>] { ( <TT
 CLASS="replaceable"
->masters_list</VAR
-> | <VAR
+><I
+>masters_list</I
+></TT
+> | <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] [<SPAN
 CLASS="optional"
->key <VAR
+>key <TT
 CLASS="replaceable"
->key</VAR
+><I
+>key</I
+></TT
 ></SPAN
 >] ) ; [<SPAN
 CLASS="optional"
@@ -3025,268 +3089,350 @@ CLASS="programlisting"
 >options {
     [<SPAN
 CLASS="optional"
-> version <VAR
+> version <TT
 CLASS="replaceable"
->version_string</VAR
+><I
+>version_string</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> hostname <VAR
+> hostname <TT
 CLASS="replaceable"
->hostname_string</VAR
+><I
+>hostname_string</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> server-id <VAR
+> server-id <TT
 CLASS="replaceable"
->server_id_string</VAR
+><I
+>server_id_string</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> directory <VAR
+> directory <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> key-directory <VAR
+> key-directory <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> named-xfer <VAR
+> named-xfer <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> tkey-domain <VAR
+> tkey-domain <TT
 CLASS="replaceable"
->domainname</VAR
+><I
+>domainname</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> tkey-dhkey <VAR
+> tkey-dhkey <TT
 CLASS="replaceable"
->key_name</VAR
-> <VAR
+><I
+>key_name</I
+></TT
+> <TT
 CLASS="replaceable"
->key_tag</VAR
+><I
+>key_tag</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> dump-file <VAR
+> dump-file <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> memstatistics-file <VAR
+> memstatistics-file <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> pid-file <VAR
+> pid-file <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> statistics-file <VAR
+> statistics-file <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> zone-statistics <VAR
+> zone-statistics <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> auth-nxdomain <VAR
+> auth-nxdomain <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> deallocate-on-exit <VAR
+> deallocate-on-exit <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> dialup <VAR
+> dialup <TT
 CLASS="replaceable"
->dialup_option</VAR
+><I
+>dialup_option</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> fake-iquery <VAR
+> fake-iquery <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> fetch-glue <VAR
+> fetch-glue <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> flush-zones-on-shutdown <VAR
+> flush-zones-on-shutdown <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> has-old-clients <VAR
+> has-old-clients <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> host-statistics <VAR
+> host-statistics <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> host-statistics-max <VAR
+> host-statistics-max <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> minimal-responses <VAR
+> minimal-responses <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> multiple-cnames <VAR
+> multiple-cnames <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify <VAR
+> notify <TT
 CLASS="replaceable"
->yes_or_no</VAR
-> | <VAR
+><I
+>yes_or_no</I
+></TT
+> | <TT
 CLASS="replaceable"
->explicit</VAR
+><I
+>explicit</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> recursion <VAR
+> recursion <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> rfc2308-type1 <VAR
+> rfc2308-type1 <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> use-id-pool <VAR
+> use-id-pool <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> maintain-ixfr-base <VAR
+> maintain-ixfr-base <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> dnssec-enable <VAR
+> dnssec-enable <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> dnssec-lookaside <VAR
+> dnssec-lookaside <TT
 CLASS="replaceable"
->domain</VAR
-> trust-anchor <VAR
+><I
+>domain</I
+></TT
+> trust-anchor <TT
 CLASS="replaceable"
->domain</VAR
+><I
+>domain</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> dnssec-must-be-secure <VAR
+> dnssec-must-be-secure <TT
 CLASS="replaceable"
->domain yes_or_no</VAR
+><I
+>domain yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> forward ( <VAR
+> forward ( <TT
 CLASS="replaceable"
->only</VAR
-> | <VAR
+><I
+>only</I
+></TT
+> | <TT
 CLASS="replaceable"
->first</VAR
+><I
+>first</I
+></TT
 > ); </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> forwarders { <VAR
+> forwarders { <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; ... </SPAN
 >] }; </SPAN
@@ -3295,160 +3441,216 @@ CLASS="replaceable"
 CLASS="optional"
 > dual-stack-servers [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
->] { ( <VAR
+>] { ( <TT
 CLASS="replaceable"
->domain_name</VAR
+><I
+>domain_name</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
->] | <VAR
+>] | <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ) ; ... }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> check-names ( <VAR
+> check-names ( <TT
 CLASS="replaceable"
->master</VAR
-> | <VAR
+><I
+>master</I
+></TT
+> | <TT
 CLASS="replaceable"
->slave</VAR
-> | <VAR
+><I
+>slave</I
+></TT
+> | <TT
 CLASS="replaceable"
->response</VAR
-> )( <VAR
+><I
+>response</I
+></TT
+> )( <TT
 CLASS="replaceable"
->warn</VAR
-> | <VAR
+><I
+>warn</I
+></TT
+> | <TT
 CLASS="replaceable"
->fail</VAR
-> | <VAR
+><I
+>fail</I
+></TT
+> | <TT
 CLASS="replaceable"
->ignore</VAR
+><I
+>ignore</I
+></TT
 > ); </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-notify { <VAR
+> allow-notify { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-query { <VAR
+> allow-query { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-transfer { <VAR
+> allow-transfer { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-recursion { <VAR
+> allow-recursion { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-update-forwarding { <VAR
+> allow-update-forwarding { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-v6-synthesis { <VAR
+> allow-v6-synthesis { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> blackhole { <VAR
+> blackhole { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> avoid-v4-udp-ports { <VAR
+> avoid-v4-udp-ports { <TT
 CLASS="replaceable"
->port_list</VAR
+><I
+>port_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> avoid-v6-udp-ports { <VAR
+> avoid-v6-udp-ports { <TT
 CLASS="replaceable"
->port_list</VAR
+><I
+>port_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
 > listen-on [<SPAN
 CLASS="optional"
-> port <VAR
+> port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 > </SPAN
->] { <VAR
+>] { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
 > listen-on-v6 [<SPAN
 CLASS="optional"
-> port <VAR
+> port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 > </SPAN
->] { <VAR
+>] { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
 > query-source [<SPAN
 CLASS="optional"
-> address ( <VAR
+> address ( <TT
 CLASS="replaceable"
->ip_addr</VAR
-> | <VAR
+><I
+>ip_addr</I
+></TT
+> | <TT
 CLASS="replaceable"
->*</VAR
+><I
+>*</I
+></TT
 > ) </SPAN
 >] [<SPAN
 CLASS="optional"
-> port ( <VAR
+> port ( <TT
 CLASS="replaceable"
->ip_port</VAR
-> | <VAR
+><I
+>ip_port</I
+></TT
+> | <TT
 CLASS="replaceable"
->*</VAR
+><I
+>*</I
+></TT
 > ) </SPAN
 >]; </SPAN
 >]
@@ -3456,523 +3658,675 @@ CLASS="replaceable"
 CLASS="optional"
 > query-source-v6 [<SPAN
 CLASS="optional"
-> address ( <VAR
+> address ( <TT
 CLASS="replaceable"
->ip_addr</VAR
-> | <VAR
+><I
+>ip_addr</I
+></TT
+> | <TT
 CLASS="replaceable"
->*</VAR
+><I
+>*</I
+></TT
 > ) </SPAN
 >] [<SPAN
 CLASS="optional"
-> port ( <VAR
+> port ( <TT
 CLASS="replaceable"
->ip_port</VAR
-> | <VAR
+><I
+>ip_port</I
+></TT
+> | <TT
 CLASS="replaceable"
->*</VAR
+><I
+>*</I
+></TT
 > ) </SPAN
 >]; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-time-in <VAR
+> max-transfer-time-in <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-time-out <VAR
+> max-transfer-time-out <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-idle-in <VAR
+> max-transfer-idle-in <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-idle-out <VAR
+> max-transfer-idle-out <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> tcp-clients <VAR
+> tcp-clients <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> recursive-clients <VAR
+> recursive-clients <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> serial-query-rate <VAR
+> serial-query-rate <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> serial-queries <VAR
+> serial-queries <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> tcp-listen-queue <VAR
+> tcp-listen-queue <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-format <VAR
+> transfer-format <TT
 CLASS="replaceable"
->( one-answer | many-answers )</VAR
+><I
+>( one-answer | many-answers )</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfers-in  <VAR
+> transfers-in  <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfers-out <VAR
+> transfers-out <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfers-per-ns <VAR
+> transfers-per-ns <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source (<VAR
+> transfer-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source-v6 (<VAR
+> transfer-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> alt-transfer-source (<VAR
+> alt-transfer-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> alt-transfer-source-v6 (<VAR
+> alt-transfer-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> use-alt-transfer-source <VAR
+> use-alt-transfer-source <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify-source (<VAR
+> notify-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify-source-v6 (<VAR
+> notify-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> also-notify { <VAR
+> also-notify { <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; ... </SPAN
 >] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-ixfr-log-size <VAR
+> max-ixfr-log-size <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-journal-size <VAR
+> max-journal-size <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> coresize <VAR
+> coresize <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> datasize <VAR
+> datasize <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> files <VAR
+> files <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> stacksize <VAR
+> stacksize <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> cleaning-interval <VAR
+> cleaning-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> heartbeat-interval <VAR
+> heartbeat-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> interface-interval <VAR
+> interface-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> statistics-interval <VAR
+> statistics-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> topology { <VAR
+> topology { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }</SPAN
 >];
     [<SPAN
 CLASS="optional"
-> sortlist { <VAR
+> sortlist { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > }</SPAN
 >];
     [<SPAN
 CLASS="optional"
-> rrset-order { <VAR
+> rrset-order { <TT
 CLASS="replaceable"
->order_spec</VAR
+><I
+>order_spec</I
+></TT
 > ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->order_spec</VAR
+><I
+>order_spec</I
+></TT
 > ; ... </SPAN
 >] </SPAN
 >] };
     [<SPAN
 CLASS="optional"
-> lame-ttl <VAR
+> lame-ttl <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-ncache-ttl <VAR
+> max-ncache-ttl <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-cache-ttl <VAR
+> max-cache-ttl <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> sig-validity-interval <VAR
+> sig-validity-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> min-roots <VAR
+> min-roots <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> use-ixfr <VAR
+> use-ixfr <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> provide-ixfr <VAR
+> provide-ixfr <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> request-ixfr <VAR
+> request-ixfr <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> treat-cr-as-space <VAR
+> treat-cr-as-space <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> min-refresh-time <VAR
+> min-refresh-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-refresh-time <VAR
+> max-refresh-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> min-retry-time <VAR
+> min-retry-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-retry-time <VAR
+> max-retry-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> port <VAR
+> port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> additional-from-auth <VAR
+> additional-from-auth <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> additional-from-cache <VAR
+> additional-from-cache <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> random-device <VAR
+> random-device <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-cache-size <VAR
+> max-cache-size <TT
 CLASS="replaceable"
->size_spec</VAR
+><I
+>size_spec</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> match-mapped-addresses <VAR
+> match-mapped-addresses <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> preferred-glue ( <VAR
+> preferred-glue ( <TT
 CLASS="replaceable"
->A</VAR
-> | <VAR
+><I
+>A</I
+></TT
+> | <TT
 CLASS="replaceable"
->AAAA</VAR
-> | <VAR
+><I
+>AAAA</I
+></TT
+> | <TT
 CLASS="replaceable"
->NONE</VAR
+><I
+>NONE</I
+></TT
 > ); </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> edns-udp-size <VAR
+> edns-udp-size <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
 > root-delegation-only [<SPAN
 CLASS="optional"
-> exclude { <VAR
+> exclude { <TT
 CLASS="replaceable"
->namelist</VAR
+><I
+>namelist</I
+></TT
 > } </SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> querylog <VAR
+> querylog <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> disable-algorithms <VAR
+> disable-algorithms <TT
 CLASS="replaceable"
->domain</VAR
-> { <VAR
+><I
+>domain</I
+></TT
+> { <TT
 CLASS="replaceable"
->algorithm</VAR
+><I
+>algorithm</I
+></TT
 >; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->algorithm</VAR
+><I
+>algorithm</I
+></TT
 >; </SPAN
 >] }; </SPAN
 >]
@@ -4091,21 +4445,21 @@ CLASS="command"
 >TKEY</B
 > exchange, it may or may not specify
 the desired name for the key. If present, the name of the shared
-key will be "<VAR
+key will be "<CODE
 CLASS="varname"
->client specified part</VAR
+>client specified part</CODE
 >" + 
-"<VAR
+"<CODE
 CLASS="varname"
->tkey-domain</VAR
+>tkey-domain</CODE
 >".
-Otherwise, the name of the shared key will be "<VAR
+Otherwise, the name of the shared key will be "<CODE
 CLASS="varname"
 >random hex
-digits</VAR
->" + "<VAR
+digits</CODE
+>" + "<CODE
 CLASS="varname"
->tkey-domain</VAR
+>tkey-domain</CODE
 >". In most cases,
 the <B
 CLASS="command"
@@ -5131,17 +5485,17 @@ at the possible expense of additional queries to resolve what would
 otherwise be provided in the additional section.
 </P
 ><P
->&#13;For example, if a query asks for an MX record for host <VAR
+>&#13;For example, if a query asks for an MX record for host <TT
 CLASS="literal"
->foo.example.com</VAR
+>foo.example.com</TT
 >,
-and the record found is "<VAR
+and the record found is "<TT
 CLASS="literal"
->MX 10 mail.example.net</VAR
+>MX 10 mail.example.net</TT
 >", normally the address
-records (A and AAAA) for <VAR
+records (A and AAAA) for <TT
 CLASS="literal"
->mail.example.net</VAR
+>mail.example.net</TT
 > will be provided as well,
 if known, even though they are not in the example.com zone.
 Setting these options to <B
@@ -5368,15 +5722,15 @@ CLASS="command"
 ><DD
 ><P
 >This option is only meaningful if the
-forwarders list is not empty. A value of <VAR
+forwarders list is not empty. A value of <CODE
 CLASS="varname"
->first</VAR
+>first</CODE
 >,
 the default, causes the server to query the forwarders first, and
 if that doesn't answer the question the server will then look for
-the answer itself. If <VAR
+the answer itself. If <CODE
 CLASS="varname"
->only</VAR
+>only</CODE
 > is specified, the
 server will only query the forwarders.
 </P
@@ -5636,9 +5990,9 @@ CLASS="command"
 CLASS="command"
 >listen-on</B
 > takes
-an optional port, and an <VAR
+an optional port, and an <CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 >.
 The server will listen on all interfaces allowed by the address
 match list. If a port is not specified, port 53 will be used.</P
@@ -5675,9 +6029,9 @@ for incoming queries sent using IPv6.</P
 CLASS="programlisting"
 >{ any; }</PRE
 > is specified
-as the <VAR
+as the <CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 > for the
 <B
 CLASS="command"
@@ -6018,9 +6372,9 @@ CLASS="command"
 ><DD
 ><P
 >The maximum number of inbound zone transfers
-that can be running concurrently. The default value is <VAR
+that can be running concurrently. The default value is <TT
 CLASS="literal"
->10</VAR
+>10</TT
 >.
 Increasing <B
 CLASS="command"
@@ -6037,9 +6391,9 @@ CLASS="command"
 ><P
 >The maximum number of outbound zone transfers
 that can be running concurrently. Zone transfer requests in excess
-of the limit will be refused. The default value is <VAR
+of the limit will be refused. The default value is <TT
 CLASS="literal"
->10</VAR
+>10</TT
 >.</P
 ></DD
 ><DT
@@ -6051,9 +6405,9 @@ CLASS="command"
 ><P
 >The maximum number of inbound zone transfers
 that can be concurrently transferring from a given remote name server.
-The default value is <VAR
+The default value is <TT
 CLASS="literal"
->2</VAR
+>2</TT
 >. Increasing <B
 CLASS="command"
 >transfers-per-ns</B
@@ -6307,9 +6661,9 @@ CLASS="command"
 ><DD
 ><P
 >The maximum size of a core dump. The default
-is <VAR
+is <TT
 CLASS="literal"
->default</VAR
+>default</TT
 >.</P
 ></DD
 ><DT
@@ -6320,9 +6674,9 @@ CLASS="command"
 ><DD
 ><P
 >The maximum amount of data memory the server
-may use. The default is <VAR
+may use. The default is <TT
 CLASS="literal"
->default</VAR
+>default</TT
 >.
 This is a hard limit on server memory usage.
 If the server attempts to allocate memory in excess of this
@@ -6352,9 +6706,9 @@ CLASS="command"
 ><DD
 ><P
 >The maximum number of files the server
-may have open concurrently. The default is <VAR
+may have open concurrently. The default is <TT
 CLASS="literal"
->unlimited</VAR
+>unlimited</TT
 >.
 </P
 ></DD
@@ -6366,9 +6720,9 @@ CLASS="command"
 ><DD
 ><P
 >The maximum amount of stack memory the server
-may use. The default is <VAR
+may use. The default is <TT
 CLASS="literal"
->default</VAR
+>default</TT
 >.</P
 ></DD
 ></DL
@@ -6421,9 +6775,9 @@ HREF="Bv9ARM.ch04.html#journal"
 >).  When the journal file approaches
 the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
-<VAR
+<TT
 CLASS="literal"
->unlimited</VAR
+>unlimited</TT
 >.</P
 ></DD
 ><DT
@@ -6447,9 +6801,9 @@ CLASS="command"
 ><P
 >The maximum number of simultaneous recursive lookups
 the server will perform on behalf of clients.  The default is
-<VAR
+<TT
 CLASS="literal"
->1000</VAR
+>1000</TT
 >.  Because each recursing client uses a fair
 bit of memory, on the order of 20 kilobytes, the value of the
 <B
@@ -6468,9 +6822,9 @@ CLASS="command"
 ><P
 >The maximum number of simultaneous client TCP
 connections that the server will accept.
-The default is <VAR
+The default is <TT
 CLASS="literal"
->100</VAR
+>100</TT
 >.</P
 ></DD
 ><DT
@@ -6485,9 +6839,9 @@ server's cache, in bytes.  When the amount of data in the cache
 reaches this limit, the server will cause records to expire
 prematurely so that the limit is not exceeded.  In a server with
 multiple views, the limit applies separately to the cache of each
-view.  The default is <VAR
+view.  The default is <TT
 CLASS="literal"
->unlimited</VAR
+>unlimited</TT
 >, meaning that 
 records are purged from the cache only when their TTLs expire.
 </P
@@ -6834,26 +7188,34 @@ CLASS="command"
 CLASS="programlisting"
 >[<SPAN
 CLASS="optional"
-> class <VAR
+> class <TT
 CLASS="replaceable"
->class_name</VAR
+><I
+>class_name</I
+></TT
 > </SPAN
 >][<SPAN
 CLASS="optional"
-> type <VAR
+> type <TT
 CLASS="replaceable"
->type_name</VAR
+><I
+>type_name</I
+></TT
 > </SPAN
 >][<SPAN
 CLASS="optional"
-> name <VAR
+> name <TT
 CLASS="replaceable"
->"domain_name"</VAR
+><I
+>"domain_name"</I
+></TT
 ></SPAN
 >]
-      order <VAR
+      order <TT
 CLASS="replaceable"
->ordering</VAR
+><I
+>ordering</I
+></TT
 >
 </PRE
 ><P
@@ -6943,9 +7305,9 @@ CLASS="programlisting"
 </PRE
 ><P
 >will cause any responses for type A records in class IN that
-have "<VAR
+have "<TT
 CLASS="literal"
->host.example.com</VAR
+>host.example.com</TT
 >" as a suffix, to always be returned
 in random order. All other records are returned in cyclic order.</P
 ><P
@@ -7003,13 +7365,13 @@ CLASS="emphasis"
 >NOT</B
 ></SPAN
 > recommended.)
-Default is <VAR
+Default is <TT
 CLASS="literal"
->600</VAR
+>600</TT
 > (10 minutes). Maximum value is 
-<VAR
+<TT
 CLASS="literal"
->1800</VAR
+>1800</TT
 > (30 minutes).</P
 ></DD
 ><DT
@@ -7029,9 +7391,9 @@ in seconds. The default
 <B
 CLASS="command"
 >max-ncache-ttl</B
-> is <VAR
+> is <TT
 CLASS="literal"
->10800</VAR
+>10800</TT
 > seconds (3 hours).
 <B
 CLASS="command"
@@ -7093,9 +7455,9 @@ of dynamic updates (<A
 HREF="Bv9ARM.ch04.html#dynamic_update"
 >Section 4.2</A
 >)
-will expire. The default is <VAR
+will expire. The default is <TT
 CLASS="literal"
->30</VAR
+>30</TT
 > days.
 The maximum value is 10 years (3660 days). The signature
 inception time is unconditionally set to one hour before the current time
@@ -7162,9 +7524,9 @@ NAME="builtin"
 ><P
 >The server provides some helpful diagnostic information
 through a number of built-in zones under the
-pseudo-top-level-domain <VAR
+pseudo-top-level-domain <TT
 CLASS="literal"
->bind</VAR
+>bind</TT
 > in the
 <B
 CLASS="command"
@@ -7209,9 +7571,9 @@ CLASS="command"
 ><DD
 ><P
 >The version the server should report
-via a query of the name <VAR
+via a query of the name <TT
 CLASS="literal"
->version.bind</VAR
+>version.bind</TT
 >
 with type <B
 CLASS="command"
@@ -7482,94 +7844,118 @@ CLASS="command"
 ></H2
 ><PRE
 CLASS="programlisting"
->server <VAR
+>server <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > {
     [<SPAN
 CLASS="optional"
-> bogus <VAR
+> bogus <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> provide-ixfr <VAR
+> provide-ixfr <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> request-ixfr <VAR
+> request-ixfr <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> edns <VAR
+> edns <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfers <VAR
+> transfers <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-format <VAR
+> transfer-format <TT
 CLASS="replaceable"
->( one-answer | many-answers )</VAR
+><I
+>( one-answer | many-answers )</I
+></TT
 > ; ]</SPAN
 >]
     [<SPAN
 CLASS="optional"
-> keys <VAR
+> keys <TT
 CLASS="replaceable"
+><I
 >{ string ; [<SPAN
 CLASS="optional"
 > string ; [<SPAN
 CLASS="optional"
 >...</SPAN
 >]</SPAN
->] }</VAR
+>] }</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source (<VAR
+> transfer-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source-v6 (<VAR
+> transfer-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
@@ -7822,39 +8208,59 @@ CLASS="command"
 ><PRE
 CLASS="programlisting"
 >trusted-keys {
-    <VAR
+    <TT
 CLASS="replaceable"
->string</VAR
-> <VAR
+><I
+>string</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ;
     [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->string</VAR
-> <VAR
+><I
+>string</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; [<SPAN
 CLASS="optional"
 >...</SPAN
@@ -7911,41 +8317,55 @@ CLASS="command"
 ></H2
 ><PRE
 CLASS="programlisting"
->view <VAR
+>view <TT
 CLASS="replaceable"
->view_name</VAR
+><I
+>view_name</I
+></TT
 > 
       [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 ></SPAN
 >] {
-      match-clients { <VAR
+      match-clients { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ;
-      match-destinations { <VAR
+      match-destinations { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ;
-      match-recursive-only <VAR
+      match-recursive-only <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ;
       [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->view_option</VAR
+><I
+>view_option</I
+></TT
 >; ...</SPAN
 >]
       [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->zone_statement</VAR
+><I
+>zone_statement</I
+></TT
 >; ...</SPAN
 >]
 };
@@ -7980,17 +8400,17 @@ CLASS="command"
 > statement defines a view of the
 DNS namespace that will be seen by a subset of clients.  A client matches
 a view if its source IP address matches the 
-<VAR
+<CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 > of the view's
 <B
 CLASS="command"
 >match-clients</B
 > clause and its destination IP address matches
-the <VAR
+the <CODE
 CLASS="varname"
->address_match_list</VAR
+>address_match_list</CODE
 > of the view's
 <B
 CLASS="command"
@@ -8149,14 +8569,18 @@ Statement Grammar</A
 ></H2
 ><PRE
 CLASS="programlisting"
->zone <VAR
+>zone <TT
 CLASS="replaceable"
->zone_name</VAR
+><I
+>zone_name</I
+></TT
 > [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 ></SPAN
 >] [<SPAN
 CLASS="optional"
@@ -8164,37 +8588,47 @@ CLASS="optional"
     type ( master | slave | hint | stub | forward | delegation-only ) ;
     [<SPAN
 CLASS="optional"
-> allow-notify { <VAR
+> allow-notify { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-query { <VAR
+> allow-query { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-transfer { <VAR
+> allow-transfer { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> allow-update { <VAR
+> allow-update { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> update-policy { <VAR
+> update-policy { <TT
 CLASS="replaceable"
->update_policy_rule</VAR
+><I
+>update_policy_rule</I
+></TT
 > [<SPAN
 CLASS="optional"
 >...</SPAN
@@ -8202,32 +8636,42 @@ CLASS="optional"
 >]
     [<SPAN
 CLASS="optional"
-> allow-update-forwarding { <VAR
+> allow-update-forwarding { <TT
 CLASS="replaceable"
->address_match_list</VAR
+><I
+>address_match_list</I
+></TT
 > } ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> also-notify { <VAR
+> also-notify { <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; ... </SPAN
 >] }; </SPAN
@@ -8247,23 +8691,29 @@ CLASS="constant"
 >]
     [<SPAN
 CLASS="optional"
-> dialup <VAR
+> dialup <TT
 CLASS="replaceable"
->dialup_option</VAR
+><I
+>dialup_option</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> delegation-only <VAR
+> delegation-only <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> file <VAR
+> file <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
@@ -8278,75 +8728,99 @@ CLASS="constant"
 >]
     [<SPAN
 CLASS="optional"
-> forwarders { <VAR
+> forwarders { <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; ... </SPAN
 >] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> ixfr-base <VAR
+> ixfr-base <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> ixfr-tmp-file <VAR
+> ixfr-tmp-file <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> maintain-ixfr-base <VAR
+> maintain-ixfr-base <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
 > masters [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
->] { ( <VAR
+>] { ( <TT
 CLASS="replaceable"
->masters_list</VAR
-> | <VAR
+><I
+>masters_list</I
+></TT
+> | <TT
 CLASS="replaceable"
->ip_addr</VAR
+><I
+>ip_addr</I
+></TT
 > [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] [<SPAN
 CLASS="optional"
->key <VAR
+>key <TT
 CLASS="replaceable"
->key</VAR
+><I
+>key</I
+></TT
 ></SPAN
 >] ) ; [<SPAN
 CLASS="optional"
@@ -8355,229 +8829,295 @@ CLASS="optional"
 >]
     [<SPAN
 CLASS="optional"
-> max-ixfr-log-size <VAR
+> max-ixfr-log-size <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-idle-in <VAR
+> max-transfer-idle-in <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-idle-out <VAR
+> max-transfer-idle-out <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-time-in <VAR
+> max-transfer-time-in <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-transfer-time-out <VAR
+> max-transfer-time-out <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify <VAR
+> notify <TT
 CLASS="replaceable"
->yes_or_no</VAR
-> | <VAR
+><I
+>yes_or_no</I
+></TT
+> | <TT
 CLASS="replaceable"
->explicit</VAR
+><I
+>explicit</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> pubkey <VAR
+> pubkey <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->number</VAR
-> <VAR
+><I
+>number</I
+></TT
+> <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source (<VAR
+> transfer-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> transfer-source-v6 (<VAR
+> transfer-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> alt-transfer-source (<VAR
+> alt-transfer-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> alt-transfer-source-v6 (<VAR
+> alt-transfer-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> use-alt-transfer-source <VAR
+> use-alt-transfer-source <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 >; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify-source (<VAR
+> notify-source (<TT
 CLASS="replaceable"
->ip4_addr</VAR
+><I
+>ip4_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> notify-source-v6 (<VAR
+> notify-source-v6 (<TT
 CLASS="replaceable"
->ip6_addr</VAR
+><I
+>ip6_addr</I
+></TT
 > | <CODE
 CLASS="constant"
 >*</CODE
 >) [<SPAN
 CLASS="optional"
->port <VAR
+>port <TT
 CLASS="replaceable"
->ip_port</VAR
+><I
+>ip_port</I
+></TT
 ></SPAN
 >] ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> zone-statistics <VAR
+> zone-statistics <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> sig-validity-interval <VAR
+> sig-validity-interval <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> database <VAR
+> database <TT
 CLASS="replaceable"
->string</VAR
+><I
+>string</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> min-refresh-time <VAR
+> min-refresh-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-refresh-time <VAR
+> max-refresh-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> min-retry-time <VAR
+> min-retry-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> max-retry-time <VAR
+> max-retry-time <TT
 CLASS="replaceable"
->number</VAR
+><I
+>number</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> multi-master <VAR
+> multi-master <TT
 CLASS="replaceable"
->yes_or_no</VAR
+><I
+>yes_or_no</I
+></TT
 > ; </SPAN
 >]
     [<SPAN
 CLASS="optional"
-> key-directory <VAR
+> key-directory <TT
 CLASS="replaceable"
->path_name</VAR
+><I
+>path_name</I
+></TT
 >; </SPAN
 >]
 
@@ -8619,9 +9159,9 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->master</VAR
+>master</CODE
 ></P
 ></TD
 ><TD
@@ -8634,9 +9174,9 @@ it.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->slave</VAR
+>slave</CODE
 ></P
 ></TD
 ><TD
@@ -8659,9 +9199,9 @@ recommended, since it often speeds server start-up and eliminates
 a needless waste of bandwidth. Note that for large numbers (in the
 tens or hundreds of thousands) of zones per server, it is best to
 use a two level naming scheme for zone file names. For example,
-a slave server for the zone <VAR
+a slave server for the zone <TT
 CLASS="literal"
->example.com</VAR
+>example.com</TT
 > might place
 the zone contents into a file called
 <TT
@@ -8679,9 +9219,9 @@ a single directory.)</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->stub</VAR
+>stub</CODE
 ></P
 ></TD
 ><TD
@@ -8730,9 +9270,9 @@ configured.</P
 of a given domain to use a particular set of authoritative servers.
 For example, the caching name servers on a private network using
 RFC1981 addressing may be configured with stub zones for
-<VAR
+<TT
 CLASS="literal"
->10.in-addr.arpa</VAR
+>10.in-addr.arpa</TT
 >
 to use a set of internal name servers as the authoritative
 servers for that domain.</P
@@ -8742,9 +9282,9 @@ servers for that domain.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->forward</VAR
+>forward</CODE
 ></P
 ></TD
 ><TD
@@ -8791,9 +9331,9 @@ servers as set globally) you need to re-specify the global forwarders.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->hint</VAR
+>hint</CODE
 ></P
 ></TD
 ><TD
@@ -8809,9 +9349,9 @@ Classes other than IN have no built-in defaults hints.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->delegation-only</VAR
+>delegation-only</CODE
 ></P
 ></TD
 ><TD
@@ -8823,9 +9363,9 @@ section will be treated as NXDOMAIN.  This does not apply to the zone
 apex.  This SHOULD NOT be applied to leaf zones.</P
 >
 <P
-><VAR
+><CODE
 CLASS="varname"
->delegation-only</VAR
+>delegation-only</CODE
 > has no effect on answers received
 from forwarders.</P
 ></TD
@@ -8846,32 +9386,32 @@ NAME="AEN3713"
 ></H3
 ><P
 >The zone's name may optionally be followed by a class. If
-a class is not specified, class <VAR
+a class is not specified, class <TT
 CLASS="literal"
->IN</VAR
-> (for <VAR
+>IN</TT
+> (for <CODE
 CLASS="varname"
->Internet</VAR
+>Internet</CODE
 >),
 is assumed. This is correct for the vast majority of cases.</P
 ><P
->The <VAR
+>The <TT
 CLASS="literal"
->hesiod</VAR
+>hesiod</TT
 > class is
 named for an information service from MIT's Project Athena. It is
 used to share information about various systems databases, such
 as users, groups, printers and so on. The keyword 
-<VAR
+<TT
 CLASS="literal"
->HS</VAR
+>HS</TT
 > is
 a synonym for hesiod.</P
 ><P
 >Another MIT development is CHAOSnet, a LAN protocol created
-in the mid-1970s. Zone data for it can be specified with the <VAR
+in the mid-1970s. Zone data for it can be specified with the <TT
 CLASS="literal"
->CHAOS</VAR
+>CHAOS</TT
 > class.</P
 ></DIV
 ><DIV
@@ -8993,9 +9533,9 @@ CLASS="command"
 >notify</B
 > is
 active for this zone. The set of machines that will receive a 
-<VAR
+<TT
 CLASS="literal"
->DNS NOTIFY</VAR
+>DNS NOTIFY</TT
 > message
 for this zone is made up of all the listed name servers (other than
 the primary master) for the zone plus any IP addresses specified
@@ -9564,20 +10104,28 @@ CLASS="command"
 > | <B
 CLASS="command"
 >deny</B
-> ) <VAR
+> ) <TT
 CLASS="replaceable"
->identity</VAR
-> <VAR
+><I
+>identity</I
+></TT
+> <TT
 CLASS="replaceable"
->nametype</VAR
-> <VAR
+><I
+>nametype</I
+></TT
+> <TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->types</VAR
+><I
+>types</I
+></TT
 > </SPAN
 >]
 </PRE
@@ -9593,34 +10141,40 @@ the types specified in the type field.</P
 is the name of the TSIG or SIG(0) key used to sign the update request.  When a
 TKEY exchange has been used to create a shared secret, the identity of the
 shared secret is the same as the identity of the key used to authenticate the
-TKEY exchange.  When the <VAR
+TKEY exchange.  When the <TT
 CLASS="replaceable"
->identity</VAR
+><I
+>identity</I
+></TT
 > field specifies a
 wildcard name, it is subject to DNS wildcard expansion, so the rule will apply
-to multiple identities.  The <VAR
+to multiple identities.  The <TT
 CLASS="replaceable"
->identity</VAR
+><I
+>identity</I
+></TT
 > field must
 contain a fully qualified domain name.</P
 ><P
->The <VAR
+>The <TT
 CLASS="replaceable"
->nametype</VAR
+><I
+>nametype</I
+></TT
 > field has 4 values:
-<VAR
+<CODE
 CLASS="varname"
->name</VAR
->, <VAR
+>name</CODE
+>, <CODE
 CLASS="varname"
->subdomain</VAR
+>subdomain</CODE
 >,
-<VAR
+<CODE
 CLASS="varname"
->wildcard</VAR
->, and <VAR
+>wildcard</CODE
+>, and <CODE
 CLASS="varname"
->self</VAR
+>self</CODE
 >.
 </P
 ><DIV
@@ -9638,52 +10192,58 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->name</VAR
+>name</CODE
 ></P
 ></TD
 ><TD
 ><P
 >Exact-match semantics.  This rule matches when the
 name being updated is identical to the contents of the
-<VAR
+<TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > field.</P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->subdomain</VAR
+>subdomain</CODE
 ></P
 ></TD
 ><TD
 ><P
 >This rule matches when the name being updated
 is a subdomain of, or identical to, the contents of the
-<VAR
+<TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > field.</P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->wildcard</VAR
+>wildcard</CODE
 ></P
 ></TD
 ><TD
 ><P
->The <VAR
+>The <TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > field is
 subject to DNS wildcard expansion, and this rule matches when the name
 being updated name is a valid expansion of the wildcard.</P
@@ -9692,34 +10252,42 @@ being updated name is a valid expansion of the wildcard.</P
 ><TR
 ><TD
 ><P
-><VAR
+><CODE
 CLASS="varname"
->self</VAR
+>self</CODE
 ></P
 ></TD
 ><TD
 ><P
 >This rule matches when the name being updated
-matches the contents of the <VAR
+matches the contents of the <TT
 CLASS="replaceable"
->identity</VAR
+><I
+>identity</I
+></TT
 > field.
-The <VAR
+The <TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > field is ignored, but should be
-the same as the <VAR
+the same as the <TT
 CLASS="replaceable"
->identity</VAR
+><I
+>identity</I
+></TT
 > field.  The
-<VAR
+<CODE
 CLASS="varname"
->self</VAR
+>self</CODE
 > nametype is most useful when allowing using
 one key per name to update, where the key has the same name as the name
-to be updated.  The <VAR
+to be updated.  The <TT
 CLASS="replaceable"
->identity</VAR
+><I
+>identity</I
+></TT
 > would be
 specified as <CODE
 CLASS="constant"
@@ -9733,9 +10301,11 @@ CLASS="constant"
 ></P
 ></DIV
 ><P
->In all cases, the <VAR
+>In all cases, the <TT
 CLASS="replaceable"
->name</VAR
+><I
+>name</I
+></TT
 > field must
 specify a fully qualified domain name.</P
 ><P
@@ -10258,9 +10828,9 @@ CLASS="CALSTABLE"
 >&#13;CHAOSnet, a LAN protocol created at MIT in the mid-1970s.
 Rarely used for its historical purpose, but reused for BIND's
 built-in server information zones, e.g.,
-<VAR
+<TT
 CLASS="literal"
->version.bind</VAR
+>version.bind</TT
 >.
 </P
 ></TD
@@ -10355,23 +10925,23 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->ISI.EDU.</VAR
+>ISI.EDU.</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MX</VAR
+>MX</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10 VENERA.ISI.EDU.</VAR
+>10 VENERA.ISI.EDU.</TT
 ></P
 ></TD
 ></TR
@@ -10382,82 +10952,39 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MX</VAR
+>MX</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10 VAXA.ISI.EDU</VAR
-></P
-></TD
-></TR
-><TR
-><TD
-><P
-><VAR
-CLASS="literal"
->VENERA.ISI.EDU</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->A</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->128.9.0.32</VAR
+>10 VAXA.ISI.EDU</TT
 ></P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
+><TT
+CLASS="literal"
+>VENERA.ISI.EDU</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.1.0.52</VAR
-></P
-></TD
-></TR
-><TR
-><TD
-><P
-><VAR
-CLASS="literal"
->VAXA.ISI.EDU</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->A</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->10.2.0.27</VAR
+>128.9.0.32</TT
 ></P
 ></TD
 ></TR
@@ -10468,16 +10995,59 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->128.9.0.33</VAR
+>10.1.0.52</TT
+></P
+></TD
+></TR
+><TR
+><TD
+><P
+><TT
+CLASS="literal"
+>VAXA.ISI.EDU</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>A</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>10.2.0.27</TT
+></P
+></TD
+></TR
+><TR
+><TD
+><P
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>A</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>128.9.0.33</TT
 ></P
 ></TD
 ></TR
@@ -10510,46 +11080,46 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->XX.LCS.MIT.EDU. IN</VAR
+>XX.LCS.MIT.EDU. IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.0.0.44</VAR
+>10.0.0.44</TT
 ></P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->CH</VAR
+>CH</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MIT.EDU. 2420</VAR
+>MIT.EDU. 2420</TT
 ></P
 ></TD
 ></TR
@@ -10559,9 +11129,9 @@ CLASS="literal"
 ></P
 ></DIV
 ><P
->This example shows two addresses for <VAR
+>This example shows two addresses for <TT
 CLASS="literal"
->XX.LCS.MIT.EDU</VAR
+>XX.LCS.MIT.EDU</TT
 >,
 each of a different class.</P
 ></DIV
@@ -10619,37 +11189,37 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->example.com.</VAR
+>example.com.</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MX</VAR
+>MX</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10</VAR
+>10</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->mail.example.com.</VAR
+>mail.example.com.</TT
 ></P
 ></TD
 ></TR
@@ -10660,30 +11230,30 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MX</VAR
+>MX</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10</VAR
+>10</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->mail2.example.com.</VAR
+>mail2.example.com.</TT
 ></P
 ></TD
 ></TR
@@ -10694,94 +11264,94 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->MX</VAR
+>MX</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->20</VAR
+>20</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->mail.backup.org.</VAR
-></P
-></TD
-></TR
-><TR
-><TD
-><P
-><VAR
-CLASS="literal"
->mail.example.com.</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->IN</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->A</VAR
-></P
-></TD
-><TD
-><P
-><VAR
-CLASS="literal"
->10.0.0.1</VAR
-></P
-></TD
-><TD
-><P
+>mail.backup.org.</TT
 ></P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->mail2.example.com.</VAR
+>mail.example.com.</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.0.0.2</VAR
+>10.0.0.1</TT
+></P
+></TD
+><TD
+><P
+></P
+></TD
+></TR
+><TR
+><TD
+><P
+><TT
+CLASS="literal"
+>mail2.example.com.</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>IN</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>A</TT
+></P
+></TD
+><TD
+><P
+><TT
+CLASS="literal"
+>10.0.0.2</TT
 ></P
 ></TD
 ><TD
@@ -10797,17 +11367,17 @@ CLASS="literal"
 ><P
 >For example:</P
 ><P
->Mail delivery will be attempted to <VAR
+>Mail delivery will be attempted to <TT
 CLASS="literal"
->mail.example.com</VAR
+>mail.example.com</TT
 > and
-<VAR
+<TT
 CLASS="literal"
->mail2.example.com</VAR
+>mail2.example.com</TT
 > (in
-any order), and if neither of those succeed, delivery to <VAR
+any order), and if neither of those succeed, delivery to <TT
 CLASS="literal"
->mail.backup.org</VAR
+>mail.backup.org</TT
 > will
 be attempted.</P
 ></DIV
@@ -10883,9 +11453,9 @@ the it.</P
 ></DIV
 ><P
 >All of these TTLs default to units of seconds, though units
-can be explicitly specified, for example, <VAR
+can be explicitly specified, for example, <TT
 CLASS="literal"
->1h30m</VAR
+>1h30m</TT
 >. </P
 ></DIV
 ><DIV
@@ -10932,32 +11502,32 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->$ORIGIN</VAR
+>$ORIGIN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->2.1.10.in-addr.arpa</VAR
+>2.1.10.in-addr.arpa</TT
 ></P
 ></TD
 ></TR
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->3</VAR
+>3</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN PTR foo.example.com.</VAR
+>IN PTR foo.example.com.</TT
 ></P
 ></TD
 ></TR
@@ -11024,14 +11594,18 @@ CLASS="command"
 CLASS="command"
 >$ORIGIN
 </B
-><VAR
+><TT
 CLASS="replaceable"
->domain-name</VAR
+><I
+>domain-name</I
+></TT
 > [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->comment</VAR
+><I
+>comment</I
+></TT
 ></SPAN
 >]</P
 ><P
@@ -11043,9 +11617,9 @@ be appended to any unqualified records. When a zone is first read
 in there is an implicit <B
 CLASS="command"
 >$ORIGIN</B
-> &#60;<VAR
+> &#60;<CODE
 CLASS="varname"
->zone-name</VAR
+>zone-name</CODE
 >&#62;<B
 CLASS="command"
 >.</B
@@ -11060,18 +11634,18 @@ CLASS="command"
 > argument if it is not absolute.</P
 ><PRE
 CLASS="programlisting"
-><VAR
+><TT
 CLASS="literal"
 >$ORIGIN example.com.
-WWW     CNAME   MAIN-SERVER</VAR
+WWW     CNAME   MAIN-SERVER</TT
 ></PRE
 ><P
 >is equivalent to</P
 ><PRE
 CLASS="programlisting"
-><VAR
+><TT
 CLASS="literal"
->WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.</VAR
+>WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.</TT
 ></PRE
 ></DIV
 ><DIV
@@ -11090,20 +11664,26 @@ CLASS="command"
 CLASS="command"
 >$INCLUDE</B
 >
-<VAR
+<TT
 CLASS="replaceable"
->filename</VAR
+><I
+>filename</I
+></TT
 > [<SPAN
 CLASS="optional"
->&#13;<VAR
+>&#13;<TT
 CLASS="replaceable"
->origin</VAR
+><I
+>origin</I
+></TT
 > </SPAN
 >] [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->comment</VAR
+><I
+>comment</I
+></TT
 > </SPAN
 >]</P
 ><P
@@ -11166,14 +11746,18 @@ CLASS="command"
 CLASS="command"
 >$TTL</B
 >
-<VAR
+<TT
 CLASS="replaceable"
->default-ttl</VAR
+><I
+>default-ttl</I
+></TT
 > [<SPAN
 CLASS="optional"
->&#13;<VAR
+>&#13;<TT
 CLASS="replaceable"
->comment</VAR
+><I
+>comment</I
+></TT
 > </SPAN
 >]</P
 ><P
@@ -11204,35 +11788,49 @@ CLASS="command"
 >Syntax: <B
 CLASS="command"
 >$GENERATE</B
-> <VAR
+> <TT
 CLASS="replaceable"
->range</VAR
-> <VAR
+><I
+>range</I
+></TT
+> <TT
 CLASS="replaceable"
->lhs</VAR
+><I
+>lhs</I
+></TT
 > [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->ttl</VAR
+><I
+>ttl</I
+></TT
 ></SPAN
 >] [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 ></SPAN
->] <VAR
+>] <TT
 CLASS="replaceable"
->type</VAR
-> <VAR
+><I
+>type</I
+></TT
+> <TT
 CLASS="replaceable"
->rhs</VAR
+><I
+>rhs</I
+></TT
 > [<SPAN
 CLASS="optional"
-> <VAR
+> <TT
 CLASS="replaceable"
->comment</VAR
+><I
+>comment</I
+></TT
 > </SPAN
 >]</P
 ><P
@@ -11249,17 +11847,17 @@ sub /24 reverse delegations described in RFC 2317: Classless IN-ADDR.ARPA
 delegation.</P
 ><PRE
 CLASS="programlisting"
-><VAR
+><TT
 CLASS="literal"
 >$ORIGIN 0.0.192.IN-ADDR.ARPA.
 $GENERATE 1-2 0 NS SERVER$.EXAMPLE.
-$GENERATE 1-127 $ CNAME $.0</VAR
+$GENERATE 1-127 $ CNAME $.0</TT
 ></PRE
 ><P
 >is equivalent to</P
 ><PRE
 CLASS="programlisting"
-><VAR
+><TT
 CLASS="literal"
 >0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
 0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
@@ -11267,7 +11865,7 @@ CLASS="literal"
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
 127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
-</VAR
+</TT
 ></PRE
 ><DIV
 CLASS="informaltable"

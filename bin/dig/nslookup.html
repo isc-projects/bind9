@@ -14,16 +14,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nslookup.html,v 1.1.6.3 2004/08/22 23:38:58 marka Exp $ -->
+<!-- $Id: nslookup.html,v 1.1.6.4 2005/04/03 03:31:49 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >nslookup</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -55,9 +55,9 @@ NAME="AEN11"
 ><B
 CLASS="COMMAND"
 >nslookup</B
->  [<VAR
+>  [<CODE
 CLASS="OPTION"
->-option</VAR
+>-option</CODE
 >] [name | -] [server]</P
 ></DIV
 ><DIV
@@ -161,9 +161,11 @@ the name.</P
 ><CODE
 CLASS="CONSTANT"
 >server</CODE
-> <VAR
+> <TT
 CLASS="REPLACEABLE"
->domain</VAR
+><I
+>domain</I
+></TT
 ></DT
 ><DD
 ><P
@@ -173,22 +175,28 @@ CLASS="REPLACEABLE"
 ><CODE
 CLASS="CONSTANT"
 >lserver</CODE
-> <VAR
+> <TT
 CLASS="REPLACEABLE"
->domain</VAR
+><I
+>domain</I
+></TT
 ></DT
 ><DD
 ><P
->Change the default server to <VAR
+>Change the default server to <TT
 CLASS="REPLACEABLE"
->domain</VAR
+><I
+>domain</I
+></TT
 >; <CODE
 CLASS="CONSTANT"
 >lserver</CODE
 > uses the initial
-server to look up information about <VAR
+server to look up information about <TT
 CLASS="REPLACEABLE"
->domain</VAR
+><I
+>domain</I
+></TT
 >, while <CODE
 CLASS="CONSTANT"
 >server</CODE
@@ -264,12 +272,14 @@ CLASS="CONSTANT"
 ><CODE
 CLASS="CONSTANT"
 >set</CODE
-> <VAR
+> <TT
 CLASS="REPLACEABLE"
+><I
 >keyword[<SPAN
 CLASS="OPTIONAL"
 >=value</SPAN
->]</VAR
+>]</I
+></TT
 ></DT
 ><DD
 ><P
@@ -299,9 +309,11 @@ CLASS="COMMAND"
 ><CODE
 CLASS="CONSTANT"
 >class=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->value</VAR
+><I
+>value</I
+></TT
 ></DT
 ><DD
 ><P
@@ -359,12 +371,14 @@ CLASS="CONSTANT"
 ><DT
 ><CODE
 CLASS="CONSTANT"
-><VAR
+><TT
 CLASS="REPLACEABLE"
+><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</VAR
+>]</I
+></TT
 >debug</CODE
 ></DT
 ><DD
@@ -383,12 +397,14 @@ CLASS="OPTIONAL"
 ><DT
 ><CODE
 CLASS="CONSTANT"
-><VAR
+><TT
 CLASS="REPLACEABLE"
+><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</VAR
+>]</I
+></TT
 >d2</CODE
 ></DT
 ><DD
@@ -405,27 +421,33 @@ CLASS="OPTIONAL"
 ><CODE
 CLASS="CONSTANT"
 >domain=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->name</VAR
+><I
+>name</I
+></TT
 ></DT
 ><DD
 ><P
->  Sets the search list to <VAR
+>  Sets the search list to <TT
 CLASS="REPLACEABLE"
->name</VAR
+><I
+>name</I
+></TT
 >.
   </P
 ></DD
 ><DT
 ><CODE
 CLASS="CONSTANT"
-><VAR
+><TT
 CLASS="REPLACEABLE"
+><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</VAR
+>]</I
+></TT
 >search</CODE
 ></DT
 ><DD
@@ -443,15 +465,19 @@ CLASS="OPTIONAL"
 ><CODE
 CLASS="CONSTANT"
 >port=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->value</VAR
+><I
+>value</I
+></TT
 ></DT
 ><DD
 ><P
->  Change the default TCP/UDP name server port to <VAR
+>  Change the default TCP/UDP name server port to <TT
 CLASS="REPLACEABLE"
->value</VAR
+><I
+>value</I
+></TT
 >.
   </P
 ><P
@@ -462,9 +488,11 @@ CLASS="REPLACEABLE"
 ><CODE
 CLASS="CONSTANT"
 >querytype=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->value</VAR
+><I
+>value</I
+></TT
 ></DT
 ><DD
 ><P
@@ -474,9 +502,11 @@ CLASS="REPLACEABLE"
 ><CODE
 CLASS="CONSTANT"
 >type=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->value</VAR
+><I
+>value</I
+></TT
 ></DT
 ><DD
 ><P
@@ -489,12 +519,14 @@ CLASS="REPLACEABLE"
 ><DT
 ><CODE
 CLASS="CONSTANT"
-><VAR
+><TT
 CLASS="REPLACEABLE"
+><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</VAR
+>]</I
+></TT
 >recurse</CODE
 ></DT
 ><DD
@@ -510,9 +542,11 @@ CLASS="OPTIONAL"
 ><CODE
 CLASS="CONSTANT"
 >retry=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->number</VAR
+><I
+>number</I
+></TT
 ></DT
 ><DD
 ><P
@@ -523,9 +557,11 @@ CLASS="REPLACEABLE"
 ><CODE
 CLASS="CONSTANT"
 >timeout=</CODE
-><VAR
+><TT
 CLASS="REPLACEABLE"
->number</VAR
+><I
+>number</I
+></TT
 ></DT
 ><DD
 ><P
@@ -536,12 +572,14 @@ CLASS="REPLACEABLE"
 ><DT
 ><CODE
 CLASS="CONSTANT"
-><VAR
+><TT
 CLASS="REPLACEABLE"
+><I
 >[<SPAN
 CLASS="OPTIONAL"
 >no</SPAN
->]</VAR
+>]</I
+></TT
 >vc</CODE
 ></DT
 ><DD

@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_packet.html,v 1.8.2.1.4.2 2004/08/22 23:39:05 marka Exp $ -->
+<!-- $Id: lwres_packet.html,v 1.8.2.1.4.3 2005/04/03 03:31:59 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_packet</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -291,14 +291,14 @@ contents of lightweight resolver packet structure
 <SPAN
 CLASS="TYPE"
 >lwres_lwpacket_t</SPAN
-> <VAR
+> <CODE
 CLASS="PARAMETER"
->*pkt</VAR
+>*pkt</CODE
 > in network
 byte order to the lightweight resolver buffer,
-<VAR
+<CODE
 CLASS="PARAMETER"
->*b</VAR
+>*b</CODE
 >.</P
 ><P
 ><CODE
@@ -306,17 +306,17 @@ CLASS="FUNCTION"
 >lwres_lwpacket_parseheader()</CODE
 > performs the
 converse operation.  It transfers data in network byte order from
-buffer <VAR
+buffer <CODE
 CLASS="PARAMETER"
->*b</VAR
+>*b</CODE
 > to resolver packet
-<VAR
+<CODE
 CLASS="PARAMETER"
->*pkt</VAR
+>*pkt</CODE
 >.  The contents of the buffer
-<VAR
+<CODE
 CLASS="PARAMETER"
->b</VAR
+>b</CODE
 > should correspond to a
 <SPAN
 CLASS="TYPE"
@@ -344,13 +344,13 @@ CLASS="FUNCTION"
 CLASS="ERRORCODE"
 >LWRES_R_SUCCESS</SPAN
 >.  If there is insufficient
-space to copy data between the buffer <VAR
+space to copy data between the buffer <CODE
 CLASS="PARAMETER"
->*b</VAR
+>*b</CODE
 > and
-lightweight resolver packet <VAR
+lightweight resolver packet <CODE
 CLASS="PARAMETER"
->*pkt</VAR
+>*pkt</CODE
 > both functions
 return <SPAN
 CLASS="ERRORCODE"

@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.html,v 1.5.2.1.4.3 2004/08/22 23:39:00 marka Exp $ -->
+<!-- $Id: rndc.conf.html,v 1.5.2.1.4.4 2005/04/03 03:31:51 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >rndc.conf</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -111,86 +111,86 @@ CLASS="FILENAME"
 	and a key statement.
     </P
 ><P
->        The <VAR
+>        The <CODE
 CLASS="OPTION"
->options</VAR
+>options</CODE
 > statement contains three clauses.
-	The <VAR
+	The <CODE
 CLASS="OPTION"
->default-server</VAR
+>default-server</CODE
 > clause is followed by the
 	name or address of a name server.  This host will be used when
 	no name server is given as an argument to
 	<B
 CLASS="COMMAND"
 >rndc</B
->.  The <VAR
+>.  The <CODE
 CLASS="OPTION"
->default-key</VAR
+>default-key</CODE
 >
 	clause is followed by the name of a key which is identified by
-	a <VAR
+	a <CODE
 CLASS="OPTION"
->key</VAR
+>key</CODE
 > statement.  If no
-	<VAR
+	<CODE
 CLASS="OPTION"
->keyid</VAR
+>keyid</CODE
 > is provided on the rndc command line,
-	and no <VAR
+	and no <CODE
 CLASS="OPTION"
->key</VAR
+>key</CODE
 > clause is found in a matching
-	<VAR
+	<CODE
 CLASS="OPTION"
->server</VAR
+>server</CODE
 > statement, this default key will be
 	used to authenticate the server's commands and responses.  The
-	<VAR
+	<CODE
 CLASS="OPTION"
->default-port</VAR
+>default-port</CODE
 > clause is followed by the port
 	to connect to on the remote name server.  If no
-	<VAR
+	<CODE
 CLASS="OPTION"
->port</VAR
+>port</CODE
 > option is provided on the rndc command
-	line, and no <VAR
+	line, and no <CODE
 CLASS="OPTION"
->port</VAR
+>port</CODE
 > clause is found in a
-	matching <VAR
+	matching <CODE
 CLASS="OPTION"
->server</VAR
+>server</CODE
 > statement, this default port
 	will be used to connect.
     </P
 ><P
->        After the <VAR
+>        After the <CODE
 CLASS="OPTION"
->server</VAR
+>server</CODE
 > keyword, the server statement
 	includes a string which is the hostname or address for a name
 	server.  The statement has two possible clauses:
-	<VAR
+	<CODE
 CLASS="OPTION"
->key</VAR
-> and <VAR
+>key</CODE
+> and <CODE
 CLASS="OPTION"
->port</VAR
+>port</CODE
 >. The key name must
 	match the name of a key statement in the file.  The port number
 	specifies the port to connect to.
     </P
 ><P
->        The <VAR
+>        The <CODE
 CLASS="OPTION"
->key</VAR
+>key</CODE
 > statement begins with an identifying
 	string, the name of the key.  The statement has two clauses.
-	<VAR
+	<CODE
 CLASS="OPTION"
->algorithm</VAR
+>algorithm</CODE
 > identifies the encryption algorithm
 	for <B
 CLASS="COMMAND"
@@ -276,13 +276,13 @@ CLASS="FILENAME"
 >rndc.conf</TT
 > file, including the
         randomly generated key, will be written to the standard
-        output.  Commented out <VAR
+        output.  Commented out <CODE
 CLASS="OPTION"
->key</VAR
+>key</CODE
 > and
-        <VAR
+        <CODE
 CLASS="OPTION"
->controls</VAR
+>controls</CODE
 > statements for
         <TT
 CLASS="FILENAME"
@@ -319,9 +319,9 @@ CLASS="FILENAME"
 CLASS="FILENAME"
 >named.conf</TT
 >.
-	See the sections on the <VAR
+	See the sections on the <CODE
 CLASS="OPTION"
->controls</VAR
+>controls</CODE
 > statement in the
 	BIND 9 Administrator Reference Manual for details.
     </P

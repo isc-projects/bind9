@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getaddrinfo.html,v 1.8.2.1.4.3 2004/08/22 23:39:03 marka Exp $ -->
+<!-- $Id: lwres_getaddrinfo.html,v 1.8.2.1.4.4 2005/04/03 03:31:57 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_getaddrinfo</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -116,14 +116,14 @@ CLASS="FUNCTION"
 >lwres_getaddrinfo()</CODE
 >
 is used to get a list of IP addresses and port numbers for host
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 and service
-<VAR
+<CODE
 CLASS="PARAMETER"
->servname</VAR
+>servname</CODE
 >.
 
 The function is the lightweight resolver's implementation of
@@ -132,14 +132,14 @@ CLASS="FUNCTION"
 >getaddrinfo()</CODE
 >
 as defined in RFC2133.
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->servname</VAR
+>servname</CODE
 >
 are pointers to null-terminated
 strings or
@@ -148,15 +148,15 @@ CLASS="TYPE"
 >NULL</SPAN
 >.
 
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 is either a host name or a numeric host address string: a dotted decimal
 IPv4 address or an IPv6 address.
-<VAR
+<CODE
 CLASS="PARAMETER"
->servname</VAR
+>servname</CODE
 >
 is either a decimal port number or a service name as listed in
 <TT
@@ -164,9 +164,9 @@ CLASS="FILENAME"
 >/etc/services</TT
 >.</P
 ><P
-><VAR
+><CODE
 CLASS="PARAMETER"
->hints</VAR
+>hints</CODE
 >
 is an optional pointer to a
 <SPAN
@@ -176,9 +176,9 @@ CLASS="TYPE"
 This structure can be used to provide hints concerning the type of socket
 that the caller supports or wishes to use.
 The caller can supply the following structure elements in
-<VAR
+<CODE
 CLASS="PARAMETER"
->*hints</VAR
+>*hints</CODE
 >:
 
 <P
@@ -362,9 +362,9 @@ CLASS="REFENTRYTITLE"
 if a connectionless protocol was chosen.
 The IP address portion of the socket address structure will be
 set to the loopback address if
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 is a
 <SPAN
@@ -393,9 +393,9 @@ CLASS="TYPE"
 >AI_NUMERICHOST</SPAN
 >
 it indicates that
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 should be treated as a numeric string defining an IPv4 or IPv6 address
 and no name resolution should be attempted.</P
@@ -408,14 +408,14 @@ and no name resolution should be attempted.</P
 CLASS="TYPE"
 >struct addrinfo</SPAN
 > passed
-via <VAR
+via <CODE
 CLASS="PARAMETER"
->hints</VAR
+>hints</CODE
 > must be zero.</P
 ><P
->A <VAR
+>A <CODE
 CLASS="PARAMETER"
->hints</VAR
+>hints</CODE
 > of <SPAN
 CLASS="TYPE"
 >NULL</SPAN
@@ -438,9 +438,9 @@ CLASS="CONSTANT"
 CLASS="FUNCTION"
 >lwres_getaddrinfo()</CODE
 >,
-<VAR
+<CODE
 CLASS="PARAMETER"
->*res</VAR
+>*res</CODE
 >
 is a pointer to a linked list of one or more
 <SPAN
@@ -531,9 +531,9 @@ is released by
 CLASS="FUNCTION"
 >lwres_freeaddrinfo()</CODE
 >.
-<VAR
+<CODE
 CLASS="PARAMETER"
->ai</VAR
+>ai</CODE
 >
 is a pointer to a
 <SPAN
@@ -568,14 +568,14 @@ CLASS="REFENTRYTITLE"
 >
 if an error occurs.
 If both
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostname</VAR
+>hostname</CODE
 >
 and
-<VAR
+<CODE
 CLASS="PARAMETER"
->servname</VAR
+>servname</CODE
 >
 are
 <SPAN

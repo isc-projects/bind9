@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >Advanced DNS Features</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -261,9 +261,11 @@ CLASS="command"
     to the zone using
     <B
 CLASS="command"
->rndc freeze <VAR
+>rndc freeze <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 ></B
 >.
     This will also remove the zone's <TT
@@ -273,9 +275,11 @@ CLASS="filename"
     and update the master file.  Edit the zone file.  Run
     <B
 CLASS="command"
->rndc unfreeze <VAR
+>rndc unfreeze <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 ></B
 >
     to reload the changed zone and re-enable dynamic updates.</P
@@ -375,9 +379,9 @@ CLASS="emphasis"
 >Example, Inc.</I
 ></SPAN
 >
-(<VAR
+(<TT
 CLASS="literal"
->example.com</VAR
+>example.com</TT
 >)
 has several corporate sites that have an internal network with reserved
 Internet Protocol (IP) space and an external demilitarized zone (DMZ),
@@ -489,9 +493,9 @@ internal hosts.</P
 >Here's an example of a wildcard MX record:</P
 ><PRE
 CLASS="programlisting"
-><VAR
+><TT
 CLASS="literal"
->*   IN MX 10 external1.example.com.</VAR
+>*   IN MX 10 external1.example.com.</TT
 ></PRE
 ><P
 >Now that they accept mail on behalf of anything in the internal
@@ -528,24 +532,24 @@ internal clients will now be able to:</P
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <VAR
+>Look up any hostnames in the <TT
 CLASS="literal"
->site1</VAR
+>site1</TT
 > and 
-<VAR
+<TT
 CLASS="literal"
->site2.example.com</VAR
+>site2.example.com</TT
 > zones.</P
 ></LI
 ><LI
 ><P
->Look up any hostnames in the <VAR
+>Look up any hostnames in the <TT
 CLASS="literal"
->site1.internal</VAR
+>site1.internal</TT
 > and 
-<VAR
+<TT
 CLASS="literal"
->site2.internal</VAR
+>site2.internal</TT
 > domains.</P
 ></LI
 ><LI
@@ -564,24 +568,24 @@ CLASS="literal"
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <VAR
+>Look up any hostnames in the <TT
 CLASS="literal"
->site1</VAR
+>site1</TT
 > and 
-<VAR
+<TT
 CLASS="literal"
->site2.example.com</VAR
+>site2.example.com</TT
 > zones.</P
 ></LI
 ><LI
 ><P
->Exchange mail with anyone in the <VAR
+>Exchange mail with anyone in the <TT
 CLASS="literal"
->site1</VAR
+>site1</TT
 > and 
-<VAR
+<TT
 CLASS="literal"
->site2.example.com</VAR
+>site2.example.com</TT
 > zones.</P
 ></LI
 ></UL
@@ -599,9 +603,9 @@ CLASS="programlisting"
 >&#13;
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
 
-acl externals { <VAR
+acl externals { <CODE
 CLASS="varname"
->bastion-ips-go-here</VAR
+>bastion-ips-go-here</CODE
 >; };
 
 options {
@@ -609,9 +613,9 @@ options {
     ...
     forward only;
     forwarders {                                // forward to external servers
-        <VAR
+        <CODE
 CLASS="varname"
->bastion-ips-go-here</VAR
+>bastion-ips-go-here</CODE
 >; 
     };
     allow-transfer { none; };                   // sample allow-transfer (no one)
@@ -743,13 +747,13 @@ for TSIG.</P
 CLASS="command"
 >nsupdate</B
 >
-    program supports TSIG via the <VAR
+    program supports TSIG via the <CODE
 CLASS="option"
->-k</VAR
+>-k</CODE
 > and
-    <VAR
+    <CODE
 CLASS="option"
->-y</VAR
+>-y</CODE
 > command line options.</P
 ><DIV
 CLASS="sect2"
@@ -800,18 +804,18 @@ CLASS="filename"
 >Khost1-host2.+157+00000.private</TT
 >.
 Nothing directly uses this file, but the base-64 encoded string
-following "<VAR
+following "<TT
 CLASS="literal"
->Key:</VAR
+>Key:</TT
 >"
 can be extracted from the file and used as a shared secret:</P
 ><PRE
 CLASS="programlisting"
 >Key: La/E5CjG9O+os1jq0a2jdA==</PRE
 ><P
->The string "<VAR
+>The string "<TT
 CLASS="literal"
->La/E5CjG9O+os1jq0a2jdA==</VAR
+>La/E5CjG9O+os1jq0a2jdA==</TT
 >" can
 be used as the shared secret.</P
 ></DIV
@@ -1189,15 +1193,15 @@ CLASS="acronym"
 > 9 ships
     with several tools
     that are used in this process, which are explained in more detail
-    below.  In all cases, the <VAR
+    below.  In all cases, the <CODE
 CLASS="option"
->-h</VAR
+>-h</CODE
 > option prints a
     full list of parameters.  Note that the DNSSEC tools require the
     keyset files to be in the working directory or the
-    directory specified by the <VAR
+    directory specified by the <CODE
 CLASS="option"
->-h</VAR
+>-h</CODE
 > option, and
     that the tools shipped with BIND 9.2.x and earlier are not compatible
     with the current ones.</P
@@ -1206,9 +1210,9 @@ CLASS="option"
     the parent and/or child zone to transmit keys.  A zone's security
     status must be indicated by the parent zone for a DNSSEC capable 
     resolver to trust its data.  This is done through the presense
-    or absence of a <VAR
+    or absence of a <TT
 CLASS="literal"
->DS</VAR
+>DS</TT
 > record at the delegation
     point.</P
 ><P
@@ -1313,24 +1317,24 @@ CLASS="filename"
 >keyset</TT
 > files corresponding
       to secure subzones should be present.  The zone signer will
-      generate <VAR
+      generate <TT
 CLASS="literal"
->NSEC</VAR
-> and <VAR
+>NSEC</TT
+> and <TT
 CLASS="literal"
->RRSIG</VAR
+>RRSIG</TT
 >
-      records for the zone, as well as <VAR
+      records for the zone, as well as <TT
 CLASS="literal"
->DS</VAR
+>DS</TT
 > for
-      the child zones if <VAR
+      the child zones if <TT
 CLASS="literal"
->'-d'</VAR
+>'-d'</TT
 > is specified.
-      If <VAR
+      If <TT
 CLASS="literal"
->'-d'</VAR
+>'-d'</TT
 > is not specified then DS RRsets for
       the secure child zones need to be added manually.</P
 ><P
@@ -1364,12 +1368,12 @@ CLASS="command"
 > will also produce a
       keyset and dsset files and optionally a dlvset file.  These
       are used to provide the parent zone administators with the
-      <VAR
+      <TT
 CLASS="literal"
->DNSKEYs</VAR
-> (or their corresponding <VAR
+>DNSKEYs</TT
+> (or their corresponding <TT
 CLASS="literal"
->DS</VAR
+>DS</TT
 >
       records) that are the secure entry point to the zone.</P
 ></DIV
@@ -1501,9 +1505,9 @@ host            3600    IN      AAAA    2001:db8::1
 ><P
 >It is recommended that IPv4-in-IPv6 mapped addresses not
         be used.  If a host has an IPv4 address, use an A record, not
-        a AAAA, with <VAR
+        a AAAA, with <TT
 CLASS="literal"
->::ffff:192.168.42.1</VAR
+>::ffff:192.168.42.1</TT
 > as the
         address.</P
 ></DIV
@@ -1518,15 +1522,15 @@ NAME="AEN1035"
 ><P
 >When looking up an address in nibble format, the address
       components are simply reversed, just as in IPv4, and
-      <VAR
+      <TT
 CLASS="literal"
->ip6.arpa.</VAR
+>ip6.arpa.</TT
 > is appended to the resulting name.
       For example, the following would provide reverse name lookup for
       a host with address
-      <VAR
+      <TT
 CLASS="literal"
->2001:db8::1</VAR
+>2001:db8::1</TT
 >.</P
 ><PRE
 CLASS="programlisting"
