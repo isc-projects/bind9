@@ -1,3 +1,7 @@
+
+ 761.	[bug]		_REENTRANT was still defined when building with
+			--disable-threads.
+
  760.	[contrib]	Significant enhancements to the pgsql sdb driver.
 
  759.	[bug]		The resolver didn't turn off "avoid fetches" mode

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.234 $)
+AC_REVISION($Revision: 1.235 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -551,13 +551,16 @@ then
 			;;
 		esac
 	fi
+	ALWAYS_DEFINES="-D_REENTRANT"
 	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
 	thread_dir=pthreads
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
+	ALWAYS_DEFINES=""
 fi
 
+AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(ISC_PLATFORM_USETHREADS)
 
 ISC_THREAD_DIR=$thread_dir
