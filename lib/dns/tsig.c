@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.91 2000/09/25 17:46:38 bwelling Exp $
+ * $Id: tsig.c,v 1.92 2000/10/07 00:09:27 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -330,7 +330,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
-	isc_region_t r, r2;
+	isc_region_t r;
 	isc_stdtime_t now;
 	isc_mem_t *mctx;
 	dst_context_t *ctx = NULL;
@@ -543,16 +543,10 @@ dns_tsig_sign(dns_message_t *msg) {
 	ret = dns_message_gettempname(msg, &owner);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_dynbuf;
-	dns_name_toregion(&key->name, &r);
-	dynbuf = NULL;
-	ret = isc_buffer_allocate(mctx, &dynbuf, r.length);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
-	isc_buffer_availableregion(dynbuf, &r2);
-	memcpy(r2.base, r.base, r.length);
 	dns_name_init(owner, NULL);
-	dns_name_fromregion(owner, &r2);
-	dns_message_takebuffer(msg, &dynbuf);
+	ret = dns_name_dup(&key->name, msg->mctx, owner);
+	if (ret != ISC_R_SUCCESS)
+		goto cleanup_owner;
 
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
@@ -567,7 +561,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dataset = NULL;
 	ret = dns_message_gettemprdataset(msg, &dataset);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_owner;
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
 	msg->tsig = dataset;
@@ -575,6 +569,9 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	return (ISC_R_SUCCESS);
 
+cleanup_owner:
+	if (owner != NULL)
+		dns_message_puttempname(msg, &owner);
 cleanup_dynbuf:
 	if (dynbuf != NULL)
 		isc_buffer_free(&dynbuf);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.153 2000/09/29 23:54:31 gson Exp $ */
+/* $Id: adb.c,v 1.154 2000/10/07 00:09:18 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -52,6 +52,7 @@
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 
@@ -976,14 +977,14 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 	unsigned int nlabels, nbits;
 	int order;
 	dns_rdata_t rdata;
-	isc_region_t r;
-	dns_name_t tname;
 	dns_fixedname_t fixed1, fixed2;
 	dns_name_t *prefix, *new_target;
 
 	REQUIRE(dns_name_countlabels(target) == 0);
 
 	if (rdataset->type == dns_rdatatype_cname) {
+		dns_rdata_cname_t cname;
+
 		/*
 		 * Copy the CNAME's target into the target name.
 		 */
@@ -991,14 +992,16 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_rdataset_current(rdataset, &rdata);
-		r.base = rdata.data;
-		r.length = rdata.length;
-		dns_name_init(&tname, NULL);
-		dns_name_fromregion(&tname, &r);
-		result = dns_name_dup(&tname, adb->mctx, target);
+		result = dns_rdata_tostruct(&rdata, &cname, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = dns_name_dup(&cname.cname, adb->mctx, target);
+		dns_rdata_freestruct(&cname);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	} else {
+		dns_rdata_dname_t dname;
+
 		INSIST(rdataset->type == dns_rdatatype_dname);
 		namereln = dns_name_fullcompare(name, fname, &order,
 						&nlabels, &nbits);
@@ -1010,10 +1013,9 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_rdataset_current(rdataset, &rdata);
-		r.base = rdata.data;
-		r.length = rdata.length;
-		dns_name_init(&tname, NULL);
-		dns_name_fromregion(&tname, &r);
+		result = dns_rdata_tostruct(&rdata, &dname, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		/*
 		 * Construct the new target name.
 		 */
@@ -1022,10 +1024,13 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		dns_fixedname_init(&fixed2);
 		new_target = dns_fixedname_name(&fixed2);
 		result = dns_name_split(name, nlabels, nbits, prefix, NULL);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			dns_rdata_freestruct(&dname);
 			return (result);
-		result = dns_name_concatenate(prefix, &tname, new_target,
+		}
+		result = dns_name_concatenate(prefix, &dname.dname, new_target,
 					      NULL);
+		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		result = dns_name_dup(new_target, adb->mctx, target);

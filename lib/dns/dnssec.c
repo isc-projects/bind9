@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.52 2000/09/25 23:18:54 bwelling Exp $
+ * $Id: dnssec.c,v 1.53 2000/10/07 00:09:20 bwelling Exp $
  */
 
 
@@ -643,8 +643,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	dns_rdata_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata;
-	dns_name_t tname;
-	isc_region_t r, r2, source_r, sig_r, header_r;
+	isc_region_t r, source_r, sig_r, header_r;
 	isc_stdtime_t now;
 	dst_context_t *ctx = NULL;
 	isc_mem_t *mctx;
@@ -733,13 +732,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 * the name and 10 bytes for class, type, ttl, length to get to
 	 * the start of the rdata.
 	 */
-	r.base = source_r.base + msg->sigstart;
-	r.length = source_r.length - msg->sigstart;
-	dns_name_init(&tname, NULL);
-	dns_name_fromregion(&tname, &r);
-	dns_name_toregion(&tname, &r2);
-	isc_region_consume(&r, r2.length + 10);
-	INSIST(r.length >= sig.siglen);	
+	dns_rdata_toregion(&rdata, &r);
 	r.length -= sig.siglen;
 	RETERR(dst_context_adddata(ctx, &r));
 

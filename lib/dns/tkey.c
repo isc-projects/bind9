@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.52 2000/10/06 17:08:12 bwelling Exp $
+ * $Id: tkey.c,v 1.53 2000/10/07 00:09:25 bwelling Exp $
  */
 
 #include <config.h>
@@ -124,7 +124,7 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_name_t *newname = NULL;
 	dns_rdatalist_t *newlist = NULL;
 	dns_rdataset_t *newset = NULL;
-	isc_buffer_t *tmprdatabuf = NULL, *tmpnamebuf = NULL;
+	isc_buffer_t *tmprdatabuf = NULL;
 
 	RETERR(dns_message_gettemprdata(msg, &newrdata));
 
@@ -135,14 +135,9 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	dns_rdata_fromregion(newrdata, rdata->rdclass, rdata->type, &newr);
 	dns_message_takebuffer(msg, &tmprdatabuf);
 
-	dns_name_toregion(name, &r);
 	RETERR(dns_message_gettempname(msg, &newname));
 	dns_name_init(newname, NULL);
-	RETERR(isc_buffer_allocate(msg->mctx, &tmpnamebuf, r.length));
-	isc_buffer_availableregion(tmpnamebuf, &newr);
-	memcpy(newr.base, r.base, r.length);
-	dns_name_fromregion(newname, &newr);
-	dns_message_takebuffer(msg, &tmpnamebuf);
+	RETERR(dns_name_dup(name, msg->mctx, newname));
 
 	RETERR(dns_message_gettemprdatalist(msg, &newlist));
 	newlist->rdclass = newrdata->rdclass;

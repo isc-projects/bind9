@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.133 2000/09/28 05:48:50 marka Exp $ */
+/* $Id: query.c,v 1.134 2000/10/07 00:09:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2089,6 +2089,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
+	dns_rdata_cname_t cname;
+	dns_rdata_dname_t dname;
 
 	CTRACE("query_find");
 
@@ -2614,10 +2616,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
-		r.base = rdata.data;
-		r.length = rdata.length;
+		result = dns_rdata_tostruct(&rdata, &cname, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		dns_name_init(tname, NULL);
-		dns_name_fromregion(tname, &r);
+		dns_name_clone(&cname.cname, tname);
+		dns_rdata_freestruct(&cname);
 		query_maybeputqname(client);
 		client->query.qname = tname;
 		want_restart = ISC_TRUE;
@@ -2658,10 +2662,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_rdataset_current(trdataset, &rdata);
-		r.base = rdata.data;
-		r.length = rdata.length;
+		result = dns_rdata_tostruct(&rdata, &dname, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		dns_name_init(tname, NULL);
-		dns_name_fromregion(tname, &r);
+		dns_name_clone(&dname.dname, tname);
+		dns_rdata_freestruct(&dname);
 		/*
 		 * Construct the new qname.
 		 */

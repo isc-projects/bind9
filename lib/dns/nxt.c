@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.21 2000/09/12 09:55:31 bwelling Exp $ */
+/* $Id: nxt.c,v 1.22 2000/10/07 00:09:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/result.h>
 
 #define check_result(op, msg) \
@@ -169,23 +170,22 @@ dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 isc_boolean_t
 dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
-	dns_name_t name;
-	isc_region_t r, r2;
-	unsigned char *nxt_bits;
-	int nxt_bits_length;
+	dns_rdata_nxt_t nxtstruct;
+	isc_result_t result;
+	isc_boolean_t present;
 
 	REQUIRE(nxt != NULL);
 	REQUIRE(nxt->type == dns_rdatatype_nxt);
 	REQUIRE(type < 128);
 
-	dns_rdata_toregion(nxt, &r);
-	dns_name_init(&name, NULL);
-	dns_name_fromregion(&name, &r);
-	dns_name_toregion(&name, &r2);
-	nxt_bits = ((unsigned char *)r.base) + r2.length;
-	nxt_bits_length = r.length - r2.length;
-	if (type >= nxt_bits_length * 8)
-		return (ISC_FALSE);
+	/* This should never fail */
+	result = dns_rdata_tostruct(nxt, &nxtstruct, NULL);
+	INSIST(result == ISC_R_SUCCESS);
+	
+	if (type >= nxtstruct.len * 8)
+		present = ISC_FALSE;
 	else
-		return (ISC_TF(bit_isset(nxt_bits, type)));
+		present = ISC_TF(bit_isset(nxtstruct.typebits, type));
+	dns_rdata_freestruct(&nxt);
+	return (present);
 }

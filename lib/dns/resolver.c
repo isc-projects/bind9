@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.170 2000/10/06 18:58:18 bwelling Exp $ */
+/* $Id: resolver.c,v 1.171 2000/10/07 00:09:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1300,8 +1300,6 @@ sort_finds(fetchctx_t *fctx) {
 static isc_result_t
 fctx_getaddresses(fetchctx_t *fctx) {
 	dns_rdata_t rdata;
-	isc_region_t r;
-	dns_name_t name;
 	isc_result_t result;
 	dns_resolver_t *res;
 	isc_stdtime_t now;
@@ -1310,6 +1308,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	isc_sockaddr_t *sa;
 	dns_adbaddrinfo_t *ai;
 	isc_boolean_t pruned, all_bad;
+	dns_rdata_ns_t ns;
 
 	FCTXTRACE("getaddresses");
 
@@ -1387,9 +1386,11 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		/*
 		 * Extract the name from the NS record.
 		 */
-		dns_rdata_toregion(&rdata, &r);
-		dns_name_init(&name, NULL);
-		dns_name_fromregion(&name, &r);
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		if (result != ISC_R_SUCCESS) {
+			dns_rdataset_next(&fctx->nameservers);
+			continue;
+		}
 		options = stdoptions;
 		/*
 		 * If this name is a subdomain of the query domain, tell
@@ -1405,7 +1406,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 * We don't expect this situation to happen very frequently,
 		 * so we've chosen the simple solution.
 		 */
-		if (dns_name_issubdomain(&name, &fctx->domain))
+		if (dns_name_issubdomain(&ns.name, &fctx->domain))
 			options |= DNS_ADBFIND_STARTATROOT;
 		options |= DNS_ADBFIND_GLUEOK;
 		options |= DNS_ADBFIND_HINTOK;
@@ -1416,7 +1417,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		find = NULL;
 		result = dns_adb_createfind(res->view->adb,
 					    res->buckets[fctx->bucketnum].task,
-					    fctx_finddone, fctx, &name,
+					    fctx_finddone, fctx, &ns.name,
 					    &fctx->domain, options, now, NULL,
 					    res->view->dstport, &find);
 		if (result != ISC_R_SUCCESS) {
@@ -1462,6 +1463,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 				dns_adb_destroyfind(&find);
 			}
 		}
+		dns_rdata_freestruct(&ns);
 		result = dns_rdataset_next(&fctx->nameservers);
 	}
 	if (result != ISC_R_NOMORE)
@@ -3092,15 +3094,18 @@ static inline isc_result_t
 cname_target(dns_rdataset_t *rdataset, dns_name_t *tname) {
 	isc_result_t result;
 	dns_rdata_t rdata;
-	isc_region_t r;
+	dns_rdata_cname_t cname;
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_rdataset_current(rdataset, &rdata);
-	dns_rdata_toregion(&rdata, &r);
+	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	dns_name_init(tname, NULL);
-	dns_name_fromregion(tname, &r);
+	dns_name_clone(&cname.cname, tname);
+	dns_rdata_freestruct(&cname);
 
 	return (ISC_R_SUCCESS);
 }
@@ -3111,38 +3116,44 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 {
 	isc_result_t result;
 	dns_rdata_t rdata;
-	isc_region_t r;
-	dns_name_t *dname, tname;
+	dns_name_t *tname;
 	unsigned int nlabels, nbits;
 	int order;
 	dns_namereln_t namereln;
+	dns_rdata_dname_t dname;
 
 	/*
 	 * Get the target name of the DNAME.
 	 */
 	dns_fixedname_init(fixeddname);
-	dname = dns_fixedname_name(fixeddname);
+	tname = dns_fixedname_name(fixeddname);
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_rdataset_current(rdataset, &rdata);
-	dns_rdata_toregion(&rdata, &r);
-	dns_name_init(&tname, NULL);
-	dns_name_fromregion(&tname, &r);
+	result = dns_rdata_tostruct(&rdata, &dname, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Get the prefix of qname.
 	 */
 	namereln = dns_name_fullcompare(qname, oname, &order, &nlabels,
 					&nbits);
-	if (namereln != dns_namereln_subdomain)
+	if (namereln != dns_namereln_subdomain) {
+		dns_rdata_freestruct(&dname);
 		return (DNS_R_FORMERR);
-	result = dns_name_split(qname, nlabels, nbits, dname, NULL);
-	if (result != ISC_R_SUCCESS)
+	}
+	result = dns_name_split(qname, nlabels, nbits, tname, NULL);
+	if (result != ISC_R_SUCCESS) {
+		dns_rdata_freestruct(&dname);
 		return (result);
+	}
 
-	return (dns_name_concatenate(dname, &tname, dname, NULL));
+	result = dns_name_concatenate(tname, &dname.dname, tname, NULL);
+	dns_rdata_freestruct(&dname);
+	return (result);
 }
 
 static isc_result_t

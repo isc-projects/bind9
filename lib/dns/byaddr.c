@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.21 2000/08/26 01:36:46 bwelling Exp $ */
+/* $Id: byaddr.c,v 1.22 2000/10/07 00:09:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/events.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/view.h>
@@ -131,9 +132,7 @@ static inline isc_result_t
 copy_ptr_targets(dns_byaddr_t *byaddr) {
 	isc_result_t result;
 	dns_name_t *name;
-	dns_name_t target;
 	dns_rdata_t rdata;
-	isc_region_t r;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
@@ -141,16 +140,19 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 
 	result = dns_rdataset_first(&byaddr->rdataset);
 	while (result == ISC_R_SUCCESS) {
+		dns_rdata_ptr_t ptr;
 		dns_rdataset_current(&byaddr->rdataset, &rdata);
-		r.base = rdata.data;
-		r.length = rdata.length;
-		dns_name_init(&target, NULL);
-		dns_name_fromregion(&target, &r);
+		result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		name = isc_mem_get(byaddr->mctx, sizeof *name);
-		if (name == NULL)
+		if (name == NULL) {
+			dns_rdata_freestruct(&ptr);
 			return (ISC_R_NOMEMORY);
+		}
 		dns_name_init(name, NULL);
-		result = dns_name_dup(&target, byaddr->mctx, name);
+		result = dns_name_dup(&ptr.ptr, byaddr->mctx, name);
+		dns_rdata_freestruct(&ptr);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(byaddr->mctx, name, sizeof *name);
 			return (ISC_R_NOMEMORY);
@@ -207,13 +209,13 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 	isc_boolean_t send_event = ISC_FALSE;
 	isc_event_t *ievent;
 	dns_name_t *name, *fname, *prefix;
-	dns_name_t tname;
 	dns_fixedname_t foundname, fixed;
 	dns_rdata_t rdata;
-	isc_region_t r;
 	unsigned int nlabels, nbits;
 	int order;
 	dns_namereln_t namereln;
+	dns_rdata_cname_t cname;
+	dns_rdata_dname_t dname;
 
 	REQUIRE(VALID_BYADDR(byaddr));
 
@@ -280,12 +282,12 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 			if (result != ISC_R_SUCCESS)
 				break;
 			dns_rdataset_current(&byaddr->rdataset, &rdata);
-			r.base = rdata.data;
-			r.length = rdata.length;
-			dns_name_init(&tname, NULL);
-			dns_name_fromregion(&tname, &r);
-			result = dns_name_concatenate(&tname, NULL, name,
+			result = dns_rdata_tostruct(&rdata, &cname, NULL);
+			if (result != ISC_R_SUCCESS)
+				break;
+			result = dns_name_concatenate(&cname.cname, NULL, name,
 						      NULL);
+			dns_rdata_freestruct(&cname);
 			if (result == ISC_R_SUCCESS)
 				want_restart = ISC_TRUE;
 			break;
@@ -300,10 +302,9 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 			if (result != ISC_R_SUCCESS)
 				break;
 			dns_rdataset_current(&byaddr->rdataset, &rdata);
-			r.base = rdata.data;
-			r.length = rdata.length;
-			dns_name_init(&tname, NULL);
-			dns_name_fromregion(&tname, &r);
+			result = dns_rdata_tostruct(&rdata, &dname, NULL);
+			if (result != ISC_R_SUCCESS)
+				break;
 			/*
 			 * Construct the new query name and start over.
 			 */
@@ -311,10 +312,13 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 			prefix = dns_fixedname_name(&fixed);
 			result = dns_name_split(name, nlabels, nbits, prefix,
 						NULL);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
+				dns_rdata_freestruct(&dname);
 				break;
-			result = dns_name_concatenate(prefix, &tname, name,
-						      NULL);
+			}
+			result = dns_name_concatenate(prefix, &dname.dname,
+						      name, NULL);
+			dns_rdata_freestruct(&dname);
 			if (result == ISC_R_SUCCESS)
 				want_restart = ISC_TRUE;
 			break;

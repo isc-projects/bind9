@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.81 2000/09/12 12:01:50 bwelling Exp $ */
+/* $Id: validator.c,v 1.82 2000/10/07 00:09:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -361,8 +361,6 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 {
 	int order;
 	dns_rdata_t rdata;
-	isc_region_t r;
-	dns_name_t nextname;
 	isc_result_t result;
 
 	result = dns_rdataset_first(nxtset);
@@ -389,13 +387,14 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		}
 		validator_log(val, ISC_LOG_DEBUG(3), "nxt bitmask ok");
 	} else if (order > 0) {
+		dns_rdata_nxt_t nxt;
+
 		/*
 		 * The NXT owner name is less than the nonexistent name.
 		 */
-		dns_rdata_toregion(&rdata, &r);
-		dns_name_init(&nextname, NULL);
-		dns_name_fromregion(&nextname, &r);
-		order = dns_name_compare(val->event->name, &nextname);
+		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		order = dns_name_compare(val->event->name, &nxt.next);
 		if (order >= 0) {
 			/*
 			 * The NXT next name is less than the nonexistent
@@ -408,14 +407,16 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			dns_rdataset_current(signxtset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &siginfo, NULL);
 			INSIST (result == ISC_R_SUCCESS);
-			if (!dns_name_equal(&siginfo.signer, &nextname)) {
+			if (!dns_name_equal(&siginfo.signer, &nxt.next)) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					"next name is not greater");
+				dns_rdata_freestruct(&nxt);
 				return (ISC_FALSE);
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "nxt points to zone apex, ok");
 		}
+		dns_rdata_freestruct(&nxt);
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "nxt range ok");
 	} else {

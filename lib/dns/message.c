@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.148 2000/10/06 22:02:02 bwelling Exp $ */
+/* $Id: message.c,v 1.149 2000/10/07 00:09:21 bwelling Exp $ */
 
 /***
  *** Imports
@@ -440,6 +440,8 @@ msgresetsigs(dns_message_t *msg, isc_boolean_t replying) {
 				isc_mempool_put(msg->rdspool, msg->querytsig);
 			}
 		}
+		if (dns_name_dynamic(msg->tsigname))
+			dns_name_free(msg->tsigname, msg->mctx);
 		isc_mempool_put(msg->namepool, msg->tsigname);
 		msg->tsig = NULL;
 		msg->tsigname = NULL;
@@ -452,8 +454,11 @@ msgresetsigs(dns_message_t *msg, isc_boolean_t replying) {
 		INSIST(dns_rdataset_isassociated(msg->sig0));
 		dns_rdataset_disassociate(msg->sig0);
 		isc_mempool_put(msg->rdspool, msg->sig0);
-		if (msg->sig0name != NULL)
+		if (msg->sig0name != NULL) {
+			if (dns_name_dynamic(msg->sig0name))
+				dns_name_free(msg->sig0name, msg->mctx);
 			isc_mempool_put(msg->namepool, msg->sig0name);
+		}
 		msg->sig0 = NULL;
 		msg->sig0name = NULL;
 	}
@@ -2544,7 +2549,6 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer) {
 
 isc_result_t
 dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
-	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_t rdata;
 
@@ -2582,8 +2586,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 			result = ISC_R_SUCCESS;
 		else
 			result = DNS_R_SIGINVALID;
-		dns_name_toregion(&sig.signer, &r);
-		dns_name_fromregion(signer, &r);
+		dns_name_clone(&sig.signer, signer);
 		dns_rdata_freestruct(&sig);
 	}
 	else {
@@ -2607,8 +2610,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 				result = DNS_R_NOIDENTITY;
 			identity = &msg->tsigkey->name;
 		}
-		dns_name_toregion(identity, &r);
-		dns_name_fromregion(signer, &r);
+		dns_name_clone(identity, signer);
 		dns_rdata_freestruct(&tsig);
 	}
 
