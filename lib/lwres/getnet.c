@@ -12,6 +12,18 @@ getnetbyname(const char *name) {
 	return (NULL);
 }
 
+#ifdef ISC_LWRES_GETNETBYADDRINADDR
+struct netent *
+getnetbyaddr(in_addr_t net, int type) {
+
+	if (type == AF_INET) 
+		return (NULL);
+
+	/* XXX */
+	UNUSED(net);
+	return (NULL);
+}
+#else
 struct netent *
 getnetbyaddr(unsigned long net, int type) {
 
@@ -22,6 +34,7 @@ getnetbyaddr(unsigned long net, int type) {
 	UNUSED(net);
 	return (NULL);
 }
+#endif
 
 struct netent *
 getnetent() {
