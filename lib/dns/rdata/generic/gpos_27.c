@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.32.12.1 2003/08/12 14:16:12 marka Exp $ */
+/* $Id: gpos_27.c,v 1.32.12.2 2003/09/24 03:47:15 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -39,7 +39,7 @@ fromtext_gpos(ARGS_FROMTEXT) {
 	UNUSED(downcase);
 	UNUSED(callbacks);
 
-	for (i = 0; i < 3 ; i++) {
+	for (i = 0; i < 3; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring,
 					      ISC_FALSE));
@@ -60,7 +60,7 @@ totext_gpos(ARGS_TOTEXT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	for (i = 0; i < 3 ; i++) {
+	for (i = 0; i < 3; i++) {
 		RETERR(txt_totext(&region, target));
 		if (i != 2)
 			RETERR(str_totext(" ", target));
@@ -80,7 +80,7 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	UNUSED(rdclass);
 	UNUSED(downcase);
 
-	for (i = 0 ; i < 3; i++)
+	for (i = 0; i < 3; i++)
 		RETERR(txt_fromwire(source, target));
 	return (ISC_R_SUCCESS);
 }

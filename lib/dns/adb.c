@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.6 2003/09/11 00:18:03 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.7 2003/09/24 03:47:13 marka Exp $ */
 
 /*
  * Implementation notes
@@ -804,7 +804,7 @@ shutdown_names(dns_adb_t *adb) {
 	dns_adbname_t *name;
 	dns_adbname_t *next_name;
 
-	for (bucket = 0 ; bucket < NBUCKETS ; bucket++) {
+	for (bucket = 0; bucket < NBUCKETS; bucket++) {
 		LOCK(&adb->namelocks[bucket]);
 		adb->name_sd[bucket] = ISC_TRUE;
 
@@ -849,7 +849,7 @@ shutdown_entries(dns_adb_t *adb) {
 	dns_adbentry_t *entry;
 	dns_adbentry_t *next_entry;
 
-	for (bucket = 0 ; bucket < NBUCKETS ; bucket++) {
+	for (bucket = 0; bucket < NBUCKETS; bucket++) {
 		LOCK(&adb->entrylocks[bucket]);
 		adb->entry_sd[bucket] = ISC_TRUE;
 
@@ -1925,7 +1925,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 
 	isc_stdtime_get(&now);
 
-	for (i = 0 ; i < CLEAN_BUCKETS ; i++) {
+	for (i = 0; i < CLEAN_BUCKETS; i++) {
 		/*
 		 * Call our cleanup routines.
 		 */
@@ -2063,13 +2063,13 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_mutexblock_init(adb->namelocks, NBUCKETS);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
-	for (i = 0 ; i < NBUCKETS ; i++) {
+	for (i = 0; i < NBUCKETS; i++) {
 		ISC_LIST_INIT(adb->names[i]);
 		adb->name_sd[i] = ISC_FALSE;
 		adb->name_refcnt[i] = 0;
 		adb->irefcnt++;
 	}
-	for (i = 0 ; i < NBUCKETS ; i++) {
+	for (i = 0; i < NBUCKETS; i++) {
 		ISC_LIST_INIT(adb->entries[i]);
 		adb->entry_sd[i] = ISC_FALSE;
 		adb->entry_refcnt[i] = 0;
@@ -2745,15 +2745,15 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 			adb, adb->erefcnt, adb->irefcnt,
 			isc_mempool_getallocated(adb->nhmp));
 
-	for (i = 0 ; i < NBUCKETS ; i++)
+	for (i = 0; i < NBUCKETS; i++)
 		LOCK(&adb->namelocks[i]);
-	for (i = 0 ; i < NBUCKETS ; i++)
+	for (i = 0; i < NBUCKETS; i++)
 		LOCK(&adb->entrylocks[i]);
 
 	/*
 	 * Dump the names
 	 */
-	for (i = 0 ; i < NBUCKETS ; i++) {
+	for (i = 0; i < NBUCKETS; i++) {
 		name = ISC_LIST_HEAD(adb->names[i]);
 		if (name == NULL)
 			continue;
@@ -3485,7 +3485,7 @@ dns_adb_flush(dns_adb_t *adb) {
 
 	LOCK(&adb->lock);
 
-	for (i = 0 ; i < NBUCKETS ; i++) {
+	for (i = 0; i < NBUCKETS; i++) {
 		/*
 		 * Call our cleanup routines.
 		 */

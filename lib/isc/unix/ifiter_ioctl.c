@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.3 2003/09/10 05:12:53 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.4 2003/09/24 03:47:18 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -412,7 +412,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		return (ISC_R_FAILURE);
 	if (strlen(address) != 32)
 		return (ISC_R_FAILURE);
-	for (i = 0; i < 16 ; i++) {
+	for (i = 0; i < 16; i++) {
 		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
 		byte = ((index(hex, address[i * 2]) - hex) << 4) |
@@ -426,7 +426,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		isc_netaddr_setzone(&iter->current.address,
 				    (isc_uint32_t)ifindex);
 	}
-	for (i = 0; i < 16 ; i++) {
+	for (i = 0; i < 16; i++) {
 		if (prefix > 8) {
 			addr6.s6_addr[i] = 0xff;
 			prefix -= 8;
@@ -803,7 +803,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		 * Netmask already zeroed.
 		 */
 		iter->current.netmask.family = family;
-		for (i = 0 ; i < lifreq.lifr_addrlen; i += 8) {
+		for (i = 0; i < lifreq.lifr_addrlen; i += 8) {
 			bits = lifreq.lifr_addrlen - i;
 			bits = (bits < 8 ) ? (8-bits) : 0;
 			iter->current.netmask.type.in6.s6_addr[i/8] =

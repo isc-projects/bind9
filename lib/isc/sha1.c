@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.10.2.2 2003/07/22 04:03:48 marka Exp $ */
+/* $Id: sha1.c,v 1.10.2.2.2.1 2003/09/24 03:47:18 marka Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -251,7 +251,7 @@ isc_sha1_update(isc_sha1_t *context, const unsigned char *data,
 	if ((j + len) > 63) {
 		(void)memcpy(&context->buffer[j], data, (i = 64 - j));
 		transform(context->state, context->buffer);
-		for ( ; i + 63 < len; i += 64)
+		for (; i + 63 < len; i += 64)
 			transform(context->state, &data[i]);
 		j = 0;
 	} else {

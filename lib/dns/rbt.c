@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2.2.2 2003/08/20 05:33:16 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.2.2.3 2003/09/24 03:47:14 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -186,7 +186,7 @@ name_hash(dns_name_t *name) {
 	nlabels = dns_name_countlabels(name);
 	hash = 0;
 
-	for ( ; nlabels > 0; nlabels--) {
+	for (; nlabels > 0; nlabels--) {
 		dns_name_getlabelsequence(name, nlabels - 1, 1, &tname);
 		hash += dns_name_hash(&tname, ISC_FALSE);
 	}

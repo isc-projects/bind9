@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.15.12.2 2003/08/26 03:24:13 marka Exp $ */
+/* $Id: net.h,v 1.15.12.3 2003/09/24 03:47:20 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -133,7 +133,7 @@ typedef isc_uint16_t in_port_t;
 #undef FD_CLR
 #define FD_CLR(fd, set) do { \
     u_int __i; \
-    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count ; __i++) { \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
         if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
             while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
                 ((fd_set FAR *)(set))->fd_array[__i] = \

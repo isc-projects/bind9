@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.37.2.2.2.2 2003/08/12 07:10:26 marka Exp $ */
+/* $Id: lwresd.c,v 1.37.2.2.2.3 2003/09/24 03:47:09 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -152,7 +152,7 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 	if (lwc->nsnext > 0) {
 		CHECK(buffer_putstr(&b, "\tforwarders {\n"));
 
-		for (i = 0 ; i < lwc->nsnext ; i++) {
+		for (i = 0; i < lwc->nsnext; i++) {
 			CHECK(lwaddr_sockaddr_fromlwresaddr(
 							&sa,
 							&lwc->nameservers[i],
@@ -173,7 +173,7 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 		CHECK(buffer_putstr(&b, "\t\t{\n"));
 		CHECK(buffer_putstr(&b, "\t\t\tany;\n"));
 		CHECK(buffer_putstr(&b, "\t\t\t{\n"));
-		for (i = 0 ; i < lwc->sortlistnxt; i++) {
+		for (i = 0; i < lwc->sortlistnxt; i++) {
 			lwres_addr_t *lwaddr = &lwc->sortlist[i].addr;
 			lwres_addr_t *lwmask = &lwc->sortlist[i].mask;
 			unsigned int mask;
@@ -245,7 +245,7 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 	if (lwc->lwnext > 0) {
 		CHECK(buffer_putstr(&b, "\tlisten-on {\n"));
 
-		for (i = 0 ; i < lwc->lwnext ; i++) {
+		for (i = 0; i < lwc->lwnext; i++) {
 			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa,
 							    &lwc->lwservers[i],
 							    0));
@@ -602,7 +602,7 @@ listener_startclients(ns_lwreslistener_t *listener) {
 	 * Create the client managers.
 	 */
 	result = ISC_R_SUCCESS;
-	for (i = 0 ; i < NTASKS && result == ISC_R_SUCCESS; i++)
+	for (i = 0; i < NTASKS && result == ISC_R_SUCCESS; i++)
 		result = ns_lwdclientmgr_create(listener, NRECVS,
 						ns_g_taskmgr);
 

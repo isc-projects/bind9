@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.31.2.1.10.4 2003/08/13 06:51:32 marka Exp $
+ * $Id: dst_parse.c,v 1.31.2.1.10.5 2003/09/24 03:47:16 marka Exp $
  */
 
 #include <config.h>
@@ -75,7 +75,7 @@ static int
 find_value(const char *s, const unsigned int alg) {
 	int i;
 
-	for (i = 0; ; i++) {
+	for (i = 0;; i++) {
 		if (map[i].tag == NULL)
 			return (-1);
 		else if (strcasecmp(s, map[i].tag) == 0 &&
@@ -88,7 +88,7 @@ static const char *
 find_tag(const int value) {
 	int i;
 
-	for (i = 0; ; i++) {
+	for (i = 0;; i++) {
 		if (map[i].tag == NULL)
 			return (NULL);
 		else if (value == map[i].value)

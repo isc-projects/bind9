@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.5.2.4 2003/09/10 05:28:40 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.5.2.5 2003/09/24 03:47:09 marka Exp $ */
 
 #include <config.h>
 
@@ -736,7 +736,7 @@ compound_rrstream_first(rrstream_t *rs) {
 	do {
 		rrstream_t *curstream = s->components[s->state];
 		s->result = curstream->methods->first(curstream);
-	} while (s->result == ISC_R_NOMORE && s->state < 2) ;
+	} while (s->result == ISC_R_NOMORE && s->state < 2);
 	return (s->result);
 }
 
@@ -1399,7 +1399,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	 * Try to fit in as many RRs as possible, unless "one-answer"
 	 * format has been requested.
 	 */
-	for (n_rrs = 0; ; n_rrs++) {
+	for (n_rrs = 0;; n_rrs++) {
 		dns_name_t *name = NULL;
 		isc_uint32_t ttl;
 		dns_rdata_t *rdata = NULL;

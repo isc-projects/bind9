@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18.2.4.2.2 2003/09/11 00:18:07 marka Exp $ */
+/* $Id: time.c,v 1.18.2.4.2.3 2003/09/24 03:47:14 marka Exp $ */
 
 #include <config.h>
 
@@ -145,7 +145,7 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 	 * Calulate seconds since epoch.
 	 */
 	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
-	for (i = 0; i < (month - 1) ; i++)
+	for (i = 0; i < (month - 1); i++)
 		value += days[i] * 86400;
 	if (is_leap(year) && month > 2)
 		value += 86400;

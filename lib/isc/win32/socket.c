@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.1 2003/09/11 00:18:16 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.2 2003/09/24 03:47:19 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -912,7 +912,7 @@ internal_sendmsg(isc_socket_t *sock, IoCompletionInfo *lpo,
 			case WSA_IO_INCOMPLETE :
 			case WSA_WAIT_IO_COMPLETION :
 			case WSA_IO_PENDING :
-				break ;
+				break;
 
 			default :
 				return (-1);
@@ -957,7 +957,7 @@ internal_recvmsg(isc_socket_t *sock, IoCompletionInfo *lpo,
 			case WSA_IO_INCOMPLETE :
 			case WSA_WAIT_IO_COMPLETION :
 			case WSA_IO_PENDING :
-					break ;
+					break;
 
 			default :
 					return (-1);
@@ -1294,7 +1294,7 @@ dump_msg(struct msghdr *msg, isc_socket_t *sock) {
 	printf("MSGHDR %p, Socket #: %u\n", msg, sock->fd);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
-	for (i = 0 ; i < (unsigned int)msg->msg_iovlen ; i++)
+	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
 		printf("\t\t%d\tbase %p, len %d\n", i,
 		       msg->msg_iov[i].buf,
 		       msg->msg_iov[i].len);

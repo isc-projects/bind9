@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.17 2003/09/19 12:44:37 marka Exp $ */
+/* $Id: check.c,v 1.37.6.18 2003/09/24 03:47:12 marka Exp $ */
 
 #include <config.h>
 
@@ -364,7 +364,7 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 	list = cfg_tuple_get(obj, "addresses");
 	element = cfg_list_first(list);
  resume:	
-	for ( ;
+	for (;
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.35 2001/07/16 03:06:27 marka Exp $ */
+/* $Id: rp_17.c,v 1.35.12.1 2003/09/24 03:47:15 marka Exp $ */
 
 /* RFC 1183 */
 
@@ -39,7 +39,7 @@ fromtext_rp(ARGS_FROMTEXT) {
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 
-	for (i = 0; i < 2 ; i++) {
+	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
 					      ISC_FALSE));

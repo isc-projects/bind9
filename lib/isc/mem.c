@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.7.2.1 2003/09/11 00:18:13 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.7.2.2 2003/09/24 03:47:17 marka Exp $ */
 
 #include <config.h>
 
@@ -216,7 +216,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	while (dl != NULL) {
 		if (dl->count == DEBUGLIST_COUNT)
 			goto next;
-		for (i = 0 ; i < DEBUGLIST_COUNT ; i++) {
+		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == NULL) {
 				dl->ptr[i] = ptr;
 				dl->file[i] = file;
@@ -233,7 +233,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
 	INSIST(dl != NULL);
 
 	ISC_LINK_INIT(dl, link);
-	for (i = 1 ; i < DEBUGLIST_COUNT ; i++) {
+	for (i = 1; i < DEBUGLIST_COUNT; i++) {
 		dl->ptr[i] = NULL;
 		dl->file[i] = NULL;
 		dl->line[i] = 0;
@@ -266,7 +266,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 
 	dl = ISC_LIST_HEAD(mctx->debuglist);
 	while (dl != NULL) {
-		for (i = 0 ; i < DEBUGLIST_COUNT ; i++) {
+		for (i = 0; i < DEBUGLIST_COUNT; i++) {
 			if (dl->ptr[i] == ptr) {
 				dl->ptr[i] = NULL;
 				dl->file[i] = NULL;
@@ -1068,7 +1068,7 @@ print_active(isc_mem_t *mctx, FILE *out) {
 						    ISC_MSG_NONE,
 						    "\tNone.\n"));
 		while (dl != NULL) {
-			for (i = 0 ; i < DEBUGLIST_COUNT ; i++)
+			for (i = 0; i < DEBUGLIST_COUNT; i++)
 				if (dl->ptr[i] != NULL)
 					fprintf(out,
 						isc_msgcat_get(isc_msgcat,
@@ -1502,7 +1502,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	 * We need to dip into the well.  Lock the memory context here and
 	 * fill up our free list.
 	 */
-	for (i = 0 ; i < mpctx->fillcount ; i++) {
+	for (i = 0; i < mpctx->fillcount; i++) {
 #if ISC_MEM_USE_INTERNAL_MALLOC
 		LOCK(&mctx->lock);
 		item = mem_getunlocked(mctx, mpctx->size);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.24.12.1 2003/09/11 00:18:00 marka Exp $ */
+/* $Id: compress_test.c,v 1.24.12.2 2003/09/24 03:47:09 marka Exp $ */
 
 #include <config.h>
 
@@ -158,7 +158,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 
 	if (raw) {
 		unsigned int i;
-		for (i = 0 ; i < source.used ; /* */ ) {
+		for (i = 0; i < source.used; /* */ ) {
 			fprintf(stdout, "%02x",
 				((unsigned char *)source.base)[i]);
 			if ((++i % 20) == 0)
@@ -195,7 +195,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 
 	if (raw) {
 		unsigned int i;
-		for (i = 0 ; i < target.used ; /* */ ) {
+		for (i = 0; i < target.used; /* */ ) {
 			fprintf(stdout, "%02x",
 				((unsigned char *)target.base)[i]);
 			if ((++i % 20) == 0)

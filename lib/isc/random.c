@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.15.74.1 2003/08/25 05:06:11 marka Exp $ */
+/* $Id: random.c,v 1.15.74.2 2003/09/24 03:47:17 marka Exp $ */
 
 #include <config.h>
 
@@ -76,7 +76,7 @@ isc_random_get(isc_uint32_t *val)
 	 * rand()'s lower bits are not random.
 	 * rand()'s upper bit is zero.
 	 */
-	*val = ((rand() >> 4) & 0xffff) | ((rand() << 12) & 0xffff0000) ;
+	*val = ((rand() >> 4) & 0xffff) | ((rand() << 12) & 0xffff0000);
 #else
 	*val = arc4random();
 #endif

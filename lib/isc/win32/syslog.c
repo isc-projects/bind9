@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.3 2001/07/09 21:06:19 gson Exp $ */
+/* $Id: syslog.c,v 1.3.12.1 2003/09/24 03:47:20 marka Exp $ */
 
 #include <config.h>
 
@@ -78,7 +78,7 @@ isc_syslog_facilityfromstring(const char *str, int *facilityp) {
 	REQUIRE(str != NULL);
 	REQUIRE(facilityp != NULL);
 
-	for (i = 0 ; facilities[i].strval != NULL ; i++) {
+	for (i = 0; facilities[i].strval != NULL; i++) {
 		if (strcasecmp(facilities[i].strval, str) == 0) {
 			*facilityp = facilities[i].val;
 			return (ISC_R_SUCCESS);

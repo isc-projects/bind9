@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.60.12.1 2003/09/11 00:18:02 marka Exp $ */
+/* $Id: wire_test.c,v 1.60.12.2 2003/09/24 03:47:11 marka Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ main(int argc, char *argv[]) {
 		memset(b, 0, sizeof(b));
 		isc_buffer_clear(&source);
 
-		for (i = 0 ; i < DNS_SECTION_MAX ; i++)
+		for (i = 0; i < DNS_SECTION_MAX; i++)
 			message->counts[i] = 0;  /* Another hack XXX */
 
 		result = dns_compress_init(&cctx, -1, mctx);

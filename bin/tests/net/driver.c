@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.7 2001/01/09 21:42:05 bwelling Exp $ */
+/* $Id: driver.c,v 1.7.12.1 2003/09/24 03:47:12 marka Exp $ */
 
 #include <config.h>
 
@@ -87,7 +87,7 @@ main(int argc, char **argv) {
 	printf("S:%s:%s\n", SUITENAME, gettime());
 
 	n_failed = 0;
-	for (testno = 0 ; testno < NTESTS ; testno++) {
+	for (testno = 0; testno < NTESTS; testno++) {
 		test = &tests[testno];
 		printf("T:%s:%u:A\n", test->tag, testno + 1);
 		printf("A:%s\n", test->description);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.17 2003/09/10 05:23:08 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.18 2003/09/24 03:47:08 marka Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ isc_result_t
 ns_config_get(cfg_obj_t **maps, const char* name, cfg_obj_t **obj) {
 	int i;
 
-	for (i = 0; ; i++) {
+	for (i = 0;; i++) {
 		if (maps[i] == NULL)
 			return (ISC_R_NOTFOUND);
 		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
@@ -411,7 +411,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 
 	element = cfg_list_first(addrlist);
  resume:
-	for ( ;
+	for (;
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
@@ -600,7 +600,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	if (addrs != NULL)
 		isc_mem_put(mctx, addrs, addrcount * sizeof(isc_sockaddr_t));
 	if (keys != NULL) {
-		for (j = 0 ; j <= i; j++) {
+		for (j = 0; j <= i; j++) {
 			if (keys[j] == NULL)
 				continue;
 			if (dns_name_dynamic(keys[j]))

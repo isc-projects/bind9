@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.30.2.3.2.3 2003/08/13 04:26:36 marka Exp $ */
+/* $Id: loc_29.c,v 1.30.2.3.2.4 2003/09/24 03:47:15 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -109,7 +109,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == '.') {
 		const char *l;
 		e++;
-		for (i = 0; i < 3 ; i++) {
+		for (i = 0; i < 3; i++) {
 			if (*e == 0)
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -117,7 +117,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			s1 *= 10;
 			s1 += tmp;
 		}
-		for ( ; i < 3 ; i++)
+		for (; i < 3; i++)
 			s1 *= 10;
 		l = e;
 		while (*e != 0) {
@@ -194,7 +194,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (*e == '.') {
 		const char *l;
 		e++;
-		for (i = 0; i < 3 ; i++) {
+		for (i = 0; i < 3; i++) {
 			if (*e == 0)
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -202,7 +202,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			s2 *= 10;
 			s2 += tmp;
 		}
-		for ( ; i < 3 ; i++)
+		for (; i < 3; i++)
 			s2 *= 10;
 		l = e;
 		while (*e != 0) {
@@ -249,7 +249,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	cm = 0;
 	if (*e == '.') {
 		e++;
-		for (i = 0; i < 2 ; i++) {
+		for (i = 0; i < 2; i++) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -260,7 +260,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			else
 				cm += tmp;
 		}
-		for ( ; i < 2 ; i++)
+		for (; i < 2; i++)
 			cm *= 10;
 	}
 	if (*e == 'm')
@@ -296,7 +296,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	cm = 0;
 	if (*e == '.') {
 		e++;
-		for (i = 0; i < 2 ; i++) {
+		for (i = 0; i < 2; i++) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -304,7 +304,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			cm *= 10;
 			cm += tmp;
 		}
-		for ( ; i < 2 ; i++)
+		for (; i < 2; i++)
 			cm *= 10;
 	}
 	if (*e == 'm')
@@ -315,7 +315,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0 ; exp < 7 ; exp++)
+		for (exp = 0; exp < 7; exp++)
 			if (m < poweroften[exp+1])
 				break;
 		man = m / poweroften[exp];
@@ -349,7 +349,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	cm = 0;
 	if (*e == '.') {
 		e++;
-		for (i = 0; i < 2 ; i++) {
+		for (i = 0; i < 2; i++) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -357,7 +357,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			cm *= 10;
 			cm += tmp;
 		}
-		for ( ; i < 2 ; i++)
+		for (; i < 2; i++)
 			cm *= 10;
 	}
 	if (*e == 'm')
@@ -368,7 +368,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0 ; exp < 7 ; exp++)
+		for (exp = 0; exp < 7; exp++)
 			if (m < poweroften[exp+1])
 				break;
 		man = m / poweroften[exp];
@@ -400,7 +400,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	cm = 0;
 	if (*e == '.') {
 		e++;
-		for (i = 0; i < 2 ; i++) {
+		for (i = 0; i < 2; i++) {
 			if (*e == 0 || *e == 'm')
 				break;
 			if ((tmp = decvalue(*e++)) < 0)
@@ -408,7 +408,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 			cm *= 10;
 			cm += tmp;
 		}
-		for ( ; i < 2 ; i++)
+		for (; i < 2; i++)
 			cm *= 10;
 	}
 	if (*e == 'm')
@@ -419,7 +419,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * We don't just multiply out as we will overflow.
 	 */
 	if (m > 0) {
-		for (exp = 0 ; exp < 7 ; exp++)
+		for (exp = 0; exp < 7; exp++)
 			if (m < poweroften[exp+1])
 				break;
 		man = m / poweroften[exp];

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.2.2.2 2002/08/08 21:27:47 marka Exp $ */
+/* $Id: net.h,v 1.2.2.2.8.1 2003/09/24 03:47:21 marka Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -77,7 +77,7 @@
 #undef FD_CLR
 #define FD_CLR(fd, set) do { \
     u_int __i; \
-    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count ; __i++) { \
+    for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
         if (((fd_set FAR *)(set))->fd_array[__i] == (SOCKET) fd) { \
             while (__i < ((fd_set FAR *)(set))->fd_count-1) { \
                 ((fd_set FAR *)(set))->fd_array[__i] = \
