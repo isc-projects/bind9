@@ -24,6 +24,7 @@
 ./lib/isc/include/isc/region.h			1998
 ./lib/isc/include/isc/result.h			1998
 ./lib/isc/include/isc/rwlock.h			1998
+./lib/isc/include/isc/symtab.h			1996,1997,1998
 ./lib/isc/include/isc/task.h			1998
 ./lib/isc/include/isc/timer.h			1998
 ./lib/isc/include/isc/mem.h			1997,1998
@@ -48,6 +49,7 @@
 ./lib/isc/mem.c					1997,1998
 ./lib/isc/rbtgen.c				1998
 ./lib/isc/rwlock.c				1998
+./lib/isc/symtab.c				1996,1997,1998
 ./lib/isc/task.c				1998
 ./lib/isc/timer.c				1998
 ./lib/isc/result.c				1998
