@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.20 2000/04/06 22:02:41 explorer Exp $ */
+/* $Id: afsdb_18.c,v 1.21 2000/04/07 03:54:07 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_AFSDB_18_C
 #define RDATA_GENERIC_AFSDB_18_C
+
+#define RRTYPE_AFSDB_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,

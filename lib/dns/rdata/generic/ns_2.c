@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.23 2000/04/06 22:03:02 explorer Exp $ */
+/* $Id: ns_2.c,v 1.24 2000/04/07 03:54:25 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
+
+#define RRTYPE_NS_ATTRIBUTES (DNS_RDATATYPEATTR_ZONECUTAUTH)
 
 static inline isc_result_t
 fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,

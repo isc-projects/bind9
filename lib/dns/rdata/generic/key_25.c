@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.18 2000/04/06 22:02:50 explorer Exp $ */
+/* $Id: key_25.c,v 1.19 2000/04/07 03:54:15 explorer Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -25,6 +25,8 @@
 
 #ifndef RDATA_GENERIC_KEY_25_C
 #define RDATA_GENERIC_KEY_25_C
+
+#define RRTYPE_KEY_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
 fromtext_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,

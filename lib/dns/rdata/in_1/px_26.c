@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.16 2000/04/06 22:03:32 explorer Exp $ */
+/* $Id: px_26.c,v 1.17 2000/04/07 03:54:50 explorer Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_IN_1_PX_26_C
 #define RDATA_IN_1_PX_26_C
+
+#define RRTYPE_PX_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_px(dns_rdataclass_t rdclass, dns_rdatatype_t type,

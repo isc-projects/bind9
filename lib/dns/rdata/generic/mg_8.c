@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.21 2000/04/06 22:02:57 explorer Exp $ */
+/* $Id: mg_8.c,v 1.22 2000/04/07 03:54:21 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MG_8_C
 #define RDATA_GENERIC_MG_8_C
+
+#define RRTYPE_MG_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_mg(dns_rdataclass_t rdclass, dns_rdatatype_t type,

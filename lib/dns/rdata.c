@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.73 2000/04/06 22:02:10 explorer Exp $ */
+/* $Id: rdata.c,v 1.74 2000/04/07 03:54:04 explorer Exp $ */
 
 #include <config.h>
 
@@ -641,6 +641,15 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	return (result);
 }
 
+unsigned int
+dns_rdatatype_attributes(dns_rdatatype_t type)
+{
+	if (type > 255)
+		return (DNS_RDATATYPEATTR_UNKNOWN);
+
+	return (typeattr[type].flags);
+}
+
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */ 
 
 static isc_result_t
@@ -747,11 +756,17 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	return (DNS_R_UNKNOWN);
 }
 
-/* XXXRTH  This should probably be a switch() */
-
 isc_result_t
-dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(type, target, types));
+dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target)
+{
+	char buf[sizeof "RRTYPE4294967296"];
+
+	if (type > 255) {
+		sprintf(buf, "RRTYPE%u", type);
+		return (str_totext(buf, target));
+	}
+
+	return (str_totext(typeattr[type].name, target));
 }
 
 /* XXXRTH  Should we use a hash table here? */
@@ -1553,7 +1568,9 @@ ismeta(unsigned int code, struct tbl *table) {
 
 isc_boolean_t
 dns_rdatatype_ismeta(dns_rdatatype_t type) {
-	return (ismeta(type, types));
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_META) != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }	
 
 isc_boolean_t
@@ -1562,15 +1579,21 @@ dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
 }
 
 isc_boolean_t
-dns_rdatatype_isdnssec(dns_rdatatype_t type) {
-	return ((type == dns_rdatatype_sig ||
-		 type == dns_rdatatype_key ||
-		 type == dns_rdatatype_nxt) ?
-		ISC_TRUE : ISC_FALSE);
+dns_rdatatype_isdnssec(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_DNSSEC) != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 isc_boolean_t
-dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
+{
+	if ((dns_rdatatype_attributes(type)
+	     & (DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH))
+	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 	return (type == dns_rdatatype_ns ||
 		dns_rdatatype_isdnssec(type) ?
 		ISC_TRUE : ISC_FALSE);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.15 2000/04/06 22:02:46 explorer Exp $ */
+/* $Id: gpos_27.c,v 1.16 2000/04/07 03:54:12 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_GPOS_27_C
 #define RDATA_GENERIC_GPOS_27_C
+
+#define RRTYPE_GPOS_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,

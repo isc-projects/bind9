@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.24 2000/04/06 22:03:15 explorer Exp $ */
+/* $Id: tkey_249.c,v 1.25 2000/04/07 03:54:36 explorer Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -25,6 +25,8 @@
 
 #ifndef RDATA_GENERIC_TKEY_249_C
 #define RDATA_GENERIC_TKEY_249_C
+
+#define RRTYPE_TKEY_ATTRIBUTES (DNS_RDATATYPEATTR_META)
 
 static inline isc_result_t
 fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,

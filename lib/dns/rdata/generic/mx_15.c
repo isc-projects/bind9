@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.27 2000/04/06 22:03:01 explorer Exp $ */
+/* $Id: mx_15.c,v 1.28 2000/04/07 03:54:24 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C
+
+#define RRTYPE_MX_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_mx(dns_rdataclass_t rdclass, dns_rdatatype_t type,

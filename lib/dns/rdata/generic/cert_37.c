@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.21 2000/04/06 22:02:42 explorer Exp $ */
+/* $Id: cert_37.c,v 1.22 2000/04/07 03:54:08 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_CERT_37_C
 #define RDATA_GENERIC_CERT_37_C
+
+#define RRTYPE_CERT_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,

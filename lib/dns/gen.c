@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.32 2000/03/17 17:45:01 gson Exp $ */
+/* $Id: gen.c,v 1.33 2000/04/07 03:54:03 explorer Exp $ */
 
 #include <config.h>
 
@@ -132,6 +132,11 @@ struct tt {
 	char dirname[256];		/* XXX Should be max path length */
 } *types;
 
+struct ttnam {
+	char typename[11];
+	char macroname[11];
+} typenames[256];
+
 char *	upper(char *);
 char *	funname(char *, char *);
 void	doswitch(char *, char *, char *, char *, char *, char *);
@@ -139,18 +144,28 @@ void	dodecl(char *, char *, char *);
 void	add(int, char *, int, char *, char *);
 void	sd(int, char *, char *, char);
 
+/*
+ * If you use more than 10 of these in, say, a printf(), you'll have problems.
+ */
 char *
 upper(char *s) {
-	static char buf[11];
-	char *b = buf;
+	static int buf_to_use = 0;
+	static char buf[10][11];
+	char *b;
 	int c;
+
+	buf_to_use++;
+	if (buf_to_use > 9)
+		buf_to_use = 0;
+
+	b = buf[buf_to_use];
 
 	while ((c = (*s++) & 0xff)) {
 		
 		*b++ = islower(c) ? toupper(c) : c;
 	}
 	*b = '\0';
-	return (buf);
+	return (buf[buf_to_use]);
 }
 
 char *
@@ -260,11 +275,28 @@ void
 add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
 	struct tt *tt, *oldtt;
+	struct ttnam *ttn;
 	struct cc *newcc;
 	struct cc *cc, *oldcc;
 
-	if (newtt == NULL)
+	if (newtt == NULL) {
+		fprintf(stderr, "malloc() failed\n");
 		exit(1);
+	}
+
+	ttn = &typenames[type];
+	if (ttn->typename[0] == 0) {
+		if (strlen(typename) > sizeof(ttn->typename) - 1) {
+			fprintf(stderr, "Error:  type name %s is too long\n",
+				typename);
+			exit(1);
+		}
+		strcpy(ttn->typename, typename);
+	} else if (strcmp(typename, ttn->typename) != 0) {
+		fprintf(stderr, "Error:  type %d has two names: %s, %s\n",
+			type, ttn->typename, typename);
+		exit(1);
+	}
 
 	newtt->next = NULL;
 	newtt->rdclass = rdclass;
@@ -360,6 +392,7 @@ main(int argc, char **argv) {
 	char classname[11];
 	struct tt *tt;
 	struct cc *cc;
+	struct ttnam *ttn;
 	struct tm *tm;
 	time_t now;
 	char year[11];
@@ -368,13 +401,21 @@ main(int argc, char **argv) {
 	int class_enum = 0;
 	int type_enum = 0;
 	int structs = 0;
-	int c;
+	int c, i;
 	char buf1[11];
 	char filetype = 'c';
 	FILE *fd;
 	char *prefix = NULL;
 	char *suffix = NULL;
 	isc_dir_t dir;
+	int special;
+
+	for (i = 0 ; i <= 255 ; i++) {
+		memset(typenames[i].typename, 0,
+		       sizeof(typenames[i].typename));
+		memset(typenames[i].macroname, 0,
+		       sizeof(typenames[i].macroname));
+	}
 
 	strcpy(srcdir, "");
 	while ((c = isc_commandline_parse(argc, argv, "cits:P:S:")) != -1)
@@ -445,6 +486,7 @@ main(int argc, char **argv) {
 	fprintf(stdout, copyright, year);
 
 	if (code) {
+#if 0
 		dodecl("isc_result_t", "fromtext", FROMTEXTDECL);
 		dodecl("isc_result_t", "totext", TOTEXTDECL);
 		dodecl("isc_result_t", "fromwire", FROMWIREDECL);
@@ -455,6 +497,13 @@ main(int argc, char **argv) {
 		dodecl("void", "freestruct", FREESTRUCTDECL);
 		dodecl("isc_result_t", "additionaldata", ADDITIONALDATADECL);
 		dodecl("isc_result_t", "digest", DIGESTDECL);
+#endif
+
+		fputs("\n\n", stdout);
+		for (tt = types; tt != NULL ; tt = tt->next)
+			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
+				tt->dirname, tt->typename, tt->type);
+		fputs("\n\n", stdout);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
 			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
@@ -490,6 +539,133 @@ main(int argc, char **argv) {
 					upper(tt->typename),
 					tt->next != NULL ? " \\" : "");
 
+
+		/*
+		 * Change "invalid" characters to valid ones.  In this
+		 * case, only worry about the - in the nsap-ptr and other
+		 * type names.
+		 */
+		for (i = 0 ; i <= 255 ; i++) {
+			ttn = &typenames[i];
+			if (ttn->typename[0] == 0)
+				continue;
+			strcpy(ttn->macroname, ttn->typename);
+			c = strlen(ttn->macroname);
+			while (c > 0) {
+				if (ttn->macroname[c - 1] == '-')
+					ttn->macroname[c - 1] = '_';
+				c--;
+			}
+		}
+
+#define PRINT_COMMA(x) (x == 255 ? "" : ",")
+
+		printf("\ntypedef struct {\n");
+		printf("\tchar *name;\n");
+		printf("\tunsigned int flags;\n");
+		printf("} typeattr_t;\n");
+		printf("static typeattr_t typeattr[] = {\n");
+		for (i = 0 ; i <= 255 ; i++) {
+			ttn = &typenames[i];
+			special = 0;
+			switch (i) {
+			case 0:
+				printf("\t{ \"RESERVED0\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 31:
+				printf("\t{ \"EID\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 32:
+				printf("\t{ \"NIMLOC\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 34:
+				printf("\t{ \"ATMA\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 100:
+				printf("\t{ \"UINFO\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 101:
+				printf("\t{ \"UID\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 102:
+				printf("\t{ \"GID\", "
+				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 251:
+				printf("\t{ \"IXFR\", "
+				       "DNS_RDATATYPEATTR_META }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 252:
+				printf("\t{ \"AXFR\", "
+				       "DNS_RDATATYPEATTR_META }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 253:
+				printf("\t{ \"MAILB\", "
+				       "DNS_RDATATYPEATTR_META }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 254:
+				printf("\t{ \"MAILA\", "
+				       "DNS_RDATATYPEATTR_META }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			case 255:
+				printf("\t{ \"ANY\", "
+				       "DNS_RDATATYPEATTR_META }%s\n",
+				       PRINT_COMMA(i));
+				special = 1;
+				break;
+			default:
+				if (ttn->typename[0] == 0) {
+
+					printf("\t{ \"RRTYPE%d\", "
+					       "DNS_RDATATYPEATTR_UNKNOWN"
+					       "}%s\n", i, PRINT_COMMA(i));
+				} else {
+				printf("\t{ \"%s\", "
+				       "RRTYPE_%s_ATTRIBUTES }%s\n",
+				       upper(ttn->typename),
+				       upper(ttn->macroname),
+				       PRINT_COMMA(i));
+				}
+				break;
+			}
+
+			if (special == 1 && ttn->typename[0] != 0) {
+				fprintf(stderr, "Error!  Special processing for %s, but type is defined in a file also\n",
+				       ttn->typename);
+				exit(1);
+			}
+		}
+		printf("};\n");
+
+
 		fputs("\n", stdout);
 		fprintf(stdout, "\n#define CLASSNAMES%s\n",
 			classes != NULL ? " \\" : "");
@@ -499,11 +675,7 @@ main(int argc, char **argv) {
 				cc->rdclass, upper(cc->classname),
 				cc->next != NULL ? " \\" : "");
 
-
 		fputs("\n", stdout);
-		for (tt = types; tt != NULL ; tt = tt->next)
-			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
-				tt->dirname, tt->typename, tt->type);
 	} else if (type_enum) {
 		fprintf(stdout, "#ifndef TYPEENUM\n");
 		fprintf(stdout, "#define TYPEENUM%s\n",

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.17 2000/04/06 22:03:33 explorer Exp $ */
+/* $Id: srv_33.c,v 1.18 2000/04/07 03:54:51 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_IN_1_SRV_33_C
 #define RDATA_IN_1_SRV_33_C
+
+#define RRTYPE_SRV_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type,

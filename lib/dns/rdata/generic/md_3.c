@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.24 2000/04/06 22:02:54 explorer Exp $ */
+/* $Id: md_3.c,v 1.25 2000/04/07 03:54:18 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
 #ifndef RDATA_GENERIC_MD_3_C
 #define RDATA_GENERIC_MD_3_C
+
+#define RRTYPE_MD_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_md(dns_rdataclass_t rdclass, dns_rdatatype_t type,

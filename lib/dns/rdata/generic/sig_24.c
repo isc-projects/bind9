@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.31 2000/04/06 22:03:12 explorer Exp $ */
+/* $Id: sig_24.c,v 1.32 2000/04/07 03:54:34 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_SIG_24_C
 #define RDATA_GENERIC_SIG_24_C
+
+#define RRTYPE_SIG_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
 fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,

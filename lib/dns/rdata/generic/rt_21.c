@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.18 2000/04/06 22:03:11 explorer Exp $ */
+/* $Id: rt_21.c,v 1.19 2000/04/07 03:54:33 explorer Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_RT_21_C
 #define RDATA_GENERIC_RT_21_C
+
+#define RRTYPE_RT_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_rt(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.15 2000/04/06 22:03:30 explorer Exp $ */
+/* $Id: nsap_22.c,v 1.16 2000/04/07 03:54:48 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -25,6 +25,8 @@
 #define RDATA_IN_1_NSAP_22_C
 
 #include <string.h>
+
+#define RRTYPE_NSAP_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.26 2000/04/06 22:02:40 explorer Exp $ */
+/* $Id: tsig_250.c,v 1.27 2000/04/07 03:54:06 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -25,6 +25,8 @@
 #define RDATA_ANY_255_TSIG_250_C
 
 #include <isc/str.h>
+
+#define RRTYPE_TSIG_ATTRIBUTES (DNS_RDATATYPEATTR_META)
 
 static inline isc_result_t
 fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,

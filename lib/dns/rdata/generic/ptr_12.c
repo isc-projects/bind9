@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.21 2000/04/06 22:03:08 explorer Exp $ */
+/* $Id: ptr_12.c,v 1.22 2000/04/07 03:54:30 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_PTR_12_C
 #define RDATA_GENERIC_PTR_12_C
+
+#define RRTYPE_PTR_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,

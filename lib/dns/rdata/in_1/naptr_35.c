@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.19 2000/04/06 22:03:27 explorer Exp $ */
+/* $Id: naptr_35.c,v 1.20 2000/04/07 03:54:46 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_IN_1_NAPTR_35_C
 #define RDATA_IN_1_NAPTR_35_C
+
+#define RRTYPE_NAPTR_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,

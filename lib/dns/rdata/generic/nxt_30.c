@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.24 2000/04/06 22:03:05 explorer Exp $ */
+/* $Id: nxt_30.c,v 1.25 2000/04/07 03:54:27 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C
+
+#define RRTYPE_NXT_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
 fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.13 2000/04/06 22:03:19 explorer Exp $ */
+/* $Id: x25_19.c,v 1.14 2000/04/07 03:54:40 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_X25_19_C
 #define RDATA_GENERIC_X25_19_C
+
+#define RRTYPE_X25_ATTRIBUTES (0)
 
 #include <ctype.h>
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.6 2000/04/06 22:03:20 explorer Exp $ */
+/* $Id: a_1.c,v 1.7 2000/04/07 03:54:41 explorer Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -25,6 +25,8 @@
 #include <string.h>
 
 #include <isc/net.h>
+
+#define RRTYPE_A_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_hs_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.15 2000/04/06 22:03:28 explorer Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.16 2000/04/07 03:54:47 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_IN_1_NSAP_PTR_23_C
 #define RDATA_IN_1_NSAP_PTR_23_C
+
+#define RRTYPE_NSAP_PTR_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_nsap_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.22 2000/04/06 22:02:55 explorer Exp $ */
+/* $Id: mf_4.c,v 1.23 2000/04/07 03:54:20 explorer Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MF_4_C
 #define RDATA_GENERIC_MF_4_C
+
+#define RRTYPE_MF_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,

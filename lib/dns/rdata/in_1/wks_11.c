@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.23 2000/04/06 22:03:34 explorer Exp $ */
+/* $Id: wks_11.c,v 1.24 2000/04/07 03:54:52 explorer Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -28,6 +28,8 @@
 
 #include <isc/net.h>
 #include <isc/netdb.h>
+
+#define RRTYPE_WKS_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.13 2000/04/06 22:02:51 explorer Exp $ */
+/* $Id: loc_29.c,v 1.14 2000/04/07 03:54:16 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_LOC_29_C
 #define RDATA_GENERIC_LOC_29_C
+
+#define RRTYPE_LOC_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,

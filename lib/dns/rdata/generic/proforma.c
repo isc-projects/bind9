@@ -15,10 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.20 2000/04/06 22:03:07 explorer Exp $ */
+/* $Id: proforma.c,v 1.21 2000/04/07 03:54:29 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
+
+#define RRTYPE_#_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,

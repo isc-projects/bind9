@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.21 2000/04/06 22:02:47 explorer Exp $ */
+/* $Id: hinfo_13.c,v 1.22 2000/04/07 03:54:13 explorer Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C
+
+#define RRTYPE_HINFO_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.6 2000/04/06 22:03:06 explorer Exp $ */
+/* $Id: opt_41.c,v 1.7 2000/04/07 03:54:28 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_OPT_41_C
 #define RDATA_GENERIC_OPT_41_C
+
+#define RRTYPE_OPT_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
 fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,

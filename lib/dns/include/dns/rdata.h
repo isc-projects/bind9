@@ -528,6 +528,33 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
  *	Many other results are possible if not successful.
  */
 
+unsigned int
+dns_rdatatype_attributes(dns_rdatatype_t rdtype);
+/*
+ * Return attributes for the given type.
+ *
+ * Requires:
+ *	'rdtype' are known.
+ *
+ * Returns:
+ *	a bitmask consisting of the following flags.
+ */
+
+/* only one may exist for a name */
+#define DNS_RDATATYPEATTR_SINGLETON	0x00000001U
+/* requires no other data be present */
+#define DNS_RDATATYPEATTR_EXCLUSIVE	0x00000002U
+/* Is a meta type */
+#define DNS_RDATATYPEATTR_META		0x00000004U
+/* Is a DNSSEC type, like SIG or NXT */
+#define DNS_RDATATYPEATTR_DNSSEC		0x00000008U
+/* Is a zone cut authority type XXXMLG */
+#define DNS_RDATATYPEATTR_ZONECUTAUTH	0x00000010U
+/* Is reserved (unusable) */
+#define DNS_RDATATYPEATTR_RESERVED		0x00000020U
+/* Is an unknown type */
+#define DNS_RDATATYPEATTR_UNKNOWN		0x00000040U
+
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata);
 /*

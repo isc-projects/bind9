@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.16 2000/04/06 22:02:45 explorer Exp $ */
+/* $Id: dname_39.c,v 1.17 2000/04/07 03:54:10 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -23,6 +23,8 @@
 
 #ifndef RDATA_GENERIC_DNAME_39_C
 #define RDATA_GENERIC_DNAME_39_C
+
+#define RRTYPE_DNAME_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
 fromtext_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,

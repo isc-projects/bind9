@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.31 2000/04/06 22:03:13 explorer Exp $ */
+/* $Id: soa_6.c,v 1.32 2000/04/07 03:54:35 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
+
+#define RRTYPE_SOA_ATTRIBUTES (DNS_RDATATYPEATTR_SINGLETON)
 
 static inline isc_result_t
 fromtext_soa(dns_rdataclass_t rdclass, dns_rdatatype_t type,

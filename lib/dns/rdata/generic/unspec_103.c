@@ -15,10 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.13 2000/04/06 22:03:18 explorer Exp $ */
+/* $Id: unspec_103.c,v 1.14 2000/04/07 03:54:38 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
+
+#define RRTYPE_UNSPEC_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_unspec(dns_rdataclass_t rdclass, dns_rdatatype_t type,

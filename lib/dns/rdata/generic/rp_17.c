@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.18 2000/04/06 22:03:09 explorer Exp $ */
+/* $Id: rp_17.c,v 1.19 2000/04/07 03:54:32 explorer Exp $ */
 
 /* RFC 1183 */
 
 #ifndef RDATA_GENERIC_RP_17_C
 #define RDATA_GENERIC_RP_17_C
+
+#define RRTYPE_RP_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_rp(dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.23 2000/04/06 22:03:22 explorer Exp $ */
+ /* $Id: a6_38.c,v 1.24 2000/04/07 03:54:42 explorer Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -25,6 +25,8 @@
 #include <string.h>
 
 #include <isc/net.h>
+
+#define RRTYPE_A6_ATTRIBUTES (0)
 
 static inline isc_result_t
 fromtext_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
