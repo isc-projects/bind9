@@ -393,6 +393,10 @@ SOURCE=..\include\isc\ondestroy.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\parseint.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\os.h
 # End Source File
 # Begin Source File
@@ -637,6 +641,10 @@ SOURCE=..\ondestroy.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\parseint.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\quota.c
 # End Source File
 # Begin Source File
@@ -646,6 +654,10 @@ SOURCE=..\random.c
 # Begin Source File
 
 SOURCE=..\ratelimiter.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\region.c
 # End Source File
 # Begin Source File
 
