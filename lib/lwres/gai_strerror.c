@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.9 2000/06/09 20:56:25 gson Exp $ */
+/* $Id: gai_strerror.c,v 1.10 2000/06/23 01:50:48 gson Exp $ */
 
 #include <lwres/netdb.h>
 
@@ -35,7 +35,7 @@ static const char *gai_messages[] = {
 };
 
 char *
-gai_strerror(int ecode) {
+lwres_gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;
 		char *deconst_ptr;
