@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.23 $)
+AC_REVISION($Revision: 1.24 $)
 
 AC_PREREQ(2.12)
 
@@ -136,6 +136,33 @@ AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create)
              AC_CHECK_LIB(pthread, __pthread_create_system)
 )
+
+dnl
+dnl We'd like to use sigwait() too
+dnl
+AC_CHECK_LIB(pthread, sigwait,
+	     AC_DEFINE(HAVE_SIGWAIT),
+	     AC_CHECK_LIB(pthread, _Psigwait,
+			  AC_DEFINE(HAVE_SIGWAIT),)
+)
+
+dnl
+dnl Make sure we get the right sigwait() semantics...
+dnl
+case "$host" in
+	*-sun-solaris*)
+		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+		;;
+esac
+
+dnl BSDI 3.1 needs pthread_init() to be called before certain pthreads
+dnl calls.
+dnl
+case "$host" in
+	*-bsdi3.1*)
+		AC_DEFINE(NEED_PTHREAD_INIT)
+		;;
+esac
 
 dnl
 dnl -lxnet buys us one big porting headache...  standards, gotta love 'em.
