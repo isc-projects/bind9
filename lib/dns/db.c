@@ -346,7 +346,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(type != dns_rdatatype_sig);
 	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
-	REQUIRE(foundname == NULL || dns_name_hasbuffer(foundname));
+	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL ||
 		(DNS_RDATASET_VALID(rdataset) && rdataset->methods == NULL));
 
