@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.105 2001/11/29 13:14:33 marka Exp $ */
+/* $Id: dispatch.c,v 1.106 2001/12/27 05:07:26 marka Exp $ */
 
 #include <config.h>
 
@@ -717,6 +717,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t killit;
 	isc_boolean_t queue_response;
 	dns_qid_t *qid;
+	int level;
 
 	UNUSED(task);
 
@@ -750,9 +751,14 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			do_cancel(disp, NULL);
 			break;
 
+		case ISC_R_CONNECTIONRESET:
+			level = ISC_LOG_INFO;
+			goto logit;
+
 		default:
-			dispatch_log(disp, ISC_LOG_ERROR,
-				     "shutting down due to TCP "
+			level = ISC_LOG_ERROR;
+		logit:
+			dispatch_log(disp, level, "shutting down due to TCP "
 				     "receive error: %s",
 				     isc_result_totext(tcpmsg->result));
 			do_cancel(disp, NULL);
