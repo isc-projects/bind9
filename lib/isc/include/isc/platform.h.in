@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.15 2000/08/28 23:51:09 gson Exp $ */
+/* $Id: platform.h.in,v 1.16 2000/12/08 00:55:30 tale Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -99,6 +99,12 @@
  * prevent compiler warnings (such as with gcc on Solaris 2.8).
  */
 @ISC_PLATFORM_BRACEPTHREADONCEINIT@
+
+/*
+ * Define on some UnixWare systems to fix erroneous definitions of various
+ * IN6_IS_ADDR_* macros.
+ */
+@ISC_PLATFORM_FIXIN6ISADDR@
 
 /***
  *** Printing.

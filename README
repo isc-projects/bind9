@@ -154,8 +154,7 @@ Building
 		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
 		Slackware Linux 7.0.1 with glibc 2.1.3
 		OpenBSD 2.6, 2.8, -current
-		UnixWare 7.1.1 once the IN6_IS_ADDR_MULTICAST macro in
-			/usr/include/netinet/in6_f.h is repaired (== vs =).
+		UnixWare 7.1.1
 
 	To build, just
 
