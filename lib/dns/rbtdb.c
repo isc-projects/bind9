@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+#include <config.h>
+
 #include <stddef.h>
 #include <string.h>
 
@@ -29,48 +31,96 @@
 #include <dns/rdataslab.h>
 #include <dns/rdata.h>
 
+#ifdef DNS_RBTDB_VERSION64
+#include "rbtdb64.h"
+#else
 #include "rbtdb.h"
+#endif
 
 /* Lame.  Move util.h to <isc/util.h> */
 #include "../isc/util.h"
 
-#define RBTDB_MAGIC			0x52424442U	/* RBDB. */
+#ifdef DNS_RBTDB_VERSION64
+#define RBTDB_MAGIC			0x52424438U	/* RBD8. */
+#else
+#define RBTDB_MAGIC			0x52424434U	/* RBD4. */
+#endif
+
 #define VALID_RBTDB(rbtdb)		((rbtdb) != NULL && \
 					 (rbtdb)->common.impmagic == \
 						RBTDB_MAGIC)
 
+#ifdef DNS_RBTDB_VERSION64
+typedef isc_uint64_t			rbtdb_serial_t;
+#else
+typedef isc_uint32_t			rbtdb_serial_t;
+#endif
+
 typedef struct rdatasetheader {
+	/* Not locked. */
 	dns_ttl_t			ttl;
+	rbtdb_serial_t			serial;
 	dns_rdatatype_t			type;
+	isc_uint16_t			attributes;
 	/*
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers.  We only have a head pointer in
 	 * the node to save space.
 	 */
-	unsigned int			version;
 	struct rdatasetheader		*prev;
 	struct rdatasetheader		*next;
+	struct rdatasetheader		*down;
 } rdatasetheader_t;
+
+#define RDATASET_ATTR_NXRRSET		0x01
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
 typedef struct {
 	isc_mutex_t			lock;
 	unsigned int			references;
-} node_lock;
+} rbtdb_nodelock_t;
+
+typedef struct rbtdb_changed {
+	dns_rbtnode_t *			node;
+	isc_boolean_t			dirty;
+	ISC_LINK(struct rbtdb_changed)	link;
+} rbtdb_changed_t;
+
+typedef ISC_LIST(rbtdb_changed_t)	rbtdb_changedlist_t;
+
+typedef struct rbtdb_version {
+	rbtdb_serial_t			serial;
+	unsigned int			references;
+	isc_boolean_t			writer;
+	isc_boolean_t			commit_ok;
+	rbtdb_changedlist_t		changed_list;
+	ISC_LINK(struct rbtdb_version)	link;
+} rbtdb_version_t;
+
+typedef ISC_LIST(rbtdb_version_t)	rbtdb_versionlist_t;
 
 typedef struct {
-	/* Unlocked */
+	/* Unlocked. */
 	dns_db_t			common;
 	isc_mutex_t			lock;
 	isc_rwlock_t			tree_lock;
 	unsigned int			node_lock_count;
-	node_lock *		       	node_locks;
-	/* Locked by lock */
+	rbtdb_nodelock_t *	       	node_locks;
+	/* Locked by lock. */
 	unsigned int			references;
-	/* Locked by tree_lock */
+	unsigned int			attributes;
+	rbtdb_serial_t			current_serial;
+	rbtdb_serial_t			least_serial;
+	rbtdb_serial_t			next_serial;
+	rbtdb_version_t *		current_version;
+	rbtdb_version_t *		future_version;
+	rbtdb_versionlist_t		open_versions;
+	/* Locked by tree_lock. */
 	dns_rbt_t *			tree;
 } dns_rbtdb_t;
+
+#define RBTDB_ATTR_LOADED		0x01
 
 static dns_result_t disassociate(dns_rdataset_t *rdatasetp);
 static dns_result_t first(dns_rdataset_t *rdataset);
@@ -83,6 +133,22 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	next,
 	current
 };
+
+/*
+ * Locking
+ *
+ * If a routine is going to lock more than one lock in this module, then
+ * the locking must be done in the following order:
+ *
+ *	Tree Lock
+ *
+ *	Node Lock	(Only one from the set may be locked at one time by
+ *			 any caller)
+ *
+ *	Database Lock
+ *
+ * Failure to follow this hierarchy can result in deadlock.
+ */
 
 /*
  * DB Routines
@@ -107,6 +173,10 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
 	isc_region_t r;
 
+	REQUIRE(EMPTY(rbtdb->open_versions));
+	REQUIRE(rbtdb->future_version == NULL);
+	isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
+		    sizeof (rbtdb_version_t));
 	dns_name_toregion(&rbtdb->common.origin, &r);
 	if (r.base != NULL)
 		isc_mem_put(rbtdb->common.mctx, r.base, r.length);
@@ -115,7 +185,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	for (i = 0; i < rbtdb->node_lock_count; i++)
 		isc_mutex_destroy(&rbtdb->node_locks[i].lock);
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
-		    rbtdb->node_lock_count * sizeof (node_lock));
+		    rbtdb->node_lock_count * sizeof (rbtdb_nodelock_t));
 	isc_rwlock_destroy(&rbtdb->tree_lock);
 	isc_mutex_destroy(&rbtdb->lock);
 	rbtdb->common.magic = 0;
@@ -168,30 +238,431 @@ detach(dns_db_t **dbp) {
 static void
 currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	rbtdb_version_t *version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	*versionp = NULL;
+	LOCK(&rbtdb->lock);
+	version = rbtdb->current_version;
+	if (version->references == 0)
+		PREPEND(rbtdb->open_versions, version, link);
+	version->references++;
+	UNLOCK(&rbtdb->lock);
+
+	*versionp = (dns_dbversion_t *)version;
+}
+
+static inline rbtdb_version_t *
+allocate_version(isc_mem_t *mctx, unsigned int serial,
+		 unsigned int references, isc_boolean_t writer)
+{
+	rbtdb_version_t *version;
+
+	version = isc_mem_get(mctx, sizeof *version);
+	if (version == NULL)
+		return (NULL);
+	version->serial = serial;
+	version->references = references;
+	version->writer = writer;
+	version->commit_ok = ISC_FALSE;
+	ISC_LIST_INIT(version->changed_list);
+	ISC_LINK_INIT(version, link);
+	
+	return (version);
 }
 
 static dns_result_t
 newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-
-	(void)versionp;
+	rbtdb_version_t *version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(versionp != NULL && *versionp == NULL);
+	REQUIRE(rbtdb->future_version == NULL);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	LOCK(&rbtdb->lock);
+	RUNTIME_CHECK(rbtdb->next_serial != 0);		/* XXX Error? */
+	version = allocate_version(rbtdb->common.mctx, rbtdb->next_serial, 1,
+				   ISC_TRUE);
+	if (version != NULL) {
+		rbtdb->next_serial++;
+		rbtdb->future_version = version;
+	}
+	UNLOCK(&rbtdb->lock);
+
+	if (version == NULL)
+		return (DNS_R_NOMEMORY);
+
+	return (DNS_R_SUCCESS);
+}
+
+static rbtdb_changed_t *
+add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
+	    dns_rbtnode_t *node)
+{
+	rbtdb_changed_t *changed;
+
+	/*
+	 * Caller must be holding the node lock.
+	 */
+
+	changed = isc_mem_get(rbtdb->common.mctx, sizeof *changed);
+	if (changed == NULL) {
+		version->commit_ok = ISC_FALSE;
+		return (NULL);
+	}
+	node->references++;
+	changed->node = node;
+	changed->dirty = ISC_FALSE;
+	APPEND(version->changed_list, changed, link);
+
+	return (changed);
+}
+
+static inline void
+free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
+	unsigned int size;
+
+	size = dns_rdataslab_size((unsigned char *)rdataset, sizeof *rdataset);
+	isc_mem_put(mctx, rdataset, size);
+}
+
+static void
+rollback_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rbtdb_serial_t serial) {
+	rdatasetheader_t *header, *header_next;
+
+	/*
+	 * Caller must hold the node lock.
+	 */
+
+	REQUIRE(node->references == 0);
+
+	for (header = node->data; header != NULL; header = header_next) {
+		header_next = header->next;
+		if (header->serial == serial) {
+			if (header->down != NULL) {
+				header->down->prev = header->prev;
+				if (header->prev != NULL)
+					header->prev->next = header->down;
+				else
+					node->data = header->down;
+				header->down->next = header->next;
+				if (header->next != NULL)
+					header->next->prev = header->down;
+			} else {
+				if (header->prev != NULL)
+					header->prev->next = header->next;
+				else
+					node->data = header->next;
+				if (header->next != NULL)
+					header->next->prev = header->prev;
+			}
+			free_rdataset(rbtdb->common.mctx, header);
+		}
+	}
+}
+
+static inline void
+clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
+	rdatasetheader_t *current, *dcurrent, *top_next, *down_next;
+	isc_mem_t *mctx = rbtdb->common.mctx;
+
+	/*
+	 * Caller must be holding the node lock.
+	 */
+
+	/* XXX should remove stale data. */
+
+	for (current = node->data; current != NULL; current = top_next) {
+		top_next = current->next;
+		dcurrent = current->down;
+		if (dcurrent != NULL) {
+			do {
+				down_next = dcurrent->down;
+				free_rdataset(mctx, dcurrent);
+				dcurrent = down_next;
+			} while (dcurrent != NULL);
+			current->down = NULL;
+		}
+	}
+}
+
+static inline void
+clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		rbtdb_serial_t least_serial)
+{
+	rdatasetheader_t *current, *dcurrent, *top_next, *down_next, *dparent;
+	isc_mem_t *mctx = rbtdb->common.mctx;
+	isc_boolean_t still_dirty = ISC_FALSE;
+
+	/*
+	 * Caller must be holding the node lock.
+	 */
+	REQUIRE(least_serial != 0);
+
+	for (current = node->data; current != NULL; current = top_next) {
+		top_next = current->next;
+		/*
+		 * Find the first rdataset less than the least serial, if
+		 * any.
+		 */
+		dparent = current;
+		for (dcurrent = current->down;
+		     dcurrent != NULL;
+		     dcurrent = dcurrent->down) {
+			INSIST(dcurrent->serial < dparent->serial);
+			if (dcurrent->serial < least_serial)
+				break;
+			dparent = dcurrent;
+		}
+		/*
+		 * If there is a such an rdataset, delete it and any older
+		 * versions.
+		 */
+		if (dcurrent != NULL) {
+			do {
+				down_next = dcurrent->down;
+				INSIST(dcurrent->serial < least_serial);
+				free_rdataset(mctx, dcurrent);
+				dcurrent = down_next;
+			} while (dcurrent != NULL);
+			dparent->down = NULL;
+		}
+		/*
+		 * Note.  The serial number of 'current' might be less than
+		 * least_serial too, but we cannot delete it because it is
+		 * the most recent version.  Only old versions less than the
+		 * least_serial can be deleted.
+		 */
+		if (current->down != NULL)
+			still_dirty = ISC_TRUE;
+		/*
+		 * XXX  It would be good to garbage collect "rdataset doesn't
+		 * exist" records that are in the current version and have no
+		 * down pointers.  Can this be done safely?  Yes, provided
+		 * that we never create an external reference to one of those
+		 * records.  This isn't as easy as it first sounds, because we
+		 * could have an rdataset iterator parked on it.  Solution:
+		 * make sure iterators never park on such a rdataset.
+		 */
+	}
+	if (!still_dirty)
+		node->dirty = 0;
+}
+
+static inline void
+no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+	      rbtdb_serial_t least_serial)
+{
+	/*
+	 * Caller must be holding the node lock.
+	 */
+	REQUIRE(node->references == 0);
+
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0)
+		clean_cache_node(rbtdb, node);
+	else if (node->dirty) {
+		if (least_serial == 0) {
+			/*
+			 * Caller doesn't know the least serial.  Get it.
+			 */
+			LOCK(&rbtdb->lock);
+			least_serial = rbtdb->least_serial;
+			UNLOCK(&rbtdb->lock);
+		}
+		clean_zone_node(rbtdb, node, least_serial);
+	}
+
+	INSIST(rbtdb->node_locks[node->locknum].references > 0);
+	rbtdb->node_locks[node->locknum].references--;
+}
+
+static inline void
+make_least_version(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
+		   rbtdb_changedlist_t *cleanup_list)
+{
+	/*
+	 * Caller must be holding the database lock.
+	 */
+
+	rbtdb->least_serial = version->serial;
+	*cleanup_list = version->changed_list;
+}
+
+static inline void
+cleanup_nondirty(rbtdb_version_t *version, rbtdb_changedlist_t *cleanup_list) {
+	rbtdb_changed_t *changed, *next_changed;
+
+	/*
+	 * If the changed record is dirty, then
+	 * an update created multiple versions of
+	 * a given rdataset.  We keep this list
+	 * until we're the least open version, at
+	 * which point it's safe to get rid of any
+	 * older versions.
+	 *
+	 * If the changed record isn't dirty, then
+	 * we don't need it anymore since we're
+	 * committing and not rolling back.
+	 */
+	for (changed = HEAD(version->changed_list);
+	     changed != NULL;
+	     changed = next_changed) {
+		next_changed = NEXT(changed, link);
+		if (!changed->dirty) {
+			UNLINK(version->changed_list,
+			       changed, link);
+			APPEND(*cleanup_list,
+			       changed, link);
+		}
+	}
 }
 
 static void
 closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-
-	(void)commit;
-
+	rbtdb_version_t *version, *cleanup_version, *next_greater_version;
+	isc_boolean_t rollback = ISC_FALSE;
+	rbtdb_changedlist_t cleanup_list;
+	rbtdb_changed_t *changed, *next_changed;
+	rbtdb_serial_t serial, least_serial;
+	dns_rbtnode_t *rbtnode;
+	
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(versionp != NULL && *versionp != NULL);
+	version = (rbtdb_version_t *)*versionp;
+
+	cleanup_version = NULL;
+	ISC_LIST_INIT(cleanup_list);
+
+	LOCK(&rbtdb->lock);
+	INSIST((version->writer && version->references == 1) ||
+	       version->references > 0);
+	version->references--;
+	serial = version->serial;
+	if (version->references == 0) {
+		if (version->writer) {
+			if (commit) {
+				INSIST(version->commit_ok);
+				INSIST(version == rbtdb->future_version);
+				if (EMPTY(rbtdb->open_versions)) {
+					/*
+					 * We're going to become the least open
+					 * version.
+					 */
+					make_least_version(rbtdb, version,
+							   &cleanup_list);
+				} else {
+					/*
+					 * Some other open version is the
+					 * least version.  We can't cleanup
+					 * records that were changed in this
+					 * version because the older versions
+					 * may still be in use by an open
+					 * version.
+					 *
+					 * We can, however, discard the
+					 * changed records for things that
+					 * we've added that didn't exist in
+					 * prior versions.
+					 */
+					cleanup_nondirty(version,
+							 &cleanup_list);
+				}
+				/*
+				 * If the (soon to be former) current version
+				 * isn't being used by anyone, we can clean
+				 * it up.
+				 */
+				if (rbtdb->current_version->references == 0)
+					cleanup_version =
+						rbtdb->current_version;
+				/*
+				 * Become the current version.
+				 */
+				rbtdb->current_version = version;
+				rbtdb->current_serial = version->serial;
+				rbtdb->future_version = NULL;
+			} else {
+				/*
+				 * We're rolling back this transaction.
+				 */
+				cleanup_list = version->changed_list;
+				rollback = ISC_TRUE;
+				cleanup_version = version;
+			}
+			/* XXX wake up waiting updates */
+		} else {
+			if (version != rbtdb->current_version) {
+				/*
+				 * There are no external or internal references
+				 * to this version and it can be cleaned up.
+				 */
+				cleanup_version = version;
+			}
+			/*
+			 * Find the open version with the next-greater serial
+			 * number than ours.
+			 */
+			next_greater_version = PREV(version, link);
+			if (next_greater_version == NULL)
+				next_greater_version = rbtdb->current_version;
+			/*
+			 * Is this the least open version?
+			 */
+			if (version->serial == rbtdb->least_serial) {
+				/*
+				 * Yes.  Install the new least open version.
+				 */
+				make_least_version(rbtdb,
+						   next_greater_version,
+						   &cleanup_list);
+			} else if (version != rbtdb->current_version) {
+				/*
+				 * Add any unexecuted cleanups to those of
+				 * the next-greater version.
+				 */
+				APPENDLIST(next_greater_version->changed_list,
+					   version->changed_list, link);
+			}
+			UNLINK(rbtdb->open_versions, version, link);
+		}
+	}
+	least_serial = rbtdb->least_serial;
+	UNLOCK(&rbtdb->lock);
+
+	if (cleanup_version != NULL)
+		isc_mem_put(rbtdb->common.mctx, cleanup_version,
+			    sizeof *cleanup_version);
+
+	if (!EMPTY(cleanup_list)) {
+		for (changed = HEAD(cleanup_list);
+		     changed != NULL;
+		     changed = next_changed) {
+			next_changed = NEXT(changed, link);
+			rbtnode = changed->node;
+
+			LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+			/* 
+			 * XXX Like the rest of this module, this code doesn't
+			 * deal with node splits.
+			 */
+
+			INSIST(rbtnode->references > 0);
+			rbtnode->references--;
+			if (rollback)
+				rollback_node(rbtdb, rbtnode, serial);
+
+			if (rbtnode->references == 0)
+				no_references(rbtdb, rbtnode, least_serial);
+
+			UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+			isc_mem_put(rbtdb->common.mctx, changed,
+				    sizeof *changed);
+		}
+	}
 
 	*versionp = NULL;
 }
@@ -271,14 +742,14 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp != NULL);
 
 	node = (dns_rbtnode_t *)(*targetp);
+
 	LOCK(&rbtdb->node_locks[node->locknum].lock);
+
 	INSIST(node->references > 0);
 	node->references--;
-	if (node->references == 0) {
-		INSIST(rbtdb->node_locks[node->locknum].references > 0);
-		rbtdb->node_locks[node->locknum].references--;
-		/* XXX other detach stuff here */
-	}
+	if (node->references == 0)
+		no_references(rbtdb, node, 0);
+
 	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*targetp = NULL;
@@ -293,16 +764,31 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	rdatasetheader_t *header;
 	unsigned char *raw;
 	unsigned int count;
-
-	(void)version;
+	rbtdb_serial_t serial;
+	rbtdb_version_t *rbtversion = version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(type != dns_rdatatype_any);
+
+	if (rbtversion == NULL) {
+		LOCK(&rbtdb->lock);
+		serial = rbtdb->current_serial;
+		UNLOCK(&rbtdb->lock);
+	} else
+		serial = rbtversion->serial;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
 	for (header = rbtnode->data; header != NULL; header = header->next) {
-		/* XXX version */
-		if (header->type == type)
+		if (header->type == type) {
+			do {
+				if (header->serial <= serial)
+					break;
+				else
+					header = header->down;
+			} while (header != NULL);
 			break;
+		}
 	}
 	if (header != NULL) {
 		INSIST(rbtnode->references > 0);
@@ -310,7 +796,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		INSIST(rbtnode->references != 0);	/* Catch overflow. */
 
 		rdataset->methods = &rdataset_methods;
-		rdataset->class = rbtdb->common.class;
+		rdataset->rdclass = rbtdb->common.rdclass;
 		rdataset->type = header->type;
 		rdataset->ttl = header->ttl;
 		rdataset->private1 = rbtdb;
@@ -333,6 +819,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			rdataset->private5 = raw;
 		}
 	}
+
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	if (header == NULL)
@@ -350,9 +837,9 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_region_t region;
 	rdatasetheader_t *header, *newheader;
 	dns_result_t result;
+	rbtdb_version_t *rbtversion = version;
+	rbtdb_changed_t *changed = NULL;
 
-	(void)version;
-	
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
@@ -360,18 +847,67 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    sizeof (rdatasetheader_t));
 	if (result != DNS_R_SUCCESS)
 		return (result);
+
 	newheader = (rdatasetheader_t *)region.base;
 	newheader->ttl = rdataset->ttl;
 	newheader->type = rdataset->type;
-	newheader->version = 0;			/* XXX version */
-	newheader->prev = NULL;
+	newheader->attributes = 0;
+	if (rbtversion != NULL)
+		newheader->serial = rbtversion->serial;
+	else
+		newheader->serial = 0;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
-	header = rbtnode->data;
-	newheader->next = header;
-	if (header != NULL)
+
+	if (rbtversion != NULL) {
+		changed = add_changed(rbtdb, rbtversion, rbtnode);
+		if (changed == NULL) {
+			UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+			return (DNS_R_NOMEMORY);
+		}
+	}
+
+	for (header = rbtnode->data; header != NULL; header = header->next) {
+		if (header->type == rdataset->type)
+			break;
+	}
+	if (header != NULL) {
+		if (rbtversion != NULL) {
+			INSIST(rbtversion->serial >= header->serial);
+			if (rbtversion->serial == header->serial) {
+				/*
+				 * XXX created merged rdataset, make
+				 * newheader point to it
+				 */
+			}
+		}
+		INSIST(rbtversion == NULL ||
+		       rbtversion->serial > header->serial);
+		newheader->prev = header->prev;
+		if (header->prev != NULL)
+			header->prev->next = newheader;
+		else
+			rbtnode->data = newheader;
+		newheader->next = header->next;
+		if (header->next != NULL)
+			header->next->prev = newheader;
+		newheader->down = header;
 		header->prev = newheader;
-	rbtnode->data = newheader;
+		header->next = NULL;
+		rbtnode->dirty = 1;
+		changed->dirty = ISC_TRUE;
+	} else {
+		/*
+		 * The rdataset type doesn't exist at this node.
+		 */
+		newheader->prev = NULL;
+		newheader->next = rbtnode->data;
+		if (newheader->next != NULL)
+			newheader->next->prev = newheader;
+		newheader->down = NULL;
+		rbtnode->data = newheader;
+	}
+
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	return (DNS_R_SUCCESS);
@@ -423,8 +959,10 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	newheader = (rdatasetheader_t *)region.base;
 	newheader->ttl = rdataset->ttl;
 	newheader->type = rdataset->type;
-	newheader->version = 0;			/* XXX version */
+	newheader->attributes = 0;
+	newheader->serial = 1;
 	newheader->prev = NULL;
+	newheader->down = NULL;
 
 	header = node->data;
 	newheader->next = header;
@@ -443,24 +981,24 @@ load(dns_db_t *db, char *filename) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
+	LOCK(&rbtdb->lock);
+
+	REQUIRE((rbtdb->common.attributes & RBTDB_ATTR_LOADED) == 0);
 	/*
-	 * XXX
-	 *
-	 * For now, there is no locking, since database
-	 * loading is assumed to occur before parallel
-	 * access.  Clearly the database should be empty
-	 * before trying to load it.  Probably need some
-	 * kind of "loaded" flag so we can
-	 *
-	 *	REQUIRE(!rbtdb->loaded);
+	 * We set RBTDB_ATTR_LOADED even though we don't know the
+	 * load is going to succeed because we don't want someone to try
+	 * again with partial prior load results if a load fails.
 	 */
+	rbtdb->attributes |= RBTDB_ATTR_LOADED;
+
+	UNLOCK(&rbtdb->lock);
 
 	dns_rdatacallbacks_init(&callbacks);
 	callbacks.commit = add_rdataset_callback;
 	callbacks.commit_private = rbtdb;
 
 	return (dns_master_load(filename, &rbtdb->common.origin,
-				&rbtdb->common.origin, rbtdb->common.class,
+				&rbtdb->common.origin, rbtdb->common.rdclass,
 				&soacount, &nscount, &callbacks,
 				rbtdb->common.mctx));
 }
@@ -495,8 +1033,13 @@ static dns_dbmethods_t methods = {
 };
 
 dns_result_t
-dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
-		 dns_rdataclass_t class, unsigned int argc, char *argv[],
+#ifdef DNS_RBTDB_VERSION64
+dns_rbtdb64_create
+#else
+dns_rbtdb_create
+#endif
+		(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
+		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 dns_db_t **dbp)
 {
 	dns_rbtdb_t *rbtdb;
@@ -517,7 +1060,7 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 	rbtdb->common.attributes = 0;
 	if (cache)
 		rbtdb->common.attributes |= DNS_DBATTR_CACHE;
-	rbtdb->common.class = class;
+	rbtdb->common.rdclass = rdclass;
 	rbtdb->common.mctx = mctx;
 
 	iresult = isc_mutex_init(&rbtdb->lock);
@@ -544,7 +1087,7 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 	if (rbtdb->node_lock_count == 0)
 		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count * 
-					sizeof (node_lock));
+					sizeof (rbtdb_nodelock_t));
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		iresult = isc_mutex_init(&rbtdb->node_locks[i].lock);
 		if (iresult != ISC_R_SUCCESS) {
@@ -555,7 +1098,7 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 			}
 			isc_mem_put(mctx, rbtdb->node_locks,
 				    rbtdb->node_lock_count *  
-				    sizeof (node_lock));
+				    sizeof (rbtdb_nodelock_t));
 			isc_rwlock_destroy(&rbtdb->tree_lock);
 			isc_mutex_destroy(&rbtdb->lock);
 			isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
@@ -592,7 +1135,18 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 
 	rbtdb->references = 1;
 
-	/* XXX Version init here */
+	/*
+	 * Version Initialization.
+	 */
+	rbtdb->current_serial = 1;
+	rbtdb->least_serial = 1;
+	rbtdb->next_serial = 2;
+	rbtdb->current_version = allocate_version(mctx, 1, 0, ISC_FALSE);
+	if (rbtdb->current_version == NULL) {
+		free_rbtdb(rbtdb);
+		return (DNS_R_NOMEMORY);
+	}
+	ISC_LIST_INIT(rbtdb->open_versions);
 
 	rbtdb->common.magic = DNS_DB_MAGIC;
 	rbtdb->common.impmagic = RBTDB_MAGIC;
@@ -601,7 +1155,6 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 
 	return (ISC_R_SUCCESS);
 }
-
 
 
 /*
@@ -670,5 +1223,5 @@ current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	r.length = raw[0] * 256 + raw[1];
 	raw += 2;
 	r.base = raw;
-	dns_rdata_fromregion(rdata, rdataset->class, rdataset->type, &r);
+	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
 }
