@@ -2,12 +2,7 @@
 #include <lwres/netdb.h>
 #include <stdio.h>
 
-struct hostent *
-getipnodebyname(const char *name, int af, int flags, int *error_num);
-struct hostent *
-getipnodebyaddr(const void *src, size_t len, int af, int *error_num);
-
-static struct hostent *he;
+static struct hostent *he = NULL;
 
 struct hostent *
 gethostbyname(const char *name) {
