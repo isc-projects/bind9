@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.215 2003/02/26 02:03:57 marka Exp $ */
+/* $Id: client.c,v 1.216 2003/07/04 04:38:54 marka Exp $ */
 
 #include <config.h>
 
@@ -613,7 +613,8 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	int newstate;
 
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(client->state == NS_CLIENTSTATE_WORKING);
+	REQUIRE(client->state == NS_CLIENTSTATE_WORKING ||
+		client->state == NS_CLIENTSTATE_READING);
 
 	CTRACE("next");
 
