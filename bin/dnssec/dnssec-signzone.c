@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.155 2001/11/30 01:58:42 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.156 2001/12/07 01:55:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -65,9 +65,6 @@ const char *program = "dnssec-signzone";
 int verbose;
 
 #define BUFSIZE 2048
-
-#define SIGNER_MODE_RFC2535 0
-#define SIGNER_MODE_OPTIN 1
 
 typedef struct signer_key_struct signer_key_t;
 
