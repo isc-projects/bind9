@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.54 2000/11/03 07:16:08 marka Exp $ */
+/* $Id: view.h,v 1.55 2000/11/03 18:35:31 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -621,6 +621,9 @@ dns_view_setloadmgr(dns_view_t *view, dns_loadmgr_t *loadmgr);
 
 void
 dns_view_dialup(dns_view_t *view);
+/*
+ * Perform dialup-time maintenance on the zones of 'view'.
+ */
 
 ISC_LANG_ENDDECLS
 
