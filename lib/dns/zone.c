@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.8 2004/08/27 12:25:13 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.9 2004/08/28 05:53:20 marka Exp $ */
 
 #include <config.h>
 
@@ -5180,9 +5180,8 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	 * the soa if we see a formerr and had sent a SOA.
 	 */
 	isc_event_free(&event);
-	if ((result == ISC_R_TIMEDOUT ||
-	     (message != NULL && message->rcode == dns_rcode_formerr &&
-	      (notify->flags & DNS_NOTIFY_NOSOA) == 0))) {
+	if (message != NULL && message->rcode == dns_rcode_formerr &&
+	    (notify->flags & DNS_NOTIFY_NOSOA) == 0) {
 		notify->flags |= DNS_NOTIFY_NOSOA;
 		dns_request_destroy(&notify->request);
 		result = notify_send_queue(notify);
