@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26.206.3 2004/03/08 12:08:12 marka Exp $
+# $Id: update_copyrights,v 1.26.206.4 2004/03/15 01:02:56 marka Exp $
 
 require 5.002;
 
@@ -85,7 +85,7 @@ while (<>) {
         } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH)$/) {
                 $shell_comment = 1;
                 $prefix = "# ";
-        } elsif ($type eq "ZONE") {
+        } elsif ($type eq "ZONE" || $type eq "MC") {
                 $zone_comment = 1;
                 $prefix = "; ";
         } elsif ($type eq "MAN") {

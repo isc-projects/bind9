@@ -81,7 +81,8 @@ options {
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
-        enable-dnssec <boolean>;
+        dnssec-enable <boolean>;
+        dnssec-lookaside <string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -259,7 +260,8 @@ view <string> <optional_class> {
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
-        enable-dnssec <boolean>;
+        dnssec-enable <boolean>;
+        dnssec-lookaside <string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
