@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.44 2000/03/22 17:59:13 gson Exp $ */
+/* $Id: master.c,v 1.45 2000/03/22 19:27:51 gson Exp $ */
 
 #include <config.h>
 
@@ -80,6 +80,24 @@
 
 typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
+/*
+ * Master file loading state that persists across $INCLUDEs.
+ */
+typedef struct {
+	isc_boolean_t 	ttl_known; 
+	isc_boolean_t 	default_ttl_known;
+	isc_uint32_t 	ttl;
+	isc_uint32_t 	default_ttl;
+	isc_boolean_t 	warn_1035;
+} loadctx_t;
+
+static isc_result_t	loadfile(const char *master_file, dns_name_t *top,
+				 dns_name_t *origin,
+				 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+				 int *soacount, int *nscount,
+				 dns_rdatacallbacks_t *callbacks,
+				 loadctx_t *ctx,
+				 isc_mem_t *mctx);
 static isc_result_t	commit(dns_rdatacallbacks_t *, rdatalist_head_t *,
 			       dns_name_t *);
 static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
@@ -141,23 +159,28 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	return (DNS_R_SUCCESS);
 }
 
+static void
+loadctx_init(loadctx_t *ctx) {
+	ctx->ttl_known = ISC_FALSE;
+	ctx->ttl = 0;
+	ctx->default_ttl_known = ISC_FALSE;
+	ctx->default_ttl = 0;
+	ctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
+}
+	     
 static isc_result_t
 load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
      int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
-     isc_mem_t *mctx)
+     loadctx_t *ctx, isc_mem_t *mctx)
 {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
-	isc_uint32_t ttl = 0;
-	isc_uint32_t default_ttl = 0;
 	isc_uint32_t ttl_offset = 0;
 	dns_name_t current_name;
 	dns_name_t glue_name;
 	dns_name_t new_name;
 	dns_name_t origin_name = *origin;
-	isc_boolean_t ttl_known = ISC_FALSE;
-	isc_boolean_t default_ttl_known = ISC_FALSE;
 	isc_boolean_t current_known = ISC_FALSE;
 	isc_boolean_t in_glue = ISC_FALSE;
 	isc_boolean_t current_has_delegation = ISC_FALSE;
@@ -165,7 +188,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	isc_boolean_t finish_origin = ISC_FALSE;
 	isc_boolean_t finish_include = ISC_FALSE;
 	isc_boolean_t read_till_eol = ISC_FALSE;
-	isc_boolean_t warn_1035 = ISC_TRUE;	/* XXX Argument? */
 	char *include_file = NULL;
 	isc_token_t token;
 	isc_result_t result = DNS_R_UNEXPECTED; 
@@ -282,19 +304,19 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				GETTOKEN(lex, 0, &token, ISC_FALSE);
 				result =
 				    dns_ttl_fromtext(&token.value.as_textregion,
-						     &ttl);
+						     &ctx->ttl);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
-				if (ttl > 0x7fffffffUL) {
+				if (ctx->ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
 		"dns_master_load: %s:%d: $TTL %lu > MAXTTL, setting $TTL to 0",
 						isc_lex_getsourcename(lex),
 						isc_lex_getsourceline(lex),
-						ttl);
-					ttl = 0;
+						ctx->ttl);
+					ctx->ttl = 0;
 				}
-				default_ttl = ttl;
-				default_ttl_known = ISC_TRUE;
+				ctx->default_ttl = ctx->ttl;
+				ctx->default_ttl_known = ISC_TRUE;
 				read_till_eol = ISC_TRUE;
 				continue;
 			} else if (strcasecmp(token.value.as_pointer,
@@ -319,21 +341,29 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
-					result =
-					    dns_master_loadfile(include_file,
-								top,
-								&origin_name,
-								zclass,
-								age_ttl,
-								soacount,
-								nscount,
-								callbacks,
-								mctx);
+					/*
+					 * No origin field.
+					 */
+					result = loadfile(include_file,
+							  top,
+							  &origin_name,
+							  zclass,
+							  age_ttl,
+							  soacount,
+							  nscount,
+							  callbacks,
+							  ctx,
+							  mctx);
 					if (result != DNS_R_SUCCESS)
 						goto cleanup;
 					isc_lex_ungettoken(lex, &token);
 					continue;
 				}
+				/*
+				 * There is an origin field.  Fall through
+				 * to domain name processing code and do
+				 * the actual inclusion later.
+				 */
 				read_till_eol = ISC_TRUE;
 				finish_include = ISC_TRUE;
 			} else if (strcasecmp(token.value.as_pointer,
@@ -409,19 +439,20 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				origin_in_use = new_in_use;
 				name_in_use[origin_in_use] = ISC_TRUE;
 				origin_name = new_name;
-				finish_origin =ISC_FALSE;
+				finish_origin = ISC_FALSE;
 				continue;
 			}
 			if (finish_include) {
-				result = dns_master_loadfile(include_file,
-							     top,
-							     &new_name,
-							     zclass,
-							     age_ttl,
-							     soacount,
-							     nscount,
-							     callbacks,
-							     mctx);
+				result = loadfile(include_file,
+						  top,
+						  &new_name,
+						  zclass,
+						  age_ttl,
+						  soacount,
+						  nscount,
+						  callbacks,
+						  ctx,
+						  mctx);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
 				finish_include = ISC_FALSE;
@@ -522,19 +553,19 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				== DNS_R_SUCCESS)
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
 
-		if (dns_ttl_fromtext(&token.value.as_textregion, &ttl)
+		if (dns_ttl_fromtext(&token.value.as_textregion, &ctx->ttl)
 				== DNS_R_SUCCESS) {
-			if (ttl > 0x7fffffffUL) {
+			if (ctx->ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
 	"dns_master_load: %s:%d: TTL %lu > MAXTTL, setting TTL to 0",
 					isc_lex_getsourcename(lex),
 					isc_lex_getsourceline(lex),
-					ttl);
-				ttl = 0;
+					ctx->ttl);
+				ctx->ttl = 0;
 			}
-			ttl_known = ISC_TRUE;
+			ctx->ttl_known = ISC_TRUE;
 			GETTOKEN(lex, 0, &token, ISC_FALSE);
-		} else if (!ttl_known && !default_ttl_known) {
+		} else if (!ctx->ttl_known && !ctx->default_ttl_known) {
 			/*
 			 * BIND 4 / 8 'USE_SOA_MINIMUM' could be set here.
 			 */
@@ -545,15 +576,15 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					    isc_lex_getsourceline(lex));
 			result = DNS_R_NOTTL;
 			goto cleanup;
-		} else if (default_ttl_known) {
-			ttl = default_ttl;
-		} else if (warn_1035) {
+		} else if (ctx->default_ttl_known) {
+			ctx->ttl = ctx->default_ttl;
+		} else if (ctx->warn_1035) {
 			(*callbacks->warn)(callbacks,
 				   "%s: %s:%d: using RFC 1035 TTL semantics",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex));
-			warn_1035 = ISC_FALSE;
+			ctx->warn_1035 = ISC_FALSE;
 		} 
 
 		if (token.type != isc_tokentype_string) {
@@ -636,11 +667,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			 * part (good for performance, bad for catching 
 			 * syntax errors).
 			 */
-			if (ttl < ttl_offset) {
+			if (ctx->ttl < ttl_offset) {
 				read_till_eol = ISC_TRUE;
 				continue;
 			}
-			ttl -= ttl_offset;
+			ctx->ttl -= ttl_offset;
 		}
 
 		/*
@@ -708,21 +739,21 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			this->type = type;
 			this->covers = covers;
 			this->rdclass = zclass;
-			this->ttl = ttl;
+			this->ttl = ctx->ttl;
 			ISC_LIST_INIT(this->rdata);
 			ISC_LINK_INIT(this, link);
 			if (in_glue)
 				ISC_LIST_PREPEND(glue_list, this, link);
 			else
 				ISC_LIST_PREPEND(current_list, this, link);
-		} else if (this->ttl != ttl) {
+		} else if (this->ttl != ctx->ttl) {
 			(*callbacks->warn)(callbacks,
 				   "%s: %s:%d: TTL set to prior TTL (%lu)",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex),
 					   this->ttl);
-			ttl = this->ttl;
+			ctx->ttl = this->ttl;
 		}
 
 		/*
@@ -800,13 +831,14 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	return (result);
 }
 
-isc_result_t
-dns_master_loadfile(const char *master_file, dns_name_t *top,
-		    dns_name_t *origin,
-		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-		    int *soacount, int *nscount,
-		    dns_rdatacallbacks_t *callbacks,
-		    isc_mem_t *mctx)
+static isc_result_t
+loadfile(const char *master_file, dns_name_t *top,
+	 dns_name_t *origin,
+	 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+	 int *soacount, int *nscount,
+	 dns_rdatacallbacks_t *callbacks,
+	 loadctx_t *ctx,
+	 isc_mem_t *mctx)
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
@@ -824,8 +856,24 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 	}
 
 	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
-		     callbacks, mctx));
+		     callbacks, ctx, mctx));
 }
+
+isc_result_t
+dns_master_loadfile(const char *master_file, dns_name_t *top,
+		    dns_name_t *origin,
+		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
+		    int *soacount, int *nscount,
+		    dns_rdatacallbacks_t *callbacks,
+		    isc_mem_t *mctx)
+{
+	loadctx_t ctx;
+
+	loadctx_init(&ctx);
+	return (loadfile(master_file, top, origin, zclass, age_ttl,
+			 soacount, nscount, callbacks, &ctx, mctx));
+}
+
 
 isc_result_t
 dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
@@ -835,8 +883,11 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
+	loadctx_t ctx;
 
 	REQUIRE(stream != NULL);
+
+	loadctx_init(&ctx);
 
 	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
@@ -849,7 +900,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	}
 
 	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
-		     callbacks, mctx));
+		     callbacks, &ctx, mctx));
 }
 
 isc_result_t
@@ -861,9 +912,12 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
+	loadctx_t ctx;
 
 	REQUIRE(buffer != NULL);
 
+	loadctx_init(&ctx);
+	
 	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -875,7 +929,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 	}
 
 	return (load(lex, top, origin, zclass, age_ttl, soacount, nscount,
-		     callbacks, mctx));
+		     callbacks, &ctx, mctx));
 }
 
 /*
