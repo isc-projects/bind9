@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.77 2000/09/11 23:37:34 marka Exp $ */
+/* $Id: message.h,v 1.78 2000/10/06 18:58:24 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -141,6 +141,14 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGE_INTENTUNKNOWN	0 /* internal use only */
 #define DNS_MESSAGE_INTENTPARSE		1 /* parsing messages */
 #define DNS_MESSAGE_INTENTRENDER	2 /* rendering */
+
+/*
+ * Control behavior of parsing
+ */
+#define DNS_MESSAGEPARSE_PRESERVEORDER	0x0001	/* preserve rdata order */
+#define DNS_MESSAGEPARSE_BESTEFFORT	0x0002	/* return a message if a
+						   recoverable parse error
+						   occurs */
 
 /*
  * Control behavior of rendering
@@ -360,7 +368,7 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
-		  isc_boolean_t preserve_order);
+		  unsigned int options);
 /*
  * Parse raw wire data pointed to by "buffer" and bounded by "buflen" as a
  * DNS message.
@@ -368,22 +376,21 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * OPT records are detected and stored in the pseudo-section "opt".
  * TSIGs are detected and stored in the pseudo-section "tsig".
  *
- * If 'preserve_order' is true, or if the opcode of the message is UPDATE,
- * a separate dns_name_t object will be created for each RR in the message.
- * Each such dns_name_t will have a single rdataset containing the single RR,
- * and the order of the RRs in the message is preserved.
+ * If DNS_MESSAGEPARSE_PRESERVEORDER is set, or if the opcode of the message
+ * is UPDATE, a separate dns_name_t object will be created for each RR in the
+ * message.  Each such dns_name_t will have a single rdataset containing the
+ * single RR, * and the order of the RRs in the message is preserved.
  * Otherwise, only one dns_name_t object will be created for each unique
  * owner name in the section, and each such dns_name_t will have a list
  * of rdatasets.  To access the names and their data, use
  * dns_message_firstname() and dns_message_nextname().
  *
+ * If DNS_MESSAGEPARSE_BESTEFFORT is set, errors in message content will
+ * not be considered FORMERRs.  If the entire message can be parsed, it
+ * will be returned and DNS_R_RECOVERABLE will be returned.
+ *
  * OPT and TSIG records are always handled specially, regardless of the
  * 'preserve_order' setting.
- *
- * If this is a multi-packet message (edns) and more data is required to
- * build the full message state, DNS_R_MOREDATA is returned.  In this case,
- * this function should be repeated with all input buffers until ISC_R_SUCCESS
- * (or an error) is returned.
  *
  * Requires:
  *	"msg" be valid.
@@ -399,7 +406,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- no memory
- *	DNS_R_MOREDATA		-- more packets needed for complete message
+ *	DNS_R_RECOVERABLE	-- the message parsed properly, but contained
+ *				   errors.
  *	DNS_R_???		-- bad signature (XXXMLG need more of these)
  *	Many other errors possible XXXMLG
  */

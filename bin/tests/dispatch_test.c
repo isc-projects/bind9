@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch_test.c,v 1.46 2000/08/01 01:12:43 tale Exp $ */
+/* $Id: dispatch_test.c,v 1.47 2000/10/06 18:58:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -277,7 +277,7 @@ got_response(isc_task_t *task, isc_event_t *ev_in) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
-	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
+	result = dns_message_parse(msg, &ev->buffer, 0);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
 	result = printmsg(msg, stderr);
@@ -330,7 +330,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
-	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
+	result = dns_message_parse(msg, &ev->buffer, 0);
 	CHECKRESULT(result, "dns_message_parse() failed");
 
 	result = printmsg(msg, stderr);

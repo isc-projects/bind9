@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.116 2000/09/26 22:09:18 bwelling Exp $ */
+/* $Id: client.c,v 1.117 2000/10/06 18:58:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1032,7 +1032,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 #endif
 	}
 
-	result = dns_message_parse(client->message, buffer, ISC_FALSE);
+	result = dns_message_parse(client->message, buffer, 0);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
 		goto cleanup_serverlock;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.37 2000/09/11 06:35:56 marka Exp $ */
+/* $Id: request.c,v 1.38 2000/10/06 18:58:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -965,7 +965,7 @@ dns_request_cancel(dns_request_t *request) {
 
 isc_result_t
 dns_request_getresponse(dns_request_t *request, dns_message_t *message,
-			isc_boolean_t preserve_order)
+			unsigned int options)
 {
 	isc_result_t result;
 
@@ -977,7 +977,7 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 
 	dns_message_setquerytsig(message, request->tsig);
 	dns_message_settsigkey(message, request->tsigkey);
-	result = dns_message_parse(message, request->answer, preserve_order);
+	result = dns_message_parse(message, request->answer, options);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (request->tsigkey != NULL)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.14 2000/09/11 06:35:57 marka Exp $ */
+/* $Id: request.h,v 1.15 2000/10/06 18:58:25 bwelling Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -243,11 +243,11 @@ dns_request_cancel(dns_request_t *request);
 
 isc_result_t
 dns_request_getresponse(dns_request_t *request, dns_message_t *message,
-			isc_boolean_t preserve_order);
+			unsigned int options);
 /*
  * Get the response to 'request' by filling in 'message'.
  *
- * 'preserve_order' is passed to dns_message_parse().  See dns_message_parse()
+ * 'options' is passed to dns_message_parse().  See dns_message_parse()
  * for more details.
  *
  * Requires:

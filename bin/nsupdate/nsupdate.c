@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.54 2000/10/03 17:28:58 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.55 2000/10/06 18:58:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1104,7 +1104,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	check_result(result, "dns_message_create");
-	result = dns_request_getresponse(reqev->request, rcvmsg, ISC_TRUE);
+	result = dns_request_getresponse(reqev->request, rcvmsg,
+					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	check_result(result, "dns_request_getresponse");
 	if (debugging) {
 		isc_buffer_t *buf = NULL;
@@ -1224,7 +1225,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	ddebug("About to create rcvmsg");
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	check_result(result, "dns_message_create");
-	result = dns_request_getresponse(request, rcvmsg, ISC_TRUE);
+	result = dns_request_getresponse(request, rcvmsg,
+					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	check_result(result, "dns_request_getresponse");
 	section = DNS_SECTION_ANSWER;
 	if (debugging) {

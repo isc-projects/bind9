@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.227 2000/10/05 06:39:21 marka Exp $ */
+/* $Id: zone.c,v 1.228 2000/10/06 18:58:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2648,7 +2648,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 
-	result = dns_request_getresponse(revent->request, msg, ISC_FALSE);
+	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 
@@ -2836,7 +2836,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
-	result = dns_request_getresponse(revent->request, msg, ISC_FALSE);
+	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO,
 			 "failure in request to %s: %s",
@@ -4163,7 +4163,7 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 					    DNS_MESSAGE_INTENTPARSE, &message);
 	if (result == ISC_R_SUCCESS)
 		result = dns_request_getresponse(revent->request, message,
-						 ISC_TRUE);
+					DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == ISC_R_SUCCESS)
 		result = dns_rcode_totext(message->rcode, &buf);
 	if (result == ISC_R_SUCCESS)
@@ -4682,7 +4682,8 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 
-	result = dns_request_getresponse(revent->request, msg, ISC_TRUE);
+	result = dns_request_getresponse(revent->request, msg,
+					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.32 2000/08/30 01:35:39 bwelling Exp $ */
+/* $Id: tkey_test.c,v 1.33 2000/10/06 18:58:13 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -120,7 +120,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 	CHECK("dns_message_create", result);
-	result = dns_message_parse(response, &source, ISC_FALSE);
+	result = dns_message_parse(response, &source, 0);
 	CHECK("dns_message_parse", result);
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
@@ -188,7 +188,7 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_free(&tsigbuf);
 	dns_message_settsigkey(response2, tsigkey);
 	CHECK("dns_message_create", result);
-	result = dns_message_parse(response2, &source, ISC_FALSE);
+	result = dns_message_parse(response2, &source, 0);
 	CHECK("dns_message_parse", result);
 	isc_buffer_init(&outbuf, output, sizeof(output));
 	result = dns_message_totext(response2, 0, &outbuf);

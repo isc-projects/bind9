@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.169 2000/09/28 06:43:36 marka Exp $ */
+/* $Id: resolver.c,v 1.170 2000/10/06 18:58:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3808,7 +3808,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			goto done;
 	}
 
-	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
+	result = dns_message_parse(message, &devent->buffer, 0);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
 		case ISC_R_UNEXPECTEDEND:

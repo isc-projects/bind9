@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.98 2000/10/02 23:55:44 marka Exp $ */
+/* $Id: xfrin.c,v 1.99 2000/10/06 18:58:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1007,7 +1007,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
 
-	result = dns_message_parse(msg, &tcpmsg->buffer, ISC_TRUE);
+	result = dns_message_parse(msg, &tcpmsg->buffer,
+				   DNS_MESSAGEPARSE_PRESERVEORDER);
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror) {
 		if (result == ISC_R_SUCCESS)

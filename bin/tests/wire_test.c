@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.52 2000/08/01 01:13:29 tale Exp $ */
+/* $Id: wire_test.c,v 1.53 2000/10/06 18:58:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -125,7 +125,7 @@ main(int argc, char *argv[]) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
-	result = dns_message_parse(message, &source, ISC_FALSE);
+	result = dns_message_parse(message, &source, 0);
 	CHECKRESULT(result, "dns_message_parse failed");
 
 	result = printmessage(message);
@@ -171,7 +171,7 @@ main(int argc, char *argv[]) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
-	result = dns_message_parse(message, &source, ISC_FALSE);
+	result = dns_message_parse(message, &source, 0);
 	CHECKRESULT(result, "dns_message_parse failed");
 
 	result = printmessage(message);

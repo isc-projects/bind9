@@ -1,3 +1,7 @@
+ 508.	[func]		dns_message_parse() can now do a best-effort
+			attempt, which should allow dig to print more invalid
+			messages.
+
  507.	[func]		New functions dns_zone_flush(), dns_zt_flushanddetach()
 			and dns_view_flushanddetach().
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.146 2000/09/12 09:57:30 bwelling Exp $ */
+/* $Id: message.c,v 1.147 2000/10/06 18:58:16 bwelling Exp $ */
 
 /***
  *** Imports
@@ -896,8 +896,19 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	}
 }
 
+#define DO_FORMERR					\
+	do {						\
+		if (best_effort)			\
+			seen_problem = ISC_TRUE;	\
+		else {					\
+			result = DNS_R_FORMERR;		\
+			goto cleanup;			\
+		}					\
+	} while (0)
+
 static isc_result_t
-getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
+getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+	     unsigned int options)
 {
 	isc_region_t r;
 	unsigned int count;
@@ -910,8 +921,12 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 	dns_rdataclass_t rdclass;
 	dns_namelist_t *section;
 	isc_boolean_t free_name;
+	isc_boolean_t best_effort;
+	isc_boolean_t seen_problem;
 
 	section = &msg->sections[DNS_SECTION_QUESTION];
+
+	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
 
 	name = NULL;
 	rdataset = NULL;
@@ -954,10 +969,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 			if (ISC_LIST_EMPTY(*section)) {
 				ISC_LIST_APPEND(*section, name, link);
 				free_name = ISC_FALSE;
-			} else {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			} else
+				DO_FORMERR;
 		} else {
 			isc_mempool_put(msg->namepool, name);
 			name = name2;
@@ -983,19 +996,15 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		if (msg->state == DNS_SECTION_ANY) {
 			msg->state = DNS_SECTION_QUESTION;
 			msg->rdclass = rdclass;
-		} else if (msg->rdclass != rdclass) {
-			result = DNS_R_FORMERR;
-			goto cleanup;
-		}
+		} else if (msg->rdclass != rdclass)
+			DO_FORMERR;
 
 		/*
 		 * Can't ask the same question twice.
 		 */
 		result = dns_message_findtype(name, rdtype, 0, NULL);
-		if (result == ISC_R_SUCCESS) {
-			result = DNS_R_FORMERR;
-			goto cleanup;
-		}
+		if (result == ISC_R_SUCCESS)
+			DO_FORMERR;
 
 		/*
 		 * Allocate a new rdatalist.
@@ -1032,6 +1041,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		rdataset = NULL;
 	}
 
+	if (seen_problem)
+		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -1051,7 +1062,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 
 static isc_result_t
 getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
-	   dns_section_t sectionid, isc_boolean_t preserve_order)
+	   dns_section_t sectionid, unsigned int options)
 {
 	isc_region_t r;
 	unsigned int count, rdatalen;
@@ -1066,6 +1077,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_ttl_t ttl;
 	dns_namelist_t *section;
 	isc_boolean_t free_name, free_rdataset;
+	isc_boolean_t preserve_order, best_effort, seen_problem;
+
+	preserve_order = ISC_TF(options & DNS_MESSAGEPARSE_PRESERVEORDER);
+	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
 		int recstart = source->current;
@@ -1111,10 +1126,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
 			if ((msg->opcode != dns_opcode_update) &&
-			    (rdclass == 0 || rdclass == dns_rdataclass_any)) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			    (rdclass == 0 || rdclass == dns_rdataclass_any))
+				DO_FORMERR;
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
@@ -1128,10 +1141,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    && rdtype != dns_rdatatype_opt
 		    && rdtype != dns_rdatatype_key /* XXX in a TKEY query */
 		    && rdtype != dns_rdatatype_sig /* XXX SIG(0) */
-		    && msg->rdclass != rdclass) {
-			result = DNS_R_FORMERR;
-			goto cleanup;
-		}
+		    && msg->rdclass != rdclass)
+			DO_FORMERR;
 
 		/*
 		 * Special type handling for TSIG, OPT, and TKEY.
@@ -1143,10 +1154,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * the rest of this rdata.
 			 */
 			if ((sectionid != DNS_SECTION_ADDITIONAL)
-			    || (rdclass != dns_rdataclass_any)) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			    || (rdclass != dns_rdataclass_any))
+				DO_FORMERR;
 			if (msg->tsig != NULL) {
 				result = DNS_R_FORMERR;
 				goto cleanup;
@@ -1161,8 +1170,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * it must be the first OPT we've seen.
 			 */
 			if (!dns_name_equal(dns_rootname, name) ||
-			    sectionid != DNS_SECTION_ADDITIONAL ||
-			    msg->opt != NULL) {
+			    msg->opt != NULL)
+				DO_FORMERR;
+			if (msg->opt != NULL) {
 				result = DNS_R_FORMERR;
 				goto cleanup;
 			}
@@ -1181,10 +1191,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				tkeysection = DNS_SECTION_ADDITIONAL;
 			else
 				tkeysection = DNS_SECTION_ANSWER;
-			if (sectionid != tkeysection) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			if (sectionid != tkeysection)
+				DO_FORMERR;
 		}
 
 		/*
@@ -1303,10 +1311,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * the opcode is an update, or the type search is skipped.
 		 */
 		if (result == ISC_R_SUCCESS) {
-			if (dns_rdatatype_issingleton(rdtype)) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			if (dns_rdatatype_issingleton(rdtype))
+				DO_FORMERR;
 		}
 
 		if (result == ISC_R_NOTFOUND) {
@@ -1403,6 +1409,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		INSIST(free_rdataset == ISC_FALSE);
 	}
 
+	if (seen_problem)
+		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -1416,17 +1424,21 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
-		  isc_boolean_t preserve_order)
+		  unsigned int options)
 {
 	isc_region_t r;
 	dns_decompress_t dctx;
 	isc_result_t ret;
 	isc_uint16_t tmpflags;
 	isc_buffer_t origsource;
+	isc_boolean_t best_effort;
+	isc_boolean_t seen_problem;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(source != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
+
+	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
 
 	origsource = *source;
 
@@ -1457,23 +1469,36 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
 
-	ret = getquestions(source, msg, &dctx);
+	ret = getquestions(source, msg, &dctx, options);
+	if (ret == DNS_R_RECOVERABLE) {
+		seen_problem = ISC_TRUE;
+		ret = ISC_R_SUCCESS;
+	}
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	msg->question_ok = 1;
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER,
-			 preserve_order);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ANSWER, options);
+	if (ret == DNS_R_RECOVERABLE) {
+		seen_problem = ISC_TRUE;
+		ret = ISC_R_SUCCESS;
+	}
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY,
-			 preserve_order);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_AUTHORITY, options);
+	if (ret == DNS_R_RECOVERABLE) {
+		seen_problem = ISC_TRUE;
+		ret = ISC_R_SUCCESS;
+	}
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL,
-			 preserve_order);
+	ret = getsection(source, msg, &dctx, DNS_SECTION_ADDITIONAL, options);
+	if (ret == DNS_R_RECOVERABLE) {
+		seen_problem = ISC_TRUE;
+		ret = ISC_R_SUCCESS;
+	}
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -1484,7 +1509,10 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 				      DNS_LOGMODULE_MESSAGE, ISC_LOG_INFO,
 				      "message has nonstandard Microsoft tag");
 		} else {
-			return (DNS_R_FORMERR);
+			if (best_effort)
+				seen_problem = ISC_TRUE;
+			else
+				return (DNS_R_FORMERR);
 		}
 	}
 
@@ -1502,6 +1530,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	}
 	memcpy(msg->saved->base, r.base, msg->saved->length);
 
+	if (seen_problem == ISC_TRUE)
+		return (DNS_R_RECOVERABLE);
 	return (ISC_R_SUCCESS);
 }
 
