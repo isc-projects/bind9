@@ -966,7 +966,7 @@ join_nodes(dns_rbt_t *rbt,
 	dns_name_t newname;
 	dns_offsets_t offsets;
 	isc_region_t r;
-	int newsize;
+	int newlabels, newsize;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(node != NULL);
@@ -975,22 +975,42 @@ join_nodes(dns_rbt_t *rbt,
 	down = DOWN(node);
 
 	newsize = NAMELEN(node) + NAMELEN(down);
+	newlabels = OFFSETLEN(node) + OFFSETLEN(down);
 
 	r.base = isc_mem_get(rbt->mctx, newsize);
 	if (r.base == NULL)
 		return (DNS_R_NOMEMORY);
 
-	memcpy(r.base,
-	       NAME(down), NAMELEN(down));
-	memcpy(r.base + NAMELEN(down),
-	       NAME(node), NAMELEN(node));
+	memcpy(r.base,                 NAME(down), NAMELEN(down));
+	memcpy(r.base + NAMELEN(down), NAME(node), NAMELEN(node));
 
 	r.length = newsize;
 
 	dns_name_init(&newname, offsets);
 	dns_name_fromregion(&newname, &r);
 
-	result = create_node(rbt->mctx, &newname, &newnode);
+	/*
+	 * Check whether the space needed for the joined names can
+	 * fit within the space already available in the down node,
+	 * so that any external references to the down node are preserved.
+	 *
+	 * Currently this is not very meaningful since preservation
+	 * of the address of the down node cannot be guaranteed.
+	 */
+	if (newsize + newlabels >=
+	    NAMELEN(down) + OFFSETLEN(down) + PADBYTES(down))
+		result = create_node(rbt->mctx, &newname, &newnode);
+
+	else {
+		memcpy(NAME(down) + NAMELEN(down), NAME(node), NAMELEN(node));
+		NAMELEN(down) = newsize;
+		OFFSETLEN(down) = newlabels;
+		memcpy(OFFSETS(down), newname.offsets, newlabels);
+
+		newnode = down;
+		result = DNS_R_SUCCESS;
+	}
+
 	if (result == DNS_R_SUCCESS) {
 		COLOR(newnode) = COLOR(node);
 		RIGHT(newnode) = RIGHT(node);
@@ -1012,9 +1032,12 @@ join_nodes(dns_rbt_t *rbt,
 			*rootp = newnode;
 
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
-		isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+
+		if (newnode != down) {
+			isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+			isc_mem_put(rbt->mctx, r.base, r.length);
+		}
 	}
-	isc_mem_put(rbt->mctx, r.base, r.length);
 
 	return (result);
 }
