@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.10 2000/03/23 19:03:32 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.11 2000/04/25 17:57:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -25,11 +25,13 @@
 #include <string.h>
 
 #include <isc/boolean.h>
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <dns/keyvalues.h>
+#include <dns/secalg.h>
 #include <dst/dst.h>
 #include <dst/result.h>
 
@@ -39,135 +41,155 @@ static void usage(char *prog);
 
 int
 main(int argc, char **argv) {
-	char		*prog;
-	dst_key_t	*key;
-	char		*name = NULL, *zonefile = NULL;
-	isc_uint16_t	flags = 0;
-	int		alg = -1;
-	isc_mem_t	*mctx = NULL;
-	int		ch, rsa_exp = 0, generator = 0, param = 0;
-	int		protocol = -1, size = -1;
-	isc_result_t	ret;
+	char			*algname = NULL, *nametype = NULL, *type = NULL;
+	char			*prog, *endp;
+	dst_key_t		*key;
+	char			*name = NULL;
+	isc_uint16_t		flags = 0;
+	dns_secalg_t		alg;
+	isc_mem_t		*mctx = NULL;
+	int			ch, rsa_exp = 0, generator = 0, param = 0;
+	int			protocol = -1, size = -1, signatory = 0;
+	isc_textregion_t	r;
+	isc_result_t		ret;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	if ((prog = strrchr(argv[0],'/')) == NULL)
-		prog = strdup(argv[0]);
+		prog = isc_mem_strdup(mctx, argv[0]);
 	else
-		prog = strdup(++prog);
+		prog = isc_mem_strdup(mctx, ++prog);
+	if (prog == NULL)
+		die("strdup failure");
+
+	if (argc == 1)
+		usage(prog);
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "achiuzn:s:p:D:H:R:d:Fg:")) != -1) {
+					   "a:b:eg:n:t:p:s:h")) != -1)
+	{
 	    switch (ch) {
 		case 'a':
-			flags |= DNS_KEYTYPE_NOAUTH;
+			algname = isc_mem_strdup(mctx,
+						  isc_commandline_argument);
+			if (algname == NULL)
+				die("strdup failure");
 			break;
-		case 'c':
-			flags |= DNS_KEYTYPE_NOCONF;
+		case 'b':
+			size = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || size < 0)
+				die("-b requires a non-negative number");
 			break;
-		case 'F':
-			rsa_exp=1;
+		case 'e':
+			rsa_exp = 1;
 			break;
 		case 'g':
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff)) {
-				generator = atoi(isc_commandline_argument);
-				if (generator < 0)
-					die("-g value is not positive");
-			}
-			else
-				die("-g not followed by a number");
+			generator = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || generator <= 0)
+				die("-g requires a positive number");
+			break;
+		case 'n':
+			nametype = isc_mem_strdup(mctx,
+						  isc_commandline_argument);
+			if (nametype == NULL)
+				die("strdup failure");
+			break;
+		case 't':
+			type = isc_mem_strdup(mctx, isc_commandline_argument);
+			if (type == NULL)
+				die("strdup failure");
 			break;
 		case 'p':
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff)) {
-				protocol = atoi(isc_commandline_argument);
-				if (protocol < 0 || protocol > 255)
-					die("-p value is not [0..15]");
-			}
-			else
-				die("-p not followed by a number [0..255]");
+			protocol = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || protocol < 0 || protocol > 255)
+				die("-p must be followed by a number [0..255]");
 			break;
 		case 's':
-			/* Default: not signatory key */
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff)) {
-				int sign_val = atoi(isc_commandline_argument);
-				if (sign_val < 0 || sign_val > 15)
-					die("-s value is not [0..15] ");
-				flags |= sign_val;
-			}
-			else
-				die("-s not followed by a number [0..15] ");
+			signatory = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || signatory < 0 || signatory > 15)
+				die("-s must be followed by a number [0..15]");
 			break;
 		case 'h':
-			if ((flags & DNS_KEYFLAG_OWNERMASK) != 0)
-				die("Only one key type can be specified");
-			flags |= DNS_KEYOWNER_ENTITY;
-			break;
-		case 'u' :
-			if ((flags & DNS_KEYFLAG_OWNERMASK) != 0)
-				die("Only one key type can be specified");
-			flags |= DNS_KEYOWNER_USER;
-			break ;
-		case 'z':
-			if ((flags & DNS_KEYFLAG_OWNERMASK) != 0)
-				die("Only one key type can be specified");
-			flags |= DNS_KEYOWNER_ZONE;
-			break;
-		case 'H':
-			if (alg > 0) 
-				die("Only one alg can be specified");
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff))
-				size = atoi(isc_commandline_argument);
-			else
-				die("-H requires a size");
-			alg = DST_ALG_HMACMD5;
-			break;
-		case 'R':
-			if (alg > 0) 
-				die("Only one alg can be specified");
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff))
-				size = atoi(isc_commandline_argument);
-			else
-				die("-R requires a size");
-			alg = DNS_KEYALG_RSA;
-			break;
-		case 'D':
-			if (alg > 0) 
-				die("Only one alg can be specified");
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff))
-				size = atoi(isc_commandline_argument);
-			else
-				die("-D requires a size");
-			alg = DNS_KEYALG_DSA;
-			break;
-		case 'd':
-			if (alg > 0) 
-				die("Only one alg can be specified");
-			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff))
-				size = atoi(isc_commandline_argument);
-			else
-				die("-d requires a size");
-			alg = DNS_KEYALG_DH;
-			break;
+			usage(prog);
 		default:
 			printf("invalid argument -%c\n", ch);
 			usage(prog);
 		} 
 	}
 
-	if (isc_commandline_index == argc)
-		usage(prog);
+	if (isc_commandline_index + 1 < argc)
+		die("Extraneous arguments");
 
-	if (alg < 0)
+	if (algname == NULL)
 		die("No algorithm specified");
+	if (strcasecmp(algname, "RSA") == 0)
+		alg = DNS_KEYALG_RSA;
+	else if (strcasecmp(algname, "HMAC-MD5") == 0)
+		alg = DST_ALG_HMACMD5;
+	else {
+		r.base = algname;
+		r.length = strlen(algname);
+		ret = dns_secalg_fromtext(&alg, &r);
+		if (ret != ISC_R_SUCCESS)
+			die("Unknown algorithm");
+	}
 	if (dst_supported_algorithm(alg) == ISC_FALSE)
 		die("Unsupported algorithm");
+
+	if (size < 0)
+		die("Must specify key size (-b option)");
+
+	if (type != NULL) {
+		if (strcasecmp(type, "NOAUTH") == 0)
+			flags |= DNS_KEYTYPE_NOAUTH;
+		else if (strcasecmp(type, "NOCONF") == 0)
+			flags |= DNS_KEYTYPE_NOCONF;
+		else if (strcasecmp(type, "NOAUTHCONF") == 0)
+			flags |= (DNS_KEYTYPE_NOAUTH | DNS_KEYTYPE_NOCONF);
+		else if (strcasecmp(type, "AUTHCONF") == 0)
+			/* nothing */;
+		else
+			die("Invalid type");
+	}
+
+	switch (alg) {
+	case DNS_KEYALG_RSA:
+		if (size != 0 && (size < 512 || size > 1024))
+			die("RSA key size out of range");
+		break;
+	case DNS_KEYALG_DH:
+		if (size != 0 && (size < 128 || size > 4096))
+			die("DH key size out of range");
+		break;
+	case DNS_KEYALG_DSA:
+		if (!dsa_size_ok(size))
+			die("Invalid DSS key size");
+		break;
+	case DST_ALG_HMACMD5:
+		if (size < 1 || size > 512)
+			die("Invalid HMAC-MD5 key size");
+		break;
+	}
+
+	if (alg != DNS_KEYALG_RSA && rsa_exp != 0)
+		die("Cannot specify RSA exponent without RSA");
+
+	if (alg != DNS_KEYALG_DH && generator != 0)
+		die("Cannot specify DH generator without DH");
+
+	if (nametype == NULL)
+		die("No nametype specified");
+	if (strcasecmp(nametype, "zone") == 0)
+		flags |= DNS_KEYOWNER_ZONE;
+	else if (strcasecmp(nametype, "host") == 0 ||
+		 strcasecmp(nametype, "entity") == 0)
+		flags |= DNS_KEYOWNER_ENTITY;
+	else if (strcasecmp(nametype, "user") == 0)
+		flags |= DNS_KEYOWNER_USER;
+	else
+		die("Invalid nametype");
+
+	flags |= signatory;
 
 	if (protocol == -1) {
 		if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_USER)
@@ -182,67 +204,36 @@ main(int argc, char **argv) {
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0)
 			die("Specified null key with signing authority");
 	}
-		
-	if (size > 0) {
-		if (alg == DNS_KEYALG_RSA) {
-			if (size < 512 || size > 4096)
-				die("RSA key size out of range");
-		}
-		else if (rsa_exp != 0)
-			die("-F can only be specified with -R");
 
-		if (alg == DNS_KEYALG_DH) {
-			if (size < 16 || size > 4096)
-				die("DH key size out of range");
-		}
-		else if (generator != 0)
-			die("-g can only be specified with -d");
-
-		if (alg == DNS_KEYALG_DSA && !dsa_size_ok(size))
-			die("Invalid DSS key size");
-	}
-	else if (size < 0)
-		die("No key size specified");
-
-	name = argv[isc_commandline_index++];
-	if (argc > isc_commandline_index)
-		zonefile = argv[isc_commandline_index];
-	if (name[strlen(name) - 1] != '.' && alg != DST_ALG_HMACMD5) {
-		name = isc_mem_get(mctx, strlen(name) + 2);
-		sprintf(name, "%s.", argv[isc_commandline_index - 1]);
-		printf("** Added a trailing dot to the name to make it"
-			" fully qualified **\n");
+	name = isc_mem_allocate(mctx, strlen(argv[isc_commandline_index]) + 2);
+	if (name == NULL)
+		die("strdup failure");
+	strcpy(name, argv[isc_commandline_index]);
+	if (name[strlen(name) - 1] != '.') {
+		strcat(name, ".");
+		printf("** Added a trailing dot to fully qualify the name\n");
 	}
 
-	printf("Generating %d bit ", size);
+	printf("Generating %d bit %s key for %s\n", size, algname, name);
 	switch(alg) {
-		case DNS_KEYALG_RSA:
-			printf("RSA");
-			param = rsa_exp;
-			break;
-		case DNS_KEYALG_DH:
-			printf("DH");
-			param = generator;
-			break;
-		case DNS_KEYALG_DSA:
-			printf("DSS");
-			param = 0;
-			break;
-		case DST_ALG_HMACMD5:
-			printf("HMAC-MD5");
-			param = 0;
-			break;
-		default:
-			die("Unknown algorithm");
+	case DNS_KEYALG_RSA:
+		param = rsa_exp;
+		break;
+	case DNS_KEYALG_DH:
+		param = generator;
+		break;
+	case DNS_KEYALG_DSA:
+	case DST_ALG_HMACMD5:
+		param = 0;
+		break;
 	}
-	printf(" key for %s\n\n", name);
 
 	dst_result_register();
 	ret = dst_key_generate(name, alg, size, param, flags, protocol, mctx,
 			       &key);
 
 	if (ret != ISC_R_SUCCESS) {
-		printf("Failed generating key %s\n", name);
+		printf("Failed to generate key: %s\n", dst_result_totext(ret));
 		exit(-1);
 	}
 
@@ -255,6 +246,14 @@ main(int argc, char **argv) {
 	printf("Generated %d bit key %s: id=%d alg=%d flags=%d\n\n", size,
 	       name, dst_key_id(key), dst_key_alg(key), dst_key_flags(key));
 
+	isc_mem_free(mctx, name);
+	isc_mem_free(mctx, algname);
+	isc_mem_free(mctx, nametype);
+	isc_mem_free(mctx, prog);
+	if (type != NULL)
+		isc_mem_free(mctx, type);
+	dst_key_free(key);
+	isc_mem_destroy(&mctx);
 	exit(0);
 }
 
@@ -271,31 +270,25 @@ die(char *str) {
 
 static void
 usage(char *prog) {
-	printf("Usage:\n\t");
-	printf ("%s <-D|-H|-R|-d> <size> [-F] [-g n] [-z|-h|-u] [-a] [-c] "
-		" [-p n] [-s n] name [zonefile] \n\n", prog);
-	printf("\t-D generate DSA/DSS key: size must be in the range\n");
-	printf("\t\t[512..1024] and a multiple of 64\n");
-	printf("\t-H generate HMAC-MD5 key: size in the range [1..512]\n");
-	printf("\t-R generate RSA key: size in the range [512..4096]\n");
-	printf("\t-d generate DH key in the range [16..4096]\n");
-	printf("\t-F use large exponent (RSA only)\n");
-	printf("\t-g use specified generator (DH only)\n");
-
-	printf("\t-z Zone key \n");
-	printf("\t-h Host/Entity key \n");
-	printf("\t-u User key (default) \n");
-
-	printf("\t-a Key CANNOT be used for authentication\n");
-	printf("\t-c Key CANNOT be used for encryption\n");
-
-	printf("\t-p Set protocol field to <n>\n");
-	printf("\t\t default: 2 (email) for User keys, 3 (dnssec) for all others\n");
-	printf("\t-s Strength value this key signs DNS records with\n");
-	printf("\t\t default: 0\n");
-	printf("\tname: the owner of the key\n");
+	printf("Usage:\n");
+	printf ("    %s -a alg -b bits [-f] [-g n] -n nametype [-t type] "
+		"[-p n] [-s n] name\n\n", prog);
+	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
+	printf("    -b key size, in bits:\n");
+	printf("        RSA:\t\t[512..1024]\n");
+	printf("        DH:\t\t[128..4096]\n");
+	printf("        DSA:\t\t[512..1024] and a multiple of 64\n");
+	printf("        HMAC-MD5:\t[1..512]\n");
+	printf("    -e use large exponent (RSA only)\n");
+	printf("    -g use specified generator (DH only)\n");
+	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
+	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF\n");
+	printf("        default: AUTHCONF\n");
+	printf("    -p protocol value\n");
+	printf("        default: 2 (email) for User keys, 3 (dnssec) for all others\n");
+	printf("    -s strength value this key signs DNS records with\n");
+	printf("        default: 0\n");
+	printf("    name: owner of the key\n");
 
 	exit (-1);
 }
-
-
