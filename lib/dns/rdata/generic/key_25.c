@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.32 2000/10/25 05:43:36 marka Exp $ */
+/* $Id: key_25.c,v 1.33 2000/10/31 20:12:32 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -97,7 +97,7 @@ totext_key(ARGS_TOTEXT) {
 	RETERR(str_totext(buf, target));
 
 	/* No Key? */
-	if ((flags & 0xc000) == 0xc00)
+	if ((flags & 0xc000) == 0xc000)
 		return (ISC_R_SUCCESS);
 
 	/* key */
