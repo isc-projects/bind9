@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.20 2000/10/17 19:28:51 gson Exp $
+# $Id: update_copyrights,v 1.21 2000/11/18 01:25:27 gson Exp $
 
 require 5.002;
 
@@ -79,7 +79,7 @@ while (<>) {
                 $start_comment = "/*\n";
                 $prefix = " * ";
                 $end_comment = " */\n";
-        } elsif ($type =~ /^(SH|PERL|MAKE|CONF-SH)$/) {
+        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH)$/) {
                 $shell_comment = 1;
                 $prefix = "# ";
         } elsif ($type eq "ZONE") {
