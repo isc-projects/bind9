@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.29 2001/02/28 19:54:10 gson Exp $ */
+/* $Id: parser.c,v 1.30 2001/02/28 20:40:48 gson Exp $ */
 
 #include <config.h>
 
@@ -2401,7 +2401,8 @@ static cfg_type_t cfg_type_inetcontrol = {
 static cfg_clausedef_t
 controls_clauses[] = {
 	{ "inet", &cfg_type_inetcontrol, CFG_CLAUSEFLAG_MULTI },
-	{ "unix", &cfg_type_unsupported, CFG_CLAUSEFLAG_MULTI },
+	{ "unix", &cfg_type_unsupported,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_NOTIMP },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *
