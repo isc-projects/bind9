@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.18 2000/10/10 23:05:01 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.19 2000/10/19 02:55:20 explorer Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -261,12 +261,12 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 		goto cleanup;
 	dns_c_iplist_detach(&locallist);
 
-	result = dns_c_lwreslist_append(lwreslist, lwres, ISC_FALSE);
+	result = dns_c_lwreslist_append(lwreslist, lwres);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	lwres = NULL;
 
-	result = dns_c_ctx_setlwres(ctx, lwreslist, ISC_FALSE);
+	result = dns_c_ctx_setlwres(ctx, lwreslist);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	lwreslist = NULL;
