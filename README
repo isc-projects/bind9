@@ -134,6 +134,11 @@ BIND 9.2.0
 		This is due to a bug in "/dev/random" and impacts the
 		server's DNSSEC support.
 
+		OS X 10.1.4 (Darwin 5.4) reports errors like
+		"fcntl(3, F_SETFL, 4): Operation not supported by device".
+		This is due to a bug in "/dev/random" and impacts the
+		server's DNSSEC support.
+
 		--with-libtool does not work on AIX.
 
 	A bug in the Windows 2000 DNS server can cause zone transfers
