@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: mdnconv.c,v 1.19 2000/09/13 05:55:55 ishisone Exp $";
+static char *rcsid = "$Id: mdnconv.c,v 1.20 2000/12/06 09:46:34 m-kasahr Exp $";
 #endif
 
 /*
@@ -87,18 +87,6 @@ static char *rcsid = "$Id: mdnconv.c,v 1.19 2000/09/13 05:55:55 ishisone Exp $";
 
 /* Maxmum number of normalizers */
 #define MAX_NORMALIZER	10
-
-#ifndef MDN_UTF8_ENCODING_NAME
-#define MDN_UTF8_ENCODING_NAME "UTF-8"
-#endif
-
-#ifndef MDN_RACE_ENCODING_NAME
-#define MDN_RACE_ENCODING_NAME "RACE"
-#endif
-
-#ifndef MDN_RACE_PREFIX
-#define MDN_RACE_PREFIX "bq--"
-#endif
 
 int			line_number;	/* current input file line number */
 int			flush_every_line = 0; /* pretty obvious */
@@ -282,13 +270,12 @@ convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
 	char line1[1024];
 	char line2[1024];
 	int nl_trimmed;
-	int race_hack;
+	int ace_hack;
 
-	if (strcmp(mdn_converter_localencoding(conv_in_ctx),
-		   MDN_RACE_ENCODING_NAME) == 0)
-		race_hack = 1;
+	if (mdn_converter_isasciicompatible(conv_in_ctx))
+		ace_hack = 1;
 	else
-		race_hack = 0;
+		ace_hack = 0;
 
 	line_number = 1;
 	while (fgets(line1, sizeof(line1), fp) != NULL) {
@@ -308,13 +295,11 @@ convert_file(FILE *fp, char *zld, int auto_zld, int selective) {
 		/*
 		 * Convert input line to UTF-8.
 		 */
-		if (race_hack) {
+		if (ace_hack) {
 			/*
-			 * Find portions encoded in RACE using RACE's prefix
-			 * "bq--", and selectively decode those portions.
+			 * Selectively decode those portions.
 			 */
-			r = selective_decode(MDN_RACE_PREFIX,
-					     line1, line2, 1024);
+			r = selective_decode(line1, line2, 1024);
 		} else {
 			r = mdn_converter_localtoutf8(conv_in_ctx,
 						      line1, line2, 1024);

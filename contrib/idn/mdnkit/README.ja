@@ -1,7 +1,7 @@
 
 				mDNkit
 		   -- 多言語ドメイン名評価キット --
-			    バージョン 1.2
+			   バージョン 1.2.1
        (社) 日本ネットワークインフォメーションセンター (JPNIC)
 
 
@@ -278,7 +278,7 @@ configure を実行すると Makefile などが生成されますので、続けて makeを
 
 * パッチの当て方
 
-この配布キットには、bind-8.2.2-P7、bind-8.2.3-T6B、bind-9.0.0、および 
+この配布キットには、bind-8.2.2-P7、bind-8.2.3-T9B、bind-9.0.1、および 
 squid-2.3-STABLE3 に対するパッチが含まれています。パッチの当て方は、パッ
 チファイルの先頭に書かれていますのでそちらを参照してください。
 
@@ -297,4 +297,4 @@ http://www.nic.ad.jp/jp/research/idn/ を参照してください
 mdnkit-bugs@nic.ad.jp および idn-cmt@nic.ad.jp へお願いします。
 
 
-; $Id: README.ja,v 1.18 2000/11/21 07:54:13 ishisone Exp $
+; $Id: README.ja,v 1.20 2000/12/28 04:09:28 ishisone Exp $

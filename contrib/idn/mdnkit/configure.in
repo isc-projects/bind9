@@ -244,7 +244,7 @@ AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(unistd.h locale.h langinfo.h sys/select.h iconv.h)
+AC_CHECK_HEADERS(unistd.h locale.h langinfo.h sys/select.h)
 
 dnl Checks for data types.
 AC_TYPE_UID_T

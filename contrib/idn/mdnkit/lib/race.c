@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: race.c,v 1.14 2000/11/22 01:52:18 ishisone Exp $";
+static char *rcsid = "$Id: race.c,v 1.17 2000/12/26 08:17:01 m-kasahr Exp $";
 #endif
 
 /*
@@ -211,6 +211,14 @@ race_l2u(const char *from, const char *end,
 			return (r);
 
 		len = strlen(to);
+
+		/*
+		 * RACE doesn't permit encoding a domain name which fits
+		 * the host name requirement [STD13].
+		 */
+		if (mdn_util_domainspan(to, to + len) == to + len)
+			return (mdn_invalid_encoding);
+
 	} else {
 		/*
 		 * Not RACE encoded.  Copy verbatim.
@@ -276,13 +284,14 @@ race_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	unsigned short *buf;
 	unsigned short local_buf[RACE_BUF_SIZE];
 	size_t len, reslen;
+	char *reversed_from;
 	mdn_result_t r;
 
 	/*
 	 * Allocate sufficient buffer.
 	 */
-	if (fromlen > RACE_BUF_SIZE) {
-		if ((buf = malloc(sizeof(*buf) * fromlen)) == NULL)
+	if (fromlen + 1 > RACE_BUF_SIZE) {
+		if ((buf = malloc(sizeof(*buf) * (fromlen + 1))) == NULL)
 			return (mdn_nomemory);
 	} else {
 		/* Use local buffer. */
@@ -312,11 +321,21 @@ race_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 		r = mdn_buffer_overflow;
 		goto ret;
 	}
-	to += reslen;
-	*to = '\0';
-	tolen -= reslen;
+	*(to + reslen) = '\0';
 
-	r = mdn_success;
+	/*
+	 * Encode the result, and compare the result with `from', in
+	 * order to test whether an input string is encoded correctly.
+	 * If `from' was encoded with wrong compression mode, we return
+	 * `mdn_invalid_encoding'.
+	 */
+	r = race_encode(to, reslen, (char *)buf, fromlen + 1);
+	if (r != mdn_success)
+		goto ret;
+	if (!mdn_util_casematch((char *)buf, from, fromlen)) {
+		r = mdn_invalid_encoding;
+		goto ret;
+	}
 
 ret:
 	if (buf != local_buf)
@@ -357,8 +376,22 @@ race_decode_decompress(const char *from, size_t fromlen,
 	len = p - buf;
 
 	/*
+	 * The number of unused bits MUST be 4 or less, and all the
+	 * bits MUST be zero.
+	 */
+	if (bitlen >= 5 || (bitbuf & ((1 << bitlen) - 1)) != 0)
+		return (mdn_invalid_encoding);
+
+	/*
 	 * Now 'buf' holds the decoded string.
 	 */
+
+	/*
+	 * RACE doesn't permit an input string with only one octet
+	 * (RACE_2OCTET_MODE or a higher octet only).
+	 */
+	if (len <= 1)
+		return (mdn_invalid_encoding);
 
 	/*
 	 * Decompress.
@@ -381,6 +414,13 @@ race_decode_decompress(const char *from, size_t fromlen,
 				else
 					buf[j] = buf[i + 1];
 				i += 2;
+
+			} else if (buf[i] == 0x99 && c == 0x00) {
+				/*
+				 * The RACE specification says this is error.
+				 */
+				return (mdn_invalid_encoding);
+				 
 			} else {
 				buf[j] = c | buf[i++];
 			}
@@ -398,6 +438,7 @@ race_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	mdn_result_t r;
 	size_t len, buflen;
 	int compress_mode;
+	int i;
 
 	/*
 	 * Convert to UTF-16.
@@ -429,6 +470,17 @@ race_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	 */
 
 	/*
+	 * Check U+0099. 
+	 * RACE doesn't permit U+0099 in an input string.
+	 */
+	for (i = 0; i < len; i++) {
+		if (p[i] == 0x0099) {
+			r = mdn_invalid_encoding;
+			goto ret;
+		}
+	}
+
+	/*
 	 * Compress, encode in base-32 and output.
 	 */
 	compress_mode = get_compress_mode(p, len);
@@ -455,14 +507,19 @@ race_compress_encode(const unsigned short *p, size_t len, int compress_mode,
 				break;
 			bitbuf <<= (5 - bitlen);
 			bitlen = 5;
-		} else if (i == 0 || compress_mode == compress_one) {
-			/* Push 8 bit data into bitbuf. */
-			bitbuf = (bitbuf << 8) | (p[i] & 0xff);
-			bitlen += 8;
-		} else if (compress_mode == compress_two) {
+		} else if (i == 0) {
+			/* Output the first octet (U1 or 0xd8). */
+			bitbuf = p[0];
+			bitlen = 8;
+		} else if (compress_mode == compress_none) {
+			/* Push 16 bit data. */
+			bitbuf = (bitbuf << 16) | p[i];
+			bitlen += 16;
+		} else {/* compress_mode == compress_one/compress_two */
 			/* Push 8 or 16 bit data. */
-			if ((p[i] & 0xff00) == 0) {
-				/* Upper octet is zero. */
+			if (compress_mode == compress_two &&
+			    (p[i] & 0xff00) == 0) {
+				/* Upper octet is zero (and not U1). */
 				bitbuf = (bitbuf << 16) | 0xff00 | p[i];
 				bitlen += 16;
 			} else if ((p[i] & 0xff) == 0xff) {
@@ -471,13 +528,10 @@ race_compress_encode(const unsigned short *p, size_t len, int compress_mode,
 					(RACE_ESCAPE << 8) | RACE_ESCAPE_2ND;
 				bitlen += 16;
 			} else {
+				/* Just output lower octet. */
 				bitbuf = (bitbuf << 8) | (p[i] & 0xff);
 				bitlen += 8;
 			}
-		} else {	/* compresss_mode == compress_none */
-			/* Push 16 bit data. */
-			bitbuf = (bitbuf << 16) | p[i];
-			bitlen += 16;
 		}
 
 		/*
@@ -537,3 +591,5 @@ get_compress_mode(unsigned short *p, size_t len) {
 	else
 		return (compress_one);
 }
+
+

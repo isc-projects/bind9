@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: util.c,v 1.7 2000/11/02 00:45:18 ishisone Exp $";
+static char *rcsid = "$Id: util.c,v 1.9 2000/12/07 02:35:12 m-kasahr Exp $";
 #endif
 
 /*
@@ -86,7 +86,6 @@ extern mdn_normalizer_t	norm_ctx;
 
 extern void		errormsg(const char *fmt, ...);
 
-static char		*find_prefix(const char *str, const char *prefix);
 static int		ascii_tolower(int c);
 
 mdn_result_t
@@ -289,56 +288,122 @@ zld_match(const char *s, const char *zld) {
 }
 
 mdn_result_t
-selective_decode(const char *prefix, char *from, char *to, int tolen) {
-	char *p;
+selective_decode(char *from, char *to, int tolen) {
+	char *domain_name;
+	char *ignored_chunk;
 	char save;
 	int len;
 	mdn_result_t r;
 
-	while ((p = find_prefix(from, prefix)) != NULL) {
-		/*
-		 * Copy up to the prefix.
-		 */
-		len = p - from;
-		if (tolen < len)
-			return (mdn_buffer_overflow);
-		(void)memcpy(to, from, len);
-		from = p;
-		to += len;
-		tolen -= len;
-
-		/*
-		 * Determine the extent.
-		 */
-		p += strlen(prefix);
-		while (('a' <= *p && *p <= 'z') ||
-		       ('A' <= *p && *p <= 'Z') ||
-		       ('0' <= *p && *p <= '9') ||
-		       *p == '-' || *p == '.')
-			p++;
-
-		/*
-		 * Convert selected area to UTF-8.
-		 */
-		save = *p;
-		*p = '\0';
-		r = mdn_converter_localtoutf8(conv_in_ctx, from, to, tolen);
-		if (r != mdn_success)
-			return (r);
-		*p = save;
-		from = p;
-		len = strlen(to);
-		to += len;
-		tolen -= len;
-	}
+	/*
+	 * While `*from' points to a character in a string which may be
+	 * a domain name, `domain_name' refers to the beginning of the
+	 * domain name.
+	 */
+	domain_name = NULL;
 
 	/*
-	 * Copy the rest verbatim.
+	 * We ignores a chunk maching to the regular expression:
+	 *    [\-\.][0-9A-Za-z\-\.]*
+	 *
+	 * While `*from' points to a character in such a chunk,
+	 * `ignored_chunk' refers to the beginning of the chunk.
 	 */
-	len = strlen(from);
-	if (tolen < len + 1)	/* +1 for NUL */
-		return (mdn_buffer_overflow);
-	(void)strcpy(to, from);
+	ignored_chunk = NULL;
+
+	for (;;) {
+		if (*from == '-') {
+			/*
+			 * We don't recognize `.-' as a part of domain name.
+			 */
+			if (domain_name != NULL) {
+				if (*(from - 1) == '.') {
+					ignored_chunk = domain_name;
+					domain_name = NULL;
+				}
+			} else if (ignored_chunk == NULL) {
+				ignored_chunk = from;
+			}
+
+		} else if (*from == '.') {
+			/*
+			 * We don't recognize `-.' nor `..' as a part of
+			 * domain name.
+			 */
+			if (domain_name != NULL) {
+				if (*(from - 1) == '-' || *(from - 1) == '.') {
+					ignored_chunk = domain_name;
+					domain_name = NULL;
+				}
+			} else if (ignored_chunk == NULL) {
+				ignored_chunk = from;
+			}
+
+		} else if (('a' <= *from && *from <= 'z') ||
+			   ('A' <= *from && *from <= 'Z') ||
+			   ('0' <= *from && *from <= '9')) {
+			if (ignored_chunk == NULL && domain_name == NULL)
+				domain_name = from;
+
+		} else {
+			if (ignored_chunk != NULL) {
+				/*
+				 * `from' reaches the end of the ignored chunk.
+				 * Copy the chunk to `to'.
+				 */
+				len = from - ignored_chunk;
+				if (tolen < len)
+					return (mdn_buffer_overflow);
+				(void)memcpy(to, ignored_chunk, len);
+				to += len;
+				tolen -= len;
+
+			} else if (domain_name != NULL) {
+				/*
+				 * `from' reaches the end of the domain name.
+				 * Decode the domain name, and copy the result
+				 * to `to'.
+				 */
+				save = *from;
+				*from = '\0';
+				r = mdn_converter_localtoutf8(conv_in_ctx,
+							      domain_name, to,
+							      tolen);
+				*from = save;
+
+				if (r == mdn_success) {
+					len = strlen(to);
+				} else if (r == mdn_invalid_encoding) {
+					len = from - domain_name;
+					if (tolen < len)
+						return (mdn_buffer_overflow);
+					(void)memcpy(to, domain_name, len);
+				} else {
+					return (r);
+				}
+				to += len;
+				tolen -= len;
+
+			}
+
+			/*
+			 * Copy a character `*from' to `to'.
+			 */
+			if (tolen < 1)
+				return (mdn_buffer_overflow);
+			*to = *from;
+			to++;
+			tolen--;
+
+			domain_name = NULL;
+			ignored_chunk = NULL;
+
+			if (*from == '\0')
+				break;
+		}
+
+		from++;
+	}
 
 	return (mdn_success);
 }
@@ -407,18 +472,4 @@ ascii_tolower(int c) {
 		return (c - 'A' + 'a');
 	else
 		return (c);
-}
-
-static char *
-find_prefix(const char *str, const char *prefix) {
-	int top = ascii_tolower(prefix[0]);
-	size_t plen = strlen(prefix);
-
-	while (*str != '\0') {
-		if ((*str == top || ascii_tolower(*str) == top) &&
-		    mdn_util_casematch(str, prefix, plen))
-			return ((char *)str);
-		str++;
-	}
-	return (NULL);
 }

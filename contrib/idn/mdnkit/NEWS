@@ -1,4 +1,24 @@
-; $Id: NEWS,v 1.5 2000/11/21 09:03:23 ishisone Exp $
+; $Id: NEWS,v 1.8 2000/12/28 02:36:29 ishisone Exp $
+
+Major changes in version 1.2.1:
+
+* RACE converter incorporates numeral checks introduced by -03 draft.
+  Also a bug, which produces incorrectly encoded string (actually
+  encoded in the way -00 draft specifies), is fixed.
+
+* The base version of BIND-9 patch has changed from 9.0.0 to 9.0.1.
+
+* The base versions of BIND-8 patch are now 8.2.2-P7 and 8.2.3-T9B.
+
+* runmdn now works again.
+
+* mdnconv is improved so that it can nicely convert ACE-encoded text
+  to other encodings.  It detects ACE portions of the input string and
+  converts only them, leaving non-ACE portions intact.  Previously
+  only RACE had such capability, but now other ACEs also have this
+  capability as long as they have certain prefix/suffix ("bq--" for
+  RACE, for example).
+
 
 Major changes in version 1.2:
 

@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.2 2000/08/23 07:01:05 ishisone Exp $ */
+/* $Id: util.h,v 1.3 2000/12/06 09:46:35 m-kasahr Exp $ */
 /*
  * Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
  *  
@@ -63,8 +63,7 @@ extern mdn_result_t	encode_region(const char *region, char *to, int tolen,
 				      const char *zld, int auto_zld);
 extern void		canonical_zld(char *s, const char *zld);
 extern int		zld_match(const char *s, const char *zld);
-extern mdn_result_t	selective_decode(const char *prefix,
-					 char *from, char *to, int tolen);
+extern mdn_result_t	selective_decode(char *from, char *to, int tolen);
 extern int		initialize_converter(const char *in_code,
 					     const char *out_code,
 					     const char *encoding_alias);
