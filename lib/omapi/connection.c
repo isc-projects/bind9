@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.16 2000/02/17 19:58:58 gson Exp $ */
+/* $Id: connection.c,v 1.17 2000/03/14 03:46:14 tale Exp $ */
 
-/* Principal Author: Ted Lemon */
+/* Principal Author: DCL */
 
 /*
  * Subroutines for dealing with connections.
@@ -91,15 +91,11 @@ free_connection(omapi_connection_t *connection) {
 		isc_buffer_free(&buffer);
 	}
 
-	if (connection->task != NULL) {
+	if (connection->task != NULL)
 		isc_task_destroy(&connection->task);
-		connection->task = NULL;
-	}
 
-	if (connection->socket != NULL) {
+	if (connection->socket != NULL)
 		isc_socket_detach(&connection->socket);
-		connection->socket = NULL;
-	}
 
 	if (connection->is_client) {
 		RUNTIME_CHECK(isc_mutex_destroy(&connection->wait_lock) ==
@@ -619,14 +615,32 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 			unsigned int len)
 {
 	omapi_connection_t *connection;
+	omapi_protocol_t *protocol;
 	isc_buffer_t *buffer;
 	isc_bufferlist_t bufferlist;
+	isc_region_t region;
 	isc_result_t result;
 	unsigned int space_available;
 
 	REQUIRE(c != NULL && c->type == omapi_type_connection);
 
 	connection = (omapi_connection_t *)c;
+
+	protocol = (omapi_protocol_t *)connection->inner;
+
+	REQUIRE(protocol != NULL && protocol->type == omapi_type_protocol);
+
+	/*
+	 * XXX make the auth stuff a part of the connection object instead?
+	 */
+	if (protocol->dst_update) {
+		region.base = src;
+		region.length = len;
+		result = dst_sign(DST_SIGMODE_UPDATE, protocol->key,
+				  &protocol->dstctx, &region, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	/*
 	 * Check for enough space in the output buffers.
@@ -649,10 +663,6 @@ omapi_connection_putmem(omapi_object_t *c, unsigned char *src,
 		ISC_LIST_APPEND(bufferlist, buffer, link);
 	}
 
-	/*
-	 * XXXDCL out_bytes hardly seems needed as it is easy to get a
-	 * total of how much data is in the output buffers.
-	 */
 	connection->out_bytes += len;
 
 	/*
@@ -684,10 +694,16 @@ connection_copyout(unsigned char *dst, omapi_connection_t *connection,
 		   unsigned int size)
 {
 	isc_buffer_t *buffer;
+	isc_region_t region;
 	unsigned int copy_bytes;
+	omapi_protocol_t *protocol;
 
 	REQUIRE(connection != NULL &&
 		connection->type == omapi_type_connection);
+
+	protocol = (omapi_protocol_t *)connection->inner;
+
+	REQUIRE(protocol != NULL && protocol->type == omapi_type_protocol);
 
 	INSIST(size <= connection->in_bytes);
 	
@@ -704,13 +720,21 @@ connection_copyout(unsigned char *dst, omapi_connection_t *connection,
 		if (copy_bytes > size)
 			copy_bytes = size;
 
+		region.base = (unsigned char *)buffer->base + buffer->current;
+		region.length = copy_bytes;
+
 		/*
 		 * When dst == NULL, this function is being used to skip
 		 * over uninteresting input.
 		 */
 		if (dst != NULL)
-			(void)memcpy(dst, (unsigned char *)buffer->base + 
-				     buffer->current, copy_bytes);
+			(void)memcpy(dst, region.base, copy_bytes);
+
+		if (protocol->dst_update &&
+		    protocol->verify_result == ISC_R_SUCCESS)
+			protocol->verify_result =
+				dst_verify(DST_SIGMODE_UPDATE, protocol->key,
+					   &protocol->dstctx, &region, NULL);
 
 		isc_buffer_forward(buffer, copy_bytes);
 
@@ -1066,6 +1090,15 @@ connection_destroy(omapi_object_t *handle) {
 	/*
 	 * end_connection is the proper entry point for removing a
 	 * connection, so it should have been called to do all the cleanup.
+	 */
+
+	/*
+	 * XXXDCL somehow, not all memory is being destroyed with abnormal
+	 * drops.  run the omapi_test program listener.  then run the
+	 * omapi_test as a client, and break at the end of omapi_auth_use.
+	 * when the debugger stops, exit the debugger.  only two blocks
+	 * of memory are freed, but i suspect there are more than those
+	 * associated with the connection.
 	 */
 
 	if (connection->state == omapi_connection_connected) {
