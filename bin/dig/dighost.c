@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.81 2000/07/13 02:14:17 mws Exp $ */
+/* $Id: dighost.c,v 1.82 2000/07/13 18:52:57 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -231,32 +231,71 @@ istype(char *text) {
 }
 
 dig_lookup_t *
-requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
+make_empty_lookup(void) {
 	dig_lookup_t *looknew;
-	dig_server_t *s, *srv;
 
-	debug("requeue_lookup()");
+	debug("make_lookup()");
 
 	INSIST(!free_now);
 
-	lookup_counter++;
-	if (lookup_counter > LOOKUP_LIMIT)
-		fatal("Too many lookups");
 	looknew = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 	if (looknew == NULL)
 		fatal("Memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
-	looknew->pending = ISC_FALSE;
-	strncpy(looknew->textname, lookold-> textname, MXNAME);
-	strncpy(looknew->rttext, lookold-> rttext, 32);
-	strncpy(looknew->rctext, lookold-> rctext, 32);
-	looknew->namespace[0] = 0;
+	looknew->pending = ISC_TRUE;
+	looknew->textname[0]=0;
+	looknew->rttext[0]=0;
+	looknew->rctext[0]=0;
 	looknew->sendspace = NULL;
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
 	looknew->oname = NULL;
 	looknew->timer = NULL;
 	looknew->xfr_q = NULL;
+	looknew->doing_xfr = ISC_FALSE;
+	looknew->ixfr_serial = ISC_FALSE;
+	looknew->defname = ISC_FALSE;
+	looknew->trace = ISC_FALSE;
+	looknew->trace_root = ISC_FALSE;
+	looknew->identify = ISC_FALSE;
+	looknew->udpsize = 0;
+	looknew->recurse = ISC_TRUE;
+	looknew->aaonly = ISC_FALSE;
+	looknew->adflag = ISC_FALSE;
+	looknew->cdflag = ISC_FALSE;
+	looknew->ns_search_only = ISC_FALSE;
+	looknew->origin = NULL;
+	looknew->querysig = NULL;
+	looknew->retries = tries;
+	looknew->nsfound = 0;
+	looknew->tcp_mode = ISC_FALSE;
+	looknew->comments = ISC_TRUE;
+	looknew->stats = ISC_TRUE;
+	looknew->section_question = ISC_TRUE;
+	looknew->section_answer = ISC_TRUE;
+	looknew->section_authority = ISC_TRUE;
+	looknew->section_additional = ISC_TRUE;
+	looknew->new_search = ISC_FALSE;
+	ISC_LIST_INIT(looknew->my_server_list);
+	ISC_LIST_INIT(looknew->q);
+	looknew->use_my_server_list = ISC_FALSE;
+	return (looknew);
+}
+
+dig_lookup_t *
+clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
+	dig_lookup_t *looknew;
+	dig_server_t *s, *srv;
+
+	debug("clone_lookup()");
+
+	INSIST(!free_now);
+
+	looknew = make_empty_lookup();
+	INSIST(looknew != NULL);
+	strncpy(looknew->textname, lookold-> textname, MXNAME);
+	strncpy(looknew->rttext, lookold-> rttext, 32);
+	strncpy(looknew->rctext, lookold-> rctext, 32);
 	looknew->doing_xfr = lookold->doing_xfr;
 	looknew->ixfr_serial = lookold->ixfr_serial;
 	looknew->defname = lookold->defname;
@@ -269,10 +308,6 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
-	looknew->origin = NULL;
-	looknew->querysig = NULL;
-	looknew->retries = tries;
-	looknew->nsfound = 0;
 	looknew->tcp_mode = lookold->tcp_mode;
 	looknew->comments = lookold->comments;
 	looknew->stats = lookold->stats;
@@ -280,11 +315,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_answer = lookold->section_answer;
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
-	looknew->new_search = ISC_FALSE;
-	ISC_LIST_INIT(looknew->my_server_list);
-	ISC_LIST_INIT(looknew->q);
 
-	looknew->use_my_server_list = ISC_FALSE;
 	if (servers) {
 		looknew->use_my_server_list = lookold->use_my_server_list;
 		if (looknew->use_my_server_list) {
@@ -303,6 +334,22 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 			}
 		}
 	}
+	return (looknew);
+}
+
+dig_lookup_t *
+requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
+	dig_lookup_t *looknew;
+
+	debug("requeue_lookup()");
+
+	lookup_counter++;
+	if (lookup_counter > LOOKUP_LIMIT)
+		fatal("Too many lookups");
+
+	looknew = clone_lookup(lookold, servers);
+	INSIST(looknew != NULL);
+
 	debug("before insertion, init@%p "
 	       "-> %p, new@%p -> %p",
 	      lookold, lookold->link.next, looknew, looknew->link.next);
@@ -629,6 +676,9 @@ add_question(dns_message_t *message, dns_name_t *name,
 static void
 check_if_done(void) {
 	debug("check_if_done()");
+	debug("sockcount=%d, recvcount=%d, sendcount=%d, list %s",
+	      sockcount, recvcount, sendcount,
+	      ISC_LIST_EMPTY(lookup_list)?"empty":"full");
 	if ((sockcount == 0) && (recvcount == 0) && (sendcount == 0)
 	    && ISC_LIST_EMPTY(lookup_list)) {
 		debug("shutting down");
@@ -645,6 +695,8 @@ clear_query(dig_query_t *query) {
 	dig_lookup_t *lookup;
 
 	REQUIRE(query != NULL);
+
+	debug("clear_query(%p)",query);
 
 	lookup = query->lookup;
 	ISC_LIST_UNLINK(lookup->q, query, link);
@@ -668,8 +720,12 @@ try_clear_lookup(dig_lookup_t *lookup) {
 
 	REQUIRE(lookup != NULL);
 
-	if (ISC_LIST_HEAD(lookup->q) != NULL)
+	debug("try_clear_lookup(%p)", lookup);
+
+	if (ISC_LIST_HEAD(lookup->q) != NULL) {
+		debug("can't clear; query still pending.");
 		return (ISC_FALSE);
+	}
 	/*
 	 * At this point, we know there are no queries on the lookup,
 	 * so can make it go away also.
@@ -1363,6 +1419,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_result_t result;
 	dig_query_t *query=NULL;
+	dig_lookup_t *l;
 	isc_uint16_t length;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
@@ -1376,10 +1433,15 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 
 	query = event->ev_arg;
 
+	recvcount--;
+	INSIST(recvcount >= 0);
+
 	if (sevent->result == ISC_R_CANCELED) {
 		query->working = ISC_FALSE;
 		isc_event_free(&event);
-		check_next_lookup(query->lookup);
+		l = query->lookup;
+		clear_query(query);
+		check_next_lookup(l);
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {

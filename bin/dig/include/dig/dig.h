@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.31 2000/07/13 01:22:38 mws Exp $ */
+/* $Id: dig.h,v 1.32 2000/07/13 18:52:58 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -208,6 +208,12 @@ free_lists(void);
 
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
+
+dig_lookup_t *
+make_empty_lookup(void);
+
+dig_lookup_t *
+clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 
 /*

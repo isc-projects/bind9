@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.62 2000/07/13 01:22:33 mws Exp $ */
+/* $Id: dig.c,v 1.63 2000/07/13 18:52:55 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -556,13 +556,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
 	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
+	static dig_lookup_t *default_lookup = NULL;
 	char *batchname = NULL;
 	char batchline[MXNAME];
 	char address[MXNAME];
 	FILE *fp = NULL;
 	int bargc;
 	char *bargv[16];
-	char bargv0[sizeof("dig")];
 	int i, n;
 	int adrs[4];
 	int rc;
@@ -575,7 +575,15 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	 * otherwise make it apply to the latest host.  This is
 	 * a bit different than the previous versions, but should
 	 * form a consistent user interface.
+	 *
+	 * First, create a "default lookup" which won't actually be used
+	 * anywhere, except for cloning into new lookups
 	 */
+
+	if (!is_batchfile)
+		default_lookup = make_empty_lookup();
+
+	lookup = default_lookup;
 
 	rc = argc;
 	rv = argv;
@@ -589,42 +597,26 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (srv == NULL)
 				fatal("Memory allocation failure");
 			strncpy(srv->servername, &rv[0][1], MXNAME-1);
-			if (is_batchfile && have_host) {
-				if (!lookup->use_my_server_list) {
-					ISC_LIST_INIT(lookup->
-						      my_server_list);
-					lookup->use_my_server_list =
-						ISC_TRUE;
-				}
-				ISC_LIST_APPEND(lookup->my_server_list,
-						srv, link);
-			} else {
-				ISC_LIST_APPEND(server_list, srv, link);
+			if (!lookup->use_my_server_list) {
+				ISC_LIST_INIT(lookup->
+					      my_server_list);
+				lookup->use_my_server_list =
+					ISC_TRUE;
 			}
+			ISC_LIST_APPEND(lookup->my_server_list,
+					srv, link);
 		} else if ((strcmp(rv[0], "+vc") == 0)
 			   && (!is_batchfile)) {
-			if (have_host)
-				lookup->tcp_mode = ISC_TRUE;
-			else
-				tcpmode = ISC_TRUE;
+			lookup->tcp_mode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+novc") == 0)
 			   && (!is_batchfile)) {
-			if (have_host)
-				lookup->tcp_mode = ISC_FALSE;
-			else
-				tcpmode = ISC_FALSE;
+			lookup->tcp_mode = ISC_FALSE;
 		} else if ((strcmp(rv[0], "+tcp") == 0)
 			   && (!is_batchfile)) {
-			if (have_host)
-				lookup->tcp_mode = ISC_TRUE;
-			else
-				tcpmode = ISC_TRUE;
+			lookup->tcp_mode = ISC_TRUE;
 		} else if ((strcmp(rv[0], "+notcp") == 0)
 			   && (!is_batchfile)) {
-			if (have_host)
-				lookup->tcp_mode = ISC_FALSE;
-			else
-				tcpmode = ISC_FALSE;
+			lookup->tcp_mode = ISC_FALSE;
 		} else if (strncmp(rv[0], "+domain=", 8) == 0) {
 			/* Global option always */
 			strncpy(fixeddomain, &rv[0][8], MXNAME);
@@ -634,15 +626,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if (strncmp(rv[0], "+nosea", 6) == 0) {
 			usesearch = ISC_FALSE;
 		} else if (strncmp(rv[0], "+defn", 5) == 0) {
-			if (have_host)
-				lookup->defname = ISC_TRUE;
-			else
-				defname = ISC_TRUE;
+			lookup->defname = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nodefn", 7) == 0) {
-			if (have_host)
-				lookup->defname = ISC_FALSE;
-			else
-				defname = ISC_FALSE;
+			lookup->defname = ISC_FALSE;
 		} else if (strncmp(rv[0], "+time=", 6) == 0) {
 			/* Global option always */
 			timeout = atoi(&rv[0][6]);
@@ -656,150 +642,71 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				timeout = 1;
 			debug("timeout set to %d", timeout);
 		} else if (strncmp(rv[0], "+tries=", 7) == 0) {
-			if (have_host) {
-				lookup->retries = atoi(&rv[0][7]);
-				if (lookup->retries <= 0)
-					lookup->retries = 1;
-			} else {
-				tries = atoi(&rv[0][7]);
-				if (tries <= 0)
-					tries = 1;
-			}
+			lookup->retries = atoi(&rv[0][7]);
+			if (lookup->retries <= 0)
+				lookup->retries = 1;
 		} else if (strncmp(rv[0], "+buf=", 5) == 0) {
-			if (have_host) {
-				lookup->udpsize = atoi(&rv[0][5]);
-				if (lookup->udpsize <= 0)
-					lookup->udpsize = 0;
-				if (lookup->udpsize > COMMSIZE)
-					lookup->udpsize = COMMSIZE;
-			} else {
-				bufsize = atoi(&rv[0][5]);
-				if (bufsize <= 0)
-					bufsize = 0;
-				if (bufsize > COMMSIZE)
-					bufsize = COMMSIZE;
-			}
+			lookup->udpsize = atoi(&rv[0][5]);
+			if (lookup->udpsize <= 0)
+				lookup->udpsize = 0;
+			if (lookup->udpsize > COMMSIZE)
+				lookup->udpsize = COMMSIZE;
 		} else if (strncmp(rv[0], "+bufsize=", 9) == 0) {
-			if (have_host) {
-				lookup->udpsize = atoi(&rv[0][9]);
-				if (lookup->udpsize <= 0)
-					lookup->udpsize = 0;
-				if (lookup->udpsize > COMMSIZE)
-					lookup->udpsize = COMMSIZE;
-			} else {
-				bufsize = atoi(&rv[0][9]);
-				if (bufsize <= 0)
-					bufsize = 0;
-				if (bufsize > COMMSIZE)
-					bufsize = COMMSIZE;
-			}
+			lookup->udpsize = atoi(&rv[0][9]);
+			if (lookup->udpsize <= 0)
+				lookup->udpsize = 0;
+			if (lookup->udpsize > COMMSIZE)
+				lookup->udpsize = COMMSIZE;
 		} else if (strncmp(rv[0], "+ndots=", 7) == 0) {
 			/* Global option always */
 			ndots = atoi(&rv[0][7]);
 			if (ndots < 0)
 				ndots = 0;
 		} else if (strncmp(rv[0], "+rec", 4) == 0) {
-			if (have_host)
-				lookup->recurse = ISC_TRUE;
-			else
-				recurse = ISC_TRUE;
+			lookup->recurse = ISC_TRUE;
 		} else if (strncmp(rv[0], "+norec", 6) == 0) {
-			if (have_host)
-				lookup->recurse = ISC_FALSE;
-			else
-				recurse = ISC_FALSE;
+			lookup->recurse = ISC_FALSE;
 		} else if (strncmp(rv[0], "+aa", 3) == 0) {
-			if (have_host) 
-				lookup->aaonly = ISC_TRUE;
-			else
-				aaonly = ISC_TRUE;
+			lookup->aaonly = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noaa", 5) == 0) {
-			if (have_host) 
-				lookup->aaonly = ISC_FALSE;
-			else
-				aaonly = ISC_FALSE;
+			lookup->aaonly = ISC_FALSE;
 		} else if (strncmp(rv[0], "+adf", 4) == 0) {
-			if (have_host) 
-				lookup->adflag = ISC_TRUE;
-			else
-				adflag = ISC_TRUE;
+			lookup->adflag = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noadf", 6) == 0) {
-			if (have_host) 
-				lookup->adflag = ISC_FALSE;
-			else
-				adflag = ISC_FALSE;
+			lookup->adflag = ISC_FALSE;
 		} else if (strncmp(rv[0], "+cd", 3) == 0) {
-			if (have_host) 
-				lookup->cdflag = ISC_TRUE;
-			else
-				cdflag = ISC_TRUE;
+			lookup->cdflag = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nocd", 5) == 0) {
-			if (have_host) 
-				lookup->cdflag = ISC_FALSE;
-			else
-				cdflag = ISC_FALSE;
+			lookup->cdflag = ISC_FALSE;
 		} else if (strncmp(rv[0], "+ns", 3) == 0) {
-			if (have_host) {
-				lookup->ns_search_only = ISC_TRUE;
-				lookup->trace_root = ISC_TRUE;
-				lookup->recurse = ISC_FALSE;
-				lookup->identify = ISC_TRUE;
-				lookup->stats = ISC_FALSE;
-				if (!forcecomment)
-					lookup->comments = ISC_FALSE;
-				lookup->section_additional = ISC_FALSE;
-				lookup->section_authority = ISC_FALSE;
-				lookup->section_question = ISC_FALSE;
-			} else {
-				ns_search_only = ISC_TRUE;
-				recurse = ISC_FALSE;
-				identify = ISC_TRUE;
-				stats = ISC_FALSE;
-				if (!forcecomment)
-					comments = ISC_FALSE;
-				section_additional = ISC_FALSE;
-				section_authority = ISC_FALSE;
-				section_question = ISC_FALSE;
-			}
+			lookup->ns_search_only = ISC_TRUE;
+			lookup->trace_root = ISC_TRUE;
+			lookup->recurse = ISC_FALSE;
+			lookup->identify = ISC_TRUE;
+			lookup->stats = ISC_FALSE;
+			if (!forcecomment)
+				lookup->comments = ISC_FALSE;
+			lookup->section_additional = ISC_FALSE;
+			lookup->section_authority = ISC_FALSE;
+			lookup->section_question = ISC_FALSE;
 		} else if (strncmp(rv[0], "+nons", 6) == 0) {
-			if (have_host)
-				lookup->ns_search_only = ISC_FALSE;
-			else
-				ns_search_only = ISC_FALSE;
+			lookup->ns_search_only = ISC_FALSE;
 		} else if (strncmp(rv[0], "+tr", 3) == 0) {
-			if (have_host) {
-				lookup->trace = ISC_TRUE;
-				lookup->trace_root = ISC_TRUE;
-				lookup->recurse = ISC_FALSE;
-				lookup->identify = ISC_TRUE;
-				if (!forcecomment) {
-					lookup->comments = ISC_FALSE;
-					lookup->stats = ISC_FALSE;
-				}
-				lookup->section_additional = ISC_FALSE;
-				lookup->section_authority = ISC_TRUE;
-				lookup->section_question = ISC_FALSE;
-				show_details = ISC_TRUE;
-			} else {
-				trace = ISC_TRUE;
-				recurse = ISC_FALSE;
-				identify = ISC_TRUE;
-				if (!forcecomment) {
-					comments = ISC_FALSE;
-					stats = ISC_FALSE;
-				}
-				section_additional = ISC_FALSE;
-				section_authority = ISC_TRUE;
-				section_question = ISC_FALSE;
-				show_details = ISC_TRUE;
+			lookup->trace = ISC_TRUE;
+			lookup->trace_root = ISC_TRUE;
+			lookup->recurse = ISC_FALSE;
+			lookup->identify = ISC_TRUE;
+			if (!forcecomment) {
+				lookup->comments = ISC_FALSE;
+				lookup->stats = ISC_FALSE;
 			}
+			lookup->section_additional = ISC_FALSE;
+			lookup->section_authority = ISC_TRUE;
+			lookup->section_question = ISC_FALSE;
+			show_details = ISC_TRUE;
 		} else if (strncmp(rv[0], "+notr", 6) == 0) {
-			if (have_host) {
-				lookup->trace = ISC_FALSE;
-				lookup->trace_root = ISC_FALSE;
-			}
-			else
-				trace = ISC_FALSE;
+			lookup->trace = ISC_FALSE;
+			lookup->trace_root = ISC_FALSE;
 		} else if (strncmp(rv[0], "+det", 4) == 0) {
 			show_details = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nodet", 6) == 0) {
@@ -811,156 +718,81 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		} else if (strncmp(rv[0], "+sho", 4) == 0) {
 			short_form = ISC_TRUE;
 			printcmd = ISC_FALSE;
-			if (have_host) {
-				lookup->section_additional = ISC_FALSE;
-				lookup->section_authority = ISC_FALSE;
-				lookup->section_question = ISC_FALSE;
-				if (!forcecomment) {
-					lookup->comments = ISC_FALSE;
-					lookup->stats = ISC_FALSE;
-				}
-			} else {
-				section_additional = ISC_FALSE;
-				section_authority = ISC_FALSE;
-				section_question = ISC_FALSE;
-				if (!forcecomment) {
-					comments = ISC_FALSE;
-					stats = ISC_FALSE;
-				}
+			lookup->section_additional = ISC_FALSE;
+			lookup->section_authority = ISC_FALSE;
+			lookup->section_question = ISC_FALSE;
+			if (!forcecomment) {
+				lookup->comments = ISC_FALSE;
+				lookup->stats = ISC_FALSE;
 			}
 		} else if (strncmp(rv[0], "+nosho", 6) == 0) {
 			short_form = ISC_FALSE;
 		} else if (strncmp(rv[0], "+id", 3) == 0) {
-			if (have_host)
-				lookup->identify = ISC_TRUE;
-			else
-				identify = ISC_TRUE;
+			lookup->identify = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noid", 5) == 0) {
-			if (have_host)
-				lookup->identify = ISC_FALSE;
-			else
-				identify = ISC_FALSE;
+			lookup->identify = ISC_FALSE;
 		} else if (strncmp(rv[0], "+com", 4) == 0) {
-			if (have_host)
-				lookup->comments = ISC_TRUE;
-			else
-				comments = ISC_TRUE;
+			lookup->comments = ISC_TRUE;
 			forcecomment = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nocom", 6) == 0) {
-			if (have_host) {
-				lookup->comments = ISC_FALSE;
-				lookup->stats = ISC_FALSE;
-			} else {
-				comments = ISC_FALSE;
-				stats = ISC_FALSE;
-			}
+			lookup->comments = ISC_FALSE;
+			lookup->stats = ISC_FALSE;
 			forcecomment = ISC_FALSE;
 		} else if (strncmp(rv[0], "+sta", 4) == 0) {
-			if (have_host)
-				lookup->stats = ISC_TRUE;
-			else
-				stats = ISC_TRUE;
+			lookup->stats = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nosta", 6) == 0) {
-			if (have_host)
-				lookup->stats = ISC_FALSE;
-			else
-				stats = ISC_FALSE;
+			lookup->stats = ISC_FALSE;
 		} else if (strncmp(rv[0], "+qr", 3) == 0) {
 			qr = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noqr", 5) == 0) {
 			qr = ISC_FALSE;
 		} else if (strncmp(rv[0], "+que", 4) == 0) {
-			if (have_host)
-				lookup->section_question = ISC_TRUE;
-			else
-				section_question = ISC_TRUE;
+			lookup->section_question = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noque", 6) == 0) {
-			if (have_host)
-				lookup->section_question = ISC_FALSE;
-			else
-				section_question = ISC_FALSE;
+			lookup->section_question = ISC_FALSE;
 		} else if (strncmp(rv[0], "+ans", 4) == 0) {
-			if (have_host)
-				lookup->section_answer = ISC_TRUE;
-			else
-				section_answer = ISC_TRUE;
+			lookup->section_answer = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noans", 6) == 0) {
-			if (have_host)
-				lookup->section_answer = ISC_FALSE;
-			else
-				section_answer = ISC_FALSE;
+			lookup->section_answer = ISC_FALSE;
 		} else if (strncmp(rv[0], "+add", 4) == 0) {
-			if (have_host)
-				lookup->section_additional = ISC_TRUE;
-			else
-				section_additional = ISC_TRUE;
+			lookup->section_additional = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noadd", 6) == 0) {
-			if (have_host)
-				lookup->section_additional = ISC_FALSE;
-			else
-				section_additional = ISC_FALSE;
+			lookup->section_additional = ISC_FALSE;
 		} else if (strncmp(rv[0], "+aut", 4) == 0) {
-			if (have_host)
-				lookup->section_authority = ISC_TRUE;
-			else
-				section_authority = ISC_TRUE;
+			lookup->section_authority = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noaut", 6) == 0) {
-			if (have_host)
 				lookup->section_authority = ISC_FALSE;
-			else
-				section_authority = ISC_FALSE;
 		} else if (strncmp(rv[0], "+all", 4) == 0) {
-			if (have_host) {
-				lookup->section_question = ISC_TRUE;
-				lookup->section_authority = ISC_TRUE;
-				lookup->section_answer = ISC_TRUE;
-				lookup->section_additional = ISC_TRUE;
-				lookup->comments = ISC_TRUE;
-			} else {
-				section_question = ISC_TRUE;
-				section_authority = ISC_TRUE;
-				section_answer = ISC_TRUE;
-				section_additional = ISC_TRUE;
-				comments = ISC_TRUE;
-			}
+			lookup->section_question = ISC_TRUE;
+			lookup->section_authority = ISC_TRUE;
+			lookup->section_answer = ISC_TRUE;
+			lookup->section_additional = ISC_TRUE;
+			lookup->comments = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noall", 6) == 0) {
-			if (have_host) {
-				lookup->section_question = ISC_FALSE;
-				lookup->section_authority = ISC_FALSE;
-				lookup->section_answer = ISC_FALSE;
-				lookup->section_additional = ISC_FALSE;
-				lookup->comments = ISC_FALSE;
-			} else {
-				section_question = ISC_FALSE;
-				section_authority = ISC_FALSE;
-				section_answer = ISC_FALSE;
-				section_additional = ISC_FALSE;
-				comments = ISC_FALSE;
-			}
-
+			lookup->section_question = ISC_FALSE;
+			lookup->section_authority = ISC_FALSE;
+			lookup->section_answer = ISC_FALSE;
+			lookup->section_additional = ISC_FALSE;
+			lookup->comments = ISC_FALSE;
 		} else if (strncmp(rv[0], "-c", 2) == 0) {
- 			if (have_host) {
-				if (rv[0][2] != 0) {
-					strncpy(lookup->rctext, &rv[0][2],
-						MXRD);
-				} else {
-					strncpy(lookup->rctext, rv[1],
-						MXRD);
-					rv++;
-					rc--;
-				}
+			if (rv[0][2] != 0) {
+				strncpy(lookup->rctext, &rv[0][2],
+					MXRD);
+			} else {
+				strncpy(lookup->rctext, rv[1],
+					MXRD);
+				rv++;
+				rc--;
 			}
 		} else if (strncmp(rv[0], "-t", 2) == 0) {
- 			if (have_host) {
-				if (rv[0][2] != 0) {
-					strncpy(lookup->rttext, &rv[0][2],
-						MXRD);
-				} else {
-					strncpy(lookup->rttext, rv[1],
-						MXRD);
-					rv++;
-					rc--;
-				}
+			if (rv[0][2] != 0) {
+				strncpy(lookup->rttext, &rv[0][2],
+					MXRD);
+			} else {
+				strncpy(lookup->rttext, rv[1],
+					MXRD);
+				rv++;
+				rc--;
 			}
 		} else if (strncmp(rv[0], "-f", 2) == 0) {
 			if (rv[0][2] != 0) {
@@ -1031,12 +863,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				    &adrs[2], &adrs[3]);
 			if (n == 0)
 				show_usage();
-			lookup = isc_mem_allocate(mctx,
-						  sizeof(struct dig_lookup));
-			if (lookup == NULL)
-				fatal("Memory allocation failure");
-			lookup->pending = ISC_FALSE;
-			lookup->textname[0] = 0;
+			
+			lookup = clone_lookup(default_lookup, ISC_TRUE);
+
 			for (i = n - 1; i >= 0; i--) {
 				snprintf(batchline, MXNAME/8, "%d.",
 					  adrs[i]);
@@ -1044,50 +873,25 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
 			debug("looking up %s", lookup->textname);
+			lookup->trace_root = ISC_TF(lookup->trace  ||
+						    lookup->ns_search_only);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
-			lookup->namespace[0] = 0;
-			lookup->sendspace = NULL;
-			lookup->sendmsg = NULL;
-			lookup->name = NULL;
-			lookup->oname = NULL;
-			lookup->timer = NULL;
-			lookup->xfr_q = NULL;
-			lookup->origin = NULL;
-			lookup->querysig = NULL;
-			lookup->use_my_server_list = ISC_FALSE;
-			lookup->trace = trace;
-			lookup->trace_root = ISC_TF(trace || ns_search_only);
-			lookup->ns_search_only = ns_search_only;
-			lookup->doing_xfr = ISC_FALSE;
-			lookup->ixfr_serial = 0;
-			lookup->defname = ISC_FALSE;
-			lookup->identify = identify;
-			lookup->recurse = recurse;
-			lookup->aaonly = aaonly;
-			lookup->adflag = adflag;
-			lookup->cdflag = cdflag;
-			lookup->retries = tries;
-			lookup->udpsize = bufsize;
-			lookup->nsfound = 0;
-			lookup->comments = comments;
-			lookup->tcp_mode = tcpmode;
-			lookup->stats = stats;
-			lookup->section_question = section_question;
-			lookup->section_answer = section_answer;
-			lookup->section_authority = section_authority;
-			lookup->section_additional = section_additional;
 			lookup->new_search = ISC_TRUE;
-			ISC_LIST_INIT(lookup->q);
-			lookup->origin = NULL;
-			ISC_LIST_INIT(lookup->my_server_list);
+
 			ISC_LIST_APPEND(lookup_list, lookup, link);
 			have_host = ISC_TRUE;
 			rv++;
 			rc--;
 		} else {
+			/*
+			 * If we decide to allow query type and class
+			 * to be specified (without -t and -c options)
+			 * before a host is given, all that needs to
+			 * happen is the have_host test here get removed.
+			 * Nothing should break by doing this.
+			 */
  			if (have_host) {
-				ENSURE(lookup != NULL);
 				if (strncmp(rv[0], "ixfr=", 5) == 0) {
 					strcpy(lookup->rttext, "ixfr");
 					lookup->ixfr_serial = 
@@ -1103,49 +907,12 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 					continue;
 				}
 			}
-			lookup = isc_mem_allocate(mctx, 
-						  sizeof(struct dig_lookup));
-			if (lookup == NULL)
-				fatal("Memory allocation failure");
-			lookup->pending = ISC_FALSE;
+			lookup=clone_lookup(default_lookup, ISC_TRUE);
 			strncpy(lookup->textname, rv[0], MXNAME-1);
-			lookup->rttext[0] = 0;
-			lookup->rctext[0] = 0;
-			lookup->namespace[0] = 0;
-			lookup->sendspace = NULL;
-			lookup->sendmsg = NULL;
-			lookup->name = NULL;
-			lookup->oname = NULL;
-			lookup->timer = NULL;
-			lookup->xfr_q = NULL;
-			lookup->origin = NULL;
-			lookup->querysig = NULL;
-			lookup->use_my_server_list = ISC_FALSE;
-			lookup->doing_xfr = ISC_FALSE;
-			lookup->ixfr_serial = 0;
-			lookup->defname = ISC_FALSE;
-			lookup->trace_root = ISC_TF(trace || ns_search_only);
-			lookup->trace = trace;
-			lookup->ns_search_only = ns_search_only;
-			lookup->identify = identify;
-			lookup->recurse = recurse;
-			lookup->aaonly = aaonly;
-			lookup->adflag = adflag;
-			lookup->cdflag = cdflag;
-			lookup->retries = tries;
-			lookup->udpsize = bufsize;
-			lookup->nsfound = 0;
-			lookup->comments = comments;
-			lookup->tcp_mode = tcpmode;
-			lookup->stats = stats;
-			lookup->section_question = section_question;
-			lookup->section_answer = section_answer;
-			lookup->section_authority = section_authority;
-			lookup->section_additional = section_additional;
+			lookup->trace_root = ISC_TF(lookup->trace  ||
+						    lookup->ns_search_only);
 			lookup->new_search = ISC_TRUE;
-			ISC_LIST_INIT(lookup->q);
 			ISC_LIST_APPEND(lookup_list, lookup, link);
-			lookup->origin = NULL;
 			ISC_LIST_INIT(lookup->my_server_list);
 			have_host = ISC_TRUE;
 			debug("looking up %s", lookup->textname);
@@ -1168,63 +935,19 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				bargv[bargc] = strtok(NULL, " \t\r\n");
 			}
 
-			/*
-			 * This silliness (instead of ``bargv[0] = "dig";'')
-			 * dances around the const string issue.  If in
-			 * the future the 2nd argument to strncpy() is made
-			 * longer than three characters, don't forget to resize
-			 * bargv0 to accommodate it.
-			 */
-			strncpy(bargv0, "dig", sizeof(bargv0));
-			bargv[0] = bargv0;
+			bargv[0] = argv[0];
 
 			reorder_args(bargc, (char **)bargv);
 			parse_args(ISC_TRUE, bargc, (char **)bargv);
 		}
 	}
 	if (lookup_list.head == NULL) {
-		lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
-		if (lookup == NULL)
-			fatal("Memory allocation failure");
-		lookup->pending = ISC_FALSE;
-		lookup->rctext[0] = 0;
-		lookup->namespace[0] = 0;
-		lookup->sendspace = NULL;
-		lookup->sendmsg = NULL;
-		lookup->name = NULL;
-		lookup->oname = NULL;
-		lookup->timer = NULL;
-		lookup->xfr_q = NULL;
-		lookup->origin = NULL;
-		lookup->querysig = NULL;
-		lookup->use_my_server_list = ISC_FALSE;
-		lookup->doing_xfr = ISC_FALSE;
-		lookup->ixfr_serial = 0;
-		lookup->defname = ISC_FALSE;
-		lookup->trace_root = ISC_TF(trace || ns_search_only);
-		lookup->trace = trace;
-		lookup->ns_search_only = ns_search_only;
-		lookup->identify = identify;
-		lookup->recurse = recurse;
-		lookup->aaonly = aaonly;
-		lookup->adflag = adflag;
-		lookup->cdflag = cdflag;
-		lookup->retries = tries;
-		lookup->udpsize = bufsize;
-		lookup->nsfound = 0;
-		lookup->comments = comments;
-		lookup->tcp_mode = tcpmode;
-		lookup->stats = stats;
-		lookup->section_question = section_question;
-		lookup->section_answer = section_answer;
-		lookup->section_authority = section_authority;
-		lookup->section_additional = section_additional;
+		lookup=clone_lookup(default_lookup, ISC_TRUE);
+		lookup->trace_root = ISC_TF(lookup->trace ||
+					    lookup->ns_search_only);
 		lookup->new_search = ISC_TRUE;
-		ISC_LIST_INIT(lookup->q);
-		ISC_LIST_INIT(lookup->my_server_list);
 		strcpy(lookup->textname, ".");
 		strcpy(lookup->rttext, "NS");
-		lookup->rctext[0] = 0;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
 	if (!is_batchfile)
