@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.318 2001/04/19 23:38:32 bwelling Exp $ */
+/* $Id: server.c,v 1.319 2001/05/07 23:34:00 gson Exp $ */
 
 #include <config.h>
 
@@ -2065,6 +2065,28 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	return (result);
 }
 
+static isc_result_t
+load_new_zones(ns_server_t *server, isc_boolean_t stop) {
+	isc_result_t result;
+	dns_view_t *view;
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/*
+	 * Load zone data from disk.
+	 */
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		CHECK(dns_view_loadnew(view, stop));
+	}
+ cleanup:
+	isc_task_endexclusive(server->task);	
+	return (result);
+}
+
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -2309,6 +2331,54 @@ fatal(const char *msg, isc_result_t result) {
 	exit(1);
 }
 
+static isc_result_t
+loadconfig(ns_server_t *server) {
+	isc_result_t result;
+	result = load_configuration(ns_g_lwresdonly ?
+				    lwresd_g_conffile : ns_g_conffile,
+				    server,
+				    ISC_FALSE);
+	if (result != ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "reloading configuration failed: %s",
+			      isc_result_totext(result));
+	return (result);
+}
+
+static void
+reload(ns_server_t *server) {
+	isc_result_t result;
+	CHECK(loadconfig(server));
+
+	result = load_zones(server, ISC_FALSE);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "reloading zones failed: %s",
+			      isc_result_totext(result));
+	}
+ cleanup: ;
+}
+
+static void
+reconfig(ns_server_t *server) {
+	isc_result_t result;
+	CHECK(loadconfig(server));
+
+	result = load_new_zones(server, ISC_FALSE);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "loading new zones failed: %s",
+			      isc_result_totext(result));
+	}
+ cleanup: ;
+}
+
+/*
+ * Handle a reload event (from SIGHUP).
+ */
 static void
 ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
@@ -2317,24 +2387,8 @@ ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	INSIST(task = server->task);
 	UNUSED(task);
 
-	if (ns_g_lwresdonly)
-		result = load_configuration(lwresd_g_conffile, server,
-					    ISC_FALSE);
-	else
-		result = load_configuration(ns_g_conffile, server, ISC_FALSE);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "reloading configuration failed: %s",
-			      isc_result_totext(result));
-	}
-	result = load_zones(server, ISC_FALSE);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "reloading zones failed: %s",
-			      isc_result_totext(result));
-	}
+	reload(server);
+
 	LOCK(&server->reload_event_lock);
 	INSIST(server->reload_event == NULL);
 	server->reload_event = event;
@@ -2446,12 +2500,11 @@ ns_server_reloadcommand(ns_server_t *server, char *args) {
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
 	
-	UNUSED(server);
 	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL) {
-		ns_server_reloadwanted(server);
+		reload(server);
 	} else {
 		type = dns_zone_gettype(zone);
 		if (type == dns_zone_slave || type == dns_zone_stub)
@@ -2462,6 +2515,17 @@ ns_server_reloadcommand(ns_server_t *server, char *args) {
 	}
 	return (ISC_R_SUCCESS);
 }	
+
+/*
+ * Act on a "reconfig" command from the command channel.
+ */
+isc_result_t
+ns_server_reconfigcommand(ns_server_t *server, char *args) {
+	UNUSED(args);
+
+	reconfig(server);
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Act on a "refresh" command from the command channel.

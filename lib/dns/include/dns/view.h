@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.70 2001/04/11 20:37:50 bwelling Exp $ */
+/* $Id: view.h,v 1.71 2001/05/07 23:34:09 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -581,10 +581,17 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep);
 
 isc_result_t
 dns_view_load(dns_view_t *view, isc_boolean_t stop);
+
+isc_result_t
+dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
 /*
- * Load all zones attached to this view.  If 'stop' is ISC_TRUE,
- * stop on the first error and return it.  If 'stop'
- * is ISC_FALSE, ignore errors.
+ * Load zones attached to this view.  dns_view_load() loads
+ * all zones whose master file has changed since the last
+ * load; dns_view_loadnew() loads only zones that have never 
+ * been loaded.
+ *
+ * If 'stop' is ISC_TRUE, stop on the first error and return it.
+ * If 'stop' is ISC_FALSE, ignore errors.
  *
  * Requires:
  *

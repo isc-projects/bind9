@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.3 2001/04/11 20:37:33 bwelling Exp $ */
+/* $Id: control.c,v 1.4 2001/05/07 23:33:58 gson Exp $ */
 
 #include <config.h>
 
@@ -79,6 +79,8 @@ ns_control_docommand(isccc_sexpr_t *message) {
 	 */
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
 		result = ns_server_reloadcommand(ns_g_server, command);
+	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {
+		result = ns_server_reconfigcommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
 		result = ns_server_refreshcommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_HALT)) {
@@ -89,13 +91,6 @@ ns_control_docommand(isccc_sexpr_t *message) {
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
-	} else if (command_compare(command, NS_COMMAND_RELOADCONFIG) ||
-		   command_compare(command, NS_COMMAND_RELOADZONES)) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
-			      "unimplemented channel command '%s'",
-			      command);
-		result = ISC_R_NOTIMPLEMENTED;
 	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
 		result = ns_server_dumpstats(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_QUERYLOG)) {

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.126 2001/04/26 18:05:04 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.127 2001/05/07 23:34:13 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -729,20 +729,33 @@ of a server.</para>
 <variablelist>
 
    <varlistentry><term><userinput>reload</userinput></term>
-   <listitem><para>Reload configuration file and zones.</para></listitem></varlistentry>
+   <listitem><para>Reload configuration file and zones.</para></listitem>
+   </varlistentry>
 
    <varlistentry><term><userinput>reload <replaceable>zone</replaceable>
        <optional><replaceable>class</replaceable>
 	   <optional><replaceable>view</replaceable></optional></optional></userinput></term>
-   <listitem><para>Reload the given zone.</para></listitem></varlistentry>
+   <listitem><para>Reload the given zone.</para></listitem>
+   </varlistentry>
 
    <varlistentry><term><userinput>refresh <replaceable>zone</replaceable>
        <optional><replaceable>class</replaceable>
            <optional><replaceable>view</replaceable></optional></optional></userinput></term>
-   <listitem><para>Schedule zone maintenance for the given zone.</para></listitem></varlistentry>
+   <listitem><para>Schedule zone maintenance for the given zone.</para></listitem>
+   </varlistentry>
+
+   <varlistentry><term><userinput>reconfig</userinput></term>
+   <listitem><para>Reload the configuration file and load new zones,
+   but do not reload existing zone files even if they have changed.
+   This is faster than a full <command>reload</command> when there
+   is a large number of zones because it avoids the need to examine the
+   modification times of the zones files.
+   </para></listitem>
+   </varlistentry>
 
    <varlistentry><term><userinput>stats</userinput></term>
-   <listitem><para>Write server statistics to the statistics file.</para></listitem></varlistentry>
+   <listitem><para>Write server statistics to the statistics file.</para></listitem>
+   </varlistentry>
 
    <varlistentry><term><userinput>querylog</userinput></term>
    <listitem><para>Toggle query logging.</para></listitem></varlistentry>

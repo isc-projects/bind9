@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.3 2001/04/11 20:37:36 bwelling Exp $ */
+/* $Id: control.h,v 1.4 2001/05/07 23:34:01 gson Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -29,8 +29,7 @@
 #define NS_COMMAND_STOP		"stop"
 #define NS_COMMAND_HALT		"halt"
 #define NS_COMMAND_RELOAD	"reload"
-#define NS_COMMAND_RELOADCONFIG	"reload-config"
-#define NS_COMMAND_RELOADZONES	"reload-zones"
+#define NS_COMMAND_RECONFIG	"reconfig"
 #define NS_COMMAND_REFRESH	"refresh"
 #define NS_COMMAND_DUMPSTATS	"stats"
 #define NS_COMMAND_QUERYLOG	"querylog"

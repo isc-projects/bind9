@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.320 2001/04/27 02:34:18 marka Exp $ */
+/* $Id: zone.c,v 1.321 2001/05/07 23:34:05 gson Exp $ */
 
 #include <config.h>
 
@@ -253,6 +253,9 @@ struct dns_zone {
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
+
+/* Flags for zone_load() */
+#define DNS_ZONELOADFLAG_NOSTAT	0x00000001U	/* Do not stat() master files */
 
 struct dns_zonemgr {
 	unsigned int		magic;
@@ -876,8 +879,8 @@ zone_isdynamic(dns_zone_t *zone) {
 }
 
 
-isc_result_t
-dns_zone_load(dns_zone_t *zone) {
+static isc_result_t
+zone_load(dns_zone_t *zone, unsigned int flags) {
 	isc_result_t result;
 	isc_stdtime_t now;
 	isc_time_t loadtime, filetime;
@@ -918,26 +921,35 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 		
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "starting load");
-
 	/*
 	 * Don't do the load if the file that stores the zone is older
 	 * than the last time the zone was loaded.  If the zone has not
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
-	if (zone->masterfile != NULL &&
-	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
-		result = isc_file_getmodtime(zone->masterfile, &filetime);
-		if (result == ISC_R_SUCCESS &&
-		    !isc_time_isepoch(&zone->loadtime) &&
-		    isc_time_compare(&filetime, &zone->loadtime) < 0) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "skipping load: master file older "
-				     "than last load");
+	if (zone->masterfile != NULL && ! isc_time_isepoch(&zone->loadtime)) {
+		/*
+		 * The file is already loaded.  If we are just doing a
+		 * "rndc reconfig", we are done.
+		 */
+		if ((flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
+		if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
+			result = isc_file_getmodtime(zone->masterfile,
+						     &filetime);
+			if (result == ISC_R_SUCCESS &&
+			    isc_time_compare(&filetime, &zone->loadtime) < 0) {
+				dns_zone_log(zone, ISC_LOG_DEBUG(1),
+					     "skipping load: master file older "
+					     "than last load");
+				result = ISC_R_SUCCESS;
+				goto cleanup;
+			}
+		}
 	}
+
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "starting load");
 
 	/*
 	 * Store the current time before the zone is loaded, so that if the
@@ -993,6 +1005,16 @@ dns_zone_load(dns_zone_t *zone) {
 	if (db != NULL)
 		dns_db_detach(&db);
 	return (result);
+}
+
+isc_result_t
+dns_zone_load(dns_zone_t *zone) {
+	return (zone_load(zone, 0));
+}
+
+isc_result_t
+dns_zone_loadnew(dns_zone_t *zone) {
+	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT));
 }
 
 static void

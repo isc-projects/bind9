@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.99 2001/04/11 20:37:45 bwelling Exp $ */
+/* $Id: view.c,v 1.100 2001/05/07 23:34:04 gson Exp $ */
 
 #include <config.h>
 
@@ -1033,6 +1033,14 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	return (dns_zt_load(view->zonetable, stop));
+}
+
+isc_result_t
+dns_view_loadnew(dns_view_t *view, isc_boolean_t stop) {
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	return (dns_zt_loadnew(view->zonetable, stop));
 }
 
 isc_result_t

@@ -949,6 +949,25 @@ CLASS="replaceable"
 ><TT
 CLASS="userinput"
 ><B
+>reconfig</B
+></TT
+></DT
+><DD
+><P
+>Reload the configuration file and load new zones,
+   but do not reload existing zone files even if they have changed.
+   This is faster than a full <B
+CLASS="command"
+>reload</B
+> when there
+   is a large number of zones because it avoids the need to examine the
+   modification times of the zones files.
+   </P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
 >stats</B
 ></TT
 ></DT
@@ -1271,7 +1290,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN628"
+NAME="AEN634"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1284,7 +1303,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN632"
+NAME="AEN638"
 ></A
 ><P
 ></P

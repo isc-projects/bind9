@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.103 2001/05/04 23:57:22 gson Exp $ */
+/* $Id: zone.h,v 1.104 2001/05/07 23:34:10 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -205,10 +205,17 @@ dns_zone_getfile(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_load(dns_zone_t *zone);
+
+isc_result_t
+dns_zone_loadnew(dns_zone_t *zone);
 /*
  *	Cause the database to be loaded from its backing store.
  *	Confirm that the mimimum requirements for the zone type are
  *	met, otherwise DNS_R_BADZONE is return.
+ *
+ *	dns_zone_loadnew() only loads zones that are not yet loaded.
+ *	dns_zone_load() also loads zones that are already loaded and
+ *	and whose master file has changed since the last load.
  *
  * Require:
  *	'zone' to be a valid zone.

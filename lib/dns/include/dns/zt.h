@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.24 2001/01/09 21:53:44 bwelling Exp $ */
+/* $Id: zt.h,v 1.25 2001/05/07 23:34:11 gson Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -129,10 +129,17 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
 
 isc_result_t
 dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
+
+isc_result_t
+dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop);
 /*
  * Load all zones in the table.  If 'stop' is ISC_TRUE,
  * stop on the first error and return it.  If 'stop'
  * is ISC_FALSE, ignore errors.
+ *
+ * dns_zt_loadnew() only loads zones that are not yet loaded.
+ * dns_zt_load() also loads zones that are already loaded and
+ * and whose master file has changed since the last load.
  *
  * Requires:
  *	'zt' to be valid

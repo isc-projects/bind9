@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.53 2001/04/11 20:37:37 bwelling Exp $ */
+/* $Id: server.h,v 1.54 2001/05/07 23:34:02 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -116,6 +116,12 @@ isc_result_t
 ns_server_reloadcommand(ns_server_t *server, char *args);
 /*
  * Act on a "reload" command from the command channel.
+ */
+
+isc_result_t
+ns_server_reconfigcommand(ns_server_t *server, char *args);
+/*
+ * Act on a "reconfig" command from the command channel.
  */
 
 isc_result_t
