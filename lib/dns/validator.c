@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.80 2000/09/12 10:21:45 bwelling Exp $ */
+/* $Id: validator.c,v 1.81 2000/09/12 12:01:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -697,19 +697,13 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 
 	/*
 	 * Is the key name appropriate for this signature?
+	 * This previously checked for self-signed keys.  Now, if the key
+	 * is self signed with a preconfigured key, it's ok.
 	 */
 	namereln = dns_name_fullcompare(event->name, &siginfo->signer,
 					&order, &nlabels, &nbits);
-	if (event->rdataset->type == dns_rdatatype_key &&
-	    namereln != dns_namereln_subdomain) {
-		/*
-		 * We don't want a KEY RR to authenticate
-		 * itself, so we ignore the signature if it
-		 * was not made by an ancestor of the KEY.
-		 */
-		return (DNS_R_CONTINUE);
-	} else if (namereln != dns_namereln_subdomain &&
-		   namereln != dns_namereln_equal) {
+	if (namereln != dns_namereln_subdomain &&
+	    namereln != dns_namereln_equal) {
 		/*
 		 * The key name is not at the same level
 		 * as 'rdataset', nor is it closer to the
@@ -733,6 +727,20 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 		 */
 		val->key = dns_keynode_key(val->keynode);
 		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * A key set may not be self-signed unless the signing key is a
+	 * security root.  We don't want a KEY RR to authenticate
+	 * itself, so we ignore the signature if it was not made by
+	 * an ancestor of the KEY or a preconfigured key.
+	 */
+	if (event->rdataset->type == dns_rdatatype_key &&
+	    namereln == dns_namereln_equal)
+	{
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "keyset was self-signed but not preconfigured");
+		return (DNS_R_CONTINUE);
 	}
 
 	/*
