@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.6 2004/03/08 09:04:30 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.7 2004/05/11 22:23:17 marka Exp $ */
 
 #include <config.h>
 
@@ -2115,6 +2115,7 @@ index_to_disk(dns_journal_t *j) {
 		}
 		INSIST(p == j->rawindex + rawbytes);
 
+		CHECK(journal_seek(j, sizeof(journal_rawheader_t)));
 		CHECK(journal_write(j, j->rawindex, rawbytes));
 	}
 failure:
