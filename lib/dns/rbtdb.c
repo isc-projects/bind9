@@ -2604,6 +2604,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	while (header != NULL && IGNORE(header))
 		header = header->down;
 	if (header != NULL && EXISTS(header)) {
+		subresult = NULL;
 		result = dns_rdataslab_subtract(
 					(unsigned char *)header,
 					(unsigned char *)newheader,
