@@ -168,7 +168,8 @@ enum {
 	dns_tsigerror_badkey = 17,
 	dns_tsigerror_badtime = 18,
 	dns_tsigerror_badmode = 19,
-	dns_tsigerror_badname = 20
+	dns_tsigerror_badname = 20,
+	dns_tsigerror_badalg = 21
 };
 
 /*

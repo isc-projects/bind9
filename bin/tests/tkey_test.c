@@ -199,7 +199,7 @@ buildquery(void) {
 	CHECK("dns_message_create", result);
 
 	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
-				       DNS_TSIG_HMACMD5_NAME, nonce);
+				       DNS_TSIG_HMACMD5_NAME, nonce, 3600);
 	CHECK("dns_tkey_builddhquery", result);
 
 	isc_buffer_init(&qbuffer, qdata, sizeof(qdata), ISC_BUFFERTYPE_BINARY);

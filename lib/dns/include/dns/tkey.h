@@ -89,7 +89,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 
 isc_result_t
 dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
-		      dns_name_t *algorithm, isc_buffer_t *nonce);
+		      dns_name_t *algorithm, isc_buffer_t *nonce,
+		      isc_uint32_t lifetime);
 /*
  *	Builds a query containing a TKEY that will generate a shared
  *	secret using a Diffie-Hellman key exchange.  The shared key
@@ -97,7 +98,9 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
  *	is supported), and will be named either 'name',
  *	'name' + server chosen domain, or random data + server chosen domain
  *	if 'name' == dns_rootname.  If nonce is not NULL, it supplies
- *	random data used in the shared secret computation.
+ *	random data used in the shared secret computation.  The key is
+ *	requested to have the specified lifetime (in seconds)
+ *
  *
  *	Requires:
  *		'msg' is a valid message
