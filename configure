@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.122 
+# From configure.in Revision: 1.123 
 
 
 
@@ -3434,8 +3434,8 @@ esac
 # after the libtool checking, so we can put the right suffix on
 # the files.
 #
-echo $ac_n "checking for inet_ntop... ""... $ac_c" 1>&6
-echo "configure:3439: checking for inet_ntop... " >&5
+echo $ac_n "checking for inet_ntop""... $ac_c" 1>&6
+echo "configure:3439: checking for inet_ntop" >&5
 cat > conftest.$ac_ext <<EOF
 #line 3441 "configure"
 #include "confdefs.h"
@@ -3461,8 +3461,8 @@ else
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
 fi
 rm -f conftest*
-echo $ac_n "checking for inet_pton... ""... $ac_c" 1>&6
-echo "configure:3466: checking for inet_pton... " >&5
+echo $ac_n "checking for inet_pton""... $ac_c" 1>&6
+echo "configure:3466: checking for inet_pton" >&5
 cat > conftest.$ac_ext <<EOF
 #line 3468 "configure"
 #include "confdefs.h"
@@ -3488,8 +3488,8 @@ else
         ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
 fi
 rm -f conftest*
-echo $ac_n "checking for inet_aton... ""... $ac_c" 1>&6
-echo "configure:3493: checking for inet_aton... " >&5
+echo $ac_n "checking for inet_aton""... $ac_c" 1>&6
+echo "configure:3493: checking for inet_aton" >&5
 cat > conftest.$ac_ext <<EOF
 #line 3495 "configure"
 #include "confdefs.h"

@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.122 $)
+AC_REVISION($Revision: 1.123 $)
 
 AC_PREREQ(2.13)
 
@@ -694,7 +694,7 @@ esac
 # after the libtool checking, so we can put the right suffix on
 # the files.
 #
-AC_MSG_CHECKING([for inet_ntop... ])
+AC_MSG_CHECKING([for inet_ntop])
 AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -707,7 +707,7 @@ AC_TRY_LINK([
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
-AC_MSG_CHECKING([for inet_pton... ])
+AC_MSG_CHECKING([for inet_pton])
 AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -720,7 +720,7 @@ AC_TRY_LINK([
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
         ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
-AC_MSG_CHECKING([for inet_aton... ])
+AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
