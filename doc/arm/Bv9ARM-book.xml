@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.30 2000/11/06 22:18:52 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.31 2000/11/06 22:23:59 gson Exp $ -->
 
 <book>
 
@@ -1603,7 +1603,7 @@ using a combination of a lightweight resolver library and a resolver
 daemon process running on the local host.  These communicate using
 a simple UDP-based protocol, the "lightweight resolver protocol"
 that is distinct from and simpler than the full DNS protocol.</para></sect1>
-<sect1><sect1 id="lwresd"><title>Running a Resolver Daemon</title>
+<sect1 id="lwresd"><title>Running a Resolver Daemon</title>
 <para>To use the lightweight resolver interface, the system must
 run the resolver daemon <command>lwresd</command>.</para>
 <para>By default, applications using the lightweight resolver library will make
@@ -1626,7 +1626,7 @@ Unless configured otherwise, it uses the name servers listed on
 as forwarders, but is also capable of doing the resolution autonomously if
 none are specified.</para>
 <para>The <command>lwresd</command> daemon may also be configured with a
-<filename>named.conf<filename> style configuration file, in
+<filename>named.conf</filename> style configuration file, in
 <filename>/etc/lwresd.conf</filename> by default.  A name server may also
 be configured to act as a lightweight resolver daemon using the
 <command>lwres{}</command> statement in <filename>named.conf</filename>.</para>
@@ -2375,6 +2375,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> view <replaceable>view_name</replaceable>; </optional>
     <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
     <optional> ndots <replaceable>number</replaceable>; </optional>
+</programlisting>
     </sect2>
     <sect2>
       <title><command>lwres</command> Statement Definition and Usage</title>
@@ -2383,7 +2384,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
       server to also act as a lightweight resolver server, see
       <xref linkend="lwresd"/>.  There may be be multiple
       <command>lwres</command> statements configuring
-      lightweight resolver servers with different properties.
+      lightweight resolver servers with different properties.</para>
 
       <para>The <command>listen-on</command> statement specifies a list of
       addresses (and ports) that this instance of a lightweight resolver daemon
