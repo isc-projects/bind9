@@ -26,7 +26,6 @@
 #include <dns/confkeys.h>
 #include <dns/confcommon.h>
 
-static isc_result_t keydef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef);
 static isc_result_t keyid_delete(isc_log_t *lctx, dns_c_kid_t **ki);
 
 
@@ -76,7 +75,7 @@ dns_c_kdeflist_delete(isc_log_t *lctx,
 	while (kd != NULL) {
 		tmpkd = ISC_LIST_NEXT(kd, next);
 		ISC_LIST_UNLINK(l->keydefs, kd, next);
-		res = keydef_delete(lctx, &kd);
+		res = dns_c_kdef_delete(lctx, &kd);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -89,6 +88,66 @@ dns_c_kdeflist_delete(isc_log_t *lctx,
 	
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_result_t
+dns_c_kdeflist_copy(isc_log_t *lctx,
+		    isc_mem_t *mem, dns_c_kdeflist_t **dest,
+		    dns_c_kdeflist_t *src)
+{
+	dns_c_kdeflist_t *newlist;
+	dns_c_kdef_t *key;
+	isc_result_t res;
+
+	REQUIRE(dest != NULL);
+	REQUIRE(src != NULL);
+	
+	res = dns_c_kdeflist_new(lctx, mem, &newlist);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	key = ISC_LIST_HEAD(src->keydefs);
+	while (key != NULL) {
+		res = dns_c_kdeflist_append(lctx, newlist, key, ISC_TRUE);
+		if (res != ISC_R_SUCCESS) {
+			dns_c_kdeflist_delete(lctx, &newlist);
+			return (res);
+		}
+		
+		key = ISC_LIST_NEXT(key, next);
+	}
+
+	*dest = newlist;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_kdeflist_append(isc_log_t *lctx, dns_c_kdeflist_t *list,
+		      dns_c_kdef_t *key, isc_boolean_t copy)
+{
+	dns_c_kdef_t *newe;
+	isc_result_t res;
+	
+	REQUIRE(list != NULL);
+	REQUIRE(key != NULL);
+
+	if (copy) {
+		res = dns_c_kdef_copy(lctx, list->mem, &newe, key);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	} else {
+		newe = key;
+	}
+
+	ISC_LIST_APPEND(list->keydefs, newe, next);
+
+	return (ISC_R_SUCCESS);
+}
+
 
 
 isc_result_t
@@ -111,7 +170,7 @@ dns_c_kdeflist_undef(isc_log_t *lctx,
 
 	if (kd != NULL) {
 		ISC_LIST_UNLINK(list->keydefs, kd, next);
-		keydef_delete(lctx, &kd);
+		(void)dns_c_kdef_delete(lctx, &kd);
 		r = ISC_R_SUCCESS;
 	} else {
 		r = ISC_R_NOTFOUND;
@@ -209,8 +268,8 @@ dns_c_kdef_new(isc_log_t *lctx,
 }
 
 
-static isc_result_t
-keydef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef)
+isc_result_t
+dns_c_kdef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef)
 {
 	dns_c_kdef_t *kd;
 	isc_mem_t *mem;
@@ -250,6 +309,45 @@ keydef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef)
 	return (ISC_R_SUCCESS);
 }
 
+isc_result_t
+dns_c_kdef_copy(isc_log_t *lctx, isc_mem_t *mem,
+		dns_c_kdef_t **dest, dns_c_kdef_t *src)
+{
+	dns_c_kdef_t *newk;
+
+	REQUIRE(dest != NULL);
+	REQUIRE(src != NULL);
+	
+	newk = isc_mem_get(mem, sizeof *newk);
+	if (newk == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+	newk->secret = newk->algorithm = newk->keyid = NULL;
+	
+	newk->keyid = isc_mem_strdup(mem, src->keyid);
+	if (newk->keyid == NULL) {
+		dns_c_kdef_delete(lctx, &newk);
+		return (ISC_R_NOMEMORY);
+	}
+	
+	newk->algorithm = isc_mem_strdup(mem, src->algorithm);
+	if (newk->algorithm == NULL) {
+		dns_c_kdef_delete(lctx, &newk);
+		return (ISC_R_NOMEMORY);
+	}
+		
+	newk->secret = isc_mem_strdup(mem, src->secret);
+	if (newk->secret == NULL) {
+		dns_c_kdef_delete(lctx, &newk);
+		return (ISC_R_NOMEMORY);
+	}
+
+	*dest = newk;
+
+	return (ISC_R_SUCCESS);
+}
+
+		
 
 void
 dns_c_kdef_print(isc_log_t *lctx,
@@ -279,7 +377,7 @@ dns_c_kdef_print(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_kdefset_algorithm(isc_log_t *lctx,
+dns_c_kdef_setalgorithm(isc_log_t *lctx,
 			dns_c_kdef_t *keydef, const char *algorithm)
 {
 	(void)lctx;
@@ -301,7 +399,7 @@ dns_c_kdefset_algorithm(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_kdefset_secret(isc_log_t *lctx,
+dns_c_kdef_setsecret(isc_log_t *lctx,
 		     dns_c_kdef_t *keydef, const char *secret)
 {
 	(void)lctx;
