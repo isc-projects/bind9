@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.4 2003/08/14 02:41:54 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.5 2003/08/14 05:56:09 marka Exp $ */
 
 /***
  *** Imports
@@ -1698,7 +1698,7 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space) {
 }
 
 static inline isc_boolean_t
-wrong_priority(dns_rdataset_t *rds, int pass) {
+wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	int pass_needed;
 
 	/*
@@ -1711,7 +1711,10 @@ wrong_priority(dns_rdataset_t *rds, int pass) {
 	case dns_rdatatype_a:
 	case dns_rdatatype_aaaa:
 	case dns_rdatatype_a6:
-		pass_needed = 3;
+		if (preferred_glue == rds->type)
+			pass_needed = 4;
+		else
+			pass_needed = 3;
 		break;
 	case dns_rdatatype_sig:
 	case dns_rdatatype_key:
@@ -1740,6 +1743,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	int pass;
 	isc_boolean_t partial = ISC_FALSE;
 	unsigned int rd_options;
+	dns_rdatatype_t preferred_glue = 0;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1748,9 +1752,16 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	section = &msg->sections[sectionid];
 
 	if ((sectionid == DNS_SECTION_ADDITIONAL)
-	    && (options & DNS_MESSAGERENDER_ORDERED) == 0)
-		pass = 3;
-	else
+	    && (options & DNS_MESSAGERENDER_ORDERED) == 0) {
+		if ((options & DNS_MESSAGERENDER_PREFER_A) != 0) {
+			preferred_glue = dns_rdatatype_a;
+			pass = 4;
+		} else if ((options & DNS_MESSAGERENDER_PREFER_AAAA) != 0) {
+			preferred_glue = dns_rdatatype_aaaa;
+			pass = 4;
+		} else
+			pass = 3;
+	} else
 		pass = 1;
 
 	if ((options & DNS_MESSAGERENDER_OMITDNSSEC) == 0)
@@ -1789,7 +1800,8 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (((options & DNS_MESSAGERENDER_ORDERED)
 				     == 0)
 				    && (sectionid == DNS_SECTION_ADDITIONAL)
-				    && wrong_priority(rdataset, pass))
+				    && wrong_priority(rdataset, pass,
+						      preferred_glue))
 					goto next;
 
 				st = *(msg->buffer);

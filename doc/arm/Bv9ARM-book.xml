@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.10 2003/08/14 02:34:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.11 2003/08/14 05:56:07 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2724,6 +2724,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> max-adb-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
 };
 </programlisting>
 </sect2>
@@ -2861,6 +2862,14 @@ file has been exhausted.  If not specified, the default value is
 <command>random-device</command> option takes effect during
 the initial configuration load at server startup time and
 is ignored on subsequent reloads.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>preferred-glue</command></term>
+<listitem><para>
+If specified the listed type (A or AAAA) will be emitted before other glue
+in the additional section of a query response.
+The default is not to preference any type (NONE).
+</para>
 </listitem></varlistentry>
 
 </variablelist>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.11 2003/08/14 03:22:37 marka Exp $ */
+/* $Id: check.c,v 1.37.6.12 2003/08/14 05:56:08 marka Exp $ */
 
 #include <config.h>
 
@@ -169,6 +169,7 @@ static isc_result_t
 check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
+	cfg_obj_t *obj;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -205,6 +206,18 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 				    intervals[i].name, val);
 			result = ISC_R_RANGE;
 		}
+	}
+	obj = NULL;
+	(void)cfg_map_get(options, "preferred-glue", &obj);
+	if (obj != NULL) {
+		const char *str;
+                str = cfg_obj_asstring(obj);
+                if (strcasecmp(str, "a") != 0 &&
+		    strcasecmp(str, "aaaa") != 0 &&
+		    strcasecmp(str, "none") != 0)
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "preferred-glue unexpected value '%s'",
+				    str);
 	}
 	return (result);
 }

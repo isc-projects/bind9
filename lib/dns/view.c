@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.3 2003/08/14 02:34:16 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.4 2003/08/14 05:56:09 marka Exp $ */
 
 #include <config.h>
 
@@ -161,6 +161,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
 	view->dstport = 53;
+	view->preferred_glue = 0;
 	view->flush = ISC_FALSE;
 
 	result = dns_order_create(view->mctx, &view->order);

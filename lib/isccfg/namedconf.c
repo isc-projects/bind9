@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.4 2003/08/14 02:34:17 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.5 2003/08/14 05:56:10 marka Exp $ */
 
 #include <config.h>
 
@@ -557,6 +557,8 @@ view_clauses[] = {
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
+	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
+	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ NULL, NULL, 0 }
 };
 
