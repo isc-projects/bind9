@@ -68,4 +68,8 @@
 3225:	Indicating Resolver Support of DNSSEC
 3226:	DNSSEC and IPv6 A6 aware server/resolver message size requirements
 3258:	Distributing Authoritative Name Servers via Shared Unicast Addresses
+3363:	Representing Internet Protocol version 6 (IPv6)
+	 Addresses in the Domain Name System (DNS)
+3364:	Tradeoffs in Domain Name System (DNS) Support
+	 for Internet Protocol version 6 (IPv6)
 3445:	Limiting the Scope of the KEY Resource Record (RR)
