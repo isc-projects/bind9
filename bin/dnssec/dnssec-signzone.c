@@ -148,7 +148,7 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 	signer_key_t *key;
 
 	isc_buffer_init(&b, keyname, sizeof(keyname), ISC_BUFFERTYPE_BINARY);
-	result = dns_name_totext(sig->signer, ISC_FALSE, &b);
+	result = dns_name_totext(&sig->signer, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 
 	key = ISC_LIST_HEAD(keylist);
@@ -272,7 +272,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			if (sig.timesigned > sig.timeexpire)
 				; /* sig is dropped and not replaced */
 			else if (key == NULL && !future &&
-				 expecttofindkey(sig.signer, db, version))
+				 expecttofindkey(&sig.signer, db, version))
 				; /* sig is dropped and not replaced */
 			else if (key == NULL || future) {
 				if (!expired)
