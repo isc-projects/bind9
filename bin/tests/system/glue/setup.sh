@@ -15,10 +15,6 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.5 2001/01/12 22:14:55 bwelling Exp $
+# $Id: setup.sh,v 1.1 2001/01/12 22:14:56 bwelling Exp $
 
-#
-# Clean up after glue tests.
-#
-
-rm -f dig.out ns1/cache
+cd ns1 && cp cache.in cache
