@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.73 2002/02/20 03:34:11 marka Exp $
+ * $Id: dnssec.c,v 1.74 2002/07/22 02:49:14 marka Exp $
  */
 
 
@@ -277,6 +277,12 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_region_t lenr;
 
 		/*
+		 * Skip duplicates.
+		 */
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i-1]) == 0)
+		    continue;
+
+		/*
 		 * Digest the envelope.
 		 */
 		ret = dst_context_adddata(ctx, &r);
@@ -434,6 +440,12 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_uint16_t len;
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
+
+		/*
+		 * Skip duplicates.
+		 */
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i-1]) == 0)
+		    continue;
 
 		/*
 		 * Digest the envelope.
