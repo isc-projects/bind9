@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.167 2001/01/07 22:18:00 gson Exp $ */
+/* $Id: query.c,v 1.168 2001/01/07 23:36:56 gson Exp $ */
 
 #include <config.h>
 
@@ -3472,8 +3472,17 @@ synth_fwd_startfind(ns_client_t *client) {
 		client->query.qname = ptarget;
 		query_keepname(client, ptarget, dbuf);
 		ptarget = NULL;
-		client->query.restarts++;
-		goto find_again;
+		if (client->query.restarts < MAX_RESTARTS) {
+			client->query.restarts++;
+			goto find_again;
+		} else {
+			/*
+			 * Probably a CNAME loop.  Reply with partial
+			 * CNAME chain.
+			 */
+			result = ISC_R_SUCCESS;
+			goto done;
+		}
 	} else if (result != ISC_R_SUCCESS) {
 		if (find != NULL)
 			dns_adb_destroyfind(&find);
@@ -3489,9 +3498,10 @@ synth_fwd_startfind(ns_client_t *client) {
 	}
 	return;
 
-fail:
-	synth_fwd_finish(client, DNS_R_SERVFAIL);
-	return;	
+ fail:
+	result = DNS_R_SERVFAIL;
+ done:
+	synth_fwd_finish(client, result);
 }
 
 /*
