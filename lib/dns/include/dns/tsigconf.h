@@ -21,7 +21,6 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 
-#include <dns/tsig.h>
 #include <dns/confctx.h>
 
 ISC_LANG_BEGINDECLS

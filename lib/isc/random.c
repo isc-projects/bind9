@@ -18,12 +18,11 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/random.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 static isc_once_t once = ISC_ONCE_INIT;

@@ -18,13 +18,11 @@
 #include <config.h>
 
 #include <errno.h>
-#include <string.h>
 #include <unistd.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/net.h>
 #include <isc/once.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)

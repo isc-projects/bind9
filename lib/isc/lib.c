@@ -19,10 +19,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 
 #include <isc/once.h>
-#include <isc/error.h>
 #include <isc/msgcat.h>
 #include <isc/lib.h>
 

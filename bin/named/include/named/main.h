@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
-#ifndef NS_MAIN_H
-#define NS_MAIN_H 1
+#ifndef NAMED_MAIN_H
+#define NAMED_MAIN_H 1
 
 void
 ns_main_earlyfatal(const char *format, ...);
 
-#endif /* NS_MAIN_H */
+#endif /* NAMED_MAIN_H */

@@ -17,15 +17,10 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/types.h>
+#include <isc/buffer.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/master.h>
 #include <dns/rootns.h>

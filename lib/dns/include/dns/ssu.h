@@ -18,10 +18,7 @@
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
 
-#include <isc/types.h>
 #include <isc/lang.h>
-#include <isc/list.h>
-#include <isc/rwlock.h>
 
 #include <dns/types.h>
 

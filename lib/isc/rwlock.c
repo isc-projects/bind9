@@ -17,16 +17,16 @@
 
 #include <config.h>
 
-#include <stdio.h>
-
+#include <isc/magic.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
-#define RWLOCK_MAGIC			0x52574C6BU	/* RWLk. */
-#define VALID_RWLOCK(rwl)		((rwl) != NULL && \
-					 (rwl)->magic == RWLOCK_MAGIC)
+#define RWLOCK_MAGIC		0x52574C6BU	/* RWLk. */
+#define VALID_RWLOCK(rwl)	ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
 #ifdef ISC_RWLOCK_TRACE
+#include <stdio.h>		/* Required for fprintf/stderr. */
+
 static void
 print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
@@ -40,8 +40,7 @@ print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif
 
 isc_result_t
-isc_rwlock_init(isc_rwlock_t *rwl,
-		unsigned int read_quota,
+isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota)
 {
 	isc_result_t result;
@@ -213,8 +212,8 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 void
 isc_rwlock_destroy(isc_rwlock_t *rwl) {
-
 	REQUIRE(VALID_RWLOCK(rwl));
+
 	LOCK(&rwl->lock);
 	REQUIRE(rwl->active == 0 &&
 		rwl->readers_waiting == 0 &&

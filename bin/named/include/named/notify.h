@@ -48,4 +48,5 @@ ns_notify_start(ns_client_t *client);
  *	client to be valid.
  */
 
-#endif
+#endif /* NAMED_NOTIFY_H */
+

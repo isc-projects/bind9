@@ -15,13 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.6 2000/04/28 01:12:23 halley Exp $ */
+/* $Id: result.c,v 1.7 2000/05/08 14:38:20 tale Exp $ */
+#include <config.h>
 
-#include <stddef.h>
-
-#include <isc/resultclass.h>
 #include <isc/once.h>
-#include <isc/error.h>
 #include <isc/util.h>
 
 #include <omapi/result.h>

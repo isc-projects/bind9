@@ -15,21 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.54 2000/05/03 19:29:35 brister Exp $ */
+/* $Id: confctx.c,v 1.55 2000/05/08 14:35:26 tale Exp $ */
 
 #include <config.h>
 
-#include <syslog.h>	/* XXXRTH */
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/confctx.h>
-#include <dns/confcommon.h>
 #include <dns/log.h>
+#include <dns/peer.h>
 
 #include "confpvt.h"
 

@@ -18,10 +18,9 @@
 #include <config.h>
 
 #include <errno.h>
-#include <string.h>
 
 #include <isc/condition.h>
-#include <isc/error.h>
+#include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
 

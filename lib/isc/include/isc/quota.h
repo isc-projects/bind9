@@ -38,15 +38,13 @@
 
 #include <isc/lang.h>
 #include <isc/mutex.h>
-#include <isc/result.h>
+#include <isc/types.h>
 
 /*****
  ***** Types.
  *****/
 
 ISC_LANG_BEGINDECLS
-
-typedef struct isc_quota isc_quota_t;
 
 struct isc_quota {
 	isc_mutex_t	lock;

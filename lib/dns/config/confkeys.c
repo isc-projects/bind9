@@ -15,18 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.20 2000/04/28 01:10:31 halley Exp $ */
+/* $Id: confkeys.c,v 1.21 2000/05/08 14:35:28 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
-#include <dns/result.h>
 #include <dns/confkeys.h>
 #include <dns/confcommon.h>
 

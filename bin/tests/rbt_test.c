@@ -16,12 +16,12 @@
  */
 
 #include <config.h>
+
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include <isc/commandline.h>
-#include <isc/boolean.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>

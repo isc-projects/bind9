@@ -17,15 +17,7 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mem.h>
 #include <isc/netaddr.h>
-#include <isc/result.h>
 #include <isc/sockaddr.h>
 
 #include <tests/t_api.h>

@@ -23,13 +23,16 @@
 
 #include <stddef.h>		/* NULL */
 #include <stdlib.h>		/* random */
-#include <string.h>		/* memset */
 
+#include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dst/result.h>
 
 #include <omapi/private.h>
+#include <omapi/result.h>
 
 /*
  * OMAPI protocol header, version 1.00

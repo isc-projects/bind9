@@ -18,11 +18,9 @@
 #ifndef GENERIC_RP_17_H
 #define GENERIC_RP_17_H 1
 
-/* $Id: rp_17.h,v 1.12 2000/04/29 02:01:48 tale Exp $ */
+/* $Id: rp_17.h,v 1.13 2000/05/08 14:36:55 tale Exp $ */
 
 /* RFC 1183 */
-
-#include <dns/name.h>
 
 typedef struct dns_rdata_rp {
         dns_rdatacommon_t       common;

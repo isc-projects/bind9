@@ -17,17 +17,9 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/ratelimiter.h>
@@ -65,8 +57,7 @@ schedule_t schedule[] = {
 isc_timer_t *timers[NEVENTS];
 
 static void
-ltick(isc_task_t *task, isc_event_t *event)
-{
+ltick(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	printf("** ltick%s **\n",
 	       (event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ?
@@ -75,8 +66,7 @@ ltick(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-utick(isc_task_t *task, isc_event_t *event)
-{
+utick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	UNUSED(task);
 	event->ev_action = ltick;

@@ -60,8 +60,8 @@
  * None.  */
 
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/event.h>
-#include <isc/mutex.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 
@@ -116,8 +116,7 @@ struct dns_view {
 };
 
 #define DNS_VIEW_MAGIC			0x56696577	/* View. */
-#define DNS_VIEW_VALID(view)		((view) != NULL && \
-					 (view)->magic == DNS_VIEW_MAGIC)
+#define DNS_VIEW_VALID(view)		ISC_MAGIC_VALID(view, DNS_VIEW_MAGIC)
 
 #define DNS_VIEWATTR_RESSHUTDOWN	0x01
 #define DNS_VIEWATTR_ADBSHUTDOWN	0x02

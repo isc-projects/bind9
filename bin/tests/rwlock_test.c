@@ -19,14 +19,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/thread.h>
-#include <isc/result.h>
 #include <isc/rwlock.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 isc_rwlock_t lock;

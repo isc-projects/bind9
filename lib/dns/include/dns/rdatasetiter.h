@@ -60,9 +60,8 @@
  ***** Imports
  *****/
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
@@ -81,10 +80,8 @@ typedef struct dns_rdatasetitermethods {
 				   dns_rdataset_t *rdataset);
 } dns_rdatasetitermethods_t;
 
-#define DNS_RDATASETITER_MAGIC		0x444E5369U		/* DNSi. */
-#define DNS_RDATASETITER_VALID(dbi)	((dbi) != NULL && \
-					 (dbi)->magic == \
-					 DNS_RDATASETITER_MAGIC)
+#define DNS_RDATASETITER_MAGIC	     0x444E5369U		/* DNSi. */
+#define DNS_RDATASETITER_VALID(i)    ISC_MAGIC_VALID(i, DNS_RDATASETITER_MAGIC)
 
 /*
  * This structure is actually just the common prefix of a DNS db

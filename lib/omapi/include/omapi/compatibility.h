@@ -15,6 +15,11 @@
  * SOFTWARE.
  */
 
+#ifndef OMAPI_COMPATIBILITY_H
+#define OMAPI_COMPATIBILITY_H 1
+
+#include <isc/result.h>
+
 /*****
  ***** Macro definitions for partial compatability with Ted Lemon's original
  ***** design of OMAPI for DCHP.  The intent is that with by using this header
@@ -82,3 +87,5 @@
 #define omapi_connection_put_string	omapi_connection_putstring
 #define omapi_connection_put_handle	omapi_connection_puthandle
 #define omapi_connection_write_typed_data	omapi_connection_putdata
+
+#endif /* OMAPI_COMPATIBILITY_H */

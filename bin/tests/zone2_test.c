@@ -15,25 +15,25 @@
  * SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include <config.h>
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/confparser.h>
 #include <dns/journal.h>
+#include <dns/fixedname.h>
+#include <dns/rdataset.h>
+#include <dns/result.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
 #include <dns/zt.h>
-#include <dns/result.h>
 
 #define ERRRET(result, function) \
 	do { \

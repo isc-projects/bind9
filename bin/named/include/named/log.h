@@ -15,22 +15,24 @@
  * SOFTWARE.
  */
 
-#ifndef NS_LOG_H
-#define NS_LOG_H 1
+#ifndef NAMED_LOG_H
+#define NAMED_LOG_H 1
 
-#include <isc/types.h>
 #include <isc/log.h>
+#include <isc/types.h>
 
 #include <dns/log.h>
 
-#include <named/globals.h>
+#include <named/globals.h>	/* Required for ns_g_(categories|modules). */
 
-/* Unused slot */
+/* Unused slot 0. */
 #define NS_LOGCATEGORY_CLIENT		(&ns_g_categories[1])
 #define NS_LOGCATEGORY_NETWORK		(&ns_g_categories[2])
 #define NS_LOGCATEGORY_UPDATE		(&ns_g_categories[3])
 
-/* Backwards compatibility. */
+/*
+ * Backwards compatibility.
+ */
 #define NS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
 
 #define NS_LOGMODULE_MAIN		(&ns_g_modules[0])
@@ -67,8 +69,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg);
 isc_result_t
 ns_log_setsafechannels(isc_logconfig_t *lcfg);
 /*
- * Like ns_log_setdefaultchannels(), but omits any logging
- * to files.
+ * Like ns_log_setdefaultchannels(), but omits any logging to files.
  */
 
 isc_result_t
@@ -80,4 +81,4 @@ ns_log_setdefaultcategory(isc_logconfig_t *lcfg);
 void
 ns_log_shutdown(void);
 
-#endif /* NS_LOG_H */
+#endif /* NAMED_LOG_H */

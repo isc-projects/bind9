@@ -17,20 +17,8 @@
 
 #include <config.h>
 
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
 #include <isc/socket.h>
-#include <isc/task.h>
 #include <isc/util.h>
-
-#include <dns/fixedname.h>
-
-#include <lwres/lwres.h>
-#include <lwres/result.h>
 
 #include "client.h"
 
@@ -47,8 +35,7 @@
  * size we use, set the reply bit, and recompute any security information.
  */
 void
-error_pkt_send(client_t *client, isc_uint32_t _result)
-{
+error_pkt_send(client_t *client, isc_uint32_t _result) {
 	isc_result_t result;
 	int lwres;
 	isc_region_t r;
@@ -90,7 +77,3 @@ error_pkt_send(client_t *client, isc_uint32_t _result)
 
 	CLIENT_SETSEND(client);
 }
-
-
-
-

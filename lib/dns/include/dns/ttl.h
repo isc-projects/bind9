@@ -22,8 +22,8 @@
  ***	Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/types.h>
-#include <isc/buffer.h>
 
 ISC_LANG_BEGINDECLS
 

@@ -17,24 +17,12 @@
 
 #include <config.h>
 
-#include <isc/buffer.h>
-#include <isc/event.h>
-#include <isc/log.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/a6.h>
-#include <dns/acl.h>
 #include <dns/db.h>
-#include <dns/dbtable.h>
-#include <dns/dispatch.h>
 #include <dns/events.h>
-#include <dns/fixedname.h>
 #include <dns/message.h>
-#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -48,9 +36,7 @@
 #include <dns/zt.h>
 
 #include <named/client.h>
-#include <named/globals.h>
 #include <named/log.h>
-#include <named/query.h>
 #include <named/server.h>
 #include <named/xfrout.h>
 

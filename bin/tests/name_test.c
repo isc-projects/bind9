@@ -17,21 +17,14 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/commandline.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
 #include <dns/fixedname.h>
+#include <dns/result.h>
 
 static void
 print_wirename(isc_region_t *name) {

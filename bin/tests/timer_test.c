@@ -17,19 +17,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
-#include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/timer.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 isc_mem_t *mctx1, *mctx2, *mctx3;

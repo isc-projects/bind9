@@ -31,10 +31,11 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/netaddr.h>
 
-#include <dns/types.h>
 #include <dns/name.h>
+#include <dns/types.h>
 
 /***
  *** Types
@@ -78,10 +79,9 @@ struct dns_aclenv {
 	dns_acl_t *localnets;	
 };
 
-
 #define DNS_ACL_MAGIC		0x4461636c	/* Dacl */
-#define DNS_ACL_VALID(a)	((a) != NULL && \
-				 (a)->magic == DNS_ACL_MAGIC)
+#define DNS_ACL_VALID(a)	ISC_MAGIC_VALID(a, DNS_ACL_MAGIC)
+
 /***
  *** Functions
  ***/

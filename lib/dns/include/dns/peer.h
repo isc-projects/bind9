@@ -30,17 +30,11 @@
  *** Imports
  ***/
 
-#include <sys/types.h>
-
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/net.h>
+#include <isc/magic.h>
 #include <isc/netaddr.h>
 
 #include <dns/types.h>
-#include <dns/confcommon.h>
-#include <dns/confkeys.h>
-
 
 #define DNS_PEERLIST_MAGIC	0x7365524c /* seRL */
 #define DNS_PEER_MAGIC		0x53457276 /* SErv */

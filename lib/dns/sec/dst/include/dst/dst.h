@@ -1,12 +1,8 @@
 #ifndef DST_DST_H
 #define DST_DST_H 1
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
-#include <isc/int.h>
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/region.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 

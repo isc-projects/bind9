@@ -17,40 +17,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/taskpool.h>
-
-#include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/dbtable.h>
-#include <dns/dnssec.h>
-#include <dns/events.h>
-#include <dns/fixedname.h>
-#include <dns/journal.h>
 #include <dns/message.h>
-#include <dns/name.h>
-#include <dns/nxt.h>
-#include <dns/rdata.h>
-#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
-#include <dns/rdatastruct.h>
 #include <dns/result.h>
-#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
-#include <named/globals.h>
-#include <named/client.h>
 #include <named/log.h>
 #include <named/notify.h>
 

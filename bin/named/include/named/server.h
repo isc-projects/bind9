@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_SERVER_H
-#define NS_SERVER_H 1
+#ifndef NAMED_SERVER_H
+#define NAMED_SERVER_H 1
 
 #include <isc/log.h>
 #include <isc/sockaddr.h>
@@ -94,4 +94,4 @@ ns_server_reloadwanted(ns_server_t *server);
  */
 
 
-#endif /* NS_SERVER_H */
+#endif /* NAMED_SERVER_H */

@@ -20,15 +20,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <string.h>
 
 #include <limits.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/ondestroy.h>
-#include <isc/result.h>
+#include <isc/string.h>
 
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>

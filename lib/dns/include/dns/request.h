@@ -39,7 +39,6 @@
  *	No anticipated impact.
  */
 
-#include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -47,13 +46,13 @@
 
 #define DNS_REQUESTOPT_TCP 0x00000001U
 
-ISC_LANG_BEGINDECLS
-
 typedef struct dns_requestevent {
         ISC_EVENT_COMMON(struct dns_requestevent);
 	isc_result_t result;
 	dns_request_t *request;
 } dns_requestevent_t;
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,

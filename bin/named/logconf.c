@@ -17,9 +17,6 @@
 
 #include <config.h>
 
-#include <isc/result.h>
-
-#include <named/globals.h>
 #include <named/log.h>
 #include <named/logconf.h>
 

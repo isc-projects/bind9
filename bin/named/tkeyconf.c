@@ -17,13 +17,12 @@
 
 #include <config.h>
 
-#include <isc/base64.h>
-#include <isc/lex.h>
+#include <isc/buffer.h>
+#include <isc/mem.h>
 
-#include <dns/confctx.h>
-#include <dns/confkeys.h>
 #include <dns/keyvalues.h>
 #include <dns/name.h>
+#include <dns/tkey.h>
 #include <dns/tkeyconf.h>
 
 #define RETERR(x) do { \

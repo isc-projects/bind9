@@ -15,31 +15,29 @@
  * SOFTWARE.
  */
 
-#include	<config.h>
+#include <config.h>
 
-#include	<ctype.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-#include	<isc/mem.h>
-#include	<isc/buffer.h>
-#include	<isc/error.h>
-#include	<isc/util.h>
+#include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/util.h>
 
-#include	<dns/master.h>
-#include	<dns/name.h>
-#include	<dns/rdataclass.h>
-#include	<dns/rdataset.h>
-#include	<dns/result.h>
-#include	<dns/types.h>
-#include	<tests/t_api.h>
+#include <dns/callbacks.h>
+#include <dns/master.h>
+#include <dns/name.h>
+#include <dns/rdataclass.h>
+#include <dns/rdataset.h>
+
+#include <tests/t_api.h>
 
 #define	BUFLEN		255
 #define	BIGBUFLEN	(64 * 1024)
 
 static isc_result_t
 t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset);
+
 static void
 t1(void);
 
@@ -64,8 +62,7 @@ t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 }
 
 static int
-test_master(char *testfile, char *origin, char *class,
-	    isc_result_t exp_result)
+test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 {
 	int			result;
 	int			len;
@@ -157,29 +154,29 @@ test_master_x(char *filename) {
 
 			++line;
 
-			/* skip comment lines */
+			/*
+			 * Skip comment lines.
+			 */
 			if ((isspace(*p & 0xff)) || (*p == '#'))
 				continue;
 
-			/* name of data file, origin, zclass, expected result */
+			/*
+			 * Name of data file, origin, zclass, expected result.
+			 */
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 4) {
-				result = test_master(
-						Tokens[0],
-						Tokens[1],
-						Tokens[2],
-						t_dns_result_fromtext(Tokens[3]));
-			}
-			else {
+				result = test_master(Tokens[0], Tokens[1],
+					     Tokens[2],
+					     t_dns_result_fromtext(Tokens[3]));
+			} else {
 				t_info("bad format in %s at line %d\n",
-						filename, line);
+				       filename, line);
 			}
 
-			(void) free(p);
+			(void)free(p);
 		}
-		(void) fclose(fp);
-	}
-	else {
+		(void)fclose(fp);
+	} else {
 		t_info("Missing datafile %s\n", filename);
 	}
 	return(result);
@@ -195,8 +192,9 @@ t1() {
 	t_result(result);
 }
 
-static char *a2 =	"dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
-			"masterfile input ends unexpectedly";
+static char *a2 = "dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
+		  "masterfile input ends unexpectedly";
+
 static void
 t2() {
 	int	result;
@@ -240,8 +238,8 @@ t5() {
 	t_result(result);
 }
 
-static char *a6 =	"dns_master_loadfile understands KEY RR specifications "
-			"containing key material";
+static char *a6 = "dns_master_loadfile understands KEY RR specifications "
+		  "containing key material";
 
 static void
 t6() {
@@ -253,8 +251,8 @@ t6() {
 	t_result(result);
 }
 
-static char *a7 =	"dns_master_loadfile understands KEY RR specifications "
-			"containing no key material";
+static char *a7 = "dns_master_loadfile understands KEY RR specifications "
+		  "containing no key material";
 
 static void
 t7() {

@@ -57,8 +57,7 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/list.h>
-#include <isc/mem.h>
+#include <isc/magic.h>
 
 #include <dns/confip.h>
 
@@ -79,9 +78,7 @@
 typedef struct dns_c_acl		dns_c_acl_t;
 typedef struct dns_c_acl_table		dns_c_acltable_t;
 
-
-struct dns_c_acl 
-{
+struct dns_c_acl {
 	isc_uint32_t		magic;
 
 	dns_c_acltable_t       *mytable;
@@ -93,17 +90,13 @@ struct dns_c_acl
 	ISC_LINK(dns_c_acl_t)	next;
 };
 
-
-struct dns_c_acl_table 
-{
+struct dns_c_acl_table {
 	isc_uint32_t		magic;
 	
 	isc_mem_t	       *mem;
 	
 	ISC_LIST(dns_c_acl_t)	acl_list;
 };
-
-
 
 /***
  *** Functions

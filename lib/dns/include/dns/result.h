@@ -29,7 +29,7 @@
  * the ISC result codes, so including this file buys you the ISC_R_
  * namespace too.
  */
-#include <isc/result.h>
+#include <isc/result.h>		/* Contractual promise. */
 
 /*
  * DNS library result codes

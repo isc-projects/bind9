@@ -1,44 +1,35 @@
 /*
  * Portions Copyright (c) 1995-1999 by Network Associates, Inc.
+ * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  *
- * Permission to use, copy modify, and distribute this software for any
+ * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND NETWORK ASSOCIATES
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
- * NETWORK ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
+ * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE CONSORTIUM OR NETWORK
+ * ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.31 2000/04/28 01:10:42 halley Exp $
+ * $Id: dst_api.c,v 1.32 2000/05/08 14:37:00 tale Exp $
  */
 
 #include <config.h>
 
-#include <ctype.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/buffer.h>
 #include <isc/dir.h>
-#include <isc/error.h>
-#include <isc/int.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/random.h>
-#include <isc/region.h>
+#include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
@@ -359,7 +350,9 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	/* Fill in private key and some fields in the general key structure */
+	/*
+	 * Fill in private key and some fields in the general key structure.
+	 */
 	ret = key->func->from_file(key, id, mctx);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(key);
@@ -860,7 +853,7 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
  *	none
  */
 static void
-initialize() {
+initialize(void) {
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &dst_memory_pool) == ISC_R_SUCCESS);

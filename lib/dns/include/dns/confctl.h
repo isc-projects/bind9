@@ -55,11 +55,8 @@
  *** Imports
  ***/
 
-#include <sys/types.h>
-
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/net.h>
+#include <isc/magic.h>
 
 #include <dns/confip.h>
 

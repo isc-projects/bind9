@@ -15,16 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.32 2000/05/04 22:36:24 gson Exp $ */
+/* $Id: compress.c,v 1.33 2000/05/08 14:34:28 tale Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
 #include <config.h>
-#include <string.h>
 
-#include <isc/types.h>
-#include <isc/assertions.h>
-#include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/compress.h>
@@ -33,10 +31,10 @@
 #include <dns/result.h>
 
 #define CCTX_MAGIC	0x43435458U	/* CCTX */
-#define VALID_CCTX(x)	((x) != NULL && (x)->magic == CCTX_MAGIC)
+#define VALID_CCTX(x)	ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
 #define DCTX_MAGIC	0x44435458U	/* DCTX */
-#define VALID_DCTX(x)	((x) != NULL && (x)->magic == DCTX_MAGIC)
+#define VALID_DCTX(x)	ISC_MAGIC_VALID(x, DCTX_MAGIC)
 
 static void
 free_offset(void *offset, void *mctx);

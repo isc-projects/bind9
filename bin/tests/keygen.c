@@ -15,21 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.14 2000/05/05 19:55:56 gson Exp $ */
+/* $Id: keygen.c,v 1.15 2000/05/08 14:33:32 tale Exp $ */
 
 #include <config.h>
 
-#include <stdio.h>
-#include <ctype.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
+#include <isc/region.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
@@ -45,17 +40,17 @@ static int verbose;
 
 int
 main(int argc, char **argv) {
-	char			*algname = NULL, *nametype = NULL, *type = NULL;
-	char			*prog, *endp;
-	dst_key_t		*key;
-	char			*name = NULL;
-	isc_uint16_t		flags = 0;
-	dns_secalg_t		alg;
-	isc_mem_t		*mctx = NULL;
-	int			ch, rsa_exp = 0, generator = 0, param = 0;
-	int			protocol = -1, size = -1, signatory = 0;
-	isc_textregion_t	r;
-	isc_result_t		ret;
+	char		*algname = NULL, *nametype = NULL, *type = NULL;
+	char		*prog, *endp;
+	dst_key_t	*key;
+	char		*name = NULL;
+	isc_uint16_t	flags = 0;
+	dns_secalg_t	alg;
+	isc_mem_t	*mctx = NULL;
+	int		ch, rsa_exp = 0, generator = 0, param = 0;
+	int		protocol = -1, size = -1, signatory = 0;
+	isc_result_t	ret;
+	isc_textregion_t r;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -106,10 +101,12 @@ main(int argc, char **argv) {
 		case 'p':
 			protocol = strtol(isc_commandline_argument, &endp, 10);
 			if (*endp != '\0' || protocol < 0 || protocol > 255)
-				die("-p must be followed by a number [0..255]");
+				die("-p must be followed by "
+				    "a number [0..255]");
 			break;
 		case 's':
-			signatory = strtol(isc_commandline_argument, &endp, 10);
+			signatory = strtol(isc_commandline_argument,
+					   &endp, 10);
 			if (*endp != '\0' || signatory < 0 || signatory > 15)
 				die("-s must be followed by a number [0..15]");
 			break;
@@ -284,7 +281,7 @@ die(char *str) {
 static void
 usage(char *prog) {
 	printf("Usage:\n");
-	printf ("    %s [options] name\n\n", prog);
+	printf("    %s [options] name\n\n", prog);
 	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
@@ -300,7 +297,8 @@ usage(char *prog) {
 	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF\n");
 	printf("        default: AUTHCONF\n");
 	printf("    -p protocol value\n");
-	printf("        default: 2 (email) for User keys, 3 (dnssec) for all others\n");
+	printf("        default: 2 (email) for User keys, "
+	       			"3 (dnssec) for all others\n");
 	printf("    -s strength value this key signs DNS records with\n");
 	printf("        default: 0\n");
 	printf("    -v verbose level\n");

@@ -17,26 +17,18 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
-#include <isc/result.h>
+#include <isc/mem.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
-#include <isc/mem.h>
 
 isc_mem_t *mctx;
 isc_symtab_t *st;
 
 static void
-undefine_action(char *key, unsigned int type, isc_symvalue_t value, 
-		void *arg) 
+undefine_action(char *key, unsigned int type, isc_symvalue_t value, void *arg)
 {
-	(void) arg;
+	UNUSED(arg);
 
 	INSIST(type == 1);
 	isc_mem_free(mctx, key);

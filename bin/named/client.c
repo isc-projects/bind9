@@ -17,19 +17,12 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/log.h>
-#include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/result.h>
-#include <isc/task.h>
 #include <isc/print.h>
+#include <isc/task.h>
+#include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/acl.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -39,12 +32,9 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 
-#include <named/client.h>
-#include <named/globals.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/notify.h>
-#include <named/query.h>
 #include <named/server.h>
 #include <named/update.h>
 

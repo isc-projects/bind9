@@ -53,18 +53,9 @@
  *** Imports
  ***/
 
-#include <sys/types.h>
-
 #include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <limits.h>
 
-#include <isc/int.h>
 #include <isc/lang.h>
-#include <isc/net.h>
-#include <isc/sockaddr.h>
-#include <isc/types.h>
 
 #include <dns/types.h>
 
@@ -79,28 +70,32 @@
 #define DNS_C_DEFAULT_STDERR  "default_stderr"
 #define DNS_C_STDERR_PATH " <stderr> "	/* not really a path */
 
-
-
-/* The value we use in config files if the user doesn't specify the port or 
- *   in some statements
+/*
+ * The value we use in config files if the user doesn't specify the port or 
+ * in some statements.
  */
 #define DNS_C_DEFAULTPORT	53	/* XXX this should be imported */
 
-
-/* What an 'unlimited' value for a size_spec is stored as internally */
+/*
+ * What an 'unlimited' value for a size_spec is stored as internally.
+ */
 #define DNS_C_SIZE_SPEC_UNLIM (~((isc_uint32_t) 0x0))
 
-/* What a 'default' value for a size_spec is stored as internally */
+/*
+ * What a 'default' value for a size_spec is stored as internally.
+ */
 #define DNS_C_SIZE_SPEC_DEFAULT (DNS_C_SIZE_SPEC_UNLIM - 1)
 
-/* What 'unlimited' is stored as internally for logging file versions */
-#define DNS_C_UNLIM_VERSIONS DNS_C_SIZE_SPEC_UNLIM
+/*
+ * What 'unlimited' is stored as internally for logging file versions
+ */
+#define DNS_C_UNLIM_VERSIONS	DNS_C_SIZE_SPEC_UNLIM
 
-/* The default ordering given to rrset-order statements when the type given 
-   is illegal (so parsing can continue). */
-#define DNS_DEFAULT_ORDERING dns_c_ordering_fixed
-
-
+/*
+ * The default ordering given to rrset-order statements when the type given 
+ * is illegal (so parsing can continue).
+ */
+#define DNS_DEFAULT_ORDERING 	dns_c_ordering_fixed
 
 /***
  *** Types
@@ -249,7 +244,6 @@ typedef struct dns_c_zone_list		dns_c_zonelist_t;
 
 extern isc_boolean_t debug_mem_print;
 extern FILE *debug_mem_print_stream;	/* NULL means stderr */
-
 
 /***
  *** Functions

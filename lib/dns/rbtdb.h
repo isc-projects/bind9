@@ -18,6 +18,9 @@
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1
 
+#include <isc/lang.h>
+#include <dns/types.h>
+
 /*****
  ***** Module Info
  *****/
@@ -26,9 +29,13 @@
  * DNS Red-Black Tree DB Implementation
  */
 
+ISC_LANG_BEGINDECLS
+
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t is_cache,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 dns_db_t **dbp);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RBTDB_H */

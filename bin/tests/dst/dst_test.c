@@ -17,19 +17,13 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <unistd.h>		/* XXX */
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
+#include <isc/buffer.h>
 #include <isc/region.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 
 #include <dns/result.h>
 

@@ -69,12 +69,12 @@
 #include <isc/platform.h>
 
 #include <sys/types.h>
-#include <sys/socket.h>
+#include <sys/socket.h>		/* Contractual promise. */
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <netinet/in.h>		/* Contractual promise. */
+#include <arpa/inet.h>		/* Contractual promise. */
 #ifdef ISC_PLATFORM_HAVENETINET6IN6H
-#include <netinet6/in6.h>
+#include <netinet6/in6.h>	/* Contractual promise. */
 #endif
 
 #include <isc/types.h>
@@ -88,7 +88,7 @@
 #endif
 
 #ifndef ISC_PLATFORM_HAVEIPV6
-#include <isc/ipv6.h>
+#include <isc/ipv6.h>		/* Contractual promise. */
 #endif
 
 #ifndef ISC_PLATFORM_HAVEIN6PKTINFO
@@ -153,17 +153,20 @@ isc_net_probeipv6(void);
  */
 
 #ifdef ISC_PLATFORM_NEEDNTOP
-const char *isc_net_ntop(int af, const void *src, char *dst, size_t size);
+const char *
+isc_net_ntop(int af, const void *src, char *dst, size_t size);
 #define inet_ntop isc_net_ntop
 #endif
 
 #ifdef ISC_PLATFORM_NEEDPTON
-int isc_net_pton(int af, const char *src, void *dst);
+int
+isc_net_pton(int af, const char *src, void *dst);
 #define inet_pton isc_net_pton
 #endif
 
 #ifdef ISC_PLATFORM_NEEDATON
-int isc_net_aton(const char *cp, struct in_addr *addr);
+int
+isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
 #endif
 

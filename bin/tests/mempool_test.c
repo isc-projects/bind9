@@ -17,22 +17,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 isc_mem_t *mctx;
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	void *items1[50];
 	void *items2[50];
 	void *tmp;
@@ -40,9 +31,8 @@ main(int argc, char *argv[])
 	unsigned int i, j;
 	isc_mutex_t lock;
 
-	/* Silence annoying compiler warning. */
-	(void)argc;
-	(void)argv;
+	UNUSED(argc);
+	UNUSED(argv);
 
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 

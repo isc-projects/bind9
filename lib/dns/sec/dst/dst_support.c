@@ -1,32 +1,32 @@
 /*
  * Portions Copyright (c) 1995-1999 by Network Associates, Inc.
+ * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  *
- * Permission to use, copy modify, and distribute this software for any
+ * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND NETWORK ASSOCIATES
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
- * NETWORK ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
+ * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE CONSORTIUM OR NETWORK
+ * ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.3 1999/11/02 19:52:29 bwelling Exp $
+ * $Id: dst_support.c,v 1.4 2000/05/08 14:37:06 tale Exp $
  */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <unistd.h>
-#include <memory.h>
-#include <string.h>
-#include <isc/int.h>
+
+#include <isc/string.h>
 
 #include "dst_internal.h"
 
@@ -42,8 +42,7 @@
  */
 
 int
-dst_s_calculate_bits(const unsigned char *str, const int max_bits)
-{
+dst_s_calculate_bits(const unsigned char *str, const int max_bits) {
 	const unsigned char *p = str;
 	unsigned char i, j = 0x80;
 	int bits;
@@ -65,8 +64,7 @@ dst_s_calculate_bits(const unsigned char *str, const int max_bits)
  *	N	the 16 bit checksum.
  */
 isc_uint16_t
-dst_s_id_calc(const unsigned char *key, const int keysize)
-{
+dst_s_id_calc(const unsigned char *key, const int keysize) {
 	isc_uint32_t ac;
 	const unsigned char *kp = key;
 	int size = keysize;
@@ -110,7 +108,8 @@ dst_s_build_filename(char *filename, const char *name, isc_uint16_t id,
 		return (-1);
 	if (suffix == NULL)
 		return (-1);
-	if (filename_length < 1 + strlen(name) + 1 + 4 + 6 + 1 + strlen(suffix))
+	if (filename_length <
+	    1 + strlen(name) + 1 + 4 + 6 + 1 + strlen(suffix))
 		return (-1);
 	my_id = id;
 	if (name[strlen(name) - 1] == '.')

@@ -16,10 +16,10 @@
  */
 
 #ifndef OMAPI_RESULT_H
-#define DNS_RESULT_H 1
+#define OMAPI_RESULT_H 1
 
 #include <isc/lang.h>
-#include <isc/result.h>
+#include <isc/result.h>		/* Contractual promise. */
 #include <isc/resultclass.h>
 
 ISC_LANG_BEGINDECLS
@@ -33,9 +33,12 @@ ISC_LANG_BEGINDECLS
 
 #define OMAPI_R_NRESULTS		6	/* Number of results */
 
-char *				omapi_result_totext(isc_result_t);
-void				omapi_result_register(void);
+char *
+omapi_result_totext(isc_result_t);
+
+void
+omapi_result_register(void);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_RESULT_H */
+#endif /* OMAPI_RESULT_H */

@@ -18,6 +18,9 @@
 #ifndef DNS_BIT_H
 #define DNS_BIT_H 1
 
+#include <isc/int.h>
+#include <isc/boolean.h>
+
 typedef isc_uint64_t dns_bitset_t;
 
 #define DNS_BIT_SET(bit, bitset) \

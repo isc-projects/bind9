@@ -19,10 +19,10 @@
 #define DNS_TCPMSG_H 1
 
 #include <isc/buffer.h>
-#include <isc/int.h>
+#include <isc/lang.h>
 #include <isc/socket.h>
 
-typedef struct {
+typedef struct dns_tcpmsg {
 	/* private (don't touch!) */
 	unsigned int		magic;
 	isc_uint16_t		size;
@@ -38,6 +38,8 @@ typedef struct {
 	isc_result_t		result;
 	isc_sockaddr_t		address;
 } dns_tcpmsg_t;
+
+ISC_LANG_BEGINDECLS
 
 void
 dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg);
@@ -135,5 +137,7 @@ dns_tcpmsg_invalidate(dns_tcpmsg_t *tcpmsg);
  *	"tcpmsg" is invalidated and disassociated with all memory contexts,
  *	sockets, etc.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_TCPMSG_H */

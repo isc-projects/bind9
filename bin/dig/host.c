@@ -17,42 +17,18 @@
 
 #include <config.h>
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 extern int h_errno;
 
-#include <isc/types.h>
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mem.h>
-#include <isc/net.h>
-#include <isc/netdb.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
-#include <isc/socket.h>
-#include <isc/task.h>
-#include <isc/timer.h>
-#include <isc/time.h>
-#include <isc/buffer.h>
-#include <isc/list.h>
-#include <isc/util.h>
 #include <isc/commandline.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/message.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/rdata.h>
-#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
-#include <dns/result.h>
 
 #include <dig/dig.h>
 

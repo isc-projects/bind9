@@ -18,25 +18,17 @@
 /* 
  * Test code for OMAPI.
  */
+#include <config.h>
 
-#include <time.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/region.h>
-#include <isc/result.h>
 #include <isc/socket.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
-
-#include <dns/acl.h>
 
 #include <dst/result.h>
 

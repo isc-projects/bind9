@@ -17,34 +17,20 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/interfaceiter.h>
-#include <isc/mem.h>
-#include <isc/net.h>
-#include <isc/result.h>
-#include <isc/socket.h>
+#include <isc/string.h>
 #include <isc/task.h>
-#include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/dispatch.h>
 
 #include <named/client.h>
-#include <named/globals.h>
-#include <named/listenlist.h>
 #include <named/log.h>
 #include <named/interfacemgr.h>
 
 #define IFMGR_MAGIC		0x49464D47U	/* IFMG. */	
-#define NS_INTERFACEMGR_VALID(t) ((t) != NULL && (t)->magic == IFMGR_MAGIC)
+#define NS_INTERFACEMGR_VALID(t) ISC_MAGIC_VALID(t, IFMGR_MAGIC)
 
 #define IFMGR_COMMON_LOGARGS \
 	ns_g_lctx, NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR
@@ -63,7 +49,8 @@ struct ns_interfacemgr {
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
 };
 
-static void purge_old_interfaces(ns_interfacemgr_t *mgr);
+static void
+purge_old_interfaces(ns_interfacemgr_t *mgr);
 
 /*
  * Format a human-readable representation of the socket address '*sa'
@@ -71,8 +58,7 @@ static void purge_old_interfaces(ns_interfacemgr_t *mgr);
  * The resulting string is guaranteed to be null-terminated.
  */
 static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
-{
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 	isc_buffer_init(&buf, array, size);
@@ -133,8 +119,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 }
 
 static void
-ns_interfacemgr_destroy(ns_interfacemgr_t *mgr)
-{
+ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 	dns_aclenv_destroy(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon);
@@ -144,15 +129,12 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr)
 }
 
 dns_aclenv_t *
-ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr)
-{
+ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr) {
 	return (&mgr->aclenv);
 }
 
 void
-ns_interfacemgr_attach(ns_interfacemgr_t *source,
-		       ns_interfacemgr_t **target)
-{
+ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target) {
 	REQUIRE(NS_INTERFACEMGR_VALID(source));
 	LOCK(&source->lock);
 	INSIST(source->references > 0);
@@ -162,8 +144,7 @@ ns_interfacemgr_attach(ns_interfacemgr_t *source,
 }
 
 void 
-ns_interfacemgr_detach(ns_interfacemgr_t **targetp)
-{
+ns_interfacemgr_detach(ns_interfacemgr_t **targetp) {
 	isc_result_t need_destroy = ISC_FALSE;
 	ns_interfacemgr_t *target = *targetp;
 	REQUIRE(target != NULL);
@@ -180,8 +161,7 @@ ns_interfacemgr_detach(ns_interfacemgr_t **targetp)
 }
 
 void
-ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr)
-{
+ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	LOCK(&mgr->lock);
@@ -385,10 +365,10 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	result = ns_interface_accepttcp(ifp);
 	if (result != ISC_R_SUCCESS) {
 		/*
-		 * XXXRTH  We don't currently have a way to easily stop dispatch
-		 * service, so we return currently return ISC_R_SUCCESS (the UDP
-		 * stuff will work even if TCP creation failed).  This will be fixed
-		 * later.
+		 * XXXRTH We don't currently have a way to easily stop dispatch
+		 * service, so we return currently return ISC_R_SUCCESS (the
+		 * UDP stuff will work even if TCP creation failed).  This will
+		 * be fixed later.
 		 */
 		result = ISC_R_SUCCESS;
 	}
@@ -427,9 +407,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 }
 
 void
-ns_interface_attach(ns_interface_t *source,
-		    ns_interface_t **target)
-{
+ns_interface_attach(ns_interface_t *source, ns_interface_t **target) {
 	REQUIRE(NS_INTERFACE_VALID(source));
 	LOCK(&source->lock);
 	INSIST(source->references > 0);
@@ -439,8 +417,7 @@ ns_interface_attach(ns_interface_t *source,
 }
 
 void 
-ns_interface_detach(ns_interface_t **targetp)
-{
+ns_interface_detach(ns_interface_t **targetp) {
 	isc_result_t need_destroy = ISC_FALSE;
 	ns_interface_t *target = *targetp;
 	REQUIRE(target != NULL);
@@ -693,9 +670,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 }
 
 void
-ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
-			    ns_listenlist_t *value)
-{
+ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
 	LOCK(&mgr->lock);
 	ns_listenlist_detach(&mgr->listenon);
 	ns_listenlist_attach(value, &mgr->listenon);

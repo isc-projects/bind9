@@ -16,45 +16,43 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.72 2000/05/06 10:18:46 brister Exp $ */
+/* $Id: confparser.y,v 1.73 2000/05/08 14:35:33 tale Exp $ */
 
 #include <config.h>
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h> 
 #include <limits.h>
-#include <string.h>
-#include <sys/types.h> 
-
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mutex.h>
-#include <isc/lex.h>
-#include <isc/symtab.h>
-#include <isc/error.h>
-#include <isc/once.h>
+#include <sys/types.h> 
+
 #include <isc/dir.h>
+#include <isc/error.h>
+#include <isc/lex.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/net.h>
+#include <isc/netaddr.h>
+#include <isc/once.h>
+#include <isc/string.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
-#include <dns/confparser.h>
+#include <dns/confcommon.h>
 #include <dns/confctx.h>
+#include <dns/confparser.h>
 #include <dns/log.h>
 #include <dns/name.h> 
- 
-#include <dns/result.h>
-#include <dns/rdatatype.h>
+#include <dns/peer.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
+#include <dns/result.h>
 #include <dns/ssu.h> 
-
 #include <dns/types.h>
-
-#include <dns/confcommon.h>
 
 
 /* Type keys for symtab lookup */

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.33 2000/05/02 03:53:52 tale Exp $
+ * $Id: dnssec.c,v 1.34 2000/05/08 14:34:34 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -24,28 +24,21 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/buffer.h>
-#include <isc/list.h>
-#include <isc/net.h>
-#include <isc/stdtime.h>
-#include <isc/types.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
-#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tsig.h>		/* for DNS_TSIG_FUDGE */
 
-#include <dst/dst.h>
 #include <dst/result.h>
 
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
@@ -90,12 +83,14 @@ digest_callback(void *arg, isc_region_t *data) {
 		result = dst_sign(DST_SIGMODE_UPDATE, ctx->key, &ctx->context,
 				  data, NULL);
 	else
-		result = dst_verify(DST_SIGMODE_UPDATE, ctx->key, &ctx->context,
-				    data, NULL);
+		result = dst_verify(DST_SIGMODE_UPDATE, ctx->key,
+				    &ctx->context, data, NULL);
 	return (result);
 }
 
-/* converts the name of a key into a canonical isc_name_t */
+/*
+ * Converts the name of a key into a canonical dns_name_t.
+ */
 static isc_result_t
 keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name) {
 	isc_buffer_t src, dst;
@@ -117,13 +112,17 @@ keyname_to_name(char *keyname, isc_mem_t *mctx, dns_name_t *name) {
 	return (ret);
 }
 
-/* make qsort happy */
+/*
+ * Make qsort happy.
+ */
 static int
 rdata_compare_wrapper(const void *rdata1, const void *rdata2) {
 	return dns_rdata_compare((dns_rdata_t *)rdata1, (dns_rdata_t *)rdata2);
 }
 
-/* sort the rdataset into an array */
+/*
+ * Sort the rdataset into an array.
+ */
 static isc_result_t
 rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 			dns_rdata_t **rdata, int *nrdata)
@@ -135,7 +134,9 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	ret = dns_rdataset_first(set);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	/* count the records */
+	/*
+	 * Count the records.
+	 */
 	while (dns_rdataset_next(set) == ISC_R_SUCCESS)
 		n++;
 
@@ -147,12 +148,16 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	/* put them in the array */
+	/*
+	 * Put them in the array.
+	 */
 	do {
 		dns_rdataset_current(set, &data[i++]);
 	} while (dns_rdataset_next(set) == ISC_R_SUCCESS);
 
-	/* sort the array */
+	/*
+	 * Sort the array.
+	 */
 	qsort(data, n, sizeof(dns_rdata_t), rdata_compare_wrapper);
 	*rdata = data;
 	*nrdata = n;
@@ -215,7 +220,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (*inception >= *expire)
 		return (DNS_R_INVALIDTIME);
 
-	/* Is the key allowed to sign data? */
+	/*
+	 * Is the key allowed to sign data?
+	 */
 	flags = dst_key_flags(key);
 	if (flags & DNS_KEYTYPE_NOAUTH)
 		return (DNS_R_KEYUNAUTHORIZED);
@@ -256,7 +263,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	isc_buffer_usedregion(&b, &r);
 
-	/* Digest the SIG rdata */
+	/*
+	 * Digest the SIG rdata.
+	 */
 	r.length -= sig.siglen;
 	ret = dst_sign(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
 		       key, &ctx, &r, NULL);
@@ -266,7 +275,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	dns_name_toregion(name, &r);
 
-	/* create an envelope for each rdata: <name|type|class|ttl> */
+	/*
+	 * Create an envelope for each rdata: <name|type|class|ttl>.
+	 */
 	isc_buffer_init(&envbuf, data, sizeof(data));
 	memcpy(data, r.base, r.length);
 	isc_buffer_add(&envbuf, r.length);
@@ -289,12 +300,16 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
 		
-		/* Digest the envelope */
+		/*
+		 * Digest the envelope.
+		 */
 		ret = dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
-		/* Digest the length of the rdata */
+		/*
+		 * Digest the length of the rdata.
+		 */
 		isc_buffer_init(&lenbuf, &len, sizeof(len));
 		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
@@ -303,7 +318,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
-		/* Digest the rdata */
+		/*
+		 * Digest the rdata.
+		 */
 		ret = dns_rdata_digest(&rdatas[i], digest_callback, &dctx);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
@@ -365,21 +382,27 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (!ignoretime) {
 		isc_stdtime_get(&now);
 
-		/* Is SIG temporally valid? */
+		/*
+		 * Is SIG temporally valid?
+		 */
 		if (sig.timesigned > now)
 			return (DNS_R_SIGFUTURE);
 		else if (sig.timeexpire < now)
 			return (DNS_R_SIGEXPIRED);
 	}
 
-	/* Is the key allowed to sign data? */
+	/*
+	 * Is the key allowed to sign data?
+	 */
 	flags = dst_key_flags(key);
 	if (flags & DNS_KEYTYPE_NOAUTH)
 		return (DNS_R_KEYUNAUTHORIZED);
 	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
 		return (DNS_R_KEYUNAUTHORIZED);
 
-	/* Digest the SIG rdata (not including the signature) */
+	/*
+	 * Digest the SIG rdata (not including the signature).
+	 */
 	dns_rdata_toregion(sigrdata, &r);
 	r.length -= sig.siglen;
 	RUNTIME_CHECK(r.length >= 20);
@@ -387,7 +410,9 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	ret = dst_verify(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
 			 key, &ctx, &r, NULL);
 
-	/* if the name is an expanded wildcard, use the wildcard name */
+	/*
+	 * If the name is an expanded wildcard, use the wildcard name.
+	 */
 	labels = dns_name_depth(name) - 1;
 	if (labels - sig.labels > 0) {
 		dns_fixedname_init(&fnewname);
@@ -398,7 +423,9 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	else
 		dns_name_toregion(name, &r);
 
-	/* create an envelope for each rdata: <name|type|class|ttl> */
+	/*
+	 * Create an envelope for each rdata: <name|type|class|ttl>.
+	 */
 	isc_buffer_init(&envbuf, data, sizeof(data));
 	if (labels - sig.labels > 0) {
 		isc_buffer_putuint8(&envbuf, 1);
@@ -427,18 +454,24 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
 
-		/* Digest the envelope */
+		/*
+		 * Digest the envelope.
+		 */
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 
-		/* Digest the rdata length */
+		/*
+		 * Digest the rdata length.
+		 */
 		isc_buffer_init(&lenbuf, &len, sizeof(len));
 		INSIST(rdatas[i].length < 65536);
 		isc_buffer_putuint16(&lenbuf, (isc_uint16_t)rdatas[i].length);
 		isc_buffer_usedregion(&lenbuf, &lenr);
 
-		/* Digest the rdata */
+		/*
+		 * Digest the rdata.
+		 */
 		ret = dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &lenr, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
@@ -582,13 +615,17 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 		RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
 				NULL));
 
-	/* Digest the header */
+	/*
+	 * Digest the header.
+	 */
 	isc_buffer_init(&headerbuf, header, sizeof(header));
 	dns_message_renderheader(msg, &headerbuf);
 	isc_buffer_usedregion(&headerbuf, &r);
 	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
-	/* Digest the remainder of the message */
+	/*
+	 * Digest the remainder of the message.
+	 */
 	isc_buffer_usedregion(msg->buffer, &r);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
 	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
@@ -708,25 +745,35 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	RETERR(dst_verify(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
 
-	/* if this is a response, digest the query */
+	/*
+	 * If this is a response, digest the query.
+	 */
 	if (is_response(msg))
 		RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
 				  NULL));
 
-	/* Extract the header */
+	/*
+	 * Extract the header.
+	 */
 	memcpy(header, source_r.base, DNS_MESSAGE_HEADERLEN);
 
-	/* Decrement the additional field counter */
+	/*
+	 * Decrement the additional field counter.
+	 */
 	memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 	addcount = htons(ntohs(addcount) - 1);
 	memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
-	/* Digest the modified header */
+	/*
+	 * Digest the modified header.
+	 */
 	header_r.base = (unsigned char *) header;
 	header_r.length = DNS_MESSAGE_HEADERLEN;
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
 
-	/* Digest all non-SIG(0) records */
+	/*
+	 * Digest all non-SIG(0) records.
+	 */
 	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));

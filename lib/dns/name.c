@@ -18,23 +18,18 @@
 #include <config.h>
 
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/compress.h>
 
-#define VALID_NAME(n)			((n) != NULL && \
-					 (n)->magic == DNS_NAME_MAGIC)
+#define VALID_NAME(n)	ISC_MAGIC_VALID(n, DNS_NAME_MAGIC)
 
 typedef enum {
 	ft_init = 0,

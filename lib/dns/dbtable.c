@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.17 2000/05/02 03:53:52 tale Exp $
+ * $Id: dbtable.c,v 1.18 2000/05/08 14:34:31 tale Exp $
  */
 
 /*
@@ -25,6 +25,7 @@
 
 #include <config.h>
 
+#include <isc/mem.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 

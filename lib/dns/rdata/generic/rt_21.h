@@ -18,11 +18,9 @@
 #ifndef GENERIC_RT_21_H
 #define GENERIC_RT_21_H 1
 
-/* $Id: rt_21.h,v 1.12 2000/04/29 02:01:49 tale Exp $ */
+/* $Id: rt_21.h,v 1.13 2000/05/08 14:36:57 tale Exp $ */
 
 /* RFC 1183 */
-
-#include <dns/name.h>
 
 typedef struct dns_rdata_rt {
 	dns_rdatacommon_t	common;

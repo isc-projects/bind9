@@ -17,16 +17,15 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
 
 #include <named/listenlist.h>
 
-static void destroy(ns_listenlist_t *list);
+static void
+destroy(ns_listenlist_t *list);
 
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
@@ -80,16 +79,14 @@ destroy(ns_listenlist_t *list) {
 }
 
 void
-ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target)
-{
+ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target) {
 	INSIST(source->refcount > 0);
 	source->refcount++;
 	*target = source;
 }
 
 void
-ns_listenlist_detach(ns_listenlist_t **listp)
-{
+ns_listenlist_detach(ns_listenlist_t **listp) {
 	ns_listenlist_t *list = *listp;
 	INSIST(list->refcount > 0);
 	list->refcount--;

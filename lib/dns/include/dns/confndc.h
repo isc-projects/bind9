@@ -20,7 +20,6 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
-#include <isc/mem.h>
 
 #include <dns/confkeys.h>
 

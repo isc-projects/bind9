@@ -55,7 +55,7 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/mem.h>
+#include <isc/magic.h>
 
 #include <dns/confcommon.h>
 

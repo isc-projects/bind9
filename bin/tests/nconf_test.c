@@ -17,33 +17,23 @@
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
 #include <errno.h>
-#include <string.h>
+#include <stdlib.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/namedconf.h>
 
-#include <isc/error.h>
-
-isc_result_t zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
-		     dns_c_view_t *view, void *uap);
-isc_result_t optscbk(dns_c_ctx_t *ctx, void *uap);
-
-
-isc_result_t
-zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
-{
+static isc_result_t
+zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap) {
 	const char *zname;
 	const char *vname;
 
-	(void) ctx;
-	(void) uap;
+	UNUSED(ctx);
+	UNUSED(uap);
 	
 	dns_c_zone_getname(zone, &zname);
 
@@ -54,7 +44,7 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
 		vname = "no current view";
 	}
 #else
-	(void) view;
+	UNUSED(view);
 	vname = "foo";
 #endif	
 
@@ -63,20 +53,20 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap)
 	return (ISC_R_SUCCESS);
 }
 
-
-isc_result_t
-optscbk(dns_c_ctx_t *ctx, void *uap)
-{
-	(void) ctx;
-	(void) uap;
+static isc_result_t
+optscbk(dns_c_ctx_t *ctx, void *uap) {
+	UNUSED(ctx);
+	UNUSED(uap);
 	
 	fprintf(stderr, "Processing options in callback.\n");
 	return (ISC_R_SUCCESS);
 }
 
+
 extern int dns__yydebug;
-	
-int main (int argc, char **argv) {
+
+int
+main (int argc, char **argv) {
 	dns_c_ctx_t *configctx = NULL;
 	const char *conffile;
 	FILE *outfp;
@@ -85,16 +75,14 @@ int main (int argc, char **argv) {
 	isc_log_t *log = NULL;
 	isc_logconfig_t *logcfg = NULL;
 	
+	callbacks.zonecbk = zonecbk;
+	callbacks.optscbk = optscbk;
+	callbacks.zonecbkuap = NULL;
+	callbacks.optscbkuap = NULL;
+
 #if 1
 	callbacks.zonecbk = NULL;
-	callbacks.zonecbkuap = NULL;
 	callbacks.optscbk = NULL;
-	callbacks.optscbkuap = NULL;
-#else
-	callbacks.zonecbk = zonecbk;
-	callbacks.zonecbkuap = NULL;
-	callbacks.optscbk = optscbk;
-	callbacks.optscbkuap = NULL;
 #endif
 	
 	if (argc > 1 && strcmp(argv[1],"-d") == 0) {
@@ -170,7 +158,3 @@ int main (int argc, char **argv) {
 
 	return (0);
 }
-	
-	
-
-	

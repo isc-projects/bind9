@@ -17,41 +17,22 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/types.h>
-#include <isc/assertions.h>
 #include <isc/commandline.h>
-#include <isc/boolean.h>
-#include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/stdtime.h>
-#include <isc/list.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
+#include <dns/dnssec.h>
+#include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
-#include <dns/rdatastruct.h>
-#include <dns/rdatatype.h>
 #include <dns/result.h>
-#include <dns/dnssec.h>
-#include <dns/keyvalues.h>
-#include <dns/secalg.h>
-#include <dns/nxt.h>
 #include <dns/time.h>
-#include <dns/log.h>
-
-#include <dst/dst.h>
 
 #define BUFSIZE 2048
 
@@ -69,6 +50,7 @@ static int verbose;
 static isc_mem_t *mctx = NULL;
 
 static keylist_t keylist;
+
 static inline void
 fatal(char *message) {
 	fprintf(stderr, "%s\n", message);
@@ -119,7 +101,8 @@ usage() {
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
-	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now (now + 30 days)\n");
+	fprintf(stderr, "\t\tSIG end time  - "
+			     "absolute|from start|from now (now + 30 days)\n");
 	fprintf(stderr, "\t-t ttl\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
@@ -170,14 +153,16 @@ main(int argc, char *argv[]) {
 			startstr = isc_mem_strdup(mctx,
 						  isc_commandline_argument);
 			if (startstr == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 'e':
 			endstr = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (endstr == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 't':
@@ -249,7 +234,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_usedregion(&b, &r);
 	tdomain[r.length] = 0;
 
-	output = isc_mem_allocate(mctx, strlen(tdomain) + strlen("keyset") + 1);
+	output = isc_mem_allocate(mctx,
+				  strlen(tdomain) + strlen("keyset") + 1);
 	if (output == NULL)
 		check_result(ISC_R_FAILURE, "isc_mem_allocate()");
 	strcpy(output, tdomain);
@@ -344,7 +330,8 @@ main(int argc, char *argv[]) {
 			check_result(ISC_R_NOMEMORY, "isc_mem_get()");
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, keynode->key,
-					 &starttime, &endtime, mctx, &b, rdata);
+					 &starttime, &endtime, mctx, &b,
+					 rdata);
 		check_result(result, "dst_key_todns()");
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dns_rdataset_init(&sigrdataset);
@@ -366,7 +353,8 @@ main(int argc, char *argv[]) {
 
 	dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL);
 	if (!ISC_LIST_EMPTY(keylist))
-		dns_db_addrdataset(db, node, version, 0, &sigrdataset, 0, NULL);
+		dns_db_addrdataset(db, node, version, 0, &sigrdataset, 0,
+				   NULL);
 
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &version, ISC_TRUE);

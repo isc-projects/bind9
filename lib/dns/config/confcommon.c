@@ -15,34 +15,24 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.25 2000/04/28 01:15:50 explorer Exp $ */
+/* $Id: confcommon.c,v 1.26 2000/05/08 14:35:23 tale Exp $ */
 
 #include <config.h>
 
-#include <sys/types.h>	/* XXXRTH */
-
-#include <limits.h>
-#include <syslog.h>	/* XXXRTH */
 #include <ctype.h>
-#include <string.h>
+#include <syslog.h>	/* XXXRTH */
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
+#include <isc/socket.h>
 #include <isc/util.h>
 
+#include <dns/confcommon.h>
 #include <dns/name.h>
 #include <dns/peer.h>
-
-/* XXX this next include is needed by <dns/rdataclass.h>  */
-#include <dns/result.h>
-#include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/ssu.h>
-#include <dns/confcommon.h>
-
-
 
 /***
  *** TYPES
@@ -217,8 +207,7 @@ dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype) {
 
 
 void
-dns_c_printtabs(FILE *fp, int count)
-{
+dns_c_printtabs(FILE *fp, int count) {
 
 	while (count > 0) {
 		fputc('\t', fp);
@@ -229,8 +218,7 @@ dns_c_printtabs(FILE *fp, int count)
 
 
 isc_result_t
-dns_c_string2ordering(char *name, dns_c_ordering_t *ordering)
-{
+dns_c_string2ordering(char *name, dns_c_ordering_t *ordering) {
 	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
@@ -347,8 +335,7 @@ dns_c_string2category(const char *string,
 
 
 const char *
-dns_c_facility2string(int facility, isc_boolean_t printable)
-{
+dns_c_facility2string(int facility, isc_boolean_t printable) {
 	int i;
 	const char *rval = NULL;
 
@@ -364,8 +351,7 @@ dns_c_facility2string(int facility, isc_boolean_t printable)
 
 
 isc_result_t
-dns_c_string2facility(const char *string, int *result)
-{
+dns_c_string2facility(const char *string, int *result) {
 	int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
@@ -481,8 +467,7 @@ dns_c_forward2string(dns_c_forw_t forw,
 
 
 int
-dns_c_isanyaddr(isc_sockaddr_t *inaddr)
-{
+dns_c_isanyaddr(isc_sockaddr_t *inaddr) {
 	int result = 0;
 
 	if (inaddr->type.sa.sa_family == AF_INET) {
@@ -502,8 +487,7 @@ dns_c_isanyaddr(isc_sockaddr_t *inaddr)
 
 	
 void
-dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr)
-{
+dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr) {
 	const char *p;
 	char tmpaddrstr[64];
 	int family = inaddr->type.sa.sa_family;
@@ -531,8 +515,7 @@ dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr)
 
 
 isc_boolean_t
-dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr)
-{
+dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr) {
 	isc_boolean_t result = ISC_FALSE;
 	
 	if (inaddr->family == AF_INET) {
@@ -553,8 +536,7 @@ dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr)
 
 
 void
-dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr)
-{
+dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr) {
 	const char *p;
 	char tmpaddrstr[64];
 	int family = inaddr->family;
@@ -583,8 +565,7 @@ dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr)
 
 
 isc_boolean_t
-dns_c_need_quote(const char *string)
-{
+dns_c_need_quote(const char *string) {
 	isc_boolean_t rval = ISC_FALSE;
 
 	while (string != NULL && *string != '\0') {
@@ -623,8 +604,7 @@ dns_c_peerlist_print(FILE *fp, int indent,
 
 
 void
-dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer)
-{
+dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer) {
 	isc_boolean_t bval;
 	isc_result_t res;
 	dns_transfer_format_t tval;
@@ -687,8 +667,7 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer)
 
 
 isc_result_t
-dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name)
-{
+dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name) {
 	dns_name_t newkey;
 	isc_buffer_t *b1 = NULL;
 	isc_buffer_t b2;
@@ -727,8 +706,7 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name)
 }
 
 void
-dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
-{
+dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable) {
 	dns_ssurule_t *rule = NULL;
 	dns_ssurule_t *tmprule = NULL;
 	isc_result_t res;
@@ -799,15 +777,14 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
 
 
 isc_result_t
-dns_c_checkcategory(const char *name)
-{
+dns_c_checkcategory(const char *name) {
 	unsigned int i;
 
 	REQUIRE (name != NULL);
 	REQUIRE(*name != '\0');
 
 	/*
-	 * this function isn't called very often, so no need for fancy
+	 * This function isn't called very often, so no need for fancy
 	 * searches.
 	 */
 	for (i = 0 ; category_nametable[i] != NULL ; i++) {

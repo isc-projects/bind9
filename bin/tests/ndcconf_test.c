@@ -18,13 +18,9 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
 
 #include <isc/mem.h>
-#include <isc/error.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/log.h>

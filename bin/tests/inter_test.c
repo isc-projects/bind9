@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
+#include <config.h>
+
 #include <stdlib.h>
 
-#include <isc/assertions.h>
 #include <isc/interfaceiter.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 int
@@ -50,16 +50,19 @@ main(int argc, char **argv) {
 		fprintf(stdout, "%s %d %x\n", ifdata.name, ifdata.af,
 			ifdata.flags);
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
-		res = inet_ntop(ifdata.af, &ifdata.address.type, buf, sizeof buf);
+		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
+				sizeof(buf));
 		fprintf(stdout, "address = %s\n", res == NULL ? "BAD" : res);
 		INSIST(ifdata.address.family == ifdata.af);
-		res = inet_ntop(ifdata.af, &ifdata.netmask.type, buf, sizeof buf);
+		res = inet_ntop(ifdata.af, &ifdata.netmask.type, buf,
+				sizeof(buf));
 		fprintf(stdout, "netmask = %s\n", res == NULL ? "BAD" : res);
 		INSIST(ifdata.netmask.family == ifdata.af);
 		if ((ifdata.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 			res = inet_ntop(ifdata.af, &ifdata.dstaddress.type,
-					 buf, sizeof buf);
-			fprintf(stdout, "dstaddress = %s\n", res == NULL ? "BAD" : res);
+					 buf, sizeof(buf));
+			fprintf(stdout, "dstaddress = %s\n",
+				res == NULL ? "BAD" : res);
 
 			INSIST(ifdata.dstaddress.family == ifdata.af);
 		}

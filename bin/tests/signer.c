@@ -17,23 +17,18 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <isc/commandline.h>
-#include <isc/buffer.h>
 #include <isc/mem.h>
-#include <isc/stdtime.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
-#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
-#include <dns/name.h>
 #include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -44,10 +39,8 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/time.h>
-#include <dns/types.h>
 #include <dns/zone.h>
 
-#include <dst/dst.h>
 #include <dst/result.h>
 
 /*#define USE_ZONESTATUS*/
@@ -377,7 +370,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				    setverifies(name, set, key, &oldsigrdata))
 				{
 					vbprintf(2,
-						 "\tsig by %s/%s/%d retained\n",
+						"\tsig by %s/%s/%d retained\n",
 						 nametostr(&sig.signer),
 						 algtostr(sig.algorithm),
 						 sig.keyid);
@@ -402,7 +395,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				    setverifies(name, set, key, &oldsigrdata))
 				{
 					vbprintf(2,
-						 "\tsig by %s/%s/%d retained\n",
+						"\tsig by %s/%s/%d retained\n",
 						 nametostr(&sig.signer),
 						 algtostr(sig.algorithm),
 						 sig.keyid);
@@ -412,8 +405,8 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				}
 				else {
 					vbprintf(2,
-						 "\tsig by %s/%s/%d dropped - ",
-						 "%s\n",
+						 "\tsig by %s/%s/%d "
+						 "dropped - %s\n",
 						 nametostr(&sig.signer),
 						 algtostr(sig.algorithm),
 						 sig.keyid,
@@ -442,7 +435,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				allocbufferandrdata;
 				result = dns_rdata_fromstruct(trdata,
 							      set->rdclass,
-							      dns_rdatatype_sig,
+							     dns_rdatatype_sig,
 							      &sig, &b);
 				nowsignedby[sig.algorithm] = ISC_TRUE;
 				ISC_LIST_APPEND(siglist.rdata, trdata, link);
@@ -602,8 +595,8 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		goto failure;
 	dns_rdataset_init(&newset);
 	dns_rdataset_init(&sigset);
-	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key, 0,
-				     0, &newset, &sigset);
+	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key,
+				     0, 0, &newset, &sigset);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
@@ -681,8 +674,8 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 		goto failure;
 	dns_rdataset_init(&set);
 	dns_rdataset_init(&sigset);
-	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key, 0,
-				     0, &set, &sigset);
+	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key,
+				     0, 0, &set, &sigset);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
@@ -884,8 +877,9 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				keyrdatalist.type = dns_rdatatype_key;
 				keyrdatalist.covers = 0;
 				keyrdatalist.ttl = rdataset.ttl;
-				result = dns_rdatalist_tordataset(&keyrdatalist,
-								  &keyset);
+				result =
+					dns_rdatalist_tordataset(&keyrdatalist,
+								 &keyset);
 				check_result(result,
 					     "dns_rdatalist_tordataset");
 				dns_db_addrdataset(db, node, version, 0,
@@ -1252,7 +1246,8 @@ usage() {
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now (now + 30 days)\n");
 	fprintf(stderr, "\t-c ttl:\n");
-	fprintf(stderr, "\t\tcycle period - regenerate if < cycle from end ( (end-start)/4 )\n");
+	fprintf(stderr, "\t\tcycle period - regenerate "
+				"if < cycle from end ( (end-start)/4 )\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
@@ -1261,7 +1256,8 @@ usage() {
 	fprintf(stderr, "\t\tfile the signed zone is written in " \
 			"(zonefile + .signed)\n");
 	fprintf(stderr, "\t-a:\n");
-	fprintf(stderr, "\t\tverify generated signatures (if currently valid)\n");
+	fprintf(stderr, "\t\tverify generated signatures "
+					"(if currently valid)\n");
 
 	fprintf(stderr, "\n");
 
@@ -1331,21 +1327,23 @@ main(int argc, char *argv[]) {
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah")) != -1)
-	{
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah"))
+	       != -1) {
 		switch (ch) {
 		case 's':
 			startstr = isc_mem_strdup(mctx,
 						  isc_commandline_argument);
 			if (startstr == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 'e':
 			endstr = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (endstr == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 'c':
@@ -1366,14 +1364,16 @@ main(int argc, char *argv[]) {
 			origin = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (origin == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 'f':
 			output = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (output == NULL)
-				check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+				check_result(ISC_R_FAILURE,
+					     "isc_mem_strdup()");
 			break;
 
 		case 'a':
@@ -1439,7 +1439,7 @@ main(int argc, char *argv[]) {
 
 	if (output == NULL) {
 		output = isc_mem_allocate(mctx,
-					  strlen(file) + strlen(".signed") + 1);
+					 strlen(file) + strlen(".signed") + 1);
 		if (output == NULL)
 			check_result(ISC_R_FAILURE, "isc_mem_allocate()");
 		sprintf(output, "%s.signed", file);
@@ -1546,7 +1546,9 @@ main(int argc, char *argv[]) {
 
 	signzone(db, version);
 
-	/* should we update the SOA serial? */
+	/*
+	 * Should we update the SOA serial?
+	 */
 	dns_db_closeversion(db, &version, ISC_TRUE);
 	dumpzone(zone, output);
 	dns_db_detach(&db);

@@ -15,20 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.105 2000/05/02 03:54:01 tale Exp $ */
+/* $Id: zone.c,v 1.106 2000/05/08 14:35:18 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
-#include <stdarg.h>
-
 #include <isc/file.h>
-#include <isc/magic.h>
 #include <isc/print.h>
-#include <isc/quota.h>
 #include <isc/ratelimiter.h>
-#include <isc/rwlock.h>
 #include <isc/serial.h>
+#include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -36,26 +31,20 @@
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/log.h>
-#include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/rcode.h>
-#include <dns/rdata.h>
 #include <dns/rdatalist.h>
-#include <dns/rdatasetiter.h>
-#include <dns/rdatastruct.h>
+#include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/ssu.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
-#include <dns/zt.h>
 
 /* XXX remove once config changes are in place */
 #define dns_zone_uptodate(x) zone_log(x, me, ISC_LOG_INFO, "dns_zone_uptodate")
@@ -402,8 +391,9 @@ zone_free(dns_zone_t *zone) {
 	UNLOCK(&zone->lock);
 
 
-	/* managed objects */
-	/* order is important */
+	/*
+	 * Managed objects.  Order is important.
+	 */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH))
 		cancel_refresh(zone);
 	if (zone->timer != NULL)
@@ -472,7 +462,9 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(rdclass != dns_rdataclass_none);
 
-	/* test and set */
+	/*
+	 * Test and set.
+	 */
 	LOCK(&zone->lock);
 	REQUIRE(zone->rdclass == dns_rdataclass_none ||
 		zone->rdclass == rdclass);
@@ -496,7 +488,9 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(type != dns_zone_none);
 
-	/* test and set */
+	/*
+	 * Test and set.
+	 */
 	LOCK(&zone->lock);
 	REQUIRE(zone->type == dns_zone_none || zone->type == type);
 	zone->type = type;
@@ -519,12 +513,14 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 	return (result);
 }
 
-void dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+void
+dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
 	zone->view = view;
 }
      
 
-dns_view_t *dns_zone_getview(dns_zone_t *zone) {
+dns_view_t *
+dns_zone_getview(dns_zone_t *zone) {
 	return (zone->view);
 }
      
@@ -602,8 +598,8 @@ dns_zone_setjournal(dns_zone_t *zone, const char *journal) {
 
 char *
 dns_zone_getjournal(dns_zone_t *zone) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
+
 	return (zone->journal);
 }
 

@@ -58,6 +58,7 @@ typedef struct isc_mempool		isc_mempool_t;
 typedef struct isc_msgcat		isc_msgcat_t;
 typedef struct isc_ondestroy		isc_ondestroy_t;
 typedef struct isc_netaddr		isc_netaddr_t;
+typedef struct isc_quota		isc_quota_t;
 typedef struct isc_random		isc_random_t;
 typedef struct isc_ratelimiter		isc_ratelimiter_t;
 typedef struct isc_region		isc_region_t;

@@ -20,20 +20,18 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_SOCKIO_H
-#include <sys/sockio.h>
+#include <sys/sockio.h>		/* Required for ifiter_ioctl.c. */
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/interfaceiter.h>
 #include <isc/util.h>

@@ -17,32 +17,18 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-
-#include <sys/types.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/net.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
-#include <isc/socket.h>
-#include <isc/timer.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
-#include <dns/message.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
 #include <dns/result.h>
 
 #include "printmsg.h"

@@ -15,34 +15,36 @@
  * SOFTWARE.
  */
 
-#include	<config.h>
+#include <config.h>
 
-#include	<ctype.h>
-#include	<errno.h>
-#include	<limits.h>
-#include	<stdarg.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<sys/wait.h>
-#include	<signal.h>
-#include	<time.h>
-#include	<unistd.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
-#include	<isc/commandline.h>
+#include <sys/wait.h>
 
-#include	"include/tests/t_api.h"
+#include <isc/boolean.h>
+#include <isc/commandline.h>
+#include <isc/string.h>
+
+#include "include/tests/t_api.h"
 
 static char *Usage =	"\t-a               : run all tests\n"
-			"\t-b <dir>         : chdir to dir before running tests"
-			"\t-c <config_file> : use specified config file\n"
-			"\t-d <debug_level> : set debug level to debug_level\n"
-			"\t-h               : print test info\n"
-			"\t-u               : print usage info\n"
-			"\t-n <test_name>   : run specified test name\n"
-			"\t-t <test_number> : run specified test number\n"
-			"\t-x               : don't execute tests in a subproc\n"
-			"\t-q <timeout>     : use 'timeout' as the timeout value\n";
+		"\t-b <dir>         : chdir to dir before running tests"
+		"\t-c <config_file> : use specified config file\n"
+		"\t-d <debug_level> : set debug level to debug_level\n"
+		"\t-h               : print test info\n"
+		"\t-u               : print usage info\n"
+		"\t-n <test_name>   : run specified test name\n"
+		"\t-t <test_number> : run specified test number\n"
+		"\t-x               : don't execute tests in a subproc\n"
+		"\t-q <timeout>     : use 'timeout' as the timeout value\n";
 /*
  *		-a		-->	run all tests
  *		-b dir		-->	chdir to dir before running tests
@@ -89,30 +91,35 @@ t_sighandler(int sig) {
 }
 
 int
-main(int argc, char **argv)
-{
-
+main(int argc, char **argv) {
 	int			c;
 	int			tnum;
 	int			subprocs;
 	pid_t			deadpid;
 	int			status;
 	int			len;
-	int			first;
+	isc_boolean_t		first;
 	testspec_t		*pts;
 	struct sigaction	sa;
 
-	first = 1;
+	first = ISC_TRUE;
 	subprocs = 1;
 	T_timeout = T_TCTOUT;
 
-	/* -a option is now default */
+	/*
+	 * -a option is now default.
+	 */
 	memset(T_tvec, 0xffff, sizeof(T_tvec));
 
-	/* parse args */
-	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:b:")) != -1) {
+	/*
+	 * Parse args.
+	 */
+	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:b:"))
+	       != -1) {
 		if (c == 'a') {
-			/* flag all tests to be run */
+			/*
+			 * Flag all tests to be run.
+			 */
 			memset(T_tvec, 0xffff, sizeof(T_tvec));
 		}
 		else if (c == 'b') {
@@ -123,14 +130,16 @@ main(int argc, char **argv)
 			if ((tnum > 0) && (tnum < T_MAXTESTS)) {
 				if (first) {
 					/*
-					 * turn off effect of -a default
+					 * Turn off effect of -a default
 					 * and allow multiple -t and -n
-					 * options
+					 * options.
 					 */
 					memset(T_tvec, 0, sizeof(T_tvec));
-					first = 0;
+					first = ISC_FALSE;
 				}
-				/* flag test tnum to be run */
+				/*
+				 * Flag test tnum to be run.
+				 */
 				tnum -= 1;
 				T_tvec[tnum / 8] |= (0x01 << (tnum % 8));
 			}
@@ -148,8 +157,9 @@ main(int argc, char **argv)
 				if (! strcmp(pts->func_name,
 					     isc_commandline_argument)) {
 					if (first) {
-						memset(T_tvec, 0, sizeof(T_tvec));
-						first = 0;
+						memset(T_tvec, 0,
+						       sizeof(T_tvec));
+						first = ISC_FALSE;
 					}
 					T_tvec[tnum/8] |= (0x01 << (tnum%8));
 					break;
@@ -189,17 +199,23 @@ main(int argc, char **argv)
 		}
 	}
 
-	/* set cwd */
+	/*
+	 * Set cwd.
+	 */
 
 	if (T_dir != NULL)
 		(void) chdir(T_dir);
 
-	/* we don't want buffered output */
+	/*
+	 * We don't want buffered output.
+	 */
 
-	(void) setbuf(stdout, NULL);
-	(void) setbuf(stderr, NULL);
+	(void)setbuf(stdout, NULL);
+	(void)setbuf(stderr, NULL);
 
-	/* setup signals */
+	/*
+	 * Setup signals.
+	 */
 
 	sa.sa_flags = 0;
 	sigfillset(&sa.sa_mask);
@@ -217,14 +233,18 @@ main(int argc, char **argv)
 	(void)sigaction(SIGINT,  &sa, NULL);
 	(void)sigaction(SIGALRM, &sa, NULL);
 
-	/* output start stanza to journal */
+	/*
+	 * Output start stanza to journal.
+	 */
 
 	sprintf(T_buf, "%s:", argv[0]);
 	len = strlen(T_buf);
 	(void) t_getdate(T_buf + len, T_BIGBUF - len);
 	t_putinfo("S", T_buf);
 
-	/* setup the test environment using the config file */
+	/*
+	 * Setup the test environment using the config file.
+	 */
 
 	if (T_config == NULL)
 		T_config = T_DEFAULT_CONFIG;
@@ -233,7 +253,9 @@ main(int argc, char **argv)
 	if (T_debug)
 		t_dumpconf(T_config);
 
-	/* now invoke all the test cases */
+	/*
+	 * Now invoke all the test cases.
+	 */
 
 	tnum = 0;
 	pts = &T_testlist[0];
@@ -244,8 +266,7 @@ main(int argc, char **argv)
 				if (T_pid == 0) {
 					(*pts->pfv)();
 					exit(0);
-				}
-				else if (T_pid > 0) {
+				} else if (T_pid > 0) {
 
 					T_int = 0;
 					sa.sa_handler = t_sighandler;
@@ -254,31 +275,38 @@ main(int argc, char **argv)
 
 					deadpid = (pid_t) -1;
 					while (deadpid != T_pid) {
-						deadpid = waitpid(T_pid, &status, 0);
-						if (deadpid == T_pid) {
-							if (WIFSIGNALED(status)) {
-								if (WTERMSIG(status) == SIGTERM)
-									t_info("the test case timed out\n");
-								else
-									t_info("the test case caused exception %d\n", WTERMSIG(status));
-								t_result(T_UNRESOLVED);
-							}
-						}
-						else if ((deadpid == -1) && (errno == EINTR) && T_int) {
-							kill(T_pid, SIGTERM);
-							T_int = 0;
-						}
-						else if ((deadpid == -1) &&
-							 ((errno == ECHILD) || (errno == ESRCH)))
-							break;
+					    deadpid =
+						    waitpid(T_pid, &status, 0);
+					    if (deadpid == T_pid) {
+						    if (WIFSIGNALED(status)) {
+							if (WTERMSIG(status) ==
+							    SIGTERM)
+								t_info(
+						  "the test case timed out\n");
+							else
+								t_info(
+				         "the test case caused exception %d\n",
+					 		     WTERMSIG(status));
+							t_result(T_UNRESOLVED);
+						    }
+					    } else if ((deadpid == -1) &&
+						       (errno == EINTR) &&
+						       T_int) {
+						    kill(T_pid, SIGTERM);
+						    T_int = 0;
+					    }
+					    else if ((deadpid == -1) &&
+						     ((errno == ECHILD) ||
+						      (errno == ESRCH)))
+						    break;
 					}
 
 					alarm(0);
 					sa.sa_handler = SIG_IGN;
 					(void)sigaction(SIGALRM, &sa, NULL);
-				}
-				else {
-					t_info("fork failed, errno == %d\n", errno);
+				} else {
+					t_info("fork failed, errno == %d\n",
+					       errno);
 					t_result(T_UNRESOLVED);
 				}
 			}
@@ -299,27 +327,26 @@ main(int argc, char **argv)
 }
 
 void
-t_assert(const char *component, int anum, int class,
-		const char *what, ...)
-{
+t_assert(const char *component, int anum, int class, const char *what, ...) {
 	int	n;
 	va_list	args;
 
-	(void) printf ("T:%s:%d:%s\n", component, anum, class == T_REQUIRED ?
-		"A" : "C");
+	(void)printf("T:%s:%d:%s\n", component, anum, class == T_REQUIRED ?
+		     "A" : "C");
 
-	/* format text to a buffer */
+	/*
+	 * Format text to a buffer.
+	 */
 	va_start(args, what);
 	n = vsprintf(T_buf, what, args);
 	va_end(args);
 
-	(void) t_putinfo("A", T_buf);
-	(void) printf("\n");
+	(void)t_putinfo("A", T_buf);
+	(void)printf("\n");
 }
 
 void
-t_info(const char *format, ...)
-{
+t_info(const char *format, ...) {
 	va_list	args;
 
 	va_start(args, format);
@@ -329,9 +356,7 @@ t_info(const char *format, ...)
 }
 
 void
-t_result(int result)
-{
-
+t_result(int result) {
 	char	*p;
 
 	switch (result) {
@@ -358,8 +383,7 @@ t_result(int result)
 }
 
 char *
-t_getenv(const char *name)
-{
+t_getenv(const char *name) {
 	char	*n;
 	char	**p;
 	size_t	len;
@@ -385,15 +409,14 @@ t_getenv(const char *name)
 
 /*
  *
- * read in the config file at path, initializing T_env
+ * Read in the config file at path, initializing T_env.
  *
  * note: no format checking for now ...
  *
  */
 
 static int
-t_initconf(char *path)
-{
+t_initconf(char *path) {
 
 	int	n;
 	int	rval;
@@ -411,28 +434,29 @@ t_initconf(char *path)
 			if (*p == NULL)
 				break;
 			if ((**p == '#') || (strchr(*p, '=') == NULL)) {
-				/* skip comments and other junk */
-				(void) free(*p);
+				/*
+				 * Skip comments and other junk.
+				 */
+				(void)free(*p);
 				continue;
 			}
 			++p; ++n;
 		}
-		(void) fclose(fp);
+		(void)fclose(fp);
 		rval = 0;
 	}
 
-	return(rval);
+	return (rval);
 }
 
 /*
  *
- * dump T_env to stdout
+ * Dump T_env to stdout.
  *
  */
 
 static int
-t_dumpconf(char *path)
-{
+t_dumpconf(char *path) {
 	int	rval;
 	char	**p;
 	FILE	*fp;
@@ -453,21 +477,19 @@ t_dumpconf(char *path)
 
 /*
  *
- * read a newline or EOF terminated string from fp
- * on success:
+ * Read a newline or EOF terminated string from fp.
+ * On success:
  *	return a malloc'd buf containing the string with
  *	the newline converted to a '\0'.
- * on error:
- *	return NULL
+ * On error:
+ *	return NULL.
  *
- * caller is responsible for freeing buf
+ * Caller is responsible for freeing buf.
  *
  */
 
 char *
-t_fgetbs(FILE *fp)
-{
-
+t_fgetbs(FILE *fp) {
 	int	c;
 	size_t	n;
 	size_t	size;
@@ -489,7 +511,8 @@ t_fgetbs(FILE *fp)
 			++n;
 			if ( n >= size ) {
 				size += T_BUFSIZ;
-				buf = (char *) realloc(buf, size * sizeof(char));
+				buf = (char *)realloc(buf,
+						      size * sizeof(char));
 				if (buf == NULL)
 					break;
 				p = buf + n;
@@ -497,8 +520,7 @@ t_fgetbs(FILE *fp)
 		}
 		*p = '\0';
 		return(((c == EOF) && (n == 0)) ? NULL : buf);
-	}
-	else {
+	} else {
 		fprintf(stderr, "malloc failed %d", errno);
 		return(NULL);
 	}
@@ -506,25 +528,25 @@ t_fgetbs(FILE *fp)
 
 /*
  *
- * put info to log, using key
- * for now, just dump it out.
- * later format into pretty lines
+ * Put info to log, using key.
+ * For now, just dump it out.
+ * Later format into pretty lines.
  *
  */
 
 static int
-t_putinfo(const char *key, const char *info)
-{
+t_putinfo(const char *key, const char *info) {
 	int	rval;
 
-	/* for now */
+	/*
+	 * For now.
+	 */
 	rval = printf("%s:%s", key, info);
 	return(rval);
 }
 
 static char *
-t_getdate(char *buf, size_t buflen)
-{
+t_getdate(char *buf, size_t buflen) {
 	size_t		n;
 	time_t		t;
 	struct tm	*p;
@@ -535,8 +557,9 @@ t_getdate(char *buf, size_t buflen)
 	return(n != 0 ? buf : NULL);
 }
 
-/* some generally used utilities */
-
+/*
+ * Some generally used utilities.
+ */
 struct dns_errormap {
 	isc_result_t	result;
 	char		*text;
@@ -680,8 +703,6 @@ printusage() {
 
 int
 t_eval(char *filename, int (*func)(char **), int nargs) {
-
-
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -701,7 +722,9 @@ t_eval(char *filename, int (*func)(char **), int nargs) {
 
 			++line;
 
-			/* skip comment lines */
+			/*
+			 * Skip comment lines.
+			 */
 			if ((isspace((int)*p)) || (*p == '#'))
 				continue;
 
@@ -714,18 +737,16 @@ t_eval(char *filename, int (*func)(char **), int nargs) {
 					else
 						++nprobs;
 				}
-			}
-			else {
+			} else {
 				t_info("bad format in %s at line %d\n",
 						filename, line);
 				++nprobs;
 			}
 
-			(void) free(p);
+			(void)free(p);
 		}
-		(void) fclose(fp);
-	}
-	else {
+		(void)fclose(fp);
+	} else {
 		t_info("Missing datafile %s\n", filename);
 		++nprobs;
 	}
@@ -737,6 +758,5 @@ t_eval(char *filename, int (*func)(char **), int nargs) {
 	else if (nfails)
 		result = T_FAIL;
 
-	return(result);
+	return (result);
 }
-

@@ -17,24 +17,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/app.h>
 #include <isc/mem.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
-#include <isc/timer.h>
 #include <isc/time.h>
-#include <isc/mutex.h>
-#include <isc/condition.h>
-#include <isc/event.h>
-#include <isc/eventclass.h>
-#include <isc/app.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 typedef struct {

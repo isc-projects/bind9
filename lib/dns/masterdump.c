@@ -17,32 +17,23 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
+#include <errno.h>		/* XXX */
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
-#include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
-#include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#include <dns/fixedname.h>
+#include <dns/masterdump.h>
+#include <dns/rdata.h>
+#include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
+#include <dns/rdatatype.h>
+#include <dns/result.h>
 #include <dns/time.h>
 #include <dns/ttl.h>
-#include <dns/masterdump.h>
 
 #define RETERR(x) do { \
 	isc_result_t __r = (x); \
@@ -229,15 +220,16 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 }
 
 static isc_result_t
-totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
-{
+totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	isc_result_t result;
 	
 	ctx->style = *style;
 	REQUIRE(style->tab_width != 0);
 	dns_fixedname_init(&ctx->origin_fixname);
 
-	/* Set up the line break string if needed. */
+	/*
+	 * Set up the line break string if needed.
+	 */
 	if ((ctx->style.flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		isc_buffer_t buf;
 		isc_region_t r;
@@ -322,7 +314,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	do {
 		column = 0;
 		
-		/* Owner name. */
+		/*
+		 * Owner name.
+		 */
 		if (owner_name != NULL &&
 		    ! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0 &&
 		       !first))
@@ -334,7 +328,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			column += target->used - name_start;
 		}
 
-		/* TTL. */
+		/*
+		 * TTL.
+		 */
 		if (! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_TTL) != 0 &&
 		       current_ttl_valid &&
 		       rdataset->ttl == current_ttl))
@@ -363,7 +359,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			}
 		}
 
-		/* Class. */
+		/*
+		 * Class.
+		 */
 		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_CLASS) == 0 ||
 		    ctx->class_printed == ISC_FALSE)
 		{
@@ -377,7 +375,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			column += (target->used - class_start);
 		}
 
-		/* Type. */
+		/*
+		 * Type.
+		 */
 		{
 			unsigned int type_start;
 			INDENT_TO(type_column);
@@ -388,7 +388,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			column += (target->used - type_start);
 		}
 
-		/* Rdata. */ 
+		/*
+		 * Rdata.
+		 */ 
 		{
 			dns_rdata_t rdata;
 			isc_region_t r;
@@ -550,7 +552,9 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 	
 	REQUIRE(buffer->length > 0);
 
-	/* Output a $TTL directive if needed. */
+	/*
+	 * Output a $TTL directive if needed.
+	 */
 	
 	if ((ctx->style.flags & DNS_STYLEFLAG_TTL) != 0) {
 		if (ctx->current_ttl_valid == ISC_FALSE ||

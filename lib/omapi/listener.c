@@ -22,12 +22,13 @@
 #include <config.h>
 
 #include <stdlib.h>		/* NULL and abort() */
-#include <string.h>		/* memset */
 
-#include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/bufferlist.h>
-#include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/string.h>
+#include <isc/task.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
 

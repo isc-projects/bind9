@@ -15,18 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.8 2000/04/28 01:04:53 halley Exp $ */
+/* $Id: dir.c,v 1.9 2000/05/08 14:37:54 tale Exp $ */
 
 /* Principal Authors: DCL */
 
-#include <stdlib.h>
-#include <string.h>
+#include <config.h>
+
 #include <errno.h>
 #include <unistd.h>
 
 #include <isc/dir.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #define ISC_DIR_MAGIC		0x4449522aU	/* DIR*. */

@@ -17,31 +17,20 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/timer.h>
-#include <isc/net.h>
 #include <isc/util.h>
 
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
 
-static void my_send(isc_task_t *task, isc_event_t *event);
-static void my_recv(isc_task_t *task, isc_event_t *event);
-
 static void
-my_shutdown(isc_task_t *task, isc_event_t *event)
-{
+my_shutdown(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -50,8 +39,31 @@ my_shutdown(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_recv(isc_task_t *task, isc_event_t *event)
-{
+my_send(isc_task_t *task, isc_event_t *event) {
+	isc_socket_t *sock;
+	isc_socketevent_t *dev;
+
+	sock = event->ev_sender;
+	dev = (isc_socketevent_t *)event;
+
+	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, "
+	       "result %d)\n",
+	       (char *)(event->ev_arg), task, sock,
+	       dev->region.base, dev->region.length,
+	       dev->n, dev->result);
+
+	if (dev->result != ISC_R_SUCCESS) {
+		isc_socket_detach(&sock);
+		isc_task_shutdown(task);
+	}
+
+	isc_mem_put(mctx, dev->region.base, dev->region.length);
+
+	isc_event_free(&event);
+}
+
+static void
+my_recv(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 	isc_region_t region;
@@ -89,7 +101,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	}
 
 	/*
-	 * Echo the data back
+	 * Echo the data back.
 	 */
 	if (strcmp(event->ev_arg, "so2") != 0) {
 		region = dev->region;
@@ -111,39 +123,15 @@ my_recv(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_send(isc_task_t *task, isc_event_t *event)
-{
+my_http_get(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 
 	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
-	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->ev_arg), task, sock,
-	       dev->region.base, dev->region.length,
-	       dev->n, dev->result);
-
-	if (dev->result != ISC_R_SUCCESS) {
-		isc_socket_detach(&sock);
-		isc_task_shutdown(task);
-	}
-
-	isc_mem_put(mctx, dev->region.base, dev->region.length);
-
-	isc_event_free(&event);
-}
-
-static void
-my_http_get(isc_task_t *task, isc_event_t *event)
-{
-	isc_socket_t *sock;
-	isc_socketevent_t *dev;
-
-	sock = event->ev_sender;
-	dev = (isc_socketevent_t *)event;
-
-	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
+	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %d, "
+	       "n %d, result %d)\n",
 	       (char *)(event->ev_arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
@@ -161,8 +149,7 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_connect(isc_task_t *task, isc_event_t *event)
-{
+my_connect(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock;
 	isc_socket_connev_t *dev;
 	isc_region_t region;
@@ -185,10 +172,11 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	 * Send a GET string, and set up to receive (and just display)
 	 * the result.
 	 */
-	strcpy(buf, "GET / HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
+	strcpy(buf, "GET / HTTP/1.1\r\nHost: www.flame.org\r\n"
+	       "Connection: Close\r\n\r\n");
 	region.base = isc_mem_get(mctx, strlen(buf) + 1);
 	region.length = strlen(buf) + 1;
-	strcpy((char *)region.base, buf);  /* strcpy is safe */
+	strcpy((char *)region.base, buf);  /* This strcpy is safe. */
 
 	isc_socket_send(sock, &region, task, my_http_get, event->ev_arg);
 
@@ -196,8 +184,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-my_listen(isc_task_t *task, isc_event_t *event)
-{
+my_listen(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 	isc_socket_newconnev_t *dev;
 	isc_region_t region;
@@ -212,9 +199,10 @@ my_listen(isc_task_t *task, isc_event_t *event)
 
 	if (dev->result == ISC_R_SUCCESS) {
 		/*
-		 * queue another listen on this socket
+		 * Queue another listen on this socket.
 		 */
-		isc_socket_accept(event->ev_sender, task, my_listen, event->ev_arg);
+		isc_socket_accept(event->ev_sender, task, my_listen,
+				  event->ev_arg);
 
 		region.base = isc_mem_get(mctx, 20);
 		region.length = 20;
@@ -244,8 +232,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-timeout(isc_task_t *task, isc_event_t *event)
-{
+timeout(isc_task_t *task, isc_event_t *event) {
 	isc_socket_t *sock = event->ev_arg;
 
 	printf("Timeout, canceling IO on socket %p (task %p)\n", sock, task);
@@ -256,8 +243,7 @@ timeout(isc_task_t *task, isc_event_t *event)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_task_t *t1, *t2;
 	isc_timermgr_t *timgr;
 	isc_time_t expires;
@@ -318,7 +304,7 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	/*
-	 * open up a listener socket
+	 * Open up a listener socket.
 	 */
 	so1 = NULL;
 
@@ -336,7 +322,7 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 
 	/*
-	 * queue up the first accept event
+	 * Queue up the first accept event.
 	 */
 	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen,
 					"so1") == ISC_R_SUCCESS);
@@ -348,7 +334,7 @@ main(int argc, char *argv[])
 		      ISC_R_SUCCESS);
 
 	/*
-	 * open up a socket that will connect to www.flame.org, port 80.
+	 * Open up a socket that will connect to www.flame.org, port 80.
 	 * Why not.  :)
 	 */
 	so2 = NULL;
@@ -372,7 +358,7 @@ main(int argc, char *argv[])
 	isc_task_detach(&t2);
 
 	/*
-	 * wait a short while.
+	 * Wait a short while.
 	 */
 	sleep(10);
 

@@ -15,19 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.20 2000/05/03 21:11:38 explorer Exp $ */
+/* $Id: log.c,v 1.21 2000/05/08 14:34:41 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/log.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
-#include <dns/result.h>
 
 /*
  * When adding a new category, be sure to add the appropriate
@@ -75,8 +71,7 @@ isc_logmodule_t dns_modules[] = {
 isc_log_t *dns_lctx = NULL;
 
 void
-dns_log_init(isc_log_t *lctx)
-{
+dns_log_init(isc_log_t *lctx) {
 	REQUIRE(lctx != NULL);
 
 	isc_log_registercategories(lctx, dns_categories);
@@ -84,8 +79,7 @@ dns_log_init(isc_log_t *lctx)
 }
 
 void
-dns_log_setcontext(isc_log_t *lctx)
-{
+dns_log_setcontext(isc_log_t *lctx) {
 	REQUIRE(dns_lctx == NULL);
 
 	dns_lctx = lctx;

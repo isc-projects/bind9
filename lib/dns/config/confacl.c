@@ -15,28 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: confacl.c,v 1.15 2000/04/28 01:10:25 halley Exp $ */
+/* $Id: confacl.c,v 1.16 2000/05/08 14:35:22 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
 #include <dns/confacl.h>
-#include <dns/confcommon.h>
 
-
-static isc_result_t acl_delete(dns_c_acl_t **aclptr);
-
-
+static isc_result_t
+acl_delete(dns_c_acl_t **aclptr);
 
 isc_result_t
-dns_c_acltable_new(isc_mem_t *mem, dns_c_acltable_t **newtable)
-{
+dns_c_acltable_new(isc_mem_t *mem, dns_c_acltable_t **newtable) {
 	dns_c_acltable_t *table;
 	
 	REQUIRE(mem != NULL);
@@ -60,10 +53,8 @@ dns_c_acltable_new(isc_mem_t *mem, dns_c_acltable_t **newtable)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_acltable_delete(dns_c_acltable_t **table)
-{
+dns_c_acltable_delete(dns_c_acltable_t **table) {
 	dns_c_acltable_t *acltable;
 	isc_mem_t *mem;
 
@@ -87,10 +78,8 @@ dns_c_acltable_delete(dns_c_acltable_t **table)
 	return (ISC_R_SUCCESS);
 }
 
-
 void
-dns_c_acltable_print(FILE *fp, int indent, dns_c_acltable_t *table)
-{
+dns_c_acltable_print(FILE *fp, int indent, dns_c_acltable_t *table) {
 	dns_c_acl_t *acl;
 	dns_c_acl_t *acltmp;
 
@@ -116,10 +105,8 @@ dns_c_acltable_print(FILE *fp, int indent, dns_c_acltable_t *table)
 	}
 }
 
-
 isc_result_t
-dns_c_acltable_clear(dns_c_acltable_t *table)
-{
+dns_c_acltable_clear(dns_c_acltable_t *table) {
 	dns_c_acl_t *elem;
 	dns_c_acl_t *tmpelem;
 	isc_result_t r;
@@ -177,8 +164,7 @@ dns_c_acltable_getacl(dns_c_acltable_t *table,
 
 
 isc_result_t
-dns_c_acltable_removeacl(dns_c_acltable_t *table, const char *aclname)
-{
+dns_c_acltable_removeacl(dns_c_acltable_t *table, const char *aclname) {
 	dns_c_acl_t *acl;
 	dns_c_acl_t *tmpacl;
 
@@ -244,8 +230,7 @@ dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 
 
 void
-dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl)
-{
+dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl) {
 	REQUIRE(DNS_C_CONFACL_VALID(acl));
 	
 	dns_c_printtabs(fp, indent);
@@ -323,9 +308,7 @@ dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
 /* XXX this should really be a function in the confip module */
 
 isc_result_t
-dns_c_acl_expandacls(dns_c_acltable_t *table,
-		     dns_c_ipmatchlist_t *list)
-{
+dns_c_acl_expandacls(dns_c_acltable_t *table, dns_c_ipmatchlist_t *list) {
 	dns_c_ipmatchelement_t *elem;
 	dns_c_ipmatchelement_t *tmpelem;
 	dns_c_acl_t *acl;
@@ -380,12 +363,8 @@ dns_c_acl_expandacls(dns_c_acltable_t *table,
 	return (ISC_R_SUCCESS);
 }
 
-
-
-
 static isc_result_t
-acl_delete(dns_c_acl_t **aclptr)
-{
+acl_delete(dns_c_acl_t **aclptr) {
 	dns_c_acl_t *acl;
 	isc_result_t res;
 	isc_mem_t *mem;

@@ -17,10 +17,7 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/ratelimiter.h>
 #include <isc/task.h>
 #include <isc/time.h>

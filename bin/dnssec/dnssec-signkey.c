@@ -17,40 +17,21 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/types.h>
-#include <isc/assertions.h>
+#include <isc/string.h>
 #include <isc/commandline.h>
-#include <isc/boolean.h>
-#include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/stdtime.h>
-#include <isc/list.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/db.h>
-#include <dns/dbiterator.h>
+#include <dns/dnssec.h>
+#include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
-#include <dns/rdatatype.h>
 #include <dns/result.h>
-#include <dns/dnssec.h>
-#include <dns/keyvalues.h>
-#include <dns/secalg.h>
-#include <dns/time.h>
-#include <dns/log.h>
-
-#include <dst/dst.h>
 
 #define BUFSIZE 2048
 
@@ -67,7 +48,6 @@ static int verbose;
 
 static isc_mem_t *mctx = NULL;
 static keylist_t keylist;
-
 
 static inline void
 fatal(char *message) {

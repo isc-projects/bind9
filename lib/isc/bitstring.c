@@ -19,8 +19,6 @@
 
 #include <stddef.h>
 
-#include <isc/types.h>
-#include <isc/assertions.h>
 #include <isc/bitstring.h>
 #include <isc/util.h>
 

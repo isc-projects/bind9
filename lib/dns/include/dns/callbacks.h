@@ -32,24 +32,33 @@ ISC_LANG_BEGINDECLS
  ***	Types
  ***/
 
-typedef struct dns_rdatacallbacks {
-	/* dns_load_master calls this when it has rdatasets to commit */
+struct dns_rdatacallbacks {
+	/*
+	 * dns_load_master calls this when it has rdatasets to commit.
+	 */
 	dns_addrdatasetfunc_t add;
-	/* dns_load_master / dns_rdata_fromtext call this to issue a error */
+	/*
+	 * dns_load_master / dns_rdata_fromtext call this to issue a error.
+	 */
 	void		(*error)(struct dns_rdatacallbacks *, char *, ...);
-	/* dns_load_master / dns_rdata_fromtext call this to issue a warning */
+	/*
+	 * dns_load_master / dns_rdata_fromtext call this to issue a warning.
+	 */
 	void		(*warn)(struct dns_rdatacallbacks *, char *, ...);
-	/* private data handles for use by the above callback functions */
+	/*
+	 * Private data handles for use by the above callback functions.
+	 */
 	void		*add_private;
 	void		*error_private;
 	void		*warn_private;
-} dns_rdatacallbacks_t;
+};
 
 /***
  ***	Initialization
  ***/
 
-void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
+void
+dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
 /*
  * Initalise 'callbacks'.
  * 	'error' and 'warn' are set to default callbacks that print the
@@ -61,7 +70,8 @@ void dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
  *      'callbacks' is a valid dns_rdatacallbacks_t,
  */
 
-void dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
+void
+dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
 /*
  * Like dns_rdatacallbacks_init, but logs to stdio.
  */

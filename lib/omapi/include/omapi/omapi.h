@@ -19,18 +19,14 @@
  * Definitions for the object management API and protocol.
  */
 
-#ifndef _OMAPI_OMAPI_H_
-#define _OMAPI_OMAPI_H_
+#ifndef OMAPI_OMAPI_H
+#define OMAPI_OMAPI_H 1
 
 #include <stdarg.h>
 
 #include <isc/boolean.h>
+#include <isc/eventclass.h>
 #include <isc/lang.h>
-#include <isc/time.h>
-#include <isc/region.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
-#include <isc/task.h>
 
 #include <dns/acl.h>
 
@@ -367,4 +363,4 @@ omapi_value_getregion(omapi_value_t *value, isc_region_t *region);
 
 ISC_LANG_ENDDECLS
 
-#endif /* _OMAPI_OMAPI_H_ */
+#endif /* OMAPI_OMAPI_H */

@@ -17,64 +17,39 @@
 
 #include <config.h>
 
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdarg.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
 #include <isc/base64.h>
 #include <isc/dir.h>
-#include <isc/error.h>
-#include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/rwlock.h>
-#include <isc/socket.h>
+#include <isc/lex.h>
 #include <isc/task.h>
-#include <isc/thread.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/acl.h>
-#include <dns/aclconf.h>
 #include <dns/cache.h>
-#include <dns/confacl.h>
-#include <dns/confctx.h>
-#include <dns/confip.h>
 #include <dns/confparser.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
-#include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
-#include <dns/master.h>
-#include <dns/name.h>
-#include <dns/rdata.h>
+#include <dns/peer.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
-#include <dns/result.h>
 #include <dns/rootns.h>
+#include <dns/tkey.h>
 #include <dns/tkeyconf.h>
 #include <dns/tsigconf.h>
-#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
 
 #include <named/client.h>
-#include <named/globals.h>
 #include <named/interfacemgr.h>
-#include <named/listenlist.h>
 #include <named/log.h>
 #include <named/logconf.h>
 #include <named/os.h>
 #include <named/server.h>
-#include <named/types.h>
 
 /*
  * Check an operation for failure.  Assumes that the function
@@ -261,7 +236,8 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 			keystruct.datalen = r.length;
 			keystruct.data = r.base;
 			
-			CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
+			CHECK(dns_rdata_fromstruct(NULL,
+						   keystruct.common.rdclass,
 						   keystruct.common.rdtype,
 						   &keystruct, &rrdatabuf));
 			CHECK(dst_key_fromdns(ckey->domain, &rrdatabuf, mctx,
@@ -351,7 +327,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	result = ISC_R_NOTFOUND;
 	if (cview != NULL)
-		result = dns_c_view_getcleaninterval(cview, &cleaning_interval);
+		result = dns_c_view_getcleaninterval(cview,
+						     &cleaning_interval);
 	if (result != ISC_R_SUCCESS)
 		result = dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
 	if (result != ISC_R_SUCCESS)
@@ -410,7 +387,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		 *         elminated.
 		 */
 		if ((cview != NULL &&
-		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
+		    dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
 		    (dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)) {
 			INSIST(forward == dns_c_forw_first ||
 			       forward == dns_c_forw_only);

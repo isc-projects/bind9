@@ -1,41 +1,34 @@
-#if defined(OPENSSL)
-
 /*
  * Portions Copyright (c) 1995-1998 by Network Associates, Inc.
+ * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  *
- * Permission to use, copy modify, and distribute this software for any
+ * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND NETWORK ASSOCIATES
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
- * NETWORK ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
+ * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE CONSORTIUM OR NETWORK
+ * ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.11 2000/05/02 03:54:16 tale Exp $
+ * $Id: openssldh_link.c,v 1.12 2000/05/08 14:37:09 tale Exp $
  */
+
+#if defined(OPENSSL)
 
 #include <config.h>
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <memory.h>
 #include <ctype.h>
 
-#include <isc/assertions.h>
-#include <isc/buffer.h>
-#include <isc/error.h>
-#include <isc/int.h>
-#include <isc/region.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dst/result.h>
@@ -43,40 +36,59 @@
 #include "dst_internal.h"
 #include "dst_parse.h"
 
-#include <openssl/crypto.h>
-#include <openssl/bn.h>
 #include <openssl/dh.h>
 
-#define PRIME768 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A63A3620FFFFFFFFFFFFFFFF"
+#define PRIME768 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088" \
+	"A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25" \
+	"F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A63A3620FFFFFFFFFFFFFFFF"
 
-#define PRIME1024 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381FFFFFFFFFFFFFFFF"
+#define PRIME1024 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08" \
+	"8A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF2" \
+	"5F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406" \
+	"B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381FFFFFFFFFFFFFFFF"
 
 static struct dst_func openssldh_functions;
 
-static isc_result_t	dst_openssldh_computesecret(const dst_key_t *pub,
-						    const dst_key_t *priv,
-						    isc_buffer_t *secret);
-static isc_boolean_t	dst_openssldh_compare(const dst_key_t *key1,
-					      const dst_key_t *key2);
-static isc_boolean_t	dst_openssldh_paramcompare(const dst_key_t *key1,
-						   const dst_key_t *key2);
-static isc_result_t	dst_openssldh_generate(dst_key_t *key, int generator,
-					       isc_mem_t *mctx);
-static isc_boolean_t	dst_openssldh_isprivate(const dst_key_t *key);
-static void		dst_openssldh_destroy(void *key, isc_mem_t *mctx);
-static isc_result_t	dst_openssldh_to_dns(const dst_key_t *in_key,
-					     isc_buffer_t *data);
-static isc_result_t	dst_openssldh_from_dns(dst_key_t *key,
-					       isc_buffer_t *data,
-					       isc_mem_t *mctx);
-static isc_result_t	dst_openssldh_to_file(const dst_key_t *key);
-static isc_result_t	dst_openssldh_from_file(dst_key_t *key,
-						const isc_uint16_t id,
-						isc_mem_t *mctx);
+static isc_result_t
+dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
+			    isc_buffer_t *secret);
 
-static void		uint16_toregion(isc_uint16_t val, isc_region_t *region);
-static isc_uint16_t	uint16_fromregion(isc_region_t *region);
-static void		BN_fromhex(BIGNUM *b, const char *str);
+static isc_boolean_t
+dst_openssldh_compare(const dst_key_t *key1, const dst_key_t *key2);
+
+static isc_boolean_t
+dst_openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
+
+static isc_result_t
+dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx);
+
+static isc_boolean_t
+dst_openssldh_isprivate(const dst_key_t *key);
+
+static void
+dst_openssldh_destroy(void *key, isc_mem_t *mctx);
+
+static isc_result_t
+dst_openssldh_to_dns(const dst_key_t *in_key, isc_buffer_t *data);
+
+static isc_result_t
+dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx);
+
+static isc_result_t
+dst_openssldh_to_file(const dst_key_t *key);
+
+static isc_result_t
+dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
+			isc_mem_t *mctx);
+
+static void
+uint16_toregion(isc_uint16_t val, isc_region_t *region);
+
+static isc_uint16_t
+uint16_fromregion(isc_region_t *region);
+
+static void
+BN_fromhex(BIGNUM *b, const char *str);
 
 static BIGNUM bn2, bn768, bn1024;
 
@@ -85,8 +97,7 @@ static BIGNUM bn2, bn768, bn1024;
  * Sets up function pointers for OpenSSL related functions 
  */
 void
-dst_s_openssldh_init()
-{
+dst_s_openssldh_init(void) {
 	REQUIRE(dst_t_func[DST_ALG_DH] == NULL);
 	dst_t_func[DST_ALG_DH] = &openssldh_functions;
 	memset(&openssldh_functions, 0, sizeof(struct dst_func));
@@ -419,7 +430,8 @@ dst_openssldh_to_file(const dst_key_t *key) {
  */
 
 static isc_result_t 
-dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
+dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
+			isc_mem_t *mctx) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t dns;

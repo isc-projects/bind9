@@ -17,15 +17,10 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
-#include <isc/types.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 isc_boolean_t

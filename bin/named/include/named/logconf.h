@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_LOGCONF_H
-#define NS_LOGCONF_H 1
+#ifndef NAMED_LOGCONF_H
+#define NAMED_LOGCONF_H 1
 
 #include <isc/log.h>
 
@@ -29,4 +29,4 @@ ns_log_configure(isc_logconfig_t *logconf, dns_c_logginglist_t *clog);
  * the named.conf data in 'clog'.
  */
 
-#endif /* NS_LOGCONF_H */
+#endif /* NAMED_LOGCONF_H */

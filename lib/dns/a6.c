@@ -17,22 +17,15 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/bitstring.h>
-#include <isc/net.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/a6.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 
-#define A6CONTEXT_MAGIC			0x41365858U	/* A6XX. */
-#define VALID_A6CONTEXT(ac)		((ac) != NULL && \
-					 (ac)->magic == A6CONTEXT_MAGIC)
-						
+#define A6CONTEXT_MAGIC		0x41365858U	/* A6XX. */
+#define VALID_A6CONTEXT(ac)	ISC_MAGIC_VALID(ac, A6CONTEXT_MAGIC)
 
 #define MAX_CHAINS	8
 #define MAX_DEPTH	16

@@ -40,7 +40,6 @@
  *	No anticipated impact.
  */
 
-#include <isc/types.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>

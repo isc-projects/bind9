@@ -17,30 +17,19 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/lfsr.h>
-#include <isc/log.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/socket.h>
+#include <isc/print.h>
 #include <isc/task.h>
 #include <isc/util.h>
-#include <isc/print.h>
 
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
-#include <dns/result.h>
 #include <dns/tcpmsg.h>
-#include <dns/types.h>
 
 struct dns_dispentry {
 	unsigned int			magic;
@@ -135,8 +124,7 @@ static dns_dispentry_t *linear_next(dns_dispatch_t *disp,
  * The resulting string is guaranteed to be null-terminated.
  */
 static void
-sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size)
-{
+sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
@@ -194,8 +182,7 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 }
 
 static void
-reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
-{
+reseed_lfsr(isc_lfsr_t *lfsr, void *arg) {
 	UNUSED(arg);
 
 	lfsr->count = (random() & 0x1f) + 32;	/* From 32 to 63 states */
@@ -207,8 +194,7 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
  * Return an unpredictable message ID.
  */
 static isc_uint32_t
-dns_randomid(dns_dispatch_t *disp)
-{
+dns_randomid(dns_dispatch_t *disp) {
 	isc_uint32_t id;
 
 	id = isc_lfsr_generate32(&disp->qid_lfsr1, &disp->qid_lfsr2);
@@ -220,8 +206,7 @@ dns_randomid(dns_dispatch_t *disp)
  * Return a hash of the destination and message id.
  */
 static isc_uint32_t
-dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id)
-{
+dns_hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, isc_uint32_t id) {
 	unsigned int ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
@@ -239,8 +224,7 @@ static dns_dispatchmethods_t dns_wire_methods = {
 };
 
 static dns_dispentry_t *
-linear_first(dns_dispatch_t *disp)
-{
+linear_first(dns_dispatch_t *disp) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
@@ -257,8 +241,7 @@ linear_first(dns_dispatch_t *disp)
 }
 
 static dns_dispentry_t *
-linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispentry_t *ret;
 	unsigned int bucket;
 
@@ -281,8 +264,7 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
  * Called when refcount reaches 0 (and safe to destroy)
  */
 static void
-destroy(dns_dispatch_t *disp)
-{
+destroy(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 
 	disp->magic = 0;
@@ -344,8 +326,7 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 }
 
 static void
-free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
-{
+free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 	isc_sockettype_t socktype;
 
 	INSIST(buf != NULL && len != 0);
@@ -371,8 +352,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len)
 }
 
 static void *
-allocate_buffer(dns_dispatch_t *disp, unsigned int len)
-{
+allocate_buffer(dns_dispatch_t *disp, unsigned int len) {
 	void *temp;
 
 	INSIST(len > 0);
@@ -389,8 +369,7 @@ allocate_buffer(dns_dispatch_t *disp, unsigned int len)
 }
 
 static inline void
-free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev)
-{
+free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev) {
 	if (disp->failsafe_ev == ev) {
 		INSIST(disp->shutdown_out == 1);
 		disp->shutdown_out = 0;
@@ -402,8 +381,7 @@ free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev)
 }
 
 static inline dns_dispatchevent_t *
-allocate_event(dns_dispatch_t *disp)
-{
+allocate_event(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
 
 	ev = isc_mempool_get(disp->epool);
@@ -435,8 +413,7 @@ allocate_event(dns_dispatch_t *disp)
  *	restart.
  */
 static void
-udp_recv(isc_task_t *task, isc_event_t *ev_in)
-{
+udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_messageid_t id;
@@ -619,8 +596,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
  *	restart.
  */
 static void
-tcp_recv(isc_task_t *task, isc_event_t *ev_in)
-{
+tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatch_t *disp = ev_in->ev_arg;
 	dns_tcpmsg_t *tcpmsg = &disp->tcpmsg;
 	dns_messageid_t id;
@@ -788,11 +764,10 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 }
 
 /*
- * disp must be locked
+ * disp must be locked.
  */
 static void
-startrecv(dns_dispatch_t *disp)
-{
+startrecv(dns_dispatch_t *disp) {
 	isc_sockettype_t socktype;
 	isc_result_t res;
 	isc_region_t region;
@@ -1027,8 +1002,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 }
 
 void
-dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp)
-{
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
@@ -1039,8 +1013,7 @@ dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp)
 
 
 void
-dns_dispatch_detach(dns_dispatch_t **dispp)
-{
+dns_dispatch_detach(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp;
 	isc_boolean_t killit;
 
@@ -1432,8 +1405,7 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
 }
 
 static void
-do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	INSIST(resp->item_out == ISC_FALSE);
@@ -1458,8 +1430,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 static void
-do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	INSIST(resp->item_out == ISC_FALSE);
@@ -1483,8 +1454,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 static void
-do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
-{
+do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	dns_dispatchevent_t *ev;
 
 	if (disp->shutdown_out == 1)
@@ -1546,16 +1516,14 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 isc_socket_t *
-dns_dispatch_getsocket(dns_dispatch_t *disp)
-{
+dns_dispatch_getsocket(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	return (disp->socket);
 }
 
 void
-dns_dispatch_cancel(dns_dispatch_t *disp)
-{
+dns_dispatch_cancel(dns_dispatch_t *disp) {
 	REQUIRE(VALID_DISPATCH(disp));
 
 	LOCK(&disp->lock);

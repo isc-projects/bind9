@@ -54,16 +54,8 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/mem.h>
+#include <isc/magic.h>
 
-#include <dns/rdatatype.h>
-
-#include <dns/confcommon.h>
-#include <dns/confip.h>
-#include <dns/confkeys.h>
-#include <dns/confacl.h>
-#include <dns/confip.h>
-#include <dns/conflsn.h>
 #include <dns/confrrset.h>
 #include <dns/confzone.h>
 

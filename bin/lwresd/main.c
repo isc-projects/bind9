@@ -17,16 +17,10 @@
 
 #include <config.h>
 
-#include <sys/types.h>
-
 #include <isc/app.h>
-#include <isc/event.h>
 #include <isc/mem.h>
-#include <isc/log.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/task.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/cache.h>
@@ -36,9 +30,6 @@
 #include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/view.h>
-
-#include <lwres/lwres.h>
-#include <lwres/result.h>
 
 #include "client.h"
 

@@ -15,16 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.9 2000/04/28 02:08:17 tale Exp $ */
+/* $Id: lib.c,v 1.10 2000/05/08 14:38:14 tale Exp $ */
 
 #include <config.h>
 
-#include <stddef.h>
-
-#include <isc/assertions.h>
-#include <isc/once.h>
-#include <isc/error.h>
 #include <isc/msgcat.h>
+#include <isc/once.h>
+#include <isc/task.h>
+#include <isc/util.h>
 
 #include <omapi/lib.h>
 #include <omapi/private.h>

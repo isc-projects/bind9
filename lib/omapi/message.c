@@ -21,13 +21,14 @@
 
 #include <config.h>
 
-#include <stddef.h>		/* NULL */
-#include <string.h>		/* memset */
+#include <stddef.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/buffer.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
+#include <omapi/result.h>
 
 omapi_message_t *registered_messages;
 

@@ -18,9 +18,7 @@
 #ifndef GENERIC_MB_7_H
 #define GENERIC_MB_7_H 1
 
-/* $Id: mb_7.h,v 1.17 2000/04/29 02:01:40 tale Exp $ */
-
-#include <dns/name.h>
+/* $Id: mb_7.h,v 1.18 2000/05/08 14:36:47 tale Exp $ */
 
 typedef struct dns_rdata_mb {
 	dns_rdatacommon_t	common;

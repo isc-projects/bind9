@@ -17,28 +17,20 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
-#include <dns/log.h>
-#include <dns/result.h>
-#include <dns/types.h>
 
 isc_result_t
-dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
-{
+dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	isc_result_t result;
 	dns_acl_t *acl;
 
-	 /*
-	  * Work around silly limitation of isc_mem_get().
-	  */
+	/*
+	 * Work around silly limitation of isc_mem_get().
+	 */
 	if (n == 0)
 		n = 1;
 	
@@ -53,7 +45,9 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
 	acl->length = 0;
 	
 	ISC_LINK_INIT(acl, nextincache);
-	/* Must set magic early because we use dns_acl_detach() to clean up. */
+	/*
+	 * Must set magic early because we use dns_acl_detach() to clean up.
+	 */
 	acl->magic = DNS_ACL_MAGIC; 
 
 	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
@@ -72,8 +66,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
 }
 
 isc_result_t
-dns_acl_appendelement(dns_acl_t *acl, dns_aclelement_t *elt)
-{
+dns_acl_appendelement(dns_acl_t *acl, dns_aclelement_t *elt) {
 	if (acl->length + 1 > acl->alloc) {
 		/*
 		 * Resize the ACL.
@@ -104,8 +97,7 @@ dns_acl_appendelement(dns_acl_t *acl, dns_aclelement_t *elt)
 }
 		       
 static isc_result_t
-dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target)
-{
+dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
 	result = dns_acl_create(mctx, 1, &acl);
@@ -222,8 +214,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 }
 
 void
-dns_acl_attach(dns_acl_t *source, dns_acl_t **target)
-{
+dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
 	REQUIRE(DNS_ACL_VALID(source));
 	INSIST(source->refcount > 0);
 	source->refcount++;
@@ -231,8 +222,7 @@ dns_acl_attach(dns_acl_t *source, dns_acl_t **target)
 }
 
 static void
-destroy(dns_acl_t *dacl)
-{
+destroy(dns_acl_t *dacl) {
 	unsigned int i;
 	for (i = 0; i < dacl->length; i++) {
 		dns_aclelement_t *de = &dacl->elements[i];
@@ -255,8 +245,7 @@ destroy(dns_acl_t *dacl)
 }
 
 void
-dns_acl_detach(dns_acl_t **aclp)
-{
+dns_acl_detach(dns_acl_t **aclp) {
 	dns_acl_t *acl = *aclp;
 	REQUIRE(DNS_ACL_VALID(acl));
 	INSIST(acl->refcount > 0);
@@ -267,8 +256,7 @@ dns_acl_detach(dns_acl_t **aclp)
 }
 
 isc_boolean_t
-dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb)
-{
+dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb) {
 	if (ea->type != eb->type)
 		return (ISC_FALSE);
 	switch (ea->type) {
@@ -308,8 +296,7 @@ dns_acl_equal(dns_acl_t *a, dns_acl_t *b) {
 }
 
 isc_result_t
-dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env)
-{
+dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	isc_result_t result;
 	env->localhost = NULL;
 	env->localnets = NULL;
@@ -327,14 +314,16 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env)
 	return (result);
 }
 
-void dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
+void
+dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 	dns_acl_detach(&t->localhost);
 	dns_acl_attach(s->localhost, &t->localhost);
 	dns_acl_detach(&t->localnets);
 	dns_acl_attach(s->localnets, &t->localnets);
 }
 
-void dns_aclenv_destroy(dns_aclenv_t *env) {
+void
+dns_aclenv_destroy(dns_aclenv_t *env) {
 	dns_acl_detach(&env->localhost);
 	dns_acl_detach(&env->localnets);
 }

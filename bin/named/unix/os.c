@@ -17,22 +17,18 @@
 
 #include <config.h>
 
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <syslog.h>
 #include <fcntl.h>
 #include <pwd.h>
-#include <grp.h>
 
-#include <isc/result.h>
-#include <isc/boolean.h>
+#include <isc/string.h>
 
 #include <named/main.h>
 #include <named/os.h>
@@ -53,11 +49,11 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
  */
 #define _LINUX_FS_H
 
-#include <sys/syscall.h>
-#include <linux/capability.h>
+#include <sys/syscall.h>	/* Required for syscall(). */
+#include <linux/capability.h>	/* Required for _LINUX_CAPABILITY_VERSION. */
 
 #ifdef HAVE_LINUX_PRCTL_H
-#include <sys/prctl.h>
+#include <sys/prctl.h>		/* Required for prctl(). */
 #endif
 
 #ifndef SYS_capset

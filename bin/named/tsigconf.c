@@ -18,12 +18,12 @@
 #include <config.h>
 
 #include <isc/base64.h>
+#include <isc/buffer.h>
 #include <isc/lex.h>
-#include <isc/stdtime.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 
-#include <dns/confctx.h>
-#include <dns/confkeys.h>
-#include <dns/name.h>
+#include <dns/tsig.h>
 #include <dns/tsigconf.h>
 
 static isc_result_t
@@ -49,7 +49,9 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		dns_name_init(&keyname, NULL);
 		dns_name_init(&alg, NULL);
 
-		/* Create the key name */
+		/*
+		 * Create the key name.
+		 */
 		isc_buffer_init(&keynamesrc, key->keyid, strlen(key->keyid));
 		isc_buffer_add(&keynamesrc, strlen(key->keyid));
 		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata));
@@ -58,7 +60,9 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
 
-		/* Create the algorithm */
+		/*
+		 * Create the algorithm.
+		 */
 		if (strcasecmp(key->algorithm, "hmac-md5") == 0)
 			alg = *dns_tsig_hmacmd5_name;
 		else {

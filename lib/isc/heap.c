@@ -27,13 +27,8 @@
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 /*

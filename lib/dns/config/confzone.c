@@ -15,15 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.39 2000/05/06 10:18:47 brister Exp $ */
+/* $Id: confzone.c,v 1.40 2000/05/08 14:35:38 tale Exp $ */
 
 #include <config.h>
 
-#include <isc/assertions.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/confzone.h>
-#include <dns/confcommon.h>
 #include <dns/log.h>
 #include <dns/ssu.h>
 
@@ -130,11 +130,8 @@ static isc_result_t set_ipmatch_list_field(isc_mem_t *mem,
 static void zone_list_print(zone_print_type zpt,
 			    FILE *fp, int indent, dns_c_zonelist_t *list);
 
-
-
 isc_result_t
-dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist)
-{
+dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist) {
 	dns_c_zonelist_t *list;
 
 	REQUIRE(zlist != NULL);
@@ -154,10 +151,8 @@ dns_c_zonelist_new(isc_mem_t *mem, dns_c_zonelist_t **zlist)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
-{
+dns_c_zonelist_delete(dns_c_zonelist_t **zlist) {
 	dns_c_zonelist_t *list;
 	dns_c_zonelem_t *zoneelem;
 	dns_c_zonelem_t *tmpelem;
@@ -192,8 +187,7 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
 }
 
 isc_result_t
-dns_c_zonelist_checkzones(dns_c_zonelist_t *list)
-{
+dns_c_zonelist_checkzones(dns_c_zonelist_t *list) {
 	dns_c_zone_t *zone;
 	dns_c_ipmatchlist_t *ipmlist = NULL;
 	dns_ssutable_t *ssutable = NULL;
@@ -235,13 +229,8 @@ dns_c_zonelist_checkzones(dns_c_zonelist_t *list)
 	return (ISC_R_SUCCESS);
 }
 
-
-
-
 isc_result_t
-dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
-		       dns_c_zone_t *zone)
-{
+dns_c_zonelist_addzone(dns_c_zonelist_t *zlist, dns_c_zone_t *zone) {
 	dns_c_zonelem_t *zoneelem;
 
 	REQUIRE(DNS_C_ZONELIST_VALID(zlist));
@@ -260,8 +249,6 @@ dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 
 	return (ISC_R_SUCCESS);
 }
-	
-	
 
 isc_result_t
 dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
@@ -290,11 +277,8 @@ dns_c_zonelist_find(dns_c_zonelist_t *zlist, const char *name,
 	return (zoneelem == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist,
-			const char *name)
-{
+dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist, const char *name) {
 	dns_c_zonelem_t *zoneelem;
 	isc_result_t res;
 
@@ -322,11 +306,8 @@ dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist,
-		      dns_c_zone_t *zone)
-{
+dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist, dns_c_zone_t *zone) {
 	dns_c_zonelem_t *zoneelem;
 	isc_result_t res;
 	
@@ -355,36 +336,26 @@ dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist,
 	return (res);
 }
 
-
 void
-dns_c_zonelist_print(FILE *fp, int indent,
-		     dns_c_zonelist_t *list)
-{
+dns_c_zonelist_print(FILE *fp, int indent, dns_c_zonelist_t *list) {
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_all, fp, indent, list);
 }
 
-
 void
-dns_c_zonelist_printpreopts(FILE *fp, int indent,
-			    dns_c_zonelist_t *list)
-{
+dns_c_zonelist_printpreopts(FILE *fp, int indent, dns_c_zonelist_t *list) {
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_preopts, fp, indent, list);
 }
 
-
 void
-dns_c_zonelist_printpostopts(FILE *fp, int indent,
-			     dns_c_zonelist_t *list)
-{
+dns_c_zonelist_printpostopts(FILE *fp, int indent, dns_c_zonelist_t *list) {
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 	zone_list_print(zones_postopts, fp, indent, list);
 }
 
 dns_c_zone_t *
-dns_c_zonelist_firstzone(dns_c_zonelist_t *list)
-{
+dns_c_zonelist_firstzone(dns_c_zonelist_t *list) {
 	dns_c_zonelem_t *zoneelem;
 
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
@@ -398,11 +369,8 @@ dns_c_zonelist_firstzone(dns_c_zonelist_t *list)
 	}
 }
 
-
 dns_c_zone_t *
-dns_c_zonelist_nextzone(dns_c_zonelist_t *list,
-			dns_c_zone_t *zone)
-{
+dns_c_zonelist_nextzone(dns_c_zonelist_t *list, dns_c_zone_t *zone) {
 	dns_c_zonelem_t *zoneelem;
 	
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
@@ -426,9 +394,6 @@ dns_c_zonelist_nextzone(dns_c_zonelist_t *list,
 		return (zoneelem->thezone);
 	}
 }
-
-
-
 
 static void
 zone_list_print(zone_print_type zpt, FILE *fp, int indent,
@@ -465,7 +430,6 @@ zone_list_print(zone_print_type zpt, FILE *fp, int indent,
 
 	return;
 }
-
 
 /* ************************************************************************ */
 /* ******************************** ZONEs ********************************* */
@@ -529,10 +493,8 @@ dns_c_zone_new(isc_mem_t *mem,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_detach(dns_c_zone_t **zone)
-{
+dns_c_zone_detach(dns_c_zone_t **zone) {
 	dns_c_zone_t *zoneptr;
 	isc_result_t res = ISC_R_SUCCESS;
 
@@ -552,11 +514,8 @@ dns_c_zone_detach(dns_c_zone_t **zone)
 	return (res);
 }
 
-
 void
-dns_c_zone_attach(dns_c_zone_t *source,
-		  dns_c_zone_t **target)
-{
+dns_c_zone_attach(dns_c_zone_t *source, dns_c_zone_t **target) {
 	REQUIRE(DNS_C_ZONE_VALID(source));
 	REQUIRE(target != NULL);
 
@@ -564,12 +523,9 @@ dns_c_zone_attach(dns_c_zone_t *source,
 
 	*target = source;
 }
-		
-
 
 void
-dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
-{
+dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone) {
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 
@@ -624,12 +580,8 @@ dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
 	fprintf(fp, "};\n");
 }
 
-
-
-
 isc_result_t
-dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
-{
+dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile) {
 	char **p = NULL;
 	isc_result_t res;
 	
@@ -676,11 +628,8 @@ dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setchecknames(dns_c_zone_t *zone,
-			 dns_severity_t severity)
-{
+dns_c_zone_setchecknames(dns_c_zone_t *zone, dns_severity_t severity) {
 	dns_severity_t *p = NULL;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
@@ -731,8 +680,6 @@ dns_c_zone_setchecknames(dns_c_zone_t *zone,
 
 	return (res);
 }
-
-
 
 isc_result_t
 dns_c_zone_setallowupd(dns_c_zone_t *zone,
@@ -785,8 +732,7 @@ dns_c_zone_setallowupd(dns_c_zone_t *zone,
 }
 
 isc_result_t
-dns_c_zone_unsetallowupd(dns_c_zone_t *zone)
-{
+dns_c_zone_unsetallowupd(dns_c_zone_t *zone) {
 	dns_c_ipmatchlist_t **p = NULL;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -825,7 +771,6 @@ dns_c_zone_unsetallowupd(dns_c_zone_t *zone)
 		return (ISC_R_NOTFOUND);
 	}
 }
-
 
 isc_result_t
 dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
@@ -878,10 +823,8 @@ dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu)
-{
+dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu) {
 	dns_ssutable_t **p = NULL;
 	isc_boolean_t existed;
 	
@@ -924,7 +867,6 @@ dns_c_zone_setssuauth(dns_c_zone_t *zone, dns_ssutable_t *ssu)
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_zone_setallowquery(dns_c_zone_t *zone,
@@ -975,7 +917,6 @@ dns_c_zone_setallowquery(dns_c_zone_t *zone,
 
 	return (res);
 }
-
 
 isc_result_t
 dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
@@ -1028,10 +969,8 @@ dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval)
-{
+dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1074,10 +1013,8 @@ dns_c_zone_setdialup(dns_c_zone_t *zone, isc_boolean_t newval)
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval)
-{
+dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1119,11 +1056,8 @@ dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval)
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone,
-			    isc_boolean_t newval)
-{
+dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone, isc_boolean_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1167,7 +1101,6 @@ dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone,
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_zone_setalsonotify(dns_c_zone_t *zone,
@@ -1218,10 +1151,8 @@ dns_c_zone_setalsonotify(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval)
-{
+dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval) {
 	isc_boolean_t existed ;
 	char **p = NULL;
 	
@@ -1272,10 +1203,8 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval)
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval)
-{
+dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval) {
 	isc_boolean_t existed;
 	char **p = NULL;
 
@@ -1325,7 +1254,6 @@ dns_c_zone_setixfrtmp(dns_c_zone_t *zone, const char *newval)
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_zone_addpubkey(dns_c_zone_t *zone,
@@ -1380,10 +1308,8 @@ dns_c_zone_addpubkey(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setmasterport(dns_c_zone_t *zone, in_port_t port)
-{
+dns_c_zone_setmasterport(dns_c_zone_t *zone, in_port_t port) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1426,7 +1352,6 @@ dns_c_zone_setmasterport(dns_c_zone_t *zone, in_port_t port)
 		
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_zone_setmasterips(dns_c_zone_t *zone,
@@ -1479,11 +1404,8 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_settransfersource(dns_c_zone_t *zone,
-			     isc_sockaddr_t newval)
-{
+dns_c_zone_settransfersource(dns_c_zone_t *zone, isc_sockaddr_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1528,11 +1450,8 @@ dns_c_zone_settransfersource(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_settransfersourcev6(dns_c_zone_t *zone,
-			       isc_sockaddr_t newval)
-{
+dns_c_zone_settransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1579,11 +1498,8 @@ dns_c_zone_settransfersourcev6(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
-			     isc_int32_t newval)
-{
+dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone, isc_int32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1630,11 +1546,8 @@ dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
-			      isc_int32_t newval)
-{
+dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1681,11 +1594,8 @@ dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone,
-			     isc_int32_t newval)
-{
+dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone, isc_int32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1732,11 +1642,8 @@ dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
-			      isc_int32_t newval)
-{
+dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone, isc_int32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1783,11 +1690,8 @@ dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
-			 isc_int32_t newval)
-{
+dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone, isc_int32_t newval) {
 	dns_c_setbits_t *bits = NULL;
 	isc_int32_t *p = NULL;
 	int bit = 0;
@@ -1840,10 +1744,8 @@ dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_setforward(dns_c_zone_t *zone, dns_c_forw_t newval)
-{
+dns_c_zone_setforward(dns_c_zone_t *zone, dns_c_forw_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1886,7 +1788,6 @@ dns_c_zone_setforward(dns_c_zone_t *zone, dns_c_forw_t newval)
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_zone_setforwarders(dns_c_zone_t *zone,
@@ -1936,10 +1837,8 @@ dns_c_zone_setforwarders(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getname(dns_c_zone_t *zone, const char **retval)
-{
+dns_c_zone_getname(dns_c_zone_t *zone, const char **retval) {
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
@@ -1948,11 +1847,8 @@ dns_c_zone_getname(dns_c_zone_t *zone, const char **retval)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_getinternalname(dns_c_zone_t *zone,
-			   const char **retval)
-{
+dns_c_zone_getinternalname(dns_c_zone_t *zone, const char **retval) {
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
@@ -1961,10 +1857,8 @@ dns_c_zone_getinternalname(dns_c_zone_t *zone,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_zone_getfile(dns_c_zone_t *zone, const char **retval)
-{
+dns_c_zone_getfile(dns_c_zone_t *zone, const char **retval) {
 	const char *p = NULL;
 	isc_result_t res;
 	
@@ -2005,11 +1899,8 @@ dns_c_zone_getfile(dns_c_zone_t *zone, const char **retval)
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getchecknames(dns_c_zone_t *zone,
-			 dns_severity_t *retval)
-{
+dns_c_zone_getchecknames(dns_c_zone_t *zone, dns_severity_t *retval) {
 	dns_severity_t *p = NULL;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
@@ -2060,11 +1951,8 @@ dns_c_zone_getchecknames(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getallowupd(dns_c_zone_t *zone,
-		       dns_c_ipmatchlist_t **retval)
-{
+dns_c_zone_getallowupd(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
@@ -2108,10 +1996,8 @@ dns_c_zone_getallowupd(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval)
-{
+dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval) {
 	dns_ssutable_t *p = NULL;
 	isc_result_t res;
 	
@@ -2158,7 +2044,6 @@ dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval)
 
 	return (res);
 }
-
 
 isc_result_t
 dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
@@ -2208,11 +2093,8 @@ dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getallowquery(dns_c_zone_t *zone,
-			 dns_c_ipmatchlist_t **retval)
-{
+dns_c_zone_getallowquery(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
@@ -2256,11 +2138,8 @@ dns_c_zone_getallowquery(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
-			    dns_c_ipmatchlist_t **retval)
-{
+dns_c_zone_getallowtransfer(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 	dns_c_ipmatchlist_t *p = NULL;
 	isc_result_t res;
 	
@@ -2305,11 +2184,8 @@ dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getdialup(dns_c_zone_t *zone,
-		     isc_boolean_t *retval)
-{
+dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2359,11 +2235,8 @@ dns_c_zone_getdialup(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getnotify(dns_c_zone_t *zone,
-		     isc_boolean_t *retval)
-{
+dns_c_zone_getnotify(dns_c_zone_t *zone, isc_boolean_t *retval) {
 	isc_result_t res;
 	dns_c_setbits_t *bits = NULL;
 	isc_boolean_t val = ISC_FALSE;
@@ -2414,11 +2287,8 @@ dns_c_zone_getnotify(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone,
-			    isc_boolean_t *retval)
-{
+dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone, isc_boolean_t *retval) {
 	isc_result_t res;
 	dns_c_setbits_t *bits = NULL;
 	isc_boolean_t val = ISC_FALSE;
@@ -2469,11 +2339,8 @@ dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getalsonotify(dns_c_zone_t *zone,
-			 dns_c_iplist_t **retval)
-{
+dns_c_zone_getalsonotify(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	dns_c_iplist_t *p = NULL;
 	isc_result_t res;
 
@@ -2518,11 +2385,8 @@ dns_c_zone_getalsonotify(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getixfrbase(dns_c_zone_t *zone,
-		       const char **retval)
-{
+dns_c_zone_getixfrbase(dns_c_zone_t *zone, const char **retval) {
 	char *p = NULL;
 	isc_result_t res;
 	
@@ -2567,10 +2431,8 @@ dns_c_zone_getixfrbase(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getixfrtmp(dns_c_zone_t *zone, const char **retval)
-{
+dns_c_zone_getixfrtmp(dns_c_zone_t *zone, const char **retval) {
 	char *p = NULL;
 	isc_result_t res;
 	
@@ -2615,11 +2477,8 @@ dns_c_zone_getixfrtmp(dns_c_zone_t *zone, const char **retval)
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getpubkeylist(dns_c_zone_t *zone,
-			 dns_c_pklist_t **retval)
-{
+dns_c_zone_getpubkeylist(dns_c_zone_t *zone, dns_c_pklist_t **retval) {
 	dns_c_pklist_t *p = NULL;
 	isc_result_t res;
 	
@@ -2666,11 +2525,8 @@ dns_c_zone_getpubkeylist(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmasterport(dns_c_zone_t *zone,
-			 in_port_t *retval)
-{
+dns_c_zone_getmasterport(dns_c_zone_t *zone, in_port_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2721,11 +2577,8 @@ dns_c_zone_getmasterport(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmasterips(dns_c_zone_t *zone,
-			dns_c_iplist_t **retval)
-{
+dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2772,11 +2625,8 @@ dns_c_zone_getmasterips(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_gettransfersource(dns_c_zone_t *zone,
-			     isc_sockaddr_t *retval)
-{
+dns_c_zone_gettransfersource(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2830,11 +2680,8 @@ dns_c_zone_gettransfersource(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone,
-			     isc_sockaddr_t *retval)
-{
+dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2888,11 +2735,8 @@ dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
-			     isc_int32_t *retval)
-{
+dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2944,11 +2788,8 @@ dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
-			     isc_int32_t *retval)
-{
+dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3000,12 +2841,8 @@ dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
 	return (res);
 }
 
-
-
 isc_result_t
-dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone,
-			     isc_int32_t *retval)
-{
+dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3057,11 +2894,8 @@ dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
-			     isc_int32_t *retval)
-{
+dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3114,12 +2948,8 @@ dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
 	return (res);
 }
 
-
-
 isc_result_t
-dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
-			 isc_int32_t *retval)
-{
+dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone, isc_int32_t *retval) {
 	isc_result_t res;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
@@ -3172,11 +3002,8 @@ dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getforward(dns_c_zone_t *zone,
-		      dns_c_forw_t *retval)
-{
+dns_c_zone_getforward(dns_c_zone_t *zone, dns_c_forw_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3229,11 +3056,8 @@ dns_c_zone_getforward(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_zone_getforwarders(dns_c_zone_t *zone,
-			 dns_c_iplist_t **retval)
-{
+dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3290,15 +3114,12 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone,
 	return (res);
 }
 
-
 /*
  * Zone privates
  */
 
 static void
-master_zone_print(FILE *fp, int indent,
-		  dns_c_masterzone_t *mzone)
-{
+master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 	REQUIRE(mzone != NULL);
 	
 	if (mzone->file != NULL) {
@@ -3421,11 +3242,8 @@ master_zone_print(FILE *fp, int indent,
 	}
 }
 
-
 static void
-slave_zone_print(FILE *fp, int indent,
-		 dns_c_slavezone_t *szone)
-{
+slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 	REQUIRE(szone != NULL);
 	
 	if (szone->file != NULL) {
@@ -3590,10 +3408,8 @@ slave_zone_print(FILE *fp, int indent,
 	}
 }
 
-
 static void
-stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
-{
+stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone) {
 	REQUIRE(tzone != NULL);
 	
 	if (tzone->file != NULL) {
@@ -3716,10 +3532,8 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 	}
 }
 
-
 static void
-hint_zone_print(FILE *fp, int indent, dns_c_hintzone_t *hzone)
-{
+hint_zone_print(FILE *fp, int indent, dns_c_hintzone_t *hzone) {
 	REQUIRE(hzone != NULL);
 	
 	if (hzone->file != NULL) {
@@ -3740,11 +3554,8 @@ hint_zone_print(FILE *fp, int indent, dns_c_hintzone_t *hzone)
 	}
 }
 
-
 static void
-forward_zone_print(FILE *fp, int indent,
-		   dns_c_forwardzone_t *fzone)
-{
+forward_zone_print(FILE *fp, int indent, dns_c_forwardzone_t *fzone) {
 	REQUIRE(fzone != NULL);
 	
 	if (DNS_C_CHECKBIT(FZ_FORWARD_BIT, &fzone->setflags)) {
@@ -3769,10 +3580,8 @@ forward_zone_print(FILE *fp, int indent,
 	}
 }
 
-
 static isc_result_t
-master_zone_init(dns_c_masterzone_t *mzone)
-{
+master_zone_init(dns_c_masterzone_t *mzone) {
 	REQUIRE(mzone != NULL);
 	
 	mzone->file = NULL;
@@ -3792,10 +3601,8 @@ master_zone_init(dns_c_masterzone_t *mzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-slave_zone_init(dns_c_slavezone_t *szone)
-{
+slave_zone_init(dns_c_slavezone_t *szone) {
 	REQUIRE(szone != NULL);
 
 	szone->file = NULL;
@@ -3815,10 +3622,8 @@ slave_zone_init(dns_c_slavezone_t *szone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-stub_zone_init(dns_c_stubzone_t *tzone)
-{
+stub_zone_init(dns_c_stubzone_t *tzone) {
 	REQUIRE(tzone != NULL);
 
 	tzone->file = NULL;
@@ -3835,10 +3640,8 @@ stub_zone_init(dns_c_stubzone_t *tzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-hint_zone_init(dns_c_hintzone_t *hzone)
-{
+hint_zone_init(dns_c_hintzone_t *hzone) {
 	REQUIRE(hzone != NULL);
 
 	hzone->file = NULL;
@@ -3848,10 +3651,8 @@ hint_zone_init(dns_c_hintzone_t *hzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-forward_zone_init(dns_c_forwardzone_t *fzone)
-{
+forward_zone_init(dns_c_forwardzone_t *fzone) {
 	REQUIRE(fzone != NULL);
 
 	fzone->forwarders = NULL;
@@ -3860,10 +3661,8 @@ forward_zone_init(dns_c_forwardzone_t *fzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-zone_delete(dns_c_zone_t **zone)
-{
+zone_delete(dns_c_zone_t **zone) {
 	dns_c_zone_t *z;
 	isc_result_t res = ISC_R_SUCCESS;
 	
@@ -3909,10 +3708,8 @@ zone_delete(dns_c_zone_t **zone)
 	return (res);
 }
 
-
 static isc_result_t
-master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
-{
+master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone) {
 	REQUIRE(mzone != NULL);
 	
 	if (mzone == NULL) {
@@ -3958,10 +3755,8 @@ master_zone_clear(isc_mem_t *mem, dns_c_masterzone_t *mzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
-{
+slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone) {
 	REQUIRE(szone != NULL);
 	
 	if (szone == NULL) {
@@ -4007,11 +3802,8 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone)
 	return (ISC_R_SUCCESS);
 }
 
-
-
 static isc_result_t
-stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
-{
+stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone) {
 	REQUIRE(tzone != NULL);
 	
 	if (tzone == NULL) {
@@ -4046,10 +3838,8 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-forward_zone_clear(isc_mem_t *mem, dns_c_forwardzone_t *fzone)
-{
+forward_zone_clear(isc_mem_t *mem, dns_c_forwardzone_t *fzone) {
 	REQUIRE(fzone != NULL);
 	
 	if (fzone == NULL) {
@@ -4064,10 +3854,8 @@ forward_zone_clear(isc_mem_t *mem, dns_c_forwardzone_t *fzone)
 	return (ISC_R_SUCCESS);
 }
 
-
 static isc_result_t
-hint_zone_clear(isc_mem_t *mem, dns_c_hintzone_t *hzone)
-{
+hint_zone_clear(isc_mem_t *mem, dns_c_hintzone_t *hzone) {
 	REQUIRE(hzone != NULL);
 	
 	if (hzone == NULL) {

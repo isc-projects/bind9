@@ -21,14 +21,10 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/ondestroy.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
-#include <dns/db.h>
+#include <dns/callbacks.h>
 #include <dns/master.h>
 #include <dns/rdataset.h>
 
@@ -587,5 +583,6 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)||
 		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 
-	return ((db->methods->deleterdataset)(db, node, version, type, covers));
+	return ((db->methods->deleterdataset)(db, node, version,
+					      type, covers));
 }

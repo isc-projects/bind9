@@ -15,32 +15,25 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.51 2000/04/28 23:15:24 gson Exp $ */
+/* $Id: master.c,v 1.52 2000/05/08 14:34:42 tale Exp $ */
 
 #include <config.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <time.h>
-
 #include <isc/lex.h>
-#include <isc/list.h>
 #include <isc/mem.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/stdtime.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/master.h>
-#include <dns/types.h>
-#include <dns/result.h>
+#include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/rdata.h>
+#include <dns/result.h>
 #include <dns/time.h>
 #include <dns/ttl.h>
 
@@ -92,24 +85,29 @@ typedef struct {
 	isc_boolean_t 	warn_1035;
 } loadctx_t;
 
-static isc_result_t	loadfile(const char *master_file, dns_name_t *top,
-				 dns_name_t *origin,
-				 dns_rdataclass_t zclass, isc_boolean_t age_ttl,
-				 int *soacount, int *nscount,
-				 dns_rdatacallbacks_t *callbacks,
-				 loadctx_t *ctx,
-				 isc_mem_t *mctx);
-static isc_result_t	commit(dns_rdatacallbacks_t *, isc_lex_t *,
-			       rdatalist_head_t *, dns_name_t *, dns_name_t *);
-static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
-static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
-				        rdatalist_head_t *,
-					rdatalist_head_t *,
-					isc_mem_t *mctx);
-static dns_rdata_t	*grow_rdata(int, dns_rdata_t *, int,
-				    rdatalist_head_t *, rdatalist_head_t *,
-				    isc_mem_t *);
-static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
+static isc_result_t
+loadfile(const char *master_file, dns_name_t *top, dns_name_t *origin,
+	 dns_rdataclass_t zclass, isc_boolean_t age_ttl, int *soacount,
+	 int *nscount, dns_rdatacallbacks_t *callbacks, loadctx_t *ctx,
+	 isc_mem_t *mctx);
+
+static isc_result_t
+commit(dns_rdatacallbacks_t *, isc_lex_t *, rdatalist_head_t *, dns_name_t *,
+       dns_name_t *);
+
+static isc_boolean_t
+is_glue(rdatalist_head_t *, dns_name_t *);
+
+static dns_rdatalist_t *
+grow_rdatalist(int, dns_rdatalist_t *, int, rdatalist_head_t *,
+		rdatalist_head_t *, isc_mem_t *mctx);
+
+static dns_rdata_t *
+grow_rdata(int, dns_rdata_t *, int, rdatalist_head_t *, rdatalist_head_t *,
+	   isc_mem_t *);
+
+static isc_boolean_t
+on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
@@ -283,7 +281,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				result = DNS_R_NOOWNER;
 				goto cleanup;
 			}
-			/* Still working on the same name. */
+			/*
+			 * Still working on the same name.
+			 */
 		} else if (token.type == isc_tokentype_string) {
 
 			/*
@@ -303,8 +303,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				              "$TTL") == 0) {
 				GETTOKEN(lex, 0, &token, ISC_FALSE);
 				result =
-				    dns_ttl_fromtext(&token.value.as_textregion,
-						     &ctx->ttl);
+				   dns_ttl_fromtext(&token.value.as_textregion,
+						    &ctx->ttl);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 				if (ctx->ttl > 0x7fffffffUL) {
@@ -1096,7 +1096,9 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 	isc_region_t region;
 	dns_name_t name;
 
-	/* find NS rrset */
+	/*
+	 * Find NS rrset.
+	 */
 	this = ISC_LIST_HEAD(*head);
 	while (this != NULL) {
 		if (this->type == dns_rdatatype_ns)

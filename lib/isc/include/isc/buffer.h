@@ -103,6 +103,7 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/types.h>
 
 /*
@@ -119,9 +120,7 @@ ISC_LANG_BEGINDECLS
  *** Magic numbers
  ***/
 #define ISC_BUFFER_MAGIC		0x42756621U	/* Buf!. */
-
-#define ISC_BUFFER_VALID(b)		((b) != NULL && \
-					 (b)->magic == ISC_BUFFER_MAGIC)
+#define ISC_BUFFER_VALID(b)		ISC_MAGIC_VALID(b, ISC_BUFFER_MAGIC)
 
 /*
  * The following macros MUST be used only on valid buffers.  It is the

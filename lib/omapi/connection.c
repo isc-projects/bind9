@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.24 2000/05/03 18:25:52 gson Exp $ */
+/* $Id: connection.c,v 1.25 2000/05/08 14:38:09 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -25,16 +25,14 @@
 
 #include <config.h>
 
-#include <errno.h>
-#include <stddef.h>		/* NULL */
-#include <string.h>		/* memset */
-
-#include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/bufferlist.h>
-#include <isc/error.h>
 #include <isc/netdb.h>
+#include <isc/task.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
+#include <omapi/result.h>
 
 /*
  * Swiped from bin/tests/sdig.c.

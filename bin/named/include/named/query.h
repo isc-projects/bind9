@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_QUERY_H
-#define NS_QUERY_H 1
+#ifndef NAMED_QUERY_H
+#define NAMED_QUERY_H 1
 
 #include <isc/types.h>
 #include <isc/buffer.h>
@@ -66,4 +66,4 @@ ns_query_free(ns_client_t *client);
 void
 ns_query_start(ns_client_t *client);
 
-#endif /* NS_QUERY_H */
+#endif /* NAMED_QUERY_H */

@@ -17,28 +17,21 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/mem.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
-#include <dns/dbtable.h>
 #include <dns/events.h>
-#include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/peer.h>
-#include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
-#include <dns/types.h>
-#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -137,7 +130,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_trustedkeys;
 	view->peers = NULL;
 
-	/* Initialize configuration data with default values. */	
+	/*
+	 * Initialize configuration data with default values.
+	 */	
 	view->recursion = ISC_TRUE;
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->transfer_format = dns_one_answer;

@@ -17,23 +17,20 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/aclconf.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
-#include <dns/types.h>
 
-void dns_aclconfctx_init(dns_aclconfctx_t *ctx)
-{
+void
+dns_aclconfctx_init(dns_aclconfctx_t *ctx) {
 	ISC_LIST_INIT(ctx->named_acl_cache);
 }
 
-void dns_aclconfctx_destroy(dns_aclconfctx_t *ctx)
-{
+void
+dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
      	dns_acl_t *dacl, *next;	
 	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache);
 	     dacl != NULL;
@@ -146,14 +143,16 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		case dns_c_ipmatch_key:
 			de->type = dns_aclelementtype_keyname;
 			dns_name_init(&de->u.keyname, NULL);
-			result = convert_keyname(ce->u.key, mctx, &de->u.keyname);
+			result = convert_keyname(ce->u.key, mctx,
+						 &de->u.keyname);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			break;
 		case dns_c_ipmatch_indirect:
 			de->type = dns_aclelementtype_nestedacl;
-			result = dns_acl_fromconfig(ce->u.indirect.list, cctx,
-						   ctx, mctx, &de->u.nestedacl);
+			result = dns_acl_fromconfig(ce->u.indirect.list,
+						    cctx, ctx, mctx,
+						    &de->u.nestedacl);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			break;
@@ -170,8 +169,9 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 			break;
 		case dns_c_ipmatch_acl:
 			de->type = dns_aclelementtype_nestedacl;
-			result = convert_named_acl(ce->u.aclname, cctx,
-						   ctx, mctx, &de->u.nestedacl);
+			result = convert_named_acl(ce->u.aclname,
+						   cctx, ctx, mctx,
+						   &de->u.nestedacl);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			break;

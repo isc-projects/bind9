@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.10 2000/04/28 02:08:17 tale Exp $ */
+/* $Id: handle.c,v 1.11 2000/05/08 14:38:13 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -25,12 +25,10 @@
 
 #include <config.h>
 
-#include <stddef.h>		/* NULL */
-#include <string.h>		/* memset */
-
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
 

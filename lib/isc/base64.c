@@ -15,22 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.11 2000/04/28 01:04:36 halley Exp $ */
+/* $Id: base64.c,v 1.12 2000/05/08 14:37:15 tale Exp $ */
 
 #include <config.h>
-
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/lex.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/region.h>
-#include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #define RETERR(x) do { \
@@ -40,7 +32,8 @@
 	} while (0)
 
 
-/* These static functions are also present in lib/dns/rdata.c.  I'm not
+/*
+ * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
 static isc_result_t	str_totext(char *source, isc_buffer_t *target);

@@ -15,11 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: confresolv.c,v 1.6 2000/05/02 03:54:05 tale Exp $ */
+/* $Id: confresolv.c,v 1.7 2000/05/08 14:35:34 tale Exp $ */
 
 #include <config.h>
 
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/confresolv.h>

@@ -17,21 +17,14 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <string.h>
-
-#include <isc/buffer.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
 #include <dns/keytable.h>
 #include <dns/fixedname.h>
-#include <dns/name.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
-
-#include <dst/dst.h>
 
 struct dns_keytable {
 	/* Unlocked. */
@@ -315,8 +308,7 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 }
 
 void
-dns_keytable_detachkeynode(dns_keytable_t *keytable,
-			   dns_keynode_t **keynodep)
+dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 {
 	/*
 	 * Give back a keynode found via dns_keytable_findkeynode().

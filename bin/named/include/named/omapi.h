@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#ifndef NAMED_OMAPI_H
+#define NAMED_OMAPI_H 1
+
 #include <omapi/omapi.h>
 
 #define NS_OMAPI_PORT			953
@@ -34,3 +37,4 @@ ns_omapi_init(void);
 isc_result_t
 ns_omapi_listen(omapi_object_t **managerp);
 
+#endif /* NAMED_OMAPI_H */

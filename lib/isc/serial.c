@@ -15,7 +15,8 @@
  * SOFTWARE.
  */
 
-	/* $Id: serial.c,v 1.3 2000/02/03 23:08:27 halley Exp $ */
+/* $Id: serial.c,v 1.4 2000/05/08 14:37:37 tale Exp $ */
+#include <config.h>
 
 #include <isc/serial.h>
 

@@ -45,13 +45,10 @@
  *	Drafts:	<TBS>
  */
 
-#include <isc/types.h>
 #include <isc/lang.h>
-#include <isc/event.h>
 #include <isc/socket.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
 #include <dns/fixedname.h>
 
 ISC_LANG_BEGINDECLS
@@ -80,11 +77,11 @@ typedef struct dns_fetchevent {
 /*
  * Options that modify how a 'fetch' is done.
  */
-#define DNS_FETCHOPT_TCP		0x01		/* Use TCP. */
-#define DNS_FETCHOPT_UNSHARED		0x02		/* See below. */
-#define DNS_FETCHOPT_RECURSIVE		0x04		/* Set RD? */
-#define DNS_FETCHOPT_NOEDNS0		0x08		/* Do not use EDNS. */
-#define DNS_FETCHOPT_FORWARDONLY	0x10		/* only use forwarders */
+#define DNS_FETCHOPT_TCP		0x01	     /* Use TCP. */
+#define DNS_FETCHOPT_UNSHARED		0x02	     /* See below. */
+#define DNS_FETCHOPT_RECURSIVE		0x04	     /* Set RD? */
+#define DNS_FETCHOPT_NOEDNS0		0x08	     /* Do not use EDNS. */
+#define DNS_FETCHOPT_FORWARDONLY	0x10	     /* Only use forwarders. */
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.

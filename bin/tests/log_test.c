@@ -15,22 +15,20 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.13 2000/05/03 21:11:26 explorer Exp $ */
+/* $Id: log_test.c,v 1.14 2000/05/08 14:33:37 tale Exp $ */
 
 /* Principal Authors: DCL */
 
+#include <config.h>
+
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
-#include <isc/log.h>
-#include <isc/result.h>
+#include <isc/string.h>
 
 #include <dns/log.h>
-#include <dns/result.h>
 
 #define TEST_FILE "/tmp/test_log"
 #define SYSLOG_FILE "/var/log/daemon.log"

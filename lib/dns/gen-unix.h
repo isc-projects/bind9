@@ -30,8 +30,9 @@
 #ifndef DNS_GEN_UNIX_H
 #define DNS_GEN_UNIX_H 1
 
+#include <sys/types.h>
+
 #include <dirent.h>
-#include <unistd.h>
 
 #include <isc/boolean.h>
 #include <isc/lang.h>

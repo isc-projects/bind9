@@ -17,17 +17,14 @@
 
 #include <config.h>
 
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/util.h>
 
+#include <dns/name.h>
 #include <dns/ncache.h>
 #include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
 #include <dns/rdataset.h>
 #include <dns/compress.h>
 
@@ -359,7 +356,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 
 	do {
 		/*
-		 * copy out the name, type, class, ttl.
+		 * Copy out the name, type, class, ttl.
 		 */
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 		result = dns_name_towire(owner_name, cctx, target);
@@ -386,7 +383,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			isc_buffer_add(target, 2);
 
 			/*
-			 * copy out the rdata
+			 * Copy out the rdata
 			 */
 			if (shuffle)
 				rdata = shuffled[i];

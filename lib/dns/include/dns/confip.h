@@ -51,30 +51,25 @@
  *** Imports
  ***/
 
-#include <sys/types.h>
-
 #include <isc/lang.h>
-#include <isc/list.h>
 #include <isc/magic.h>
-#include <isc/mem.h>
-#include <isc/net.h>
 #include <isc/region.h>
+#include <isc/sockaddr.h>
 
 #include <dns/confcommon.h>
 
+#define DNS_C_IPLIST_MAGIC 0x49706c73		/* Ipls */
+#define DNS_C_IPMDIRECT_MAGIC 0x49506d64	/* IPmd */
+#define DNS_C_IPMINDIRECT_MAGIC 0x69506d69	/* iPmi */
+#define DNS_C_IPMELEM_MAGIC 0x49704d65		/* IpMe */
+#define DNS_C_IPMLIST_MAGIC 0x69706d6c		/* ipml */
 
-#define DNS_C_IPLIST_MAGIC 0x49706c73	/* Ipls */ /* dns_c_iplist */
-#define DNS_C_IPMDIRECT_MAGIC 0x49506d64 /* IPmd */ /* dns_c_ipmatch_direct */
-#define DNS_C_IPMINDIRECT_MAGIC 0x69506d69 /* iPmi */ /* dns_c_ipmatch_indirect */
-#define DNS_C_IPMELEM_MAGIC 0x49704d65	/* IpMe */ /* dns_c_ipmatch_element */
-#define DNS_C_IPMLIST_MAGIC 0x69706d6c	/* ipml */ /* dns_c_ipmatchlist */
-
-#define DNS_C_IPLIST_VALID(ptr)	ISC_MAGIC_VALID(ptr,DNS_C_IPLIST_MAGIC)
+#define DNS_C_IPLIST_VALID(ptr)	  ISC_MAGIC_VALID(ptr, DNS_C_IPLIST_MAGIC)
 #define DNS_C_IPDIRECT_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMDIRECT_MAGIC)
 #define DNS_C_IPINDIRECT_VALID(ptr) \
-	ISC_MAGIC_VALID(ptr, DNS_C_IPMINDIRECT_MAGIC)
-#define DNS_C_IPMELEM_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMELEM_MAGIC)
-#define DNS_C_IPMLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMLIST_MAGIC)
+				  ISC_MAGIC_VALID(ptr, DNS_C_IPMINDIRECT_MAGIC)
+#define DNS_C_IPMELEM_VALID(ptr)  ISC_MAGIC_VALID(ptr, DNS_C_IPMELEM_MAGIC)
+#define DNS_C_IPMLIST_VALID(ptr)  ISC_MAGIC_VALID(ptr, DNS_C_IPMLIST_MAGIC)
 
 /***
  *** Types
@@ -88,7 +83,9 @@ typedef struct dns_c_ipmatch_element	dns_c_ipmatchelement_t;
 typedef struct dns_c_ipmatch_list	dns_c_ipmatchlist_t;
 
 
-/* A list of IP addresses (IPv4 or IPv6) */
+/*
+ * A list of IP addresses (IPv4 or IPv6).
+ */
 struct dns_c_iplist {
 	isc_uint32_t		magic;
 	
@@ -98,8 +95,6 @@ struct dns_c_iplist {
 	isc_uint32_t		size;
 	isc_uint32_t		nextidx;
 };
-
-
 
 struct dns_c_ipmatch_direct {
 	isc_uint32_t	magic;
@@ -113,11 +108,9 @@ struct dns_c_ipmatch_direct {
 struct dns_c_ipmatch_indirect {
 	isc_uint32_t	magic;
 	
-	isc_textregion_t refname;	/* for acls, mostly. */
+	isc_textregion_t refname;	/* For acls, mostly. */
 	dns_c_ipmatchlist_t *list;
 };
-
-
 
 struct dns_c_ipmatch_element {
 	isc_uint32_t	magic;

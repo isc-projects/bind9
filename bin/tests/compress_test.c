@@ -17,13 +17,11 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/compress.h>
@@ -32,11 +30,12 @@
 unsigned char plain1[] = "\003yyy\003foo";
 unsigned char plain2[] = "\003bar\003yyy\003foo";
 unsigned char plain3[] = "\003xxx\003bar\003foo";
-unsigned char plain[] =
-	"\003yyy\003foo\0\003bar\003yyy\003foo\0\003bar\003yyy\003foo\0\003xxx\003bar\003foo";
+unsigned char plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
+			"bar\003yyy\003foo\0\003xxx\003bar\003foo";
 
-/* result concatenate (plain1, plain2, plain2, plain3) */
-
+/*
+ * Result concatenate (plain1, plain2, plain2, plain3).
+ */
 unsigned char bit1[] = "\101\010b";
 unsigned char bit2[] = "\101\014b\260";
 unsigned char bit3[] = "\101\020b\264";
@@ -45,8 +44,9 @@ unsigned char bit[] = "\101\010b\0\101\014b\260\0\101\014b\260\0\101\020b\264";
 int raw = 0;
 int verbose = 0;
 
-void test(unsigned int, dns_name_t *, dns_name_t *, dns_name_t *,
-          unsigned char *, unsigned int);
+void
+test(unsigned int, dns_name_t *, dns_name_t *, dns_name_t *,
+     unsigned char *, unsigned int);
 
 int
 main(int argc, char *argv[]) {

@@ -15,22 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.23 2000/05/03 19:29:37 brister Exp $ */
+/* $Id: confip.c,v 1.24 2000/05/08 14:35:27 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/confip.h>
-#include <dns/confcommon.h>
 #include <dns/log.h>
 
-/* Flag for dns_c_ipmatch_element */
+/*
+ * Flag for dns_c_ipmatch_element.
+ */
 #define DNS_C_IPMATCH_NEGATE	0x01	/* match means deny access */
 
 
@@ -38,8 +37,7 @@ static isc_result_t checkmask(isc_sockaddr_t *address, isc_uint32_t bits);
 static isc_result_t bits2v6mask(struct in6_addr *addr, isc_uint32_t bits);
 
 isc_result_t
-dns_c_ipmatchelement_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
-{
+dns_c_ipmatchelement_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result) {
 	dns_c_ipmatchelement_t *ime ;
 
 	REQUIRE(result != NULL);
@@ -63,10 +61,8 @@ dns_c_ipmatchelement_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_boolean_t
-dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem)
-{
+dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem) {
 
 	REQUIRE(DNS_C_IPMELEM_VALID(elem));
 	
@@ -74,10 +70,8 @@ dns_c_ipmatchelement_isneg(dns_c_ipmatchelement_t *elem)
 			DNS_C_IPMATCH_NEGATE));
 }
 
-
 isc_result_t
-dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme)
-{
+dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme) {
 	dns_c_ipmatchelement_t *elem;
 	
 	REQUIRE(mem != NULL);
@@ -133,7 +127,6 @@ dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme)
 	
 	return (ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_ipmatchelement_copy(isc_mem_t *mem,
@@ -196,8 +189,6 @@ dns_c_ipmatchelement_copy(isc_mem_t *mem,
 	return (ISC_R_SUCCESS);
 }
 
-
-
 isc_boolean_t
 dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 			   dns_c_ipmatchelement_t *e2)
@@ -241,8 +232,7 @@ dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 }
 
 isc_result_t
-dns_c_ipmatchlocalhost_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
-{
+dns_c_ipmatchlocalhost_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result) {
 	dns_c_ipmatchelement_t *ime = NULL;
 	isc_result_t res;
 
@@ -261,11 +251,8 @@ dns_c_ipmatchlocalhost_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
 	return (res);
 }
 
-
 isc_result_t
-dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
-			   dns_c_ipmatchelement_t **result)
-{
+dns_c_ipmatchlocalnets_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result) {
 	dns_c_ipmatchelement_t *ime = NULL;
 	isc_result_t res;
 
@@ -284,10 +271,8 @@ dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
 	return (res);
 }
 
-
 isc_result_t
-dns_c_ipmatchany_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
-{
+dns_c_ipmatchany_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result) {
 	dns_c_ipmatchelement_t *ime = NULL;
 	isc_result_t res;
 
@@ -305,7 +290,6 @@ dns_c_ipmatchany_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
 
 	return (res);
 }
-
 
 isc_result_t
 dns_c_ipmatchindirect_new(isc_mem_t *mem,
@@ -349,7 +333,6 @@ dns_c_ipmatchindirect_new(isc_mem_t *mem,
 	return (res);
 }
 
-
 isc_result_t
 dns_c_ipmatchpattern_new(isc_mem_t *mem,
 			 dns_c_ipmatchelement_t **result,
@@ -384,7 +367,6 @@ dns_c_ipmatchpattern_new(isc_mem_t *mem,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
 dns_c_ipmatchkey_new(isc_mem_t *mem,
 		     dns_c_ipmatchelement_t **result,
@@ -411,7 +393,6 @@ dns_c_ipmatchkey_new(isc_mem_t *mem,
 
 	return (ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_ipmatch_aclnew(isc_mem_t *mem,
@@ -441,10 +422,8 @@ dns_c_ipmatch_aclnew(isc_mem_t *mem,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe)
-{
+dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe) {
 	REQUIRE(DNS_C_IPMELEM_VALID(ipe));
 
 	if ((ipe->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
@@ -456,10 +435,8 @@ dns_c_ipmatch_negate(dns_c_ipmatchelement_t *ipe)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ipmatchlist_new(isc_mem_t *mem, dns_c_ipmatchlist_t **ptr)
-{
+dns_c_ipmatchlist_new(isc_mem_t *mem, dns_c_ipmatchlist_t **ptr) {
 	dns_c_ipmatchlist_t *newlist;
 
 	REQUIRE(ptr != NULL);
@@ -481,10 +458,8 @@ dns_c_ipmatchlist_new(isc_mem_t *mem, dns_c_ipmatchlist_t **ptr)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ipmatchlist_detach(dns_c_ipmatchlist_t **ml)
-{
+dns_c_ipmatchlist_detach(dns_c_ipmatchlist_t **ml) {
 	dns_c_ipmatchelement_t *ime;
 	dns_c_ipmatchelement_t *iptr;
 	dns_c_ipmatchlist_t *iml;
@@ -520,7 +495,6 @@ dns_c_ipmatchlist_detach(dns_c_ipmatchlist_t **ml)
 	return (ISC_R_SUCCESS);
 }
 
-
 void
 dns_c_ipmatchlist_attach(dns_c_ipmatchlist_t *source,
 			 dns_c_ipmatchlist_t **target)
@@ -534,10 +508,8 @@ dns_c_ipmatchlist_attach(dns_c_ipmatchlist_t *source,
 	*target = source;
 }
 
-
 isc_result_t
-dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml)
-{
+dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml) {
 	dns_c_ipmatchelement_t *ime ;
 	dns_c_ipmatchelement_t *imptmp;
 	isc_result_t res = ISC_R_SUCCESS;
@@ -556,7 +528,6 @@ dns_c_ipmatchlist_empty(dns_c_ipmatchlist_t *ipml)
 	
 	return (res);
 }
-
 
 isc_result_t
 dns_c_ipmatchlist_copy(isc_mem_t *mem,
@@ -622,7 +593,6 @@ dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1, dns_c_ipmatchlist_t *l2) {
 	return (ISC_TRUE);
 }
 
-
 isc_result_t
 dns_c_ipmatchlist_append(dns_c_ipmatchlist_t *dest,
 			 dns_c_ipmatchlist_t *src,
@@ -656,10 +626,8 @@ dns_c_ipmatchlist_append(dns_c_ipmatchlist_t *dest,
 	return (result);
 }
 
-
 isc_result_t
-dns_c_ipmatchelement_print(FILE *fp, int indent,
-			   dns_c_ipmatchelement_t *ipme)
+dns_c_ipmatchelement_print(FILE *fp, int indent, dns_c_ipmatchelement_t *ipme)
 {
 	int bits;
 
@@ -732,10 +700,8 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_ipmatchlist_print(FILE *fp, int indent, dns_c_ipmatchlist_t *ml)
-{
+dns_c_ipmatchlist_print(FILE *fp, int indent, dns_c_ipmatchlist_t *ml) {
 	dns_c_ipmatchelement_t *ipme ;
 
 	REQUIRE(DNS_C_IPMLIST_VALID(ml));
@@ -764,10 +730,8 @@ dns_c_ipmatchlist_print(FILE *fp, int indent, dns_c_ipmatchlist_t *ml)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist)
-{
+dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist) {
 	dns_c_iplist_t *list;
 	size_t bytes;
 
@@ -800,10 +764,8 @@ dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_iplist_detach(dns_c_iplist_t **list)
-{
+dns_c_iplist_detach(dns_c_iplist_t **list) {
 	dns_c_iplist_t *l ;
 
 	REQUIRE(list != NULL);
@@ -826,11 +788,8 @@ dns_c_iplist_detach(dns_c_iplist_t **list)
 	return (ISC_R_SUCCESS);
 }
 
-
 void
-dns_c_iplist_attach(dns_c_iplist_t *source,
-		    dns_c_iplist_t **target)
-{
+dns_c_iplist_attach(dns_c_iplist_t *source, dns_c_iplist_t **target) {
 	REQUIRE(DNS_C_IPLIST_VALID(source));
 	INSIST(source->refcount > 0);
 
@@ -838,11 +797,8 @@ dns_c_iplist_attach(dns_c_iplist_t *source,
 	*target = source;
 }
 
-
-
 isc_result_t
-dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src)
-{
+dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest, dns_c_iplist_t *src) {
 	dns_c_iplist_t *newl;
 	isc_result_t res;
 	isc_uint32_t i;
@@ -882,7 +838,6 @@ dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2) {
 
 	return (ISC_TRUE);
 }
-
 
 void
 dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
@@ -937,17 +892,13 @@ dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
 	fputc('\n', fp);
 }
 
-
 void
-dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list)
-{
+dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list) {
 	dns_c_iplist_printfully(fp, indent, ISC_FALSE, list);
 }
 
-
 isc_result_t
-dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
-{
+dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 	isc_uint32_t i;
 
 	REQUIRE(DNS_C_IPLIST_VALID(list));
@@ -988,10 +939,8 @@ dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
-{
+dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr) {
 	isc_uint32_t i;
 
 	REQUIRE(DNS_C_IPLIST_VALID(list));
@@ -1014,16 +963,12 @@ dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
 	return (ISC_R_SUCCESS);
 }
 
-
-
-
 /*
  * Check that the address given is a network address with the given number
  * of high order bits.
  */
 static isc_result_t
-checkmask(isc_sockaddr_t *address, isc_uint32_t bits)
-{
+checkmask(isc_sockaddr_t *address, isc_uint32_t bits) {
 	if (bits > 0) {
 		if (address->type.sa.sa_family == AF_INET) {
 			isc_uint32_t mask;
@@ -1065,16 +1010,13 @@ checkmask(isc_sockaddr_t *address, isc_uint32_t bits)
 	return (ISC_R_SUCCESS);
 }
 
-
-
 /*
  * Create a 128 bits mask in network byte order in the the IPv6 address
  * section of the sockaddr. The bits argument is the number of high bits
  * that are to be set to 1.
  */
 static isc_result_t
-bits2v6mask(struct in6_addr *addr, isc_uint32_t bits)
-{
+bits2v6mask(struct in6_addr *addr, isc_uint32_t bits) {
 	int i;
 	isc_uint32_t bitmask[4];
 	char addrbuff [ sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" + 1 ];

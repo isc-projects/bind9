@@ -15,21 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.77 2000/04/28 01:08:52 halley Exp $ */
+/* $Id: rbt.c,v 1.78 2000/05/08 14:34:50 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/boolean.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/rbt.h>
@@ -37,16 +29,15 @@
 #include <dns/fixedname.h>
 
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
-#define VALID_RBT(rbt)		((rbt) != NULL && (rbt)->magic == RBT_MAGIC)
+#define VALID_RBT(rbt)		ISC_MAGIC_VALID(rbt, RBT_MAGIC)
 
 /*
- * XXXDCL could remove all of the chain junk, and replace with
- * dns_rbt_firstnode, _previousnode, _nextnode, _lastnode.  pretty
- * major change to the API.
+ * XXXDCL Since parent pointers were added in again, I could remove all of the
+ * chain junk, and replace with dns_rbt_firstnode, _previousnode, _nextnode,
+ * _lastnode.  This would involve pretty major change to the API.
  */
 #define CHAIN_MAGIC		0x302d302dU /* 0-0-. */
-#define VALID_CHAIN(chain)	((chain) != NULL && \
-				 (chain)->magic == CHAIN_MAGIC)
+#define VALID_CHAIN(chain)	ISC_MAGIC_VALID(chain, CHAIN_MAGIC)
 
 struct dns_rbt {
 	unsigned int		magic;

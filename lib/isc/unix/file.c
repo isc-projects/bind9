@@ -18,24 +18,20 @@
 #include <config.h>
 
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <sys/stat.h>
 
-#include <isc/assertions.h>
 #include <isc/file.h>
-#include <isc/result.h>
+#include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
 /*
  * XXXDCL As the API for accessing file statistics undoubtedly gets expanded,
  * it might be good to provide a mechanism that allows for the results
- * of a previous stat() to be used again without having to do another stat.
- * Such as perl's mechanism of using "_" in place of a file name to indicate
+ * of a previous stat() to be used again without having to do another stat,
+ * such as perl's mechanism of using "_" in place of a file name to indicate
  * that the results of the last stat should be used.  But then you get into
  * annoying MP issues.   BTW, Win32 has stat().
  */

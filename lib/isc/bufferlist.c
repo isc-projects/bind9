@@ -19,10 +19,8 @@
 
 #include <stddef.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
-#include <isc/list.h>
 #include <isc/util.h>
 
 unsigned int

@@ -17,13 +17,10 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/region.h>
-#include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 void

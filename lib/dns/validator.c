@@ -17,11 +17,8 @@
 
 #include <config.h>
 
-#include <isc/buffer.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/region.h>
-#include <isc/stdtime.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -29,10 +26,8 @@
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/keytable.h>
-#include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/message.h>
-#include <dns/name.h>
 #include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -41,8 +36,6 @@
 #include <dns/result.h>
 #include <dns/validator.h>
 #include <dns/view.h>
-
-#include <dst/dst.h>
 
 /*
  * We don't use the SIG RR's _tostruct routine because it copies things.
@@ -170,7 +163,9 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		LOCK(&val->lock);
 		result = get_dst_key(val, val->siginfo, rdataset);
 		if (result != ISC_R_SUCCESS) {
-			/* No matching key */
+			/*
+			 * No matching key.
+			 */
 			validator_done(val, result);
 			UNLOCK(&val->lock);
 			goto free_event;
@@ -192,7 +187,9 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 
  free_event:
 	dns_resolver_destroyfetch(&val->fetch);
-	/* free stuff from the event */
+	/*
+	 * Free stuff from the event.
+	 */
 	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
 	isc_mem_put(val->view->mctx, devent->sigrdataset,
 		    sizeof(dns_rdataset_t));
@@ -218,7 +215,9 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 	if (devent->result == ISC_R_SUCCESS) {
 		LOCK(&val->lock);
 		if (!containsnullkey(val, rdataset)) {
-			/* No null key */
+			/*
+			 * No null key.
+			 */
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "found a keyset, no null key");
 			result = proveunsecure(val, ISC_TRUE);
@@ -234,21 +233,18 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 			else {
 				dns_name_t *tname;
 				tname = dns_fixedname_name(&devent->foundname);
-				result = dns_validator_create(val->view,
-							      tname,
-							      dns_rdatatype_key,
-							      rdataset,
-							      sigrdataset,
-							      NULL,
-							      0,
-							      val->task,
-							      nullkeyvalidated,
-							      val,
-							      &val->keyvalidator);
+				result = dns_validator_create(val->view, tname,
+							   dns_rdatatype_key,
+							   rdataset,
+							   sigrdataset, NULL,
+							   0, val->task,
+							   nullkeyvalidated,
+							   val,
+							   &val->keyvalidator);
 				if (result != ISC_R_SUCCESS)
 					validator_done(val, result);
 				/*
-				 * don't free these, since they'll be
+				 * Don't free these, since they'll be
 				 * freed in nullkeyvalidated.
 				 */
 				devent->rdataset = NULL;
@@ -261,7 +257,9 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 		   devent->result == DNS_R_NXDOMAIN ||
 		   devent->result == DNS_R_NXRRSET)
 	{
-		/* No keys */
+		/*
+		 * No keys.
+		 */
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no keys found");
 		LOCK(&val->lock);
@@ -276,7 +274,9 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 
 	dns_resolver_destroyfetch(&val->fetch);
 
-	/* free stuff from the event */
+	/*
+	 * Free stuff from the event.
+	 */
 	if (devent->rdataset != NULL)
 		isc_mem_put(val->view->mctx, devent->rdataset,
 			    sizeof(dns_rdataset_t));
@@ -304,7 +304,9 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		LOCK(&val->lock);
 		result = get_dst_key(val, val->siginfo, rdataset);
 		if (result != ISC_R_SUCCESS) {
-			/* No matching key */
+			/*
+			 * No matching key.
+			 */
 			validator_done(val, result);
 			UNLOCK(&val->lock);
 			goto free_event;
@@ -325,7 +327,9 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			      dns_result_totext(devent->result));
  free_event:
 	dns_validator_destroy(&val->keyvalidator);
-	/* free stuff from the event */
+	/*
+	 * free stuff from the event.
+	 */
 	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
 	isc_mem_put(val->view->mctx, devent->sigrdataset,
 		    sizeof(dns_rdataset_t));
@@ -362,7 +366,9 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	dns_validator_destroy(&val->keyvalidator);
 
-	/* free stuff from the event */
+	/*
+	 * free stuff from the event.
+	 */
 	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
 	isc_mem_put(val->view->mctx, devent->sigrdataset,
 		    sizeof(dns_rdataset_t));
@@ -671,7 +677,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	event = val->event;
 
 	if (resume) {
-		/* We alraedy have a sigrdataset. */
+		/*
+		 * We alraedy have a sigrdataset.
+		 */
 		result = ISC_R_SUCCESS;
 	} else {
 		result = dns_rdataset_first(event->sigrdataset);
@@ -829,10 +837,11 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 					result = dns_rdataset_first(sigset);
 					INSIST(result == ISC_R_SUCCESS);
 					dns_rdata_init(&sigrdata);
-					dns_rdataset_current(sigset, &sigrdata);
-					val->siginfo = isc_mem_get(
-							  val->view->mctx,
-							  sizeof *val->siginfo);
+					dns_rdataset_current(sigset,
+							     &sigrdata);
+					val->siginfo =
+						isc_mem_get(val->view->mctx,
+							sizeof(*val->siginfo));
 					if (val->siginfo == NULL)
 						return (ISC_R_NOMEMORY);
 					rdata_to_siginfo(&sigrdata,
@@ -989,15 +998,14 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			dns_rdataset_init(frdataset);
 			dns_rdataset_init(fsigrdataset);
 			result = dns_resolver_createfetch(val->view->resolver,
-							  tname,
-							  dns_rdatatype_key,
-							  NULL, NULL, NULL, 0,
-							  val->event->ev_sender,
-							  fetch_callback_nullkey,
-							  val,
-							  frdataset,
-							  fsigrdataset,
-							  &val->fetch);
+							tname,
+							dns_rdatatype_key,
+							NULL, NULL, NULL, 0,
+							val->event->ev_sender,
+							fetch_callback_nullkey,
+							val, frdataset,
+							fsigrdataset,
+							&val->fetch);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
@@ -1047,7 +1055,9 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		 */
 		result = nxtvalidate(val, ISC_FALSE);
 	} else {
-		/* This shouldn't happen */
+		/*
+		 * This shouldn't happen.
+		 */
 		result = ISC_R_FAILURE; /* Keep compiler happy. */
 		INSIST(0);
 	}

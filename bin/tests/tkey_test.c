@@ -21,35 +21,24 @@
 
 #include <config.h>
 
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
+#include <isc/app.h>
+#include <isc/base64.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
+#include <isc/lex.h>
+#include <isc/log.h>
+#include <isc/mem.h>
+#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
-#include <isc/app.h>
-#include <isc/mutex.h>
-#include <isc/boolean.h>
-#include <isc/net.h>
-#include <isc/socket.h>
-#include <isc/log.h>
 #include <isc/util.h>
-#include <isc/lex.h>
-#include <isc/base64.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/message.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
-#include <dns/resolver.h>
-#include <dns/events.h>
-#include <dns/tsig.h>
-#include <dns/tkey.h>
 #include <dns/keyvalues.h>
+#include <dns/message.h>
+#include <dns/result.h>
+#include <dns/tkey.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 
 #include <dst/result.h>

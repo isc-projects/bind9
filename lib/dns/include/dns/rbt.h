@@ -19,10 +19,8 @@
 #define DNS_RBT_H 1
 
 #include <isc/lang.h>
-#include <isc/mem.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
 
 ISC_LANG_BEGINDECLS
 

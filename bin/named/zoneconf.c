@@ -17,14 +17,9 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/aclconf.h>
-#include <dns/types.h>
+#include <dns/acl.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
 #include <dns/ssu.h>
@@ -40,9 +35,12 @@
 static isc_result_t
 configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		   dns_aclconfctx_t *aclconfctx, dns_zone_t *zone,
-		   isc_result_t (*getcacl)(dns_c_zone_t *, dns_c_ipmatchlist_t **),
-		   isc_result_t (*getviewcacl)(dns_c_view_t *, dns_c_ipmatchlist_t **),
-		   isc_result_t (*getglobalcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
+		   isc_result_t (*getcacl)(dns_c_zone_t *,
+					   dns_c_ipmatchlist_t **),
+		   isc_result_t (*getviewcacl)(dns_c_view_t *
+					       , dns_c_ipmatchlist_t **),
+		   isc_result_t (*getglobalcacl)(dns_c_ctx_t *,
+						 dns_c_ipmatchlist_t **),
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *))
 {
@@ -195,18 +193,22 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getmaxtransfertimeout(cview, &maxxfr);
+			result = dns_c_view_getmaxtransfertimeout(cview,
+								  &maxxfr);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransfertimeout(cctx,
+								 &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+			result = dns_c_view_getmaxtransferidleout(cview,
+								  &maxxfr);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransferidleout(cctx,
+								 &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
@@ -224,7 +226,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	case dns_c_zone_forward:
 #ifdef notyet
 		/*
-		 * forward zones are still in a state of flux
+		 * Forward zones are still in a state of flux.
 		 */
 		czone->u.fzone.check_names; /* XXX unused in BIND 8 */
 		czone->u.fzone.forward; /* XXX*/
@@ -249,8 +251,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 #endif
 		result = configure_zone_acl(czone, cctx, cview, ac, zone,
 					    dns_c_zone_getallowquery,
-					    dns_c_view_getallowquery,					    
-					    dns_c_ctx_getallowquery,					    
+					    dns_c_view_getallowquery,
+					    dns_c_ctx_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != ISC_R_SUCCESS)
@@ -281,7 +283,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersource(cview, &sockaddr);
+			result = dns_c_view_gettransfersource(cview,
+							      &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
 		if (result != ISC_R_SUCCESS)
@@ -290,27 +293,33 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_gettransfersourcev6(cview, &sockaddr);
+			result = dns_c_view_gettransfersourcev6(cview,
+								&sockaddr);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
+			result = dns_c_ctx_gettransfersourcev6(cctx,
+							       &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getmaxtransfertimeout(cview, &maxxfr);
+			result = dns_c_view_getmaxtransfertimeout(cview,
+								  &maxxfr);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getmaxtransfertimeout(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransfertimeout(cctx,
+								 &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = MAX_XFER_TIME;
 		dns_zone_setmaxxfrout(zone, maxxfr);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_getmaxtransferidleout(cview, &maxxfr);
+			result = dns_c_view_getmaxtransferidleout(cview,
+								  &maxxfr);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidleout(cctx, &maxxfr);
+			result = dns_c_ctx_getmaxtransferidleout(cctx,
+								 &maxxfr);
 		if (result != ISC_R_SUCCESS)
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
@@ -395,7 +404,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersource(cview, &sockaddr);
+			result = dns_c_view_gettransfersource(cview,
+							      &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
 		if (result != ISC_R_SUCCESS)
@@ -404,9 +414,11 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_gettransfersourcev6(cview, &sockaddr);
+			result = dns_c_view_gettransfersourcev6(cview,
+								&sockaddr);
 		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
+			result = dns_c_ctx_gettransfersourcev6(cctx,
+							       &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
@@ -434,8 +446,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 }
 
 isc_boolean_t
-dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone)
-{
+dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 	const char *cfilename;
 	const char *zfilename;
 
@@ -455,8 +466,7 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone)
 }
 	
 isc_result_t
-dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr)
-{
+dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr) {
 	isc_int32_t val;
 	isc_result_t result;
 	

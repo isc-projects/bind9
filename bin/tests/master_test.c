@@ -17,20 +17,17 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/mem.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/master.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
-#include <dns/types.h>
 
 isc_mem_t *mctx;
 

@@ -17,27 +17,9 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
-#include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
-#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/compress.h>
-#include <dns/message.h>
 
 #include "printmsg.h"
 
@@ -81,8 +63,7 @@ static char *rcodetext[] = {
 };
 
 static isc_result_t
-printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
-{
+printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name) {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
 	isc_buffer_t target;

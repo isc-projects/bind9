@@ -15,35 +15,27 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.84 2000/05/05 18:14:59 gson Exp $ */
+/* $Id: rdata.c,v 1.85 2000/05/08 14:34:55 tale Exp $ */
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <isc/base64.h>
-#include <isc/buffer.h>
 #include <isc/lex.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/region.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
+#include <dns/callbacks.h>
+#include <dns/cert.h>
+#include <dns/compress.h>
+#include <dns/keyflags.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/rcode.h>
-#include <dns/cert.h>
+#include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/secproto.h>
-#include <dns/keyflags.h>
-#include <dns/fixedname.h>
-#include <dns/rdatastruct.h>
 #include <dns/time.h>
 #include <dns/ttl.h>
 
@@ -69,7 +61,7 @@ static isc_result_t	txt_totext(isc_region_t *source, isc_buffer_t *target);
 static isc_result_t	txt_fromtext(isc_textregion_t *source,
 				     isc_buffer_t *target);
 static isc_result_t	txt_fromwire(isc_buffer_t *source,
-				    isc_buffer_t *target);
+				     isc_buffer_t *target);
 static isc_boolean_t	name_prefix(dns_name_t *name, dns_name_t *origin,
 				    dns_name_t *target);
 static unsigned int 	name_length(dns_name_t *name);
@@ -77,12 +69,9 @@ static isc_result_t	str_totext(char *source, isc_buffer_t *target);
 static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
 					  isc_region_t *region);
-static isc_result_t	uint32_tobuffer(isc_uint32_t,
-					isc_buffer_t *target);
-static isc_result_t	uint16_tobuffer(isc_uint32_t,
-					isc_buffer_t *target);
-static isc_result_t	uint8_tobuffer(isc_uint32_t value,
-				       isc_buffer_t *target);
+static isc_result_t	uint32_tobuffer(isc_uint32_t, isc_buffer_t *target);
+static isc_result_t	uint16_tobuffer(isc_uint32_t, isc_buffer_t *target);
+static isc_result_t	uint8_tobuffer(isc_uint32_t, isc_buffer_t *target);
 static isc_result_t 	name_tobuffer(dns_name_t *name, isc_buffer_t *target);
 static isc_uint32_t	uint32_fromregion(isc_region_t *region);
 static isc_uint16_t	uint16_fromregion(isc_region_t *region);

@@ -72,19 +72,11 @@
  *** Imports
  ***/
 
-#include <stdio.h>
-
-#include <isc/event.h>
 #include <isc/lang.h>
-#include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/sockaddr.h>
-#include <isc/stdtime.h>
-#include <isc/task.h>
 
 #include <dns/types.h>
-#include <dns/rdataset.h>
 #include <dns/view.h>
 
 ISC_LANG_BEGINDECLS

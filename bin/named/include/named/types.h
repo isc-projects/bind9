@@ -15,10 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_TYPES_H
-#define NS_TYPES_H 1
-
-#include <isc/list.h>
+#ifndef NAMED_TYPES_H
+#define NAMED_TYPES_H 1
 
 #include <dns/types.h>
 
@@ -29,4 +27,4 @@ typedef struct ns_server 		ns_server_t;
 typedef struct ns_interface 		ns_interface_t;
 typedef struct ns_interfacemgr		ns_interfacemgr_t;
 
-#endif /* NS_TYPES_H */
+#endif /* NAMED_TYPES_H */

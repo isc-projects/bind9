@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_INTERFACEMGR_H
-#define NS_INTERFACEMGR_H 1
+#ifndef NAMED_INTERFACEMGR_H
+#define NAMED_INTERFACEMGR_H 1
 
 /*****
  ***** Module Info
@@ -47,8 +47,7 @@
  *** Imports
  ***/
 
-#include <isc/types.h>
-#include <isc/result.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
 
@@ -62,7 +61,7 @@
  ***/
 
 #define IFACE_MAGIC		0x493A2D29U	/* I:-). */	
-#define NS_INTERFACE_VALID(t)	((t) != NULL && (t)->magic == IFACE_MAGIC)
+#define NS_INTERFACE_VALID(t)	ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
 struct ns_interface {
 	unsigned int		magic;		/* Magic number. */
@@ -86,15 +85,13 @@ struct ns_interface {
  *** Functions
  ***/
 
-
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
 		       ns_interfacemgr_t **mgrp);
 
 void
-ns_interfacemgr_attach(ns_interfacemgr_t *source,
-		       ns_interfacemgr_t **target);
+ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target);
 
 void 
 ns_interfacemgr_detach(ns_interfacemgr_t **targetp);
@@ -115,8 +112,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
  */
 
 void
-ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
-			    ns_listenlist_t *value);
+ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr, ns_listenlist_t *value);
 /*
  * Set the "listen-on" list of 'mgr' to 'value'.
  * The previous listen-on list is freed.
@@ -134,10 +130,9 @@ dns_aclenv_t *
 ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr);
 
 void
-ns_interface_attach(ns_interface_t *source,
-		    ns_interface_t **target);
+ns_interface_attach(ns_interface_t *source, ns_interface_t **target);
 
 void 
 ns_interface_detach(ns_interface_t **targetp);
 
-#endif /* NS_INTERFACEMGR_H */
+#endif /* NAMED_INTERFACEMGR_H */

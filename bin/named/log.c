@@ -17,13 +17,6 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/log.h>
-#include <isc/result.h>
-
-#include <dns/log.h>
-
-#include <named/globals.h>
 #include <named/log.h>
 
 /*

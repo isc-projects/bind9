@@ -18,19 +18,16 @@
 #ifndef DNS_ZONECONF_H
 #define DNS_ZONECONF_H 1
 
-#include <isc/log.h>
+#include <isc/lang.h>
 #include <isc/types.h>
 
-#include <dns/acl.h>
 #include <dns/aclconf.h>
-#include <dns/confctx.h>
-#include <dns/confacl.h>
-#include <dns/confip.h>
-#include <dns/confzone.h>
 
-isc_result_t dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
-				dns_c_zone_t *czone, dns_aclconfctx_t *ac,
-				dns_zone_t *zone);
+ISC_LANG_BEGINDECLS
+
+isc_result_t
+dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
+		   dns_aclconfctx_t *ac, dns_zone_t *zone);
 /*
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.

@@ -15,45 +15,29 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.59 2000/04/27 00:00:40 tale Exp $ */
+/* $Id: xfrout.c,v 1.60 2000/05/08 14:33:01 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/print.h>
 #include <isc/timer.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
-#include <dns/acl.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/message.h>
-#include <dns/name.h>
 #include <dns/peer.h>
-#include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/rdatastruct.h>
 #include <dns/result.h>
-#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
 #include <named/client.h>
-#include <named/globals.h>
 #include <named/log.h>
 #include <named/server.h>
 #include <named/xfrout.h>
@@ -115,17 +99,22 @@ struct db_rr_iterator {
 	dns_rdata_t		rdata;
 };
 
-isc_result_t db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db,
-				 dns_dbversion_t *ver, isc_stdtime_t now);
+isc_result_t
+db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
+		    isc_stdtime_t now);
 
-isc_result_t db_rr_iterator_first(db_rr_iterator_t *it);
+isc_result_t
+db_rr_iterator_first(db_rr_iterator_t *it);
 
-isc_result_t db_rr_iterator_next(db_rr_iterator_t *it);
+isc_result_t
+db_rr_iterator_next(db_rr_iterator_t *it);
 
-void db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name, 
-			    isc_uint32_t *ttl, dns_rdata_t **rdata);
+void
+db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
+		       isc_uint32_t *ttl, dns_rdata_t **rdata);
 
-void db_rr_iterator_destroy(db_rr_iterator_t *it);
+void
+db_rr_iterator_destroy(db_rr_iterator_t *it);
 
 isc_result_t
 db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
@@ -326,7 +315,9 @@ typedef struct ixfr_rrstream {
 } ixfr_rrstream_t;
 
 /* Forward declarations. */
-static void ixfr_rrstream_destroy(rrstream_t **sp);
+static void
+ixfr_rrstream_destroy(rrstream_t **sp);
+
 static rrstream_methods_t ixfr_rrstream_methods;
 
 /*
@@ -366,19 +357,16 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 }
 
 static isc_result_t
-ixfr_rrstream_first(rrstream_t *rs)
-{
+ixfr_rrstream_first(rrstream_t *rs) {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *) rs;
 	return (dns_journal_first_rr(s->journal));
 }
 
 static isc_result_t
-ixfr_rrstream_next(rrstream_t *rs)
-{
+ixfr_rrstream_next(rrstream_t *rs) {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *) rs;	
 	return (dns_journal_next_rr(s->journal));
 }
-
 
 static void
 ixfr_rrstream_current(rrstream_t *rs,
@@ -397,8 +385,7 @@ ixfr_rrstream_destroy(rrstream_t **rsp) {
 	isc_mem_put(s->common.mctx, s, sizeof(*s));
 }
 
-static rrstream_methods_t ixfr_rrstream_methods = 
-{
+static rrstream_methods_t ixfr_rrstream_methods = {
 	ixfr_rrstream_first,
 	ixfr_rrstream_next,
 	ixfr_rrstream_current,		
@@ -421,15 +408,17 @@ typedef struct axfr_rrstream {
 	isc_boolean_t		it_valid;
 } axfr_rrstream_t;
 
-/* Forward declarations. */
-static void axfr_rrstream_destroy(rrstream_t **rsp);
+/*
+ * Forward declarations.
+ */
+static void
+axfr_rrstream_destroy(rrstream_t **rsp);
+
 static rrstream_methods_t axfr_rrstream_methods;
 
 static isc_result_t
-axfr_rrstream_create(isc_mem_t *mctx,
-		      dns_db_t *db,
-		      dns_dbversion_t *ver,
-		      rrstream_t **sp)
+axfr_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
+		     rrstream_t **sp)
 {
 	axfr_rrstream_t *s;
 	isc_result_t result;
@@ -455,8 +444,7 @@ axfr_rrstream_create(isc_mem_t *mctx,
 }
 
 static isc_result_t
-axfr_rrstream_first(rrstream_t *rs)
-{
+axfr_rrstream_first(rrstream_t *rs) {
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
 	isc_result_t result;
 	result = db_rr_iterator_first(&s->it);
@@ -479,8 +467,7 @@ axfr_rrstream_first(rrstream_t *rs)
 }
 
 static isc_result_t
-axfr_rrstream_next(rrstream_t *rs)
-{
+axfr_rrstream_next(rrstream_t *rs) {
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
 	isc_result_t result;
 	
@@ -501,9 +488,8 @@ axfr_rrstream_next(rrstream_t *rs)
 }
 
 static void
-axfr_rrstream_current(rrstream_t *rs,
-		       dns_name_t **name, isc_uint32_t *ttl,
-		       dns_rdata_t **rdata)
+axfr_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
+		      dns_rdata_t **rdata)
 {
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
 	db_rr_iterator_current(&s->it, name, ttl, rdata);
@@ -517,8 +503,7 @@ axfr_rrstream_destroy(rrstream_t **rsp) {
 	isc_mem_put(s->common.mctx, s, sizeof(*s));
 }
 
-static rrstream_methods_t axfr_rrstream_methods = 
-{
+static rrstream_methods_t axfr_rrstream_methods = {
 	axfr_rrstream_first,
 	axfr_rrstream_next,
 	axfr_rrstream_current,		
@@ -536,14 +521,16 @@ typedef struct soa_rrstream {
 	dns_difftuple_t 	*soa_tuple;
 } soa_rrstream_t;
 
-/* Forward declarations. */
-static void soa_rrstream_destroy(rrstream_t **rsp);
+/*
+ * Forward declarations.
+ */
+static void
+soa_rrstream_destroy(rrstream_t **rsp);
+
 static rrstream_methods_t soa_rrstream_methods;
 
 static isc_result_t
-soa_rrstream_create(isc_mem_t *mctx,
-		    dns_db_t *db,
-		    dns_dbversion_t *ver,
+soa_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 		    rrstream_t **sp)
 {
 	soa_rrstream_t *s;
@@ -582,8 +569,7 @@ soa_rrstream_next(rrstream_t *rs) {
 }
 
 static void
-soa_rrstream_current(rrstream_t *rs,
-		     dns_name_t **name, isc_uint32_t *ttl,
+soa_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
 		     dns_rdata_t **rdata)
 {
 	soa_rrstream_t *s = (soa_rrstream_t *) rs;	
@@ -600,8 +586,7 @@ soa_rrstream_destroy(rrstream_t **rsp) {
 	isc_mem_put(s->common.mctx, s, sizeof(*s));
 }
 
-static rrstream_methods_t soa_rrstream_methods = 
-{
+static rrstream_methods_t soa_rrstream_methods = {
 	soa_rrstream_first,
 	soa_rrstream_next,
 	soa_rrstream_current,		
@@ -626,9 +611,15 @@ typedef struct compound_rrstream {
 	isc_result_t		result;
 } compound_rrstream_t;
 
-/* Forward declarations. */
-static void compound_rrstream_destroy(rrstream_t **rsp);
-static isc_result_t compound_rrstream_next(rrstream_t *rs);
+/*
+ * Forward declarations.
+ */
+static void
+compound_rrstream_destroy(rrstream_t **rsp);
+
+static isc_result_t
+compound_rrstream_next(rrstream_t *rs);
+
 static rrstream_methods_t compound_rrstream_methods;
 
 /*
@@ -645,10 +636,8 @@ static rrstream_methods_t compound_rrstream_methods;
  *	when the compound_rrstream_t is destroyed.
  */
 static isc_result_t
-compound_rrstream_create(isc_mem_t *mctx,
-			 rrstream_t **soa_stream,
-			 rrstream_t **data_stream,
-			 rrstream_t **sp)
+compound_rrstream_create(isc_mem_t *mctx, rrstream_t **soa_stream,
+			 rrstream_t **data_stream, rrstream_t **sp)
 {
 	compound_rrstream_t *s;
 
@@ -698,9 +687,8 @@ compound_rrstream_next(rrstream_t *rs) {
 }
 
 static void
-compound_rrstream_current(rrstream_t *rs,
-		     dns_name_t **name, isc_uint32_t *ttl,
-		     dns_rdata_t **rdata)
+compound_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
+			  dns_rdata_t **rdata)
 {
 	compound_rrstream_t *s = (compound_rrstream_t *) rs;
 	rrstream_t *curstream;
@@ -719,8 +707,7 @@ compound_rrstream_destroy(rrstream_t **rsp) {
 	isc_mem_put(s->common.mctx, s, sizeof(*s));
 }
 
-static rrstream_methods_t compound_rrstream_methods = 
-{
+static rrstream_methods_t compound_rrstream_methods = {
 	compound_rrstream_first,
 	compound_rrstream_next,
 	compound_rrstream_current,		
@@ -769,23 +756,35 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  isc_boolean_t many_answers,
 		  xfrout_ctx_t **xfrp);
 
-static void sendstream(xfrout_ctx_t *xfr);
+static void
+sendstream(xfrout_ctx_t *xfr);
 
-static void xfrout_senddone(isc_task_t *task, isc_event_t *event);
-static void xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
-static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
-static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
-static void xfrout_client_shutdown(void *arg, isc_result_t result);
-static void xfrout_log1(ns_client_t *client, dns_name_t *zonename,
-			int level, const char *fmt, ...);
-static void xfrout_log(xfrout_ctx_t *xfr, unsigned int level,
-		       const char *fmt, ...);
+static void
+xfrout_senddone(isc_task_t *task, isc_event_t *event);
+
+static void
+xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
+
+static void
+xfrout_maybe_destroy(xfrout_ctx_t *xfr);
+
+static void
+xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
+
+static void
+xfrout_client_shutdown(void *arg, isc_result_t result);
+
+static void
+xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
+	    const char *fmt, ...);
+
+static void
+xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...);
 
 /**************************************************************************/
 
 void
-ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
-{
+ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_result_t result;
 	dns_name_t *question_name;
 	dns_rdataset_t *question_rdataset;
@@ -823,8 +822,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	}
 	
 	ns_client_log(client,
-		      DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT, ISC_LOG_DEBUG(6),
-		      "%s request", mnemonic);
+		      DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
+		      ISC_LOG_DEBUG(6), "%s request", mnemonic);
 	/*
 	 * Apply quota.
 	 */
@@ -886,7 +885,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		dns_message_currentname(request, DNS_SECTION_AUTHORITY,
 					&soa_name);
 
-		/* Ignore data whose owner name is not the zone apex. */
+		/*
+		 * Ignore data whose owner name is not the zone apex.
+		 */
 		if (! dns_name_equal(soa_name, question_name))
 			continue;
 		
@@ -894,7 +895,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		     soa_rdataset != NULL;
 		     soa_rdataset = ISC_LIST_NEXT(soa_rdataset, link))
 		{
-			/* Ignore non-SOA data. */
+			/*
+			 * Ignore non-SOA data.
+			 */
 			if (soa_rdataset->type != dns_rdatatype_soa)
 				continue;
 			if (soa_rdataset->rdclass != question_class)
@@ -918,30 +921,38 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	xfrout_log1(client, question_name, ISC_LOG_DEBUG(6), 
 		    "%s authority section OK", mnemonic);
 
-	/* Decide whether to allow this transfer. */
-	CHECK(ns_client_checkacl(client, "zone transfer", 
-				 dns_zone_getxfracl(zone),
-				 ISC_TRUE));
+	/*
+	 * Decide whether to allow this transfer.
+	 */
+	CHECK(ns_client_checkacl(client, "zone transfer",
+				 dns_zone_getxfracl(zone), ISC_TRUE));
 
-	/* AXFR over UDP is not possible. */
+	/*
+	 * AXFR over UDP is not possible.
+	 */
 	if (reqtype == dns_rdatatype_axfr &&
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
 	}
 
-	/* Look up the requesting server in the peer table. */
+	/*
+	 * Look up the requesting server in the peer table.
+	 */
 	isc_netaddr_fromsockaddr(&na, &client->peeraddr);
-	(void) dns_peerlist_peerbyaddr(client->view->peers,
-				       &na, &peer);
+	(void)dns_peerlist_peerbyaddr(client->view->peers, &na, &peer);
 	   
-	/* Decide on the transfer format (one-answer or many-answers). */
+	/*
+	 * Decide on the transfer format (one-answer or many-answers).
+	 */
 	if (peer != NULL)
-		(void) dns_peer_gettransferformat(peer, &format);
+		(void)dns_peer_gettransferformat(peer, &format);
 	
-	/* Get a dynamically allocated copy of the current SOA. */
+	/*
+	 * Get a dynamically allocated copy of the current SOA.
+	 */
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
-	
+
 	if (reqtype == dns_rdatatype_ixfr) {
 		isc_uint32_t begin_serial, current_serial;
 		isc_boolean_t provide_ixfr;
@@ -999,7 +1010,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 					   &data_stream));
 	}
 
-	/* Bracket the the data stream with SOAs. */
+	/*
+	 * Bracket the the data stream with SOAs.
+	 */
 	CHECK(soa_rrstream_create(mctx, db, ver, &soa_stream));
 	CHECK(compound_rrstream_create(mctx, &soa_stream, &data_stream,
 				       &stream));
@@ -1057,7 +1070,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up zone transfer");
 	} else if (result != ISC_R_SUCCESS) {
-		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT,
+		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
+			      NS_LOGMODULE_XFER_OUT,
 			      ISC_LOG_DEBUG(3), "zone transfer setup failed"); 
 		ns_client_error(client, result);
 	}
@@ -1171,8 +1185,7 @@ failure:
  *      _first method of the iterator has been called).
  */
 static void
-sendstream(xfrout_ctx_t *xfr)
-{
+sendstream(xfrout_ctx_t *xfr) {
 	dns_message_t *msg = NULL;
 	isc_result_t result;
 	isc_region_t used;
@@ -1460,8 +1473,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg)
-{
+xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg) {
 	xfr->shuttingdown = ISC_TRUE;
 	xfrout_log(xfr, ISC_LOG_ERROR, "%s: %s",
 		   msg, isc_result_totext(result));
@@ -1485,8 +1497,7 @@ xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
 }
 
 static void
-xfrout_client_shutdown(void *arg, isc_result_t result)
-{
+xfrout_client_shutdown(void *arg, isc_result_t result) {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) arg;
 	xfrout_fail(xfr, result, "aborted");
 }
@@ -1509,10 +1520,12 @@ xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
 		      "transfer of '%s': %s", namebuf, msgbuf);
 }
 
-/* Logging function for use when a xfrout_ctx_t has not yet been created. */
-
+/*
+ * Logging function for use when a xfrout_ctx_t has not yet been created.
+ */
 static void
-xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level, const char *fmt, ...)
+xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
+	    const char *fmt, ...)
 {
         va_list ap;
 	va_start(ap, fmt);
@@ -1520,11 +1533,11 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level, const char *fm
 	va_end(ap);
 }
 
-/* Logging function for use when there is a xfrout_ctx_t. */
-
+/*
+ * Logging function for use when there is a xfrout_ctx_t.
+ */
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...)
-{
+xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...) {
         va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(xfr->client, xfr->qname, level, fmt, ap);

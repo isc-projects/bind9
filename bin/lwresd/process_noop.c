@@ -17,26 +17,13 @@
 
 #include <config.h>
 
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
 #include <isc/socket.h>
-#include <isc/task.h>
 #include <isc/util.h>
-
-#include <dns/fixedname.h>
-
-#include <lwres/lwres.h>
-#include <lwres/result.h>
 
 #include "client.h"
 
 void
-process_noop(client_t *client, lwres_buffer_t *b)
-{
+process_noop(client_t *client, lwres_buffer_t *b) {
 	lwres_nooprequest_t *req;
 	lwres_noopresponse_t resp;
 	isc_result_t result;

@@ -22,15 +22,11 @@
  ***	Imports
  ***/
 
+#include <stdio.h>
+
 #include <isc/lang.h>
 #include <isc/rwlock.h>
-#include <isc/sockaddr.h>
 
-#include <dns/adb.h>
-#include <dns/callbacks.h>
-#include <dns/fixedname.h>
-#include <dns/name.h>
-#include <dns/rdataset.h>
 #include <dns/types.h>
 
 typedef enum {

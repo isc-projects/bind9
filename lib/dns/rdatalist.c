@@ -19,7 +19,6 @@
 
 #include <stddef.h>
 
-#include <isc/assertions.h>
 #include <isc/util.h>
 
 #include <dns/rdata.h>

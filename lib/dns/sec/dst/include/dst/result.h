@@ -27,7 +27,7 @@
  * the ISC result codes, so including this file buys you the ISC_R_
  * namespace too.
  */
-#include <isc/result.h>
+#include <isc/result.h>		/* Contractual promise. */
 
 #define DST_R_UNSUPPORTEDALG		(ISC_RESULTCLASS_DST + 0)
 #define DST_R_UNSUPPORTEDTYPE		(ISC_RESULTCLASS_DST + 1)

@@ -25,11 +25,8 @@
 #include <stdio.h>
 
 #include <isc/lang.h>
-#include <isc/mem.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
-#include <dns/rdataset.h>
 
 /***
  *** Types
@@ -62,8 +59,8 @@ extern const dns_master_style_t dns_master_style_default;
 
 isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
-		dns_dbversion_t *version,
-		const dns_master_style_t *style, FILE *f);
+			dns_dbversion_t *version,
+			const dns_master_style_t *style, FILE *f);
 /*
  * Dump the database 'db' to the steam 'f' in RFC1035 master 
  * file format, in the style defined by 'style'

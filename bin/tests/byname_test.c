@@ -24,39 +24,20 @@
 
 #include <config.h>
 
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/buffer.h>
+#include <isc/app.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
 #include <isc/task.h>
 #include <isc/timer.h>
-#include <isc/app.h>
-#include <isc/mutex.h>
-#include <isc/boolean.h>
-#include <isc/net.h>
-#include <isc/region.h>
-#include <isc/sockaddr.h>
-#include <isc/socket.h>
 #include <isc/util.h>
-#include <isc/netaddr.h>
-#include <isc/log.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
-#include <dns/resolver.h>
 #include <dns/events.h>
-#include <dns/dispatch.h>
-#include <dns/byaddr.h>
-#include <dns/view.h>
 #include <dns/log.h>
+#include <dns/resolver.h>
+#include <dns/result.h>
 
 static isc_mem_t *mctx = NULL;
 static dns_view_t *view = NULL;

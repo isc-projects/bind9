@@ -18,7 +18,6 @@
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
 
-#include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
@@ -28,14 +27,16 @@
 
 #include <dst/dst.h>
 
-ISC_LANG_BEGINDECLS
-
-/* Standard algorithm */
+/*
+ * Standard algorithm.
+ */
 #define DNS_TSIG_HMACMD5		"HMAC-MD5.SIG-ALG.REG.INT."
 extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
 
-/* Default fudge value. */
+/*
+ * Default fudge value.
+ */
 #define DNS_TSIG_FUDGE			300
 
 struct dns_tsig_keyring {
@@ -67,6 +68,8 @@ struct dns_tsigkey {
 #define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
 #define dns_tsigkey_identity(tsigkey) \
 	((tsigkey)->generated ? ((tsigkey)->creator) : (&((tsigkey)->name)))
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,

@@ -16,38 +16,25 @@
  */
 
 /*
- * $Id: tkey.c,v 1.32 2000/05/02 03:53:57 tale Exp $
+ * $Id: tkey.c,v 1.33 2000/05/08 14:35:09 tale Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/buffer.h>
-#include <isc/log.h>
 #include <isc/mem.h>
-#include <isc/net.h>
-#include <isc/rwlock.h>
-#include <isc/stdtime.h>
-#include <isc/types.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
-#include <dns/name.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
-
-#include <dst/dst.h>
-#include <dst/result.h>
 
 #define TKEY_RANDOM_AMOUNT 16
 
@@ -85,7 +72,8 @@ dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx) {
 		dst_key_free((*tctx)->dhkey);
 	if ((*tctx)->domain != NULL) {
 		dns_name_free((*tctx)->domain, (*tctx)->mctx);
-		isc_mem_put((*tctx)->mctx, (*tctx)->domain, sizeof(dns_name_t));
+		isc_mem_put((*tctx)->mctx, (*tctx)->domain,
+			    sizeof(dns_name_t));
 	}
 
 	mctx = (*tctx)->mctx;
@@ -169,21 +157,27 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	isc_buffer_init(&b, digests, sizeof(digests));
 	isc_buffer_usedregion(shared, &r);
 
-	/* MD5 ( query data | DH value ) */
+	/*
+	 * MD5 ( query data | DH value ).
+	 */
 	RETERR(dst_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL, NULL));
 	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
 			  queryrandomness, NULL));
 	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r, NULL));
 	RETERR(dst_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL, &b));
 			
-	/* MD5 ( server data | DH value ) */
+	/*
+	 * MD5 ( server data | DH value ).
+	 */
 	RETERR(dst_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL, NULL));
 	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
 			  serverrandomness, NULL));
 	RETERR(dst_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r, NULL));
 	RETERR(dst_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL, &b));
 
-	/* XOR ( DH value, MD5-1 | MD5-2) */
+	/*
+	 * XOR ( DH value, MD5-1 | MD5-2).
+	 */
 	isc_buffer_availableregion(secret, &r);
 	isc_buffer_usedregion(shared, &r2);
 	if (r.length < sizeof(digests) || r.length < r2.length)
@@ -229,7 +223,9 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	unsigned char *randomdata = NULL, secretdata[256];
 	isc_stdtime_t now;
 
-	/* Look for a DH KEY record that will work with ours */
+	/*
+	 * Look for a DH KEY record that will work with ours.
+	 */
 	result = dns_message_firstname(msg, DNS_SECTION_ADDITIONAL);
 	while (result == ISC_R_SUCCESS) {
 		keyname = NULL;
@@ -293,7 +289,9 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				 &ournameout));
 	ourttl = 0;
 #if 0
-	/* Not sure how to do this without a view... */
+	/*
+	 * Not sure how to do this without a view...
+	 */
 	db = NULL;
 	result = dns_dbtable_find(client->view->dbtable, &ourname, 0, &db);
 	if (result == ISC_R_SUCCESS) {
@@ -436,17 +434,23 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 	REQUIRE(tctx != NULL);
 	REQUIRE(ring != NULL);
 
-	/* Need to do this to determine if this should be freed later */
+	/*
+	 * Need to do this to determine if this should be freed later.
+	 */
 	memset(&tkeyin, 0, sizeof(dns_rdata_tkey_t));
 
-	/* Interpret the question section */
+	/*
+	 * Interpret the question section.
+	 */
 	result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
 	INSIST(result == ISC_R_SUCCESS);
 
 	qname = NULL;
 	dns_message_currentname(msg, DNS_SECTION_QUESTION, &qname);
 
-	/* Look for a TKEY record that matches the question */
+	/*
+	 * Look for a TKEY record that matches the question.
+	 */
 	tkeyset = NULL;
 	name = NULL;
 	result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL, qname,
@@ -988,9 +992,13 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 	RETERR(dns_tsigkey_find(&tsigkey, tkeyname, &rtkey.algorithm, ring));
 
-	/* Mark the key as deleted */
+	/*
+	 * Mark the key as deleted.
+	 */
 	dns_tsigkey_setdeleted(tsigkey);
-	/* Release the reference */
+	/*
+	 * Release the reference.
+	 */
 	dns_tsigkey_free(&tsigkey);
 
  failure:

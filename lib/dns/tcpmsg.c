@@ -17,41 +17,30 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/events.h>
-#include <dns/types.h>
 #include <dns/result.h>
 #include <dns/tcpmsg.h>
 
 #ifdef TCPMSG_DEBUG
+#include <stdio.h>		/* Required for printf. */
 #define XDEBUG(x) printf x
 #else
 #define XDEBUG(x)
 #endif
 
-#define TCPMSG_MAGIC			0x5443506d	/* TCPm */
-
-#define VALID_TCPMSG(foo) ((foo) != NULL && ((foo)->magic == TCPMSG_MAGIC))
+#define TCPMSG_MAGIC		0x5443506d	/* TCPm */
+#define VALID_TCPMSG(foo)	ISC_MAGIC_VALID(foo, TCPMSG_MAGIC)
 
 static void recv_length(isc_task_t *, isc_event_t *);
 static void recv_message(isc_task_t *, isc_event_t *);
 
 
 static void
-recv_length(isc_task_t *task, isc_event_t *ev_in)
-{
+recv_length(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	isc_event_t *dev;
 	dns_tcpmsg_t *tcpmsg = ev_in->ev_arg;
@@ -68,7 +57,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 	}
 
 	/*
-	 * success
+	 * Success.
 	 */
 	tcpmsg->size = ntohs(tcpmsg->size);
 	if (tcpmsg->size == 0) {
@@ -107,8 +96,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 }
 
 static void
-recv_message(isc_task_t *task, isc_event_t *ev_in)
-{
+recv_message(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	isc_event_t *dev;
 	dns_tcpmsg_t *tcpmsg = ev_in->ev_arg;
@@ -137,8 +125,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in)
 }
 
 void
-dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg)
-{
+dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
 	REQUIRE(tcpmsg != NULL);
@@ -147,18 +134,19 @@ dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg)
 	tcpmsg->size = 0;
 	tcpmsg->buffer.base = NULL;
 	tcpmsg->buffer.length = 0;
-	tcpmsg->maxsize = 65535;  /* largest message possible */
+	tcpmsg->maxsize = 65535;		/* Largest message possible. */
 	tcpmsg->mctx = mctx;
 	tcpmsg->sock = sock;
-	tcpmsg->task = NULL;  /* none yet */
-	tcpmsg->result = ISC_R_UNEXPECTED;  /* none yet */
-	/* Should probably initialize the event here, but it can wait. */
+	tcpmsg->task = NULL;			/* None yet. */
+	tcpmsg->result = ISC_R_UNEXPECTED;	/* None yet. */
+	/*
+	 * Should probably initialize the event here, but it can wait.
+	 */
 }
 
 
 void
-dns_tcpmsg_setmaxsize(dns_tcpmsg_t *tcpmsg, unsigned int maxsize)
-{
+dns_tcpmsg_setmaxsize(dns_tcpmsg_t *tcpmsg, unsigned int maxsize) {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 	REQUIRE(maxsize < 65536);
 
@@ -205,16 +193,14 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 }
 
 void
-dns_tcpmsg_cancelread(dns_tcpmsg_t *tcpmsg)
-{
+dns_tcpmsg_cancelread(dns_tcpmsg_t *tcpmsg) {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 
 	isc_socket_cancel(tcpmsg->sock, NULL, ISC_SOCKCANCEL_RECV);
 }
 
 void
-dns_tcpmsg_keepbuffer(dns_tcpmsg_t *tcpmsg, isc_buffer_t *buffer)
-{
+dns_tcpmsg_keepbuffer(dns_tcpmsg_t *tcpmsg, isc_buffer_t *buffer) {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 	REQUIRE(buffer != NULL);
 
@@ -225,8 +211,7 @@ dns_tcpmsg_keepbuffer(dns_tcpmsg_t *tcpmsg, isc_buffer_t *buffer)
 
 #if 0
 void
-dns_tcpmsg_freebuffer(dns_tcpmsg_t *tcpmsg)
-{
+dns_tcpmsg_freebuffer(dns_tcpmsg_t *tcpmsg) {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 
 	if (tcpmsg->buffer.base == NULL)
@@ -239,8 +224,7 @@ dns_tcpmsg_freebuffer(dns_tcpmsg_t *tcpmsg)
 #endif
 
 void
-dns_tcpmsg_invalidate(dns_tcpmsg_t *tcpmsg)
-{
+dns_tcpmsg_invalidate(dns_tcpmsg_t *tcpmsg) {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 
 	tcpmsg->magic = 0;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.10 2000/04/28 02:07:58 tale Exp $ */
+/* $Id: rndc.c,v 1.11 2000/05/08 14:33:19 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -23,15 +23,12 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
 
-#include <isc/assertions.h>
 #include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
 

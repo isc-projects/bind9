@@ -72,12 +72,13 @@
  *** Imports
  ***/
 
-#include <isc/types.h>
+#include <stdio.h>
+
+#include <isc/boolean.h>
 #include <isc/lang.h>
+#include <isc/region.h>		/* Required for storage size of dns_label_t. */
 
 #include <dns/types.h>
-
-#include <stdio.h>
 
 ISC_LANG_BEGINDECLS
 

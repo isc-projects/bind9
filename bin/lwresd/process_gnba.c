@@ -17,32 +17,19 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <sys/types.h>
-
-#include <isc/mem.h>
-#include <isc/netaddr.h>
-#include <isc/sockaddr.h>
 #include <isc/socket.h>
-#include <isc/stdtime.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/byaddr.h>
 #include <dns/result.h>
 
-#include <lwres/lwres.h>
-#include <lwres/result.h>
-
 #include "client.h"
 
 static void start_byaddr(client_t *);
 
 static void
-byaddr_done(isc_task_t *task, isc_event_t *event)
-{
+byaddr_done(isc_task_t *task, isc_event_t *event) {
 	client_t *client;
 	clientmgr_t *cm;
 	dns_byaddrevent_t *bevent;
@@ -175,8 +162,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-start_byaddr(client_t *client)
-{
+start_byaddr(client_t *client) {
 	isc_result_t result;
 	clientmgr_t *cm;
 
@@ -195,8 +181,7 @@ start_byaddr(client_t *client)
 }
 
 void
-process_gnba(client_t *client, lwres_buffer_t *b)
-{
+process_gnba(client_t *client, lwres_buffer_t *b) {
 	lwres_gnbarequest_t *req;
 	isc_result_t result;
 	isc_sockaddr_t sa;

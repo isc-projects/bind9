@@ -17,40 +17,27 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/boolean.h>
-#include <isc/error.h>
-#include <isc/result.h>
-#include <isc/types.h>
-#include <isc/timer.h>
-#include <isc/mutex.h>
-#include <isc/event.h>
 #include <isc/task.h>
-#include <isc/stdtime.h>
+#include <isc/timer.h>
 #include <isc/util.h>
-#include <isc/netaddr.h>
 
-#include <dns/types.h>
 #include <dns/adb.h>
-#include <dns/result.h>
-#include <dns/name.h>
 #include <dns/db.h>
+#include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/keytable.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
-#include <dns/dispatch.h>
-#include <dns/resolver.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/resolver.h>
+#include <dns/result.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-#include <dns/view.h>
-#include <dns/log.h>
 
-#include <dst/dst.h>
 #include <dns/peer.h>
 
 #define DNS_RESOLVER_TRACE

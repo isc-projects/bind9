@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.12 2000/04/28 01:10:35 halley Exp $ */
+/* $Id: confndc.c,v 1.13 2000/05/08 14:35:31 tale Exp $ */
 
 /*
 **	options {
@@ -38,36 +38,21 @@
 
 #include <config.h>
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
-#include <errno.h> 
-#include <limits.h>
-#include <string.h>
-#include <syslog.h>
+#include <stdlib.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/mutex.h>
-#include <isc/lex.h>
-#include <isc/symtab.h>
-#include <isc/error.h>
-#include <isc/once.h>
+#include <isc/string.h>
 #include <isc/dir.h>
+#include <isc/lex.h>
+#include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/print.h>
+#include <isc/symtab.h>
 #include <isc/util.h>
 
 #include <dns/confndc.h>
 #include <dns/log.h>
  
-#include <dns/result.h>
-#include <dns/rdatatype.h>
-#include <dns/rdataclass.h>
-
-#include <dns/types.h>
-
 /* Type keys for symtab lookup */
 #define KEYWORD_SYM_TYPE 0x1
 #define CLASS_SYM_TYPE 0x2

@@ -17,11 +17,7 @@
 
 #include <config.h>
 
-#include <errno.h>
-
-#include <isc/assertions.h>
 #include <isc/thread.h>
-#include <isc/error.h>
 
 #ifndef THREAD_MINSTACKSIZE
 #define THREAD_MINSTACKSIZE		(64 * 1024)

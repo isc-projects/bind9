@@ -17,31 +17,23 @@
 
 #include <config.h>
 
-#include <errno.h>
-#include <string.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <stddef.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
 #include <isc/commandline.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/dbtable.h>
-#include <dns/tsig.h>
-#include <dns/tkey.h>
-#include <dns/result.h>
-
 #include <dst/result.h>
 
-#define NS_MAIN 1
+/*
+ * Defining NS_MAIN provides storage declaratons (rather than extern)
+ * for variables in named/globals.h.
+ */
+#define NS_MAIN 1		
 
-#include <named/globals.h>
+#include <named/globals.h>	/* Explicit, though named/log.h includes it. */
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/omapi.h>

@@ -19,12 +19,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 
 #include <isc/error.h>
 
-static void default_unexpected_callback(char *, int, char *, va_list);
-static void default_fatal_callback(char *, int, char *, va_list);
+static void
+default_unexpected_callback(char *, int, char *, va_list);
+
+static void
+default_fatal_callback(char *, int, char *, va_list);
 
 static isc_errorcallback_t unexpected_callback = default_unexpected_callback;
 static isc_errorcallback_t fatal_callback = default_fatal_callback;

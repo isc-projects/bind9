@@ -49,24 +49,16 @@
  *** Imports
  ***/
 
-#include <isc/int.h>
 #include <isc/lang.h>
-#include <isc/list.h>
-#include <isc/mem.h>
+#include <isc/magic.h>
 
-#include <dns/peer.h>
-#include <dns/confcommon.h>
-#include <dns/confip.h>
-#include <dns/confzone.h>
-#include <dns/confkeys.h>
-#include <dns/conflog.h>
 #include <dns/confacl.h>
-#include <dns/conflsn.h>
-#include <dns/confrrset.h>
-#include <dns/confctl.h>
-#include <dns/confview.h>
 #include <dns/confcache.h>
+#include <dns/confctl.h>
+#include <dns/conflog.h>
+#include <dns/conflsn.h>
 #include <dns/confresolv.h>
+#include <dns/confview.h>
 
 #define DNS_C_CONFIG_MAGIC		0x434f4e46U /* CONF */
 #define DNS_C_OPTION_MAGIC		0x4f707473U /* Opts */

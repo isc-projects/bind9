@@ -22,7 +22,6 @@
 #include <sys/types.h>
 
 #include <stddef.h>
-#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
@@ -31,6 +30,7 @@
 #include <isc/boolean.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -64,13 +64,13 @@ static pthread_t		main_thread;
 #ifndef HAVE_SIGWAIT
 static void
 exit_action(int arg) {
-        (void)arg;
+        UNUSED(arg);
 	want_shutdown = ISC_TRUE;
 }
 
 static void
 reload_action(int arg) {
-        (void)arg;
+        UNUSED(arg);
 	want_reload = ISC_TRUE;
 }
 #endif

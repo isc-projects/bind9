@@ -19,15 +19,14 @@
 
 #include <stddef.h>
 
-#include <isc/assertions.h>
 #include <isc/event.h>
+#include <isc/magic.h>
 #include <isc/ondestroy.h>
-#include <isc/result.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
 #define ONDESTROY_MAGIC		0x44655374 /* DeSt */
-#define VALID_ONDESTROY(s)	(s != NULL && (s->magic == ONDESTROY_MAGIC))
+#define VALID_ONDESTROY(s)	ISC_MAGIC_VALID(s, ONDESTROY_MAGIC)
 
 void
 isc_ondestroy_init(isc_ondestroy_t *ondest) {

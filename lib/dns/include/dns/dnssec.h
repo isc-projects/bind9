@@ -18,10 +18,8 @@
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
 
-#include <isc/mem.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
-#include <isc/time.h>
 
 #include <dns/types.h>
 

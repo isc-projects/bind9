@@ -15,12 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.h,v 1.18 2000/04/29 02:01:35 tale Exp $ */
+/* $Id: cname_5.h,v 1.19 2000/05/08 14:36:45 tale Exp $ */
 
 #ifndef GENERIC_CNAME_5_H
 #define GENERIC_CNAME_5_H 1
-
-#include <dns/name.h>
 
 typedef struct dns_rdata_cname {
 	dns_rdatacommon_t	common;

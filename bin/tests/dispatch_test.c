@@ -17,33 +17,18 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-
-#include <sys/types.h>
 
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/net.h>
+#include <isc/string.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
-#include <isc/socket.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
-#include <dns/message.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
 #include <dns/result.h>
 
 #include "printmsg.h"
@@ -62,20 +47,18 @@ isc_taskmgr_t *manager;
 isc_socketmgr_t *socketmgr;
 dns_dispatch_t *disp;
 isc_task_t *t0, *t1, *t2;
-clictx_t clients[16];  /* lots of things might want to use this */
+clictx_t clients[16];  /* Lots of things might want to use this. */
 unsigned int client_count = 0;
 isc_mutex_t client_lock;
 
-void got_request(isc_task_t *, isc_event_t *);
-void got_response(isc_task_t *, isc_event_t *);
-void start_response(clictx_t *, char *, isc_task_t *);
-static inline void CHECKRESULT(isc_result_t, char *);
-void send_done(isc_task_t *, isc_event_t *);
-void hex_dump(isc_buffer_t *);
-
+/*
+ * Forward declarations.
+ */
 void
-hex_dump(isc_buffer_t *b)
-{
+got_response(isc_task_t *, isc_event_t *);
+
+static void
+hex_dump(isc_buffer_t *b) {
 	unsigned int len;
 	isc_region_t r;
 
@@ -92,8 +75,7 @@ hex_dump(isc_buffer_t *b)
 }
 
 static inline void
-CHECKRESULT(isc_result_t result, char *msg)
-{
+CHECKRESULT(isc_result_t result, char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
 
@@ -101,9 +83,8 @@ CHECKRESULT(isc_result_t result, char *msg)
 	}
 }
 
-void
-send_done(isc_task_t *task, isc_event_t *ev_in)
-{
+static void
+send_done(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
 	clictx_t *cli = (clictx_t *)ev_in->ev_arg;
 
@@ -124,10 +105,8 @@ send_done(isc_task_t *task, isc_event_t *ev_in)
 	isc_app_shutdown();
 }
 
-
-void
-start_response(clictx_t *cli, char *query, isc_task_t *task)
-{
+static void
+start_response(clictx_t *cli, char *query, isc_task_t *task) {
 	dns_messageid_t id;
 	isc_sockaddr_t from;
 	dns_message_t *msg;
@@ -229,8 +208,7 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 }
 
 void
-got_response(isc_task_t *task, isc_event_t *ev_in)
-{
+got_response(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->ev_sender;
 	dns_message_t *msg;
@@ -283,9 +261,8 @@ got_response(isc_task_t *task, isc_event_t *ev_in)
 		isc_app_shutdown();
 }
 
-void
-got_request(isc_task_t *task, isc_event_t *ev_in)
-{
+static void
+got_request(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	clictx_t *cli = (clictx_t *)ev_in->ev_arg;
 	dns_message_t *msg;
@@ -352,8 +329,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 }
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	isc_socket_t *s0;
 	isc_sockaddr_t sockaddr;
 	unsigned int i;
@@ -372,7 +348,7 @@ main(int argc, char *argv[])
 	dns_result_register();
 
 	/*
-	 * The task manager is independent (other than memory context)
+	 * The task manager is independent (other than memory context).
 	 */
 	manager = NULL;
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, 5, 0, &manager) ==
@@ -402,7 +378,7 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_socket_bind(s0, &sockaddr) == ISC_R_SUCCESS);
 
 	/*
-	 * Create a dispatch context
+	 * Create a dispatch context.
 	 */
 	disp = NULL;
 	RUNTIME_CHECK(dns_dispatch_create(mctx, s0, t0, 512, 6, 1024,

@@ -15,23 +15,25 @@
  * SOFTWARE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <config.h>
 
-#include <isc/commandline.h>
-#include <isc/error.h>
-#include <isc/mem.h>
+#include <stdlib.h>
+
 #include <isc/app.h>
+#include <isc/commandline.h>
+#include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/string.h>
+#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
-#include <dns/zone.h>
+#include <dns/fixedname.h>
 #include <dns/rdataclass.h>
-
+#include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/zone.h>
 
 static int debug = 0;
 static int quiet = 0;
@@ -111,7 +113,7 @@ setup(char *zonename, char *filename, char *classname) {
 	dns_zone_setclass(zone, rdclass);
 
 	if (zonetype == dns_zone_slave)
-		dns_zone_addmaster(zone, &addr);
+		dns_zone_setmasters(zone, &addr, 1);
 
 	result = dns_zone_load(zone);
 	ERRRET(result, "dns_zone_load");

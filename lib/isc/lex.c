@@ -18,19 +18,12 @@
 #include <config.h>
 
 #include <ctype.h>
-#include <limits.h>
-#include <string.h>
 #include <stdlib.h>
 
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 typedef struct inputsource {

@@ -15,8 +15,11 @@
  * SOFTWARE.
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <isc/serial.h>
 
 int
@@ -24,7 +27,6 @@ main() {
 	isc_uint32_t a, b;
 	char buf[1024];
 	char *s, *e;
-
 
 	while (fgets(buf, sizeof buf, stdin) != NULL) {
 		buf[sizeof buf - 1] = '\0';

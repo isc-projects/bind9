@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef LWRES_BUFFER_H
-#define LWRES_BUFFER_H 1
+#ifndef LWRES_LWBUFFER_H
+#define LWRES_LWBUFFER_H 1
 
 /*****
  ***** Module Info
@@ -397,4 +397,4 @@ lwres_buffer_getmem(lwres_buffer_t *b, unsigned char *base,
 
 LWRES_LANG_ENDDECLS
 
-#endif /* LWRES_BUFFER_H */
+#endif /* LWRES_LWBUFFER_H */

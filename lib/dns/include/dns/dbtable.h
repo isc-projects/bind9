@@ -45,7 +45,6 @@
  */
 
 #include <isc/lang.h>
-#include <isc/mem.h>
 
 #include <dns/types.h>
 

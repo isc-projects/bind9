@@ -15,16 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: string.c,v 1.5 2000/04/28 02:08:20 tale Exp $ */
+/* $Id: string.c,v 1.6 2000/05/08 14:38:21 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
 #include <config.h>
 
-#include <string.h>		/* memset */
-
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/mem.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
 

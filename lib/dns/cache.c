@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.20 2000/05/02 03:53:51 tale Exp $ */
+/* $Id: cache.c,v 1.21 2000/05/08 14:34:26 tale Exp $ */
 
 #include <config.h>
 
-#include <limits.h>
-
-#include <isc/mutex.h>
+#include <isc/mem.h>
+#include <isc/task.h>
 #include <isc/time.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/cache.h>
@@ -30,12 +30,10 @@
 #include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/log.h>
-#include <dns/rdata.h>
 #include <dns/result.h>
-#include <dns/types.h>
 
-#define CACHE_MAGIC	0x24242424U 	/* $$$$. */
-#define VALID_CACHE(cache) ((cache) != NULL && (cache)->magic == CACHE_MAGIC)
+#define CACHE_MAGIC		0x24242424U 	/* $$$$. */
+#define VALID_CACHE(cache)	ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
 /***
  ***	Types
@@ -53,7 +51,9 @@ typedef enum {
 	cleaner_s_busy	/* Currently cleaning. */
 } cleaner_state_t;
 
-/* Convenience macros for comprehensive assertion checking. */
+/*
+ * Convenience macros for comprehensive assertion checking.
+ */
 #define CLEANER_IDLE(c) ((c)->state == cleaner_s_idle && \
 		         (c)->iterator == NULL && \
 			 (c)->resched_event != NULL)
@@ -260,9 +260,9 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 
 #ifdef NOTYET
 
+/* ARGSUSED */
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cahce, char *filename) /* ARGSUSED */
-{
+dns_cache_setfilename(dns_cache_t *cahce, char *filename) {
 	char *newname = isc_mem_strdup(filename);
 	if (newname == NULL)
 		return (ISC_R_NOMEMORY);
@@ -299,12 +299,14 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	LOCK(&cache->lock);
 	cache->cleaner.cleaning_interval = t;
 	if (t == 0) {
-		isc_timer_reset(cache->cleaner.cleaning_timer, isc_timertype_inactive,
-				NULL, NULL, ISC_TRUE);
+		isc_timer_reset(cache->cleaner.cleaning_timer,
+				isc_timertype_inactive, NULL, NULL, ISC_TRUE);
 	} else {
 		isc_interval_t interval;
-		isc_interval_set(&interval, cache->cleaner.cleaning_interval, 0);
-		isc_timer_reset(cache->cleaner.cleaning_timer, isc_timertype_ticker,
+		isc_interval_set(&interval, cache->cleaner.cleaning_interval,
+				 0);
+		isc_timer_reset(cache->cleaner.cleaning_timer,
+				isc_timertype_ticker,
 				NULL, &interval, ISC_FALSE);
 	}
 	UNLOCK(&cache->lock);	

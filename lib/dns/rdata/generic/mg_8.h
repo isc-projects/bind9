@@ -18,9 +18,7 @@
 #ifndef GENERIC_MG_8_H
 #define GENERIC_MG_8_H 1
 
-/* $Id: mg_8.h,v 1.16 2000/04/29 02:01:43 tale Exp $ */
-
-#include <dns/name.h>
+/* $Id: mg_8.h,v 1.17 2000/05/08 14:36:50 tale Exp $ */
 
 typedef struct dns_rdata_mg {
 	dns_rdatacommon_t	common;

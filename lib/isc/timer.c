@@ -17,13 +17,9 @@
 
 #include <config.h>
 
-#include <stddef.h>
-#include <stdlib.h>
-
 #include <isc/condition.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
@@ -551,7 +547,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 }
 
 static isc_threadresult_t
-#ifdef _WIN32
+#ifdef _WIN32			/* XXXDCL */
 WINAPI
 #endif
 run(void *uap) {

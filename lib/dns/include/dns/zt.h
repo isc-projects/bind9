@@ -20,16 +20,14 @@
 
 #include <isc/lang.h>
 
-#include <isc/mem.h>
-#include <dns/name.h>
 #include <dns/types.h>
-
-ISC_LANG_BEGINDECLS
 
 #define DNS_ZTFIND_NOEXACT		0x01
 
-isc_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-			   dns_zt_t **zt);
+ISC_LANG_BEGINDECLS
+
+isc_result_t
+dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
 /*
  * Creates a new zone table.
  *
@@ -41,8 +39,8 @@ isc_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
-
+isc_result_t
+dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
 /*
  * Mounts the zone on the zone table.
  *
@@ -57,8 +55,8 @@ isc_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
-
+isc_result_t
+dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
 /*
  * Unmount the given zone from the table.
  *
@@ -72,9 +70,9 @@ isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
-			 dns_name_t *foundname, dns_zone_t **zone);
-
+isc_result_t
+dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
+	    dns_name_t *foundname, dns_zone_t **zone);
 /*
  * Find the best match for 'name' in 'zt'.  If foundname is non NULL
  * then the name of the zone found is returned.
@@ -96,8 +94,8 @@ isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
  *	ISC_R_NOSPACE
  */
 
-void dns_zt_detach(dns_zt_t **ztp);
-
+void
+dns_zt_detach(dns_zt_t **ztp);
 /*
  * Detach the given zonetable, if the reference count goes to zero the
  * zonetable will be freed.  In either case 'ztp' is set to NULL.
@@ -106,8 +104,8 @@ void dns_zt_detach(dns_zt_t **ztp);
  *	'*ztp' to be valid
  */
 
-void dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
-
+void
+dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
 /*
  * Attach 'zt' to '*ztp'.
  *
@@ -116,8 +114,8 @@ void dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
  *	'*ztp' to be NULL
  */
 
-isc_result_t dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
-
+isc_result_t
+dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
 /*
  * Load all zones in the table.  If 'stop' is ISC_TRUE,
  * stop on the first error and return it.  If 'stop'
@@ -127,9 +125,8 @@ isc_result_t dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
  *	'zt' to be valid
  */
 
-
-void dns_zt_print(dns_zt_t *zt);
-
+void
+dns_zt_print(dns_zt_t *zt);
 /*
  * Print zones in zonetable, address, name and reference count.
  *
@@ -140,7 +137,6 @@ void dns_zt_print(dns_zt_t *zt);
 isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
-
 /*
  * Apply a given 'action' to all zone zones in the table.
  * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if

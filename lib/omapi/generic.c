@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.12 2000/04/28 02:08:16 tale Exp $ */
+/* $Id: generic.c,v 1.13 2000/05/08 14:38:11 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -25,10 +25,9 @@
 
 #include <config.h>
 
-#include <stddef.h>		/* NULL */
-#include <string.h>		/* memset */
-
-#include <isc/assertions.h>
+#include <isc/mem.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <omapi/private.h>
 

@@ -18,7 +18,7 @@
 #include <config.h>
 
 #include <isc/magic.h>
-#include <isc/rwlock.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/rbt.h>
@@ -40,8 +40,11 @@ struct dns_zt {
 #define ZTMAGIC			0x5a54626cU	/* ZTbl */
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
-static void auto_detach(void *, void *);
-static isc_result_t load(dns_zone_t *zone, void *uap);
+static void
+auto_detach(void *, void *);
+
+static isc_result_t
+load(dns_zone_t *zone, void *uap);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -286,7 +289,7 @@ static void
 auto_detach(void *data, void *arg) {
 	dns_zone_t *zone = data;
 
-	(void)arg;
+	UNUSED(arg);
 
 	dns_zone_detach(&zone);
 }

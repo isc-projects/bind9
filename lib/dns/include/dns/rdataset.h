@@ -50,10 +50,8 @@
  *	None.
  */
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
 #include <isc/lang.h>
-#include <isc/stdtime.h>
+#include <isc/magic.h>
 
 #include <dns/types.h>
 
@@ -70,10 +68,8 @@ typedef struct dns_rdatasetmethods {
 	unsigned int		(*count)(dns_rdataset_t *rdataset);
 } dns_rdatasetmethods_t;
 
-#define DNS_RDATASET_MAGIC		0x444E5352U	/* DNSR. */
-#define DNS_RDATASET_VALID(rdataset)	((rdataset) != NULL && \
-					 (rdataset)->magic == \
-					  DNS_RDATASET_MAGIC)
+#define DNS_RDATASET_MAGIC	       0x444E5352U	/* DNSR. */
+#define DNS_RDATASET_VALID(set)	       ISC_MAGIC_VALID(set, DNS_RDATASET_MAGIC)
 
 /*
  * Direct use of this structure by clients is strongly discouraged, except

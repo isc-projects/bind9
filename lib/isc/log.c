@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.29 2000/05/03 21:09:33 explorer Exp $ */
+/* $Id: log.c,v 1.30 2000/05/08 14:37:26 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -23,20 +23,15 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <limits.h>
+
 #include <sys/stat.h>
 
-#include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/dir.h>
-#include <isc/error.h>
-#include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
@@ -811,8 +806,7 @@ isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 }
 
 void
-isc_log_setcontext(isc_log_t *lctx)
-{
+isc_log_setcontext(isc_log_t *lctx) {
 	REQUIRE(isc_lctx == NULL);
 
 	isc_lctx = lctx;

@@ -15,24 +15,18 @@
  * SOFTWARE.
  */
 
-#include	<config.h>
+#include <config.h>
 
-#include	<ctype.h>
-#include	<limits.h>
-#include	<stdio.h>
-#include	<stdlib.h>
-#include	<string.h>
-#include	<unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-#include	<isc/buffer.h>
-#include	<isc/region.h>
+#include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 
-#include	<dns/compress.h>
-#include	<dns/name.h>
-#include	<dns/result.h>
-#include	<dns/types.h>
+#include <dns/name.h>
 
-#include	<tests/t_api.h>
+#include <tests/t_api.h>
 
 #define	MAXTOKS		16
 #define	BUFLEN		256

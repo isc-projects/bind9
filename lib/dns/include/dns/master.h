@@ -22,14 +22,11 @@
  ***	Imports
  ***/
 
+#include <stdio.h>
+
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/lex.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
-#include <dns/rdataset.h>
-#include <dns/callbacks.h>
 
 ISC_LANG_BEGINDECLS
 

@@ -62,8 +62,7 @@ static int mib[6] = {
 };
 	
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
-{
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 	size_t bufsize;
@@ -79,7 +78,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 	iter->mctx = mctx;
 	iter->buf = 0;
 
-	/* Determine the amount of memory needed. */
+	/*
+	 * Determine the amount of memory needed.
+	 */
 	bufsize = 0;
 	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, 
@@ -205,7 +206,9 @@ internal_current(isc_interfaceiter_t *iter) {
 					 + ROUNDUP(sa->sa_len));
 #else
 #ifdef sgi
-			/* Do as the contributed SGI code does. */
+			/*
+			 * Do as the contributed SGI code does.
+			 */
 			sa = (struct sockaddr *)((char*)(sa)
 					 + ROUNDUP(_FAKE_SA_LEN_DST(sa)));
 #else
@@ -265,7 +268,9 @@ internal_next(isc_interfaceiter_t *iter) {
 
 static void
 internal_destroy(isc_interfaceiter_t *iter) {
-	iter = iter; /* Unused. */
-	/* Do nothing. */
+	UNUSED(iter); /* Unused. */
+	/*
+	 * Do nothing.
+	 */
 }
 

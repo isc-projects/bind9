@@ -52,7 +52,6 @@
 
 #include <isc/buffer.h>
 
-#include <dns/types.h>
 #include <dns/name.h>
 
 /*****

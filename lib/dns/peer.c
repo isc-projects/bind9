@@ -17,19 +17,13 @@
 
 #include <config.h>
 
-#include <sys/types.h>	/* XXXRTH */
-
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/magic.h>
-#include <isc/net.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/bit.h>
 #include <dns/name.h>
 #include <dns/peer.h>
-#include <dns/types.h>
 
 /*
  * Bit positions in the dns_peer_t structure flags field

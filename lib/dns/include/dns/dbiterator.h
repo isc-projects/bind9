@@ -60,9 +60,8 @@
  ***** Imports
  *****/
 
-#include <isc/boolean.h>
-#include <isc/buffer.h>
 #include <isc/lang.h>
+#include <isc/magic.h>
 
 #include <dns/types.h>
 
@@ -86,9 +85,8 @@ typedef struct dns_dbiteratormethods {
 				  dns_name_t *name);
 } dns_dbiteratormethods_t;
 
-#define DNS_DBITERATOR_MAGIC		0x444E5349U		/* DNSI. */
-#define DNS_DBITERATOR_VALID(dbi)	((dbi) != NULL && \
-					 (dbi)->magic == DNS_DBITERATOR_MAGIC)
+#define DNS_DBITERATOR_MAGIC	     0x444E5349U		/* DNSI. */
+#define DNS_DBITERATOR_VALID(dbi)    ISC_MAGIC_VALID(dbi, DNS_DBITERATOR_MAGIC)
 /*
  * This structure is actually just the common prefix of a DNS db
  * implementation's version of a dns_dbiterator_t.

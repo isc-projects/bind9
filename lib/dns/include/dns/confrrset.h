@@ -44,13 +44,8 @@
  *** Imports
  ***/
 
-/* XXX these next two are needed by rdatatype.h. It should be fixed to
- * include them itself.
- */
 #include <isc/lang.h>
-#include <isc/mem.h>
-
-#include <dns/rdatatype.h>
+#include <isc/magic.h>
 
 #include <dns/confcommon.h>
 

@@ -18,17 +18,17 @@
 #ifndef DNS_NAMEDCONF_H
 #define DNS_NAMEDCONF_H 1
 
-#include <dns/confacl.h>
-#include <dns/confcommon.h>
-#include <dns/confctl.h>
-#include <dns/confctx.h>
-#include <dns/confip.h>
-#include <dns/confkeys.h>
-#include <dns/conflog.h>
-#include <dns/conflsn.h>
-#include <dns/confparser.h>
-#include <dns/confrrset.h>
-#include <dns/confzone.h>
-#include <dns/peer.h>
+#include <dns/confacl.h>	/* Contractual promise. */
+#include <dns/confcommon.h>	/* Contractual promise. */
+#include <dns/confctl.h>	/* Contractual promise. */
+#include <dns/confctx.h>	/* Contractual promise. */
+#include <dns/confip.h>		/* Contractual promise. */
+#include <dns/confkeys.h>	/* Contractual promise. */
+#include <dns/conflog.h>	/* Contractual promise. */
+#include <dns/conflsn.h>	/* Contractual promise. */
+#include <dns/confparser.h>	/* Contractual promise. */
+#include <dns/confrrset.h>	/* Contractual promise. */
+#include <dns/confzone.h>	/* Contractual promise. */
+#include <dns/peer.h>		/* Contractual promise. */
 
 #endif /* DNS_NAMEDCONF_H */

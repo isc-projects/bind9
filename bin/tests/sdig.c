@@ -17,31 +17,18 @@
 
 #include <config.h>
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 extern int h_errno;
 
-#include <isc/types.h>
 #include <isc/app.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/net.h>
 #include <isc/netdb.h>
-#include <isc/result.h>
-#include <isc/sockaddr.h>
 #include <isc/socket.h>
+#include <isc/string.h>
 #include <isc/task.h>
-
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/message.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -195,7 +182,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	/*
-	 * There will be one buffer (since that is what we put on the list)
+	 * There will be one buffer (since that is what we put on the list).
 	 */
 	if (sevent->result == ISC_R_SUCCESS) {
 		b = ISC_LIST_HEAD(sevent->bufferlist);

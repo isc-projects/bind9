@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_XFROUT_H
-#define NS_XFROUT_H 1
+#ifndef NAMED_XFROUT_H
+#define NAMED_XFROUT_H 1
 
 /*****
  ***** Module Info
@@ -30,6 +30,7 @@
  *** Functions
  ***/
 
-void ns_xfr_start(ns_client_t *client, dns_rdatatype_t xfrtype);
+void
+ns_xfr_start(ns_client_t *client, dns_rdatatype_t xfrtype);
 
-#endif /* NS_XFROUT_H */
+#endif /* NAMED_XFROUT_H */

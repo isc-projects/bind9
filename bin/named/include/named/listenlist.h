@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_LISTENLIST_H
-#define NS_LISTENLIST_H 1
+#ifndef NAMED_LISTENLIST_H
+#define NAMED_LISTENLIST_H 1
 
 /*****
  ***** Module Info
@@ -29,6 +29,7 @@
 /***
  *** Imports
  ***/
+#include <isc/net.h>
 
 #include <dns/types.h>
 
@@ -80,6 +81,6 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port,
  * all addresses with port 'port'.
  */
 
-#endif /* NS_LISTENLIST_H */
+#endif /* NAMED_LISTENLIST_H */
 
 

@@ -17,12 +17,7 @@
 
 #include <config.h>
 
-#include <isc/buffer.h>
-#include <isc/event.h>
-#include <isc/net.h>
-#include <isc/mutex.h>
-#include <isc/region.h>
-#include <isc/socket.h>
+#include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_UPDATE_H
-#define NS_UPDATE_H 1
+#ifndef NAMED_UPDATE_H
+#define NAMED_UPDATE_H 1
 
 /*****
  ***** Module Info
@@ -30,7 +30,6 @@
  *** Imports
  ***/
 
-#include <isc/types.h>
 #include <dns/types.h>
 #include <dns/result.h>
 
@@ -42,6 +41,7 @@
  *** Functions
  ***/
 
-void ns_update_start(ns_client_t *client);
+void
+ns_update_start(ns_client_t *client);
 
-#endif /* NS_UPDATE_H */
+#endif /* NAMED_UPDATE_H */

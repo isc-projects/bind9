@@ -17,16 +17,12 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.7 2000/04/28 01:10:45 halley Exp $
+ * $Id: dst_result.c,v 1.8 2000/05/08 14:37:05 tale Exp $
  */
 
 #include <config.h>
 
-#include <stddef.h>
-
-#include <isc/resultclass.h>
 #include <isc/once.h>
-#include <isc/error.h>
 #include <isc/util.h>
 
 #include <dst/result.h>

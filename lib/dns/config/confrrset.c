@@ -15,21 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: confrrset.c,v 1.12 2000/04/28 01:10:37 halley Exp $ */
+/* $Id: confrrset.c,v 1.13 2000/05/08 14:35:35 tale Exp $ */
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/confrrset.h>
-#include <dns/confcommon.h>
-
 
 isc_result_t
-dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
-{
+dns_c_rrsolist_clear(dns_c_rrsolist_t *olist) {
 	dns_c_rrso_t *elem;
 	
 	REQUIRE(DNS_C_RRSOLIST_VALID(olist));
@@ -44,11 +40,8 @@ dns_c_rrsolist_clear(dns_c_rrsolist_t *olist)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
-		      dns_c_rrsolist_t *src)
-{
+dns_c_rrsolist_append(dns_c_rrsolist_t *dest, dns_c_rrsolist_t *src) {
 	dns_c_rrso_t *oldelem;
 	dns_c_rrso_t *newelem;
 	isc_result_t res;
@@ -70,10 +63,8 @@ dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval)
-{
+dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval) {
 	dns_c_rrsolist_t *ro;
 
 	ro = isc_mem_get(mem, sizeof *ro);
@@ -89,7 +80,6 @@ dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval)
 	
 	return (ISC_R_SUCCESS);
 }
-
 
 isc_result_t
 dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
@@ -129,10 +119,8 @@ dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
-{
+dns_c_rrsolist_delete(dns_c_rrsolist_t **list) {
 	dns_c_rrso_t *elem, *q;
 	dns_c_rrsolist_t *l;
 	isc_result_t r;
@@ -162,10 +150,8 @@ dns_c_rrsolist_delete(dns_c_rrsolist_t **list)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_rrso_delete(dns_c_rrso_t **order)
-{
+dns_c_rrso_delete(dns_c_rrso_t **order) {
 	dns_c_rrso_t *oldo;
 
 	REQUIRE(order != NULL);
@@ -184,11 +170,8 @@ dns_c_rrso_delete(dns_c_rrso_t **order)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
-		dns_c_rrso_t *source)
-{
+dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest, dns_c_rrso_t *source) {
 	dns_c_rrso_t *newo;
 	isc_result_t res;
 
@@ -206,7 +189,6 @@ dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest,
 	
 	return (res);
 }
-
 
 isc_result_t
 dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
@@ -244,11 +226,8 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 	return (ISC_R_SUCCESS);
 }
 
-
 void
-dns_c_rrsolist_print(FILE *fp, int indent,
-		     dns_c_rrsolist_t *rrlist)
-{
+dns_c_rrsolist_print(FILE *fp, int indent, dns_c_rrsolist_t *rrlist) {
 	dns_c_rrso_t *or;
 
 	REQUIRE(DNS_C_RRSOLIST_VALID(rrlist));
@@ -271,10 +250,8 @@ dns_c_rrsolist_print(FILE *fp, int indent,
 	
 }
 
-
 void
-dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
-{
+dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order) {
 	REQUIRE(DNS_C_RRSO_VALID(order));
 	
 	dns_c_printtabs(fp, indent);

@@ -18,9 +18,7 @@
 #ifndef GENERIC_MX_15_H
 #define GENERIC_MX_15_H 1
 
-/* $Id: mx_15.h,v 1.19 2000/04/29 02:01:44 tale Exp $ */
-
-#include <dns/name.h>
+/* $Id: mx_15.h,v 1.20 2000/05/08 14:36:53 tale Exp $ */
 
 typedef struct dns_rdata_mx {
 	dns_rdatacommon_t	common;

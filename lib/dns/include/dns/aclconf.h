@@ -20,12 +20,10 @@
 
 #include <isc/lang.h>
 
-#include <dns/acl.h>
-#include <dns/confacl.h>
 #include <dns/confctx.h>
-#include <dns/confip.h>
+#include <dns/types.h>
 
-typedef struct {
+typedef struct dns_aclconfctx {
 	ISC_LIST(dns_acl_t) named_acl_cache;
 } dns_aclconfctx_t;
 

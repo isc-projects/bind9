@@ -53,17 +53,13 @@
  ***** Imports
  *****/
 
-#include <stdio.h>
-
-#include <isc/boolean.h>
-#include <isc/mem.h>
 #include <isc/lang.h>
+#include <isc/magic.h>
 #include <isc/ondestroy.h>
 #include <isc/stdtime.h>
 
-#include <dns/types.h>
 #include <dns/name.h>
-#include <dns/callbacks.h>
+#include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -144,9 +140,8 @@ typedef struct dns_dbmethods {
 	isc_boolean_t	(*issecure)(dns_db_t *db);
 } dns_dbmethods_t;
 
-#define DNS_DB_MAGIC			0x444E5344U		/* DNSD. */
-#define DNS_DB_VALID(db)		((db) != NULL && \
-					 (db)->magic == DNS_DB_MAGIC)
+#define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
+#define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
 /*
  * This structure is actually just the common prefix of a DNS db

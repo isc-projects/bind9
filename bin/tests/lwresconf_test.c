@@ -17,28 +17,17 @@
 
 #include <config.h>
 
-#include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/netaddr.h>
 #include <isc/util.h>
 
-#include <lwres/context.h>
-#include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
-#include <lwres/lwpacket.h>
 
 #define USE_ISC_MEM
 
 static inline void
-CHECK(int val, char *msg)
-{
+CHECK(int val, char *msg) {
 	if (val != 0) {
 		fprintf(stderr, "%s returned %d\n", msg, val);
 		exit(1);
@@ -50,21 +39,18 @@ CHECK(int val, char *msg)
  * Wrappers around our memory management stuff, for the lwres functions.
  */
 static void *
-mem_alloc(void *arg, size_t size)
-{
+mem_alloc(void *arg, size_t size) {
 	return (isc_mem_get(arg, size));
 }
 
 static void
-mem_free(void *arg, void *mem, size_t size)
-{
+mem_free(void *arg, void *mem, size_t size) {
 	isc_mem_put(arg, mem, size);
 }
 #endif
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	lwres_context_t *ctx;
 	const char *file = "/etc/resolv.conf";
 	int ret;

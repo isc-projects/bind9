@@ -20,24 +20,15 @@
  *****/
 
 #ifndef OMAPI_PRIVATE_H
-#define OMAPI_PRIVATE_H
+#define OMAPI_PRIVATE_H 1
 
 #include <isc/condition.h>
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/mutex.h>
-#include <isc/net.h>
 #include <isc/socket.h>
-#include <isc/task.h>
-#include <isc/timer.h>
-#include <isc/util.h>
 
 #include <dst/dst.h>
 
 #include <omapi/omapi.h>
-#include <omapi/result.h>
-
-ISC_LANG_BEGINDECLS
 
 #define OMAPI_BUFFER_SIZE 4096
 
@@ -294,7 +285,7 @@ extern isc_socketmgr_t *omapi_socketmgr;
 #define PASS_CHECK(object, function) \
 	(object->inner != NULL && object->inner->type->function != NULL)
 
-
+ISC_LANG_BEGINDECLS
 
 /*
  * Private library functions defined in auth.c.
@@ -414,4 +405,4 @@ send_update(omapi_object_t *protocol, unsigned int response_id,
 
 ISC_LANG_ENDDECLS
 
-#endif /* OMAPIP_PRIVATE_H */
+#endif /* OMAPI_PRIVATE_H */

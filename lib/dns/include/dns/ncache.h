@@ -44,9 +44,7 @@
  */
 
 #include <isc/lang.h>
-#include <isc/types.h>
 #include <isc/stdtime.h>
-#include <isc/buffer.h>
 
 #include <dns/types.h>
 

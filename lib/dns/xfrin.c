@@ -15,48 +15,30 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.65 2000/04/27 00:02:07 tale Exp $ */
+/* $Id: xfrin.c,v 1.66 2000/05/08 14:35:17 tale Exp $ */
 
 #include <config.h>
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/timer.h>
-#include <isc/net.h>
 #include <isc/print.h>
+#include <isc/task.h>
+#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
-#include <dns/dbiterator.h>
 #include <dns/events.h>
-#include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>
-#include <dns/name.h>
 #include <dns/peer.h>
-#include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 #include <dns/tcpmsg.h>
 #include <dns/tsig.h>
-#include <dns/types.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
-#include <dns/zt.h>
 
 /*
  * Incoming AXFR and IXFR.
@@ -339,7 +321,9 @@ ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	return (result);
 }
 
-/* Apply a set of IXFR changes to the database. */
+/*
+ * Apply a set of IXFR changes to the database.
+ */
 static isc_result_t
 ixfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
@@ -388,7 +372,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr,
 	switch (xfr->state) {
 	case XFRST_SOAQUERY:
 		xfr->end_serial = dns_soa_getserial(rdata);
-		if (!DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial)) {
+		if (!DNS_SERIAL_GT(xfr->end_serial,
+				   xfr->ixfr.request_serial)) {
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
 				  "master has %u, not updating",
@@ -400,7 +385,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr,
 
 	case XFRST_GOTSOA:
 		/*
-		 * skip other records in the answer section
+		 * Skip other records in the answer section.
 		 */
 		break;
 
@@ -976,7 +961,9 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	CHECK(render(msg, &xfr->qbuffer));
 
-	/* Save the query TSIG and don't let message_destroy free it */
+	/*
+	 * Save the query TSIG and don't let message_destroy free it.
+	 */
 	xfr->lasttsig = msg->tsig;
 	msg->tsig = NULL;
 
@@ -1004,8 +991,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 /* XXX there should be library support for sending DNS TCP messages */
 
 static void
-xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
-{
+xfrin_sendlen_done(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t evresult = sev->result;
@@ -1039,8 +1025,7 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 
 
 static void
-xfrin_send_done(isc_task_t *task, isc_event_t *event)
-{
+xfrin_send_done(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
 	isc_result_t result;
@@ -1158,20 +1143,28 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		goto failure;
 
 	if (msg->tsig != NULL) {
-		/* Reset the counter */
+		/*
+		 * Reset the counter.
+		 */
 		xfr->sincetsig = 0;
 
-		/* Free the last tsig, if there is one */
+		/*
+		 * Free the last tsig, if there is one.
+		 */
 		if (xfr->lasttsig != NULL) {
 			dns_rdata_freestruct(xfr->lasttsig);
 			isc_mem_put(xfr->mctx, xfr->lasttsig,
 				    sizeof(*xfr->lasttsig));
 		}
 
-		/* Update the last tsig pointer */
+		/*
+		 * Update the last tsig pointer.
+		 */
 		xfr->lasttsig = msg->tsig;
 
-		/* Reset msg->tsig so it doesn't get freed */
+		/*
+		 * Reset msg->tsig so it doesn't get freed.
+		 */
 		msg->tsig = NULL;
 	} else if (msg->tsigkey != NULL) {
 		xfr->sincetsig++;
@@ -1183,13 +1176,19 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		}
 	}
 
-	/* Update the number of messages received */
+	/*
+	 * Update the number of messages received.
+	 */
 	xfr->nmsg++;
 	
-	/* Reset msg->querytsig so it doesn't get freed */
+	/*
+	 * Reset msg->querytsig so it doesn't get freed.
+	 */
 	msg->querytsig = NULL;
 
-	/* Copy the context back */
+	/*
+	 * Copy the context back.
+	 */
 	xfr->tsigctx = msg->tsigctx;
 
 	dns_message_destroy(&msg);
@@ -1213,7 +1212,9 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfr->shuttingdown = ISC_TRUE;
 		maybe_free(xfr);
 	} else {
-		/* Read the next message. */
+		/*
+		 * Read the next message.
+		 */
 		CHECK(dns_tcpmsg_readmessage(&xfr->tcpmsg, xfr->task,
 					     xfrin_recv_done, xfr));
 		xfr->recvs++;
@@ -1238,7 +1239,9 @@ xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	isc_event_free(&event);
-	/* This will log "giving up: timeout". */
+	/*
+	 * This will log "giving up: timeout".
+	 */
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "giving up");
 }
 
@@ -1329,7 +1332,9 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 		      masterbuf.base, msgmem);
 }
 
-/* Logging function for use when a xfrin_ctx_t has not yet been created. */
+/*
+ * Logging function for use when a xfrin_ctx_t has not yet been created.
+ */
 
 static void
 xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
@@ -1341,7 +1346,9 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	va_end(ap);
 }
 
-/* Logging function for use when there is a xfrin_ctx_t. */
+/*
+ * Logging function for use when there is a xfrin_ctx_t.
+ */
 
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
@@ -1352,11 +1359,13 @@ xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 	va_end(ap);
 }
 
-isc_result_t dns_xfrinlist_init(dns_xfrinlist_t *list) {
+isc_result_t
+dns_xfrinlist_init(dns_xfrinlist_t *list) {
 	ISC_LIST_INIT(list->transfers);
 	return (isc_mutex_init(&list->lock));
 }
 
-void dns_xfrinlist_destroy(dns_xfrinlist_t *list) {
+void
+dns_xfrinlist_destroy(dns_xfrinlist_t *list) {
 	isc_mutex_destroy(&list->lock);
 }

@@ -23,16 +23,11 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/buffer.h>
-#include <isc/bufferlist.h>
 #include <isc/magic.h>
-#include <isc/mem.h>
 
-#include <dns/types.h>
-#include <dns/name.h>
-#include <dns/rdataset.h>
-#include <dns/rdatastruct.h>
 #include <dns/compress.h>
+#include <dns/rdatastruct.h>
+#include <dns/types.h>
 
 #include <dst/dst.h>
 

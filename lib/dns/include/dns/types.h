@@ -4,7 +4,7 @@
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
  * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -27,85 +27,77 @@
  */
 
 #include <isc/types.h>
-#include <isc/lang.h>
-#include <isc/region.h>
 
-ISC_LANG_BEGINDECLS
-
+typedef struct dns_a6context			dns_a6context_t;
+typedef struct dns_acl 				dns_acl_t;
+typedef struct dns_aclelement 			dns_aclelement_t;
+typedef struct dns_aclenv			dns_aclenv_t;
+typedef struct dns_adb				dns_adb_t;
+typedef struct dns_adbaddrinfo			dns_adbaddrinfo_t;
+typedef ISC_LIST(dns_adbaddrinfo_t)		dns_adbaddrinfolist_t;
+typedef struct dns_adbentry			dns_adbentry_t;
+typedef struct dns_adbfind			dns_adbfind_t;
+typedef ISC_LIST(dns_adbfind_t)			dns_adbfindlist_t;
+typedef struct dns_byaddr			dns_byaddr_t;
+typedef struct dns_cache			dns_cache_t;
+typedef isc_uint16_t				dns_cert_t;
+typedef struct dns_compress			dns_compress_t;
+typedef struct dns_db				dns_db_t;
+typedef struct dns_dbiterator			dns_dbiterator_t;
+typedef void					dns_dbload_t;
+typedef void					dns_dbnode_t;
+typedef struct dns_dbtable			dns_dbtable_t;
+typedef void					dns_dbversion_t;
+typedef struct dns_decompress			dns_decompress_t;
+typedef struct dns_dispatch			dns_dispatch_t;
+typedef struct dns_dispatchevent		dns_dispatchevent_t;
+typedef struct dns_dispentry			dns_dispentry_t;
+typedef struct dns_fetch			dns_fetch_t;
+typedef struct dns_fixedname			dns_fixedname_t;
+typedef struct dns_forwarders			dns_forwarders_t;
+typedef isc_uint16_t				dns_keyflags_t;
+typedef struct dns_keynode			dns_keynode_t;
+typedef struct dns_keytable			dns_keytable_t;
+typedef isc_uint16_t				dns_keytag_t;
+typedef struct dns_message			dns_message_t;
+typedef isc_uint16_t				dns_messageid_t;
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef ISC_LIST(dns_name_t)			dns_namelist_t;
-typedef struct dns_fixedname			dns_fixedname_t;
-typedef struct dns_db				dns_db_t;
-typedef void					dns_dbnode_t;
-typedef void					dns_dbload_t;
-typedef void					dns_dbversion_t;
-typedef struct dns_dbiterator			dns_dbiterator_t;
-typedef unsigned char				dns_offsets_t[128];
-typedef struct dns_compress			dns_compress_t;
-typedef struct dns_decompress			dns_decompress_t;
-typedef isc_uint8_t				dns_secalg_t;
-typedef isc_uint8_t				dns_secproto_t;
-typedef isc_uint16_t				dns_keyflags_t;
-typedef isc_uint16_t				dns_keytag_t;
-typedef isc_uint16_t				dns_rdataclass_t;
-typedef isc_uint16_t				dns_rdatatype_t;
-typedef isc_uint16_t				dns_rcode_t;
 typedef isc_uint16_t				dns_opcode_t;
-typedef isc_uint16_t				dns_cert_t;
-typedef isc_uint32_t				dns_ttl_t;
+typedef unsigned char				dns_offsets_t[128];
+typedef struct dns_peer				dns_peer_t;
+typedef struct dns_peerlist			dns_peerlist_t;
+typedef struct dns_rbt				dns_rbt_t;
+typedef isc_uint16_t				dns_rcode_t;
 typedef struct dns_rdata			dns_rdata_t;
+typedef struct dns_rdatacallbacks		dns_rdatacallbacks_t;
+typedef isc_uint16_t				dns_rdataclass_t;
 typedef struct dns_rdatalist			dns_rdatalist_t;
-typedef struct dns_signature			dns_signature_t;
 typedef struct dns_rdataset			dns_rdataset_t;
 typedef ISC_LIST(dns_rdataset_t)		dns_rdatasetlist_t;
 typedef struct dns_rdatasetiter			dns_rdatasetiter_t;
-typedef struct dns_dbtable			dns_dbtable_t;
+typedef isc_uint16_t				dns_rdatatype_t;
+typedef struct dns_request			dns_request_t;
+typedef struct dns_requestmgr			dns_requestmgr_t;
 typedef struct dns_resolver			dns_resolver_t;
-typedef struct dns_fetch			dns_fetch_t;
-typedef struct dns_adb				dns_adb_t;
-typedef struct dns_adbentry			dns_adbentry_t;
-typedef struct dns_adbaddrinfo			dns_adbaddrinfo_t;
-typedef ISC_LIST(dns_adbaddrinfo_t)		dns_adbaddrinfolist_t;
-typedef struct dns_adbfind			dns_adbfind_t;
-typedef ISC_LIST(dns_adbfind_t)			dns_adbfindlist_t;
-typedef struct dns_forwarders			dns_forwarders_t;
-typedef struct dns_message			dns_message_t;
-typedef isc_uint16_t				dns_messageid_t;
-typedef isc_uint16_t				dns_trust_t;
-typedef struct dns_dispatch			dns_dispatch_t;
-typedef struct dns_dispentry			dns_dispentry_t;
-typedef struct dns_dispatchevent		dns_dispatchevent_t;
-typedef struct dns_tsigkey			dns_tsigkey_t;
-typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
+typedef isc_uint8_t				dns_secalg_t;
+typedef isc_uint8_t				dns_secproto_t;
+typedef struct dns_signature			dns_signature_t;
+typedef struct dns_ssurule			dns_ssurule_t;
+typedef struct dns_ssutable			dns_ssutable_t;
 typedef struct dns_tkey_ctx			dns_tkey_ctx_t;
+typedef isc_uint16_t				dns_trust_t;
+typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
+typedef struct dns_tsigkey			dns_tsigkey_t;
+typedef isc_uint32_t				dns_ttl_t;
+typedef struct dns_validator			dns_validator_t;
 typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
+typedef struct dns_xfrinlist			dns_xfrinlist_t;
 typedef struct dns_zone				dns_zone_t;
 typedef struct dns_zonemgr			dns_zonemgr_t;
-typedef struct dns_a6context			dns_a6context_t;
-typedef struct dns_rbt				dns_rbt_t;
 typedef struct dns_zt				dns_zt_t;
-typedef struct dns_cache			dns_cache_t;
-typedef struct dns_aclelement 			dns_aclelement_t;
-typedef struct dns_acl 				dns_acl_t;
-typedef struct dns_aclenv			dns_aclenv_t;
-typedef struct dns_byaddr			dns_byaddr_t;
-typedef struct dns_ssutable			dns_ssutable_t;
-typedef struct dns_ssurule			dns_ssurule_t;
-typedef struct dns_validator			dns_validator_t;
-typedef struct dns_keytable			dns_keytable_t;
-typedef struct dns_keynode			dns_keynode_t;
-typedef struct dns_peer				dns_peer_t;
-typedef struct dns_peerlist			dns_peerlist_t;
-typedef struct dns_xfrinlist			dns_xfrinlist_t;
-typedef struct dns_requestmgr			dns_requestmgr_t;
-typedef struct dns_request			dns_request_t;
-
-typedef enum {
-	dns_labeltype_ordinary = 0,
-	dns_labeltype_bitstring = 1
-} dns_labeltype_t;
 
 typedef enum {
 	dns_bitlabel_0 = 0,
@@ -113,8 +105,15 @@ typedef enum {
 } dns_bitlabel_t;
 
 typedef enum {
-	dns_one_answer, dns_many_answers
-} dns_transfer_format_t;
+	dns_fwdpolicy_none = 0,
+	dns_fwdpolicy_first = 1,
+	dns_fwdpolicy_only = 2
+} dns_fwdpolicy_t;
+
+typedef enum {
+	dns_labeltype_ordinary = 0,
+	dns_labeltype_bitstring = 1
+} dns_labeltype_t;
 
 typedef enum {
 	dns_namereln_none = 0,
@@ -125,16 +124,14 @@ typedef enum {
 } dns_namereln_t;
 
 typedef enum {
-	dns_fwdpolicy_none = 0,
-	dns_fwdpolicy_first = 1,
-	dns_fwdpolicy_only = 2
-} dns_fwdpolicy_t;
+	dns_one_answer, dns_many_answers
+} dns_transfer_format_t;
 
 #include <dns/enumtype.h>
 
 enum {
 	dns_rdatatype_none = 0,
-	TYPEENUM
+	DNS_TYPEENUM
 	dns_rdatatype_ixfr = 251,
 	dns_rdatatype_axfr = 252,
 	dns_rdatatype_mailb = 253,
@@ -144,16 +141,18 @@ enum {
 
 #include <dns/enumclass.h>
 enum {
-	CLASSENUM
+	DNS_CLASSENUM
 	dns_rdataclass_ch = 3,
 	dns_rdataclass_none = 254	/* RFC2136 */
 };
 
 /*
- * rcodes
+ * rcodes.
  */
 enum {
-	/* standard rcodes */
+	/*
+	 * Standard rcodes.
+	 */
 	dns_rcode_noerror = 0,
 	dns_rcode_formerr = 1,
 	dns_rcode_servfail = 2,
@@ -165,12 +164,14 @@ enum {
 	dns_rcode_nxrrset = 8,
 	dns_rcode_notauth = 9,
 	dns_rcode_notzone = 10,
-	/* extended rcodes */
+	/*
+	 * Extended rcodes.
+	 */
 	dns_rcode_badvers = 16
 };
 
 /*
- * TSIG errors
+ * TSIG errors.
  */
 enum {
 	dns_tsigerror_badsig = 16,
@@ -182,7 +183,7 @@ enum {
 };
 
 /*
- * Opcodes
+ * Opcodes.
  */
 enum {
 	dns_opcode_query = 0,
@@ -220,7 +221,6 @@ typedef enum {
 /*
  * Functions.
  */
-
 typedef isc_result_t
 (*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
 
@@ -232,7 +232,5 @@ typedef isc_result_t
 
 typedef void
 (*dns_xfrindone_t)(dns_zone_t *, isc_result_t);
-
-ISC_LANG_ENDDECLS
 
 #endif /* DNS_TYPES_H */

@@ -17,27 +17,18 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/types.h>
-#include <isc/assertions.h>
-#include <isc/buffer.h>
-#include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/string.h>
 
-#include <dns/types.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/rdata.h>
-#include <dns/rdatalist.h>
+#include <dns/fixedname.h>
+#include <dns/nxt.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
-#include <dns/nxt.h>
 
 static isc_mem_t *mctx = NULL;
 

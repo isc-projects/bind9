@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_CLIENT_H
-#define NS_CLIENT_H 1
+#ifndef NAMED_CLIENT_H
+#define NAMED_CLIENT_H 1
 
 /*****
  ***** Module Info
@@ -60,9 +60,8 @@
  *** Imports
  ***/
 
-#include <isc/types.h>
-#include <isc/stdtime.h>
 #include <isc/buffer.h>
+#include <isc/stdtime.h>
 #include <isc/quota.h>
 
 #include <dns/name.h>
@@ -79,55 +78,56 @@
 typedef ISC_LIST(ns_client_t) client_list_t;
 
 struct ns_client {
-	unsigned int			magic;
-	isc_mem_t *			mctx;
-	ns_clientmgr_t *		manager;
-	int				state;
-	int				newstate;
-	isc_boolean_t			disconnect;
-	int				naccepts;
-	int				nreads;
-	int				nsends;
-	int				references;
-	unsigned int			attributes;
-	isc_task_t *			task;
-	dns_view_t *			view;
-	dns_view_t *			lockview;
-	dns_dispatch_t *		dispatch;
-	dns_dispentry_t *		dispentry;
-	dns_dispatchevent_t *		dispevent;
-	isc_socket_t *			tcplistener;
-	isc_socket_t *			tcpsocket;
-	dns_tcpmsg_t			tcpmsg;
-	isc_boolean_t			tcpmsg_valid;
-	isc_timer_t *			timer;
-	dns_message_t *			message;
-	unsigned char *			sendbuf;
-	dns_rdataset_t *		opt;
-	isc_uint16_t			udpsize;
-	void				(*next)(ns_client_t *);
-	void				(*shutdown)(void *arg, isc_result_t result);
-	void 				*shutdown_arg;
-	ns_query_t			query;
-	isc_stdtime_t			requesttime;
-	isc_stdtime_t			now;
-	dns_name_t			signername; /* [T]SIG key name */
-	dns_name_t *			signer; /* NULL if not valid sig */
-	isc_boolean_t			mortal; /* Die after handling request. */
-	isc_quota_t			*tcpquota;
-	isc_quota_t			*recursionquota;
-	ns_interface_t			*interface;
-	isc_sockaddr_t			peeraddr;
-	isc_boolean_t			peeraddr_valid;
-	struct in6_pktinfo		pktinfo;
-	ISC_LINK(ns_client_t)		link;
-	client_list_t			*list;	/* The list 'link' is part of,
-					   or NULL if not on any list. */
+	unsigned int		magic;
+	isc_mem_t *		mctx;
+	ns_clientmgr_t *	manager;
+	int			state;
+	int			newstate;
+	isc_boolean_t		disconnect;
+	int			naccepts;
+	int			nreads;
+	int			nsends;
+	int			references;
+	unsigned int		attributes;
+	isc_task_t *		task;
+	dns_view_t *		view;
+	dns_view_t *		lockview;
+	dns_dispatch_t *	dispatch;
+	dns_dispentry_t *	dispentry;
+	dns_dispatchevent_t *	dispevent;
+	isc_socket_t *		tcplistener;
+	isc_socket_t *		tcpsocket;
+	dns_tcpmsg_t		tcpmsg;
+	isc_boolean_t		tcpmsg_valid;
+	isc_timer_t *		timer;
+	dns_message_t *		message;
+	unsigned char *		sendbuf;
+	dns_rdataset_t *	opt;
+	isc_uint16_t		udpsize;
+	void			(*next)(ns_client_t *);
+	void			(*shutdown)(void *arg, isc_result_t result);
+	void 			*shutdown_arg;
+	ns_query_t		query;
+	isc_stdtime_t		requesttime;
+	isc_stdtime_t		now;
+	dns_name_t		signername;   /* [T]SIG key name */
+	dns_name_t *		signer;	      /* NULL if not valid sig */
+	isc_boolean_t		mortal;	      /* Die after handling request */
+	isc_quota_t		*tcpquota;
+	isc_quota_t		*recursionquota;
+	ns_interface_t		*interface;
+	isc_sockaddr_t		peeraddr;
+	isc_boolean_t		peeraddr_valid;
+	struct in6_pktinfo	pktinfo;
+	ISC_LINK(ns_client_t)	link;
+	/*
+	 * The list 'link' is part of, or NULL if not on any list.
+	 */
+	client_list_t		*list;
 };
 
 #define NS_CLIENT_MAGIC			0x4E534363U	/* NSCc */
-#define NS_CLIENT_VALID(c)		((c) != NULL && \
-					 (c)->magic == NS_CLIENT_MAGIC)
+#define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01
 #define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
@@ -255,4 +255,4 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
 	      const char *fmt, ...);
 
-#endif /* NS_CLIENT_H */
+#endif /* NAMED_CLIENT_H */

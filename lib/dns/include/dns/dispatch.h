@@ -49,10 +49,9 @@
  *** Imports
  ***/
 
-#include <isc/boolean.h>
 #include <isc/buffer.h>
+#include <isc/eventclass.h>
 #include <isc/lang.h>
-#include <isc/sockaddr.h>
 #include <isc/socket.h>
 
 #include <dns/types.h>

@@ -15,12 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef _OMAPI_TYPES_H_
-#define _OMAPI_TYPES_H_
-
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
+#ifndef OMAPI_TYPES_H
+#define OMAPI_TYPES_H 1
 
 /*****
  ***** Type definitions.
@@ -45,6 +41,4 @@ typedef enum {
 	omapi_datatype_object
 } omapi_datatype_t;
 
-ISC_LANG_ENDDECLS
-
-#endif /* _OMAPI_OMAPIP_H_ */
+#endif /* OMAPI_TYPES_H */

@@ -22,14 +22,12 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <stddef.h>
 
-#include <isc/assertions.h>
 #include <isc/msgcat.h>
 #include <isc/util.h>
 
 #ifdef HAVE_CATGETS
-#include <nl_types.h>
+#include <nl_types.h>		/* Required for nl_catd. */
 #endif
 
 /*

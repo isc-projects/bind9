@@ -15,28 +15,18 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.25 2000/05/03 19:29:39 brister Exp $ */
+/* $Id: confview.c,v 1.26 2000/05/08 14:35:36 tale Exp $ */
 
 #include <config.h>
 
-#include <sys/types.h>
-
-#include <isc/assertions.h>
-#include <isc/magic.h>
-#include <isc/net.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
-#include <dns/confacl.h>
-#include <dns/confzone.h>
-#include <dns/confcommon.h>
 #include <dns/confview.h>
-#include <dns/confzone.h>
 #include <dns/log.h>
 #include <dns/peer.h>
 
 #include "confpvt.h"
-
-
 
 /*
 ** Due to the repetive nature of the fields in a view
@@ -60,14 +50,11 @@
 #define GETSOCKADDR(FUNC, FIELD) GETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define UNSETSOCKADDR(FUNC, FIELD) UNSETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 
-
-
 #ifdef PVT_CONCAT
 #undef PVT_CONCAT
 #endif
 
 #define PVT_CONCAT(x,y) x ## y
-
 
 /*
 ** The SET, GET and UNSETBYTYPE macros are all used whene the field in the
@@ -77,8 +64,7 @@
 
 #define SETBYTYPE(TYPE, FUNCNAME, FIELDNAME)				    \
 isc_result_t								    \
-PVT_CONCAT(dns_c_view_set, FUNCNAME)(dns_c_view_t *view, TYPE newval)	    \
-{									    \
+PVT_CONCAT(dns_c_view_set, FUNCNAME)(dns_c_view_t *view, TYPE newval) {	    \
 	isc_boolean_t existed = ISC_FALSE;				    \
 									    \
 	REQUIRE(DNS_C_VIEW_VALID(view));				    \
@@ -99,8 +85,7 @@ PVT_CONCAT(dns_c_view_set, FUNCNAME)(dns_c_view_t *view, TYPE newval)	    \
 
 #define GETBYTYPE(TYPE, FUNCNAME, FIELDNAME)				\
 isc_result_t								\
-PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view, TYPE *retval)	\
-{									\
+PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view, TYPE *retval) {\
 	REQUIRE(DNS_C_VIEW_VALID(view));				\
 	REQUIRE(retval != NULL);					\
 									\
@@ -114,8 +99,7 @@ PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view, TYPE *retval)	\
 
 #define UNSETBYTYPE(TYPE, FUNCNAME, FIELDNAME)			\
 isc_result_t							\
-PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view)	\
-{								\
+PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view) {	\
 	REQUIRE(DNS_C_VIEW_VALID(view));			\
 								\
 	if (view->FIELDNAME == NULL) {				\
@@ -128,8 +112,6 @@ PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view)	\
 		return (ISC_R_SUCCESS);				\
 	}							\
 }
-
-
 
 /*
 ** Now SET, GET and UNSET for dns_c_ipmatchlist_t fields
@@ -155,8 +137,7 @@ PVT_CONCAT(dns_c_view_set, FUNCNAME)(dns_c_view_t *view,		\
 
 #define UNSETIPMLIST(FUNCNAME, FIELDNAME)			\
 isc_result_t							\
-PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view)	\
-{								\
+PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view) {	\
 	REQUIRE(DNS_C_VIEW_VALID(view));			\
 								\
 	if (view->FIELDNAME != NULL) {				\
@@ -185,15 +166,9 @@ PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view,		\
 		return (ISC_R_NOTFOUND);				\
 	}								\
 }
-	
-
-
-
-
 
 isc_result_t
-dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable)
-{
+dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
 	dns_c_viewtable_t *table;
 	
 	REQUIRE(viewtable != NULL);
@@ -218,8 +193,7 @@ dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable)
 
 
 isc_result_t
-dns_c_viewtable_delete(dns_c_viewtable_t **viewtable)
-{
+dns_c_viewtable_delete(dns_c_viewtable_t **viewtable) {
 	dns_c_viewtable_t *table;
 	
 	REQUIRE(viewtable != NULL);
@@ -259,8 +233,7 @@ dns_c_viewtable_print(FILE *fp, int indent,
 
 
 void
-dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view)
-{
+dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	
@@ -270,8 +243,7 @@ dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view)
 
 
 void
-dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view)
-{
+dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	
@@ -281,8 +253,7 @@ dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view)
 
 
 isc_result_t
-dns_c_viewtable_clear(dns_c_viewtable_t *table)
-{
+dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 	dns_c_view_t *elem;
 	dns_c_view_t *tmpelem;
 	isc_result_t r;
@@ -361,8 +332,7 @@ dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
 
 	
 isc_result_t
-dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable)
-{
+dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	dns_c_view_t *elem;
 	isc_boolean_t bbval;
 	isc_int32_t bival;
@@ -524,8 +494,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 
 void
-dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
-{
+dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	dns_severity_t nameseverity;
 	in_port_t port;
 
@@ -713,8 +682,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 
 
 isc_result_t
-dns_c_view_delete(dns_c_view_t **viewptr)
-{
+dns_c_view_delete(dns_c_view_t **viewptr) {
 	dns_c_view_t *view;
 
 #define FREEIPMLIST(FIELD)				\
@@ -803,8 +771,7 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 
 
 isc_boolean_t
-dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname)
-{
+dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname) {
 	dns_c_kdef_t *keyid;
 	isc_result_t res;
 	isc_boolean_t rval = ISC_FALSE;
@@ -824,8 +791,7 @@ dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname)
 }
 
 isc_result_t
-dns_c_view_getname(dns_c_view_t *view, const char **retval)
-{
+dns_c_view_getname(dns_c_view_t *view, const char **retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
 
@@ -836,8 +802,7 @@ dns_c_view_getname(dns_c_view_t *view, const char **retval)
 
 
 isc_result_t
-dns_c_view_getviewclass(dns_c_view_t *view, dns_rdataclass_t *retval)
-{
+dns_c_view_getviewclass(dns_c_view_t *view, dns_rdataclass_t *retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
 
@@ -854,8 +819,7 @@ dns_c_view_getviewclass(dns_c_view_t *view, dns_rdataclass_t *retval)
 
 
 isc_result_t
-dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone)
-{
+dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone) {
 	isc_result_t res;
 	dns_c_zone_t *attached;
 	
@@ -876,8 +840,7 @@ dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone)
 
 
 isc_result_t
-dns_c_view_getzonelist(dns_c_view_t *view, dns_c_zonelist_t **zonelist)
-{
+dns_c_view_getzonelist(dns_c_view_t *view, dns_c_zonelist_t **zonelist) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(zonelist != NULL);
 
@@ -892,8 +855,7 @@ dns_c_view_getzonelist(dns_c_view_t *view, dns_c_zonelist_t **zonelist)
 
 
 isc_result_t
-dns_c_view_unsetzonelist(dns_c_view_t *view)
-{
+dns_c_view_unsetzonelist(dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	if (view->zonelist == NULL) {
@@ -952,8 +914,7 @@ dns_c_view_setforwarders(dns_c_view_t *view,
 
 
 isc_result_t
-dns_c_view_unsetforwarders(dns_c_view_t *view)
-{
+dns_c_view_unsetforwarders(dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	if (view->forwarders != NULL) {
@@ -1161,8 +1122,7 @@ dns_c_view_unsetchecknames(dns_c_view_t *view,
 
 
 isc_result_t
-dns_c_view_getkeydefs(dns_c_view_t *view, dns_c_kdeflist_t **retval)
-{
+dns_c_view_getkeydefs(dns_c_view_t *view, dns_c_kdeflist_t **retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
 
@@ -1177,8 +1137,7 @@ dns_c_view_getkeydefs(dns_c_view_t *view, dns_c_kdeflist_t **retval)
 
 
 isc_result_t
-dns_c_view_setkeydefs(dns_c_view_t *view, dns_c_kdeflist_t *newval)
-{
+dns_c_view_setkeydefs(dns_c_view_t *view, dns_c_kdeflist_t *newval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_KDEFLIST_VALID(newval));
 
@@ -1193,8 +1152,7 @@ dns_c_view_setkeydefs(dns_c_view_t *view, dns_c_kdeflist_t *newval)
 
 
 isc_result_t
-dns_c_view_unsetkeydefs(dns_c_view_t *view)
-{
+dns_c_view_unsetkeydefs(dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	if (view->keydefs != NULL) {
@@ -1212,8 +1170,7 @@ dns_c_view_unsetkeydefs(dns_c_view_t *view)
 */
 
 isc_result_t
-dns_c_view_getpeerlist(dns_c_view_t *view, dns_peerlist_t **retval)
-{
+dns_c_view_getpeerlist(dns_c_view_t *view, dns_peerlist_t **retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
 	
@@ -1228,8 +1185,7 @@ dns_c_view_getpeerlist(dns_c_view_t *view, dns_peerlist_t **retval)
 
 
 isc_result_t
-dns_c_view_unsetpeerlist(dns_c_view_t *view)
-{
+dns_c_view_unsetpeerlist(dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	if (view->peerlist != NULL) {
@@ -1242,8 +1198,7 @@ dns_c_view_unsetpeerlist(dns_c_view_t *view)
 	
 
 isc_result_t
-dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval)
-{
+dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	if (view->peerlist != NULL) {
@@ -1254,10 +1209,6 @@ dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval)
 
 	return (ISC_R_SUCCESS);
 }
-
-
-
-
 
 GETIPMLIST(allowquery, allowquery)
 SETIPMLIST(allowquery, allowquery)

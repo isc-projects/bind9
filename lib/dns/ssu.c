@@ -16,22 +16,14 @@
  */
 
 /*
- * $Id: ssu.c,v 1.8 2000/04/04 20:10:57 gson Exp $
+ * $Id: ssu.c,v 1.9 2000/05/08 14:35:05 tale Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/types.h>
-#include <isc/mutex.h>
 #include <isc/util.h>
 
 #include <dns/name.h>

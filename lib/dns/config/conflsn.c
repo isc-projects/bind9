@@ -15,23 +15,19 @@
  * SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.12 2000/04/28 01:10:33 halley Exp $ */
+/* $Id: conflsn.c,v 1.13 2000/05/08 14:35:30 tale Exp $ */
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <dns/conflsn.h>
-#include <dns/confcommon.h>
 
 #include "confpvt.h"
 
-
 isc_result_t
-dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen)
-{
+dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen) {
 	dns_c_lstnon_t *ll;
 	isc_result_t result;
 
@@ -57,10 +53,8 @@ dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_lstnon_delete(dns_c_lstnon_t **listen)
-{
+dns_c_lstnon_delete(dns_c_lstnon_t **listen) {
 	dns_c_lstnon_t *lo;
 	isc_result_t r;
 
@@ -82,7 +76,6 @@ dns_c_lstnon_delete(dns_c_lstnon_t **listen)
 	
 	return (r);
 }
-
 
 isc_result_t
 dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
@@ -113,15 +106,8 @@ dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
 	return (result);
 }
 
-	
-		
-
-
-
-
 isc_result_t
-dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist)
-{
+dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist) {
 	dns_c_lstnlist_t *ll;
 
 	REQUIRE(llist != NULL);
@@ -143,10 +129,8 @@ dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_lstnlist_delete(dns_c_lstnlist_t **llist)
-{
+dns_c_lstnlist_delete(dns_c_lstnlist_t **llist) {
 	dns_c_lstnlist_t *ll;
 	dns_c_lstnon_t *lo, *lotmp;
 	isc_result_t r;
@@ -176,11 +160,8 @@ dns_c_lstnlist_delete(dns_c_lstnlist_t **llist)
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_lstnlist_print(FILE *fp, int indent,
-		     dns_c_lstnlist_t *ll)
-{
+dns_c_lstnlist_print(FILE *fp, int indent, dns_c_lstnlist_t *ll) {
 	dns_c_lstnon_t *lo;
 
 	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
@@ -196,10 +177,8 @@ dns_c_lstnlist_print(FILE *fp, int indent,
 	return (ISC_R_SUCCESS);
 }
 
-
 isc_result_t
-dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo)
-{
+dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo) {
 	REQUIRE(lo != NULL);
 	REQUIRE(DNS_C_LISTEN_VALID(lo));
 	

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.5 2000/05/02 03:54:17 tale Exp $ */
+/* $Id: auth.c,v 1.6 2000/05/08 14:38:08 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -36,13 +36,11 @@
 
 #include <config.h>
 
-#include <errno.h>
-#include <stddef.h>		/* NULL */
-#include <string.h>		/* memset */
-
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/buffer.h>
+#include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <dst/result.h>
 

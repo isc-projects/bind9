@@ -15,22 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.11 2000/04/28 01:10:16 halley Exp $ */
+/* $Id: rdataslab.c,v 1.12 2000/05/08 14:35:00 tale Exp $ */
 
 #include <config.h>
 
-#include <string.h>
-
+#include <isc/mem.h>
 #include <isc/region.h>
-#include <isc/buffer.h>
-#include <isc/assertions.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/result.h>
 #include <dns/rdata.h>
-#include <dns/rdataclass.h>
-#include <dns/rdatatype.h>
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
 

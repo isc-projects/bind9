@@ -18,6 +18,8 @@
 #ifndef DNS_RBTDB64_H
 #define DNS_RBTDB64_H 1
 
+#include <isc/lang.h>
+
 /*****
  ***** Module Info
  *****/
@@ -28,9 +30,13 @@
 
 #include <dns/db.h>
 
+ISC_LANG_BEGINDECLS
+
 isc_result_t
 dns_rbtdb64_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t is_cache,
 		   dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		   dns_db_t **dbp);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_RBTDB64_H */

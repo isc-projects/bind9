@@ -18,9 +18,7 @@
 #ifndef GENERIC_MR_9_H
 #define GENERIC_MR_9_H 1
 
-/* $Id: mr_9.h,v 1.16 2000/04/29 02:01:44 tale Exp $ */
-
-#include <dns/name.h>
+/* $Id: mr_9.h,v 1.17 2000/05/08 14:36:52 tale Exp $ */
 
 typedef struct dns_rdata_mr {
 	dns_rdatacommon_t	common;

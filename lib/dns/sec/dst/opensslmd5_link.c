@@ -1,46 +1,37 @@
-#if defined(OPENSSL)
-
 /*
  * Portions Copyright (c) 1995-1998 by Network Associates, Inc.
+ * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  *
- * Permission to use, copy modify, and distribute this software for any
+ * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND NETWORK ASSOCIATES
- * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL
- * NETWORK ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT,
- * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
+ * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE CONSORTIUM OR NETWORK
+ * ASSOCIATES BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.6 2000/04/28 01:10:50 halley Exp $
+ * $Id: opensslmd5_link.c,v 1.7 2000/05/08 14:37:10 tale Exp $
  */
+
+#if defined(OPENSSL)
 
 #include <config.h>
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <memory.h>
-
-#include <isc/assertions.h>
-#include <isc/buffer.h>
-#include <isc/int.h>
-#include <isc/region.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
 
-#include <openssl/crypto.h>
-#include <openssl/bn.h>
 #include <openssl/md5.h>
 
 /*
@@ -96,4 +87,4 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	return (ISC_R_SUCCESS);
 }
 
-#endif
+#endif /* OPENSSL */

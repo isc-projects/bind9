@@ -14,8 +14,8 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+#include <config.h>
 
-#include <isc/assertions.h>
 #include <isc/quota.h>
 #include <isc/util.h>
 

@@ -15,15 +15,12 @@
  * SOFTWARE.
  */
 
-#ifndef NS_GLOBALS_H
-#define NS_GLOBALS_H 1
+#ifndef NAMED_GLOBALS_H
+#define NAMED_GLOBALS_H 1
 
-#include <isc/types.h>
 #include <isc/rwlock.h>
 #include <isc/log.h>
 #include <isc/net.h>
-
-#include <dns/types.h>
 
 #include <omapi/types.h>
 
@@ -89,4 +86,4 @@ EXTERN const char *		ns_g_cachefile		INIT(NULL);
 #undef EXTERN
 #undef INIT
 
-#endif /* NS_GLOBALS_H */
+#endif /* NAMED_GLOBALS_H */

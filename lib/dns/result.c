@@ -17,11 +17,7 @@
 
 #include <config.h>
 
-#include <stddef.h>
-
-#include <isc/resultclass.h>
 #include <isc/once.h>
-#include <isc/error.h>
 #include <isc/util.h>
 
 #include <dns/result.h>

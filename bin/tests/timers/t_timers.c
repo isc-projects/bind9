@@ -17,24 +17,14 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
 
-#include <isc/boolean.h>
 #include <isc/condition.h>
-#include <isc/error.h>
-#include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/task.h>
-#include <isc/thread.h>
-#include <isc/result.h>
 #include <isc/time.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <tests/t_api.h>
 
@@ -56,31 +46,32 @@ static	int		Tx_nanoseconds;
 
 static void
 tx_sde(isc_task_t *task, isc_event_t *event) {
-
 	isc_result_t	isc_result;
 
 	task = task;
 	event = event;
 
-	/* signal shutdown processing complete */
+	/*
+	 * Signal shutdown processing complete.
+	 */
 	isc_result = isc_mutex_lock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
 	isc_result = isc_condition_signal(&Tx_cv);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_signal failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
 	isc_result = isc_mutex_unlock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
@@ -89,7 +80,6 @@ tx_sde(isc_task_t *task, isc_event_t *event) {
 
 static void
 tx_te(isc_task_t *task, isc_event_t *event) {
-
 	isc_result_t	isc_result;
 	isc_time_t	now;
 	isc_time_t	base;
@@ -128,8 +118,7 @@ tx_te(isc_task_t *task, isc_event_t *event) {
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
-	}
-	else {
+	} else {
 		t_info("isc_time_now failed %s\n",
 			isc_result_totext(isc_result));
 		++Tx_nprobs;
@@ -151,9 +140,9 @@ tx_te(isc_task_t *task, isc_event_t *event) {
 
 static void
 t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
-		isc_interval_t *interval,
-		void (*action)(isc_task_t *, isc_event_t *)) {
-
+	   isc_interval_t *interval,
+	   void (*action)(isc_task_t *, isc_event_t *))
+{
 	char		*p;
 	isc_mem_t	*mctx;
 	isc_taskmgr_t	*tmgr;
@@ -175,7 +164,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mem_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 		return;
 	}
@@ -183,7 +172,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_mutex_init(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_init failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
 		++Tx_nprobs;
 		return;
@@ -192,7 +181,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_condition_init(&Tx_cv);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_init failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mutex_destroy(&Tx_mx);
 		isc_mem_destroy(&mctx);
 		++Tx_nprobs;
@@ -203,7 +192,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_taskmgr_create(mctx, workers, 0, &tmgr);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_taskmgr_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mutex_destroy(&Tx_mx);
 		isc_condition_destroy(&Tx_cv);
 		isc_mem_destroy(&mctx);
@@ -215,7 +204,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_timermgr_create(mctx, &timermgr);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_timermgr_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&Tx_mx);
 		isc_condition_destroy(&Tx_cv);
@@ -227,7 +216,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_mutex_lock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&Tx_mx);
@@ -241,7 +230,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_task_create(tmgr, 0, &task);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&Tx_mx);
@@ -254,7 +243,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_task_onshutdown(task, tx_sde, NULL);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_onshutdown failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
@@ -278,14 +267,9 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	}
 
 	Tx_timer = NULL;
-	isc_result = isc_timer_create(	timermgr,
-					timertype,
-					expires,
-					interval,
-					task,
-					action,
-					(void *) timertype,
-					&Tx_timer);
+	isc_result = isc_timer_create(timermgr, timertype, expires, interval,
+				      task, action, (void *)timertype,
+				      &Tx_timer);
 
 	if (isc_result != ISC_R_SUCCESS) {
 		isc_timermgr_destroy(&timermgr);
@@ -298,12 +282,14 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 		return;
 	}
 
-	/* wait for shutdown processing to complete */
+	/*
+	 * Wait for shutdown processing to complete.
+	 */
 	while (Tx_eventcnt != Tx_nevents) {
 		isc_result = isc_condition_wait(&Tx_cv, &Tx_mx);
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_condition_waituntil failed %s\n",
-				isc_result_totext(isc_result));
+			       isc_result_totext(isc_result));
 			++Tx_nprobs;
 		}
 	}
@@ -311,7 +297,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result = isc_mutex_unlock(&Tx_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
@@ -391,10 +377,9 @@ t2() {
 		isc_interval_set(&interval, 0, 0);
 		t_timers_x(isc_timertype_once, &expires, &interval, tx_te);
 
-	}
-	else {
+	} else {
 		t_info("isc_time_nowplusinterval failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 	}
 
 	result = T_UNRESOLVED;
@@ -409,7 +394,6 @@ t2() {
 
 static void
 t3_te(isc_task_t *task, isc_event_t *event) {
-
 	isc_result_t	isc_result;
 	isc_time_t	now;
 	isc_time_t	base;
@@ -437,16 +421,15 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 			++Tx_nfails;
 		}
 		Tx_lasttime = now;
-	}
-	else {
+	} else {
 		t_info("isc_time_now failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
 	if (event->ev_type != ISC_TIMEREVENT_IDLE) {
 		t_info("received event type %d, expected type %d\n",
-				event->ev_type, ISC_TIMEREVENT_IDLE);
+		       event->ev_type, ISC_TIMEREVENT_IDLE);
 		++Tx_nfails;
 	}
 
@@ -487,7 +470,7 @@ t3() {
 	}
 	else {
 		t_info("isc_time_nowplusinterval failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
@@ -519,7 +502,9 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 
 	t_info("tick %d\n", Tx_eventcnt);
 
-	/* check expired time */
+	/*
+	 * Check expired time.
+	 */
 
 	isc_result = isc_time_now(&now);
 	if (isc_result == ISC_R_SUCCESS) {
@@ -540,14 +525,14 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 	}
 	else {
 		t_info("isc_time_now failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++Tx_nprobs;
 	}
 
 	if (Tx_eventcnt < 3) {
 		if (event->ev_type != ISC_TIMEREVENT_TICK) {
 			t_info("received event type %d, expected type %d\n",
-					event->ev_type, ISC_TIMEREVENT_IDLE);
+			       event->ev_type, ISC_TIMEREVENT_IDLE);
 			++Tx_nfails;
 		}
 		if (Tx_eventcnt == 2) {
@@ -567,18 +552,16 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 					       isc_result_totext(isc_result));
 					++Tx_nfails;
 				}
-			}
-			else {
+			} else {
 				t_info("isc_time_nowplusinterval failed %s\n",
 				       isc_result_totext(isc_result));
 				++Tx_nprobs;
 			}
 		}
-	}
-	else {
+	} else {
 		if (event->ev_type != ISC_TIMEREVENT_LIFE) {
 			t_info("received event type %d, expected type %d\n",
-					event->ev_type, ISC_TIMEREVENT_IDLE);
+			       event->ev_type, ISC_TIMEREVENT_IDLE);
 			++Tx_nfails;
 		}
 
@@ -637,22 +620,21 @@ static	isc_task_t	*T5_task2;
 
 /*
  * T5_task1 blocks on T5_mx while events accumulate
- * in it's queue, until signaled by T5_task2
+ * in it's queue, until signaled by T5_task2.
  */
 
 static void
 t5_start_event(isc_task_t *task, isc_event_t *event) {
-
 	isc_result_t	isc_result;
 
-	task = task;
+	UNUSED(task);
 
 	t_info("t5_start_event\n");
 
 	isc_result = isc_mutex_lock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
@@ -663,7 +645,7 @@ t5_start_event(isc_task_t *task, isc_event_t *event) {
 	isc_result = isc_mutex_unlock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 	isc_event_free(&event);
@@ -681,8 +663,8 @@ t5_tick_event(isc_task_t *task, isc_event_t *event) {
 	t_info("t5_tick_event %d\n", T5_eventcnt);
 
 	/*
-	 * on the first tick, purge all remaining tick events
-	 * and then shut down the task
+	 * On the first tick, purge all remaining tick events
+	 * and then shut down the task.
 	 */
 	if (T5_eventcnt == 1) {
 		isc_time_settoepoch(&expires);
@@ -692,7 +674,7 @@ t5_tick_event(isc_task_t *task, isc_event_t *event) {
 					     &interval, ISC_TRUE);
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_timer_reset failed %d\n",
-					isc_result_totext(isc_result));
+			       isc_result_totext(isc_result));
 			++T5_nfails;
 		}
 		isc_task_shutdown(task);
@@ -708,12 +690,12 @@ t5_once_event(isc_task_t *task, isc_event_t *event) {
 	t_info("t5_once_event\n");
 
 	/*
-	 * allow task1 to start processing events
+	 * Allow task1 to start processing events.
 	 */
 	isc_result = isc_mutex_lock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
@@ -722,14 +704,14 @@ t5_once_event(isc_task_t *task, isc_event_t *event) {
 	isc_result = isc_condition_broadcast(&T5_cv);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_broadcast failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
 	isc_result = isc_mutex_unlock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
@@ -742,18 +724,18 @@ t5_shutdown_event(isc_task_t *task, isc_event_t *event) {
 
 	isc_result_t	isc_result;
 
-	task = task;
-	event = event;
+	UNUSED(task);
+	UNUSED(event);
 
 	t_info("t5_shutdown_event\n");
 
 	/*
-	 * signal shutdown processing complete
+	 * Signal shutdown processing complete.
 	 */
 	isc_result = isc_mutex_lock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
@@ -762,14 +744,14 @@ t5_shutdown_event(isc_task_t *task, isc_event_t *event) {
 	isc_result = isc_condition_signal(&T5_cv);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_signal failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 
 	isc_result = isc_mutex_unlock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 	isc_event_free(&event);
@@ -802,14 +784,14 @@ t_timers5() {
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mem_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
 
 	isc_result = isc_mutex_init(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_init failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
 	}
@@ -817,7 +799,7 @@ t_timers5() {
 	isc_result = isc_condition_init(&T5_cv);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_init failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mutex_destroy(&T5_mx);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -827,7 +809,7 @@ t_timers5() {
 	isc_result = isc_taskmgr_create(mctx, workers, 0, &tmgr);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_taskmgr_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_mutex_destroy(&T5_mx);
 		isc_condition_destroy(&T5_cv);
 		isc_mem_destroy(&mctx);
@@ -838,7 +820,7 @@ t_timers5() {
 	isc_result = isc_timermgr_create(mctx, &timermgr);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_timermgr_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&T5_mx);
 		isc_condition_destroy(&T5_cv);
@@ -850,7 +832,7 @@ t_timers5() {
 	isc_result = isc_task_create(tmgr, 0, &T5_task1);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&T5_mx);
@@ -862,7 +844,7 @@ t_timers5() {
 	isc_result = isc_task_onshutdown(T5_task1, t5_shutdown_event, NULL);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_onshutdown failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_task_destroy(&T5_task1);
 		isc_taskmgr_destroy(&tmgr);
@@ -876,7 +858,7 @@ t_timers5() {
 	isc_result = isc_task_create(tmgr, 0, &T5_task2);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
-				isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_task_destroy(&T5_task1);
 		isc_taskmgr_destroy(&tmgr);
@@ -889,7 +871,7 @@ t_timers5() {
 	isc_result = isc_mutex_lock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		isc_timermgr_destroy(&timermgr);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mutex_destroy(&T5_mx);
@@ -906,14 +888,9 @@ t_timers5() {
 	isc_interval_set(&interval, T5_SECONDS, 0);
 
 	T5_tickertimer = NULL;
-	isc_result = isc_timer_create(	timermgr,
-					isc_timertype_ticker,
-					&expires,
-					&interval,
-					T5_task1,
-					t5_tick_event,
-					NULL,
-					&T5_tickertimer);
+	isc_result = isc_timer_create(timermgr, isc_timertype_ticker,
+				      &expires, &interval, T5_task1,
+				      t5_tick_event, NULL, &T5_tickertimer);
 
 	if (isc_result != ISC_R_SUCCESS) {
 		isc_timermgr_destroy(&timermgr);
@@ -965,12 +942,14 @@ t_timers5() {
 		return(T_UNRESOLVED);
 	}
 
-	/* wait for shutdown processing to complete */
+	/*
+	 * Wait for shutdown processing to complete.
+	 */
 	while (! T5_shutdownflag) {
 		isc_result = isc_condition_wait(&T5_cv, &T5_mx);
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_condition_waituntil failed %s\n",
-				isc_result_totext(isc_result));
+			       isc_result_totext(isc_result));
 			++T5_nprobs;
 		}
 	}
@@ -978,7 +957,7 @@ t_timers5() {
 	isc_result = isc_mutex_unlock(&T5_mx);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_unlock failed %s\n",
-			isc_result_totext(isc_result));
+		       isc_result_totext(isc_result));
 		++T5_nprobs;
 	}
 

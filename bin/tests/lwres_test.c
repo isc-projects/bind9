@@ -18,27 +18,18 @@
 #include <config.h>
 
 #include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/util.h>
 
-#include <lwres/context.h>
-#include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
-#include <lwres/lwpacket.h>
 
 #define USE_ISC_MEM
 
 static inline void
-CHECK(int val, char *msg)
-{
+CHECK(int val, char *msg) {
 	if (val != 0) {
 		fprintf(stderr, "%s returned %d\n", msg, val);
 		exit(1);
@@ -46,8 +37,7 @@ CHECK(int val, char *msg)
 }
 
 static void
-hexdump(char *msg, void *base, size_t len)
-{
+hexdump(char *msg, void *base, size_t len) {
 	unsigned char *p;
 	unsigned int cnt;
 
@@ -76,8 +66,7 @@ static char *TESTSTRING = "This is a test.  This is only a test.  !!!";
 static lwres_context_t *ctx;
 
 static void
-test_noop(void)
-{
+test_noop(void) {
 	int ret;
 	lwres_lwpacket_t pkt, pkt2;
 	lwres_nooprequest_t nooprequest, *nooprequest2;
@@ -156,8 +145,7 @@ test_noop(void)
 }
 
 static void
-test_gabn(char *target)
-{
+test_gabn(char *target) {
 	lwres_gabnresponse_t *res;
 	lwres_addr_t *addr;
 	int ret;
@@ -201,8 +189,7 @@ test_gabn(char *target)
 }
 
 static void
-test_gnba(char *target, lwres_uint32_t af)
-{
+test_gnba(char *target, lwres_uint32_t af) {
 	lwres_gnbaresponse_t *res;
 	int ret;
 	unsigned int i;
@@ -239,21 +226,18 @@ test_gnba(char *target, lwres_uint32_t af)
  * Wrappers around our memory management stuff, for the lwres functions.
  */
 static void *
-mem_alloc(void *arg, size_t size)
-{
+mem_alloc(void *arg, size_t size) {
 	return (isc_mem_get(arg, size));
 }
 
 static void
-mem_free(void *arg, void *mem, size_t size)
-{
+mem_free(void *arg, void *mem, size_t size) {
 	isc_mem_put(arg, mem, size);
 }
 #endif
 
 int
-main(int argc, char *argv[])
-{
+main(int argc, char *argv[]) {
 	int ret;
 #ifdef USE_ISC_MEM
 	isc_mem_t *mem;

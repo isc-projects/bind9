@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.44 2000/05/04 22:49:47 explorer Exp $ */
+/* $Id: gen.c,v 1.45 2000/05/08 14:34:36 tale Exp $ */
 
 #include <config.h>
 
@@ -542,10 +542,17 @@ main(int argc, char **argv) {
 	fprintf(stdout, copyright, year);
 
 	if (code) {
-		fputs("\n\n", stdout);
+		fputs("#ifndef DNS_CODE_H\n", stdout);
+		fputs("#define DNS_CODE_H 1\n\n", stdout);
+
+		fputs("#include <isc/boolean.h>\n", stdout);
+		fputs("#include <isc/result.h>\n\n", stdout);
+		fputs("#include <dns/name.h>\n\n", stdout);
+
 		for (tt = types; tt != NULL ; tt = tt->next)
 			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
 				tt->dirname, tt->typename, tt->type);
+
 		fputs("\n\n", stdout);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
@@ -695,10 +702,12 @@ main(int argc, char **argv) {
 				cc->rdclass, upper(cc->classname),
 				cc->next != NULL ? " \\" : "");
 
-		fputs("\n", stdout);
+		fputs("#endif /* DNS_CODE_H */\n", stdout);
 	} else if (type_enum) {
-		fprintf(stdout, "#ifndef TYPEENUM\n");
-		fprintf(stdout, "#define TYPEENUM%s\n",
+		fprintf(stdout, "#ifndef DNS_ENUMTYPE_H\n");
+		fprintf(stdout, "#define DNS_ENUMTYPE_H 1\n");
+
+		fprintf(stdout, "#define DNS_TYPEENUM%s\n",
 			types != NULL ? " \\" : "");
 
 		lasttype = 0;
@@ -708,10 +717,12 @@ main(int argc, char **argv) {
 					funname(tt->typename, buf1),
 					lasttype = tt->type,
 					tt->next != NULL ? " \\" : "");
-		fprintf(stdout, "#endif /* TYPEENUM */\n");
+		fprintf(stdout, "#endif /* DNS_ENUMTYPE_H */\n");
 	} else if (class_enum) {
-		fprintf(stdout, "#ifndef CLASSENUM\n");
-		fprintf(stdout, "#define CLASSENUM%s\n",
+		fprintf(stdout, "#ifndef DNS_ENUMCLASS_H\n");
+		fprintf(stdout, "#define DNS_ENUMCLASS_H 1\n");
+		
+		fprintf(stdout, "#define DNS_CLASSENUM%s\n",
 			classes != NULL ? " \\" : "");
 
 		printf("\t dns_rdataclass_reserved0 = 0, \\\n");
@@ -723,7 +734,7 @@ main(int argc, char **argv) {
 				cc->rdclass,
 				cc->next != NULL ? " \\" : "");
 		}
-		fprintf(stdout, "#endif /* CLASSENUM */\n");
+		fprintf(stdout, "#endif /* DNS_ENUMCLASS_H */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
 			if ((fd = fopen(prefix,"r")) != NULL) {

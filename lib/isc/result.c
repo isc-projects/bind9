@@ -17,17 +17,13 @@
 
 #include <config.h>
 
-#include <stddef.h>
 #include <stdlib.h>
 
-#include <isc/result.h>
-#include <isc/resultclass.h>
-#include <isc/assertions.h>
-#include <isc/error.h>
+#include <isc/lib.h>
+#include <isc/msgcat.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
-#include <isc/msgcat.h>
-#include <isc/lib.h>
+#include <isc/resultclass.h>
 #include <isc/util.h>
 
 typedef struct resulttable {

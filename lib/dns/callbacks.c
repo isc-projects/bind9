@@ -15,13 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.6 2000/03/17 17:49:37 gson Exp $ */
+/* $Id: callbacks.c,v 1.7 2000/05/08 14:34:27 tale Exp $ */
 
 #include <config.h>
 
-#include <stdarg.h>
-
-#include <isc/assertions.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -73,9 +70,7 @@ isclog_warn_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 }
 
 static void
-dns_rdatacallbacks_initcommon(dns_rdatacallbacks_t *callbacks)
-
-{
+dns_rdatacallbacks_initcommon(dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(callbacks != NULL);
 
 	callbacks->add = NULL;

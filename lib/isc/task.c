@@ -26,15 +26,10 @@
 
 #include <config.h>
 
-#include <string.h>
-
-#include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/condition.h>
-#include <isc/error.h>
 #include <isc/event.h>
 #include <isc/mem.h>
-#include <isc/mutex.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>

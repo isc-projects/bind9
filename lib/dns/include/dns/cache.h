@@ -49,9 +49,6 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>

@@ -17,16 +17,9 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <isc/assertions.h>
 #include <isc/commandline.h>
-#include <isc/error.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/util.h>
 
 isc_mem_t *mctx;

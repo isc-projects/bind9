@@ -30,11 +30,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/condition.h>
-#include <isc/error.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>

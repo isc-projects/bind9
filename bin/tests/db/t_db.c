@@ -18,34 +18,18 @@
 #include <config.h>
 
 #include <ctype.h>
-#include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-#include <unistd.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
-#include <isc/list.h>
+#include <isc/mem.h>
+#include <isc/string.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
+#include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
-#include <dns/rdatasetiter.h>
-#include <dns/rdatastruct.h>
-#include <dns/compress.h>
-#include <dns/db.h>
-#include <dns/dbiterator.h>
-#include <dns/dbtable.h>
 
 #include <tests/t_api.h>
 
@@ -96,7 +80,6 @@ t_create(char *db_type, char *origin, char *class, char *cache,
 	return(dns_result);
 
 }
-
 
 static int
 t_dns_db_load(char **av) {
@@ -254,12 +237,9 @@ static char *a2 =
 	"dns_db_iscache(db) returns ISC_TRUE.";
 
 static int
-t_dns_db_zc_x(char *filename,
-		char *db_type, char *origin, char *class,
-		isc_boolean_t cache,
-		isc_boolean_t(*cf)(dns_db_t *),
-		isc_boolean_t exp_result) {
-
+t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
+	      isc_boolean_t cache, isc_boolean_t(*cf)(dns_db_t *),
+	      isc_boolean_t exp_result) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
@@ -651,7 +631,6 @@ static char *a8 =
 
 static int
 t_dns_db_currentversion(char **av) {
-
 	char			*filename;
 	char			*db_type;
 	char			*origin;
@@ -819,7 +798,8 @@ t_dns_db_currentversion(char **av) {
 			&rdataset, NULL);
 
 	if ((dns_result != ISC_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
-		t_info("unexpectedly found %s using current version\n", findname);
+		t_info("unexpectedly found %s using current version\n",
+		       findname);
 		dns_db_closeversion(db, &cversionp, ISC_FALSE);
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detach(&db);
@@ -868,15 +848,14 @@ t8() {
 	int	result;
 
 	t_assert("dns_db_currentversion", 8, T_REQUIRED, a8);
-	result = t_eval("dns_db_currentversion_data", t_dns_db_currentversion, 7);
+	result = t_eval("dns_db_currentversion_data",
+			t_dns_db_currentversion, 7);
 	t_result(result);
 }
-
 
 static char *a9 =
 	"A call to dns_db_newversion() opens a new version for "
 	"reading and writing.";
-
 
 static int
 t_dns_db_newversion(char **av) {
@@ -1132,6 +1111,7 @@ t_dns_db_newversion(char **av) {
 
 	return(result);
 }
+
 static void
 t9() {
 	int	result;
@@ -1141,7 +1121,6 @@ t9() {
 	t_result(result);
 }
 
-
 static char *a10 =
 	"When versionp points to a read-write version and commit is "
 	"ISC_TRUE, a call to dns_db_closeversion(db, versionp, commit) "
@@ -1150,7 +1129,6 @@ static char *a10 =
 
 static int
 t_dns_db_closeversion_1(char **av) {
-
 	char			*filename;
 	char			*db_type;
 	char			*origin;
@@ -1495,10 +1473,10 @@ t10() {
 	int	result;
 
 	t_assert("dns_db_closeversion", 10, T_REQUIRED, a10);
-	result = t_eval("dns_db_closeversion_1_data", t_dns_db_closeversion_1, 9);
+	result = t_eval("dns_db_closeversion_1_data",
+			t_dns_db_closeversion_1, 9);
 	t_result(result);
 }
-
 
 static char *a11 =
 	"When versionp points to a read-write version and commit is "
@@ -1508,7 +1486,6 @@ static char *a11 =
 
 static int
 t_dns_db_closeversion_2(char **av) {
-
 	char			*filename;
 	char			*db_type;
 	char			*origin;
@@ -1909,10 +1886,10 @@ t11() {
 	int	result;
 
 	t_assert("dns_db_closeversion", 11, T_REQUIRED, a11);
-	result = t_eval("dns_db_closeversion_2_data", t_dns_db_closeversion_2, 9);
+	result = t_eval("dns_db_closeversion_2_data",
+			t_dns_db_closeversion_2, 9);
 	t_result(result);
 }
-
 
 static char *a12 =
 	"A call to dns_db_expirenode() marks as stale all records at node  "
@@ -1921,7 +1898,6 @@ static char *a12 =
 
 static int
 t_dns_db_expirenode(char **av) {
-
 	char			*filename;
 	char			*db_type;
 	char			*origin;
@@ -2088,17 +2064,14 @@ t12() {
 	t_result(result);
 }
 
-
 static char *a13 =
 	"If the node name exists, then a call to "
 	"dns_db_findnode(db, name, ISC_FALSE, nodep) initializes nodep "
 	"to point to the node and returns ISC_R_SUCCESS, otherwise "
 	"it returns ISC_R_NOTFOUND.";
 
-
 static int
 t_dns_db_findnode_1(char **av) {
-
 	char		*filename;
 	char		*db_type;
 	char		*origin;
@@ -2247,7 +2220,6 @@ static char *a14 =
 
 static int
 t_dns_db_findnode_2(char **av) {
-
 	char			*filename;
 	char			*db_type;
 	char			*origin;
@@ -2405,7 +2377,6 @@ t14() {
 
 static int
 t_dns_db_find_x(char **av) {
-
 	char			*dbfile;
 	char			*dbtype;
 	char			*dborigin;
@@ -2533,9 +2504,10 @@ t_dns_db_find_x(char **av) {
 			&rdataset, NULL);
 
 	if (dns_result != exp_result) {
-		t_info("dns_db_find %s %s unexpectedly returned %s, expected %s\n",
-				findname, findtype, dns_result_totext(dns_result),
-				dns_result_totext(exp_result));
+		t_info("dns_db_find %s %s unexpectedly returned %s, "
+		       "expected %s\n",
+		       findname, findtype, dns_result_totext(dns_result),
+		       dns_result_totext(exp_result));
 		result = T_FAIL;
 	}
 	else {
@@ -2544,7 +2516,8 @@ t_dns_db_find_x(char **av) {
 
 	if ((dns_result != ISC_R_NOTFOUND) && (dns_result != DNS_R_NXDOMAIN)) {
 
-		if ((dns_result != DNS_R_NXRRSET) && (dns_result != DNS_R_ZONECUT))
+		if ((dns_result != DNS_R_NXRRSET) &&
+		    (dns_result != DNS_R_ZONECUT))
 			if (dns_rdataset_isassociated(&rdataset))
 				dns_rdataset_disassociate(&rdataset);
 		dns_db_detachnode(db, &nodep);
@@ -2560,8 +2533,8 @@ t_dns_db_find_x(char **av) {
 
 static char *a15 =
 	"A call to dns_db_find(db, name, version, type, options, now, ...)  "
-	"finds the best match for 'name' and 'type' in version 'version' of 'db'.";
-
+	"finds the best match for 'name' and 'type' in version 'version' "
+	"of 'db'.";
 
 static void
 t15() {
@@ -2579,7 +2552,6 @@ static char *a16 =
 	"dns_db_find(db, name, version, type, options, now, ...)  "
 	"returns DNS_R_GLUE.";
 
-
 static void
 t16() {
 	int	result;
@@ -2589,11 +2561,9 @@ t16() {
 	t_result(result);
 }
 
-
 static char *a17 =
 	"A call to dns_db_find() returns DNS_R_DELEGATION when the data "
 	"requested is beneath a zone cut.";
-
 
 static void
 t17() {
@@ -2604,11 +2574,9 @@ t17() {
 	t_result(result);
 }
 
-
 static char *a18 =
 	"A call to dns_db_find() returns DNS_R_ZONECUT when type is "
 	"dns_rdatatype_any and the desired node is a zone cut.";
-
 
 static void
 t18() {
@@ -2618,7 +2586,6 @@ t18() {
 	result = t_eval("dns_db_find_4_data", t_dns_db_find_x, 10);
 	t_result(result);
 }
-
 
 static char *a19 =
 	"A call to dns_db_find() returns DNS_R_DNAME when the data "
@@ -2632,7 +2599,6 @@ t19() {
 	result = t_eval("dns_db_find_5_data", t_dns_db_find_x, 10);
 	t_result(result);
 }
-
 
 static char *a20 =
 	"A call to dns_db_find() returns DNS_R_CNAME when the requested "
@@ -2673,7 +2639,6 @@ t22() {
 	t_result(result);
 }
 
-
 static char *a23 =
 	"When db is a cache database, a call to dns_db_find() "
 	"returns ISC_R_NOTFOUND when the desired name does not exist, "
@@ -2700,7 +2665,6 @@ t24() {
 	result = t_eval("dns_db_find_10_data", t_dns_db_find_x, 10);
 	t_result(result);
 }
-
 
 testspec_t	T_testlist[] = {
 	{	t1,		"dns_db_load"		},
@@ -2729,4 +2693,3 @@ testspec_t	T_testlist[] = {
 	{	t24,		"dns_db_find"		},
 	{	NULL,		NULL			}
 };
-

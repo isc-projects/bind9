@@ -20,14 +20,11 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
 #include <isc/buffer.h>
 #include <isc/print.h>
+#include <isc/region.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/result.h>

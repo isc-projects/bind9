@@ -47,7 +47,6 @@
  *** Imports
  ***/
 
-#include <isc/region.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>

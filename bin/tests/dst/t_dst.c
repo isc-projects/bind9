@@ -17,37 +17,29 @@
 
 #include <config.h>
 
-#include <ctype.h>
-#include <sys/types.h>
+#include <sys/types.h>		/* Required for dirent.h */
+#include <sys/stat.h>
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 
 #include <unistd.h>		/* XXX */
 
-#include <isc/assertions.h>
-#include <isc/error.h>
-#include <isc/boolean.h>
-#include <isc/region.h>
+#include <isc/buffer.h>
 #include <isc/mem.h>
-#include <isc/result.h>
+#include <isc/region.h>
+#include <isc/string.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
 
 #include <tests/t_api.h>
 
-static void	t1(void);
-
-static void	t2(void);
-
 /*
- * adapted from the original dst_test.c program
+ * Adapted from the original dst_test.c program.
  */
 
 static void
@@ -80,7 +72,6 @@ cleandir(char *path) {
 	}
 	return;
 }
-
 
 static void
 use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
@@ -236,8 +227,9 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 }
 
 static void
-io(char *name, int id, int alg, int type, isc_mem_t *mctx, isc_result_t exp_result,
-		int *nfails, int *nprobs) {
+io(char *name, int id, int alg, int type, isc_mem_t *mctx,
+   isc_result_t exp_result, int *nfails, int *nprobs)
+{
 	dst_key_t	*key;
 	isc_result_t	ret;
 	int		rval;
@@ -309,7 +301,8 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 
 	ret = dst_key_generate("test.", alg, size, 0, 0, 0, mctx, &key);
 	if (ret != ISC_R_SUCCESS) {
-		t_info("dst_key_generate(%d) returned: %s\n", alg, dst_result_totext(ret));
+		t_info("dst_key_generate(%d) returned: %s\n", alg,
+		       dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
@@ -367,7 +360,7 @@ static char	*a1 =
 		"compute Diffie-Hellman shared secrets, "
 		"and generate random number sequences.";
 static void
-t1() {
+t1(void) {
 	isc_mem_t	*mctx;
 	int		nfails;
 	int		nprobs;
@@ -381,7 +374,8 @@ t1() {
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %d\n", isc_result_totext(isc_result));
+		t_info("isc_mem_create failed %d\n",
+		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
 		return;
 	}
@@ -429,7 +423,9 @@ t1() {
 
 #ifdef	NEWSIG
 
-/* write a sig in buf to file at path */
+/*
+ * Write a sig in buf to file at path.
+ */
 static int
 sig_tofile(char *path, isc_buffer_t *buf) {
 	int		rval;
@@ -444,7 +440,8 @@ sig_tofile(char *path, isc_buffer_t *buf) {
 	nprobs = 0;
 	len = buf->used - buf->current;
 
-	t_info("buf: current %d used %d len %d\n", buf->current, buf->used, len);
+	t_info("buf: current %d used %d len %d\n",
+	       buf->current, buf->used, len);
 
 	fd = open(path, O_CREAT|O_TRUNC|O_WRONLY, S_IRWXU|S_IRWXO|S_IRWXG);
 	if (fd < 0) {
@@ -500,7 +497,9 @@ sig_tofile(char *path, isc_buffer_t *buf) {
 
 #endif	/* NEWSIG */
 
-/* read sig in file at path to buf */
+/*
+ * Read sig in file at path to buf.
+ */
 static int
 sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 	int		rval;
@@ -574,13 +573,12 @@ sig_fromfile(char *path, isc_buffer_t *iscbuf) {
 	return(0);
 }
 
-
 static void
 t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		int id, int alg, int type,
 		isc_mem_t *mctx, char *expected_result,
-		int *nfails, int *nprobs) {
-
+		int *nfails, int *nprobs)
+{
 	int		rval;
 	int		len;
 	int		fd;
@@ -596,7 +594,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	isc_region_t	datareg;
 	isc_region_t	sigreg;
 
-	/* read data from file in a form usable by dst_verify */
+	/*
+	 * Read data from file in a form usable by dst_verify.
+	 */
 	rval = stat(datapath, &sb);
 	if (rval != 0) {
 		t_info("t2_sigchk: stat (%s) failed %d\n", datapath, errno);
@@ -630,7 +630,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	} while (len);
 	(void) close(fd);
 
-	/* read key from file in a form usable by dst_verify */
+	/*
+	 * Read key from file in a form usable by dst_verify.
+	 */
 	isc_result = dst_key_fromfile(keyname, id, alg, type, mctx, &key);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile failed %s\n",
@@ -690,7 +692,9 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		return;
 	}
 
-	/* verify that the key signed the data */
+	/*
+	 * Verify that the key signed the data.
+	 */
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
 	exp_res = 0;
@@ -713,17 +717,18 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 }
 
 /*
- * the astute observer will note that t1() signs then verifies data
+ * The astute observer will note that t1() signs then verifies data
  * during the test but that t2() verifies data that has been
  * signed at some earlier time, possibly with an entire different
  * version or implementation of the DSA and RSA algorithms
  */
-
 static char	*a2 =
 		"the dst module provides the capability to "
 		"verify data signed with the RSA and DSA algorithms";
 
-/* av ==  datafile, sigpath, keyname, keyid, alg, exp_result */
+/*
+ * av ==  datafile, sigpath, keyname, keyid, alg, exp_result.
+ */
 static int
 t2_vfy(char **av) {
 	char		*datapath;
@@ -762,7 +767,8 @@ t2_vfy(char **av) {
 	mctx = NULL;
 	isc_result = isc_mem_create(0, 0, &mctx);
 	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %d\n", isc_result_totext(isc_result));
+		t_info("isc_mem_create failed %d\n",
+		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
 	}
 
@@ -780,12 +786,12 @@ t2_vfy(char **av) {
 		result = T_FAIL;
 	else if ((nfails == 0) && (nprobs == 0))
 		result = T_PASS;
-	return(result);
 
+	return(result);
 }
 
 static void
-t2() {
+t2(void) {
 	int	result;
 	t_assert("dst", 2, T_REQUIRED, a2);
 	result = t_eval("dst_2_data", t2_vfy, 6);

@@ -17,23 +17,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <isc/assertions.h>
-#include <isc/error.h>
 #include <isc/mem.h>
-#include <isc/result.h>
+
 #include <tests/t_api.h>
 
-static void
-t1(void);
-
 /*
- * adapted from the original mempool_test.c program
+ * Adapted from the original mempool_test.c program.
  */
-
 isc_mem_t *mctx;
 
 #define	MP1_FREEMAX	10
@@ -194,7 +184,7 @@ static char	*a1 =
 		"the memory module supports the creation of memory contexts "
 		"and the management of memory pools.";
 static void
-t1() {
+t1(void) {
 	int	rval;
 	int	result;
 

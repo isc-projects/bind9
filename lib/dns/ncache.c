@@ -17,20 +17,14 @@
 
 #include <config.h>
 
-#include <isc/assertions.h>
-#include <isc/region.h>
-#include <isc/buffer.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
-#include <dns/ncache.h>
-#include <dns/name.h>
-#include <dns/compress.h>
-#include <dns/message.h>
 #include <dns/db.h>
+#include <dns/message.h>
+#include <dns/ncache.h>
 #include <dns/rdata.h>
-#include <dns/rdataset.h>
 #include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 
 /*
  * The format of an ncache rdata is a sequence of one or more records of
@@ -155,7 +149,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					/*
 					 * Copy the type to the buffer.
 					 */
-					isc_buffer_availableregion(&buffer, &r);
+					isc_buffer_availableregion(&buffer,
+								   &r);
 					if (r.length < 2)
 						return (ISC_R_NOSPACE);
 					isc_buffer_putuint16(&buffer,

@@ -18,10 +18,8 @@
 #define DST_DST_PARSE_H 1
 
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <dst/dst.h>
 
-ISC_LANG_BEGINDECLS
+#include <dst/dst.h>
 
 #define MAJOR_VERSION		1
 #define MINOR_VERSION		2
@@ -74,14 +72,19 @@ struct dst_private {
 
 typedef struct dst_private dst_private_t;
 
-void	dst_s_free_private_structure_fields(dst_private_t *priv,
-					    isc_mem_t *mctx);
-int	dst_s_parse_private_key_file(const char *name, const int alg,
-				     const isc_uint16_t id, dst_private_t *priv,
-				     isc_mem_t *mctx);
-int	dst_s_write_private_key_file(const char *name, const int alg,
-				     const isc_uint16_t id,
-				     const dst_private_t *priv);
+ISC_LANG_BEGINDECLS
+
+void
+dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx);
+
+int
+dst_s_parse_private_key_file(const char *name, const int alg,
+			     const isc_uint16_t id, dst_private_t *priv,
+			     isc_mem_t *mctx);
+
+int
+dst_s_write_private_key_file(const char *name, const int alg,
+			     const isc_uint16_t id, const dst_private_t *priv);
 
 ISC_LANG_ENDDECLS
 

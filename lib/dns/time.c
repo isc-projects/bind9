@@ -15,18 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.10 2000/04/28 01:10:19 halley Exp $ */
+/* $Id: time.c,v 1.11 2000/05/08 14:35:08 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <string.h>
 #include <time.h>
 
-#include <isc/assertions.h>
+#include <isc/region.h>
 #include <isc/util.h>
 
-#include <dns/types.h>
 #include <dns/result.h>
 #include <dns/time.h>
 
@@ -44,7 +42,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 
 #define is_leap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
 #define year_secs(y) ((is_leap(y) ? 366 : 365 ) * 86400)
-#define month_secs(m, y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0 )) * 86400)
+#define month_secs(m,y) ((days[m] + ((m == 1 && is_leap(y)) ? 1 : 0 )) * 86400)
 
 	tm.tm_year = 70;
 	while ((secs = year_secs(tm.tm_year + 1900)) <= t) {
@@ -96,7 +94,9 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 	isc_int64_t base;
 	isc_int64_t t;
 
-	/* Find the right epoch. */
+	/*
+	 * Find the right epoch.
+	 */
 	start = time(NULL);
 	start -= 0x7fffffff;
 	base = 0;
@@ -132,9 +132,11 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 		 ((month == 2 && is_leap(year)) ? 1 : 0), day);
 	RANGE(0, 23, hour);
 	RANGE(0, 59, minute);
-	RANGE(0, 60, second);	/* leap second */
+	RANGE(0, 60, second);		/* 60 == leap second. */
 
-	/* Calulate seconds since epoch. */
+	/*
+	 * Calulate seconds since epoch.
+	 */
 	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
 	for (i = 0; i < (month - 1) ; i++)
 		value += days[i] * 86400;

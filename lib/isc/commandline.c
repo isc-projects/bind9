@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.5 2000/04/28 02:08:11 tale Exp $ */
+/* $Id: commandline.c,v 1.6 2000/05/08 14:37:20 tale Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -66,11 +66,9 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <string.h>
 
-#include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/commandline.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 int isc_commandline_index = 1;		/* Index into parent argv vector. */
