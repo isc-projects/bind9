@@ -83,7 +83,6 @@ main(int argc, char *argv[]) {
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, plain,
 	     sizeof plain);
 	test(DNS_COMPRESS_GLOBAL, &name1, &name2, &name3, plain, sizeof plain);
-	test(DNS_COMPRESS_LOCAL, &name1, &name2, &name3, plain, sizeof plain);
 	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, plain, sizeof plain);
 
 	dns_name_init(&name1, NULL);
@@ -104,7 +103,6 @@ main(int argc, char *argv[]) {
 	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_GLOBAL, &name1, &name2, &name3, bit, sizeof bit);
-	test(DNS_COMPRESS_LOCAL, &name1, &name2, &name3, bit, sizeof bit);
 	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, bit, sizeof bit);
 
 	exit(0);
@@ -130,7 +128,6 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;
 		case DNS_COMPRESS_GLOBAL16: s = "DNS_COMPRESS_GLOBAL16"; break;
 		case DNS_COMPRESS_GLOBAL: s = "DNS_COMPRESS_GLOBAL"; break;
-		case DNS_COMPRESS_LOCAL: s = "DNS_COMPRESS_LOCAL"; break;
 		case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break;
 		default: s = "UNKOWN"; break;
 		}

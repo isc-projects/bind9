@@ -708,9 +708,9 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 }
 
 static isc_result_t
-getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
-	 dns_decompress_t *dctx, dns_rdataclass_t rdclass,
-	 dns_rdatatype_t rdtype, unsigned int rdatalen, dns_rdata_t *rdata)
+getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
+	 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
+	 unsigned int rdatalen, dns_rdata_t *rdata)
 {
 	isc_buffer_t *scratch;
 	isc_result_t result;
@@ -735,7 +735,6 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	scratch = currentbuffer(msg);
 
 	isc_buffer_setactive(source, rdatalen);
-	dns_decompress_localinit(dctx, name, source);
 
 	/*
 	 * First try:  use current buffer.
@@ -1087,12 +1086,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				attributes = DNS_NAMEATTR_DNAME;
 				skip_name_search = ISC_TRUE;
 			}
-			result = getrdata(name, source, msg, dctx,
-					  msg->rdclass, rdtype,
-					  rdatalen, rdata);
+			result = getrdata(source, msg, dctx, msg->rdclass,
+					  rdtype, rdatalen, rdata);
 		} else
-			result = getrdata(name, source, msg, dctx,
-					  rdclass, rdtype, rdatalen, rdata);
+			result = getrdata(source, msg, dctx, rdclass,
+					  rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;

@@ -16,7 +16,6 @@
 #	DNS_COMPRESS_GLOBAL
 #	DNS_COMPRESS_GLOBAL14
 #	DNS_COMPRESS_GLOBAL16
-#	DNS_COMPRESS_LOCAL
 #	DNS_COMPRESS_NONE
 #
 # and where exp_name is the expected name after any decompression

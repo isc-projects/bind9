@@ -394,12 +394,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 				rdata = shuffled[i];
 			else
 				dns_rdataset_current(rdataset, &rdata);
-			result = dns_compress_localinit(cctx, owner_name,
-							target);
-			if (result != DNS_R_SUCCESS)
-				goto rollback;
 			result = dns_rdata_towire(&rdata, cctx, target);
-			dns_compress_localinvalidate(cctx);
 			if (result != DNS_R_SUCCESS)
 				goto rollback;
 			INSIST((target->used >= rdlen.used + 2) &&

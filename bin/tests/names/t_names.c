@@ -2251,8 +2251,6 @@ t_dns_name_fromwire_x(char *testfile, size_t buflen) {
 					dc_method = DNS_COMPRESS_GLOBAL16;
 				else if (! strcmp(tok, "DNS_COMPRESS_GLOBAL"))
 					dc_method = DNS_COMPRESS_GLOBAL;
-				else if (! strcmp(tok, "DNS_COMPRESS_LOCAL"))
-					dc_method = DNS_COMPRESS_LOCAL;
 				else if (! strcmp(tok, "DNS_COMPRESS_ALL"))
 					dc_method = DNS_COMPRESS_ALL;
 
@@ -2499,7 +2497,7 @@ testspec_t T_testlist[] = {
 	{	t_dns_name_issubdomain,		"dns_name_issubdomain"	},
 	{	t_dns_name_countlabels,		"dns_name_countlabels"	},
 	{	t_dns_name_getlabel,		"dns_name_getlabel"	},
-	{	t_dns_name_getlabelsequence,	"dns_name_getlabelsequence"	},
+	{	t_dns_name_getlabelsequence,	"dns_name_getlabelsequence" },
 	{	t_dns_name_fromregion,		"dns_name_fromregion"	},
 	{	t_dns_name_toregion,		"dns_name_toregion"	},
 	{	t_dns_name_fromwire,		"dns_name_fromwire"	},

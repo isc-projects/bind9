@@ -345,12 +345,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			/*
 			 * Write the rdata.
 			 */
-			result = dns_compress_localinit(cctx, &name, target);
-			if (result != DNS_R_SUCCESS)
-				goto rollback;
-
 			result = dns_rdata_towire(&rdata, cctx, target);
-			dns_compress_localinvalidate(cctx);
 			if (result != DNS_R_SUCCESS)
 				goto rollback;
 

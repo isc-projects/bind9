@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.21 2000/03/17 17:49:37 gson Exp $ */
+/* $Id: compress.c,v 1.22 2000/03/23 05:18:41 tale Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -58,136 +58,12 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
 	cctx->rdata = 0;
 	cctx->global16 = (edns >= 1) ? ISC_TRUE : ISC_FALSE;
 	cctx->edns = edns;
-	cctx->local = NULL;
 	cctx->global = NULL;
 	result = dns_rbt_create(mctx, free_offset, mctx, &cctx->global);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 	cctx->mctx = mctx;
 	cctx->magic = CCTX_MAGIC;
-	return (DNS_R_SUCCESS);
-}
-
-isc_result_t
-dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
-		       isc_buffer_t *target)
-{
-	isc_result_t result;
-	unsigned int labels;
-	unsigned int ll;	/* logical label length w/o root label */
-	unsigned int wl;	/* wire labels  */
-	unsigned int bits;
-	dns_name_t name;
-	dns_name_t prefix;
-	dns_name_t suffix;
-	dns_label_t label;
-	isc_uint16_t *data;
-	unsigned char buf[34];
-	unsigned char namebuf[255];
-	isc_buffer_t t;
-	isc_region_t region;
-
-	REQUIRE(VALID_CCTX(cctx));
-	REQUIRE(cctx->local == NULL);
-	REQUIRE(dns_name_isabsolute(owner) == ISC_TRUE);
-	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
-
-	result = dns_rbt_create(cctx->mctx, free_offset, cctx->mctx,
-				&cctx->local);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
-	/*
-	 * Errors from here on are not passed back up.
-	 */
-	cctx->rdata = target->used;	/* XXX layer violation */
-	labels = dns_name_countlabels(owner);
-	if (labels <= 1)		/* can't compress root label */
-		return (DNS_R_SUCCESS);
-	ll = 0;	/* logical label index 0 == TLD not root */
-	wl = 2; /* minimum number of wire labels */
-	dns_name_init(&name, NULL);
-	dns_name_init(&prefix, NULL);
-	dns_name_init(&suffix, NULL);
-	/*
-	 * Work from the TLD label to the least signfiant label.
-	 */
-	while (labels >= wl) {
-		dns_name_getlabelsequence(owner, labels - wl, wl, &name);
-		dns_name_getlabel(&name, 0, &label);
-		/*
-		 * If it is not a bit string label add to tree.
-		 */
-		if (dns_label_type(&label) != dns_labeltype_bitstring) {
-			data = isc_mem_get(cctx->mctx, sizeof *data);
-			if (data == NULL)
-				return (DNS_R_SUCCESS);
-			*data = ll;
-			result = dns_rbt_addname(cctx->local, &name, data);
-			if (result != DNS_R_SUCCESS) {
-				isc_mem_put(cctx->mctx, data, sizeof *data);
-				return (DNS_R_SUCCESS);
-			}
-			wl++;
-			ll++;
-			if (ll > 254)
-				return (DNS_R_SUCCESS);
-			continue;
-		}
-		/*
-		 * Have to compute logical for bit string labels.
-		 */
-
-		bits = dns_label_countbits(&label);
-		INSIST(label.length < sizeof buf);
-		memcpy(buf, label.base, label.length);
-		region.base = buf;
-		dns_name_getlabelsequence(owner, 1, wl - 1, &suffix);
-		/*
-		 * It is easier to do this the reverse way.
-		 * Adding 'bits' to 'll' may exceed the maximum logical
-		 * offset index.  Throw away bits until ll <= 254.
-		 */
-		ll += bits - 1;
-		while (ll > 254 && bits > 0) {
-			/* clear bit */
-			bits--;
-			buf[2 + bits / 8] &= ~(1 << (7 - (bits % 8)));
-			ll--;
-		}
-		/*
-		 * Add entries to tree.
-		 */
-		do {
-			region.length = 2 + (bits + 7) / 8;
-			buf[1] = bits;
-			dns_name_fromregion(&prefix, &region);
-			isc_buffer_init(&t, namebuf, sizeof namebuf,
-					ISC_BUFFERTYPE_BINARY);
-			result = dns_name_concatenate(&prefix, &suffix, &name,
-						      &t);
-			if (result != DNS_R_SUCCESS)
-				return (DNS_R_SUCCESS);
-			data = isc_mem_get(cctx->mctx, sizeof *data);
-			if (data == NULL)
-				return (DNS_R_SUCCESS);
-			*data = ll;
-			result = dns_rbt_addname(cctx->local, &name, data);
-			if (result != DNS_R_SUCCESS) {
-				isc_mem_put(cctx->mctx, data, sizeof *data);
-				return (DNS_R_SUCCESS);
-			}
-			/* clear bit */
-			bits--;
-			buf[2 + bits / 8] &= ~(1 << (7 - (bits % 8)));
-			ll--;
-		} while (bits > 0);
-		wl++;
-		bits = dns_label_countbits(&label);
-		ll += bits;
-		if (ll > 254)
-			return (DNS_R_SUCCESS);
-	}
 	return (DNS_R_SUCCESS);
 }
 
@@ -199,21 +75,10 @@ dns_compress_invalidate(dns_compress_t *cctx) {
 	cctx->magic = 0;
 	if (cctx->global != NULL)
 		dns_rbt_destroy(&cctx->global);
-	if (cctx->local != NULL)
-		dns_rbt_destroy(&cctx->local);
 	cctx->allowed = 0;
 	cctx->rdata = 0;
 	cctx->global16 = ISC_FALSE;
 	cctx->edns = -1;
-}
-
-void
-dns_compress_localinvalidate(dns_compress_t *cctx) {
-
-	REQUIRE(VALID_CCTX(cctx));
-
-	if (cctx->local != NULL)
-		dns_rbt_destroy(&cctx->local);
 }
 
 void
@@ -250,38 +115,14 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 			      workspace));
 }
 
-isc_boolean_t
-dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
-		       dns_name_t *prefix, dns_name_t *suffix,
-		       isc_uint16_t *offset, isc_buffer_t *workspace)
-{
-	REQUIRE(VALID_CCTX(cctx));
-	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
-	REQUIRE(offset != NULL);
-
-	if (cctx->local == NULL)
-		return (ISC_FALSE);
-	return (compress_find(cctx->local, name, prefix, suffix, offset,
-			      workspace));
-}
-
 void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-		 dns_name_t *suffix, isc_uint16_t offset,
-		 isc_boolean_t local)
+		 dns_name_t *suffix, isc_uint16_t offset)
 {
-	isc_uint16_t localoffset;
 	REQUIRE(VALID_CCTX(cctx));
 
-	if (cctx->local != NULL && (cctx->allowed & DNS_COMPRESS_LOCAL) != 0) {
-		REQUIRE(cctx->rdata <= offset);
-		localoffset = offset - cctx->rdata + 256;
-		compress_add(cctx->local, prefix, suffix, localoffset, ISC_TRUE,
-			     cctx->mctx);
-	}
-	if ((cctx->edns > -1) || !local)
-		compress_add(cctx->global, prefix, suffix, offset,
-			     cctx->global16, cctx->mctx);
+	compress_add(cctx->global, prefix, suffix, offset,
+		     cctx->global16, cctx->mctx);
 }
 
 void
@@ -360,21 +201,7 @@ dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict) {
 	dctx->edns = edns;
 	dctx->strict = strict;
 	dctx->rdata = 0;
-	dns_name_init(&dctx->owner_name, NULL);
-	dns_name_invalidate(&dctx->owner_name);
 	dctx->magic = DCTX_MAGIC;
-}
-
-void
-dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
-			 isc_buffer_t *source)
-{
-	REQUIRE(VALID_DCTX(dctx));
-	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
-	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
-
-	dctx->rdata = source->current;	/* XXX layer violation */
-	dctx->owner_name = *name;
 }
 
 void
@@ -383,14 +210,6 @@ dns_decompress_invalidate(dns_decompress_t *dctx) {
 	REQUIRE(VALID_DCTX(dctx));
 
 	dctx->magic = 0;
-}
-
-void
-dns_decompress_localinvalidate(dns_decompress_t *dctx) {
-
-	REQUIRE(VALID_DCTX(dctx));
-
-	dns_name_invalidate(&dctx->owner_name);
 }
 
 void

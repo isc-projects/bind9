@@ -224,7 +224,7 @@ decompression methods if there is a domain name in the rdata.
 <CODE>if (dns_decompress_edns(dctx) >= # || !dns_decompress_strict(dctx))
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 else
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_LOCAL);</CODE>
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);</CODE>
 </PRE>
 	
 <DL>
@@ -282,7 +282,7 @@ domain name in the rdata.
 <CODE>if (dns_compress_getedns(cctx) >= #)
 	dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
 else
-	dns_compress_setmethods(cctx, DNS_COMPRESS_LOCAL);</CODE>
+	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);</CODE>
 </PRE>
 <DL>
 <DT><CODE>rdata</CODE></DT>
