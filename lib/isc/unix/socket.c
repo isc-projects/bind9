@@ -1879,7 +1879,6 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	isc_task_t *ntask = NULL;
 	isc_boolean_t was_empty;
 	unsigned int iocount;
-	isc_region_t available;
 	isc_buffer_t *buffer;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -1891,12 +1890,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	iocount = 0;
-	buffer = ISC_LIST_HEAD(*buflist);
-	while (buffer != NULL) {
-		isc_buffer_available(buffer, &available);
-		iocount += available.length;
-	}
+	iocount = isc_bufferlist_availablecount(buflist);
 	REQUIRE(iocount > 0);
 
 	LOCK(&sock->lock);
@@ -1925,8 +1919,6 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 			dev->minimum = minimum;
 	}
 
-	dev->result = ISC_R_SUCCESS;
-	dev->n = 0;
 	dev->sender = task;
 
 	/*
@@ -1936,13 +1928,13 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	while (buffer != NULL) {
 		ISC_LIST_DEQUEUE(*buflist, buffer, link);
 		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
+		buffer = ISC_LIST_HEAD(*buflist);
 	}
-
-	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
 	 */
+	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 	if (!was_empty)
 		goto queue;
 
@@ -2127,8 +2119,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	LOCK(&sock->lock);
 
-	manager = sock->manager;
-
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
@@ -2139,6 +2129,114 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	dev->sender = task;
 
 	set_dev_address(address, sock, dev);
+
+	/*
+	 * If the read queue is empty, try to do the I/O right now.
+	 */
+	was_empty = ISC_LIST_EMPTY(sock->send_list);
+	if (!was_empty)
+		goto queue;
+
+	if (sock->send_result != ISC_R_SUCCESS) {
+		send_senddone_event(sock, &dev, sock->send_result);
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+	}
+
+	switch (doio_send(sock, dev)) {
+	case DOIO_SOFT:
+		goto queue;
+		break;
+
+	case DOIO_HARD:
+	case DOIO_UNEXPECTED:
+	case DOIO_SUCCESS:
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+	}
+
+ queue:
+	/*
+	 * We couldn't send all or part of the request right now, so queue
+	 * it.
+	 */
+	isc_task_attach(task, &ntask);
+	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+	/*
+	 * Enqueue the request.  If the socket was previously not being
+	 * watched, poke the watcher to start paying attention to it.
+	 */
+	ISC_LIST_ENQUEUE(sock->send_list, dev, link);
+	if (was_empty)
+		select_poke(sock->manager, sock->fd);
+
+	XTRACE(TRACE_SEND,
+	       ("isc_socket_send: queued event %p, task %p\n", dev, ntask));
+
+	UNLOCK(&sock->lock);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		 isc_task_t *task, isc_taskaction_t action, void *arg)
+{
+	return (isc_socket_sendtov(sock, buflist, task, action, arg, NULL));
+}
+
+isc_result_t
+isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
+		   isc_sockaddr_t *address)
+{
+	isc_socketevent_t *dev;
+	isc_socketmgr_t *manager;
+	isc_task_t *ntask = NULL;
+	isc_boolean_t was_empty;
+	unsigned int iocount;
+	isc_buffer_t *buffer;
+
+	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(buflist != NULL);
+	REQUIRE(!ISC_LIST_EMPTY(*buflist));
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
+	manager = sock->manager;
+	REQUIRE(VALID_MANAGER(manager));
+
+	iocount = isc_bufferlist_usedcount(buflist);
+	REQUIRE(iocount > 0);
+
+	LOCK(&sock->lock);
+
+	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
+	if (dev == NULL) {
+		UNLOCK(&sock->lock);
+		return (ISC_R_NOMEMORY);
+	}
+
+	/***
+	 *** From here down, only ISC_R_SUCCESS can be returned.  Any further
+	 *** error information will result in the done event being posted
+	 *** to the task rather than this function failing.
+	 ***/
+
+	dev->sender = task;
+
+	set_dev_address(address, sock, dev);
+
+	/*
+	 * Move each buffer from the passed in list to our internal one.
+	 */
+	buffer = ISC_LIST_HEAD(*buflist);
+	while (buffer != NULL) {
+		ISC_LIST_DEQUEUE(*buflist, buffer, link);
+		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
+		buffer = ISC_LIST_HEAD(*buflist);
+	}
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.

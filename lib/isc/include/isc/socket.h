@@ -61,7 +61,7 @@
 
 #include <isc/lang.h>
 #include <isc/boolean.h>
-#include <isc/buffer.h>
+#include <isc/bufferlist.h>
 #include <isc/result.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
@@ -97,7 +97,7 @@ struct isc_socketevent {
 	unsigned int		n;		/* bytes read or written */
 	unsigned int		offset;		/* offset into buffer list */
 	isc_region_t		region;		/* for single-buffer i/o */
-	ISC_LIST(isc_buffer_t)	bufferlist;	/* list of buffers */
+	isc_bufferlist_t	bufferlist;	/* list of buffers */
 	isc_sockaddr_t		address;	/* source address */
 };
 
@@ -428,12 +428,17 @@ isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		unsigned int minimum,
 		isc_task_t *task, isc_taskaction_t action, void *arg);
+isc_result_t
+isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		 unsigned int minimum,
+		 isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Receive from 'socket', storing the results in region.
  *
  * Notes:
  *
- *	Let 'length' refer to the length of 'region'.
+ *	Let 'length' refer to the length of 'region' or to the sum of all
+ *	available regions in the list of buffers '*buflist'.
  *
  *	If 'minimum' is non-zero and at least that many bytes are read,
  *	the completion event will be posted to the task 'task.'  If minimum
@@ -446,59 +451,11 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
  *	event with the given 'action' and 'arg' will be posted to the
  *	event queue of 'task'.
  *
- *	The caller may neither read from nor write to 'region' until it
- *	has received the read completion event.
+ *	The caller may not modify 'region', the buffers which are passed
+ *	into this function, or any data they refer to until the completion
+ *	event is received.
  *
- * Requires:
- *
- *	'socket' is a valid socket
- *
- *	'region' is a valid region
- *
- *	'minimum' <= region.length
- *
- *	'task' is a valid task
- *
- *	action != NULL and is a valid action
- *
- * Returns:
- *
- *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY
- *	ISC_R_UNEXPECTED
- *
- * Event results:
- *
- *	ISC_R_SUCCESS
- *	ISC_R_UNEXPECTED
- *	XXX needs other net-type errors
- */
-
-isc_result_t
-isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 unsigned int minimum,
-		 isc_task_t *task, isc_taskaction_t action, void *arg);
-/*
- * Receive from 'socket', storing the results in region.
- *
- * Notes:
- *
- *	Let 'length' refer to the sum of all available regions in the
- *	list of buffers 'buflist'.
- *
- *	If 'minimum' is non-zero and at least that many bytes are read,
- *	the completion event will be posted to the task 'task.'  If minimum
- *	is zero, the exact number of bytes requested in the buflist must
- * 	be read for an event to be posted.  This only makes sense for TCP
- *	connections, and is always set to 1 byte for UDP.
- *
- *	The read will complete when the desired number of bytes have been
- *	read, if end-of-input occurs, or if an error occurs.  A read done
- *	event with the given 'action' and 'arg' will be posted to the
- *	event queue of 'task'.
- *
- *	The caller may neither read from nor write to any buffer in the
- *	buffer list, nor may it link or unlink these buffers from any list.
+ *	For isc_socket_recvv():
  *	On successful completion, '*buflist' will be empty, and the list of
  *	all buffers will be returned in the done event's 'bufferlist'
  *	member.  On error return, '*buflist' will be unchanged.
@@ -507,9 +464,11 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
  *
  *	'socket' is a valid socket
  *
- *	'buflist' is non-NULL, and '*buflist' contain at least one buffer.
+ *	For isc_socket_recv():
+ *	'region' is a valid region
  *
- *	'minimum' is <= sum of all available regions.
+ *	For isc_socket_recvv():
+ *	'buflist' is non-NULL, and '*buflist' contain at least one buffer.
  *
  *	'task' is a valid task
  *
@@ -535,31 +494,46 @@ isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  isc_sockaddr_t *address);
+isc_result_t
+isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		 isc_task_t *task, isc_taskaction_t action, void *arg);
+isc_result_t
+isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
+		   isc_sockaddr_t *address);
 /*
  * Send the contents of 'region' to the socket's peer.
  *
  * Notes:
  *
  *	Shutting down the requestor's task *may* result in any
- *	still pending writes being dropped.
+ *	still pending writes being dropped or completed, depending on the
+ *	underlying OS implementation.
  *
  *	If 'action' is NULL, then no completion event will be posted.
  *
- *	The caller may neither read from nor write to 'region' until it
- *	has received the write completion event, or all references to the
- *	socket have been detached.
+ *	The caller may not modify 'region', the buffers which are passed
+ *	into this function, or any data they refer to until the completion
+ *	event is received.
+ *
+ *	For isc_socket_sendv() and isc_socket_sendtov():
+ *	On successful completion, '*buflist' will be empty, and the list of
+ *	all buffers will be returned in the done event's 'bufferlist'
+ *	member.  On error return, '*buflist' will be unchanged.
  *
  * Requires:
  *
  *	'socket' is a valid socket
  *
+ *	For isc_socket_send():
  *	'region' is a valid region
+ *
+ *	For isc_socket_sendv() and isc_socket_sendtov():
+ *	'buflist' is non-NULL, and '*buflist' contain at least one buffer.
  *
  *	'task' is a valid task
  *
  *	action == NULL or is a valid action
- *
- * Returns:
  *
  * Returns:
  *
