@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.194 2000/08/22 17:36:26 gson Exp $ */
+/* $Id: zone.c,v 1.195 2000/08/22 19:32:47 gson Exp $ */
 
 #include <config.h>
 
@@ -3575,7 +3575,7 @@ dns_zone_getnotifyacl(dns_zone_t *zone) {
 
 	return (zone->notify_acl);
 }
-#endif
+#endif /* NOMINUM_PUBLIC */
 
 dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone) {
