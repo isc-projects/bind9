@@ -72,6 +72,7 @@ typedef struct dns_fetchdoneevent {
 
 #define DNS_FETCHOPT_TCP		0x01
 #define DNS_FETCHOPT_UNSHARED		0x02
+#define DNS_FETCHOPT_RECURSIVE		0x04
 
 dns_result_t
 dns_resolver_create(isc_mem_t *mctx,
