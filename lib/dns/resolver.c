@@ -1197,7 +1197,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	while (sa != NULL) {
 		ai = NULL;
 		result = dns_adb_findaddrinfo(fctx->res->view->adb,
-					      sa, &ai);
+					      sa, &ai, 0);  /* XXXMLG */
 		if (result == ISC_R_SUCCESS) {
 			ai->flags |= FCTX_ADDRINFO_FORWARDER;
 			ISC_LIST_APPEND(fctx->forwaddrs, ai, publink);

@@ -187,6 +187,7 @@ struct dns_adbaddrinfo {
 	int				goodness;
 	unsigned int			srtt;		/* microseconds */
 	unsigned int			flags;
+	isc_stdtime_t			avoid_bitstring; /* 0 == don't */
 	dns_adbentry_t		       *entry;		/* private */
 	ISC_LINK(dns_adbaddrinfo_t)	publink;
 };
@@ -523,10 +524,22 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *
  *	addr be valid.
  */
+void
+dns_adb_setavoidbitstring(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+			  isc_stdtime_t when);
+/*
+ * Set the avoid_bitstring timer to "when".  A "when" of 0 disables it.
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
+ */
 
 isc_result_t
 dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
-		     dns_adbaddrinfo_t **addrp);
+		     dns_adbaddrinfo_t **addrp, isc_stdtime_t now);
 /*
  * Return a dns_adbaddrinfo_t that is associated with address 'sa'.
  *
