@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.139 2002/02/21 01:00:41 marka Exp $ */
+/* $Id: master.c,v 1.140 2002/03/05 00:59:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -706,7 +706,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 			 * Ignore out-of-zone data.
 			 */
 			(*callbacks->warn)(callbacks,
-					   "dns_master_load: %s:%lu: "
+					   "%s:%lu: "
 					   "ignoring out-of-zone data (%s)",
 					   source, line, namebuf);
 			continue;
@@ -1234,7 +1234,7 @@ load(dns_loadctx_t *lctx) {
 				 * Ignore out-of-zone data.
 				 */
 				(*callbacks->warn)(callbacks,
-				       "dns_master_load: %s:%lu: "
+				       "%s:%lu: "
 				       "ignoring out-of-zone data (%s)",
 				       source, line, namebuf);
 				ictx->drop = ISC_TRUE;
@@ -1283,8 +1283,7 @@ load(dns_loadctx_t *lctx) {
 
 			if (ictx->current == NULL) {
 				(*callbacks->error)(callbacks,
-					"%s: %s:%lu: no current owner name",
-					"dns_master_load",
+					"%s:%lu: no current owner name",
 					source, line);
 				result = DNS_R_NOOWNER;
 				if (MANYERRS(lctx, result)) {
@@ -1344,8 +1343,8 @@ load(dns_loadctx_t *lctx) {
 						&token.value.as_textregion);
 		if (result != ISC_R_SUCCESS) {
 			(*callbacks->warn)(callbacks,
-				   "%s: %s:%lu: unknown RR type '%.*s'",
-				   "dns_master_load", source, line,
+				   "%s:%lu: unknown RR type '%.*s'",
+				   source, line,
 				   token.value.as_textregion.length,
 				   token.value.as_textregion.base);
 			if (MANYERRS(lctx, result)) {
@@ -1369,9 +1368,9 @@ load(dns_loadctx_t *lctx) {
 			dns_rdataclass_format(lctx->zclass, classname2,
 					      sizeof(classname2));
 			(*callbacks->error)(callbacks,
-					    "%s: %s:%lu: class '%s' != "
+					    "%s:%lu: class '%s' != "
 					    "zone class '%s'",
-					    "dns_master_load", source, line,
+					    source, line,
 					    classname1, classname2);
 			result = DNS_R_BADCLASS;
 			if (MANYERRS(lctx, result)) {
@@ -1398,8 +1397,8 @@ load(dns_loadctx_t *lctx) {
 
 			dns_rdatatype_format(type, typename, sizeof(typename));
 			(*callbacks->error)(callbacks,
-					    "%s: %s:%lu: %s '%s': %s",
-					    "dns_master_load", source, line,
+					    "%s:%lu: %s '%s': %s",
+					    source, line,
 					    "type", typename,
 					    dns_result_totext(result));
 			if (MANYERRS(lctx, result)) {
@@ -1450,7 +1449,7 @@ load(dns_loadctx_t *lctx) {
 			dns_name_format(ictx->current, namebuf,
 					sizeof(namebuf));
 			(*callbacks->error)(callbacks,
-				            "dns_master_load: %s:%lu: SOA "
+				            "%s:%lu: SOA "
 			                    "record not at top of zone (%s)",
 				            source, line, namebuf);
 			result = DNS_R_NOTZONETOP;
@@ -1503,9 +1502,9 @@ load(dns_loadctx_t *lctx) {
 			lctx->ttl = lctx->default_ttl;
 		} else if (!explicit_ttl && lctx->warn_1035) {
 			(*callbacks->warn)(callbacks,
-					   "%s: %s:%lu: "
+					   "%s:%lu: "
 					   "using RFC 1035 TTL semantics",
-					   "dns_master_load", source, line);
+					   source, line);
 			lctx->warn_1035 = ISC_FALSE;
 		}
 
@@ -1514,9 +1513,8 @@ load(dns_loadctx_t *lctx) {
 			(void)dns_rdata_tostruct(&rdata[rdcount], &sig, NULL);
 			if (now > sig.timeexpire) {
 				(*callbacks->warn)(callbacks,
-						   "%s: %s:%lu: "
+						   "%s:%lu: "
 						   "signature has expired",
-						   "dns_master_load",
 						   source, line);
 				lctx->warn_sigexpired = ISC_FALSE;
 			}
@@ -1577,9 +1575,8 @@ load(dns_loadctx_t *lctx) {
 						        link);
 		} else if (this->ttl != lctx->ttl) {
 			(*callbacks->warn)(callbacks,
-					   "%s: %s:%lu: "
+					   "%s:%lu: "
 					   "TTL set to prior TTL (%lu)",
-					   "dns_master_load",
 					   source, line, this->ttl);
 			lctx->ttl = this->ttl;
 		}
