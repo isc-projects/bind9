@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.3.2.4 2004/03/09 06:12:00 marka Exp $ */
+/* $Id: refcount.h,v 1.3.2.5 2004/04/14 05:20:19 marka Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -143,16 +143,18 @@ typedef struct isc_refcount {
 
 #define isc_refcount_increment(rp, tp)					\
 	do {								\
+		unsigned int *_tmp = (unsigned int *)(tp);		\
 		int _n = ++(rp)->refs;					\
-		if ((tp) != NULL)					\
-			*(unsigned int *)(tp) = (unsigned int)(_n);	\
+		if (_tmp != NULL)					\
+			*_tmp = _n;					\
 	} while (0)
 
 #define isc_refcount_decrement(rp, tp)					\
 	do {								\
+		unsigned int *_tmp = (unsigned int *)(tp);		\
 		int _n = --(rp)->refs;					\
-		if ((tp) != NULL)					\
-			*(unsigned int *)(tp) = (unsigned int)(_n);	\
+		if (_tmp != NULL)					\
+			*_tmp = _n;					\
 	} while (0)
 
 #endif
