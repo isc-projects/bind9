@@ -79,7 +79,7 @@ isc_time_isepoch(isc_time_t t) {
 	return (ISC_FALSE);
 }
 
-isc_result
+isc_result_t
 isc_time_get(isc_time_t t) {
 	struct timeval tv;
 
