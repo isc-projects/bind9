@@ -38,12 +38,16 @@
  *** Tasks.
  ***/
 
-void *
+generic_event_t
 event_get(mem_context_t mctx, event_type_t type, event_action_t action,
 	  size_t size) {
 	generic_event_t event;
 
 	if (size < sizeof *event)
+		return (NULL);
+	if (type < 0)
+		return (NULL);
+	if (action == NULL)
 		return (NULL);
 	event = mem_get(mctx, size);
 	if (event == NULL)
@@ -57,10 +61,16 @@ event_get(mem_context_t mctx, event_type_t type, event_action_t action,
 }
 
 void
-event_put(void *target) {
-	generic_event_t event = target;
+event_put(generic_event_t *eventp) {
+	generic_event_t event;
 	
+	REQUIRE(eventp != NULL);
+	event = *eventp;
+	REQUIRE(event != NULL);
+
 	mem_put(event->mctx, event, event->size);
+
+	*eventp = NULL;
 }
 
 
@@ -207,7 +217,7 @@ task_send_event(task_t task, generic_event_t *eventp) {
 	UNLOCK(&task->lock);
 
 	if (discard) {
-		event_put(event);
+		event_put(&event);
 		*eventp = NULL;
 		return (TRUE);
 	}
@@ -456,7 +466,7 @@ void *task_manager_run(void *uap) {
 				 * callback returned.
 				 */
 				if (event != NULL)
-					event_put(event);
+					event_put(&event);
 				else
 					wants_shutdown = TRUE;
 
@@ -483,6 +493,7 @@ void *task_manager_run(void *uap) {
 					if (task->references == 0)
 						free_task = TRUE;
 					task->state = task_state_shutdown;
+					task->shutdown_pending = FALSE;
 					done = TRUE;
 				} else if (EMPTY(task->events) &&
 					   !task->shutdown_pending) {
@@ -517,7 +528,7 @@ void *task_manager_run(void *uap) {
 				     event != NULL;
 				     event = next_event) {
 					next_event = NEXT(event, link);
-					event_put(event);
+					event_put(&event);
 				}
 			}
 
@@ -581,6 +592,8 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 	task_manager_t manager;
 	os_thread_t thread;
 
+	if (workers == 0)
+		return (0);
 	manager = mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
 		return (0);
@@ -632,7 +645,7 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 	return (started);
 }
 
-boolean_t
+void
 task_manager_destroy(task_manager_t *managerp) {
 	task_manager_t manager;
 	task_t task;
@@ -700,6 +713,4 @@ task_manager_destroy(task_manager_t *managerp) {
 	manager_free(manager);
 
 	*managerp = NULL;
-
-	return (TRUE);
 }

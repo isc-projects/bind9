@@ -51,11 +51,11 @@ typedef generic_event_t			nop_event_t;
 
 typedef LIST(struct generic_event)	event_list_t;
 
-void *					event_get(mem_context_t,
+generic_event_t				event_get(mem_context_t,
 						  event_type_t,
 						  event_action_t,
 						  size_t);
-void					event_put(void *);
+void					event_put(generic_event_t *);
 
 
 /***
@@ -125,6 +125,6 @@ unsigned int				task_manager_create(mem_context_t,
 							    unsigned int,
 							    unsigned int,
 							    task_manager_t *);
-boolean_t				task_manager_destroy(task_manager_t *);
+void					task_manager_destroy(task_manager_t *);
 
 #endif /* TASK_H */
