@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.62 2001/01/09 21:56:36 bwelling Exp $ */
+/* $Id: timer.c,v 1.63 2001/01/27 02:44:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,6 @@ struct isc_timer {
 	/* Not locked. */
 	unsigned int			magic;
 	isc_timermgr_t *		manager;
-	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	/* Locked by timer lock. */
 	unsigned int			references;
