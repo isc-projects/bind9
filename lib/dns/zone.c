@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.32 2004/04/28 04:23:34 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.33 2004/06/04 02:41:39 marka Exp $ */
 
 #include <config.h>
 
@@ -3322,7 +3322,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			dns_message_destroy(&msg);
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		if (zone->masterfile != NULL) {
-			result = isc_file_settime(zone->masterfile, &now);
+			result = ISC_R_FAILURE;
+			if (zone->journal != NULL)
+				result = isc_file_settime(zone->journal, &now);
+			if (result != ISC_R_SUCCESS)
+				result = isc_file_settime(zone->masterfile,
+							  &now);
 			if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "refresh: could not set file "

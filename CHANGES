@@ -1,6 +1,9 @@
 1646.	[bug]		win32: logging file versions didn't work with
 			non-UNC filenames.  [RT#11486]
 
+1644.	[bug]		Update the journal modification time after a
+			sucessfull refresh query. [RT #11436]
+
 1643.	[bug]		dns_db_closeversion() could leak memory / node
 			references. [RT #11163]
 
