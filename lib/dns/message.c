@@ -1210,7 +1210,6 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section)
 dns_result_t
 dns_message_nextname(dns_message_t *msg, dns_section_t section)
 {
-	
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(VALID_NAMED_SECTION(section));
 	REQUIRE(msg->cursors[section] != NULL);
