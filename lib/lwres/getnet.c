@@ -1,7 +1,7 @@
 #include <isc/net.h>
 #include <isc/util.h>
 
-#include <netdb.h>
+#include <lwres/netdb.h>
 #include <stdio.h>
 
 struct netent *
