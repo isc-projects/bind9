@@ -1,3 +1,5 @@
+1635.	[bug]		Memory leak on error in query_addds().
+
 1633.	[bug]		named should return NOTIMP to update requests to a
 			slaves without a allow-update-forwarding acl specified.
 			[RT #11331]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.1 2004/04/15 02:04:00 marka Exp $ */
+/* $Id: query.c,v 1.257.18.2 2004/05/14 00:59:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1785,7 +1785,7 @@ query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node) {
 	rdataset = query_newrdataset(client);
 	sigrdataset = query_newrdataset(client);
 	if (rdataset == NULL || sigrdataset == NULL)
-		return;
+		goto cleanup;
 
 	/*
 	 * Look for the DS record, which may or may not be present.
