@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.260 2000/11/28 20:08:35 gson Exp $ */
+/* $Id: server.c,v 1.261 2000/11/28 21:32:32 gson Exp $ */
 
 #include <config.h>
 
@@ -1376,7 +1376,7 @@ ns_server_zeroglobal(ns_server_t *serv) {
 			      NS_LOGMODULE_SERVER,			      \
 			      result == ISC_R_SUCCESS ?			      \
 			      	ISC_LOG_DEBUG(1) : ISC_LOG_WARNING,	      \
-			      "set maximum" description "to %"		      \
+			      "set maximum " description " to %"		      \
 			      ISC_PRINT_QUADFORMAT "d: %s", value,	      \
 			      isc_result_totext(result));		      \
 	}
