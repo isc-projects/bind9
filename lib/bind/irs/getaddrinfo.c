@@ -942,7 +942,9 @@ get_ai(pai, afd, addr)
 	memcpy(ai, pai, sizeof(struct addrinfo));
 	ai->ai_addr = (struct sockaddr *)(void *)(ai + 1);
 	memset(ai->ai_addr, 0, (size_t)afd->a_socklen);
+#ifdef HAVE_SA_LEN
 	ai->ai_addr->sa_len = afd->a_socklen;
+#endif
 	ai->ai_addrlen = afd->a_socklen;
 	ai->ai_addr->sa_family = ai->ai_family = afd->a_af;
 	p = (char *)(void *)(ai->ai_addr);
