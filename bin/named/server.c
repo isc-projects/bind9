@@ -28,6 +28,7 @@
 
 #include <isc/app.h>
 #include <isc/assertions.h>
+#include <isc/base64.h>
 #include <isc/dir.h>
 #include <isc/error.h>
 #include <isc/mem.h>
@@ -50,9 +51,11 @@
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
+#include <dns/keytable.h>
 #include <dns/master.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/rootns.h>
@@ -154,6 +157,131 @@ configure_view_acl(dns_c_view_t *cview,
 
 	return (result);
 }
+
+
+/*
+ * Convert a null-terminated string of base64 text into
+ * binary, storing it in a buffer.
+ * 'mctx' is only used internally.
+ */
+static isc_result_t
+base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
+{
+	isc_result_t result;
+	isc_buffer_t source;
+	isc_lex_t *lex = NULL;
+	isc_boolean_t isopen = ISC_FALSE;
+	
+	isc_buffer_init(&source, cstr, strlen(cstr), ISC_BUFFERTYPE_TEXT);
+	CHECK(isc_lex_create(mctx, 256, &lex));
+	CHECK(isc_lex_openbuffer(lex, &source));
+	isopen = ISC_TRUE;
+	CHECK(isc_base64_tobuffer(lex, target, -1));
+	
+ cleanup:
+	if (isopen)
+		(void) isc_lex_close(lex);
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+	return (result);
+}
+
+/*
+ * Configure the trusted keys or security roots of a view.
+ * The configuration values are read from 'cctx' and 'cview' using 
+ * the function 'cget'.  The variable to be configured is '*target'.
+ * XXX not really view specific yet
+ */
+static isc_result_t
+configure_view_dnsseckeys(dns_c_ctx_t *cctx,
+			  dns_c_view_t *cview,
+			  isc_mem_t *mctx,
+			  isc_result_t (*cget)
+			      (dns_c_ctx_t *, dns_c_tkeylist_t **),
+			  dns_keytable_t **target)
+{
+	isc_result_t result;
+	dns_c_tkeylist_t *ckeys = NULL;
+	dns_c_tkey_t *ckey;
+	dns_keytable_t *keytable = NULL;
+	dst_key_t *dstkey = NULL;
+	
+	CHECK((*cget)(cctx, &ckeys));
+
+	CHECK(dns_keytable_create(mctx, &keytable));
+
+	for (ckey = ISC_LIST_HEAD(ckeys->tkeylist);
+	     ckey != NULL;
+	     ckey = ISC_LIST_NEXT(ckey, next))
+	{
+		dns_rdataclass_t viewclass;
+		dns_rdata_generic_key_t keystruct;
+		isc_int32_t flags, proto, alg;
+		unsigned char keydata[4096];
+		isc_buffer_t keydatabuf;
+		unsigned char rrdata[4096];
+		isc_buffer_t rrdatabuf;
+		isc_region_t r;
+
+		if (cview == NULL)
+			viewclass = dns_rdataclass_in;
+		else
+			CHECK(dns_c_view_getviewclass(cview, &viewclass));
+		keystruct.common.rdclass = viewclass;
+		keystruct.common.rdtype = dns_rdatatype_key;
+		/*
+		 * The key data in keystruct is not really
+		 * dynamically allocated, but dns_rdata_fromstruct()
+		 * requires that there is a valid mctx anyway.
+		 */
+		keystruct.mctx = mctx; 
+
+		ISC_LINK_INIT(&keystruct.common, link);
+
+		flags = ckey->pubkey->flags;
+		proto = ckey->pubkey->protocol;
+		alg = ckey->pubkey->algorithm;
+		if (flags < 0 || flags > 0xffff)
+			CHECKM(DNS_R_RANGE, "key flags");
+		if (proto < 0 || proto > 0xff)
+			CHECKM(DNS_R_RANGE, "key protocol");
+		if (alg < 0 || alg > 0xff)
+			CHECKM(DNS_R_RANGE, "key algorithm");
+		keystruct.flags = flags;
+		keystruct.protocol = proto;
+		keystruct.algorithm = alg;
+
+		isc_buffer_init(&keydatabuf, keydata, sizeof(keydata),
+				ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata),
+				ISC_BUFFERTYPE_BINARY);
+		
+		CHECK(base64_cstring_tobuffer(mctx, ckey->pubkey->key,
+					      &keydatabuf));
+		isc_buffer_used(&keydatabuf, &r);
+		keystruct.datalen = r.length;
+		keystruct.data = r.base;
+
+		CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
+					   keystruct.common.rdtype,
+					   &keystruct, &rrdatabuf));
+		CHECK(dst_key_fromdns(ckey->domain, &rrdatabuf, mctx, &dstkey));
+
+		CHECK(dns_keytable_add(keytable, &dstkey));
+		INSIST(dstkey == NULL);
+	}
+	      
+	dns_keytable_detach(target);
+	*target = keytable; /* Transfer ownership. */
+	keytable = NULL;
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (dstkey != NULL)
+		dst_key_free(dstkey);
+	return (result);
+}
+				  
 
 /*
  * Configure 'view' according to 'cview', taking defaults from 'cctx'
@@ -378,6 +506,15 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		view->provideixfr = ISC_TRUE;
 
+	configure_view_dnsseckeys(cctx, cview, mctx,
+				  dns_c_ctx_gettrustedkeys,
+				  &view->trustedkeys);
+#ifdef notyet
+	configure_view_dnsseckeys(cctx, cview, mctx,
+				  dns_c_ctx_getsecurityroots,
+				  &view->securityroots);
+#endif
+	
 	result = ISC_R_SUCCESS;
 
  cleanup:
