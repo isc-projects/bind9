@@ -2173,6 +2173,14 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	dev->fetch = NULL;
 
 	/*
+	 * Cleanup things we don't care about.
+	 */
+	if (dev->node != NULL)
+		dns_db_detachnode(dev->db, &dev->node);
+	if (dev->db != NULL)
+		dns_db_detach(&dev->db);
+
+	/*
 	 * If this name is marked as dead, clean up, throwing away
 	 * potentially good data.
 	 */
