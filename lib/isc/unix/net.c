@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.19 2001/02/15 07:58:48 bwelling Exp $ */
+/* $Id: net.c,v 1.20 2001/03/24 02:18:42 gson Exp $ */
 
 #include <config.h>
 
@@ -82,7 +82,7 @@ try_proto(int domain) {
 		{
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
-				      "Retrieving the address of an IPv6 "
+				      "retrieving the address of an IPv6 "
 				      "socket from the kernel failed.");
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
