@@ -114,5 +114,9 @@ InputName=bindevt
 !ENDIF 
 
 # End Source File
+# Begin Source File
+
+SOURCE=.\bindevt.rc
+# End Source File
 # End Target
 # End Project
