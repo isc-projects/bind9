@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.70 2000/12/01 21:37:33 gson Exp $ */
+/* $Id: nsupdate.c,v 1.71 2000/12/07 18:12:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -969,7 +969,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			 * which will be equal to TTL_MAX.
 			 */
 			fprintf(stderr, "ttl '%s' is out of range "
-				"(1 to %d)\n", word, TTL_MAX);
+				"(0 to %d)\n", word, TTL_MAX);
 			goto failure;
 		}
 	} else
