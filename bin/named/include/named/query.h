@@ -37,6 +37,7 @@ struct ns_query {
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	unsigned int			dboptions;
+	dns_db_t *			gluedb;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(dns_name_t)		tmpnames;
