@@ -25,32 +25,7 @@
 #include <isc/error.h>
 #include <isc/task.h>
 
-
-/***
- *** General Macros.
- ***/
-
-/*
- * We use macros instead of calling the routines directly because
- * the capital letters make the locking stand out.
- *
- * We INSIST that they succeed since there's no way for us to continue
- * if they fail.
- */
-
-#define LOCK(lp) \
-	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS);
-#define UNLOCK(lp) \
-	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
-#define BROADCAST(cvp) \
-	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
-#define SIGNAL(cvp) \
-	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
-#define WAIT(cvp, lp) \
-	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
-#define WAITUNTIL(cvp, lp, tp, bp) \
-	INSIST(isc_condition_waituntil((cvp), (lp), (tp), (bp)) == \
-	ISC_R_SUCCESS);
+#include "util.h"
 
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		printf("%s task %p thread %lu\n", (m), \
@@ -208,7 +183,6 @@ isc_task_create(isc_taskmgr_t manager, isc_taskaction_t shutdown_action,
 	if (task == NULL)
 		return (ISC_R_NOMEMORY);
 
-	task->magic = TASK_MAGIC;
 	task->manager = manager;
 	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
 		isc_mem_put(manager->mctx, task, sizeof *task);
@@ -241,6 +215,7 @@ isc_task_create(isc_taskmgr_t manager, isc_taskaction_t shutdown_action,
 	APPEND(manager->tasks, task, link);
 	UNLOCK(&manager->lock);
 
+	task->magic = TASK_MAGIC;
 	*taskp = task;
 
 	return (ISC_R_SUCCESS);
