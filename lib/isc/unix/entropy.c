@@ -722,6 +722,12 @@ isc_result_t
 isc_entropy_createsamplesource(isc_entropy_t *ent,
 			       isc_entropysource_t **sourcep)
 {
+	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(sourcep != NULL && *sourcep == NULL);
+
+	LOCK(&ent->lock);
+
+	UNLOCK(&ent->lock);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -730,10 +736,23 @@ void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 		      isc_uint32_t extra)
 {
+	isc_entropy_t *ent;
+
+	REQUIRE(VALID_SOURCE(source));
+	ent = source->ent;
+
+	LOCK(&ent->lock);
+
+	UNLOCK(&ent->lock);
 }
 
+/*
+ * This function ignores locking.  Use at your own risk.
+ */
 void
 isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
+	REQUIRE(VALID_ENTROPY(ent));
+
 	fprintf(out, "Dump of entropy stats for pool %p\n", ent);
 	fprintf(out, "\tcursor %u, rotate %u\n",
 		ent->pool.cursor, ent->pool.rotate);
