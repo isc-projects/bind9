@@ -54,7 +54,6 @@
 
 #include "../../isc/util.h"		/* XXXRTH */
 
-static ns_dbinfo_t *		cache_dbi;
 static isc_task_t *		server_task;
 static dns_db_t *		version_db;
 static dns_view_t *		version_view;
@@ -107,9 +106,15 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 	printf("loaded\n");
 
 	if (dbi->iscache) {
-		INSIST(cache_dbi == NULL);
-		dns_dbtable_adddefault(view->dbtable, dbi->db);
-		cache_dbi = dbi;
+		/*
+		 * XXXRTH  We must ensure that this is safe, since the
+		 *         field is not covered by the view's lock.
+		 *
+		 *	   We're OK for now, but we'll have to be careful
+		 *	   when we start processing the config file.
+		 */
+		INSIST(view->cachedb == NULL);
+		dns_db_attach(dbi->db, &view->cachedb);
 	} else if (dns_dbtable_add(view->dbtable, dbi->db) != DNS_R_SUCCESS)
 		goto db_detach;
 
@@ -232,12 +237,8 @@ unload_all(void) {
 		if (dbi->view != NULL) {
 			INSIST(dbi->db != NULL);
 			if (dns_db_iszone(dbi->db))
-				dns_dbtable_remove(dbi->view->dbtable, dbi->db);
-			else {
-				INSIST(dbi == cache_dbi);
-				dns_dbtable_removedefault(dbi->view->dbtable);
-				cache_dbi = NULL;
-			}
+				dns_dbtable_remove(dbi->view->dbtable,
+						   dbi->db);
 			dns_db_detach(&dbi->db);
 			dns_view_detach(&dbi->view);
 		}
@@ -312,18 +313,18 @@ ns_server_init(void) {
 	dns_view_t *view, *view_next;
 
 	/*
-	 * XXXRTH  The view management code here will probably move to its own module
-	 *         when we start using the config file.
+	 * XXXRTH  The view management code here will probably move to its
+	 *         own module when we start using the config file.
 	 */
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_in, "default/IN",
-				 NULL, &view);
+				 NULL, NULL, &view);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "default/CHAOS",
-				 NULL, &view);
+				 NULL, NULL, &view);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
