@@ -1,3 +1,6 @@
+1269.	[bug]		Missing masters clause was not handled gracefully.
+			[RT #2703]
+
 1268.	[bug]		DESTDIR was not being propogated between makes.
 
 1247.	[bug]		Don't reset the interface index for link/site local
