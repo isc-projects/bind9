@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.6 2000/12/21 22:11:03 gson Exp $ */
+/* $Id: named-checkzone.c,v 1.7 2001/01/09 00:43:18 marka Exp $ */
 
 #include <config.h>
 
@@ -105,6 +105,7 @@ setup(char *zonename, char *filename, char *classname) {
 	ERRRET(result, "dns_rdataclass_fromtext");
 
 	dns_zone_setclass(zone, rdclass);
+	dns_zone_setoption(zone, DNS_ZONEOPT_MANYERRORS, ISC_TRUE);
 
 	result = dns_zone_load(zone);
 

@@ -1,3 +1,6 @@
+ 668.	[func]		named-checkzone now reports multiple errors in master
+			files.
+
  667.	[bug]		On Linux, running named with the -u option and a
 			non-world-readable configuration file didn't work.
 			[RT #626]

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.27 2001/01/05 03:12:45 marka Exp $ */
+/* $Id: master.h,v 1.28 2001/01/09 00:43:23 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -31,6 +31,7 @@
 #include <dns/types.h>
 
 #define	DNS_MASTER_AGETTL 0x01		/* Age the ttl based on $DATE. */
+#define DNS_MASTER_MANYERRORS 0x2	/* Continue processing on errors. */
 
 ISC_LANG_BEGINDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.291 2001/01/05 22:09:02 gson Exp $ */
+/* $Id: zone.c,v 1.292 2001/01/09 00:43:21 marka Exp $ */
 
 #include <config.h>
 
@@ -1051,6 +1051,21 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			goto cleanup;
 		} else
 			result = DNS_R_CONTINUE;
+	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS)) {
+		dns_rdatacallbacks_t    callbacks;
+
+		dns_rdatacallbacks_init(&callbacks);
+		result = dns_db_beginload(db, &callbacks.add,
+					  &callbacks.add_private);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = dns_master_loadfile(zone->masterfile, &zone->origin,
+					     &zone->origin, zone->rdclass,
+					     DNS_MASTER_MANYERRORS,
+					     &callbacks, zone->mctx);
+		tresult = dns_db_endload(db, &callbacks.add_private);
+		if (result == ISC_R_SUCCESS)
+			result = tresult;
 	} else {
 		result = dns_db_load(db, zone->masterfile);
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.93 2001/01/08 23:52:52 marka Exp $ */
+/* $Id: master.c,v 1.94 2001/01/09 00:43:20 marka Exp $ */
 
 #include <config.h>
 
@@ -125,6 +125,7 @@ struct dns_loadctx {
 	isc_event_t		event;
 
 	isc_mutex_t		lock;
+	isc_result_t		result;
 	/* locked by lock */
 	isc_uint32_t		references;
 };
@@ -197,11 +198,23 @@ loadmgr_destroy(dns_loadmgr_t *mgr);
 		case ISC_R_UNEXPECTED: \
 			goto insist_and_cleanup; \
 		default: \
-			goto log_and_cleanup; \
+			if (MANYERRS(ctx, result)) { \
+				SETRESULT(ctx, result); \
+				LOGIT(result); \
+				read_till_eol = ISC_TRUE; \
+				goto next_line; \
+			} else \
+				goto log_and_cleanup; \
 		} \
 		if ((token)->type == isc_tokentype_special) { \
 			result = DNS_R_SYNTAX; \
-			goto log_and_cleanup; \
+			if (MANYERRS(ctx, result)) { \
+				SETRESULT(ctx, result); \
+				LOGIT(result); \
+				read_till_eol = ISC_TRUE; \
+				goto next_line; \
+			} else \
+				goto log_and_cleanup; \
 		} \
 	} while (0)
 
@@ -209,11 +222,17 @@ loadmgr_destroy(dns_loadmgr_t *mgr);
 	do { \
 		result = commit(callbacks, ctx->lex, &current_list, \
 				ctx->current, ctx->top); \
-		if (result != ISC_R_SUCCESS) \
+		if (MANYERRS(ctx, result)) { \
+			SETRESULT(ctx, result); \
+			LOGIT(result); \
+		} else if (result != ISC_R_SUCCESS) \
 			goto log_and_cleanup; \
 		result = commit(callbacks, ctx->lex, &glue_list, \
 				ctx->glue, ctx->top); \
-		if (result != ISC_R_SUCCESS) \
+		if (MANYERRS(ctx, result)) { \
+			SETRESULT(ctx, result); \
+			LOGIT(result); \
+		} else if (result != ISC_R_SUCCESS) \
 			goto log_and_cleanup; \
 		rdcount = 0; \
 		rdlcount = 0; \
@@ -232,6 +251,25 @@ loadmgr_destroy(dns_loadmgr_t *mgr);
 	} while (0)
 
 #define CTX_COPYVAR(ctx, new, var) (new)->var = (ctx)->var
+
+#define MANYERRS(ctx, result) \
+		((result != ISC_R_SUCCESS) && \
+		((ctx)->options & DNS_MASTER_MANYERRORS) != 0)
+#define SETRESULT(ctx, r) \
+		do { \
+			if ((ctx)->result == ISC_R_SUCCESS) \
+				(ctx)->result = r; \
+		} while (0)
+#define LOGIT(result) \
+	if (result == ISC_R_NOMEMORY) \
+		(*callbacks->error)(callbacks, "dns_master_load: %s", \
+				    dns_result_totext(result)); \
+	else \
+		(*callbacks->error)(callbacks, "%s: %s:%lu: %s", \
+				    "dns_master_load", \
+				    isc_lex_getsourcename(ctx->lex), \
+				    isc_lex_getsourceline(ctx->lex), \
+				    dns_result_totext(result))
 
 static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
@@ -394,6 +432,7 @@ loadctx_create(isc_mem_t *mctx, unsigned int options, dns_name_t *top,
 	ctx->options = options;
 	ctx->seen_include = ISC_FALSE;
 	ctx->zclass = zclass;
+	ctx->result = ISC_R_SUCCESS;
 
 	dns_fixedname_init(&ctx->fixed_top);
 	ctx->top = dns_fixedname_name(&ctx->fixed_top);
@@ -770,6 +809,7 @@ load(dns_loadctx_t **ctxp) {
 				CTX_COPYVAR(ctx, *ctxp, default_ttl);
 				CTX_COPYVAR(ctx, *ctxp, warn_1035);
 				CTX_COPYVAR(ctx, *ctxp, seen_include);
+				CTX_COPYVAR(ctx, *ctxp, result);
 				dns_loadctx_detach(&ctx);
 				ctx = *ctxp;
 				continue;
@@ -812,7 +852,10 @@ load(dns_loadctx_t **ctxp) {
 				result =
 				   dns_ttl_fromtext(&token.value.as_textregion,
 						    &ctx->ttl);
-				if (result != ISC_R_SUCCESS)
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+					ctx->ttl = 0;
+				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
 				if (ctx->ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
@@ -865,7 +908,11 @@ load(dns_loadctx_t **ctxp) {
 					result = pushfile(include_file,
 							  ctx->origin,
 							  ctxp);
-					if (result != ISC_R_SUCCESS)
+					if (MANYERRS(ctx, result)) {
+						SETRESULT(ctx, result);
+						LOGIT(result);
+						continue;
+					} else if (result != ISC_R_SUCCESS)
 						goto log_and_cleanup;
 					ctx = *ctxp;
 					continue;
@@ -885,7 +932,11 @@ load(dns_loadctx_t **ctxp) {
 				isc_stdtime_get(&current_time);
 				result = dns_time64_fromtext(token.value.
 					     as_pointer, &dump_time64);
-				if (result != ISC_R_SUCCESS)
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+					LOGIT(result);
+					dump_time64 = 0;
+				} else if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				dump_time = (isc_stdtime_t)dump_time64;
 				if (dump_time != dump_time64) {
@@ -924,7 +975,11 @@ load(dns_loadctx_t **ctxp) {
 					    isc_lex_getsourcename(ctx->lex),
 					    isc_lex_getsourceline(ctx->lex));
 					result = DNS_R_NOTTL;
-					goto insist_and_cleanup;
+					if (MANYERRS(ctx, result)) {
+						SETRESULT(ctx, result);
+						ctx->ttl = 0;
+					} else if (result != ISC_R_SUCCESS)
+						goto insist_and_cleanup;
 				} else if (ctx->default_ttl_known) {
 					ctx->ttl = ctx->default_ttl;
 				}
@@ -972,7 +1027,9 @@ load(dns_loadctx_t **ctxp) {
 					goto log_and_cleanup;
 				}
 				result = generate(ctx, range, lhs, gtype, rhs);
-				if (result != ISC_R_SUCCESS)
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
 				read_till_eol = ISC_TRUE;
 				continue;
@@ -986,7 +1043,10 @@ load(dns_loadctx_t **ctxp) {
 					   isc_lex_getsourceline(ctx->lex),
 					   token.value.as_pointer);
 				result = DNS_R_SYNTAX;
-				goto insist_and_cleanup;
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+				} else if (result != ISC_R_SUCCESS)
+					goto insist_and_cleanup;
 			}
 
 			/*
@@ -1007,7 +1067,11 @@ load(dns_loadctx_t **ctxp) {
 					     token.value.as_region.length);
 			result = dns_name_fromtext(new_name, &buffer,
 					  ctx->origin, ISC_FALSE, NULL);
-			if (result != ISC_R_SUCCESS)
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
 				goto insist_and_cleanup;
 
 			/*
@@ -1027,7 +1091,11 @@ load(dns_loadctx_t **ctxp) {
 				finish_include = ISC_FALSE;
 				result = pushfile(include_file, 
 						  new_name, ctxp);
-				if (result != ISC_R_SUCCESS)
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+					LOGIT(result);
+					continue;
+				} else if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				ctx = *ctxp;
 				continue;
@@ -1048,7 +1116,10 @@ load(dns_loadctx_t **ctxp) {
 				result = commit(callbacks, ctx->lex,
 						&glue_list,
 						ctx->glue, ctx->top);
-				if (result != ISC_R_SUCCESS)
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+					LOGIT(result);
+				} else if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				if (ctx->glue_in_use != -1)
 					ctx->in_use[ctx->glue_in_use] =
@@ -1083,7 +1154,10 @@ load(dns_loadctx_t **ctxp) {
 							&current_list,
 							ctx->current,
 							ctx->top);
-					if (result != ISC_R_SUCCESS)
+					if (MANYERRS(ctx, result)) {
+						SETRESULT(ctx, result);
+						LOGIT(result);
+					} else if (result != ISC_R_SUCCESS)
 						goto log_and_cleanup;
 					rdcount = 0;
 					rdlcount = 0;
@@ -1107,7 +1181,12 @@ load(dns_loadctx_t **ctxp) {
 					 isc_lex_getsourceline(ctx->lex),
 					 token.type);
 			result = ISC_R_UNEXPECTED;
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				LOGIT(result);
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		}
 
 		/*
@@ -1144,7 +1223,12 @@ load(dns_loadctx_t **ctxp) {
 					isc_lex_getsourcename(ctx->lex),
 					isc_lex_getsourceline(ctx->lex));
 				result = DNS_R_NOOWNER;
-				goto insist_and_cleanup;
+				if (MANYERRS(ctx, result)) {
+					SETRESULT(ctx, result);
+					read_till_eol = ISC_TRUE;
+					continue;
+				} else if (result != ISC_R_SUCCESS)
+					goto insist_and_cleanup;
 			}
 		}
 
@@ -1178,7 +1262,11 @@ load(dns_loadctx_t **ctxp) {
 					    isc_lex_getsourcename(ctx->lex),
 					    isc_lex_getsourceline(ctx->lex));
 			result = DNS_R_NOTTL;
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				ctx->ttl = 0;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		} else if (ctx->default_ttl_known) {
 			ctx->ttl = ctx->default_ttl;
 		} else if (ctx->warn_1035) {
@@ -1195,7 +1283,12 @@ load(dns_loadctx_t **ctxp) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 			"isc_lex_gettoken() returned unexpected token type");
 			result = ISC_R_UNEXPECTED;
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		}
 
 		if (rdclass == 0 &&
@@ -1208,7 +1301,12 @@ load(dns_loadctx_t **ctxp) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 			"isc_lex_gettoken() returned unexpected token type");
 			result = ISC_R_UNEXPECTED;
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		}
 
 		result = dns_rdatatype_fromtext(&type,
@@ -1221,7 +1319,12 @@ load(dns_loadctx_t **ctxp) {
 				   isc_lex_getsourceline(ctx->lex),
 				   token.value.as_textregion.length,
 				   token.value.as_textregion.base);
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		}
 
 		/*
@@ -1244,7 +1347,12 @@ load(dns_loadctx_t **ctxp) {
 					    isc_lex_getsourceline(ctx->lex),
 					    classname1, classname2);
 			result = DNS_R_BADCLASS;
-			goto insist_and_cleanup;
+			if (MANYERRS(ctx, result)) {
+				SETRESULT(ctx, result);
+				read_till_eol = ISC_TRUE;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
 		}
 
 		if (type == dns_rdatatype_ns && ctx->glue == NULL)
@@ -1286,8 +1394,12 @@ load(dns_loadctx_t **ctxp) {
 		result = dns_rdata_fromtext(&rdata[rdcount], ctx->zclass, type,
 				   ctx->lex, ctx->origin, ISC_FALSE, ctx->mctx,
 				   &target, callbacks);
-		if (result != ISC_R_SUCCESS)
-			goto log_and_cleanup;
+		if (MANYERRS(ctx, result)) {
+			SETRESULT(ctx, result);
+			read_till_eol = ISC_TRUE;
+			continue;
+		} else if (result != ISC_R_SUCCESS)
+			goto insist_and_cleanup;
 		if (type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		else
@@ -1357,6 +1469,7 @@ load(dns_loadctx_t **ctxp) {
 		 */
 		if ((target.length - target.used) < MINTSIZ)
 			COMMITALL;
+ next_line:
 	} while (!done && (ctx->loop_cnt == 0 || loop_cnt++ < ctx->loop_cnt));
 
 	/*
@@ -1364,29 +1477,29 @@ load(dns_loadctx_t **ctxp) {
 	 */
 	result = commit(callbacks, ctx->lex, &current_list,
 			ctx->current, ctx->top);
-	if (result != ISC_R_SUCCESS)
+	if (MANYERRS(ctx, result)) {
+		SETRESULT(ctx, result);
+		LOGIT(result);
+	} else if (result != ISC_R_SUCCESS)
 		goto log_and_cleanup;
 	result = commit(callbacks, ctx->lex, &glue_list, ctx->glue, ctx->top);
-	if (result != ISC_R_SUCCESS)
+	if (MANYERRS(ctx, result)) {
+		SETRESULT(ctx, result);
+		LOGIT(result);
+	} else if (result != ISC_R_SUCCESS)
 		goto log_and_cleanup;
 
 	if (!done) {
 		INSIST(ctx->done != NULL && ctx->task != NULL);
 		result = DNS_R_CONTINUE;
+	} else if (result == ISC_R_SUCCESS && ctx->result != ISC_R_SUCCESS) {
+		result = ctx->result;
 	} else if (result == ISC_R_SUCCESS && ctx->seen_include)
 		result = DNS_R_SEENINCLUDE;
 	goto cleanup;
 
  log_and_cleanup:
-	if (result == ISC_R_NOMEMORY)
-		(*callbacks->error)(callbacks, "dns_master_load: %s",
-				    dns_result_totext(result));
-	else
-		(*callbacks->error)(callbacks, "%s: %s:%lu: %s",
-				    "dns_master_load",
-				    isc_lex_getsourcename(ctx->lex),
-				    isc_lex_getsourceline(ctx->lex),
-				    dns_result_totext(result));
+	LOGIT(result);
 
  insist_and_cleanup:
 	INSIST(result != ISC_R_SUCCESS);
@@ -1459,6 +1572,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 	CTX_COPYVAR(ctx, new, default_ttl);
 	CTX_COPYVAR(ctx, new, warn_1035);
 	CTX_COPYVAR(ctx, new, seen_include);
+	CTX_COPYVAR(ctx, new, result);
 
 	result = isc_lex_openfile(new->lex, master_file);
 	if (result != ISC_R_SUCCESS)
