@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bitstring.c,v 1.8 2000/09/12 19:26:40 halley Exp $ */
+/* $Id: bitstring.c,v 1.9 2000/09/12 23:27:44 gson Exp $ */
 
 #include <config.h>
 
@@ -26,8 +26,8 @@
 
 #define DIV8(x)			((x) >> 3)
 #define MOD8(x)			((x) & 0x00000007U)
-#define OCTETS(n)		((n + 7) >> 3)
-#define PADDED(n)		(((n + 7) >> 3) << 3)
+#define OCTETS(n)		(((n) + 7) >> 3)
+#define PADDED(n)		((((n) + 7) >> 3) << 3)
 #define BITSET(bs, n) 		(((bs)->data[DIV8(n)] & \
 				 (1 << (7 - MOD8(n)))) != 0)
 #define SETBIT(bs, n)		(bs)->data[DIV8(n)] |= (1 << (7 - MOD8(n)))
