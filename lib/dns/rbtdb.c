@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.179 2002/09/10 13:35:54 marka Exp $ */
+/* $Id: rbtdb.c,v 1.180 2002/10/10 13:50:02 jinmei Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4748,6 +4748,7 @@ static void
 dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)(*iteratorp);
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
+	dns_db_t *db = NULL;
 
 	if (rbtdbiter->tree_locked == isc_rwlocktype_read) {
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
@@ -4759,10 +4760,12 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 
 	flush_deletions(rbtdbiter);
 
+	dns_db_attach(rbtdbiter->common.db, &db);
 	dns_db_detach(&rbtdbiter->common.db);
 
 	dns_rbtnodechain_reset(&rbtdbiter->chain);
-	isc_mem_put(rbtdb->common.mctx, rbtdbiter, sizeof(*rbtdbiter));
+	isc_mem_put(db->mctx, rbtdbiter, sizeof(*rbtdbiter));
+	dns_db_detach(&db);
 
 	*iteratorp = NULL;
 }
