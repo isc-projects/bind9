@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.147 2000/07/10 19:40:06 explorer Exp $ */
+/* $Id: socket.c,v 1.148 2000/07/13 00:25:38 gson Exp $ */
 
 #include <config.h>
 
@@ -244,6 +244,9 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	char msgbuf[2048];
 	char peerbuf[256];
 	va_list ap;
+
+	if (! isc_log_wouldlog(isc_lctx, level))
+		return;
 
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
