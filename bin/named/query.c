@@ -1156,6 +1156,8 @@ query_find(ns_client_t *client) {
 				 * Add SOA.
 				 */
 				result = query_addsoa(client, db);
+				if (result == ISC_R_SUCCESS)
+					result = DNS_R_NOMORE;
 			} else {
 				/*
 				 * Something went wrong.
