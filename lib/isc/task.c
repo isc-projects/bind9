@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -53,6 +53,7 @@ struct isc_task {
 	unsigned int			magic;
 	isc_taskmgr_t *			manager;
 	isc_mutex_t			lock;
+	isc_mem_t *			mctx;
 	/* Locked by task lock. */
 	task_state_t			state;
 	unsigned int			references;
@@ -173,7 +174,7 @@ task_free(isc_task_t *task) {
 }
 
 isc_result_t
-isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
+isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 		isc_task_t **taskp)
 {
 	isc_task_t *task;
@@ -181,13 +182,15 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
-	task = isc_mem_get(manager->mctx, sizeof *task);
+	if (mctx == NULL)
+		mctx = manager->mctx;
+	task = isc_mem_get(mctx, sizeof *task);
 	if (task == NULL)
 		return (ISC_R_NOMEMORY);
-
 	task->manager = manager;
+	task->mctx = mctx;
 	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
-		isc_mem_put(manager->mctx, task, sizeof *task);
+		isc_mem_put(mctx, task, sizeof *task);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -249,6 +252,14 @@ isc_task_detach(isc_task_t **taskp) {
 		task_free(task);
 
 	*taskp = NULL;
+}
+
+isc_mem_t *
+isc_task_mem(isc_task_t *task) {
+
+	REQUIRE(VALID_TASK(task));
+	
+	return (task->mctx);
 }
 
 isc_result_t
@@ -406,7 +417,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 
 	REQUIRE(VALID_TASK(task));
 
-	event = event_allocate(task->manager->mctx,
+	event = event_allocate(task->mctx,
 			       NULL,
 			       ISC_TASKEVENT_SHUTDOWN,
 			       action,
@@ -427,7 +438,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 	UNLOCK(&task->lock);
 
 	if (disallowed)
-		isc_mem_put(task->manager->mctx, event, sizeof *event);
+		isc_mem_put(task->mctx, event, sizeof *event);
 
 	return (result);
 }

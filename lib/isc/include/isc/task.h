@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -83,11 +83,13 @@ void					isc_event_free(isc_event_t **);
  ***/
 
 isc_result_t				isc_task_create(isc_taskmgr_t *,
+							isc_mem_t *,
 							unsigned int,
 							isc_task_t **);
 void					isc_task_attach(isc_task_t *,
 							isc_task_t **);
 void					isc_task_detach(isc_task_t **);
+isc_mem_t *				isc_task_mem(isc_task_t *);
 isc_result_t				isc_task_send(isc_task_t *, 
 						      isc_event_t **);
 unsigned int				isc_task_purge(isc_task_t *, void *,
