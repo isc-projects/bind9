@@ -1778,7 +1778,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				/*
 				 * Local compression.
 				 */
-				if ((dctx->allowed & DNS_COMPRESS_GLOBAL16) ==
+				if ((dctx->allowed & DNS_COMPRESS_LOCAL) ==
 				    0)
 					return (DNS_R_DISALLOWED);
 
