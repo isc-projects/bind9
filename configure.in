@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.230 $)
+AC_REVISION($Revision: 1.231 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1381,16 +1381,19 @@ AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
 
 AC_SUBST(BIND9_ISC_BUILDINCLUDE)
+AC_SUBST(BIND9_ISCCFG_BUILDINCLUDE)
 AC_SUBST(BIND9_DNS_BUILDINCLUDE)
 AC_SUBST(BIND9_OMAPI_BUILDINCLUDE)
 AC_SUBST(BIND9_LWRES_BUILDINCLUDE)
 if test "X$srcdir" != "X"; then
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
+	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
 	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
 	BIND9_OMAPI_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/omapi/include"
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
 else
 	BIND9_ISC_BUILDINCLUDE=""
+	BIND9_ISCCFG_BUILDINCLUDE=""
 	BIND9_DNS_BUILDINCLUDE=""
 	BIND9_OMAPI_BUILDINCLUDE=""
 	BIND9_LWRES_BUILDINCLUDE=""
@@ -1408,6 +1411,9 @@ AC_SUBST(BIND9_VERSION)
 
 AC_SUBST_FILE(LIBISC_API)
 LIBISC_API=$srcdir/lib/isc/api
+
+AC_SUBST_FILE(LIBISCCFG_API)
+LIBISCCFG_API=$srcdir/lib/isccfg/api
 
 AC_SUBST_FILE(LIBDNS_API)
 LIBDNS_API=$srcdir/lib/dns/api
@@ -1436,6 +1442,9 @@ AC_OUTPUT(
 	lib/isc/$thread_dir/Makefile
 	lib/isc/$thread_dir/include/Makefile
 	lib/isc/$thread_dir/include/isc/Makefile
+	lib/isccfg/Makefile
+	lib/isccfg/include/Makefile
+	lib/isccfg/include/isccfg/Makefile
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile

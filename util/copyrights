@@ -1315,6 +1315,15 @@
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001
 ./lib/isc/win32/thread.c			C	1998,1999,2000,2001
 ./lib/isc/win32/time.c				C	1998,1999,2000,2001
+./lib/isccfg/.cvsignore				X	2001
+./lib/isccfg/Makefile.in			C	2001
+./lib/isccfg/api				C	2001
+./lib/isccfg/parser.c				C	2000,2001
+./lib/isccfg/include/.cvsignore			C	2001
+./lib/isccfg/include/Makefile.in		C	2001
+./lib/isccfg/include/isccfg/.cvsignore		C	2001
+./lib/isccfg/include/isccfg/Makefile.in		C	2001
+./lib/isccfg/include/isccfg/cfg.h		C	2000,2001
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001
 ./lib/lwres/api					X	2000,2001
