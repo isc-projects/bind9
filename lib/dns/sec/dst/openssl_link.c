@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.46.2.2.2.3 2003/08/14 04:08:24 marka Exp $
+ * $Id: openssl_link.c,v 1.46.2.2.2.4 2003/08/26 05:38:47 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -182,8 +182,10 @@ void
 dst__openssl_destroy() {
 	ERR_clear_error();
 #ifdef CRYPTO_LOCK_ENGINE
-	if (e != NULL)
+	if (e != NULL) {
 		ENGINE_free(e);
+		e = NULL;
+	}
 #endif
 	if (locks != NULL) {
 		DESTROYMUTEXBLOCK(locks, nlocks);
