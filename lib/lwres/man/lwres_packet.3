@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_packet.3,v 1.3 2000/08/01 01:21:56 tale Exp $
+.\" $Id: lwres_packet.3,v 1.4 2000/09/06 20:54:44 explorer Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES_PACKET 3
@@ -59,34 +59,49 @@ struct lwres_lwpacket {
 };
 .Ed
 .Pp
+.Pp
 The elements of this structure are:
 .Bl -tag -width recvlength
 .It Li length
-the overall packet length, including the entire packet header
+the overall packet length, including the entire packet header.
+This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
+calls.
 .It Li version
 the header format. There is currently only one format,
 .Dv LWRES_LWPACKETVERSION_0 .
+This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
+calls.
 .It Li pktflags
 library-defined flags for this packet: for instance whether the packet
 is a request or a reply. Flag values can be set, but not defined by
 the caller.
+This field is filled in by the application wit the exception of the
+LWRES_LWPACKETFLAG_RESPONSE bit, which is set by the library in the
+lwres_gabn_*() and lwres_gnba_*() calls.
 .It Li serial
 is set by the requestor and is returned in all replies. If two or more
 packets from the same source have the same serial number and are from
 the same source, they are assumed to be duplicates and the latter ones
 may be dropped.
+This field must be set by the application.
 .It Li opcode
 indicates the operation.
 Opcodes between 0x00000000 and 0x03ffffff are
 reserved for use by the lightweight resolver library. Opcodes between
 0x04000000 and 0xffffffff are application defined.
+This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
+calls.
 .It Li result
 is only valid for replies.
 Results between 0x04000000 and 0xffffffff are application defined.
 Results between 0x00000000 and 0x03ffffff are reserved for library use.
+This field is filled in by the lwres_gabn_*() and lwres_gnba_*()
+calls.
 .It Li recvlength
 is the maximum buffer size that the receiver can handle on requests
-and the size of the buffer needed to satisfy a request when the buffer is too large for replies
+and the size of the buffer needed to satisfy a request when the buffer
+is too large for replies.
+This field is supplied by the application.
 .It Li authtype
 defines the packet level authentication that is used.
 Authorisation types between 0x1000 and 0xffff are application defined
@@ -96,14 +111,18 @@ Currently these are not used and must be zero.
 gives the length of the authentication data.
 Since packet authentication is currently not used, this must be zero.
 .El
+.Pp
 The following opcodes are currently defined:
 .Bl -tag -width GETADDRSBYNAME
 .It Li NOOP
 Success is always returned and the packet contents are echoed.
+The lwres_noop_*() functions should be used for this type.
 .It Li GETADDRSBYNAME
-returns all known addresses for a given name
+returns all known addresses for a given name.
+The lwres_gabn_*() functions should be used for this type.
 .It Li GETNAMEBYADDR
-return the hostname for the given address
+return the hostname for the given address.
+The lwres_gnba_*() functions should be used for this type.
 .El
 .Pp
 .Fn lwres_lwpacket_renderheader
@@ -122,7 +141,7 @@ to resolver packet
 The contents of the buffer
 .Fa b
 should correspond to a
-.Dv "struct lwres_lwpacket" .
+.Dv "lwres_lwpacket_t" .
 .Pp
 Both functions have assertion checks to ensure that
 .Fa b
