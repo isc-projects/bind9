@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.28 2000/03/17 17:08:36 gson Exp $ */
+/* $Id: sig_24.c,v 1.29 2000/03/17 19:20:25 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -266,7 +266,6 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	dns_name_t name1;
 	dns_name_t name2;
-	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
