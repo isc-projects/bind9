@@ -95,10 +95,8 @@ line.
 
 2.5. Unimplemented BIND 8 Extensions
 
-BIND 8 supports a nonstandard master file directive "$GENERATE" for
-automatically generating multiple instances of certain RRs from a
-template.  This directive is currently unimplemented in BIND 9.
-
+$GENERATE:  This deprecated form of getting a literal $ into a domain
+name ($$) is no longer supported, use \$ instead.
 
 3. Interoperability Impact of New Protocol Features
 
@@ -150,4 +148,4 @@ see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
 details.  Many of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.12 2000/09/08 21:34:28 gson Exp $
+$Id: migration,v 1.13 2000/09/18 06:50:35 marka Exp $
