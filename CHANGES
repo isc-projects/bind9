@@ -15,7 +15,7 @@
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
 
  313.	[bug]		When parsing resolv.conf, don't terminate on an
-			error.  Instead, parse as much as possible, but
+			error.	Instead, parse as much as possible, but
 			still return an error if one was found.
 
  312.	[bug]		Increase the number of allowed elements in the
@@ -41,9 +41,9 @@
 			destroying the query context and then want to use
 			it again when the send event posted, triggering an
 			assertion as it tried to cancel an already-canceled
-			query.  (RT #77)
+			query.	(RT #77)
 
- 306.	[bug] 		Reading HMAC-MD5 private key files didn't work.
+ 306.	[bug]		Reading HMAC-MD5 private key files didn't work.
 
  305.	[bug]		When reloading the server with a config file
 			containing a syntax error, it could catch an
@@ -74,7 +74,7 @@
  299.	[cleanup]	Get the user and group information before changing the
 			root directory, so the administrator does not need to
 			keep a copy of the user and group databases in the
-			chroot'ed environment.  Suggested by Hakan Olsson.
+			chroot'ed environment.	Suggested by Hakan Olsson.
 
 	--- 9.0.0b5 released ---
 
@@ -82,9 +82,9 @@
 			interface manager under certain conditions.
 			Digital Unix systems were the most affected.
 
- 297.   [bug]           Specifying a key name that wasn't fully qualified
-                        in certain parts of the config file could cause
-                        an assertion failure.
+ 297.	[bug]		Specifying a key name that wasn't fully qualified
+			in certain parts of the config file could cause
+			an assertion failure.
 
  296.	[bug]		"make install" from a separate build directory
 			failed unless configure had been run in the source
@@ -114,7 +114,7 @@
 			over TCP just because the incoming recursive query
 			was a TCP one.
 
- 290.   [cleanup]	+twiddle option to dig (for testing only) removed.
+ 290.	[cleanup]	+twiddle option to dig (for testing only) removed.
 
  289.	[cleanup]	dig is now installed in $bindir instead of $sbindir.
 			host is now installed in $bindir.  (Be sure to remove
@@ -135,7 +135,7 @@
 
  285.	[bug]		A change made to the dst API for beta4 inadvertently
 			broke OMAPI's creation of a dst key from an incoming
-			message, causing an assertion to be triggered.  Fixed.
+			message, causing an assertion to be triggered.	Fixed.
 
  284.	[func]		The DNSSEC key generation and signing tools now
 			generate randomness from keyboard input on systems
