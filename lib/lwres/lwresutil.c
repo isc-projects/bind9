@@ -46,7 +46,7 @@
  *	set.
  *
  *	On return, the current pointer of "b" will point to the character
- *	following the string length, the stirng, and the trailing NUL.
+ *	following the string length, the string, and the trailing NULL.
  *
  */
 int
@@ -70,7 +70,7 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
 	 */
 	if (!SPACE_REMAINING(b, datalen))
 		return (LWRES_R_UNEXPECTEDEND);
-	string = b->base + b->current;
+	string = (char *)b->base + b->current;
 	lwres_buffer_forward(b, datalen);
 
 	/*
