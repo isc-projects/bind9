@@ -139,7 +139,7 @@ create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	 * We have default hints for class IN.
 	 */
 	if (rdclass == dns_rdataclass_in)
-		dns_view_sethints(view, ns_g_rootns);
+		dns_view_sethints(view, ns_g_server->roothints);
 
 	*viewp = view;
 
@@ -633,6 +633,16 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				    ns_g_socketmgr, &ns_g_server->zonemgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_zoneemgr_create() failed: %s",
+				 isc_result_totext(result));
+		/* XXX cleanup */
+		return;
+	}
+
 	result = ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				     &server->clientmgr);
 	if (result != ISC_R_SUCCESS) {
@@ -728,7 +738,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	ISC_LIST_INIT(server->viewlist);
 	result = isc_rwlock_init(&server->viewlock, 0, 0);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
-
+	server->roothints = NULL;
+		
+	result = ns_rootns_create(mctx, &server->roothints);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	
 	/*
 	 * Setup the server task, which is responsible for coordinating
 	 * startup and shutdown of the server.
@@ -742,11 +756,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	result = isc_app_onrun(ns_g_mctx, server->task, run_server, server);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
-	
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 	return (ISC_R_SUCCESS);
-
+	
  cleanup_task:
 	isc_task_detach(&server->task);
  cleanup:
@@ -760,6 +774,9 @@ ns_server_destroy(ns_server_t **serverp) {
 	REQUIRE(NS_SERVER_VALID(server));
 
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
+
+	dns_db_detach(&server->roothints);
+	
 	isc_rwlock_destroy(&server->viewlock);
 	
 	if (server->queryacl != NULL)
@@ -775,43 +792,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
-}
-
-/*
- * Set up global server state.  Don't bother with
- * cleanup; our caller will cause the program to exit
- * if we fail.
- */
-isc_result_t
-ns_server_setup(void) {
-	isc_result_t result;
-
-	/*
-	 * Create the server object.
-	 */
-	result = ns_server_create(ns_g_mctx, &ns_g_server);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	/*
-	 * Setup default root server hints.
-	 */
-	result = ns_rootns_init();
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				    ns_g_socketmgr, &ns_g_server->zonemgr);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-ns_server_cleanup(void)
-{
-	ns_rootns_destroy();
-	ns_server_destroy(&ns_g_server);
 }
 
 void

@@ -19,9 +19,8 @@
 #define NS_ROOTNS_H 1
 
 #include <isc/types.h>
+#include <dns/db.h>
 
-isc_result_t ns_rootns_init(void);
-
-void ns_rootns_destroy(void);
+isc_result_t ns_rootns_create(isc_mem_t *mctx, dns_db_t **target);
 
 #endif /* NS_ROOTNS_H */

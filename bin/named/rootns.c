@@ -27,7 +27,6 @@
 #include <dns/db.h>
 #include <dns/master.h>
 
-#include <named/globals.h>
 #include <named/rootns.h>
 
 static char root_ns[] =
@@ -65,17 +64,18 @@ static char root_ns[] =
 "G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n";
 
 isc_result_t
-ns_rootns_init(void) {
+ns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
 	isc_result_t result, eresult;
 	isc_buffer_t source;
 	size_t len;
 	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
+	dns_db_t *db = NULL;
+	
+	REQUIRE(target != NULL && *target == NULL);
 
-	REQUIRE(ns_g_rootns == NULL);
-
-	result = dns_db_create(ns_g_mctx, "rbt", dns_rootname, ISC_FALSE,
-			       dns_rdataclass_in, 0, NULL, &ns_g_rootns);
+	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_FALSE,
+			       dns_rdataclass_in, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -85,31 +85,26 @@ ns_rootns_init(void) {
 	isc_buffer_init(&source, root_ns, len, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&source, len);
 
-	result = dns_db_beginload(ns_g_rootns, &callbacks.add,
+	result = dns_db_beginload(db, &callbacks.add,
 				  &callbacks.add_private);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadbuffer(&source, &ns_g_rootns->origin,
-				       &ns_g_rootns->origin,
-				       ns_g_rootns->rdclass, ISC_FALSE,
+	result = dns_master_loadbuffer(&source, &db->origin,
+				       &db->origin,
+				       db->rdclass, ISC_FALSE,
 				       &soacount, &nscount, &callbacks,
-				       ns_g_rootns->mctx);
-	eresult = dns_db_endload(ns_g_rootns, &callbacks.add_private);
+				       db->mctx);
+	eresult = dns_db_endload(db, &callbacks.add_private);
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
 	if (result != ISC_R_SUCCESS)
 		goto db_detach;
 
+	*target = db;
 	return (DNS_R_SUCCESS);
 
  db_detach:
-	dns_db_detach(&ns_g_rootns);
+	dns_db_detach(&db);
 
 	return (result);
-}
-
-void
-ns_rootns_destroy(void) {
-	REQUIRE(ns_g_rootns != NULL);
-	dns_db_detach(&ns_g_rootns);
 }

@@ -53,11 +53,6 @@ EXTERN in_port_t		ns_g_port		INIT(53);
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
 
 /*
- * Default root nameserver hints.
- */
-EXTERN dns_db_t *		ns_g_rootns		INIT(NULL);
-
-/*
  * Logging.
  */
 EXTERN isc_log_t *		ns_g_lctx		INIT(NULL);

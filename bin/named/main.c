@@ -239,16 +239,16 @@ setup() {
 		ns_main_earlyfatal("create_managers() failed: %s",
 				   isc_result_totext(result));
 
-	result = ns_server_setup();
+	result = ns_server_create(ns_g_mctx, &ns_g_server);
 	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("ns_server_init() failed: %s",
+		ns_main_earlyfatal("ns_server_create() failed: %s",
 				   isc_result_totext(result));
 }
 
 static void
 cleanup() {
 	destroy_managers();
-	ns_server_cleanup();
+	ns_server_destroy(&ns_g_server);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();

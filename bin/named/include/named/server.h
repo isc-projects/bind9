@@ -50,6 +50,7 @@ struct ns_server {
 	dns_viewlist_t		viewlist;
 	isc_rwlock_t		viewlock;
 	ns_interfacemgr_t *	interfacemgr;
+	dns_db_t *		roothints;
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
@@ -66,16 +67,6 @@ void
 ns_server_destroy(ns_server_t **serverp);
 /*
  * Destroy a server object, freeing its memory.
- */
-     
-isc_result_t ns_server_setup(void);
-/*
- * Perform global server setup.
- */
-
-void ns_server_cleanup(void);
-/*
- * Perform global server cleanup
  */
 
 void
