@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.62 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: result.c,v 1.62.18.1 2004/05/15 03:47:16 jinmei Exp $ */
 
 #include <config.h>
 
@@ -96,7 +96,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"soft quota reached",			/* 55 */
 	"not a valid number",			/* 56 */
 	"disabled",				/* 57 */
-	"max size"				/* 58 */
+	"max size",				/* 58 */
+	"invalid address format"		/* 59 */
 };
 
 #define ISC_RESULT_RESULTSET			2

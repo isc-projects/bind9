@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.62 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: result.h,v 1.62.18.1 2004/05/15 03:47:16 jinmei Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -82,11 +82,12 @@
 #define ISC_R_BADNUMBER			56	/* not a valid number */
 #define ISC_R_DISABLED			57	/* disabled */
 #define ISC_R_MAXSIZE			58	/* max size */
+#define ISC_R_BADADDRESSFORM		59	/* invalid address format */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			59
+#define ISC_R_NRESULTS 			60
 
 ISC_LANG_BEGINDECLS
 
