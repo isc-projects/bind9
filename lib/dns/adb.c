@@ -290,34 +290,57 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
  */
 #define FIND_EVENT_SENT		0x40000000
 #define FIND_EVENT_FREED	0x80000000
-#define EVENT_SENT(h)		(((h)->flags & FIND_EVENT_SENT) != 0)
-#define EVENT_FREED(h)		(((h)->flags & FIND_EVENT_FREED) != 0)
+#define FIND_EVENTSENT(h)	(((h)->flags & FIND_EVENT_SENT) != 0)
+#define FIND_EVENTFREED(h)	(((h)->flags & FIND_EVENT_FREED) != 0)
 
 #define NAME_NEEDS_POKE		0x80000000
 #define NAME_IS_DEAD		0x40000000
-#define NAME_FIRST_A6		0x20000000
 #define NAME_DEAD(n)		(((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n)	(((n)->flags & NAME_NEEDS_POKE) != 0)
-#define NAME_FIRSTA6(n)		(((n)->flags & NAME_FIRST_A6) != 0)
 
-#define FETCH_USE_HINTS		0x80000000
-#define FETCH_USEHINTS(f)	(((f)->flags & FETCH_USE_HINTS) != 0)
+/*
+ * To the name, address classes are all that really exist.  If it has a
+ * V6 address it doesn't care if it came from an A6 chain or an AAAA query.
+ */
+#define NAME_HAS_V4(n)		(!ISC_LIST_EMPTY((n)->v4))
+#define NAME_HAS_V6(n)		(!ISC_LIST_EMPTY((n)->v6))
+#define NAME_HAS_ADDRS(n)	(NAME_HAS_V4(n) || NAME_HAS_V6(n))
 
-#define WANTEVENT(x)		(((x) & DNS_ADBFIND_WANTEVENT) != 0)
-#define WANTEMPTYEVENT(x)	(((x) & DNS_ADBFIND_EMPTYEVENT) != 0)
-#define HAVE_INET(n)		(!ISC_LIST_EMPTY((n)->v4))
-#define HAVE_INET6(n)		(!ISC_LIST_EMPTY((n)->v6))
-#define HAVE_ADDRS(h)		(!ISC_LIST_EMPTY((h)->list))
-#define WANT_INET(x)		(((x) & DNS_ADBFIND_INET) != 0)
-#define WANT_INET6(x)		(((x) & DNS_ADBFIND_INET6) != 0)
-#define WANTEDADDR(x, y)	(((x) & (y)) != 0)
-
+/*
+ * Fetches are broken out into A, AAAA, and A6 types.  In some cases,
+ * however, it makes more sense to test for a particular class of fetches,
+ * like V4 or V6 above.
+ */
 #define NAME_FETCH_A(n)		((n)->fetch_a != NULL)
 #define NAME_FETCH_AAAA(n)	((n)->fetch_aaaa != NULL)
 #define NAME_FETCH_A6(n)	(!ISC_LIST_EMPTY((n)->fetches_a6))
 #define NAME_FETCH_V4(n)	(NAME_FETCH_A(n))
 #define NAME_FETCH_V6(n)	(NAME_FETCH_AAAA(n) || NAME_FETCH_A6(n))
 #define NAME_FETCH(n)		(NAME_FETCH_V4(n) || NAME_FETCH_V6(n))
+
+/*
+ * Was this fetch started using the hints database?
+ * Was this the initial fetch for the A6 record?  If so, we might want to
+ * start AAAA queries if it fails.
+ */
+#define FETCH_USE_HINTS		0x80000000
+#define FETCH_FIRST_A6		0x40000000
+#define FETCH_USEHINTS(f)	(((f)->flags & FETCH_USE_HINTS) != 0)
+#define FETCH_FIRSTA6(f)	(((f)->flags & FETCH_FIRST_A6) != 0)
+
+/*
+ * Find options and tests to see if there are addresses on the list.
+ */
+#define FIND_WANTEVENT(fn)	(((fn)->options & DNS_ADBFIND_WANTEVENT) != 0)
+#define FIND_WANTEMPTYEVENT(fn)	(((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
+#define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
+
+/*
+ * These are currently used on simple unsigned ints, so they are
+ * not really associated with any particular type.
+ */
+#define WANT_INET(x)		(((x) & DNS_ADBFIND_INET) != 0)
+#define WANT_INET6(x)		(((x) & DNS_ADBFIND_INET6) != 0)
 
 #define EXPIRE_OK(exp, now)	((exp == INT_MAX) || (exp < now))
 
@@ -593,7 +616,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v4 addresses
 	 */
 	if (!NAME_FETCH_V4(name) && EXPIRE_OK(name->expire_v4, now)) {
-		if (HAVE_INET(name)) {
+		if (NAME_HAS_V4(name)) {
 			DP(DEF_LEVEL, "expiring v4 for name %p", name);
 			clean_namehooks(adb, &name->v4);
 		}
@@ -605,7 +628,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v6 addresses
 	 */
 	if (!NAME_FETCH_V6(name) && EXPIRE_OK(name->expire_v6, now)) {
-		if (HAVE_INET6(name)) {
+		if (NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL, "expiring v6 for name %p", name);
 			clean_namehooks(adb, &name->v6);
 		}
@@ -839,7 +862,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			find->adbname = NULL;
 			find->name_bucket = DNS_ADB_INVALIDBUCKET;
 
-			INSIST(!EVENT_SENT(find));
+			INSIST(!FIND_EVENTSENT(find));
 
 			ev = &find->event;
 			task = ev->sender;
@@ -1016,8 +1039,8 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 	n = *name;
 	*name = NULL;
 
-	INSIST(!HAVE_INET(n));
-	INSIST(!HAVE_INET6(n));
+	INSIST(!NAME_HAS_V4(n));
+	INSIST(!NAME_HAS_V6(n));
 	INSIST(!NAME_FETCH(n));
 	INSIST(ISC_LIST_EMPTY(n->finds));
 	INSIST(!ISC_LINK_LINKED(n, plink));
@@ -1403,7 +1426,7 @@ free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp)
 	find = *findp;
 	*findp = NULL;
 
-	INSIST(!HAVE_ADDRS(find));
+	INSIST(!FIND_HAS_ADDRS(find));
 	INSIST(!ISC_LINK_LINKED(find, publink));
 	INSIST(!ISC_LINK_LINKED(find, plink));
 	INSIST(find->name_bucket == DNS_ADB_INVALIDBUCKET);
@@ -1674,7 +1697,7 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now)
 	name = *namep;
 	*namep = NULL;
 
-	if (HAVE_INET(name) || HAVE_INET6(name))
+	if (NAME_HAS_V4(name) || NAME_HAS_V6(name))
 		return;
 	if (NAME_FETCH(name))
 		return;
@@ -2006,9 +2029,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	REQUIRE(zone != NULL);
 	REQUIRE(findp != NULL && *findp == NULL);
 
-	if (WANTEVENT(options)) {
-		REQUIRE(task != NULL);
-	}
 	REQUIRE((options & DNS_ADBFIND_ADDRESSMASK) != 0);
 
 	result = ISC_R_UNEXPECTED;
@@ -2049,6 +2069,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
 	find->options = options;
 	find->flags |= wanted_addresses;
+	if (FIND_WANTEVENT(find)) {
+		REQUIRE(task != NULL);
+	}
 
 	/*
 	 * Try to see if we know anything about this name at all.
@@ -2087,7 +2110,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * Try to populate the name from the database and/or
 	 * start fetches.
 	 */
-	if (!HAVE_INET(adbname) && !NAME_FETCH_V4(adbname)
+	if (!NAME_HAS_V4(adbname) && !NAME_FETCH_V4(adbname)
 	    && EXPIRE_OK(adbname->expire_v4, now)
 	    && WANT_INET(wanted_addresses)) {
 		result = dbfind_name(adbname, now, use_hints, dns_rdatatype_a);
@@ -2111,7 +2134,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 
  v6:
-	if (!HAVE_INET6(adbname) && !NAME_FETCH_V6(adbname)
+	if (!NAME_HAS_V6(adbname) && !NAME_FETCH_V6(adbname)
 	    && EXPIRE_OK(adbname->expire_v6, now)
 	    && WANT_INET6(wanted_addresses)) {
 		result = dbfind_a6(adbname, now, use_hints);
@@ -2125,7 +2148,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		/*
 		 * Try to start fetches for a6.
 		 */
-		adbname->flags |= NAME_FIRST_A6;
 		result = fetch_name_a6(adbname, now, use_hints);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
@@ -2161,9 +2183,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * This is complicated in that the "flags" bits must be right.
 	 */
 	want_event = ISC_TRUE;
-	if (!WANTEVENT(find->options))
+	if (!FIND_WANTEVENT(find))
 		want_event = ISC_FALSE;
-	if (WANTEMPTYEVENT(find->options) && HAVE_ADDRS(find))
+	if (FIND_WANTEMPTYEVENT(find) && FIND_HAS_ADDRS(find))
 		want_event = ISC_FALSE;
 	if ((wanted_addresses & query_pending) == 0)
 		want_event = ISC_FALSE;
@@ -2407,7 +2429,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp)
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	REQUIRE(EVENT_FREED(find));
+	REQUIRE(FIND_EVENTFREED(find));
 
 	bucket = find->name_bucket;
 	INSIST(bucket == DNS_ADB_INVALIDBUCKET);
@@ -2459,8 +2481,8 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	REQUIRE(!EVENT_FREED(find));
-	REQUIRE(WANTEVENT(find->options));
+	REQUIRE(!FIND_EVENTFREED(find));
+	REQUIRE(FIND_WANTEVENT(find));
 
 	bucket = find->name_bucket;
 	if (bucket == DNS_ADB_INVALIDBUCKET)
@@ -2481,7 +2503,7 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 
  cleanup:
 
-	if (!EVENT_SENT(find)) {
+	if (!FIND_EVENTSENT(find)) {
 		ev = &find->event;
 		task = ev->sender;
 		ev->sender = find;
@@ -3072,9 +3094,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		if (result != ISC_R_SUCCESS)
 			goto out;
 
-		if (NAME_FIRSTA6(name) && !HAVE_INET6(name)) {
-			name->flags &= NAME_FIRST_A6;
-
+		if (FETCH_FIRSTA6(fetch) && !NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL,
 			   "name %p: A6 query failed, starting AAAA", name);
 
@@ -3284,6 +3304,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_stdtime_t now,
 	}
 	if (use_hints)
 		fetch->flags |= FETCH_USE_HINTS;
+	fetch->flags |= FETCH_FIRST_A6;
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a6, &fname,
