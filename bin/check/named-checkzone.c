@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.14 2001/09/03 08:21:44 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.15 2001/09/15 02:05:34 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/app.h>
 #include <isc/commandline.h>
+#include <isc/dir.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
@@ -78,23 +79,57 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	char classname_in[] = "IN";
 	char *classname = classname_in;
+	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dqsv")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dqist:vw:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
 			break;
+
 		case 'd':
 			debug++;
 			break;
+
 		case 'q':
 			quiet++;
 			break;
+
+                case 't':
+			result = isc_dir_chroot(isc_commandline_argument);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_dir_chroot: %s: %s\n",
+					isc_commandline_argument,
+					isc_result_totext(result));
+				exit(1);
+			}
+			result = isc_dir_chdir("/");
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_dir_chdir: %s\n",
+					isc_result_totext(result));
+				exit(1);
+			}
+			break;
+
 		case 'v':
 			printf(VERSION "\n");
 			exit(0);
+
+		case 'w':
+			workdir = isc_commandline_argument;
+			break;
+
 		default:
 			usage();
+		}
+	}
+
+	if (workdir != NULL) {
+		result = isc_dir_chdir(workdir);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "isc_dir_chdir: %s: %s\n",
+				workdir, isc_result_totext(result));
+			exit(1);
 		}
 	}
 
