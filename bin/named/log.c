@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.37 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: log.c,v 1.38 2004/11/09 21:24:20 marka Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,8 @@
 
 /*
  * When adding a new category, be sure to add the appropriate
- * #define to <named/log.h>.
+ * #define to <named/log.h> and to update the list in
+ * bin/check/check-tool.c.
  */
 static isc_logcategory_t categories[] = {
 	{ "",		 		0 },

@@ -14,7 +14,8 @@
 
 1757.	[placeholder]	rt12919
 
-1756.	[placeholder]	rt12352
+1756.	[func]		named-checkconf now checks the logging configuration.
+			[RT #12352]
 
 1755.	[placeholder]	rt6636
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.11 2004/10/06 05:56:28 marka Exp $ */
+/* $Id: check-tool.c,v 1.12 2004/11/09 21:24:20 marka Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,20 @@ unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES;
 
+/*
+ * This needs to match the list in bin/named/log.c.
+ */
+static isc_logcategory_t categories[] = {
+	{ "",		     0 },
+	{ "client",	     0 },
+	{ "network",	     0 },
+	{ "update",	     0 },
+	{ "queries",	     0 },
+	{ "unmatched", 	     0 },
+	{ "update-security", 0 },
+	{ NULL,		     0 }
+};
+
 isc_result_t
 setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	isc_logdestination_t destination;
@@ -59,7 +73,9 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	isc_log_t *log = NULL;
 
 	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
+	isc_log_registercategories(log, categories);
 	isc_log_setcontext(log);
+	dns_log_init(log);
 
 	destination.file.stream = stdout;
 	destination.file.name = NULL;
