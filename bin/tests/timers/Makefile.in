@@ -40,7 +40,7 @@ t_timers: t_timers.o
 	${LIBTOOL} ${CC} -o $@ t_timers.o ${LIBS}
 
 test:
-	-@./t_timers -c @top_srcdir@/t_config -q 60 -a >> ../t_journal 2>&1
+	-@./t_timers -c @top_srcdir@/t_config -q 60
 
 testhelp:
 	@./t_timers -h
