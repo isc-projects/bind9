@@ -19,56 +19,21 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/net.h>
 
 #include <lwres/lwres.h>
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
 
 static int fails = 0;
 
 static void
 CHECK(int val, const char *msg) {
 	if (val != 0) {
-		printf("I: %s returned %d\n", msg, val);
+		printf("I:%s returned %d\n", msg, val);
 		exit(1);
 	}
 }
-
-#if 0
-static void
-hexdump(const char *msg, void *base, size_t len) {
-	unsigned char *p;
-	unsigned int cnt;
-
-	p = base;
-	cnt = 0;
-
-	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
-
-	while (cnt < len) {
-		if (cnt % 16 == 0)
-			printf("%p: ", p);
-		else if (cnt % 8 == 0)
-			printf(" |");
-		printf(" %02x", *p++);
-		cnt++;
-
-		if (cnt % 16 == 0)
-			printf("\n");
-	}
-
-	if (cnt % 16 != 0)
-		printf("\n");
-}
-#endif
 
 static unsigned char TESTSTRING[] =
 	"This is a test.  This is only a test.  !!!";
@@ -146,59 +111,73 @@ test_noop() {
 }
 
 static void
-test_gabn(const char *target, int pass) {
+test_gabn(const char *target, lwres_result_t expected, const char *address,
+	  lwres_uint32_t af)
+{
 	lwres_gabnresponse_t *res;
-#if 0
+	unsigned char addrbuf[16];
 	lwres_addr_t *addr;
-	unsigned int i;
 	char outbuf[64];
-#endif
-	int ret;
+	unsigned int len;
+	lwres_result_t ret;
 
 	res = NULL;
 	ret = lwres_getaddrsbyname(ctx, target,
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
-	if ((pass && ret != LWRES_R_SUCCESS) ||
-	    (!pass && ret != LWRES_R_NOTFOUND))
-	{
-		printf("I: gabn(%s) failed: %d\n", target, ret);
+	if (ret != expected) {
+		printf("I:gabn(%s) failed: %d\n", target, ret);
 		if (res != NULL)
 			lwres_gabnresponse_free(ctx, &res);
 		fails++;
 		return;
 	}
-#if 0
-	printf("Returned real name: (%u, %s)\n",
-	       res->realnamelen, res->realname);
-	printf("%u aliases:\n", res->naliases);
-	for (i = 0 ; i < res->naliases ; i++)
-		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
-	printf("%u addresses:\n", res->naddrs);
-	addr = LWRES_LIST_HEAD(res->addrs);
-	for (i = 0 ; i < res->naddrs ; i++) {
-		if (addr->family == LWRES_ADDRTYPE_V4)
-			(void)inet_ntop(AF_INET, addr->address,
-					outbuf, sizeof(outbuf));
-		else
-			(void)inet_ntop(AF_INET6, addr->address,
-					outbuf, sizeof(outbuf));
-		printf("\tAddr len %u family %08x %s\n",
-		       addr->length, addr->family, outbuf);
-		addr = LWRES_LIST_NEXT(addr, link);
+	if (ret == LWRES_R_SUCCESS) {
+		if (af == LWRES_ADDRTYPE_V4) {
+			len = 4;
+			ret = inet_pton(AF_INET, address, addrbuf);
+			assert(ret == 1);
+		} else {
+			len = 16;
+			ret = inet_pton(AF_INET6, address, addrbuf);
+			assert(ret == 1);
+		}
+		addr = LWRES_LIST_HEAD(res->addrs);
+		if (addr == NULL) {
+			printf("I:gabn(%s) returned empty list\n", target);
+			fails++;
+			return;
+		}
+		while (addr != NULL) {
+			if (addr->family != af || addr->length != len ||
+			    memcmp(addr->address, addrbuf, len) == 0)
+				break;
+			addr = LWRES_LIST_NEXT(addr, link);
+		}
+		if (addr == NULL) {
+			addr = LWRES_LIST_HEAD(res->addrs);
+			if (addr->family == LWRES_ADDRTYPE_V4)
+				(void)inet_ntop(AF_INET, addr->address,
+						outbuf, sizeof(outbuf));
+			else
+				(void)inet_ntop(AF_INET6, addr->address,
+						outbuf, sizeof(outbuf));
+			printf("I:gabn(%s) returned %s, expected %s\n",
+				target, outbuf, address);
+			fails++;
+			return;
+		}
 	}
-#endif
 	if (res != NULL)
 		lwres_gabnresponse_free(ctx, &res);
 }
 
 static void
-test_gnba(const char *target, lwres_uint32_t af, int pass) {
+test_gnba(const char *target, lwres_uint32_t af, lwres_result_t expected,
+	  const char *name)
+{
 	lwres_gnbaresponse_t *res;
-	int ret;
-#if 0
-	unsigned int i;
-#endif
+	lwres_result_t ret;
 	unsigned char addrbuf[16];
 	unsigned int len;
 
@@ -214,22 +193,19 @@ test_gnba(const char *target, lwres_uint32_t af, int pass) {
 
 	res = NULL;
 	ret = lwres_getnamebyaddr(ctx, af, len, addrbuf, &res);
-	if ((pass && ret != LWRES_R_SUCCESS) ||
-	    (!pass && ret != LWRES_R_NOTFOUND))
-	{
-		printf("I: gnba(%s) failed: %d\n", target, ret);
+	if (ret != expected) {
+		printf("I:gnba(%s) failed: %d\n", target, ret);
 		if (res != NULL)
 			lwres_gnbaresponse_free(ctx, &res);
 		fails++;
 		return;
 	}
-#if 0
-	printf("Returned real name: (%u, %s)\n",
-	       res->realnamelen, res->realname);
-	printf("%u aliases:\n", res->naliases);
-	for (i = 0 ; i < res->naliases ; i++)
-		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
-#endif
+	if (ret == LWRES_R_SUCCESS && strcasecmp(res->realname, name) != 0) {
+		 printf("I:gnba(%s) returned %s, expected %s\n",
+			target, res->realname, name);
+		 fails++;
+		 return;
+	}
 	if (res != NULL)
 		lwres_gnbaresponse_free(ctx, &res);
 }
@@ -248,35 +224,53 @@ main() {
 
 	test_noop();
 
-	test_gabn("a.example1", TRUE);
-	test_gabn("a.example1.", TRUE);
-	test_gabn("a.example2", TRUE);
-	test_gabn("a.example2.", TRUE);
-	test_gabn("a.example3", FALSE);
-	test_gabn("a.example3.", FALSE);
-	test_gabn("a", TRUE);
-	test_gabn("a.", FALSE);
+	test_gabn("a.example1", LWRES_R_SUCCESS, "10.0.1.1",
+		  LWRES_ADDRTYPE_V4);
+	test_gabn("a.example1.", LWRES_R_SUCCESS, "10.0.1.1",
+		  LWRES_ADDRTYPE_V4);
+	test_gabn("a.example2", LWRES_R_SUCCESS, "10.0.2.1",
+		  LWRES_ADDRTYPE_V4);
+	test_gabn("a.example2.", LWRES_R_SUCCESS, "10.0.2.1",
+		  LWRES_ADDRTYPE_V4);
+	test_gabn("a.example3", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V4);
+	test_gabn("a.example3.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V4);
+	test_gabn("a", LWRES_R_SUCCESS, "10.0.1.1", LWRES_ADDRTYPE_V4);
+	test_gabn("a.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V4);
 
-	test_gabn("b.example1", TRUE);
-	test_gabn("b.example1.", TRUE);
-	test_gabn("b.example2", TRUE);
-	test_gabn("b.example2.", TRUE);
-	test_gabn("b.example3", FALSE);
-	test_gabn("b.example3.", FALSE);
-	test_gabn("b", TRUE);
-	test_gabn("b.", FALSE);
+	test_gabn("a2", LWRES_R_SUCCESS, "10.0.1.1", LWRES_ADDRTYPE_V4);
+	test_gabn("a3", LWRES_R_INCOMPLETE, NULL, LWRES_ADDRTYPE_V4);
 
-	test_gabn("d.example1", FALSE);
+	test_gabn("b.example1", LWRES_R_SUCCESS,
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+	test_gabn("b.example1.", LWRES_R_SUCCESS,
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+	test_gabn("b.example2", LWRES_R_SUCCESS,
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+	test_gabn("b.example2.", LWRES_R_SUCCESS,
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+	test_gabn("b.example3", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
+	test_gabn("b.example3.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
+	test_gabn("b", LWRES_R_SUCCESS,
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+	test_gabn("b.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
 
-	test_gabn("x", TRUE);
-	test_gabn("x.", TRUE);
+	test_gabn("d.example1", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
 
-	test_gnba("10.10.10.1", LWRES_ADDRTYPE_V4, TRUE);
-	test_gnba("10.10.10.17", LWRES_ADDRTYPE_V4, FALSE);
+	test_gabn("x", LWRES_R_SUCCESS, "10.1.10.1", LWRES_ADDRTYPE_V4);
+	test_gabn("x.", LWRES_R_SUCCESS, "10.1.10.1", LWRES_ADDRTYPE_V4);
+
+	test_gnba("10.10.10.1", LWRES_ADDRTYPE_V4, LWRES_R_SUCCESS,
+		  "ipv4.example");
+	test_gnba("10.10.10.17", LWRES_ADDRTYPE_V4, LWRES_R_NOTFOUND,
+		  NULL);
 	test_gnba("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
-		  LWRES_ADDRTYPE_V6, TRUE);
+		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "nibble.example");
 	test_gnba("0123:4567:89ab:cdef:0123:4567:89ab:cde0",
-		  LWRES_ADDRTYPE_V6, FALSE);
+		  LWRES_ADDRTYPE_V6, LWRES_R_NOTFOUND, NULL);
+	test_gnba("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
+		  LWRES_ADDRTYPE_V6, LWRES_R_SUCCESS, "bitstring.example");
+	test_gnba("1123:4567:89ab:cdef:0123:4567:89ab:cde0",
+		  LWRES_ADDRTYPE_V6, LWRES_R_NOTFOUND, NULL);
 
 	return (fails);
 }
