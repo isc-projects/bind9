@@ -1,10 +1,12 @@
+
+	--- 9.2.4 released ---
+
 1701.	[doc]		A minimal named.conf man page.
 
 1700.	[func]		nslookup is no longer to be treated as deprecated.
 			Remove "deprecated" warning message.  Add man page.
 
 1698.	[doc]		Use reserved IPv6 documentation prefix.
-
 
 	--- 9.2.4rc7 released ---
 
