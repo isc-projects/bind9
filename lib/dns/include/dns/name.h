@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.85 2001/01/03 00:05:15 bwelling Exp $ */
+/* $Id: name.h,v 1.86 2001/01/04 20:00:57 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1294,6 +1294,13 @@ do { \
 #define DNS_NAME_COUNTLABELS(n) \
 	((n)->labels)
 
+#define DNS_NAME_TOREGION(n, r) \
+do { \
+	(r)->base = (n)->ndata; \
+	(r)->length = (n)->length; \
+} while (0);
+
+
 #ifdef DNS_NAME_USEINLINE
 
 #define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
@@ -1301,6 +1308,7 @@ do { \
 #define dns_name_setbuffer(n, b)	DNS_NAME_SETBUFFER(n, b)
 #define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
 #define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
+#define dns_name_toregion(n, r)		DNS_NAME_TOREGION(n, r)
 
 #endif /* DNS_NAME_USEINLINE */
 

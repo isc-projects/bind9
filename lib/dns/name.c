@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.113 2001/01/04 19:25:58 bwelling Exp $ */
+/* $Id: name.c,v 1.114 2001/01/04 20:00:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1090,8 +1090,7 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(r != NULL);
 
-	r->base = name->ndata;
-	r->length = name->length;
+	DNS_NAME_TOREGION(name, r);
 }
 
 
