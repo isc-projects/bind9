@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.13 2004/09/03 03:43:32 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.14 2005/03/14 23:56:31 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -104,7 +104,8 @@ command is one of the following:\n\
   reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
-  dumpdb	Dump cache(s) to the dump file (named_dump.db).\n\
+  dumpdb [-all|-cache|-zones] [view ...]\n\
+		Dump cache(s) to the dump file (named_dump.db).\n\
   stop		Save pending updates to master files and stop the server.\n\
   stop -p	Save pending updates to master files and stop the server\n\
 		reporting process id.\n\

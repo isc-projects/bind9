@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.59 2004/11/10 22:13:56 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.60 2005/03/14 23:56:31 marka Exp $ */
 
 #include <config.h>
 
@@ -3637,6 +3637,15 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	struct viewlistentry *vle;
 	isc_result_t result = ISC_R_SUCCESS;
 	
+	/*
+	 * Prevent duplicate views.
+	 */
+	for (vle = ISC_LIST_HEAD(dctx->viewlist);
+	     vle != NULL;
+	     vle = ISC_LIST_NEXT(vle, link))
+		if (vle->view == view)
+			return (ISC_R_SUCCESS);
+
 	vle = isc_mem_get(dctx->mctx, sizeof *vle);
 	if (vle == NULL)
 		return (ISC_R_NOMEMORY);
@@ -3700,9 +3709,11 @@ dumpdone(void *arg, isc_result_t result) {
 		if (dctx->view == NULL)
 			goto done;
 		INSIST(dctx->zone == NULL);
-	}
+	} else
+		goto resume;
  nextview:
 	fprintf(dctx->fp, ";\n; Start view %s\n;\n", dctx->view->view->name);
+ resume:
 	if (dctx->zone == NULL && dctx->cache == NULL && dctx->dumpcache) {
 		style = &dns_master_style_cache;
 		/* start cache dump */
@@ -3763,9 +3774,12 @@ dumpdone(void *arg, isc_result_t result) {
 							    &dctx->mdctx);
 			if (result == DNS_R_CONTINUE)
 				return;
-			if (result == ISC_R_NOTIMPLEMENTED)
+			if (result == ISC_R_NOTIMPLEMENTED) {
 				fprintf(dctx->fp, "; %s\n",
 					dns_result_totext(result));
+				result = ISC_R_SUCCESS;
+				goto nextzone;
+			}
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		}
@@ -3788,7 +3802,6 @@ dumpdone(void *arg, isc_result_t result) {
 			      "dumpdb failed: %s", dns_result_totext(result));
 	dumpcontext_destroy(dctx);
 }
-
 
 isc_result_t
 ns_server_dumpdb(ns_server_t *server, char *args) {
@@ -3845,6 +3858,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 		ptr = next_token(&args, " \t");
 	} 
 
+ nextview:
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -3852,6 +3866,11 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 		if (ptr != NULL && strcmp(view->name, ptr) != 0)
 			continue;
 		CHECK(add_view_tolist(dctx, view));
+	}
+	if (ptr != NULL) {
+		ptr = next_token(&args, " \t");
+		if (ptr != NULL)
+			goto nextview;
 	}
 	dumpdone(dctx, ISC_R_SUCCESS);
 	return (ISC_R_SUCCESS);
