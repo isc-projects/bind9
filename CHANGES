@@ -1,3 +1,7 @@
+ 195.	[bug]		Including the NXT record of the root domain
+			in a negative response caused an assertion
+			failure.
+
  194.	[doc]		The PDF version of the Administrator's Reference
 			Manual is no longer included in the ISC BIND9
 			distribution.
