@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.76 2000/06/01 18:04:37 gson Exp $ */
+/* $Id: xfrin.c,v 1.77 2000/06/02 18:59:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -39,6 +39,8 @@
 #include <dns/view.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
+
+#include <dst/dst.h>
 
 /*
  * Incoming AXFR and IXFR.
@@ -133,7 +135,7 @@ struct dns_xfrin_ctx {
 
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	isc_buffer_t		*lasttsig;	/* The last TSIG */
-	void			*tsigctx;	/* TSIG verification context */
+	dst_context_t		*tsigctx;	/* TSIG verification context */
 	unsigned int		sincetsig;	/* recvd since the last TSIG */
 	dns_xfrindone_t		done;
 

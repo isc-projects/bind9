@@ -236,7 +236,7 @@ struct omapi_protocol {
 	unsigned int			algorithm;
 	isc_boolean_t			dst_update;
 	dst_key_t			*key;
-	dst_context_t			dstctx;
+	dst_context_t			*dstctx;
 	isc_region_t			signature_in;
 	isc_buffer_t			*signature_out;
 	isc_result_t			verify_result;

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.41 2000/05/30 22:28:37 bwelling Exp $
+ * $Id: tkey.c,v 1.42 2000/06/02 18:59:14 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -148,9 +148,10 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 
 static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
-	       isc_region_t *serverrandomness, isc_buffer_t *secret)
+	       isc_region_t *serverrandomness, isc_mem_t *mctx,
+	       isc_buffer_t *secret)
 {
-	dst_context_t ctx;
+	dst_context_t *ctx = NULL;
 	isc_result_t result;
 	isc_region_t r, r2;
 	char digests[32];
@@ -163,26 +164,20 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	/*
 	 * MD5 ( query data | DH value ).
 	 */
-	RETERR(dst_key_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL,
-			      NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
-			      queryrandomness, NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r,
-			      NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL,
-			      &b));
-			
+	RETERR(dst_context_create(DST_KEY_MD5, mctx, &ctx));
+	RETERR(dst_context_adddata(ctx, queryrandomness));
+	RETERR(dst_context_adddata(ctx, &r));
+	RETERR(dst_context_digest(ctx, &b));
+	dst_context_destroy(&ctx);
+
 	/*
 	 * MD5 ( server data | DH value ).
 	 */
-	RETERR(dst_key_digest(DST_SIGMODE_INIT, DST_DIGEST_MD5, &ctx, NULL,
-			      NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx,
-			      serverrandomness, NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_UPDATE, DST_DIGEST_MD5, &ctx, &r,
-			      NULL));
-	RETERR(dst_key_digest(DST_SIGMODE_FINAL, DST_DIGEST_MD5, &ctx, NULL,
-			      &b));
+	RETERR(dst_context_create(DST_KEY_MD5, mctx, &ctx));
+	RETERR(dst_context_adddata(ctx, serverrandomness));
+	RETERR(dst_context_adddata(ctx, &r));
+	RETERR(dst_context_digest(ctx, &b));
+	dst_context_destroy(&ctx);
 
 	/*
 	 * XOR ( DH value, MD5-1 | MD5-2).
@@ -205,7 +200,10 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	}
 
  failure:
-	return result;
+	if (ctx != NULL)
+		dst_context_destroy(&ctx);
+
+	return (result);
 
 }
 
@@ -335,7 +333,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_buffer_usedregion(&randombuf, &r);
 	r2.base = tkeyin->key;
 	r2.length = tkeyin->keylen;
-	RETERR(compute_secret(shared, &r2, &r, &secret));
+	RETERR(compute_secret(shared, &r2, &r, msg->mctx, &secret));
 
 	dst_key_free(&pubkey);
 	isc_buffer_usedregion(&secret, &r);
@@ -938,7 +936,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		r2.base = isc_mem_get(rmsg->mctx, 0);
 		r2.length = 0;
 	}
-	RETERR(compute_secret(shared, &r2, &r, &secret));
+	RETERR(compute_secret(shared, &r2, &r, rmsg->mctx, &secret));
 	if (nonce == NULL)
 		isc_mem_put(rmsg->mctx, r2.base, 0);
 

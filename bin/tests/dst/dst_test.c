@@ -37,12 +37,13 @@ char *current;
 const char *tmp = "/tmp";
 
 static void
-use(dst_key_t *key) {
+use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_result_t ret;
 	const char *data = "This is some data";
 	unsigned char sig[512];
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
+	dst_context_t *ctx = NULL;
 
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 	/*
@@ -54,15 +55,33 @@ use(dst_key_t *key) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
-	ret = dst_key_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	ret = dst_context_create(key, mctx, &ctx);
+	if (ret != ISC_R_SUCCESS)
+		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
+		       isc_result_totext(ret));
+	ret = dst_context_adddata(ctx, &datareg);
+	if (ret != ISC_R_SUCCESS)
+		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		       isc_result_totext(ret));
+	ret = dst_context_sign(ctx, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
+	dst_context_destroy(&ctx);
 
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
-	ret = dst_key_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
+	ret = dst_context_create(key, mctx, &ctx);
+	if (ret != ISC_R_SUCCESS)
+		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
+		       isc_result_totext(ret));
+	ret = dst_context_adddata(ctx, &datareg);
+	if (ret != ISC_R_SUCCESS)
+		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		       isc_result_totext(ret));
+	ret = dst_context_verify(ctx, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
+	dst_context_destroy(&ctx);
 }
 
 static void
@@ -116,7 +135,7 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx) {
 	printf("write(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != 0)
 		return;
-	use(key);
+	use(key, mctx);
 	dns(key, mctx);
 	dst_key_free(&key);
 }
@@ -192,7 +211,7 @@ generate(int alg, isc_mem_t *mctx) {
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
 
 	if (alg != DST_ALG_DH)
-		use(key);
+		use(key, mctx);
 
 	dst_key_free(&key);
 }

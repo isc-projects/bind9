@@ -357,9 +357,11 @@ dispatch_messages(omapi_protocol_t *protocol,
 			break;
 
 		if (protocol->key != NULL) {
+			protocol->dstctx = NULL;
 			protocol->verify_result =
-				dst_key_verify(DST_SIGMODE_INIT, protocol->key,
-					       &protocol->dstctx, NULL, NULL);
+				dst_context_create(protocol->key,
+						   omapi_mctx,
+						   &protocol->dstctx);
 			protocol->dst_update = ISC_TRUE;
 		}
 

@@ -167,8 +167,8 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	m = (omapi_message_t *)message;
 
 	if (p->key != NULL) {
-		result = dst_key_sign(DST_SIGMODE_INIT, p->key, &p->dstctx,
-				      NULL, NULL);
+		p->dstctx = NULL;
+		result = dst_context_create(p->key, omapi_mctx, &p->dstctx);
 
 		if (result == ISC_R_SUCCESS)
 			result = dst_key_sigsize(p->key, &authlen);
@@ -249,8 +249,9 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 
 		isc_buffer_clear(p->signature_out);
 
-		result = dst_key_sign(DST_SIGMODE_FINAL, p->key, &p->dstctx,
-				      NULL, p->signature_out);
+		result = dst_context_sign(p->dstctx, p->signature_out);
+
+		dst_context_destroy(&p->dstctx);
 
 		isc_buffer_region(p->signature_out, &r);
 
@@ -374,12 +375,13 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		m = NULL;
 
 	if (protocol->key != NULL) {
-		if (protocol->verify_result == ISC_R_SUCCESS)
+		if (protocol->verify_result == ISC_R_SUCCESS) {
 			protocol->verify_result =
-				dst_key_verify(DST_SIGMODE_FINAL,
-					       protocol->key,
-					       &protocol->dstctx, NULL,
-					       &protocol->signature_in);
+				dst_context_verify(protocol->dstctx,
+						   &protocol->signature_in);
+
+			dst_context_destroy(&protocol->dstctx);
+		}
 
 		if (protocol->verify_result != ISC_R_SUCCESS) {
 			if (connection->is_client) {

@@ -78,37 +78,68 @@ cleandir(char *path) {
 }
 
 static void
-use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
+use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 
 	isc_result_t ret;
 	const char *data = "This is some data";
 	unsigned char sig[512];
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
+	dst_context_t *ctx = NULL;
 
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 	isc_buffer_init(&databuf, data, strlen(data));
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
-	ret = dst_key_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	ret = dst_context_create(key, mctx, &ctx);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_context_create(%d) returned (%s)\n",
+				dst_key_alg(key), dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+	ret = dst_context_adddata(ctx, &datareg);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_context_adddata(%d) returned (%s)\n",
+				dst_key_alg(key), dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+	ret = dst_context_sign(ctx, &sigbuf);
 	if (ret != exp_result) {
-		t_info("dst_sign(%d) returned (%s) expected (%s)\n",
+		t_info("dst_context_sign(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),
 				dst_result_totext(exp_result));
 		++*nfails;
 		return;
 	}
-
+	dst_context_destroy(&ctx);
 
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
-	ret = dst_key_verify(DST_SIGMODE_ALL, key, NULL, &datareg, &sigreg);
+	ret = dst_context_create(key, mctx, &ctx);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_context_create(%d) returned (%s)\n",
+				dst_key_alg(key), dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+	ret = dst_context_adddata(ctx, &datareg);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("dst_context_adddata(%d) returned (%s)\n",
+				dst_key_alg(key), dst_result_totext(ret));
+		++*nfails;
+		return;
+	}
+	ret = dst_context_verify(ctx, &sigreg);
 	if (ret != exp_result) {
-		t_info("dst_verify(%d) returned (%s) expected (%s)\n",
+		t_info("dst_context_verify(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),
 				dst_result_totext(exp_result));
 		++*nfails;
+		return;
 	}
+	dst_context_destroy(&ctx);
 }
 
 static void
@@ -287,7 +318,7 @@ io(dns_name_t *name, int id, int alg, int type, isc_mem_t *mctx,
 	}
 
 	if (dst_key_alg(key) != DST_ALG_DH)
-		use(key, exp_result, nfails);
+		use(key, mctx, exp_result, nfails);
 
 	if (chdir(current)) {
 		t_info("chdir failed %d\n", errno);
@@ -314,7 +345,7 @@ generate(int alg, isc_mem_t *mctx, int size, int *nfails) {
 	}
 
 	if (alg != DST_ALG_DH)
-		use(key, ISC_R_SUCCESS, nfails);
+		use(key, mctx, ISC_R_SUCCESS, nfails);
 	dst_key_free(&key);
 }
 
@@ -618,6 +649,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
 	isc_buffer_t	b;
+	dst_context_t	*ctx = NULL;
 
 	/*
 	 * Read data from file in a form usable by dst_verify.
@@ -686,7 +718,25 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	memset(sig, 0, sizeof(sig));
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
 
-	isc_result = dst_sign(DST_SIGMODE_ALL, key, NULL, &datareg, &sigbuf);
+	isc_result = dst_context_create(key, mctx, &ctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_context_create(%d) failed %s\n",
+		       dst_result_totext(isc_result));
+		(void) free(data);
+		dst_key_free(&key);
+		++*nprobs;
+		return;
+	}
+	isc_result = dst_context_adddata(ctx, &datareg);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_context_adddata(%d) failed %s\n",
+		       dst_result_totext(isc_result));
+		(void) free(data);
+		dst_key_free(&key);
+		++*nprobs;
+		return;
+	}
+	isc_result = dst_context_sign(ctx, &sigbuf);
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("dst_sign(%d) failed %s\n",
 		       dst_result_totext(isc_result));
@@ -695,6 +745,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 		++*nprobs;
 		return;
 	}
+	dst_context_destroy(&ctx);
 
 	rval = sig_tofile(sigpath, &sigbuf);
 	if (rval != 0) {
@@ -731,18 +782,30 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	if (strstr(expected_result, "!"))
 		exp_res = 1;
 
-	isc_result = dst_key_verify(DST_SIGMODE_ALL, key, NULL, &datareg,
-				    &sigreg);
+	isc_result = dst_context_create(key, mctx, &ctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_context_create returned %s\n",
+			isc_result_totext(isc_result));
+		++*nfails;
+	}
+	isc_result = dst_context_adddata(ctx, &datareg);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_context_adddata returned %s\n",
+			isc_result_totext(isc_result));
+		++*nfails;
+	}
+	isc_result = dst_context_verify(ctx, &sigreg);
 	if (	((exp_res == 0) && (isc_result != ISC_R_SUCCESS))	||
 		((exp_res != 0) && (isc_result == ISC_R_SUCCESS)))	{
 
-		t_info("dst_verify returned %s, expected %s\n",
+		t_info("dst_context_verify returned %s, expected %s\n",
 			isc_result_totext(isc_result),
 			expected_result);
 		++*nfails;
 	}
 
 	(void) free(data);
+	dst_context_destroy(&ctx);
 	dst_key_free(&key);
 	return;
 }

@@ -201,7 +201,7 @@ struct dns_message {
 	dns_name_t		       *tsigname;
 	dns_rdataset_t		       *querytsig;
 	dns_tsigkey_t		       *tsigkey;
-	void			       *tsigctx;
+	dst_context_t		       *tsigctx;
 	int				sigstart;
 
 	dns_name_t		       *sig0name;
