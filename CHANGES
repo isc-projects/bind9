@@ -1,3 +1,6 @@
+1631.	[bug]		dns_journal_compact() could sometimes corrupt the
+			journal. [RT #11124]
+
 1628.	[bug]		Typo in Compaq Trucluster support. [RT# 11264]
 
 1627.	[bug]		win32: sockets were not being closed when the
