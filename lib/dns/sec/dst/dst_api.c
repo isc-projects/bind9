@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.83 2001/05/31 10:45:32 tale Exp $
+ * $Id: dst_api.c,v 1.84 2001/07/10 04:01:15 bwelling Exp $
  */
 
 #include <config.h>
@@ -49,8 +49,6 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
-
-#include <openssl/rand.h>
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
 static isc_mem_t *dst_memory_pool = NULL;

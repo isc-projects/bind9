@@ -17,9 +17,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.3 2001/05/10 19:07:17 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.4 2001/07/10 04:01:17 bwelling Exp $ */
 
-#if defined(OPENSSL)
+#ifdef OPENSSL
 
 #include <config.h>
 

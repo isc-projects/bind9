@@ -19,9 +19,9 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.44 2001/02/14 20:57:15 bwelling Exp $
+ * $Id: openssl_link.c,v 1.45 2001/07/10 04:01:18 bwelling Exp $
  */
-#if defined(OPENSSL)
+#ifdef OPENSSL
 
 #include <config.h>
 

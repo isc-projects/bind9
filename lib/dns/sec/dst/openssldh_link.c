@@ -19,10 +19,10 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.37 2001/05/10 19:07:16 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.38 2001/07/10 04:01:16 bwelling Exp $
  */
 
-#if defined(OPENSSL)
+#ifdef OPENSSL
 
 #include <config.h>
 
