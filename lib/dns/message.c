@@ -1389,7 +1389,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	/*
 	 * And now look for the type.
 	 */
-	if (rdataset == NULL)
+	if (type == dns_rdatatype_any)
 		return (DNS_R_SUCCESS);
 
 	result = findtype(rdataset, foundname, type);
