@@ -96,11 +96,20 @@ typedef struct {
 	isc_uint32_t	nsamples;	/* number of samples filled in */
 	isc_uint32_t   *samples;	/* the samples */
 	isc_uint32_t   *extra;		/* extra samples added in */
-} isc_entropysamplesource_t ;
+} sample_queue_t;
 
 typedef struct {
-	isc_boolean_t	msg_printed;
-} isc_entropycallbacksource_t;
+	sample_queue_t	samplequeue;
+} isc_entropysamplesource_t;
+
+typedef struct {
+	isc_boolean_t		msg_printed;
+	isc_entropystart_t	startfunc;
+	isc_entropyget_t	getfunc;
+	isc_entropystop_t	stopfunc;
+	void		       *arg;
+	sample_queue_t		samplequeue;
+} isc_cbsource_t;
 
 typedef struct {
 	int		fd;		/* fd for the file, or -1 if closed */
@@ -117,6 +126,7 @@ struct isc_entropysource {
 	union {
 		isc_entropysamplesource_t	sample;
 		isc_entropyfilesource_t		file;
+		isc_cbsource_t	callback;
 	} sources;
 };
 
@@ -141,6 +151,33 @@ fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
 
 static int
 wait_for_sources(isc_entropy_t *);
+
+static void
+samplequeue_release(isc_entropy_t *ent, sample_queue_t *sq) {
+	REQUIRE(sq->samples != NULL);
+	REQUIRE(sq->extra != NULL);
+
+	isc_mem_put(ent->mctx, sq->samples, RND_EVENTQSIZE * 4);
+	isc_mem_put(ent->mctx, sq->extra, RND_EVENTQSIZE * 4);
+	sq->samples = NULL;
+	sq->extra = NULL;
+}
+
+static isc_result_t
+samplesource_allocate(isc_entropy_t *ent, sample_queue_t *sq) {
+	sq->samples = isc_mem_get(ent->mctx, RND_EVENTQSIZE * 4);
+	if (sq->samples == NULL)
+		return (ISC_R_NOMEMORY);
+
+	sq->extra = isc_mem_get(ent->mctx, RND_EVENTQSIZE * 4);
+	if (sq->extra == NULL) {
+		isc_mem_put(ent->mctx, sq->samples, RND_EVENTQSIZE * 4);
+		sq->samples = NULL;
+		return (ISC_R_NOMEMORY);
+	}
+
+	return (ISC_R_SUCCESS);
+}
 
 /*
  * Add in entropy, even when the value we're adding in could be
@@ -693,7 +730,7 @@ static void
 destroysource(isc_entropysource_t **sourcep) {
 	isc_entropysource_t *source;
 	isc_entropy_t *ent;
-	void *ptr;
+	isc_cbsource_t *cbs;
 	int fd;
 
 	source = *sourcep;
@@ -712,12 +749,13 @@ destroysource(isc_entropysource_t **sourcep) {
 			close(fd);
 		break;
 	case ENTROPY_SOURCETYPE_SAMPLE:
-		ptr = source->sources.sample.samples;
-		if (ptr != NULL)
-			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
-		ptr = source->sources.sample.extra;
-		if (ptr != NULL)
-			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
+		samplequeue_release(ent, &source->sources.sample.samplequeue);
+		break;
+	case ENTROPY_SOURCETYPE_CALLBACK:
+		cbs = &source->sources.callback;
+		if (cbs->msg_printed && cbs->stopfunc != NULL)
+			cbs->stopfunc(ent, source, cbs->arg);
+		samplequeue_release(ent, &cbs->samplequeue);
 		break;
 	}
 
@@ -917,20 +955,79 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 				 void *arg,
 				 isc_entropysource_t **sourcep)
 {
+	isc_result_t ret;
+	isc_entropysource_t *source;
+	isc_cbsource_t *cbs;
+
 	REQUIRE(VALID_ENTROPY(ent));
+	REQUIRE(get != NULL);
 	REQUIRE(sourcep != NULL && *sourcep == NULL);
 
 	LOCK(&ent->lock);
 
+	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
+	if (source == NULL) {
+		ret = ISC_R_NOMEMORY;
+		goto errout;
+	}
+
+	cbs = &source->sources.callback;
+
+	ret = samplesource_allocate(ent, &cbs->samplequeue);
+	if (ret != ISC_R_SUCCESS)
+		goto errout;
+
+	cbs->startfunc = start;
+	cbs->getfunc = get;
+	cbs->stopfunc = stop;
+	cbs->arg = arg;
+
+	/*
+	 * From here down, no failures can occur.
+	 */
+	source->magic = SOURCE_MAGIC;
+	source->type = ENTROPY_SOURCETYPE_CALLBACK;
+	source->ent = ent;
+	source->flags = 0;
+	source->total = 0;
+	memset(source->name, 0, sizeof(source->name));
+	ISC_LINK_INIT(source, link);
+
+	/*
+	 * Hook it into the entropy system.
+	 */
+	ISC_LIST_APPEND(ent->sources, source, link);
 	ent->nsources++;
 
 	UNLOCK(&ent->lock);
+	return (ISC_R_SUCCESS);
 
-	return (ISC_R_NOTIMPLEMENTED);
+ errout:
+	if (source != NULL)
+		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+
+	UNLOCK(&ent->lock);
+
+	return (ret);
 }
 
 void
-isc_entropy_resetcallbacksources(isc_entropy_t *ent) {
+isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
+	isc_entropysource_t *source;
+	isc_cbsource_t *cbs;
+
+	REQUIRE(VALID_ENTROPY(ent));
+
+	source = ISC_LIST_HEAD(ent->sources);
+	while (source != NULL) {
+		if (source->type == ENTROPY_SOURCETYPE_CALLBACK) {
+			cbs = &source->sources.callback;
+			if (cbs->msg_printed && cbs->stopfunc != NULL)
+				cbs->stopfunc(ent, source, cbs->arg);
+		}
+
+		source = ISC_LIST_NEXT(source, link);
+	}
 }
 
 isc_result_t

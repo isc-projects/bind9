@@ -183,7 +183,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
  */
 
 void
-isc_entropy_resetcallbacksources(isc_entropy_t *ent);
+isc_entropy_stopcallbacksources(isc_entropy_t *ent);
 
 void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
