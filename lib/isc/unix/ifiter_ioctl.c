@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.29 2002/06/07 00:03:50 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.30 2002/07/01 01:08:37 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -189,6 +189,26 @@ getbuf6(isc_interfaceiter_t *iter) {
 		 */
 		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->lifc)
 		    == -1) {
+#ifdef __hpux
+			/*
+			 * IPv6 interface scanning is not available on all
+			 * kernels w/ IPv6 sockets.
+			 */
+			if (errno == ENOENT) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+					      ISC_LOGMODULE_INTERFACE,
+					      ISC_LOG_DEBUG(1),
+					      isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_IFITERIOCTL,
+							ISC_MSG_GETIFCONFIG,
+							"get interface "
+							"configuration: %s"),
+					       strbuf);
+				result = ISC_R_FAILURE;
+				goto cleanup;
+			}
+#endif
 			if (errno != EINVAL) {
 				isc__strerror(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -198,7 +218,8 @@ getbuf6(isc_interfaceiter_t *iter) {
 							"get interface "
 							"configuration: %s"),
 						 strbuf);
-				goto unexpected;
+				result = ISC_R_UNEXPECTED;
+				goto cleanup;
 			}
 			/*
 			 * EINVAL.  Retry with a bigger buffer.
@@ -226,7 +247,8 @@ getbuf6(isc_interfaceiter_t *iter) {
 							"configuration: "
 							"maximum buffer "
 							"size exceeded"));
-			goto unexpected;
+			result = ISC_R_UNEXPECTED;
+			goto cleanup;
 		}
 		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 
@@ -236,10 +258,10 @@ getbuf6(isc_interfaceiter_t *iter) {
 	iter->mode = 6;
 	return (ISC_R_SUCCESS);
 
- unexpected:
+ cleanup:
 	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 	iter->buf = NULL;
-	return (ISC_R_UNEXPECTED);
+	return (result);
 #endif
 }
 
