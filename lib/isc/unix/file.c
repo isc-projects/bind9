@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.38.12.1 2003/07/31 06:56:51 marka Exp $ */
+/* $Id: file.c,v 1.38.12.2 2003/08/04 06:35:43 marka Exp $ */
 
 #include <config.h>
 
@@ -178,7 +178,7 @@ isc_file_renameunique(const char *file, char *templet) {
 		}
 	}
 	if (fd != -1)
-		close(fd);
+		(void)close(fd);
 	return (result);
 }
 
@@ -301,10 +301,41 @@ isc_file_progname(const char *filename, char *buf, size_t buflen) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Put the absolute name of the current directory into 'dirname', which is
+ * a buffer of at least 'length' characters.  End the string with the 
+ * appropriate path separator, such that the final product could be
+ * concatenated with a relative pathname to make a valid pathname string.
+ */
+static isc_result_t
+dir_current(char *dirname, size_t length) {
+	char *cwd;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(dirname != NULL);
+	REQUIRE(length > 0);
+
+	cwd = getcwd(dirname, length);
+
+	if (cwd == NULL) {
+		if (errno == ERANGE)
+			result = ISC_R_NOSPACE;
+		else
+			result = isc__errno2result(errno);
+	} else {
+		if (strlen(dirname) + 1 == length)
+			result = ISC_R_NOSPACE;
+		else if (dirname[1] != '\0')
+			strcat(dirname, "/");
+	}
+
+	return (result);
+}
+
 isc_result_t
 isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 	isc_result_t result;
-	result = isc_dir_current(path, pathlen, ISC_TRUE);
+	result = dir_current(path, pathlen);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (strlen(path) + strlen(filename) + 1 > pathlen)
