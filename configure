@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.274 
+# From configure.in Revision: 1.275 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -2241,7 +2241,7 @@ else
 
 #include <openssl/opensslv.h>
 int main() {
-        if (OPENSSL_VERSION_NUMBER >= 0x0090500fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
                 return (0);
         return (1);
 }
@@ -2255,7 +2255,7 @@ else
   cat conftest.$ac_ext >&5
   rm -fr conftest*
   echo "$ac_t""not compatible" 1>&6
-		{ echo "configure: error: you need OpenSSL 0.9.5 or newer" 1>&2; exit 1; }
+		{ echo "configure: error: you need OpenSSL 0.9.5a or newer" 1>&2; exit 1; }
 fi
 rm -fr conftest*
 fi
