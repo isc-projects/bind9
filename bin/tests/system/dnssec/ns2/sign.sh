@@ -13,27 +13,28 @@ keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
 
 cp ../ns3/secure.example.keyset .
 
-$KEYSIGNER -v 9 secure.example.keyset $keyname
+echo $KEYSIGNER secure.example.keyset $keyname
+$KEYSIGNER secure.example.keyset $keyname
 
 # This will leave two copies of the child's zone key in the signed db file;
 # that shouldn't cause any problems.
 cat secure.example.signedkey >>../ns3/secure.example.db.signed
 
+cp ../ns3/bogus.example.keyset .
+
+echo $KEYSIGNER bogus.example.keyset $keyname
+$KEYSIGNER bogus.example.keyset $keyname
+
+# This will leave two copies of the child's zone key in the signed db file;
+# that shouldn't cause any problems.
+cat bogus.example.signedkey >>../ns3/bogus.example.db.signed
+
+echo $KEYSETTOOL $keyname
 $KEYSETTOOL $keyname
 
 cat $infile $keyname.key >$zonefile
 
-$SIGNER -v 1 -o $zone $zonefile
+echo $SIGNER -o $zone $zonefile
+$SIGNER -o $zone $zonefile
 
-# Configure the resolving server with a trusted key.
-
-cat $keyname.key | perl -n -e '
-my ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-my $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' >../ns4/trusted.conf
 

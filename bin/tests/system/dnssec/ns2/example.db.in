@@ -7,7 +7,9 @@ $TTL 300	; 5 minutes
 				3600       ; minimum (1 hour)
 				)
 			NS	ns2
+			NS	ns3
 ns2			A	10.53.0.2
+ns3			A	10.53.0.3
 
 a			A	10.0.0.1
 b			A	10.0.0.2
@@ -18,7 +20,12 @@ secure			NS	ns.secure
 ns.secure		A	10.53.0.3
 
 ; An insecure subdomain
-insecure		NS	ns.secure
+insecure		NS	ns.insecure
 ns.insecure		A	10.53.0.3
+
+
+; A secure subdomain we're going to inject bogus data into
+bogus			NS	ns.bogus
+ns.bogus		A	10.53.0.3
 
 z			A	10.0.0.26
