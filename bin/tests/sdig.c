@@ -219,7 +219,7 @@ int
 main(int argc, char *argv[]) {
 	char *server;
 	in_port_t port;
-	isc_boolean_t vc, have_name, have_type, edns0;
+	isc_boolean_t vc, have_name, have_type, edns0, recurse;
 	dns_name_t *name;
 	static unsigned char *namedata[512];
 	isc_buffer_t namebuffer;
@@ -275,6 +275,7 @@ main(int argc, char *argv[]) {
 	have_type = ISC_FALSE;
 	rdclass = dns_rdataclass_in;
 	edns0 = ISC_FALSE;
+	recurse = ISC_TRUE;
 
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
@@ -305,6 +306,8 @@ main(int argc, char *argv[]) {
 			fatal("TCP transport not yet implemented");
 		} else if (strcmp(argv[0], "+edns0") == 0) {
 			edns0 = ISC_TRUE;
+		} else if (strcmp(argv[0], "+norecurse") == 0) {
+			recurse = ISC_FALSE;
 		} else if (strncmp(argv[0], "+bufsize=", 9) == 0) {
 			bufsize = atoi(&argv[0][9]);
 			if (bufsize > SDIG_BUFFER_SIZE)
@@ -347,7 +350,8 @@ main(int argc, char *argv[]) {
 
 	message->id = 1;
 	message->opcode = dns_opcode_query;
-	message->flags |= DNS_MESSAGEFLAG_RD;
+	if (recurse)
+		message->flags |= DNS_MESSAGEFLAG_RD;
 	dns_message_addname(message, name, DNS_SECTION_QUESTION);
 
 	isc_buffer_init(&b, data, sizeof data, ISC_BUFFERTYPE_BINARY);
