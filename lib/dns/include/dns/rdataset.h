@@ -207,7 +207,8 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
-		    isc_buffer_t *target);
+		    isc_buffer_t *target,
+		    unsigned int *countp);
 /*
  * Convert 'rdataset' to wire format, compressing names as specified
  * in cctx, and storing the result in 'target'.
@@ -215,15 +216,22 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  * Notes:
  *	The rdata cursor position will be changed.
  *
+ *	The number of RRs added to target will be added to *countp.
+ *
  * Requires:
  *	'rdataset' is a valid rdataset.
  *
  *	'rdataset' is not empty.
  *
+ *	'countp' is a valid pointer.
+ *
  * Ensures:
  *	On a return of DNS_R_SUCCESS, 'target' contains a wire format
  *	for the data contained in 'rdataset'.  Any error return leaves
  *	the buffer in an undefined state.
+ *
+ *	*countp has been incremented by the number of RRs added to
+ *	target.
  *
  * Returns:
  *	DNS_R_SUCCESS		- all ok

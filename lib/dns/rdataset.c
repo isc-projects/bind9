@@ -265,11 +265,13 @@ dns_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
-		    isc_buffer_t *target)
+		    isc_buffer_t *target,
+		    unsigned int *countp)
 {
 	dns_rdata_t rdata;
 	isc_region_t r;
 	dns_result_t result;
+	unsigned int count;
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -279,7 +281,9 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	result = dns_rdataset_first(rdataset);
 	REQUIRE(result == DNS_R_SUCCESS);
+	REQUIRE(countp != NULL);
 
+	count = 0;
 	do {
 		/*
 		 * copy out the name, type, class, ttl.
@@ -310,11 +314,15 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
+		count++;
+
 		result = dns_rdataset_next(rdataset);
 	} while (result == DNS_R_SUCCESS);
 
 	if (result != DNS_R_NOMORE)
 		return (result);
+
+	*countp += count;
 
 	return (DNS_R_SUCCESS);
 }
