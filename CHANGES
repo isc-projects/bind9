@@ -1,3 +1,10 @@
+1115.	[func]		Set maximum values for cleaning-interval,
+			heartbeat-interval, interface-interval,
+			max-transfer-idle-in, max-transfer-idle-out,
+			max-transfer-time-in, max-transfer-time-out,
+			statistics-interval of 28 days and
+			sig-validity-interval of 3660 days. [RT #2002]
+
 1110.	[bug]		dig should only accept valid abbreviations of +options.
 			[RT #2003]
 
