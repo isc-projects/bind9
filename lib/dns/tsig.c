@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.105 2001/01/22 20:27:04 bwelling Exp $
+ * $Id: tsig.c,v 1.106 2001/02/13 03:57:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -25,6 +25,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -126,6 +127,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 {
 	dns_tsigkey_t *tkey;
 	isc_result_t ret;
+	unsigned int refs = 0;
 
 	REQUIRE(key == NULL || *key == NULL);
 	REQUIRE(name != NULL);
@@ -182,7 +184,6 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 
 	tkey->key = dstkey;
 	tkey->ring = ring;
-	tkey->refs = 0;
 
 	if (ring != NULL) {
 		RWLOCK(&ring->lock, isc_rwlocktype_write);
@@ -191,23 +192,17 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 			RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 			goto cleanup_algorithm;
 		}
-		tkey->refs++;
+		refs++;
 		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 	}
 
 	if (key != NULL)
-		tkey->refs++;
+		refs++;
+	isc_refcount_init(&tkey->refs, refs);
 	tkey->generated = generated;
 	tkey->inception = inception;
 	tkey->expire = expire;
 	tkey->mctx = mctx;
-	ret = isc_mutex_init(&tkey->lock);
-	if (ret != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(ret));
-		return (ISC_R_UNEXPECTED);
-	}
 
 	tkey->magic = TSIG_MAGIC;
 
@@ -281,9 +276,7 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp) {
 	REQUIRE(VALID_TSIG_KEY(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&source->lock);
-	source->refs++;
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->refs, NULL);
 	*targetp = source;
 }
 
@@ -303,27 +296,25 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
-	DESTROYLOCK(&key->lock);
+	isc_refcount_destroy(&key->refs);
 	isc_mem_put(key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
 void
 dns_tsigkey_detach(dns_tsigkey_t **keyp) {
 	dns_tsigkey_t *key;
-	isc_boolean_t should_free = ISC_FALSE;
+	unsigned int refs;
 
 	REQUIRE(keyp != NULL);
 	REQUIRE(VALID_TSIG_KEY(*keyp));
-	key = *keyp;
-	*keyp = NULL;
 
-	LOCK(&key->lock);
-	key->refs--;
-	if (key->refs == 0)
-		should_free = ISC_TRUE;
-	UNLOCK(&key->lock);
-	if (should_free)
+	key = *keyp;
+	isc_refcount_decrement(&key->refs, &refs);
+
+	if (refs == 0)
 		tsigkey_free(key);
+
+	*keyp = NULL;
 }
 
 void
@@ -1125,18 +1116,14 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 * The key has expired.
 		 */
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-		LOCK(&key->lock);
-		key->refs--;
-		UNLOCK(&key->lock);
+		isc_refcount_decrement(&key->refs, NULL);
 		RWLOCK(&ring->lock, isc_rwlocktype_write);
 		(void) dns_rbt_deletename(ring->keys, name, ISC_FALSE);
 		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 		return (ISC_R_NOTFOUND);
 	}
 
-	LOCK(&key->lock);
-	key->refs++;
-	UNLOCK(&key->lock);
+	isc_refcount_increment(&key->refs, NULL);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 	*tsigkey = key;
 	return (ISC_R_SUCCESS);
