@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.51 2001/04/30 18:09:30 gson Exp $ */
+/* $Id: rdata.h,v 1.51.2.1 2002/02/20 00:39:27 gson Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -161,7 +161,7 @@ dns_rdata_reset(dns_rdata_t *rdata);
  * Make 'rdata' empty.
  *
  * Requires:
- *	'rdata' is a previously initaliased rdata and is not linked.
+ *	'rdata' is a previously initialized rdata and is not linked.
  */
 
 void
@@ -319,6 +319,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	'target' is a valid region.
  *
  *	'origin' if non NULL it must be absolute.
+ *	
+ *	'callbacks' to be NULL or callbacks->warn and callbacks->error be
+ *	initialized.
  *
  * Ensures:
  *	If result is success:
