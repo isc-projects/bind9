@@ -35,16 +35,19 @@ ISC_LANG_BEGINDECLS
  ***	Types
  ***/
 
+/*
+ * XXXRTH  These are likely to change once we've got a logging system.
+ */
+
 typedef struct dns_rdatacallbacks {
 	/* dns_load_master calls this when it has rdatasets to commit */
-	dns_result_t	(*commit)(struct dns_rdatacallbacks *,
-				  dns_name_t *, dns_rdataset_t *);
+	dns_addrdatasetfunc_t add;
 	/* dns_load_master / dns_rdata_fromtext call this to issue a error */
 	void		(*error)(struct dns_rdatacallbacks *, char *, ...);
 	/* dns_load_master / dns_rdata_fromtext call this to issue a warning */
 	void		(*warn)(struct dns_rdatacallbacks *, char *, ...);
 	/* private data handles for use by the above callback functions */
-	void		*commit_private;
+	void		*add_private;
 	void		*error_private;
 	void		*warn_private;
 } dns_rdatacallbacks_t;
