@@ -1,3 +1,10 @@
+
+ 975.	[bug]		"max-cache-size default;" as a view option
+			caused an assertion failure.
+
+ 974.	[bug]		"max-cahe-size unlimited;" as a global option
+			was not accepted.
+
  973.	[bug]		Failed to log the question name when logging:
 			"bad zone transfer request: non-authoritative zone
 			(NOTAUTH)".
