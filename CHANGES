@@ -1,3 +1,6 @@
+ 498.	[doc]		There is now a man page for "dig" 
+			in doc/man/bin/dig.1.
+
  491.	[bug]		nsupdate would segfault when sending certain
 			prerequisites with empty RDATA. [RT #356]
 
