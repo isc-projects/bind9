@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: once.h,v 1.1 1999/09/23 18:14:16 tale Exp $ */
+/* $Id: once.h,v 1.2 1999/10/06 19:25:41 tale Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1
@@ -27,19 +27,13 @@ ISC_LANG_BEGINDECLS
 
 typedef struct {
 	int status;
-#ifndef ISC_ONCE_USE_MUTEX
 	int counter;
-#endif
 } isc_once_t;
 
 #define ISC_ONCE_INIT_NEEDED 0
 #define ISC_ONCE_INIT_DONE 1
 
-#ifdef ISC_ONCE_USE_MUTEX
-#define ISC_ONCE_INIT { ISC_ONCE_INIT_NEEDED }
-#else
 #define ISC_ONCE_INIT { ISC_ONCE_INIT_NEEDED, 1 }
-#endif
 
 isc_result_t
 isc_once_do(isc_once_t *controller, void(*function)(void));
