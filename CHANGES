@@ -3,8 +3,8 @@
 1207.	[bug]		libbind: getaddrinfo() could call freeaddrinfo() with
 			an invalid pointer.
 
-1206.	[bug]		SERVFAIL and NOTIMP responses to a EDNS should trigger
-			a non-EDNS retry.
+1206.	[bug]		SERVFAIL and NOTIMP responses to an EDNS query should
+			trigger a non-EDNS retry.
 
 1205.	[bug]		OPT, TSIG and TKEY cannot be used to set the "class"
 			of the message. [RT #2449]
