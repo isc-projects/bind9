@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.17 2001/01/09 21:44:05 bwelling Exp $
+# $Id: tests.sh,v 1.18 2001/02/14 00:16:38 nelsonm Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -78,12 +78,9 @@ echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 echo "I:SIGKILL and restart server ns1"
-cd ns1
-kill -KILL `cat named.pid`
-rm named.pid
+$PERL $SYSTEMTESTTOP/stop.pl . ns1
 sleep 2
-$NAMED -c named.conf -d 99 -g >> named.run 2>&1 &
-cd ..
+$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
 sleep 10
 
 echo "I:fetching ns1 after hard restart"
