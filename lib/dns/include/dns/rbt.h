@@ -64,13 +64,13 @@ typedef struct dns_rbtnode {
 	 * In each case below the "range" indicated is what's _necessary_ for
 	 * the bitfield to hold, not what it actually _can_ hold.
 	 */
-	isc_boolean_t is_root:1;      /* range is 0..1 */
-	unsigned int color:1;	      /* range is 0..1 */
-	unsigned int find_callback:1; /* range is 0..1 */
-	unsigned int attributes:4;    /* range is 0..2 */
-	unsigned int namelen:8;	      /* range is 1..255 */
-	unsigned int offsetlen:8;     /* range is 1..128 */
-	unsigned int padbytes:9;      /* range is 0..380 */
+	unsigned int is_root : 1;	/* range is 0..1 */
+	unsigned int color : 1;		/* range is 0..1 */
+	unsigned int find_callback : 1;	/* range is 0..1 */
+	unsigned int attributes : 4;	/* range is 0..2 */
+	unsigned int namelen : 8;	/* range is 1..255 */
+	unsigned int offsetlen : 8;	/* range is 1..128 */
+	unsigned int padbytes : 9;	/* range is 0..380 */
 	/*
 	 * These values are used in the RBT DB implementation.  The appropriate
 	 * node lock must be held before accessing them.
