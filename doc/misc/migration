@@ -93,6 +93,12 @@ This is not legal master file syntax and will be treated as an error
 by BIND 9.  The fix is to move the opening parenthesis to the first
 line.
 
+2.5. Unimplemented BIND 8 Extensions
+
+BIND 8 supports a nonstandard master file directive "$GENERATE" for
+automatically generating multiple instances of certain RRs from a
+template.  This directive is currently unimplemented in BIND 9.
+
 
 3. Interoperability Impact of New Protocol Features
 
@@ -136,4 +142,4 @@ if applications with these flaws are still being used, they should
 be upgraded.
 
 
-$Id: migration,v 1.10 2000/09/01 18:30:30 gson Exp $
+$Id: migration,v 1.11 2000/09/05 16:51:01 gson Exp $
