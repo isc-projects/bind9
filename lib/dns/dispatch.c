@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.57.2.3 2000/09/08 22:09:13 explorer Exp $ */
+/* $Id: dispatch.c,v 1.57.2.4 2000/09/08 22:16:49 gson Exp $ */
 
 #include <config.h>
 
@@ -534,7 +534,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		 * otherwise, on strange error, log it and restart.
 		 * XXXMLG
 		 */
-		dispatch_log(disp, LVL(10),
+		dispatch_log(disp, ISC_LOG_ERROR,
 			     "odd socket result in udp_recv(): %s",
 			     isc_result_totext(ev->result));
 
