@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.58 2000/11/20 20:29:00 bwelling Exp $ */
+/* $Id: gen.c,v 1.59 2000/12/11 19:24:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -225,7 +225,7 @@ doswitch(const char *name, const char *function, const char *args,
 				funname(tt->typename, buf1), args);
 		else
 			fprintf(stdout,
-			        "\t\tcase %d:%s %s_%s_%s(%s); break;",
+				"\t\tcase %d:%s %s_%s_%s(%s); break;",
 				tt->rdclass, result, function,
 				funname(tt->classname, buf1),
 				funname(tt->typename, buf2), args);

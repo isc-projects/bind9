@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.55 2000/10/31 03:21:51 marka Exp $
+ * $Id: dnssec.c,v 1.56 2000/12/11 19:24:05 bwelling Exp $
  */
 
 
@@ -782,5 +782,5 @@ dns_dnssec_iszonekey(dns_rdata_t *keyrdata) {
 	    key.protocol != DNS_KEYPROTO_ANY)
 		iszonekey = ISC_FALSE;    
 
-	return (iszonekey);             
+	return (iszonekey);
 }

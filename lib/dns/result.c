@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.81 2000/11/29 05:59:33 tale Exp $ */
+/* $Id: result.c,v 1.82 2000/12/11 19:24:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -102,7 +102,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"zone too large",		       /* 62 DNS_R_ZONETOOLARGE	     */
 	"recoverable error occurred",	       /* 63 DNS_R_RECOVERABLE       */
-	"unknown opt attribute record",	       /* 64 DNS_R_UNKNOWNOPT        */
+	"unknown opt attribute record",	       /* 64 DNS_R_UNKNOWNOPT	     */
 
 	"unexpected message id",	       /* 65 DNS_R_UNEXPECTEDID      */
 	"seen include file",		       /* 66 DNS_R_SEENINCLUDE       */
@@ -112,7 +112,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"invalid use of a meta type",	       /* 70 DNS_R_METATYPE	     */
 
 	"CNAME and other data",		       /* 71 DNS_R_CNAMEANDOTHER     */
-	"multiple RRs of singleton type"       /* 72 DNS_R_SINGLETON         */
+	"multiple RRs of singleton type"       /* 72 DNS_R_SINGLETON	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

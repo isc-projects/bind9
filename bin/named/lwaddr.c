@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.c,v 1.1 2000/11/15 23:56:20 bwelling Exp $ */
+/* $Id: lwaddr.c,v 1.2 2000/12/11 19:19:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -53,14 +53,14 @@ isc_result_t
 lwaddr_sockaddr_fromlwresaddr(isc_sockaddr_t *sa, lwres_addr_t *la,
 			      in_port_t port)
 {
-        isc_netaddr_t na;
-        isc_result_t result;
+	isc_netaddr_t na;
+	isc_result_t result;
 
-        result = lwaddr_netaddr_fromlwresaddr(&na, la);
-        if (result != ISC_R_SUCCESS)
-                return (result);
-        isc_sockaddr_fromnetaddr(sa, &na, port);
-        return (ISC_R_SUCCESS);
+	result = lwaddr_netaddr_fromlwresaddr(&na, la);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	isc_sockaddr_fromnetaddr(sa, &na, port);
+	return (ISC_R_SUCCESS);
 }
 
 /*

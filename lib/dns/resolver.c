@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.185 2000/12/07 20:15:51 marka Exp $ */
+/* $Id: resolver.c,v 1.186 2000/12/11 19:24:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3744,7 +3744,7 @@ answer_response(fetchctx_t *fctx) {
 						 */
 						dns_fixedname_init(&fqname);
 						result = dns_name_concatenate(
-					          dns_fixedname_name(&dname),
+						  dns_fixedname_name(&dname),
 						  NULL,
 						  dns_fixedname_name(&fqname),
 						  NULL);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.274 2000/12/11 19:21:15 marka Exp $ */
+/* $Id: zone.c,v 1.275 2000/12/11 19:24:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -214,7 +214,7 @@ struct dns_zone {
 	/*
 	 * Optional per-zone statistics counters (NULL if not present).
 	 */
-	isc_uint64_t            *counters;
+	isc_uint64_t	    *counters;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -373,7 +373,7 @@ void zone_idetach(dns_zone_t **zonep);
 static void zone_deletefile(dns_zone_t *zone);
 #endif /* NOMINUM_PUBLIC */
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
-			           isc_boolean_t dump);
+				   isc_boolean_t dump);
 static isc_result_t default_journal(dns_zone_t *zone);
 static void zone_xfrdone(dns_zone_t *zone, isc_result_t result);
 static isc_result_t zone_postload(dns_zone_t *zone, dns_db_t *db,
@@ -2904,7 +2904,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (revent->result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO, "failure for %s: %s",
-		         master, dns_result_totext(revent->result));
+			 master, dns_result_totext(revent->result));
 		goto next_master;
 	}
 
@@ -3094,7 +3094,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (revent->result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO, "failure for %s: %s",
-		         master, dns_result_totext(revent->result));
+			 master, dns_result_totext(revent->result));
 		if (revent->result == ISC_R_TIMEDOUT &&
 		    !dns_request_usedtcp(revent->request)) {
 			if (zone->refreshcnt < 3)
@@ -3293,7 +3293,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone->refreshcnt = 0;
 	if (zone->curmaster >= zone->masterscnt) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
-                if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
 			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 			zone->refreshtime = now;
 		}
@@ -3877,7 +3877,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
 	dns_db_currentversion(zone->db, &version);
-        result = dns_db_findnode(zone->db, tempname, ISC_FALSE, &node);
+	result = dns_db_findnode(zone->db, tempname, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto soa_cleanup;
 
@@ -4313,7 +4313,7 @@ zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	REQUIRE(length > 1);
 
 	/*
-         * Leave space for terminating '\0'.
+	 * Leave space for terminating '\0'.
 	 */
 	isc_buffer_init(&buffer, buf, length - 1);
 	if (dns_name_dynamic(&zone->origin))
@@ -5067,7 +5067,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		zone_log(zone, me, ISC_LOG_INFO, "failure for %s: %s",
 			 master, dns_result_totext(revent->result));
 		goto next_master;
-        }
+	}
 
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	if (result != ISC_R_SUCCESS)
@@ -5701,9 +5701,9 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 		isc_mem_put(zmgr->mctx, io, sizeof(*io));
 		return (ISC_R_NOMEMORY);
 	}
-        io->zmgr = zmgr;
-        io->high = high; 
-        io->task = NULL;
+	io->zmgr = zmgr;
+	io->high = high; 
+	io->task = NULL;
 	isc_task_attach(task, &io->task);
 	ISC_LINK_INIT(io, link); 
 	io->magic = IO_MAGIC;

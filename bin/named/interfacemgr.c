@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.51 2000/09/26 18:26:18 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.52 2000/12/11 19:19:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -172,7 +172,7 @@ static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    const char *name, ns_interface_t **ifpret)
 {
-        ns_interface_t *ifp;
+	ns_interface_t *ifp;
 	isc_result_t result;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
@@ -419,13 +419,13 @@ ns_interface_detach(ns_interface_t **targetp) {
  */
 static ns_interface_t *
 find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
-        ns_interface_t *ifp;
-        for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL;
+	ns_interface_t *ifp;
+	for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL;
 	     ifp = ISC_LIST_NEXT(ifp, link)) {
 		if (isc_sockaddr_equal(&ifp->addr, addr))
 			break;
 	}
-        return (ifp);
+	return (ifp);
 }
 
 /*
@@ -433,8 +433,8 @@ find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
  */
 static void
 purge_old_interfaces(ns_interfacemgr_t *mgr) {
-        ns_interface_t *ifp, *next;
-        for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL; ifp = next) {
+	ns_interface_t *ifp, *next;
+	for (ifp = ISC_LIST_HEAD(mgr->interfaces); ifp != NULL; ifp = next) {
 		INSIST(NS_INTERFACE_VALID(ifp));
 		next = ISC_LIST_NEXT(ifp, link);
 		if (ifp->generation != mgr->generation) {
@@ -681,11 +681,11 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
 
-        /*
-         * Now go through the interface list and delete anything that
-         * does not have the current generation number.  This is
-         * how we catch interfaces that go away or change their
-         * addresses.
+	/*
+	 * Now go through the interface list and delete anything that
+	 * does not have the current generation number.  This is
+	 * how we catch interfaces that go away or change their
+	 * addresses.
 	 */
 	purge_old_interfaces(mgr);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.1 2000/12/01 23:49:54 gson Exp $ */
+/* $Id: stats.c,v 1.2 2000/12/11 19:24:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -29,7 +29,7 @@ const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
 	"nxrrset",
 	"nxdomain",
 	"recursion",
-        "failure"
+	"failure"
 };
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.42 2000/11/03 08:54:18 marka Exp $ */
+/* $Id: request.c,v 1.43 2000/12/11 19:24:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -198,30 +198,30 @@ void
 dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
 			    isc_event_t **eventp)
 {
-        isc_task_t *clone;
-        isc_event_t *event;
+	isc_task_t *clone;
+	isc_event_t *event;
 
 	req_log(ISC_LOG_DEBUG(3), "dns_requestmgr_whenshutdown");
 
-        REQUIRE(VALID_REQUESTMGR(requestmgr));
-        REQUIRE(eventp != NULL);
+	REQUIRE(VALID_REQUESTMGR(requestmgr));
+	REQUIRE(eventp != NULL);
 
-        event = *eventp;
-        *eventp = NULL;
+	event = *eventp;
+	*eventp = NULL;
 
-        LOCK(&requestmgr->lock);
+	LOCK(&requestmgr->lock);
 
-        if (requestmgr->exiting) {
-                /*
-                 * We're already shutdown.  Send the event.
-                 */
-                event->ev_sender = requestmgr;
-                isc_task_send(task, &event);
-        } else {
-                clone = NULL;
-                isc_task_attach(task, &clone);
-                event->ev_sender = clone;
-                ISC_LIST_APPEND(requestmgr->whenshutdown, event, ev_link);
+	if (requestmgr->exiting) {
+		/*
+		 * We're already shutdown.  Send the event.
+		 */
+		event->ev_sender = requestmgr;
+		isc_task_send(task, &event);
+	} else {
+		clone = NULL;
+		isc_task_attach(task, &clone);
+		event->ev_sender = clone;
+		ISC_LIST_APPEND(requestmgr->whenshutdown, event, ev_link);
 	}
 	UNLOCK(&requestmgr->lock);
 }
@@ -229,7 +229,7 @@ dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
 void
 dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 
-        REQUIRE(VALID_REQUESTMGR(requestmgr));
+	REQUIRE(VALID_REQUESTMGR(requestmgr));
 
 	req_log(ISC_LOG_DEBUG(3), "dns_requestmgr_shutdown: %p", requestmgr);
 
@@ -268,8 +268,8 @@ requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
 	 * Locked by caller.
 	 */
 
-        REQUIRE(VALID_REQUESTMGR(source));
-        REQUIRE(targetp != NULL && *targetp == NULL);
+	REQUIRE(VALID_REQUESTMGR(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	REQUIRE(!source->exiting);
 
@@ -312,8 +312,8 @@ requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 void
 dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp) {
 
-        REQUIRE(VALID_REQUESTMGR(source));
-        REQUIRE(targetp != NULL && *targetp == NULL);
+	REQUIRE(VALID_REQUESTMGR(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
 	REQUIRE(!source->exiting);
 
 	LOCK(&source->lock);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.160 2000/12/07 20:15:46 marka Exp $ */
+/* $Id: query.c,v 1.161 2000/12/11 19:19:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -70,13 +70,13 @@
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_CLIENT, \
 				      NS_LOGMODULE_QUERY, \
-                                      ISC_LOG_DEBUG(3), \
-                                      "client %p: %s", client, (m))
+				      ISC_LOG_DEBUG(3), \
+				      "client %p: %s", client, (m))
 #define QTRACE(m)       isc_log_write(ns_g_lctx, \
 				      NS_LOGCATEGORY_GENERAL, \
 				      NS_LOGMODULE_QUERY, \
-                                      ISC_LOG_DEBUG(3), \
-                                      "query %p: %s", query, (m))
+				      ISC_LOG_DEBUG(3), \
+				      "query %p: %s", query, (m))
 #else
 #define CTRACE(m) ((void)m)
 #define QTRACE(m) ((void)m)
@@ -2400,7 +2400,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (result == DNS_R_REFUSED)
 			QUERY_ERROR(DNS_R_REFUSED);
 		else
-		        QUERY_ERROR(DNS_R_SERVFAIL);
+			QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
 

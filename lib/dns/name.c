@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.108 2000/11/27 19:45:45 gson Exp $ */
+/* $Id: name.c,v 1.109 2000/12/11 19:24:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2700,7 +2700,7 @@ dns_name_split(dns_name_t *name,
 				 * wow.  How bizarre could that be?
 				 */
 				INSIST(! (src <= dst && src + len > dst) ||
-				         (dst <= src && dst + len > src));
+					 (dst <= src && dst + len > src));
 
 				memcpy(dst, src, len);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.173 2000/12/11 03:28:52 gson Exp $ */
+/* $Id: dighost.c,v 1.174 2000/12/11 19:15:45 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -135,14 +135,14 @@ isc_uint32_t rr_limit = INT_MAX;
  * Can I get rid of these using shutdown events?  XXX
  */
 #define LOCK_LOOKUP {\
-        debug("lock_lookup %s:%d", __FILE__, __LINE__);\
-        check_result(isc_mutex_lock((&lookup_lock)), "isc_mutex_lock");\
-        debug("success");\
+	debug("lock_lookup %s:%d", __FILE__, __LINE__);\
+	check_result(isc_mutex_lock((&lookup_lock)), "isc_mutex_lock");\
+	debug("success");\
 }
 #define UNLOCK_LOOKUP {\
-        debug("unlock_lookup %s:%d", __FILE__, __LINE__);\
-        check_result(isc_mutex_unlock((&lookup_lock)),\
-                     "isc_mutex_unlock");\
+	debug("unlock_lookup %s:%d", __FILE__, __LINE__);\
+	check_result(isc_mutex_unlock((&lookup_lock)),\
+		     "isc_mutex_unlock");\
 }
 
 static void
@@ -164,7 +164,7 @@ next_token(char **stringp, const char *delim) {
 			break;
 	} while (*res == '\0');
 	return (res);
-}                       
+}
 
 static int
 count_dots(char *string) {
@@ -428,7 +428,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->dnssec = lookold->dnssec;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
-        looknew->aaonly = lookold->aaonly;
+	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
@@ -1037,7 +1037,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 		if ((section == DNS_SECTION_ANSWER) &&
 		    (query->lookup->trace || query->lookup->ns_search_only))
 			followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
-                return;
+		return;
 	}
 
 	debug("following up %s", query->lookup->textname);
@@ -1490,7 +1490,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			optattr[optlist.used].value.base =
 				isc_buffer_base(wirebuf);
 			optattr[optlist.used].value.length =
-			        isc_buffer_usedlength(wirebuf);
+				isc_buffer_usedlength(wirebuf);
 			optlist.used++;
 			dns_compress_invalidate(&cctx);
 		}
@@ -2768,7 +2768,7 @@ destroy_libs(void) {
 	if (taskmgr != NULL) {
 		debug("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
-        }
+	}
 	LOCK_LOOKUP;
 	REQUIRE(sockcount == 0);
 	REQUIRE(recvcount == 0);

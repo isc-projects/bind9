@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.10 2000/12/02 04:13:32 gson Exp $ */
+/* $Id: opt.c,v 1.11 2000/12/11 19:24:15 bwelling Exp $ */
 
 /* DNS_OPT_NEWCODES_KEEP */
 
@@ -38,11 +38,11 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 
-#define ADD_STRING(b, s, g)        {if (strlen(s) >= \
-                                   isc_buffer_availablelength(b)) \
-                                       { result = ISC_R_NOSPACE; \
-                                         goto g; } else \
-                                       isc_buffer_putstr(b, s);}
+#define ADD_STRING(b, s, g)	{if (strlen(s) >= \
+				   isc_buffer_availablelength(b)) \
+				       { result = ISC_R_NOSPACE; \
+					 goto g; } else \
+				       isc_buffer_putstr(b, s);}
 static isc_result_t
 optget(dns_optlist_t *optlist, dns_rdataset_t *optset,
        isc_uint16_t code, isc_boolean_t getall)
@@ -194,7 +194,7 @@ dns_opt_attrtotext(dns_optattr_t *attr, isc_buffer_t *target,
 			isc_buffer_putmem(target, attr->value.base,
 					  attr->value.length);
 		ADD_STRING(target, "\n", viewfail0);
-        viewfail0:
+	viewfail0:
 		return (result);
 #endif /* DNS_OPT_NEWCODES */
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.76 2000/12/01 23:49:50 gson Exp $ */
+/* $Id: zoneconf.c,v 1.77 2000/12/11 19:19:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -309,7 +309,7 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			result = dns_c_ctx_getalsonotify(cctx, &iplist);
 		if (result == ISC_R_SUCCESS) {
 			result = dns_zone_setalsonotify(zone, iplist->ips,
-						        iplist->nextidx);
+							iplist->nextidx);
 			dns_c_iplist_detach(&iplist);
 			if (result != ISC_R_SUCCESS)
 				return (result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.26 2000/10/05 06:39:22 marka Exp $ */
+/* $Id: zt.c,v 1.27 2000/12/11 19:24:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@
 
 struct dns_zt {
 	/* Unlocked. */
-        unsigned int		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	dns_rdataclass_t	rdclass;
 	isc_rwlock_t		rwlock;

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.55 2000/12/07 19:13:05 bwelling Exp $
+ * $Id: tkey.c,v 1.56 2000/12/11 19:24:25 bwelling Exp $
  */
 
 #include <config.h>
@@ -1093,8 +1093,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			break;
 		}
  next:
-                result = dns_message_nextname(rmsg, DNS_SECTION_ANSWER);
-        }
+		result = dns_message_nextname(rmsg, DNS_SECTION_ANSWER);
+	}
 
 	if (theirkeyset == NULL) {
 		tkey_log("dns_tkey_processdhresponse: failed to find server "

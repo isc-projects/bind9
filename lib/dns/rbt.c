@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.95 2000/11/18 00:55:24 bwelling Exp $ */
+/* $Id: rbt.c,v 1.96 2000/12/11 19:24:16 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -842,14 +842,14 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	while (current != NULL) {
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(search_name, &current_name,
-                                                &order,
-                                                &common_labels, &common_bits);
+						&order,
+						&common_labels, &common_bits);
 		last_compared = current;
 
 		if (compared == dns_namereln_equal)
 			break;
 
-                if (compared == dns_namereln_none) {
+		if (compared == dns_namereln_none) {
 #ifdef DNS_RBT_USEHASH
 			dns_name_t hash_name;
 			dns_rbtnode_t *hnode;
@@ -1162,7 +1162,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				while (current != NULL) {
 					NODENAME(current, &current_name);
 					compared = dns_name_fullcompare(
-							        search_name,
+								search_name,
 								&current_name,
 								&order,
 								&common_labels,
@@ -1603,13 +1603,13 @@ inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
 
 	rbt->hashsize = RBT_HASH_SIZE * 2;
-        bytes = rbt->hashsize * sizeof(dns_rbtnode_t *);
+	bytes = rbt->hashsize * sizeof(dns_rbtnode_t *);
 	rbt->hashtable = isc_mem_get(rbt->mctx, bytes);
 
 	if (rbt->hashtable == NULL)
 		return (ISC_R_NOMEMORY);
 
-        memset(rbt->hashtable, 0, bytes);
+	memset(rbt->hashtable, 0, bytes);
 
 	inithash_internal(rbt, rbt->root);
 

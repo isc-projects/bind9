@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.2 2000/12/09 03:09:19 bwelling Exp $ */
+/* $Id: diff.c,v 1.3 2000/12/11 19:24:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,12 +35,12 @@
 #include <dns/result.h>
 
 #define CHECK(op) \
-        do { result = (op);					\
+	do { result = (op);					\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 #define DIFF_COMMON_LOGARGS \
-        dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DIFF
+	dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_DIFF
 
 static dns_rdatatype_t
 rdata_covers(dns_rdata_t *rdata) {
@@ -258,8 +258,8 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 					      	ISC_LOG_WARNING,
 						"TTL differs in rdataset, "
 						"adjusting %lu -> %lu",
-					        (unsigned long) t->ttl,
-					        (unsigned long) rdl.ttl);
+						(unsigned long) t->ttl,
+						(unsigned long) rdl.ttl);
 				}
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
@@ -283,9 +283,9 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 							    NULL);
 			} else if (op == DNS_DIFFOP_DEL) {
 				result = dns_db_subtractrdataset(db, node, ver,
-								 &rds,
-							        DNS_DBSUB_EXACT,
-								 NULL);
+							       &rds,
+							       DNS_DBSUB_EXACT,
+							       NULL);
 			} else {
 				INSIST(0);
 			}

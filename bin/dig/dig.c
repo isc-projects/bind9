@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.130 2000/12/08 17:06:46 mws Exp $ */
+/* $Id: dig.c,v 1.131 2000/12/11 19:15:44 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1028,7 +1028,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);
 			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
-					        (*lookup)->ns_search_only);
+						(*lookup)->ns_search_only);
 			(*lookup)->nibble = nibble;
 			(*lookup)->rdtype = dns_rdatatype_ptr;
 			(*lookup)->rdtypeset = ISC_TRUE;

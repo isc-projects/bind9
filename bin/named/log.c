@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.26 2000/11/25 01:33:11 marka Exp $ */
+/* $Id: log.c,v 1.27 2000/12/11 19:19:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,10 +113,10 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_debug",
-                                               ISC_LOG_TOFILE,
-                                               ISC_LOG_DYNAMIC,
-                                               &destination,
-                                               ISC_LOG_PRINTTIME|
+					       ISC_LOG_TOFILE,
+					       ISC_LOG_DYNAMIC,
+					       &destination,
+					       ISC_LOG_PRINTTIME|
 					       ISC_LOG_DEBUGONLY);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
@@ -139,9 +139,9 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 
 	if (! ns_g_logstderr) {
 		result = isc_log_createchannel(lcfg, "default_debug",
-                                               ISC_LOG_TONULL,
-                                               ISC_LOG_DYNAMIC,
-                                               NULL, 0);
+					       ISC_LOG_TONULL,
+					       ISC_LOG_DYNAMIC,
+					       NULL, 0);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}

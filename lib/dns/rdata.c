@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.133 2000/12/06 22:33:39 tale Exp $ */
+/* $Id: rdata.c,v 1.134 2000/12/11 19:24:18 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -171,7 +171,7 @@ static inline isc_result_t
 name_duporclone(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 	if (mctx != NULL)
-                return (dns_name_dup(source, mctx, target));
+		return (dns_name_dup(source, mctx, target));
 	dns_name_clone(source, target);
 	return (ISC_R_SUCCESS);
 }
@@ -496,7 +496,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
-	         isc_buffer_t *target)
+		 isc_buffer_t *target)
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -922,7 +922,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 	int i;
 
 	if (isdigit(source->base[0] & 0xff) &&
-            source->length <= NUMBERSIZE - 1) {
+	    source->length <= NUMBERSIZE - 1) {
 		unsigned int n;
 		char *e;
 		char buffer[NUMBERSIZE];
@@ -1556,7 +1556,7 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
 	isc_buffer_availableregion(target, &tr);
-        if (length > tr.length)
+	if (length > tr.length)
 		return (ISC_R_NOSPACE);
 	memcpy(tr.base, base, length);
 	isc_buffer_add(target, length);

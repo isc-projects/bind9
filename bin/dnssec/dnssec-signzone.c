@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.118 2000/12/09 02:17:01 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.119 2000/12/11 19:15:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -489,14 +489,14 @@ hasnullkey(dns_rdataset_t *rdataset) {
 			fatal("could not convert KEY into internal format");
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
-                dst_key_free(&key);
+		dst_key_free(&key);
 		if (found == ISC_TRUE)
 			return (ISC_TRUE);
-                result = dns_rdataset_next(rdataset);
-        }
-        if (result != ISC_R_NOMORE)
-                fatal("failure looking for null keys");
-        return (ISC_FALSE);
+		result = dns_rdataset_next(rdataset);
+	}
+	if (result != ISC_R_NOMORE)
+		fatal("failure looking for null keys");
+	return (ISC_FALSE);
 }
 
 static void

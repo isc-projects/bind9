@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.4 2000/11/02 00:55:40 bwelling Exp $ */
+/* $Id: lookup.c,v 1.5 2000/12/11 19:24:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -323,7 +323,7 @@ static void
 levent_destroy(isc_event_t *event) {
 	dns_lookupevent_t *levent;
 	isc_mem_t *mctx;
-				        
+ 
 	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	mctx = event->ev_destroy_arg;
 	levent = (dns_lookupevent_t *)event;

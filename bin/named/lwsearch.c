@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.4 2000/10/28 00:09:11 bwelling Exp $ */
+/* $Id: lwsearch.c,v 1.5 2000/12/11 19:19:10 bwelling Exp $ */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -30,8 +30,8 @@
 #include <named/lwsearch.h>
 #include <named/types.h>
 
-#define LWSEARCHLIST_MAGIC            ISC_MAGIC('L', 'W', 'S', 'L')
-#define VALID_LWSEARCHLIST(l)         ISC_MAGIC_VALID(l, LWSEARCHLIST_MAGIC)
+#define LWSEARCHLIST_MAGIC		ISC_MAGIC('L', 'W', 'S', 'L')
+#define VALID_LWSEARCHLIST(l)		ISC_MAGIC_VALID(l, LWSEARCHLIST_MAGIC)
 
 isc_result_t
 ns_lwsearchlist_create(isc_mem_t *mctx, ns_lwsearchlist_t **listp) {

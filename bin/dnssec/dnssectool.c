@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.24 2000/11/27 22:19:37 gson Exp $ */
+/* $Id: dnssectool.c,v 1.25 2000/12/11 19:15:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -133,8 +133,8 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 	int level;
 
 	switch (verbose) {
-        case 0:
-                /*
+	case 0:
+		/*
 		 * We want to see warnings about things like out-of-zone
 		 * data in the master file even when not verbose.
 		 */
@@ -245,7 +245,7 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-        sample = isc_time_nanoseconds(&t);
+	sample = isc_time_nanoseconds(&t);
 	extra = c;
 
 	result = isc_entropy_addcallbacksample(source, sample, extra);

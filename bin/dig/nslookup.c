@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.68 2000/12/08 18:25:54 mws Exp $ */
+/* $Id: nslookup.c,v 1.69 2000/12/11 19:15:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -110,16 +110,16 @@ static const char *rtypetext[] = {
 	"md = ",			/* 3 */
 	"mf = ",			/* 4 */
 	"canonical name = ",		/* 5 */
-	"soa = ",		       	/* 6 */
-	"mb = ",		       	/* 7 */
-	"mg = ",		       	/* 8 */
-	"mr = ",		       	/* 9 */
-	"rtype_10 = ",		       	/* 10 */
+	"soa = ",			/* 6 */
+	"mb = ",			/* 7 */
+	"mg = ",			/* 8 */
+	"mr = ",			/* 9 */
+	"rtype_10 = ",			/* 10 */
 	"protocol = ",			/* 11 */
 	"name = ",			/* 12 */
 	"hinfo = ",			/* 13 */
 	"minfo = ",			/* 14 */
-	"mail exchanger = ",	       	/* 15 */
+	"mail exchanger = ",		/* 15 */
 	"text = ",			/* 16 */
 	"rp = ",       			/* 17 */
 	"afsdb = ",			/* 18 */
@@ -130,21 +130,21 @@ static const char *rtypetext[] = {
 	"nsap_ptr = ",			/* 23 */
 	"signature = ",			/* 24 */
 	"key = ",			/* 25 */
-	"px = ",		       	/* 26 */
-	"gpos = ",		       	/* 27 */
-	"has AAAA address",	        /* 28 */
-	"loc = ",		       	/* 29 */
+	"px = ",			/* 26 */
+	"gpos = ",			/* 27 */
+	"has AAAA address",		/* 28 */
+	"loc = ",			/* 29 */
 	"next = ",			/* 30 */
 	"rtype_31 = ",			/* 31 */
 	"rtype_32 = ",			/* 32 */
-	"service = ",	       		/* 33 */
+	"service = ",			/* 33 */
 	"rtype_34 = ",			/* 34 */
 	"naptr = ",			/* 35 */
 	"kx = ",			/* 36 */
 	"cert = ",			/* 37 */
 	"v6 address = ",		/* 38 */
 	"dname = ",			/* 39 */
-	"rtype_40 = ",       		/* 40 */
+	"rtype_40 = ",			/* 40 */
 	"optional = "};			/* 41 */
 
 

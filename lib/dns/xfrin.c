@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.107 2000/12/09 02:17:08 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.108 2000/12/11 19:24:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -287,7 +287,7 @@ static isc_result_t
 axfr_apply(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-        CHECK(dns_diff_load(&xfr->diff,
+	CHECK(dns_diff_load(&xfr->diff,
 			    xfr->axfr.add_func, xfr->axfr.add_private));
 	xfr->difflen = 0;
 	dns_diff_clear(&xfr->diff);
@@ -368,7 +368,7 @@ ixfr_apply(dns_xfrin_ctx_t *xfr) {
 		if (xfr->ixfr.journal != NULL)
 			CHECK(dns_journal_begin_transaction(xfr->ixfr.journal));
 	}
-        CHECK(dns_diff_apply(&xfr->diff, xfr->db, xfr->ver));
+	CHECK(dns_diff_apply(&xfr->diff, xfr->db, xfr->ver));
 	if (xfr->ixfr.journal != NULL)
 		dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
 	dns_diff_clear(&xfr->diff);
@@ -1330,7 +1330,7 @@ static void
 xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...)
 {
-        va_list ap;
+	va_list ap;
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
@@ -1347,7 +1347,7 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
-        va_list ap;
+	va_list ap;
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;

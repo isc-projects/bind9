@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.22 2000/08/26 01:36:50 bwelling Exp $ */
+/* $Id: keytable.c,v 1.23 2000/12/11 19:24:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 
 struct dns_keytable {
 	/* Unlocked. */
-        unsigned int		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_mutex_t		lock;
 	isc_rwlock_t		rwlock;
@@ -46,7 +46,7 @@ struct dns_keytable {
 #define VALID_KEYTABLE(kt)	 	ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)
 
 struct dns_keynode {
-        unsigned int		magic;
+	unsigned int		magic;
 	dst_key_t *		key;
 	struct dns_keynode *	next;
 };

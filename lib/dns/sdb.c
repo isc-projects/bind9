@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.21 2000/12/06 01:08:38 bwelling Exp $ */
+/* $Id: sdb.c,v 1.22 2000/12/11 19:24:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1224,7 +1224,7 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 
 static void
 disassociate(dns_rdataset_t *rdataset) {
-        dns_dbnode_t *node = rdataset->private5;
+	dns_dbnode_t *node = rdataset->private5;
 	dns_sdbnode_t *sdbnode = (dns_sdbnode_t *) node;
 	dns_db_t *db = (dns_db_t *) sdbnode->sdb;
 
@@ -1332,7 +1332,7 @@ dbiterator_next(dns_dbiterator_t *iterator) {
 
 static isc_result_t
 dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
-		                   dns_name_t *name)
+		   dns_name_t *name)
 {
 	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
 

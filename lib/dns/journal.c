@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.68 2000/12/09 03:09:20 bwelling Exp $ */
+/* $Id: journal.c,v 1.69 2000/12/11 19:24:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1261,7 +1261,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	 * Locate a journal entry for the current database serial.
 	 */
 	CHECK(journal_find(j, db_serial, &pos));
-        /*
+	/*
 	 * XXX do more drastic things, like marking zone stale,
 	 * if this fails?
 	 */

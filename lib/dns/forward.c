@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.c,v 1.1 2000/08/24 22:15:30 bwelling Exp $ */
+/* $Id: forward.c,v 1.2 2000/12/11 19:24:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,7 @@
 
 struct dns_fwdtable {
 	/* Unlocked. */
-        unsigned int		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_rwlock_t		rwlock;
 	/* Locked by lock. */
@@ -116,7 +116,7 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, dns_name_t *name,
 	}
 	forwarders->fwdpolicy = fwdpolicy;
 
-        RWLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
+	RWLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
 	result = dns_rbt_addname(fwdtable->table, name, forwarders);
 	RWUNLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
 

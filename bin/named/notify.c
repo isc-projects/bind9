@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.21 2000/11/28 03:17:48 marka Exp $ */
+/* $Id: notify.c,v 1.22 2000/12/11 19:19:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -117,8 +117,8 @@
 static void
 respond(ns_client_t *client, isc_result_t result) {
 	dns_rcode_t rcode;
-        dns_message_t *message;
-        isc_result_t msg_result;
+	dns_message_t *message;
+	isc_result_t msg_result;
 
 	message = client->message;
 	rcode = dns_result_torcode(result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.72 2000/12/07 20:05:29 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.73 2000/12/11 19:15:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -491,21 +491,21 @@ setup_system(void) {
 
 static void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
-        struct in_addr in4;
-        struct in6_addr in6;
+	struct in_addr in4;
+	struct in6_addr in6;
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
 	struct addrinfo *res = NULL;
 	int result;
 #else
-        struct hostent *he;
+	struct hostent *he;
 #endif
 
-        ddebug("get_address()");
-        if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
-                isc_sockaddr_fromin6(sockaddr, &in6, port);
-        else if (inet_pton(AF_INET, host, &in4) == 1)
-                isc_sockaddr_fromin(sockaddr, &in4, port);
-        else {
+	ddebug("get_address()");
+	if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
+		isc_sockaddr_fromin6(sockaddr, &in6, port);
+	else if (inet_pton(AF_INET, host, &in4) == 1)
+		isc_sockaddr_fromin(sockaddr, &in4, port);
+	else {
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
 		result = getaddrinfo(host, NULL, NULL, &res);
 		if (result != 0) {
@@ -517,16 +517,16 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		isc_sockaddr_setport(sockaddr, port);
 		freeaddrinfo(res);
 #else
-                he = gethostbyname(host);
-                if (he == NULL)
-                     fatal("Couldn't look up your server host %s.  errno=%d",
-                              host, h_errno);
-                INSIST(he->h_addrtype == AF_INET);
-                isc_sockaddr_fromin(sockaddr,
-                                    (struct in_addr *)(he->h_addr_list[0]),
-                                    port);
+		he = gethostbyname(host);
+		if (he == NULL)
+		     fatal("Couldn't look up your server host %s.  errno=%d",
+			      host, h_errno);
+		INSIST(he->h_addrtype == AF_INET);
+		isc_sockaddr_fromin(sockaddr,
+				    (struct in_addr *)(he->h_addr_list[0]),
+				    port);
 #endif
-        }
+	}
 }
 
 static void
@@ -1600,26 +1600,26 @@ getinput(isc_task_t *task, isc_event_t *event) {
 
 int
 main(int argc, char **argv) {
-        isc_result_t result;
+	isc_result_t result;
 
 	input = stdin;
 
 	isc_app_start();
 
-        parse_args(argc, argv);
+	parse_args(argc, argv);
 
-        setup_system();
+	setup_system();
 
 	result = isc_app_onrun(mctx, global_task, getinput, NULL);
 	check_result(result, "isc_app_onrun");
 
 	(void)isc_app_run();
 
-        cleanup();
+	cleanup();
 
 	isc_app_finish();
 
-        if (seenerror)
+	if (seenerror)
 		return (2);
 	else
 		return (0);

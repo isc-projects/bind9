@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.86 2000/12/05 18:53:43 bwelling Exp $ */
+/* $Id: validator.c,v 1.87 2000/12/11 19:24:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1644,7 +1644,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 static void
 validator_log(dns_validator_t *val, int level, const char *fmt, ...)
 {
-        va_list ap;
+	va_list ap;
 
 	if (! isc_log_wouldlog(dns_lctx, level))
 		return;

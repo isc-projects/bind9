@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.83 2000/12/04 06:31:41 gson Exp $ */
+/* $Id: xfrout.c,v 1.84 2000/12/11 19:19:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1045,7 +1045,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		 */
 		if (DNS_SERIAL_GE(begin_serial, current_serial) ||
 		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
-	        {
+		{
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
 			goto have_stream;
 		}
@@ -1607,7 +1607,7 @@ static void
 xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
 	    const char *fmt, ...)
 {
-        va_list ap;
+	va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(client, zonename, level, fmt, ap);
 	va_end(ap);
@@ -1618,7 +1618,7 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename, int level,
  */
 static void
 xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...) {
-        va_list ap;
+	va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(xfr->client, xfr->qname, level, fmt, ap);
 	va_end(ap);

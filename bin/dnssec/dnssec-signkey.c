@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.44 2000/12/07 20:15:44 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.45 2000/12/11 19:15:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -430,12 +430,12 @@ main(int argc, char *argv[]) {
 
 	dns_rdata_freestruct(&sig);
 
-        while (!ISC_LIST_EMPTY(sigrdatalist.rdata)) {
-                rdata = ISC_LIST_HEAD(sigrdatalist.rdata);
-                ISC_LIST_UNLINK(sigrdatalist.rdata, rdata, link);
-                isc_mem_put(mctx, rdata->data, BUFSIZE);
-                isc_mem_put(mctx, rdata, sizeof *rdata);
-        }
+	while (!ISC_LIST_EMPTY(sigrdatalist.rdata)) {
+		rdata = ISC_LIST_HEAD(sigrdatalist.rdata);
+		ISC_LIST_UNLINK(sigrdatalist.rdata, rdata, link);
+		isc_mem_put(mctx, rdata->data, BUFSIZE);
+		isc_mem_put(mctx, rdata, sizeof *rdata);
+	}
 
 	dns_db_detach(&db);
 
@@ -448,7 +448,7 @@ main(int argc, char *argv[]) {
 
 	cleanup_logging(&log);
 
-        isc_mem_free(mctx, output);
+	isc_mem_free(mctx, output);
 	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)

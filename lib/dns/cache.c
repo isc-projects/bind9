@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.30 2000/08/31 12:15:08 marka Exp $ */
+/* $Id: cache.c,v 1.31 2000/12/11 19:24:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -55,10 +55,10 @@ typedef enum {
  * Convenience macros for comprehensive assertion checking.
  */
 #define CLEANER_IDLE(c) ((c)->state == cleaner_s_idle && \
-		         (c)->iterator == NULL && \
+			 (c)->iterator == NULL && \
 			 (c)->resched_event != NULL)
 #define CLEANER_BUSY(c) ((c)->state == cleaner_s_busy && \
-		         (c)->iterator != NULL && \
+			 (c)->iterator != NULL && \
 			 (c)->resched_event == NULL)
 
 struct cache_cleaner {
@@ -343,7 +343,7 @@ static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner)
 {
-        isc_result_t result;
+	isc_result_t result;
 
 	cleaner->increment = 100;
 	cleaner->state = cleaner_s_idle;

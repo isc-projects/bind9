@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.163 2000/12/02 05:28:05 gson Exp $ */
+/* $Id: message.c,v 1.164 2000/12/11 19:24:13 bwelling Exp $ */
 
 /***
  *** Imports
@@ -56,10 +56,10 @@
 				 && ((s) < DNS_SECTION_MAX))
 #define VALID_SECTION(s)	(((s) >= DNS_SECTION_ANY) \
 				 && ((s) < DNS_SECTION_MAX))
-#define ADD_STRING(b, s)        {if (strlen(s) >= \
-                                   isc_buffer_availablelength(b)) \
-                                       return(ISC_R_NOSPACE); else \
-                                       isc_buffer_putstr(b, s);}
+#define ADD_STRING(b, s)	{if (strlen(s) >= \
+				   isc_buffer_availablelength(b)) \
+				       return(ISC_R_NOSPACE); else \
+				       isc_buffer_putstr(b, s);}
 #define VALID_PSEUDOSECTION(s)	(((s) >= DNS_PSEUDOSECTION_ANY) \
 				 && ((s) < DNS_PSEUDOSECTION_MAX))
 
