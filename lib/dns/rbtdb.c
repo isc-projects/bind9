@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.13 2004/05/05 01:32:17 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.14 2004/05/14 01:16:08 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3178,6 +3178,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	dns_rbtnode_t *node = (dns_rbtnode_t *)source;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	LOCK(&rbtdb->node_locks[node->locknum].lock);
 	INSIST(node->references > 0);
@@ -4093,8 +4094,10 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	noqname = isc_mem_get(mctx, sizeof(*noqname));
-	if (noqname == NULL)
-		return (ISC_R_NOMEMORY);
+	if (noqname == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
 	dns_name_init(&noqname->name, NULL);
 	noqname->nsec = NULL;
 	noqname->nsecsig = NULL;
@@ -4115,6 +4118,8 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	return (ISC_R_SUCCESS);
 
 cleanup:
+	dns_rdataset_disassociate(&nsec);
+	dns_rdataset_disassociate(&nsecsig);
 	free_noqname(mctx, &noqname);
 	return(result);
 }
@@ -4957,7 +4962,7 @@ static void
 rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_db_t *db = source->private1;
 	dns_dbnode_t *node = source->private2;
-	dns_dbnode_t *cloned_node;
+	dns_dbnode_t *cloned_node = NULL;
 
 	attachnode(db, node, &cloned_node);
 	*target = *source;
@@ -4988,9 +4993,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_dbnode_t *cloned_node;
 	struct noqname *noqname = rdataset->private6;
 
+	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
-	attachnode(db, node, &cloned_node);
-
 	nsec->methods = &rdataset_methods;
 	nsec->rdclass = db->rdclass;
 	nsec->type = dns_rdatatype_nsec;
@@ -5004,6 +5008,8 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	nsec->private5 = NULL;
 	nsec->private6 = NULL;
 
+	cloned_node = NULL;
+	attachnode(db, node, &cloned_node);
 	nsecsig->methods = &rdataset_methods;
 	nsecsig->rdclass = db->rdclass;
 	nsecsig->type = dns_rdatatype_rrsig;
@@ -5021,7 +5027,6 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 
 	return (ISC_R_SUCCESS);
 }
-
 
 /*
  * Rdataset Iterator Methods
