@@ -517,10 +517,10 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		CHECK(dns_resolver_setforwarders(view->resolver, &addresses));
 		/*
 		 * XXXRTH  The configuration type 'dns_c_forw_t' should be
-		 *         elminated.
+		 *         eliminated.
 		 */
 		if ((cview != NULL &&
-		    dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
+		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
 		    (dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)) {
 			INSIST(forward == dns_c_forw_first ||
 			       forward == dns_c_forw_only);
