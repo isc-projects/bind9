@@ -13,14 +13,14 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.23.18.2 2004/04/07 00:58:09 marka Exp $
+.\" $Id: dig.1,v 1.23.18.3 2004/04/13 12:17:09 marka Exp $
 .\"
 .TH "DIG" "1" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 dig \- DNS lookup utility
 .SH SYNOPSIS
 .sp
-\fBdig\fR [ \fB@server\fR ]  [ \fB-b \fIaddress\fB\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-f \fIfilename\fB\fR ]  [ \fB-k \fIfilename\fB\fR ]  [ \fB-p \fIport#\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-x \fIaddr\fB\fR ]  [ \fB-y \fIname:key\fB\fR ]  [ \fBname\fR ]  [ \fBtype\fR ]  [ \fBclass\fR ]  [ \fBqueryopt\fR\fI...\fR ] 
+\fBdig\fR [ \fB@server\fR ]  [ \fB-b \fIaddress\fB\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-f \fIfilename\fB\fR ]  [ \fB-k \fIfilename\fB\fR ]  [ \fB-p \fIport#\fB\fR ]  [ \fB-t \fItype\fB\fR ]  [ \fB-x \fIaddr\fB\fR ]  [ \fB-y \fIname:key\fB\fR ]  [ \fB-4\fR ]  [ \fB-6\fR ]  [ \fBname\fR ]  [ \fBtype\fR ]  [ \fBclass\fR ]  [ \fBqueryopt\fR\fI...\fR ] 
 .sp
 \fBdig\fR [ \fB-h\fR ] 
 .sp
@@ -107,6 +107,10 @@ the port number that \fBdig\fR will send its queries
 instead of the standard DNS port number 53. This option would be used
 to test a name server that has been configured to listen for queries
 on a non-standard port number.
+.PP
+The \fB-4\fR option forces \fBdig\fR to only
+use IPv4 query transport. The \fB-6\fR option forces
+\fBdig\fR to only use IPv6 query transport.
 .PP
 The \fB-t\fR option sets the query type to
 \fItype\fR. It can be any valid query type which is
@@ -333,6 +337,18 @@ The default is to not display malformed answers.
 \fB+[no]dnssec\fR
 Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
 in the OPT record in the additional section of the query.
+.TP
+\fB+[no]sigchase\fR
+Chase DNSSEC signature chains. Requires dig be compiled with
+-DDIG_SIGCHASE.
+.TP
+\fB+trusted-key=####\fR
+Specify a trusted key to be used with \fB+sigchase\fR.
+Requires dig be compiled with -DDIG_SIGCHASE.
+.TP
+\fB+[no]topdown\fR
+When chasing DNSSEC signature chains perform a top down validation.
+Requires dig be compiled with -DDIG_SIGCHASE.
 .SH "MULTIPLE QUERIES"
 .PP
 The BIND 9 implementation of \fBdig \fR supports

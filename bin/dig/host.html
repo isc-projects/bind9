@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.html,v 1.7.18.2 2004/04/07 00:58:10 marka Exp $ -->
+<!-- $Id: host.html,v 1.7.18.3 2004/04/13 12:17:09 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -99,12 +99,18 @@ CLASS="REPLACEABLE"
 >wait</I
 ></TT
 ></TT
+>] [<TT
+CLASS="OPTION"
+>-4</TT
+>] [<TT
+CLASS="OPTION"
+>-6</TT
 >] {name} [server]</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN33"
+NAME="AEN37"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -337,6 +343,22 @@ require it, such as zone transfer (AXFR) requests.</P
 ><P
 >The <TT
 CLASS="OPTION"
+>-4</TT
+> option forces <B
+CLASS="COMMAND"
+>host</B
+> to only
+use IPv4 query transport.  The <TT
+CLASS="OPTION"
+>-6</TT
+> option forces
+<B
+CLASS="COMMAND"
+>host</B
+> to only use IPv6 query transport.</P
+><P
+>The <TT
+CLASS="OPTION"
 >-t</TT
 > option is used to select the query type.
 <TT
@@ -410,7 +432,7 @@ value for an integer quantity.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN106"
+NAME="AEN115"
 ></A
 ><H2
 >FILES</H2
@@ -423,7 +445,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN110"
+NAME="AEN119"
 ></A
 ><H2
 >SEE ALSO</H2
