@@ -8,7 +8,7 @@
 #include <errno.h>
 
 #include <isc/assertions.h>
-#include <isc/unexpect.h>
+#include <isc/error.h>
 #include <isc/time.h>
 
 /***

@@ -23,7 +23,7 @@
 
 #include "attribute.h"
 #include <isc/assertions.h>
-#include <isc/unexpect.h>
+#include <isc/error.h>
 
 #include <isc/memcluster.h>
 
@@ -32,7 +32,7 @@
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.8 1998/11/11 19:02:24 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.9 1998/12/04 20:00:13 halley Exp $";
 #endif /* not lint */
 
 /*

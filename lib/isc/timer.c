@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
-#include <isc/unexpect.h>
+#include <isc/error.h>
 #include <isc/thread.h>
 #include <isc/mutex.h>
 #include <isc/condition.h>

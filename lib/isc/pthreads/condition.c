@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <isc/condition.h>
-#include <isc/unexpect.h>
+#include <isc/error.h>
 
 isc_result_t
 isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t t)

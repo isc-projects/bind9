@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include <isc/assertions.h>
-#include <isc/unexpect.h>
+#include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/rwlock.h>
 

@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.15 1998/12/04 11:21:10 explorer Exp $ */
+/* $Id: socket.c,v 1.16 1998/12/04 20:00:16 halley Exp $ */
 
 #include "attribute.h"
 
@@ -13,8 +13,7 @@
 #include <sys/socket.h>
 
 #include <isc/assertions.h>
-#include <isc/unexpect.h>
-#include <isc/fatal.h>
+#include <isc/error.h>
 #include <isc/thread.h>
 #include <isc/mutex.h>
 #include <isc/condition.h>
