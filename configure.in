@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.247 $)
+AC_REVISION($Revision: 1.248 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -378,22 +378,72 @@ esac
 #
 # First, decide whether to use multithreading or not.
 #
-AC_MSG_CHECKING(whether to look for thread support)
+# Enable multithreading by default on systems where it is known
+# to work well, and where debugging of multithreaded programs
+# is supported.
+#
+
+AC_MSG_CHECKING(whether to build with thread support)
+
+case $host in
+*-dec-osf*)
+	use_threads=true ;;
+*-solaris-2.[0-6])
+	# Thread signals are broken on Solaris 2.6; they are sometimes
+	# delivered to the wrong thread.
+	use_threads=false ;;
+*-solaris-2.*)
+	use_threads=true ;;
+*-ibm-aix*)
+	use_threads=true ;;
+*-UnixWare*)
+	use_threads=false ;;
+*-netbsd*)
+	# Socket I/O optimizations introduced in 9.2 expose a
+	# bug in unproven-pthreads; see PR #12650
+	use_threads=false ;;
+*-openbsd*)
+	# OpenBSD userss have reported that named dumps core on
+	# startup when built with threads.
+	use_threads=false ;;
+*-freebsd*)
+	use_threads=false ;;
+*-bsdi*)
+	# Thread signals do not appear to work reliably on BSDI.
+	use_threads=false ;;
+*-linux*)
+   	# Threads are disabled on Linux by default because most
+	# Linux kernels produce unusable core dumps from multithreaded
+	# programs, and because of limitations in setuid().
+	# and problems with the -u option.
+	use_threads=false ;;	
+*)
+	use_threads=false ;;
+esac
+
 AC_ARG_ENABLE(threads,
-	[  --disable-threads	disable multithreading])
+	[  --enable-threads	enable multithreading])
 case "$enable_threads" in
-	yes|'')
-		AC_MSG_RESULT(yes)
+	yes)
 		use_threads=true
 		;;
 	no)
-		AC_MSG_RESULT(no)	
 		use_threads=false
+		;;
+	'')
+		# Use system-dependent default
 		;;
 	*)
 	    	AC_MSG_ERROR([--enable-threads takes yes or no])
 		;;
 esac
+
+if $use_threads
+then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)	
+fi
 
 if $use_threads
 then
@@ -428,7 +478,7 @@ then
 			if test ! -d $LOCALBASE/pthreads
 			then
 				AC_MSG_RESULT(none)
-				use_threads=false
+				AC_MSG_ERROR("could not find thread libraries")
 			fi
 
 			if $use_threads
@@ -449,7 +499,7 @@ then
 				AC_CHECK_LIB(pthread, __pthread_create_system,,
 				AC_CHECK_LIB(c_r, pthread_create,,
 				AC_CHECK_LIB(c, pthread_create,,
-				use_threads=false)))))
+				AC_MSG_ERROR("could not find thread libraries"))))))
 		;;
 	esac
 fi
