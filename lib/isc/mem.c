@@ -25,8 +25,13 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
+#include "util.h"
+#else
+#define LOCK(ctx)
+#define UNLOCK(ctx)
 #endif
 
 /*
@@ -51,7 +56,13 @@ struct stats {
 	unsigned long		freefrags;
 };
 
+#define MEM_MAGIC			0x4D656d43U	/* MemC. */
+#define VALID_CONTEXT(c)		((c) != NULL && \
+					 (c)->magic == MEM_MAGIC)
+
 struct isc_memctx {
+	unsigned int		magic;
+	isc_mutex_t		lock;
 	size_t			max_size;
 	size_t			mem_target;
 	element **		freelists;
@@ -62,30 +73,19 @@ struct isc_memctx {
 	unsigned char *		lowest;
 	unsigned char *		highest;
 	struct stats *		stats;
-	isc_mutex_t		mutex;
 };
 
 /* Forward. */
 
 static size_t			quantize(size_t);
 
-/* Macros. */
+/* Constants. */
 
 #define DEF_MAX_SIZE		1100
 #define DEF_MEM_TARGET		4096
 #define ALIGNMENT_SIZE		sizeof (void *)
 #define NUM_BASIC_BLOCKS	64			/* must be > 1 */
 #define TABLE_INCREMENT		1024
-
-#ifndef ISC_SINGLETHREADED
-#define LOCK_CONTEXT(ctx) \
-	INSIST(isc_mutex_lock(&(ctx)->mutex) == ISC_R_SUCCESS)
-#define UNLOCK_CONTEXT(ctx) \
-	INSIST(isc_mutex_unlock(&(ctx)->mutex) == ISC_R_SUCCESS)
-#else
-#define LOCK_CONTEXT(ctx)
-#define UNLOCK_CONTEXT(ctx)
-#endif
 
 /* Private Inline-able. */
 
@@ -148,7 +148,7 @@ isc_memctx_create(size_t init_max_size, size_t target_size,
 	ctx->basic_table_size = 0;
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
-	if (isc_mutex_init(&ctx->mutex) != ISC_R_SUCCESS) {
+	if (isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
 		free(ctx->stats);
 		free(ctx->freelists);
 		free(ctx);
@@ -156,6 +156,7 @@ isc_memctx_create(size_t init_max_size, size_t target_size,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	ctx->magic = MEM_MAGIC;
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
 }
@@ -166,8 +167,10 @@ isc_memctx_destroy(isc_memctx_t *ctxp) {
 	isc_memctx_t ctx;
 
 	REQUIRE(ctxp != NULL);
-
 	ctx = *ctxp;
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	ctx->magic = 0;
 
 	for (i = 0; i <= ctx->max_size; i++)
 		INSIST(ctx->stats[i].gets == 0);
@@ -177,7 +180,7 @@ isc_memctx_destroy(isc_memctx_t *ctxp) {
 	free(ctx->freelists);
 	free(ctx->stats);
 	free(ctx->basic_table);
-	(void)isc_mutex_destroy(&ctx->mutex);
+	(void)isc_mutex_destroy(&ctx->lock);
 	free(ctx);
 
 	*ctxp = NULL;
@@ -242,8 +245,8 @@ __isc_mem_get(isc_memctx_t ctx, size_t size) {
 	void *ret;
 
 	REQUIRE(size > 0);
-
-	LOCK_CONTEXT(ctx);
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
 
 	if (size >= ctx->max_size || new_size >= ctx->max_size) {
 		/* memget() was called on something beyond our upper limit. */
@@ -307,7 +310,7 @@ __isc_mem_get(isc_memctx_t ctx, size_t size) {
 	ctx->stats[new_size].freefrags--;
 
  done:
-	UNLOCK_CONTEXT(ctx);
+	UNLOCK(&ctx->lock);
 
 	return (ret);
 }
@@ -321,8 +324,8 @@ __isc_mem_put(isc_memctx_t ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
 	REQUIRE(size > 0);
-
-	LOCK_CONTEXT(ctx);
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
 
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
 		/* memput() called on something beyond our upper limit */
@@ -347,7 +350,7 @@ __isc_mem_put(isc_memctx_t ctx, void *mem, size_t size) {
 	ctx->stats[new_size].freefrags++;
 
  done:
-	UNLOCK_CONTEXT(ctx);
+	UNLOCK(&ctx->lock);
 }
 
 void *
@@ -376,7 +379,8 @@ void
 isc_mem_stats(isc_memctx_t ctx, FILE *out) {
 	size_t i;
 
-	LOCK_CONTEXT(ctx);
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
 
 	if (ctx->freelists == NULL)
 		return;
@@ -394,7 +398,7 @@ isc_mem_stats(isc_memctx_t ctx, FILE *out) {
 		fputc('\n', out);
 	}
 
-	UNLOCK_CONTEXT(ctx);
+	UNLOCK(&ctx->lock);
 }
 
 isc_boolean_t
@@ -402,12 +406,13 @@ isc_mem_valid(isc_memctx_t ctx, void *ptr) {
 	unsigned char *cp = ptr;
 	isc_boolean_t result = ISC_FALSE;
 
-	LOCK_CONTEXT(ctx);
+	REQUIRE(VALID_CONTEXT(ctx));
+	LOCK(&ctx->lock);
 
 	if (ctx->lowest != NULL && cp >= ctx->lowest && cp <= ctx->highest)
 		result = ISC_TRUE;
 
-	UNLOCK_CONTEXT(ctx);
+	UNLOCK(&ctx->lock);
 
 	return (result);
 }
