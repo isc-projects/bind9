@@ -557,10 +557,15 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		result = dns_db_find(view->hints, name, NULL, type, options,
 				     now, NULL, foundname,
 				     rdataset, sigrdataset);
-		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE)
+		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE) {
+			/*
+			 * We just used a hint.  Let the resolver know it
+			 * should consider priming.
+			 */
+			dns_resolver_prime(view->resolver);
 			result = DNS_R_HINT;
-		else if (result == DNS_R_NXDOMAIN ||
-			 result == DNS_R_NXRDATASET)
+		} else if (result == DNS_R_NXDOMAIN ||
+			   result == DNS_R_NXRDATASET)
 			result = DNS_R_NOTFOUND;
 	}
 

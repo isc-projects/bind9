@@ -227,6 +227,8 @@ struct dns_resolver {
 	isc_boolean_t			exiting;
 	isc_eventlist_t			whenshutdown;
 	unsigned int			activebuckets;
+	isc_boolean_t			priming;
+	dns_fetch_t *			primefetch;
 };
 
 #define RES_MAGIC			0x52657321U	/* Res! */
@@ -3320,6 +3322,8 @@ destroy(dns_resolver_t *res) {
 	unsigned int i;
 
 	REQUIRE(res->references == 0);
+	REQUIRE(!res->priming);
+	REQUIRE(res->primefetch == NULL);
 
 	RTRACE("destroy");
 
@@ -3497,6 +3501,8 @@ dns_resolver_create(dns_view_t *view,
 	res->exiting = ISC_FALSE;
 	res->frozen = ISC_FALSE;
 	ISC_LIST_INIT(res->whenshutdown);
+	res->priming = ISC_FALSE;
+	res->primefetch = NULL;
 
 	result = isc_mutex_init(&res->lock);
 	if (result != ISC_R_SUCCESS)
@@ -3586,6 +3592,110 @@ dns_resolver_setfwdpolicy(dns_resolver_t *res, dns_fwdpolicy_t fwdpolicy) {
 	res->fwdpolicy = fwdpolicy;
 
 	return (ISC_R_SUCCESS);
+}
+
+static void
+prime_done(isc_task_t *task, isc_event_t *event) {
+	dns_resolver_t *res;
+	dns_fetchevent_t *fevent;
+	dns_fetch_t *fetch;
+
+	REQUIRE(event->type == DNS_EVENT_FETCHDONE);
+	fevent = (dns_fetchevent_t *)event;
+	res = event->arg;
+	REQUIRE(VALID_RESOLVER(res));
+
+	(void)task;
+
+	LOCK(&res->lock);
+
+	INSIST(res->priming);
+	res->priming = ISC_FALSE;
+	fetch = res->primefetch;
+	res->primefetch = NULL;
+
+	UNLOCK(&res->lock);
+
+	if (fevent->node != NULL)
+		dns_db_detachnode(fevent->db, &fevent->node);
+	if (fevent->db != NULL)
+		dns_db_detach(&fevent->db);
+	if (dns_rdataset_isassociated(fevent->rdataset))
+		dns_rdataset_disassociate(fevent->rdataset);
+	INSIST(fevent->sigrdataset == NULL);
+
+	isc_mem_put(res->mctx, fevent->rdataset, sizeof *fevent->rdataset);
+
+	isc_event_free(&event);
+	dns_resolver_destroyfetch(&fetch);
+}
+	
+void
+dns_resolver_prime(dns_resolver_t *res) {
+	isc_boolean_t want_priming = ISC_FALSE;
+	dns_fetch_t *fetch;
+	dns_rdataset_t *rdataset;
+	isc_result_t result;
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->frozen);
+
+	RTRACE("dns_resolver_prime");
+
+	/*
+	 * Forwarding-only resolvers don't need to be
+	 * primed.
+	 */
+	if (res->fwdpolicy == dns_fwdpolicy_only)
+		return;
+
+	LOCK(&res->lock);
+	
+	if (!res->exiting && !res->priming) {
+		INSIST(res->primefetch == NULL);
+		res->priming = ISC_TRUE;
+		want_priming = ISC_TRUE;
+	}
+
+	UNLOCK(&res->lock);
+
+	if (want_priming) {
+		/*
+		 * To avoid any possible recursive locking problems, we
+		 * start the priming fetch like any other fetch, and holding
+		 * no resolver locks.  No one else will try to start it
+		 * because we're the ones who set res->priming to true.
+		 * Any other callers of dns_resolver_prime() while we're
+		 * running will see that res->priming is already true and
+		 * do nothing.
+		 */
+		RTRACE("priming");
+		rdataset = isc_mem_get(res->mctx, sizeof *rdataset);
+		if (rdataset == NULL) {
+			LOCK(&res->lock);
+			INSIST(res->priming);
+			INSIST(res->primefetch == NULL);
+			res->priming = ISC_FALSE;
+			UNLOCK(&res->lock);
+			return;
+		}
+		dns_rdataset_init(rdataset);
+		fetch = NULL;
+		result = dns_resolver_createfetch(res, dns_rootname,
+						  dns_rdatatype_ns,
+						  NULL, NULL, NULL, 0,
+						  res->buckets[0].task,
+						  prime_done,
+						  res, rdataset, NULL, &fetch);
+		LOCK(&res->lock);
+		INSIST(res->priming);
+		INSIST(res->primefetch == NULL);
+		if (result == ISC_R_SUCCESS)
+			res->primefetch = fetch;
+		else
+			res->priming = ISC_FALSE;
+		UNLOCK(&res->lock);
+	}
 }
 
 void

@@ -190,6 +190,24 @@ dns_resolver_freeze(dns_resolver_t *res);
  */
 
 void
+dns_resolver_prime(dns_resolver_t *res);
+/*
+ * Prime resolver.
+ *
+ * Notes:
+ *
+ *	Resolvers which have a forwarding policy other than dns_fwdpolicy_only
+ *	need to be primed with the root nameservers, otherwise the root
+ *	nameserver hints data may be used indefinitely.  This function requests
+ *	that the resolver start a priming fetch, if it isn't already priming.
+ *
+ * Requires:
+ *
+ *	'res' is a valid, frozen resolver.
+ */
+
+
+void
 dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 			  isc_event_t **eventp);
 /*
