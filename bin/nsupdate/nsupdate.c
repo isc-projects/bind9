@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.18 2000/06/30 18:59:21 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.19 2000/06/30 21:47:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,9 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 #include <dst/dst.h>
+
+#include <lwres/lwres.h>
+#include <lwres/net.h>
 
 #include <ctype.h>
 #include <netdb.h>
@@ -91,12 +94,10 @@ static dns_name_t *current_zone; /* Points to one of above, or dns_rootname */
 static dns_name_t *master = NULL; /* Master nameserver, from SOA query */
 static dns_tsigkey_t *key = NULL;
 static dns_tsig_keyring_t *keyring = NULL;
+static lwres_context_t *lwctx = NULL;
+static lwres_conf_t *lwconf;
 
-static char nameservername[3][MXNAME];
-static int nameservers;
 static int ns_inuse = 0;
-static unsigned int ndots = 1;
-static char *domain = NULL;
 static char *keystr = NULL;
 static isc_entropy_t *entp = NULL;
 
@@ -149,72 +150,14 @@ check_result(isc_result_t result, const char *msg) {
 		fatal("%s: %s", msg, isc_result_totext(result));
 }
 
-/*
- * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
- */
-static int
-eatline(FILE *fp) {
-	int ch;
-
-	ch = fgetc(fp);
-	while (ch != '\n' && ch != EOF)
-		ch = fgetc(fp);
-	return (ch);
+static void *
+mem_alloc(void *arg, size_t size) {
+	return (isc_mem_get(arg, size));
 }
 
-/*
- * Eats white space up to next newline or non-whitespace character (of
- * EOF). Returns the last character read. Comments are considered white
- * space.
- */
-static int
-eatwhite(FILE *fp) {
-	int ch;
-
-	ch = fgetc(fp);
-	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch))
-		ch = fgetc(fp);
-
-	if (ch == ';' || ch == '#')
-		ch = eatline(fp);
-
-	return (ch);
-}
-
-/*
- * Skip over any leading whitespace and then read in the next sequence of
- * non-whitespace characters. In this context newline is not considered
- * whitespace. Returns EOF on end-of-file, or the character
- * that caused the reading to stop.
- */
-static int
-getword(FILE *fp, char *buffer, size_t size) {
-	int ch;
-	char *p = buffer;
-
-	REQUIRE(buffer != NULL);
-	REQUIRE(size > 0);
-
-	*p = '\0';
-
-	ch = eatwhite(fp);
-
-	if (ch == EOF)
-		return (EOF);
-
-	do {
-		*p = '\0';
-
-		if (ch == EOF || isspace((unsigned char)ch))
-			break;
-		else if ((size_t) (p - buffer) == size - 1)
-			return (EOF);   /* Not enough space. */
-
-		*p++ = (char)ch;
-		ch = fgetc(fp);
-	} while (1);
-
-	return (ch);
+static void
+mem_free(void *arg, void *mem, size_t size) {
+	isc_mem_put(arg, mem, size);
 }
 
 static char *
@@ -266,76 +209,6 @@ count_dots(char *s, isc_boolean_t *last_was_dot) {
 }
 
 static void
-load_resolv_conf(void) {
-	FILE *fp;
-	char word[256];
-	int stopchar, delim;
-
-	ddebug ("load_resolv_conf()");
-	fp = fopen (RESOLV_CONF, "r");
-	if (fp == NULL)
-		return;
-	do {
-		stopchar = getword(fp, word, sizeof(word));
-		if (stopchar == EOF)
-			break;
-		if (strcmp(word, "nameserver") == 0) {
-			ddebug ("Got a nameserver line");
-			if (nameservers >= 3) {
-				stopchar = eatline(fp);
-				if (stopchar == EOF)
-					break;
-				continue;
-			}
-			delim = getword(fp, word, sizeof(word));
-			if (strlen(word) == 0) {
-				stopchar = eatline(fp);
-				if (stopchar == EOF)
-					break;
-				continue;
-			}
-			strncpy(nameservername[nameservers], word, MXNAME);
-			nameservers++;
-		} else if (strcasecmp(word, "options") == 0) {
-			delim = getword(fp, word, sizeof(word));
-			if (strlen(word) == 0)
-				continue;
-			while (strlen(word) > 0) {
-				char *endp;
-				if (strncmp("ndots:", word, 6) == 0) {
-					ndots = strtol(word + 6, &endp, 10);
-					if (*endp != 0)
-						fatal("ndots is not numeric\n");
-					ddebug ("ndots is %d.", ndots);
-				}
-			}
-			if (delim == EOF || delim == '\n')
-				break;
-			else
-				delim = getword(fp, word, sizeof(word));
-		/* XXXMWS Searchlist not supported! */
-		} else if (strcasecmp(word, "domain") == 0 && domain == NULL) {
-			delim = getword(fp, word, sizeof(word));
-			if (strlen(word) == 0) {
-				stopchar = eatline(fp);
-				if (stopchar == EOF)
-					break;
-				continue;
-			}
-			domain = isc_mem_strdup(mctx, word);
-			if (domain == NULL)
-				fatal("out of memory");
-			strncpy(nameservername[nameservers], word, MXNAME);
-			nameservers++;
-		}
-		stopchar = eatline(fp);
-		if (stopchar == EOF)
-			break;
-	} while (ISC_TRUE);
-	fclose (fp);
-}	
-
-static void
 reset_system(void) {
 	isc_result_t result;
 
@@ -360,7 +233,7 @@ reset_system(void) {
 		isc_mem_put(mctx, master, sizeof(dns_name_t));
 		master = NULL;
 	}
-	if (domain != NULL) 
+	if (lwconf->domainname != NULL) 
 		current_zone = dns_fixedname_name(&resolvdomain);
 	else
 		current_zone = dns_rootname;
@@ -371,6 +244,7 @@ setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
 	isc_buffer_t buf;
+	lwres_result_t lwresult;
 
 	ddebug("setup_system()");
 
@@ -397,7 +271,15 @@ setup_system(void) {
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
 
-	load_resolv_conf();
+	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free, 1);
+	if (lwresult != LWRES_R_SUCCESS)
+		fatal("lwres_context_create failed");
+
+	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
+	if (lwresult != LWRES_R_SUCCESS)
+		fatal("lwres_conf_parse failed");
+
+	lwconf = lwres_conf_get(lwctx);
 
 	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
@@ -436,10 +318,11 @@ setup_system(void) {
 				       dispatchv4, NULL, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
-	if (domain != NULL) {
+	if (lwconf->domainname != NULL) {
 		dns_fixedname_init(&resolvdomain);
-		isc_buffer_init(&buf, domain, strlen(domain));
-		isc_buffer_add(&buf, strlen(domain));
+		isc_buffer_init(&buf, lwconf->domainname,
+				strlen(lwconf->domainname));
+		isc_buffer_add(&buf, strlen(lwconf->domainname));
 		result = dns_name_fromtext(dns_fixedname_name(&resolvdomain),
 					   &buf, dns_rootname, ISC_FALSE, NULL);
 		check_result(result, "dns_name_fromtext");
@@ -560,49 +443,99 @@ parse_args(int argc, char **argv) {
 }
 
 static isc_uint16_t
+parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
+	isc_result_t result;
+	char *word;
+	isc_buffer_t *namebuf = NULL;
+	isc_buffer_t source;
+	unsigned int dots;
+	isc_boolean_t last;
+	dns_name_t *rn = current_zone;
+
+	word = nsu_strsep(cmdlinep, " \t\r\n");
+	if (*word == 0) {
+		puts("failed to read owner name");
+		return (STATUS_SYNTAX);
+	}
+
+	result = dns_message_gettempname(msg, namep);
+	check_result(result, "dns_message_gettempname");
+	result = isc_buffer_allocate(mctx, &namebuf, NAMEBUF);
+	check_result(result, "isc_buffer_allocate");
+	dns_name_init(*namep, NULL);
+	dns_name_setbuffer(*namep, namebuf);
+	dns_message_takebuffer(msg, &namebuf);
+	isc_buffer_init(&source, word, strlen(word));
+	isc_buffer_add(&source, strlen(word));
+	dots = count_dots(word, &last);
+	if (dots > lwconf->ndots || last)
+		rn = dns_rootname;
+	result = dns_name_fromtext(*namep, &source, rn,
+				   ISC_FALSE, NULL);
+	check_result(result, "dns_name_fromtext");
+	isc_buffer_invalidate(&source);
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
+parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
+	    dns_rdatatype_t rdatatype, dns_message_t *msg, dns_rdata_t **rdatap)
+{
+	char *cmdline = *cmdlinep;
+	isc_buffer_t source, *buf = NULL;
+	isc_lex_t *lex = NULL;
+	dns_rdatacallbacks_t callbacks;
+	isc_result_t result;
+
+	while (*cmdline != 0 && isspace(*cmdline))
+		cmdline++;
+
+	if (*cmdline != 0) {
+		result = isc_lex_create(mctx, WORDLEN, &lex);
+		check_result(result, "isc_lex_create");	
+
+		isc_buffer_init(&source, cmdline, strlen(cmdline));
+		isc_buffer_add(&source, strlen(cmdline));
+		result = isc_lex_openbuffer(lex, &source);
+		check_result(result, "isc_lex_openbuffer");
+
+		result = isc_buffer_allocate(mctx, &buf, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		dns_rdatacallbacks_init_stdio(&callbacks);
+		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype, lex,
+					    current_zone, ISC_FALSE,
+					    buf, &callbacks);
+		dns_message_takebuffer(msg, &buf);
+		isc_lex_destroy(&lex);
+		if (result != ISC_R_SUCCESS)
+			return (STATUS_MORE);
+	}
+	*cmdlinep = cmdline;
+	return (STATUS_MORE);
+}
+
+static isc_uint16_t
 make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	isc_result_t result;
 	char *word;
 	dns_name_t *name = NULL;
-	isc_buffer_t *namebuf = NULL;
-	isc_buffer_t source;
 	isc_textregion_t region;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
 	dns_rdata_t *rdata = NULL;
-	dns_name_t *rn = current_zone;
-	unsigned int dots;
-	isc_boolean_t last;
+	isc_uint16_t retval;
 
 	ddebug ("make_prereq()");
 
 	/*
 	 * Read the owner name
 	 */
-	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
-		puts("failed to read owner name");
-		return (STATUS_SYNTAX);
-	}
+	retval = parse_name(&cmdline, updatemsg, &name);
+	if (retval != STATUS_MORE)
+		return (retval);
 
-	result = dns_message_gettempname(updatemsg, &name);
-	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(mctx, &namebuf, NAMEBUF);
-	check_result(result, "isc_buffer_allocate");
-	dns_name_init(name, NULL);
-	dns_name_setbuffer(name, namebuf);
-	dns_message_takebuffer(updatemsg, &namebuf);
-	isc_buffer_init(&source, word, strlen(word));
-	isc_buffer_add(&source, strlen(word));
-	dots = count_dots(word, &last);
-	if (dots > ndots || last)
-		rn = dns_rootname;
-	result = dns_name_fromtext(name, &source, rn,
-				   ISC_FALSE, NULL);
-	check_result(result, "dns_name_fromtext");
-		
 	/*
 	 * If this is an rrset prereq, read the class or type.
 	 */
@@ -645,38 +578,10 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	rdata->length = 0;
 
 	if (isrrset && ispositive) {
-		while (*cmdline != 0 && isspace(*cmdline))
-			cmdline++;
-
-		if (*cmdline != 0) {
-			isc_lex_t *lex = NULL;
-			dns_rdatacallbacks_t callbacks;
-			isc_buffer_t *buf = NULL;
-
-			result = isc_lex_create(mctx, WORDLEN, &lex);
-			check_result(result, "isc_lex_create");	
-			isc_buffer_invalidate(&source);
-
-			isc_buffer_init(&source, cmdline, strlen(cmdline));
-			isc_buffer_add(&source, strlen(cmdline));
-			result = isc_lex_openbuffer(lex, &source);
-			check_result(result, "isc_lex_openbuffer");
-
-			result = isc_buffer_allocate(mctx, &buf, MXNAME);
-			check_result(result, "isc_buffer_allocate");
-			dns_rdatacallbacks_init_stdio(&callbacks);
-			result = dns_rdata_fromtext(rdata, rdataclass,
-						    rdatatype, lex,
-						    current_zone, ISC_FALSE,
-						    buf, &callbacks);
-			dns_message_takebuffer(updatemsg, &buf);
-			isc_lex_destroy(&lex);
-			if (result != ISC_R_SUCCESS) {
-				dns_message_puttempname(updatemsg, &name);
-				dns_message_puttemprdata(updatemsg, &rdata);
-				return (STATUS_MORE);
-			}
-		}
+		retval = parse_rdata(&cmdline, rdataclass, rdatatype,
+				     updatemsg, &rdata);
+		if (retval != STATUS_MORE)
+			return (retval);
 	}
 
 	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
@@ -753,51 +658,26 @@ evaluate_zone(char *cmdline) {
 static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
-	isc_lex_t *lex = NULL;
-	isc_buffer_t *buf = NULL;
-	isc_buffer_t *namebuf = NULL;
-	isc_buffer_t source;
 	dns_name_t *name = NULL;
 	isc_uint16_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
-	dns_rdatacallbacks_t callbacks;
 	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
-	dns_name_t *rn = current_zone;
 	char *endp;
-	unsigned int dots;
-	isc_boolean_t last;
+	isc_uint16_t retval;
 
 	ddebug ("update_addordelete()");
 
 	/*
 	 * Read the owner name
 	 */
-	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
-		puts ("failed to read owner name");
-		return (STATUS_SYNTAX);
-	}
-
-	result = dns_message_gettempname(updatemsg, &name);
-	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(mctx, &namebuf, NAMEBUF);
-	check_result(result, "isc_buffer_allocate");
-	dns_name_init(name, NULL);
-	dns_name_setbuffer(name, namebuf);
-	dns_message_takebuffer(updatemsg, &namebuf);
-	isc_buffer_init(&source, word, strlen(word));
-	isc_buffer_add(&source, strlen(word));
-	dots = count_dots(word, &last);
-	if (dots > ndots || last)
-		rn = dns_rootname;
-	result = dns_name_fromtext(name, &source, rn,
-				   ISC_FALSE, NULL);
-	check_result(result, "dns_name_fromtext");
+	retval = parse_name(&cmdline, updatemsg, &name);
+	if (retval != STATUS_MORE)
+		return (retval);
 
 	result = dns_message_gettemprdata(updatemsg, &rdata);
 	check_result(result, "dns_message_gettemprdata");
@@ -814,14 +694,12 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
 		if (*word == 0) {
 			puts ("failed to read owner ttl");
-			dns_message_puttempname(updatemsg, &name);
-			return (STATUS_SYNTAX);
+			goto failure;
 		}
 		ttl = strtol(word, &endp, 0);
 		if (*endp != 0) {
 			printf("ttl '%s' is not numeric\n", word);
-			dns_message_puttempname(updatemsg, &name);
-			return (STATUS_SYNTAX);
+			goto failure;
 		}
 	} else
 		ttl = 0;
@@ -836,9 +714,8 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			rdatatype = dns_rdatatype_any;
 			goto doneparsing;
 		} else {
-			puts ("failed to read class or type");
-			dns_message_puttempname(updatemsg, &name);
-			return (STATUS_SYNTAX);
+			puts("failed to read class or type");
+			goto failure;
 		}
 	}
 	region.base = word;
@@ -855,9 +732,8 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 				rdatatype = dns_rdatatype_any;
 				goto doneparsing;
 			} else {
-				puts ("failed to read type");
-				dns_message_puttempname(updatemsg, &name);
-				return (STATUS_SYNTAX);
+				puts("failed to read type");
+				goto failure;
 			}
 		}
 		region.base = word;
@@ -870,45 +746,22 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		check_result(result, "dns_rdatatype_fromtext");
 	}
 
-	while (*cmdline != 0 && isspace(*cmdline))
-		cmdline++;
+	retval = parse_rdata(&cmdline, rdataclass, rdatatype, updatemsg,
+			     &rdata);
+	if (retval != STATUS_MORE)
+		goto failure;
 
-	if (*cmdline == 0) {
-		if (isdelete) {
+	if (isdelete) {
+		if (rdata->length == 0)
 			rdataclass = dns_rdataclass_any;
-			goto doneparsing;
-		} else {
-			puts ("failed to read owner data");
-			dns_message_puttempname(updatemsg, &name);
-			return (STATUS_SYNTAX);
+		else
+			rdataclass = dns_rdataclass_none;
+	} else {
+		if (rdata->length == 0) {
+			puts("failed to read rdata");
+			goto failure;
 		}
 	}
-
-	result = isc_lex_create(mctx, WORDLEN, &lex);
-	check_result(result, "isc_lex_create");	
-	isc_buffer_invalidate(&source);
-
-	isc_buffer_init(&source, cmdline, strlen(cmdline));
-	isc_buffer_add(&source, strlen(cmdline));
-	result = isc_lex_openbuffer(lex, &source);
-	check_result(result, "isc_lex_openbuffer");
-
-	result = isc_buffer_allocate(mctx, &buf, MXNAME);
-	check_result(result, "isc_buffer_allocate");
-	dns_rdatacallbacks_init_stdio(&callbacks);
-	result = dns_rdata_fromtext(rdata, rdataclass, rdatatype,
-				    lex, current_zone, ISC_FALSE, buf,
-				    &callbacks);
-	dns_message_takebuffer(updatemsg, &buf);
-	isc_lex_destroy(&lex);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(updatemsg, &name);
-		dns_message_puttemprdata(updatemsg, &rdata);
-		return (STATUS_MORE);
-	}
-
-	if (isdelete)
-		rdataclass = dns_rdataclass_none;
 
  doneparsing:
 
@@ -929,6 +782,13 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
 	return (STATUS_MORE);
+
+ failure:
+	if (name != NULL)
+		dns_message_puttempname(updatemsg, &name);
+	if (rdata != NULL)
+		dns_message_puttemprdata(updatemsg, &rdata);
+	return (STATUS_SYNTAX);
 }
 
 static isc_uint16_t
@@ -1155,10 +1015,14 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	if (eresult != ISC_R_SUCCESS) {
+		char addrbuf[64];
+		(void) lwres_net_ntop(lwconf->nameservers[ns_inuse].family,
+				      lwconf->nameservers[ns_inuse].address,
+				      addrbuf, sizeof(addrbuf));
 		printf ("; Communication with %s failed: %s\n",
-			nameservername[ns_inuse], isc_result_totext(eresult));
+			addrbuf, isc_result_totext(eresult));
 		ns_inuse++;
-		if (ns_inuse >= nameservers)
+		if (ns_inuse >= lwconf->nsnext)
 			fatal ("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
@@ -1266,7 +1130,15 @@ sendrequest(int whichns, dns_message_t *msg, dns_request_t **request) {
 	isc_sockaddr_t sockaddr;
 	isc_result_t result;
 
-	get_address(nameservername[whichns], 53, &sockaddr);
+	if (lwconf->nameservers[whichns].family == LWRES_ADDRTYPE_V4) {
+		struct in_addr in4;
+		memcpy(&in4, lwconf->nameservers[whichns].address, 4);
+		isc_sockaddr_fromin(&sockaddr, &in4, 53);
+	} else {
+		struct in6_addr in6;
+		memcpy(&in6, lwconf->nameservers[whichns].address, 16);
+		isc_sockaddr_fromin6(&sockaddr, &in6, 53);
+	}
 	result = dns_request_create(requestmgr, msg, &sockaddr,
 				    0, NULL, FIND_TIMEOUT, global_task,
 				    find_completed, msg, request);
@@ -1347,10 +1219,6 @@ cleanup(void) {
 		isc_mem_put(mctx, master, sizeof(dns_name_t));
 		master = NULL;
 	}
-	if (domain != NULL) {
-		isc_mem_free(mctx, domain);
-		domain = NULL;
-	}
 	if (is_dst_up) {
 		debug ("Destroy DST lib");
 		dst_lib_destroy();
@@ -1360,6 +1228,8 @@ cleanup(void) {
 		debug ("Detach from entropy");
 		isc_entropy_detach(&entp);
 	}
+	lwres_conf_clear(lwctx);
+	lwres_context_destroy(&lwctx);
 		
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
