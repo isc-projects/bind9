@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: eventlib.c,v 1.5 2004/03/18 02:58:00 marka Exp $";
+static const char rcsid[] = "$Id: eventlib.c,v 1.6 2004/12/05 22:41:16 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -41,6 +41,8 @@ static const char rcsid[] = "$Id: eventlib.c,v 1.5 2004/03/18 02:58:00 marka Exp
 #include "eventlib_p.h"
 
 #include "port_after.h"
+
+int      __evOptMonoTime;
 
 /* Forward. */
 
