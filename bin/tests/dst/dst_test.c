@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>		/* XXX */
+
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/boolean.h>
