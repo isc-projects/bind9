@@ -36,7 +36,7 @@
  964.	[func]		Warn if data other than root server NS and A records
 			are found in the root hint file. [RT #1581, #1618]
 
- 963.	[bug]		bad ISC_LANG_ENDDECLS. [RT #1645]
+ 963.	[bug]		Bad ISC_LANG_ENDDECLS. [RT #1645]
 
  962.	[bug]		libbind: bad "#undef", don't attempt to install
 			non-existant nlist.h. [RT #1640]
