@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12.4.2 2003/02/17 07:05:08 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.3 2003/02/18 03:20:58 marka Exp $ */
 
 #include <config.h>
 
@@ -3523,6 +3523,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
 				if (type == dns_rdatatype_soa ||
 					   type == dns_rdatatype_nxt) {
 					/*
