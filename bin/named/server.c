@@ -97,6 +97,7 @@ typedef struct {
 } ns_load_t;
 
 static void fatal(char *msg, isc_result_t result);
+static void ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 /*
  * Configure 'view' according to 'cctx'.
@@ -717,6 +718,18 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		
 	CHECKFATAL(dns_rootns_create(mctx, &server->roothints),
 		   "setting up root hints");
+
+	CHECKFATAL(isc_mutex_init(&server->reload_event_lock),
+		   "initializing reload event lock");
+	server->reload_event =
+		isc_event_allocate(ns_g_mctx, server,
+				   NS_EVENT_RELOAD,
+				   ns_server_reload,
+				   server,
+				   sizeof(isc_event_t));
+	CHECKFATAL(server->reload_event == NULL ?
+		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
+		   "allocating reload event");
 	
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -742,6 +755,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
+	isc_event_free(&server->reload_event);
+	
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 
 	dns_zonemgr_destroy(&server->zonemgr);
@@ -774,4 +789,38 @@ fatal(char *msg, isc_result_t result)
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_CRITICAL, "exiting (due to fatal error)");
 	exit(1);
+}
+
+static void
+ns_server_reload(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	ns_server_t *server = (ns_server_t *) event->arg;
+	UNUSED(task);
+	
+	result = load_configuration(ns_g_conffile, server);
+	if (result != DNS_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "reloading configuration failed: %s",
+			      isc_result_totext(result));
+	}
+	result = load_zones(server, ISC_FALSE);
+	if (result != DNS_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "reloading zones failed: %s",
+			      isc_result_totext(result));
+	}
+	LOCK(&server->reload_event_lock);
+	INSIST(server->reload_event == NULL);
+	server->reload_event = event;
+	UNLOCK(&server->reload_event_lock);
+}
+
+void
+ns_server_reloadwanted(ns_server_t *server) {
+	LOCK(&server->reload_event_lock);
+	if (server->reload_event != NULL)
+		isc_task_send(server->task, &server->reload_event);
+	UNLOCK(&server->reload_event_lock);
 }

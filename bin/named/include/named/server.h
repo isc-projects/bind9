@@ -24,6 +24,9 @@
 
 #include <dns/types.h>
 
+#define NS_EVENTCLASS		ISC_EVENTCLASS(0x4E43)
+#define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
+
 /*
  * Name server state.  Better here than in lots of separate global variables.
  */
@@ -51,6 +54,9 @@ struct ns_server {
 	isc_rwlock_t		viewlock;
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		roothints;
+
+	isc_mutex_t		reload_event_lock;
+	isc_event_t *		reload_event;
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
@@ -72,7 +78,12 @@ ns_server_destroy(ns_server_t **serverp);
  */
 
 void
-ns_server_fatal(isc_logmodule_t *module, isc_boolean_t want_core,
-		const char *format, ...);
+ns_server_reloadwanted(ns_server_t *server);
+/*
+ * Inform a server that a reload is wanted.  This function
+ * may be called asynchronously, from outside the server's task.
+ * If a reload is already scheduled or in progress, the call
+ * is ignored.
+ */
 
 #endif /* NS_SERVER_H */

@@ -291,10 +291,7 @@ main(int argc, char *argv[]) {
 		result = isc_app_run();
 		
 		if (result == ISC_R_RELOAD) {
-			/*
-			 * XXXRTH  Replace this with something useful.	
-			 */
-			printf("reload requested\n");
+			ns_server_reloadwanted(ns_g_server);
 		} else if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_app_run(): %s",
