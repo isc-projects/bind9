@@ -2,9 +2,10 @@
 			dns_request_create() on a system without IPv6
 			support caused an assertion failure [RT #235].
 
-
  386.	[bug]		Missing strdup() of ACL name caused random
 			ACL matching failures [RT #228].
+
+ 380.	[bug]		nsupdate didn't work with IPv6.
 
 	--- 9.0.0rc2 released ---
 

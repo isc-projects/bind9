@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.4 2000/08/02 22:19:06 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.5 2000/08/14 23:49:09 gson Exp $ */
 
 #include <config.h>
 
@@ -89,6 +89,7 @@ static dns_requestmgr_t *requestmgr = NULL;
 static isc_socketmgr_t *socketmgr = NULL;
 static isc_timermgr_t *timermgr = NULL;
 static dns_dispatch_t *dispatchv4 = NULL;
+static dns_dispatch_t *dispatchv6 = NULL;
 static dns_message_t *updatemsg = NULL;
 static dns_fixedname_t resolvdomain; /* from resolv.conf's domain line */
 static dns_name_t *origin; /* Points to one of above, or dns_rootname */
@@ -350,9 +351,10 @@ setup_key() {
 static void
 setup_system(void) {
 	isc_result_t result;
-	isc_sockaddr_t bind_any;
+	isc_sockaddr_t bind_any, bind_any6;
 	isc_buffer_t buf;
 	lwres_result_t lwresult;
+	unsigned int attrs, attrmask;
 	int i;
 
 	ddebug("setup_system()");
@@ -369,10 +371,9 @@ setup_system(void) {
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
 
-	/* XXXMWS There isn't any actual V6 support in the code yet */
 	result = isc_net_probeipv6();
 	if (result == ISC_R_SUCCESS)
-		have_ipv6=ISC_TRUE;
+		have_ipv6 = ISC_TRUE;
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
@@ -384,7 +385,7 @@ setup_system(void) {
 	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
 	if (lwresult != LWRES_R_SUCCESS)
 		fprintf(stderr,
-			"An error was encountered in /etc/resolv.conf\n");
+			"An error was encountered in %s\n", RESOLV_CONF);
 
 	lwconf = lwres_conf_get(lwctx);
 
@@ -429,19 +430,33 @@ setup_system(void) {
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 
-	isc_sockaddr_any(&bind_any);
+	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
+	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
 
+	if (have_ipv6) {
+		attrs = DNS_DISPATCHATTR_UDP;
+		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+		attrs |= DNS_DISPATCHATTR_IPV6;
+		isc_sockaddr_any6(&bind_any6);
+		result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
+					     &bind_any6, PACKETSIZE,
+					     4, 2, 3, 5,
+					     attrs, attrmask, &dispatchv6);
+		check_result(result, "dns_dispatch_getudp (v6)");
+	}
+
+	attrs = DNS_DISPATCHATTR_UDP;
+	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+	attrs |= DNS_DISPATCHATTR_IPV4;
+	isc_sockaddr_any(&bind_any);
 	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
 				     &bind_any, PACKETSIZE, 4, 2, 3, 5,
-				     DNS_DISPATCHATTR_UDP |
-				     DNS_DISPATCHATTR_IPV4 |
-				     DNS_DISPATCHATTR_MAKEQUERY, 0,
-				     &dispatchv4);
-	check_result(result, "dns_dispatch_getudp");
+				     attrs, attrmask, &dispatchv4);
+	check_result(result, "dns_dispatch_getudp (v4)");
 
 	result = dns_requestmgr_create(mctx, timermgr,
 				       socketmgr, taskmgr, dispatchmgr,
-				       dispatchv4, NULL, &requestmgr);
+				       dispatchv4, dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
 	if (lwconf->domainname != NULL) {
@@ -466,7 +481,12 @@ static void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
         struct in_addr in4;
         struct in6_addr in6;
+#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+	struct addrinfo *res = NULL;
+	int result;
+#else
         struct hostent *he;
+#endif
 
         ddebug("get_address()");
         if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
@@ -474,6 +494,17 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
         else if (inet_pton(AF_INET, host, &in4) == 1)
                 isc_sockaddr_fromin(sockaddr, &in4, port);
         else {
+#if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
+		result = getaddrinfo(host, NULL, NULL, &res);
+		if (result != 0) {
+			fatal("Couldn't find server '%s': %s",
+			      host, gai_strerror(result));
+		}
+		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
+		sockaddr->length = res->ai_addrlen;
+		isc_sockaddr_setport(sockaddr, port);
+		freeaddrinfo(res);
+#else
                 he = gethostbyname(host);
                 if (he == NULL)
                      fatal("Couldn't look up your server host %s.  errno=%d",
@@ -482,6 +513,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
                 isc_sockaddr_fromin(sockaddr,
                                     (struct in_addr *)(he->h_addr_list[0]),
                                     port);
+#endif
         }
 }
 
@@ -1370,8 +1402,10 @@ cleanup(void) {
 	dns_requestmgr_shutdown(requestmgr);
 	dns_requestmgr_detach(&requestmgr);
 
-	ddebug("Freeing the dispatcher");
+	ddebug("Freeing the dispatchers");
 	dns_dispatch_detach(&dispatchv4);
+	if (have_ipv6)
+		dns_dispatch_detach(&dispatchv6);
 
 	ddebug("Shutting down dispatch manager");
 	dns_dispatchmgr_destroy(&dispatchmgr);
