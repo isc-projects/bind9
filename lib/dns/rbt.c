@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rbt.c,v 1.28 1999/03/18 21:20:46 tale Exp $ */
+/* $Id: rbt.c,v 1.29 1999/03/18 21:32:51 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -70,10 +70,16 @@ struct dns_rbtnodechain {
 	int			ancestor_count;
 	int			ancestor_maxitems;
 	/*
-	 * The maximum number of labels in a name is 128; need space for 127
-	 * to be able to store the down pointer history for the worst case.
+	 * The maximum number of labels in a name is 128; bitstrings mean
+	 * a conceptually very large number (which I have not bothered to
+	 * compute) of logical levels because splitting can potentially occur
+	 * at each bit.  However, DNSSEC restricts the number of "logical"
+	 * labels in a name to 255, meaning only 256 pointers are needed
+	 * in the worst case.
+	 *
+	 * XXX DCL something in here should probably check for the 255 limit.
 	 */
-	dns_rbtnode_t *		levels[127];
+	dns_rbtnode_t *		levels[256];
 	int			level_count;
 };
 
