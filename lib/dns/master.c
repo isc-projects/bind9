@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.109 2001/02/19 13:24:04 marka Exp $ */
+/* $Id: master.c,v 1.110 2001/02/21 03:53:11 marka Exp $ */
 
 #include <config.h>
 
@@ -133,8 +133,7 @@ struct dns_incctx {
 #define DNS_LCTX_VALID(lctx) ISC_MAGIC_VALID(lctx, DNS_LCTX_MAGIC)
 
 static isc_result_t
-pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx,
-	 dns_incctx_t **ictxp);
+pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx);
 
 static isc_result_t
 commit(dns_rdatacallbacks_t *, dns_loadctx_t *, rdatalist_head_t *,
@@ -735,7 +734,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs) {
 }
 
 static isc_result_t
-load(dns_loadctx_t **lctxp) {
+load(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
 	isc_uint32_t ttl_offset = 0;
@@ -771,14 +770,12 @@ load(dns_loadctx_t **lctxp) {
 	unsigned int loop_cnt = 0;
 	isc_mem_t *mctx;
 	dns_rdatacallbacks_t *callbacks;
-	dns_loadctx_t *lctx;
 	dns_incctx_t *ictx;
 	char *range = NULL;
 	char *lhs = NULL;
 	char *gtype = NULL;
 	char *rhs = NULL;
 
-	lctx = *lctxp;
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
 	mctx = lctx->mctx;
@@ -808,13 +805,12 @@ load(dns_loadctx_t **lctxp) {
 				WARNUNEXPECTEDEOF(lctx->lex);
 			/* Pop the include stack? */
 			if (ictx->parent != NULL) {
-				dns_incctx_t *parent;
-
 				COMMITALL;
-				parent = ictx->parent;
+				lctx->inc = ictx->parent;
 				ictx->parent = NULL;
 				incctx_destroy(lctx->mctx, ictx);
-				ictx = parent;
+				isc_lex_close(lctx->lex);
+				ictx = lctx->inc;
 				EXPECTEOL;
 				continue;
 			}
@@ -918,15 +914,14 @@ load(dns_loadctx_t **lctxp) {
 					 * No origin field.
 					 */
 					result = pushfile(include_file,
-							  ictx->origin,
-							  lctx, &ictx);
+							  ictx->origin, lctx);
 					if (MANYERRS(lctx, result)) {
 						SETRESULT(lctx, result);
 						LOGIT(result);
 						continue;
 					} else if (result != ISC_R_SUCCESS)
 						goto log_and_cleanup;
-					lctx = *lctxp;
+					ictx = lctx->inc;
 					continue;
 				}
 				/*
@@ -1101,15 +1096,14 @@ load(dns_loadctx_t **lctxp) {
 			}
 			if (finish_include) {
 				finish_include = ISC_FALSE;
-				result = pushfile(include_file, 
-						  new_name, lctx, &ictx);
+				result = pushfile(include_file, new_name, lctx);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
 					LOGIT(result);
 					continue;
 				} else if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
-				lctx = *lctxp;
+				ictx = lctx->inc;
 				continue;
 			}
 
@@ -1538,9 +1532,7 @@ load(dns_loadctx_t **lctxp) {
 }
 
 static isc_result_t
-pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx,
-	 dns_incctx_t **ictxp)
-{
+pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	isc_result_t result;
 	dns_incctx_t *ictx;
 	dns_incctx_t *new = NULL;
@@ -1548,8 +1540,6 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx,
 	int new_in_use;
 
 	REQUIRE(master_file != NULL);
-	REQUIRE(ictxp != NULL);
-	REQUIRE(*ictxp == lctx->inc);
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
 	ictx = lctx->inc;
@@ -1605,7 +1595,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&lctx);
+	result = load(lctx);
 	INSIST(result != DNS_R_CONTINUE);
 
  cleanup:
@@ -1667,7 +1657,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&lctx);
+	result = load(lctx);
 	INSIST(result != DNS_R_CONTINUE);
 
  cleanup:
@@ -1731,7 +1721,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&lctx);
+	result = load(lctx);
 	INSIST(result != DNS_R_CONTINUE);
 
  cleanup:
@@ -2000,7 +1990,7 @@ load_quantum(isc_task_t *task, isc_event_t *event) {
 	if (lctx->canceled)
 		result = ISC_R_CANCELED;
 	else
-		result = load(&lctx);
+		result = load(lctx);
 	if (result == DNS_R_CONTINUE) {
 		event->ev_arg = lctx;
 		isc_task_send(task, &event);
