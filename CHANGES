@@ -1,4 +1,7 @@
- 451	[func]		Update forwarding implememted.
+ 452.	[bug]		Warn if the unimplemented option "statistics-file"
+			is specified in named.conf. [RT #301]
+
+ 451.	[func]		Update forwarding implememted.
 
  450.	[func]		New function ns_client_sendraw().
 

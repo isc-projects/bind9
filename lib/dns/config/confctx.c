@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.86 2000/09/07 19:24:33 halley Exp $ */
+/* $Id: confctx.c,v 1.87 2000/09/13 20:49:40 gson Exp $ */
 
 #include <config.h>
 
@@ -356,6 +356,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'dump-file' is not yet implemented");
+	}
+
+
+	if (dns_c_ctx_getstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'statistics-file' is not yet "
+			      "implemented");
 	}
 
 
