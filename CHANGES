@@ -1,8 +1,7 @@
  662.	[bug]		dns_rdata_fromtext() failed to log certain errors.
 
- 661.	[bug]		UDP IXFR requests with EDNS options caused 
-			an assertion failure (mpctx->allocated == 0).
-			[RT #623]
+ 661.	[bug]		Certain UDP IXFR requests caused an assertion failure
+			(mpctx->allocated == 0). [RT #355, #394, #623]
 
  660.	[port]		Detect multiple CPUs on HP-UX and IRIX.
 
