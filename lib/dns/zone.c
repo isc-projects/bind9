@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.397 2003/09/11 01:49:16 marka Exp $ */
+/* $Id: zone.c,v 1.398 2003/09/24 01:03:37 marka Exp $ */
 
 #include <config.h>
 
@@ -3363,7 +3363,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_time_t now;
 	char master[ISC_SOCKADDR_FORMATSIZE];
 	char source[ISC_SOCKADDR_FORMATSIZE];
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
 	isc_result_t result;
@@ -3455,7 +3455,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Perhaps AXFR/IXFR is allowed even if SOA queries arn't.
 		 */
-		if (msg->rcode == dns_rcode_refused)
+		if (msg->rcode == dns_rcode_refused &&
+		    zone->type == dns_zone_slave)
 			goto tcp_transfer;
 		goto next_master;
 	}
