@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35.2.5 2004/04/15 01:38:08 marka Exp $ */
+/* $Id: sdb.c,v 1.35.2.6 2004/07/22 04:04:41 marka Exp $ */
 
 #include <config.h>
 
@@ -577,10 +577,10 @@ attachversion(dns_db_t *db, dns_dbversion_t *source,
 	      dns_dbversion_t **targetp)
 {
 	REQUIRE(source != NULL && source == (void *) &dummy);
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	UNUSED(db);
-	UNUSED(source);
-	UNUSED(targetp);
+	*targetp = source;
 	return;
 }
 

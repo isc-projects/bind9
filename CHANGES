@@ -1,3 +1,5 @@
+1691.	[bug]		sdb's attachversion was not complete. [RT #11990]
+
 1689.	[bug]		DNS_NAME_TOREGION() macros contained a gratuitous
 			semicolons. [RT #11707]
 
