@@ -79,8 +79,8 @@ BIND 9.0.0rc2
 	early adopters and those who wish to make use of new 9.0
 	features, such as IPv6 and DNSSEC secure resolution support.
 
-	We are running BIND 9 in production, and it has been used 
-	as a root name server.
+	We are running 9.0.0rc2 in production, and it has been
+	used as a root name server.
 
 	The distribution includes a new lightweight resolver library
 	and associated resolver daemon.  These should still be considered
@@ -89,8 +89,7 @@ BIND 9.0.0rc2
 	The server-side support for DNSSEC secured zones is stable and
 	complete with the exception of the handling of wildcard records.
 	The support for secure resolution is still to be considered
-	experimental.  For detailed information about the state of the
-	DNSSEC implementation, see the file doc/misc/dnssec.
+	experimental.
 
 	Several bugs found in rc1 have been fixed.  For a detailed 
         list of user-visible changes, see the CHANGES file.
@@ -115,13 +114,6 @@ BIND 9.0.0rc2
 		The "isc_timer_reset" test sometimes fails on HP-UX 11
 		for unknown reasons, but the server itself seems to
 		run fine.
-
-		On FreeBSD systems, the server logs error messages
-		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
-		device".  This is due to a bug in the FreeSBD
-		/dev/random device.  The bug has been reported
-		to the FreeBSD maintainers.  A similar problem is
-		reported to exist on OpenBSD.
 
 	If you are upgrading from BIND 8, please read the migration
 	notes in doc/misc/migration.
