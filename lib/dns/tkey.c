@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.21 2000/01/24 22:22:50 bwelling Exp $
+ * $Id: tkey.c,v 1.22 2000/01/27 19:39:59 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -48,7 +48,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
-#include <dns/confctx.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
