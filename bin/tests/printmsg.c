@@ -196,35 +196,34 @@ printmessage(dns_message_t *msg) {
 		       (unsigned int)((opt->ttl & 0x00ff0000) >> 16),
 		       (unsigned int)opt->rdclass);
 
-	if (msg->counts[DNS_SECTION_TSIG] > 0)
-		printf(";; PSEUDOSECTIONS: TSIG: %u\n",
-		       msg->counts[DNS_SECTION_TSIG]);
-	if (msg->counts[DNS_SECTION_QUESTION] > 0) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+		printf(";; PSEUDOSECTIONS: TSIG\n");
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_QUESTION])) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
-	if (msg->counts[DNS_SECTION_ANSWER] > 0) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_ANSWER, "ANSWER");
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
-	if (msg->counts[DNS_SECTION_AUTHORITY] > 0) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY])) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_AUTHORITY, "AUTHORITY");
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
-	if (msg->counts[DNS_SECTION_ADDITIONAL] > 0) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ADDITIONAL])) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_ADDITIONAL,
 				      "ADDITIONAL");
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
-	if (msg->counts[DNS_SECTION_TSIG] > 0) {
+	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG])) {
 		printf("\n");
 		result = printsection(msg, DNS_SECTION_TSIG,
 				      "PSEUDOSECTION TSIG");
