@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.154 2001/11/15 19:44:50 bwelling Exp $ */
+/* $Id: rdata.c,v 1.155 2001/11/26 23:37:24 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -987,9 +987,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 			*valuep = n;
 			return (ISC_R_SUCCESS);
 		}
-		/*
-		 * It was not a number after all; fall through.
-		 */
+		/* It was not a number after all; fall through. */
 	}
 
 	for (i = 0; table[i].name != NULL; i++) {
