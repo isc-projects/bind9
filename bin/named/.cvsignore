@@ -3,3 +3,4 @@ Makefile
 *.la
 *.lo
 named
+lwresd
