@@ -1,3 +1,5 @@
+ 526.	[bug]		nsupdate incorrectly refused to add RRs with a TTL
+			of 0.
 
  523.	[doc]		The source to the Administrator Reference Manual is
 			now an XML file using the DocBook DTD, and is included
