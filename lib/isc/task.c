@@ -170,7 +170,7 @@ task_free(isc_task_t *task) {
 	UNLOCK(&manager->lock);
 	(void)isc_mutex_destroy(&task->lock);
 	task->magic = 0;
-	isc_mem_put(manager->mctx, task, sizeof *task);
+	isc_mem_put(task->mctx, task, sizeof *task);
 }
 
 isc_result_t
