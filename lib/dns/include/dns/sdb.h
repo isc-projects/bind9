@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.1 2000/08/21 22:15:28 bwelling Exp $ */
+/* $Id: sdb.h,v 1.2 2000/08/22 00:53:31 bwelling Exp $ */
 
-/* $Id: sdb.h,v 1.1 2000/08/21 22:15:28 bwelling Exp $ */
+/* $Id: sdb.h,v 1.2 2000/08/22 00:53:31 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -74,10 +74,14 @@ typedef isc_result_t
 typedef void
 (*dns_sdbdestroyfunc_t)(const char *zone, void *driverdata, void **dbdata);
 
+#define DNS_SDBFLAG_RELATIVEOWNER 0x1U
+#define DNS_SDBFLAG_RELATIVERDATA 0x2U
+
 isc_result_t
 dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 		 dns_sdbauthorityfunc_t authority, dns_sdbcreatefunc_t create,
-		 dns_sdbdestroyfunc_t destroy, void *driverdata);
+		 dns_sdbdestroyfunc_t destroy, void *driverdata,
+		 unsigned int flags);
 /*
  * Register a simple database driver of name 'drivername'.  The name
  * server will perform lookups in the database by calling the function
@@ -102,6 +106,15 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
  * and allows the implementation to free any database specific data.
  *
  * The create and destroy functions may be NULL.
+ *
+ * If flags includes DNS_SDBFLAG_RELATIVEOWNER, the lookup and authority
+ * functions will be called with relative names rather than absolute names.
+ * The string "@" represents the zone apex in this case.
+ *
+ * If flags includes DNS_SDBFLAG_RELATIVERDATA, the rdata strings may
+ * include relative names.  Otherwise, all names in the rdata string must
+ * be absolute.  Be aware that if relative names are allowed, any
+ * absolute names must contain a trailing dot.
  */
 
 void

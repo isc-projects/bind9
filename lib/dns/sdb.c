@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.1 2000/08/21 22:15:27 bwelling Exp $ */
+/* $Id: sdb.c,v 1.2 2000/08/22 00:53:29 bwelling Exp $ */
 
 /*
- * $Id: sdb.c,v 1.1 2000/08/21 22:15:27 bwelling Exp $
+ * $Id: sdb.c,v 1.2 2000/08/22 00:53:29 bwelling Exp $
  */
 
 #include <config.h>
@@ -53,6 +53,7 @@ typedef struct sdbimp {
 	dns_sdbcreatefunc_t		create;
 	dns_sdbdestroyfunc_t		destroy;
 	void				*driverdata;
+	unsigned int			flags;
 } sdbimp_t;
 
 struct dns_sdb {
@@ -147,7 +148,8 @@ initialize(void) {
 isc_result_t
 dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 		 dns_sdbauthorityfunc_t authority, dns_sdbcreatefunc_t create,
-		 dns_sdbdestroyfunc_t destroy, void *driverdata)
+		 dns_sdbdestroyfunc_t destroy, void *driverdata,
+		 unsigned int flags)
 {
 	int i, slot;
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -179,6 +181,7 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
 	imps[slot].create = create;
 	imps[slot].destroy = destroy;
 	imps[slot].driverdata = driverdata;
+	imps[slot].flags = flags;
 	UNLOCK(&implock);
 
 	return (ISC_R_SUCCESS);
@@ -211,6 +214,9 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	isc_result_t result;
 	unsigned int size;
 	isc_mem_t *mctx;
+	sdbimp_t *imp;
+	dns_name_t *origin;
+
 
 	REQUIRE(VALID_SDBLOOKUP(lookup));
 	REQUIRE(type != NULL);
@@ -251,6 +257,12 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		return (ISC_R_NOMEMORY);
 	dns_rdata_init(rdata);
 
+	imp = lookup->sdb->implementation;
+	if ((imp->flags & DNS_SDBFLAG_RELATIVERDATA) != 0)
+		origin = &lookup->sdb->common.origin;
+	else
+		origin = dns_rootname;
+
 	lex = NULL;
 	result = isc_lex_create(mctx, 64, &lex);
 	if (result != ISC_R_SUCCESS)
@@ -269,9 +281,10 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		result = isc_buffer_allocate(mctx, &rdatabuf, size);
 		if (result != ISC_R_SUCCESS)
 			goto failure;
+
 		result = dns_rdata_fromtext(rdata, rdatalist->rdclass,
 					    rdatalist->type, lex,
-					    dns_rootname, ISC_FALSE,
+					    origin, ISC_FALSE,
 					    rdatabuf, NULL);
 		if (result != ISC_R_SUCCESS)
 			isc_buffer_free(&rdatabuf);
@@ -522,17 +535,30 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	UNUSED(name);
 
+	imp = sdb->implementation;
+
 	isc_buffer_init(&b, namestr, sizeof(namestr));
-	result = dns_name_totext(name, ISC_TRUE, &b);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if ((imp->flags & DNS_SDBFLAG_RELATIVEOWNER) != 0) {
+		dns_name_t relname;
+		unsigned int labels;
+
+		labels = dns_name_countlabels(name) -
+			 dns_name_countlabels(&db->origin);
+		dns_name_init(&relname, NULL);
+		dns_name_getlabelsequence(name, 0, labels, &relname);
+		result = dns_name_totext(&relname, ISC_TRUE, &b);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else {
+		result = dns_name_totext(name, ISC_TRUE, &b);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 	isc_buffer_putuint8(&b, 0);
 
 	result = createnode(sdb, &node);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-
-	imp = sdb->implementation;
 
 	isorigin = dns_name_equal(name, &sdb->common.origin);
 
