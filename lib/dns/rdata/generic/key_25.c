@@ -15,9 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.16 2000/02/03 23:43:00 halley Exp $ */
+/* $Id: key_25.c,v 1.17 2000/03/16 22:42:32 halley Exp $ */
 
- /* RFC 2065 */
+/*
+ * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
+ */
+
+/* RFC 2535 */
 
 #ifndef RDATA_GENERIC_KEY_25_C
 #define RDATA_GENERIC_KEY_25_C
@@ -32,11 +36,11 @@ fromtext_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_secproto_t proto;
 	dns_keyflags_t flags;
 
-	REQUIRE(type == 25);
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
 
-	rdclass = rdclass;	/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	REQUIRE(type == 25);
 
 	/* flags */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -68,9 +72,9 @@ totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	char buf[sizeof "64000"];
 	unsigned int flags;
 
-	REQUIRE(rdata->type == 25);
+	UNUSED(tctx);
 
-	tctx = tctx;	/*unused*/
+	REQUIRE(rdata->type == 25);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -115,11 +119,11 @@ fromwire_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	isc_region_t sr;
 
+	UNUSED(rdclass);
+	UNUSED(dctx);
+	UNUSED(downcase);
+
 	REQUIRE(type == 25);
-	
-	rdclass = rdclass;		/*unused*/
-	dctx = dctx;		/*unused*/
-	downcase = downcase;	/*unused*/
 
 	isc_buffer_active(source, &sr);
 	if (sr.length < 4)
@@ -133,9 +137,9 @@ static inline isc_result_t
 towire_key(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == 25);
+	UNUSED(cctx);
 
-	cctx = cctx;	/*unused*/
+	REQUIRE(rdata->type == 25);
 
 	dns_rdata_toregion(rdata, &sr);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -162,13 +166,12 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	dns_rdata_generic_key_t *key;
 	isc_region_t tr;
 
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
+
 	REQUIRE(type == 25);
 	
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
-
 	key = (dns_rdata_generic_key_t *) source;
 	REQUIRE(key->mctx != NULL);
 
@@ -198,10 +201,10 @@ tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_rdata_generic_key_t *key;
 	isc_region_t sr;
 
+	UNUSED(target);
+	UNUSED(mctx);
+
 	REQUIRE(rdata->type == 25);
-	
-	target = target;
-	mctx = mctx;
 
 	key = (dns_rdata_generic_key_t *) target;
 	key->common.rdclass = rdata->rdclass;
@@ -260,8 +263,8 @@ additionaldata_key(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 {
 	REQUIRE(rdata->type == 25);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }

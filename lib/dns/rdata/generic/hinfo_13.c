@@ -15,7 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.19 2000/02/03 23:42:59 halley Exp $ */
+/* $Id: hinfo_13.c,v 1.20 2000/03/16 22:42:32 halley Exp $ */
+
+/*
+ * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
+ */
 
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C
@@ -28,11 +32,11 @@ fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_token_t token;
 	int i;
 
-	REQUIRE(type == 13);
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
 
-	rdclass = rdclass;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	REQUIRE(type == 13);
 
 	for (i = 0; i < 2 ; i++) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
@@ -48,9 +52,9 @@ totext_hinfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 13);
+	UNUSED(tctx);
 
-	tctx = tctx;	/*unused*/
+	REQUIRE(rdata->type == 13);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
@@ -64,11 +68,11 @@ fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_boolean_t downcase, isc_buffer_t *target)
 {
 
-	REQUIRE(type == 13);
+	UNUSED(dctx);
+	UNUSED(rdclass);
+	UNUSED(downcase);
 
-	dctx = dctx;		/* unused */
-	rdclass = rdclass;		/* unused */
-	downcase = downcase;	/* unused */
+	REQUIRE(type == 13);
 
 	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));
@@ -77,9 +81,9 @@ fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 static inline isc_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
-	REQUIRE(rdata->type == 13);
+	UNUSED(cctx);
 
-	cctx = cctx;	/*unused*/
+	REQUIRE(rdata->type == 13);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -102,13 +106,11 @@ static inline isc_result_t
 fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 13);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -118,8 +120,8 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 13);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -134,10 +136,10 @@ static inline isc_result_t
 additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
-	REQUIRE(rdata->type == 13);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 13);
 
 	return (DNS_R_SUCCESS);
 }
