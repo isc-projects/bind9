@@ -544,7 +544,7 @@ main(int argc, char *argv[])
 		sleep(10);
 
 	unload_all();
-	dns_dbtable_destroy(&dbtable);
+	dns_dbtable_detach(&dbtable);
 
 	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
