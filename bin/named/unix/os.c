@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.39 2001/02/24 23:05:09 bwelling Exp $ */
+/* $Id: os.c,v 1.40 2001/02/24 23:06:34 bwelling Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -42,7 +42,7 @@
 static char *pidfile = NULL;
 
 /*
- * If there's no <linux/capability.h>, we don't care about <linux/prctl.h>
+ * If there's no <linux/capability.h>, we don't care about <sys/prctl.h>
  */
 #ifndef HAVE_LINUX_CAPABILITY_H
 #undef HAVE_SYS_PRCTL_H
@@ -112,7 +112,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 #include <sys/prctl.h>		/* Required for prctl(). */
 
 /*
- * If the value of PR_SET_KEEPCAPS is not in <linux/prctl.h>, define it
+ * If the value of PR_SET_KEEPCAPS is not in <sys/prctl.h>, define it
  * here.  This allows setuid() to work on systems running a new enough
  * kernel but with /usr/include/linux pointing to "standard" kernel
  * headers.
