@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.17 2000/11/17 23:32:27 bwelling Exp $ */
+/* $Id: sdb.c,v 1.18 2000/11/18 01:35:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1108,7 +1108,7 @@ static dns_dbmethods_t sdb_methods = {
 	overmem
 };
 
-isc_result_t
+static isc_result_t
 dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 	       void *driverarg, dns_db_t **dbp)
