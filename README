@@ -162,12 +162,20 @@ Building
                 Any additional preprocessor symbols you want defined.
                 Defaults to empty string.
 
+        
+        The configure script can be called with a --help switch to list
+        the many options it supports.  Especially noteworthy is the
+        "--enable and --with options recognized" section at the end
+        of the help text.  In particular, shared libraries will be built
+        if "--with-libtool" is added to the "configure" command, and you
+        might also wish to use the --with-mit-pthreads, --with-ptl2, or
+        --with-kame flags depending on how threads and IPv6 is supported
+        on your system.  (These last three are primarily relevant to
+        NetBSD and FreeBSD.)
+
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
 	with the "--prefix" option when running "configure".
-
-	Shared libraries will be built if "--with-libtool" is added to the
-	"configure" command.
 
 	If you're planning on making changes to the BIND 9 source, you
 	should also "make depend".  If you're using Emacs, you might find
@@ -177,8 +185,11 @@ Building
 	compiler (e.g. the various BSD systems, Linux).
 
 	Parts of the library can be tested by running "make test" from the
-	bin/tests subdirectory.
-
+	bin/tests subdirectory.  Running "make all_tests" will build many
+        small test applications that can also exercise a lot of functionality
+        of the library in an isolated way; however, these test programs
+        are not well documented nor directly supported, so they're mostly
+        there for people who really want to get their hands dirty with BIND9.
 
 Bug Reports and Mailing Lists
 
