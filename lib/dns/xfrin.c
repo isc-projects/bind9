@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.57 2000/03/29 21:01:30 halley Exp $ */
+/* $Id: xfrin.c,v 1.58 2000/04/04 19:22:07 gson Exp $ */
 
 #include <config.h>
 
@@ -1310,7 +1310,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, 
 		      DNS_LOGMODULE_XFER_IN, level,
-		      "transfer of %.*s from %s: %s", znbuf.used, znbuf.base,
+		      "transfer of '%.*s' from %s: %s", znbuf.used, znbuf.base,
 		      masterbuf.base, msgmem);
 }
 
