@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.54.2.5 2000/09/12 19:19:25 explorer Exp $ */
+/* $Id: master.c,v 1.54.2.6 2000/09/12 21:18:12 gson Exp $ */
 
 #include <config.h>
 
@@ -650,8 +650,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
                        (*callbacks->warn)(callbacks,
                                           "%s: %s:%lu: unknown RR type '%.*s'",
                                           "dns_master_load",
-                                          isc_lex_getsourcename(ctx->lex),
-                                          isc_lex_getsourceline(ctx->lex),
+                                          isc_lex_getsourcename(lex),
+                                          isc_lex_getsourceline(lex),
 					  token.value.as_textregion.length,
 					  token.value.as_textregion.base);
 			goto cleanup;
