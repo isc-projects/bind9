@@ -15,19 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.9 2000/08/01 01:23:38 tale Exp $ */
+/* $Id: aclconf.h,v 1.10 2000/11/27 19:42:27 gson Exp $ */
 
-#ifndef DNS_ACLCONF_H
-#define DNS_ACLCONF_H 1
+#ifndef NS_ACLCONF_H
+#define NS_ACLCONF_H 1
 
 #include <isc/lang.h>
 
 #include <dns/confctx.h>
 #include <dns/types.h>
 
-typedef struct dns_aclconfctx {
+typedef struct ns_aclconfctx {
 	ISC_LIST(dns_acl_t) named_acl_cache;
-} dns_aclconfctx_t;
+} ns_aclconfctx_t;
 
 /***
  *** Functions
@@ -36,23 +36,23 @@ typedef struct dns_aclconfctx {
 ISC_LANG_BEGINDECLS
 
 void
-dns_aclconfctx_init(dns_aclconfctx_t *ctx);
+ns_aclconfctx_init(ns_aclconfctx_t *ctx);
 /*
  * Initialize an ACL configuration context.
  */
 
 void
-dns_aclconfctx_destroy(dns_aclconfctx_t *ctx);
+ns_aclconfctx_destroy(ns_aclconfctx_t *ctx);
 /*
  * Destroy an ACL configuration context.
  */
 
 isc_result_t
-dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
-		   dns_c_ctx_t *cctx,
-		   dns_aclconfctx_t *ctx,
-		   isc_mem_t *mctx,
-		   dns_acl_t **target);
+ns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
+		  dns_c_ctx_t *cctx,
+		  ns_aclconfctx_t *ctx,
+		  isc_mem_t *mctx,
+		  dns_acl_t **target);
 /*
  * Construct a new dns_acl_t from configuration data in 'caml' and
  * 'cctx'.  Memory is allocated through 'mctx'.
@@ -68,4 +68,4 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_ACLCONF_H */
+#endif /* NS_ACLCONF_H */

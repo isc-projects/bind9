@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.13 2000/10/20 13:29:28 marka Exp $ */
+/* $Id: omapiconf.c,v 1.14 2000/11/27 19:42:21 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -283,7 +283,7 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 
 static void
 update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
-		dns_c_ctx_t *cctx, dns_aclconfctx_t *aclconfctx,
+		dns_c_ctx_t *cctx, ns_aclconfctx_t *aclconfctx,
 		char *socktext)
 {
 	ns_omapilistener_t *listener;
@@ -302,7 +302,7 @@ update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
 			 * First, keep the old access list unless
 			 * a new one can be made.
 			 */
-			result = dns_acl_fromconfig(control->
+			result = ns_acl_fromconfig(control->
 						    u.inet_v.matchlist,
 						    cctx, aclconfctx,
 						    listener->mctx, &new_acl);
@@ -345,7 +345,7 @@ update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
 static void
 add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 	     dns_c_ctrl_t *control, dns_c_ctx_t *cctx,
-	     dns_aclconfctx_t *aclconfctx, char *socktext)
+	     ns_aclconfctx_t *aclconfctx, char *socktext)
 {
 	ns_omapilistener_t *listener;
 	dns_acl_t *new_acl = NULL;
@@ -364,7 +364,7 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 		/*
 		 * Make the acl.
 		 */
-		result = dns_acl_fromconfig(control->u.inet_v.matchlist,
+		result = ns_acl_fromconfig(control->u.inet_v.matchlist,
 					    cctx, aclconfctx, mctx, &new_acl);
 	}
 
@@ -407,7 +407,7 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 
 isc_result_t
 ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
-		   dns_aclconfctx_t *aclconfctx)
+		   ns_aclconfctx_t *aclconfctx)
 {
 	ns_omapilistener_t *listener;
 	ns_omapilistenerlist_t new_listeners;

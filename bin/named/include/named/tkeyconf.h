@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.h,v 1.6 2000/08/01 01:24:49 tale Exp $ */
+/* $Id: tkeyconf.h,v 1.7 2000/11/27 19:42:29 gson Exp $ */
 
-#ifndef DNS_TKEYCONF_H
-#define DNS_TKEYCONF_H 1
+#ifndef NS_TKEYCONF_H
+#define NS_TKEYCONF_H 1
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -28,7 +28,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
+ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 		       dns_tkeyctx_t **tctxp);
 /*
  * 	Create a TKEY context and configure it, including the default DH key
@@ -48,4 +48,4 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_TKEYCONF_H */
+#endif /* NS_TKEYCONF_H */

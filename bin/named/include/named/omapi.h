@@ -15,15 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.14 2000/11/08 19:02:56 mws Exp $ */
+/* $Id: omapi.h,v 1.15 2000/11/27 19:42:28 gson Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
 
-#include <dns/aclconf.h>
 #include <dns/confctx.h>
 
 #include <omapi/omapi.h>
+
+#include <named/aclconf.h>
 
 #define NS_OMAPI_PORT			953
 
@@ -46,7 +47,7 @@ ns_omapi_init(void);
 
 isc_result_t
 ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
-		   dns_aclconfctx_t *aclconfctx);
+		   ns_aclconfctx_t *aclconfctx);
 
 void
 ns_omapi_shutdown(isc_boolean_t exiting);

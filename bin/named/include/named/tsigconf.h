@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.6 2000/08/01 01:24:51 tale Exp $ */
+/* $Id: tsigconf.h,v 1.7 2000/11/27 19:42:30 gson Exp $ */
 
-#ifndef DNS_TSIGCONF_H
-#define DNS_TSIGCONF_H 1
+#ifndef NS_TSIGCONF_H
+#define NS_TSIGCONF_H 1
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -28,7 +28,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
+ns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
 			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
  * Create a TSIG key ring and configure it according to the 'key'
@@ -46,4 +46,4 @@ dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_TSIGCONF_H */
+#endif /* NS_TSIGCONF_H */

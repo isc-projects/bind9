@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.72 2000/11/25 02:43:39 marka Exp $ */
+/* $Id: zoneconf.c,v 1.73 2000/11/27 19:42:25 gson Exp $ */
 
 #include <config.h>
 
@@ -26,7 +26,8 @@
 #include <dns/acl.h>
 #include <dns/ssu.h>
 #include <dns/zone.h>
-#include <dns/zoneconf.h>
+
+#include <named/zoneconf.h>
 
 /*
  * These are BIND9 server defaults, not necessarily identical to the
@@ -47,7 +48,7 @@
  */
 static isc_result_t
 configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
-		   dns_aclconfctx_t *aclconfctx, dns_zone_t *zone,
+		   ns_aclconfctx_t *aclconfctx, dns_zone_t *zone,
 		   isc_result_t (*getcacl)(dns_c_zone_t *,
 					   dns_c_ipmatchlist_t **),
 		   isc_result_t (*getviewcacl)(dns_c_view_t *
@@ -68,7 +69,7 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		result = (*getglobalcacl)(cctx, &cacl);
 	}
 	if (result == ISC_R_SUCCESS) {
-		result = dns_acl_fromconfig(cacl, cctx, aclconfctx,
+		result = ns_acl_fromconfig(cacl, cctx, aclconfctx,
 					   dns_zone_getmctx(zone), &dacl);
 		dns_c_ipmatchlist_detach(&cacl);
 		if (result != ISC_R_SUCCESS)
@@ -88,7 +89,7 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
  * Conver a config file zone type into a server zone type.
  */
 static dns_zonetype_t
-dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
+zonetype_fromconf(dns_c_zonetype_t cztype) {
 	switch (cztype) {
 	case dns_c_zone_master:
 		return dns_zone_master;
@@ -153,8 +154,8 @@ strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 }
 
 isc_result_t
-dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
-		   dns_c_zone_t *czone, dns_aclconfctx_t *ac,
+ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
+		   dns_c_zone_t *czone, ns_aclconfctx_t *ac,
 		   dns_zone_t *zone)
 {
 	isc_result_t result;
@@ -185,7 +186,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	dns_zone_setclass(zone, czone->zclass);
 
-	dns_zone_settype(zone, dns_zonetype_fromconf(czone->ztype));
+	dns_zone_settype(zone, zonetype_fromconf(czone->ztype));
 
 	cpval = NULL;
 	result = dns_c_zone_getdatabase(czone, &cpval);
@@ -523,11 +524,11 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 }
 
 isc_boolean_t
-dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
+ns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 	const char *cfilename;
 	const char *zfilename;
 
-	if (dns_zonetype_fromconf(czone->ztype) != dns_zone_gettype(zone))
+	if (zonetype_fromconf(czone->ztype) != dns_zone_gettype(zone))
 		return (ISC_FALSE);
 
 	cfilename = NULL;
@@ -541,7 +542,7 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 }
 
 isc_result_t
-dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr) {
+ns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr) {
 	isc_uint32_t val;
 	isc_result_t result;
 

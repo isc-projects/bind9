@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.23 2000/08/11 02:34:45 bwelling Exp $ */
+/* $Id: aclconf.c,v 1.24 2000/11/27 19:42:20 gson Exp $ */
 
 #include <config.h>
 
@@ -24,17 +24,18 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
-#include <dns/aclconf.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 
+#include <named/aclconf.h>
+
 void
-dns_aclconfctx_init(dns_aclconfctx_t *ctx) {
+ns_aclconfctx_init(ns_aclconfctx_t *ctx) {
 	ISC_LIST_INIT(ctx->named_acl_cache);
 }
 
 void
-dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
+ns_aclconfctx_destroy(ns_aclconfctx_t *ctx) {
      	dns_acl_t *dacl, *next;
 	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache);
 	     dacl != NULL;
@@ -47,7 +48,7 @@ dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
 
 static isc_result_t
 convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
-		  dns_aclconfctx_t *ctx, isc_mem_t *mctx,
+		  ns_aclconfctx_t *ctx, isc_mem_t *mctx,
 		  dns_acl_t **target)
 {
 	isc_result_t result;
@@ -72,7 +73,7 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 			      "undefined ACL '%s'", aclname);
 		return (result);
 	}
-	result = dns_acl_fromconfig(cacl->ipml, cctx, ctx, mctx, &dacl);
+	result = ns_acl_fromconfig(cacl->ipml, cctx, ctx, mctx, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
@@ -107,9 +108,9 @@ convert_keyname(char *txtname, isc_mem_t *mctx, dns_name_t *dnsname) {
 }
 
 isc_result_t
-dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
+ns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		   dns_c_ctx_t *cctx,
-		   dns_aclconfctx_t *ctx,
+		   ns_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
 		   dns_acl_t **target)
 {
@@ -155,7 +156,7 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 			break;
 		case dns_c_ipmatch_indirect:
 			de->type = dns_aclelementtype_nestedacl;
-			result = dns_acl_fromconfig(ce->u.indirect.list,
+			result = ns_acl_fromconfig(ce->u.indirect.list,
 						    cctx, ctx, mctx,
 						    &de->u.nestedacl);
 			if (result != ISC_R_SUCCESS)

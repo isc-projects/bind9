@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.15 2000/10/12 01:08:32 bwelling Exp $ */
+/* $Id: tkeyconf.c,v 1.16 2000/11/27 19:42:23 gson Exp $ */
 
 #include <config.h>
 
@@ -27,9 +27,10 @@
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 #include <dns/tkey.h>
-#include <dns/tkeyconf.h>
 
 #include <dst/gssapi.h>
+
+#include <named/tkeyconf.h>
 
 #define RETERR(x) do { \
 	result = (x); \
@@ -39,7 +40,7 @@
 
 
 isc_result_t
-dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
+ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 		       dns_tkeyctx_t **tctxp)
 {
 	isc_result_t result;

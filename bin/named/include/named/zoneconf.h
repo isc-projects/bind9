@@ -15,21 +15,21 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.13 2000/08/01 01:24:59 tale Exp $ */
+/* $Id: zoneconf.h,v 1.14 2000/11/27 19:42:31 gson Exp $ */
 
-#ifndef DNS_ZONECONF_H
-#define DNS_ZONECONF_H 1
+#ifndef NS_ZONECONF_H
+#define NS_ZONECONF_H 1
 
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#include <dns/aclconf.h>
+#include <named/aclconf.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
-		   dns_aclconfctx_t *ac, dns_zone_t *zone);
+ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
+		   ns_aclconfctx_t *ac, dns_zone_t *zone);
 /*
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.
@@ -46,7 +46,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
  */
 
 isc_boolean_t
-dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone);
+ns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone);
 /*
  * If 'zone' can be safely reconfigured according to the configuration
  * data in 'czone', return ISC_TRUE.  If the configuration data is so
@@ -55,11 +55,11 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone);
  */
 
 isc_result_t
-dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zonemgr);
+ns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zonemgr);
 /*
  * Configure the zone manager according to the named.conf data
  * in 'cctx'.
  */
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_ZONECONF_H */
+#endif /* NS_ZONECONF_H */

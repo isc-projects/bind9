@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.13 2000/11/15 00:42:50 gson Exp $ */
+/* $Id: tsigconf.c,v 1.14 2000/11/27 19:42:24 gson Exp $ */
 
 #include <config.h>
 
@@ -25,9 +25,10 @@
 #include <isc/string.h>
 
 #include <dns/tsig.h>
-#include <dns/tsigconf.h>
 
 #include <named/log.h>
+
+#include <named/tsigconf.h>
 
 static isc_result_t
 add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
@@ -122,7 +123,7 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 }
 
 isc_result_t
-dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
+ns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
 			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
 {
 	dns_c_kdeflist_t *keylist;

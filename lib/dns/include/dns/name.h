@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.81 2000/10/11 17:44:17 mws Exp $ */
+/* $Id: name.h,v 1.82 2000/11/27 19:42:34 gson Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -991,6 +991,12 @@ dns_name_split(dns_name_t *name,
  * Split 'name' into two pieces on a label or bitlabel boundary.
  *
  * Notes:
+ *      'name' is split such that 'suffix' holds the most significant
+ *      'suffixlabels' labels, except that if the least significant
+ *      suffix label is a bitstring label, then only the 'nbits' most
+ *      significant bits of that label are included in 'suffix'.  All 
+ *      other labels and bits are stored in 'prefix'.
+ *
  *	Copying name data is avoided as much as possible, so 'prefix'
  *	and 'suffix' will usually end up pointing at the data for 'name',
  *	except when 'nbits' > 0.  The name data is copied to the
@@ -998,7 +1004,7 @@ dns_name_split(dns_name_t *name,
  *	because of the bit fiddling that must be done.
  *
  *	It is legitimate to pass a 'prefix' or 'suffix' that has
- *	its name data stored someplace other than the dedicate buffer.
+ *	its name data stored someplace other than the dedicated buffer.
  *	This is useful to avoid name copying in the calling function.
  *
  *	It is also legitimate to pass a 'prefix' or 'suffix' that is
@@ -1011,7 +1017,7 @@ dns_name_split(dns_name_t *name,
  * 	'suffixlabels' cannot exceed the number of labels in 'name'.
  *
  *	'nbits' can be greater than zero only when the least significant
- *	label of 'suffixlabels' is a bitstring label.
+ *	label of 'suffix' is a bitstring label.
  *
  *	'nbits' cannot exceed the number of bits in the bitstring label.
  *

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.255 2000/11/25 03:55:43 mws Exp $ */
+/* $Id: server.c,v 1.256 2000/11/27 19:42:22 gson Exp $ */
 
 #include <config.h>
 
@@ -48,11 +48,8 @@
 #include <dns/resolver.h>
 #include <dns/rootns.h>
 #include <dns/tkey.h>
-#include <dns/tkeyconf.h>
-#include <dns/tsigconf.h>
 #include <dns/view.h>
 #include <dns/zone.h>
-#include <dns/zoneconf.h>
 #include <dns/zt.h>
 
 #include <dst/dst.h>
@@ -65,6 +62,9 @@
 #include <named/omapi.h>
 #include <named/os.h>
 #include <named/server.h>
+#include <named/tkeyconf.h>
+#include <named/tsigconf.h>
+#include <named/zoneconf.h>
 
 /*
  * Check an operation for failure.  Assumes that the function
@@ -97,7 +97,7 @@
 typedef struct {
 	isc_mem_t *		mctx;
 	dns_viewlist_t		viewlist;
-	dns_aclconfctx_t	*aclconf;
+	ns_aclconfctx_t	*aclconf;
 } ns_load_t;
 
 static void
@@ -108,11 +108,11 @@ ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
 ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
-			dns_aclconfctx_t *actx,
+			ns_aclconfctx_t *actx,
 			isc_mem_t *mctx, ns_listenelt_t **target);
 static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
-			 dns_aclconfctx_t *actx,
+			 ns_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 static isc_result_t
@@ -128,7 +128,7 @@ configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 static isc_result_t
 configure_view_acl(dns_c_view_t *cview,
 		   dns_c_ctx_t *cctx,
-		   dns_aclconfctx_t *actx, isc_mem_t *mctx,
+		   ns_aclconfctx_t *actx, isc_mem_t *mctx,
 		   isc_result_t (*getvcacl)
 		       (dns_c_view_t *, dns_c_ipmatchlist_t **),
 		   isc_result_t (*getscacl)
@@ -151,7 +151,7 @@ configure_view_acl(dns_c_view_t *cview,
 		return (ISC_R_SUCCESS);
 	}
 
-	result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
+	result = ns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
 
 	dns_c_ipmatchlist_detach(&cacl);
 
@@ -401,7 +401,7 @@ get_view_querysource_dispatch(dns_c_ctx_t *cctx, dns_c_view_t *cview,
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
-	       isc_mem_t *mctx, dns_aclconfctx_t *actx)
+	       isc_mem_t *mctx, ns_aclconfctx_t *actx)
 {
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
@@ -571,7 +571,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 * Configure the view's TSIG keys.
 	 */
 	ring = NULL;
-	CHECK(dns_tsigkeyring_fromconfig(cview, cctx, view->mctx, &ring));
+	CHECK(ns_tsigkeyring_fromconfig(cview, cctx, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
 
 	/*
@@ -1177,7 +1177,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (zone != NULL) {
-		if (! dns_zone_reusable(zone, czone))
+		if (! ns_zone_reusable(zone, czone))
 			dns_zone_detach(&zone);
 	}
 
@@ -1210,7 +1210,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Configure the zone.
 	 */
-	CHECK(dns_zone_configure(cctx, cview, czone, lctx->aclconf, zone));
+	CHECK(ns_zone_configure(cctx, cview, czone, lctx->aclconf, zone));
 
 	/*
 	 * Add the zone to its view in the new view list.
@@ -1407,7 +1407,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_view_t *view = NULL;
 	dns_view_t *view_next;
 	dns_viewlist_t tmpviewlist;
-	dns_aclconfctx_t aclconfctx;
+	ns_aclconfctx_t aclconfctx;
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
@@ -1416,7 +1416,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t heartbeat_interval;
 	in_port_t listen_port;
 
-	dns_aclconfctx_init(&aclconfctx);
+	ns_aclconfctx_init(&aclconfctx);
 
 	RWLOCK(&server->conflock, isc_rwlocktype_write);
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_write);
@@ -1684,7 +1684,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
 		dns_tkeyctx_t *t = NULL;
-		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, ns_g_entropy,
+		CHECKM(ns_tkeyctx_fromconfig(cctx, ns_g_mctx, ns_g_entropy,
 					      &t),
 		       "configuring TKEY");
 		if (server->tkeyctx != NULL)
@@ -1767,7 +1767,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_server_setstatsfile(statsfilename, server);
 
  cleanup:
-	dns_aclconfctx_destroy(&aclconfctx);
+	ns_aclconfctx_destroy(&aclconfctx);
 
 	if (cctx != NULL)
 		dns_c_ctx_delete(&cctx);
@@ -2188,7 +2188,7 @@ ns_server_refreshzone(ns_server_t *server, char *args) {
 
 static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
-			  dns_aclconfctx_t *actx,
+			  ns_aclconfctx_t *actx,
 			  isc_mem_t *mctx, ns_listenlist_t **target)
 {
 	dns_c_lstnon_t *ce;
@@ -2225,7 +2225,7 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
  */
 static isc_result_t
 ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
-			 dns_aclconfctx_t *actx,
+			 ns_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenelt_t **target)
 {
 	isc_result_t result;
@@ -2235,7 +2235,7 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_acl_fromconfig(celt->iml, cctx, actx, mctx, &delt->acl);
+	result = ns_acl_fromconfig(celt->iml, cctx, actx, mctx, &delt->acl);
 	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);
