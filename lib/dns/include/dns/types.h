@@ -112,6 +112,12 @@ typedef enum {
 	dns_namereln_commonancestor = 4
 } dns_namereln_t;
 
+typedef enum {
+	dns_fwdpolicy_none = 0,
+	dns_fwdpolicy_first = 1,
+	dns_fwdpolicy_only = 2
+} dns_fwdpolicy_t;
+
 #include <dns/enumtype.h>
 
 enum {
