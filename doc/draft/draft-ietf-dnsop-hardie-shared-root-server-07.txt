@@ -1,9 +1,11 @@
 
+
+
 IETF DNSOPS working group				     T. Hardie
 Internet draft						  Nominum, Inc
-Category: Work-in-progress	                        November, 2001
+Category: Work-in-progress	                         January, 2002
                                                   
-draft-ietf-dnsop-hardie-shared-root-server-06.txt
+draft-ietf-dnsop-hardie-shared-root-server-07.txt
 
 
   Distributing Authoritative Name Servers via Shared Unicast Addresses
@@ -48,13 +50,11 @@ Abstract
   named authoritative servers and administrative entities (operators).
   This document contains no guidelines or recommendations for caching
   name servers.  The shared unicast system described here is specific
-  to IPv4; IPv6 uses anycast differently from IPv4 and those
-  differences prevent this system from being used in IPv6
-  environments.  It should also be noted that the system described
-  here is related to that describe in [ANYCAST], but it does not
-  require dedicated address space, routing changes, or the other
-  elements of a full anycast infrastructure which that document
-  describes.
+  to IPv4; applicability to IPv6 is an area for further study.  It
+  should also be noted that the system described here is related to
+  that described in [ANYCAST], but it does not require dedicated
+  address space, routing changes, or the other elements of a full
+  anycast infrastructure which that document describes.
   
 
 1. Architecture
@@ -85,7 +85,7 @@ Abstract
   files should be delivered to the administrative interface of the
   servers participating in the mesh.  Secure file transfer methods and
   strong authentication should be used for all transfers.  If the hosts
-  in the mesh make their zones available for zone transer, the administrative
+  in the mesh make their zones available for zone transfer, the administrative
   interfaces should be used for those transfers as well, in order to avoid
   the problems with potential routing changes for TCP traffic
   noted in section 1.5 below.
@@ -156,14 +156,15 @@ Abstract
   One potential problem with using shared unicast addresses is that
   routers forwarding traffic to them may have more than one available
   route, and those routes may, in fact, reach different instances of
-  the shared unicast address.  Because UDP is self-contained, UDP
-  traffic from a single source reaching different instances presents
-  no problem.  TCP traffic, in contrast, may fail or present
-  unworkable performance characteristics in a limited set of
-  circumstances.  For split-destination failures to occur, the router 
-  forwarding the traffic must both have equal cost routes to the two 
-  different instances and use a load sharing algorithm which does 
-  per-packet rather than per-destination load sharing.  
+  the shared unicast address.  Applications like the DNS, whose
+  communication typically consists of independent request-response
+  messages each fitting in a single UDP packet presents no problem.
+  Other applications, in which multiple packets must reach the same
+  endpoint (e.g., TCP) may fail or present unworkable performance
+  characteristics in some circumstances.  Split-destination failures
+  may occur when a router does per-packet (or round-robin) load
+  sharing, a topology change occurs that changes the relative metrics
+  of two paths to the same anycast destination, etc.
 
   Four things mitigate the severity of this problem.  The first is
   that UDP is a fairly high proportion of the query traffic to name
@@ -178,32 +179,38 @@ Abstract
 
   Lastly, in the case where the traffic is TCP, per packet load
   sharing is used, and equal cost routes to different instances of a
-  name server are available, any implementation which measures the
+  name server are available, any DNS implementation which measures the
   performance of servers to select a preferred server will quickly
-  prefer a server for which this problem does not occur.  For
-  authoritative servers, care must be taken that all of the servers
-  for a specific zone are not participants in the same shared-unicast
-  mesh.  To guard even against the case where multiple meshes have a
-  set of users affected by per packet load sharing along equal cost
-  routes, organizations implementing these practices should always
-  provide at least one authoritative server which is not a participant
-  in any shared unicast mesh.  Those deploying shared-unicast meshes
-  should note that any specific host may become unreachable to a
-  client should a server fail, a path fail, or the route to that host
-  be withdrawn.  These error conditions are, however, not specific to
-  shared-unicast distributions, but would occur for standard unicast
-  hosts.
+  prefer a server for which this problem does not occur.  For the DNS
+  failover mechanisms to reliably avoid this problem, however, those
+  using shared unicast distribution mechanisms must take care that all
+  of the servers for a specific zone are not participants in the same
+  shared-unicast mesh.  To guard even against the case where multiple
+  meshes have a set of users affected by per packet load sharing along
+  equal cost routes, organizations implementing these practices should
+  always provide at least one authoritative server which is not a
+  participant in any shared unicast mesh.  Those deploying
+  shared-unicast meshes should note that any specific host may become
+  unreachable to a client should a server fail, a path fail, or the
+  route to that host be withdrawn.  These error conditions are,
+  however, not specific to shared-unicast distributions, but would
+  occur for standard unicast hosts.
 
-  Appendix A. contains an ASCII diagram of a simple implementation of
-  this system.  In it, the odd numbered routers deliver traffic to the
-  shared-unicast interface network and filter traffic from the
-  administrative network; the even numbered routers deliver traffic to
-  the administrative network and filter traffic from the shared-unicast
-  network.  These are depicted as separate routers for the ease this
-  gives in explanation, but they could easily be separate interfaces
-  on the same router.  Similarly, a local NTP source is depicted for
-  synchronization, but the level of synchronization needed would not
-  require that source to be either local or a stratum one NTP server.
+  Since ICMP response packets might go to a different member of the
+  mesh than that sending a packet, packets sent with a shared unicast
+  source address should also avoid using path MTU discovery.
+  
+  Appendix A. contains an ASCII diagram of a example of a simple
+  implementation of this system.  In it, the odd numbered routers
+  deliver traffic to the shared-unicast interface network and filter
+  traffic from the administrative network; the even numbered routers
+  deliver traffic to the administrative network and filter traffic
+  from the shared-unicast network.  These are depicted as separate
+  routers for the ease this gives in explanation, but they could
+  easily be separate interfaces on the same router.  Similarly, a
+  local NTP source is depicted for synchronization, but the level of
+  synchronization needed would not require that source to be either
+  local or a stratum one NTP server. 
   
       
 2. Administration
@@ -221,7 +228,7 @@ Abstract
 
 3. Security Considerations
 
-   As a core piece of internet infrastructure, authoritative name
+   As a core piece of Internet infrastructure, authoritative name
    servers are common targets of attack.  The practices outlined here
    increase the risk of certain kinds of attack and reduce the risk of
    others.
@@ -310,7 +317,7 @@ Abstract
   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-5. Acknowledgements
+5. Acknowledgments
 
    Masataka Ohta, Bill Manning, Randy Bush, Chris Yarnell, Ray Plzak,
    Mark Andrews, Robert Elz, Geoff Houston, Bill Norton, Akira Kato,
@@ -421,6 +428,3 @@ etc    |		|--|Router7|---|----|--------------|Router8|---WAN-|
 
 
 
-
-
-			
