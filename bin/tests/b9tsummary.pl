@@ -146,15 +146,6 @@ foreach $entry (@entries) {
 $when = `date`;
 chop $when;
 
-#printf("<HTML>\n");
-#printf("<HEAD>\n");
-#printf("<TITLE>bind9 status %s</TITLE>\n", $when);
-#printf("<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
-#printf("</HEAD>\n");
-#printf("<BODY BGCOLOR=\"white\">\n");
-#printf("<P>\n");
-#printf("<P>\n");
-
 printf("<?php \$title = \"ISC Status Server\"; ?>\n");
 printf("<?php include(\"status-isc-header.inc\") ?>\n");
 printf("\n");
@@ -188,11 +179,6 @@ printf("\n");
 printf("</TABLE>\n");
 printf("\n");
 printf("<?php include(\"isc-footer.inc\") ?>\n");
-
-#printf("</TABLE>\n");
-#printf("</CENTER>\n");
-#printf("</BODY>\n");
-#printf("</HTML>\n");
 
 close(DEBUG) if ($Debug);
 
@@ -245,20 +231,20 @@ sub doHost {
 				}
 			}
 			else {
-				$tstatus = "not available (no journal)";
+				$tstatus = "none (no journal)";
 				$tcolor = "red";
 			}
 		}
 		else {
 			$bstatus = "broken";
-			$tstatus = "not available (build status)";
+			$tstatus = "none (build status)";
 			$bcolor = "red";
 			$tcolor = "black";
 		}
 	}
 	else {
-		$bstatus = "not available";
-		$tstatus = "not available (build status)";
+		$bstatus = "none";
+		$tstatus = "none (build status)";
 		$bcolor = "red";
 		$tcolor = "black";
 	}
@@ -267,7 +253,7 @@ sub doHost {
 
 	printf("\t<TR>\n");
 	printf("\t\t<TD>%s</TD>\n", $hostid);
-	if ($bstatus =~ /not available/) {
+	if ($bstatus =~ /none/) {
 		printf("\t\t<TD>%s</TD>\n", $bstatus);
 		printf("\t\t<TD>&nbsp</TD>\n");
 	}
@@ -279,7 +265,7 @@ sub doHost {
 		printf("<A HREF=\"$B9HostURL/$hostid/$BuildProblemsFile\"><FONT COLOR=\"%s\">%d/%d</FONT></A>", $bcolor, $Nfbp, $Nobp);
 		printf("</TD>\n");
 	}
-	if ($tstatus =~ /not available/) {
+	if ($tstatus =~ /none/) {
 		printf("\t\t<TD><FONT COLOR=\"%s\">%s</FONT></TD>\n", $tcolor, $tstatus);
 	}
 	else {
@@ -449,8 +435,10 @@ sub testCheck {
 
 	open(XXX, "< $hostpath/$TestFile");
 	open(YYY, "> $B9HostPath/$hostid/$TestSummaryFile");
-#	printf(YYY "<HTML>\n<HEAD>\n");
-#	printf(YYY "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
+
+	printf(YYY "<?php \$title = \"ISC Status Server $hostid Bind9 Test Results\"; ?>\n");
+	printf(YYY "<?php include(\"status-isc-header.inc\") ?>\n");
+	printf(YYY "\n");
 
 	while (<XXX>) {
 		next unless ($_ =~ /^(S|I|T|A|R|E):/);
@@ -534,7 +522,7 @@ sub testCheck {
 		}
 	}
 	close(XXX);
-#	printf(YYY "</BODY>\n</HTML>\n");
+	printf(YYY "<?php include(\"isc-footer.inc\") ?>\n");
 	close(YYY);
 
 	if ($ntestsets == 0) {
@@ -554,14 +542,10 @@ sub wbpf {
 	local(@messageset, $message);
 
 	open(XXX, "> $B9HostPath/$hostid/$BuildProblemsFile");
-#	printf(XXX "<HTML>\n<HEAD>\n");
-#	printf(XXX "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
 
-#	printf("<?php $title = \"IEI Internal Web\"; ?>\n");
-#	printf("<?php include(\"isc-header.inc\") ?>\n");
-
-	printf(XXX "<TITLE>bind9 %s build problems by filename</TITLE>\n", $hostid);
-	printf(XXX "</HEAD>\n<BODY BGCOLOR=\"white\">\n");
+	printf(XXX "<?php \$title = \"ISC Status Server $hostid Bind9 Build Problems\"; ?>\n");
+	printf(XXX "<?php include(\"status-isc-header.inc\") ?>\n");
+	printf(XXX "\n");
 
 	foreach $prob (sort keys %buildprobs) {
 
@@ -581,8 +565,7 @@ sub wbpf {
 		$lastfilename = $filename;
 	}
 
-#	printf(XXX "</BODY>\n</HTML>\n");
-#	printf("<?php include(\"isc-footer.inc\") ?>\n");
+	printf(XXX "<?php include(\"isc-footer.inc\") ?>\n");
 	close(XXX);
 }
 
