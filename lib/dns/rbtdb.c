@@ -2728,7 +2728,7 @@ load(dns_db_t *db, char *filename) {
 
 	loadctx.rbtdb = rbtdb;
 	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0) {
-		if (isc_stdtime_get(&loadctx.now) != DNS_R_SUCCESS)
+		if (isc_stdtime_get(&loadctx.now) != ISC_R_SUCCESS)
 			return (DNS_R_UNEXPECTED);
 		age_ttl = ISC_TRUE;
 	} else {
