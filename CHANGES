@@ -1,3 +1,7 @@
+  88.   [cleanup]       <isc/interfaceiter.h> does not need <isc/result.h> or
+                        <isc/mem.h>.  isc_interface_t and isc_interfaceiter_t
+                        moved to <isc/types.h>.
+
   87.   [cleanup]       <isc/heap.h> does not need <isc/boolean.h>,
                         <isc/mem.h> or <isc/result.h>.
 

@@ -40,21 +40,14 @@
  *** Imports
  ***/
 
-#include <isc/result.h>
-#include <isc/mem.h>
+#include <isc/types.h>
 #include <isc/netaddr.h>
-
-/***
- *** Types
- ***/
-
-typedef struct isc_interfaceiter isc_interfaceiter_t;
 
 /*
  * Public structure describing a network interface.
  */
 
-typedef struct {
+struct isc_interface {
 	char name[32];			/* Interface name, null-terminated. */
 	unsigned int af;		/* Address family. */ 
 	isc_netaddr_t address;		/* Local address. */
@@ -62,7 +55,7 @@ typedef struct {
 	isc_netaddr_t dstaddress; 	/* Destination address
 					   (point-to-point only). */
 	isc_uint32_t flags;		/* Flags; see below. */
-} isc_interface_t;
+};
 
 /* Interface flags. */
 
