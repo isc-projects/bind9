@@ -456,7 +456,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
 		dboptions |= DNS_DBFIND_GLUEOK;
 	result = dns_db_find(db, name, version, type, dboptions,
-			     client->requesttime, NULL,
+			     client->now, NULL,
 			     dns_fixedname_name(&foundname),
 			     rdataset, sigrdataset);
 
@@ -668,7 +668,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
 		dboptions |= DNS_DBFIND_GLUEOK;
 	result = dns_db_find(db, name, version, type, dboptions,
-			     client->requesttime, &node, fname, rdataset,
+			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 
 	if (result == DNS_R_DELEGATION || result == DNS_R_NOTFOUND) {
@@ -796,7 +796,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}	
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a, 0,
-					     client->requesttime, rdataset,
+					     client->now, rdataset,
 					     sigrdataset);
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -805,7 +805,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			 */
 			result = dns_db_findrdataset(zdb, znode, zversion,
 						     dns_rdatatype_a, 0,
-						     client->requesttime,
+						     client->now,
 						     rdataset,
 						     sigrdataset);
 		}
@@ -834,7 +834,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a6, 0,
-					     client->requesttime, rdataset,
+					     client->now, rdataset,
 					     sigrdataset);
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -843,7 +843,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			 */
 			result = dns_db_findrdataset(zdb, znode, zversion,
 						     dns_rdatatype_a6, 0,
-						     client->requesttime,
+						     client->now,
 						     rdataset,
 						     sigrdataset);
 		}
@@ -873,7 +873,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_aaaa, 0,
-					     client->requesttime, rdataset,
+					     client->now, rdataset,
 					     sigrdataset);
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
@@ -882,7 +882,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			 */
 			result = dns_db_findrdataset(zdb, znode, zversion,
 						     dns_rdatatype_aaaa, 0,
-						     client->requesttime,
+						     client->now,
 						     rdataset,
 						     sigrdataset);
 		}
@@ -1413,7 +1413,7 @@ query_addbestns(ns_client_t *client) {
 	if (is_zone) {
 		result = dns_db_find(db, client->query.qname, version,
 				     dns_rdatatype_ns, 0,
-				     client->requesttime, &node, fname,
+				     client->now, &node, fname,
 				     rdataset, sigrdataset);
 		if (result != DNS_R_DELEGATION)
 			goto cleanup;
@@ -1432,7 +1432,7 @@ query_addbestns(ns_client_t *client) {
 		}
 	} else {
 		result = dns_db_findzonecut(db, client->query.qname, 0,
-					    client->requesttime, &node, fname,
+					    client->now, &node, fname,
 					    rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
 			if (zfname != NULL &&
@@ -1524,6 +1524,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
 	isc_boolean_t want_find;
+	isc_stdtime_t now;
 
 	/*
 	 * Resume a query after recursion.
@@ -1541,6 +1542,11 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		 */
 		client->query.fetch = NULL;
 		want_find = ISC_TRUE;
+		/*
+		 * Update client->now, if we can.
+		 */
+		if (isc_stdtime_get(&now) == ISC_R_SUCCESS)
+			client->now = now;
 	} else {
 		/*
 		 * This is a fetch completion event for a cancelled fetch.
@@ -1842,7 +1848,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 * Now look for an answer in the database.
 	 */
 	result = dns_db_find(db, client->query.qname, version, type, 0,
-			     client->requesttime, &node, fname, rdataset,
+			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 
  resume:
@@ -1870,7 +1876,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		dns_db_detach(&db);
 		dns_db_attach(client->view->hints, &db);
 		result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns,
-				     0, client->requesttime, &node, fname,
+				     0, client->now, &node, fname,
 				     rdataset, sigrdataset);
 		if (result != ISC_R_SUCCESS) {
 			/*
