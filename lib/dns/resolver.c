@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.205 2001/02/28 20:47:34 gson Exp $ */
+/* $Id: resolver.c,v 1.206 2001/02/28 21:19:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1458,7 +1458,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		 *
 		 * We don't want to set this option all the time, since
 		 * if fctx->restarts > 1, we've clearly been having trouble
-		 * with the addresses we had, so getting more could help.  */
+		 * with the addresses we had, so getting more could help.
+		 */
 		stdoptions |= DNS_ADBFIND_AVOIDFETCHES;
 	}
 	if (res->dispatchv4 != NULL)
