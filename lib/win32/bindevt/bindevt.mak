@@ -176,6 +176,17 @@ SOURCE=.\bindevt.mc
 
 !IF  "$(CFG)" == "bindevt - Win32 Release"
 
+TargetName=bindevt
+InputPath=.\bindevt.mc
+InputName=bindevt
+
+".\bindevt.rc" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	<<tempfile.bat 
+	@echo off 
+	mc $(InputName).mc
+<< 
+	
+
 !ELSEIF  "$(CFG)" == "bindevt - Win32 Debug"
 
 TargetName=bindevt
