@@ -225,8 +225,6 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp)
 	noop = *structp;
 	*structp = NULL;
 
-	if (noop->buffer != NULL)
-		CTXFREE(noop->buffer, noop->buflen);
 	CTXFREE(noop, sizeof(lwres_noopresponse_t));
 }
 
@@ -241,7 +239,5 @@ lwres_nooprequest_free(lwres_context_t *ctx, lwres_nooprequest_t **structp)
 	noop = *structp;
 	*structp = NULL;
 
-	if (noop->buffer != NULL)
-		CTXFREE(noop->buffer, noop->buflen);
 	CTXFREE(noop, sizeof(lwres_nooprequest_t));
 }

@@ -26,11 +26,11 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		context.@O@ lwbuffer.@O@ \
+OBJS =		context.@O@ lwbuffer.@O@ lwpacket.@O@ \
 		lwres_gabn.@O@ lwres_gnba.@O@ lwres_noop.@O@
 
 # Alphabetically
-SRCS =		context.c lwbuffer.c \
+SRCS =		context.c lwbuffer.c lwpacket.c \
 		lwres_gabn.c lwres_gnba.c lwres_noop.c
 
 LIBS =		@LIBS@

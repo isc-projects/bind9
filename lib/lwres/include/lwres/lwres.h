@@ -95,18 +95,12 @@ typedef struct {
 	/* public */
 	isc_uint16_t		datalength;
 	unsigned char	       *data;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;
 } lwres_nooprequest_t;
 
 typedef struct {
 	/* public */
 	isc_uint16_t		datalength;
 	unsigned char	       *data;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;
 } lwres_noopresponse_t;
 
 /*

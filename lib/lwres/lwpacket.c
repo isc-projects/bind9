@@ -27,16 +27,53 @@
 
 #include "assert_p.h"
 
+#define LWPACKET_LENGTH (sizeof(isc_uint16_t) * 4 + sizeof(isc_uint32_t) * 5)
+
 int
 lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
 	REQUIRE(b != NULL);
 	REQUIRE(pkt != NULL);
+
+	if (!SPACE_OK(b, LWPACKET_LENGTH))
+		return (-1);
+
+	lwres_buffer_putuint32(b, pkt->length);
+	lwres_buffer_putuint16(b, pkt->version);
+	lwres_buffer_putuint16(b, pkt->flags);
+	lwres_buffer_putuint32(b, pkt->serial);
+	lwres_buffer_putuint32(b, pkt->opcode);
+	lwres_buffer_putuint32(b, pkt->result);
+	lwres_buffer_putuint32(b, pkt->recvlength);
+	lwres_buffer_putuint16(b, pkt->authtype);
+	lwres_buffer_putuint16(b, pkt->authlength);
+
+	return (0);
 }
 
 int
 lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
+	isc_uint32_t space;
+
 	REQUIRE(b != NULL);
 	REQUIRE(pkt != NULL);
+
+	if (!SPACE_REMAINING(b, LWPACKET_LENGTH))
+		return (-1);
+	space = LWRES_BUFFER_REMAINING(b);
+
+	pkt->length = lwres_buffer_getuint32(b);
+	if (pkt->length > space)
+		return (-1);
+	pkt->version = lwres_buffer_getuint16(b);
+	pkt->flags = lwres_buffer_getuint16(b);
+	pkt->serial = lwres_buffer_getuint32(b);
+	pkt->opcode = lwres_buffer_getuint32(b);
+	pkt->result = lwres_buffer_getuint32(b);
+	pkt->recvlength = lwres_buffer_getuint32(b);
+	pkt->authtype = lwres_buffer_getuint16(b);
+	pkt->authlength = lwres_buffer_getuint16(b);
+
+	return (0);
 }

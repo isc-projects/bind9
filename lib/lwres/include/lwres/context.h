@@ -56,7 +56,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
  */
 
 void
-lwres_context_free(lwres_context_t **contextp);
+lwres_context_destroy(lwres_context_t **contextp);
 /*
  * Frees all memory associated with a lwres context.
  *
