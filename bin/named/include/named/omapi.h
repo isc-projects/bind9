@@ -17,6 +17,8 @@
 
 #include <omapi/omapi.h>
 
+#define NS_OMAPI_PORT			953
+
 /*
  * This string is the registration name of objects of type control_object_t.
  */
