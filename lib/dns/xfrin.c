@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.61 2000/04/07 22:30:42 gson Exp $ */
+/* $Id: xfrin.c,v 1.62 2000/04/08 04:42:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -518,6 +518,7 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	dns_db_t *db = NULL;
 	dns_rdatatype_t xfrtype;
 	dns_tsigkey_t *key = NULL;
+	dns_name_t *keyname = NULL;
 	isc_netaddr_t masterip;
 	dns_peer_t *peer = NULL;
 	int maxtransfersin, maxtransfersperns;
@@ -595,6 +596,20 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	    dns_zonemgr_getttransfersperns(dns_zone_getmgr(zone));
 	if (peer != NULL) {
 		(void) dns_peer_gettransfers(peer, &maxtransfersperns);
+	}
+
+	/*
+	 * Determine if we should attempt to sign the request with TSIG.
+	 */
+	if (peer != NULL && dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS) {
+		dns_view_t *view = dns_zone_getview(zone);
+		result = dns_tsigkey_find(&key, keyname, NULL,
+					  view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			result = dns_tsigkey_find(&key, keyname, NULL,
+						  view->dynamickeys);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+			goto failure;
 	}
 	
 	transferlist = dns_zonemgr_gettransferlist(dns_zone_getmgr(zone));
@@ -1101,7 +1116,14 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		CHECK(xfrin_send_request(xfr));
 		return;
 	}
-	
+
+	result = dns_message_checksig(msg, dns_zone_getview(xfr->zone));
+	if (result != ISC_R_SUCCESS) {
+		xfrin_log(xfr, ISC_LOG_DEBUG(3), "TSIG check failed: %s",
+		       isc_result_totext(result));
+		return;
+	}
+
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
