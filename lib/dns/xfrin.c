@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.78 2000/06/07 02:38:37 marka Exp $ */
+/* $Id: xfrin.c,v 1.79 2000/06/23 00:29:20 tale Exp $ */
 
 #include <config.h>
 
@@ -1051,7 +1051,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		/*
 		 * Update the last tsig pointer.
 		 */
-		CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
+		CHECK(dns_message_getquerytsig(msg, xfr->mctx,
+					       &xfr->lasttsig));
 
 	} else if (dns_message_gettsigkey(msg) != NULL) {
 		xfr->sincetsig++;
