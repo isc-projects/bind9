@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.17 2000/01/21 22:51:48 bwelling Exp $
+ * $Id: tkey.c,v 1.18 2000/01/22 04:45:13 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -403,7 +403,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
 				    ISC_TRUE, creator, msg->mctx, ring,
-				    &tsigkey);
+				    NULL);
 	isc_buffer_free(&shared);
 	shared = NULL;
 	if (result == ISC_R_NOTFOUND) {
@@ -494,7 +494,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 	 */
 	dns_tsigkey_setdeleted(tsigkey);
 	/* Release the reference */
-	dns_tsigkey_free(&tsigkey, ring);
+	dns_tsigkey_free(&tsigkey);
 
 	return (ISC_R_SUCCESS);
 }
@@ -505,7 +505,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_generic_tkey_t tkeyin, tkeyout;
-	dns_name_t *qname, *name, *keyname;
+	dns_name_t *qname, *name, *keyname, tempkeyname;
 	dns_rdataset_t *tkeyset;
 	dns_rdata_t tkeyrdata, *rdata = NULL;
 	isc_buffer_t *dynbuf = NULL;
@@ -578,9 +578,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 		unsigned char tdata[64];
 		dns_tsigkey_t *tsigkey = NULL;
 
-		keyname = NULL;
-		result = dns_message_gettempname(msg, &keyname);
-		dns_name_init(keyname, NULL);
+		dns_name_init(&tempkeyname, NULL);
+		keyname = &tempkeyname;
 		dns_name_init(&prefix, NULL);
 		RETERR(isc_buffer_allocate(msg->mctx, &buf, 256,
 					   ISC_BUFFERTYPE_BINARY));
@@ -631,7 +630,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 		result = dns_tsigkey_find(&tsigkey, keyname, NULL, ring);
 		if (result == ISC_R_SUCCESS) {
 			tkeyout.error = dns_tsigerror_badname;
-			dns_tsigkey_free(&tsigkey, ring);
+			dns_tsigkey_free(&tsigkey);
 			goto failure_with_tkey;
 		}
 		else if (result != ISC_R_NOTFOUND)
@@ -1035,12 +1034,12 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		goto failure;
 	}
 
-	RETERR(dns_tsigkey_find(&tsigkey, tkeyname, &rtkey.algorithm,ring));
+	RETERR(dns_tsigkey_find(&tsigkey, tkeyname, &rtkey.algorithm, ring));
 
 	/* Mark the key as deleted */
 	dns_tsigkey_setdeleted(tsigkey);
 	/* Release the reference */
-	dns_tsigkey_free(&tsigkey, ring);
+	dns_tsigkey_free(&tsigkey);
 
  failure:
 	return (result);

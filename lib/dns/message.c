@@ -288,7 +288,6 @@ msginitprivate(dns_message_t *m)
 static inline void
 msginittsig(dns_message_t *m)
 {
-	m->ring = NULL;
 	m->tsigstatus = m->querytsigstatus = dns_rcode_noerror;
 	m->tsig = m->querytsig = NULL;
 	m->tsigkey = NULL;
@@ -457,7 +456,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
         }
 
 	if (msg->tsigkey != NULL) {
-		dns_tsigkey_free(&msg->tsigkey, msg->ring);
+		dns_tsigkey_free(&msg->tsigkey);
 		msg->tsigkey = NULL;
 	}
 

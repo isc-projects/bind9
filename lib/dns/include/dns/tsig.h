@@ -53,6 +53,7 @@ struct dns_tsigkey {
 	dns_name_t		algorithm;	/* Algorithm name */
 	dns_name_t		*creator;	/* name that created secret */
 	isc_boolean_t		generated;	/* was this generated? */
+	dns_tsig_keyring_t	*ring;		/* the enclosing keyring */
 	isc_mutex_t		lock;
 	/* Locked */
 	isc_boolean_t		deleted;	/* has this been deleted? */
@@ -92,7 +93,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  */
 
 void
-dns_tsigkey_free(dns_tsigkey_t **key, dns_tsig_keyring_t *ring);
+dns_tsigkey_free(dns_tsigkey_t **key);
 /*
  *	Frees the tsig key structure pointed to by 'key'.
  *

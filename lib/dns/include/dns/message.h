@@ -190,7 +190,6 @@ struct dns_message {
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
 
-	dns_tsig_keyring_t	       *ring;
 	dns_rcode_t			tsigstatus;
 	dns_rcode_t			querytsigstatus;
 	dns_rdata_any_tsig_t	       *tsig;
