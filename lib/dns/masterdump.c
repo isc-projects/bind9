@@ -627,7 +627,17 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == DNS_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
-		result = dump_rdataset(mctx, name, &rdataset, ctx, buffer, f);
+		if (rdataset.type != 0) {
+			/*
+			 * XXX  We only dump the rdataset if it isn't a
+			 * negative caching entry.  Maybe our dumping routines
+			 * will learn how to usefully dump such an entry later
+			 * on.
+			 */
+			result = dump_rdataset(mctx, name, &rdataset, ctx,
+					       buffer, f);
+		} else
+			result = DNS_R_SUCCESS;
 		dns_rdataset_disassociate(&rdataset);
 		if (result != DNS_R_SUCCESS)
 			return (result);
