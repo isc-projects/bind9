@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.14 1999/01/27 06:07:57 halley Exp $ */
+ /* $Id: rdata.c,v 1.15 1999/01/27 13:38:18 marka Exp $ */
 
 #include <config.h>
 
@@ -51,9 +51,9 @@ static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
 					  isc_region_t *region,
 					  unsigned int type);
-static isc_result_t	uint32_tobuffer(unsigned long value,
+static dns_result_t	uint32_tobuffer(unsigned long value,
 					isc_buffer_t *target);
-static isc_result_t	uint16_tobuffer(unsigned long value,
+static dns_result_t	uint16_tobuffer(unsigned long value,
 					isc_buffer_t *target);
 static unsigned long	uint32_fromregion(isc_region_t *region);
 static unsigned short	uint16_fromregion(isc_region_t *region);
@@ -62,6 +62,17 @@ static dns_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
 static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
 				     unsigned int length);
 static int		compare_region(isc_region_t *r1, isc_region_t *r2);
+static int		hexvalue(char value);
+static dns_result_t	base64_totext(isc_region_t *source,
+				      isc_buffer_t *target);
+static dns_result_t	base64_tobuffer(isc_lex_t *lexer,
+					isc_buffer_t *target);
+static dns_result_t	time_totext(unsigned long value,
+				    isc_buffer_t *target);
+
+static const char hexdigits[] = "0123456789abcdef";
+static const char decdigits[] = "0123456789";
+static const char octdigits[] = "01234567";
 
 #include "code.h"
 
@@ -70,6 +81,7 @@ static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 
 #define METATYPES \
 	{ 0, "NONE", META }, \
+	{ 23, "NSAP-PTR", RESERVED }, \
 	{ 100, "UINFO", RESERVED }, \
 	{ 101, "UID", RESERVED }, \
 	{ 102, "GID", RESERVED }, \
@@ -556,7 +568,7 @@ buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
 	isc_buffer_setactive(buffer, region->length);
 }
 
-static isc_result_t
+static dns_result_t
 uint32_tobuffer(unsigned long value, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -571,7 +583,7 @@ uint32_tobuffer(unsigned long value, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static isc_result_t
+static dns_result_t
 uint16_tobuffer(unsigned long value, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -609,7 +621,8 @@ uint16_fromregion(isc_region_t *region) {
 static dns_result_t
 gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol) {
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF;
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
+			       ISC_LEXOPT_DNSMULTILINE;
 	
 	if (expect == isc_tokentype_qstring)
 		options |= ISC_LEXOPT_QSTRING;
@@ -656,4 +669,109 @@ compare_region(isc_region_t *r1, isc_region_t *r2) {
 		return ((result < 0) ? -1 : 1);
 	else
 		return ((r1->length < r2->length) ? -1 : 1);
+}
+
+static int
+hexvalue(char value) {
+	char *s;
+	if (!isascii(value&0xff))
+		return (-1);
+	if (isupper(value))
+		value = tolower(value);
+	if ((s = strchr(hexdigits, value)) == NULL)
+		return (-1);
+	return (s - hexdigits);
+}
+
+static const char base64[] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+static dns_result_t
+base64_totext(isc_region_t *source, isc_buffer_t *target) {
+	char buf[5];
+	int loops = 0;
+
+	memset(buf, 0, sizeof buf);
+	RETERR(str_totext("( " /*)*/, target));
+	while (source->length > 2) {
+		buf[0] = base64[(source->base[0]>>2)&0x3f];
+		buf[1] = base64[((source->base[0]<<4)&0x30)|
+				((source->base[1]>>4)&0x0f)];
+		buf[2] = base64[((source->base[1]<<4)&0x3c)|
+				((source->base[2]>>6)&0x03)];
+		buf[3] = base64[source->base[2]&0x3f];
+		RETERR(str_totext(buf, target));
+		isc_region_consume(source, 3);
+		if (source->length != 0 && ++loops == 15) {
+			loops = 0;
+			RETERR(str_totext(" ", target));
+		}
+	}
+	if (source->length == 2) {
+		buf[0] = base64[(source->base[0]>>2)&0x3f];
+		buf[1] = base64[((source->base[0]<<4)&0x30)|
+				((source->base[1]>>4)&0x0f)];
+		buf[2] = base64[((source->base[1]<<4)&0x3c)];
+		buf[3] = '=';
+		RETERR(str_totext(buf, target));
+	} else if (source->length == 1) {
+		buf[0] = base64[(source->base[0]>>2)&0x3f];
+		buf[1] = base64[((source->base[0]<<4)&0x30)];
+		buf[2] = buf[3] = '=';
+		RETERR(str_totext(buf, target));
+	}
+	RETERR(str_totext(" )", target));
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
+	int digits = 0;
+	isc_textregion_t *tr;
+	int val[4];
+	unsigned char buf[3];
+	int seen_end = 0;
+	unsigned int i;
+	isc_token_t token;
+	char *s;
+	int n;
+
+	
+	while (1) {
+		RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
+		if (token.type != isc_tokentype_string)
+			break;
+		tr = &token.value.as_textregion;
+		for (i = 0 ;i < tr->length; i++) {
+			if (seen_end)
+				return (DNS_R_SYNTAX);
+			if ((s = strchr(base64, tr->base[i])) == NULL)
+				return (DNS_R_SYNTAX);
+			val[digits++] = s - base64;
+			if (digits == 4) {
+				if (val[1] == 64 || val[2] == 64)
+					return (DNS_R_SYNTAX);
+				if (val[2] == 64 && val[3] != 64)
+					return (DNS_R_SYNTAX);
+				buf[0] = (val[0]<<2)|(val[1]>>4);
+				buf[1] = (val[1]<<4)|(val[2]>>2);
+				buf[2] = (val[2]<<2)|(val[3]);
+				n = (val[2] == 64) ? 1 :
+				    (val[3] == 64) ? 2 : 3;
+				RETERR(mem_tobuffer(target, buf, n));
+				digits = 0;
+				if (val[2] == 64 || val[3] != 64)
+					seen_end = 1;
+			}
+		}
+	}
+	isc_lex_ungettoken(lexer, &token);
+	if (digits)
+		return (DNS_R_SYNTAX);
+	return (DNS_R_SUCCESS);
+}
+
+static dns_result_t
+time_totext(unsigned long value, isc_buffer_t *target) {
+	return (DNS_R_NOTIMPLEMENTED);
 }

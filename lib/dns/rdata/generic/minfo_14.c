@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.6 1999/01/22 05:02:46 marka Exp $ */
+ /* $Id: minfo_14.c,v 1.7 1999/01/27 13:38:20 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MINFO_14_H
 #define RDATA_GENERIC_MINFO_14_H
@@ -110,7 +110,7 @@ towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &region);
 
 	dns_name_fromregion(&rmail, &region);
-	isc_region_consume(&region, rmail.length);
+	isc_region_consume(&region, name_length(&rmail));
 
 	RETERR(dns_name_towire(&rmail, cctx, target));
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.9 1999/01/20 07:14:35 marka Exp $ */
+ /* $Id: gen.c,v 1.10 1999/01/27 13:38:18 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -166,7 +166,7 @@ doswitch(char *name, char *function, char *args,
 	}
 	if (subswitch) {
 		fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
-		fputs(/*{*/ "\t\t}\n", stdout);
+		fputs(/*{*/ "\t\t} \\\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
 	}
 	if (first)
