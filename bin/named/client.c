@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.143 2001/01/29 19:49:48 bwelling Exp $ */
+/* $Id: client.c,v 1.144 2001/02/06 02:43:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1462,6 +1462,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
  cleanup_serverlock:
 	dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+
+	if (event != NULL)
+		isc_event_free(&event);
 }
 
 static void
