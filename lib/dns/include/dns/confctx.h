@@ -131,9 +131,9 @@ struct dns_c_options
 	char		       *memstats_filename;
 	char		       *named_xfer;
 
-	isc_int32_t	       *transfers_in;
+	isc_int32_t	       *transfers_in; 
 	isc_int32_t	       *transfers_per_ns;
-	isc_int32_t	       *transfers_out;
+	isc_int32_t	       *transfers_out; 
 	isc_int32_t	       *max_log_size_ixfr;
 	isc_int32_t	       *clean_interval;
 	isc_int32_t	       *interface_interval;
@@ -144,7 +144,7 @@ struct dns_c_options
 	isc_int32_t	       *max_transfer_time_out;
 	isc_int32_t	       *max_transfer_idle_in;
 	isc_int32_t	       *max_transfer_idle_out;
-	isc_int32_t	       *lamettl; /* XXX not parsed yet */
+	isc_int32_t	       *lamettl;
 	isc_int32_t	       *tcp_clients;
 	isc_int32_t	       *recursive_clients;
 	isc_int32_t	       *min_roots;
@@ -664,8 +664,7 @@ isc_result_t	dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
 
 
 isc_result_t dns_c_ctx_setalsonotify(dns_c_ctx_t *ctx,
-				     dns_c_iplist_t *newval,
-				     isc_boolean_t deepcopy);
+				     dns_c_iplist_t *newval);
 isc_result_t dns_c_ctx_getalsonotify(dns_c_ctx_t *ctx,
 				     dns_c_iplist_t **ret);
 isc_result_t dns_c_ctx_unsetalsonotify(dns_c_ctx_t *ctx);
@@ -690,47 +689,50 @@ isc_result_t dns_c_ctx_unsettransferformat(dns_c_ctx_t *cfg);
 
 
 
-isc_result_t	dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-				      dns_c_ipmatchlist_t *iml);
-isc_result_t	dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg,
-				      dns_c_ipmatchlist_t **list);
-isc_result_t	dns_c_ctx_unsetqueryacl(dns_c_ctx_t *cfg);
+isc_result_t	dns_c_ctx_setallowquery(dns_c_ctx_t *cfg,
+					dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_getallowquery(dns_c_ctx_t *cfg,
+					dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_unsetallowquery(dns_c_ctx_t *cfg);
 
 
-isc_result_t	dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-					 dns_c_ipmatchlist_t *iml);
-isc_result_t	dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg,
-					 dns_c_ipmatchlist_t **list);
-/* XXX need unset version */
+isc_result_t	dns_c_ctx_setallowtransfer(dns_c_ctx_t *cfg,
+					   dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_getallowtransfer(dns_c_ctx_t *cfg,
+					   dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_unsetallowtransfer(dns_c_ctx_t *cfg);
 
-isc_result_t	dns_c_ctx_setrecursionacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
-					  dns_c_ipmatchlist_t *iml);
-isc_result_t	dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg,
-					  dns_c_ipmatchlist_t **list);
-/* XXX need unset version */
 
-isc_result_t	dns_c_ctx_setblackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
+isc_result_t	dns_c_ctx_setallowrecursion(dns_c_ctx_t *cfg,
+					    dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_getallowrecursion(dns_c_ctx_t *cfg,
+					    dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_unsetallowrecursion(dns_c_ctx_t *cfg);
+
+
+isc_result_t	dns_c_ctx_setblackhole(dns_c_ctx_t *cfg,
 				       dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_getblackhole(dns_c_ctx_t *cfg,
 				       dns_c_ipmatchlist_t **list);
-/* XXX need unset version */
+isc_result_t	dns_c_ctx_unsetblackhole(dns_c_ctx_t *cfg);
 
-isc_result_t	dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
+
+isc_result_t	dns_c_ctx_settopology(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_gettopology(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t **list);
-/* XXX need unset version */
+isc_result_t	dns_c_ctx_unsettopology(dns_c_ctx_t *cfg);
 
-isc_result_t	dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
+
+isc_result_t	dns_c_ctx_setsortlist(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_getsortlist(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t **list);
-/* XXX need unset version */
+isc_result_t	dns_c_ctx_unsetsortlist(dns_c_ctx_t *cfg);
 
 
 isc_result_t	dns_c_ctx_setallowupdateforwarding(dns_c_ctx_t *cfg,
-						  isc_boolean_t copy,
-						  dns_c_ipmatchlist_t *iml);
+						   dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_getallowupdateforwarding(dns_c_ctx_t *cfg,
 						   dns_c_ipmatchlist_t **list);
 isc_result_t	dns_c_ctx_unsetallowupdateforwarding(dns_c_ctx_t *cfg);
@@ -743,24 +745,6 @@ isc_result_t	dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
 isc_result_t	dns_c_ctx_getforwarders(dns_c_ctx_t *cfg,
 					dns_c_iplist_t **list);
 isc_result_t	dns_c_ctx_unsetforwarders(dns_c_ctx_t *cfg);
-
-
-
-/* The modifier functions below all return ISC_R_SUCCESS when the value is
- * successfully set. If the value had already been set, then the value
- * ISC_R_EXISTS is returned (the value is still set).
- *
- * In a few functions there is a boolean parameter named 'copy'. If that is
- * true, then a deep copy is made of the parameter and the parameter itself
- * is not touched. If the value is false, then the parameter is stored
- * directly in the dns_c_ctx_t structure, and the client looses ownership
- * of it. ISC_R_NOMEMORY is a possible return value for many of these
- * functions.
- *
- */
-
-
-
 
 
 
@@ -779,31 +763,9 @@ isc_result_t	dns_c_ctx_getrrsetorderlist(dns_c_ctx_t *cfg,
 
 
 
-
-
-
-
-
-/*
- * Accessor functions for the various fields in the config structure. The
- * value of the field is copied into the location pointed to by the RETVAL
- * paramater and ISC_R_SUCCESS is returned. The caller must not modify the
- * returned value, and should copy the value if it needs to hold on to it.
- *
- * If the value has not been set in the config structure, then
- * ISC_R_NOTFOUND is returned and the location pointed to by the RETVAL
- * paramater is not modified (i.e. the library assumes no particular
- * defaults for any unset values).
- */
-
-
-
 isc_result_t	dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg,
 					 dns_c_tkeylist_t **retval);
 
-
-
-/* Prootypes for the functions defined via macros */
 
 
 #endif /* DNS_CONFIG_CONFCTX_H */
