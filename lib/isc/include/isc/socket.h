@@ -432,6 +432,8 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
  *	event with the given 'action' and 'arg' will be posted to the
  *	event queue of 'task'.
  *
+ *	Partial reads are always turned on for UDP.
+ *
  *	The caller may neither read from nor write to 'region' until it
  *	has received the read completion event.
  *
