@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.226 2000/10/05 23:48:45 marka Exp $ */
+/* $Id: server.c,v 1.227 2000/10/11 21:21:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1875,6 +1875,11 @@ ns_server_reloadwanted(ns_server_t *server) {
 	if (server->reload_event != NULL)
 		isc_task_send(server->task, &server->reload_event);
 	UNLOCK(&server->reload_event_lock);
+}
+
+void
+ns_server_reloadzone(ns_server_t *server, char *args) {
+
 }
 
 static isc_result_t

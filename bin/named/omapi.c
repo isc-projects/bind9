@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.18 2000/10/05 23:48:47 marka Exp $ */
+/* $Id: omapi.c,v 1.19 2000/10/11 21:21:46 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -25,6 +25,7 @@
 
 #include <isc/app.h>
 #include <isc/event.h>
+#include <isc/mem.h>
 #include <isc/util.h>
 
 #include <named/log.h>
@@ -61,6 +62,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 {
 	isc_region_t region;
 	isc_result_t result;
+	char *args;
 
 	INSIST(handle == (omapi_object_t *)&control);
 
@@ -75,22 +77,24 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	 * Compare the 'name' parameter against all known control commands.
 	 */
 	if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_RELOAD) == 0) {
-		if (omapi_data_getint(value) != 0)
-			ns_server_reloadwanted(ns_g_server);
-
 		result = ISC_R_SUCCESS;
+		args = omapi_data_strdup(ns_g_mctx, value);
+		if (args == NULL)
+			result = ISC_R_NOMEMORY;
+		else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) == 0)
+			ns_server_reloadwanted(ns_g_server);
+		else
+			ns_server_reloadzone(ns_g_server, args);
+		if (args != NULL)
+			isc_mem_free(ns_g_mctx, args);
 
 	} else if (omapi_string_strcmp(name,NS_OMAPI_COMMAND_HALT) == 0) {
-		if (omapi_data_getint(value) != 0) {
-			ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
-			isc_app_shutdown();
-		}
+		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (omapi_string_strcmp(name,NS_OMAPI_COMMAND_STOP) == 0) {
-		if (omapi_data_getint(value) != 0) {
-			ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
-			isc_app_shutdown();
-		}
+		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (omapi_string_strcmp(name,
 				       NS_OMAPI_COMMAND_RELOADCONFIG) == 0 ||
