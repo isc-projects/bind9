@@ -3618,6 +3618,8 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 	dns_adbfetch_t *fetch;
 	dns_adb_t *adb;
 	dns_name_t *name;
+	dns_rdataset_t rdataset;
+	dns_rdataset_t *nameservers;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3625,12 +3627,20 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 
 	INSIST(!NAME_FETCH_V4(adbname));
 
+	name = NULL;
+	nameservers = NULL;
+	dns_rdataset_init(&rdataset);
+	
 	if (start_at_root) {
 		DP(50, "fetch_name_v4: starting at DNS root for name %p",
 		   adbname);
 		name = dns_rootname;
-	} else
-		name = &adbname->name;
+		result = dns_view_simplefind(adb->view, name, dns_rdatatype_ns,
+					     0, 0, ISC_TRUE, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
+			goto cleanup;
+		nameservers = &rdataset;
+	}
 
 	fetch = new_adbfetch(adb);
 	if (fetch == NULL) {
@@ -3640,7 +3650,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a,
-					  NULL, NULL, NULL, 0,
+					  name, nameservers, NULL, 0,
 					  adb->task, fetch_callback,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
@@ -3653,6 +3663,8 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root)
  cleanup:
 	if (fetch != NULL)
 		free_adbfetch(adb, &fetch);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
 
 	return (result);
 }
@@ -3702,6 +3714,8 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 	dns_adbfetch6_t *fetch;
 	dns_adb_t *adb;
 	dns_name_t *name;
+	dns_rdataset_t rdataset;
+	dns_rdataset_t *nameservers;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3709,12 +3723,20 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 
 	INSIST(!NAME_FETCH_V6(adbname));
 
+	name = NULL;
+	nameservers = NULL;
+	dns_rdataset_init(&rdataset);
+
 	if (start_at_root) {
 		DP(50, "fetch_name_a6: starting at DNS root for name %p",
 		   adbname);
 		name = dns_rootname;
-	} else
-		name = &adbname->name;
+		result = dns_view_simplefind(adb->view, name, dns_rdatatype_ns,
+					     0, 0, ISC_TRUE, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
+			goto cleanup;
+		nameservers = &rdataset;
+	}
 
 	fetch = new_adbfetch6(adb, adbname, NULL);
 	if (fetch == NULL) {
@@ -3725,7 +3747,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root)
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a6,
-					  NULL, NULL, NULL, 0,
+					  name, nameservers, NULL, 0,
 					  adb->task, fetch_callback_a6,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
@@ -3738,6 +3760,8 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root)
  cleanup:
 	if (fetch != NULL)
 		free_adbfetch6(adb, &fetch);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
 
 	return (result);
 }
