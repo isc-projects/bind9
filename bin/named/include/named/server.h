@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58.2.1.10.8 2003/08/26 04:34:15 marka Exp $ */
+/* $Id: server.h,v 1.58.2.1.10.9 2004/01/05 07:00:12 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -89,6 +89,9 @@ struct ns_server {
 	isc_uint64_t *		querystats;	/* Query statistics counters */
 
 	ns_controls_t *		controls;	/* Control channels */
+	unsigned int		dispatchgen;
+	ns_dispatchlist_t	dispatches;
+						
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')
@@ -200,5 +203,11 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args);
  */
 isc_result_t
 ns_server_dumprecursing(ns_server_t *server);
+
+/*
+ * Maintain a list of dispatches that require reserved ports.
+ */
+void
+ns_add_reserved_dispatch(ns_server_t *server, isc_sockaddr_t *addr);
 
 #endif /* NAMED_SERVER_H */

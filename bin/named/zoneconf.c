@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4.10.8 2003/09/02 02:43:55 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.9 2004/01/05 07:00:12 marka Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@
 #include <named/config.h>
 #include <named/globals.h>
 #include <named/log.h>
+#include <named/server.h>
 #include <named/zoneconf.h>
 
 /*
@@ -461,11 +462,13 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "notify-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj)));
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = ns_config_get(maps, "notify-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-transfer", ac, zone,
@@ -625,11 +628,13 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "transfer-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setxfrsource4(zone, cfg_obj_assockaddr(obj)));
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = ns_config_get(maps, "transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj)));
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = ns_config_get(maps, "alt-transfer-source", &obj);

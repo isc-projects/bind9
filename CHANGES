@@ -8,6 +8,9 @@
 			bind to the specified transfer source and TSIG was
 			being used. [RT #10120]
 
+1539.	[bug]		Open UDP sockets for notify-source and transfer-source
+			that use reserved ports at startup. [RT #9475]
+
 1535.	[bug]		When parsing APL records it was possible to silently
 			accept out of range ADDRESSFAMILY values. [RT# 9979]
 
