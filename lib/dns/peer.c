@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.11 2001/01/09 21:51:12 bwelling Exp $ */
+/* $Id: peer.c,v 1.12 2001/02/27 01:13:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/util.h>
 
 #include <dns/bit.h>
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/peer.h>
 
@@ -438,4 +439,36 @@ dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval) {
 	*keyval = NULL;
 
 	return (exists ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
+	isc_buffer_t b;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_result_t result;
+
+	isc_buffer_init(&b, keyval, strlen(keyval));
+	isc_buffer_add(&b, strlen(keyval));
+	result = dns_name_fromtext(dns_fixedname_name(&fname), &b,
+				   dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	name = isc_mem_get(peer->mem, sizeof(dns_name_t));
+	if (name == NULL)
+		return (ISC_R_NOMEMORY);
+
+	dns_name_init(name, NULL);
+	result = dns_name_dup(dns_fixedname_name(&fname), peer->mem, name);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(peer->mem, name, sizeof(dns_name_t));
+		return (result);
+	}
+
+	result = dns_peer_setkey(peer, &name);
+	if (result != ISC_R_SUCCESS)
+		isc_mem_put(peer->mem, name, sizeof(dns_name_t));
+
+	return (result);
 }
