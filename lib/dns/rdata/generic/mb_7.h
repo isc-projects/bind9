@@ -15,5 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.h,v 1.15 2000/03/20 22:57:12 gson Exp $ */
+/* $Id: mb_7.h,v 1.16 2000/04/26 18:27:56 marka Exp $ */
 
+#include <dns/name.h>
+
+typedef struct dns_rdata_mb {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		mb;
+} dns_rdata_mb_t;
