@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.14 2001/01/09 21:59:59 bwelling Exp $ */
+/* $Id: lib.c,v 1.15 2001/02/16 04:14:16 tale Exp $ */
 
 #include <config.h>
+
+#include <stddef.h>
 
 #include <isc/msgcat.h>
 #include <isc/once.h>
