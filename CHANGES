@@ -1,3 +1,6 @@
+1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
+			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
+
 1291.	[bug]		"recursion available: {denied,approved}" was too
 			confusing.
 
