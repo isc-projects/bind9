@@ -1552,8 +1552,8 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 	if (r.length < DNS_MESSAGE_HEADERLEN)
 		return (DNS_R_UNEXPECTEDEND);
 
-	id = isc_buffer_getuint16(source);
-	flags = isc_buffer_getuint16(source);
+	id = isc_buffer_getuint16(&buffer);
+	flags = isc_buffer_getuint16(&buffer);
 	flags &= DNS_MESSAGE_FLAG_MASK;
 
 	if (flagsp != NULL)
