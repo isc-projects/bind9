@@ -1,6 +1,6 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.8 2000/11/03 18:25:09 gson Exp $
+Version: $Id: README-SGML,v 1.9 2000/11/06 22:41:12 gson Exp $
 
 The entire ARM is in the single file:
 
@@ -197,7 +197,7 @@ Where on FreeBSD the second line reads:
 
 On NetBSD it needs to read:
 
-<!ENTITY dbstyle SYSTEM "/usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl" CDATA DSSSL>
+<!ENTITY dbstyle SYSTEM "/usr/pkg/share/sgml/docbook/dsssl/modular/html/docbook.dsl" CDATA DSSSL>
 
 NOTE: This is usually solved by having this style sheet modification
 be installed in a system directory and have it reference the style
