@@ -54,6 +54,7 @@
 #include "confparser.h"
 #include "udpclient.h"
 #include "tcpclient.h"
+#include "interfacemgr.h"
 
 typedef struct dbinfo {
 	dns_db_t *		db;
@@ -416,14 +417,12 @@ main(int argc, char *argv[])
 	isc_taskmgr_t *manager = NULL;
 	unsigned int workers;
 	isc_socketmgr_t *socketmgr;
-	isc_socket_t *so0, *so1;
 	isc_sockaddr_t sockaddr;
 	unsigned int addrlen;
-	udp_listener_t *ludp;
-	tcp_listener_t *ltcp;
 	int ch;
 	char *origintext;
 	dns_result_t result;
+	ns_interfacemgr_t *ifmgr = NULL;
 
 #if 0 /* brister */
 	isc_cfgctx_t *configctx = NULL;
@@ -489,44 +488,11 @@ main(int argc, char *argv[])
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
-	/*
-	 * open up a UDP socket
-	 */
-	so0 = NULL;
-	memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_port = htons(5544);
-	addrlen = sizeof(struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_udp, &so0) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_socket_bind(so0, &sockaddr,
-				      (int)addrlen) == ISC_R_SUCCESS);
+	result = ns_interfacemgr_create(mctx, manager, socketmgr, dispatch, &ifmgr);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	ludp = udp_listener_allocate(mctx, workers);
-	RUNTIME_CHECK(udp_listener_start(ludp, so0, manager,
-					 workers, workers, 0,
-					 dispatch) == ISC_R_SUCCESS);
-
-	if (want_stats)
-		isc_mem_stats(mctx, stdout);
-
-	/*
-	 * open up a TCP socket
-	 */
-	so1 = NULL;
-	memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_port = htons(5544);
-	addrlen = sizeof(struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp, &so1) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr,
-				      (int)addrlen) == ISC_R_SUCCESS);
-
-	ltcp = tcp_listener_allocate(mctx, workers);
-	RUNTIME_CHECK(tcp_listener_start(ltcp, so1, manager,
-					 workers, workers, 0,
-					 dispatch) == ISC_R_SUCCESS);
+	result = ns_interfacemgr_scan(ifmgr);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
@@ -540,6 +506,9 @@ main(int argc, char *argv[])
 
 	unload_all();
 	dns_dbtable_detach(&dbtable);
+
+	printf("Destroying network interface manager\n");
+	ns_interfacemgr_destroy(&ifmgr);
 
 	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
