@@ -725,7 +725,7 @@ getrdata(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		 */
 		rdata->data = (unsigned char *)""; 
 		rdata->length = 0;
-		rdata->class = rdclass;
+		rdata->rdclass = rdclass;
 		rdata->type = rdtype;
 		return DNS_R_SUCCESS;
 	}
@@ -1048,7 +1048,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				  msg->rdclass, rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-		rdata->class = rdclass;
+		rdata->rdclass = rdclass;
 
 		/*
 		 * XXXMLG Perform a totally ugly hack here to pull

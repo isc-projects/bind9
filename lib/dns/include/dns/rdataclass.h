@@ -40,13 +40,13 @@ dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
  *	DNS_R_NOTIMPLEMENTED		class is known, but not implemented
  */
 
-dns_result_t dns_rdataclass_totext(dns_rdataclass_t class,
+dns_result_t dns_rdataclass_totext(dns_rdataclass_t rdclass,
 				   isc_buffer_t *target);
 /*
- * Put a textual representation of class 'class' into 'target'.
+ * Put a textual representation of class 'rdclass' into 'target'.
  *
  * Requires:
- *	'class' is a valid class.
+ *	'rdclass' is a valid class.
  *
  *	'target' is a valid text buffer.
  *

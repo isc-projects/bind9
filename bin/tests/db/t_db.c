@@ -1013,7 +1013,7 @@ t_dns_db_newversion(char **av) {
 	dns_rdata_init(&added_rdata);
 	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
 	added_rdata.length = 4;
-	added_rdata.class = rdataclass;
+	added_rdata.rdclass = rdataclass;
 	added_rdata.type = rdatatype;
 
 	dns_rdataset_init(&added_rdataset);
@@ -1348,7 +1348,7 @@ t_dns_db_closeversion_1(char **av) {
 	dns_rdata_init(&added_rdata);
 	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
 	added_rdata.length = 4;
-	added_rdata.class = rdataclass;
+	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
 
 	dns_rdataset_init(&added_rdataset);
@@ -1694,7 +1694,7 @@ t_dns_db_closeversion_2(char **av) {
 	dns_rdata_init(&added_rdata);
 	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
 	added_rdata.length = 4;
-	added_rdata.class = rdataclass;
+	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
 
 	dns_rdataset_init(&added_rdataset);
