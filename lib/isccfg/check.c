@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.6 2001/03/04 21:18:30 bwelling Exp $ */
+/* $Id: check.c,v 1.7 2001/03/07 23:36:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -73,7 +73,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 	{ "sig-validity-interval", MASTERZONE },
 	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "allow-update", MASTERZONE },
-	{ "allow-update-forwarding", SLAVEZONE | STUBZONE },
+	{ "allow-update-forwarding", SLAVEZONE },
 	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE},
 	{ "ixfr-base", MASTERZONE | SLAVEZONE },
 	{ "ixfr-tmp-file", MASTERZONE | SLAVEZONE },
