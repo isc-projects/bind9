@@ -42,6 +42,7 @@ TARGETS =	adb_test \
 		dispatch_test \
 		keygen \
 		lex_test \
+		lfsr_test \
 		log_test \
 		master_test \
 		mempool_test \
@@ -72,6 +73,7 @@ SRCS =		adb_test.c \
 		dispatch_test.c \
 		keygen.c \
 		lex_test.c \
+		lfsr_test.c \
 		log_test.c \
 		master_test.c \
 		mempool_test.c \
@@ -124,6 +126,10 @@ res_test: res_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 lex_test: lex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lex_test.@O@ \
+		${ISCLIBS} ${LIBS}
+
+lfsr_test: lfsr_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lfsr_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 log_test: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
