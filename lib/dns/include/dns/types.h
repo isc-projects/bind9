@@ -86,7 +86,6 @@ typedef struct dns_view				dns_view_t;
 typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
 typedef struct dns_zone				dns_zone_t;
 typedef struct dns_zonemgr			dns_zonemgr_t;
-typedef struct dns_zone_callbackarg		dns_zone_callbackarg_t;
 typedef struct dns_a6context			dns_a6context_t;
 typedef struct dns_rbt				dns_rbt_t;
 typedef struct dns_zt				dns_zt_t;

@@ -50,6 +50,8 @@
 		} else \
 			(void)NULL
 
+typedef struct dns_zone_callbackarg dns_zone_callbackarg_t;
+
 struct dns_zone_callbackarg {
         isc_mem_t *mctx;
 	dns_viewlist_t oldviews;

@@ -1,4 +1,7 @@
 
+  65.   [cleanup]       Removed obsolete typedef of dns_zone_callbackarg_t
+			from <dns/types.h>.
+
   64.	[func]		The RBT, DB, and zone table APIs now allow the
 			caller find the most-enclosing superdomain of
 			a name.
