@@ -412,11 +412,12 @@ ns_query_init(ns_client_t *client) {
 	return (query_newnamebuf(client));
 }
 
-static inline dns_dbversion_t *
-query_findversion(ns_client_t *client, dns_db_t *db) {
+static inline ns_dbversion_t *
+query_findversion(ns_client_t *client, dns_db_t *db,
+		  isc_boolean_t *newzonep)
+{
 	ns_dbversion_t *dbversion;
 
-	CTRACE("query_findversion");
 	/*
 	 * We may already have done a query related to this
 	 * database.  If so, we must be sure to make subsequent
@@ -438,12 +439,131 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 			return (NULL);
 		dns_db_attach(db, &dbversion->db);
 		dns_db_currentversion(db, &dbversion->version);
+		dbversion->queryok = ISC_FALSE;
 		ISC_LIST_APPEND(client->query.activeversions,
 				dbversion, link);
-	}
+		*newzonep = ISC_TRUE;
+	} else
+		*newzonep = ISC_FALSE;
 	
-	CTRACE("query_findversion: done");
-	return (dbversion->version);
+	return (dbversion);
+}
+
+static inline isc_result_t
+query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
+	    dns_zone_t **zonep, dns_db_t **dbp, dns_dbversion_t **versionp,
+	    isc_boolean_t *is_zonep)
+{
+	isc_result_t result;
+	isc_boolean_t check_acl, new_zone;
+	dns_acl_t *queryacl;
+	ns_dbversion_t *dbversion;
+
+	/*
+	 * Find a database to answer the query.
+	 */
+
+	result = dns_zt_find(client->view->zonetable, name, options, NULL,
+			     zonep);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		result = dns_zone_getdb(*zonep, dbp);
+		*is_zonep = ISC_TRUE;
+	}
+
+	if (result == ISC_R_NOTFOUND) {
+		if (!USECACHE(client))
+			return (DNS_R_REFUSED);
+		dns_db_attach(client->view->cachedb, dbp);
+		*is_zonep = ISC_FALSE;
+	} else if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * If we have a zone, and it has an ACL, we'll check it, otherwise
+	 * we use the view's "allow-query" ACL.  Each ACL is only checked
+	 * once per query.
+	 *
+	 * Also, if we have a zone, we will get the version to use.
+	 */
+
+	check_acl = ISC_TRUE;	/* Keep compiler happy. */
+	queryacl = NULL;
+	dbversion = NULL;
+	if (*is_zonep) {
+		/*
+		 * Get the current version of this database.
+		 */
+		dbversion = query_findversion(client, *dbp, &new_zone);
+		if (dbversion == NULL)
+			return (DNS_R_SERVFAIL);
+		*versionp = dbversion->version;
+		if (new_zone) {
+			queryacl = dns_zone_getqueryacl(*zonep);
+			check_acl = ISC_TRUE;
+		} else if (!dbversion->queryok)
+			return (DNS_R_REFUSED);
+		else
+			check_acl = ISC_FALSE;
+	} else
+		*versionp = NULL;
+
+	if (queryacl == NULL) {
+		queryacl = client->view->queryacl;
+		if ((client->query.attributes &
+		     NS_QUERYATTR_QUERYOKVALID) != 0) {
+			/*
+			 * We've evaluated the view's queryacl already.  If
+			 * NS_QUERYATTR_QUERYOK is set, then the client is
+			 * allowed to make queries, otherwise the query should
+			 * be refused.
+			 */
+			check_acl = ISC_FALSE;
+			if ((client->query.attributes &
+			     NS_QUERYATTR_QUERYOK) == 0)
+				return (DNS_R_REFUSED);
+		} else {
+			/*
+			 * We haven't evaluated the view's queryacl yet.
+			 */
+			check_acl = ISC_TRUE;
+		}
+	}
+
+	if (check_acl) {
+		/*
+		 * XXX RTH  need a "should we log acl failure" flag.
+		 */
+		result = ns_client_checkacl(client, "query", queryacl,
+					    ISC_TRUE);
+		if (queryacl == client->view->queryacl) {
+			if (result == ISC_R_SUCCESS) {
+				/*
+				 * We were allowed by the default
+				 * "allow-query" ACL.  Remember this so we
+				 * don't have to check again.
+				 */
+				client->query.attributes |=
+					NS_QUERYATTR_QUERYOK;
+			}
+			/*
+			 * We've now evaluated the view's query ACL, and
+			 * the NS_QUERYATTR_QUERYOK attribute is now valid.
+			 */
+			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
+		} else {
+			/*
+			 * Remember the result of the ACL check so we
+			 * don't have to check again.
+			 */
+			if (result == ISC_R_SUCCESS)
+				dbversion->queryok = ISC_TRUE;
+			else
+				dbversion->queryok = ISC_FALSE;
+		}
+	} else
+		result = ISC_R_SUCCESS;
+
+	return (result);
 }
 
 static isc_result_t
@@ -473,29 +593,10 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	 */
 	zone = NULL;
 	db = NULL;
-	result = dns_zt_find(client->view->zonetable, name, 0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		isc_result_t tresult;
-		tresult = dns_zone_getdb(zone, &db);
-		if (tresult != ISC_R_SUCCESS)
-			result = tresult;
-	}
-
-	if (result == ISC_R_NOTFOUND && USECACHE(client))
-		dns_db_attach(client->view->cachedb, &db);
-	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
-		goto cleanup;
-
-	/*
-	 * Get the current version of this database.
-	 */
 	version = NULL;
-	is_zone = dns_db_iszone(db);
-	if (is_zone) {
-		version = query_findversion(client, db);
-		if (version == NULL)
-			goto cleanup;
-	}
+	result = query_getdb(client, name, 0, &zone, &db, &version, &is_zone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
  db_find:
 	/*
@@ -508,7 +609,6 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_db_find(db, name, version, type, dboptions,
 			     now, NULL, dns_fixedname_name(&foundname),
 			     rdataset, sigrdataset);
-
 	if (result == DNS_R_DELEGATION ||
 	    result == ISC_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
@@ -677,6 +777,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	added_something = ISC_FALSE;
 	need_addname = ISC_FALSE;
 	zone = NULL;
+	is_zone = ISC_FALSE;
 	if (qtype == dns_rdatatype_a)
 		type = dns_rdatatype_any;
 	else
@@ -685,27 +786,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	/*
 	 * Find a database to answer the query.
 	 */
-	result = dns_zt_find(client->view->zonetable, name, 0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		isc_result_t tresult;
-		tresult = dns_zone_getdb(zone, &db);
-		if (tresult != ISC_R_SUCCESS)
-			result = tresult;
-	}
-
-	if (result == ISC_R_NOTFOUND && USECACHE(client))
-		dns_db_attach(client->view->cachedb, &db);
-	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	result = query_getdb(client, name, 0, &zone, &db, &version, &is_zone);
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * We don't want an ACL failure to fail the query.
+		 */
+		if (result == DNS_R_REFUSED)
+			result = ISC_R_SUCCESS;
 		goto cleanup;
-
-	/*
-	 * Get the current version of this database.
-	 */
-	is_zone = dns_db_iszone(db);
-	if (is_zone) {
-		version = query_findversion(client, db);
-		if (version == NULL)
-			goto cleanup;
 	}
 
  db_find:
@@ -1482,38 +1570,17 @@ query_addbestns(ns_client_t *client) {
 	zdb = NULL;
 	version = NULL;
 	zone = NULL;
+	is_zone = ISC_FALSE;
 	use_zone = ISC_FALSE;
 
 	/*
 	 * Find the right database.
 	 */
-	result = dns_zt_find(client->view->zonetable, client->query.qname,
-			     0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		result = dns_zone_getdb(zone, &db);
-	if (result == ISC_R_NOTFOUND) {
-		/*
-		 * We're not directly authoritative for this query name, nor
-		 * is it a subdomain of any zone for which we're
-		 * authoritative.
-		 */
-		if (!USECACHE(client))
-			goto cleanup;
-		INSIST(client->view->cachedb != NULL);
-		dns_db_attach(client->view->cachedb, &db);
-	} else if (result != ISC_R_SUCCESS) {
-		/*
-		 * Something is broken.
-		 */
+	result = query_getdb(client, client->query.qname, 0, &zone, &db,
+			     &version, &is_zone);
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	}
-	is_zone = dns_db_iszone(db);
-	if (is_zone) {
-		version = query_findversion(client, db);
-		if (version == NULL)
-			goto cleanup;
-	} else
-		version = NULL;
+
  db_find:
 	/*
 	 * We'll need some resources...
@@ -1783,6 +1850,88 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	return (result);
 }
 
+static inline isc_result_t
+query_findparentkey(ns_client_t *client, dns_name_t *name,
+		    dns_zone_t **zonep, dns_db_t **dbp,
+		    dns_dbversion_t **versionp, dns_dbnode_t **nodep,
+		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	dns_db_t *pdb;
+	dns_dbnode_t *pnode;
+	dns_dbversion_t *pversion;
+	dns_rdataset_t prdataset, psigrdataset;
+	isc_result_t result;
+	dns_zone_t *pzone;
+	isc_boolean_t is_zone;
+	dns_fixedname_t pfoundname;
+
+	/*
+	 * 'name' is at a zone cut.  Try to find a KEY for 'name' in
+	 * the deepest ancestor zone of 'name' (if any).  If it exists,
+	 * update *zonep, *dbp, *nodep, rdataset, and sigrdataset and
+	 * return ISC_R_SUCCESS.  If not, leave them alone and return a
+	 * non-success status.
+	 */
+
+	pzone = NULL;
+	pdb = NULL;
+	pnode = NULL;
+	pversion = NULL;
+	dns_rdataset_init(&prdataset);
+	dns_rdataset_init(&psigrdataset);
+	is_zone = ISC_FALSE;
+	dns_fixedname_init(&pfoundname);
+
+	result = query_getdb(client, name, DNS_ZTFIND_NOEXACT,
+			     &pzone, &pdb, &pversion, &is_zone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (!is_zone) {
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+		
+	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key, 0,
+			     client->now, &pnode,
+			     dns_fixedname_name(&pfoundname),
+			     &prdataset, &psigrdataset);
+	if (result == ISC_R_SUCCESS) {
+		if (dns_rdataset_isassociated(rdataset))
+			dns_rdataset_disassociate(rdataset);
+		if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+		dns_rdataset_clone(&prdataset, rdataset);
+		if (dns_rdataset_isassociated(&psigrdataset))
+			dns_rdataset_clone(&psigrdataset, sigrdataset);
+		if (*nodep != NULL)
+			dns_db_detachnode(*dbp, nodep);
+		*nodep = pnode;
+		pnode = NULL;
+		*versionp = pversion;
+		if (*dbp != NULL)
+			dns_db_detach(dbp);
+		*dbp = pdb;
+		pdb = NULL;
+		if (*zonep != NULL)
+			dns_zone_detach(zonep);
+		*zonep = pzone;
+		pzone = NULL;
+	}
+
+ cleanup:
+	if (dns_rdataset_isassociated(&prdataset))
+		dns_rdataset_disassociate(&prdataset);
+	if (dns_rdataset_isassociated(&psigrdataset))
+		dns_rdataset_disassociate(&psigrdataset);
+	if (pnode != NULL)
+		dns_db_detachnode(pdb, &pnode);
+	if (pdb != NULL)
+		dns_db_detach(&pdb);
+	if (pzone != NULL)
+		dns_zone_detach(&pzone);
+
+	return (result);
+}
 
 #define MAX_RESTARTS 16
 
@@ -1813,7 +1962,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
-	dns_acl_t *queryacl;
 
 	CTRACE("query_find");
 
@@ -1887,70 +2035,23 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	CTRACE("query_find: restart");
 	want_restart = ISC_FALSE;
 	authoritative = ISC_FALSE;
+	version = NULL;
 
 	/*
 	 * First we must find the right database.
 	 */
-	result = dns_zt_find(client->view->zonetable, client->query.qname,
-			     0, NULL, &zone);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		result = dns_zone_getdb(zone, &db);
-
-	if (result == ISC_R_NOTFOUND) {
-		/*
-		 * We're not directly authoritative for this query name, nor
-		 * is it a subdomain of any zone for which we're
-		 * authoritative.
-		 */
-		if (!USECACHE(client)) {
-			/*
-			 * If we can't use the cache, either because we
-			 * don't have one or because its use has been
-			 * disallowed, there's no more progress we can make
-			 * on this query.
-			 */
-			QUERY_ERROR(DNS_R_REFUSED);
-			goto cleanup;
-		}
-		INSIST(client->view->cachedb != NULL);
-		dns_db_attach(client->view->cachedb, &db);
-	} else if (result != ISC_R_SUCCESS) {
-		/*
-		 * Something is broken.
-		 */
-		QUERY_ERROR(DNS_R_SERVFAIL);
-		goto cleanup;
-	}
-
-	is_zone = dns_db_iszone(db);
-	if (is_zone) {
-		authoritative = ISC_TRUE;
-
-		/*
-		 * Get the current version of this database.
-		 */
-		version = query_findversion(client, db);
-		if (version == NULL) {
-			QUERY_ERROR(DNS_R_SERVFAIL);
-			goto cleanup;
-		}
-	} else
-		version = NULL;
-
-	queryacl = NULL;
-	if (is_zone)
-		queryacl = dns_zone_getqueryacl(zone);
-	if (queryacl == NULL)
-		queryacl = client->view->queryacl;
-	/*
-	 * Check the query against the "allow-query" AMLs.
-	 * XXX there should also be a per-view one.
-	 */
-	result = ns_client_checkacl(client, "query", queryacl, ISC_TRUE);
+	result = query_getdb(client, client->query.qname, 0, &zone, &db,
+			     &version, &is_zone);
 	if (result != ISC_R_SUCCESS) {
-		QUERY_ERROR(result);
+		if (result == DNS_R_REFUSED)
+			QUERY_ERROR(DNS_R_REFUSED);
+		else
+			QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
+
+	if (is_zone)
+		authoritative = ISC_TRUE;
 
 	/*
 	 * Find the first unanswered type in the question section.
@@ -2027,6 +2128,63 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	result = dns_db_find(db, client->query.qname, version, type, 0,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
+
+	/*
+	 * We interrupt our normal query processing to bring you this special
+	 * case...
+	 *
+	 * RFC 2535 (DNSSEC), section 2.3.4, discusses various special
+	 * cases that can occur at delegation points.
+	 *
+	 * One of these cases is that the NULL KEY for an unsecure zone
+	 * may occur in the delegating zone instead of in the delegated zone.
+	 * If we're authoritative for both zones, we need to look for the
+	 * key in the delegator if we didn't find it in the delegatee.  If
+	 * we didn't do this, a client doing DNSSEC validation could fail
+	 * because it couldn't get the NULL KEY.
+	 */
+	if (type == dns_rdatatype_key &&
+	    is_zone &&
+	    result == DNS_R_NXRRSET &&
+	    !dns_db_issecure(db) &&
+	    dns_name_equal(client->query.qname, dns_db_origin(db))) {
+		/*
+		 * We're looking for a KEY at the top of an unsecure zone,
+		 * and we didn't find it.
+		 */
+		result = query_findparentkey(client, client->query.qname,
+					     &zone, &db, &version, &node,
+					     rdataset, sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * We found the parent KEY.
+			 *
+			 * zone, db, version, node, rdataset, and sigrdataset
+			 * have all been updated to refer to the parent's
+			 * data.  We will resume query processing as if
+			 * we had looked for the KEY in the parent zone in
+			 * the first place.
+			 *
+			 * We need to set fname correctly.  We do this here
+			 * instead of in query_findparentkey() because
+			 * dns_name_concatenate() can fail (though it shouldn't
+			 * ever do so since we should have enough space).
+			 */
+			result = dns_name_concatenate(client->query.qname,
+						      NULL, fname, NULL);
+			if (result != ISC_R_SUCCESS) {
+				QUERY_ERROR(DNS_R_SERVFAIL);
+				goto cleanup;
+			}
+		} else {
+			/*
+			 * We couldn't find the KEY in a parent zone.
+			 * Continue with processing of the original
+			 * results of dns_db_find().
+			 */
+			result = DNS_R_NXRRSET;
+		}
+	}
 
  resume:
 	CTRACE("query_find: resume");
@@ -2621,27 +2779,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	}
 	CTRACE("query_find: done");
 }
-
-/*
- * XXXRTH  Problem areas.
- *
- * If we're authoritative for both a parent and a child, the
- * child is non-secure, and we are asked for the KEY of the
- * nonsecure child, we need to get it from the parent.
- * If we're not auth for the parent, then we have to go
- * looking for it in the cache.  How do we even know who
- * the parent is?  We probably won't find this KEY when doing
- * additional data KEY retrievals, but that's probably OK,
- * since it's a SHOULD not a MUST.  We don't want to be doing
- * tons of work just to fill out additional data.
- *
- * Similar problems occur with NXT queries, since there can
- * be NXT records at a delegation point in both the parent
- * and the child.  RFC 2535 section 5.5 says that on explicit
- * query we should return both, if available.  That seems
- * to imply we shouldn't recurse to get the missing one
- * if only one is available.  Is that right?
- */
 
 static inline void
 log_query(ns_client_t *client) {
