@@ -1,6 +1,8 @@
 
 	--- 9.2.0rc9 released ---
 
+1101.	[bug]		Array bounds read error in lwres_gai_strerror.
+
 1084.	[cleanup]	libbind: gai_strerror() rewritten.
 
 1083.	[bug]		The default control channel listened on the
