@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.254 2002/09/26 11:17:06 jinmei Exp $ */
+/* $Id: dighost.c,v 1.255 2002/11/12 23:08:27 explorer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -273,17 +273,8 @@ get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 		 */
 		char *p = reverse;
 		char *end = reverse + MXNAME;
-		if (strict) {
-			int adrs[4];
-			int n;
-			if (strspn(value, "0123456789.") != strlen(value))
-				return (DNS_R_BADDOTTEDQUAD);
-			n = sscanf(value, "%d.%d.%d.%d",
-				   &adrs[0], &adrs[1],
-				   &adrs[2], &adrs[3]);
-			if (n == 0)
-				return (DNS_R_BADDOTTEDQUAD);
-		}
+		if (strict && inet_pton(AF_INET, value, &addr.type.in) != 1)
+			return (DNS_R_BADDOTTEDQUAD);
 		result = reverse_octets(value, &p, end);
 		if (result != ISC_R_SUCCESS)
 			return (result);
