@@ -1,6 +1,12 @@
 
 	--- 9.2.1rc1 released ---
 
+1205.	[bug]		OPT, TSIG and TKEY cannot be used to set the "class"
+			of the message. [RT #2449]
+
+1204.	[bug]		libbind: res_nupdate() failed to update the name
+			server addresses before sending the update.
+
 1201.	[bug]		Require that if 'callbacks' is passed to
 			dns_rdata_fromtext(), callbacks->error and 
 			callbacks->warn are initialized.
