@@ -1,3 +1,5 @@
+ 547.	[bug]		dnssafe doesn't correctly handle RSA keys longer
+			than 2000 bits.  Disable support for long keys.
 
 	--- 9.0.1rc2 released ---
 
