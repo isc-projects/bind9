@@ -110,7 +110,8 @@ main (int argc, char **argv) {
 	char *command, *arg, *whitespace, buffer[1024];
 	dns_name_t *name;
 	dns_rbt_t *rbt;
-	int length;
+	int length, ch;
+	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result;
 	void *data;
 
@@ -120,8 +121,19 @@ main (int argc, char **argv) {
 	else
 		progname = *argv;
 
+	while ((ch = getopt(argc, argv, "m")) != -1) {
+		switch (ch) {
+		case 'm':
+			show_final_mem = ISC_TRUE;
+			break;
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
 	if (argc > 1) {
-		printf("Usage: %s\n", progname);
+		printf("Usage: %s [-m]\n", progname);
 		exit(1);
 	}
 
@@ -246,5 +258,9 @@ main (int argc, char **argv) {
 	}
 
 	dns_rbt_destroy(&rbt);
+
+	if (show_final_mem)
+		isc_mem_stats(mctx, stderr);
+
 	exit(0);
 }
