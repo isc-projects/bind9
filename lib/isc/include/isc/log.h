@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.28 2000/08/01 01:30:23 tale Exp $ */
+/* $Id: log.h,v 1.29 2000/09/26 22:14:35 bwelling Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -823,7 +823,6 @@ isc_log_setcontext(isc_log_t *lctx);
  *
  * Requires:
  *	lctx be a valid context.
- *	This function must not have been previously called.
  */
 
 ISC_LANG_ENDDECLS

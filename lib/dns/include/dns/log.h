@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.23 2000/08/01 01:24:17 tale Exp $ */
+/* $Id: log.h,v 1.24 2000/09/26 22:14:34 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -91,8 +91,6 @@ dns_log_setcontext(isc_log_t *lctx);
  *
  * Requires:
  *	lctx is a valid logging context.
- *
- *	dns_log_setcontext() is called only once.
  */
 
 ISC_LANG_ENDDECLS
