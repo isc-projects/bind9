@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.210 2000/09/12 22:50:52 marka Exp $ */
+/* $Id: zone.c,v 1.211 2000/09/13 01:00:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1224,6 +1224,8 @@ dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(source->erefs > 0);
 	source->erefs++;
 	INSIST(source->erefs != 0);
+	zone_log(source, "dns_zone_attach", ISC_LOG_DEBUG(10),
+		 "eref = %d, irefs = %d", source->erefs, source->irefs);
 	UNLOCK(&source->lock);
 	*target = source;
 }
@@ -1269,6 +1271,8 @@ dns_zone_detach(dns_zone_t **zonep) {
 			free_now = ISC_TRUE;
 		}
 	}
+	zone_log(zone, "dns_zone_detach", ISC_LOG_DEBUG(10),
+		 "eref = %d, irefs = %d", zone->erefs, zone->irefs);
 	UNLOCK(&zone->lock);
 	*zonep = NULL;
 	if (free_now)
@@ -1282,6 +1286,8 @@ dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	source->irefs++;
 	INSIST(source->irefs != 0);
 	*target = source;
+	zone_log(source, "dns_zone_iattach", ISC_LOG_DEBUG(10),
+		 "eref = %d, irefs = %d", source->erefs, source->irefs);
 }
 
 void
@@ -1293,6 +1299,8 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	REQUIRE(zone->irefs > 0);
 	zone->irefs--;
 	*zonep = NULL;
+	zone_log(zone, "dns_zone_idetach", ISC_LOG_DEBUG(10),
+		 "eref = %d, irefs = %d", zone->erefs, zone->irefs);
 	exit_check(zone);
 }
 
@@ -4482,11 +4490,12 @@ static void
 forward_destroy(dns_forward_t *forward) {
 
 	forward->magic = 0;
-	if (forward->request)
+	if (forward->request != NULL)
 		dns_request_destroy(&forward->request);
 	if (forward->msgbuf != NULL)
 		isc_buffer_free(&forward->msgbuf);
-	dns_zone_idetach(&forward->zone);
+	if (forward->zone != NULL)
+		dns_zone_idetach(&forward->zone);
 	isc_mem_putanddetach(&forward->mctx, forward, sizeof (*forward));
 }
 
