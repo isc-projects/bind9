@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.213 2000/09/13 04:50:19 marka Exp $ */
+/* $Id: zone.c,v 1.214 2000/09/14 03:55:38 marka Exp $ */
 
 #include <config.h>
 
@@ -2616,12 +2616,25 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	dns_db_detach(&stub->db);
 
-	if (zone->dbname != NULL)
+	if (zone->dbname != NULL) {
 		dns_zone_dump(zone);
+		(void)isc_time_now(&zone->loadtime);
+	}
 
 	dns_message_destroy(&msg);
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
+	LOCK(&zone->lock);
+	zone->flags &= ~DNS_ZONEFLG_REFRESH;
+	zone->refreshtime = now +
+		isc_random_jitter(zone->refresh, zone->refresh * .80,
+				  REFRESH_JITTER);
+	zone->expiretime = now + zone->expire;
+	zone_log(zone, me, ISC_LOG_DEBUG(20),
+		 "refresh time (%u/%u), now %u",
+		 zone->refreshtime, zone->refresh, now);
+	zone_settimer(zone, now);
+	UNLOCK(&zone->lock);
 	goto free_stub;
 
  next_master:
