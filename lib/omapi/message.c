@@ -144,8 +144,8 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	 * Allow the function to be called with an object that is managing
 	 * the client side.
 	 */
-	REQUIRE(protocol != NULL &&
-		(protocol->type == omapi_type_protocol ||
+	REQUIRE((protocol != NULL && protocol->type == omapi_type_protocol) ||
+		(protocol->outer != NULL &&
 		 protocol->outer->type == omapi_type_protocol));
 
 	if (protocol->type != omapi_type_protocol)
@@ -233,65 +233,70 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 		(void)0;
 
 	/*
-	 * When the client sends a message, it expects a reply.  Increment
-	 * the count of messages_expected and make sure an isc_socket_recv
-	 * gets queued.
-	 *
-	 * If the connection is in the disconnecting state, connection_send
-	 * will note it, by aborting :-), in just a moment.  In any event, it
-	 * is decreed to be a fatal error for the client program to call this
-	 * function after having asked to disconnect, so going ahead with the
-	 * omapi_connection_require call here in the driving thread (rather
-	 * than in the task thread, where omapi_protocol_signal_handler
-	 * normally does things) is ok.  It is also known that if this is the
-	 * only message being sent right now, then there should be no other
-	 * recv_done() results coming in until after the
-	 * omapi_connection_require(), so some error is not going to be blowing
-	 * away the connection.
-	 *
-	 * XXXDCL I don't think the bulk of this is necessary any more.
-	 * The main thing that needs to be done is for the client to wait
-	 * on the server's reply.  But what of the server, when it sends
-	 * a message?  I might still have an outstanding issue there.
+	 * Prime the bytes_needed for the server's reply message.
+	 * There is no need to lock.  In the server everything happens in
+	 * the socket thread so only one event function is running at a time,
+	 * and in the client, there should be no events outstanding which
+	 * would cause the socket thread to access this variable .
 	 */
-	if (result == ISC_R_SUCCESS && c->is_client) {
-		RUNTIME_CHECK(isc_mutex_lock(&c->mutex) == ISC_R_SUCCESS);
-		c->messages_expected++;
+	if (result == ISC_R_SUCCESS) {
+		INSIST(c->bytes_needed == 0);
+		c->bytes_needed = p->header_size;
 
+		result = connection_send(c);
+		
 		/*
-		 * This should always be true with the current state of
-		 * forcing synchronicity with the server.  If it is not, then
-		 * there is a significant risk that the client program will
-		 * try to use the connection even when the server has destroyed
-		 * it because of some sort of error.
+		 * The client waited for the result; the server did not.
+		 * The server's result will always be ISC_R_SUCCESS.
+		 *
+		 * If the client's result is not ISC_R_SUCCESS, the connection
+		 * was already closed by the socket event handler that got
+		 * the error.  Unfortunately, it is not known whether
+		 * it was send_done or recv_done that ended the connection;
+		 * if the connection object were not destroyed, one way it
+		 * could be inferred is by seeing whether connection->out_bytes
+		 * is 0.
+		 *
+		 * XXXDCL "connection disconnected"
 		 */
-		INSIST(c->messages_expected == 1);
+		if (result != ISC_R_SUCCESS)
+			object_signal(message, "status", result, NULL);
 
+	} else if (c->is_client) {
 		/*
-		 * omapi_connection_require() needs an unlocked mutex.
+		 * One of the calls to omapi_connection_put* or to
+		 * object_stuffvalues failed.  As of the time of writing
+		 * this comment, that would pretty much only happen if
+		 * the required output buffer space could be dynamically
+		 * allocated.
+		 *
+		 * The server is in recv_done; let the error propagate back up
+		 * the stack to there, and it will close the connection safely.
+		 * If the server tried to free the connection here, recv_done
+		 * wouldn't be able to distinguish the error from errors
+		 * coming out of parts of the library that did not destroy
+		 * the connection.
+		 *
+		 * The client needs the connection destroyed right here,
+		 * because control is about to return to the driving thread
+		 * and it is guaranteed that if omapi_message_send returns
+		 * an error for any reason, then the connection will be gone.
+		 * Otherwise the client would have the same problem described
+		 * for recv_done on the server -- it wouldn't be able to tell
+		 * whether the error freed the connection.
 		 */
-		RUNTIME_CHECK(isc_mutex_unlock(&c->mutex) == ISC_R_SUCCESS);
-		result = connection_require(c, p->header_size);
-
-		/*
-		 * How could there possibly be that amount of bytes
-		 * waiting if no other messages were outstanding?
-		 * Answer: it shouldn't be possible.  Make sure.
-		 * OMAPI_R_NOTYET is the expected response; anything
-		 * else is an error.
-		 */
-		INSIST(result != ISC_R_SUCCESS);
-		if (result == OMAPI_R_NOTYET) {
-			connection_send(c);
-			result = connection_wait(connection, NULL);
-		}
-
-	} else if (result == ISC_R_SUCCESS)
-		connection_send(c);
-
-	if (result != ISC_R_SUCCESS)
 		omapi_connection_disconnect(connection,
 					    OMAPI_FORCE_DISCONNECT);
+
+
+		/*
+		 * The client also needs to be notified the message
+		 * never got sent.
+		 *
+		 * XXXDCL "message not sent; connection disconnected"
+		 */
+		object_signal(message, "status", result, NULL);
+	}
 
 	return (result);
 }
@@ -303,7 +308,6 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	omapi_objecttype_t *type = NULL;
 	omapi_value_t *tv = NULL;
 	unsigned long create, update, exclusive;
-	unsigned long wsi;
 	isc_result_t result, waitstatus;
 
 	REQUIRE(mo != NULL && mo->type == omapi_type_message);
@@ -335,46 +339,62 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		/*
 		 * Get the type of the requested object, if one was
 		 * specified.
+		 *
+		 * In this and subsequent calls to omapi_object_getvalue,
+		 * an error could be returned, typically ISC_R_NOMEMORY.
+		 * send_status *might* fail if the problem is being out
+		 * of memory ... but it is worth a shot.
 		 */
 		result = omapi_object_getvalue(mo, "type", &tv);
-		if (result == ISC_R_SUCCESS &&
-		    (tv->value->type == omapi_datatype_data ||
-		     tv->value->type == omapi_datatype_string)) {
-			type = object_findtype(tv);
-		} else
-			type = NULL;
-		if (tv != NULL)
+		if (result == ISC_R_SUCCESS) {
+			if (tv->value->type == omapi_datatype_data ||
+			    tv->value->type == omapi_datatype_string)
+				type = object_findtype(tv);
 			omapi_value_dereference(&tv);
+		} else if (result == ISC_R_NOTFOUND)
+			type = NULL;
+		else
+			return (send_status(po, result, message->id,
+					    isc_result_totext(result)));
 
 		/*
 		 * Get the create flag.
 		 */
 		result = omapi_object_getvalue(mo, "create", &tv);
 		if (result == ISC_R_SUCCESS) {
-			create = omapi_value_asint(tv->value);
+			create = omapi_value_getint(tv);
 			omapi_value_dereference(&tv);
-		} else
+		} else if (result == ISC_R_NOTFOUND)
 			create = 0;
+		else
+			return (send_status(po, result, message->id,
+					    isc_result_totext(result)));
 
 		/*
 		 * Get the update flag.
 		 */
 		result = omapi_object_getvalue(mo, "update", &tv);
 		if (result == ISC_R_SUCCESS) {
-			update = omapi_value_asint(tv->value);
+			update = omapi_value_getint(tv);
 			omapi_value_dereference(&tv);
-		} else
+		} else if (result == ISC_R_NOTFOUND)
 			update = 0;
+		else
+			return (send_status(po, result, message->id,
+					    isc_result_totext(result)));
 
 		/*
 		 * Get the exclusive flag.
 		 */
 		result = omapi_object_getvalue(mo, "exclusive", &tv);
 		if (result == ISC_R_SUCCESS) {
-			exclusive = omapi_value_asint(tv->value);
+			exclusive = omapi_value_getint(tv);
 			omapi_value_dereference(&tv);
-		} else
+		} else if (result == ISC_R_NOTFOUND)
 			exclusive = 0;
+		else
+			return (send_status(po, result, message->id,
+					    isc_result_totext(result)));
 
 		/*
 		 * If we weren't given a type, look the object up with
@@ -400,16 +420,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		result = object_methodlookup(type, &object, message->object);
 		if (result == ISC_R_NOTIMPLEMENTED)
-			return (send_status(po, ISC_R_NOTIMPLEMENTED,
-					    message->id,
+			return (send_status(po, result, message->id,
 					    "unsearchable object type"));
 
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_NOTFOUND &&
-		    result != OMAPI_R_NOKEYS) {
+		    result != OMAPI_R_NOKEYS)
 			return (send_status(po, result, message->id,
 					    "object lookup failed"));
-		}
 
 		/*
 		 * If we didn't find the object and we aren't supposed to
@@ -482,8 +500,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 						    "no matching handle"));
 		}
 
-		result = object_update(object, message->object, message->h);
+		if (message->object != NULL)
+			result = object_update(object, message->object,
+					       message->h);
+		else
+			result = ISC_R_SUCCESS;
+
 		OBJECT_DEREF(&object);
+
 		if (result != ISC_R_SUCCESS) {
 			if (message->rid == 0)
 				return (send_status(po, result, message->id,
@@ -493,12 +517,15 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 					      "status", result, NULL);
 			return (ISC_R_SUCCESS);
 		}
+
 		if (message->rid == 0)
 			result = send_status(po, ISC_R_SUCCESS, message->id,
 					     NULL);
+
 		if (m != NULL)
 			object_signal((omapi_object_t *)m, "status",
 				      ISC_R_SUCCESS, NULL);
+
 		return (result);
 
 	      case OMAPI_OP_NOTIFY:
@@ -517,17 +544,23 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 */
 		result = omapi_object_getvalue(mo, "result", &tv);
 		if (result == ISC_R_SUCCESS) {
-			wsi = omapi_value_asint(tv->value);
-			waitstatus = wsi;
+			waitstatus = omapi_value_getint(tv);
 			omapi_value_dereference(&tv);
 		} else
 			waitstatus = ISC_R_UNEXPECTED;
 
 		result = omapi_object_getvalue(mo, "message", &tv);
-		object_signal((omapi_object_t *)m, "status",
-			      waitstatus, tv);
+
+		object_signal((omapi_object_t *)m, "status", waitstatus, tv);
+
 		if (result == ISC_R_SUCCESS)
 			omapi_value_dereference(&tv);
+
+		/*
+		 * Even if the two omapi_object_getvalue calls in this
+		 * section returned errors, the operation is considered
+		 * successful. XXXDCL (should it be?)
+		 */
 		return (ISC_R_SUCCESS);
 
 	      case OMAPI_OP_DELETE:
@@ -699,6 +732,10 @@ message_destroy(omapi_object_t *handle) {
 
 	if (message->object != NULL)
 		OBJECT_DEREF(&message->object);
+
+	if (message->notify_object != NULL)
+		OBJECT_DEREF(&message->notify_object);
+
 }
 
 static isc_result_t
@@ -711,11 +748,11 @@ message_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	
 	if (strcmp(name, "status") == 0 &&
 	    (message->object != NULL || message->notify_object != NULL))
-		if (message->object != NULL)
-			return (object_vsignal(message->object, name, ap));
-		else
+		if (message->notify_object != NULL)
 			return (object_vsignal(message->notify_object, name,
 					       ap));
+		else
+			return (object_vsignal(message->object, name, ap));
 
 	return (omapi_object_passsignal(handle, name, ap));
 }
