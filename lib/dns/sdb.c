@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35 2001/06/28 21:34:54 gson Exp $ */
+/* $Id: sdb.c,v 1.36 2001/10/13 01:37:58 gson Exp $ */
 
 #include <config.h>
 
@@ -713,7 +713,10 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	MAYBE_LOCK(sdb);
 	result = imp->methods->lookup(sdb->zone, namestr, sdb->dbdata, node);
 	MAYBE_UNLOCK(sdb);
-	if (result != ISC_R_SUCCESS && !isorigin) {
+	if (result != ISC_R_SUCCESS &&
+	    !(result == ISC_R_NOTFOUND &&
+	      isorigin && imp->methods->authority != NULL))
+	{
 		destroynode(node);
 		return (result);
 	}
