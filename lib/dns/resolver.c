@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.3 2001/09/21 20:40:06 gson Exp $ */
+/* $Id: resolver.c,v 1.218.2.4 2001/10/12 17:49:41 gson Exp $ */
 
 #include <config.h>
 
@@ -3609,7 +3609,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 	if (ns_name != NULL)
 		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
 
-	if (negative_response)
+	if (negative_response && oqname == NULL)
 		fctx->attributes |= FCTX_ATTR_WANTNCACHE;
 
 	return (ISC_R_SUCCESS);
