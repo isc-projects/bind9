@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.68 $)
+AC_REVISION($Revision: 1.69 $)
 
 AC_PREREQ(2.13)
 
@@ -90,11 +90,11 @@ case "$host" in
 	AC_MSG_CHECKING(which thread library to use)
 
 	AC_ARG_WITH(mit-pthreads, 
-	    [  --with-mit-pthreads     use the mit-pthreads thread library],
+	    [  --with-mit-pthreads	use the mit-pthreads thread library],
 	    use_mit_pthreads="$withval", use_mit_pthreads="no")
 	
 	AC_ARG_WITH(ptl2,
-	    [  --with-ptl2	       use the ptl2 thread library],
+	    [  --with-ptl2		use the ptl2 thread library],
 	    use_ptl2="$withval", use_ptl2="no")
 
         dnl If user did not choose a thread library explicitly,
@@ -328,7 +328,7 @@ dnl
 dnl GNU libtool support
 dnl
 AC_ARG_WITH(libtool,
-	    [  --with-libtool	       use GNU libtool],
+	    [  --with-libtool	use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
 
 case $use_libtool in
@@ -372,6 +372,44 @@ AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
+
+dnl
+dnl IPv6 support provided via Kame
+dnl
+AC_MSG_CHECKING(for Kame IPv6 support)
+AC_ARG_WITH(kame,
+	[  --with-kame[=PATH]	use Kame IPv6 [default path /usr/local/v6]],
+	use_kame="$withval", use_kame="no")
+
+case "$use_kame" in
+	no)
+		;;
+	yes)
+		kame_path=/usr/local/v6
+		;;
+	*)
+		kame_path="$use_kame"
+		;;
+esac
+
+case "$use_kame" in
+	no)
+		;;
+	*)
+		if test -f $kame_path/lib/libinet6.a; then
+			AC_MSG_RESULT($kame_path/lib/libinet6.a)
+			LIBS="$kame_path/lib -linet6 $LIBS"
+		else
+			AC_MSG_ERROR([$kame_path/lib/libinet6.a not found.
+
+Please choose the proper path with the following command:
+
+    configure --with-kame=PATH
+])
+		fi
+		;;
+esac
+
 
 dnl
 dnl Check for network functions that are often missing.  We do this
