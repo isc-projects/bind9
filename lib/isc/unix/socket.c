@@ -700,14 +700,14 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 #endif
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
-	XTRACE(TRACE_RECV,
-	       ("doio_recv: recvmsg(%d) %d bytes, err %d/%s\n",
-		sock->fd, cc, errno, strerror(errno)));
-	XTRACE(TRACE_RECV, ("errno %d, addr %p\n", errno, &errno));
 
 	if (cc < 0) {
 		if (SOFT_ERROR(errno))
 			return (DOIO_SOFT);
+
+	XTRACE(TRACE_RECV,
+	       ("doio_recv: recvmsg(%d) %d bytes, err %d/%s\n",
+		sock->fd, cc, errno, strerror(errno)));
 
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
@@ -729,8 +729,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 		 * This might not be a permanent error.
 		 */
 		if (errno == ENOBUFS) {
-			/* XXXMLG Unexpected error?!? */
-			send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
+			send_recvdone_event(sock, &dev, ISC_R_NORESOURCES);
 			return (DOIO_HARD);
 		}
 
