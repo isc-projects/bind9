@@ -15,18 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.4 1999/10/11 13:28:49 tale Exp $ */
+/* $Id: log.c,v 1.5 1999/10/11 14:50:51 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>		/* For remove(). */
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <limits.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <isc/assertions.h>
@@ -142,11 +139,7 @@ isc_logchannellist_t default_channel;
 /*
  * Forward declarations.
  */
-static void
-isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level, const char *format,
-	       va_list args);
-isc_result_t
+static isc_result_t
 assignchannel(isc_log_t *lctx, unsigned int category_id,
 	      isc_logmodule_t *module, isc_logchannel_t *channel);
 
@@ -548,7 +541,7 @@ isc_log_closefilelogs(isc_log_t *lctx) {
  **** Internal functions
  ****/
 
-isc_result_t
+static isc_result_t
 assignchannel(isc_log_t *lctx, unsigned int category_id,
 	      isc_logmodule_t *module, isc_logchannel_t *channel)
 {
@@ -851,25 +844,11 @@ isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 		}
 
 		/*
-		 * Oh, that vsnprintf were ANSI C portable.
+		 * Only format the message once.
 		 */
-		if (lctx->buffer[0] == '\0' &&
-		    vsprintf(lctx->buffer, format, args) > LOG_BUFFER_SIZE) {
-			/*
-			 * vsprintf() overran its buffer.  This might have
-			 * just been because the buffer was too small, or
-			 * in the worst case it was a malicious attack on the
-			 * program.  In any event, who knows what got
-			 * corrupted in memory.  It is safest just to exit.
-			 *
-			 * If it _was_ an attack, the attackers have
-			 * unfortunately succeeded in a denial of service.
-			 * XxXDCL NT
-			 */
-			syslog(LOG_CRIT, "vsprintf overran its buffer; "
-			       "possible hack attempt, exiting");
-			exit(1);
-		}
+		if (lctx->buffer[0] == '\0')
+			(void)vsnprintf(lctx->buffer, sizeof(lctx->buffer),
+					format, args);
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
