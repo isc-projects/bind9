@@ -47,8 +47,8 @@
 #include <dns/rdata.h>
 #include <dns/result.h>
 #include <dns/rootns.h>
-#include <dns/tkey.h>
-#include <dns/tsig.h>
+#include <dns/tkeyconf.h>
+#include <dns/tsigconf.h>
 #include <dns/types.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -156,7 +156,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	 * Configure the view's TSIG keys.
 	 */
 	ring = NULL;
-	CHECK(dns_tsig_init(cctx, view->mctx, &ring));
+	CHECK(dns_tsigkeyring_fromconfig(cctx, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
 
  cleanup:
@@ -564,8 +564,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * Load the TKEY information from the configuration
 	 */
 	if (ns_g_tkeyctx != NULL)
-		dns_tkey_destroy(&ns_g_tkeyctx);
-	CHECKM(dns_tkey_init(configctx, ns_g_mctx, &ns_g_tkeyctx),
+		dns_tkeyctx_destroy(&ns_g_tkeyctx);
+	CHECKM(dns_tkeyctx_fromconfig(configctx, ns_g_mctx, &ns_g_tkeyctx),
 	       "setting up TKEY");
 	/*
 	 * Rescan the interface list to pick up changes in the
@@ -667,7 +667,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
-	dns_tkey_destroy(&ns_g_tkeyctx);
+	dns_tkeyctx_destroy(&ns_g_tkeyctx);
 
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);

@@ -109,7 +109,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN);
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
-	result = dns_tsig_init(NULL, view->mctx, &view->dynamickeys);
+	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_zt;
 	ISC_LINK_INIT(view, link);
@@ -169,9 +169,9 @@ destroy(dns_view_t *view) {
 	REQUIRE(ADBSHUTDOWN(view));
 
 	if (view->dynamickeys != NULL)	
-		dns_tsig_destroy(&view->dynamickeys);
+		dns_tsigkeyring_destroy(&view->dynamickeys);
 	if (view->statickeys != NULL)	
-		dns_tsig_destroy(&view->statickeys);
+		dns_tsigkeyring_destroy(&view->statickeys);
 	if (view->adb != NULL)
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
@@ -366,7 +366,7 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL)
-		dns_tsig_destroy(&view->statickeys);
+		dns_tsigkeyring_destroy(&view->statickeys);
 	view->statickeys = ring;
 }
 

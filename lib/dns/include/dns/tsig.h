@@ -24,7 +24,6 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
-#include <dns/confctx.h>
 
 #include <dst/dst.h>
 
@@ -174,10 +173,9 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring);
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring);
 /*
- *	Initializes the TSIG subsystem.  If confctx is not NULL, any
- *	specified keys are loaded.
+ *	Create an empty TSIG key ring.
  *
  *	Requires:
  *		'mctx' is not NULL
@@ -190,9 +188,9 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring);
 
 
 void
-dns_tsig_destroy(dns_tsig_keyring_t **ring);
+dns_tsigkeyring_destroy(dns_tsig_keyring_t **ring);
 /*
- *	Frees all data associated with the TSIG subsystem
+ *	Destroy a TSIG key ring.
  *
  *	Requires:
  *		'ring' is not NULL

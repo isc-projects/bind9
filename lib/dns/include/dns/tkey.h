@@ -18,12 +18,11 @@
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
 
-#include <isc/mem.h>
+#include <isc/types.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
-#include <dns/confctx.h>
 
 #include <dst/dst.h>
 
@@ -43,10 +42,9 @@ struct dns_tkey_ctx {
 };
 
 isc_result_t
-dns_tkey_init(dns_c_ctx_t *cfg, isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
+dns_tkeyctx_create(isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
 /*
- *	Obtains TKEY configuration information, including default DH key
- *	and default domain from the configuration, if it's not NULL.
+ *	Create an empty TKEY context.
  *
  * 	Requires:
  *		'mctx' is not NULL
@@ -60,7 +58,7 @@ dns_tkey_init(dns_c_ctx_t *cfg, isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
  */
 
 void
-dns_tkey_destroy(dns_tkey_ctx_t **tctx);
+dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx);
 /*
  *      Frees all data associated with the TKEY context
  *

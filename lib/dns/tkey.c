@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.18 2000/01/22 04:45:13 bwelling Exp $
+ * $Id: tkey.c,v 1.19 2000/01/24 19:14:21 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -65,14 +65,7 @@
 
 
 isc_result_t
-dns_tkey_init(dns_c_ctx_t *cfg, isc_mem_t *mctx, dns_tkey_ctx_t **tctx) {
-	isc_result_t result;
-	char *s;
-	int n;
-	isc_buffer_t b, namebuf;
-	unsigned char data[1024];
-	dns_name_t domain;
-
+dns_tkeyctx_create(isc_mem_t *mctx, dns_tkey_ctx_t **tctx) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(tctx != NULL);
 	REQUIRE(*tctx == NULL);
@@ -84,47 +77,11 @@ dns_tkey_init(dns_c_ctx_t *cfg, isc_mem_t *mctx, dns_tkey_ctx_t **tctx) {
 	(*tctx)->dhkey = NULL;
 	(*tctx)->domain = NULL;
 
-	if (cfg == NULL)
-		return (ISC_R_SUCCESS);
-
-	s = NULL;
-	result = dns_c_ctx_gettkeydhkey(cfg, &s, &n);
-	if (result == ISC_R_NOTFOUND)
-		return (ISC_R_SUCCESS);
-	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH,
-				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-				mctx, &(*tctx)->dhkey));
-	s = NULL;
-	RETERR(dns_c_ctx_gettkeydomain(cfg, &s));
-	dns_name_init(&domain, NULL);
-	(*tctx)->domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if ((*tctx)->domain == NULL)
-		return (ISC_R_NOMEMORY);
-	dns_name_init((*tctx)->domain, NULL);
-	isc_buffer_init(&b, s, strlen(s), ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&b, strlen(s));
-	isc_buffer_init(&namebuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
-	RETERR(dns_name_fromtext(&domain, &b, dns_rootname, ISC_FALSE,
-				 &namebuf));
-	RETERR(dns_name_dup(&domain, mctx, (*tctx)->domain));
-
 	return (ISC_R_SUCCESS);
-
- failure:
-	if ((*tctx)->dhkey != NULL) {
-		dst_key_free((*tctx)->dhkey);
-		(*tctx)->dhkey = NULL;
-	}
-	if ((*tctx)->domain != NULL) {
-		dns_name_free((*tctx)->domain, mctx);
-		isc_mem_put(mctx, (*tctx)->domain, sizeof(dns_name_t));
-		(*tctx)->domain = NULL;
-	}
-	return (result);
 }
 
 void
-dns_tkey_destroy(dns_tkey_ctx_t **tctx) {
+dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx) {
 	isc_mem_t *mctx;
 
 	REQUIRE(tctx != NULL);

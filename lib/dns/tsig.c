@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.40 2000/01/22 04:45:14 bwelling Exp $
+ * $Id: tsig.c,v 1.41 2000/01/24 19:14:22 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include <isc/assertions.h>
-#include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/list.h>
@@ -46,8 +45,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/tsig.h>
-#include <dns/confctx.h>
-#include <dns/confkeys.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -985,102 +982,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 	return (ISC_R_NOTFOUND);
 }
 
-static isc_result_t
-add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
-		 isc_mem_t *mctx)
-{
-	isc_lex_t *lex = NULL;
-	dns_c_kdef_t *key;
-	unsigned char *secret = NULL;
-	int secretalloc = 0;
-	int secretlen = 0;
-	isc_result_t ret;
-
-	key = ISC_LIST_HEAD(list->keydefs);
-	while (key != NULL) {
-		dns_name_t keyname;
-		dns_name_t alg;
-		char keynamedata[1024], algdata[1024];
-		isc_buffer_t keynamesrc, keynamebuf, algsrc, algbuf;
-		isc_buffer_t secretsrc, secretbuf;
-
-		dns_name_init(&keyname, NULL);
-		dns_name_init(&alg, NULL);
-
-		/* Create the key name */
-		isc_buffer_init(&keynamesrc, key->keyid, strlen(key->keyid),
-				ISC_BUFFERTYPE_TEXT);
-		isc_buffer_add(&keynamesrc, strlen(key->keyid));
-		isc_buffer_init(&keynamebuf, keynamedata, sizeof(keynamedata),
-				ISC_BUFFERTYPE_BINARY);
-		ret = dns_name_fromtext(&keyname, &keynamesrc, dns_rootname,
-					ISC_TRUE, &keynamebuf);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-
-		/* Create the algorithm */
-		if (strcasecmp(key->algorithm, "hmac-md5") == 0)
-			alg = *dns_tsig_hmacmd5_name;
-		else {
-			isc_buffer_init(&algsrc, key->algorithm,
-					strlen(key->algorithm),
-					ISC_BUFFERTYPE_TEXT);
-			isc_buffer_add(&algsrc, strlen(key->algorithm));
-			isc_buffer_init(&algbuf, algdata, sizeof(algdata),
-					ISC_BUFFERTYPE_BINARY);
-			ret = dns_name_fromtext(&alg, &algsrc, dns_rootname,
-						ISC_TRUE, &algbuf);
-			if (ret != ISC_R_SUCCESS)
-				goto failure;
-		}
-
-		if (strlen(key->secret) % 4 != 0) {
-			ret = ISC_R_BADBASE64;
-			goto failure;
-		}
-		secretalloc = secretlen = strlen(key->secret) * 3 / 4;
-		secret = isc_mem_get(mctx, secretlen);
-		if (secret == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto failure;
-		}
-		isc_buffer_init(&secretsrc, key->secret, strlen(key->secret),
-				ISC_BUFFERTYPE_TEXT);
-		isc_buffer_add(&secretsrc, strlen(key->secret));
-		isc_buffer_init(&secretbuf, secret, secretlen,
-				ISC_BUFFERTYPE_BINARY);
-		ret = isc_lex_create(mctx, strlen(key->secret), &lex);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		ret = isc_lex_openbuffer(lex, &secretsrc);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		ret = isc_base64_tobuffer(lex, &secretbuf, -1);
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		secretlen = ISC_BUFFER_USEDCOUNT(&secretbuf);
-		isc_lex_close(lex);
-		isc_lex_destroy(&lex);
-
-		ret = dns_tsigkey_create(&keyname, &alg, secret, secretlen,
-					 ISC_FALSE, NULL, mctx, ring, NULL);
-		isc_mem_put(mctx, secret, secretalloc);
-		secret = NULL;
-		if (ret != ISC_R_SUCCESS)
-			goto failure;
-		key = ISC_LIST_NEXT(key, next);
-	}
-	return (ISC_R_SUCCESS);
-
- failure:
-	if (lex != NULL)
-		isc_lex_destroy(&lex);
-	if (secret != NULL)
-		isc_mem_put(mctx, secret, secretlen);
-	return (ret);
-
-}
-
 static void
 dns_tsig_inithmac() {
 	isc_region_t r;
@@ -1093,11 +994,10 @@ dns_tsig_inithmac() {
 }
 
 isc_result_t
-dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring)
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ring)
 {
 	isc_result_t ret;
-	dns_c_kdeflist_t *keylist = NULL;
-
+	
 	REQUIRE(mctx != NULL);
 	REQUIRE(ring != NULL);
 	REQUIRE(*ring == NULL);
@@ -1117,21 +1017,13 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring)
 	
 	ISC_LIST_INIT((*ring)->keys);
 
-	if (confctx != NULL) {
-		ret = dns_c_ctx_getkdeflist(confctx, &keylist);
-		if (ret == ISC_R_SUCCESS)
-			ret = add_initial_keys(keylist, *ring, mctx);
-		else if (ret != ISC_R_NOTFOUND)
-			return (ret);
-	}
-
 	(*ring)->mctx = mctx;
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_tsig_destroy(dns_tsig_keyring_t **ring) {
+dns_tsigkeyring_destroy(dns_tsig_keyring_t **ring) {
 	isc_mem_t *mctx;
 
 	REQUIRE(ring != NULL);

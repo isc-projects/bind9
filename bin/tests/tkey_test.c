@@ -320,8 +320,8 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
 	ring = NULL;
-	RUNTIME_CHECK(dns_tsig_init(NULL, mctx, &ring) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_tkey_init(NULL, mctx, &tctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tsigkeyring_create(mctx, &ring) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tkeyctx_create(mctx, &tctx) == ISC_R_SUCCESS);
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
@@ -362,8 +362,8 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
 
-	dns_tsig_destroy(&ring);
-	dns_tkey_destroy(&tctx);
+	dns_tsigkeyring_destroy(&ring);
+	dns_tkeyctx_destroy(&tctx);
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
