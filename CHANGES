@@ -74,6 +74,9 @@
 
 1534.	[bug]		Race condition when priming cache. [RT# 9940]
 
+1533.	[func]		Warn if both "recusion no;" and "allow-recursion"
+			are active. [RT# 4389]
+
 1532.	[port]		netbsd: the configure test for <sys/sysctl.h>
 			requires <sys/param.h>.
 
