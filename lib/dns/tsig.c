@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.24 1999/10/27 19:59:34 bwelling Exp $
+ * $Id: tsig.c,v 1.25 1999/10/28 22:05:23 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -435,16 +435,12 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_signature;
 	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
 				  ISC_BUFFERTYPE_BINARY);
-	if (ret != ISC_R_SUCCESS) {
-		isc_buffer_free(&dynbuf);
+	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-	}
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, tsig, dynbuf);
-	if (ret != ISC_R_SUCCESS) {
-		isc_buffer_free(&dynbuf);
+	if (ret != ISC_R_SUCCESS)
 		goto cleanup_dynbuf;
-	}
 
 	dns_message_takebuffer(msg, &dynbuf);
 	msg->tsig = tsig;
@@ -471,6 +467,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_dynbuf;
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
+	datalist->covers = 0;
 	datalist->ttl = 0;
 	ISC_LIST_INIT(datalist->rdata);
 	ISC_LIST_APPEND(datalist->rdata, rdata, link);
