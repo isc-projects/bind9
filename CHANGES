@@ -1,3 +1,13 @@
+1151.	[bug]		nslookup failed to check that the arguments to
+			the port, timeout, and retry options were
+			valid integers and in range. [RT #2099]
+
+1150.	[bug]		named incorrectly accepted TTL values
+			containing plus or minus signs, such as
+			1d+1h-1s.
+
+1149.	[func]		New function isc_parse_uint32().
+
 1148.	[func]		'rndc-confgen -a' provide positive feedback.
 
 1147.	[func]		Set IPV6_V6ONLY on IPv6 sockets if supported by

@@ -15,17 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parseint.c,v 1.3 2003/06/24 05:10:32 marka Exp $ */
+/* $Id: parseint.c,v 1.3.26.1 2003/08/11 04:48:06 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdlib.h>
 
 #include <isc/parseint.h>
 #include <isc/result.h>
-#include <isc/stdlib.h>
 
 isc_result_t
 isc_parse_uint32(isc_uint32_t *uip, const char *string, int base) {
@@ -40,31 +40,5 @@ isc_parse_uint32(isc_uint32_t *uip, const char *string, int base) {
 	if (n == ULONG_MAX && errno == ERANGE)
 		return (ISC_R_RANGE);
 	*uip = n;
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_parse_uint16(isc_uint16_t *uip, const char *string, int base) {
-	isc_uint32_t val;
-	isc_result_t result;
-	result = isc_parse_uint32(&val, string, base);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	if (val > 0xFFFF)
-		return (ISC_R_RANGE);
-	*uip = (isc_uint16_t) val;
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_parse_uint8(isc_uint8_t *uip, const char *string, int base) {
-	isc_uint32_t val;
-	isc_result_t result;
-	result = isc_parse_uint32(&val, string, base);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	if (val > 0xFF)
-		return (ISC_R_RANGE);
-	*uip = (isc_uint8_t) val;
 	return (ISC_R_SUCCESS);
 }

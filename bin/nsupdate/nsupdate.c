@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15.2.1 2003/08/08 03:40:07 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.2 2003/08/11 04:48:04 marka Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,7 @@
 #include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -1060,7 +1061,7 @@ static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	unsigned long ttl;
+	isc_uint32_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -1068,7 +1069,6 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
-	char *endp;
 	isc_uint16_t retval;
 
 	ddebug("update_addordelete()");
@@ -1106,13 +1106,14 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto doneparsing;
 		}
 	}
-	ttl = strtoul(word, &endp, 10);
-	if (!isdigit((unsigned char)*word) || *endp != '\0') {
+	result = isc_parse_uint32(&ttl, word, 10);
+	if (result != ISC_R_SUCCESS) {
 		if (isdelete) {
 			ttl = 0;
 			goto parseclass;
 		} else {
-			fprintf(stderr, "ttl '%s' is not legal\n", word);
+			fprintf(stderr, "ttl '%s': %s\n", word,
+				isc_result_totext(result));
 			goto failure;
 		}
 	}
