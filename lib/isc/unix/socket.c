@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.143 2000/06/26 17:48:26 explorer Exp $ */
+/* $Id: socket.c,v 1.144 2000/06/26 18:20:25 explorer Exp $ */
 
 #include <config.h>
 
@@ -1111,7 +1111,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 {
 	isc_socket_t *sock = NULL;
 	isc_result_t ret;
-#if defined(USE_CMSG)
+#if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
 	int on = 1;
 #endif
 
