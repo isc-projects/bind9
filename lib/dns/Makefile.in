@@ -37,5 +37,5 @@ installdirs:
 install:: timestamp installdirs
 	${INSTALL_DATA} libdns.a ${libdir}
 
-clean::
+clean distclean::
 	rm -f libdns.a timestamp

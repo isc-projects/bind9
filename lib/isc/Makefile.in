@@ -39,5 +39,5 @@ installdirs:
 install:: timestamp installdirs
 	${INSTALL_DATA} libisc.a ${libdir}
 
-clean::
+clean distclean::
 	rm -f libisc.a timestamp
