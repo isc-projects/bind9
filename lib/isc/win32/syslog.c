@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.c,v 1.5 2002/08/01 03:43:31 mayer Exp $ */
+/* $Id: syslog.c,v 1.6 2002/08/03 01:34:14 mayer Exp $ */
 
 #include <config.h>
 
@@ -168,11 +168,14 @@ InitNTLogging(FILE *stream, int debug) {
 void
 NTReportError(const char *name, const char *str) {
 	HANDLE hNTAppLog = NULL;
+	const char *buf[1];
+
+	buf[0] = str;
 
 	hNTAppLog = RegisterEventSource(NULL, name);
 
 	ReportEvent(hNTAppLog, EVENTLOG_ERROR_TYPE, 0,
-		    BIND_ERR_MSG, NULL, 1, 0,(LPCSTR *) str, NULL);
+		    BIND_ERR_MSG, NULL, 1, 0, buf, NULL);
 
 	DeregisterEventSource(hNTAppLog);
 }
