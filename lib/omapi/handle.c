@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.11 2000/05/08 14:38:13 tale Exp $ */
+/* $Id: handle.c,v 1.12 2000/05/14 03:51:39 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -304,7 +304,7 @@ lookup_iterate(omapi_object_t **o, omapi_handle_t h,
 	index = (h - table->first) / scale;
 	inner = table->children[index].table;
 
-	return (lookup_iterate(o, h, table->children[index].table));
+	return (lookup_iterate(o, h, inner));
 }
 
 isc_result_t
