@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.20 2000/08/01 01:12:56 tale Exp $ */
+/* $Id: log_test.c,v 1.21 2000/12/23 19:24:18 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -104,7 +104,7 @@ main (int argc, char **argv) {
 		"8 lines to stderr (first 4 numbered, #3 repeated)\n",
 		file_versions == 0 || file_versions == ISC_LOG_ROLLNEVER ? 1 :
 		file_versions > 0 ? file_versions + 1 : FILE_VERSIONS + 1,
-		" /tmp/test_log files, and\n",
+		" " TEST_FILE " files, and\n",
 		"2 lines to syslog\n",
 		"lines ending with exclamation marks are errors\n\n");
 
@@ -112,6 +112,7 @@ main (int argc, char **argv) {
 
 	mctx = NULL;
 	lctx = NULL;
+	lcfg = NULL;
 
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_log_create(mctx, &lctx, &lcfg));
