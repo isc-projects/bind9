@@ -25,6 +25,7 @@ isc_condition_init(isc_condition_t *cond) {
 		return (ISC_R_UNEXPECTED);
 	}
 	cond->events[BROADCAST] = h;
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -38,6 +39,7 @@ isc_condition_signal(isc_condition_t *cond) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -51,6 +53,7 @@ isc_condition_broadcast(isc_condition_t *cond) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -61,20 +64,18 @@ isc_condition_destroy(isc_condition_t *cond) {
 
 	(void)CloseHandle(cond->events[SIGNAL]);
 	(void)CloseHandle(cond->events[BROADCAST]);
+
 	return (ISC_R_SUCCESS);
 }
 
 static
 isc_result_t
-wait(isc_condition_t *cond, isc_mutex_t *mutex,
-	 DWORD milliseconds)
-{
+wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	DWORD result;
 
 	cond->waiters++;
 	LeaveCriticalSection(mutex);
-	result = WaitForMultipleObjects(2, cond->events, FALSE,
-								    milliseconds);
+	result = WaitForMultipleObjects(2, cond->events, FALSE, milliseconds);
 	if (result == WAIT_FAILED) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
@@ -101,7 +102,7 @@ isc_condition_wait(isc_condition_t *cond, isc_mutex_t *mutex) {
 
 isc_result_t
 isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
-					    isc_time_t t)
+			isc_time_t t)
 {
 	DWORD milliseconds;
 

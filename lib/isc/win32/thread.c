@@ -3,7 +3,7 @@
 
 isc_result_t
 isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg, 
-				  isc_thread_t *threadp)
+		  isc_thread_t *threadp)
 {
 	HANDLE h;
 	DWORD id;
@@ -32,10 +32,13 @@ isc_thread_join(isc_thread_t thread, isc_threadresult_t *rp) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
+
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t isc_thread_detach(isc_thread_t thread) {
+
 	/* XXX */
+
 	return (ISC_R_SUCCESS);
 }

@@ -23,6 +23,7 @@ isc_time_get(isc_time_t t) {
 	/* XXX No nanoseconds! */
 	t->seconds = (unsigned long)time(NULL);
 	t->nanoseconds = 0;
+
 	return (ISC_R_SUCCESS);
 }
 
