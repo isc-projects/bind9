@@ -98,6 +98,10 @@ BIND 9.0.0rc1
 		the keys, you now need an rndc.conf file and a 
 		"controls" clause in named.conf.
 
+		When the server is chrooted using the -t option,
+		it no longer needs copies of the passwd and group
+		files in the chroot environment.
+
 		Various bug fixes and cleanups, especially
 		in the dig, host, nslookup, and nsupdate
 		programs.
