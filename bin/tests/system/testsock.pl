@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.10 2001/01/09 21:42:26 bwelling Exp $
+# $Id: testsock.pl,v 1.11 2001/02/14 00:09:44 nelsonm Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -25,9 +25,18 @@ use Socket;
 use Getopt::Long;
 
 my $port = 0;
-GetOptions("p=i" => \$port);
+my $id = 0;
+GetOptions("p=i" => \$port,
+           "i=i" => \$id);
 
-for ($id = 1 ; $id < 6 ; $id++) {
+my @ids;
+if ($id != 0) {
+  @ids = ($id);
+} else {
+  @ids = (1..5);
+}
+  
+foreach $id (@ids) {
         my $addr = pack("C4", 10, 53, 0, $id);
 	my $sa = pack_sockaddr_in($port, $addr);
 	socket(SOCK, PF_INET, SOCK_STREAM, getprotobyname("tcp"))
