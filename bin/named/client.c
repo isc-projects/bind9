@@ -825,6 +825,10 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		} else {
 			client->attributes &= ~NS_CLIENTATTR_PKTINFO;
 		}
+		if ((devent->attributes & ISC_SOCKEVENTATTR_MULTICAST) != 0)
+			client->attributes |= NS_CLIENTATTR_MULTICAST;
+		else
+			client->attributes &= ~NS_CLIENTATTR_MULTICAST;
 	} else {
 		INSIST(TCP_CLIENT(client));
 		REQUIRE(event->ev_type == DNS_EVENT_TCPMSG);
@@ -846,7 +850,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (exit_check(client))
 		goto cleanup_serverlock;
 	client->state = NS_CLIENTSTATE_WORKING;
-		
+
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;
 
@@ -858,6 +862,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		else
 			isc_task_shutdown(client->task);
 		goto cleanup_serverlock;
+	}
+
+	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "ignoring multicast request");
+		ns_client_error(client, DNS_R_REFUSED);
 	}
 
 	result = dns_message_parse(client->message, buffer, ISC_FALSE);

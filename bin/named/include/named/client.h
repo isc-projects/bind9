@@ -132,6 +132,7 @@ struct ns_client {
 #define NS_CLIENTATTR_TCP		0x01
 #define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
 #define NS_CLIENTATTR_PKTINFO		0x04 /* pktinfo is valid */
+#define NS_CLIENTATTR_MULTICAST		0x08 /* recv'd from multicast */
 
 /***
  *** Functions
