@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.244 2002/07/15 02:23:58 marka Exp $ */
+/* $Id: resolver.c,v 1.245 2002/07/23 03:41:44 marka Exp $ */
 
 #include <config.h>
 
@@ -4607,13 +4607,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				return;
 			}
 			findoptions = 0;
-			if (dns_rdatatype_atparent(fctx->type))
-				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(fctx->res->view,
-						      &fctx->domain,
+						      &fctx->name,
 						      fname,
-						      now, findoptions,
-						      ISC_TRUE,
+						      now, 0, ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {
