@@ -1,3 +1,7 @@
+1052.	[bug]		Journals were not being created in binary mode
+			resulting in "journal format not recognized" error
+			under Windows NT/2000.  [RT #1889]
+
 1051.	[bug]		Do not ignore a network interface completely just
 			because it has a noncontiguous netmask.  Instead,
 			omit it from the localnets ACL and issue a warning.
