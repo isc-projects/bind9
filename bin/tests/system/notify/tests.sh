@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.29.2.1 2004/03/09 06:10:03 marka Exp $
+# $Id: tests.sh,v 1.29.2.2 2004/03/10 01:05:03 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -33,7 +33,7 @@ grep ";" dig.out.ns3
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
 rm -f ns2/example.db
-cp ns2/example2.db ns2/example.db
+cp -f ns2/example2.db ns2/example.db
 kill -HUP `cat ns2/named.pid`
 sleep 45
 
@@ -53,7 +53,7 @@ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 $PERL $SYSTEMTESTTOP/stop.pl . ns3
 
 rm -f ns2/example.db
-cp ns2/example3.db ns2/example.db
+cp -f ns2/example3.db ns2/example.db
 kill -HUP `cat ns2/named.pid`
 sleep 45
 
@@ -72,7 +72,7 @@ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 $PERL $SYSTEMTESTTOP/stop.pl . ns2
 
 rm -f ns2/example.db
-cp ns2/example4.db ns2/example.db
+cp -f ns2/example4.db ns2/example.db
 
 $PERL $SYSTEMTESTTOP/start.pl . ns2
 

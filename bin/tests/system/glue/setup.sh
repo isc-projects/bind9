@@ -15,6 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2.2.1 2004/03/09 06:09:55 marka Exp $
+# $Id: setup.sh,v 1.2.2.2 2004/03/10 01:05:03 marka Exp $
 
-cd ns1 && cp cache.in cache
+cd ns1 && cp -f cache.in cache

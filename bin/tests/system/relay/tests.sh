@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3.2.1 2004/03/09 06:10:07 marka Exp $
+# $Id: tests.sh,v 1.3.2.2 2004/03/10 01:05:05 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -39,7 +39,7 @@ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns4 || status=1
 
 rm -f ns2/example.db
-cp ns2/example2.db ns2/example.db
+cp -f ns2/example2.db ns2/example.db
 sleep 6
 kill -HUP `cat ns2/named.pid`
 sleep 60
@@ -70,7 +70,7 @@ if [ $? != 0 ]; then
 	rm -f ns3/named.pid
 fi
 rm -f ns2/example.db
-cp ns2/example3.db ns2/example.db
+cp -f ns2/example3.db ns2/example.db
 sleep 6
 
 if [ -f ns3/named.pid ]; then
@@ -118,7 +118,7 @@ if [ -f ns2/named.pid ]; then
 	status=1
 fi
 
-cp ns2/example4.db ns2/example.db
+cp -f ns2/example4.db ns2/example.db
 sleep 6
 (cd ns2 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 60

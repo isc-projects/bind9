@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.11.2.1 2004/03/09 06:10:29 marka Exp $
+# $Id: setup.sh,v 1.11.2.2 2004/03/10 01:05:06 marka Exp $
 
 #
 # Set up test data for zone transfer quota tests.
@@ -23,4 +23,4 @@
 
 $PERL setup.pl
 
-cp ns1/changing1.db ns1/changing.db
+cp -f ns1/changing1.db ns1/changing.db

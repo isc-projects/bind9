@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4.2.1 2004/03/09 06:10:21 marka Exp $
+# $Id: setup.sh,v 1.4.2.2 2004/03/10 01:05:05 marka Exp $
 
-cp ns1/example1.db ns1/example.db
+cp -f ns1/example1.db ns1/example.db
 rm -f ns1/example.db.jnl ns2/example.bk ns2/example.bk.jnl
