@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.46 2001/03/28 00:16:06 bwelling Exp $ */
+/* $Id: rndc.c,v 1.47 2001/03/28 20:09:05 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -93,8 +93,7 @@ notify(const char *fmt, ...) {
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-y key] [-z zone] [-v view]\n\
-	command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-y key] command [command ...]\n\
 \n\
 command is one of the following:\n\
 \n\
