@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.7 1999/09/30 02:50:54 bwelling Exp $
+ * $Id: dnssec.c,v 1.8 1999/10/07 21:51:49 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -38,9 +38,11 @@
 
 #include <dns/db.h>
 #include <dns/keyvalues.h>
+#include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdatalist.h>
 #include <dns/rdatastruct.h>
 #include <dns/dnssec.h>
 
@@ -262,13 +264,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.common.rdtype = dns_rdatatype_sig;
 	ISC_LINK_INIT(&sig.common, link);
 
-	sig.signer = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (sig.signer == NULL) {
-		ret = ISC_R_NOMEMORY;
-	}
-	ret = keyname_to_name(dst_key_name(key), mctx, sig.signer);
+	ret = keyname_to_name(dst_key_name(key), mctx, &sig.signer);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signer;
+		return (ret);
 
 	sig.covered = set->type;
 	sig.algorithm = dst_key_alg(key);
@@ -279,12 +277,11 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.timesigned = *inception;
 	sig.timeexpire = *expire;
 	sig.keyid = dst_key_id(key);
-	sig.siglen = dst_sig_size(key);
-	if (sig.siglen < 0) {
+	if (dst_sig_size(key) < 0) {
 		/* close enough for now */
 		return (DNS_R_KEYUNAUTHORIZED);
-		goto cleanup_signer;
 	}
+	sig.siglen = dst_sig_size(key);
 	sig.signature = isc_mem_get(mctx, sig.siglen);
 	if (sig.signature == NULL)
 		goto cleanup_name;
@@ -370,9 +367,7 @@ cleanup_array:
 cleanup_signature:
 	isc_mem_put(mctx, sig.signature, sig.siglen);
 cleanup_name:
-	dns_name_free(sig.signer, mctx);
-cleanup_signer:
-	isc_mem_put(mctx, sig.signer, sizeof(dns_name_t));
+	dns_name_free(&sig.signer, mctx);
 
 	return (ret);
 }

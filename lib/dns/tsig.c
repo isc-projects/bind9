@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.13 1999/10/05 19:50:10 halley Exp $
+ * $Id: tsig.c,v 1.14 1999/10/07 21:51:49 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -183,7 +183,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	REQUIRE(msg->tsig == NULL);
 
 	/* If this is a response, there should be a query tsig */
-	if (is_response(msg) && msg->querytsig != NULL)
+	if (is_response(msg) && msg->querytsig == NULL)
 		return (DNS_R_EXPECTEDTSIG);
 
 	dynbuf = NULL;
@@ -199,13 +199,8 @@ dns_tsig_sign(dns_message_t *msg) {
 	tsig->common.rdclass = dns_rdataclass_any;
 	tsig->common.rdtype = dns_rdatatype_tsig;
 	ISC_LINK_INIT(&tsig->common, link);
-	tsig->algorithm = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (tsig->algorithm == NULL) {
-		ret = ISC_R_NOMEMORY;
-		goto cleanup_struct;
-	}
-	dns_name_init(tsig->algorithm, NULL);
-	ret = dns_name_dup(&key->algorithm, mctx, tsig->algorithm);
+	dns_name_init(&tsig->algorithm, NULL);
+	ret = dns_name_dup(&key->algorithm, mctx, &tsig->algorithm);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
@@ -300,7 +295,7 @@ dns_tsig_sign(dns_message_t *msg) {
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_other;
 
-			dns_name_toregion(tsig->algorithm, &r);
+			dns_name_toregion(&tsig->algorithm, &r);
 			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
 				       NULL);
 			if (ret != ISC_R_SUCCESS)
@@ -421,7 +416,7 @@ cleanup_other:
 	if (tsig->other != NULL)
 		isc_mem_put(mctx, tsig->other, tsig->otherlen);
 cleanup_algorithm:
-	dns_name_free(tsig->algorithm, mctx);
+	dns_name_free(&tsig->algorithm, mctx);
 cleanup_struct:
 	msg->tsig = NULL;
 	isc_mem_put(mctx, tsig, sizeof(dns_rdata_any_tsig_t));
@@ -494,14 +489,14 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	/* Do the key name and algorithm match that of the query? */
 	if (is_response(msg) &&
 	    (!dns_name_equal(keyname, &msg->tsigkey->name) ||
-	     !dns_name_equal(tsig->algorithm, msg->querytsig->algorithm)))
+	     !dns_name_equal(&tsig->algorithm, &msg->querytsig->algorithm)))
 	{
 		msg->tsigstatus = dns_tsigerror_badkey;
 		return (DNS_R_TSIGVERIFYFAILURE);
 	}
 
 	/* Find dns_tsig_key_t based on keyname */
-	ret = dns_tsig_findkey(&tsigkey, keyname, tsig->algorithm); 
+	ret = dns_tsig_findkey(&tsigkey, keyname, &tsig->algorithm); 
 	if (ret != ISC_R_SUCCESS) {
 		msg->tsigstatus = dns_tsigerror_badkey;
 		msg->tsigkey = NULL;
@@ -509,7 +504,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		 * this key must be deleted later - an empty key can be found
 		 * by calling dns_tsig_emptykey()
 		 */
-		ret = dns_tsig_key_create(keyname, tsig->algorithm, NULL, 0,
+		ret = dns_tsig_key_create(keyname, &tsig->algorithm, NULL, 0,
 					   mctx, &msg->tsigkey);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_struct;
@@ -714,7 +709,8 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	
 		/* Do the key name and algorithm match that of the query? */
 		if (!dns_name_equal(keyname, &msg->tsigkey->name) ||
-		    !dns_name_equal(tsig->algorithm, msg->querytsig->algorithm))
+		    !dns_name_equal(&tsig->algorithm,
+				    &msg->querytsig->algorithm))
 		{
 			msg->tsigstatus = dns_tsigerror_badkey;
 			return (DNS_R_TSIGVERIFYFAILURE);
