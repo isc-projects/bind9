@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.9 2001/06/11 18:25:41 bwelling Exp $ */
+/* $Id: dighost.c,v 1.174.2.10 2001/06/14 22:03:38 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1934,11 +1934,13 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	b = ISC_LIST_HEAD(sevent->bufferlist);
 	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->lengthbuf, link);
 	length = isc_buffer_getuint16(b);
-	if (length > COMMSIZE) {
+	if (length == 0) {
 		isc_event_free(&event);
-		fatal("Length of %X was longer than I can handle!",
-		      length);
+		launch_next_query(query, ISC_FALSE);
+		UNLOCK_LOOKUP;
+		return;
 	}
+
 	/*
 	 * Even though the buffer was already init'ed, we need
 	 * to redo it now, to force the length we want.

@@ -1,4 +1,7 @@
 
+ 903.	[bug]		dig should not crash when receiving a TCP packet
+ 			of length 0.
+
  901.	[cleanup]	The man pages no longer have empty lines outside of
 			literal blocks.
 
