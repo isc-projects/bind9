@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.29 2000/07/31 15:28:13 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.30 2000/07/31 21:07:25 tale Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 
 #include <dns/db.h>
 #include <dns/dnssec.h>
+#include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
