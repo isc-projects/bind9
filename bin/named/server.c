@@ -30,6 +30,7 @@
 #include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/timer.h>
+#include <isc/app.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -422,7 +423,10 @@ main(int argc, char *argv[])
 	int ch;
 	char *origintext;
 	dns_result_t result;
+	isc_result_t iresult;
 	ns_interfacemgr_t *ifmgr = NULL;
+
+	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
 #if 0 /* brister */
 	isc_cfgctx_t *configctx = NULL;
@@ -497,28 +501,33 @@ main(int argc, char *argv[])
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
 
-	/* 
-	 * XXX Need to set up a condition variable here, and wait on it.
-	 * For now, just semi-busy loop.
+	/*
+	 * Block until shutdown is requested.
 	 */
-	for (;;)
-		sleep(10);
-
-	unload_all();
-	dns_dbtable_detach(&dbtable);
+	iresult = isc_app_run();
+	if (iresult != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_app_run(): %s",
+				 isc_result_totext(iresult));
 
 	printf("Destroying network interface manager\n");
 	ns_interfacemgr_destroy(&ifmgr);
 
+	printf("Destroying task manager\n");
+	isc_taskmgr_destroy(&manager);
+
 	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
 
-	printf("Destroying task manager\n");
-	isc_taskmgr_destroy(&manager);
+	printf("Unloading\n");
+	unload_all();
+	dns_dbtable_detach(&dbtable);
 
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	isc_app_finish();
 
 	return (0);
 }
