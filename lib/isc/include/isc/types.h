@@ -32,6 +32,8 @@ typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;
 typedef struct isc_event		isc_event_t;
 typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
 typedef unsigned int			isc_eventtype_t;
+typedef struct isc_interface		isc_interface_t;
+typedef struct isc_interfaceiter	isc_interfaceiter_t;
 typedef struct isc_interval		isc_interval_t;
 typedef struct isc_lex			isc_lex_t;
 typedef struct isc_log 			isc_log_t;
