@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.2 2001/01/11 20:51:13 bwelling Exp $ */
+/* $Id: keycreate.c,v 1.3 2001/01/13 00:26:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -136,6 +136,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	unsigned char keydata[9];
 	dns_message_t *query;
 	dns_request_t *request;
+	char keystr[] = "0123456789ab";
 
 	isc_event_free(&event);
 
@@ -150,7 +151,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_name_fromtext", result);
 
 	isc_buffer_init(&keybuf, keydata, 9);
-	result = isc_base64_decodestring(mctx, "0123456789ab", &keybuf);
+	result = isc_base64_decodestring(mctx, keystr, &keybuf);
 	CHECK("isc_base64_decodestring", result);
 
 	isc_buffer_usedregion(&keybuf, &r);
