@@ -1,3 +1,7 @@
+ 987.	[bug]		"dig -help" didn't show "+[no]stats".
+
+ 986.	[bug]		"dig +noall" failed to clear stats and command
+			printing.
 
  985.	[func]		Consider network interfaces to be up iff they have
 			a nonzero IP address rather than based on the
