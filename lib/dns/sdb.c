@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.23.2.3 2001/02/20 23:50:28 gson Exp $ */
+/* $Id: sdb.c,v 1.23.2.4 2001/05/02 19:27:39 gson Exp $ */
 
 #include <config.h>
 
@@ -249,6 +249,16 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
 	*sdbimp = NULL;
 }
 
+static inline unsigned int
+initial_size(const char *data) {
+	unsigned int len = strlen(data);
+	unsigned int size;
+	for (size = 64; size < (64 * 1024); size *= 2)
+		if (len < size)
+			return (size);
+	return (64 * 1024);
+}
+
 isc_result_t
 dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	      const char *data)
@@ -316,7 +326,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
-	size = 64;
+	size = initial_size(data);
 	do {
 		isc_buffer_init(&b, data, strlen(data));
 		isc_buffer_add(&b, strlen(data));
