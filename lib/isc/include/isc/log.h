@@ -15,10 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.16 2000/04/25 23:44:20 tale Exp $ */
+/* $Id: log.h,v 1.17 2000/04/27 23:44:44 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
+
+#include <sys/types.h>		/* XXXDCL NT; need for off_t on some systems */
 
 #include <stdio.h>
 #include <stdarg.h>
