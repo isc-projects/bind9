@@ -2592,12 +2592,12 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
 	copy_namehook_lists(adb, find, zone, adbname, now);
 
+ post_copy:
 	if (NAME_FETCH_V4(adbname))
 		query_pending |= DNS_ADBFIND_INET;
 	if (NAME_FETCH_V6(adbname))
 		query_pending |= DNS_ADBFIND_INET6;
 
- post_copy:
 	/*
 	 * Attach to the name's query list if there are queries
 	 * already running, and we have been asked to.
@@ -2627,6 +2627,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * the event was sent and freed, so dns_adb_destroyfind() will
 		 * do the right thing.
 		 */
+		find->query_pending = (query_pending & wanted_addresses);
 		find->options &= ~DNS_ADBFIND_WANTEVENT;
 		find->flags |= (FIND_EVENT_SENT | FIND_EVENT_FREED);
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
