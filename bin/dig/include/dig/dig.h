@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.32 2000/07/13 18:52:58 mws Exp $ */
+/* $Id: dig.h,v 1.33 2000/07/13 22:53:51 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -32,7 +32,7 @@
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 
-#define MXSERV 4
+#define MXSERV 6
 #define MXNAME 1005
 #define MXRD 32
 #define BUFSIZE 512

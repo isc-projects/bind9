@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.84 2000/07/13 21:12:21 mws Exp $ */
+/* $Id: dighost.c,v 1.85 2000/07/13 22:53:49 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -707,9 +707,11 @@ clear_query(dig_query_t *query) {
 		ISC_LIST_DEQUEUE(query->lengthlist, &query->lengthbuf,
 				 link);
 	INSIST(query->recvspace != NULL);
-	isc_socket_detach(&query->sock);
-	sockcount--;
-	debug("sockcount=%d", sockcount);
+	if (query->sock != NULL) {
+		isc_socket_detach(&query->sock);
+		sockcount--;
+		debug("sockcount=%d", sockcount);
+	}
 	isc_mempool_put(commctx, query->recvspace);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
@@ -719,6 +721,7 @@ clear_query(dig_query_t *query) {
 static isc_boolean_t
 try_clear_lookup(dig_lookup_t *lookup) {
 	dig_server_t *s;
+	dig_query_t *q;
 	void *ptr;
 
 	REQUIRE(lookup != NULL);
@@ -726,8 +729,15 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	debug("try_clear_lookup(%p)", lookup);
 
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
-		debug("can't clear; query still pending.");
+		if (debugging) {
+			q = ISC_LIST_HEAD(lookup->q);
+			while (q != NULL) {
+				debug ("query to %s still pending",
+				       q->servname);
+				q = ISC_LIST_NEXT(q, link);
+			}
 		return (ISC_FALSE);
+		}
 	}
 	/*
 	 * At this point, we know there are no queries on the lookup,
@@ -773,6 +783,7 @@ static void
 begin_next_lookup(void) {
 	dig_lookup_t *next;
      
+	debug("begin_next_lookup()");
 	next = ISC_LIST_HEAD(lookup_list);
 	if (next != NULL) {
 		setup_lookup(next);
@@ -794,7 +805,7 @@ check_next_lookup(dig_lookup_t *lookup) {
 	
 	INSIST(!free_now);
 
-	debug("is_lookup_done(%p)", lookup);
+	debug("check_next_lookup(%p)", lookup);
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
@@ -851,7 +862,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 				       rdata.type);
 				if ((rdata.type == dns_rdatatype_ns) &&
 				    (!query->lookup->trace_root ||
-				     (query->lookup->nsfound < ROOTNS)))
+				     (query->lookup->nsfound < MXSERV)))
 				{
 					query->lookup->nsfound++;
 					result = isc_buffer_allocate(mctx, &b,
@@ -874,6 +885,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 					if (!success) {
 						success = ISC_TRUE;
 						lookup_counter++;
+						cancel_lookup(query->lookup);
 						lookup = requeue_lookup
 							(query->lookup,
 							 ISC_FALSE);
@@ -901,7 +913,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 							      my_server_list);
 					}
 					srv = isc_mem_allocate(mctx,
-						       sizeof(struct dig_server));
+						  sizeof(struct dig_server));
 					if (srv == NULL)
 						fatal("Memory allocation "
 						      "failure in %s:%d",
@@ -909,7 +921,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 					strncpy(srv->servername, 
 						(char *)r.base, len);
 					srv->servername[len] = 0;
-					debug("adding server %s",
+					debug("adding1 server %s",
 					       srv->servername);
 					ISC_LIST_APPEND
 						(lookup->my_server_list,
@@ -946,6 +958,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		debug("made it to the root with nowhere to go");
 		return;
 	}
+	cancel_lookup(query->lookup);
 	lookup = requeue_lookup(query->lookup, ISC_TRUE);
 	lookup->defname = ISC_FALSE;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
@@ -1266,7 +1279,16 @@ setup_lookup(dig_lookup_t *lookup) {
 
 static void
 send_done(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sevent = NULL;
+	dig_query_t *query;
+	dig_lookup_t *l;
+
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+
 	UNUSED(task);
+
+	sevent = (isc_socketevent_t *)event;
+	query = event->ev_arg;
 
 	isc_event_free(&event);
 
@@ -1274,6 +1296,17 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	sendcount--;
 	debug("sendcount=%d",sendcount);
 	INSIST(sendcount >= 0);
+
+	if (sevent->result == ISC_R_CANCELED) {
+		debug("in send cancel handler");
+		query->working = ISC_FALSE;
+		query->waiting_connect = ISC_FALSE;
+		l = query->lookup;
+		clear_query(query);
+		check_next_lookup(l);
+		return;
+	}
+
 }
 
 void
@@ -1290,7 +1323,6 @@ cancel_lookup(dig_lookup_t *lookup) {
 		if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, global_task,
 					  ISC_SOCKCANCEL_ALL);
-			INSIST(sockcount >= 0);
 			check_if_done();
 		}
 	}
@@ -1388,18 +1420,20 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			isc_buffer_usedregion(b, &r);
 			if ((q->lookup->retries > 1) &&
 			    (!q->lookup->tcp_mode))
-				printf(";; Connection to server %.*s "
+				printf(";; Connection to %.*s(%s) "
 				       "for %s timed out.  "
 				       "Retrying %d.\n",
 				       (int)r.length, r.base,
+				       q->servname,
 				       q->lookup->textname,
 				       q->lookup->retries-1);
 			else {
 				printf(";; Connection to "
-				       "server %.*s "
+				       "%.*s(%s) "
 				       "for %s timed out.  "
 				       "Giving up.\n",
 				       (int)r.length, r.base,
+				       q->servname,
 				       q->lookup->textname);
 			}
 			isc_socket_cancel(q->sock, task,
@@ -1493,6 +1527,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 static void
 launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_result_t result;
+	dig_lookup_t *l;
 
 	INSIST(!free_now);
 
@@ -1506,7 +1541,9 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 		INSIST(sockcount >= 0);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
-		check_next_lookup(query->lookup);
+		l = query->lookup;
+		clear_query(query);
+		check_next_lookup(l);
 		return;
 	}
 
@@ -1564,20 +1601,24 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 	query->waiting_connect = ISC_FALSE;
 
 	if (sevent->result != ISC_R_SUCCESS) {
-		debug("buffer allocate connect_timeout");
+		debug("unsuccessful connection: %s",
+		      isc_result_totext(sevent->result));
 		result = isc_buffer_allocate(mctx, &b, 256);
 		check_result(result, "isc_buffer_allocate");
 		result = isc_sockaddr_totext(&query->sockaddr, b);
 		check_result(result, "isc_sockaddr_totext");
 		isc_buffer_usedregion(b, &r);
-		printf(";; Connection to server %.*s for %s failed: %s.\n",
-		       (int)r.length, r.base, query->lookup->textname,
-		       isc_result_totext(sevent->result));
+		if (sevent->result != ISC_R_CANCELED)
+			printf(";; Connection to %.*s(%s) for %s failed: "
+			       "%s.\n", (int)r.length, r.base,
+			       query->servname, query->lookup->textname,
+			       isc_result_totext(sevent->result));
 		isc_socket_detach(&query->sock);
 		sockcount--;
 		INSIST(sockcount >= 0);
 		if (exitcode < 9)
 			exitcode = 9;
+		debug("sockcount=%d",sockcount);
 		isc_buffer_free(&b);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -2017,7 +2058,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	 * the cancel_lookup() routine clears the pending flag.
 	 */
 	if (sevent->result == ISC_R_CANCELED) {
-		debug("in cancel handler");
+		debug("in recv cancel handler");
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
