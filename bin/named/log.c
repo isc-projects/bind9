@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.23 2000/08/25 01:08:19 bwelling Exp $ */
+/* $Id: log.c,v 1.24 2000/09/26 22:12:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -90,6 +90,8 @@ ns_log_init(isc_boolean_t safe) {
 
  cleanup:
 	isc_log_destroy(&ns_g_lctx);
+	isc_log_setcontext(NULL);
+	dns_log_setcontext(NULL);
 
 	return (result);
 }
@@ -178,4 +180,6 @@ ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 void
 ns_log_shutdown(void) {
 	isc_log_destroy(&ns_g_lctx);
+	isc_log_setcontext(NULL);
+	dns_log_setcontext(NULL);
 }
