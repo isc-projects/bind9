@@ -268,7 +268,6 @@ isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  isc_boolean_t comments,
 			  isc_boolean_t omit_final_dot,
-			  isc_boolean_t no_rdata_or_ttl,
 			  isc_buffer_t *target);
 /*
  * Convert section 'section' of message 'msg' to a cleartext representation
@@ -308,7 +307,6 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 isc_result_t
 dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
-		   isc_boolean_t no_rdata_or_ttl,
 		   isc_buffer_t *target);
 /*
  * Convert all sections of message 'msg' to a cleartext representation

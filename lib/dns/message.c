@@ -2400,7 +2400,6 @@ isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  isc_boolean_t comments,
 			  isc_boolean_t omit_final_dot,
-			  isc_boolean_t no_rdata_or_ttl,
 			  isc_buffer_t *target) {
 	dns_name_t *name, empty_name;
 	dns_rdataset_t *rdataset;
@@ -2433,7 +2432,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 					return(result);
 				result = dns_rdataset_totext(rdataset, name,
 							     omit_final_dot,
-							     no_rdata_or_ttl,
+							     ISC_FALSE,
 							     target);
 				if (result != ISC_R_SUCCESS)
 					return(result);
@@ -2449,7 +2448,6 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 isc_result_t
 dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
-		   isc_boolean_t no_rdata_or_ttl,
 		   isc_buffer_t *target) {
 	char buf[sizeof "1234567890"];
 	dns_rdataset_t *opt;
@@ -2519,7 +2517,6 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION,
 						   comments,
 						   omit_final_dot,
-						   no_rdata_or_ttl,
 						   target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2529,7 +2526,6 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER,
 						   comments,
 						   omit_final_dot,
-						   no_rdata_or_ttl,
 						   target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2539,7 +2535,6 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY,
 						   comments,
 						   omit_final_dot,
-						   no_rdata_or_ttl,
 						   target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2549,7 +2544,6 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL,
 						   comments,
 						   omit_final_dot,
-						   no_rdata_or_ttl,
 						   target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
