@@ -1,910 +1,728 @@
-MDN patch for bind-9.2.0
-========================
-
-
-This is a patch file for ISC BIND 9.2.0 to make it work with
-internationalized/multilingual domain names.  With this patch you'll
-get MDN-aware dig/host/nslookup.
-
-To apply this patch, you should go to the top directory of the BIND
-distribution (where you see `README' file), then invoke `patch'
-command like this:
-
-	% patch -p0 < this-file
-
-Then follow the instructions described in `README.mdnkit' to compile
-and install.
-
-
-Index: README.mdnkit
-diff -c /dev/null mdn/othersrc/bind9/README.mdnkit:1.9
-*** README.mdnkit	Thu Dec  6 13:51:44 2001
---- README.mdnkit	Wed Aug 22 15:19:31 2001
-***************
-*** 0 ****
---- 1,124 ----
-+ 
-+ 			BIND-9 MDN patch
-+ 
-+ 	       Japan Network Information Center (JPNIC)
-+ 
-+ 
-+ * What is this patch for?
-+ 
-+ This patch adds multilingual domain name (MDN) support to BIND-9.
-+ You'll get multilingualized version of dig/host/nslookup commands.
-+ 
-+     + mulltilingualized dig/host/nslookup
-+ 	dig/host/nslookup accepts non-ASCII domain names in the local
-+ 	codeset (such as Shift JIS, Big5 or ISO8859-1) determined by
-+ 	the locale information.  The domain names are normalized and
-+ 	converted to the encoding on the DNS protocol, and sent to DNS
-+ 	servers.  The replies are converted back to the local codeset
-+ 	and displayed.
-+ 
-+ 
-+ * Compilation & installation
-+ 
-+ 0. Prerequisite
-+ 
-+ You have to build and install mDNkit before building this patched version
-+ of bind-9.
-+ 
-+ 1. Running configure script
-+ 
-+ Run `configure' in the top directory.  See `README' for the
-+ configuration options.
-+ 
-+ This patch adds the following 4 options to `configure'.  You should
-+ at least specify `--with-mdn' option to enable MDN support.
-+ 
-+     --with-mdn[=MDN_PREFIX]
-+ 	To enable MDN support, you have to specify `--with-mdn' option.
-+ 	The argument MDN_PREFIX is the install prefix of mDNkit.  If
-+ 	MDN_PREFIX is omitted, PREFIX (derived from `--prefix=PREFIX')
-+ 	is assumed.
-+ 
-+     --with-libiconv[=LIBICONV_PREFIX]
-+ 	Specify this option if mDNkit you have installed links GNU
-+ 	libiconv.  The argument LIBICONV_PREFIX is install prefix of
-+ 	GNU libiconv.  If the argument is omitted, PREFIX (derived
-+ 	from `--prefix=PREFIX') is assumed.
-+ 
-+ 	`--with-libiconv' is shorthand option for GNU libiconv.
-+ 
-+ 	    --with-libiconv=/usr/local
-+ 
-+ 	This is equivalent to:
-+ 
-+ 	    --with-iconv='-L/usr/local/lib -R/usr/local/lib -liconv'
-+ 
-+ 	`--with-libiconv' assumes that your C compiler has `-R'
-+ 	option, and that the option adds the specified run-time path
-+ 	to an exacutable binary.  If `-R' option of your compiler has
-+ 	different meaning, or your compiler lacks the option, you
-+ 	should use `--with-iconv' option instead.  Binary command
-+ 	without run-time path information might be unexecutable.
-+ 	In that case, you would see an error message like:
-+ 
-+ 	    error in loading shared libraries: libiconv.so.2: cannot
-+ 	    open shared object file
-+ 
-+ 	If both `--with-libiconv' and `--with-iconv' options are
-+ 	specified, `--with-iconv' is prior to `--with-libiconv'.
-+ 
-+     --with-iconv=ICONV_LIBSPEC
-+ 	If your libc doens't provide iconv(), you need to specify the
-+ 	library containing iconv() with this option.  `ICONV_LIBSPEC'
-+ 	is the argument(s) to `cc' or `ld' to link the library, for
-+ 	example, `--with-iconv="-L/usr/local/lib -liconv"'.
-+ 	You don't need to specify the header file directory for "iconv.h"
-+ 	to the compiler, as it isn't included directly by bind-9 with
-+ 	this patch.
-+ 
-+     --with-mdnlib=MDN_LIBSPEC
-+ 	With this option, you can explicitly specify the argument(s)
-+ 	to `cc' or `ld' to link the mDNkit's library, `libmdn'.  If
-+ 	this option is not specified, `-L${PREFIX}/lib -lmdn' is
-+ 	assumed, where ${PREFIX} is the installation prefix specified
-+ 	with `--with-mdn' option above.  You may need to use this
-+ 	option to specify extra argments, for example,
-+ 	`--with-mdnlib="-L/usr/local/lib -R/usr/local/lib -lmdn"'.
-+ 
-+ Please consult `README' for other configuration options.
-+ 
-+ Note that if you want to specify some extra header file directories,
-+ you should use the environment variable STD_CINCLUDES instead of
-+ CFLAGS, as described in README.
-+ 
-+ 2. Compilation and installation
-+ 
-+ After running "configure", just do
-+ 
-+ 	make
-+ 	make install
-+ 
-+ for compiling and installing.
-+ 
-+ 3. Resolver configuration
-+ 
-+ To handle multilingual domain names, you have to specify the
-+ properties like:
-+ 	+ name encoding used in DNS protocol data
-+ 	+ normalization (NAMEPREP) schemes
-+ These properties are specified by the mDNkit's configuration file,
-+ "mdn.conf".  You have to create and set up the file properly.  The
-+ pathname of the file and contents are described in the manual
-+ "mdn.conf".
-+ 
-+ 
-+ * Contact information
-+ 
-+ Please see http//www.nic.ad.jp/jp/research/idn/ for the latest news
-+ about mDNkit and this patch.
-+ 
-+ Bug reports and comments on this kit should be sent to
-+ mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
-+ 
-+ 
-+ ; $Id: bind-9.2.0-patch,v 1.1 2002/01/02 02:46:59 marka Exp $
-Index: config.h.in
-diff -c mdn/othersrc/bind9/config.h.in:1.1.1.6 mdn/othersrc/bind9/config.h.in:1.10.2.1
-*** config.h.in	Tue Nov 27 16:55:45 2001
---- config.h.in	Thu Dec  6 13:51:12 2001
-***************
-*** 141,146 ****
---- 141,149 ----
-  /* define if you have strerror in the C library. */
-  #undef HAVE_STRERROR
-  
-+ /* Define if you have the setlocale function.  */
-+ #undef HAVE_SETLOCALE
-+ 
-  /* Define if you have the <dlfcn.h> header file.  */
-  #undef HAVE_DLFCN_H
-  
-***************
-*** 150,155 ****
---- 153,161 ----
-  /* Define if you have the <linux/capability.h> header file.  */
-  #undef HAVE_LINUX_CAPABILITY_H
-  
-+ /* Define if you have the <locale.h> header file.  */
-+ #undef HAVE_LOCALE_H
-+ 
-  /* Define if you have the <sys/prctl.h> header file.  */
-  #undef HAVE_SYS_PRCTL_H
-  
-***************
-*** 176,178 ****
---- 182,188 ----
-  
-  /* Define if you have the socket library (-lsocket).  */
-  #undef HAVE_LIBSOCKET
-+ 
-+ /* define if mDNkit support is to be included. */
-+ #undef WITH_MDN
-+ 
-Index: configure.in
-diff -c mdn/othersrc/bind9/configure.in:1.1.1.8 mdn/othersrc/bind9/configure.in:1.11
-*** configure.in	Tue Nov 27 16:55:48 2001
---- configure.in	Thu Nov 29 18:45:14 2001
-***************
-*** 1605,1610 ****
---- 1605,1683 ----
-  NOM_PATH_FILE(DOCBOOK2MANSPEC, docbook2X/docbook2man-spec.pl, $sgmltrees)
-  
-  #
-+ # MDN support
-+ #
-+ AC_ARG_WITH(mdn,
-+ 	[  --with-mdn[=MPREFIX]   enable MDN support using mDNkit [default PREFIX]],
-+ 	use_mdn="$withval", use_mdn="no")
-+ case "$use_mdn" in
-+ yes)
-+ 	if test X$prefix = XNONE ; then
-+ 		mdn_path=/usr/local
-+ 	else
-+ 		mdn_path=$prefix
-+ 	fi
-+ 	;;
-+ no)
-+ 	;;
-+ *)
-+ 	mdn_path="$use_mdn"
-+ 	;;
-+ esac
-+ 
-+ iconvinc=
-+ iconvlib=
-+ AC_ARG_WITH(libiconv,
-+ 	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
-+ 	use_libiconv="$withval", use_libiconv="no")
-+ case "$use_libiconv" in
-+ yes)
-+ 	if test X$prefix = XNONE ; then
-+ 		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
-+ 	else
-+ 		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
-+ 	fi
-+ 	;;
-+ no)
-+ 	iconvlib=
-+ 	;;
-+ *)
-+ 	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
-+ 	;;
-+ esac
-+ 
-+ AC_ARG_WITH(iconv,
-+ 	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
-+ 	iconvlib="$withval")
-+ case "$iconvlib" in
-+ no)
-+ 	iconvlib=
-+ 	;;
-+ yes)
-+ 	iconvlib=-liconv
-+ 	;;
-+ esac
-+ 
-+ AC_ARG_WITH(mdnlib,
-+ 	[  --with-mdnlib=ARG    specify libmdn],
-+ 	mdnlib="$withval", mdnlib="no")
-+ if test "$mdnlib" = yes; then
-+ 	AC_MSG_ERROR([You must specify ARG for --with-mdnlib.])
-+ fi
-+ 
-+ if test "$use_mdn" != no; then
-+ 	AC_DEFINE(WITH_MDN, 1, [define if mDNkit support is to be included.])
-+ 	STD_CINCLUDES="$STD_CINCLUDES -I$mdn_path/include"
-+ 	if test "$mdnlib" != no; then
-+ 		LIBS="$mdnlib $iconvlib $LIBS"
-+ 	else
-+ 		LIBS="-L$mdn_path/lib -lmdn $iconvlib $LIBS"
-+ 	fi
-+ fi
-+ AC_CHECK_HEADERS(locale.h)
-+ AC_CHECK_FUNCS(setlocale)
-+ 
-+ #
-  # Substitutions
-  #
-  AC_SUBST(BIND9_TOP_BUILDDIR)
-Index: bin/dig/dig.1
-diff -c mdn/othersrc/bind9/bin/dig/dig.1:1.1.1.1 mdn/othersrc/bind9/bin/dig/dig.1:1.2
-*** bin/dig/dig.1	Tue Nov 27 16:55:50 2001
---- bin/dig/dig.1	Thu Nov 29 14:36:25 2001
-***************
-*** 73,79 ****
-  is the name of the resource record that is to be looked up.
-  .TP
-  \fBtype\fR
-! indicates what type of query is required \(em
-  ANY, A, MX, SIG, etc.
-  \fItype\fR can be any valid query type. If no
-  \fItype\fR argument is supplied,
---- 73,79 ----
-  is the name of the resource record that is to be looked up.
-  .TP
-  \fBtype\fR
-! indicates what type of query is required 
-  ANY, A, MX, SIG, etc.
-  \fItype\fR can be any valid query type. If no
-  \fItype\fR argument is supplied,
-***************
-*** 336,341 ****
---- 336,352 ----
-  \fI+noqr\fR which means that \fBdig\fR
-  will not print the initial query when it looks up the NS records for
-  isc.org.
-+ .SH "MDN SUPPORT"
-+ .PP
-+ If \fBdig\fR has been built with mdn support, it can
-+ accept and display non-ASCII domain names.
-+ \fBdig\fR appropriately converts character encoding of
-+ domain name before sending a request to DNS server or displaying a
-+ reply from the server.
-+ If you'd like to turn off the MDN support for some reason, defines
-+ the \fBMDN_DISABLE\fR environment variable.
-+ The MDN support is disabled if the the variable is set when 
-+ \fBdig\fR runs.
-  .SH "FILES"
-  .PP
-  \fI/etc/resolv.conf\fR
-Index: bin/dig/dig.c
-diff -c mdn/othersrc/bind9/bin/dig/dig.c:1.1.1.8 mdn/othersrc/bind9/bin/dig/dig.c:1.7
-*** bin/dig/dig.c	Tue Nov 27 16:55:50 2001
---- bin/dig/dig.c	Thu Nov 29 18:45:14 2001
-***************
-*** 1305,1310 ****
---- 1305,1315 ----
-  		}
-  		ISC_LIST_APPEND(lookup_list, lookup, link);
-  	}
-+ 
-+ #ifdef WITH_MDN
-+ 		if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
-+ 			lookup->mdn = ISC_FALSE;
-+ #endif
-  }
-  
-  /*
-Index: bin/dig/dig.docbook
-diff -c mdn/othersrc/bind9/bin/dig/dig.docbook:1.1.1.1 mdn/othersrc/bind9/bin/dig/dig.docbook:1.2
-*** bin/dig/dig.docbook	Tue Nov 27 16:55:50 2001
---- bin/dig/dig.docbook	Thu Nov 29 14:36:26 2001
-***************
-*** 502,507 ****
---- 502,522 ----
-  </refsect1>
-  
-  <refsect1>
-+ <title>MDN SUPPORT</title>
-+ <para>
-+ If <command>dig</command> has been built with mdn support, it can
-+ accept and display non-ASCII domain names.
-+ <command>dig</command> appropriately converts character encoding of
-+ domain name before sending a request to DNS server or displaying a
-+ reply from the server.
-+ If you'd like to turn off the MDN support for some reason, defines
-+ the <envar>MDN_DISABLE</envar> environment variable.
-+ The MDN support is disabled if the the variable is set when 
-+ <command>dig</command> runs.
-+ </para>
-+ </refsect1>
-+ 
-+ <refsect1>
-  <title>FILES</title>
-  <para>
-  <filename>/etc/resolv.conf</filename>
-Index: bin/dig/dighost.c
-diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.11 mdn/othersrc/bind9/bin/dig/dighost.c:1.26
-*** bin/dig/dighost.c	Tue Nov 27 16:55:51 2001
---- bin/dig/dighost.c	Fri Nov 30 12:37:18 2001
-***************
-*** 32,37 ****
---- 32,48 ----
-  #include <string.h>
-  #include <limits.h>
-  
-+ #ifdef HAVE_LOCALE_H
-+ #include <locale.h>
-+ #endif
-+ 
-+ #ifdef WITH_MDN
-+ #include <mdn/result.h>
-+ #include <mdn/log.h>
-+ #include <mdn/resconf.h>
-+ #include <mdn/res.h>
-+ #endif
-+ 
-  #include <dns/byaddr.h>
-  #include <dns/fixedname.h>
-  #include <dns/message.h>
-***************
-*** 130,135 ****
---- 141,160 ----
-  isc_mutex_t lookup_lock;
-  dig_lookup_t *current_lookup = NULL;
-  
-+ #ifdef WITH_MDN
-+ mdn_resconf_t mdnconf;
-+ 
-+ static void	      initialize_mdn(void);
-+ static isc_result_t   output_filter(isc_buffer_t *buffer,
-+ 				    unsigned int used_org,
-+ 				    isc_boolean_t absolute);
-+ static mdn_result_t   append_textname(char *name, const char *origin,
-+ 				      size_t namesize);
-+ static void	      mdn_check_result(mdn_result_t r, const char *msg);
-+ 
-+ #define MAXDLEN               256
-+ #endif
-+ 
-  /*
-   * Apply and clear locks at the event level in global task.
-   * Can I get rid of these using shutdown events?  XXX
-***************
-*** 365,370 ****
---- 390,398 ----
-  	looknew->ignore = ISC_FALSE;
-  	looknew->servfail_stops = ISC_FALSE;
-  	looknew->besteffort = ISC_TRUE;
-+ #ifdef WITH_MDN
-+ 	looknew->mdn = ISC_TRUE;
-+ #endif
-  	looknew->dnssec = ISC_FALSE;
-  	looknew->udpsize = 0;
-  	looknew->recurse = ISC_TRUE;
-***************
-*** 426,431 ****
---- 454,462 ----
-  	looknew->ignore = lookold->ignore;
-  	looknew->servfail_stops = lookold->servfail_stops;
-  	looknew->besteffort = lookold->besteffort;
-+ #ifdef WITH_MDN
-+ 	looknew->mdn = ISC_TRUE;
-+ #endif
-  	looknew->dnssec = lookold->dnssec;
-  	looknew->udpsize = lookold->udpsize;
-  	looknew->recurse = lookold->recurse;
-***************
-*** 648,653 ****
---- 679,688 ----
-  		ISC_LIST_APPEND(server_list, srv, link);
-  	}
-  
-+ #ifdef WITH_MDN
-+ 	initialize_mdn();
-+ #endif
-+ 
-  	if (keyfile[0] != 0)
-  		setup_file_key();
-  	else if (keysecret[0] != 0)
-***************
-*** 1168,1174 ****
---- 1203,1220 ----
-  	isc_buffer_t b;
-  	dns_compress_t cctx;
-  	char store[MXNAME];
-+ #ifdef WITH_MDN
-+ 	mdn_result_t mr;
-+ 	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
-+ #endif
-  
-+ #ifdef WITH_MDN
-+         if (lookup->mdn == ISC_TRUE)
-+ 		dns_name_settotextfilter(output_filter);
-+         else
-+ 		dns_name_settotextfilter(NULL);
-+ #endif
-+ 
-  	REQUIRE(lookup != NULL);
-  	INSIST(!free_now);
-  
-***************
-*** 1196,1201 ****
---- 1242,1262 ----
-  	isc_buffer_init(&lookup->onamebuf, lookup->onamespace,
-  			sizeof(lookup->onamespace));
-  
-+ #ifdef WITH_MDN
-+ 	if (lookup->mdn) {
-+ 		/*
-+ 		 * We cannot convert `textname' and `origin' separately.
-+ 		 * `textname' doesn't contain TLD, but local mapping needs
-+ 		 * TLD.
-+ 		 */
-+ 		mr = mdn_res_nameconv(mdnconf, "ld", lookup->textname,
-+ 				      utf8_textname, sizeof(utf8_textname));
-+ 		mdn_check_result(mr, "convert textname to UTF-8");
-+ 	} else {
-+ 		strcpy(utf8_textname, lookup->textname);
-+ 	}
-+ #endif
-+ 
-  	/*
-  	 * If the name has too many dots, force the origin to be NULL
-  	 * (which produces an absolute lookup).  Otherwise, take the origin
-***************
-*** 1204,1215 ****
---- 1265,1307 ----
-  	 * is TRUE or we got a domain line in the resolv.conf file.
-  	 */
-  	/* XXX New search here? */
-+ #ifdef WITH_MDN
-+ 	if ((count_dots(utf8_textname) >= ndots) || !usesearch)
-+ 		lookup->origin = NULL; /* Force abs lookup */
-+ 	else if (lookup->origin == NULL && lookup->new_search && usesearch) {
-+ 		lookup->origin = ISC_LIST_HEAD(search_list);
-+ 	}
-+ #else
-  	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
-  		lookup->origin = NULL; /* Force abs lookup */
-  	else if (lookup->origin == NULL && lookup->new_search && usesearch) {
-  		lookup->origin = ISC_LIST_HEAD(search_list);
-  	}
-+ #endif
-+ 
-+ #ifdef WITH_MDN
-+ 	if (lookup->mdn) {
-+ 		if (lookup->origin != NULL) {
-+ 			mr = mdn_res_nameconv(mdnconf, "ld",
-+ 					      lookup->origin->origin,
-+ 					      utf8_origin,
-+ 					      sizeof(utf8_origin));
-+ 			mdn_check_result(mr, "convert origin to UTF-8");
-+ 			mr = append_textname(utf8_textname, utf8_origin,
-+ 					     sizeof(utf8_textname));
-+ 			mdn_check_result(mr, "append origin to textname");
-+ 		}
-+ 		mr = mdn_res_nameconv(mdnconf, "MNI", utf8_textname,
-+ 				      idn_textname, sizeof(idn_textname));
-+ 		mdn_check_result(mr, "convert UTF-8 textname to IDN encoding");
-+ 	}
-+ #endif
-+ 
-+ #ifdef WITH_MDN
-+ 	if (lookup->origin != NULL && !lookup->mdn) {
-+ #else
-  	if (lookup->origin != NULL) {
-+ #endif
-  		debug("trying origin %s", lookup->origin->origin);
-  		result = dns_message_gettempname(lookup->sendmsg,
-  						 &lookup->oname);
-***************
-*** 1253,1258 ****
---- 1345,1361 ----
-  		debug("using root origin");
-  		if (lookup->trace && lookup->trace_root)
-  			dns_name_clone(dns_rootname, lookup->name);
-+ #ifdef WITH_MDN
-+ 		else if (lookup->mdn) {
-+ 			len = strlen(idn_textname);
-+ 			isc_buffer_init(&b, idn_textname, len);
-+ 			isc_buffer_add(&b, len);
-+ 			result = dns_name_fromtext(lookup->name, &b,
-+ 						   dns_rootname,
-+ 						   ISC_FALSE,
-+ 						   &lookup->namebuf);
-+ 		}
-+ #endif
-  		else {
-  			len = strlen(lookup->textname);
-  			isc_buffer_init(&b, lookup->textname, len);
-***************
-*** 2588,2590 ****
---- 2691,2806 ----
-  	if (mctx != NULL)
-  		isc_mem_destroy(&mctx);
-  }
-+ 
-+ #ifdef WITH_MDN
-+ static void
-+ initialize_mdn(void) {
-+ 	mdn_result_t r;
-+ 
-+ #ifdef HAVE_SETLOCALE
-+ 	/* Set locale */
-+ 	(void)setlocale(LC_ALL, "");
-+ #endif
-+ 
-+ 	/* General initialization. */
-+ 	r = mdn_resconf_initialize();
-+ 	if (r != mdn_success)
-+ 		fatal("mdn initialization failed: %s",
-+ 		      mdn_result_tostring(r));
-+ 
-+ 	/* Create configuration context. */
-+ 	r = mdn_resconf_create(&mdnconf);
-+ 	if (r != mdn_success)
-+ 		fatal("mdn resconf initialization failed: %s",
-+ 		      mdn_result_tostring(r));
-+ 
-+ 
-+ 	/* Load mdn configuration file. */
-+ 	r = mdn_resconf_loadfile(mdnconf, NULL);
-+ 	if (r != mdn_success)
-+ 		fatal("mdn configuration loading failed: %s",
-+ 		      mdn_result_tostring(r));
-+ 
-+ 	/* Set domain name -> text post-conversion filter. */
-+ 	dns_name_settotextfilter(output_filter);
-+ }
-+ 
-+ static isc_result_t
-+ output_filter(isc_buffer_t *buffer, unsigned int used_org,
-+ 	      isc_boolean_t absolute)
-+ {
-+ 	char tmp1[MAXDLEN], tmp2[MAXDLEN];
-+ 	size_t fromlen, tolen;
-+ 	isc_boolean_t end_with_dot;
-+ 
-+ 	/*
-+ 	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
-+ 	 * if 'absolute' is true, and terminate with NUL.
-+ 	 */
-+ 	fromlen = isc_buffer_usedlength(buffer) - used_org;
-+ 	if (fromlen >= MAXDLEN)
-+ 		return (ISC_R_SUCCESS);
-+ 	memcpy(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
-+ 	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
-+ 	if (absolute && !end_with_dot) {
-+ 		fromlen++;
-+ 		if (fromlen >= MAXDLEN)
-+ 			return (ISC_R_SUCCESS);
-+ 		tmp1[fromlen - 1] = '.';
-+ 	}
-+ 	tmp1[fromlen] = '\0';
-+ 
-+ 	/*
-+ 	 * Convert contents of 'tmp1' to local encoding.
-+ 	 */
-+ 	if (mdn_res_nameconv(mdnconf, "i!NL", tmp1, tmp2, MAXDLEN)
-+ 	    != mdn_success)
-+ 		return (ISC_R_SUCCESS);
-+ 	strcpy(tmp1, tmp2);
-+ 
-+ 	/*
-+ 	 * Copy the converted contents in 'tmp1' back to 'buffer'.
-+ 	 * If we have appended trailing dot, remove it.
-+ 	 */
-+ 	tolen = strlen(tmp1);
-+ 	if (absolute && !end_with_dot && tmp1[tolen - 1] == '.')
-+ 		tolen--;
-+ 
-+ 	if (isc_buffer_length(buffer) < used_org + tolen)
-+ 		return (ISC_R_NOSPACE);
-+ 
-+ 	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
-+ 	memcpy(isc_buffer_used(buffer), tmp1, tolen);
-+ 	isc_buffer_add(buffer, tolen);
-+ 
-+ 	return (ISC_R_SUCCESS);
-+ }
-+ 
-+ static mdn_result_t
-+ append_textname(char *name, const char *origin, size_t namesize) {
-+ 	size_t namelen = strlen(name);
-+ 	size_t originlen = strlen(origin);
-+ 
-+ 	/* Already absolute? */
-+ 	if (namelen > 0 && name[namelen - 1] == '.')
-+ 		return mdn_success;
-+ 
-+ 	/* Append dot and origin */
-+ 
-+ 	if (namelen + 1 + originlen >= namesize)
-+ 		return mdn_buffer_overflow;
-+ 
-+ 	name[namelen++] = '.';
-+ 	(void)strcpy(name + namelen, origin);
-+ 	return mdn_success;
-+ }
-+ 
-+ static void
-+ mdn_check_result(mdn_result_t r, const char *msg) {
-+ 	if (r != mdn_success) {
-+ 		exitcode = 1;
-+ 		fatal("%s: %s", msg, mdn_result_tostring(r));
-+ 	}
-+ }
-+ 
-+ #endif /* WITH_MDN */
-Index: bin/dig/host.1
-diff -c mdn/othersrc/bind9/bin/dig/host.1:1.1.1.1 mdn/othersrc/bind9/bin/dig/host.1:1.2
-*** bin/dig/host.1	Tue Nov 27 16:55:51 2001
---- bin/dig/host.1	Thu Nov 29 14:36:26 2001
-***************
-*** 87,94 ****
-  retries will default to 1.
-  .PP
-  Non-recursive queries can be made via the \fB-r\fR option.
-! Setting this option clears the \fBRD\fR \(em recursion
-! desired \(em bit in the query which \fBhost\fR makes.
-  This should mean that the name server receiving the query will not
-  attempt to resolve \fIname\fR. The
-  \fB-r\fR option enables \fBhost\fR to mimic
---- 87,94 ----
-  retries will default to 1.
-  .PP
-  Non-recursive queries can be made via the \fB-r\fR option.
-! Setting this option clears the \fBRD\fR recursion
-! desired bit in the query which \fBhost\fR makes.
-  This should mean that the name server receiving the query will not
-  attempt to resolve \fIname\fR. The
-  \fB-r\fR option enables \fBhost\fR to mimic
-***************
-*** 120,125 ****
---- 120,136 ----
-  effectively wait forever for a reply. The time to wait for a response
-  will be set to the number of seconds given by the hardware's maximum
-  value for an integer quantity.
-+ .SH "MDN SUPPORT"
-+ .PP
-+ If \fBhost\fR has been built with mdn support, it can
-+ accept and display non-ASCII domain names.
-+ \fBhost\fR appropriately converts character encoding of
-+ domain name before sending a request to DNS server or displaying a
-+ reply from the server.
-+ If you'd like to turn off the MDN support for some reason, defines
-+ the \fBMDN_DISABLE\fR environment variable.
-+ The MDN support is disabled if the the variable is set when
-+ \fBhost\fR runs.
-  .SH "FILES"
-  .PP
-  \fI/etc/resolv.conf\fR
-Index: bin/dig/host.c
-diff -c mdn/othersrc/bind9/bin/dig/host.c:1.1.1.8 mdn/othersrc/bind9/bin/dig/host.c:1.7
-*** bin/dig/host.c	Tue Nov 27 16:55:51 2001
---- bin/dig/host.c	Thu Nov 29 18:45:14 2001
-***************
-*** 666,671 ****
---- 666,676 ----
-  	lookup->new_search = ISC_TRUE;
-  	ISC_LIST_APPEND(lookup_list, lookup, link);
-  
-+ #ifdef WITH_MDN
-+ 	if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
-+ 		lookup->mdn = ISC_FALSE;
-+ #endif
-+ 
-  	usesearch = ISC_TRUE;
-  }
-  
-Index: bin/dig/host.docbook
-diff -c mdn/othersrc/bind9/bin/dig/host.docbook:1.1.1.1 mdn/othersrc/bind9/bin/dig/host.docbook:1.2
-*** bin/dig/host.docbook	Tue Nov 27 16:55:51 2001
---- bin/dig/host.docbook	Thu Nov 29 14:36:26 2001
-***************
-*** 181,186 ****
---- 181,201 ----
-  </refsect1>
-  
-  <refsect1>
-+ <title>MDN SUPPORT</title>
-+ <para>
-+ If <command>host</command> has been built with mdn support, it can
-+ accept and display non-ASCII domain names.
-+ <command>host</command> appropriately converts character encoding of
-+ domain name before sending a request to DNS server or displaying a
-+ reply from the server.
-+ If you'd like to turn off the MDN support for some reason, defines
-+ the <envar>MDN_DISABLE</envar> environment variable.
-+ The MDN support is disabled if the the variable is set when
-+ <command>host</command> runs.
-+ </para>
-+ </refsect1>
-+ 
-+ <refsect1>
-  <title>FILES</title>
-  <para>
-  <filename>/etc/resolv.conf</filename>
-Index: bin/dig/nslookup.c
-diff -c mdn/othersrc/bind9/bin/dig/nslookup.c:1.1.1.8 mdn/othersrc/bind9/bin/dig/nslookup.c:1.7
-*** bin/dig/nslookup.c	Tue Nov 27 16:55:51 2001
---- bin/dig/nslookup.c	Thu Nov 29 18:45:14 2001
-***************
-*** 656,661 ****
---- 656,665 ----
-  	ISC_LIST_APPEND(lookup_list, lookup, link);
-  	lookup->origin = NULL;
-  	ISC_LIST_INIT(lookup->my_server_list);
-+ #ifdef WITH_MDN
-+ 	if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
-+ 		lookup->mdn = ISC_FALSE;
-+ #endif
-  	debug("looking up %s", lookup->textname);
-  }
-  
-Index: bin/dig/include/dig/dig.h
-diff -c mdn/othersrc/bind9/bin/dig/include/dig/dig.h:1.1.1.6 mdn/othersrc/bind9/bin/dig/include/dig/dig.h:1.7
-*** bin/dig/include/dig/dig.h	Tue Nov 27 16:55:51 2001
---- bin/dig/include/dig/dig.h	Thu Nov 29 18:45:14 2001
-***************
-*** 74,79 ****
---- 74,86 ----
-   * be 1.
-   */
-  
-+ /*
-+  * Name of environment variable which disables MDN support if defined.
-+  */
-+ #ifdef WITH_MDN
-+ #define MDN_DISABLE_ENVVAR_NAME "MDN_DISABLE"
-+ #endif
-+ 
-  ISC_LANG_BEGINDECLS
-  
-  typedef struct dig_lookup dig_lookup_t;
-***************
-*** 109,114 ****
---- 116,124 ----
-  		servfail_stops,
-  		new_search,
-  		besteffort,
-+ #ifdef WITH_MDN
-+ 		mdn,
-+ #endif
-  		dnssec;
-  	char textname[MXNAME]; /* Name we're going to be looking up */
-  	char cmdline[MXNAME];
-Index: lib/dns/name.c
-diff -c mdn/othersrc/bind9/lib/dns/name.c:1.1.1.9 mdn/othersrc/bind9/lib/dns/name.c:1.12
-*** lib/dns/name.c	Tue Nov 27 16:57:32 2001
---- lib/dns/name.c	Thu Nov 29 18:45:14 2001
-***************
-*** 194,199 ****
---- 194,206 ----
-  /* XXXDCL make const? */
-  dns_name_t *dns_wildcardname = &wild;
-  
-+ #ifdef WITH_MDN
-+ /*
-+  * dns_name_t to text post-conversion procedure.
-+  */
-+ static dns_name_totextfilter_t totext_filter_proc = NULL;
-+ #endif
-+ 
-  static void
-  set_offsets(const dns_name_t *name, unsigned char *offsets,
-  	    dns_name_t *set_name);
-***************
-*** 1682,1687 ****
---- 1689,1697 ----
-  	unsigned int labels;
-  	isc_boolean_t saw_root = ISC_FALSE;
-  	char num[4];
-+ #ifdef WITH_MDN
-+ 	unsigned int oused = target->used;
-+ #endif
-  
-  	/*
-  	 * This function assumes the name is in proper uncompressed
-***************
-*** 1859,1864 ****
---- 1869,1878 ----
-  
-  	isc_buffer_add(target, tlen - trem);
-  
-+ #ifdef WITH_MDN
-+ 	if (totext_filter_proc != NULL)
-+ 		return ((*totext_filter_proc)(target, oused, saw_root));
-+ #endif
-  	return (ISC_R_SUCCESS);
-  }
-  
-***************
-*** 3315,3317 ****
---- 3329,3337 ----
-  	return (ISC_R_SUCCESS);
-  }
-  
-+ #ifdef WITH_MDN
-+ void
-+ dns_name_settotextfilter(dns_name_totextfilter_t proc) {
-+ 	totext_filter_proc = proc;
-+ }
-+ #endif
-Index: lib/dns/include/dns/name.h
-diff -c mdn/othersrc/bind9/lib/dns/include/dns/name.h:1.1.1.6 mdn/othersrc/bind9/lib/dns/include/dns/name.h:1.8
-*** lib/dns/include/dns/name.h	Tue Nov 27 16:57:38 2001
---- lib/dns/include/dns/name.h	Thu Nov 29 18:45:14 2001
-***************
-*** 218,223 ****
---- 218,234 ----
-   */
-  #define DNS_NAME_MAXWIRE 255
-  
-+ #ifdef WITH_MDN
-+ /*
-+  * Text output filter procedure.
-+  * 'target' is the buffer to be converted.  The region to be converted
-+  * is from 'buffer'->base + 'used_org' to the end of the used region.
-+  */
-+ typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
-+ 						unsigned int used_org,
-+ 						isc_boolean_t absolute);
-+ #endif
-+ 
-  /***
-   *** Initialization
-   ***/
-***************
-*** 1243,1248 ****
---- 1254,1267 ----
-   *	'size' > 0.
-   *
-   */
-+ 
-+ #ifdef WITH_MDN
-+ void
-+ dns_name_settotextfilter(dns_name_totextfilter_t proc);
-+ /*
-+  * Call 'proc' at the end of dns_name_totext.
-+  */
-+ #endif /* WITH_MDN */
-  
-  #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
-  /*
+--- README.mdnkit.orig	Fri Feb  8 23:22:13 2002
++++ README.mdnkit	Fri Feb  8 23:22:13 2002
+@@ -0,0 +1,124 @@
++
++			BIND-9 MDN patch
++
++	       Japan Network Information Center (JPNIC)
++
++
++* What is this patch for?
++
++This patch adds multilingual domain name (MDN) support to BIND-9.
++You'll get multilingualized version of dig/host/nslookup commands.
++
++    + mulltilingualized dig/host/nslookup
++	dig/host/nslookup accepts non-ASCII domain names in the local
++	codeset (such as Shift JIS, Big5 or ISO8859-1) determined by
++	the locale information.  The domain names are normalized and
++	converted to the encoding on the DNS protocol, and sent to DNS
++	servers.  The replies are converted back to the local codeset
++	and displayed.
++
++
++* Compilation & installation
++
++0. Prerequisite
++
++You have to build and install mDNkit before building this patched version
++of bind-9.
++
++1. Running configure script
++
++Run `configure' in the top directory.  See `README' for the
++configuration options.
++
++This patch adds the following 4 options to `configure'.  You should
++at least specify `--with-mdn' option to enable MDN support.
++
++    --with-mdn[=MDN_PREFIX]
++	To enable MDN support, you have to specify `--with-mdn' option.
++	The argument MDN_PREFIX is the install prefix of mDNkit.  If
++	MDN_PREFIX is omitted, PREFIX (derived from `--prefix=PREFIX')
++	is assumed.
++
++    --with-libiconv[=LIBICONV_PREFIX]
++	Specify this option if mDNkit you have installed links GNU
++	libiconv.  The argument LIBICONV_PREFIX is install prefix of
++	GNU libiconv.  If the argument is omitted, PREFIX (derived
++	from `--prefix=PREFIX') is assumed.
++
++	`--with-libiconv' is shorthand option for GNU libiconv.
++
++	    --with-libiconv=/usr/local
++
++	This is equivalent to:
++
++	    --with-iconv='-L/usr/local/lib -R/usr/local/lib -liconv'
++
++	`--with-libiconv' assumes that your C compiler has `-R'
++	option, and that the option adds the specified run-time path
++	to an exacutable binary.  If `-R' option of your compiler has
++	different meaning, or your compiler lacks the option, you
++	should use `--with-iconv' option instead.  Binary command
++	without run-time path information might be unexecutable.
++	In that case, you would see an error message like:
++
++	    error in loading shared libraries: libiconv.so.2: cannot
++	    open shared object file
++
++	If both `--with-libiconv' and `--with-iconv' options are
++	specified, `--with-iconv' is prior to `--with-libiconv'.
++
++    --with-iconv=ICONV_LIBSPEC
++	If your libc doens't provide iconv(), you need to specify the
++	library containing iconv() with this option.  `ICONV_LIBSPEC'
++	is the argument(s) to `cc' or `ld' to link the library, for
++	example, `--with-iconv="-L/usr/local/lib -liconv"'.
++	You don't need to specify the header file directory for "iconv.h"
++	to the compiler, as it isn't included directly by bind-9 with
++	this patch.
++
++    --with-mdnlib=MDN_LIBSPEC
++	With this option, you can explicitly specify the argument(s)
++	to `cc' or `ld' to link the mDNkit's library, `libmdn'.  If
++	this option is not specified, `-L${PREFIX}/lib -lmdn' is
++	assumed, where ${PREFIX} is the installation prefix specified
++	with `--with-mdn' option above.  You may need to use this
++	option to specify extra argments, for example,
++	`--with-mdnlib="-L/usr/local/lib -R/usr/local/lib -lmdn"'.
++
++Please consult `README' for other configuration options.
++
++Note that if you want to specify some extra header file directories,
++you should use the environment variable STD_CINCLUDES instead of
++CFLAGS, as described in README.
++
++2. Compilation and installation
++
++After running "configure", just do
++
++	make
++	make install
++
++for compiling and installing.
++
++3. Resolver configuration
++
++To handle multilingual domain names, you have to specify the
++properties like:
++	+ name encoding used in DNS protocol data
++	+ normalization (NAMEPREP) schemes
++These properties are specified by the mDNkit's configuration file,
++"mdn.conf".  You have to create and set up the file properly.  The
++pathname of the file and contents are described in the manual
++"mdn.conf".
++
++
++* Contact information
++
++Please see http//www.nic.ad.jp/jp/research/idn/ for the latest news
++about mDNkit and this patch.
++
++Bug reports and comments on this kit should be sent to
++mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
++
++
++; $Id: bind-9.2.0-patch,v 1.1.2.1 2002/02/08 12:15:13 marka Exp $
+--- config.h.in.orig	Fri Feb  8 15:42:25 2002
++++ config.h.in	Fri Feb  8 23:22:13 2002
+@@ -142,4 +142,7 @@
+ #undef HAVE_STRERROR
+ 
++/* Define if you have the setlocale function.  */
++#undef HAVE_SETLOCALE
++
+ /* Define if you have the <dlfcn.h> header file.  */
+ #undef HAVE_DLFCN_H
+@@ -151,4 +154,7 @@
+ #undef HAVE_LINUX_CAPABILITY_H
+ 
++/* Define if you have the <locale.h> header file.  */
++#undef HAVE_LOCALE_H
++
+ /* Define if you have the <sys/prctl.h> header file.  */
+ #undef HAVE_SYS_PRCTL_H
+@@ -177,2 +183,6 @@
+ /* Define if you have the socket library (-lsocket).  */
+ #undef HAVE_LIBSOCKET
++
++/* define if mDNkit support is to be included. */
++#undef WITH_MDN
++
+--- configure.in.orig	Fri Feb  8 15:42:31 2002
++++ configure.in	Fri Feb  8 23:22:14 2002
+@@ -1615,4 +1615,77 @@
+ 
+ #
++# MDN support
++#
++AC_ARG_WITH(mdn,
++	[  --with-mdn[=MPREFIX]   enable MDN support using mDNkit [default PREFIX]],
++	use_mdn="$withval", use_mdn="no")
++case "$use_mdn" in
++yes)
++	if test X$prefix = XNONE ; then
++		mdn_path=/usr/local
++	else
++		mdn_path=$prefix
++	fi
++	;;
++no)
++	;;
++*)
++	mdn_path="$use_mdn"
++	;;
++esac
++
++iconvinc=
++iconvlib=
++AC_ARG_WITH(libiconv,
++	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
++	use_libiconv="$withval", use_libiconv="no")
++case "$use_libiconv" in
++yes)
++	if test X$prefix = XNONE ; then
++		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
++	else
++		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
++	fi
++	;;
++no)
++	iconvlib=
++	;;
++*)
++	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
++	;;
++esac
++
++AC_ARG_WITH(iconv,
++	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
++	iconvlib="$withval")
++case "$iconvlib" in
++no)
++	iconvlib=
++	;;
++yes)
++	iconvlib=-liconv
++	;;
++esac
++
++AC_ARG_WITH(mdnlib,
++	[  --with-mdnlib=ARG    specify libmdn],
++	mdnlib="$withval", mdnlib="no")
++if test "$mdnlib" = yes; then
++	AC_MSG_ERROR([You must specify ARG for --with-mdnlib.])
++fi
++
++if test "$use_mdn" != no; then
++	AC_DEFINE(WITH_MDN, 1, [define if mDNkit support is to be included.])
++	STD_CINCLUDES="$STD_CINCLUDES -I$mdn_path/include"
++	if test "$mdnlib" != no; then
++		LIBS="$mdnlib $iconvlib $LIBS"
++	else
++		LIBS="-L$mdn_path/lib -lmdn $iconvlib $LIBS"
++	fi
++fi
++AC_CHECK_HEADERS(locale.h)
++AC_CHECK_FUNCS(setlocale)
++
++#
+ # Substitutions
+ #
+--- bin/dig/dig.1.orig	Thu Nov 29 10:35:48 2001
++++ bin/dig/dig.1	Fri Feb  8 23:22:14 2002
+@@ -74,5 +74,5 @@
+ .TP
+ \fBtype\fR
+-indicates what type of query is required \(em
++indicates what type of query is required 
+ ANY, A, MX, SIG, etc.
+ \fItype\fR can be any valid query type. If no
+@@ -350,4 +350,15 @@
+ will not print the initial query when it looks up the NS records for
+ isc.org.
++.SH "MDN SUPPORT"
++.PP
++If \fBdig\fR has been built with mdn support, it can
++accept and display non-ASCII domain names.
++\fBdig\fR appropriately converts character encoding of
++domain name before sending a request to DNS server or displaying a
++reply from the server.
++If you'd like to turn off the MDN support for some reason, defines
++the \fBMDN_DISABLE\fR environment variable.
++The MDN support is disabled if the the variable is set when 
++\fBdig\fR runs.
+ .SH "FILES"
+ .PP
+--- bin/dig/dig.c.orig	Fri Feb  8 14:57:00 2002
++++ bin/dig/dig.c	Fri Feb  8 23:22:14 2002
+@@ -1308,4 +1308,9 @@
+ 		ISC_LIST_APPEND(lookup_list, lookup, link);
+ 	}
++
++#ifdef WITH_MDN
++		if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
++			lookup->mdn = ISC_FALSE;
++#endif
+ }
+ 
+--- bin/dig/dig.docbook.orig	Thu Nov 29 10:35:02 2001
++++ bin/dig/dig.docbook	Fri Feb  8 23:22:14 2002
+@@ -524,4 +524,19 @@
+ 
+ <refsect1>
++<title>MDN SUPPORT</title>
++<para>
++If <command>dig</command> has been built with mdn support, it can
++accept and display non-ASCII domain names.
++<command>dig</command> appropriately converts character encoding of
++domain name before sending a request to DNS server or displaying a
++reply from the server.
++If you'd like to turn off the MDN support for some reason, defines
++the <envar>MDN_DISABLE</envar> environment variable.
++The MDN support is disabled if the the variable is set when 
++<command>dig</command> runs.
++</para>
++</refsect1>
++
++<refsect1>
+ <title>FILES</title>
+ <para>
+--- bin/dig/dighost.c.orig	Fri Feb  8 14:57:02 2002
++++ bin/dig/dighost.c	Fri Feb  8 23:22:14 2002
+@@ -33,4 +33,15 @@
+ #include <limits.h>
+ 
++#ifdef HAVE_LOCALE_H
++#include <locale.h>
++#endif
++
++#ifdef WITH_MDN
++#include <mdn/result.h>
++#include <mdn/log.h>
++#include <mdn/resconf.h>
++#include <mdn/res.h>
++#endif
++
+ #include <dns/byaddr.h>
+ #include <dns/fixedname.h>
+@@ -131,4 +142,18 @@
+ dig_lookup_t *current_lookup = NULL;
+ 
++#ifdef WITH_MDN
++mdn_resconf_t mdnconf;
++
++static void	      initialize_mdn(void);
++static isc_result_t   output_filter(isc_buffer_t *buffer,
++				    unsigned int used_org,
++				    isc_boolean_t absolute);
++static mdn_result_t   append_textname(char *name, const char *origin,
++				      size_t namesize);
++static void	      mdn_check_result(mdn_result_t r, const char *msg);
++
++#define MAXDLEN               256
++#endif
++
+ /*
+  * Apply and clear locks at the event level in global task.
+@@ -366,4 +391,7 @@
+ 	looknew->servfail_stops = ISC_TRUE;
+ 	looknew->besteffort = ISC_TRUE;
++#ifdef WITH_MDN
++	looknew->mdn = ISC_TRUE;
++#endif
+ 	looknew->dnssec = ISC_FALSE;
+ 	looknew->udpsize = 0;
+@@ -427,4 +455,7 @@
+ 	looknew->servfail_stops = lookold->servfail_stops;
+ 	looknew->besteffort = lookold->besteffort;
++#ifdef WITH_MDN
++	looknew->mdn = ISC_TRUE;
++#endif
+ 	looknew->dnssec = lookold->dnssec;
+ 	looknew->udpsize = lookold->udpsize;
+@@ -649,4 +680,8 @@
+ 	}
+ 
++#ifdef WITH_MDN
++	initialize_mdn();
++#endif
++
+ 	if (keyfile[0] != 0)
+ 		setup_file_key();
+@@ -1169,4 +1204,15 @@
+ 	dns_compress_t cctx;
+ 	char store[MXNAME];
++#ifdef WITH_MDN
++	mdn_result_t mr;
++	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
++#endif
++
++#ifdef WITH_MDN
++        if (lookup->mdn == ISC_TRUE)
++		dns_name_settotextfilter(output_filter);
++        else
++		dns_name_settotextfilter(NULL);
++#endif
+ 
+ 	REQUIRE(lookup != NULL);
+@@ -1197,4 +1243,19 @@
+ 			sizeof(lookup->onamespace));
+ 
++#ifdef WITH_MDN
++	if (lookup->mdn) {
++		/*
++		 * We cannot convert `textname' and `origin' separately.
++		 * `textname' doesn't contain TLD, but local mapping needs
++		 * TLD.
++		 */
++		mr = mdn_res_nameconv(mdnconf, "ld", lookup->textname,
++				      utf8_textname, sizeof(utf8_textname));
++		mdn_check_result(mr, "convert textname to UTF-8");
++	} else {
++		strcpy(utf8_textname, lookup->textname);
++	}
++#endif
++
+ 	/*
+ 	 * If the name has too many dots, force the origin to be NULL
+@@ -1205,4 +1266,11 @@
+ 	 */
+ 	/* XXX New search here? */
++#ifdef WITH_MDN
++	if ((count_dots(utf8_textname) >= ndots) || !usesearch)
++		lookup->origin = NULL; /* Force abs lookup */
++	else if (lookup->origin == NULL && lookup->new_search && usesearch) {
++		lookup->origin = ISC_LIST_HEAD(search_list);
++	}
++#else
+ 	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
+ 		lookup->origin = NULL; /* Force abs lookup */
+@@ -1210,5 +1278,29 @@
+ 		lookup->origin = ISC_LIST_HEAD(search_list);
+ 	}
++#endif
++
++#ifdef WITH_MDN
++	if (lookup->mdn) {
++		if (lookup->origin != NULL) {
++			mr = mdn_res_nameconv(mdnconf, "ld",
++					      lookup->origin->origin,
++					      utf8_origin,
++					      sizeof(utf8_origin));
++			mdn_check_result(mr, "convert origin to UTF-8");
++			mr = append_textname(utf8_textname, utf8_origin,
++					     sizeof(utf8_textname));
++			mdn_check_result(mr, "append origin to textname");
++		}
++		mr = mdn_res_nameconv(mdnconf, "MNI", utf8_textname,
++				      idn_textname, sizeof(idn_textname));
++		mdn_check_result(mr, "convert UTF-8 textname to IDN encoding");
++	}
++#endif
++
++#ifdef WITH_MDN
++	if (lookup->origin != NULL && !lookup->mdn) {
++#else
+ 	if (lookup->origin != NULL) {
++#endif
+ 		debug("trying origin %s", lookup->origin->origin);
+ 		result = dns_message_gettempname(lookup->sendmsg,
+@@ -1254,4 +1346,15 @@
+ 		if (lookup->trace && lookup->trace_root)
+ 			dns_name_clone(dns_rootname, lookup->name);
++#ifdef WITH_MDN
++		else if (lookup->mdn) {
++			len = strlen(idn_textname);
++			isc_buffer_init(&b, idn_textname, len);
++			isc_buffer_add(&b, len);
++			result = dns_name_fromtext(lookup->name, &b,
++						   dns_rootname,
++						   ISC_FALSE,
++						   &lookup->namebuf);
++		}
++#endif
+ 		else {
+ 			len = strlen(lookup->textname);
+@@ -2590,2 +2693,115 @@
+ 		isc_mem_destroy(&mctx);
+ }
++
++#ifdef WITH_MDN
++static void
++initialize_mdn(void) {
++	mdn_result_t r;
++
++#ifdef HAVE_SETLOCALE
++	/* Set locale */
++	(void)setlocale(LC_ALL, "");
++#endif
++
++	/* General initialization. */
++	r = mdn_resconf_initialize();
++	if (r != mdn_success)
++		fatal("mdn initialization failed: %s",
++		      mdn_result_tostring(r));
++
++	/* Create configuration context. */
++	r = mdn_resconf_create(&mdnconf);
++	if (r != mdn_success)
++		fatal("mdn resconf initialization failed: %s",
++		      mdn_result_tostring(r));
++
++
++	/* Load mdn configuration file. */
++	r = mdn_resconf_loadfile(mdnconf, NULL);
++	if (r != mdn_success)
++		fatal("mdn configuration loading failed: %s",
++		      mdn_result_tostring(r));
++
++	/* Set domain name -> text post-conversion filter. */
++	dns_name_settotextfilter(output_filter);
++}
++
++static isc_result_t
++output_filter(isc_buffer_t *buffer, unsigned int used_org,
++	      isc_boolean_t absolute)
++{
++	char tmp1[MAXDLEN], tmp2[MAXDLEN];
++	size_t fromlen, tolen;
++	isc_boolean_t end_with_dot;
++
++	/*
++	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
++	 * if 'absolute' is true, and terminate with NUL.
++	 */
++	fromlen = isc_buffer_usedlength(buffer) - used_org;
++	if (fromlen >= MAXDLEN)
++		return (ISC_R_SUCCESS);
++	memcpy(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
++	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
++	if (absolute && !end_with_dot) {
++		fromlen++;
++		if (fromlen >= MAXDLEN)
++			return (ISC_R_SUCCESS);
++		tmp1[fromlen - 1] = '.';
++	}
++	tmp1[fromlen] = '\0';
++
++	/*
++	 * Convert contents of 'tmp1' to local encoding.
++	 */
++	if (mdn_res_nameconv(mdnconf, "i!NL", tmp1, tmp2, MAXDLEN)
++	    != mdn_success)
++		return (ISC_R_SUCCESS);
++	strcpy(tmp1, tmp2);
++
++	/*
++	 * Copy the converted contents in 'tmp1' back to 'buffer'.
++	 * If we have appended trailing dot, remove it.
++	 */
++	tolen = strlen(tmp1);
++	if (absolute && !end_with_dot && tmp1[tolen - 1] == '.')
++		tolen--;
++
++	if (isc_buffer_length(buffer) < used_org + tolen)
++		return (ISC_R_NOSPACE);
++
++	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
++	memcpy(isc_buffer_used(buffer), tmp1, tolen);
++	isc_buffer_add(buffer, tolen);
++
++	return (ISC_R_SUCCESS);
++}
++
++static mdn_result_t
++append_textname(char *name, const char *origin, size_t namesize) {
++	size_t namelen = strlen(name);
++	size_t originlen = strlen(origin);
++
++	/* Already absolute? */
++	if (namelen > 0 && name[namelen - 1] == '.')
++		return mdn_success;
++
++	/* Append dot and origin */
++
++	if (namelen + 1 + originlen >= namesize)
++		return mdn_buffer_overflow;
++
++	name[namelen++] = '.';
++	(void)strcpy(name + namelen, origin);
++	return mdn_success;
++}
++
++static void
++mdn_check_result(mdn_result_t r, const char *msg) {
++	if (r != mdn_success) {
++		exitcode = 1;
++		fatal("%s: %s", msg, mdn_result_tostring(r));
++	}
++}
++
++#endif /* WITH_MDN */
+--- bin/dig/host.1.orig	Tue Jun 12 05:01:16 2001
++++ bin/dig/host.1	Fri Feb  8 23:22:14 2002
+@@ -88,6 +88,6 @@
+ .PP
+ Non-recursive queries can be made via the \fB-r\fR option.
+-Setting this option clears the \fBRD\fR \(em recursion
+-desired \(em bit in the query which \fBhost\fR makes.
++Setting this option clears the \fBRD\fR recursion
++desired bit in the query which \fBhost\fR makes.
+ This should mean that the name server receiving the query will not
+ attempt to resolve \fIname\fR. The
+@@ -121,4 +121,15 @@
+ will be set to the number of seconds given by the hardware's maximum
+ value for an integer quantity.
++.SH "MDN SUPPORT"
++.PP
++If \fBhost\fR has been built with mdn support, it can
++accept and display non-ASCII domain names.
++\fBhost\fR appropriately converts character encoding of
++domain name before sending a request to DNS server or displaying a
++reply from the server.
++If you'd like to turn off the MDN support for some reason, defines
++the \fBMDN_DISABLE\fR environment variable.
++The MDN support is disabled if the the variable is set when
++\fBhost\fR runs.
+ .SH "FILES"
+ .PP
+--- bin/dig/host.c.orig	Fri Feb  8 14:57:04 2002
++++ bin/dig/host.c	Fri Feb  8 23:22:15 2002
+@@ -667,4 +667,9 @@
+ 	ISC_LIST_APPEND(lookup_list, lookup, link);
+ 
++#ifdef WITH_MDN
++	if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
++		lookup->mdn = ISC_FALSE;
++#endif
++
+ 	usesearch = ISC_TRUE;
+ }
+--- bin/dig/host.docbook.orig	Sat Jun  9 03:18:13 2001
++++ bin/dig/host.docbook	Fri Feb  8 23:22:15 2002
+@@ -182,4 +182,19 @@
+ 
+ <refsect1>
++<title>MDN SUPPORT</title>
++<para>
++If <command>host</command> has been built with mdn support, it can
++accept and display non-ASCII domain names.
++<command>host</command> appropriately converts character encoding of
++domain name before sending a request to DNS server or displaying a
++reply from the server.
++If you'd like to turn off the MDN support for some reason, defines
++the <envar>MDN_DISABLE</envar> environment variable.
++The MDN support is disabled if the the variable is set when
++<command>host</command> runs.
++</para>
++</refsect1>
++
++<refsect1>
+ <title>FILES</title>
+ <para>
+--- bin/dig/nslookup.c.orig	Fri Feb  8 14:57:05 2002
++++ bin/dig/nslookup.c	Fri Feb  8 23:22:15 2002
+@@ -657,4 +657,8 @@
+ 	lookup->origin = NULL;
+ 	ISC_LIST_INIT(lookup->my_server_list);
++#ifdef WITH_MDN
++	if (getenv(MDN_DISABLE_ENVVAR_NAME) != NULL)
++		lookup->mdn = ISC_FALSE;
++#endif
+ 	debug("looking up %s", lookup->textname);
+ }
+--- bin/dig/include/dig/dig.h.orig	Thu Nov 15 12:24:13 2001
++++ bin/dig/include/dig/dig.h	Fri Feb  8 23:22:15 2002
+@@ -75,4 +75,11 @@
+  */
+ 
++/*
++ * Name of environment variable which disables MDN support if defined.
++ */
++#ifdef WITH_MDN
++#define MDN_DISABLE_ENVVAR_NAME "MDN_DISABLE"
++#endif
++
+ ISC_LANG_BEGINDECLS
+ 
+@@ -110,4 +117,7 @@
+ 		new_search,
+ 		besteffort,
++#ifdef WITH_MDN
++		mdn,
++#endif
+ 		dnssec;
+ 	char textname[MXNAME]; /* Name we're going to be looking up */
+--- lib/dns/name.c.orig	Fri Jun 29 07:34:11 2001
++++ lib/dns/name.c	Fri Feb  8 23:22:15 2002
+@@ -195,4 +195,11 @@
+ dns_name_t *dns_wildcardname = &wild;
+ 
++#ifdef WITH_MDN
++/*
++ * dns_name_t to text post-conversion procedure.
++ */
++static dns_name_totextfilter_t totext_filter_proc = NULL;
++#endif
++
+ static void
+ set_offsets(const dns_name_t *name, unsigned char *offsets,
+@@ -1683,4 +1690,7 @@
+ 	isc_boolean_t saw_root = ISC_FALSE;
+ 	char num[4];
++#ifdef WITH_MDN
++	unsigned int oused = target->used;
++#endif
+ 
+ 	/*
+@@ -1860,4 +1870,8 @@
+ 	isc_buffer_add(target, tlen - trem);
+ 
++#ifdef WITH_MDN
++	if (totext_filter_proc != NULL)
++		return ((*totext_filter_proc)(target, oused, saw_root));
++#endif
+ 	return (ISC_R_SUCCESS);
+ }
+@@ -3316,2 +3330,8 @@
+ }
+ 
++#ifdef WITH_MDN
++void
++dns_name_settotextfilter(dns_name_totextfilter_t proc) {
++	totext_filter_proc = proc;
++}
++#endif
+--- lib/dns/include/dns/name.h.orig	Tue Aug 28 13:58:19 2001
++++ lib/dns/include/dns/name.h	Fri Feb  8 23:22:16 2002
+@@ -219,4 +219,15 @@
+ #define DNS_NAME_MAXWIRE 255
+ 
++#ifdef WITH_MDN
++/*
++ * Text output filter procedure.
++ * 'target' is the buffer to be converted.  The region to be converted
++ * is from 'buffer'->base + 'used_org' to the end of the used region.
++ */
++typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
++						unsigned int used_org,
++						isc_boolean_t absolute);
++#endif
++
+ /***
+  *** Initialization
+@@ -1244,4 +1255,12 @@
+  *
+  */
++
++#ifdef WITH_MDN
++void
++dns_name_settotextfilter(dns_name_totextfilter_t proc);
++/*
++ * Call 'proc' at the end of dns_name_totext.
++ */
++#endif /* WITH_MDN */
+ 
+ #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
