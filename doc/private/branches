@@ -8,6 +8,7 @@ ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
 rt3746		open		marka
 v6source
+rt4663		review		explorer
 
 blabel-cleanup	closed
 rt3445		closed
