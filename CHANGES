@@ -1,3 +1,7 @@
+1138.	[func]		It is now possible to flush a given name from the
+			cache by calling the new function
+			dns_cache_flushname().
+
 1137.	[func]		It is now possible to flush a given name from the
 			ADB by calling the new function dns_adb_flushname().
 
