@@ -33,6 +33,9 @@
 #include <isc/commandline.h>
 #include <isc/string.h>
 
+#include <dns/compress.h>
+#include <dns/result.h>
+
 #include "include/tests/t_api.h"
 
 static char *Usage =	"\t-a               : run all tests\n"
