@@ -11,7 +11,7 @@ Internet-Draft                                                  J. Brady
 November 9, 2001                                    Expires: May 9, 2002
 
                   Observed DNS Resolution Misbehavior
-                   <draft-larson-bad-dns-res-00.txt>
+                   <draft-ietf-dnsop-bad-dns-res-00.txt>
 
 Status of this memo
 
