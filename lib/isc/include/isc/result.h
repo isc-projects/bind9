@@ -18,7 +18,9 @@ typedef unsigned int isc_result_t;
 #define ISC_R_HOSTDOWN			11
 #define ISC_R_CONNREFUSED		12
 #define ISC_R_NORESOURCES		13	/* not enough resources */
-#define ISC_R_LAST_ENTRY		13	/* last entry in the file */
+#define ISC_R_EOF			14	/* end of file */
+#define ISC_R_BOUND			15	/* already bound */
+#define ISC_R_LAST_ENTRY		15	/* last entry in the file */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
