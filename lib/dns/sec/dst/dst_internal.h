@@ -63,7 +63,12 @@ struct dst_func {
 	dst_result_t (*verify)(const unsigned int mode, dst_key_t *key,
 			       void **context, isc_region_t *data,
 			       isc_region_t *sig, isc_mem_t *mctx);
+	dst_result_t (*computesecret)(const dst_key_t *pub,
+				      const dst_key_t *priv,
+				      isc_buffer_t *secret);
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
+	isc_boolean_t (*paramcompare)(const dst_key_t *key1,
+				      const dst_key_t *key2);
 	dst_result_t (*generate)(dst_key_t *key, int parms, isc_mem_t *mctx);
 	isc_boolean_t (*isprivate)(const dst_key_t *key);
 	void (*destroy)(void *key, isc_mem_t *mctx);
@@ -87,8 +92,9 @@ extern dst_func *dst_t_func[DST_MAX_ALGS];
 #endif
 
 void		dst_s_hmacmd5_init(void);
-void		dst_s_bsafe_init(void);
-void		dst_s_openssl_init(void);
+void		dst_s_bsafersa_init(void);
+void		dst_s_openssldsa_init(void);
+void		dst_s_openssldh_init(void);
 
 /* support functions */
 

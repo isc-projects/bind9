@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.4 1999/09/02 15:56:32 bwelling Exp $
+ * $Id: dst_parse.c,v 1.5 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -47,6 +47,7 @@
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
 #define RSA_STR "RSA"
+#define DH_STR "DH"
 #define DSA_STR "DSA"
 #define HMACMD5_STR "HMAC_MD5"
 
@@ -64,6 +65,11 @@ static struct parse_map map[] = {
 	{TAG_RSA_EXPONENT1, "Exponent1:"},
 	{TAG_RSA_EXPONENT2, "Exponent2:"},
 	{TAG_RSA_COEFFICIENT, "Coefficient:"},
+
+	{TAG_DH_PRIME, "Prime(p):"},
+	{TAG_DH_GENERATOR, "Generator(g):"},
+	{TAG_DH_PRIVATE, "Private_value(x):"},
+	{TAG_DH_PUBLIC, "Public_value(y):"},
 
 	{TAG_DSA_PRIME, "Prime(p):"},
 	{TAG_DSA_SUBPRIME, "Subprime(q):"},
@@ -115,6 +121,21 @@ check_rsa(const dst_private_t *priv) {
 }
 
 static int
+check_dh(const dst_private_t *priv) {
+	int i, j;
+	if (priv->nelements != DH_NTAGS)
+		return (-1);
+	for (i = 0; i < DH_NTAGS; i++) {
+		for (j = 0; j < priv->nelements; j++)
+			if (priv->elements[j].tag == TAG(DST_ALG_DH, i))
+				break;
+		if (j == priv->nelements)
+			return (-1);
+	}
+	return (0);
+}
+
+static int
 check_dsa(const dst_private_t *priv) {
 	int i, j;
 	if (priv->nelements != DSA_NTAGS)
@@ -143,6 +164,8 @@ check_data(const dst_private_t *priv, const int alg) {
 	switch (alg) {
 		case DST_ALG_RSA:
 			return (check_rsa(priv));
+		case DST_ALG_DH:
+			return (check_dh(priv));
 		case DST_ALG_DSA:
 			return (check_dsa(priv));
 		case DST_ALG_HMACMD5:
@@ -330,6 +353,7 @@ dst_s_write_private_key_file(const char *name, const int alg, const int id,
 	fprintf(fp, "%s %d ", ALGORITHM_STR, alg);
 	switch (alg) {
 		case DST_ALG_RSA: fprintf(fp, "(RSA)\n"); break;
+		case DST_ALG_DH: fprintf(fp, "(DH)\n"); break;
 		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
 		case DST_ALG_HMACMD5: fprintf(fp, "(HMAC_MD5)\n"); break;
 		default : fprintf(fp, "(?)\n"); break;

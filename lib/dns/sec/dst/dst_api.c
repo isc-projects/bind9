@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.10 1999/09/23 20:54:35 bwelling Exp $
+ * $Id: dst_api.c,v 1.11 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -122,6 +122,8 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
+	if (key->func->sign == NULL)
+		return (DST_R_NOTPRIVATEKEY);
 
 	return (key->func->sign(mode, key, (void **)context, data, sig,
 				key->mctx));
@@ -169,14 +171,55 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
+	if (key->func->verify == NULL)
+		return (DST_R_NOTPUBLICKEY);
 
 	return (key->func->verify(mode, key, (void **)context, data, sig,
 				  key->mctx));
 }
 
 /*
+ * dst_computesecret
+ *	A function to compute a shared secret from two (Diffie-Hellman) keys.
+ * Parameters
+ *      pub             The public key
+ *      priv            The private key
+ *      secret          A buffer into which the secret is written
+ * Returns
+ *      DST_R_SUCCESS   Success
+ *      !DST_R_SUCCESS  Failure
+ */
+dst_result_t
+dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
+		  isc_buffer_t *secret) 
+{
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
+	REQUIRE(secret != NULL);
+
+	if (dst_supported_algorithm(pub->key_alg)  == ISC_FALSE ||
+	    dst_supported_algorithm(priv->key_alg) == ISC_FALSE)
+		return (DST_R_UNSUPPORTEDALG);
+
+	if (pub->opaque == NULL || priv->opaque == NULL)
+		return (DST_R_NULLKEY);
+
+	if (pub->key_alg != priv->key_alg ||
+	    pub->func->computesecret == NULL ||
+	    priv->func->computesecret == NULL)
+		return (DST_R_KEYCANNOTCOMPUTESECRET);
+
+	if (dst_key_isprivate(priv) == ISC_FALSE)
+		return (DST_R_NOTPRIVATEKEY);
+
+	return (pub->func->computesecret(pub, priv, secret));
+}
+
+/*
  *  dst_key_tofile
  *	Writes a key to disk.  The key can either be a public or private key.
+ *	The public key is written in DNS format and the private key is
+ *	written as a set of base64 encoded values.
  *  Parameters
  *	key		The key to be written.
  *	type		Either DST_PUBLIC or DST_PRIVATE, or both
@@ -441,17 +484,22 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 
 /*
  *  dst_key_generate
- *	Generate and store a public/private keypair.
- *	Keys will be stored in formatted files.
+ *	Generate a public/private keypair.
  *  Parameters
  *	name	Name of the new key.  Used to create key files
  *			K<name>+<alg>+<id>.public
  *			K<name>+<alg>+<id>.private
  *	alg	The algorithm to use
  *	bits	Size of the new key in bits
- *	param	Algorithm specific (currently RSA only)
+ *	param	Algorithm specific
+ *		RSA: exponent
  *			0	use exponent 3
  *			!0	use Fermat4 (2^16 + 1)
+ *		DH: generator
+ *			0	default - use well-known prime if bits == 768
+ *				or 1024, otherwise use generator 2
+ *			!0	use this value as the generator
+ *		DSA/HMACMD5: unused
  *	flags	The default value of the DNS Key flags.
  *	protocol Default value of the DNS Key protocol field.
  *	mctx	The memory context used to allocate the key
@@ -516,6 +564,34 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (key1->key_alg == key2->key_alg &&
 	    key1->key_id == key2->key_id &&
 	    key1->func->compare(key1, key2) == ISC_TRUE)
+		return (ISC_TRUE);
+	else
+		return (ISC_FALSE);
+}
+/*
+ *  dst_key_paramcompare
+ *	Compares two keys' parameters for equality.  This is designed to
+ *	determine if two (Diffie-Hellman) keys can be used to derive a shared
+ *	secret.
+ *  Parameters
+ *	key1, key2	Two keys whose parameters are to be compared.
+ *  Returns
+ *	ISC_TRUE	The keys' parameters are equal.
+ *	ISC_FALSE	The keys' parameters are not equal.
+ */
+isc_boolean_t
+dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	REQUIRE(VALID_KEY(key1));
+	REQUIRE(VALID_KEY(key2));
+
+	if (key1 == key2)
+		return (ISC_TRUE);
+	if (key1 == NULL || key2 == NULL)
+		return (ISC_FALSE);
+	if (key1->key_alg == key2->key_alg &&
+	    key1->func->paramcompare != NULL &&
+	    key1->func->paramcompare(key1, key2) == ISC_TRUE)
 		return (ISC_TRUE);
 	else
 		return (ISC_FALSE);
@@ -609,6 +685,7 @@ dst_sig_size(const dst_key_t *key) {
 			return (16);
 		case DST_ALG_HMACSHA1:
 			return (20);
+		case DST_ALG_DH:
 		default:
 			REQUIRE(ISC_FALSE);
 			return (-1);
@@ -668,10 +745,11 @@ initialize() {
 
 	dst_s_hmacmd5_init();
 #if defined(BSAFE) || defined(DNSSAFE)
-	dst_s_bsafe_init();
+	dst_s_bsafersa_init();
 #endif
 #ifdef OPENSSL
-	dst_s_openssl_init();
+	dst_s_openssldsa_init();
+	dst_s_openssldh_init();
 #endif
 }
 

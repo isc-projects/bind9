@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.7 1999/09/23 20:54:35 bwelling Exp $
+ * $Id: hmac_link.c,v 1.8 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -87,7 +87,9 @@ dst_s_hmacmd5_init()
 	memset(&hmacmd5_functions, 0, sizeof(struct dst_func));
 	hmacmd5_functions.sign = dst_hmacmd5_sign;
 	hmacmd5_functions.verify = dst_hmacmd5_verify;
+	hmacmd5_functions.computesecret = NULL;
 	hmacmd5_functions.compare = dst_hmacmd5_compare;
+	hmacmd5_functions.paramcompare = NULL;
 	hmacmd5_functions.generate = dst_hmacmd5_generate;
 	hmacmd5_functions.isprivate = dst_hmacmd5_isprivate;
 	hmacmd5_functions.destroy = dst_hmacmd5_destroy;
@@ -241,8 +243,10 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
  * Returns
  *	ISC_TRUE
  */
-isc_boolean_t
+static isc_boolean_t
 dst_hmacmd5_isprivate(const dst_key_t *key) {
+	key = key; /* suppress warning */
+
         return (ISC_TRUE);
 }
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.5 1999/09/23 20:54:34 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.6 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -111,18 +111,19 @@ static dst_result_t	dst_bsafe_from_file(dst_key_t *key, const int id,
 					    isc_mem_t *mctx);
 
 /*
- * dst_s_bsafe_init()
+ * dst_s_bsafersa_init()
  * Sets up function pointers for BSAFE/DNSSAFE related functions 
  */
 void
-dst_s_bsafe_init()
-{
+dst_s_bsafersa_init() {
 	REQUIRE(dst_t_func[DST_ALG_RSA] == NULL);
 	dst_t_func[DST_ALG_RSA] = &bsafe_functions;
 	memset(&bsafe_functions, 0, sizeof(struct dst_func));
 	bsafe_functions.sign = dst_bsafe_sign;
 	bsafe_functions.verify = dst_bsafe_verify;
+	bsafe_functions.computesecret = NULL;
 	bsafe_functions.compare = dst_bsafe_compare;
+	bsafe_functions.paramcompare = NULL;
 	bsafe_functions.generate = dst_bsafe_generate;
 	bsafe_functions.isprivate = dst_bsafe_isprivate;
 	bsafe_functions.destroy = dst_bsafe_destroy;
@@ -388,7 +389,7 @@ dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
  *	ISC_TRUE
  *	ISC_FALSE
  */
-isc_boolean_t
+static isc_boolean_t
 dst_bsafe_isprivate(const dst_key_t *key) {
 	RSA_Key *rkey = (RSA_Key *) key->opaque;
 	return (rkey != NULL && rkey->rk_Private_Key != NULL);
@@ -469,7 +470,6 @@ dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		return (DST_R_NOMEMORY);
 
 	memset(rkey, 0, sizeof(RSA_Key));
-	key->opaque = (void *) rkey;
 
 	if (B_CreateKeyObject(&rkey->rk_Public_Key) != 0) {
 		isc_mem_put(mctx, rkey, sizeof(RSA_Key));
@@ -542,6 +542,9 @@ dst_bsafe_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	memset(public->modulus.data, 0, public->modulus.len);
 	isc_mem_put(mctx, public->modulus.data, public->modulus.len);
 	isc_mem_put(mctx, public, sizeof(*public));
+
+	key->opaque = (void *) rkey;
+
 	return (DST_R_SUCCESS);
 }
 

@@ -96,6 +96,22 @@ dst_result_t
 dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 	   isc_region_t *data, isc_region_t *sig);
 
+/*
+ * dst_computesecret
+ *      A function to compute a shared secret from two (Diffie-Hellman) keys.
+ *
+ * Requires:
+ *      "pub" is a valid key that can be used to derive a shared secret
+ *      "priv" is a valid private key that can be used to derive a shared secret
+ *      "secret" is a valid buffer
+ *
+ * Ensures:
+ *      If successful, secret will contain the derived shared secret.
+ */
+dst_result_t
+dst_computesecret(const dst_key_t *pub, const dst_key_t *priv,
+                  isc_buffer_t *secret);
+
 /* Reads a key from permanent storage.
  *
  * Requires:
@@ -204,6 +220,15 @@ dst_key_generate(const char *name, const int alg, const int bits,
  */
 isc_boolean_t
 dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
+
+/* Compares the parameters of two DST keys.
+ *
+ * Requires:
+ *	"key1" is a valid key.
+ *	"key2" is a valid key.
+ */
+isc_boolean_t
+dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 
 /* Free a DST key.
  *

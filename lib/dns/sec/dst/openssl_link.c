@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.7 1999/09/23 20:54:36 bwelling Exp $
+ * $Id: openssl_link.c,v 1.8 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -55,7 +55,7 @@ static dst_result_t	dst_openssl_verify(const unsigned int mode,
 					   isc_region_t *sig, isc_mem_t *mctx);
 static isc_boolean_t	dst_openssl_compare(const dst_key_t *key1,
 					    const dst_key_t *key2);
-static dst_result_t	dst_openssl_generate(dst_key_t *key, int exp,
+static dst_result_t	dst_openssl_generate(dst_key_t *key, int unused,
 					     isc_mem_t *mctx);
 static isc_boolean_t	dst_openssl_isprivate(const dst_key_t *key);
 static void		dst_openssl_destroy(void *key, isc_mem_t *mctx);
@@ -72,18 +72,19 @@ static int		BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf,
 
 
 /*
- * dst_s_openssl_init()
+ * dst_s_openssldsa_init()
  * Sets up function pointers for OpenSSL related functions 
  */
 void
-dst_s_openssl_init()
-{
+dst_s_openssldsa_init() {
 	REQUIRE(dst_t_func[DST_ALG_DSA] == NULL);
 	dst_t_func[DST_ALG_DSA] = &openssl_functions;
 	memset(&openssl_functions, 0, sizeof(struct dst_func));
 	openssl_functions.sign = dst_openssl_sign;
 	openssl_functions.verify = dst_openssl_verify;
+	openssl_functions.computesecret = NULL;
 	openssl_functions.compare = dst_openssl_compare;
+	openssl_functions.paramcompare = NULL;  /* is this useful for DSA? */
 	openssl_functions.generate = dst_openssl_generate;
 	openssl_functions.isprivate = dst_openssl_isprivate;
 	openssl_functions.destroy = dst_openssl_destroy;
@@ -247,7 +248,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
  *	ISC_TRUE
  *	ISC_FALSE
  */
-isc_boolean_t
+static isc_boolean_t
 dst_openssl_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
         return (dsa != NULL && dsa->priv_key != NULL);
@@ -330,7 +331,6 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		return (DST_R_NOMEMORY);
 
 	memset(dsa, 0, sizeof(DSA));
-	key->opaque = (void *) dsa;
 
 	t = (unsigned int) *r.base++;
 	if (t > 8) {
@@ -362,6 +362,8 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	key->key_size = p_bytes * 8;
 
 	isc_buffer_forward(data, SHA_DIGEST_LENGTH + 3 * p_bytes);
+
+	key->opaque = (void *) dsa;
 
 	return (DST_R_SUCCESS);
 }
@@ -456,7 +458,7 @@ dst_openssl_from_file(dst_key_t *key, const int id, isc_mem_t *mctx) {
 	dsa = DSA_new();
 	if (dsa == NULL)
 		DST_RET(DST_R_NOMEMORY);
-	memset(dsa, 0, sizeof(DSA *));
+	memset(dsa, 0, sizeof(DSA));
 	key->opaque = dsa;
 
 	for (i=0; i < priv.nelements; i++) {

@@ -30,8 +30,10 @@ typedef unsigned int dst_result_t;
 #define DST_R_VERIFYFINALFAILURE	(ISC_RESULTCLASS_DST + 14)
 #define DST_R_NOTPUBLICKEY		(ISC_RESULTCLASS_DST + 15)
 #define DST_R_NOTPRIVATEKEY		(ISC_RESULTCLASS_DST + 16)
+#define DST_R_KEYCANNOTCOMPUTESECRET	(ISC_RESULTCLASS_DST + 17)
+#define DST_R_COMPUTESECRETFAILURE	(ISC_RESULTCLASS_DST + 18)
 
-#define DST_R_NRESULTS			17	/* Number of results */
+#define DST_R_NRESULTS			19	/* Number of results */
 
 
 char *                                  dst_result_totext(dst_result_t);

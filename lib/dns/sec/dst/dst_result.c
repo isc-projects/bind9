@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.2 1999/09/23 20:54:35 bwelling Exp $
+ * $Id: dst_result.c,v 1.3 1999/09/27 16:55:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -49,6 +49,8 @@ static char *text[DST_R_NRESULTS] = {
 	"verify final failure",			/* 14 */
 	"not a public key",			/* 15 */
 	"not a private key",			/* 16 */
+	"not a key that can compute a secret",	/* 17 */
+	"failure computing a shared secret",	/* 18 */
 };
 
 #define DST_RESULT_RESULTSET			2
