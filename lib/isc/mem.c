@@ -151,7 +151,7 @@ default_memalloc(void *arg, size_t size) {
 static void
 default_memfree(void *arg, void *ptr) {
 	(void)arg;
-	return (free(ptr));
+	free(ptr);
 }
 
 /* Public. */
