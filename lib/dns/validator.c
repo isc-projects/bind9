@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.120 2004/04/15 01:58:24 marka Exp $ */
+/* $Id: validator.c,v 1.121 2004/04/15 23:40:25 marka Exp $ */
 
 #include <config.h>
 
@@ -348,8 +348,14 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		 */
 		tname = dns_fixedname_name(&devent->foundname);
 		if (isdelegation(tname, &val->frdataset, eresult)) {
-			val->event->rdataset->trust = dns_trust_answer;
-			validator_done(val, ISC_R_SUCCESS);
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure");
+				validator_done(val, DNS_R_MUSTBESECURE);
+			} else {
+				val->event->rdataset->trust = dns_trust_answer;
+				validator_done(val, ISC_R_SUCCESS);
+			}
 		} else {
 			result = proveunsecure(val, ISC_TRUE);
 			if (result != DNS_R_WAIT)
@@ -1127,6 +1133,11 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		 * The key is insecure, so mark the data as insecure also.
 		 */
 		if (val->key == NULL) {
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure");
+				return (DNS_R_MUSTBESECURE);
+			}
 			event->rdataset->trust = dns_trust_answer;
 			event->sigrdataset->trust = dns_trust_answer;
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -1410,6 +1421,11 @@ dlv_validatezonekey(dns_validator_t *val) {
 	INSIST(val->dlv != NULL);
 
 	if (val->dlv->trust < dns_trust_secure) {
+		if (val->mustbesecure) {
+			validator_log(val, ISC_LOG_WARNING,
+				      "must be secure failure");
+			return (DNS_R_MUSTBESECURE);
+		}
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		return (ISC_R_SUCCESS);
@@ -1508,6 +1524,11 @@ dlv_validatezonekey(dns_validator_t *val) {
 		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure");
 		return (result);
 	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
+		if (val->mustbesecure) {
+			validator_log(val, ISC_LOG_WARNING,
+				      "must be secure failure");
+			return (DNS_R_MUSTBESECURE);
+		}
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -1686,6 +1707,11 @@ validatezonekey(dns_validator_t *val) {
 	INSIST(val->dsset != NULL);
 
 	if (val->dsset->trust < dns_trust_secure) {
+		if (val->mustbesecure) {
+			validator_log(val, ISC_LOG_WARNING,
+				      "must be secure failure");
+			return (DNS_R_MUSTBESECURE);
+		}
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		return (ISC_R_SUCCESS);
@@ -1790,6 +1816,11 @@ validatezonekey(dns_validator_t *val) {
 
 		return (dlv_validatezonekey(val));
 	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
+		if (val->mustbesecure) {
+			validator_log(val, ISC_LOG_WARNING,
+				      "must be secure failure");
+			return (DNS_R_MUSTBESECURE);
+		}
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -2093,6 +2124,12 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		if (val->frdataset.trust >= dns_trust_secure &&
 		    !check_ds_algorithm(val, dns_fixedname_name(&val->fname),
 					&val->frdataset)) {
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure");
+				result = DNS_R_MUSTBESECURE;
+				goto out;
+			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no supported algorithm (ds)");
 			val->event->rdataset->trust = dns_trust_answer;
@@ -2138,6 +2175,11 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				goto out;
 			}
 			if (isdelegation(tname, &val->frdataset, result)) {
+				if (val->mustbesecure) {
+					validator_log(val, ISC_LOG_WARNING,
+						      "must be secure failure");
+					return (DNS_R_MUSTBESECURE);
+				}
 				val->event->rdataset->trust = dns_trust_answer;
 				return (ISC_R_SUCCESS);
 			}
@@ -2152,6 +2194,13 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 							&val->frdataset)) {
 					validator_log(val, ISC_LOG_DEBUG(3),
 					      "no supported algorithm (ds)");
+					if (val->mustbesecure) {
+						validator_log(val,
+							      ISC_LOG_WARNING,
+						      "must be secure failure");
+						result = DNS_R_MUSTBESECURE;
+						goto out;
+					}
 					val->event->rdataset->trust =
 							dns_trust_answer;
 					result = ISC_R_SUCCESS;
@@ -2378,6 +2427,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->nsecset = NULL;
 	val->soaname = NULL;
 	val->seensig = ISC_FALSE;
+	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_fixedname_init(&val->wild);
