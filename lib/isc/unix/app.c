@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.39 2001/01/17 19:48:45 halley Exp $ */
+/* $Id: app.c,v 1.40 2001/03/14 06:31:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -496,7 +496,7 @@ isc_app_run(void) {
 		}
 
 		if (want_shutdown && blocked)
-			exit(-1);
+			exit(1);
 	}
 
 #else /* ISC_PLATFORM_USETHREADS */
