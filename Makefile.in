@@ -27,7 +27,7 @@ DISTFILES =	Makefile.in README \
 		install-sh ltconfig ltmain.sh \
 		bin lib make \
 		version
-DOCDIRS =	draft misc rfc
+DOCDIRS =	arm draft misc rfc
 
 @BIND9_MAKE_RULES@
 
