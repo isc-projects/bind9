@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.2 2001/08/03 18:12:08 bwelling Exp $ */
+/* $Id: config.h,v 1.3 2001/08/07 01:58:59 marka Exp $ */
 
-/* $Id: config.h,v 1.2 2001/08/03 18:12:08 bwelling Exp $ */
+/* $Id: config.h,v 1.3 2001/08/07 01:58:59 marka Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
@@ -37,7 +37,8 @@ int
 ns_config_listcount(cfg_obj_t *list);
 
 isc_result_t
-ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t *classp);
+ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
+		   dns_rdataclass_t *classp);
 
 dns_zonetype_t
 ns_config_getzonetype(cfg_obj_t *zonetypeobj);

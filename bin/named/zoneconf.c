@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.86 2001/06/04 21:51:26 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.87 2001/08/07 01:58:58 marka Exp $ */
 
 #include <config.h>
 
@@ -295,6 +295,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	isc_result_t result;
 	char *zname;
 	dns_rdataclass_t zclass;
+	dns_rdataclass_t vclass;
 	cfg_obj_t *maps[5];
 	cfg_obj_t *zoptions = NULL;
 	cfg_obj_t *options = NULL;
@@ -327,13 +328,21 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	}
 	maps[i++] = ns_g_defaults;
 	maps[i++] = NULL;
+
+	if (vconfig != NULL)
+		RETERR(ns_config_getclass(cfg_tuple_get(vconfig, "class"),
+					  dns_rdataclass_in, &vclass));
+	else
+		vclass = dns_rdataclass_in;
+
 	/*
 	 * Configure values common to all zone types.
 	 */
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 
-	RETERR(ns_config_getclass(cfg_tuple_get(zconfig, "class"), &zclass));
+	RETERR(ns_config_getclass(cfg_tuple_get(zconfig, "class"),
+				  vclass, &zclass));
 	dns_zone_setclass(zone, zclass);
 
 	ztype = zonetype_fromconfig(zoptions);

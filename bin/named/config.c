@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.10 2001/08/03 18:12:04 bwelling Exp $ */
+/* $Id: config.c,v 1.11 2001/08/07 01:58:54 marka Exp $ */
 
 #include <config.h>
 
@@ -177,12 +177,13 @@ ns_config_listcount(cfg_obj_t *list) {
 }
 
 isc_result_t
-ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t *classp) {
+ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
+		   dns_rdataclass_t *classp) {
 	char *str;
 	isc_textregion_t r;
 
 	if (!cfg_obj_isstring(classobj)) {
-		*classp = dns_rdataclass_in;
+		*classp = defclass;
 		return (ISC_R_SUCCESS);
 	}
 	str = cfg_obj_asstring(classobj);

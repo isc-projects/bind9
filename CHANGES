@@ -1,3 +1,6 @@
+ 955.	[bug]		When using views, the zone's class was not being
+			inherited from the view's class.  [RT #1583]
+
  954.	[bug]		dig, host, nslookup: AXFR / IXFR are inherently
 			non-recursive, do not set RD.  [RT #1575]
 

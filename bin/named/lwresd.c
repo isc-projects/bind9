@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.36 2001/04/02 22:52:07 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.37 2001/08/07 01:58:55 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -323,7 +323,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 	if (viewobj != NULL) {
 		vname = cfg_obj_asstring(cfg_tuple_get(viewobj, "name"));
 		obj = cfg_tuple_get(viewobj, "class");
-		result = ns_config_getclass(obj, &vclass);
+		result = ns_config_getclass(obj, dns_rdataclass_in, &vclass);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	} else {
