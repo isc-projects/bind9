@@ -577,7 +577,6 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 	isc_result_t result;
 	struct in_addr ina;
 	isc_sockaddr_t sa, any;
-	in_port_t port;
 	isc_socket_t *socket;
 
 	ina.s_addr = htonl(INADDR_ANY);
