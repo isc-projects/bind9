@@ -5,6 +5,8 @@
 1760.	[bug]		Host / net unreachable was not penalising rtt
 			estimates. [RT #12970]
 
+1757.	[func]		host now can turn on memory debugging flags with '-m'.
+
 1756.	[func]		named-checkconf now checks the logging configuration.
 			[RT #12352]
 

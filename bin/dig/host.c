@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94.18.3 2004/09/06 01:32:29 marka Exp $ */
+/* $Id: host.c,v 1.94.18.4 2004/11/10 22:04:32 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -127,7 +127,7 @@ static void
 show_usage(void) {
 	fputs(
 "Usage: host [-aCdlriTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
-"            [-R number] hostname [server]\n"
+"            [-R number] [-m flag] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authoritative nameservers\n"
@@ -143,7 +143,8 @@ show_usage(void) {
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n"
 "       -4 use IPv4 query transport only\n"
-"       -6 use IPv6 query transport only\n", stderr);
+"       -6 use IPv6 query transport only\n"
+"       -m set memory debugging flag (trace|record|usage)\n", stderr);
 	exit(1);
 }
 
@@ -537,6 +538,50 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
+static const char * optstring = "46ac:dilnm:rt:vwCDN:R:TW:";
+
+static void
+pre_parse_args(int argc, char **argv) {
+	int c;
+
+	while ((c = isc_commandline_parse(argc, argv, optstring)) != -1) {
+		switch (c) {
+		case 'm':
+			if (strcasecmp("trace", isc_commandline_argument) == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+			else if (!strcasecmp("record",
+					     isc_commandline_argument) == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			else if (strcasecmp("usage",
+					    isc_commandline_argument) == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+			break;
+
+		case '4': break;
+		case '6': break;
+		case 'a': break;
+		case 'c': break;
+		case 'd': break;
+		case 'i': break;
+		case 'l': break;
+		case 'n': break;
+		case 'r': break;
+		case 't': break;
+		case 'v': break;
+		case 'w': break;
+		case 'C': break;
+		case 'D': break;
+		case 'N': break;
+		case 'R': break;
+		case 'T': break;
+		case 'W': break;
+		default:
+			show_usage();
+		}
+	}
+	isc_commandline_reset = ISC_TRUE;
+}
+
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
@@ -553,8 +598,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup = make_empty_lookup();
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dni46"))
-	       != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, optstring)) != -1) {
 		switch (c) {
 		case 'l':
 			lookup->tcp_mode = ISC_TRUE;
@@ -636,6 +680,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		case 'n':
 			/* deprecated */
+			break;
+		case 'm':
+			/* Handled by pre_parse_args(). */
 			break;
 		case 'w':
 			/*
@@ -738,6 +785,7 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
+	pre_parse_args(argc, argv);
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
 	setup_libs();
@@ -751,4 +799,3 @@ main(int argc, char **argv) {
 	isc_app_finish();
 	return ((seen_error == 0) ? 0 : 1);
 }
-

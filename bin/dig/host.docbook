@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.5.18.1 2004/04/13 01:30:33 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.5.18.2 2004/11/10 22:04:32 marka Exp $ -->
 
 <refentry>
 
@@ -44,6 +44,7 @@
   <arg><option>-R <replaceable class="parameter">number</replaceable></option></arg>
   <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
   <arg><option>-W <replaceable class="parameter">wait</replaceable></option></arg>
+  <arg><option>-m <replaceable class="parameter">flag</replaceable></option></arg>
   <arg><option>-4</option></arg>
   <arg><option>-6</option></arg>
   <arg choice=req>name</arg>
@@ -188,6 +189,11 @@ will be set to the number of seconds given by the hardware's maximum
 value for an integer quantity.
 </para>
 
+<para>
+The <option>-m</option> can be used to set the memory usage debugging flags
+<parameter>record</parameter>, <parameter>usage</parameter> and
+<parameter>trace</parameter>. 
+</para>
 </refsect1>
 
 <refsect1>
