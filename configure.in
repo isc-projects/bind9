@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.318 $)
+AC_REVISION($Revision: 1.319 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1664,7 +1664,8 @@ AC_SUBST($1)
 catalogpath=""
 for d in $sgmltrees 
 do
-	for s in docbook docbook/dsssl-stylesheets
+	catalogpath="$catalogpath $d"
+	for s in docbook/dsssl-stylesheets
 	do
 		catalogpath="$catalogpath $d/$s"
 	done
