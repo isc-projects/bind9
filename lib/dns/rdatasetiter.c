@@ -38,7 +38,7 @@ dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	ENSURE(*iteratorp == NULL);
 }
 
-dns_result_t
+isc_result_t
 dns_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	/*
 	 * Move the rdataset cursor to the first rdataset at the node (if any).
@@ -49,7 +49,7 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	return (iterator->methods->first(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	/*
 	 * Move the rdataset cursor to the next rdataset at the node (if any).

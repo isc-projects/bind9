@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: opt_41.c,v 1.2 1999/09/15 23:57:43 explorer Exp $ */
+ /* $Id: opt_41.c,v 1.3 1999/12/23 00:08:56 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_OPT_41_C
 #define RDATA_GENERIC_OPT_41_C
 
-static inline dns_result_t
+static inline isc_result_t
 fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -40,7 +40,7 @@ fromtext_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	   isc_buffer_t *target) 
 {
@@ -56,7 +56,7 @@ totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -98,7 +98,7 @@ fromwire_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 towire_opt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 41);
@@ -122,7 +122,7 @@ compare_opt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
@@ -135,7 +135,7 @@ fromstruct_opt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 tostruct_opt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 41);
@@ -151,7 +151,7 @@ freestruct_opt(void *source) {
 	(void)source;
 }
 
-static inline dns_result_t
+static inline isc_result_t
 additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
@@ -163,7 +163,7 @@ additionaldata_opt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 digest_opt(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	/*

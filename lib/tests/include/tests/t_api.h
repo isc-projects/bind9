@@ -68,7 +68,7 @@ void		t_info(const char *format, ...);
 void		t_result(int result);
 char		*t_getenv(const char *name);
 char		*t_fgetbs(FILE *fp);
-dns_result_t	t_dns_result_fromtext(char *result);
+isc_result_t	t_dns_result_fromtext(char *result);
 int		t_dc_method_fromtext(char *dc_method);
 int		t_bustline(char *line, char **toks);
 int		t_eval(char *filename, int (*func)(char **), int nargs);

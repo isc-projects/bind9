@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.65 1999/10/25 21:41:49 bwelling Exp $ */
+ /* $Id: rdata.c,v 1.66 1999/12/23 00:08:32 explorer Exp $ */
 
 #include <config.h>
 
@@ -45,7 +45,7 @@
 #include <dns/ttl.h>
 
 #define RETERR(x) do { \
-	dns_result_t __r = (x); \
+	isc_result_t __r = (x); \
 	if (__r != DNS_R_SUCCESS) \
 		return (__r); \
 	} while (0)
@@ -62,38 +62,38 @@ typedef struct dns_rdata_textctx {
   	char *linebreak;	/* Line break string. */
 } dns_rdata_textctx_t;
 
-static dns_result_t	txt_totext(isc_region_t *source, isc_buffer_t *target);
-static dns_result_t	txt_fromtext(isc_textregion_t *source,
+static isc_result_t	txt_totext(isc_region_t *source, isc_buffer_t *target);
+static isc_result_t	txt_fromtext(isc_textregion_t *source,
 				     isc_buffer_t *target);
-static dns_result_t	txt_fromwire(isc_buffer_t *source,
+static isc_result_t	txt_fromwire(isc_buffer_t *source,
 				    isc_buffer_t *target);
 static isc_boolean_t	name_prefix(dns_name_t *name, dns_name_t *origin,
 				    dns_name_t *target);
 static unsigned int 	name_length(dns_name_t *name);
-static dns_result_t	str_totext(char *source, isc_buffer_t *target);
+static isc_result_t	str_totext(char *source, isc_buffer_t *target);
 static isc_boolean_t	buffer_empty(isc_buffer_t *source);
 static void		buffer_fromregion(isc_buffer_t *buffer,
 					  isc_region_t *region,
 					  unsigned int type);
-static dns_result_t	uint32_tobuffer(isc_uint32_t,
+static isc_result_t	uint32_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
-static dns_result_t	uint16_tobuffer(isc_uint32_t,
+static isc_result_t	uint16_tobuffer(isc_uint32_t,
 					isc_buffer_t *target);
-static dns_result_t	uint8_tobuffer(isc_uint32_t value,
+static isc_result_t	uint8_tobuffer(isc_uint32_t value,
 				       isc_buffer_t *target);
 static isc_uint32_t	uint32_fromregion(isc_region_t *region);
 static isc_uint16_t	uint16_fromregion(isc_region_t *region);
 static isc_uint8_t	uint8_fromregion(isc_region_t *region);
-static dns_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
+static isc_result_t	gettoken(isc_lex_t *lexer, isc_token_t *token,
 				 isc_tokentype_t expect, isc_boolean_t eol);
-static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
+static isc_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
 				     unsigned int length);
 static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 static int		hexvalue(char value);
 static int		decvalue(char value);
-static dns_result_t	btoa_totext(unsigned char *inbuf, int inbuflen,
+static isc_result_t	btoa_totext(unsigned char *inbuf, int inbuflen,
 				    isc_buffer_t *target);
-static dns_result_t	atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
+static isc_result_t	atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
 static void		default_fromtext_callback(
 					    dns_rdatacallbacks_t *callbacks,
 						  char *, ...);
@@ -103,9 +103,9 @@ static void		fromtext_error(void (*callback)(dns_rdatacallbacks_t *,
 				       dns_rdatacallbacks_t *callbacks,
 				       char *name, int line,
 				       isc_token_t *token,
-				       dns_result_t result);
+				       isc_result_t result);
 
-static dns_result_t	 rdata_totext(dns_rdata_t *rdata,
+static isc_result_t	 rdata_totext(dns_rdata_t *rdata,
 				      dns_rdata_textctx_t *tctx,
 				      isc_buffer_t *target);
 
@@ -321,13 +321,13 @@ dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r) {
 	r->length = rdata->length;
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
 		   dns_decompress_t *dctx, isc_boolean_t downcase,
 		   isc_buffer_t *target)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
 	isc_buffer_t st;
@@ -363,11 +363,11 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	         isc_buffer_t *target)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_region_t tr;
 	isc_buffer_t st;
@@ -394,13 +394,13 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
 		   dns_name_t *origin, isc_boolean_t downcase,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -488,11 +488,11 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	
 	REQUIRE(rdata != NULL);
@@ -512,7 +512,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 		 isc_buffer_t *target)
 {
@@ -525,7 +525,7 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 	return (rdata_totext(rdata, &tctx, target));
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
 		    char *linebreak, isc_buffer_t *target)
@@ -544,12 +544,12 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 	return (rdata_totext(rdata, &tctx, target));
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, void *source,
 		     isc_buffer_t *target)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_buffer_t st;
 	isc_region_t region;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -574,9 +574,9 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	REQUIRE(rdata != NULL);
@@ -597,11 +597,11 @@ dns_rdata_freestruct(void *source) {
 	FREESTRUCTSWITCH
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			 void *arg)
 {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	/*
@@ -620,9 +620,9 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
-	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	/*
@@ -642,7 +642,7 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */ 
 
-static dns_result_t
+static isc_result_t
 dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		      struct tbl *table, unsigned int max)
 {
@@ -683,7 +683,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 	return (DNS_R_UNKNOWN);
 }
 
-static dns_result_t
+static isc_result_t
 dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 		    struct tbl *table)
 {
@@ -699,7 +699,7 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 	return (str_totext(buf, target));
 }
 
-dns_result_t
+isc_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 	int i = 0;
 	unsigned int n;
@@ -720,14 +720,14 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 /* XXXRTH  This should probably be a switch() */
 
-dns_result_t
+isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(rdclass, target, classes));	
 }
 
 /* XXXRTH  Should we use a hash table here? */
 
-dns_result_t
+isc_result_t
 dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	int i = 0;
 	unsigned int n;
@@ -748,14 +748,14 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 /* XXXRTH  This should probably be a switch() */
 
-dns_result_t
+isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(type, target, types));
 }
 
 /* XXXRTH  Should we use a hash table here? */
 
-dns_result_t
+isc_result_t
 dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 	int i = 0;
 	unsigned int n;
@@ -772,12 +772,12 @@ dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 	return (DNS_R_UNKNOWN);
 }
 
-dns_result_t
+isc_result_t
 dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(rcode, target, rcodes));	
 }
 
-dns_result_t
+isc_result_t
 dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, certs, 0xffff));
@@ -785,12 +785,12 @@ dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
 	return (DNS_R_SUCCESS);
 }	
 
-dns_result_t
+isc_result_t
 dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(cert, target, certs));	
 }
 
-dns_result_t
+isc_result_t
 dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secalgs, 0xff));
@@ -798,12 +798,12 @@ dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(secalg, target, secalgs));
 }
 
-dns_result_t
+isc_result_t
 dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source) {
 	unsigned int value;
 	RETERR(dns_mnemonic_fromtext(&value, source, secprotos, 0xff));
@@ -811,12 +811,12 @@ dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(secproto, target, secprotos));
 }
 
-dns_result_t
+isc_result_t
 dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 {
 	char *text, *end;
@@ -884,7 +884,7 @@ name_length(dns_name_t *name) {
 	return (name->length);
 }
 
-static dns_result_t
+static isc_result_t
 txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	unsigned int tl;
 	unsigned int n;
@@ -934,7 +934,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	isc_region_t tregion;
 	isc_boolean_t escape;
@@ -995,7 +995,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	unsigned int n;
 	isc_region_t sregion;
@@ -1045,7 +1045,7 @@ return_false:
 	return (ISC_FALSE);
 }
 
-static dns_result_t
+static isc_result_t
 str_totext(char *source, isc_buffer_t *target) {
 	unsigned int l;
 	isc_region_t region;
@@ -1075,7 +1075,7 @@ buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
 	isc_buffer_setactive(buffer, region->length);
 }
 
-static dns_result_t
+static isc_result_t
 uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -1086,7 +1086,7 @@ uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -1099,7 +1099,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -1140,7 +1140,7 @@ uint8_fromregion(isc_region_t *region) {
 	return (region->base[0]);
 }
 
-static dns_result_t
+static isc_result_t
 gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol)
 {
@@ -1182,7 +1182,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
 	isc_region_t tr;
 
@@ -1263,15 +1263,15 @@ struct state {
 
 #define times85(x)	((((((x<<2)+x)<<2)+x)<<2)+x)
 
-static dns_result_t	byte_atob(int c, isc_buffer_t *target,
+static isc_result_t	byte_atob(int c, isc_buffer_t *target,
 				  struct state *state);
-static dns_result_t	putbyte(int c, isc_buffer_t *, struct state *state);
-static dns_result_t	byte_btoa(int c, isc_buffer_t *, struct state *state);
+static isc_result_t	putbyte(int c, isc_buffer_t *, struct state *state);
+static isc_result_t	byte_btoa(int c, isc_buffer_t *, struct state *state);
 
 /* Decode ASCII-encoded byte c into binary representation and 
  * place into *bufp, advancing bufp 
  */
-static dns_result_t
+static isc_result_t
 byte_atob(int c, isc_buffer_t *target, struct state *state) {
 	char *s;
 	if (c == 'z') {
@@ -1307,7 +1307,7 @@ byte_atob(int c, isc_buffer_t *target, struct state *state) {
 }
 
 /* Compute checksum info and place c into target */
-static dns_result_t
+static isc_result_t
 putbyte(int c, isc_buffer_t *target, struct state *state) {
 	isc_region_t tr;
 
@@ -1340,7 +1340,7 @@ putbyte(int c, isc_buffer_t *target, struct state *state) {
    data, so the buffer must be of size divisible by 4).  Place the number of
    output bytes in numbytes, and return a failure/success status  */
 
-static dns_result_t
+static isc_result_t
 atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	isc_int32_t oeor, osum, orot;
 	struct state statebuf, *state= &statebuf;
@@ -1389,7 +1389,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 
 /* Encode binary byte c into ASCII representation and place into *bufp,
    advancing bufp */
-static dns_result_t
+static isc_result_t
 byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 	isc_region_t tr;
 
@@ -1453,7 +1453,7 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
  * Encode the binary data from inbuf, of length inbuflen, into a
  * target.  Return success/failure status
  */
-static dns_result_t
+static isc_result_t
 btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	int inc;
 	struct state statebuf, *state = &statebuf;
@@ -1489,7 +1489,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, char *fmt, ...) {
 static void
 fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	       dns_rdatacallbacks_t *callbacks, char *name, int line,
-	       isc_token_t *token, dns_result_t result)
+	       isc_token_t *token, isc_result_t result)
 {
 	if (name == NULL)
 		name = "UNKNOWN";

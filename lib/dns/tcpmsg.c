@@ -166,7 +166,7 @@ dns_tcpmsg_setmaxsize(dns_tcpmsg_t *tcpmsg, unsigned int maxsize)
 }
 
 
-dns_result_t
+isc_result_t
 dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 		       isc_task_t *task, isc_taskaction_t action, void *arg)
 {

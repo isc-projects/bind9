@@ -204,7 +204,7 @@ struct dns_message {
 	isc_region_t		       *saved;
 };
 
-dns_result_t
+isc_result_t
 dns_message_create(isc_mem_t *mctx, unsigned int intent,
 		   dns_message_t **msgp);
 		   
@@ -264,7 +264,7 @@ dns_message_destroy(dns_message_t **msgp);
  *	'*msgp' == NULL
  */
 
-dns_result_t
+isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  isc_boolean_t preserve_order);
 /*
@@ -312,7 +312,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  *	Many other errors possible XXXMLG
  */
 
-dns_result_t
+isc_result_t
 dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
 /*
  * Begin rendering on a message.  Only one call can be made to this function
@@ -337,7 +337,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  *	Anything that dns_compress_init() can return.
  */
 
-dns_result_t
+isc_result_t
 dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
 /*
  * Reset the buffer.  This can be used after growing the old buffer
@@ -360,7 +360,7 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
  *	DNS_R_SUCCESS		-- all is well.
  */
 
-dns_result_t
+isc_result_t
 dns_message_renderreserve(dns_message_t *msg, unsigned int space);
 /*
  * XXXMLG should use size_t rather than unsigned int once the buffer
@@ -397,7 +397,7 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  *	dns_message_renderbegin() was called.
  */
 
-dns_result_t
+isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t section,
 			  unsigned int options);
 /*
@@ -435,7 +435,7 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target);
  *	'target' is a valid buffer with enough space to hold a message header
  */
 
-dns_result_t
+isc_result_t
 dns_message_renderend(dns_message_t *msg);
 /*
  * Finish rendering to the buffer.  Note that more data can be in the
@@ -453,7 +453,7 @@ dns_message_renderend(dns_message_t *msg);
  */
 		      
 
-dns_result_t
+isc_result_t
 dns_message_firstname(dns_message_t *msg, dns_section_t section);
 /*
  * Set internal per-section name pointer to the beginning of the section.
@@ -472,7 +472,7 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  *	DNS_R_NOMORE		-- No names on given section.
  */
 
-dns_result_t
+isc_result_t
 dns_message_nextname(dns_message_t *msg, dns_section_t section);
 /*
  * Sets the internal per-section name pointer to point to the next name
@@ -515,7 +515,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
  *	DNS_R_SUCCESS.
  */
 
-dns_result_t
+isc_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     dns_name_t *target, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_name_t **foundname,
@@ -548,7 +548,7 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *				   type does not.
  */
 
-dns_result_t
+isc_result_t
 dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdataset);
 /*
@@ -609,7 +609,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  * reset, and must NOT be used after these operations.
  */
 
-dns_result_t
+isc_result_t
 dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
 /*
  * Return a name that can be used for any temporary purpose, including
@@ -629,7 +629,7 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  *	DNS_R_NOMEMORY		-- No item can be allocated.
  */
 
-dns_result_t
+isc_result_t
 dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
 /*
  * Return a rdata that can be used for any temporary purpose, including
@@ -646,7 +646,7 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  *	DNS_R_NOMEMORY		-- No item can be allocated.
  */
 
-dns_result_t
+isc_result_t
 dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
 /*
  * Return a rdataset that can be used for any temporary purpose, including
@@ -663,7 +663,7 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  *	DNS_R_NOMEMORY		-- No item can be allocated.
  */
 
-dns_result_t
+isc_result_t
 dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
 /*
  * Return a rdatalist that can be used for any temporary purpose, including
@@ -740,7 +740,7 @@ dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *	*item == NULL
  */
 
-dns_result_t
+isc_result_t
 dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 		       unsigned int *flagsp);
 /*
@@ -764,7 +764,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
  *	DNS_R_UNEXPECTEDEND	-- buffer doesn't contain enough for a header.
  */
 
-dns_result_t
+isc_result_t
 dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
 /*
  * Start formatting a reply to the query in 'msg'.
@@ -809,7 +809,7 @@ dns_message_getopt(dns_message_t *msg);
  *	The OPT rdataset of 'msg', or NULL if there isn't one.
  */
 
-dns_result_t
+isc_result_t
 dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
 /*
  * Set the OPT record for 'msg'.

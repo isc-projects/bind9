@@ -123,10 +123,10 @@ dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata)
 	encode_uint32(val, rdata->data + rdata->length - 20);
 }
 
-dns_result_t
+isc_result_t
 dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
@@ -159,11 +159,11 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		      dns_diffop_t op, dns_difftuple_t **tp)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
@@ -205,7 +205,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
  * Diffs, aka Pending Journal Entries.
  */
 
-dns_result_t
+isc_result_t
 dns_difftuple_create(isc_mem_t *mctx,
 		     dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 		     dns_rdata_t *rdata, dns_difftuple_t **tp)
@@ -264,7 +264,7 @@ dns_difftuple_free(dns_difftuple_t **tp) {
 	*tp = NULL;
 }
 
-dns_result_t
+isc_result_t
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp)
 {
 	return (dns_difftuple_create(orig->mctx, orig->op, &orig->name,
@@ -347,12 +347,12 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 	ENSURE(*tuplep == NULL);
 }
 
-dns_result_t 
+isc_result_t 
 dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 {
 	dns_difftuple_t *t;
 	dns_dbnode_t *node = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	
 	REQUIRE(DNS_DIFF_VALID(diff));
 	REQUIRE(DNS_DB_VALID(db));
@@ -471,12 +471,12 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 
 /* XXX this duplicates lots of code in dns_diff_apply(). */
    
-dns_result_t 
+isc_result_t 
 dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 	      void *add_private)
 {
 	dns_difftuple_t *t;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(DNS_DIFF_VALID(diff));
 	
@@ -537,7 +537,7 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
  * XXX uses qsort(); a merge sort would be more natural for lists,
  * and perhaps safer wrt thread stack overflow.
  */
-dns_result_t
+isc_result_t
 dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	unsigned int length = 0;
 	unsigned int i;
@@ -576,7 +576,7 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
  * an rdatalist structure for it to refer to.
  */
 
-static dns_result_t
+static isc_result_t
 diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
 		      dns_rdataset_t *rds)
 {
@@ -594,9 +594,9 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdatalist_t *rdl,
 	return (dns_rdatalist_tordataset(rdl, rds));
 }
 
-dns_result_t
+isc_result_t
 dns_diff_print(dns_diff_t *diff, FILE *file) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *t;
 	char *mem = NULL;
 	unsigned int size = 2048;
@@ -862,7 +862,7 @@ struct dns_journal {
 		isc_uint32_t ttl;		/* Current TTL */
 		unsigned int xsize;		/* Size of transaction data */
 		unsigned int xpos;		/* Current position in it */
-		dns_result_t result;		/* Result of last call */
+		isc_result_t result;		/* Result of last call */
 	} it;
 };
 
@@ -916,7 +916,7 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw)
  *	   "fsync()", so isc_file_t is looking more and more probable.
  */
 
-static dns_result_t
+static isc_result_t
 journal_seek(dns_journal_t *j, isc_uint32_t offset) {
 	int seek_result;
 	seek_result = fseek(j->fp, (long) offset, SEEK_SET);
@@ -930,7 +930,7 @@ journal_seek(dns_journal_t *j, isc_uint32_t offset) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 	size_t nread;
 
@@ -948,7 +948,7 @@ journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 	size_t nwritten;
 
@@ -964,7 +964,7 @@ journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 journal_fsync(dns_journal_t *j) {
 	int r;
 	r = fflush(j->fp);
@@ -988,10 +988,10 @@ journal_fsync(dns_journal_t *j) {
 
 /* Read/write a transaction header at the current file position. */
    
-static dns_result_t
+static isc_result_t
 journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr) {
 	journal_rawxhdr_t raw;
-	dns_result_t result;
+	isc_result_t result;
 	result = journal_read(j, &raw, sizeof(raw));
 	if (result != DNS_R_SUCCESS)
 		return (result);
@@ -1001,7 +1001,7 @@ journal_read_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 journal_write_xhdr(dns_journal_t *j, isc_uint32_t size,
 		   isc_uint32_t serial0, isc_uint32_t serial1)
 {
@@ -1015,10 +1015,10 @@ journal_write_xhdr(dns_journal_t *j, isc_uint32_t size,
 
 /* Read an RR header at the current file position. */
    
-static dns_result_t
+static isc_result_t
 journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr) {
 	journal_rawrrhdr_t raw;
-	dns_result_t result;
+	isc_result_t result;
 	result = journal_read(j, &raw, sizeof(raw));
 	if (result != DNS_R_SUCCESS)
 		return (result);
@@ -1026,7 +1026,7 @@ journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 journal_file_create(isc_mem_t *mctx, const char *filename) {
 	FILE *fp;
 	int r;
@@ -1088,11 +1088,11 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 }
 				    
 
-dns_result_t
+isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp) {
 	FILE *fp;
-	dns_result_t result;
+	isc_result_t result;
 	journal_rawheader_t rawheader;
 	dns_journal_t *j;
 	
@@ -1263,9 +1263,9 @@ ixfr_order(const void *av, const void *bv)
  *    DNS_R_NOMORE 	*pos pointed at the last transaction
  *    Other results due to file errors are possible.
  */
-static dns_result_t
+static isc_result_t
 journal_next(dns_journal_t *j, journal_pos_t *pos) {
-	dns_result_t result;
+	isc_result_t result;
 	journal_xhdr_t xhdr;
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	
@@ -1398,9 +1398,9 @@ index_invalidate(dns_journal_t *j, isc_uint32_t serial)
  * covered by the journal, return DNS_R_RANGE.
  * 
  */
-static dns_result_t
+static isc_result_t
 journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
-	dns_result_t result;
+	isc_result_t result;
 	journal_pos_t current_pos;
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	
@@ -1427,10 +1427,10 @@ journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_begin_transaction(dns_journal_t *j) {
 	isc_uint32_t offset;
-	dns_result_t result;
+	isc_result_t result;
 	journal_rawxhdr_t hdr;
 		
 	REQUIRE(DNS_JOURNAL_VALID(j));
@@ -1467,13 +1467,13 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 	return (result);
 }	
 
-dns_result_t
+isc_result_t
 dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	dns_difftuple_t *t;
 	isc_buffer_t buffer;
 	void *mem = NULL;
 	unsigned int size;
-	dns_result_t result;
+	isc_result_t result;
 	isc_region_t used;
 	
 	REQUIRE(DNS_DIFF_VALID(diff));
@@ -1546,9 +1546,9 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	
 }
 
-dns_result_t
+isc_result_t
 dns_journal_commit(dns_journal_t *j) {
-	dns_result_t result;
+	isc_result_t result;
 	journal_rawheader_t rawheader;
 	unsigned int i;
 	
@@ -1651,9 +1651,9 @@ dns_journal_commit(dns_journal_t *j) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff) {
-	dns_result_t result;
+	isc_result_t result;
 	CHECK(dns_diff_sort(diff, ixfr_order));
 	CHECK(dns_journal_begin_transaction(j));
 	CHECK(dns_journal_writediff(j, diff));
@@ -1693,13 +1693,13 @@ dns_journal_destroy(dns_journal_t **journalp) {
 
 /* XXX Share code with incoming IXFR? */
 
-static dns_result_t
+static isc_result_t
 roll_forward(dns_journal_t *j, dns_db_t *db) {
 	isc_buffer_t source;		/* Transaction data from disk */
 	isc_buffer_t target;		/* Ditto after _fromwire check */
 	isc_uint32_t db_serial;		/* Database SOA serial */
 	isc_uint32_t end_serial;	/* Last journal SOA serial */
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbversion_t *ver = NULL;
 	journal_pos_t pos;
 	dns_diff_t diff;
@@ -1808,10 +1808,10 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	dns_journal_t *j;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(filename != NULL);
@@ -1832,14 +1832,14 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	dns_journal_t *j;
 	isc_buffer_t source;		/* Transaction data from disk */
 	isc_buffer_t target;		/* Ditto after _fromwire check */
 	isc_uint32_t start_serial;		/* Database SOA serial */
 	isc_uint32_t end_serial;	/* Last journal SOA serial */
-	dns_result_t result;
+	isc_result_t result;
 	dns_diff_t diff;
 	unsigned int n_soa = 0;
 	unsigned int n_put = 0;
@@ -1961,7 +1961,7 @@ isc_uint32_t dns_journal_last_serial(dns_journal_t *j) {
  * when we reach the serial number that was current when the IXFR started.
  */
 
-static dns_result_t read_one_rr(dns_journal_t *j);
+static isc_result_t read_one_rr(dns_journal_t *j);
 
 /*
  * Make sure the buffer 'b' is has at least 'size' bytes
@@ -1972,7 +1972,7 @@ static dns_result_t read_one_rr(dns_journal_t *j);
  *	previously allocated by isc_mem_get().
  */
 
-static dns_result_t
+static isc_result_t
 size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned size) {
 	if (b->length < size) {
 		void *mem = isc_mem_get(mctx, size);
@@ -1987,11 +1987,11 @@ size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned size) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_iter_init(dns_journal_t *j,
 		      isc_uint32_t begin_serial, isc_uint32_t end_serial)
 {
-	dns_result_t result;
+	isc_result_t result;
 	
 	CHECK(journal_find(j, begin_serial, &j->it.bpos)); 
 	INSIST(j->it.bpos.serial == begin_serial);
@@ -2006,10 +2006,10 @@ dns_journal_iter_init(dns_journal_t *j,
 }
 
 
-dns_result_t
+isc_result_t
 dns_journal_first_rr(dns_journal_t *j)
 {
-	dns_result_t result;
+	isc_result_t result;
 
 	/* 
 	 * Seek to the beginning of the first transaction we are 
@@ -2027,9 +2027,9 @@ dns_journal_first_rr(dns_journal_t *j)
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 read_one_rr(dns_journal_t *j) {
-	dns_result_t result;
+	isc_result_t result;
 	
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -2137,7 +2137,7 @@ read_one_rr(dns_journal_t *j) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_journal_next_rr(dns_journal_t *j) {
 	j->it.result = read_one_rr(j);
 	return (j->it.result);
@@ -2167,12 +2167,12 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
  * Requires: 'name' must have buffer large enough to hold the name.
  * Typically, a dns_fixedname_t would be used.
  */
-static dns_result_t
+static isc_result_t
 get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 	      dns_dbiterator_t *dbit, dns_name_t *name, dns_diffop_t op,
 	      dns_diff_t *diff)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_difftuple_t *tuple = NULL;
@@ -2248,10 +2248,10 @@ rdata_order(const void *av, const void *bv)
 	return (r);
 }
 
-static dns_result_t
+static isc_result_t
 dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *p[2];
 	int i, t;
 	CHECK(dns_diff_sort(&diff[0], rdata_order));
@@ -2300,7 +2300,7 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
  * possibly very large transaction.
  */
 
-dns_result_t
+isc_result_t
 dns_db_diff(isc_mem_t *mctx,
 	    dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,
@@ -2311,7 +2311,7 @@ dns_db_diff(isc_mem_t *mctx,
 	dns_dbiterator_t *dbit[2] = { NULL, NULL };
 	isc_boolean_t have[2] = { ISC_FALSE, ISC_FALSE };
 	dns_fixedname_t fixname[2];
-	dns_result_t result, itresult[2];
+	isc_result_t result, itresult[2];
 	dns_diff_t diff[2], resultdiff;
 	int i, t;
 	dns_journal_t *journal = NULL;

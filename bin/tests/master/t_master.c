@@ -37,19 +37,19 @@
 #define	BUFLEN		255
 #define	BIGBUFLEN	(64 * 1024)
 
-static dns_result_t	t1_add_callback(void *arg, dns_name_t *owner,
+static isc_result_t	t1_add_callback(void *arg, dns_name_t *owner,
 					dns_rdataset_t *dataset);
 static void		t1(void);
 
 isc_mem_t	*T1_mctx;
 char		*Tokens[T_MAXTOKS + 1];
 
-static dns_result_t
+static isc_result_t
 t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
-	dns_result_t result;
+	isc_result_t result;
 	
 	arg = arg;	/*unused*/
 
@@ -63,11 +63,13 @@ t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 }
 
 static int
-test_master(char *testfile, char *origin, char *class, dns_result_t exp_result) {
+test_master(char *testfile, char *origin, char *class,
+	    isc_result_t exp_result)
+{
 	int			result;
 	int			len;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_name_t		dns_origin;
 	isc_buffer_t		source;
 	isc_buffer_t		target;

@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.14 1999/09/15 23:03:30 explorer Exp $ */
+ /* $Id: null_10.c,v 1.15 1999/12/23 00:08:56 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
 
-static inline dns_result_t
+static inline isc_result_t
 fromtext_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -38,7 +38,7 @@ fromtext_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
@@ -53,7 +53,7 @@ totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -70,7 +70,7 @@ fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 towire_null(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 10);
@@ -91,7 +91,7 @@ compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (0);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
@@ -106,7 +106,7 @@ fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_rdata_null_t *null = target;
 
@@ -128,7 +128,7 @@ freestruct_null(void *source) {
 	/* No action required. */
 }
 
-static inline dns_result_t
+static inline isc_result_t
 additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
@@ -140,7 +140,7 @@ additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 digest_null(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata->type == 10);

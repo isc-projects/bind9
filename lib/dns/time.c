@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: time.c,v 1.4 1999/10/08 23:58:07 tale Exp $ */
+ /* $Id: time.c,v 1.5 1999/12/23 00:08:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 
 static int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-dns_result_t
+isc_result_t
 dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	struct tm tm;
 	char buf[sizeof "YYYYMMDDHHMMSS"];
@@ -89,7 +89,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 	isc_int64_t start;
 	isc_int64_t base;
@@ -106,7 +106,7 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target) {
 	return (dns_time64_totext(t, target));
 }
 
-dns_result_t
+isc_result_t
 dns_time64_fromtext(char *source, isc_int64_t *target) {
 	int year, month, day, hour, minute, second;
 	isc_int64_t value;
@@ -148,11 +148,11 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_time32_fromtext(char *source, isc_uint32_t *target) {
 	isc_int64_t value64;
 	isc_int32_t value32;
-	dns_result_t result;
+	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != DNS_R_SUCCESS)
 		return (result);

@@ -38,7 +38,7 @@ ISC_LANG_BEGINDECLS
  ***	Function
  ***/
 
-dns_result_t dns_master_loadfile(const char *master_file,
+isc_result_t dns_master_loadfile(const char *master_file,
 				 dns_name_t *top,
 				 dns_name_t *origin,
 				 dns_rdataclass_t zclass,
@@ -48,7 +48,7 @@ dns_result_t dns_master_loadfile(const char *master_file,
 				 dns_rdatacallbacks_t *callbacks,
 				 isc_mem_t *mctx);
 
-dns_result_t dns_master_loadstream(FILE *stream,
+isc_result_t dns_master_loadstream(FILE *stream,
 				   dns_name_t *top,
 				   dns_name_t *origin,
 				   dns_rdataclass_t zclass,
@@ -58,7 +58,7 @@ dns_result_t dns_master_loadstream(FILE *stream,
 				   dns_rdatacallbacks_t *callbacks,
 				   isc_mem_t *mctx);
 
-dns_result_t dns_master_loadbuffer(isc_buffer_t *buffer,
+isc_result_t dns_master_loadbuffer(isc_buffer_t *buffer,
 				   dns_name_t *top,
 				   dns_name_t *origin,
 				   dns_rdataclass_t zclass,

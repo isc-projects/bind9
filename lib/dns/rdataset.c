@@ -124,7 +124,7 @@ question_disassociate(dns_rdataset_t *rdataset) {
 	(void)rdataset;
 }
 
-static dns_result_t
+static isc_result_t
 question_cursor(dns_rdataset_t *rdataset) {
 	(void)rdataset;
 	return (DNS_R_NOMORE);
@@ -212,7 +212,7 @@ dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	(source->methods->clone)(source, target);
 }
 
-dns_result_t
+isc_result_t
 dns_rdataset_first(dns_rdataset_t *rdataset) {
 
 	/*
@@ -225,7 +225,7 @@ dns_rdataset_first(dns_rdataset_t *rdataset) {
 	return ((rdataset->methods->first)(rdataset));
 }
 
-dns_result_t
+isc_result_t
 dns_rdataset_next(dns_rdataset_t *rdataset) {
 
 	/*
@@ -251,7 +251,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	(rdataset->methods->current)(rdataset, rdata);
 }
 
-dns_result_t
+isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
@@ -260,7 +260,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 {
 	dns_rdata_t rdata;
 	isc_region_t r;
-	dns_result_t result;
+	isc_result_t result;
 	unsigned int count;
 	isc_buffer_t savedbuffer, rdlen;
 	unsigned int headlen;
@@ -365,12 +365,12 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 			    dns_additionaldatafunc_t add, void *arg)
 {
 	dns_rdata_t rdata;
-	dns_result_t result;
+	isc_result_t result;
 
 	/*
 	 * For each rdata in rdataset, call 'add' for each name and type in the

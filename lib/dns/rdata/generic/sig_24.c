@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.25 1999/10/08 23:54:40 tale Exp $ */
+ /* $Id: sig_24.c,v 1.26 1999/12/23 00:08:57 explorer Exp $ */
 
  /* RFC 2065 */
 
 #ifndef RDATA_GENERIC_SIG_24_C
 #define RDATA_GENERIC_SIG_24_C
 
-static inline dns_result_t
+static inline isc_result_t
 fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -33,7 +33,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_rdatatype_t covered;
 	isc_textregion_t *tsr;
 	char *e;
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
 	isc_uint32_t time_signed, time_expire;
@@ -100,7 +100,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	      isc_buffer_t *target) 
 {
@@ -186,7 +186,7 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return DNS_R_SUCCESS;
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromwire_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -229,7 +229,7 @@ fromwire_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return(mem_tobuffer(target, sr.base, sr.length));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 towire_sig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
@@ -304,7 +304,7 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
@@ -361,7 +361,7 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t sr;
 	dns_rdata_generic_sig_t *sig;
@@ -454,7 +454,7 @@ freestruct_sig(void *source) {
 		isc_mem_put(sig->mctx, sig->signature, sig->siglen);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 additionaldata_sig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
@@ -466,7 +466,7 @@ additionaldata_sig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 digest_sig(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 
 	REQUIRE(rdata->type == 24);

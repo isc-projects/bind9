@@ -73,7 +73,7 @@ typedef struct dns_rbtnode {
 	unsigned int references:DNS_RBT_REFLENGTH;
 } dns_rbtnode_t;
 
-typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
+typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 					      dns_name_t *name,
 					      void *callback_arg);
 
@@ -178,7 +178,7 @@ typedef struct dns_rbtnodechain {
  ***** Public interfaces.
  *****/
 
-dns_result_t
+isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	       void *deleter_arg, dns_rbt_t **rbtp);
 /*
@@ -208,7 +208,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
  *	DNS_R_NOMEMORY	Resource limit: Out of Memory
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
 /*
  * Add 'name' to the tree of trees, associated with 'data'.
@@ -249,7 +249,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
 
 /*
@@ -285,7 +285,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
  *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 		 dns_name_t *foundname, void **data);
 /*
@@ -319,7 +319,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
  *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
 		 isc_boolean_t empty_data_ok, dns_rbtfindcallback_t callback,
@@ -421,7 +421,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	DNS_R_NOSPACE 		Concatenating nodes to form foundname failed
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse);
 /*
  * Delete 'name' from the tree of trees.
@@ -559,7 +559,7 @@ dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
  *	'chain' is no longer suitable for use, and uses no dynamic storage.
  */
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			 dns_name_t *origin, dns_rbtnode_t **node);
 /*
@@ -599,7 +599,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	<something_else>	Any error return from dns_name_concatenate.
  */
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin);
 /*
@@ -625,7 +625,7 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *	<something_else>	Any error result from dns_rbtnodechain_current.
  */
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin);
 /*
@@ -647,7 +647,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *	<something_else>	Any error result from dns_name_concatenate.
  */
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
 /*
@@ -677,7 +677,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	<something_else>	Any error result from dns_rbtnodechain_current.
  */
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
 /*

@@ -74,31 +74,31 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
-	dns_result_t	(*beginload)(dns_db_t *db, dns_addrdatasetfunc_t *addp,
+	isc_result_t	(*beginload)(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 				     dns_dbload_t **dbloadp);
-	dns_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
-	dns_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
+	isc_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
+	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
 				const char *filename);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
-	dns_result_t	(*newversion)(dns_db_t *db,
+	isc_result_t	(*newversion)(dns_db_t *db,
 				      dns_dbversion_t **versionp);
 	void		(*attachversion)(dns_db_t *db, dns_dbversion_t *source,
 					 dns_dbversion_t **targetp);
 	void		(*closeversion)(dns_db_t *db,
 					dns_dbversion_t **versionp,
 					isc_boolean_t commit);
-	dns_result_t	(*findnode)(dns_db_t *db, dns_name_t *name,
+	isc_result_t	(*findnode)(dns_db_t *db, dns_name_t *name,
 				    isc_boolean_t create,
 				    dns_dbnode_t **nodep);
-	dns_result_t	(*find)(dns_db_t *db, dns_name_t *name,
+	isc_result_t	(*find)(dns_db_t *db, dns_name_t *name,
 				dns_dbversion_t *version,
 				dns_rdatatype_t type, unsigned int options,
 				isc_stdtime_t now,
 				dns_dbnode_t **nodep, dns_name_t *foundname,
 				dns_rdataset_t *rdataset,
 				dns_rdataset_t *sigrdataset);
-	dns_result_t	(*findzonecut)(dns_db_t *db, dns_name_t *name,
+	isc_result_t	(*findzonecut)(dns_db_t *db, dns_name_t *name,
 				       unsigned int options, isc_stdtime_t now,
 				       dns_dbnode_t **nodep,
 				       dns_name_t *foundname,
@@ -109,35 +109,35 @@ typedef struct dns_dbmethods {
 				      dns_dbnode_t **targetp);
 	void		(*detachnode)(dns_db_t *db,
 				      dns_dbnode_t **targetp);
-	dns_result_t	(*expirenode)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*expirenode)(dns_db_t *db, dns_dbnode_t *node,
 				      isc_stdtime_t now);
 	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
 				     FILE *out);
-	dns_result_t 	(*createiterator)(dns_db_t *db,
+	isc_result_t 	(*createiterator)(dns_db_t *db,
 					  isc_boolean_t relative_names,
 					  dns_dbiterator_t **iteratorp);
-	dns_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
 					dns_rdatatype_t covers,
 					isc_stdtime_t now,
 					dns_rdataset_t *rdataset,
 					dns_rdataset_t *sigrdataset);
-	dns_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					isc_stdtime_t now,
 					dns_rdatasetiter_t **iteratorp);
-	dns_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				       dns_dbversion_t *version,
 				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset,
 				       isc_boolean_t merge,
 				       dns_rdataset_t *addedrdataset);
-	dns_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					    dns_dbversion_t *version,
 					    dns_rdataset_t *rdataset,
 					    dns_rdataset_t *newrdataset);
-	dns_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
+	isc_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
@@ -189,7 +189,7 @@ struct dns_db {
  *** Basic DB Methods
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
 	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp);
@@ -341,7 +341,7 @@ dns_db_class(dns_db_t *db);
  *	The class of the database.
  */
 
-dns_result_t
+isc_result_t
 dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 		 dns_dbload_t **dbloadp);
 /*
@@ -372,7 +372,7 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
  *	implementation used, syntax errors in the master file, etc.
  */
 
-dns_result_t
+isc_result_t
 dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
 /*
  * Finish loading 'db'.
@@ -396,7 +396,7 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
  *	implementation used, syntax errors in the master file, etc.
  */
 
-dns_result_t
+isc_result_t
 dns_db_load(dns_db_t *db, const char *filename);
 /*
  * Load master file 'filename' into 'db'.
@@ -423,7 +423,7 @@ dns_db_load(dns_db_t *db, const char *filename);
  *	implementation used, syntax errors in the master file, etc.
  */
 
-dns_result_t
+isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
 /*
  * Dump version 'version' of 'db' to master file 'filename'.
@@ -464,7 +464,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  */
 
-dns_result_t
+isc_result_t
 dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
 /*
  * Open a new version for reading and writing.
@@ -542,7 +542,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *** Node Methods
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		dns_dbnode_t **nodep);
 /*
@@ -580,7 +580,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  *	implementation used.
  */
 
-dns_result_t
+isc_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -728,7 +728,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		errors.
  */
 
-dns_result_t
+isc_result_t
 dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
 		   unsigned int options, isc_stdtime_t now,
 		   dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -810,7 +810,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  *	*nodep is NULL.
  */
 
-dns_result_t
+isc_result_t
 dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now);
 /*
  * Mark as stale all records at 'node' which expire at or before 'now'.
@@ -843,7 +843,7 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
  *** DB Iterator Creation
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 		      dns_dbiterator_t **iteratorp);
 /*
@@ -879,7 +879,7 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
  * XXXRTH  Should we check for glue and pending data in dns_db_findrdataset()?
  */
 
-dns_result_t
+isc_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
 		    isc_stdtime_t now, dns_rdataset_t *rdataset,
@@ -928,7 +928,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
-dns_result_t
+isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp);
 /*
@@ -966,7 +966,7 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
-dns_result_t
+isc_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
 		   isc_boolean_t merge, dns_rdataset_t *addedrdataset);
@@ -1015,7 +1015,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
-dns_result_t
+isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
 			dns_rdataset_t *newrdataset);
@@ -1054,7 +1054,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	implementation used.
  */
 
-dns_result_t
+isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		      dns_dbversion_t *version, dns_rdatatype_t type);
 /*

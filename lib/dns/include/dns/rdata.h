@@ -192,7 +192,7 @@ void dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r);
  * Make 'r' refer to 'rdata'.
  */
 
-dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
+isc_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
 				dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				isc_buffer_t *source,
 				dns_decompress_t *dctx,
@@ -237,7 +237,7 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
+isc_result_t dns_rdata_towire(dns_rdata_t *rdata,
 			      dns_compress_t *cctx,
 			      isc_buffer_t *target);
 /*
@@ -266,7 +266,7 @@ dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
+isc_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
 				dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				isc_lex_t *lexer,
 				dns_name_t *origin,
@@ -312,7 +312,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
+isc_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
@@ -345,7 +345,7 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
+isc_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 				 unsigned int flags, unsigned int width,
 				 char *linebreak, isc_buffer_t *target);
 /*
@@ -371,7 +371,7 @@ dns_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
  * output is selected. 
  */
 
-dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
+isc_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
 				  dns_rdataclass_t rdclass,
 				  dns_rdatatype_t type,
 				  void *source,
@@ -402,7 +402,7 @@ dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *	Resource Limit: Not enough space
  */
 
-dns_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
+isc_result_t dns_rdata_tostruct(dns_rdata_t *rdata, void *target,
 				isc_mem_t *mctx);
 /*
  * Convert an rdata into its C structure representation.
@@ -469,7 +469,7 @@ isc_boolean_t dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
  *
  */
 
-dns_result_t
+isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			 void *arg);
 /*
@@ -497,7 +497,7 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
  *	Many other results are possible if not successful.
  */
 
-dns_result_t
+isc_result_t
 dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
 /*
  * Send 'rdata' in DNSSEC canonical form to 'digest'.
@@ -542,7 +542,7 @@ dns_rdata_covers(dns_rdata_t *rdata);
  *	The type covered.
  */
 
-dns_result_t
+isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
 
 ISC_LANG_ENDDECLS

@@ -38,7 +38,7 @@ dns_dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	ENSURE(*iteratorp == NULL);
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_first(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the first node in the database (if any).
@@ -49,7 +49,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator) {
 	return (iterator->methods->first(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_last(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the first node in the database (if any).
@@ -60,7 +60,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator) {
 	return (iterator->methods->last(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	/*
 	 * Move the node cursor to the node with name 'name'.
@@ -71,7 +71,7 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	return (iterator->methods->seek(iterator, name));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_prev(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the previous node in the database (if any).
@@ -82,7 +82,7 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator) {
 	return (iterator->methods->prev(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_next(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the next node in the database (if any).
@@ -93,7 +93,7 @@ dns_dbiterator_next(dns_dbiterator_t *iterator) {
 	return (iterator->methods->next(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		       dns_name_t *name)
 {
@@ -108,7 +108,7 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	return (iterator->methods->current(iterator, nodep, name));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 	/*
 	 * Pause iteration.
@@ -119,7 +119,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator) {
 	return (iterator->methods->pause(iterator));
 }
 
-dns_result_t
+isc_result_t
 dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 
 	/*

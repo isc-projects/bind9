@@ -40,7 +40,7 @@ struct dns_zt {
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
 static void auto_detach(void *, void *);
-static dns_result_t load(dns_zone_t *zone, void *uap);
+static isc_result_t load(dns_zone_t *zone, void *uap);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -221,15 +221,15 @@ dns_zt_load(dns_zt_t *zt) {
 	(void)dns_zt_apply(zt, ISC_FALSE, load, NULL);
 }
 
-static dns_result_t
+static isc_result_t
 load(dns_zone_t *zone, void *uap) {
 	uap = uap;
 	return (dns_zone_load(zone));
 }
 
-dns_result_t
+isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
-	     dns_result_t (*action)(dns_zone_t *, void *), void *uap)
+	     isc_result_t (*action)(dns_zone_t *, void *), void *uap)
 {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;

@@ -44,7 +44,7 @@
 #include <dns/masterdump.h>
 
 #define RETERR(x) do { \
-	dns_result_t __r = (x); \
+	isc_result_t __r = (x); \
 	if (__r != DNS_R_SUCCESS) \
 		return (__r); \
 	} while (0)
@@ -167,7 +167,7 @@ char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
  * column 'to', and update '*current' to reflect the new
  * current column.
  */
-static dns_result_t
+static isc_result_t
 indent(unsigned int *current, unsigned int to, int tabwidth,
        isc_buffer_t *target)
 {
@@ -227,10 +227,10 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 {
-	dns_result_t result;
+	isc_result_t result;
 	
 	ctx->style = *style;
 	REQUIRE(style->tab_width != 0);
@@ -298,14 +298,14 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
  * one label.
  */
 
-static dns_result_t
+static isc_result_t
 rdataset_totext(dns_rdataset_t *rdataset,
 		dns_name_t *owner_name,
 		dns_totext_ctx_t *ctx,
 		isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
 {
-	dns_result_t result;
+	isc_result_t result;
 	unsigned int column;
 	isc_boolean_t first = ISC_TRUE;
 	isc_uint32_t current_ttl;
@@ -437,7 +437,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
  * such as those used to represent the question section
  * of a DNS message.
  */
-static dns_result_t
+static isc_result_t
 question_totext(dns_rdataset_t *rdataset,
 		dns_name_t *owner_name,
 		dns_totext_ctx_t *ctx,
@@ -445,7 +445,7 @@ question_totext(dns_rdataset_t *rdataset,
 		isc_buffer_t *target)
 {
 	unsigned int column;
-	dns_result_t result;
+	isc_result_t result;
 	isc_region_t r;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
@@ -499,7 +499,7 @@ question_totext(dns_rdataset_t *rdataset,
  * single rdataset or question section.  This is now used 
  * only by wire_test.c.
  */
-dns_result_t
+isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
@@ -507,7 +507,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    isc_buffer_t *target)
 {
 	dns_totext_ctx_t ctx;
-	dns_result_t result;
+	isc_result_t result;
 	result = totext_ctx_init(&dns_masterfile_style_debug, &ctx);
 	if (result != DNS_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -539,13 +539,13 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * the buffer will be grown automatically.
  */
 
-static dns_result_t
+static isc_result_t
 dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 	      dns_totext_ctx_t *ctx, 
 	      isc_buffer_t *buffer, FILE *f)
 {
 	isc_region_t r;
-	dns_result_t result;
+	isc_result_t result;
 	size_t nwritten;
 	
 	REQUIRE(buffer->length > 0);
@@ -615,12 +615,12 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 /*
  * Dump all the rdatasets of a domain name to a master file.
  */
-static dns_result_t
+static isc_result_t
 dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter, 
 	       dns_totext_ctx_t *ctx,
 	       isc_buffer_t *buffer, FILE *f)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataset_t rdataset;
 	
 	dns_rdataset_init(&rdataset);
@@ -666,7 +666,7 @@ const int initial_buffer_length = 1200;
 /*
  * Dump an entire database into a master file.
  */
-static dns_result_t
+static isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
 			const dns_master_style_t *style,
@@ -675,7 +675,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	dns_fixedname_t fixname;
 	dns_name_t *name;
 	dns_dbiterator_t *dbiter = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	isc_buffer_t buffer;
 	char *bufmem;
 	isc_stdtime_t now;
@@ -773,12 +773,12 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 }
 
 
-dns_result_t
+isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		const dns_master_style_t *style, const char *filename)
 {
 	FILE *f;
-	dns_result_t result;
+	isc_result_t result;
 	
 	f = fopen(filename, "w");
 	if (f == NULL) {

@@ -26,8 +26,6 @@
 
 ISC_LANG_BEGINDECLS
 
-typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
-
 /*
  * XXXRTH  Legacy result codes, to be eliminated before public release.
  */

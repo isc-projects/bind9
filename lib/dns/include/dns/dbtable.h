@@ -46,7 +46,7 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-dns_result_t
+isc_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep);
 /*
@@ -97,7 +97,7 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep);
  *		All resources used by the dbtable will be freed
  */
 
-dns_result_t
+isc_result_t
 dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db);
 /*
  * Add 'db' to 'dbtable'.
@@ -137,7 +137,7 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable);
  * Remove the default db from 'dbtable'.
  */
 
-dns_result_t
+isc_result_t
 dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp);
 /*
  * Find the deepest match to 'name' in the dbtable, and return it

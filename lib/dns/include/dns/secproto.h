@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
+isc_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
 				   isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC security protocol value.
@@ -42,7 +42,8 @@ dns_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
  *	DNS_R_RANGE			numeric type is out of range
  */
 
-dns_result_t dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
+isc_result_t
+dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
 /*
  * Put a textual representation of the DNSSEC security protocol 'secproto'
  * into 'target'.

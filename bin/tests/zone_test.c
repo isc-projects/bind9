@@ -63,7 +63,7 @@ usage() {
 
 static void
 setup(char *zonename, char *filename, char *classname) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataclass_t rdclass;
 	isc_textregion_t region;
 
@@ -106,7 +106,7 @@ static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         isc_buffer_t text;
         char t[1000];
-        dns_result_t result;
+        isc_result_t result;
         isc_region_t r;
 
         isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
@@ -127,7 +127,7 @@ query(void) {
 	dns_db_t *db;
 	char *s;
 	isc_buffer_t buffer;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t sigset;
 	fd_set rfdset;

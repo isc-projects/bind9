@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
+isc_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
 				 isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC security algorithm value.
@@ -42,7 +42,7 @@ dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
  *	DNS_R_RANGE			numeric type is out of range
  */
 
-dns_result_t dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
+isc_result_t dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
 /*
  * Put a textual representation of the DNSSEC security algorithm 'secalg'
  * into 'target'.

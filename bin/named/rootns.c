@@ -66,7 +66,7 @@ static char root_ns[] =
 
 isc_result_t
 ns_rootns_init(void) {
-	dns_result_t result, eresult;
+	isc_result_t result, eresult;
 	isc_buffer_t source;
 	size_t len;
 	int soacount, nscount;

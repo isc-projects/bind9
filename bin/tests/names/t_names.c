@@ -347,14 +347,14 @@ hname_to_tname(char *src, char *target, size_t len) {
  *
  */
 
-static dns_result_t
+static isc_result_t
 dname_from_tname(char *name, dns_name_t *dns_name)
 {
 	int		len;
 	isc_buffer_t	txtbuf;
 	isc_buffer_t	*binbuf;
 	unsigned char	*junk;
-	dns_result_t	result;
+	isc_result_t	result;
 
 	len = strlen(name);
 	isc_buffer_init(&txtbuf, name, len, ISC_BUFFERTYPE_TEXT);
@@ -385,7 +385,7 @@ test_dns_label_countbits(char *test_name, int pos, int expected_bits) {
 	dns_name_t	dns_name;
 	int		bits;
 	int		rval;
-	dns_result_t	result;
+	isc_result_t	result;
 
 	rval = T_UNRESOLVED;
 	t_info("testing name %s, label %d\n", test_name, pos);
@@ -466,7 +466,7 @@ test_dns_label_getbit(char *test_name, int label_pos, int bit_pos,
 	dns_name_t	dns_name;
 	int		bitval;
 	int		rval;
-	dns_result_t	result;
+	isc_result_t	result;
 
 	rval = T_UNRESOLVED;
 
@@ -709,7 +709,7 @@ test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
 	int		len;
 	int		rval;
 	isc_boolean_t	isabs_p;
-	dns_result_t	result;
+	isc_result_t	result;
 
 	rval = T_UNRESOLVED;
 
@@ -798,7 +798,7 @@ test_dns_name_hash(char *test_name1, char *test_name2,
 	unsigned int	hash2;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
-	dns_result_t	result;
+	isc_result_t	result;
 
 	rval = T_UNRESOLVED;
 	failures = 0;
@@ -939,7 +939,7 @@ test_dns_name_fullcompare(char *name1, char *name2, dns_namereln_t exp_dns_reln,
 	unsigned int	nbits;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_namereln_t	dns_reln;
 
 	nfails = 0;
@@ -1073,7 +1073,7 @@ test_dns_name_compare(char *name1, char *name2, int exp_order) {
 
 	int		result;
 	int		order;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 
@@ -1171,7 +1171,7 @@ test_dns_name_rdatacompare(char *name1, char *name2, int exp_order) {
 
 	int		result;
 	int		order;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 
@@ -1270,7 +1270,7 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 
 	int		result;
 	isc_boolean_t	rval;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 
@@ -1366,7 +1366,7 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 
 	int		result;
 	unsigned int	nlabels;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_name_t	dns_name;
 
 	result = T_UNRESOLVED;
@@ -1462,7 +1462,7 @@ test_dns_name_getlabel(char *test_name1, int label1_pos,
 	dns_name_t	dns_name2;
 	dns_label_t	dns_label1;
 	dns_label_t	dns_label2;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 
 	nfails = 0;
 	result = T_UNRESOLVED;
@@ -1576,7 +1576,7 @@ test_dns_name_getlabelsequence(char *test_name1, int label1_start,
 	dns_name_t	dns_name2;
 	dns_name_t	dns_targetname1;
 	dns_name_t	dns_targetname2;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	isc_buffer_t	buffer1;
 	isc_buffer_t	buffer2;
 	unsigned char	junk1[BUFLEN];
@@ -1694,7 +1694,7 @@ test_dns_name_fromregion(char *test_name) {
 	int		order;
 	unsigned int	nlabels;
 	unsigned int	nbits;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 	dns_namereln_t	dns_namereln;
@@ -1846,7 +1846,7 @@ test_dns_name_fromtext(char *test_name1, char *test_name2,
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 	dns_name_t	dns_name3;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_namereln_t	dns_namereln;
 
 	result = T_UNRESOLVED;
@@ -1983,7 +1983,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	isc_buffer_t	buf3;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_namereln_t	dns_namereln;
 
 	result = T_UNRESOLVED;
@@ -2124,7 +2124,7 @@ test_dns_name_fromwire( char *datafile_name,
 			int downcase,
 			int dc_method,
 			char *exp_name,
-			dns_result_t exp_result,
+			isc_result_t exp_result,
 			size_t buflen) {
 
 	int			result;
@@ -2138,7 +2138,7 @@ test_dns_name_fromwire( char *datafile_name,
 	isc_buffer_t		iscbuf2;
 	dns_name_t		dns_name1;
 	dns_name_t		dns_name2;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_namereln_t		dns_namereln;
 	dns_decompress_t	dctx;
 
@@ -2201,7 +2201,7 @@ t_dns_name_fromwire_x(char *testfile, size_t buflen) {
 	int		cnt;
 	int		result;
 	int		dc_method;
-	dns_result_t	exp_result;
+	isc_result_t	exp_result;
 	char		*p;
 	char		*tok;
 	FILE		*fp;
@@ -2332,7 +2332,7 @@ test_dns_name_towire(	char *testname,
 			int dc_method,
 			char *exp_data,
 			int exp_data_len,
-			dns_result_t exp_result,
+			isc_result_t exp_result,
 			size_t buflen) {
 
 	int			result;
@@ -2344,7 +2344,7 @@ test_dns_name_towire(	char *testname,
 	isc_buffer_t		iscbuf2;
 	isc_buffer_t		iscbuf3;
 	dns_name_t		dns_name;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	dns_compress_t		cctx;
 	isc_mem_t		*mctx;
@@ -2405,7 +2405,7 @@ t_dns_name_towire_x(char *testfile, size_t buflen) {
 	int		cnt;
 	int		result;
 	int		dc_method;
-	dns_result_t	exp_result;
+	isc_result_t	exp_result;
 	char		*p;
 	FILE		*fp;
 

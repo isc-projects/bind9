@@ -35,7 +35,7 @@ typedef struct {
 	void		       *arg;
 	isc_event_t		event;
 	/* public (read-only) */
-	dns_result_t		result;
+	isc_result_t		result;
 	isc_sockaddr_t		address;
 } dns_tcpmsg_t;
 
@@ -70,7 +70,7 @@ dns_tcpmsg_setmaxsize(dns_tcpmsg_t *tcpmsg, unsigned int maxsize);
  *	512 <= "maxsize" <= 65536
  */
 
-dns_result_t
+isc_result_t
 dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 		       isc_task_t *task, isc_taskaction_t action, void *arg);
 /*

@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.11 1999/09/15 23:03:28 explorer Exp $ */
+ /* $Id: dname_39.c,v 1.12 1999/12/23 00:08:52 explorer Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
 #ifndef RDATA_GENERIC_DNAME_39_C
 #define RDATA_GENERIC_DNAME_39_C
 
-static inline dns_result_t
+static inline isc_result_t
 fromtext_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target)
@@ -43,7 +43,7 @@ fromtext_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 totext_dname(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	     isc_buffer_t *target) 
 {
@@ -65,7 +65,7 @@ totext_dname(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromwire_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target)
@@ -84,7 +84,7 @@ fromwire_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return(dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
@@ -126,7 +126,7 @@ compare_dname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
@@ -141,7 +141,7 @@ fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	REQUIRE(rdata->type == 39);
@@ -159,7 +159,7 @@ freestruct_dname(void *source) {
 	REQUIRE(ISC_FALSE);	/* XXX */
 }
 
-static inline dns_result_t
+static inline isc_result_t
 additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
@@ -171,7 +171,7 @@ additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 digest_dname(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r;
 	dns_name_t name;

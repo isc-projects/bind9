@@ -158,7 +158,7 @@ create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
  */
 static isc_result_t
 create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_zone_t *zone = NULL;
 	dns_dbversion_t *dbver = NULL;

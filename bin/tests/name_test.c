@@ -50,7 +50,7 @@ print_wirename(isc_region_t *name) {
 int
 main(int argc, char *argv[]) {
 	char s[1000];
-	dns_result_t result;
+	isc_result_t result;
 	dns_fixedname_t wname, wname2, oname, compname, downname;
 	isc_buffer_t source;
 	isc_region_t r;

@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
+isc_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
 				     isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS class.
@@ -40,7 +40,7 @@ dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
  *	DNS_R_NOTIMPLEMENTED		class is known, but not implemented
  */
 
-dns_result_t dns_rdataclass_totext(dns_rdataclass_t rdclass,
+isc_result_t dns_rdataclass_totext(dns_rdataclass_t rdclass,
 				   isc_buffer_t *target);
 /*
  * Put a textual representation of class 'rdclass' into 'target'.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.14 1999/09/15 23:03:35 explorer Exp $ */
+ /* $Id: aaaa_28.c,v 1.15 1999/12/23 00:09:02 explorer Exp $ */
 
  /* RFC 1886 */
 
@@ -26,7 +26,7 @@
 
 #include <isc/net.h>
 
-static inline dns_result_t
+static inline isc_result_t
 fromtext_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		 isc_lex_t *lexer, dns_name_t *origin,
 		 isc_boolean_t downcase, isc_buffer_t *target)
@@ -53,7 +53,7 @@ fromtext_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	       isc_buffer_t *target) 
 {
@@ -74,7 +74,7 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		 isc_buffer_t *source, dns_decompress_t *dctx,
 		 isc_boolean_t downcase, isc_buffer_t *target)
@@ -102,7 +102,7 @@ fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -135,7 +135,7 @@ compare_in_aaaa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (result);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   void *source, isc_buffer_t *target)
 {
@@ -149,7 +149,7 @@ fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 28);
@@ -167,7 +167,7 @@ freestruct_in_aaaa(void *source) {
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 
-static inline dns_result_t
+static inline isc_result_t
 additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		       void *arg)
 {
@@ -180,7 +180,7 @@ additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 digest_in_aaaa(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r;
 

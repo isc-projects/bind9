@@ -29,7 +29,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+isc_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 			   dns_zt_t **zt);
 /*
  * Creates a new zone table.
@@ -42,7 +42,7 @@ dns_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  *	DNS_R_NOMEMORY
  */
 
-dns_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
+isc_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
 
 /*
  * Mounts the zone on the zone table.
@@ -58,7 +58,7 @@ dns_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
  *	DNS_R_NOMEMORY
  */
 
-dns_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
+isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
 
 /*
  * Unmount the given zone from the table.
@@ -73,7 +73,7 @@ dns_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
  *	DNS_R_NOMEMORY
  */
 
-dns_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
+isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
 				dns_name_t *foundname, dns_zone_t **zone);
 
 /*
@@ -132,9 +132,9 @@ void dns_zt_print(dns_zt_t *zt);
  *	'zt' to be valid.
  */
 
-dns_result_t
+isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
-	     dns_result_t (*action)(dns_zone_t *, void *), void *uap);
+	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
 
 /*
  * Apply a given 'action' to all zone zones in the table.

@@ -58,7 +58,7 @@ ISC_LANG_BEGINDECLS
  *** Functions
  ***/
 
-dns_result_t
+isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, unsigned int reservelen);
 /*
@@ -91,7 +91,7 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  *	The number of bytes in the slab, including the reservelen.
  */
 
-dns_result_t
+isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -102,7 +102,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
  * XXX
  */
 
-dns_result_t
+isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,

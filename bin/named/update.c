@@ -153,7 +153,7 @@ typedef struct update_event update_event_t;
 struct update_event {
 	ISC_EVENT_COMMON(update_event_t);
 	dns_zone_t 		*zone;
-	dns_result_t		result;
+	isc_result_t		result;
 	
 };
 
@@ -175,13 +175,13 @@ static void updatedone_action(isc_task_t *task, isc_event_t *event);
  *   '*tuple' == NULL.  Either the tuple is freed, or its
  *         ownership has been transferred to the diff.
  */
-static dns_result_t
+static isc_result_t
 do_one_tuple(dns_difftuple_t **tuple,
 	     dns_db_t *db, dns_dbversion_t *ver,
 	     dns_diff_t *diff)
 {
 	dns_diff_t temp_diff;
-	dns_result_t result;
+	isc_result_t result;
 	
 	/* Create a singleton diff */
 	dns_diff_init(diff->mctx, &temp_diff);
@@ -202,13 +202,13 @@ do_one_tuple(dns_difftuple_t **tuple,
 	return (DNS_R_SUCCESS);
 }
 	      
-static dns_result_t
+static isc_result_t
 update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 	      dns_diffop_t op, dns_name_t *name, 
 	      dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	dns_difftuple_t *tuple = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	result = dns_difftuple_create(diff->mctx, op,
 				      name, ttl, rdata, &tuple);
 	if (result != DNS_R_SUCCESS)
@@ -237,10 +237,10 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
  */
 
 /* Function type for foreach_rrset() iterator actions. */
-typedef dns_result_t rrset_func(void *data, dns_rdataset_t *rrset);
+typedef isc_result_t rrset_func(void *data, dns_rdataset_t *rrset);
 
 /* Function type for foreach_rr() iterator actions. */
-typedef dns_result_t rr_func(void *data, rr_t *rr);
+typedef isc_result_t rr_func(void *data, rr_t *rr);
 
 /* Internal context struct for foreach_node_rr(). */
 typedef struct {
@@ -249,10 +249,10 @@ typedef struct {
 } foreach_node_rr_ctx_t;
 
 /* Internal helper function for foreach_node_rr(). */
-static dns_result_t
+static isc_result_t
 foreach_node_rr_action(void *data, dns_rdataset_t *rdataset)
 {
-	dns_result_t result;
+	isc_result_t result;
 	foreach_node_rr_ctx_t *ctx = data;
 	for (result = dns_rdataset_first(rdataset);
 	     result == DNS_R_SUCCESS;
@@ -277,14 +277,14 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset)
  *
  * If 'action' returns an error, abort iteration and return the error.
  */
-static dns_result_t
+static isc_result_t
 foreach_rrset(dns_db_t *db,
 	      dns_dbversion_t *ver,
 	      dns_name_t *name,
 	      rrset_func *action,
 	      void *action_data)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
 	
@@ -336,7 +336,7 @@ foreach_rrset(dns_db_t *db,
  * If 'action' returns an error, abort iteration
  * and return the error.
  */
-static dns_result_t
+static isc_result_t
 foreach_node_rr(dns_db_t *db,
 	    dns_dbversion_t *ver,
 	    dns_name_t *name,
@@ -360,7 +360,7 @@ foreach_node_rr(dns_db_t *db,
  * 
  * If 'action' returns an error, abort iteration and return the error.
  */
-static dns_result_t
+static isc_result_t
 foreach_rr(dns_db_t *db,
 	   dns_dbversion_t *ver,
 	   dns_name_t *name,
@@ -370,7 +370,7 @@ foreach_rr(dns_db_t *db,
 	   void *rr_action_data)
 {
 
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdataset_t rdataset;
 
@@ -431,7 +431,7 @@ foreach_rr(dns_db_t *db,
 typedef isc_boolean_t rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
 /* Helper function for rrset_exists(). */
-static dns_result_t
+static isc_result_t
 rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
 {
 	data = data; /* Unused */
@@ -463,19 +463,19 @@ rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
  * Set '*exists' to true iff an rrset of the given type exists,
  * to false otherwise.
  */
-static dns_result_t
+static isc_result_t
 rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 	     dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers,
 	     isc_boolean_t *exists)
 {
-	dns_result_t result;
+	isc_result_t result;
 	result = foreach_rr(db, ver, name, type, covers,
 			    rrset_exists_action, NULL);
 	RETURN_EXISTENCE_FLAG;
 }
 
 /* Helper function for cname_incompatible_rrset_exists */
-static dns_result_t
+static isc_result_t
 cname_compatibility_action(void *data, dns_rdataset_t *rrset) 
 /*ARGSUSED*/
 {
@@ -494,17 +494,17 @@ cname_compatibility_action(void *data, dns_rdataset_t *rrset)
  * If such an incompatible rrset exists, set '*exists' to ISC_TRUE.
  * Otherwise, set it to ISC_FALSE.
  */
-static dns_result_t
+static isc_result_t
 cname_incompatible_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 				dns_name_t *name, isc_boolean_t *exists) {
-	dns_result_t result;	
+	isc_result_t result;	
 	result = foreach_rrset(db, ver, name, 
 			       cname_compatibility_action, NULL);
 	RETURN_EXISTENCE_FLAG;
 }
 
 /* Helper function for rr_count(). */
-static dns_result_t 
+static isc_result_t 
 count_rr_action(void *data, rr_t *rr) /*ARGSUSED*/ {
 	int *countp = data;
 	rr = rr; /* Unused. */
@@ -515,7 +515,7 @@ count_rr_action(void *data, rr_t *rr) /*ARGSUSED*/ {
 /*
  * Count the number of RRs of 'type' belonging to 'name' in 'ver' of 'db'.
  */
-static dns_result_t
+static isc_result_t
 rr_count(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_rdatatype_t covers, int *countp)
 {
@@ -536,7 +536,7 @@ typedef struct {
 
 /* Helper function for matching_rr_exists(). */
 
-static dns_result_t 
+static isc_result_t 
 matching_rr_exists_action(void *data, rr_t *rr) {
 	matching_rr_exists_ctx_t *ctx = data;
 	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata))
@@ -550,7 +550,7 @@ matching_rr_exists_action(void *data, rr_t *rr) {
  * true for at least one of them, set '*exists' to ISC_TRUE.  Otherwise,
  * set it to ISC_FALSE.
  */
-static dns_result_t
+static isc_result_t
 matching_rr_exists(rr_predicate *predicate,
 	     dns_db_t *db,
 	     dns_dbversion_t *ver,
@@ -560,7 +560,7 @@ matching_rr_exists(rr_predicate *predicate,
 	     dns_rdata_t *update_rr,
 	     isc_boolean_t *exists)
 {
-	dns_result_t result;
+	isc_result_t result;
 	matching_rr_exists_ctx_t ctx;
 	ctx.predicate = predicate;
 	ctx.db = db;
@@ -575,7 +575,7 @@ matching_rr_exists(rr_predicate *predicate,
 
 /* Context struct and helper function for name_exists() */
 
-static dns_result_t
+static isc_result_t
 name_exists_action(void *data, dns_rdataset_t *rrset) /*ARGSUSED*/
 {
 	data = data; /* Unused */
@@ -586,11 +586,11 @@ name_exists_action(void *data, dns_rdataset_t *rrset) /*ARGSUSED*/
 /*
  * Set '*exists' to true iff the given name exists, to false otherwise.
  */
-static dns_result_t
+static isc_result_t
 name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	    isc_boolean_t *exists)
 {
-	dns_result_t result;
+	isc_result_t result;
 	result = foreach_rrset(db, ver, name,
 			       name_exists_action, NULL);
 	RETURN_EXISTENCE_FLAG;
@@ -612,10 +612,10 @@ name_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * Append a tuple asserting the existence of the RR with
  * 'name' and 'rdata' to 'diff'.
  */	     
-static dns_result_t
+static isc_result_t
 temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	
 	REQUIRE(DNS_DIFF_VALID(diff));
@@ -632,7 +632,7 @@ temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata)
  * Return DNS_R_SUCCESS if the rdatasets are equal, rcode(dns_rcode_nxrrset)
  * if not.
  */
-static dns_result_t 
+static isc_result_t 
 temp_check_rrset(dns_difftuple_t *a, dns_difftuple_t *b) {
 	for (;;) {
 		if (a == NULL || b == NULL)
@@ -681,11 +681,11 @@ temp_order(const void *av, const void *bv)
  * rcode(dns_rcode_nxrrset) if not.
  */
 
-static dns_result_t
+static isc_result_t
 temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	   dns_dbversion_t *ver)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t *name;
 	dns_dbnode_t *node;
 	dns_difftuple_t *t;
@@ -901,11 +901,11 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 }
 
 /* Internal helper function for delete_if(). */
-static dns_result_t 
+static isc_result_t 
 delete_if_action(void *data, rr_t *rr) {
 	conditional_delete_ctx_t *ctx = data;
 	if ((*ctx->predicate)(ctx->update_rr, &rr->rdata)) {
-		dns_result_t result;
+		isc_result_t result;
 		result = update_one_rr(ctx->db, ctx->ver, ctx->diff,
 				       DNS_DIFFOP_DEL, ctx->name,
 				       rr->ttl, &rr->rdata);
@@ -922,7 +922,7 @@ delete_if_action(void *data, rr_t *rr) {
  * RRs for which the predicate returns true, and log the 
  * deletions in 'diff'.
  */
-static dns_result_t
+static isc_result_t
 delete_if(rr_predicate *predicate,
 	  dns_db_t *db,
 	  dns_dbversion_t *ver,
@@ -963,7 +963,7 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	       dns_rdataclass_t *update_class)
 {
 	dns_rdataset_t *rdataset;
-	dns_result_t result;
+	isc_result_t result;
 	dns_message_currentname(msg, section, name);
 	rdataset = ISC_LIST_HEAD((*name)->list);
 	INSIST(rdataset != NULL);
@@ -990,14 +990,14 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	 *	   or the SOA rdataset warrant at least an UNEXPECTED_ERROR().
 	 */
 
-static dns_result_t
+static isc_result_t
 increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 		     dns_diff_t *diff, isc_mem_t *mctx)
 {
 	dns_difftuple_t *deltuple = NULL;
 	dns_difftuple_t *addtuple = NULL;
 	isc_uint32_t serial;
-	dns_result_t result;
+	isc_result_t result;
 	
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
 	CHECK(dns_difftuple_copy(deltuple, &addtuple));
@@ -1043,14 +1043,14 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
  * Paul says 3.4.2.2 is correct.
  *
  */
-static dns_result_t
+static isc_result_t
 check_soa_increment(dns_db_t *db, dns_dbversion_t *ver, 
 		    dns_rdata_t *update_rdata,
 		    isc_boolean_t *ok)
 {
 	isc_uint32_t db_serial;
 	isc_uint32_t update_serial;
-	dns_result_t result;
+	isc_result_t result;
 
 	update_serial = dns_soa_getserial(update_rdata);
 	
@@ -1079,9 +1079,9 @@ check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
  * We abuse the dns_diff_t type to represent a set of domain names
  * affected by the update.
  */
-static dns_result_t
+static isc_result_t
 namelist_append_name(dns_diff_t *list, dns_name_t *name) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	static dns_rdata_t dummy_rdata = { NULL, 0, 0, 0, { NULL, NULL } };
 	CHECK(dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
@@ -1091,10 +1091,10 @@ namelist_append_name(dns_diff_t *list, dns_name_t *name) {
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_fixedname_t fixedname;
 	dns_name_t *child;
 	dns_dbiterator_t *dbit = NULL;
@@ -1125,7 +1125,7 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 
 
 /* Helper function for non_nxt_rrset_exists(). */
-static dns_result_t
+static isc_result_t
 is_non_nxt_action(void *data, dns_rdataset_t *rrset) 
 /*ARGSUSED*/
 {
@@ -1145,10 +1145,10 @@ is_non_nxt_action(void *data, dns_rdataset_t *rrset)
  * If such an rrset exists, set '*exists' to ISC_TRUE.
  * Otherwise, set it to ISC_FALSE.
  */
-static dns_result_t
+static isc_result_t
 non_nxt_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 		     dns_name_t *name, isc_boolean_t *exists) {
-	dns_result_t result;	
+	isc_result_t result;	
 	result = foreach_rrset(db, ver, name, 
 			       is_non_nxt_action, NULL);
 	RETURN_EXISTENCE_FLAG;
@@ -1167,9 +1167,9 @@ name_order(const void *av, const void *bv)
 	return (dns_name_compare(&a->name, &b->name));
 }
 
-static dns_result_t
+static isc_result_t
 uniqify_name_list(dns_diff_t *list) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *p, *q;
 	
 	CHECK(dns_diff_sort(list, name_order));
@@ -1190,11 +1190,11 @@ uniqify_name_list(dns_diff_t *list) {
 }
 
 
-static dns_result_t
+static isc_result_t
 is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	isc_boolean_t *flag)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_fixedname_t foundname;
 	dns_fixedname_init(&foundname);
 	result = dns_db_find(db, name, ver, dns_rdatatype_any,
@@ -1223,11 +1223,11 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * have  had their NXTs removed because they are obscured by
  * a zone cut.
  */
-static dns_result_t
+static isc_result_t
 next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
      dns_name_t *newname, isc_boolean_t forward)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
 	isc_boolean_t has_nxt;
 
@@ -1272,9 +1272,9 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 /*
  * Add a NXT record for "name", recording the change in "diff".
  */
-static dns_result_t
+static isc_result_t
 add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	unsigned char buffer[DNS_NXT_BUFFERSIZE];
 	dns_rdata_t rdata;
@@ -1311,9 +1311,9 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) 
 /*
  * Add a placeholder NXT record for "name", recording the change in "diff".
  */
-static dns_result_t
+static isc_result_t
 add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	isc_region_t r;
 	unsigned char data[1] = { 0 }; /* The root domain, no bits. */
@@ -1329,11 +1329,11 @@ add_placeholder_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_di
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 find_zone_keys(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	       unsigned int maxkeys, dst_key_t **keys, unsigned int *nkeys)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	CHECK(dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
@@ -1347,13 +1347,13 @@ find_zone_keys(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 /*
  * Add SIG records for an RRset, recording the change in "diff".
  */
-static dns_result_t
+static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
 	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t now,
 	 isc_stdtime_t expire)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata;
@@ -1400,11 +1400,11 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * The necessary SIG and NXT changes will be applied to "newver"
  * and added (as a minimal diff) to "diff".
  */
-static dns_result_t
+static isc_result_t
 update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 		  dns_dbversion_t *newver, dns_diff_t *diff)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_difftuple_t *t;
 	dns_diff_t diffnames;
 	dns_diff_t affected;
@@ -1697,9 +1697,9 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
  * the RFC2136 pseudocode as closely as possible.
  */
 
-static dns_result_t
+static isc_result_t
 send_update_event(ns_client_t *client, dns_zone_t *zone) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
 	
@@ -1721,16 +1721,17 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 }
 
 static void
-respond(ns_client_t *client, dns_result_t result) {
-	int msg_result;
+respond(ns_client_t *client, isc_result_t result) {
+	isc_result_t msg_result;
 	dns_message_t *response = NULL;
+
 	msg_result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTRENDER,
 					&response);
 	if (msg_result != DNS_R_SUCCESS)
 		goto msg_failure;
 	
 	response->id = client->message->id;
-	response->rcode = dns_result_torcode(result));
+	response->rcode = dns_result_torcode(result);
 	response->flags = client->message->flags;
 	response->flags |= DNS_MESSAGEFLAG_QR;
 	response->opcode = client->message->opcode;
@@ -1752,7 +1753,7 @@ void
 ns_update_start(ns_client_t *client)
 {
 	dns_message_t *request = client->message;
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
@@ -1821,7 +1822,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_zone_t *zone = uev->zone;
 	ns_client_t *client = (ns_client_t *) event->arg;
 
-	dns_result_t result;
+	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *oldver = NULL;
 	dns_dbversion_t *ver = NULL;

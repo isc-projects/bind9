@@ -69,7 +69,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_fetchevent {
 	ISC_EVENT_COMMON(struct dns_fetchevent);
 	dns_fetch_t *			fetch;
-	dns_result_t			result;
+	isc_result_t			result;
 	dns_rdatatype_t			qtype;
 	dns_db_t *			db;
 	dns_dbnode_t *			node;
@@ -91,7 +91,7 @@ typedef struct dns_fetchevent {
  * _dns_resolver_create()).
  */
 
-dns_result_t
+isc_result_t
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
 		    isc_socketmgr_t *socketmgr,
@@ -172,7 +172,7 @@ dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp);
 void
 dns_resolver_detach(dns_resolver_t **resp);
 
-dns_result_t
+isc_result_t
 dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdatatype_t type,
 			 dns_name_t *domain, dns_rdataset_t *nameservers,

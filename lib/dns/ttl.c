@@ -31,17 +31,17 @@
 #include <dns/ttl.h>
 
 #define RETERR(x) do { \
-	dns_result_t __r = (x); \
+	isc_result_t __r = (x); \
 	if (__r != DNS_R_SUCCESS) \
 		return (__r); \
 	} while (0)
 
 
-static dns_result_t bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl);
+static isc_result_t bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl);
 
 /* Helper for dns_ttl_totext(). */
 
-static dns_result_t
+static isc_result_t
 ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
        isc_boolean_t space, isc_buffer_t *target)
 {
@@ -66,7 +66,7 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 
 /* Derived from bind8 ns_format_ttl(). */
 
-dns_result_t
+isc_result_t
 dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 	       isc_buffer_t *target)
 {
@@ -118,14 +118,14 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 	return (bind_ttl(source, ttl));
 }
 
-dns_result_t
+isc_result_t
 dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
-	dns_result_t result;
+	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
 	if (result != DNS_R_SUCCESS)
@@ -133,7 +133,7 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	isc_uint32_t tmp = 0;
 	unsigned long n;

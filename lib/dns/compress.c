@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.17 1999/05/26 00:34:54 marka Exp $ */
+ /* $Id: compress.c,v 1.18 1999/12/23 00:08:27 explorer Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -46,10 +46,10 @@ void			compress_add(dns_rbt_t *root, dns_name_t *prefix,
  ***	Compression
  ***/
 
-dns_result_t
+isc_result_t
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
 {
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL);
@@ -68,11 +68,11 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx)
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 		       isc_buffer_t *target)
 {
-	dns_result_t result;
+	isc_result_t result;
 	unsigned int labels;
 	unsigned int ll;	/* logical label length w/o root label */
 	unsigned int wl;	/* wire labels  */
@@ -294,7 +294,7 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 	dns_name_t *fullname;
 	dns_name_t *origin;
 	dns_rbtnodechain_t chain;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(VALID_CCTX(cctx));
 
@@ -451,7 +451,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 	unsigned int start;
 	unsigned int limit;
 	isc_uint16_t *data;
-	dns_result_t result;
+	isc_result_t result;
 	unsigned char buffer[255];
 	isc_buffer_t target;
 	dns_offsets_t offsets;
@@ -502,7 +502,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	dns_name_t *foundname;
 	dns_name_t tmpprefix;
 	dns_name_t tmpsuffix;
-	dns_result_t result;
+	isc_result_t result;
 	isc_uint16_t *data = NULL;
 	dns_label_t foundlabel;
 	dns_label_t namelabel;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.9 1999/12/16 23:11:05 gson Exp $ */
+/* $Id: log.c,v 1.10 1999/12/23 00:08:29 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -68,7 +68,7 @@ isc_logmodule_t dns_modules[] = {
 
 isc_log_t *dns_lctx;
 
-dns_result_t
+isc_result_t
 dns_log_init(isc_log_t *lctx) {
 	isc_result_t result;
 

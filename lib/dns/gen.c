@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.29 1999/10/25 17:04:55 marka Exp $ */
+ /* $Id: gen.c,v 1.30 1999/12/23 00:08:28 explorer Exp $ */
 
 #include <config.h>
 
@@ -445,16 +445,16 @@ main(int argc, char **argv) {
 	fprintf(stdout, copyright, year);
 
 	if (code) {
-		dodecl("dns_result_t", "fromtext", FROMTEXTDECL);
-		dodecl("dns_result_t", "totext", TOTEXTDECL);
-		dodecl("dns_result_t", "fromwire", FROMWIREDECL);
-		dodecl("dns_result_t", "towire", TOWIREDECL);
+		dodecl("isc_result_t", "fromtext", FROMTEXTDECL);
+		dodecl("isc_result_t", "totext", TOTEXTDECL);
+		dodecl("isc_result_t", "fromwire", FROMWIREDECL);
+		dodecl("isc_result_t", "towire", TOWIREDECL);
 		dodecl("int", "compare", COMPAREDECL);
-		dodecl("dns_result_t", "fromstruct", FROMSTRUCTDECL);
-		dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
+		dodecl("isc_result_t", "fromstruct", FROMSTRUCTDECL);
+		dodecl("isc_result_t", "tostruct", TOSTRUCTDECL);
 		dodecl("void", "freestruct", FREESTRUCTDECL);
-		dodecl("dns_result_t", "additionaldata", ADDITIONALDATADECL);
-		dodecl("dns_result_t", "digest", DIGESTDECL);
+		dodecl("isc_result_t", "additionaldata", ADDITIONALDATADECL);
+		dodecl("isc_result_t", "digest", DIGESTDECL);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
 			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);

@@ -61,7 +61,7 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 	}
 }
 
-dns_result_t
+isc_result_t
 dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_aclconfctx_t *ac,
 		   dns_c_zone_t *czone, dns_zone_t *zone)
 {

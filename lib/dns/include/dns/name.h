@@ -616,7 +616,7 @@ void dns_name_toregion(dns_name_t *name, isc_region_t *r);
  *	'r' is a valid region.
  */
 
-dns_result_t dns_name_fromwire(dns_name_t *name,
+isc_result_t dns_name_fromwire(dns_name_t *name,
 			       isc_buffer_t *source,
 			       dns_decompress_t *dctx,
 			       isc_boolean_t downcase,
@@ -678,7 +678,7 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *	Resource Limit: Not enough space in buffer
  */
 
-dns_result_t dns_name_towire(dns_name_t *name,
+isc_result_t dns_name_towire(dns_name_t *name,
 			     dns_compress_t *cctx,
 			     isc_buffer_t *target);
 /*
@@ -714,7 +714,7 @@ dns_result_t dns_name_towire(dns_name_t *name,
  *	Resource Limit: Not enough space in buffer
  */
 
-dns_result_t dns_name_fromtext(dns_name_t *name,
+isc_result_t dns_name_fromtext(dns_name_t *name,
 			       isc_buffer_t *source,
 			       dns_name_t *origin,
 			       isc_boolean_t downcase,
@@ -765,7 +765,7 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *	DNS_R_UNEXPECTEDEND
  */
 
-dns_result_t dns_name_totext(dns_name_t *name,
+isc_result_t dns_name_totext(dns_name_t *name,
 			     isc_boolean_t omit_final_dot,
 			     isc_buffer_t *target);
 /*
@@ -824,7 +824,7 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
  *	Note: if source == name, then the result will always be DNS_R_SUCCESS.
  */
 
-dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
+isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
 				  dns_name_t *name, isc_buffer_t *target);
 /*
  *	Concatenate 'prefix' and 'suffix'.
@@ -857,7 +857,7 @@ dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *	DNS_R_NOSPACE
  */
 
-dns_result_t
+isc_result_t
 dns_name_split(dns_name_t *name,
 	       unsigned int suffixlabels, unsigned int nbits,
 	       dns_name_t *prefix, dns_name_t *suffix);
@@ -923,7 +923,7 @@ dns_name_split(dns_name_t *name,
  *			have enough room to receive the split name.
  */
 
-dns_result_t
+isc_result_t
 dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target);
 /*
  * Make 'target' a dynamically allocated copy of 'source'.
@@ -954,7 +954,7 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx);
  *	invalidated.
  */
 
-dns_result_t
+isc_result_t
 dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
 /*
  * Send 'name' in DNSSEC canonical form to 'digest'.

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.7 1999/07/13 17:26:07 halley Exp $ */
+/* $Id: rdataslab.c,v 1.8 1999/12/23 00:08:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -33,14 +33,14 @@
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
 
-dns_result_t
+isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 			   isc_region_t *region, unsigned int reservelen)
 {
 	dns_rdata_t	rdata;
 	unsigned char  *rawbuf;
 	unsigned int	buflen;
-	dns_result_t	result;
+	isc_result_t	result;
 	unsigned int	nitems;
 
 	result = dns_rdataset_first(rdataset);
@@ -126,7 +126,7 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 	return ((unsigned int)(current - slab));
 }
 
-dns_result_t
+isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -274,7 +274,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.33 1999/12/16 23:29:05 explorer Exp $ */
+ /* $Id: master.c,v 1.34 1999/12/23 00:08:29 explorer Exp $ */
 
 #include <config.h>
 
@@ -80,7 +80,7 @@
 
 typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
-static dns_result_t	commit(dns_rdatacallbacks_t *, rdatalist_head_t *,
+static isc_result_t	commit(dns_rdatacallbacks_t *, rdatalist_head_t *,
 			       dns_name_t *);
 static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
 static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
@@ -94,7 +94,7 @@ static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 
 #define GETTOKEN(lexer, options, token, eol) \
 	do { \
-		dns_result_t isc_r; \
+		isc_result_t isc_r; \
 		isc_r = gettoken(lexer, options, token, eol, callbacks); \
 		switch (isc_r) { \
 		case DNS_R_SUCCESS: \
@@ -106,7 +106,7 @@ static isc_boolean_t	on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 		} \
 	} while (0) \
 
-static inline dns_result_t
+static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	 isc_boolean_t eol, dns_rdatacallbacks_t *callbacks)
 {
@@ -142,7 +142,7 @@ gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
      int *soacount, int *nscount, dns_rdatacallbacks_t *callbacks,
@@ -169,7 +169,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	isc_boolean_t warn_1035 = ISC_TRUE;	/* XXX Arguement? */
 	char *include_file = NULL;
 	isc_token_t token;
-	dns_result_t result = DNS_R_UNEXPECTED; 
+	isc_result_t result = DNS_R_UNEXPECTED; 
 	rdatalist_head_t glue_list;
 	rdatalist_head_t current_list;
 	dns_rdatalist_t *this;
@@ -791,7 +791,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_name_t *origin,
 		    dns_rdataclass_t zclass, isc_boolean_t age_ttl,
@@ -818,7 +818,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 		     callbacks, mctx));
 }
 
-dns_result_t
+isc_result_t
 dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
 		      int *soacount, int *nscount,
@@ -843,7 +843,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 		     callbacks, mctx));
 }
 
-dns_result_t
+isc_result_t
 dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 		      dns_name_t *origin, dns_rdataclass_t zclass,
 		      isc_boolean_t age_ttl,
@@ -987,13 +987,13 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
  * Unlink each element as we go.
  */
 
-static dns_result_t
+static isc_result_t
 commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
        dns_name_t *owner)
 {
 	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
-	dns_result_t result;
+	isc_result_t result;
 
 	while ((this = ISC_LIST_HEAD(*head)) != NULL) {
 		dns_rdataset_init(&dataset);

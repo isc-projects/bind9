@@ -539,7 +539,7 @@ t_getdate(char *buf, size_t buflen)
 /* some generally used utilities */
 
 struct dns_errormap {
-	dns_result_t	result;
+	isc_result_t	result;
 	char		*text;
 } dns_errormap[] = {
 	{	DNS_R_SUCCESS,		"DNS_R_SUCCESS"		},
@@ -587,13 +587,13 @@ struct dns_errormap {
 	{	DNS_R_NXRDATASET,	"DNS_R_NXRDATASET"	},
 	{	DNS_R_BADDB,		"DNS_R_BADDB"		},
 	{	DNS_R_ZONECUT,		"DNS_R_ZONECUT"		},
-	{	(dns_result_t) 0,	NULL			}
+	{	(isc_result_t) 0,	NULL			}
 };
 
-dns_result_t
+isc_result_t
 t_dns_result_fromtext(char *name) {
 
-	dns_result_t		result;
+	isc_result_t		result;
 	struct dns_errormap	*pmap;
 
 	result = DNS_R_UNEXPECTED;

@@ -41,7 +41,7 @@
 #include "printmsg.h"
 
 static inline void
-CHECKRESULT(dns_result_t result, char *msg)
+CHECKRESULT(isc_result_t result, char *msg)
 {
 	if (result != DNS_R_SUCCESS) {
 		printf("%s: %s\n", msg, dns_result_totext(result));
@@ -76,7 +76,7 @@ main(int argc, char *argv[]) {
 	unsigned char b[1000];
 	char s[1000];
 	dns_message_t *message;
-	dns_result_t result;
+	isc_result_t result;
 	isc_mem_t *mctx;
 
 	mctx = NULL;

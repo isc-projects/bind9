@@ -75,15 +75,15 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_dbiteratormethods {
 	void		(*destroy)(dns_dbiterator_t **iteratorp);
-	dns_result_t	(*first)(dns_dbiterator_t *iterator);
-	dns_result_t	(*last)(dns_dbiterator_t *iterator);
-	dns_result_t	(*seek)(dns_dbiterator_t *iterator, dns_name_t *name);
-	dns_result_t	(*prev)(dns_dbiterator_t *iterator);
-	dns_result_t	(*next)(dns_dbiterator_t *iterator);
-	dns_result_t	(*current)(dns_dbiterator_t *iterator,
+	isc_result_t	(*first)(dns_dbiterator_t *iterator);
+	isc_result_t	(*last)(dns_dbiterator_t *iterator);
+	isc_result_t	(*seek)(dns_dbiterator_t *iterator, dns_name_t *name);
+	isc_result_t	(*prev)(dns_dbiterator_t *iterator);
+	isc_result_t	(*next)(dns_dbiterator_t *iterator);
+	isc_result_t	(*current)(dns_dbiterator_t *iterator,
 				   dns_dbnode_t **nodep, dns_name_t *name);
-	dns_result_t	(*pause)(dns_dbiterator_t *iterator);
-	dns_result_t	(*origin)(dns_dbiterator_t *iterator,
+	isc_result_t	(*pause)(dns_dbiterator_t *iterator);
+	isc_result_t	(*origin)(dns_dbiterator_t *iterator,
 				  dns_name_t *name);
 } dns_dbiteratormethods_t;
 
@@ -124,7 +124,7 @@ dns_dbiterator_destroy(dns_dbiterator_t **iteratorp);
  *	*iteratorp == NULL.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_first(dns_dbiterator_t *iterator);
 /*
  * Move the node cursor to the first node in the database (if any).
@@ -139,7 +139,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_last(dns_dbiterator_t *iterator);
 /*
  * Move the node cursor to the last node in the database (if any).
@@ -154,7 +154,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
 /*
  * Move the node cursor to the node with name 'name'.
@@ -171,7 +171,7 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_prev(dns_dbiterator_t *iterator);
 /*
  * Move the node cursor to the previous node in the database (if any).
@@ -187,7 +187,7 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_next(dns_dbiterator_t *iterator);
 /*
  * Move the node cursor to the next node in the database (if any).
@@ -203,7 +203,7 @@ dns_dbiterator_next(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		       dns_name_t *name);
 /*
@@ -237,7 +237,7 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_pause(dns_dbiterator_t *iterator);
 /*
  * Pause iteration.
@@ -264,7 +264,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
 /*
  * Return the origin to which returned node names are relative.

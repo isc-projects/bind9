@@ -123,7 +123,7 @@ typedef struct dns_journal dns_journal_t;
  * Maniuplation of diffs and tuples.
  */
 
-dns_result_t
+isc_result_t
 dns_difftuple_create(isc_mem_t *mctx,
 		     dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 		     dns_rdata_t *rdata, dns_difftuple_t **tp);
@@ -152,7 +152,7 @@ dns_difftuple_free(dns_difftuple_t **tp);
  *       All memory used by the tuple is freed.
  */
 
-dns_result_t
+isc_result_t
 dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp);
 /*
  * Copy a tuple.
@@ -222,13 +222,13 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuple);
  *
  */
 
-dns_result_t
+isc_result_t
 dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare);
 /*
  * Sort 'diff' in-place according to the comparison function 'compare'.
  */
 
-dns_result_t 
+isc_result_t 
 dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
 /*
  * Apply 'diff' to the database 'db'.
@@ -244,7 +244,7 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
  *
  */
 
-dns_result_t 
+isc_result_t 
 dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 	      void *add_private);
 /*
@@ -260,7 +260,7 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
  *      (XXX why is it a void pointer, then?)
  */
 
-dns_result_t
+isc_result_t
 dns_diff_print(dns_diff_t *diff, FILE *file);
 
 /* 
@@ -301,7 +301,7 @@ void dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata);
  *	rdata refers to the rdata of a well-formed SOA record.
  */
 
-dns_result_t
+isc_result_t
 dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
 /*
  * Get the current SOA serial number from a zone database.
@@ -311,7 +311,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
  *      'ver' is a valid version.
  */
 
-dns_result_t
+isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		   dns_diffop_t op, dns_difftuple_t **tp);
 /*
@@ -332,7 +332,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
  * Journal object creation and destruction.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp);
 /*
@@ -356,7 +356,7 @@ dns_journal_destroy(dns_journal_t **journalp);
  * Writing transactions to journals.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_begin_transaction(dns_journal_t *j);
 /*
  * Prepare to write a new transaction to the open journal file 'j'.
@@ -365,7 +365,7 @@ dns_journal_begin_transaction(dns_journal_t *j);
  *      'j' is open for writing.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff);
 /*
  * Write 'diff' to the current transaction of journal file 'j'.
@@ -378,7 +378,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff);
  *      difference sequence.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_commit(dns_journal_t *j);
 /*
  * Commit the current transaction of journal file 'j'.
@@ -392,7 +392,7 @@ dns_journal_commit(dns_journal_t *j);
  *      sequence.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
 /*
  * Write a complete transaction at once to a journal file,
@@ -419,7 +419,7 @@ isc_uint32_t dns_journal_last_serial(dns_journal_t *j);
  * Get the first and last addressable serial number in the journal.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_iter_init(dns_journal_t *j,
 		      isc_uint32_t begin_serial, isc_uint32_t end_serial);
 /*
@@ -434,8 +434,8 @@ dns_journal_iter_init(dns_journal_t *j,
  *	DNS_R_RANGE	begin_serial is outside the addressable range.
  */
 
-dns_result_t dns_journal_first_rr(dns_journal_t *j);
-dns_result_t dns_journal_next_rr(dns_journal_t *j);
+isc_result_t dns_journal_first_rr(dns_journal_t *j);
+isc_result_t dns_journal_next_rr(dns_journal_t *j);
 /*
  * Position the iterator at the first/next RR in a journal
  * transaction sequence established using dns_journal_iter_init().
@@ -460,7 +460,7 @@ void dns_journal_current_rr(dns_journal_t *j, dns_name_t **name,
  * Database roll-forward.
  */
 
-dns_result_t
+isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
 /*
  * Roll forward (play back) the journal file "filename" into the
@@ -480,10 +480,10 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  *	others
  */
 
-dns_result_t dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
+isc_result_t dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
 /* For debugging not general use */
 
-dns_result_t
+isc_result_t
 dns_db_diff(isc_mem_t *mctx,
 	    dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,

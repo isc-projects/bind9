@@ -46,9 +46,9 @@ static int	t_dns_rbtnodechain_init(char *dbfile, char *findname,
 static char	*fixedname_totext(dns_fixedname_t *name);
 static int	fixedname_cmp(dns_fixedname_t *dns_name, char *txtname);
 static char	*dnsname_totext(dns_name_t *name);
-static int	t_namechk(dns_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
+static int	t_namechk(isc_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
 			  dns_fixedname_t *dns_origin, char *exp_origin,
-			  dns_result_t exp_result);
+			  isc_result_t exp_result);
 
 /* parts adapted from the original rbt_test.c */
 
@@ -92,9 +92,9 @@ fixedname_totext(dns_fixedname_t *name) {
 
 #ifdef	NEED_PRINT_DATA
 
-static dns_result_t
+static isc_result_t
 print_data(void *data) {
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	isc_buffer_t	target;
 	char		*buffer[DNSNAMELEN];
 
@@ -170,7 +170,7 @@ delete_name(void *data, void *arg) {
 /* adapted from the original rbt_test.c */
 
 static int
-t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result) {
+t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 
 	int		nprobs;
 	dns_name_t	*dns_name;
@@ -197,7 +197,7 @@ t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result) {
 }
 
 static int
-t1_delete(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result) {
+t1_delete(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 	int		nprobs;
 	dns_name_t	*dns_name;
 
@@ -219,7 +219,7 @@ t1_delete(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result)
 }
 
 static int
-t1_search(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, dns_result_t *dns_result) {
+t1_search(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 
 	int		nprobs;
 	dns_name_t	*dns_searchname;
@@ -253,7 +253,7 @@ static int
 rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 
 	int		rval;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	char		*p;
 	FILE		*fp;
 
@@ -296,12 +296,12 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 }
 
 static int
-test_rbt_gen(char *filename, char *command, char *testname, dns_result_t exp_result) {
+test_rbt_gen(char *filename, char *command, char *testname, isc_result_t exp_result) {
 	int		rval;
 	int		result;
 	dns_rbt_t	*rbt;
 	isc_result_t	isc_result;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	isc_mem_t	*mctx;
 	dns_name_t	*dns_name;
 
@@ -584,7 +584,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 	unsigned int	nlabels;
 	unsigned int	nbits;
 	int		nprobs;
-	dns_result_t	dns_result;
+	isc_result_t	dns_result;
 	dns_namereln_t	dns_namereln;
 
 	dns_fixedname_t	name;
@@ -680,9 +680,9 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 /* test by exercising the first|last|next|prev funcs in useful ways */
 
 static int
-t_namechk(dns_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
+t_namechk(isc_result_t dns_result, dns_fixedname_t *dns_name, char *exp_name,
 	  dns_fixedname_t *dns_origin, char *exp_origin,
-	  dns_result_t exp_result)
+	  isc_result_t exp_result)
 {
 	int	nfails;
 
@@ -726,7 +726,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 	dns_rbtnodechain_t	chain;
 	isc_mem_t		*mctx;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_fixedname_t		dns_findname;
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_firstname;
@@ -963,10 +963,10 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 	dns_rbtnodechain_t	chain;
 	isc_mem_t		*mctx;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_fixedname_t		dns_name;
 	dns_fixedname_t		dns_origin;
-	dns_result_t		expected_result;
+	isc_result_t		expected_result;
 
 	result = T_UNRESOLVED;
 
@@ -1125,10 +1125,10 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 	dns_rbtnodechain_t	chain;
 	isc_mem_t		*mctx;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_fixedname_t		dns_name;
 	dns_fixedname_t		dns_origin;
-	dns_result_t		expected_result;
+	isc_result_t		expected_result;
 
 	result = T_UNRESOLVED;
 
@@ -1286,7 +1286,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 	dns_rbtnodechain_t	chain;
 	isc_mem_t		*mctx;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_fixedname_t		dns_findname;
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_nextname;
@@ -1457,7 +1457,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname,
 	dns_rbtnodechain_t	chain;
 	isc_mem_t		*mctx;
 	isc_result_t		isc_result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	dns_fixedname_t		dns_findname;
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_prevname;

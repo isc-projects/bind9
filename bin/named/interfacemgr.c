@@ -96,7 +96,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    isc_boolean_t udp_only, ns_interface_t **ifpret) {
         ns_interface_t *ifp;
@@ -239,7 +239,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (DNS_R_UNEXPECTED);
 }
 
-static dns_result_t
+static isc_result_t
 ns_interface_destroy(ns_interface_t **ifpret) {
         ns_interface_t *ifp;	
 	REQUIRE(ifpret != NULL);
@@ -291,7 +291,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 		INSIST(VALID_IFACE(ifp));
 		next = ISC_LIST_NEXT(ifp, link);
 		if (ifp->generation != mgr->generation)  {
-			dns_result_t result = ns_interface_destroy(&ifp);
+			isc_result_t result = ns_interface_destroy(&ifp);
 			RUNTIME_CHECK(result == DNS_R_SUCCESS);
 		}
 	}

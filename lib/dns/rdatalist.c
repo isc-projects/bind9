@@ -24,8 +24,8 @@
 #include <dns/rdataset.h>
 
 static void rdatalist_disassociate(dns_rdataset_t *rdatasetp);
-static dns_result_t rdatalist_first(dns_rdataset_t *rdataset);
-static dns_result_t rdatalist_next(dns_rdataset_t *rdataset);
+static isc_result_t rdatalist_first(dns_rdataset_t *rdataset);
+static isc_result_t rdatalist_next(dns_rdataset_t *rdataset);
 static void rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 static unsigned int rdatalist_count(dns_rdataset_t *rdataset);
@@ -54,7 +54,7 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
 	ISC_LINK_INIT(rdatalist, link);
 }
 
-dns_result_t
+isc_result_t
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 			 dns_rdataset_t *rdataset) {
 
@@ -86,7 +86,7 @@ rdatalist_disassociate(dns_rdataset_t *rdataset) {
 	(void)rdataset;				/* Keep compiler quiet. */
 }
 
-static dns_result_t
+static isc_result_t
 rdatalist_first(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdatalist;
 
@@ -99,7 +99,7 @@ rdatalist_first(dns_rdataset_t *rdataset) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 rdatalist_next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 

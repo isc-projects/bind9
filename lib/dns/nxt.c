@@ -64,7 +64,7 @@ bit_isset(unsigned char *array, unsigned int index) {
 	return ((array[index / 8] & mask) != 0);
 }
 
-dns_result_t
+isc_result_t
 dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 		  dns_dbnode_t *node, dns_name_t *target,
 		  unsigned char *buffer, dns_rdata_t *rdata)
@@ -130,11 +130,11 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 }
 
 
-dns_result_t
+isc_result_t
 dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	     dns_name_t *target)
 {
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdata_t rdata;
 	unsigned char data[DNS_NXT_BUFFERSIZE];
 	dns_rdatalist_t rdatalist;

@@ -49,12 +49,12 @@
 
 #include <tests/t_api.h>
 
-static dns_result_t
+static isc_result_t
 t_create(char *db_type, char *origin, char *class, char *cache,
 		isc_mem_t *mctx, dns_db_t **db) {
 
 	int			len;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_boolean_t		iscache;
 	isc_textregion_t	textregion;
 	isc_buffer_t		origin_buffer;
@@ -115,7 +115,7 @@ t_dns_db_load(char **av) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -126,8 +126,8 @@ t_dns_db_load(char **av) {
 	dns_rdataset_t		rdataset;
 	dns_rdatatype_t		rdatatype;
 	dns_dbversion_t		*versionp;
-	dns_result_t		exp_load_result;
-	dns_result_t		exp_find_result;
+	isc_result_t		exp_load_result;
+	isc_result_t		exp_find_result;
 
 	result = T_UNRESOLVED;
 	db = NULL;
@@ -264,7 +264,7 @@ t_dns_db_zc_x(char *filename,
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_rdataclass_t	rdataclass;
@@ -470,7 +470,7 @@ t_dns_db_origin(char **av) {
 	int			result;
 	int			len;
 	int			order;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_db_t		*db;
@@ -568,7 +568,7 @@ t_dns_db_class(char **av) {
 	char			*class;
 
 	int			result;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_db_t		*db;
@@ -665,7 +665,7 @@ t_dns_db_currentversion(char **av) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -895,7 +895,7 @@ t_dns_db_newversion(char **av) {
 	int			len;
 	int			rval;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -1168,7 +1168,7 @@ t_dns_db_closeversion_1(char **av) {
 	int			rval;
 	int			nfails;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -1526,7 +1526,7 @@ t_dns_db_closeversion_2(char **av) {
 	int			rval;
 	int			nfails;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -1936,8 +1936,8 @@ t_dns_db_expirenode(char **av) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
-	dns_result_t		exp_result;
+	isc_result_t		dns_result;
+	isc_result_t		exp_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -2113,7 +2113,7 @@ t_dns_db_findnode_1(char **av) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -2123,7 +2123,7 @@ t_dns_db_findnode_1(char **av) {
 	isc_textregion_t	textregion;
 	dns_fixedname_t		dns_name;
 	dns_dbversion_t		*cversionp;
-	dns_result_t		exp_result;
+	isc_result_t		exp_result;
 
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
@@ -2261,7 +2261,7 @@ t_dns_db_findnode_2(char **av) {
 	int			result;
 	int			len;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
@@ -2423,11 +2423,11 @@ t_dns_db_find_x(char **av) {
 	int			len;
 	int			opts;
 	dns_db_t		*db;
-	dns_result_t		dns_result;
+	isc_result_t		dns_result;
 	isc_result_t		isc_result;
 	isc_stdtime_t		ftime;
 	isc_stdtime_t		now;
-	dns_result_t		exp_result;
+	isc_result_t		exp_result;
 	isc_mem_t		*mctx;
 	dns_dbnode_t		*nodep;
 	isc_textregion_t	textregion;

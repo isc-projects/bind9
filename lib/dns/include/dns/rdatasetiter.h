@@ -76,8 +76,8 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_rdatasetitermethods {
 	void		(*destroy)(dns_rdatasetiter_t **iteratorp);
-	dns_result_t	(*first)(dns_rdatasetiter_t *iterator);
-	dns_result_t	(*next)(dns_rdatasetiter_t *iterator);
+	isc_result_t	(*first)(dns_rdatasetiter_t *iterator);
+	isc_result_t	(*next)(dns_rdatasetiter_t *iterator);
 	void		(*current)(dns_rdatasetiter_t *iterator,
 				   dns_rdataset_t *rdataset);
 } dns_rdatasetitermethods_t;
@@ -122,7 +122,7 @@ dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
  *	*iteratorp == NULL.
  */
 
-dns_result_t
+isc_result_t
 dns_rdatasetiter_first(dns_rdatasetiter_t *iterator);
 /*
  * Move the rdataset cursor to the first rdataset at the node (if any).
@@ -137,7 +137,7 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+isc_result_t
 dns_rdatasetiter_next(dns_rdatasetiter_t *iterator);
 /*
  * Move the rdataset cursor to the next rdataset at the node (if any).

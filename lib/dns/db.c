@@ -36,7 +36,7 @@
 
 typedef struct {
 	char *			name;	
-	dns_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
+	isc_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
 					  isc_boolean_t cache,
 					  dns_rdataclass_t rdclass,
 					  unsigned int argc, char *argv[],
@@ -66,7 +66,7 @@ impinfo_t implementations[] = {
  *** Basic DB Methods
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
 	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
@@ -183,7 +183,7 @@ dns_db_class(dns_db_t *db) {
 	return (db->rdclass);
 }
 
-dns_result_t
+isc_result_t
 dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 		 dns_dbload_t **dbloadp) {
 	/*
@@ -197,7 +197,7 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 	return ((db->methods->beginload)(db, addp, dbloadp));
 }
 
-dns_result_t
+isc_result_t
 dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	/*
 	 * Finish loading 'db'.
@@ -209,9 +209,9 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	return ((db->methods->endload)(db, dbloadp));
 }
 
-dns_result_t
+isc_result_t
 dns_db_load(dns_db_t *db, const char *filename) {
-	dns_result_t result, eresult;
+	isc_result_t result, eresult;
 	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
 	isc_boolean_t age_ttl = ISC_FALSE;
@@ -245,7 +245,7 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	/*
 	 * Dump 'db' into master file 'filename'.
@@ -274,7 +274,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	(db->methods->currentversion)(db, versionp);
 }
 
-dns_result_t
+isc_result_t
 dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	
 	/*
@@ -328,7 +328,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *** Node Methods
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_findnode(dns_db_t *db, dns_name_t *name,
 		isc_boolean_t create, dns_dbnode_t **nodep)
 {
@@ -344,7 +344,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 	return ((db->methods->findnode)(db, name, create, nodep));
 }
 
-dns_result_t
+isc_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -370,7 +370,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				    nodep, foundname, rdataset, sigrdataset));
 }
 
-dns_result_t
+isc_result_t
 dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
 		   unsigned int options, isc_stdtime_t now,
 		   dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -421,7 +421,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	ENSURE(*nodep == NULL);
 }
 
-dns_result_t
+isc_result_t
 dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 
 	/*
@@ -452,7 +452,7 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
  *** DB Iterator Creation
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
 		      dns_dbiterator_t **iteratorp)
 {
@@ -470,7 +470,7 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
  *** Rdataset Methods
  ***/
 
-dns_result_t
+isc_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
 		    isc_stdtime_t now, dns_rdataset_t *rdataset,
@@ -495,7 +495,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    now, rdataset, sigrdataset));
 }
 
-dns_result_t
+isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp)
 {
@@ -511,7 +511,7 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					    iteratorp));
 }
 
-dns_result_t
+isc_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
 		   isc_boolean_t merge, dns_rdataset_t *addedrdataset)
@@ -536,7 +536,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					   merge, addedrdataset));
 }
 
-dns_result_t
+isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
 			dns_rdataset_t *newrdataset)
@@ -560,7 +560,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 						newrdataset));
 }
 
-dns_result_t
+isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		      dns_dbversion_t *version, dns_rdatatype_t type)
 {

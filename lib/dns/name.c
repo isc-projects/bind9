@@ -979,7 +979,7 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 }
 
 
-dns_result_t
+isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		  dns_name_t *origin, isc_boolean_t downcase,
 		  isc_buffer_t *target)
@@ -1561,7 +1561,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
 {
@@ -2014,7 +2014,7 @@ compact(dns_name_t *name, unsigned char *offsets) {
 	}
 }
 
-dns_result_t
+isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  dns_decompress_t *dctx, isc_boolean_t downcase,
 		  isc_buffer_t *target)
@@ -2313,7 +2313,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 		isc_buffer_t *target)
 {
@@ -2432,7 +2432,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 		     isc_buffer_t *target)
 {
@@ -2583,7 +2583,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_name_split(dns_name_t *name,
 	       unsigned int suffixlabels, unsigned int nbits,
 	       dns_name_t *prefix, dns_name_t *suffix)
@@ -2591,7 +2591,7 @@ dns_name_split(dns_name_t *name,
 {
 	dns_offsets_t name_odata, split_odata;
 	unsigned char *offsets, *splitoffsets;
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 	unsigned int splitlabel, bitbytes, mod, len;
 	unsigned char *p, *src, *dst;
 
@@ -2852,7 +2852,7 @@ dns_name_split(dns_name_t *name,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	/*
 	 * Make 'target' a dynamically allocated copy of 'source'.
@@ -2899,12 +2899,12 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
 	dns_name_invalidate(name);
 }
 
-dns_result_t
+isc_result_t
 dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	dns_name_t downname;
 	unsigned char data[256];
 	isc_buffer_t buffer;
-	dns_result_t result;
+	isc_result_t result;
 	isc_region_t r;
 
 	/*

@@ -432,7 +432,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	db = NULL;
 	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
 	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		dns_result_t tresult;
+		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
 		if (tresult != DNS_R_SUCCESS)
 			result = tresult;
@@ -552,7 +552,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 {
 	dns_section_t section;
 	dns_name_t *mname = NULL;
-	dns_result_t result;
+	isc_result_t result;
 
 	for (section = DNS_SECTION_ANSWER;
 	     section <= DNS_SECTION_ADDITIONAL;
@@ -637,7 +637,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
 	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		dns_result_t tresult;
+		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
 		if (tresult != DNS_R_SUCCESS)
 			result = tresult;

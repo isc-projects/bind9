@@ -59,7 +59,7 @@ void my_accept(isc_task_t *, isc_event_t *);
 void got_request(isc_task_t *, isc_event_t *);
 void got_response(isc_task_t *, isc_event_t *);
 void start_response(void);
-static inline void CHECKRESULT(dns_result_t, char *);
+static inline void CHECKRESULT(isc_result_t, char *);
 void send_done(isc_task_t *, isc_event_t *);
 void hex_dump(isc_buffer_t *);
 
@@ -82,7 +82,7 @@ hex_dump(isc_buffer_t *b)
 }
 
 static inline void
-CHECKRESULT(dns_result_t result, char *msg)
+CHECKRESULT(isc_result_t result, char *msg)
 {
 	if (result != DNS_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
@@ -286,7 +286,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	dns_dispentry_t *resp = ev->sender;
 	static int cnt = 0;
 	dns_message_t *msg;
-	dns_result_t result;
+	isc_result_t result;
 
 	printf("App:  Got request.  Result: %s\n",
 	       isc_result_totext(ev->result));

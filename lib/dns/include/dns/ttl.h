@@ -31,7 +31,7 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-dns_result_t
+isc_result_t
 dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
 	       isc_buffer_t *target);
 /*
@@ -49,7 +49,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
  * 	DNS_R_NOSPACE
  */
 
-dns_result_t
+isc_result_t
 dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
 /*
  * Converts a counter from either a plain number or a BIND 8 style value.
@@ -59,7 +59,7 @@ dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
  *	DNS_R_SYNTAX
  */
 
-dns_result_t
+isc_result_t
 dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
 /*
  * Converts a ttl from either a plain number or a BIND 8 style value.

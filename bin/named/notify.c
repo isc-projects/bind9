@@ -134,7 +134,7 @@
 /**************************************************************************/
 
 static void
-respond(ns_client_t *client, dns_result_t result) {
+respond(ns_client_t *client, isc_result_t result) {
 	dns_rcode_t rcode;
         dns_message_t *message;
         isc_result_t msg_result;
@@ -157,7 +157,7 @@ void
 ns_notify_start(ns_client_t *client)
 {
 	dns_message_t *request = client->message;
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;

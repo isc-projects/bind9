@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.68 1999/11/03 01:06:57 marka Exp $ */
+/* $Id: rbt.c,v 1.69 1999/12/23 00:08:31 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -159,14 +159,14 @@ static void dns_rbt_printnodename(dns_rbtnode_t *node);
 /*
  * Forward declarations.
  */
-static dns_result_t create_node(isc_mem_t *mctx,
+static isc_result_t create_node(isc_mem_t *mctx,
 				dns_name_t *name, dns_rbtnode_t **nodep);
 
-static dns_result_t join_nodes(dns_rbt_t *rbt,
+static isc_result_t join_nodes(dns_rbt_t *rbt,
 			       dns_rbtnode_t *node, dns_rbtnode_t *parent,
 			       dns_rbtnode_t **rootp);
 
-static inline dns_result_t get_ancestor_mem(dns_rbtnodechain_t *chain);
+static inline isc_result_t get_ancestor_mem(dns_rbtnodechain_t *chain);
 static inline void put_ancestor_mem(dns_rbtnodechain_t *chain);
 
 static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent,
@@ -183,7 +183,7 @@ static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
 				    dns_rbtnodechain_t *chain);
 static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
-static dns_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
+static isc_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
 					  dns_rbtnode_t *node,
 					  isc_boolean_t recurse,
 					  dns_rbtnodechain_t *chain);
@@ -191,7 +191,7 @@ static dns_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
 /*
  * Initialize a red/black tree of trees.
  */
-dns_result_t
+isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	       void *deleter_arg, dns_rbt_t **rbtp)
 {
@@ -242,7 +242,7 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
  * inlined by the other rbt functions that use them.
  */
 
-static inline dns_result_t
+static inline isc_result_t
 get_ancestor_mem(dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t **ancestor_mem;
 	int oldsize, newsize;
@@ -285,12 +285,12 @@ put_ancestor_mem(dns_rbtnodechain_t *chain) {
 			    * sizeof(dns_rbtnode_t *));
 }
 
-static inline dns_result_t
+static inline isc_result_t
 chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	   isc_boolean_t include_chain_end)
 {
 	dns_name_t nodename;
-	dns_result_t result;
+	isc_result_t result;
 	unsigned int i;
 
 	dns_name_init(&nodename, NULL);
@@ -319,7 +319,7 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	return (result);
 }
 
-static inline dns_result_t
+static inline isc_result_t
 move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
 	do {
 		/*
@@ -348,7 +348,7 @@ move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
  * Add 'name' to tree, initializing its data pointer with 'data'.
  */
 
-dns_result_t
+isc_result_t
 dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	/*
 	 * Does this thing have too many variables or what?
@@ -358,7 +358,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_fixedname_t fixedcopy, fixedprefix, fixedsuffix;
 	dns_offsets_t current_offsets;
 	dns_namereln_t compared;
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 	dns_rbtnodechain_t chain;
 	unsigned int common_labels, common_bits, add_bits;
 	int order;
@@ -667,9 +667,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 /*
  * Add a name to the tree of trees, associating it with some data.
  */
-dns_result_t
+isc_result_t
 dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_rbtnode_t *node;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -697,7 +697,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 /*
  * Find the node for "name" in the tree of trees.
  */
-dns_result_t
+isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
 		 isc_boolean_t empty_data_ok, dns_rbtfindcallback_t callback,
@@ -708,7 +708,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	dns_name_t *search_name, current_name, *callback_name;
 	dns_fixedname_t fixedcallbackname, fixedsearchname;
 	dns_namereln_t compared;
-	dns_result_t result, saved_result;
+	isc_result_t result, saved_result;
 	unsigned int common_labels, common_bits;
 	int order;
 
@@ -954,7 +954,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				chain->end =
 					chain->levels[--chain->level_count];
 			} else {
-				dns_result_t result2;
+				isc_result_t result2;
 
 				/*
 				 * Reached a point within a level tree that
@@ -1034,11 +1034,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 /*
  * Get the data pointer associated with 'name'.
  */
-dns_result_t
+isc_result_t
 dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 		 dns_name_t *foundname, void **data) {
 	dns_rbtnode_t *node = NULL;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(data != NULL && *data == NULL);
 
@@ -1056,10 +1056,10 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
 /*
  * Delete a name from the tree of trees.
  */
-dns_result_t
+isc_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	dns_rbtnode_t *node = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rbtnodechain_t chain;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -1107,11 +1107,11 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 /*
  *
  */
-static dns_result_t
+static isc_result_t
 zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 		      isc_boolean_t recurse, dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t *down, *parent, **rootp;
-	dns_result_t result;
+	isc_result_t result;
 
 	down = DOWN(node);
 
@@ -1215,7 +1215,7 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 	NODENAME(node, name);
 }
 
-static dns_result_t
+static isc_result_t
 create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node;
 	isc_region_t region;
@@ -1273,12 +1273,12 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static isc_result_t
 join_nodes(dns_rbt_t *rbt,
 	   dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 {
 	dns_rbtnode_t *down, *newnode;
-	dns_result_t result;
+	isc_result_t result;
 	dns_fixedname_t fixed_newname;
 	dns_name_t *newname, prefix, suffix;
 	unsigned int newlength, oldlength;
@@ -1900,10 +1900,10 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 	chain->magic = CHAIN_MAGIC;
 }
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			 dns_name_t *origin, dns_rbtnode_t **node) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 
 	REQUIRE(VALID_CHAIN(chain));
 
@@ -1944,12 +1944,12 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin)
 {
 	dns_rbtnode_t *current, *previous, *predecessor;
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 	isc_boolean_t new_origin = ISC_FALSE;
 
 	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
@@ -2054,12 +2054,12 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin)
 {
 	dns_rbtnode_t *current, *previous, *successor;
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 	isc_boolean_t new_origin = ISC_FALSE;
 
 	REQUIRE(VALID_CHAIN(chain) && chain->end != NULL);
@@ -2176,12 +2176,12 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin)
 
 {
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(VALID_CHAIN(chain));
@@ -2200,12 +2200,12 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin)
 
 {
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(VALID_CHAIN(chain));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.52 1999/12/22 20:52:32 gson Exp $ */
+ /* $Id: zone.c,v 1.53 1999/12/23 00:08:34 explorer Exp $ */
 
 #include <config.h>
 
@@ -194,9 +194,9 @@ struct dns_zonemgr {
 static void refresh_callback(isc_task_t *, isc_event_t *);
 static void zone_shutdown(isc_task_t *, isc_event_t *);
 static void soa_query(dns_zone_t *, isc_taskaction_t);
-static dns_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
+static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
-static dns_result_t dns_notify(dns_name_t *, isc_sockaddr_t *, dns_rdatatype_t,
+static isc_result_t dns_notify(dns_name_t *, isc_sockaddr_t *, dns_rdatatype_t,
 		       dns_rdataclass_t, isc_sockaddr_t *, isc_mem_t *);
 static void checkservers_callback(isc_task_t *task, isc_event_t *event);
 
@@ -212,22 +212,22 @@ static void add_address_tocheck(dns_message_t *msg,
 				dns_rdatatype_t type);
 extern void dns_zone_transfer_in(dns_zone_t *zone);
 static void record_serial(void);
-static dns_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s);
+static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s);
 static void unload(dns_zone_t *zone);
 static void expire(dns_zone_t *zone);
-static dns_result_t replacedb(dns_zone_t *zone, dns_db_t *db,
+static isc_result_t replacedb(dns_zone_t *zone, dns_db_t *db,
 			      isc_boolean_t dump);
-static dns_result_t default_journal(dns_zone_t *zone);
+static isc_result_t default_journal(dns_zone_t *zone);
 static void releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void xfrin_start_temporary_kludge(dns_zone_t *zone);
-static void xfrdone(dns_zone_t *zone, dns_result_t result);
+static void xfrdone(dns_zone_t *zone, isc_result_t result);
 
 
 
 #define PRINT_ZONE_REF(zone) \
 	do { \
 		char *s = NULL; \
-		dns_result_t r; \
+		isc_result_t r; \
 		r = dns_zone_tostr(zone, zone->mctx, &s); \
 		if (r == DNS_R_SUCCESS) { \
 			printf("%p: %s: references = %d\n", zone, s, \
@@ -243,7 +243,7 @@ static void xfrdone(dns_zone_t *zone, dns_result_t result);
  ***	Public functions.
  ***/
 
-dns_result_t
+isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t iresult;
 	dns_zone_t *zone;
@@ -427,9 +427,9 @@ dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type) {
 	UNLOCK(&zone->lock);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -443,11 +443,11 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, char *origin) {
 	isc_buffer_t buffer;
 	dns_fixedname_t fixed;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(origin != NULL);
@@ -470,9 +470,9 @@ dns_zone_setorigin(dns_zone_t *zone, char *origin) {
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_setdatabase(dns_zone_t *zone, const char *database) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(database != NULL);
@@ -489,7 +489,7 @@ dns_zone_setdatabase(dns_zone_t *zone, const char *database) {
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 default_journal(dns_zone_t *zone) {
 	int len;
 
@@ -507,9 +507,9 @@ default_journal(dns_zone_t *zone) {
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_setjournal(dns_zone_t *zone, const char *journal) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(journal != NULL);
@@ -556,12 +556,12 @@ dns_zone_validate(dns_zone_t *zone) {
 	REQUIRE(zone->db_type != NULL);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_load(dns_zone_t *zone) {
 	const char me[] = "dns_zone_load";
 	int soacount = 0;
 	int nscount = 0;
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_rdataset_t rdataset;
@@ -769,7 +769,7 @@ dns_zone_checkservers(dns_zone_t *zone) {
 	dns_rdata_t rdata;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdata_ns_t ns;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1012,7 +1012,7 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 static void
 cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	dns_rdata_soa_t msgsoa, zonesoa;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdataset_t zonerdataset;
 	dns_rdata_t rdata;
@@ -1115,7 +1115,7 @@ add_address_tocheck(dns_message_t *msg, dns_zone_checkservers_t *checkservers,
 		    dns_rdatatype_t type)
 {
 	dns_rdataset_t *rdataset = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	isc_sockaddr_t sockaddr;
 	dns_rdata_in_a_t a;
 	dns_rdata_in_a6_t a6;
@@ -1235,11 +1235,11 @@ dns_zone_getmctx(dns_zone_t *zone) {
 	return zone->mctx;
 }
 
-static dns_result_t
+static isc_result_t
 dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s) {
 	isc_buffer_t tbuf;
 	char outbuf[1024];
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(s != NULL && *s == NULL);
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1331,7 +1331,7 @@ dns_zone_getoptions(dns_zone_t *zone, unsigned int *options,
 	UNLOCK(&zone->lock);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_adddbarg(dns_zone_t *zone, char *arg) {
 	char **new = NULL;
 
@@ -1389,7 +1389,7 @@ dns_zone_cleardbargs(dns_zone_t *zone) {
 	UNLOCK(&zone->lock);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_setxfrsource(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -1406,7 +1406,7 @@ dns_zone_getxfrsource(dns_zone_t *zone) {
 	return (&zone->xfrsource);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_addnotify(dns_zone_t *zone, isc_sockaddr_t *notify) {
 	isc_sockaddr_t *new;
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1446,7 +1446,7 @@ dns_zone_clearnotify(dns_zone_t *zone) {
 	UNLOCK(&zone->lock);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *master) {
 	isc_sockaddr_t *new;
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1487,9 +1487,9 @@ dns_zone_clearmasters(dns_zone_t *zone) {
 	UNLOCK(&zone->lock);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_getdb(dns_zone_t *zone, dns_db_t **dpb) {
-	dns_result_t result = DNS_R_SUCCESS;
+	isc_result_t result = DNS_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -1676,11 +1676,11 @@ dns_zone_refresh(dns_zone_t *zone) {
 #endif
 }
 
-dns_result_t
+isc_result_t
 dns_zone_dump(dns_zone_t *zone, FILE *fd) {
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbversion_t *version = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_rdatasetiter_t *rdsiter = NULL;
@@ -1777,7 +1777,7 @@ dns_zone_unmount(dns_zone_t *zone) {
 	/*XXX MPA*/
 }
 
-dns_result_t
+isc_result_t
 dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 #if 1
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1786,7 +1786,7 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	return (DNS_R_SUCCESS);
 #else
 	isc_result_t iresult;
-	dns_result_t result;
+	isc_result_t result;
 
 	/*
 	 * XXXRTH  Zones do not have resolvers!!!!
@@ -1850,7 +1850,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t ardset;
 	dns_dbversion_t *version = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdata_ns_t ns;
 	dns_rdata_in_a_t a;
@@ -1961,7 +1961,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata;
 	dns_rdata_soa_t soa;
-	dns_result_t result;
+	isc_result_t result;
 	isc_uint32_t serial;
 
 	zone = devent->arg;
@@ -2115,7 +2115,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 static void
 soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 	dns_name_t *zonename;
-	dns_result_t result;
+	isc_result_t result;
 
 	zonename = &zone->origin;
 	LOCK(&zone->lock);
@@ -2151,7 +2151,7 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 	task = task; /* XXX */
 }
 
-static dns_result_t
+static isc_result_t
 zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	const char me[] = "zone_settimer";
 	isc_stdtime_t next = 0;
@@ -2236,12 +2236,12 @@ cancel_refresh(dns_zone_t *zone) {
 		zone_settimer(zone, now);
 }
 
-static dns_result_t
+static isc_result_t
 dns_notify(dns_name_t *name, isc_sockaddr_t *addr, dns_rdatatype_t type,
 	   dns_rdataclass_t rdclass, isc_sockaddr_t *source, isc_mem_t *mctx)
 {
 	dns_message_t *msg = NULL;
-	dns_result_t result;
+	isc_result_t result;
 	isc_buffer_t target;
 	/* dns_rdatalist_t *rdatalist = NULL; */
 	dns_rdatalist_t rdatalist;
@@ -2300,7 +2300,7 @@ dns_notify(dns_name_t *name, isc_sockaddr_t *addr, dns_rdatatype_t type,
 	return (result);
 }
 
-dns_result_t
+isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg)
 {
@@ -2309,7 +2309,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	dns_rdata_soa_t soa;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata;
-	dns_result_t result;
+	isc_result_t result;
 	isc_stdtime_t now;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2590,7 +2590,7 @@ zone_log(dns_zone_t *zone, const char *me, int level,
 	char namebuf[1024+32];
 	isc_buffer_t buffer;
 	int len;
-	dns_result_t result;
+	isc_result_t result;
 
 	isc_buffer_init(&buffer, namebuf, sizeof namebuf, ISC_BUFFERTYPE_TEXT);
 	result = dns_name_totext(&zone->origin, ISC_FALSE, &buffer);
@@ -2609,7 +2609,7 @@ zone_log(dns_zone_t *zone, const char *me, int level,
 
 static int
 message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t *name;
 	dns_rdataset_t *curr;
 	int res = 0;
@@ -2835,9 +2835,9 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 }
 
 
-dns_result_t
+isc_result_t
 dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
-	dns_result_t result;
+	isc_result_t result;
 	
 	REQUIRE(DNS_ZONE_VALID(zone));
 	LOCK(&zone->lock);
@@ -2846,7 +2846,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	return (result);
 }
 
-static dns_result_t
+static isc_result_t
 replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	dns_dbversion_t *ver;
 	isc_result_t result;
@@ -2907,7 +2907,7 @@ replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 }
 
 static void
-xfrdone(dns_zone_t *zone, dns_result_t result) {
+xfrdone(dns_zone_t *zone, isc_result_t result) {
 	const char me[] = "xfrdone";
 	isc_stdtime_t now;
 

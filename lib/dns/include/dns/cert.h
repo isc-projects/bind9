@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
+isc_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a certificate type.
  * The text may contain either a mnemonic type name or a decimal type number.
@@ -40,7 +40,7 @@ dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
  *	DNS_R_RANGE			numeric type is out of range
  */
 
-dns_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
+isc_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
 /*
  * Put a textual representation of certificate type 'cert' into 'target'.
  *

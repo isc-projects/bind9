@@ -30,7 +30,7 @@
  * table in 'cctx'.
  */
 
-dns_result_t dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx,
+isc_result_t dns_zone_configure(isc_log_t *lctx, dns_c_ctx_t *ctx,
 				dns_aclconfctx_t *ac,
 				dns_c_zone_t *czone, dns_zone_t *zone);
 /*

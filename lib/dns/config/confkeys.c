@@ -1010,7 +1010,7 @@ dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_int32_t flags,
 {
 	dns_c_tkey_t *newk;
 	dns_c_pubkey_t *pk;
-	dns_result_t res;
+	isc_result_t res;
 
 	REQUIRE(domain != NULL);
 	REQUIRE(strlen(domain) > 0);

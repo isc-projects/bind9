@@ -59,7 +59,7 @@ struct dns_decompress {
 	dns_name_t	owner_name;		/* For local compression. */
 };
 
-dns_result_t dns_compress_init(dns_compress_t *cctx, int edns,
+isc_result_t dns_compress_init(dns_compress_t *cctx, int edns,
 			       isc_mem_t *mctx);
 /*
  *	Inialise the compression context structure pointed to by 'cctx'.
@@ -75,7 +75,7 @@ dns_result_t dns_compress_init(dns_compress_t *cctx, int edns,
  *		failures from dns_rbt_create()
  */
 
-dns_result_t
+isc_result_t
 dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 		       isc_buffer_t *target);
 

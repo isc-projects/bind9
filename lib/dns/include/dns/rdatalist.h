@@ -72,7 +72,7 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist);
  *	values.
  */
 
-dns_result_t
+isc_result_t
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 			 dns_rdataset_t *rdataset);
 /*

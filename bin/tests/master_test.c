@@ -30,16 +30,16 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-dns_result_t print_dataset(void *arg, dns_name_t *owner,
+isc_result_t print_dataset(void *arg, dns_name_t *owner,
 			   dns_rdataset_t *dataset);
 
 isc_mem_t *mctx;
 
-dns_result_t
+isc_result_t
 print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[64*1024];
 	isc_buffer_t target;
-	dns_result_t result;
+	isc_result_t result;
 	
 	arg = arg;	/*unused*/
 
@@ -58,7 +58,7 @@ print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 
 int
 main(int argc, char *argv[]) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_name_t origin;
 	isc_buffer_t source;
 	isc_buffer_t target;

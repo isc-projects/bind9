@@ -213,7 +213,7 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 	dns_c_rrsolist_t *nlist;
 	dns_c_rrso_t *elem;
 	dns_c_rrso_t *newe;
-	dns_result_t res;
+	isc_result_t res;
 
 	REQUIRE(DNS_C_RRSOLIST_VALID(source));
 	REQUIRE(dest != NULL);

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.11 1999/12/16 22:24:17 explorer Exp $
+ * $Id: dbtable.c,v 1.12 1999/12/23 00:08:28 explorer Exp $
  */
 
 /*
@@ -60,12 +60,12 @@ dbdetach(void *data, void *arg) {
 	dns_db_detach(&db);
 }
 
-dns_result_t
+isc_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep)
 {
 	dns_dbtable_t *dbtable;
-	dns_result_t result;
+	isc_result_t result;
 	isc_result_t iresult;
 
 	REQUIRE(mctx != NULL);
@@ -183,9 +183,9 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 	*dbtablep = NULL;
 }
 
-dns_result_t
+isc_result_t
 dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db) {
-	dns_result_t result;
+	isc_result_t result;
 	dns_db_t *clone;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
@@ -269,10 +269,10 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable) {
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 }
 
-dns_result_t
+isc_result_t
 dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp) {
 	dns_db_t *stored_data = NULL;
-	dns_result_t result;
+	isc_result_t result;
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 

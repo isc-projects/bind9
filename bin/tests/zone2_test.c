@@ -51,7 +51,7 @@ static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         isc_buffer_t text;
         char t[1000];
-        dns_result_t result;
+        isc_result_t result;
         isc_region_t r;
 
         isc_buffer_init(&text, t, sizeof t, ISC_BUFFERTYPE_TEXT);
@@ -70,7 +70,7 @@ query(dns_view_t *view) {
 	dns_fixedname_t name;
 	char *s;
 	isc_buffer_t buffer;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t sigset;
 	fd_set rfdset;
@@ -169,7 +169,7 @@ main(int argc, char **argv) {
 	dns_view_t *view = NULL;
 	dns_c_cbks_t cbks;
 	int quiet = 0, stats = 0;
-	dns_result_t result;
+	isc_result_t result;
 	int c;
 	char *dir;
 	dns_zone_callbackarg_t cba;

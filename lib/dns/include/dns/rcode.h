@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
+isc_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS error value.
  *
@@ -38,7 +38,7 @@ dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
  *	DNS_R_UNKNOWN			type is unknown
  */
 
-dns_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
+isc_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
 /*
  * Put a textual representation of error 'rcode' into 'target'.
  *

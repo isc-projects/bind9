@@ -79,13 +79,13 @@ static char *rcodetext[] = {
 	"BADVERS"
 };
 
-static dns_result_t
+static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
 	isc_buffer_t target;
-	dns_result_t result;
+	isc_result_t result;
 	isc_region_t r;
 	dns_name_t empty_name;
 	char t[4096];
@@ -145,10 +145,10 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+isc_result_t
 printmessage(dns_message_t *msg) {
 	isc_boolean_t did_flag = ISC_FALSE;
-	dns_result_t result;
+	isc_result_t result;
 	dns_rdataset_t *opt;
 
 	result = DNS_R_SUCCESS;

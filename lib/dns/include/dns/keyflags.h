@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-dns_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
+isc_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
 				   isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC KEY flags value.

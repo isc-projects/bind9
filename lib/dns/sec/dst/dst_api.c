@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.19 1999/10/26 19:31:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.20 1999/12/23 00:09:04 explorer Exp $
  */
 
 #include <config.h>
@@ -1016,7 +1016,7 @@ write_public_key(const dst_key_t *key) {
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXSIZE];
 	dst_result_t ret;
-	dns_result_t dnsret;
+	isc_result_t dnsret;
 	dns_rdata_t rdata;
 
 	REQUIRE(VALID_KEY(key));

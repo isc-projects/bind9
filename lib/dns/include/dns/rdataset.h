@@ -62,8 +62,8 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_rdatasetmethods {
 	void			(*disassociate)(dns_rdataset_t *rdataset);
-	dns_result_t		(*first)(dns_rdataset_t *rdataset);
-	dns_result_t		(*next)(dns_rdataset_t *rdataset);
+	isc_result_t		(*first)(dns_rdataset_t *rdataset);
+	isc_result_t		(*next)(dns_rdataset_t *rdataset);
 	void			(*current)(dns_rdataset_t *rdataset,
 					   dns_rdata_t *rdata);
 	void			(*clone)(dns_rdataset_t *source,
@@ -227,7 +227,7 @@ dns_rdataset_count(dns_rdataset_t *rdataset);
  *	The number of records in 'rdataset'.	
  */
 
-dns_result_t
+isc_result_t
 dns_rdataset_first(dns_rdataset_t *rdataset);
 /*
  * Move the rdata cursor to the first rdata in the rdataset (if any).
@@ -240,7 +240,7 @@ dns_rdataset_first(dns_rdataset_t *rdataset);
  *	DNS_R_NOMORE			There are no rdata in the set.
  */
 
-dns_result_t
+isc_result_t
 dns_rdataset_next(dns_rdataset_t *rdataset);
 /*
  * Move the rdata cursor to the next rdata in the rdataset (if any).
@@ -269,7 +269,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
  *	'rdataset'.
  */
 
-dns_result_t
+isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
@@ -295,7 +295,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * XXX Supply more Requires and Ensures XXX
  */
 
-dns_result_t
+isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
@@ -333,7 +333,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *	dns_name_towire().
  */
 
-dns_result_t
+isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 			    dns_additionaldatafunc_t add, void *arg);
 /*
