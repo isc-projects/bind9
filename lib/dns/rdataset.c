@@ -305,7 +305,6 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	} else {
 		REQUIRE(result == DNS_R_SUCCESS);
 	}
-	REQUIRE(result == DNS_R_SUCCESS);
 	REQUIRE(countp != NULL);
 
 	count = 0;
