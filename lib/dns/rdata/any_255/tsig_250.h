@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.2 1999/02/05 04:57:19 marka Exp $ */
+ /* $Id: tsig_250.h,v 1.3 1999/02/05 05:15:15 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -97,6 +97,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_t sr;
 	isc_region_t sigr;
 	char buf[sizeof "281474976710655 "];	
+	char *bufp;
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
@@ -122,8 +123,15 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 		  (sr.base[2] << 24) | (sr.base[3] << 16) |
 		  (sr.base[4] << 8) | sr.base[5];
 	isc_region_consume(&sr, 6);
-	sprintf(buf, "%qu ", sigtime);
-	RETERR(str_totext(buf, target));
+	bufp = &buf[sizeof buf - 1];
+	*bufp-- = 0;
+	*bufp-- = ' ';
+	do {
+		*bufp-- = decdigits[sigtime % 10];
+		sigtime /= 10;
+	} while (sigtime != 0);
+	bufp++;
+	RETERR(str_totext(bufp, target));
 
 	/* Fudge */
 	n = uint16_fromregion(&sr);

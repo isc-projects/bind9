@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.3 1999/02/04 07:00:32 marka Exp $ */
+ /* $Id: tkey_249.c,v 1.4 1999/02/05 05:15:16 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -112,6 +112,7 @@ totext_tkey(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	dns_name_fromregion(&name, &sr);
 	sub = name_prefix(&name, origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
+	RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, name_length(&name));
 
 	/* Inception */
