@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.372 2002/03/07 13:46:40 marka Exp $ */
+/* $Id: server.c,v 1.373 2002/03/29 01:10:22 marka Exp $ */
 
 #include <config.h>
 
@@ -2467,10 +2467,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 
 	/* Look for the zone name. */
 	zonetxt = next_token(&input, " \t");
-	if (zonetxt == NULL) {
-		*zonep = NULL;
+	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
-	}
 
 	/* Look for the optional class name. */
 	classtxt = next_token(&input, " \t");
@@ -2507,9 +2505,9 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	
 	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
 			     0, NULL, zonep);
-	if (result != ISC_R_SUCCESS)
-		goto fail2;
- fail2:
+	/* Partial match? */
+	if (result != ISC_R_SUCCESS && *zonep != NULL)
+		dns_zone_detach(zonep);
 	dns_view_detach(&view);
  fail1:
 	return (result);
