@@ -168,7 +168,7 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	dns_name_t *origin;
 	char *versiontext;
-	char buf[256];
+	unsigned char buf[256];
 	isc_region_t r;
 	size_t len;
 	dns_rdata_t rdata;
