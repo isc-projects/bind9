@@ -1,3 +1,9 @@
+1371	[bug]		notify-source-v6, transfer-source-v6 and
+			query-source-v6 with explict addresses and using the
+			same ports as named was listening on could interfere
+			with nameds ability to answer queries sent to those
+			addresses.
+
 1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
 
 1369.	[bug]		Adding an NS record as the lexicographically last
