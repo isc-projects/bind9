@@ -1,6 +1,6 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
 <!--
- - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2001, 2002  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.2 2005/01/10 00:05:27 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.3 2005/01/11 01:39:26 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
