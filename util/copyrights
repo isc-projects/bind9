@@ -454,6 +454,7 @@
 ./bin/tests/system/dnssec/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001
+./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001
