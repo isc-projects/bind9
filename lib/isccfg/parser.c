@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.9 2001/02/17 00:22:40 gson Exp $ */
+/* $Id: parser.c,v 1.10 2001/02/17 00:46:58 gson Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>
@@ -2173,7 +2174,7 @@ get_port(cfg_parser_t *pctx, unsigned int flags, in_port_t *port) {
 			     "port number out of range");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
-	*port = pctx->token.value.as_ulong;
+	*port = (in_port_t)(pctx->token.value.as_ulong);
 	return (ISC_R_SUCCESS);
  cleanup:
 	return (result);
