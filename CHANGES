@@ -77,7 +77,7 @@
 			named and rndc will look for this file and use
 			it to configure a default control channel key
 			if not already configured using a different
-			method (rndc.conf / controls).  Unlike
+			method (rndc.conf / controls).	Unlike
 			named.key, rndc.key is not created automatically;
 			it must be created by manually running
 			"rndc-confgen -a".
@@ -94,7 +94,7 @@
 			due to a bug in change 834. [RT #1558]
 
  949.	[bug]		host was unable to print records larger than 512
- 			bytes. [RT #1557]
+			bytes. [RT #1557]
 
 	--- 9.2.0b2 released ---
 
@@ -132,7 +132,7 @@
 	--- 9.2.0b1 released ---
 
  939.	[port]		Add the --disable-linux-caps option to configure for
- 			systems that manage capabilities outside of named.
+			systems that manage capabilities outside of named.
 			[RT #1503]
 
  938.	[placeholder]
