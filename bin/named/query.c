@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.173 2001/01/09 23:48:44 gson Exp $ */
+/* $Id: query.c,v 1.174 2001/01/11 20:48:27 gson Exp $ */
 
 #include <config.h>
 
@@ -87,8 +87,8 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 
-static char ip6int_ndata[] = "\003ip6\003int";
-static char ip6int_offsets[] = { 0, 4, 8 };
+static unsigned char ip6int_ndata[] = "\003ip6\003int";
+static unsigned char ip6int_offsets[] = { 0, 4, 8 };
 
 static dns_name_t ip6int_name = {
 	DNS_NAME_MAGIC,
