@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.23 1999/10/15 01:39:31 halley Exp $ */
+ /* $Id: zone.c,v 1.24 1999/10/15 19:47:31 gson Exp $ */
 
 #include <config.h>
 
@@ -603,6 +603,11 @@ dns_zone_load(dns_zone_t *zone) {
 	case dns_zone_slave:
 	case dns_zone_stub:
 		if (soacount != 1 || nscount == 0) {
+			if (soacount != 1)
+				fprintf(stderr, "zone has %d SOA records\n",
+					soacount);
+			if (nscount == 0)
+				fprintf(stderr, "zone has no NS records\n");
 			if (soacount != 0)
 				dns_rdata_freestruct(&soa);
 			return (DNS_R_BADZONE);
@@ -634,12 +639,15 @@ dns_zone_load(dns_zone_t *zone) {
 			dns_rdata_freestruct(&soa);
 		return (DNS_R_UNEXPECTED);
 	}
-	if (zone->top != NULL)
+	if (zone->top != NULL) {
 		result = dns_zone_replacedb(zone, db, ISC_FALSE);
-	else {
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	} else {
 		dns_db_attach(db, &zone->top);
 		zone->flags |= DNS_ZONE_F_LOADED;
 	}
+	result = ISC_R_SUCCESS; 
  cleanup:
 	if (soacount != 0)
 		dns_rdata_freestruct(&soa);
