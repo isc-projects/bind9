@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.22 2001/11/12 19:05:34 gson Exp $ */
+/* $Id: ttl.c,v 1.23 2001/11/26 23:51:21 gson Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -154,14 +155,17 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	 * No legal counter / ttl is longer that 63 characters.
 	 */
 	if (source->length > sizeof(buf) - 1)
-		return(DNS_R_SYNTAX);
+		return (DNS_R_SYNTAX);
 	strncpy(buf, source->base, source->length);
 	buf[source->length] = '\0';
 	s = buf;
 
 	do {
+		errno = 0;
 		n = strtoul(s, &e, 10);
 		if (s == e)
+			return (DNS_R_SYNTAX);
+		if (n == UINT_MAX && errno == ERANGE)
 			return (DNS_R_SYNTAX);
 		switch (*e) {
 		case 'w':
