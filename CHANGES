@@ -61,7 +61,7 @@
 			function can be expanded to test other things a
 			programmer might want to know about a file.
 
- 846.	[func]		A non-zero 'param' do dst_key_generate() when making an
+ 846.	[func]		A non-zero 'param' to dst_key_generate() when making an
 			hmac-md5 key means that good entropy is not required.
 
  845.	[bug]		The access rights on the public file of a symmetric
