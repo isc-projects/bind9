@@ -1907,6 +1907,8 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer)
 
 isc_result_t
 dns_message_signer(dns_message_t *msg, dns_name_t **signer) {
+	isc_result_t result;
+
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(signer != NULL);
 	REQUIRE(*signer == NULL);
@@ -1914,12 +1916,15 @@ dns_message_signer(dns_message_t *msg, dns_name_t **signer) {
 
 	if (msg->tsigkey == NULL || msg->tsig == NULL)
 		return (ISC_R_NOTFOUND);
-	if (msg->tsigkey->generated)
-		return (DNS_R_KEYUNAUTHORIZED);
+
 	if (msg->tsigstatus != dns_rcode_noerror)
-		return (DNS_R_TSIGVERIFYFAILURE);
-	if (msg->tsig->error != dns_rcode_noerror)
-		return (DNS_R_TSIGERRORSET);
+		result = DNS_R_TSIGVERIFYFAILURE;
+	else if (msg->tsig->error != dns_rcode_noerror)
+		result = DNS_R_TSIGERRORSET;
+	else if (msg->tsigkey->generated)
+		result = DNS_R_KEYUNAUTHORIZED;
+	else
+		result = ISC_R_SUCCESS;
 	*signer = &msg->tsigkey->name;
-	return (ISC_R_SUCCESS);
+	return (result);
 }
