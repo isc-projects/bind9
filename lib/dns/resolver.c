@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.179 2000/11/08 03:53:11 marka Exp $ */
+/* $Id: resolver.c,v 1.180 2000/11/11 02:14:50 gson Exp $ */
 
 #include <config.h>
 
@@ -2235,7 +2235,7 @@ log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	isc_sockaddr_format(&addrinfo->sockaddr, addrbuf, sizeof(addrbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "Lame server on '%s' (in '%s'?): %s",
+		      "lame server on '%s' (in '%s'?): %s",
 		      namebuf, domainbuf, addrbuf);
 }
 
