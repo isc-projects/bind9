@@ -1,4 +1,7 @@
 
+ 400.	[bug]		SIG(0) signing and verifying was done incorrectly.
+			[RT #249]
+
  399.	[bug]		When reloading the server with a config file
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
