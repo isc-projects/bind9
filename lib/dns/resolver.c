@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.145 2000/07/12 23:56:06 bwelling Exp $ */
+/* $Id: resolver.c,v 1.146 2000/07/14 00:33:09 gson Exp $ */
 
 #include <config.h>
 
@@ -2429,9 +2429,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					     &need_validation);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (need_validation) {
-		
-	}
 
 	adbp = NULL;
 	aname = NULL;
