@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getgrent.c,v 1.2 2001/04/04 05:44:14 marka Exp $";
+static const char rcsid[] = "$Id: getgrent.c,v 1.3 2001/04/12 01:57:35 marka Exp $";
 #endif
 
 /* Imports */
@@ -36,6 +36,7 @@ static int __bind_irs_gr_unneeded;
 #include <grp.h>
 #include <resolv.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <irs.h>
@@ -84,7 +85,7 @@ void
 setgrent(void) {
 	struct net_data *net_data = init();
 
-	return (setgrent_p(net_data));
+	setgrent_p(net_data);
 }
 #else
 int
