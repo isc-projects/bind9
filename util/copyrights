@@ -481,6 +481,7 @@
 ./bin/tests/system/forward/ns4/named.conf	CONF-C	2000,2001
 ./bin/tests/system/forward/ns4/root.db		X	2000,2001
 ./bin/tests/system/forward/tests.sh		SH	2000,2001
+./bin/tests/system/genzone.sh			SH	2001
 ./bin/tests/system/glue/clean.sh		SH	2000,2001
 ./bin/tests/system/glue/fi.good			X	2000,2001
 ./bin/tests/system/glue/noglue.good		X	2000,2001
@@ -701,14 +702,13 @@
 ./bin/tests/system/views/setup.sh		SH	2000,2001
 ./bin/tests/system/views/tests.sh		SH	2000,2001
 ./bin/tests/system/xfer/clean.sh		SH	2000,2001
-./bin/tests/system/xfer/knowngood.dig.out	X	2000,2001
+./bin/tests/system/xfer/dig1.good		X	2000,2001
+./bin/tests/system/xfer/dig2.good		X	2000,2001
 ./bin/tests/system/xfer/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001
 ./bin/tests/system/xfer/ns2/.cvsignore		X	2000,2001
-./bin/tests/system/xfer/ns2/example.db		ZONE	2000,2001
 ./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001
-./bin/tests/system/xfer/ns2/tsigzone.db		ZONE	2000,2001
 ./bin/tests/system/xfer/ns3/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.25 2001/09/07 23:29:50 gson Exp $
+# $Id: tests.sh,v 1.26 2001/09/08 00:24:28 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -33,9 +33,9 @@ $DIG $DIGOPTS example. \
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 grep ";" dig.out.ns3
 
-$PERL ../digcomp.pl knowngood.dig.out dig.out.ns2 || status=1
+$PERL ../digcomp.pl dig1.good dig.out.ns2 || status=1
 
-$PERL ../digcomp.pl knowngood.dig.out dig.out.ns3 || status=1
+$PERL ../digcomp.pl dig1.good dig.out.ns3 || status=1
 
 echo "I:testing TSIG signed zone transfers"
 $DIG $DIGOPTS tsigzone. \
@@ -49,6 +49,30 @@ $DIG $DIGOPTS tsigzone. \
 grep ";" dig.out.ns3
 
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
+
+echo "I:testing ixfr-from-differences"
+
+$PERL -i -p -e '
+	s/0\.0\.0\.0/0.0.0.1/;
+	s/1397051952/1397051953/
+' ns2/example.db
+
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+
+sleep 5
+
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 | sed 's/^/I:ns3 /'
+
+sleep 5
+
+$DIG $DIGOPTS example. \
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
+grep ";" dig.out.ns3
+
+$PERL ../digcomp.pl dig2.good dig.out.ns3 || status=1
+
+# ns3 has a journal iff it received an IXFR.
+test -f ns3/example.bk.jnl || status=1 
 
 echo "I:exit status: $status"
 exit $status
