@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.51 2000/03/20 19:39:15 gson Exp $ */
+/* $Id: confparser.y,v 1.52 2000/03/20 22:03:13 gson Exp $ */
 
 #include <config.h>
 
@@ -640,10 +640,13 @@ option: /* Empty */
 	}
 	| L_MAINTAIN_IXFR_BASE yea_or_nay
 	{
-		tmpres = dns_c_ctx_setmaintainixfrbase(currcfg, $2);
+		/*
+		 * Backwards compatibility, treated as
+		 * equivalent to provide-ixfr.
+		 */
+		tmpres = dns_c_ctx_setprovideixfr(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
-			parser_warning(ISC_FALSE,
-				     "redefining maintain-ixfr-base.");
+			parser_warning(ISC_FALSE, "redefining provide-ixfr.");
 		}
 	}
 	| L_HAS_OLD_CLIENTS yea_or_nay
@@ -2193,22 +2196,22 @@ server_info: L_BOGUS yea_or_nay
 	| L_SUPPORT_IXFR yea_or_nay
 	{
 		/*
-		 * Backwards compatibility, equivalent to provide-ixfr
+		 * Backwards compatibility, equivalent to request-ixfr.
 		 */
 		dns_peer_t *peer = NULL;
 
 		dns_peerlist_currpeer(currcfg->peers, &peer);
 		INSIST(peer != NULL);
 
-		tmpres = dns_peer_setprovideixfr(peer, $2);
+		tmpres = dns_peer_setrequestixfr(peer, $2);
 		dns_peer_detach(&peer);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining peer provide-ixfr value");
+				       "redefining peer request-ixfr value");
 		} else if(tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "error setting peer "
-				     "provide-ixfr value");
+				     "request-ixfr value");
 			YYABORT;
 		}
 	}
