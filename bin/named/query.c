@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.127 2000/08/26 23:22:36 explorer Exp $ */
+/* $Id: query.c,v 1.128 2000/09/06 18:41:22 gson Exp $ */
 
 #include <config.h>
 
@@ -53,6 +53,8 @@
 				  NS_QUERYATTR_RECURSING) != 0)
 #define CACHEGLUEOK(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_CACHEGLUEOK) != 0)
+#define WANTRECURSION(c)	(((c)->query.attributes & \
+				  NS_QUERYATTR_WANTRECURSION) != 0)
 
 #if 0
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
@@ -2885,9 +2887,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		goto restart;
 	}
 
-	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client)) {
-		ns_client_error(client, eresult);
-		ns_client_detach(&client);
+	if (eresult != ISC_R_SUCCESS &&
+	    (!PARTIALANSWER(client) || WANTRECURSION(client))) {
+		/*
+		 * If we don't have any answer to give the client,
+		 * or if the client requested recursion and thus wanted
+		 * the complete answer, send an error response.
+		 */
+		 ns_client_error(client, eresult);
+		 ns_client_detach(&client);
 	} else if (!RECURSING(client)) {
 		/*
 		 * We are done.  Make a final tweak to the AA bit if the
@@ -2952,6 +2960,9 @@ ns_query_start(ns_client_t *client) {
 	 */
 	client->next = query_next;
 
+	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
+		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
+	
 	if ((client->view->cachedb == NULL)
 	    || (!client->view->additionalfromcache)) {
 		/*

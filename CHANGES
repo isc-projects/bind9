@@ -1,4 +1,8 @@
 
+ 423.	[bug]		When responding to a recusive query, errors that occur
+			after following a CNAME should cause the query to fail.
+			[RT #274]
+
  422.	[func]		get rid of isc_random_t, and make isc_random_get()
 			and isc_random_jitter() use rand() internally
 			instead of local state.  Note that isc_random_*()
