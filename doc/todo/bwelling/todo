@@ -8,3 +8,6 @@ Design new update client
 Check that lwres security stuff does something
 
 Move lwres search list into lwresd
+
+Document the new lwresd configuration mechanisms
+
