@@ -446,7 +446,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 */
 		if (create != 0 || update != 0) {
 			result = object_update(object, message->object,
-					       message->handle);
+					       message->h);
 			if (result != ISC_R_SUCCESS) {
 				OBJECT_DEREF(&object);
 				return (send_status(po, result, message->id,
@@ -461,7 +461,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 	      case OMAPI_OP_REFRESH:
 	      refresh:
-		result = handle_lookup(&object, message->handle);
+		result = handle_lookup(&object, message->h);
 		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
@@ -476,14 +476,13 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			OBJECT_REF(&object, m->object);
 
 		else {
-			result = handle_lookup(&object, message->handle);
+			result = handle_lookup(&object, message->h);
 			if (result != ISC_R_SUCCESS)
 				return (send_status(po, result, message->id,
 						    "no matching handle"));
 		}
 
-		result = object_update(object, message->object,
-				       message->handle);
+		result = object_update(object, message->object, message->h);
 		OBJECT_DEREF(&object);
 		if (result != ISC_R_SUCCESS) {
 			if (message->rid == 0)
@@ -532,11 +531,10 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		return (ISC_R_SUCCESS);
 
 	      case OMAPI_OP_DELETE:
-		result = handle_lookup(&object, message->handle);
-		if (result != ISC_R_SUCCESS) {
+		result = handle_lookup(&object, message->h);
+		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
-		}
 
 		result = object_methodremove(object->type, object);
 		if (result == ISC_R_NOTIMPLEMENTED)
@@ -671,7 +669,7 @@ message_getvalue(omapi_object_t *h, omapi_string_t *name,
 		return (omapi_value_storeint(value, name, (int)m->op));
 
 	else if (omapi_string_strcmp(name, "handle") == 0)
-		return (omapi_value_storeint(value, name, (int)m->handle));
+		return (omapi_value_storeint(value, name, (int)m->h));
 
 	else if (omapi_string_strcmp(name, "id") == 0)
 		return (omapi_value_storeint(value, name, (int)m->id));
