@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.40 2000/03/29 19:46:44 brister Exp $ */
+/* $Id: confctx.c,v 1.41 2000/03/30 17:23:37 brister Exp $ */
 
 #include <config.h>
 
@@ -236,6 +236,8 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	dns_severity_t	severity;
 	isc_int32_t		intval;
 	dns_c_ipmatchlist_t    *ipml;
+	isc_result_t 		result = ISC_R_SUCCESS;
+	isc_result_t 		rval;
 
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
@@ -361,33 +363,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "rfc2308-type-1 is not yet implemented.");
 	}
 
-	/* XXX need to check all zones and views for
-	 * 'allow-update-forwarding' (not yet implemented)
-	 */
-
-
-	/*
-  	named-xfer              obsolete
-	dump-file               not yet implemented
-	memstatistics-file      not yet implemented
-	auth-nxdomain           default changed (to "no")
-	deallocate-on-exit      obsolete (always "yes")
-	fake-iquery             obsolete (always "no")
-	fetch-glue              not yet implemented (always "no")
-	has-old-clients         obsolete (always "no")
-	host-statistics         not yet implemented
-	multiple-cnames         obsolete (always "no")
-	use-id-pool             obosolete (always "yes")
-	maintain-ixfr-base      obosolete (always "yes")
-	check-names             not yet implemented
-	max-ixfr-log-size       not yet implemented
-	statistics-interval     not yet implemented
-	topology                not yet implemented
-	sortlist                not yet implemented
-	*/
-
 	
-	return (ISC_R_SUCCESS);
+	rval = dns_c_zonelist_checkzones(cfg->zlist);
+	if (rval != ISC_R_SUCCESS) {
+		result = ISC_R_FAILURE;
+	}
+	
+	
+	return (result);
 }
 
 
