@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.2 1999/08/26 20:41:54 bwelling Exp $
+ * $Id: openssl_link.c,v 1.3 1999/08/27 21:12:28 bwelling Exp $
  */
 
 #include <config.h>
@@ -370,27 +370,32 @@ dst_openssl_to_file(const dst_key_t *key) {
 	priv.elements[cnt].tag = TAG_DSA_PRIME;
 	priv.elements[cnt].length = BN_num_bytes(dsa->p);
 	BN_bn2bin(dsa->p, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt++];
+	priv.elements[cnt].data = bufs[cnt];
+	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_SUBPRIME;
 	priv.elements[cnt].length = BN_num_bytes(dsa->q);
 	BN_bn2bin(dsa->q, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt++];
+	priv.elements[cnt].data = bufs[cnt];
+	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_BASE;
 	priv.elements[cnt].length = BN_num_bytes(dsa->g);
 	BN_bn2bin(dsa->g, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt++];
+	priv.elements[cnt].data = bufs[cnt];
+	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_PRIVATE;
 	priv.elements[cnt].length = BN_num_bytes(dsa->priv_key);
 	BN_bn2bin(dsa->priv_key, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt++];
+	priv.elements[cnt].data = bufs[cnt];
+	cnt++;
 
 	priv.elements[cnt].tag = TAG_DSA_PUBLIC;
 	priv.elements[cnt].length = BN_num_bytes(dsa->pub_key);
 	BN_bn2bin(dsa->pub_key, bufs[cnt]);
-	priv.elements[cnt].data = bufs[cnt++];
+	priv.elements[cnt].data = bufs[cnt];
+	cnt++;
 
 	priv.nelements = cnt;
 	return (dst_s_write_private_key_file(key->key_name, key->key_alg,
