@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.9 2001/07/08 05:09:00 mayer Exp $ */
+/* $Id: file.c,v 1.10 2001/07/08 05:16:13 mayer Exp $ */
 
 #include <config.h>
 
@@ -79,14 +79,8 @@ gettemp(char *path, int *doopen) {
 	for (;;) {
 		if (doopen) {
 			if ((*doopen =
-<<<<<<< file.c
 			    open(path, O_CREAT|O_EXCL|O_RDWR, _S_IREAD | _S_IWRITE)) >= 0)
 				return (1);
-=======
-			     open(path, O_CREAT | O_EXCL | O_RDWR,
-				  _S_IREAD | _S_IWRITE)) >= 0)
-				return(1);
->>>>>>> 1.8
 			if (errno != EEXIST)
 				return (0);
 		}
@@ -136,11 +130,9 @@ file_stats(const char *file, struct stat *stats) {
 	return (result);
 }
 
-/*
- * isc_file_safemovefile is needed to ensure that
- * any file with the new name is renamed to a backup name and then the
- * rename is done. If all goes well then the backup can be deleted,
- * otherwise it gets renamed back.
+/* isc_file_safemovefile is needed to be defined here to ensure that any file with
+ * the new name is renamed to a backup name and then the rename is done. If all goes
+ * well then the backup can be deleted, otherwise it gets renamed back.
  */
 
 int
@@ -162,60 +154,26 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	/*
 	 * Rename to a backup the new file if it still exists
 	 */
-<<<<<<< file.c
 	if (stat(newname, &sbuf) == 0) {
-=======
-	if (stat(newname, &sbuf) == 0)
->>>>>>> 1.8
 		exists = TRUE;
-<<<<<<< file.c
 		strcpy(buf, newname);
 		strcat(buf, ".XXXXX");
 		tmpfd = mkstemp(buf);
 		if (tmpfd > 0)
 			_close(tmpfd);
 		DeleteFile(buf);
-=======
-
-	strcpy(buf, newname);
-	strcat(buf, ".XXXXX");
-	tmpfd = mkstemp(buf);
-	if (tmpfd > 0)
-		_close(tmpfd);
-	DeleteFile(buf);
-
-	if (exists == TRUE)
->>>>>>> 1.8
 		_chmod(newname, _S_IREAD | _S_IWRITE);
 
-<<<<<<< file.c
 		filestatus = MoveFile(newname, buf);
-=======
-	filestatus = MoveFile(newname, buf);
-	if (filestatus == 0) {
->>>>>>> 1.8
 	}
-<<<<<<< file.c
 	/* Now rename the file to the new name
-=======
-
-	/*
-	 * Now rename the file to the new name
->>>>>>> 1.8
 	 */
 	_chmod(oldname, _S_IREAD | _S_IWRITE);
 
 	filestatus = MoveFile(oldname, newname);
-<<<<<<< file.c
 	if (filestatus == 0) {
 
 		/* Try and rename the backup back to the original name if the backup got created
-=======
-	if (filestatus == 0) {
-		/* 
-		 * Try to rename the backup back to the original name
-		 * if the backup got created
->>>>>>> 1.8
 		 */
 		if (exists == TRUE) {
 			filestatus = MoveFile(buf, newname);
@@ -226,8 +184,7 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 		return (-1);
 	}
 
-	/*
-	 * Delete the backup file if it got created 
+	/* Delete the backup file if it got created 
 	 */
 	if (exists == TRUE) {
 		filestatus = DeleteFile(buf);
@@ -441,14 +398,9 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	 * Strip the path from the name
 	 */
 	s = isc_file_basename(filename);
-<<<<<<< file.c
 	if (s == NULL) {
 		return (ISC_R_NOSPACE);
 	}
-=======
-	if (s == NULL)
-		return (ISC_R_NOSPACE);
->>>>>>> 1.8
 
 	/*
 	 * Strip any and all suffixes
