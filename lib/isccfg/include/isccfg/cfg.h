@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.24 2001/04/19 23:28:17 gson Exp $ */
+/* $Id: cfg.h,v 1.25 2001/06/29 18:36:12 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -368,6 +368,14 @@ cfg_print(cfg_obj_t *obj,
  * Print the configuration object 'obj' by repeatedly calling the
  * function 'f', passing 'closure' and a region of text starting
  * at 'text' and comprising 'textlen' characters.
+ */
+
+void
+cfg_print_grammar(cfg_type_t *type,
+	  void (*f)(void *closure, const char *text, int textlen),
+	  void *closure);
+/*
+ * Print a summary of the grammar of the configuration type 'type'.
  */
 
 isc_boolean_t

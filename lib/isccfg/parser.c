@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.56 2001/06/08 01:03:00 gson Exp $ */
+/* $Id: parser.c,v 1.57 2001/06/29 18:36:10 gson Exp $ */
 
 #include <config.h>
 
@@ -599,7 +599,7 @@ static cfg_type_t cfg_type_grant = {
 	"grant", parse_tuple, print_tuple, &cfg_rep_tuple, grant_fields };
 
 static cfg_type_t cfg_type_updatepolicy = {
-	"updatepolicy", parse_bracketed_list, print_bracketed_list,
+	"update_policy", parse_bracketed_list, print_bracketed_list,
 	&cfg_rep_list, &cfg_type_grant
 };
 
@@ -1573,7 +1573,7 @@ cfg_obj_asuint32(cfg_obj_t *obj) {
 }
 
 static cfg_type_t cfg_type_uint32 = {
-	"uint32", parse_uint32, print_uint32, &cfg_rep_uint32, NULL };
+	"integer", parse_uint32, print_uint32, &cfg_rep_uint32, NULL };
 
 
 /*
@@ -1638,7 +1638,7 @@ print_uint64(cfg_printer_t *pctx, cfg_obj_t *obj) {
 }
 
 static cfg_type_t cfg_type_uint64 = {
-	"uint64", NULL, print_uint64, &cfg_rep_uint64, NULL };
+	"64_bit_integer", NULL, print_uint64, &cfg_rep_uint64, NULL };
 
 static isc_result_t
 parse_sizeval(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
@@ -1905,7 +1905,7 @@ cfg_obj_asboolean(cfg_obj_t *obj) {
 
 /* Quoted string only */
 static cfg_type_t cfg_type_qstring = {
-	"qstring", parse_qstring, print_qstring, &cfg_rep_string, NULL };
+	"quoted_string", parse_qstring, print_qstring, &cfg_rep_string, NULL };
 
 /* Unquoted string only */
 static cfg_type_t cfg_type_ustring = {
@@ -3071,7 +3071,7 @@ static cfg_type_t cfg_type_negated = {
 /* an address match list element */
 
 static cfg_type_t cfg_type_addrmatchelt = {
-	"addrmatchelt", parse_addrmatchelt, NULL, NULL, NULL };
+	"address_match_element", parse_addrmatchelt, NULL, NULL, NULL };
 static cfg_type_t cfg_type_bracketed_aml = {
 	"bracketed_aml", parse_bracketed_list, print_bracketed_list,
 	&cfg_rep_list, &cfg_type_addrmatchelt
@@ -3215,7 +3215,7 @@ parse_server_key_kludge(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 	return (result);
 }
 static cfg_type_t cfg_type_server_key_kludge = {
-	"server_key_kludge", parse_server_key_kludge, NULL, NULL, NULL };
+	"server_key", parse_server_key_kludge, NULL, NULL, NULL };
 
 
 /*
@@ -3745,4 +3745,129 @@ static void
 free_noop(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	UNUSED(pctx);
 	UNUSED(obj);
+}
+
+/*
+ * Data and functions for printing grammar summaries.
+ */
+struct flagtext {
+	unsigned int flag;
+	const char *text;
+} flagtexts[] = {
+	{ CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
+	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
+	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
+	{ 0, NULL }
+};
+
+static void
+print_clause_flags(cfg_printer_t *pctx, unsigned int flags) {
+	struct flagtext *p;
+	isc_boolean_t first = ISC_TRUE;
+	for (p = flagtexts; p->flag != 0; p++) {
+		if ((flags & p->flag) != 0) {
+			if (first)
+				print(pctx, " // ", 4);
+			else
+				print(pctx, ", ", 2);
+			print(pctx, p->text, strlen(p->text));
+			first = ISC_FALSE;
+		}
+	}
+}
+
+static void
+print_grammar(cfg_printer_t *pctx, cfg_type_t *type) {
+	if (type->print == print_mapbody) {
+		cfg_clausedef_t **clauseset;
+		cfg_clausedef_t *clause;
+
+		for (clauseset = type->of; *clauseset != NULL; clauseset++) {
+			for (clause = *clauseset;
+			     clause->name != NULL;
+		     clause++) {
+				print(pctx, clause->name, strlen(clause->name));
+				print(pctx, " ", 1);
+				print_grammar(pctx, clause->type);
+				print(pctx, ";", 1);
+				/* XXX print flags here? */
+				print(pctx, "\n\n", 2);
+			}
+		}
+	} else if (type->print == print_map) {
+		cfg_clausedef_t **clauseset;
+		cfg_clausedef_t *clause;
+
+		print_open(pctx);
+
+		for (clauseset = type->of; *clauseset != NULL; clauseset++) {
+			for (clause = *clauseset;
+			     clause->name != NULL;
+			     clause++) {
+				print_indent(pctx);
+				print(pctx, clause->name, strlen(clause->name));
+				if (clause->type->print != print_void)
+					print(pctx, " ", 1);
+				print_grammar(pctx, clause->type);
+				print(pctx, ";", 1);
+				print_clause_flags(pctx, clause->flags);
+				print(pctx, "\n", 1);
+			}
+		}
+		print_close(pctx);
+	} else if (type->print == print_tuple) {
+		cfg_tuplefielddef_t *fields = type->of;
+		cfg_tuplefielddef_t *f;
+		isc_boolean_t need_space = ISC_FALSE;
+
+		for (f = fields; f->name != NULL; f++) {
+			if (need_space)
+				print(pctx, " ", 1);
+			print_grammar(pctx, f->type);
+			need_space = ISC_TF(f->type->print != print_void);
+		}
+	} else if (type->parse == parse_enum) {
+		const char **p;
+		print(pctx, "( ", 2);
+		for (p = type->of; *p != NULL; p++) {
+			print(pctx, *p, strlen(*p));
+			if (p[1] != NULL)
+				print(pctx, " | ", 3);
+		}
+		print(pctx, " )", 2);
+	} else if (type->print == print_bracketed_list) {
+		print(pctx, "{ ", 2);
+		print_grammar(pctx, type->of);
+		print(pctx, "; ... }", 7);
+	} else if (type->parse == parse_keyvalue) {
+		keyword_type_t *kw = type->of;
+		print(pctx, kw->name, strlen(kw->name));
+		print(pctx, " ", 1);
+		print_grammar(pctx, kw->type);
+	} else if (type->parse == parse_optional_keyvalue) {
+		keyword_type_t *kw = type->of;
+		print(pctx, "[ ", 2);
+		print(pctx, kw->name, strlen(kw->name));
+		print(pctx, " ", 1);
+		print_grammar(pctx, kw->type);
+		print(pctx, " ]", 2);
+	} else if (type->print == print_void) {
+		/* Print nothing. */
+	} else {
+		print(pctx, "<", 1);
+		print(pctx, type->name, strlen(type->name));
+		print(pctx, ">", 1);
+	}
+}
+
+void
+cfg_print_grammar(cfg_type_t *type,
+	void (*f)(void *closure, const char *text, int textlen),
+	void *closure)
+{
+	cfg_printer_t pctx;
+	pctx.f = f;
+	pctx.closure = closure;
+	pctx.indent = 0;
+	print_grammar(&pctx, type);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.9 2001/05/31 11:00:40 tale Exp $ */
+/* $Id: cfg_test.c,v 1.10 2001/06/29 18:36:13 gson Exp $ */
 
 #include <config.h>
 
@@ -66,6 +66,9 @@ main(int argc, char **argv) {
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
+	isc_boolean_t grammar = ISC_FALSE;
+	isc_boolean_t memstats = ISC_FALSE;	
+	char *filename = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -95,31 +98,50 @@ main(int argc, char **argv) {
 
 	if (argc < 3)
 		usage();
-	
-	if (strcmp(argv[1], "--named") == 0)
-		type = &cfg_type_namedconf;
-	else if (strcmp(argv[1], "--rndc") == 0)
-		type = &cfg_type_rndcconf;
-	else
-		usage();
 
-	RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) == ISC_R_SUCCESS);
+	while (argc > 1) {
+		if (strcmp(argv[1], "--grammar") == 0) {
+			grammar = ISC_TRUE;
+		} else if (strcmp(argv[1], "--memstats") == 0) {
+			memstats = ISC_TRUE;
+		} else if (strcmp(argv[1], "--named") == 0) {
+			type = &cfg_type_namedconf;
+		} else if (strcmp(argv[1], "--rndc") == 0) {
+			type = &cfg_type_rndcconf;
+		} else if (argv[1][0] == '-') {
+			usage();
+		} else {
+			filename = argv[1];
+		}
+		argv++, argc--;       
+	}
 
-	result = cfg_parse_file(pctx, argv[2], type, &cfg);
+	if (grammar) {
+		if (type == NULL)
+			usage();
+		cfg_print_grammar(type, output, NULL);
+	} else {
+		if (type == NULL || filename == NULL)
+			usage();
+		RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) == ISC_R_SUCCESS);
 
-	fprintf(stderr, "read config: %s\n", isc_result_totext(result));
+		result = cfg_parse_file(pctx, filename, type, &cfg);
 
-	if (result != ISC_R_SUCCESS)
-		exit(1);
+		fprintf(stderr, "read config: %s\n", isc_result_totext(result));
 
-	cfg_print(cfg, output, NULL);
+		if (result != ISC_R_SUCCESS)
+			exit(1);
 
-	cfg_obj_destroy(pctx, &cfg);
+		cfg_print(cfg, output, NULL);
 
-	cfg_parser_destroy(&pctx);
+		cfg_obj_destroy(pctx, &cfg);
+
+		cfg_parser_destroy(&pctx);
+	}
 
 	isc_log_destroy(&lctx);
-	isc_mem_stats(mctx, stderr);
+	if (memstats)
+		isc_mem_stats(mctx, stderr);
 	isc_mem_destroy(&mctx);
 
 	return (0);
