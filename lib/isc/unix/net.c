@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.16.2.1 2001/01/09 22:51:21 bwelling Exp $ */
+/* $Id: net.c,v 1.16.2.2 2001/01/17 17:30:50 gson Exp $ */
 
 #include <config.h>
 
@@ -122,8 +122,6 @@ initialize_action(void) {
 #ifdef WANT_IPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#else
-	ipv6_result = 0;
 #endif
 #endif
 #endif
