@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.1 2001/11/12 22:28:30 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.2 2001/11/15 00:35:17 marka Exp $ */
 
 /*
  * Implementation notes
@@ -300,7 +300,6 @@ static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void dec_adb_irefcnt(dns_adb_t *);
 static inline void inc_adb_erefcnt(dns_adb_t *);
-static inline void dec_adb_erefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
@@ -1218,27 +1217,6 @@ inc_adb_erefcnt(dns_adb_t *adb) {
 	LOCK(&adb->reflock);
 	adb->erefcnt++;
 	UNLOCK(&adb->reflock);
-}
-
-static inline void
-dec_adb_erefcnt(dns_adb_t *adb, isc_boolean_t lock) {
-	isc_boolean_t zeroerefcnt;
-
-	if (lock)
-		LOCK(&adb->lock);
-
-	INSIST(adb->erefcnt > 0);
-
-	LOCK(&adb->reflock);
-	adb->erefcnt--;
-	zeroerefcnt = ISC_TF(adb->erefcnt == 0);
-	UNLOCK(&adb->reflock);
-
-	if (zeroerefcnt)
-		check_exit(adb);
-
-	if (lock)
-		UNLOCK(&adb->lock);
 }
 
 static inline void
@@ -2332,17 +2310,26 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbx) {
 void
 dns_adb_detach(dns_adb_t **adbx) {
 	dns_adb_t *adb;
+	isc_boolean_t zeroerefcnt;
 
 	REQUIRE(adbx != NULL && DNS_ADB_VALID(*adbx));
 
 	adb = *adbx;
 	*adbx = NULL;
 
-	LOCK(&adb->lock);
-	dec_adb_erefcnt(adb, ISC_FALSE);
-	if (adb->erefcnt == 0)
+	INSIST(adb->erefcnt > 0);
+
+	LOCK(&adb->reflock);
+	adb->erefcnt--;
+	zeroerefcnt = ISC_TF(adb->erefcnt == 0);
+	UNLOCK(&adb->reflock);
+
+	if (zeroerefcnt) {
+		LOCK(&adb->lock);
+		check_exit(adb);
 		INSIST(adb->shutting_down);
-	UNLOCK(&adb->lock);
+		UNLOCK(&adb->lock);
+	}
 }
 
 void
