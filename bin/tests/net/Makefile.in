@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.11 2002/12/27 03:29:34 marka Exp $
+# $Id: Makefile.in,v 1.12 2004/02/24 01:37:39 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,7 +43,7 @@ OBJS =		driver.@O@ netaddr_multicast.@O@ sockaddr_multicast.@O@
 @BIND9_MAKE_RULES@
 
 t_net@EXEEXT@: ${OBJS} ${DEPLIBS} ${TLIB}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${TLIB} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${TLIB} ${LIBS}
 
 test: t_net@EXEEXT@
 	-@./t_net@EXEEXT@

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.26 2001/09/20 15:17:00 marka Exp $
+# $Id: Makefile.in,v 1.27 2004/02/24 01:37:42 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,7 +52,7 @@ TARGETS =	timestamp
 @BIND9_MAKE_RULES@
 
 version.@O@: version.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
@@ -64,7 +64,7 @@ liblwres.@SA@: ${OBJS} version.@O@
 	${RANLIB} $@
 
 liblwres.la: ${OBJS} version.@O@
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} -o liblwres.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} version.@O@ ${LIBS}
@@ -76,7 +76,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} liblwres.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} liblwres.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f liblwres.@A@ liblwres.la timestamp

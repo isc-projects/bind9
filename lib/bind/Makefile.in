@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20 2003/10/26 21:33:46 marka Exp $
+# $Id: Makefile.in,v 1.21 2004/02/24 01:37:40 marka Exp $
 
 srcdir =        @srcdir@
 VPATH =         @srcdir@
@@ -99,7 +99,7 @@ libbind.@SA@: ${OBJS}
 	${RANLIB} $@
 
 libbind.la: ${OBJS}
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 	${CC} ${ALL_CFLAGS} -o libbind.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
@@ -111,7 +111,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libbind.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libbind.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libbind.@SA@ libbind.la

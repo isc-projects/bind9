@@ -24,7 +24,9 @@
 
 1574.	[placeholder]	rt9091
 
-1573.	[placeholder]	rt9941
+1573.	[port]		linux: update to libtool 1.5.2 so that
+			"make install DESTDIR=/xx" works with
+			"configure --with-libtool".  [RT #9941]
 
 1572.	[placeholder]	rt10148
 

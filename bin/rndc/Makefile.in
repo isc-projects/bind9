@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.38 2002/12/27 03:29:31 marka Exp $
+# $Id: Makefile.in,v 1.39 2004/02/24 01:37:36 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -62,23 +62,23 @@ UOBJS =		unix/os.@O@
 @BIND9_MAKE_RULES@
 
 rndc.@O@: rndc.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DRNDC_CONFFILE=\"${sysconfdir}/rndc.conf\" \
 		-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\" \
 		-c ${srcdir}/rndc.c
 
 rndc-confgen.@O@: rndc-confgen.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DRNDC_KEYFILE=\"${sysconfdir}/rndc.key\" \
 		-c ${srcdir}/rndc-confgen.c
 
 rndc@EXEEXT@: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc.@O@ util.@O@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc.@O@ util.@O@ \
 		${RNDCLIBS}
 
 rndc-confgen@EXEEXT@: rndc-confgen.@O@ util.@O@ ${UOBJS} ${CONFDEPLIBS} 
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc-confgen.@O@ util.@O@ \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ rndc-confgen.@O@ util.@O@ \
 		${UOBJS} ${CONFLIBS}
 
 doc man:: ${MANOBJS}
@@ -92,8 +92,8 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 
 install:: rndc@EXEEXT@ rndc-confgen@EXEEXT@ installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} rndc@EXEEXT@ ${DESTDIR}${sbindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} rndc-confgen@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} rndc@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} rndc-confgen@EXEEXT@ ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/rndc.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/rndc-confgen.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/rndc.conf.5 ${DESTDIR}${mandir}/man5
