@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.112 2002/03/19 02:40:16 marka Exp $ */
+/* $Id: mem.c,v 1.113 2002/05/23 04:32:30 marka Exp $ */
 
 #include <config.h>
 
@@ -1041,7 +1041,8 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 		ctx->maxinuse = ctx->inuse;
 		if (ctx->hi_water != 0 && ctx->inuse > ctx->hi_water &&
 		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
-			fprintf(stderr, "maxinuse = %d\n", ctx->inuse);
+			fprintf(stderr, "maxinuse = %lu\n",
+				(unsigned long)ctx->inuse);
 	}
 	UNLOCK(&ctx->lock);
 
