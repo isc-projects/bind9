@@ -175,15 +175,18 @@ dns_bitlabel_t dns_label_getbit(dns_label_t *label, unsigned int n);
  ***/
 
 /*
- * Clients are strongly discouraged from using this type directly.
+ * Clients are strongly discouraged from using this type directly,  with
+ * the exception of the 'link' and 'list' fields which may be used directly
+ * for whatever purpose the client desires.
  */
 struct dns_name {
-	unsigned int magic;
-	unsigned char *ndata;
-	unsigned int length;
-	unsigned int labels;
-	unsigned char *offsets;
-	ISC_LINK(dns_name_t) link;
+	unsigned int			magic;
+	unsigned char *			ndata;
+	unsigned int			length;
+	unsigned int			labels;
+	unsigned char *			offsets;
+	ISC_LINK(dns_name_t)		link;
+	ISC_LIST(dns_rdatalist_t)	list;
 };
 
 extern dns_name_t *dns_rootname;
@@ -245,7 +248,8 @@ isc_boolean_t dns_name_isabsolute(dns_name_t *name);
  *** Comparisons
  ***/
 
-int dns_name_compare(dns_name_t *name1, dns_name_t *name2);
+int
+dns_name_compare(dns_name_t *name1, dns_name_t *name2);
 /*
  * Determine the relative ordering under the DNSSEC order relation of
  * 'name1' and 'name2'.
