@@ -187,7 +187,7 @@ CLASS="FILENAME"
 >When no command line arguments or options are given, will perform an
 NS query for "." (the root).</P
 ><P
->It is possible to set per user defaults for <B
+>It is possible to set per-user defaults for <B
 CLASS="COMMAND"
 >dig</B
 > via
@@ -195,7 +195,7 @@ CLASS="COMMAND"
 CLASS="FILENAME"
 >${HOME}/.digrc</TT
 >.  This file is read and any options in it
-are applied before the command line arguements.</P
+are applied before the command line arguments.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
@@ -312,7 +312,8 @@ CLASS="PARAMETER"
 >address</I
 ></TT
 >.  This must be a valid address on
-one of the host's network interfaces.</P
+one of the host's network interfaces or "0.0.0.0" or "::".  An optional port
+may be specified by appending "#&lt;port&gt;"</P
 ><P
 >The default query class (IN for internet) is overridden by the
 <TT
@@ -438,12 +439,13 @@ CLASS="LITERAL"
 >11.12.13.10.in-addr.arpa</TT
 > and sets the query type and
 class to PTR and IN respectively.  By default, IPv6 addresses are
-looked up using the IP6.ARPA domain and binary labels as defined in
-RFC2874.  To use the older RFC1886 method using the IP6.INT domain and
-"nibble" labels, specify the <TT
+looked up using nibble format under the IP6.ARPA domain.
+To use the older RFC1886 method using the IP6.INT domain 
+specify the <TT
 CLASS="OPTION"
->-n</TT
-> (nibble) option.</P
+>-i</TT
+> option.  Bit string labels (RFC2874)
+are now experimental and are not attempted.</P
 ><P
 >To sign the DNS queries sent by <B
 CLASS="COMMAND"
@@ -679,6 +681,24 @@ requests the server to not perform DNSSEC validation of responses.</P
 ><DT
 ><TT
 CLASS="OPTION"
+>+[no]cl</TT
+></DT
+><DD
+><P
+>Display [do not display] the CLASS when printing the record.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]ttlid</TT
+></DT
+><DD
+><P
+>Display [do not display] the TTL when printing the record.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
 >+[no]recurse</TT
 ></DT
 ><DD
@@ -884,7 +904,7 @@ CLASS="OPTION"
 ></DT
 ><DD
 ><P
->Sets the number of times to retry UDP queries to server to
+>Sets the number of times to try UDP queries to server to
 <TT
 CLASS="PARAMETER"
 ><I
@@ -897,7 +917,29 @@ CLASS="PARAMETER"
 >T</I
 ></TT
 > is less than or equal to zero, the number of
-retries is silently rounded up to 1.</P
+tries is silently rounded up to 1.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+retry=T</TT
+></DT
+><DD
+><P
+>Sets the number of times to retry UDP queries to server to
+<TT
+CLASS="PARAMETER"
+><I
+>T</I
+></TT
+> instead of the default, 2.  Unlike
+<TT
+CLASS="PARAMETER"
+><I
+>+tries</I
+></TT
+>, this does not include the initial
+query.</P
 ></DD
 ><DT
 ><TT
@@ -1007,7 +1049,7 @@ in the OPT record in the additional section of the query.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN338"
+NAME="AEN355"
 ></A
 ><H2
 >MULTIPLE QUERIES</H2
@@ -1091,7 +1133,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN356"
+NAME="AEN373"
 ></A
 ><H2
 >FILES</H2
@@ -1109,7 +1151,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN362"
+NAME="AEN379"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1143,7 +1185,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN375"
+NAME="AEN392"
 ></A
 ><H2
 >BUGS </H2

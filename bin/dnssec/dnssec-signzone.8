@@ -26,7 +26,7 @@ dnssec-signzone \- DNSSEC zone signing tool
 and SIG records and produces a signed version of the zone. If there
 is a \fIsignedkey\fR file from the zone's parent,
 the parent's signatures will be incorporated into the generated
-signed zone file. The security status of delegations from the the
+signed zone file. The security status of delegations from the
 signed zone (that is, whether the child zones are secure or not) is
 determined by the presence or absence of a
 \fIsignedkey\fR file for each child zone.
@@ -50,7 +50,7 @@ in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 14:45:00 UTC on May 30th, 2000. A relative start time is
 indicated by +N, which is N seconds from the current time.
 If no \fBstart-time\fR is specified, the current
-time is used.
+time minus 1 hour (to allow for clock skew) is used.
 .TP
 \fB-e \fIend-time\fB\fR
 Specify the date and time when the generated SIG records
