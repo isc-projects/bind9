@@ -55,12 +55,14 @@
 #define IDS_ERR_WRONGPRIV               54
 #define IDS_CREATEACCOUNT_FAILED        55
 #define IDS_ERR_PASSWORD                56
+#define IDS_ERR_UPDATE_SERVICE          57
 #define IDD_BINDINSTALL_DIALOG          102
 #define IDR_MAINFRAME                   128
 #define IDD_BROWSE                      129
 #define IDI_CHECK                       130
 #define IDI_X                           132
 #define IDC_CURSOR1                     142
+#define IDD_DIALOG1                     143
 #define IDC_TARGETDIR                   1001
 #define IDC_BROWSE                      1002
 #define IDC_DIRLIST                     1004
@@ -91,7 +93,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        143
+#define _APS_NEXT_RESOURCE_VALUE        144
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           104

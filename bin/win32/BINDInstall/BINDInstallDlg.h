@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.4 2001/09/25 01:48:48 mayer Exp $ */
+/* $Id: BINDInstallDlg.h,v 1.5 2001/09/26 02:22:26 mayer Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -72,6 +72,7 @@ protected:
 	void DeleteFiles(BOOL uninstall);
 
 	void RegisterService();
+	void UpdateService();
 	void UnregisterService(BOOL uninstall);
 
 	void RegisterMessages();
@@ -100,10 +101,12 @@ protected:
 	CString m_currentDir;
 	BOOL	m_accountExists;
 	BOOL	m_accountUsed;
+	CString	m_currentAccount;
 	CString m_accountName;
 	CString m_accountPasswordConfirm;
 	CString m_accountPassword;
-
+	BOOL	m_serviceExists;
+ 
 	// Generated message map functions
 	//{{AFX_MSG(CBINDInstallDlg)
 	virtual BOOL OnInitDialog();

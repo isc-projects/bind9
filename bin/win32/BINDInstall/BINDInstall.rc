@@ -131,6 +131,15 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
 END
 
+IDD_DIALOG1 DIALOG DISCARDABLE  0, 0, 186, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -212,6 +221,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 110
     END
+
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -291,9 +308,10 @@ BEGIN
     IDS_FILE_BAD            "Could not retrieve version info for file %s.  Do you wish to continue?\n(Continuing may overwrite a newer version of the file) "
     IDS_ERR_TOOPRIVED       "Chosen account has too many privileges. Do you wish to choose a different account name?"
     IDS_ERR_BADACCOUNT      "Error Validating Account. Unable to install service using this account."
-    IDS_ERR_WRONGPRIV       "The wrong privilege: %s was detected.  The Service Logon Right privilege is required."
+    IDS_ERR_WRONGPRIV       "The wrong privilege: %s was detected.  Only the Service Logon Right privilege should be enabled for this account."
     IDS_CREATEACCOUNT_FAILED "Unable to Create Account for the Service."
     IDS_ERR_PASSWORD        "Passwords entered did not match. Please reenter password."
+    IDS_ERR_UPDATE_SERVICE  "Error updating service\n(%s)"
 END
 
 #endif    // English (U.S.) resources

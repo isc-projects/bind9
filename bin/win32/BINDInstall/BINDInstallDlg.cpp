@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.8 2001/09/25 01:48:47 mayer Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.9 2001/09/26 02:22:25 mayer Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -167,7 +167,9 @@ CBINDInstallDlg::CBINDInstallDlg(CWnd* pParent /*=NULL*/)
 	m_installed = FALSE;
 	m_accountExists = FALSE;
 	m_accountUsed = FALSE;
+	m_serviceExists = TRUE;
 	GetCurrentServiceAccountName();
+	m_currentAccount = m_accountName;
 	if (m_accountName == "") {
 		m_accountName = "named";
 	}
@@ -318,7 +320,8 @@ void CBINDInstallDlg::OnUninstall() {
 		if (CheckBINDService())
 			StopBINDService();
 
-		HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+		HANDLE hSCManager = OpenSCManager(NULL, NULL,
+					SC_MANAGER_ALL_ACCESS);
 		if (!hSCManager) {
 			MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
 			return;
@@ -326,7 +329,7 @@ void CBINDInstallDlg::OnUninstall() {
 		
 		HANDLE hService = OpenService(hSCManager, BIND_SERVICE_NAME,
 					      SERVICE_ALL_ACCESS);
-		if (!hService && GetLastError() != ERROR_SERVICE_DOES_NOT_EXIST)	{
+		if (!hService && GetLastError() != ERROR_SERVICE_DOES_NOT_EXIST){
 			MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
 			return;
 		}
@@ -394,21 +397,26 @@ void CBINDInstallDlg::OnInstall() {
 	if (ValidateServiceAccount() == FALSE)
 		return;
 
-	// Directories
+
+	/* For Registration we need to know if account was changed */
+	if(m_accountName != m_currentAccount)
+		m_accountUsed = FALSE;
+
+	/* Directories */
 	m_etcDir = m_targetDir + "\\etc";
 	m_binDir = m_targetDir + "\\bin";
 
 	if (m_defaultDir != m_targetDir) {
 		if (GetFileAttributes(m_targetDir) != 0xFFFFFFFF)
 		{
-			int install = MsgBox(IDS_DIREXIST, MB_YESNO | MB_ICONQUESTION,
-					     m_targetDir);
+			int install = MsgBox(IDS_DIREXIST,
+					MB_YESNO | MB_ICONQUESTION, m_targetDir);
 			if (install == IDNO)
 				return;
 		}
 		else {
-			int createDir = MsgBox(IDS_CREATEDIR, MB_YESNO | MB_ICONQUESTION,
-					       m_targetDir);
+			int createDir = MsgBox(IDS_CREATEDIR,
+					MB_YESNO | MB_ICONQUESTION, m_targetDir);
 			if (createDir == IDNO)
 				return;
 		}
@@ -421,7 +429,7 @@ void CBINDInstallDlg::OnInstall() {
 			MsgBox(IDS_CREATEACCOUNT_FAILED);
 			return;
 		}
-		m_accountExists;
+		m_accountExists = TRUE;
 	}
 
 	ProgramGroup();
@@ -453,10 +461,12 @@ void CBINDInstallDlg::OnInstall() {
 			CString buf(BIND_DISPLAY_NAME);
 			GetWindowsDirectory(winDir, MAX_PATH);
 
-			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ,
+					(LPBYTE)(LPCTSTR)buf, buf.GetLength());
 
 			buf.Format("%s\\BINDInstall.exe", winDir);
-			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ,
+					(LPBYTE)(LPCTSTR)buf, buf.GetLength());
 			RegCloseKey(hKey);
 		}
 	
@@ -622,15 +632,19 @@ void
 CBINDInstallDlg::GetCurrentServiceAccountName() {
 	HKEY hKey;
 	BOOL keyFound = FALSE;
-	char accountName[50];
-	DWORD nameLen = strlen(accountName);
+	char accountName[MAX_PATH];
+	DWORD nameLen = MAX_PATH;
 	CString Tmp;
 	m_accountUsed = FALSE;
 
 	memset(accountName, 0, nameLen);
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SERVICE_SUBKEY, 0, KEY_READ,
-		&hKey) == ERROR_SUCCESS)
+		&hKey) == ERROR_SUCCESS) {
 		keyFound = TRUE;
+	}
+	else {
+		m_serviceExists = FALSE;
+	}
 	
 	if (keyFound == TRUE) {
 		/* Get the named service account, if one was specified */
@@ -638,7 +652,7 @@ CBINDInstallDlg::GetCurrentServiceAccountName() {
 			(LPBYTE)accountName, &nameLen) != ERROR_SUCCESS)
 			keyFound = FALSE;
 	}
-	
+
 	RegCloseKey(hKey);
 	if(keyFound == FALSE)
 		m_accountName = "";
@@ -689,18 +703,35 @@ CBINDInstallDlg::ValidateServiceAccount() {
 		else
 			return (TRUE);
 	}
-	/* See if we have the correct privilege */
-	if (wcscmp(PrivList[0], SE_SERVICE_LOGON_PRIV) == 0)
-		return (TRUE);
 
-	MsgBox(IDS_ERR_WRONGPRIV, PrivList[0]);
-	return (FALSE);
+	/* See if we have the correct privilege */
+	if (wcscmp(PrivList[0], SE_SERVICE_LOGON_PRIV) != 0) {
+		MsgBox(IDS_ERR_WRONGPRIV, PrivList[0]);
+		return (FALSE);
+	}
+	return (TRUE);
 }
 
 void
 CBINDInstallDlg::RegisterService() {
 	HANDLE hSCManager;
 	HANDLE hService;
+	CString StartName = ".\\" + m_accountName;
+
+	/*
+	 * We need to change the service rather than create it
+	 * if the service already exists. Do nothing if we are already
+	 * using that account
+	 */
+	if(m_serviceExists == TRUE) {
+		if(m_accountUsed == FALSE) {
+			UpdateService();
+			return;
+		}
+		else {
+			return;
+		}
+	}
 
 	SetCurrent(IDS_OPEN_SCM);
 	hSCManager= OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
@@ -719,16 +750,68 @@ CBINDInstallDlg::RegisterService() {
 	SetCurrent(IDS_CREATE_SERVICE);
 	hService = CreateService(hSCManager, BIND_SERVICE_NAME,
 		BIND_DISPLAY_NAME, SERVICE_ALL_ACCESS, dwServiceType, dwStart,
-		SERVICE_ERROR_NORMAL, namedLoc, NULL, NULL, NULL, NULL, NULL);	
+		SERVICE_ERROR_NORMAL, namedLoc, NULL, NULL, NULL, StartName,
+		m_accountPassword);	
 	
 	if (!hService && GetLastError() != ERROR_SERVICE_EXISTS)
 		throw(Exception(IDS_ERR_CREATE_SERVICE, GetErrMessage()));
 
+	if (hService)
+		CloseServiceHandle(hService);
+
 	if (hSCManager)
 		CloseServiceHandle(hSCManager);
 
+	SetItemStatus(IDC_REG_SERVICE);
+}
+
+void
+CBINDInstallDlg::UpdateService() {
+	HANDLE hSCManager;
+	HANDLE hService;
+	CString StartName = ".\\" + m_accountName;
+
+	SetCurrent(IDS_OPEN_SCM);
+	hSCManager= OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	if (!hSCManager) {
+		MsgBox(IDS_ERR_OPEN_SCM, GetErrMessage());
+		return;
+	}
+
+	DWORD dwStart = SERVICE_DEMAND_START;
+	if (m_autoStart)
+		dwStart = SERVICE_AUTO_START;
+
+	DWORD dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+
+	CString namedLoc;
+	namedLoc.Format("%s\\bin\\named.exe", m_targetDir);
+
+	SetCurrent(IDS_OPEN_SERVICE);
+	hService = OpenService(hSCManager, BIND_SERVICE_NAME,
+			       SERVICE_CHANGE_CONFIG);
+	if (!hService)
+	{
+		MsgBox(IDS_ERR_OPEN_SERVICE, GetErrMessage());
+		if (hSCManager)
+			CloseServiceHandle(hSCManager);
+		return;
+	}
+	else {
+		if (ChangeServiceConfig(hService, dwServiceType, dwStart,
+			SERVICE_ERROR_NORMAL, namedLoc, NULL, NULL, NULL,
+			StartName, m_accountPassword,BIND_DISPLAY_NAME)
+			!= TRUE) {
+			DWORD err = GetLastError();
+			MsgBox(IDS_ERR_UPDATE_SERVICE, GetErrMessage());
+		}
+	}
+
 	if (hService)
 		CloseServiceHandle(hService);
+
+	if (hSCManager)
+		CloseServiceHandle(hSCManager);
 
 	SetItemStatus(IDC_REG_SERVICE);
 }
@@ -772,11 +855,11 @@ void CBINDInstallDlg::UnregisterService(BOOL uninstall) {
 		break;
 	}
 
-	if (hSCManager)
-		CloseServiceHandle(hSCManager);
-
 	if (hService)
 		CloseServiceHandle(hService);
+
+	if (hSCManager)
+		CloseServiceHandle(hSCManager);
 
 	if (uninstall)
 		SetItemStatus(IDC_REG_SERVICE, rc);
