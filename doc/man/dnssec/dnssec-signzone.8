@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.13 2000/10/28 01:16:46 bwelling Exp $
+.\" $Id: dnssec-signzone.8,v 1.14 2000/11/01 00:33:50 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -25,15 +25,17 @@
 .Sh SYNOPSIS
 .Nm dnssec-signzone
 .Op Fl a
-.Op Fl c Ar cycle-time
+.Op Fl c Ar class
+.Op Fl d Ar directory
 .Op Fl s Ar start-time
 .Op Fl e Ar end-time
+.Op Fl i Ar interval
 .Op Fl o Ar origin
 .Op Fl f Ar output-file
 .Op Fl p
 .Op Fl r Ar randomdev
-.Op Fl v Ar level
 .Op Fl t
+.Op Fl v Ar level
 .Ar zonefile
 .Op keyfile ....
 .Sh DESCRIPTION
@@ -145,14 +147,14 @@ When a previously signed zone is passed as input to
 .Nm dnssec-signzone ,
 records may be resigned.  Whether or not to resign records is configurable
 by using the
-.Fl c
-option, which specifies the cycle period as an offset from the current time
-(in seconds).  If a SIG record expires after the cycle period, it is retained.
-Otherwise, it is considered to be expiring soon, and
+.Fl i
+option, which specifies the cycle interval as an offset from the current time
+(in seconds).  If a SIG record expires after the cycle interval, it is
+retained.  Otherwise, it is considered to be expiring soon, and
 .Nm dnssec-signzone
 will remove it and generate a new SIG record to replace it.
 .Pp
-The default cycle period is one quarter of the difference between the
+The default cycle interval is one quarter of the difference between the
 specified signature end and start dates.  So if the
 .Fl e
 and
@@ -160,7 +162,7 @@ and
 options are not specified,
 .Nm dnssec-signzone
 generates signatures that are valid for 30 days from the current date
-by default, with a cycle period of 7.5 days.  Therefore, if any SIG records
+by default, with a cycle interval of 7.5 days.  Therefore, if any SIG records
 are due to expire in less than 7.5 days, they would be replaced
 with new ones.
 .Pp
@@ -186,8 +188,26 @@ option instructs
 .Nm dnssec-signzone
 to use pseudo-random data when signing the keys.  This is faster, but
 less secure, than using genuinely random data for signing.
-This option may be useful when signing large zones or when the 
+This option may be useful when signing large zones or when the
 entropy source is limited.
+.Pp
+The
+.Fl t
+option causes
+.Nm dnssec-signzone
+to print various statistics after signing the zone.
+.Pp
+The
+.Fl c
+option specifies that the KEY records in the input and output key sets should
+have the specified class instead of IN.
+.Pp
+The
+.Fl d
+option specifies that
+.Nm dnssec-signzone
+should look in a directory other than the current directory for signedkey
+files.
 .Pp
 An option of
 .Fl h
@@ -207,12 +227,6 @@ increases,
 .Nm dnssec-signzone
 generates increasingly detailed reports about what it is doing.
 The default level is zero.
-.Pp
-The
-.Fl t
-option causes
-.Nm dnssec-signzone
-to print various statistics after signing the zone.
 .Sh EXAMPLE
 The example below shows how
 .Nm dnssec-signzone

@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.7 2000/08/01 01:18:49 tale Exp $
+.\" $Id: dnssec-keygen.8,v 1.8 2000/11/01 00:33:47 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-KEYGEN 8
@@ -26,6 +26,7 @@
 .Nm dnssec-keygen
 .Fl a Ar algorithm
 .Fl b Ar keysize
+.Op Fl c Ar class
 .Op Fl e
 .Op Fl g Ar generator
 .Op Fl h
@@ -109,6 +110,11 @@ and
 are identical.
 .Ar nametype
 is case-insensitive.
+.Pp
+The
+.Fl c
+option specifies that the when creating a KEY record, the specified class
+should be used instead of IN.
 .Pp
 The
 .Fl e
