@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.9 2001/07/13 01:51:28 gson Exp $
+# $Id: altbuild.sh,v 1.10 2001/08/01 21:52:41 gson Exp $
 
 #
 # "Alternative build" test.
@@ -51,7 +51,7 @@ mkdir $instdir
 
 case $arg in
     *.tar.gz)
-	kit="$arg"
+	kit="$here/$arg"
 	;;
     *)
 	tag="$arg"
