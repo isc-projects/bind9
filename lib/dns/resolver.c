@@ -57,6 +57,12 @@
 				      DNS_LOGMODULE_RESOLVER, \
 				      ISC_LOG_DEBUG(3), \
 				      "fctx %p: %s", fctx, (m))
+#define FCTXTRACE2(m1, m2) \
+			isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(3), \
+				      "fctx %p: %s %s", fctx, (m1), (m2))
 #define FTRACE(m)	isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
 				      DNS_LOGMODULE_RESOLVER, \
@@ -1293,7 +1299,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	INSIST(ISC_LIST_EMPTY(fctx->forwaddrs));
 
 	/*
-	 * If this fctx has forwarders, use them; otherwise the use
+	 * If this fctx has forwarders, use them; otherwise use the
 	 * resolver's forwarders (if any).
 	 */
 	sa = ISC_LIST_HEAD(fctx->forwarders);
@@ -1474,6 +1480,31 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	return (result);
 }
 
+static inline void
+possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
+{
+	isc_netaddr_t na;
+	char buf[80];
+	isc_sockaddr_t *sa;
+
+	sa = addr->sockaddr;
+
+	if (sa->type.sa.sa_family != AF_INET6)
+		return;
+
+	if (IN6_IS_ADDR_V4MAPPED(&sa->type.sin6.sin6_addr)) {
+		isc_netaddr_fromsockaddr(&na, addr->sockaddr);
+		isc_netaddr_format(&na, buf, sizeof buf);
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		FCTXTRACE2("Ignoring IPv6 mapped IPV4 address: ", buf);
+	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
+		isc_netaddr_fromsockaddr(&na, addr->sockaddr);
+		isc_netaddr_format(&na, buf, sizeof buf);
+		addr->flags |= FCTX_ADDRINFO_MARK;
+		FCTXTRACE2("Ignoring IPv6 compatibility IPV4 address: ", buf);
+	}
+}
+
 static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
 	dns_adbfind_t *find;
@@ -1489,6 +1520,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 	     addrinfo != NULL;
 	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		possibly_mark(fctx, addrinfo);
 		if (UNMARKED(addrinfo)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			fctx->find = NULL;
@@ -1516,6 +1548,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		for (addrinfo = ISC_LIST_HEAD(find->list);
 		     addrinfo != NULL;
 		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			possibly_mark(fctx, addrinfo);
 			if (UNMARKED(addrinfo)) {
 				addrinfo->flags |= FCTX_ADDRINFO_MARK;
 				break;
@@ -1568,10 +1601,13 @@ fctx_try(fetchctx_t *fctx) {
 
 		addrinfo = fctx_nextaddress(fctx);
 		/*
-		 * fctx_getaddresses() returned success, so at least one
-		 * of the find lists should be nonempty.
+		 * While we may have addresses from the ADB, they
+		 * might be bad ones.  In this case, return SERVFAIL.
 		 */
-		INSIST(addrinfo != NULL);
+		if (addrinfo == NULL) {
+			fctx_done(fctx, DNS_R_SERVFAIL);
+			return;
+		}
 	}
 
 	result = fctx_query(fctx, addrinfo, fctx->options);

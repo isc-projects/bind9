@@ -475,20 +475,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
 		}
 
-		if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
-		    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
-			isc_buffer_t buffer;
-			char buff[80];
-
-			isc_buffer_init(&buffer, buff, sizeof buff);
-			isc_sockaddr_totext(&sockaddr, &buffer);
-
-			DP(1, "Ignoring IPv6 mapped IPv4 address: %*s",
-			   isc_buffer_usedlength(&buffer),
-			   isc_buffer_base(&buffer));
-			goto next;
-		}
-
 		INSIST(nh == NULL);
 		nh = new_adbnamehook(adb, NULL);
 		if (nh == NULL) {
@@ -525,8 +511,6 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		else
 			ISC_LIST_APPEND(adbname->v6, nh, plink);
 		nh = NULL;
-
-	next:
 
 		result = dns_rdataset_next(rdataset);
 	}
@@ -596,11 +580,6 @@ import_a6(dns_a6context_t *a6ctx) {
 
 		isc_buffer_init(&buffer, buff, sizeof buff);
 		isc_sockaddr_totext(&sockaddr, &buffer);
-
-		DP(1, "Ignoring IPv6 mapped IPv4 address: %*s",
-		   isc_buffer_usedlength(&buffer),
-		   isc_buffer_base(&buffer));
-		goto fail;
 	}
 
 	foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
