@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.21 2001/01/09 21:57:43 bwelling Exp $ */
+/* $Id: util.h,v 1.22 2001/11/20 21:28:34 gson Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
@@ -63,6 +63,12 @@
 		_u.k = konst; \
 		var = _u.v; \
 	} while (0)
+
+/*
+ * Use this in translation units that would otherwise be empty, to
+ * suppress compiler warnings.
+ */
+#define EMPTY_TRANSLATION_UNIT static void isc__empty(void) { isc__empty(); }
 
 /*
  * We use macros instead of calling the routines directly because

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.7 2001/11/06 22:51:00 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.8 2001/11/20 21:28:40 gson Exp $ */
 
 #ifdef OPENSSL
 
@@ -434,5 +434,11 @@ dst__openssldsa_init(dst_func_t **funcp) {
 		*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

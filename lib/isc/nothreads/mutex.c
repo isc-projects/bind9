@@ -15,14 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.4 2001/04/13 02:26:32 tale Exp $ */
+/* $Id: mutex.c,v 1.5 2001/11/20 21:28:36 gson Exp $ */
 
-/*
- * Well, not completely.  The stupid hack below shuts up compilers
- * from complaining about an empty file.
- */
-static void
-isc_mutex_nothreads(void) {
-	isc_mutex_nothreads();
-}
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 

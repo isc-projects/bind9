@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.42 2001/11/06 23:10:34 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.43 2001/11/20 21:28:39 gson Exp $
  */
 
 #ifdef OPENSSL
@@ -548,5 +548,11 @@ dst__openssldh_init(dst_func_t **funcp) {
 	}
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

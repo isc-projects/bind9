@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.47 2001/11/07 23:03:54 bwelling Exp $
+ * $Id: openssl_link.c,v 1.48 2001/11/20 21:28:38 gson Exp $
  */
 #ifdef OPENSSL
 
@@ -188,5 +188,11 @@ dst__openssl_destroy() {
 	if (rm != NULL)
 		mem_free(rm);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

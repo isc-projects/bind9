@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.16 2001/11/06 22:50:58 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.17 2001/11/20 21:28:41 gson Exp $
  */
 #ifdef OPENSSL
 
@@ -517,5 +517,11 @@ dst__opensslrsa_init(dst_func_t **funcp) {
 		*funcp = &opensslrsa_functions;
 	return (ISC_R_SUCCESS);
 }
+
+#else /* OPENSSL */
+
+#include <isc/util.h>
+
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */
