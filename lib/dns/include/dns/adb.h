@@ -1,6 +1,4 @@
 
-/* $Id: adb.h,v 1.1 1999/09/15 21:14:59 explorer Exp $ */
-
 /***** 
  ***** Module Info 
  *****/ 
