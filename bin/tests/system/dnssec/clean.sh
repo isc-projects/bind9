@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.12 2002/01/22 22:27:23 gson Exp $
+# $Id: clean.sh,v 1.13 2002/02/20 03:33:48 marka Exp $
 
 rm -f */K* */keyset-* */signedkey-* */*.signed */trusted.conf */tmp*
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db

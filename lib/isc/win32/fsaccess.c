@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.11 2002/02/02 01:01:15 mayer Exp $ */
+/* $Id: fsaccess.c,v 1.12 2002/02/20 03:35:44 marka Exp $ */
 
 /*
  * Note that Win32 does not have the concept of files having access

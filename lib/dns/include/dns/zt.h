@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.28 2002/02/20 01:44:06 gson Exp $ */
+/* $Id: zt.h,v 1.29 2002/02/20 03:34:43 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1

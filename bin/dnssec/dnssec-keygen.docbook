@@ -1,6 +1,6 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
 <!--
- - Copyright (C) 2001  Internet Software Consortium.
+ - Copyright (C) 2001, 2002  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.4 2002/01/21 10:13:20 bwelling Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.5 2002/02/20 03:33:00 marka Exp $ -->
 
 <refentry>
   <refentryinfo>

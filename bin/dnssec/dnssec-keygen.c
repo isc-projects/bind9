@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Portions Copyright (C) 2000-2002  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.60 2002/01/21 10:13:19 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.61 2002/02/20 03:32:58 marka Exp $ */
 
 #include <config.h>
 

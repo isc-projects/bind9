@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.h,v 1.17 2002/01/05 07:28:42 bwelling Exp $ */
+/* $Id: region.h,v 1.18 2002/02/20 03:35:37 marka Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1

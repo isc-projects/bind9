@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.5 2002/02/02 00:56:40 mayer Exp $ */
+/* $Id: ntservice.c,v 1.6 2002/02/20 03:33:36 marka Exp $ */
 
 #include <config.h>
 #include <stdio.h>

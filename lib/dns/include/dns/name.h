@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.98 2002/01/17 00:16:28 marka Exp $ */
+/* $Id: name.h,v 1.99 2002/02/20 03:34:33 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1

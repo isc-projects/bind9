@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.42 2002/01/23 02:12:21 marka Exp $ */
+/* $Id: lwresd.c,v 1.43 2002/02/20 03:33:15 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.

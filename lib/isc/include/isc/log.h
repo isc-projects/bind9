@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.41 2002/02/20 01:44:09 gson Exp $ */
+/* $Id: log.h,v 1.42 2002/02/20 03:35:34 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
