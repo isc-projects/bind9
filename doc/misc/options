@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.58 2001/02/07 19:13:00 gson Exp $
+$Id: options,v 1.59 2001/03/01 03:41:14 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -184,7 +184,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    Obsolete
   [ allow-notify { address_match_list };]		    Yes*
-  [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    No*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
@@ -214,7 +213,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
   [ check-names ( warn | fail | ignore ); ]		    Obsolete
-  [ allow-update { address_match_list }; ]		    Obsolete
   [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
@@ -223,8 +221,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ dialup yes_or_no | passive | refresh; ]		    Yes%
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
-  [ max-transfer-time-out number; ]			    Yes*
-  [ max-transfer-idle-out number; ]			    Yes*
   [ pubkey number number number string; ]		    No
   [ min-refresh-time number ; ]				    Yes*
   [ max-refresh-time number ; ]				    Yes*
