@@ -205,20 +205,22 @@ Building
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 
-	Parts of the library can be tested by running "make test" from the
-	bin/tests subdirectory.
+	A limited test suite can be run with "make test".  Many of
+	the tests require you to configure a set of virtual IP addresses
+	on your system, and some require Perl; see bin/tests/system/README
+	for details.
 
 
 Documentation
 
 	The BIND 9 Administrator Reference Manual is included with the
-	source distribution in HTML and plain text format, in the
-	doc/arm directory.  A PDF version can be downloaded separately
-	at <http://www.nominum.com/resources/>.
+	source distribution in DocBook XML and HTML format, in the
+	doc/arm directory.
 
 	Some of the programs in the BIND 9 distribution have man pages
 	under the doc/man directory.  In particular, the command line
 	options of "named" are documented in doc/man/bind/named.8.
+	There is now also a set of man pages for the lwres library.
 
 	The man pages are currently not installed automatically by
 	"make install".
