@@ -1540,5 +1540,9 @@ main(int argc, char **argv) {
 		do_lookup_udp(lookup);
 	isc_app_run();
 	free_lists();
-	exit (1); /* Should never get here. */
+
+	/*
+	 * Should never get here.
+	 */
+	return (1);
 }
