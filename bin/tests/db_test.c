@@ -61,6 +61,9 @@ typedef struct dbinfo {
 	int			rcount;
 	dns_dbnode_t *		hold_nodes[MAXHOLD];
 	int			hold_count;
+	dns_dbiterator_t *	dbiterator;
+	dns_dbversion_t *	iversion;
+	int			pause_every;
 	ISC_LINK(struct dbinfo)	link;
 } dbinfo;
 
@@ -144,38 +147,39 @@ static void
 dump(dbinfo *dbi) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	dns_dbiterator_t *dbiterator;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *rdsiter;
-	dns_dbversion_t *version;
 	dns_result_t result;
-	isc_boolean_t close_version = ISC_FALSE;
 	int i;
 
-	if (dns_db_iszone(dbi->db)) {
-		if (dbi->version != NULL)
-			version = dbi->version;
-		else {
-			dns_db_currentversion(dbi->db, &version);
-			close_version = ISC_TRUE;
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+
+	if (dbi->dbiterator == NULL) {
+		INSIST(dbi->iversion == NULL);
+		if (dns_db_iszone(dbi->db)) {
+			if (dbi->version != NULL)
+				dns_db_attachversion(dbi->db, dbi->version,
+						     &dbi->iversion);
+			else
+				dns_db_currentversion(dbi->db, &dbi->iversion);
 		}
-	} else
-		version = NULL;
 		
-	dbiterator = NULL;
-	dns_db_createiterator(dbi->db, ISC_FALSE, &dbiterator);
+		result = dns_db_createiterator(dbi->db, ISC_FALSE,
+					       &dbi->dbiterator);
+		if (result == DNS_R_SUCCESS)
+			result = dns_dbiterator_first(dbi->dbiterator);
+	} else
+		result = DNS_R_SUCCESS;
 
 	node = NULL;
 	rdsiter = NULL;
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	result = dns_dbiterator_first(dbiterator);
 	i = 0;
 	while (result == DNS_R_SUCCESS) {
-		result = dns_dbiterator_current(dbiterator, &node, name);
+		result = dns_dbiterator_current(dbi->dbiterator, &node, name);
 		if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
 			break;
-		result = dns_db_allrdatasets(dbi->db, node, version, 0,
+		result = dns_db_allrdatasets(dbi->db, node, dbi->iversion, 0,
 					     &rdsiter);
 		if (result != DNS_R_SUCCESS) {
 			dns_db_detachnode(dbi->db, &node);
@@ -184,21 +188,21 @@ dump(dbinfo *dbi) {
 		print_rdatasets(name, rdsiter);
 		dns_rdatasetiter_destroy(&rdsiter);
 		dns_db_detachnode(dbi->db, &node);
+		result = dns_dbiterator_next(dbi->dbiterator);
 		i++;
-		if (i == pause_every) {
-			result = dns_dbiterator_pause(dbiterator);
-			if (result != DNS_R_SUCCESS)
-				break;
-			i = 0;
+		if (result == DNS_R_SUCCESS && i == dbi->pause_every) {
+			printf("[more...]\n");
+			result = dns_dbiterator_pause(dbi->dbiterator);
+			if (result == DNS_R_SUCCESS)
+				return;
 		}
-		result = dns_dbiterator_next(dbiterator);
 	}
 	if (result != DNS_R_NOMORE)
 		printf("%s\n", dns_result_totext(result));
 
-	dns_dbiterator_destroy(&dbiterator);
-	if (close_version)
-		dns_db_closeversion(dbi->db, &version, ISC_FALSE);
+	dns_dbiterator_destroy(&dbi->dbiterator);
+	if (dbi->iversion != NULL)
+		dns_db_closeversion(dbi->db, &dbi->iversion, ISC_FALSE);
 }
 
 static dns_result_t
@@ -223,6 +227,9 @@ load(char *filename, char *origintext, isc_boolean_t cache) {
 	dbi->hold_count = 0;
 	for (i = 0; i < MAXHOLD; i++)
 		dbi->hold_nodes[i] = NULL;
+	dbi->dbiterator = NULL;
+	dbi->iversion = NULL;
+	dbi->pause_every = pause_every;
 	
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
@@ -574,6 +581,11 @@ main(int argc, char *argv[]) {
 		} else if (strcmp(s, "!LS") == 0) {
 			DBI_CHECK(dbi);
 			dump(dbi);
+			continue;
+		} else if (strstr(s, "!P") == s) {
+			DBI_CHECK(dbi);
+			v = atoi(&s[2]);
+			dbi->pause_every = v;
 			continue;
 		} else if (strcmp(s, "!DB") == 0) {
 			dbi = NULL;
