@@ -14,6 +14,10 @@
 1325.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
+1318.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
+			could be left with a trailing "\" after configure
+			has been run.
+
 1317.	[port]		linux: make handling EINVAL from socket() no longer
 			conditional on #ifdef LINUX.
 
