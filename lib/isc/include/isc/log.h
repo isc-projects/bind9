@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.43 2002/07/01 01:08:35 marka Exp $ */
+/* $Id: log.h,v 1.44 2002/07/01 01:39:45 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -140,7 +140,7 @@ LIBISC_EXTERNAL_DATA extern isc_logmodule_t isc_modules[];
 
 #define ISC_LOGMODULE_SOCKET (&isc_modules[0])
 #define ISC_LOGMODULE_TIME (&isc_modules[1])
-#define ISC_LOGMODULE_INTERFACE (&isc_modules[3])
+#define ISC_LOGMODULE_INTERFACE (&isc_modules[2])
 
 ISC_LANG_BEGINDECLS
 
