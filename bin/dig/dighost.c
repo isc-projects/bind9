@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.97 2000/07/21 22:26:08 bwelling Exp $ */
+/* $Id: dighost.c,v 1.98 2000/07/21 23:04:44 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2376,7 +2376,7 @@ destroy_libs(void) {
 	 * from the task.
 	 */
 	if (taskmgr != NULL) {
-		debug("Freeing taskmgr");
+		debug("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
         }
 	LOCK_LOOKUP;
