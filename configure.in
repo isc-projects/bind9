@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.174 $)
+AC_REVISION($Revision: 1.175 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -332,9 +332,10 @@ case "$host" in
 	*-linux*)
 		AC_DEFINE(HAVE_LINUXTHREADS)
 		;;
-        #
-        # Ensure the right sigwait() semantics on Solaris.
-        #
+	#
+	# Ensure the right sigwait() semantics on Solaris and make sure
+	# we call pthread_setconcurrency.
+	#
 	*-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		AC_CHECK_FUNC(pthread_setconcurrency,
