@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.25 2000/03/17 19:50:22 bwelling Exp $
+ * $Id: tkey.c,v 1.26 2000/03/28 03:16:40 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -631,7 +631,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 	while (name != NULL) {
 		dns_name_t *next = ISC_LIST_NEXT(name, link);
 		ISC_LIST_UNLINK(namelist, name, link);
-		dns_message_addname(msg, name, DNS_SECTION_ADDITIONAL);
+		dns_message_addname(msg, name, DNS_SECTION_ANSWER);
 		name = next;
 	}
 
@@ -820,14 +820,16 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key) {
 }
 
 static isc_result_t
-find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata) {
+find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata,
+	  int section)
+{
 	dns_rdataset_t *tkeyset;
 	isc_result_t result;
 
-	result = dns_message_firstname(msg, DNS_SECTION_ADDITIONAL);
+	result = dns_message_firstname(msg, section);
 	while (result == ISC_R_SUCCESS) {
 		*name = NULL;
-		dns_message_currentname(msg, DNS_SECTION_ADDITIONAL, name);
+		dns_message_currentname(msg, section, name);
 		tkeyset = NULL;
 		result = dns_message_findtype(*name, dns_rdatatype_tkey, 0,
 					      &tkeyset);
@@ -838,7 +840,7 @@ find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata) {
 			dns_rdataset_current(tkeyset, rdata);
 			return (ISC_R_SUCCESS);
 		}
-		result = dns_message_nextname(msg, DNS_SECTION_ADDITIONAL);
+		result = dns_message_nextname(msg, section);
 	}
 	if (result == ISC_R_NOMORE)
 		return (ISC_R_NOTFOUND);
@@ -874,10 +876,10 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 	if (rmsg->rcode != dns_rcode_noerror)
 		return(ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
-	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata));
+	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, rmsg->mctx));
 
-	RETERR(find_tkey(qmsg, &tempname, &qtkeyrdata));
+	RETERR(find_tkey(qmsg, &tempname, &qtkeyrdata, DNS_SECTION_ADDITIONAL));
 	RETERR(dns_rdata_tostruct(&qtkeyrdata, &qtkey, qmsg->mctx));
 
 	if (rtkey.error != dns_rcode_noerror ||
@@ -902,14 +904,14 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 	ourkeyname = NULL;
 	ourkeyset = NULL;
-	RETERR(dns_message_findname(rmsg, DNS_SECTION_ADDITIONAL, &keyname,
+	RETERR(dns_message_findname(rmsg, DNS_SECTION_ANSWER, &keyname,
 				    dns_rdatatype_key, 0, &ourkeyname,
 				    &ourkeyset));
 
-	result = dns_message_firstname(rmsg, DNS_SECTION_ADDITIONAL);
+	result = dns_message_firstname(rmsg, DNS_SECTION_ANSWER);
 	while (result == ISC_R_SUCCESS) {
 		theirkeyname = NULL;
-		dns_message_currentname(rmsg, DNS_SECTION_ADDITIONAL,
+		dns_message_currentname(rmsg, DNS_SECTION_ANSWER,
 					&theirkeyname);
 		if (dns_name_equal(theirkeyname, ourkeyname))
 			goto next;
@@ -921,7 +923,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			break;
 		}
  next:
-                result = dns_message_nextname(rmsg, DNS_SECTION_ADDITIONAL);
+                result = dns_message_nextname(rmsg, DNS_SECTION_ANSWER);
         }
 
 	if (theirkeyset == NULL) {
@@ -987,10 +989,10 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	if (rmsg->rcode != dns_rcode_noerror)
 		return(ISC_RESULTCLASS_DNSRCODE + rmsg->rcode);
 
-	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata));
+	RETERR(find_tkey(rmsg, &tkeyname, &rtkeyrdata, DNS_SECTION_ANSWER));
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, rmsg->mctx));
 
-	RETERR(find_tkey(qmsg, &tempname, &qtkeyrdata));
+	RETERR(find_tkey(qmsg, &tempname, &qtkeyrdata, DNS_SECTION_ADDITIONAL));
 	RETERR(dns_rdata_tostruct(&qtkeyrdata, &qtkey, qmsg->mctx));
 
 	if (rtkey.error != dns_rcode_noerror ||

@@ -1,4 +1,7 @@
 
+   3.	[bug]		TKEYs go in the answer section of responses, not
+			the additional section.
+
    2.	[bug]		Generating cryptographic randomness failed on
 			systems without /dev/random.
 
