@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152 2000/06/23 17:26:38 marka Exp $ */
+/* $Id: zone.c,v 1.152.2.1 2000/07/03 22:08:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1309,6 +1309,16 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	DNS_ENTER;
 
+	/*
+	 * Configuring the view of this zone may have
+	 * failed, for example because the config file
+	 * had a syntax error.  In that case, the view 
+	 * adb or resolver, and we had better not try
+	 * to do maintenance on it.
+	 */
+	if (zone->view->adb == NULL)
+		return;
+	
 	isc_stdtime_get(&now);
 
 	/*
