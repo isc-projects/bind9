@@ -1,3 +1,6 @@
+ 894.	[bug]		When using the DNSSEC tools, a message intended to warn
+			when the keyboard was being used because of the lack
+			of a suitable random device was not being printed.
 
  892.	[bug]		The server could attempt to refresh a zone that
 			was being loaded, causing an assertion failure.
