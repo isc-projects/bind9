@@ -52,7 +52,6 @@
  ***/
 
 #include <stdio.h>
-#include <stddef.h>
 
 #include <isc/lang.h>
 #include <isc/region.h>
