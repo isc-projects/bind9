@@ -1,3 +1,7 @@
+1348.	[port]		Win32: Rewrote code to use I/O Completion Ports
+			in socket.c and eliminating a host of socket
+			errors. Performance is enhanced.
+
 1347.	[placeholder]
 
 1346.	[placeholder]
