@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.89 2000/09/12 09:57:31 bwelling Exp $
+ * $Id: tsig.c,v 1.90 2000/09/21 21:29:16 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -579,7 +579,7 @@ cleanup_dynbuf:
 		isc_buffer_free(&dynbuf);
 cleanup_signature:
 	if (tsig.signature != NULL)
-		isc_mem_put(mctx, tsig.signature, tsig.siglen);
+		isc_mem_put(mctx, tsig.signature, sigsize);
 cleanup_context:
 	if (ctx != NULL)
 		dst_context_destroy(&ctx);
