@@ -22,8 +22,16 @@
 
 #include <isc/result.h>
 
-typedef struct RBT_NODE *RBT_NODE_T;
+typedef struct _isc_rbt_node {
+	enum { red, black } color;
+	void *data;
+	struct _isc_rbt_node *parent;
+	struct _isc_rbt_node *right;
+	struct _isc_rbt_node *left;
+} RBT_NODE;
 
-RBT_LINKAGE isc_result_t RBT_INSERT(RBT_NODE_T, RBT_NODE_T *);
-RBT_LINKAGE RBT_NODE_T RBT_SEARCH(RBT_NODE_T, RBT_KEY_T);
-RBT_LINKAGE void RBT_PRINT(RBT_NODE_T);
+isc_result_t RBT_INSERT(RBT_NODE *, RBT_NODE **,
+			int (*compare)(void *, void*));
+isc_result_t RBT_DELETE(RBT_NODE *, RBT_NODE **);
+RBT_NODE *RBT_SEARCH(RBT_NODE *, void *, int (*compare)(void *, void*));
+void RBT_PRINT(RBT_NODE *, void (*print_key)(void *));
