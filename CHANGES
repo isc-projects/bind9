@@ -141,8 +141,6 @@
 			keep a copy of the user and group databases in the
 			chroot'ed environment.	Suggested by Hakan Olsson.
 
-	--- 9.0.0b5 released ---
-
  298.	[bug]		A mutex deadlock occurred during shutdown of the
 			interface manager under certain conditions.
 			Digital Unix systems were the most affected.
