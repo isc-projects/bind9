@@ -162,8 +162,10 @@ dns_result_torcode(isc_result_t result) {
 	case DNS_R_NOREDATA:
 	case DNS_R_BADZONE:
 		rcode = dns_rcode_formerr;
+		break;
 	case DNS_R_DISALLOWED:
 		rcode = dns_rcode_refused;
+		break;
 	default:
 		rcode = dns_rcode_servfail;
 	}
