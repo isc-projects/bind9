@@ -140,6 +140,10 @@
 1209.	[bug]		Dig, host, nslookup were not checking the message ids
 			on the responses. [RT #2454]
 
+1095.	[func]		libbind: resolver option: no-tld-query.  disables
+			trying unqualified as a tld.  no_tld_query is also
+			supported for FreeBSD compatability.
+
 1094.	[func]		libbind: add support gcc's format string checking.
 
 	--- 9.2.1 released ---

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.9.2.1 2002/01/23 02:31:15 gson Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.9.2.2 2002/07/14 02:27:09 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -488,9 +488,13 @@ res_setoptions(res_state statp, const char *options, const char *source)
 			}
 			printf(";;\tdebug\n");
 #endif
+		} else if (!strncmp(cp, "no_tld_query",
+				    sizeof("no_tld_query") - 1) ||
+			   !strncmp(cp, "no-tld-query",
+				    sizeof("no-tld-query") - 1)) {
+			statp->options |= RES_NOTLDQUERY;
 		} else if (!strncmp(cp, "inet6", sizeof("inet6") - 1)) {
 			statp->options |= RES_USE_INET6;
-			
 		} else if (!strncmp(cp, "rotate", sizeof("rotate") - 1)) {
 			statp->options |= RES_ROTATE;
 		} else if (!strncmp(cp, "no-check-names",

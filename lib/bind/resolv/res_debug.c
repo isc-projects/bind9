@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.2 2002/07/10 04:56:20 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.3 2002/07/14 02:27:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -615,6 +615,9 @@ p_option(u_long option) {
 #endif
 #ifdef RES_USE_DNAME
 	case RES_USE_DNAME:	return "dname";
+#endif
+#ifdef RES_NOTLDQUERY
+	case RES_NOTLDQUERY:	return "no-tld-query";
 #endif
 
 				/* XXX nonreentrant */
