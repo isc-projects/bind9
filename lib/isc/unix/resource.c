@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.9 2001/01/23 05:13:25 marka Exp $ */
+/* $Id: resource.c,v 1.10 2001/01/23 06:00:11 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
 #include <sys/resource.h>
 
+#include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/util.h>
