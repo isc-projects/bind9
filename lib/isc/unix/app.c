@@ -15,11 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.25 2000/08/26 01:31:53 bwelling Exp $ */
+/* $Id: app.c,v 1.26 2000/08/30 00:58:28 bwelling Exp $ */
 
 #include <config.h>
-
-#include <pthread.h>
 
 #include <sys/types.h>
 
@@ -27,14 +25,25 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/time.h>
 
 #include <isc/app.h>
 #include <isc/boolean.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
+#include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_USETHREADS
+#include <pthread.h>
+#else
+#include "../timer_p.h"
+#include "../task_p.h"
+#include "socket_p.h"
+#endif
 
 static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
@@ -98,8 +107,10 @@ handle_signal(int sig, void (*handler)(int)) {
 isc_result_t
 isc_app_start(void) {
 	isc_result_t result;
+#ifdef ISC_PLATFORM_USETHREADS
 	int presult;
 	sigset_t sset;
+#endif
 
 	/*
 	 * Start an ISC library application.
@@ -162,7 +173,7 @@ isc_app_start(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-#ifdef HAVE_SIGWAIT
+#if defined(HAVE_SIGWAIT) || !defined(ISC_PLATFORM_USETHREADS)
 	result = handle_signal(SIGTERM, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -171,6 +182,7 @@ isc_app_start(void) {
 		return (result);
 #endif
 
+#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * Block SIGHUP, SIGINT, SIGTERM.
 	 *
@@ -196,6 +208,7 @@ isc_app_start(void) {
 				 strerror(presult));
 		return (ISC_R_UNEXPECTED);
 	}
+#endif
 
 	ISC_LIST_INIT(on_run);
 
@@ -246,9 +259,11 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 isc_result_t
 isc_app_run(void) {
 	int result;
-	sigset_t sset;
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
+#ifdef ISC_PLATFORM_USETHREADS
+	sigset_t sset;
+#endif
 #ifdef HAVE_SIGWAIT
 	int sig;
 #endif
@@ -295,6 +310,7 @@ isc_app_run(void) {
 		return (ISC_R_SUCCESS);
 #endif
 
+#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * There is no danger if isc_app_shutdown() is called before we wait
 	 * for signals.  Signals are blocked, so any such signal will simply
@@ -355,6 +371,47 @@ isc_app_run(void) {
 			return (ISC_R_RELOAD);
 		}
 	}
+
+#else /* ISC_PLATFORM_USETHREADS */
+
+	(void)isc__taskmgr_dispatch();
+
+	while (!want_shutdown) {
+		int n;
+		isc_time_t when, now;
+		struct timeval tv, *tvp;
+		isc_uint64_t us;
+		fd_set readfds, writefds;
+		int maxfd;
+
+		result = isc__timermgr_nextevent(&when);
+		if (result != ISC_R_SUCCESS)
+			tvp = NULL;
+		else {
+			(void)isc_time_now(&now);
+			us = isc_time_microdiff(&when, &now);
+			tv.tv_sec = us / 1000000;
+			tv.tv_usec = us % 1000000;
+			tvp = &tv;
+		}
+
+		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
+		n = select(maxfd, &readfds, &writefds, NULL, tvp);
+
+		if (n == 0)
+			isc__timermgr_dispatch();
+		else if (maxfd > 0)
+			isc__socketmgr_dispatch(&readfds, &writefds, maxfd);
+
+		(void)isc__taskmgr_dispatch();
+
+		if (want_reload) {
+			want_reload = ISC_FALSE;
+			return (ISC_R_RELOAD);
+		}
+	}
+
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	return (ISC_R_SUCCESS);
 }
