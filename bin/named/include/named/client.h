@@ -18,6 +18,48 @@
 #ifndef NS_CLIENT_H
 #define NS_CLIENT_H 1
 
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * Client
+ *
+ * This module defines two objects, ns_client_t and ns_clientmgr_t.
+ *
+ * An ns_client_t object handles incoming DNS requests from clients.
+ * It waits for UDP requests from a given dispatcher, or TCP requests
+ * from a given socket.
+ *
+ * Each ns_client_t object can handle only one TCP connection or UDP
+ * request at a time.  Therefore, several ns_client_t objects are
+ * typically created to serve a single socket or dispatcher,
+ * e.g., one per available CPU.
+ *
+ * Incoming requests are classified as queries, zone transfer
+ * requests, update requests, notify requests, etc, and handed off 
+ * to the appropriate request handler.  When the request has been
+ * fully handled (which can be much later), the ns_client_t must be 
+ * notified of this by calling one of the following functions 
+ * exactly once in the context of its task:
+ *
+ *   ns_client_send()	(sending a non-error response)
+ *   ns_client_error()	(sending an error response)
+ *   ns_client_next()	(sending no response)
+ *
+ * This will release any resources used by the request and 
+ * and allow the ns_client_t to listen for the next request.
+ *
+ * A ns_clientmgr_t manages a number of ns_client_t objects.
+ * New ns_client_t objects are created by calling
+ * ns_clientmgr_addtodispatch() (UDP) or ns_clientmgr_accepttcp() (TCP).
+ * They are destroyed by destroying their manager.
+ */
+
+/***
+ *** Imports
+ ***/
+
 #include <isc/types.h>
 #include <isc/stdtime.h>
 #include <isc/buffer.h>
@@ -30,19 +72,14 @@
 #include <named/types.h>
 #include <named/query.h>
 
-typedef enum ns_clienttype {
-	ns_clienttype_basic = 0,
-	ns_clienttype_recursive,
-	ns_clienttype_axfr,
-	ns_clienttype_ixfr,
-	ns_clienttype_tcp
-} ns_clienttype_t;
+/***
+ *** Types
+ ***/
 
 struct ns_client {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	ns_clientmgr_t *		manager;
-	ns_clienttype_t			type;
 	isc_boolean_t			shuttingdown;
 	isc_boolean_t			waiting_for_bufs;
 	int				naccepts;
@@ -73,7 +110,8 @@ struct ns_client {
 	dns_name_t			signername; /* [T]SIG key name */
 	dns_name_t *			signer; /* NULL if not valid sig */
 	isc_boolean_t			mortal; /* Die after handling request. */
-	isc_quota_t			*quota;
+	isc_quota_t			*tcpquota;
+	isc_quota_t			*recursionquota;
 	ns_interface_t			*interface;
 	ISC_LINK(struct ns_client)	link;
 };
@@ -84,6 +122,10 @@ struct ns_client {
 
 #define NS_CLIENTATTR_TCP		0x01
 #define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
+
+/***
+ *** Functions
+ ***/
 
 /*
  * Note!  These ns_client_ routines MUST be called ONLY from the client's
@@ -97,12 +139,6 @@ ns_client_next(ns_client_t *client, isc_result_t result);
 
 void
 ns_client_send(ns_client_t *client);
-
-void
-ns_client_destroy(ns_client_t *client);
-
-isc_result_t
-ns_client_newnamebuf(ns_client_t *client);
 
 isc_boolean_t
 ns_client_shuttingdown(ns_client_t *client);
@@ -123,17 +159,11 @@ ns_client_unwait(ns_client_t *client);
  */
 
 isc_result_t
-ns_client_getquota(ns_client_t *client, isc_quota_t *quota);
-
-
-isc_result_t
-ns_client_replace(ns_client_t *client, isc_quota_t *quota);
+ns_client_replace(ns_client_t *client);
 /*
  * Try to replace the current client with a new one, so that the
  * current one can go off and do some lengthy work without
  * leaving the dispatch/socket without service.
- *
- * If doing so would exceed a quota, return ISC_R_QUOTA.
  */
 
 isc_result_t
