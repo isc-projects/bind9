@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.223 2001/09/11 22:34:21 bwelling Exp $ */
+/* $Id: dighost.c,v 1.224 2001/09/12 00:22:53 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -937,7 +937,7 @@ try_clear_lookup(dig_lookup_t *lookup) {
 				       q->servname);
 				q = ISC_LIST_NEXT(q, link);
 			}
-		return (ISC_FALSE);
+			return (ISC_FALSE);
 		}
 	}
 	/*
