@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.50 2002/03/19 04:30:53 marka Exp $
+ * $Id: openssl_link.c,v 1.51 2002/10/31 04:35:02 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -40,7 +40,11 @@
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 
-#ifdef CRYPTO_LOCK_ENGINE
+#if defined(CRYPTO_LOCK_ENGINE) && (OPENSSL_VERSION_NUMBER < 0x00907000L)
+#define USE_ENGINE 1
+#endif
+
+#ifdef USE_ENGINE
 #include <openssl/engine.h>
 #endif
 
@@ -48,7 +52,7 @@ static RAND_METHOD *rm = NULL;
 static isc_mutex_t *locks = NULL;
 static int nlocks;
 
-#ifdef CRYPTO_LOCK_ENGINE
+#ifdef USE_ENGINE
 static ENGINE *e;
 #endif
 
@@ -150,7 +154,7 @@ dst__openssl_init() {
 	rm->add = entropy_add;
 	rm->pseudorand = entropy_getpseudo;
 	rm->status = NULL;
-#ifdef CRYPTO_LOCK_ENGINE
+#ifdef USE_ENGINE
 	e = ENGINE_new();
 	if (e == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -163,7 +167,7 @@ dst__openssl_init() {
 #endif
 	return (ISC_R_SUCCESS);
 
-#ifdef CRYPTO_LOCK_ENGINE
+#ifdef USE_ENGINE
  cleanup_rm:
 	mem_free(rm);
 #endif
@@ -177,7 +181,7 @@ dst__openssl_init() {
 void
 dst__openssl_destroy() {
 	ERR_clear_error();
-#ifdef CRYPTO_LOCK_ENGINE
+#ifdef USE_ENGINE
 	if (e != NULL)
 		ENGINE_free(e);
 #endif
