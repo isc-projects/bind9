@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.305 2001/03/15 19:39:50 bwelling Exp $ */
+/* $Id: server.c,v 1.306 2001/03/16 22:59:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1385,6 +1385,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	REQUIRE(strcasecmp("directory", clausename) == 0);
 
 	UNUSED(arg);
+	UNUSED(clausename);
 
 	/*
 	 * Change directory.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.6 2001/03/08 00:55:46 bwelling Exp $ */
+/* $Id: named-checkconf.c,v 1.7 2001/03/16 23:00:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	REQUIRE(strcasecmp("directory", clausename) == 0);
 
 	UNUSED(arg);
+	UNUSED(clausename);
 
 	/*
 	 * Change directory.
