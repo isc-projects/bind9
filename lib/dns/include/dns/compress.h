@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.29 2001/02/12 18:07:52 bwelling Exp $ */
+/* $Id: compress.h,v 1.29.2.1 2002/07/12 00:17:25 marka Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -186,7 +186,7 @@ dns_decompress_init(dns_decompress_t *dctx, int edns,
 		    dns_decompresstype_t type);
 
 /*
- *	Initalises 'dctx'.
+ *	Initializes 'dctx'.
  *	Records 'edns' and 'type' into the structure.
  *
  *	Requires:

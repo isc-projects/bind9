@@ -1920,7 +1920,7 @@
  589.	[bug]		The server could deadlock if a zone was updated 
 			while being transferred out.
 
- 588.	[bug]		ctx->in_use was not being correctly initalised when
+ 588.	[bug]		ctx->in_use was not being correctly initialised when
 			when pushing a file for $INCLUDE. [RT #523]
 
  587.	[func]		A warning is now printed if the "allow-update"
@@ -2091,7 +2091,7 @@
  532.	[func]		Implement DNS UPDATE pseudo records using
 			DNS_RDATA_UPDATE flag.
 
- 531.	[func]		Rdata really should be initalized before being assigned
+ 531.	[func]		Rdata really should be initialized before being assigned
 			to (dns_rdata_fromwire(), dns_rdata_fromtext(),
 			dns_rdata_clone(), dns_rdata_fromregion()),
 			check that it is.
@@ -2888,7 +2888,7 @@
 			enough to hold any legal domain name in presentation
 			format + terminating NULL.
 
- 301.	[bug]		Uninitalised pointer in host:printmessage(). [RT #159]
+ 301.	[bug]		Uninitialised pointer in host:printmessage(). [RT #159]
 
  300.	[bug]		Using both <isc/net.h> and <lwres/net.h> didn't work
 			on platforms lacking IPv6 because each included their
@@ -3027,7 +3027,7 @@
 
  267.	[func]		Nsupdate is now provided in the distribution.
 
- 266.	[bug]		zone.c:save_nsrrset() node was not initalized.
+ 266.	[bug]		zone.c:save_nsrrset() node was not initialized.
 
  265.	[bug]		dns_request_create() now works for TCP.
 
@@ -3044,7 +3044,7 @@
 					severity error;
 				}
 
- 262.	[bug]		'master' was not initalized in zone.c:stub_callback().
+ 262.	[bug]		'master' was not initialized in zone.c:stub_callback().
 
  261.	[func]		Add dns_zone_markdirty().
 

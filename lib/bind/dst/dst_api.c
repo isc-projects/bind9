@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.5 2001/11/02 22:31:14 gson Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6 2002/07/12 00:17:19 marka Exp $";
 #endif
 
 /*
@@ -452,7 +452,7 @@ dst_s_write_private_key(const DST_KEY *key)
  *		      filename of the key file to be read.
  *  Returns
  *	NULL	    If the key does not exist or no name is supplied.
- *	NON-NULL	Initalized key structure if the key exists.
+ *	NON-NULL	Initialized key structure if the key exists.
  */
 
 static DST_KEY *
