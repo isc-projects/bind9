@@ -901,8 +901,11 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				rdataset = query_newrdataset(client);
 				if (rdataset == NULL || sigrdataset == NULL)
 					goto addname;
-			} else
+			} else {
 				dns_rdataset_disassociate(rdataset);
+				if (sigrdataset->methods != NULL)
+					dns_rdataset_disassociate(sigrdataset);
+			}
 		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a6, 0,
