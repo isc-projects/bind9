@@ -5,9 +5,9 @@ Makefile
 adb_test
 byaddr_test
 byname_test
+cfg_test
 compress_test
 db_test
-dispatch_tcp_test
 dispatch_test
 entropy_test
 entropy2_test
@@ -29,7 +29,6 @@ master_test
 mem_test
 mempool_test
 name_test
-ndcconf_test
 nconf_test
 nxtify
 omapi_test
