@@ -7,6 +7,5 @@ SRCS=	ns_date.c ns_name.c ns_netint.c ns_parse.c ns_print.c \
 TARGETS= ${OBJS}
 
 CINCLUDES= -I.. -I../include
-CWARNINGS= -Werror
 
 @BIND9_MAKE_RULES@
