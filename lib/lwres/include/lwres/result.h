@@ -20,7 +20,7 @@
 
 #define LWRES_R_SUCCESS			0
 #define LWRES_R_NOMEMORY	       -1
-#define LWRES_R_TIMEDOUT	       -2
+#define LWRES_R_TIMEOUT		       -2
 #define LWRES_R_NOTFOUND	       -3
 #define LWRES_R_UNEXPECTEDEND	       -4	/* unexpected end of input */
 #define LWRES_R_FAILURE		       -5	/* generic failure */

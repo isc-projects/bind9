@@ -19,6 +19,7 @@
 #include <config.h>
 
 #include <assert.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -190,8 +191,16 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		       int *recvd_len)
 {
 	int ret;
+	int ret2;
+	int flags;
 	struct sockaddr_in sin;
 	int fromlen;
+	fd_set readfds;
+	fd_set emptyfds;
+	struct timeval timeout;
+
+	timeout.tv_sec = LWRES_R_TIMEOUT;
+	timeout.tv_usec = 0;
 
 	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
 	if (ret < 0)
@@ -200,9 +209,35 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		return (LWRES_R_IOERROR);
 
  again:
+	flags = fcntl(ctx->sock, F_GETFL, 0);
+	flags |= O_NONBLOCK;
+	ret = fcntl(ctx->sock, F_SETFL, flags);
+	if (ret < 0)
+		return (LWRES_R_IOERROR);
+
+	FD_ZERO(&readfds);
+	FD_ZERO(&emptyfds);
+	FD_SET(ctx->sock, &readfds);
+	ret2 = select(ctx->sock + 1, &readfds, &emptyfds, &emptyfds, &timeout);
+
+	flags = fcntl(ctx->sock, F_GETFL, 0);
+	flags &= ~O_NONBLOCK;
+	ret = fcntl(ctx->sock, F_SETFL, flags);
+	if (ret < 0)
+		return (LWRES_R_IOERROR);
+
+	/*
+	 * What happened with select?
+	 */
+	if (ret2 < 0)
+		return (LWRES_R_IOERROR);
+	if (ret2 == 0)
+		return (LWRES_R_TIMEOUT);
+
 	fromlen = sizeof(sin);
 	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
 		       (struct sockaddr *)&sin, &fromlen);
+
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
 
