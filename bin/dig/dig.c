@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.192 2004/06/07 03:56:02 marka Exp $ */
+/* $Id: dig.c,v 1.193 2004/06/19 02:23:32 sra Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -40,15 +40,6 @@
 #include <dns/rdatatype.h>
 #include <dns/rdataclass.h>
 #include <dns/result.h>
-
-#ifdef DIG_SIGCHASE
-#ifndef DIG_SIGCHASE_BU
-#define DIG_SIGCHASE_BU 1
-#endif
-#ifndef DIG_SIGCHASE_TD
-#define DIG_SIGCHASE_TD 1
-#endif
-#endif
 
 #include <dig/dig.h>
 
