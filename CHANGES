@@ -1,3 +1,5 @@
+ 505.	[bug]		nsupdate was printing "unknown result code". [RT #373]
+
  498.	[doc]		There is now a man page for "dig" 
 			in doc/man/bin/dig.1.
 

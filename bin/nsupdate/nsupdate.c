@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.10 2000/09/18 23:35:19 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.11 2000/10/03 17:43:54 mws Exp $ */
 
 #include <config.h>
 
@@ -376,6 +376,8 @@ setup_system(void) {
 	 * XXX Shouldn't random() be called somewhere if this is here?
 	 */
 	srandom(getpid() + (int)&setup_system);
+
+	dns_result_register();
 
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
