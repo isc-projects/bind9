@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.104 2000/11/25 02:43:47 marka Exp $ */
+/* $Id: confctx.c,v 1.105 2000/11/28 03:57:17 marka Exp $ */
 
 #include <config.h>
 
@@ -435,6 +435,13 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'check-names' is not yet implemented");
+	}
+
+	if (dns_c_ctx_getmaxcachesize(cfg, &uintval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'max-cache-size' is not yet"
+			      "implemented");
 	}
 
 	if (dns_c_ctx_getminroots(cfg, &uintval) != ISC_R_NOTFOUND) {
