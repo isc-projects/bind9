@@ -687,6 +687,7 @@
 ./lib/lwres/include/lwres/lwpacket.h		C	1999,2000
 ./lib/lwres/include/lwres/lwres.h		C	2000
 ./lib/lwres/include/lwres/lwbuffer.h		C	2000
+./lib/lwres/include/lwres/netdb.h.in		C	2000
 ./lib/omapi/.cvsignore			        X	1999,2000
 ./lib/omapi/Makefile.in         		MAKE	1999,2000
 ./lib/omapi/alloc.c				C	1996,1997,1998,1999,2000
