@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.39 2001/06/28 02:30:29 marka Exp $
+# $Id: Makefile.in,v 1.40 2001/07/04 03:37:43 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-SUBDIRS =	make lib bin doc lib/bind
+SUBDIRS =	make lib bin doc @LIBBIND@
 TARGETS =
 
 @BIND9_MAKE_RULES@

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.266 $)
+AC_REVISION($Revision: 1.267 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -830,6 +830,21 @@ AC_SUBST(O)
 AC_SUBST(A)
 AC_SUBST(SA)
 AC_SUBST(LIBTOOL_MKDEP_SED)
+
+#
+# build libbind?
+#
+AC_ARG_ENABLE(libbind,
+	[  --enable-libbind		build libbind [default=no]])
+
+case "$enable_libbind" in
+	yes)
+		LIBBIND=lib/bind
+		AC_SUBST(LIBBIND)
+		;;
+	no|'')
+		;;
+esac
 
 #
 # Here begins a very long section to determine the system's networking
