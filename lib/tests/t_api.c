@@ -178,7 +178,7 @@ main(int argc, char **argv)
 	sprintf(T_buf, "%s:", argv[0]);
 	len = strlen(T_buf);
 	(void) t_getdate(T_buf + len, T_BIGBUF - len);
-	t_info("S", T_buf);
+	t_putinfo("S", T_buf);
 
 	/*
 	 * setup the test environment using the config file
