@@ -32,6 +32,9 @@
  *** Intervals
  ***/
 
+static isc_interval_t zero_interval = { 0 };
+isc_interval_t *isc_interval_zero = &zero_interval;
+
 void
 isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds) {
@@ -67,7 +70,8 @@ isc_interval_iszero(isc_interval_t *i) {
  *** Absolute Times
  ***/
 
-static FILETIME epoch = { 0, 0 };
+static isc_time_t epoch = { 0, 0 };
+isc_time_t *isc_time_epoch = &epoch;
 
 void
 isc_time_settoepoch(isc_time_t *t) {
