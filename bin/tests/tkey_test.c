@@ -202,7 +202,8 @@ buildquery(void) {
 	CHECK("dns_message_renderend", result);
 
 	isc_buffer_used(&qbuffer, &r);
-	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address);
+	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
+				   NULL);
 	CHECK("isc_socket_sendto", result);
 	inr.base = rdata;
 	inr.length = sizeof(rdata);
@@ -242,7 +243,8 @@ buildquery2(void) {
 	CHECK("dns_message_renderend", result);
 
 	isc_buffer_used(&qbuffer, &r);
-	result = isc_socket_sendto(s, &r, task2, senddone2, NULL, &address);
+	result = isc_socket_sendto(s, &r, task2, senddone2, NULL, &address,
+				   NULL);
 	CHECK("isc_socket_sendto", result);
 	inr.base = rdata;
 	inr.length = sizeof(rdata);

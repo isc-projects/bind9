@@ -421,6 +421,9 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 	disp->recvs--;
 
 	if (ev->result != ISC_R_SUCCESS) {
+		XDEBUG(("recv result %d (%s)\n", ev->result,
+			isc_result_totext(ev->result)));
+
 		/*
 		 * If the recv() was canceled pass the word on.
 		 */

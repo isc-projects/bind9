@@ -223,7 +223,7 @@ start_response(clictx_t *cli, char *query, isc_task_t *task)
 
 	isc_buffer_used(&cli->render, &region);
 	result = isc_socket_sendto(dns_dispatch_getsocket(disp), &region,
-				   task, send_done, cli->resp, &from);
+				   task, send_done, cli->resp, &from, NULL);
 	CHECKRESULT(result, "isc_socket_sendto()");
 }
 

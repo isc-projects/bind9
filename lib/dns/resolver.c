@@ -789,7 +789,7 @@ resquery_send(resquery_t *query) {
 		address = query->addrinfo->sockaddr;
 	isc_buffer_used(buffer, &r);
 	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
-				   query, address);
+				   query, address, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
 	QTRACE("sent");

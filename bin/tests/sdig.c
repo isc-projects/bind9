@@ -376,7 +376,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "isc_socket_recvv()");
 	ISC_LIST_ENQUEUE(bufferlist, &b, link);
 	result = isc_socket_sendtov(sock, &bufferlist, task, send_done, NULL,
-				    &sockaddr);
+				    &sockaddr, NULL);
 	check_result(result, "isc_socket_sendtov()");
 
 	isc_app_run();

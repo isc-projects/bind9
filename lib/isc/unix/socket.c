@@ -18,6 +18,8 @@
 #include <config.h>
 
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 #include <sys/uio.h>
 
 #include <errno.h>
@@ -73,7 +75,7 @@
 #define TRACE_SEND    	0x0010
 #define TRACE_MANAGER	0x0020
 
-int trace_level = TRACE_RECV | TRACE_WATCHER;
+int trace_level = TRACE_RECV;
 #define XTRACE(l, a)	do {						\
 				if ((l) & trace_level) {		\
 					printf("[%s:%d] ", __FILE__, __LINE__); \
@@ -99,6 +101,56 @@ typedef isc_event_t intev_t;
 
 #define SOCKET_MAGIC		0x494f696fU	/* IOio */
 #define VALID_SOCKET(t)		((t) != NULL && (t)->magic == SOCKET_MAGIC)
+
+/*
+ * IPv6 control information.  If the socket is an IPv6 socket we want
+ * to collect the destination address and interface so the client can
+ * set them on outgoing packets.
+ */
+#ifdef ISC_PLATFORM_HAVEIPV6
+#define PKTINFO_SPACE	CMSG_SPACE(sizeof(struct in6_pktinfo))
+#ifndef USE_CMSG
+#define USE_CMSG	1
+#endif
+#else
+#define PKTINFO_SPACE	0
+#endif
+
+/*
+ * NetBSD (and FreeBSD?) can timestamp packets.  XXXMLG Should we have
+ * a setsockopt() like interface to request timestamps, and if the OS
+ * doesn't do it for us, call gettimeofday() on every UDP receive?
+ */
+#ifdef SO_TIMESTAMP
+#define TIMESTAMP_SPACE	CMSG_SPACE(sizeof(struct timeval))
+#ifndef USE_CMSG
+#define USE_CMSG	1
+#endif
+#else
+#define TIMESTAMP_SPACE	0
+#endif
+
+/*
+ * Total cmsg space needed for all of the above bits.
+ */
+#define TOTAL_SPACE	(PKTINFO_SPACE + TIMESTAMP_SPACE)
+
+/*
+ * At this point, it is possible to have USE_CMSG defined, but the OS
+ * doesn't provide the CMSG_ macros we need.  Rather than toy around with
+ * things, don't use the CMSG stuff if the macros we need aren't defined.
+ */
+#ifdef USE_CMSG
+#if !defined(CMSG_SPACE) || !defined(CMSG_NXTHDR) || !defined(CMSG_FIRSTHDR) \
+	|| !defined(CMSG_LEN) || !defined(CMSG_DATA)
+#warn Not using ipv6 pktinfo or timestamp because of partial CMSG_ implementation.
+#undef USE_CMSG
+#endif
+#if !defined(ISC_NET_BSD44MSGHDR)
+#warn Not using ipv6 pktinfo or timestamp because of lack of BSD44 msghdr
+#undef USE_CMSG
+#endif
+#endif
 
 struct isc_socket {
 	/* Not locked. */
@@ -138,8 +190,8 @@ struct isc_socket {
 #ifdef ISC_NET_RECVOVERFLOW
 	unsigned char			overflow; /* used for MSG_TRUNC fake */
 #endif
-#ifdef notyet
-	unsigned char			cmsg[1024]; /* XXX size? */
+#ifdef USE_CMSG
+	unsigned char			cmsg[TOTAL_SPACE];
 #endif
 };
 
@@ -273,10 +325,21 @@ make_nonblock(int fd)
 
 /*
  * Process control messages received on a socket.
+ * XXXMLG This is #ifdef hell.
  */
 static void
 process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 {
+
+#ifdef USE_CMSG
+	struct cmsghdr *cmsgp, cmsg;
+#ifdef ISC_PLATFORM_HAVEIPV6
+	struct in6_pktinfo *pktinfop;
+#endif
+#ifdef SO_TIMESTAMP
+	struct timeval *timevalp;
+#endif
+#endif
 
 	(void)sock;
 
@@ -291,8 +354,52 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
 #endif
 
+#ifndef USE_CMSG
+	return;
+#else
 	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
 		return;
+
+#ifdef SO_TIMESTAMP
+	timevalp = NULL;
+#endif
+#ifdef ISC_PLATFORM_HAVEIPV6
+	pktinfop = NULL;
+#endif
+
+	cmsgp = CMSG_FIRSTHDR(msg);
+	while (cmsgp != NULL) {
+		cmsg = *cmsgp;
+		XTRACE(TRACE_RECV, ("Processing cmsg %p\n", cmsgp));
+
+#ifdef ISC_PLATFORM_HAVEIPV6
+		if (cmsg.cmsg_level == IPPROTO_IPV6
+		    && cmsg.cmsg_type == IPV6_PKTINFO) {
+			pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
+			dev->pktinfo = *pktinfop;
+			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
+			fprintf(stderr, "Found IPv6 PKTINFO\n");
+			goto next;
+		}
+#endif
+
+#ifdef SO_TIMESTAMP
+		if (cmsg.cmsg_level == SOL_SOCKET
+		    && cmsg.cmsg_type == SCM_TIMESTAMP) {
+			timevalp = (struct timeval *)CMSG_DATA(cmsgp);
+			dev->timestamp.seconds = timevalp->tv_sec;
+			dev->timestamp.nanoseconds = timevalp->tv_usec * 1000;
+			dev->attributes |= ISC_SOCKEVENTATTR_TIMESTAMP;
+			fprintf(stderr, "Found UDP timestamp\n");
+			goto next;
+		}
+#endif
+
+	next:
+		cmsgp = CMSG_NXTHDR(msg, cmsgp);
+	}
+#endif /* USE_CMSG */
+
 #endif /* ISC_NET_BSD44MSGHDR */
 
 }
@@ -494,6 +601,12 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 #ifdef ISC_NET_BSD44MSGHDR
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
+#if defined(USE_CMSG) /* XXXMLG implement! */
+	if (sock->type == isc_sockettype_udp) {
+		msg->msg_control = &sock->cmsg[0];
+		msg->msg_controllen = sizeof(sock->cmsg);
+	}
+#endif
 	msg->msg_flags = 0;
 #else
 	msg->msg_accrights = NULL;
@@ -552,10 +665,14 @@ dump_msg(struct msghdr *msg)
 	printf("MSGHDR %p\n", msg);
 	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
 	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
-	for (i = 0 ; i < msg->msg_iovlen ; i++)
+	for (i = 0 ; i < (unsigned int)msg->msg_iovlen ; i++)
 		printf("\t\t%d\tbase %p, len %d\n", i,
 		       msg->msg_iov[i].iov_base,
 		       msg->msg_iov[i].iov_len);
+#ifdef ISC_NET_BSD44MSGHDR
+	printf("\tcontrol %p, controllen %d\n", msg->msg_control,
+	       msg->msg_controllen);
+#endif
 }
 #endif
 
@@ -583,13 +700,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 #endif
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
-	if (sock->type == isc_sockettype_udp)
-		dev->address.length = msghdr.msg_namelen;
-
 	XTRACE(TRACE_RECV,
-	       ("do_recv: recvmsg(%d) %d bytes, err %d/%s, from %s\n",
-		sock->fd, cc, errno, strerror(errno),
-		inet_ntoa(dev->address.type.sin.sin_addr)));
+	       ("doio_recv: recvmsg(%d) %d bytes, err %d/%s\n",
+		sock->fd, cc, errno, strerror(errno)));
+	XTRACE(TRACE_RECV, ("errno %d, addr %p\n", errno, &errno));
 
 	if (cc < 0) {
 		if (SOFT_ERROR(errno))
@@ -615,6 +729,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 		 * This might not be a permanent error.
 		 */
 		if (errno == ENOBUFS) {
+			/* XXXMLG Unexpected error?!? */
 			send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
 			return (DOIO_HARD);
 		}
@@ -634,6 +749,9 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 		return (DOIO_EOF);
 	}
 
+	if (sock->type == isc_sockettype_udp)
+		dev->address.length = msghdr.msg_namelen;
+
 	/*
 	 * Overflow bit detection.  If we received MORE bytes than we should,
 	 * this indicates an overflow situation.  Set the flag in the
@@ -649,12 +767,9 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	/*
 	 * If there are control messages attached, run through them and pull
 	 * out the interesting bits.
-	 *
-	 * Note that for multi-read TCP this isn't as interesting in that
-	 * only the last packet will set some of these, but that is better
-	 * than nothing.
 	 */
-	process_cmsg(sock, &msghdr, dev);
+	if (sock->type == isc_sockettype_udp)
+		process_cmsg(sock, &msghdr, dev);
 
 	/*
 	 * update the buffers (if any) and the i/o count
@@ -1406,6 +1521,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		}
 
 		if (sock->recv_result != ISC_R_SUCCESS) {
+			XTRACE(TRACE_RECV, ("STICKY RESULT: %d\n",
+					    sock->recv_result));
 			send_recvdone_event(sock, &dev, sock->recv_result);
 			goto next;
 		}
@@ -2134,13 +2251,14 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 	/*
 	 * REQUIRE() checking performed in isc_socket_sendto()
 	 */
-	return (isc_socket_sendto(sock, region, task, action, arg, NULL));
+	return (isc_socket_sendto(sock, region, task, action, arg, NULL,
+				  NULL));
 }
 
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address)
+		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -2219,13 +2337,14 @@ isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 isc_task_t *task, isc_taskaction_t action, void *arg)
 {
-	return (isc_socket_sendtov(sock, buflist, task, action, arg, NULL));
+	return (isc_socket_sendtov(sock, buflist, task, action, arg, NULL,
+				   NULL));
 }
 
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   isc_sockaddr_t *address)
+		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;

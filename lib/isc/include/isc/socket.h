@@ -67,6 +67,7 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/region.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -97,6 +98,8 @@ struct isc_socketevent {
 	isc_region_t		region;		/* for single-buffer i/o */
 	isc_bufferlist_t	bufferlist;	/* list of buffers */
 	isc_sockaddr_t		address;	/* source address */
+	isc_time_t		timestamp;	/* timestamp of packet recv */
+	struct in6_pktinfo	pktinfo;	/* ipv6 pktinfo */
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;
@@ -112,10 +115,21 @@ struct isc_socket_connev {
 	ISC_EVENT_COMMON(isc_socket_connev_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
 };
+
+/*
+ * _ATTACHED:	Internal use only.
+ * _TRUNC:	Packet was truncated on receive.
+ * _CTRUNC:	Packet control information was truncated.  This can
+ *		indicate that the packet is not complete, even though
+ *		all the data is valid.
+ * _TIMESTAMP:	The timestamp member is valid.
+ * _PKTINFO:	The pktinfo member is valid.
+ */
 #define ISC_SOCKEVENTATTR_ATTACHED		0x8000000U /* internal */
 #define ISC_SOCKEVENTATTR_TRUNC			0x0080000U /* public */
 #define ISC_SOCKEVENTATTR_CTRUNC		0x0040000U /* public */
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x0020000U /* public */
+#define ISC_SOCKEVENTATTR_PKTINFO		0x0010000U /* public */
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
@@ -491,14 +505,14 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address);
+		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   isc_sockaddr_t *address);
+		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 /*
  * Send the contents of 'region' to the socket's peer.
  *

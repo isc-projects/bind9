@@ -243,9 +243,9 @@ start_response(void)
 	dns_message_destroy(&msg);
 
 	isc_buffer_used(&render, &region);
-	result = isc_socket_sendto(dns_dispatch_getsocket(disp), &region,
-				   t2, send_done, resp, &from);
-	CHECKRESULT(result, "isc_socket_sendto()");
+	result = isc_socket_send(dns_dispatch_getsocket(disp), &region,
+				   t2, send_done, resp);
+	CHECKRESULT(result, "isc_socket_send()");
 }
 
 void

@@ -360,7 +360,7 @@ ns_client_send(ns_client_t *client) {
 	}
 	CTRACE("sendto");
 	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
-				   client, address);
+				   client, address, NULL);
 	if (result == ISC_R_SUCCESS)
 		client->nsends++;
 
