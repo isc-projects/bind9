@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.24 2000/07/26 21:56:28 tale Exp $ */
+/* $Id: netdb.h.in,v 1.25 2000/07/27 02:11:19 tale Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 
-#include <netdb.h>		/* Contractual provision. */
+#include <stddef.h>	/* Required on FreeBSD (and  others?) for size_t. */
+#include <netdb.h>	/* Contractual provision. */
 
 #include <lwres/lang.h>
 
