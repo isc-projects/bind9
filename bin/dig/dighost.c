@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.61 2000/06/28 18:20:43 mws Exp $ */
+/* $Id: dighost.c,v 1.62 2000/06/29 05:21:10 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1999,9 +1999,11 @@ free_lists(int _exitcode) {
 
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
+		if (l->timer != NULL)
+			isc_timer_detach (&l->timer);
 		q = ISC_LIST_HEAD(l->q);
 		while (q != NULL) {
-			debug ("Freeing query %lx, belonging to %lx",
+			debug ("Cancelling query %lx, belonging to %lx",
 			       q, l);
 			if (q->sock != NULL) {
 				isc_socket_cancel(q->sock, NULL,
@@ -2010,41 +2012,9 @@ free_lists(int _exitcode) {
 				sockcount--;
 				debug ("Socket = %d",sockcount);
 			}
-			if (ISC_LINK_LINKED(&q->recvbuf, link))
-				ISC_LIST_DEQUEUE(q->recvlist, &q->recvbuf,
-						 link);
-			if (ISC_LINK_LINKED(&q->lengthbuf, link))
-				ISC_LIST_DEQUEUE(q->lengthlist, &q->lengthbuf,
-						 link);
-			isc_buffer_invalidate(&q->recvbuf);
-			isc_buffer_invalidate(&q->lengthbuf);
-			ptr = q;
 			q = ISC_LIST_NEXT(q, link);
-			isc_mem_free(mctx, ptr);
 		}
-		if (l->use_my_server_list) {
-			s = ISC_LIST_HEAD(l->my_server_list);
-			while (s != NULL) {
-				debug ("Freeing server %lx belonging to %lx",
-				       s, l);
-				ptr = s;
-				s = ISC_LIST_NEXT(s, link);
-				isc_mem_free(mctx, ptr);
-
-			}
-		}
-		if (l->sendmsg != NULL)
-			dns_message_destroy (&l->sendmsg);
-		if (l->timer != NULL)
-			isc_timer_detach (&l->timer);
-		if (l->querysig != NULL) {
-			debug ("Freeing buffer %lx", l->querysig);
-			isc_buffer_free(&l->querysig);
-		}
-
-		ptr = l;
 		l = ISC_LIST_NEXT(l, link);
-		isc_mem_free(mctx, ptr);
 	}
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
@@ -2098,11 +2068,46 @@ free_lists(int _exitcode) {
 		isc_entropy_detach(&entp);
 	}
 
-	if (isc_mem_debugging)
-		isc_mem_stats(mctx, stderr);
-	isc_app_finish();
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);	
+	l = ISC_LIST_HEAD(lookup_list);
+	while (l != NULL) {
+		q = ISC_LIST_HEAD(l->q);
+		while (q != NULL) {
+			debug ("Freeing query %lx, belonging to %lx",
+			       q, l);
+			if (ISC_LINK_LINKED(&q->recvbuf, link))
+				ISC_LIST_DEQUEUE(q->recvlist, &q->recvbuf,
+						 link);
+			if (ISC_LINK_LINKED(&q->lengthbuf, link))
+				ISC_LIST_DEQUEUE(q->lengthlist, &q->lengthbuf,
+						 link);
+			isc_buffer_invalidate(&q->recvbuf);
+			isc_buffer_invalidate(&q->lengthbuf);
+			ptr = q;
+			q = ISC_LIST_NEXT(q, link);
+			isc_mem_free(mctx, ptr);
+		}
+		if (l->use_my_server_list) {
+			s = ISC_LIST_HEAD(l->my_server_list);
+			while (s != NULL) {
+				debug ("Freeing server %lx belonging to %lx",
+				       s, l);
+				ptr = s;
+				s = ISC_LIST_NEXT(s, link);
+				isc_mem_free(mctx, ptr);
+
+			}
+		}
+		if (l->sendmsg != NULL)
+			dns_message_destroy (&l->sendmsg);
+		if (l->querysig != NULL) {
+			debug ("Freeing buffer %lx", l->querysig);
+			isc_buffer_free(&l->querysig);
+		}
+
+		ptr = l;
+		l = ISC_LIST_NEXT(l, link);
+		isc_mem_free(mctx, ptr);
+	}
 	
 	debug("Getting ready to exit, code=%d",_exitcode);
 	if (_exitcode != 0)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.52 2000/06/28 18:20:41 mws Exp $ */
+/* $Id: dig.c,v 1.53 2000/06/29 05:21:08 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -169,6 +169,7 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
+	free_lists(0);
 	isc_app_shutdown();
 }
 
@@ -1220,7 +1221,11 @@ main(int argc, char **argv) {
 	setup_system();
 	start_lookup();
 	isc_app_run();
-	free_lists(0);
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
+	isc_app_finish();
+	if (mctx != NULL)
+		isc_mem_destroy(&mctx);	
 	return (exitcode);
 }
 

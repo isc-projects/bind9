@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20 2000/06/21 17:48:30 mws Exp $ */
+/* $Id: nslookup.c,v 1.21 2000/06/29 05:21:12 mws Exp $ */
 
 #include <config.h>
 
@@ -875,6 +875,11 @@ main(int argc, char **argv) {
 	free_lists(0);
 	isc_mutex_destroy(&lock);
 	isc_condition_destroy(&cond);
+	if (isc_mem_debugging)
+		isc_mem_stats(mctx, stderr);
+	isc_app_finish();
+	if (mctx != NULL)
+		isc_mem_destroy(&mctx);	
 	
 	return (0);
 }
