@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.50 1999/04/30 02:04:11 halley Exp $ */
+/* $Id: rbt.c,v 1.51 1999/05/07 02:42:50 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1259,10 +1259,9 @@ join_nodes(dns_rbt_t *rbt,
 {
 	dns_rbtnode_t *down, *newnode;
 	dns_result_t result;
-	dns_name_t newname;
-	dns_offsets_t offsets;
-	isc_region_t r;
-	int newlabels, newsize;
+	dns_fixedname_t fixed_newname;
+	dns_name_t *newname, prefix, suffix;
+	int newlength, oldlength;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(node != NULL);
@@ -1270,20 +1269,18 @@ join_nodes(dns_rbt_t *rbt,
 
 	down = DOWN(node);
 
-	newsize = NAMELEN(node) + NAMELEN(down);
-	newlabels = OFFSETLEN(node) + OFFSETLEN(down);
+	dns_name_init(&prefix, NULL);
+	dns_name_init(&suffix, NULL);
+	dns_fixedname_init(&fixed_newname);
 
-	r.base = isc_mem_get(rbt->mctx, newsize);
-	if (r.base == NULL)
-		return (DNS_R_NOMEMORY);
+	NODENAME(down, &prefix);
+	NODENAME(node, &suffix);
 
-	memcpy(r.base,                 NAME(down), NAMELEN(down));
-	memcpy(r.base + NAMELEN(down), NAME(node), NAMELEN(node));
+	newname = dns_fixedname_name(&fixed_newname);
 
-	r.length = newsize;
-
-	dns_name_init(&newname, offsets);
-	dns_name_fromregion(&newname, &r);
+	result = dns_name_concatenate(&prefix, &suffix, newname, NULL);
+	if (result != DNS_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Check whether the space needed for the joined names can
@@ -1293,15 +1290,17 @@ join_nodes(dns_rbt_t *rbt,
 	 * Currently this is not very meaningful since preservation
 	 * of the address of the down node cannot be guaranteed.
 	 */
-	if (newsize + newlabels >=
-	    NAMELEN(down) + OFFSETLEN(down) + PADBYTES(down))
-		result = create_node(rbt->mctx, &newname, &newnode);
+	newlength = newname->length + newname->labels;
+	oldlength = NAMELEN(down) + OFFSETLEN(down);
+	if (newlength > oldlength + PADBYTES(down))
+		result = create_node(rbt->mctx, newname, &newnode);
 
 	else {
-		memcpy(NAME(down) + NAMELEN(down), NAME(node), NAMELEN(node));
-		NAMELEN(down) = newsize;
-		OFFSETLEN(down) = newlabels;
-		memcpy(OFFSETS(down), newname.offsets, newlabels);
+		memcpy(NAME(down), newname->ndata, newname->length);
+		PADBYTES(down) -= newlength - oldlength;
+		NAMELEN(down) = newname->length;
+		OFFSETLEN(down) = newname->labels;
+		memcpy(OFFSETS(down), newname->offsets, newname->labels);
 
 		newnode = down;
 		result = DNS_R_SUCCESS;
@@ -1331,7 +1330,9 @@ join_nodes(dns_rbt_t *rbt,
 
 		if (newnode != down) {
 			isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+#if 0
 			isc_mem_put(rbt->mctx, r.base, r.length);
+#endif
 		}
 	}
 
