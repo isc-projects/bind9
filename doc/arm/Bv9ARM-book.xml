@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.18 2000/10/19 17:15:24 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.19 2000/10/19 17:22:53 gson Exp $ -->
 
 <book>
 
@@ -140,7 +140,7 @@ called <command>named</command> and a <command>resolver</command> library.
 The <acronym>BIND</acronym> server runs in the background, servicing queries on a well
 known network port. The standard port for the User Datagram Protocol
 (UDP) and Transmission Control Protocol (TCP), usually port 53,
-is specified in<command> </command><filename>/etc/services</filename>.
+is specified in <filename>/etc/services</filename>.
 The <emphasis>resolver</emphasis> is a set of routines residing
 in a system library that provides the interface that programs can
 use to access the domain name services.</para>
@@ -1131,7 +1131,7 @@ sign non-response messages to <emphasis>host1</emphasis>.</para></sect2>
 <sect2><title>TSIG Key Based Access Control</title>
 <para><acronym>BIND</acronym> allows IP addresses and ranges to be specified in ACL
 definitions and
-<command>allow-{ query | transfer | update } </command>directives.
+<command>allow-{ query | transfer | update }</command> directives.
 This has been extended to allow TSIG keys also. The above key would
 be denoted <command>key host1-host2.</command></para>
 <para>An example of an allow-update directive would be:</para>
@@ -1644,7 +1644,7 @@ defined by the <command>acl</command> statement.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>address_match_list</varname></para></entry>
-<entry colname = "2"><para>A list of one or more <varname>ip_addr</varname><command>, </command><varname>ip_prefix</varname><command>, </command><varname>key_id</varname><command>, </command>or <varname>acl_name</varname> elements, see
+<entry colname = "2"><para>A list of one or more <varname>ip_addr</varname>, <varname>ip_prefix</varname>, <varname>key_id</varname>, or <varname>acl_name</varname> elements, see
 <xref linkend="address_match_lists"/>.</para></entry>
 </row>
 <row rowsep = "0">
@@ -1668,7 +1668,7 @@ in <varname>dotted_decimal</varname> notation.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip_addr</varname></para></entry>
-<entry colname = "2"><para>An <varname>ip4_addr</varname> or<command> </command><varname>ip6_addr</varname>.</para></entry>
+<entry colname = "2"><para>An <varname>ip4_addr</varname> or <varname>ip6_addr</varname>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip_port</varname></para></entry>
@@ -1717,7 +1717,7 @@ value of <varname>size_spec</varname> is that of unsigned long integers
 on the machine. An <varname>unlimited</varname> <varname>size_spec</varname> requests unlimited
 use, or the maximum available amount. A <varname>default size_spec</varname> uses
 the limit that was in force when the server was started.</para><para>A <varname>number</varname> can
-optionally be followed by a scaling factor: <userinput>K</userinput> or <userinput>k</userinput><command> </command>for
+optionally be followed by a scaling factor: <userinput>K</userinput> or <userinput>k</userinput> for
 kilobytes, <userinput>M</userinput> or <userinput>m</userinput> for
 megabytes, and <userinput>G</userinput> or <userinput>g</userinput> for gigabytes,
 which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.</para><para>Integer
@@ -2542,7 +2542,7 @@ happens in a short interval, once every <command>heartbeat-interval</command> an
 hopefully during the one call. It also suppresses some of the normal
 zone maintenance traffic. The default is <userinput>no</userinput>.</para><para>The <command>dialup</command> option
 may also be specified in the <command>zone</command> statement,
-in which case it overrides the <command>options dialup </command>statement.</para><para>If
+in which case it overrides the <command>options dialup</command> statement.</para><para>If
 the zone is a master then the server will send out a NOTIFY request
 to all the slaves. This will trigger the zone serial number check
 in the slave (providing it supports NOTIFY) allowing the slave to
@@ -2564,8 +2564,8 @@ the obsolete DNS query type IQUERY. <acronym>BIND</acronym> 9 never does IQUERY 
 nodes in the zone is called <emphasis>glue</emphasis> information).
 If <userinput>yes</userinput> (the default), the server will fetch
 glue resource records it doesn't have when constructing the additional
-data section of a response. <command>fetch-glue </command><userinput>no</userinput><command> </command>can
-be used in conjunction with <command>recursion </command><userinput>no</userinput><command> </command>to
+data section of a response. <command>fetch-glue</command> <userinput>no</userinput> can
+be used in conjunction with <command>recursion</command> <userinput>no</userinput> to
 prevent the server's cache from growing or becoming corrupted (at
 the cost of requiring more work from the client).</para><note>
                     <simpara>Not yet
@@ -2576,8 +2576,8 @@ implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
 <entry colname = "2"><para>This option was incorrectly implemented
 in <acronym>BIND</acronym> 8, and is ignored by <acronym>BIND</acronym> 9.  To achieve the intended effect
 of
-<command>has-old-clients </command><userinput>yes</userinput>, specify
-the two separate options <command>auth-nxdomain </command><userinput>yes</userinput> and <command>rfc2308-type1 </command><userinput>no</userinput> instead.</para></entry>
+<command>has-old-clients</command> <userinput>yes</userinput>, specify
+the two separate options <command>auth-nxdomain</command> <userinput>yes</userinput> and <command>rfc2308-type1</command> <userinput>no</userinput> instead.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>host-statistics</command></para></entry>
@@ -2594,7 +2594,7 @@ huge amounts of memory.</simpara></note><note>
  It was used in <acronym>BIND</acronym> 8 to determine whether a transaction log was
 kept for Incremental Zone Transfer. <acronym>BIND</acronym> 9 maintains a transaction
 log whenever possible.  If you need to disable outgoing incremental zone
-transfers, use <command>provide-ixfr </command><userinput>no</userinput>.</para></entry>
+transfers, use <command>provide-ixfr</command> <userinput>no</userinput>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>multiple-cnames</command></para></entry>
@@ -2839,7 +2839,7 @@ listen-on-v6 port 1234 { any; };
 <para>To make the server not listen on any IPv6 address, use</para>
 <programlisting>listen-on-v6 { none; };
 </programlisting>
-<para>If no <command>listen-on-v6 </command>statement is specified,
+<para>If no <command>listen-on-v6</command> statement is specified,
 the server will not listen on any IPv6 address.</para></sect3>
 <sect3><title>Query Address</title>
 <para>If the server doesn't know the answer to a question, it will
@@ -2910,7 +2910,7 @@ servers to find out if zone serial numbers have changed. Each such
 query uses a minute amount of the slave server's network bandwidth,
 but more importantly each query uses a small amount of memory in
 the slave server while waiting for the master server to respond.
-The <command>serial-queries </command>option sets the maximum number
+The <command>serial-queries</command> option sets the maximum number
 of concurrent serial-number queries allowed to be outstanding at
 any given time. The default is 4.</para><note>
 
@@ -3034,7 +3034,7 @@ kernel can support. On such systems, choosing
 cause the server to use the larger of the <command>rlim_max</command> for <command>RLIMIT_NOFILE</command> and
 the value returned by <command>sysconf(_SC_OPEN_MAX)</command>.
 If the actual kernel limit is larger than this value, use <command>limit
-files </command>to specify the limit explicitly.</simpara></note><note><simpara>Not yet
+files</command> to specify the limit explicitly.</simpara></note><note><simpara>Not yet
 implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
 </row>
 <row rowsep = "0">
@@ -3147,7 +3147,7 @@ records, or <varname>RRset</varname>, you must use the <command>sortlist</comman
                                                     linkend="types_of_resource_records_and_when_to_use_them"/>. Specifications for RRs
 are documented in RFC 1035.</para>
 <para>When returning multiple RRs the nameserver will normally return
-them in <varname>Round Robin</varname><varname> </varname>order,
+them in <varname>Round Robin</varname> order,
 that is, after each request the first RR is put at the end of the
 list. The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
@@ -3156,7 +3156,7 @@ When a client is using a local server the sorting can be performed
 in the server, based on the client's address. This only requires
 configuring the nameservers, not all the clients.</para>
 <para>The <command>sortlist</command> statement (see below) takes
-an <command>address_match_list </command>and interprets it even
+an <command>address_match_list</command> and interprets it even
 more specifically than the <command>topology</command> statement
 does (<xref linkend="topology"/>). Each top level statement in the <command>sortlist</command> must
 itself be an explicit <command>address_match_list</command> with
@@ -3369,7 +3369,7 @@ zone transfer when the given remote server, a slave, requests it.
 If set to <command>yes</command>, incremental transfer will be provided
 whenever possible. If set to <command>no</command>, all transfers
 to the remote server will be nonincremental. If not set, the value
-of the <command>provide-ixfr </command>option in the global options block
+of the <command>provide-ixfr</command> option in the global options block
 is used as a default.</para>
 <para>The <command>request-ixfr</command> clause determines whether
 the local server, acting as a slave, will request incremental zone
@@ -3388,14 +3388,14 @@ uses one DNS message per resource record transferred. <command>many-answers</com
 as many resource records as possible into a message. <command>many-answers</command> is
 more efficient, but is only known to be understood by <acronym>BIND</acronym> 9, <acronym>BIND</acronym>
 8.x, and patched versions of <acronym>BIND</acronym> 4.9.5. You can specify which method
-to use for a server with the <command>transfer-format </command>option.
-If <command>transfer-format </command>is not specified, the <command>transfer-format</command> specified
+to use for a server with the <command>transfer-format</command> option.
+If <command>transfer-format</command> is not specified, the <command>transfer-format</command> specified
 by the <command>options</command> statement will be used.</para>
 <para><command>transfers</command> is used to limit the number of
 concurrent inbound zone transfers from the specified server. If
 no <command>transfers</command> clause is specified, the limit is
 set according to the <command>transfers-per-ns</command> option.</para>
-<para>The <command>keys</command> clause is used to identify a <command>key_id </command>defined
+<para>The <command>keys</command> clause is used to identify a <command>key_id</command> defined
 by the <command>key</command> statement, to be used for transaction
 security when talking to the remote server. The <command>key</command> statement
 must come before the <command>server</command> statement that references
@@ -3442,7 +3442,7 @@ split DNS setups without having to run multiple servers.</para>
 DNS namespace that will be seen by those clients whose IP addresses
 match the <varname>address_match_list</varname> of the view's <command>match-clients</command> clause.
  The order of the <command>view</command> statements is significant-a
-client query will be resolved in the context of the first <command>view</command> whose <command>match-clients </command>list
+client query will be resolved in the context of the first <command>view</command> whose <command>match-clients</command> list
 matches the client's IP address.</para>
 <para>Zones defined within a <command>view</command> statement will
 be only be accessible to clients that match the <command>view</command>.
@@ -4312,9 +4312,9 @@ and <command>$TTL.</command></para>
 <sect3><title>The <command>$ORIGIN</command> Directive</title>
 <para>Syntax: <command>$ORIGIN
 </command><replaceable>domain-name</replaceable> <optional> <replaceable>comment</replaceable></optional></para>
-<para><command>$ORIGIN </command>sets the domain name that will
+<para><command>$ORIGIN</command> sets the domain name that will
 be appended to any unqualified records. When a zone is first read
-in there is an implicit <command>$ORIGIN </command>&#60;<varname>zone-name</varname>><command>.</command> The
+in there is an implicit <command>$ORIGIN</command> &#60;<varname>zone-name</varname>><command>.</command> The
 current <command>$ORIGIN</command> is appended to the domain specified
 in the <command>$ORIGIN</command> argument if it is not absolute.</para>
 <programlisting><literal>$ORIGIN example.com
@@ -4345,7 +4345,7 @@ with undefined TTLs. Valid TTLs are of the range 0-2147483647 seconds.</para>
 <sect2><title><acronym>BIND</acronym> Master File Extension: the  <command>$GENERATE</command> Directive</title>
         <para>Syntax: <command>$GENERATE</command> <replaceable>range</replaceable> <replaceable>hs</replaceable> <replaceable>type</replaceable> <replaceable>rhs</replaceable> <optional> <replaceable>comment</replaceable> </optional></para>
 <para><command>$GENERATE</command> is used to create a series of
-resource records that only differ from each other by an iterator. <command>$GENERATE </command>can
+resource records that only differ from each other by an iterator. <command>$GENERATE</command> can
 be used to easily generate the sets of records required to support
 sub /24 reverse delegations described in RFC 2317: Classless IN-ADDR.ARPA
 delegation.</para>
@@ -4378,7 +4378,7 @@ owner name of the resource records to be created.      Any single <command>$</co
 within the <command>lhs</command> side are replaced by the iterator
 value. To get a $ in the output use a double <command>$</command>,
 e.g. <command>$$</command>. If the <command>lhs</command> is not
-absolute, the current <command>$ORIGIN </command>is appended to
+absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para></entry>
         </row>
         <row rowsep = "0">
