@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.26 2004/01/05 08:02:17 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.27 2004/02/02 04:42:13 marka Exp $ */
 
 #include <config.h>
 
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
