@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.234 2001/10/31 21:55:31 gson Exp $ */
+/* $Id: dighost.c,v 1.235 2001/11/14 06:31:38 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -399,7 +399,7 @@ make_empty_lookup(void) {
 	looknew->identify = ISC_FALSE;
 	looknew->identify_previous_line = ISC_FALSE;
 	looknew->ignore = ISC_FALSE;
-	looknew->servfail_stops = ISC_FALSE;
+	looknew->servfail_stops = ISC_TRUE;
 	looknew->besteffort = ISC_TRUE;
 	looknew->dnssec = ISC_FALSE;
 	looknew->udpsize = 0;
@@ -2244,7 +2244,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}			
-	if (msg->rcode == dns_rcode_servfail && l->servfail_stops) {
+	if (msg->rcode == dns_rcode_servfail && !l->servfail_stops) {
 		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		if (l->current_query == query)
 			l->current_query = NULL;
