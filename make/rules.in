@@ -93,7 +93,7 @@ STD_CDEFINES =	@STD_CDEFINES@
 STD_CWARNINGS =	@STD_CWARNINGS@
 
 .SUFFIXES:
-.SUFFIXES: .c .@O@ .lo
+.SUFFIXES: .c .@O@
 
 ALWAYS_INCLUDES = -I${top_builddir}
 ALWAYS_DEFINES = -D_REENTRANT
@@ -108,15 +108,12 @@ ALL_CFLAGS = ${CFLAGS} \
 	${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS}
 
 .c.@O@:
-	${CC} ${ALL_CFLAGS} -c $<
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -c $<
 
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 MKDEP = ${SHELL} ${top_builddir}/make/mkdep
-
-.c.lo:
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} -c $<
 
 clean distclean::
 	rm -f *.@O@ *.lo *.la core *.core
