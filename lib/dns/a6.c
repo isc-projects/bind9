@@ -142,7 +142,7 @@ dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
 	    dns_in6addrfunc_t address, dns_a6missingfunc_t missing, void *arg)
 {
 	REQUIRE(a6ctx != NULL);
-	REQUIRE(a6ctx->find != NULL);
+	REQUIRE(find != NULL);
 
 	a6ctx->magic = A6CONTEXT_MAGIC;
 	a6ctx->find = find;
