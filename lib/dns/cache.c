@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.33 2001/01/12 22:22:15 bwelling Exp $ */
+/* $Id: cache.c,v 1.34 2001/01/13 00:23:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -328,9 +328,9 @@ dns_cache_dump(dns_cache_t *cache) {
 
 	REQUIRE(VALID_CACHE(cache));
 
-	LOCK(&cache->filelock);
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
+	LOCK(&cache->filelock);
 	result = dns_master_dump(cache->mctx, cache->db, NULL,
 				 &dns_master_style_cache, cache->filename);
 	UNLOCK(&cache->filelock);
