@@ -1,3 +1,6 @@
+ 577.	[func]		Log illegal RDATA combinations. e.g. multiple
+			singlton types, cname and other data.
+
  576.	[doc]		isc_log_create() description did not match reality.
 
  575.	[bug]		isc_log_create() was not setting internal state

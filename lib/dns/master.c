@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.81 2000/11/23 05:04:54 marka Exp $ */
+/* $Id: master.c,v 1.82 2000/11/24 01:51:11 marka Exp $ */
 
 #include <config.h>
 
@@ -210,11 +210,11 @@ loadmgr_destroy(dns_loadmgr_t *mgr);
 		result = commit(callbacks, ctx->lex, &current_list, \
 				ctx->current, ctx->top); \
 		if (result != ISC_R_SUCCESS) \
-			goto insist_and_cleanup; \
+			goto log_and_cleanup; \
 		result = commit(callbacks, ctx->lex, &glue_list, \
 				ctx->glue, ctx->top); \
 		if (result != ISC_R_SUCCESS) \
-			goto insist_and_cleanup; \
+			goto log_and_cleanup; \
 		rdcount = 0; \
 		rdlcount = 0; \
 		isc_buffer_init(&target, target_mem, target_size); \
@@ -1042,7 +1042,7 @@ load(dns_loadctx_t **ctxp) {
 				result = commit(callbacks, ctx->lex, &glue_list,
 						ctx->glue, ctx->top);
 				if (result != ISC_R_SUCCESS)
-					goto insist_and_cleanup;
+					goto log_and_cleanup;
 				if (ctx->glue_in_use != -1)
 					ctx->in_use[ctx->glue_in_use] = ISC_FALSE;
 				ctx->glue_in_use = -1;
@@ -1075,7 +1075,7 @@ load(dns_loadctx_t **ctxp) {
 							ctx->current,
 							ctx->top);
 					if (result != ISC_R_SUCCESS)
-						goto insist_and_cleanup;
+						goto log_and_cleanup;
 					rdcount = 0;
 					rdlcount = 0;
 					if (ctx->current_in_use != -1)
@@ -1354,12 +1354,10 @@ load(dns_loadctx_t **ctxp) {
 	 */
 	result = commit(callbacks, ctx->lex, &current_list, ctx->current, ctx->top);
 	if (result != ISC_R_SUCCESS)
-		goto insist_and_cleanup;
+		goto log_and_cleanup;
 	result = commit(callbacks, ctx->lex, &glue_list, ctx->glue, ctx->top);
 	if (result != ISC_R_SUCCESS)
-		goto insist_and_cleanup;
-	else
-		result = ISC_R_SUCCESS;
+		goto log_and_cleanup;
 
 	if (!done) {
 		INSIST(ctx->done != NULL && ctx->task != NULL);
