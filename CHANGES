@@ -1,3 +1,6 @@
+1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if
+			it is defined.
+
 1614.	[placeholder]	rt11101
 
 1613.	[placeholder]	rt11119
