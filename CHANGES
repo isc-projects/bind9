@@ -1,3 +1,7 @@
+1478.	[port]		ifconfig.sh didn't account for other virtual
+			interfaces.  It now takes a optional arguement
+			to specify the first interface number. [RT #3907]
+		
 1477.	[bug]		memory leak using stub zones and TSIG.
 
 1476.	[placeholder]
