@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.52 2000/06/22 21:57:01 tale Exp $ */
+/* $Id: mem.c,v 1.53 2000/06/26 20:27:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -783,9 +783,9 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 
 			if (s->totalgets == 0 && s->gets == 0)
 				continue;
-			fprintf(out, "%s%5d: %11lu gets, %11lu rem",
+			fprintf(out, "%s%5lu: %11lu gets, %11lu rem",
 				(i == ctx->max_size) ? ">=" : "  ",
-				i, s->totalgets, s->gets);
+				(unsigned long) i, s->totalgets, s->gets);
 			if (s->blocks != 0)
 				fprintf(out, " (%lu bl, %lu ff)",
 					s->blocks, s->freefrags);
@@ -808,8 +808,8 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 			"freemax", "fillcount", "gets", "L");
 	}
 	while (pool != NULL) {
-		fprintf(out, "%15s %10u %10u %10u %10u %10u %10u %10u %s\n",
-			pool->name, pool->size, pool->maxalloc,
+		fprintf(out, "%15s %10lu %10u %10u %10u %10u %10u %10u %s\n",
+			pool->name, (unsigned long) pool->size, pool->maxalloc,
 			pool->allocated, pool->freecount, pool->freemax,
 			pool->fillcount, pool->gets,
 			(pool->lock == NULL ? "N" : "Y"));
