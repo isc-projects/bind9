@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.24 2003/04/08 05:55:21 marka Exp $
+# $Id: kit.sh,v 1.25 2003/07/16 00:03:45 marka Exp $
 
 # Make a release kit
 #
@@ -30,16 +30,31 @@
 
 arg=-r
 case $# in
-    2) tag=$1; tmpdir=$2 ;;
-    *) echo "usage: sh kit.sh cvstag tmpdir" >&2
+    3)
+	case "$1" in
+	snapshot) ;;
+	*) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
+	   exit 1
+	   ;;
+	esac
+	snapshot=true;
+	releasetag=$2
+	tag=$2
+	tmpdir=$3
+	;;
+    2)
+	tag=$1
+	tmpdir=$2
+	case $tag in
+	    snapshot) tag=HEAD; snapshot=true ; releasetag="" ;;
+	    *) snapshot=false ;;
+	esac
+	;;
+    *) echo "usage: sh kit.sh [snapshot] cvstag tmpdir" >&2
        exit 1
        ;;
 esac
 
-case $tag in
-    snapshot) tag=HEAD; snapshot=true ;;
-    *) snapshot=false ;;
-esac
 
 
 test -d $tmpdir ||
@@ -59,7 +74,7 @@ then
     set `date -u +'%Y%m%d%H%M%S %Y/%m/%d %H:%M:%S UTC'`
     dstamp=$1
     RELEASETYPE=s
-    RELEASEVER=$dstamp
+    RELEASEVER=${dstamp}${releasetag}
     shift
     tag="$@"
     arg=-D
