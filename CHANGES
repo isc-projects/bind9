@@ -8,7 +8,7 @@
 1631.	[bug]		dns_journal_compact() could sometimes corrupt the
 			journal. [RT #11124]
 
-1630.	[placeholder]	queryperf-v6
+1630.	[contrib]	queryperf: add support for IPv6 transport.
 
 1629.	[placeholder]	rt8753
 
