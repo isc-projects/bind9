@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.49 2000/08/01 01:30:47 tale Exp $ */
+/* $Id: socket.h,v 1.50 2000/09/07 01:59:56 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -115,9 +115,6 @@ struct isc_socket_connev {
 
 /*
  * _ATTACHED:	Internal use only.
- * _FATALERROR:	The socket result code is "sticky" -- that is, any
- *		further i/o activity of the same type (read or write)
- *		will return the same code; retrying is pointless.
  * _TRUNC:	Packet was truncated on receive.
  * _CTRUNC:	Packet control information was truncated.  This can
  *		indicate that the packet is not complete, even though
@@ -127,7 +124,6 @@ struct isc_socket_connev {
  * _MULTICAST:	The UDP packet was received via a multicast transmission.
  */
 #define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
-#define ISC_SOCKEVENTATTR_FATALERROR		0x40000000U /* sock is dead */
 #define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
 #define ISC_SOCKEVENTATTR_CTRUNC		0x00400000U /* public */
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */
