@@ -4,7 +4,7 @@
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 HREF="Bv9ARM.html"><LINK
@@ -24,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -41,6 +42,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -54,6 +56,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -90,7 +93,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3441"
+HREF="Bv9ARM.ch06.html#AEN3463"
 >Zone File</A
 ></DT
 ></DL
@@ -1930,9 +1933,12 @@ CLASS="command"
 > Phrase</A
 ></H3
 ><P
->All log output goes to one or more <I
+>All log output goes to one or more <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >channels</I
+></SPAN
 >;
 you can make as many of them as you want.</P
 ><P
@@ -2678,6 +2684,32 @@ those servers during resolution.
 </P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>delegation-only</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Delegation only.  Logs queries that have have
+been forced to NXDOMAIN as the result of a delegation-only zone or
+a <B
+CLASS="command"
+>delegation-only</B
+> in a stub or forward
+zone declartation.
+</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -2690,7 +2722,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1735"
+NAME="AEN1742"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2787,7 +2819,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1759"
+NAME="AEN1766"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2860,7 +2892,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1778"
+NAME="AEN1785"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3746,7 +3778,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1981"
+NAME="AEN1988"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3771,7 +3803,7 @@ CLASS="command"
 block with each option set to its default will be used.<DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1988"
+NAME="AEN1995"
 ></A
 ><P
 ></P
@@ -3854,9 +3886,12 @@ WIDTH="303"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->&#13;<I
+>&#13;<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >This option is obsolete.</I
+></SPAN
 >
 It was used in <SPAN
 CLASS="acronym"
@@ -4126,7 +4161,7 @@ NAME="boolean_options"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2084"
+NAME="AEN2091"
 ></A
 ><P
 ></P
@@ -4459,9 +4494,12 @@ WIDTH="287"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
  It was used in <SPAN
 CLASS="acronym"
@@ -4688,9 +4726,12 @@ WIDTH="287"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
  <SPAN
 CLASS="acronym"
@@ -4751,9 +4792,12 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 ></P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
 If you need to disable IXFR to a particular server or servers see
 the information on the <B
@@ -4992,7 +5036,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2299"
+NAME="AEN2306"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5007,7 +5051,7 @@ its cache.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2303"
+NAME="AEN2310"
 ></A
 ><P
 ></P
@@ -5104,7 +5148,7 @@ details on how to specify IP address lists.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2330"
+NAME="AEN2337"
 ></A
 ><P
 ></P
@@ -5273,7 +5317,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2375"
+NAME="AEN2382"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5368,7 +5412,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2401"
+NAME="AEN2408"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5440,7 +5484,7 @@ system. The following options apply to zone transfers.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2419"
+NAME="AEN2426"
 ></A
 ><P
 ></P
@@ -5935,7 +5979,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2551"
+NAME="AEN2558"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5975,7 +6019,7 @@ HREF="Bv9ARM.ch06.html#configuration_file_elements"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2561"
+NAME="AEN2568"
 ></A
 ><P
 ></P
@@ -6155,13 +6199,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2614"
+NAME="AEN2621"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2616"
+NAME="AEN2623"
 ></A
 ><P
 ></P
@@ -6570,7 +6614,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2710"
+NAME="AEN2717"
 ></A
 ><P
 ></P
@@ -6711,7 +6755,7 @@ NAME="tuning"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2748"
+NAME="AEN2755"
 ></A
 ><P
 ></P
@@ -6738,9 +6782,12 @@ VALIGN="MIDDLE"
 ><P
 >Sets the number of seconds to cache a
 lame server indication. 0 disables caching. (This is
-<I
+<SPAN
+CLASS="bold"
+><B
 CLASS="emphasis"
->NOT</I
+>NOT</B
+></SPAN
 > recommended.)
 Default is <TT
 CLASS="literal"
@@ -6933,7 +6980,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2806"
+NAME="AEN2813"
 ></A
 ><P
 ></P
@@ -7322,7 +7369,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2909"
+NAME="AEN2916"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7397,7 +7444,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2925"
+NAME="AEN2932"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7432,7 +7479,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2933"
+NAME="AEN2940"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7495,7 +7542,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2947"
+NAME="AEN2954"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7661,7 +7708,7 @@ CLASS="replaceable"
 >] [<SPAN
 CLASS="optional"
 >{ 
-    type ( master | slave | hint | stub | forward ) ;
+    type ( master | slave | hint | stub | forward | delegation-only ) ;
     [<SPAN
 CLASS="optional"
 > allow-notify { <TT
@@ -7771,6 +7818,15 @@ CLASS="optional"
 CLASS="replaceable"
 ><I
 >dialup_option</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> delegation-only <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
 ></TT
 > ; </SPAN
 >]
@@ -8078,7 +8134,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3084"
+NAME="AEN3093"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8089,13 +8145,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3087"
+NAME="AEN3096"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3089"
+NAME="AEN3098"
 ></A
 ><P
 ></P
@@ -8322,6 +8378,29 @@ IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="87"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="varname"
+>delegation-only</TT
+></P
+></TD
+><TD
+WIDTH="405"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>This is used to enforce the delegation only
+status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
+is received without a explicit or implict delegation in the authority
+section will be treated as NXDOMAIN.  This does not apply to the zone
+apex.  This SHOULD NOT be applied to leaf zones.</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -8333,7 +8412,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3144"
+NAME="AEN3159"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8389,13 +8468,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3159"
+NAME="AEN3174"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3161"
+NAME="AEN3176"
 ></A
 ><P
 ></P
@@ -8720,6 +8799,34 @@ HREF="Bv9ARM.ch06.html#boolean_options"
 >Section 6.2.14.1</A
 >.</P
 ></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>&#13;<P
+><B
+CLASS="command"
+>delegation-only</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>The flag only applies to forward and stub zones.  If set
+to <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+> then the zone will also be treated as if it
+is also a delegation-only type zone.
+</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -9284,7 +9391,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3411"
+NAME="AEN3433"
 ></A
 ><P
 ></P
@@ -9391,7 +9498,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3441"
+NAME="AEN3463"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9412,7 +9519,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3446"
+NAME="AEN3468"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9435,7 +9542,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3452"
+NAME="AEN3474"
 ></A
 ><P
 ></P
@@ -9537,16 +9644,19 @@ data that describes the resource.</P
 ></P
 ></DIV
 ><P
->The following are <I
+>The following are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >types</I
+></SPAN
 > of valid RRs
 (some of these listed, although not obsolete, are experimental (x)
 or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3484"
+NAME="AEN3506"
 ></A
 ><P
 ></P
@@ -9915,15 +10025,18 @@ VALIGN="MIDDLE"
 ></P
 ></DIV
 ><P
->The following <I
+>The following <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >classes</I
+></SPAN
 > of resource records
 are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3596"
+NAME="AEN3618"
 ></A
 ><P
 ></P
@@ -9967,15 +10080,18 @@ HREF="Bv9ARM.ch09.html#classes_of_resource_records"
 ></P
 ></DIV
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >RDATA</I
+></SPAN
 > is the type-dependent or class-dependent
 data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3612"
+NAME="AEN3634"
 ></A
 ><P
 ></P
@@ -10152,7 +10268,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3660"
+NAME="AEN3682"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10182,7 +10298,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3667"
+NAME="AEN3689"
 ></A
 ><P
 ></P
@@ -10391,7 +10507,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3733"
+NAME="AEN3755"
 ></A
 ><P
 ></P
@@ -10482,7 +10598,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3761"
+NAME="AEN3783"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10502,9 +10618,12 @@ chosen randomly. If no servers at a given priority are responding,
 the mail transport agent will fall back to the next largest priority.
 Priority numbers do not have any absolute meaning &#8212; they are relevant
 only respective to other MX records for that domain name. The domain
-name given is the machine to which the mail will be delivered. It <I
+name given is the machine to which the mail will be delivered. It <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >must</I
+></SPAN
 > have
 an associated A record &#8212; CNAME is not sufficient.</P
 ><P
@@ -10515,7 +10634,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3767"
+NAME="AEN3789"
 ></A
 ><P
 ></P
@@ -10810,7 +10929,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3859"
+NAME="AEN3881"
 ></A
 ><P
 ></P
@@ -10893,14 +11012,17 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3882"
+NAME="AEN3904"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
 >Reverse name resolution (that is, translation from IP address
-to name) is achieved by means of the <I
+to name) is achieved by means of the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >in-addr.arpa</I
+></SPAN
 > domain
 and PTR records. Entries in the in-addr.arpa domain are made in
 least-to-most significant order, read left to right. This is the
@@ -10917,7 +11039,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3887"
+NAME="AEN3909"
 ></A
 ><P
 ></P
@@ -10997,7 +11119,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3909"
+NAME="AEN3931"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11022,7 +11144,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3916"
+NAME="AEN3938"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11092,7 +11214,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3936"
+NAME="AEN3958"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11174,7 +11296,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3956"
+NAME="AEN3978"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11214,7 +11336,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3967"
+NAME="AEN3989"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11293,7 +11415,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3987"
+NAME="AEN4009"
 ></A
 ><P
 ></P
@@ -11482,6 +11604,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -11493,6 +11616,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -11501,6 +11625,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -11509,6 +11634,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

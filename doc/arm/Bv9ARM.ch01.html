@@ -4,7 +4,7 @@
 >Introduction </TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 HREF="Bv9ARM.html"><LINK
@@ -23,6 +23,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -40,6 +41,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -53,6 +55,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -149,9 +152,12 @@ NAME="AEN13"
 >1.2. Organization of This Document</A
 ></H1
 ><P
->In this document, <I
+>In this document, <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 1</I
+></SPAN
 > introduces
     the basic <SPAN
 CLASS="acronym"
@@ -159,58 +165,85 @@ CLASS="acronym"
 > and <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> concepts. <I
+> concepts. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 2</I
+></SPAN
 >
     describes resource requirements for running <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > in various
-    environments. Information in <I
+    environments. Information in <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 3</I
+></SPAN
 > is
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >task-oriented</I
+></SPAN
 > in its presentation and is
     organized functionally, to aid in the process of installing the
     <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9 software. The task-oriented section is followed by
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 4</I
+></SPAN
 >, which contains more advanced
     concepts that the system administrator may need for implementing
     certain options. Section 5 describes the <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9 lightweight
-    resolver.  The contents of <I
+    resolver.  The contents of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 6</I
+></SPAN
 > are
     organized as in a reference manual to aid in the ongoing
-    maintenance of the software. <I
+    maintenance of the software. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 7
     </I
+></SPAN
 >addresses security considerations, and
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 8</I
+></SPAN
 > contains troubleshooting help. The
     main body of the document is followed by several
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Appendices</I
+></SPAN
 > which contain useful reference
-    information, such as a <I
+    information, such as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Bibliography</I
+></SPAN
 > and
     historic information related to <SPAN
 CLASS="acronym"
@@ -247,10 +280,13 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 >&#13;<P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >To
 describe:</I
+></SPAN
 ></P
 ></TD
 ><TD
@@ -258,9 +294,12 @@ WIDTH="252"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 >&#13;<P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >We use the style:</I
+></SPAN
 ></P
 ></TD
 ></TR
@@ -373,10 +412,13 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >To
 describe:</I
+></SPAN
 ></P
 ></TD
 ><TD
@@ -384,9 +426,12 @@ WIDTH="252"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >We use the style:</I
+></SPAN
 ></P
 ></TD
 ></TR
@@ -543,9 +588,12 @@ CLASS="acronym"
 <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> consists of a <I
+> consists of a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >nameserver</I
+></SPAN
 > (or "daemon")
 called <B
 CLASS="command"
@@ -564,9 +612,12 @@ is specified in <TT
 CLASS="filename"
 >/etc/services</TT
 >.
-The <I
+The <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >resolver</I
+></SPAN
 > is a set of routines residing
 in a system library that provides the interface that programs can
 use to access the domain name services.</P
@@ -580,9 +631,12 @@ NAME="AEN135"
 ></H2
 ><P
 >A nameserver (NS) is a program that stores information about
-named resources and responds to queries from programs called <I
+named resources and responds to queries from programs called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >resolvers</I
+></SPAN
 > which
 act as client processes. The basic function of an NS is to provide
 information about network objects by answering queries.</P
@@ -595,15 +649,21 @@ all the labels of the domains from the root to the current domain.
 This is represented in written form as a string of labels listed
 from right to left and separated by dots. A label need only be unique
 within its domain. The whole name space is partitioned into areas
-called <I
+called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zones</I
+></SPAN
 >, each starting at a domain and
 extending down to the leaf domains or to domains where other zones
 start. Zones usually represent administrative boundaries. For example,
-a domain name for a host at the company <I
+a domain name for a host at the company <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > would
 be:</P
 ><P
@@ -684,12 +744,18 @@ parent zone, which should be matched by equivalent NS records at
 the root of the delegated zone.</P
 ><P
 >To properly operate a nameserver, it is important to understand
-the difference between a <I
+the difference between a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zone</I
-> and a <I
+></SPAN
+> and a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >.</P
 ><P
 >For instance, consider the <SPAN
@@ -722,16 +788,25 @@ only part of a domain, the rest of which could be delegated to other
 nameservers. Every name in the <SPAN
 CLASS="acronym"
 >DNS</SPAN
-> tree is a <I
+> tree is a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >,
-even if it is <I
+even if it is <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >terminal</I
->, that is, has no <I
+></SPAN
+>, that is, has no <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >subdomains</I
+></SPAN
 >.
 Every subdomain is a domain and every domain except the root is
 also a subdomain. The terminology is not intuitive and we suggest
@@ -747,29 +822,44 @@ CLASS="filename"
 >named.conf</TT
 > file
 specify zones, not domains. When you ask some other site if it is willing
-to be a slave server for your <I
+to be a slave server for your <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >, you are
 actually asking for slave service for some collection of zones.</P
 ><P
->Each zone will have one <I
+>Each zone will have one <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primary master</I
+></SPAN
 > (also
-called <I
+called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primary</I
+></SPAN
 >) server which loads the zone
 contents from some local file edited by humans or perhaps generated
 mechanically from some other local file which is edited by humans.
-There there will be some number of <I
+There there will be some number of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >slave</I
+></SPAN
 > (also
-called <I
+called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >secondary) </I
+></SPAN
 >servers, which load the zone
 contents using the <SPAN
 CLASS="acronym"
@@ -777,21 +867,30 @@ CLASS="acronym"
 > protocol (that is, the secondary servers
 will contact the primary and fetch the zone data using TCP). This
 set of servers &#8212; the primary and all of its secondaries &#8212; should be
-listed in the NS records in the parent zone and will constitute a <I
+listed in the NS records in the parent zone and will constitute a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >delegation</I
+></SPAN
 >.
 This set of servers must also be listed in the zone file itself,
 usually under the <B
 CLASS="command"
 >@</B
-> name which indicates the <I
+> name which indicates the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >top
 level</I
-> or <I
+></SPAN
+> or <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >root</I
+></SPAN
 > of the current zone.
 You can list servers in the zone's top-level <B
 CLASS="command"
@@ -804,9 +903,12 @@ CLASS="command"
 >@</B
 >.</P
 ><P
->Any servers listed in the NS records must be configured as <I
+>Any servers listed in the NS records must be configured as <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >authoritative</I
+></SPAN
 > for
 the zone. A server is authoritative for a zone when it has been
 configured to answer questions for that zone with authority, which
@@ -838,17 +940,26 @@ CLASS="acronym"
 >DNS</SPAN
 > server can be master for some zones and slave for others
 or can be only a master, or only a slave, or can serve no zones
-and just answer queries via its <I
+and just answer queries via its <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >cache</I
+></SPAN
 >. Master
-servers are often also called <I
+servers are often also called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primaries</I
+></SPAN
 > and
-slave servers are often also called <I
+slave servers are often also called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >secondaries</I
+></SPAN
 >.
 Both master/primary and slave/secondary servers are authoritative
 for a zone.</P
@@ -865,9 +976,12 @@ NAME="AEN201"
 >1.4.3.1. Master Server</A
 ></H3
 ><P
->The <I
+>The <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primary master server</I
+></SPAN
 > is the ultimate
 source of information about a domain. The primary master is an authoritative
 server configured to be the source of zone transfer for one or more
@@ -883,13 +997,19 @@ NAME="AEN205"
 >1.4.3.2. Slave Server</A
 ></H3
 ><P
->A <I
+>A <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >slave server</I
->, also called a <I
+></SPAN
+>, also called a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >secondary
 server</I
+></SPAN
 >, is an authoritative server that uses zone transfers from
 the primary master server to retrieve the zone data. Optionally,
 the slave server obtains zone data from a cache on disk. Slave servers
@@ -905,9 +1025,12 @@ NAME="AEN210"
 >1.4.3.3. Caching Only Server</A
 ></H3
 ><P
->Some servers are <I
+>Some servers are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >caching only servers</I
+></SPAN
 >.
 This means that the server caches the information that it receives
 and uses it until the data expires. A caching only server is a server
@@ -925,15 +1048,21 @@ NAME="AEN214"
 ></H3
 ><P
 >Instead of interacting with the nameservers for the root and
-other domains, a <I
+other domains, a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >forwarding server</I
+></SPAN
 > always forwards
 queries it cannot satisfy from its authoritative data or cache to
 a fixed list of other servers. The forwarded queries are also known
-as <I
+as <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >recursive queries</I
+></SPAN
 >, the same type as a client would
 send to a server. There may be one or more servers forwarded to,
 and they are queried in turn until the list is exhausted or an answer
@@ -969,9 +1098,12 @@ NAME="AEN222"
 >1.4.3.5. Stealth Server</A
 ></H3
 ><P
->A <I
+>A <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >stealth server</I
+></SPAN
 > is a server that answers
 authoritatively for a zone, but is not listed in that zone's NS
 records. Stealth servers can be used as a way to centralize distribution
@@ -990,6 +1122,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1001,6 +1134,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -1009,6 +1143,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -1017,6 +1152,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

@@ -4,7 +4,7 @@
 >Advanced Concepts</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 HREF="Bv9ARM.html"><LINK
@@ -24,6 +24,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -41,6 +42,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch03.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -54,6 +56,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -149,9 +152,12 @@ CLASS="command"
 > statement.</P
 ><P
 >Updating of secure zones (zones using DNSSEC) is modelled
-    after the <I
+    after the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >simple-secure-update</I
+></SPAN
 > proposal, a
     work in progress in the DNS Extensions working group of the IETF.
     (See <A
@@ -187,14 +193,20 @@ CLASS="command"
     or using <B
 CLASS="command"
 >rndc halt</B
-> is <I
+> is <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >not</I
+></SPAN
 >
     sufficient). Wait for the server to exit,
-    then <I
+    then <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >remove</I
+></SPAN
 > the zone's 
     <TT
 CLASS="filename"
@@ -259,10 +271,13 @@ NAME="AEN682"
 ></H1
 ><P
 >Setting up different views, or visibility, of DNS space to
-internal and external resolvers is usually referred to as a <I
+internal and external resolvers is usually referred to as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Split
 DNS</I
+></SPAN
 > setup. There are several reasons an organization
 would want to set up its DNS this way.</P
 ><P
@@ -281,17 +296,23 @@ back in to the internal network.</P
 ><P
 >Here is an example of a split DNS setup:</P
 ><P
->Let's say a company named <I
+>Let's say a company named <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > (example.com)
 has several corporate sites that have an internal network with reserved
 Internet Protocol (IP) space and an external demilitarized zone (DMZ),
 or "outside" section of a network, that is available to the public.</P
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > wants its internal clients
 to be able to resolve external hostnames and to exchange mail with
 people on the outside. The company also wants its internal resolvers
@@ -325,9 +346,12 @@ CLASS="filename"
 >, <TT
 CLASS="filename"
 >site2.example.com</TT
->,<I
+>,<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 > </I
+></SPAN
 ><TT
 CLASS="filename"
 >site1.internal</TT
@@ -405,16 +429,22 @@ servers, and queries for external hostnames will be forwarded back
 out to the DNS servers on the bastion hosts.</P
 ><P
 >In order for all this to work properly, internal clients will
-need to be configured to query <I
+need to be configured to query <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >only</I
+></SPAN
 > the internal
 nameservers for DNS queries. This could also be enforced via selective
 filtering on the network.</P
 ><P
->If everything has been set properly, <I
+>If everything has been set properly, <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 >'s
 internal clients will now be able to:</P
 ><P
@@ -656,12 +686,18 @@ NAME="AEN773"
 >4.4.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
->A shared secret is generated to be shared between <I
+>A shared secret is generated to be shared between <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
-> and <I
+></SPAN
+> and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 >.
 An arbitrary key name is chosen: "host1-host2.". The key name must
 be the same on both hosts.</P
@@ -749,12 +785,18 @@ NAME="AEN797"
 >4.4.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
->Imagine <I
+>Imagine <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
-> and <I
+></SPAN
+> and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host 2</I
+></SPAN
 > are
 both servers. The following is added to each server's <TT
 CLASS="filename"
@@ -802,12 +844,18 @@ be told when keys are to be used. The following is added to the <TT
 CLASS="filename"
 >named.conf</TT
 > file
-for <I
+for <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
->, if the IP address of <I
+></SPAN
+>, if the IP address of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 > is
 10.1.2.3:</P
 ><PRE
@@ -821,31 +869,49 @@ CLASS="programlisting"
 This directive does not contain any secrets, so it may be in a world-readable
 file.</P
 ><P
->If <I
+>If <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 > sends a message that is a request
-to that address, the message will be signed with the specified key. <I
+to that address, the message will be signed with the specified key. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 > will
 expect any responses to signed messages to be signed with the same
 key.</P
 ><P
->A similar statement must be present in <I
+>A similar statement must be present in <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 >'s
-configuration file (with <I
+configuration file (with <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
->'s address) for <I
+></SPAN
+>'s address) for <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 > to
-sign request messages to <I
+sign request messages to <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 >.</P
 ></DIV
 ><DIV
@@ -1027,9 +1093,12 @@ NAME="DNSSEC"
 ></H1
 ><P
 >Cryptographic authentication of DNS information is possible
-    through the DNS Security (<I
+    through the DNS Security (<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >DNSSEC</I
+></SPAN
 >) extensions,
     defined in RFC 2535. This section describes the creation and use
     of DNSSEC signed zones.</P
@@ -1364,14 +1433,20 @@ CLASS="acronym"
 CLASS="acronym"
 >BIND</SPAN
 > 9 supports the new
-    "bitstring" format used in the <I
+    "bitstring" format used in the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.arpa</I
+></SPAN
 >
     domain, as well as the older, deprecated "nibble" format used in
-    the <I
+    the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.int</I
+></SPAN
 > domain.</P
 ><P
 ><SPAN
@@ -1549,13 +1624,19 @@ NAME="AEN990"
 ><P
 >Bitstring labels can start and end on any bit boundary,
       rather than on a multiple of 4 bits as in the nibble
-      format. They also use <I
+      format. They also use <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.arpa</I
+></SPAN
 > rather than
-      <I
+      <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.int</I
+></SPAN
 >.</P
 ><P
 >To replicate the previous example using bitstrings:</P
@@ -1649,6 +1730,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1660,6 +1742,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch03.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -1668,6 +1751,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -1676,6 +1760,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
