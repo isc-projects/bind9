@@ -52,6 +52,7 @@
 #include <named/types.h>
 #include <named/globals.h>
 #include <named/server.h>
+#include <named/xfrin.h>
 
 #include "../../isc/util.h"		/* XXXRTH */
 
@@ -102,8 +103,15 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 	printf("loading %s (%s)\n", dbi->path, dbi->origin);
 	result = dns_db_load(dbi->db, dbi->path);
 
-	if (result != DNS_R_SUCCESS) 
-		goto db_detach;
+	if (result != DNS_R_SUCCESS) {
+		if (dbi->isslave) {
+			/* Ignore the error, just leave dbi->db == NULL. */
+			dns_db_detach(&dbi->db);
+			return (DNS_R_SUCCESS);
+		} else {
+			goto db_detach;
+		}
+	}
 
 	printf("loaded\n");
 	printf("journal rollforward\n");
@@ -252,6 +260,10 @@ unload_all(void) {
 			dns_db_detach(&dbi->db);
 			dns_view_detach(&dbi->view);
 		}
+		isc_mem_free(ns_g_mctx, dbi->path);
+		isc_mem_free(ns_g_mctx, dbi->origin);
+		if (dbi->master != NULL)
+			isc_mem_free(ns_g_mctx, dbi->master);
 		ISC_LIST_UNLINK(ns_g_dbs, dbi, link);
 		isc_mem_put(ns_g_mctx, dbi, sizeof *dbi);
 	}
@@ -280,6 +292,7 @@ load_configuration(void) {
 	}
 
 	ns_interfacemgr_scan(ns_g_interfacemgr);
+	xfrin_test();
 }
 
 static void

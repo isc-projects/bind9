@@ -65,7 +65,7 @@ usage(void) {
 
 static void 
 parse_command_line(int argc, char *argv[]) {
-	char *origintext;
+	char *argtext, *mastertext, *origintext; 
 	int ch;
 	ns_dbinfo_t *dbi;
 
@@ -77,9 +77,15 @@ parse_command_line(int argc, char *argv[]) {
 			dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
 			if (dbi == NULL)
 				early_fatal("creating cache info failed");
-			dbi->path = optarg;
-			dbi->origin = ".";
+			dbi->path = isc_mem_strdup(ns_g_mctx, optarg);
+			if (dbi->path == NULL)
+				early_fatal("out of memory");
+			dbi->origin = isc_mem_strdup(ns_g_mctx, ".");
+			if (dbi->origin == NULL)
+				early_fatal("out of memory");
+			dbi->master = NULL;
 			dbi->iscache = ISC_TRUE;
+			dbi->isslave = ISC_FALSE;
 			dbi->view = NULL;
 			dbi->db = NULL;
 			ISC_LINK_INIT(dbi, link);
@@ -96,19 +102,43 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'z':
 			/* XXXRTH temporary syntax */
-			origintext = strrchr(optarg, '/');
-			if (origintext == NULL)
-				origintext = optarg;
-			else
-				origintext++;	/* Skip '/'. */
 			dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
 			if (dbi == NULL)
 				early_fatal("creating zone info failed");
-			dbi->path = optarg;
-			dbi->origin = origintext;
-			dbi->iscache = ISC_FALSE;
+			argtext = isc_mem_strdup(ns_g_mctx, optarg);
+			if (argtext == NULL)
+				early_fatal("out of memory");
+			mastertext = strrchr(argtext, '@');
+			if (mastertext == NULL) {
+				dbi->master = NULL;
+				dbi->isslave = ISC_FALSE;
+			} else {
+				*mastertext++ = '\0';
+				dbi->master = isc_mem_strdup(ns_g_mctx,
+							     mastertext);
+				if (dbi->master == NULL)
+					early_fatal("out of memory");
+				
+				RUNTIME_CHECK(dbi->master != NULL);
+				dbi->isslave = ISC_TRUE;
+			}
+			
+			origintext = strrchr(argtext, '/');
+			if (origintext == NULL)
+				origintext = argtext;
+			else
+				origintext++;	/* Skip '/'. */
+
+			dbi->path = isc_mem_strdup(ns_g_mctx, argtext);
+			if (dbi->path == NULL)
+				early_fatal("out of memory");
+			dbi->origin = isc_mem_strdup(ns_g_mctx, origintext);
+			if (dbi->origin == NULL)
+				early_fatal("out of memory");
 			dbi->view = NULL;
 			dbi->db = NULL;
+			dbi->iscache = ISC_FALSE;
+			isc_mem_free(ns_g_mctx, argtext);
 			ISC_LINK_INIT(dbi, link);
 			ISC_LIST_APPEND(ns_g_dbs, dbi, link);
 			break;

@@ -34,7 +34,9 @@ typedef struct ns_query			ns_query_t;
 typedef struct ns_dbinfo {
 	char *				path;
 	char *				origin;
+	char *				master; /* Dotted quad, or NULL */
 	isc_boolean_t			iscache;
+	isc_boolean_t			isslave;
 	dns_view_t *			view;
 	dns_db_t *			db;
 	ISC_LINK(struct ns_dbinfo)	link;
