@@ -15,14 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.300 2001/01/25 02:30:21 marka Exp $ */
+/* $Id: zone.c,v 1.301 2001/01/30 02:50:48 bwelling Exp $ */
 
 #include <config.h>
 
 #include <isc/file.h>
+#include <isc/mutex.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
+#include <isc/refcount.h>
 #include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
@@ -127,13 +129,13 @@ struct dns_zone {
 	isc_boolean_t		locked;
 #endif
 	isc_mem_t		*mctx;
+	isc_refcount_t		erefs;
 
 	/* Locked */
 	dns_db_t		*db;
 	dns_zonemgr_t		*zmgr;
 	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timer_t		*timer;
-	unsigned int		erefs;
 	unsigned int		irefs;
 	dns_name_t		origin;
 	char 			*masterfile;
@@ -462,7 +464,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	zone->erefs = 1;		/* Implicit attach. */
+	isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->masterfile = NULL;
@@ -550,7 +552,7 @@ zone_free(dns_zone_t *zone) {
 	isc_mem_t *mctx = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->erefs == 0);
+	REQUIRE(isc_refcount_current(&zone->erefs) == 0);
 	REQUIRE(zone->irefs == 0);
 	REQUIRE(!LOCKED_ZONE(zone));
 
@@ -602,6 +604,7 @@ zone_free(dns_zone_t *zone) {
 
 	/* last stuff */
 	DESTROYLOCK(&zone->lock);
+	isc_refcount_destroy(&zone->erefs);
 	zone->magic = 0;
 	mctx = zone->mctx;
 	isc_mem_put(mctx, zone, sizeof *zone);
@@ -1282,7 +1285,7 @@ exit_check(dns_zone_t *zone) {
 		/*
 		 * DNS_ZONEFLG_SHUTDOWN can only be set if erefs == 0.
 		 */
-		INSIST(zone->erefs == 0);
+		INSIST(isc_refcount_current(&zone->erefs) == 0);
 		return (ISC_TRUE);
 	}
 	return (ISC_FALSE);
@@ -1436,29 +1439,24 @@ void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
-	LOCK_ZONE(source);
-	REQUIRE(source->erefs > 0);
-	source->erefs++;
-	INSIST(source->erefs != 0);
-	zone_debuglog(source, "dns_zone_attach", 10,
-		 "eref = %d, irefs = %d", source->erefs, source->irefs);
-	UNLOCK_ZONE(source);
+	isc_refcount_increment(&source->erefs, NULL);
 	*target = source;
 }
 
 void
 dns_zone_detach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
+	unsigned int refs;
 	isc_boolean_t free_now = ISC_FALSE;
 
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 
 	zone = *zonep;
-	LOCK_ZONE(zone);
 
-	REQUIRE(zone->erefs > 0);
-	zone->erefs--;
-	if (zone->erefs == 0) {
+	isc_refcount_decrement(&zone->erefs, &refs);
+
+	if (refs == 0) {
+		LOCK_ZONE(zone);
 		/*
 		 * We just detached the last external reference.
 		 */
@@ -1486,10 +1484,8 @@ dns_zone_detach(dns_zone_t **zonep) {
 			INSIST(zone->view == NULL);
 			free_now = ISC_TRUE;
 		}
+		UNLOCK_ZONE(zone);
 	}
-	zone_debuglog(zone, "dns_zone_detach", 10,
-		      "eref = %d, irefs = %d", zone->erefs, zone->irefs);
-	UNLOCK_ZONE(zone);
 	*zonep = NULL;
 	if (free_now)
 		zone_free(zone);
@@ -1516,8 +1512,6 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	source->irefs++;
 	INSIST(source->irefs != 0);
 	*target = source;
-	zone_debuglog(source, "zone_iattach", 10,
-		      "eref = %d, irefs = %d", source->erefs, source->irefs);
 }
 
 static void
@@ -1534,9 +1528,7 @@ zone_idetach(dns_zone_t **zonep) {
 
 	INSIST(zone->irefs > 0);
 	zone->irefs--;
-	zone_debuglog(zone, "zone_idetach", 10,
-		      "eref = %d, irefs = %d", zone->erefs, zone->irefs);
-	INSIST(zone->irefs + zone->erefs > 0);
+	INSIST(zone->irefs + isc_refcount_current(&zone->erefs) > 0);
 }
 
 void
@@ -1551,8 +1543,6 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	LOCK_ZONE(zone);
 	INSIST(zone->irefs > 0);
 	zone->irefs--;
-	zone_debuglog(zone, "dns_zone_idetach", 10,
-		      "eref = %d, irefs = %d", zone->erefs, zone->irefs);
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
 	if (free_needed)
@@ -3610,7 +3600,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
-	INSIST(zone->erefs == 0);
+	INSIST(isc_refcount_current(&zone->erefs) == 0);
 	zone_debuglog(zone, "zone_shutdown", 3, "shutting down");
 
 	/*
@@ -5640,7 +5630,7 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	 * XXXAG This should be done as soon as the zone goes on the
 	 * queue, using irefs.
 	 */
-	zone->erefs++;
+	isc_refcount_increment(&zone->erefs, NULL);
 	isc_task_send(zone->task, &e);
 	UNLOCK_ZONE(zone);
 

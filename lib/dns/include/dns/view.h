@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.64 2001/01/12 22:22:17 bwelling Exp $ */
+/* $Id: view.h,v 1.65 2001/01/30 02:50:49 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -66,6 +66,7 @@
 #include <isc/event.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
+#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 
@@ -122,8 +123,10 @@ struct dns_view {
 	 */
 	dns_acl_t *			matchclients;
 
+	/* Locked by themselves. */
+	isc_refcount_t			references;
+
 	/* Locked by lock. */
-	unsigned int			references;
 	unsigned int			weakrefs;
 	unsigned int			attributes;
 	/* Under owner's locking control. */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.92 2001/01/12 22:22:16 bwelling Exp $ */
+/* $Id: view.c,v 1.93 2001/01/30 02:50:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
-	view->references = 1;
+	isc_refcount_init(&view->references, 1);
 	view->weakrefs = 0;
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
@@ -217,7 +217,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 static inline void
 destroy(dns_view_t *view) {
 	REQUIRE(!ISC_LINK_LINKED(view, link));
-	REQUIRE(view->references == 0);
+	REQUIRE(isc_refcount_current(&view->references) == 0);
 	REQUIRE(view->weakrefs == 0);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
@@ -260,6 +260,7 @@ destroy(dns_view_t *view) {
 	dns_fwdtable_destroy(&view->fwdtable);
 	isc_rwlock_destroy(&view->conflock);
 	DESTROYLOCK(&view->lock);
+	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);
 }
@@ -271,7 +272,8 @@ destroy(dns_view_t *view) {
 static isc_boolean_t
 all_done(dns_view_t *view) {
 
-	if (view->references == 0 && view->weakrefs == 0 &&
+	if (isc_refcount_current(&view->references) == 0 &&
+	    view->weakrefs == 0 &&
 	    RESSHUTDOWN(view) && ADBSHUTDOWN(view) && REQSHUTDOWN(view))
 		return (ISC_TRUE);
 
@@ -284,13 +286,7 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&source->lock);
-
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);
-
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references, NULL);
 
 	*targetp = source;
 }
@@ -298,17 +294,16 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 static void
 view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	dns_view_t *view;
+	unsigned int refs;
 	isc_boolean_t done = ISC_FALSE;
 
 	REQUIRE(viewp != NULL);
 	view = *viewp;
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	LOCK(&view->lock);
-
-	INSIST(view->references > 0);
-	view->references--;
-	if (view->references == 0) {
+	isc_refcount_decrement(&view->references, &refs);
+	if (refs == 0) {
+		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view))
 			dns_resolver_shutdown(view->resolver);
 		if (!ADBSHUTDOWN(view))
@@ -320,8 +315,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		else
 			dns_zt_detach(&view->zonetable);
 		done = all_done(view);
+		UNLOCK(&view->lock);
 	}
-	UNLOCK(&view->lock);
 
 	*viewp = NULL;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.145 2001/01/24 02:40:19 halley Exp $ */
+/* $Id: rbtdb.c,v 1.146 2001/01/30 02:50:45 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -24,7 +24,9 @@
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/random.h>
+#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -157,7 +159,7 @@ typedef struct {
 	rbtdb_nodelock_t *	       	node_locks;
 	dns_rbtnode_t *			origin_node;
 	/* Locked by lock. */
-	unsigned int			references;
+	isc_refcount_t			references;
 	unsigned int			attributes;
 	rbtdb_serial_t			current_serial;
 	rbtdb_serial_t			least_serial;
@@ -316,10 +318,7 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	LOCK(&rbtdb->lock);
-	REQUIRE(rbtdb->references > 0);
-	rbtdb->references++;
-	UNLOCK(&rbtdb->lock);
+	isc_refcount_increment(&rbtdb->references, NULL);
 
 	*targetp = source;
 }
@@ -345,6 +344,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof (rbtdb_nodelock_t));
 	isc_rwlock_destroy(&rbtdb->tree_lock);
+	isc_refcount_destroy(&rbtdb->references);
 	DESTROYLOCK(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
@@ -382,18 +382,13 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t set_exiting) {
 static void
 detach(dns_db_t **dbp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
-	isc_boolean_t maybe_free = ISC_FALSE;
+	unsigned int refs;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	LOCK(&rbtdb->lock);
-	REQUIRE(rbtdb->references > 0);
-	rbtdb->references--;
-	if (rbtdb->references == 0)
-		maybe_free = ISC_TRUE;
-	UNLOCK(&rbtdb->lock);
+	isc_refcount_decrement(&rbtdb->references, &refs);
 
-	if (maybe_free)
+	if (refs == 0)
 		maybe_free_rbtdb(rbtdb, ISC_TRUE);
 
 	*dbp = NULL;
@@ -4093,7 +4088,7 @@ dns_rbtdb_create
 	/*
 	 * Misc. Initialization.
 	 */
-	rbtdb->references = 1;
+	isc_refcount_init(&rbtdb->references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->secure = ISC_FALSE;
 	rbtdb->overmem = ISC_FALSE;
