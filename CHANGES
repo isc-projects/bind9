@@ -1,3 +1,7 @@
+ 156.	[func]		Support new 'database' statement in zone.
+
+				database "quoted-string";
+
  155.	[bug]		ns_notify_start() was not detaching the found zone.
 
  154.   [func]		The signer now logs libdns warnings to stderr even when
@@ -7,8 +11,8 @@
 			is NULL then you need to preserve the 'rdata' until
 			you have finished using the structure as there may be
 			references to the associated memory.  If 'mctx' is 
-			non-NULL it is guaranteed that there are no references to
-			to memory associated with 'rdata'.
+			non-NULL it is guaranteed that there are no 
+			references to to memory associated with 'rdata'.
 
 			dns_rdata_freestruct() must be called if 'mctx' was
 			non-NULL and may safely be called if 'mctx' was NULL.
