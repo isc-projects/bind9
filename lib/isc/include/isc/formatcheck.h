@@ -15,38 +15,18 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_PRINT_H
-#define ISC_PRINT_H 1
+#ifndef ISC_FORMATCHECK_H
+#define ISC_FORMATCHECK_H 1
 
-/***
- *** Imports
- ***/
+/*
+ * fmt is the location of the format string parameter.
+ * args is the location of the first argument (or 0 for no argument checking).
+ * Note: the first parameter is 1, not 0.
+ */
+#ifdef __GNUC__
+#define ISC_FORMAT_PRINTF(fmt, args) __attribute__((__format__(__printf__, fmt, args)))
+#else
+#define ISC_FORMAT_PRINTF(fmt, args)
+#endif
 
-#include <isc/formatcheck.h>
-#include <isc/lang.h>
-#include <isc/platform.h>
-
-/***
- *** Functions
- ***/
-
-#ifdef ISC_PLATFORM_NEEDVSNPRINTF
-#include <stdarg.h>
-#include <stddef.h>
-
-ISC_LANG_BEGINDECLS
-
-int
-isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap)
-     ISC_FORMAT_PRINTF(3, 0);
-#define vsnprintf isc_print_vsnprintf
-
-int
-isc_print_snprintf(char *str, size_t size, const char *format, ...)
-     ISC_FORMAT_PRINTF(3, 4);
-#define snprintf isc_print_snprintf
-
-ISC_LANG_ENDDECLS
-#endif /* ISC_PLATFORM_NEEDVSNPRINTF */
-
-#endif /* ISC_PRINT_H */
+#endif /* ISC_FORMATCHECK_H */

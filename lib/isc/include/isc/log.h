@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.24 2000/06/19 19:18:45 tale Exp $ */
+/* $Id: log.h,v 1.25 2000/06/19 21:45:03 explorer Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -24,21 +24,11 @@
 #include <stdarg.h>
 #include <syslog.h> /* XXXDCL NT */
 
+#include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
-
-/*
- * fmt is the location of the format string parameter.
- * args is the location of the first argument (or 0 for no argument checking).
- * Note: the first parameter is 1, not 0.
- */
-#ifdef __GNUC__
-#define ISC_FORMAT_PRINTF(fmt, args) __attribute__((format(printf, fmt, args)))
-#else
-#define ISC_FORMAT_PRINTF(fmt, args)
-#endif
 
 /*
  * Severity levels, patterned after Unix's syslog levels.
