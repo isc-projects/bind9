@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.61 $)
+AC_REVISION($Revision: 1.62 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1327,32 +1327,32 @@ AC_TRY_COMPILE([
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, socklen_t *);
 ],[],
-[ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T socklen_t"]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T socklen_t"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, unsigned int *);
 ],[],
-[ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T unsigned int"]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned int"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, unsigned long *);
 ],[],
-[ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T unsigned long"]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T unsigned long"]
 ,
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 int accept(int, struct sockaddr *, long *);
 ],[],
-[ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T long"]
+[ISC_SOCKLEN_T="#define ISC_SOCKLEN_T long"]
 ,
-ISC_SOCKADDR_LEN_T="#define ISC_SOCKADDR_LEN_T int"
+ISC_SOCKLEN_T="#define ISC_SOCKLEN_T int"
 ))))
-AC_SUBST(ISC_SOCKADDR_LEN_T)
+AC_SUBST(ISC_SOCKLEN_T)
 
 #
 # BSD/OS, and perhaps some others, don't define rlim_t.

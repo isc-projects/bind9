@@ -121,6 +121,6 @@ struct timezone;        /* silence warning */
 #define UNUSED(x) (x) = (x)
 
 @SOLARIS_BITTYPES@
-@ISC_SOCKADDR_LEN_T@
+@ISC_SOCKLEN_T@
 
 #endif

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.4 2001/06/21 08:26:26 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5 2001/07/03 06:49:55 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -297,7 +297,7 @@ res_nsend(res_state statp,
 	if (EXT(statp).nscount != 0) {
 		int needclose = 0;
 		struct sockaddr_storage peer;
-		int peerlen;
+		ISC_SOCKLEN_T peerlen;
 
 		if (EXT(statp).nscount != statp->nscount)
 			needclose++;
@@ -585,7 +585,7 @@ send_vc(res_state statp,
 	/* Are we still talking to whom we want to talk to? */
 	if (statp->_vcsock >= 0 && (statp->_flags & RES_F_VC) != 0) {
 		struct sockaddr_storage peer;
-		int size = sizeof peer;
+		ISC_SOCKLEN_T size = sizeof peer;
 
 		if (getpeername(statp->_vcsock,
 				(struct sockaddr *)&peer, &size) < 0 ||
@@ -746,7 +746,8 @@ send_dg(res_state statp,
 	struct timespec now, timeout, finish;
 	fd_set dsmask;
 	struct sockaddr_storage from;
-	int fromlen, resplen, seconds, n, s;
+	ISC_SOCKLEN_T fromlen;
+	int resplen, seconds, n, s;
 
 	nsap = get_nsaddr(statp, ns);
 	nsaplen = get_salen(nsap);

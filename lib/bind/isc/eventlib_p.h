@@ -18,7 +18,7 @@
 /* eventlib_p.h - private interfaces for eventlib
  * vix 09sep95 [initial]
  *
- * $Id: eventlib_p.h,v 1.2 2001/06/27 03:55:48 marka Exp $
+ * $Id: eventlib_p.h,v 1.3 2001/07/03 06:49:54 marka Exp $
  */
 
 #ifndef _EVENTLIB_P_H
@@ -85,7 +85,7 @@ typedef struct evAccept {
 		struct sockaddr_un	un;
 #endif
 	}		la;
-	int		lalen;
+	ISC_SOCKLEN_T	lalen;
 	union {
 		struct sockaddr		sa;
 		struct sockaddr_in	in;
@@ -93,7 +93,7 @@ typedef struct evAccept {
 		struct sockaddr_un	un;
 #endif
 	}		ra;
-	int		ralen;
+	ISC_SOCKLEN_T	ralen;
 	int		ioErrno;
 	evConn *	conn;
 	LINK(struct evAccept) link;
