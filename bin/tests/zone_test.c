@@ -293,5 +293,5 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	exit(0);
+	return (0);
 }
