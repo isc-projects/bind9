@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.16 2001/02/22 04:17:36 gson Exp $ */
+/* $Id: parser.c,v 1.17 2001/02/22 05:45:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -816,6 +816,7 @@ view_clauses[] = {
 	{ "max-cache-size", &cfg_type_size, 0 },
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
+	{ "cache-file", &cfg_type_qstring, 0 },
 	{ NULL, NULL, 0 }
 };
 
