@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.43 2001/09/15 00:01:58 bwelling Exp $ */
+/* $Id: dst.h,v 1.44 2001/12/18 06:05:41 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -54,7 +54,13 @@ typedef struct dst_context 	dst_context_t;
 #define DST_MAX_ALGS		255
 
 /* A buffer of this size is large enough to hold any key */
-#define DST_KEY_MAXSIZE		1024
+#define DST_KEY_MAXSIZE		1280
+
+/*
+ * A buffer of this size is large enough to hold the textual representation
+ * of any key
+ */
+#define DST_KEY_MAXTEXTSIZE	2048
 
 /* 'Type' for dst_read_key() */
 #define DST_TYPE_PRIVATE	0x2000000
