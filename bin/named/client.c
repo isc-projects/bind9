@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.99 2000/07/13 00:21:27 bwelling Exp $ */
+/* $Id: client.c,v 1.100 2000/07/14 02:26:22 marka Exp $ */
 
 #include <config.h>
 
@@ -816,6 +816,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view;
 	dns_rdataset_t *opt;
 	isc_boolean_t ra; 	/* Recursion available. */
+	isc_boolean_t rd; 	/* Recursion desired. */
 
 	REQUIRE(event != NULL);
 	client = event->ev_arg;
@@ -1041,12 +1042,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * responses to ordinary queries.
 	 */
 	ra = ISC_FALSE;
+	rd = ISC_TF((client->message->flags & DNS_MESSAGEFLAG_RD) != 0);
 	if (client->view->resolver != NULL &&
 	    client->view->recursion == ISC_TRUE &&
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion",
 			       client->view->recursionacl,
-			       ISC_TRUE, ISC_TRUE) == ISC_R_SUCCESS)
+			       ISC_TRUE, rd) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)

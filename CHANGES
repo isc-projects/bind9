@@ -1,3 +1,5 @@
+ 331.	[bug]		Only log "recursion denied" if RD is set. (RT #178)
+
  330.	[func]		New function isc_log_wouldlog().
 
  329.	[func]		omapi_auth_register() now takes a size_t argument for
