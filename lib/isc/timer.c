@@ -622,10 +622,10 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	REQUIRE(EMPTY(manager->timers));
 	manager->done = ISC_TRUE;
 
-	UNLOCK(&manager->lock);
-
 	XTRACE("signal (destroy)");
 	SIGNAL(&manager->wakeup);
+
+	UNLOCK(&manager->lock);
 
 	/*
 	 * Wait for thread to exit.
