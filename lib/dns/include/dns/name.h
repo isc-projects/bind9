@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.83.2.2 2001/01/22 18:23:12 gson Exp $ */
+/* $Id: name.h,v 1.83.2.3 2001/02/20 21:56:25 gson Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -207,8 +207,7 @@ struct dns_name {
 #define DNS_NAMEATTR_CACHE		0x0100		/* Used by resolver. */
 #define DNS_NAMEATTR_ANSWER		0x0200		/* Used by resolver. */
 #define DNS_NAMEATTR_NCACHE		0x0400		/* Used by resolver. */
-#define DNS_NAMEATTR_CNAME		0x0800		/* Used by message. */
-#define DNS_NAMEATTR_DNAME		0x1000		/* Used by message. */
+#define DNS_NAMEATTR_CHAINING		0x0800		/* Used by resolver. */
 
 extern dns_name_t *dns_rootname;
 extern dns_name_t *dns_wildcardname;
