@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.98 2000/09/12 10:07:50 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.99 2000/09/12 11:33:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1225,7 +1225,7 @@ usage(void) {
 int
 main(int argc, char *argv[]) {
 	int i, ch;
-	char *startstr = NULL, *endstr = NULL, *classname;
+	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *randomfile = NULL;
 	char *endp;
