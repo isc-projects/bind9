@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.243 $)
+AC_REVISION($Revision: 1.244 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1498,6 +1498,7 @@ AC_OUTPUT(
 	bin/check/Makefile
 	bin/named/Makefile
 	bin/named/named.8
+	bin/named/named.html
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
 	bin/dig/Makefile
