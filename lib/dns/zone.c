@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.176 2000/08/08 23:14:26 gson Exp $ */
+/* $Id: zone.c,v 1.177 2000/08/09 00:17:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -247,6 +247,9 @@ static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx,
 				   char **s);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
+#ifndef NOMINUM_PUBLIC
+static void zone_deletefile(dns_zone_t *zone);
+#endif /* NOMINUM_PUBLIC */
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 			           isc_boolean_t dump);
 static isc_result_t default_journal(dns_zone_t *zone);
@@ -1710,6 +1713,31 @@ zone_unload(dns_zone_t *zone) {
 	dns_db_detach(&zone->db);
 	zone->flags &= ~DNS_ZONEFLG_LOADED;
 }
+
+#ifndef NOMINUM_PUBLIC
+/*
+ * Note: the only reason this is protected is to avoid a compiler warning
+ * about an unused static function.  The protection can be removed if
+ * this is needed elsewhere.
+ */
+static void
+zone_deletefile(dns_zone_t *zone) {
+	const char me[] = "zone_deletefile";
+	isc_result_t result;
+	/* caller to lock */
+	if (zone->dbname == NULL)
+		return;
+	result = isc_file_remove(zone->dbname);
+	if (result != ISC_R_SUCCESS) {
+		zone_log(zone, me, ISC_LOG_WARNING,
+			 "failed to delete '%s': %s",
+			 zone->dbname, dns_result_totext(result));
+	}
+	if (zone->journal != NULL)
+		(void)isc_file_remove(zone->journal);
+
+}
+#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
@@ -3964,6 +3992,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 		break;
 
+#ifndef NOMINUM_PUBLIC
+	case DNS_R_ZONETOOLARGE:
+		zone_log(zone, me, ISC_LOG_WARNING,
+			 "transfer aborted, zone unloaded",
+			 dns_result_totext(result));
+		zone_unload(zone);
+		zone_deletefile(zone);
+		break;
+
+#endif /* NOMINUM_PUBLIC */
 	default:
 		zone->curmaster++;
 		if (zone->curmaster >= zone->masterscnt)
