@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.137 
+# From configure.in Revision: 1.139 
 
 
 
@@ -2336,7 +2336,7 @@ else
 			MKDEPCFLAGS="-xM"
 			;;
 		*-hp-hpux*)
-			CC="$CC -Ae -z +w1"
+			CC="$CC -Ae -z +w1 -Wl,+vnocompatwarnings"
 			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
                 *-sgi-irix*)
@@ -4068,6 +4068,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
 	bin/tests/sockaddr/Makefile
+	bin/tests/system/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
@@ -4292,6 +4293,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/dst/Makefile
 	bin/tests/mem/Makefile
 	bin/tests/sockaddr/Makefile
+	bin/tests/system/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 "}

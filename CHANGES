@@ -1,3 +1,7 @@
+ 204.   [cleanup]       On HP/UX, Pass +vnocompatwarnings to the linker
+                        to quiet the warnings that "The linked output may not
+                        run on a PA 1.x system."
+
  203.   [func]		notify and zone soa queries are now tsig signed when
 			appropriate.
 
@@ -39,7 +43,7 @@
 			Manual is no longer included in the ISC BIND9
 			distribution.
 
- 193.	[func]		changed dst_key_free() prototype
+ 193.	[func]		changed dst_key_free() prototype.
 
  192.	[bug]		Zone configuration validation is now done at end 
 			of config file parsing, and before loading
