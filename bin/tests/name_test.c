@@ -105,12 +105,12 @@ main(int argc, char *argv[]) {
 	else
 		origin = dns_rootname;
 
-	if (argc > 1) {
-		if (strcasecmp("none", argv[1]) == 0)
+	if (argc >= 1) {
+		if (strcasecmp("none", argv[0]) == 0)
 			comp = NULL;
 		else {
-			len = strlen(argv[1]);
-			isc_buffer_init(&source, argv[1], len,
+			len = strlen(argv[0]);
+			isc_buffer_init(&source, argv[0], len,
 					ISC_BUFFERTYPE_TEXT);
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&compname);
@@ -253,6 +253,8 @@ main(int argc, char *argv[]) {
 					       nlabels, nbits);
 				printf("\n");
 			}
+			printf("dns_name_equal() returns %s\n",
+			       dns_name_equal(name, comp) ? "TRUE" : "FALSE");
 		}
 
 		if (concatenate) {
