@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.8 2001/02/17 00:15:19 gson Exp $ */
+/* $Id: parser.c,v 1.9 2001/02/17 00:22:40 gson Exp $ */
 
 #include <config.h>
 
@@ -368,51 +368,49 @@ cfg_rep_t cfg_rep_void = { "void", free_noop };
  * Forward declarations of configuration type definitions.
  */
 
-extern cfg_type_t cfg_type_boolean;
-extern cfg_type_t cfg_type_uint32;
-extern cfg_type_t cfg_type_qstring;
-extern cfg_type_t cfg_type_astring;
-extern cfg_type_t cfg_type_ustring;
-extern cfg_type_t cfg_type_string;
-extern cfg_type_t cfg_type_optional_port;
-extern cfg_type_t cfg_type_bracketed_aml;
-extern cfg_type_t cfg_type_acl;
-extern cfg_type_t cfg_type_portiplist;
-extern cfg_type_t cfg_type_bracketed_sockaddrlist;
-extern cfg_type_t cfg_type_sockaddr;
-extern cfg_type_t cfg_type_keyref;
-extern cfg_type_t cfg_type_optional_keyref;
-extern cfg_type_t cfg_type_options;
-extern cfg_type_t cfg_type_view;
-extern cfg_type_t cfg_type_viewopts;
-extern cfg_type_t cfg_type_key;
-extern cfg_type_t cfg_type_server;
-extern cfg_type_t cfg_type_controls_elt;
-extern cfg_type_t cfg_type_controls;
-extern cfg_type_t cfg_type_bracketed_sockaddrkeylist;
-extern cfg_type_t cfg_type_querysource4;
-extern cfg_type_t cfg_type_querysource6;
-extern cfg_type_t cfg_type_querysource;
-extern cfg_type_t cfg_type_sockaddr4wild;
-extern cfg_type_t cfg_type_sockaddr6wild;
-extern cfg_type_t cfg_type_sockaddr;
-extern cfg_type_t cfg_type_netprefix;
-extern cfg_type_t cfg_type_zone;
-extern cfg_type_t cfg_type_zoneopts;
-extern cfg_type_t cfg_type_logging;
-extern cfg_type_t cfg_type_optional_facility;
-extern cfg_type_t cfg_type_void;
-extern cfg_type_t cfg_type_optional_class;
-extern cfg_type_t cfg_type_destinationlist;
-extern cfg_type_t cfg_type_size;
-extern cfg_type_t cfg_type_negated;
-extern cfg_type_t cfg_type_addrmatchelt;
-extern cfg_type_t cfg_type_unsupported;
-extern cfg_type_t cfg_type_token;
-extern cfg_type_t cfg_type_server_key_kludge;
-extern cfg_type_t cfg_type_optional_facility;
-extern cfg_type_t cfg_type_logseverity;
-extern cfg_type_t cfg_type_lwres;
+static cfg_type_t cfg_type_boolean;
+static cfg_type_t cfg_type_uint32;
+static cfg_type_t cfg_type_qstring;
+static cfg_type_t cfg_type_astring;
+static cfg_type_t cfg_type_ustring;
+static cfg_type_t cfg_type_optional_port;
+static cfg_type_t cfg_type_bracketed_aml;
+static cfg_type_t cfg_type_acl;
+static cfg_type_t cfg_type_portiplist;
+static cfg_type_t cfg_type_bracketed_sockaddrlist;
+static cfg_type_t cfg_type_sockaddr;
+static cfg_type_t cfg_type_optional_keyref;
+static cfg_type_t cfg_type_options;
+static cfg_type_t cfg_type_view;
+static cfg_type_t cfg_type_viewopts;
+static cfg_type_t cfg_type_key;
+static cfg_type_t cfg_type_server;
+static cfg_type_t cfg_type_controls_elt;
+static cfg_type_t cfg_type_controls;
+static cfg_type_t cfg_type_bracketed_sockaddrkeylist;
+static cfg_type_t cfg_type_querysource4;
+static cfg_type_t cfg_type_querysource6;
+static cfg_type_t cfg_type_querysource;
+static cfg_type_t cfg_type_sockaddr4wild;
+static cfg_type_t cfg_type_sockaddr6wild;
+static cfg_type_t cfg_type_sockaddr;
+static cfg_type_t cfg_type_netprefix;
+static cfg_type_t cfg_type_zone;
+static cfg_type_t cfg_type_zoneopts;
+static cfg_type_t cfg_type_logging;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_void;
+static cfg_type_t cfg_type_optional_class;
+static cfg_type_t cfg_type_destinationlist;
+static cfg_type_t cfg_type_size;
+static cfg_type_t cfg_type_negated;
+static cfg_type_t cfg_type_addrmatchelt;
+static cfg_type_t cfg_type_unsupported;
+static cfg_type_t cfg_type_token;
+static cfg_type_t cfg_type_server_key_kludge;
+static cfg_type_t cfg_type_optional_facility;
+static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_lwres;
 
 
 /*
