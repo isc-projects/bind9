@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.20 2001/07/17 20:29:26 gson Exp $ */
+/* $Id: file.c,v 1.21 2001/08/30 04:31:30 mayer Exp $ */
 
 #include <config.h>
 
@@ -220,33 +220,34 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 
 isc_result_t
 isc_file_settime(const char *file, isc_time_t *time) {
-	struct utimbuf timem;
+	int fh;
 
 	REQUIRE(file != NULL && time != NULL);
 
-	/*
-	 * tv_sec is at least a 32 bit quantity on all platforms we're
-	 * dealing with, but it is signed on most (all?) of them,
-	 * so we need to make sure the high bit isn't set.  This unfortunately
-	 * loses when either:
-	 *   * tv_sec becomes a signed 64 bit integer but long is 32 bits
-	 *	and isc_time_seconds > LONG_MAX, or
-	 *   * isc_time_seconds is changed to be > 32 bits but long is 32 bits
-	 *      and isc_time_seconds has at least 33 significant bits.
-	 */
-	timem.actime = timem.modtime = (long)isc_time_seconds(time);
+//	updtime.absolute.dwLowDateTime = time->absolute.dwLowDateTime;
+//	updtime.absolute.dwHighDateTime = time->absolute.dwHighDateTime;
 
-	/*
-	 * Here is the real check for the high bit being set.
-	 */
-	if ((timem.actime &
-	     (1UL << (sizeof(timem.actime) * CHAR_BIT - 1))) != 0)
-		return (ISC_R_RANGE);
-
-	if (utime(file, &timem) < 0)
+	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
-	return (ISC_R_SUCCESS);
+        /* set the date via the filedate system call and return. failing
+         * this call implies the new file times are not supported by the
+         * underlying file system.
+         */
+
+       if (!SetFileTime((HANDLE) _get_osfhandle(fh),
+                                NULL,
+                                &time->absolute,
+                                &time->absolute
+                               ))
+        {
+		close(fh);
+                errno = EINVAL;
+                return (isc__errno2result(errno));
+        }
+
+	close(fh);
+        return (ISC_R_SUCCESS);
 
 }
 

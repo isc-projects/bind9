@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24 2001/08/29 05:13:42 mayer Exp $ */
+/* $Id: time.c,v 1.25 2001/08/30 04:31:31 mayer Exp $ */
 
 /*
  * Windows has a different epoch than Unix. Therefore this code sets the epoch
@@ -108,8 +108,10 @@ isc_time_set(isc_time_t *t, unsigned int seconds, unsigned int nanoseconds) {
 	i.QuadPart = (LONGLONG)seconds * INTERVALS_PER_S
 		+ nanoseconds / NS_INTERVAL;
 
-	t->absolute.dwLowDateTime = i.LowPart;
-	t->absolute.dwHighDateTime = i.HighPart;
+	t->absolute.dwLowDateTime = i.LowPart
+				  + epoch.absolute.dwLowDateTime;
+	t->absolute.dwHighDateTime = i.HighPart
+				   + epoch.absolute.dwHighDateTime;
 
 }
 
