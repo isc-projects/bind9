@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.97 2000/12/07 20:13:29 bwelling Exp $
+ * $Id: tsig.c,v 1.98 2000/12/08 03:10:32 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -25,6 +25,7 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
