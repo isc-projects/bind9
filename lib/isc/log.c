@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.38.2.1 2000/08/22 01:45:24 bwelling Exp $ */
+/* $Id: log.c,v 1.38.2.2 2000/08/25 01:13:33 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1264,10 +1264,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 	time_string[0]  = '\0';
 	level_string[0] = '\0';
-	lctx->buffer[0] = '\0';
 
 	LOCK(&lctx->lock);
 
+	lctx->buffer[0] = '\0';
+	
 	lcfg = lctx->logconfig;
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
