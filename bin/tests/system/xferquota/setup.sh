@@ -16,8 +16,7 @@
 # SOFTWARE.
 
 #
-# Set up test data for zone transfer quota tests
+# Set up test data for zone transfer quota tests.
 #
-
 perl setup.pl
 
