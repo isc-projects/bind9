@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.359 $)
+AC_REVISION($Revision: 1.360 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -371,20 +371,28 @@ case "$use_openssl" in
 [OpenSSL was not found in any of $openssldirs; use --with-openssl=/path])
 			elif test "$use_openssl" = "auto"
 			then
+				DST_OPENSSL_INC=""
+				USE_OPENSSL=""
 				AC_MSG_RESULT(not found)
 				break
 			fi
 		fi
 		USE_OPENSSL='-DOPENSSL'
-		DST_OPENSSL_INC="-I$use_openssl/include"
-		case $host in
-		*-solaris*)
-			DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
-			;;
-		*)
-			DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
-			;;
-		esac
+		if test "$use_openssl" = "/usr"
+		then
+			DST_OPENSSL_INC=""
+			DNS_OPENSSL_LIBS="-lcrypto"
+		else
+			DST_OPENSSL_INC="-I$use_openssl/include"
+			case $host in
+			*-solaris*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				;;
+			*)
+				DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				;;
+			esac
+		fi
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
 
 		saved_cflags="$CFLAGS"
