@@ -1,3 +1,7 @@
+  99.   [cleanup]	Rate limiter now has separate shutdown() and
+			destroy() functions, and it guarantees that all 
+			queued events are delivered even in the shutdown case.
+
   98.   [cleanup]       <isc/print.h> does not need <stdarg.h> or <stddef.h>
                         unless ISC_PLATFORM_NEEDVSNPRINTF is defined.
 

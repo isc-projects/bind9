@@ -43,11 +43,6 @@ ISC_LANG_BEGINDECLS
 
 typedef struct isc_ratelimiter isc_ratelimiter_t;
 
-typedef enum {
-	isc_ratelimiter_ratelimited,
-	isc_ratelimiter_worklimited
-} isc_ratelimiter_state_t;
-
 /*****
  ***** Functions.
  *****/
@@ -57,7 +52,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp);
 /*
  * Create a rate limiter.  It will execute events in the context
- * of 'task' with a guaranteed minimum interval, initially zero.
+ * of 'task'.  The execution interval is initially undefined.
  */
 
 isc_result_t
@@ -65,6 +60,9 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
 /*
  * Set the mininum interval between event executions.
  * The interval value is copied, so the caller need not preserve it.
+ *
+ * Requires:
+ *	'*interval' is a nonzero interval.
  */
 
 isc_result_t
@@ -74,14 +72,35 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp);
  * to doing an isc_task_send() to the rate limiter's task, except
  * that the execution may be delayed to achieve the desired rate
  * of execution.
+ *
+ * Requires:
+ *	An interval has been set by calling
+ *	isc_ratelimiter_setinterval().
+ */
+
+void
+isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
+/*
+ * Shut down a rate limiter.  All events that have not yet been
+ * dispatched to the task are dispatched immediately with
+ * the ISC_EVENTATTR_CANCELED bit set in ev_attributes.
+ * Further attempts to enqueue events will fail with
+ * ISC_R_SHUTTINGDOWN.
  */
 
 void
 isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp);
 /*
- * Destroy a rate limiter.  All events that have not yet been
- * dispatched to the task are freed immedately.
+ * Destroy a rate limiter.
  * Does not destroy the task or events already queued on it.
+ *
+ * Requires:
+ *	The rate limiter to have been shut down.
+ *
+ * Ensures:
+ *	Resources used by the rate limiter will be freed.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_RATELIMITER_H */
