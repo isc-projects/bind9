@@ -154,7 +154,7 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 
 	switch (sa->sa_family) {
 	case AF_INET:
-		if (ntohl(*(const u_long *)addr) >> IN_CLASSA_NSHIFT == 0)
+		if (ntohl(*(const u_int32_t *)addr) >> IN_CLASSA_NSHIFT == 0)
 			flags |= NI_NUMERICHOST;			
 		break;
 	case AF_INET6:
