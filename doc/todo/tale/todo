@@ -13,5 +13,3 @@ Clean dead nodes from rbtdb
 Other bugs assigned to "tale" in RT
 
 Generate secret for rndc automatically
-
-Document the "stderr" channel type in doc/arm/Bv9ARM-book.xml

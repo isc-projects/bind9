@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.55 2000/11/28 21:20:51 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.56 2000/11/28 23:06:32 gson Exp $ -->
 
 <book>
 
@@ -2115,8 +2115,9 @@ Usage</title>
      ( <command>file</command> <replaceable>path name</replaceable>
          [ <command>versions</command> ( <replaceable>number</replaceable> | <literal>unlimited</literal> ) ]
          [ <command>size</command> <replaceable>size spec</replaceable> ]
-       | <command>syslog</command> ( <replaceable>syslog_facility</replaceable> )
-       | <literal>null</literal> );
+       | <command>syslog</command> <replaceable>syslog_facility</replaceable>
+       | <command>stderr</command>
+       | <command>null</command> );
      [ <command>severity</command> (<option>critical</option> | <option>error</option> | <option>warning</option> | <option>notice</option> |
                  <option>info</option> | <option>debug</option> [ <replaceable>level</replaceable> ] | <option>dynamic</option> ); ]
      [ <command>print-category</command> <option>yes</option> or <option>no</option>; ]
@@ -2140,11 +2141,12 @@ to select how various classes of messages are logged.</para>
 <para>Only one <command>logging</command> statement is used to define
 as many channels and categories as are wanted. If there is no <command>logging</command> statement,
 the logging configuration will be:</para>
-      <programlisting><command>logging</command> {
+<programlisting><command>logging</command> {
      category "default" { "default_syslog"; "default_debug"; };
-	};
+};
 </programlisting>
-      <para>In <acronym>BIND</acronym> 9, the logging configuration is only established when
+
+<para>In <acronym>BIND</acronym> 9, the logging configuration is only established when
 the entire configuration file has been parsed.  In <acronym>BIND</acronym> 8, it was
 established as soon as the <command>logging</command> statement
 was parsed. When the server is starting up, all logging messages
@@ -2154,19 +2156,25 @@ was specified.</para>
       <sect3><title>The <command>channel</command> Phrase</title>
         <para>All log output goes to one or more <emphasis>channels</emphasis>;
 you can make as many of them as you want.</para>
-        <para>Every channel definition must include a clause that says whether
-messages selected for the channel go to a file, to a particular
-syslog facility, or are discarded. It can optionally also limit
-the message severity level that will be accepted by the channel
-(the default is <command>info</command>), and whether to include
-a <command>named</command>-generated time stamp, the category name
+
+<para>Every channel definition must include a destination clause that
+says whether messages selected for the channel go to a file, to a
+particular syslog facility, to the standard error stream, or are
+discarded. It can optionally also limit the message severity level
+that will be accepted by the channel (the default is
+<command>info</command>), and whether to include a
+<command>named</command>-generated time stamp, the category name
 and/or severity level (the default is not to include any).</para>
-<para>The word <command>null</command> as the destination option
-for the channel will cause all messages sent to it to be discarded;
+
+<para>The <command>null</command> destination clause 
+causes all messages sent to the channel to be discarded;
 in that case, other options for the channel are meaningless.</para>
-<para>The <command>file</command> clause can include limitations
+
+<para>The <command>file</command> destination clause directs the channel
+to a disk file.  It can include limitations
 both on how large the file is allowed to become, and how many versions
 of the file will be saved each time the file is opened.</para>
+
 <para>The <command>size</command> option for files is simply a hard
 ceiling on log growth. If the file ever exceeds the size, then <command>named</command> will
 not write anything more to it until the file is reopened; exceeding
@@ -2188,8 +2196,10 @@ is synonymous with <command>99</command> in current <acronym>BIND</acronym> rele
     print-time yes;
     print-category yes;
 };
-        </programlisting>
-<para>The argument for the <command>syslog</command> clause is a
+</programlisting>
+
+<para>The <command>syslog</command> destination clause directs the
+channel to the system log.  Its argument is a
 syslog facility as described in the <command>syslog</command> man
 page. How <command>syslog</command> will handle messages sent to
 this facility is described in the <command>syslog.conf</command> man
@@ -2210,6 +2220,12 @@ cause messages of severity <command>info</command> and <command>notice</command>
 be dropped. If the situation were reversed, with <command>named</command> writing
 messages of only <command>warning</command> or higher, then <command>syslogd</command> would
 print all messages it received from the channel.</para>
+
+<para>The <command>stderr</command> destination clause directs the
+channel to the server's standard error stream.  This is intended for
+use when the server is running as a foreground process, for example
+when debugging a configuration.</para>
+
 <para>The server can supply extensive debugging information when
 it is in debugging mode. If the server's global debug level is greater
 than zero, then debugging mode will be active. The global debug
@@ -2263,11 +2279,7 @@ channel "default_debug" {
 					// current debug level
 };
 channel "default_stderr" {		// writes to stderr
-    file "&lt;stderr&gt;";			// this is illustrative only;
-					// there's currently no way of
-					// specifying an internal file
-					// descriptor in the 
-					// configuration language.
+    stderr;
     severity info;			// only send priority info
 					// and higher
 };
@@ -2793,7 +2805,7 @@ control over their contents.
 </para><para>
 These options allow the administrator to set a minimum and maximum
 refresh and retry time either per-zone, per-view, or per-server.
-These options are valid for slave and stub zones, and clamp the SOA
+These options are valid for master, slave and stub zones, and clamp the SOA
 refresh and retry times to the specified values.
 </para>
 </entry>
