@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.2 2001/11/27 00:43:06 marka Exp $ */
+/* $Id: query.c,v 1.198.2.3 2002/01/24 03:49:01 marka Exp $ */
 
 #include <config.h>
 
@@ -246,7 +246,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.dboptions = 0;
 	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
-	client->query.authdb = NULL;
+	client->query.authdbvalid = ISC_FALSE;
 }
 
 static void
@@ -473,6 +473,7 @@ ns_query_init(ns_client_t *client) {
 	client->query.qname = NULL;
 	client->query.fetch = NULL;
 	client->query.authdb = NULL;
+	client->query.authdbvalid = ISC_FALSE;
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS)
@@ -550,25 +551,15 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		goto fail;
 
 	/*
-	 * If this is the first time we are called (that is, looking up
-	 * the actual name in the query section) remember this database.
-	 *
-	 * If authdb is non-NULL, we have been here before, and the
-	 * found database is always returned.
-	 *
 	 * This limits our searching to the zone where the first name
-	 * (the query target) is found.  This prevents following CNAMES
-	 * or DNAMES into other zones and prevents returning additional
-	 * data from other zones.
+	 * (the query target) was looked for.  This prevents following
+	 * CNAMES or DNAMES into other zones and prevents returning 
+	 * additional data from other zones.
 	 */
-	if (!client->view->additionalfromauth) {
-		if (client->query.authdb != NULL) {
-			if (db != client->query.authdb)
-				goto refuse;
-		} else {
-			dns_db_attach(db, &client->query.authdb);
-		}
-	}
+	if (!client->view->additionalfromauth &&
+	    client->query.authdbvalid &&
+	    db != client->query.authdb)
+		goto refuse;
 
 	/*
 	 * If the zone has an ACL, we'll check it, otherwise
@@ -2442,6 +2433,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 
 	if (is_zone)
 		authoritative = ISC_TRUE;
+       
+	if (event == NULL && client->query.restarts == 0) {
+		if (is_zone)
+			dns_db_attach(db, &client->query.authdb);
+		client->query.authdbvalid = ISC_TRUE;
+	}
 
  db_find:
 	CTRACE("query_find: db_find");

@@ -100,6 +100,10 @@
 
 1012.	[bug]		The -p option to named did not behave as documented.
 
+ 988.	[bug]		'additional-from-auth no;' did not work reliably
+			in the case of queries answered from the cache.
+			[RT #1436]
+
 	--- 9.2.0 released ---
 
 1134.	[bug]		Multithreaded servers could deadlock in ferror()
