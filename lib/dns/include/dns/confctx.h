@@ -125,7 +125,9 @@ struct dns_c_options
 	char		       *stats_filename;
 	char		       *memstats_filename;
 	char		       *named_xfer;
-
+	char 		       *tkeydomain;
+	char 		       *tkeydhkey;
+	
 	isc_uint32_t		flags;
 	isc_uint32_t		max_ncache_ttl;
 
@@ -292,6 +294,10 @@ isc_result_t	dns_c_ctx_setmemstatsfilename(isc_log_t *lctx,
 					      const char *newval);
 isc_result_t	dns_c_ctx_setnamedxfer(isc_log_t *lctx,
 				       dns_c_ctx_t *cfg, const char *newval);
+isc_result_t	dns_c_ctx_settkeydomain(isc_log_t *lctx,
+					dns_c_ctx_t *cfg, const char *newval);
+isc_result_t	dns_c_ctx_settkeydhkey(isc_log_t *lctx,
+				       dns_c_ctx_t *cfg, const char *newval);
 isc_result_t	dns_c_ctx_setmaxncachettl(isc_log_t *lctx,
 					  dns_c_ctx_t *cfg,
 					  isc_uint32_t newval);
@@ -455,6 +461,10 @@ isc_result_t	dns_c_ctx_getmemstatsfilename(isc_log_t *lctx,
 					      dns_c_ctx_t *cfg,
 					      char **retval);
 isc_result_t	dns_c_ctx_getnamedxfer(isc_log_t *lctx,
+				       dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_gettkeydomain(isc_log_t *lctx,
+				       dns_c_ctx_t *cfg, char **retval);
+isc_result_t	dns_c_ctx_gettkeydhkey(isc_log_t *lctx,
 				       dns_c_ctx_t *cfg, char **retval);
 isc_result_t	dns_c_ctx_getmaxncachettl(isc_log_t *lctx, dns_c_ctx_t *cfg,
 					  isc_uint32_t *retval);

@@ -84,7 +84,9 @@ struct dns_c_srv
 	dns_transfer_format_t	transfer_format;
 	int			transfers;
 	isc_boolean_t		support_ixfr;
-	dns_c_kidlist_t	      *keys;
+	dns_c_kidlist_t	       *keys;
+	char		       *tkeydomain;
+	char		       *tkeydhkey;
 
 	dns_c_setbits_t		bitflags;
 	
@@ -101,6 +103,11 @@ isc_result_t	dns_c_srvlist_new(isc_log_t *lctx, isc_mem_t *mem,
 isc_result_t	dns_c_srvlist_delete(isc_log_t *lctx, dns_c_srvlist_t **list);
 void		dns_c_srvlist_print(isc_log_t *lctx, FILE *fp, int indent,
 				    dns_c_srvlist_t *servers);
+isc_result_t	dns_c_srvlist_servbyaddr(isc_log_t *lctx,
+					 dns_c_srvlist_t *servers,
+					 isc_sockaddr_t addr,
+					 dns_c_srv_t **retval);
+
 
 isc_result_t	dns_c_srv_new(isc_log_t *lctx, isc_mem_t *mem,
 			      isc_sockaddr_t ipaddr,
@@ -129,6 +136,17 @@ isc_result_t	dns_c_srv_gettransferformat(isc_log_t *lctx,
 					    dns_transfer_format_t *retval);
 isc_result_t	dns_c_srv_get_keylist(isc_log_t *lctx, dns_c_srv_t *server,
 				      dns_c_kidlist_t **keylist);
+
+isc_result_t	dns_c_srv_settkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
+					char *newval);
+isc_result_t	dns_c_srv_gettkeydomain(isc_log_t *lctx, dns_c_srv_t *server,
+					char **retval);
+
+isc_result_t	dns_c_srv_settkeydhkey(isc_log_t *lctx, dns_c_srv_t *server,
+				       char *newval);
+isc_result_t	dns_c_srv_gettkeydhkey(isc_log_t *lctx, dns_c_srv_t *server,
+				       char **retval);
+
 
 
 
