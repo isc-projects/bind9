@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.9 2003/09/19 13:20:05 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.10 2003/09/19 13:26:35 marka Exp $ */
 
 #include <config.h>
 
@@ -1259,7 +1259,7 @@ dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name) {
 		if (view->rootexclude == NULL)
 			return (ISC_R_NOMEMORY);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
-			ISC_LIST_INIT(view->delonly[hash]);
+			ISC_LIST_INIT(view->rootexclude[hash]);
 	}
 	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
 	new = ISC_LIST_HEAD(view->rootexclude[hash]);
