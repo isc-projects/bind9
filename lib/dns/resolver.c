@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.232 2001/11/14 01:31:12 gson Exp $ */
+/* $Id: resolver.c,v 1.233 2001/11/14 22:05:05 gson Exp $ */
 
 #include <config.h>
 
@@ -241,6 +241,7 @@ struct dns_resolver {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
+	isc_mutex_t			nlock;	
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -261,6 +262,7 @@ struct dns_resolver {
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
 	dns_fetch_t *			primefetch;
+	/* Locked by nlock. */
 	unsigned int			nfctx;
 };
 
@@ -1835,9 +1837,9 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_adb_detach(&fctx->adb);
 	isc_mem_put(res->mctx, fctx, sizeof(*fctx));
 
-	LOCK(&res->lock);
+	LOCK(&res->nlock);
 	res->nfctx--;
-	UNLOCK(&res->lock);
+	UNLOCK(&res->nlock);
 
 	if (res->buckets[bucketnum].exiting &&
 	    ISC_LIST_EMPTY(res->buckets[bucketnum].fctxs))
@@ -2267,9 +2269,9 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
 
-	LOCK(&res->lock);
+	LOCK(&res->nlock);
 	res->nfctx++;
-	UNLOCK(&res->lock);
+	UNLOCK(&res->nlock);
 
 	*fctxp = fctx;
 
@@ -4550,6 +4552,7 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
+	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
 	for (i = 0; i < res->nbuckets; i++) {
 		INSIST(ISC_LIST_EMPTY(res->buckets[i].fctxs));
@@ -4685,11 +4688,18 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dispatches;
 
+	result = isc_mutex_init(&res->nlock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_lock;
+
 	res->magic = RES_MAGIC;
 
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_lock:
+	DESTROYLOCK(&res->lock);
 
  cleanup_dispatches:
 	if (res->dispatchv6 != NULL)
@@ -5240,8 +5250,8 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl) {
 unsigned int
 dns_resolver_nrunning(dns_resolver_t *resolver) {
 	unsigned int n;
-	LOCK(&resolver->lock);
+	LOCK(&resolver->nlock);
 	n = resolver->nfctx;
-	UNLOCK(&resolver->lock);
+	UNLOCK(&resolver->nlock);
 	return (n);
 }
