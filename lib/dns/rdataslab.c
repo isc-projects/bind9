@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.29.2.2.2.1 2003/08/13 06:11:08 marka Exp $ */
+/* $Id: rdataslab.c,v 1.29.2.2.2.2 2003/08/13 06:22:14 marka Exp $ */
 
 #include <config.h>
 
@@ -248,6 +248,9 @@ dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
 			 dns_rdatatype_t covers, dns_ttl_t ttl,
 			 dns_rdataset_t *rdataset)
 {
+	REQUIRE(slab != NULL);
+	REQUIRE(!dns_rdataset_isassociated(rdataset));
+
 	rdataset->methods = &rdataset_methods;
 	rdataset->rdclass = rdclass;
 	rdataset->type = rdtype;
