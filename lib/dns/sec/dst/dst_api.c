@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.21 2000/03/06 20:05:58 bwelling Exp $
+ * $Id: dst_api.c,v 1.22 2000/03/14 22:05:08 bwelling Exp $
  */
 
 #include <config.h>
@@ -951,6 +951,11 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 		goto cleanup; \
 	}
 
+#define BADTOKEN() { \
+	ret = ISC_R_UNEXPECTEDTOKEN; \
+	goto cleanup; \
+	}
+
 	/* Read the domain name */
 	NEXTTOKEN(lex, opt, &token);
 	
@@ -962,16 +967,16 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 		NEXTTOKEN(lex, opt, &token);
 	
 	if (token.type != isc_tokentype_string)
-		goto cleanup;
+		BADTOKEN();
 
 	if (strcasecmp(token.value.as_pointer, "IN") == 0)
 		NEXTTOKEN(lex, opt, &token);
 	
 	if (token.type != isc_tokentype_string)
-		goto cleanup;
+		BADTOKEN();
 
 	if (strcasecmp(token.value.as_pointer, "KEY") != 0)
-		goto cleanup;
+		BADTOKEN();
 	
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf), ISC_BUFFERTYPE_BINARY);
 	ret = dns_rdata_fromtext(&rdata, dns_rdataclass_in, dns_rdatatype_key,
