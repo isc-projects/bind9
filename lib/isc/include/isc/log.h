@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.20 2000/05/16 03:37:39 tale Exp $ */
+/* $Id: log.h,v 1.21 2000/05/25 05:07:21 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -156,8 +156,8 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
  * Ensures:
  *	*lctxp will point to a valid logging context if all of the necessary
  *	memory was allocated, or NULL otherwise.
- *	*lcfgp will point to a valid logging context if all of the necessary
- *	memory was allocated, or NULL otherwise.
+ *	*lcfgp will point to a valid logging configuration if all of the 
+ *	necessary memory was allocated, or NULL otherwise.
  *	On failure, no additional memory is allocated.
  *
  * Returns:
