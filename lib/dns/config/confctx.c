@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.39 2000/03/29 15:00:58 brister Exp $ */
+/* $Id: confctx.c,v 1.40 2000/03/29 19:46:44 brister Exp $ */
 
 #include <config.h>
 
@@ -1411,6 +1411,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEIPMLIST(topology);
 	FREEIPMLIST(sortlist);
 	
+	result = ISC_R_SUCCESS;
+
 	if (options->listens != NULL) {
 		r = dns_c_lstnlist_delete(&options->listens);
 		if (r != ISC_R_SUCCESS)
