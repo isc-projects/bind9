@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.13 2000/08/01 01:15:37 tale Exp $ */
+/* $Id: lwtest.c,v 1.14 2000/08/30 23:35:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -261,6 +261,7 @@ test_gethostbyname(const char *name, const char *address) {
 		}
 	}
 }
+
 static void
 test_gethostbyname2(const char *name, const char *address, int af) {
 	struct hostent *hp;
@@ -310,6 +311,64 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 }
 
 static void
+test_getipnodebyname(const char *name, const char *address, int af,
+		     int v4map, int all)
+{
+	struct hostent *hp;
+	unsigned char addrbuf[16];
+	int len, ret;
+	int error_num;
+	int flags = 0;
+
+	if (v4map)
+		flags |= AI_V4MAPPED;
+	if (all)
+		flags |= AI_ALL;
+
+	hp = getipnodebyname(name, af, flags, &error_num);
+	if (hp == NULL) {
+		if (address == NULL && error_num == HOST_NOT_FOUND)
+			return;
+		else if (error_num != HOST_NOT_FOUND) {
+			printf("I:getipnodebyname(%s) failed: %d\n",
+			       name, error_num);
+			fails++;
+			return;
+		} else {
+			printf("I:getipnodebyname(%s) returned not found\n",
+			       name);
+			fails++;
+			return;
+		}
+	} else {
+		if (af == AF_INET)
+			len = 4;
+		else
+			len = 16;
+		ret = inet_pton(af, address, addrbuf);
+		assert(ret == 1);
+		if (hp->h_addrtype != af) {
+			printf("I:getipnodebyname(%s) returned wrong family\n",
+			       name);
+			fails++;
+			return;
+		}
+		if (len != hp->h_length ||
+		    memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0)
+		{
+			char outbuf[16];
+			(void)inet_ntop(af, hp->h_addr_list[0],
+					outbuf, sizeof(outbuf));
+			printf("I:getipnodebyname(%s) returned %s, "
+			       "expected %s\n", name, outbuf, address);
+			fails++;
+			return;
+		}
+		freehostent(hp);
+	}
+}
+
+static void
 test_gethostbyaddr(const char *address, int af, const char *name) {
 	struct hostent *hp;
 	char addrbuf[16];
@@ -345,6 +404,47 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 			fails++;
 			return;
 		}
+	}
+}
+
+static void
+test_getipnodebyaddr(const char *address, int af, const char *name) {
+	struct hostent *hp;
+	char addrbuf[16];
+	int len, ret;
+	int error_num;
+
+	if (af == AF_INET)
+		len = 4;
+	else
+		len = 16;
+	ret = inet_pton(af, address, addrbuf);
+	assert(ret == 1);
+
+	hp = getipnodebyaddr(addrbuf, len, af, &error_num);
+
+	if (hp == NULL) {
+		if (name == NULL && error_num == HOST_NOT_FOUND)
+			return;
+		else if (error_num != HOST_NOT_FOUND) {
+			printf("I:gethostbyaddr(%s) failed: %d\n",
+			       address, error_num);
+			fails++;
+			return;
+		} else {
+			printf("I:gethostbyaddr(%s) returned not found\n",
+			       address);
+			fails++;
+			return;
+		}
+	} else {
+		if (strcmp(hp->h_name, name) != 0) {
+			printf("I:gethostbyname(%s) returned %s, "
+			       "expected %s\n", address, hp->h_name, name);
+			fails++;
+			return;
+		}
+		freehostent(hp);
 	}
 }
 
@@ -571,12 +671,32 @@ main(void) {
 			    AF_INET6);
 	test_gethostbyname2("q.example1.", NULL, AF_INET);
 
+	test_getipnodebyname("a.example1.", "10.0.1.1", AF_INET, 0, 0);
+	test_getipnodebyname("b.example1.",
+			     "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+			     AF_INET6, 0, 0);
+	test_getipnodebyname("a.example1.",
+			     "::ffff:10.0.1.1", AF_INET6, 1, 0);
+	test_getipnodebyname("a.example1.",
+			     "::ffff:10.0.1.1", AF_INET6, 1, 1);
+	test_getipnodebyname("b.example1.",
+			     "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+			     AF_INET6, 1, 1);
+	test_getipnodebyname("q.example1.", NULL, AF_INET, 0, 0);
+
 	test_gethostbyaddr("10.10.10.1", AF_INET, "ipv4.example");
 	test_gethostbyaddr("10.10.10.17", AF_INET, NULL);
 	test_gethostbyaddr("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
 			   AF_INET6, "nibble.example");
 	test_gethostbyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
 			   AF_INET6, "bitstring.example");
+
+	test_getipnodebyaddr("10.10.10.1", AF_INET, "ipv4.example");
+	test_getipnodebyaddr("10.10.10.17", AF_INET, NULL);
+	test_getipnodebyaddr("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			     AF_INET6, "nibble.example");
+	test_getipnodebyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			     AF_INET6, "bitstring.example");
 
 	test_getaddrinfo("a.example1.", AF_INET, 1, 1, "10.0.1.1");
 	test_getaddrinfo("a.example1.", AF_INET, 1, 0, "10.0.1.1");
