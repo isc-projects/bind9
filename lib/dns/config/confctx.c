@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.44 2000/04/05 15:14:23 brister Exp $ */
+/* $Id: confctx.c,v 1.45 2000/04/06 09:38:32 brister Exp $ */
 
 #include <config.h>
 
@@ -237,11 +237,12 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_int32_t		intval;
 	dns_c_ipmatchlist_t    *ipml;
 	isc_result_t 		result = ISC_R_SUCCESS;
+	isc_result_t		tmpres;
 
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "named-xfer is now obsolete");
+			      "option `named-xfer' is now obsolete");
 	}
 
 	
@@ -255,63 +256,66 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getmemstatsfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "memstatistics-file is not yet implemented.");
+			      "option `memstatistics-file' is not yet "
+			      "implemented.");
 	}
 	
 
 	if (dns_c_ctx_getauthnxdomain(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "the default for auth-nxdomain is now 'no'");
+			      "the default for `auth-nxdomain' option "
+			      "is now `no'");
 	}
 
 
 	if (dns_c_ctx_getdealloconexit(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "deallocate-on-exit is obsolete.");
+			      "option `deallocate-on-exit' is obsolete.");
 	}
 
 	
 	if (dns_c_ctx_getfakeiquery(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "fake-iquery is obsolete.");
+			      "option `fake-iquery' is obsolete.");
 	}
 
 
 	if (dns_c_ctx_getfetchglue(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "fetch-glue is not yet implemented.");
+			      "option `fetch-glue' is not yet implemented.");
 	}
 
 
 	if (dns_c_ctx_gethasoldclients(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "has-old-clients is obsolete.");
+			      "option `has-old-clients' is obsolete.");
 	}
 
 
 	if (dns_c_ctx_gethoststatistics(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "host-statistics is not yet implemented.");
+			      "option `host-statistics' is not yet "
+			      "implemented.");
 	}
 
 	
 	if (dns_c_ctx_getmultiplecnames(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "multiple-cnames is obsolete.");
+			      "option `multiple-cnames' is obsolete.");
 	}
 
 
 	if (dns_c_ctx_getuseidpool(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "use-id-pool is obsolete.");
+			      "option `use-id-pool' is obsolete.");
 	}
 
 
@@ -323,21 +327,23 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 				     &severity) != ISC_R_NOTFOUND)) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "check-names are not yet implemented.");
+			      "option `check-names' is not yet implemented.");
 	}
 	
 
 	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &intval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "max-ixfr-log-size is not yet implemented.");
+			      "option `max-ixfr-log-size' is not yet "
+			      "implemented.");
 	}
 	
 
 	if (dns_c_ctx_getstatsinterval(cfg, &intval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "statistics-interval is not yet implemented.");
+			      "option `statistics-interval' is not yet "
+			      "implemented.");
 	}
 
 	
@@ -345,14 +351,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "topology is deprecated.");
+			      "option `topology' is deprecated.");
 	}
 
 	if (dns_c_ctx_getsortlist(cfg, &ipml) != ISC_R_NOTFOUND) {
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "sortlist is not yet implemented.");
+			      "option `sortlist' is not yet implemented.");
 	}
 
 
@@ -360,7 +366,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "allow-update-forwarding is not "
+			      "option `allow-update-forwarding' is not "
 			      "yet implemented.");
 	}
 
@@ -368,11 +374,19 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getrfc2308type1(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "rfc2308-type-1 is not yet implemented.");
+			      "option `rfc2308-type-1' is not yet "
+			      "implemented.");
 	}
 
 	if (cfg->zlist != NULL)
 		result = dns_c_zonelist_checkzones(cfg->zlist);
+
+	if (cfg->views != NULL) {
+		tmpres = dns_c_viewtable_checkviews(cfg->views);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
 	
 	return (result);
 }
@@ -762,6 +776,9 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	
 	PRINT_INTEGER(tcp_clients, "tcp-clients");
 	PRINT_INTEGER(recursive_clients, "recursive-clients");
+	PRINT_INTEGER(min_roots, "min-roots");
+	PRINT_INTEGER(serial_queries, "serial-queries");
+
 	
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");	
 	PRINT_AS_SIZE_CLAUSE(stack_size, "stacksize");	
@@ -787,6 +804,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
 	PRINT_AS_BOOLEAN(request_ixfr, "request-ixfr");
 	PRINT_AS_BOOLEAN(provide_ixfr, "provide-ixfr");
+	PRINT_AS_BOOLEAN(treat_cr_as_space, "treat-cr-as-space");
 
 	if (options->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1229,6 +1247,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->lamettl = NULL;
 	opts->tcp_clients = NULL;
 	opts->recursive_clients = NULL;
+	opts->min_roots = NULL;
+	opts->serial_queries = NULL;
 	
 	opts->data_size = NULL;
 	opts->stack_size = NULL;
@@ -1253,6 +1273,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->rfc2308_type1 = NULL;
 	opts->request_ixfr = NULL;
 	opts->provide_ixfr = NULL;
+	opts->treat_cr_as_space = NULL;
 
 	opts->transfer_source = NULL;
 	opts->transfer_source_v6 = NULL;
@@ -1353,6 +1374,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(rfc2308_type1);
 	FREEFIELD(request_ixfr);
 	FREEFIELD(provide_ixfr);
+	FREEFIELD(treat_cr_as_space);
+
 	
 	FREEFIELD(transfers_in);
 	FREEFIELD(transfers_per_ns);
@@ -1369,6 +1392,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(lamettl);
 	FREEFIELD(tcp_clients);
 	FREEFIELD(recursive_clients);
+	FREEFIELD(min_roots);
+	FREEFIELD(serial_queries);
 
 
 	FREEFIELD(data_size);
@@ -1538,6 +1563,10 @@ GETBOOL(provideixfr, provide_ixfr)
 SETBOOL(provideixfr, provide_ixfr)
 UNSETBOOL(provideixfr, provide_ixfr)
 
+GETBOOL(treatcrasspace, treat_cr_as_space)
+SETBOOL(treatcrasspace, treat_cr_as_space)
+UNSETBOOL(treatcrasspace, treat_cr_as_space)
+
 
 GETUINT32(maxncachettl, max_ncache_ttl)
 SETUINT32(maxncachettl, max_ncache_ttl)
@@ -1602,6 +1631,14 @@ UNSETINT32(tcpclients, tcp_clients)
 GETINT32(recursiveclients, recursive_clients)
 SETINT32(recursiveclients, recursive_clients)
 UNSETINT32(recursiveclients, recursive_clients)
+
+GETINT32(minroots, min_roots)
+SETINT32(minroots, min_roots)
+UNSETINT32(minroots, min_roots)
+
+GETINT32(serialqueries, serial_queries)
+SETINT32(serialqueries, serial_queries)
+UNSETINT32(serialqueries, serial_queries)
 
 GETUINT32(datasize, data_size)
 SETUINT32(datasize, data_size)
