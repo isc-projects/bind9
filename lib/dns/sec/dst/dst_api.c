@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.64 2000/10/25 04:26:57 marka Exp $
+ * $Id: dst_api.c,v 1.65 2000/11/01 00:17:17 bwelling Exp $
  */
 
 #include <config.h>
@@ -861,6 +861,8 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 
 	if (strcmp(filename + strlen(filename) - 8, ".private") == 0)
 		sprintf(newfilename + strlen(filename) - 8, ".key");
+	else if (strcmp(filename + strlen(filename) - 1, ".") == 0)
+		sprintf(newfilename + strlen(filename), "key");
 	else if (strcmp(filename + strlen(filename) - 4, ".key") != 0)
 		sprintf(newfilename + strlen(filename), ".key");
 

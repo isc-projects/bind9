@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.25 2000/09/08 14:25:40 bwelling Exp $
+ * $Id: dst_parse.c,v 1.26 2000/11/01 00:17:18 bwelling Exp $
  */
 
 #include <config.h>
@@ -209,6 +209,8 @@ dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
 
 	if (strcmp(filename + strlen(filename) - 4, ".key") == 0)
 		sprintf(newfilename + strlen(filename) - 4, ".private");
+	else if (strcmp(filename + strlen(filename) - 1, ".") == 0)
+		sprintf(newfilename + strlen(filename), "private");
 	else if (strcmp(filename + strlen(filename) - 8, ".private") != 0)
 		sprintf(newfilename + strlen(filename), ".private");
 
