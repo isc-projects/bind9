@@ -646,51 +646,51 @@ SOURCE=..\zt.c
 # PROP Default_Filter "c"
 # Begin Source File
 
-SOURCE=..\sec\dst\dst_api.c
+SOURCE=..\dst_api.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\dst_lib.c
+SOURCE=..\dst_lib.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\dst_parse.c
+SOURCE=..\dst_parse.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\dst_result.c
+SOURCE=..\dst_result.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\gssapi_link.c
+SOURCE=..\gssapi_link.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\gssapictx.c
+SOURCE=..\gssapictx.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\hmac_link.c
+SOURCE=..\hmac_link.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\key.c
+SOURCE=..\key.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\openssl_link.c
+SOURCE=..\openssl_link.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\openssldh_link.c
+SOURCE=..\openssldh_link.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\openssldsa_link.c
+SOURCE=..\openssldsa_link.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\sec\dst\opensslrsa_link.c
+SOURCE=..\opensslrsa_link.c
 # End Source File
 # End Group
 # Begin Source File
