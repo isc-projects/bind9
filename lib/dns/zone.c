@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.13 1999/09/24 05:57:54 gson Exp $ */
+ /* $Id: zone.c,v 1.14 1999/10/02 02:58:31 tale Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ struct dns_zone {
 	isc_uint32_t		minimum;
 	isc_sockaddr_t *	masters;
 	unsigned int		masterscnt;
-	isc_int16_t		masterport;
+	in_port_t		masterport;
 	unsigned int		curmaster;
 	isc_sockaddr_t *	notify;
 	unsigned int		notifycnt;
@@ -174,7 +174,7 @@ static void dns_zone_logerror(dns_zone_t *zone, const char *msg, ...);
 static int message_count(dns_message_t *msg, dns_section_t section,
 			 dns_rdatatype_t type);
 static void sockaddr_fromaddr(isc_sockaddr_t *sockaddr, dns_c_addr_t *a,
-			      unsigned int port);
+			      in_port_t port);
 static void add_address_tocheck(dns_message_t *msg,
 				dns_zone_checkservers_t *checkservers,
 				dns_rdatatype_t type);
@@ -2164,8 +2164,8 @@ dns_zone_copy(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_zone_t *zone) {
 	dns_c_pubkey_t *pubkey = NULL;
 	isc_uint32_t i;
 	dns_c_addr_t addr;
+	in_port_t port;
 	isc_int32_t size;
-	isc_int32_t port;
 	isc_int32_t xfrtime;
 
 	ctx = ctx;	/* unused */
@@ -2595,14 +2595,14 @@ dns_zone_getixfrlogsize(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port) {
+dns_zone_setmasterport(dns_zone_t *zone,  in_port_t port) {
 
 	REQUIRE(VALID_ZONE(zone));
 
 	zone->masterport = port;
 }
 
-isc_uint16_t
+in_port_t
 dns_zone_getmasterport(dns_zone_t *zone) {
 
 	REQUIRE(VALID_ZONE(zone));
@@ -2715,13 +2715,13 @@ const char *dns_zone_getixfrlog(dns_zone_t *zone) {
  */
 static void
 sockaddr_fromaddr(isc_sockaddr_t *sockaddr, dns_c_addr_t *a,
-		  unsigned int port) {
+		  in_port_t port) {
 	switch (a->type.sa.sa_family) {
 	case AF_INET:
-		isc_sockaddr_fromin(sockaddr, &a->type.sin, port);
+		isc_sockaddr_fromin(sockaddr, &a->type.sin.sin_addr, port);
 		break;
 	case AF_INET6:
-		isc_sockaddr_fromin6(sockaddr, &a->type.sin6, port);
+		isc_sockaddr_fromin6(sockaddr, &a->type.sin6.sin6_addr, port);
 		break;
 	default:
 		INSIST(0);
