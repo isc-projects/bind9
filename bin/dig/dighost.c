@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.75 2000/07/11 17:49:02 mws Exp $ */
+/* $Id: dighost.c,v 1.76 2000/07/12 00:22:57 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1193,7 +1193,7 @@ send_udp(dig_lookup_t *lookup) {
 				local_timeout = UDP_TIMEOUT;
 		} else
 			local_timeout = timeout;
-		debug ("have local timeout of %d", local_timeout);
+		debug("have local timeout of %d", local_timeout);
 		isc_interval_set(&lookup->interval, local_timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,
@@ -1777,7 +1777,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					else
 						local_timeout = INT_MAX;
 				}
-				debug ("have local timeout of %d",
+				debug("have local timeout of %d",
 				       local_timeout);		
 				isc_interval_set(&query->lookup->interval,
 						 local_timeout, 0);
@@ -1956,7 +1956,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 				local_timeout = UDP_TIMEOUT;
 		} else
 			local_timeout = timeout;
-		debug ("have local timeout of %d", local_timeout);
+		debug("have local timeout of %d", local_timeout);
 		isc_interval_set(&lookup->interval, local_timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.58 2000/07/11 17:35:48 mws Exp $ */
+/* $Id: dig.c,v 1.59 2000/07/12 00:22:56 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -644,13 +644,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			timeout = atoi(&rv[0][6]);
 			if (timeout <= 0)
 				timeout = 1;
-			debug ("timeout set to %d", timeout);
+			debug("timeout set to %d", timeout);
 		} else if (strncmp(rv[0], "+timeout=", 9) == 0) {
 			/* Global option always */
 			timeout = atoi(&rv[0][9]);
 			if (timeout <= 0)
 				timeout = 1;
-			debug ("timeout set to %d", timeout);
+			debug("timeout set to %d", timeout);
 		} else if (strncmp(rv[0], "+tries=", 7) == 0) {
 			if (have_host) {
 				lookup->retries = atoi(&rv[0][7]);
@@ -1250,7 +1250,7 @@ main(int argc, char **argv) {
 	 */
 #if 0
 	if (taskmgr != NULL) {
-		debug ("Freeing taskmgr");
+		debug("Freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
         }
 	if (isc_mem_debugging)
