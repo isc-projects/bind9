@@ -31,9 +31,8 @@
 
 int
 lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b)
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
-	lwres_lwpacket_t pkt;
 	unsigned char *buf;
 	size_t buflen;
 	int ret;
@@ -53,17 +52,15 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 	}
 	lwres_buffer_init(b, buf, buflen);
 
-	pkt.length = buflen;
-	pkt.version = LWRES_LWPACKETVERSION_0;
-	pkt.flags = 0;
-	pkt.serial = req->serial;
-	pkt.opcode = LWRES_OPCODE_NOOP;
-	pkt.result = 0;
-	pkt.recvlength = maxrecv;
-	pkt.authtype = 0;
-	pkt.authlength = 0;
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags = 0;
+	pkt->opcode = LWRES_OPCODE_NOOP;
+	pkt->result = 0;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
 
-	ret = lwres_lwpacket_renderheader(b, &pkt);
+	ret = lwres_lwpacket_renderheader(b, pkt);
 	if (ret != 0) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
@@ -86,9 +83,8 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 int
 lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b)
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
 {
-	lwres_lwpacket_t pkt;
 	unsigned char *buf;
 	size_t buflen;
 	int ret;
@@ -108,17 +104,14 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 	}
 	lwres_buffer_init(b, buf, buflen);
 
-	pkt.length = buflen;
-	pkt.version = LWRES_LWPACKETVERSION_0;
-	pkt.flags = LWRES_LWPACKETFLAG_RESPONSE;
-	pkt.serial = req->serial;
-	pkt.opcode = LWRES_OPCODE_NOOP;
-	pkt.result = req->result;
-	pkt.recvlength = maxrecv;
-	pkt.authtype = 0;
-	pkt.authlength = 0;
+	pkt->length = buflen;
+	pkt->version = LWRES_LWPACKETVERSION_0;
+	pkt->flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	pkt->opcode = LWRES_OPCODE_NOOP;
+	pkt->authtype = 0;
+	pkt->authlength = 0;
 
-	ret = lwres_lwpacket_renderheader(b, &pkt);
+	ret = lwres_lwpacket_renderheader(b, pkt);
 	if (ret != 0) {
 		lwres_buffer_invalidate(b);
 		CTXFREE(buf, buflen);
@@ -141,31 +134,84 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 
 int
 lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
-			lwres_nooprequest_t **structp)
+			lwres_lwpacket_t *pkt, lwres_nooprequest_t **structp)
 {
-	lwres_lwpacket_t pkt;
 	int ret;
+	lwres_nooprequest_t *req;
 
 	REQUIRE(ctx != NULL);
-	REQUIRE(structp != NULL && *structp == NULL);
 	REQUIRE(b != NULL);
+	REQUIRE(pkt != NULL);
+	REQUIRE(structp != NULL && *structp == NULL);
 
-	/*
-	 * First, parse out the header.
-	 */
-	ret = lwres_lwpacket_parseheader(&pkt, b);
-	if (ret != 0)
-		return (ret);
+	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) != 0)
+		return (-1);
 
-	
+	req = CTXMALLOC(sizeof(lwres_nooprequest_t));
+	if (req == NULL)
+		return (-1);
+
+	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
+		ret = -1;
+		goto out;
+	}
+	req->datalength = lwres_buffer_getuint16(b);
+
+	if (!SPACE_REMAINING(b, req->datalength)) {
+		ret = -1;
+		goto out;
+	}
+	req->data = b->base + b->current;
+
+	/* success! */
+	*structp = req;
+	return (0);
+
+	/* Error return */
+ out:
+	CTXFREE(req, sizeof(lwres_nooprequest_t));
+	return (ret);
 }
 
 int
-lwres_noopresponse_parse(lwres_context_t *ctx, lwres_noopresponse_t **structp)
+lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt, lwres_noopresponse_t **structp)
 {
+	int ret;
+	lwres_noopresponse_t *req;
+
 	REQUIRE(ctx != NULL);
+	REQUIRE(b != NULL);
+	REQUIRE(pkt != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
+	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+		return (-1);
+
+	req = CTXMALLOC(sizeof(lwres_noopresponse_t));
+	if (req == NULL)
+		return (-1);
+
+	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
+		ret = -1;
+		goto out;
+	}
+	req->datalength = lwres_buffer_getuint16(b);
+
+	if (!SPACE_REMAINING(b, req->datalength)) {
+		ret = -1;
+		goto out;
+	}
+	req->data = b->base + b->current;
+
+	/* success! */
+	*structp = req;
+	return (0);
+
+	/* Error return */
+ out:
+	CTXFREE(req, sizeof(lwres_noopresponse_t));
+	return (ret);
 }
 
 void

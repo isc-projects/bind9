@@ -131,6 +131,8 @@ ISC_LANG_BEGINDECLS
  */
 #define LWRES_BUFFER_AVAILABLECOUNT(b)	((b)->length - (b)->used)
 
+#define LWRES_BUFFER_REMAINING(b)	((b)->used - (b)->current)
+
 /*
  * Note that the buffer structure is public.  This is principally so buffer
  * operations can be implemented using macros.  Applications are strongly

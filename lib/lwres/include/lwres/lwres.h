@@ -91,8 +91,6 @@
 #define LWRES_OPCODE_NOOP		0x00000000U
 
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
 	/* public */
 	isc_uint16_t		datalength;
 	unsigned char	       *data;
@@ -102,9 +100,6 @@ typedef struct {
 } lwres_nooprequest_t;
 
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
-	isc_uint32_t		result;
 	/* public */
 	isc_uint16_t		datalength;
 	unsigned char	       *data;
@@ -184,13 +179,11 @@ typedef struct {
 ISC_LANG_BEGINDECLS
 
 int
-lwres_gabnrequest_render(lwres_context_t *ctx,
-			 lwres_gabnrequest_t *req,
+lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 			 isc_uint32_t maxrecv, lwres_buffer_t *b);
 
 int
-lwres_gabnresponse_render(lwres_context_t *ctx,
-			  lwres_gabnresponse_t *req,
+lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 			  isc_uint32_t maxrecv, lwres_buffer_t *b);
 
 int
@@ -294,7 +287,7 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp);
 
 int
 lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
-			 isc_uint32_t maxrecv, lwres_buffer_t *b);
+			 lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 /*
  * Allocate space and render into wire format a noop request packet.
  *
@@ -306,6 +299,9 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
  *	buffer structure will be initialized to contain the wire-format
  *	noop request packet.
  *
+ *	Caller needs to fill in parts of "pkt" before calling:
+ *		serial, maxrecv, result.
+ *
  * Returns:
  *
  *	Returns 0 on success, non-zero on failure.
@@ -316,14 +312,23 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 
 int
 lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
-			  isc_uint32_t maxrecv, lwres_buffer_t *b);
+			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
 lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
-			lwres_nooprequest_t **structp);
+			lwres_lwpacket_t *pkt, lwres_nooprequest_t **structp);
+/*
+ * Parse a noop request.  Note that to get here, the lwpacket must have
+ * already been parsed and removed by the caller, otherwise it would be
+ * pretty hard for it to know this is the right function to call.
+ *
+ * The function verifies bits of the header, but does not modify it.
+ */
 
 int
-lwres_noopresponse_parse(lwres_context_t *ctx, lwres_noopresponse_t **structp);
+lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt,
+			 lwres_noopresponse_t **structp);
 
 void
 lwres_nooprequest_free(lwres_context_t *ctx, lwres_nooprequest_t **structp);
