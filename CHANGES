@@ -1,3 +1,6 @@
+1695.	[bug]		DS records when forwarding require special handling.
+			[RT #12133]
+
 1694.	[bug]		Report if the builtin views of "_default" / "_bind"
 			are defined in named.conf. [RT #12023]
 
