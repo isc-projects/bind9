@@ -31,6 +31,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"bad dotted quad",			/*  8 */
 	"unexpected end of input",		/*  9 */
 	"not implemented",			/* 10 */
+	"unknown class/type",			/* 11 */
 };
 
 char *
