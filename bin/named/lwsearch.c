@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.3 2000/10/27 18:50:00 bwelling Exp $ */
+/* $Id: lwsearch.c,v 1.4 2000/10/28 00:09:11 bwelling Exp $ */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -129,15 +129,16 @@ ns_lwsearchctx_init(ns_lwsearchctx_t *sctx, ns_lwsearchlist_t *list,
 	sctx->relname = name;
 	sctx->searchname = NULL;
 	sctx->doneexact = ISC_FALSE;
+	sctx->exactfirst = ISC_FALSE;
+	sctx->ndots = ndots;
 	if (dns_name_isabsolute(name) || list == NULL) {
 		sctx->list = NULL;
 		return;
 	}
 	sctx->list = list;
-	if (dns_name_countlabels(name) <= ndots) {
-		sctx->doneexact = ISC_TRUE; /* skip the exact name */
-		sctx->searchname = ISC_LIST_HEAD(sctx->list->names);
-	}
+	sctx->searchname = ISC_LIST_HEAD(sctx->list->names);
+	if (dns_name_countlabels(name) > ndots)
+		sctx->exactfirst = ISC_TRUE;
 }
 
 void
@@ -150,13 +151,24 @@ isc_result_t
 ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 	REQUIRE(sctx != NULL);
 
+	if (sctx->list == NULL)
+		return (ISC_R_NOMORE);
+
 	if (sctx->searchname == NULL) {
-		if (sctx->doneexact || sctx->list == NULL)
+		INSIST (!sctx->exactfirst || sctx->doneexact);
+		if (sctx->exactfirst || sctx->doneexact)
 			return (ISC_R_NOMORE);
-		else
-			sctx->searchname = ISC_LIST_HEAD(sctx->list->names);
-	} else
-		sctx->searchname = ISC_LIST_NEXT(sctx->searchname, link);
+		sctx->doneexact = ISC_TRUE;
+	} else {
+		if (sctx->exactfirst && !sctx->doneexact)
+			sctx->doneexact = ISC_TRUE;
+		else {
+			sctx->searchname = ISC_LIST_NEXT(sctx->searchname,
+							 link);
+			if (sctx->searchname == NULL && sctx->doneexact)
+				return (ISC_R_NOMORE);
+		}
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -164,14 +176,22 @@ ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 isc_result_t
 ns_lwsearchctx_current(ns_lwsearchctx_t *sctx, dns_name_t *absname) {
 	dns_name_t *tname;
+	isc_boolean_t useexact = ISC_FALSE;
 
 	REQUIRE(sctx != NULL);
 
-	if (sctx->searchname != NULL)
+	if (sctx->list == NULL ||
+	    sctx->searchname == NULL ||
+	    (sctx->exactfirst && !sctx->doneexact))
+		useexact = ISC_TRUE;
+
+	if (useexact) {
+		if (dns_name_isabsolute(sctx->relname))
+			tname = NULL;
+		else
+			tname = dns_rootname;
+	} else
 		tname = sctx->searchname;
-	else if (dns_name_isabsolute(sctx->relname))
-		tname = NULL;
-	else
-		tname = dns_rootname;
+
 	return (dns_name_concatenate(sctx->relname, tname, absname, NULL));
 }
