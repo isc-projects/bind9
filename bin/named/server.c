@@ -962,14 +962,14 @@ load_configuration(const char *filename, ns_server_t *server,
 
 		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
 		       "creating new logging configuration");
-		CHECKM(ns_log_setdefaults(logc),
-		       "setting up default logging defaults");
 
 		(void) dns_c_ctx_getlogging(configctx, &clog);
-		if (clog != NULL) {
+		if (clog != NULL)
 			CHECKM(ns_log_configure(logc, clog),
 			       "configuring logging");
-		}
+		else
+			CHECKM(ns_log_setdefaults(logc),
+			       "setting up default logging defaults");
 
 		result = isc_logconfig_use(ns_g_lctx, logc);
 		if (result != ISC_R_SUCCESS) {
