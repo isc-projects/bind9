@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.83 2000/07/13 00:27:17 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.84 2000/07/21 23:00:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -653,7 +653,9 @@ xfrin_create(isc_mem_t *mctx,
 
 	xfr->nmsg = 0;
 
-	xfr->tsigkey = tsigkey;
+	xfr->tsigkey = NULL;
+	if (tsigkey != NULL)
+		dns_tsigkey_attach(tsigkey, &xfr->tsigkey);
 	xfr->lasttsig = NULL;
 	xfr->tsigctx = NULL;
 	xfr->sincetsig = 0;
@@ -1153,6 +1155,9 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->task != NULL)
 		isc_task_detach(&xfr->task);
+
+	if (xfr->tsigkey != NULL)
+		dns_tsigkey_detach(&xfr->tsigkey);
 
 	if (xfr->lasttsig != NULL)
 		isc_buffer_free(&xfr->lasttsig);
