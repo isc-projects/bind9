@@ -1277,6 +1277,10 @@ query_a6additional(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 	/*
 	 * Doing an A6 query causes type A and type AAAA additional section
 	 * processing for QNAME, which we handle here.
+	 *
+	 * XXXRTH  This will probably not be required in the next
+	 *         dns-lookups draft, and we'll remove it when the
+	 *	   draft comes out.
 	 */
 
 	fname = NULL;
@@ -1978,8 +1982,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
-			if (qtype == dns_rdatatype_any ||
-			    rdataset->type == qtype) {
+			if ((qtype == dns_rdatatype_any ||
+			     rdataset->type == qtype) && rdataset->type != 0) {
 				/*
 				 * XXXRTH  AD bit checking.
 				 */
