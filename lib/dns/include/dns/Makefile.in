@@ -24,10 +24,14 @@ HEADERS =	callbacks.h cert.h compress.h db.h dbiterator.h dbtable.h \
 		lib.h master.h masterdump.h message.h name.h rbt.h \
 		rcode.h rdata.h rdataclass.h rdatalist.h rdataset.h \
 		rdatasetiter.h rdataslab.h rdatatype.h result.h \
-		secalg.h tcpmsg.h time.h ttl.h types.h view.h
+		secalg.h tcpmsg.h time.h ttl.h types.h view.h \
+		confacl.h confcommon.h confctl.h confctx.h \
+		confip.h confkeys.h conflog.h conflsn.h confparser.h \
+		confrrset.h confserv.h confzone.h
+
 GENHEADERS =	enumclass.h enumtype.h rdatastruct.h
 
-SUBDIRS =
+SUBDIRS =	
 TARGETS =
 
 @BIND9_MAKE_RULES@
