@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.170 2001/10/25 21:39:48 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.171 2001/10/27 00:27:54 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -107,8 +107,21 @@ typedef struct rdatasetheader {
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
 	 */
+
 	struct rdatasetheader		*next;
+	/*
+	 * If this is the top header for an rdataset, 'next' points
+	 * to the top header for the next rdataset (i.e., the next type).
+	 * Otherwise, it points up to the header whose down pointer points
+	 * at this header.
+	 */
+	  
 	struct rdatasetheader		*down;
+	/*
+	 * Points to the header for the next older version of
+	 * this rdataset.
+	 */
+
 } rdatasetheader_t;
 
 #define RDATASET_ATTR_NONEXISTENT	0x0001
