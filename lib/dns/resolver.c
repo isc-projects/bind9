@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.188 2000/12/29 23:24:32 bwelling Exp $ */
+/* $Id: resolver.c,v 1.189 2001/01/02 17:59:13 gson Exp $ */
 
 #include <config.h>
 
@@ -914,7 +914,8 @@ resquery_send(resquery_t *query) {
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
 	 */
-	if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS) {
+	if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS &&
+	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 		FCTXTRACE("too many timeouts, disabling EDNS0");
 	}
