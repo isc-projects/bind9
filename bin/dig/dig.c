@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.6 2000/08/15 01:16:35 gson Exp $ */
+/* $Id: dig.c,v 1.51.2.7 2000/09/12 23:07:03 explorer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1011,7 +1011,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			show_usage();
 			exit(exitcode);
 		} else if (strcmp(rv[0], "-memdebug") == 0) {
-			isc_mem_debugging = 1;
+			isc_mem_debugging = ISC_TRUE;
 		} else if (strcmp(rv[0], "-debug") == 0) {
 			debugging = ISC_TRUE;
 		} else if (strncmp(rv[0], "-x", 2) == 0) {
