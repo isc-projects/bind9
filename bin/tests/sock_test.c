@@ -76,7 +76,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 
-		isc_mem_put(event->mctx, dev->region.base,
+		isc_mem_put(mctx, dev->region.base,
 			    dev->region.length);
 		isc_event_free(&event);
 
@@ -91,7 +91,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 		region = dev->region;
 		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
 			(int)region.length, (char *)region.base);
-		region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
+		region.base = isc_mem_get(mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
 		strcpy((char *)region.base, buf);  /* strcpy is safe */
 		isc_socket_send(sock, &region, task, my_send, event->arg);
@@ -126,7 +126,7 @@ my_send(isc_task_t *task, isc_event_t *event)
 		isc_task_shutdown(task);
 	}
 
-	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
+	isc_mem_put(mctx, dev->region.base, dev->region.length);
 
 	isc_event_free(&event);
 }
@@ -184,7 +184,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	 * the result.
 	 */
 	strcpy(buf, "GET /foo HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
-	region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
+	region.base = isc_mem_get(mctx, strlen(buf) + 1);
 	region.length = strlen(buf) + 1;
 	strcpy((char *)region.base, buf);  /* strcpy is safe */
 
@@ -214,7 +214,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		 */
 		isc_socket_accept(event->sender, task, my_listen, event->arg);
 
-		region.base = isc_mem_get(event->mctx, 20);
+		region.base = isc_mem_get(mctx, 20);
 		region.length = 20;
 
 		/*
