@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.141 2000/08/21 22:41:13 bwelling Exp $ */
+/* $Id: message.c,v 1.142 2000/08/22 01:10:42 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2466,7 +2466,6 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key) {
 	 */
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
-	REQUIRE(msg->buffer != NULL);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 	REQUIRE(msg->sig0key == NULL && msg->tsigkey == NULL);
 
