@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.51 2001/09/19 00:03:37 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.52 2001/09/19 00:15:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,8 @@ usage(void) {
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -a algorithm: %s\n", algs);
 	fprintf(stderr, "    -b key size, in bits:\n");
-	fprintf(stderr, "        RSA:\t\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "        RSAMD5:\t\t[512..%d]\n", MAX_RSA);
+	fprintf(stderr, "        RSASHA1:\t\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
 	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
 	fprintf(stderr, "        HMAC-MD5:\t[1..512]\n");
@@ -72,7 +73,7 @@ usage(void) {
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
-	fprintf(stderr, "    -e use large exponent (RSA only)\n");
+	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
 	fprintf(stderr, "    -g use specified generator (DH only)\n");
 	fprintf(stderr, "    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
 	       "(default: AUTHCONF)\n");
@@ -201,7 +202,7 @@ main(int argc, char **argv) {
 	if (algname == NULL)
 		fatal("no algorithm was specified");
 	if (strcasecmp(algname, "RSA") == 0)
-		alg = DNS_KEYALG_RSA;
+		alg = DNS_KEYALG_RSAMD5;
 	else if (strcasecmp(algname, "HMAC-MD5") == 0)
 		alg = DST_ALG_HMACMD5;
 	else {
@@ -232,7 +233,8 @@ main(int argc, char **argv) {
 		fatal("key size not specified (-b option)");
 
 	switch (alg) {
-	case DNS_KEYALG_RSA:
+	case DNS_KEYALG_RSAMD5:
+	case DNS_KEYALG_RSASHA1:
 		if (size != 0 && (size < 512 || size > MAX_RSA))
 			fatal("RSA key size %d out of range", size);
 		break;
@@ -250,11 +252,12 @@ main(int argc, char **argv) {
 		break;
 	}
 
-	if (alg != DNS_KEYALG_RSA && rsa_exp != 0)
-		fatal("specified RSA exponent without RSA");
+	if (!(alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_RSASHA1) &&
+	    rsa_exp != 0)
+		fatal("specified RSA exponent for a non-RSA key");
 
 	if (alg != DNS_KEYALG_DH && generator != 0)
-		fatal("specified DH generator without DH");
+		fatal("specified DH generator for a non-DH key");
 
 	if (nametype == NULL)
 		fatal("no nametype specified");
@@ -304,7 +307,8 @@ main(int argc, char **argv) {
 		      isc_result_totext(ret));
 
 	switch(alg) {
-	case DNS_KEYALG_RSA:
+	case DNS_KEYALG_RSAMD5:
+	case DNS_KEYALG_RSASHA1:
 		param = rsa_exp;
 		break;
 	case DNS_KEYALG_DH:
