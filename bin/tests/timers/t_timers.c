@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.19 2001/04/12 21:31:38 tale Exp $ */
+/* $Id: t_timers.c,v 1.20 2001/04/12 22:56:02 tale Exp $ */
 
 #include <config.h>
 
@@ -350,15 +350,15 @@ static const char *a1 =
 
 static void
 t1(void) {
-	int		result;
-	isc_time_t	expires;
-	isc_interval_t	interval;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
 #else
+	int		result;
+	isc_time_t	expires;
+	isc_interval_t	interval;
+
 	t_assert("isc_timer_create", 1, T_REQUIRED, a1);
 
 	Tx_nfails	= 0;
@@ -393,16 +393,16 @@ static const char *a2 =
 
 static void
 t2(void) {
-	int		result;
-	int		isc_result;
-	isc_time_t	expires;
-	isc_interval_t	interval;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
 #else
+	int		result;
+	int		isc_result;
+	isc_time_t	expires;
+	isc_interval_t	interval;
+
 	t_assert("isc_timer_create", 2, T_REQUIRED, a2);
 
 	Tx_nfails	= 0;
@@ -521,16 +521,16 @@ static const char *a3 =
 
 static void
 t3(void) {
-	int		result;
-	int		isc_result;
-	isc_time_t	expires;
-	isc_interval_t	interval;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
 #else
+	int		result;
+	int		isc_result;
+	isc_time_t	expires;
+	isc_interval_t	interval;
+
 	t_assert("isc_timer_create", 3, T_REQUIRED, a3);
 
 	Tx_nfails	= 0;
@@ -687,15 +687,15 @@ static const char *a4 =
 
 static void
 t4(void) {
-	int		result;
-	isc_time_t	expires;
-	isc_interval_t	interval;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	t_result(T_UNTESTED);
 	return;
 #else
+	int		result;
+	isc_time_t	expires;
+	isc_interval_t	interval;
+
 	Tx_nfails = 0;
 	Tx_nprobs = 0;
 	Tx_nevents = 3;
@@ -874,7 +874,10 @@ t5_shutdown_event(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_timers5(void) {
-
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else
 	char		*p;
 	int		result;
 	isc_mem_t	*mctx;
@@ -886,10 +889,6 @@ t_timers5(void) {
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	T5_startflag = 0;
 	T5_shutdownflag = 0;
 	T5_eventcnt = 0;

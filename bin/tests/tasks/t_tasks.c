@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.24 2001/04/12 21:31:36 tale Exp $ */
+/* $Id: t_tasks.c,v 1.25 2001/04/12 22:56:00 tale Exp $ */
 
 #include <config.h>
 
@@ -460,6 +460,10 @@ t2_callback(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks2(void) {
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else	
 	int			ntasks;
 	int			result;
 	char			*p;
@@ -467,10 +471,6 @@ t_tasks2(void) {
 	unsigned int		workers;
 	isc_result_t		isc_result;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else	
 	T2_manager = NULL;
 	T2_done = 0;
 	T2_nprobs = 0;
@@ -647,6 +647,10 @@ t3_event2(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks3(void) {
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else
 	int		cnt;
 	int		result;
 	char		*p;
@@ -659,10 +663,6 @@ t_tasks3(void) {
 	void		*sender;
 	isc_eventtype_t	event_type;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	T3_flag = 0;
 	T3_nevents = 0;
 	T3_nsdevents = 0;
@@ -874,6 +874,10 @@ t4_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks4(void) {
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -885,10 +889,6 @@ t_tasks4(void) {
 	isc_eventtype_t	event_type;
 	isc_event_t	*event;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	T4_nprobs = 0;
 	T4_nfails = 0;
 	T4_flag = 0;
@@ -1076,6 +1076,10 @@ t7_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks7(void) {
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -1089,10 +1093,6 @@ t_tasks7(void) {
 	isc_time_t	now;
 	isc_interval_t	interval;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	T7_nprobs = 0;
 	T7_nfails = 0;
 	T7_sdflag = 0;
@@ -1656,12 +1656,12 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 
 static int
 t_tasks10(void) {
-	int	result;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
 #else
+	int	result;
+
 	T10_nprobs = 0;
 	T10_nfails = 0;
 
@@ -1807,6 +1807,10 @@ t11_sde(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks11(int purgable) {
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#else
 	char		*p;
 	isc_mem_t	*mctx;
 	isc_taskmgr_t	*tmgr;
@@ -1820,10 +1824,6 @@ t_tasks11(int purgable) {
 	isc_interval_t	interval;
 	int		result;
 
-#if ! ISC_PLATFORM_USETHREADS
-	t_info("This test requires threads\n");
-	return (T_UNTESTED);
-#else
 	T11_startflag = 0;
 	T11_shutdownflag = 0;
 	T11_eventcnt = 0;
@@ -2036,12 +2036,12 @@ static const char *a13 =
 
 static int
 t_tasks13(void) {
-	int	result;
-
 #if ! ISC_PLATFORM_USETHREADS
 	t_info("This test requires threads\n");
 	return (T_UNTESTED);
 #else
+	int	result;
+
 	T13_nfails = 0;
 	T13_nprobs = 0;
 
