@@ -1,4 +1,6 @@
 
+1498.	[port]		bsdos: 5.x support.
+
 	--- 9.2.3rc1 released ---
 
 1497.	[protocol]	dig, nslookup and host now perform nibble lookups
