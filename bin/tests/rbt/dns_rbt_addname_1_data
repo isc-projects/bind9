@@ -5,5 +5,5 @@
 #
 dns_rbt.data	add	new.name	DNS_R_SUCCESS
 dns_rbt.data	add	\[x42/7].name	DNS_R_SUCCESS
-# problems here dns_rbt.data	add	\[b11011].name	DNS_R_SUCCESS
-# problems here dns_rbt.data	add	\[o033/8].name	DNS_R_SUCCESS
+dns_rbt.data	add	\[b11011].name	DNS_R_SUCCESS
+dns_rbt.data	add	\[o033/9].name	DNS_R_SUCCESS
