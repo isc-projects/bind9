@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.35 $)
+AC_REVISION($Revision: 1.36 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -675,6 +675,7 @@ case "$host" in
 	mips-sgi-irix*)
 		;;
 	*)
+		AC_CHECK_LIB(d4r, gethostbyname_r)
 		AC_CHECK_LIB(socket, socket)
 		AC_CHECK_LIB(nsl, inet_ntoa)
 		;;
