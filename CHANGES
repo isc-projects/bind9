@@ -1,3 +1,6 @@
+ 303.	[bug]		add additional sanity checks to differentiate a AXFR
+			response vs a IXFR response. (RT #157)
+
  302.	[bug]		MXNAME should be large enough to hold any legal domain
 			name in presentation format + terminating NULL.
 
