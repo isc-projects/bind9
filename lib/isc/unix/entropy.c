@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.42 2000/06/22 21:58:32 tale Exp $ */
+/* $Id: entropy.c,v 1.43 2000/06/23 02:31:10 explorer Exp $ */
 
 #include <config.h>
 
@@ -643,6 +643,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 	partial = ISC_TF((flags & ISC_ENTROPY_PARTIAL) != 0);
 	blocking = ISC_TF((flags & ISC_ENTROPY_BLOCKING) != 0);
 
+	REQUIRE(!partial || returned != NULL);
+
 	LOCK(&ent->lock);
 
 	remain = length;
@@ -674,10 +676,14 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			else
 				fillpool(ent, fillcount, blocking);
 
+			/*
+			 * Verify that we got enough entropy to do one
+			 * extraction.  If we didn't, bail.
+			 */
 			if (ent->pool.entropy < THRESHOLD_BITS) {
-				if (!blocking && !partial)
+				if (!partial)
 					goto zeroize;
-				else if (partial)
+				else
 					goto partial_output;
 			}
 		} else {
@@ -722,7 +728,6 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 	}
 
  partial_output:
-
 	memset(digest, 0, sizeof(digest));
 
 	if (returned != NULL)
@@ -1255,7 +1260,7 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 		sq->extra[ns] = sq->extra[sq->nsamples - 4 + ns];
 	}
 
-	sq->nsamples = 0;
+	sq->nsamples = 4;
 
 	return (added);
 }
