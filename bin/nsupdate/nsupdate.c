@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.48 2000/09/18 17:37:16 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.49 2000/09/18 19:16:45 mws Exp $ */
 
 #include <config.h>
 
@@ -1164,7 +1164,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		       addrbuf, isc_result_totext(eresult));
 		if (userserver != NULL)
 			fatal("Couldn't talk to specified nameserver.");
-		else if (ns_inuse++ >= lwconf->nsnext)
+		else if (++ns_inuse >= lwconf->nsnext)
 			fatal("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
