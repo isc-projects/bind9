@@ -53,6 +53,8 @@
  ***** Imports
  *****/
 
+#include <stdio.h>
+
 #include <isc/boolean.h>
 #include <isc/mem.h>
 #include <isc/lang.h>
@@ -86,6 +88,8 @@ typedef struct dns_dbmethods {
 				      dns_dbnode_t **targetp);
 	void		(*detachnode)(dns_db_t *db,
 				      dns_dbnode_t **targetp);
+	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
+				     FILE *out);
 	dns_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
@@ -417,6 +421,21 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  * Ensures:
  *
  *	*nodep is NULL.
+ */
+
+void
+dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
+/*
+ * Print a textual representation of the contents of the node to
+ * 'out'.
+ *
+ * Note: this function is intended for debugging, not general use.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	'node' is a valid node.
  */
 
 /***

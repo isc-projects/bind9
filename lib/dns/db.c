@@ -272,6 +272,19 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	ENSURE(*nodep == NULL);
 }
 
+void
+dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
+	/*
+	 * Print a textual representation of the contents of the node to
+	 * 'out'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(node != NULL);
+
+	(db->methods->printnode)(db, node, out);
+}
+
 /***
  *** Rdataset Methods
  ***/
