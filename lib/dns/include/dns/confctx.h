@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.63 2001/01/25 02:33:48 bwelling Exp $ */
+/* $Id: confctx.h,v 1.64 2001/01/30 22:02:30 gson Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -188,8 +188,6 @@ struct dns_c_options {
 	isc_sockaddr_t	       *transfer_source_v6;
 	isc_sockaddr_t	       *query_source;
 	isc_sockaddr_t	       *query_source_v6;
-
-	dns_c_addata_t	       *additional_data;
 
 	dns_c_forw_t	       *forward;
 
@@ -699,13 +697,6 @@ isc_result_t dns_c_ctx_setquerysourcev6(dns_c_ctx_t *ctx, isc_sockaddr_t
 isc_result_t dns_c_ctx_getquerysourcev6(dns_c_ctx_t *ctx,
 					isc_sockaddr_t *query_source_v6);
 isc_result_t dns_c_ctx_unsetquerysourcev6(dns_c_ctx_t *ctx);
-
-
-isc_result_t dns_c_ctx_setadditionaldata(dns_c_ctx_t *ctx,
-					 dns_c_addata_t addata);
-isc_result_t dns_c_ctx_getadditionaldata(dns_c_ctx_t *ctx,
-					 dns_c_addata_t *addata);
-isc_result_t dns_c_ctx_unsetadditionaldata(dns_c_ctx_t *ctx);
 
 
 isc_result_t dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forward);

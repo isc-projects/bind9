@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.h,v 1.32 2001/01/09 21:52:26 bwelling Exp $ */
+/* $Id: confcommon.h,v 1.33 2001/01/30 22:02:29 gson Exp $ */
 
 #ifndef DNS_CONFCOMMON_H
 #define DNS_CONFCOMMON_H 1
@@ -180,14 +180,6 @@ typedef enum {
 } dns_c_logseverity_t;
 
 
-/* Type of additional-data field */
-typedef enum {
-	dns_c_ad_minimal,
-	dns_c_ad_maximal,
-	dns_c_ad_internal
-} dns_c_addata_t;
-
-
 /* Type of the bit sets used in various structures. Macros in confpvt.h
  * depending on this being an integer type, and some structures need more
  * than 32 bits.
@@ -246,9 +238,6 @@ dns_c_nameseverity2string(dns_severity_t severity, isc_boolean_t printable);
 
 const char *
 dns_c_forward2string(dns_c_forw_t forw, isc_boolean_t printable);
-
-const char *
-dns_c_addata2string(dns_c_addata_t addata, isc_boolean_t printable);
 
 /*
  * The following dns_c_string2xxx() functions will look up the string

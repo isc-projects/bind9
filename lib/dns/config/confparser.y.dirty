@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.53 2001/01/27 02:12:13 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.54 2001/01/30 22:02:26 gson Exp $ */
 
 #include <config.h>
 
@@ -231,7 +231,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	struct confssu_s	ssu;
 	struct confrdtype_s	rdatatypelist;
 	dns_rdatatype_t		rdatatype;
-	dns_c_addata_t		addata;
 
 	isc_boolean_t		boolean;
 	dns_rdataclass_t	rrclass;
@@ -264,7 +263,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token <ip6_addr>	L_IP6ADDR
 
 %token		L_ACL
-%token		L_ADDITIONAL_DATA
 %token		L_ADDRESS
 %token		L_ALGID
 %token		L_ALLOW
@@ -447,7 +445,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_ZONE
 
 
-%type <addata>		additional_data
 %type <boolean>		grantp
 %type <boolean>		yea_or_nay
 %type <notifytype>	notify_setting
@@ -1739,19 +1736,6 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_ADDITIONAL_DATA additional_data
-	{
-		tmpres = dns_c_ctx_setadditionaldata(currcfg, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine additional-data");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set additional-data");
-			YYABORT;
-		}
-	}
 	;
 
 
@@ -2137,19 +2121,6 @@ maybe_zero_port : /* nothing */
 		$$ = $2;
 	}
 	;
-
-additional_data: L_INTERNAL
-	{
-		$$ = dns_c_ad_internal;
-	}
-	| L_MINIMAL
-	{
-		$$ = dns_c_ad_minimal;
-	}
-	| L_MAXIMAL
-	{
-		$$ = dns_c_ad_maximal;
-	};
 
 yea_or_nay: L_YES
 	{
@@ -4468,23 +4439,6 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_ADDITIONAL_DATA additional_data
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setadditionaldata(view, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine view additional-data");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view additional-data");
-			YYABORT;
-		}
-	}
 	| L_TRANSFER_FORMAT transfer_format
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -6069,7 +6023,6 @@ static struct token keyword_tokens [] = {
 	{ "!",				L_BANG },
 
 	{ "acl",			L_ACL },
-	{ "additional-data",		L_ADDITIONAL_DATA },
 	{ "address",			L_ADDRESS },
 	{ "algorithm",			L_ALGID },
 	{ "allow",			L_ALLOW },
@@ -6129,7 +6082,6 @@ static struct token keyword_tokens [] = {
 	{ "include",			L_INCLUDE },
 	{ "inet",			L_INET },
 	{ "interface-interval",		L_INTERFACE_INTERVAL },
-	{ "internal",			L_INTERNAL },
 	{ "ixfr-base",			L_FILE_IXFR },
 	{ "ixfr-tmp-file",		L_IXFR_TMP },
 	{ "key",			L_SEC_KEY },

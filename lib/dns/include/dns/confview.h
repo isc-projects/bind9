@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.51 2001/01/25 02:33:52 bwelling Exp $ */
+/* $Id: confview.h,v 1.52 2001/01/30 22:02:31 gson Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -154,7 +154,6 @@ struct dns_c_view {
 	isc_uint32_t	       *min_refresh_time;
 	isc_uint32_t	       *max_refresh_time;
 
-	dns_c_addata_t	       *additional_data;
 	dns_transfer_format_t  *transfer_format;
 
 	dns_c_kdeflist_t       *keydefs;
@@ -553,14 +552,6 @@ isc_result_t dns_c_view_getmaxrefreshtime(dns_c_view_t *view,
 isc_result_t dns_c_view_setmaxrefreshtime(dns_c_view_t *view,
 					  isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxrefreshtime(dns_c_view_t *view);
-
-
-isc_result_t dns_c_view_setadditionaldata(dns_c_view_t *view,
-					  dns_c_addata_t newval);
-isc_result_t dns_c_view_getadditionaldata(dns_c_view_t *view,
-					  dns_c_addata_t *retval);
-isc_result_t dns_c_view_unsetadditionaldata(dns_c_view_t *cfg);
-
 
 
 isc_result_t dns_c_view_settransferformat(dns_c_view_t *view,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.37 2001/01/22 03:59:11 gson Exp $ */
+/* $Id: confcommon.c,v 1.38 2001/01/30 22:02:23 gson Exp $ */
 
 #include <config.h>
 
@@ -487,31 +487,6 @@ dns_c_forward2string(dns_c_forw_t forw,
 	}
 
 	return (rval == NULL && printable ? "UNKNOWN_FORWARDING" : rval);
-}
-
-
-
-const char *
-dns_c_addata2string(dns_c_addata_t addata,
-		    isc_boolean_t printable)
-{
-	const char *rval = NULL;
-
-	switch (addata) {
-	case dns_c_ad_internal:
-		rval = "internal";
-		break;
-
-	case dns_c_ad_minimal:
-		rval = "minimal";
-		break;
-
-	case dns_c_ad_maximal:
-		rval = "maximal";
-		break;
-	}
-
-	return (rval == NULL && printable ? "UNKNOWN_ADDITIONAL_DATA" : rval);
 }
 
 

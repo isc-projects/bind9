@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.117 2001/01/25 02:33:43 bwelling Exp $ */
+/* $Id: confctx.c,v 1.118 2001/01/30 22:02:25 gson Exp $ */
 
 #include <config.h>
 
@@ -1065,13 +1065,6 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_QUERYSOURCE(query_source, "query-source");
 	PRINT_QUERYSOURCE(query_source_v6, "query-source-v6");
 
-	if (options->additional_data != NULL) {
-		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "additional-data %s;\n",
-			dns_c_addata2string(*options->additional_data,
-					    ISC_TRUE));
-	}
-
 	PRINT_CHECKNAME(dns_trans_primary);
 	PRINT_CHECKNAME(dns_trans_secondary);
 	PRINT_CHECKNAME(dns_trans_response);
@@ -1588,7 +1581,6 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->query_source = NULL;
 	opts->query_source_v6 = NULL;
 
-	opts->additional_data = NULL;
 	opts->forward = NULL;
 
 	opts->tkeydhkeycp = NULL;
@@ -1742,7 +1734,6 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(query_source);
 	FREEFIELD(query_source_v6);
 
-	FREEFIELD(additional_data);
 	FREEFIELD(forward);
 
 	FREESTRING(tkeydomain);
@@ -1888,7 +1879,6 @@ SOCKADDR_FUNCS(querysourcev6, query_source_v6)
 
 BYTYPE_FUNCS(dns_c_forw_t, forward, forward)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
-BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
 BYTYPE_FUNCS(dns_dialuptype_t, dialup, dialup)
 
 

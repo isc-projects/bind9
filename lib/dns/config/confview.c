@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.71 2001/01/25 02:33:46 bwelling Exp $ */
+/* $Id: confview.c,v 1.72 2001/01/30 22:02:27 gson Exp $ */
 
 #include <config.h>
 
@@ -581,7 +581,6 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->notify_forward = NULL;
 #endif /* NOMINUM_PUBLIC */
 
-	view->additional_data = NULL;
 	view->transfer_format = NULL;
 	view->keydefs = NULL;
 	view->peerlist = NULL;
@@ -851,12 +850,6 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
-	if (view->additional_data != NULL) {
-		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "additional-data %s;\n",
-			dns_c_addata2string(*view->additional_data, ISC_TRUE));
-	}
-
 	if (view->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "transfer-format %s;\n",
@@ -1000,7 +993,6 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
-	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
 
 	dns_c_view_unsetkeydefs(view);
@@ -1625,7 +1617,6 @@ UINT32_FUNCS(maxretrytime, max_retry_time)
 UINT32_FUNCS(minrefreshtime, min_refresh_time)
 UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
-BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
 
 #if 0

@@ -1,3 +1,7 @@
+
+ 718.	[cleanup]	"internal" is no longer a reserved word in named.conf.
+			[RT #753, #731]
+
  717.	[bug]		Certain TKEY processing failure modes could
 			reference an uninitialized variable, causing the
 			server to crash. [RT #750]
