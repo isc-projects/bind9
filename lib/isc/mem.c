@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.9 2004/03/09 06:11:48 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.10 2005/03/15 01:12:04 marka Exp $ */
 
 #include <config.h>
 
@@ -701,6 +701,15 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
+	if (isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
+		(memfree)(arg, ctx);
+		return (ISC_R_UNEXPECTED);
+	}
+
 	if (init_max_size == 0U)
 		ctx->max_size = DEF_MAX_SIZE;
 	else
@@ -756,15 +765,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->highest = NULL;
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
-	if (isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
-		goto error;
-	}
-
 #if ISC_MEM_TRACKLINES
 	ISC_LIST_INIT(ctx->debuglist);
 	ctx->debugging = isc_mem_debugging;
@@ -776,13 +776,14 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	return (ISC_R_SUCCESS);
 
   error:
-	if (ctx) {
-		if (ctx->stats)
+	if (ctx != NULL) {
+		if (ctx->stats != NULL)
 			(memfree)(arg, ctx->stats);
 #if ISC_MEM_USE_INTERNAL_MALLOC
-		if (ctx->freelists)
+		if (ctx->freelists != NULL)
 			(memfree)(arg, ctx->freelists);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
+		DESTROYLOCK(&ctx->lock);
 		(memfree)(arg, ctx);
 	}
 

@@ -1,5 +1,8 @@
-1825.	[bug]		Missing unlock on out of memory error from in
-			rbtdb.c:subtractrdataset().  [RT #13519]
+1826.	[bug]		Missing DESTROYLOCK() in isc_mem_createx() on out
+			of memory error. [RT #13537]
+
+1825.	[bug]		Missing UNLOCK() on out of memory error from in
+			rbtdb.c:subtractrdataset(). [RT #13519]
 
 1824.	[bug]		Memory leak on dns_zone_setdbtype() failure.
 			[RT #13510]
