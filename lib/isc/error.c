@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -62,6 +62,11 @@ isc_error_fatal(char *file, int line, char *format, ...) {
 	(fatal_callback)(file, line, format, args);
 	va_end(args);
 	abort();
+}
+
+void
+isc_error_runtimecheck(char *file, int line, char *expression) {
+	(fatal_callback)(file, line, "RUNTIME_CHECK(%s) failed.", expression);
 }
 
 static void

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,8 +26,12 @@ void isc_error_setunexpected(isc_errorcallback_t);
 void isc_error_setfatal(isc_errorcallback_t);
 void isc_error_unexpected(char *, int, char *, ...);
 void isc_error_fatal(char *, int, char *, ...);
+void isc_error_runtimecheck(char *, int, char *);
 
 #define UNEXPECTED_ERROR	isc_error_unexpected
 #define FATAL_ERROR		isc_error_fatal
+#define RUNTIME_CHECK(cond) \
+	((void) ((cond) || \
+		 ((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
 
 #endif /* ISC_ERROR_H */
