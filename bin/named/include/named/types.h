@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.18 2001/01/09 21:40:32 bwelling Exp $ */
+/* $Id: types.h,v 1.19 2001/05/08 03:42:34 gson Exp $ */
 
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
@@ -34,5 +34,6 @@ typedef struct ns_lwdclient		ns_lwdclient_t;
 typedef struct ns_lwdclientmgr		ns_lwdclientmgr_t;
 typedef struct ns_lwsearchlist		ns_lwsearchlist_t;
 typedef struct ns_lwsearchctx		ns_lwsearchctx_t;
+typedef struct ns_controls		ns_controls_t;
 
 #endif /* NAMED_TYPES_H */

@@ -15,14 +15,19 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.4 2001/05/07 23:34:01 gson Exp $ */
+/* $Id: control.h,v 1.5 2001/05/08 03:42:31 gson Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
 
+/*
+ * The name server command channel.
+ */
+
 #include <isccc/types.h>
 
 #include <named/aclconf.h>
+#include <named/types.h>
 
 #define NS_CONTROL_PORT			953
 
@@ -39,14 +44,35 @@
 #define NS_COMMAND_FLUSH	"flush"
 
 isc_result_t
-ns_control_init(void);
-
-isc_result_t
-ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
-		     ns_aclconfctx_t *aclconfctx);
+ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);
+/*
+ * Create an initial, empty set of command channels for 'server'.
+ */
 
 void
-ns_control_shutdown(isc_boolean_t exiting);
+ns_controls_destroy(ns_controls_t **ctrlsp);
+/*
+ * Destroy a set of command channels.
+ *
+ * Requires:
+ *	Shutdown of the channels has completed.
+ */
+
+isc_result_t
+ns_controls_configure(ns_controls_t *controls, cfg_obj_t *config,
+		      ns_aclconfctx_t *aclconfctx);
+/*
+ * Configure zero or more command channels into 'controls'
+ * as defined in the configuration parse tree 'config'.
+ * The channels will evaluate ACLs in the context of
+ * 'aclconfctx'.
+ */
+
+void
+ns_controls_shutdown(ns_controls_t *controls);
+/*
+ * Initiate shutdown of all the command channels in 'controls'.
+ */
 
 isc_result_t
 ns_control_docommand(isccc_sexpr_t *message);

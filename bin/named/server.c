@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.320 2001/05/08 00:26:24 gson Exp $ */
+/* $Id: server.c,v 1.321 2001/05/08 03:42:30 gson Exp $ */
 
 #include <config.h>
 
@@ -1863,7 +1863,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Bind the control port(s).
 	 */
-	CHECKM(ns_control_configure(ns_g_mctx, config, &aclconfctx),
+	CHECKM(ns_controls_configure(ns_g_server->controls, config,
+				     &aclconfctx),
 	       "binding control channel(s)");
 
 	/*
@@ -2160,6 +2161,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		      ISC_LOG_INFO, "shutting down%s",
 		      flush ? ": flushing changes" : "");
 
+	ns_controls_shutdown(server->controls);
+
 	cfg_obj_destroy(ns_g_parser, &ns_g_config);
 	cfg_parser_destroy(&ns_g_parser);
 
@@ -2284,6 +2287,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
 
+	server->controls = NULL;
+	CHECKFATAL(ns_controls_create(server, &server->controls),
+		   "ns_controls_create");
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }
@@ -2292,6 +2299,8 @@ void
 ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
+
+	ns_controls_destroy(&server->controls);
 
 	dns_stats_freecounters(server->mctx, &server->querystats);
 	isc_mem_free(server->mctx, server->statsfile);

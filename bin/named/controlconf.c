@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.5 2001/05/07 21:57:25 gson Exp $ */
+/* $Id: controlconf.c,v 1.6 2001/05/08 03:42:27 gson Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,6 @@
 #include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/mem.h>
-#include <isc/once.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
@@ -79,6 +78,7 @@ struct controlconnection {
 };
 
 struct controllistener {
+	ns_controls_t *			controls;
 	isc_mem_t *			mctx;
 	isc_task_t *			task;
 	isc_sockaddr_t			address;
@@ -91,17 +91,13 @@ struct controllistener {
 	ISC_LINK(controllistener_t)	link;
 };
 
-static controllistenerlist_t listeners;
-static isc_mutex_t listeners_lock;
-static isc_once_t once = ISC_ONCE_INIT;
+struct ns_controls {
+	ns_server_t			*server;
+	controllistenerlist_t 		listeners;
+};
 
 static void control_newconn(isc_task_t *task, isc_event_t *event);
 static void control_recvmessage(isc_task_t *task, isc_event_t *event);
-
-static void
-initialize_mutex(void) {
-	RUNTIME_CHECK(isc_mutex_init(&listeners_lock) == ISC_R_SUCCESS);
-}
 
 static void
 free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
@@ -494,22 +490,11 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 }
 
 void
-ns_control_shutdown(isc_boolean_t exiting) {
+ns_controls_shutdown(ns_controls_t *controls) {
 	controllistener_t *listener;
 	controllistener_t *next;
 
-	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
-
-	if (exiting) {
-		/*
-		 * When not exiting, this function is called from
-		 * ns_control_configure(), which already holds the lock.
-		 */
-		LOCK(&listeners_lock);
-	}
-
-
-	for (listener = ISC_LIST_HEAD(listeners);
+	for (listener = ISC_LIST_HEAD(controls->listeners);
 	     listener != NULL;
 	     listener = next)
 	{
@@ -518,12 +503,9 @@ ns_control_shutdown(isc_boolean_t exiting) {
 		 * call their callbacks.
 		 */
 		next = ISC_LIST_NEXT(listener, link);
-		ISC_LIST_UNLINK(listeners, listener, link);
+		ISC_LIST_UNLINK(controls->listeners, listener, link);
 		shutdown_listener(listener);
 	}
-
-	if (exiting)
-		UNLOCK(&listeners_lock);
 }
 
 static isc_result_t
@@ -670,7 +652,8 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 }
 
 static void
-update_listener(controllistener_t **listenerp, cfg_obj_t *control,
+update_listener(ns_controls_t *cp,
+		controllistener_t **listenerp, cfg_obj_t *control,
 		cfg_obj_t *config, isc_sockaddr_t *addr,
 		ns_aclconfctx_t *aclconfctx, char *socktext)
 {
@@ -681,7 +664,7 @@ update_listener(controllistener_t **listenerp, cfg_obj_t *control,
 	controlkeylist_t keys;
 	isc_result_t result;
 
-	for (listener = ISC_LIST_HEAD(listeners);
+	for (listener = ISC_LIST_HEAD(cp->listeners);
 	     listener != NULL;
 	     listener = ISC_LIST_NEXT(listener, link))
 		if (isc_sockaddr_equal(addr, &listener->address))
@@ -729,10 +712,11 @@ update_listener(controllistener_t **listenerp, cfg_obj_t *control,
 }
 
 static void
-add_listener(isc_mem_t *mctx, controllistener_t **listenerp,
+add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	     cfg_obj_t *control, cfg_obj_t *config, isc_sockaddr_t *addr,
 	     ns_aclconfctx_t *aclconfctx, char *socktext)
 {
+	isc_mem_t *mctx = cp->server->mctx;
 	controllistener_t *listener;
 	cfg_obj_t *allow;
 	cfg_obj_t *keys;
@@ -744,8 +728,9 @@ add_listener(isc_mem_t *mctx, controllistener_t **listenerp,
 		result = ISC_R_NOMEMORY;
 
 	if (result == ISC_R_SUCCESS) {
+		listener->controls = cp;
 		listener->mctx = mctx;
-		listener->task = ns_g_server->task;
+		listener->task = cp->server->task;
 		listener->address = *addr;
 		listener->sock = NULL;
 		listener->listening = ISC_FALSE;
@@ -823,8 +808,9 @@ add_listener(isc_mem_t *mctx, controllistener_t **listenerp,
 }
 
 isc_result_t
-ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
-		     ns_aclconfctx_t *aclconfctx)
+ns_controls_configure(ns_controls_t *cp,
+		      cfg_obj_t *config,
+		      ns_aclconfctx_t *aclconfctx)
 {
 	controllistener_t *listener;
 	controllistenerlist_t new_listeners;
@@ -833,8 +819,6 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 	cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
-	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
-
 	ISC_LIST_INIT(new_listeners);
 
 	/*
@@ -842,7 +826,6 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 	 */
 	(void)cfg_map_get(config, "controls", &controlslist);
 
-	LOCK(&listeners_lock);
 	/*
 	 * Run through the new control channel list, noting sockets that
 	 * are already being listened on and moving them to the new list.
@@ -930,7 +913,7 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 					      "processing control channel %s",
 					      socktext);
 
-				update_listener(&listener, control, config,
+				update_listener(cp, &listener, control, config,
 						addr, aclconfctx, socktext);
 
 				if (listener != NULL)
@@ -938,13 +921,14 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 					 * Remove the listener from the old
 					 * list, so it won't be shut down.
 					 */
-					ISC_LIST_UNLINK(listeners, listener,
+					ISC_LIST_UNLINK(cp->listeners, listener,
 							link);
 				else
 					/*
 					 * This is a new listener.
 					 */
-					add_listener(mctx, &listener, control,
+					add_listener(cp, &listener,
+						     control,
 						     config, addr, aclconfctx,
 						     socktext);
 	
@@ -967,16 +951,36 @@ ns_control_configure(isc_mem_t *mctx, cfg_obj_t *config,
 	 * configuration (if any) that do not remain in the current
 	 * configuration.
 	 */
-	ns_control_shutdown(ISC_FALSE);
+	ns_controls_shutdown(cp);
 
 	/*
 	 * Put all of the valid listeners on the listeners list.
 	 * Anything already on listeners in the process of shutting down
 	 * will be taken care of by listen_done().
 	 */
-	ISC_LIST_APPENDLIST(listeners, new_listeners, link);
-
-	UNLOCK(&listeners_lock);
+	ISC_LIST_APPENDLIST(cp->listeners, new_listeners, link);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
+	isc_mem_t *mctx = server->mctx;
+	ns_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
+	if (controls == NULL)
+		return (ISC_R_NOMEMORY);
+	controls->server = server;
+	ISC_LIST_INIT(controls->listeners);
+	*ctrlsp = controls;
+	return (ISC_R_SUCCESS);
+}
+
+void
+ns_controls_destroy(ns_controls_t **ctrlsp) {
+	ns_controls_t *controls = *ctrlsp;
+
+	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
+
+	isc_mem_put(controls->server->mctx, controls, sizeof(*controls));
+	*ctrlsp = NULL;
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.107 2001/03/29 04:23:51 gson Exp $ */
+/* $Id: main.c,v 1.108 2001/05/08 03:42:28 gson Exp $ */
 
 #include <config.h>
 
@@ -419,13 +419,6 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	if (!ns_g_lwresdonly)
-		/*
-		 * The command channel listeners need to be stopped here so
-		 * that isc_taskmgr_destroy() won't block on the server task.
-		 */
-		ns_control_shutdown(ISC_TRUE);
-
 	ns_lwresd_shutdown();
 
 	isc_entropy_detach(&ns_g_entropy);

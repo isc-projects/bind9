@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.54 2001/05/07 23:34:02 gson Exp $ */
+/* $Id: server.h,v 1.55 2001/05/08 03:42:33 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -77,6 +77,8 @@ struct ns_server {
 	isc_uint64_t *		querystats;	/* Query statistics counters */
 
 	char *			dumpfile;	/* Dump file name */
+
+	ns_controls_t *		controls;	/* Control channels */
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
