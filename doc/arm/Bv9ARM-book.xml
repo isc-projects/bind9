@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.22 2000/11/03 07:15:47 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.23 2000/11/03 17:41:51 gson Exp $ -->
 
 <book>
 
@@ -3527,14 +3527,14 @@ Statement Grammar</title>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; <optional>...</optional></optional></optional> } ; </optional>
     <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
     <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
-    <optional> maintain-ixfr-base <replaceable>true_or_false</replaceable> ; </optional>
+    <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { <replaceable>ip_addr</replaceable> ; <optional><replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional>...</optional></optional> } ; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
-    <optional> notify <replaceable>true_or_false</replaceable> ; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
