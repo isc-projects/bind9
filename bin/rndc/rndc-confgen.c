@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.13 2001/11/28 21:44:19 bwelling Exp $ */
+/* $Id: rndc-confgen.c,v 1.14 2001/11/29 23:17:21 marka Exp $ */
 
 #include <config.h>
 
@@ -115,6 +115,7 @@ write_key_file(const char *keyfile, const char *user,
 		fprintf(stderr, "fclose(%s) failed\n", keyfile);
 		return;
 	}
+	fprintf(stderr, "keyfile \"%s\" written\n", keyfile);
 }
 
 int
