@@ -82,7 +82,8 @@ int main (int argc, char **argv) {
 	isc_mem_t *mem = NULL;
 	dns_c_cbks_t callbacks;
 	isc_log_t *log = NULL;
-
+	isc_logconfig_t *logcfg = NULL;
+	
 #if 1
 	callbacks.zonecbk = NULL;
 	callbacks.zonecbkuap = NULL;
@@ -109,10 +110,10 @@ int main (int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mem) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_log_create(mem, &log) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_create(mem, &log, &logcfg) == ISC_R_SUCCESS);
+	dns_log_init(log);
 	
-	RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr", NULL, NULL)
+	RUNTIME_CHECK(isc_log_usechannel(logcfg, "default_stderr", NULL, NULL)
 		      == ISC_R_SUCCESS);
 
 	dns_lctx = log;
