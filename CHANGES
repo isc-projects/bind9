@@ -3,7 +3,7 @@
 			which sometimes happens on Linux, named would enter
 			a busy loop.  Also, unexpected socket errors were
 			not logged at a high enough logging level to be
-			useful in diagnosing this situation.
+			useful in diagnosing this situation. [RT #275]
 
  435.	[bug]		dns_zone_dump() overwrote existing zone files 
 			rather than writing to a temporary file and
