@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.221 2002/06/25 04:12:51 marka Exp $ */
+/* $Id: query.c,v 1.222 2002/07/09 02:41:36 marka Exp $ */
 
 #include <config.h>
 
@@ -2198,7 +2198,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * because those have already been replaced when the
 	 * connection was accepted (if allowed by the TCP quota).
 	 */
-	if (! client->mortal) {
+	if (! client->mortal && client->recursionquota == NULL) {
 		isc_boolean_t killoldest = ISC_FALSE;
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
