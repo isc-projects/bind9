@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.32 2002/09/10 04:45:52 marka Exp $ */
+/* $Id: config.c,v 1.33 2002/11/12 23:38:10 explorer Exp $ */
 
 #include <config.h>
 
@@ -80,6 +80,7 @@ options {\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\
+	tcp-listen-queue 3;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-gssapi-credential <none>\n\
 #	tkey-domain <none>\n\

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.208 2002/11/11 00:18:22 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.209 2002/11/12 23:38:11 explorer Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2884,6 +2884,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> recursive-clients <replaceable>number</replaceable>; </optional>
     <optional> serial-query-rate <replaceable>number</replaceable>; </optional>
     <optional> serial-queries <replaceable>number</replaceable>; </optional>
+    <optional> tcp-listen-queue <replaceable>number</replaceable>; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable>; </optional>
     <optional> transfers-in  <replaceable>number</replaceable>; </optional>
     <optional> transfers-out <replaceable>number</replaceable>; </optional>
@@ -3849,6 +3850,15 @@ prematurely so that the limit is not exceeded.  In a server with
 multiple views, the limit applies separately to the cache of each
 view.  The default is <literal>unlimited</literal>, meaning that 
 records are purged from the cache only when their TTLs expire.
+</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>tcp-listen-queue</command></term>
+<listitem><para>The listen queue depth.  The default and minimum is 3.
+If the kernel supports the accept filter "dataready" this also controls how
+many TCP connections that will be queued in kernel space waiting for
+some data before being passed to accept.  Values less than 3 will be
+silently raised.
 </para>
 </listitem></varlistentry>
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.389 2002/09/11 04:32:29 marka Exp $ */
+/* $Id: server.c,v 1.390 2002/11/12 23:38:11 explorer Exp $ */
 
 #include <config.h>
 
@@ -1786,6 +1786,16 @@ load_configuration(const char *filename, ns_server_t *server,
 		listen_port = ns_g_port;
 	else
 		CHECKM(ns_config_getport(config, &listen_port), "port");
+
+	/*
+	 * Find the listen queue depth.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "tcp-listen-queue", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_listen = cfg_obj_asuint32(obj);
+	if (ns_g_listen < 3)
+		ns_g_listen = 3;
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
