@@ -1,14 +1,15 @@
+
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 OBSOLETES: RFC 2539                                  Donald Eastlake 3rd
                                                                 Motorola
-Expires: January 2002                                          July 2001
+Expires: May 2002                                          November 2001
 
 
 
 
      Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
      ------- -- -------------- ---- -- --- ------ ---- ------ -----
-               <draft-ietf-dnsext-rfc2539bis-dhk-00.txt>
+               <draft-ietf-dnsext-rfc2539bis-dhk-01.txt>
 
                          Donald E. Eastlake 3rd
 
@@ -53,7 +54,7 @@ Status of This Document
 
 
 
-Donald Eastlake 3rd                                             [Page 1]
+D. Eastlake 3rd                                                 [Page 1]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -111,7 +112,7 @@ Acknowledgements
 
 
 
-Donald Eastlake 3rd                                             [Page 2]
+D. Eastlake 3rd                                                 [Page 2]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -169,7 +170,7 @@ Table of Contents
 
 
 
-Donald Eastlake 3rd                                             [Page 3]
+D. Eastlake 3rd                                                 [Page 3]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -177,11 +178,11 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
 1. Introduction
 
-   The Domain Name System (DNS) is the current global hierarchical
-   replicated distributed database system for Internet addressing, mail
-   proxy, and similar information. The DNS has been extended to include
-   digital signatures and cryptographic keys as described in [RFC 2535].
-   Thus the DNS can now be used for secure key distribution.
+   The Domain Name System (DNS) is the global hierarchical replicated
+   distributed database system for Internet addressing, mail proxy, and
+   similar information. The DNS has been extended to include digital
+   signatures and cryptographic keys as described in [RFC 2535].  Thus
+   the DNS can now be secured and used for key distribution.
 
 
 
@@ -189,7 +190,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
    This document describes how to store Diffie-Hellman keys in the DNS.
    Familiarity with the Diffie-Hellman key exchange algorithm is assumed
-   [Schneier].
+   [Schneier, RFC 2631].
 
 
 
@@ -227,7 +228,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    in deciding on a p and g, see [RFC 2631].
 
 
-Donald Eastlake 3rd                                             [Page 4]
+D. Eastlake 3rd                                                 [Page 4]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -285,7 +286,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
 
 
-Donald Eastlake 3rd                                             [Page 5]
+D. Eastlake 3rd                                                 [Page 5]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -343,7 +344,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
 
 
-Donald Eastlake 3rd                                             [Page 6]
+D. Eastlake 3rd                                                 [Page 6]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -394,14 +395,14 @@ Author's Address
 
 Expiration and File Name
 
-   This draft expires in January 2002.
+   This draft expires in May 2002.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-00.txt.
-
-
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-01.txt.
 
 
-Donald Eastlake 3rd                                             [Page 7]
+
+
+D. Eastlake 3rd                                                 [Page 7]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -459,7 +460,7 @@ A.2. Well-Known Group 2:  A 1024 bit prime
 
 
 
-Donald Eastlake 3rd                                             [Page 8]
+D. Eastlake 3rd                                                 [Page 8]
 
 
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
@@ -517,5 +518,5 @@ A.3. Well-Known Group 3:  A 1536 bit prime
 
 
 
-Donald Eastlake 3rd                                             [Page 9]
+D. Eastlake 3rd                                                 [Page 9]
 
