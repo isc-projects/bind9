@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.355 2001/10/26 23:04:17 gson Exp $ */
+/* $Id: server.c,v 1.356 2001/10/26 23:18:51 gson Exp $ */
 
 #include <config.h>
 
@@ -1042,7 +1042,7 @@ create_hostname_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 		result = ns_os_gethostname((char *)buf + 1, sizeof(buf) - 1);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_SUCCESS); /* Silent failure */
-		len = strlen(buf + 1);
+		len = strlen((char *)buf + 1);
 		buf[0] = len;
 	}
 
