@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.14 2000/03/18 00:34:53 tale Exp $ */
+/* $Id: object.c,v 1.15 2000/04/28 02:08:19 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
+
+#include <config.h>
 
 #include <string.h>		/* memset */
 

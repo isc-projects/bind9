@@ -15,11 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.9 2000/04/24 22:55:29 tale Exp $ */
+/* $Id: rndc.c,v 1.10 2000/04/28 02:07:58 tale Exp $ */
 
 /* 
  * Principal Author: DCL
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

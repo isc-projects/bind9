@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.3 2000/04/27 00:03:07 tale Exp $ */
+/* $Id: auth.c,v 1.4 2000/04/28 02:08:15 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -33,6 +33,9 @@
 /*
  * Subroutines for dealing with authorization.
  */
+
+#include <config.h>
+
 #include <errno.h>
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */

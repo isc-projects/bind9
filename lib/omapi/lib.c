@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
-/* $ID: $ */
+/* $Id: lib.c,v 1.9 2000/04/28 02:08:17 tale Exp $ */
+
+#include <config.h>
 
 #include <stddef.h>
 

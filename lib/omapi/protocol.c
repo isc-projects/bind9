@@ -18,6 +18,9 @@
 /*
  * Functions supporting the object management protocol.
  */
+
+#include <config.h>
+
 #include <stddef.h>		/* NULL */
 #include <stdlib.h>		/* random */
 #include <string.h>		/* memset */

@@ -15,13 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.21 2000/04/28 01:24:18 gson Exp $ */
+/* $Id: connection.c,v 1.22 2000/04/28 02:08:15 tale Exp $ */
 
 /* Principal Author: DCL */
 
 /*
  * Subroutines for dealing with connections.
  */
+
+#include <config.h>
+
 #include <errno.h>
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */

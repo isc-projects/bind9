@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/stack/stack.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -66,6 +65,9 @@
  *
  * 1.0 eay - First version 29/07/92
  */
+#include <config.h>
+#include "../rename.h"
+
 #include <stdio.h>
 #include "cryptlib.h"
 #include <openssl/stack.h>

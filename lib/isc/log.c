@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.26 2000/04/11 18:22:34 tale Exp $ */
+/* $Id: log.c,v 1.27 2000/04/28 02:08:11 tale Exp $ */
 
 /* Principal Authors: DCL */
+
+#include <config.h>
 
 #include <errno.h>
 #include <stdlib.h>

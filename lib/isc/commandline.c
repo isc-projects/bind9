@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.4 2000/04/28 01:04:40 halley Exp $ */
+/* $Id: commandline.c,v 1.5 2000/04/28 02:08:11 tale Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -62,6 +62,8 @@
  * Principal Authors: Computer Systems Research Group at UC Berkeley
  * Principal ISC caretaker: DCL
  */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <string.h>

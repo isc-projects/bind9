@@ -15,13 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.9 2000/03/14 03:46:41 tale Exp $ */
+/* $Id: handle.c,v 1.10 2000/04/28 02:08:17 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
 /*
  * Functions for maintaining handles on objects.
  */
+
+#include <config.h>
+
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */
 

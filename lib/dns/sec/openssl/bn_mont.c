@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/bn/bn_mont.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -63,6 +62,9 @@
  * http://security.ece.orst.edu/koc/papers/j37acmon.pdf and
  * sections 3.8 and 4.2 in http://security.ece.orst.edu/koc/papers/r01rsasw.pdf
  */
+
+#include <config.h>
+#include "../rename.h"
 
 #include <stdio.h>
 #include "cryptlib.h"

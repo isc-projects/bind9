@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/bn/bn_asm.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -62,8 +61,11 @@
 # define NDEBUG
 #endif
 
-#include <stdio.h>
+#include <config.h>
+#include "../rename.h"
+
 #include <assert.h>
+#include <stdio.h>
 #include "cryptlib.h"
 #include "bn_lcl.h"
 

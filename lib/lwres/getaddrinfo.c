@@ -3,9 +3,10 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.14 2000/03/10 23:11:27 explorer Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.15 2000/04/28 02:08:12 tale Exp $
  */
 
+#include <config.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/md5/md5_dgst.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -56,6 +55,9 @@
  * copied and put under another distribution licence
  * [including the GNU Public Licence.]
  */
+
+#include <config.h>
+#include "../rename.h"
 
 #include <stdio.h>
 #include "md5_locl.h"

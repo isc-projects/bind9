@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.17 2000/04/28 01:10:04 halley Exp $ */
+/* $Id: log.c,v 1.18 2000/04/28 02:08:00 tale Exp $ */
 
 /* Principal Authors: DCL */
+
+#include <config.h>
 
 #include <isc/assertions.h>
 #include <isc/log.h>

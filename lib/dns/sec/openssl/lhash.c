@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/lhash/lhash.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -95,6 +94,10 @@
  *
  * 1.0 eay - First version
  */
+
+#include <config.h>
+#include "../rename.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

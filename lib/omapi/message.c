@@ -18,6 +18,9 @@
 /*
  * Subroutines for dealing with message objects.
  */
+
+#include <config.h>
+
 #include <stddef.h>		/* NULL */
 #include <string.h>		/* memset */
 

@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/rand/md_rand.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -64,6 +63,9 @@
 #   define NDEBUG
 # endif
 #endif
+
+#include <config.h>
+#include "../rename.h"
 
 #include <assert.h>
 #include <stdio.h>

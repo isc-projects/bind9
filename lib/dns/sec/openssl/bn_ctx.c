@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/bn/bn_ctx.c */
 /* Written by Ulf Moeller for the OpenSSL project. */
 /* ====================================================================
@@ -54,6 +53,9 @@
  * Hudson (tjh@cryptsoft.com).
  *
  */
+
+#include <config.h>
+#include "../rename.h"
 
 #ifndef BN_CTX_DEBUG
 # undef NDEBUG /* avoid conflicting definitions */

@@ -50,8 +50,10 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: herror.c,v 1.2 2000/02/03 21:54:10 marka Exp $";
+static const char rcsid[] = "$Id: herror.c,v 1.3 2000/04/28 02:08:14 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <lwres/netdb.h>

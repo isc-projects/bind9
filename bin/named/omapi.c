@@ -15,11 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.11 2000/04/04 20:06:53 gson Exp $ */
+/* $Id: omapi.c,v 1.12 2000/04/28 02:07:57 tale Exp $ */
 
 /*
  * Principal Author: DCL
  */
+
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdarg.h>

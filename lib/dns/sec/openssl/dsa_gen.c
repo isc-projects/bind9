@@ -1,4 +1,3 @@
-#include "../rename.h"
 /* crypto/dsa/dsa_gen.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -71,6 +70,9 @@
 #endif 
 
 #ifndef NO_SHA
+
+#include <config.h>
+#include "../rename.h"
 
 #include <stdio.h>
 #include <time.h>
