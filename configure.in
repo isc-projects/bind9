@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.80 $)
+AC_REVISION($Revision: 1.81 $)
 
 AC_PREREQ(2.13)
 
@@ -121,6 +121,7 @@ case "$host" in
 			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
 			lib2="-lpthread -lm -lgcc -lpthread"
 			LIBS="$lib1 $lib2 $LIBS"
+			CPPFLAGS="-I$pkg/include $CPPFLAGS"
 			STD_CINCLUDES="-I$pkg/include"
 			;;
 		no+yes)
@@ -333,7 +334,7 @@ AC_SUBST(ISC_LWRES_SETHOSTENTINT)
 AC_MSG_CHECKING(for int endhostent)
 AC_TRY_COMPILE([
 #include <netdb.h>],
-[int i =endhostent(0); return(0);],
+[int i = endhostent(); return(0);],
 	[AC_MSG_RESULT(yes)
 	ISC_LWRES_ENDHOSTENTINT="#define ISC_LWRES_ENDHOSTENTINT 1"],
 	[AC_MSG_RESULT(no)
@@ -360,6 +361,16 @@ struct hostent *gethostbyaddr(const void *, int, int);],
 	[AC_MSG_RESULT(no)
 	ISC_LWRES_GETHOSTBYADDRVOID="#undef ISC_LWRES_GETHOSTBYADDRVOID"])
 AC_SUBST(ISC_LWRES_GETHOSTBYADDRVOID)
+
+AC_MSG_CHECKING(for h_errno in netdb.h)
+AC_TRY_COMPILE([
+#include <netdb.h>],
+[h_errno = 1; return(0);],
+	[AC_MSG_RESULT(yes)
+	ISC_LWRES_NEEDHERRNO="#undef ISC_LWRES_NEEDHERRNO"],
+	[AC_MSG_RESULT(no)
+	ISC_LWRES_NEEDHERRNO="#define ISC_LWRES_NEEDHERRNO 1"])
+AC_SUBST(ISC_LWRES_NEEDHERRNO)
 
 AC_CHECK_FUNC(getipnodebyname,
         [ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
