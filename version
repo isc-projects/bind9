@@ -1,7 +1,10 @@
-MAJORVER =	9
-MINORVER =	0
-PATCHVER =	0
-RELEASETYPE =	b
-RELEASEVER =	3
-
-VERSION =	${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
+# $Id: version,v 1.13 2000/04/27 23:47:49 explorer Exp $
+#
+# This file must follow /bin/sh rules.  It is imported directly via
+# configure.
+#
+MAJORVER=9
+MINORVER=0
+PATCHVER=0
+RELEASETYPE=b
+RELEASEVER=3
