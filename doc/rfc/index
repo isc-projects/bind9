@@ -65,3 +65,4 @@
 3090:	DNS Security Extension Clarification on Zone Status
 3110:	RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)
 3225:	Indicating Resolver Support of DNSSEC
+3226:	DNSSEC and IPv6 A6 aware server/resolver message size requirements
