@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.46 2000/02/25 16:35:08 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.47 2000/03/02 03:57:32 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -92,6 +92,7 @@ static void             parser_complain(isc_boolean_t is_warning,
                                         isc_boolean_t last_token,
                                         const char *format, va_list args);
 static isc_boolean_t    unit_to_uint32(char *in, isc_uint32_t *out);
+static char *		token_to_keyword(int token);
 static void             yyerror(const char *);
 
 /* returns true if (base * mult) would be too big.*/
@@ -115,7 +116,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	dns_severity_t	      severity;
 	dns_c_trans_t		transport;
 	dns_transfer_format_t	tformat;
-	dns_c_category_t	logcat;
 	
 	dns_c_ipmatchelement_t	*ime;
 	dns_c_ipmatchlist_t	*iml;
@@ -302,7 +302,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <iplist>		opt_in_addr_list
 %type <iplist>		opt_zone_forwarders_list
 
-%type <logcat>		category_name
+%type <text>		category_name
 
 %type <number>		facility_name
 %type <number>		maybe_syslog_facility
@@ -1726,8 +1726,10 @@ category_stmt: L_CATEGORY category_name {
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to add new logging category.");
+			isc_mem_free(memctx, $2);
 			YYABORT;
 		}
+		isc_mem_free(memctx, $2);
 	} L_LBRACE channel_list L_RBRACE
 	;
 
@@ -2045,25 +2047,29 @@ channel_list: channel L_EOS
 
 category_name: any_string
 	{
-		dns_c_category_t cat;
-
-		tmpres = dns_c_string2category($1, &cat);
+		tmpres = dns_c_checkcategory($1);
 		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE, "unknown category ``%s''", $1);
-			YYABORT;
+			parser_warning(ISC_FALSE,
+				       "unknown category ``%s''", $1);
 		}
 
-		isc_mem_free(memctx, $1);
-
-		$$ = cat;
+		$$ = $1;
 	}
 	| L_DEFAULT
 	{
-		$$ = dns_c_cat_default;
+		char *name = token_to_keyword(L_DEFAULT);
+
+		REQUIRE(name != NULL);
+		
+		$$ = isc_mem_strdup(memctx, name);
 	}
 	| L_NOTIFY
 	{
-		$$ = dns_c_cat_notify;
+		char *name = token_to_keyword(L_NOTIFY);
+
+		REQUIRE(name != NULL);
+		
+		$$ = isc_mem_strdup(memctx, name);
 	}
 	;
 
@@ -4111,7 +4117,7 @@ yylex(void)
 static char *
 token_to_text(int token, YYSTYPE lval) {
 	static char buffer[1024];
-	int i;
+	char *tk;
 
 	/* Yacc keeps token numbers above 128, it seems. */
 	if (token < 128) {
@@ -4155,17 +4161,12 @@ token_to_text(int token, YYSTYPE lval) {
 			strcpy (buffer, "<end of include>");
 			break;
 		default:
-			for (i = 0 ; keyword_tokens[i].token != NULL ; i++) {
-				if (keyword_tokens[i].yaccval == token)
-					break;
-			}
-
-			if (keyword_tokens[i].token == NULL) {
+			tk = token_to_keyword(token);
+			if (tk == NULL) {
 				sprintf(buffer, "UNKNOWN-TOKEN-TYPE (%d)",
 					(int)token);
 			} else {
-				strncpy(buffer, keyword_tokens[i].token,
-					sizeof buffer - 1);
+				strncpy(buffer, tk, sizeof buffer - 1);
 				buffer[sizeof buffer - 1] = '\0';
 			}
 			break;
@@ -4174,6 +4175,21 @@ token_to_text(int token, YYSTYPE lval) {
 
 	return (buffer);
 }
+
+static char *
+token_to_keyword(int token)
+{
+	int i;
+	
+	for (i = 0 ; keyword_tokens[i].token != NULL ; i++) {
+		if (keyword_tokens[i].yaccval == token) {
+			break;
+		}
+	}
+
+	return (keyword_tokens[i].token);
+}
+	
 
 
 static void
