@@ -83,8 +83,7 @@ typedef struct dns_c_cbks
 } dns_c_cbks_t;
 
 
-isc_result_t dns_c_parse_namedconf(isc_log_t *logctx,
-				   const char *filename, isc_mem_t *mem,
+isc_result_t dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 				   dns_c_ctx_t **configctx,
 				   dns_c_cbks_t *callbacks);
 

@@ -28,16 +28,13 @@
 
 
 isc_result_t
-dns_c_ctrllist_new(isc_log_t *lctx,
-		   isc_mem_t *mem, dns_c_ctrllist_t **newlist)
+dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist)
 {
 	dns_c_ctrllist_t *newl;
 	
 	REQUIRE(mem != NULL);
 	REQUIRE (newlist != NULL);
 
-	(void) lctx;
-	
 	newl = isc_mem_get(mem, sizeof *newl);
 	if (newl == NULL) {
 		/* XXXJAB logwrite */
@@ -57,8 +54,7 @@ dns_c_ctrllist_new(isc_log_t *lctx,
 		
 	
 void
-dns_c_ctrllist_print(isc_log_t *lctx,
-		     FILE *fp, int indent, dns_c_ctrllist_t *cl)
+dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl)
 {
 	dns_c_ctrl_t *ctl;
 
@@ -75,8 +71,8 @@ dns_c_ctrllist_print(isc_log_t *lctx,
 	fprintf(fp, "controls {\n");
 	ctl = ISC_LIST_HEAD(cl->elements);
 	while (ctl != NULL) {
-		dns_c_printtabs(lctx, fp, indent + 1);
-		dns_c_ctrl_print(lctx, fp, indent + 1, ctl);
+		dns_c_printtabs(fp, indent + 1);
+		dns_c_ctrl_print(fp, indent + 1, ctl);
 		ctl = ISC_LIST_NEXT(ctl, next);
 	}
 	fprintf(fp, "};\n");
@@ -85,8 +81,7 @@ dns_c_ctrllist_print(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctrllist_delete(isc_log_t *lctx,
-		      dns_c_ctrllist_t **list)
+dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 {
 	dns_c_ctrl_t	       *ctrl;
 	dns_c_ctrl_t	       *tmpctrl;
@@ -102,7 +97,7 @@ dns_c_ctrllist_delete(isc_log_t *lctx,
 	ctrl = ISC_LIST_HEAD(clist->elements);
 	while (ctrl != NULL) {
 		tmpctrl = ISC_LIST_NEXT(ctrl, next);
-		dns_c_ctrl_delete(lctx, &ctrl);
+		dns_c_ctrl_delete(&ctrl);
 		ctrl = tmpctrl;
 	}
 
@@ -115,7 +110,7 @@ dns_c_ctrllist_delete(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctrlinet_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_ctrl_t **control,
+dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   isc_sockaddr_t addr, short port,
 		   dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
 {
@@ -137,7 +132,7 @@ dns_c_ctrlinet_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->u.inet_v.port = port;
 
 	if (copy) {
-		res = dns_c_ipmatchlist_copy(lctx, mem,
+		res = dns_c_ipmatchlist_copy(mem,
 					     &ctrl->u.inet_v.matchlist, iml);
 		if (res != ISC_R_SUCCESS) {
 			isc_mem_put(mem, ctrl, sizeof *ctrl);
@@ -154,16 +149,13 @@ dns_c_ctrlinet_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_ctrl_t **control,
 
 
 isc_result_t
-dns_c_ctrlunix_new(isc_log_t *lctx,
-		   isc_mem_t *mem, dns_c_ctrl_t **control,
+dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   const char *path, int perm, uid_t uid, gid_t gid)
 {
 	dns_c_ctrl_t  *ctrl;
 	
 	REQUIRE(mem != NULL);
 	REQUIRE(control != NULL);
-
-	(void) lctx;
 
 	ctrl = isc_mem_get(mem, sizeof *ctrl);
 	if (ctrl == NULL) {
@@ -191,8 +183,7 @@ dns_c_ctrlunix_new(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctrl_delete(isc_log_t *lctx,
-		  dns_c_ctrl_t **control)
+dns_c_ctrl_delete(dns_c_ctrl_t **control)
 {
 	isc_result_t res = ISC_R_SUCCESS;
 	isc_result_t rval;
@@ -211,8 +202,7 @@ dns_c_ctrl_delete(isc_log_t *lctx,
 	switch (ctrl->control_type) {
 	case dns_c_inet_control:
 		if (ctrl->u.inet_v.matchlist != NULL)
-			res = dns_c_ipmatchlist_detach(lctx,
-						   &ctrl->u.inet_v.matchlist);
+			res = dns_c_ipmatchlist_detach(&ctrl->u.inet_v.matchlist);
 		else
 			res = ISC_R_SUCCESS;
 		break;
@@ -236,8 +226,7 @@ dns_c_ctrl_delete(isc_log_t *lctx,
 
 
 void
-dns_c_ctrl_print(isc_log_t *lctx,
-		 FILE *fp, int indent, dns_c_ctrl_t *ctl)
+dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 {
 	short port;
 	dns_c_ipmatchlist_t *iml;
@@ -251,7 +240,7 @@ dns_c_ctrl_print(isc_log_t *lctx,
 		iml = ctl->u.inet_v.matchlist;
 		
 		fprintf(fp, "inet ");
-		dns_c_print_ipaddr(lctx, fp,  &ctl->u.inet_v.addr);
+		dns_c_print_ipaddr(fp,  &ctl->u.inet_v.addr);
 		
 		if (port == 0) {
 			fprintf(fp, " port *\n");
@@ -259,9 +248,9 @@ dns_c_ctrl_print(isc_log_t *lctx,
 			fprintf(fp, " port %d\n", port);
 		}
 		
-		dns_c_printtabs(lctx, fp, indent + 1);
+		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow ");
-		dns_c_ipmatchlist_print(lctx, fp, indent + 2, iml);
+		dns_c_ipmatchlist_print(fp, indent + 2, iml);
 		fprintf(fp, ";\n");
 	} else {
 		/* The "#" means force a leading zero */

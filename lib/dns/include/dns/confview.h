@@ -158,7 +158,7 @@ struct dns_c_view
  *** Functions
  ***/
 
-isc_result_t dns_c_viewtable_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t dns_c_viewtable_new(isc_mem_t *mem,
 				 dns_c_viewtable_t **viewtable);
 
 /*
@@ -176,8 +176,7 @@ isc_result_t dns_c_viewtable_new(isc_log_t *lctx, isc_mem_t *mem,
  * 
  */
 
-isc_result_t dns_c_viewtable_delete(isc_log_t *lctx,
-				    dns_c_viewtable_t **viewtable);
+isc_result_t dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
 /*
  * Destroys the table pointed to by *VIEWTABLE and all the views in it. The
  * value of *VIEWTABLE can be NULL (which is a no-op).
@@ -192,7 +191,7 @@ isc_result_t dns_c_viewtable_delete(isc_log_t *lctx,
  */
 
 
-void dns_c_viewtable_addview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
+void dns_c_viewtable_addview(dns_c_viewtable_t *viewtable,
 			     dns_c_view_t *view);
 
 /*
@@ -205,7 +204,7 @@ void dns_c_viewtable_addview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
  *
  */
 
-void dns_c_viewtable_rmview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
+void dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable,
 			    dns_c_view_t *view);
 
 /*
@@ -218,8 +217,7 @@ void dns_c_viewtable_rmview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
  *
  */
 
-isc_result_t dns_c_viewtable_viewbyname(isc_log_t *lctx,
-					dns_c_viewtable_t *viewtable,
+isc_result_t dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
 					const char *viewname,
 					dns_c_view_t **retval);
 
@@ -236,8 +234,7 @@ isc_result_t dns_c_viewtable_viewbyname(isc_log_t *lctx,
  * 
  */
 
-isc_result_t dns_c_viewtable_rmviewbyname(isc_log_t *lctx,
-					  dns_c_viewtable_t *viewtable,
+isc_result_t dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
 					  const char *name);
 /*
  * Removes a view from a view table. The view is looked up by name.
@@ -253,8 +250,7 @@ isc_result_t dns_c_viewtable_rmviewbyname(isc_log_t *lctx,
  */
 
 
-isc_result_t dns_c_viewtable_clear(isc_log_t *lctx,
-				   dns_c_viewtable_t *viewtable);
+isc_result_t dns_c_viewtable_clear(dns_c_viewtable_t *viewtable);
 /*
  * Removes (and deletes) all the views in the viewtable.
  *
@@ -265,7 +261,7 @@ isc_result_t dns_c_viewtable_clear(isc_log_t *lctx,
  *	ISC_R_SUCCESS		-- all is well
  */
 
-void dns_c_viewtable_print(isc_log_t *lctx, FILE *fp, int indent,
+void dns_c_viewtable_print(FILE *fp, int indent,
 			   dns_c_viewtable_t *table);
 
 /*
@@ -278,7 +274,7 @@ void dns_c_viewtable_print(isc_log_t *lctx, FILE *fp, int indent,
  */
 
 
-isc_result_t dns_c_view_new(isc_log_t *lctx, isc_mem_t *mem, const char *name,
+isc_result_t dns_c_view_new(isc_mem_t *mem, const char *name,
 			    dns_c_view_t **newview);
 /*
  * Creates a new view. The view is placed in the given viewtable.
@@ -295,7 +291,7 @@ isc_result_t dns_c_view_new(isc_log_t *lctx, isc_mem_t *mem, const char *name,
  * 
  */
 
-isc_result_t dns_c_view_delete(isc_log_t *lctx, dns_c_view_t **view);
+isc_result_t dns_c_view_delete(dns_c_view_t **view);
 /*
  * Deletes the view and its contents.
  *
@@ -307,7 +303,7 @@ isc_result_t dns_c_view_delete(isc_log_t *lctx, dns_c_view_t **view);
  * 
  */
 
-isc_result_t dns_c_view_setallowquery(isc_log_t *lctx, dns_c_view_t *view,
+isc_result_t dns_c_view_setallowquery(dns_c_view_t *view,
 				      dns_c_ipmatchlist_t *ipml,
 				      isc_boolean_t deepcopy);
 /*
@@ -329,7 +325,7 @@ isc_result_t dns_c_view_setallowquery(isc_log_t *lctx, dns_c_view_t *view,
  * 
  */
 
-isc_result_t dns_c_view_getallowqueryexpanded(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t dns_c_view_getallowqueryexpanded(isc_mem_t *mem,
 					      dns_c_view_t *view,
 					      dns_c_acltable_t *acltable,
 					      dns_c_ipmatchlist_t **retval);
@@ -354,7 +350,7 @@ isc_result_t dns_c_view_getallowqueryexpanded(isc_log_t *lctx, isc_mem_t *mem,
  */
 
 
-void dns_c_view_print(isc_log_t *lctx, FILE *fp, int indent,
+void dns_c_view_print(FILE *fp, int indent,
 		      dns_c_view_t *view);
 
 /*	
@@ -367,7 +363,7 @@ void dns_c_view_print(isc_log_t *lctx, FILE *fp, int indent,
  */
 
 
-isc_result_t dns_c_view_getname(isc_log_t *lctx, dns_c_view_t *view,
+isc_result_t dns_c_view_getname(dns_c_view_t *view,
 				const char **retval);
 
 /*

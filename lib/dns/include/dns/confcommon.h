@@ -282,29 +282,21 @@ typedef void (*dns_cfg_err_handler_t)(isc_result_t code,
  * dns_c_ordering2string((dns_c_ordering_t)0xffff,ISC_TRUE) returns the
  * value "UNKNOWN_ORDERING"
  */
-const char *		dns_c_ordering2string(isc_log_t *lctx,
-					      dns_c_ordering_t ordering,
+const char *		dns_c_ordering2string(dns_c_ordering_t ordering,
 					      isc_boolean_t printable);
-const char *		dns_c_logseverity2string(isc_log_t *lctx,
-						 dns_c_logseverity_t level,
+const char *		dns_c_logseverity2string(dns_c_logseverity_t level,
 					      isc_boolean_t printable);
-const char *		dns_c_category2string(isc_log_t *lctx,
-					      dns_c_category_t cat,
+const char *		dns_c_category2string(dns_c_category_t cat,
 					      isc_boolean_t printable);
-const char *		dns_c_facility2string(isc_log_t *lctx,
-					      int facility,
+const char *		dns_c_facility2string(int facility,
 					      isc_boolean_t printable);
-const char *		dns_c_transformat2string(isc_log_t *lctx,
-						 dns_transfer_format_t tform,
+const char *		dns_c_transformat2string(dns_transfer_format_t tform,
 						isc_boolean_t printable);
-const char *		dns_c_transport2string(isc_log_t *lctx,
-					       dns_c_trans_t transport,
+const char *		dns_c_transport2string(dns_c_trans_t transport,
 					       isc_boolean_t printable);
-const char *		dns_c_nameseverity2string(isc_log_t *lctx,
-						  dns_c_severity_t severity,
+const char *		dns_c_nameseverity2string(dns_c_severity_t severity,
 						  isc_boolean_t printable);
-const char *		dns_c_forward2string(isc_log_t *lctx,
-					     dns_c_forw_t forw,
+const char *		dns_c_forward2string(dns_c_forw_t forw,
 					     isc_boolean_t printable);
 
 /*
@@ -313,42 +305,30 @@ const char *		dns_c_forward2string(isc_log_t *lctx,
  * through the second argument and ISC_R_SUCCESS is returned. If the string
  * doesn't match a valid value then ISC_R_FAILURE is returned.
  */
-isc_result_t		dns_c_string2ordering(isc_log_t *lctx,
-					      char *name,
+isc_result_t		dns_c_string2ordering(char *name,
 					      dns_c_ordering_t *ordering);
-isc_result_t		dns_c_string2logseverity(isc_log_t *lctx,
-						 const char *string,
+isc_result_t		dns_c_string2logseverity(const char *string,
 					      dns_c_logseverity_t *result);
-isc_result_t		dns_c_string2category(isc_log_t *lctx,
-					      const char *string,
+isc_result_t		dns_c_string2category(const char *string,
 					      dns_c_category_t *category);
-isc_result_t		dns_c_string2facility(isc_log_t *lctx,
-					      const char *string, int *res);
+isc_result_t		dns_c_string2facility(const char *string, int *res);
 
 
 
-int			dns_c_isanyaddr(isc_log_t *lctx,
-					isc_sockaddr_t *inaddr);
-void 			dns_c_print_ipaddr(isc_log_t *lctx,
-					   FILE *fp, isc_sockaddr_t *addr);
-isc_boolean_t		dns_c_need_quote(isc_log_t *lctx,
-					 const char *string);
+int			dns_c_isanyaddr(isc_sockaddr_t *inaddr);
+void 			dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *addr);
+isc_boolean_t		dns_c_need_quote(const char *string);
 
-void			dns_c_printtabs(isc_log_t *lctx,
-					FILE *fp, int count); 
-void			dns_c_printinunits(isc_log_t *lctx,
-					   FILE *fp, isc_uint32_t val);
+void			dns_c_printtabs(FILE *fp, int count); 
+void			dns_c_printinunits(FILE *fp, isc_uint32_t val);
 
-void			dns_c_dataclass_tostream(isc_log_t *lctx,
-						 FILE *fp,
+void			dns_c_dataclass_tostream(FILE *fp,
 						 dns_rdataclass_t rclass);
-void			dns_c_datatype_tostream(isc_log_t *lctx,
-						FILE *fp,
+void			dns_c_datatype_tostream(FILE *fp,
 						dns_rdatatype_t rtype);
 
 #if 0					/* XXXJAB remove this */
-dns_cfg_err_handler_t	dns_c_seterrorhandler(isc_log_t *lctx,
-					      dns_cfg_err_handler_t
+dns_cfg_err_handler_t	dns_c_seterrorhandler(dns_cfg_err_handler_t
 						newhandler);
 void	 		dns_c_error(isc_result_t result, const char *fmt, ...);
 #endif

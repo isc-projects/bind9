@@ -76,8 +76,7 @@ struct dns_c_cache
  *** Functions
  ***/
 
-isc_result_t dns_c_cache_new(isc_log_t *lctx,
-			     isc_mem_t *mem, dns_c_cache_t **cfgres);
+isc_result_t dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgres);
 /*
  * Creates a new cache-config object.
  *
@@ -91,7 +90,7 @@ isc_result_t dns_c_cache_new(isc_log_t *lctx,
  * 
  */
 
-isc_result_t dns_c_cache_delete(isc_log_t *lctx, dns_c_cache_t **cfgres);
+isc_result_t dns_c_cache_delete(dns_c_cache_t **cfgres);
 /*
  * Deletes the config-cache object and its contents.
  *

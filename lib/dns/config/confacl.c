@@ -27,13 +27,12 @@
 #include <dns/confcommon.h>
 
 
-static isc_result_t acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr);
+static isc_result_t acl_delete(dns_c_acl_t **aclptr);
 
 
 
 isc_result_t
-dns_c_acltable_new(isc_log_t *lctx,
-		   isc_mem_t *mem, dns_c_acltable_t **newtable)
+dns_c_acltable_new(isc_mem_t *mem, dns_c_acltable_t **newtable)
 {
 	dns_c_acltable_t *table;
 	
@@ -42,7 +41,7 @@ dns_c_acltable_new(isc_log_t *lctx,
 
 	table = isc_mem_get(mem, sizeof *table);
 	if (table == NULL) {
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Out of memory");
 		return (ISC_R_NOMEMORY);
@@ -60,8 +59,7 @@ dns_c_acltable_new(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_acltable_delete(isc_log_t *lctx,
-		      dns_c_acltable_t **table)
+dns_c_acltable_delete(dns_c_acltable_t **table)
 {
 	dns_c_acltable_t *acltable;
 	isc_mem_t *mem;
@@ -73,7 +71,7 @@ dns_c_acltable_delete(isc_log_t *lctx,
 
 	REQUIRE(DNS_C_CONFACLTABLE_VALID(acltable));
 
-	dns_c_acltable_clear(lctx, acltable);
+	dns_c_acltable_clear(acltable);
 
 	mem = acltable->mem;
 	
@@ -88,8 +86,7 @@ dns_c_acltable_delete(isc_log_t *lctx,
 
 
 void
-dns_c_acltable_print(isc_log_t *lctx,
-		     FILE *fp, int indent, dns_c_acltable_t *table)
+dns_c_acltable_print(FILE *fp, int indent, dns_c_acltable_t *table)
 {
 	dns_c_acl_t *acl;
 	dns_c_acl_t *acltmp;
@@ -108,7 +105,7 @@ dns_c_acltable_print(isc_log_t *lctx,
 		acltmp = ISC_LIST_NEXT(acl, next);
 		
 		if (!acl->is_special) { /* don't print specials */
-			dns_c_acl_print(lctx, fp, indent, acl);
+			dns_c_acl_print(fp, indent, acl);
 			fprintf(fp, "\n");
 		}
 
@@ -118,7 +115,7 @@ dns_c_acltable_print(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table)
+dns_c_acltable_clear(dns_c_acltable_t *table)
 {
 	dns_c_acl_t *elem;
 	dns_c_acl_t *tmpelem;
@@ -131,9 +128,9 @@ dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table)
 		tmpelem = ISC_LIST_NEXT(elem, next);
 		ISC_LIST_UNLINK(table->acl_list, elem, next);
 		
-		r = acl_delete(lctx, &elem);
+		r = acl_delete(&elem);
 		if (r != ISC_R_SUCCESS) {
-			isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_CRITICAL,
 				      "Failed to delete acl element.");
@@ -148,7 +145,7 @@ dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table)
 
 
 isc_result_t
-dns_c_acltable_getacl(isc_log_t *lctx, dns_c_acltable_t *table,
+dns_c_acltable_getacl(dns_c_acltable_t *table,
 		      const char *aclname, dns_c_acl_t **retval)
 {
 	dns_c_acl_t *elem;
@@ -158,7 +155,6 @@ dns_c_acltable_getacl(isc_log_t *lctx, dns_c_acltable_t *table,
 	REQUIRE(aclname != NULL);
 	REQUIRE(strlen(aclname) > 0);
 
-	(void) lctx;
 
 	elem = ISC_LIST_HEAD(table->acl_list);
 	while (elem != NULL) {
@@ -179,8 +175,7 @@ dns_c_acltable_getacl(isc_log_t *lctx, dns_c_acltable_t *table,
 
 
 isc_result_t
-dns_c_acltable_removeacl(isc_log_t *lctx,
-			 dns_c_acltable_t *table, const char *aclname)
+dns_c_acltable_removeacl(dns_c_acltable_t *table, const char *aclname)
 {
 	dns_c_acl_t *acl;
 	dns_c_acl_t *tmpacl;
@@ -193,7 +188,7 @@ dns_c_acltable_removeacl(isc_log_t *lctx,
 		tmpacl = ISC_LIST_NEXT(acl, next);
 		if (strcmp(aclname, acl->name) == 0) {
 			ISC_LIST_UNLINK(table->acl_list, acl, next);
-			acl_delete(lctx, &acl);
+			acl_delete(&acl);
 			return (ISC_R_SUCCESS);
 		}
 
@@ -205,8 +200,7 @@ dns_c_acltable_removeacl(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_acl_new(isc_log_t *lctx,
-	      dns_c_acltable_t *table, const char *aclname,
+dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 	      isc_boolean_t isspecial, dns_c_acl_t **newacl)
 {
 	dns_c_acl_t *acl;
@@ -218,7 +212,7 @@ dns_c_acl_new(isc_log_t *lctx,
 
 	acl = isc_mem_get(table->mem, sizeof *acl);
 	if (acl == NULL) {
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Not enough memory");
 		return (ISC_R_NOMEMORY);
@@ -233,7 +227,7 @@ dns_c_acl_new(isc_log_t *lctx,
 	acl->name = isc_mem_strdup(table->mem, aclname);
 	if (acl->name == NULL) {
 		isc_mem_put(table->mem, acl, sizeof *acl);
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Not enough memory");
 		return (ISC_R_NOMEMORY);
@@ -248,12 +242,11 @@ dns_c_acl_new(isc_log_t *lctx,
 
 
 void
-dns_c_acl_print(isc_log_t *lctx,
-		FILE *fp, int indent, dns_c_acl_t *acl)
+dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl)
 {
 	REQUIRE(DNS_C_CONFACL_VALID(acl));
 	
-	dns_c_printtabs(lctx, fp, indent);
+	dns_c_printtabs(fp, indent);
 	fprintf(fp, "acl ");
 	if (acl->name == NULL) {
 		fprintf(fp, "anon-acl-%p ", acl);
@@ -262,10 +255,10 @@ dns_c_acl_print(isc_log_t *lctx,
 	}
 
 	if (acl->ipml != NULL) {
-		dns_c_ipmatchlist_print(lctx, fp, indent + 1, acl->ipml);
+		dns_c_ipmatchlist_print(fp, indent + 1, acl->ipml);
 	} else {
 		fprintf(fp, "{\n");
-		dns_c_printtabs(lctx, fp, indent);
+		dns_c_printtabs(fp, indent);
 		fprintf(fp, "}");
 	}
 	fprintf(fp, ";\n");
@@ -273,7 +266,7 @@ dns_c_acl_print(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
+dns_c_acl_setipml(dns_c_acl_t *acl,
 		  dns_c_ipmatchlist_t *ipml, isc_boolean_t deepcopy)
 {
 	isc_result_t res;
@@ -282,11 +275,11 @@ dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
 	REQUIRE(ipml != NULL);
 
 	if (acl->ipml != NULL) {
-		dns_c_ipmatchlist_detach(lctx, &acl->ipml);
+		dns_c_ipmatchlist_detach(&acl->ipml);
 	}
 
 	if (deepcopy) {
-		res = dns_c_ipmatchlist_copy(lctx, acl->mytable->mem,
+		res = dns_c_ipmatchlist_copy(acl->mytable->mem,
 					      &acl->ipml, ipml);
 	} else {
 		acl->ipml = ipml;
@@ -298,7 +291,7 @@ dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
 
 
 isc_result_t
-dns_c_acl_getipmlexpanded(isc_log_t *lctx, isc_mem_t *mem, dns_c_acl_t *acl,
+dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
 			  dns_c_ipmatchlist_t **retval)
 {
 	dns_c_ipmatchlist_t *newlist;
@@ -310,12 +303,12 @@ dns_c_acl_getipmlexpanded(isc_log_t *lctx, isc_mem_t *mem, dns_c_acl_t *acl,
 		newlist = NULL;
 		r = ISC_R_SUCCESS;
 	} else {
-		r = dns_c_ipmatchlist_copy(lctx, mem, &newlist, acl->ipml);
+		r = dns_c_ipmatchlist_copy(mem, &newlist, acl->ipml);
 		if (r != ISC_R_SUCCESS) {
 			return (r);
 		}
 
-		r = dns_c_acl_expandacls(lctx, acl->mytable, newlist);
+		r = dns_c_acl_expandacls(acl->mytable, newlist);
 	}
 
 	*retval = newlist;
@@ -328,7 +321,7 @@ dns_c_acl_getipmlexpanded(isc_log_t *lctx, isc_mem_t *mem, dns_c_acl_t *acl,
 /* XXX this should really be a function in the confip module */
 
 isc_result_t
-dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
+dns_c_acl_expandacls(dns_c_acltable_t *table,
 		     dns_c_ipmatchlist_t *list)
 {
 	dns_c_ipmatchelement_t *elem;
@@ -347,24 +340,24 @@ dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
 	while (elem != NULL) {
 		switch (elem->type) {
 		case dns_c_ipmatch_indirect:
-			dns_c_acl_expandacls(lctx, table,
+			dns_c_acl_expandacls(table,
 					     elem->u.indirect.list);
 			break;
 
 		case dns_c_ipmatch_acl:
-			r = dns_c_acltable_getacl(lctx, table,
+			r = dns_c_acltable_getacl(table,
 						  elem->u.aclname, &acl);
 			if (r != ISC_R_SUCCESS) {
 				return (ISC_R_FAILURE);
 			}
 
 			if (acl->ipml != NULL) {
-				isneg = dns_c_ipmatchelement_isneg(lctx, elem);
+				isneg = dns_c_ipmatchelement_isneg(elem);
 
 				/* XXX I this should be inserted in place and 
 				 *   not appended
 				 */
-				dns_c_ipmatchlist_append(lctx, list,
+				dns_c_ipmatchlist_append(list,
 							 acl->ipml, isneg);
 			}
 
@@ -389,7 +382,7 @@ dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
 
 
 static isc_result_t
-acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr)
+acl_delete(dns_c_acl_t **aclptr)
 {
 	dns_c_acl_t *acl;
 	isc_result_t res;
@@ -409,7 +402,7 @@ acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr)
 	isc_mem_free(mem, acl->name);
 
 	if (acl->ipml != NULL)
-		res = dns_c_ipmatchlist_detach(lctx, &acl->ipml);
+		res = dns_c_ipmatchlist_detach(&acl->ipml);
 	else
 		res = ISC_R_SUCCESS;
 	

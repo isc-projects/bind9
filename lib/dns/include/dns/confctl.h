@@ -121,8 +121,7 @@ struct dns_c_ctrl_list
  ***/
 
 
-isc_result_t	dns_c_ctrlinet_new(isc_log_t *lctx,
-				   isc_mem_t *mem, dns_c_ctrl_t **control,
+isc_result_t	dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 				   isc_sockaddr_t addr, short port,
 				   dns_c_ipmatchlist_t *iml,
 				   isc_boolean_t copy);
@@ -141,8 +140,7 @@ isc_result_t	dns_c_ctrlinet_new(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_ctrlunix_new(isc_log_t *lctx,
-				   isc_mem_t *mem, dns_c_ctrl_t **control,
+isc_result_t	dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 				   const char *path,
 				   int perm, uid_t uid, gid_t gid);
 /*
@@ -159,8 +157,7 @@ isc_result_t	dns_c_ctrlunix_new(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_ctrl_delete(isc_log_t *lctx,
-				  dns_c_ctrl_t **control);
+isc_result_t	dns_c_ctrl_delete(dns_c_ctrl_t **control);
 /*
  * Deletes the object pointed to by *CONTROL. *CONTROL may be NULL.
  *
@@ -172,8 +169,7 @@ isc_result_t	dns_c_ctrl_delete(isc_log_t *lctx,
  */
 
 
-void		dns_c_ctrl_print(isc_log_t *lctx,
-				 FILE *fp, int indent, dns_c_ctrl_t *ctl);
+void		dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl);
 /*
  * Prints the control object ctl in standard named.conf format. The output
  * is indented by indent number of tabs.
@@ -185,8 +181,7 @@ void		dns_c_ctrl_print(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_ctrllist_new(isc_log_t *lctx,
-				   isc_mem_t *mem, dns_c_ctrllist_t **newlist);
+isc_result_t	dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist);
 /*
  * Creates a new control object list using the MEM memory manager.
  *
@@ -200,8 +195,7 @@ isc_result_t	dns_c_ctrllist_new(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_ctrllist_delete(isc_log_t *lctx,
-				      dns_c_ctrllist_t **list);
+isc_result_t	dns_c_ctrllist_delete(dns_c_ctrllist_t **list);
 /*
  * Deletes the control list. The value of *list may be NULL. Sets *list to
  * NULL when done.
@@ -214,7 +208,7 @@ isc_result_t	dns_c_ctrllist_delete(isc_log_t *lctx,
  *
  */
 
-void		dns_c_ctrllist_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_ctrllist_print(FILE *fp, int indent,
 				     dns_c_ctrllist_t *cl);
 /*
  * Prints the control objects inside the list. The output is indented with

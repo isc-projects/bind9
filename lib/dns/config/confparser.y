@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.27 1999/12/01 16:28:56 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.28 1999/12/06 12:40:34 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -71,7 +71,6 @@ static isc_lex_t               *mylexer;
 static isc_symtab_t            *keywords;
 static dns_c_cbks_t            *callbacks;
 static isc_lexspecials_t        specials;
-static isc_log_t               *logcontext;
 
 #define CONF_MAX_IDENT 1024
 
@@ -366,7 +365,7 @@ options_stmt: L_OPTIONS
         {
                 dns_c_options_t *options;
 
-                tmpres = dns_c_ctx_getoptions(logcontext, currcfg, &options);
+                tmpres = dns_c_ctx_getoptions(currcfg, &options);
                 if (tmpres == ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE, "Cannot redefine options");
 
@@ -374,10 +373,10 @@ options_stmt: L_OPTIONS
                          * Clean out options so rest of config won't fail
                          * or issue extra error messages
                          */
-                        dns_c_ctx_optionsdelete(logcontext, &currcfg->options);
+                        dns_c_ctx_optionsdelete(&currcfg->options);
                 }
 
-                tmpres = dns_c_ctx_optionsnew(logcontext, currcfg->mem,
+                tmpres = dns_c_ctx_optionsnew(currcfg->mem,
                                               &currcfg->options);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -391,7 +390,7 @@ options_stmt: L_OPTIONS
                         tmpres = callbacks->optscbk(currcfg,
                                                     callbacks->optscbkuap);
                         if (tmpres != ISC_R_SUCCESS) {
-				isc_log_write(logcontext,
+				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_CONFIG,
 					      DNS_LOGMODULE_CONFIG,
 					      ISC_LOG_CRITICAL,
@@ -411,7 +410,7 @@ options: option L_EOS
 option: /* Empty */
         | L_VERSION L_QSTRING
         {
-                tmpres = dns_c_ctx_setversion(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setversion(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining version.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -425,7 +424,7 @@ option: /* Empty */
         }
         | L_DIRECTORY L_QSTRING
         {
-                tmpres = dns_c_ctx_setdirectory(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setdirectory(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining directory");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -439,7 +438,7 @@ option: /* Empty */
         }
         | L_NAMED_XFER L_QSTRING
         {
-                tmpres = dns_c_ctx_setnamedxfer(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setnamedxfer(currcfg, $2);
                 
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining named-xfer");
@@ -453,7 +452,7 @@ option: /* Empty */
         }
         | L_TKEY_DOMAIN L_QSTRING
         {
-                tmpres = dns_c_ctx_settkeydomain(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settkeydomain(currcfg, $2);
                 
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining tkey-domain");
@@ -468,7 +467,7 @@ option: /* Empty */
         }
         | L_TKEY_DHKEY L_QSTRING L_INTEGER
         {
-                tmpres = dns_c_ctx_settkeydhkey(logcontext, currcfg, $2, $3);
+                tmpres = dns_c_ctx_settkeydhkey(currcfg, $2, $3);
                 
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining tkey-dhkey");
@@ -482,7 +481,7 @@ option: /* Empty */
         }
         | L_PIDFILE L_QSTRING
         {
-                tmpres = dns_c_ctx_setpidfilename(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setpidfilename(currcfg, $2);
                 
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining pid-file");
@@ -496,7 +495,7 @@ option: /* Empty */
         }
         | L_STATS_FILE L_QSTRING
         {
-                tmpres = dns_c_ctx_setstatsfilename(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setstatsfilename(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining statistics-file");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -509,8 +508,7 @@ option: /* Empty */
         }
         | L_MEMSTATS_FILE L_QSTRING
         {
-                tmpres = dns_c_ctx_setmemstatsfilename(logcontext,
-                                                       currcfg, $2);
+                tmpres = dns_c_ctx_setmemstatsfilename(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining memstatistics-file");
@@ -525,7 +523,7 @@ option: /* Empty */
         }
         | L_DUMP_FILE L_QSTRING
         {
-                tmpres = dns_c_ctx_setdumpfilename(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setdumpfilename(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining dump-file");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -538,49 +536,49 @@ option: /* Empty */
         }
         | L_EXPERT_MODE yea_or_nay
         {
-                tmpres = dns_c_ctx_setexpertmode(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setexpertmode(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining fake-iquery.");
                 }
         }
         | L_FAKE_IQUERY yea_or_nay
         {
-                tmpres = dns_c_ctx_setfakeiquery(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setfakeiquery(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining fake-iquery.");
                 }
         }
         | L_RECURSION yea_or_nay
         {
-                tmpres = dns_c_ctx_setrecursion(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setrecursion(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining recursion");
                 }
         }
         | L_FETCH_GLUE yea_or_nay
         {
-                tmpres = dns_c_ctx_setfetchglue(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setfetchglue(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining fetch-glue.");
                 }
         }
         | L_NOTIFY yea_or_nay
         {
-                tmpres = dns_c_ctx_setnotify(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setnotify(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining notify.");
                 }
         }
         | L_HOSTSTATS yea_or_nay
         {
-                tmpres = dns_c_ctx_sethoststatistics(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_sethoststatistics(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining host-statistics.");
                 }
         }
         | L_DEALLOC_ON_EXIT yea_or_nay
         {
-                tmpres = dns_c_ctx_setdealloconexit(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setdealloconexit(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining deallocate-on-exit.");
@@ -588,15 +586,14 @@ option: /* Empty */
         }
         | L_USE_IXFR yea_or_nay
         {
-                tmpres = dns_c_ctx_setuseixfr(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setuseixfr(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining use-ixfr.");
                 }
         }
         | L_MAINTAIN_IXFR_BASE yea_or_nay
         {
-                tmpres = dns_c_ctx_setmaintainixfrbase(logcontext,
-                                                       currcfg, $2);
+                tmpres = dns_c_ctx_setmaintainixfrbase(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining maintain-ixfr-base.");
@@ -604,42 +601,42 @@ option: /* Empty */
         }
         | L_HAS_OLD_CLIENTS yea_or_nay
         {
-                tmpres = dns_c_ctx_sethasoldclients(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_sethasoldclients(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining has-old-clients.");
                 }
         }
         | L_AUTH_NXDOMAIN yea_or_nay
         {
-                tmpres = dns_c_ctx_setauthnxdomain(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setauthnxdomain(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining auth-nxdomain.");
                 }
         }
         | L_MULTIPLE_CNAMES yea_or_nay
         {
-                tmpres = dns_c_ctx_setmultiplecnames(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setmultiplecnames(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining multiple-cnames.");
                 }
         }
         | L_CHECK_NAMES check_names_type check_names_opt
         {
-                tmpres = dns_c_ctx_setchecknames(logcontext, currcfg, $2, $3);
+                tmpres = dns_c_ctx_setchecknames(currcfg, $2, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining check-names.");
                 }
         }
         | L_USE_ID_POOL yea_or_nay
         {
-                tmpres = dns_c_ctx_setuseidpool(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setuseidpool(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining use-id-pool.");
                 }
         }
 	| L_RFC2308_TYPE1 yea_or_nay
 	{
-		tmpres = dns_c_ctx_setrfc2308type1(logcontext, currcfg, $2);
+		tmpres = dns_c_ctx_setrfc2308type1(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "Redefining rfc2308-type.");
 		}
@@ -651,8 +648,7 @@ option: /* Empty */
                                        "address-match-list empty. "
                                        "listen statement ignored.");
                 } else {
-                        tmpres = dns_c_ctx_addlisten_on(logcontext,
-                                                        currcfg, $2, $4,
+                        tmpres = dns_c_ctx_addlisten_on(currcfg, $2, $4,
                                                         ISC_FALSE);
 
                         if (tmpres != ISC_R_SUCCESS) {
@@ -664,7 +660,7 @@ option: /* Empty */
         }
         | L_FORWARD forward_opt
         {
-                tmpres = dns_c_ctx_setforward(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setforward(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining forward");
@@ -673,15 +669,13 @@ option: /* Empty */
         | L_FORWARDERS {
                 dns_c_ipmatchlist_t *forwarders;
 
-                tmpres = dns_c_ctx_getforwarders(logcontext,
-                                                 currcfg, &forwarders);
+                tmpres = dns_c_ctx_getforwarders(currcfg, &forwarders);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_error(ISC_FALSE,
                                      "Redefining options forwarders");
-                        dns_c_ipmatchlist_empty(logcontext, forwarders);
+                        dns_c_ipmatchlist_empty(forwarders);
                 } else {
-                        tmpres = dns_c_ipmatchlist_new(logcontext,
-                                                       currcfg->mem,
+                        tmpres = dns_c_ipmatchlist_new(currcfg->mem,
                                                        &forwarders);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -690,8 +684,7 @@ option: /* Empty */
                                 YYABORT;
                         }
 
-                        tmpres = dns_c_ctx_setforwarders(logcontext,
-                                                         currcfg, forwarders,
+                        tmpres = dns_c_ctx_setforwarders(currcfg, forwarders,
                                                          ISC_FALSE);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -705,7 +698,7 @@ option: /* Empty */
         {
 		if ($3 == NULL)
 			YYABORT;
-		tmpres = dns_c_ctx_setqueryacl(logcontext, currcfg,
+		tmpres = dns_c_ctx_setqueryacl(currcfg,
 					       ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining allow-query list");
@@ -717,7 +710,7 @@ option: /* Empty */
         }
         | L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_settransferacl(logcontext, currcfg,
+                tmpres = dns_c_ctx_settransferacl(currcfg,
                                                   ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -730,7 +723,7 @@ option: /* Empty */
         }
         | L_ALLOW_RECURSION L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setrecursionacl(logcontext, currcfg,
+                tmpres = dns_c_ctx_setrecursionacl(currcfg,
                                                    ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -743,7 +736,7 @@ option: /* Empty */
         }
         | L_SORTLIST  L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setsortlist(logcontext, currcfg,
+                tmpres = dns_c_ctx_setsortlist(currcfg,
                                                ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining sortlist.");
@@ -754,7 +747,7 @@ option: /* Empty */
         }
         | L_BLACKHOLE L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_setblackhole(logcontext, currcfg,
+                tmpres = dns_c_ctx_setblackhole(currcfg,
                                                 ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining blackhole.");
@@ -765,7 +758,7 @@ option: /* Empty */
         }
         | L_TOPOLOGY L_LBRACE address_match_list L_RBRACE
         {
-                tmpres = dns_c_ctx_settopology(logcontext, currcfg,
+                tmpres = dns_c_ctx_settopology(currcfg,
                                                ISC_FALSE, $3);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining topology.");
@@ -778,7 +771,7 @@ option: /* Empty */
         | transfer_clause
         | L_TRANSFER_FORMAT transfer_format
         {
-                tmpres = dns_c_ctx_settransferformat(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settransferformat(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining transfer-format.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -789,8 +782,7 @@ option: /* Empty */
         }
         | L_MAX_TRANSFER_TIME_IN L_INTEGER
         {
-                tmpres = dns_c_ctx_setmaxtransfertimein(logcontext,
-                                                        currcfg, $2 * 60);
+                tmpres = dns_c_ctx_setmaxtransfertimein(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining max-transfer-time-in.");
@@ -802,8 +794,7 @@ option: /* Empty */
         }
         | L_CLEAN_INTERVAL L_INTEGER
         {
-                tmpres = dns_c_ctx_setcleaninterval(logcontext,
-                                                    currcfg, $2 * 60);
+                tmpres = dns_c_ctx_setcleaninterval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining cleaning-interval.");
@@ -815,8 +806,7 @@ option: /* Empty */
         }
         | L_INTERFACE_INTERVAL L_INTEGER
         {
-                tmpres = dns_c_ctx_setinterfaceinterval(logcontext,
-                                                        currcfg, $2 * 60);
+                tmpres = dns_c_ctx_setinterfaceinterval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining interface-interval.");
@@ -828,7 +818,7 @@ option: /* Empty */
         }
         | L_STATS_INTERVAL L_INTEGER
         {
-                tmpres = dns_c_ctx_setstatsinterval(logcontext, currcfg,
+                tmpres = dns_c_ctx_setstatsinterval(currcfg,
                                                     $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
@@ -841,7 +831,7 @@ option: /* Empty */
         }
         | L_MAX_LOG_SIZE_IXFR L_INTEGER
         {
-                tmpres = dns_c_ctx_setmaxlogsizeixfr(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setmaxlogsizeixfr(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining max-ixfr-log-size.");
@@ -853,7 +843,7 @@ option: /* Empty */
         }
         | L_MAX_NCACHE_TTL L_INTEGER
         {
-                tmpres = dns_c_ctx_setmaxncachettl(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setmaxncachettl(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining max-ncache-ttl.");
@@ -865,8 +855,7 @@ option: /* Empty */
         }
         | L_HEARTBEAT L_INTEGER
         {
-                tmpres = dns_c_ctx_setheartbeat_interval(logcontext,
-                                                         currcfg, $2 * 60);
+                tmpres = dns_c_ctx_setheartbeat_interval(currcfg, $2 * 60);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining heartbeat-interval.");
@@ -878,7 +867,7 @@ option: /* Empty */
         }
         | L_DIALUP yea_or_nay
         {
-                tmpres = dns_c_ctx_setdialup(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setdialup(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining dialup.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -890,23 +879,20 @@ option: /* Empty */
         {
                 dns_c_rrsolist_t *ordering;
 
-                tmpres = dns_c_ctx_getrrsetorderlist(logcontext,
-                                                     currcfg, &ordering);
+                tmpres = dns_c_ctx_getrrsetorderlist(currcfg, &ordering);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_error(ISC_FALSE,
                                      "Redefining rrset-order list");
-                        dns_c_rrsolist_clear(logcontext, ordering);
+                        dns_c_rrsolist_clear(ordering);
                 } else {
-                        tmpres = dns_c_rrsolist_new(logcontext,
-                                                    currcfg->mem, &ordering);
+                        tmpres = dns_c_rrsolist_new(currcfg->mem, &ordering);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
                                              "Failed to create rrset-order "
                                              "list");
                                 YYABORT;
                         }
-                        tmpres = dns_c_ctx_setrrsetorderlist(logcontext,
-                                                             currcfg,
+                        tmpres = dns_c_ctx_setrrsetorderlist(currcfg,
                                                              ISC_FALSE,
                                                              ordering);
                         if (tmpres != ISC_R_SUCCESS) {
@@ -935,7 +921,7 @@ control: /* Empty */
         {
                 dns_c_ctrl_t *control;
 
-                tmpres = dns_c_ctrlinet_new(logcontext, currcfg->mem, &control,
+                tmpres = dns_c_ctrlinet_new(currcfg->mem, &control,
                                             $2, $4, $7, ISC_FALSE);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -949,7 +935,7 @@ control: /* Empty */
         {
                 dns_c_ctrl_t *control;
 
-                tmpres = dns_c_ctrlunix_new(logcontext, currcfg->mem, &control,
+                tmpres = dns_c_ctrlunix_new(currcfg->mem, &control,
                                             $2, $4, $6, $8);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -1022,7 +1008,7 @@ rrset_ordering_element: ordering_class ordering_type ordering_name
                 dns_c_rrso_t *orderelem;
                 dns_c_ordering_t o;
 
-                tmpres = dns_c_string2ordering(logcontext, $5, &o);
+                tmpres = dns_c_string2ordering($5, &o);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_warning(ISC_FALSE,
                                        "Unknown ordering type ``%s''."
@@ -1030,7 +1016,7 @@ rrset_ordering_element: ordering_class ordering_type ordering_name
                         o = DNS_DEFAULT_ORDERING;
                 }
 
-                tmpres = dns_c_rrso_new(logcontext, currcfg->mem,
+                tmpres = dns_c_rrso_new(currcfg->mem,
                                         &orderelem, $1, $2, $3, o);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -1094,7 +1080,7 @@ maybe_wild_port: in_port
 
 query_source_address: L_ADDRESS maybe_wild_addr
         {
-                tmpres = dns_c_ctx_setquerysourceaddr(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setquerysourceaddr(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining query-source address.");
@@ -1108,7 +1094,7 @@ query_source_address: L_ADDRESS maybe_wild_addr
 
 query_source_port: L_PORT maybe_wild_port
         {
-                tmpres = dns_c_ctx_setquerysourceport(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setquerysourceport(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining query-source port.");
@@ -1226,7 +1212,7 @@ forward_opt: L_ONLY
 
 size_clause: L_DATASIZE size_spec
         {
-                tmpres = dns_c_ctx_setdatasize(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setdatasize(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining datasize.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1236,7 +1222,7 @@ size_clause: L_DATASIZE size_spec
         }
         | L_STACKSIZE size_spec
         {
-                tmpres = dns_c_ctx_setstacksize(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setstacksize(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining stacksize.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1246,7 +1232,7 @@ size_clause: L_DATASIZE size_spec
         }
         | L_CORESIZE size_spec
         {
-                tmpres = dns_c_ctx_setcoresize(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setcoresize(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining coresize.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1256,7 +1242,7 @@ size_clause: L_DATASIZE size_spec
         }
         | L_FILES size_spec
         {
-                tmpres = dns_c_ctx_setfiles(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_setfiles(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining files.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1315,7 +1301,7 @@ size_spec: any_string
 
 transfer_clause: L_TRANSFERS_IN L_INTEGER
         {
-                tmpres = dns_c_ctx_settransfersin(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settransfersin(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE, "Redefining transfers-in.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1325,7 +1311,7 @@ transfer_clause: L_TRANSFERS_IN L_INTEGER
         }
         | L_TRANSFERS_OUT L_INTEGER
         {
-                tmpres = dns_c_ctx_settransfersout(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settransfersout(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining transfers-out.");
@@ -1337,7 +1323,7 @@ transfer_clause: L_TRANSFERS_IN L_INTEGER
         }
         | L_TRANSFERS_PER_NS L_INTEGER
         {
-                tmpres = dns_c_ctx_settransfersperns(logcontext, currcfg, $2);
+                tmpres = dns_c_ctx_settransfersperns(currcfg, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_error(ISC_FALSE,
                                      "Redefining transfers-per-ns.");
@@ -1366,7 +1352,7 @@ forwarders_in_addr: ip_address
                 INSIST(currcfg->options != NULL);
                 INSIST(currcfg->options->forwarders != NULL);
 
-                tmpres = dns_c_ipmatchpattern_new(logcontext, currcfg->mem,
+                tmpres = dns_c_ipmatchpattern_new(currcfg->mem,
                                                   &ime,
                                                   $1, 0);
                 if (tmpres != ISC_R_SUCCESS) {
@@ -1407,7 +1393,7 @@ channel_stmt:
         L_CHANNEL channel_name L_LBRACE L_FILE L_QSTRING {
                 dns_c_logchan_t *newc;
                 
-                tmpres = dns_c_ctx_addfile_channel(logcontext, currcfg,
+                tmpres = dns_c_ctx_addfile_channel(currcfg,
                                                    $2, &newc);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
@@ -1420,7 +1406,7 @@ channel_stmt:
 
                 INSIST(newc != NULL);
 
-                tmpres = dns_c_logchan_setpath(logcontext, newc, $5);
+                tmpres = dns_c_logchan_setpath(newc, $5);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to add file channel's path.");
@@ -1433,7 +1419,7 @@ channel_stmt:
         | L_CHANNEL channel_name L_LBRACE L_SYSLOG maybe_syslog_facility {
                 dns_c_logchan_t *newc;
                 
-                tmpres = dns_c_ctx_addsyslogchannel(logcontext, currcfg,
+                tmpres = dns_c_ctx_addsyslogchannel(currcfg,
                                                     $2, &newc);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining channel %s", $2);
@@ -1443,7 +1429,7 @@ channel_stmt:
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setfacility(logcontext, newc, $5);
+                tmpres = dns_c_logchan_setfacility(newc, $5);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get set channel facility.");
@@ -1454,7 +1440,7 @@ channel_stmt:
         | L_CHANNEL channel_name L_LBRACE L_NULL_OUTPUT {
                 dns_c_logchan_t *newc;
                 
-                tmpres = dns_c_ctx_addnullchannel(logcontext, currcfg,
+                tmpres = dns_c_ctx_addnullchannel(currcfg,
                                                   $2, &newc);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining channel %s", $2);
@@ -1487,7 +1473,7 @@ optional_channel_opt_list: /* empty */
 category_stmt: L_CATEGORY category_name {
                 dns_c_logcat_t *cat;
                 
-                tmpres = dns_c_ctx_addcategory(logcontext, currcfg, $2, &cat);
+                tmpres = dns_c_ctx_addcategory(currcfg, $2, &cat);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "Redefining category ``%s''", $2);
@@ -1505,21 +1491,21 @@ channel_severity: any_string
                 dns_c_logseverity_t severity;
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_string2logseverity(logcontext, $1, &severity);
+                tmpres = dns_c_string2logseverity($1, &severity);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Unknown severity ``%s''", $1);
                         YYABORT;
                 }
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setseverity(logcontext, chan, severity);
+                tmpres = dns_c_logchan_setseverity(chan, severity);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining severity.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1534,14 +1520,14 @@ channel_severity: any_string
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setseverity(logcontext, chan,
+                tmpres = dns_c_logchan_setseverity(chan,
                                                    dns_c_log_debug);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining severity.");
@@ -1555,14 +1541,14 @@ channel_severity: any_string
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setseverity(logcontext, chan,
+                tmpres = dns_c_logchan_setseverity(chan,
                                                    dns_c_log_debug);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining severity.");
@@ -1573,7 +1559,7 @@ channel_severity: any_string
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setdebuglevel(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setdebuglevel(chan, $2);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get set channel "
@@ -1585,14 +1571,14 @@ channel_severity: any_string
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setseverity(logcontext, chan,
+                tmpres = dns_c_logchan_setseverity(chan,
                                                    dns_c_log_dynamic);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining severity.");
@@ -1609,14 +1595,14 @@ version_modifier: L_VERSIONS L_INTEGER
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setversions(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setversions(chan, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining versions.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1629,14 +1615,14 @@ version_modifier: L_VERSIONS L_INTEGER
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setversions(logcontext, chan, -1);
+                tmpres = dns_c_logchan_setversions(chan, -1);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining versions.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1652,14 +1638,14 @@ size_modifier: L_SIZE size_spec
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setsize(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setsize(chan, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining size.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1679,7 +1665,7 @@ maybe_file_modifiers: /* nothing */
 
 facility_name: any_string
         {
-                tmpres = dns_c_string2facility(logcontext, $1, &$$);
+                tmpres = dns_c_string2facility($1, &$$);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE, "Unknown syslog facility.");
                         $$ = LOG_DAEMON;
@@ -1714,14 +1700,14 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setprinttime(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setprinttime(chan, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE, "Redefining print-time.");
                 } else if (tmpres != ISC_R_SUCCESS) {
@@ -1734,14 +1720,14 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setprintcat(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setprintcat(chan, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "Redefining print-category.");
@@ -1755,14 +1741,14 @@ channel_opt: L_SEVERITY channel_severity { /* nothing to do */ }
         {
                 dns_c_logchan_t *chan;
 
-                tmpres = dns_c_ctx_currchannel(logcontext, currcfg, &chan);
+                tmpres = dns_c_ctx_currchannel(currcfg, &chan);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current channel.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logchan_setprintsev(logcontext, chan, $2);
+                tmpres = dns_c_logchan_setprintsev(chan, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "Redefining print-severity.");
@@ -1791,14 +1777,14 @@ channel: channel_name
                  * XXX validate the channel name refers to a previously
                  * defined channel
                  */
-                tmpres = dns_c_ctx_currcategory(logcontext, currcfg, &cat);
+                tmpres = dns_c_ctx_currcategory(currcfg, &cat);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't get current category.");
                         YYABORT;
                 }
 
-                tmpres = dns_c_logcat_addname(logcontext, cat, $1);
+                tmpres = dns_c_logcat_addname(cat, $1);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Can't add new name to category.");
@@ -1818,7 +1804,7 @@ category_name: any_string
         {
                 dns_c_category_t cat;
 
-                tmpres = dns_c_string2category(logcontext, $1, &cat);
+                tmpres = dns_c_string2category($1, &cat);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE, "Unknown category ``%s''", $1);
                         YYABORT;
@@ -1849,7 +1835,7 @@ server_stmt: L_SERVER ip_address
                 dns_c_srvlist_t *servers = currcfg->servers;
                 
                 if (servers == NULL) {
-                        tmpres = dns_c_srvlist_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_srvlist_new(currcfg->mem,
                                                    &currcfg->servers);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -1871,13 +1857,13 @@ server_stmt: L_SERVER ip_address
                                 parser_error(ISC_TRUE, "Redefining server");
                                 ISC_LIST_UNLINK(servers->elements,
                                                 server, next);
-                                dns_c_srv_delete(logcontext, &server);
+                                dns_c_srv_delete(&server);
                                 break;
                         }
                         server = tmpserver;
                 }
                 
-                tmpres = dns_c_srv_new(logcontext, currcfg->mem, $2, &server);
+                tmpres = dns_c_srv_new(currcfg->mem, $2, &server);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to create server structure");
@@ -1903,13 +1889,13 @@ server_info: L_BOGUS yea_or_nay
 
                 INSIST(server != NULL);
 
-                tmpres = dns_c_srv_getbogus(logcontext, server, &tv);
+                tmpres = dns_c_srv_getbogus(server, &tv);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_warning(ISC_FALSE,
                                        "Redefining server bogus value");
                 }
                 
-                dns_c_srv_setbogus(logcontext, server, $2);
+                dns_c_srv_setbogus(server, $2);
         }
         | L_SUPPORT_IXFR yea_or_nay
         {
@@ -1921,13 +1907,13 @@ server_info: L_BOGUS yea_or_nay
 
                 INSIST(server != NULL);
 
-                tmpres = dns_c_srv_getsupportixfr(logcontext, server, &tv);
+                tmpres = dns_c_srv_getsupportixfr(server, &tv);
                 if(tmpres != ISC_R_NOTFOUND) {
                         parser_warning(ISC_FALSE,
                                        "Redefining server support-ixfr value");
                 }
                 
-                dns_c_srv_setsupportixfr(logcontext, server, $2);
+                dns_c_srv_setsupportixfr(server, $2);
         }
         | L_TRANSFERS L_INTEGER
         {
@@ -1939,13 +1925,13 @@ server_info: L_BOGUS yea_or_nay
 
                 INSIST(server != NULL);
 
-                tmpres = dns_c_srv_gettransfers(logcontext, server, &tv);
+                tmpres = dns_c_srv_gettransfers(server, &tv);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_warning(ISC_FALSE,
                                        "Redefining server transfers value");
                 }
                 
-                dns_c_srv_settransfers(logcontext, server, $2);
+                dns_c_srv_settransfers(server, $2);
         }
         | L_TRANSFER_FORMAT transfer_format
         {
@@ -1957,7 +1943,7 @@ server_info: L_BOGUS yea_or_nay
 
                 INSIST(server != NULL);
 
-                tmpres = dns_c_srv_gettransferformat(logcontext, server, &tv);
+                tmpres = dns_c_srv_gettransferformat(server, &tv);
                 if (tmpres != ISC_R_NOTFOUND) {
                         parser_warning(ISC_FALSE,
                                        "Redefining server transfer-format "
@@ -1965,7 +1951,7 @@ server_info: L_BOGUS yea_or_nay
                 }
                 
 
-                dns_c_srv_settransferformat(logcontext, server, $2);
+                dns_c_srv_settransferformat(server, $2);
         }
         | L_KEYS L_LBRACE {
                 dns_c_srv_t *server;
@@ -1975,7 +1961,7 @@ server_info: L_BOGUS yea_or_nay
                 INSIST(server != NULL);
 
                 if (server->keys == NULL) {
-                        tmpres = dns_c_kidlist_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_kidlist_new(currcfg->mem,
                                                    &server->keys);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -1995,12 +1981,10 @@ address_match_list: address_match_element L_EOS
                 dns_c_ipmatchlist_t *ml = 0;
 
                 if ($1 != NULL) {
-                        tmpres = dns_c_ipmatchlist_new(logcontext,
-                                                       currcfg->mem, &ml);
+                        tmpres = dns_c_ipmatchlist_new(currcfg->mem, &ml);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE, "Insufficient memory");
-                                dns_c_ipmatchelement_delete(logcontext,
-                                                            currcfg->mem,
+                                dns_c_ipmatchelement_delete(currcfg->mem,
                                                             &$1);
                                 YYABORT;
                         }
@@ -2015,12 +1999,10 @@ address_match_list: address_match_element L_EOS
                 dns_c_ipmatchlist_t *ml = $1;
                 
                 if (ml == NULL && $2 != NULL) {
-                        tmpres = dns_c_ipmatchlist_new(logcontext,
-                                                       currcfg->mem, &ml);
+                        tmpres = dns_c_ipmatchlist_new(currcfg->mem, &ml);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE, "Insufficient memory");
-                                dns_c_ipmatchelement_delete(logcontext,
-                                                            currcfg->mem,
+                                dns_c_ipmatchelement_delete(currcfg->mem,
                                                             &$2);
                                 YYABORT;
                         }
@@ -2038,7 +2020,7 @@ address_match_element: address_match_simple
         | L_BANG address_match_simple
         {
                 if ($2 != NULL) {
-                        dns_c_ipmatch_negate(logcontext, $2);
+                        dns_c_ipmatch_negate($2);
                 }
                 $$ = $2;
         }
@@ -2046,14 +2028,13 @@ address_match_element: address_match_simple
         {
                 dns_c_ipmatchelement_t *ime = NULL;
 
-                if (!dns_c_ctx_keydefinedp(logcontext, currcfg, $2)) {
+                if (!dns_c_ctx_keydefinedp(currcfg, $2)) {
                         parser_error(ISC_FALSE,
                                      "Address match key element (%s) "
                                      "referenced before defined", $2);
                         YYABORT;
                 } else {
-                        tmpres = dns_c_ipmatchkey_new(logcontext,
-                                                      currcfg->mem, &ime, $2);
+                        tmpres = dns_c_ipmatchkey_new(currcfg->mem, &ime, $2);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_TRUE,
                                              "Failed to create address match "
@@ -2070,7 +2051,8 @@ address_match_element: address_match_simple
 address_match_simple: ip_address
         {
                 dns_c_ipmatchelement_t *ime = NULL;
-		unsigned int prefixlen;
+		unsigned int prefixlen = 0;
+		
 		switch ($1.type.sa.sa_family) {
 		case AF_INET:
 			prefixlen = 32;
@@ -2082,8 +2064,7 @@ address_match_simple: ip_address
 			INSIST(0);
 			break;
 		}
-                tmpres = dns_c_ipmatchpattern_new(logcontext,
-                                                  currcfg->mem, &ime, $1,
+                tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime, $1,
 						  prefixlen);
                 switch (tmpres) {
                 case ISC_R_FAILURE:
@@ -2115,8 +2096,7 @@ address_match_simple: ip_address
                                        "skipping", (int)$3);
                         $$ = NULL;
                 } else {
-                        tmpres = dns_c_ipmatchpattern_new(logcontext,
-                                                          currcfg->mem, &ime,
+                        tmpres = dns_c_ipmatchpattern_new(currcfg->mem, &ime,
                                                           $1, $3);
                         switch (tmpres) {
                         case ISC_R_FAILURE:
@@ -2160,8 +2140,7 @@ address_match_simple: ip_address
 				isc_sockaddr_fromin(&address, &ia, 0);
 				
                                 tmpres =
-                                        dns_c_ipmatchpattern_new(logcontext,
-                                                                 currcfg->mem,
+                                        dns_c_ipmatchpattern_new(currcfg->mem,
                                                                  &ime,
                                                                  address,
                                                                  $3);
@@ -2194,8 +2173,7 @@ address_match_simple: ip_address
                 dns_c_ipmatchelement_t *ime = NULL;
                 
                 if ($2 != NULL) {
-                        tmpres = dns_c_ipmatchindirect_new(logcontext,
-                                                           currcfg->mem, &ime,
+                        tmpres = dns_c_ipmatchindirect_new(currcfg->mem, &ime,
                                                            $2, NULL);
                         switch (tmpres) {
                         case ISC_R_SUCCESS:
@@ -2210,7 +2188,7 @@ address_match_simple: ip_address
                         }
                 }
 
-                dns_c_ipmatchlist_detach(logcontext, &$2);
+                dns_c_ipmatchlist_detach(&$2);
 
                 $$ = ime;
         }
@@ -2221,7 +2199,7 @@ address_name: any_string
                 dns_c_ipmatchelement_t *elem;
                 dns_c_acl_t *acl;
 
-                tmpres = dns_c_acltable_getacl(logcontext, currcfg->acls,
+                tmpres = dns_c_acltable_getacl(currcfg->acls,
                                                $1, &acl);
                 if (tmpres == ISC_R_NOTFOUND) {
                         parser_warning(ISC_FALSE,
@@ -2229,8 +2207,7 @@ address_name: any_string
                                        $1);
                         elem = NULL;
                 } else {
-                        tmpres = dns_c_ipmatch_aclnew(logcontext,
-                                                      currcfg->mem, &elem, $1);
+                        tmpres = dns_c_ipmatch_aclnew(currcfg->mem, &elem, $1);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
                                              "Failed to create IPE-ACL");
@@ -2261,14 +2238,13 @@ key_list_element: key_ref
 
                 INSIST(currserver->keys != NULL);
 
-                if (!dns_c_ctx_keydefinedp(logcontext, currcfg, $1)) {
+                if (!dns_c_ctx_keydefinedp(currcfg, $1)) {
                         parser_error(ISC_FALSE,
                                      "Server keys key_id (%s) "
                                      "referenced before defined", $1);
                         YYABORT;
                 } else {
-                        tmpres = dns_c_kid_new(logcontext,
-                                               currserver->keys, $1, &keyid);
+                        tmpres = dns_c_kid_new(currserver->keys, $1, &keyid);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
                                              "Failed to create keyid");
@@ -2297,7 +2273,7 @@ key_stmt: L_SEC_KEY any_string
                 dns_c_kdef_t *keydef;
                 
                 if (currcfg->keydefs == NULL) {
-                        tmpres = dns_c_kdeflist_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_kdeflist_new(currcfg->mem,
                                                     &currcfg->keydefs);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -2306,7 +2282,7 @@ key_stmt: L_SEC_KEY any_string
                         }
                 }
                 
-                tmpres = dns_c_kdef_new(logcontext, currcfg->keydefs,
+                tmpres = dns_c_kdef_new(currcfg->keydefs,
                                         $2, &keydef);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -2328,8 +2304,8 @@ key_definition: algorithm_id secret
                 keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
                 INSIST(keydef != NULL);
 
-                dns_c_kdef_setalgorithm(logcontext, keydef, $1);
-                dns_c_kdef_setsecret(logcontext, keydef, $2);
+                dns_c_kdef_setalgorithm(keydef, $1);
+                dns_c_kdef_setsecret(keydef, $2);
 
                 isc_mem_free(memctx, $1);
                 isc_mem_free(memctx, $2);
@@ -2343,8 +2319,8 @@ key_definition: algorithm_id secret
                 keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
                 INSIST(keydef != NULL);
 
-                dns_c_kdef_setsecret(logcontext, keydef, $1);
-                dns_c_kdef_setalgorithm(logcontext, keydef, $2);
+                dns_c_kdef_setsecret(keydef, $1);
+                dns_c_kdef_setalgorithm(keydef, $2);
 
                 isc_mem_free(memctx, $1);
                 isc_mem_free(memctx, $2);
@@ -2374,7 +2350,7 @@ view_stmt: L_VIEW any_string L_LBRACE
                 dns_c_view_t *view;
 
                 if (currcfg->views == NULL) {
-                        tmpres = dns_c_viewtable_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_viewtable_new(currcfg->mem,
                                                      &currcfg->views);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
@@ -2383,19 +2359,19 @@ view_stmt: L_VIEW any_string L_LBRACE
                         }
                 }
                 
-                tmpres = dns_c_view_new(logcontext, currcfg->mem, $2, &view);
+                tmpres = dns_c_view_new(currcfg->mem, $2, &view);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to create view %s", $2);
                         YYABORT;
                 }
 
-                dns_c_viewtable_addview(logcontext, currcfg->views, view);
-		dns_c_ctx_setcurrview(logcontext, currcfg, view);
+                dns_c_viewtable_addview(currcfg->views, view);
+		dns_c_ctx_setcurrview(currcfg, view);
 
 		isc_mem_free(memctx, $2);
         } optional_view_options_list L_RBRACE {
-		dns_c_ctx_setcurrview(logcontext, currcfg, NULL);
+		dns_c_ctx_setcurrview(currcfg, NULL);
         };
 
 optional_view_options_list:
@@ -2408,12 +2384,11 @@ view_options_list: view_option L_EOS
 
 view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_view_t *view = dns_c_ctx_getcurrview(logcontext,
-							   currcfg);
+                dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
                 INSIST(view != NULL);
 
-                tmpres = dns_c_view_setallowquery(logcontext, view, $3,
+                tmpres = dns_c_view_setallowquery(view, $3,
                                                   ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2450,7 +2425,7 @@ acl_stmt: L_ACL any_string L_LBRACE address_match_list L_RBRACE
 
                 INSIST(currcfg->acls != NULL);
                         
-                tmpres = dns_c_acl_new(logcontext, currcfg->acls,
+                tmpres = dns_c_acl_new(currcfg->acls,
                                        $2, ISC_FALSE, &acl);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
@@ -2458,7 +2433,7 @@ acl_stmt: L_ACL any_string L_LBRACE address_match_list L_RBRACE
                         YYABORT;
                 }
                 
-                dns_c_acl_setipml(logcontext, acl, $4, ISC_FALSE);
+                dns_c_acl_setipml(acl, $4, ISC_FALSE);
                         
                 isc_mem_free(memctx, $2);
         }
@@ -2484,10 +2459,10 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                 dns_c_zone_t *zone;
 
                 if (currcfg->zlist == NULL) {
-                        tmpres = dns_c_zonelist_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_zonelist_new(currcfg->mem,
                                                     &currcfg->zlist);
                         if (tmpres != ISC_R_SUCCESS) {
-                                isc_log_write(logcontext,
+                                isc_log_write(dns_lctx,
                                               DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
                                               ISC_LOG_CRITICAL,
@@ -2497,10 +2472,10 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                 }
 
 		/* XXX internal name support needed! */
-                tmpres = dns_c_zone_new(logcontext, currcfg->mem,
+                tmpres = dns_c_zone_new(currcfg->mem,
                                         $6, $3, $2, $2, &zone);
                 if (tmpres != ISC_R_SUCCESS) {
-                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                        isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
                                       "Error creating new zone.");
@@ -2511,28 +2486,27 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                         zone->afteropts = ISC_TRUE;
                 }
 
-		tmpres = dns_c_zonelist_addzone(logcontext,
-						currcfg->zlist, zone);
+		tmpres = dns_c_zonelist_addzone(currcfg->zlist, zone);
 		if (tmpres != ISC_R_SUCCESS) {
-			dns_c_zone_detach(logcontext, &zone);
-                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+			dns_c_zone_detach(&zone);
+                        isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
                                       "Error adding new zone to list.");
                         YYABORT;
 		}
 
-		dns_c_ctx_setcurrzone(logcontext, currcfg, zone);
+		dns_c_ctx_setcurrzone(currcfg, zone);
 		
                 isc_mem_free(memctx, $2);
         } optional_zone_options_list L_RBRACE {
                 dns_c_zone_t *zone;
 		dns_c_view_t *view;
 		
-		zone = dns_c_ctx_getcurrzone(logcontext, currcfg);
-		view = dns_c_ctx_getcurrview(logcontext, currcfg);
+		zone = dns_c_ctx_getcurrzone(currcfg);
+		view = dns_c_ctx_getcurrview(currcfg);
 		
-		dns_c_ctx_setcurrzone(logcontext, currcfg, NULL);
+		dns_c_ctx_setcurrzone(currcfg, NULL);
 
                 if (callbacks != NULL && callbacks->zonecbk != NULL) {
                         tmpres = callbacks->zonecbk(currcfg,
@@ -2540,8 +2514,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 						    view,
                                                     callbacks->zonecbkuap);
                         if (tmpres != ISC_R_SUCCESS) {
-				isc_log_write(logcontext,
-					      DNS_LOGCATEGORY_CONFIG,
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 					      DNS_LOGMODULE_CONFIG,
 					      ISC_LOG_CRITICAL,
 					      "zone callback failed: %s",
@@ -2549,8 +2522,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                                 YYABORT;
                         }
 
-                        dns_c_zonelist_rmzone(logcontext,
-                                              currcfg->zlist, zone);
+                        dns_c_zonelist_rmzone(currcfg->zlist, zone);
                 }
         }
         | L_ZONE domain_name optional_class L_LBRACE zone_non_type_keywords
@@ -2640,12 +2612,11 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 
 zone_option: L_FILE L_QSTRING
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							   currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setfile(logcontext, zone, $2);
+                tmpres = dns_c_zone_setfile(zone, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "redefining zone filename.");
@@ -2657,12 +2628,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FILE_IXFR L_QSTRING
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setixfrbase(logcontext, zone, $2);
+                tmpres = dns_c_zone_setixfrbase(zone, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "Redefining ixfr-base.");
@@ -2674,12 +2644,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_IXFR_TMP L_QSTRING
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setixfrtmp(logcontext, zone, $2);
+                tmpres = dns_c_zone_setixfrtmp(zone, $2);
                 if (tmpres == ISC_R_EXISTS) {
                         parser_warning(ISC_FALSE,
                                        "Redefining ixfr-tmp-file.");
@@ -2691,12 +2660,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MASTERS maybe_zero_port L_LBRACE master_in_addr_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmasterport(logcontext, zone, $2);
+                tmpres = dns_c_zone_setmasterport(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2713,7 +2681,7 @@ zone_option: L_FILE L_QSTRING
 			break;
                 }
 
-                tmpres = dns_c_zone_setmasterips(logcontext, zone,
+                tmpres = dns_c_zone_setmasterips(zone,
                                                  $4, ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2733,12 +2701,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_TRANSFER_SOURCE maybe_wild_addr
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_settransfersource(logcontext, zone, $2);
+                tmpres = dns_c_zone_settransfersource(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2757,12 +2724,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_CHECK_NAMES check_names_opt
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setchecknames(logcontext, zone, $2);
+                tmpres = dns_c_zone_setchecknames(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2781,12 +2747,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_UPDATE L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setallowupd(logcontext, zone,
+                tmpres = dns_c_zone_setallowupd(zone,
                                                 $3, ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2806,12 +2771,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setallowquery(logcontext, zone,
+                tmpres = dns_c_zone_setallowquery(zone,
                                                   $3, ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2831,12 +2795,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setallowtransfer(logcontext, zone,
+                tmpres = dns_c_zone_setallowtransfer(zone,
                                                      $3, ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2856,12 +2819,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FORWARD zone_forward_opt
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setforward(logcontext, zone, $2);
+                tmpres = dns_c_zone_setforward(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2880,14 +2842,13 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FORWARDERS L_LBRACE opt_zone_forwarders_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							   currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
                 dns_c_iplist_t *iplist;
                 
                 INSIST(zone != NULL);
 
                 if ($3 == NULL) {       /* user defined empty list */
-                        tmpres = dns_c_iplist_new(logcontext, currcfg->mem,
+                        tmpres = dns_c_iplist_new(currcfg->mem,
                                                   5, &iplist);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_TRUE,
@@ -2899,7 +2860,7 @@ zone_option: L_FILE L_QSTRING
                         iplist = $3;
                 }
                 
-                tmpres = dns_c_zone_setforwarders(logcontext, zone,
+                tmpres = dns_c_zone_setforwarders(zone,
                                                   iplist, ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -2914,18 +2875,17 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone forwarders.");
-			dns_c_iplist_detach(logcontext, &$3);
+			dns_c_iplist_detach(&$3);
 			break;
                 }
         }
         | L_MAX_TRANSFER_TIME_IN L_INTEGER
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxtranstimein(logcontext, zone, $2);
+                tmpres = dns_c_zone_setmaxtranstimein(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2946,12 +2906,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MAX_LOG_SIZE_IXFR L_INTEGER
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaxixfrlog(logcontext, zone, $2);
+                tmpres = dns_c_zone_setmaxixfrlog(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2970,12 +2929,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_NOTIFY yea_or_nay
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setnotify(logcontext, zone, $2);
+                tmpres = dns_c_zone_setnotify(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -2994,12 +2952,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MAINTAIN_IXFR_BASE yea_or_nay
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setmaintixfrbase(logcontext, zone, $2);
+                tmpres = dns_c_zone_setmaintixfrbase(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -3018,13 +2975,12 @@ zone_option: L_FILE L_QSTRING
         }
         | L_PUBKEY L_INTEGER L_INTEGER L_INTEGER L_QSTRING
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
                 dns_c_pubkey_t *pubkey;
                 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_pubkey_new(logcontext, currcfg->mem, $2,
+                tmpres = dns_c_pubkey_new(currcfg->mem, $2,
                                           $3, $4, $5, &pubkey);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE,
@@ -3032,7 +2988,7 @@ zone_option: L_FILE L_QSTRING
                         YYABORT;
                 }
                 
-                tmpres = dns_c_zone_addpubkey(logcontext, zone, pubkey,
+                tmpres = dns_c_zone_addpubkey(zone, pubkey,
                                               ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_SUCCESS:
@@ -3040,7 +2996,7 @@ zone_option: L_FILE L_QSTRING
                         break;
 
                 default:
-                        dns_c_pubkey_delete(logcontext, &pubkey);
+                        dns_c_pubkey_delete(&pubkey);
                         parser_error(ISC_FALSE,
                                      "Failed to add a zone pubkey.");
 			break;
@@ -3050,12 +3006,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setalsonotify(logcontext, zone, $3,
+                tmpres = dns_c_zone_setalsonotify(zone, $3,
                                                   ISC_FALSE);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
@@ -3075,12 +3030,11 @@ zone_option: L_FILE L_QSTRING
         }
         | L_DIALUP yea_or_nay
         {
-                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
                 INSIST(zone != NULL);
 
-                tmpres = dns_c_zone_setdialup(logcontext, zone, $2);
+                tmpres = dns_c_zone_setdialup(zone, $2);
                 switch (tmpres) {
                 case ISC_R_EXISTS:
                         parser_warning(ISC_FALSE,
@@ -3128,7 +3082,7 @@ opt_in_addr_list: /* nothing */
         {
                 dns_c_iplist_t *list;
 
-                tmpres = dns_c_iplist_new(logcontext, currcfg->mem, 5, &list);
+                tmpres = dns_c_iplist_new(currcfg->mem, 5, &list);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE,
                                      "Failed to create new iplist");
@@ -3144,14 +3098,14 @@ in_addr_list: in_addr_elem L_EOS
         {
                 dns_c_iplist_t *list;
 
-                tmpres = dns_c_iplist_new(logcontext, currcfg->mem, 5, &list);
+                tmpres = dns_c_iplist_new(currcfg->mem, 5, &list);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE,
                                      "Failed to create new iplist");
                         YYABORT;
                 }
 
-                tmpres = dns_c_iplist_append(logcontext, list, $1);
+                tmpres = dns_c_iplist_append(list, $1);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE,
                                      "Failed to append master address");
@@ -3162,7 +3116,7 @@ in_addr_list: in_addr_elem L_EOS
         }
         | in_addr_list in_addr_elem L_EOS
         {
-                tmpres = dns_c_iplist_append(logcontext, $1, $2);
+                tmpres = dns_c_iplist_append($1, $2);
                 if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_TRUE,
                                      "Failed to append master address");
@@ -3194,14 +3148,12 @@ trusted_keys_stmt: L_TRUSTED_KEYS
         {
                 dns_c_tkeylist_t *newlist;
                 
-                tmpres = dns_c_ctx_gettrustedkeys(logcontext, currcfg,
+                tmpres = dns_c_ctx_gettrustedkeys(currcfg,
                                                   &newlist);
                 if (tmpres == ISC_R_NOTFOUND) {
-                        tmpres = dns_c_tkeylist_new(logcontext,
-                                                    currcfg->mem, &newlist);
+                        tmpres = dns_c_tkeylist_new(currcfg->mem, &newlist);
                         if (tmpres != ISC_R_SUCCESS) {
-                                isc_log_write(logcontext,
-                                              DNS_LOGCATEGORY_CONFIG,
+                                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
                                               ISC_LOG_CRITICAL,
                                               "Failed to create trusted key"
@@ -3209,12 +3161,11 @@ trusted_keys_stmt: L_TRUSTED_KEYS
                                 YYABORT;
                         }
 
-                        tmpres = dns_c_ctx_settrustedkeys(logcontext, currcfg,
+                        tmpres = dns_c_ctx_settrustedkeys(currcfg,
                                                           newlist,
                                                           ISC_FALSE);
                         if (tmpres != ISC_R_SUCCESS) {
-                                isc_log_write(logcontext,
-                                              DNS_LOGCATEGORY_CONFIG,
+                                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                               DNS_LOGMODULE_CONFIG,
                                               ISC_LOG_CRITICAL,
                                               "Failed to set trusted keys");
@@ -3234,29 +3185,29 @@ trusted_key: domain_name L_INTEGER L_INTEGER L_INTEGER L_QSTRING
                 dns_c_tkey_t *tkey;
                 dns_c_tkeylist_t *list;
 
-                tmpres = dns_c_ctx_gettrustedkeys(logcontext, currcfg, &list);
+                tmpres = dns_c_ctx_gettrustedkeys(currcfg, &list);
                 if (tmpres != ISC_R_SUCCESS) {
-                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                        isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
                                       "No trusted key list defined!");
                         YYABORT;
                 }
 
-                tmpres = dns_c_tkey_new(logcontext, currcfg->mem, $1, $2, $3,
+                tmpres = dns_c_tkey_new(currcfg->mem, $1, $2, $3,
                                         $4, $5, &tkey);
                 if (tmpres != ISC_R_SUCCESS) {
-                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                        isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
                                       "Failed to create trusted key");
                         YYABORT;
                 }
 
-                tmpres = dns_c_tkeylist_append(logcontext, list,
+                tmpres = dns_c_tkeylist_append(list,
                                                tkey, ISC_FALSE);
                 if (tmpres != ISC_R_SUCCESS) {
-                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                        isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
                                       "Failed to append trusted key.");
@@ -3482,7 +3433,7 @@ init_action(void)
  */
   
 isc_result_t
-dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
+dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
                       dns_c_ctx_t **configctx, dns_c_cbks_t *cbks)
 {
         isc_result_t res;
@@ -3520,10 +3471,6 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
         specials['*'] = 1;
 #endif
 
-	/*
-	 * Use the logging context specified by the caller.
-	 */
-	logcontext = logctx;
 
         /*
          * This memory context is only used by the lexer routines (and must 
@@ -3533,7 +3480,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
          */
         res = isc_mem_create(0, 0, &memctx);
         if (res != ISC_R_SUCCESS) {
-                isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating mem context.",
                               funcname);
@@ -3542,16 +3489,16 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
 
         res = keyword_init();
         if (res != ISC_R_SUCCESS) {
-                isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error initializing keywords.",
                               funcname);
                 goto done;
         }
 
-        res = dns_c_ctx_new(logcontext, mem, &currcfg);
+        res = dns_c_ctx_new(mem, &currcfg);
         if (res != ISC_R_SUCCESS) {
-                isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating config context.",
                               funcname);
@@ -3560,7 +3507,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
 
         res = isc_lex_create(memctx, CONF_MAX_IDENT, &mylexer);
         if (res != ISC_R_SUCCESS) {
-                isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error creating lexer",
                               funcname);
@@ -3574,7 +3521,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
 
         res = isc_lex_openfile(mylexer, (char *)filename) ; /* remove const */
         if (res != ISC_R_SUCCESS) {
-                isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
                               "%s: Error opening file %s.",
                               funcname, filename);
@@ -3592,7 +3539,7 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
                  */
                 isc_mem_destroy_check(memctx, ISC_FALSE);
 
-                dns_c_ctx_delete(logcontext, &currcfg);
+                dns_c_ctx_delete(&currcfg);
                 currcfg = NULL;
         } else {
                 res = ISC_R_SUCCESS;
@@ -3613,7 +3560,6 @@ dns_c_parse_namedconf(isc_log_t *logctx, const char *filename, isc_mem_t *mem,
         currcfg = NULL;
         memctx = NULL;
         mylexer = NULL;
-	logcontext = NULL;
 
         RUNTIME_CHECK(isc_mutex_unlock(&yacc_mutex) == ISC_R_SUCCESS);
 
@@ -3823,8 +3769,8 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 			    "error message would overflow");
 
         if (print_last_token) {
-		if (logcontext != NULL) {
-			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+		if (dns_lctx != NULL) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
 				       "%s%s near `%s'", where, message,
 				       token_to_text(lasttoken, lastyylval));
@@ -3833,8 +3779,8 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 				token_to_text(lasttoken, lastyylval));
 		}
         } else {
-		if (logcontext != NULL) {
-			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+		if (dns_lctx != NULL) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
 				       "%s%s", where, message);
 		} else {

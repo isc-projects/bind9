@@ -190,148 +190,114 @@ struct dns_c_kid_list
  *** Functions
  ***/
 
-isc_result_t	dns_c_pklist_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_pklist_new(isc_mem_t *mem,
                                  dns_c_pklist_t **pklist);
-isc_result_t	dns_c_pklist_delete(isc_log_t *lctx, dns_c_pklist_t **list);
-isc_result_t	dns_c_pklist_addpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+isc_result_t	dns_c_pklist_delete(dns_c_pklist_t **list);
+isc_result_t	dns_c_pklist_addpubkey(dns_c_pklist_t *list,
                                        dns_c_pubkey_t *pkey,
                                        isc_boolean_t deepcopy);
-isc_result_t	dns_c_pklist_findpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+isc_result_t	dns_c_pklist_findpubkey(dns_c_pklist_t *list,
 					dns_c_pubkey_t **pubkey,
 					isc_int32_t flags,
 					isc_int32_t protocol,
 					isc_int32_t algorithm,
 					const char *key);
-isc_result_t	dns_c_pklist_rmpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+isc_result_t	dns_c_pklist_rmpubkey(dns_c_pklist_t *list,
 				      isc_int32_t flags,
 				      isc_int32_t protocol,
 				      isc_int32_t algorithm,
 				      const char *key);
-void		dns_c_pklist_print(isc_log_t *lctx,
-				   FILE *fp, int indent,
+void		dns_c_pklist_print(FILE *fp, int indent,
 				   dns_c_pklist_t *pubkey);
 
 
 
-isc_result_t	dns_c_pubkey_new(isc_log_t *lctx,
-				 isc_mem_t *mem, isc_int32_t flags,
+isc_result_t	dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags,
 				 isc_int32_t protocol,
 				 isc_int32_t algorithm,
 				 const char *key, dns_c_pubkey_t **pubkey);
-isc_result_t	dns_c_pubkey_delete(isc_log_t *lctx,
-				    dns_c_pubkey_t **pubkey);
-isc_result_t	dns_c_pubkey_copy(isc_log_t *lctx,
-				  isc_mem_t *mem, dns_c_pubkey_t **dest,
+isc_result_t	dns_c_pubkey_delete(dns_c_pubkey_t **pubkey);
+isc_result_t	dns_c_pubkey_copy(isc_mem_t *mem, dns_c_pubkey_t **dest,
 				  dns_c_pubkey_t *src);
 isc_boolean_t	dns_c_pubkey_equal(dns_c_pubkey_t *k1, dns_c_pubkey_t *k2);
-void		dns_c_pubkey_print(isc_log_t *lctx,
-				   FILE *fp, int indent,
+void		dns_c_pubkey_print(FILE *fp, int indent,
 				   dns_c_pubkey_t *pubkey);
 
 
-isc_result_t	dns_c_kidlist_new(isc_log_t *lctx,
-				  isc_mem_t *mem,
+isc_result_t	dns_c_kidlist_new(isc_mem_t *mem,
 				  dns_c_kidlist_t **list);
-isc_result_t	dns_c_kidlist_delete(isc_log_t *lctx,
-				     dns_c_kidlist_t **list);
-isc_result_t	dns_c_kidlist_undef(isc_log_t *lctx,
-				    dns_c_kidlist_t *list,
+isc_result_t	dns_c_kidlist_delete(dns_c_kidlist_t **list);
+isc_result_t	dns_c_kidlist_undef(dns_c_kidlist_t *list,
 				    const char *keyid);
-isc_result_t	dns_c_kidlist_find(isc_log_t *lctx,
-				   dns_c_kidlist_t *list,
+isc_result_t	dns_c_kidlist_find(dns_c_kidlist_t *list,
 				   const char *keyid,
 				   dns_c_kid_t **retval);
-void		dns_c_kidlist_print(isc_log_t *lctx,
-				    FILE *fp, int indent,
+void		dns_c_kidlist_print(FILE *fp, int indent,
 				    dns_c_kidlist_t *list);
-isc_result_t	dns_c_kid_new(isc_log_t *lctx,
-			      dns_c_kidlist_t *list, const char *name,
+isc_result_t	dns_c_kid_new(dns_c_kidlist_t *list, const char *name,
 			      dns_c_kid_t **keyid);
 
-isc_result_t	dns_c_kdeflist_new(isc_log_t *lctx,
-				   isc_mem_t *mem,
+isc_result_t	dns_c_kdeflist_new(isc_mem_t *mem,
 				   dns_c_kdeflist_t **list);
-isc_result_t	dns_c_kdeflist_delete(isc_log_t *lctx,
-				      dns_c_kdeflist_t **list);
-isc_result_t	dns_c_kdeflist_copy(isc_log_t *lctx,
-				    isc_mem_t *mem,
+isc_result_t	dns_c_kdeflist_delete(dns_c_kdeflist_t **list);
+isc_result_t	dns_c_kdeflist_copy(isc_mem_t *mem,
 				    dns_c_kdeflist_t **dest,
 				    dns_c_kdeflist_t *src);
-isc_result_t	dns_c_kdeflist_append(isc_log_t *lctx, dns_c_kdeflist_t *list,
+isc_result_t	dns_c_kdeflist_append(dns_c_kdeflist_t *list,
 				      dns_c_kdef_t *key, isc_boolean_t copy);
 
-isc_result_t	dns_c_kdeflist_undef(isc_log_t *lctx,
-				     dns_c_kdeflist_t *list,
+isc_result_t	dns_c_kdeflist_undef(dns_c_kdeflist_t *list,
 				     const char *keyid);
-isc_result_t	dns_c_kdeflist_find(isc_log_t *lctx,
-				    dns_c_kdeflist_t *list,
+isc_result_t	dns_c_kdeflist_find(dns_c_kdeflist_t *list,
 				    const char *keyid,
 				    dns_c_kdef_t **retval);
-void		dns_c_kdeflist_print(isc_log_t *lctx,
-				     FILE *fp, int indent,
+void		dns_c_kdeflist_print(FILE *fp, int indent,
 				     dns_c_kdeflist_t *list);
 
-isc_result_t	dns_c_kdef_new(isc_log_t *lctx,
-			       dns_c_kdeflist_t *list, const char *name,
+isc_result_t	dns_c_kdef_new(dns_c_kdeflist_t *list, const char *name,
 			       dns_c_kdef_t **keyid);
-isc_result_t	dns_c_kdef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef);
-isc_result_t	dns_c_kdef_copy(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_kdef_delete(dns_c_kdef_t **keydef);
+isc_result_t	dns_c_kdef_copy(isc_mem_t *mem,
 				dns_c_kdef_t **dest, dns_c_kdef_t *src);
 
-void		dns_c_kdef_print(isc_log_t *lctx,
-				 FILE *fp, int indent, dns_c_kdef_t *keydef);
+void		dns_c_kdef_print(FILE *fp, int indent, dns_c_kdef_t *keydef);
 
 
-isc_result_t	dns_c_kdef_setalgorithm(isc_log_t *lctx,
-					dns_c_kdef_t *elem,
+isc_result_t	dns_c_kdef_setalgorithm(dns_c_kdef_t *elem,
 					const char *algorithm);
-isc_result_t	dns_c_kdef_setsecret(isc_log_t *lctx,
-				     dns_c_kdef_t *elem,
+isc_result_t	dns_c_kdef_setsecret(dns_c_kdef_t *elem,
 				     const char *secret);
 
-isc_result_t	dns_c_tkeylist_new(isc_log_t *lctx,
-				   isc_mem_t *mem,
+isc_result_t	dns_c_tkeylist_new(isc_mem_t *mem,
 				   dns_c_tkeylist_t **newlist);
-isc_result_t	dns_c_tkeylist_delete(isc_log_t *lctx,
-				      dns_c_tkeylist_t **list);
-isc_result_t	dns_c_tkeylist_copy(isc_log_t *lctx,
-				    isc_mem_t *mem,
+isc_result_t	dns_c_tkeylist_delete(dns_c_tkeylist_t **list);
+isc_result_t	dns_c_tkeylist_copy(isc_mem_t *mem,
 				    dns_c_tkeylist_t **dest,
 				    dns_c_tkeylist_t *src);
-void		dns_c_tkeylist_print(isc_log_t *lctx,
-				     FILE *fp, int indent,
+void		dns_c_tkeylist_print(FILE *fp, int indent,
 				     dns_c_tkeylist_t *list);
-isc_result_t	dns_c_tkeylist_append(isc_log_t *lctx,
-				      dns_c_tkeylist_t *list,
+isc_result_t	dns_c_tkeylist_append(dns_c_tkeylist_t *list,
 				      dns_c_tkey_t *element,
 				      isc_boolean_t copy);
 
-isc_result_t	dns_c_tkey_new(isc_log_t *lctx,
-			       isc_mem_t *mem, const char *domain,
+isc_result_t	dns_c_tkey_new(isc_mem_t *mem, const char *domain,
 			       isc_int32_t flags,
 			       isc_int32_t protocol,
 			       isc_int32_t algorithm,
 			       const char *key, dns_c_tkey_t **newkey);
-isc_result_t	dns_c_tkey_delete(isc_log_t *lctx,
-				  dns_c_tkey_t **tkey);
-isc_result_t	dns_c_tkey_copy(isc_log_t *lctx,
-				isc_mem_t *mem,
+isc_result_t	dns_c_tkey_delete(dns_c_tkey_t **tkey);
+isc_result_t	dns_c_tkey_copy(isc_mem_t *mem,
 				dns_c_tkey_t **dest, dns_c_tkey_t *src);
 
-isc_result_t	dns_c_tkey_getflags(isc_log_t *lctx,
-				    dns_c_tkey_t *tkey,
+isc_result_t	dns_c_tkey_getflags(dns_c_tkey_t *tkey,
 				    isc_int32_t *flags);
-isc_result_t	dns_c_tkey_getprotocol(isc_log_t *lctx,
-				       dns_c_tkey_t *tkey,
+isc_result_t	dns_c_tkey_getprotocol(dns_c_tkey_t *tkey,
 				       isc_int32_t *protocol);
-isc_result_t	dns_c_tkey_getalgorithm(isc_log_t *lctx,
-					dns_c_tkey_t *tkey,
+isc_result_t	dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey,
 					isc_int32_t *algorithm);
-isc_result_t	dns_c_tkey_getkey(isc_log_t *lctx,
-				  dns_c_tkey_t *tkey,
+isc_result_t	dns_c_tkey_getkey(dns_c_tkey_t *tkey,
 				  const char **key);
-void		dns_c_tkey_print(isc_log_t *lctx,
-				 FILE *fp, int indent, dns_c_tkey_t *tkey);
+void		dns_c_tkey_print(FILE *fp, int indent, dns_c_tkey_t *tkey);
 
 
 

@@ -75,8 +75,7 @@ struct dns_c_resolv
  *** Functions
  ***/
 
-isc_result_t dns_c_resolv_new(isc_log_t *lctx,
-			      isc_mem_t *mem, dns_c_resolv_t **cfgres);
+isc_result_t dns_c_resolv_new(isc_mem_t *mem, dns_c_resolv_t **cfgres);
 /*
  * Creates a new resolver-config object.
  *
@@ -90,8 +89,7 @@ isc_result_t dns_c_resolv_new(isc_log_t *lctx,
  * 
  */
 
-isc_result_t dns_c_resolv_delete(isc_log_t *lctx,
-				 dns_c_resolv_t **cfgres);
+isc_result_t dns_c_resolv_delete(dns_c_resolv_t **cfgres);
 /*
  * Deletes the config-resolv object and its contents.
  *

@@ -216,136 +216,124 @@ struct dns_c_zone
  *** Functions
  ***/
 
-isc_result_t	dns_c_zonelist_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_zonelist_new(isc_mem_t *mem,
 				   dns_c_zonelist_t **zlist);
-isc_result_t	dns_c_zonelist_delete(isc_log_t *lctx,
-				      dns_c_zonelist_t **zlist);
+isc_result_t	dns_c_zonelist_delete(dns_c_zonelist_t **zlist);
 #if 0
-dns_c_zone_t   *dns_c_zonelist_currzone(isc_log_t *lctx,
-					dns_c_zonelist_t *zlist);
+dns_c_zone_t   *dns_c_zonelist_currzone(dns_c_zonelist_t *zlist);
 #endif
 
-isc_result_t	dns_c_zonelist_find(isc_log_t *lctx, dns_c_zonelist_t *zlist,
+isc_result_t	dns_c_zonelist_find(dns_c_zonelist_t *zlist,
 				    const char *name, dns_c_zone_t **retval);
-isc_result_t	dns_c_zonelist_rmbyname(isc_log_t *lctx,
-					dns_c_zonelist_t *zlist,
+isc_result_t	dns_c_zonelist_rmbyname(dns_c_zonelist_t *zlist,
 					const char *name);
-isc_result_t	dns_c_zonelist_addzone(isc_log_t *lctx,
-				       dns_c_zonelist_t *zlist,
+isc_result_t	dns_c_zonelist_addzone(dns_c_zonelist_t *zlist,
 				       dns_c_zone_t *zone);
-isc_result_t	dns_c_zonelist_rmzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
+isc_result_t	dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist,
 				      dns_c_zone_t *zone);
-void		dns_c_zonelist_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_zonelist_print(FILE *fp, int indent,
 				     dns_c_zonelist_t *list);
-void		dns_c_zonelist_printpostopts(isc_log_t *lctx, FILE *fp,
+void		dns_c_zonelist_printpostopts(FILE *fp,
 					     int indent,
 					     dns_c_zonelist_t *list);
-void		dns_c_zonelist_printpreopts(isc_log_t *lctx, FILE *fp,
+void		dns_c_zonelist_printpreopts(FILE *fp,
 					    int indent,
 					    dns_c_zonelist_t *list);
-isc_result_t	dns_c_zone_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_zone_new(isc_mem_t *mem,
 			       dns_c_zonetype_t ztype, dns_rdataclass_t zclass,
 			       const char *name, const char *internalname,
 			       dns_c_zone_t **zone);
-isc_result_t	dns_c_zone_detach(isc_log_t *lctx, dns_c_zone_t **zone);
-void		dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *source,
+isc_result_t	dns_c_zone_detach(dns_c_zone_t **zone);
+void		dns_c_zone_attach(dns_c_zone_t *source,
 				  dns_c_zone_t **target);
-void		dns_c_zone_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_zone_print(FILE *fp, int indent,
 				 dns_c_zone_t *zone);
-isc_result_t	dns_c_zone_setfile(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setfile(dns_c_zone_t *zone,
 				   const char *newfile);
-isc_result_t	dns_c_zone_setchecknames(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setchecknames(dns_c_zone_t *zone,
 					 dns_c_severity_t severity);
-isc_result_t	dns_c_zone_setallowupd(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t *ipml,
 				       isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_setallowquery(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setallowquery(dns_c_zone_t *zone,
 					 dns_c_ipmatchlist_t *ipml,
 					 isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_setallowtransfer(isc_log_t *lctx,
-					    dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setallowtransfer(dns_c_zone_t *zone,
 					    dns_c_ipmatchlist_t *ipml,
 					    isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_setdialup(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setdialup(dns_c_zone_t *zone,
 				     isc_boolean_t newval);
-isc_result_t	dns_c_zone_setnotify(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setnotify(dns_c_zone_t *zone,
 				     isc_boolean_t newval);
-isc_result_t	dns_c_zone_setmaintixfrbase(isc_log_t *lctx,
-					    dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone,
 					    isc_boolean_t newval);
-isc_result_t	dns_c_zone_setalsonotify(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setalsonotify(dns_c_zone_t *zone,
 					 dns_c_iplist_t *newval,
 					 isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_setixfrbase(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setixfrbase(dns_c_zone_t *zone,
 				       const char *newval);
-isc_result_t	dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setixfrtmp(dns_c_zone_t *zone,
 				      const char *newval);
-isc_result_t	dns_c_zone_addpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_addpubkey(dns_c_zone_t *zone,
 				     dns_c_pubkey_t *pubkey,
 				     isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_setmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setmasterport(dns_c_zone_t *zone,
 					 in_port_t port);
-isc_result_t	dns_c_zone_setmasterips(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setmasterips(dns_c_zone_t *zone,
 					dns_c_iplist_t *newval,
 					isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_settransfersource(isc_log_t *lctx,
-					     dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_settransfersource(dns_c_zone_t *zone,
 					     isc_sockaddr_t newval);
-isc_result_t	dns_c_zone_setmaxtranstimein(isc_log_t *lctx,
-					     dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 					     isc_int32_t newval);
-isc_result_t	dns_c_zone_setmaxixfrlog(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
 					 isc_int32_t new);
-isc_result_t	dns_c_zone_setforward(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setforward(dns_c_zone_t *zone,
 				      dns_c_forw_t newval);
-isc_result_t	dns_c_zone_setforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_setforwarders(dns_c_zone_t *zone,
 					 dns_c_iplist_t *ipml,
 					 isc_boolean_t deepcopy);
-isc_result_t	dns_c_zone_getname(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getname(dns_c_zone_t *zone,
 				   const char **retval);
-isc_result_t	dns_c_zone_getinternalname(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getinternalname(dns_c_zone_t *zone,
 					   const char **retval);
-isc_result_t	dns_c_zone_getfile(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getfile(dns_c_zone_t *zone,
 				   const char **retval);
-isc_result_t	dns_c_zone_getchecknames(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getchecknames(dns_c_zone_t *zone,
 					 dns_c_severity_t *retval);
-isc_result_t	dns_c_zone_getallowupd(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t **retval);
-isc_result_t	dns_c_zone_getallowquery(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getallowquery(dns_c_zone_t *zone,
 					 dns_c_ipmatchlist_t **retval);
-isc_result_t	dns_c_zone_getallowtransfer(isc_log_t *lctx,
-					    dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getallowtransfer(dns_c_zone_t *zone,
 					    dns_c_ipmatchlist_t **retval);
-isc_result_t	dns_c_zone_getdialup(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getdialup(dns_c_zone_t *zone,
 				     isc_boolean_t *retval);
-isc_result_t	dns_c_zone_getnotify(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getnotify(dns_c_zone_t *zone,
 				     isc_boolean_t *retval);
-isc_result_t	dns_c_zone_getmaintixfrbase(isc_log_t *lctx,
-					    dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone,
 					    isc_boolean_t *retval);
-isc_result_t	dns_c_zone_getalsonotify(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getalsonotify(dns_c_zone_t *zone,
 					 dns_c_iplist_t **retval);
-isc_result_t	dns_c_zone_getixfrbase(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getixfrbase(dns_c_zone_t *zone,
 				       const char **retval);
-isc_result_t	dns_c_zone_getixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getixfrtmp(dns_c_zone_t *zone,
 				      const char **retval);
-isc_result_t	dns_c_zone_getpubkeylist(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getpubkeylist(dns_c_zone_t *zone,
 				     dns_c_pklist_t **retval);
-isc_result_t	dns_c_zone_getmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getmasterport(dns_c_zone_t *zone,
 					 in_port_t *retval);
-isc_result_t	dns_c_zone_getmasterips(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getmasterips(dns_c_zone_t *zone,
 					dns_c_iplist_t **retval);
-isc_result_t	dns_c_zone_gettransfersource(isc_log_t *lctx,
-					     dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_gettransfersource(dns_c_zone_t *zone,
 					     isc_sockaddr_t *retval);
-isc_result_t	dns_c_zone_getmaxtranstimein(isc_log_t *lctx,
-					     dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 					     isc_int32_t *retval);
-isc_result_t	dns_c_zone_getmaxixfrlog(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
 					 isc_int32_t *retval);
-isc_result_t	dns_c_zone_getforward(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getforward(dns_c_zone_t *zone,
 				      dns_c_forw_t *retval);
-isc_result_t	dns_c_zone_getforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_getforwarders(dns_c_zone_t *zone,
 					 dns_c_iplist_t **retval);
 
 

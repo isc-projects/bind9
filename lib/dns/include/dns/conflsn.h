@@ -105,7 +105,7 @@ struct dns_c_lstn_list
  *** Functions
  ***/
 
-isc_result_t	dns_c_lstnlist_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_lstnlist_new(isc_mem_t *mem,
 				   dns_c_lstnlist_t **llist);
 /*
  * Creates a new dns_c_lstnlist_t structure from the allocator pointed to
@@ -120,8 +120,7 @@ isc_result_t	dns_c_lstnlist_new(isc_log_t *lctx, isc_mem_t *mem,
  *	ISC_R_NOMEMORY		on allocation failure.
  */
 
-isc_result_t	dns_c_lstnlist_delete(isc_log_t *lctx,
-				      dns_c_lstnlist_t **llist);
+isc_result_t	dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
 /*
  * Deletes the list pointed to by **LLIST, and all the elements in it.
  * Sets *LLIST to NULL when done.
@@ -134,8 +133,7 @@ isc_result_t	dns_c_lstnlist_delete(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_lstnlist_print(isc_log_t *lctx,
-				     FILE *fp, int indent,
+isc_result_t	dns_c_lstnlist_print(FILE *fp, int indent,
 				     dns_c_lstnlist_t *ll);
 /*
  * Prints the given the list LL to the stream FP. INDENT number of tabs
@@ -148,7 +146,7 @@ isc_result_t	dns_c_lstnlist_print(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_lstnon_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_lstnon_new(isc_mem_t *mem,
 				 dns_c_lstnon_t **listen);
 /*
  * Creates a new dns_c_lstnon_t structure and stores the pointer
@@ -163,8 +161,7 @@ isc_result_t	dns_c_lstnon_new(isc_log_t *lctx, isc_mem_t *mem,
  *	ISC_R_NOMEMORY on allocation failure.
  */
 
-isc_result_t	dns_c_lstnon_delete(isc_log_t *lctx,
-				    dns_c_lstnon_t **listen);
+isc_result_t	dns_c_lstnon_delete(dns_c_lstnon_t **listen);
 /*
  * Deletes the dns_c_lstnon_t structure pointed to by *LISTEN.
  *
@@ -175,8 +172,7 @@ isc_result_t	dns_c_lstnon_delete(isc_log_t *lctx,
  * Returns:
  */
 
-isc_result_t	dns_c_lstnon_setiml(isc_log_t *lctx,
-				    dns_c_lstnon_t *listen,
+isc_result_t	dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
 				    dns_c_ipmatchlist_t *iml,
 				    isc_boolean_t deepcopy);
 /*
@@ -192,7 +188,7 @@ isc_result_t	dns_c_lstnon_setiml(isc_log_t *lctx,
  *	ISC_R_NOMEMORY on allocation failure.
  */
 
-isc_result_t	dns_c_lstnon_print(isc_log_t *lctx, FILE *fp, int indent,
+isc_result_t	dns_c_lstnon_print(FILE *fp, int indent,
 				   dns_c_lstnon_t *lo);
 
 

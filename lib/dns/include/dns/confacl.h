@@ -110,7 +110,7 @@ struct dns_c_acl_table
  *** Functions
  ***/
 
-isc_result_t	dns_c_acltable_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_acltable_new(isc_mem_t *mem,
 				   dns_c_acltable_t **newtable);
 
 /*
@@ -129,8 +129,7 @@ isc_result_t	dns_c_acltable_new(isc_log_t *lctx, isc_mem_t *mem,
  */
 
 
-isc_result_t	dns_c_acltable_delete(isc_log_t *lctx,
-				      dns_c_acltable_t **table);
+isc_result_t	dns_c_acltable_delete(dns_c_acltable_t **table);
 
 /*
  * Destroys the table pointed to by *TABLE and all the ACLs in it. The
@@ -146,8 +145,7 @@ isc_result_t	dns_c_acltable_delete(isc_log_t *lctx,
  */
 
 
-isc_result_t	dns_c_acltable_getacl(isc_log_t *lctx,
-				      dns_c_acltable_t *table,
+isc_result_t	dns_c_acltable_getacl(dns_c_acltable_t *table,
 				      const char *aclname,
 				      dns_c_acl_t **retval);
 
@@ -164,8 +162,7 @@ isc_result_t	dns_c_acltable_getacl(isc_log_t *lctx,
  * 
  */
 
-isc_result_t	dns_c_acltable_removeacl(isc_log_t *lctx,
-					 dns_c_acltable_t *table,
+isc_result_t	dns_c_acltable_removeacl(dns_c_acltable_t *table,
 					 const char *aclname);
 
 /*
@@ -181,7 +178,7 @@ isc_result_t	dns_c_acltable_removeacl(isc_log_t *lctx,
  * 
  */
 
-void		dns_c_acltable_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_acltable_print(FILE *fp, int indent,
 				     dns_c_acltable_t *table);
 /*
  * Prints the ACL table and the ACLs in it to the give stdio stream.
@@ -196,7 +193,7 @@ void		dns_c_acltable_print(isc_log_t *lctx, FILE *fp, int indent,
 */
 
 
-isc_result_t	dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table);
+isc_result_t	dns_c_acltable_clear(dns_c_acltable_t *table);
 
 /*
  * Deletes all the acls from the table.
@@ -211,7 +208,7 @@ isc_result_t	dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table);
 
 
 
-isc_result_t	dns_c_acl_new(isc_log_t *lctx, dns_c_acltable_t *table,
+isc_result_t	dns_c_acl_new(dns_c_acltable_t *table,
 			      const char *aclname,
 			      isc_boolean_t isspecial,
 			      dns_c_acl_t **newacl);
@@ -232,7 +229,7 @@ isc_result_t	dns_c_acl_new(isc_log_t *lctx, dns_c_acltable_t *table,
  */
 
 
-void		dns_c_acl_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_acl_print(FILE *fp, int indent,
 				dns_c_acl_t *acl);
 /*
  * Prints out the acl to the stdio stream. The outupt is indented by INDENT 
@@ -246,7 +243,7 @@ void		dns_c_acl_print(isc_log_t *lctx, FILE *fp, int indent,
  */
 
 
-isc_result_t	dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
+isc_result_t	dns_c_acl_setipml(dns_c_acl_t *acl,
 				  dns_c_ipmatchlist_t *ipml,
 				  isc_boolean_t deepcopy);
 
@@ -270,8 +267,7 @@ isc_result_t	dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
  */
 
 
-isc_result_t	dns_c_acl_getipmlexpanded(isc_log_t *lctx,
-					  isc_mem_t *mem, dns_c_acl_t *acl,
+isc_result_t	dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
 					  dns_c_ipmatchlist_t **retval);
 
 /*
@@ -295,7 +291,7 @@ isc_result_t	dns_c_acl_getipmlexpanded(isc_log_t *lctx,
 
 
 
-isc_result_t dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
+isc_result_t dns_c_acl_expandacls(dns_c_acltable_t *table,
 				  dns_c_ipmatchlist_t *list);
 
 /*

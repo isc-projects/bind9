@@ -161,14 +161,12 @@ static void default_cfgerror(isc_result_t result, const char *fmt,
 
 
 void
-dns_c_printinunits(isc_log_t *lctx, FILE *fp, isc_uint32_t val)
+dns_c_printinunits(FILE *fp, isc_uint32_t val)
 {
 	isc_uint32_t one_gig = (1024 * 1024 * 1024);
 	isc_uint32_t one_meg = (1024 * 1024);
 	isc_uint32_t one_k = 1024;
 
-	(void) lctx;
-	
 	if (val == DNS_C_SIZE_SPEC_DEFAULT)
 		fprintf(fp, "default");
 	else if ((val % one_gig) == 0)
@@ -185,13 +183,11 @@ dns_c_printinunits(isc_log_t *lctx, FILE *fp, isc_uint32_t val)
 
 
 void
-dns_c_dataclass_tostream(isc_log_t *lctx, FILE *fp, dns_rdataclass_t rclass)
+dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass)
 {
 	char buffer[64];
 	isc_buffer_t sourceb;
 
-	(void) lctx;
-	
 	isc_buffer_init(&sourceb, buffer, sizeof buffer,
 			ISC_BUFFERTYPE_GENERIC);
 	
@@ -206,13 +202,11 @@ dns_c_dataclass_tostream(isc_log_t *lctx, FILE *fp, dns_rdataclass_t rclass)
 
 
 void
-dns_c_datatype_tostream(isc_log_t *lctx, FILE *fp, dns_rdatatype_t rtype)
+dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype)
 {
 	char buffer[64];
 	isc_buffer_t sourceb;
 
-	(void) lctx;
-	
 	isc_buffer_init(&sourceb, buffer, sizeof buffer,
 			ISC_BUFFERTYPE_GENERIC);
 
@@ -227,10 +221,8 @@ dns_c_datatype_tostream(isc_log_t *lctx, FILE *fp, dns_rdatatype_t rtype)
 
 
 void
-dns_c_printtabs(isc_log_t *lctx, FILE *fp, int count)
+dns_c_printtabs(FILE *fp, int count)
 {
-
-	(void) lctx;
 
 	while (count > 0) {
 		fputc('\t', fp);
@@ -241,13 +233,11 @@ dns_c_printtabs(isc_log_t *lctx, FILE *fp, int count)
 
 
 isc_result_t
-dns_c_string2ordering(isc_log_t *lctx, char *name, dns_c_ordering_t *ordering)
+dns_c_string2ordering(char *name, dns_c_ordering_t *ordering)
 {
 	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
-	(void) lctx;
-	
 	for (i = 0 ; i < ordering_nametable_size ; i++) {
 		if (strcmp(ordering_nametable[i].strval, name) == 0) {
 			*ordering = ordering_nametable[i].val;
@@ -261,14 +251,12 @@ dns_c_string2ordering(isc_log_t *lctx, char *name, dns_c_ordering_t *ordering)
 
 
 const char *
-dns_c_ordering2string(isc_log_t *lctx, dns_c_ordering_t ordering,
+dns_c_ordering2string(dns_c_ordering_t ordering,
 		      isc_boolean_t printable)
 {
 	unsigned int i;
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	for (i = 0 ; i < ordering_nametable_size ; i++) {
 		if (ordering_nametable[i].val == ordering) {
 			rval = ordering_nametable[i].strval;
@@ -281,14 +269,12 @@ dns_c_ordering2string(isc_log_t *lctx, dns_c_ordering_t ordering,
 
 
 const char *
-dns_c_logseverity2string(isc_log_t *lctx, dns_c_logseverity_t severity,
+dns_c_logseverity2string(dns_c_logseverity_t severity,
 			 isc_boolean_t printable)
 {
 	unsigned int i;
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	for (i = 0 ; i < log_severity_nametable_size ; i++) {
 		if (log_severity_nametable[i].val == severity) {
 			rval = log_severity_nametable[i].strval;
@@ -301,13 +287,11 @@ dns_c_logseverity2string(isc_log_t *lctx, dns_c_logseverity_t severity,
 
 
 isc_result_t
-dns_c_string2logseverity(isc_log_t *lctx, const char *string,
+dns_c_string2logseverity(const char *string,
 			 dns_c_logseverity_t *result)
 {
 	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
-
-	(void) lctx;
 
 	REQUIRE(result != NULL);
 	
@@ -324,14 +308,12 @@ dns_c_string2logseverity(isc_log_t *lctx, const char *string,
 
 
 const char *
-dns_c_category2string(isc_log_t *lctx, dns_c_category_t cat,
+dns_c_category2string(dns_c_category_t cat,
 		      isc_boolean_t printable)
 {
 	unsigned int i;
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	for (i = 0 ; i < category_nametable_size ; i++) {
 		if (category_nametable[i].val == cat) {
 			rval = category_nametable[i].strval;
@@ -344,14 +326,12 @@ dns_c_category2string(isc_log_t *lctx, dns_c_category_t cat,
 
 
 isc_result_t
-dns_c_string2category(isc_log_t *lctx, const char *string,
+dns_c_string2category(const char *string,
 		      dns_c_category_t *category)
 {
 	unsigned int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
-	(void) lctx;
-	
 	REQUIRE (category != NULL);
 	
 	for (i = 0 ; i < category_nametable_size ; i++) {
@@ -368,13 +348,11 @@ dns_c_string2category(isc_log_t *lctx, const char *string,
 
 
 const char *
-dns_c_facility2string(isc_log_t *lctx, int facility, isc_boolean_t printable)
+dns_c_facility2string(int facility, isc_boolean_t printable)
 {
 	int i;
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	for (i = 0 ; syslog_facil_nametable[i].strval != NULL ; i++) {
 		if (syslog_facil_nametable[i].val == facility) {
 			rval = syslog_facil_nametable[i].strval;
@@ -387,13 +365,11 @@ dns_c_facility2string(isc_log_t *lctx, int facility, isc_boolean_t printable)
 
 
 isc_result_t
-dns_c_string2facility(isc_log_t *lctx, const char *string, int *result)
+dns_c_string2facility(const char *string, int *result)
 {
 	int i;
 	isc_result_t rval = ISC_R_FAILURE;
 
-	(void) lctx;
-	
 	for (i = 0 ; syslog_facil_nametable[i].strval != NULL ; i++) {
 		if (strcmp(syslog_facil_nametable[i].strval, string) == 0) {
 			*result = syslog_facil_nametable[i].val;
@@ -407,13 +383,11 @@ dns_c_string2facility(isc_log_t *lctx, const char *string, int *result)
 
 
 const char *
-dns_c_transformat2string(isc_log_t *lctx, dns_transfer_format_t tformat,
+dns_c_transformat2string(dns_transfer_format_t tformat,
 			 isc_boolean_t printable)
 {
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	switch (tformat) {
 	case dns_one_answer:
 		rval = "one-answer";
@@ -431,13 +405,11 @@ dns_c_transformat2string(isc_log_t *lctx, dns_transfer_format_t tformat,
 
 
 const char *
-dns_c_transport2string(isc_log_t *lctx, dns_c_trans_t transport,
+dns_c_transport2string(dns_c_trans_t transport,
 		       isc_boolean_t printable)
 {
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	switch (transport) {
 	case dns_trans_primary:
 		rval = "master";
@@ -457,13 +429,11 @@ dns_c_transport2string(isc_log_t *lctx, dns_c_trans_t transport,
 
 
 const char *
-dns_c_nameseverity2string(isc_log_t *lctx, dns_c_severity_t severity,
+dns_c_nameseverity2string(dns_c_severity_t severity,
 			  isc_boolean_t printable)
 {
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	switch (severity) {
 	case dns_c_severity_ignore:
 		rval = "ignore";
@@ -483,13 +453,11 @@ dns_c_nameseverity2string(isc_log_t *lctx, dns_c_severity_t severity,
 
 
 const char *
-dns_c_forward2string(isc_log_t *lctx, dns_c_forw_t forw,
+dns_c_forward2string(dns_c_forw_t forw,
 		     isc_boolean_t printable)
 {
 	const char *rval = NULL;
 
-	(void) lctx;
-	
 	switch (forw) {
 	case dns_c_forw_only:
 		rval = "only";
@@ -514,12 +482,10 @@ dns_c_forward2string(isc_log_t *lctx, dns_c_forw_t forw,
 
 
 int
-dns_c_isanyaddr(isc_log_t *lctx, isc_sockaddr_t *inaddr)
+dns_c_isanyaddr(isc_sockaddr_t *inaddr)
 {
 	int result = 0;
 
-	(void) lctx;
-	
 	if (inaddr->type.sa.sa_family == AF_INET) {
 		if (inaddr->type.sin.sin_addr.s_addr == htonl(INADDR_ANY)) {
 			result = 1;
@@ -537,14 +503,14 @@ dns_c_isanyaddr(isc_log_t *lctx, isc_sockaddr_t *inaddr)
 
 	
 void
-dns_c_print_ipaddr(isc_log_t *lctx, FILE *fp, isc_sockaddr_t *inaddr)
+dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr)
 {
 	const char *p;
 	char tmpaddrstr[64];
 	int family = inaddr->type.sa.sa_family;
 	void *addr;
 
-	if (dns_c_isanyaddr(lctx, inaddr)) {
+	if (dns_c_isanyaddr(inaddr)) {
 		if (family == AF_INET) {
 			fprintf(fp, "*");
 		} else {
@@ -566,12 +532,10 @@ dns_c_print_ipaddr(isc_log_t *lctx, FILE *fp, isc_sockaddr_t *inaddr)
 
 
 isc_boolean_t
-dns_c_need_quote(isc_log_t *lctx, const char *string)
+dns_c_need_quote(const char *string)
 {
 	isc_boolean_t rval = ISC_FALSE;
 
-	(void) lctx;
-	
 	while (string != NULL && *string != '\0') {
 		if (!(isalnum(*string & 0xff) || *string == '_')) {
 			rval = ISC_TRUE;

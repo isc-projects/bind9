@@ -107,30 +107,29 @@ struct dns_c_rrso_list
  ***/
 
 
-isc_result_t	dns_c_rrsolist_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_rrsolist_new(isc_mem_t *mem,
 				   dns_c_rrsolist_t **rval);
-isc_result_t	dns_c_rrsolist_delete(isc_log_t *lctx,
-				      dns_c_rrsolist_t **list);
-isc_result_t	dns_c_rrsolist_copy(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_rrsolist_delete(dns_c_rrsolist_t **list);
+isc_result_t	dns_c_rrsolist_copy(isc_mem_t *mem,
 				    dns_c_rrsolist_t **dest,
 				    dns_c_rrsolist_t *source);
-isc_result_t	dns_c_rrsolist_clear(isc_log_t *lctx, dns_c_rrsolist_t *olist);
-isc_result_t	dns_c_rrsolist_append(isc_log_t *lctx, dns_c_rrsolist_t *dest,
+isc_result_t	dns_c_rrsolist_clear(dns_c_rrsolist_t *olist);
+isc_result_t	dns_c_rrsolist_append(dns_c_rrsolist_t *dest,
 				      dns_c_rrsolist_t *src);
 
-isc_result_t	dns_c_rrso_new(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_rrso_new(isc_mem_t *mem,
 			       dns_c_rrso_t **res,
 			       dns_rdataclass_t oclass,
 			       dns_rdatatype_t otype,
 			       char *name,
 			       dns_c_ordering_t ordering);
-isc_result_t	dns_c_rrso_delete(isc_log_t *lctx, dns_c_rrso_t **order);
-isc_result_t	dns_c_rrso_copy(isc_log_t *lctx, isc_mem_t *mem,
+isc_result_t	dns_c_rrso_delete(dns_c_rrso_t **order);
+isc_result_t	dns_c_rrso_copy(isc_mem_t *mem,
 				dns_c_rrso_t **dest,
 				dns_c_rrso_t *source);
-void		dns_c_rrsolist_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_rrsolist_print(FILE *fp, int indent,
 				     dns_c_rrsolist_t *rrlist);
-void		dns_c_rrso_print(isc_log_t *lctx, FILE *fp, int indent,
+void		dns_c_rrso_print(FILE *fp, int indent,
 				 dns_c_rrso_t *rrlist);
 
 

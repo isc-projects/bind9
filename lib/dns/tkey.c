@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.14 1999/11/05 20:19:24 halley Exp $
+ * $Id: tkey.c,v 1.15 1999/12/06 12:40:30 brister Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -79,21 +79,21 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	RUNTIME_CHECK(tkey_domain == NULL);
 	RUNTIME_CHECK(tkey_dhkey == NULL);
 
-	REQUIRE(lctx != NULL);
+	REQUIRE(lctx != NULL);		/* XXX lctx is now unused. */
 	REQUIRE(mctx != NULL);
 
 	if (cfg == NULL)
 		return (ISC_R_SUCCESS);
 
 	s = NULL;
-	result = dns_c_ctx_gettkeydhkey(lctx, cfg, &s, &n);
+	result = dns_c_ctx_gettkeydhkey(cfg, &s, &n);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_R_SUCCESS);
 	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH,
 				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 				mctx, &tkey_dhkey));
 	s = NULL;
-	RETERR(dns_c_ctx_gettkeydomain(lctx, cfg, &s));
+	RETERR(dns_c_ctx_gettkeydomain(cfg, &s));
 	dns_name_init(&domain, NULL);
 	tkey_domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
 	if (tkey_domain == NULL)

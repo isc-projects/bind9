@@ -191,8 +191,7 @@ dns_aml_match(isc_sockaddr_t *reqaddr,
 #endif
 
 		case dns_c_ipmatch_acl:
-			result = dns_c_acltable_getacl(dns_lctx,
-						       acltable,
+			result = dns_c_acltable_getacl(acltable,
 						       e->u.aclname,
 						       &acl);
 			if (result == ISC_R_SUCCESS) {
@@ -233,7 +232,7 @@ dns_aml_match(isc_sockaddr_t *reqaddr,
 			break;
 
 		matched:
-			*match = dns_c_ipmatchelement_isneg(dns_lctx, e) ?
+			*match = dns_c_ipmatchelement_isneg(e) ?
 				-distance : distance;
 			if (matchelt != NULL)
 				*matchelt = e;

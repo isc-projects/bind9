@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.39 1999/12/01 18:31:09 gson Exp $ */
+ /* $Id: zone.c,v 1.40 1999/12/06 12:40:31 brister Exp $ */
 
 #include <config.h>
 
@@ -357,11 +357,11 @@ zone_free(dns_zone_t *zone) {
 	zone->check_names = dns_c_severity_ignore;
 	zone->pubkey = NULL; /* XXX detach */
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL, &zone->update_acl);
+		dns_c_ipmatchlist_detach(&zone->update_acl);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL, &zone->query_acl);
+		dns_c_ipmatchlist_detach(&zone->query_acl);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL, &zone->xfr_acl);
+		dns_c_ipmatchlist_detach(&zone->xfr_acl);
 	if (dns_name_dynamic(&zone->origin))
 		dns_name_free(&zone->origin, zone->mctx);
 
@@ -2408,7 +2408,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 	dns_zone_setclass(zone, czone->zclass);
 
 	origin = NULL;
-	result = dns_c_zone_getname(lctx, czone, &origin);
+	result = dns_c_zone_getname(czone, &origin);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
@@ -2429,7 +2429,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 	switch (czone->ztype) {
 	case dns_c_zone_master:
 		dns_zone_settype(zone, dns_zone_master);
-		iresult = dns_c_zone_getfile(lctx, czone, &filename);
+		iresult = dns_c_zone_getfile(czone, &filename);
 		if (iresult != ISC_R_SUCCESS)
 			return (iresult);
 
@@ -2437,46 +2437,46 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		if (result != DNS_R_SUCCESS)
 			return (iresult);
 
-		iresult = dns_c_zone_getchecknames(lctx, czone, &severity);
+		iresult = dns_c_zone_getchecknames(czone, &severity);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_fail);
 
-		iresult = dns_c_zone_getallowupd(lctx, czone, &acl);
+		iresult = dns_c_zone_getallowupd(czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setupdateacl(zone, acl);
-			dns_c_ipmatchlist_detach(lctx, &acl);
+			dns_c_ipmatchlist_detach(&acl);
 		} else
 			dns_zone_clearupdateacl(zone);
 
-		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
+		iresult = dns_c_zone_getallowquery(czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_detach(lctx, &acl);
+			dns_c_ipmatchlist_detach(&acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
-		iresult = dns_c_zone_getallowtransfer(lctx, czone, &acl);
+		iresult = dns_c_zone_getallowtransfer(czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setxfracl(zone, acl);
-			dns_c_ipmatchlist_detach(lctx, &acl);
+			dns_c_ipmatchlist_detach(&acl);
 		} else
 			dns_zone_clearxfracl(zone);
 
-		iresult = dns_c_zone_getdialup(lctx, czone, &boolean);
+		iresult = dns_c_zone_getdialup(czone, &boolean);
 		if (iresult == ISC_R_SUCCESS)  
 			dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
 		else
 			dns_zone_clearoption(zone, DNS_ZONE_O_DIALUP);
 
-		iresult = dns_c_zone_getnotify(lctx, czone, &boolean);
+		iresult = dns_c_zone_getnotify(czone, &boolean);
 		if (iresult == ISC_R_SUCCESS)  
 			dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 		else
 			dns_zone_clearoption(zone, DNS_ZONE_O_NOTIFY);
 
-		iresult = dns_c_zone_getalsonotify(lctx, czone, &iplist);
+		iresult = dns_c_zone_getalsonotify(czone, &iplist);
 		if (iresult == ISC_R_SUCCESS) {
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addnotify(zone,
@@ -2489,7 +2489,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 #if 1					/* XXX brister */
 		
-		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		iresult = dns_c_zone_getpubkeylist(czone, &pubkeylist);
 		if (iresult == ISC_R_SUCCESS) {
 			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
 		}
@@ -2520,29 +2520,29 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 	case dns_c_zone_slave:
 		dns_zone_settype(zone, dns_zone_slave);
-		iresult = dns_c_zone_getfile(lctx, czone, &filename);
+		iresult = dns_c_zone_getfile(czone, &filename);
 		if (iresult != ISC_R_SUCCESS)
 			return (iresult);
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (iresult);
 
-		iresult = dns_c_zone_getchecknames(lctx, czone, &severity);
+		iresult = dns_c_zone_getchecknames(czone, &severity);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
 
-		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
+		iresult = dns_c_zone_getallowquery(czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_detach(lctx, &acl);
+			dns_c_ipmatchlist_detach(&acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
 #if 1					/* XXX brister */
 		
-		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		iresult = dns_c_zone_getpubkeylist(czone, &pubkeylist);
 		if (iresult == ISC_R_SUCCESS) {
 			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
 		}
@@ -2558,12 +2558,12 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 #endif
 		
-		iresult = dns_c_zone_getmasterport(lctx, czone, &port);
+		iresult = dns_c_zone_getmasterport(czone, &port);
 		if (iresult != ISC_R_SUCCESS)
 			port = 53;
 		dns_zone_setmasterport(zone, port);
 
-		iresult = dns_c_zone_getmasterips(lctx, czone, &iplist);
+		iresult = dns_c_zone_getmasterips(czone, &iplist);
 		if (iresult == ISC_R_SUCCESS) {
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addmaster(zone,
@@ -2574,13 +2574,13 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else 
 			dns_zone_clearmasters(zone);
 
-		iresult = dns_c_zone_getmaxtranstimein(lctx, czone, &xfrtime);
+		iresult = dns_c_zone_getmaxtranstimein(czone, &xfrtime);
 		if (result == ISC_R_SUCCESS)
 			zone->xfrtime = xfrtime;
 		else
 			zone->xfrtime = MAX_XFER_TIME;
 
-		iresult = dns_c_zone_gettransfersource(lctx, czone, &sockaddr);
+		iresult = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (iresult == ISC_R_SUCCESS)
 			zone->xfrsource = sockaddr;
 		else
@@ -2590,29 +2590,29 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 	case dns_c_zone_stub:
 		dns_zone_settype(zone, dns_zone_stub);
-		iresult = dns_c_zone_getfile(lctx, czone, &filename);
+		iresult = dns_c_zone_getfile(czone, &filename);
 		if (iresult != ISC_R_SUCCESS)
 			return (iresult);
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (iresult);
 
-		iresult = dns_c_zone_getchecknames(lctx, czone, &severity);
+		iresult = dns_c_zone_getchecknames(czone, &severity);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
 
-		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
+		iresult = dns_c_zone_getallowquery(czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_detach(lctx, &acl);
+			dns_c_ipmatchlist_detach(&acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
 #if 1					/* XXX brister */
 		
-		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		iresult = dns_c_zone_getpubkeylist(czone, &pubkeylist);
 		if (iresult == ISC_R_SUCCESS) {
 			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
 		}
@@ -2628,12 +2628,12 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 #endif	
 
-		iresult = dns_c_zone_getmasterport(lctx, czone, &port);
+		iresult = dns_c_zone_getmasterport(czone, &port);
 		if (iresult != ISC_R_SUCCESS)
 			port = 53;
 		dns_zone_setmasterport(zone, port);
 
-		iresult = dns_c_zone_getmasterips(lctx, czone, &iplist);
+		iresult = dns_c_zone_getmasterips(czone, &iplist);
 		if (iresult == ISC_R_SUCCESS) {
 			for (i = 0; i < iplist->nextidx; i++) {
 				result = dns_zone_addmaster(zone,
@@ -2644,13 +2644,13 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else 
 			dns_zone_clearmasters(zone);
 
-		iresult = dns_c_zone_getmaxtranstimein(lctx, czone, &xfrtime);
+		iresult = dns_c_zone_getmaxtranstimein(czone, &xfrtime);
 		if (result == ISC_R_SUCCESS)
 			zone->xfrtime = xfrtime;
 		else
 			zone->xfrtime = MAX_XFER_TIME;
 
-		iresult = dns_c_zone_gettransfersource(lctx, czone, &sockaddr);
+		iresult = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (iresult == ISC_R_SUCCESS)
 			zone->xfrsource = sockaddr;
 		else
@@ -2660,14 +2660,14 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 	case dns_c_zone_hint:
 		dns_zone_settype(zone, dns_zone_hint);
-		iresult = dns_c_zone_getfile(lctx, czone, &filename);
+		iresult = dns_c_zone_getfile(czone, &filename);
 		if (iresult != ISC_R_SUCCESS)
 			return (iresult);
 		result = dns_zone_setdatabase(zone, filename);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 
-		iresult = dns_c_zone_getchecknames(lctx, czone, &severity);
+		iresult = dns_c_zone_getchecknames(czone, &severity);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setchecknames(zone, severity);
 		else
@@ -2675,7 +2675,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 #if 1					/* XXX brister */
 		
-		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		iresult = dns_c_zone_getpubkeylist(czone, &pubkeylist);
 		if (iresult == ISC_R_SUCCESS) {
 			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
 		}
@@ -2704,10 +2704,8 @@ dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->query_acl);
-	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-				 acl, &zone->query_acl);
+		dns_c_ipmatchlist_detach(&zone->query_acl);
+	dns_c_ipmatchlist_attach(acl, &zone->query_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2718,10 +2716,8 @@ dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->update_acl);
-	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-				 acl, &zone->update_acl);
+		dns_c_ipmatchlist_detach(&zone->update_acl);
+	dns_c_ipmatchlist_attach(acl, &zone->update_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2732,10 +2728,8 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->xfr_acl);
-	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-				 acl, &zone->xfr_acl);
+		dns_c_ipmatchlist_detach(&zone->xfr_acl);
+	dns_c_ipmatchlist_attach(acl, &zone->xfr_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2770,8 +2764,7 @@ dns_zone_clearupdateacl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->update_acl);
+		dns_c_ipmatchlist_detach(&zone->update_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2782,8 +2775,7 @@ dns_zone_clearqueryacl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->query_acl);
+		dns_c_ipmatchlist_detach(&zone->query_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2794,8 +2786,7 @@ dns_zone_clearxfracl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
-					 &zone->xfr_acl);
+		dns_c_ipmatchlist_detach(&zone->xfr_acl);
 	UNLOCK(&zone->lock);
 }
 

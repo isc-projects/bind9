@@ -294,8 +294,7 @@ load_configuration(const char *filename) {
 		      ISC_LOG_INFO, "loading '%s'", filename);
 
 	configctx = NULL;
-	result = dns_c_parse_namedconf(ns_g_lctx,
-				       filename, ns_g_mctx, &configctx,
+	result = dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
 				       &callbacks);
 	if (result != ISC_R_SUCCESS) {
 #ifdef notyet
@@ -397,7 +396,7 @@ load_configuration(const char *filename) {
 	}
 
 	if (oconfigctx != NULL)
-		dns_c_ctx_delete(ns_g_lctx, &oconfigctx);
+		dns_c_ctx_delete(&oconfigctx);
 
 	/*
 	 * Load the TSIG information from the configuration
@@ -536,7 +535,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * XXXRTH  Is this the right place to do this?
 	 */
-	dns_c_ctx_delete(ns_g_lctx, &ns_g_confctx);
+	dns_c_ctx_delete(&ns_g_confctx);
 
 	dns_tkey_destroy();
 	dns_tsig_destroy();

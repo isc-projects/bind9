@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.33 1999/11/16 03:02:36 bwelling Exp $
+ * $Id: tsig.c,v 1.34 1999/12/06 12:40:31 brister Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -1065,7 +1065,7 @@ dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 	unsigned char data[32];
 	dns_c_kdeflist_t *keylist = NULL;
 
-	REQUIRE(lctx != NULL);
+	REQUIRE(lctx != NULL);		/* XXX lctx is now unused. */
 	REQUIRE(mctx != NULL);
 
         ret = isc_rwlock_init(&tsiglock, 0, 0);
@@ -1096,7 +1096,7 @@ dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 		goto failure;
 
 	if (confctx != NULL) {
-		ret = dns_c_ctx_getkdeflist(lctx, confctx, &keylist);
+		ret = dns_c_ctx_getkdeflist(confctx, &keylist);
 		if (ret == ISC_R_SUCCESS)
 			ret = add_initial_keys(keylist, mctx);
 		else if (ret != ISC_R_NOTFOUND)

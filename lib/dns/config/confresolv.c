@@ -22,9 +22,9 @@
 #include "confpvt.h"
 
 isc_result_t
-dns_c_resolv_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_resolv_t **cfgres)
+dns_c_resolv_new(isc_mem_t *mem, dns_c_resolv_t **cfgres)
 {
-	(void)lctx ; (void) mem; (void) cfgres;
+	(void) mem; (void) cfgres;
 	
 	/* XXX nothing yet */
 
@@ -33,9 +33,9 @@ dns_c_resolv_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_resolv_t **cfgres)
 
 
 isc_result_t
-dns_c_resolv_delete(isc_log_t *lctx, dns_c_resolv_t **cfgres)
+dns_c_resolv_delete(dns_c_resolv_t **cfgres)
 {
-	(void) lctx ; (void) cfgres;
+	(void) cfgres;
 	/* XXX nothin yet */
 
 	return (ISC_R_SUCCESS);

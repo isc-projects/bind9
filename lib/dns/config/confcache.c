@@ -22,10 +22,10 @@
 #include "confpvt.h"
 
 isc_result_t
-dns_c_cache_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_cache_t **cfgcache)
+dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgcache)
 {
 
-	(void) lctx; (void) mem ; (void) cfgcache; /* lint */
+	(void) mem ; (void) cfgcache; /* lint */
 
 	/* XXX nothing yet */
 	
@@ -34,9 +34,9 @@ dns_c_cache_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_cache_t **cfgcache)
 
 
 isc_result_t
-dns_c_cache_delete(isc_log_t *lctx, dns_c_cache_t **cfgcache)
+dns_c_cache_delete(dns_c_cache_t **cfgcache)
 {
-	(void) lctx ; (void) cfgcache ;	/* lint */
+	(void) cfgcache ;	/* lint */
 	
 	/* XXX nothin yet */
 
