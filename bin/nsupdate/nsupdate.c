@@ -15,11 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.22 2000/07/03 23:42:48 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.23 2000/07/04 02:33:29 bwelling Exp $ */
 
 #include <config.h>
 
-#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
@@ -79,7 +78,6 @@ static isc_boolean_t is_dst_up = ISC_FALSE;
 static isc_boolean_t usevc = ISC_FALSE;
 static isc_mutex_t lock;
 static isc_condition_t cond;
-
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
 static isc_mem_t *mctx = NULL;
@@ -89,15 +87,12 @@ static isc_socketmgr_t *socketmgr = NULL;
 static isc_timermgr_t *timermgr = NULL;
 static dns_dispatch_t *dispatchv4 = NULL;
 static dns_message_t *updatemsg = NULL;
-static dns_name_t *zonename = NULL;
 static dns_fixedname_t resolvdomain; /* from resolv.conf's domain line */
-static dns_name_t *current_zone; /* Points to one of above, or dns_rootname */
-static dns_name_t *master = NULL; /* Master nameserver, from SOA query */
+static dns_name_t *default_zone; /* Points to one of above, or dns_rootname */
 static dns_tsigkey_t *key = NULL;
 static dns_tsig_keyring_t *keyring = NULL;
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
-
 static int ns_inuse = 0;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
@@ -223,21 +218,6 @@ reset_system(void) {
 		check_result (result, "dns_message_create");
 	}
 	updatemsg->opcode = dns_opcode_update;
-
-	if (zonename != NULL) {
-		dns_name_free(zonename, mctx);
-		isc_mem_put(mctx, zonename, sizeof(dns_name_t));
-		zonename = NULL;
-	}
-	if (master != NULL) {
-		dns_name_free(master, mctx);
-		isc_mem_put(mctx, master, sizeof(dns_name_t));
-		master = NULL;
-	}
-	if (lwconf->domainname != NULL) 
-		current_zone = dns_fixedname_name(&resolvdomain);
-	else
-		current_zone = dns_rootname;
 }
 
 static void
@@ -368,9 +348,6 @@ setup_system(void) {
 	 */
 	srandom (getpid() + (int)&setup_system);
 
-	result = isc_app_start();
-	check_result(result, "isc_app_start");
-
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
 
@@ -437,10 +414,10 @@ setup_system(void) {
 		result = dns_name_fromtext(dns_fixedname_name(&resolvdomain),
 					   &buf, dns_rootname, ISC_FALSE, NULL);
 		check_result(result, "dns_name_fromtext");
-		current_zone = dns_fixedname_name(&resolvdomain);
+		default_zone = dns_fixedname_name(&resolvdomain);
 	}
 	else
-		current_zone = dns_rootname;
+		default_zone = dns_rootname;
 
 	if (keystr != NULL || keyfile != NULL)
 		setup_key();
@@ -494,7 +471,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_buffer_t source;
 	unsigned int dots;
 	isc_boolean_t last;
-	dns_name_t *rn = current_zone;
+	dns_name_t *rn = default_zone;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
@@ -547,7 +524,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		check_result(result, "isc_buffer_allocate");
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype, lex,
-					    current_zone, ISC_FALSE,
+					    default_zone, ISC_FALSE,
 					    buf, &callbacks);
 		dns_message_takebuffer(msg, &buf);
 		isc_lex_destroy(&lex);
@@ -990,7 +967,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-send_update(void) {
+send_update(dns_name_t *zonename, dns_name_t *master) {
 	isc_result_t result;
 	isc_sockaddr_t sockaddr;
 	dns_request_t *request = NULL;
@@ -1004,8 +981,6 @@ send_update(void) {
 
 	result = dns_message_gettempname(updatemsg, &name);
 	check_result(result, "dns_message_gettempname");
-	if (zonename == NULL)
-		fatal("don't have a valid zone yet.");
 	dns_name_init(name, NULL);
 	dns_name_clone(zonename, name);
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
@@ -1045,6 +1020,7 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_soa_t soa;
 	dns_rdata_t soarr;
 	int pass = 0;
+	dns_name_t zonename, master;
 
 	UNUSED(task);
 
@@ -1141,32 +1117,24 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	result = dns_rdata_tostruct(&soarr, &soa, NULL);
 	check_result(result, "dns_rdata_tostruct");
 
-	ddebug("Duping master");
-	INSIST(master == NULL);
-	master = isc_mem_get(mctx, sizeof(dns_name_t));
-	dns_name_init(master, NULL);
-	result = dns_name_dup(&soa.origin, mctx, master);
-	check_result(result, "dns_name_dup");
-	
-	ddebug("Duping zonename");
-	INSIST(zonename == NULL);
-	zonename = isc_mem_get(mctx, sizeof(dns_name_t));
-	dns_name_init(zonename, NULL);
-	result = dns_name_dup(name, mctx, zonename);
-	check_result(result, "dns_name_dup");
+	dns_name_init(&master, NULL);
+	dns_name_clone(&soa.origin, &master);
 
-	dns_rdata_freestruct(&soa);
-	
+	dns_name_init(&zonename, NULL);
+	dns_name_clone(name, &zonename);
+
 	if (debugging) {
 		char namestr[1025];
-		dns_name_format(master, namestr, sizeof(namestr));
+		dns_name_format(&master, namestr, sizeof(namestr));
 		printf ("The master is: %s\n", namestr);
 	}
 
+	send_update(&zonename, &master);
+
+	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&rcvmsg);
 	dns_request_destroy(&request);
 	ddebug ("Out of find_completed");
-	send_update();
 }
 
 static void
@@ -1253,16 +1221,6 @@ cleanup(void) {
 	if (updatemsg != NULL)
 		dns_message_destroy(&updatemsg);
 
-	if (zonename != NULL) {
-		dns_name_free(zonename, mctx);
-		isc_mem_put(mctx, zonename, sizeof(dns_name_t));
-		zonename = NULL;
-	}
-	if (master != NULL) {
-		dns_name_free(master, mctx);
-		isc_mem_put(mctx, master, sizeof(dns_name_t));
-		master = NULL;
-	}
 	if (is_dst_up) {
 		debug ("Destroy DST lib");
 		dst_lib_destroy();
@@ -1327,7 +1285,6 @@ main(int argc, char **argv) {
         }
 
         puts ("");
-        ddebug ("Fell through app_run");
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
         cleanup();
