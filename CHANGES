@@ -1,3 +1,7 @@
+
+ 376.	[bug]		The server should always use good entropy when
+			performing cryptographic functions needing entropy.
+
  375.	[bug]		Per-zone allow-query did not properly override the
 			view/global one for CNAME targets and additional
 			data [RT #220].
