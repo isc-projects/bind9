@@ -24,6 +24,7 @@
 #include <dns/types.h>
 
 #include <named/types.h>
+#include <named/query.h>
 
 typedef enum ns_clienttype {
 	ns_clienttype_basic = 0,
@@ -41,6 +42,7 @@ typedef enum {
 
 struct ns_client {
 	unsigned int			magic;
+	isc_mem_t *			mctx;
 	ns_clientmgr_t *		manager;
 	ns_clienttype_t			type;
 	ns_clientstate_t		state;
@@ -51,10 +53,9 @@ struct ns_client {
 	dns_dispatchevent_t *		dispevent;
 	isc_timer_t *			timer;
 	dns_message_t *			message;
-	dns_name_t *			qname;
 	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
-	ISC_LIST(isc_dynbuffer_t)	namebufs;
+	ns_query_t			query;
 	ISC_LINK(struct ns_client)	link;
 };
 

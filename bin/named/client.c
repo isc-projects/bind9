@@ -29,7 +29,6 @@
 #include <dns/message.h>
 
 #include <named/client.h>
-#include <named/query.h>
 
 #include "../../isc/util.h"		/* XXX */
 
@@ -84,19 +83,10 @@ static void clientmgr_destroy(ns_clientmgr_t *manager);
 static inline void
 client_free(ns_client_t *client) {
 	dns_dispatchevent_t **deventp;
-	isc_dynbuffer_t *dbuf, *dbuf_next;
-	isc_mem_t *mctx;
 
 	CTRACE("free");
 
-	mctx = client->manager->mctx;
-	for (dbuf = ISC_LIST_HEAD(client->namebufs);
-	     dbuf != NULL;
-	     dbuf = dbuf_next) {
-		dbuf_next = ISC_LIST_NEXT(dbuf, link);
-		isc_dynbuffer_free(mctx, &dbuf);
-	}
-	ISC_LIST_INIT(client->namebufs);
+	ns_query_free(client);
 	isc_mempool_destroy(&client->sendbufs);
 	dns_message_destroy(&client->message);
 	isc_timer_detach(&client->timer);
@@ -114,7 +104,7 @@ client_free(ns_client_t *client) {
 	isc_task_detach(&client->task);
 	client->magic = 0;
 
-	isc_mem_put(mctx, client, sizeof *client);
+	isc_mem_put(client->mctx, client, sizeof *client);
 }
 
 void
@@ -163,7 +153,6 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 
 void
 ns_client_next(ns_client_t *client, isc_result_t result) {
-	isc_dynbuffer_t *dbuf, *dbuf_next;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->state == ns_clientstate_listening ||
@@ -177,22 +166,6 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	 *		If this is a TCP client, close the connection.
 	 */
 	(void)result;
-
-	/*
-	 * Reset any changes made by answering a query.  XXXRTH  Should this
-	 * be in query.c?  We'll free all but one namebuf.
-	 */
-	client->qname = NULL;
-	INSIST(!ISC_LIST_EMPTY(client->namebufs));
-	for (dbuf = ISC_LIST_HEAD(client->namebufs);
-	     dbuf != NULL;
-	     dbuf = dbuf_next) {
-		dbuf_next = ISC_LIST_NEXT(dbuf, link);
-		if (dbuf_next != NULL) {
-			ISC_LIST_UNLINK(client->namebufs, dbuf, link);
-			isc_dynbuffer_free(client->manager->mctx, &dbuf);
-		}
-	}
 
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
@@ -399,30 +372,12 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 	ns_client_next(client, ISC_R_TIMEDOUT);
 }
 
-isc_result_t
-ns_client_newnamebuf(ns_client_t *client) {
-	isc_dynbuffer_t *dbuf;
-	isc_result_t result;
-
-	REQUIRE(NS_CLIENT_VALID(client));
-
-	dbuf = NULL;
-	result = isc_dynbuffer_allocate(client->manager->mctx, &dbuf, 1024,
-					ISC_BUFFERTYPE_BINARY);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	ISC_LIST_APPEND(client->namebufs, dbuf, link);
-
-	return (ISC_R_SUCCESS);
-}
-
 static isc_result_t
 client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	      ns_client_t **clientp)
 {
 	ns_client_t *client;
 	isc_result_t result;
-	isc_dynbuffer_t *dbuf;
 
 	/*
 	 * Caller must be holding the manager lock.
@@ -468,11 +423,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	isc_mempool_setfreemax(client->sendbufs, 3);
 	isc_mempool_setmaxalloc(client->sendbufs, 3);
 
-	/*
-	 * We do the rest of the initialization here because the
-	 * ns_client_newnamebuf() call below REQUIREs a valid client.
-	 */
 	client->magic = NS_CLIENT_MAGIC;
+	client->mctx = manager->mctx;
 	client->manager = manager;
 	client->type = type;
 	client->state = ns_clientstate_idle;
@@ -480,13 +432,15 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->dispatch = NULL;
 	client->dispentry = NULL;
 	client->dispevent = NULL;
-	client->qname = NULL;
 	client->nsends = 0;
-	ISC_LIST_INIT(client->namebufs);
 	ISC_LINK_INIT(client, link);
 
-	dbuf = NULL;
-	result = ns_client_newnamebuf(client);
+	/*
+	 * We call the init routines for the various kinds of client here,
+	 * after we have created an otherwise valid client, because some
+	 * of them call routines that REQUIRE(NS_CLIENT_VALID(client)).
+	 */
+	result = ns_query_init(client);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_sendbufs;
 
@@ -498,6 +452,8 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 
  cleanup_sendbufs:
 	isc_mempool_destroy(&client->sendbufs);
+
+	client->magic = 0;
 
  cleanup_message:
 	dns_message_destroy(&client->message);

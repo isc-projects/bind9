@@ -42,6 +42,89 @@
 
 #include "../../isc/util.h"		/* XXX */
 
+static inline void
+query_cleanup(ns_client_t *client, isc_boolean_t everything) {
+	isc_dynbuffer_t *dbuf, *dbuf_next;
+
+	client->query.qname = NULL;
+	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
+	     dbuf != NULL;
+	     dbuf = dbuf_next) {
+		dbuf_next = ISC_LIST_NEXT(dbuf, link);
+		if (dbuf_next != NULL || everything) {
+			ISC_LIST_UNLINK(client->query.namebufs, dbuf, link);
+			isc_dynbuffer_free(client->mctx, &dbuf);
+		}
+	}
+}
+
+void
+ns_query_free(ns_client_t *client) {
+	query_cleanup(client, ISC_TRUE);
+}
+
+static void
+query_next(ns_client_t *client, isc_result_t result) {
+	query_cleanup(client, ISC_FALSE);
+	ns_client_next(client, result);
+}
+
+static void
+query_error(ns_client_t *client, isc_result_t result) {
+	query_cleanup(client, ISC_FALSE);
+	ns_client_error(client, result);
+}
+
+static inline isc_result_t
+query_newnamebuf(ns_client_t *client) {
+	isc_dynbuffer_t *dbuf;
+	isc_result_t result;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	dbuf = NULL;
+	result = isc_dynbuffer_allocate(client->mctx, &dbuf, 1024,
+					ISC_BUFFERTYPE_BINARY);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_dynbuffer_t *
+query_getnamebuf(ns_client_t *client) {
+	isc_dynbuffer_t *dbuf;
+	isc_result_t result;
+	isc_region_t r;
+
+	if (ISC_LIST_EMPTY(client->query.namebufs)) {
+		result = query_newnamebuf(client);
+		if (result != ISC_R_SUCCESS)
+			return (NULL);
+	}
+
+	dbuf = ISC_LIST_TAIL(client->query.namebufs);
+	INSIST(dbuf != NULL);
+	isc_buffer_available(&dbuf->buffer, &r);
+	if (r.length < 255) {
+		result = query_newnamebuf(client);
+		if (result != ISC_R_SUCCESS)
+			return (NULL);
+		dbuf = ISC_LIST_TAIL(client->query.namebufs);
+		isc_buffer_available(&dbuf->buffer, &r);
+		INSIST(r.length >= 255);
+	}
+	return (dbuf);
+}
+
+isc_result_t
+ns_query_init(ns_client_t *client) {
+	client->query.qname = NULL;
+	ISC_LIST_INIT(client->query.namebufs);
+	return (query_newnamebuf(client));
+}
+
 static isc_result_t
 find(ns_client_t *client, dns_rdatatype_t type) {
 	isc_result_t result;
@@ -82,21 +165,19 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 		/*
 		 * Get the resources we'll need.
 		 */
-		dbuf = ISC_LIST_TAIL(client->namebufs);
-		isc_buffer_available(&dbuf->buffer, &r);
-		if (r.length < 255) {
-			result = ns_client_newnamebuf(client);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			dbuf = ISC_LIST_TAIL(client->namebufs);
-			isc_buffer_available(&dbuf->buffer, &r);
-			INSIST(r.length >= 255);
+		dbuf = query_getnamebuf(client);
+		if (dbuf == NULL) {
+			if (first_time)
+				return (DNS_R_SERVFAIL);
+			else
+				return (ISC_R_SUCCESS);
 		}
 		isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 		fname = NULL;
 		result = dns_message_gettempname(client->message, &fname);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		/* XXXRTH  should return success if not first time. */
 		dns_name_init(fname, NULL);
 		dns_name_setbuffer(fname, &b);
 		rdataset = NULL;
@@ -104,13 +185,15 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 						     &rdataset);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		/* XXXRTH  should return success if not first time. */
 		dns_rdataset_init(rdataset);
 
 		/*
 		 * Find a database to answer the query.
 		 */
 		db = NULL;
-		result = dns_dbtable_find(ns_g_dbtable, client->qname, &db);
+		result = dns_dbtable_find(ns_g_dbtable, client->query.qname,
+					  &db);
 		if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
 			if (first_time)
 				return (DNS_R_SERVFAIL);
@@ -124,7 +207,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 		if (dns_db_iszone(db))
 			auth = ISC_TRUE;
 		node = NULL;
-		result = dns_db_find(db, client->qname, NULL, type, 0, 0,
+		result = dns_db_find(db, client->query.qname, NULL, type, 0, 0,
 				     &node, fname, rdataset);
 		switch (result) {
 		case DNS_R_SUCCESS:
@@ -146,7 +229,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			r.length = rdata.length;
 			dns_name_init(tname, NULL);
 			dns_name_fromregion(tname, &r);
-			client->qname = tname;
+			client->query.qname = tname;
 			break;
 		case DNS_R_GLUE:
 		case DNS_R_ZONECUT:
@@ -251,7 +334,7 @@ ns_query_start(ns_client_t *client) {
 
 	result = dns_message_reply(client->message, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
-		ns_client_next(client, result);
+		query_next(client, result);
 		return;
 	}
 
@@ -267,15 +350,15 @@ ns_query_start(ns_client_t *client) {
 	result = dns_message_firstname(client->message, DNS_SECTION_QUESTION);
 	while (result == ISC_R_SUCCESS) {
 		nquestions++;
-		client->qname = NULL;
+		client->query.qname = NULL;
 		dns_message_currentname(client->message, DNS_SECTION_QUESTION,
-					&client->qname);
-		for (rdataset = ISC_LIST_HEAD(client->qname->list);
+					&client->query.qname);
+		for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			result = find(client, rdataset->type);
 			if (result != ISC_R_SUCCESS) {
-				ns_client_error(client, result);
+				query_error(client, result);
 				return;
 			}
 		}
@@ -283,12 +366,12 @@ ns_query_start(ns_client_t *client) {
 					      DNS_SECTION_QUESTION);
 	}
 	if (result != ISC_R_NOMORE) {
-		ns_client_error(client, result);
+		query_error(client, result);
 		return;
 	}
 
 	if (nquestions == 0) {
-		ns_client_error(client, DNS_R_FORMERR);
+		query_error(client, DNS_R_FORMERR);
 		return;
 	}
 

@@ -24,6 +24,7 @@
 
 typedef struct ns_client		ns_client_t;
 typedef struct ns_clientmgr		ns_clientmgr_t;
+typedef struct ns_query			ns_query_t;
 
 /*
  * XXXRTH  This stuff is temporary.  As soon as we have zone and config

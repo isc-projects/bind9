@@ -18,8 +18,25 @@
 #ifndef NS_QUERY_H
 #define NS_QUERY_H 1
 
+#include <isc/types.h>
+#include <isc/buffer.h>
+
+#include <dns/types.h>
+
 #include <named/types.h>
 
-void ns_query_start(ns_client_t *client);
+struct ns_query {
+	dns_name_t *			qname;
+	ISC_LIST(isc_dynbuffer_t)	namebufs;
+};
+
+isc_result_t
+ns_query_init(ns_client_t *client);
+
+void
+ns_query_free(ns_client_t *client);
+
+void
+ns_query_start(ns_client_t *client);
 
 #endif /* NS_QUERY_H */
