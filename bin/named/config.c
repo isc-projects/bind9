@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.6 2001/03/19 22:34:05 bwelling Exp $ */
+/* $Id: config.c,v 1.7 2001/03/20 21:54:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,7 @@ options {\n\
 	listen-on-v6 {none;};\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
-#	named-xfer <obsolete>\n\
+#	named-xfer <obsolete>;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/named.pid\"; /* or /lwresd.pid */\n\
 	port 53;\n\
 "
