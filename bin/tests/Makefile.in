@@ -46,6 +46,7 @@ TARGETS =	adb_test \
 		master_test \
 		mempool_test \
 		name_test \
+		nconf_test \
 		nxtify \
 		rbt_test \
 		rdata_test \
@@ -59,8 +60,8 @@ TARGETS =	adb_test \
 		task_test \
 		timer_test \
 		wire_test \
-		nconf_test \
-		zone_test
+		zone_test \
+		zone2_test
 
 # Alphabetically
 SRCS =		adb_test.c \
@@ -74,6 +75,7 @@ SRCS =		adb_test.c \
 		master_test.c \
 		mempool_test.c \
 		name_test.c \
+		nconf_test.c \
 		nxtify.c \
 		printmsg.c \
 		rbt_test.c \
@@ -88,8 +90,8 @@ SRCS =		adb_test.c \
 		task_test.c \
 		timer_test.c \
 		wire_test.c \
-		nconf_test.c \
-		zone_test.c
+		zone_test.c \
+		zone2_test.c
 
 @BIND9_MAKE_RULES@
 
@@ -184,6 +186,10 @@ mempool_test: mempool_test.@O@ ${ISCDEPLIBS}
 serial_test: serial_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ serial_test.@O@ \
 		${ISCLIBS} ${LIBS}
+
+zone2_test: zone2_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone2_test.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone_test.@O@ \
