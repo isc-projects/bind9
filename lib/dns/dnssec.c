@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.18 2000/02/04 18:19:48 bwelling Exp $
+ * $Id: dnssec.c,v 1.19 2000/02/10 23:00:48 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -550,7 +550,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 	isc_result_t result;
-	dst_key_t *pubkey;
+	dst_key_t *pubkey = NULL;
 	unsigned int count = 0;
 
 	*nkeys = 0;
