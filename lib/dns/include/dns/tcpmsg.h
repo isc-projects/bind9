@@ -11,6 +11,8 @@ typedef struct {
 	isc_mem_t	       *mctx;
 	isc_socket_t	       *sock;
 	isc_task_t	       *task;
+	isc_taskaction_t	action;
+	void		       *arg;
 	dns_result_t		result;
 	isc_event_t		event;
 } dns_tcpmsg_t;
