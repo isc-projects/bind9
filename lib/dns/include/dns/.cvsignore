@@ -1,1 +1,3 @@
 Makefile
+enumtype.h
+enumclass.h
