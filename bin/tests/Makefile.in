@@ -37,6 +37,7 @@ LIBS =		@LIBS@
 
 SUBDIRS = master names rbt tasks db timers mem dst
 TARGETS =	sdig \
+		nxtify \
 		res_test \
 		lex_test \
 		name_test \
@@ -57,6 +58,7 @@ TARGETS =	sdig \
 		dispatch_tcp_test
 
 SRCS =		sdig.c \
+		nxtify.c \
 		res_test.c \
 		lex_test.c \
 		name_test.c \
@@ -81,6 +83,10 @@ SRCS =		sdig.c \
 
 sdig: sdig.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.o printmsg.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+nxtify: nxtify.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ nxtify.o \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
