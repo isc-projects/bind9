@@ -46,4 +46,7 @@ foreach my $c (sort {$a <=> $b} keys %$c1) {
 	if ($c1->{$c}->{category} eq "bug" && !exists($c2->{$c})) {
 		print $c1->{$c}->{text};
 	}
+	if ($c1->{$c}->{category} eq "port" && !exists($c2->{$c})) {
+		print $c1->{$c}->{text};
+	}
 }
