@@ -880,7 +880,7 @@ in a query timeout of 1 second being applied.</P
 ><DT
 ><TT
 CLASS="OPTION"
->+tries=A</TT
+>+tries=T</TT
 ></DT
 ><DD
 ><P
@@ -902,7 +902,7 @@ tries is silently rounded up to 1.</P
 ><DT
 ><TT
 CLASS="OPTION"
->+retry=A</TT
+>+retry=T</TT
 ></DT
 ><DD
 ><P
@@ -991,6 +991,37 @@ CLASS="COMMAND"
 >dig</B
 > output.</P
 ></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]fail</TT
+></DT
+><DD
+><P
+>Do not try the next server if you receive a SERVFAIL.  The default is
+to not try the next server which is the reverse of normal stub resolver
+behaviour.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]besteffort</TT
+></DT
+><DD
+><P
+>Attempt to display the contents of messages which are malformed.
+The default is to not display malformed answers.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]dnssec</TT
+></DT
+><DD
+><P
+>Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
+in the the OPT record in the additional section of the query.</P
+></DD
 ></DL
 ></DIV
 >&#13;</P
@@ -998,7 +1029,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN330"
+NAME="AEN345"
 ></A
 ><H2
 >MULTIPLE QUERIES</H2
@@ -1082,7 +1113,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN348"
+NAME="AEN363"
 ></A
 ><H2
 >FILES</H2
@@ -1100,7 +1131,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN354"
+NAME="AEN369"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1134,7 +1165,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN367"
+NAME="AEN382"
 ></A
 ><H2
 >BUGS </H2
