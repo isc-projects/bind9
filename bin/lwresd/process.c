@@ -27,26 +27,96 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
+
 #include <lwres/lwres.h>
 
 #include "client.h"
 
+static void
+process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
+{
+}
+
 isc_result_t
 process_gabn(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
-	return (ISC_R_NOTIMPLEMENTED);
+	isc_result_t result;
+	lwres_lwpacket_t rpkt;
+	lwres_gabnrequest_t *req;
+	lwres_gabnresponse_t resp;
+	unsigned int options;
+	dns_fixedname_t name;
+	isc_buffer_t namebuf;
+
+	req = NULL;
+
+	result = lwres_gabnrequest_parse(client->clientmgr->lwctx,
+					 b, pkt, &req);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
+	isc_buffer_init(&namebuf, req->name, req->namelen,
+			ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&namebuf, req->namelen);
+
+	dns_fixedname_init(&name);
+	result = dns_name_fromtext(dns_fixedname_name(&name), &namebuf,
+				   dns_rootname, ISC_FALSE, NULL);
+
+	/*
+	 * Issue a find for the name contained in the request.  We won't
+	 * set the bit that says "anything is good enough" -- we want it
+	 * all.
+	 */
+	options = 0;
+	options |= DNS_ADBFIND_WANTEVENT;
+
+	if ((req->addrtypes & LWRES_ADDRTYPE_V4) != 0) {
+		result = dns_adb_createfind(client->clientmgr->view->adb,
+					    client->clientmgr->task,
+					    process_gabn_finddone, client,
+					    dns_fixedname_name(&name),
+					    dns_rootname,
+					    options | DNS_ADBFIND_INET,
+					    0, &client->v4find);
+	}
+
+	if ((req->addrtypes & LWRES_ADDRTYPE_V6) != 0) {
+		result = dns_adb_createfind(client->clientmgr->view->adb,
+					    client->clientmgr->task,
+					    process_gabn_finddone, client,
+					    dns_fixedname_name(&name),
+					    dns_rootname,
+					    options | DNS_ADBFIND_INET6,
+					    0, &client->v6find);
+	}
+
+	return (ISC_R_SUCCESS);
+
+ out:
+	if (req != NULL)
+		lwres_gabnrequest_free(client->clientmgr->lwctx, &req);
+
+	return (result);
 }
 
 isc_result_t
 process_gnba(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
+	lwres_lwpacket_t rpkt;
+	lwres_gnbarequest_t *req;
+	lwres_gnbaresponse_t resp;
+
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t
 process_noop(client_t *client, lwres_buffer_t *b, lwres_lwpacket_t *pkt)
 {
-	lwres_lwpacket_t pkt;
+	lwres_lwpacket_t rpkt;
+	lwres_nooprequest_t *req;
+	lwres_noopresponse_t resp;
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

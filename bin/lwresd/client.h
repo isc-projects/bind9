@@ -43,9 +43,19 @@ struct client_s {
 	isc_sockaddr_t		sockaddr;	/* where to reply */
 	clientmgr_t	       *clientmgr;	/* our parent */
 	unsigned char		buffer[LWRES_RECVLENGTH]; /* receive buffer */
-	isc_uint32_t		length;		/* length recv'd */
+	isc_uint32_t		recvlength;	/* length recv'd */
+
+	unsigned char	       *sendbuf;
+	isc_uint32_t		sendlength;
 
 	unsigned int		state;
+
+	dns_adbfind_t		*v4find;
+	dns_adbfind_t		*v6find;
+
+	unsigned int		find_done;	/* addrs we have */
+	unsigned int		find_wanted;
+	
 
 	ISC_LINK(client_t)	link;
 };

@@ -80,10 +80,10 @@ process_request(client_t *client)
 	lwres_buffer_t b;
 	isc_result_t result;
 
-	hexdump("client request", client->buffer, client->length);
+	hexdump("client request", client->buffer, client->recvlength);
 
-	lwres_buffer_init(&b, client->buffer, client->length);
-	lwres_buffer_add(&b, client->length);
+	lwres_buffer_init(&b, client->buffer, client->recvlength);
+	lwres_buffer_add(&b, client->recvlength);
 
 	result = lwres_lwpacket_parseheader(&b, &pkt);
 	if (result != ISC_R_SUCCESS) {
@@ -154,7 +154,7 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 		return;
 	}
 
-	client->length = dev->n;
+	client->recvlength = dev->n;
 
 	client_start_recv(cm);
 

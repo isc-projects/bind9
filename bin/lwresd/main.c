@@ -315,9 +315,13 @@ main(int argc, char **argv)
 			break;
 		for (j = 0 ; j < ntasks ; j++) {
 			client[j].clientmgr = &cmgr[j];
+			client[j].recvlength = 0;
+			client[j].sendbuf = NULL;
+			client[j].sendlength = 0;
 			ISC_LINK_INIT(&client[j], link);
-			ISC_LIST_APPEND(cmgr[j].idle, &client[j], link);
 			CLIENT_SETIDLE(&client[j]);
+
+			ISC_LIST_APPEND(cmgr[j].idle, &client[j], link);
 		}
 	}
 	INSIST(i > 0);
