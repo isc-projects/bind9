@@ -15,18 +15,19 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.7 2001/01/09 22:00:45 bwelling Exp $
+# $Id: altbuild.sh,v 1.8 2001/06/28 01:34:01 gson Exp $
 
 #
 # "Alternative build" test.
 #
 # Build BIND9 with build options that are seldom tested otherwise.
-# Specify the CVS tag as a command line argument.
+# Specify the CVS tag or the name of a kit .tar.gz file as a
+# command line argument.
 #
 
 case $# in 
-    1) tag=$1 ;;
-    *) echo "usage: $0 cvs-tag" >&2; exit 1 ;;
+    1) arg=$1 ;;
+    *) echo "usage: $0 cvs-tag | gzipped-tar-file" >&2; exit 1 ;;
 esac
 
 here=`pwd`
@@ -48,10 +49,19 @@ mkdir $builddir
 test ! -d $instdir || rm -rf $instdir
 mkdir $instdir
 
-sh util/kit.sh $tag $kitdir || exit 1
+case $arg in
+    *.tar.gz)
+	kit="$arg"
+	;;
+    *)
+	tag="$arg"
+        sh util/kit.sh $tag $kitdir || exit 1
+        kit=$kitdir/*.tar.gz
+	;;
+esac
 
 cd $srcdir || exit 1
-zcat $kitdir/*.tar.gz | tar xf -
+zcat $kit | tar xf -
 
 cd $builddir || exit 1
 
