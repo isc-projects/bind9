@@ -559,6 +559,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				     rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE)
 			result = DNS_R_HINT;
+		else if (result == DNS_R_NXDOMAIN ||
+			 result == DNS_R_NXRDATASET)
+			result = DNS_R_NOTFOUND;
 	}
 
  cleanup:
