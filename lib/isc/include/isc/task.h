@@ -433,7 +433,7 @@ isc_task_destroy(isc_task_t **taskp);
  *
  *	This call is equivalent to:
  *
- *		isc_task_shutodown(*taskp);
+ *		isc_task_shutdown(*taskp);
  *		isc_task_detach(taskp);
  *
  * Requires:
