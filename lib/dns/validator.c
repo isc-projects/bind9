@@ -1050,6 +1050,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	     val->labels <= dns_name_depth(val->event->name);
 	     val->labels++)
 	{
+		char namebuf[1024];
+
 		if (val->labels == dns_name_depth(val->event->name)) {
 			if (val->event->type == dns_rdatatype_key)
 				break;
@@ -1062,6 +1064,11 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
+
+		dns_name_format(tname, namebuf, sizeof(namebuf));
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "looking for null keyset at '%s'",
+			      namebuf);
 
 		if (dns_rdataset_isassociated(&val->frdataset))
 			dns_rdataset_disassociate(&val->frdataset);
