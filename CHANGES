@@ -1,3 +1,5 @@
+1505.	[bug]		Uninitaliased rdataset is sdb. [RT #8750]
+
 1504.	[func]		New zone type "delegation-only".
 
 1503.	[port]		win32: install libeay32.dll outside of system32.
