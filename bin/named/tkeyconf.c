@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.13 2000/08/01 01:22:59 tale Exp $ */
+/* $Id: tkeyconf.c,v 1.14 2000/10/12 00:39:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/mem.h>
 
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 #include <dns/tkey.h>
@@ -43,9 +44,9 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 	dns_tkeyctx_t *tctx = NULL;
 	char *s;
 	isc_uint32_t n;
-	isc_buffer_t b, namebuf;
-	unsigned char data[1024];
-	dns_name_t domain, keyname;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_buffer_t b;
 
 	result = dns_tkeyctx_create(mctx, ectx, &tctx);
 	if (result != ISC_R_SUCCESS)
@@ -53,44 +54,55 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 
 	s = NULL;
 	result = dns_c_ctx_gettkeydhkey(cfg, &s, &n);
-	if (result == ISC_R_NOTFOUND) {
-		*tctxp = tctx;
-		return (ISC_R_SUCCESS);
-	}
-	isc_buffer_init(&namebuf, data, sizeof(data));
-	dns_name_init(&keyname, NULL);
-	isc_buffer_init(&b, s, strlen(s));
-	isc_buffer_add(&b, strlen(s));
-	dns_name_fromtext(&keyname, &b, dns_rootname, ISC_FALSE, &namebuf);
-	RETERR(dst_key_fromfile(&keyname, n, DNS_KEYALG_DH,
-				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-				NULL, mctx, &tctx->dhkey));
-	s = NULL;
-	RETERR(dns_c_ctx_gettkeydomain(cfg, &s));
-	dns_name_init(&domain, NULL);
-	tctx->domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (tctx->domain == NULL) {
-		result = ISC_R_NOMEMORY;
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&b, s, strlen(s));
+		isc_buffer_add(&b, strlen(s));
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		RETERR(dns_name_fromtext(name, &b, dns_rootname,
+					 ISC_FALSE, NULL));
+		RETERR(dst_key_fromfile(name, n, DNS_KEYALG_DH,
+					DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
+					NULL, mctx, &tctx->dhkey));
+	} else if (result != ISC_R_NOTFOUND)
 		goto failure;
-	}
-	dns_name_init(tctx->domain, NULL);
-	isc_buffer_init(&b, s, strlen(s));
-	isc_buffer_add(&b, strlen(s));
-	RETERR(dns_name_fromtext(&domain, &b, dns_rootname, ISC_FALSE,
-				 &namebuf));
-	RETERR(dns_name_dup(&domain, mctx, tctx->domain));
+
+	s = NULL;
+	result = dns_c_ctx_gettkeydomain(cfg, &s);
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&b, s, strlen(s));
+		isc_buffer_add(&b, strlen(s));
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		RETERR(dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE,
+					 NULL));
+		tctx->domain = isc_mem_get(mctx, sizeof(dns_name_t));
+		if (tctx->domain == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto failure;
+		}
+		dns_name_init(tctx->domain, NULL);
+		RETERR(dns_name_dup(name, mctx, tctx->domain));
+	} else if (result != ISC_R_NOTFOUND)
+		goto failure;
+
+	result = dns_c_ctx_gettkeygsscred(cfg, &s);
+	if (result == ISC_R_SUCCESS) {
+		isc_buffer_init(&b, s, strlen(s));
+		isc_buffer_add(&b, strlen(s));
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		RETERR(dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE,
+					 NULL));
+		RETERR(dst_gssapi_acquirecred(name, ISC_FALSE,
+					      &tctx->gsscred));
+	} else if (result != ISC_R_NOTFOUND)
+		goto failure;
 
 	*tctxp = tctx;
 	return (ISC_R_SUCCESS);
 
  failure:
-	if (tctx->dhkey != NULL)
-		dst_key_free(&tctx->dhkey);
-	if (tctx->domain != NULL) {
-		dns_name_free(tctx->domain, mctx);
-		isc_mem_put(mctx, tctx->domain, sizeof(dns_name_t));
-		tctx->domain = NULL;
-	}
 	dns_tkeyctx_destroy(&tctx);
 	return (result);
 }
