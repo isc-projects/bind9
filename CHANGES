@@ -5,8 +5,6 @@
 			used to conveniently look up RFC2317 names as in
 			"dig -x 10.0.0.0-127". [RT #827, #1576, #1598]
 
-			calling strtime(). [RT #1671]
-
  968.	[bug]		On win32, the isc_time_now() function was unnecessarily
 			calling strtime(). [RT #1671]
 
