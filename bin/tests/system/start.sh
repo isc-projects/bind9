@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.23 2000/07/06 01:26:05 gson Exp $
+# $Id: start.sh,v 1.24 2000/07/07 18:25:08 bwelling Exp $
 
 #
 # Start name servers for running system tests.
@@ -94,7 +94,7 @@ do
 	do
 	    x=`expr $x + 1`
 	    if [ $x = 5 ]; then
-		echo "I: Couldn't start lwresd $d"
+		echo "I:Couldn't start lwresd $d"
 		exit 1
 	    fi
 	    sleep 1
@@ -124,7 +124,7 @@ do
 		if [ $try = 30 ]; then
 			cd ..
 			sh ./stop.sh $1
-			echo "I: no response from $d"
+			echo "I:no response from $d"
 			echo "R:FAIL"
 			exit 1
 		fi

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2000/07/05 18:49:04 bwelling Exp $
+# $Id: tests.sh,v 1.14 2000/07/07 18:25:17 bwelling Exp $
 
 #
 # Perform tests
@@ -75,5 +75,5 @@ if [ $? = 0 ]; then
 	status=`expr $status + 1`
 fi
 
-echo "I: exit status: $status"
+echo "I:exit status: $status"
 exit $status

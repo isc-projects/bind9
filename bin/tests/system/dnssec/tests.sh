@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.16 2000/07/05 18:48:57 bwelling Exp $
+# $Id: tests.sh,v 1.17 2000/07/07 18:25:09 bwelling Exp $
 
 #
 # Perform tests
@@ -88,5 +88,5 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
     example. key @10.53.0.5 -p 5300 > dig.out.ns5 || status=1
 grep "SERVFAIL" dig.out.ns5 > /dev/null || status=1
 
-echo "I: exit status: $status"
+echo "I:exit status: $status"
 exit $status

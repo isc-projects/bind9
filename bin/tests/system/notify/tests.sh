@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.21 2000/07/07 00:41:17 bwelling Exp $
+# $Id: tests.sh,v 1.22 2000/07/07 18:25:13 bwelling Exp $
 
 #
 # Perform tests
@@ -102,5 +102,5 @@ grep ";" dig.out.ns3
 
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
-echo "I: exit status: $status"
+echo "I:exit status: $status"
 exit $status

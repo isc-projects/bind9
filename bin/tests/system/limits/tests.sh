@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2000/07/06 02:33:40 gson Exp $
+# $Id: tests.sh,v 1.6 2000/07/07 18:25:10 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -55,5 +55,5 @@ $DIG +tcp +nosea +nostat +noquest +nocmd +norec \
 	5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 grep 'flags: qr aa tc ad;' dig.out.ns1 || status=1
 
-echo "I: exit status: $status"
+echo "I:exit status: $status"
 exit $status

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2000/07/07 07:15:04 bwelling Exp $
+# $Id: tests.sh,v 1.14 2000/07/07 18:25:20 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -28,7 +28,7 @@ count=0
 ticks=0
 while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
-	        echo "I: Changing test zone..."
+	        echo "I:Changing test zone..."
 		cp ns1/changing2.db ns1/changing.db
 		kill -HUP `cat ns1/named.pid`
 	fi
@@ -72,5 +72,5 @@ grep ";" dig.out.ns2
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
 status=`expr $status + $?`
 
-echo "I: exit status: $status"
+echo "I:exit status: $status"
 exit $status
