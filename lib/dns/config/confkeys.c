@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.16 2000/03/28 22:58:17 brister Exp $ */
+/* $Id: confkeys.c,v 1.17 2000/03/30 17:25:14 brister Exp $ */
 
 #include <config.h>
 
@@ -346,17 +346,11 @@ dns_c_kdef_copy(isc_mem_t *mem,
 void
 dns_c_kdef_print(FILE *fp, int indent, dns_c_kdef_t *keydef)
 {
-	const char *quote = "";
-	
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_KDEF_VALID(keydef));
 
-	if (dns_c_need_quote(keydef->keyid)) {
-		quote = "\"";
-	}
-
 	dns_c_printtabs(fp, indent);
-	fprintf(fp, "key %s%s%s {\n",quote, keydef->keyid, quote);
+	fprintf(fp, "key \"%s\" {\n", keydef->keyid);
 
 	dns_c_printtabs(fp, indent + 1);
 	fprintf(fp, "algorithm \"%s\";\n",keydef->algorithm);
@@ -538,7 +532,6 @@ dns_c_kidlist_print(FILE *fp, int indent,
 		    dns_c_kidlist_t *list)
 {
 	dns_c_kid_t *iter;
-	const char *quote;
 
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_KEYIDLIST_VALID(list));
@@ -555,13 +548,8 @@ dns_c_kidlist_print(FILE *fp, int indent,
 		fprintf(fp, "/* no keys defined */\n");
 	} else {
 		while (iter != NULL) {
-			if (dns_c_need_quote(iter->keyid)) {
-				quote = "\"";
-			} else {
-				quote = "";
-			}
 			dns_c_printtabs(fp, indent + 1);
-			fprintf(fp, "%s%s%s;\n", quote, iter->keyid, quote);
+			fprintf(fp, "\"%s\";\n", iter->keyid);
 			iter = ISC_LIST_NEXT(iter, next);
 		}
 	}
