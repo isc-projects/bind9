@@ -4,7 +4,7 @@
 
  817.	[func]		Adjust timeouts for dialup zone queries.
 
- 816.	[func]		Report potential problems with log file accessibility
+ 816.	[bug]		Report potential problems with log file accessibility
 			at configuration time, since such problems can't
 			reliably be reported at the time they actually occur.
 
