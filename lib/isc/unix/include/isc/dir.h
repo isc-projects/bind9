@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.7 2000/04/28 21:29:27 tale Exp $ */
+/* $Id: dir.h,v 1.8 2000/06/23 03:08:18 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #ifndef ISC_DIR_H
 #define ISC_DIR_H 1
 
-#include <sys/types.h>
+#include <sys/types.h>		/* Required on some systems. */
 #include <dirent.h>
 
 #include <isc/lang.h>
@@ -31,7 +31,7 @@
 #define ISC_DIR_NAMEMAX 256
 #define ISC_DIR_PATHMAX 1024
 
-typedef struct {
+typedef struct isc_direntry {
 	/*
 	 * Ideally, this should be NAME_MAX, but AIX does not define it by
 	 * default and dynamically allocating the space based on pathconf()
@@ -42,7 +42,7 @@ typedef struct {
 	unsigned int	length;
 } isc_direntry_t;
 
-typedef struct {
+typedef struct isc_dir {
 	int		magic;
 	/*
 	 * As with isc_direntry_t->name, making this "right" for all systems
