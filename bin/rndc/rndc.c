@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.18 2000/07/11 22:03:08 tale Exp $ */
+/* $Id: rndc.c,v 1.19 2000/07/12 01:15:34 bwelling Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -355,7 +355,7 @@ main(int argc, char **argv) {
 	DO("create entropy pool", isc_entropy_create(mctx, &entropy));
 	/* XXXDCL probably should use ISC_ENTROPY_GOOD.  talk with graff. */
 	DO("initialize digital signatures",
-	   dst_lib_init(mctx, entropy, NULL));
+	   dst_lib_init(mctx, entropy, 0));
 
 	DO(conffile, dns_c_ndcparseconf(conffile, mctx, &config));
 
