@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.34.2.6.2.1 2003/08/11 05:28:23 marka Exp $ */
+/* $Id: time.c,v 1.34.2.6.2.2 2003/08/12 05:34:05 marka Exp $ */
 
 #include <config.h>
 
@@ -399,11 +399,11 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t) t->seconds;
-	flen = strftime(buf, len, "%b %d %X", localtime(&now));
+	flen = strftime(buf, len, "%d-%b-%Y %X", localtime(&now));
 	INSIST(flen < len);
 	if (flen != 0)
 		snprintf(buf + flen, len - flen,
 			 ".%03u", t->nanoseconds / 1000000);
 	else
-                snprintf(buf, len, "Bad 00 99:99:99.999");
+                snprintf(buf, len, "99-Bad-9999 99:99:99.999");
 }

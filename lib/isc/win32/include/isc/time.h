@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.19.2.1 2001/09/05 00:38:13 gson Exp $ */
+/* $Id: time.h,v 1.19.2.1.10.1 2003/08/12 05:34:06 marka Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -233,7 +233,7 @@ void
 isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
 /*
  * Format the time 't' into the buffer 'buf' of length 'len',
- * using a format like "Aug 30 04:06:47.997" and the local time zone.
+ * using a format like "30-Aug-2000 04:06:47.997" and the local time zone.
  * If the text does not fit in the buffer, the result is indeterminate,
  * but is always guaranteed to be null terminated.
  *
