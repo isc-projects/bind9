@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.27 2001/08/06 01:03:53 marka Exp $ */
+/* $Id: controlconf.c,v 1.28 2001/08/06 11:28:21 gson Exp $ */
 
 #include <config.h>
 
@@ -1155,7 +1155,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 	} else {
 		int i;
 
-		for (i = 0 ;i < 2; i++) {
+		for (i = 0; i < 2; i++) {
 			isc_sockaddr_t addr;
 
 			if (i == 0) {
