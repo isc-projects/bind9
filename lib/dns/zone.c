@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.423 2004/11/09 22:16:57 marka Exp $ */
+/* $Id: zone.c,v 1.424 2004/11/22 23:52:25 marka Exp $ */
 
 #include <config.h>
 
@@ -3644,7 +3644,12 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)
 				result = isc_file_settime(zone->journal, &now);
-			if (result != ISC_R_SUCCESS)
+			if (result == ISC_R_SUCCESS &&
+			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
+			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DUMPING)) {
+				result = isc_file_settime(zone->masterfile,
+							  &now);
+			} else if (result != ISC_R_SUCCESS)
 				result = isc_file_settime(zone->masterfile,
 							  &now);
 			/* Someone removed the file from underneath us! */
