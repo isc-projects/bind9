@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.11 2004/03/09 06:11:07 marka Exp $ */
+/* $Id: result.c,v 1.90.2.12 2004/04/06 01:38:47 marka Exp $ */
 
 #include <config.h>
 
@@ -140,10 +140,11 @@ static const char *text[DNS_R_NRESULTS] = {
 	"empty wild",				/* 93 DNS_R_EMPTYWILD	     */
 	"bad bitmap",				/* 94 DNS_R_BADBITMAP	     */
 
-	"from wildcard",			/* DNS_R_FROMWILDCARD	     */
-	"bad owner name (check-names)",		/* DNS_R_BADOWNERNAME	     */
-	"bad name (check-names)",		/* DNS_R_BADNAME	     */
-	"dynamic zone"				/* DNS_R_DYNAMIC	     */
+	"from wildcard",			/* 95 DNS_R_FROMWILDCARD     */
+	"bad owner name (check-names)",		/* 96 DNS_R_BADOWNERNAME     */
+	"bad name (check-names)",		/* 97 DNS_R_BADNAME	     */
+	"dynamic zone",				/* 98 DNS_R_DYNAMIC	     */
+	"unknown command"			/* 99 DNS_R_UNKNOWNCOMMAND   */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

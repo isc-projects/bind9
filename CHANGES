@@ -5,6 +5,9 @@
 1455.   [bug]           <netaddr> missing from server grammar in
                         doc/misc/options. [RT #5616]
 
+1593.	[bug]		rndc should return "unknown command" to unknown
+			commands. [RT# 10642]
+
 	--- 9.2.4rc1 released ---
 
 1592.	[bug]		configure_view() could leak a dispatch. [RT# 10675]

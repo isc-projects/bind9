@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.7.2.3 2004/03/09 06:09:17 marka Exp $ */
+/* $Id: control.c,v 1.7.2.4 2004/04/06 01:38:47 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,8 @@
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/util.h>
+
+#include <dns/result.h>
 
 #include <isccc/alist.h>
 #include <isccc/cc.h>
@@ -117,7 +119,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "unknown control channel command '%s'",
 			      command);
-		result = ISC_R_NOTIMPLEMENTED;
+		result = DNS_R_UNKNOWNCOMMAND;
 	}
 
 	return (result);
