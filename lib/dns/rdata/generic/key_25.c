@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.22 2000/04/28 01:24:02 gson Exp $ */
+/* $Id: key_25.c,v 1.23 2000/04/28 02:08:30 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -165,7 +165,7 @@ static inline isc_result_t
 fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-	dns_rdata_generic_key_t *key;
+	dns_rdata_key_t *key;
 	isc_region_t tr;
 
 	UNUSED(rdclass);
@@ -174,7 +174,7 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 25);
 	
-	key = (dns_rdata_generic_key_t *) source;
+	key = (dns_rdata_key_t *) source;
 
 	/* Flags */
 	RETERR(uint16_tobuffer(key->flags, target));
@@ -199,7 +199,7 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	dns_rdata_generic_key_t *key;
+	dns_rdata_key_t *key;
 	isc_region_t sr;
 
 	UNUSED(target);
@@ -207,7 +207,7 @@ tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 25);
 
-	key = (dns_rdata_generic_key_t *) target;
+	key = (dns_rdata_key_t *) target;
 	key->common.rdclass = rdata->rdclass;
 	key->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&key->common, link);
@@ -249,7 +249,7 @@ tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 static inline void
 freestruct_key(void *source) {
-	dns_rdata_generic_key_t *key = (dns_rdata_generic_key_t *) source;
+	dns_rdata_key_t *key = (dns_rdata_key_t *) source;
 
 	REQUIRE(source != NULL);
 	REQUIRE(key->common.rdtype == 25);

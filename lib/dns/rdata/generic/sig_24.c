@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.34 2000/04/28 01:24:09 gson Exp $ */
+/* $Id: sig_24.c,v 1.35 2000/04/28 02:08:32 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -307,14 +307,14 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
 	isc_region_t tr;
-	dns_rdata_generic_sig_t *sig;
+	dns_rdata_sig_t *sig;
 	dns_compress_t cctx;
 
 	REQUIRE(type == 24);
 	
 	UNUSED(rdclass);
 
-	sig = (dns_rdata_generic_sig_t *) source;
+	sig = (dns_rdata_sig_t *) source;
 	REQUIRE(sig->mctx != NULL);
 
 	/* Type covered */
@@ -359,12 +359,12 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t sr;
-	dns_rdata_generic_sig_t *sig;
+	dns_rdata_sig_t *sig;
 	dns_name_t signer;
 
 	REQUIRE(rdata->type == 24);
 	
-	sig = (dns_rdata_generic_sig_t *) target;
+	sig = (dns_rdata_sig_t *) target;
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&sig->common, link);
@@ -432,7 +432,7 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 static inline void
 freestruct_sig(void *source) {
-	dns_rdata_generic_sig_t *sig = (dns_rdata_generic_sig_t *) source;
+	dns_rdata_sig_t *sig = (dns_rdata_sig_t *) source;
 
 	REQUIRE(source != NULL);
 	REQUIRE(sig->common.rdtype == 24);

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.31 2000/04/28 01:10:00 halley Exp $
+ * $Id: dnssec.c,v 1.32 2000/04/28 02:08:26 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -189,7 +189,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
 		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata)
 {
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	dns_rdata_t *rdatas;
 	int nrdatas, i;
 	isc_buffer_t b, sigbuf, envbuf;
@@ -336,7 +336,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  isc_boolean_t ignoretime, isc_mem_t *mctx,
 		  dns_rdata_t *sigrdata)
 {
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	dns_fixedname_t fnewname;
 	isc_region_t r;
 	isc_buffer_t envbuf;
@@ -523,7 +523,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 
 isc_result_t
 dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	unsigned char data[512];
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	isc_buffer_t headerbuf, databuf, sigbuf;
@@ -548,7 +548,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	mctx = msg->mctx;
 
-	memset(&sig, 0, sizeof(dns_rdata_generic_sig_t));
+	memset(&sig, 0, sizeof(dns_rdata_sig_t));
 
 	sig.mctx = mctx;
 	sig.common.rdclass = dns_rdataclass_any;
@@ -654,7 +654,7 @@ isc_result_t
 dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 			 dst_key_t *key)
 {
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata;
 	dns_name_t tname;

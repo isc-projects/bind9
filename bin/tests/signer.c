@@ -207,7 +207,7 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
  * that we've loaded already, and then see if there's a key on disk.
  */
 static signer_key_t *
-keythatsigned(dns_rdata_generic_sig_t *sig) {
+keythatsigned(dns_rdata_sig_t *sig) {
 	char *keyname;
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *privkey = NULL;
@@ -306,7 +306,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdataset_t sigset, oldsigset;
 	dns_rdata_t oldsigrdata;
 	dns_rdata_t *trdata;
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	signer_key_t *key;
 	isc_result_t result;
 	isc_boolean_t notsigned = ISC_TRUE, nosigs = ISC_FALSE;

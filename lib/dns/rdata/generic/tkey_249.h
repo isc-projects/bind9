@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.h,v 1.13 2000/03/20 22:57:14 gson Exp $ */
+/* $Id: tkey_249.h,v 1.14 2000/04/28 02:08:35 marka Exp $ */
 
 /* draft-ietf-dnsind-tkey-00.txt */
 
-typedef struct dns_rdata_generic_tkey {
+typedef struct dns_rdata_key {
         dns_rdatacommon_t	common;
         isc_mem_t *		mctx;
         dns_name_t		algorithm;
@@ -31,5 +31,5 @@ typedef struct dns_rdata_generic_tkey {
         unsigned char *		key;
         isc_uint16_t		otherlen;
         unsigned char *		other;
-} dns_rdata_generic_tkey_t;
+} dns_rdata_tkey_t;
 

@@ -216,7 +216,7 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 		     ckey = ISC_LIST_NEXT(ckey, next))
 		{
 			dns_rdataclass_t viewclass;
-			dns_rdata_generic_key_t keystruct;
+			dns_rdata_key_t keystruct;
 			isc_int32_t flags, proto, alg;
 			unsigned char keydata[4096];
 			isc_buffer_t keydatabuf;

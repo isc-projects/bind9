@@ -2237,7 +2237,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 	if (msg->sig0 != NULL) {
 		dns_rdata_t rdata;
-		dns_rdata_generic_sig_t sig;
+		dns_rdata_sig_t sig;
 
 		result = dns_rdataset_first(msg->sig0);
 		INSIST(result == ISC_R_SUCCESS);
@@ -2292,7 +2292,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		return (dns_view_checksig(view, &msgb, msg));
 	else {
 		dns_rdata_t rdata;
-		dns_rdata_generic_sig_t sig;
+		dns_rdata_sig_t sig;
 		dns_rdataset_t keyset;
 		isc_result_t result;
 

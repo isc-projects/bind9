@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.30 2000/04/28 01:10:21 halley Exp $
+ * $Id: tkey.c,v 1.31 2000/04/28 02:08:29 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -212,8 +212,8 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 
 static isc_result_t
 process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
-	       dns_rdata_generic_tkey_t *tkeyin, dns_tkey_ctx_t *tctx,
-	       dns_rdata_generic_tkey_t *tkeyout,
+	       dns_rdata_tkey_t *tkeyin, dns_tkey_ctx_t *tctx,
+	       dns_rdata_tkey_t *tkeyout,
 	       dns_tsig_keyring_t *ring, dns_namelist_t *namelist)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -386,8 +386,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 
 static isc_result_t
 process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
-		   dns_rdata_generic_tkey_t *tkeyin,
-		   dns_rdata_generic_tkey_t *tkeyout,
+		   dns_rdata_tkey_t *tkeyin,
+		   dns_rdata_tkey_t *tkeyout,
 		   dns_tsig_keyring_t *ring,
 		   dns_namelist_t *namelist)
 {
@@ -429,7 +429,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 		      dns_tsig_keyring_t *ring)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_rdata_generic_tkey_t tkeyin, tkeyout;
+	dns_rdata_tkey_t tkeyin, tkeyout;
 	dns_name_t *qname, *name, *keyname, tempkeyname, signer;
 	dns_rdataset_t *tkeyset;
 	dns_rdata_t tkeyrdata, *rdata = NULL;
@@ -441,7 +441,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 	REQUIRE(ring != NULL);
 
 	/* Need to do this to determine if this should be freed later */
-	memset(&tkeyin, 0, sizeof(dns_rdata_generic_tkey_t));
+	memset(&tkeyin, 0, sizeof(dns_rdata_tkey_t));
 
 	/* Interpret the question section */
 	result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
@@ -639,7 +639,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 
 static isc_result_t
 buildquery(dns_message_t *msg, dns_name_t *name,
-	   dns_rdata_generic_tkey_t *tkey)
+	   dns_rdata_tkey_t *tkey)
 {
 	dns_name_t *qname = NULL, *aname = NULL;
 	dns_rdataset_t *question = NULL, *tkeyset = NULL;
@@ -711,7 +711,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 		      dns_name_t *algorithm, isc_buffer_t *nonce,
 		      isc_uint32_t lifetime)
 {
-	dns_rdata_generic_tkey_t tkey;
+	dns_rdata_tkey_t tkey;
 	dns_rdata_t *rdata = NULL;
 	isc_buffer_t src, *dynbuf = NULL;
 	isc_region_t r;
@@ -785,7 +785,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 
 isc_result_t
 dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key) {
-	dns_rdata_generic_tkey_t tkey;
+	dns_rdata_tkey_t tkey;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
@@ -844,7 +844,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	dns_rdata_t theirkeyrdata;
 	dst_key_t *theirkey;
 	dns_tsigkey_t *tsigkey;
-	dns_rdata_generic_tkey_t qtkey, rtkey;
+	dns_rdata_tkey_t qtkey, rtkey;
 	unsigned char keydata[1024], secretdata[256];
 	unsigned int sharedsize;
 	isc_buffer_t keysrc, keybuf, *shared = NULL, secret;
@@ -962,7 +962,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 {
 	dns_rdata_t qtkeyrdata, rtkeyrdata;
 	dns_name_t *tkeyname, *tempname;
-	dns_rdata_generic_tkey_t qtkey, rtkey;
+	dns_rdata_tkey_t qtkey, rtkey;
 	dns_tsigkey_t *tsigkey = NULL;
 	isc_result_t result;
 

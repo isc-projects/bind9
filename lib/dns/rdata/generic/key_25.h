@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.h,v 1.9 2000/03/20 22:57:12 gson Exp $ */
+/* $Id: key_25.h,v 1.10 2000/04/28 02:08:31 marka Exp $ */
 
 /* RFC 2535 */
 
-typedef struct dns_rdata_generic_key_t {
+typedef struct dns_rdata_key_t {
         dns_rdatacommon_t	common;
         isc_mem_t *		mctx;
         isc_uint16_t		flags;
@@ -27,5 +27,5 @@ typedef struct dns_rdata_generic_key_t {
         isc_uint8_t		algorithm;
         isc_uint16_t		datalen;
         unsigned char *		data;
-} dns_rdata_generic_key_t;
+} dns_rdata_key_t;
 

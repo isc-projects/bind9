@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.27 2000/04/28 01:24:09 gson Exp $ */
+/* $Id: tkey_249.c,v 1.28 2000/04/28 02:08:34 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -301,7 +301,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		void *source, isc_buffer_t *target)
 {
 	isc_region_t tr;
-	dns_rdata_generic_tkey_t *tkey;
+	dns_rdata_tkey_t *tkey;
 	dns_compress_t cctx;
 
 	UNUSED(rdclass);
@@ -310,7 +310,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 249);
 	
-	tkey = (dns_rdata_generic_tkey_t *) source;
+	tkey = (dns_rdata_tkey_t *) source;
 	REQUIRE(tkey->mctx != NULL);
 
 	/* Algorithm Name */
@@ -360,7 +360,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	dns_rdata_generic_tkey_t *tkey;
+	dns_rdata_tkey_t *tkey;
 	dns_name_t alg;
 	isc_region_t sr;
 
@@ -369,7 +369,7 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 249);
 
-	tkey = (dns_rdata_generic_tkey_t *) target;
+	tkey = (dns_rdata_tkey_t *) target;
 
 	tkey->common.rdclass = rdata->rdclass;
 	tkey->common.rdtype = rdata->type;
@@ -439,7 +439,7 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 static inline void
 freestruct_tkey(void *source) {
-	dns_rdata_generic_tkey_t *tkey = (dns_rdata_generic_tkey_t *) source;
+	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *) source;
 
 	REQUIRE(source != NULL);
 
