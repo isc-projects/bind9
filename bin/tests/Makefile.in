@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.108 2001/02/15 05:15:27 gson Exp $
+# $Id: Makefile.in,v 1.109 2001/02/16 01:07:34 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,7 +52,6 @@ XTARGETS =	adb_test \
 		cfg_test \
 		compress_test \
 		db_test \
-		dispatch_tcp_test \
 		dispatch_test \
 		entropy_test \
 		entropy2_test \
@@ -72,7 +71,6 @@ XTARGETS =	adb_test \
 		mempool_test \
 		name_test \
 		nconf_test \
-		ndcconf_test \
 		nxtify \
 		omapi_test \
 		ratelimiter_test \
@@ -95,7 +93,6 @@ SRCS =		adb_test.c \
 		byname_test.c \
 		compress_test.c \
 		db_test.c \
-		dispatch_tcp_test.c \
 		dispatch_test.c \
 		entropy_test.c \
 		entropy2_test.c \
@@ -115,7 +112,6 @@ SRCS =		adb_test.c \
 		mempool_test.c \
 		name_test.c \
 		nconf_test.c \
-		ndcconf_test.c \
 		nxtify.c \
 		omapi_test.c \
 		printmsg.c \
@@ -256,16 +252,8 @@ dispatch_test: dispatch_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dispatch_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dispatch_tcp_test: dispatch_tcp_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
 nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nconf_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-ndcconf_test: ndcconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ndcconf_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 fsaccess_test: fsaccess_test.@O@ ${ISCDEPLIBS}
