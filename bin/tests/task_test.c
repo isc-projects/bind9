@@ -95,49 +95,49 @@ main(int argc, char *argv[]) {
 	printf("task 2 = %p\n", t2);
 	sleep(2);
 
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "1",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
 	isc_task_send(t1, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "2",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
 				   sizeof *event);
 	isc_task_send(t2, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "3",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "3",
 				   sizeof *event);
 	isc_task_send(t3, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "4",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "4",
 				   sizeof *event);
 	isc_task_send(t4, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "2",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "2",
 				   sizeof *event);
 	isc_task_send(t2, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "3",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "3",
 				   sizeof *event);
 	isc_task_send(t3, &event);
-	event = isc_event_allocate(mctx, main, 1, my_callback, "4",
+	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "4",
 				   sizeof *event);
 	isc_task_send(t4, &event);
 	isc_task_purge(t3, NULL, 0);
