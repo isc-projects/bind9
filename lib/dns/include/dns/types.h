@@ -85,6 +85,10 @@ typedef enum {
 } dns_bitlabel_t;
 
 typedef enum {
+	dns_one_answer, dns_many_answers
+} dns_transfer_format_t;
+
+typedef enum {
 	dns_namereln_none = 0,
 	dns_namereln_contains = 1,
 	dns_namereln_subdomain = 2,
@@ -99,6 +103,7 @@ typedef enum {
  */
 
 enum {
+	dns_rdatatype_none = 0,
 	TYPEENUM
 	dns_rdatatype_ixfr = 251,
 	dns_rdatatype_axfr = 252,
