@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.34 2002/01/27 20:52:47 bwelling Exp $ */
+/* $Id: loc_29.c,v 1.35 2002/02/10 23:52:26 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -49,6 +49,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned long latitude;
 	unsigned long longitude;
 	unsigned long altitude;
+	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
 
 	REQUIRE(type == 29);
 
@@ -56,7 +57,11 @@ fromtext_loc(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-	UNUSED(callbacks);
+
+	if (callbacks != NULL && callbacks->warn != NULL)
+		callback = callbacks->warn;
+	else
+		callback = default_fromtext_callback;
 
 	/*
 	 * Defaults.
@@ -108,6 +113,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (s1 < 0 || s1 > 59)
 		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
+		const char *l;
 		e++;
 		for (i = 0; i < 3; i++) {
 			if (*e == 0)
@@ -119,9 +125,21 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for (; i < 3; i++)
 			s1 *= 10;
+		l = e;
 		while (*e != 0) {
 			if (decvalue(*e++) < 0)
 				RETTOK(DNS_R_SYNTAX);
+		}
+		if (*l != '\0') {
+			const char *file = isc_lex_getsourcename(lexer);
+			unsigned long line = isc_lex_getsourceline(lexer);
+
+			if (file == NULL)
+				file = "UNKNOWN";
+			(*callback)(callbacks, "%s: %s:%u: '%s' extra "
+				    "precision digits ignored",
+				    "dns_rdata_fromtext", file, line,
+				    DNS_AS_STR(token));
 		}
 	} else
 		s1 *= 1000;
@@ -180,6 +198,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	if (s2 < 0 || s2 > 59)
 		RETTOK(ISC_R_RANGE);
 	if (*e == '.') {
+		const char *l;
 		e++;
 		for (i = 0; i < 3; i++) {
 			if (*e == 0)
@@ -191,9 +210,21 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for (; i < 3; i++)
 			s2 *= 10;
+		l = e;
 		while (*e != 0) {
 			if (decvalue(*e++) < 0)
 				RETTOK(DNS_R_SYNTAX);
+		}
+		if (*l != '\0') {
+			const char *file = isc_lex_getsourcename(lexer);
+			unsigned long line = isc_lex_getsourceline(lexer);
+
+			if (file == NULL)
+				file = "UNKNOWN";
+			(*callback)(callbacks, "%s: %s:%u: '%s' extra "
+				    "precision digits ignored",
+				    "dns_rdata_fromtext",
+				    file, line, DNS_AS_STR(token));
 		}
 	} else
 		s2 *= 1000;
