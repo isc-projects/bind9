@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.h,v 1.1 2000/10/11 17:44:18 mws Exp $ */
+/* $Id: opt.h,v 1.2 2000/10/12 21:51:57 mws Exp $ */
 
 #ifndef DNS_OPT_H
 #define DNS_OPT_H 1
@@ -28,6 +28,14 @@
 
 #include <dns/rdataset.h>
 #include <dns/message.h>
+
+#ifndef NOMINUM_PUBLIC
+/*
+ * XXX For GNS, We're enabling the new option codes.  This is
+ * internal use only.
+ */
+#define DNS_OPT_NEWCODES
+#endif /* NOMINUM_PUBLIC */
 
 /*
  * XXX WARNING XXX  These codes have not yet been assigned by IANA.

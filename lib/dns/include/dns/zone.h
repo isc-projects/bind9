@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.78 2000/10/05 06:39:25 marka Exp $ */
+/* $Id: zone.h,v 1.79 2000/10/12 21:51:58 mws Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1156,6 +1156,23 @@ dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
  *	'zmgr' to be a valid zone manager.
  */
 
+void
+dns_zone_forcereload(dns_zone_t *zone);
+/*
+ *      Force a reload of specified zone.
+ *
+ * Requires:
+ *      'zone' to be a valid zone.
+ */
+
+isc_boolean_t
+dns_zone_isforced(dns_zone_t *zone);
+/*
+ *      Check if the zone is waiting a forced reload.
+ *
+ * Requires:
+ *      'zone' to be a valid zone.
+ */
 
 ISC_LANG_ENDDECLS
 

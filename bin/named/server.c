@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.227 2000/10/11 21:21:47 marka Exp $ */
+/* $Id: server.c,v 1.228 2000/10/12 21:51:46 mws Exp $ */
 
 #include <config.h>
 
@@ -50,6 +50,7 @@
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zoneconf.h>
+#include <dns/zt.h>
 
 #include <dst/dst.h>
 
@@ -703,6 +704,7 @@ create_bind_view(dns_view_t **viewp)
 
 	return (result);
 }
+
 
 
 /*
@@ -1877,10 +1879,97 @@ ns_server_reloadwanted(ns_server_t *server) {
 	UNLOCK(&server->reload_event_lock);
 }
 
-void
-ns_server_reloadzone(ns_server_t *server, char *args) {
+static char *
+next_token(char **stringp, const char *delim) {
+	char *res;
 
+	do {
+		res = strsep(stringp, delim);
+		if (res == NULL)
+			break;
+	} while (*res == '\0');
+	return (res);
+}                       
+
+static isc_result_t
+zone_from_args(char *args, dns_zone_t **zone) {
+	char *input, *ptr;
+	const char *zonetxt = NULL, *viewtxt = NULL;
+	dns_fixedname_t name;
+	isc_result_t result;
+	isc_buffer_t buf;
+	dns_view_t *view;
+
+	input = args;
+	ptr = next_token(&input, " \t");
+	while (ptr != NULL) {
+		switch (ptr[0]) {
+		case 'Z':
+			zonetxt = ptr+1;
+			break;
+		case 'V':
+			viewtxt = ptr+1;
+			break;
+		}
+		ptr = next_token(&input, " \t");
+	}
+	if (zonetxt == NULL)
+		return DNS_R_BADZONE; /* Nothing to do! */
+	isc_buffer_init(&buf, zonetxt, strlen(zonetxt));
+	isc_buffer_add(&buf, strlen(zonetxt));
+	dns_fixedname_init(&name);
+	result = dns_name_fromtext(&(name.name), &buf, dns_rootname,
+				   ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto fail1;
+	if (viewtxt == NULL)
+		viewtxt = "_default";
+	result = dns_viewlist_find(&ns_g_server->viewlist, viewtxt,
+				   dns_rdataclass_in, &view);
+	if (result != ISC_R_SUCCESS)
+		goto fail1;
+	result = dns_zt_find(view->zonetable, &(name.name), 0, NULL,
+			     zone);
+	if (result != ISC_R_SUCCESS)
+		goto fail2;
+ fail2:
+	dns_view_detach(&view);
+ fail1:
+	isc_buffer_invalidate(&buf);
+	return (result);
 }
+
+isc_result_t
+ns_server_reloadzone(ns_server_t *server, char *args) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	
+	UNUSED(server);
+	result = zone_from_args(args, &zone);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone != NULL) {
+		dns_zone_forcereload(zone);
+		dns_zone_detach(&zone);
+	}
+	return (ISC_R_SUCCESS);
+}	
+
+isc_result_t
+ns_server_refreshzone(ns_server_t *server, char *args) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+
+	UNUSED(server);
+	result = zone_from_args(args, &zone);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone != NULL) {
+		dns_zone_refresh(zone);
+		dns_zone_detach(&zone);
+	}
+	return (ISC_R_SUCCESS);
+}	
 
 static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,

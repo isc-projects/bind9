@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.100 2000/10/12 03:32:14 marka Exp $ */
+/* $Id: xfrin.c,v 1.101 2000/10/12 21:51:53 mws Exp $ */
 
 #include <config.h>
 
@@ -409,7 +409,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 	case XFRST_SOAQUERY:
 		xfr->end_serial = dns_soa_getserial(rdata);
 		if (!DNS_SERIAL_GT(xfr->end_serial,
-				   xfr->ixfr.request_serial)) {
+				   xfr->ixfr.request_serial) &&
+		    !dns_zone_isforced(xfr->zone)) {
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
 				  "master has %u, not updating",
@@ -437,7 +438,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 		 */
 		xfr->end_serial = dns_soa_getserial(rdata);
 		if (xfr->reqtype == dns_rdatatype_ixfr &&
-		    ! DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial))
+		    ! DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial)
+		    && !dns_zone_isforced(xfr->zone))
 		{
 			/*
 			 * This must be the single SOA record that is

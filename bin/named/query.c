@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.136 2000/10/11 18:00:08 mws Exp $ */
+/* $Id: query.c,v 1.137 2000/10/12 21:51:45 mws Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/opt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -2102,7 +2103,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_namereln_t namereln;
 	int order;
 	isc_buffer_t *dbuf;
-	isc_region_t r;
 	isc_buffer_t b;
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;

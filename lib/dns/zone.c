@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.229 2000/10/10 22:00:12 bwelling Exp $ */
+/* $Id: zone.c,v 1.230 2000/10/12 21:51:55 mws Exp $ */
 
 #include <config.h>
 
@@ -208,10 +208,12 @@ struct dns_zone {
 #define DNS_ZONEFLG_NOMASTERS	0x00001000U	/* an attempt to refresh a
 						 * zone with no masters
 						 * occured */
-#define DNS_ZONEFLG_LOADING	0x00002000U	/* load from disk in progress */
-#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/* timer values have been set from
-						   SOA (if not set, we are still using
-						   default timer values) */
+#define DNS_ZONEFLG_LOADING	0x00002000U	/* load from disk in progress*/
+#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/* timer values have been set
+						 * from SOA (if not set, we
+						 * are still using
+						 * default timer values) */
+#define DNS_ZONEFLG_FORCELOAD   0x00008000U     /* Force a reload */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -2967,6 +2969,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "Serial: new %u, old %u",
 		 serial, zone->serial);
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
+#ifndef NOMINUM_PUBLIC
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD) ||
+#endif /* NOMINUM_PUBLIC */
 	    isc_serial_gt(serial, zone->serial)) {
  tcp_transfer:
 		isc_event_free(&event);
@@ -4283,6 +4288,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		zone->flags |= DNS_ZONEFLG_NEEDNOTIFY;
 		/*FALLTHROUGH*/
 	case DNS_R_UPTODATE:
+		zone->flags &= ~DNS_ZONEFLG_FORCELOAD;
 		/*
 		 * Has the zone expired underneath us?
 		 */
@@ -4533,6 +4539,11 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	if (zone->db == NULL) {
 		zone_log(zone, me, ISC_LOG_DEBUG(3),
 			 "no database exists yet, requesting AXFR of "
+			 "initial version from %s", mastertext);
+		xfrtype = dns_rdatatype_axfr;
+	} else if (dns_zone_isforced(zone)) {
+		zone_log(zone, me, ISC_LOG_DEBUG(3),
+			 "forced reload, requesting AXFR of "
 			 "initial version from %s", mastertext);
 		xfrtype = dns_rdatatype_axfr;
 	} else {
@@ -5410,3 +5421,18 @@ dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
 		      "database (%p) destroyed", (void*) db);
 }
 #endif
+
+void
+dns_zone_forcereload(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->flags |= DNS_ZONEFLG_FORCELOAD;
+	dns_zone_refresh(zone);
+}
+
+isc_boolean_t
+dns_zone_isforced(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (DNS_ZONE_FLAG(zone,DNS_ZONEFLG_FORCELOAD));
+}

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize_all.sh,v 1.7 2000/09/29 21:31:02 mws Exp $
+# $Id: sanitize_all.sh,v 1.8 2000/10/12 21:52:00 mws Exp $
 
 PERL=perl5
 
@@ -23,9 +23,9 @@ PERL=perl5
 # sanitize all of the files in that tree.
 
 find . -name '*.[ch]' | xargs $PERL util/sanitize.pl -kNOMINUM_PUBLIC \
-	-kISC_PLATFORM_USETHREADS $*
+	-kISC_PLATFORM_USETHREADS -iNOMINUM_GNS $*
 find . -name '*.in' | xargs $PERL util/sanitize.pl -kNOMINUM_PUBLIC \
-	-kISC_PLATFORM_USETHREADS $*
+	-kISC_PLATFORM_USETHREADS -iNOMINUM_GNS $*
 for file in `find . -name '*.dirty'`
 do
     clean=`echo $file | sed 's/\.dirty$//'`

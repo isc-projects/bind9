@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.118 2000/10/11 17:44:04 mws Exp $ */
+/* $Id: client.c,v 1.119 2000/10/12 21:51:42 mws Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/opt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

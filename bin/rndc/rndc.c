@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.26 2000/10/11 21:22:29 marka Exp $ */
+/* $Id: rndc.c,v 1.27 2000/10/12 21:51:51 mws Exp $ */
 
 /*
  * Principal Author: DCL
@@ -237,6 +237,7 @@ ndc_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	isc_result_t result;
 	char *message;
 */
+	UNUSED(value);
 	
 	INSIST(handle == (omapi_object_t *)&ndc_g_ndc);
 	
@@ -303,6 +304,8 @@ main(int argc, char **argv) {
 	unsigned int algorithm;
 	int ch;
 	int len;
+	char *zonename = NULL;
+	char *viewname = NULL;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -310,7 +313,8 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:vy:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vv:y:z:"))
+	       != -1) {
 		switch (ch) {
 		case 'c':
 			conffile = isc_commandline_argument;
@@ -336,18 +340,18 @@ main(int argc, char **argv) {
 		case 's':
 			servername = isc_commandline_argument;
 			break;
-
-		case 'v':
-			/*
-			 * Undocumented, for testing.
-			 */
+		case 'V':
 			verbose = ISC_TRUE;
 			break;
-
+		case 'v':
+			viewname = isc_commandline_argument;
+			break;
 		case 'y':
 			keyname = isc_commandline_argument;
 			break;
-
+		case 'z':
+			zonename = isc_commandline_argument;
+			break;
 		case '?':
 			usage();
 			exit(1);
@@ -504,8 +508,51 @@ main(int argc, char **argv) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "reload") == 0) {
-			result = send_command(omapimgr, command, args);
-
+			char omapiargs[DNS_NAME_MAXTEXT];
+			omapiargs[0]=0;
+			if (zonename != NULL) {	
+				strncat(omapiargs, "Z", 1);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+				strncat(omapiargs, zonename,
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			if (zonename != NULL && viewname != NULL) {
+				strncat(omapiargs, " ",
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			if (viewname != NULL) {	
+				strncat(omapiargs, "V", 1);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+				strncat(omapiargs, viewname,
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			result = send_command(omapimgr, command, omapiargs);
+		} else if (strcmp(command, "refresh") == 0) {
+			char omapiargs[DNS_NAME_MAXTEXT];
+			omapiargs[0]=0;
+			if (zonename != NULL) {	
+				strncat(omapiargs, "Z", 1);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+				strncat(omapiargs, zonename,
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			if (zonename != NULL && viewname != NULL) {
+				strncat(omapiargs, " ",
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			if (viewname != NULL) {	
+				strncat(omapiargs, "V", 1);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+				strncat(omapiargs, viewname,
+					DNS_NAME_MAXTEXT);
+				omapiargs[DNS_NAME_MAXTEXT-1] = 0;
+			}
+			result = send_command(omapimgr, command, omapiargs);
 		} else if (strcmp(command, "restart") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
 

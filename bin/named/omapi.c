@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.19 2000/10/11 21:21:46 marka Exp $ */
+/* $Id: omapi.c,v 1.20 2000/10/12 21:51:43 mws Exp $ */
 
 /*
  * Principal Author: DCL
@@ -78,16 +78,33 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	 */
 	if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_RELOAD) == 0) {
 		result = ISC_R_SUCCESS;
-		args = omapi_data_strdup(ns_g_mctx, value);
-		if (args == NULL)
-			result = ISC_R_NOMEMORY;
-		else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) == 0)
+		if (value != NULL) {
+			args = omapi_data_strdup(ns_g_mctx, value);
+			if (args == NULL)
+				result = ISC_R_NOMEMORY;
+			else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) == 0)
+				ns_server_reloadwanted(ns_g_server);
+			/* XXX Can the previous case ever happen??? */
+			else
+				result = ns_server_reloadzone(ns_g_server,
+							      args);
+			if (args != NULL)
+				isc_mem_free(ns_g_mctx, args);
+		} else {
 			ns_server_reloadwanted(ns_g_server);
-		else
-			ns_server_reloadzone(ns_g_server, args);
-		if (args != NULL)
-			isc_mem_free(ns_g_mctx, args);
-
+		}
+	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_REFRESH) == 0) {
+		result = ISC_R_SUCCESS;
+		if (value != NULL) {
+			args = omapi_data_strdup(ns_g_mctx, value);
+			if (args == NULL)
+				result = ISC_R_NOMEMORY;
+			else if (strcmp(args, NS_OMAPI_COMMAND_RELOAD) != 0)
+				result = ns_server_refreshzone(ns_g_server,
+							      args);
+			if (args != NULL)
+				isc_mem_free(ns_g_mctx, args);
+		}
 	} else if (omapi_string_strcmp(name,NS_OMAPI_COMMAND_HALT) == 0) {
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 		isc_app_shutdown();
@@ -105,7 +122,6 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 			      "control_setvalue: '%.*s' not yet implemented",
 			      REGION_FMT(&region));
 		result = ISC_R_NOTIMPLEMENTED;
-
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
