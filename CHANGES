@@ -10,7 +10,7 @@
 
  457.	[bug]		Dig/host/hslookup didn't properly handle connect
 			timeouts in certain situations, causing an 
-			an unnecessary warning message to be printed.
+			unnecessary warning message to be printed.
 
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
