@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.273 2000/12/08 19:34:06 marka Exp $ */
+/* $Id: zone.c,v 1.274 2000/12/11 19:21:15 marka Exp $ */
 
 #include <config.h>
 
@@ -106,7 +106,10 @@ typedef ISC_LIST(dns_io_t) dns_iolist_t;
 #define DNS_ZONE_CHECKLOCK
 #ifdef DNS_ZONE_CHECKLOCK
 #define LOCK_ZONE(z) \
-	 do { LOCK(&(z)->lock); (z)->locked = ISC_TRUE; } while (0)
+	 do { LOCK(&(z)->lock); \
+	      INSIST((z)->locked == ISC_FALSE); \
+	     (z)->locked = ISC_TRUE; \
+		} while (0)
 #define UNLOCK_ZONE(z) \
 	do { (z)->locked = ISC_FALSE; UNLOCK(&(z)->lock); } while (0)
 #define LOCKED_ZONE(z) ((z)->locked)
@@ -2998,8 +3001,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 	dns_message_destroy(&msg);
 	isc_event_free(&event);
-	dns_request_destroy(&zone->request);
 	LOCK_ZONE(zone);
+	dns_request_destroy(&zone->request);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	zone->refreshtime = now +
 		isc_random_jitter(zone->refresh, zone->refresh / 4);
@@ -3018,8 +3021,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		dns_db_detach(&stub->db);
 	if (msg != NULL)
 		dns_message_destroy(&msg);
-	LOCK_ZONE(zone);
 	isc_event_free(&event);
+	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
 	zone->refreshcnt = 0;
@@ -3042,7 +3045,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	dns_request_destroy(&zone->request);
 	UNLOCK_ZONE(zone);
 	ns_query(zone, NULL, stub);
-	goto detach;
+	goto done;
 
  free_stub:
 	stub->magic = 0;
@@ -3051,7 +3054,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	INSIST(stub->version == NULL);
 	isc_mem_put(stub->mctx, stub, sizeof(*stub));
 
- detach:
+ done:
 	INSIST(event == NULL);
 	return;
 }
@@ -3242,7 +3245,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	    isc_serial_gt(serial, zone->serial)) {
  tcp_transfer:
 		isc_event_free(&event);
+		LOCK_ZONE(zone);
 		dns_request_destroy(&zone->request);
+		UNLOCK_ZONE(zone);
 		if (zone->type == dns_zone_slave) {
 			queue_xfrin(zone);
 		} else {
@@ -3276,13 +3281,13 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 	if (msg != NULL)
 		dns_message_destroy(&msg);
-	return;
+	goto detach;
 
  next_master:
 	if (msg != NULL)
 		dns_message_destroy(&msg);
-	LOCK_ZONE(zone);
 	isc_event_free(&event);
+	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
 	zone->refreshcnt = 0;
@@ -3294,21 +3299,23 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		}
 		zone_settimer(zone, now);
 		UNLOCK_ZONE(zone);
-		return;
+		goto detach;
 	}
 	UNLOCK_ZONE(zone);
 	queue_soa_query(zone);
-	return;
+	goto detach;
 
  same_master:
 	zone->refreshcnt++;
 	if (msg != NULL)
 		dns_message_destroy(&msg);
-	LOCK_ZONE(zone);
 	isc_event_free(&event);
+	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	UNLOCK_ZONE(zone);
 	queue_soa_query(zone);
+ detach:
+	dns_zone_idetach(&zone);
 	return;
 }
 
@@ -3403,6 +3410,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = event->ev_arg;
+	dns_zone_t *dummy = NULL;
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
 	isc_uint32_t options;
@@ -3453,11 +3461,15 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
+	LOCK_ZONE(zone);
+	zone_iattach(zone, &dummy);
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr, options, key,
 				       15 /* XXX */, zone->task,
 				       refresh_callback, zone, &zone->request);
+	UNLOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
+		dns_zone_idetach(&dummy);
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
 			 "dns_request_createvia failed: %s",
 			 dns_result_totext(result));
@@ -3588,11 +3600,13 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
+	LOCK_ZONE(zone);
 	result = dns_request_createvia(zone->view->requestmgr, message,
 				       &src, &zone->masteraddr,
 				       DNS_REQUESTOPT_TCP, key, 15 /* XXX */,
 				       zone->task, stub_callback, stub,
 				       &zone->request);
+	UNLOCK_ZONE(zone);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
 			 "dns_request_createvia failed: %s",
@@ -3603,6 +3617,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	return;
 
  cleanup:
+	cancel_refresh(zone);
 	if (stub != NULL) {
 		stub->magic = 0;
 		if (stub->version != NULL)
@@ -3611,10 +3626,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		if (stub->db != NULL)
 			dns_db_detach(&stub->db);
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
+		dns_zone_idetach(&zone);
 	}
 	if (message != NULL)
 		dns_message_destroy(&message);
-	cancel_refresh(zone);
 	return;
 }
 
@@ -3651,11 +3666,11 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
 
+	LOCK_ZONE(zone);
 	if (zone->request != NULL) {
-		LOCK_ZONE(zone);
 		dns_request_cancel(zone->request);
-		UNLOCK_ZONE(zone);
 	}
+	UNLOCK_ZONE(zone);
 
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
