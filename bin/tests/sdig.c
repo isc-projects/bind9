@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <netdb.h>		/* XXXRTH */
+extern int h_errno;
 
 #include <isc/types.h>
 #include <isc/app.h>
