@@ -1203,12 +1203,14 @@ dispatch_read(isc_socket_t *sock)
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
-	iev = &sock->readable_ev;
-	ev = ISC_LIST_HEAD(sock->recv_list);
-
-	INSIST(ev != NULL);
 	INSIST(!sock->pending_recv);
+
+	ev = ISC_LIST_HEAD(sock->recv_list);
+	if (ev == NULL)
+		return;
+
 	sock->pending_recv = 1;
+	iev = &sock->readable_ev;
 
 	XTRACE(TRACE_WATCHER, ("dispatch_read:  posted event %p to task %p\n",
 			       ev, ev->sender));
@@ -1227,12 +1229,14 @@ dispatch_write(isc_socket_t *sock)
 	intev_t *iev;
 	isc_socketevent_t *ev;
 
-	iev = &sock->writable_ev;
-	ev = ISC_LIST_HEAD(sock->send_list);
-
-	INSIST(ev != NULL);
 	INSIST(!sock->pending_send);
+
+	ev = ISC_LIST_HEAD(sock->send_list);
+	if (ev == NULL)
+		return;
+
 	sock->pending_send = 1;
+	iev = &sock->writable_ev;
 
 	XTRACE(TRACE_WATCHER, ("dispatch_send:  posted event %p to task %p\n",
 			       ev, ev->sender));
@@ -1254,12 +1258,18 @@ dispatch_accept(isc_socket_t *sock)
 	intev_t *iev;
 	isc_socket_newconnev_t *ev;
 
-	iev = &sock->readable_ev;
-	ev = ISC_LIST_HEAD(sock->accept_list);
-
-	INSIST(ev != NULL);
 	INSIST(!sock->pending_accept);
+
+	/*
+	 * Are there any done events left, or were they all canceled
+	 * before the manager got the socket lock?
+	 */
+	ev = ISC_LIST_HEAD(sock->accept_list);
+	if (ev == NULL)
+		return;
+
 	sock->pending_accept = 1;
+	iev = &sock->readable_ev;
 
 	sock->references++;  /* keep socket around for this internal event */
 	iev->sender = sock;
@@ -1278,7 +1288,7 @@ dispatch_connect(isc_socket_t *sock)
 	iev = &sock->writable_ev;
 
 	ev = sock->connect_ev;
-	INSIST(ev != NULL);
+	INSIST(ev != NULL); /* XXX */
 
 	INSIST(sock->connecting);
 
