@@ -88,8 +88,10 @@ typedef struct query {
 	/* Locked by task event serialization. */
 	unsigned int			magic;
 	fetchctx_t *			fctx;
+	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatch;
 	dns_adbaddrinfo_t *		addrinfo;
+	isc_socket_t *			tcpsocket;
 	isc_time_t			start;
 	dns_messageid_t			id;
 	dns_dispentry_t *		dispentry;
@@ -317,6 +319,8 @@ resquery_destroy(resquery_t **queryp) {
 	query = *queryp;
 	REQUIRE(!ISC_LINK_LINKED(query, link));
 
+	INSIST(query->tcpsocket == NULL);
+	
 	query->magic = 0;
 	isc_mem_put(query->fctx->res->mctx, query, sizeof *query);
 	*queryp = NULL;
@@ -330,7 +334,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	resquery_t *query;
 	unsigned int rtt;
 	unsigned int factor;
-	isc_socket_t *socket;
 
 	query = *queryp;
 	fctx = query->fctx;
@@ -386,10 +389,13 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		/*
 		 * Cancel the connect.
 		 */
-		socket = dns_dispatch_getsocket(query->dispatch);
-		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_CONNECT);
+		isc_socket_cancel(query->tcpsocket, NULL,
+				  ISC_SOCKCANCEL_CONNECT);
 	}
-	dns_dispatch_detach(&query->dispatch);
+
+	if (query->dispatch != NULL)
+		dns_dispatch_detach(&query->dispatch);
+	
 	if (!RESQUERY_CONNECTING(query)) {
 		/*
 		 * It's safe to destroy the query now.
@@ -615,8 +621,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_task_t *task;
 	isc_result_t result;
 	resquery_t *query;
-	isc_socket_t *socket;
-	unsigned int attrs;
 
 	FCTXTRACE("query");
 
@@ -652,33 +656,38 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * a dispatch for it here.  Otherwise we use the resolver's
 	 * shared dispatch.
 	 */
+	query->dispatchmgr = res->dispatchmgr;
 	query->dispatch = NULL;
+	query->tcpsocket = NULL;
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
-		socket = NULL;
+		isc_sockaddr_t any;
+
 		result = isc_socket_create(res->socketmgr,
 					   isc_sockaddr_pf(addrinfo->sockaddr),
 					   isc_sockettype_tcp,
-					   &socket);
+					   &query->tcpsocket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
-		attrs = 0;
-		attrs |= DNS_DISPATCHATTR_TCP;
-		attrs |= DNS_DISPATCHATTR_PRIVATE;
-		if (isc_sockaddr_pf(addrinfo->sockaddr) == AF_INET)
-			attrs |= DNS_DISPATCHATTR_IPV4;
-		else
-			attrs |= DNS_DISPATCHATTR_IPV6;
-		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
-		result = dns_dispatch_create(res->dispatchmgr, socket, task,
-					     4096, 2, 1, 1, 3, NULL, attrs,
-					     &query->dispatch);
+
+		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
+		case AF_INET:
+			isc_sockaddr_any(&any);
+			break;
+		case AF_INET6:
+			isc_sockaddr_any6(&any);
+			break;
+		default:
+			INSIST(0);
+		}
+		result = isc_socket_bind(query->tcpsocket, &any);
+		if (result != ISC_R_SUCCESS) {
+			isc_socket_detach(&query->tcpsocket);
+			goto cleanup_query;
+		}
+		
 		/*
-		 * Regardless of whether dns_dispatch_create() succeeded or
-		 * not, we don't need our reference to the socket anymore.
+		 * A dispatch will be created once the connect succeeds.
 		 */
-		isc_socket_detach(&socket);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_query;
 	} else {
 		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
 		case PF_INET:
@@ -689,7 +698,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			break;
 		default:
 			result = ISC_R_NOTIMPLEMENTED;
-			goto cleanup_dispatch;
+			goto cleanup_query;
 		}
 		/*
 		 * We should always have a valid dispatcher here.  If we
@@ -713,11 +722,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 *
 		 * XXXRTH  Should we attach to the socket?
 		 */
-		socket = dns_dispatch_getsocket(query->dispatch);
-		result = isc_socket_connect(socket, addrinfo->sockaddr,
+		result = isc_socket_connect(query->tcpsocket, addrinfo->sockaddr,
 					    task, resquery_connected, query);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup_dispatch;
+			goto cleanup_query;
 		query->attributes |= RESQUERY_ATTR_CONNECTING;
 		QTRACE("connecting via TCP");
 	} else {
@@ -1000,20 +1008,49 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		 * This query was canceled while the connect() was in
 		 * progress.
 		 */
+		isc_socket_detach(&query->tcpsocket);
 		resquery_destroy(&query);
 	} else {
 		if (sevent->result == ISC_R_SUCCESS) {
+			unsigned int attrs;
+			
 			/*
-			 * We are connected.  Send the query.
+			 * We are connected.  Create a dispatcher and
+			 * send the query.
 			 */
-			result = resquery_send(query);
+			attrs = 0;
+			attrs |= DNS_DISPATCHATTR_TCP;
+			attrs |= DNS_DISPATCHATTR_PRIVATE;
+			if (isc_sockaddr_pf(query->addrinfo->sockaddr) ==
+			    AF_INET)
+				attrs |= DNS_DISPATCHATTR_IPV4;
+			else
+				attrs |= DNS_DISPATCHATTR_IPV6;
+			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
+
+			result = dns_dispatch_create(query->dispatchmgr,
+						     query->tcpsocket, task,
+						     4096, 2, 1, 1, 3, NULL, attrs,
+						     &query->dispatch);
+		
+			/*
+			 * Regardless of whether dns_dispatch_create() succeeded or
+			 * not, we don't need our reference to the socket anymore.
+			 */
+			isc_socket_detach(&query->tcpsocket);
+
+			if (result == ISC_R_SUCCESS)
+				result = resquery_send(query);
+			
 			if (result != ISC_R_SUCCESS) {
 				fctx_cancelquery(&query, NULL, NULL,
 						 ISC_FALSE);
 				fctx_done(query->fctx, result);
 			}
-		} else
+		} else {
+			isc_socket_detach(&query->tcpsocket);
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+		}
 	}
 				 
 	isc_event_free(&event);
