@@ -1,4 +1,5 @@
-1576.	[placeholder]	rt10272
+1576.	[bug]		Race condition in dns_dispatch_addresponse().
+			[RT# 10272]
 
 1575.	[func]		Log TSIG name on TSIG verify failure. [RT #4404]
 
