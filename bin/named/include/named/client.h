@@ -63,6 +63,7 @@ struct ns_client {
 	dns_message_t *			message;
 	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
+	dns_rdataset_t *		opt;
 	void				(*next)(ns_client_t *, isc_result_t);
 	ns_query_t			query;
 	isc_stdtime_t			requesttime;

@@ -27,6 +27,9 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/rdata.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 #include <dns/view.h>
 
 #include <named/client.h>
@@ -190,6 +193,8 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	if (client->view != NULL)
 		dns_view_detach(&client->view);
+	if (client->opt != NULL)
+		client->opt = NULL;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
@@ -248,6 +253,7 @@ ns_client_send(ns_client_t *client) {
 	isc_region_t r;
 	isc_socket_t *socket;
 	isc_sockaddr_t *address;
+	unsigned int bufsize = 512;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -272,7 +278,7 @@ ns_client_send(ns_client_t *client) {
 
 	/*
 	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
-	 *         EDNS0 UDP buffer limits, or ENDS1 more data packets.
+	 *         or ENDS1 more data packets.
 	 */
 	if (TCP_CLIENT(client)) {
 		/*
@@ -283,13 +289,23 @@ ns_client_send(ns_client_t *client) {
 		isc_buffer_init(&buffer, data + 2, SEND_BUFFER_SIZE - 2,
 				ISC_BUFFERTYPE_BINARY);
 	} else {
-		isc_buffer_init(&buffer, data, 512,
-				ISC_BUFFERTYPE_BINARY);
+		if (client->opt != NULL) {
+			if (client->opt->rdclass < SEND_BUFFER_SIZE)
+				bufsize = client->opt->rdclass;
+			else
+				bufsize = SEND_BUFFER_SIZE;
+		}
+		isc_buffer_init(&buffer, data, bufsize, ISC_BUFFERTYPE_BINARY);
 	}
 
 	result = dns_message_renderbegin(client->message, &buffer);
 	if (result != ISC_R_SUCCESS)
 		goto done;
+	if (client->opt != NULL) {
+		result = dns_message_setopt(client->message, client->opt);
+		if (result != ISC_R_SUCCESS)
+			goto done;
+	}
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_QUESTION, 0, 0);
 	if (result != ISC_R_SUCCESS)
@@ -385,6 +401,57 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 	ns_client_send(client);
 }
 
+static inline isc_result_t
+client_addopt(ns_client_t *client) {
+	dns_rdataset_t *rdataset;
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
+	isc_result_t result;
+
+	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
+
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_init(rdataset);
+	rdatalist = NULL;
+	result = dns_message_gettemprdatalist(client->message, &rdatalist);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	rdata = NULL;
+	result = dns_message_gettemprdata(client->message, &rdata);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	rdatalist->type = dns_rdatatype_opt;
+	rdatalist->covers = 0;
+
+	/*
+	 * Set Maximum UDP buffer size.
+	 */
+	rdatalist->rdclass = SEND_BUFFER_SIZE;
+
+	/*
+	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
+	 */
+	rdatalist->ttl = 0;
+
+	/*
+	 * No ENDS options.
+	 */
+	rdata->data = NULL;
+	rdata->length = 0;
+
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+	
+	client->opt = rdataset;
+
+	return (ISC_R_SUCCESS);
+}
+
 static void
 client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
@@ -392,6 +459,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_buffer_t *buffer;
 	dns_view_t *view;
+	dns_rdataset_t *opt;
 
 	REQUIRE(event != NULL);
 	client = event->arg;
@@ -431,6 +499,34 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	INSIST((client->message->flags & DNS_MESSAGEFLAG_QR) == 0);
+
+	/*
+	 * Deal with EDNS.
+	 */
+	opt = dns_message_getopt(client->message);
+	if (opt != NULL) {
+		unsigned int version;
+
+		/*
+		 * Create an OPT for our reply.
+		 */
+		result = client_addopt(client);
+		if (result != ISC_R_SUCCESS) {
+			ns_client_error(client, result);
+			return;
+		}
+
+		/*
+		 * Do we understand this version of ENDS?
+		 *
+		 * XXXRTH need library support for this!
+		 */
+		version = (opt->ttl & 0x00FF0000) >> 16;
+		if (version != 0) {
+			ns_client_error(client, DNS_R_BADVERS);
+			return;
+		}
+	}
 
 	/*
 	 * XXXRTH  View list management code will be moving to its own module
@@ -565,6 +661,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->tcplistener = NULL;
 	client->tcpsocket = NULL;
 	client->nsends = 0;
+	client->opt = NULL;
 	client->next = NULL;
 	ISC_LINK_INIT(client, link);
 

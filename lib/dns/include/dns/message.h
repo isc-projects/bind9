@@ -699,7 +699,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  *
  * Requires:
  *
- *	'msg' is a valid message with parsing intent, and contains a query
+ *	'msg' is a valid message with parsing intent, and contains a query.
  * 
  * Ensures:
  *
@@ -721,6 +721,45 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  *				   it's the header section that's bad;
  *				   otherwise either of the header or question
  *				   sections may be bad.
+ */
+
+dns_rdataset_t *
+dns_message_getopt(dns_message_t *msg);
+/*
+ * Get the OPT record for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message.
+ *
+ * Returns:
+ *
+ *	The OPT rdataset of 'msg', or NULL if there isn't one.
+ */
+
+dns_result_t
+dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
+/*
+ * Set the OPT record for 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message with rendering intent,
+ *	dns_message_renderbegin() has been called, and no sections have been
+ *	rendered.
+ *
+ *	'opt' is a valid OPT record.
+ *
+ * Ensures:
+ *
+ *	The OPT record will be rendered when dns_message_renderend() is
+ *	called.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *
+ *	DNS_R_NOSPACE		-- there is no space for the OPT record.
  */
 
 ISC_LANG_ENDDECLS

@@ -75,7 +75,8 @@ static char *rcodetext[] = {
 	"RESERVED12",
 	"RESERVED13",
 	"RESERVED14",
-	"RESERVED15"
+	"RESERVED15",
+	"BADVERS"
 };
 
 static dns_result_t
@@ -87,7 +88,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 	dns_result_t result;
 	isc_region_t r;
 	dns_name_t empty_name;
-	char t[1000];
+	char t[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
 	
@@ -117,22 +118,13 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			if (rdataset->type == dns_rdatatype_opt) {
-				/*
-				 * XXX
-				 */
-				printf("OPT: udp=%u, ttl=%u\n",
-				       (unsigned int)rdataset->rdclass,
-				       (unsigned int)rdataset->ttl);
-			} else {
-				result = dns_rdataset_totext(rdataset,
-							     print_name,
-							     ISC_FALSE,
-							     no_rdata,
-							     &target);
-				if (result != DNS_R_SUCCESS)
-					return (result);
-			}
+			result = dns_rdataset_totext(rdataset,
+						     print_name,
+						     ISC_FALSE,
+						     no_rdata,
+						     &target);
+			if (result != DNS_R_SUCCESS)
+				return (result);
 #ifdef USEINITALWS
 			if (first) {
 				print_name = &empty_name;
@@ -157,9 +149,11 @@ dns_result_t
 printmessage(dns_message_t *msg) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	dns_result_t result;
+	dns_rdataset_t *opt;
 
 	result = DNS_R_SUCCESS;
 
+	printf("rcode = %u\n", msg->rcode);
 	printf(";; ->>HEADER<<- opcode: %s, status: %s, id: %u\n",
 	       opcodetext[msg->opcode], rcodetext[msg->rcode], msg->id);
 
@@ -189,6 +183,12 @@ printmessage(dns_message_t *msg) {
 	       msg->counts[DNS_SECTION_ANSWER],
 	       msg->counts[DNS_SECTION_AUTHORITY],
 	       msg->counts[DNS_SECTION_ADDITIONAL]);
+	opt = dns_message_getopt(msg);
+	if (opt != NULL)
+		printf(";; EDNS: version: %u, udp=%u\n",
+		       (unsigned int)((opt->ttl & 0x00ff0000) >> 16),
+		       (unsigned int)opt->rdclass);
+
 	if (msg->counts[DNS_SECTION_TSIG] > 0)
 		printf(";; PSEUDOSECTIONS: TSIG: %u\n",
 		       msg->counts[DNS_SECTION_TSIG]);

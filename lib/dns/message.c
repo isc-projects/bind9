@@ -39,9 +39,13 @@
 #include <dns/tsig.h>
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U
-#define DNS_MESSAGE_OPCODE_SHIFT	    11
+#define DNS_MESSAGE_OPCODE_SHIFT	11
 #define DNS_MESSAGE_RCODE_MASK		0x000fU
 #define DNS_MESSAGE_FLAG_MASK		0x8ff0U
+#define DNS_MESSAGE_EDNSRCODE_MASK	0xff000000U
+#define DNS_MESSAGE_EDNSRCODE_SHIFT	24
+#define DNS_MESSAGE_EDNSVERSION_MASK	0x00ff0000U
+#define DNS_MESSAGE_EDNSVERSION_SHIFT	16
 
 #define VALID_NAMED_SECTION(s)  (((s) > DNS_SECTION_ANY) \
 				 && ((s) < DNS_SECTION_MAX))
@@ -413,6 +417,10 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 
 	msgresetnames(msg, 0);
 
+	if (msg->opt != NULL)
+		dns_rdataset_disassociate(msg->opt);
+	msg->opt = NULL;
+
 	/*
 	 * Clean up linked lists.
 	 */
@@ -516,7 +524,8 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 
 	if (msg->tsig != NULL) {
 		dns_rdata_freestruct(msg->tsig);
-		isc_mem_put(msg->mctx, msg->tsig, sizeof(dns_rdata_any_tsig_t));
+		isc_mem_put(msg->mctx, msg->tsig,
+			    sizeof(dns_rdata_any_tsig_t));
 	}
 
 	if (msg->querytsig != NULL) {
@@ -981,6 +990,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (msg->opcode != dns_opcode_update
 		    && rdtype != dns_rdatatype_tsig
+		    && rdtype != dns_rdatatype_opt
 		    && msg->rdclass != rdclass)
 			return (DNS_R_FORMERR);
 
@@ -1028,7 +1038,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_search) {
-			ISC_LIST_APPEND(*section, name, link);
+			if (rdtype != dns_rdatatype_opt)
+				ISC_LIST_APPEND(*section, name, link);
 		} else {
 			/*
 			 * Run through the section, looking to see if this name
@@ -1107,7 +1118,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			dns_rdataset_init(rdataset);
 			dns_rdatalist_tordataset(rdatalist, rdataset);
 
-			ISC_LIST_APPEND(name->list, rdataset, link);
+			if (rdtype != dns_rdatatype_opt)
+				ISC_LIST_APPEND(name->list, rdataset, link);
 		}
 
 		/*
@@ -1125,10 +1137,17 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
 		/*
-		 * If this is an OPT record, remember it.
+		 * If this is an OPT record, remember it.  Also, set
+		 * the extended rcode.
 		 */
-		if (rdtype == dns_rdatatype_opt)
+		if (rdtype == dns_rdatatype_opt) {
+			unsigned int ercode;
+
 			msg->opt = rdataset;
+			ercode = (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
+				>> 20;
+			msg->rcode |= ercode;
+		}
 	}
 	
 	return (DNS_R_SUCCESS);
@@ -1412,7 +1431,7 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target)
 
 	tmp = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
 	       & DNS_MESSAGE_OPCODE_MASK);
-	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);  /* XXX edns? */
+	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);
 	tmp |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
 
 	isc_buffer_putuint16(target, tmp);
@@ -1430,9 +1449,46 @@ dns_message_renderend(dns_message_t *msg)
 	isc_buffer_t tmpbuf;
 	isc_region_t r;
 	int result;
+	dns_rdata_t rdata;
+	unsigned int count;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
+
+	if ((msg->rcode & ~DNS_MESSAGE_RCODE_MASK) != 0 && msg->opt == NULL) {
+		/*
+		 * We have an extended rcode but are not using EDNS.
+		 */
+		return (DNS_R_FORMERR);
+	}
+
+	/*
+	 * If we've got an OPT record, render it.
+	 */
+	if (msg->opt != NULL) {
+		result = dns_rdataset_first(msg->opt);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		dns_rdataset_current(msg->opt, &rdata);
+		result = dns_message_renderrelease(msg, 11 + rdata.length);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		/*
+		 * Set the extended rcode.
+		 */
+		msg->opt->ttl &= ~DNS_MESSAGE_EDNSRCODE_MASK;
+		msg->opt->ttl |= ((msg->rcode << 20) &
+				  DNS_MESSAGE_EDNSRCODE_MASK);
+		/*
+		 * Render.
+		 */
+		count = 0;
+		result = dns_rdataset_towire(msg->opt, dns_rootname,
+					     &msg->cctx, msg->buffer, &count);
+		msg->counts[DNS_SECTION_ADDITIONAL] += count;
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	if (msg->tsigkey != NULL ||
 	    ((msg->flags & DNS_MESSAGEFLAG_QR) != 0 &&
@@ -1441,7 +1497,8 @@ dns_message_renderend(dns_message_t *msg)
 		result = dns_tsig_sign(msg);
 		if (result != DNS_R_SUCCESS)
 			return (result);
-		result = dns_message_rendersection(msg, DNS_SECTION_TSIG, 0, 0);
+		result = dns_message_rendersection(msg, DNS_SECTION_TSIG, 0,
+						   0);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
@@ -1741,6 +1798,70 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 		msg->querytsigstatus = msg->tsigstatus;
 		msg->tsigstatus = dns_rcode_noerror;
 	}
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_rdataset_t *
+dns_message_getopt(dns_message_t *msg) {
+
+	/*
+	 * Get the OPT record for 'msg'.
+	 */
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	
+	return (msg->opt);
+}
+
+dns_result_t
+dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
+	dns_result_t result;
+	dns_rdata_t rdata;
+
+	/*
+	 * Set the OPT record for 'msg'.
+	 */
+
+	/*
+	 * The space required for an OPT record is:
+	 *
+	 *	1 byte for the name
+	 *	2 bytes for the type
+	 *	2 bytes for the class
+	 *	4 bytes for the ttl
+	 *	2 bytes for the rdata length
+	 * ---------------------------------
+	 *     11 bytes
+	 *
+	 * plus the length of the rdata.
+	 */
+
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(opt->type == dns_rdatatype_opt);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE(msg->buffer != NULL);
+	REQUIRE(msg->state == DNS_SECTION_ANY);
+
+	if (msg->opt != NULL) {
+		result = dns_rdataset_first(msg->opt);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		dns_rdataset_current(msg->opt, &rdata);
+		result = dns_message_renderrelease(msg, 11 + rdata.length);
+		dns_rdataset_disassociate(msg->opt);
+		msg->opt = NULL;
+	}
+
+	result = dns_rdataset_first(opt);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_current(opt, &rdata);
+	result = dns_message_renderreserve(msg, 11 + rdata.length);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	msg->opt = opt;
 
 	return (DNS_R_SUCCESS);
 }
