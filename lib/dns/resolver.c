@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.209 2001/03/07 18:03:07 gson Exp $ */
+/* $Id: resolver.c,v 1.210 2001/03/13 05:49:58 marka Exp $ */
 
 #include <config.h>
 
@@ -747,10 +747,28 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->dispatch = NULL;
 	query->tcpsocket = NULL;
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
-		isc_sockaddr_t any;
+		isc_sockaddr_t addr;
 		int pf;
 
 		pf = isc_sockaddr_pf(&addrinfo->sockaddr);
+
+		switch (pf) {
+		case PF_INET:
+			result = dns_dispatch_getlocaladdress(res->dispatchv4,
+							      &addr);
+			break;
+		case PF_INET6:
+			result = dns_dispatch_getlocaladdress(res->dispatchv6,
+							      &addr);
+			break;
+		default:
+			result = ISC_R_NOTIMPLEMENTED;
+			break;
+		}
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_query;
+
+		isc_sockaddr_setport(&addr, 0);
 
 		result = isc_socket_create(res->socketmgr, pf,
 					   isc_sockettype_tcp,
@@ -758,8 +776,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 
-		isc_sockaddr_anyofpf(&any, pf);
-		result = isc_socket_bind(query->tcpsocket, &any);
+		result = isc_socket_bind(query->tcpsocket, &addr);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_socket;
 
