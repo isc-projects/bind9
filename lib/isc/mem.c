@@ -54,6 +54,17 @@
 #define ISC_MEMPOOL_NAMES 1
 #endif
 
+
+/*
+ * Constants.
+ */
+
+#define DEF_MAX_SIZE		1100
+#define DEF_MEM_TARGET		4096
+#define ALIGNMENT_SIZE		8
+#define NUM_BASIC_BLOCKS	64			/* must be > 1 */
+#define TABLE_INCREMENT		1024
+
 /*
  * Types.
  */
@@ -63,10 +74,13 @@ typedef struct {
 } element;
 
 typedef struct {
-	size_t			size;
 	/*
 	 * This structure must be ALIGNMENT_SIZE bytes.
 	 */
+	union {
+		size_t		size;
+		char		bytes[ALIGNMENT_SIZE];
+	} u;
 } size_info;
 
 struct stats {
@@ -127,21 +141,17 @@ struct isc_mempool {
 #endif
 };
 
-/* Forward. */
+/*
+ * Forward.
+ */
 
 static inline size_t		quantize(size_t);
 static inline void		mem_putunlocked(isc_mem_t *, void *, size_t);
 static inline void *		mem_getunlocked(isc_mem_t *, size_t);
 
-/* Constants. */
-
-#define DEF_MAX_SIZE		1100
-#define DEF_MEM_TARGET		4096
-#define ALIGNMENT_SIZE		sizeof (void *)
-#define NUM_BASIC_BLOCKS	64			/* must be > 1 */
-#define TABLE_INCREMENT		1024
-
-/* Private Inline-able. */
+/*
+ * Private Inline-able.
+ */
 
 static inline size_t
 quantize(size_t size) {
@@ -157,7 +167,9 @@ quantize(size_t size) {
 	return (temp - temp % ALIGNMENT_SIZE); 
 }
 
-/* Private. */
+/*
+ * Private.
+ */
 
 static void *
 default_memalloc(void *arg, size_t size) {
@@ -171,7 +183,9 @@ default_memfree(void *arg, void *ptr) {
 	free(ptr);
 }
 
-/* Public. */
+/*
+ * Public.
+ */
 
 isc_result_t
 isc_mem_createx(size_t init_max_size, size_t target_size,
@@ -391,6 +405,12 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 			ctx->total += size;
 			ctx->stats[ctx->max_size].gets++;
 			ctx->stats[ctx->max_size].totalgets++;
+			/*
+			 * If we don't set new_size to size, then the
+			 * ISC_MEM_FILL code might write over bytes we
+			 * don't own.
+			 */
+			new_size = size;
 		}
 		goto done;
 	}
@@ -472,12 +492,11 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 {
 	size_t new_size = quantize(size);
 
-#if ISC_MEM_FILL
-	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
-#endif
-
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
 		/* memput() called on something beyond our upper limit */
+#if ISC_MEM_FILL
+		memset(mem, 0xde, size); /* Mnemonic for "dead". */
+#endif
 		(ctx->memfree)(ctx->arg, mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0);
 		ctx->stats[ctx->max_size].gets--;
@@ -485,6 +504,10 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 		ctx->total -= size;
 		return;
 	}
+
+#if ISC_MEM_FILL
+	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
+#endif
 
 	/* The free list uses the "rounded-up" size "new_size": */
 	((element *)mem)->next = ctx->freelists[new_size];
@@ -603,7 +626,7 @@ isc_mem_allocate(isc_mem_t *ctx, size_t size) {
 	si = isc_mem_get(ctx, size);
 	if (si == NULL)
 		return (NULL);
-	si->size = size;
+	si->u.size = size;
 	return (&si[1]);
 }
 
@@ -612,7 +635,7 @@ isc_mem_free(isc_mem_t *ctx, void *ptr) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
-	isc_mem_put(ctx, si, si->size);
+	isc_mem_put(ctx, si, si->u.size);
 }
 
 /*
