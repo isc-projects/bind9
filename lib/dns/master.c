@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.8 1999/02/04 06:38:41 marka Exp $ */
+ /* $Id: master.c,v 1.9 1999/02/06 01:18:17 halley Exp $ */
 
 #include <config.h>
 
@@ -74,11 +74,11 @@ static dns_rdata_t	*grow_rdata(int, dns_rdata_t *, int,
 
 
 dns_result_t
-dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
-	    dns_rdataclass_t zclass, int *soacount, int *nscount,
-	    dns_result_t (*callback)(dns_name_t *, dns_rdataset_t *,
-				     void *private),
-	    void *private, isc_mem_t *mctx)
+dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
+		dns_rdataclass_t zclass, int *soacount, int *nscount,
+		dns_result_t (*callback)(dns_name_t *, dns_rdataset_t *,
+					 void *private),
+		void *private, isc_mem_t *mctx)
 {
 	dns_rdataclass_t class;
 	dns_rdatatype_t type;
@@ -211,7 +211,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
-					result = dns_load_master(include_file,
+					result = dns_master_load(include_file,
 								 top,
 								 &origin_name,
 								 zclass,
@@ -257,7 +257,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 				continue;
 			}
 			if (finish_include) {
-				result = dns_load_master(include_file,
+				result = dns_master_load(include_file,
 							 top,
 							 &new_name,
 							 zclass,

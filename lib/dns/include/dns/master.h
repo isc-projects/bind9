@@ -25,7 +25,7 @@
 #include <dns/name.h>
 #include <dns/rdataset.h>
 
-dns_result_t dns_load_master(char *master_file,
+dns_result_t dns_master_load(char *master_file,
 			     dns_name_t *top,
 			     dns_name_t *origin,
 			     dns_rdataclass_t class,
@@ -36,4 +36,5 @@ dns_result_t dns_load_master(char *master_file,
 						      void *private),
 			     void *private,
 			     isc_mem_t *mctx);
+
 #endif	/* DNS_MASTER_H */
