@@ -136,6 +136,7 @@ zone domain_name [ ( in | hs | hesiod | chaos ) ] {
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Obsolete
+  [ allow-update-forwarding { address_match_list }; ]	    No*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ip_addr; ]				    Yes
