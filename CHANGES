@@ -1,4 +1,9 @@
 
+ 612.	[cleanup]	Shutup a ridiculously noisy HP-UX compiler that
+			complains relentlessly about how its treatment
+			of 'const' has changed as well as how casting
+			sometimes tightens alignment constraints.
+
  611.	[func]		allow-notify can be used to permit processing of
 			notify messages from hosts other than a slave's
 			masters.

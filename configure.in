@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.196 $)
+AC_REVISION($Revision: 1.197 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -475,8 +475,23 @@ Please install the devel/unproven-pthreads package and rerun configure.
 			CCOPT="$CCOPT -mt"
 			;;
 		*-hp-hpux*)
-			CC="$CC -Ae -z +w1"
+			CC="$CC -Ae -z"
+                        # The version of the C compiler that constantly
+                        # warns about 'const' as well as alignment issues
+                        # is unfortunately not able to be discerned via
+                        # the version of the operating system, nor does
+                        # cc have a version flag.
+                        case "`$CC +W 123 2>&1`" in
+                        *Unknown?option*)
+				STD_CWARNINGS="+w1"
+				;;
+			*)
+				# Turn off the pointlessly noisy warnings.
+				STD_CWARNINGS="+w1 +W 474,530"
+				;;
+			esac
 			CCOPT="$CCOPT -Ae -z"
+                        LIBS="-Wl,+vnocompatwarnings $LIBS"
 			;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
@@ -540,7 +555,6 @@ else
 			MKDEPCFLAGS="-xM"
 			;;
 		*-hp-hpux*)	
-                        LIBS="-Wl,+vnocompatwarnings $LIBS"
 			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
                 *-sgi-irix*)
