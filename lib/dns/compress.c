@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.3 1999/02/24 06:31:31 marka Exp $ */
+ /* $Id: compress.c,v 1.4 1999/02/26 00:25:12 marka Exp $ */
 
 #include <config.h>
 
@@ -145,7 +145,8 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 			dns_name_fromregion(&prefix, &region);
 			isc_buffer_init(&t, namebuf, sizeof namebuf,
 					ISC_BUFFERTYPE_BINARY);
-			result = dns_name_cat(&prefix, &suffix, &name, &t);
+			result = dns_name_concatenate(&prefix, &suffix, &name,
+						      &t);
 			if (result != DNS_R_SUCCESS)
 				return (DNS_R_SUCCESS);
 			data = isc_mem_get(cctx->mctx, sizeof *data);
@@ -386,7 +387,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 		dns_name_getlabelsequence(prefix, start, count, &name);
 		isc_buffer_init(&target, buffer, sizeof buffer,
 				ISC_BUFFERTYPE_BINARY);
-		result = dns_name_cat(&name, suffix, &full, &target);
+		result = dns_name_concatenate(&name, suffix, &full, &target);
 		if (result != DNS_R_SUCCESS)
 			return;
 		data = isc_mem_get(mctx, sizeof *data);
@@ -471,7 +472,7 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 			buf[1] = bits;
 			dns_name_fromregion(&tmpprefix, &region);
 			isc_buffer_clear(workspace);
-			result = dns_name_cat(&tmpprefix, &tmpsuffix,
+			result = dns_name_concatenate(&tmpprefix, &tmpsuffix,
 						&tmpname, workspace);
 			if (result != DNS_R_SUCCESS)
 				continue;
@@ -522,7 +523,8 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 		dns_name_init(&tmpprefix, NULL);
 	else
 		dns_name_getlabelsequence(name, 0, start - 1, &tmpprefix);
-	result = dns_name_cat(&tmpprefix, &tmpsuffix, prefix, workspace);
+	result = dns_name_concatenate(&tmpprefix, &tmpsuffix, prefix,
+				      workspace);
 	if (result != DNS_R_SUCCESS)
 		return (ISC_FALSE);
 	*offset = *data;

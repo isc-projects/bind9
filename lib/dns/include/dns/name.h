@@ -663,11 +663,11 @@ dns_result_t dns_name_totext(dns_name_t *name,
  *	DNS_R_NOSPACE
  */
 
-dns_result_t dns_name_cat(dns_name_t *prefix, dns_name_t *suffix,
-			  dns_name_t *name, isc_buffer_t *target);
+dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
+				  dns_name_t *name, isc_buffer_t *target);
 /*
  *	Concatenate 'prefix' & 'suffix' and return the result in 'name'.
- *	If either 'prefix' or 'suffix' is absolute the result is absolute.
+ *	If 'prefix' is absolute 'suffix' must be NULL.
  *
  * Requires:
  *	'prefix' to be initalised

@@ -2049,8 +2049,8 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 }
 
 dns_result_t
-dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
-	     isc_buffer_t *target)
+dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
+		     isc_buffer_t *target)
 {
 	unsigned char *ndata;
 	unsigned char *offsets;
@@ -2059,27 +2059,31 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	unsigned int labels;
 	unsigned int count;
 	isc_boolean_t absolute = ISC_FALSE;
+	dns_name_t tmp_name;
 
-	REQUIRE(VALID_NAME(name));
 	REQUIRE(VALID_NAME(prefix));
+	if (prefix->labels != 0 &&
+	    (prefix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+		REQUIRE(suffix == NULL);
 	if (suffix != NULL)
 		REQUIRE(VALID_NAME(suffix));
+	if (name != NULL)
+		REQUIRE(VALID_NAME(name));
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+
+	if (name == NULL) {
+		name = &tmp_name;
+		dns_name_init(name, NULL);
+	}
 
 	nrem = target->length - target->used;
 	ndata = (unsigned char *)target->base + target->used;
 	if (nrem > 255)
 		nrem = 255;
-	if (prefix->labels != 0 &&
-	    (prefix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0) {
-		count = prefix->length - 1;
-		labels = prefix->labels - 1;
-		absolute = ISC_TRUE;
-	 } else {
-		count = prefix->length;
-		labels = prefix->labels;
-	}
+
+	count = prefix->length;
+	labels = prefix->labels;
 	if (count > nrem)
 		return (DNS_R_NOSPACE);
 	memcpy(ndata, prefix->ndata, count);
@@ -2088,42 +2092,24 @@ dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 
 	/* append suffix */
 	if (suffix != NULL) {
-		if (suffix->labels != 0 &&
-		    (suffix->attributes & DNS_NAMEATTR_ABSOLUTE) != 0) {
-			count = suffix->length - 1;
-			labels += suffix->labels - 1;
-			absolute = ISC_TRUE;
-		} else {
-			count = suffix->length;
-			labels += suffix->labels;
-		}
+		count = suffix->length;
+		labels += suffix->labels;
 		if (count > nrem)
 			return (DNS_R_NOSPACE);
 		memcpy(ndata, suffix->ndata, count);
 		ndata += count;
 	}
 
-	if (absolute) {
-		/* root label */
-		if (nrem < 1)
-			return (DNS_R_NOSPACE);
-		*ndata++ = 0;
-		labels++;
-	}
-
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
 	name->length = ndata - name->ndata;
-	if (absolute)
-		name->attributes |= DNS_NAMEATTR_ABSOLUTE;
-	else
-		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 
 	INIT_OFFSETS(name, offsets, odata);
-	if (name->length > 0)
-		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_FALSE);
-		
-	compact(name, offsets);
+	if (name->length > 0) {
+		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_TRUE);
+		compact(name, offsets);
+	} else
+		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 
 	isc_buffer_add(target, name->length);
 	return (DNS_R_SUCCESS);

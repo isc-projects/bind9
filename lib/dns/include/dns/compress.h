@@ -208,10 +208,12 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
 		 dns_name_t *suffix, isc_uint16_t offset);
 /*
  *	Add compression pointers for labels in prefix to RBT's.
+ *	If 'prefix' is absolute 'suffix' must be NULL.
  *
  *	Requires:
  *		'cctx' initalised
  *		'prefix' to be initalised
+ *		'suffix' to be initalised or NULL
  */
 
 void
