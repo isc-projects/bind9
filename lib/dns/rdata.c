@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.102 2000/07/10 05:15:03 marka Exp $ */
+/* $Id: rdata.c,v 1.103 2000/07/10 19:07:19 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1675,7 +1675,7 @@ static void
 fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
 	if (isc_lex_isfile(lexer) && callbacks != NULL)
 		(*callbacks->warn)(callbacks,
-		    "dns_rdata_fromtext: %s:%lu: unexpected end of file",
+				   "%s:%lu: file does not end with newline",
 				    isc_lex_getsourcename(lexer),
 				    isc_lex_getsourceline(lexer));
 }

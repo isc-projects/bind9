@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.57 2000/07/10 05:15:04 marka Exp $ */
+/* $Id: master.c,v 1.58 2000/07/10 19:07:18 gson Exp $ */
 
 #include <config.h>
 
@@ -126,9 +126,9 @@ on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 	do { \
 		if (isc_lex_isfile(lexer)) \
 			(*callbacks->warn)(callbacks, \
-			    "dns_master_load: %s:%lu: unexpected end of file", \
-					    isc_lex_getsourcename(lexer), \
-					    isc_lex_getsourceline(lexer)); \
+			    	"%s:%lu: file does not end with newline", \
+				isc_lex_getsourcename(lexer), \
+				isc_lex_getsourceline(lexer)); \
 	} while (0)
 
 static inline isc_result_t
