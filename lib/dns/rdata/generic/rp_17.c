@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.16 2000/03/20 22:44:34 gson Exp $ */
+/* $Id: rp_17.c,v 1.17 2000/03/20 22:48:59 gson Exp $ */
 
- /* RFC 1183 */
+/* RFC 1183 */
 
 #ifndef RDATA_GENERIC_RP_17_C
 #define RDATA_GENERIC_RP_17_C

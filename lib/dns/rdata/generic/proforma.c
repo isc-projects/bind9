@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.18 2000/03/16 02:20:19 explorer Exp $ */
+/* $Id: proforma.c,v 1.19 2000/03/20 22:48:58 gson Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C

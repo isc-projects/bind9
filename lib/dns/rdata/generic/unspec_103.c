@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.c,v 1.11 2000/02/03 23:43:09 halley Exp $ */
+/* $Id: unspec_103.c,v 1.12 2000/03/20 22:48:59 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C

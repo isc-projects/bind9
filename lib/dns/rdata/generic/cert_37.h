@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.h,v 1.9 2000/02/03 23:42:58 halley Exp $ */
+/* $Id: cert_37.h,v 1.10 2000/03/20 22:48:58 gson Exp $ */
 
- /* draft-ietf-dnssec-certs-04.txt */
+/* draft-ietf-dnssec-certs-04.txt */
 

@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.22 2000/03/20 22:44:34 gson Exp $ */
+/* $Id: nxt_30.c,v 1.23 2000/03/20 22:48:58 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
- /* RFC 2065 */
+/* RFC 2065 */
 
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C
