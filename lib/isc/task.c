@@ -57,7 +57,7 @@ struct task {
 	unsigned int			references;
 	task_eventlist_t		events;
 	unsigned int			quantum;
-	boolean_t			enqueue_allowed;
+	isc_boolean_t			enqueue_allowed;
 	task_event_t			shutdown_event;
 	/* Locked by task manager lock. */
 	LINK(struct task)		link;
@@ -78,7 +78,7 @@ struct task_manager {
 	LIST(struct task)		tasks;
 	LIST(struct task)		ready_tasks;
 	os_condition_t			work_available;
-	boolean_t			exiting;
+	isc_boolean_t			exiting;
 	unsigned int			workers;
 	os_condition_t			no_workers;
 };
@@ -167,7 +167,7 @@ task_free(task_t task) {
 	mem_put(manager->mctx, task, sizeof *task);
 }
 
-boolean_t
+isc_boolean_t
 task_create(task_manager_t manager, task_action_t shutdown_action,
 	    void *shutdown_arg, unsigned int quantum, task_t *taskp)
 {
@@ -178,19 +178,19 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 
 	task = mem_get(manager->mctx, sizeof *task);
 	if (task == NULL)
-		return (FALSE);
+		return (ISC_FALSE);
 
 	task->magic = TASK_MAGIC;
 	task->manager = manager;
 	if (!os_mutex_init(&task->lock)) {
 		mem_put(manager->mctx, task, sizeof *task);
-		return (FALSE);
+		return (ISC_FALSE);
 	}
 	task->state = task_state_idle;
 	task->references = 1;
 	INIT_LIST(task->events);
 	task->quantum = quantum;
-	task->enqueue_allowed = TRUE;
+	task->enqueue_allowed = ISC_TRUE;
 	task->shutdown_event = event_allocate(manager->mctx,
 					      NULL,
 					      TASK_EVENT_SHUTDOWN,
@@ -200,7 +200,7 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 	if (task->shutdown_event == NULL) {
 		(void)os_mutex_destroy(&task->lock);
 		mem_put(manager->mctx, task, sizeof *task);
-		return (FALSE);
+		return (ISC_FALSE);
 	}
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
@@ -213,7 +213,7 @@ task_create(task_manager_t manager, task_action_t shutdown_action,
 
 	*taskp = task;
 
-	return (TRUE);
+	return (ISC_TRUE);
 }
 
 void
@@ -231,7 +231,7 @@ task_attach(task_t task, task_t *taskp) {
 
 void
 task_detach(task_t *taskp) {
-	boolean_t free_task = FALSE;
+	isc_boolean_t free_task = ISC_FALSE;
 	task_t task;
 
 	XTRACE("task_detach");
@@ -244,7 +244,7 @@ task_detach(task_t *taskp) {
 	REQUIRE(task->references > 0);
 	task->references--;
 	if (task->state == task_state_shutdown && task->references == 0)
-		free_task = TRUE;
+		free_task = ISC_TRUE;
 	UNLOCK(&task->lock);
 
 	if (free_task)
@@ -253,10 +253,10 @@ task_detach(task_t *taskp) {
 	*taskp = NULL;
 }
 
-boolean_t
+isc_boolean_t
 task_send_event(task_t task, task_event_t *eventp) {
-	boolean_t was_idle = FALSE;
-	boolean_t discard = FALSE;
+	isc_boolean_t was_idle = ISC_FALSE;
+	isc_boolean_t discard = ISC_FALSE;
 	task_event_t event;
 
 	REQUIRE(VALID_TASK(task));
@@ -275,7 +275,7 @@ task_send_event(task_t task, task_event_t *eventp) {
 	LOCK(&task->lock);
 	if (task->enqueue_allowed) {
 		if (task->state == task_state_idle) {
-			was_idle = TRUE;
+			was_idle = ISC_TRUE;
 			INSIST(EMPTY(task->events));
 			task->state = task_state_ready;
 		}
@@ -283,17 +283,17 @@ task_send_event(task_t task, task_event_t *eventp) {
 		       task->state == task_state_running);
 		ENQUEUE(task->events, event, link);
 	} else
-		discard = TRUE;
+		discard = ISC_TRUE;
 	UNLOCK(&task->lock);
 
 	if (discard) {
 		task_event_free(&event);
 		*eventp = NULL;
-		return (TRUE);
+		return (ISC_TRUE);
 	}
 
 	if (was_idle) {
-		boolean_t need_wakeup = FALSE;
+		isc_boolean_t need_wakeup = ISC_FALSE;
 		task_manager_t manager;
 
 		/*
@@ -319,7 +319,7 @@ task_send_event(task_t task, task_event_t *eventp) {
 		INSIST(VALID_MANAGER(manager));
 		LOCK(&manager->lock);
 		if (EMPTY(manager->ready_tasks))
-			need_wakeup = TRUE;
+			need_wakeup = ISC_TRUE;
 		ENQUEUE(manager->ready_tasks, task, ready_link);
 		UNLOCK(&manager->lock);
 
@@ -335,7 +335,7 @@ task_send_event(task_t task, task_event_t *eventp) {
 	*eventp = NULL;
 
 	XTRACE("sent");
-	return (TRUE);
+	return (ISC_TRUE);
 }
 
 void
@@ -377,8 +377,8 @@ task_purge_events(task_t task, void *sender, task_eventtype_t type) {
 
 void
 task_shutdown(task_t task) {
-	boolean_t was_idle = FALSE;
-	boolean_t discard = FALSE;
+	isc_boolean_t was_idle = ISC_FALSE;
+	isc_boolean_t discard = ISC_FALSE;
 
 	REQUIRE(VALID_TASK(task));
 
@@ -389,7 +389,7 @@ task_shutdown(task_t task) {
 	LOCK(&task->lock);
 	if (task->enqueue_allowed) {
 		if (task->state == task_state_idle) {
-			was_idle = TRUE;
+			was_idle = ISC_TRUE;
 			INSIST(EMPTY(task->events));
 			task->state = task_state_ready;
 		}
@@ -398,23 +398,23 @@ task_shutdown(task_t task) {
 		INSIST(task->shutdown_event != NULL);
 		ENQUEUE(task->events, task->shutdown_event, link);
 		task->shutdown_event = NULL;
-		task->enqueue_allowed = FALSE;
+		task->enqueue_allowed = ISC_FALSE;
 	} else
-		discard = TRUE;
+		discard = ISC_TRUE;
 	UNLOCK(&task->lock);
 
 	if (discard)
 		return;
 
 	if (was_idle) {
-		boolean_t need_wakeup = FALSE;
+		isc_boolean_t need_wakeup = ISC_FALSE;
 		task_manager_t manager;
 
 		manager = task->manager;
 		INSIST(VALID_MANAGER(manager));
 		LOCK(&manager->lock);
 		if (EMPTY(manager->ready_tasks))
-			need_wakeup = TRUE;
+			need_wakeup = ISC_TRUE;
 		ENQUEUE(manager->ready_tasks, task, ready_link);
 		UNLOCK(&manager->lock);
 
@@ -442,7 +442,7 @@ static
 void *task_manager_run(void *uap) {
 	task_manager_t manager = uap;
 	task_t task;
-	boolean_t no_workers = FALSE;
+	isc_boolean_t no_workers = ISC_FALSE;
 
 	XTRACE("start");
 
@@ -517,14 +517,14 @@ void *task_manager_run(void *uap) {
 		task = HEAD(manager->ready_tasks);
 		if (task != NULL) {
 			unsigned int dispatch_count = 0;
-			boolean_t done = FALSE;
-			boolean_t requeue = FALSE;
-			boolean_t wants_shutdown;
-			boolean_t is_shutdown;
-			boolean_t free_task = FALSE;
+			isc_boolean_t done = ISC_FALSE;
+			isc_boolean_t requeue = ISC_FALSE;
+			isc_boolean_t wants_shutdown;
+			isc_boolean_t is_shutdown;
+			isc_boolean_t free_task = ISC_FALSE;
 			task_event_t event;
 			task_eventlist_t remaining_events;
-			boolean_t discard_remaining = FALSE;
+			isc_boolean_t discard_remaining = ISC_FALSE;
 
 			INSIST(VALID_TASK(task));
 
@@ -545,7 +545,7 @@ void *task_manager_run(void *uap) {
 				 * Put the task to sleep.
 				 */
 				task->state = task_state_idle;
-				done = TRUE;
+				done = ISC_TRUE;
 				XTRACE("ready but empty");
 			} else
 				task->state = task_state_running;
@@ -556,9 +556,9 @@ void *task_manager_run(void *uap) {
 				UNLOCK(&task->lock);
 
 				if (event->type == TASK_EVENT_SHUTDOWN)
-					is_shutdown = TRUE;
+					is_shutdown = ISC_TRUE;
 				else
-					is_shutdown = FALSE;
+					is_shutdown = ISC_FALSE;
 
 				/*
 				 * Execute the event action.
@@ -568,7 +568,7 @@ void *task_manager_run(void *uap) {
 					wants_shutdown =
 						(event->action)(task, event);
 				else
-					wants_shutdown = FALSE;
+					wants_shutdown = ISC_FALSE;
 				dispatch_count++;
 				
 				task_event_free(&event);
@@ -592,13 +592,13 @@ void *task_manager_run(void *uap) {
 						remaining_events =
 							task->events;
 						INIT_LIST(task->events);
-						discard_remaining = TRUE;
+						discard_remaining = ISC_TRUE;
 					}
 					if (task->references == 0)
-						free_task = TRUE;
+						free_task = ISC_TRUE;
 					task->state = task_state_shutdown;
-					task->enqueue_allowed = FALSE;
-					done = TRUE;
+					task->enqueue_allowed = ISC_FALSE;
+					done = ISC_TRUE;
 				} else if (EMPTY(task->events)) {
 					/*
 					 * Nothing else to do for this task.
@@ -609,7 +609,7 @@ void *task_manager_run(void *uap) {
 					 */
 					XTRACE("empty");
 					task->state = task_state_idle;
-					done = TRUE;
+					done = ISC_TRUE;
 				} else if (dispatch_count >= task->quantum) {
 					/*
 					 * Our quantum has expired, but
@@ -623,8 +623,8 @@ void *task_manager_run(void *uap) {
 					 */
 					XTRACE("quantum");
 					task->state = task_state_ready;
-					requeue = TRUE;
-					done = TRUE;
+					requeue = ISC_TRUE;
+					done = ISC_TRUE;
 				}
 			}
 			UNLOCK(&task->lock);
@@ -672,7 +672,7 @@ void *task_manager_run(void *uap) {
 	INSIST(manager->workers > 0);
 	manager->workers--;
 	if (manager->workers == 0)
-		no_workers = TRUE;
+		no_workers = ISC_TRUE;
 	UNLOCK(&manager->lock);
 
 	if (no_workers)
@@ -721,7 +721,7 @@ task_manager_create(mem_context_t mctx, unsigned int workers,
 		mem_put(mctx, manager, sizeof *manager);
 		return (0);
 	}
-	manager->exiting = FALSE;
+	manager->exiting = ISC_FALSE;
 	manager->workers = 0;
 	if (!os_condition_init(&manager->no_workers)) {
 		(void)os_condition_destroy(&manager->work_available);
@@ -786,7 +786,7 @@ task_manager_destroy(task_manager_t *managerp) {
 	 * Make sure we only get called once.
 	 */
 	INSIST(!manager->exiting);
-	manager->exiting = TRUE;
+	manager->exiting = ISC_TRUE;
 
 	/*
 	 * Post the shutdown event to every task (if it hasn't already been
@@ -807,7 +807,7 @@ task_manager_destroy(task_manager_t *managerp) {
 			}
 			INSIST(task->state == task_state_ready ||
 			       task->state == task_state_running);
-			task->enqueue_allowed = FALSE;
+			task->enqueue_allowed = ISC_FALSE;
 		}
 		UNLOCK(&task->lock);
 	}

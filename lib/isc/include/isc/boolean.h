@@ -1,24 +1,10 @@
 
-#ifndef BOOLEAN_H
-#define BOOLEAN_H 1
+#ifndef ISC_BOOLEAN_H
+#define ISC_BOOLEAN_H 1
 
-#ifndef SOLARIS
+typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
 
-#ifndef TRUE
-#define TRUE 1
-#endif
+#define ISC_FALSE isc_boolean_false
+#define ISC_TRUE isc_boolean_true
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-typedef enum { false=FALSE, true=TRUE } boolean_t;
-
-#else
-
-#define true B_TRUE
-#define false B_FALSE
-
-#endif
-
-#endif /* BOOLEAN_H */
+#endif /* ISC_BOOLEAN_H */

@@ -19,27 +19,32 @@
 #include <isc/boolean.h>
 #include <isc/memcluster.h>
 
-typedef boolean_t (*heap_higher_priority_func)(void *, void *);
-typedef void (*heap_index_func)(void *, unsigned int);
-typedef void (*heap_for_each_func)(void *, void *);
+/* 
+ * The comparision function returns ISC_TRUE if the first argument has
+ * higher priority than the second argument, and ISC_FALSE otherwise.
+ */
+typedef isc_boolean_t (*isc_heapcompare_t)(void *, void *);
 
-typedef struct heap_context *heap_t;
+typedef void (*isc_heapindex_t)(void *, unsigned int);
+typedef void (*isc_heapaction_t)(void *, void *);
 
-#define heap_create	__heap_create
-#define heap_destroy	__heap_destroy
-#define heap_insert	__heap_insert
-#define heap_delete	__heap_delete
-#define heap_increased	__heap_increased
-#define heap_decreased	__heap_decreased
-#define heap_element	__heap_element
-#define heap_for_each	__heap_for_each
+typedef struct isc_heap *isc_heap_t;
 
-isc_result	heap_create(mem_context_t, heap_higher_priority_func,
-			    heap_index_func, unsigned int, heap_t *);
-void		heap_destroy(heap_t *);
-isc_result	heap_insert(heap_t, void *);
-void		heap_delete(heap_t, unsigned int);
-void		heap_increased(heap_t, unsigned int);
-void		heap_decreased(heap_t, unsigned int);
-void *		heap_element(heap_t, unsigned int);
-void		heap_for_each(heap_t, heap_for_each_func, void *);
+#define isc_heap_create		__isc_heap_create
+#define isc_heap_destroy	__isc_heap_destroy
+#define isc_heap_insert		__isc_heap_insert
+#define isc_heap_delete		__isc_heap_delete
+#define isc_heap_increased	__isc_heap_increased
+#define isc_heap_decreased	__isc_heap_decreased
+#define isc_heap_element	__isc_heap_element
+#define isc_heap_foreach	__isc_heap_foreach
+
+isc_result	isc_heap_create(mem_context_t, isc_heapcompare_t,
+				isc_heapindex_t, unsigned int, isc_heap_t *);
+void		isc_heap_destroy(isc_heap_t *);
+isc_result	isc_heap_insert(isc_heap_t, void *);
+void		isc_heap_delete(isc_heap_t, unsigned int);
+void		isc_heap_increased(isc_heap_t, unsigned int);
+void		isc_heap_decreased(isc_heap_t, unsigned int);
+void *		isc_heap_element(isc_heap_t, unsigned int);
+void		isc_heap_foreach(isc_heap_t, isc_heapaction_t, void *);

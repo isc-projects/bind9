@@ -148,7 +148,7 @@ timer_reset(timer_t timer,
 	    timer_type_t type,
 	    os_time_t expires,
 	    os_time_t interval,
-	    boolean_t purge);
+	    isc_boolean_t purge);
 /*
  * Change the timer's type, expires, and interval values to the given
  * values.  If 'purge' is TRUE, any pending events from this timer

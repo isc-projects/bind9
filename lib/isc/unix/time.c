@@ -22,7 +22,7 @@ os_time_get(os_time_t *timep) {
 	REQUIRE(timep != NULL);
 	
 	if (gettimeofday(&tv, NULL) == -1) {
-		unexpected_error(__FILE__, __LINE__, strerror(errno));
+		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 

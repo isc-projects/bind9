@@ -13,7 +13,7 @@
 
 mem_context_t mctx = NULL;
 
-static boolean_t
+static isc_boolean_t
 my_callback(task_t task, task_event_t event)
 {
 	int i, j;
@@ -24,24 +24,24 @@ my_callback(task_t task, task_event_t event)
 		j += 100;
 	printf("task %s: %d\n", name, j);
 	
-	return (FALSE);
+	return (ISC_FALSE);
 }
 
-static boolean_t
+static isc_boolean_t
 my_shutdown(task_t task, task_event_t event) {
 	char *name = event->arg;
 
 	printf("shutdown %s\n", name);
-	return (TRUE);
+	return (ISC_TRUE);
 }
 
-static boolean_t
+static isc_boolean_t
 my_tick(task_t task, task_event_t event)
 {
 	char *name = event->arg;
 
 	printf("task %p tick %s\n", task, name);
-	return (FALSE);
+	return (ISC_FALSE);
 }
 
 void

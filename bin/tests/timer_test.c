@@ -16,15 +16,15 @@ task_t t1, t2, t3;
 timer_t ti1, ti2, ti3;
 int tick_count = 0;
 
-static boolean_t
+static isc_boolean_t
 shutdown_task(task_t task, task_event_t event) {
 	char *name = event->arg;
 
 	printf("shutdown %s\n", name);
-	return (TRUE);
+	return (ISC_TRUE);
 }
 
-static boolean_t
+static isc_boolean_t
 tick(task_t task, task_event_t event)
 {
 	char *name = event->arg;
@@ -48,14 +48,14 @@ tick(task_t task, task_event_t event)
 		interval.nanoseconds = 0;
 		printf("*** resetting ti3 ***\n");
 		INSIST(timer_reset(ti3, timer_type_once, expires, interval,
-				   TRUE)
+				   ISC_TRUE)
 		       == ISC_R_SUCCESS);
 	}
 
-	return (FALSE);
+	return (ISC_FALSE);
 }
 
-static boolean_t
+static isc_boolean_t
 timeout(task_t task, task_event_t event)
 {
 	char *name = event->arg;
@@ -72,9 +72,9 @@ timeout(task_t task, task_event_t event)
 
 	if (strcmp(name, "3") == 0) {
 		printf("*** saving task 3 ***\n");
-		return (FALSE);
+		return (ISC_FALSE);
 	}
-	return (TRUE);
+	return (ISC_TRUE);
 }
 
 void

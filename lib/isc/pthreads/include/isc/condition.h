@@ -17,9 +17,9 @@ typedef pthread_cond_t			os_condition_t;
 #define os_condition_broadcast(cp)	(pthread_cond_broadcast((cp)) == 0)
 #define os_condition_destroy(cp)	(pthread_cond_destroy((cp)) == 0)
 
-boolean_t			os_condition_waituntil(os_condition_t *,
+isc_boolean_t			os_condition_waituntil(os_condition_t *,
 						       os_mutex_t *,
 						       os_time_t *,
-						       boolean_t *);
+						       isc_boolean_t *);
 
 #endif /* CONDITION_H */

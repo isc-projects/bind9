@@ -74,17 +74,17 @@ struct timer_manager_t {
 	mem_context_t			mctx;
 	os_mutex_t			lock;
 	/* Locked by manager lock. */
-	boolean_t			done;
+	isc_boolean_t			done;
 	LIST(struct timer_t)		timers;
 	unsigned int			nscheduled;
 	os_time_t			due;
 	os_condition_t			wakeup;
 	os_thread_t			thread;
-	heap_t				heap;
+	isc_heap_t			heap;
 };
 
 static inline isc_result
-schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
+schedule(timer_t timer, os_time_t *nowp, isc_boolean_t broadcast_ok) {
 	isc_result result;
 	timer_manager_t manager;
 	os_time_t due;
@@ -122,10 +122,10 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 		timer->due = due;
 		switch (cmp) {
 		case -1:
-			heap_increased(manager->heap, timer->index);
+			isc_heap_increased(manager->heap, timer->index);
 			break;
 		case 1:
-			heap_decreased(manager->heap, timer->index);
+			isc_heap_decreased(manager->heap, timer->index);
 			break;
 		case 0:
 			/* Nothing to do. */
@@ -133,7 +133,7 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 		}
 	} else {
 		timer->due = due;
-		result = heap_insert(manager->heap, timer);
+		result = isc_heap_insert(manager->heap, timer);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result == ISC_R_NOMEMORY);
 			return (ISC_R_NOMEMORY);
@@ -159,7 +159,7 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 
 static inline void
 deschedule(timer_t timer) {
-	boolean_t need_wakeup = FALSE;
+	isc_boolean_t need_wakeup = ISC_FALSE;
 	timer_manager_t manager;
 
 	/* 
@@ -169,8 +169,8 @@ deschedule(timer_t timer) {
 	manager = timer->manager;
 	if (timer->index > 0) {
 		if (timer->index == 1)
-			need_wakeup = TRUE;
-		heap_delete(manager->heap, timer->index);
+			need_wakeup = ISC_TRUE;
+		isc_heap_delete(manager->heap, timer->index);
 		timer->index = 0;
 		INSIST(manager->nscheduled > 0);
 		manager->nscheduled--;
@@ -231,7 +231,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 	result = os_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
 				 isc_result_to_text(result));
 		return (ISC_R_UNEXPECTED);
@@ -260,7 +260,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	timer->index = 0;
 	if (!os_mutex_init(&timer->lock)) {
 		mem_put(manager->mctx, timer, sizeof *timer);
-		unexpected_error(__FILE__, __LINE__, "os_mutex_init() failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "os_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -272,7 +272,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 
 	APPEND(manager->timers, timer, link);
-	result = schedule(timer, &now, TRUE);
+	result = schedule(timer, &now, ISC_TRUE);
 
 	UNLOCK(&manager->lock);
 
@@ -284,7 +284,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 
 isc_result
 timer_reset(timer_t timer, timer_type_t type,
-	    os_time_t expires, os_time_t interval, boolean_t purge)
+	    os_time_t expires, os_time_t interval, isc_boolean_t purge)
 {
 	os_time_t now;
 	timer_manager_t manager;
@@ -292,7 +292,7 @@ timer_reset(timer_t timer, timer_type_t type,
 
 	/*
 	 * Change the timer's type, expires, and interval values to the given
-	 * values.  If 'purge' is TRUE, any pending events from this timer
+	 * values.  If 'purge' is ISC_TRUE, any pending events from this timer
 	 * are purged from its task's event queue.
 	 */
 
@@ -306,7 +306,7 @@ timer_reset(timer_t timer, timer_type_t type,
 	 */
 	result = os_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
 				 isc_result_to_text(result));
 		return (ISC_R_UNEXPECTED);
@@ -328,7 +328,7 @@ timer_reset(timer_t timer, timer_type_t type,
 		timer->idle.seconds = 0;
 		timer->idle.nanoseconds = 0;
 	}
-	result = schedule(timer, &now, TRUE);
+	result = schedule(timer, &now, ISC_TRUE);
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -353,7 +353,7 @@ timer_touch(timer_t timer) {
 
 	result = os_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
 				 isc_result_to_text(result));
 		return (ISC_R_UNEXPECTED);
@@ -384,7 +384,7 @@ timer_attach(timer_t timer, timer_t *timerp) {
 void 
 timer_detach(timer_t *timerp) {
 	timer_t timer;
-	boolean_t free_timer = FALSE;
+	isc_boolean_t free_timer = ISC_FALSE;
 
 	/*
 	 * Detach *timerp from its timer.
@@ -398,7 +398,7 @@ timer_detach(timer_t *timerp) {
 	REQUIRE(timer->references > 0);
 	timer->references--;
 	if (timer->references == 0)
-		free_timer = TRUE;
+		free_timer = ISC_TRUE;
 	UNLOCK(&timer->lock);
 	
 	if (free_timer)
@@ -409,38 +409,38 @@ timer_detach(timer_t *timerp) {
 
 static void
 dispatch(timer_manager_t manager, os_time_t *nowp) {
-	boolean_t done = FALSE, post_event, need_schedule;
+	isc_boolean_t done = ISC_FALSE, post_event, need_schedule;
 	task_event_t event;
 	task_eventtype_t type = 0;
 	timer_t timer;
 	isc_result result;
 
 	while (manager->nscheduled > 0 && !done) {
-		timer = heap_element(manager->heap, 1);
+		timer = isc_heap_element(manager->heap, 1);
 		if (os_time_compare(nowp, &timer->due) >= 0) {
 			if (timer->type == timer_type_ticker) {
 				type = TIMER_EVENT_TICK;
-				post_event = TRUE;
-				need_schedule = TRUE;
+				post_event = ISC_TRUE;
+				need_schedule = ISC_TRUE;
 			} else if (!ZERO(timer->expires) &&
 				   os_time_compare(nowp,
 						   &timer->expires) >= 0) {
 				type = TIMER_EVENT_LIFE;
-				post_event = TRUE;
-				need_schedule = FALSE;
+				post_event = ISC_TRUE;
+				need_schedule = ISC_FALSE;
 			} else if (!ZERO(timer->idle) &&
 				   os_time_compare(nowp,
 						   &timer->idle) >= 0) {
 				type = TIMER_EVENT_IDLE;
-				post_event = TRUE;
-				need_schedule = FALSE;
+				post_event = ISC_TRUE;
+				need_schedule = ISC_FALSE;
 			} else {
 				/*
 				 * Idle timer has been touched; reschedule.
 				 */
 				XTRACEID("idle reschedule", timer);
-				post_event = FALSE;
-				need_schedule = TRUE;
+				post_event = ISC_FALSE;
+				need_schedule = ISC_TRUE;
 			}
 
 			if (post_event) {
@@ -456,24 +456,24 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 					INSIST(task_send_event(timer->task,
 							       &event));
 				else
-					unexpected_error(__FILE__, __LINE__,
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "couldn't allocate event");
 			}
 					
 			timer->index = 0;
-			heap_delete(manager->heap, 1);
+			isc_heap_delete(manager->heap, 1);
 			manager->nscheduled--;
 
 			if (need_schedule) {
-				result = schedule(timer, nowp, FALSE);
+				result = schedule(timer, nowp, ISC_FALSE);
 				if (result != ISC_R_SUCCESS)
-					unexpected_error(__FILE__, __LINE__,
+					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						"couldn't schedule timer: %s",
 							 result);
 			}
 		} else {
 			manager->due = timer->due;
-			done = TRUE;
+			done = ISC_TRUE;
 		}
 	} 
 }
@@ -481,7 +481,7 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 static void *
 run(void *uap) {
 	timer_manager_t manager = uap;
-	boolean_t timeout;
+	isc_boolean_t timeout;
 	os_time_t now;
 
 	LOCK(&manager->lock);
@@ -507,7 +507,7 @@ run(void *uap) {
 	return (NULL);
 }
 
-static boolean_t
+static isc_boolean_t
 sooner(void *v1, void *v2) {
 	timer_t t1, t2;
 
@@ -517,8 +517,8 @@ sooner(void *v1, void *v2) {
 	REQUIRE(VALID_TIMER(t2));
 
 	if (os_time_compare(&t1->due, &t2->due) < 0)
-		return (TRUE);
-	return (FALSE);
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 static void
@@ -548,38 +548,38 @@ timer_manager_create(mem_context_t mctx, timer_manager_t *managerp) {
 	
 	manager->magic = TIMER_MANAGER_MAGIC;
 	manager->mctx = mctx;
-	manager->done = FALSE;
+	manager->done = ISC_FALSE;
 	INIT_LIST(manager->timers);
 	manager->nscheduled = 0;
 	manager->due.seconds = 0;
 	manager->due.nanoseconds = 0;
 	manager->heap = NULL;
-	result = heap_create(mctx, sooner, set_index, 0, &manager->heap);
+	result = isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(result == ISC_R_NOMEMORY);
 		mem_put(mctx, manager, sizeof *manager);
 		return (ISC_R_NOMEMORY);
 	}
 	if (!os_mutex_init(&manager->lock)) {
-		heap_destroy(&manager->heap);
+		isc_heap_destroy(&manager->heap);
 		mem_put(mctx, manager, sizeof *manager);
-		unexpected_error(__FILE__, __LINE__, "os_mutex_init() failed");
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "os_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 	if (!os_condition_init(&manager->wakeup)) {
 		(void)os_mutex_destroy(&manager->lock);
-		heap_destroy(&manager->heap);
+		isc_heap_destroy(&manager->heap);
 		mem_put(mctx, manager, sizeof *manager);
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_condition_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 	if (!os_thread_create(run, manager, &manager->thread)) {
 		(void)os_condition_destroy(&manager->wakeup);
 		(void)os_mutex_destroy(&manager->lock);
-		heap_destroy(&manager->heap);
+		isc_heap_destroy(&manager->heap);
 		mem_put(mctx, manager, sizeof *manager);
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_thread_create() failed");
 		return (ISC_R_UNEXPECTED);
 	}
@@ -604,7 +604,7 @@ timer_manager_destroy(timer_manager_t *managerp) {
 	LOCK(&manager->lock);
 
 	REQUIRE(EMPTY(manager->timers));
-	manager->done = TRUE;
+	manager->done = ISC_TRUE;
 
 	UNLOCK(&manager->lock);
 
@@ -615,7 +615,7 @@ timer_manager_destroy(timer_manager_t *managerp) {
 	 * Wait for thread to exit.
 	 */
 	if (!os_thread_join(manager->thread))
-		unexpected_error(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "os_thread_join() failed");
 
 	/*
@@ -623,7 +623,7 @@ timer_manager_destroy(timer_manager_t *managerp) {
 	 */
 	(void)os_condition_destroy(&manager->wakeup);
 	(void)os_mutex_destroy(&manager->lock);
-	heap_destroy(&manager->heap);
+	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;
 	mem_put(manager->mctx, manager, sizeof *manager);
 

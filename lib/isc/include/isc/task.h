@@ -30,7 +30,7 @@ typedef struct task_manager *		task_manager_t;
  */
 typedef int				task_eventtype_t;
 
-typedef boolean_t			(*task_action_t)(task_t, task_event_t);
+typedef isc_boolean_t			(*task_action_t)(task_t, task_event_t);
 
 /*
  * This structure is public because "subclassing" it may be useful when
@@ -64,14 +64,14 @@ void					task_event_free(task_event_t *);
  *** Tasks.
  ***/
 
-boolean_t				task_create(task_manager_t,
+isc_boolean_t				task_create(task_manager_t,
 						    task_action_t,
 						    void *,
 						    unsigned int,
 						    task_t *);
 void					task_attach(task_t, task_t *);
 void					task_detach(task_t *);
-boolean_t				task_send_event(task_t,
+isc_boolean_t				task_send_event(task_t,
 							task_event_t *);
 void					task_purge_events(task_t, void *,
 							  task_eventtype_t);
