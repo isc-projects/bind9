@@ -1,3 +1,9 @@
+ 994.	[bug]		If the unsecure proof fails for unsigned NS records
+			attempt a secure proof using the NS records found as
+			glue to find the NS records from the zone's servers
+			along with associated glue rather than from parent
+			servers.  [RT #1706]
+
  993.	[func]		dig: -v now reports the version.
 
  992.	[doc]		dig: ~/.digrc is now documented.
