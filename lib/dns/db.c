@@ -270,8 +270,6 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 
 	/*
 	 * Find the node with name 'name'.
-	 *
-	 * WARNING:  THIS API WILL BE CHANGING IN THE NEAR FUTURE.
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
@@ -285,7 +283,8 @@ dns_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset) {
+	    dns_rdataset_t *rdataset)
+{
 
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
