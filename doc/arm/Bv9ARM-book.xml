@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.108 2001/02/22 01:01:17 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.109 2001/03/06 07:38:18 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -236,7 +236,7 @@ To make the DNS tolerant of server and network failures,
 most zones have two or more authoritative servers.
 </para>
 
-<para>Responses from authoritative servers have the the "authoritative
+<para>Responses from authoritative servers have the "authoritative
 answer" (AA) bit set in the response packets.  This makes them 
 easy to identify when debugging DNS configurations using tools like
 <command>dig</command> (<xref linkend="diagnostic_tools"/>).</para>
@@ -3143,7 +3143,7 @@ the slave server while waiting for the master server to respond.
 In BIND 8, the <command>serial-queries</command> option set the maximum number
 of concurrent serial-number queries allowed to be outstanding at
 any given time.  BIND 9 does not limit the number of outstanding
-serial queries and ignores the The <command>serial-queries</command> option;
+serial queries and ignores the <command>serial-queries</command> option;
 instead, it limits the rate at which the queries are sent.
 The maximum rate is currently fixed at 20 queries
 per second but may become configurable in a future release.  
