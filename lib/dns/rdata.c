@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.120 2000/11/09 23:54:59 bwelling Exp $ */
+/* $Id: rdata.c,v 1.121 2000/11/10 00:25:46 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -533,7 +533,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	return (result);
 }
 
-isc_result_t
+static isc_result_t
 rdata_valid(isc_buffer_t *buf, dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	    isc_mem_t *mctx)
 {
@@ -547,8 +547,8 @@ rdata_valid(isc_buffer_t *buf, dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	result = isc_buffer_allocate(mctx, &tbuf, isc_buffer_length(buf));
 	if (result == ISC_R_SUCCESS) {
 		result = dns_rdata_fromwire(&rdata, rdclass, type, buf, &dctx,
-					    ISC_FALSE, &tbuf);
-		isc_buffer_free(tbuf);
+					    ISC_FALSE, tbuf);
+		isc_buffer_free(&tbuf);
 	}
 	dns_decompress_invalidate(&dctx);
 
