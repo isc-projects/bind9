@@ -1,3 +1,13 @@
+ 361.	[func]		When the RBT find or chain functions set the name and
+			origin for a node that stores the root label
+			the name is now set to an empty name, instead of ".",
+			to simplify later use of the name and origin by
+			dns_name_concatenate(), dns_name_totext() or
+			dns_name_format().
+
+ 360.	[func]		dns_name_totext() and dns_name_format() now allow
+			an empty name to be passed, which is formatted as "@".
+
  359.	[bug]		dnssec-signzone occasionally signed glue records.
 
  358.	[cleanup]	Rename the intermediate files used by the dnssec

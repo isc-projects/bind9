@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.88 2000/07/31 22:34:01 tale Exp $ */
+/* $Id: rbt.c,v 1.89 2000/07/31 23:27:24 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1948,7 +1948,8 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 
 isc_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
-			 dns_name_t *origin, dns_rbtnode_t **node) {
+			 dns_name_t *origin, dns_rbtnode_t **node)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_CHAIN(chain));
@@ -1964,18 +1965,17 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 		if (chain->level_count == 0) {
 			/*
-			 * Eliminate the root name, except when name is ".".
+			 * Names in the top level tree are all absolute.
+			 * Always make 'name' relative.
 			 */
-			if (dns_name_countlabels(name) > 1) {
-				INSIST(dns_name_isabsolute(name));
+			INSIST(dns_name_isabsolute(name));
 
-				/*
-				 * XXX EVIL.  But what _should_ I do?
-				 */
-				name->labels--;
-				name->length--;
-				name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-			}
+			/*
+			 * This is cheaper than dns_name_getlabelsequence().
+			 */
+			name->labels--;
+			name->length--;
+			name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 		}
 	}
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.44 2000/07/27 09:48:10 tale Exp $ */
+/* $Id: rbt.h,v 1.45 2000/07/31 23:27:25 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -117,21 +117,17 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * accomplished with a dns_fixedname_t.  It is _not_ necessary to reinitialize
  * either 'name' or 'origin' between calls to the chain functions.
  *
- * NOTE WELL: the above rule means that when a chain points to the root of the
- * tree of trees and that root stores only the root label, ".", it means that
- * BOTH 'name' *and* 'origin' will be ".".  As a common operation on
- * 'name' and 'origin' is to dns_name_concatenate them after they have been
- * set, special care must be taken to not concatenate 'name' if it is
- * dns_name_isabsolute(), which is only true in this special circumstance.
- * The logic behind having both 'name' and 'origin' be "." had to do with
- * zone file dumping.  It is likely that dumping of "." will be handled
- * differently in the future and that the chain API will be changed such that
- * in the case of ".", only 'origin' will be "." and name will be set to
- * have zero labels.
+ * NOTE WELL: even though the name data at the root of the tree of trees will
+ * be absolute (typically just "."), it will will be made into a relative name
+ * with an origin of "." -- an empty name when the node is ".".  This is
+ * because a common on operation on 'name' and 'origin' is to use
+ * dns_name_concatenate() on them to generate the complete name.  An empty name
+ * can be detected when dns_name_countlabels == 0, and is printed by
+ * dns_name_totext()/dns_name_format() as "@", consistent with RFC1035's
+ * definition of "@" as the current origin.
  *
  * dns_rbtnodechain_current is similar to the _first, _last, _prev and _next
- * functions but additionally can provide the node to which the chain points.
- */
+ * functions but additionally can provide the node to which the chain points.  */
 
 /*
  * For use in allocating space for the chain of ancestor nodes.

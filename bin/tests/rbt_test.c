@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.37 2000/07/31 22:33:59 tale Exp $ */
+/* $Id: rbt_test.c,v 1.38 2000/07/31 23:27:22 tale Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
@@ -88,7 +89,7 @@ static void
 delete_name(void *data, void *arg) {
 	dns_name_t *name;
 
-	(void)arg;
+	UNUSED(arg);
 	name = data;
 	isc_mem_put(mctx, data, sizeof(dns_name_t) + DNSNAMELEN);
 }
@@ -168,14 +169,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 	if (result == ISC_R_SUCCESS) {
 		printf("\n  name from dns_rbtnodechain_current: ");
 
-		/*
-		 * If foundname is absolute, it includes the origin (which
-		 * is intrinsically known here to be just ".").
-		 */
-
-		result = dns_name_concatenate(foundname,
-					      dns_name_isabsolute(foundname) ?
-					          NULL : origin,
+		result = dns_name_concatenate(foundname, origin,
 					      fullname, NULL);
 		if (result == ISC_R_SUCCESS)
 			print_name(fullname);
