@@ -2,56 +2,32 @@
 BIND 9
 
 	BIND version 9 is a major rewrite of nearly all aspects of the
-	underlying BIND architecture. This re-architecting of BIND was
-	necessitated by the expected demands of:
+	underlying BIND architecture.  Some of the important features of
+	BIND 9 are:
 
-		- Domain name system growth, particularly in very large
-		  zones such as .COM
-		- Protocol enhancements necessary to securely query and
-		  update zones
-		- Protocol enhancements necessary to take advantage of
-		  certain architectural features of IP version 6
+		- DNS Security
+			DNSSEC (signed zones)
+			TSIG (signed DNS requests)
 
-	These demands implied performance requirements that were not
-	necessarily easy to attain with the BIND version 8
-	architecture.  In particular, BIND must not only be able to
-	run on multi-processor multi-threaded systems, but must take
-	full advantage of the performance enhancements these
-	architectures can provide. In addition, the underlying data
-	storage architecture of BIND version 8 does not lend itself to
-	implementing alternative back end databases, such as would be
-	desirable for the support of multi-gigabyte zones. As such
-	zones are easily foreseeable in the relatively near future,
-	the data storage architecture needed revision. The feature
-	requirements for BIND version 9 included:
+		- IP version 6
+			Answers DNS queries on IPv6 sockets
+			IPv6 resource records (A6, DNAME, etc.)
+			Bitstring Labels
+			Experimental IPv6 Resolver Library
 
-		- Scalability
-			Thread safety
-			Multi-processor scalability
-			Support for very large zones
-
-		- Security
-			Support for DNSSEC
-			Support for TSIG
-			Auditability (code and operation)
-			Firewall support (split DNS)
-
-		- Portability
-
-		- Maintainability
-
-		- Protocol Enhancements
+		- DNS Protocol Enhancements
 			IXFR, DDNS, Notify, EDNS0
 			Improved standards conformance
 
-		- Operational enhancements
-			High availability and reliability
-			Support for alternative back end databases
+		- Views
+			One server process can provide multiple "views" of
+			the DNS namespace, e.g. an "inside" view to certain
+			clients, and an "outside" view to others.
 
-		- IP version 6 support
-			IPv6 resource records (A6, DNAME, etc.)
-			Bitstring labels
-			APIs
+		- Multiprocessor Support
+
+		- Improved Portability Architecture
+
 
 	BIND version 9 development has been underwritten by the following
 	organizations:
