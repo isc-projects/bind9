@@ -116,6 +116,8 @@ SRCS =		adb_test.c \
 
 @BIND9_MAKE_RULES@
 
+all_tests: ${XTARGETS}
+
 adb_test: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ adb_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
