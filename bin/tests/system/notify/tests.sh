@@ -35,7 +35,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 rm -f ns2/example.db
@@ -54,7 +54,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 kill `cat ns3/named.pid`
@@ -75,7 +75,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 rm -f ns2/example.db
@@ -95,7 +95,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then

@@ -37,10 +37,10 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl knowngood.dig.out dig.out.ns2
+$PERL ../digcomp.pl knowngood.dig.out dig.out.ns2
 status=`expr $status + $?`
 
-perl ../digcomp.pl knowngood.dig.out dig.out.ns3
+$PERL ../digcomp.pl knowngood.dig.out dig.out.ns3
 status=`expr $status + $?`
 
 status=0;
@@ -56,7 +56,7 @@ grep ";" dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then

@@ -42,9 +42,9 @@ $SIGNER -r $RANDFILE -o $zone $zonefile
 
 # Configure the resolving server with a trusted key.
 
-cat $keyname.key | perl -n -e '
-my ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-my $key = join("", @rest);
+cat $keyname.key | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
 print <<EOF
 trusted-keys {
     "$dn" $flags $proto $alg "$key";

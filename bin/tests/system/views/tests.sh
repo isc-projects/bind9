@@ -58,20 +58,20 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth\
 status=`expr $status + $?`
 grep ";" dig.out.ns3.2
 
-perl ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2
+$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2
 status=`expr $status + $?`
 
-perl ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2
 status=`expr $status + $?`
 
-perl ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2
+$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2
 status=`expr $status + $?`
 
 echo "Differences should be found in the following lines:"
-perl ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2
+$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2
 if [ $? = 0 ]; then
 	echo "No differences found.  Something's wrong."
-	$status=`expr $status + 1`
+	status=`expr $status + 1`
 fi
 
 if [ $status != 0 ]; then

@@ -47,6 +47,13 @@ test -f /etc/system_test_ifsetup ||
       exit 0;
     }
 
+if [ x$PERL = x ]
+then
+    echo "I:Perl not available.  Not trying system tests." >&2
+    echo "R:UNTESTED" >&2
+    exit 0;
+fi
+
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then

@@ -37,6 +37,7 @@ while [ $count != 300 ]; do
 	seconds=`expr $ticks \* 1`
 	if [ $ticks = 60 ]; then
 		echo "Took too long to load zones"
+		echo "R:FAIL"
 		exit 1
 	fi
 	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
@@ -54,7 +55,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-perl ../digcomp.pl dig.out.ns1 dig.out.ns2
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
 status=`expr $status + $?`
 
 sleep 5
@@ -69,7 +70,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-perl ../digcomp.pl dig.out.ns1 dig.out.ns2
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then

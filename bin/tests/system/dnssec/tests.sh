@@ -41,7 +41,7 @@ $DIG $DIGOPTS \
 status=`expr $status + $?`
 grep ";" dig.out.ns3
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns3
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 rm -f dig.out.*
@@ -56,7 +56,7 @@ $DIG $DIGOPTS +noauth \
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 
-perl ../digcomp.pl dig.out.ns2 dig.out.ns4
+$PERL ../digcomp.pl dig.out.ns2 dig.out.ns4
 status=`expr $status + $?`
 
 # Check the insecure.example domain
@@ -73,7 +73,7 @@ $DIG $DIGOPTS \
 status=`expr $status + $?`
 grep ";" dig.out.ns4
 
-perl ../digcomp.pl dig.out.ns3 dig.out.ns4
+$PERL ../digcomp.pl dig.out.ns3 dig.out.ns4
 status=`expr $status + $?`
 
 # Check the secure.example domain
@@ -90,7 +90,7 @@ $DIG $DIGOPTS \
 status=`expr $status + $?`
 grep ";" dig.out.ns4
 
-perl ../digcomp.pl dig.out.ns3 dig.out.ns4
+$PERL ../digcomp.pl dig.out.ns3 dig.out.ns4
 status=`expr $status + $?`
 
 # Check the bogus domain
