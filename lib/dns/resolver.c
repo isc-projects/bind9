@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.30 2004/04/15 01:38:07 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.31 2004/04/15 02:16:27 marka Exp $ */
 
 #include <config.h>
 
@@ -627,7 +627,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		       fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_sig);
 
-		isc_task_sendanddetach(&task, (isc_event_t **) (void *)&event);
+		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
 	}
 }
 
@@ -5263,7 +5263,7 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 		etask = event->ev_sender;
 		event->ev_sender = fctx;
 		event->result = ISC_R_CANCELED;
-		isc_task_sendanddetach(&etask, (isc_event_t **) (void *)&event);
+		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event));
 	}
 	/*
 	 * The fctx continues running even if no fetches remain;

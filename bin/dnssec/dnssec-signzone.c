@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.4 2004/04/15 01:38:04 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.5 2004/04/15 02:16:24 marka Exp $ */
 
 #include <config.h>
 
@@ -1241,7 +1241,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	sevent->node = node;
 	sevent->fname = fname;
 	sevent->fnextname = fnextname;
-	isc_task_send(worker, (isc_event_t **) (void *) &sevent);
+	isc_task_send(worker, ISC_EVENT_PTR(&sevent));
 	assigned++;
 }
 
@@ -1308,7 +1308,7 @@ sign(isc_task_t *task, isc_event_t *event) {
 		fatal("failed to allocate event\n");
 	wevent->node = node;
 	wevent->fname = fname;
-	isc_task_send(master, (isc_event_t **) (void*) &wevent);
+	isc_task_send(master, ISC_EVENT_PTR(&wevent));
 }
 
 /*

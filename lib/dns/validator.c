@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.7 2004/04/15 01:38:08 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.8 2004/04/15 02:16:28 marka Exp $ */
 
 #include <config.h>
 
@@ -1546,7 +1546,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
 
-	isc_task_send(task, (isc_event_t **) (void *)&event);
+	isc_task_send(task, ISC_EVENT_PTR(&event));
 
 	*validatorp = val;
 

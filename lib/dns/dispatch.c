@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.9 2004/04/15 01:38:06 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.10 2004/04/15 02:16:26 marka Exp $ */
 
 #include <config.h>
 
@@ -670,7 +670,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			    rev, rev->buffer.base, rev->buffer.length,
 			    resp->task);
 		resp->item_out = ISC_TRUE;
-		isc_task_send(resp->task, (isc_event_t **) (void *)&rev);
+		isc_task_send(resp->task, ISC_EVENT_PTR(&rev));
 	}
 
 	/*
@@ -846,7 +846,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			    rev, rev->buffer.base, rev->buffer.length,
 			    resp->task);
 		resp->item_out = ISC_TRUE;
-		isc_task_send(resp->task, (isc_event_t **) (void *)&rev);
+		isc_task_send(resp->task, ISC_EVENT_PTR(&rev));
 	}
 
 	/*
@@ -1984,7 +1984,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		    "cancel: failsafe event %p -> task %p",
 		    ev, resp->task);
 	resp->item_out = ISC_TRUE;
-	isc_task_send(resp->task, (isc_event_t **) (void *)&ev);
+	isc_task_send(resp->task, ISC_EVENT_PTR(&ev));
 }
 
 isc_socket_t *
@@ -2080,7 +2080,7 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 
 	buf = allocate_udp_buffer(disp);
 	if (buf == NULL) {
-		isc_event_free((isc_event_t **) (void *)&newsevent);
+		isc_event_free(ISC_EVENT_PTR(&newsevent));
 		return;
 	}
 	memcpy(buf, sevent->region.base, sevent->n);
@@ -2093,7 +2093,7 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	newsevent->pktinfo = sevent->pktinfo;
 	newsevent->attributes = sevent->attributes;
 	
-	isc_task_send(disp->task, (isc_event_t **) (void*)&newsevent);
+	isc_task_send(disp->task, ISC_EVENT_PTR(&newsevent));
 }
 
 #if 0
