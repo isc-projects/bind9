@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.79 $)
+AC_REVISION($Revision: 1.80 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1440,6 +1440,9 @@ NET_R_RETURN="#define NET_R_RETURN struct netent *"
 GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"
 NETENT_DATA="#undef NETENT_DATA"
 )
+case "$host" in
+*dec-osf*) GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T int" ;;
+esac
 AC_SUBST(NET_R_ARGS)
 AC_SUBST(NET_R_BAD)
 AC_SUBST(NET_R_COPY)
