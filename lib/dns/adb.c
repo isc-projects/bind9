@@ -142,7 +142,7 @@ struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
 	dns_adb_t		       *adb;
-	isc_boolean_t			partial_result;
+	unsigned int			partial_result;
 	isc_boolean_t			dead;
 	isc_stdtime_t			expire_time;
 	int				lock_bucket;
@@ -284,7 +284,7 @@ import_rdataset(dns_adb_t *adb, dns_adbname_t *adbname,
 	while (result == ISC_R_SUCCESS) {
 		nh = new_adbnamehook(adb, NULL);
 		if (nh == NULL) {
-			adbname->partial_result = ISC_TRUE;
+			adbname->partial_result |= DNS_ADBFAMILY_INET;
 			result = ISC_R_NOMEMORY;
 			goto fail;
 		}
@@ -300,7 +300,7 @@ import_rdataset(dns_adb_t *adb, dns_adbname_t *adbname,
 
 			entry = new_adbentry(adb);
 			if (entry == NULL) {
-				adbname->partial_result = ISC_TRUE;
+				adbname->partial_result |= DNS_ADBFAMILY_INET;
 				result = ISC_R_NOMEMORY;
 				goto fail;
 			}
@@ -691,7 +691,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 
 	name->magic = DNS_ADBNAME_MAGIC;
 	name->adb = adb;
-	name->partial_result = ISC_FALSE;
+	name->partial_result = 0;
 	name->dead = ISC_FALSE;
 	name->expire_time = INT_MAX;
 	name->lock_bucket = DNS_ADB_INVALIDBUCKET;
@@ -861,8 +861,8 @@ new_adbhandle(dns_adb_t *adb)
 	 */
 	h->magic = 0;
 	h->adb = adb;
-	h->query_pending = ISC_FALSE;
-	h->partial_result = ISC_FALSE;
+	h->query_pending = 0;
+	h->partial_result = 0;
 	h->result = ISC_R_UNEXPECTED;
 	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
@@ -1148,7 +1148,7 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 			goto next;
 		addrinfo = new_adbaddrinfo(adb, namehook->entry);
 		if (addrinfo == NULL) {
-			handle->partial_result = ISC_TRUE;
+			handle->partial_result |= DNS_ADBFAMILY_INET;
 			handle->result = ISC_R_NOMEMORY;
 			goto out;
 		}
@@ -1440,7 +1440,8 @@ dns_adb_detach(dns_adb_t **adbx)
 isc_result_t
 dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       isc_stdtime_t now, dns_adbhandle_t **handlep)
+	       unsigned int families, isc_stdtime_t now,
+	       dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
 	dns_adbname_t *adbname;
@@ -1577,12 +1578,12 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		handle->adbname = adbname;
 		handle->name_bucket = bucket;
 		ISC_LIST_APPEND(adbname->handles, handle, link);
-		handle->query_pending = ISC_TRUE;
+		handle->query_pending |= DNS_ADBFAMILY_INET;
 		attach_to_task = ISC_TRUE;
 	}
 
-	if (adbname->partial_result)
-		handle->partial_result = ISC_TRUE;
+	if (adbname->partial_result & DNS_ADBFAMILY_INET)
+		handle->partial_result |= DNS_ADBFAMILY_INET;
 
 	result = ISC_R_SUCCESS;
 	goto success;
@@ -1997,7 +1998,7 @@ dns_adb_dumphandle(dns_adbhandle_t *handle, FILE *f)
 	LOCK(&handle->lock);
 
 	fprintf(f, "Handle %p\n", handle);
-	fprintf(f, "\tquery_pending %d, result %d (%s)\n",
+	fprintf(f, "\tquery_pending %04x, result %d (%s)\n",
 		handle->query_pending, handle->result,
 		isc_result_totext(handle->result));
 	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
@@ -2114,7 +2115,7 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *zone,
 
 	use_hints = dns_name_equal(zone, dns_rootname);
 	dns_rdataset_init(&rdataset);
-	adbname->partial_result = ISC_FALSE;
+	adbname->partial_result = 0;
 
 	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a,
 			       now, DNS_DBFIND_GLUEOK, use_hints,

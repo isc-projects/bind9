@@ -347,8 +347,8 @@ lookup(char *target)
 	check_result(result, "dns_name_dup %s", target);
 
 	result = dns_adb_lookup(adb, t2, lookup_callback, client,
-				&client->name, dns_rootname, now,
-				&client->handle);
+				&client->name, dns_rootname,
+				DNS_ADBFAMILY_INET, now, &client->handle);
 
 	switch (result) {
 	case ISC_R_NOTFOUND:

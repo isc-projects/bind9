@@ -119,9 +119,10 @@ struct dns_adbhandle {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
-	isc_boolean_t			query_pending;	/* RO: partial list */
-	isc_boolean_t			partial_result;	/* RO: addrs missing */
 	isc_result_t			result;		/* RO: extra result */
+	unsigned int			query_pending;	/* RO: partial list */
+	unsigned int			partial_result;	/* RO: addrs missing */
+	unsigned int			families;	/* RO: addr families */
 	ISC_LINK(dns_adbhandle_t)	plink;		/* RW: client use */
 
 	/* Private */
@@ -132,6 +133,9 @@ struct dns_adbhandle {
 	isc_event_t			event;
 	ISC_LINK(dns_adbhandle_t)	link;
 };
+
+#define DNS_ADBFAMILY_INET		0x0001
+#define DNS_ADBFAMILY_INET6		0x0002
 
 /* dns_adbaddr_t
  *
@@ -216,7 +220,8 @@ dns_adb_detach(dns_adb_t **adb);
 isc_result_t
 dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       isc_stdtime_t now, dns_adbhandle_t **handle);
+	       unsigned int families, isc_stdtime_t now,
+	       dns_adbhandle_t **handle);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
