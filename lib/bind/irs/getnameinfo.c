@@ -227,6 +227,7 @@ ip6_parsenumeric(sa, addr, host, hostlen, flags)
 		return EAI_MEMORY;
 	strcpy(host, numaddr);
 
+#ifdef HAVE_SIN6_SCOPE_ID
 	if (((const struct sockaddr_in6 *)sa)->sin6_scope_id) {
 		char scopebuf[MAXHOSTNAMELEN]; /* XXX */
 		int scopelen;
@@ -244,6 +245,7 @@ ip6_parsenumeric(sa, addr, host, hostlen, flags)
 		host[numaddrlen] = SCOPE_DELIMITER;
 		host[numaddrlen + 1 + scopelen] = '\0';
 	}
+#endif
 
 	return 0;
 }
@@ -261,10 +263,12 @@ ip6_sa2str(sa6, buf, bufsiz, flags)
 	const struct in6_addr *a6 = &sa6->sin6_addr;
 #endif
 
+#ifdef HAVE_SIN6_SCOPE_ID
 #ifdef NI_NUMERICSCOPE
 	if (flags & NI_NUMERICSCOPE) {
 		return(snprintf(buf, bufsiz, "%d", sa6->sin6_scope_id));
 	}
+#endif
 #endif
 
 #ifdef USE_IFNAMELINKID
@@ -288,5 +292,9 @@ ip6_sa2str(sa6, buf, bufsiz, flags)
 #endif
 
 	/* last resort */
+#ifdef HAVE_SIN6_SCOPE_ID
 	return(snprintf(buf, bufsiz, "%u", sa6->sin6_scope_id));
+#else
+	return(snprintf(buf, bufsiz, "0"));	/* no scope */
+#endif
 }

@@ -1,6 +1,10 @@
 #ifndef port_before_h
 #define port_before_h
 #include <config.h>
+#ifdef HAVE_SYS_TIMERS_H
+#include <sys/timers.h>
+#endif
+
 
 @WANT_IRS_GR@
 @WANT_IRS_NIS@

@@ -19,6 +19,7 @@
 @HAVE_SIN6_SCOPE_ID@
 @NEED_IN6ADDR_ANY@
 @HAS_IN_ADDR6@
+@HAVE_SOCKADDR_STORAGE@
 
 /* XXX sunos and cygwin needs O_NDELAY */
 #define PORT_NONBLOCK O_NONBLOCK
@@ -70,6 +71,27 @@ struct sockaddr_in6 {
 #else
 #define INET6 1
 #endif  /* HAS_INET6_STRUCTS */
+
+#ifndef HAVE_SOCKADDR_STORAGE
+#define __SS_MAXSIZE 128 
+#define __SS_ALLIGSIZE (sizeof (long)) 
+
+struct sockaddr_storage {
+#ifdef  HAVE_SA_LEN
+        u_int8_t        ss_len;       /* address length */
+        u_int8_t        ss_family;    /* address family */
+        char            __ss_pad1[__SS_ALLIGSIZE - 2 * sizeof(u_int8_t)];
+        long            __ss_align;
+        char            __ss_pad2[__SS_MAXSIZE - 2 * __SS_ALLIGSIZE];
+#else   
+        u_int16_t       ss_family;    /* address family */
+        char            __ss_pad1[__SS_ALLIGSIZE - sizeof(u_int16_t)];
+        long            __ss_align;
+        char            __ss_pad2[__SS_MAXSIZE - 2 * __SS_ALLIGSIZE];
+#endif
+};
+#endif
+
 
 #if !defined(HAS_INET6_STRUCTS) || defined(NEED_IN6ADDR_ANY)
 #define in6addr_any isc_in6addr_any

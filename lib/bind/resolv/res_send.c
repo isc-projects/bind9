@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.2 2001/04/23 02:59:17 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.3 2001/05/14 07:59:46 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -1042,7 +1042,9 @@ sock_eq(struct sockaddr *a, struct sockaddr *b) {
 		a6 = (struct sockaddr_in6 *)a;
 		b6 = (struct sockaddr_in6 *)b;
 		return a6->sin6_port == b6->sin6_port &&
+#ifdef HAVE_SIN6_SCOPE_ID
 		    a6->sin6_scope_id == b6->sin6_scope_id &&
+#endif
 		    IN6_ARE_ADDR_EQUAL(&a6->sin6_addr, &b6->sin6_addr);
 #endif
 	default:

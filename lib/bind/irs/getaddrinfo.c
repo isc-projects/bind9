@@ -875,7 +875,9 @@ explore_numeric_scope(pai, hostname, servname, res)
 				free(hostname2);
 				return(EAI_NONAME); /* XXX: is return OK? */
 			}
+#ifdef HAVE_SIN6_SCOPE_ID
 			sin6->sin6_scope_id = scopeid;
+#endif
 		}
 	}
 
