@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.3.2.4 2004/03/17 00:40:13 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.3.2.5 2004/11/30 01:15:59 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -121,7 +121,10 @@ net_data_destroy(void *p) {
 struct net_data *
 net_data_init(const char *conf_file) {
 #ifdef	DO_PTHREADS
-	static pthread_mutex_t keylock = PTHREAD_MUTEX_INITIALIZER;
+#ifndef LIBBIND_MUTEX_INITIALIZER
+#define LIBBIND_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+#endif
+	static pthread_mutex_t keylock = LIBBIND_MUTEX_INITIALIZER;
 	struct net_data *net_data;
 
 	if (!once) {
