@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.2 2001/11/28 23:35:02 gson Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.2.4.1 2003/02/17 01:29:28 marka Exp $ -->
 
 <refentry>
 
@@ -290,7 +290,7 @@ Deprecated, treated as a synonym for <parameter>+[no]search</parameter>
 
 <varlistentry><term><option>+[no]aaonly</option></term>
 <listitem><para>
-This option does nothing.  It is provided for compatibilty with old
+This option does nothing.  It is provided for compatibility with old
 versions of <command>dig</command> where it set an unimplemented
 resolver flag.
 </para></listitem></varlistentry>

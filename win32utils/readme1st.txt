@@ -1,7 +1,7 @@
 Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7.2.1 2001/09/06 05:31:02 marka Exp $
+$Id: readme1st.txt,v 1.7.2.1.6.1 2003/02/17 01:29:34 marka Exp $
 
 	   Release of BIND 9.2.0 for Window NT/2000
 
@@ -95,7 +95,7 @@ IMPORTANT NOTE ON USING THE TOOLS:
 If you wish to use nsupdate on a win32 platform to do dynamic updates
 to a zone you MUST create a resolv.conf in the System32\Drivers\etc
 directory containing a list of nameserver addresses to use to find
-the nameserver authorative for the zone. The format of this file is:
+the nameserver authoritative for the zone. The format of this file is:
 
 nameserver 1.2.3.4
 nameserver 5.6.7.8

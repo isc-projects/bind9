@@ -50,7 +50,7 @@ BIND 9.2.2 (release candidate 1)
 	a number of bugs in 9.2.1 but no new features.
 
 	libbind: from BIND 8.3.3. [CERT CA-2002-19]
-	Mimimum OpenSSL version now 0.9.6e. [CERT CA-2002-23]
+	Minimum OpenSSL version now 0.9.6e. [CERT CA-2002-23]
 
 BIND 9.2.1
 
@@ -85,7 +85,7 @@ BIND 9.2.0
 
           - The named.conf parser has been completely rewritten.
             It now supports "include" directives in more
-            places such as inside "view" statememnts, and it no
+            places such as inside "view" statements, and it no
             longer has any reserved words.
 
           - The "rndc status" command is now implemented.
