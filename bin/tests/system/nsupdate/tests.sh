@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.20 2001/02/15 01:04:06 gson Exp $
+# $Id: tests.sh,v 1.21 2001/03/08 02:59:46 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -140,6 +140,19 @@ then
 fi
 
 echo "I:end RT #482 regression test"
+
+echo "I:testing that rndc stop updates the master file"
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated4.example.nil. 600 A 10.10.10.3
+send
+END
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+rm -f ns1/*jnl
+$PERL $SYSTEMTESTTOP/start.pl --noclean . ns1
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
+	@10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+$PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || status=1
 
 echo "I:exit status: $status"
 exit $status
