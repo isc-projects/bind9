@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.8 2000/11/20 19:56:11 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.9 2000/11/22 21:18:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -62,6 +62,7 @@ quotestring(const char *source, char *dest) {
 	while (*source != 0) {
 		if (*source == '\'')
 			*dest++ = '\'';
+		/* SQL doesn't treat \ as special, but PostgreSQL does */
 		else if (*source == '\\')
 			*dest++ = '\\';
 		*dest++ = *source++;
