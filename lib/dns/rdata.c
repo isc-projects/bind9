@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.13 1999/01/22 05:02:43 marka Exp $ */
+ /* $Id: rdata.c,v 1.14 1999/01/27 06:07:57 halley Exp $ */
 
 #include <config.h>
 
@@ -207,14 +207,16 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	         isc_buffer_t *target) {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
+	isc_region_t tr;
 
 	TOWIRESWITCH
 	
 	if (use_default) {
-		if (target->length < rdata->length) 
+		isc_buffer_available(target, &tr);
+		if (tr.length < rdata->length) 
 			return (DNS_R_NOSPACE);
-		memcpy(target->base, rdata->data, rdata->length);
-		target->length = rdata->length;
+		memcpy(tr.base, rdata->data, rdata->length);
+		isc_buffer_add(target, rdata->length);
 		return (DNS_R_SUCCESS);
 	}
 	return (result);
