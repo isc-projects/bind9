@@ -353,7 +353,7 @@ lookup(char *target)
 	options |= DNS_ADBFIND_WANTEVENT;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, options,
-				    now, &client->find);
+				    now, NULL, &client->find);
 	check_result(result, "dns_adb_lookup()");
 	dns_adb_dumpfind(client->find, stderr);
 
