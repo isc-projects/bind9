@@ -21,6 +21,8 @@
  511.	[bug]		The message code could throw an assertion on an
 			out of memory failure. [RT #392]
 
+ 510.	[bug]		Remove spurious view notify warning. [RT #376]
+
  505.	[bug]		nsupdate was printing "unknown result code". [RT #373]
 
  498.	[doc]		There is now a man page for "dig" 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.36.2.1 2000/07/25 22:47:37 gson Exp $ */
+/* $Id: confview.c,v 1.36.2.2 2000/10/17 01:02:20 gson Exp $ */
 
 #include <config.h>
 
@@ -348,20 +348,6 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'fetch-glue' is not yet "
-				      "implemented");
-
-
-		if (dns_c_view_getnotify(elem, &bbval) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'notify' is not yet "
-				      "implemented");
-
-
-		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'rfc2308-type1' is not yet "
 				      "implemented");
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
