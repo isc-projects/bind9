@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187 2000/12/20 23:18:37 gson Exp $ */
+/* $Id: resolver.c,v 1.188 2000/12/29 23:24:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3883,8 +3883,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_time_t tnow, *finish;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int options;
-	dns_name_t *tsigowner = NULL;
-	dns_rdataset_t *tsigset;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -4044,23 +4042,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_checksig(message, fctx->res->view);
 	if (result != ISC_R_SUCCESS)
 		goto done;
-	tsigset = dns_message_gettsig(message, &tsigowner);
-	if (tsigset != NULL) {
-		dns_rdata_any_tsig_t tsig;
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-
-		result = dns_rdataset_first(tsigset);
-		if (result != ISC_R_SUCCESS)
-			goto done;
-		dns_rdataset_current(tsigset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto done;
-		if (tsig.error != dns_rcode_noerror) {
-			result = DNS_R_FORMERR; /* BEW - good enough for now */
-			goto done;
-		}
-	}
 
 	/*
 	 * The dispatcher should ensure we only get responses with QR set.
