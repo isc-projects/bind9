@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.26 1999/10/25 18:41:36 halley Exp $ */
+ /* $Id: master.c,v 1.27 1999/10/26 18:05:23 ogud Exp $ */
 
 #include <config.h>
 
@@ -68,6 +68,14 @@
  * max message size - header - root - type - class - ttl - rdlen
  */
 #define MINTSIZ (65535 - 12 - 1 - 2 - 2 - 4 - 2)
+/* 
+ * Size for tokens in the presentation format, 
+ * The largest tokens are the base64 blocks in KEY and CERT records,
+ * Largest key allowed is about 1372 bytes but 
+ * there is no fixed upper bound on Cert records 
+ * 2K is too small for some X.509's 8K is an overkill
+ */
+#define TOKENSIZ (8*1024)
 
 typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
@@ -807,7 +815,7 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 
 	REQUIRE(master_file != NULL);
 
-	result = isc_lex_create(mctx, 2048, &lex);
+	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -832,7 +840,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	REQUIRE(stream != NULL);
 
-	result = isc_lex_create(mctx, 2048, &lex);
+	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -858,7 +866,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 
 	REQUIRE(buffer != NULL);
 
-	result = isc_lex_create(mctx, 2048, &lex);
+	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
