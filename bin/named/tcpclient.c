@@ -202,6 +202,9 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	isc_socketevent_t *dev;
 	tcp_cctx_t *ctx;
 	isc_region_t region;
+	unsigned char *cp;
+	isc_uint16_t len;
+	dns_result_t result;
 
 	sock = event->sender;
 	dev = (isc_socketevent_t *)event;
@@ -236,18 +239,37 @@ tcp_recv_req(isc_task_t *task, isc_event_t *event)
 	dump_packet(ctx->buf, dev->n);
 
 	/*
-	 * release memory
+	 * Call the dispatch() function to actually process this packet.
+	 * If it returns ISC_R_SUCCESS, we have a packet to transmit.
+	 * do so.  If it returns anything else, drop this connection.
 	 */
-	isc_mem_put(ctx->mctx, ctx->buf, ctx->buflen);
+	region.base = ctx->buf;
+	region.length = dev->n;
+	result = ctx->parent->dispatch(ctx->mctx, &region, 2);
+	isc_mem_put(ctx->mctx, ctx->buf, ctx->buflen); /* clean up request */
 	ctx->buf = NULL;
 
 	/*
-	 * Queue up another receive.
+	 * Failure.  Close TCP client.
 	 */
-	region.base = (unsigned char *)&ctx->buflen;
-	region.length = 2;
-	isc_socket_recv(sock, &region, ISC_FALSE,
-			task, tcp_recv_len, event->arg);
+	if (result != DNS_R_SUCCESS) {
+		tcp_restart(task, ctx);
+
+		isc_event_free(&event);
+
+		return;
+	}
+
+	/*
+	 * Success.  Send the packet, after filling in the length at the
+	 * front of the packet.
+	 */
+	len = region.length - 2;
+	cp = region.base;
+	*cp++ = (len & 0xff00) >> 8;
+	*cp++ = (len & 0x00ff);
+
+	isc_socket_send(sock, &region, task, tcp_send, ctx);
 
 	isc_event_free(&event);
 }
@@ -308,16 +330,43 @@ tcp_send(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
+	tcp_cctx_t *ctx;
+	isc_region_t region;
 
 	sock = event->sender;
 	dev = (isc_socketevent_t *)event;
+	ctx = (tcp_cctx_t *)(event->arg);
 
-	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), task, sock,
-	       dev->region.base, dev->region.length,
+	printf("tcp_send: task %u\n\t(base %p, length %d, n %d, result %d)\n",
+	       ctx->slot, dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 
-	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
+	/*
+	 * release memory regardless of outcome.
+	 */
+	isc_mem_put(ctx->mctx, dev->region.base, dev->region.length);
+
+	if (dev->result == ISC_R_CANCELED) {
+		isc_task_shutdown(task);
+
+		isc_event_free(&event);
+
+		return;
+	}
+	if (dev->result != ISC_R_SUCCESS) {
+		tcp_restart(task, ctx);
+
+		isc_event_free(&event);
+
+		return;
+	}
+
+	/*
+	 * Queue up another receive.
+	 */
+	region.base = (unsigned char *)&ctx->buflen;
+	region.length = 2;
+	isc_socket_recv(sock, &region, ISC_FALSE, task, tcp_recv_len, ctx);
 
 	isc_event_free(&event);
 }
@@ -353,14 +402,17 @@ tcp_listener_allocate(isc_mem_t *mctx, u_int nwmax)
 isc_result_t
 tcp_listener_start(tcp_listener_t *l,
 		   isc_socket_t *sock, isc_taskmgr_t *tmgr,
-		   u_int nwstart, u_int nwkeep, u_int nwtimeout)
+		   u_int nwstart, u_int nwkeep, u_int nwtimeout,
+		   dns_result_t (*dispatch)(isc_mem_t *, isc_region_t *,
+					    unsigned int))
 {
 	u_int i;
-	isc_region_t region;
 
 	LOCK(&l->lock);
 	INSIST(l->nwactive == 0);
+	INSIST(dispatch != NULL);
 
+	l->dispatch = dispatch;
 	l->sock = sock;
 	RUNTIME_CHECK(isc_socket_listen(sock, 0) == ISC_R_SUCCESS);
 

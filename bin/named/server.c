@@ -51,6 +51,46 @@
 
 isc_mem_t *mctx = NULL;
 
+/*
+ * Process the wire format message given in r, and return a new packet to
+ * transmit.
+ *
+ * Return of DNS_R_SUCCESS means r->base is a newly allocated region of
+ * memory, and r->length is its length.  The actual for-transmit packet
+ * begins at (r->length + reslen) to reserve (reslen) bytes at the front
+ * of the packet for transmission specific details.
+ */
+static dns_result_t
+dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
+{
+	isc_region_t txr;
+	unsigned char *cp;
+
+	/*
+	 * XXX for now, just SERVFAIL everything.
+	 */
+	txr.length = rxr->length + reslen;
+	txr.base = isc_mem_get(mctx, txr.length);
+	if (txr.base == NULL)
+		return (DNS_R_NOMEMORY);
+
+	memcpy(txr.base + reslen, rxr->base, rxr->length);
+
+	cp = txr.base + reslen;
+	cp += 2;
+	*cp |= 0x80;  /* set QR to response */
+	*cp++ &= 0xf9; /* clear AA, TC */
+	*cp++ = 2;  /* SERVFAIL */
+
+	rxr->base = txr.base;
+	rxr->length = txr.length;
+
+	isc_mem_stats(mctx, stdout);
+
+	return (DNS_R_SUCCESS);
+}
+
+
 int
 main(int argc, char *argv[])
 {
@@ -95,8 +135,9 @@ main(int argc, char *argv[])
 				      (int)addrlen) == ISC_R_SUCCESS);
 
 	ludp = udp_listener_allocate(mctx, workers);
-	RUNTIME_CHECK(udp_listener_start(ludp, so0, manager, workers,
-					 workers, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(udp_listener_start(ludp, so0, manager,
+					 workers, workers, 0,
+					 dispatch) == ISC_R_SUCCESS);
 
 	isc_mem_stats(mctx, stdout);
 
@@ -114,8 +155,9 @@ main(int argc, char *argv[])
 				      (int)addrlen) == ISC_R_SUCCESS);
 
 	ltcp = tcp_listener_allocate(mctx, workers);
-	RUNTIME_CHECK(tcp_listener_start(ltcp, so1, manager, workers,
-					 workers, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(tcp_listener_start(ltcp, so1, manager,
+					 workers, workers, 0,
+					 dispatch) == ISC_R_SUCCESS);
 
 	isc_mem_stats(mctx, stdout);
 

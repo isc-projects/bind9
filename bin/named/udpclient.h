@@ -21,6 +21,7 @@ struct __udp_listener {
 	u_int nwkeep;		/* workers to keep */
 	u_int nwmax;		/* workers max */
 	isc_mem_t *mctx;
+	dns_result_t (*dispatch)(isc_mem_t *, isc_region_t *, unsigned int);
 	isc_mutex_t lock;
 
 	/* locked */
@@ -33,4 +34,7 @@ udp_listener_t *udp_listener_allocate(isc_mem_t *mctx, u_int nwmax);
 
 isc_result_t udp_listener_start(udp_listener_t *l,
 				isc_socket_t *sock, isc_taskmgr_t *tmgr,
-				u_int nwstart, u_int nwkeep, u_int nwtimeout);
+				u_int nwstart, u_int nwkeep, u_int nwtimeout,
+				dns_result_t (*dispatch)(isc_mem_t *,
+							 isc_region_t *,
+							 unsigned int));

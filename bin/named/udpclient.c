@@ -21,6 +21,8 @@
 #include <isc/socket.h>
 #include <isc/timer.h>
 
+#include <dns/result.h>
+
 #define LOCK(lp) \
 	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS)
 #define UNLOCK(lp) \
@@ -74,6 +76,7 @@ udp_shutdown(isc_task_t *task, isc_event_t *event)
 {
 	udp_cctx_t *ctx;
 	udp_listener_t *l;
+	isc_socket_t *sock;
 
 	ctx = (udp_cctx_t *)(event->arg);
 	l = ctx->parent;
@@ -91,9 +94,10 @@ udp_shutdown(isc_task_t *task, isc_event_t *event)
 	l->tasks[ctx->slot] = NULL;
 	l->ctxs[ctx->slot] = NULL;
 
-	isc_socket_cancel(l->sock, task, ISC_SOCKCANCEL_ALL);
-
 	l->nwactive--;
+
+	sock = l->sock;
+	isc_socket_detach(&sock);
 
 	UNLOCK(&l->lock);
 
@@ -109,6 +113,8 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
 	udp_cctx_t *ctx;
+	dns_result_t result;
+	isc_region_t region;
 
 	sock = event->sender;
 	dev = (isc_socketevent_t *)event;
@@ -123,13 +129,9 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	       ntohs(dev->address.type.sin.sin_port));
 
 	if (dev->result != ISC_R_SUCCESS) {
-		isc_socket_detach(&sock);
-
-		udp_cctx_free(ctx);
+		isc_task_shutdown(task);
 
 		isc_event_free(&event);
-
-		isc_task_shutdown(task);
 
 		return;
 	}
@@ -139,8 +141,14 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 	 */
 	dump_packet(ctx->buf, dev->n);
 
-	isc_socket_recv(sock, &dev->region, ISC_FALSE,
-			task, udp_recv, event->arg);
+	region.base = ctx->buf;
+	region.length = dev->n;
+	result = ctx->parent->dispatch(ctx->mctx, &region, 0);
+
+	if (result == DNS_R_SUCCESS) {
+		isc_socket_sendto(sock, &region, task, udp_send, ctx,
+				  &dev->address, dev->addrlength);
+	}
 
 	isc_event_free(&event);
 }
@@ -150,16 +158,30 @@ udp_send(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
+	udp_cctx_t *ctx;
+	isc_region_t region;
 
 	sock = event->sender;
 	dev = (isc_socketevent_t *)event;
+	ctx = (udp_cctx_t *)(event->arg);
 
-	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
-	       (char *)(event->arg), task, sock,
-	       dev->region.base, dev->region.length,
+	printf("udp_send: task %u\n\t(base %p, length %d, n %d, result %d)\n",
+	       ctx->slot, dev->region.base, dev->region.length,
 	       dev->n, dev->result);
 
-	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
+	isc_mem_put(ctx->mctx, dev->region.base, dev->region.length);
+
+	if (dev->result != ISC_R_SUCCESS) {
+		isc_task_shutdown(task);
+
+		isc_event_free(&event);
+
+		return;
+	}
+
+	region.base = ctx->buf;
+	region.length = UDP_INPUT_BUFFER_SIZE;
+	isc_socket_recv(sock, &region, ISC_FALSE, task, udp_recv, ctx);
 
 	isc_event_free(&event);
 }
@@ -195,14 +217,18 @@ udp_listener_allocate(isc_mem_t *mctx, u_int nwmax)
 isc_result_t
 udp_listener_start(udp_listener_t *l,
 		   isc_socket_t *sock, isc_taskmgr_t *tmgr,
-		   u_int nwstart, u_int nwkeep, u_int nwtimeout)
+		   u_int nwstart, u_int nwkeep, u_int nwtimeout,
+		   dns_result_t (*dispatch)(isc_mem_t *, isc_region_t *,
+					    unsigned int))
 {
 	u_int i;
 	isc_region_t region;
 
 	LOCK(&l->lock);
 	INSIST(l->nwactive == 0);
+	INSIST(dispatch != NULL);
 
+	l->dispatch = dispatch;
 	l->sock = sock;
 
 	for (i = 0 ; i < nwstart ; i++) {
