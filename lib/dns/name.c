@@ -1461,6 +1461,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 					if (trem < 2)
 						return (DNS_R_NOSPACE);
 					*tdata++ = '\\';
+					CONVERTFROMASCII(c);
 					*tdata++ = c;
 					ndata++;
 					trem -= 2;
@@ -1470,6 +1471,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 					if (c > 0x20 && c < 0x7f) {
 						if (trem == 0)
 							return (DNS_R_NOSPACE);
+						CONVERTFROMASCII(c);
 						*tdata++ = c;
 						ndata++;
 						trem--;
