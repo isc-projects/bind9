@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.204 $)
+AC_REVISION($Revision: 1.205 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -380,7 +380,7 @@ Please install the devel/unproven-pthreads package and rerun configure.
 				AC_CHECK_LIB(pthread, pthread_create,,
 				AC_CHECK_LIB(pthread, __pthread_create,,
 				AC_CHECK_LIB(pthread, __pthread_create_system,,
-				use_threads=false))))
+				use_threads=false)))))
 		;;
 	esac
 fi
