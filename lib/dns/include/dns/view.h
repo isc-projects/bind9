@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.63 2001/01/09 21:53:40 bwelling Exp $ */
+/* $Id: view.h,v 1.64 2001/01/12 22:22:17 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -115,7 +115,6 @@ struct dns_view {
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
-	char *				cachefile;
 
 	/*
 	 * Configurable data for server use only,
@@ -645,21 +644,6 @@ dns_view_dialup(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_dumpcache(dns_view_t *view);
-/*
- * Dump the view's cache to the the view's cache file.
- *
- * Requires:
- * 	
- *	'view' is valid.
- *
- * Returns:
- * 	ISC_R_SUCCESS	The cache was successfully dumped.
- * 	ISC_R_IGNORE	No cachefile was specified.
- * 	others		An error occurred (see dns_master_dump)
- */
-
-isc_result_t
 dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
 /*
  * Dump the current state of the view 'view' to the stream 'fp'
@@ -678,7 +662,6 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  *
  * Returns:
  * 	ISC_R_SUCCESS	The cache was successfully dumped.
- * 	ISC_R_IGNORE	No cachefile was specified.
  * 	others		An error occurred (see dns_master_dump)
  */
 

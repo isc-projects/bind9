@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.32 2001/01/09 21:50:40 bwelling Exp $ */
+/* $Id: cache.c,v 1.33 2001/01/12 22:22:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/log.h>
+#include <dns/masterdump.h>
 #include <dns/result.h>
 
 #define CACHE_MAGIC		0x24242424U 	/* $$$$. */
@@ -151,6 +152,15 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto cleanup_mem;
 	}
 
+	result = isc_mutex_init(&cache->filelock);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 dns_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_lock;
+	}
+
 	cache->references = 1;
 	cache->live_tasks = 0;
 	cache->rdclass = rdclass;
@@ -160,7 +170,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 			       dns_dbtype_cache, rdclass, db_argc, db_argv,
 			       &cache->db);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_mutex;
+		goto cleanup_filelock;
 
 	cache->filename = NULL;
 
@@ -176,7 +186,9 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
  cleanup_db:
 	dns_db_detach(&cache->db);
- cleanup_mutex:
+ cleanup_filelock:
+	DESTROYLOCK(&cache->filelock);
+ cleanup_lock:
 	DESTROYLOCK(&cache->lock);
  cleanup_mem:
 	isc_mem_put(mctx, cache, sizeof *cache);
@@ -214,6 +226,7 @@ cache_free(dns_cache_t *cache) {
 		dns_db_detach(&cache->db);
 
 	DESTROYLOCK(&cache->lock);
+	DESTROYLOCK(&cache->filelock);
 	cache->magic = 0;
 	mctx = cache->mctx;
 	isc_mem_put(cache->mctx, cache, sizeof *cache);
@@ -253,6 +266,12 @@ dns_cache_detach(dns_cache_t **cachep) {
 	UNLOCK(&cache->lock);
 	*cachep = NULL;
 	if (free_cache) {
+		/*
+		 * When the cache is shut down, dump it to a file if one is
+		 * specified.
+		 */
+		dns_cache_dump(cache);
+
 		/* XXXRTH  This is not locked! */
 		if (cache->live_tasks > 0)
 			isc_task_shutdown(cache->cleaner.task);
@@ -271,12 +290,14 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 	UNLOCK(&cache->lock);
 }
 
-#ifdef NOTYET
-
-/* ARGSUSED */
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cahce, char *filename) {
-	char *newname = isc_mem_strdup(filename);
+dns_cache_setfilename(dns_cache_t *cache, char *filename) {
+	char *newname;
+
+	REQUIRE(VALID_CACHE(cache));
+	REQUIRE(filename != NULL);
+
+	newname = isc_mem_strdup(cache->mctx, filename);
 	if (newname == NULL)
 		return (ISC_R_NOMEMORY);
 	LOCK(&cache->filelock);
@@ -290,10 +311,12 @@ dns_cache_setfilename(dns_cache_t *cahce, char *filename) {
 isc_result_t
 dns_cache_load(dns_cache_t *cache) {
 	isc_result_t result;
+
+	REQUIRE(VALID_CACHE(cache));
+
 	if (cache->filename == NULL)
 		return (ISC_R_SUCCESS);
 	LOCK(&cache->filelock);
-	/* XXX handle TTLs in a way appropriate for the cache */
 	result = dns_db_load(cache->db, cache->filename);
 	UNLOCK(&cache->filelock);
 	return (result);
@@ -301,11 +324,18 @@ dns_cache_load(dns_cache_t *cache) {
 
 isc_result_t
 dns_cache_dump(dns_cache_t *cache) {
-	/* XXX to be written */
-	return (ISC_R_NOTIMPLEMENTED);
-}
+	isc_result_t result;
 
-#endif
+	REQUIRE(VALID_CACHE(cache));
+
+	LOCK(&cache->filelock);
+	if (cache->filename == NULL)
+		return (ISC_R_SUCCESS);
+	result = dns_master_dump(cache->mctx, cache->db, NULL,
+				 &dns_master_style_cache, cache->filename);
+	UNLOCK(&cache->filelock);
+	return (result);
+}
 
 void
 dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.280 2001/01/12 00:37:11 bwelling Exp $ */
+/* $Id: server.c,v 1.281 2001/01/12 22:22:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -417,6 +417,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
 	in_port_t port;
+	isc_boolean_t reused_cache = ISC_FALSE;
+	char *cachefile = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -460,6 +462,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(3),
 			      "reusing existing cache");
+		reused_cache = ISC_TRUE;
 		dns_cache_attach(pview->cache, &cache);
 		dns_view_detach(&pview);
 	} else {
@@ -468,6 +471,18 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				       view->rdclass, "rbt", 0, NULL, &cache));
 	}
 	dns_view_setcache(view, cache);
+
+	if (cview != NULL)
+		result = dns_c_view_getcachefile(cview, &cachefile);
+	else
+		result = dns_c_ctx_getcachefile(cctx, &cachefile);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		goto cleanup;
+	if (cachefile != NULL) {
+		dns_cache_setfilename(cache, cachefile);
+		if (!reused_cache)
+			CHECK(dns_cache_load(cache));
+	}
 
 	result = ISC_R_NOTFOUND;
 	if (cview != NULL)
@@ -705,32 +720,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (val > 7 * 24 * 3600)
 			val = 7 * 24 * 3600;
 		view->maxncachettl = val;
-	}
-	{
-		char *cachefile = NULL, *p = NULL;
-		if (cview != NULL)
-			result = dns_c_view_getcachefile(cview, &cachefile);
-		else
-			result = dns_c_ctx_getcachefile(cctx, &cachefile);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-			goto cleanup;
-		if (cachefile != NULL) {
-			p = isc_mem_strdup(view->mctx, cachefile);
-			if (p == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
-		}
-		if (view->cachefile != NULL)
-			isc_mem_free(view->mctx, view->cachefile);
-		view->cachefile = p;
-		if (view->cachefile != NULL) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-				      "loading cache '%s'", view->cachefile);
-			/* DNS_R_SEENINCLUDE should be impossible here. */
-			CHECK(dns_db_load(view->cachedb, view->cachefile));
-		}
 	}
 
 	result = ISC_R_SUCCESS;
