@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.4.2.2 2000/07/12 00:04:20 gson Exp $ */
+/* $Id: omapiconf.c,v 1.4.2.3 2000/07/12 16:37:06 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -443,41 +443,21 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 		for (control = dns_c_ctrllist_head(controls);
 		     control != NULL;
 		     control = dns_c_ctrl_next(control)) {
-			if (keydeflist == NULL)
+			/*
+			 * The parser handles BIND 8 configuration file syntax,
+			 * so it allows a control_type of dns_c_unix_control,
+			 * as well as an inet phrase with no keys{} clause.
+			 * However, it already warned that those were
+			 * unsupported, so there is no need to do so again.
+			 * The keydeflist == NULL case was already warned
+			 * about a few lines above.
+			 */
+			if (control->control_type != dns_c_inet_control ||
+			    keydeflist == NULL || control->keyidlist == NULL)
 				continue;
-
-			if (control->control_type != dns_c_inet_control) {
-				/*
-				 * The only other type coming out of the
-				 * configuration system is dns_c_unix_control.
-				 */
-				isc_log_write(ns_g_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_OMAPI,
-					      ISC_LOG_WARNING,
-					      "unix control channel type is "
-					      "not supported");
-				continue;
-			}
 
 			isc_sockaddr_format(&control->u.inet_v.addr,
 					    socktext, sizeof(socktext));
-
-			/*
-			 * XXXDCL confparser.y currently allows the keys clause
-			 * to be absent, which is pointless.  it needs to be
-			 * required.
-			 */
-			if (control->keyidlist == NULL) {
-				isc_log_write(ns_g_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_OMAPI,
-					      ISC_LOG_WARNING,
-					      "missing keys clause for "
-					      "control channel %s",
-					      socktext);
-				continue;
-			}
 
 			isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_OMAPI, ISC_LOG_DEBUG(9),

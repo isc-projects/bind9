@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.70.2.1 2000/06/28 00:32:18 explorer Exp $ */
+/* $Id: confctx.c,v 1.70.2.2 2000/07/12 16:37:09 gson Exp $ */
 
 #include <config.h>
 
@@ -229,6 +229,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_result_t		tmpres;
 	dns_c_rrsolist_t       *olist;
 	dns_c_lstnlist_t       *listenlist;
+	dns_c_ctrllist_t       *controls;
 
 	
 	if (dns_c_ctx_getnamedxfer(cfg, &cpval) != ISC_R_NOTFOUND) {
@@ -491,6 +492,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			result = tmpres;
 		}
 	}
+
+	if (dns_c_ctx_getcontrols(cfg, &controls) != ISC_R_NOTFOUND) {
+		tmpres = dns_c_ctrllist_validate(controls);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
+	
 
 	return (result);
 }
