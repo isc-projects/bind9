@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.100 2001/02/02 22:37:17 scanner Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.101 2001/02/06 16:50:25 gson Exp $ -->
 
 <book>
 
@@ -3269,11 +3269,6 @@ connections that the server will accept. The default is <literal>100</literal>.<
 </listitem></varlistentry>
 
 </variablelist>
-
-
-<note>
-<para>Resource limits are not yet implemented in
-<acronym>BIND</acronym> 9.</para></note>
 
 </sect3>
 
