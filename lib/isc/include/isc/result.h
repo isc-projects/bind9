@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.49 2000/08/15 01:43:37 marka Exp $ */
+/* $Id: result.h,v 1.50 2000/08/15 23:30:22 tale Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -74,9 +74,9 @@
 #define ISC_R_FAMILYNOSUPPORT		48	/* AF not supported */
 
 /*
- * Not an result code: the number of results.
+ * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			48
+#define ISC_R_NRESULTS 			49
 
 ISC_LANG_BEGINDECLS
 
