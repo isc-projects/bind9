@@ -1,4 +1,4 @@
-1470.	[bug]		incorrect length passed to snprintf. [RT #5966]
+1470.	[bug]		Incorrect length passed to snprintf. [RT #5966]
 
 1469.	[func]		Log end of outgoing zone transfer at same level
 			as the start of transfer is logged. [RT #4441]
