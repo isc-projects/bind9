@@ -13,18 +13,13 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.36 2000/11/27 19:42:32 gson Exp $
+# $Id: Makefile.in,v 1.37 2000/11/28 02:10:03 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
-
-OTHERHEADERS =
-#ifndef NOMINUM_PUBLIC
-OTHERHEADERS =	sdb.h
-#endif /* NOMINUM_PUBLIC */
 
 HEADERS =	a6.h acl.h adb.h byaddr.h cache.h callbacks.h \
 		cert.h compress.h \
@@ -38,10 +33,10 @@ HEADERS =	a6.h acl.h adb.h byaddr.h cache.h callbacks.h \
 		nxt.h peer.h rbt.h rcode.h \
 		rdata.h rdataclass.h rdatalist.h rdataset.h rdatasetiter.h \
 		rdataslab.h rdatatype.h request.h resolver.h result.h \
-		rootns.h secalg.h secproto.h ssu.h \
+		rootns.h sdb.h secalg.h secproto.h ssu.h \
 		tcpmsg.h time.h tkey.h \
 		tsig.h ttl.h types.h validator.h view.h xfrin.h \
-		zone.h zt.h ${OTHERHEADERS}
+		zone.h zt.h
 
 GENHEADERS =	enumclass.h enumtype.h rdatastruct.h
 
