@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.16 2000/02/03 23:43:17 halley Exp $ */
+/* $Id: aaaa_28.c,v 1.17 2000/03/17 01:48:28 bwelling Exp $ */
 
- /* RFC 1886 */
+/* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
+
+/* RFC 1886 */
 
 #ifndef RDATA_IN_1_AAAA_28_C
 #define RDATA_IN_1_AAAA_28_C
@@ -35,11 +37,11 @@ fromtext_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	unsigned char addr[16];
 	isc_region_t region;
 
+	UNUSED(origin);
+	UNUSED(downcase);
+
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
-
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -59,11 +61,11 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_region_t region;
 
+	UNUSED(tctx);
+
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(rdata->length == 16);
-
-	tctx = tctx;	/* unused */
 
 	isc_buffer_available(target, &region);
 	if (inet_ntop(AF_INET6, rdata->data,
@@ -82,12 +84,11 @@ fromwire_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_region_t sregion;
 	isc_region_t tregion;
 
+	UNUSED(dctx);
+	UNUSED(downcase);
+
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
-
-	dctx = dctx;		/* unused */
-	downcase = downcase;	/* unused */
-
 
 	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
@@ -106,10 +107,10 @@ static inline isc_result_t
 towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
+	UNUSED(cctx);
+
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
-
-	cctx = cctx;	/*unused*/
 
 	isc_buffer_available(target, &region);
 	if (region.length < rdata->length)
@@ -121,42 +122,39 @@ towire_in_aaaa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 static inline int
 compare_in_aaaa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
-	int result;
-	
+	isc_region_t r1;
+	isc_region_t r2;
+
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 28);
 	REQUIRE(rdata1->rdclass == 1);
 
-	result = memcmp(rdata1->data, rdata2->data, 16);
-	if (result != 0)
-		result = (result < 0) ? -1 : 1;
-
-	return (result);
+	dns_rdata_toregion(rdata1, &r1);
+	dns_rdata_toregion(rdata2, &r2);
+	return (compare_region(&r1, &r2));
 }
 
 static inline isc_result_t
 fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   void *source, isc_buffer_t *target)
 {
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 1);
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
 tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -171,11 +169,11 @@ static inline isc_result_t
 additionaldata_in_aaaa(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		       void *arg)
 {
+	UNUSED(add);
+	UNUSED(arg);
+
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
-
-	(void)add;
-	(void)arg;
 
 	return (DNS_R_SUCCESS);
 }

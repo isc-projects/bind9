@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.24 2000/03/17 00:50:14 bwelling Exp $ */
+/* $Id: a_1.c,v 1.25 2000/03/17 01:48:29 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -122,9 +122,9 @@ static inline int
 compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
-	
+
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->rdclass == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 1);
 
@@ -172,18 +172,17 @@ static inline void
 freestruct_in_a(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
-
 }
 
 static inline isc_result_t
 additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {
-	REQUIRE(rdata->type == 1);
-	REQUIRE(rdata->rdclass == 1);
-
 	UNUSED(add);
 	UNUSED(arg);
+
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	return (DNS_R_SUCCESS);
 }
