@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.25 2000/08/01 01:23:25 tale Exp $ */
+/* $Id: confndc.c,v 1.26 2000/12/28 03:04:35 gson Exp $ */
 
 /*
 **	options {
@@ -1142,13 +1142,11 @@ done:
 static isc_result_t
 parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 	isc_result_t result = ISC_R_FAILURE;
-	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_kdef_t *key = NULL;
 	char *keyname = NULL;
 	char *algorithm = NULL;
 	char *secret = NULL;
 
-	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(DNS_C_KDEFLIST_VALID(keys));
 
 	if (!eat(pctx, L_KEY))
