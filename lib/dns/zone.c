@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.73 2000/01/31 02:37:58 marka Exp $ */
+ /* $Id: zone.c,v 1.74 2000/01/31 07:45:18 marka Exp $ */
 
 #include <config.h>
 
@@ -1680,15 +1680,48 @@ dns_zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	dns_db_t *top = NULL;
+	char *buf;
+	int buflen;
+	FILE *f;
+	int n;
 	
 	REQUIRE(DNS_ZONE_VALID(zone));
 
+	buflen = strlen(zone->database) + 20;
+	buf = isc_mem_get(zone->mctx, buflen);
+	result = isc_mktemplate(zone->database, buf, buflen);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	f = isc_ufile(buf);
+	if (f == NULL) {
+		result = DNS_R_UNEXPECTED;
+		goto cleanup;
+	}
 	dns_db_attach(zone->top, &top);
 	dns_db_currentversion(top, &version);
-	result = dns_master_dump(zone->mctx, top, version,
-				 &dns_master_style_default, zone->database);
+	result = dns_master_dumptostream(zone->mctx, top, version,
+					 &dns_master_style_default, f);
 	dns_db_closeversion(top, &version, ISC_FALSE);
 	dns_db_detach(&top);
+	n = fflush(f);
+	if (n != 0)
+		result = DNS_R_UNEXPECTED;
+	n = ferror(f);
+	if (n != 0)
+		result = DNS_R_UNEXPECTED;
+	n = fclose(f);
+	if (n != 0)
+		result = DNS_R_UNEXPECTED;
+	if (result == ISC_R_SUCCESS) {
+		n = rename(buf, zone->database);
+		if (n == -1) {
+			(void)remove(buf);
+			result = DNS_R_UNEXPECTED;
+		}
+	} else
+		(void)remove(buf);
+ cleanup:
+	isc_mem_put(zone->mctx, buf, buflen);
 	return (result);
 }
 
