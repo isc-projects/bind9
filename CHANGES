@@ -1,3 +1,7 @@
+ 429.	[bug]		The space reserved for a TSIG record in a response
+			was 2 bytes too short, leading to message
+			generation failures.
+
  426.	[bug]		Attempting to generate an oversized RSA key could
 			cause dnssec-keygen to dump core.
 
