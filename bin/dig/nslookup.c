@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101.18.1 2004/04/13 03:01:27 marka Exp $ */
+/* $Id: nslookup.c,v 1.101.18.2 2004/06/07 03:56:20 marka Exp $ */
 
 #include <config.h>
 
@@ -725,6 +725,7 @@ get_next_command(void) {
 	char *ptr, *arg;
 	char *input;
 
+	fflush(stdout);
 	buf = isc_mem_allocate(mctx, COMMSIZE);
 	if (buf == NULL)
 		fatal("memory allocation failure");
