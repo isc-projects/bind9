@@ -749,4 +749,6 @@ dns_peer_settransfersource
 dns_resolver_disable_algorithm
 dns_resolver_addalternate
 dns_view_adddelegationonly
+dns_dumpctx_detach
+dns_master_dumptostreaminc
 
