@@ -3,51 +3,106 @@
 
 
 
-
-DNSEXT Working Group                                        Yuji Kamite
-INTERNET-DRAFT                                       NTT Communications
-<draft-ietf-dnsext-tkey-renewal-mode-04.txt>            Masaya Nakayama
-Expires: Aug. 2004                              The University of Tokyo
-                                                              Feb. 2004
-
+DNS Extensions                                              Yuji Kamite
+Internet-Draft                                       NTT Communications
+Expires: April 15, 2005                                 Masaya Nakayama
+                                                The University of Tokyo
+                                                       October 14, 2004
 
 
 
                       TKEY Secret Key Renewal Mode
+                 draft-ietf-dnsext-tkey-renewal-mode-05
 
 
 Status of this Memo
 
-  This document is an Internet-Draft and is in full conformance with all
-  provisions of Section 10 of RFC2026.
+   This document is an Internet-Draft and is subject to all provisions
+   of section 3 of RFC 3667.  By submitting this Internet-Draft, each
+   author represents that any applicable patent or other IPR claims of
+   which he or she is aware have been or will be disclosed, and any of
+   which he or she become aware will be disclosed, in accordance with
+   RFC 3668.
 
-  Internet-Drafts are working documents of the Internet Engineering Task
-  Force (IETF), its areas, and its working groups.  Note that other
-  groups may also distribute working documents as Internet-Drafts.
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as
+   Internet-Drafts.
 
-  Internet-Drafts are draft documents valid for a maximum of six months
-  and may be updated, replaced, or obsoleted by other documents at any
-  time.  It is inappropriate to use Internet-Drafts as reference
-  material or to cite them other than as ``work in progress.''
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
 
-  The list of current Internet-Drafts can be accessed at
-  http://www.ietf.org/ietf/1id-abstracts.txt
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
-  The list of Internet-Draft Shadow Directories can be accessed at
-  http://www.ietf.org/shadow.html
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
 
+   This Internet-Draft will expire on April 15, 2005.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2004).
 
 Abstract
 
    This document defines a new mode in TKEY and proposes an atomic
    method for changing secret keys used for TSIG periodically.
    Originally, TKEY provides methods of setting up shared secrets other
+
+
+
+Kamite, et. al.          Expires April 15, 2005                 [Page 1]
+
+INTERNET-DRAFT                                              October 2004
+
+
    than manual exchange, but it cannot control timing of key renewal
    very well though it can add or delete shared keys separately. This
    proposal is a systematical key renewal procedure intended for
    preventing signing DNS messages with old and non-safe keys
    permanently.
 
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     1.1   Defined Words  . . . . . . . . . . . . . . . . . . . . . .  3
+     1.2   New Format and Assigned Numbers  . . . . . . . . . . . . .  4
+     1.3   Overview of Secret Key Renewal Mode  . . . . . . . . . . .  4
+   2.  Shared Secret Key Renewal  . . . . . . . . . . . . . . . . . .  5
+     2.1   Key Usage Time Check . . . . . . . . . . . . . . . . . . .  5
+     2.2   Partial Revocation . . . . . . . . . . . . . . . . . . . .  6
+     2.3   Key Renewal Message Exchange . . . . . . . . . . . . . . .  7
+       2.3.1   Query for Key Renewal  . . . . . . . . . . . . . . . .  7
+       2.3.2   Response for Key Renewal . . . . . . . . . . . . . . .  7
+       2.3.3   Attributes of Generated Key  . . . . . . . . . . . . .  8
+       2.3.4   TKEY RR structure  . . . . . . . . . . . . . . . . . .  8
+     2.4   Key Adoption . . . . . . . . . . . . . . . . . . . . . . . 10
+       2.4.1   Query for Key Adoption . . . . . . . . . . . . . . . . 10
+       2.4.2   Response for Key Adoption  . . . . . . . . . . . . . . 10
+     2.5   Keying Schemes . . . . . . . . . . . . . . . . . . . . . . 11
+       2.5.1   DH Exchange for Key Renewal  . . . . . . . . . . . . . 11
+       2.5.2   Server Assigned Keying for Key Renewal . . . . . . . . 12
+       2.5.3   Resolver Assigned Keying for Key Renewal . . . . . . . 13
+     2.6   Considerations about Non-compliant Hosts . . . . . . . . . 14
+   3.  Secret Storage . . . . . . . . . . . . . . . . . . . . . . . . 15
+   4.  Compulsory Key Revocation  . . . . . . . . . . . . . . . . . . 15
+     4.1   Compulsory Key Revocation by Server  . . . . . . . . . . . 15
+     4.2   Authentication Methods Considerations  . . . . . . . . . . 15
+   5.  Special Considerations for Two Servers' Case   . . . . . . . . 16
+     5.1   To Cope with Collisions of Renewal Requests  . . . . . . . 16
+   6.  Key Name Considerations  . . . . . . . . . . . . . . . . . . . 17
+   7.  Example Usage of Secret Key Renewal Mode   . . . . . . . . . . 17
+   8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 20
+   9.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 20
+  10.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 21
+  11.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 21
+    11.1   Normative References . . . . . . . . . . . . . . . . . . . 21
+    11.2   Informative References . . . . . . . . . . . . . . . . . . 21
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 22
+       Intellectual Property and Copyright Statements . . . . . . . . 23
 
 
 
@@ -55,65 +110,9 @@ Abstract
 
 
 
-Kamite, et. al.                                                 [Page 1]
+Kamite, et. al.          Expires April 15, 2005                 [Page 2]
 
-INTERNET-DRAFT                                                 Feb. 2004
-
-
-                           Table of Contents
-
-
-1  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . .   3
-  1.1  Defined Words . . . . . . . . . . . . . . . . . . . . . . . .   3
-  1.2  New Format and Assigned Numbers . . . . . . . . . . . . . . .   4
-  1.3  Overview of Secret Key Renewal Mode . . . . . . . . . . . . .   4
-2  Shared Secret Key Renewal . . . . . . . . . . . . . . . . . . . .   5
-  2.1  Key Usage Time Check  . . . . . . . . . . . . . . . . . . . .   5
-  2.2  Partial Revocation  . . . . . . . . . . . . . . . . . . . . .   6
-  2.3  Key Renewal Message Exchange  . . . . . . . . . . . . . . . .   7
-    2.3.1  Query for Key Renewal . . . . . . . . . . . . . . . . . .   7
-    2.3.2  Response for Key Renewal  . . . . . . . . . . . . . . . .   7
-    2.3.3  Attributes of Generated Key . . . . . . . . . . . . . . .   8
-    2.3.4  TKEY RR structure . . . . . . . . . . . . . . . . . . . .   8
-  2.4  Key Adoption  . . . . . . . . . . . . . . . . . . . . . . . .  10
-    2.4.1  Query for Key Adoption  . . . . . . . . . . . . . . . . .  10
-    2.4.2  Response for Key Adoption . . . . . . . . . . . . . . . .  10
-  2.5  Keying Schemes  . . . . . . . . . . . . . . . . . . . . . . .  11
-    2.5.1  DH Exchange for Key Renewal . . . . . . . . . . . . . . .  11
-    2.5.2  Server Assigned Keying for Key Renewal  . . . . . . . . .  12
-    2.5.3  Resolver Assigned Keying for Key Renewal  . . . . . . . .  13
-  2.6  Considerations about Non-compliant Hosts  . . . . . . . . . .  14
-3  Secret Storage  . . . . . . . . . . . . . . . . . . . . . . . . .  15
-4  Compulsory Key Revocation . . . . . . . . . . . . . . . . . . . .  15
-  4.1  Compulsory Key Revocation by Server . . . . . . . . . . . . .  15
-  4.2  Authentication Methods Considerations . . . . . . . . . . . .  15
-5  Special Considerations for Two Servers' Case  . . . . . . . . . .  16
-  5.1  To Cope with Collisions of Renewal Requests . . . . . . . . .  16
-6  Key Name Considerations . . . . . . . . . . . . . . . . . . . . .  17
-7  Example Usage of Secret Key Renewal Mode  . . . . . . . . . . . .  17
-8  Security Considerations . . . . . . . . . . . . . . . . . . . . .  20
-9  IANA Considerations . . . . . . . . . . . . . . . . . . . . . . .  20
-10 Acknowledgement . . . . . . . . . . . . . . . . . . . . . . . . .  21
-11 References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  21
-Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . .  22
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kamite, et. al.                                                 [Page 2]
-
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
 1.  Introduction
@@ -167,9 +166,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 3]
+Kamite, et. al.          Expires April 15, 2005                 [Page 3]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    and must be updated. It must be between Inception Time and Expiry
@@ -223,9 +222,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 4]
+Kamite, et. al.          Expires April 15, 2005                 [Page 4]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    In this state, if a client sends a normal query (e.g., question about
@@ -279,9 +278,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 5]
+Kamite, et. al.          Expires April 15, 2005                 [Page 5]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    When the present time is equal to Inception Time, or between
@@ -335,9 +334,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 6]
+Kamite, et. al.          Expires April 15, 2005                 [Page 6]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    Server MUST keep track of clients ignoring PartialRevoke, thus
@@ -391,9 +390,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 7]
+Kamite, et. al.          Expires April 15, 2005                 [Page 7]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    client, a new shared secret can be established. The details of
@@ -447,9 +446,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                 [Page 8]
+Kamite, et. al.          Expires April 15, 2005                 [Page 8]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
         CLASS        u_int16_t    (defined in [RFC2930])
@@ -494,18 +493,18 @@ INTERNET-DRAFT                                                 Feb. 2004
 
         in Other Data filed:
 
-          Field          Type     Comment
-          -------        ------   -------
-          OldNAME        domain   name of the old key
-          OldAlgorithm   domain   algorithm of the old key
+          Field            Type       Comment
+          -------          ------     -------
+          OldNAME          domain     name of the old key
+          OldAlgorithm     domain     algorithm of the old key
 
 
 
 
 
-Kamite, et. al.                                                 [Page 9]
+Kamite, et. al.          Expires April 15, 2005                 [Page 9]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
           "OldName" indicates the name of the previous key (usually,
@@ -559,9 +558,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 10]
+Kamite, et. al.          Expires April 15, 2005                [Page 10]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    including "OldName" and "OldAlgorithm" that indicate the revoked key.
@@ -615,9 +614,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 11]
+Kamite, et. al.          Expires April 15, 2005                [Page 11]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
       TKEY "Mode" field stores the value of "DH exchange for key
@@ -671,9 +670,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 12]
+Kamite, et. al.          Expires April 15, 2005                [Page 12]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    Query
@@ -727,9 +726,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 13]
+Kamite, et. al.          Expires April 15, 2005                [Page 13]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    Query
@@ -783,9 +782,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 14]
+Kamite, et. al.          Expires April 15, 2005                [Page 14]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    client or not. If client has not received yet because of any reasons
@@ -839,9 +838,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 15]
+Kamite, et. al.          Expires April 15, 2005                [Page 15]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
      shared secret, they keep using TSIG for queries and responses.
@@ -895,9 +894,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 16]
+Kamite, et. al.          Expires April 15, 2005                [Page 16]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
    hosts want to send queries, but it is possible.
@@ -951,9 +950,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 17]
+Kamite, et. al.          Expires April 15, 2005                [Page 17]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
      (3) Suppose the present time is 19:55. If Client sends a query
@@ -1007,9 +1006,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 18]
+Kamite, et. al.          Expires April 15, 2005                [Page 18]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
      Answer Section also contains KEY RRs for DH.
@@ -1063,9 +1062,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 19]
+Kamite, et. al.          Expires April 15, 2005                [Page 19]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
      (11) This key is used until next day's 15:00. After that, it will
@@ -1119,12 +1118,12 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-Kamite, et. al.                                                [Page 20]
+Kamite, et. al.          Expires April 15, 2005                [Page 20]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
-10.  Acknowledgement
+10.  Acknowledgements
 
    The authors would like to thank Olafur Gudmundsson, whose helpful
    input and comments contributed greatly to this document.
@@ -1132,9 +1131,7 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 11.  References
 
-[RFC2104]
-     H. Krawczyk, M.Bellare, R. Canetti, "Keyed-Hashing for Message
-     Authentication", RFC2104, February 1997.
+11.1.  Normative References
 
 [RFC2119]
      Bradner, S., "Key words for use in RFCs to Indicate Requirement
@@ -1157,6 +1154,11 @@ INTERNET-DRAFT                                                 Feb. 2004
      D. Eastlake 3rd, "DNS Request and Transaction Signatures (SIG(0)s
      )", RFC 2931, September 2000.
 
+11.2.  Informative References
+
+[RFC2104]
+     H. Krawczyk, M.Bellare, R. Canetti, "Keyed-Hashing for Message
+     Authentication", RFC2104, February 1997.
 
 
 
@@ -1172,12 +1174,9 @@ INTERNET-DRAFT                                                 Feb. 2004
 
 
 
-
-
-
-Kamite, et. al.                                                [Page 21]
+Kamite, et. al.          Expires April 15, 2005                [Page 21]
 
-INTERNET-DRAFT                                                 Feb. 2004
+INTERNET-DRAFT                                              October 2004
 
 
 Authors' Addresses
@@ -1231,5 +1230,63 @@ Authors' Addresses
 
 
 
-Kamite, et. al.                                                [Page 22]
+Kamite, et. al.          Expires April 15, 2005                [Page 22]
 
+INTERNET-DRAFT                                              October 2004
+
+
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
+
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at
+   ietf-ipr@ietf.org.
+
+
+Disclaimer of Validity
+
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+Copyright Statement
+
+   Copyright (C) The Internet Society (2004).  This document is subject
+   to the rights, licenses and restrictions contained in BCP 78, and
+   except as set forth therein, the authors retain all their rights.
+
+
+Acknowledgment
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+Kamite, et. al.          Expires April 15, 2005                [Page 23]
+
+
+

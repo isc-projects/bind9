@@ -2,7 +2,7 @@
 
 DNS Extensions                                                 R. Arends
 Internet-Draft                                      Telematica Instituut
-Expires: January 13, 2005                                     R. Austein
+Expires: April 10, 2005                                       R. Austein
                                                                      ISC
                                                                M. Larson
                                                                 VeriSign
@@ -10,17 +10,19 @@ Expires: January 13, 2005                                     R. Austein
                                                                  USC/ISI
                                                                  S. Rose
                                                                     NIST
-                                                           July 15, 2004
+                                                        October 10, 2004
 
 
                DNS Security Introduction and Requirements
-                   draft-ietf-dnsext-dnssec-intro-11
+                   draft-ietf-dnsext-dnssec-intro-13
 
 Status of this Memo
 
-   By submitting this Internet-Draft, I certify that any applicable
-   patent or other IPR claims of which I am aware have been disclosed,
-   and any of which I become aware will be disclosed, in accordance with
+   This document is an Internet-Draft and is subject to all provisions
+   of section 3 of RFC 3667.  By submitting this Internet-Draft, each
+   author represents that any applicable patent or other IPR claims of
+   which he or she is aware have been or will be disclosed, and any of
+   which he or she become aware will be disclosed, in accordance with
    RFC 3668.
 
    Internet-Drafts are working documents of the Internet Engineering
@@ -39,24 +41,24 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 13, 2005.
+   This Internet-Draft will expire on April 10, 2005.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
+   Copyright (C) The Internet Society (2004).
 
 Abstract
 
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 1]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
+
    The Domain Name System Security Extensions (DNSSEC) add data origin
    authentication and data integrity to the Domain Name System.  This
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 1]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
-
    document introduces these extensions, and describes their
    capabilities and limitations.  This document also discusses the
    services that the DNS security extensions do and do not provide.
@@ -69,7 +71,7 @@ Table of Contents
    2.  Definitions of Important DNSSEC Terms  . . . . . . . . . . . .  4
    3.  Services Provided by DNS Security  . . . . . . . . . . . . . .  8
      3.1   Data Origin Authentication and Data Integrity  . . . . . .  8
-     3.2   Authenticating Name and Type Non-Existence . . . . . . . .  9
+     3.2   Authenticating Name and Type Non-Existence . . . . . . . . 10
    4.  Services Not Provided by DNS Security  . . . . . . . . . . . . 11
    5.  Scope of the DNSSEC Document Set and Last Hop Issues . . . . . 12
    6.  Resolver Considerations  . . . . . . . . . . . . . . . . . . . 14
@@ -106,11 +108,9 @@ Table of Contents
 
 
 
-
-
-Arends, et al.          Expires January 13, 2005                [Page 2]
+Arends, et al.           Expires April 10, 2005                 [Page 2]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 1.  Introduction
@@ -119,25 +119,24 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    (DNSSEC).  This document and its two companion documents
    ([I-D.ietf-dnsext-dnssec-records] and
    [I-D.ietf-dnsext-dnssec-protocol]) update, clarify, and refine the
-   security extensions defined in RFC 2535 [RFC2535] and its
-   predecessors.  These security extensions consist of a set of new
-   resource record types and modifications to the existing DNS protocol
-   [RFC1035].  The new records and protocol modifications are not fully
-   described in this document, but are described in a family of
-   documents outlined in Section 10.  Section 3 and Section 4 describe
-   the capabilities and limitations of the security extensions in
-   greater detail.  Section 5 discusses the scope of the document set.
-   Section 6, Section 7, Section 8, and Section 9 discuss the effect
-   that these security extensions will have on resolvers, stub
-   resolvers, zones and name servers.
+   security extensions defined in [RFC2535] and its predecessors.  These
+   security extensions consist of a set of new resource record types and
+   modifications to the existing DNS protocol ([RFC1035]).  The new
+   records and protocol modifications are not fully described in this
+   document, but are described in a family of documents outlined in
+   Section 10.  Section 3 and Section 4 describe the capabilities and
+   limitations of the security extensions in greater detail.  Section 5
+   discusses the scope of the document set.  Section 6, Section 7,
+   Section 8, and Section 9 discuss the effect that these security
+   extensions will have on resolvers, stub resolvers, zones and name
+   servers.
 
-   This document and its two companions update and obsolete RFCs 2535
-   [RFC2535], 3008 [RFC3008], 3090 [RFC3090], 3445 [RFC3445], 3655
-   [RFC3655], 3658 [RFC3658], 3755 [RFC3755], and the Work in Progress
-   [I-D.ietf-dnsext-nsec-rdata].  This document set also updates, but
-   does not obsolete, RFCs 1034 [RFC1034], 1035 [RFC1035], 2136
-   [RFC2136], 2181 [RFC2181], 2308 [RFC2308], 3597 [RFC3597], and parts
-   of 3226 [RFC3226] (dealing with DNSSEC).
+   This document and its two companions obsolete [RFC2535], [RFC3008],
+   [RFC3090], [RFC3445], [RFC3655], [RFC3658], [RFC3755], [RFC3757], and
+   [RFC3845].  This document set also updates, but does not obsolete,
+   [RFC1034], [RFC1035], [RFC2136], [RFC2181], [RFC2308], [RFC3225],
+   [RFC3007], [RFC3597], and the portions of [RFC3226] that deal with
+   DNSSEC.
 
    The DNS security extensions provide origin authentication and
    integrity protection for DNS data, as well as a means of public key
@@ -164,9 +163,10 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005                [Page 3]
+
+Arends, et al.           Expires April 10, 2005                 [Page 3]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 2.  Definitions of Important DNSSEC Terms
@@ -177,23 +177,24 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    section quickly, read the rest of this document, then come back to
    this section.
 
-   Authentication Chain: An alternating sequence of DNSKEY RRsets and DS
-      RRsets forms a chain of signed data, with each link in the chain
-      vouching for the next.  A DNSKEY RR is used to verify the
-      signature covering a DS RR and allows the DS RR to be
-      authenticated.  The DS RR contains a hash of another DNSKEY RR and
-      this new DNSKEY RR is authenticated by matching the hash in the DS
-      RR.  This new DNSKEY RR in turn authenticates another DNSKEY RRset
-      and, in turn, some DNSKEY RR in this set may be used to
-      authenticate another DS RR and so forth until the chain finally
-      ends with a DNSKEY RR whose corresponding private key signs the
-      desired DNS data.  For example, the root DNSKEY RRset can be used
-      to authenticate the DS RRset for "example."  The "example." DS
-      RRset contains a hash that matches some "example." DNSKEY, and
-      this DNSKEY's corresponding private key signs the "example."
-      DNSKEY RRset.  Private key counterparts of the "example." DNSKEY
-      RRset sign data records such as "www.example." as well as DS RRs
-      for delegations such as "subzone.example."
+   Authentication Chain: An alternating sequence of DNS public key
+      (DNSKEY) RRsets and Delegation Signer (DS) RRsets forms a chain of
+      signed data, with each link in the chain vouching for the next.  A
+      DNSKEY RR is used to verify the signature covering a DS RR and
+      allows the DS RR to be authenticated.  The DS RR contains a hash
+      of another DNSKEY RR and this new DNSKEY RR is authenticated by
+      matching the hash in the DS RR.  This new DNSKEY RR in turn
+      authenticates another DNSKEY RRset and, in turn, some DNSKEY RR in
+      this set may be used to authenticate another DS RR and so forth
+      until the chain finally ends with a DNSKEY RR whose corresponding
+      private key signs the desired DNS data.  For example, the root
+      DNSKEY RRset can be used to authenticate the DS RRset for
+      "example."  The "example." DS RRset contains a hash that matches
+      some "example." DNSKEY, and this DNSKEY's corresponding private
+      key signs the "example." DNSKEY RRset.  Private key counterparts
+      of the "example." DNSKEY RRset sign data records such as
+      "www.example." as well as DS RRs for delegations such as
+      "subzone.example."
 
    Authentication Key: A public key that a security-aware resolver has
       verified and can therefore use to authenticate data.  A
@@ -211,19 +212,32 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
       even if the local policy is simply to authenticate any new public
       key for which the resolver is able verify the signature.
 
+   Authoritative RRset: Within the context of a particular zone, an
+      RRset is "authoritative" if and only if the owner name of the
+      RRset lies within the subset of the name space that is at or below
+      the zone apex and at or above the cuts that separate the zone from
+      its children, if any.  All RRsets at the zone apex are
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 4]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
+
+      authoritative, except for certain RRsets at this domain name that,
+      if present, belong to this zone's parent.  These RRset could
+      include a DS RRset, the NSEC RRset referencing this DS RRset (the
+      "parental NSEC"), and RRSIG RRs associated with these RRsets, all
+      of which are authoritative in the parent zone.  Similarly, if this
+      zone contains any delegation points, only the parental NSEC RRset,
+      DS RRsets, and any RRSIG RRs associated with these these RRsets
+      are authoritative for this zone.
+
    Delegation Point: Term used to describe the name at the parental side
       of a zone cut.  That is, the delegation point for "foo.example"
       would be the foo.example node in the "example" zone (as opposed to
-      the zone apex of the "foo.example" zone).
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 4]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
+      the zone apex of the "foo.example" zone).  See also: zone apex.
 
    Island of Security: Term used to describe a signed, delegated zone
       that does not have an authentication chain from its delegating
@@ -259,6 +273,14 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
       responses, and is capable of establishing an appropriately secured
       channel to a security-aware recursive name server which will
       provide these services on behalf of the security-aware stub
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 5]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
+
       resolver.  See also: security-aware stub resolver, validating
       security-aware stub resolver.
 
@@ -270,14 +292,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
       DNS security extensions defined in this document set.  In
       particular, a security-aware name server is an entity which
       receives DNS queries, sends DNS responses, supports the EDNS0
-      [RFC2671] message size extension and the DO bit [RFC3225], and
+      ([RFC2671]) message size extension and the DO bit ([RFC3225]), and
       supports the RR types and message header bits defined in this
       document set.
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 5]
-
 
    Security-Aware Recursive Name Server: An entity which acts in both
       the security-aware name server and security-aware resolver roles.
@@ -288,10 +305,10 @@ Arends, et al.          Expires January 13, 2005                [Page 5]
       (defined in section 2.4 of [RFC1034]) which understands the DNS
       security extensions defined in this document set.  In particular,
       a security-aware resolver is an entity which sends DNS queries,
-      receives DNS responses, supports the EDNS0 [RFC2671] message size
-      extension and the DO bit [RFC3225], and is capable of using the RR
-      types and message header bits defined in this document set to
-      provide DNSSEC services.
+      receives DNS responses, supports the EDNS0 ([RFC2671]) message
+      size extension and the DO bit ([RFC3225]), and is capable of using
+      the RR types and message header bits defined in this document set
+      to provide DNSSEC services.
 
    Security-Aware Stub Resolver: An entity acting in the role of a stub
       resolver (defined in section 5.3.1 of [RFC1034]) which has enough
@@ -307,8 +324,18 @@ Arends, et al.          Expires January 13, 2005                [Page 5]
       "security-aware".
 
    Signed Zone: A zone whose RRsets are signed and which contains
-      properly constructed DNSKEY, RRSIG, NSEC and (optionally) DS
-      records.
+      properly constructed DNSKEY, Resource Record Signature (RRSIG),
+      Next Secure (NSEC) and (optionally) DS records.
+
+
+
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 6]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
 
    Trust Anchor: A configured DNSKEY RR or DS RR hash of a DNSKEY RR.  A
       validating security-aware resolver uses this public key or hash as
@@ -328,17 +355,11 @@ Arends, et al.          Expires January 13, 2005                [Page 5]
       security-aware stub resolver, non-validating security-aware stub
       resolver.
 
-
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 6]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
-
    Validating Stub Resolver: A less tedious term for a validating
       security-aware stub resolver.
+
+   Zone Apex: Term used to describe the name at the child's side of a
+      zone cut.  See also: delegation point.
 
    Zone Signing Key (ZSK): An authentication key that corresponds to a
       private key used to sign a zone.  Typically a zone signing key
@@ -367,30 +388,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 7]
+Arends, et al.           Expires April 10, 2005                 [Page 7]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 3.  Services Provided by DNS Security
@@ -401,16 +401,19 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    data.  These mechanisms are described below.
 
    These mechanisms require changes to the DNS protocol.  DNSSEC adds
-   four new resource record types (RRSIG, DNSKEY, DS and NSEC) and two
-   new message header bits (CD and AD).  In order to support the larger
-   DNS message sizes that result from adding the DNSSEC RRs, DNSSEC also
-   requires EDNS0 support [RFC2671].  Finally, DNSSEC requires support
-   for the DO bit [RFC3225], so that a security-aware resolver can
-   indicate in its queries that it wishes to receive DNSSEC RRs in
-   response messages.
+   four new resource record types: Resource Record Signature, DNS Public
+   Key, Delegation Signer, and Next Secure (RRSIG, DNSKEY, DS and NSEC)
+   and two new message header bits: Checking Disabled and Authenticated
+   Data (CD and AD).  In order to support the larger DNS message sizes
+   that result from adding the DNSSEC RRs, DNSSEC also requires EDNS0
+   support ([RFC2671]).  Finally, DNSSEC requires support for the DNSSEC
+   OK (DO) EDNS header bit ([RFC3225]), so that a security-aware
+   resolver can indicate in its queries that it wishes to receive DNSSEC
+   RRs in response messages.
 
    These services protect against most of the threats to the Domain Name
-   System described in [I-D.ietf-dnsext-dns-threats].
+   System described in [RFC3833].  Please see Section 12 for a
+   discussion of the limitations of these extensions.
 
 3.1  Data Origin Authentication and Data Integrity
 
@@ -438,29 +441,31 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    offline when practical to do so.  To discover a public key reliably
    via DNS resolution, the target key itself needs to be signed by
    either a configured authentication key or another key that has been
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 8]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
+
    authenticated previously.  Security-aware resolvers authenticate zone
    information by forming an authentication chain from a newly learned
    public key back to a previously known authentication public key,
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 8]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
-
    which in turn either has been configured into the resolver or must
    have been learned and verified previously.  Therefore, the resolver
-   must be configured with at least one trust anchor.  If the configured
-   key is a zone signing key, then it will authenticate the associated
-   zone; if the configured key is a key signing key, it will
-   authenticate a zone signing key.  If the resolver has been configured
-   with the hash of a key rather than the key itself, the resolver may
-   need to obtain the key via a DNS query.  To help security-aware
-   resolvers establish this authentication chain, security-aware name
-   servers attempt to send the signature(s) needed to authenticate a
-   zone's public key(s) in the DNS reply message along with the public
-   key itself, provided there is space available in the message.
+   must be configured with at least one trust anchor.
+
+   If the configured trust anchor is a zone signing key, then it will
+   authenticate the associated zone; if the configured key is a key
+   signing key, it will authenticate a zone signing key.  If the
+   configured trust anchor is the hash of a key rather than the key
+   itself, the resolver may need to obtain the key via a DNS query.  To
+   help security-aware resolvers establish this authentication chain,
+   security-aware name servers attempt to send the signature(s) needed
+   to authenticate a zone's public key(s) in the DNS reply message along
+   with the public key itself, provided there is space available in the
+   message.
 
    The Delegation Signer (DS) RR type simplifies some of the
    administrative tasks involved in signing delegations across
@@ -492,19 +497,19 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    protocol extensions defined in this document set.  See Section 5 for
    further discussion.
 
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 9]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
+
 3.2  Authenticating Name and Type Non-Existence
 
    The security mechanism described in Section 3.1 only provides a way
    to sign existing RRsets in a zone.  The problem of providing negative
    responses with the same level of authentication and integrity
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 9]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
-
    requires the use of another new resource record type, the NSEC
    record.  The NSEC record allows a security-aware resolver to
    authenticate a negative reply for either name or type non-existence
@@ -551,14 +556,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 10]
+Arends, et al.           Expires April 10, 2005                [Page 10]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 4.  Services Not Provided by DNS Security
@@ -578,9 +578,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    The DNS security extensions provide data and origin authentication
    for DNS data.  The mechanisms outlined above are not designed to
    protect operations such as zone transfers and dynamic update
-   [RFC3007].  Message authentication schemes described in [RFC2845] and
-   [RFC2931] address security operations that pertain to these
-   transactions.
+   ([RFC2136], [RFC3007]).  Message authentication schemes described in
+   [RFC2845] and [RFC2931] address security operations that pertain to
+   these transactions.
 
 
 
@@ -612,9 +612,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 11]
+Arends, et al.           Expires April 10, 2005                [Page 11]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 5.  Scope of the DNSSEC Document Set and Last Hop Issues
@@ -668,9 +668,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 12]
+Arends, et al.           Expires April 10, 2005                [Page 12]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
    the lack of the specification of such communication does not prohibit
@@ -724,9 +724,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 13]
+Arends, et al.           Expires April 10, 2005                [Page 13]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 6.  Resolver Considerations
@@ -744,13 +744,19 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
    If a security-aware resolver is separated from the relevant
    authoritative name servers by a recursive name server or by any sort
-   of device which acts as a proxy for DNS, and if the recursive name
-   server or proxy is not security-aware, the security-aware resolver
-   may not be capable of operating in a secure mode.  For example, if a
-   security-aware resolver's packets are routed through a network
-   address translation device that includes a DNS proxy which is not
-   security-aware, the security-aware resolver may find it difficult or
-   impossible to obtain or validate signed DNS data.
+   of intermediary device which acts as a proxy for DNS, and if the
+   recursive name server or intermediary device is not security-aware,
+   the security-aware resolver may not be capable of operating in a
+   secure mode.  For example, if a security-aware resolver's packets are
+   routed through a network address translation (NAT) device that
+   includes a DNS proxy which is not security-aware, the security-aware
+   resolver may find it difficult or impossible to obtain or validate
+   signed DNS data.  The security-aware resolver may have a particularly
+   difficult time obtaining DS RRs in such a case, since DS RRs do not
+   follow the usual DNS rules for ownership of RRs at zone cuts.  Note
+   that this problem is not specific to NATs -- any security-oblivious
+   DNS software of any kind between the security-aware resolver and the
+   authoritative name servers will interfere with DNSSEC.
 
    If a security-aware resolver must rely on an unsigned zone or a name
    server that is not security aware, the resolver may not be able to
@@ -764,7 +770,7 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    security-aware resolver's own clock is wrong.  Thus, a security-aware
    resolver which is part of a security-aware recursive name server will
    need to pay careful attention to the DNSSEC "checking disabled" (CD)
-   bit [I-D.ietf-dnsext-dnssec-records].  This is in order to avoid
+   bit ([I-D.ietf-dnsext-dnssec-records]).  This is in order to avoid
    blocking valid signatures from getting through to other
    security-aware resolvers which are clients of this recursive name
    server.  See [I-D.ietf-dnsext-dnssec-protocol] for how a secure
@@ -774,15 +780,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 14]
+Arends, et al.           Expires April 10, 2005                [Page 14]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 7.  Stub Resolver Considerations
@@ -806,20 +806,20 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    place itself at the mercy of the recursive name servers that it uses,
    since it does not perform DNSSEC validity checks on its own.  The
    second issue requires some kind of channel security mechanism; proper
-   use of DNS transaction authentication mechanisms such as SIG(0) or
-   TSIG would suffice, as would appropriate use of IPsec, and particular
-   implementations may have other choices available, such as operating
-   system specific interprocess communication mechanisms.
-   Confidentiality is not needed for this channel, but data integrity
-   and message authentication are.
+   use of DNS transaction authentication mechanisms such as SIG(0)
+   ([RFC2931]) or TSIG ([RFC2845]) would suffice, as would appropriate
+   use of IPsec, and particular implementations may have other choices
+   available, such as operating system specific interprocess
+   communication mechanisms.  Confidentiality is not needed for this
+   channel, but data integrity and message authentication are.
 
    A security-aware stub resolver that does trust both its recursive
    name servers and its communication channel to them may choose to
-   examine the setting of the AD bit in the message header of the
-   response messages it receives.  The stub resolver can use this flag
-   bit as a hint to find out whether the recursive name server was able
-   to validate signatures for all of the data in the Answer and
-   Authority sections of the response.
+   examine the setting of the Authenticated Data (AD) bit in the message
+   header of the response messages it receives.  The stub resolver can
+   use this flag bit as a hint to find out whether the recursive name
+   server was able to validate signatures for all of the data in the
+   Answer and Authority sections of the response.
 
    There is one more step that a security-aware stub resolver can take
    if, for whatever reason, it is not able to establish a useful trust
@@ -836,9 +836,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 15]
+Arends, et al.           Expires April 10, 2005                [Page 15]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 8.  Zone Considerations
@@ -862,14 +862,14 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    RRsets, regardless of whether or not the resolver is security-aware.
 
    The inception and expiration fields in the RRSIG RR
-   [I-D.ietf-dnsext-dnssec-records], on the other hand, specify the time
-   period during which the signature can be used to validate the covered
-   RRset.  The signatures associated with signed zone data are only
-   valid for the time period specified by these fields in the RRSIG RRs
-   in question.  TTL values cannot extend the validity period of signed
-   RRsets in a resolver's cache, but the resolver may use the time
-   remaining before expiration of the signature validity period of a
-   signed RRset as an upper bound for the TTL of the signed RRset and
+   ([I-D.ietf-dnsext-dnssec-records]), on the other hand, specify the
+   time period during which the signature can be used to validate the
+   covered RRset.  The signatures associated with signed zone data are
+   only valid for the time period specified by these fields in the RRSIG
+   RRs in question.  TTL values cannot extend the validity period of
+   signed RRsets in a resolver's cache, but the resolver may use the
+   time remaining before expiration of the signature validity period of
+   a signed RRset as an upper bound for the TTL of the signed RRset and
    its associated RRSIG RR in the resolver's cache.
 
 8.2  New Temporal Dependency Issues for Zones
@@ -892,9 +892,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 16]
+Arends, et al.           Expires April 10, 2005                [Page 16]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 9.  Name Server Considerations
@@ -948,9 +948,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 17]
+Arends, et al.           Expires April 10, 2005                [Page 17]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 10.  DNS Security Document Family
@@ -975,7 +975,10 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    to the group of documents that describe how specific digital
    signature algorithms should be implemented to fit the DNSSEC resource
    record format.  Each document in this set deals with a specific
-   digital signature algorithm.
+   digital signature algorithm.  Please see the appendix on "DNSSEC
+   Algorithm and Digest Types" in [I-D.ietf-dnsext-dnssec-records] for a
+   list of the algorithms that were defined at the time this core
+   specification was written.
 
    The "Transaction Authentication Protocol" document set refers to the
    group of documents that deal with DNS message authentication,
@@ -988,7 +991,7 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    related purposes.  DNSSEC does not provide any direct security for
    these new uses, but may be used to support them.  Documents that fall
    in this category include the use of DNS in the storage and
-   distribution of certificates [RFC2538].
+   distribution of certificates ([RFC2538]).
 
 
 
@@ -1001,12 +1004,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 18]
+Arends, et al.           Expires April 10, 2005                [Page 18]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 11.  IANA Considerations
@@ -1060,9 +1060,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 19]
+Arends, et al.           Expires April 10, 2005                [Page 19]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 12.  Security Considerations
@@ -1071,8 +1071,8 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    the document set that contains the new security records and DNS
    protocol modifications.  The extensions provide data origin
    authentication and data integrity using digital signatures over
-   resource record sets.This document discusses the capabilities and
-   limitations of these extensions.
+   resource record sets.  This section discusses the limitations of
+   these extensions.
 
    In order for a security-aware resolver to validate a DNS response,
    all zones along the path from the trusted starting point to the zone
@@ -1089,8 +1089,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
    This document briefly discusses other methods of adding security to a
    DNS query, such as using a channel secured by IPsec or using a DNS
-   transaction authentication mechanism, but transaction security is not
-   part of DNSSEC per se.
+   transaction authentication mechanism such as TSIG ([RFC2845]) or
+   SIG(0) ([RFC2931]), but transaction security is not part of DNSSEC
+   per se.
 
    A non-validating security-aware stub resolver, by definition, does
    not perform DNSSEC signature validation on its own, and thus is
@@ -1112,15 +1113,15 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    attacks takes at least two forms.  An attacker may be able to consume
    resources in a security-aware resolver's signature validation code by
    tampering with RRSIG RRs in response messages or by constructing
-   needlessly complex signature chains.  An attacker may also be able to
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 20]
+Arends, et al.           Expires April 10, 2005                [Page 20]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
+   needlessly complex signature chains.  An attacker may also be able to
    consume resources in a security-aware name server which supports DNS
    dynamic update, by sending a stream of update messages that force the
    security-aware name server to re-sign some RRsets in the zone more
@@ -1151,8 +1152,8 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    data itself is vulnerable to tampering during zone transfer
    operations.  Thus, while DNSSEC can provide data origin
    authentication and data integrity for RRsets, it cannot do so for
-   zones, and other mechanisms must be used to protect zone transfer
-   operations.
+   zones, and other mechanisms (such as TSIG, SIG(0), or IPsec) must be
+   used to protect zone transfer operations.
 
    Please see [I-D.ietf-dnsext-dnssec-records] and
    [I-D.ietf-dnsext-dnssec-protocol] for additional security
@@ -1171,10 +1172,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-
-Arends, et al.          Expires January 13, 2005               [Page 21]
+Arends, et al.           Expires April 10, 2005                [Page 21]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 13.  Acknowledgements
@@ -1194,10 +1194,10 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    Josefsson, Andris Kalnozols, Peter Koch, Olaf Kolkman, Mark Kosters,
    Suresh Krishnaswamy, Ben Laurie, David Lawrence, Ted Lemon, Ed Lewis,
    Ted Lindgreen, Josh Littlefield, Rip Loomis, Bill Manning, Russ
-   Mundy, Mans Nilsson, Masataka Ohta, Mike Patton, Rob Payne, Jim Reid,
-   Michael Richardson, Erik Rozendaal, Marcos Sanz, Pekka Savola, Jakob
-   Schlyter, Mike StJohns, Paul Vixie, Sam Weiler, Brian Wellington, and
-   Suzanne Woolf.
+   Mundy, Thomas Narten, Mans Nilsson, Masataka Ohta, Mike Patton, Rob
+   Payne, Jim Reid, Michael Richardson, Erik Rozendaal, Marcos Sanz,
+   Pekka Savola, Jakob Schlyter, Mike StJohns, Paul Vixie, Sam Weiler,
+   Brian Wellington, and Suzanne Woolf.
 
    No doubt the above list is incomplete.  We apologize to anyone we
    left out.
@@ -1228,9 +1228,9 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 22]
+Arends, et al.           Expires April 10, 2005                [Page 22]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 14.  References
@@ -1272,23 +1272,6 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 14.2  Informative References
 
-   [I-D.ietf-dnsext-dns-threats]
-              Atkins, D. and R. Austein, "Threat Analysis Of The Domain
-              Name System", draft-ietf-dnsext-dns-threats-07 (work in
-              progress), April 2004.
-
-   [I-D.ietf-dnsext-nsec-rdata]
-              Schlyter, J., "DNSSEC NSEC RDATA Format",
-              draft-ietf-dnsext-nsec-rdata-06 (work in progress), May
-              2004.
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 23]
-
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
-
-
    [RFC2136]  Vixie, P., Thomson, S., Rekhter, Y. and J. Bound, "Dynamic
               Updates in the Domain Name System (DNS UPDATE)", RFC 2136,
               April 1997.
@@ -1298,6 +1281,13 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
    [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
               NCACHE)", RFC 2308, March 1998.
+
+
+
+Arends, et al.           Expires April 10, 2005                [Page 23]
+
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
+
 
    [RFC2538]  Eastlake, D. and O. Gudmundsson, "Storing Certificates in
               the Domain Name System (DNS)", RFC 2538, March 1999.
@@ -1333,6 +1323,11 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
    [RFC3757]  Kolkman, O., Schlyter, J. and E. Lewis, "KEY RR Secure
               Entry Point Flag", RFC 3757, April 2004.
 
+   [RFC3833]  Atkins, D. and R. Austein, "Threat Analysis of the Domain
+              Name System (DNS)", RFC 3833, August 2004.
+
+   [RFC3845]  Schlyter, J., "DNS Security (DNSSEC) NextSECure (NSEC)
+              RDATA Format", RFC 3845, August 2004.
 
 
 
@@ -1340,9 +1335,14 @@ Internet-Draft    DNSSEC Introduction and Requirements         July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 24]
+
+
+
+
+
+Arends, et al.           Expires April 10, 2005                [Page 24]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 Authors' Addresses
@@ -1396,9 +1396,9 @@ Authors' Addresses
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 25]
+Arends, et al.           Expires April 10, 2005                [Page 25]
 
-Internet-Draft    DNSSEC Introduction and Requirements         July 2004
+Internet-Draft    DNSSEC Introduction and Requirements      October 2004
 
 
 Intellectual Property Statement
@@ -1452,6 +1452,6 @@ Acknowledgment
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 26]
+Arends, et al.           Expires April 10, 2005                [Page 26]
 
 

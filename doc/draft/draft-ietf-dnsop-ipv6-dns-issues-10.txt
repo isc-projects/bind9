@@ -1,17 +1,16 @@
 
-
 DNS Operations WG                                              A. Durand
 Internet-Draft                                    SUN Microsystems, Inc.
-Expires: February 7, 2005                                       J. Ihren
+Expires: April 24, 2005                                         J. Ihren
                                                               Autonomica
                                                                P. Savola
                                                                CSC/FUNET
-                                                          August 9, 2004
+                                                        October 24, 2004
 
 
 
           Operational Considerations and Issues with IPv6 DNS
-                draft-ietf-dnsop-ipv6-dns-issues-09.txt
+                draft-ietf-dnsop-ipv6-dns-issues-10.txt
 
 
 Status of this Memo
@@ -37,21 +36,21 @@ Status of this Memo
    material or to cite them other than as "work in progress."
 
 
-   The list of current Internet-Drafts can be accessed at http://
-   www.ietf.org/ietf/1id-abstracts.txt.
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
 
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
 
-   This Internet-Draft will expire on February 7, 2005.
+   This Internet-Draft will expire on April 24, 2005.
 
 
 Copyright Notice
 
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
+   Copyright (C) The Internet Society (2004).
 
 
 Abstract
@@ -65,8 +64,8 @@ Abstract
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 1]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 1]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -99,42 +98,42 @@ Table of Contents
      4.3   Adding the Records Only when Fully IPv6-enabled  . . . . .  9
      4.4   Behaviour of Additional Data in IPv4/IPv6 Environments . . 10
        4.4.1   Description of Additional Data Scenarios . . . . . . . 10
-       4.4.2   Discussion of the Problems . . . . . . . . . . . . . . 11
-     4.5   The Use of TTL for IPv4 and IPv6 RRs . . . . . . . . . . . 12
-     4.6   IPv6 Transport Guidelines for DNS Servers  . . . . . . . . 13
-   5.  Recommendations for DNS Resolver IPv6 Support  . . . . . . . . 13
-     5.1   DNS Lookups May Query IPv6 Records Prematurely . . . . . . 14
-     5.2   Obtaining a List of DNS Recursive Resolvers  . . . . . . . 15
-     5.3   IPv6 Transport Guidelines for Resolvers  . . . . . . . . . 16
-   6.  Considerations about Forward DNS Updating  . . . . . . . . . . 16
-     6.1   Manual or Custom DNS Updates . . . . . . . . . . . . . . . 16
-     6.2   Dynamic DNS  . . . . . . . . . . . . . . . . . . . . . . . 17
-   7.  Considerations about Reverse DNS Updating  . . . . . . . . . . 18
-     7.1   Applicability of Reverse DNS . . . . . . . . . . . . . . . 18
-     7.2   Manual or Custom DNS Updates . . . . . . . . . . . . . . . 19
-     7.3   DDNS with Stateless Address Autoconfiguration  . . . . . . 19
-     7.4   DDNS with DHCP . . . . . . . . . . . . . . . . . . . . . . 20
-     7.5   DDNS with Dynamic Prefix Delegation  . . . . . . . . . . . 21
-   8.  Miscellaneous DNS Considerations . . . . . . . . . . . . . . . 22
-     8.1   NAT-PT with DNS-ALG  . . . . . . . . . . . . . . . . . . . 22
-     8.2   Renumbering Procedures and Applications' Use of DNS  . . . 22
-   9.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 22
-   10.   Security Considerations  . . . . . . . . . . . . . . . . . . 22
+       4.4.2   Which Additional Data to Keep, If Any? . . . . . . . . 11
+       4.4.3   Discussion of the Problems . . . . . . . . . . . . . . 12
+     4.5   The Use of TTL for IPv4 and IPv6 RRs . . . . . . . . . . . 13
+     4.6   IPv6 Transport Guidelines for DNS Servers  . . . . . . . . 14
+   5.  Recommendations for DNS Resolver IPv6 Support  . . . . . . . . 15
+     5.1   DNS Lookups May Query IPv6 Records Prematurely . . . . . . 15
+     5.2   Obtaining a List of DNS Recursive Resolvers  . . . . . . . 16
+     5.3   IPv6 Transport Guidelines for Resolvers  . . . . . . . . . 17
+   6.  Considerations about Forward DNS Updating  . . . . . . . . . . 17
+     6.1   Manual or Custom DNS Updates . . . . . . . . . . . . . . . 17
+     6.2   Dynamic DNS  . . . . . . . . . . . . . . . . . . . . . . . 18
+   7.  Considerations about Reverse DNS Updating  . . . . . . . . . . 19
+     7.1   Applicability of Reverse DNS . . . . . . . . . . . . . . . 19
+     7.2   Manual or Custom DNS Updates . . . . . . . . . . . . . . . 20
+     7.3   DDNS with Stateless Address Autoconfiguration  . . . . . . 20
+     7.4   DDNS with DHCP . . . . . . . . . . . . . . . . . . . . . . 21
+     7.5   DDNS with Dynamic Prefix Delegation  . . . . . . . . . . . 22
+   8.  Miscellaneous DNS Considerations . . . . . . . . . . . . . . . 23
+     8.1   NAT-PT with DNS-ALG  . . . . . . . . . . . . . . . . . . . 23
+     8.2   Renumbering Procedures and Applications' Use of DNS  . . . 23
+   9.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 23
 
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 2]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 2]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
-   11.   References . . . . . . . . . . . . . . . . . . . . . . . . . 23
-   11.1  Normative References . . . . . . . . . . . . . . . . . . . . 23
-   11.2  Informative References . . . . . . . . . . . . . . . . . . . 25
-       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 27
-   A.  Site-local Addressing Considerations for DNS . . . . . . . . . 28
-   B.  Issues about Additional Data or TTL  . . . . . . . . . . . . . 28
+   10.   Security Considerations  . . . . . . . . . . . . . . . . . . 24
+   11.   References . . . . . . . . . . . . . . . . . . . . . . . . . 24
+   11.1  Normative References . . . . . . . . . . . . . . . . . . . . 24
+   11.2  Informative References . . . . . . . . . . . . . . . . . . . 26
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . 28
+   A.  Site-local Addressing Considerations for DNS . . . . . . . . . 29
        Intellectual Property and Copyright Statements . . . . . . . . 30
 
 
@@ -181,8 +180,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 3]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 3]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -247,8 +246,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 4]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 4]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -288,8 +287,7 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    parts of DNS are only visible using IPv4 (or IPv6) transport, the
    recommendation is to always keep at least one authoritative server
    IPv4-enabled, and to ensure that recursive DNS servers support IPv4.
-   See DNS IPv6 transport guidelines
-   [I-D.ietf-dnsop-ipv6-transport-guidelines] for more information.
+   See DNS IPv6 transport guidelines [RFC3901] for more information.
 
 
 1.4  Query Type '*' and A/AAAA Records
@@ -314,8 +312,9 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 5]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+
+Durand, et al.           Expires April 24, 2005                 [Page 5]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -323,10 +322,9 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    The IPv6 addressing architecture [RFC3513] includes two kinds of
-   local-use addresses: link-local (fe80::/10) and site-local (fec0::/
-   10).  The site-local addresses have been deprecated
-   [I-D.ietf-ipv6-deprecate-site-local], and are only discussed in
-   Appendix A.
+   local-use addresses: link-local (fe80::/10) and site-local
+   (fec0::/10).  The site-local addresses have been deprecated
+   [RFC3879], and are only discussed in Appendix A.
 
 
    Link-local addresses should never be published in DNS (whether in
@@ -340,10 +338,11 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    Temporary addresses defined in RFC3041 [RFC3041] (sometimes called
    "privacy addresses") use a random number as the interface identifier.
-   Publishing (useful) DNS records relating to such addresses would
-   defeat the purpose of the mechanism and is not recommended.  However,
-   it would still be possible to return a non-identifiable name (e.g.,
-   the IPv6 address in hexadecimal format), as described in [RFC3041].
+   Having DNS AAAA records that are updated to always contain the
+   current value of a node's temporary address would defeat the purpose
+   of the mechanism and is not recommended.  However, it would still be
+   possible to return a non-identifiable name (e.g., the IPv6 address in
+   hexadecimal format), as described in [RFC3041].
 
 
 2.3  6to4 Addresses
@@ -382,8 +381,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 6]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 6]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -448,8 +447,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005                [Page 7]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                 [Page 7]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -464,21 +463,36 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 4.1  Use of Service Names instead of Node Names
 
 
-   When a node provides multiple services which should not be
-   fate-sharing, or might support different IP versions, one should keep
-   them logically separate in the DNS.  Using SRV records [RFC2782]
-   would avoid these problems.  Unfortunately, those are not
-   sufficiently widely used to be applicable in most cases.  Hence an
-   operation technique is to use service names instead of node names
-   (or, "hostnames").  This operational technique is not specific to
-   IPv6, but required to understand the considerations described in
-   Section 4.2 and Section 4.3.
+   It makes sense to keep logically separate services by a node separate
+   in the DNS, due to a number of reasons, for example:
+
+
+   o  It allows more flexibility and ease for migration of (only a part
+      of) services from one node to another,
+
+
+   o  It allows configuring different properties (e.g., TTL) for each
+      service, and
+
+
+   o  It allows deciding separately for each service whether to publish
+      the IPv6 addresses or not (in cases if some services are more
+      IPv6-ready than others).
+
+
+   Using SRV records [RFC2782] would avoid these problems.
+   Unfortunately, those are not sufficiently widely used to be
+   applicable in most cases.  Hence an operation technique is to use
+   service names instead of node names (or, "hostnames").  This
+   operational technique is not specific to IPv6, but required to
+   understand the considerations described in Section 4.2 and Section
+   4.3.
 
 
    For example, assume a node named "pobox.example.com" provides both
    SMTP and IMAP service.  Instead of configuring the MX records to
    point at "pobox.example.com", and configuring the mail clients to
-   look up the mail via IMAP from "pobox.example.com", one should use
+   look up the mail via IMAP from "pobox.example.com", one could use
    e.g., "smtp.example.com" for SMTP (for both message submission and
    mail relaying between SMTP servers) and "imap.example.com" for IMAP.
    Note that in the specific case of SMTP relaying, the server itself
@@ -489,15 +503,6 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    should use the hostname rather than a service name.)
 
 
-   This is a good practice with IPv4 as well, because it provides more
-   flexibility and enables easier migration of services from one host to
-   another.  A specific reason why this is relevant for IPv6 is that the
-   different services may have a different level of IPv6 support -- that
-   is, one node providing multiple services might want to enable just
-   one service to be IPv6-visible while keeping some others as
-   IPv4-only, improving flexibility.
-
-
 4.2  Separate vs the Same Service Names for IPv4 and IPv6
 
 
@@ -505,19 +510,19 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    service is named "service.example.com" for IPv4, the IPv6-enabled
    service could be either added to "service.example.com", or added
    separately under a different name, e.g., in a sub-domain, like,
+
+
+
+
+Durand, et al.           Expires April 24, 2005                 [Page 8]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    "service.ipv6.example.com".
 
 
    These two methods have different characteristics.  Using a different
-
-
-
-
-Durand, et al.          Expires February 7, 2005                [Page 8]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    name allows for easier service piloting, minimizing the disturbance
    to the "regular" users of IPv4 service; however, the service would
    not be used transparently, without the user/application explicitly
@@ -573,18 +578,18 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    The issues are not always so black-and-white.  Usually it's important
+
+
+
+
+Durand, et al.           Expires April 24, 2005                 [Page 9]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    if the service offered using both protocols is of roughly equal
    quality, using the appropriate metrics for the service (e.g.,
    latency, throughput, low packet loss, general reliability, etc.) --
-
-
-
-
-Durand, et al.          Expires February 7, 2005                [Page 9]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    this is typically very important especially for interactive or
    real-time services.  In many cases, the quality of IPv6 connectivity
    may not yet be equal to that of IPv4, at least globally -- this has
@@ -595,43 +600,67 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 4.4  Behaviour of Additional Data in IPv4/IPv6 Environments
 
 
+   DNS responses do not always fit in a single UDP packet.  We'll
+   examine the cases which happen when this is due to too much data in
+   the Additional Section.
+
+
 4.4.1  Description of Additional Data Scenarios
-
-
-   Consider the case where the query name is so long, the number of the
-   additional records is so high, or for other reasons that the entire
-   response would not fit in a single UDP packet.  In some cases, the
-   responder truncates the response with the TC bit being set (leading
-   to a retry with TCP), in order for the querier to get the entire
-   response later.
 
 
    There are two kinds of additional data:
 
 
-   1.  glue, i.e., "critical" additional data; this must be included in
-       all scenarios, with all the RRsets as possible, and
+   1.  "critical" additional data; this must be included in all
+       scenarios, with all the RRsets, and
 
 
    2.  "courtesy" additional data; this could be sent in full, with only
        a few RRsets, or with no RRsets, and can be fetched separately as
-       well, but at the cost of additional queries.  This data must
-       never cause setting of the TC bit.
+       well, but at the cost of additional queries.
 
 
    The responding server can algorithmically determine which type the
    additional data is by checking whether it's at or below a zone cut.
 
 
-   Meanwhile, resource record sets (RRsets) are never "broken up", so if
-   a name has 4 A records and 5 AAAA records, you can either return all
-   9, all 4 A records, all 5 AAAA records or nothing.  In particular,
-   notice that for the "critical" additional data getting all the RRsets
-   can be critical.
+   Only those additional data records (even if sometimes carelessly
+   termed "glue") are considered "critical" or real "glue" if and only
+   if they meet the abovementioned condition, as specified in Section
+   4.2.1 of [RFC1034].
+
+
+   Remember that resource record sets (RRsets) are never "broken up", so
+   if a name has 4 A records and 5 AAAA records, you can either return
+   all 9, all 4 A records, all 5 AAAA records or nothing.  In
+   particular, notice that for the "critical" additional data getting
+   all the RRsets can be critical.
+
+
+   In particular, [RFC2181] specifies (in Section 9) that:
+
+
+   a.  if all the "critical" RRsets do not fit, the sender should set
+       the TC bit, and the recipient should discard the whole response
+       and retry using mechanism allowing larger responses such as TCP.
+
+
+   b.  "courtesy" additional data should not cause the setting of TC
+       bit, but instead all the non-fitting additional data RRsets
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 10]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
+       should be removed.
 
 
    An example of the "courtesy" additional data is A/AAAA records in
-   conjunction of MX records as shown in Section 4.5; an example of the
+   conjunction of MX records is shown in Section 4.5; an example of the
    "critical" additional data is shown below (where getting both the A
    and AAAA RRsets is critical):
 
@@ -641,32 +670,97 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
       ns.child.example.com. IN AAAA 2001:db8::1
 
 
-   When there is too much courtesy additional data, some or all of it
-   need to be removed [RFC2181]; if some is left in the response, the
-   issue is which data should be retained.  When there is too much
+   When there is too much courtesy additional data, at least the
+   non-fitting RRsets should be removed [RFC2181]; however, as the
+   additional data is not critical, even all of it could be safely
+   removed.
 
 
+   When there is too much critical additional data, TC bit will have to
+   be set, and the recipient should ignore the response and retry using
+   TCP; if some data were to be left in the UDP response, the issue is
+   which data could be retained.
 
 
-Durand, et al.          Expires February 7, 2005               [Page 10]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+   Failing to discard the response with TC bit set leads to a protocol
+   problem.  Omitting only some of the RRsets if all would not fit leads
+   to a performance problem.  These are discussed in Section 4.4.3.
 
 
-
-   critical additional data, TC bit will have to be set, and some or all
-   of it need to be removed; if some is left in the response, the issue
-   is which data should be retained.
+4.4.2  Which Additional Data to Keep, If Any?
 
 
-   If the implementation decides to keep as much data as possible, it
-   might be tempting to use the transport of the DNS query as a hint in
-   either of these cases: return the AAAA records if the query was done
-   over IPv6, or return the A records if the query was done over IPv4.
+   If the implementation decides to keep as much data (whether
+   "critical" or "courtesy") as possible in the UDP responses, it might
+   be tempting to use the transport of the DNS query as a hint in either
+   of these cases: return the AAAA records if the query was done over
+   IPv6, or return the A records if the query was done over IPv4.
    However, this breaks the model of independence of DNS transport and
    resource records, as noted in Section 1.2.
 
 
-   It is worth remembering that often the host using the records is
+   With courtesy additional data, as long as enough RRsets will be
+   removed so that TC will not be set, it is allowed to send as many
+   complete RRsets as the implementations prefers.  However, the
+   implementations are also free to omit all such RRsets, even if
+   complete.  Removing all the RRsets if some would not fit obviates a
+   performance problem, which would require the users to issue second
+   queries to obtain consistent information.
+
+
+   With critical additional data, the alternatives are either returning
+   nothing (and absolutely requiring a retry with TCP) or returning
+   something (working also in the case if the recipient does not discard
+   the response and retry using TCP) in addition to setting the TC bit.
+   If the process for selecting "something" from the critical data would
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 11]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
+   otherwise be practically "flipping the coin" between A and AAAA
+   records, it could be argued that if one looked at the transport of
+   the query, it would have a larger possibility of being right than
+   just 50/50.  In other words, if the returned critical additional data
+   would have to be selected somehow, using something more sophisticated
+   than a random process would seem justifiable.
+
+
+   That is, leaving in some intelligently selected critical additional
+   data is a tradeoff between creating an optimization for those
+   resolvers which ignore the "should discard" recommendation, and a
+   causing a protocol problem by propagating inconsistent information
+   about "critical" records in the caches.
+
+
+   Similarly, leaving in the complete courtesy additional data RRsets
+   instead of removing all the RRsets is a performance tradeoff as
+   described in the next section.
+
+
+4.4.3  Discussion of the Problems
+
+
+   As noted above, the temptation for omitting only some of the
+   additional data based on the transport of the query could be
+   problematic.  In particular, there appears to be little justification
+   for doing so in the case of "courtesy" data.
+
+
+   For courtesy additional data, this causes a performance problem as
+   this requires that the clients issue re-query for the potentially
+   omitted RRsets.  For critical additional data, this causes a
+   potential protocol problem if the response is not discarded and the
+   query not re-tried with TCP, as the nameservers might be reachable
+   only through the omitted RRsets.
+
+
+   If an implementation would look at the transport used for the query,
+   it is worth remembering that often the host using the records is
    different from the node requesting them from the authoritative DNS
    server (or even a caching resolver).  So, whichever version the
    requestor (e.g., a recursive server in the middle) uses makes no
@@ -681,49 +775,29 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    to the client to query again.
 
 
-4.4.2  Discussion of the Problems
-
-
-   As noted above, the temptation for omitting only some of the
-   additional data based on the transport of the query could be
-   problematic.  In particular, there appears to be little justification
-   for doing so in the case of "courtesy" data.
-
-
-   However, with critical additional data, the alternatives are either
-   returning nothing (and requiring a retry with TCP) or returning
-   something (possibly obviating the need for a retry with TCP).  If the
-   process for selecting "something" from the critical data would
-   otherwise be practically "flipping the coin" between A and AAAA
-   records, it could be argued that if one looked at the transport of
-   the query, it would have a larger possibility of being right than
-   just 50/50.  In other words, if the returned critical additional data
-   would have to be selected somehow, using something more sophisticated
-   than a random process would seem justifiable.
-
-
    The problem of too much additional data seems to be an operational
    one: the zone administrator entering too many records which will be
-   returned either truncated or missing some RRsets to the users.  A
-   protocol fix for this is using EDNS0 [RFC2671] to signal the capacity
-   for larger UDP packet sizes, pushing up the relevant threshold.
 
 
 
 
-Durand, et al.          Expires February 7, 2005               [Page 11]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                [Page 12]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
-   Further, DNS server implementations should rather omit courtesy
-   additional data completely rather than including only some RRsets
-   [RFC2181].  An operational fix for this is having the DNS server
-   implementations return a warning when the administrators create zones
-   which would result in too much additional data being returned.
-   Further, DNS server implementations should warn of or disallow such
-   zone configurations which are recursive or otherwise difficult to
-   manage by the protocol.
+   returned either truncated (or missing some RRsets, depending on
+   implementations) to the users.  A protocol fix for this is using
+   EDNS0 [RFC2671] to signal the capacity for larger UDP packet sizes,
+   pushing up the relevant threshold.  Further, DNS server
+   implementations should rather omit courtesy additional data
+   completely rather than including only some RRsets [RFC2181].  An
+   operational fix for this is having the DNS server implementations
+   return a warning when the administrators create zones which would
+   result in too much additional data being returned.  Further, DNS
+   server implementations should warn of or disallow such zone
+   configurations which are recursive or otherwise difficult to manage
+   by the protocol.
 
 
    Additionally, to avoid the case where an application would not get an
@@ -738,10 +812,11 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    In the previous section, we discussed a danger with queries,
    potentially leading to omitting RRsets from the additional section;
-   this could happen to both critical and "courtesy" additional data.
-   This section discusses another problem with the latter, leading to
-   omitting RRsets in cached data, highlighted in the IPv4/IPv6
-   environment.
+   this could happen to both critical and "courtesy" additional data
+   (however, both of these are recommended against in [RFC2181]).  This
+   section discusses another problem with courtesy additional data,
+   leading to omitting RRsets in cached data, highlighted in the
+   IPv4/IPv6 environment.
 
 
    The behaviour of DNS caching when different TTL values are used for
@@ -767,27 +842,26 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
        interested in.
 
 
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 13]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    2.  We get back all the RRsets: this is an optimization as there is
        no need to perform more queries, causing lower latency.  However,
        it is impossible to guarantee that in fact we would always get
        back all the records (the only way to ensure that is to send a
        AAAA query for the name after getting the cached reply with A
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 12]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
        records or vice versa).
 
 
    3.  We only get back A or AAAA RRsets even if both existed: this is
-       indistinguishable from the previous case, and may have problems
-       at least in certain environments as described in the previous
-       section.
+       indistinguishable from the previous case, and may have
+       performance problems at least in certain environments as
+       described in the previous section.
 
 
    As the third case was considered in the previous section, we assume
@@ -801,8 +875,11 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    caching resolvers to discard the A record when the shorter TTL (in
    this case, for the AAAA record) expires; this would avoid the
    situation where there would be a window of 200 seconds when
-   incomplete information is returned from the cache.  The behaviour in
-   this scenario is unspecified.
+   incomplete information is returned from the cache.  Further argument
+   for discarding is that in the normal operation, the TTL values are so
+   high that very likely the incurred additional queries would not be
+   noticeable, compared to the obtained performance optimization.  The
+   behaviour in this scenario is unspecified.
 
 
    To simplify the situation, it might help to use the same TTL for all
@@ -823,12 +900,18 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 4.6  IPv6 Transport Guidelines for DNS Servers
 
 
-   As described in Section 1.3 and
-   [I-D.ietf-dnsop-ipv6-transport-guidelines], there should continue to
+   As described in Section 1.3 and [RFC3901], there should continue to
    be at least one authoritative IPv4 DNS server for every zone, even if
    the zone has only IPv6 records.  (Note that obviously, having more
    servers with robust connectivity would be preferable, but this is the
    minimum recommendation; also see [RFC2182].)
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 14]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
 
 
 5.  Recommendations for DNS Resolver IPv6 Support
@@ -836,15 +919,6 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    When IPv6 is enabled on a node, there are several things to consider
    to ensure that the process is as smooth as possible.
-
-
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 13]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
 
 
 5.1  DNS Lookups May Query IPv6 Records Prematurely
@@ -897,21 +971,21 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    circumstances, prefer AAAA records over A records even when the node
    does not have any IPv6 connectivity [I-D.ietf-v6ops-v6onbydefault].
    In some cases, the implementation may attempt to connect or send a
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 15]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    datagram on a physical link [I-D.ietf-v6ops-onlinkassumption],
    incurring very long protocol timeouts, instead of quickly failing
    back to IPv4.
 
 
    Now, we can consider the issues specific to each of the three
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 14]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    possibilities:
 
 
@@ -962,21 +1036,21 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    The IETF is considering the development of alternative mechanisms for
    obtaining the list of DNS recursive name servers when DHCPv6 is
    unavailable or inappropriate.  No decision about taking on this
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 16]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    development work has been reached as of this writing (Aug 2004)
    [I-D.ietf-dnsop-ipv6-dns-configuration].
 
 
    In scenarios where DHCPv6 is unavailable or inappropriate, mechanisms
    under consideration for development include the use of well-known
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 15]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    addresses [I-D.ohta-preconfigured-dns] and the use of Router
    Advertisements to convey the information
    [I-D.jeong-dnsop-ipv6-dns-discovery].
@@ -993,8 +1067,7 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 5.3  IPv6 Transport Guidelines for Resolvers
 
 
-   As described in Section 1.3 and
-   [I-D.ietf-dnsop-ipv6-transport-guidelines], the recursive resolvers
+   As described in Section 1.3 and [RFC3901], the recursive resolvers
    should be IPv4-only or dual-stack to be able to reach any IPv4-only
    DNS server.  Note that this requirement is also fulfilled by an
    IPv6-only stub resolver pointing to a dual-stack recursive DNS
@@ -1030,17 +1103,16 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    The DNS mappings can also be maintained by hand, in a semi-automatic
    fashion or by running non-standardized protocols.  These are not
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 17]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    considered at more length in this memo.
-
-
-
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 16]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
 
 
 6.2  Dynamic DNS
@@ -1097,17 +1169,16 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    on the node, e.g., at install time.
 
 
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 18]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    Care should be observed when updating the addresses not to use longer
    TTLs for addresses than are preferred lifetimes for the addresses, so
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 17]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    that if the node is renumbered in a managed fashion, the amount of
    stale DNS information is kept to the minimum.  That is, if the
    preferred lifetime of an address expires, the TTL of the record needs
@@ -1146,11 +1217,11 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    the name by the IP address from the reverse tree, and ensuring that a
    record under the name in the forward tree points to the IP address)
    and correspond to a configured name or domain.  As a security check,
-   it is typically accompanied by other mechanisms, such as a user/
-   password login; the main purpose of the reverse+forward DNS check is
-   to weed out the majority of unauthorized users, and if someone
-   managed to bypass the checks, he would still need to authenticate
-   "properly".
+   it is typically accompanied by other mechanisms, such as a
+   user/password login; the main purpose of the reverse+forward DNS
+   check is to weed out the majority of unauthorized users, and if
+   someone managed to bypass the checks, he would still need to
+   authenticate "properly".
 
 
    It may also be desirable to store IPsec keying material corresponding
@@ -1161,17 +1232,17 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    It is not clear whether it makes sense to require or recommend that
    reverse DNS records be updated.  In many cases, it would just make
    more sense to use proper mechanisms for security (or topological
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 19]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    information lookup) in the first place.  At minimum, the applications
    which use it as a generic authorization (in the sense that a record
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 18]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    exists at all) should be modified as soon as possible to avoid such
    lookups completely.
 
@@ -1209,14 +1280,15 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    The address space administrator decides whether the hosts are trusted
-   to update their reverse DNS records or not.  If they are, a simple
+   to update their reverse DNS records or not.  If they are trusted and
+   deployed at the same site (e.g., not across the Internet), a simple
    address-based authorization is typically sufficient (i.e., check that
    the DNS update is done from the same IP address as the record being
    updated); stronger security can also be used [RFC3007].  If they
-   aren't allowed to update the reverses, no update can occur.  (Such
-   address-based update authorization operationally requires that
+   aren't allowed to update the reverses, no update can occur.  However,
+   such address-based update authorization operationally requires that
    ingress filtering [RFC3704] has been set up at the border of the site
-   where the updates occur, and as close to the updater as possible.)
+   where the updates occur, and as close to the updater as possible.
 
 
    Address-based authorization is simpler with reverse DNS (as there is
@@ -1225,16 +1297,18 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    updates are simpler to manage because the host can be assumed to have
    an association with the domain.  Note that the user may roam to
    different networks, and does not necessarily have any association
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 20]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    with the owner of that address space -- so, assuming stronger form of
    authorization for reverse DNS updates than an address association is
    generally unfeasible.
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 19]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
 
 
    Moreover, the reverse zones must be cleaned up by an unspecified
@@ -1287,20 +1361,20 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    a reverse DNS record instead of inserting one (if an address
    assignment policy that reassigns disused addresses is adopted) and
    updating a record seems like a slightly more difficult thing to
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 21]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    secure.  However, it is yet uncertain how DHCPv6 is going to be used
    for address assignment.
 
 
    Note that when using DHCP, either the host or the DHCP server could
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 20]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    perform the DNS updates; see the implications in Section 6.2.
 
 
@@ -1353,17 +1427,19 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    not, setting up security relationships would be simpler).  As there
    is an explicit (security) relationship between the parties in the
    third case, setting up the security relationships to allow reverse
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 22]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    DDNS updates should be rather straightforward as well (but IP
    address-based authentication might not be acceptable).  In the first
    case, however, setting up and managing such relationships might be a
    lot more difficult.
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 21]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
 
 
 8.  Miscellaneous DNS Considerations
@@ -1417,6 +1493,15 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    additional data and the use of TTL.  Jefsey Morfin, Ralph Droms,
    Peter Koch, Jinmei Tatuya, Iljitsch van Beijnum, Edward Lewis, and
    Rob Austein provided useful feedback during the WG last call.  Thomas
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 23]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
    Narten provided extensive feedback during the IESG evaluation.
 
 
@@ -1424,15 +1509,6 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    This document reviews the operational procedures for IPv6 DNS
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 22]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    operations and does not have security considerations in itself.
 
 
@@ -1461,14 +1537,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
    [I-D.ietf-dnsop-ipv6-dns-configuration]
               Jeong, J., "IPv6 Host Configuration of DNS Server
               Information Approaches",
-              draft-ietf-dnsop-ipv6-dns-configuration-02 (work in
-              progress), July 2004.
-
-
-   [I-D.ietf-dnsop-ipv6-transport-guidelines]
-              Durand, A. and J. Ihren, "DNS IPv6 transport operational
-              guidelines", draft-ietf-dnsop-ipv6-transport-guidelines-02
-              (work in progress), March 2004.
+              draft-ietf-dnsop-ipv6-dns-configuration-04 (work in
+              progress), September 2004.
 
 
    [I-D.ietf-dnsop-misbehavior-against-aaaa]
@@ -1478,12 +1548,6 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
               progress), April 2004.
 
 
-   [I-D.ietf-ipv6-deprecate-site-local]
-              Huitema, C. and B. Carpenter, "Deprecating Site Local
-              Addresses", draft-ietf-ipv6-deprecate-site-local-03 (work
-              in progress), March 2004.
-
-
    [I-D.ietf-v6ops-application-transition]
               Shin, M., "Application Aspects of IPv6 Transition",
               draft-ietf-v6ops-application-transition-03 (work in
@@ -1491,19 +1555,22 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    [I-D.ietf-v6ops-renumbering-procedure]
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 23]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
               Baker, F., Lear, E. and R. Droms, "Procedures for
               Renumbering an IPv6 Network without a Flag Day",
               draft-ietf-v6ops-renumbering-procedure-01 (work in
               progress), July 2004.
+
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 24]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
+   [RFC1034]  Mockapetris, P., "Domain names - concepts and facilities",
+              STD 13, RFC 1034, November 1987.
 
 
    [RFC2136]  Vixie, P., Thomson, S., Rekhter, Y. and J. Bound, "Dynamic
@@ -1561,16 +1628,15 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
               August 2002.
 
 
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 24]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
    [RFC3513]  Hinden, R. and S. Deering, "Internet Protocol Version 6
               (IPv6) Addressing Architecture", RFC 3513, April 2003.
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 25]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
 
 
    [RFC3596]  Thomson, S., Huitema, C., Ksinant, V. and M. Souissi, "DNS
@@ -1585,6 +1651,14 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    [RFC3736]  Droms, R., "Stateless Dynamic Host Configuration Protocol
               (DHCP) Service for IPv6", RFC 3736, April 2004.
+
+
+   [RFC3879]  Huitema, C. and B. Carpenter, "Deprecating Site Local
+              Addresses", RFC 3879, September 2004.
+
+
+   [RFC3901]  Durand, A. and J. Ihren, "DNS IPv6 Transport Operational
+              Guidelines", BCP 91, RFC 3901, September 2004.
 
 
 11.2  Informative References
@@ -1603,15 +1677,15 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    [I-D.huston-6to4-reverse-dns]
-              Huston, G., "6to4 Reverse DNS",
-              draft-huston-6to4-reverse-dns-02 (work in progress), April
-              2004.
+              Huston, G., "6to4 Reverse DNS Delegation",
+              draft-huston-6to4-reverse-dns-03 (work in progress),
+              October 2004.
 
 
    [I-D.ietf-dhc-ddns-resolution]
               Stapp, M., "Resolution of DNS Name Conflicts Among DHCP
-              Clients", draft-ietf-dhc-ddns-resolution-07 (work in
-              progress), July 2004.
+              Clients", draft-ietf-dhc-ddns-resolution-08 (work in
+              progress), October 2004.
 
 
    [I-D.ietf-dhc-fqdn-option]
@@ -1624,19 +1698,19 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
               Stapp, M., Lemon, T. and A. Gustafsson, "A DNS RR for
               encoding DHCP information (DHCID RR)",
               draft-ietf-dnsext-dhcid-rr-08 (work in progress), July
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 26]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
               2004.
 
 
    [I-D.ietf-dnsop-bad-dns-res]
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 25]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
               Larson, M. and P. Barber, "Observed DNS Resolution
               Misbehavior", draft-ietf-dnsop-bad-dns-res-02 (work in
               progress), July 2004.
@@ -1662,8 +1736,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    [I-D.ietf-ipv6-unique-local-addr]
               Hinden, R. and B. Haberman, "Unique Local IPv6 Unicast
-              Addresses", draft-ietf-ipv6-unique-local-addr-05 (work in
-              progress), June 2004.
+              Addresses", draft-ietf-ipv6-unique-local-addr-06 (work in
+              progress), September 2004.
 
 
    [I-D.ietf-send-cga]
@@ -1679,8 +1753,8 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
    [I-D.ietf-v6ops-mech-v2]
               Nordmark, E. and R. Gilligan, "Basic Transition Mechanisms
-              for IPv6 Hosts and Routers", draft-ietf-v6ops-mech-v2-04
-              (work in progress), July 2004.
+              for IPv6 Hosts and Routers", draft-ietf-v6ops-mech-v2-06
+              (work in progress), September 2004.
 
 
    [I-D.ietf-v6ops-onlinkassumption]
@@ -1691,16 +1765,18 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
    [I-D.ietf-v6ops-v6onbydefault]
+
+
+
+
+Durand, et al.           Expires April 24, 2005                [Page 27]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
+
+
+
               Roy, S., Durand, A. and J. Paugh, "Issues with Dual Stack
               IPv6 on by Default", draft-ietf-v6ops-v6onbydefault-03
               (work in progress), July 2004.
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 26]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
 
 
    [I-D.jeong-dnsop-ipv6-dns-discovery]
@@ -1761,12 +1837,8 @@ Authors' Addresses
 
 
 
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 27]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+Durand, et al.           Expires April 24, 2005                [Page 28]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -1820,78 +1892,6 @@ Appendix A.  Site-local Addressing Considerations for DNS
    case.
 
 
-Appendix B.  Issues about Additional Data or TTL
-
-
-   [[ note to the RFC-editor: remove this section upon publication.  ]]
-
-
-   This appendix tries to describe the apparent rought consensus about
-   additional data and TTL issues (sections 4.4 and 4.5), and present
-   questions when there appears to be no consensus.  The point of
-
-
-
-
-Durand, et al.          Expires February 7, 2005               [Page 28]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
-
-
-
-   recording them here is to focus the discussion and get feedback.
-
-
-   Resolved:
-
-
-   a.  If some critical additional data RRsets wouldn't fit, you set the
-       TC bit even if some RRsets did fit.
-
-
-   b.  If some courtesy additional data RRsets wouldn't fit, you never
-       set the TC bit, but rather remove (at least some of) the courtesy
-       RRsets.
-
-
-   c.  DNS servers should implement sanity checks on the resulting glue,
-       e.g., to disable circular dependencies.  Then the responding
-       servers can use at-or-below-a-zone-cut criterion to determine
-       whether the additional data is critical or not.
-
-
-   Open issues (at least):
-
-
-   1.  if some critical additional data RRsets would fit, but some
-       wouldn't, and TC has to be set (see above), should one rather
-       remove the additional data that did fit, keep it, or leave
-       unspecified?
-
-
-   2.  if some courtesy additional data RRsets would fit, but some
-       wouldn't, and some will have to be removed from the response (no
-       TC is set, see above), what to do -- remove all courtesy RRsets,
-       keep all that fit, or leave unspecified?
-
-
-   3.  is it acceptable to use the transport used in the DNS query as a
-       hint which records to keep if not removing all the RRsets, if: a)
-       having to decide which critical additional data to keep, or b)
-       having to decide which courtesy additional data to keep?
-
-
-   4.  (this issue was discussed in section 4.5) if one RRset has TTL of
-       100 seconds, and another the TTL of 300 seconds, what should the
-       caching server do after 100 seconds?  Keep returning just one
-       RRset when returning additional data, or discard the other RRset
-       from the cache?
-
-
-   5.  how do we move forward from here?  If we manage to get to some
-       form of consensus, how do we record it: a) just in
-       draft-ietf-dnsop-ipv6-dns-issues (note that it's Informational
-       category only!), b) a separate BCP or similar by DNSEXT WG(?),
-       clarifying and giving recommendations, c) something else, what?
 
 
 
@@ -1900,8 +1900,10 @@ Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
 
 
 
-Durand, et al.          Expires February 7, 2005               [Page 29]
-Internet-Draft    Considerations and Issues with IPv6 DNS    August 2004
+
+
+Durand, et al.           Expires April 24, 2005                [Page 29]
+Internet-Draft    Considerations and Issues with IPv6 DNS   October 2004
 
 
 
@@ -1966,4 +1968,4 @@ Acknowledgment
 
 
 
-Durand, et al.          Expires February 7, 2005               [Page 30]
+Durand, et al.           Expires April 24, 2005                [Page 30]

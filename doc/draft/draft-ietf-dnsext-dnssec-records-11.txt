@@ -2,7 +2,7 @@
 
 DNS Extensions                                                 R. Arends
 Internet-Draft                                      Telematica Instituut
-Expires: January 13, 2005                                     R. Austein
+Expires: April 10, 2005                                       R. Austein
                                                                      ISC
                                                                M. Larson
                                                                 VeriSign
@@ -10,17 +10,19 @@ Expires: January 13, 2005                                     R. Austein
                                                                  USC/ISI
                                                                  S. Rose
                                                                     NIST
-                                                           July 15, 2004
+                                                        October 10, 2004
 
 
             Resource Records for the DNS Security Extensions
-                  draft-ietf-dnsext-dnssec-records-09
+                  draft-ietf-dnsext-dnssec-records-11
 
 Status of this Memo
 
-   By submitting this Internet-Draft, I certify that any applicable
-   patent or other IPR claims of which I am aware have been disclosed,
-   and any of which I become aware will be disclosed, in accordance with
+   This document is an Internet-Draft and is subject to all provisions
+   of section 3 of RFC 3667.  By submitting this Internet-Draft, each
+   author represents that any applicable patent or other IPR claims of
+   which he or she is aware have been or will be disclosed, and any of
+   which he or she become aware will be disclosed, in accordance with
    RFC 3668.
 
    Internet-Drafts are working documents of the Internet Engineering
@@ -39,24 +41,24 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 13, 2005.
+   This Internet-Draft will expire on April 10, 2005.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
+   Copyright (C) The Internet Society (2004).
 
 Abstract
 
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 1]
+
+Internet-Draft          DNSSEC Resource Records             October 2004
+
+
    This document is part of a family of documents that describes the DNS
    Security Extensions (DNSSEC).  The DNS Security Extensions are a
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 1]
-
-Internet-Draft          DNSSEC Resource Records                July 2004
-
-
    collection of resource records and protocol modifications that
    provide source authentication for the DNS.  This document defines the
    public key (DNSKEY), delegation signer (DS), resource record digital
@@ -92,7 +94,7 @@ Table of Contents
        3.1.7   The Signer's Name Field  . . . . . . . . . . . . . . . 11
        3.1.8   The Signature Field  . . . . . . . . . . . . . . . . . 11
      3.2   The RRSIG RR Presentation Format . . . . . . . . . . . . . 12
-     3.3   RRSIG RR Example . . . . . . . . . . . . . . . . . . . . . 12
+     3.3   RRSIG RR Example . . . . . . . . . . . . . . . . . . . . . 13
    4.  The NSEC Resource Record . . . . . . . . . . . . . . . . . . . 14
      4.1   NSEC RDATA Wire Format . . . . . . . . . . . . . . . . . . 14
        4.1.1   The Next Domain Name Field . . . . . . . . . . . . . . 14
@@ -103,16 +105,16 @@ Table of Contents
    5.  The DS Resource Record . . . . . . . . . . . . . . . . . . . . 18
      5.1   DS RDATA Wire Format . . . . . . . . . . . . . . . . . . . 18
        5.1.1   The Key Tag Field  . . . . . . . . . . . . . . . . . . 19
+
+
+
+Arends, et al.           Expires April 10, 2005                 [Page 2]
+
+Internet-Draft          DNSSEC Resource Records             October 2004
+
+
        5.1.2   The Algorithm Field  . . . . . . . . . . . . . . . . . 19
        5.1.3   The Digest Type Field  . . . . . . . . . . . . . . . . 19
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 2]
-
-Internet-Draft          DNSSEC Resource Records                July 2004
-
-
        5.1.4   The Digest Field . . . . . . . . . . . . . . . . . . . 19
      5.2   Processing of DS RRs When Validating Responses . . . . . . 19
      5.3   The DS RR Presentation Format  . . . . . . . . . . . . . . 20
@@ -162,43 +164,46 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-
-
-Arends, et al.          Expires January 13, 2005                [Page 3]
+Arends, et al.           Expires April 10, 2005                 [Page 3]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 1.  Introduction
 
    The DNS Security Extensions (DNSSEC) introduce four new DNS resource
-   record types: DNSKEY, RRSIG, NSEC, and DS.  This document defines the
-   purpose of each resource record (RR), the RR's RDATA format, and its
-   presentation format (ASCII representation).
+   record types: DNS Public Key (DNSKEY), Resource Record Signature
+   (RRSIG), Next Secure (NSEC), and Delegation Signer (DS).  This
+   document defines the purpose of each resource record (RR), the RR's
+   RDATA format, and its presentation format (ASCII representation).
 
 1.1  Background and Related Documents
 
-   The reader is assumed to be familiar with the basic DNS concepts
-   described in [RFC1034], [RFC1035] and subsequent RFCs that update
-   them:  [RFC2136], [RFC2181] and [RFC2308].
+   This document is part of a family of documents that define DNSSEC,
+   which should be read together as a set.
 
-   This document is part of a family of documents that define the DNS
-   security extensions.  The DNS security extensions (DNSSEC) are a
-   collection of resource records and DNS protocol modifications that
-   add source authentication and data integrity to the Domain Name
-   System (DNS).  An introduction to DNSSEC and definitions of common
-   terms can be found in [I-D.ietf-dnsext-dnssec-intro]; the reader is
-   assumed to be familiar with this document.  A description of DNS
-   protocol modifications can be found in
-   [I-D.ietf-dnsext-dnssec-protocol].
+   [I-D.ietf-dnsext-dnssec-intro] contains an introduction to DNSSEC and
+   definition of common terms; the reader is assumed to be familiar with
+   this document.  [I-D.ietf-dnsext-dnssec-intro] also contains a list
+   of other documents updated by and obsoleted by this document set.
+
+   [I-D.ietf-dnsext-dnssec-protocol] defines the DNSSEC protocol
+   operations.
+
+   The reader is also assumed to be familiar with the basic DNS concepts
+   described in [RFC1034], [RFC1035], and the subsequent documents that
+   update them, particularly [RFC2181] and [RFC2308].
 
    This document defines the DNSSEC resource records.
+
+   All numeric DNS type codes given in this document are decimal
+   integers.
 
 1.2  Reserved Words
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC 2119 [RFC2119].
+   document are to be interpreted as described in [RFC2119].
 
 
 
@@ -215,14 +220,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005                [Page 4]
+Arends, et al.           Expires April 10, 2005                 [Page 4]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 2.  The DNSKEY Resource Record
@@ -233,7 +233,8 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    described in [I-D.ietf-dnsext-dnssec-protocol]: A zone signs its
    authoritative RRsets using a private key and stores the corresponding
    public key in a DNSKEY RR.  A resolver can then use the public key to
-   authenticate signatures covering the RRsets in the zone.
+   validate signatures covering the RRsets in the zone, and thus
+   authenticate them.
 
    The DNSKEY RR is not intended as a record for storing arbitrary
    public keys and MUST NOT be used to store certificates or public keys
@@ -272,15 +273,15 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
    Bit 15 of the Flags field is the Secure Entry Point flag, described
    in [RFC3757].  If bit 15 has value 1, then the DNSKEY record holds a
-   key intended for use as a secure entry point.  This flag is only
 
 
 
-Arends, et al.          Expires January 13, 2005                [Page 5]
+Arends, et al.           Expires April 10, 2005                 [Page 5]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
+   key intended for use as a secure entry point.  This flag is only
    intended to be to a hint to zone signing or debugging software as to
    the intended use of this DNSKEY record; validators MUST NOT alter
    their behavior during the signature validation process in any way
@@ -328,14 +329,15 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    with a value of 3.
 
    The Algorithm field MUST be represented either as an unsigned decimal
-   integer or as an algorithm mnemonic as specified in Appendix A.1.
 
 
 
-Arends, et al.          Expires January 13, 2005                [Page 6]
+Arends, et al.           Expires April 10, 2005                 [Page 6]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
+
+   integer or as an algorithm mnemonic as specified in Appendix A.1.
 
    The Public Key field MUST be represented as a Base64 encoding of the
    Public Key.  Whitespace is allowed within the Base64 text.  For a
@@ -386,11 +388,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-
-
-Arends, et al.          Expires January 13, 2005                [Page 7]
+Arends, et al.           Expires April 10, 2005                 [Page 7]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 3.  The RRSIG Resource Record
@@ -444,9 +444,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005                [Page 8]
+Arends, et al.           Expires April 10, 2005                 [Page 8]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
@@ -500,9 +500,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005                [Page 9]
+Arends, et al.           Expires April 10, 2005                 [Page 9]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    The value of the Labels field MUST NOT count either the null (root)
@@ -535,12 +535,12 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    authentication prior to the inception date and MUST NOT be used for
    authentication after the expiration date.
 
-   Signature Expiration and Inception field values are in POSIX.1 time
-   format: a 32-bit unsigned number of seconds elapsed since 1 January
-   1970 00:00:00 UTC, ignoring leap seconds, in network byte order.  The
-   longest interval which can be expressed by this format without
-   wrapping is approximately 136 years.  An RRSIG RR can have an
-   Expiration field value which is numerically smaller than the
+   The Signature Expiration and Inception field values specify a date
+   and time in the form of a 32-bit unsigned number of seconds elapsed
+   since 1 January 1970 00:00:00 UTC, ignoring leap seconds, in network
+   byte order.  The longest interval which can be expressed by this
+   format without wrapping is approximately 136 years.  An RRSIG RR can
+   have an Expiration field value which is numerically smaller than the
    Inception field value if the expiration field value is near the
    32-bit wrap-around point or if the signature is long lived.  Because
    of this, all comparisons involving these fields MUST use "Serial
@@ -556,9 +556,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 10]
+Arends, et al.           Expires April 10, 2005                [Page 10]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 3.1.7  The Signer's Name Field
@@ -612,9 +612,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 11]
+Arends, et al.           Expires April 10, 2005                [Page 11]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
                canonical form; and
@@ -643,14 +643,19 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    decimal integer.
 
    The Signature Expiration Time and Inception Time field values MUST be
-   represented either as seconds since 1 January 1970 00:00:00 UTC or in
-   the form YYYYMMDDHHmmSS in UTC, where:
+   represented either as an unsigned decimal integer indicating seconds
+   since 1 January 1970 00:00:00 UTC, or in the form YYYYMMDDHHmmSS in
+   UTC, where:
       YYYY is the year (0001-9999, but see Section 3.1.5);
       MM is the month number (01-12);
       DD is the day of the month (01-31);
       HH is the hour in 24 hours notation (00-23);
       mm is the minute (00-59); and
       SS is the second (00-59).
+   Note that it is always be possible to distinguish between these two
+   formats, because the YYYYMMDDHHmmSS format will always be exactly 14
+   digits, while the decimal representation of a 32-bit unsigned integer
+   can never be longer than 10 digits.
 
    The Key Tag field MUST be represented as an unsigned decimal integer.
 
@@ -660,18 +665,18 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    signature.  Whitespace is allowed within the Base64 text.  See
    Section 2.2.
 
+
+
+
+Arends, et al.           Expires April 10, 2005                [Page 12]
+
+Internet-Draft          DNSSEC Resource Records             October 2004
+
+
 3.3  RRSIG RR Example
 
    The following RRSIG RR stores the signature for the A RRset of
    host.example.com:
-
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 12]
-
-Internet-Draft          DNSSEC Resource Records                July 2004
-
 
    host.example.com. 86400 IN RRSIG A 5 3 86400 20030322173103 (
                                   20030220173103 2642 example.com.
@@ -719,14 +724,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 13]
+Arends, et al.           Expires April 10, 2005                [Page 13]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 4.  The NSEC Resource Record
@@ -756,7 +756,7 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    The NSEC RR is class independent.
 
    The NSEC RR SHOULD have the same TTL value as the SOA minimum TTL
-   field.  This is in the spirit of negative caching [RFC2308].
+   field.  This is in the spirit of negative caching ([RFC2308]).
 
 4.1  NSEC RDATA Wire Format
 
@@ -780,9 +780,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 14]
+Arends, et al.           Expires April 10, 2005                [Page 14]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    last NSEC record in the zone is the name of the zone apex (the owner
@@ -836,9 +836,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 15]
+Arends, et al.           Expires April 10, 2005                [Page 15]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    interpreted as zero octets.
@@ -892,9 +892,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 16]
+Arends, et al.           Expires April 10, 2005                [Page 16]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
             0x04 'h'  'o'  's'  't'
@@ -948,9 +948,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 17]
+Arends, et al.           Expires April 10, 2005                [Page 17]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 5.  The DS Resource Record
@@ -1004,9 +1004,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 18]
+Arends, et al.           Expires April 10, 2005                [Page 18]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 5.1.1  The Key Tag Field
@@ -1060,9 +1060,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 19]
+Arends, et al.           Expires April 10, 2005                [Page 19]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    have Flags bit 7 set.  If the DNSKEY flags do not indicate a DNSSEC
@@ -1116,9 +1116,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 20]
+Arends, et al.           Expires April 10, 2005                [Page 20]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 6.  Canonical Form and Order of Resource Records
@@ -1172,9 +1172,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 21]
+Arends, et al.           Expires April 10, 2005                [Page 21]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    3.  If the type of the RR is NS, MD, MF, CNAME, SOA, MB, MG, MR, PTR,
@@ -1228,9 +1228,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 22]
+Arends, et al.           Expires April 10, 2005                [Page 22]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 7.  IANA Considerations
@@ -1261,9 +1261,10 @@ Internet-Draft          DNSSEC Resource Records                July 2004
       its use with the DNS security extensions.  Each algorithm entry
       could refer to an algorithm that can be used for zone signing,
       transaction security (see [RFC2931]) or both.  Values 6-251 are
-      available for assignment by IETF standards action.  See Appendix A
-      for a full listing of the DNS Security Algorithm Numbers entries
-      at the time of writing and their status of use in DNSSEC.
+      available for assignment by IETF standards action ([RFC3755]).
+      See Appendix A for a full listing of the DNS Security Algorithm
+      Numbers entries at the time of writing and their status of use in
+      DNSSEC.
 
       [RFC3658] created an IANA registry for DNSSEC DS Digest Types, and
       assigned value 0 to reserved and value 1 to SHA-1.
@@ -1276,17 +1277,16 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
    Flag bits in the KEY and DNSKEY RRs: [RFC3755] created an IANA
       registry for the DNSSEC KEY and DNSKEY RR flag bits.  Initially,
-      this registry only contains an assignment for bit 7 (the ZONE bit)
-      and a reservation for bit 15 for the Secure Entry Point flag (SEP
-      bit) [RFC3757].  Bits 0-6 and 8-14 are available for assignment by
-      IETF Standards Action.
+      this registry only contains assignments for bit 7 (the ZONE bit)
+      and bit 15 (the Secure Entry Point flag (SEP) bit, see [RFC3757]).
+      As also stated in [RFC3755], bits 0-6 and 8-14 are available for
+      assignment by IETF Standards Action.
 
 
 
-
-Arends, et al.          Expires January 13, 2005               [Page 23]
+Arends, et al.           Expires April 10, 2005                [Page 23]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 8.  Security Considerations
@@ -1315,7 +1315,8 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    resource record.  It is possible for two distinct DNSKEY RRs to have
    the same owner name, the same algorithm type, and the same key tag.
    An implementation which uses only the key tag to select a DNSKEY RR
-   might select the wrong public key in some circumstances.
+   might select the wrong public key in some circumstances.  Please see
+   Appendix B for further details.
 
    The table of algorithms in Appendix A and the key tag calculation
    algorithms in Appendix B include the RSA/MD5 algorithm for
@@ -1339,10 +1340,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-
-Arends, et al.          Expires January 13, 2005               [Page 24]
+Arends, et al.           Expires April 10, 2005                [Page 24]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 9.  Acknowledgments
@@ -1396,9 +1396,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 25]
+Arends, et al.           Expires April 10, 2005                [Page 25]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 10.  References
@@ -1439,6 +1439,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
    [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
               NCACHE)", RFC 2308, March 1998.
 
+   [RFC2536]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
+              (DNS)", RFC 2536, March 1999.
+
    [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
               2671, August 1999.
 
@@ -1446,17 +1449,17 @@ Internet-Draft          DNSSEC Resource Records                July 2004
               SIG(0)s)", RFC 2931, September 2000.
 
    [RFC3110]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain
+
+
+
+Arends, et al.           Expires April 10, 2005                [Page 26]
+
+Internet-Draft          DNSSEC Resource Records             October 2004
+
+
               Name System (DNS)", RFC 3110, May 2001.
 
    [RFC3445]  Massey, D. and S. Rose, "Limiting the Scope of the KEY
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 26]
-
-Internet-Draft          DNSSEC Resource Records                July 2004
-
-
               Resource Record (RR)", RFC 3445, December 2002.
 
    [RFC3548]  Josefsson, S., "The Base16, Base32, and Base64 Data
@@ -1476,16 +1479,20 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 10.2  Informative References
 
-   [I-D.ietf-dnsext-nsec-rdata]
-              Schlyter, J., "DNSSEC NSEC RDATA Format",
-              draft-ietf-dnsext-nsec-rdata-06 (work in progress), May
-              2004.
-
    [RFC2535]  Eastlake, D., "Domain Name System Security Extensions",
               RFC 2535, March 1999.
 
+   [RFC2537]  Eastlake, D., "RSA/MD5 KEYs and SIGs in the Domain Name
+              System (DNS)", RFC 2537, March 1999.
+
+   [RFC2539]  Eastlake, D., "Storage of Diffie-Hellman Keys in the
+              Domain Name System (DNS)", RFC 2539, March 1999.
+
    [RFC2930]  Eastlake, D., "Secret Key Establishment for DNS (TKEY
               RR)", RFC 2930, September 2000.
+
+   [RFC3845]  Schlyter, J., "DNS Security (DNSSEC) NextSECure (NSEC)
+              RDATA Format", RFC 3845, August 2004.
 
 
 Authors' Addresses
@@ -1501,16 +1508,9 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-Arends, et al.          Expires January 13, 2005               [Page 27]
+Arends, et al.           Expires April 10, 2005                [Page 27]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    Rob Austein
@@ -1564,9 +1564,9 @@ Internet-Draft          DNSSEC Resource Records                July 2004
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 28]
+Arends, et al.           Expires April 10, 2005                [Page 28]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 Appendix A.  DNSSEC Algorithm and Digest Types
@@ -1600,11 +1600,11 @@ A.1  DNSSEC Algorithm Types
    Value Algorithm [Mnemonic]  Signing  References   Status
    ----- -------------------- --------- ----------  ---------
      0   reserved
-     1   RSA/MD5 [RSAMD5]         n      RFC 2537   NOT RECOMMENDED
-     2   Diffie-Hellman [DH]      n      RFC 2539    -
-     3   DSA/SHA-1 [DSA]          y      RFC 2536   OPTIONAL
+     1   RSA/MD5 [RSAMD5]         n      [RFC2537]  NOT RECOMMENDED
+     2   Diffie-Hellman [DH]      n      [RFC2539]   -
+     3   DSA/SHA-1 [DSA]          y      [RFC2536]  OPTIONAL
      4   Elliptic Curve [ECC]              TBA       -
-     5   RSA/SHA-1 [RSASHA1]      y      RFC 3110   MANDATORY
+     5   RSA/SHA-1 [RSASHA1]      y      [RFC3110]  MANDATORY
    252   Indirect [INDIRECT]      n                  -
    253   Private [PRIVATEDNS]     y      see below  OPTIONAL
    254   Private [PRIVATEOID]     y      see below  OPTIONAL
@@ -1620,9 +1620,9 @@ A.1.1  Private Algorithm Types
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 29]
+Arends, et al.           Expires April 10, 2005                [Page 29]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    domain name, which MUST NOT be compressed.  The domain name indicates
@@ -1676,9 +1676,9 @@ A.2  DNSSEC Digest Types
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 30]
+Arends, et al.           Expires April 10, 2005                [Page 30]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 Appendix B.  Key Tag Calculation
@@ -1713,7 +1713,7 @@ Appendix B.  Key Tag Calculation
    same input.
 
    Please note that the algorithm for calculating the Key Tag is almost
-   but not completely identical to the familiar ones complement checksum
+   but not completely identical to the familiar ones-complement checksum
    used in many other Internet protocols.  Key Tags MUST be calculated
    using the algorithm described here rather than the ones complement
    checksum.
@@ -1732,9 +1732,9 @@ Appendix B.  Key Tag Calculation
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 31]
+Arends, et al.           Expires April 10, 2005                [Page 31]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
    /*
@@ -1788,9 +1788,9 @@ B.1  Key Tag for Algorithm 1 (RSA/MD5)
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 32]
+Arends, et al.           Expires April 10, 2005                [Page 32]
 
-Internet-Draft          DNSSEC Resource Records                July 2004
+Internet-Draft          DNSSEC Resource Records             October 2004
 
 
 Intellectual Property Statement
@@ -1844,6 +1844,6 @@ Acknowledgment
 
 
 
-Arends, et al.          Expires January 13, 2005               [Page 33]
+Arends, et al.           Expires April 10, 2005                [Page 33]
 
 
