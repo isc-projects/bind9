@@ -1,6 +1,8 @@
-1776.   [port]   	Solaris 2.9: fix broken PTHREAD_MUTEX_INIT macro.
+1777.   [port]   	OSF 5.1: fix broken IN6ADDR_ANY_INIT and
+			IN6ADDR_LOOPBACK_INIT macros.
 
-1775.	[placeholder]	rt13205
+1776.   [port]   	Solaris 2.9: fix broken IN6ADDR_ANY_INIT and
+                        IN6ADDR_LOOPBACK_INIT macros.
 
 1774.	[port]		Aix: Silence compiler warnings / build failures.
 			[RT #13154]
