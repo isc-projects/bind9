@@ -57,6 +57,7 @@ struct timezone;        /* silence warning */
 @HOST_R_ERRNO@
 @HOST_R_OK@
 @HOST_R_RETURN@
+@HOST_R_SETANSWER@
 @HOST_R_SET_RESULT@
 @HOST_R_SET_RETURN@
 @HOSTENT_DATA@
