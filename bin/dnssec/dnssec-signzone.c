@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.7 2005/03/16 00:10:44 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.8 2005/03/16 03:09:33 marka Exp $ */
 
 #include <config.h>
 
@@ -1645,9 +1645,9 @@ usage(void) {
 	fprintf(stderr, "\t\tdirectory to find keyset files (.)\n");
 	fprintf(stderr, "\t-g:\t");
 	fprintf(stderr, "generate DS records from keyset files\n");
-	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
+	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG start time - absolute|offset (now - 1 hour)\n");
-	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
+	fprintf(stderr, "\t-e [YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG end time  - absolute|from start|from now "
 				"(now + 30 days)\n");
 	fprintf(stderr, "\t-i interval:\n");
