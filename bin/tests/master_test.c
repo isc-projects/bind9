@@ -14,17 +14,17 @@
 #include <dns/types.h>
 
 dns_result_t print_dataset(dns_name_t *owner, dns_rdataset_t *dataset,
-			   isc_mem_t *mctx);
+			   void *private);
 
 isc_mem_t *mctx;
 
 dns_result_t
-print_dataset(dns_name_t *owner, dns_rdataset_t *dataset, isc_mem_t *mctx) {
+print_dataset(dns_name_t *owner, dns_rdataset_t *dataset, void *private) {
 	char buf[64*1024];
 	isc_buffer_t target;
 	dns_result_t result;
 	
-	mctx = mctx;
+	private = private;
 
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, &target);
@@ -70,7 +70,7 @@ main(int argc, char *argv[]) {
 		
 		result = dns_load_master(argv[1], &origin, &origin, 1,
 					 &soacount, &nscount,
-					 print_dataset, mctx);
+					 print_dataset, NULL, mctx);
 		fprintf(stdout, "dns_load_master: %s\n",
 			dns_result_totext(result));
 		if (result == DNS_R_SUCCESS)

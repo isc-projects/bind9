@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.5 1999/01/28 05:03:24 marka Exp $ */
+ /* $Id: master.c,v 1.6 1999/01/28 22:32:44 marka Exp $ */
 
 #include <config.h>
 
@@ -41,8 +41,8 @@ typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 static dns_result_t	commit(rdatalist_head_t *, dns_name_t *,
 			       dns_result_t (*)(dns_name_t *,
 						dns_rdataset_t *,
-						isc_mem_t *),
-				isc_mem_t *);
+						void *),
+				void *);
 static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
 static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
 				        rdatalist_head_t *,
@@ -77,8 +77,8 @@ dns_result_t
 dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 	    dns_rdataclass_t zclass, int *soacount, int *nscount,
 	    dns_result_t (*callback)(dns_name_t *, dns_rdataset_t *,
-				     isc_mem_t *mctx),
-	    isc_mem_t *mctx)
+				     void *private),
+	    void *private, isc_mem_t *mctx)
 {
 	dns_rdataclass_t class;
 	dns_rdatatype_t type;
@@ -218,6 +218,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 								 soacount,
 								 nscount,
 								 callback,
+								 private,
 								 mctx);
 					if (result != DNS_R_SUCCESS)
 						goto cleanup;
@@ -263,6 +264,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 							 soacount,
 							 nscount,
 							 callback,
+							 private,
 							 mctx);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
@@ -275,7 +277,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 			if (in_glue && dns_name_compare(&glue_name,
 							&new_name) != 0) {
 				result = commit(&glue_list,
-						&glue_name, callback, mctx);
+						&glue_name, callback, private);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
 				if (glue_in_use != -1)
@@ -302,7 +304,7 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 				} else {
 					result = commit(&current_list,
 							&current_name,
-							callback, mctx);
+							callback, private);
 					if (result != DNS_R_SUCCESS)
 						goto cleanup;
 					rdcount = 0;
@@ -438,11 +440,11 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 		/* We must have at least 64k as rdlen is 16 bits. */
 		if (target.used > (64*1024)) {
 			result = commit(&current_list, &current_name,
-					callback, mctx);
+					callback, private);
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
 			result = commit(&glue_list, &glue_name,
-					callback, mctx);
+					callback, private);
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
 			rdcount = 0;
@@ -456,10 +458,10 @@ dns_load_master(char *master_file, dns_name_t *top, dns_name_t *origin,
 					ISC_BUFFERTYPE_BINARY);
 		}
 	} while (!done);
-	result = commit(&current_list, &current_name, callback, mctx);
+	result = commit(&current_list, &current_name, callback, private);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = commit(&glue_list, &glue_name, callback, mctx);
+	result = commit(&glue_list, &glue_name, callback, private);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
 	result = DNS_R_SUCCESS;
@@ -586,7 +588,8 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 
 static dns_result_t
 commit(rdatalist_head_t *head, dns_name_t *owner,
-       dns_result_t (*callback)(), isc_mem_t *mctx)
+       dns_result_t (*callback)(dns_name_t *, dns_rdataset_t *, void *),
+       void *private)
 {
 	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
@@ -596,7 +599,7 @@ commit(rdatalist_head_t *head, dns_name_t *owner,
 		
 		dns_rdataset_init(&dataset);
 		dns_rdatalist_tordataset(this, &dataset);
-		result = ((*callback)(owner, &dataset, mctx));
+		result = ((*callback)(owner, &dataset, private));
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		ISC_LIST_UNLINK(*head, this, link);
