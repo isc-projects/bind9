@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33 2000/05/18 17:56:35 bwelling Exp $ */
+/* $Id: log.c,v 1.34 2000/05/18 22:38:49 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1160,10 +1160,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
 	REQUIRE(category != NULL);
 	REQUIRE(module != NULL);
-	if (lctx != NULL) {
-		REQUIRE(category->id < lctx->category_count);
-		REQUIRE(module->id < lctx->module_count);
-	}
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
 
@@ -1174,6 +1170,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	 */
 	if (lctx == NULL)
 		return;
+
+	REQUIRE(category->id < lctx->category_count);
+	REQUIRE(module->id < lctx->module_count);
 
 	/*
 	 * Try to avoid locking the mutex for messages which can't
