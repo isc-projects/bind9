@@ -1,13 +1,13 @@
 
 INTERNET-DRAFT                                    Donald E. Eastlake 3rd
 Clarifies STD0013                                  Motorola Laboratories
-Expires July 2003                                           January 2003
+Expires August 2003                                        February 2003
 
 
 
        Domain Name System (DNS) Case Insensitivity Clarification
        ------ ---- ------ ----- ---- ------------- -------------
-                 <draft-ietf-dnsext-insensitive-00.txt>
+                 <draft-ietf-dnsext-insensitive-01.txt>
 
                          Donald E. Eastlake 3rd
 
@@ -60,42 +60,42 @@ D. Eastlake 3rd                                                 [Page 1]
 INTERNET-DRAFT                                    DNS Case Insensitivity
 
 
+Acknowledgements
+
+   The contributions to this document of Rob Austein, Olafur
+   Gudmundsson, Daniel J. Anderson, Alan Barrett, and Andrew Main are
+   gratefully acknowledged.
+
+
+
 Table of Contents
 
       Status of This Document....................................1
       Abstract...................................................1
 
+      Acknowledgements...........................................2
       Table of Contents..........................................2
 
       1. Introduction............................................3
       2. Case Insensitivity of DNS Labels........................3
-      3. Additional DNS Case Insensitivity Considerations........4
-      3.1 CLASS Case Insensitivity Considerations................4
-      3.2 Label Type Case Insensitivity Considerations...........5
-      4. Case on Input and Output................................5
-      5. Security Considerations.................................6
+      2.1 Escaping Unusual DNS Label Octets......................3
+      2.2 Example Labels with Escapes............................4
+      2.3 Name Lookup Case Insensitivity.........................4
+      2.4 Original DNS Label Types...............................5
+      3. Additional DNS Case Insensitivity Considerations........5
+      3.1 CLASS Case Insensitivity Considerations................5
+      3.2 Extended Label Type Case Insensitivity Considerations..5
+      4. Case on Input and Output................................6
+      4.1 DNS Output Case Preservation...........................6
+      4.2 DNS Input Case Preservation............................6
+      4.3 Wildcard Matching......................................7
+      5. Security Considerations.................................7
 
-      Normative References.......................................7
-      Informative References.....................................7
+      Normative References.......................................9
+      Informative References.....................................9
 
-      Author's Address...........................................8
-      Expiration and File Name...................................8
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      Author's Address..........................................10
+      Expiration and File Name..................................10
 
 
 
@@ -123,7 +123,7 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    The Domain Name System (DNS) is the global hierarchical replicated
    distributed database system for Internet addressing, mail proxy, and
    other information. Each node in the DNS tree has a name consisting of
-   zero or more labels [STD 13][RFC 1591, 2606] which have always been
+   zero or more labels [STD 13][RFC 1591, 2606] which have been
    specified as being treated in a case insensitive fashion. This
    document clarifies the meaning of "case insensitive" for this
    application.
@@ -153,21 +153,21 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
        WWW.gnu.AI.mit.EDU.
    or  69.2.0.192.in-ADDR.ARPA.
 
-   The individual bytes of which DNS names consist are not limited to
+   The individual octets of which DNS names consist are not limited to
    valid ASCII character codes. They are defined as 8-bit bytes and all
-   values are allowed. It is just that they are traditionally interpreted
+   values are allowed. Most applications, however, interprete them
    as ASCII characters.
 
-   The typographic convention for bytes that do not correspond to an
-   ASCII printing graphic is to show them as a back-slash followed by
-   three hex digits for the value of the byte as an unsigned
-   integer. This includes all byte values outside of the inclusive range
-   of 0x21 ("!") to 0x7E ("~"). That is to say, all byte values in the
-   two inclusive ranges 0x00 to 0x20 and 0x7F to 0xFF. The same
-   convention can be used for the back-slash character and the special
-   label separator period ("."). A period can also be protected from
-   recognition as a separator, so that it will be treated as a normal
-   label character, by preceeding it with a back-slash. The first example
+
+
+2.1 Escaping Unusual DNS Label Octets
+
+   An escape is needed for all octet values outside of the inclusive
+   range of 0x21 ("!") to 0x7E ("~"). That is to say, all octet values in
+   the two inclusive ranges 0x00 to 0x20 and 0x7F to 0xFF.
+
+   One typographic convention for octets that do not correspond to an
+   ASCII printing graphic is to show them as a back-slash followed by the
 
 
 D. Eastlake 3rd                                                 [Page 3]
@@ -176,41 +176,90 @@ D. Eastlake 3rd                                                 [Page 3]
 INTERNET-DRAFT                                    DNS Case Insensitivity
 
 
-   below shows embedded spaces and a period (".") within a label. The
-   second one show a 4 byte label where the second byte has all bits zero
-   and the third byte has all bits one.
+   value of the octet as an unsigned integer represented by exactly three
+   decimal digits.  The same convention can be used for printing ASCII
+   characters.  This includes the back-slash character used in this
+   convention itself and the special label separator period (".") which
+   can be expressed as \092 and \046 respectively.
 
-       Donald\040E\.\040Eastlake\0403rd.example.
-   or  a\000\377z.example.
+   A back-slash followed by only one or two decimal digits is
+   undefined. A back-slash followed by four decimal digits produces two
+   octets, the first octet having the value of the first three digits
+   considered as a decimal number and the second octet being the
+   character code for the fourth decimal digit.
+
+   Octets, other than those corresponding to the ASCII digits 0 through
+   9, can also be protected from recognition, so that they will be
+   treated as a normal label character, by a second convention:
+   preceding them with a back-slash. This is the most commonly used
+   technique for protecting back slash ("\") and period ("."). However,
+   it is advisable to avoid using this on other than printing ASCII
+   characters.
+
+
+
+2.2 Example Labels with Escapes
+
+   The first example below shows embedded spaces and a period (".")
+   within a label. The second one show a 4 octet label where the second
+   octet has all bits zero and the third octet has all bits one.
+
+       Donald\032E\.\032Eastlake\0323rd.example.
+   or  a\000\255z.example.
+
+
+
+2.3 Name Lookup Case Insensitivity
 
    The design decision was made that comparisons on name lookup for DNS
    queries should be case insensitive [STD 13]. That is to say, a lookup
-   string byte with a value in the inclusive range of 0x41 to 0x5A, the
+   string octet with a value in the inclusive range of 0x41 to 0x5A, the
    upper case ASCII letters, MUST match the identical value and also
    match the corresponding value in the inclusive range 0x61 to 0x7A,
-   the lower case ASCII letters. And a lookup string byte with a lower
+   the lower case ASCII letters. And a lookup string octet with a lower
    case ASCII letter value MUST similarly match the identical value and
    also match the corresponding value in the upper case ASCII letter
-   range. One way to implement this rule would be, when comparing bytes,
-   to subtract 0x20 from all bytes in the inclusive range 0x61 to 0x7A
-   before the comparison. Such an operation is commonly known as "case
-   folding".
+   range.
 
-   (Historic Note: the terms "upper case" and "lower case" were invented
-   after movable type became wide spread for printing.  The terms
-   originally refered to the two font trays for storing, in partitioned
-   areas, the different physical type elements.  Before movable type,
-   the nearest equivalent terms were "majuscule" and "minuscule".)
+   (Historical Note: the terms "upper case" and "lower case" were
+   invented after movable type became wide spread for printing.  The
+   terms originally referred to the two font trays for storing, in
+   partitioned areas, the different physical type elements.  Before
+   movable type, the nearest equivalent terms were "majuscule" and
+
+
+D. Eastlake 3rd                                                 [Page 4]
+
+
+INTERNET-DRAFT                                    DNS Case Insensitivity
+
+
+   "minuscule".)
+
+   One way to implement this rule would be, when comparing octets, to
+   subtract 0x20 from all octets in the inclusive range 0x61 to 0x7A
+   before the comparison. Such an operation is commonly known as "case
+   folding" but implementation via case folding is not required. Note
+   that the DNS case insensitivity does NOT correspond to the case
+   folding specified in iso-8859-1 or iso-8859-2. For example, the
+   octets 0xDD (\221) and 0xFD (\253) do NOT match although in other
+   contexts where they are interpreted as the upper and lower case
+   version of "Y" with an acute accent, they might.
+
+
+
+2.4 Original DNS Label Types
 
    DNS labels in wire encoded names have a type associated with them.
    The original DNS standard [RFC 1035] had only two types. ASCII
-   labels, with a length of from zero to 63 bytes and indirect labels
+   labels, with a length of from zero to 63 octets and indirect labels
    which consist of an offset pointer to a name location elsewhere in
-   the wire encoding. (The ASCII label of length zero is reserved for
-   use as the name of the root node of the name tree.) ASCII labels
-   follow the ASCII case conventions described above. Indirect labels
-   are, in effect, replaced by the name to which they point which is
-   then treated with the case insensitivity rules in this document.
+   the wire encoding on a DNS message. (The ASCII label of length zero
+   is reserved for use as the name of the root node of the name tree.)
+   ASCII labels follow the ASCII case conventions described above.
+   Indirect labels are, in effect, replaced by the name to which they
+   point which is then treated with the case insensitivity rules in this
+   document.
 
 
 
@@ -227,21 +276,22 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    for data location called CLASS. The only CLASS in global use at this
    time is the "IN" or Internet CLASS.
 
+   The handling of DNS label case is not CLASS dependent.
 
-D. Eastlake 3rd                                                 [Page 4]
+
+
+3.2 Extended Label Type Case Insensitivity Considerations
+
+   DNS was extended by [RFC 2671] to have additional label type numbers
+   available. (The only such type defined so far it the BINARY type [RFC
+
+
+D. Eastlake 3rd                                                 [Page 5]
 
 
 INTERNET-DRAFT                                    DNS Case Insensitivity
 
 
-   The handling of DNS label case is not CLASS dependent.
-
-
-
-3.2 Label Type Case Insensitivity Considerations
-
-   DNS was extended by [RFC 2671] to have additional label type numbers
-   available. (The only such type defined so far it the BINARY type [RFC
    2673].)
 
    The ASCII case insensitivity conventions, or case folding, only apply
@@ -256,11 +306,15 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    preserved on output, except when output is optimized by the use of
    indirect labels, and preserved when possible on input.
 
+
+
+4.1 DNS Output Case Preservation
+
    [STD 13] views the DNS namespace as a node tree. ASCII output is as
    if a name was marshalled by taking the label on the node whose name
-   is to be output, converting it to a typographicly encoded ASCII
+   is to be output, converting it to a typographically encoded ASCII
    string, walking up the tree outputting each label encountered, and
-   preceeding all labels but the first with a period ("."). Wire output
+   preceding all labels but the first with a period ("."). Wire output
    follows the same sequence but each label is wire encoded and no
    periods inserted. No "case conversion" or "case folding" is done
    during such output operations.  However, to optimize output, indirect
@@ -271,6 +325,10 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    destroy the output preservation of case. This type of optimization is
    commonly called "name compression".
 
+
+
+4.2 DNS Input Case Preservation
+
    Originally, DNS input came from an ASCII Master File as defined in
    [STD 13]. DNS Dynamic update has been added as a source of DNS data
    [RFC 2136, 3007]. When a node in the DNS name tree is created by such
@@ -278,33 +336,44 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    preserved if they are for nodes being creted. However, no change is
    made in the name label on nodes that already exist is the DNS data
    being augmented or updated. It is quite common for higher level nodes
-   to already exist. For example, if data with owner name
-   "foo.bar.example" is input and then later data with owner name
-   "xyz.BAR.example" is input, the name of the label on the
-   "bar.example" node, i.e. "bar", is not changed to "BAR". Thus later
-   retrieval of data stored under "xyz.bar.example" in this case can
-   easily result is obtaining data with "xyz.BAR.example".
+   to already exist.
+
+   For example, if data with owner name "foo.bar.example" is input and
+   then later data with owner name "xyz.BAR.example" is input, the name
+   of the label on the "bar.example" node, i.e. "bar", is not changed to
+   "BAR". Thus later retrieval of data stored under "xyz.bar.example" in
 
 
-D. Eastlake 3rd                                                 [Page 5]
+D. Eastlake 3rd                                                 [Page 6]
 
 
 INTERNET-DRAFT                                    DNS Case Insensitivity
 
+
+   this case can easily result is obtaining data with "xyz.BAR.example".
+   The same considerations apply inputting multiple data records with
+   owner names differing only in case. From the example above, if an "A"
+   record is stored under owner name "xyz.BAR.example" and then a second
+   "A" record under "XYZ.BAR.example", the second will be stored at the
+   node with the first (lower case initial label) name.
 
    Note that the order of insertion into a server database of the DNS
    name tree nodes that appear in a Master File is not defined so that
    the results of inconsistent capitalization in a Master File are
    unpredicatable output capitalization.
 
-   There is one additional instance of note, which relfects the general
+
+
+4.3 Wildcard Matching
+
+   There is one additional instance of note, which reflects the general
    rules that output case reflects input case unless there is
    conflicting capitalization in the DNS database or the output case is
    hidden by name compression. This is when a query matches a wild card
    in the DNS database at a server. In that case, the answer SHOULD
    reflect the input case of the label or labels that matched the
    wildcard unless they are replaced by an indirect label which MAY
-   point to a name with different captialization.
+   point to a name with different capitalization.
 
 
 
@@ -326,6 +395,23 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
    canonical ordering for them) appears in Section 8 of [RFC 2535]. See
    also [UNKRR].
 
+   Finally, a non-DNS name may be stored into DNS with the false
+   expectation that case will always be preserved. For example, although
+   this would be quite rare, on a system with case sensitive email
+   address local parts, an attempt to store two "RP" records that
+   differed only in case would probably produce unexpected results that
+
+
+D. Eastlake 3rd                                                 [Page 7]
+
+
+INTERNET-DRAFT                                    DNS Case Insensitivity
+
+
+   might have security implications. That is because the entire email
+   address, including the possibly case sensitive local or left hand
+   part, is encoded into a DNS name in a readable fashion where the case
+   of some letters might be changed on output as described above.
 
 
 
@@ -344,7 +430,37 @@ INTERNET-DRAFT                                    DNS Case Insensitivity
 
 
 
-D. Eastlake 3rd                                                 [Page 6]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 8]
 
 
 INTERNET-DRAFT                                    DNS Case Insensitivity
@@ -402,7 +518,7 @@ Informative References
 
 
 
-D. Eastlake 3rd                                                 [Page 7]
+D. Eastlake 3rd                                                 [Page 9]
 
 
 INTERNET-DRAFT                                    DNS Case Insensitivity
@@ -424,11 +540,9 @@ Author's Address
 
 Expiration and File Name
 
-   This draft expires July 2003.
+   This draft expires August 2003.
 
-   Its file name is draft-ietf-dnsext-insensitive-00.txt.
-
-
+   Its file name is draft-ietf-dnsext-insensitive-01.txt.
 
 
 
@@ -460,5 +574,7 @@ Expiration and File Name
 
 
 
-D. Eastlake 3rd                                                 [Page 8]
+
+
+D. Eastlake 3rd                                                [Page 10]
 
