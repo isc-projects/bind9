@@ -1,0 +1,521 @@
+
+
+DNSEXT Working Group                                        Levon Esibov
+INTERNET-DRAFT                                             Bernard Aboba
+Category: Standards Track                                    Dave Thaler
+<draft-ietf-dnsext-mdns-00.txt>                                Microsoft
+November 16, 2000
+
+
+                             Multicast DNS
+
+This document is an Internet-Draft and is in full conformance with all
+provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering Task
+Force (IETF), its areas, and its working groups.  Note that other groups
+may also distribute working documents as Internet- Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any
+time.  It is inappropriate to use Internet-Drafts as reference material
+or to cite them other than as "work in progress."
+
+The list of current Internet-Drafts can be accessed at
+http://www.ietf.org/ietf/1id-abstracts.txt
+
+The list of Internet-Draft Shadow Directories can be accessed at
+http://www.ietf.org/shadow.html.
+
+Copyright Notice
+
+Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+Abstract
+
+Today, with the rise of home networking, there are an increasing number
+of small networks operating without a DNS server. In order to allow DNS
+name resolution in such environments, the use of a multicast DNS is
+proposed.
+
+1.  Introduction
+
+Multicast DNS enables DNS name resolution in the scenarios when
+conventional DNS name resolution is not possible. Namely, when there are
+no DNS servers available on the network or available DNS servers do not
+provide name resolution for the names of the hosts on the local
+network. The latter case, for example, corresponds to a scenario when a
+home network that doesn't have a DNS server is connected to the Internet
+through an ISP and the home network hosts are configured with the ISP's
+DNS server for the name resolution. The ISP's DNS server provides the
+name resolution for the names registered on the Internet, but doesn't
+provide name resolution for the names of the hosts on the home network.
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 1]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+This document discusses multicast DNS, an extension to the DNS protocol
+which consists of a single change to the method of use, and no change to
+the format of DNS packets.
+
+Discovery of the services in general as well as discovery of the DNS
+servers in particular using multicast DNS is left outside of the scope
+of this document.
+
+Name resolution over non-multicast capable media is left outside of the
+scope of this document.
+
+In this document, the key words "MAY", "MUST,  "MUST  NOT", "optional",
+"recommended",  "SHOULD",  and  "SHOULD  NOT",  are to be interpreted as
+described in [1].
+
+
+2.  Name resolution using Multicast DNS
+
+This extension to the DNS protocol consists of a single change to the
+method of use, and no change whatsoever to the current format of DNS
+packets.  Namely, this extension allows multicast DNS queries to be sent
+to and received on port 53 using the LINKLOCAL addresses [2] for IPv4
+and IPv6 (below in this text referred as LINKLOCAL address), which are
+yet to be assigned by IANA. LINKLOCAL addresses are used to prevent
+propagation of the multicast DNS traffic across the routers that may
+cause network flooding. Propagation of the multicast DNS packets within
+the boundaries is considered sufficient to enable DNS name resolution,
+since the expectation is that if a network has a router, then this
+router can function as a mini-DHCP server, as described in [3], and a
+DNS proxy, possibly implementing dynamic DNS. Thus there is not expected
+to be a need for use of multicast DNS in networks with multiple
+segments.
+
+2.1 Behavior of the sender and responder
+
+For the purpose of this document a device that sends a multicast query
+is called a "sender", while a device that listens to (but not
+necessarily responds to) a multicast query is called "responder". A
+device configured to be a "responder" may also be a "sender". A device
+configured to not be a "responder" cannot be a "sender".
+
+A sender sends multicast DNS query for any legal Type of resource record
+(e.g. A, PTR, etcà) for a name within the ".local.arpa." domain to the
+LINKLOCAL address. The RD (Recursion Desired) bit MUST NOT be set. If a
+responder receives a query with the header containing RD set bit, the
+responder MUST ignore the RD bit.
+
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 2]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+If the multicast query is not positively resolved ("positively resolved"
+refers in this document to the response with the RCODE set to 0) during
+a limited amount of time, then a sender MAY repeat the transmission of a
+query in order to assure themselves that the query has been received by
+a host capable of responding to the query. Repetition MUST NOT be
+attempted more than 5 times, and the repetition SHOULD NOT be repeated
+more often than once per 0.1 seconds to reduce the unnecessary network
+traffic. Retry intervals SHOULD be exponentially increased.
+
+A responder listens on port 53 on the LINKLOCAL address. Responders MUST
+respond to multicast queries to those and only those names for which
+they are authoritative. As an example, computer
+"host.example.com.local.arpa." is authoritative for the domain
+"host.example.com.local.arpa.". When such host receives a multicast DNS
+query for an A record for the name "host.example.com.local.arpa." it
+responds with an A record(s) that contains its IP address(es) in the
+RDATA of the record.
+In conventional DNS terminology a DNS server authoritative for a zone is
+authoritative for all the domain names under the zone root except for
+the branches delegated into separate zones. Contrary to conventional DNS
+terminology, a responder is authoritative only for the zone root. For
+example the host "host.example.com.local.arpa." is not authoritative for
+the name "child.host.example.com.local.arpa." unless the host is
+configured with multiple names, including "host.example.com.local.arpa."
+and "child.host.example.com.local.arpa.". The purpose of such limitation
+of the name authority scope of a responder is to prevent complication
+that could be caused by coexistence of two or more devices with the
+names representing child and parent (or grandparents) nodes in the DNS
+tree, for example, "host.example.com.local.arpa." and
+"child.host.example.com.local.arpa.". In this example (unless this
+limitation introduced) the multicast query for an A record for the name
+"child.host.example.com.local.arpa." would cause two authoritative
+responses: name error received from "host.example.com.local.arpa.", and
+requested A record - from "child.host.example.com.local.arpa.". To
+prevent such ambiguity, we could propose to implement multicast enabled
+devices to perform a dynamic update of the parent (or grandparent) zone
+with a delegation to a child zone, in this example a host
+"child.host.example.com.local.arpa." would send a dynamic update for
+the NS and glue A record to the "host.example.com.local.arpa.", but this
+approach significantly complicates implementation of the multicast DNS
+and would not be acceptable for a lightweight devices.
+
+The response to the multicast query is composed in exactly the same
+manner as in case of a response to the unicast DNS query as specified
+in [4]. Responders MUST never respond using cached data, and the AA
+(Authoritative Answer) bit MUST be set. The response is sent to the
+sender via unicast. If a TC (truncation) bit is set in the response,
+then the sender MAY use the response if it contains all necessary
+information, or the sender MAY discard the response and resend the query
+over TCP or using EDNS0 with larger window using unicast address of the
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 3]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+responder. The RA (Recursion Available) bit in the header of the
+response MUST NOT be set. Even if the RA bit is set in the response
+header, the sender MUST ignore it. The responder MUST set the Hop Limit
+field in IPv6 header and TTL field in IPv4 header of all responses to
+the multicast DNS query to 255. The sender MUST verify that the Hop
+Limit field in IPv6 header and TTL field in IPv4 header of each response
+to the multicast DNS query is set to 255. If it is not, then sender MUST
+ignore such response.
+
+The responder should use a pre-configured TTL [5] value in the records
+returned in the multicast DNS query response. Due to the TTL
+minimalization necessary when caching an RRset, all TTLs in an RRset
+MUST be set to the same value.
+
+The responder includes in the additional and authority section of the
+response the same records, as a DNS server would insert in the response
+to the unicast DNS query.
+
+Sender MUST anticipate receiving no replies to some multicasted queries,
+in the event that no responders are available within the multicast
+scope, or in the event that no positive non-null responses exist to the
+transmitted query.
+
+If no positive response is received, a resolver treats it as a response
+that no records of the specified type and class for the specified name
+exist (NXRRSET), which SHOULD be cached for a period that SHOULD NOT
+exceed 5 seconds.
+
+Sender MUST anticipate receiving multiple replies to the same
+multicasted query, in the event that several multicast DNS enabled
+computers receive the query and respond with valid answers.  When this
+occurs, the responses MAY first be concatenated, and then treated in the
+same manner that multiple RRs received from the same DNS server would,
+ordinarily.
+
+
+3.  Usage model
+
+A device configured to be a "responder" may also be a "sender". A device
+configured to not be a "responder" cannot be a "sender".
+
+Multicast DNS usage is determined by the domain search configuration as
+well as by special treatment of the ".local.arpa." namespace.  Any
+device whose domain search configuration contains ".local.arpa." domain
+is configured to behave as "responder". A device configured to be a
+"responder" may also be a "sender". A device cannot be configured to
+behave as one (i.e. sender or responder), but not another. The sender
+treats queries for ".local.arpa." as a special case. The domain search
+list can be configured manually or automatically via a DHCP option.
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 4]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+A sender MUST NOT send a unicast query for names ending with the
+".local.arpa." suffix except in the case when a sender repeats a query
+over TCP after it received a response to the previous multicast query
+with TC bit set or unless sender's cache contains NS resource record
+that enables sender to send a query directly to the devices
+authoritative for the name in query.
+
+It is not expected that a device "host.example.com." will be manually
+configured to have additional name "host.example.com.local.arpa." when
+it is configured to use multicast DNS. Instead, a responder with a name
+"host.example.com." configured with ".local.arpa." suffix in its domain
+search configuration is authoritative for the name
+"host.example.com.local.arpa.". I.e. when responder with the name
+"host.example.com." receives an A type query for the name
+"host.example.com.local.arpa." it authoritatively responds to the query.
+
+If ".local.arpa" is not in the domain search list, then multicast DNS
+MUST NOT be used by a device. This implies that the device will neither
+listen on the DNS LINKLOCAL multicast address, nor will it send queries
+to that address. An auto-configured host will typically have
+".local.arpa" first in its search list so that it will be enabled to
+use mDNS. Typically an enterprise host will not have ".local.arpa" in
+its search list at all so that it will not use mDNS.
+
+The same device may use multicast DNS queries for the name resolution of
+the names ending with ".local.arpa.", and unicast DNS queries for name
+resolution of all other names. When a DNS client is requested by a user
+or application to perform a name resolution of a dot-terminated name
+that contains a ".local.arpa" suffix, a query for such name MUST be
+multicasted and such name should not be concatenated with any suffix. 
+
+If a DNS server is running on a device, the device MUST NOT listen for
+the multicast DNS queries, to prevent a device from listening on port 53
+and intercepting DNS queries directed to a DNS server. A DNS server may
+listen and respond to the multicast queries. A DNS server by default
+doesn't listen to the multicast DNS queries. Presence of the
+".local.arpa." in the domain search list doesn't affect the
+configuration on the DNS server.
+
+
+4. Sequence of events
+
+The sequence of events for usage of multicast DNS is as follows:
+
+ 1. If a sender needs to resolve a query for a name
+  "host.example.com.local.arpa", then it sends a multicast query to the
+  LINKLOCAL multicast address. 
+
+ 2. A responder responds to this query only if it is authoritative
+  for the domain name "host.example.com.local.arpa". The responder sends
+  a response to the sender via unicast over UDP.
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 5]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+ 3. Upon the reception of the response the sender verifies that the Hop
+  Limit field in IPv6 header or TTL field in IPv4 header (depending on
+  used protocol) of the response is set to 255. If it is, then sender
+  uses and caches the returned response. If not, then the sender ignores
+  the response and continues waiting for the response.
+
+
+5.  Name conflicts
+
+It is required to verify the uniqueness of the host DNS name when a host
+boots, when its name is changed, or when it is configured to use
+multicast DNS (such as when the domain search option is changed to
+include ".local.arpa.").
+
+A gratuitous name resolution query SHOULD be done to check for a name
+conflict. This is done by having the resolver send a multicast query for
+a SOA type query for its own name (i.e. for the name it is authoritative
+for). If the query is not positively resolved then host assumes
+authority for the name. If the query is positively resolved, then the
+host should verify that the computer name specified in the RDATA of the
+SOA record in the answer section of the response is its own computer
+name.  If the host verifies it, then it assumes authority for its name.
+If the host cannot match the returned computer name to its computer
+name, then a conflict has been detected. In order to resolve name
+conflict, the host will change the name.
+
+A host that has detected a name conflict MUST NOT use the name. This
+means that the host MUST NOT respond to multicast queries for that name
+and MUST NOT respond to other multicast queries with the records that
+contain in RDATA name in conflict (for example, PTR record).
+
+Note that this name conflict detection mechanism doesn't prevent name
+conflicts when previously separate networks are connected by a bridge.
+Name conflict in such situation is detected when a sender receives more
+than one response to its multicasted DNS query. Such sender sends using
+unicast the first response that it received to all responders, except
+the first one, that responded to this query. A host that receives a
+response for a query for it's own name, even if it didn't send such
+query, sends a multicast query for the SOA record for the name that it
+is authoritative for. Based on the response the host detects the name
+conflict and acts according to the description above.
+
+
+6.  IANA Considerations
+
+Authors will contact IANA to reserve LINKLOCAL IPv4 and IPv6 addresses.
+
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 6]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+7.  Security Considerations
+
+This draft does not prescribe a means of securing the multicast DNS
+mechanism. It is possible that hosts will allocate conflicting names for
+a period of time, or that non-conforming hosts will attempt to deny
+service to other hosts by allocating the same name. Such attacks also
+allow nodes to receive packets destined for other nodes. The protocol
+reduces the exposure to such threats in the absence of authentication
+by ignoring multicast DNS query response packets received from off-link
+senders. The Hop Limit field in IPv6 and TTL field in IPv4 of all
+received packets is verified to contain 255, the maximum legal value.
+Because routers decrement the Hop Limit on all packets they forward,
+received packets containing a Hop Limit of 255 must have originated
+from a neighbor.
+
+These threats are most serious in wireless networks such as 802.11,
+since attackers on a wired network will require physical access to the
+home network, while wireless attackers may reside outside the home. In
+order to provide for privacy equivalent to a wired network, the 802.11
+specification provides for RC4-based encryption. This is known as the
+"Wired Equivalency Privacy" (WEP) specification. Where WEP is
+implemented, an attacker will need to obtain the WEP key prior to
+gaining access to the home network.
+
+The  mechanism specified in this draft does not require use of the
+DNSSEC, which means that the responses to the multicast DNS queries may
+not be authenticated. If a network contains a "signed key distribution
+center" for all (or at least some) of the DNS zones that the responders
+are authoritative for, then those devices on such a network are
+configured with the key for the top zone, "local.arpa." (hosted by
+"signed keys distribution center") may use DNSSEC for the authentication
+of the responders using DNSSEC.
+
+8.  Acknowledgements
+
+The authors would like to thank Stuart Cheshire, Michael Patton, Erik
+Guttman, Olafur Gudmundsson, Thomas Narten, Mark Andrews, Erik Nordmark,
+Myrong Hattig, Bill Manning and James Gilroy for comments on this draft.
+
+9.  Authors' Addresses
+
+Levon Esibov
+Microsoft Corporation
+One Microsoft Way
+Redmond, WA 98052
+
+EMail: levone@microsoft.com
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 7]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+Bernard Aboba
+Microsoft Corporation
+One Microsoft Way
+Redmond, WA 98052
+
+Phone: +1 (425) 936-6605
+EMail: bernarda@microsoft.com
+
+
+Dave Thaler
+Microsoft Corporation
+One Microsoft Way
+Redmond, WA 98052
+
+Phone: +1 (425) 703-8835
+EMail: dthaler@microsoft.com
+
+
+10.  References
+
+[1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+     Levels", BCP 14, RFC 2119, March 1997.
+
+[2]  Meyer, D., "Administratively Scoped IP Multicast", BCP 23, RFC
+     2365, July 1998.
+
+[3]  Aboba, B., "The Mini-DHCP Server", Internet draft (work in
+     progress), draft-aboba-dhc-mini-01.txt, April 2000.
+
+[4]  Mockapetris, P., "Domain Names - Implementation and Specification",
+     RFC 1035, November 1987.
+
+[5]  Mockapetris, P., "DOMAIN NAMES - CONCEPTS AND FACILITIES",
+     RFC 1034, November 1987.
+
+11.  Intellectual Property Statement
+
+The IETF takes no position regarding the validity or scope of any
+intellectual property or other rights that might be claimed to  pertain
+to the implementation or use of the technology described in this
+document or the extent to which any license under such rights might or
+might not be available; neither does it represent that it has made any
+effort to identify any such rights.  Information on the IETF's
+procedures with respect to rights in standards-track and standards-
+related documentation can be found in BCP-11.  Copies of claims of
+rights made available for publication and any assurances of licenses to
+be made available, or the result of an attempt made to obtain a general
+license or permission for the use of such proprietary rights by
+implementors or users of this specification can be obtained from the
+IETF Secretariat.
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 8]
+
+INTERNET-DRAFT               Multicast DNS              16 November 2000
+
+
+The IETF invites any interested party to bring to its attention any
+copyrights, patents or patent applications, or other proprietary rights
+which may cover technology that may be required to practice this
+standard.  Please address the information to the IETF Executive
+Director.
+
+12.  Full Copyright Statement
+
+Copyright (C) The Internet Society (2000).  All Rights Reserved.
+This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it or
+assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and this paragraph are included
+on all such copies and derivative works.  However, this document itself
+may not be modified in any way, such as by removing the copyright notice
+or references to the Internet Society or other Internet organizations,
+except as needed for the purpose of developing Internet standards in
+which case the procedures for copyrights defined in the Internet
+Standards process must be followed, or as required to translate it into
+languages other than English.  The limited permissions granted above are
+perpetual and will not be revoked by the Internet Society or its
+successors or assigns.  This document and the information contained
+herein is provided on an "AS IS" basis and THE INTERNET SOCIETY AND THE
+INTERNET ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+13.  Expiration Date
+
+This memo is filed as <draft-ietf-dnsext-mdns-00.txt>,  and  expires
+May 16, 2001.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 9]
