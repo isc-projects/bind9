@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.38 2002/10/15 04:32:49 marka Exp $ */
+/* $Id: acconfig.h,v 1.39 2002/12/04 01:19:27 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -75,6 +75,9 @@
 
 /* define if gai_strerror() exists */
 #undef HAVE_GAISTRERROR
+
+/* define if arc4random() exists */
+#undef HAVE_ARC4RANDOM
 
 /* define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.333 $)
+AC_REVISION($Revision: 1.334 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -520,6 +520,11 @@ case "$use_randomdev" in
 		AC_MSG_RESULT(using "$use_randomdev")
 		;;
 esac
+
+#
+# Do we have arc4random() ?
+#
+AC_CHECK_FUNC(arc4random, AC_DEFINE(HAVE_ARC4RANDOM))
 
 #
 # Begin pthreads checking.

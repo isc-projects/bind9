@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.63 2002/04/02 06:06:29 marka Exp $ */
+/* $Id: rdataset.c,v 1.64 2002/12/04 01:19:28 marka Exp $ */
 
 #include <config.h>
 
@@ -370,7 +370,11 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			 */
 			for (i = 0; i < count; i++) {
 				dns_rdata_t rdata;
+#ifndef HAVE_ARC4RANDOM
 				choice = i + (((u_int)rand()>>3) % (count - i));
+#else
+				choice = i + (((u_int)arc4random()>>3) % (count - i));
+#endif
 				rdata = shuffled[i];
 				shuffled[i] = shuffled[choice];
 				shuffled[choice] = rdata;
@@ -385,7 +389,11 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			/*
 			 * "Cyclic" order.
 			 */
+#ifndef HAVE_ARC4RANDOM
 			unsigned int j = (((unsigned int)rand()) >> 3) % count;
+#else
+			unsigned int j = (((unsigned int)arc4random()) >> 3) % count;
+#endif
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
 					sorted[j].key = (*order)(&shuffled[i],
