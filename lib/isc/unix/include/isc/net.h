@@ -76,7 +76,7 @@
 #include <netinet6/in6.h>
 #endif
 
-#include <isc/result.h>
+#include <isc/types.h>
 
 #ifndef AF_INET6
 #define AF_INET6 99
@@ -102,8 +102,6 @@ extern const struct in6_addr isc_net_in6addrany;
  * Ensure type in_port_t is defined.
  */
 #ifdef ISC_PLATFORM_NEEDPORTT
-#include <isc/int.h>
-
 typedef isc_uint16_t in_port_t;
 #endif
 

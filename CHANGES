@@ -1,3 +1,6 @@
+ 139.   [cleanup]       <isc/net.h> now includes <isc/types.h> instead of
+                        <isc/int.h> and <isc/result.h>.
+
  138.   [cleanup]       isc_strtouq moved from str.[ch] to string.[ch] and
                         renamed isc_string_touint64.  isc_strsep moved from
                         strsep.c to string.c and renamed isc_string_separate.
