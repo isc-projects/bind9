@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.334 2001/08/30 05:24:44 marka Exp $ */
+/* $Id: zone.c,v 1.335 2001/08/30 06:48:43 marka Exp $ */
 
 #include <config.h>
 
@@ -3314,7 +3314,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	} else if (isc_serial_eq(soa.serial, zone->serial)) {
 		if (zone->masterfile != NULL) {
 			isc_time_t t;
-			isc_time_set(&t, now, 0);
+			(void)isc_time_now(&t);
 			result = isc_file_settime(zone->masterfile, &t);
 			if (result != ISC_R_SUCCESS)
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -3851,7 +3851,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	} else {
 		if (next <= now) {
 			next = now;
-			isc_time_now(&expires);
+			(void)isc_time_now(&expires);
 			isc_interval_set(&interval, 0, 0);
 		} else {
 			isc_time_settoepoch(&expires);
@@ -4750,7 +4750,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
 			isc_time_t t;
-			isc_time_set(&t, now, 0);
+
+			(void)isc_time_now(&t);
 
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL)

@@ -1,3 +1,6 @@
+ 972.	[bug]		The file modification time code in zone.c was using the
+			wrong epoch.  [RT #1667]
+
  971.	[func]		'try-edns' can be use to disable edns on all queries.
 
  970.	[func]		'journal-size' can now be used to set a target
