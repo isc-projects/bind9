@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.4 2000/12/12 07:25:04 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.5 2000/12/20 03:40:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,9 +24,11 @@
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
+#include <dns/db.h>
 #include <dns/lookup.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 #include <dns/view.h>
 
@@ -37,6 +39,63 @@
 
 static void start_lookup(ns_lwdclient_t *);
 
+static isc_result_t
+count_rdatasets(dns_db_t *db, dns_dbnode_t *node, lwres_uint16_t *count) {
+	dns_rdatasetiter_t *iter = NULL;
+	int n = 0;
+	isc_result_t result;
+
+	result = dns_db_allrdatasets(db, node, NULL, 0, &iter);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	for (result = dns_rdatasetiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iter))
+	{
+		dns_rdataset_t set;
+
+		dns_rdataset_init(&set);
+		dns_rdatasetiter_current(iter, &set);
+		if (set.type == dns_rdatatype_sig)
+			n += dns_rdataset_count(&set);
+		dns_rdataset_disassociate(&set);
+	}
+	if (result != ISC_R_NOMORE)
+		goto cleanup;
+	*count = n;
+	result = ISC_R_SUCCESS;
+ cleanup:
+	if (iter != NULL)
+		dns_rdatasetiter_destroy(&iter);
+	return (result);
+}
+
+static isc_result_t
+fill_array(int *pos, dns_rdataset_t *rdataset,
+	   int size, unsigned char **rdatas, lwres_uint16_t *rdatalen)
+{
+	dns_rdata_t rdata;
+	isc_result_t result;
+	isc_region_t r;
+
+	dns_rdata_init(&rdata);
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		INSIST(*pos < size);
+		dns_rdataset_current(rdataset, &rdata);
+		dns_rdata_toregion(&rdata, &r);
+		rdatas[*pos] = r.base;
+		rdatalen[*pos] = r.length;
+		dns_rdata_reset(&rdata);
+		(*pos)++;
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	return (result);
+}
+
 static void
 lookup_done(isc_task_t *task, isc_event_t *event) {
 	ns_lwdclient_t *client;
@@ -46,7 +105,6 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *name;
 	dns_rdataset_t *rdataset;
 	dns_rdataset_t *sigrdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	lwres_result_t lwresult;
 	isc_region_t r;
@@ -101,7 +159,14 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	grbn->flags = 0;
 
 	rdataset = levent->rdataset;
-	grbn->nrdatas = dns_rdataset_count(rdataset);
+	if (rdataset != NULL)
+		grbn->nrdatas = dns_rdataset_count(rdataset);
+	else {
+		result = count_rdatasets(levent->db, levent->node,
+					 &grbn->nrdatas);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+	}
 	grbn->rdatas = NULL;
 	grbn->rdatalen = NULL;
 
@@ -123,9 +188,18 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	ns_lwdclient_log(50, "found name '%.*s'", grbn->realnamelen,
 			 grbn->realname);
 
-	grbn->rdclass = rdataset->rdclass;
-	grbn->rdtype = rdataset->type;
-	grbn->ttl = rdataset->ttl;
+	grbn->rdclass = cm->view->rdclass;
+	grbn->rdtype = client->rdtype;
+
+	/* If rdataset is NULL, get this later. */
+	if (rdataset == NULL)
+		grbn->ttl = ISC_INT32_MAX;
+	else
+		grbn->ttl = rdataset->ttl;
+
+	/* If rdataset is NULL, remove this later. */
+	if (rdataset == NULL || rdataset->trust == dns_trust_secure)
+		grbn->flags |= LWRDATA_VALIDATED;
 
 	grbn->rdatas = isc_mem_get(cm->mctx,
 				   grbn->nrdatas * sizeof(unsigned char *));
@@ -135,21 +209,48 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 				     grbn->nrdatas * sizeof(lwres_uint16_t));
 	if (grbn->rdatalen == NULL)
 		goto out;
-	dns_rdata_init(&rdata);
-	i = 0;
-	for (result = dns_rdataset_first(rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		INSIST(i < grbn->nrdatas);
-		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_toregion(&rdata, &r);
-		grbn->rdatas[i] = r.base;
-		grbn->rdatalen[i] = r.length;
-		dns_rdata_reset(&rdata);
-		i++;
+
+	if (rdataset != NULL) {
+		i = 0;
+		result = fill_array(&i, rdataset, grbn->nrdatas, grbn->rdatas,
+				    grbn->rdatalen);
+		if (result != ISC_R_SUCCESS || i != grbn->nrdatas)
+			goto out;
+	} else {
+		dns_rdatasetiter_t *iter = NULL;
+		dns_rdataset_t set;
+
+		result = dns_db_allrdatasets(levent->db, levent->node,
+					     NULL, 0, &iter);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+		i = 0;
+		for (result = dns_rdatasetiter_first(iter);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdatasetiter_next(iter))
+		{
+			dns_rdataset_init(&set);
+			dns_rdatasetiter_current(iter, &set);
+			if (set.type != dns_rdatatype_sig) {
+				dns_rdataset_disassociate(&set);
+				continue;
+			}
+			if (set.ttl < grbn->ttl)
+				grbn->ttl = set.ttl;
+			if (set.trust < dns_trust_secure)
+				grbn->flags &= (~LWRDATA_VALIDATED);
+			result = fill_array(&i, &set, grbn->nrdatas,
+					    grbn->rdatas, grbn->rdatalen);
+			dns_rdataset_disassociate(&set);
+			if (result != ISC_R_SUCCESS)
+				break;
+		}
+		dns_rdatasetiter_destroy(&iter);
+		if (result == ISC_R_NOMORE)
+			result = ISC_R_SUCCESS;
+		if (result != ISC_R_SUCCESS || i != grbn->nrdatas)
+			goto out;
 	}
-	INSIST(i == grbn->nrdatas);
 
 	grbn->sigs = isc_mem_get(cm->mctx, grbn->nsigs *
 				 sizeof(unsigned char *));
@@ -161,30 +262,15 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 		goto out;
 	
 	if (sigrdataset != NULL) {
-		dns_rdata_init(&rdata);
 		i = 0;
-		for (result = dns_rdataset_first(sigrdataset);
-		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(sigrdataset))
-		{
-			INSIST(i < grbn->nsigs);
-			dns_rdataset_current(sigrdataset, &rdata);
-			dns_rdata_toregion(&rdata, &r);
-			grbn->sigs[i] = r.base;
-			grbn->siglen[i] = r.length;
-			dns_rdata_reset(&rdata);
-			i++;
-		}
-		INSIST(i == grbn->nsigs);
+		result = fill_array(&i, rdataset, grbn->nsigs, grbn->sigs,
+				    grbn->siglen);
+		if (result != ISC_R_SUCCESS || i != grbn->nsigs)
+			goto out;
 	}
 
 	dns_lookup_destroy(&client->lookup);
 	isc_event_free(&event);
-
-	if (rdataset->trust == dns_trust_secure)
-		grbn->flags |= LWRDATA_VALIDATED;
-	if (rdataset->trust == dns_trust_ultimate)
-		grbn->flags |= LWRDATA_AUTHORITATIVE;
 
 	/*
 	 * Render the packet.
@@ -313,6 +399,10 @@ ns_lwdclient_processgrbn(ns_lwdclient_t *client, lwres_buffer_t *b) {
 
 	client->options = 0;
 	if (req->rdclass != cm->view->rdclass)
+		goto out;
+
+	if (req->rdclass == dns_rdataclass_any ||
+	    req->rdtype == dns_rdatatype_any)
 		goto out;
 
 	client->rdtype = req->rdtype;

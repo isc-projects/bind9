@@ -1,3 +1,6 @@
+ 626.	[bug]		The lightweight resolver daemon no longer crashes
+			when asked for a SIG rrset. [RT #558]
+
  625.	[func]		Zone's now inherit their class from the enclosing view.
 
  624.	[bug]		The zone object could get timer events after it had
