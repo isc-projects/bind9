@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.189 2001/03/14 21:53:21 halley Exp $ */
+/* $Id: query.c,v 1.190 2001/03/19 22:59:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3506,8 +3506,8 @@ synth_fwd_startfind(ns_client_t *client) {
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 		dns_name_init(tname, NULL);
-		result = query_addcnamelike(client, client->query.qname, ptarget,
-					    0 /* XXX ttl */, &tname,
+		result = query_addcnamelike(client, client->query.qname,
+					    ptarget, 0 /* XXX ttl */, &tname,
 					    dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
