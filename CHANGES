@@ -1,3 +1,6 @@
+ 650.	[bug]		SIG(0) records were being generated and verified
+			incorrectly. [RT #606]
+
  649.	[bug]		It was possible to join to an already running fctx
 			after it had "cloned" its events, but before it sent
 			them.  In this case, the event of the newly joined
