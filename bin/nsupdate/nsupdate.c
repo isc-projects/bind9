@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.98 2001/07/11 23:50:43 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.99 2001/07/12 04:13:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1744,7 +1744,7 @@ sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 
 static void
 start_update(void) {
-	isc_result_t result, result2;
+	isc_result_t result;
 	dns_rdataset_t *rdataset = NULL;
 	dns_name_t *name = NULL;
 	dns_request_t *request = NULL;
@@ -1754,8 +1754,7 @@ start_update(void) {
 	ddebug("start_update()");
 
 	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
-	result2 = dns_message_firstname(updatemsg, DNS_SECTION_PREREQUISITE);
-	if (result != ISC_R_SUCCESS && result2 != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		done_update();
 		return;
 	}
