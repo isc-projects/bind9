@@ -1293,7 +1293,17 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
+	 * Relinquish root privileges.
+	 */
+	if (first_time)
+		ns_os_changeuser(ns_g_username);
+
+	/*
 	 * Configure the logging system.
+	 * 
+	 * Do this after changing UID to make sure that any log 
+	 * files specified in named.conf get created by the
+	 * unprivileged user, not root.
 	 */
 	if (ns_g_logstderr) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
@@ -1321,9 +1331,6 @@ load_configuration(const char *filename, ns_server_t *server,
 			CHECKM(result, "installing logging configuration");
 		}
 	}
-
-	if (first_time)
-		ns_os_changeuser(ns_g_username);
 
 	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) ==
 	    ISC_R_NOTFOUND)
