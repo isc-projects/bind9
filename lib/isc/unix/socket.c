@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.163 2000/08/31 17:10:58 gson Exp $ */
+/* $Id: socket.c,v 1.164 2000/09/06 22:55:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -849,8 +849,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
 #undef SOFT_OR_HARD
@@ -2832,6 +2832,9 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 			goto err_exit;
 		case ENETUNREACH:
 			dev->result = ISC_R_NETUNREACH;
+			goto err_exit;
+		case EHOSTUNREACH:
+			dev->result = ISC_R_HOSTUNREACH;
 			goto err_exit;
 		}
 
