@@ -33,7 +33,6 @@
 
 static	isc_time_t	Tx_endtime;
 static	isc_time_t	Tx_lasttime;
-static	int		Tx_shutdownflag;
 static	int		Tx_eventcnt;
 static	int		Tx_nevents;
 static	isc_mutex_t	Tx_mx;
@@ -174,7 +173,6 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 	isc_result_t	isc_result;
 	isc_timermgr_t	*timermgr;
 
-	Tx_shutdownflag = 0;
 	Tx_eventcnt = 0;
 	isc_time_settoepoch(&Tx_endtime);
 
@@ -342,7 +340,7 @@ static char *a1 =
 	"specified task every 'interval' seconds and returns ISC_R_SUCCESS.";
 
 static void
-t1() {
+t1(void) {
 	int		result;
 	isc_time_t	expires;
 	isc_interval_t	interval;
@@ -379,7 +377,7 @@ static char *a2 =
 	"specified by 'expires'.";
 
 static void
-t2() {
+t2(void) {
 	int		result;
 	int		isc_result;
 	isc_time_t	expires;
@@ -495,7 +493,7 @@ static char *a3 =
 	"specified task when the timer has been idle for 'interval' seconds.";
 
 static void
-t3() {
+t3(void) {
 	int		result;
 	int		isc_result;
 	isc_time_t	expires;
@@ -649,7 +647,7 @@ static char *a4 =
 	"interval values to the given values.";
 
 static void
-t4() {
+t4(void) {
 	int		result;
 	isc_time_t	expires;
 	isc_interval_t	interval;
@@ -830,7 +828,7 @@ t5_shutdown_event(isc_task_t *task, isc_event_t *event) {
 }
 
 static int
-t_timers5() {
+t_timers5(void) {
 
 	char		*p;
 	int		result;
@@ -1063,7 +1061,7 @@ static char *a5 =
 	"events from 'timer' from the task's event queue.";
 
 static void
-t5() {
+t5(void) {
 	int	result;
 
 	t_assert("isc_timer_reset", 5, T_REQUIRED, a5);
