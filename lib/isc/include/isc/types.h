@@ -19,6 +19,7 @@
 #define ISC_TYPES_H 1
 
 #include <isc/int.h>
+#include <isc/boolean.h>
 #include <isc/list.h>
 
 /***

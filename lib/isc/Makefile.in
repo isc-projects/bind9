@@ -25,12 +25,18 @@ CINCLUDES =	-I${srcdir}/unix/include \
 CDEFINES =
 CWARNINGS =
 
+UNIXOBJS =	unix/app.o unix/time.o unix/stdtime.o unix/socket.o \
+		unix/interfaceiter.o unix/sockaddr.o
+
+NLSOBJS =	nls/msgcat.o
+
+PTHREADOBJS =	pthreads/condition.o
+
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.o base64.o buffer.o error.o heap.o lex.o lib.o \
 		mem.o result.o rwlock.o symtab.o str.o event.o task.o timer.o \
 		version.o \
-		unix/app.o unix/time.o unix/stdtime.o unix/socket.o \
-		unix/interfaceiter.o nls/msgcat.o pthreads/condition.o
+		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
 SUBDIRS =	include unix nls pthreads
 TARGETS =	timestamp

@@ -36,6 +36,9 @@ typedef struct isc_sockaddr {
 	} type;
 } isc_sockaddr_t;
 
+isc_boolean_t
+isc_sockaddr_equal(isc_sockaddr_t *, isc_sockaddr_t *);
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */
