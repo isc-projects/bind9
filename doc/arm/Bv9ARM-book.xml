@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.182 2001/12/06 04:38:51 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.183 2001/12/14 18:29:10 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5144,14 +5144,17 @@ domain names.</para>
 </tgroup></informaltable>
 <para>This example shows two addresses for <literal>XX.LCS.MIT.EDU</literal>,
 each of a different class.</para></sect3></sect2>
+
 <sect2><title>Discussion of MX Records</title>
+
 <para>As described above, domain servers store information as a
 series of resource records, each of which contains a particular
 piece of information about a given domain name (which is usually,
 but not always, a host). The simplest way to think of a RR is as
-a typed pair of datum, a domain name matched with relevant data,
-and stored with some additional type information to help systems determine
-when the RR is relevant.</para>
+a typed pair of data, a domain name matched with a relevant datum,
+and stored with some additional type information to help systems 
+determine when the RR is relevant.</para>
+
 <para>MX records are used to control delivery of email. The data
 specified in the record is a priority and a domain name. The priority
 controls the order in which email delivery is attempted, with the
