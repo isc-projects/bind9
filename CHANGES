@@ -1,3 +1,6 @@
+1512.	[bug]		Extend the delegation-only logging to return query
+			type, class and responding nameserver.
+
 1511.	[bug]		delegation-only was generating false positives
 			on negative answers from subzones.
 1510.	[func]		New view option "root-delegation-only".  Apply
