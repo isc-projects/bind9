@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.203 2001/02/19 08:54:52 halley Exp $ */
+/* $Id: resolver.c,v 1.204 2001/02/21 05:16:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2415,6 +2415,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *asigrdataset = NULL;
 	dns_dbnode_t *node = NULL;
 	isc_boolean_t negative;
+	isc_boolean_t chaining;
 	isc_boolean_t sentresponse;
 	isc_uint32_t ttl;
 
@@ -2452,6 +2453,25 @@ validated(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * If chaining, we need to make sure that the right result code is
+	 * returned, and that the rdatasets are bound.
+	 */
+	if (vevent->result == ISC_R_SUCCESS &&
+	    !negative &&
+	    vevent->rdataset != NULL &&
+	    CHAINING(vevent->rdataset))
+	{
+		if (vevent->rdataset->type == dns_rdatatype_cname)
+			eresult = DNS_R_CNAME;
+		else {
+			INSIST(vevent->rdataset->type == dns_rdatatype_dname);
+			eresult = DNS_R_DNAME;
+		}
+		chaining = ISC_TRUE;
+	} else
+		chaining = ISC_FALSE;
+
+	/*
 	 * Either we're not shutting down, or we are shutting down but want
 	 * to cache the result anyway (if this was a validation started by
 	 * a query with cd set)
@@ -2459,7 +2479,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	hevent = ISC_LIST_HEAD(fctx->events);
 	if (hevent != NULL) {
-		if (!negative &&
+		if (!negative && !chaining &&
 		    (fctx->type == dns_rdatatype_any ||
 		     fctx->type == dns_rdatatype_sig)) {
 			/*
