@@ -7,7 +7,6 @@
 #
 # and where dc_method is one of
 #	DNS_COMPRESS_ALL
-#	DNS_COMPRESS_GLOBAL
 #	DNS_COMPRESS_GLOBAL14
 #	DNS_COMPRESS_NONE
 #
