@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.116 2001/06/28 01:08:24 marka Exp $ */
+/* $Id: main.c,v 1.117 2001/07/16 17:32:49 gson Exp $ */
 
 #include <config.h>
 
@@ -482,20 +482,13 @@ setup(void) {
 	 * directory's name before possibly changing to another directory.
 	 */
 	if (! isc_file_isabsolute(ns_g_conffile)) {
-		result = isc_dir_current(absolute_conffile,
-					 sizeof(absolute_conffile), ISC_TRUE);
+		result = isc_file_absolutepath(ns_g_conffile,
+					       absolute_conffile,
+					       sizeof(absolute_conffile));
 		if (result != ISC_R_SUCCESS)
-			ns_main_earlyfatal("getting current directory failed: "
-					   "%s", isc_result_totext(result));
-
-		if (strlen(absolute_conffile) + strlen(ns_g_conffile) + 1 >
-		    sizeof(absolute_conffile))
-			ns_main_earlyfatal("configuration filename too long: "
-					   "%s%s", absolute_conffile,
-					   ns_g_conffile);
-
-		strcat(absolute_conffile, ns_g_conffile);
-
+			ns_main_earlyfatal("could not construct absolute path of "
+					   "configuration file: %s", 
+					   isc_result_totext(result));
 		ns_g_conffile = absolute_conffile;
 	}
 
