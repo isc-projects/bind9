@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.2 2001/07/10 19:54:01 gson Exp $ */
+/* $Id: net.h,v 1.3 2001/07/10 23:38:44 bwelling Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -68,6 +68,10 @@
 
 #include <lwres/lang.h>
 
+#ifndef LWRES_PLATFORM_HAVEIPV6
+#include <lwres/ipv6.h>		/* Contractual promise. */
+#endif
+
 #ifdef LWRES_PLATFORM_HAVEINADDR6
 #define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
 #endif
@@ -101,10 +105,6 @@
 
 #ifndef PF_INET6
 #define PF_INET6 AF_INET6
-#endif
-
-#ifndef LWRES_PLATFORM_HAVEIPV6
-#include <lwres/ipv6.h>		/* Contractual promise. */
 #endif
 
 #ifndef INADDR_LOOPBACK
