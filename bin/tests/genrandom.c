@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.2 2000/08/09 00:21:26 bwelling Exp $ */
+/* $Id: genrandom.c,v 1.3 2000/08/09 00:30:57 bwelling Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +26,7 @@ main(int argc, char **argv) {
 	unsigned int bytes;
 	unsigned int k;
 	char *endp;
-	FILE *urandom, *fp;
+	FILE *fp;
 
 	if (argc != 3) {
 		printf("usage: genrandom k file\n");
@@ -45,42 +45,22 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	urandom = fopen("/dev/urandom", "r");
-	if (urandom != NULL) {
-		unsigned char data[1024];
-		while (bytes > 0) {
-			size_t n, toread;
-			toread = sizeof(data);
-			if (toread > bytes)
-				toread = bytes;
-			n = fread(data, 1, toread, urandom);
-			if (n <= 0) {
-				printf("error reading /dev/urandom\n");
-				exit(1);
-			}
-			if (fwrite(data, 1, n, fp) != n) {
-				printf("error writing to file\n");
-				exit(1);
-			}
-			bytes -= n;
+	srand(0x12345678);
+	while (bytes > 0) {
+		unsigned short int x = htons(rand() & 0xFFFF);
+		unsigned char c = x & 0xFF;
+		if (fwrite(&c, 1, 1, fp) != 1) {
+			printf("error writing to file\n");
+			exit(1);
 		}
-		fclose(urandom);
-	} else {
-		unsigned int seed = (unsigned int) time(NULL);
-		srand(seed);
-		while (bytes > 0) {
-			int x = rand();
-			if (fwrite(&x, 1, sizeof(int), fp) != sizeof(int)) {
-				printf("error writing to file\n");
-				exit(1);
-			}
-			bytes -= sizeof(int);
+		c = x >> 8;
+		if (fwrite(&c, 1, 1, fp) != 1) {
+			printf("error writing to file\n");
+			exit(1);
 		}
+		bytes -= 2;
 	}
 	fclose(fp);
 
 	exit(0);
-
-	
-
 }
