@@ -438,15 +438,25 @@ run(void *uap) {
 	timer_manager_t manager = uap;
 	struct timespec ts;
 	boolean_t timeout;
+	os_time_t now;
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
 
+		INSIST(os_time_get(&now) == ISC_R_SUCCESS);
+
 		printf("timer run thread awake\n");
 
 		if (manager->nscheduled > 0) {
+			/*
+			 * XXX
+			 */
+			/*
 			ts.tv_sec = manager->next_time.seconds;
 			ts.tv_nsec = manager->next_time.nanoseconds;
+			*/
+			ts.tv_sec = now.seconds + 5;
+			ts.tv_nsec = 0;
 
 			timeout = FALSE;
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
