@@ -1609,7 +1609,7 @@ SOURCE=..\timer.c
 
 !ENDIF 
 
-SOURCE=..\win32os.c
+SOURCE=.\win32os.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
 

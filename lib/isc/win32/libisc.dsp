@@ -497,7 +497,7 @@ SOURCE=..\include\isc\timer.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isc\win32os.h
+SOURCE=.\include\isc\win32os.h
 # End Source File
 # Begin Source File
 
@@ -673,7 +673,7 @@ SOURCE=..\timer.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\win32os.c
+SOURCE=.\win32os.c
 # End Source File
 # End Group
 # Begin Source File
