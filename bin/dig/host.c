@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.96 2004/04/13 02:39:35 marka Exp $ */
+/* $Id: host.c,v 1.97 2004/04/13 02:54:14 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -209,7 +209,7 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	printf("\n");
 	isc_buffer_free(&b);
 }
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 /* Just for compatibility : not use in host program */
 isc_result_t
 printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.188 2004/04/13 02:39:34 marka Exp $ */
+/* $Id: dig.c,v 1.189 2004/04/13 02:54:14 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -41,8 +41,6 @@
 #include <dns/rdataclass.h>
 #include <dns/result.h>
 
-#include <dig/dig.h>
-
 #ifdef DIG_SIGCHASE
 #ifndef DIG_SIGCHASE_BU
 #define DIG_SIGCHASE_BU 1
@@ -51,6 +49,8 @@
 #define DIG_SIGCHASE_TD 1
 #endif
 #endif
+
+#include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
 extern dig_serverlist_t server_list;

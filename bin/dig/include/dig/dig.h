@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.83 2004/04/13 02:39:35 marka Exp $ */
+/* $Id: dig.h,v 1.84 2004/04/13 02:54:15 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -79,7 +79,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dig_lookup dig_lookup_t;
 typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 typedef struct dig_message dig_message_t;
 #endif
 typedef ISC_LIST(dig_server_t) dig_serverlist_t;
@@ -113,10 +113,10 @@ struct dig_lookup {
 		new_search,
 		besteffort,
 		dnssec;
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
-#ifdef _SIGCHASE_TD_
-isc_boolean_t	do_topdown,
+#if DIG_SIGCHASE_TD
+ 	isc_boolean_t do_topdown,
 	        trace_root_sigchase,
 	        rdtype_sigchaseset,
 	        rdclass_sigchaseset;
@@ -129,7 +129,7 @@ isc_boolean_t	do_topdown,
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdatatype_t qrdtype;
-#ifdef _SIGCHASE_TD_
+#if DIG_SIGCHASE_TD
         dns_rdatatype_t rdtype_sigchase;
         dns_rdatatype_t qrdtype_sigchase;
         dns_rdataclass_t rdclass_sigchase;
@@ -203,7 +203,7 @@ struct dig_searchlist {
 	char origin[MXNAME];
 	ISC_LINK(dig_searchlist_t) link;
 };
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 struct dig_message {
 	        dns_message_t *msg;
 		ISC_LINK(dig_message_t) link;
@@ -280,7 +280,7 @@ destroy_libs(void);
 void
 set_search_domain(char *domain);
 
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 void
 clean_trustedkey(void);
 #endif
@@ -288,7 +288,7 @@ clean_trustedkey(void);
 /*
  * Routines to be defined in dig.c, host.c, and nslookup.c.
  */
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 isc_result_t
 printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 	      isc_buffer_t *target);
@@ -317,7 +317,7 @@ dighost_shutdown(void);
 char *
 next_token(char **stringp, const char *delim);
 
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 /* Chasing functions */
 dns_rdataset_t *
 chase_scanname(dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers);

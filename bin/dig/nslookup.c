@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.102 2004/04/13 02:39:35 marka Exp $ */
+/* $Id: nslookup.c,v 1.103 2004/04/13 02:54:15 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,15 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/byaddr.h>
+
+#ifdef DIG_SIGCHASE
+#ifndef DIG_SIGCHASE_BU
+#define DIG_SIGCHASE_BU 1
+#endif
+#ifndef DIG_SIGCHASE_TD
+#define DIG_SIGCHASE_TD 1
+#endif
+#endif
 
 #include <dig/dig.h>
 
@@ -189,7 +198,7 @@ printa(dns_rdata_t *rdata) {
 	printf("Address: %.*s\n", (int)isc_buffer_usedlength(&b),
 	       (char *)isc_buffer_base(&b));
 }
-#ifdef _SIGCHASE_
+#ifdef DIG_SIGCHASE
 /* Just for compatibility : not use in host program */
 isc_result_t
 printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
