@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.222 2001/08/29 18:57:08 gson Exp $ */
+/* $Id: dighost.c,v 1.223 2001/09/11 22:34:21 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -965,6 +965,9 @@ try_clear_lookup(dig_lookup_t *lookup) {
 		isc_timer_detach(&lookup->timer);
 	if (lookup->sendspace != NULL)
 		isc_mempool_put(commctx, lookup->sendspace);
+
+	if (lookup->tsigctx != NULL)
+		dst_context_destroy(&lookup->tsigctx);
 
 	isc_mem_free(mctx, lookup);
 	return (ISC_TRUE);
@@ -2282,6 +2285,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		result = dns_message_settsigkey(msg, key);
 		check_result(result, "dns_message_settsigkey");
 		msg->tsigctx = l->tsigctx;
+		l->tsigctx = NULL;
 		if (l->msgcounter != 0)
 			msg->tcp_continuation = 1;
 		l->msgcounter++;
@@ -2361,6 +2365,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			validated = ISC_FALSE;
 		}
 		l->tsigctx = msg->tsigctx;
+		msg->tsigctx = NULL;
 		if (l->querysig != NULL) {
 			debug("freeing querysig buffer %p", l->querysig);
 			isc_buffer_free(&l->querysig);
