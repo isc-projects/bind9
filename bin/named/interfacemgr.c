@@ -97,7 +97,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 static dns_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		    ns_interface_t **ifpret) {
+		    isc_boolean_t udp_only, ns_interface_t **ifpret) {
         ns_interface_t *ifp;
 	isc_result_t result;
 	
@@ -172,41 +172,43 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		goto addtodispatch_failure;
 	}
 
-	/*
-	 * Open a TCP socket.
-	 */
 	ifp->tcpsocket = NULL;
-	result = isc_socket_create(mgr->socketmgr,
-				   isc_sockaddr_pf(addr),
-				   isc_sockettype_tcp,
-				   &ifp->tcpsocket);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "creating TCP socket: %s",
-				 isc_result_totext(result));
-		goto tcp_socket_failure;
-	}
-	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "binding TCP socket: %s",
-				 isc_result_totext(result));
-		goto tcp_bind_failure;
-	}
-	result = isc_socket_listen(ifp->tcpsocket, 0);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "listen TCP socket: %s",
-				 isc_result_totext(result));
-		goto tcp_listen_failure;
-	}
-	result = ns_clientmgr_accepttcp(mgr->clientmgr, ifp->tcpsocket,
-					ns_g_cpus);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "TCP ns_clientmgr_accepttcp(): %s",
-				 isc_result_totext(result));
-		goto accepttcp_failure;
+	if (!udp_only) {
+		/*
+		 * Open a TCP socket.
+		 */
+		result = isc_socket_create(mgr->socketmgr,
+					   isc_sockaddr_pf(addr),
+					   isc_sockettype_tcp,
+					   &ifp->tcpsocket);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "creating TCP socket: %s",
+					 isc_result_totext(result));
+			goto tcp_socket_failure;
+		}
+		result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "binding TCP socket: %s",
+					 isc_result_totext(result));
+			goto tcp_bind_failure;
+		}
+		result = isc_socket_listen(ifp->tcpsocket, 0);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "listen TCP socket: %s",
+					 isc_result_totext(result));
+			goto tcp_listen_failure;
+		}
+		result = ns_clientmgr_accepttcp(mgr->clientmgr, ifp->tcpsocket,
+						ns_g_cpus);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "TCP ns_clientmgr_accepttcp(): %s",
+					 isc_result_totext(result));
+			goto accepttcp_failure;
+		}
 	}
 
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
@@ -255,8 +257,10 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	dns_dispatch_detach(&ifp->udpdispatch);
 	isc_socket_detach(&ifp->udpsocket);
 
-	isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
-	isc_socket_detach(&ifp->tcpsocket);
+	if (ifp->tcpsocket != NULL) {
+		isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
+		isc_socket_detach(&ifp->tcpsocket);
+	}
 
 	isc_task_detach(&ifp->task);
 	
@@ -299,7 +303,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 }
 
 static void
-do_ipv4(ns_interfacemgr_t *mgr) {
+do_ipv4(ns_interfacemgr_t *mgr, isc_boolean_t udp_only) {
 	isc_interfaceiter_t *iter = NULL;
 	isc_result_t result;
 
@@ -344,7 +348,8 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			       interface.name, addrstr,
 			       ntohs(listen_addr.type.sin.sin_port));
 			
-			result = ns_interface_create(mgr, &listen_addr, &ifp);
+			result = ns_interface_create(mgr, &listen_addr,
+						     udp_only, &ifp);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "IPv4: listening on interface %s"
@@ -378,7 +383,8 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 		ifp->generation = mgr->generation;
 	} else {
 		printf("IPv6: listening (port %u)\n", listen_port);
-		result = ns_interface_create(mgr, &listen_addr, &ifp);
+		result = ns_interface_create(mgr, &listen_addr, ISC_FALSE,
+					     &ifp);
 		if (result != DNS_R_SUCCESS)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "IPv6: listening failed");
@@ -387,18 +393,21 @@ do_ipv6(ns_interfacemgr_t *mgr) {
 
 void
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
+	isc_boolean_t udp_only = ISC_FALSE;
+
 	REQUIRE(VALID_IFMGR(mgr));
 
 	mgr->generation++;	/* Increment the generation count. */ 
 
+	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+		do_ipv6(mgr);
+		udp_only = ISC_TRUE;
+	} else
+		printf("IPv6: not available\n");
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
-		do_ipv4(mgr);
+		do_ipv4(mgr, udp_only);
 	else
 		printf("IPv4: not available\n");
-	if (isc_net_probeipv6() == ISC_R_SUCCESS)
-		do_ipv6(mgr);
-	else
-		printf("IPv6: not available\n");
 
         /*
          * Now go through the interface list and delete anything that
