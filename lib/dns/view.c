@@ -26,6 +26,7 @@
 #include <isc/error.h>
 
 #include <dns/types.h>
+#include <dns/adb.h>
 #include <dns/dbtable.h>
 #include <dns/db.h>
 #include <dns/fixedname.h>
@@ -88,6 +89,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->cachedb = NULL;
 	view->hints = NULL;
 	view->resolver = NULL;
+	view->adb = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
@@ -139,6 +141,8 @@ static inline void
 destroy(dns_view_t *view) {
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 
+	if (view->adb != NULL)
+		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
 	if (view->hints != NULL)
@@ -187,16 +191,26 @@ dns_view_createresolver(dns_view_t *view,
 			isc_timermgr_t *timermgr,
 			dns_dispatch_t *dispatch)
 {
+	isc_result_t result;
+
 	/*
-	 * Create a resolver for the view.
+	 * Create a resolver and address database for the view.
 	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	
-	return (dns_resolver_create(view, taskmgr, ntasks, socketmgr,
-				    timermgr, dispatch, &view->resolver));
+	result = dns_resolver_create(view, taskmgr, ntasks, socketmgr,
+				     timermgr, dispatch, &view->resolver);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = dns_adb_create(view->mctx, view, timermgr, taskmgr,
+				&view->adb);
+	if (result != ISC_R_SUCCESS)
+		dns_resolver_detach(&view->resolver);
+
+	return (result);
 }
 
 void
@@ -213,9 +227,10 @@ dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
-	REQUIRE(view->cachedb == NULL);
 	REQUIRE(dns_db_iscache(cachedb));
 
+	if (view->cachedb != NULL)
+		dns_db_detach(&view->cachedb);
 	dns_db_attach(cachedb, &view->cachedb);
 }
 

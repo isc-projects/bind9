@@ -79,6 +79,7 @@ struct dns_view {
 	char *				name;
 	dns_zt_t *			zonetable;
 	dns_resolver_t *		resolver;
+	dns_adb_t *			adb;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
 	dns_rbt_t *			secroots;
@@ -164,7 +165,7 @@ dns_view_createresolver(dns_view_t *view,
 			isc_timermgr_t *timermgr,
 			dns_dispatch_t *dispatch);
 /*
- * Create a resolver for the view.
+ * Create a resolver and address database for the view.
  *
  * Requires:
  *
@@ -194,14 +195,16 @@ dns_view_setcachedb(dns_view_t *view, dns_db_t *cachedb);
  *
  * Requires:
  *
- *	'view' is a valid, unfrozen view, whose cache database has not been
- *	set.
+ *	'view' is a valid, unfrozen view.
  *
  *	'cachedb' is a valid cache database.
  *
  * Ensures:
  *
  *     	The cache database of 'view' is 'cachedb'.
+ *
+ *	If this is not the first call to dns_view_setcachedb() for this
+ *	view, then previously set db is detached.
  */
 
 void
