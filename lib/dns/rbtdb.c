@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.8 2004/01/12 04:29:41 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.9 2004/03/04 02:43:36 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3984,13 +3984,12 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 						rdataset->covers);
 	newheader->attributes = 0;
 	newheader->count = 0;
+	newheader->trust = rdataset->trust;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
-		newheader->trust = 0;
 		now = 0;
 	} else {
 		newheader->serial = 1;
-		newheader->trust = rdataset->trust;
 		if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 			newheader->attributes |= RDATASET_ATTR_NXDOMAIN;
 	}

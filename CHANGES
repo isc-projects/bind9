@@ -1,5 +1,8 @@
 1586.  [func]          "check-names" is now implemented.
 
+1583.	[bug]		Records add via UPDATE failed to get the correct trust
+			level. [RT #10452]
+
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
 
