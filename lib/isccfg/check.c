@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.1 2001/09/04 19:15:36 gson Exp $ */
+/* $Id: check.c,v 1.14.2.2 2001/10/04 19:43:06 gson Exp $ */
 
 #include <config.h>
 
@@ -374,7 +374,7 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 		}
 
 		tresult = cfg_check_key(key, logctx);
-		if (result != ISC_R_SUCCESS) {
+		if (tresult != ISC_R_SUCCESS) {
 			isc_symtab_destroy(&symtab);
 			return (tresult);
 		}
