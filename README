@@ -300,9 +300,11 @@ Building
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 	
+	Known compiler issues:
 	* gcc-3.2.1 and gcc-3.1.1 is known to cause problems with solaris-x86.
 	* gcc prior to gcc-3.2.3 ultrasparc generates incorrect code at -02.
 	* gcc-3.3.5 powerpc generates incorrect code at -02.
+	* Irix, MipsPRO 7.3.1m is known to cause problems.
 
 	A limited test suite can be run with "make test".  Many of
 	the tests require you to configure a set of virtual IP addresses
