@@ -38,13 +38,13 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 
-TARGETS =	dig host
+TARGETS =	dig host nslookup
 
-OBJS =		dig.@O@ dighost.@O@ host.@O@
+OBJS =		dig.@O@ dighost.@O@ host.@O@ nslookup.@O@
 
 UOBJS =		
 
-SRCS =		dig.c dighost.c host.c
+SRCS =		dig.c dighost.c host.c nslookup.c
 
 @BIND9_MAKE_RULES@
 
