@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.6 2001/08/03 23:44:49 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.7 2001/08/08 05:13:47 gson Exp $ */
 
 #include <config.h>
 
@@ -49,7 +49,9 @@
 #define DEFAULT_SERVER		"127.0.0.1"
 #define DEFAULT_PORT		953
 
-char progname[256];
+static char program[256];
+char *progname;
+
 isc_boolean_t verbose = ISC_FALSE;
 
 const char *keyfile, *keydef;
@@ -146,9 +148,10 @@ main(int argc, char **argv) {
 
  	keydef = keyfile = RNDC_KEYFILE;
 
-	result = isc_file_progname(*argv, progname, sizeof(progname));
+	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
-		memcpy(progname, "rndc-confgen", 13);
+		memcpy(program, "rndc-confgen", 13);
+	progname = program;
 
 	keyname = DEFAULT_KEYNAME;
 	keysize = DEFAULT_KEYLENGTH;
