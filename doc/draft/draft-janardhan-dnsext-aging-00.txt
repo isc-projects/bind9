@@ -1,0 +1,396 @@
+Internet Engineering Task Force                    Kamal Janardhan
+Internet-Draft                                     Levon Esibov
+November 13, 2001                                  Expires: May 13 2002
+
+               DNS Stale Resource Records Removal Mechanism
+                   <draft-janardhan-dnsext-aging-00.txt>
+
+Status of this Memo
+
+This document is an Internet-Draft and is in full conformance
+with all provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering
+Task Force (IETF), its areas, and its working groups.  Note that
+other groups may also distribute working documents as
+Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six
+months and may be updated, replaced, or obsoleted by other
+documents at any time.  It is inappropriate to use Internet-
+Drafts as reference material or to cite them other than as
+"work in progress."
+
+The list of current Internet-Drafts can be accessed at
+http://www.ietf.org/ietf/1id-abstracts.txt
+
+The list of Internet-Draft Shadow Directories can be accessed at
+http://www.ietf.org/shadow.html.
+
+ 
+Copyright Notice
+
+Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+
+Abstract
+
+The Dynamic DNS Update Protocol assumes that the devices/applications
+performing dynamic registration of the DNS records will delete the
+records from the DNS database when the records become invalid. Initial
+deployment of the devices supporting the Dynamic DNS Update protocol 
+indicated that there are multiple legitimate scenarios when records 
+dynamically registered in DNS are not removed from the database by the 
+devices that originally registered them. This can result in a 
+substantial number of stale records. This document describes a 
+mechanism to clean up these stale records.
+
+
+1. Introduction
+
+The Dynamic DNS Update Protocol assumes that the entities performing 
+dynamic registration of the DNS records will delete the records from 
+the DNS database when the records become invalid. Initial deployment of 
+the devices supporting the Dynamic DNS update protocol indicated that 
+there are multiple legitimate scenarios when records dynamically 
+registered in DNS, are not removed from the database by the devices 
+that originally registered them. Such scenarios are more likely to 
+
+
+
+Esibov, Janardhan			                   [Page 1]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+
+occur in a network that has mobile devices. For example if a device is 
+unexpectedly unplugged from the network (and is never connected back 
+into the network) after it registered its DNS resource record in a DNS 
+database, its record will remain in the DNS database infinitely until 
+administrator manually deletes the record. This can result in a 
+substantial number of stale records.  
+Presence of these stale resource records results in use of the 
+information that is not current when a DNS server responds to 
+queries and causes space consumption in the database.  It also may 
+prevent other devices from registering new DNS records with the 
+same owner-name.  This document describes a mechanism to clean up 
+these stale resource records.
+
+The goal of the protocol described in this document is to enable 
+removal of the stale DNS records from the DNS database without 
+modifications to the DNS wire format and without modification to the 
+meaning of the currently used fields in the DNS wire format. 
+
+It is not a goal of this protocol to ensure the immediate removal of 
+stale records.  The goal is to ensure that stale records are eventually
+removed without the administrator's involvement.
+
+
+2. Aging and removal of stale records protocol
+
+2.1 Client requirements of this protocol
+
+Each client performing dynamic DNS registration/update of a resource
+record MUST periodically repeat the dynamic update requests for each 
+record it dynamically registered/updated, even when record itself is 
+not modified.
+
+2.2 Server requirements of this protocol
+Every DNS server hosting a primary DNS zone MUST maintain a timestamp 
+for each record in such zone. The timestamp contains the value 
+corresponding to a moment of time when the resource record was last
+updated.  Every time a server processes a Dynamic Update request for a 
+record or a Dynamic Update Request containing a prerequisite section 
+that requires existence of that resource record, the server MUST 
+update the timestamp of the record that is supposed to be removed by 
+this mechanism.  Thus, the server MUST update the timestamp of a 
+resource record even when the resource record specified in the dynamic 
+update request is identical to the record stored by the 
+DNS server. An exception to this rule is allowed to suppress an 
+unnecessarily large number of consecutive dynamic updates for the same
+record, that could be caused by poorly written applications or by attackers 
+initiating Denial of Service attacks. For this purpose
+DNS servers MAY be configured to not update a record∆s timestamp for 
+a short period of time after previous update to the timestamp. We refer
+to this time period as a NoRefresh Interval.
+
+Notice that some records in a zone may not be subjected to cleanup 
+procedure described below. Such records, for example, may include those 
+manually created by an administrator. Such records MUST
+be properly marked as different.  A way to mark this difference could
+
+
+Esibov, Janardhan			                   [Page 2]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+be to use the timestamp field by assigning it some special value.
+
+Update of a timestamp, but not any other field of a record, MUST NOT 
+cause SOA serial number modification. The timestamp is not propagated
+from the primary to secondary DNS servers during zone transfers.  The
+advantage of this behavior is that it doesn∆t require any changes to 
+the wire format of the records in the zone transfer and there is no 
+increase in network traffic caused by frequent updates to the 
+timestamp on the primary server. 
+The disadvantage of this behavior is that if the primary server 
+becomes unavailable, and secondary server for the zone is configured as 
+a new primary, then it will not be able to perform 
+removal of the stale records unless it loads the zone data from the file
+imported from the previously primary DNS server.
+
+Each DNS server performing removal of the stale records MUST be 
+configured with a time interval called Refresh Interval. Any resource 
+record that is configured to remain in the database 
+until the administrator removes it, i.e. a record that is configured
+to be removed by the clean-up operation, is declared to be stale 
+when its timestamp has not been updated for a period of time 
+exceeding Refresh Interval. The DNS server MUST determine whether a
+resource record is stale by comparing a value of its timestamp to
+the result of subtraction of the Refresh Interval from the current 
+time. If the timestamp is less than the result of subtraction of
+the Refresh Interval from the current time, then the record is stale.
+Each primary DNS server MUST periodically review the DNS database to 
+find the stale records and remove them from the database. 
+
+Notice that if a DNS server is configured to not update a record∆s 
+timestamp for a short period of time after the timestamp was updated 
+last time, as mentioned above, then DNS server MUST determine whether
+a resource record is stale by comparing a value of its timestamp to 
+the result of subtraction of the sum of the Refresh and NoRefresh 
+Intervals from the current time. If the timestamp is less than the 
+result of subtraction of the Refresh and NoRefresh Intervals 
+from the current time, then the record is stale. In the rest of the
+examples used in this document, for simplicity, it is assumed that
+the DNS server is not configured with NoRefresh Interval. 
+
+To prevent deletion of the valid records, the Refresh Interval 
+specified for any primary DNS zone MUST be longer than longest interval
+between two consecutive Dynamic Update requests for the 
+same resource record sent by a device.  For example, if a DNS 
+client performs periodic registration of a DNS record as often or 
+less than once a week, then the Refresh Interval of a zone 
+hosting that record MUST be longer than one week. It is a DNS server
+administrator∆s responsibility to set the appropriate Refresh Interval.
+
+There are some scenrios when a primary DNS server may not always
+be able to update the timestamps at the clients request for e.g.
+the server is temporarily offline.  For this reason, a DNS server
+MUST NOT perform removal of the stale records for the length
+of the Refresh Interval after the server has retined to online 
+status.  This ensures a period of time when the server is 
+available for records' timestamps to be refreshed to prevent 
+
+
+
+Esibov, Janardhan			                   [Page 3]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+
+records that could not be refreshed from being incorrectly removed.
+
+
+3. Example Section
+The following scenario illustrates the stale records removal protocol.
+Two clients, A and B, are configured to perform Dynamic Update of the 
+DNS host resource records for the names a.example.com and b.example.com
+respectively. These clients are configured to repeat dynamic updates 
+of the resource records every 24 hours. DNS server hosting a primary 
+copy of a zone example.com, which is authoritative for the names 
+a.example.com and b.example.com, is configured with Refresh Interval set
+to 72 hours (3 days). The server is also configured to perform removal 
+of the stale DNS resource records every 168 hours (1 week) starting 
+at 23:00 on 11/1/2001.
+
+On 11/5/2001 at 17:00 client A registers a host resource record with 
+name a.example.com. The DNS server accepts Dynamic Update of the 
+record. The DNS server associates a timestamp with this record which 
+contains the value 17:00 on 11/5/2001.  This client will repeat
+registration on a daily basis and the record∆s timestamp will be 
+updated to 17:00 on 11/6/2001, 17:00 on 11/7/2001, 17:00 
+on 11/8/2001 and so on and so forth.
+
+On 11/8/2001 at 11:00 client B registers a host resource record 
+with name b.example.com. The DNS server accepts registration of the 
+record. The DNS server associates a timestamp with this record which 
+contains the value Ê11:00 on 11/7/2001∆. This client will repeat 
+registration on a daily basis until further notice and the record∆s 
+timestamp will be updated to 11:00 on 11/9/2001, 11:00 on 11/10/2001, 
+11:00 on 11/11/2001 and so on until otherwise specified.
+
+On 11/8/2001 at 23:00 the DNS server starts review of the timestamps
+of the records in its primary DNS zones and deletes the stale 
+records from the zones. Since the Refresh Interval is set to 72 
+hours, any record with a timestamp containing a value less than 
+23:00 on 11/5/2001 is declared stale and is removed from the DNS
+zone. Since at that moment, the timestamps of the records 
+a.example.com and b.example.com contain 17:00 on 11/8/2001 and 
+11:00 on 11/8/2001 respectively, both of which are greater than 23:00 
+on 11/5/2001, they are not removed from the DNS zone.
+
+As time goes on, client A continues to send period dynamic
+update requests for the host resource record for a.example.com on 
+a daily basis. In contrast, client B is unexpectedly disconnected
+from the network on 11/12/2001 at 18:00. From that time onwards,
+client B doesn∆t send dynamic update requests for the record 
+b.example.com to the primary DNS server, and as a result the 
+timestamp value of the b.example.com record is not updated after
+that moment and contains the last updated value of 11:00 on 
+11/12/2001.
+
+On 11/15/2001 at 23:00 the DNS server starts review of the 
+timestamps of the records in its primary DNS zones and deletes the 
+stale records. Since the Refresh Interval is set to 72 hours, 
+any record with a timestamp containing value less than 23:00 
+on 11/12/2001 is declared stale and is removed from the DNS zone.  
+
+
+Esibov, Janardhan			                   [Page 4]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+At this point the timestamp of the record a.example.com contains the 
+value of 17:00 on 11/15/2001 and therefore the record
+is preserved in the zone. At the same time, the timestamp of the
+record b.example.com contains the value of 11:00 on 11/12/2001 and 
+therefore it is declared to be stale and the DNS
+server removes it from the DNS zone and updates the SOA serial number.
+Subsequently, the deletion of the record propagates to the secondary
+DNS servers for this zone.
+
+4. Implementation recommendations
+
+It is advisable that in early implementations of this mechanism, 
+the default be that the stale records removal mechanism is disabled.  
+Before enabling this stale record removal mechanism on a server
+an administrator must ensure that the resource records hosted 
+by the server are periodically refreshed by the clients within
+a period less than Refresh Interval of the zone to prevent accidental
+deletion of the resource records.
+
+
+5. Security Considerations
+
+Implementation of the stale record removal mechanism does not introduce
+additional security concerns. 
+
+To suppress possible denial of service attacks which could be organized
+by sending a continuous flux of dynamic update requests for the existing
+record, a DNS server may suppress such requests for a short period of 
+time after the last update of the timestamp. This does not, however, 
+worsen a scenario of repeated dynamic update requests for new records, 
+which is possible with the dynamic DNS update protocol.
+
+If an attacker can prevent dynamic update requests intended to update 
+the timestamp from reaching the destination DNS server, the record may
+eventually be incorrectly removed from a DNS zone because it is stale. 
+This however, does not worsen similar attacks where the original dynamic 
+update request is prevented from reaching a destination DNS server and 
+creating a new record in a DNS zone which results in the same name 
+resolution problems.
+
+
+8. Acknowledgements
+
+The authors of this document would like to thank the following people
+for their contribution to this specification:  Stuart Kwan, James Gilroy,
+and Eyal Schwartz.
+
+
+Esibov, Janardhan			                   [Page 5]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+7.  References
+
+[RFC2136] D. Eastlake 3rd "Secure Domain Name System Dynamic Update"
+          RFC 2136, April 1997
+
+[RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
+          Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+[RFC1034] Mockapetris, P., "Domain Names - Concepts and Facilities",
+          STD 13, RFC 1034, November 1987.
+
+[RFC1035] - Domain Names - Implementation and Specifications, 
+	  P.Mockapetris, November 1987.
+
+9. Author's Addresses
+
+Kamal Janardhan                        
+Microsoft Corporation               
+One Microsoft Way                   
+Redmond, WA  98052                  
+USA                                 
+kamaljan@microsoft.com
+
+Levon Esibov
+Microsoft Corporation               
+One Microsoft Way                   
+Redmond, WA  98052                  
+USA                                 
+levone@microsoft.com
+
+10. Intellectual Property Statement
+
+The IETF takes no position regarding the validity or scope of any
+intellectual property or other rights that might be claimed to  pertain
+to the implementation or use of the technology described in this
+document or the extent to which any license under such rights might or
+might not be available; neither does it represent that it has made any
+effort to identify any such rights.  Information on the IETF's 
+procedures with respect to rights in standards-track and standards-
+related documentation can be found in BCP-11.  Copies of claims of
+rights made available for publication and any assurances of licenses to
+be made available, or the result of an attempt made to obtain a general
+license or permission for the use of such proprietary rights by
+implementors or users of this specification can be obtained from the
+IETF Secretariat.
+
+The IETF invites any interested party to bring to its attention any
+copyrights, patents or patent applications, or other proprietary rights
+which may cover technology that may be required to practice this
+standard.  Please address the information to the IETF Executive
+Director.
+
+
+11. Full Copyright Statement
+Copyright (C) The Internet Society (2001).  All Rights Reserved.
+This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it or
+assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and this paragraph are included
+on all such copies and derivative works.  However, this document itself
+may not be modified in any way, such as by removing the copyright notice
+or references to the Internet Society or other Internet organizations,
+except as needed for the purpose of developing Internet standards in
+which case the procedures for copyrights defined in the Internet
+Standards process must be followed, or as required to translate it into
+languages other than English.  The limited permissions granted above are
+perpetual and will not be revoked by the Internet Society or its
+
+
+Esibov, Janardhan			                   [Page 6]
+
+
+INTERNET-DRAFT           Stale Records Removal      	November 2001
+
+
+successors or assigns.  This document and the information contained
+herein is provided on an "AS IS" basis and THE INTERNET SOCIETY AND THE
+INTERNET ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
