@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.30 2000/10/05 22:27:47 bwelling Exp $ */
+/* $Id: context.c,v 1.31 2000/10/12 21:39:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 
 #include "context_p.h"
 #include "assert_p.h"
@@ -179,7 +180,7 @@ context_connect(lwres_context_t *ctx) {
 	struct sockaddr_in sin;
 	struct sockaddr_in6 sin6;
 	struct sockaddr *sa;
-	socklen_t salen;
+	LWRES_SOCKADDR_LEN_T salen;
 	int flags;
 	int domain;
 
