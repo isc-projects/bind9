@@ -195,6 +195,42 @@ Package=<4>
 
 ###############################################################################
 
+Project: "namedcheckconf"=..\bin\check\win32\namedcheckconf.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisccfg
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "namedcheckzone"=..\bin\check\win32\namedcheckzone.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "nslookup"=..\bin\dig\win32\nslookup.dsp - Package Owner=<4>
 
 Package=<5>
