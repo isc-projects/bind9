@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.84 2001/07/10 04:01:15 bwelling Exp $
+ * $Id: dst_api.c,v 1.85 2001/07/10 05:00:42 bwelling Exp $
  */
 
 #include <config.h>
@@ -100,9 +100,10 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	REQUIRE(mctx != NULL && ectx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-	UNUSED(mctx);
-
 	dst_memory_pool = NULL;
+
+#ifdef OPENSSL
+	UNUSED(mctx);
 	/*
 	 * When using --with-openssl, there seems to be no good way of not
 	 * leaking memory due to the openssl error handling mechanism.
@@ -113,6 +114,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setdestroycheck(dst_memory_pool, ISC_FALSE);
+#else
+	isc_mem_attach(mctx, &dst_memory_pool);
+#endif
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;
 
