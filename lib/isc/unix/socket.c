@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.184 2001/01/25 22:25:10 neild Exp $ */
+/* $Id: socket.c,v 1.185 2001/01/26 23:17:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1789,21 +1789,10 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
-	 * limits here, currently.  If some sort of quantum read count is
-	 * desired before giving up control, make certain to process markers
-	 * regardless of quantum.
+	 * limits here, currently.
 	 */
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	while (dev != NULL) {
-		/*
-		 * If this is a marker event, post its completion and
-		 * continue the loop.
-		 */
-		if (dev->ev_type == ISC_SOCKEVENT_RECVMARK) {
-			send_recvdone_event(sock, &dev, ISC_R_SUCCESS);
-			goto next;
-		}
-
 		switch (doio_recv(sock, dev)) {
 		case DOIO_SOFT:
 			goto poke;
@@ -1812,9 +1801,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			/*
 			 * read of 0 means the remote end was closed.
 			 * Run through the event queue and dispatch all
-			 * the events with an EOF result code.  This will
-			 * set the EOF flag in markers as well, but
-			 * that's really ok.
+			 * the events with an EOF result code.
 			 */
 			do {
 				send_recvdone_event(sock, &dev, ISC_R_EOF);
@@ -1869,21 +1856,10 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
-	 * limits here, currently.  If some sort of quantum write count is
-	 * desired before giving up control, make certain to process markers
-	 * regardless of quantum.
+	 * limits here, currently.
 	 */
 	dev = ISC_LIST_HEAD(sock->send_list);
 	while (dev != NULL) {
-		/*
-		 * If this is a marker event, post its completion and
-		 * continue the loop.
-		 */
-		if (dev->ev_type == ISC_SOCKEVENT_SENDMARK) {
-			send_senddone_event(sock, &dev, ISC_R_SUCCESS);
-			goto next;
-		}
-
 		switch (doio_send(sock, dev)) {
 		case DOIO_SOFT:
 			goto poke;
@@ -3266,96 +3242,6 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	}
 
 	UNLOCK(&sock->lock);
-}
-
-isc_result_t
-isc_socket_recvmark(isc_socket_t *sock,
-		    isc_task_t *task, isc_taskaction_t action, const void *arg)
-{
-	isc_socketevent_t *dev;
-	isc_socketmgr_t *manager;
-	isc_task_t *ntask = NULL;
-
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	LOCK(&sock->lock);
-
-	INSIST(sock->bound);
-
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVMARK, action, arg);
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	dev->result = ISC_R_SUCCESS;
-	dev->minimum = 0;
-
-	/*
-	 * Bad luck.  The queue wasn't empty.  Insert this in the proper
-	 * place.
-	 */
-	isc_task_attach(task, &ntask);
-
-	dev->ev_sender = ntask;
-
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_recvmark: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_socket_sendmark(isc_socket_t *sock,
-		    isc_task_t *task, isc_taskaction_t action, const void *arg)
-{
-	isc_socketevent_t *dev;
-	isc_socketmgr_t *manager;
-	isc_task_t *ntask = NULL;
-
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	LOCK(&sock->lock);
-
-	INSIST(sock->bound);
-
-	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDMARK, action, arg);
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	dev->result = ISC_R_SUCCESS;
-	dev->minimum = 0;
-
-	/*
-	 * Bad luck.  The queue wasn't empty.  Insert this in the proper
-	 * place.
-	 */
-	isc_task_attach(task, &ntask);
-
-	dev->ev_sender = ntask;
-
-	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_sendmark: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
-	return (ISC_R_SUCCESS);
 }
 
 isc_sockettype_t

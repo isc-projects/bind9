@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.51 2001/01/09 21:57:34 bwelling Exp $ */
+/* $Id: socket.h,v 1.52 2001/01/26 23:17:25 bwelling Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -135,8 +135,6 @@ struct isc_socket_connev {
 #define ISC_SOCKEVENT_SENDDONE	(ISC_EVENTCLASS_SOCKET + 2)
 #define ISC_SOCKEVENT_NEWCONN	(ISC_EVENTCLASS_SOCKET + 3)
 #define ISC_SOCKEVENT_CONNECT	(ISC_EVENTCLASS_SOCKET + 4)
-#define ISC_SOCKEVENT_RECVMARK	(ISC_EVENTCLASS_SOCKET + 5)
-#define ISC_SOCKEVENT_SENDMARK	(ISC_EVENTCLASS_SOCKET + 6)
 
 /*
  * Internal events.
@@ -557,41 +555,6 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
  *	ISC_R_SUCCESS
  *	ISC_R_UNEXPECTED
  *	XXX needs other net-type errors
- */
-
-isc_result_t
-isc_socket_recvmark(isc_socket_t *sock, isc_task_t *task,
-		    isc_taskaction_t action, const void *arg);
-isc_result_t
-isc_socket_sendmark(isc_socket_t *sock, isc_task_t *task,
-		    isc_taskaction_t action, const void *arg);
-/*
- * Insert a recv/send marker for the socket.
- *
- * This marker is processed when all I/O requests in the proper queue
- * have been processed.
- *
- * Requires:
- *
- *	'socket' is a valid, bound socket.
- *
- *	'task' is a valid task, 'action' is a valid action.
- *
- * Notes:
- *
- *	If the queue is empty, the event will be posted immediately to the
- * 	task.
- *
- *	On return, the event's 'result' member will sometimes contain useful
- *	information.  If the mark was processed after a fatal error, it will
- *	contain the same error that the last isc_socket_recv(), _send(),
- *	or sendto() returned, depending on the mark type.
- *
- * Returns:
- *
- *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY
- *	ISC_R_UNEXPECTED
  */
 
 isc_result_t
