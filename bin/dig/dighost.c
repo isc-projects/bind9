@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.171 2000/12/08 17:06:48 mws Exp $ */
+/* $Id: dighost.c,v 1.172 2000/12/08 17:50:47 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -414,8 +414,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->textname[MXNAME-1]=0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->rdclass = lookold->rdclass;
-	looknew->rdtype = lookold->rdtypeset;
-	looknew->rdclass = lookold->rdclassset;
+	looknew->rdtypeset = lookold->rdtypeset;
+	looknew->rdclassset = lookold->rdclassset;
 	looknew->doing_xfr = lookold->doing_xfr;
 	looknew->ixfr_serial = lookold->ixfr_serial;
 	looknew->defname = lookold->defname;
