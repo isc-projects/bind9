@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.8.2.1 2000/06/28 03:18:11 tale Exp $ */
+/* $Id: auth.c,v 1.8.2.2 2000/07/12 00:02:12 gson Exp $ */
 
 /* Principal Author: DCL */
 
@@ -58,6 +58,7 @@ struct auth {
 	unsigned int		magic;
 	char			*name;
 	char			*secret;
+	size_t			secretlen;
 	unsigned int		algorithms;
 
 	ISC_LINK(auth_t)	link;
@@ -133,10 +134,8 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 			return (ISC_R_UNEXPECTED);
 		}
 
-		length = strlen(auth->secret);
-		isc_buffer_init(&secret, auth->secret, length);
-		isc_buffer_add(&secret, length);
-
+		isc_buffer_init(&secret, auth->secret, auth->secretlen);
+		isc_buffer_add(&secret, auth->secretlen);
 
 		length = strlen(auth->name);
 		isc_buffer_init(&srcb, auth->name, length);
@@ -171,8 +170,8 @@ auth_delete(auth_t *a) {
 }
 
 isc_result_t
-omapi_auth_register(const char *name, const char *secret,
-		    unsigned int algorithms)
+omapi_auth_register(const char *name, unsigned int algorithms,
+		    const unsigned char *secret, size_t secretlen)
 {
 	auth_t *new = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -199,9 +198,13 @@ omapi_auth_register(const char *name, const char *secret,
 		if (new->name == NULL)
 			result = ISC_R_NOMEMORY;
 	
-		new->secret = isc_mem_strdup(omapi_mctx, secret);
+		new->secret = isc_mem_allocate(omapi_mctx, secretlen);
 		if (new->secret == NULL)
 			result = ISC_R_NOMEMORY;
+		else {
+			memcpy(new->secret, secret, secretlen);
+			new->secretlen = secretlen;
+		}
 
 		new->algorithms = algorithms;
 

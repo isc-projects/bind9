@@ -1,3 +1,7 @@
+ 329.	[func]		omapi_auth_register() now takes a size_t argument for
+			the length of a key's secret data.  Previously
+			OMAPI only stored secrets up to the first NUL byte.
+
  328.	[func]		Added isc_base64_decodestring().
 
  325.	[bug]		isc_lex_gettoken was processing octal strings when

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.12.2.3 2000/07/11 17:23:10 gson Exp $ */
+/* $Id: rndc.c,v 1.12.2.4 2000/07/12 00:02:11 gson Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -25,6 +25,8 @@
 
 #include <stdlib.h>
 
+#include <isc/base64.h>
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/mem.h>
@@ -273,7 +275,8 @@ main(int argc, char **argv) {
 	dns_c_kdeflist_t *keys = NULL;
 	dns_c_kdef_t *key = NULL;
 	const char *keyname = NULL;
-	const char *secret = NULL;
+	char secret[1024];
+	isc_buffer_t secretbuf;
 	char *command;
 	const char *servername = NULL;
 	const char *host = NULL;
@@ -396,7 +399,6 @@ main(int argc, char **argv) {
 	INSIST(key->secret != NULL);
 	INSIST(key->algorithm != NULL);
 
-	secret = key->secret;
 	if (strcasecmp(key->algorithm, "hmac-md5") == 0)
 		algorithm = OMAPI_AUTH_HMACMD5;
 	else {
@@ -404,6 +406,10 @@ main(int argc, char **argv) {
 			progname, key->algorithm);
 		exit(1);
 	}
+
+	isc_buffer_init(&secretbuf, secret, sizeof(secret));
+	DO("decode base64 secret",
+	   isc_base64_decodestring(mctx, key->secret, &secretbuf));
 
 	if (server != NULL)
 		(void)dns_c_ndcserver_gethost(server, &host);
@@ -432,7 +438,8 @@ main(int argc, char **argv) {
 	ndc_g_ndc.type = ndc_type;
 
 	DO("register local authenticator",
-	   omapi_auth_register(keyname, secret, algorithm));
+	   omapi_auth_register(keyname, algorithm, isc_buffer_base(&secretbuf),
+			       isc_buffer_usedlength(&secretbuf)));
 
 	DO("create protocol manager", omapi_object_create(&omapimgr, NULL, 0));
 

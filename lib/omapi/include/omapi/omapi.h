@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.13.2.1 2000/07/11 17:23:23 gson Exp $ */
+/* $Id: omapi.h,v 1.13.2.2 2000/07/12 00:02:14 gson Exp $ */
 
 /*
  * Definitions for the object management API and protocol.
@@ -94,8 +94,8 @@ struct omapi_object {
  * Public functions defined in auth.c.
  */
 isc_result_t
-omapi_auth_register(const char *name, const char *secret,
-		    unsigned int algorithms);
+omapi_auth_register(const char *name, unsigned int algorithms,
+		    const unsigned char *secret, size_t secretlen);
 
 void
 omapi_auth_deregister(const char *name);
