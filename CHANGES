@@ -1,3 +1,6 @@
+ 513.	[func]		New functionality added to rdnc and server to allow
+			individual zones to be refreshed ore reloaded.
+
  512.	[bug]		The zone tranfer code could throw an execption with
 			an invalid IXFR stream.
 
