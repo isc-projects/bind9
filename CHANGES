@@ -8,6 +8,8 @@
 			for clients that are supplied recursive service.
 			[RT #2260]
 
+1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
+
 1164.	[bug]		Empty masters clauses in slave / stub zones were not
 			handled gracefully. [RT #2262]
 
