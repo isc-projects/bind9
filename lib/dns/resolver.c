@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12.4.4.2.1 2003/09/17 05:40:39 explorer Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.4.2.2 2003/09/17 05:56:16 explorer Exp $ */
 
 #include <config.h>
 
@@ -4423,6 +4423,24 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Enforce delegations only zones like NET and COM.
+	 */
+	if (dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
+	    !dns_name_equal(&fctx->domain, &fctx->name) &&
+	    fix_mustbedelegationornxdomain(message, &fctx->domain)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char domainbuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
+			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+			     "enforced delegation-only for '%s' (%s)",
+			     domainbuf, namebuf);
+	}
+
+	/*
 	 * Did we get any answers?
 	 */
 	if (message->counts[DNS_SECTION_ANSWER] > 0 &&
@@ -4473,24 +4491,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		broken_server = ISC_TRUE;
 		keep_trying = ISC_TRUE;
 		goto done;
-	}
-
-	/*
-	 * Enforce delegations only zones like NET and COM.
-	 */
-	if (dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
-	    !dns_name_equal(&fctx->domain, &fctx->name) &&
-	    fix_mustbedelegationornxdomain(message, &fctx->domain)) {
-		char namebuf[DNS_NAME_FORMATSIZE];
-		char domainbuf[DNS_NAME_FORMATSIZE];
-
-		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
-		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
-
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
-			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-			     "enforced delegation-only for '%s' (%s)",
-			     domainbuf, namebuf);
 	}
 
 	/*
