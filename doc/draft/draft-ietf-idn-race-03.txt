@@ -1,6 +1,6 @@
 Internet Draft                                          Paul Hoffman
-draft-ietf-idn-race-02.txt                                IMC & VPNC
-October 16, 2000
+draft-ietf-idn-race-03.txt                                IMC & VPNC
+November 22, 2000
 Expires in six months                         
 
         RACE: Row-based ASCII Compatible Encoding for IDN
@@ -19,13 +19,11 @@ and may be updated, replaced, or obsoleted by other documents at any
 time. It is inappropriate to use Internet-Drafts as reference
 material or to cite them other than as "work in progress."
 
-
      The list of current Internet-Drafts can be accessed at
      http://www.ietf.org/ietf/1id-abstracts.txt
 
      The list of Internet-Draft Shadow Directories can be accessed at
      http://www.ietf.org/shadow.html.
-
 
 
 Abstract
@@ -63,10 +61,11 @@ ideas in arch-3, I no longer support that idea and instead only support
 arch-2. Of course, someone else might right an IDN proposal that matches
 arch-3 and use RACE as the protocol.
 
-In formal terms, RACE describes a character encoding scheme of the ISO
-10646 [ISO10646] coded character set and the rules for using that scheme
-in the DNS. As such, it could also be called a "charset" as defined in
-[IDNReq].
+In formal terms, RACE describes a character encoding scheme of the
+ISO/IEC 10646 [ISO10646] coded character set (whose assignment of
+characters is synchronized with Unicode [Unicode3]) and the rules for
+using that scheme in the DNS. As such, it could also be called a
+"charset" as defined in [IDNReq].
 
 The RACE protocol has the following features:
 
@@ -172,39 +171,44 @@ subsections given here.
 
 If a name part consists exclusively of characters that conform to the
 host name requirements in [STD13], the name MUST NOT be converted to
-RACE. That is, a name part that can be represented without RACE MUST NOT
-be encoded using RACE. This absolute requirement prevents there from
+LACE. That is, a name part that can be represented without LACE MUST NOT
+be encoded using LACE. This absolute requirement prevents there from
 being two different encodings for a single DNS host name.
 
 If any checking for prohibited name parts (such as ones that are
 prohibited characters, case-folding, or canonicalization) is to be done,
 it MUST be done before doing the conversion to an ACE name part.
 
+Characters outside the first plane of characters (those with codepoints
+above U+FFFF) MUST be represented using surrogates, as described in the
+UTF-16 description in ISO 10646.
+
 The input name string consists of characters from the ISO 10646
 character set in big-endian UTF-16 encoding. This is the pre-converted
 string.
 
-Characters outside the first plane of characters (that is, outside the
-first 0xFFFF characters) MUST be represented using surrogates, as
-described in the UTF-16 description in ISO 10646.
+2.2.1 Check the input string for disallowed names
 
-2.2.1 Compress the pre-converted string
+If the input string consists only of characters that conform to the host
+name requirements in [STD13], the conversion MUST stop with an error.
+
+2.2.2 Compress the pre-converted string
 
 The entire pre-converted string MUST be compressed using the compression
 algorithm specified in section 2.4. The result of this step is the
 compressed string.
 
-2.2.2 Check the length of the compressed string
+2.2.3 Check the length of the compressed string
 
 The compressed string MUST be 36 octets or shorter. If the compressed
 string is 37 octets or longer, the conversion MUST stop with an error.
 
-2.2.3 Encode the compressed string with Base32
+2.2.4 Encode the compressed string with Base32
 
 The compressed string MUST be converted using the Base32 encoding
 described in section 2.5. The result of this step is the encoded string.
 
-2.2.4 Prepend "bq--" to the encoded string and finish
+2.2.5 Prepend "bq--" to the encoded string and finish
 
 Prepend the characters "bq--" to the encoded string. This is the host
 name part that can be used in DNS resolution.
@@ -212,11 +216,17 @@ name part that can be used in DNS resolution.
 2.3 Converting a host name part to an internationalized name
 
 The input string for conversion is a valid host name part. Note that if
-any checking for prohibited name parts (such as ones that are already
-legal DNS name parts), prohibited characters, case-folding, or
-canonicalization is to be done, it MUST be done after doing the
-conversion from an ACE name part. (Previous versions of this draft
-specified these steps.)
+any checking for prohibited name parts (such as prohibited characters,
+case-folding, or canonicalization is to be done, it MUST be done after
+doing the conversion from an ACE name part.
+
+If a decoded name part consists exclusively of characters that conform
+to the host name requirements in [STD13], the conversion from LACE MUST
+fail. Because a name part that can be represented without LACE MUST NOT
+be encoded using LACE, the decoding process MUST check for name parts
+that consists exclusively of characters that conform to the host name
+requirements in [STD13] and, if such a name part is found, MUST
+beconsidered an error (and possibly a security violation).
 
 2.3.1 Strip the "bq--"
 
@@ -240,6 +250,12 @@ section 2.5. The result of this step is the decoded string.
 The entire decoded string MUST be converted to ISO 10646 characters
 using the decompression algorithm described in section 2.4. The result
 of this is the internationalized string.
+
+2.3.4 Check the internationalized string for disallowed names
+
+If the internationalized string consists only of characters that conform
+to the host name requirements in [STD13], the conversion MUST stop with
+an error.
 
 2.4 Compression algorithm
 
@@ -282,10 +298,11 @@ section.
 
 2.4.1 Compressing a string
 
-The input string is in UTF-16 encoding with no byte order mark.
+The input string is in big-endian UTF-16 encoding with no byte order
+mark.
 
 Design note: No checking is done on the input to this algorithm. It is
-assumed that all checking for valid ISO 10646 characters has already
+assumed that all checking for valid ISO/IEC 10646 characters has already
 been done by a previous step in the conversion process.
 
 Design note: In step 5, 0xFF was chosen as the escape character because
@@ -295,20 +312,25 @@ second octet for the "escaped escape" because the character U+0099 has
 no value, and is not even used as a control character in the C1 controls
 or in ISO 6429.
 
-1) Read each pair of octets in the input stream, comparing the upper
-octet of each. If all of the upper octets (called U1) are the same, go
-to step 4.
+1) Starting at the beginning of the input, read each pair of octets in
+the input stream, comparing the upper octet of each. Reset the input
+pointer to the beginning of the input again. If all of the upper octets
+(called U1) are the same, go to step 4. Note that if the input is only
+one character, this test will always be true.
 
 2) Read each pair of octets in the input stream, comparing the upper
-octet of each. If all of the upper octets are either 0 or one single
-other value (called U1), go to step 4.
+octet of each. Reset the input pointer to the beginning of the input
+again. If all of the upper octets are either 0x00 or one single other
+value (called U1), go to step 4.
 
 3) Output 0xD8, followed by the entire input stream. Finish.
 
-4) Output U1.
+4) If U1 is in the range 0xD8 to 0xDC, stop with an error. Otherwise,
+output U1.
 
 5) If you are at the end of the input string, finish. Otherwise, read
-the next octet, called U2, and the octet after that, called N1.
+the next octet, called U2, and the octet after that, called N1. If U2 is
+0x00 and N1 is 0x99, stop with an error.
 
 6) If U2 is equal to U1, and N1 is not equal to 0xFF, output N1, and go
 to step 5.
@@ -321,37 +343,52 @@ by 0x99, and go to step 5.
 2.4.2 Decompressing a string
 
 1) Read the first octet of the input string. Call the value of the first
-octet U1. If U1 is 0xD8, go to step 7.
+octet U1. If there are no more octets in the input string (that is, if
+the input string had only one octet total), stop with an error. If U1 is
+0xD8, go to step 8.
 
-2) If you are at the end of the input string, finish. Otherwise, read
-the next octet in the input string, called N1. If N1 is 0xFF, go to step
-4.
+2) If you are at the end of the input string, go to step 11. Otherwise,
+read the next octet in the input string, called N1. If N1 is 0xFF, go to
+step 5.
 
-3) Output U1 followed by N1. Go to step 2.
+3) If U1 is 0x00 and N1 is 0x99, stop with an error.
 
-4) If you are at the end of the input string, stop with an error.
+4) Put U1 followed by N1 in the output buffer. Go to step 2.
 
-5) Read the next octet of the input string, called N1. If N1 is 0x99,
-output U1 followed by 0xFF, and go to step 2.
+5) If you are at the end of the input string, stop with an error.
 
-6) Output 0x00 followed by N1. Go to step 2.
+6) Read the next octet of the input string, called N1. If N1 is 0x99,
+put U1 followed by 0xFF in the output buffer, and go to step 2.
 
-7) Read the rest of the input stream and put it in the output stream.
-Finish.
+7) Put 0x00 followed by N1 in the output buffer. Go to step 2.
+
+8) Read the rest of the input stream into a temporary string called
+LCHECK. If the length of LCHECK is an odd number, stop with an error.
+
+9) Perform the checks from steps 1 and 2 of the compression algorithm in
+section 2.4.1 on LCHECK. If either checks pass (that is, if either would
+have created a compressed string), stop with an error because the input
+to the decompression is in the wrong format.
+
+10) If the length of LCHECK is odd, stop with and error. Otherwise,
+output LCHECK and finish.
+
+11) If the length of the output buffer is odd, stop with and error.
+Otherwise, emit the output buffer and finish.
 
 2.4.3 Compression examples
 
-For the input string of <U+012E><U+0110><U+014A>, all characters are in
-the same row, 0x01. Thus, the output is 0x012E104A.
+For the input string of <U+012D><U+0111><U+014B>, all characters are in
+the same row, 0x01. Thus, the output is 0x012D114B.
 
-For the input string of <U+012E><U+00D0><U+014A>, the characters are all
-in row 0x01 or row 0x00. Thus, the output is 0x012EFFD04A.
+For the input string of <U+012D><U+00E0><U+014B>, the characters are all
+in row 0x01 or row 0x00. Thus, the output is 0x012DFFE04B.
 
 For the input string of <U+1290><U+12FF><U+120C>, the characters are all
 in row 0x12. Thus, the output is 0x1290FF990C.
 
-For the input string of <U+012E><U+00D0><U+24C3>, the characters are
-from two rows other than 0x00. Thus, the output is 0xD8012E00D024C3.
+For the input string of <U+012D><U+00E0><U+24D3>, the characters are
+from two rows other than 0x00. Thus, the output is 0xD8012D00E024D3.
 
 2.5 Base32
 
@@ -394,10 +431,11 @@ Design note: The assumption that the input is a stream of octets
 If you are reusing this algorithm for a stream of bits, you must add a
 padding mechanism in order to differentiate different lengths of input.
 
-1) Set the read pointer to the beginning of the input bit stream.
+1) If the input bit stream is not an even multiple of five bits, pad
+the input stream with 0 bits until it is an even multiple of five bits.
+Set the read pointer to the beginning of the input bit stream.
 
-2) Look at the five bits after the read pointer. If there are not five
-bits, go to step 5.
+2) Look at the five bits after the read pointer.
 
 3) Look up the value of the set of five bits in the bits column of
 Table 1, and output the character from the char column (whose hex value
@@ -407,26 +445,28 @@ is in the hex column).
 the end of the input bit stream (that is, there are no more bits in the
 input), stop. Otherwise, go to step 2.
 
-5) Pad the bits seen until there are five bits.
-
-6) Look up the value of the set of five bits in the bits column of
-Table 1, and output the character from the char column (whose hex value
-is in the hex column).
-
 2.5.2 Decoding Base32 as octets
 
 The input is octets in network byte order. The input octets MUST be
 values from the second column in Table 1.
 
-1) Set the read pointer to the beginning of the input octet stream.
+1) Count the number of octets in the input and divide it by 8; call the
+remainder INPUTCHECK. If INPUTCHECK is 1 or 3 or 6, stop with an error.
 
-2) Look up the character value of the octet in the char column (or hex
-value in hex column) of Table 1, and output the five bits from the bits
-column.
+2) Set the read pointer to the beginning of the input octet stream.
 
-3) Move the read pointer one octet forward. If the read pointer is at
-the end of the input octet stream (that is, there are no more octets in
-the input), stop. Otherwise, go to step 2.
+3) Look up the character value of the octet in the char column (or hex
+value in hex column) of Table 1, and add the five bits from the bits
+column to the output buffer.
+
+4) Move the read pointer one octet forward. If the read pointer is not
+at the end of the input octet stream (that is, there are more octets in
+the input), go to step 3.
+
+5) Count the number of bits that are in the output buffer and divide it
+by 8; call the remainder PADDING. If the PADDING number of bits at the
+end of the output buffer are not all zero, stop with an error.
+Otherwise, emit the output buffer and stop.
 
 2.5.3 Base32 example
 
@@ -498,23 +538,40 @@ specification", November 1987, STD 13 (RFC 1035).
 
 A. Acknowledgements
 
-Mark Davis contributed many ideas to the initial draft of this document.
-Graham Klyne and Martin Duerst offered technical comments on the
-algorithms used. GIM Gyeongseog and Pongtorn Jentaweepornkul helped fix
-technical errors in early drafts.
+Mark Davis contributed many ideas to the initial draft of this document,
+as well as comments in later versions. Graham Klyne and Martin Duerst
+offered technical comments on the algorithms used. GIM Gyeongseog and
+Pongtorn Jentaweepornkul helped fix technical errors in early drafts.
+Rick Wesson and Mark Davis contributed many suggestions on error
+conditions in the processing.
 
 Base32 is quite obviously inspired by the tried-and-true Base64
 Content-Transfer-Encoding from MIME.
 
 
 
-B. Changes from Versions -01 to -02 of this Draft
+B. Changes from Versions -02 to -03 of this Draft
 
-Removed section 1.3 (open issues) because no one said anything
-in support of either proposal.
+1: Wording corrections to third paragraph.
 
-Added the prohibition on encoding a string that is already in
-STD13 format in section 2.2.
+2.2 and 2.3: Added need to check for all-STD13.
+
+2.4.1: Wording corrections in the first two paragraphs. Made step 1 and
+2 clearer with resetting the input pointer. Also added sentence at the
+end of step 1. Also added error conditions in steps 4 and 5.
+
+2.4.2: Added error condition in step 1. Added a new step 3 for an error
+check. Expanded step 8 to check for malformed input error. Added error
+check for odd-length output.
+
+2.4.3: Changed all the examples to use lowercase characters on input.
+ 
+2.5.1: Made the list of steps shorter by padding with 0 bits at the
+beginning of the steps.
+
+2.5.2: Changed the sense of the test in step 3 and added step 4 to be
+checkfor malformed input. Also made the output a buffer. Also added
+new step 1.
 
 
 C. IANA Considerations

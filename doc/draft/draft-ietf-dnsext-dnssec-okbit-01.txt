@@ -1,7 +1,12 @@
 
+
+
+
+
+
 INTERNET-DRAFT                                            David Conrad
-draft-ietf-dnsext-dnssec-okbit-00.txt                     Nominum Inc.
-                                                          August, 2000
+draft-ietf-dnsext-dnssec-okbit-01.txt                     Nominum Inc.
+                                                        November, 2000
 
                  Indicating Resolver Support of DNSSEC
 
@@ -30,11 +35,11 @@ Status of this Memo
 Abstract
 
    In order to deploy DNSSEC operationally, DNSSEC aware servers should
-   only respond with DNSSEC RRs when there is an explicit indication
-   that the resolver can understand those RRs. This document proposes
-   the use of a bit in the EDNS0 header to provide that explicit
-   indication and the necessary protocol changes to implement that
-   notification.
+   only perform automatic inclusion of DNSSEC RRs when there is an
+   explicit indication that the resolver can understand those RRs. This
+   document proposes the use of a bit in the EDNS0 header to provide
+   that explicit indication and the necessary protocol changes to
+   implement that notification.
 
 1. Introduction
 
@@ -50,9 +55,9 @@ Abstract
 
 
 
-Expires February, 2001                                          [Page 1]
+Expires May, 2001                                               [Page 1]
 
-draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
+draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
 
 
    This document discusses a method to avoid these negative impacts,
@@ -106,9 +111,9 @@ draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
 
 
 
-Expires February, 2001                                          [Page 2]
+Expires May, 2001                                               [Page 2]
 
-draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
+draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
 
 
    non-compliant caching or forwarding servers inappropriately copy data
@@ -143,39 +148,30 @@ draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
    security RRs and those RRs MUST NOT be returned in the response
    (unless DNSSEC security RRs are explicitly queried for).
 
-   More explicitly, in order to explicitly indicate DNSSEC security RRs
-   are acceptible to the resolver, DNSSEC-aware nameservers (both BASIC
-   and FULL according to [RFC2535] definitions) MUST NOT add DNSSEC
-   security RRs to any section of a response unless at least one of the
-   following is true:
+   More explicitly, DNSSEC-aware nameservers MUST NOT insert SIG, KEY,
+   or NXT RRs to authenticate a response as specified in [RFC2535]
+   unless the DO bit was set on the request. Security records that match
+   an explicit SIG, KEY, NXT, or ANY query, or are part of the zone data
+   for an AXFR or IXFR query, are included whether or not the DO bit was
+   set.
 
-   1) The DO bit of the query EDNS0 header was set on the request,
-   indicating that the client would like DNSSEC security RRs.
-
-   2) The query type is SIG, KEY, or NXT and the RRs added match the
-   query name and query type.
-
-   In case 1), response generation is as indicated in [RFC2535].
-
-   In case 2), only those RRs which match the query name and query type
-   are added.
-
-
-
-Expires February, 2001                                          [Page 3]
-
-draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
-
-
-   Recursive DNSSEC-aware server MUST set the DO bit on recursive
+   A recursive DNSSEC-aware server MUST set the DO bit on recursive
    requests, regardless of the status of the DO bit on the initiating
    resolver request.  If the initiating resolver request does not have
    the DO bit set, the recursive DNSSEC-aware server MUST remove DNSSEC
    security RRs before returning the data to the client, however cached
    data MUST NOT be modified.
 
-   In the event a server returns a NOTIMPL, FORMERR or SERVFAIL response
+   In the event a server returns a NOTIMP, FORMERR or SERVFAIL response
    to a query that has the DO bit set, the resolver SHOULD NOT expect
+
+
+
+Expires May, 2001                                               [Page 3]
+
+draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
+
+
    DNSSEC security RRs and SHOULD retry the query without the EDNS0 in
    accordance with section 5.3 of [RFC2671].
 
@@ -216,13 +212,6 @@ References
 
 Author's Address
 
-
-
-Expires February, 2001                                          [Page 4]
-
-draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
-
-
    David Conrad
    Nominum Inc.
    950 Charter Street
@@ -230,6 +219,14 @@ draft-ietf-dnsext-dnssec-okbit-00.txt                       August, 2000
    USA
 
    Phone: +1 650 779 6003
+
+
+
+
+Expires May, 2001                                               [Page 4]
+
+draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
+
 
    Email: david.conrad@nominum.com
 
@@ -274,5 +271,13 @@ Full Copyright Statement
 
 
 
-Expires February, 2001                                          [Page 5]
+
+
+
+
+
+
+
+
+Expires May, 2001                                               [Page 5]
 
