@@ -3,6 +3,8 @@
 
  683.	[bug]		File descriptor leak in isc_lex_openfile().
 
+ 682.	[bug]		nslookup displayed SOA records incorrectly. [RT #665]
+
  681.	[bug]		$GENERATE specifying output format was broken. [RT #653]
 
  680.	[bug]		dns_rdata_fromstruct() mishandled options bigger

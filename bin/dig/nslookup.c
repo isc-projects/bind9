@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.69.2.1 2001/01/09 22:31:25 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.69.2.2 2001/01/16 18:20:11 gson Exp $ */
 
 #include <config.h>
 
@@ -269,9 +269,6 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
 					printf("\tserial = %s\n",
 					       ptr);
 					ptr = next_token(&input, " \t\r\n");
@@ -430,9 +427,6 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						break;
 					printf("\tmail addr = %s\n",
 					       ptr);
-					ptr = next_token(&input, " \t\r\n");
-					if (ptr == NULL)
-						break;
 					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
