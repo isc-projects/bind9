@@ -30,6 +30,8 @@
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/compress.h>
@@ -365,11 +367,33 @@ printquestions(dns_namelist_t *section) {
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
 		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
-			printf(";;\t%.*s, class = %u, type = %u\n",
-			       (int)target.used,
-			       (char *)target.base,
-			       rdatalist->class,
-			       rdatalist->type);
+			printf(";;\t%.*s, type = ", (int)target.used,
+			       (char *)target.base);
+			isc_buffer_clear(&target);
+			if (rdatalist->type == 255) {
+				/* XXX HACK */
+				memcpy(target.base, "ANY", 3);
+				isc_buffer_add(&target, 3);
+			} else {
+				result = dns_rdatatype_totext(rdatalist->type,
+							      &target);
+				if (result != DNS_R_SUCCESS) {
+					printf("%s\n",
+					       dns_result_totext(result));
+					exit(16);
+				}
+			}
+			printf("%.*s, class = ", (int)target.used,
+			       (char *)target.base);
+			isc_buffer_clear(&target);
+			result = dns_rdataclass_totext(rdatalist->class,
+						       &target);
+			if (result != DNS_R_SUCCESS) {
+				printf("%s\n", dns_result_totext(result));
+				exit(17);
+			}
+			printf("%.*s\n", (int)target.used,
+			       (char *)target.base);
 		}
 	}
 }
