@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.58 2000/07/04 01:48:10 tale Exp $ */
+/* $Id: dispatch.c,v 1.59 2000/07/13 01:16:22 gson Exp $ */
 
 #include <config.h>
 
@@ -189,6 +189,9 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 	char msgbuf[2048];
 	va_list ap;
 
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
+	
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
