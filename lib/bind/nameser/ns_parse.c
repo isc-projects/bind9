@@ -16,12 +16,19 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_parse.c,v 1.1 2001/03/29 06:31:57 marka Exp $";
+static const char rcsid[] = "$Id: ns_parse.c,v 1.2 2001/04/11 08:13:11 marka Exp $";
 #endif
 
 /* Import. */
 
 #include "port_before.h"
+
+/*
+ * force stdio.h to be included before arpa/nameser.h as it
+ * #defines _ptr __ptr on HPUX
+ */
+
+#include <stdio.h>
 
 #include <sys/types.h>
 
