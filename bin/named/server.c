@@ -51,6 +51,7 @@
 #include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+#include <dns/tkey.h>
 
 #include <named/types.h>
 #include <named/globals.h>
@@ -358,6 +359,15 @@ load_configuration(const char *filename) {
 
 	if (oconfigctx != NULL)
 		dns_c_ctx_delete(ns_g_lctx, &oconfigctx);
+
+	/*
+	 * Load the TKEY information from the configuration
+	 */
+	result = dns_tkey_init(ns_g_lctx, ns_g_confctx, ns_g_mctx);
+	if (result != ISC_R_SUCCESS) {
+		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+				"TKEY init failed");
+	}
 }
 
 static void

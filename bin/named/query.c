@@ -40,6 +40,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
+#include <dns/tkey.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -2525,6 +2526,13 @@ ns_query_start(ns_client_t *client) {
 			case dns_rdatatype_maila:
 			case dns_rdatatype_mailb:
 				ns_client_error(client, DNS_R_NOTIMP);
+				return;
+			case dns_rdatatype_tkey:
+				result = dns_tkey_processquery(client->message);
+				if (result == ISC_R_SUCCESS)
+					ns_client_send(client);
+				else
+					ns_client_error(client, result);
 				return;
 			default: /* TSIG, etc. */
 				ns_client_error(client, DNS_R_FORMERR);
