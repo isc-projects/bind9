@@ -190,6 +190,9 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 	result = isc_socket_recv(tcpmsg->sock, &region, ISC_FALSE,
 				 tcpmsg->task, recv_length, tcpmsg);
 
+	if (result != ISC_R_SUCCESS)
+		tcpmsg->task = NULL;
+
 	return (result);
 }
 
