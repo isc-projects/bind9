@@ -1,4 +1,10 @@
 
+ 436.	[bug]		If recvmsg() returned EHOSTUNREACH or ENETUNREACH,
+			which sometimes happens on Linux, named would enter
+			a busy loop.  Also, unexpected socket errors were
+			not logged at a high enough logging level to be
+			useful in diagnosing this situation.
+
  435.	[bug]		dns_zone_dump() overwrote existing zone files 
 			rather than writing to a temporary file and
 			renaming.  This could lead to empty or partial
