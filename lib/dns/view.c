@@ -29,6 +29,7 @@
 #include <dns/dbtable.h>
 #include <dns/db.h>
 #include <dns/fixedname.h>
+#include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
@@ -74,6 +75,15 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_mutex;
 	}
+	view->secroots = NULL;
+	result = dns_rbt_create(mctx, NULL, NULL, &view->secroots);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_rbt_create() failed: %s",
+				 isc_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_dbtable;
+	}
 
 	view->cachedb = NULL;
 	view->hints = NULL;
@@ -87,6 +97,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_dbtable:
+	dns_dbtable_detach(&view->dbtable);
 
  cleanup_mutex:
 	isc_mutex_destroy(&view->lock);
@@ -131,6 +144,7 @@ destroy(dns_view_t *view) {
 		dns_db_detach(&view->hints);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
+	dns_rbt_destroy(&view->secroots);
 	dns_dbtable_detach(&view->dbtable);
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->name);

@@ -80,6 +80,7 @@ struct dns_view {
 	dns_resolver_t *		resolver;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
+	dns_rbt_t *			secroots;
 	isc_mutex_t			lock;
 	isc_boolean_t			frozen;
 	/* Locked by lock. */
