@@ -19,6 +19,7 @@
 #define NS_SERVER_H 1
 
 #include <isc/log.h>
+#include <isc/sockaddr.h>
 #include <isc/types.h>
 #include <isc/quota.h>
 
@@ -57,6 +58,8 @@ struct ns_server {
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		roothints;
 	dns_tkey_ctx_t *	tkeyctx;
+	isc_sockaddr_t		querysrc_address;
+	dns_dispatch_t *	querysrc_dispatch;
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
