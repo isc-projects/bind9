@@ -1,6 +1,9 @@
 1229.	[bug]		named would crash if it received a TSIG signed
 			query as part of an AXFR response. [RT #2570]
 
+1221.	[bug]		Zone types 'master', 'slave' and 'stub' were not being
+			compared case insensitively. [RT #2542]
+
 1218.	[bug]		Named incorrectly returned SERVFAIL rather than
 			NOTAUTH when there was a TSIG BADTIME error. [RT #2519]
 
