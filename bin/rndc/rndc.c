@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.73 2001/07/26 20:14:46 gson Exp $ */
+/* $Id: rndc.c,v 1.74 2001/07/26 20:37:26 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -70,7 +70,7 @@ char *progname;
 isc_boolean_t verbose;
 
 static const char *admin_conffile;
-static const char *auto_conffile = RNDC_AUTOCONFFILE;
+static const char *auto_conffile;
 static const char *version = VERSION;
 static const char *servername = NULL;
 static unsigned int remoteport = NS_CONTROL_PORT;
@@ -370,6 +370,7 @@ main(int argc, char **argv) {
 	int i;
 
 	admin_conffile = RNDC_CONFFILE;
+	auto_conffile = RNDC_AUTOCONFFILE;
 	
 	isc_app_start();
 
