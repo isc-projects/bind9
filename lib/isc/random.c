@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.17 2002/12/05 04:36:26 marka Exp $ */
+/* $Id: random.c,v 1.18 2003/08/05 00:08:30 marka Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,15 @@ static void
 initialize_rand(void)
 {
 #ifndef HAVE_ARC4RANDOM
-	srand(time(NULL));
+	unsigned int pid = getpid();
+	
+	/*
+	 * The low bits of pid generally change faster.
+	 * Xor them with the high bits of time which change slowly.
+	 */
+	pid = ((pid << 16) & 0xffff0000) | ((pid >> 16) & 0xffff);
+
+	srand(time(NULL) ^ pid);
 #endif
 }
 
