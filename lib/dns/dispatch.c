@@ -90,6 +90,7 @@ struct dns_dispatch {
 
 	/* Locked by "lock". */
 	isc_mutex_t		lock;		/* locks all below */
+	isc_sockettype_t	socktype;
 	unsigned int		attributes;
 	unsigned int		refcount;	/* number of users */
 	isc_mempool_t	       *bpool;		/* memory pool for buffers */
@@ -366,15 +367,11 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 
 static void
 free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
-	isc_sockettype_t socktype;
-
 	INSIST(buf != NULL && len != 0);
 	INSIST(disp->buffers > 0);
 	disp->buffers--;
 
-	socktype = isc_socket_gettype(disp->socket);
-
-	switch (socktype) {
+	switch (disp->socktype) {
 	case isc_sockettype_tcp:
 		isc_mem_put(disp->mgr->mctx, buf, len);
 		break;
@@ -815,7 +812,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
  */
 static void
 startrecv(dns_dispatch_t *disp) {
-	isc_sockettype_t socktype;
 	isc_result_t res;
 	isc_region_t region;
 	unsigned int wanted;
@@ -833,10 +829,8 @@ startrecv(dns_dispatch_t *disp) {
 	if (disp->buffers >= disp->maxbuffers)
 		return;
 
-	socktype = isc_socket_gettype(disp->socket);
-
 	while (disp->recvs < wanted) {
-		switch (socktype) {
+		switch (disp->socktype) {
 			/*
 			 * UDP reads are always maximal.
 			 */
@@ -1338,6 +1332,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		return (result);
 	}
 
+	disp->socktype = isc_sockettype_tcp;
 	disp->socket = NULL;
 	isc_socket_attach(sock, &disp->socket);
 
@@ -1478,6 +1473,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	disp->local = *localaddr;
 	disp->socket = sock;
+	disp->socktype = isc_sockettype_udp;
 
 	disp->recvs_wanted = 4; /* XXXMLG config option */
 
