@@ -16,9 +16,11 @@
  */
 
 #include <isc/entropy.h>
+#include <isc/keyboard.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 #include <isc/string.h>
+#include <isc/time.h>
 
 #include <stdio.h>
 
@@ -49,15 +51,28 @@ CHECK(const char *msg, isc_result_t result) {
 }
 
 static isc_result_t
-start(isc_entropysource_t *source, void *arg, isc_boolean_t blocking)
-{
-	printf("start called, non-blocking mode.\n");
+start(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
 
-	return (ISC_R_SUCCESS);
+	UNUSED(source);
+
+	if (blocking)
+		printf("start called, blocking mode.\n");
+	else
+		printf("start called, non-blocking mode.\n");
+
+	return (isc_keyboard_open(kbd));
 }
 
 static void
 stop(isc_entropysource_t *source, void *arg) {
+	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
+
+	UNUSED(source);
+
+	printf("ENOUGH!  Stop typing, please.\r\n");
+
+	(void)isc_keyboard_close(kbd, 3);
 	printf("stop called\n");
 }
 
@@ -68,29 +83,40 @@ stop(isc_entropysource_t *source, void *arg) {
  */
 static isc_result_t
 get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
 	isc_result_t result;
-	static isc_uint32_t val = 1;
-	static int count = 0;
+	isc_time_t t;
+	isc_uint32_t sample;
+	isc_uint32_t extra;
+	unsigned char c;
 
 	/*
 	 * Here, we should check to see if we are in blocking mode or not.
 	 * If we will block and the application asked us not to,
 	 * we should return an error instead, rather than block.
 	 */
-	if (!blocking) {
-		count++;
-		if (count > 6)
-			return (ISC_R_NOENTROPY);
+	if (!blocking)
+		return (ISC_R_NOENTROPY);
+
+	result = isc_keyboard_getchar(kbd, &c);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = isc_time_now(&t);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	sample = isc_time_nanoseconds(&t);
+	extra = c;
+
+	result = isc_entropy_addcallbacksample(source, sample, extra);
+	if (result != ISC_R_SUCCESS) {
+		printf("\r\n");
+		return (result);
 	}
 
-	do {
-		if (val == 0)
-			val = 0x12345678;
-		val <<= 3;
-		val %= 100000;
-
-		result = isc_entropy_addcallbacksample(source, val, 0);
-	} while (result == ISC_R_SUCCESS);
+	printf(".");
+	fflush(stdout);
 
 	return (result);
 }
@@ -104,6 +130,7 @@ main(int argc, char **argv) {
 	unsigned int returned;
 	unsigned int flags;
 	isc_result_t result;
+	isc_keyboard_t kbd;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -119,7 +146,7 @@ main(int argc, char **argv) {
 	isc_entropy_stats(ent, stderr);
 
 	source = NULL;
-	result = isc_entropy_createcallbacksource(ent, start, get, stop, NULL,
+	result = isc_entropy_createcallbacksource(ent, start, get, stop, &kbd,
 						  &source);
 	CHECK("isc_entropy_createcallbacksource()", result);
 
@@ -129,14 +156,15 @@ main(int argc, char **argv) {
 	flags = 0;
 	flags |= ISC_ENTROPY_GOODONLY;
 	flags |= ISC_ENTROPY_PARTIAL;
-#if 0
 	flags |= ISC_ENTROPY_BLOCKING;
-#endif
 	returned = 0;
 	result = isc_entropy_getdata(ent, buffer, 32, &returned, flags);
 	if (result == ISC_R_NOENTROPY) {
-		fprintf(stderr, "No entropy.\n");
+		fprintf(stderr, "No entropy.\r\n");
 	}
+
+	isc_entropy_stopcallbacksources(ent);
+
 	hex_dump("good data only:", buffer, returned);
 
 	isc_entropy_stats(ent, stderr);
