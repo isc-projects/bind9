@@ -1,4 +1,9 @@
 
+ 987.	[bug]		"dig -help" didn't show "+[no]stats".
+
+ 986.	[bug]		"dig +noall" failed to clear stats and command
+			printing.
+
  984.	[bug]		Multithreading should be enabled by default on
 			Solaris 2.7 and newer, but it wasn't.
 
