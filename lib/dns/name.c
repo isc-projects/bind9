@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.117 2001/01/11 21:07:20 gson Exp $ */
+/* $Id: name.c,v 1.118 2001/01/22 03:30:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1111,7 +1111,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(ISC_BUFFER_VALID(source));
-	REQUIRE(isc_buffer_current(source) < isc_buffer_used(source));
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 		(target == NULL && name->buffer != NULL));
 
