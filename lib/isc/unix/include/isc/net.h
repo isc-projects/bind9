@@ -70,6 +70,9 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#ifdef HAVE_NETINET6_IN6_H
+#include <netinet6/in6.h>
+#endif
 
 #include <isc/platform.h>
 #include <isc/result.h>
