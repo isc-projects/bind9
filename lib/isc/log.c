@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.57 2001/02/23 23:12:25 marka Exp $ */
+/* $Id: log.c,v 1.58 2001/03/28 04:16:32 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -34,6 +34,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -1227,9 +1228,10 @@ roll_log(isc_logchannel_t *channel) {
 
 static isc_result_t
 isc_log_open(isc_logchannel_t *channel) {
-	FILE *stream;
 	struct stat statbuf;
 	isc_boolean_t regular_file;
+	isc_boolean_t roll = ISC_FALSE;
+	isc_result_t result = ISC_R_SUCCESS;
 	const char *path;
 
 	REQUIRE(channel->type == ISC_LOG_TOFILE);
@@ -1241,31 +1243,33 @@ isc_log_open(isc_logchannel_t *channel) {
 
 	/*
 	 * Determine type of file; only regular files will be
-	 * version renamed.
+	 * version renamed, and only if the base file exists
+	 * and either has no size limit or has reached its size limit.
 	 */
-	if (stat(path, &statbuf) == 0)
+	if (stat(path, &statbuf) == 0) {
 		regular_file = (statbuf.st_mode & S_IFREG) ?
 							ISC_TRUE : ISC_FALSE;
-	else if (errno == ENOENT)
+		/* XXXDCL if not regular_file complain? */
+		roll = regular_file &&
+			(FILE_MAXSIZE(channel) == 0 ||
+			 statbuf.st_size >= FILE_MAXSIZE(channel));
+	} else if (errno == ENOENT)
 		regular_file = ISC_TRUE;
 	else
-		return (ISC_R_INVALIDFILE);
+		result = ISC_R_INVALIDFILE;
 
 	/*
 	 * Version control.
 	 */
-	if (regular_file)
-		if (roll_log(channel) != ISC_R_SUCCESS)
-			return (ISC_R_INVALIDFILE);
-	/* XXXDCL if not regular_file complain? */
+	if (result == ISC_R_SUCCESS && roll) {
+		result = roll_log(channel);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
-	stream = fopen(path, "a");
-	if (stream == NULL)
-		return (ISC_R_INVALIDFILE);
+	result = isc_stdio_open(path, "a", &FILE_STREAM(channel));
 
-	FILE_STREAM(channel) = stream;
-
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_boolean_t
