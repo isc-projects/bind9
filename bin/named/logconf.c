@@ -150,6 +150,8 @@ ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog) {
 	dns_c_logcat_t *ccat;
 	isc_boolean_t default_set = ISC_FALSE;
 
+	CHECK(ns_log_setdefaultchannels(lcctx));
+		
 	for (cchan = ISC_LIST_HEAD(clog->channels);
 	     cchan != NULL;
 	     cchan = ISC_LIST_NEXT(cchan, next)) {
@@ -166,7 +168,7 @@ ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog) {
 	}
 
 	if (! default_set)
-		CHECK(ns_log_setdefaults(lcctx));
+		CHECK(ns_log_setdefaultcategory(lcctx));
 
 	return (ISC_R_SUCCESS);
 

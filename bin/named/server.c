@@ -1314,12 +1314,15 @@ load_configuration(const char *filename, ns_server_t *server,
 		       "creating new logging configuration");
 
 		(void) dns_c_ctx_getlogging(cctx, &clog);
-		if (clog != NULL)
+		if (clog != NULL) {
 			CHECKM(ns_log_configure(logc, clog),
 			       "configuring logging");
-		else
-			CHECKM(ns_log_setdefaults(logc),
-			       "setting up default logging defaults");
+		} else {
+			CHECKM(ns_log_setdefaultchannels(logc),
+			       "setting up default logging channels");
+			CHECKM(ns_log_setdefaultcategory(logc),
+			       "setting up default 'category default'");
+		}
 
 		result = isc_logconfig_use(ns_g_lctx, logc);
 		if (result != ISC_R_SUCCESS) {

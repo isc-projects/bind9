@@ -48,7 +48,18 @@ isc_result_t
 ns_log_init(void);
 
 isc_result_t
-ns_log_setdefaults(isc_logconfig_t *lcfg);
+ns_log_setdefaultchannels(isc_logconfig_t *lcfg);
+/*
+ * Set up logging channels according to the named defaults, which
+ * may differ from the logging library defaults.  Currently,
+ * this just means setting up default_debug.
+ */
+
+isc_result_t
+ns_log_setdefaultcategory(isc_logconfig_t *lcfg);
+/*
+ * Set up "category default" to go to the right places.
+ */
 
 void
 ns_log_shutdown(void);

@@ -79,7 +79,10 @@ ns_log_init(void) {
 	isc_log_registermodules(ns_g_lctx, ns_g_modules);
 	dns_log_init(ns_g_lctx);
 
-	result = ns_log_setdefaults(lcfg);
+	result = ns_log_setdefaultchannels(lcfg);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = ns_log_setdefaultcategory(lcfg);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -92,7 +95,7 @@ ns_log_init(void) {
 }
 
 isc_result_t
-ns_log_setdefaults(isc_logconfig_t *lcfg) {
+ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 	
@@ -116,6 +119,21 @@ ns_log_setdefaults(isc_logconfig_t *lcfg) {
 			goto cleanup;
 	}
 
+	/*
+	 * Set the initial debug level.
+	 */
+	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	return (result);
+}
+
+isc_result_t
+ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
+	isc_result_t result;
+
 	result = isc_log_usechannel(lcfg, "default_syslog",
 				    ISC_LOGCATEGORY_DEFAULT, NULL);
 	if (result != ISC_R_SUCCESS)
@@ -126,12 +144,7 @@ ns_log_setdefaults(isc_logconfig_t *lcfg) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	/*
-	 * Set the initial debug level.
-	 */
-	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
-
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
 
  cleanup:
 	return (result);

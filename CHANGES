@@ -1,3 +1,6 @@
+ 129.   [bug]		The 'default_debug' log channel was not set up when
+			'category default' was present in the config file
+
  128.   [cleanup]       <isc/dir.h> had ISC_LANG_BEGINDECLS instead of
                         ISC_LANG_ENDDECLS at end of header.
 
