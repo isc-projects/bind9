@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.42 2000/11/20 17:37:54 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.43 2000/11/20 21:49:14 bwelling Exp $ -->
 
 <book>
 
@@ -3591,6 +3591,7 @@ Statement Grammar</title>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
+    <optional> database <replaceable>string</replaceable> ; </optional>
 }</optional>;
 </programlisting>
 </sect2>
@@ -3745,6 +3746,16 @@ The default is the empty list.</para></entry>
                                                      linkend="name_checking"/>.</para>
 <note>
                     <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>database</command></para></entry>
+                <entry colname = "2"><para>The first string represents the
+type of database used to store the zone data in the server.  The default value
+is rbt, a red-black tree.  The other defined value is rbt64, a variant of rbt
+that allows 2^64 updates.  Additional databases may be implemented later or
+included.  Strings after the first string are optional arguments to
+the database driver initialization routine.  There are none defined for
+rbt or rbt64.
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dialup</command></para></entry>
