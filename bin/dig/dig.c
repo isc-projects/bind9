@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.99 2000/09/22 23:21:29 mws Exp $ */
+/* $Id: dig.c,v 1.100 2000/09/22 23:58:32 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -728,12 +728,21 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			goto invalid_option;
 		}
 		break;
-	case 'r': /* rrlimit */
-		if (value == NULL)
-			goto need_value;
-		if (!state)
+	case 'r':
+		switch (tolower(cmd[1])) {
+		case 'e': /* recurse */
+			lookup->recurse = state;
+			break;
+		case 'r': /* rrlimit */
+			if (value == NULL)
+				goto need_value;
+			if (!state)
+				goto invalid_option;
+			rr_limit = atoi(value);
+			break;
+		default:
 			goto invalid_option;
-		rr_limit = atoi(value);
+		}
 		break;
 	case 's':
 		switch (tolower(cmd[1])) {
@@ -742,7 +751,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'h': /* short */
 			short_form = state;
-			if (!state) {
+			if (state) {
 				printcmd = ISC_FALSE;
 				lookup->section_additional = ISC_FALSE;
 				lookup->section_authority = ISC_FALSE;
@@ -814,7 +823,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	default:
 	invalid_option:
 	need_value:
-		fprintf (stderr, "Invalid option: +%s\n",
+		fprintf(stderr, "Invalid option: +%s\n",
 			 option_store);
 		show_usage();
 		exit(1);
@@ -828,7 +837,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup)
 {
-	char option_store[256];
 	char cmd, *value, *ptr;
 	isc_result_t result;
 	isc_boolean_t value_from_next;
@@ -839,7 +847,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 	int n, i;
 	char batchline[MXNAME];
 
-	strncpy(option_store, option, sizeof(option_store));
 	cmd = option[0];
 	if (strlen(option) > 1) {
 		value_from_next = ISC_FALSE;
@@ -849,6 +856,26 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		value_from_next = ISC_TRUE;
 		value = next;
 	}
+	switch (tolower(cmd)) {
+	case 'd':
+		debugging = ISC_TRUE;
+		return (ISC_FALSE);
+		break;
+	case 'h':
+		show_usage();
+		exit(0);
+		break;
+	case 'm':
+		isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+		return (ISC_FALSE);
+		break;
+	case 'n':
+		nibble = ISC_TRUE;
+		return (ISC_FALSE);
+		break;
+	}
+	if (value == NULL)
+		goto invalid_option;
 	switch (tolower(cmd)) {
 	case 'b':
 		get_address(value, 0, &bind_address);
@@ -868,29 +895,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 				 value);
 		return (value_from_next);
 		break;
-	case 'd':
-		debugging = ISC_TRUE;
-		return (ISC_FALSE);
-		break;
 	case 'f':
 		batchname = value;
 		return (value_from_next);
 		break;
-	case 'h':
-		show_usage();
-		exit(0);
-		break;
 	case 'k':
 		strncpy(keyfile, value, MXNAME);
 		return (value_from_next);
-		break;
-	case 'm':
-		isc_mem_debugging = ISC_MEM_DEBUGTRACE;
-		return (ISC_FALSE);
-		break;
-	case 'n':
-		nibble = ISC_TRUE;
-		return (ISC_FALSE);
 		break;
 	case 'p':
 		port = atoi(value);
@@ -910,7 +921,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		if (result == ISC_R_SUCCESS)
 			(*lookup)->rdtype = rdtype;
 		else
-			fprintf (stderr, ";; Warning, ignoring "
+			fprintf(stderr, ";; Warning, ignoring "
 				 "invalid type %s\n",
 				 value);
 		return (value_from_next);
@@ -982,10 +993,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		ISC_LIST_APPEND(lookup_list, *lookup, link);
 		return (value_from_next);
 		break;
-
+	invalid_option:
 	default:
-		fprintf (stderr, "Invalid option: -%s\n",
-			 option_store);
+		fprintf(stderr, "Invalid option: -%s\n", option);
 		show_usage();
 		exit(1);
 	}
