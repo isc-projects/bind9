@@ -1,4 +1,6 @@
 
+ 700.	[bug]		$GENERATE range check was wrong. [RT #688]
+
  694.	[bug]		$GENERATE did not produce the last entry.
 			[RT #682, #683]
 
