@@ -101,7 +101,7 @@ convert_keyname(char *txtname, isc_mem_t *mctx, dns_name_t *dnsname) {
 	}
 	return (dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname));
 }
- 
+	       
 isc_result_t
 dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		   dns_c_ctx_t *cctx,
@@ -123,27 +123,9 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 	     ce = ISC_LIST_NEXT(ce, next))
 		count++;
 
-	dacl = isc_mem_get(mctx, sizeof(*dacl));
-	if (dacl == NULL)
-		return (ISC_R_NOMEMORY);
-	dacl->mctx = mctx;
-	dacl->name = NULL;
-	dacl->refcount = 1;
-	dacl->elements = NULL;
-	dacl->alloc = 0;
-	dacl->length = 0;
-	
-	ISC_LINK_INIT(dacl, nextincache);
-	/* Must set magic early because we use dns_acl_detach() to clean up. */
-	dacl->magic = DNS_ACL_MAGIC; 
-
-	dacl->elements = isc_mem_get(mctx, count * sizeof(dns_aclelement_t));
-	if (dacl->elements == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
-	dacl->alloc = count;
-	memset(dacl->elements, 0, count * sizeof(dns_aclelement_t));
+	result = dns_acl_create(mctx, count, &dacl);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	
 	de = dacl->elements;
 	for (ce = ISC_LIST_HEAD(caml->elements);
@@ -204,4 +186,3 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 	dns_acl_detach(&dacl);
 	return (result);
 }
-

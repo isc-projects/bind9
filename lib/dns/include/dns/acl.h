@@ -44,6 +44,7 @@ typedef enum {
 	dns_aclelementtype_nestedacl,
 	dns_aclelementtype_localhost,
 	dns_aclelementtype_localnets,
+	dns_aclelementtype_any
 } dns_aclelemettype_t;
 
 struct dns_aclelement {
@@ -78,6 +79,22 @@ struct dns_acl {
  ***/
 
 ISC_LANG_BEGINDECLS
+
+isc_result_t dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
+/*
+ * Create a new ACL with place for 'n' elements.
+ * The elements are uninitialized and the length is 0.
+ */
+
+isc_result_t dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
+/*
+ * Create a new ACL that matches everything.
+ */
+
+isc_result_t dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
+/*
+ * Create a new ACL that matches nothing.
+ */
 
 void dns_acl_attach(dns_acl_t *source, dns_acl_t **target);
 

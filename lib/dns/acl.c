@@ -27,6 +27,69 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
+/*
+ * Create a new ACL with 'n' uninitialized elements.
+ */
+isc_result_t
+dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
+{
+	isc_result_t result;
+	dns_acl_t *acl;
+	
+	acl = isc_mem_get(mctx, sizeof(*acl));
+	if (acl == NULL)
+		return (ISC_R_NOMEMORY);
+	acl->mctx = mctx;
+	acl->name = NULL;
+	acl->refcount = 1;
+	acl->elements = NULL;
+	acl->alloc = 0;
+	acl->length = 0;
+	
+	ISC_LINK_INIT(acl, nextincache);
+	/* Must set magic early because we use dns_acl_detach() to clean up. */
+	acl->magic = DNS_ACL_MAGIC; 
+
+	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
+	if (acl->elements == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+	acl->alloc = n;
+	memset(acl->elements, 0, n * sizeof(dns_aclelement_t));
+	*target = acl;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	dns_acl_detach(&acl);
+	return (result);
+}
+
+static isc_result_t
+dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target)
+{
+	isc_result_t result;
+	dns_acl_t *acl = NULL;
+	result = dns_acl_create(mctx, 1, &acl);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	acl->elements[0].negative = neg;
+	acl->elements[0].type = dns_aclelementtype_any;
+	acl->length = 1;
+	*target = acl;
+	return (result);
+}
+
+isc_result_t
+dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
+	return (dns_acl_anyornone(mctx, ISC_FALSE, target));
+}
+
+isc_result_t
+dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
+	return (dns_acl_anyornone(mctx, ISC_TRUE, target));
+}
+
 isc_result_t
 dns_acl_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     const char *opname,
@@ -121,6 +184,7 @@ dns_acl_match(isc_sockaddr_t *reqaddr,
 				*matchelt = NULL;
 			break;
 
+		case dns_aclelementtype_any:
 		matched:
 			*match = e->negative ? -(i+1) : (i+1);
 			if (matchelt != NULL)
@@ -202,13 +266,13 @@ dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb)
 		return (dns_acl_equal(ea->u.nestedacl, eb->u.nestedacl));
 	case dns_aclelementtype_localhost:
 	case dns_aclelementtype_localnets:
+	case dns_aclelementtype_any:
 		return (ISC_TRUE);
 	default:
 		INSIST(0);
 		return (ISC_FALSE);
 	}
 }
-
 
 isc_boolean_t
 dns_acl_equal(dns_acl_t *a, dns_acl_t *b) {
