@@ -23,31 +23,43 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
 
-#define VALID_NAME(n)			((n) != NULL && (n)->length > 0)
+#define NAME_MAGIC			0x444E536EU	/* DNSn. */
+#define VALID_NAME(n)			((n) != NULL && \
+					 (n)->magic == NAME_MAGIC)
 
 typedef enum {
-	tw_init = 0,
-	tw_start,
-	tw_ordinary,
-	tw_initialescape,
-	tw_escape,
-	tw_escdecimal,
-	tw_bitstring,
-	tw_binary,
-	tw_octal,
-	tw_hex,
-	tw_dottedquad,
-	tw_dqdecimal,
-	tw_maybeslash,
-	tw_finishbitstring,
-	tw_bitlength,
-	tw_eatdot
-} tw_state;
+	ft_init = 0,
+	ft_start,
+	ft_ordinary,
+	ft_initialescape,
+	ft_escape,
+	ft_escdecimal,
+	ft_bitstring,
+	ft_binary,
+	ft_octal,
+	ft_hex,
+	ft_dottedquad,
+	ft_dqdecimal,
+	ft_maybeslash,
+	ft_finishbitstring,
+	ft_bitlength,
+	ft_eatdot
+} ft_state;
+
+typedef enum {
+	fw_start = 0,
+	fw_ordinary,
+	fw_copy,
+	fw_bitstring,
+	fw_newcurrent,
+	fw_local
+} fw_state;
 
 static char digitvalue[256] = {
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,	/*16*/
@@ -111,7 +123,7 @@ static unsigned char maptolower[] = {
 #define CONVERTTOASCII(c)
 #define CONVERTFROMASCII(c)
 
-static struct dns_name root = { "", 1, 1 };
+static struct dns_name root = { NAME_MAGIC, "", 1, 1 };
 
 dns_name_t *dns_rootname = &root;
 
@@ -216,6 +228,21 @@ dns_name_init(dns_name_t *name) {
 	 * Make 'name' empty.
 	 */
 	 
+	name->magic = NAME_MAGIC;
+	name->ndata = NULL;
+	name->length = 0;
+	name->labels = 0;
+}
+
+void
+dns_name_invalidate(dns_name_t *name) {
+	/*
+	 * Make 'name' invalid.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+
+	name->magic = 0;
 	name->ndata = NULL;
 	name->length = 0;
 	name->labels = 0;
@@ -228,6 +255,7 @@ dns_name_isabsolute(dns_name_t *name) {
 	 */
 
 	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
 
 	if (name->ndata[name->offsets[name->labels - 1]] == 0)
 		return (ISC_TRUE);
@@ -248,7 +276,9 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	 */
 
 	REQUIRE(VALID_NAME(name1));
+	REQUIRE(name1->labels > 0);
 	REQUIRE(VALID_NAME(name2));
+	REQUIRE(name2->labels > 0);
 
 	l1 = name1->labels;
 	l2 = name2->labels;
@@ -356,7 +386,9 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	 */
 
 	REQUIRE(VALID_NAME(name1));
+	REQUIRE(name1->labels > 0);
 	REQUIRE(VALID_NAME(name2));
+	REQUIRE(name2->labels > 0);
 
 	/* We're not going for maximal speed yet... */
 	a1 = dns_name_isabsolute(name1);
@@ -434,6 +466,7 @@ dns_name_getlabel(dns_name_t *name, unsigned int n, dns_label_t *label) {
 	 */
 	
 	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
 	REQUIRE(n < name->labels);
 	REQUIRE(label != NULL);
 	
@@ -455,6 +488,7 @@ dns_name_getlabelsequence(dns_name_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(source));
+	REQUIRE(source->labels > 0);
 	REQUIRE(n > 0);
 	REQUIRE(first < source->labels);
 	REQUIRE(first + n <= source->labels);
@@ -480,6 +514,7 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 	REQUIRE(r != NULL);
 	REQUIRE(r->length <= 255);
 
+	name->magic = NAME_MAGIC;
 	name->ndata = r->base;
 	name->length = r->length;
 
@@ -504,16 +539,16 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 
 
 dns_result_t
-dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
+dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		  dns_name_t *origin, isc_boolean_t downcase,
-		  isc_region_t *target)
+		  isc_buffer_t *target)
 {
 	unsigned char *ndata, *label;
 	char *tdata;
 	char c;
-	tw_state state, kind;
+	ft_state state, kind;
 	unsigned int value, count, tbcount, bitlength, maxlength;
-	unsigned int n1, n2, vlen, tlen, nrem, digits, labels;
+	unsigned int n1, n2, vlen, tlen, nrem, digits, labels, tused;
 	isc_boolean_t done, saw_bitstring;
 	unsigned char dqchars[4];
 
@@ -527,8 +562,9 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 	 *	will remain relative.
 	 */
 
-	REQUIRE(source != NULL);
-	REQUIRE(target != NULL);
+	REQUIRE(name != NULL);
+	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_TEXT);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	
 	/*
 	 * Initialize things to make the compiler happy; they're not required.
@@ -543,11 +579,12 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 	tbcount = 0;
 	bitlength = 0;
 	maxlength = 0;
-	kind = tw_init;	
+	kind = ft_init;	
 
 	/*
 	 * Invalidate 'name'.
 	 */
+	name->magic = 0;
 	name->ndata = NULL;
 	name->length = 0;
 	name->labels = 0;
@@ -555,24 +592,26 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 	/*
 	 * Set up the state machine.
 	 */
-	tdata = (char *)source->base;
-	tlen = source->length;
-	ndata = target->base;
-	nrem = target->length;
+	tdata = (char *)source->base + source->current;
+	tlen = source->used - source->current;
+	tused = 0;
+	ndata = (unsigned char *)target->base + target->used;
+	nrem = target->length - target->used;
 	if (nrem > 255)
 		nrem = 255;
 	labels = 0;
 	done = ISC_FALSE;
 	saw_bitstring = ISC_FALSE;
-	state = tw_init;
+	state = ft_init;
 
 	while (nrem > 0 && tlen > 0 && !done) {
 		c = *tdata++;
 		tlen--;
+		tused++;
 
 	no_read:
 		switch (state) {
-		case tw_init:
+		case ft_init:
 			/*
 			 * Is this the root name?
 			 */
@@ -586,19 +625,19 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				break;
 			}
 			/* FALLTHROUGH */
-		case tw_start:
+		case ft_start:
 			label = ndata;
 			ndata++;
 			nrem--;
 			count = 0;
 			if (c == '\\') {
-				state = tw_initialescape;
+				state = ft_initialescape;
 				break;
 			}
-			kind = tw_ordinary;
-			state = tw_ordinary;
+			kind = ft_ordinary;
+			state = ft_ordinary;
 			/* FALLTHROUGH */
-		case tw_ordinary:
+		case ft_ordinary:
 			if (c == '.') {
 				if (count == 0)
 					return (DNS_R_EMPTYLABEL);
@@ -610,9 +649,9 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 					nrem--;
 					done = ISC_TRUE;
 				}
-				state = tw_start;
+				state = ft_start;
 			} else if (c == '\\') {
-				state = tw_escape;
+				state = ft_escape;
 			} else {
 				if (count >= 63)
 					return (DNS_R_LABELTOOLONG);
@@ -624,21 +663,21 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				nrem--;
 			}
 			break;
-		case tw_initialescape:
+		case ft_initialescape:
 			if (c == '[') {
 				saw_bitstring = ISC_TRUE;
-				kind = tw_bitstring;
-				state = tw_bitstring;
+				kind = ft_bitstring;
+				state = ft_bitstring;
 				*label = DNS_LABELTYPE_BITSTRING;
 				label = ndata;
 				ndata++;
 				nrem--;
 				break;
 			}
-			kind = tw_ordinary;
-			state = tw_escape;
+			kind = ft_ordinary;
+			state = ft_escape;
 			/* FALLTHROUGH */
-		case tw_escape:
+		case ft_escape:
 			if (!isdigit(c)) {
 				if (count >= 63)
 					return (DNS_R_LABELTOOLONG);
@@ -648,14 +687,14 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 					c = maptolower[(int)c];
 				*ndata++ = c;
 				nrem--;
-				state = tw_ordinary;
+				state = ft_ordinary;
 				break;
 			}
 			digits = 0;
 			value = 0;
-			state = tw_escdecimal;
+			state = ft_escdecimal;
 			/* FALLTHROUGH */
-		case tw_escdecimal:
+		case ft_escdecimal:
 			if (!isdigit(c))
 				return (DNS_R_BADESCAPE);
 			value *= 10;
@@ -671,43 +710,43 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 					value = maptolower[value];
 				*ndata++ = value;
 				nrem--;
-				state = tw_ordinary;
+				state = ft_ordinary;
 			}
 			break;
-		case tw_bitstring:
+		case ft_bitstring:
 			/* count is zero */
 			tbcount = 0;
 			value = 0;
 			if (c == 'b') {
 				vlen = 8;
 				maxlength = 256;
-				kind = tw_binary;
-				state = tw_binary;
+				kind = ft_binary;
+				state = ft_binary;
 			} else if (c == 'o') {
 				vlen = 8;
 				maxlength = 256;
-				kind = tw_octal;
-				state = tw_octal;
+				kind = ft_octal;
+				state = ft_octal;
 			} else if (c == 'x') {
 				vlen = 8;
 				maxlength = 256;
-				kind = tw_hex;
-				state = tw_hex;
+				kind = ft_hex;
+				state = ft_hex;
 			} else if (isdigit(c)) {
 				vlen = 32;
 				maxlength = 32;
 				n1 = 0;
 				n2 = 0;
 				digits = 0;
-				kind = tw_dottedquad;
-				state = tw_dqdecimal;
+				kind = ft_dottedquad;
+				state = ft_dqdecimal;
 				goto no_read;
 			} else
 				return (DNS_R_BADBITSTRING);
 			break;
-		case tw_binary:
+		case ft_binary:
 			if (c != '0' && c != '1') {
-				state = tw_maybeslash;
+				state = ft_maybeslash;
 				goto no_read;
 			}
 			value <<= 1;
@@ -723,9 +762,9 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				count = 0;
 			}
 			break;
-		case tw_octal:
+		case ft_octal:
 			if (!isdigit(c) || c == '9') {
-				state = tw_maybeslash;
+				state = ft_maybeslash;
 				goto no_read;
 			}
 			value <<= 3;
@@ -750,9 +789,9 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				count = 2;
 			}
 			break;
-		case tw_hex:
+		case ft_hex:
 			if (!isxdigit(c)) {
-				state = tw_maybeslash;
+				state = ft_maybeslash;
 				goto no_read;
 			}
 			value <<= 4;
@@ -767,7 +806,7 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				count = 0;
 			}
 			break;
-		case tw_dottedquad:
+		case ft_dottedquad:
 			if (c != '.' && n1 < 3)
 				return (DNS_R_BADDOTTEDQUAD);
 			dqchars[n1] = value;
@@ -777,18 +816,18 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 			if (n1 == 4) {
 				tbcount = 32;
 				value = n2;
-				state = tw_maybeslash;
+				state = ft_maybeslash;
 				goto no_read;
 			}
 			value = 0;
 			digits = 0;
-			state = tw_dqdecimal;
+			state = ft_dqdecimal;
 			break;
-		case tw_dqdecimal:
+		case ft_dqdecimal:
 			if (!isdigit(c)) {
 				if (digits == 0 || value > 255)
 					return (DNS_R_BADDOTTEDQUAD);
-				state = tw_dottedquad;
+				state = ft_dottedquad;
 				goto no_read;
 			}
 			digits++;
@@ -797,14 +836,14 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 			value *= 10;
 			value += digitvalue[(int)c];
 			break;
-		case tw_maybeslash:
+		case ft_maybeslash:
 			bitlength = 0;
 			if (c == '/') {
-				state = tw_bitlength;
+				state = ft_bitlength;
 				break;
 			}
 			/* FALLTHROUGH */
-		case tw_finishbitstring:
+		case ft_finishbitstring:
 			if (c == ']') {
 				if (tbcount == 0)
 					return (DNS_R_BADBITSTRING);
@@ -818,10 +857,10 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				if (bitlength != 0) {
 					if (bitlength > tbcount)
 						return (DNS_R_BADBITSTRING);
-					if (kind == tw_binary &&
+					if (kind == ft_binary &&
 					    bitlength != tbcount) {
 						return (DNS_R_BADBITSTRING);
-					} else if (kind == tw_octal) {
+					} else if (kind == ft_octal) {
 						/*
 						 * Figure out correct number
 						 * of octal digits for the
@@ -835,7 +874,7 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 						/* tbcount % 3 == 0 */
 						if (n1 != n2)
 						  return (DNS_R_BADBITSTRING);
-					} else if (kind == tw_hex) {
+					} else if (kind == ft_hex) {
 						/*
 						 * Figure out correct number
 						 * of hex digits for the
@@ -860,11 +899,11 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 						    ~((~0) << (vlen-n1))) != 0)
 						  return (DNS_R_BADBITSTRING);
 					}
-				} else if (kind == tw_dottedquad)
+				} else if (kind == ft_dottedquad)
 					bitlength = 32;
 				else
 					bitlength = tbcount;
-				if (kind == tw_dottedquad) {
+				if (kind == ft_dottedquad) {
 					n1 = bitlength / 8;
 					if (bitlength % 8 != 0)
 						n1++;
@@ -882,13 +921,13 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				labels++;
 			} else
 				return (DNS_R_BADBITSTRING);
-			state = tw_eatdot;
+			state = ft_eatdot;
 			break;
-		case tw_bitlength:
+		case ft_bitlength:
 			if (!isdigit(c)) {
 				if (bitlength == 0)
 					return (DNS_R_BADBITSTRING);
-				state = tw_finishbitstring;
+				state = ft_finishbitstring;
 				goto no_read;
 			}
 			bitlength *= 10;
@@ -896,7 +935,7 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 			if (bitlength > maxlength)
 				return (DNS_R_BADBITSTRING);
 			break;
-		case tw_eatdot:
+		case ft_eatdot:
 			if (c != '.')
 				return (DNS_R_BADBITSTRING);
 			if (tlen == 0) {
@@ -905,23 +944,27 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 				nrem--;
 				done = ISC_TRUE;
 			}
-			state = tw_start;
+			state = ft_start;
 			break;
 		default:
-			INSIST(0);
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unexpected state %d", state);
+			/* Does not return. */
 		}
 	}
+
 	if (!done) {
 		if (nrem == 0)
 			return (DNS_R_NOSPACE);
-		if (state != tw_ordinary && state != tw_eatdot)
+		INSIST(tlen == 0);
+		if (state != ft_ordinary && state != ft_eatdot)
 			return (DNS_R_UNEXPECTEDEND);
-		if (state == tw_ordinary) {
-			INSIST(tlen == 0 && count != 0);
+		if (state == ft_ordinary) {
+			INSIST(count != 0);
 			*label = count;
 			labels++;
 		}
-		if (tlen == 0 && origin != NULL) {
+		if (origin != NULL) {
 			if (nrem < origin->length)
 				return (DNS_R_NOSPACE);
 			label = origin->ndata;
@@ -939,9 +982,10 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 		}		
 	}
 
-	name->ndata = target->base;
+	name->magic = NAME_MAGIC;
+	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
-	name->length = target->length - nrem;
+	name->length = target->length - target->used - nrem;
 
 	/*
 	 * We should build the offsets table directly.
@@ -951,12 +995,15 @@ dns_name_fromtext(dns_name_t *name, isc_textregion_t *source,
 	if (saw_bitstring)
 		compact(name);
 
+	isc_buffer_forward(source, tused);
+	isc_buffer_add(target, name->length);
+
 	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
 dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
-		isc_textregion_t *target, unsigned int *bytesp)
+		isc_buffer_t *target)
 {
 	unsigned char *ndata;
 	char *tdata;
@@ -973,13 +1020,15 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	 * This function assumes the name is in proper uncompressed
 	 * wire format.
 	 */
+	REQUIRE(VALID_NAME(name));
 	REQUIRE(name->labels > 0);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
 
 	ndata = name->ndata;
 	nlen = name->length;
 	labels = name->labels;
-	tdata = target->base;
-	tlen = target->length;
+	tdata = (char *)target->base + target->used;
+	tlen = target->length - target->used;
 
 	trem = tlen;
 
@@ -1085,8 +1134,12 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				*tdata++ = num[i];
 			*tdata++ = ']';
 			trem -= 2 + len;
-		} else
-			INSIST(0);
+		} else {
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unexpected label type %02x", count);
+			/* Does not return. */
+		}
+					 
 		/*
 		 * The following assumes names are absolute.  If not, we
 		 * fix things up later.  Note that this means that in some
@@ -1105,7 +1158,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	if (!saw_root || omit_final_dot)
 		trem++;
 
-	*bytesp = tlen - trem;
+	isc_buffer_add(target, tlen - trem);
 
 	return (DNS_R_SUCCESS);
 }
@@ -1291,4 +1344,201 @@ compact(dns_name_t *name) {
 		}
 		n--;
 	}
+}
+
+dns_result_t
+dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
+		  dns_decompress_t *dctx, isc_boolean_t downcase,
+		  isc_buffer_t *target)
+{
+	unsigned char *cdata, *ndata;
+	unsigned int cused, hops, nrem, labels, n;
+	unsigned int current, new_current, biggest_pointer;
+	isc_boolean_t saw_bitstring, done;
+	fw_state state = fw_start;
+	unsigned int c;
+
+	/*
+	 * Copy the possibly-compressed name at source into target,
+	 * decompressing it.
+	 */
+
+	REQUIRE(name != NULL);
+	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+	/* XXX REQUIRE(dctx != NULL); */
+
+	/*
+	 * Invalidate 'name'.
+	 */
+	name->magic = 0;
+	name->ndata = NULL;
+	name->length = 0;
+	name->labels = 0;
+
+	/*
+	 * Initialize things to make the compiler happy; they're not required.
+	 */
+	n = 0;
+	new_current = 0;
+
+	/*
+	 * Set up.
+	 */
+	labels = 0;
+	hops = 0;
+	saw_bitstring = ISC_FALSE;
+	done = ISC_FALSE;
+	ndata = (unsigned char *)target->base + target->used;
+	nrem = target->length - target->used;
+	if (nrem > 255)
+		nrem = 255;
+	cdata = (unsigned char *)source->base + source->current;
+	cused = 0;
+	current = source->current;
+	biggest_pointer = current;
+
+	/*
+	 * Note:  The following code is not optimized for speed, but
+	 * rather for correctness.  Speed will be addressed in the future.
+	 */
+
+	while (current < source->used && !done) {
+		c = *cdata++;
+		current++;
+		if (hops == 0)
+			cused++;
+
+		switch (state) {
+		case fw_start:
+			if (c < 64) {
+				labels++;
+				if (nrem < c + 1)
+					return (DNS_R_NOSPACE);
+				nrem -= c + 1;
+				*ndata++ = c;
+				if (c == 0)
+					done = ISC_TRUE;
+				n = c;
+				state = fw_ordinary;
+			} else if (c >= 192) {
+				/* XXX check if allowed. */
+				/* Ordinary 14-bit pointer. */
+				new_current = c & 0x3F;
+				n = 1;
+				state = fw_newcurrent;
+			} else if (c == DNS_LABELTYPE_BITSTRING) {
+				labels++;
+				if (nrem == 0)
+					return (DNS_R_NOSPACE);
+				nrem--;
+				*ndata++ = c;
+				saw_bitstring = ISC_TRUE;
+				state = fw_bitstring;
+			} else if (c == DNS_LABELTYPE_GLOBALCOMP16) {
+				/* XXX check if allowed. */
+				/* 16-bit pointer. */
+				new_current = 0;
+				n = 2;
+				state = fw_newcurrent;
+			} else if (c == DNS_LABELTYPE_LOCALCOMP) {
+				/* XXX check if allowed. */
+				return (DNS_R_NOTIMPLEMENTED);
+			} else
+				return (DNS_R_BADLABELTYPE);
+			break;
+		case fw_ordinary:
+			if (downcase)
+				c = maptolower[c];
+			/* FALLTHROUGH */
+		case fw_copy:
+			*ndata++ = c;
+			n--;
+			if (n == 0)
+				state = fw_start;
+			break;
+		case fw_bitstring:
+			if (nrem < c + 1)
+				return (DNS_R_NOSPACE);
+			nrem -= c + 1;
+			*ndata++ = c;
+			if (c == 0)
+				c = 256;
+			n = c / 8;
+			if (c % 8 != 0)
+				n++;
+			state = fw_copy;
+			break;
+		case fw_newcurrent:
+			new_current *= 256;
+			new_current += c;
+			n--;
+			if (n == 0) {
+				if (new_current >= biggest_pointer)
+					return (DNS_R_BADPOINTER);
+				biggest_pointer = new_current;
+				current = new_current;
+				cdata = (unsigned char *)source->base +
+					current;
+				hops++;
+				if (hops > DNS_POINTER_MAXHOPS)
+					return (DNS_R_TOOMANYHOPS);
+				state = fw_start;
+			}
+			break;
+		default:
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unknown state %d", state);
+			/* Does not return. */
+		}
+	}
+
+	if (!done)
+		return (DNS_R_UNEXPECTEDEND);
+
+	name->magic = NAME_MAGIC;
+	name->ndata = (unsigned char *)target->base + target->used;
+	name->labels = labels;
+	name->length = target->length - target->used - nrem;
+
+	/*
+	 * We should build the offsets table directly.
+	 */
+	set_offsets(name, ISC_FALSE, ISC_FALSE);
+
+	if (saw_bitstring)
+		compact(name);
+
+	isc_buffer_forward(source, cused);
+	isc_buffer_add(target, name->length);
+	
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
+		isc_buffer_t *target)
+{
+	/*
+	 * Convert 'name' into wire format, compressing it as specified by the
+	 * compression context 'cctx', and storing the result in 'target'.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(cctx != NULL);
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+
+	/*
+	 * XXX  We don't try to compress the name; we just copy the
+	 * uncompressed version into the target buffer.
+	 */
+
+	if (target->length - target->used < name->length)
+		return (DNS_R_NOSPACE);
+	(void)memcpy((unsigned char *)target->base + target->used,
+		     name->ndata, (size_t)name->length);
+
+	isc_buffer_add(target, name->length);
+
+	return (DNS_R_SUCCESS);
 }
