@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.236 2000/11/03 07:15:43 marka Exp $ */
+/* $Id: server.c,v 1.237 2000/11/03 07:53:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1269,8 +1269,6 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	ns_server_t *server = (ns_server_t *) event->ev_arg;
 	dns_view_t *view;
 
-fprintf(stderr, "\n\nHEARTBEAT_TIMER_TICK\n");
-
 	UNUSED(task);
 	isc_event_free(&event);
 	RWLOCK(&server->conflock, isc_rwlocktype_read);
@@ -1473,8 +1471,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	heartbeat_interval = 3600; /* Default is 1 hour. */
 	(void)dns_c_ctx_getheartbeatinterval(cctx, &heartbeat_interval);
-
-fprintf(stderr, "\n\nHEARTBEAT_INTERVAL = %u\n", heartbeat_interval);
 
 	if (heartbeat_interval == 0) {
 		isc_timer_reset(server->heartbeat_timer,
