@@ -1304,8 +1304,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (ns_g_logstderr) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "ignoring named.conf logging statement "
-			      "due to -g option");
+			      "ignoring config file logging "
+			      "statement due to -g option");
 	} else {
 		dns_c_logginglist_t *clog = NULL;
 		isc_logconfig_t *logc = NULL;
@@ -1330,6 +1330,11 @@ load_configuration(const char *filename, ns_server_t *server,
 			CHECKM(result, "installing logging configuration");
 		}
 	}
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+		      "now using logging configuration from "
+		      "config file");
 
 	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) ==
 	    ISC_R_NOTFOUND)

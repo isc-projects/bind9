@@ -45,7 +45,16 @@
 #define NS_LOGMODULE_OMAPI		(&ns_g_modules[9])
 
 isc_result_t
-ns_log_init(void);
+ns_log_init(isc_boolean_t safe);
+/*
+ * Initialize the logging system and set up an initial default
+ * logging default configuration that will be used until the
+ * config file has been read.
+ * 
+ * If 'safe' is true, use a default configuration that refrains
+ * from opening files.  This is to avoid creating log files
+ * as root.
+ */
 
 isc_result_t
 ns_log_setdefaultchannels(isc_logconfig_t *lcfg);
@@ -53,6 +62,13 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg);
  * Set up logging channels according to the named defaults, which
  * may differ from the logging library defaults.  Currently,
  * this just means setting up default_debug.
+ */
+
+isc_result_t
+ns_log_setsafechannels(isc_logconfig_t *lcfg);
+/*
+ * Like ns_log_setdefaultchannels(), but omits any logging
+ * to files.
  */
 
 isc_result_t

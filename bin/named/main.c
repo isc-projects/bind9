@@ -300,7 +300,7 @@ setup() {
 	 */
 	ns_os_minprivs(ns_g_username);
 
-	result = ns_log_init();
+	result = ns_log_init(ISC_TF(ns_g_username != NULL));
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_log_init() failed: %s",
 				   isc_result_totext(result));
