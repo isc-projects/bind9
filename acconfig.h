@@ -15,6 +15,12 @@
  * SOFTWARE.
  */
 
+/***
+ *** This file is not to be included by any public header files, because
+ *** it does not get installed.
+ ***/
+@TOP@
+
 /* define on DEC OSF to enable 4.4BSD style sa_len support */
 #undef _SOCKADDR_LEN
 
