@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.95 2000/11/27 19:12:23 gson Exp $ */
+/* $Id: main.c,v 1.96 2000/12/06 01:04:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -54,7 +54,7 @@
 /*
  * Include header files for database drivers here.
  */
-/* #include <xxdb.h> */
+/* #include "xxdb.h" */
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static const char *	program_name = "named";
