@@ -4,7 +4,8 @@
 1768.	[bug]		nsecnoexistnodata() could be called with a non-NSEC
 			rdataset. [RT #12907]
 
-1767.	[placeholder]	rt13077
+1767.	[port]		Builds on IPv6 platforms without IPv6 Advanced API
+			support for (struct in6_pktinfo) failed.  [RT #13077]
 
 1766.	[placeholder]	rt13062
 
