@@ -116,7 +116,7 @@ void
 fatal(char *format, ...) ;
 void
 debug(char *format, ...) ;
-inline void
+void
 check_result(isc_result_t result, char *msg);
 isc_boolean_t
 isclass(char *text) ;
