@@ -609,7 +609,6 @@
 ./lib/dns/sec/dst/hmac_link.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/openssl_link.c		C.NAI	1999,2000
 ./lib/dns/sec/dst/openssldh_link.c		C.NAI	1999,2000
-./lib/dns/sec/dst/opensslmd5_link.c		C.NAI	1999,2000
 ./lib/dns/sec/dst/include/.cvsignore		X	2000
 ./lib/dns/sec/dst/include/Makefile.in		MAKE	1998,1999,2000
 ./lib/dns/sec/dst/include/dst/.cvsignore	X	2000
