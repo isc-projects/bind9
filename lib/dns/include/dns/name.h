@@ -323,6 +323,20 @@ isc_boolean_t dns_name_iswildcard(dns_name_t *name);
  *	FALSE		The least significant label of 'name' is not '*'.
  */
 
+isc_boolean_t dns_name_requiresedns(dns_name_t *name);
+/*
+ * Does 'name' require EDNS for transmission?
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ *	dns_name_countlabels(name) > 0
+ *
+ * Returns:
+ *	TRUE		The name requires EDNS to be transmitted.
+ *	FALSE		The name does not require EDNS to be transmitted.
+ */
+
 unsigned int dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.

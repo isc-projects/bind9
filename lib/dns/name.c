@@ -377,6 +377,39 @@ dns_name_iswildcard(dns_name_t *name) {
 	return (ISC_FALSE);
 }
 
+isc_boolean_t
+dns_name_requiresedns(dns_name_t *name) {
+	unsigned int count, nrem;
+	unsigned char *ndata;
+	isc_boolean_t requiresedns = ISC_FALSE;
+
+	/*
+	 * Does 'name' require EDNS for transmission?
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+
+	ndata = name->ndata;
+	nrem = name->length;
+	while (nrem > 0) {
+		count = *ndata++;
+		nrem--;
+		if (count == 0)
+			break;
+		if (count > 63) {
+			INSIST(count == DNS_LABELTYPE_BITSTRING);
+			requiresedns = ISC_TRUE;
+			break;
+		}
+		INSIST(nrem >= count);
+		nrem -= count;
+		ndata += count;
+	}
+
+	return (requiresedns);
+}
+
 unsigned int
 dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	unsigned int length;
