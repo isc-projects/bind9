@@ -1,3 +1,6 @@
+ 106.   [func]		Allow dnssec verifications to ignore the validity
+			period.  Used by several of the dnssec tools.
+
  105.   [doc]           doc/dev/coding.html expanded with other
                         implicit conventions the developers have used.
 

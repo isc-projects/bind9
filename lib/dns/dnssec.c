@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.29 2000/04/27 00:01:24 tale Exp $
+ * $Id: dnssec.c,v 1.30 2000/04/27 18:09:09 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -332,7 +332,8 @@ cleanup_name:
 
 isc_result_t
 dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  isc_mem_t *mctx, dns_rdata_t *sigrdata)
+		  isc_boolean_t ignoretime, isc_mem_t *mctx,
+		  dns_rdata_t *sigrdata)
 {
 	dns_rdata_generic_sig_t sig;
 	dns_fixedname_t fnewname;
@@ -358,13 +359,15 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	isc_stdtime_get(&now);
+	if (!ignoretime) {
+		isc_stdtime_get(&now);
 
-	/* Is SIG temporally valid? */
-	if (sig.timesigned > now)
-		return (DNS_R_SIGFUTURE);
-	else if (sig.timeexpire < now)
-		return (DNS_R_SIGEXPIRED);
+		/* Is SIG temporally valid? */
+		if (sig.timesigned > now)
+			return (DNS_R_SIGFUTURE);
+		else if (sig.timeexpire < now)
+			return (DNS_R_SIGEXPIRED);
+	}
 
 	/* Is the key allowed to sign data? */
 	flags = dst_key_flags(key);

@@ -81,11 +81,13 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 isc_result_t
 dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  isc_mem_t *mctx, dns_rdata_t *sigrdata);
+		  isc_boolean_t ignoretime, isc_mem_t *mctx,
+		  dns_rdata_t *sigrdata);
 /*
  *	Verifies the SIG record covering this rdataset signed by a specific
  *	key.  This does not determine if the key's owner is authorized to
  *	sign this record, as this requires a resolver or database.
+ *	If 'ignoretime' is ISC_TRUE, temporal validity will not be checked.
  *
  *	Requires:
  *		'name' (the owner name of the record) is a valid name
