@@ -73,6 +73,8 @@ typedef struct {
 
 static isc_task_t *		server_task;
 
+/* XXX temporary kludge until TSIG/TKEY are objectified */
+static isc_boolean_t tsig_initialized = ISC_FALSE;
 
 static isc_result_t
 create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
@@ -419,7 +421,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	callbacks.optscbkuap = NULL;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "loading '%s'", filename);
+		      ISC_LOG_INFO, "loading configuration from '%s'", filename);
 
 	configctx = NULL;
 	result = dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
@@ -540,6 +542,12 @@ load_configuration(const char *filename, ns_server_t *server) {
 		dns_view_detach(&view);
 	}
 
+	if (tsig_initialized) {
+		dns_tkey_destroy();
+		dns_tsig_destroy();
+	}
+	tsig_initialized = ISC_TRUE;
+
 	/*
 	 * Load the TSIG information from the configuration
 	 */
@@ -562,8 +570,6 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_aclconfctx_destroy(&aclconfctx);	
 
 	dns_c_ctx_delete(&configctx);
-
-
 }
 
 static void
