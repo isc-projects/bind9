@@ -194,7 +194,7 @@ NAME="incremental_zone_transfers"
 >The incremental zone transfer (IXFR) protocol is a way for
     slave servers to transfer only changed data, instead of having to
     transfer the entire zone. The IXFR protocol is documented in RFC
-    1995. </P
+    1995. See </P
 ><P
 >When acting as a master, <SPAN
 CLASS="acronym"
@@ -459,7 +459,7 @@ CLASS="systemitem"
 ><P
 >Here is an example configuration for the setup we just
     described above. Note that this is only configuration information;
-    for information on how to configure your zone files, <A
+    for information on how to configure your zone files, see <A
 HREF="Bv9ARM.ch03.html#sample_configuration"
 >Section 3.1</A
 ></P
@@ -467,38 +467,40 @@ HREF="Bv9ARM.ch03.html#sample_configuration"
 >Internal DNS server config:</P
 ><PRE
 CLASS="programlisting"
->&#13;acl internals { 172.16.72.0/24; 192.168.1.0/24;
-};
+>&#13;
+acl internals { 172.16.72.0/24; 192.168.1.0/24; };
+
 acl externals { <TT
 CLASS="varname"
 >bastion-ips-go-here</TT
 >; };
+
 options {
     ...
     ...
     forward only;
-    forwarders { <TT
+    forwarders { 				// forward to external servers
+    	<TT
 CLASS="varname"
 >bastion-ips-go-here</TT
->; }; // forward to external
-servers
-    allow-transfer { none; };															// sample allow-transfer
-(no one)
-    allow-query { internals; externals; };															// restrict
-query access
-    allow-recursion { internals; };															// restrict recursion
+>; 
+    };
+    allow-transfer { none; };			// sample allow-transfer (no one)
+    allow-query { internals; externals; };	// restrict query access
+    allow-recursion { internals; };		// restrict recursion
     ...
     ...
 };
-zone "site1.example.com" { 															//
-sample slave zone
+
+zone "site1.example.com" { 			// sample slave zone
   type master;
   file "m/site1.example.com";
-  forwarders { }; 															// do normal iterative
-															// resolution (do not forward)
+  forwarders { }; 				// do normal iterative
+						// resolution (do not forward)
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
+
 zone "site2.example.com" {
   type slave;
   file "s/site2.example.com";
@@ -507,6 +509,7 @@ zone "site2.example.com" {
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
+
 zone "site1.internal" {
   type master;
   file "m/site1.internal";
@@ -514,6 +517,7 @@ zone "site1.internal" {
   allow-query { internals; };
   allow-transfer { internals; }
 };
+
 zone "site2.internal" {
   type slave;
   file "s/site2.internal";
@@ -527,28 +531,27 @@ zone "site2.internal" {
 >External (bastion host) DNS server config:</P
 ><PRE
 CLASS="programlisting"
->&#13;acl internals { 172.16.72.0/24; 192.168.1.0/24;
-};
+>&#13;acl internals { 172.16.72.0/24; 192.168.1.0/24; };
+
 acl externals { bastion-ips-go-here; };
+
 options {
   ...
   ...
-  allow-transfer { none; };															// sample allow-transfer
-(no one)
-  allow-query { internals; externals; };															// restrict
-query access
-  allow-recursion { internals; externals; };															// restrict
-recursion
+  allow-transfer { none; };			// sample allow-transfer (no one)
+  allow-query { internals; externals; };	// restrict query access
+  allow-recursion { internals; externals; };	// restrict recursion
   ...
   ...
 };
-zone "site1.example.com" {															//
-sample slave zone
+
+zone "site1.example.com" {			// sample slave zone
   type master;
   file "m/site1.foo.com";
   allow-query { any; };
   allow-transfer { internals; externals; };
 };
+
 zone "site2.example.com" {
   type slave;
   file "s/site2.foo.com";
@@ -606,7 +609,7 @@ for TSIG.</P
 >TSIG might be most useful for dynamic update. A primary
     server for a dynamic zone should use access control to control
     updates, but IP-based access control is insufficient. Key-based
-    access control is far superior, . The <B
+    access control is far superior, see . The <B
 CLASS="command"
 >nsupdate</B
 >
@@ -856,11 +859,11 @@ CLASS="command"
 >host1-host2.</B
 >".</P
 ><P
->The more
+>You may want to read about the more
       powerful <B
 CLASS="command"
 >update-policy</B
-> statement <A
+> statement in <A
 HREF="Bv9ARM.ch06.html#dynamic_update_policies"
 >Section 6.2.20.4</A
 >.</P
@@ -1346,7 +1349,7 @@ CLASS="acronym"
 >BIND</SPAN
 > 9 includes a new lightweight resolver library and
     resolver daemon which new applications may choose to use to avoid
-    the complexities of A6 chain following and bitstring labels,<A
+    the complexities of A6 chain following and bitstring labels, see <A
 HREF="Bv9ARM.ch05.html"
 >Chapter 5</A
 >.</P
@@ -1365,7 +1368,7 @@ NAME="AEN929"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host					1h		IN	AAAA	3ffe:8050:201:1860:42::1
+host		3600	IN	AAAA	3ffe:8050:201:1860:42::1
 </PRE
 ><P
 >While their use is deprecated, they are useful to support
@@ -1390,7 +1393,7 @@ NAME="AEN934"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host					1h		IN	A6	0	3ffe:8050:201:1860:42::1
+host		3600	IN	A6	0 3ffe:8050:201:1860:42::1
 </PRE
 ><DIV
 CLASS="sect3"
@@ -1412,22 +1415,22 @@ NAME="AEN938"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN	example.com.
-host			1h	IN	A6	64	0:0:0:0:42::1											company.example1.net.
-host			1h	IN	A6	64	0:0:0:0:42::1					company.example2.net.
+host		3600	IN	A6	64 0:0:0:0:42::1 company.example1.net.
+host		3600	IN	A6	64 0:0:0:0:42::1 company.example2.net.
 </PRE
 ><P
 >ISP1 will use:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example1.net.
-company				1h		IN		A6	0	3ffe:8050:201:1860::
+company		3600	IN	A6	0 3ffe:8050:201:1860::
 </PRE
 ><P
 >ISP2 will use:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example2.net.
-company				1h		IN		A6	0	1234:5678:90ab:fffa::
+company		3600	IN	A6	0 1234:5678:90ab:fffa::
 </PRE
 ><P
 >When <SPAN
@@ -1453,10 +1456,10 @@ NAME="AEN949"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-@			4h		IN		NS		ns0
-			4h		IN		NS		ns1
-ns0			4h		IN		A6		0						3ffe:8050:201:1860:42::1
-ns1			4h		IN		A		192.168.42.1
+@		14400		IN	NS		ns0
+		14400		IN	NS		ns1
+ns0		14400		IN	A6		0 3ffe:8050:201:1860:42::1
+ns1		14400		IN	A		192.168.42.1
 </PRE
 ><P
 >It is recommended that IPv4-in-IPv6 mapped addresses not
@@ -1496,7 +1499,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0				4h										IN		PTR		host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0	  14400 IN 	PTR	host.example.com.
 </PRE
 ></DIV
 ><DIV
@@ -1523,7 +1526,7 @@ CLASS="emphasis"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64]									4h			IN			PTR			host.example.com.
+\[x0042000000000001/64] 	14400 	IN 	PTR	host.example.com.
 </PRE
 ></DIV
 ><DIV
@@ -1559,14 +1562,14 @@ CLASS="systemitem"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host						A6		64		::1234:5678:1212:5675 cust1.example.net.
-						A6		64		::1234:5678:1212:5675 subnet5.example2.net.
+host			A6	64	::1234:5678:1212:5675 cust1.example.net.
+			A6	64	::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1						A6		48		0:0:0:dddd:: ipv6net.example.net.
-ipv6net						A6		0		aa:bb:cccc::
+cust1			A6	48	0:0:0:dddd:: ipv6net.example.net.
+ipv6net			A6	0	aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5						A6		48		0:0:0:1:: ipv6net2.example2.net.
-ipv6net2						A6		0		6666:5555:4::
+subnet5			A6	48	0:0:0:1:: ipv6net2.example2.net.
+ipv6net2		A6	0	6666:5555:4::
 </PRE
 ><P
 >This sets up forward lookups.  To handle the reverse lookups,
@@ -1578,7 +1581,7 @@ would have:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]								DNAME		ipv6-rev.example.com.
+\[xdddd/16]		DNAME		ipv6-rev.example.com.
 </PRE
 ><P
 >and <SPAN
@@ -1588,7 +1591,7 @@ CLASS="systemitem"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]								DNAME		ipv6-rev.example.com.
+\[x0001/16]		DNAME		ipv6-rev.example.com.
 </PRE
 ><P
 ><SPAN
@@ -1600,7 +1603,7 @@ CLASS="systemitem"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]								PTR				host.example.com. 
+\[x1234567812125675/64]	PTR		host.example.com. 
 </PRE
 ></DIV
 ></DIV

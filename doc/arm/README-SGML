@@ -1,5 +1,7 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
+Version: $Id: README-SGML,v 1.4 2000/09/11 17:54:44 scanner Exp $
+
 The entire ARM is in the single file:
 
     Bv9ARM-book.xml
@@ -87,6 +89,24 @@ guarantee that everyone is using the same DTD.
 I did my initial work with the "sgmltools" the XML 4.0 DocBook DTD and
 "jade" or "openjade."
 
+You can get the 4.0 XML DocBook DTD from:
+
+    http://www.docbook.org/xml/4.0/
+
+(download the .zip file.) NOTE: We will eventually be changing the
+SYSTEM identifier to the recommended value of:
+
+    http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd
+
+NOTE: Under FreeBSD this is the package: 
+
+    /usr/ports/textproc/docbook-xml
+
+NetBSD instructions are coming soon.
+
+As soon as I figure out the proper "catalog" files to change and how
+to change them for this to do the proper re-mapping.
+
 HOW TO VALIDATE A DOCUMENT:
 
 I use the sgmltools "nsgmls" document validator. Since we are using
@@ -95,6 +115,15 @@ of the modular DSSL style sheets:
 
 nsgmls -sv /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
        Bv9ARM-book.xml
+
+The SGML tools can be found at:
+
+  ftp://ftp.us.sgmltools.org/pub/SGMLtools/v2.0/source/ \
+  ftp://ftp.nllgg.nl/pub/SGMLtools/v2.0/source/
+
+FreeBSD package for these is: 
+
+  /usr/ports/textproc/sgmltools
 
 HOW TO RENDER A DOCUMENT AS HTML or TeX:
 
