@@ -507,15 +507,14 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		view->provideixfr = ISC_TRUE;
 
-	configure_view_dnsseckeys(cctx, cview, mctx,
+	/*
+	 * For now, there is only one kind of trusted keys, the
+	 * "security roots".
+	 */
+	CHECK(configure_view_dnsseckeys(cctx, cview, mctx,
 				  dns_c_ctx_gettrustedkeys,
-				  &view->trustedkeys);
-#ifdef notyet
-	configure_view_dnsseckeys(cctx, cview, mctx,
-				  dns_c_ctx_getsecurityroots,
-				  &view->securityroots);
-#endif
-	
+				  &view->secroots));
+
 	result = ISC_R_SUCCESS;
 
  cleanup:
