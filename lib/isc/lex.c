@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.31 2000/06/23 22:32:10 brister Exp $ */
+/* $Id: lex.c,v 1.32 2000/07/10 05:11:17 marka Exp $ */
 
 #include <config.h>
 
@@ -717,4 +717,18 @@ isc_lex_getsourceline(isc_lex_t *lex) {
 		return(0);
 
 	return (source->line);
+}
+
+isc_boolean_t
+isc_lex_isfile(isc_lex_t *lex) {
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return (ISC_FALSE);
+
+	return (source->is_file);
 }
