@@ -1,6 +1,9 @@
 
 	--- 9.0.0rc2 released ---
 
+ 372.	[bug]		Deal with Microsoft DNS servers appending two bytes of
+			garbage to zone transfer requests.
+
  371.	[bug]		At high debug levels, doing an outgoing zone transfer
 			of a very large RRset could cause an assertion failure
 			during logging.

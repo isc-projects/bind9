@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.131.2.5 2000/07/27 17:18:46 bwelling Exp $ */
+/* $Id: message.c,v 1.131.2.6 2000/08/07 22:07:09 gson Exp $ */
 
 /***
  *** Imports
@@ -30,6 +30,7 @@
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -1484,8 +1485,15 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		return (ret);
 
 	isc_buffer_remainingregion(source, &r);
-	if (r.length != 0)
-		return (DNS_R_FORMERR);
+	if (r.length != 0) {
+		if (r.length == 2 && r.base[0] == 'M' && r.base[1] == 'S') {
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MESSAGE, ISC_LOG_INFO,
+				      "message has nonstandard Microsoft tag");
+		} else {
+			return (DNS_R_FORMERR);
+		}
+	}
 
 	if (msg->tsig != NULL || msg->tsigkey != NULL || msg->sig0 != NULL) {
 		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
