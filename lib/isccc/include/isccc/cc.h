@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.h,v 1.2 2001/03/27 20:08:05 bwelling Exp $ */
+/* $Id: cc.h,v 1.3 2001/03/28 23:10:39 bwelling Exp $ */
 
 #ifndef ISCCC_CC_H
 #define ISCCC_CC_H 1
@@ -82,12 +82,6 @@ isccc_cc_cleansymtab(isccc_symtab_t *symtab, isccc_time_t now);
 isc_result_t
 isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		   isccc_time_t now);
-
-isc_result_t
-isccc_cc_readsymtab(isccc_symtab_t *symtab, const char *filename);
-
-isc_result_t
-isccc_cc_writesymtab(isccc_symtab_t *symtab, const char *filename);
 
 ISC_LANG_ENDDECLS
 

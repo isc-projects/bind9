@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.2 2001/03/27 20:07:56 bwelling Exp $ */
+/* $Id: cc.c,v 1.3 2001/03/28 23:10:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -802,120 +802,4 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 	}
 
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isccc_cc_readsymtab(isccc_symtab_t *symtab, const char *filename)
-{
-	FILE *f;
-	size_t len;
-	char s[4096];
-	char *key, *dup_key;
-	char *value;
-	isccc_symvalue_t sv;
-	isc_result_t result;
-
-	f = fopen(filename, "r");
-	if (f == NULL) {
-		if (errno == ENOENT)
-			return (ISC_R_NOTFOUND);
-		else
-			return (isccc_result_fromerrno(errno));
-	}
-	while (fgets(s, sizeof s, f) != NULL) {
-		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
-			s[len - 1] = '\0';
-			len--;
-		}
-		key = s;
-		value = s;
-		while (*value != ' ' && *value != '\t' && *value != '\0')
-			value++;
-		if (value == '\0') {
-			/*
-			 * No value?  Skip this line.
-			 */
-			continue;
-		}
-		/*
-		 * Option has a value.  Terminate the key and skip to
-		 * the beginning of the value.
-		 */
-		*value = '\0';
-		value++;
-		while (*value == ' ' || *value == '\t')
-			value++;
-		dup_key = strdup(key);
-		if (dup_key == NULL) {
-			fclose(f);
-			return (ISC_R_NOMEMORY);
-		}
-		sv.as_uinteger = atoi(value);
-		result = isccc_symtab_define(symtab, dup_key,
-					   ISCCC_SYMTYPE_CCDUP,
-					   sv, isccc_symexists_reject);
-		if (result != ISC_R_SUCCESS) {
-			free(dup_key);
-			fclose(f);
-			return (result);
-		}
-	}
-	fclose(f);
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_boolean_t
-symtab_print(char *key, unsigned int type, isccc_symvalue_t value,
-	     void *arg)
-{
-	FILE *f;
-
-	UNUSED(type);
-
-	f = arg;
-
-	(void)fprintf(f, "%s\t%u\n", key, value.as_uinteger);
-
-	return (ISC_FALSE);
-}
-
-isc_result_t
-isccc_cc_writesymtab(isccc_symtab_t *symtab, const char *filename)
-{
-	FILE *f;
-	char *newfilename;
-	size_t len;
-	isc_result_t result;
-	
-	len = strlen(filename) + 4 + 1;
-	newfilename = malloc(len);
-	if (newfilename == NULL)
-		return (ISC_R_NOMEMORY);
-	/*
-	 * This is safe.
-	 */
-	sprintf(newfilename, "%s.new", filename);
-
-	f = fopen(newfilename, "w");
-	if (f == NULL) {
-		free(newfilename);
-		return (isccc_result_fromerrno(errno));
-	}
-
-	isccc_symtab_foreach(symtab, symtab_print, f);
-
-	result = ISC_R_SUCCESS;
-	if (ferror(f))
-		result = ISC_R_FAILURE;
-	if (fclose(f) == EOF) 
-		result = isccc_result_fromerrno(errno);
-	if (result == ISC_R_SUCCESS) {
-		if (rename(newfilename, filename) < 0)
-			result = isccc_result_fromerrno(errno);
-	}
-	free(newfilename);
-
-	return (result);
 }
