@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.8.10.1 2003/09/17 07:19:49 tale Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.8.10.2 2003/09/19 06:55:44 marka Exp $ */
 
 #include <config.h>
 
@@ -1889,7 +1889,7 @@ ordering_name: /* nothing */
 			$$ = $2;
 		}
 	}
-
+	;
 
 rrset_ordering_element: ordering_class ordering_type ordering_name
 	L_ORDER L_STRING
@@ -1919,7 +1919,7 @@ rrset_ordering_element: ordering_class ordering_type ordering_name
 		isc_mem_free(memctx, $5);
 		isc_mem_free(memctx, $3);
 	}
-
+	;
 
 transfer_format: L_ONE_ANSWER
 	{
@@ -2189,6 +2189,7 @@ yea_or_nay: L_YES
 			$$ = isc_boolean_true;
 		}
 	}
+	;
 
 notify_setting: yea_or_nay
 	{
@@ -4959,6 +4960,7 @@ class_name: any_string
 		isc_mem_free(memctx, $1);
 		$$ = cl;
 	}
+	;
 
 wild_class_name: any_string
 	{
@@ -4982,6 +4984,7 @@ wild_class_name: any_string
 		isc_mem_free(memctx, $1);
 		$$ = cl;
 	}
+	;
 
 optional_class: /* Empty */
 	{
