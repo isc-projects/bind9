@@ -1,5 +1,5 @@
 <!DOCTYPE style-sheet PUBLIC "-//James Clark//DTD DSSSL Style Sheet//EN" [
-<!ENTITY dbstyle SYSTEM "/usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl" CDATA DSSSL>
+<!ENTITY dbstyle SYSTEM "@SGMLDIR@/docbook/dsssl/modular/print/docbook.dsl" CDATA DSSSL>
 ]>
 
 
