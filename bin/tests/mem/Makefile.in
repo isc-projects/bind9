@@ -42,7 +42,7 @@ t_mem: t_mem.o ${DEPLIBS}
 	${LIBTOOL} ${CC} -o $@ t_mem.o ${LIBS}
 
 test:
-	-@./t_mem -c @top_srcdir@/t_config >>@top_srcdir@/bin/tests/t_journal 2>&1
+	-@./t_mem -c @top_srcdir@/t_config
 
 testhelp:
 	@./t_mem -h

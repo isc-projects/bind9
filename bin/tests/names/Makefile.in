@@ -43,7 +43,7 @@ t_names: t_names.o
 	${LIBTOOL} ${CC} -o $@ t_names.o ${LIBS}
 
 test:
-	-@./t_names -c @top_srcdir@/t_config -a >> ../t_journal 2>&1
+	-@./t_names -c @top_srcdir@/t_config -a
 
 testhelp:
 	@./t_names -h

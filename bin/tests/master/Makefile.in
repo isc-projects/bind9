@@ -43,7 +43,7 @@ t_master: t_master.o
 	${LIBTOOL} ${CC} -o $@ t_master.o ${LIBS}
 
 test:
-	-@ ./t_master -c @top_srcdir@/t_config -a >> ../t_journal 2>&1
+	-@ ./t_master -c @top_srcdir@/t_config -a
 
 testhelp:
 	@./t_master -h

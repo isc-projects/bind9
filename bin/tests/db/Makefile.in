@@ -41,7 +41,7 @@ t_db: t_db.o
 	${LIBTOOL} ${CC} -o $@ t_db.o ${LIBS}
 
 test:
-	-@./t_db -c @top_srcdir@/t_config -a >> ../t_journal 2>&1
+	-@./t_db -c @top_srcdir@/t_config -a
 
 testhelp:
 	@./t_db -h
