@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.85 2000/08/01 01:11:25 tale Exp $ */
+/* $Id: dnssec-signzone.c,v 1.86 2000/08/02 13:51:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -519,6 +519,9 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdata_t rdata, newrdata;
 	isc_result_t result;
 
+	dns_rdataset_init(&newset);
+	dns_rdataset_init(&sigset);
+
 	isc_buffer_init(&b, filename, sizeof(filename));
 	isc_buffer_putstr(&b, "signedkey-");
 	result = dns_name_totext(name, ISC_FALSE, &b);
@@ -535,8 +538,6 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	result = dns_db_findnode(newdb, name, ISC_FALSE, &newnode);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
-	dns_rdataset_init(&newset);
-	dns_rdataset_init(&sigset);
 	result = dns_db_findrdataset(newdb, newnode, NULL, dns_rdatatype_key,
 				     0, 0, &newset, &sigset);
 	if (result != ISC_R_SUCCESS)
@@ -572,10 +573,12 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 	result = dns_db_addrdataset(db, node, version, 0, &sigset, 0, NULL);
 	check_result(result, "dns_db_addrdataset");
-	dns_rdataset_disassociate(&newset);
-	dns_rdataset_disassociate(&sigset);
 
  failure:
+	if (dns_rdataset_isassociated(&newset))
+		dns_rdataset_disassociate(&newset);
+	if (dns_rdataset_isassociated(&sigset))
+		dns_rdataset_disassociate(&sigset);
 	if (newnode != NULL)
 		dns_db_detachnode(newdb, &newnode);
 	if (newdb != NULL)
