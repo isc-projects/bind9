@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.327 2001/07/11 05:20:26 marka Exp $ */
+/* $Id: zone.c,v 1.328 2001/07/11 19:12:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2159,10 +2159,10 @@ zone_dump(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
  redo:
-	LOCK(&zone->lock);
+	LOCK_ZONE(zone);
 	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
-	UNLOCK(&zone->lock);
+	UNLOCK_ZONE(zone);
 	if (db == NULL)
 		return (DNS_R_NOTLOADED);
 	dns_db_currentversion(db, &version);
@@ -2175,7 +2175,7 @@ zone_dump(dns_zone_t *zone) {
 	dns_db_detach(&db);
 
 	again = ISC_FALSE;
-	LOCK(&zone->lock);
+	LOCK_ZONE(zone);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DUMPING);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -2190,7 +2190,7 @@ zone_dump(dns_zone_t *zone) {
 		zone->dumptime = 0;
 		again = ISC_TRUE;
 	}
-	UNLOCK(&zone->lock);
+	UNLOCK_ZONE(zone);
 	if (again)
 		goto redo;
 
