@@ -274,7 +274,7 @@ void dns_zone_cleardbargs(dns_zone_t *zone);
 dns_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*
  * 	Attach the database to '*dbp' if it exists otherwise
- *	return DNS_R_NOTFOUND.
+ *	return DNS_R_NOTLOADED.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
@@ -282,7 +282,7 @@ dns_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
  *
  * Returns:
  *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
+ *	DNS_R_NOTLOADED
  */
 
 dns_result_t dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
