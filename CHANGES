@@ -1,3 +1,15 @@
+ 198.	[func]		Dispatch managers hold memory pools which
+			any managed dispatcher may use.  This allows
+			us to avoid dipping into the memory context for
+			most allocations.  [19-May-2000 explorer]
+
+ 197.	[bug]		When an incoming AXFR or IXFR completes, the
+			zone's internal state is refreshed from the
+			SOA data.  [19-May-2000 explorer]
+
+ 196.	[func]		Dispatchers can be shared easily between views
+			and/or interfaces.  [19-May-2000 explorer]
+
  195.	[bug]		Including the NXT record of the root domain
 			in a negative response caused an assertion
 			failure.
