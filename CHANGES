@@ -1,5 +1,5 @@
 
- 919.	[bug]		rndc would segfault when rndc.conf was missing the
+ 919.	[bug]		rndc would segfault when rndc.conf was missing a
  			closing brace. [RT #1461]
 
 	--- 9.1.3 released ---
