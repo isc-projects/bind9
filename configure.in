@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.173 $)
+AC_REVISION($Revision: 1.174 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -180,32 +180,41 @@ AC_C_BIGENDIAN
 #
 # was --with-openssl specified?
 #
+AC_MSG_CHECKING(for compatible OpenSSL library)
 AC_ARG_WITH(openssl,
-[  --with-openssl        Specify path for system-supplied openssl
+[  --with-openssl=PATH  Specify path for system-supplied openssl
                         (rather than using bind-9 internal openssl)],
-    openssl="$withval", openssl="")
+    use_openssl="$withval", use_openssl="no")
 
 #
 # If the user didn't specify where openssl is, and we didn't find or it
-# is imcompatible with our code, use our internal one.
+# is incompatible with our code, use our internal one.
 #
-AC_MSG_CHECKING(for compatible OpenSSL library)
+# XXX This appears to assume that the user specified path is correct,
+# and does no checking.
+#
 
-if test "X$openssl" = "X" ; then
-    DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
-    dst_privateopenssl='openssl'
-    DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
-    DST_OPENSSL_LIB=''
-    DST_OPENSSL_OBJS='${OPENSSLOBJS}'
-    AC_MSG_RESULT(using private library)
-else
-    DST_PRIVATEOPENSSL=''
-    dst_privateopenssl=''
-    DST_OPENSSL_INC="-I$openssl/include"
-    DNS_OPENSSL_LIBS="-L$openssl/lib -lssl -lcrypto"
-    DST_OPENSSL_LIB=''
-    AC_MSG_RESULT(using openssl from $openssl/lib and $openssl/include)
-fi
+case "$use_openssl" in
+	no)
+		DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
+		dst_privateopenssl='openssl'
+		DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
+		DST_OPENSSL_LIB=''
+		DST_OPENSSL_OBJS='${OPENSSLOBJS}'
+		AC_MSG_RESULT(using private library)
+		;;
+	yes)
+		AC_MSG_ERROR([--with-openssl must specify a path])
+		;;
+	*)
+		DST_PRIVATEOPENSSL=''
+		dst_privateopenssl=''
+		DST_OPENSSL_INC="-I$use_openssl/include"
+		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+		DST_OPENSSL_LIB=''
+		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
+		;;
+esac
 
 AC_SUBST(DST_PRIVATEOPENSSL)
 AC_SUBST(dst_privateopenssl)
