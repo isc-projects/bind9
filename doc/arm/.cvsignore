@@ -1,5 +1,7 @@
 Makefile
+gendvi.sh
 genhtml.sh
+genpdf.sh
 validate.sh
 nominum-docbook-html.dsl
 catalog
