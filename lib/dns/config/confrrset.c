@@ -291,7 +291,7 @@ dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order)
 		dns_c_datatype_tostream(fp, order->otype);
 	}
 
-	fprintf(fp, " name %s", order->name);
+	fprintf(fp, " name \"%s\"", order->name);
 
 	fprintf(fp, " order %s",
 		dns_c_ordering2string(order->ordering, ISC_TRUE));
