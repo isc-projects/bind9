@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.95 2001/06/28 01:51:20 marka Exp $ */
+/* $Id: mem.c,v 1.96 2001/06/28 01:57:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1048,7 +1048,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 #if ISC_MEM_TRACKLINES
 static void
 print_active(isc_mem_t *ctx, FILE *out) {
-	if (ctx->debugging > 1) {
+	if (MEM_RECORD) {
 		debuglink_t *dl;
 		unsigned int i;
 
