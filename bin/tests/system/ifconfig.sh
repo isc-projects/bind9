@@ -43,10 +43,10 @@ case "$1" in
 			ifconfig lo0 add 10.53.0.$ns
 			;;
 		    *-dec-osf5.*)
-			ifconfig lo0 alias 10.53.0.$ns
+			/sbin/ifconfig lo0 alias 10.53.0.$ns
 			;;
 		    *-dec-osf4.*)
-			ifconfig lo0 alias 10.53.0.$ns
+			/sbin/ifconfig lo0 alias 10.53.0.$ns
 			;;
 		    *-pc-bsdi4.*)
 			ifconfig lo0 add 10.53.0.$ns
