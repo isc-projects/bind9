@@ -1,3 +1,7 @@
+1433.	[bug]		named could trigger a REQUIRE failure if it could
+			not get a file descriptor when attempting to write
+			a master file. [RT #4347]
+
 1432.	[func]		The advertised EDNS UDP buffer size can now be set
 			via named.conf (edns-udp-size).
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.382 2003/02/07 01:54:56 marka Exp $ */
+/* $Id: zone.c,v 1.383 2003/02/26 03:06:46 marka Exp $ */
 
 #include <config.h>
 
@@ -2261,16 +2261,16 @@ dump_done(void *arg, isc_result_t result) {
 
 	ENTER;
 
-	/*
-	 * We don't own these, zone->dctx must stay valid.
-	 */
-	db = dns_dumpctx_db(zone->dctx);
-	version = dns_dumpctx_version(zone->dctx);
-
 	if (result == ISC_R_SUCCESS && zone->journal != NULL &&
 	    zone->journalsize != -1) {
 		isc_uint32_t serial;
 		isc_result_t tresult;
+
+		/*
+		 * We don't own these, zone->dctx must stay valid.
+		 */
+		db = dns_dumpctx_db(zone->dctx);
+		version = dns_dumpctx_version(zone->dctx);
 
 		tresult = dns_db_getsoaserial(db, version, &serial);
 		if (tresult == ISC_R_SUCCESS) {
@@ -2311,7 +2311,8 @@ dump_done(void *arg, isc_result_t result) {
 	} else if (result == ISC_R_SUCCESS)
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FLUSH);
 		
-	dns_dumpctx_detach(&zone->dctx);
+	if (zone->dctx != NULL)
+		dns_dumpctx_detach(&zone->dctx);
 	UNLOCK_ZONE(zone);
 	if (again)
 		(void)zone_dump(zone, ISC_FALSE);
