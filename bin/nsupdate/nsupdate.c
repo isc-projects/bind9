@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.2 2000/06/16 17:10:02 mws Exp $ */
+/* $Id: nsupdate.c,v 1.3 2000/06/16 18:54:33 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -641,10 +641,17 @@ update_delete() {
 		check_result(result, "dns_message_gettemprdataset");
 		dns_rdatalist_init(rdatalist);
 		rdatalist->type = rdatatype;
-		rdatalist->rdclass = dns_rdataclass_none;
+		rdatalist->rdclass = dns_rdataclass_any;
 		rdatalist->covers = 0;
 		rdatalist->ttl = 0;
+		result = dns_message_gettemprdata(updatemsg, &rdata);
+		check_result(result, "dns_message_gettemprdata");
+		rdata->data = NULL;
+		rdata->length = 0;
+		rdata->rdclass = dns_rdataclass_any;
+		rdata->type = rdatatype;
 		ISC_LIST_INIT(rdatalist->rdata);
+		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 		dns_rdataset_init(rdataset);
 		dns_rdatalist_tordataset(rdatalist, rdataset);		
 	}
@@ -907,7 +914,7 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	result = dns_name_dup(name, mctx, &actualzone);
 	check_result(result, "dns_name_dup");
 
-	/* XXXMWS This can't be right. */
+	/* Name is just a reference, so this is safe. */
 	name = NULL;
 
 	if (debugging) {
