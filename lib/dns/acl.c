@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.19 2001/01/17 02:58:28 bwelling Exp $ */
+/* $Id: acl.c,v 1.20 2001/01/17 17:44:49 gson Exp $ */
 
 #include <config.h>
 
@@ -130,17 +130,17 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 	      int *match,
 	      dns_aclelement_t **matchelt)
 {
-	int i;
+	unsigned int i;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(matchelt == NULL || *matchelt == NULL);
 	
-	for (i = 0; i < (int)acl->length; i++) {
+	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
 
 		if (dns_aclelement_match(reqaddr, reqsigner,
 					 e, env, matchelt)) {
-			*match = e->negative ? -(i+1) : (i+1);
+			*match = e->negative ? -((int)i+1) : ((int)i+1);
 			return (ISC_R_SUCCESS);
 		}
 	}
