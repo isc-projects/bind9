@@ -55,8 +55,6 @@ typedef enum {
 #define DNS_ZONE_O_DIALUP	0x00000008U	/* zone xfr over dialup link */
 #define DNS_ZONE_O_NOTIFY	0x00000010U	/* perform NOTIFY */
 
-typedef struct dns_zone dns_zone_t;
-
 ISC_LANG_BEGINDECLS
 
 /***
