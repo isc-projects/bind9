@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.25 2000/05/05 05:49:39 marka Exp $ */
+/* $Id: afsdb_18.c,v 1.26 2000/05/12 12:59:22 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -41,6 +41,8 @@ fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* subtype */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 	
 	/* hostname */

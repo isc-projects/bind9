@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.25 2000/05/05 05:49:40 marka Exp $ */
+/* $Id: cert_37.c,v 1.26 2000/05/12 12:59:26 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -48,6 +48,8 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	/* key tag */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* algorithm */

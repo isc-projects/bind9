@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.22 2000/05/05 23:20:09 marka Exp $ */
+/* $Id: srv_33.c,v 1.23 2000/05/12 12:59:35 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -40,14 +40,20 @@ fromtext_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* priority */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* weight */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* port */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* target */

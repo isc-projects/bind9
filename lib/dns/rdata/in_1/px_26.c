@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.21 2000/05/05 23:20:08 marka Exp $ */
+/* $Id: px_26.c,v 1.22 2000/05/12 12:59:33 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -40,6 +40,8 @@ fromtext_in_px(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* preference */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* MAP822 */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.24 2000/05/05 23:20:03 marka Exp $ */
+/* $Id: naptr_35.c,v 1.25 2000/05/12 12:59:32 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -40,10 +40,14 @@ fromtext_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* order */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* preference */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if (token.value.as_ulong > 0xffff)
+		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* flags */
