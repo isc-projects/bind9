@@ -34,15 +34,18 @@ LIBS =		${ISCLIBS} @LIBS@
 
 TARGETS =	t_net
 
-SRCS =		driver.c multicast1.c multicast2.c
+SRCS =		driver.c netaddr_multicast.c sockaddr_multicast.c
+
+OBJS =		driver.@O@ netaddr_multicast.@O@ sockaddr_multicast.@O@
 
 @BIND9_MAKE_RULES@
 
-t_net: t_net.@O@ ${DEPLIBS} ${TLIB}
-	${LIBTOOL} ${CC} -o $@ t_net.@O@ ${TLIB} ${LIBS}
+t_net: ${OBJS} ${DEPLIBS} ${TLIB}
+	${LIBTOOL} ${CC} -o $@ ${OBJS} ${TLIB} ${LIBS}
 
 test: t_net
 	-@./t_net
 
 clean distclean::
 	rm -f ${TARGETS}
+	rm -f ${OBJS}
