@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.35 1999/12/16 23:29:06 explorer Exp $
+ * $Id: tsig.c,v 1.36 1999/12/17 21:09:34 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -292,29 +292,8 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	isc_buffer_init(&databuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
 
-	if (!dns_tsigkey_empty(key)) {
-		ret = dst_sign(DST_SIGMODE_INIT, key->key, &ctx, NULL, NULL);
-		if (ret != ISC_R_SUCCESS)
-			goto cleanup_algorithm;
-	}
-
-	if (is_response(msg)) {
-		if (!dns_tsigkey_empty(key)) {
-			isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
-			isc_buffer_available(&databuf, &r);
-			if (r.length < msg->querytsig->siglen)
-				return (ISC_R_NOSPACE);
-			memcpy(r.base, msg->querytsig->signature,
-			       msg->querytsig->siglen);
-			isc_buffer_add(&databuf, msg->querytsig->siglen);
-			isc_buffer_used(&databuf, &r);
-			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
-					NULL);
-			if (ret != ISC_R_SUCCESS)
-				goto cleanup_algorithm;
-		}
+	if (is_response(msg))
 		tsig->error = msg->querytsigstatus;
-	}
 	else
 		tsig->error = dns_rcode_noerror;
 
@@ -343,6 +322,26 @@ dns_tsig_sign(dns_message_t *msg) {
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
 		unsigned int sigsize;
+
+		ret = dst_sign(DST_SIGMODE_INIT, key->key, &ctx, NULL, NULL);
+		if (ret != ISC_R_SUCCESS)
+			goto cleanup_algorithm;
+
+		/* If this is a response, digest the query signature */
+		if (is_response(msg)) {
+			isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
+			isc_buffer_available(&databuf, &r);
+			if (r.length < msg->querytsig->siglen)
+				return (ISC_R_NOSPACE);
+			memcpy(r.base, msg->querytsig->signature,
+			       msg->querytsig->siglen);
+			isc_buffer_add(&databuf, msg->querytsig->siglen);
+			isc_buffer_used(&databuf, &r);
+			ret = dst_sign(DST_SIGMODE_UPDATE, key->key, &ctx, &r,
+					NULL);
+			if (ret != ISC_R_SUCCESS)
+				goto cleanup_algorithm;
+		}
 
 		/* Digest the header */
 		isc_buffer_init(&headerbuf, header, sizeof header,
