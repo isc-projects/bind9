@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: setup.sh,v 1.1 2000/07/06 00:54:02 mws Exp $
+# $Id: setup.sh,v 1.2 2000/07/24 22:53:34 mws Exp $
 
 #
 # jnl and database files MUST be removed before we start
@@ -23,5 +23,6 @@
 
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
 cp ns1/example.orig ns1/example.db
+cp ns1/update.orig ns1/update.db
 
 

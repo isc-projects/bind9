@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2000/07/09 16:27:30 tale Exp $
+# $Id: tests.sh,v 1.5 2000/07/24 22:53:35 mws Exp $
 
 #
 # Perform tests
@@ -29,12 +29,10 @@ status=0
 echo "I:fetching first copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
-grep ";" dig.out.ns1		# XXXDCL Why is this here?
 
 echo "I:fetching second copy of zone before update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
-grep ";" dig.out.ns2		# XXXDCL Why is this here?
 
 echo "I:comparing pre-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || status=1
@@ -49,16 +47,22 @@ sleep 15
 echo "I:fetching first copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
-grep ";" dig.out.ns1		# XXXDCL Why is this here?
 
 echo "I:fetching second copy of zone after update"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
-grep ";" dig.out.ns2		# XXXDCL Why is this here?
 
 echo "I:comparing post-update copies to known good data"
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || status=1
 $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || status=1
+
+if $PERL -e 'use Net::DNS;' 2>/dev/null
+then
+    echo "I:running update.pl test"
+    $PERL update_test.pl -s 10.53.0.1 -p 5300 update.nil. || status=1
+else
+    echo "I:The second part of this test requires the Net::DNS library." >&2
+fi
 
 echo "I:exit status: $status"
 exit $status

@@ -15,13 +15,14 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: clean.sh,v 1.1 2000/07/06 00:54:02 mws Exp $
+# $Id: clean.sh,v 1.2 2000/07/24 22:53:33 mws Exp $
 
 #
 # Clean up after zone transfer tests.
 #
 
-rm -f dig.out.ns1 dig.out.ns2 ns1/*.jnl ns2/*.jnl
+rm -f dig.out.ns1 dig.out.ns2 ns1/*.jnl ns2/*.jnl ns1/*.db
+
 
 
 
