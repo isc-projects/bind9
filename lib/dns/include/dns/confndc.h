@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.h,v 1.8 2000/06/22 21:55:26 tale Exp $ */
+/* $Id: confndc.h,v 1.8.2.1 2000/07/11 19:35:13 gson Exp $ */
 
 #ifndef DNS_CONFNDC_H
 #define DNS_CONFNDC_H 1
@@ -93,7 +93,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx);
 
-isc_result_t
+void
 dns_c_ndcctx_destroy(dns_c_ndcctx_t **ctx);
 
 isc_result_t

@@ -33,6 +33,9 @@
  319.	[func]		The named.conf "controls" statement is now used
 			to configure the OMAPI command channel.
 
+ 318.	[func]		dns_c_ndcctx_destroy() could never return anything
+			except ISC_R_SUCCESS; made it have void return instead.
+
  317.	[func]		Use callbacks from libomapi to determine if a
 			new connection is valid, and if a key requested
 			to be used with that connection is valid.
