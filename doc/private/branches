@@ -9,10 +9,10 @@ libbind_clean
 rt3536		review		jinmei	[ixfr=support]
 rt3598		review		sho
 rt3625		review		sho
-rt3666		review		jinmei
 rt3746		open		marka
 v6source
 
+rt3666		closed
 rt3588		closed
 rt3653		closed
 rt3445		closed
