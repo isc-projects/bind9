@@ -1,4 +1,7 @@
 
+ 661.   [bug]           Certain UDP IXFR requests caused an assertion failure
+                        (mpctx->allocated == 0). [RT #355, #394, #623]
+
  589.	[bug]		The server could deadlock if a zone was updated
 			while being transferred out.
 
