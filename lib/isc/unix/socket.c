@@ -2364,38 +2364,37 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 	 *	  its done event with status of "ISC_R_CANCELED".
 	 *	o Reset any state needed.
 	 */
-	if ((how & ISC_SOCKCANCEL_RECV) && !EMPTY(sock->recv_list)) {
-		rwintev_t *		iev;
-		rwintev_t *		next;
-		isc_socketevent_t *	dev;
+	if (((how & ISC_SOCKCANCEL_RECV) == ISC_SOCKCANCEL_RECV)
+	    && !EMPTY(sock->recv_list)) {
+		rwintev_t 	       *iev;
+		rwintev_t	       *next;
+		isc_socketevent_t      *dev;
+		isc_task_t	       *current_task;
 
 		iev = HEAD(sock->recv_list);
+		next = NEXT(iev, link);
 
-		/*
-		 * If the internal event was posted, try to remove
-		 * it from the task's queue.  If this fails,
-		 * set the canceled flag, post the done event, and
-		 * point "iev" to the next item on the list, and enter
-		 * the while loop.  Otherwise, just enter the while loop
-		 * and let it dispatch the done event.
-		 */
-		if ((task == NULL || task == iev->task)
-		    && iev->posted && !iev->canceled) {
-			if (isc_task_purge(task, sock,
-					   ISC_SOCKEVENT_INTRECV) == 0) {
+		if ((task == NULL || task == iev->task) && !iev->canceled) {
+			dev = iev->done_ev;
+			current_task = iev->task;
+
+			if (iev->posted) {
+				if (isc_task_purge(task, sock,
+						   ISC_SOCKEVENT_INTRECV)
+				    == 0) {
 					iev->canceled = ISC_TRUE;
-					/*
-					 * pull off the done event and post it.
-					 */
-					dev = iev->done_ev;
 					iev->done_ev = NULL;
-					dev->result = ISC_R_CANCELED;
-					ISC_TASK_SEND(iev->task,
-						      (isc_event_t **)&dev);
-
-					iev = NEXT(iev, link);
+				}
+			} else {
+				isc_event_free((isc_event_t **)&iev);
 			}
+
+			dev->result = ISC_R_CANCELED;
+			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
+			isc_task_detach(&current_task);
 		}
+
+		iev = next;
 
 		/*
 		 * run through the event queue, posting done events with the
@@ -2413,43 +2412,38 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		}
 	}
 
-	if (how & ISC_SOCKCANCEL_SEND && !EMPTY(sock->send_list)) {
-		rwintev_t *		iev;
-		rwintev_t *		next;
-		isc_socketevent_t *	dev;
+	if (((how & ISC_SOCKCANCEL_SEND) == ISC_SOCKCANCEL_SEND)
+	    && !EMPTY(sock->send_list)) {
+		rwintev_t 	       *iev;
+		rwintev_t 	       *next;
+		isc_socketevent_t      *dev;
+		isc_task_t	       *current_task;
 
 		iev = HEAD(sock->send_list);
+		next = NEXT(iev, link);
 
-		/*
-		 * If the internal event was posted, try to remove
-		 * it from the task's queue.  If this fails,
-		 * set the canceled flag, post the done event, and
-		 * point "iev" to the next item on the list, and enter
-		 * the while loop.  Otherwise, just enter the while loop
-		 * and let it dispatch the done event.
-		 */
-		if ((task == NULL || task == iev->task)
-		    && iev->posted && !iev->canceled) {
-			if (isc_task_purge(task, sock,
-					   ISC_SOCKEVENT_INTSEND) == 0) {
+		if ((task == NULL || task == iev->task) && !iev->canceled) {
+			dev = iev->done_ev;
+			current_task = iev->task;
+
+			if (iev->posted) {
+				if (isc_task_purge(current_task, sock,
+						   ISC_SOCKEVENT_INTSEND)
+				    == 0) {
 					iev->canceled = ISC_TRUE;
-					/*
-					 * pull off the done event and post it.
-					 */
-					dev = iev->done_ev;
 					iev->done_ev = NULL;
-					dev->result = ISC_R_CANCELED;
-					ISC_TASK_SEND(iev->task,
-						      (isc_event_t **)&dev);
-
-					iev = NEXT(iev, link);
+				}
+			} else {
+				isc_event_free((isc_event_t **)&iev);
 			}
+
+			dev->result = ISC_R_CANCELED;
+			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
+			isc_task_detach(&current_task);
 		}
 
-		/*
-		 * run through the event queue, posting done events with the
-		 * canceled result, and freeing the internal event.
-		 */
+		iev = next;
+
 		while (iev != NULL) {
 			next = NEXT(iev, link);
 
@@ -2462,30 +2456,41 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		}
 	}
 
-	if ((how & ISC_SOCKCANCEL_ACCEPT) && !EMPTY(sock->accept_list)) {
+	if (((how & ISC_SOCKCANCEL_ACCEPT) == ISC_SOCKCANCEL_ACCEPT)
+	    && !EMPTY(sock->accept_list)) {
 		ncintev_t *		iev;
 		ncintev_t *		next;
 		isc_socket_newconnev_t *dev;
+		isc_task_t	       *current_task;
 
 		iev = HEAD(sock->accept_list);
+		next = NEXT(iev, link);
 
 		if ((task == NULL || task == iev->task)
 		    && iev->posted && !iev->canceled) {
-			if (isc_task_purge(task, sock,
-					   ISC_SOCKEVENT_INTACCEPT) == 0) {
-					iev->canceled = ISC_TRUE;
-					dev = iev->done_ev;
-					iev->done_ev = NULL;
-					dev->result = ISC_R_CANCELED;
-					dev->newsocket->references--;
-					free_socket(&dev->newsocket);
-					ISC_TASK_SEND(iev->task,
-						      (isc_event_t **)&dev);
-					isc_task_detach(&iev->task);
+			dev = iev->done_ev;
+			current_task = iev->task;
 
-					iev = NEXT(iev, link);
+			if (iev->posted) {
+				if (isc_task_purge(task, sock,
+						   ISC_SOCKEVENT_INTACCEPT)
+				    == 0) {
+					iev->canceled = ISC_TRUE;
+					iev->done_ev = NULL;
+				}
+			} else {
+				isc_event_free((isc_event_t **)&iev);
 			}
+
+			dev->newsocket->references--;
+			free_socket(&dev->newsocket);
+
+			dev->result = ISC_R_CANCELED;
+			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
+			isc_task_detach(&current_task);
 		}
+
+		iev = next;
 
 		while (iev != NULL) {
 			next = NEXT(iev, link);
@@ -2493,6 +2498,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			if (task == NULL || task == iev->task) {
 				dev = iev->done_ev;
 				iev->done_ev = NULL;
+
 				dev->newsocket->references--;
 				free_socket(&dev->newsocket);
 				DEQUEUE(sock->accept_list, iev, link);
@@ -2503,8 +2509,34 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		}
 	}
 
-	/* XXX implement */
-	if (how & ISC_SOCKCANCEL_CONNECT) {
+	if (((how & ISC_SOCKCANCEL_CONNECT) == ISC_SOCKCANCEL_CONNECT)
+	    && sock->connect_ev != NULL) {
+		cnintev_t *		iev;
+		isc_socket_connev_t    *dev;
+		isc_task_t	       *current_task;
+
+		iev = sock->connect_ev;
+		dev = iev->done_ev;
+		current_task = iev->task;
+
+		if ((task == NULL || task == iev->task) && !iev->canceled) {
+			if (iev->posted) {
+				if (isc_task_purge(task, sock,
+						   ISC_SOCKEVENT_INTCONN)
+				    == 0) {
+					iev->canceled = ISC_TRUE;
+					iev->done_ev = NULL;
+				}
+			} else {
+				isc_event_free((isc_event_t **)&iev);
+			}
+
+			sock->connect_ev = NULL;
+
+			dev->result = ISC_R_CANCELED;
+			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
+			isc_task_detach(&current_task);
+		}
 	}
 
 	/*
