@@ -10,7 +10,7 @@
 			received an AXFR request, it would deadlock or die
 			with an assertion failure. [RT #852]
 
- 737.	[port]		stdtime failed to compile on certain platforms.
+ 737.	[port]		stdtime.c failed to compile on certain platforms.
 
  736.	[func]		New functions isc_task_{begin,end}exclusive().
 
