@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.22 2001/08/30 21:16:41 gson Exp $ */
+/* $Id: file.c,v 1.23 2001/08/31 23:57:05 gson Exp $ */
 
 #include <config.h>
 
@@ -224,23 +224,19 @@ isc_file_settime(const char *file, isc_time_t *time) {
 
 	REQUIRE(file != NULL && time != NULL);
 
-//	updtime.absolute.dwLowDateTime = time->absolute.dwLowDateTime;
-//	updtime.absolute.dwHighDateTime = time->absolute.dwHighDateTime;
-
 	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
-        /* set the date via the filedate system call and return. failing
+        /*
+	 * Set the date via the filedate system call and return.  Failing
          * this call implies the new file times are not supported by the
          * underlying file system.
          */
-
-       if (!SetFileTime((HANDLE) _get_osfhandle(fh),
-                                NULL,
-                                &time->absolute,
-                                &time->absolute
-                               ))
-        {
+	if (!SetFileTime((HANDLE) _get_osfhandle(fh),
+			 NULL,
+			 &time->absolute,
+			 &time->absolute))
+	{
 		close(fh);
                 errno = EINVAL;
                 return (isc__errno2result(errno));
