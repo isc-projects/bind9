@@ -35,6 +35,17 @@
  *** General Macros.
  ***/
 
+/*
+ * Use this to hide unused function arguments.
+ *
+ * int
+ * foo(char *bar)
+ * {
+ *	UNUSED(bar);
+ * }
+ */
+#define UNUSED(x)      (void)(x)
+
 #define ISC_MAX(a, b)  ((a) > (b) ? (a) : (b))
 #define ISC_MIN(a, b)  ((a) < (b) ? (a) : (b))
 

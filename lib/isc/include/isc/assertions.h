@@ -16,15 +16,13 @@
  */
 
 /*
- * $Id: assertions.h,v 1.5 1999/12/15 01:48:46 explorer Exp $
+ * $Id: assertions.h,v 1.6 1999/12/16 22:42:04 explorer Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
 #define ISC_ASSERTIONS_H	1
 
 #include <isc/lang.h>
-
-#define UNUSED(x)	(void)(x)
 
 ISC_LANG_BEGINDECLS
 
@@ -80,7 +78,7 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 					 isc_assertiontype_require, \
 					 #cond), 0)))
 #else
-#define REQUIRE(cond)		(UNUSED(0))
+#define REQUIRE(cond)		((void) 0)
 #endif /* CHECK_REQUIRE */
 
 #if CHECK_ENSURE != 0
@@ -90,7 +88,7 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 					 isc_assertiontype_ensure, \
 					 #cond), 0)))
 #else
-#define ENSURE(cond)		(UNUSED(0))
+#define ENSURE(cond)		((void) 0)
 #endif /* CHECK_ENSURE */
 
 #if CHECK_INSIST != 0
@@ -100,7 +98,7 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 					 isc_assertiontype_insist, \
 					 #cond), 0)))
 #else
-#define INSIST(cond)		(UNUSED(0))
+#define INSIST(cond)		((void) 0)
 #endif /* CHECK_INSIST */
 
 #if CHECK_INVARIANT != 0
@@ -110,7 +108,7 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 					 isc_assertiontype_invariant, \
 					 #cond), 0)))
 #else
-#define INVARIANT(cond)		(UNUSED(0))
+#define INVARIANT(cond)		((void) 0)
 #endif /* CHECK_INVARIANT */
 
 ISC_LANG_ENDDECLS
