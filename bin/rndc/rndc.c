@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.33 2000/11/30 21:32:20 gson Exp $ */
+/* $Id: rndc.c,v 1.34 2000/11/30 21:33:21 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -256,17 +256,21 @@ usage(void) {
 Usage: %s [-c config] [-s server] [-p port] [-y key] [-z zone] [-v view]\n\
 	command [command ...]\n\
 \n\
-command is one of the following for named:\n\
+command is one of the following:\n\
 \n\
+  reload	Reload configuration file and zones.\n\
+  reload zone [class [view]]\n\
+		Reload a single zone.\n\
+  refresh zone [class [view]]\n\
+		Schedule immediate maintenance for a zone.\n\
+  stats		Write server statistics to the statistics file.\n\
+  querylog	Toggle query logging.\n\
+  stop		Save pending updates to master files and stop the server.\n\
+  halt		Stop the server without saving pending updates.\n\
   *status	Display ps(1) status of named.\n\
   *dumpdb	Dump database and cache to /var/tmp/named_dump.db.\n\
-  reload	Reload configuration file and zones.\n\
-  refresh	Refresh zone data, reloading if necessary.\n\
-  stats		Dump statistics to statistics file.\n\
   *trace	Increment debugging level by one.\n\
   *notrace	Set debugging level to 0.\n\
-  querylog	Toggle query logging.\n\
-  *stop		Stop the server.\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\

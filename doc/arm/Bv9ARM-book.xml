@@ -1,8 +1,8 @@
-<?xml version='1.0'?>
+
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.58 2000/11/30 00:29:35 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.59 2000/11/30 21:33:22 gson Exp $ -->
 
 <book>
 
@@ -639,77 +639,65 @@ of a server.</para>
                 <arg>-c <replaceable>config</replaceable></arg>
                 <arg>-s <replaceable>server</replaceable></arg>
                 <arg>-p <replaceable>port</replaceable></arg>
-                <arg>-v <replaceable>view</replaceable></arg>
                 <arg>-y <replaceable>key</replaceable></arg>
-                <arg>-z <replaceable>zone</replaceable></arg>
                 <arg choice="plain"><replaceable>command</replaceable></arg>
                 <arg rep="repeat"><replaceable>command</replaceable></arg>
               </cmdsynopsis>
-              <para><command>command</command> is one of the following
-              for <command>named</command>:</para>
-              <informaltable colsep = "0" rowsep = "0">
-                <tgroup cols = "2"
-                        colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
-                  <colspec colname = "1" colnum = "1"
-                           colsep = "0" colwidth = "1.500in"/>
-                  <colspec colname = "2" colnum = "2" colsep = "0"
-                           colwidth = "3.000in"/>
-                  <tbody>
-                    <row rowsep = "0">
-                      <entry colname = "1">
-<para><userinput>status</userinput><footnote id="nyi1">
-                            <para>not yet implemented</para>
-                          </footnote></para></entry>
-<entry colname = "2"><para>Display ps(1) status of named.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para><userinput>dumpdb</userinput><footnoteref linkend="nyi1"/></para></entry>
-<entry colname = "2"><para>Dump database and cache to /var/tmp/named_dump.db.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para><userinput>refresh</userinput></para></entry>
-<entry colname = "2"><para>Force a refresh of specified zone.</para></entry>
-</row>
+              <para><command>command</command> is one of the following:</para>
+
+<informaltable colsep = "0" rowsep = "0">
+	<tgroup cols = "2" colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
+	<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "3.000in"/>
+        <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.000in"/>
+        <tbody>
+
 <row rowsep = "0">
 <entry colname = "1"><para><userinput>reload</userinput></para></entry>
 <entry colname = "2"><para>Reload configuration file and zones.</para></entry>
 </row>
+
+<row rowsep = "0">
+<entry colname = "1"><para><userinput>reload <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
+<entry colname = "2"><para>Reload the given zone.</para></entry>
+</row>
+
+<row rowsep = "0">
+<entry colname = "1"><para><userinput>refresh <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
+<entry colname = "2"><para>Schedule zone maintenance for the given zone.</para></entry>
+</row>
+
 <row rowsep = "0">
 <entry colname = "1"><para><userinput>stats</userinput></para></entry>
-<entry colname = "2"><para>Dump statistics to /var/tmp/named.stats.</para></entry>
+<entry colname = "2"><para>Write server statistics to the statistics file.</para></entry>
 </row>
+
 <row rowsep = "0">
-<entry colname = "1"><para><userinput>trace</userinput><footnoteref linkend="nyi1"/></para></entry>
-<entry colname = "2"><para>Increment debugging level by one.</para></entry>
-</row>
-<row rowsep = "0">
-                      <entry colname = "1">
-<para><userinput>notrace</userinput><footnoteref linkend="nyi1"/>
-</para></entry>
-<entry colname = "2"><para>Set debugging level to 0.</para></entry>
-</row>
-<row rowsep = "0">
-                      <entry colname =
-                             "1"><para><userinput>querylog</userinput></para></entry>
+<entry colname = "1"><para><userinput>querylog</userinput></para></entry>
 <entry colname = "2"><para>Toggle query logging.</para></entry>
 </row>
+
 <row rowsep = "0">
-                      <entry colname =
-                             "1"><para><userinput>stop</userinput><footnoteref linkend="nyi1"/></para></entry>
-<entry colname = "2"><para>Stop the server.</para></entry>
+<entry colname = "1"><para><userinput>stop</userinput></para></entry>
+<entry colname = "2"><para>Stop the server, making sure any recent changes
+made through dynamic update or IXFR are first saved to the master files
+of the updated zones.</para></entry>
 </row>
+
 <row rowsep = "0">
-                      <entry colname =
-                             "1"><para><userinput>restart</userinput><footnoteref linkend="nyi1"/></para></entry>
-<entry colname = "2"><para>Restart the server.</para></entry>
-                    </row>
-                  </tbody>
-                </tgroup>
-              </informaltable>
-              <para>As noted above, only a limited number of commands are
-              available in <acronym>BIND</acronym> 9.1. The other
-              commands, and more, are planned to be implemented for
-              future releases.</para>
+<entry colname = "1"><para><userinput>halt</userinput></para></entry>
+<entry colname = "2"><para>Stop the server immediately.  Recent changes
+made through dynamic update or IXFR are not saved to the master files,
+but will be rolled forward from the journal files when the server
+is restarted.</para></entry>
+</row>
+
+</tbody>
+</tgroup>
+</informaltable>
+
+<para>In <acronym>BIND</acronym> 9.1, <command>rndc</command> does not
+yet support all the commands of the BIND 8 <command>ndc</command>
+utility.  Additonal commands will be added in future releases.</para>
 
               <para>A configuration file is required, since all
               communication with the server is authenticated with
@@ -2045,14 +2033,10 @@ Usage</title>
       the <command>key_list</command> is allowed to be used to
       authenticate commands and responses given over the control
       channel by digitally signing each message between the server and
-      a command client (See <xref linkend="rndc"/> in <xref
-                                                            linkend="admin_tools"/>). All commands to the
-      control channel must be signed by one of its specified keys to
+      a command client (See <xref linkend="rndc"/> in
+      <xref linkend="admin_tools"/>). All commands to the control channel
+      must be signed by one of its specified keys to
       be honored.</para>
-
-      <para> For the initial release of <acronym>BIND</acronym> 9.0.0, only one command
-      is possible over the command channel, the command to reload the
-      server.  We will expand command set in future releases.</para>
 
       <para>The UNIX control channel type of <acronym>BIND</acronym> 8 is not supported
       in <acronym>BIND</acronym> 9.0.0, and is not expected to be added in future
@@ -5602,6 +5586,3 @@ of queries resulted in a SERVFAIL reply.</para></entry>
 </appendix>
 
 </book>
-
-
-
