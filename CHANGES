@@ -1,3 +1,7 @@
+  27.   [bug]           Only include <netinet6/in6.h> on BSD/OS 4.[01]*.
+                        Including it on other platforms (eg, NetBSD) can
+                        cause a forced #error from the C preprocessor.
+
   26.	[func]		new match-clients statement in config file view.
 
   25.	[bug]		make install failed to install <isc/log.h> and
