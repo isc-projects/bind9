@@ -26,16 +26,19 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-LIBS =		../../../lib/dns/libdns.a \
-		../../../lib/isc/libisc.a \
-		../../../lib/tests/libt_api.a \
+
+DEPLIBS =	../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@ \
+		../../../lib/tests/libt_api.@A@
+
+LIBS =		${DEPLIBS} \
 		@LIBS@
 
 TARGETS =	t_tasks
 
 @BIND9_MAKE_RULES@
 
-t_tasks: t_tasks.o ${LIBS}
+t_tasks: t_tasks.o ${DEPLIBS}
 	${CC} -o $@ t_tasks.o ${LIBS}
 
 test:
