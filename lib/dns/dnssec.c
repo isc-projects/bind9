@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.14 1999/12/16 23:29:04 explorer Exp $
+ * $Id: dnssec.c,v 1.15 2000/02/03 18:48:15 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -542,9 +542,10 @@ dns_dnssec_destroy() {
 	} while (0)
 
 isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node, 
-			dns_name_t *name, isc_mem_t *mctx, unsigned int maxkeys,
-			dst_key_t **keys, unsigned int *nkeys)
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
+			dns_dbnode_t *node, dns_name_t *name, isc_mem_t *mctx,
+			unsigned int maxkeys, dst_key_t **keys,
+			unsigned int *nkeys)
 {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
@@ -556,6 +557,8 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_key, 0, 0,
 				     &rdataset, NULL);
+	if (result == ISC_R_NOTFOUND)
+		goto failure;
 	check_result(result, "dns_db_findrdataset()");
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first()");
