@@ -156,12 +156,15 @@ generate_reply(ns_lwdclient_t *client) {
 	client->pkt.authlength = 0;
 
 	/*
-	 * If there are no addresses and no aliases, return failure.
+	 * If there are no addresses, return incomplete or failure , depending
+	 * on whether or not there are aliases.
 	 */
-	if (client->gabn.naddrs == 0 && client->gabn.naliases == 0)
-		client->pkt.result = LWRES_R_NOTFOUND;
-	else
+	if (client->gabn.naddrs != 0)
 		client->pkt.result = LWRES_R_SUCCESS;
+	else if (client->gabn.naliases != 0)
+		client->pkt.result = LWRES_R_INCOMPLETE;
+	else
+		client->pkt.result = LWRES_R_NOTFOUND;
 
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
 					  &client->pkt, &lwb);
