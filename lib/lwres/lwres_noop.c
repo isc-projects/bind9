@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres_noop.c,v 1.10 2000/06/22 21:59:37 tale Exp $ */
+/* $Id: lwres_noop.c,v 1.11 2000/06/27 18:03:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	lwres_buffer_forward(b, req->datalength);
 
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = LWRES_R_UNEXPECTEDEND;
+		ret = LWRES_R_TRAILINGDATA;
 		goto out;
 	}
 
@@ -212,7 +212,7 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 
 	lwres_buffer_forward(b, req->datalength);
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = LWRES_R_UNEXPECTEDEND;
+		ret = LWRES_R_TRAILINGDATA;
 		goto out;
 	}
 
