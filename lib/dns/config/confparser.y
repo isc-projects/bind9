@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.37 2000/02/02 00:38:11 halley Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.38 2000/02/06 15:07:03 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2698,7 +2698,7 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 	| L_CHECK_NAMES 
 	| L_TRANSFER_FORMAT
 */
-        | zone_stmt;
+        | zone_stmt
 	;
 
 /* XXX other view statements need to go in here???. */
