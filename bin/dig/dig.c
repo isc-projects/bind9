@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.137 2001/02/14 01:46:03 tamino Exp $ */
+/* $Id: dig.c,v 1.138 2001/02/15 23:44:03 tamino Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -414,7 +414,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		}
 	}
 
-buftoosmall:
+repopulate_buffer:
 
 	if (query->lookup->comments && headers && !short_form)
 	{
@@ -422,11 +422,14 @@ buftoosmall:
 			 DNS_PSEUDOSECTION_OPT,
 			 flags, buf);
 		if (result == ISC_R_NOSPACE) {
+buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
 			result = isc_buffer_allocate(mctx, &buf, len);
 			if (result == ISC_R_SUCCESS)
-				goto buftoosmall;
+				goto repopulate_buffer;
+			else
+				return (result);
 		}
 		check_result(result,
 		     "dns_message_pseudosectiontotext");
@@ -438,11 +441,7 @@ buftoosmall:
 						       DNS_SECTION_QUESTION,
 						       flags, buf);
 			if (result == ISC_R_NOSPACE) {
-				len += OUTPUTBUF;
-				isc_buffer_free(&buf);
-				result = isc_buffer_allocate(mctx, &buf, len);
-				if (result == ISC_R_SUCCESS)
-					goto buftoosmall;
+				goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		}
@@ -453,15 +452,14 @@ buftoosmall:
 						       DNS_SECTION_ANSWER,
 						       flags, buf);
 			if (result == ISC_R_NOSPACE) {
-				len += OUTPUTBUF;
-				isc_buffer_free(&buf);
-				result = isc_buffer_allocate(mctx, &buf, len);
-				if (result == ISC_R_SUCCESS)
-					goto buftoosmall;
+				goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		} else {
 			result = short_answer(msg, flags, buf, query);
+			if (result == ISC_R_NOSPACE) {
+				goto buftoosmall;
+			}
 			check_result(result, "short_answer");
 		}
 	}
@@ -471,11 +469,7 @@ buftoosmall:
 						       DNS_SECTION_AUTHORITY,
 						       flags, buf);
 			if (result == ISC_R_NOSPACE) {
-				len += OUTPUTBUF;
-				isc_buffer_free(&buf);
-				result = isc_buffer_allocate(mctx, &buf, len);
-				if (result == ISC_R_SUCCESS)
-					goto buftoosmall;
+				goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		}
@@ -486,11 +480,7 @@ buftoosmall:
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
 			if (result == ISC_R_NOSPACE) {
-				len += OUTPUTBUF;
-				isc_buffer_free(&buf);
-				result = isc_buffer_allocate(mctx, &buf, len);
-				if (result == ISC_R_SUCCESS)
-					goto buftoosmall;
+				goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 			/*
@@ -501,12 +491,18 @@ buftoosmall:
 						   msg,
 						   DNS_PSEUDOSECTION_TSIG,
 						   flags, buf);
+				if (result == ISC_R_NOSPACE) {
+					goto buftoosmall;
+				}
 				check_result(result,
 					  "dns_message_pseudosectiontotext");
 				result = dns_message_pseudosectiontotext(
 						   msg,
 						   DNS_PSEUDOSECTION_SIG0,
 						   flags, buf);
+				if (result == ISC_R_NOSPACE) {
+					goto buftoosmall;
+				}
 
 				check_result(result,
 					   "dns_message_pseudosectiontotext");
@@ -912,7 +908,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
  */
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
-	    isc_boolean_t *open_type_class)
+	    isc_boolean_t *open_type_class,
+		isc_boolean_t *firstarg,
+		int argc, char **argv)
 {
 	char cmd, *value, *ptr;
 	isc_result_t result;
@@ -921,13 +919,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	char textname[MXNAME];
-	isc_boolean_t orig_rdtypeset;
-	dns_rdatatype_t orig_rdtype;
-	isc_uint32_t orig_ixfr_serial;
-	isc_boolean_t orig_section_question;
-	isc_boolean_t orig_comments;
-	dns_rdataclass_t orig_rdclass;
-	isc_boolean_t orig_rdclassset;
 
 	cmd = option[0];
 	if (strlen(option) > 1) {
@@ -1047,13 +1038,6 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		keysecret[sizeof(keysecret)-1]=0;
 		return (value_from_next);
 	case 'x':
-		orig_rdtypeset = (*lookup)->rdtypeset;
-		orig_rdtype = (*lookup)->rdtype;
-		orig_ixfr_serial = (*lookup)->ixfr_serial;
-		orig_section_question = (*lookup)->section_question;
-		orig_comments = (*lookup)->comments;
-		orig_rdclassset = (*lookup)->rdclassset;
-		orig_rdclass = (*lookup)->rdclass;
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
 		if (get_reverse(textname, value, nibble) == ISC_R_SUCCESS) {
 			strncpy((*lookup)->textname, textname,
@@ -1062,24 +1046,16 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
 						(*lookup)->ns_search_only);
 			(*lookup)->nibble = nibble;
-			if (!orig_rdtypeset)
+			if (!(*lookup)->rdtypeset)
 				(*lookup)->rdtype = dns_rdatatype_ptr;
-			else
-			{
-				(*lookup)->rdtypeset = orig_rdtypeset;
-				(*lookup)->rdtype = orig_rdtype;
-				(*lookup)->ixfr_serial = orig_ixfr_serial;
-				(*lookup)->section_question = orig_section_question;
-				(*lookup)->comments = orig_comments;
-			}
-			if (!orig_rdclassset)
+			if (!(*lookup)->rdclassset)
 				(*lookup)->rdclass = dns_rdataclass_in;
-			else
-			{
-				(*lookup)->rdclassset = orig_rdclassset;
-				(*lookup)->rdclass = orig_rdclass;
-			}
 			(*lookup)->new_search = ISC_TRUE;
+			if (*lookup && *firstarg)
+			{
+				printgreeting(argc, argv, *lookup);
+				*firstarg = ISC_FALSE;
+			}
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
@@ -1212,13 +1188,15 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		} else if (rv[0][0] == '-') {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL,
-						&lookup, &open_type_class)) {
+						&lookup, &open_type_class,
+						&firstarg, argc, argv)) {
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1],
-						&lookup, &open_type_class)) {
+						&lookup, &open_type_class,
+						&firstarg, argc, argv)) {
 					rc--;
 					rv++;
 				}
@@ -1348,21 +1326,11 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		strcpy(lookup->textname, ".");
 		lookup->rdtype = dns_rdatatype_ns;
 		lookup->rdtypeset = ISC_TRUE;
-		printgreeting(argc, argv, lookup);
-		firstarg = ISC_FALSE;
+		if (firstarg) {
+			printgreeting(argc, argv, lookup);
+			firstarg = ISC_FALSE;
+		}
 		ISC_LIST_APPEND(lookup_list, lookup, link);
-	}
-
-	/*
-	 * If we haven't already printed a greeting, and we have a lookup
-	 * with which to print one, do it now. The reason that we sometimes
-	 * call it earlier than this is that we munge some of the things
-	 * printgreeting() needs under certain circumstances.
-	 */
-	if (lookup && firstarg)
-	{
-		printgreeting(argc, argv, lookup);
-		firstarg = ISC_FALSE;
 	}
 }
 

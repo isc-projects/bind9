@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.189 2001/02/13 23:12:14 tamino Exp $ */
+/* $Id: dighost.c,v 1.190 2001/02/15 23:44:05 tamino Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -347,7 +347,7 @@ make_empty_lookup(void) {
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
 	looknew->textname[0] = 0;
-	looknew->cmdline[0] = 0; /* Not copied in clone_lookup! */
+	looknew->cmdline[0] = 0;
 	looknew->rdtype = dns_rdatatype_a;
 	looknew->rdclass = dns_rdataclass_in;
 	looknew->rdtypeset = ISC_FALSE;
@@ -417,6 +417,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew = make_empty_lookup();
 	INSIST(looknew != NULL);
 	strncpy(looknew->textname, lookold-> textname, MXNAME);
+	strncpy(looknew->cmdline, lookold->cmdline, MXNAME);
 	looknew->textname[MXNAME-1] = 0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->rdclass = lookold->rdclass;
@@ -2470,7 +2471,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					{
 						if ((result != ISC_R_SUCCESS) || l->trace_root)
 						{
-							/* We didn't get an
+							/*
+							 * We didn't get an
 							 * answer section,
 							 * or else this is
 							 * the first initial
@@ -2481,12 +2483,14 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							 * be the right one).
 							 * In either case,
 							 * our next query
-							 * should be an NS. */
+							 * should be an NS.
+							 */
 							l->rdtype = dns_rdatatype_ns;
 						}
 						else
 						{
-							/* We got an answer
+							/*
+							 * We got an answer
 							 * section for our
 							 * NS query! Yay!
 							 * Now we shift gears,
@@ -2494,7 +2498,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							 * and look for SOAs
 							 * in all the servers
 							 * we got back in our
-							 * answer section. */
+							 * answer section.
+							 */
 							l->rdtype = dns_rdatatype_soa;
 							l->ns_search_only_leafnode = ISC_TRUE;
 							if (followup_lookup(msg, query,
@@ -2507,8 +2512,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					if ((result != ISC_R_SUCCESS) ||
 					    l->trace_root)
 					{
-						/* This is executed regardless
-						 * of whether we're doing							 * ns_search_only, but because
+						/*
+						 * This is executed regardless
+						 * of whether we're doing
+						 * ns_search_only, but because
 						 * of the way the logic works,
 						 * it's mutually exclusive
 						 * with the other call to
@@ -2523,7 +2530,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 * initial root query) then
 						 * we want to take whatever is
 						 * in the authority section and
-						 * follow up with them. */
+						 * follow up with them.
+						 */
 						if (followup_lookup(msg, query,
 							DNS_SECTION_AUTHORITY)
 							== 0)
