@@ -2,12 +2,12 @@
 			names by introducing a new convenience function
 			dns_name_format().
 
-  41.	[feature]	Use PR_SET_KEEPCAPS on Linux 2.3.99-pre3 and later
+  41.	[func]		Use PR_SET_KEEPCAPS on Linux 2.3.99-pre3 and later
 			to allow 'named' to run as a non-root user while
 			retaining the ability to bind() to privileged
 			ports.
 
-  40.	[feature]	Introduced new logging category "dnssec" and
+  40.	[func]		Introduced new logging category "dnssec" and
 			logging module "dns/validator".
 
   39.	[cleanup]	Moved the typedefs for isc_region_t, isc_textregion_t, 
