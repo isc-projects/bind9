@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.68 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: rdataset.c,v 1.69 2004/01/12 04:19:42 marka Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
+	rdataset->count = ISC_UINT32_MAX;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -74,6 +75,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
+	rdataset->count = ISC_UINT32_MAX;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -100,6 +102,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
+	rdataset->count = ISC_UINT32_MAX;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -392,7 +395,9 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			isc_uint32_t val;
 			unsigned int j;
 
-			isc_random_get(&val);
+			val = rdataset->count;
+			if (val == ISC_UINT32_MAX)
+				isc_random_get(&val);
 			j = val % count;
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
