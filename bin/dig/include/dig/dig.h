@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.3 2001/11/15 01:24:13 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.4 2003/07/17 07:46:55 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -152,7 +152,8 @@ struct dig_query {
 		first_soa_rcvd,
 		second_rr_rcvd,
 		first_repeat_rcvd,
-		recv_made;
+		recv_made,
+		warn_id;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
 	isc_uint32_t rr_count;

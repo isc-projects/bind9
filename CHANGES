@@ -1,3 +1,14 @@
+1484.	[bug]		The number of records reported after a AXFR was wrong.
+			[RT #6229]
+
+1483.	[bug]		dig axfr failed if the message id in the answer failed
+			to match that in the request.  Only the id in the first
+			message is required to match. [RT #8138]
+
+1482.	[bug]		named could fail to start if the kernel supports
+			IPv6 but no interfaces are configured.  Similarly
+			for IPv4. [RT #6229]
+			
 1482.	[bug]		Named could fail to start if the kernel supports
 			IPv6 but no interfaces are configured.  Similarly
 			for IPv4. [RT #6229]
