@@ -1,14 +1,12 @@
-INTERNET-DRAFT	DNS Label Intelligence and Management System
-UPDATES RFC 1034 	February 2001
-	Expires August 2001
+INTERNET-DRAFT           DNS Label Intelligence and Management System
+UPDATES RFC 1034                                        February 2001
+                                                  Expires August 2001
 
 
 
 
 Domain Name System (DNS) DNS Label Intelligence and Management System
-
-           draft-macgowan-dnsext-label-intel-manage-00.txt
-
+         draft-macgowan-dnsext-label-intel-manage-00.txt
 
 
 
@@ -85,23 +83,23 @@ enhanced by smart AutoCompletes and group edit boxes.
 
 Table of Contents
 
-      Status of This Document	1
-      Abstract	1
+      Status of This Document                                    1
+      Abstract                                                   1
 
-      Table of Contents	3
+      Table of Contents                                          3
 
-      1. Introduction	4
-      2. Inputting Request for Resolution	4
-      3. Resolution Processing	7
-      4. Processing Forest	13
-      5. Extended Label Uses	14
-      6. IANA Considerations	16
-      6. Security Considerations	16
+      1. Introduction                                            4
+      2. Inputting Request for Resolution                        4
+      3. Resolution Processing                                   7
+      4. Processing Forest                                      13
+      5. Extended Label Uses                                    14
+      6. IANA Considerations                                    16
+      6. Security Considerations                                16
 
-      References	16
+      References                                                16
 
-      Authors Address	16
-      Expiration and File Name	17
+      Authors Address                                           16
+      Expiration and File Name                                  17
 
 
 
@@ -152,6 +150,8 @@ structure to allow for a search of all possible TLDs, the number of
 requests would grow exponentially with the addition of each new TLD.
 
 2. Inputting Request for Resolution
+ 
+
 
 The key to making a New Name System, NNS, is to provide a user 
 interface, which will accommodate a friendly method of building name 
@@ -193,7 +193,7 @@ relationship between labels but provide a nonbiased method without
 prejudice. For example, a .Bus(iness) item for the Type label would 
 require a copy of a business license to be granted by the governing 
 authorities for the area specified in the Global label or the address 
-specified in the Local label. A ôTMö item could separate the 
+specified in the Local label. A “TM” item could separate the 
 Intellectual Property of Trademarks and Copyrights from other 
 registered listings issued from the government specified by the country 
 code in the Global label. Additionally, the Academy of Motion Pictures 
@@ -203,7 +203,7 @@ nominees or recipients of the coveted award.
 Just as the resolver gets an updated list of root servers upon first 
 connection, the resolver could also receive an updated list of items in 
 the Type label and return them to the client. The list could be updated 
-by a TTL trigger and should not be editable from the userÆs standpoint. 
+by a TTL trigger and should not be editable from the user’s standpoint. 
 The user interface should allow for multiple selections, which could be 
 used to form separate requests for resolution. Finally, the 
 implementation should begin with at least a list that is equal to a 
@@ -239,10 +239,10 @@ added.
 
 The Local label would require a single character to represent the type 
 of information presented, followed by the information in a standardized 
-form. The following codes are proposed for the Local label, ôPö for 
-Postal code, ôGö for Global Satellite Positioning and ôSö for street 
-address. For example, P83706 would represent the authorÆs postal code, 
-GP0445004N1162498 (since the ô+ö key is not valid, ôpö and ônö 
+form. The following codes are proposed for the Local label, “P” for 
+Postal code, “G” for Global Satellite Positioning and “S” for street 
+address. For example, P83706 would represent the author’s postal code, 
+GP0445004N1162498 (since the “+” key is not valid, “p” and “n” 
 represent positive and negative) would represent the GPS position of 
 the author with padding to standardize degrees/min/sec or SOrchard15541 
 would represent the Street address (house number at the end). Note each 
@@ -277,9 +277,9 @@ The system would need to distinguish between the need for a request for
 a connection to single IP address versus multiple requests. In an 
 application like a browser, traditional requests for IP resolution are 
 all or none. Either an IP address is connected to or not. If wildcards 
-are added to the request, multiple entries could be returned as a ôhitö 
+are added to the request, multiple entries could be returned as a “hit” 
 list. An option on the browser could determine the number of requests 
-specified by the user. The ôhitsö should also be weighted. For 
+specified by the user. The “hits” should also be weighted. For 
 instance, if a user wanted to find all the movie theatres in the local 
 area he/she might submit a request for www.*.movies.US8370*.*. She/he 
 would be more inclined to desire additional theatres at different 
@@ -317,7 +317,7 @@ can be organized by the known piece(s) of information. For instance, if
 a user is trying to find Hewlett Packard and does not know that content 
 is provided at HP, a search of www.H*.*.US*.* should be returned 
 alphabetically from the Group label, not the Type label. However, if 
-the type item is known to be ôcomputerö, a search of the Type tree 
+the type item is known to be “computer”, a search of the Type tree 
 would be fastest. If a user wants to find a local voice number for 
 Microsoft he/she could submit a request generalized request within the 
 local area code for www.Microsoft.software.US208*.*. The authority 
@@ -330,19 +330,19 @@ separate Local label listings for the street address, GPS, and postal
 code. This would create unwanted traffic on the system.
 
 
-Root ô.ö Group                                            Root ô.öType
+Root “.” Group                                            Root “.”Type
       |                                                         |
       |                                                         |
-     ôHö  TLD                                          TLD  ôComputerö
+     “H”  TLD                                          TLD  “Computer”
       |                                                         |
       |                                                         |
       --- Authority for..HP.computer.US2081234567.SChinden12----
       |                                                         |
       |                                                         |
-   ôUS208ö  TLD                                         TLD  ôSChiö
+   “US208”  TLD                                         TLD  “SChi”
       |                                                         |
       |                                                         |
-Root ô.ö Global                                           Root ô.öLocal
+Root “.” Global                                           Root “.”Local
 
 
 In addition to determining which label(s) to process the request, the 
@@ -358,1241 +358,185 @@ macgowan.private.us2081234567.SOrchard15541.
 
 If wildcards or null characters exist in the request, the system should 
 take into account the number of requests that might be generated. 
-Currently the DNS does not account for the ô?ö and reserves the ôö for 
-the root. The ô*ö could replace the singe character wildcard ô?ö and 
-the word ônullö could be used in lieu of ôö. The following table could 
+Currently the DNS does not account for the “?” and reserves the “” for 
+the root. The “*” could replace the singe character wildcard “?” and 
+the word “null” could be used in lieu of “”. The following table could 
 be used to determine which processing tree should be the most desirable 
 under such conditions:
 
-any =
-any combination of characters displayed in 
-request
-reject=
-no preferred processor
-*=
-match any combination of characters for 
-response
-?=
-match any single character for response
-null=
-no character specified
+any =	any combination of characters displayed in request
+reject=	no preferred processor
+*=	match any combination of characters for response
+?=	match any single character for response
+null=	no character specified
 
 
-Device
-Sub
-Group
-Type
-Global
-Local
-Result
-*
-*
-*
-*
-*
-*
-reject
-*
-any
-any
-any
-any
-any
-reject
-*
-*
-any
-any
-any
-any
-reject
-*
-*
-*
-any
-any
-any
-submit to type, global, or local 
-processor
-*
-*
-*
-*
-any
-any
-submit to global, or local 
-processor
-*
-*
-*
-*
-*
-any
-submit to local processor
-any
-*
-*
-*
-*
-*
-reject
-any
-any
-*
-*
-*
-*
-reject
-any
-any
-any
-*
-*
-*
-submit to group processor
-any
-any
-any
-any
-*
-*
-submit to group, or type 
-processor
-any
-any
-any
-any
-any
-*
-submit to group, type, or global 
-processor
-any
-any
-any
-any
-any
-any
-submit to any processor
-any
-*
-any
-any
-any
-any
-submit to any processor
-any
-*
-*
-any
-any
-any
-submit to type, global, or local 
-processor
-any
-*
-*
-*
-any
-any
-submit to any global, or local 
-processor
-any
-*
-*
-*
-*
-any
-submit to any local processor
-any
-any
-*
-any
-any
-any
-submit to any type, global, or 
-local processor
-any
-any
-*
-*
-any
-any
-submit to any global, or local 
-processor
-any
-any
-*
-*
-*
-any
-submit to any local processor
-any
-any
-any
-*
-any
-any
-submit to any group, global, or 
-local processor
-any
-any
-any
-*
-*
-any
-submit to any group, or local 
-processor
-any
-any
-any
-any
-*
-any
-submit to any group, type, or 
-local processor
-any
-any
-any
-any
-*
-*
-submit to any group, or type 
-processor
-
-
-
-
-
-
-
-*
-*
-*
-*
-*
-*
-reject
-*
-any*any
-any*any
-any*any
-any*any
-any*any
-reject
-*
-*
-any*any
-any*any
-any*any
-any*any
-reject
-*
-*
-*
-any*any
-any*any
-any*any
-submit to type, global, or local 
-processor
-*
-*
-*
-*
-any*any
-any*any
-submit to global, or local 
-processor
-*
-*
-*
-*
-*
-any*any
-submit to local processor
-any*any
-*
-*
-*
-*
-*
-reject
-any*any
-any*any
-*
-*
-*
-*
-reject
-any*any
-any*any
-any*any
-*
-*
-*
-submit to group processor
-any*any
-any*any
-any*any
-any*any
-*
-*
-submit to group, or type 
-processor
-any*any
-any*any
-any*any
-any*any
-any*any
-*
-submit to group, type, or global 
-processor
-any*any
-any*any
-any*any
-any*any
-any*any
-any*any
-reject
-any*any
-*
-any*any
-any*any
-any*any
-any*any
-reject
-any*any
-*
-*
-any*any
-any*any
-any*any
-submit to type, global, or local 
-processor
-any*any
-*
-*
-*
-any*any
-any*any
-submit to any global, or local 
-processor
-any*any
-*
-*
-*
-*
-any*any
-submit to any local processor
-any*any
-any*any
-*
-any*any
-any*any
-any*any
-reject
-any*any
-any*any
-*
-*
-any*any
-any*any
-submit to any global, or local 
-processor
-any*any
-any*any
-*
-*
-*
-any*any
-submit to any local processor
-any*any
-any*any
-any*any
-*
-any*any
-any*any
-reject
-any*any
-any*any
-any*any
-*
-*
-any*any
-submit to any group, or local 
-processor
-any*any
-any*any
-any*any
-any*any
-*
-any*any
-submit to any group, type, or 
-local processor
-any*any
-any*any
-any*any
-any*any
-*
-*
-submit to any group, or type 
-processor
-
-
-
-
-
-
-
-*
-*
-*
-*
-*
-*
-reject
-*
-any*
-any*
-any*
-any*
-any*
-reject
-*
-*
-any*
-any*
-any*
-any*
-reject
-*
-*
-*
-any*
-any*
-any*
-reject
-*
-*
-*
-*
-any*
-any*
-submit to global, or local 
-processor
-*
-*
-*
-*
-*
-any*
-submit to local processor
-any*
-*
-*
-*
-*
-*
-reject
-any*
-any*
-*
-*
-*
-*
-reject
-any*
-any*
-any*
-*
-*
-*
-reject
-any*
-any*
-any*
-any*
-*
-*
-reject
-any*
-any*
-any*
-any*
-any*
-*
-reject
-any*
-any*
-any*
-any*
-any*
-any*
-reject
-any*
-*
-any*
-any*
-any*
-any*
-reject
-any*
-*
-*
-any*
-any*
-any*
-submit to type, global, or local 
-processor
-any*
-*
-*
-*
-any*
-any*
-submit to any global, or local 
-processor
-any*
-*
-*
-*
-*
-any*
-submit to any local processor
-any*
-any*
-*
-any*
-any*
-any*
-reject
-any*
-any*
-*
-*
-any*
-any*
-submit to any global, or local 
-processor
-any*
-any*
-*
-*
-*
-any*
-submit to any local processor
-any*
-any*
-any*
-*
-any*
-any*
-reject
-any*
-any*
-any*
-*
-*
-any*
-submit to any group, or local 
-processor
-any*
-any*
-any*
-any*
-*
-any*
-reject
-any*
-any*
-any*
-any*
-*
-*
-submit to any group, or type 
-processor
-
-
-
-
-
-
-
-?any
-?any
-?any
-?any
-?any
-?any
-reject
-?any
-any
-any
-any
-any
-any
-reject
-?any
-?any
-any
-any
-any
-any
-reject
-?any
-?any
-?any
-any
-any
-any
-submit to type, global, or local 
-processor
-?any
-?any
-?any
-?any
-any
-any
-submit to global, or local 
-processor
-?any
-?any
-?any
-?any
-?any
-any
-submit to local processor
-any
-?any
-?any
-?any
-?any
-?any
-reject
-any
-any
-?any
-?any
-?any
-?any
-reject
-any
-any
-any
-?any
-?any
-?any
-submit to group processor
-any
-any
-any
-any
-?any
-?any
-submit to group, or type 
-processor
-any
-any
-any
-any
-any
-?any
-submit to group, type, or global 
-processor
-any
-any
-any
-any
-any
-any
-submit to any processor
-any
-?any
-any
-any
-any
-any
-submit to any processor
-any
-?any
-?any
-any
-any
-any
-submit to type, global, or local 
-processor
-any
-?any
-?any
-?any
-any
-any
-submit to any global, or local 
-processor
-any
-?any
-?any
-?any
-?any
-any
-submit to any local processor
-any
-any
-?any
-any
-any
-any
-submit to any type, global, or 
-local processor
-any
-any
-?any
-?any
-any
-any
-submit to any global, or local 
-processor
-any
-any
-?any
-?any
-?any
-any
-submit to any local processor
-any
-any
-any
-?any
-any
-any
-submit to any group, global, or 
-local processor
-any
-any
-any
-?any
-?any
-any
-submit to any group, or local 
-processor
-any
-any
-any
-any
-?any
-any
-submit to any group, type, or 
-local processor
-any
-any
-any
-any
-?any
-?any
-submit to any group, or type 
-processor
-
-
-
-
-
-
-
-any?any
-any?any
-any?any
-any?any
-any?any
-any?any
-reject
-any?any
-any
-any
-any
-any
-any
-submit to any processor
-any?any
-any?any
-any
-any
-any
-any
-submit to any processor
-any?any
-any?any
-any?any
-any
-any
-any
-submit to any processor
-any?any
-any?any
-any?any
-any?any
-any
-any
-submit to global, or local 
-processor
-any?any
-any?any
-any?any
-any?any
-any?any
-any
-submit to local processor
-any
-any?any
-any?any
-any?any
-any?any
-any?any
-reject
-any
-any
-any?any
-any?any
-any?any
-any?any
-reject
-any
-any
-any
-any?any
-any?any
-any?any
-submit to group processor
-any
-any
-any
-any
-any?any
-any?any
-submit to group, or type 
-processor
-any
-any
-any
-any
-any
-any?any
-submit to any processor
-any
-any
-any
-any
-any
-any
-submit to any processor
-any
-any?any
-any
-any
-any
-any
-submit to any processor
-any
-any?any
-any?any
-any
-any
-any
-submit to any processor
-any
-any?any
-any?any
-any?any
-any
-any
-submit to any global, or local 
-processor
-any
-any?any
-any?any
-any?any
-any?any
-any
-submit to any local processor
-any
-any
-any?any
-any
-any
-any
-submit to any processor
-any
-any
-any?any
-any?any
-any
-any
-submit to any global, or local 
-processor
-any
-any
-any?any
-any?any
-any?any
-any
-submit to any local processor
-any
-any
-any
-any?any
-any
-any
-submit to any processor
-any
-any
-any
-any?any
-any?any
-any
-submit to any group, or local 
-processor
-any
-any
-any
-any
-any?any
-any
-submit to any processor
-any
-any
-any
-any
-any?any
-any?any
-submit to any group, or type 
-processor
-
-
-
-
-
-
-
-any?
-any?
-any?
-any?
-any?
-any?
-reject
-any?
-any
-any
-any
-any
-any
-submit to any processor
-any?
-any?
-any
-any
-any
-any
-submit to any processor
-any?
-any?
-any?
-any
-any
-any
-submit to any processor
-any?
-any?
-any?
-any?
-any
-any
-submit to any processor
-any?
-any?
-any?
-any?
-any?
-any
-submit to any processor
-any
-any?
-any?
-any?
-any?
-any?
-submit to any processor
-any
-any
-any?
-any?
-any?
-any?
-submit to any processor
-any
-any
-any
-any?
-any?
-any?
-submit to any processor
-any
-any
-any
-any
-any?
-any?
-submit to any processor
-any
-any
-any
-any
-any
-any?
-submit to any processor
-any
-any
-any
-any
-any
-any
-submit to any processor
-any
-any?
-any
-any
-any
-any
-submit to any processor
-any
-any?
-any?
-any
-any
-any
-submit to any processor
-any
-any?
-any?
-any?
-any
-any
-submit to any processor
-any
-any?
-any?
-any?
-any?
-any
-submit to any processor
-any
-any
-any?
-any
-any
-any
-submit to any processor
-any
-any
-any?
-any?
-any
-any
-submit to any processor
-any
-any
-any?
-any?
-any?
-any
-submit to any processor
-any
-any
-any
-any?
-any
-any
-submit to any processor
-any
-any
-any
-any?
-any?
-any
-submit to any processor
-any
-any
-any
-any
-any?
-any
-submit to any processor
-any
-any
-any
-any
-any?
-any?
-submit to any processor
-
-
-
-
-
-
-
-Null
-any
-any
-any
-any
-any
-not valid
-any
-Null
-any
-any
-any
-any
-submit to any processor
-any
-any
-Null
-any
-any
-any
-reject
-any
-any
-any
-Null
-any
-any
-submit to group, global, local 
-processor
-any
-any
-any
-any
-Null
-any
-submit to group, type, local 
-processor
-any
-any
-any
-any
-any
-Null
-submit to group, type, global 
-processor
-Null
-Null
-any
-any
-any
-any
-not valid
-any
-Null
-Null
-any
-any
-any
-reject
-any
-any
-Null
-Null
-any
-any
-submit to global, local 
-processor
-any
-any
-any
-Null
-Null
-any
-submit to group, local 
-processor
-any
-any
-any
-any
-Null
-Null
-submit to group, type 
-processor
-Null
-Null
-Null
-any
-any
-any
-not valid
-any
-Null
-Null
-Null
-any
-any
-submit to global, local 
-processor
-any
-any
-Null
-Null
-Null
-any
-submit to local processor
-any
-any
-any
-Null
-Null
-Null
-submit to group processor
-Null
-Null
-Null
-Null
-any
-any
-not valid
-any
-Null
-Null
-Null
-Null
-any
-submit to local processor
-any
-any
-Null
-Null
-Null
-Null
-not valid
-Null
-Null
-Null
-Null
-Null
-any
-not valid
-any
-Null
-Null
-Null
-Null
-Null
-not valid
-Null
-Null
-Null
-Null
-Null
-Null
-not valid
+Device	Sub	Group	T	G	L	Result
+*	*	*	*	*	*	reject
+*	any	any	any	any	any	reject
+*	*	any	any	any	any	reject
+*	*	*	any	any	any	submit to T, G, or L 
+*	*	*	*	any	any	submit to G, or L 
+*	*	*	*	*	any	submit to L 
+any	*	*	*	*	*	reject
+any	any	*	*	*	*	reject
+any	any	any	*	*	*	submit to group 
+any	any	any	any	*	*	submit to group, or T 
+any	any	any	any	any	*	submit to group, T, or G 
+any	any	any	any	any	any	submit to any 
+any	*	any	any	any	any	submit to any 
+any	*	*	any	any	any	submit to T, G, or L 
+any	*	*	*	any	any	submit to any G, or L 
+any	*	*	*	*	any	submit to any L 
+any	any	*	any	any	any	submit to any T, G, or L 
+any	any	*	*	any	any	submit to any G, or L 
+any	any	*	*	*	any	submit to any L 
+any	any	any	*	any	any	submit to any group, G, or L 
+any	any	any	*	*	any	submit to any group, or L 
+any	any	any	any	*	any	submit to any group, T, or L 
+any	any	any	any	*	*	submit to any group, or T 
+						
+*	*	*	*	*	*	reject
+*	any*any	any*any	any*any	any*any	any*any	reject
+*	*	any*any	any*any	any*any	any*any	reject
+*	*	*	any*any	any*any	any*any	submit to T, G, or L 
+*	*	*	*	any*any	any*any	submit to G, or L 
+*	*	*	*	*	any*any	submit to L 
+any*any	*	*	*	*	*	reject
+any*any	any*any	*	*	*	*	reject
+any*any	any*any	any*any	*	*	*	submit to group 
+any*any	any*any	any*any	any*any	*	*	submit to group, or T 
+any*any	any*any	any*any	any*any	any*any	*	submit to group, T, or G 
+any*any	any*any	any*any	any*any	any*any	any*any	reject
+any*any	*	any*any	any*any	any*any	any*any	reject
+any*any	*	*	any*any	any*any	any*any	submit to T, G, or L 
+any*any	*	*	*	any*any	any*any	submit to any G, or L 
+any*any	*	*	*	*	any*any	submit to any L 
+any*any	any*any	*	any*any	any*any	any*any	reject
+any*any	any*any	*	*	any*any	any*any	submit to any G, or L 
+any*any	any*any	*	*	*	any*any	submit to any L 
+any*any	any*any	any*any	*	any*any	any*any	reject
+any*any	any*any	any*any	*	*	any*any	submit to any group, or L 
+any*any	any*any	any*any	any*any	*	any*any	submit to any group, T, or L 
+any*any	any*any	any*any	any*any	*	*	submit to any group, or T 
+						
+*	*	*	*	*	*	reject
+*	any*	any*	any*	any*	any*	reject
+*	*	any*	any*	any*	any*	reject
+*	*	*	any*	any*	any*	reject
+*	*	*	*	any*	any*	submit to G, or L 
+*	*	*	*	*	any*	submit to L 
+any*	*	*	*	*	*	reject
+any*	any*	*	*	*	*	reject
+any*	any*	any*	*	*	*	reject
+any*	any*	any*	any*	*	*	reject
+any*	any*	any*	any*	any*	*	reject
+any*	any*	any*	any*	any*	any*	reject
+any*	*	any*	any*	any*	any*	reject
+any*	*	*	any*	any*	any*	submit to T, G, or L 
+any*	*	*	*	any*	any*	submit to any G, or L 
+any*	*	*	*	*	any*	submit to any L 
+any*	any*	*	any*	any*	any*	reject
+any*	any*	*	*	any*	any*	submit to any G, or L 
+any*	any*	*	*	*	any*	submit to any L 
+any*	any*	any*	*	any*	any*	reject
+any*	any*	any*	*	*	any*	submit to any group, or L 
+any*	any*	any*	any*	*	any*	reject
+any*	any*	any*	any*	*	*	submit to any group, or T 
+						
+?any	?any	?any	?any	?any	?any	reject
+?any	any	any	any	any	any	reject
+?any	?any	any	any	any	any	reject
+?any	?any	?any	any	any	any	submit to T, G, or L 
+?any	?any	?any	?any	any	any	submit to G, or L 
+?any	?any	?any	?any	?any	any	submit to L 
+any	?any	?any	?any	?any	?any	reject
+any	any	?any	?any	?any	?any	reject
+any	any	any	?any	?any	?any	submit to group 
+any	any	any	any	?any	?any	submit to group, or T 
+any	any	any	any	any	?any	submit to group, T, or G 
+any	any	any	any	any	any	submit to any 
+any	?any	any	any	any	any	submit to any 
+any	?any	?any	any	any	any	submit to T, G, or L 
+any	?any	?any	?any	any	any	submit to any G, or L 
+any	?any	?any	?any	?any	any	submit to any L 
+any	any	?any	any	any	any	submit to any T, G, or L 
+any	any	?any	?any	any	any	submit to any G, or L 
+any	any	?any	?any	?any	any	submit to any L 
+any	any	any	?any	any	any	submit to any group, G, or L 
+any	any	any	?any	?any	any	submit to any group, or L 
+any	any	any	any	?any	any	submit to any group, T, or L 
+any	any	any	any	?any	?any	submit to any group, or T 
+						
+any?any	any?any	any?any	any?any	any?any	any?any	reject
+any?any	any	any	any	any	any	submit to any 
+any?any	any?any	any	any	any	any	submit to any 
+any?any	any?any	any?any	any	any	any	submit to any 
+any?any	any?any	any?any	any?any	any	any	submit to G, or L 
+any?any	any?any	any?any	any?any	any?any	any	submit to L 
+any	any?any	any?any	any?any	any?any	any?any	reject
+any	any	any?any	any?any	any?any	any?any	reject
+any	any	any	any?any	any?any	any?any	submit to group 
+any	any	any	any	any?any	any?any	submit to group, or T 
+any	any	any	any	any	any?any	submit to any 
+any	any	any	any	any	any	submit to any 
+any	any?any	any	any	any	any	submit to any 
+any	any?any	any?any	any	any	any	submit to any 
+any	any?any	any?any	any?any	any	any	submit to any G, or L 
+any	any?any	any?any	any?any	any?any	any	submit to any L 
+any	any	any?any	any	any	any	submit to any 
+any	any	any?any	any?any	any	any	submit to any G, or L 
+any	any	any?any	any?any	any?any	any	submit to any L 
+any	any	any	any?any	any	any	submit to any 
+any	any	any	any?any	any?any	any	submit to any group, or L 
+any	any	any	any	any?any	any	submit to any 
+any	any	any	any	any?any	any?any	submit to any group, or T 
+						
+any?	any?	any?	any?	any?	any?	reject
+any?	any	any	any	any	any	submit to any 
+any?	any?	any	any	any	any	submit to any 
+any?	any?	any?	any	any	any	submit to any 
+any?	any?	any?	any?	any	any	submit to any 
+any?	any?	any?	any?	any?	any	submit to any 
+any	any?	any?	any?	any?	any?	submit to any 
+any	any	any?	any?	any?	any?	submit to any 
+any	any	any	any?	any?	any?	submit to any 
+any	any	any	any	any?	any?	submit to any 
+any	any	any	any	any	any?	submit to any 
+any	any	any	any	any	any	submit to any 
+any	any?	any	any	any	any	submit to any 
+any	any?	any?	any	any	any	submit to any 
+any	any?	any?	any?	any	any	submit to any 
+any	any?	any?	any?	any?	any	submit to any 
+any	any	any?	any	any	any	submit to any 
+any	any	any?	any?	any	any	submit to any 
+any	any	any?	any?	any?	any	submit to any 
+any	any	any	any?	any	any	submit to any 
+any	any	any	any?	any?	any	submit to any 
+any	any	any	any	any?	any	submit to any 
+any	any	any	any	any?	any?	submit to any 
+						
+Null	any	any	any	any	any	not valid
+any	Null	any	any	any	any	submit to any 
+any	any	Null	any	any	any	reject
+any	any	any	Null	any	any	submit to group, G, L 
+any	any	any	any	Null	any	submit to group, T, L 
+any	any	any	any	any	Null	submit to group, T, G 
+Null	Null	any	any	any	any	not valid
+any	Null	Null	any	any	any	reject
+any	any	Null	Null	any	any	submit to G, L 
+any	any	any	Null	Null	any	submit to group, L 
+any	any	any	any	Null	Null	submit to group, T 
+Null	Null	Null	any	any	any	not valid
+any	Null	Null	Null	any	any	submit to G, L 
+any	any	Null	Null	Null	any	submit to L 
+any	any	any	Null	Null	Null	submit to group 
+Null	Null	Null	Null	any	any	not valid
+any	Null	Null	Null	Null	any	submit to L 
+any	any	Null	Null	Null	Null	not valid
+Null	Null	Null	Null	Null	any	not valid
+any	Null	Null	Null	Null	Null	not valid
+Null	Null	Null	Null	Null	Null	not valid
 
 
 
@@ -1615,9 +559,9 @@ Once the resolver has determined which root to send the resolution
 request to, each tree should be organized according to an exhaustive 
 replication of each name string on the route to an authority. For 
 instance, the Group tree would be organized alphabetically with TLDs 
-ôAö through ôZö initially. Since there are a lot of organizations with 
-business name derivations using the word ômicronö, there might be a 
-need to reorganize the ôMö TLD to accommodate a ôMicö and a ôMidö TLD. 
+“A” through “Z” initially. Since there are a lot of organizations with 
+business name derivations using the word “micron”, there might be a 
+need to reorganize the “M” TLD to accommodate a “Mic” and a “Mid” TLD. 
 Although it would be more efficient to break down each letter according 
 to the demands of the system, it would be easier to specify one mask 
 for the entire tree. The number of TLDs becomes a function of the 
@@ -1657,12 +601,12 @@ oven.macgowanUS2081234567SOrchard15541.private to be searched under the
 Type tree. Similarly it could be recombined as 
 oven.macgowanprivateUS2081234567.SOrchard15541 to be searched under the 
 Local tree. If a legacy DNS based system submitted a request for 
-www.yahoo.com, it might be appended as www.yahoo.com..... The first ô.ö 
-after com is to end the Type label. The second ô.ö Represents the null 
-character at the end of the Global label. The third ô.ö is for the 
-Local label. The fourth ô.ö is for the root. The last ô.ö is for the 
+www.yahoo.com, it might be appended as www.yahoo.com..... The first “.” 
+after com is to end the Type label. The second “.” Represents the null 
+character at the end of the Global label. The third “.” is for the 
+Local label. The fourth “.” is for the root. The last “.” is for the 
 end of the sentence. If applications are affected by the reservation of 
-the ô.ö for the root, the request could be recreated as 
+the “.” for the root, the request could be recreated as 
 www.yahoo.com.null.null..
 
 A final method is to create a hidden label. Hidden labels are discussed 
@@ -1683,25 +627,25 @@ should be organized by a mask, which would accommodate at least the
 country and area codes. The Local label would mask the PGS items until 
 enough TLDs are derived to equal processing traffic under the other 
 trees. Provisions should be made for the non-distinct items like 
-ôcorporateö that may use characters not reserved for physical 
+“corporate” that may use characters not reserved for physical 
 locations. In addition, a null TLD could be used to organize the 
-remainder of name strings that have omitted labels. The null ôö 
-character or the word ônullö could be used to represent legacy DNS 
+remainder of name strings that have omitted labels. The null “” 
+character or the word “null” could be used to represent legacy DNS 
 strings under the new labels until the name strings are updated with 
 the longer requirements.
 
 The NNS allows a FQDN to be resolved from each searchable label. Please 
 refer to the previous example, 
 oven.macgowan.private.US2081234567.SOrchard15541. The authority, 
-ôMacgowan.private.US2081234567.SOrchard15541ö is found using the 
-traditional method of the DNS using a Type item of ôprivateö (mask of 
-zero). The authority, ôMacgowan.private.US2081234567.SOrchard15541ö is 
-found through the Group processor under the ôMacö branch using a mask 
-of three characters. The ôMacgowan.private.US2081234567.SOrchard15541ö 
-authority is found under ôUS208ö using a mask of four characters within 
+“Macgowan.private.US2081234567.SOrchard15541” is found using the 
+traditional method of the DNS using a Type item of “private” (mask of 
+zero). The authority, “Macgowan.private.US2081234567.SOrchard15541” is 
+found through the Group processor under the “Mac” branch using a mask 
+of three characters. The “Macgowan.private.US2081234567.SOrchard15541” 
+authority is found under “US208” using a mask of four characters within 
 the Global processing tree. The 
-ôMacgowan.private.US2081234567.SOrchard15541ö authority is also found 
-under ôSOrö of the branch masked under the Local tree.
+“Macgowan.private.US2081234567.SOrchard15541” authority is also found 
+under “SOr” of the branch masked under the Local tree.
 
 5. Extended Label Uses
 
@@ -1716,10 +660,10 @@ from a list of AutoCompletes, requests can be sent to any processing
 tree to balance the load on the system.
 
 The present proposal also provides an extensible path for future labels 
-that may or may not have associated processors.  A ôContactö label 
+that may or may not have associated processors.  A “Contact” label 
 might always be masked during the request for resolution, but provide 
 additional value to the user with a description about the connection or 
-a webmasterÆs email address. This has extreme value in the event a name 
+a webmaster’s email address. This has extreme value in the event a name 
 can be resolved, but not reached by connection to the IP address. In 
 addition to adding new labels, a group or association might request a 
 new item under the Type label or a new area code might be added under 
@@ -1759,7 +703,7 @@ user. The user determines a new provider would be more advantageous and
 purchases a new plan with a new number. The user sets their old TTL to 
 zero in the NNS and creates a new FQDN with the new cell number. Now 
 when the recipients use the old string, they are pointed to the new 
-string. The string with the new number is updated in the recipientÆs 
+string. The string with the new number is updated in the recipient’s 
 contact list. The user is not tied to their telephone number and the 
 recipients do not need to manually adjust their entries.
 
@@ -1802,9 +746,9 @@ References
 
    Mockapetris, 11/01/1987.
 
- 	[RFC 2535] û ôE.164 number and DNSö , P.
+              [RFC 2535] – “E.164 number and DNS” , P.
 
-	P. Faltstrom,  9/1/2000.
+              P. Faltstrom,  9/1/2000.
 
 Authors Address
 
@@ -1850,7 +794,7 @@ DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
 TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT 
 INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR 
 FITNESS FOR A PARTICULAR PURPOSE."
-Michael L. Macgowan Jr.	February  2001	[Page 6]
+Michael L. Macgowan Jr.	February  2001	[Page 17]
 
 Internet Draft		DNS Label Intelligence and Management System
 
