@@ -45,10 +45,6 @@ isc_result_t
 omapi_init(isc_mem_t *mctx) {
 	isc_result_t result;
 
-	/*
-	 * XXXDCL probeipv6?
-	 */
-
 	if (mctx != NULL)
 		omapi_mctx = mctx;
 
@@ -75,43 +71,20 @@ omapi_init(isc_mem_t *mctx) {
 		omapi_ipv6 = ISC_FALSE;
 	
 	/*
-	 * Initialize all the standard object types.
+	 * Initialize the standard object types.
 	 */
 	result = omapi_generic_init();
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (result == ISC_R_SUCCESS)
+		result = omapi_listener_init();
 
-	result = omapi_listener_init();
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (result == ISC_R_SUCCESS)
+		result = omapi_connection_init();
 
-	result = omapi_connection_init();
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (result == ISC_R_SUCCESS)
+		result = omapi_protocol_init();
 
-	result = omapi_object_register(&omapi_type_protocol,
-					    "protocol",
-					    omapi_protocol_set_value,
-					    omapi_protocol_get_value,
-					    omapi_protocol_destroy,
-					    omapi_protocol_signal_handler,
-					    omapi_protocol_stuff_values,
-					    0, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_object_register(&omapi_type_protocol_listener,
-					    "protocol-listener",
-					    omapi_protocol_listener_set_value,
-					    omapi_protocol_listener_get_value,
-					    omapi_protocol_listener_destroy,
-					    omapi_protocol_listener_signal,
-					    omapi_protocol_listener_stuff,
-					    0, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = omapi_message_init();
+	if (result == ISC_R_SUCCESS)
+		result = omapi_message_init();
 
 	return (result);
 }

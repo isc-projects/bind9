@@ -108,6 +108,46 @@ typedef struct omapi_generic_object {
 	unsigned int			va_max;
 } omapi_generic_object_t;
 
+typedef enum {
+	omapi_protocol_intro_wait,
+	omapi_protocol_header_wait,
+	omapi_protocol_signature_wait,
+	omapi_protocol_name_wait,
+	omapi_protocol_name_length_wait,
+	omapi_protocol_value_wait,
+	omapi_protocol_value_length_wait
+} omapi_protocol_state_t;
+
+typedef struct {
+	OMAPI_OBJECT_PREAMBLE;
+	unsigned int			header_size;		
+	unsigned int			protocol_version;
+	isc_uint32_t			next_xid;
+	omapi_object_t *		authinfo; /* Default authinfo. */
+
+	omapi_protocol_state_t		state;	/* Input state. */
+	/* XXXDCL make isc_boolean_t */
+	/*
+	 * True when reading message-specific values.
+	 */
+	isc_boolean_t			reading_message_values;
+	omapi_message_object_t *	message;	/* Incoming message. */
+	omapi_data_string_t *		name;		/* Incoming name. */
+	omapi_typed_data_t *		value;		/* Incoming value. */
+} omapi_protocol_object_t;
+
+/*
+ * OMAPI protocol header, version 1.00
+ */
+typedef struct {
+	unsigned int authlen;  /* Length of authenticator. */
+	unsigned int authid;   /* Authenticator object ID. */
+	unsigned int op;       /* Opcode. */
+	omapi_handle_t handle; /* Handle of object being operated on, or 0. */
+	unsigned int id;	/* Transaction ID. */
+	unsigned int rid;       /* ID of transaction responding to. */
+} omapi_protocol_header_t;
+
 typedef struct omapi_waiter_object {
 	OMAPI_OBJECT_PREAMBLE;
 	isc_mutex_t			mutex;
@@ -127,8 +167,7 @@ extern omapi_object_type_t *omapi_type_message;
 extern omapi_object_type_t *omapi_object_types;
 
 /*
- * Everything needs a memory context.  This will likely be made a parameter
- * where needed rather than a single global context. XXXDCL
+ * Everything needs a memory context. 
  */
 extern isc_mem_t *omapi_mctx;
 
@@ -143,9 +182,6 @@ extern isc_taskmgr_t *omapi_taskmgr;
 extern isc_socketmgr_t *omapi_socketmgr;
 
 extern isc_boolean_t omapi_ipv6;
-
-void
-connection_send(omapi_connection_object_t *connection);
 
 #define OBJECT_REF(objectp, object) \
 	omapi_object_reference((omapi_object_t **)objectp, \
@@ -204,6 +240,15 @@ omapi_generic_init(void);
 
 isc_result_t
 omapi_message_init(void);
+
+isc_result_t
+omapi_protocol_init(void);
+
+void
+connection_send(omapi_connection_object_t *connection);
+
+isc_result_t
+connect_toserver(omapi_object_t *connection, const char *server, int port);
 
 ISC_LANG_ENDDECLS
 

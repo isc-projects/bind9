@@ -27,7 +27,9 @@
 
 #include <isc/assertions.h>
 #include <isc/commandline.h>
+#include <isc/condition.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/result.h>
 
 #include <omapi/omapip.h>
@@ -38,11 +40,17 @@ isc_mem_t *mctx;
 /*
  * Two different structures are used in this program to store the
  * value of interest on both the client and the server, but the
- * same structure can be used on each if desired.
+ * same structure can be used on each if desired (with the other variables
+ * that are not in common between them being stored elsewhere).
  */
 typedef struct server_object {
 	OMAPI_OBJECT_PREAMBLE;
 	unsigned long value;
+	struct {
+		isc_boolean_t finished;
+		isc_mutex_t lock;
+		isc_condition_t wait;
+	} listen;
 } server_object_t;
 
 typedef struct client_object {
@@ -87,15 +95,15 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * Create a new message object to store the information that will
 	 * be sent to the server.
 	 */
-	ENSURE(omapi_message_new(&message, "open_object") == ISC_R_SUCCESS);
+	INSIST(omapi_message_new(&message) == ISC_R_SUCCESS);
 
 	/*
 	 * Specify the OPEN operation, and the UPDATE option if requested.
 	 */
-	ENSURE(omapi_set_int_value(message, NULL, "op", OMAPI_OP_OPEN)
+	INSIST(omapi_set_int_value(message, NULL, "op", OMAPI_OP_OPEN)
 	       == ISC_R_SUCCESS);
 	if (update)
-		ENSURE(omapi_set_boolean_value(message, NULL, "update", 1)
+		INSIST(omapi_set_boolean_value(message, NULL, "update", 1)
 		       == ISC_R_SUCCESS);
 
 	/*
@@ -103,7 +111,7 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * to know this so that it can apply the proper object methods
 	 * for lookup/setvalue.
 	 */
-	ENSURE(omapi_set_string_value(message, NULL, "type",SERVER_OBJECT_TYPE)
+	INSIST(omapi_set_string_value(message, NULL, "type",SERVER_OBJECT_TYPE)
 	       == ISC_R_SUCCESS);
 
 	/*
@@ -113,14 +121,14 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * pair to use as a key for looking up the desired object at
 	 * the server.
 	 */
-	ENSURE(omapi_set_object_value(message, NULL, "object", handle)
+	INSIST(omapi_set_object_value(message, NULL, "object", handle)
 	       == ISC_R_SUCCESS);
 
 	/*
 	 * Add the new message to the list of known messages.
 	 * XXXDCL Why exactly?
 	 */
-	ENSURE(omapi_message_register(message) == ISC_R_SUCCESS);
+	omapi_message_register(message);
 
 	/*
 	 * Deliver the message to the server.  The manager's outer object
@@ -154,7 +162,7 @@ client_setvalue(omapi_object_t *handle, omapi_object_t *id,
 	 */
 	if (omapi_ds_strcmp(name, MASTER_VALUE) == 0) {
 	
-		ENSURE(omapi_get_int_value(&server_value, value)
+		INSIST(omapi_get_int_value(&server_value, value)
 		       == ISC_R_SUCCESS);
 
 		client->value = server_value;
@@ -199,13 +207,13 @@ client_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 	 * Write the MASTER_VALUE name, followed by the value length,
 	 * follwed by its value.
 	 */
-	ENSURE(omapi_connection_putname(connection, MASTER_VALUE)
+	INSIST(omapi_connection_putname(connection, MASTER_VALUE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
+	INSIST(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_putuint32(connection, client->value)
+	INSIST(omapi_connection_putuint32(connection, client->value)
 	       == ISC_R_SUCCESS);
 
 	return (ISC_R_SUCCESS);
@@ -272,7 +280,7 @@ server_setvalue(omapi_object_t *handle, omapi_object_t *id,
 
 	(void)id;		/* Unused. */
 
-	ENSURE(handle == (omapi_object_t *)&master_data);
+	INSIST(handle == (omapi_object_t *)&master_data);
 
 	/*
 	 * Only one name is supported for this object, MASTER_VALUE.
@@ -280,7 +288,7 @@ server_setvalue(omapi_object_t *handle, omapi_object_t *id,
 	if (omapi_ds_strcmp(name, MASTER_VALUE) == 0) {
 		fprintf(stderr, "existing value: %lu\n", master_data.value);
 
-		ENSURE(omapi_get_int_value(&new_value, value)
+		INSIST(omapi_get_int_value(&new_value, value)
 		       == ISC_R_SUCCESS);
 
 		master_data.value = new_value;
@@ -336,13 +344,13 @@ server_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 	 * Write the MASTER_VALUE name, followed by the value length,
 	 * follwed by its value.
 	 */
-	ENSURE(omapi_connection_putname(connection, MASTER_VALUE)
+	INSIST(omapi_connection_putname(connection, MASTER_VALUE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
+	INSIST(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_putuint32(connection, master->value)
+	INSIST(omapi_connection_putuint32(connection, master->value)
 	       == ISC_R_SUCCESS);
 
 	return (ISC_R_SUCCESS);
@@ -355,15 +363,15 @@ do_connect(const char *host, int port) {
 	omapi_object_t *omapi_client;
 	client_object_t *client;
 
-	ENSURE(omapi_object_type_register(&client_type, "client",
-					  client_setvalue,
-					  NULL,   /* getvalue */
-					  NULL,   /* destroy */
-					  client_signalhandler,
-					  client_stuffvalues,
-					  NULL,    /* lookup */
-					  NULL,    /* create */
-					  NULL)    /* remove */
+	INSIST(omapi_object_register(&client_type, "client",
+				     client_setvalue,
+				     NULL,	/* getvalue */
+				     NULL,	/* destroy */
+				     client_signalhandler,
+				     client_stuffvalues,
+				     NULL,	/* lookup */
+				     NULL,	/* create */
+				     NULL)	/* remove */
 	       == ISC_R_SUCCESS);
 
 	/*
@@ -371,10 +379,10 @@ do_connect(const char *host, int port) {
 	 * connection to the server.
 	 */
 	manager = NULL;
-	ENSURE(omapi_generic_new(&manager, "main")
+	INSIST(omapi_object_create(&manager, NULL, 0)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_protocol_connect(manager, host, port, NULL)
+	INSIST(omapi_protocol_connect(manager, host, port, NULL)
 	       == ISC_R_SUCCESS);
 
 	connection = manager->outer->outer;
@@ -382,19 +390,15 @@ do_connect(const char *host, int port) {
 	/*
 	 * Wait to be connected.
 	 */
-	ENSURE(omapi_connection_wait(manager, connection, NULL)
+	INSIST(omapi_connection_wait(manager, connection, NULL)
 	       == ISC_R_SUCCESS);
 
 	/*
 	 * Create the client's object.
 	 */
-	client = malloc(sizeof(client_object_t));
-	ENSURE(client != NULL);
-
-	memset(client, 0, sizeof(client_object_t));
-	client->type = client_type;
-	client->refcnt = 1;
-
+	client = NULL;
+	omapi_object_create((omapi_object_t **)&client, client_type,
+			    sizeof(client_object_t));
 	omapi_client = (omapi_object_t *)client;
 
 	/*
@@ -404,16 +408,16 @@ do_connect(const char *host, int port) {
 	 * name/value is created with the value of 0, but any interger
 	 * value would work.
 	 */
-	ENSURE(omapi_set_int_value(omapi_client, NULL, MASTER_VALUE, 0)
+	INSIST(omapi_set_int_value(omapi_client, NULL, MASTER_VALUE, 0)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(open_object(omapi_client, manager, ISC_FALSE)
+	INSIST(open_object(omapi_client, manager, ISC_FALSE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_wait(omapi_client, connection, NULL)
+	INSIST(omapi_connection_wait(omapi_client, connection, NULL)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(client->waitresult == ISC_R_SUCCESS);
+	INSIST(client->waitresult == ISC_R_SUCCESS);
 
 	/*
 	 * Set the new value to be stored at the server and reopen the
@@ -421,48 +425,39 @@ do_connect(const char *host, int port) {
 	 */
 	fprintf(stderr, "existing value: %lu\n", client->value);
 	client->value *= 2;
+	if (client->value == 0)		/* Check overflow. */
+		client->value = 1;
 	fprintf(stderr, "new value: %lu\n", client->value);
 
-	ENSURE(open_object(omapi_client, manager, ISC_TRUE)
+	INSIST(open_object(omapi_client, manager, ISC_TRUE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_connection_wait(omapi_client, connection, NULL)
+	INSIST(omapi_connection_wait(omapi_client, connection, NULL)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(client->waitresult == ISC_R_SUCCESS);
+	INSIST(client->waitresult == ISC_R_SUCCESS);
 
 	/*
 	 * Close the connection and wait to be disconnected.
-	 * XXXDCL This problem has been biting my butt for two days
-	 * straight!  I am totally zoning on how to best accomplish
-	 * making disconnection be either sync or async, and some
-	 * internal thread race conditions i am having in the omapi library.
-	 * grr grr grr grr GRRRRR
-	 * at the moment things work ok enough by requiring that
-	 * the connection be waited before calling omapi_connection_disconnect
-	 * and sleeping a moment.  clearly this is BOGUS
 	 */
-	sleep(1);
-	omapi_connection_disconnect(connection, ISC_FALSE);
-
-	ENSURE(client->waitresult == ISC_R_SUCCESS);
+	omapi_connection_disconnect(connection, OMAPI_CLEAN_DISCONNECT);
 
 	/*
-	 * Free the protocol manager.
+	 * Free the protocol manager and client object.
 	 */
-       omapi_object_dereference(&manager, "do_connect");
+       omapi_object_dereference(&manager);
+       omapi_object_dereference((omapi_object_t **)&client);
 }
 
 static void
 do_listen(int port) {
-	omapi_object_t *listener;
+	omapi_object_t *listener = NULL;
+	isc_result_t result;
 
 	/*
 	 * Create the manager for handling incoming server connections.
 	 */
-	listener = NULL;
-	ENSURE(omapi_generic_new(&listener, "main")
-	       == ISC_R_SUCCESS);
+	INSIST(omapi_object_create(&listener, NULL, 0) == ISC_R_SUCCESS);
 
 	/*
 	 * Register the server_object.  The SERVER_OBJECT_TYPE is what
@@ -470,15 +465,15 @@ do_listen(int port) {
 	 * when * contacting the server in order to be able to find objects
 	 * server_type.
 	 */
-	ENSURE(omapi_object_type_register(&server_type, SERVER_OBJECT_TYPE,
-					  server_setvalue,
-					  NULL, /* setvalue */
-					  NULL, /* destroy */
-					  NULL, /* signalhandler */
-					  server_stuffvalues,
-					  server_lookup,
-					  NULL, /* create */
-					  NULL) /* remove */
+	INSIST(omapi_object_register(&server_type, SERVER_OBJECT_TYPE,
+				     server_setvalue,
+				     NULL, 	/* setvalue */
+				     NULL,	/* destroy */
+				     NULL,	/* signalhandler */
+				     server_stuffvalues,
+				     server_lookup,
+				     NULL,	/* create */
+				     NULL)	/* remove */
 	       == NULL);
 
 	/*
@@ -486,23 +481,42 @@ do_listen(int port) {
 	 */
 	master_data.type = server_type;
 	master_data.value = 2;
+	master_data.listen.finished = ISC_FALSE;
+ 
+	INSIST(isc_mutex_init(&master_data.listen.lock) == ISC_R_SUCCESS);
+	INSIST(isc_condition_init(&master_data.listen.wait) == ISC_R_SUCCESS);
+
+	INSIST(isc_mutex_lock(&master_data.listen.lock) == ISC_R_SUCCESS);
 
 	/*
 	 * Start listening for connections.
 	 */
-	ENSURE(omapi_protocol_listen(listener, port, 1)
+	INSIST(omapi_protocol_listen(listener, port, 1)
 	       == ISC_R_SUCCESS);
 
 	fprintf(stderr, "SERVER STARTED\n");
 
 	/*
-	 * Loop forever getting connections.
+	 * Block until done.
+	 * XXX Currently "until done" has no real meaning.  I'm going
+	 * to add a shutdown trigger that will signal the condition,
+	 * to test memory cleanup in the server side.
 	 */
-	omapi_dispatch(NULL);
+	do {
+		result = isc_condition_wait(&master_data.listen.wait,
+					    &master_data.listen.lock);
+	} while (result == ISC_R_SUCCESS && ! master_data.listen.finished);
+
+	INSIST(result == ISC_R_SUCCESS);
+
+	INSIST(isc_mutex_unlock(&master_data.listen.lock) == ISC_R_SUCCESS);
+	INSIST(isc_mutex_destroy(&master_data.listen.lock) == ISC_R_SUCCESS);
+	INSIST(isc_condition_destroy(&master_data.listen.wait) ==
+				     ISC_R_SUCCESS);
 }
 
 int
-main (int argc, char **argv) {
+main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	int ch;
 
@@ -523,9 +537,9 @@ main (int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	ENSURE(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	ENSURE(omapi_init(mctx) == ISC_R_SUCCESS);
+	INSIST(omapi_init(mctx) == ISC_R_SUCCESS);
 
 	if (argc > 1 && strcmp(argv[0], "listen") == 0) {
 		if (argc < 2) {
@@ -550,7 +564,7 @@ main (int argc, char **argv) {
 		exit (1);
 	}
 
-	omapi_shutdown();
+	omapi_destroy();
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);

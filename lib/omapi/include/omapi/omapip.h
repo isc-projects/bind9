@@ -144,8 +144,7 @@ struct omapi_object_type {
 					     omapi_data_string_t *name,
 					     omapi_value_t **value);
 
-	void			(*destroy)(omapi_object_t *object,
-					   const char *name);
+	void			(*destroy)(omapi_object_t *object);
 
 	isc_result_t		(*signal_handler)(omapi_object_t *object,
 						  const char *name,
@@ -200,49 +199,10 @@ omapi_protocol_send_intro(omapi_object_t *object, unsigned int version,
 			  unsigned int object_size);
 
 isc_result_t
-omapi_protocol_set_value(omapi_object_t *object, omapi_object_t *id,
-			 omapi_data_string_t *name, omapi_typed_data_t *value);
-
-isc_result_t
-omapi_protocol_get_value(omapi_object_t *object, omapi_object_t *id,
-			 omapi_data_string_t *name, omapi_value_t **value); 
-
-isc_result_t
-omapi_protocol_stuff_values(omapi_object_t *connection, omapi_object_t *id,
-			    omapi_object_t *object);
-
-void
-omapi_protocol_destroy(omapi_object_t *object);
-
-isc_result_t
 omapi_protocol_send_message(omapi_object_t *protocol,
 			    omapi_object_t *id,
 			    omapi_object_t *message,
 			    omapi_object_t *original_message);
-
-isc_result_t
-omapi_protocol_signal_handler(omapi_object_t *protocol, const char *name,
-			      va_list args);
-
-isc_result_t
-omapi_protocol_listener_set_value(omapi_object_t *object, omapi_object_t *id,
-				  omapi_data_string_t *name,
-				  omapi_typed_data_t *value);
-isc_result_t
-omapi_protocol_listener_get_value(omapi_object_t *object, omapi_object_t *id,
-				  omapi_data_string_t *name,
-				  omapi_value_t **value); 
-
-void
-omapi_protocol_listener_destroy(omapi_object_t *object);
-
-isc_result_t
-omapi_protocol_listener_signal(omapi_object_t *protocol_listener,
-			       const char *names, va_list args);
-
-isc_result_t
-omapi_protocol_listener_stuff(omapi_object_t *connection, omapi_object_t *id,
-			      omapi_object_t *object);
 
 isc_result_t
 omapi_protocol_send_status(omapi_object_t *protcol, omapi_object_t *id,
@@ -256,13 +216,6 @@ omapi_protocol_send_update(omapi_object_t *protocl, omapi_object_t *id,
 /*
  * connection.c (XXX and buffer.c)
  */
-isc_result_t
-omapi_connect(omapi_object_t *connection, const char *server, int port);
-
-isc_result_t
-omapi_connection_toserver(omapi_object_t *connection, const char *server,
-			  int port);
-
 void
 omapi_connection_disconnect(omapi_object_t *connection, isc_boolean_t force);
 

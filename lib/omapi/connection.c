@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.9 2000/01/17 18:02:04 tale Exp $ */
+/* $Id: connection.c,v 1.10 2000/01/17 20:06:31 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -524,9 +524,7 @@ connection_send(omapi_connection_object_t *connection) {
  * Make an outgoing connection to an OMAPI server.
  */
 isc_result_t
-omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
-			  int port)
-{
+connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	isc_result_t result;
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *ibuffer = NULL, *obuffer = NULL;

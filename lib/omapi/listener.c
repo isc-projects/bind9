@@ -42,11 +42,12 @@ typedef struct omapi_listener_object {
 static void
 listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	isc_buffer_t *ibuffer, *obuffer;
+	isc_buffer_t *ibuffer = NULL;
+	isc_buffer_t *obuffer = NULL;
 	isc_task_t *connection_task = NULL;
-	isc_socket_newconnev_t *incoming;
+	isc_socket_t *socket;
 	omapi_connection_object_t *connection = NULL;
-	omapi_object_t *listener;
+	omapi_object_t *protocol = NULL;
 
 	/*
 	 * XXXDCL What are the meaningful things the listen/accept function
@@ -56,21 +57,28 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	/*
-	 * Set up another listen task for the socket.
+	 * Immediately set up another listen task for the socket.
 	 */
-	isc_socket_accept(event->sender, task, listener_accept,
-			  event->arg);
+	isc_socket_accept(event->sender, task, listener_accept, event->arg);
+
+	result = ((isc_socket_newconnev_t *)event)->result;
+	socket = ((isc_socket_newconnev_t *)event)->newsocket;
+
+	/*
+	 * No more need for the event, once all the desired data has been
+	 * used from it.
+	 */
+	isc_event_free(&event);
 
 	/*
 	 * Check for the validity of new connection event.
 	 */
-	incoming = (isc_socket_newconnev_t *)event;
-	if (incoming->result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS)
 		/*
 		 * The result is probably ISC_R_UNEXPECTED; what can really be
 		 * done about this other than just flunking out of here?
 		 */
-		goto free_event;
+		return;
 
 	/*
 	 * The new connection is good to go.  Allocate the buffers for it and
@@ -102,15 +110,8 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	connection->task = connection_task;
 	connection->state = omapi_connection_connected;
-	connection->socket = incoming->newsocket;
+	connection->socket = socket;
 	connection->is_client = ISC_FALSE;
-
-	/*
-	 * No more need for the event, once all the desired data has been
-	 * used from it.
-	 */
-	listener = event->arg;
-	isc_event_free(&event);
 
 	ISC_LIST_INIT(connection->input_buffers);
 	ISC_LIST_APPEND(connection->input_buffers, ibuffer, link);
@@ -121,24 +122,57 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	RUNTIME_CHECK(isc_mutex_init(&connection->recv_lock) == ISC_R_SUCCESS);
 
 	/*
-	 * Notify the listener object that a connection was made.
+	 * Create a new protocol object to oversee the handling of this
+	 * connection.
 	 */
-	result = omapi_signal(listener, "connect", connection);
+	protocol = NULL;
+	result = omapi_object_create(&protocol, omapi_type_protocol,
+				     sizeof(omapi_protocol_object_t));
 	if (result != ISC_R_SUCCESS)
-		goto free_object;
+		goto free_connection_object;
+
+	/*
+	 * Tie the protocol object bidirectionally to the connection
+	 * object, with the connection as the outer object.
+	 */
+	OBJECT_REF(&protocol->outer, connection);
+	OBJECT_REF(&connection->inner, protocol);
+
+	/*
+	 * Send the introductory message.
+	 */
+	result = omapi_protocol_send_intro(protocol, OMAPI_PROTOCOL_VERSION,
+					   sizeof(omapi_protocol_header_t));
+
+	if (result != ISC_R_SUCCESS)
+		goto free_protocol_object;
 
 	/*
 	 * Lose one reference to the connection, so it'll be gc'd when it's
 	 * reaped.  The omapi_protocol_listener_signal function added a
 	 * reference when it created a protocol object as connection->inner.
+	 * XXXDCL that's Ted's comment, but I don't see how it can be true.
+	 * I don't see how it will "lose one reference" since
+	 * omapi_object_dereference does not decrement refcnt.
 	 */
 	OBJECT_DEREF(&connection);
 	return;
 
-free_object:
+free_protocol_object:
+	/*
+	 * Remove the protocol object's reference to the connection
+	 * object, so that the connection object will be destroyed.
+	 * XXXDCL aigh, this is so confusing.  I don't think the
+	 * right thing is being done.
+	 */
+	OBJECT_DEREF(&connection->inner);
+	OBJECT_DEREF(&protocol);
+
+	/* FALLTHROUGH */
+free_connection_object:
 	/*
 	 * Destroy the connection.  This will free everything created
-	 * in this function but the event.
+	 * in this function but the event, which was already freed.
 	 */
 	OBJECT_DEREF(&connection);
 	return;
@@ -152,8 +186,6 @@ free_ibuffer:
 	isc_buffer_free(&ibuffer);
 free_task:
 	isc_task_destroy(&connection_task);
-free_event:
-	isc_event_free(&event);
 	return;
 }
 
@@ -169,23 +201,19 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-#if 0 /*XXXDCL*/
-	result = isc_task_onshutdown(task, omapi_listener_shutdown, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-#endif
-
 	/*
-	 * Get the handle.
+	 * Create the listener object.
 	 */
-	listener = isc_mem_get(omapi_mctx, sizeof(*listener));
-	if (listener == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(listener, 0, sizeof(*listener));
-	listener->object_size = sizeof(*listener);
-	listener->refcnt = 1;
+	listener = NULL;
+	result = omapi_object_create((omapi_object_t **)&listener,
+				     omapi_type_listener, sizeof(*listener));
+
+	if (result != ISC_R_SUCCESS) {
+		isc_task_destroy(&task);
+		return (result);
+	}
+
 	listener->task = task;
-	listener->type = omapi_type_listener;
 
 	/*
 	 * Tie the listener object to the calling object.
@@ -199,47 +227,37 @@ omapi_listener_listen(omapi_object_t *caller, int port, int max) {
 	listener->socket = NULL;
 	result = isc_socket_create(omapi_socketmgr, PF_INET,
 				   isc_sockettype_tcp, &listener->socket);
-	if (result != ISC_R_SUCCESS) {
-		/* XXXDCL this call and later will not free the listener
-		 * because it has two refcnts, one for existing plus one
-		 * for the tie to h->outer.  This does not seem right to me.
+
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * Set up the addressses on which to listen and bind to it.
 		 */
-		OBJECT_DEREF(&listener);
-		return (result);
-	}
-	
-	/*
-	 * Set up the address on which we will listen.
-	 */
-	inaddr.s_addr = INADDR_ANY;
-	isc_sockaddr_fromin(&listener->address, &inaddr, port);
+		inaddr.s_addr = INADDR_ANY;
+		isc_sockaddr_fromin(&listener->address, &inaddr, port);
 
-	/*
-	 * Try to bind to the wildcard address using the port number
-	 * we were given.
-	 */
-	result = isc_socket_bind(listener->socket, &listener->address);
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&listener);
-		return (result);
+		result = isc_socket_bind(listener->socket, &listener->address);
 	}
 
-	/*
-	 * Now tell the kernel to listen for connections.
-	 */
-	result = isc_socket_listen(listener->socket, max);
-	if (result != ISC_R_SUCCESS) {
-		OBJECT_DEREF(&listener);
-		return (result);
-	}
+	if (result == ISC_R_SUCCESS)
+		/*
+		 * Now tell the kernel to listen for connections.
+		 */
+		result = isc_socket_listen(listener->socket, max);
 
-	/*
-	 * Queue up the first accept event.  The listener object
-	 * will be passed to listener_accept() when it is called.
-	 */
-	result = isc_socket_accept(listener->socket, task,
-				   listener_accept, listener);
+	if (result == ISC_R_SUCCESS)
+		/*
+		 * Queue up the first accept event.  The listener object
+		 * will be passed to listener_accept() when it is called,
+		 * though currently nothing is done with it.
+		 */
+		result = isc_socket_accept(listener->socket, task,
+					   listener_accept, listener);
+
 	if (result != ISC_R_SUCCESS)
+		/*
+		 * The listener has a refcnt of 2, so this does not really
+		 * free it. XXXDCL
+		 */
 		OBJECT_DEREF(&listener);
 
 	return (result);
@@ -278,6 +296,8 @@ listener_destroy(omapi_object_t *object) {
 	REQUIRE(object != NULL && object->type == omapi_type_listener);
 
 	listener = (omapi_listener_object_t *)object;
+
+	isc_task_destroy(&listener->task);
 
 	if (listener->socket != NULL) {
 #if 0 /*XXXDCL*/
@@ -323,12 +343,11 @@ listener_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 
 isc_result_t
 omapi_listener_init(void) {
-	return (omapi_object_register(&omapi_type_listener,
-					   "listener",
-					   listener_setvalue,
-					   listener_getvalue,
-					   listener_destroy,
-					   listener_signalhandler,
-					   listener_stuffvalues,
-					   NULL, NULL, NULL));
+	return (omapi_object_register(&omapi_type_listener, "listener",
+				      listener_setvalue,
+				      listener_getvalue,
+				      listener_destroy,
+				      listener_signalhandler,
+				      listener_stuffvalues,
+				      NULL, NULL, NULL));
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.5 2000/01/17 18:02:08 tale Exp $ */
+/* $Id: object.c,v 1.6 2000/01/17 20:06:34 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -159,7 +159,7 @@ omapi_object_dereference(omapi_object_t **h) {
 			if (outer_reference != 0)
 				OBJECT_DEREF(&(*h)->outer->inner);
 			if ((*h)->type->destroy != NULL)
-				(*((*h)->type->destroy))(*h, NULL);
+				(*((*h)->type->destroy))(*h);
 			isc_mem_put(omapi_mctx, *h, (*h)->object_size);
 		}
 	}
