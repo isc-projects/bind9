@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.75 2001/09/01 01:41:39 gson Exp $ */
+/* $Id: parser.c,v 1.76 2001/09/06 21:52:46 gson Exp $ */
 
 #include <config.h>
 
@@ -818,7 +818,7 @@ options_clauses[] = {
 	{ "files", &cfg_type_size, 0 },
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
-	{ "host-statistics", &cfg_type_boolean, 0 },
+	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
 	{ "interface-interval", &cfg_type_uint32, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
@@ -919,7 +919,7 @@ zone_clauses[] = {
 	{ "dialup", &cfg_type_dialuptype, 0 },
 	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
-	{ "maintain-ixfr-base", &cfg_type_boolean, 0 },
+	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
