@@ -19,18 +19,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.39 2001/06/28 06:02:18 mayer Exp $ */
+/* $Id: getaddrinfo.c,v 1.40 2001/07/10 18:25:40 gson Exp $ */
 
 #include <config.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-
-#include <netinet/in.h>
-
-#include <arpa/nameser.h>
-#include <arpa/inet.h>
 
 #include <string.h>
 #include <errno.h>
@@ -38,7 +29,7 @@
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
-#include <lwres/netdb.h>	/* XXX #include <netdb.h> */
+#include <lwres/netdb.h>
 
 #define SA(addr)	((struct sockaddr *)(addr))
 #define SIN(addr)	((struct sockaddr_in *)(addr))

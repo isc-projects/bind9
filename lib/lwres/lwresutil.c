@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.28 2001/03/06 23:02:04 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.29 2001/07/10 18:25:46 gson Exp $ */
 
 #include <config.h>
 
@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <sys/types.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>

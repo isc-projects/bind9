@@ -15,11 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.10 2001/07/02 21:28:53 gson Exp $ */
+/* $Id: getrrset.c,v 1.11 2001/07/10 18:25:44 gson Exp $ */
 
 #include <config.h>
-
-#include <sys/types.h>
 
 #include <string.h>
 #include <errno.h>

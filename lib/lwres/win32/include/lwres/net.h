@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.13 2001/07/07 00:03:26 bwelling Exp $ */
+/* $Id: net.h,v 1.1 2001/07/10 18:25:50 gson Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -52,11 +52,14 @@
 
 #include <lwres/platform.h>	/* Required for LWRES_PLATFORM_*. */
 
-#include <sys/types.h>
-#include <sys/socket.h>		/* Contractual promise. */
+#include <winsock.h>
 
-#include <netinet/in.h>		/* Contractual promise. */
-#include <arpa/inet.h>		/* Contractual promise. */
+/* XXXAG Remainder of file needs to be rewritten for win32 */
+   
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>	
 #ifdef LWRES_PLATFORM_NEEDNETINETIN6H
 #include <netinet/in6.h>	/* Required on UnixWare. */
 #endif

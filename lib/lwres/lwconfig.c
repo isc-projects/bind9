@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.32 2001/04/12 22:45:12 tale Exp $ */
+/* $Id: lwconfig.c,v 1.33 2001/07/10 18:25:45 gson Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -45,8 +45,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <sys/types.h>
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>

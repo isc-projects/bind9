@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.29 2001/03/05 23:14:03 bwelling Exp $ */
+/* $Id: getnameinfo.c,v 1.30 2001/07/10 18:25:43 gson Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -58,11 +58,6 @@
  */
 
 #include <config.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
 
 #include <stdio.h>
 #include <string.h>

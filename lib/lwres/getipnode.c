@@ -15,16 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.28 2001/01/09 21:59:19 bwelling Exp $ */
+/* $Id: getipnode.c,v 1.29 2001/07/10 18:25:42 gson Exp $ */
 
 #include <config.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
 
 #include <stdio.h>
 #include <stdlib.h>

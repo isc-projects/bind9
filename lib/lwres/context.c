@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.36 2001/07/02 20:46:28 bwelling Exp $ */
+/* $Id: context.c,v 1.37 2001/07/10 18:25:39 gson Exp $ */
 
 #include <config.h>
 
@@ -25,12 +25,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
