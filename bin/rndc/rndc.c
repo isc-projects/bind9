@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.37.2.3 2001/03/29 18:22:09 gson Exp $ */
+/* $Id: rndc.c,v 1.37.2.4 2001/03/29 18:23:18 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -257,7 +257,7 @@ ndc_setvalue(omapi_object_t *handle, omapi_string_t *name,
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-y key] command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-y key] command\n\
 \n\
 command is one of the following:\n\
 \n\
