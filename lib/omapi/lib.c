@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.10 2000/05/08 14:38:14 tale Exp $ */
+/* $Id: lib.c,v 1.11 2000/05/14 03:51:07 tale Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ omapi_lib_init(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  * omapi_object_dereference).
  */
 void
-omapi_lib_destroy() {
+omapi_lib_destroy(void) {
 	object_destroytypes();
 
 	handle_destroy();
