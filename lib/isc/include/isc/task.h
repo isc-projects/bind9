@@ -18,6 +18,40 @@
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
 
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * Task System
+ *
+ * XXX <TBS> XXX
+ *
+ * MP:
+ *	The module ensures appropriate synchronization of data structures it
+ *	creates and manipulates.
+ *
+ *	The caller must ensure that isc_taskmgr_destroy() is called only
+ *	once for a given manager.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	<TBS>
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ * Standards:
+ *	None.
+ */
+
+
+/***
+ *** Imports.
+ ***/
+
 #include <stddef.h>
 
 #include <isc/lang.h>
@@ -36,9 +70,9 @@ typedef struct isc_task			isc_task_t;
 typedef struct isc_taskmgr		isc_taskmgr_t;
 
 
-/***
- *** Events.
- ***/
+/*****
+ ***** Events.
+ *****/
 
 /*
  * Negative event types are reserved for use by the task manager.
@@ -79,9 +113,9 @@ isc_event_t *				isc_event_allocate(isc_mem_t *,
 void					isc_event_free(isc_event_t **);
 
 
-/***
- *** Tasks.
- ***/
+/*****
+ ***** Tasks.
+ *****/
 
 isc_result_t				isc_task_create(isc_taskmgr_t *,
 							isc_mem_t *,
@@ -103,14 +137,46 @@ isc_result_t				isc_task_onshutdown(isc_task_t *,
 void					isc_task_shutdown(isc_task_t *);
 void					isc_task_destroy(isc_task_t **);
 
-/***
- *** Task Manager.
- ***/
 
-isc_result_t				isc_taskmgr_create(isc_mem_t *,
-							   unsigned int,
-							   unsigned int,
-							   isc_taskmgr_t **);
+/*****
+ ***** Task Manager.
+ *****/
+
+isc_result_t
+isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
+		   unsigned int default_quantum, isc_taskmgr_t **managerp);
+/*
+ * Create a new task manager.
+ *
+ * Notes:
+ *
+ *	'workers' in the number of worker threads to create.  In general,
+ *	the value should be close to the number of processors in the system.
+ *	The 'workers' value is advisory only.  An attempt will be made to
+ *	create 'workers' threads, but if at least one thread creation
+ *	succeeds, isc_taskmgr_create() may return ISC_R_SUCCESS.
+ *
+ * Requires:
+ *
+ *      'mctx' is a valid memory context.
+ *
+ *	workers > 0
+ *
+ *	managerp != NULL && *managerp == NULL
+ *
+ * Ensures:
+ *
+ *	On success, '*managerp' will be attached to the newly created task
+ *	manager.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_NOTHREADS			No threads could be created.
+ *	ISC_R_UNEXPECTED		An unexpected error occurred.
+ */
+
 void					isc_taskmgr_destroy(isc_taskmgr_t **);
 
 ISC_LANG_ENDDECLS
