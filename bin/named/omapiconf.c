@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.10 2000/08/01 01:11:56 tale Exp $ */
+/* $Id: omapiconf.c,v 1.11 2000/08/26 01:46:42 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -99,6 +99,8 @@ listen_done(isc_task_t *task, isc_event_t *event) {
 void
 ns_omapi_shutdown(isc_boolean_t exiting) {
 	ns_omapilistener_t *listener;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 
 	if (exiting) {
 		/*

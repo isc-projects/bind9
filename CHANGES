@@ -1,3 +1,8 @@
+
+ 409.	[bug]		If named was shut down early in the startup
+			process, ns_omapi_shutdown() would attempt to lock
+			an unintialized mutex. [RT #262]
+
  408.	[bug]		stub zones could leak memory and reference counts if
 			all the masters were unreachable.
 
