@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.13 2001/09/17 17:47:20 bwelling Exp $
+# $Id: sign.sh,v 1.14 2001/09/19 21:19:52 gson Exp $
 
 RANDFILE=../random.data
 
@@ -42,3 +42,22 @@ $KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=keyless.example.
+infile=keyless.example.db.in
+zonefile=keyless.example.db
+
+keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+
+$KEYSETTOOL -r $RANDFILE -t 3600 $keyname.key > /dev/null
+
+cat $infile $keyname.key >$zonefile
+
+$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+
+# Change the signer field of the a.b.keyless.example SIG A
+# to point to a provably nonexistent KEY record.
+mv $zonefile.signed $zonefile.tmp
+<$zonefile.tmp perl -p -e 's/ keyless.example/ b.keyless.example/
+    if /^a.b.keyless.example/../NXT/;' >$zonefile.signed
+rm -f $zonefile.tmp
