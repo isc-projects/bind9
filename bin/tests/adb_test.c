@@ -449,7 +449,28 @@ main(int argc, char **argv)
 	lookup("moghedien.flame.org.");		/* should fetch */
 	lookup("mailrelay.flame.org.");		/* should fetch */
 	lookup("ipv4v6.flame.org.");		/* should fetch */
-	lookup("nonexistant.flame.org.");	/* should fetch */
+	lookup("nonexistant.flame.org.");	/* should fail to be found */
+	lookup("foobar.badns.flame.org.");	/* should fail utterly (NS) */
+	lookup("i.root-servers.net.");		/* Should be in hints */
+	CUNLOCK();
+
+	sleep(5);
+
+	dns_adb_dump(adb, stderr);
+
+	sleep (5);
+
+	CLOCK();
+	lookup("f.root-servers.net.");		/* Should be in hints */
+	lookup("www.iengines.com");		/* should fetch */
+	lookup("www.isc.org");			/* should fetch */
+	lookup("www.flame.org");		/* should fetch */
+	lookup("kechara.flame.org.");		/* should fetch */
+	lookup("moghedien.flame.org.");		/* should fetch */
+	lookup("mailrelay.flame.org.");		/* should fetch */
+	lookup("ipv4v6.flame.org.");		/* should fetch */
+	lookup("nonexistant.flame.org.");	/* should fail to be found */
+	lookup("foobar.badns.flame.org.");	/* should fail utterly (NS) */
 	lookup("i.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();
 
