@@ -1,3 +1,8 @@
+ 273.	[func]		The default for the 'transfer-format' option is
+			now 'many-answers'.  This will break zone transfers
+			to BIND 4.9.5 and older unless there is an explicit
+			'one-answer' configuration.
+
  272.	[bug]		The sending of large TCP responses was canceled
 			in mid-transmission due to a race condition
 			caused by the failure to set the client object's
@@ -19,7 +24,7 @@
 
  267.	[func]		Nsupdate is now provided in the distribution.
 
- 266.	[bug]		zone.c:save_nsrrset() node was not initalised.
+ 266.	[bug]		zone.c:save_nsrrset() node was not initalized.
 
  265.	[bug]		dns_request_create() now works for TCP.
 
@@ -36,7 +41,7 @@
 					severity error;
 				}
 
- 262.	[bug]		'master' was not initalised in zone.c:stub_callback().
+ 262.	[bug]		'master' was not initalized in zone.c:stub_callback().
 
  261.	[func]		Add dns_zone_markdirty().
 
@@ -804,7 +809,7 @@
   53.	[port]		freebsd 4.0: lib/isc/unix/socket.c requires
 			<sys/param.h>.
 
-  52.	[bug]		rndc: taskmgr and socketmgr were not initaliased
+  52.	[bug]		rndc: taskmgr and socketmgr were not initialized
 			to NULL.
 
   51.   [cleanup]       dns/compress.h and dns/zt.h did not need to include

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.c,v 1.199 2000/06/22 21:49:35 tale Exp $ */
+/* $Id: server.c,v 1.200 2000/06/23 01:08:29 gson Exp $ */
 
 #include <config.h>
 
@@ -605,11 +605,15 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (cview != NULL)
 		(void) dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
 
-	view->transfer_format = dns_one_answer;	
-	(void) dns_c_ctx_gettransferformat(cctx, &view->transfer_format);
+	result = ISC_R_NOTFOUND;
 	if (cview != NULL)	
-		(void) dns_c_view_gettransferformat(cview,
-						    &view->transfer_format);
+		result = dns_c_view_gettransferformat(cview,
+						      &view->transfer_format);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_gettransferformat(cctx,
+						     &view->transfer_format);
+	if (result != ISC_R_SUCCESS)
+		view->transfer_format = dns_many_answers;
 
 	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
 				 dns_c_view_getallowquery,
@@ -1188,7 +1192,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		} else {
 			/* Not specified, use default. */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    &listenon));
+						    ISC_TRUE, &listenon));
 		}
 		ns_interfacemgr_setlistenon4(server->interfacemgr, listenon);
 		ns_listenlist_detach(&listenon);
@@ -1210,7 +1214,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		} else {
 			/* Not specified, use default. */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
-						    &listenon));
+						    ISC_FALSE, &listenon));
 		}
 		ns_interfacemgr_setlistenon6(server->interfacemgr, listenon);
 		ns_listenlist_detach(&listenon);
