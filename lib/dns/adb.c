@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.195 2001/11/30 01:59:03 gson Exp $ */
+/* $Id: adb.c,v 1.196 2002/05/27 06:30:22 marka Exp $ */
 
 /*
  * Implementation notes
@@ -3935,8 +3935,11 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	new_srtt = (addr->entry->srtt / 10 * factor)
-		+ (rtt / 10 * (10 - factor));
+	if (factor == DNS_ADB_RTTADJAGE)
+		new_srtt = addr->entry->srtt * 98 / 100;
+	else
+		new_srtt = (addr->entry->srtt / 10 * factor)
+			+ (rtt / 10 * (10 - factor));
 
 	addr->entry->srtt = new_srtt;
 	addr->srtt = new_srtt;

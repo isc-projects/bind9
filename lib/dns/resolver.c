@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.241 2002/04/03 02:44:57 marka Exp $ */
+/* $Id: resolver.c,v 1.242 2002/05/27 06:30:24 marka Exp $ */
 
 #include <config.h>
 
@@ -408,6 +408,25 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			factor = DNS_ADB_RTTADJREPLACE;
 		}
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
+	}
+
+	/*
+	 * Age RTTs of servers not tried.
+	 */
+	if (finish != NULL) {
+		dns_adbfind_t *find;
+		dns_adbaddrinfo_t *addrinfo;
+
+		factor = DNS_ADB_RTTADJAGE;
+                for (find = ISC_LIST_HEAD(fctx->finds);
+		     find != NULL;
+		     find = ISC_LIST_NEXT(find, publink))
+			for (addrinfo = ISC_LIST_HEAD(find->list);
+			     addrinfo != NULL;
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink))
+				if (UNMARKED(addrinfo))
+					dns_adb_adjustsrtt(fctx->adb, addrinfo,
+							   0, factor);
 	}
 
 	if (query->dispentry != NULL)

@@ -1,3 +1,6 @@
+1204.	[bug]		The RTT estimate on unused servers was not aged.
+			[RT #2569]
+
 1203.	[func]		Use "dataready" accept filter if available.
 
 1302.	[port]		libbind: hpux 11.11 interface scaning.
