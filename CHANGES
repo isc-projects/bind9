@@ -1,6 +1,7 @@
  753.	[bug]		dig, host, and nslookup would fail to contact a
 			remote server if getaddrinfo() returned an IPv6
 			address on a system that doesn't support IPv6.
+			[RT #917]
 
  752.	[func]		Correct bad tv_usec elements returned by gettimeofday().
 
