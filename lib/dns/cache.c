@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.41 2001/06/07 18:31:54 gson Exp $ */
+/* $Id: cache.c,v 1.42 2001/06/27 14:48:21 marka Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@
  * CLEANERINTERVAL is the minimum amount of time between passes.
  */
 #define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
-#define DNS_CACHE_CLEANERINCREMENT	100	/* Number of nodes. */
+#define DNS_CACHE_CLEANERINCREMENT	1000	/* Number of nodes. */
 #define DNS_CACHE_CLEANERINTERVAL	6	/* Seconds. */
 
 /***
@@ -681,6 +681,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	isc_interval_t interval;
 	isc_result_t result;
 	int n_names;
+	isc_stdtime_t now;
 
 	UNUSED(task);
 
@@ -689,6 +690,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	       event->ev_type == ISC_TIMEREVENT_TICK);
 
 	if (cleaner->state == cleaner_s_done) {
+		cleaner->state = cleaner_s_busy;
 		end_cleaning(cleaner, event);
 		return;
 	}
@@ -698,6 +700,8 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	n_names = cleaner->increment;
 
 	REQUIRE(DNS_DBITERATOR_VALID(cleaner->iterator));
+
+	isc_stdtime_get(&now);
 
 	while (n_names-- > 0) {
 		dns_dbnode_t *node = NULL;
@@ -711,6 +715,18 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 			end_cleaning(cleaner, event);
 			return;
+		}
+
+		result = dns_db_expirenode(cleaner->cache->db, node, now);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "cache cleaner: "
+					 "incremental_cleaning_action() "
+					 "failed: %s",
+					 dns_result_totext(result));
+			/*
+			 * Continue anyway.
+			 */
 		}
 
 		/*
