@@ -122,7 +122,7 @@ OBJS =		a6.@O@ address.@O@ callbacks.@O@ compress.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ resolver.@O@ \
 		result.@O@ \
-		tcpmsg.@O@ time.@O@ tkey.@O@ tsig.@O@ ttl.@O@ \
+		tcpmsg.@O@ time.@O@ tsig.@O@ ttl.@O@ \
 		version.@O@ view.@O@ zone.@O@ zt.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
@@ -135,7 +135,7 @@ SRCS =		a6.c address.c callbacks.c compress.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c resolver.c \
 		result.c \
-		tcpmsg.c time.c tkey.c tsig.c ttl.c \
+		tcpmsg.c time.c tsig.c ttl.c \
 		version.c view.c zone.c zt.c
 
 SUBDIRS =	include sec config
