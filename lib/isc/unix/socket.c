@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.197 2001/04/24 18:40:07 gson Exp $ */
+/* $Id: socket.c,v 1.198 2001/04/26 23:45:54 gson Exp $ */
 
 #include <config.h>
 
@@ -324,7 +324,8 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 	 * process of being closed, start watching it for either reads
 	 * or writes.
 	 */
-	INSIST(fd < FD_SETSIZE);
+
+	INSIST(fd >= 0 && fd < FD_SETSIZE);
 
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
 		manager->fdstate[fd] = CLOSED;
@@ -1110,6 +1111,7 @@ destroy(isc_socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->connect_ev == NULL);
+	REQUIRE(sock->fd >= 0 && sock->fd < FD_SETSIZE);
 
 	LOCK(&manager->lock);
 
@@ -1270,6 +1272,17 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
+
+	if (sock->fd >= FD_SETSIZE) {
+		(void)close(sock->fd);
+		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			       isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_TOOMANYFDS,
+			       "%s: too many open file descriptors", "socket");
+		free_socket(&sock);
+		return (ISC_R_NORESOURCES);
+	}
+	
 	if (sock->fd < 0) {
 		free_socket(&sock);
 
@@ -1707,6 +1720,15 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 sock->pf);
 			(void)close(fd);
 			goto soft_error;
+		} else if (fd >= FD_SETSIZE) {
+			isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				       isc_msgcat, ISC_MSGSET_SOCKET,
+				       ISC_MSG_TOOMANYFDS,
+				       "%s: too many open file descriptors",
+				       "accept");
+			(void)close(fd);
+			goto soft_error;
 		}
 	}
 
@@ -1734,13 +1756,13 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		result = ISC_R_UNEXPECTED;
 	}
 
-	LOCK(&manager->lock);
-	ISC_LIST_APPEND(manager->socklist, dev->newsocket, link);
-
 	/*
 	 * -1 means the new socket didn't happen.
 	 */
 	if (fd != -1) {
+		LOCK(&manager->lock);
+		ISC_LIST_APPEND(manager->socklist, dev->newsocket, link);
+
 		dev->newsocket->fd = fd;
 		dev->newsocket->bound = 1;
 		dev->newsocket->connected = 1;
@@ -1759,12 +1781,12 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
+
+		UNLOCK(&manager->lock);
+	} else {
+		dev->newsocket->references--;
+		free_socket(&dev->newsocket);
 	}
-
-	UNLOCK(&manager->lock);
-
-	if (fd == -1)
-		isc_socket_detach(&dev->newsocket);
 	
 	/*
 	 * Fill in the done event details and send it off.
@@ -1909,6 +1931,8 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 	int i;
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
+
+	REQUIRE(maxfd <= FD_SETSIZE);
 
 	/*
 	 * Process read/writes on other fds here.  Avoid locking

@@ -1,4 +1,11 @@
 
+ 814.	[bug]		Socket objects left over from accept() failures
+			were incorrectly destroyed, causing corruption
+			of socket manager data structures.
+
+ 813.	[bug]		File descriptors exceeding FD_SETSIZE were handled
+			badly. [RT #1192]
+
  812.	[bug]		dig sometimes printed incomplete IXFR responses
 			due to an uninitialized variable. [RT #1188]
 

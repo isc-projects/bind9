@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.4 2001/02/22 19:12:57 gson Exp $ */
+/* $Id: msgs.h,v 1.5 2001/04/26 23:45:55 gson Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -143,6 +143,7 @@
 #define ISC_MSG_PKTINFOPROVIDED	1416 /* "pktinfo structure provided, ..." */
 #define ISC_MSG_BOUND	       1417 /* "bound" */
 #define ISC_MSG_ACCEPTRETURNED 1418 /* accept() returned %d/%s */
+#define ISC_MSG_TOOMANYFDS     1419 /* %s: too many open file descriptors */
 
 #define ISC_MSG_AWAKE	       1502 /* "awake" */
 #define ISC_MSG_WORKING	       1503 /* "working" */
