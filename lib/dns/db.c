@@ -286,6 +286,26 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 }
 
 /***
+ *** DB Iterator Creation
+ ***/
+
+dns_result_t
+dns_db_createiterator(dns_db_t *db, dns_dbversion_t *version,
+		      isc_boolean_t relative_names,
+		      dns_dbiterator_t **iteratorp)
+{
+	/*
+	 * Create an iterator for version 'version' of 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
+
+	return (db->methods->createiterator(db, version, relative_names,
+					    iteratorp));
+}
+
+/***
  *** Rdataset Methods
  ***/
 

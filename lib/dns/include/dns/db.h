@@ -90,6 +90,10 @@ typedef struct dns_dbmethods {
 				      dns_dbnode_t **targetp);
 	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
 				     FILE *out);
+	dns_result_t 	(*createiterator)(dns_db_t *db,
+					  dns_dbversion_t *version,
+					  isc_boolean_t relative_names,
+					  dns_dbiterator_t **iteratorp);
 	dns_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
@@ -126,6 +130,7 @@ struct dns_db {
 };
 
 #define DNS_DBATTR_CACHE		0x01
+
 
 /*****
  ***** Methods
@@ -436,6 +441,46 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
  *	'db' is a valid database.
  *
  *	'node' is a valid node.
+ */
+
+/***
+ *** DB Iterator Creation
+ ***/
+
+dns_result_t
+dns_db_createiterator(dns_db_t *db, dns_dbversion_t *version,
+		      isc_boolean_t relative_names,
+		      dns_dbiterator_t **iteratorp);
+/*
+ * Create an iterator for version 'version' of 'db'.
+ *
+ * Notes:
+ *
+ *	If 'version' is NULL, then the current version will be used.
+ *
+ *	If a non-NULL version is specified, the iterator will create its
+ *	own reference to it, so the caller need not keep its reference open.
+ *
+ *	If 'relative_names' is ISC_TRUE, then node names returned by the
+ *	iterator will be relative to the iterator's current origin.  If
+ *	ISC_FALSE, then the node names will be absolute.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	version == NULL, or is a valid read-only version.
+ *
+ *	iteratorp != NULL && *iteratorp == NULL
+ *
+ * Ensures:
+ *
+ *	On success, *iteratorp will be a valid database iterator.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY
  */
 
 /***
