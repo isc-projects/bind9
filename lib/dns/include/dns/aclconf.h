@@ -19,7 +19,6 @@
 #define DNS_ACLCONF_H 1
 
 #include <dns/acl.h>
-#include <dns/aclconf.h>
 #include <dns/confacl.h>
 #include <dns/confctx.h>
 #include <dns/confip.h>
