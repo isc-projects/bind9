@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.64 2002/03/05 06:41:08 marka Exp $ */
+/* $Id: entropy.c,v 1.65 2002/05/10 06:41:55 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -23,6 +23,7 @@
 
 #include <config.h>
 
+#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 #include <sys/time.h>
 

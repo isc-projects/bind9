@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.47 2001/11/30 01:59:40 gson Exp $ */
+/* $Id: app.c,v 1.48 2002/05/10 06:41:54 marka Exp $ */
 
 #include <config.h>
 
+#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 
 #include <stddef.h>

@@ -1,3 +1,6 @@
+1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
+			<sys/param.h> is included or not.  Be consistant.
+
 1287.	[func]		isc_file_openunique() now creates file using mode
 			0666 rather than 0600.
 
