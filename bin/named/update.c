@@ -2165,10 +2165,11 @@ update_action(isc_task_t *task, isc_event_t *event)
 			}
 		}
 
-		isc_log_write(UPDATE_DEBUG_LOGARGS, "writing journal");
+		isc_log_write(UPDATE_DEBUG_LOGARGS, "writing journal %s",
+			      dns_zone_getjournal(zone));
 
 		journal = NULL;
-		result = dns_journal_open(mctx, dns_zone_getixfrlog(zone),
+		result = dns_journal_open(mctx, dns_zone_getjournal(zone),
 					  ISC_TRUE, &journal);
 		if (result != DNS_R_SUCCESS)
 			FAILS(result, "journal open failed");

@@ -154,7 +154,7 @@ dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
 	a6ctx->depth = 0;
 	a6ctx->prefixlen = 128;
 	isc_bitstring_init(&a6ctx->bitstring,
-			   (unsigned char *)&a6ctx->in6addr.s6_addr,
+			   (unsigned char *)a6ctx->in6addr.s6_addr,
 			   128, 128, ISC_TRUE);
 }
 
@@ -181,7 +181,7 @@ dns_a6_copy(dns_a6context_t *source, dns_a6context_t *target) {
 
 	*target = *source;
 	isc_bitstring_init(&target->bitstring,
-			   (unsigned char *)&target->in6addr.s6_addr,
+			   (unsigned char *)target->in6addr.s6_addr,
 			   128, 128, ISC_TRUE);
 }
 

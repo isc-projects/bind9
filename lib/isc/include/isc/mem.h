@@ -45,16 +45,18 @@ typedef void (*isc_memfree_t)(void *, void *);
 #define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, \
 						       __FILE__, __LINE__)
 #else
-#define isc_mem_get		__isc_mem_get
-#define isc_mem_put		__isc_mem_put
+#define isc_mem_get(c, s)	__isc_mem_get(c, s, __FILE__, __LINE__)
+#define isc_mem_put(c, p, s)	__isc_mem_put(c, p, s, __FILE__, __LINE__)
 #define isc_mempool_get		__isc_mempool_get
 #define isc_mempool_put		__isc_mempool_put
 #endif /* ISC_MEM_DEBUG */
 
 isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
 void				isc_mem_destroy(isc_mem_t **);
-void *				__isc_mem_get(isc_mem_t *, size_t);
-void 				__isc_mem_put(isc_mem_t *, void *, size_t);
+void *				__isc_mem_get(isc_mem_t *, size_t,
+					      const char *, int);
+void 				__isc_mem_put(isc_mem_t *, void *, size_t,
+					      const char *, int);
 void *				__isc_mem_getdebug(isc_mem_t *, size_t,
 						   const char *, int);
 void 				__isc_mem_putdebug(isc_mem_t *, void *,
@@ -249,6 +251,10 @@ void		isc_mempool_setfillcount(isc_mempool_t *mpctx,
  *	limit > 0
  */
 
+void		isc_mem_allocated(isc_mem_t *ctx, FILE *file);
+/*
+ * Report allocated memory.
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* MEM_H */

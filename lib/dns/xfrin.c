@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.22 1999/10/29 02:41:55 gson Exp $ */
+ /* $Id: xfrin.c,v 1.23 1999/10/29 06:36:02 marka Exp $ */
 
 #include <config.h>
 
@@ -292,7 +292,7 @@ ixfr_init(xfrin_ctx_t *xfr) {
 	xfr->is_ixfr = ISC_TRUE;
 	INSIST(xfr->db != NULL);
 	xfr->difflen = 0;
-        CHECK(dns_journal_open(xfr->mctx, dns_zone_getixfrlog(xfr->zone),
+        CHECK(dns_journal_open(xfr->mctx, dns_zone_getjournal(xfr->zone),
 			       ISC_TRUE, &xfr->ixfr.journal));
 	result = DNS_R_SUCCESS;
  failure:

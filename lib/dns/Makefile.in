@@ -182,6 +182,9 @@ newrr::
 	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
 
+${SUBDIRS}: include/dns/enumtype.h include/dns/enumclass.h
+	    include/dns/rdatastruct.h
+	
 rdata.@O@: code.h
 
 include/dns/enumtype.h: gen
@@ -207,5 +210,5 @@ rbtdb64.@O@: rbtdb.c
 
 depend: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
-sec: include/dns/enumtype.h include/dns/enumclass.h \
+subdirs: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h

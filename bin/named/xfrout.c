@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.20 1999/10/29 00:24:36 gson Exp $ */
+ /* $Id: xfrout.c,v 1.21 1999/10/29 06:36:00 marka Exp $ */
 
 #include <config.h>
 
@@ -919,7 +919,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			goto have_stream;
 		}
 		result = ixfr_rrstream_create(mctx,
-					      dns_zone_getixfrlog(zone),
+					      dns_zone_getjournal(zone),
 					      begin_serial,
 					      current_serial,
 					      &data_stream);

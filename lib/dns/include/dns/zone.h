@@ -137,32 +137,6 @@ dns_result_t dns_zone_setdatabase(dns_zone_t *zone, const char *database);
  *	DNS_R_SUCCESS
  */
 
-dns_result_t dns_zone_setixfrlog(dns_zone_t *zone, const char *ixfrlog);
-/*
- *	Sets the name of the IXFR log file.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- *	'ixfrlog' to be non NULL.
- *
- * Returns:
- *	DNS_R_NOMEMORY
- *	DNS_R_SUCCESS
- */
-
-dns_result_t dns_zone_setupdatelog(dns_zone_t *zone, char *updatelog);
-/*
- *	Sets the name of the UPDATE log file.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- *	'updatelog' to be non NULL.
- *
- * Returns:
- *	DNS_R_NOMEMORY
- *	DNS_R_SUCCESS
- */
-
 dns_result_t dns_zone_load(dns_zone_t *zone);
 /*
  *	Cause the database to be loaded from its backing store.
@@ -588,8 +562,8 @@ dns_c_pubkey_t * dns_zone_getpubkey(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_setixfrlogsize(dns_zone_t *zone, isc_int32_t size);
-isc_int32_t dns_zone_getixfrlogsize(dns_zone_t *zone);
+void dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
+isc_int32_t dns_zone_getjournalsize(dns_zone_t *zone);
 
 void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
 isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
@@ -691,14 +665,6 @@ const char *dns_zone_getdatabase(dns_zone_t *zone);
 /*
  * Gets the name of the database.  For databases loaded from
  * master files, this corresponds to the file name of the master file.
- *
- * Requires:
- *	'zone' to be valid initialised zone.
- */
-
-const char *dns_zone_getixfrlog(dns_zone_t *zone);
-/*
- * Gets the name of the IXFR log file.
  *
  * Requires:
  *	'zone' to be valid initialised zone.

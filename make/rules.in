@@ -40,7 +40,7 @@ top_builddir =	@BIND9_TOP_BUILDDIR@
 ### Makefile may define:
 ###	TARGETS
 
-all: ${SUBDIRS} ${TARGETS}
+all: subdirs ${TARGETS}
 
 ###
 ### Subdirectories
@@ -55,11 +55,13 @@ ALL_SUBDIRS = ${SUBDIRS} nulldir
 # subdirectories can be specified after the inclusion of this file.
 # The "depend" target is treated the same way.
 # 
-${ALL_SUBDIRS}: FORCE
-	@if [ "$@" != "nulldir" -a -d $@ ]; then \
-		echo "making all in `pwd`/$@"; \
-		(cd $@; ${MAKE} ${MAKEDEFS} all); \
-	fi
+subdirs:
+	@for i in ${ALL_SUBDIRS}; do \
+		if [ "$$i" != "nulldir" -a -d $$i ]; then \
+			echo "making all in `pwd`/$$i"; \
+			(cd $$i; ${MAKE} ${MAKEDEFS} all); \
+		fi \
+	done
 
 install clean distclean::
 	@for i in ${ALL_SUBDIRS}; do \
