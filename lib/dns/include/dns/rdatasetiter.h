@@ -131,8 +131,8 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no rdatasets at the node.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no rdatasets at the node.
  *
  *	Other results are possible, depending on the DB implementation.
  */
@@ -146,8 +146,8 @@ dns_rdatasetiter_next(dns_rdatasetiter_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no more rdatasets at the
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no more rdatasets at the
  *					node.
  *
  *	Other results are possible, depending on the DB implementation.
@@ -165,7 +165,7 @@ dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
  *	'rdataset' is a valid, disassociated rdataset.
  *
  *	The rdataset cursor of 'iterator' is at a valid location (i.e. the
- *	result of last call to a cursor movement command was DNS_R_SUCCESS).
+ *	result of last call to a cursor movement command was ISC_R_SUCCESS).
  */
 
 ISC_LANG_ENDDECLS

@@ -35,9 +35,9 @@ isc_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
  *	'source' is a valid text region.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
+ *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			class is unknown
- *	DNS_R_NOTIMPLEMENTED		class is known, but not implemented
+ *	ISC_R_NOTIMPLEMENTED		class is known, but not implemented
  */
 
 isc_result_t dns_rdataclass_totext(dns_rdataclass_t rdclass,
@@ -55,8 +55,8 @@ isc_result_t dns_rdataclass_totext(dns_rdataclass_t rdclass,
  *		The used space in 'target' is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target buffer is too small
+ *	ISC_R_SUCCESS			on success
+ *	ISC_R_NOSPACE			target buffer is too small
  */
 
 ISC_LANG_ENDDECLS

@@ -272,9 +272,9 @@ dns_diff_print(dns_diff_t *diff, FILE *file);
  *	'file' to refer to a open file or NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
- *	DNS_R_UNEXPECTED
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  *	any error from dns_rdataset_totext()
  */
 	
@@ -427,8 +427,8 @@ dns_journal_iter_init(dns_journal_t *j,
  * from SOA serial number 'begin_serial' to 'end_serial'.
  *
  * Returns:
- *	DNS_R_SUCCESS	
- *	DNS_R_NOTFOUND	begin_serial is within the range of adressable
+ *	ISC_R_SUCCESS	
+ *	ISC_R_NOTFOUND	begin_serial is within the range of adressable
  *			serial numbers covered by the journal, but
  *			this particular serial number does not exist.
  *	DNS_R_RANGE	begin_serial is outside the addressable range.
@@ -452,7 +452,7 @@ void dns_journal_current_rr(dns_journal_t *j, dns_name_t **name,
  *
  * Requires:
  *      The last call to dns_journal_first_rr() or dns_journal_next_rr()
- *      returned DNS_R_SUCCESS.
+ *      returned ISC_R_SUCCESS.
  */
 
 /**************************************************************************/
@@ -475,8 +475,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  *
  * Returns:
  *	DNS_R_NOJOURNAL when journal does not exist.
- *	DNS_R_NOTFOUND when current serial in not in journal.
- *	DNS_R_SUCCESS journal has been applied successfully to database.
+ *	ISC_R_NOTFOUND when current serial in not in journal.
+ *	ISC_R_SUCCESS journal has been applied successfully to database.
  *	others
  */
 

@@ -69,9 +69,9 @@ isc_result_t dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
  *	'*zonep' refers to a valid zone.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
- *	DNS_R_UNEXPECTED
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  */
 
 void dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
@@ -154,8 +154,8 @@ isc_result_t dns_zone_setdatabase(dns_zone_t *zone, const char *database);
  *	'database' to be non NULL.
  *
  * Returns:
- *	DNS_R_NOMEMORY
- *	DNS_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_SUCCESS
  */
 
 isc_result_t dns_zone_load(dns_zone_t *zone);
@@ -168,8 +168,8 @@ isc_result_t dns_zone_load(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  *
  * Returns:
- *	DNS_R_UNEXPECTED
- *	DNS_R_SUCCESS
+ *	ISC_R_UNEXPECTED
+ *	ISC_R_SUCCESS
  *	DNS_R_BADZONE
  *	Any result value from dns_db_load().
  */
@@ -272,8 +272,8 @@ isc_result_t dns_zone_adddbarg(dns_zone_t *zone, char *arg);
  *	'arg' to be non NULL.
  *
  * Returns:
- *	DNS_R_NOMEMORY
- *	DNS_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_SUCCESS
  */
 
 void dns_zone_cleardbargs(dns_zone_t *zone);
@@ -294,7 +294,7 @@ isc_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
  *	'dbp' to be != NULL && '*dbp' == NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_NOTLOADED
  */
 
@@ -308,8 +308,8 @@ isc_result_t dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
  *	'database' to be non NULL.
  *
  * Returns:
- *	DNS_R_NOMEMORY
- *	DNS_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_SUCCESS
  */
 
 void dns_zone_validate(dns_zone_t *zone);
@@ -379,8 +379,8 @@ isc_result_t dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *master);
  *	'master' to be non NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 void dns_zone_clearnotify(dns_zone_t *zone);
@@ -402,8 +402,8 @@ isc_result_t dns_zone_addnotify(dns_zone_t *zone, isc_sockaddr_t *notify);
  *	'notify' to be non NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 void dns_zone_unmount(dns_zone_t *zone);
@@ -468,7 +468,7 @@ dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
  *	'xfrsource' to contain the address.
  *
  * Returns:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  */
 
 isc_sockaddr_t *
@@ -491,7 +491,7 @@ dns_zone_setxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
  *	'xfrsource' to contain the address.
  *
  * Returns:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  */
 
 isc_sockaddr_t *
@@ -672,8 +672,8 @@ isc_result_t dns_zone_setjournal(dns_zone_t *zone, const char *journal);
  *	'journal' to be non NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY 
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY 
  */
 
 char * dns_zone_getjournal(dns_zone_t *zone);

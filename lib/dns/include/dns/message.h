@@ -229,8 +229,8 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent,
  *	structure.
  *
  * Returns:
- *	DNS_R_NOMEMORY		-- out of memory
- *	DNS_R_SUCCESS		-- success
+ *	ISC_R_NOMEMORY		-- out of memory
+ *	ISC_R_SUCCESS		-- success
  */
 
 void
@@ -290,7 +290,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  *
  * If this is a multi-packet message (edns) and more data is required to
  * build the full message state, DNS_R_MOREDATA is returned.  In this case,
- * this function should be repeated with all input buffers until DNS_R_SUCCESS
+ * this function should be repeated with all input buffers until ISC_R_SUCCESS
  * (or an error) is returned.
  *
  * Requires:
@@ -305,8 +305,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * 	and rdata sizes, etc.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well
- *	DNS_R_NOMEMORY		-- no memory
+ *	ISC_R_SUCCESS		-- all is well
+ *	ISC_R_NOMEMORY		-- no memory
  *	DNS_R_MOREDATA		-- more packets needed for complete message
  *	DNS_R_???		-- bad signature (XXXMLG need more of these)
  *	Many other errors possible XXXMLG
@@ -332,8 +332,8 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  *	The buffer is cleared before it is used.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well
- *	DNS_R_NOSPACE		-- output buffer is too small
+ *	ISC_R_SUCCESS		-- all is well
+ *	ISC_R_NOSPACE		-- output buffer is too small
  *	Anything that dns_compress_init() can return.
  */
 
@@ -341,7 +341,7 @@ isc_result_t
 dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
 /*
  * Reset the buffer.  This can be used after growing the old buffer
- * on a DNS_R_NOSPACE return from most of the render functions.
+ * on a ISC_R_NOSPACE return from most of the render functions.
  *
  * On successful completion, the old buffer is no longer used by the
  * library.  The new buffer is owned by the library until
@@ -356,8 +356,8 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
  *	buffer != NULL.
  *
  * Returns:
- *	DNS_R_NOSPACE		-- new buffer is too small
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_NOSPACE		-- new buffer is too small
+ *	ISC_R_SUCCESS		-- all is well.
  */
 
 isc_result_t
@@ -375,8 +375,8 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space);
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOSPACE		-- not enough free space in the buffer.
+ *	ISC_R_SUCCESS		-- all is well.
+ *	ISC_R_NOSPACE		-- not enough free space in the buffer.
  */
 
 void
@@ -412,9 +412,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t section,
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all records were written, and there are
+ *	ISC_R_SUCCESS		-- all records were written, and there are
  *				   no more records for this section.
- *	DNS_R_NOSPACE		-- Not enough room in the buffer to write
+ *	ISC_R_NOSPACE		-- Not enough room in the buffer to write
  *				   all records requested.
  *	DNS_R_MOREDATA		-- All requested records written, and there
  *				   are records remaining for this section.
@@ -449,7 +449,7 @@ dns_message_renderend(dns_message_t *msg);
  *	dns_message_renderbegin() was called.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_SUCCESS		-- all is well.
  */
 		      
 void
@@ -482,8 +482,8 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  *	'section' be a valid section.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMORE		-- No names on given section.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMORE		-- No names on given section.
  */
 
 isc_result_t
@@ -499,11 +499,11 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section);
  *	'section' be a valid section.
  *
  *	dns_message_firstname() must have been called on this section,
- *	and the result was DNS_R_SUCCESS.
+ *	and the result was ISC_R_SUCCESS.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMORE		-- No names in given section.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMORE		-- No names in given section.
  */
 
 void
@@ -526,7 +526,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
  *
  *	dns_message_firstname() must have been called on this section,
  *	and the result of it and any dns_message_nextname() calls was
- *	DNS_R_SUCCESS.
+ *	ISC_R_SUCCESS.
  */
 
 isc_result_t
@@ -556,9 +556,9 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
  *	'type' be a valid type.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_SUCCESS		-- all is well.
  *	DNS_R_NXDOMAIN		-- name does not exist in that section.
- *	DNS_R_NXRDATASET	-- The name does exist, but the desired
+ *	DNS_R_NXRRSET		-- The name does exist, but the desired
  *				   type does not.
  */
 
@@ -575,8 +575,8 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  *	'type' be a valid type, and NOT dns_rdatatype_any.
  *
  * Returns:
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOTFOUND		-- the desired type does not exist.
+ *	ISC_R_SUCCESS		-- all is well.
+ *	ISC_R_NOTFOUND		-- the desired type does not exist.
  */
 
 void
@@ -639,8 +639,8 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  *	item != NULL && *item == NULL
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMEMORY		-- No item can be allocated.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -656,8 +656,8 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  *	item != NULL && *item == NULL
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMEMORY		-- No item can be allocated.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -673,8 +673,8 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  *	item != NULL && *item == NULL
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMEMORY		-- No item can be allocated.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -690,8 +690,8 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *	item != NULL && *item == NULL
  *
  * Returns:
- *	DNS_R_SUCCESS		-- All is well.
- *	DNS_R_NOMEMORY		-- No item can be allocated.
+ *	ISC_R_SUCCESS		-- All is well.
+ *	ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 void
@@ -773,9 +773,9 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_SUCCESS		-- all is well.
  *
- *	DNS_R_UNEXPECTEDEND	-- buffer doesn't contain enough for a header.
+ *	ISC_R_UNEXPECTEDEND	-- buffer doesn't contain enough for a header.
  */
 
 isc_result_t
@@ -798,7 +798,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_SUCCESS		-- all is well.
  *
  *	DNS_R_FORMERR		-- the header or question section of the
  *				   message is invalid, replying is impossible.
@@ -843,9 +843,9 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS		-- all is well.
+ *	ISC_R_SUCCESS		-- all is well.
  *
- *	DNS_R_NOSPACE		-- there is no space for the OPT record.
+ *	ISC_R_NOSPACE		-- there is no space for the OPT record.
  */
 
 dns_rdataset_t *

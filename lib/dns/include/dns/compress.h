@@ -76,7 +76,7 @@ isc_result_t dns_compress_init(dns_compress_t *cctx, int edns,
  *		cctx->global is initalised.
  *
  *	Returns:
- *		DNS_R_SUCCESS
+ *		ISC_R_SUCCESS
  *		failures from dns_rbt_create()
  */
 

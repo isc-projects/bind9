@@ -35,9 +35,9 @@ isc_result_t dns_rdatatype_fromtext(dns_rdatatype_t *typep,
  *	'source' is a valid text region.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
+ *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			type is unknown
- *	DNS_R_NOTIMPLEMENTED		type is known, but not implemented
+ *	ISC_R_NOTIMPLEMENTED		type is known, but not implemented
  */
 
 isc_result_t dns_rdatatype_totext(dns_rdatatype_t type,
@@ -55,8 +55,8 @@ isc_result_t dns_rdatatype_totext(dns_rdatatype_t type,
  *		The used space in 'target' is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target buffer is too small
+ *	ISC_R_SUCCESS			on success
+ *	ISC_R_NOSPACE			target buffer is too small
  */
 
 ISC_LANG_ENDDECLS

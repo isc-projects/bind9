@@ -819,15 +819,15 @@ isc_result_t dns_name_fromtext(dns_name_t *name,
  *		in target is updated.
  *
  * Result:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_EMPTYLABEL
  *	DNS_R_LABELTOOLONG
  *	DNS_R_BADESCAPE
  *	DNS_R_BADBITSTRING
  *	DNS_R_BITSTRINGTOOLONG
  *	DNS_R_BADDOTTEDQUAD
- *	DNS_R_NOSPACE
- *	DNS_R_UNEXPECTEDEND
+ *	ISC_R_NOSPACE
+ *	ISC_R_UNEXPECTEDEND
  */
 
 isc_result_t dns_name_totext(dns_name_t *name,
@@ -859,8 +859,8 @@ isc_result_t dns_name_totext(dns_name_t *name,
  *		The used space in target is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOSPACE
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
  */
 
 isc_result_t
@@ -883,10 +883,10 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
  *		'target' is NULL and 'name' has a dedicated buffer.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOSPACE
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
  *
- *	Note: if source == name, then the result will always be DNS_R_SUCCESS.
+ *	Note: if source == name, then the result will always be ISC_R_SUCCESS.
  */
 
 isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
@@ -918,8 +918,8 @@ isc_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *		The used space in target is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOSPACE
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
  */
 
 isc_result_t
@@ -981,8 +981,8 @@ dns_name_split(dns_name_t *name,
  *		on which one the problem was encountered with).
  *
  * Returns:
- *	DNS_R_SUCCESS	No worries.
- *	DNS_R_NOSPACE	An attempt was made to split a name on a bitlabel
+ *	ISC_R_SUCCESS	No worries.
+ *	ISC_R_NOSPACE	An attempt was made to split a name on a bitlabel
  *			boundary but either 'prefix' or 'suffix' did not
  *			have enough room to receive the split name.
  */
@@ -1085,12 +1085,12 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
  *	If successful, the DNSSEC canonical form of 'name' will have been
  *	sent to 'digest'.
  *
- *	If digest() returns something other than DNS_R_SUCCESS, that result
+ *	If digest() returns something other than ISC_R_SUCCESS, that result
  *	will be returned as the result of dns_name_digest().
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *
  *	Many other results are possible if not successful.
  *	

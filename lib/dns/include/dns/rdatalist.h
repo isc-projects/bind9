@@ -95,7 +95,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
  *		'rdataset' is associated with the rdata in rdatalist.
  *
  * Returns:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  */
 
 ISC_LANG_ENDDECLS

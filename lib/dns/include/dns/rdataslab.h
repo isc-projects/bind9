@@ -74,7 +74,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *	region->length contains the total length allocated.
  *
  * Returns:
- *	DNS_R_SUCCESS		- successful completion
+ *	ISC_R_SUCCESS		- successful completion
  *	DNS_R_NOMEM		- no memory.
  *	<XXX others>
  */

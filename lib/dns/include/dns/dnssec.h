@@ -95,7 +95,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *		'sigrdata' is a valid rdata containing a SIG record
  *
  *	Returns:
- *		DNS_R_SUCCESS
+ *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
  *		DNS_R_SIGINVALID - the signature fails to verify
  *		DNS_R_SIGEXPIRED - the signature has expired

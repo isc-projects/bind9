@@ -227,9 +227,9 @@ dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
- *	DNS_R_NOTFOUND				db_type not found
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_NOTFOUND				db_type not found
  *
  *	Many other errors are possible, depending on what db_type was
  *	specified.
@@ -380,8 +380,8 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *
  *	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -404,8 +404,8 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *
  *	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -431,8 +431,8 @@ dns_db_load(dns_db_t *db, const char *filename);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *
  *	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
@@ -451,8 +451,8 @@ dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *
  *	Other results are possible, depending upon the database
  *	implementation used, OS file errors, etc.
@@ -496,8 +496,8 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  * 
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -587,9 +587,9 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND			If !create and name not found.
- *	DNS_R_NOMEMORY		        Can only happen if create is ISC_TRUE.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND			If !create and name not found.
+ *	ISC_R_NOMEMORY		        Can only happen if create is ISC_TRUE.
  *
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -659,7 +659,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *	Non-error results are:
  *
- *		DNS_R_SUCCESS			The desired node and type were
+ *		ISC_R_SUCCESS			The desired node and type were
  *						found.
  *
  *		DNS_R_GLUE			The desired node and type were
@@ -710,7 +710,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		DNS_R_NXRRSET			The desired name exists, but
  *						the desired type does not.
  *
- *		DNS_R_NOTFOUND			The desired name does not
+ *		ISC_R_NOTFOUND			The desired name does not
  *						exist, and no delegation could
  *						be found.  This result can only
  *						occur if 'db' is a cache
@@ -732,7 +732,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *	Error results:
  *
- *		DNS_R_NOMEMORY
+ *		ISC_R_NOMEMORY
  *
  *		DNS_R_BADDB			Data that is required to be
  *						present in the DB, e.g. an NXT
@@ -783,9 +783,9 @@ dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
  *
  *	Non-error results are:
  *
- *		DNS_R_SUCCESS
+ *		ISC_R_SUCCESS
  *
- *		DNS_R_NOTFOUND
+ *		ISC_R_NOTFOUND
  *
  *		Other results are possible, and should all be treated as
  *		errors.
@@ -882,8 +882,8 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 /***
@@ -936,8 +936,8 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -974,8 +974,8 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -1028,9 +1028,9 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_UNCHANGED			The operation did not change anything.
- *	DNS_R_NOMEMORY
+ *	ISC_R_NOMEMORY
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -1066,9 +1066,9 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_UNCHANGED			The operation did not change anything.
- *	DNS_R_NXRDATASET		All rdata of the same type as those
+ *	DNS_R_NXRRSET			All rdata of the same type as those
  *					in 'rdataset' have been deleted.
  *	
  *	Other results are possible, depending upon the database
@@ -1110,7 +1110,7 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_UNCHANGED			No rdatasets of 'type' existed before
  *					the operation was attempted.
  *	

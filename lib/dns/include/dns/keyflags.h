@@ -40,7 +40,7 @@ isc_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
  *	'source' is a valid text region.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
+ *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			mnemonic flag is unknown
  *	DNS_R_RANGE			numeric flag value is out of range
  */

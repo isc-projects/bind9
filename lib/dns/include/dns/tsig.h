@@ -94,7 +94,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *	Returns:
  *		ISC_R_SUCCESS
  *		ISC_R_EXISTS - a key with this name already exists
- *		DNS_R_NOTIMPLEMENTED - algorithm is not implemented
+ *		ISC_R_NOTIMPLEMENTED - algorithm is not implemented
  *		ISC_R_NOMEMORY
  */
 
@@ -150,7 +150,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *		'dring' is a valid keyring or NULL
  *
  *	Returns:
- *		DNS_R_SUCCESS
+ *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
  *		DNS_R_EXPECTEDTSIG - A TSIG was expected but not seen
  *		DNS_R_UNEXPECTEDTSIG - A TSIG was seen but not expected

@@ -35,7 +35,7 @@ isc_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
  *	'source' is a valid text region.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
+ *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			mnemonic type is unknown
  *	DNS_R_RANGE			numeric type is out of range
  */
@@ -54,8 +54,8 @@ isc_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
  *		The used space in 'target' is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target buffer is too small
+ *	ISC_R_SUCCESS			on success
+ *	ISC_R_NOSPACE			target buffer is too small
  */
 
 ISC_LANG_ENDDECLS

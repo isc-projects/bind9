@@ -73,8 +73,8 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
  * Temporary dynamic memory may be allocated from 'mctx'.
  *
  * Returns:
- *	DNS_R_SUCCESS 
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS 
+ *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
  */
@@ -91,8 +91,8 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
  * Temporary dynamic memory may be allocated from 'mctx'.
  *
  * Returns:
- *	DNS_R_SUCCESS 
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS 
+ *	ISC_R_NOMEMORY
  * 	Any database or rrset iterator error.
  *	Any dns_rdata_totext() error code.
  */

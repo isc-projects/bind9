@@ -487,12 +487,12 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
  *	If successful, then add() will have been called for each name
  *	and type subject to additional section processing.
  *
- *	If add() returns something other than DNS_R_SUCCESS, that result
+ *	If add() returns something other than ISC_R_SUCCESS, that result
  *	will be returned as the result of dns_rdata_additionaldata().
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *
  *	Many other results are possible if not successful.
  */
@@ -518,12 +518,12 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
  *	If successful, then all of the rdata's data has been sent, in
  *	DNSSEC canonical form, to 'digest'.
  *
- *	If digest() returns something other than DNS_R_SUCCESS, that result
+ *	If digest() returns something other than ISC_R_SUCCESS, that result
  *	will be returned as the result of dns_rdata_digest().
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *
  *	Many other results are possible if not successful.
  */

@@ -99,7 +99,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
  *	'countp' is a valid pointer.
  *
  * Ensures:
- *	On a return of DNS_R_SUCCESS, 'target' contains a wire format
+ *	On a return of ISC_R_SUCCESS, 'target' contains a wire format
  *	for the data contained in 'rdataset'.  Any error return leaves
  *	the buffer unchanged.
  *
@@ -107,8 +107,8 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
  *	target.
  *
  * Returns:
- *	DNS_R_SUCCESS		- all ok
- *	DNS_R_NOSPACE		- 'target' doesn't have enough room
+ *	ISC_R_SUCCESS		- all ok
+ *	ISC_R_NOSPACE		- 'target' doesn't have enough room
  *
  *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
  *	dns_name_towire().

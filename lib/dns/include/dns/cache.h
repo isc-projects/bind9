@@ -87,8 +87,8 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  */
 
 void
@@ -161,8 +161,8 @@ dns_cache_setfilename(dns_cache_t *cahce, char *filename);
  * Files that are no longer used are not unlinked automatically.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
  *	Various file-related failures
  */
 
@@ -183,7 +183,7 @@ dns_cache_load(dns_cache_t *cache);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *      Various failures depending on the database implementation type
  */
 
@@ -203,7 +203,7 @@ dns_cache_dump(dns_cache_t *cache);
  * 
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *      Various failures depending on the database implementation type
  */
 

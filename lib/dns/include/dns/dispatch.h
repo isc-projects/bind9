@@ -214,9 +214,9 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOMEMORY		-- memory could not be allocated.
- *	DNS_R_NOMORE		-- no more message ids can be allocated
+ *	ISC_R_SUCCESS		-- all is well.
+ *	ISC_R_NOMEMORY		-- memory could not be allocated.
+ *	ISC_R_NOMORE		-- no more message ids can be allocated
  *				   for this destination.
  */
 

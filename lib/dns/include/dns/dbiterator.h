@@ -133,8 +133,8 @@ dns_dbiterator_first(dns_dbiterator_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no nodes in the database.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no nodes in the database.
  *
  *	Other results are possible, depending on the DB implementation.
  */
@@ -148,8 +148,8 @@ dns_dbiterator_last(dns_dbiterator_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no nodes in the database.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no nodes in the database.
  *
  *	Other results are possible, depending on the DB implementation.
  */
@@ -165,8 +165,8 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
  *	'name' is a valid name.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
  *
  *	Other results are possible, depending on the DB implementation.
  */
@@ -180,8 +180,8 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no more nodes in the
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no more nodes in the
  *					database.
  *
  *	Other results are possible, depending on the DB implementation.
@@ -196,8 +196,8 @@ dns_dbiterator_next(dns_dbiterator_t *iterator);
  *	'iterator' is a valid iterator.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no more nodes in the
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no more nodes in the
  *					database.
  *
  *	Other results are possible, depending on the DB implementation.
@@ -218,13 +218,13 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  *	nodep != NULL && *nodep == NULL
  *
  *	The node cursor of 'iterator' is at a valid location (i.e. the
- *	result of last call to a cursor movement command was DNS_R_SUCCESS).
+ *	result of last call to a cursor movement command was ISC_R_SUCCESS).
  *
  *	'name' is NULL, or is a valid name with a dedicated buffer.
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *	DNS_R_NEWORIGIN			If this iterator was created with
  *					'relative_names' set to ISC_TRUE,
  *					then DNS_R_NEWORIGIN will be returned
@@ -259,7 +259,7 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  *	released.
  *
  * Returns:
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *
  *	Other results are possible, depending on the DB implementation.
  */
@@ -277,8 +277,8 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
- *	DNS_R_NOSPACE
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
  *
  *	Other results are possible, depending on the DB implementation.
  */

@@ -238,8 +238,8 @@ dns_rdataset_first(dns_rdataset_t *rdataset);
  *	'rdataset' is a valid, associated rdataset.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no rdata in the set.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no rdata in the set.
  */
 
 isc_result_t
@@ -251,8 +251,8 @@ dns_rdataset_next(dns_rdataset_t *rdataset);
  *	'rdataset' is a valid, associated rdataset.
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMORE			There are no more rdata in the set.
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMORE			There are no more rdata in the set.
  */
 
 void
@@ -270,7 +270,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
  *	'rdataset' is a valid, associated rdataset.
  *
  *	The rdata cursor of 'rdataset' is at a valid location (i.e. the
- *	result of last call to a cursor movement command was DNS_R_SUCCESS).
+ *	result of last call to a cursor movement command was ISC_R_SUCCESS).
  *
  * Ensures:
  *	'rdata' refers to the rdata at the rdata cursor location of
@@ -326,7 +326,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *	'countp' is a valid pointer.
  *
  * Ensures:
- *	On a return of DNS_R_SUCCESS, 'target' contains a wire format
+ *	On a return of ISC_R_SUCCESS, 'target' contains a wire format
  *	for the data contained in 'rdataset'.  Any error return leaves
  *	the buffer unchanged.
  *
@@ -334,8 +334,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *	target.
  *
  * Returns:
- *	DNS_R_SUCCESS		- all ok
- *	DNS_R_NOSPACE		- 'target' doesn't have enough room
+ *	ISC_R_SUCCESS		- all ok
+ *	ISC_R_NOSPACE		- 'target' doesn't have enough room
  *
  *	Any error returned by dns_rdata_towire(), dns_rdataset_next(),
  *	dns_name_towire().
@@ -364,7 +364,7 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS
+ *	ISC_R_SUCCESS
  *
  *	Any error that dns_rdata_additionaldata() can return.
  */

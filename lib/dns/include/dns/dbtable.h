@@ -58,9 +58,9 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  *	'rdclass' is a valid class
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_NOMEMORY
- *	DNS_R_UNEXPECTED
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  */
 
 void
@@ -142,6 +142,6 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp);
 /*
  * Find the deepest match to 'name' in the dbtable, and return it
  *
- * Returns:  DNS_R_SUCCESS		on success
+ * Returns:  ISC_R_SUCCESS		on success
  *	     <something else>		no default and match
  */

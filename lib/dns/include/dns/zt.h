@@ -37,8 +37,8 @@ isc_result_t dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  * 	'mctx' to be initalised.
  *
  * Returns:
- *	DNS_R_SUCCESS on success.
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS on success.
+ *	ISC_R_NOMEMORY
  */
 
 isc_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
@@ -51,10 +51,10 @@ isc_result_t dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
  *	'zone' to be valid
  *
  * Returns:
- *	DNS_R_SUCCESS
- *	DNS_R_EXISTS
- *	DNS_R_NOSPACE
- *	DNS_R_NOMEMORY
+ *	ISC_R_SUCCESS
+ *	ISC_R_EXISTS
+ *	ISC_R_NOSPACE
+ *	ISC_R_NOMEMORY
  */
 
 isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
@@ -67,9 +67,9 @@ isc_result_t dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
  *	'zone' to be valid
  *
  * Returns:
- * 	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
- *	DNS_R_NOMEMORY
+ * 	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
+ *	ISC_R_NOMEMORY
  */
 
 isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
@@ -86,10 +86,10 @@ isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
  *	'zone' to be non NULL and '*zone' to be NULL
  *
  * Returns:
- * 	DNS_R_SUCCESS
+ * 	ISC_R_SUCCESS
  *	DNS_R_PARTIALMATCH
- *	DNS_R_NOTFOUND
- *	DNS_R_NOSPACE
+ *	ISC_R_NOTFOUND
+ *	ISC_R_NOSPACE
  */
 
 void dns_zt_detach(dns_zt_t **ztp);
@@ -140,14 +140,14 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 /*
  * Apply a given 'action' to all zone zones in the table.
  * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
- * 'action' does not return DNS_R_SUCCESS.
+ * 'action' does not return ISC_R_SUCCESS.
  *
  * Requires:
  *	'zt' to be valid.
  *	'action' to be non NULL.
  *
  * Returns:
- *	DNS_R_SUCCESS if action was applied to all nodes.
+ *	ISC_R_SUCCESS if action was applied to all nodes.
  *	any error code from 'action'.
  */
 

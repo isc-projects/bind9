@@ -37,7 +37,7 @@ isc_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
  *	'source' is a valid text region.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
+ *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			mnemonic type is unknown
  *	DNS_R_RANGE			numeric type is out of range
  */
@@ -58,8 +58,8 @@ dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
  *		The used space in 'target' is updated.
  *
  * Returns:
- *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target buffer is too small
+ *	ISC_R_SUCCESS			on success
+ *	ISC_R_NOSPACE			target buffer is too small
  */
 
 ISC_LANG_ENDDECLS

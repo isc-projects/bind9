@@ -150,7 +150,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
  * If there is no match, *match will be set to zero.
  *
  * Returns:
- *	DNS_R_SUCCESS		Always succeeds.
+ *	ISC_R_SUCCESS		Always succeeds.
  */
 
 ISC_LANG_ENDDECLS
