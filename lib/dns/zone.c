@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.184 2000/08/16 02:16:47 marka Exp $ */
+/* $Id: zone.c,v 1.185 2000/08/16 02:41:08 tale Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ struct dns_zone {
 
 	isc_sockaddr_t		*masters;
 #ifndef NOMINUM_PUBLIC
-	dns_name_t              **masterkeynames;
+	dns_name_t		**masterkeynames;
 #endif /* NOMINUM_PUBLIC */
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
@@ -160,19 +160,19 @@ struct dns_zone {
 	 * is not on any such list, statelist is NULL.
 	 */
 	ISC_LINK(dns_zone_t)	statelink;
-	dns_zonelist_t	        *statelist;
+	dns_zonelist_t		*statelist;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
 	/* XXX MPA these may need to go back into zone.h */
-#define DNS_ZONEFLG_REFRESH      0x00000001U     /* refresh check in progress */
-#define DNS_ZONEFLG_NEEDDUMP     0x00000002U     /* zone need consolidation */
+#define DNS_ZONEFLG_REFRESH	0x00000001U	/* refresh check in progress */
+#define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/* zone need consolidation */
 #define DNS_ZONEFLG_USEVC	0x00000004U	/* use tcp for refresh query */
 /* #define DNS_ZONEFLG_UNUSED	0x00000008U */	/* unused */
 /* #define DNS_ZONEFLG_UNUSED	0x00000010U */	/* unused */
-#define DNS_ZONEFLG_LOADED       0x00000020U     /* database has loaded */
-#define DNS_ZONEFLG_EXITING      0x00000040U     /* zone is being destroyed */
-#define DNS_ZONEFLG_EXPIRED      0x00000080U     /* zone has expired */
+#define DNS_ZONEFLG_LOADED	0x00000020U	/* database has loaded */
+#define DNS_ZONEFLG_EXITING	0x00000040U	/* zone is being destroyed */
+#define DNS_ZONEFLG_EXPIRED	0x00000080U	/* zone has expired */
 #define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/* refresh check needed */
 #define DNS_ZONEFLG_UPTODATE	0x00000200U	/* zone contents are
 						 * uptodate */
@@ -229,8 +229,8 @@ struct dns_notify {
  */
 
 struct dns_stub {
-	isc_int32_t             magic;
-	isc_mem_t               *mctx;
+	isc_int32_t		magic;
+	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_db_t		*db;
 	dns_dbversion_t		*version;
