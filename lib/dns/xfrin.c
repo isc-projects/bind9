@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.116 2001/04/10 23:54:03 marka Exp $ */
+/* $Id: xfrin.c,v 1.117 2001/05/10 16:27:14 gson Exp $ */
 
 #include <config.h>
 
@@ -383,7 +383,7 @@ static isc_result_t
 ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-	ixfr_apply(xfr);
+	CHECK(ixfr_apply(xfr));
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
 		if (xfr->ixfr.journal != NULL)
