@@ -45,11 +45,11 @@ BIND 9
 
 
 
-BIND 9.1.1rc1
+BIND 9.1.1rc2
 
-	BIND 9.1.1rc1 is a release candidate for BIND 9.1.1.
-	It contains fixes for a number of bugs in BIND 9.1.0
-	but no new features.
+	BIND 9.1.1rc2 is a release candidate for BIND 9.1.1.
+	It contains fixes for a small number of bugs in 
+	BIND 9.1.1rc1 but no new features.
 
 	Features introduced in 9.1.0 included:
 
