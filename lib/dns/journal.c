@@ -1696,6 +1696,9 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 	 */
 
 	end_serial = dns_journal_last_serial(j);
+	if (db_serial == end_serial)
+		CHECK(DNS_R_UPTODATE);
+
 	CHECK(dns_journal_iter_init(j, db_serial, end_serial));
 
 	for (result = dns_journal_first_rr(j);
@@ -1784,6 +1787,106 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	return (result);
 }
 
+void
+dns_journal_print(isc_mem_t *mctx, const char *filename) {
+	dns_journal_t *j;
+	isc_buffer_t source;		/* Transaction data from disk */
+	isc_buffer_t target;		/* Ditto after _fromwire check */
+	isc_uint32_t start_serial;		/* Database SOA serial */
+	isc_uint32_t end_serial;	/* Last journal SOA serial */
+	dns_result_t result;
+	dns_diff_t diff;
+	unsigned int n_soa = 0;
+	unsigned int n_put = 0;
+	
+	REQUIRE(filename != NULL);
+
+	j = NULL;
+	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
+	if (result == DNS_R_NOTFOUND) {
+		printf("no journal file\n");
+		return;
+	}
+
+	if (result != DNS_R_SUCCESS) {
+		printf("journal open failure\n");
+		return;
+	}
+	
+	dns_diff_init(j->mctx, &diff);
+	
+	/*
+	 * Set up empty initial buffers for uncheched and checked
+	 * wire format transaction data.  They will be reallocated
+	 * later.
+	 */
+	isc_buffer_init(&source, NULL, 0, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&target, NULL, 0, ISC_BUFFERTYPE_BINARY);
+
+	start_serial = dns_journal_first_serial(j);
+	end_serial = dns_journal_last_serial(j);
+
+	CHECK(dns_journal_iter_init(j, start_serial, end_serial));
+
+	for (result = dns_journal_first_rr(j);
+	     result == DNS_R_SUCCESS;
+	     result = dns_journal_next_rr(j))
+	{
+		dns_name_t *name;
+		isc_uint32_t ttl;
+		dns_rdata_t *rdata;
+		dns_difftuple_t *tuple = NULL;
+		
+		name = NULL;
+		rdata = NULL;
+		dns_journal_current_rr(j, &name, &ttl, &rdata);
+		
+		if (rdata->type == dns_rdatatype_soa)
+			n_soa++;
+
+		if (n_soa == 3)
+			n_soa = 1;
+		if (n_soa == 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "journal corrupt: missing "
+					 "initial SOA");
+			FAIL (DNS_R_UNEXPECTED);
+		}
+		CHECK(dns_difftuple_create(diff.mctx, n_soa == 1 ?
+					   DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
+					   name, ttl, rdata, &tuple));
+		dns_diff_append(&diff, &tuple);
+
+		if (++n_put > 100)  {
+			dns_diff_print(&diff);
+			dns_diff_clear(&diff);
+			n_put = 0;
+		}
+	}
+	if (result == DNS_R_NOMORE)
+		result = DNS_R_SUCCESS;
+	CHECK(result);
+
+	if (n_put != 0) {
+		dns_diff_print(&diff);
+		dns_diff_clear(&diff);
+	}
+	goto cleanup;
+	
+ failure:
+	printf("journal corrupt\n");
+
+ cleanup:
+	if (source.base != NULL)
+		isc_mem_put(j->mctx, source.base, source.length);
+	if (target.base != NULL)
+		isc_mem_put(j->mctx, target.base, target.length);
+
+	dns_diff_clear(&diff);
+	dns_journal_destroy(&j);
+	
+	return;
+}
 /**************************************************************************/
 /*
  * Miscellaneous accessors.
