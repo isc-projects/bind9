@@ -1,3 +1,6 @@
+1172.	[doc]		Add CERT, GPOS, KX, NAPTR, NSAP, PX and TXT to 
+			table of RR types in ARM.
+
 1171.	[func]		Added function isc_region_compare(), updated files in
 			lib/dns to use this function instead of local one.
 
