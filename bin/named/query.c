@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.206 2001/10/24 03:10:14 marka Exp $ */
+/* $Id: query.c,v 1.207 2001/10/24 18:55:04 gson Exp $ */
 
 #include <config.h>
 
@@ -204,6 +204,29 @@ query_maybeputqname(ns_client_t *client) {
 	}
 }
 
+static inline void
+query_freefreeversions(ns_client_t *client, isc_boolean_t everything) {
+	ns_dbversion_t *dbversion, *dbversion_next;
+	unsigned int i;
+
+	for (dbversion = ISC_LIST_HEAD(client->query.freeversions), i = 0;
+	     dbversion != NULL;
+	     dbversion = dbversion_next, i++)
+	{
+		dbversion_next = ISC_LIST_NEXT(dbversion, link);
+		/*
+		 * If we're not freeing everything, we keep the first three
+		 * dbversions structures around.
+		 */
+		if (i > 3 || everything) {
+			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
+					link);
+			isc_mem_put(client->mctx, dbversion,
+				    sizeof(*dbversion));
+		}
+	}
+}
+
 void
 ns_query_cancel(ns_client_t *client) {
 	LOCK(&client->query.fetchlock);
@@ -219,7 +242,6 @@ static inline void
 query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
-	unsigned int i;
 
 	/*
 	 * Reset the query state of a client to its default state.
@@ -250,24 +272,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	if (client->query.authzone != NULL)
 		dns_zone_detach(&client->query.authzone);
 
-	/*
-	 * Clean up free versions.
-	 */
-	for (dbversion = ISC_LIST_HEAD(client->query.freeversions), i = 0;
-	     dbversion != NULL;
-	     dbversion = dbversion_next, i++) {
-		dbversion_next = ISC_LIST_NEXT(dbversion, link);
-		/*
-		 * If we're not freeing everything, we keep the first three
-		 * dbversions structures around.
-		 */
-		if (i > 3 || everything) {
-			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
-					link);
-			isc_mem_put(client->mctx, dbversion,
-				    sizeof(*dbversion));
-		}
-	}
+	query_freefreeversions(client, everything);
 
 	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
 	     dbuf != NULL;
@@ -533,18 +538,9 @@ ns_query_init(ns_client_t *client) {
 	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
 		    NULL, NULL, client);
 	result = query_newnamebuf(client);
-	if (result != ISC_R_SUCCESS) {
-		ns_dbversion_t *dbversion;
-		DESTROYLOCK(&client->query.fetchlock);
-		for (dbversion = ISC_LIST_HEAD(client->query.freeversions);
-		     dbversion != NULL;
-		     dbversion = ISC_LIST_HEAD(client->query.freeversions)) {
-			ISC_LIST_UNLINK(client->query.freeversions, dbversion,
-					link);
-			isc_mem_put(client->mctx, dbversion,
-				    sizeof(*dbversion));
-		}
-	}
+	if (result != ISC_R_SUCCESS)
+		query_freefreeversions(client, ISC_TRUE);
+
 	return (result);
 }
 
