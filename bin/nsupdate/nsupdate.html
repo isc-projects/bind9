@@ -431,6 +431,29 @@ will attempt determine the correct zone to update based on the rest of the input
 ><P
 ><B
 CLASS="COMMAND"
+>class</B
+>  {classname}</P
+></DT
+><DD
+><P
+>Specify the default class.
+If no <TT
+CLASS="PARAMETER"
+><I
+>class</I
+></TT
+> is specified the default class is
+<TT
+CLASS="PARAMETER"
+><I
+>IN</I
+></TT
+>.</P
+></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
 >key</B
 >  {name} {secret}</P
 ></DT
@@ -532,8 +555,7 @@ CLASS="PARAMETER"
 >class</I
 ></TT
 >
-is omitted, IN (internet) is assumed.
-&#13;</P
+is omitted, IN (internet) is assumed.</P
 ></DD
 ><DT
 ><P
@@ -747,12 +769,12 @@ CLASS="COMMAND"
 ></DIV
 >&#13;</P
 ><P
->Lines beginning with a semicolon are comments, and are ignored.</P
+>Lines beginning with a semicolon are comments and are ignored.</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN223"
+NAME="AEN232"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -781,7 +803,7 @@ CLASS="PROGRAMLISTING"
 ># nsupdate
 &#62; update delete oldhost.example.com A
 &#62; update add newhost.example.com 86400 A 172.16.1.1
-&#62;</PRE
+&#62; send</PRE
 ></P
 ><P
 >Any A records for
@@ -802,7 +824,7 @@ CLASS="PROGRAMLISTING"
 ># nsupdate
 &#62; prereq nxdomain nickname.example.com
 &#62; update add nickname.example.com 86400 CNAME somehost.example.com
-&#62;</PRE
+&#62; send</PRE
 ></P
 ><P
 >The prerequisite condition gets the name server to check that there
@@ -823,7 +845,7 @@ SIG, KEY and NXT records.)</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN236"
+NAME="AEN245"
 ></A
 ><H2
 >FILES</H2
@@ -879,7 +901,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN260"
+NAME="AEN269"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -944,7 +966,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN281"
+NAME="AEN290"
 ></A
 ><H2
 >BUGS</H2

@@ -178,6 +178,11 @@ statement is provided,
 \fBnsupdate\fR
 will attempt determine the correct zone to update based on the rest of the input.
 .TP
+\fBclass classname\fR
+Specify the default class.
+If no \fIclass\fR is specified the default class is
+\fIIN\fR.
+.TP
 \fBkey name secret\fR
 Specifies that all updates are to be TSIG signed using the
 \fIkeyname\fR \fIkeysecret\fR pair.
@@ -264,7 +269,7 @@ updates specified since the last send.
 \fBsend\fR
 Sends the current message. This is equivalent to entering a blank line.
 .PP
-Lines beginning with a semicolon are comments, and are ignored.
+Lines beginning with a semicolon are comments and are ignored.
 .SH "EXAMPLES"
 .PP
 The examples below show how
@@ -281,7 +286,7 @@ master name server for
 # nsupdate
 > update delete oldhost.example.com A
 > update add newhost.example.com 86400 A 172.16.1.1
->
+> send
 .sp
 .fi
 .PP
@@ -297,7 +302,7 @@ The newly-added record has a 1 day TTL (86400 seconds)
 # nsupdate
 > prereq nxdomain nickname.example.com
 > update add nickname.example.com 86400 CNAME somehost.example.com
->
+> send
 .sp
 .fi
 .PP
