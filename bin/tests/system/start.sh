@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.17 2000/06/22 21:51:29 tale Exp $
+# $Id: start.sh,v 1.18 2000/06/23 21:17:02 mws Exp $
 
 #
 # Start name servers for running system tests.
@@ -97,21 +97,30 @@ status=0
 
 sleep 5
 
+ret=1
+cnt=0
 for d in ns*
 do
-	n=`echo $d | sed 's/ns//'`
-	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 \
-		version.bind. chaos txt @10.53.0.$n > dig.out
-	status=`expr $status + $?`
-	grep ";" dig.out
+	while [ $ret != 0 ]
+	do
+		cnt=`expr $cnt + 1`
+		n=`echo $d | sed 's/ns//'`
+		$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+		-p 5300 version.bind. chaos txt @10.53.0.1$n > dig.out
+		ret=$?
+		grep ";" dig.out
+		if [ $cnt = 15 ]; then
+			cd ..
+			sh stop.sh $1
+			echo "I: Couldn't talk to server(s)"
+			echo "R:FAIL"
+			exit 1;
+		fi
+		if [ $ret != 0 ]; then
+			sleep 5
+			echo "Retrying $cnt"
+		fi
+	done
 done
 rm -f dig.out
 
-if [ $status != 0 ]
-then
-    echo "I: Couldn't talk to server(s)."
-    cd ..
-    sh stop.sh $1
-fi
-
-exit $status
