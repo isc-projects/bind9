@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.230 2001/11/12 19:05:31 gson Exp $ */
+/* $Id: resolver.c,v 1.231 2001/11/14 01:01:28 gson Exp $ */
 
 #include <config.h>
 
@@ -4061,6 +4061,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	resend = ISC_FALSE;
 	truncated = ISC_FALSE;
 	finish = NULL;
+
+	if (fctx->res->exiting) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto done;
+	}
 
 	fctx->timeouts = 0;
 

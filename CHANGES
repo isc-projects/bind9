@@ -1,3 +1,7 @@
+1121.	[bug]		The server could attempt to access a NULL zone
+			table if shutting down while resolving.
+			[RT #1587, #2054]
+
 1120.	[bug]		Errors in options were not fatal. [RT #2002]
 
 1119.	[func]		Added support in Win32 for NTFS file/directory ACL's
