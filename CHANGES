@@ -1,3 +1,5 @@
+ 588.	[bug]		ctx->in_use was not being correctly initalised when
+			when pushing a file for $INCLUDE. [RT #523]
 
  587.	[func]		A warning is now printed if the "allow-update"
 			option allows updates based on the source IP

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.84 2000/12/01 00:55:16 gson Exp $ */
+/* $Id: master.c,v 1.85 2000/12/04 04:17:00 marka Exp $ */
 
 #include <config.h>
 
@@ -1437,13 +1437,13 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t **ctxp) {
 	/* Set current domain. */
 	if (ctx->glue != NULL || ctx->current != NULL) {
 		for (new_in_use = 0; new_in_use < NBUFS ; new_in_use++)
-			if (!ctx->in_use[new_in_use])
+			if (!new->in_use[new_in_use])
 				break;
 		INSIST(new_in_use < NBUFS);
 		new->current_in_use = new_in_use;
 		new->current =
 			dns_fixedname_name(&new->fixed[new->current_in_use]);
-		new->in_use[ctx->current_in_use] = ISC_TRUE;
+		new->in_use[new->current_in_use] = ISC_TRUE;
 		dns_name_toregion((ctx->glue != NULL) ?
 				   ctx->glue : ctx->current, &r);
 		dns_name_fromregion(new->current, &r);
