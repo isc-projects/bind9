@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.10 2002/02/27 22:12:02 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.11 2002/03/19 04:30:56 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -33,6 +33,7 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
+#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #include <openssl/dsa.h>
@@ -96,7 +97,7 @@ openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	dsasig = DSA_do_sign(digest, ISC_SHA1_DIGESTLENGTH, dsa);
 	if (dsasig == NULL)
-		return (DST_R_SIGNFAILURE);
+		return (dst__openssl_toresult(DST_R_SIGNFAILURE));
 
 	*r.base++ = (key->key_size - 512)/64;
 	BN_bn2bin_fixed(dsasig->r, r.base, ISC_SHA1_DIGESTLENGTH);
@@ -134,7 +135,7 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	status = DSA_do_verify(digest, ISC_SHA1_DIGESTLENGTH, dsasig, dsa);
 	DSA_SIG_free(dsasig);
 	if (status == 0)
-		return (DST_R_VERIFYFAILURE);
+		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
 
 	return (ISC_R_SUCCESS);
 }
@@ -187,11 +188,11 @@ openssldsa_generate(dst_key_t *key, int unused) {
 				      NULL, NULL);
 
 	if (dsa == NULL)
-		return (DST_R_OPENSSLFAILURE);
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
 	if (DSA_generate_key(dsa) == 0) {
 		DSA_free(dsa);
-		return (DST_R_OPENSSLFAILURE);
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 

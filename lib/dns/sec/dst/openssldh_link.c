@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.47 2002/02/27 22:12:01 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.48 2002/03/19 04:30:55 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -35,6 +35,7 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
+#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #include <openssl/dh.h>
@@ -83,7 +84,7 @@ openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 		return (ISC_R_NOSPACE);
 	ret = DH_compute_key(r.base, dhpub->pub_key, dhpriv);
 	if (ret == 0)
-		return (DST_R_COMPUTESECRETFAILURE);
+		return (dst__openssl_toresult(DST_R_COMPUTESECRETFAILURE));
 	isc_buffer_add(secret, len);
 	return (ISC_R_SUCCESS);
 }
@@ -167,11 +168,11 @@ openssldh_generate(dst_key_t *key, int generator) {
 					    NULL, NULL);
 
 	if (dh == NULL)
-		return (DST_R_OPENSSLFAILURE);
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
 	if (DH_generate_key(dh) == 0) {
 		DH_free(dh);
-		return (DST_R_OPENSSLFAILURE);
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 

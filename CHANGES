@@ -1,3 +1,5 @@
+1235.	[func]		Report 'out of memory' errors from openssl.
+
 1234.	[bug]		contrib/sdb: 'zonetodb' failed to call
 			dns_result_register().  DNS_R_SEENINCLUDE should not
 			be fatal.

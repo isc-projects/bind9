@@ -1806,6 +1806,7 @@
 ./lib/dns/sec/dst/dst_api.c			C.NAI	1999,2000,2001,2002
 ./lib/dns/sec/dst/dst_internal.h		C.NAI	2000,2001
 ./lib/dns/sec/dst/dst_lib.c			C	1999,2000,2001
+./lib/dns/sec/dst/dst_openssl.h			C	2002
 ./lib/dns/sec/dst/dst_parse.c			C.NAI	1999,2000,2001,2002
 ./lib/dns/sec/dst/dst_parse.h			C.NAI	2000,2001
 ./lib/dns/sec/dst/dst_result.c			C	1999,2000,2001

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.49 2001/11/30 01:59:31 gson Exp $
+ * $Id: openssl_link.c,v 1.50 2002/03/19 04:30:53 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -34,6 +34,7 @@
 #include <isc/util.h>
 
 #include "dst_internal.h"
+#include "dst_openssl.h"
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -186,6 +187,22 @@ dst__openssl_destroy() {
 	}
 	if (rm != NULL)
 		mem_free(rm);
+}
+
+isc_result_t
+dst__openssl_toresult(isc_result_t fallback) {
+	isc_result_t result = fallback;
+	int err = ERR_get_error();
+
+	switch (ERR_GET_REASON(err)) {
+	case ERR_R_MALLOC_FAILURE:
+		result = ISC_R_NOMEMORY;
+		break;
+	default:
+		break;
+	}
+	ERR_clear_error();
+	return (result);
 }
 
 #else /* OPENSSL */

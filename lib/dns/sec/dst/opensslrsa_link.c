@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.22 2002/02/27 22:12:04 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.23 2002/03/19 04:30:57 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -33,6 +33,7 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
+#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #include <openssl/err.h>
@@ -142,10 +143,8 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	status = RSA_sign(type, digest, digestlen, r.base, &siglen, rsa);
-	if (status == 0) {
-		ERR_clear_error();
-		return (DST_R_SIGNFAILURE);
-	}
+	if (status == 0)
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
 	isc_buffer_add(sig, siglen);
 
@@ -182,10 +181,8 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	status = RSA_verify(type, digest, digestlen, sig->base,
 			    RSA_size(rsa), rsa);
-	if (status == 0) {
-		ERR_clear_error();
-		return (DST_R_VERIFYFAILURE);
-	}
+	if (status == 0)
+		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
 
 	return (ISC_R_SUCCESS);
 }
@@ -232,10 +229,8 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	else
 		e = RSA_F4;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
-	if (rsa == NULL) {
-		ERR_clear_error();
-		return (DST_R_OPENSSLFAILURE);
-	}
+	if (rsa == NULL)
+		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	SET_FLAGS(rsa);
 	key->opaque = rsa;
 
