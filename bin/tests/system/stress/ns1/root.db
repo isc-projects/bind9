@@ -1,0 +1,40 @@
+ 300
+.                       IN SOA  gson.nominum.com. a.root.servers.nil. (
+								       2000042100      ; serial
+								       600             ; refresh
+								       600             ; retry
+								       1200            ; expire
+								       600             ; minimum
+                                )
+.                       NS      a.root-servers.nil.
+a.root-servers.nil.     A       10.53.0.1
+zone000000.example.		NS	ns2.zone000000.example.
+ns2.zone000000.example.	A	10.53.0.2
+zone000000.example.		NS	ns3.zone000000.example.
+ns3.zone000000.example.	A	10.53.0.3
+zone000000.example.		NS	ns4.zone000000.example.
+ns4.zone000000.example.	A	10.53.0.4
+zone000001.example.		NS	ns2.zone000001.example.
+ns2.zone000001.example.	A	10.53.0.2
+zone000001.example.		NS	ns3.zone000001.example.
+ns3.zone000001.example.	A	10.53.0.3
+zone000001.example.		NS	ns4.zone000001.example.
+ns4.zone000001.example.	A	10.53.0.4
+zone000002.example.		NS	ns2.zone000002.example.
+ns2.zone000002.example.	A	10.53.0.2
+zone000002.example.		NS	ns3.zone000002.example.
+ns3.zone000002.example.	A	10.53.0.3
+zone000002.example.		NS	ns4.zone000002.example.
+ns4.zone000002.example.	A	10.53.0.4
+zone000003.example.		NS	ns2.zone000003.example.
+ns2.zone000003.example.	A	10.53.0.2
+zone000003.example.		NS	ns3.zone000003.example.
+ns3.zone000003.example.	A	10.53.0.3
+zone000003.example.		NS	ns4.zone000003.example.
+ns4.zone000003.example.	A	10.53.0.4
+zone000004.example.		NS	ns2.zone000004.example.
+ns2.zone000004.example.	A	10.53.0.2
+zone000004.example.		NS	ns3.zone000004.example.
+ns3.zone000004.example.	A	10.53.0.3
+zone000004.example.		NS	ns4.zone000004.example.
+ns4.zone000004.example.	A	10.53.0.4
