@@ -882,6 +882,10 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 						   event->rdataset,
 						   val->key, ISC_FALSE,
 						   val->view->mctx, &rdata);
+			/*
+			 * If val->keynode != NULL, this should get other keys
+			 * from the list of keynodes.
+			 */
 			if (result == ISC_R_SUCCESS || val->keynode != NULL)
 				break;
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -897,6 +901,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 						   &val->keynode);
 		else if (val->key != NULL)
 			dst_key_free(&val->key);
+		val->key = NULL;
 		if (result == ISC_R_SUCCESS) {
 			event->rdataset->trust = dns_trust_secure;
 			event->sigrdataset->trust = dns_trust_secure;
