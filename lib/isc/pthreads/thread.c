@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.10 2003/07/25 00:01:13 marka Exp $ */
+/* $Id: thread.c,v 1.11 2003/07/25 05:08:51 marka Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,8 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 
 	pthread_attr_init(&attr);
 
-#ifdef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
+    defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
 	if (ret != 0)
 		return (ISC_R_UNEXPECTED);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.40 2003/04/01 05:18:21 marka Exp $ */
+/* $Id: acconfig.h,v 1.41 2003/07/25 05:08:50 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -132,6 +132,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if pthread_attr_getstacksize() is available */
 #undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* define if pthread_attr_setstacksize() is available */
+#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
 
 /* define if you have strerror in the C library. */
 #undef HAVE_STRERROR

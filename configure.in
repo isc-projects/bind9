@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.345 $)
+AC_REVISION($Revision: 1.346 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -692,6 +692,9 @@ then
 
 	AC_CHECK_FUNC(pthread_attr_getstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
+
+	AC_CHECK_FUNC(pthread_attr_setstacksize,
+		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
 
 	#
 	# Additional OS-specific issues related to pthreads and sigwait.

@@ -1,3 +1,5 @@
+1496.	[port]		test for pthread_attr_setstacksize().
+
 1495.	[cleanup]	Replace hash functions with universal hash.
 
 1494.	[security]	Turn on RSA BLINDING as a precaution.
