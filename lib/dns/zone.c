@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.322 2001/05/09 05:20:28 marka Exp $ */
+/* $Id: zone.c,v 1.323 2001/05/10 17:51:46 gson Exp $ */
 
 #include <config.h>
 
@@ -251,6 +251,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
+#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -4719,6 +4720,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 		break;
 
+	case DNS_R_BADIXFR:
+		/* Force retry with AXFR. */
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLAG_NOIXFR);
+		goto same_master;
+
 	default:
 		zone->curmaster++;
 	same_master:
@@ -4900,6 +4906,14 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			     "forced reload, requesting AXFR of "
 			     "initial version from %s", mastertext);
 		xfrtype = dns_rdatatype_axfr;
+	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLAG_NOIXFR)) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			     "retrying with AXFR from %s due to "
+			     "previous IXFR failure", mastertext);
+		xfrtype = dns_rdatatype_axfr;
+		LOCK_ZONE(zone);
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLAG_NOIXFR);
+		UNLOCK_ZONE(zone);
 	} else {
 		isc_boolean_t use_ixfr = ISC_TRUE;
 		if (peer != NULL &&
@@ -4967,7 +4981,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	dns_zone_detach(&zone); /* XXXAG */
 	return;
-
 }
 
 /*

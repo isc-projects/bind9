@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.117 2001/05/10 16:27:14 gson Exp $ */
+/* $Id: xfrin.c,v 1.118 2001/05/10 17:51:44 gson Exp $ */
 
 #include <config.h>
 
@@ -653,6 +653,9 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 	if (result != DNS_R_UPTODATE) {
 		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
 			  msg, isc_result_totext(result));
+		if (xfr->is_ixfr)
+			/* Pass special result code to force AXFR retry */
+			result = DNS_R_BADIXFR;
 	}
 	xfrin_cancelio(xfr);
 	if (xfr->done != NULL) {
@@ -731,8 +734,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->lasttsig = NULL;
 	xfr->tsigctx = NULL;
 	xfr->sincetsig = 0;
-
-	/* is_ixfr */
+	xfr->is_ixfr = ISC_FALSE;
 
 	/* ixfr.request_serial */
 	/* ixfr.end_serial */

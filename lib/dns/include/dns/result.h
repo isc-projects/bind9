@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.80 2001/03/07 20:53:31 bwelling Exp $ */
+/* $Id: result.h,v 1.81 2001/05/10 17:51:49 gson Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -113,8 +113,9 @@
 #define DNS_R_NOMASTERFILE		(ISC_RESULTCLASS_DNS + 74)
 #define DNS_R_UNKNOWNPROTO		(ISC_RESULTCLASS_DNS + 75)
 #define DNS_R_CLOCKSKEW			(ISC_RESULTCLASS_DNS + 76)
+#define DNS_R_BADIXFR			(ISC_RESULTCLASS_DNS + 77)
 
-#define DNS_R_NRESULTS			77	/* Number of results */
+#define DNS_R_NRESULTS			78	/* Number of results */
 
 /*
  * DNS wire format rcodes.

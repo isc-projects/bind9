@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.88 2001/03/07 20:53:27 bwelling Exp $ */
+/* $Id: result.c,v 1.89 2001/05/10 17:51:48 gson Exp $ */
 
 #include <config.h>
 
@@ -117,7 +117,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no master file configured",	       /* 74 DNS_R_NOMASTERFILE	     */
 
 	"unknown protocol",		       /* 75 DNS_R_UNKNOWNPROTO	     */
-	"clocks are unsynchronized"	       /* 76 DNS_R_CLOCKSKEW	     */
+	"clocks are unsynchronized",	       /* 76 DNS_R_CLOCKSKEW	     */
+	"IXFR failed"			       /* 77 DNS_R_BADIXFR	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
