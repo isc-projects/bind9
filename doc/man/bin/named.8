@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.8 2000/08/21 20:40:05 gson Exp $
+.\" $Id: named.8,v 1.9 2000/08/30 20:43:27 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -31,6 +31,7 @@
 .Op Fl p Ar port#
 .Op Fl t Ar directory
 .Op Fl u Ar user-id
+.Op Fl v
 .Op Fl x Ar cache-file
 .Sh DESCRIPTION
 .Nm named
@@ -118,6 +119,8 @@ when
 .Nm named
 is run on 2.3.99-pre3 or later kernel, since previous
 kernels did not allow privileges to be retained after setuid().
+.It Fl v
+report the version number and exit.
 .It Fl x
 load data from
 .Ar cache-file .
