@@ -48,8 +48,8 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ heap.@O@ \
 		lex.@O@ lib.@O@ log.@O@ \
 		mem.@O@ mutexblock.@O@ random.@O@ result.@O@ rwlock.@O@ \
-		serial.@O@ sockaddr.@O@ str.@O@ symtab.@O@ task.@O@ timer.@O@ \
-		version.@O@ \
+		serial.@O@ sockaddr.@O@ str.@O@ symtab.@O@ \
+		task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
 # Alphabetically
@@ -58,8 +58,8 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		bufferlist.c commandline.c error.c event.c heap.c \
 		lex.c lib.c log.c \
 		mem.c mutexblock.c random.c result.c rwlock.c \
-		serial.c sockaddr.c str.c symtab.c task.c timer.c \
-		version.c
+		serial.c sockaddr.c str.c symtab.c \
+		task.c taskpool.c timer.c version.c
 
 LIBS =		@LIBS@
 
