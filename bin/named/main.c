@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.111 2001/05/28 05:16:58 marka Exp $ */
+/* $Id: main.c,v 1.112 2001/05/31 10:37:08 tale Exp $ */
 
 #include <config.h>
 
@@ -497,6 +497,8 @@ cleanup(void) {
 	 */
 	/* xxdb_clear(); */
 
+	(void)isc_file_remove(ns_g_autorndckeyfile);
+
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();
@@ -506,7 +508,7 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 
-	result = isc_file_progname(argv[0], program_name, sizeof(program_name));
+	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("program name too long");
 
