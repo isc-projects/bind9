@@ -7,7 +7,8 @@
 
 1023.	[func]		Accept hints without TTLs.
 
-1022.	[bug]		Allow hints to be completely empty.  [RT #1802]
+1022.	[bug]		Don't report empty root hints as "extra data".
+			[RT #1802]
 
 1021.	[bug]		On Win32, log message timestamps were one month
 			later than they should have been, and the server
