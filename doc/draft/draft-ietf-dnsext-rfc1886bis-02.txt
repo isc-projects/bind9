@@ -1,14 +1,14 @@
 Internet Engineering Task Force                        S. Thomson, Cisco
 INTERNET-DRAFT                                     C. Huitema, Microsoft
-October 29, 2002                                       V. Ksinant, 6WIND
-Expires April 29, 2003                                 M. Souissi, AFNIC
+February 28, 2003                                      V. Ksinant, 6WIND
+Expires August 28, 2003                                M. Souissi, AFNIC
 
 
 
 
 
                 DNS Extensions to support IP version 6
-                <draft-ietf-dnsext-rfc1886bis-01.txt>
+                <draft-ietf-dnsext-rfc1886bis-02.txt>
 
 
 Status of this Memo
@@ -21,6 +21,7 @@ Status of this Memo
    other groups may also distribute working documents as Internet-
    Drafts.
 
+
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
@@ -29,7 +30,7 @@ Status of this Memo
    To view the list Internet-Draft Shadow Directories, see
    http://www.ietf.org/shadow.html.
 
-   This Internet Draft expires April 29, 2003.
+   This Internet Draft expires August 28, 2003.
 
 
 
@@ -53,10 +54,9 @@ Abstract
 
 
 
-
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 1]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 1]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 
 Table of Contents
@@ -109,9 +109,9 @@ Table of Contents
    that has more than one IPv6 address must have more than one such
    record.
 
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 2]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 2]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 2.1 AAAA record type
 
@@ -165,20 +165,20 @@ INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
 b.a.9.8.7.6.5.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.0.0.0.0.1.2.3.4.IP6.
                                                                ARPA.
 
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 3]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 3]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 3. MODIFICATIONS TO EXISTING QUERY TYPES
 
    All existing query types that perform type A additional section
-   processing, i.e. name server (NS) and mail exchange (MX) query 
-   types, must be redefined to perform both type A and type AAAA 
-   additional section processing. These definitions mean that a name 
-   server must add any relevant IPv4 addresses and any relevant IPv6 
-   addresses available locally to the additional section of a response 
-   when processing any one of the above queries.
-
+   processing, i.e. name server (NS), location of services (SRV) and 
+   mail exchange (MX) query types, must be redefined to perform both 
+   type A and type AAAA additional section processing. These definitions
+   mean that a name server must add any relevant IPv4 addresses and any
+   relevant IPv6 addresses available locally to the additional section 
+   of a response when processing any one of the above queries.
+   
 
 4. SECURITY CONSIDERATIONS
 
@@ -200,6 +200,8 @@ APPENDIX A: Changes from RFC 1886
       support IP version 6":
 
       - Replaced the "IP6.INT" domain by "IP6.ARPA".
+      - Mentioned SRV query types in section 3 "MODIFICATIONS TO
+        EXISTING QUERY TYPES"
       - Added security considerations.
       - Updated references :
         * From RFC 1884 to RFC 2373 (IP Version 6 Addressing 
@@ -217,14 +219,9 @@ APPENDIX A: Changes from RFC 1886
 
 
 
-
-
-
-
-
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 4]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 4]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 Acknowledgements
 
@@ -235,6 +232,8 @@ Acknowledgements
    1886 Interop tests sessions. 
    
    Many thanks to Alain Durand and Olafur Gudmundsson for their support.
+
+
 
 Normative References
 
@@ -251,12 +250,16 @@ Normative References
         "draft-ietf-ipngwg-addr-arch-v3-11.txt", Hinden, R., and 
         S. Deering, October 25, 2002
 
+
+
+Informative References
+
    [4]  Gilligan, R., and E. Nordmark, "Transition Mechanisms for IPv6
         Hosts and Routers", RFC 2893, FreeGate Corp., Sun Microsystems
 	Inc., August 2000.
 	This RFC is being updated. The current draft is 
-        "draft-ietf-ngtrans-mech-v2-00.txt", Gilligan, R., and 
-        E. Nordmark, July 17, 2002
+        "draft-ietf-v6ops-mech-v2-00.txt", Gilligan, R., and 
+        E. Nordmark, February 24, 2003
 
    [5]  Thomson, S., and C. Huitema, "DNS Extensions to support IP 
         version 6", RFC 1886, Bellcore, INRIA, December 1995. 
@@ -272,15 +275,9 @@ Normative References
         RFC 2845, ISC, NAI Labs, Motorola, Nominum, May 2000.
 
 
-
-
-
-
-
-
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 5]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 5]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 
 Authors' Addresses
@@ -332,9 +329,9 @@ Authors' Addresses
 
 
 
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 6]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 6]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6      October 2002
+INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 
 Full Copyright Statement
 
@@ -390,4 +387,4 @@ Full Copyright Statement
          information to the IETF Executive Director.
 
 
-draft-ietf-dnsext-rfc1886bis-01.txt                             [Page 7]
+draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 7]
