@@ -1064,6 +1064,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	unsigned int stdoptions, options;
 	isc_sockaddr_t *sa;
 	dns_adbaddrinfo_t *ai;
+	isc_boolean_t pruned;
 
 	FCTXTRACE("getaddresses");
 
@@ -1077,6 +1078,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	}
 
 	res = fctx->res;
+	pruned = ISC_FALSE;
+	stdoptions = 0;		/* Keep compiler happy. */
 
 	/*
 	 * Forwarders.
@@ -1122,6 +1125,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		stdoptions |= DNS_ADBFIND_INET6;
 	isc_stdtime_get(&now);
 
+ restart:
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 
 	result = dns_rdataset_first(&fctx->nameservers);
@@ -1191,8 +1195,17 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			} else {
 				/*
 				 * And ADB isn't going to send us any events
-				 * either.  This query loses.
+				 * either.  This find loses.
 				 */
+				if ((find->options & DNS_ADBFIND_LAMEPRUNED)
+				    != 0) {
+					/*
+					 * The ADB pruned lame servers for
+					 * this name.  Remember that in case
+					 * we get desperate later on.
+					 */
+					pruned = ISC_TRUE;
+				}
 				dns_adb_destroyfind(&find);
 			}
 		}
@@ -1212,6 +1225,16 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			 * yet.   Tell the caller to wait for an answer.
 			 */
 			result = DNS_R_WAIT;
+		} else if (pruned) {
+			/*
+			 * Some addresses were removed by lame pruning.
+			 * Turn pruning off and try again.
+			 */
+			FCTXTRACE("restarting with returnlame");
+			INSIST((stdoptions & DNS_ADBFIND_RETURNLAME) == 0);
+			stdoptions |= DNS_ADBFIND_RETURNLAME;
+			pruned = ISC_FALSE;
+			goto restart;
 		} else {
 			/*
 			 * We've lost completely.  We don't know any
