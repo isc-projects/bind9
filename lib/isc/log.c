@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8.2.3 2003/08/15 04:02:46 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8.2.4 2003/08/21 02:02:03 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -203,6 +203,7 @@ LIBISC_EXTERNAL_DATA isc_logmodule_t isc_modules[] = {
 	{ "socket", 0 },
 	{ "time", 0 },
 	{ "interface", 0 },
+	{ "timer", 0 },
 	{ NULL, 0 }
 };
 
