@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.117 2000/10/19 21:49:47 mws Exp $ */
+/* $Id: dig.c,v 1.118 2000/10/19 22:49:29 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -360,12 +360,12 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (query->lookup->comments && !short_form) {
 		if (query->lookup->cmdline[0] != 0)
-			printf ("; %s\n",query->lookup->cmdline);
+			printf("; %s\n", query->lookup->cmdline);
 		if (msg == query->lookup->sendmsg)
 			printf(";; Sending:\n");
 		else
 			printf(";; Got answer:\n");
-		
+
 		if (headers) {
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
@@ -593,6 +593,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	isc_boolean_t state = ISC_TRUE;
 
 	strncpy(option_store, option, sizeof(option_store));
+	option_store[sizeof(option_store)-1]=0;
 	ptr = option_store;
 	cmd=next_token(&ptr,"=");
 	if (cmd == NULL) {
@@ -686,7 +687,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto need_value;
 			if (!state)
 				goto invalid_option;
-			strncpy(fixeddomain, value, MXNAME);
+			strncpy(fixeddomain, value, sizeof(fixeddomain));
+			fixeddomain[sizeof(fixeddomain)-1]=0;
 			break;
 		default:
 			goto invalid_option;
@@ -945,7 +947,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		batchname = value;
 		return (value_from_next);
 	case 'k':
-		strncpy(keyfile, value, MXNAME);
+		strncpy(keyfile, value, sizeof(keyfile));
+		keyfile[sizeof(keyfile)-1]=0;
 		return (value_from_next);
 	case 'p':
 		port = atoi(value);
@@ -981,13 +984,15 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			show_usage();
 			exit(1);
 		}
-		strncpy(keynametext, ptr, MXNAME);
+		strncpy(keynametext, ptr, sizeof(keynametext));
+		keynametext[sizeof(keynametext)-1]=0;
 		ptr = next_token(&value, "");
 		if (ptr == NULL) {
 			show_usage();
 			exit(1);
 		}
-		strncpy(keysecret, ptr, MXNAME);
+		strncpy(keysecret, ptr, sizeof(keysecret));
+		keysecret[sizeof(keysecret)-1]=0;
 		return (value_from_next);
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
@@ -1218,7 +1223,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					printgreeting(argc, argv, lookup);
 					firstarg = ISC_FALSE;
 				}
-				strncpy(lookup->textname, rv[0], MXNAME-1);
+				strncpy(lookup->textname, rv[0], 
+					sizeof(lookup->textname));
+				lookup->textname[sizeof(lookup->textname)-1]=0;
 				lookup->trace_root = ISC_TF(lookup->trace  ||
 						     lookup->ns_search_only);
 				lookup->new_search = ISC_TRUE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.57 2000/10/12 17:09:03 mws Exp $ */
+/* $Id: nslookup.c,v 1.58 2000/10/19 22:49:34 mws Exp $ */
 
 #include <config.h>
 
@@ -49,7 +49,7 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t have_ipv6,
-	usesearch, trace, qr, debugging;
+	usesearch, trace, qr, debugging, is_blocking;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -618,6 +618,12 @@ testclass(char *typetext) {
 	}
 }
 
+static void
+safecpy(char *dest, char *src, int size) {
+	strncpy(dest, src, size);
+	dest[size-1]=0;
+}
+	
 
 static void
 setoption(char *opt) {
@@ -625,31 +631,31 @@ setoption(char *opt) {
 		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
-			strncpy(defclass, &opt[6], MXRD);
+			safecpy(defclass, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
 		if (testclass(&opt[3]))
-			strncpy(defclass, &opt[3], MXRD);
+			safecpy(defclass, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "type=", 5) == 0) {
 		if (testtype(&opt[5]))
-			strncpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "ty=", 3) == 0) {
 		if (testtype(&opt[3]))
-			strncpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "querytype=", 10) == 0) {
 		if (testtype(&opt[10]))
-			strncpy(deftype, &opt[10], MXRD);
+			safecpy(deftype, &opt[10], MXRD);
 	} else if (strncasecmp(opt, "query=", 6) == 0) {
 		if (testtype(&opt[6]))
-			strncpy(deftype, &opt[6], MXRD);
+			safecpy(deftype, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
 		if (testtype(&opt[3]))
-			strncpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[3], MXRD);
 #if 0
 		/* XXXMWS domain= doesn't work now. */
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
-		strncpy(fixeddomain, &opt[7], MXNAME);
+		safecpy(fixeddomain, &opt[7], MXNAME);
 	} else if (strncasecmp(opt, "do=", 3) == 0) {
-		strncpy(fixeddomain, &opt[3], MXNAME);
+		safecpy(fixeddomain, &opt[3], MXNAME);
 #endif
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
 		port = atoi(&opt[5]);
@@ -752,7 +758,7 @@ addlookup(char *opt) {
 		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
 	notv6:
-		strncpy(lookup->textname, opt, MXNAME-1);
+		safecpy(lookup->textname, opt, MXNAME-1);
 		lookup->rdtype = rdtype;
 	}
 	lookup->rdclass = rdclass;
@@ -809,7 +815,7 @@ setsrv(char *opt) {
 	srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
 		fatal("Memory allocation failure.");
-	strncpy(srv->servername, opt, MXNAME-1);
+	safecpy(srv->servername, opt, MXNAME-1);
 	ISC_LIST_APPEND(server_list, srv, link);
 }
 
@@ -823,7 +829,9 @@ get_next_command(void) {
 	if (buf == NULL)
 		fatal("Memory allocation failure.");
 	fputs("> ", stderr);
+	is_blocking = ISC_TRUE;
 	ptr = fgets(buf, COMMSIZE, stdin);
+	is_blocking = ISC_FALSE;
 	if (ptr == NULL) {
 		in_use = ISC_FALSE;
 		goto cleanup;
@@ -944,9 +952,7 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	if (global_event == NULL)
 		global_event = event;
 	while (in_use) {
-		isc_app_block();
 		get_next_command();
-		isc_app_unblock();
 		if (ISC_LIST_HEAD(lookup_list) != NULL) {
 			start_lookup();
 			return;

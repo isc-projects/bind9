@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.152 2000/10/19 21:49:49 mws Exp $ */
+/* $Id: dighost.c,v 1.153 2000/10/19 22:49:30 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -187,7 +187,7 @@ hex_dump(isc_buffer_t *b) {
 		if (len % 16 == 15)
 			printf("\n");
 	}
-	if (len % 16 != 0)
+	if (len % 16 != 15)
 		printf("\n");
 }
 
@@ -241,6 +241,7 @@ make_server(const char *servname) {
 		fatal("Memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	strncpy(srv->servername, servname, MXNAME);
+	srv->servername[MXNAME-1] = 0;
 	return (srv);
 }
 
@@ -348,6 +349,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew = make_empty_lookup();
 	INSIST(looknew != NULL);
 	strncpy(looknew->textname, lookold-> textname, MXNAME);
+	looknew->textname[MXNAME-1]=0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->rdclass = lookold->rdclass;
 	looknew->doing_xfr = lookold->doing_xfr;
@@ -542,7 +544,8 @@ setup_system(void) {
 			fatal("Memory allocation failure in %s:%d",
 			      __FILE__, __LINE__);
 		strncpy(search->origin, fixeddomain,
-			sizeof(search->origin) - 1);
+			sizeof(search->origin));
+		search->origin[sizeof(search->origin)-1]=0;
 		/* XXX Check ordering, with search -vs- domain */
 		ISC_LIST_PREPEND(search_list, search, link);
 	}
@@ -596,7 +599,8 @@ setup_system(void) {
 						strncpy(search->
 							origin,
 							ptr,
-							MXNAME - 1);
+							MXNAME);
+						search->origin[MXNAME-1]=0;
 						ISC_LIST_APPEND
 							(search_list,
 							 search,
@@ -620,6 +624,7 @@ setup_system(void) {
 							origin,
 							ptr,
 							MXNAME - 1);
+						search->origin[MXNAME-1]=0;
 						ISC_LIST_PREPEND
 							(search_list,
 							 search,
@@ -2406,7 +2411,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 query);
 				}
 			} else {
-					printmessage(query, msg, ISC_TRUE);
+				printmessage(query, msg, ISC_TRUE);
 			}
 		} else if ((dns_message_firstname(msg, DNS_SECTION_ANSWER)
 			    == ISC_R_SUCCESS) &&
@@ -2637,6 +2642,17 @@ destroy_libs(void) {
 	dig_searchlist_t *o;
 
 	debug("destroy_libs()");
+	if (is_blocking) {
+		/*
+		 * If we get here while another thread is blocking, there's
+		 * really nothing we can do to make a clean shutdown
+		 * without waiting for the block to complete.  The only
+		 * way to get the system down now is to just exit out,
+		 * and trust the OS to clean up for us.
+		 */
+		fputs ("Abort.\n",stderr);
+		exit(1);
+	}
 	if (global_task != NULL) {
 		debug("freeing task");
 		isc_task_detach(&global_task);
@@ -2705,7 +2721,7 @@ destroy_libs(void) {
 
 	UNLOCK_LOOKUP;
 	DESTROYLOCK(&lookup_lock);
-	if (memdebugging)
+	if (memdebugging != 0)
 		isc_mem_stats(mctx, stderr);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.54 2000/09/27 00:02:01 mws Exp $ */
+/* $Id: host.c,v 1.55 2000/10/19 22:49:33 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -638,7 +638,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (isc_commandline_index >= argc) {
 		show_usage();
 	}
-	strncpy(hostname, argv[isc_commandline_index], MXNAME);
+	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
+	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
 		srv = make_server(argv[isc_commandline_index+1]);
 		debug("server is %s", srv->servername);
@@ -685,7 +686,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
  notv6:
-		strncpy(lookup->textname, hostname, MXNAME);
+		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
+		lookup->textname[sizeof(lookup->textname)-1]=0;
 	}
 	lookup->new_search = ISC_TRUE;
 	ISC_LIST_APPEND(lookup_list, lookup, link);
