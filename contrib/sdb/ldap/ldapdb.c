@@ -191,7 +191,7 @@ ldapdb_search(const char *zone, const char *name, void *dbdata, void *retdata)
 	isc_result_t result = ISC_R_NOTFOUND;
 	LDAP **ldp;
 	LDAPMessage *res, *e;
-	char *fltr, *a, **vals, **names;
+	char *fltr, *a, **vals, **names = NULL;
 	char type[64];
 #ifdef RFC1823API
 	void *ptr;
