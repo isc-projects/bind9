@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.32 2001/03/01 00:01:23 gson Exp $ */
+/* $Id: parser.c,v 1.33 2001/03/01 00:08:58 gson Exp $ */
 
 #include <config.h>
 
@@ -34,13 +34,6 @@
 
 #include <isccfg/cfg.h>
 #include <isccfg/log.h>
-
-/*
- * Check for attempts to retrieve nonexistent map clauses.
- */
-#ifndef CFG_CHECK_MAP
-#define CFG_CHECK_MAP 1
-#endif
 
 /* Shorthand */
 #define CAT ISCCFG_LOGCATEGORY_CONFIG
@@ -2280,26 +2273,6 @@ cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj) {
 	REQUIRE(obj != NULL && *obj == NULL);
 
 	map = &mapobj->value.map;
-
-#if CFG_CHECK_MAP
-	{
-		cfg_clausedef_t **clauseset;
-		for (clauseset = map->clausesets;
-		     *clauseset != NULL;
-		     clauseset++) {
-			cfg_clausedef_t *clause;
-			for (clause = *clauseset;
-			     clause->name != NULL;
-			     clause++) {
-				if (strcasecmp(name, clause->name) == 0)
-					goto found;
-			}
-		}
-		INSIST(0);
-	found:  ;
-
-	}
-#endif
 	
 	result = isc_symtab_lookup(map->symtab, name, MAP_SYM, &val);
 	if (result != ISC_R_SUCCESS)
