@@ -1,9 +1,9 @@
 
  904.	[bug]		The server would leak memory if attempting to use
- 			an expired TSIG key. [RT #1406]
+			an expired TSIG key. [RT #1406]
 
  903.	[bug]		dig should not crash when receiving a TCP packet
- 			of length 0.
+			of length 0.
 
  902.	[bug]		The -d option was ignored if both -t and -g were also
 			specified.
@@ -12,7 +12,7 @@
 			literal blocks.
 
  898.	[bug]		"dig" failed to set a nonzero exit status
- 			on UDP query timeout. [RT #1323]
+			on UDP query timeout. [RT #1323]
 
  894.	[bug]		When using the DNSSEC tools, a message intended to warn
 			when the keyboard was being used because of the lack
@@ -66,7 +66,7 @@
 			[RT #1263]
 
  822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
- 			[RT #1248]
+			[RT #1248]
 
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level, causing
@@ -124,24 +124,24 @@
  811.	[bug]		Parentheses were not quoted in zone dumps. [RT #1194]
 
  810.	[bug]		The signer name in SIG records was not properly
- 			downcased when signing/verifying records. [RT #1186]
+			downcased when signing/verifying records. [RT #1186]
 
  807.	[bug]		When setting up TCP connections for incoming zone
 			transfers, the transfer-source port was not
 			ignored like it should be.
 
  804.	[bug]		Attempting to obtain entropy could fail in some
- 			situations.  This would be most common on systems
+			situations.  This would be most common on systems
 			with user-space threads. [RT #1131]
 
  802.	[bug]		DNSSEC key tags were computed incorrectly in almost
- 			all cases. [RT #1146]
+			all cases. [RT #1146]
 
  801.	[bug]		nsupdate should treat lines beginning with ';' as
- 			comments. [RT #1139]
+			comments. [RT #1139]
 
  800.	[bug]		dnssec-signzone produced incorrect statistics for
- 			large zones. [RT #1133]
+			large zones. [RT #1133]
 
  799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
 			glue was also present.
