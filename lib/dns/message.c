@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.131 2000/06/23 20:47:23 mws Exp $ */
+/* $Id: message.c,v 1.131.2.1 2000/06/29 20:54:43 bwelling Exp $ */
 
 /***
  *** Imports
@@ -735,6 +735,25 @@ dns_message_destroy(dns_message_t **msgp) {
 	isc_mempool_destroy(&msg->rdspool);
 	msg->magic = 0;
 	isc_mem_put(msg->mctx, msg, sizeof(dns_message_t));
+}
+
+static isc_result_t
+simple_findname(dns_name_t **foundname, dns_name_t *target,
+	 dns_namelist_t *section)
+{
+	dns_name_t *curr;
+
+	for (curr = ISC_LIST_TAIL(*section) ;
+	     curr != NULL ;
+	     curr = ISC_LIST_PREV(curr, link)) {
+		if (dns_name_equal(curr, target)) {
+			if (foundname != NULL)
+				*foundname = curr;
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
 }
 
 static isc_result_t
@@ -1983,8 +2002,6 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 {
 	dns_name_t *foundname;
 	isc_result_t result;
-	unsigned int attributes;
-	dns_rdatatype_t atype;
 
 	/*
 	 * XXX These requirements are probably too intensive, especially
@@ -2004,24 +2021,39 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 			REQUIRE(*rdataset == NULL);
 	}
 
-	/*
-	 * Figure out what attributes we should look for.
-	 */
-	if (type == dns_rdatatype_sig)
-		atype = covers;
-	else
-		atype = type;
-	attributes = 0;
-	if (atype == dns_rdatatype_cname)
-		attributes = DNS_NAMEATTR_CNAME;
-	else if (atype == dns_rdatatype_cname)
-		attributes = DNS_NAMEATTR_DNAME;
-	
-	/*
-	 * Search through, looking for the name.
-	 */
-	result = findname(&foundname, target, attributes,
-			  &msg->sections[section]);
+	if (msg->from_to_wire == DNS_MESSAGE_INTENTPARSE) {
+		dns_rdatatype_t atype;
+		unsigned int attributes;
+		
+		/*
+		 * Figure out what attributes we should look for.
+		 */
+		if (type == dns_rdatatype_sig)
+			atype = covers;
+		else
+			atype = type;
+		attributes = 0;
+		if (atype == dns_rdatatype_cname)
+			attributes = DNS_NAMEATTR_CNAME;
+		else if (atype == dns_rdatatype_cname)
+			attributes = DNS_NAMEATTR_DNAME;
+
+		/*
+		 * Search through, looking for the name.
+		 */
+		result = findname(&foundname, target, attributes,
+				  &msg->sections[section]);
+	} else {
+		/*
+		 * The message was not built by dns_message_parse()
+		 * and therefore does not have CNAMEs and DNAMEs
+		 * as separate names, and no DNS_NAMEATTR_CNAME
+		 * and DNS_NAMEATTR_DNAME attributes are maintained.
+		 * Therefore, we should not compare attributes.
+		 */
+		result = simple_findname(&foundname, target,
+					 &msg->sections[section]);
+	}
 	if (result == ISC_R_NOTFOUND)
 		return (DNS_R_NXDOMAIN);
 	else if (result != ISC_R_SUCCESS)
