@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.22.2.2 2002/08/05 06:57:07 marka Exp $ */
+/* $Id: lwtest.c,v 1.22.2.3 2003/05/19 05:46:25 marka Exp $ */
 
 #include <config.h>
 
@@ -757,12 +757,21 @@ main(void) {
 	test_getnameinfo("1122:3344:5566:7788:99aa:bbcc:ddee:ff00",
 			 AF_INET6, "dname.example1");
 
+#ifdef ISC_RFC_2535
 	test_getrrsetbyname("a", 1, 1, 1, 0, 1);
 	test_getrrsetbyname("a.example1.", 1, 1, 1, 0, 1);
 	test_getrrsetbyname("e.example1.", 1, 1, 1, 1, 1);
 	test_getrrsetbyname("e.example1.", 1, 255, 1, 1, 0);
 	test_getrrsetbyname("e.example1.", 1, 24, 1, 0, 1);
 	test_getrrsetbyname("", 1, 1, 0, 0, 0);
+#else
+	test_getrrsetbyname("a", 1, 1, 1, 0, 1);
+	test_getrrsetbyname("a.example1.", 1, 1, 1, 0, 1);
+	test_getrrsetbyname("e.example1.", 1, 1, 1, 0, 1);
+	test_getrrsetbyname("e.example1.", 1, 255, 1, 0, 0);
+	/* test_getrrsetbyname("e.example1.", 1, 24, 1, 0, 1); */
+	test_getrrsetbyname("", 1, 1, 0, 0, 0);
+#endif
 
 	if (fails == 0)
 		printf("I:ok\n");
