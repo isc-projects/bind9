@@ -272,7 +272,6 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	INSIST(client->naccepts == 0);
 	INSIST(client->nreads == 0);
 	INSIST(client->nsends == 0);
-	INSIST(client->nwaiting == 0);
 	INSIST(client->lockview == NULL);
 
 	if (client->next != NULL) {
