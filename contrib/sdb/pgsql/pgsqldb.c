@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.7 2000/11/20 19:50:00 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.8 2000/11/20 19:56:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,9 @@ struct dbinfo {
 static void
 quotestring(const char *source, char *dest) {
 	while (*source != 0) {
-		if (*source == '\\' || *source == '\'')
+		if (*source == '\'')
+			*dest++ = '\'';
+		else if (*source == '\\')
 			*dest++ = '\\';
 		*dest++ = *source++;
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.6 2000/11/20 19:34:13 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.7 2000/11/20 19:56:12 bwelling Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -70,7 +70,9 @@ check_result(isc_result_t result, const char *message) {
 static void
 quotestring(const char *source, char *dest) {
 	while (*source != 0) {
-		if (*source == '\\' || *source == '\'')
+		if (*source == '\'')
+			*dest++ = '\'';
+		else if (*source == '\\')
 			*dest++ = '\\';
 		*dest++ = *source++;
 	}
