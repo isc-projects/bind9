@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70 2001/08/08 20:52:34 gson Exp $ */
+/* $Id: parser.c,v 1.70.2.1 2001/09/04 19:15:34 gson Exp $ */
 
 #include <config.h>
 
@@ -454,6 +454,7 @@ static cfg_type_t cfg_type_void;
 static cfg_type_t cfg_type_optional_class;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_size;
+static cfg_type_t cfg_type_sizenodefault;
 static cfg_type_t cfg_type_negated;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_unsupported;
@@ -885,11 +886,7 @@ view_clauses[] = {
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_ustring, 0 },
-	/*
-	 * XXX "default" should not be accepted as a size in
-	 * max-cache-size.
-	 */
-	{ "max-cache-size", &cfg_type_size, 0 },
+	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
@@ -1684,13 +1681,23 @@ static cfg_type_t cfg_type_sizeval = {
  * A size, "unlimited", or "default".
  */
 
-static const char *size_enums[] = { "unlimited", "default", NULL };
 static isc_result_t
 parse_size(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval, ret));
 }
+
+static const char *size_enums[] = { "unlimited", "default", NULL };
 static cfg_type_t cfg_type_size = {
 	"size", parse_size, print_ustring, &cfg_rep_string, size_enums
+};
+
+/*
+ * A size or "unlimited", but not "default".
+ */
+static const char *sizenodefault_enums[] = { "unlimited", NULL };
+static cfg_type_t cfg_type_sizenodefault = {
+	"size_no_default", parse_size, print_ustring, &cfg_rep_string,
+	sizenodefault_enums
 };
 
 /*

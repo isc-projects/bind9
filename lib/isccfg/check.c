@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14 2001/08/03 17:24:10 gson Exp $ */
+/* $Id: check.c,v 1.14.2.1 2001/09/04 19:15:36 gson Exp $ */
 
 #include <config.h>
 
@@ -456,23 +456,6 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'cache-file' cannot be a global "
 				    "option if views are present");
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	if (options != NULL) {
-		/*
-		 * Check that max-cache-size does not have the illegal value
-		 * 'default'.
-		 */
-		obj = NULL;
-		tresult = cfg_map_get(options, "max-cache-size", &obj);
-		if (tresult == ISC_R_SUCCESS &&
-		    cfg_obj_isstring(obj))
-		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'max-cache-size' cannot have the "
-				    "value 'default'");
 			result = ISC_R_FAILURE;
 		}
 	}
