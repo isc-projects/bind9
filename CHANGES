@@ -1,16 +1,22 @@
+1619.	[bug]		Missing ISC_LIST_UNLINK in end_reserved_dispatches().
+			[RT# 11118]
+
 1618.	[bug]		Fencepost errors in dns_name_ishostname() and
 			dns_name_ismailbox() could trigger a INSIST().
 
 1617.	[port]		win32: VC++ 6.0 support.
 
-1616.	[placeholder]	rt11127
+1616.	[compat]	Ensure that named's version is visible in the core
+			dump. [RT #11127]
 
 1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if
 			it is defined.
 
 1614.	[port]		win32: silence resource limit messages. [RT# 11101]
 
-1613.	[placeholder]	rt11119
+1613.	[bug]		Builds would fail on machines w/o a if_nametoindex().
+			Missing #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX/#endif.
+			[RT #11119]
 
 1612.	[placeholder]	rt11116
 
