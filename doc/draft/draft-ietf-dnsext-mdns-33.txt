@@ -7,8 +7,8 @@
 DNSEXT Working Group                                        Levon Esibov
 INTERNET-DRAFT                                             Bernard Aboba
 Category: Standards Track                                    Dave Thaler
-<draft-ietf-dnsext-mdns-32.txt>                                Microsoft
-25 June 2004
+<draft-ietf-dnsext-mdns-33.txt>                                Microsoft
+18 July 2004
 
 
               Linklocal Multicast Name Resolution (LLMNR)
@@ -16,28 +16,29 @@ Category: Standards Track                                    Dave Thaler
    By submitting this Internet-Draft, I certify that any applicable
    patent or other IPR claims of which I am aware have been disclosed,
    and any of which I become aware will be disclosed, in accordance with
-   RFC 3667.
+   RFC 3668.
 
    Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups. Note that other
-   groups may also distribute working documents as Internet-Drafts.
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time. It is inappropriate to use Internet-Drafts as reference
+   time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   The list of current Internet-Drafts can be accessed at http://
-   www.ietf.org/ietf/1id-abstracts.txt.
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
 
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on November 22, 2004.
+   This Internet-Draft will expire on January 2, 2005.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
+   Copyright (C) The Internet Society 2004.  All rights reserved.
 
 Abstract
 
@@ -54,14 +55,13 @@ Abstract
 
 
 
-
 Esibov, Aboba & Thaler       Standards Track                    [Page 1]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 Table of Contents
@@ -96,8 +96,8 @@ Table of Contents
 Acknowledgments ..............................................   24
 Authors' Addresses ...........................................   25
 Intellectual Property Statement ..............................   25
+Disclaimer of Validity .......................................   26
 Full Copyright Statement .....................................   26
-
 
 
 
@@ -121,7 +121,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 2]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 1.  Introduction
@@ -181,7 +181,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 3]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 1.1.  Requirements
@@ -241,7 +241,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 4]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    This may occur via any mechanism, including DHCPv4 [RFC2131] or
@@ -301,7 +301,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 5]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 2.1.  LLMNR packet format
@@ -361,7 +361,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 6]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
      LLMNR senders and responders MUST support standard queries (opcode
@@ -421,7 +421,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 7]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
      question section of an LLMNR query.  LLMNR responders MUST silently
@@ -481,7 +481,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 8]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    responder has another RR as well;  the SOA RR MUST NOT be the only RR
@@ -541,7 +541,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 9]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 [e]  Responders MUST NOT respond using cached data.
@@ -601,7 +601,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 10]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    significantly complicates implementation of LLMNR and would not be
@@ -661,7 +661,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 11]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    Section 2.4 discusses use of TCP for LLMNR queries and responses.  In
@@ -721,7 +721,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 12]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 2.7.  Retransmission and jitter
@@ -781,7 +781,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 13]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    Due to the TTL minimalization necessary when caching an RRset, all
@@ -841,7 +841,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 14]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    round trip estimates, with exponential backoff.  [RFC1536] Section 4
@@ -901,7 +901,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 15]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    IPv4 hosts can be resolved over IPv4 without LLMNR.  However,  if no
@@ -961,7 +961,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 16]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    There are some scenarios when multiple responders MAY respond to the
@@ -1021,7 +1021,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 17]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    it MUST check whether the response arrived on an interface different
@@ -1081,7 +1081,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 18]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    multiple interfaces, and receives replies from more than one, the
@@ -1141,7 +1141,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 19]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    of both hosts responding to the name 'A'.  Link-local addresses will
@@ -1201,7 +1201,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 20]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    possible for an attacker to spoof a response to a frequent query
@@ -1261,7 +1261,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 21]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
    eliminating the benefits of cache separation. As a result, LLMNR is
@@ -1321,7 +1321,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 22]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
@@ -1381,7 +1381,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 23]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 [RFC2937] Smith, C., "The Name Service Search Option for DHCP", RFC
@@ -1441,7 +1441,7 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 24]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
 Authors' Addresses
@@ -1478,7 +1478,7 @@ Intellectual Property Statement
    might or might not be available; neither does it represent that it
    has made any effort to identify any such rights.  Information on the
    IETF's procedures with respect to rights in standards-track and
-   standards- related documentation can be found in BCP-11.  Copies of
+   standards-related documentation can be found in BCP-11.  Copies of
    claims of rights made available for publication and any assurances of
    licenses to be made available, or the result of an attempt made to
    obtain a general license or permission for the use of such
@@ -1501,33 +1501,24 @@ Esibov, Aboba & Thaler       Standards Track                   [Page 25]
 
 
 
-INTERNET-DRAFT                    LLMNR                     25 June 2004
+INTERNET-DRAFT                    LLMNR                     18 July 2004
 
 
-Full Copyright Statement
+Disclaimer of Validity
 
-   Copyright (C) The Internet Society (2004).  All Rights Reserved.
-
-   This document and translations of it may be copied and furnished to
-   others, and derivative works that comment on or otherwise explain it
-   or assist in its implementation may be prepared, copied, published
-   and distributed, in whole or in part, without restriction of any
-   kind, provided that the above copyright notice and this paragraph are
-   included on all such copies and derivative works.  However, this
-   document itself may not be modified in any way, such as by removing
-   the copyright notice or references to the Internet Society or other
-   Internet organizations, except as needed for the purpose of
-   developing Internet standards in which case the procedures for
-   copyrights defined in the Internet Standards process must be
-   followed, or as required to translate it into languages other than
-   English.  The limited permissions granted above are perpetual and
-   will not be revoked by the Internet Society or its successors or
-   assigns.  This document and the information contained herein is
-   provided on an "AS IS" basis and THE INTERNET SOCIETY AND THE
-   INTERNET ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF
-   THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   This document and the information contained herein are provided on an
+   "AS IS" basis and THE CONTRIBUTOR, THE ORGANIZATION HE/SHE REPRESENTS
+   OR IS SPONSORED BY (IF ANY), THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
    WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Copyright Statement
+
+   Copyright (C) The Internet Society (2004).  This document is subject
+   to the rights, licenses and restrictions contained in BCP 78, and
+   except as set forth therein, the authors retain all their rights.
 
 Open Issues
 
@@ -1536,10 +1527,19 @@ Open Issues
 
    http://www.drizzle.com/~aboba/DNSEXT/llmnrissues.html
 
-Expiration Date
 
-   This memo is filed as <draft-ietf-dnsext-mdns-32.txt>,  and  expires
-   December 22, 2004.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
