@@ -130,6 +130,7 @@ main(int argc, char *argv[]) {
 		       dns_result_totext(result));
 		exit(1);
 	}
+	printf("loaded\n");
 
 	while (gets(s) != NULL) {
 		dns_name_init(&name, offsets);
