@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.6 2003/05/12 05:29:23 marka Exp $ */
+/* $Id: log.c,v 1.70.2.7 2003/05/20 07:35:49 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -36,6 +36,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
+#include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>
