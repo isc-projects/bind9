@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.86 2001/03/29 23:51:36 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.87 2001/03/30 00:38:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -807,14 +807,14 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			region.length = strlen(word);
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "invalid type: %s\n");
+				fprintf(stderr, "invalid type: %s\n", word);
 				goto failure;
 			}
 		} else {
 			rdataclass = dns_rdataclass_in;
 			result = dns_rdatatype_fromtext(&rdatatype, &region);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "invalid type: %s\n");
+				fprintf(stderr, "invalid type: %s\n", word);
 				goto failure;
 			}
 		}
