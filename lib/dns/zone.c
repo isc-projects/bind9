@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.9 2000/08/31 16:40:19 gson Exp $ */
+/* $Id: zone.c,v 1.152.2.10 2000/09/07 16:55:33 gson Exp $ */
 
 #include <config.h>
 
@@ -3004,7 +3004,7 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &message);
 	if (result != ISC_R_SUCCESS)
-		goto fail;
+		return (result);
 
 	message->opcode = dns_opcode_notify;
 	message->flags |= DNS_MESSAGEFLAG_AA;
@@ -3040,23 +3040,23 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 
 	result = dns_message_gettempname(message, &tempname);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	result = dns_message_gettemprdata(message, &temprdata);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	result = dns_message_gettemprdataset(message, &temprdataset);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	result = dns_message_gettemprdatalist(message, &temprdatalist);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 
 	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
 	dns_db_currentversion(zone->db, &version);
         result = dns_db_findnode(zone->db, tempname, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(zone->db, node, version,
@@ -3064,16 +3064,16 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 				     dns_rdatatype_none, 0, &rdataset,
 				     NULL);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	result = dns_rdataset_first(&rdataset);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	dns_rdata_init(&rdata);
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdata_toregion(&rdata, &r);
 	result = isc_buffer_allocate(zone->mctx, &b, r.length);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 	isc_buffer_putmem(b, r.base, r.length);
 	isc_buffer_usedregion(b, &r);
 	dns_rdata_init(temprdata);
@@ -3082,7 +3082,7 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	result = dns_rdataset_next(&rdataset);
 	dns_rdataset_disassociate(&rdataset);
 	if (result != ISC_R_NOMORE)
-		goto done;
+		goto soa_cleanup;
 	temprdatalist->rdclass = rdata.rdclass;
 	temprdatalist->type = rdata.type;
 	temprdatalist->covers = 0;
@@ -3093,7 +3093,7 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	dns_rdataset_init(temprdataset);
 	result = dns_rdatalist_tordataset(temprdatalist, temprdataset);
 	if (result != ISC_R_SUCCESS)
-		goto done;
+		goto soa_cleanup;
 
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
 	dns_message_addname(message, tempname, DNS_SECTION_ANSWER);
@@ -3102,12 +3102,7 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	temprdata = NULL;
 	tempname = NULL;
 
- done:
-	*messagep = message;
-	message = NULL;
-	result = ISC_R_SUCCESS;
-
- cleanup:
+ soa_cleanup:
 	if (node != NULL)
 		dns_db_detachnode(zone->db, &node);
 	if (version != NULL)
@@ -3120,10 +3115,18 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 		dns_message_puttemprdataset(message, &temprdataset);
 	if (temprdatalist != NULL)
 		dns_message_puttemprdatalist(message, &temprdatalist);
+
+ done:
+	*messagep = message;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (tempname != NULL)
+		dns_message_puttempname(message, &tempname);
+	if (temprdataset != NULL)
+		dns_message_puttemprdataset(message, &temprdataset);
 	if (message != NULL)
 		dns_message_destroy(&message);
-
- fail:
 	return (result);
 }
 
