@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.8 2002/07/19 02:34:57 marka Exp $ */
+/* $Id: check-tool.c,v 1.9 2004/01/07 05:27:17 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/region.h>
+#include <isc/stdio.h>
 #include <isc/types.h>
 
 #include <dns/fixedname.h>
@@ -122,5 +123,37 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
  cleanup:
 	if (zone != NULL)
 		dns_zone_detach(&zone);
+	return (result);
+}
+
+isc_result_t
+dump_zone(const char *zonename, dns_zone_t *zone, const char *filename)
+{
+	isc_result_t result;
+	FILE *output = stdout;
+
+	if (debug) {
+		if (filename != NULL)
+			fprintf(stderr, "dumping \"%s\" to \"%s\"\n",
+				zonename, filename);
+		else
+			fprintf(stderr, "dumping \"%s\"\n", zonename);
+	}
+
+	if (filename != NULL) {
+		result = isc_stdio_open(filename, "w+", &output);
+
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "could not open output "
+				"file \"%s\" for writing\n", filename);
+			return (ISC_R_FAILURE);
+		}
+	}
+
+	result = dns_zone_fulldumptostream(zone, output);
+
+	if (filename != NULL)
+		(void)isc_stdio_close(output);
+
 	return (result);
 }

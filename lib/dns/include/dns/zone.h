@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.123 2003/02/26 23:28:59 marka Exp $ */
+/* $Id: zone.h,v 1.124 2004/01/07 05:27:17 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -384,6 +384,17 @@ isc_result_t
 dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
 /*
  *	Write the zone to stream 'fd'.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'fd' to be a stream open for writing.
+ */
+
+isc_result_t
+dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd);
+/*
+ *	The same as dns_zone_dumptostream, but dumps the zone with
+ *	different dump settings (dns_master_style_full).
  *
  * Require:
  *	'zone' to be a valid zone.

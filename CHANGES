@@ -1,3 +1,6 @@
+1549.	[func]		named-checkzone can now write out the zone contents
+			in a easily parsable format (-D and -o).
+
 1548.	[bug]		When parsing APL records it was possible to silently
 			accept out of range ADDRESSFAMILY values. [RT# 9979]
 

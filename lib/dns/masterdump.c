@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.71 2003/10/26 21:33:47 marka Exp $ */
+/* $Id: masterdump.c,v 1.72 2004/01/07 05:27:17 marka Exp $ */
 
 #include <config.h>
 
@@ -98,6 +98,12 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_MULTILINE,
 	24, 24, 24, 32, 80, 8
+};
+
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
+dns_master_style_full = {
+	DNS_STYLEFLAG_COMMENT,
+	46, 46, 46, 64, 120, 8
 };
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.26 2003/10/17 03:46:41 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.27 2004/01/07 05:27:17 marka Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,8 @@ static int quiet = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_master;
+static int dumpzone = 0;
+static const char *output_filename;
 
 #define ERRRET(result, function) \
 	do { \
@@ -60,8 +62,8 @@ dns_zonetype_t zonetype = dns_zone_master;
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named-checkzone [-djqv] [-c class] [-t directory] "
-		"[-w directory] zonename filename\n");
+		"usage: named-checkzone [-djqvD] [-c class] [-o output] "
+		"[-t directory] [-w directory] zonename filename\n");
 	exit(1);
 }
 
@@ -82,7 +84,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dijn:qst:vw:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dijn:qst:o:vw:D")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -128,12 +130,20 @@ main(int argc, char **argv) {
 			}
 			break;
 
+		case 'o':
+			output_filename = isc_commandline_argument;
+			break;
+
 		case 'v':
 			printf(VERSION "\n");
 			exit(0);
 
 		case 'w':
 			workdir = isc_commandline_argument;
+			break;
+
+		case 'D':
+			dumpzone++;
 			break;
 
 		default:
@@ -165,6 +175,11 @@ main(int argc, char **argv) {
 	origin = argv[isc_commandline_index++];
 	filename = argv[isc_commandline_index++];
 	result = load_zone(mctx, origin, filename, classname, &zone);
+
+	if (result == ISC_R_SUCCESS && dumpzone) {
+		result = dump_zone(origin, zone, output_filename);
+	}
+
 	if (!quiet && result == ISC_R_SUCCESS)
 		fprintf(stdout, "OK\n");
 	destroy();

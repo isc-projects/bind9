@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.28 2002/05/21 06:12:45 marka Exp $ */
+/* $Id: masterdump.h,v 1.29 2004/01/07 05:27:17 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -109,6 +109,12 @@ ISC_LANG_BEGINDECLS
  * rrset in the file and shares a tab stop with the RR type.
  */
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_default;
+
+/*
+ * A master file style that dumps zones to a very generic format easily
+ * imported/checked with external tools.
+ */
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_full;
 
 /*
  * A master file style that prints explicit TTL values on each 
