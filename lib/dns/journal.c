@@ -43,6 +43,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/journal.h>
 
 /*
@@ -780,7 +781,7 @@ struct dns_journal {
 	unsigned int		magic;		/* JOUR */
 	isc_mem_t		*mctx;		/* Memory context */
 	journal_state_t		state;
-	char 			*filename;	/* Journal file name */
+	const char 		*filename;	/* Journal file name */
 	FILE *			fp;		/* File handle */
 	off_t			offset;		/* Current file offset */
 	journal_header_t 	header;		/* In-core journal header */
@@ -973,7 +974,7 @@ journal_read_rrhdr(dns_journal_t *j, journal_rrhdr_t *rrhdr) {
 }
 
 static dns_result_t
-journal_file_create(isc_mem_t *mctx, char *filename) {
+journal_file_create(isc_mem_t *mctx, const char *filename) {
 	FILE *fp;
 	int r;
 	size_t nwritten;
@@ -1035,7 +1036,7 @@ journal_file_create(isc_mem_t *mctx, char *filename) {
 				    
 
 dns_result_t
-dns_journal_open(isc_mem_t *mctx, char *filename, isc_boolean_t write,
+dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp) {
 	FILE *fp;
 	dns_result_t result;
@@ -1761,7 +1762,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 }
 
 dns_result_t
-dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, char *filename) {
+dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	dns_journal_t *j;
 	dns_result_t result;
 
@@ -1997,4 +1998,259 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
 	*name = &j->it.name;
 	*ttl = j->it.ttl;
 	*rdata = &j->it.rdata;
+}
+
+/**************************************************************************/
+/*
+ * Generating diffs from databases
+ */
+
+/*
+ * Construct a diff containing all the RRs at the current name of the
+ * database iterator 'dbit' in database 'db', version 'ver'.
+ * Set '*name' to the current name, and append the diff to 'diff'.
+ * All new tuples will have the operation 'op'.
+ *
+ * Requires: 'name' must have buffer large enough to hold the name.
+ * Typically, a dns_fixedname_t would be used.
+ */
+static dns_result_t
+get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
+	      dns_dbiterator_t *dbit, dns_name_t *name, dns_diffop_t op,
+	      dns_diff_t *diff)
+{
+	dns_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdatasetiter_t *rdsiter = NULL;
+	dns_difftuple_t *tuple = NULL;
+
+	result = dns_dbiterator_current(dbit, &node, name);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	
+	result = dns_db_allrdatasets(db, node, ver, now, &rdsiter);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup_node;
+
+	for (result = dns_rdatasetiter_first(rdsiter);
+	     result == DNS_R_SUCCESS;
+	     result = dns_rdatasetiter_next(rdsiter))
+	{
+		dns_rdataset_t rdataset;
+
+		dns_rdataset_init(&rdataset);
+		dns_rdatasetiter_current(rdsiter, &rdataset);
+
+		for (result = dns_rdataset_first(&rdataset);
+		     result == DNS_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdata_t rdata;
+			dns_rdataset_current(&rdataset, &rdata);
+			result = dns_difftuple_create(diff->mctx, op, name,
+						      rdataset.ttl, &rdata,
+						      &tuple);
+			if (result != DNS_R_SUCCESS) {
+				dns_rdataset_disassociate(&rdataset);
+				goto cleanup_iterator;
+			}
+			dns_diff_append(diff, &tuple);
+		}
+		dns_rdataset_disassociate(&rdataset);
+		if (result != DNS_R_NOMORE)
+			goto cleanup_iterator;
+	}
+	if (result != DNS_R_NOMORE)
+		goto cleanup_iterator;
+	
+	result = DNS_R_SUCCESS;
+
+ cleanup_iterator:
+	dns_rdatasetiter_destroy(&rdsiter);
+
+ cleanup_node:
+	dns_db_detachnode(db, &node);
+
+	return (result);
+}
+
+/*
+ * Comparison function for use by dns_diff_subtract when sorting
+ * the diffs to be subtracted.  The sort keys are the rdata type
+ * and the rdata itself.  The owner name is ignored, because
+ * it is known to be the same for all tuples.
+ */
+static int
+rdata_order(const void *av, const void *bv)
+{
+	dns_difftuple_t * const *ap = av;
+	dns_difftuple_t * const *bp = bv;
+	dns_difftuple_t *a = *ap;
+	dns_difftuple_t *b = *bp;
+	int r;
+	r = (b->rdata.type - a->rdata.type);
+	if (r != 0)
+		return (r);
+	r = dns_rdata_compare(&a->rdata, &b->rdata);
+	return (r);
+}
+
+static dns_result_t
+dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r)
+{
+	dns_result_t result;
+	dns_difftuple_t *p[2];
+	int i, t;
+	CHECK(dns_diff_sort(&diff[0], rdata_order));
+	CHECK(dns_diff_sort(&diff[1], rdata_order));
+
+	for (;;) {
+		p[0] = ISC_LIST_HEAD(diff[0].tuples);
+		p[1] = ISC_LIST_HEAD(diff[1].tuples);
+		if (p[0] == NULL && p[1] == NULL)
+			break;
+		
+		for (i = 0; i < 2; i++)
+			if (p[!i] == NULL) {
+				ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
+				ISC_LIST_APPEND(r->tuples, p[i], link);
+				goto next;
+			}
+		t = rdata_order(&p[0], &p[1]);
+		if (t < 0) {
+			ISC_LIST_UNLINK(diff[0].tuples, p[0], link);
+			ISC_LIST_APPEND(r->tuples, p[0], link);
+			goto next;
+		}
+		if (t > 0) {
+			ISC_LIST_UNLINK(diff[1].tuples, p[1], link);
+			ISC_LIST_APPEND(r->tuples, p[1], link);
+			goto next;
+		}
+		INSIST(t == 0);
+		/* Identical RRs in both databases; skip them both. */
+		for (i = 0; i < 2; i++) {
+			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
+			dns_difftuple_free(&p[i]);
+		}
+	next: ;
+	}
+	result = ISC_R_SUCCESS;
+ failure:
+	return (result);
+}
+
+/*
+ * Compare the databases 'dba' and 'dbb' and generate a journal
+ * entry containing the changes to make 'dba' from 'dbb' (note
+ * the order).  This journal entry will consist of a single,
+ * possibly very large transaction.
+ */
+
+dns_result_t
+dns_db_diff(isc_mem_t *mctx,
+	    dns_db_t *dba, dns_dbversion_t *dbvera,
+	    dns_db_t *dbb, dns_dbversion_t *dbverb,
+	    const char *journal_filename)
+{
+	dns_db_t *db[2];
+	dns_dbversion_t *ver[2];
+	dns_dbiterator_t *dbit[2] = { NULL, NULL };
+	isc_boolean_t have[2] = { ISC_FALSE, ISC_FALSE };
+	dns_fixedname_t fixname[2];
+	dns_result_t result, itresult[2];
+	dns_diff_t diff[2], resultdiff;
+	int i, t;
+	dns_journal_t *journal = NULL;
+
+	db[0] = dba, db[1] = dbb;
+	ver[0] = dbvera, ver[1] = dbverb;
+	
+	dns_diff_init(mctx, &diff[0]);
+	dns_diff_init(mctx, &diff[1]);
+	dns_diff_init(mctx, &resultdiff);
+	
+	dns_fixedname_init(&fixname[0]);
+	dns_fixedname_init(&fixname[1]);
+
+	CHECK(dns_journal_open(mctx, journal_filename, ISC_TRUE, &journal));
+
+	CHECK(dns_db_createiterator(db[0], ISC_FALSE, &dbit[0]));
+	CHECK(dns_db_createiterator(db[1], ISC_FALSE, &dbit[1]));
+
+	itresult[0] = dns_dbiterator_first(dbit[0]);
+	itresult[1] = dns_dbiterator_first(dbit[1]);
+
+	for (;;) {
+		for (i = 0; i < 2; i++) {
+			if (! have[i] && itresult[i] == DNS_R_SUCCESS) {
+				CHECK(get_name_diff(db[i], ver[i], 0, dbit[i],
+					    dns_fixedname_name(&fixname[i]),
+					    i == 0 ?
+					    DNS_DIFFOP_ADD :
+					    DNS_DIFFOP_DEL,
+					    &diff[i]));
+				itresult[i] = dns_dbiterator_next(dbit[i]);
+				have[i] = ISC_TRUE;
+			}
+		}
+		
+		if (! have[0] && ! have[1]) {
+			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
+			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
+			break;
+		}
+
+		for (i = 0; i < 2; i++) {
+			if (! have[!i]) {
+				ISC_LIST_APPENDLIST(resultdiff.tuples,
+						    diff[i].tuples, link);
+				INSIST(ISC_LIST_EMPTY(diff[i].tuples));
+				have[i] = ISC_FALSE;
+				goto next;
+			}
+		}
+		
+		t = dns_name_compare(dns_fixedname_name(&fixname[0]),
+				     dns_fixedname_name(&fixname[1]));
+		if (t < 0) {
+			ISC_LIST_APPENDLIST(resultdiff.tuples,
+					    diff[0].tuples, link);
+			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
+			have[0] = ISC_FALSE;
+			continue;
+		}
+		if (t > 0) {
+			ISC_LIST_APPENDLIST(resultdiff.tuples,
+					    diff[1].tuples, link);
+			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
+			have[1] = ISC_FALSE;
+			continue;
+		}
+		INSIST(t == 0);
+		CHECK(dns_diff_subtract(diff, &resultdiff));
+		INSIST(ISC_LIST_EMPTY(diff[0].tuples));
+		INSIST(ISC_LIST_EMPTY(diff[1].tuples));
+		have[0] = have[1] = ISC_FALSE;
+	next: ;
+	}
+	if (itresult[0] != DNS_R_NOMORE)
+		FAIL(itresult[0]);
+	if (itresult[1] != DNS_R_NOMORE)
+		FAIL(itresult[1]);
+
+	if (ISC_LIST_EMPTY(resultdiff.tuples)) {
+		printf("no changes\n");
+	} else {
+		CHECK(dns_journal_write_transaction(journal, &resultdiff));
+	}
+	INSIST(ISC_LIST_EMPTY(diff[0].tuples));
+	INSIST(ISC_LIST_EMPTY(diff[1].tuples));
+	dns_diff_clear(&resultdiff);
+	
+ failure:
+	dns_dbiterator_destroy(&dbit[0]);
+	dns_dbiterator_destroy(&dbit[1]);
+	dns_journal_destroy(&journal);
+	return (result);
 }

@@ -318,7 +318,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
  */
 
 dns_result_t
-dns_journal_open(isc_mem_t *mctx, char *filename, isc_boolean_t write,
+dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		 dns_journal_t **journalp);
 /*
  * Open the journal file 'filename' and create a dns_journal_t object for it.
@@ -446,7 +446,7 @@ void dns_journal_current_rr(dns_journal_t *j, dns_name_t **name,
  */
 
 dns_result_t
-dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, char *filename);
+dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
 /*
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
@@ -459,6 +459,20 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, char *filename);
  *      'filename' is the name of the journal file belonging to 'db'.
  * 
  */
+
+
+dns_result_t
+dns_db_diff(isc_mem_t *mctx,
+	    dns_db_t *dba, dns_dbversion_t *dbvera,
+	    dns_db_t *dbb, dns_dbversion_t *dbverb,
+	    const char *journal_filename);
+/*
+ * Compare the databases 'dba' and 'dbb' and generate a journal
+ * entry containing the changes to make 'dba' from 'dbb' (note
+ * the order).  This journal entry will consist of a single,
+ * possibly very large transaction.  Append the journal
+ * entry to the journal file specified by 'journal_filename'.
+ */ 
 
 
 ISC_LANG_ENDDECLS
