@@ -1,3 +1,6 @@
+
+	--- 9.3.0beta2 released ---
+
 1609.	[func]		dig now has support to chase DNSSEC signature chains.
 			Requires -DDIG_SIGCHASE=1 to be set in STD_CDEFINES.
 
