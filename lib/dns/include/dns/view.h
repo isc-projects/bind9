@@ -83,7 +83,8 @@ struct dns_view {
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
-	dns_rbt_t *			secroots;
+	dns_keytable_t *		secroots;
+	dns_keytable_t *		trustedkeys;
 	isc_mutex_t			lock;
 	isc_rwlock_t			conflock;
 	isc_boolean_t			frozen;
