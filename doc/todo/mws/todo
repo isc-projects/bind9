@@ -7,7 +7,7 @@ Statistics, from Sam's code, as well as my own.
 Check text strings for host and nslookup output of various types.
 
 dig, isolate -x/host/nslookup ip->in-addr auto-detection and conversion
-into dighost.c
+into dighost.c					[COMPLETED]
 
 nsupdate code check and cleanup.  Make sure prereq, etc... work.
 
