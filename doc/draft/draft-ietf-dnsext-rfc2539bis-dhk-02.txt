@@ -2,14 +2,14 @@
 INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 OBSOLETES: RFC 2539                                  Donald Eastlake 3rd
                                                                 Motorola
-Expires: May 2002                                          November 2001
+Expires: November 2002                                          May 2002
 
 
 
 
      Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
      ------- -- -------------- ---- -- --- ------ ---- ------ -----
-               <draft-ietf-dnsext-rfc2539bis-dhk-01.txt>
+               <draft-ietf-dnsext-rfc2539bis-dhk-02.txt>
 
                          Donald E. Eastlake 3rd
 
@@ -181,8 +181,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    The Domain Name System (DNS) is the global hierarchical replicated
    distributed database system for Internet addressing, mail proxy, and
    similar information. The DNS has been extended to include digital
-   signatures and cryptographic keys as described in [RFC 2535].  Thus
-   the DNS can now be secured and used for key distribution.
+   signatures and cryptographic keys as described in [RFC 2535].
 
 
 
@@ -214,7 +213,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
         Zj = X**j ( mod p )
 
-   Zi and Zj will both be equal to g**(ij)(mod p) and will be a shared
+   Zi and Zj will both be equal to g**(i*j)(mod p) and will be a shared
    secret between the two parties that an adversary who does not know i
    or j will not be able to learn from the exchanged messages (unless
    the adversary can derive i or j by performing a discrete logarithm
@@ -226,6 +225,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
    For further information about Diffie-Hellman and precautions to take
    in deciding on a p and g, see [RFC 2631].
+
 
 
 D. Eastlake 3rd                                                 [Page 4]
@@ -330,7 +330,7 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    obtainment or independent verification conform to security policies
    acceptable to the user.  As with all cryptographic algorithms,
    evaluating the necessary strength of the key is important and
-   dependent on local policy.
+   dependent on security policy.
 
    In addition, the usual Diffie-Hellman key strength considerations
    apply. (p-1)/2 should also be prime, g should be primitive mod p, p
@@ -374,7 +374,8 @@ References
    1999.
 
    [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
-   Algorithms, and Source Code in C", 1996, John Wiley and Sons.
+   Algorithms, and Source Code in C" (Second Edition), 1996, John Wiley
+   and Sons.
 
 
 
@@ -386,19 +387,18 @@ Author's Address
    155 Beaver Street
    Milford, MA 01757 USA
 
-   Telephone:   +1-508-261-5434 (w)
+   Telephone:   +1-508-851-8280 (w)
                 +1-508-634-2066 (h)
-   FAX:         +1-508-261-4447 (w)
+   FAX:         +1-508-851-8507 (w)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in May 2002.
+   This draft expires in November 2002.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-01.txt.
-
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-02.txt.
 
 
 

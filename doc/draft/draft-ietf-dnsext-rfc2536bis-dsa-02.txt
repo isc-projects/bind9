@@ -1,11 +1,9 @@
 
 
-
-
 INTERNET-DRAFT                              DSA KEYs and SIGs in the DNS
 OBSOLETES: RFC 2536                                  Donald Eastlake 3rd
                                                                 Motorola
-Expires: May 2002                                          November 2001
+Expires: November 2002                                          May 2002
 
 
 
@@ -13,7 +11,7 @@ Expires: May 2002                                          November 2001
 
            DSA KEYs and SIGs in the Domain Name System (DNS)
            --- ---- --- ---- -- --- ------ ---- ------ -----
-               <draft-ietf-dnsext-rfc2536bis-dsa-01.txt>
+               <draft-ietf-dnsext-rfc2536bis-dsa-02.txt>
 
                          Donald E. Eastlake 3rd
 
@@ -207,7 +205,7 @@ INTERNET-DRAFT                                            DSA in the DNS
 
         S = ( K**(-1) * (hash + X*R) ) mod Q
 
-   For infromation on the SHA-1 has funcation see [FIPS 180-1] and [RFC
+   For infromation on the SHA-1 has function see [FIPS 180-1] and [RFC
    3174].
 
    Since Q is 160 bits long, R and S can not be larger than 20 octets,
@@ -216,7 +214,7 @@ INTERNET-DRAFT                                            DSA in the DNS
    T is copied from the public key.  It is not logically necessary in
    the SIG but is present so that values of T > 8 can more conveniently
    be used as an escape for extended versions of DSA or other algorithms
-   as later specified.
+   as later standardized.
 
 
 
@@ -267,12 +265,12 @@ INTERNET-DRAFT                                            DSA in the DNS
 
    DSA assumes the ability to frequently generate high quality random
    numbers.  See [RFC 1750] for guidance.  DSA is designed so that if
-   manipulated rather than random numbers are used, high bandwidth
-   covert channels are possible.  See [Schneier] and more recent
-   research.  The leakage of an entire DSA private key in only two DSA
-   signatures has been demonstrated.  DSA provides security only if
-   trusted implementations, including trusted random number generation,
-   are used.
+   biased rather than random numbers are used, high bandwidth covert
+   channels are possible.  See [Schneier] and more recent research.  The
+   leakage of an entire DSA private key in only two DSA signatures has
+   been demonstrated.  DSA provides security only if trusted
+   implementations, including trusted random number generation, are
+   used.
 
 
 
@@ -300,7 +298,7 @@ References
    Hash Standard, April 1995.
 
    [FIPS 186-2] - U.S. Federal Information Processing Standard: Digital
-   Signature Standard, January 2000.
+   Signature Standard, 27 January 2000.
 
    [RFC 1034] - P. Mockapetris, "Domain names - concepts and
    facilities", 11/01/1987.
@@ -337,9 +335,9 @@ Author's Address
    155 Beaver Street
    Milford, MA 01757 USA
 
-   Telephone:   +1-508-261-5434(w)
+   Telephone:   +1-508-851-8280(w)
                 +1-508-634-2066(h)
-   FAX:         +1-508-261-4447(w)
+   FAX:         +1-508-851-8507(w)
    EMail:       Donald.Eastlake@motorola.com
 
 
@@ -354,9 +352,9 @@ INTERNET-DRAFT                                            DSA in the DNS
 
 Expiration and File Name
 
-   This draft expires in May 2002.
+   This draft expires in November 2002.
 
-   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-01.txt.
+   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-02.txt.
 
 
 
