@@ -29,5 +29,6 @@ task_test
 timer_test
 wire_test
 zone_test
+zone2_test
 adb_test
 nconf_test
