@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.26 1999/10/30 01:23:45 gson Exp $ */
+ /* $Id: xfrin.c,v 1.27 1999/10/31 00:02:31 halley Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 #include <isc/net.h>
+#include <isc/print.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -1061,7 +1062,8 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master,
 	result = dns_name_totext(zonename, ISC_TRUE, &znbuf);
 	if (result != DNS_R_SUCCESS) {
 		isc_buffer_clear(&znbuf);
-		isc_buffer_putmem(&znbuf, "<UNKNONWN>", strlen("<UNKNONWN>"));
+		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
+				  strlen("<UNKNOWN>"));
 	}
 	
 	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
