@@ -1,3 +1,7 @@
+1697.	[bug]		xxx-source{,-v6} was not effective when it
+			specified one of listening addresses and a
+			different port than the listening port. [RT #12257]
+
 1696.	[bug]		dnssec-signzone failed to clean out nodes that
 			consisted of only NSEC and RRSIG records.
 			[RT #12154]
