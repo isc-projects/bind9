@@ -38,6 +38,8 @@ LIBS =		${DNSLIBS} ${TAPILIBS} ${ISCLIBS} @LIBS@
 
 TARGETS =	t_mem
 
+SRCS =		t_mem.c
+
 @BIND9_MAKE_RULES@
 
 t_mem: t_mem.@O@ ${DEPLIBS}

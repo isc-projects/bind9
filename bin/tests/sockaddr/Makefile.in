@@ -38,6 +38,8 @@ LIBS =		${DNSLIBS} ${TAPILIBS} ${ISCLIBS} @LIBS@
 
 TARGETS =	t_sockaddr
 
+SRCS =		t_sockaddr.c
+
 @BIND9_MAKE_RULES@
 
 t_sockaddr: t_sockaddr.@O@ ${DEPLIBS}

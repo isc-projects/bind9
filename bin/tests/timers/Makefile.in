@@ -38,6 +38,8 @@ TLIB =		../../../lib/tests/libt_api.@A@
 
 TARGETS =	t_timers
 
+SRCS =		t_timers.c
+
 @BIND9_MAKE_RULES@
 
 t_timers: t_timers.@O@ ${DEPLIBS} ${TLIB}

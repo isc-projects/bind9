@@ -36,6 +36,8 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 
+SRCS =		t_db.c
+
 TARGETS =	t_db
 
 @BIND9_MAKE_RULES@

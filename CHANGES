@@ -1,3 +1,6 @@
+ 109.   [bug]           "make depend" did nothing for
+                        bin/tests/{db,mem,sockaddr,tasks,timers}/.
+
  108.   [cleanup]       DNS_SETBIT/DNS_GETBIT/DNS_CLEARBIT moved from
                         <dns/types.h> to <dns/bit.h> and renamed to
                         DNS_BIT_SET/DNS_BIT_GET/DNS_BIT_CLEAR.
