@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.199 2001/11/30 01:58:43 gson Exp $ */
+/* $Id: client.c,v 1.200 2001/12/06 04:38:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1059,13 +1059,13 @@ client_addopt(ns_client_t *client) {
 }
 
 static inline isc_boolean_t
-allowed(isc_netaddr_t *addr, dns_acl_t *acl) {
+allowed(isc_netaddr_t *addr, dns_name_t *signer, dns_acl_t *acl) {
 	int match;
 	isc_result_t result;
 
 	if (acl == NULL)
 		return (ISC_TRUE);
-	result = dns_acl_match(addr, NULL, acl, &ns_g_server->aclenv,
+	result = dns_acl_match(addr, signer, acl, &ns_g_server->aclenv,
 			       &match, NULL);
 	if (result == ISC_R_SUCCESS && match > 0)
 		return (ISC_TRUE);
@@ -1081,7 +1081,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
 	isc_socketevent_t *sevent;
 	isc_result_t result;
-	isc_result_t sigresult;
+	isc_result_t sigresult = ISC_R_SUCCESS;
 	isc_buffer_t *buffer;
 	isc_buffer_t tbuffer;
 	dns_view_t *view;
@@ -1338,8 +1338,14 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			if (allowed(&netaddr, view->matchclients) &&
-			    allowed(&destaddr, view->matchdestinations) &&
+			dns_name_t *tsig = NULL;
+			sigresult = dns_message_rechecksig(client->message,
+							   view);
+			if (tsigname == ISC_R_SUCCESS)
+				tsig = client->message->tsigname;
+				
+			if (allowed(&netaddr, tsig, view->matchclients) &&
+			    allowed(&destaddr, tsig, view->matchdestinations) &&
 			    !((client->message->flags & DNS_MESSAGEFLAG_RD)
 			      == 0 && view->matchrecursiveonly))
 			{
@@ -1359,6 +1365,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 */
 		isc_buffer_t b;
 		isc_region_t *r;
+
+		dns_message_resetsig(client->message);
+
 		r = dns_message_getrawmessage(client->message);
 		isc_buffer_init(&b, r->base, r->length);
 		isc_buffer_add(&b, r->length);
@@ -1384,7 +1393,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * not.  We do not log the lack of a signature unless we are
 	 * debugging.
 	 */
-	sigresult = dns_message_checksig(client->message, client->view);
 	client->signer = NULL;
 	dns_name_init(&client->signername, NULL);
 	result = dns_message_signer(client->message, &client->signername);
