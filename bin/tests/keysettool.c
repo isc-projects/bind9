@@ -275,7 +275,7 @@ main(int argc, char *argv[]) {
 		key = NULL;
 		result = dst_key_fromfile(tdomain, id, alg, DST_TYPE_PUBLIC,
 					  mctx, &key);
-		check_result (result, "dst_key_fromfile");
+		check_result(result, "dst_key_fromfile");
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;
 			result = dst_key_fromfile(tdomain, id, alg,
