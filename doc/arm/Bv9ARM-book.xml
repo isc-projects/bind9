@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.128 2001/05/09 02:07:08 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.129 2001/05/09 02:39:56 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2396,17 +2396,21 @@ on, then the severity level of the message will be logged. The <command>print-</
 be used in any combination, and will always be printed in the following
 order: time, category, severity. Here is an example where all three <command>print-</command> options
 are on:</para>
-        <para><computeroutput>28-Feb-2000 15:05:32.863 general: notice: running</computeroutput></para>
-        <para>There are four predefined channels that are used for
+
+<para><computeroutput>28-Feb-2000 15:05:32.863 general: notice: running</computeroutput></para>
+
+<para>There are four predefined channels that are used for
 <command>named</command>'s default logging as follows. How they are
 used is described in <xref linkend="the_category_phrase"/>.
 </para>
-        <programlisting>channel "default_syslog" {
+
+<programlisting>channel "default_syslog" {
     syslog daemon;			// end to syslog's daemon
 					// facility
     severity info;			// only send priority info
 					// and higher
 };
+
 channel "default_debug" {
     file "named.run";			// write to named.run in
 					// the working directory
@@ -2417,29 +2421,39 @@ channel "default_debug" {
     severity dynamic;			// log at the server's
 					// current debug level
 };
+
 channel "default_stderr" {		// writes to stderr
     stderr;
     severity info;			// only send priority info
 					// and higher
 };
+
 channel "null" {
    null;				// toss anything sent to
 					// this channel
 };
 </programlisting>
-<para>The <command>default_debug</command> channel normally writes
-to a file <filename>named.run</filename> in the server's working
-directory.  For security reasons, when the "<option>-u</option>"
+
+<para>The <command>default_debug</command> channel has the special
+property that it only produces output when the server's debug level is
+nonzero.  It normally writes to a file <filename>named.run</filename>
+in the server's working directory.</para>
+
+<para>For security reasons, when the "<option>-u</option>"
 command line option is used, the <filename>named.run</filename> file
 is created only after <command>named</command> has changed to the
 new UID, and any debug output generated while <command>named</command> is
 starting up and still running as root is discarded.  If you need
 to capture this output, you must run the server with the "<option>-g</option>"
 option and redirect standard error to a file.</para>
+
 <para>Once a channel is defined, it cannot be redefined. Thus you
 cannot alter the built-in channels directly, but you can modify
-the default logging by pointing categories at channels you have defined.</para></sect3>
+the default logging by pointing categories at channels you have defined.</para>
+</sect3>
+
 <sect3 id="the_category_phrase"><title>The <command>category</command> Phrase</title>
+
 <para>There are many categories, so you can send the logs you want
 to see wherever you want, without seeing logs you don't want. If
 you don't specify a list of channels for a category, then log messages
