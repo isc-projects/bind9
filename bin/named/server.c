@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.26 2004/04/10 05:02:59 marka Exp $ */
+/* $Id: server.c,v 1.339.2.27 2004/04/15 05:31:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1070,8 +1070,8 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	dns_dbversion_t *dbver = NULL;
 	dns_difftuple_t *tuple;
 	dns_diff_t diff;
-	isc_constregion_t r;
-	isc_constregion_t cr;
+	isc_region_t r;
+	isc_region_t cr;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	static const char origindata[] = "\007authors\004bind";
 	dns_name_t origin;
@@ -1104,9 +1104,9 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	dns_diff_init(ns_g_mctx, &diff);
 
 	dns_name_init(&origin, NULL);
-	r.base = origindata;
+	DE_CONST(origindata, r.base);
 	r.length = sizeof(origindata);
-	dns_name_fromregion(&origin, (isc_region_t *)&r);
+	dns_name_fromregion(&origin, &r);
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
@@ -1126,11 +1126,11 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	CHECK(dns_db_newversion(db, &dbver));
 
 	for (i = 0; authors[i] != NULL; i++) {
-		cr.base = authors[i];
+		DE_CONST(authors[i], cr.base);
 		cr.length = strlen(authors[i]);
 		INSIST(cr.length == ((const unsigned char *)cr.base)[0] + 1U);
 		dns_rdata_fromregion(&rdata, dns_rdataclass_ch,
-				     dns_rdatatype_txt, (isc_region_t *)&cr);
+				     dns_rdatatype_txt, &cr);
 		tuple = NULL;
 		CHECK(dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
 					   0, &rdata, &tuple));
