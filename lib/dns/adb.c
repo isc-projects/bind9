@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.164 2001/01/22 22:51:22 gson Exp $ */
+/* $Id: adb.c,v 1.165 2001/01/22 22:53:13 gson Exp $ */
 
 /*
  * Implementation notes
@@ -249,7 +249,8 @@ struct dns_adbzoneinfo {
 
 /*
  * An address entry.  It holds quite a bit of information about addresses,
- * including edns state, rtt, and of course the address of the host.
+ * including edns state (in "flags"), rtt, and of course the address of
+ * the host.
  */
 struct dns_adbentry {
 	unsigned int			magic;
@@ -258,7 +259,6 @@ struct dns_adbentry {
 	unsigned int			refcnt;
 
 	unsigned int			flags;
-	int				edns_level;	/* must be int! */
 	int				goodness;	/* bad < 0 <= good */
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
@@ -1412,7 +1412,6 @@ new_adbentry(dns_adb_t *adb) {
 	e->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	e->refcnt = 0;
 	e->flags = 0;
-	e->edns_level = -1;
 	e->goodness = 0;
 	isc_random_get(&r);
 	e->srtt = (r & 0x1f) + 1;
