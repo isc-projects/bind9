@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.4 2001/09/21 03:31:17 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.5 2001/10/19 22:29:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -178,10 +178,13 @@ maybe_free_connection(controlconnection_t *conn) {
 
 static void
 shutdown_listener(controllistener_t *listener) {
-	isc_boolean_t destroy = ISC_TRUE;
+	controlconnection_t *conn;
+	controlconnection_t *next;
 
 	if (!listener->exiting) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
+
+		ISC_LIST_UNLINK(listener->controls->listeners, listener, link);
 
 		isc_sockaddr_format(&listener->address, socktext,
 				    sizeof(socktext));
@@ -191,23 +194,19 @@ shutdown_listener(controllistener_t *listener) {
 		listener->exiting = ISC_TRUE;
 	}
 
-	if (!ISC_LIST_EMPTY(listener->connections)) {
-		controlconnection_t *conn;
-		for (conn = ISC_LIST_HEAD(listener->connections);
-		     conn != NULL;
-		     conn = ISC_LIST_NEXT(conn, link))
-			maybe_free_connection(conn);
-		destroy = ISC_FALSE;
+	for (conn = ISC_LIST_HEAD(listener->connections);
+	     conn != NULL;
+	     conn = next)
+	{
+		next = ISC_LIST_NEXT(conn, link);
+		maybe_free_connection(conn);
 	}
 
-	if (listener->sock != NULL) {
+	if (listener->listening)
 		isc_socket_cancel(listener->sock, listener->task,
 				  ISC_SOCKCANCEL_ACCEPT);
-		destroy = ISC_FALSE;
-	}
 
-	if (destroy)
-		free_listener(listener);
+	maybe_free_listener(listener);
 }
 
 static isc_boolean_t
@@ -520,10 +519,10 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	listener->listening = ISC_FALSE;
+
 	if (nevent->result != ISC_R_SUCCESS) {
 		if (nevent->result == ISC_R_CANCELED) {
-			isc_socket_detach(&listener->sock);
-			listener->listening = ISC_FALSE;
 			shutdown_listener(listener);
 			goto cleanup;
 		}
@@ -573,7 +572,6 @@ controls_shutdown(ns_controls_t *controls) {
 		 * call their callbacks.
 		 */
 		next = ISC_LIST_NEXT(listener, link);
-		ISC_LIST_UNLINK(controls->listeners, listener, link);
 		shutdown_listener(listener);
 	}
 }
