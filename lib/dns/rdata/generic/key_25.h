@@ -15,7 +15,17 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.h,v 1.6 1999/09/15 23:03:29 explorer Exp $ */
+ /* $Id: key_25.h,v 1.7 1999/10/07 21:48:52 bwelling Exp $ */
 
- /* RFC 2065 */
+ /* RFC 2535 */
+
+typedef struct dns_rdata_generic_key_t {
+        dns_rdatacommon_t	common;
+        isc_mem_t *		mctx;
+        isc_uint16_t		flags;
+        isc_uint8_t		protocol;
+        isc_uint8_t		algorithm;
+        isc_uint16_t		datalen;
+        unsigned char *		data;
+} dns_rdata_generic_key_t;
 

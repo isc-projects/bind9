@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.13 1999/09/17 09:22:40 gson Exp $ */
+ /* $Id: key_25.c,v 1.14 1999/10/07 21:48:51 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -159,6 +159,8 @@ static inline dns_result_t
 fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
+	dns_rdata_generic_key_t *key;
+	isc_region_t tr;
 
 	REQUIRE(type == 25);
 	
@@ -167,24 +169,89 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	source = source;
 	target = target;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	key = (dns_rdata_generic_key_t *) source;
+	REQUIRE(key->mctx != NULL);
+
+	/* Flags */
+	RETERR(uint16_tobuffer(key->flags, target));
+
+	/* Protocol */
+	RETERR(uint8_tobuffer(key->protocol, target));
+
+	/* Algorithm */
+	RETERR(uint8_tobuffer(key->algorithm, target));
+
+	/* Data */
+	if (key->datalen > 0) {
+		isc_buffer_available(target, &tr);
+		if (tr.length < key->datalen)
+			return (DNS_R_NOSPACE);
+		memcpy(tr.base, key->data, key->datalen);
+		isc_buffer_add(target, key->datalen);
+	}
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline dns_result_t
 tostruct_key(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_generic_key_t *key;
+	isc_region_t sr;
 
 	REQUIRE(rdata->type == 25);
 	
 	target = target;
 	mctx = mctx;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	key = (dns_rdata_generic_key_t *) target;
+	key->common.rdclass = rdata->rdclass;
+	key->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&key->common, link);
+	key->mctx = mctx;
+	dns_rdata_toregion(rdata, &sr);
+
+	/* Flags */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
+	key->flags = uint16_fromregion(&sr);
+	isc_region_consume(&sr, 2);
+
+	/* Protocol */
+	if (sr.length < 1)
+		return (ISC_R_UNEXPECTEDEND);
+	key->flags = uint8_fromregion(&sr);
+	isc_region_consume(&sr, 1);
+
+	/* Algorithm */
+	if (sr.length < 1)
+		return (ISC_R_UNEXPECTEDEND);
+	key->flags = uint8_fromregion(&sr);
+	isc_region_consume(&sr, 1);
+
+	/* Data */
+	key->datalen = sr.length;
+	if (key->datalen > 0) {
+		key->data = isc_mem_get(mctx, key->datalen);
+		if (key->data == NULL)
+			return (DNS_R_NOMEMORY);
+		memcpy(key->data, sr.base, key->datalen);
+		isc_region_consume(&sr, key->datalen);
+	}
+	else
+		key->data = NULL;
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline void
 freestruct_key(void *source) {
+	dns_rdata_generic_key_t *key = (dns_rdata_generic_key_t *) source;
+
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	REQUIRE(key->common.rdtype == 25);
+
+	if (key->datalen > 0)
+		isc_mem_put(key->mctx, key->data, key->datalen);
 }
 
 static inline dns_result_t
