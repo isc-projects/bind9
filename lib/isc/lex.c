@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.45 2000/11/15 00:42:53 bwelling Exp $ */
+/* $Id: lex.c,v 1.46 2000/11/16 03:03:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -780,7 +780,8 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	source = HEAD(lex->sources);
 	REQUIRE(source != NULL);
 	REQUIRE(tokenp != NULL);
-	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0);
+	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0 ||
+		tokenp->type == isc_tokentype_eof);
 
 	UNUSED(tokenp);
 
