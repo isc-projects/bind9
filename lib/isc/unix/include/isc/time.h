@@ -2,7 +2,6 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
-#include <time.h>
 #include <isc/result.h>
 #include <isc/boolean.h>
 
