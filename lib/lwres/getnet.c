@@ -46,7 +46,7 @@ setnetent(int stayopen) {
 }
 #endif
 
-#ifdef ISC_LWRES_SETNETENTINT
+#ifdef ISC_LWRES_ENDNETENTINT
 int
 endnetent() {
 	return (0);
