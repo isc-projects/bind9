@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.19 2000/04/07 03:54:15 explorer Exp $ */
+/* $Id: key_25.c,v 1.20 2000/04/26 01:41:58 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -175,7 +175,6 @@ fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	REQUIRE(type == 25);
 	
 	key = (dns_rdata_generic_key_t *) source;
-	REQUIRE(key->mctx != NULL);
 
 	/* Flags */
 	RETERR(uint16_tobuffer(key->flags, target));
