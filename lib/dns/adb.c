@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.166 2001/01/26 03:20:58 bwelling Exp $ */
+/* $Id: adb.c,v 1.167 2001/01/27 02:44:35 gson Exp $ */
 
 /*
  * Implementation notes
@@ -428,6 +428,16 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define FIND_ERR_UNEXPECTED		5
 #define FIND_ERR_NOTFOUND		6
 #define FIND_ERR_MAX			7
+
+static const char *errnames[] = {
+	"success",
+	"canceled",
+	"failure",
+	"nxdomain",
+	"nxrrset",
+	"unexpected",
+	"not_found"
+};
 
 #define NEWERR(old, new)	(ISC_MIN((old), (new)))
 
@@ -2882,7 +2892,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f) {
 	 */
 
 	LOCK(&adb->lock);
-	dump_adb(adb, f, ISC_TRUE);
+	dump_adb(adb, f, ISC_FALSE);
 	UNLOCK(&adb->lock);
 }
 
@@ -2940,8 +2950,11 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 			dump_ttl(f, "v6", name->expire_v6, now);
 			dump_ttl(f, "target", name->expire_target, now);
 
-			fprintf(f, " [err4 %u] [err6 %u]\n",
-				name->fetch_err, name->fetch6_err);
+			fprintf(f, " [v4 %s] [v6 %s]",
+				errnames[name->fetch_err],
+				errnames[name->fetch6_err]);
+
+			fprintf(f, "\n");
 
 			print_namehook_list(f, "v4", &name->v4, debug);
 			print_namehook_list(f, "v6", &name->v6, debug);
@@ -2957,9 +2970,9 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 	/*
 	 * Unlock everything
 	 */
-	for (i = 0 ; i < NBUCKETS ; i++)
+	for (i = 0; i < NBUCKETS; i++)
 		UNLOCK(&adb->entrylocks[i]);
-	for (i = 0 ; i < NBUCKETS ; i++)
+	for (i = 0; i < NBUCKETS; i++)
 		UNLOCK(&adb->namelocks[i]);
 }
 
