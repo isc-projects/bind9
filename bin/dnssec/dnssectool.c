@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.21 2000/09/08 08:38:58 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.22 2000/09/26 22:11:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -176,6 +176,21 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 					 NULL, NULL) == ISC_R_SUCCESS);
 
 	*logp = log;
+}
+
+void
+cleanup_logging(isc_log_t **logp) {
+	isc_log_t *log;
+
+	REQUIRE(logp != NULL);
+
+	log = *logp;
+	if (log == NULL)
+		return;
+	isc_log_destroy(&log);
+	isc_log_setcontext(NULL);
+	dns_log_setcontext(NULL);
+	logp = NULL;
 }
 
 static isc_result_t

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.36 2000/09/12 11:50:46 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.37 2000/09/26 22:11:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -420,8 +420,7 @@ main(int argc, char *argv[]) {
 		isc_mem_put(mctx, keynode, sizeof(keynode_t));
 	}
 
-	if (log != NULL)
-		isc_log_destroy(&log);
+	cleanup_logging(&log);
 
         isc_mem_free(mctx, output);
 	cleanup_entropy(&ectx);

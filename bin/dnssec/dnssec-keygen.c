@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.41 2000/09/21 17:18:14 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.42 2000/09/26 22:11:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -390,8 +390,7 @@ main(int argc, char **argv) {
 	isc_mem_free(mctx, prog);
 	dst_key_free(&key);
 
-	if (log != NULL)
-		isc_log_destroy(&log);
+	cleanup_logging(&log);
 	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)

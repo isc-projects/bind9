@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.11 2000/09/08 08:38:59 bwelling Exp $ */
+/* $Id: dnssectool.h,v 1.12 2000/09/26 22:11:25 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
@@ -52,6 +52,9 @@ key_format(const dst_key_t *key, char *cp, unsigned int size);
 
 void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);
+
+void
+cleanup_logging(isc_log_t **logp);
 
 void
 setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx);

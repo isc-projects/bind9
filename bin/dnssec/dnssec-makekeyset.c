@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.40 2000/09/12 11:50:45 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.41 2000/09/26 22:11:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -396,8 +396,7 @@ main(int argc, char *argv[]) {
 		isc_mem_put(mctx, savedname, sizeof(dns_name_t));
 	}
 
-	if (log != NULL)
-		isc_log_destroy(&log);
+	cleanup_logging(&log);
 	cleanup_entropy(&ectx);
 
 	isc_mem_free(mctx, output);

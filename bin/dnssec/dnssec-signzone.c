@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.99 2000/09/12 11:33:14 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.100 2000/09/26 22:11:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1447,8 +1447,7 @@ main(int argc, char *argv[]) {
 	if (free_output)
 		isc_mem_free(mctx, output);
 
-	if (log != NULL)
-		isc_log_destroy(&log);
+	cleanup_logging(&log);
 	dst_lib_destroy();
 	cleanup_entropy(&ectx);
 	if (verbose > 10)
