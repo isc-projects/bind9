@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.13 2000/05/08 14:35:31 tale Exp $ */
+/* $Id: confndc.c,v 1.14 2000/05/13 19:45:13 tale Exp $ */
 
 /*
 **	options {
@@ -1146,7 +1146,6 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_c_ndcctx_t *ctx = pctx->thecontext;
 	dns_c_kdef_t *key = NULL;
-	isc_mem_t *mem;
 	char *keyname = NULL;
 	char *algorithm = NULL;
 	char *secret = NULL;
@@ -1154,8 +1153,6 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(DNS_C_KDEFLIST_VALID(keys));
 
-	mem = ctx->mem;
-	
 	if (!eat(pctx, L_KEY))
 		return (ISC_R_FAILURE);
 
