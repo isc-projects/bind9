@@ -2716,11 +2716,9 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	if (ISC_LIST_EMPTY(msg->sections[section]))
 		return ISC_R_SUCCESS;
 
-#if 0
 	if (section == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
 	else
-#endif
 		no_rdata = ISC_FALSE;
 
 	if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
@@ -2747,9 +2745,6 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if (no_rdata)
 				ADD_STRING(target, ";");
-			result = dns_rdataset_first(rdataset);
-			if (result != ISC_R_SUCCESS)
-				no_rdata = ISC_TRUE;
 			result = dns_rdataset_totext(rdataset, name,
 						     omit_final_dot,
 						     no_rdata,
@@ -2857,32 +2852,17 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 			ADD_STRING(target, "ad ");
 		if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0)
 			ADD_STRING(target, "cd ");
-		if (msg->opcode != dns_opcode_update) {
-			ADD_STRING(target, "; QUESTION: ");
-		}
-		else {
-			ADD_STRING(target, "; ZONE: ");
-		}
-		sprintf(buf, "%1u", msg->counts[DNS_SECTION_QUESTION]);
+		ADD_STRING(target, "\n; QUESTION: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_QUESTION]);
 		ADD_STRING(target, buf);
-		if (msg->opcode != dns_opcode_update) {
-			ADD_STRING(target, ", ANSWER: ");
-		}
-		else {
-			ADD_STRING(target, ", PREREQ: ");
-		}
-		sprintf(buf, "%1u", msg->counts[DNS_SECTION_ANSWER]);
+		ADD_STRING(target, ", ANSWER: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_ANSWER]);
 		ADD_STRING(target, buf);
-		if (msg->opcode != dns_opcode_update) {
-			ADD_STRING(target, ", AUTHORITY: ");
-		}
-		else {
-			ADD_STRING(target, ", UPDATE: ");
-		}
-		sprintf(buf, "%1u", msg->counts[DNS_SECTION_AUTHORITY]);
+		ADD_STRING(target, ", AUTHORITY: ");
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_AUTHORITY]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, ", ADDITIONAL: ");
-		sprintf(buf, "%1u", msg->counts[DNS_SECTION_ADDITIONAL]);
+		sprintf(buf, "%3u", msg->counts[DNS_SECTION_ADDITIONAL]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");
 	}
