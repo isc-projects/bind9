@@ -15,7 +15,7 @@ os_condition_waituntil(os_condition_t *c, os_mutex_t *m, os_time_t *t,
 	if (result == 0) {
 		*timeout = FALSE;
 		return (TRUE);
-	} else if (result == ETIMEDOUT) {
+	} else if (errno == ETIMEDOUT) {
 		*timeout = TRUE;
 		return (TRUE);
 	}
