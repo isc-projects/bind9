@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.157 2001/12/08 00:38:40 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.158 2002/02/05 05:16:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1118,9 +1118,10 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			dns_rdataset_disassociate(&nxt);
 
 		result = dns_dbiterator_next(gdbiter);
-		if (result == ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE) {
 			finished = ISC_TRUE;
-		else if (result != ISC_R_SUCCESS)
+			break;
+		} else if (result != ISC_R_SUCCESS)
 			fatal("failure iterating database: %s",
 			      isc_result_totext(result));
 		if (!found)
