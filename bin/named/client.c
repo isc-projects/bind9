@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.148 2001/02/12 21:45:36 bwelling Exp $ */
+/* $Id: client.c,v 1.149 2001/02/14 01:46:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -747,6 +747,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 		if (result == ISC_R_SUCCESS)
 			client_senddone(client->task,
 					(isc_event_t *)client->sendevent);
+		result = ISC_R_SUCCESS;
 	}
 	return (result);
 }
