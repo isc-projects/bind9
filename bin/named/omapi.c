@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.9 2000/03/18 00:49:54 tale Exp $ */
+/* $Id: omapi.c,v 1.10 2000/03/18 02:38:20 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -215,12 +215,14 @@ ns_omapi_listen(omapi_object_t **managerp) {
 		 */
 		result = omapi_object_create(&manager, NULL, 0);
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		/*
 		 * Start listening for connections.
 		 */
 		result = omapi_protocol_listen(manager, &sockaddr, acl, 1,
 					       listen_done, ns_g_omapimgr);
+		dns_acl_detach(&acl);
+	}
 
 	if (result == ISC_R_SUCCESS)
 		*managerp = manager;
