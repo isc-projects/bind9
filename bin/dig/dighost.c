@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.64 2000/06/30 14:11:46 mws Exp $ */
+/* $Id: dighost.c,v 1.65 2000/06/30 22:53:07 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1460,7 +1460,10 @@ msg_contains_soa(dns_message_t *msg, dig_query_t *query) {
 }
 #endif
 
-static void
+/*
+ * Returns true if we should call cancel_lookup().  This is a hack.
+ */
+static isc_boolean_t
 check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		    isc_socketevent_t *sevent)
 {
@@ -1487,8 +1490,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	if (result != ISC_R_SUCCESS) {
 		puts("; Transfer failed.");
 		query->working = ISC_FALSE;
-		cancel_lookup(query->lookup);
-		return;
+		return (ISC_TRUE);
 	}
 #ifdef NEVER
 	check_result(result, "dns_message_firstname");
@@ -1515,8 +1517,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					     "Didn't start with "
 					     "SOA answer.");
 					query->working = ISC_FALSE;
-					cancel_lookup(query->lookup);
-					return;
+					return (ISC_TRUE);
 				}
 				if ((!query->second_rr_rcvd) &&
 				    (rdata.type != dns_rdatatype_soa)) {
@@ -1582,9 +1583,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					received(b.used, r.length,
 						 (char *)r.base, query);
 					query->working = ISC_FALSE;
-					cancel_lookup(query->lookup);
 					dns_rdata_freestruct(&soa);
-					return;
+					return (ISC_TRUE);
 				}
 				/*
 				 * If we get to this point, we're doing an
@@ -1613,7 +1613,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 		result = dns_message_nextname(msg, DNS_SECTION_ANSWER);
 	} while (result == ISC_R_SUCCESS);
 	launch_next_query(query, ISC_FALSE);
-	return;
+	return (ISC_FALSE);
 }
 
 static void
@@ -1627,6 +1627,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	char abspace[MXNAME];
 	isc_region_t r;
 	dig_lookup_t *n;
+	isc_boolean_t docancel = ISC_FALSE;
 	
 	UNUSED (task);
 
@@ -1703,8 +1704,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				n = requeue_lookup(query->lookup, ISC_TRUE);
 				n->tcp_mode = ISC_TRUE;
 			}
-			cancel_lookup(query->lookup);
 			dns_message_destroy(&msg);
+			cancel_lookup(query->lookup);
 			isc_event_free(&event);
 			return;
 		}
@@ -1785,7 +1786,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				query->waiting_connect = ISC_FALSE;
 				return;
 			}
-			check_for_more_data(query, msg, sevent);
+			docancel = check_for_more_data(query, msg, sevent);
+			if (docancel) {
+				cancel_lookup(query->lookup);
+				dns_message_destroy(&msg);
+			}
 		}
 		else {
 			if ((msg->rcode == 0) ||
@@ -1810,11 +1815,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			query->lookup->pending = ISC_FALSE;
 			if (!query->lookup->ns_search_only ||
 			    query->lookup->trace_root ) {
+				dns_message_destroy(&msg);
 				cancel_lookup(query->lookup);
 			}
 			check_next_lookup(query->lookup);
 		}
-		dns_message_destroy(&msg);
+		if (msg != NULL)
+			dns_message_destroy(&msg);
 		isc_event_free(&event);
 		return;
 	}
@@ -2050,20 +2057,6 @@ free_lists(int _exitcode) {
 	}
 	if (namebuf != NULL)
 		isc_buffer_free(&namebuf);
-	if (keyring != NULL) {
-		debug ("Freeing keyring %p", keyring);
-		dns_tsigkeyring_destroy(&keyring);
-	}
-
-	if (is_dst_up) {
-		debug ("Destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = ISC_FALSE;
-	}
-	if (entp != NULL) {
-		debug ("Detach from entropy");
-		isc_entropy_detach(&entp);
-	}
 
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
@@ -2105,7 +2098,21 @@ free_lists(int _exitcode) {
 		l = ISC_LIST_NEXT(l, link);
 		isc_mem_free(mctx, ptr);
 	}
-	
+
+	if (keyring != NULL) {
+		debug ("Freeing keyring %p", keyring);
+		dns_tsigkeyring_destroy(&keyring);
+	}
+	if (is_dst_up) {
+		debug ("Destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = ISC_FALSE;
+	}
+	if (entp != NULL) {
+		debug ("Detach from entropy");
+		isc_entropy_detach(&entp);
+	}
+
 	debug("Getting ready to exit, code=%d",_exitcode);
 	if (_exitcode != 0)
 		exit(_exitcode);
