@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.102 2001/04/26 21:17:56 gson Exp $ */
+/* $Id: types.h,v 1.103 2001/07/23 17:55:37 gson Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -230,22 +230,40 @@ enum {
  * Trust levels.  Must be kept in sync with trustnames[] in masterdump.c.
  */
 enum {
+	/* Sentinel value; no data should have this trust level. */
 	dns_trust_none = 0,
 #define dns_trust_none			((dns_trust_t)dns_trust_none)
+
+	/* Subject to DNSSEC validation but has not yet been validated */
 	dns_trust_pending = 1,
 #define dns_trust_pending		((dns_trust_t)dns_trust_pending)
+
+	/* Received in the additional section of a response. */
 	dns_trust_additional = 2,
 #define dns_trust_additional		((dns_trust_t)dns_trust_additional)
+
+	/* Received in a referral response. */ 
 	dns_trust_glue = 3,
 #define dns_trust_glue			((dns_trust_t)dns_trust_glue)
+
+	/* Answser from a non-authoritative server */
 	dns_trust_answer = 4,
 #define dns_trust_answer		((dns_trust_t)dns_trust_answer)
+
+	/*  Received in the authority section as part of an
+	    authoritative response */
 	dns_trust_authauthority = 5,
 #define dns_trust_authauthority		((dns_trust_t)dns_trust_authauthority)
+
+	/* Answser from an authoritative server */
 	dns_trust_authanswer = 6,
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
+
+	/* Successfully DNSSEC validated */	
 	dns_trust_secure = 7,
 #define dns_trust_secure		((dns_trust_t)dns_trust_secure)
+
+	/* This server is authoritative */
 	dns_trust_ultimate = 8
 #define dns_trust_ultimate		((dns_trust_t)dns_trust_ultimate)
 };
