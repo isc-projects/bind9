@@ -5,6 +5,9 @@
 			"sending notifies" log message when also-notify was
 			used. [RT #11177]
 
+1621.	[bug]		match-destinations did not work for IPv6 TCP queries.
+			[RT# 11156]
+
 1619.	[bug]		Missing ISC_LIST_UNLINK in end_reserved_dispatches().
 			[RT# 11118]
 
