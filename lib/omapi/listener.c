@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.25 2000/06/23 22:22:24 tale Exp $ */
+/* $Id: listener.c,v 1.26 2000/06/23 22:28:22 tale Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -321,7 +321,7 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
 		/*
 		 * Now tell the kernel to listen for connections.
 		 */
-		result = isc_socket_listen(listener->socket, max);
+		result = isc_socket_listen(listener->socket, backlog);
 
 	if (result == ISC_R_SUCCESS) {
 		/*
