@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.163 2001/05/14 19:25:57 halley Exp $ */
+/* $Id: rbtdb.c,v 1.164 2001/05/15 03:52:31 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2068,14 +2068,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * XXX We should cache the glue validity state!
 		 */
 		if (result == DNS_R_GLUE &&
-		    ((search.options & DNS_DBFIND_VALIDATEGLUE) == 0 ||
-		     !valid_glue(&search, foundname, type, node))) {
-		    /*
-		     * Either we're not validating glue (the usual
-		     * case), or we are and this isn't valid glue.  In
-		     * any event, the thing to do is to return a
-		     * delegation.
-		     */
+		    (search.options & DNS_DBFIND_VALIDATEGLUE) != 0 &&
+		    !valid_glue(&search, foundname, type, node)) {
 		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset, sigrdataset);
