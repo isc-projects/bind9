@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.49 2000/08/24 01:19:58 gson Exp $ */
+/* $Id: rbt.h,v 1.50 2000/10/25 07:21:31 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -53,6 +53,7 @@ typedef struct dns_rbtnode {
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
 	struct dns_rbtnode *down;
+	struct dns_rbtnode *hashnext;
 	/*
 	 * The following bitfields add up to a total bitwidth of 32.
 	 * The range of values necessary for each item is indicated,
@@ -72,6 +73,9 @@ typedef struct dns_rbtnode {
 	unsigned int namelen : 8;	/* range is 1..255 */
 	unsigned int offsetlen : 8;	/* range is 1..128 */
 	unsigned int padbytes : 9;	/* range is 0..380 */
+
+	unsigned int hashval;
+
 	/*
 	 * These values are used in the RBT DB implementation.  The appropriate
 	 * node lock must be held before accessing them.
@@ -130,23 +134,13 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * functions but additionally can provide the node to which the chain points.  */
 
 /*
- * For use in allocating space for the chain of ancestor nodes.
- *
- * The maximum number of ancestors is theoretically not limited by the
- * data tree.  This initial value of 24 ancestors would be able to scan
- * the full height of a single level of 16,777,216 nodes, more than double
- * the current size of .com.
- */
-#define DNS_RBT_ANCESTORBLOCK 24
-
-/*
  * The number of level blocks to allocate at a time.  Currently the maximum
  * number of levels is allocated directly in the structure, but future
- * revisions of this code might treat levels like ancestors -- that is, have
- * a static initial block with dynamic growth.  Allocating space for 256
- * levels when the tree is almost never that deep is wasteful, but it's not
- * clear that it matters, since the waste is only 2MB for 1000 concurrently
- * active chains on a system with 64-bit pointers.
+ * revisions of this code might have a static initial block with dynamic
+ * growth.  Allocating space for 256 levels when the tree is almost never that
+ * deep is wasteful, but it's not clear that it matters, since the waste is
+ * only 2MB for 1000 concurrently active chains on a system with 64-bit
+ * pointers.
  */
 #define DNS_RBT_LEVELBLOCK 254
 
@@ -154,20 +148,12 @@ typedef struct dns_rbtnodechain {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	/*
-	 * The terminal node of the chain.  It is not in levels[] or
-	 * ancestors[].  This is ostensibly private ... but in a pinch
-	 * it could be used tell that the chain points nowhere without
-	 * needing to call dns_rbtnodechain_current().
+	 * The terminal node of the chain.  It is not in levels[].
+	 * This is ostensibly private ... but in a pinch it could be
+	 * used tell that the chain points nowhere without needing to
+	 * call dns_rbtnodechain_current().
 	 */
 	dns_rbtnode_t *		end;
-	dns_rbtnode_t **	ancestors;
-	/*
-	 * ancestor_block avoids doing any memory allocation (a MP
-	 * bottleneck) in 99%+ of the real-world cases.
-	 */
-	dns_rbtnode_t *		ancestor_block[DNS_RBT_ANCESTORBLOCK];
-	unsigned int		ancestor_count;
-	unsigned int		ancestor_maxitems;
 	/*
 	 * The maximum number of labels in a name is 128; bitstrings mean
 	 * a conceptually very large number (which I have not bothered to
@@ -372,16 +358,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	everything.  But you can certainly construct a trivial tree and a
  *	search for it that has no predecessor.
  *
- *	Within the chain structure, 'ancestors' will point
- *	to each successive node encountered in the search, with the root
- *	of each level searched indicated by a NULL.  ancestor_count
- *	indicates how many node pointers are in the ancestor list.  The
- *	'levels' member of the structure holds the root node of each level
- *	except the first; it corresponds with the NULL pointers in
- *	'ancestors' (except the first).  That is, for the [n+1]'th NULL
- *	'ancestors' pointer, the [n]'th 'levels' pointer is the node with
- *	the down pointer to the next level.  That node is not stored
- *	at all in the 'ancestors' list.
+ *	Within the chain structure, the 'levels' member of the structure holds
+ *	the root node of each level except the first.
  *
  *	The 'level_count' of the chain indicates how deep the chain to the
  *	predecessor name is, as an index into the 'levels[]' array.  It does
@@ -395,12 +373,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	regardless of whether it was a partial match or exact match.  When
  *	the node is found in the top level tree, or no node is found at all,
  *	level_matches is 0.
- *
- *	If any space was allocated to hold 'ancestors' in the chain,
- *	the 'ancestor_maxitems' member will be greater than
- *	DNS_RBT_ANCESTORBLOCK and will indicate how many ancestors
- *	could have been stored; the amount to be freed from the rbt->mctx
- *	is ancestor_maxitems * sizeof(dns_rbtnode_t *).
  *
  *	When DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
  *      returned (also subject to DNS_RBTFIND_EMPTYDATA), even when
@@ -452,19 +424,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *
  *		chain->level_matches is 0.
  *
- *	If result is ISC_R_NOMEMORY:
- *		The function could not complete because memory could not
- *		be allocated to maintain the chain.  However, it
- *		is possible that some memory was allocated;
- *		the chain's ancestor_maxitems will be greater than
- *		DNS_RBT_ANCESTORBLOCK if so.
- *
  * Returns:
  *	ISC_R_SUCCESS		Success
  *	DNS_R_PARTIALMATCH	Superdomain found with data
  *	ISC_R_NOTFOUND		No match, or superdomain with no data
- *	ISC_R_NOMEMORY		Resource Limit: Out of Memory building chain
- *	ISC_R_NOSPACE 		Concatenating nodes to form foundname failed
+ *	ISC_R_NOSPACE Concatenating nodes to form foundname failed
  */
 
 isc_result_t
