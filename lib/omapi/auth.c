@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.1 2000/03/14 03:37:10 tale Exp $ */
+/* $Id: auth.c,v 1.2 2000/03/14 20:00:37 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -134,8 +134,8 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 
 		isc_buffer_add(&secret, secret_len);
 
-		result = dst_key_frombuffer(auth->name, dst_algorithm, NULL,
-					    NULL, &secret, omapi_mctx, key);
+		result = dst_key_frombuffer(auth->name, dst_algorithm, 0,
+					    0, &secret, omapi_mctx, key);
 	}
 
 	UNLOCK(&mutex);
