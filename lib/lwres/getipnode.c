@@ -684,7 +684,7 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 		he->h_addr_list[i] = malloc(he->h_length);
 		if (he->h_addr_list[i] == NULL)
 			goto cleanup;
-		memcpy(he->h_addr_list[i], name->addrs[i], he->h_length);
+		memcpy(he->h_addr_list[i], name->addrs[i].address, he->h_length);
 	}
 	he->h_addr_list[i] = NULL;
 	return (he);
