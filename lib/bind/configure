@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.72 
+# From configure.in Revision: 1.73 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -11416,6 +11416,7 @@ SERV_R_BAD="#define SERV_R_BAD NULL"
 SERV_R_COPY="#define SERV_R_COPY buf, buflen"
 SERV_R_COPY_ARGS="#define SERV_R_COPY_ARGS SERV_R_ARGS"
 SERV_R_OK="#define SERV_R_OK sptr"
+SERV_R_SETANSWER="#undef SERV_R_SETANSWER"
 SERV_R_RETURN="#define SERV_R_RETURN struct servent *"
 
 
@@ -11424,26 +11425,27 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   cat > conftest.$ac_ext <<EOF
-#line 11428 "configure"
+#line 11429 "configure"
 #include "confdefs.h"
 
 #include <netdb.h>
-struct servent *
-getservent_r __P ((struct servent *, char *, size_t, struct servent **));
+int
+getservent_r (struct servent *, char *, size_t, struct servent **);
 
 int main() {
 return (0);
 ; return 0; }
 EOF
-if { (eval echo configure:11439: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:11440: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   
-SERV_R_ARGS="#define SERV_R_ARGS char *buf, int buflen, struct servent **answer"
-SERV_R_BAD="#define SERV_R_BAD (-1)"
+SERV_R_ARGS="#define SERV_R_ARGS char *buf, size_t buflen, struct servent **answerp"
+SERV_R_BAD="#define SERV_R_BAD ERANGE"
 SERV_R_COPY="#define SERV_R_COPY buf, buflen"
-SERV_R_COPY_ARGS="#define SERV_R_COPY_ARGS SERV_R_ARGS"
+SERV_R_COPY_ARGS="#define SERV_R_COPY_ARGS char *buf, size_t buflen"
 SERV_R_OK="#define SERV_R_OK (0)"
-SERV_R_RETURN="#define SERV_R_RETURN 1"
+SERV_R_SETANSWER="#define SERV_R_SETANSWER 1"
+SERV_R_RETURN="#define SERV_R_RETURN int"
 
 
 else
@@ -11462,6 +11464,7 @@ SERV_R_BAD="#define SERV_R_BAD NULL"
 SERV_R_COPY="#define SERV_R_COPY buf, buflen"
 SERV_R_COPY_ARGS="#define SERV_R_COPY_ARGS SERV_R_ARGS"
 SERV_R_OK="#define SERV_R_OK sptr"
+SERV_R_SETANSWER="#undef SERV_R_SETANSWER"
 SERV_R_RETURN="#define SERV_R_RETURN struct servent *"
 
 fi
@@ -11473,13 +11476,14 @@ fi
 
 
 
+
 echo $ac_n "checking for endservent_r""... $ac_c" 1>&6
-echo "configure:11478: checking for endservent_r" >&5
+echo "configure:11482: checking for endservent_r" >&5
 if eval "test \"`echo '$''{'ac_cv_func_endservent_r'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 11483 "configure"
+#line 11487 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char endservent_r(); below.  */
@@ -11502,7 +11506,7 @@ endservent_r();
 
 ; return 0; }
 EOF
-if { (eval echo configure:11506: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:11510: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_endservent_r=yes"
 else
@@ -11530,12 +11534,12 @@ fi
 
 
 echo $ac_n "checking for setservent_r""... $ac_c" 1>&6
-echo "configure:11534: checking for setservent_r" >&5
+echo "configure:11538: checking for setservent_r" >&5
 if eval "test \"`echo '$''{'ac_cv_func_setservent_r'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 11539 "configure"
+#line 11543 "configure"
 #include "confdefs.h"
 /* System header to define __stub macros and hopefully few prototypes,
     which can conflict with char setservent_r(); below.  */
@@ -11558,7 +11562,7 @@ setservent_r();
 
 ; return 0; }
 EOF
-if { (eval echo configure:11562: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:11566: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_func_setservent_r=yes"
 else
@@ -12014,6 +12018,7 @@ s%@SERV_R_BAD@%$SERV_R_BAD%g
 s%@SERV_R_COPY@%$SERV_R_COPY%g
 s%@SERV_R_COPY_ARGS@%$SERV_R_COPY_ARGS%g
 s%@SERV_R_OK@%$SERV_R_OK%g
+s%@SERV_R_SETANSWER@%$SERV_R_SETANSWER%g
 s%@SERV_R_RETURN@%$SERV_R_RETURN%g
 s%@SERV_R_END_RESULT@%$SERV_R_END_RESULT%g
 s%@SERV_R_END_RETURN@%$SERV_R_END_RETURN%g
