@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.34 2000/08/17 02:08:27 bwelling Exp $ */
+/* $Id: tsig.h,v 1.35 2000/08/25 01:06:39 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
 
 #include <isc/lang.h>
+#include <isc/mutex.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 

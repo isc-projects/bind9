@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.108 2000/08/21 23:45:05 bwelling Exp $ */
+/* $Id: client.c,v 1.109 2000/08/25 01:08:07 bwelling Exp $ */
 
 #include <config.h>
 
 #include <isc/print.h>
+#include <isc/mutex.h>
 #include <isc/task.h>
 #include <isc/string.h>
 #include <isc/timer.h>
