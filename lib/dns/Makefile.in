@@ -150,7 +150,7 @@ version.@O@: version.c
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
 		-DLIBAGE=${LIBAGE} \
-		-c $<
+		-c $?
 
 libdns.@A@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
@@ -197,7 +197,7 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBS}
+	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBISC} ${LIBS}
 
 rbtdb64.@O@: rbtdb.c
 
