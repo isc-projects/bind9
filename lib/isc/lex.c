@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.43 2000/11/13 04:09:40 marka Exp $ */
+/* $Id: lex.c,v 1.44 2000/11/13 21:29:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -446,6 +446,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		}
 		if (!source->at_eof)
 			c = isc_buffer_getuint8(source->pushback);
+		else
+			c = EOF;
 
 		if (c == '\n')
 			source->line++;
