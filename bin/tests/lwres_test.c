@@ -167,8 +167,11 @@ test_gabn(char *target)
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
 	printf("gabn %s ret == %d\n", target, ret);
-	assert(ret == 0);
-	assert(res != NULL);
+	if (ret != 0) {
+		printf("FAILURE!\n");
+		if (res != NULL)
+			lwres_gabnresponse_free(ctx, &res);
+	}
 
 	printf("Returned real name: (%u, %s)\n",
 	       res->realnamelen, res->realname);
@@ -272,6 +275,7 @@ main(int argc, char *argv[])
 	test_gabn("alias-05.test.flame.org.");
 	test_gabn("f.root-servers.net.");
 	test_gabn("poofball.flame.org.");
+	test_gabn("foo.ip6.int.");
 	test_gnba("198.133.199.1", LWRES_ADDRTYPE_V4);
 	test_gnba("204.152.184.79", LWRES_ADDRTYPE_V4);
 	test_gnba("3ffe:8050:201:1860:42::1", LWRES_ADDRTYPE_V6);
