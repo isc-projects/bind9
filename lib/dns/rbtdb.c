@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.7 2005/03/16 00:56:26 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.8 2005/03/18 05:56:54 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -6005,8 +6005,8 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 
 	UNLOCK(nodelock);
 
-	dns_db_detachnode((dns_db_t *)rbtdb, (dns_dbnode_t **)&rbtnode);
-	dns_db_detach((dns_db_t **)&rbtdb);
+	dns_db_detachnode((dns_db_t *)rbtdb, (dns_dbnode_t **)(void*)&rbtnode);
+	dns_db_detach((dns_db_t **)(void*)&rbtdb);
 
 	*arg = NULL;
 }
