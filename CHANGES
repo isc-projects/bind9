@@ -1,3 +1,6 @@
+ 311.	[bug]		lwres_conf_parse failed when the first line of
+			resolv.conf was empty or a comment.
+
  310.	[func]		Changes to named.conf "controls" statement (inet
 			subtype only)
 
