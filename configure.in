@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.188 $)
+AC_REVISION($Revision: 1.189 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1099,6 +1099,32 @@ case "$hack_shutup_stdargcast" in
 esac
 
 #
+# Look for SGML style sheets.  NetBSD has them under /usr/pkg/share 
+# (if installed), FreeBSD has them under /usr/local/share.
+#
+
+SGMLDIR=""
+
+AC_MSG_CHECKING(for SGML stylesheets)
+for d in /usr/pkg/share/sgml /usr/local/share/sgml 
+do
+	if test -f $d/docbook/dsssl/modular/html/docbook.dsl
+	then
+		SGMLDIR=$d
+		AC_MSG_RESULT(in $SGMLDIR)
+		break
+	fi
+done
+
+if test "X$SGMLDIR" = "X"
+then
+	AC_MSG_RESULT("not found");
+	SGMLDIR=/usr/local/share/sgml
+fi
+
+AC_SUBST(SGMLDIR)
+
+#
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
@@ -1204,6 +1230,7 @@ AC_OUTPUT(
 	bin/tests/system/lwresd/Makefile
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
+	doc/arm/nominum-docbook-html.dsl
 	isc-config.sh
 )
 chmod a+x isc-config.sh
