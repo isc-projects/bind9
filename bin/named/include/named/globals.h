@@ -74,6 +74,7 @@ EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 
 EXTERN const char *		ns_g_defaultpidfile INIT("/var/run/named.pid");
 EXTERN char *			ns_g_pidfile		INIT(NULL);
+EXTERN const char *		ns_g_username		INIT(NULL);
 
 /*
  * XXX  Temporary.
