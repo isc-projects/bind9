@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.274 2000/12/15 00:29:59 gson Exp $ */
+/* $Id: server.c,v 1.275 2000/12/15 19:38:07 gson Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,6 @@
 #include <dns/journal.h>
 #include <dns/keytable.h>
 #include <dns/master.h>
-#include <dns/masterdump.h>
 #include <dns/peer.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatastruct.h>
@@ -2409,13 +2408,14 @@ ns_server_dumpdb(ns_server_t *server) {
 
 	CHECKM(isc_stdio_open(server->dumpfile, "w", &fp),
 	       "could not open dump file");
-	
-	view = ISC_LIST_HEAD(server->viewlist);
-	while (view != NULL) {
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
 		if (view->cachedb != NULL)
 			CHECKM(dns_view_dumpcachetostream(view, fp),
 			       "could not dump cache");
-		view = ISC_LIST_NEXT(view, link);
 	}
  cleanup:
 	if (fp != NULL)
