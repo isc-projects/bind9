@@ -27,12 +27,12 @@
 
 #include <isc/memcluster.h>
 
-#ifdef MULTITHREADED
+#ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.7 1998/10/22 01:33:03 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.8 1998/11/11 19:02:24 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -83,7 +83,7 @@ static size_t			quantize(size_t);
 #define NUM_BASIC_BLOCKS	64			/* must be > 1 */
 #define TABLE_INCREMENT		1024
 
-#ifdef MULTITHREADED
+#ifndef ISC_SINGLETHREADED
 #define LOCK_CONTEXT(ctx) \
 	INSIST(isc_mutex_lock(&(ctx)->mutex) == ISC_R_SUCCESS)
 #define UNLOCK_CONTEXT(ctx) \
