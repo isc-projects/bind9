@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.71 2000/04/06 18:47:05 tale Exp $ */
+/* $Id: rbt.c,v 1.72 2000/04/12 21:31:02 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -56,6 +56,7 @@ struct dns_rbt {
 /*
  * Elements of the rbtnode structure.
  */
+#define IS_ROOT(node)		((node)->is_root)
 #define PARENT(node)		((node)->parent)
 #define LEFT(node)	 	((node)->left)
 #define RIGHT(node)		((node)->right)
@@ -163,9 +164,7 @@ static void dns_rbt_printnodename(dns_rbtnode_t *node);
 static isc_result_t create_node(isc_mem_t *mctx,
 				dns_name_t *name, dns_rbtnode_t **nodep);
 
-static isc_result_t join_nodes(dns_rbt_t *rbt,
-			       dns_rbtnode_t *node, dns_rbtnode_t *parent,
-			       dns_rbtnode_t **rootp);
+static isc_result_t join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
 static inline isc_result_t get_ancestor_mem(dns_rbtnodechain_t *chain);
 static inline void put_ancestor_mem(dns_rbtnodechain_t *chain);
@@ -178,15 +177,8 @@ static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
 static void dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current,
 			       int order, dns_rbtnode_t **rootp,
 			       dns_rbtnodechain_t *chain);
-static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
-				    dns_rbtnode_t *delete,
-				    dns_rbtnodechain_t *chain);
+static void dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete);
 static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
-
-static isc_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
-					  dns_rbtnode_t *node,
-					  isc_boolean_t recurse,
-					  dns_rbtnodechain_t *chain);
 
 /*
  * Initialize a red/black tree of trees.
@@ -241,7 +233,6 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
  * and chain_name, appear early in this file so they can be effectively
  * inlined by the other rbt functions that use them.
  */
-
 static inline isc_result_t
 get_ancestor_mem(dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t **ancestor_mem;
@@ -379,6 +370,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 		if (result == ISC_R_SUCCESS) {
+			IS_ROOT(new_current) = ISC_TRUE;
 			rbt->root = new_current;
 			*nodep = new_current;
 		}
@@ -394,6 +386,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	suffix = dns_fixedname_name(&fixedsuffix);
 
 	root = &rbt->root;
+	INSIST(IS_ROOT(*root));
 	parent = NULL;
 	current = NULL;
 	child = *root;
@@ -401,8 +394,11 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	do {
 		current = child;
 
-		INSIST(PARENT(current) ==
-		       chain.ancestors[chain.ancestor_count - 1]);
+		INSIST((IS_ROOT(current) && 
+			chain.ancestors[chain.ancestor_count - 1] == NULL) ||
+		       (! IS_ROOT(current) &&
+			chain.ancestors[chain.ancestor_count - 1] ==
+			PARENT(current)));
 
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(add_name, &current_name,
@@ -444,7 +440,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 			if (compared == dns_namereln_subdomain) {
 				/*
-				 * All of the exising labels are in common,
+				 * All of the existing labels are in common,
 				 * so the new name is in a subtree.
 				 * Whack off the common labels for the 
 				 * not-in-common part to be searched for
@@ -462,6 +458,11 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * Follow the down pointer (possibly NULL).
 				 */
 				root = &DOWN(current);
+
+				INSIST(*root == NULL ||
+				       (IS_ROOT(*root) &&
+					PARENT(*root) == current));
+
 				parent = NULL;
 				child = DOWN(current);
 				ADD_ANCESTOR(&chain, NULL);
@@ -515,10 +516,11 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * Reproduce the tree attributes of the
 				 * current node.
 				 */
-				PARENT(new_current) = PARENT(current);
-				LEFT(new_current)   = LEFT(current);
-				RIGHT(new_current)  = RIGHT(current);
-				COLOR(new_current)  = COLOR(current);
+				IS_ROOT(new_current) = IS_ROOT(current);
+				PARENT(new_current)  = PARENT(current);
+				LEFT(new_current)    = LEFT(current);
+				RIGHT(new_current)   = RIGHT(current);
+				COLOR(new_current)   = COLOR(current);
 
 				/*
 				 * Fix pointers that were to the current node.
@@ -604,14 +606,16 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * By definition it will not be the top
 				 * level tree, so clear DNS_NAMEATTR_ABSOLUTE.
 				 */
+				IS_ROOT(current) = ISC_TRUE;
+				PARENT(current) = new_current;
 				DOWN(new_current) = current;
 				root = &DOWN(new_current);
+
 				ADD_ANCESTOR(&chain, NULL);
 				ADD_LEVEL(&chain, new_current);
 
 				LEFT(current) = NULL;
 				RIGHT(current) = NULL;
-				PARENT(current) = NULL;
 
 				MAKE_BLACK(current);
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
@@ -1022,7 +1026,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 									NULL);
 					if (result2 == ISC_R_SUCCESS ||
 					    result2 == DNS_R_NEWORIGIN)
-						; 	/* Nothing */
+						; 	/* Nothing. */
 					else if (result2 == ISC_R_NOMORE)
 						/*
 						 * There is no predecessor.
@@ -1071,13 +1075,12 @@ isc_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
-	dns_rbtnodechain_t chain;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(FAST_ISABSOLUTE(name));
 
 	/*
-	 * Find the node, building the ancestor chain.
+	 * First, find the node.
 	 *
 	 * When searching, the name might not have an exact match:
 	 * consider a.b.a.com, b.b.a.com and c.b.a.com as the only
@@ -1090,54 +1093,45 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	 * ->dirty, ->locknum and ->references are ignored; they are
 	 * solely the province of rbtdb.c.
 	 */
-	dns_rbtnodechain_init(&chain, rbt->mctx);
-	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain, ISC_FALSE,
+	result = dns_rbt_findnode(rbt, name, NULL, &node, NULL, ISC_FALSE,
 				  NULL, NULL);
 
-	/*
-	 * The guts of this routine are in a separate function (which
-	 * is called only once, by this function) to make freeing the
-	 * ancestor memory easier, since there are several different
-	 * exit points from the level checking logic.
-	 */
-	if (result == ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS)
 		if (DATA(node) != NULL)
-			result = zapnode_and_fixlevels(rbt, node,
-						       recurse, &chain);
+			result = dns_rbt_deletenode(rbt, node, recurse);
 		else
 			result = ISC_R_NOTFOUND;
 
-	} else if (result == DNS_R_PARTIALMATCH)
+	else if (result == DNS_R_PARTIALMATCH)
 		result = ISC_R_NOTFOUND;
-
-	put_ancestor_mem(&chain);
 
 	return (result);
 }
 
 /*
- *
+ * Remove a node from the tree of trees and rejoin any levels, if possible.
  */
-static isc_result_t
-zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
-		      isc_boolean_t recurse, dns_rbtnodechain_t *chain) {
-	dns_rbtnode_t *down, *parent, **rootp;
+isc_result_t
+dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
+{
+	dns_rbtnode_t *parent, *root;
 	isc_result_t result;
 
-	down = DOWN(node);
+	REQUIRE(VALID_RBT(rbt));
+	REQUIRE(node != NULL);
 
-	if (down != NULL) {
-		if (recurse) {
-			dns_rbt_deletetree(rbt, down);
-			down = NULL;
+	if (DOWN(node) != NULL) {
+		if (recurse)
+			dns_rbt_deletetree(rbt, DOWN(node));
 
-		} else {
+		else {
 			if (rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node),
 						  rbt->deleter_arg);
 			DATA(node) = NULL;
 
-			if (LEFT(down) != NULL || RIGHT(down) != NULL)
+			if (LEFT(DOWN(node)) != NULL ||
+			    RIGHT(DOWN(node)) != NULL)
 				/*
 				 * This node cannot be removed because it
 				 * points down to a level that has more than
@@ -1152,68 +1146,46 @@ zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 			 * item.  That item's name can be joined with the name
 			 * on this level.
 			 */
-			INSIST(chain->ancestor_count > 0);
-			rootp = chain->level_count > 0 ?
-				&DOWN(chain->levels[chain->level_count - 1]) :
-				&rbt->root;
-			parent = chain->ancestors[chain->ancestor_count - 1];
-
-			result = join_nodes(rbt, node, parent, rootp);
+			result = join_nodes(rbt, node);
 
 			return (result);
 		}
 	}
+
+	/* 
+	 * Note the node that points to the level of the node that is being
+	 * deleted.  If the deleted node is the top level, parent will be set
+	 * to NULL.
+	 */
+	for (root = node; ! IS_ROOT(root); root = PARENT(root))
+		; /* Nothing. */
+
+	parent = PARENT(root);
 
 	/*
 	 * This node now has no down pointer (either because it didn't
 	 * have one to start, or because it was recursively removed).
 	 * So now the node needs to be removed from this level.
 	 */
-	dns_rbt_deletefromlevel(rbt, node, chain);
+	dns_rbt_deletefromlevel(rbt, node);
 
 	if (rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
 	/*
-	 * Everything is successful, unless the next block fails.
-	 */
-	result = ISC_R_SUCCESS;
-
-	/*
 	 * If there is one node left on this level, and the node one level up
 	 * that points down to here has no data, then those two nodes can be
 	 * merged.  The focus for exploring this criteria is shifted up one
-	 * level.
-	 */
-	node = chain->level_count > 0 ?
-		chain->levels[chain->level_count - 1] : NULL;
+	 * level, to the node that points to the level of the deleted node.
+  	 */
+	node = parent;
 
 	if (node != NULL && DATA(node) == NULL &&
-	    LEFT(DOWN(node)) == NULL && RIGHT(DOWN(node)) == NULL) {
-		rootp = chain->level_count > 1 ?
-			&DOWN(chain->levels[chain->level_count - 2]) :
-			&rbt->root;
-		/*
-		 * The search to find the original node went through the
-		 * node that is now being examined.  It might have been
-		 *
-		 * current_node -down-to-> deleted_node      ... or ...
-		 *
-		 * current_node -down-to-> remaining_node -left/right-to->
-		 *						deleted_node
-		 *
-		 * In the first case, ancestor_count - 1 is NULL and - 2
-		 * is the parent of current_node (possibly also NULL).
-		 * In the second case, ancestor_count - 1 is remaining_node,
-		 * - 2, is NULL and - 3 is the parent of current_node.
-		 */
-		parent = chain->ancestors[chain->ancestor_count - 1] == NULL ?
-			 chain->ancestors[chain->ancestor_count - 2] :
-			 chain->ancestors[chain->ancestor_count - 3];
-
-		result = join_nodes(rbt, node, parent, rootp);
-	}
+	    LEFT(DOWN(node)) == NULL && RIGHT(DOWN(node)) == NULL)
+		result = join_nodes(rbt, node);
+	else
+		result = ISC_R_SUCCESS;
 
 	return (result);
 }
@@ -1247,6 +1219,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
 
+	IS_ROOT(node) = ISC_FALSE;
 	PARENT(node) = NULL;
 	RIGHT(node) = NULL;
 	LEFT(node) = NULL;
@@ -1255,11 +1228,11 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	LOCK(node) = 0;
 	REFS(node) = 0;
-	DIRTY(node) = 0;
 	WILD(node) = 0;
+	DIRTY(node) = 0;
+	FINDCALLBACK(node) = 0;
 
 	MAKE_BLACK(node);
-	FINDCALLBACK(node) = 0;
 
 	/*
 	 * The following is stored to make reconstructing a name from the
@@ -1286,9 +1259,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 }
 
 static isc_result_t
-join_nodes(dns_rbt_t *rbt,
-	   dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
-{
+join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	dns_rbtnode_t *down, *newnode;
 	isc_result_t result;
 	dns_fixedname_t fixed_newname;
@@ -1341,24 +1312,32 @@ join_nodes(dns_rbt_t *rbt,
 	}
 
 	if (result == ISC_R_SUCCESS) {
-		COLOR(newnode)  = COLOR(node);
-		PARENT(newnode) = PARENT(node);
-		RIGHT(newnode)  = RIGHT(node);
-		LEFT(newnode)   = LEFT(node);
+		COLOR(newnode)   = COLOR(node);
+		PARENT(newnode)  = PARENT(node);
+		RIGHT(newnode)   = RIGHT(node);
+		LEFT(newnode)    = LEFT(node);
+		IS_ROOT(newnode) = IS_ROOT(node);
+
 		DOWN(newnode)   = DOWN(down);
 		DATA(newnode)   = DATA(down);
 
 		/*
 		 * Fix the pointers to the original node.
 		 */
-		if (parent != NULL) {
-			if (LEFT(parent) == node)
-				LEFT(parent) = newnode;
+		if (IS_ROOT(node))
+			if (PARENT(node) == NULL)
+				rbt->root = newnode;
 			else
-				RIGHT(parent) = newnode;
+				DOWN(PARENT(node)) = newnode;
 
-		} else
-			*rootp = newnode;
+		else
+			if (LEFT(PARENT(node)) == node)
+				LEFT(PARENT(node)) = newnode;
+			else
+				RIGHT(PARENT(node)) = newnode;
+
+		if (DOWN(down) != NULL)
+			PARENT(DOWN(down)) = newnode;
 
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
@@ -1376,10 +1355,11 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
-	REQUIRE(parent == NULL ||
+	REQUIRE(IS_ROOT(node) ||
 		RIGHT(parent) == node || LEFT(parent) == node);
 
-	INSIST(PARENT(node) == parent);
+	INSIST((! IS_ROOT(node) && PARENT(node) == parent) ||
+	       (  IS_ROOT(node) && parent == NULL));
 
 	child = RIGHT(node);
 	INSIST(child != NULL);
@@ -1392,13 +1372,17 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 	if (child != NULL)
 		PARENT(child) = PARENT(node);
 
-	if (parent != NULL) {
+	if (IS_ROOT(node)) {
+		*rootp = child;
+		IS_ROOT(child) = ISC_TRUE;
+		IS_ROOT(node) = ISC_FALSE;
+
+	} else {
 		if (LEFT(parent) == node)
 			LEFT(parent) = child;
 		else
 			RIGHT(parent) = child;
-	} else
-		*rootp = child;
+	}
 
 	PARENT(node) = child;
 }
@@ -1410,10 +1394,11 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
-	REQUIRE(parent == NULL ||
+	REQUIRE(IS_ROOT(node) ||
 		RIGHT(parent) == node || LEFT(parent) == node);
 
-	INSIST(PARENT(node) == parent);
+	INSIST((! IS_ROOT(node) && PARENT(node) == parent) ||
+	       (  IS_ROOT(node) && parent == NULL));
 
 	child = LEFT(node);
 	INSIST(child != NULL);
@@ -1426,13 +1411,17 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 	if (child != NULL)
 		PARENT(child) = PARENT(node);
 
-	if (parent != NULL) {
+	if (IS_ROOT(node)) {
+		*rootp = child;
+		IS_ROOT(child) = ISC_TRUE;
+		IS_ROOT(node) = ISC_FALSE;
+
+	} else {
 		if (LEFT(parent) == node)
 			LEFT(parent) = child;
 		else
 			RIGHT(parent) = child;
-	} else
-		*rootp = child;
+	}
 
 	PARENT(node) = child;
 }
@@ -1457,7 +1446,12 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 
 	root = *rootp;
 	if (root == NULL) {
+		/*
+		 * First node of a level.
+		 */
 		MAKE_BLACK(node);
+		IS_ROOT(node) = ISC_TRUE;
+		PARENT(node) = current;
 		*rootp = node;
 		return;
 	}
@@ -1543,6 +1537,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 	}
 
 	MAKE_BLACK(root);
+	ENSURE(IS_ROOT(root));
 	*rootp = root;
 
 	return;
@@ -1551,41 +1546,36 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 /*
  * This is the real workhorse of the deletion code, because it does the
  * true red/black tree on a single level.
- *
- * The ancestor and level history _must_ be set with dns_rbt_findnode for
- * this function to work properly.
  */
 static void
-dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
-			dns_rbtnodechain_t *chain) {
-	dns_rbtnode_t *sibling, *parent, *grandparent, *child;
-	dns_rbtnode_t *successor, **rootp;
-	int depth;
+dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
+	dns_rbtnode_t *child, *sibling, *parent, *grandparent;
+	dns_rbtnode_t *successor, *root, **rootp;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(delete);
-	REQUIRE(chain->ancestor_count > 0);
+	REQUIRE(delete != NULL);
 
-	parent = chain->ancestors[chain->ancestor_count - 1];
+	for (root = delete; ! IS_ROOT(root); root = PARENT(root))
+		;		/* Nothing. */
 
-	if (chain->level_count > 0)
-		rootp = &DOWN(chain->levels[chain->level_count - 1]);
+	if (PARENT(root) != NULL)
+		rootp = &DOWN(PARENT(root));
 	else
 		rootp = &rbt->root;
 
 	/*
-	 * Verify that the ancestor/level history is (apparently) correct.
+	 * Verify that the parent history is (apparently) correct.
 	 */
-	REQUIRE((parent == NULL && *rootp == delete) ||
-		(parent != NULL && 
-		 (LEFT(parent) == delete || RIGHT(parent) == delete)));
+	INSIST((IS_ROOT(delete) && *rootp == delete) ||
+	       (! IS_ROOT(delete) && 
+		(LEFT(PARENT(delete)) == delete ||
+		 RIGHT(PARENT(delete)) == delete)));
 
 	child = NULL;
 
 	if (LEFT(delete) == NULL) {
 		if (RIGHT(delete) == NULL) {
-			if (chain->ancestors[chain->ancestor_count - 1]
-			    == NULL) {
+			if (IS_ROOT(delete)) {
 				/*
 				 * This is the only item in the tree.
 				 */
@@ -1613,12 +1603,9 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		 * move it to this location, then do the deletion at the
 		 * old site of the successor.
 		 */
-		depth = chain->ancestor_count++;
 		successor = RIGHT(delete);
-		while (LEFT(successor) != NULL) {
-			chain->ancestors[chain->ancestor_count++] = successor;
+		while (LEFT(successor) != NULL)
 			successor = LEFT(successor);
-		}
 
 		/*
 		 * The successor cannot possibly have a left child;
@@ -1637,41 +1624,49 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 
 		/*
 		 * First, put the successor in the tree location of the
-		 * node to be deleted.
+		 * node to be deleted.  Save its existing tree pointer
+		 * information, which will be needed when linking up
+		 * delete to the successor's old location.
 		 */
 		memcpy(tmp, successor, sizeof(dns_rbtnode_t));
 
-		chain->ancestors[depth] = successor;
-		parent = chain->ancestors[depth - 1];
-
-		if (parent != NULL) {
-			if (LEFT(parent) == delete)
-				LEFT(parent) = successor;
-			else
-				RIGHT(parent) = successor;
-		} else
+		if (IS_ROOT(delete)) {
 			*rootp = successor;
+			IS_ROOT(successor) = ISC_TRUE;
+			IS_ROOT(delete) = ISC_FALSE;
+
+		} else
+			if (LEFT(PARENT(delete)) == delete)
+				LEFT(PARENT(delete)) = successor;
+			else
+				RIGHT(PARENT(delete)) = successor;
 
 		PARENT(successor) = PARENT(delete);
 		LEFT(successor)   = LEFT(delete);
 		RIGHT(successor)  = RIGHT(delete);
 		COLOR(successor)  = COLOR(delete);
 
+		if (LEFT(successor) != NULL)
+			PARENT(LEFT(successor)) = successor;
+		if (RIGHT(successor) != successor)
+			PARENT(RIGHT(successor)) = successor;
+
 		/*
 		 * Now relink the node to be deleted into the
-		 * successor's previous tree location.
+		 * successor's previous tree location.  PARENT(tmp)
+		 * is the successor's original parent.
 		 */
-		parent = chain->ancestors[chain->ancestor_count - 1];
-		if (parent == successor) {
+		INSIST(! IS_ROOT(delete));
+
+		if (PARENT(tmp) == delete) {
 			/*
 			 * Node being deleted was successor's parent.
 			 */
-			RIGHT(parent) = delete;
+			RIGHT(successor) = delete;
 			PARENT(delete) = successor;
 
 		} else {
-			LEFT(parent) = delete;
-			INSIST(PARENT(tmp) == parent);
+			LEFT(PARENT(tmp)) = delete;
 			PARENT(delete) = PARENT(tmp);
 		}
 
@@ -1683,20 +1678,16 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		COLOR(delete)  = COLOR(tmp);
 	}
 
-	parent = chain->ancestors[chain->ancestor_count - 1];
-
-	INSIST(PARENT(delete) == parent);
-
 	/*
 	 * Remove the node by removing the links from its parent.
 	 */
-	if (parent != NULL) {
-		if (LEFT(parent) == delete) {
-			LEFT(parent) = child;
-			sibling = RIGHT(parent);
+	if (! IS_ROOT(delete)) {
+		if (LEFT(PARENT(delete)) == delete) {
+			LEFT(PARENT(delete)) = child;
+			sibling = RIGHT(PARENT(delete));
 		} else {
-			RIGHT(parent) = child;
-			sibling = LEFT(parent);
+			RIGHT(PARENT(delete)) = child;
+			sibling = LEFT(PARENT(delete));
 		}
 		if (child != NULL)
 			PARENT(child) = PARENT(delete);
@@ -1708,21 +1699,21 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 		 * This is the root being deleted, and at this point
 		 * it is known to have just one child.
 		 */
-		sibling = NULL;
 		*rootp = child;
-		PARENT(child) = NULL;
+		IS_ROOT(child) = ISC_TRUE;
+		PARENT(child) = PARENT(delete);
 	} 
 
 	/*
 	 * Fix color violations.
 	 */
 	if (IS_BLACK(delete)) {
-		dns_rbtnode_t *parent;
-		depth = chain->ancestor_count - 1;
+		parent = PARENT(delete);
 
 		while (child != *rootp && IS_BLACK(child)) {
-			parent = chain->ancestors[depth--];
-			grandparent = chain->ancestors[depth];
+			INSIST(child == NULL || ! IS_ROOT(child));
+
+			grandparent = parent->parent;
 
 			if (LEFT(parent) == child) {
 				sibling = RIGHT(parent);
@@ -1810,6 +1801,8 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
 					child = *rootp;
 				}
 			}
+
+			parent = child->parent;
 		}
 
 		if (IS_RED(child))
@@ -1897,10 +1890,13 @@ dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth) {
 			dns_rbt_printnodename(parent);
 		}
 
-		if (parent != root->parent) {
+		if ((! IS_ROOT(root) && PARENT(root) != parent) ||
+		    (  IS_ROOT(root) && depth > 0 &&
+		       DOWN(PARENT(root)) != root)) {
+
 			printf(" (BAD parent pointer! -> ");
-			if (root->parent)
-				dns_rbt_printnodename(root->parent);
+			if (PARENT(root) != NULL)
+				dns_rbt_printnodename(PARENT(root));
 			else
 				printf("NULL");
 			printf(")");
