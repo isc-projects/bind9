@@ -38,6 +38,11 @@
 #include <dns/callbacks.h>
 #include <dns/confctx.h> 
 
+struct dns_zone_callbackarg {
+	isc_mem_t *mctx;
+	dns_viewlist_t oldviews;
+	dns_viewlist_t newviews;
+};
 
 typedef enum {
 	dns_zone_none,
@@ -113,6 +118,14 @@ dns_result_t dns_zone_setorigin(dns_zone_t *zone, char *origin);
  *
  * Returns:
  *	All possible values from dns_name_fromtext().
+ */
+
+dns_result_t dns_zone_getorigin(dns_zone_t *zone, isc_mem_t *mctx, dns_name_t *name);
+/*
+ *	Returns the value of the origin.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
  */
 
 dns_result_t dns_zone_setdatabase(dns_zone_t *zone, const char *database);
@@ -258,15 +271,18 @@ void dns_zone_cleardbargs(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-dns_db_t * dns_zone_getdb(dns_zone_t *zone);
+dns_result_t dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 /*
- * 	Return a pointer to the database.
+ * 	Attach the database to '*dbp' if it exists otherwise
+ *	return DNS_R_NOTFOUND.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
+ *	'dbp' to be != NULL && '*dbp' == NULL.
  *
  * Returns:
- *	A pointer to a database structure or NULL.
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOTFOUND
  */
 
 dns_result_t dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
@@ -503,14 +519,6 @@ dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
  *	'zone' to be valid initialised zone.
  */
 
-dns_name_t *dns_zone_getorigin(dns_zone_t *zone);
-/*
- * Returns the zone's origin.
- *
- * Requires:
- *	'zone' to be valid initialised zone.
- */
-
 isc_task_t *dns_zone_gettask(dns_zone_t *zone);
 /*
  * Return a pointer to the zone's task.
@@ -535,6 +543,35 @@ const char *dns_zone_getixfrlog(dns_zone_t *zone);
  * Requires:
  *	'zone' to be valid initialised zone.
  */
+
+void dns_zone_notify(dns_zone_t *zone);
+/*
+ * Generate notify events for this zone.
+ *
+ * Requires:
+ *	'zone' to be a valid zone.
+ */
+
+dns_result_t
+dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db,
+                   isc_boolean_t dump);
+/*
+ * Replace the database of "zone" with a new database "db".
+ *
+ * If "dump" is ISC_TRUE, then the new zone contents are dumped
+ * into to the zone's master file for persistence.  When replacing
+ * a zone database by one just loaded from a master file, set
+ * "dump" to ISC_FALSE to avoid a redunant redump of the data just
+ * loaded.  Otherwise, it should be set to ISC_TRUE.
+ *
+ * If the "diff-on-reload" option is enabled in the configuration file,
+ * the differences between the old and the new database are added to the
+ * journal file, and the master file dump is postponed.
+ *
+ * Requires:
+ *	'zone' to be a valid zone.
+ */
+
 
 ISC_LANG_ENDDECLS
 
