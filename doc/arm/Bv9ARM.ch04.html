@@ -4,8 +4,10 @@
 >Advanced Concepts</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.41"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+"><LINK
 REL="HOME"
+TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
 REL="PREVIOUS"
 TITLE="Nameserver Configuration"
@@ -14,6 +16,7 @@ REL="NEXT"
 TITLE="The BIND 9 Lightweight Resolver"
 HREF="Bv9ARM.ch05.html"></HEAD
 ><BODY
+CLASS="chapter"
 BGCOLOR="#FFFFFF"
 TEXT="#000000"
 LINK="#0000FF"
@@ -30,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>BIND 9 Administrator Reference Manual</TH
 ></TR
 ><TR
 ><TD
@@ -85,7 +88,7 @@ HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
 ></DT
 ><DT
 >4.3. <A
-HREF="Bv9ARM.ch04.html#AEN667"
+HREF="Bv9ARM.ch04.html#AEN673"
 >Split DNS</A
 ></DT
 ><DT
@@ -95,12 +98,12 @@ HREF="Bv9ARM.ch04.html#tsig"
 ></DT
 ><DT
 >4.5. <A
-HREF="Bv9ARM.ch04.html#AEN827"
+HREF="Bv9ARM.ch04.html#AEN833"
 >TKEY</A
 ></DT
 ><DT
 >4.6. <A
-HREF="Bv9ARM.ch04.html#AEN842"
+HREF="Bv9ARM.ch04.html#AEN848"
 >SIG(0)</A
 ></DT
 ><DT
@@ -110,7 +113,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.8. <A
-HREF="Bv9ARM.ch04.html#AEN927"
+HREF="Bv9ARM.ch04.html#AEN933"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -220,9 +223,7 @@ NAME="incremental_zone_transfers"
     transfer the entire zone. The IXFR protocol is documented in RFC
     1995. See <A
 HREF="Bv9ARM.ch09.html#proposed_standards"
-><I
->Proposed Standards</I
-></A
+>Proposed Standards</A
 ></P
 ><P
 >When acting as a master, <SPAN
@@ -254,7 +255,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN667"
+NAME="AEN673"
 >4.3. Split DNS</A
 ></H1
 ><P
@@ -634,9 +635,7 @@ for TSIG.</P
     updates, but IP-based access control is insufficient. Key-based
     access control is far superior, see <A
 HREF="Bv9ARM.ch09.html#proposed_standards"
-><I
->Proposed Standards</I
-></A
+>Proposed Standards</A
 >. The <B
 CLASS="command"
 >nsupdate</B
@@ -654,7 +653,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN758"
+NAME="AEN764"
 >4.4.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
@@ -672,7 +671,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN763"
+NAME="AEN769"
 >4.4.1.1. Automatic Generation</A
 ></H3
 ><P
@@ -714,7 +713,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN774"
+NAME="AEN780"
 >4.4.1.2. Manual Generation</A
 ></H3
 ><P
@@ -735,7 +734,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN779"
+NAME="AEN785"
 >4.4.2. Copying the Shared Secret to Both Machines</A
 ></H2
 ><P
@@ -747,7 +746,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN782"
+NAME="AEN788"
 >4.4.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
@@ -795,7 +794,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN794"
+NAME="AEN800"
 >4.4.4. Instructing the Server to Use the Key</A
 ></H2
 ><P
@@ -855,7 +854,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN810"
+NAME="AEN816"
 >4.4.5. TSIG Key Based Access Control</A
 ></H2
 ><P
@@ -901,7 +900,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN823"
+NAME="AEN829"
 >4.4.6. Errors</A
 ></H2
 ><P
@@ -930,7 +929,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN827"
+NAME="AEN833"
 >4.5. TKEY</A
 ></H1
 ><P
@@ -996,7 +995,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN842"
+NAME="AEN848"
 >4.6. SIG(0)</A
 ></H1
 ><P
@@ -1068,7 +1067,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN859"
+NAME="AEN865"
 >4.7.1. Generating Keys</A
 ></H2
 ><P
@@ -1147,7 +1146,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN879"
+NAME="AEN885"
 >4.7.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1200,7 +1199,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN891"
+NAME="AEN897"
 >4.7.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1250,7 +1249,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN904"
+NAME="AEN910"
 >4.7.4. Signing the Zone</A
 ></H2
 ><P
@@ -1312,7 +1311,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN920"
+NAME="AEN926"
 >4.7.5. Configuring Servers</A
 ></H2
 ><P
@@ -1339,7 +1338,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN927"
+NAME="AEN933"
 >4.8. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1393,7 +1392,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN941"
+NAME="AEN947"
 >4.8.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1415,7 +1414,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN946"
+NAME="AEN952"
 >4.8.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1435,7 +1434,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN950"
+NAME="AEN956"
 >4.8.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1481,7 +1480,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN961"
+NAME="AEN967"
 >4.8.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1511,7 +1510,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN967"
+NAME="AEN973"
 >4.8.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1542,7 +1541,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN974"
+NAME="AEN980"
 >4.8.4. Address to Name Lookups Using Bitstring Format</A
 ></H2
 ><P
@@ -1569,7 +1568,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN981"
+NAME="AEN987"
 >4.8.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P

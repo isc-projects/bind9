@@ -4,8 +4,10 @@
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.41"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+"><LINK
 REL="HOME"
+TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
 REL="PREVIOUS"
 TITLE="The BIND 9 Lightweight Resolver"
@@ -14,6 +16,7 @@ REL="NEXT"
 TITLE="BIND 9 Security Considerations"
 HREF="Bv9ARM.ch07.html"></HEAD
 ><BODY
+CLASS="chapter"
 BGCOLOR="#FFFFFF"
 TEXT="#000000"
 LINK="#0000FF"
@@ -30,7 +33,7 @@ CELLSPACING="0"
 ><TH
 COLSPAN="3"
 ALIGN="center"
-></TH
+>BIND 9 Administrator Reference Manual</TH
 ></TR
 ><TR
 ><TD
@@ -88,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3305"
+HREF="Bv9ARM.ch06.html#AEN3311"
 >Zone File</A
 ></DT
 ></DL
@@ -141,12 +144,16 @@ CLASS="acronym"
 file documentation:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN1049"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="178"
@@ -715,6 +722,7 @@ CLASS="userinput"
 are restricted to slave and stub zones.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -732,7 +740,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1206"
+NAME="AEN1212"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -763,7 +771,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1214"
+NAME="AEN1220"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -874,7 +882,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1243"
+NAME="AEN1249"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -893,7 +901,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1248"
+NAME="AEN1254"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -925,7 +933,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1257"
+NAME="AEN1263"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1034,12 +1042,16 @@ CLASS="acronym"
 >The following statements are supported:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN1287"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="128"
@@ -1239,6 +1251,7 @@ VALIGN="MIDDLE"
 >defines a zone.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -1258,7 +1271,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1350"
+NAME="AEN1356"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1304,12 +1317,16 @@ CLASS="command"
 >The following ACLs are built-in:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN1369"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="108"
@@ -1388,6 +1405,7 @@ VALIGN="MIDDLE"
 the system has an interface.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -1398,7 +1416,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1392"
+NAME="AEN1398"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1437,7 +1455,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1401"
+NAME="AEN1407"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1513,9 +1531,7 @@ CLASS="command"
       channel by digitally signing each message between the server and
       a command client (See <A
 HREF="Bv9ARM.ch03.html#rndc"
-><I
->Remote Name Daemon Control application</I
-></A
+>Remote Name Daemon Control application</A
 > in
       <A
 HREF="Bv9ARM.ch03.html#admin_tools"
@@ -1544,7 +1560,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1427"
+NAME="AEN1433"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1564,7 +1580,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1432"
+NAME="AEN1438"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1594,7 +1610,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1439"
+NAME="AEN1445"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1628,7 +1644,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1446"
+NAME="AEN1452"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1682,7 +1698,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1458"
+NAME="AEN1464"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1842,7 +1858,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1498"
+NAME="AEN1504"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1904,7 +1920,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1514"
+NAME="AEN1520"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2331,12 +2347,16 @@ CLASS="acronym"
 > releases.</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN1622"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="110"
@@ -2589,6 +2609,7 @@ VALIGN="MIDDLE"
 >Queries.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -2600,7 +2621,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1699"
+NAME="AEN1705"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2697,7 +2718,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1723"
+NAME="AEN1729"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2771,7 +2792,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1742"
+NAME="AEN1748"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3386,7 +3407,8 @@ CLASS="replaceable"
 >ip_port</I
 ></TT
 ></SPAN
->] ; [<SPAN
+>] ; 
+        [<SPAN
 CLASS="optional"
 > <TT
 CLASS="replaceable"
@@ -3672,7 +3694,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1948"
+NAME="AEN1954"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3697,6 +3719,8 @@ statement, an options block with each option set to its default will
 be used.</P
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -3953,6 +3977,7 @@ the initial configuration load at server startup time and
 is ignored on subsequent reloads.</P
 ></DD
 ></DL
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
@@ -3963,6 +3988,8 @@ NAME="boolean_options"
 ></H3
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -4533,12 +4560,13 @@ if known.  These options disable this behavior.
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2215"
+NAME="AEN2221"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4551,6 +4579,8 @@ the server is not authoritative and does not have the answer in
 its cache.</P
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -4585,6 +4615,7 @@ for forwarding. The default is the empty list (no forwarding).
 </P
 ></DD
 ></DL
+></DIV
 ><P
 >Forwarding can also be configured on a per-domain basis, allowing
 for the global forwarding options to be overridden in a variety
@@ -4615,6 +4646,8 @@ HREF="Bv9ARM.ch06.html#address_match_lists"
 details on how to specify IP address lists.</P
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -4731,12 +4764,13 @@ CLASS="userinput"
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2280"
+NAME="AEN2286"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -4831,7 +4865,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2306"
+NAME="AEN2312"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -4902,6 +4936,8 @@ and set limits on the amount of load that transfers place on the
 system. The following options apply to zone transfers.</P
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -5219,12 +5255,13 @@ but applies to notify messages sent to IPv6 addresses.</P
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2435"
+NAME="AEN2441"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5260,6 +5297,8 @@ HREF="Bv9ARM.ch06.html#configuration_file_elements"
 >.</P
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -5353,16 +5392,19 @@ CLASS="literal"
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2487"
+NAME="AEN2493"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -5443,6 +5485,7 @@ CLASS="acronym"
 ></DIV
 ></DD
 ></DL
+></DIV
 ></DIV
 ><DIV
 CLASS="sect3"
@@ -5727,12 +5770,16 @@ CLASS="command"
 > are:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN2583"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="72"
@@ -5792,6 +5839,7 @@ VALIGN="MIDDLE"
 order.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -5929,6 +5977,8 @@ NAME="tuning"
 ></H3
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -6073,6 +6123,7 @@ and clamp the SOA refresh and retry times to the specified values.
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
@@ -6113,12 +6164,16 @@ number is identical to the number in the beginning line.</P
 >The following statistics counters are maintained:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN2698"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="110"
@@ -6241,6 +6296,7 @@ VALIGN="MIDDLE"
 failure response other than those above.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -6256,7 +6312,7 @@ NAME="server_statement_grammar"
 >6.2.15. <B
 CLASS="command"
 >server</B
->Statement Grammar</A
+> Statement Grammar</A
 ></H2
 ><PRE
 CLASS="programlisting"
@@ -6499,7 +6555,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2795"
+NAME="AEN2801"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -6574,7 +6630,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2811"
+NAME="AEN2817"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -6609,7 +6665,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2819"
+NAME="AEN2825"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -6672,7 +6728,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2833"
+NAME="AEN2839"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7292,7 +7348,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2978"
+NAME="AEN2984"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7303,17 +7359,21 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2981"
+NAME="AEN2987"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN2989"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="87"
@@ -7532,6 +7592,7 @@ IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -7542,7 +7603,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3038"
+NAME="AEN3044"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -7580,11 +7641,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3048"
+NAME="AEN3054"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
 ></P
+><DIV
+CLASS="variablelist"
 ><DL
 ><DT
 ><B
@@ -8077,6 +8140,7 @@ HREF="Bv9ARM.ch06.html#tuning"
 ></DD
 ></DL
 ></DIV
+></DIV
 ><DIV
 CLASS="sect3"
 ><H3
@@ -8201,12 +8265,16 @@ CLASS="varname"
 </P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3281"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="79"
@@ -8287,6 +8355,7 @@ VALIGN="MIDDLE"
 same as the message signer. The name field is ignored.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -8304,7 +8373,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3305"
+NAME="AEN3311"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8325,7 +8394,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3310"
+NAME="AEN3316"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8347,12 +8416,16 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 >The components of a Resource Record are:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3322"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="96"
@@ -8440,6 +8513,7 @@ VALIGN="MIDDLE"
 data that describes the resource.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -8453,12 +8527,16 @@ CLASS="emphasis"
 or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3354"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="84"
@@ -8813,6 +8891,7 @@ VALIGN="MIDDLE"
 >(x) representation of X.25 network addresses. Experimental.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -8825,12 +8904,16 @@ CLASS="emphasis"
 are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3466"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="84"
@@ -8860,6 +8943,7 @@ HREF="Bv9ARM.ch09.html#classes_of_resource_records"
 >.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -8872,12 +8956,16 @@ CLASS="emphasis"
 data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3482"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="84"
@@ -9012,6 +9100,7 @@ VALIGN="MIDDLE"
 >several fields.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9045,7 +9134,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3524"
+NAME="AEN3530"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9074,12 +9163,16 @@ knowledge of the typical representation for the data.</P
 >For example, we might show the RRs carried in a message as:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3537"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="133"
@@ -9263,6 +9356,7 @@ CLASS="literal"
 ></P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9278,12 +9372,16 @@ domain names.</P
 >Similarly we might see:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3603"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="143"
@@ -9348,6 +9446,7 @@ CLASS="literal"
 ></P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9365,7 +9464,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3625"
+NAME="AEN3631"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9397,12 +9496,16 @@ the mail will be delivered to the server specified in the MX record
 pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3637"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="164"
@@ -9651,6 +9754,7 @@ VALIGN="MIDDLE"
 ></P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9688,12 +9792,16 @@ should be discarded. The following three types of TTL are currently
 used in a zone file.</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3729"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="72"
@@ -9751,6 +9859,7 @@ field in the RR, which will control how long other servers can cache
 the it.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9767,7 +9876,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3746"
+NAME="AEN3752"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -9790,12 +9899,16 @@ CLASS="optional"
 >] domain:</P
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3757"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="108"
@@ -9840,6 +9953,7 @@ CLASS="literal"
 ></P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
@@ -9866,7 +9980,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3773"
+NAME="AEN3779"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -9891,7 +10005,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3780"
+NAME="AEN3786"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -9961,7 +10075,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3800"
+NAME="AEN3806"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10043,7 +10157,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3820"
+NAME="AEN3826"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10083,7 +10197,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3831"
+NAME="AEN3837"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10161,12 +10275,16 @@ CLASS="literal"
 ></PRE
 ><DIV
 CLASS="informaltable"
+><A
+NAME="AEN3857"
+></A
 ><P
 ></P
 ><TABLE
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TBODY
 ><TR
 ><TD
 WIDTH="84"
@@ -10325,6 +10443,7 @@ VALIGN="MIDDLE"
 similarly to lhs.</P
 ></TD
 ></TR
+></TBODY
 ></TABLE
 ><P
 ></P
