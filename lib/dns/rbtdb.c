@@ -902,6 +902,10 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	}
 
 	if (found != NULL) {
+		/*
+		 * We increment the reference count on node to ensure that
+		 * search->zonecut_rdataset will still be valid later.
+		 */
 		new_reference(search->rbtdb, node);
 		search->zonecut = node;
 		search->zonecut_rdataset = found;
@@ -991,10 +995,15 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 {
 	dns_result_t result;
 	dns_name_t *zcname;
+	dns_rdatatype_t type;
+	dns_rbtnode_t *node;
 
 	/*
-	 * Caller must be holding the node lock.
+	 * The caller MUST NOT be holding any node locks.
 	 */
+
+	node = search->zonecut;
+	type = search->zonecut_rdataset->type;
 
 	/*
 	 * If we have to set foundname, we do it before anything else.
@@ -1015,14 +1024,17 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 * count here because we're going to use the reference we
 		 * already have in the search block.
 		 */
-		*nodep = search->zonecut;
+		*nodep = node;
 		search->need_cleanup = ISC_FALSE;
 	}
-	if (rdataset != NULL)
-		bind_rdataset(search->rbtdb, search->zonecut,
-			      search->zonecut_rdataset, rdataset);
+	if (rdataset != NULL) {
+		LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+		bind_rdataset(search->rbtdb, node, search->zonecut_rdataset,
+			      rdataset);
+		UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+	}
 
-	if (rdataset->type == dns_rdatatype_dname)
+	if (type == dns_rdatatype_dname)
 		return (DNS_R_DNAME);
 	return (DNS_R_DELEGATION);
 }
@@ -1086,10 +1098,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	if (result == DNS_R_PARTIALMATCH) {
 	partial_match:
 		if (search.zonecut != NULL) {
-		    LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset);
-		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    goto tree_exit;
 		} else {
 			/*
@@ -1185,6 +1195,11 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 */
 			if (maybe_zonecut &&
 			    header->type == dns_rdatatype_ns) {
+				/*
+				 * We increment the reference count on node to
+				 * ensure that search->zonecut_rdataset will
+				 * still be valid later.
+				 */
 				new_reference(search.rbtdb, node);
 				search.zonecut = node;
 				search.zonecut_rdataset = header;
@@ -1255,17 +1270,19 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 */
 			result = DNS_R_BADDB;
 		} else if (search.zonecut != NULL) {
-			/*
-			 * We were trying to find glue at a node beneath a
-			 * zone cut, but didn't, so we return the delegation.
-			 */
-			result = setup_delegation(&search, nodep, foundname,
-						  rdataset);
+		    /*
+		     * We were trying to find glue at a node beneath a
+		     * zone cut, but didn't, so we return the delegation.
+		     */
+		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		    result = setup_delegation(&search, nodep, foundname,
+					      rdataset);
+		    goto tree_exit;
 		} else {
 			/*
 			 * The desired type doesn't exist.
 			 */
-			result =  DNS_R_NXRDATASET;
+			result = DNS_R_NXRDATASET;
 			if (secure_zone && nxtheader == NULL) {
 				/*
 				 * The zone is secure but there's no NXT
@@ -1383,6 +1400,10 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	}
 
 	if (header != NULL) {
+		/*
+		 * We increment the reference count on node to ensure that
+		 * search->zonecut_rdataset will still be valid later.
+		 */
 		new_reference(search->rbtdb, node);
 		search->zonecut = node;
 		search->zonecut_rdataset = header;
@@ -1525,10 +1546,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	if (result == DNS_R_PARTIALMATCH) {
 		if (search.zonecut != NULL) {
-		    LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset);
-		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    goto tree_exit;
 		} else {
 		find_ns:
