@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.201 $)
+AC_REVISION($Revision: 1.202 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -379,8 +379,7 @@ Please install the devel/unproven-pthreads package and rerun configure.
 			AC_CHECK_LIB(pthread, pthread_create,,
 			     AC_CHECK_LIB(pthread, __pthread_create,,
 			     AC_CHECK_LIB(pthread, __pthread_create_system,,
-			     AC_CHECK_LIB(c_r, pthread_create, [],
-			     use_threads=false))))
+			     use_threads=false)))
 		;;
 	esac
 fi
@@ -1063,7 +1062,20 @@ AC_CHECK_HEADERS(linux/capability.h)
 AC_CHECK_HEADERS(linux/prctl.h)
 
 #
-# Random remaining OS-specific issues.
+# BSD/OS, and perhaps some others, don't define rlim_t.
+#
+AC_MSG_CHECKING(for type rlim_t)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>],
+[rlim_t rl = 19671212; return (0);],
+	[AC_MSG_RESULT(yes)
+         AC_DEFINE(HAVE_RLIM_T)],
+        [AC_MSG_RESULT(no)])
+
+#
+# Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
 #
 AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)

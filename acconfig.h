@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.30 2000/12/22 20:50:01 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.31 2000/12/23 02:45:41 tale Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -77,6 +77,9 @@
 
 /* define if flockfile() is available */
 #undef HAVE_FLOCKFILE
+
+/* define if rlim_t is defined via sys/types.h or sys/resource.h */
+#undef HAVE_RLIM_T
 
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX
