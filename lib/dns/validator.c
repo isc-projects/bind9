@@ -237,6 +237,7 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 				tname = dns_fixedname_name(&devent->foundname);
 				result = dns_validator_create(val->view,
 							      tname,
+							      dns_rdatatype_key,
 							      rdataset,
 							      sigrdataset,
 							      NULL,
@@ -582,6 +583,7 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 
 			result = dns_validator_create(val->view,
 						      &siginfo->signer,
+						      dns_rdatatype_key,
 						      frdataset,
 						      fsigrdataset,
 						      NULL,
@@ -795,29 +797,16 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		firstname = ISC_FALSE;
 		order = dns_name_compare(val->queryname, val->event->name);
 		if (order == 0) {
-			dns_name_t *qname = NULL;
-			dns_rdataset_t *qrdataset = NULL;
-			dns_rdatatype_t qtype;
-
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "nxt owner is the same");
-			result = dns_message_firstname(val->event->message,
-						       DNS_SECTION_QUESTION);
-			INSIST(result == ISC_R_SUCCESS);
-			dns_message_currentname(val->event->message,
-						DNS_SECTION_QUESTION,
-						&qname);
-			qrdataset = ISC_LIST_HEAD(qname->list);
-			qtype = qrdataset->type;
-			if (qtype >= 128) {
+			if (val->event->type >= 128) {
 				validator_log(val, ISC_LOG_DEBUG(3),
-					      "invalid type %d", qtype);
+					      "invalid type %d",
+					       val->event->type);
 				continue;
 			}
 			dns_rdataset_first(val->event->rdataset);
 			INSIST(result == ISC_R_SUCCESS);
 			dns_rdataset_current(val->event->rdataset, &rdata);
-			if (dns_nxt_typepresent(&rdata, qtype)) {
+			if (dns_nxt_typepresent(&rdata, val->event->type)) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "type should not be present");
 				continue;
@@ -950,6 +939,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 
 			result = dns_validator_create(val->view,
 						      fname,
+						      dns_rdatatype_key,
 						      frdataset,
 						      fsigrdataset,
 						      NULL,
@@ -1046,7 +1036,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 }
 
 isc_result_t
-dns_validator_create(dns_view_t *view, dns_name_t *name,
+dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -1057,9 +1047,9 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	isc_task_t *tclone;
 	dns_validatorevent_t *event;
 
-	REQUIRE((name != NULL && rdataset != NULL) ||
-		(name == NULL && rdataset == NULL &&
-		 sigrdataset == NULL && message != NULL));
+	REQUIRE(name != NULL);
+	REQUIRE(rdataset != NULL ||
+		(rdataset == NULL && sigrdataset == NULL && message != NULL));
 	REQUIRE(options == 0);
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
@@ -1084,6 +1074,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	event->validator = val;
 	event->result = ISC_R_FAILURE;
 	event->name = name;
+	event->type = type;
 	event->rdataset = rdataset;
 	event->sigrdataset = sigrdataset;
 	event->message = message;
@@ -1216,7 +1207,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 
 		isc_buffer_init(&b, (unsigned char *) typebuf, sizeof(typebuf),
 				ISC_BUFFERTYPE_TEXT);
-		if (dns_rdatatype_totext(val->event->rdataset->type, &b)
+		if (dns_rdatatype_totext(val->event->type, &b)
 		    != ISC_R_SUCCESS)
 		{
 			isc_buffer_clear(&b);

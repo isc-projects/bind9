@@ -2381,15 +2381,16 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 				validator = NULL;
 				task = res->buckets[fctx->bucketnum].task;
 				result = dns_validator_create(res->view,
-							       name,
-							       rdataset,
-							       sigrdataset,
-							       fctx->rmessage,
-							       0,
-							       task,
-							       validated,
-							       fctx,
-							       &fctx->validator);
+							      name,
+							      rdataset->type,
+							      rdataset,
+							      sigrdataset,
+							      fctx->rmessage,
+							      0,
+							      task,
+							      validated,
+							      fctx,
+							      &fctx->validator);
 				if (result == ISC_R_SUCCESS)
 					fctx->validating++;
 				/* XXX what should we do in the failure case? */

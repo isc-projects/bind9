@@ -66,13 +66,14 @@ typedef struct dns_validatorevent {
 	dns_validator_t *		validator;
 	isc_result_t			result;
 	dns_name_t *			name;
+	dns_rdatatype_t			type;
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
 } dns_validatorevent_t;
 
 isc_result_t
-dns_validator_create(dns_view_t *view, dns_name_t *name,
+dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -85,7 +86,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
  * 'sigrdataset' is NULL, the data is presumed insecure
  * and an attempt is made to validate its insecurity by
  * finding the appropriate null key.
- 
+ *
  * The complete response message may be given in 'message',
  * to make available any authority section NXTs that may be
  * needed for validation of a response resulting from a 
@@ -93,8 +94,9 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
  * is not available, 'message' is NULL.
  *
  * To validate a negative response, the complete negative response
- * message is given in 'message.  The 'name', 'rdataset', and 
- * 'sigrdataset' arguments must be NULL.
+ * message is given in 'message'.  The 'rdataset', and 
+ * 'sigrdataset' arguments must be NULL, but the 'name' and 'type'
+ * arguments must be provided.
  *
  * The validation is performed in the context of 'view'.
  * 'options' must be zero.
