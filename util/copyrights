@@ -19,7 +19,6 @@
 ./bin/named/include/named/server.h		C	1999
 ./bin/named/include/named/types.h		C	1999
 ./bin/named/include/named/update.h		C	1999
-./bin/named/include/named/xfrin.h		C	1999
 ./bin/named/include/named/xfrout.h		C	1999
 ./bin/named/interfacemgr.c			C	1999
 ./bin/named/log.c				C	1999
@@ -33,7 +32,6 @@
 ./bin/named/unix/include/named/os.h		C	1999
 ./bin/named/unix/os.c				C	1999
 ./bin/named/update.c				C	1999
-./bin/named/xfrin.c				C	1999
 ./bin/named/xfrout.c				C	1999
 ./bin/tests/.cvsignore				X	1999
 ./bin/tests/Kclient.+002+02982.key		X	1999
