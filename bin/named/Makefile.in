@@ -21,7 +21,8 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${ISC_INCLUDES} 
+CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
+		${DNS_INCLUDES} ${ISC_INCLUDES} 
 
 CDEFINES =	
 CWARNINGS =
@@ -32,10 +33,14 @@ DEPLIBS =	../../lib/dns/libdns.@A@ \
 LIBS =		${DEPLIBS} \
 		@LIBS@
 
+SUBDIRS =	unix
+
 TARGETS =	named
 
 OBJS =		client.@O@ interfacemgr.@O@ log.@O@ main.@O@ query.@O@ \
 		rootns.@O@ server.@O@ update.@O@ xfrin.@O@ xfrout.@O@
+
+UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c log.c main.c query.c \
 		rootns.c server.c update.c xfrin.c xfrout.c
@@ -49,8 +54,8 @@ printmsg.@O@: ${srcdir}/../tests/printmsg.c
 	${CC} -c -o printmsg.@O@ ${ALL_CFLAGS} -I${srcdir}/../tests \
 		${srcdir}/../tests/printmsg.c
 
-named: ${OBJS} ${DEPLIBS}
-	${LIBTOOL} ${CC} -o $@ ${OBJS} ${LIBS}
+named: ${OBJS} ${UOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
