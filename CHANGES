@@ -6,6 +6,8 @@
 
 1101.	[bug]		Array bounds read error in lwres_gai_strerror.
 
+1088.	[port]		libbind: MPE/iX C.70 (incomplete)
+
 1086.	[port]		libbind: sunos: old sprintf.
 
 1085.	[port]		libbind: solaris: sys_nerr and sys_errlist do not
