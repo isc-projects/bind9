@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.74 2001/10/04 03:20:23 mayer Exp $ */
+/* $Id: dig.h,v 1.75 2001/10/04 06:56:37 halley Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -189,7 +189,8 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 isc_result_t
-get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble);
+get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble,
+	    isc_boolean_t strict);
 
 void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
