@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.139.4.2 2001/01/12 20:31:11 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.139.4.3 2001/02/23 18:42:59 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -75,6 +75,8 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_ns)
 #define RBTDB_RDATATYPE_SIGCNAME \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_cname)
+#define RBTDB_RDATATYPE_SIGDNAME \
+		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_dname)
 #define RBTDB_RDATATYPE_NXDOMAIN \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
@@ -188,6 +190,7 @@ typedef struct {
 	isc_boolean_t		wild;
 	dns_rbtnode_t *	       	zonecut;
 	rdatasetheader_t *	zonecut_rdataset;
+	rdatasetheader_t *	zonecut_sigrdataset;
 	dns_fixedname_t		zonecut_name;
 	isc_stdtime_t		now;
 } rbtdb_search_t;
@@ -1011,6 +1014,7 @@ static isc_result_t
 zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rbtdb_search_t *search = arg;
 	rdatasetheader_t *header, *header_next;
+	rdatasetheader_t *dname_header, *sigdname_header, *ns_header;
 	rdatasetheader_t *found;
 	isc_result_t result;
 	dns_rbtnode_t *onode;
@@ -1032,10 +1036,14 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	/*
 	 * Look for an NS or DNAME rdataset active in our version.
 	 */
+	ns_header = NULL;
+	dname_header = NULL;
+	sigdname_header = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (header->type == dns_rdatatype_ns ||
-		    header->type == dns_rdatatype_dname) {
+		    header->type == dns_rdatatype_dname ||
+		    header->type == RBTDB_RDATATYPE_SIGDNAME) {
 			do {
 				if (header->serial <= search->serial &&
 				    !IGNORE(header)) {
@@ -1043,24 +1051,20 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
 					 */
-					if ((header->attributes &
-					     RDATASET_ATTR_NONEXISTENT) != 0)
+					if (NONEXISTENT(header))
 						header = NULL;
 					break;
 				} else
 					header = header->down;
 			} while (header != NULL);
 			if (header != NULL) {
-				if (header->type == dns_rdatatype_dname) {
-					/*
-					 * We don't need to keep looking for
-					 * NS records, because the DNAME has
-					 * precedence.
-					 */
-					found = header;
-					break;
-				} else if (node != onode ||
-					   IS_STUB(search->rbtdb)) {
+				if (header->type == dns_rdatatype_dname)
+					dname_header = header;
+				else if (header->type == 
+					   RBTDB_RDATATYPE_SIGDNAME)
+					sigdname_header = header;
+				else if (node != onode ||
+					 IS_STUB(search->rbtdb)) {
 					/*
 					 * We've found an NS rdataset that
 					 * isn't at the origin node.  We check
@@ -1069,10 +1073,24 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					 * treat the zone top as if it were
 					 * a delegation.
 					 */
-					found = header;
+					ns_header = header;
 				}
 			}
 		}
+	}
+
+	/*
+	 * Did we find anything?
+	 */
+	if (dname_header != NULL) {
+		/*
+		 * Note that DNAME has precedence over NS if both exist.
+		 */
+		found = dname_header;
+		search->zonecut_sigrdataset = sigdname_header;
+	} else if (ns_header != NULL) {
+		found = ns_header;
+		search->zonecut_sigrdataset = NULL;
 	}
 
 	if (found != NULL) {
@@ -1166,7 +1184,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static inline isc_result_t
 setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
-		 dns_name_t *foundname, dns_rdataset_t *rdataset)
+		 dns_name_t *foundname, dns_rdataset_t *rdataset,
+		 dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_name_t *zcname;
@@ -1206,6 +1225,10 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 		bind_rdataset(search->rbtdb, node, search->zonecut_rdataset,
 			      search->now, rdataset);
+		if (sigrdataset != NULL && search->zonecut_sigrdataset != NULL)
+			bind_rdataset(search->rbtdb, node,
+				      search->zonecut_sigrdataset,
+				      search->now, sigrdataset);
 		UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 	}
 
@@ -1613,7 +1636,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	partial_match:
 		if (search.zonecut != NULL) {
 		    result = setup_delegation(&search, nodep, foundname,
-					      rdataset);
+					      rdataset, sigrdataset);
 		    goto tree_exit;
 		}
 
@@ -1737,6 +1760,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				new_reference(search.rbtdb, node);
 				search.zonecut = node;
 				search.zonecut_rdataset = header;
+				search.zonecut_sigrdataset = NULL;
 				search.need_cleanup = ISC_TRUE;
 				maybe_zonecut = ISC_FALSE;
 				at_zonecut = ISC_TRUE;
@@ -1853,7 +1877,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		     */
 		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
-					      rdataset);
+					      rdataset, sigrdataset);
 		    goto tree_exit;
 		} else {
 			/*
@@ -1924,7 +1948,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    !valid_glue(&search, foundname, type, node)) {
 		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
-					      rdataset);
+					      rdataset, sigrdataset);
 		    goto tree_exit;
 		}
 	} else {
@@ -2002,6 +2026,7 @@ static isc_result_t
 cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rbtdb_search_t *search = arg;
 	rdatasetheader_t *header, *header_prev, *header_next;
+	rdatasetheader_t *dname_header, *sigdname_header;
 	isc_result_t result;
 
 	/* XXX comment */
@@ -2016,8 +2041,10 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
 	/*
-	 * Look for a DNAME rdataset.
+	 * Look for a DNAME or SIG DNAME rdataset.
 	 */
+	dname_header = NULL;
+	sigdname_header = NULL;
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
@@ -2045,21 +2072,28 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 				header_prev = header;
 			}
 		} else if (header->type == dns_rdatatype_dname &&
-			   (header->attributes & RDATASET_ATTR_NONEXISTENT) ==
-			   0)
-			break;
-		else
+			   EXISTS(header)) {
+			dname_header = header;
+			header_prev = header;
+		} else if (header->type == RBTDB_RDATATYPE_SIGDNAME &&
+			 EXISTS(header)) {
+			sigdname_header = header;
+			header_prev = header;
+		} else
 			header_prev = header;
 	}
 
-	if (header != NULL) {
+	if (dname_header != NULL &&
+	    (dname_header->trust != dns_trust_pending ||
+	     (search->options & DNS_DBFIND_PENDINGOK) != 0)) {
 		/*
 		 * We increment the reference count on node to ensure that
 		 * search->zonecut_rdataset will still be valid later.
 		 */
 		new_reference(search->rbtdb, node);
 		search->zonecut = node;
-		search->zonecut_rdataset = header;
+		search->zonecut_rdataset = dname_header;
+		search->zonecut_sigrdataset = sigdname_header;
 		search->need_cleanup = ISC_TRUE;
 		result = DNS_R_PARTIALMATCH;
 	} else
@@ -2256,7 +2290,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	if (result == DNS_R_PARTIALMATCH) {
 		if (search.zonecut != NULL) {
 		    result = setup_delegation(&search, nodep, foundname,
-					      rdataset);
+					      rdataset, sigrdataset);
 		    goto tree_exit;
 		} else {
 		find_ns:

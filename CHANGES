@@ -1,6 +1,13 @@
 
 	--- 9.1.1rc3 released ---
 
+ 750.	[bug]		A query should not match a DNAME whose trust level
+			is pending.  [RT #916]
+
+ 749.	[bug]		When a query matched a DNAME in a secure zone, the
+			server did not return the signature of the DNAME.
+			[RT #915]
+
  747.	[bug]		The code to determine whether an IXFR was possible
 			did not properly check for a database that could
 			not have a journal. [RT #865, #908]
