@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.3 2002/07/11 04:08:06 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.4 2002/07/11 05:55:04 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -161,7 +161,7 @@ static struct addrinfo * ho_addrinfo(struct irs_ho *this, const char *name,
 				     const struct addrinfo *pai);
 
 static void		map_v4v6_hostent(struct hostent *hp, char **bp,
-					 int *len);
+					 char *ep);
 static void		addrsort(res_state, char **, int);
 static struct hostent *	gethostans(struct irs_ho *this,
 				   const u_char *ansbuf, int anslen,
@@ -1081,7 +1081,7 @@ gethostans(struct irs_ho *this,
 	   struct addrinfo **ret_aip, const struct addrinfo *pai)
 {
 	struct pvt *pvt = (struct pvt *)this->private;
-	int type, class, buflen, ancount, qdcount, n, haveanswer, had_error;
+	int type, class, ancount, qdcount, n, haveanswer, had_error;
 	int error = NETDB_SUCCESS, arcount;
 	int (*name_ok)(const char *);
 	const HEADER *hp;
@@ -1090,7 +1090,7 @@ gethostans(struct irs_ho *this,
 	const u_char *cp;
 	const char *tname;
 	const char *hname;
-	char *bp, **ap, **hap;
+	char *bp, *ep, **ap, **hap;
 	char tbuf[MAXDNAME+1];
 	struct addrinfo sentinel, *cur, ai;
 	const u_char *arp = NULL;
@@ -1133,13 +1133,13 @@ gethostans(struct irs_ho *this,
 	qdcount = ntohs(hp->qdcount);
 	arcount = ntohs(hp->arcount);
 	bp = pvt->hostbuf;
-	buflen = sizeof pvt->hostbuf;
+	ep = pvt->hostbuf + sizeof(pvt->hostbuf);
 	cp = ansbuf + HFIXEDSZ;
 	if (qdcount != 1) {
 		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 		return (NULL);
 	}
-	n = dn_expand(ansbuf, eom, cp, bp, buflen);
+	n = dn_expand(ansbuf, eom, cp, bp, ep - bp);
 	if (n < 0 || !maybe_ok(pvt->res, bp, name_ok)) {
 		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY);
 		return (NULL);
@@ -1163,7 +1163,6 @@ gethostans(struct irs_ho *this,
 		pvt->host.h_name = bp;
 		hname = bp;
 		bp += n;
-		buflen -= n;
 		/* The qname can be abbreviated, but hname is now absolute. */
 		qname = pvt->host.h_name;
 	}
@@ -1176,7 +1175,7 @@ gethostans(struct irs_ho *this,
 	haveanswer = 0;
 	had_error = 0;
 	while (ancount-- > 0 && cp < eom && !had_error) {
-		n = dn_expand(ansbuf, eom, cp, bp, buflen);
+		n = dn_expand(ansbuf, eom, cp, bp, ep - bp);
 		if (n < 0 || !maybe_ok(pvt->res, bp, name_ok)) {
 			had_error++;
 			continue;
@@ -1209,10 +1208,9 @@ gethostans(struct irs_ho *this,
 			*ap++ = bp;
 			n = strlen(bp) + 1;	/* for the \0 */
 			bp += n;
-			buflen -= n;
 			/* Get canonical name. */
 			n = strlen(tbuf) + 1;	/* for the \0 */
-			if (n > buflen || n > MAXHOSTNAMELEN) {
+			if (n > (ep - bp) || n > MAXHOSTNAMELEN) {
 				had_error++;
 				continue;
 			}
@@ -1220,7 +1218,6 @@ gethostans(struct irs_ho *this,
 			pvt->host.h_name = bp;
 			hname = bp;
 			bp += n;
-			buflen -= n;
 			continue;
 		}
 		if (type == ns_t_dname) {
@@ -1256,7 +1253,7 @@ gethostans(struct irs_ho *this,
 			cp += n;
 
 			n = strlen(t) + 1; /* for the \0 */
-			if (n > buflen) {
+			if (n > (ep - bp)) {
 				had_error++;
 				continue;
 			}
@@ -1266,7 +1263,6 @@ gethostans(struct irs_ho *this,
 			else
 				hname = bp;
 			bp += n;
-			buflen -= n;
 
 			continue;
 		}
@@ -1292,14 +1288,13 @@ gethostans(struct irs_ho *this,
 			}
 			/* Get canonical name. */
 			n = strlen(tbuf) + 1;	/* for the \0 */
-			if (n > buflen) {
+			if (n > (ep - bp)) {
 				had_error++;
 				continue;
 			}
 			strcpy(bp, tbuf);
 			tname = bp;
 			bp += n;
-			buflen -= n;
 			continue;
 		}
 		if (qtype == T_ANY) {
@@ -1323,7 +1318,7 @@ gethostans(struct irs_ho *this,
 				cp += n;
 				continue;
 			}
-			n = dn_expand(ansbuf, eor, cp, bp, buflen);
+			n = dn_expand(ansbuf, eor, cp, bp, ep - bp);
 			if (n < 0 || !maybe_hnok(pvt->res, bp) ||
 			    n >= MAXHOSTNAMELEN) {
 				had_error++;
@@ -1341,7 +1336,6 @@ gethostans(struct irs_ho *this,
 			if (n != -1) {
 				n = strlen(bp) + 1;	/* for the \0 */
 				bp += n;
-				buflen -= n;
 			}
 			break;
 		case ns_t_a6: {
@@ -1441,7 +1435,6 @@ gethostans(struct irs_ho *this,
 				pvt->host.h_name = bp;
 				hname = bp;
 				bp += nn;
-				buflen -= nn;
 			}
 			/* Ensure alignment. */
 			bp = (char *)(((u_long)bp + (sizeof(align) - 1)) &
@@ -1495,15 +1488,14 @@ gethostans(struct irs_ho *this,
 					 haveanswer);
 			if (pvt->host.h_name == NULL) {
 				n = strlen(qname) + 1;	/* for the \0 */
-				if (n > buflen || n >= MAXHOSTNAMELEN)
+				if (n > (ep - bp) || n >= MAXHOSTNAMELEN)
 					goto no_recovery;
 				strcpy(bp, qname);
 				pvt->host.h_name = bp;
 				bp += n;
-				buflen -= n;
 			}
 			if (pvt->res->options & RES_USE_INET6)
-				map_v4v6_hostent(&pvt->host, &bp, &buflen);
+				map_v4v6_hostent(&pvt->host, &bp, ep);
 			RES_SET_H_ERRNO(pvt->res, NETDB_SUCCESS);
 			return (&pvt->host);
 		} else {
@@ -1577,7 +1569,7 @@ add_hostent(struct pvt *pvt, char *bp, char **hap, struct addrinfo *ai)
 }
 
 static void
-map_v4v6_hostent(struct hostent *hp, char **bpp, int *lenp) {
+map_v4v6_hostent(struct hostent *hp, char **bpp, char *ep) {
 	char **ap;
 
 	if (hp->h_addrtype != AF_INET || hp->h_length != INADDRSZ)
@@ -1590,17 +1582,15 @@ map_v4v6_hostent(struct hostent *hp, char **bpp, int *lenp) {
 		if (i != 0)
 			i = sizeof(align) - i;
 
-		if (*lenp < (i + IN6ADDRSZ)) {
+		if ((ep - *bpp) < (i + IN6ADDRSZ)) {
 			/* Out of memory.  Truncate address list here. */
 			*ap = NULL;
 			return;
 		}
 		*bpp += i;
-		*lenp -= i;
 		map_v4v6_address(*ap, *bpp);
 		*ap = *bpp;
 		*bpp += IN6ADDRSZ;
-		*lenp -= IN6ADDRSZ;
 	}
 }
 
