@@ -119,8 +119,11 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 	ns_dbinfo_t *dbi;
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:N:p:sz:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "b:c:N:p:sz:")) != -1) {
 		switch (ch) {
+		case 'b':
+			ns_g_conffile = isc_commandline_argument;
+			break;
 		case 'c':
 			/* XXXRTH temporary syntax */
 			dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
@@ -287,6 +290,11 @@ setup() {
 	ISC_LIST_INIT(ns_g_viewlist);
 
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
+	if (result != ISC_R_SUCCESS)
+		early_fatal("isc_rwlock_init() failed: %s",
+			    isc_result_totext(result));
+
+	result = isc_rwlock_init(&ns_g_confctxlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		early_fatal("isc_rwlock_init() failed: %s",
 			    isc_result_totext(result));
