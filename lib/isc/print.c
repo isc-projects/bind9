@@ -67,7 +67,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	int zeropad;
 	int dot;
 	double dbl;
+#ifdef HAVE_LONG_DOUBLE
 	long double ldbl;
+#endif
 	char fmt[32];
 	
 	INSIST(str != NULL);
@@ -429,10 +431,14 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		case 'O':	/*deprecated*/
 			INSIST("use %lo instead of %O" == NULL);
 		case 'U':	/*deprecated*/
-			INSIST("use %lo instead of %U" == NULL);
+			INSIST("use %lu instead of %U" == NULL);
 
 		case 'L':
+#ifdef HAVE_LONG_DOUBLE
 			l = 1;
+#else
+			INSIST("long doubles are not supported" == NULL);
+#endif
 			/*FALLTHROUGH*/
 		case 'e':
 		case 'E':
@@ -462,10 +468,13 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			case 'f':
 			case 'g':
 			case 'G':
+#ifdef HAVE_LONG_DOUBLE
 				if (l) {
 					ldbl = va_arg(ap, long double);
 					sprintf(buf, fmt, ldbl);
-				} else {
+				} else
+#endif
+				{
 					dbl = va_arg(ap, double);
 					sprintf(buf, fmt, dbl);
 				}
