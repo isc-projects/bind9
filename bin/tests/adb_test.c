@@ -53,6 +53,7 @@ struct client {
 isc_mem_t *mctx;
 isc_mempool_t *cmp;
 isc_log_t *lctx;
+isc_logconfig_t *lcfg;
 isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *socketmgr;
 isc_timermgr_t *timermgr;
@@ -291,11 +292,9 @@ main(int argc, char **argv)
 		      == ISC_R_SUCCESS);
 	isc_mempool_setname(cmp, "adb test clients");
 
-	result = isc_log_create(mctx, &lctx);
+	result = isc_log_create(mctx, &lctx, &lcfg);
 	check_result(result, "isc_log_create()");
-
-	result = dns_log_init(lctx);
-	check_result(result, "dns_log_init()");
+	dns_log_init(lctx);
 
 	/*
 	 * Create and install the default channel.
@@ -304,12 +303,12 @@ main(int argc, char **argv)
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
-	result = isc_log_createchannel(lctx, "_default",
+	result = isc_log_createchannel(lcfg, "_default",
 				       ISC_LOG_TOFILEDESC,
 				       ISC_LOG_DYNAMIC,
 				       &destination, ISC_LOG_PRINTTIME);
 	check_result(result, "isc_log_createchannel()");
-	result = isc_log_usechannel(lctx, "_default", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "_default", NULL, NULL);
 	check_result(result, "isc_log_usechannel()");
 
 	/*
