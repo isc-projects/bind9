@@ -1,4 +1,9 @@
 
+ 573.	[bug]		The journal files of IXFRed slave zones were
+			inadvertantly discarded on server reload, causing
+			"journal out of sync with zone" errors on subsequent
+			reloads. [RT #478]
+
  572.	[bug]		Quoted strings were not accepted as key names in
 			address match lists.
 
