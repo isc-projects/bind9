@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.23 2001/01/09 21:39:58 bwelling Exp $ */
+/* $Id: notify.c,v 1.24 2001/03/31 01:03:26 bwelling Exp $ */
 
 #include <config.h>
+
+#include <isc/log.h>
 
 #include <dns/message.h>
 #include <dns/rdataset.h>
@@ -33,86 +35,15 @@
  * This module implements notify as in RFC 1996.
  */
 
-/**************************************************************************/
+static void
+notify_log(int level, const char *fmt, ...) {
+	va_list ap;
 
-/*
- * Convenience macro of common isc_log_write() arguments
- * to use in reportings server errors.
- */
-#define NOTIFY_ERROR_LOGARGS \
-	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
-	ISC_LOG_ERROR
-
-/*
- * Convenience macro of common isc_log_write() arguments
- * to use in tracing notify protocol requests.
- */
-#define NOTIFY_PROTOCOL_LOGARGS \
-	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
-	ISC_LOG_INFO
-
-/*
- * Convenience macro of common isc_log_write() arguments
- * to use in low-level debug tracing.
- */
-#define NOTIFY_DEBUG_LOGARGS \
-	ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
-	ISC_LOG_DEBUG(8)
-
-/*
- * Check an operation for failure.  These macros all assume that
- * the function using them has a 'result' variable and a 'failure'
- * label.
- */
-#define CHECK(op) \
-	do { result = (op); 				  	 \
-	       if (result != ISC_R_SUCCESS) goto failure; 	 \
-	} while (0)
-
-/*
- * Fail unconditionally with result 'code', which must not
- * be ISC_R_SUCCESS.  The reason for failure presumably has
- * been logged already.
- *
- * The test is there to keep the Solaris compiler from complaining
- * about "end-of-loop code not reached".
- */
-
-#define FAIL(code) \
-	do {							\
-		result = (code);				\
-		if (code != ISC_R_SUCCESS) goto failure;	\
-	} while (0)
-
-/*
- * Fail unconditionally and log as a client error.
- * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
- * from complaining about "end-of-loop code not reached".
- */
-#define FAILC(code, msg) \
-	do {							\
-		result = (code);				\
-		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
-			      "notify failed: %s (%s)",	\
-		      	      msg, isc_result_totext(code));	\
-		if (result != ISC_R_SUCCESS) goto failure;	\
-	} while (0)
-
-/*
- * Fail unconditionally and log as a server error.
- * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
- * from complaining about "end-of-loop code not reached".
- */
-#define FAILS(code, msg) \
-	do {							\
-		result = (code);				\
-		isc_log_write(NOTIFY_PROTOCOL_LOGARGS,		\
-			      "notify error: %s: %s", 	\
-			      msg, isc_result_totext(code));	\
-		if (result != ISC_R_SUCCESS) goto failure;	\
-	} while (0)
-
-/**************************************************************************/
+	va_start(ap, fmt);
+	isc_log_vwrite(ns_g_lctx, DNS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY,
+		       level, fmt, ap);
+	va_end(ap);
+}
 
 static void
 respond(ns_client_t *client, isc_result_t result) {
@@ -145,14 +76,16 @@ ns_notify_start(ns_client_t *client) {
 	dns_name_t *zonename;
 	dns_rdataset_t *zone_rdataset;
 	dns_zone_t *zone = NULL;
+	char str[DNS_NAME_FORMATSIZE];
 
 	/*
 	 * Interpret the question section.
 	 */
 	result = dns_message_firstname(request, DNS_SECTION_QUESTION);
-	if (result != ISC_R_SUCCESS)
-		FAILC(DNS_R_FORMERR,
-		      "notify question section empty");
+	if (result != ISC_R_SUCCESS) {
+		notify_log(ISC_LOG_INFO, "notify question section empty");
+		goto failure;
+	}
 
 	/*
 	 * The question section must contain exactly one question.
@@ -160,21 +93,36 @@ ns_notify_start(ns_client_t *client) {
 	zonename = NULL;
 	dns_message_currentname(request, DNS_SECTION_QUESTION, &zonename);
 	zone_rdataset = ISC_LIST_HEAD(zonename->list);
-	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL)
-		FAILC(DNS_R_FORMERR,
-		      "notify question section contains multiple RRs");
+	if (ISC_LIST_NEXT(zone_rdataset, link) != NULL) {
+		notify_log(ISC_LOG_INFO,
+			   "notify question section contains multiple RRs");
+		goto failure;
+	}
 
 	/* The zone section must have exactly one name. */
 	result = dns_message_nextname(request, DNS_SECTION_ZONE);
-	if (result != ISC_R_NOMORE)
-		FAILC(DNS_R_FORMERR,
-		      "notify question section contains multiple RRs");
+	if (result != ISC_R_NOMORE) {
+		notify_log(ISC_LOG_INFO,
+			   "notify question section contains multiple RRs");
+		goto failure;
+	}
+
+	/* The one rdataset must be an SOA. */
+	if (zone_rdataset->type != dns_rdatatype_soa) {
+		notify_log(ISC_LOG_INFO,
+			   "notify question section contains no SOA");
+		goto failure;
+	}
 
 	result = dns_zt_find(client->view->zonetable, zonename, 0, NULL,
 			     &zone);
-	if (result != ISC_R_SUCCESS)
-		FAILC(DNS_R_REFUSED,
-		      "not authoritative for notify zone");
+	if (result != ISC_R_SUCCESS) {
+		dns_name_format(zonename, str, sizeof(str));
+		notify_log(ISC_LOG_INFO,
+			   "received notify for zone '%s': not authoritative",
+			   str);
+		goto failure;
+	}
 
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
@@ -184,8 +132,11 @@ ns_notify_start(ns_client_t *client) {
 			ns_client_getsockaddr(client), request));
 		break;
 	default:
-		FAILC(DNS_R_REFUSED,
-		      "not authoritative for notify zone");
+		dns_name_format(zonename, str, sizeof(str));
+		notify_log(ISC_LOG_INFO,
+			   "received notify for zone '%s': not authoritative",
+			   str);
+		goto failure;
 	}
 	dns_zone_detach(&zone);
 	return;
