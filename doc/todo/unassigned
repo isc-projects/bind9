@@ -35,9 +35,21 @@ getaddrinfo()
 
 Add a built-in localhost zone feature
 
-Mark says we should check that a partial rrset dynamic
-update will cause the resulting full rrset to have the
-new ttl, and check that RFC2136 actually says this
+Sumbit the following change for the next revision of RFC2136:
+
+<   7.12. Due to the TTL minimalization necessary when caching an RRset,
+<   it is recommended that all TTLs in an RRset be set to the same value.
+<   While the DNS Message Format permits variant TTLs to exist in the
+<   same RRset, and this variance can exist inside a zone, such variance
+<   will have counterintuitive results and its use is discouraged.
+
+>   7.12. When adding a new RR to an existing RRSet, the server needs to
+>   make sure that all the RRs in the resulting RRSet have the same TTL
+>   [RFC2181].  The TTL of the newly added RRs should override the TTL
+>   of the existing records.  In a server providing IXFR [RFC1995],
+>   the IXFR difference sequence representing such an RR addition will
+>   contain deletions of the existing RRs followed by their re-addition
+>   with the new TTL.
 
 Implement rrset-order (partially).  Mark says rrset-order is
 applied first, sortlist last.
