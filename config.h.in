@@ -124,3 +124,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
+
+/* Define if you have the addrinfo struct */
+#undef HAVE_ADDRINFO
+
+/* Define if you have the getaddrinfo function */
+#undef HAVE_GETADDRINFO
