@@ -378,7 +378,7 @@ sub testCheck {
 			next;
 		}
 
-		if (/^E:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/) {
+		if (/^E:[^:]*:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/) {
 			if ($inresult == 0) {
 				# no reported result
 				$BadTest = 1;
@@ -463,6 +463,10 @@ sub testCheck {
 	if ($ntestsets == 0) {
 		$BadTest = 1;
 		$BadTestReason = "no tests";
+	}
+	if ($intest) {
+		$BadTest = 1;
+		$BadTestReason = "incomplete";
 	}
 	return(%probs);
 }
