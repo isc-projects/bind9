@@ -621,17 +621,18 @@ run(void *uap) {
 				INSIST(!EMPTY(task->events));
 				event = HEAD(task->events);
 				DEQUEUE(task->events, event, link);
-				UNLOCK(&task->lock);
 
 				/*
 				 * Execute the event action.
 				 */
 				XTRACE("execute action");
-				if (event->action != NULL)
+				if (event->action != NULL) {
+					UNLOCK(&task->lock);
 					(event->action)(task, event);
+					LOCK(&task->lock);
+				}
 				dispatch_count++;
 				
-				LOCK(&task->lock);
 				if (EMPTY(task->events)) {
 					/*
 					 * Nothing else to do for this task
