@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.45.2.4 2001/06/14 14:36:05 gson Exp $ */
+/* $Id: request.c,v 1.45.2.5 2001/08/29 01:17:14 gson Exp $ */
 
 #include <config.h>
 
@@ -1164,13 +1164,13 @@ dns_request_destroy(dns_request_t **requestp) {
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_destroy: request %p", request);
 
-	LOCK(&request->requestmgr->locks[request->hash]);
 	LOCK(&request->requestmgr->lock);
+	LOCK(&request->requestmgr->locks[request->hash]);
 	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
-	UNLOCK(&request->requestmgr->lock);
 	INSIST(!DNS_REQUEST_CONNECTING(request));
 	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
+	UNLOCK(&request->requestmgr->lock);
 
 	req_destroy(request);
 
