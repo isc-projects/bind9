@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.225 2001/09/14 06:31:40 marka Exp $ */
+/* $Id: dighost.c,v 1.226 2001/09/18 18:16:08 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -106,7 +106,7 @@ int sendcount = 0;
 int recvcount = 0;
 int sockcount = 0;
 int ndots = -1;
-int tries = 2;
+int tries = 3;
 int lookup_counter = 0;
 
 /*
