@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.27 2004/04/15 05:31:47 marka Exp $ */
+/* $Id: server.c,v 1.339.2.28 2004/04/20 07:10:48 marka Exp $ */
 
 #include <config.h>
 
@@ -2550,15 +2550,17 @@ start_reserved_dispatches(ns_server_t *server) {
 
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all) {
-	ns_dispatch_t *dispatch;
+	ns_dispatch_t *dispatch, *nextdispatch;
 
 	REQUIRE(NS_SERVER_VALID(server));
 
 	for (dispatch = ISC_LIST_HEAD(server->dispatches);
 	     dispatch != NULL;
-	     dispatch = ISC_LIST_NEXT(dispatch, link)) {
+	     dispatch = nextdispatch) {
+		nextdispatch = ISC_LIST_NEXT(dispatch, link);
 		if (!all && server->dispatchgen == dispatch-> dispatchgen)
 			continue;
+		ISC_LIST_UNLINK(server->dispatches, dispatch, link);
 		dns_dispatch_detach(&dispatch->dispatch);
 		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
 	}
