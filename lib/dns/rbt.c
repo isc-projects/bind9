@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.123 2002/08/27 04:53:42 marka Exp $ */
+/* $Id: rbt.c,v 1.124 2003/05/08 04:03:25 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1412,8 +1412,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname, unsigned int size)
 	if (result == ISC_R_SUCCESS)
 		dns_name_format(name, printname, size);
 	else
-		snprintf(printname, sizeof(printname),
-			 "<error building name: %s>",
+		snprintf(printname, size, "<error building name: %s>",
 			 dns_result_totext(result));
 
 	return (printname);
