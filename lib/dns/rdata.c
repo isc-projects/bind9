@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.143 2001/03/06 22:10:33 marka Exp $ */
+/* $Id: rdata.c,v 1.144 2001/07/06 20:15:08 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1379,7 +1379,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 	if (nrem > 255)
 		nrem = 255;
 	while (n-- != 0) {
-		c = (*s++)&0xff;
+		c = (*s++) & 0xff;
 		if (escape && (d = decvalue((char)c)) != -1) {
 			c = d;
 			if (n == 0)
