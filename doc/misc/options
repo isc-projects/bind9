@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.63 2001/03/14 22:14:38 gson Exp $
+$Id: options,v 1.64 2001/03/16 18:18:57 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -85,7 +85,7 @@ options {
   [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    Obsolete
   [ serial-queries number; ]				    Obsolete
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes
+  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
   [ transfers-in  number; ]				    Yes
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    Yes
@@ -144,7 +144,7 @@ server ip_addr {
   [ support-ixfr yes_or_no; ]				    Obsolete
   [ edns yes_or_no; ]					    Yes*
   [ transfers number; ]					    Yes
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes
+  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
   [ keys { key_id [key_id ... ] }; ]			    Yes
 };
 
@@ -266,7 +266,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ max-ncache-ttl number; ]				    Yes
   [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    Obsolete
-  [ transfer-format ( one-answer | many-answers ); ]	    Yes
+  [ transfer-format ( one-answer | many-answers ); ]	    Yes%
   [ transfer-source ...; ]				    Yes
   [ transfer-source-v6 ...; ]				    Yes*
   [ notify-source ...; ]				    Yes*
