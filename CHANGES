@@ -1,3 +1,7 @@
+1118.	[bug]		On multithreaded servers, a race condition
+			could cause an assertion failure in resolver.c
+			during resolver shutdown. [RT #2029]
+
 1117.	[port]		The configure check for in6addr_loopback incorrectly
 			succeeded on AIX 4.3 when compiling with -O2
 			because the test code was optimized away.

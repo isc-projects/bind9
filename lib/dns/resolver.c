@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.5 2001/11/04 19:21:50 gson Exp $ */
+/* $Id: resolver.c,v 1.218.2.6 2001/11/12 22:37:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1924,8 +1924,6 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("doshutdown");
 
-	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
-
 	/*
 	 * An fctx that is shutting down is no longer in ADDRWAIT mode.
 	 */
@@ -1949,6 +1947,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_stopeverything(fctx, ISC_FALSE);
 
 	LOCK(&res->buckets[bucketnum].lock);
+
+	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
 
 	INSIST(fctx->state == fetchstate_active ||
 	       fctx->state == fetchstate_done);
