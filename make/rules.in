@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.27 2001/01/18 01:33:54 bwelling Exp $
+# $Id: rules.in,v 1.28 2001/02/01 23:19:05 sjacob Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -117,6 +117,7 @@ ALL_CFLAGS = ${EXT_CFLAGS} ${CFLAGS} \
 
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
+PURIFY = @PURIFY@
 
 MKDEP = ${SHELL} ${top_builddir}/make/mkdep
 
