@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.4 2001/01/09 21:40:04 bwelling Exp $ */
+/* $Id: sortlist.c,v 1.5 2001/03/26 23:36:00 gson Exp $ */
 
 #include <config.h>
 
@@ -62,9 +62,16 @@ ns_sortlist_setup(dns_acl_t *acl, isc_netaddr_t *clientaddr, void **argp) {
 					 &matchelt)) {
 			if (inner->length == 2) {
 				dns_aclelement_t *elt1 = &inner->elements[1];
-				if (elt1->type != dns_aclelementtype_nestedacl)
+				if (elt1->type == dns_aclelementtype_nestedacl)
+					*argp = elt1->u.nestedacl;
+				else if (elt1->type == dns_aclelementtype_localhost &&
+					 ns_g_server->aclenv.localhost != NULL)
+					*argp = ns_g_server->aclenv.localhost;
+				else if (elt1->type == dns_aclelementtype_localnets &&
+					 ns_g_server->aclenv.localnets != NULL)
+					*argp = ns_g_server->aclenv.localnets;
+				else
 					goto dont_sort;
-				*argp = elt1->u.nestedacl;
 				return (NS_SORTLISTTYPE_2ELEMENT);
 			} else {
 				INSIST(matchelt != NULL);
