@@ -77,9 +77,16 @@ isc_file_settime(const char *file, isc_time_t *time) {
 	/*
 	 * tv_sec is at least a 32 bit quantity on all platforms we're
 	 * dealing with, but it is signed on most (all?) of them,
-	 * so we need to make sure the high bit isn't set.
+	 * so we need to make sure the high bit isn't set.  This unfortunately
+	 * loses when either:
+	 *   * tv_sec becomes a signed 64 bit integer but long is 32 bits
+	 *	and isc_time_seconds > LONG_MAX, or
+	 *   * isc_time_seconds is changed to be > 32 bits but long is 32 bits
+	 *      and isc_time_seconds has at least 33 significant bits.
 	 */
-	times[0].tv_sec = times[1].tv_sec = isc_time_seconds(time);
+	times[0].tv_sec = times[1].tv_sec =
+		(long)isc_time_seconds(time);
+
 	if ((times[0].tv_sec & (1 << (sizeof(times[0].tv_sec) * 8 - 1))) != 0)
 		return (ISC_R_RANGE);
 
