@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.14 1999/10/07 21:51:49 bwelling Exp $
+ * $Id: tsig.c,v 1.15 1999/10/08 16:39:17 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -172,7 +172,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_rdata_t *rdata;
 	dns_rdatalist_t *datalist;
 	dns_rdataset_t *dataset;
-	isc_region_t r;
+	isc_region_t r, r2;
 	isc_stdtime_t now;
 	dst_context_t ctx;
 	isc_mem_t *mctx;
@@ -372,11 +372,15 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_signature;
 	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
 				  ISC_BUFFERTYPE_BINARY);
+	if (ret != ISC_R_SUCCESS) {
+		isc_buffer_free(&dynbuf);
+		goto cleanup_signature;
+	}
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, tsig, dynbuf);
 	if (ret != ISC_R_SUCCESS) {
 		isc_buffer_free(&dynbuf);
-		goto cleanup_signature;
+		goto cleanup_dynbuf;
 	}
 
 	dns_message_takebuffer(msg, &dynbuf);
@@ -385,14 +389,23 @@ dns_tsig_sign(dns_message_t *msg) {
 	owner = NULL;
 	ret = dns_message_gettempname(msg, &owner);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signature;
+		goto cleanup_dynbuf;
+	dns_name_toregion(&key->name, &r);
+	dynbuf = NULL;
+	ret = isc_buffer_allocate(mctx, &dynbuf, r.length,
+				  ISC_BUFFERTYPE_BINARY);
+	if (ret != ISC_R_SUCCESS)
+		goto cleanup_dynbuf;
+	isc_buffer_available(dynbuf, &r2);
+	memcpy(r2.base, r.base, r.length);
 	dns_name_init(owner, NULL);
-	dns_name_clone(&key->name, owner);
+	dns_name_fromregion(owner, &r2);
+	dns_message_takebuffer(msg, &dynbuf);
 
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signature;
+		goto cleanup_dynbuf;
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
 	datalist->ttl = 0;
@@ -401,7 +414,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dataset = NULL;
 	ret = dns_message_gettemprdataset(msg, &dataset);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signature;
+		goto cleanup_dynbuf;
 	dns_rdataset_init(dataset);
 	dns_rdatalist_tordataset(datalist, dataset);
 	ISC_LIST_APPEND(owner->list, dataset, link);
@@ -409,6 +422,9 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	return (ISC_R_SUCCESS);
 
+cleanup_dynbuf:
+	if (dynbuf != NULL)
+		isc_buffer_free(&dynbuf);
 cleanup_signature:
 	if (tsig->signature != NULL)
 		isc_mem_put(mctx, tsig->signature, tsig->siglen);
