@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.175 2001/02/13 01:02:57 bwelling Exp $ */
+/* $Id: message.c,v 1.176 2001/02/13 01:29:33 bwelling Exp $ */
 
 /***
  *** Imports
@@ -991,8 +991,10 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		free_name = ISC_TRUE;
 		
 		offsets = newoffsets(msg);
-		if (offsets == NULL)
+		if (offsets == NULL) {
+			result = ISC_R_NOMEMORY;
 			goto cleanup;
+		}
 		dns_name_init(name, *offsets);
 
 		/*
@@ -1168,8 +1170,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		free_name = ISC_TRUE;
 
 		offsets = newoffsets(msg);
-		if (offsets == NULL)
+		if (offsets == NULL) {
+			result = ISC_R_NOMEMORY;
 			goto cleanup;
+		}
 		dns_name_init(name, *offsets);
 
 		/*
