@@ -1,3 +1,6 @@
+1145.	[func]		"host" no longer reports a NOERROR/NODATA response
+			by printing nothing. [RT #2065]
+
 1144.	[bug]		rndc-confgen would crash if both the -a and -t
 			options were specified. [RT #2159]
 

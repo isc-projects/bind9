@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.80 2001/11/29 01:14:35 gson Exp $ */
+/* $Id: host.c,v 1.81 2001/11/29 01:21:19 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -458,6 +458,15 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 	if (!short_form)
 		printf("\n");
+
+	if (short_form && ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER])) {
+		char namestr[DNS_NAME_FORMATSIZE];
+		char typestr[DNS_RDATATYPE_FORMATSIZE];
+		dns_name_format(query->lookup->name, namestr, sizeof(namestr));
+		dns_rdatatype_format(query->lookup->rdtype, typestr,
+				     sizeof(typestr));
+		printf("%s has no %s record\n", namestr, typestr);
+	}
 
 	return (result);
 }
