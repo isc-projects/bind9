@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.63 2000/06/22 21:54:54 tale Exp $ */
+/* $Id: validator.c,v 1.63.2.1 2000/07/11 00:43:01 gson Exp $ */
 
 #include <config.h>
 
@@ -775,6 +775,63 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 }
 
 /*
+ * If the rdataset being validated is a key set, is each key a security root?
+ */
+static isc_boolean_t
+issecurityroot(dns_validator_t *val) {
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	isc_mem_t *mctx;
+	dns_keytable_t *secroots;
+	dns_rdata_t rdata;
+	isc_result_t result;
+	dns_keynode_t *keynode, *nextnode;
+	dst_key_t *key, *secrootkey;
+	isc_boolean_t match = ISC_FALSE;
+
+	name = val->event->name;
+	rdataset = val->event->rdataset;
+	mctx = val->view->mctx;
+	secroots = val->view->secroots;
+
+	for (result = dns_rdataset_first(rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_rdataset_current(rdataset, &rdata);
+		key = NULL;
+		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
+		if (result != ISC_R_SUCCESS)
+			 continue;
+		keynode = NULL;
+		result = dns_keytable_findkeynode(secroots, name,
+						  dst_key_alg(key),
+						  dst_key_id(key),
+						  &keynode);
+
+		match = ISC_FALSE;
+		while (result == ISC_R_SUCCESS) {
+			secrootkey = dns_keynode_key(keynode);
+			if (dst_key_compare(key, secrootkey)) {
+				match = ISC_TRUE;
+				dns_keytable_detachkeynode(secroots, &keynode);
+				break;
+			}
+			nextnode = NULL;
+			result = dns_keytable_findnextkeynode(secroots,
+							      keynode,
+							      &nextnode);
+			dns_keytable_detachkeynode(secroots, &keynode);
+		}
+
+		dst_key_free(&key);
+		if (!match)
+			return (ISC_FALSE);
+	}
+	return (match);
+}
+
+/*
  * Attempts positive response validation.
  *
  * Returns:
@@ -794,6 +851,28 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	 */
 
 	event = val->event;
+
+	/*
+	 * If this is a security root, it's ok.
+	 */
+	if (!resume) {
+		dns_fixedname_t fsecroot;
+		dns_name_t *secroot;
+
+		dns_fixedname_init(&fsecroot);
+		secroot = dns_fixedname_name(&fsecroot);
+		result = dns_keytable_finddeepestmatch(val->view->secroots,
+						       val->event->name,
+						       secroot);
+		if (result == ISC_R_SUCCESS &&
+		    val->event->type == dns_rdatatype_key &&
+		    dns_name_equal(val->event->name, secroot) &&
+		    issecurityroot(val))
+		{
+			val->event->rdataset->trust = dns_trust_secure;
+			return (ISC_R_SUCCESS);
+		}
+	}
 
 	if (resume) {
 		/*
@@ -1040,6 +1119,17 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 
 	else if (result != ISC_R_SUCCESS)
 		return (result);
+
+	/*
+	 * If this is a security root, it's ok.
+	 */
+	if (val->event->type == dns_rdatatype_key &&
+	    dns_name_equal(val->event->name, dns_fixedname_name(&secroot)) &&
+	    issecurityroot(val))
+	{
+		val->event->rdataset->trust = dns_trust_secure;
+		return (ISC_R_SUCCESS);
+	}
 
 	if (!resume)
 		val->labels = dns_name_depth(dns_fixedname_name(&secroot)) + 1;
