@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.14.4.1 2001/01/09 22:52:52 bwelling Exp $ */
+/* $Id: auth.c,v 1.14.4.2 2001/05/29 22:24:25 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -217,7 +217,7 @@ omapi_auth_register(const char *name, unsigned int algorithms,
 
 	UNLOCK(&mutex);
 
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS && new != NULL) {
 		if (new->secret != NULL)
 			isc_mem_free(omapi_mctx, new->secret);
 		if (new->name != NULL)
