@@ -943,9 +943,8 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 	if (f->entry != NULL)
 		free_adbentry(adb, &f->entry);
 
-	if (f->rdataset.methods != NULL)
-		if (dns_rdataset_isassociated(&f->rdataset))
-			dns_rdataset_disassociate(&f->rdataset);
+	if (dns_rdataset_isassociated(&f->rdataset))
+		dns_rdataset_disassociate(&f->rdataset);
 
 	isc_mempool_put(adb->afmp, f);
 }
@@ -2125,9 +2124,8 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *zone,
 		result = import_rdataset(adb, adbname, &rdataset, now);
 	}
 
-	if (rdataset.methods != NULL)
-		if (dns_rdataset_isassociated(&rdataset))
-			dns_rdataset_disassociate(&rdataset);
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
 
 	return (result);
 }
@@ -2271,7 +2269,6 @@ fetch_name(dns_adb_t *adb, dns_adbname_t *adbname, isc_stdtime_t now)
 					  adb->task, fetch_callback, adbname,
 					  &fetch->rdataset, NULL,
 					  &fetch->fetch);
-	INSIST(result == ISC_R_SUCCESS);  /* XXX temporary */
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -2282,9 +2279,8 @@ fetch_name(dns_adb_t *adb, dns_adbname_t *adbname, isc_stdtime_t now)
 	if (fetch != NULL)
 		free_adbfetch(adb, &fetch);
 
-	if (nameservers.methods != NULL)
-		if (dns_rdataset_isassociated(&nameservers))
-			dns_rdataset_disassociate(&nameservers);
+	if (dns_rdataset_isassociated(&nameservers))
+		dns_rdataset_disassociate(&nameservers);
 
 	return (result);
 }
