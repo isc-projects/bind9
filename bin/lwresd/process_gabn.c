@@ -367,7 +367,7 @@ start_find(client_t *client) {
 	 * Did we get an alias?  If so, save it and re-issue the query.
 	 */
 	if (result == DNS_R_ALIAS) {
-		DP(50, "found alias, restarting query.");
+		DP(50, "found alias, restarting query");
 		dns_adb_destroyfind(&client->find);
 		cleanup_gabn(client);
 		result = add_alias(client);

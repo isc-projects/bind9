@@ -101,11 +101,11 @@ process_request(client_t *client) {
 
 	result = lwres_lwpacket_parseheader(&b, &client->pkt);
 	if (result != ISC_R_SUCCESS) {
-		DP(50, "Invalid packet header received");
+		DP(50, "invalid packet header received");
 		goto restart;
 	}
 
-	DP(50, "OPCODE %08x", client->pkt.opcode);
+	DP(50, "opcode %08x", client->pkt.opcode);
 
 	switch (client->pkt.opcode) {
 	case LWRES_OPCODE_GETADDRSBYNAME:
@@ -118,7 +118,7 @@ process_request(client_t *client) {
 		process_noop(client, &b);
 		return;
 	default:
-		DP(50, "Unknown opcode %08x", client->pkt.opcode);
+		DP(50, "unknown opcode %08x", client->pkt.opcode);
 		goto restart;
 	}
 
@@ -144,7 +144,7 @@ client_recv(isc_task_t *task, isc_event_t *ev) {
 	INSIST((cm->flags & CLIENTMGR_FLAG_RECVPENDING) != 0);
 	cm->flags &= ~CLIENTMGR_FLAG_RECVPENDING;
 
-	DP(50, "Event received! Task %p, length %u, result %u (%s)",
+	DP(50, "event received: task %p, length %u, result %u (%s)",
 	       task, dev->n, dev->result, isc_result_totext(dev->result));
 
 	if (dev->result != ISC_R_SUCCESS) {
@@ -233,7 +233,7 @@ client_shutdown(isc_task_t *task, isc_event_t *ev) {
 	REQUIRE(ev->ev_type == LWRD_SHUTDOWN);
 	REQUIRE((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0);
 
-	DP(50, "Got shutdown event, task %p", task);
+	DP(50, "got shutdown event, task %p", task);
 
 	/*
 	 * Cancel any pending I/O.
@@ -288,7 +288,7 @@ client_send(isc_task_t *task, isc_event_t *ev) {
 	INSIST(CLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 
-	DP(50, "Task %p for client %p got send-done event", task, client);
+	DP(50, "task %p for client %p got send-done event", task, client);
 
 	if (client->sendbuf != client->buffer)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,

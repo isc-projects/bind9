@@ -101,7 +101,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
 		if (result != ISC_R_SUCCESS)
 			goto out;
-		DP(50, "***** Found name %.*s",
+		DP(50, "found name '%.*s'",
 		   client->recv_buffer.used - b.used,
 		   (char *)(b.base) + b.used);
 		if (gnba->realname == NULL) {
@@ -217,7 +217,7 @@ process_gnba(client_t *client, lwres_buffer_t *b) {
 	}
 	isc_sockaddr_fromnetaddr(&sa, &client->na, 53);
 
-	DP(50, "Client %p looking for addrtype %08x",
+	DP(50, "client %p looking for addrtype %08x",
 	   client, req->addr.family);
 
 	/*
