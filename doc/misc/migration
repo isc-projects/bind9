@@ -12,11 +12,9 @@ upgrading an existing BIND 8 installation to use BIND 9.
 
 1.1. Unimplemented Options and Changed Defaults
 
-BIND 9.0.0 supports most, but not all but not of the named.conf
-options of BIND 8.  Unimplemented options include those for selective
-(per-domain) forwarding, sortlists, statistics, and process limits;
-for a complete list, see doc/misc/options.  We plan to implement most
-of these in in BIND 9.1.
+BIND 9.1 supports most, but not all but not of the named.conf options
+of BIND 8.  For a complete list of implmented options, see
+doc/misc/options.
 
 If your named.conf file uses an unimplemented option, named will log a
 warning message.  A message is also logged about each option whose
@@ -59,7 +57,8 @@ insensitive.
 1.5. Notify messages and Refesh queries
 
 The source address and port for these is now controlled by
-transfer-source rather that query-source.
+"notify-source" and "transfer-source", respectively, rather that
+query-source as in BIND 8.
 
 2. Zone File Compatibility
 
@@ -106,27 +105,27 @@ line.
 
 2.5. Unimplemented BIND 8 Extensions
 
-$GENERATE:  This deprecated form of getting a literal $ into a domain
-name ($$) is no longer supported, use \$ instead.
+$GENERATE: The "$$" construct for getting a literal $ into a domain
+name is deprecated.  Use \$ instead.
 
 3. Interoperability Impact of New Protocol Features
 
 BIND 9 uses EDNS0 (RFC2671) to advertise its receive buffer size.  It
-also sets the AD bit in queries to indicate that it wishes to receive
-DNSSEC responses (this usage of the AD bit is not yet standard, but
-hopefully it will be soon).
+also sets an EDNS flag bit in queries to indicate that it wishes to
+receive DNSSEC responses; this flag bit usage is not yet standardized,
+but we hope it will be.
 
-Most older servers that do not support EDNS0 and/or DNSSEC, including
-all known versions of BIND, will send a FORMERR or NOTIMP response to
-these queries.  When this happens, BIND 9 will automatically retry the
-query without EDNS0 and AD.
+Most older servers that do not support EDNS0, including prior versions
+of BIND, will send a FORMERR or NOTIMP response to these queries.
+When this happens, BIND 9 will automatically retry the query without
+EDNS0.
 
 Unfortunately, there exists at least one non-BIND name server
 implementation that silently ignores these queries instead of sending
 an error response.  Resolving names in zones where all or most
 authoritative servers use this server will be very slow or fail
 completely.  We have contacted the manufacturer of the name server in
-case and are trying to resolve the issue with them.
+case, and they are working on a solution.
 
 
 4. Unrestricted Character Set
@@ -156,7 +155,7 @@ be upgraded.
 The "ndc" program has been replaced by "rndc", which is capable of
 remote operation.  Unlike ndc, rndc requires a configuration file; 
 see the man pages in doc/man/bin/rndc.1 and doc/man/bin/rndc.conf.5 for
-details.  Many of the ndc commands are still unimplemented in rndc.
+details.  Some of the ndc commands are still unimplemented in rndc.
 
 
-$Id: migration,v 1.15 2000/10/31 05:34:15 marka Exp $
+$Id: migration,v 1.16 2000/11/30 23:24:01 gson Exp $
