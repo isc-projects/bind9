@@ -18,8 +18,8 @@
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
 
-#include <isc/net.h>
 #include <isc/lang.h>
+#include <isc/net.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS

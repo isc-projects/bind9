@@ -18,8 +18,8 @@
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
-#include <isc/net.h>
 #include <isc/lang.h>
+#include <isc/net.h>
 #include <isc/types.h>
 
 struct isc_sockaddr {
