@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.218 2000/09/26 16:32:39 gson Exp $ */
+/* $Id: zone.c,v 1.219 2000/09/26 17:23:19 gson Exp $ */
 
 #include <config.h>
 
@@ -89,9 +89,6 @@
 #ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
 #endif
-
-#define REFRESH_JITTER		600	/* seconds */
-#define RETRY_JITTER		600
 
 typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
@@ -1784,9 +1781,8 @@ dns_zone_refresh(dns_zone_t *zone) {
 	 * Setting this to the retry time will do that.  XXXMLG
 	 * If we are successful it will be reset using zone->refresh.
 	 */
-	zone->refreshtime = now + isc_random_jitter(zone->retry,
-						    zone->retry * .80,
-						    RETRY_JITTER);
+	zone->refreshtime = now +
+		isc_random_jitter(zone->retry, zone->retry / 4);
 	zone_log(zone, "dns_zone_refresh", ISC_LOG_DEBUG(20),
 		 "refresh time (%u/%u), now %u",
 		 zone->refreshtime, zone->refresh, now);
@@ -2677,8 +2673,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK(&zone->lock);
 	zone->flags &= ~DNS_ZONEFLG_REFRESH;
 	zone->refreshtime = now +
-		isc_random_jitter(zone->refresh, zone->refresh * .80,
-				  REFRESH_JITTER);
+		isc_random_jitter(zone->refresh, zone->refresh / 4);
 	zone->expiretime = now + zone->expire;
 	zone_log(zone, me, ISC_LOG_DEBUG(20),
 		 "refresh time (%u/%u), now %u",
@@ -2925,8 +2920,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 					 dns_result_totext(result));
 		}
 		zone->refreshtime = now +
-			isc_random_jitter(zone->refresh, zone->refresh * .80,
-					  REFRESH_JITTER);
+			isc_random_jitter(zone->refresh, zone->refresh / 4);
 		zone->expiretime = now + zone->expire;
 		zone_log(zone, me, ISC_LOG_DEBUG(20),
 			 "refresh time (%u/%u), now %u",
@@ -4275,8 +4269,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		} else {
 			zone->refreshtime = now +
 				isc_random_jitter(zone->refresh,
-						  zone->refresh * .80,
-						  REFRESH_JITTER);
+						  zone->refresh / 4);
 			zone_log(zone, me, ISC_LOG_DEBUG(20),
 				 "refresh time (%u/%u), now %u",
 				 zone->refreshtime, zone->refresh, now);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.h,v 1.9 2000/09/06 16:25:35 gson Exp $ */
+/* $Id: random.h,v 1.10 2000/09/26 17:23:16 gson Exp $ */
 
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
@@ -49,11 +49,10 @@ isc_random_get(isc_uint32_t *val);
  */
 
 isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t min, isc_uint32_t jitter);
+isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter);
 /*
- * Return a value between (max - jitter) and (max).
- *
- * If (max - min) < jitter, the maximum jitter becomes (max - min) instead.
+ * Get a random value between (max - jitter) and (max).
+ * This is useful for jittering timer values.
  */
 
 ISC_LANG_ENDDECLS

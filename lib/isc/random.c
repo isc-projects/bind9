@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.12 2000/09/08 00:06:39 explorer Exp $ */
+/* $Id: random.c,v 1.13 2000/09/26 17:23:17 gson Exp $ */
 
 #include <config.h>
 
@@ -60,22 +60,10 @@ isc_random_get(isc_uint32_t *val)
 }
 
 isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t min, isc_uint32_t jitter) {
-	isc_uint32_t val;
-
-	REQUIRE(jitter > 0);
-
-	if (min >= max)
-		return (min);
-
-	/*
-	 * Don't allow jitter to be more than max - min.
-	 */
-	if (jitter > max - min)
-		jitter = max - min;
+isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
+	REQUIRE(jitter < max);
 	if (jitter == 0)
-		return (min);
-
-	val = rand() % jitter;
-	return (max - val);
+		return (max);
+	else
+		return (max - rand() % jitter);
 }
