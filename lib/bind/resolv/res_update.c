@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.6.2.2 2002/02/26 23:13:33 halley Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.6.2.3 2002/07/10 05:15:24 marka Exp $";
 #endif /* not lint */
 
 /*
@@ -103,33 +103,16 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 	memset(&tgrp, 0, sizeof (tgrp));
 	for (rrecp = rrecp_in; rrecp;
 	     rrecp = LINKED(rrecp, r_link) ? NEXT(rrecp, r_link) : NULL) {
-		struct in_addr addrs[MAXNS];
-		int i, nscnt;
-		/* XXX need to rewrite res_findzonecut */
-		for (i = 0; i < MAXNS; i++) {
-			addrs[i].s_addr = 0;
-			if (tgrp.z_nsaddrs[i].sin.sin_family == AF_INET)
-				addrs[i] = tgrp.z_nsaddrs[i].sin.sin_addr;
-		}
+		int nscnt;
 		/* Find the origin for it if there is one. */
 		tgrp.z_class = rrecp->r_class;
-		nscnt = res_findzonecut(statp, rrecp->r_dname, tgrp.z_class,
-					RES_EXHAUSTIVE, tgrp.z_origin,
-					sizeof tgrp.z_origin, addrs, MAXNS);
+		nscnt = res_findzonecut2(statp, rrecp->r_dname, tgrp.z_class,
+					 RES_EXHAUSTIVE, tgrp.z_origin,
+					 sizeof tgrp.z_origin, 
+					 tgrp.z_nsaddrs, MAXNS);
 		if (nscnt <= 0) {
 			DPRINTF(("res_findzonecut failed (%d)", nscnt));
 			goto done;
-		}
-		for (i = 0; i < nscnt; i++) {
-			memset(&tgrp.z_nsaddrs[i], 0,
-			       sizeof(tgrp.z_nsaddrs[i]));
-			tgrp.z_nsaddrs[i].sin.sin_addr = addrs[i];
-			tgrp.z_nsaddrs[i].sin.sin_family = AF_INET;
-#ifdef HAVE_SA_LEN
-			tgrp.z_nsaddrs[i].sin.sin_len =
-					 sizeof(tgrp.z_nsaddrs[i].sin);
-#endif
-			tgrp.z_nsaddrs[i].sin.sin_port = htons(53);
 		}
 		tgrp.z_nscount = nscnt;
 		/* Find the group for it if there is one. */

@@ -31,6 +31,9 @@
 
 1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
+1280.	[func]		libbind: res_update can now update IPv6 servers,
+			new function res_findzonecut2().
+
 1279.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
 			w/o sa_len.
 
