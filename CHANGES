@@ -1,3 +1,7 @@
+1420.	[port]		solaris: work around gcc optimiser bug.
+
+1419.	[port]		openbsd: use /dev/arandom. [RT #4950]
+
 1418.	[bug]		'rndc reconfig' did not cause new slaves to load.
 
 1417.	[func]		ID.SERVER/CHAOS is now a built in zone.
