@@ -115,29 +115,17 @@ typedef struct {
 } lwres_addr_t;
 
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
 	/* public */
 	char		       *name;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;  /* must be last to keep alignment */
 } lwres_gabnrequest_t;
 
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
-	isc_uint32_t		result;
 	/* public */
 	isc_uint16_t		naliases;
 	isc_uint16_t		naddrs;
 	char		       *real_name;
 	char		      **aliases;
-	lwres_addr_t	      **addrs;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;  /* must be last to keep alignment */
-	/* variable length data follows */
+	lwres_addr_t	       *addrs;
 } lwres_gabnresponse_t;
 
 /*
@@ -145,27 +133,15 @@ typedef struct {
  */
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
 	/* public */
 	lwres_addr_t		addr;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;  /* must be last to keep alignment */
 } lwres_gnbarequest_t;
 
 typedef struct {
-	/* header info */
-	isc_uint32_t		serial;
-	isc_uint32_t		result;
 	/* public */
 	isc_uint16_t		naliases;
 	char		       *real_name;
 	char		      **aliases;
-	/* if buffer == NULL, not freed by free routines */
-	isc_uint32_t		buflen;
-	void		       *buffer;  /* must be last to keep alignment */
-	/* variable length data follows */
 } lwres_gnbaresponse_t;
 
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
@@ -349,6 +325,16 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  *	All memory allocated by this structure will be returned to the
  *	system via the context's free function.
  */
+
+/*
+ * Helper functions
+ */
+
+int
+lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len);
+
+int
+lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr);
 
 ISC_LANG_ENDDECLS
 

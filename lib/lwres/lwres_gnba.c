@@ -161,22 +161,93 @@ int
 lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 			lwres_buffer_t *b, lwres_gnbarequest_t **structp)
 {
+	int ret;
+	lwres_gnbarequest_t *gnba;
+
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
+	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+		return (-1);
+
+	gnba = CTXMALLOC(sizeof(lwres_gnbarequest_t));
+	if (gnba == NULL)
+		return (-1);
+
+	ret = lwres_addr_parse(b, &gnba->addr);
+	if (ret != 0)
+		return (ret);
+
+	*structp = gnba;
+	return (0);
 }
 
 int
 lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 			 lwres_buffer_t *b, lwres_gnbaresponse_t **structp)
 {
+	int ret;
+	unsigned int x;
+	isc_uint16_t naliases;
+	lwres_gnbaresponse_t *gnba;
+
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 	REQUIRE(structp != NULL && *structp == NULL);
 
+	gnba = NULL;
+
+	if ((pkt->flags & LWRES_LWPACKETFLAG_RESPONSE) == 0)
+		return (-1);
+
+	/*
+	 * Pull off the name itself
+	 */
+	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t)))
+		return (-1);
+	naliases = lwres_buffer_getuint16(b);
+
+	gnba = CTXMALLOC(sizeof(lwres_gnbaresponse_t));
+	if (gnba == NULL)
+		return (-1);
+	gnba->naliases = 0;
+
+	gnba->aliases = CTXMALLOC(sizeof(char *) * naliases);
+	if (gnba->aliases == NULL) {
+		ret = -1;
+		goto out;
+	}
+	gnba->naliases = naliases;
+
+	/*
+	 * Now, pull off the real name.
+	 */
+	ret = lwres_string_parse(b, &gnba->real_name, NULL);
+	if (ret != 0)
+		goto out;
+
+	/*
+	 * Parse off the aliases.
+	 */
+	for (x = 0 ; x < gnba->naliases ; x++) {
+		ret = lwres_string_parse(b, &gnba->aliases[x], NULL);
+		if (ret != 0)
+			goto out;
+	}
+
+	/* XXXMLG Should check for trailing bytes */
+
+	*structp = gnba;
+	return (0);
+
+ out:
+	if (gnba != NULL)
+		lwres_gnbaresponse_free(ctx, &gnba);
+
+	return (ret);
 }
 
 void
@@ -204,5 +275,7 @@ lwres_gnbaresponse_free(lwres_context_t *ctx, lwres_gnbaresponse_t **structp)
 	gnba = *structp;
 	*structp = NULL;
 
+	if (gnba->naliases > 0)
+		CTXFREE(gnba->aliases, sizeof(char *) * gnba->naliases);
 	CTXFREE(gnba, sizeof(lwres_gnbaresponse_t));
 }

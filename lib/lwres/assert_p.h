@@ -22,7 +22,7 @@
 #define REQUIRE(x)		assert(x)
 #define INSIST(x)		assert(x)
 
-#define SPACE_OK(b, s)		(LWRES_BUFFER_AVAILABLECOUNT(b) >= s)
-#define SPACE_REMAINING(b, s)	(LWRES_BUFFER_REMAINING(b) >= s)
+#define SPACE_OK(b, s)		(LWRES_BUFFER_AVAILABLECOUNT(b) >= (s))
+#define SPACE_REMAINING(b, s)	(LWRES_BUFFER_REMAINING(b) >= (s))
 
 #endif /* LWRES_ASSERT_P_H */
