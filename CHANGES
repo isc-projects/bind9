@@ -1,4 +1,10 @@
 
+ 323.	[bug]		dns_rbt_findname() did not ignore empty rbt nodes.
+			Because of this, servers authoritative for a parent 
+			and grandchild zone but not authoritative for the
+			intervening child zone did not correctly issue
+			referrals to the servers of the child zone.
+
  322.	[bug]		Queries for KEY RRs are now sent to the parent 
 			server before the authoritative one, making
 			DNSSEC insecurity proofs work in many cases
