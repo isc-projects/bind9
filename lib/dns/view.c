@@ -538,7 +538,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 {
 	isc_result_t result;
 	dns_db_t *db;
-	dns_dbversion_t *version;
 	isc_boolean_t is_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone;
@@ -598,7 +597,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				 * don't know it.
 				 */
 				is_zone = ISC_FALSE;
-				version = NULL;
 				dns_db_detach(&db);
 				dns_db_attach(view->cachedb, &db);
 				goto db_find;
@@ -629,7 +627,6 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			 * Remember what we've got and go look in the cache.
 			 */
 			is_zone = ISC_FALSE;
-			version = NULL;
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
