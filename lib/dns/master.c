@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.37 2000/02/02 00:36:34 gson Exp $ */
+ /* $Id: master.c,v 1.38 2000/02/03 19:03:59 ogud Exp $ */
 
 #include <config.h>
 
@@ -366,6 +366,15 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				ttl_offset = current_time - dump_time;
 				read_till_eol = ISC_TRUE;
 				continue;
+			} else if (strncasecmp(token.value.as_pointer, 
+					       "$", 1) == 0) {
+				(callbacks->error)(callbacks, 
+						   "dns_master_load: %s %d " 
+						   "UNKOWN $<DIRECTIVE> %s ",
+						   isc_lex_getsourcename(lex),
+						   isc_lex_getsourceline(lex),
+						   token.value.as_pointer);
+				goto cleanup;
 			}
 
 			/*
