@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.212 2001/11/08 20:24:25 gson Exp $ */
+/* $Id: socket.c,v 1.213 2001/11/09 00:37:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1341,6 +1341,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 
 	if (make_nonblock(sock->fd) != ISC_R_SUCCESS) {
+		(void)close(sock->fd);
 		free_socket(&sock);
 		return (ISC_R_UNEXPECTED);
 	}
