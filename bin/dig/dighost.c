@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.191 2001/02/16 00:04:18 bwelling Exp $ */
+/* $Id: dighost.c,v 1.192 2001/02/17 00:41:03 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2573,8 +2573,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				UNLOCK_LOOKUP;
 				return;
 			}
-			docancel = docancel ||
-				check_for_more_data(query, msg, sevent);
+			if (! docancel)
+				docancel = check_for_more_data(query, msg, sevent);
 			if (docancel) {
 				dns_message_destroy(&msg);
 				clear_query(query);
