@@ -1215,6 +1215,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			 * addresses, and the ADB has told us it can't get
 			 * them.
 			 */
+			FCTXTRACE("no addresses");
 			result = ISC_R_FAILURE;
 		}
 	} else {
@@ -3216,21 +3217,18 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * XXXRTH  Replace "600" with a configurable
 			 *	   value.
 			 *
-			 * Would we want to mark "." or "com." lame, even
-			 * if they were???
-			 *
-			 * Do badness instead?
-			 *
-			 * Suppress/change if we're forwarding.
+			 *	   Use badness instead?
 			 */
-			result = dns_adb_marklame(fctx->res->view->adb,
-						  addrinfo,
-						  &fctx->domain,
-						  now + 600);
-			result = ISC_R_SUCCESS;
-			if (result != ISC_R_SUCCESS) {
-				fctx_done(fctx, result);
-				return;
+			if (!ISFORWARDER(addrinfo)) {
+				result = dns_adb_marklame(fctx->res->view->adb,
+							  addrinfo,
+							  &fctx->domain,
+							  now + 600);
+				result = ISC_R_SUCCESS;
+				if (result != ISC_R_SUCCESS) {
+					fctx_done(fctx, result);
+					return;
+				}
 			}
 		}
 
