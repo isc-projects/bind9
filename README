@@ -44,9 +44,15 @@ BIND 9
 		Nominum, Inc.
 
 
-BIND 9.2.0rc1
+BIND 9.3.0
 
-	BIND 9.2.0rc1 is a release candidate for BIND 9.2.0.
+	BIND 9.3.0 has a number of new features over 9.2,
+	including:
+
+	NOTE: Zones containing MD and MF will now be rejected.
+
+BIND 9.2.0
+
 	BIND 9.2.0 has a number of new features over 9.1,
 	including:
 
