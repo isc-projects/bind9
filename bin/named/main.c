@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -175,10 +176,19 @@ static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	unsigned int port;
+	char *s;
+
+	s = strrchr(argv[0], '/');
+	if (s == NULL)
+		s = argv[0];
+	else
+		s++;
+	if (strcmp(s, "lwresd") == 0)
+		lwresd_only = ISC_TRUE;
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fgn:N:p:rst:u:x:")) !=
+					   "c:d:fgn:N:p:st:u:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -206,9 +216,6 @@ parse_command_line(int argc, char *argv[]) {
 				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
 			ns_g_port = port;
-			break;
-		case 'r':
-			lwresd_only = ISC_TRUE;
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
