@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.94 2000/11/17 22:09:19 bwelling Exp $ */
+/* $Id: main.c,v 1.95 2000/11/27 19:12:23 gson Exp $ */
 
 #include <config.h>
 
@@ -50,6 +50,11 @@
 #include <named/server.h>
 #include <named/lwresd.h>
 #include <named/main.h>
+
+/*
+ * Include header files for database drivers here.
+ */
+/* #include <xxdb.h> */
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static const char *	program_name = "named";
@@ -493,6 +498,7 @@ setup(void) {
 	/*
 	 * Add calls to register sdb drivers here.
 	 */
+	/* xxdb_init(); */
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
 
@@ -513,6 +519,7 @@ cleanup(void) {
 	/*
 	 * Add calls to unregister sdb drivers here.
 	 */
+	/* xxdb_clear(); */
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

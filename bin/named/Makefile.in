@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.60 2000/11/15 23:56:19 bwelling Exp $
+# $Id: Makefile.in,v 1.61 2000/11/27 19:12:22 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,9 +23,16 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
+#
+# Add database drivers here.
+#
+DBDRIVER_OBJS = 
+DBDRIVER_INCLUDES = 
+DBDRIVER_LIBS = 
+
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		${OMAPI_INCLUDES}
+		${OMAPI_INCLUDES} ${DBDRIVER_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -42,7 +49,8 @@ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} \
+		${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix
 
@@ -54,7 +62,8 @@ OBJS =		aclconf.@O@ client.@O@ interfacemgr.@O@ listenlist.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
 		zoneconf.@O@ \
 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
-		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@
+		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
+		$(DBDRIVER_OBJS)
 
 UOBJS =		unix/os.@O@
 
