@@ -142,6 +142,8 @@ isc_event_free(isc_event_t *eventp) {
 	event = *eventp;
 	REQUIRE(event != NULL);
 
+	if (event->destroy != NULL)
+		(event->destroy)(event);
 	isc_mem_put(event->mctx, event, event->size);
 
 	*eventp = NULL;

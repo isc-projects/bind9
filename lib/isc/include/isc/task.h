@@ -32,6 +32,7 @@ typedef struct isc_taskmgr *		isc_taskmgr_t;
 typedef int				isc_eventtype_t;
 
 typedef isc_boolean_t (*isc_taskaction_t)(isc_task_t, isc_event_t);
+typedef void (*isc_eventdestructor_t)(isc_event_t);
 
 /*
  * This structure is public because "subclassing" it may be useful when
@@ -44,6 +45,7 @@ struct isc_event {
 	isc_eventtype_t			type;
 	isc_taskaction_t		action;
 	void *				arg;
+	isc_eventdestructor_t		destroy;
 	LINK(struct isc_event)		link;
 };
 
