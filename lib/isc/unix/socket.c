@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.7 1998/11/11 01:44:08 explorer Exp $ */
+/* $Id: socket.c,v 1.8 1998/11/11 02:05:36 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -118,8 +118,10 @@ struct isc_socketmgr {
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
 
-static void send_rwdone_event(isc_socket_t, isc_socket_intev_t *,
-			      isc_socketevent_t *, isc_result_t);
+static void send_recvdone_event(isc_socket_t, isc_socket_intev_t *,
+				isc_socketevent_t *, isc_result_t);
+static void send_senddone_event(isc_socket_t, isc_socket_intev_t *,
+				isc_socketevent_t *, isc_result_t);
 static void rwdone_event_destroy(isc_event_t);
 static void free_socket(isc_socket_t *);
 static isc_result_t allocate_socket(isc_socketmgr_t, isc_sockettype_t,
@@ -544,8 +546,8 @@ dispatch_listen(isc_socket_t sock)
  * Caller must have the socket locked.
  */
 static void
-send_rwdone_event(isc_socket_t sock, isc_socket_intev_t *iev,
-		isc_socketevent_t *dev, isc_result_t resultcode)
+send_recvdone_event(isc_socket_t sock, isc_socket_intev_t *iev,
+		    isc_socketevent_t *dev, isc_result_t resultcode)
 {
 	REQUIRE(!EMPTY(sock->read_list));
 	REQUIRE(iev != NULL);
@@ -554,6 +556,22 @@ send_rwdone_event(isc_socket_t sock, isc_socket_intev_t *iev,
 	REQUIRE(*dev != NULL);
 
 	DEQUEUE(sock->read_list, *iev, link);
+	(*dev)->result = resultcode;
+	isc_task_send((*iev)->task, (isc_event_t *)dev);
+	(*iev)->done_ev = NULL;
+	isc_event_free((isc_event_t *)iev);
+}
+static void
+send_senddone_event(isc_socket_t sock, isc_socket_intev_t *iev,
+		    isc_socketevent_t *dev, isc_result_t resultcode)
+{
+	REQUIRE(!EMPTY(sock->write_list));
+	REQUIRE(iev != NULL);
+	REQUIRE(*iev != NULL);
+	REQUIRE(dev != NULL);
+	REQUIRE(*dev != NULL);
+
+	DEQUEUE(sock->write_list, *iev, link);
 	(*dev)->result = resultcode;
 	isc_task_send((*iev)->task, (isc_event_t *)dev);
 	(*iev)->done_ev = NULL;
@@ -734,7 +752,7 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 * continue the loop.
 		 */
 		if (dev->common.type == ISC_SOCKEVENT_RECVMARK) {
-			send_rwdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_recvdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
 			continue;
 		}
 
@@ -766,8 +784,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 */
 		if (cc == 0) {
 			do {
-				send_rwdone_event(sock, &iev, &dev,
-						  ISC_R_EOF);
+				send_recvdone_event(sock, &iev, &dev,
+						    ISC_R_EOF);
 				iev = HEAD(sock->read_list);
 			} while (iev != NULL);
 
@@ -787,8 +805,8 @@ internal_read(isc_task_t task, isc_event_t ev)
 			 * the loop.
 			 */
 			if (iev->partial) {
-				send_rwdone_event(sock, &iev, &dev,
-						  ISC_R_SUCCESS);
+				send_recvdone_event(sock, &iev, &dev,
+						    ISC_R_SUCCESS);
 				continue;
 			}
 
@@ -805,7 +823,7 @@ internal_read(isc_task_t task, isc_event_t ev)
 		 */
 		if ((size_t)cc == read_count) {
 			dev->n += read_count;
-			send_rwdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_recvdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
 		}
 
 	} while (!EMPTY(sock->read_list));
@@ -871,7 +889,7 @@ internal_write(isc_task_t task, isc_event_t ev)
 		 * continue the loop.
 		 */
 		if (dev->common.type == ISC_SOCKEVENT_SENDMARK) {
-			send_rwdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_senddone_event(sock, &iev, &dev, ISC_R_SUCCESS);
 			continue;
 		}
 
@@ -910,7 +928,7 @@ internal_write(isc_task_t task, isc_event_t ev)
 		 */
 		if (cc == 0) {
 			do {
-				send_rwdone_event(sock, &iev, &dev,
+				send_senddone_event(sock, &iev, &dev,
 						  ISC_R_EOF);
 				iev = HEAD(sock->write_list);
 			} while (iev != NULL);
@@ -925,31 +943,16 @@ internal_write(isc_task_t task, isc_event_t ev)
 		if ((size_t)cc < write_count) {
 			dev->n += cc;
 
-			/*
-			 * If partial writes are allowed, we return whatever
-			 * was read with a success result, and continue
-			 * the loop.
-			 */
-			if (iev->partial) {
-				send_rwdone_event(sock, &iev, &dev,
-						  ISC_R_SUCCESS);
-				continue;
-			}
-
-			/*
-			 * Partials not ok.  Exit the loop and notify the
-			 * watcher to wait for more writes
-			 */
 			goto poke;
 		}
 
 		/*
-		 * Exactly what we wanted to read.  We're done with this
+		 * Exactly what we wanted to write.  We're done with this
 		 * entry.  Post its completion event.
 		 */
 		if ((size_t)cc == write_count) {
 			dev->n += write_count;
-			send_rwdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
+			send_senddone_event(sock, &iev, &dev, ISC_R_SUCCESS);
 		}
 
 	} while (!EMPTY(sock->write_list));
@@ -1303,6 +1306,7 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
 
 	ev->region = *region;
 	ev->n = 0;
+	ev->result = ISC_R_SUCCESS;
 
 	/*
 	 * If the read queue is empty, try to do the I/O right now.
@@ -1444,6 +1448,7 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 
 	ev->region = *region;
 	ev->n = 0;
+	ev->result = ISC_R_SUCCESS;
 
 	/*
 	 * If the write queue is empty, try to do the I/O right now.
