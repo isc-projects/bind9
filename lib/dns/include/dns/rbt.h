@@ -35,8 +35,6 @@ ISC_LANG_BEGINDECLS
  * multiple dns_rbtnode structures will not work.
  */
 
-typedef struct dns_rbt dns_rbt_t;
-
 /* These should add up to 30 */
 
 #define DNS_RBT_LOCKLENGTH			10
