@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.154 2000/07/25 22:04:33 bwelling Exp $ */
+/* $Id: resolver.c,v 1.155 2000/07/26 00:03:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2615,7 +2615,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					result = ISC_R_SUCCESS;
 				if (result != ISC_R_SUCCESS)
 					break;
-			} else
+			} else if (!ANSWER(rdataset))
 				continue;
 
 			if (ANSWER(rdataset)) {
