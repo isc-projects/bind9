@@ -1,3 +1,6 @@
+1345.	[port]		Use a explicit -Wformat with gcc.  Not all versions
+			include it in -Wall.
+
 1344.	[func]		Log if the serial number on the master has gone
 			backwards.
 			If you have multiple machines specified in the masters
