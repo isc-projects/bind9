@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.59 2001/05/09 18:56:29 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.60 2001/05/09 18:59:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -161,11 +161,13 @@ main(int argc, char *argv[]) {
 	if (need_close)
 		fclose(f);
 
-	isc_buffer_init(&source, b, sizeof(b));
-	isc_buffer_add(&source, bp - b);
-
-	if (tcp)
-		isc_buffer_getuint16(&source);
+	if (tcp) {
+		isc_buffer_init(&source, b + 2, sizeof(b) - 2);
+		isc_buffer_add(&source, bp - b - 2);
+	} else {
+		isc_buffer_init(&source, b, sizeof(b));
+		isc_buffer_add(&source, bp - b);
+	}
 
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
