@@ -1,0 +1,2 @@
+1143.   [bug]           When a trusted-keys statement was present and named
+                        was built without crypto support, it would leak memory.
