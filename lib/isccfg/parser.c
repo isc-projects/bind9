@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.91 2001/11/08 21:13:41 gson Exp $ */
+/* $Id: parser.c,v 1.92 2001/11/13 06:57:11 marka Exp $ */
 
 #include <config.h>
 
@@ -929,6 +929,7 @@ view_clauses[] = {
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
+	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ NULL, NULL, 0 }
 };
 
@@ -3233,7 +3234,7 @@ static cfg_type_t cfg_type_controls_sockaddr = {
 
 /*
  * Handle the special kludge syntax of the "keys" clause in the "server"
- * statement, which takes a single key with our without braces and semicolon.
+ * statement, which takes a single key with or without braces and semicolon.
  */
 static isc_result_t
 parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
