@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.29 1999/11/04 01:21:27 marka Exp $ */
+ /* $Id: master.c,v 1.30 1999/11/04 06:12:40 halley Exp $ */
 
 #include <config.h>
 
@@ -287,7 +287,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 						     &ttl);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
-				ttl = token.value.as_ulong;
 				if (ttl > 0x7fffffffUL) {
 					(callbacks->warn)(callbacks,
 		"dns_master_load: %s:%d $TTL %lu > MAXTLL, setting TTL to 0\n",
