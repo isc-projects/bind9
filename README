@@ -45,64 +45,41 @@ BIND 9
 
 
 
-BIND 9.1.0b2
+BIND 9.2
 
-	BIND 9.1.0b2 is the second beta release of BIND 9.1.0.
-	It fixes a number of bugs in 9.1.0b1 and adds some new
-	features such as a multithreaded DNSSEC signer and
-	support for "rndc dumpdb" command.
+	This is a snapshot of the development source tree that
+	will become BIND 9.2.  Bind 9.2 will have a number of 
+	new features over 9.1, including:
 
-	Other features added since 9.0.x include:
+	  - The ability to automatically convert RFC1886-style
+	    recursive lookup requests into RFC2874-style lookups, 
+	    enabled using the new option "allow-v6-synthesis".
+            This allows stub resolvers that support AAAA records
+            but not A6 record chains or binary labels to perform
+            lookups in domains that make use of these IPv6 DNS
+            features.
 
-	  - Many BIND 8 features previously unimplemented in BIND 9,
-	    including domain-specific forwarding, the $GENERATE
-	    master file directive, and the "blackhole", "dialup", 
-	    and "sortlist" options
+	An IPv6 capable stub resolver based on the BIND 8 resolver
+	code base and fully backwards compatible with existing BIND 8
+	based resolvers is being developed and will be integrated into
+	the BIND 9 distribution when completed.
 
-	  - Forwarding of dynamic update requests; this is enabled 
-	    by the "allow-update-forwarding" option
+	This distribution already includes a new lightweight stub
+	resolver library and associated resolver daemon that fully
+	support forward and reverse lookups of both IPv4 and IPv6
+	addresses.  This library is still considered experimental and
+	is not a complete replacement for the BIND 8 resolver library.
+	Applications that use the BIND 8 res_* functions to perform
+	DNS lookups or dynamic updates still need to be linked against
+	the BIND 8 libraries.  For DNS lookups, they can also use the
+	new "getrrsetbyname()" API.
 
-	  - A new, simplified database interface and a number of
-	    sample drivers based on it; see doc/misc/sdb for details
-
-	  - Support for building single-threaded servers for 
-	    environments that do not supply POSIX threads
-
-	  - New configuration options: "min-refresh-time",
-	    "max-refresh-time", "min-retry-time", "max-retry-time",
-	    "additional-from-auth", "additional-from-cache",
-	    "notify explicit"
-
-	  - Faster lookups, particularly in large zones.
-
-	BIND 9.1.0 also includes experimental implementations of a
-	number of DNS protocols extensions still under development
-	in the IETF.  These include transparent processing of
-	unknown RR types and use of the EDNS "DNSSEC OK" bit to
-	explicitly enable DNSSEC processing in responses.
-
-	Cryptographic operations are now based on the OpenSSL
-	library instead of DNSsafe.
-
-	Numerous bugs have been fixed.
-
-	BIND 9.1.0 is primarily a name server software distribution.
-	In addition to the name server, it also includes a new
-	lightweight stub resolver library and associated resolver
-	daemon that fully support forward and reverse lookups of both
-	IPv4 and IPv6 addresses.  This library is still considered
-	experimental and is not a complete replacement for the BIND 8
-	resolver library.  Applications that use the BIND 8 res_*
-	functions to perform DNS lookups or dynamic updates still need
-	to be linked against the BIND 8 libraries.  For DNS lookups,
-	they can also use the new "getrrsetbyname()" API.
-
-	BIND 9.1.0 is capable of acting as an authoritative server
+	BIND 9.2 is capable of acting as an authoritative server
 	for DNSSEC secured zones.  This functionality is believed to
 	be stable and complete except for lacking support for wildcard
 	records in secure zones.
 
-	When acting as a caching server, BIND 9.1.0 can be configured
+	When acting as a caching server, BIND 9.2 can be configured
 	to perform DNSSEC secure resolution on behalf of its clients.
 	This part of the DNSSEC implementation is still considered
 	experimental.  For detailed information about the state of the
@@ -127,9 +104,7 @@ BIND 9.1.0b2
 		"/dev/random" and impacts on the servers DNSSEC
 		support.
 		
-		
 		--with-libtool does not work on AIX.
-
 
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
