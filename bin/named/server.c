@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.224 2000/10/04 23:18:58 bwelling Exp $ */
+/* $Id: server.c,v 1.225 2000/10/05 10:42:36 marka Exp $ */
 
 #include <config.h>
 
@@ -1668,24 +1668,34 @@ run_server(isc_task_t *task, isc_event_t *event) {
 		      ISC_LOG_INFO, "running");
 }
 
+void 
+ns_server_flushonshutdown(ns_server_t *server) {
+	server->flushonshutdown = ISC_TRUE;
+}
+
 static void
 shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view, *view_next;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
+	isc_boolean_t flush = server->flushonshutdown;
 
 	UNUSED(task);
 
 	RWLOCK(&server->conflock, isc_rwlocktype_write);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "shutting down");
+		      ISC_LOG_INFO, "shutting down%s",
+		      flush ? ": flushing changes" : "");
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(server->viewlist, view, link);
-		dns_view_detach(&view);
+		if (flush)
+			dns_view_flushanddetach(&view);
+		else
+			dns_view_detach(&view);
 	}
 
 	isc_timer_detach(&server->interface_timer);
@@ -1781,6 +1791,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_loadmgr_create(ns_g_mctx, &server->loadmgr),
 		   "dns_loadmgr_create");
 
+	server->flushonshutdown = ISC_FALSE;
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }

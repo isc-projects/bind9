@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.10 2000/08/01 01:12:14 tale Exp $ */
+/* $Id: omapi.h,v 1.11 2000/10/05 10:42:38 marka Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
@@ -32,6 +32,9 @@
  */
 #define NS_OMAPI_CONTROL		"control"
 
+
+#define NS_OMAPI_COMMAND_STOP		"stop"
+#define NS_OMAPI_COMMAND_HALT		"halt"
 #define NS_OMAPI_COMMAND_RELOAD		"reload"
 #define NS_OMAPI_COMMAND_RELOADCONFIG	"reload-config"
 #define NS_OMAPI_COMMAND_RELOADZONES	"reload-zones"

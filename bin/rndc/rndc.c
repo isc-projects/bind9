@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.24 2000/08/02 21:03:50 tale Exp $ */
+/* $Id: rndc.c,v 1.25 2000/10/05 10:42:40 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -483,10 +483,12 @@ main(int argc, char **argv) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "stop") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
+			result = send_command(omapimgr, command);
 
 		} else if (strcmp(command, "trace") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
+		} else {
+			result = send_command(omapimgr, command);
 		}
 
 		if (result == ISC_R_NOTIMPLEMENTED)

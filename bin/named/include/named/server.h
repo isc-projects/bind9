@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.37 2000/09/22 00:13:08 gson Exp $ */
+/* $Id: server.h,v 1.38 2000/10/05 10:42:39 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -63,6 +63,8 @@ struct ns_server {
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
+
+	isc_boolean_t		flushonshutdown;
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */
@@ -92,5 +94,10 @@ ns_server_reloadwanted(ns_server_t *server);
  * is ignored.
  */
 
+void
+ns_server_flushonshutdown(ns_server_t *server);
+/*
+ * Inform the server that the zones should be flushed to disk on shutdown.
+ */
 
 #endif /* NAMED_SERVER_H */
