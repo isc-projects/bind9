@@ -15,12 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb_p.h,v 1.1 2000/08/21 22:15:27 bwelling Exp $ */
+/* $Id: sdb_p.h,v 1.2 2000/08/22 01:35:34 gson Exp $ */
 
-/* $Id: sdb_p.h,v 1.1 2000/08/21 22:15:27 bwelling Exp $ */
-
-#ifndef DNS_SIMPLEDB_H
-#define DNS_SIMPLEDB_H 1
+#ifndef DNS_SDB_H
+#define DNS_SDB_H 1
 
 /*****
  ***** Module Info
@@ -55,4 +53,4 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_SIMPLEDB_H */
+#endif /* DNS_SDB_H */
