@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.5 2000/12/11 19:24:10 bwelling Exp $ */
+/* $Id: lookup.c,v 1.6 2000/12/20 03:38:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -116,13 +116,15 @@ build_event(dns_lookup_t *lookup) {
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
-	rdataset = isc_mem_get(lookup->mctx, sizeof(dns_rdataset_t));
-	if (rdataset == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
+	if (dns_rdataset_isassociated(&lookup->rdataset)) {
+		rdataset = isc_mem_get(lookup->mctx, sizeof(dns_rdataset_t));
+		if (rdataset == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto fail;
+		}
+		dns_rdataset_init(rdataset);
+		dns_rdataset_clone(&lookup->rdataset, rdataset);
 	}
-	dns_rdataset_init(rdataset);
-	dns_rdataset_clone(&lookup->rdataset, rdataset);
 
 	if (dns_rdataset_isassociated(&lookup->sigrdataset)) {
 		sigrdataset = isc_mem_get(lookup->mctx,
@@ -160,6 +162,24 @@ build_event(dns_lookup_t *lookup) {
 	return (result);
 }
 
+static isc_result_t
+view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
+	isc_result_t result;
+	dns_name_t *name = dns_fixedname_name(&lookup->name);
+	dns_rdatatype_t type;
+
+	if (lookup->type == dns_rdatatype_sig)
+		type = dns_rdatatype_any;
+	else
+		type = lookup->type;
+
+	result = dns_view_find(lookup->view, name, type, 0, 0, ISC_FALSE,
+			       &lookup->event->db, &lookup->event->node,
+			       foundname, &lookup->rdataset,
+			       &lookup->sigrdataset);
+	return (result);
+}
+
 static void
 lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 	isc_result_t result;
@@ -191,16 +211,19 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			INSIST(!dns_rdataset_isassociated(&lookup->rdataset));
 			INSIST(!dns_rdataset_isassociated
 						(&lookup->sigrdataset));
-			result = dns_view_find(lookup->view, name,
-					       lookup->type, 0, 0,
-					       ISC_FALSE, fname,
-					       &lookup->rdataset,
-					       &lookup->sigrdataset);
+			result = view_find(lookup, fname);
 			if (result == ISC_R_NOTFOUND) {
 				/*
 				 * We don't know anything about the name.
 				 * Launch a fetch.
 				 */
+				if  (lookup->event->node != NULL) {
+					INSIST(lookup->event->db != NULL);
+					dns_db_detachnode(lookup->event->db,
+							 &lookup->event->node);
+				}
+				if (lookup->event->db != NULL)
+					dns_db_detach(&lookup->event->db);
 				result = start_fetch(lookup);
 				if (result != ISC_R_SUCCESS)
 					send_event = ISC_TRUE;
@@ -212,14 +235,6 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_resolver_destroyfetch(&lookup->fetch);
 			INSIST(event->rdataset == &lookup->rdataset);
 			INSIST(event->sigrdataset == &lookup->sigrdataset);
-			/*
-			 * Detach (if necessary) from things we know we
-			 * don't care about.
-			 */
-			if (event->node != NULL)
-				dns_db_detachnode(event->db, &event->node);
-			if (event->db != NULL)
-				dns_db_detach(&event->db);
 		}
 
 		/*
@@ -232,6 +247,14 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 		case ISC_R_SUCCESS:
 			result = build_event(lookup);
 			send_event = ISC_TRUE;
+			if (event == NULL)
+				break;
+			if (event->db != NULL)
+				dns_db_attach(event->db, &lookup->event->db);
+			if (event->node != NULL)
+				dns_db_attachnode(lookup->event->db,
+						  event->node,
+						  &lookup->event->node);
 			break;
 		case DNS_R_CNAME:
 			/*
@@ -294,8 +317,13 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 		if (dns_rdataset_isassociated(&lookup->sigrdataset))
 			dns_rdataset_disassociate(&lookup->sigrdataset);
 
-		if (event != NULL)
+		if (event != NULL) {
+			if (event->node != NULL)
+				dns_db_detachnode(event->db, &event->node);
+			if (event->db != NULL)
+				dns_db_detach(&event->db);
 			isc_event_free((isc_event_t **)&event);
+		}
 
 		/*
 		 * Limit the number of restarts.
@@ -341,6 +369,10 @@ levent_destroy(isc_event_t *event) {
 		dns_rdataset_disassociate(levent->sigrdataset);
 		isc_mem_put(mctx, levent->sigrdataset, sizeof(dns_rdataset_t));
 	}
+	if (levent->node != NULL)
+		dns_db_detachnode(levent->db, &levent->node);
+	if (levent->db != NULL)
+		dns_db_detach(&levent->db);
 	isc_mem_put(mctx, event, event->ev_size);
 }
 
@@ -373,6 +405,8 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 	lookup->event->name = NULL;
 	lookup->event->rdataset = NULL;
 	lookup->event->sigrdataset = NULL;
+	lookup->event->db = NULL;
+	lookup->event->node = NULL;
 
 	lookup->task = NULL;
 	isc_task_attach(task, &lookup->task);

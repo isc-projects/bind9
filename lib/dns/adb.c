@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.160 2000/12/18 20:03:33 gson Exp $ */
+/* $Id: adb.c,v 1.161 2000/12/20 03:38:41 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -3155,7 +3155,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
 			       NAME_GLUEOK(adbname),
 			       ISC_TF(NAME_HINTOK(adbname)),
-			       fname, &rdataset, NULL);
+			       NULL, NULL, fname, &rdataset, NULL);
 
 	switch (result) {
 	case DNS_R_GLUE:
@@ -3287,7 +3287,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
 			       now, NAME_GLUEOK(adbname),
 			       ISC_TF(NAME_HINTOK(adbname)),
-			       fname, &rdataset, NULL);
+			       NULL, NULL, fname, &rdataset, NULL);
 
 	switch (result) {
 	case DNS_R_GLUE:

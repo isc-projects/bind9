@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.87 2000/12/15 21:11:35 gson Exp $ */
+/* $Id: view.c,v 1.88 2000/12/20 03:38:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -611,12 +611,13 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options,
-	      isc_boolean_t use_hints, dns_name_t *foundname,
+	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
-	dns_db_t *db;
+	dns_db_t *db, *zdb;
+	dns_dbnode_t *node, *znode;
 	isc_boolean_t is_cache;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone;
@@ -628,19 +629,23 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
-	REQUIRE(type != dns_rdatatype_any && type != dns_rdatatype_sig);
+	REQUIRE(type != dns_rdatatype_sig);
+	REQUIRE(rdataset != NULL);  /* XXXBEW - remove this */
 
 	/*
 	 * Initialize.
 	 */
 	dns_rdataset_init(&zrdataset);
 	dns_rdataset_init(&zsigrdataset);
+	zdb = NULL;
+	znode = NULL;
 
 	/*
 	 * Find a database to answer the query.
 	 */
 	zone = NULL;
 	db = NULL;
+	node = NULL;
 	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
@@ -660,7 +665,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	 * Now look for an answer in the database.
 	 */
 	result = dns_db_find(db, name, NULL, type, options,
-			     now, NULL, foundname, rdataset, sigrdataset);
+			     now, &node, foundname, rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
 	    result == ISC_R_NOTFOUND) {
@@ -669,14 +674,16 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
+		if (node != NULL)
+			dns_db_detachnode(db, &node);
 		if (!is_cache) {
+			dns_db_detach(&db);
 			if (view->cachedb != NULL) {
 				/*
 				 * Either the answer is in the cache, or we
 				 * don't know it.
 				 */
 				is_cache = ISC_TRUE;
-				dns_db_detach(&db);
 				dns_db_attach(view->cachedb, &db);
 				goto db_find;
 			}
@@ -692,6 +699,10 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 					dns_rdataset_clone(&zsigrdataset,
 							   sigrdataset);
 				result = DNS_R_GLUE;
+				if (db != NULL)
+					dns_db_detach(&db);
+				dns_db_attach(zdb, &db);
+				dns_db_attachnode(db, znode, &node);
 				goto cleanup;
 			}
 		}
@@ -713,6 +724,9 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				dns_rdataset_clone(sigrdataset, &zsigrdataset);
 				dns_rdataset_disassociate(sigrdataset);
 			}
+			dns_db_attach(db, &zdb);
+			dns_db_attachnode(zdb, node, &znode);
+			dns_db_detachnode(db, &node);
 			dns_db_detach(&db);
 			dns_db_attach(view->cachedb, &db);
 			goto db_find;
@@ -729,8 +743,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
+		if (db != NULL) {
+			if (node != NULL)
+				dns_db_detachnode(db, &node);
+			dns_db_detach(&db);
+		}
 		result = dns_db_find(view->hints, name, NULL, type, options,
-				     now, NULL, foundname,
+				     now, &node, foundname,
 				     rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE) {
 			/*
@@ -738,6 +757,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			 * should consider priming.
 			 */
 			dns_resolver_prime(view->resolver);
+			dns_db_attach(view->hints, &db);
 			result = DNS_R_HINT;
 		} else if (result == DNS_R_NXDOMAIN ||
 			   result == DNS_R_NXRRSET)
@@ -761,8 +781,26 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		if (dns_rdataset_isassociated(&zsigrdataset))
 			dns_rdataset_disassociate(&zsigrdataset);
 	}
-	if (db != NULL)
-		dns_db_detach(&db);
+
+	if (zdb != NULL) {
+		if (znode != NULL)
+			dns_db_detachnode(zdb, &znode);
+		dns_db_detach(&zdb);
+	}
+
+	if (db != NULL) {
+		if (node != NULL) {
+			if (nodep != NULL)
+				*nodep = node;
+			else
+				dns_db_detachnode(db, &node);
+		}
+		if (dbp != NULL)
+			*dbp = db;
+		else
+			dns_db_detach(&db);
+	}
+
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 
@@ -780,7 +818,7 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	dns_fixedname_init(&foundname);
 	result = dns_view_find(view, name, type, now, options, use_hints,
-			       dns_fixedname_name(&foundname),
+			       NULL, NULL, dns_fixedname_name(&foundname),
 			       rdataset, sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*

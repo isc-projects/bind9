@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.59 2000/12/15 21:11:36 gson Exp $ */
+/* $Id: view.h,v 1.60 2000/12/20 03:38:46 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -377,8 +377,8 @@ dns_view_freeze(dns_view_t *view);
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options,
-	      isc_boolean_t use_hints, dns_name_t *foundname,
+	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*
  * Find an rdataset whose owner name is 'name', and whose type is
@@ -408,9 +408,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	'name' is valid name.
  *
  *	'type' is a valid dns_rdatatype_t, and is not a meta query type
- *	(e.g. dns_rdatatype_any), or dns_rdatatype_sig.
+ *	except dns_rdatatype_any.
  *
- *	'foundname' is
+ *	dbp == NULL || *dbp == NULL
+ *
+ *	nodep == NULL || *nodep == NULL.  If nodep != NULL, dbp != NULL.
+ *
+ *	'foundname' is a valid name with a dedicated buffer or NULL.
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *
@@ -420,6 +424,12 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  *	In successful cases, 'rdataset', and possibly 'sigrdataset', are
  *	bound to the found data.
+ *
+ *	If dbp != NULL, it points to the database containing the data.
+ *
+ *	If nodep != NULL, it points to the database node containing the data.
+ *
+ *	If foundname != NULL, it contains the full name of the found data.
  *
  * Returns:
  *
