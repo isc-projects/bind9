@@ -4,6 +4,10 @@
 1182.	[bug]		The server could throw an assertion failure when
 			constructing a negative response packet.
 
+1176.	[doc]		Document that allow-v6-synthesis is only performed
+			for clients that are supplied recursive service.
+			[RT #2260]
+
 1162.	[bug]		The allow-notify option was not accepted in slave
 			zone statements.
 

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.14 2002/01/22 05:09:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.15 2002/01/22 06:16:25 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3867,6 +3867,9 @@ The results are returned as a synthetic PTR record in
 <para>The synthetic records have a TTL of zero.  DNSSEC validation of
 synthetic responses is not currently supported; therefore responses
 containing synthetic RRs will not have the AD flag set.</para>
+
+<note><para><command>allow-v6-synthesis</command> is only performed for
+clients that are supplied recursive service.</para></note>
 </sect3>
 
 <sect3 id="tuning"><title>Tuning</title>
