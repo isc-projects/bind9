@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.76 2000/07/27 09:48:04 tale Exp $ */
+/* $Id: name.h,v 1.77 2000/07/31 23:09:47 tale Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -873,16 +873,20 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	
- * If 'omit_final_dot' is true, then the final '.' in absolute
- * names other than the root name will be omitted.
+ * Notes:
+ *	If 'omit_final_dot' is true, then the final '.' in absolute
+ *	names other than the root name will be omitted.
+ *
+ *	If dns_name_countlabels == 0, the name will be "@", representing the
+ *	current origin as described by RFC 1035.
+ *
+ *	The name is not NUL terminated.
  *
  * Requires:
  *
  *	'name' is a valid name
  *
  *	'target' is a valid buffer.
- *
- *	dns_name_countlabels(name) > 0
  *
  *	if dns_name_isabsolute == FALSE, then omit_final_dot == FALSE
  *

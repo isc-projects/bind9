@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.98 2000/07/27 09:46:16 tale Exp $ */
+/* $Id: name.c,v 1.99 2000/07/31 23:09:49 tale Exp $ */
 
 #include <config.h>
 
@@ -1707,7 +1707,6 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	 * wire format.
 	 */
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(name->labels > 0);
 
 	ndata = name->ndata;
 	nlen = name->length;
@@ -1717,18 +1716,47 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 
 	trem = tlen;
 
-	/* Special handling for root label. */
-	if (nlen == 1 && labels == 1 && *ndata == 0) {
-		saw_root = ISC_TRUE;
-		labels = 0;
-		nlen = 0;
+	if (labels == 0 && nlen == 0) {
+		/*
+		 * Special handling for an empty name.
+		 */
 		if (trem == 0)
 			return (ISC_R_NOSPACE);
+
+		/*
+		 * The names of these booleans are misleading in this case.
+		 * This empty name is not necessarily from the root node of
+		 * the DNS root zone, nor is a final dot going to be included.
+		 * They need to be set this way, though, to keep the "@"
+		 * from being trounced.
+		 */
+		saw_root = ISC_TRUE;
+		omit_final_dot = ISC_FALSE;
+		*tdata++ = '@';
+		trem--;
+
+		/*
+		 * Skip the while() loop.
+		 */
+		nlen = 0;
+	} else if (nlen == 1 && labels == 1 && *ndata == '\0') {
+		/*
+		 * Special handling for the root label.
+		 */
+		if (trem == 0)
+			return (ISC_R_NOSPACE);
+
+		saw_root = ISC_TRUE;
+		omit_final_dot = ISC_FALSE;
 		*tdata++ = '.';
 		trem--;
-		omit_final_dot = ISC_FALSE;
+
+		/*
+		 * Skip the while() loop.
+		 */
+		nlen = 0;
 	}
-		
+
 	while (labels > 0 && nlen > 0 && trem > 0) {
 		labels--;
 		count = *ndata++;
@@ -1825,7 +1853,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		} else {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected label type %02x", count);
-			/* Does not return. */
+			/* NOTREACHED */
 		}
 					 
 		/*
@@ -1842,7 +1870,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 
 	if (nlen != 0 && trem == 0)
 		return (ISC_R_NOSPACE);
-	INSIST(nlen == 0);
+
 	if (!saw_root || omit_final_dot)
 		trem++;
 
@@ -3103,4 +3131,3 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 	} else
 		snprintf(cp, size, "<unknown>");
 }
-
