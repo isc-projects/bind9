@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.15 
+# From configure.in Revision: 1.17 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
@@ -1838,7 +1838,7 @@ fi
 case "$want_irs_nis" in
 yes)
 	WANT_IRS_NIS="#define WANT_IRS_NIS 1"
-	WANT_IRS_NIS_OBJS="WANT_IRS_NIS_OBJS"
+	WANT_IRS_NIS_OBJS="\${WANT_IRS_NIS_OBJS}"
 	case "$want_irs_gr" in
 	yes)
 		WANT_IRS_NISGR_OBJS="\${WANT_IRS_NISGR_OBJS}";;
