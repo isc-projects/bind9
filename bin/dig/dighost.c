@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.65 2000/06/30 22:53:07 bwelling Exp $ */
+/* $Id: dighost.c,v 1.66 2000/06/30 22:57:47 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1788,8 +1788,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			}
 			docancel = check_for_more_data(query, msg, sevent);
 			if (docancel) {
-				cancel_lookup(query->lookup);
 				dns_message_destroy(&msg);
+				cancel_lookup(query->lookup);
 			}
 		}
 		else {
