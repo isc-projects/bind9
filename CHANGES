@@ -1,4 +1,6 @@
 
+ 831.	[placeholder]
+
  830.	[func]		Implement 'rndc status'.
 
  829.	[bug]		The DNS_R_ZONECUT result code should only be returned
