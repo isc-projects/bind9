@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.233 2001/10/31 20:39:39 gson Exp $ */
+/* $Id: dighost.c,v 1.234 2001/10/31 21:55:31 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1061,9 +1061,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			if (!success) {
 				success = ISC_TRUE;
 				lookup_counter++;
-				cancel_lookup(query->lookup);
 				lookup = requeue_lookup(query->lookup,
 							ISC_FALSE);
+				cancel_lookup(query->lookup);
 				lookup->doing_xfr = ISC_FALSE;
 				if (!lookup->trace_root &&
 				    section == DNS_SECTION_ANSWER)
@@ -1117,9 +1117,9 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		 * Then we just did rootorg; there's nothing left.
 		 */
 		return (ISC_FALSE);
-	cancel_lookup(query->lookup);
 	lookup = requeue_lookup(query->lookup, ISC_TRUE);
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
+	cancel_lookup(query->lookup);
 	return (ISC_TRUE);
 }
 
@@ -1735,9 +1735,9 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		} else {
 			debug("making new TCP request, %d tries left",
 			      l->retries);
-			cancel_lookup(l);
 			l->retries--;
 			requeue_lookup(l, ISC_TRUE);
+			cancel_lookup(l);
 		}
 	} else {
 		fputs(l->cmdline, stdout);
