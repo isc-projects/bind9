@@ -6,6 +6,8 @@
 1325.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
+1296.	[bug]		libbind: const pointer conficts in res_debug.c.
+
 1295.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
 
 1292.	[contrib]	Berkeley DB 4.0 sdb implementation from

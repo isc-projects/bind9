@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.3 2001/06/21 08:26:22 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.1 2002/07/02 10:15:42 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -672,12 +672,10 @@ precsize_ntoa(prec)
 
 /* converts ascii size/precision X * 10**Y(cm) to 0xXY.  moves pointer. */
 static u_int8_t
-precsize_aton(strptr)
-	char **strptr;
-{
+precsize_aton(const char **strptr) {
 	unsigned int mval = 0, cmval = 0;
 	u_int8_t retval = 0;
-	char *cp;
+	const char *cp;
 	int exponent;
 	int mantissa;
 
@@ -714,11 +712,8 @@ precsize_aton(strptr)
 
 /* converts ascii lat/lon to unsigned encoded 32-bit number.  moves pointer. */
 static u_int32_t
-latlon2ul(latlonstrptr,which)
-	char **latlonstrptr;
-	int *which;
-{
-	char *cp;
+latlon2ul(const char **latlonstrptr, int *which) {
+	const char *cp;
 	u_int32_t retval;
 	int deg = 0, min = 0, secs = 0, secsfrac = 0;
 
