@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.67 2000/08/10 00:53:36 gson Exp $ */
+/* $Id: zone.h,v 1.68 2000/08/10 18:35:44 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -832,20 +832,6 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
  *
  * Requires:
  *	'zone' to be a valid zone.
- */
-
-isc_boolean_t
-dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone);
-/*
- * Tests whether the configuration of two zones is equal.
- * Zone contents and state information is not tested.
- *
- * Requires:
- *	'oldzone' and 'newzone' to be valid.
- *
- * Returns:
- *	ISC_TRUE if the configurations are equal.
- *	ISC_FALSE if the configurations differ.
  */
 
 isc_uint32_t

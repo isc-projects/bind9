@@ -1,3 +1,6 @@
+
+ 385.	[cleanup]	Removed function dns_zone_equal().
+
  384.	[bug]		nsupdate was incorrectly limiting TTLs to 65535 instead
 			of 2147483647.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.179 2000/08/10 17:11:23 bwelling Exp $ */
+/* $Id: zone.c,v 1.180 2000/08/10 18:35:46 gson Exp $ */
 
 #include <config.h>
 
@@ -3752,84 +3752,6 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	UNLOCK(&zone->lock);
 	dns_zone_idetach(&zone);
 }
-
-
-isc_boolean_t
-dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
-	unsigned int i;
-
-	REQUIRE(DNS_ZONE_VALID(oldzone));
-	REQUIRE(DNS_ZONE_VALID(newzone));
-
-	LOCK(&oldzone->lock);
-	LOCK(&newzone->lock);
-	if (oldzone->type != newzone->type ||
-	    oldzone->maxxfrin != newzone->maxxfrin ||
-	    oldzone->maxxfrout != newzone->maxxfrout ||
-	    oldzone->idlein != newzone->idlein ||
-	    oldzone->idleout != newzone->idleout ||
-	    oldzone->rdclass != newzone->rdclass ||
-	    oldzone->db_argc != newzone->db_argc ||
-	    oldzone->notifycnt != newzone->notifycnt ||
-	    oldzone->masterscnt != newzone->masterscnt ||
-	    oldzone->check_names != newzone->check_names ||
-	    oldzone->diff_on_reload != newzone->diff_on_reload ||
-	    oldzone->journalsize != newzone->journalsize)
-		goto false;
-
-	if (!dns_name_equal(&oldzone->origin, &newzone->origin))
-		goto false;
-
-	if ((oldzone->journal == NULL && newzone->journal != NULL) ||
-	    (oldzone->journal != NULL && newzone->journal == NULL) ||
-	    (oldzone->journal != NULL &&
-	     strcmp(oldzone->journal, newzone->journal) != 0))
-		goto false;
-
-	for (i = 0; i < oldzone->db_argc; i++)
-		if (strcmp(oldzone->db_argv[i], newzone->db_argv[i]) != 0)
-			goto false;
-
-	if (!isc_sockaddr_equal(&oldzone->xfrsource4, &newzone->xfrsource4))
-		goto false;
-
-	if (!isc_sockaddr_equal(&oldzone->xfrsource6, &newzone->xfrsource6))
-		goto false;
-
-	for (i = 0; i < oldzone->notifycnt; i++)
-		if (!isc_sockaddr_equal(&oldzone->notify[i],
-					&newzone->notify[i]))
-			goto false;
-
-	for (i = 0; i < oldzone->masterscnt; i++)
-		if (!isc_sockaddr_equal(&oldzone->masters[i],
-					&newzone->masters[i]))
-			goto false;
-
-#define COMPARE_POINTERS(equalp, member) \
-	if ((oldzone->member == NULL && newzone->member != NULL) || \
-	    (oldzone->member != NULL && newzone->member == NULL) || \
-	    (oldzone->member != NULL && 			    \
-	     !(equalp)(oldzone->member, newzone->member)))	    \
-			goto false
-
-	COMPARE_POINTERS(dns_acl_equal, update_acl);
-	COMPARE_POINTERS(dns_acl_equal, query_acl);
-	COMPARE_POINTERS(dns_acl_equal, xfr_acl);
-
-#undef COMPARE_POINTERS
-
-	UNLOCK(&newzone->lock);
-	UNLOCK(&oldzone->lock);
-	return(ISC_TRUE);	/* XXX should be ISC_TRUE once acl/pubkey
-				   checks are done. */
-
- false:
-	UNLOCK(&newzone->lock);
-	UNLOCK(&oldzone->lock);
-	return (ISC_FALSE);
-}
-
 
 isc_result_t
 dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
