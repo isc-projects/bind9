@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.12 2000/08/17 22:08:16 gson Exp $
+.\" $Id: dnssec-signzone.8,v 1.13 2000/10/28 01:16:46 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -33,6 +33,7 @@
 .Op Fl p
 .Op Fl r Ar randomdev
 .Op Fl v Ar level
+.Op Fl t
 .Ar zonefile
 .Op keyfile ....
 .Sh DESCRIPTION
@@ -206,6 +207,12 @@ increases,
 .Nm dnssec-signzone
 generates increasingly detailed reports about what it is doing.
 The default level is zero.
+.Pp
+The
+.Fl t
+option causes
+.Nm dnssec-signzone
+to print various statistics after signing the zone.
 .Sh EXAMPLE
 The example below shows how
 .Nm dnssec-signzone
