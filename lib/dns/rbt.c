@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.84 2000/07/06 23:54:43 tale Exp $ */
+/* $Id: rbt.c,v 1.85 2000/07/14 19:17:39 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -25,9 +25,15 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+/*
+ * This define is so dns/name.h (included by dns/fixedname.h) uses more
+ * efficient macro calls instead of functions for a few operations.
+ */
+#define DNS_NAME_USEINLINE 1
+
+#include <dns/fixedname.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
-#include <dns/fixedname.h>
 
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
 #define VALID_RBT(rbt)		ISC_MAGIC_VALID(rbt, RBT_MAGIC)
@@ -124,12 +130,6 @@ do { \
 	(name)->attributes = ATTRS(node); \
 	(name)->attributes |= DNS_NAMEATTR_READONLY; \
 } while (0)
-
-#define FAST_ISABSOLUTE(name) \
-	(((name)->attributes & DNS_NAMEATTR_ABSOLUTE) ? ISC_TRUE : ISC_FALSE)
-
-#define FAST_COUNTLABELS(name) \
-	((name)->labels)
 
 #ifdef DEBUG
 #define inline
@@ -285,17 +285,11 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 	   isc_boolean_t include_chain_end)
 {
 	dns_name_t nodename;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
 
 	dns_name_init(&nodename, NULL);
-
-	/*
-	 * XXX DCL Is this too devilish, initializing name like this?
-	 */
-	result = dns_name_concatenate(NULL, NULL, name, NULL);
-	if (result != ISC_R_SUCCESS)
-		return result;
+	dns_name_reset(name);
 
 	for (i = 0; i < chain->level_count; i++) {
 		NODENAME(chain->levels[i], &nodename);
@@ -359,7 +353,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(FAST_ISABSOLUTE(name));
+	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	/*
@@ -574,8 +568,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					dns_label_t label;
 
 					dns_name_getlabel(prefix,
-					      FAST_COUNTLABELS(&current_name) -
-							  common_labels,
+					    dns_name_countlabels(&current_name)
+							  - common_labels,
 							  &label);
 
 					INSIST(dns_label_type(&label) ==
@@ -587,8 +581,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					       label.length);
 
 					dns_name_getlabel(add_name,
-						   FAST_COUNTLABELS(add_name) -
-							  common_labels,
+						 dns_name_countlabels(add_name)
+							  - common_labels,
 							  &label);
 					INSIST(dns_label_type(&label) ==
 					       dns_labeltype_bitstring);
@@ -625,7 +619,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
 				if (common_labels ==
-				    FAST_COUNTLABELS(add_name) &&
+				    dns_name_countlabels(add_name) &&
 				    common_bits == add_bits) {
 					/*
 					 * The name has been added by pushing
@@ -692,7 +686,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 	dns_rbtnode_t *node;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(FAST_ISABSOLUTE(name));
+	REQUIRE(dns_name_isabsolute(name));
 
 	node = NULL;
 
@@ -732,7 +726,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(FAST_ISABSOLUTE(name));
+	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(node != NULL && *node == NULL);
 	REQUIRE((options & (DNS_RBTFIND_NOEXACT | DNS_RBTFIND_NOPREDECESSOR))
 		!=         (DNS_RBTFIND_NOEXACT | DNS_RBTFIND_NOPREDECESSOR));
@@ -1116,7 +1110,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	isc_result_t result;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(FAST_ISABSOLUTE(name));
+	REQUIRE(dns_name_isabsolute(name));
 
 	/*
 	 * First, find the node.
@@ -1247,7 +1241,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	REQUIRE(name->offsets != NULL);
 
 	dns_name_toregion(name, &region);
-	labels = FAST_COUNTLABELS(name);
+	labels = dns_name_countlabels(name);
 	ENSURE(labels > 0);
 
 	/* 
@@ -1972,8 +1966,8 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			/*
 			 * Eliminate the root name, except when name is ".".
 			 */
-			if (FAST_COUNTLABELS(name) > 1) {
-				INSIST(FAST_ISABSOLUTE(name));
+			if (dns_name_countlabels(name) > 1) {
+				INSIST(dns_name_isabsolute(name));
 
 				/*
 				 * XXX EVIL.  But what _should_ I do?
