@@ -17,8 +17,8 @@ and install.
 
 
 Index: README.idnkit
---- /dev/null	Thu Apr 29 11:15:03 2004
-+++ README.idnkit	Thu Apr 29 11:05:40 2004
+--- /dev/null	Thu Jul  1 13:17:02 2004
++++ README.idnkit	Thu Jul  1 13:19:01 2004
 @@ -0,0 +1,113 @@
 +
 +			BIND-9 IDN patch
@@ -136,10 +136,10 @@ Index: README.idnkit
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure,v
-retrieving revision 1.284.2.28
-diff -U2 -r1.284.2.28 configure
---- configure	10 Mar 2004 03:25:48 -0000	1.284.2.28
-+++ configure	29 Apr 2004 01:16:48 -0000
+retrieving revision 1.284.2.29
+diff -U2 -r1.284.2.29 configure
+--- configure	1 Jul 2004 00:18:29 -0000	1.284.2.29
++++ configure	1 Jul 2004 03:21:53 -0000
 @@ -466,5 +466,5 @@
  #endif"
  
@@ -332,7 +332,7 @@ diff -U2 -r1.284.2.28 configure
 +#line 21486 "configure"
  #include "confdefs.h"
  
-@@ -25777,4 +25781,354 @@
+@@ -25790,4 +25794,354 @@
  
  #
 +# IDN support
@@ -687,7 +687,7 @@ diff -U2 -r1.284.2.28 configure
 +#
  # Substitutions
  #
-@@ -26639,4 +26993,5 @@
+@@ -26652,4 +27006,5 @@
  s,@XMLDCL@,$XMLDCL,;t t
  s,@DOCBOOK2MANSPEC@,$DOCBOOK2MANSPEC,;t t
 +s,@IDNLIBS@,$IDNLIBS,;t t
@@ -696,11 +696,11 @@ diff -U2 -r1.284.2.28 configure
 Index: configure.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure.in,v
-retrieving revision 1.294.2.31
-diff -U2 -r1.294.2.31 configure.in
---- configure.in	10 Mar 2004 03:24:06 -0000	1.294.2.31
-+++ configure.in	29 Apr 2004 01:16:52 -0000
-@@ -1756,4 +1756,80 @@
+retrieving revision 1.294.2.32
+diff -U2 -r1.294.2.32 configure.in
+--- configure.in	1 Jul 2004 00:16:42 -0000	1.294.2.32
++++ configure.in	1 Jul 2004 03:21:58 -0000
+@@ -1769,4 +1769,80 @@
  
  #
 +# IDN support
@@ -787,7 +787,7 @@ RCS file: /proj/cvs/prod/bind9/config.h.in,v
 retrieving revision 1.47.2.8
 diff -U2 -r1.47.2.8 config.h.in
 --- config.h.in	15 Mar 2004 05:00:23 -0000	1.47.2.8
-+++ config.h.in	29 Apr 2004 01:16:52 -0000
++++ config.h.in	1 Jul 2004 03:21:59 -0000
 @@ -17,5 +17,5 @@
   */
  
@@ -809,21 +809,21 @@ diff -U2 -r1.47.2.8 config.h.in
 +
  /* Define to 1 if you have the <stdint.h> header file. */
  #undef HAVE_STDINT_H
-@@ -222,4 +228,7 @@
+@@ -221,4 +227,7 @@
+ /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
  #undef TIME_WITH_SYS_TIME
- 
++
 +/* define if idnkit support is to be included. */
 +#undef WITH_IDN
-+
+ 
  /* Define to 1 if your processor stores words with the most significant byte
-    first (like Motorola and SPARC, unlike Intel and VAX). */
 Index: bin/dig/Makefile.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.2.2
 diff -U2 -r1.25.2.2 Makefile.in
 --- bin/dig/Makefile.in	9 Mar 2004 06:09:10 -0000	1.25.2.2
-+++ bin/dig/Makefile.in	29 Apr 2004 01:16:52 -0000
++++ bin/dig/Makefile.in	1 Jul 2004 03:21:59 -0000
 @@ -37,5 +37,5 @@
  DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
  
@@ -837,7 +837,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.5
 diff -U2 -r1.14.2.5 dig.1
 --- bin/dig/dig.1	15 Mar 2004 04:44:38 -0000	1.14.2.5
-+++ bin/dig/dig.1	29 Apr 2004 01:16:53 -0000
++++ bin/dig/dig.1	1 Jul 2004 03:22:01 -0000
 @@ -355,4 +355,15 @@
  will not print the initial query when it looks up the NS records for
  isc.org.
@@ -860,7 +860,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.8
 diff -U2 -r1.4.2.8 dig.docbook
 --- bin/dig/dig.docbook	9 Mar 2004 06:09:12 -0000	1.4.2.8
-+++ bin/dig/dig.docbook	29 Apr 2004 01:16:55 -0000
++++ bin/dig/dig.docbook	1 Jul 2004 03:22:03 -0000
 @@ -530,4 +530,19 @@
  
  <refsect1>
@@ -887,7 +887,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
 retrieving revision 1.221.2.22
 diff -U2 -r1.221.2.22 dighost.c
 --- bin/dig/dighost.c	15 Apr 2004 06:53:18 -0000	1.221.2.22
-+++ bin/dig/dighost.c	29 Apr 2004 01:17:00 -0000
++++ bin/dig/dighost.c	1 Jul 2004 03:22:16 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -1126,7 +1126,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.2
 diff -U2 -r1.11.2.2 host.1
 --- bin/dig/host.1	15 Mar 2004 04:44:38 -0000	1.11.2.2
-+++ bin/dig/host.1	29 Apr 2004 01:17:01 -0000
++++ bin/dig/host.1	1 Jul 2004 03:22:16 -0000
 @@ -122,4 +122,15 @@
  will be set to the number of seconds given by the hardware's maximum
  value for an integer quantity.
@@ -1149,7 +1149,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.3
 diff -U2 -r1.2.2.3 host.docbook
 --- bin/dig/host.docbook	9 Mar 2004 06:09:13 -0000	1.2.2.3
-+++ bin/dig/host.docbook	29 Apr 2004 01:17:01 -0000
++++ bin/dig/host.docbook	1 Jul 2004 03:22:21 -0000
 @@ -182,4 +182,19 @@
  
  <refsect1>
@@ -1176,7 +1176,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.9
 diff -U2 -r1.127.2.9 name.c
 --- lib/dns/name.c	9 Mar 2004 06:11:03 -0000	1.127.2.9
-+++ lib/dns/name.c	29 Apr 2004 01:17:07 -0000
++++ lib/dns/name.c	1 Jul 2004 03:22:35 -0000
 @@ -196,4 +196,11 @@
  dns_name_t *dns_wildcardname = &wild;
  
@@ -1221,7 +1221,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.5
 diff -U2 -r1.95.2.5 name.h
 --- lib/dns/include/dns/name.h	9 Mar 2004 06:11:19 -0000	1.95.2.5
-+++ lib/dns/include/dns/name.h	29 Apr 2004 01:17:09 -0000
++++ lib/dns/include/dns/name.h	1 Jul 2004 03:22:37 -0000
 @@ -220,4 +220,15 @@
  #define DNS_NAME_MAXWIRE 255
  
@@ -1238,9 +1238,10 @@ diff -U2 -r1.95.2.5 name.h
 +
  /***
   *** Initialization
-@@ -1262,4 +1273,12 @@
+@@ -1261,4 +1272,12 @@
+  *
   */
- 
++
 +#ifdef WITH_IDN
 +void
 +dns_name_settotextfilter(dns_name_totextfilter_t proc);
@@ -1248,6 +1249,5 @@ diff -U2 -r1.95.2.5 name.h
 + * Call 'proc' at the end of dns_name_totext.
 + */
 +#endif /* WITH_IDN */
-+
+ 
  #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
- /*
