@@ -242,7 +242,8 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		isc_region_t r;
 		unsigned int col = 0;
 
-		isc_buffer_init(&buf, ctx->linebreak_buf, sizeof(ctx->linebreak_buf),
+		isc_buffer_init(&buf, ctx->linebreak_buf,
+				sizeof(ctx->linebreak_buf),
 				ISC_BUFFERTYPE_TEXT);
 		
 		isc_buffer_available(&buf, &r);
@@ -323,7 +324,8 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		
 		/* Owner name. */
 		if (owner_name != NULL &&
-		    ! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0 && ! first))
+		    ! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0 &&
+		       !first))
 		{
 			unsigned int name_start = target->used;
 			RETERR(dns_name_totext(owner_name,
@@ -355,7 +357,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			 * If the $TTL directive is not in use, the TTL we 
 			 * just printed becomes the default for subsequent RRs.
 			 */
-			if ((ctx->style.flags & DNS_STYLEFLAG_TTL) == 0) {	
+			if ((ctx->style.flags & DNS_STYLEFLAG_TTL) == 0) {
 				current_ttl = rdataset->ttl;
 				current_ttl_valid = ISC_TRUE;
 			}
@@ -368,7 +370,8 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			unsigned int class_start;
 			INDENT_TO(class_column);
 			class_start = target->used;
-			result = dns_rdataclass_totext(rdataset->rdclass, target);
+			result = dns_rdataclass_totext(rdataset->rdclass,
+						       target);
 			if (result != DNS_R_SUCCESS)
 				return (result);
 			column += (target->used - class_start);
@@ -443,6 +446,7 @@ question_totext(dns_rdataset_t *rdataset,
 {
 	unsigned int column;
 	dns_result_t result;
+	isc_region_t r;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	result = dns_rdataset_first(rdataset);
@@ -480,6 +484,13 @@ question_totext(dns_rdataset_t *rdataset,
 			return (result);
 		column += (target->used - type_start);
 	}
+
+	isc_buffer_available(target, &r);
+	if (r.length < 1)
+		return (DNS_R_NOSPACE);
+	r.base[0] = '\n';
+	isc_buffer_add(target, 1);
+
 	return (DNS_R_SUCCESS);
 }
 
@@ -711,7 +722,8 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 		if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
 			break;
 		if (result == DNS_R_NEWORIGIN) {
-			dns_name_t *origin = dns_fixedname_name(&ctx.origin_fixname);
+			dns_name_t *origin =
+				dns_fixedname_name(&ctx.origin_fixname);
 			result = dns_dbiterator_origin(dbiter, origin);
 			RUNTIME_CHECK(result == DNS_R_SUCCESS);
 			isc_buffer_clear(&buffer);
