@@ -15,21 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.32 2001/09/21 03:04:14 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.33 2001/10/19 19:05:42 gson Exp $ */
 
 #include <config.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
-#include <isc/file.h>
-#include <isc/fsaccess.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
-#include <isc/print.h>
-#include <isc/random.h>
 #include <isc/result.h>
-#include <isc/stdio.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/timer.h>
@@ -47,10 +42,7 @@
 #include <isccc/sexpr.h>
 #include <isccc/util.h>
 
-#include <dns/keyvalues.h>
 #include <dns/result.h>
-
-#include <dst/dst.h>
 
 #include <named/config.h>
 #include <named/control.h>
