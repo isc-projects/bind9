@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.9.18.2 2005/02/23 01:02:24 marka Exp $ */
+/* $Id: net.c,v 1.9.18.3 2005/02/24 00:32:22 marka Exp $ */
 
 #include <config.h>
 
