@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.50 2000/04/06 22:02:27 explorer Exp $
+ * $Id: tsig.c,v 1.51 2000/04/08 04:40:21 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -887,9 +887,12 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 	}
 
-	/* Put in the original id */
-	id = htons(tsig->originalid);
-	memcpy(&header[0], &id, 2);
+	/* Put in the original id.  */
+	/* XXX Can TCP transfers be forwarded?  How would that work? */
+	if (tsig != NULL) {
+		id = htons(tsig->originalid);
+		memcpy(&header[0], &id, 2);
+	}
 
 	/* Digest the modified header */
 	header_r.base = (unsigned char *) header;

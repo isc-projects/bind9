@@ -1375,7 +1375,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	if (r.length != 0)
 		return (DNS_R_FORMERR);
 
-	if (msg->tsigset != NULL || msg->sig0 != NULL) {
+	if (msg->tsigset != NULL || msg->tsigkey != NULL || msg->sig0 != NULL) {
 		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
 		if (msg->saved == NULL)
 			return (ISC_R_NOMEMORY);
