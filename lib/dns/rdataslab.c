@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.6 1999/06/24 19:15:55 gson Exp $ */
+/* $Id: rdataslab.c,v 1.7 1999/07/13 17:26:07 halley Exp $ */
 
 #include <config.h>
+
+#include <string.h>
 
 #include <isc/region.h>
 #include <isc/buffer.h>
