@@ -243,7 +243,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 
 dns_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
-	    dns_rdatatype_t type, unsigned int options,
+	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset) {
 
@@ -259,9 +259,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(rdataset == NULL ||
 		(DNS_RDATASET_VALID(rdataset) && rdataset->methods == NULL));
 
-	/* XXX TBS */
-
-	return ((db->methods->find)(db, name, version, type, options,
+	return ((db->methods->find)(db, name, version, type, options, now,
 				    nodep, foundname, rdataset));
 }
 
@@ -333,7 +331,8 @@ dns_db_createiterator(dns_db_t *db, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatatype_t type, dns_rdataset_t *rdataset)
+		    dns_rdatatype_t type, isc_stdtime_t now,
+		    dns_rdataset_t *rdataset)
 {
 	/*
 	 * Search for an rdataset of type 'type' at 'node' that are in version
@@ -344,14 +343,15 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods == NULL);
+	REQUIRE(type != dns_rdatatype_sig && type != dns_rdatatype_any);
 
-	return ((db->methods->findrdataset)(db, node, version, type,
+	return ((db->methods->findrdataset)(db, node, version, type, now,
 					    rdataset));
 }
 
 dns_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatasetiter_t **iteratorp)
+		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp)
 {
 	/*
 	 * Make '*iteratorp' an rdataset iteratator for all rdatasets at
@@ -361,12 +361,13 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
 
-	return ((db->methods->allrdatasets)(db, node, version, iteratorp));
+	return ((db->methods->allrdatasets)(db, node, version, now,
+					    iteratorp));
 }
 
 dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   dns_rdataset_t *rdataset)
+		   isc_stdtime_t now, dns_rdataset_t *rdataset)
 {
 	/*
 	 * Add 'rdataset' to 'node' in version 'version' of 'db'.
@@ -379,7 +380,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	return ((db->methods->addrdataset)(db, node, version, rdataset));
+	return ((db->methods->addrdataset)(db, node, version, now, rdataset));
 }
 
 dns_result_t

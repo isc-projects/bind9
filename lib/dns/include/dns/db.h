@@ -58,6 +58,7 @@
 #include <isc/boolean.h>
 #include <isc/mem.h>
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -86,6 +87,7 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*find)(dns_db_t *db, dns_name_t *name,
 				dns_dbversion_t *version,
 				dns_rdatatype_t type, unsigned int options,
+				isc_stdtime_t now,
 				dns_dbnode_t **nodep, dns_name_t *foundname,
 				dns_rdataset_t *rdataset);
 	void		(*attachnode)(dns_db_t *db,
@@ -102,12 +104,15 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
+					isc_stdtime_t now,
 					dns_rdataset_t *rdataset);
 	dns_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
+					isc_stdtime_t now,
 					dns_rdatasetiter_t **iteratorp);
 	dns_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				       dns_dbversion_t *version,
+				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset);
 	dns_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
@@ -413,7 +418,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 dns_result_t
 dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
-	    dns_rdatatype_t type, unsigned int options,
+	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset);
 /*
@@ -433,11 +438,17 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	because the burden of determining whether a given rdataset is valid
  *	glue or not falls upon the caller.
  *
+ *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ *	cache database, an rdataset will not be found unless it expires after
+ *	'now'.  Any ANY query will not match unless at least one rdataset at
+ *	the node expires after 'now'.  If 'now' is zero, then the current time
+ *	will be used.
+ *
  * Requires:
  *
  *	'db' is a valid database.
  *
- *	type != dns_rdatatype_sig
+ *	'type' is not SIG, or a meta-RR type other than 'ANY' (e.g. 'OPT').
  *
  *	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
  *
@@ -630,7 +641,8 @@ dns_db_createiterator(dns_db_t *db, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatatype_t type, dns_rdataset_t *rdataset);
+		    dns_rdatatype_t type, isc_stdtime_t now,
+		    dns_rdataset_t *rdataset);
 /*
  * Search for an rdataset of type 'type' at 'node' that are in version
  * 'version' of 'db'.  If found, make 'rdataset' refer to it.
@@ -643,6 +655,12 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	ordinary DNS queries; clients which wish to do that should use
  *	dns_db_find() instead.
  *
+ *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ *	cache database, an rdataset will not be found unless it expires after
+ *	'now'.  Any ANY query will not match unless at least one rdataset at
+ *	the node expires after 'now'.  If 'now' is zero, then the current time
+ *	will be used.
+ *
  * Requires:
  *
  *	'db' is a valid database.
@@ -651,7 +669,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *
- *	'type' is not a meta-RR type such as 'ANY' or 'OPT'.
+ *	'type' is not SIG, or a meta-RR type such as 'ANY' or 'OPT'.
  *
  * Ensures:
  *
@@ -668,7 +686,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatasetiter_t **iteratorp);
+		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp);
 /*
  * Make '*iteratorp' an rdataset iteratator for all rdatasets at 'node' in
  * version 'version' of 'db'.
@@ -676,6 +694,12 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * Notes:
  *
  *	If 'version' is NULL, then the current version will be used.
+ *
+ *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ *	cache database, an rdataset will not be found unless it expires after
+ *	'now'.  Any ANY query will not match unless at least one rdataset at
+ *	the node expires after 'now'.  If 'now' is zero, then the current time
+ *	will be used.
  *
  * Requires:
  *
@@ -700,9 +724,15 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   dns_rdataset_t *rdataset);
+		   isc_stdtime_t now, dns_rdataset_t *rdataset);
 /*
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
+ *
+ * Notes:
+ *
+ *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
+ *	a cache database, then the added rdataset will expire no later than
+ *	now + rdataset->ttl.
  *
  * Requires:
  *
