@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.1 2001/11/02 17:56:07 gson Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.2 2002/07/10 06:32:48 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -681,6 +681,8 @@ special(int ch) {
 	case 0x2E: /* '.' */
 	case 0x3B: /* ';' */
 	case 0x5C: /* '\\' */
+	case 0x28: /* '(' */
+	case 0x29: /* ')' */
 	/* Special modifiers in zone files. */
 	case 0x40: /* '@' */
 	case 0x24: /* '$' */
