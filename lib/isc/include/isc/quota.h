@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.8 2001/01/09 21:57:22 bwelling Exp $ */
+/* $Id: quota.h,v 1.9 2001/10/22 07:09:25 marka Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
@@ -53,6 +53,7 @@ struct isc_quota {
 	/* Locked by lock. */
 	int 		max;
 	int 		used;
+	isc_boolean_t	soft;
 };
 
 isc_result_t
@@ -71,6 +72,12 @@ isc_quota_destroy(isc_quota_t *quota);
  * Destroy a quota object.
  */
 
+void
+isc_quota_soft(isc_quota_t *quota, isc_boolean_t soft);
+/*
+ * Turn on/off soft quotas.
+ */
+
 isc_result_t
 isc_quota_reserve(isc_quota_t *quota);
 /*
@@ -78,6 +85,7 @@ isc_quota_reserve(isc_quota_t *quota);
  *
  * Returns:
  * 	ISC_R_SUCCESS	Success
+ *	ISC_R_SOFTQUOTA	Success soft quota reached
  *	ISC_R_QUOTA	Quota is full
  */
 
@@ -91,7 +99,7 @@ isc_result_t
 isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
 /*
  * Like isc_quota_reserve, and also attaches '*p' to the
- * quota if successful.
+ * quota if successful (ISC_R_SUCCESS or ISC_R_SOFTQUOTA).
  */
 
 void

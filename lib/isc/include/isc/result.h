@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.57 2001/06/15 22:07:51 gson Exp $ */
+/* $Id: result.h,v 1.58 2001/10/22 07:09:24 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -78,11 +78,12 @@
 #define ISC_R_UNBALANCEDQUOTES		52	/* unbalanced quotes */
 #define ISC_R_INPROGRESS		53	/* operation in progress */
 #define ISC_R_CONNECTIONRESET		54	/* connection reset */
+#define ISC_R_SOFTQUOTA			55	/* soft quota reached */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			55
+#define ISC_R_NRESULTS 			56
 
 ISC_LANG_BEGINDECLS
 
