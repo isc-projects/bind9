@@ -2,6 +2,9 @@
  903.	[bug]		dig should not crash when receiving a TCP packet
  			of length 0.
 
+ 902.	[bug]		The -d option was ignored if both -t and -g were also
+			specified.
+
  901.	[cleanup]	The man pages no longer have empty lines outside of
 			literal blocks.
 

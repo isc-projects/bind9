@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.27.2.1 2001/01/09 22:31:54 bwelling Exp $ */
+/* $Id: log.c,v 1.27.2.2 2001/06/15 01:41:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -144,13 +144,15 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 					       NULL, 0);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-	}
 
-	/*
-	 * Setting the debug level to zero should get the output
-	 * discarded a bit faster.
-	 */
-	isc_log_setdebuglevel(ns_g_lctx, 0);
+		/*
+		 * Setting the debug level to zero should get the output
+		 * discarded a bit faster.
+		 */
+		isc_log_setdebuglevel(ns_g_lctx, 0);
+	} else {
+		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+	}
 
 	result = ISC_R_SUCCESS;
 
