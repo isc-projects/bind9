@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.42 2000/02/15 17:05:11 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.43 2000/02/15 18:24:26 gson Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2451,7 +2451,7 @@ address_name: any_string
 			tmpres = dns_c_ipmatchany_new(currcfg->mem, &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create ``any''"
+					     "failed to create ``none''"
 					     " ipmatch element");
 				YYABORT;
 			}
