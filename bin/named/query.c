@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.211 2001/11/07 04:25:12 marka Exp $ */
+/* $Id: query.c,v 1.212 2001/11/16 23:58:39 gson Exp $ */
 
 #include <config.h>
 
@@ -3209,8 +3209,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 * Add NS records to the authority section (if we haven't already
 	 * added them to the answer section).
 	 */
-	if (!want_restart && !NOAUTHORITY(client)
-	    ) {
+	if (!want_restart && !NOAUTHORITY(client)) {
 		if (is_zone) {
 			if (!((qtype == dns_rdatatype_ns ||
 			       qtype == dns_rdatatype_any) &&
