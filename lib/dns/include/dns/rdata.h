@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.46 2000/10/31 03:22:05 marka Exp $ */
+/* $Id: rdata.h,v 1.47 2000/11/09 19:33:48 gson Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -683,9 +683,6 @@ dns_rdata_covers(dns_rdata_t *rdata);
  * Returns:
  *	The type covered.
  */
-
-isc_result_t
-dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.35 2000/10/25 04:26:37 marka Exp $ */
+/* $Id: masterdump.c,v 1.36 2000/11/09 19:33:49 gson Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>

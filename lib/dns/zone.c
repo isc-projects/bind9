@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.248 2000/11/09 02:35:43 bwelling Exp $ */
+/* $Id: zone.c,v 1.249 2000/11/09 19:33:51 gson Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,7 @@
 #include <dns/name.h>
 #include <dns/peer.h>
 #include <dns/rcode.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
