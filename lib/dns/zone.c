@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.21 1999/10/14 03:12:50 marka Exp $ */
+ /* $Id: zone.c,v 1.22 1999/10/14 06:10:35 marka Exp $ */
 
 #include <config.h>
 
@@ -2282,7 +2282,7 @@ dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_zone_t *tmpzone = NULL;
 	dns_result_t result;
 	isc_boolean_t boolean;
-	char *viewname;
+	const char *viewname;
 
 	REQUIRE(czone != NULL);
 	REQUIRE(cba != NULL);
@@ -3115,7 +3115,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 				goto fail;
 		}
 		printf("unlinking journal\n");
-		(void) unlink(zone->ixfrlog);
+		(void) remove(zone->ixfrlog);
 	}
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 
