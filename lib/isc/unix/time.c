@@ -223,7 +223,7 @@ isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 	/*
 	 * Convert to microseconds.
 	 */
-	i3 = (i1 - i2) / 10000;
+	i3 = (i1 - i2) / 1000;
 
 	return (i3);
 }
