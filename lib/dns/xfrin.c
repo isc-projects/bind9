@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.24 1999/10/29 22:42:44 gson Exp $ */
+ /* $Id: xfrin.c,v 1.25 1999/10/30 01:08:52 gson Exp $ */
 
 #include <config.h>
 
@@ -109,7 +109,7 @@ struct xfrin_ctx {
 	 */
 	dns_rdatatype_t 	reqtype;
 
-	isc_sockaddr_t 		sockaddr;
+	isc_sockaddr_t 		master;
 	isc_socket_t 		*socket;
 
 	/* Buffer for IXFR/AXFR request message */
@@ -208,7 +208,14 @@ static void xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg);
 static dns_result_t render(dns_message_t *msg, isc_buffer_t *buf);
 
 static void
+xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+	   const char *fmt, va_list ap);
+static void
+xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *master,
+	   const char *fmt, ...);
+static void
 xfrin_log(xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...);
+
 
 /**************************************************************************/
 /*
@@ -471,10 +478,10 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	dns_rdatatype_t xfrtype;
 	dns_tsigkey_t *key = NULL;
 
-	/* XXX log zone name and master sockaddr */
-	xfrin_log(NULL, ISC_LOG_INFO, "requesting zone transfer");
-
 	zonename = dns_zone_getorigin(zone);
+
+	xfrin_log1(ISC_LOG_INFO, zonename, master, "starting");
+
 	result = dns_zone_getdb(zone, &db);
 	if (result == DNS_R_NOTLOADED)
 		INSIST(db == NULL);
@@ -486,11 +493,12 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 		      == DNS_R_SUCCESS);
 	
 	if (db == NULL) {
-		xfrin_log(NULL, ISC_LOG_INFO, "no database exists yet, "
-			  "requesting AXFR of initial version");
+		xfrin_log1(ISC_LOG_INFO, zonename, master,
+			   "no database exists yet, "
+			   "requesting AXFR of initial version");
 		xfrtype = dns_rdatatype_axfr;
 	} else {
-		xfrin_log(NULL, ISC_LOG_DEBUG(1),
+		xfrin_log1(ISC_LOG_INFO, zonename, master,
 			  "database exists, trying IXFR");
 		xfrtype = dns_rdatatype_ixfr;
 	}
@@ -511,8 +519,8 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (result != DNS_R_SUCCESS)
-		xfrin_log(NULL, ISC_LOG_ERROR, 
-			  "zone transfer setup failed");
+		xfrin_log1(ISC_LOG_ERROR, zonename, master,
+			   "zone transfer setup failed");
 	return;
 }
 
@@ -616,7 +624,7 @@ xfrin_create(isc_mem_t *mctx,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
 
-	xfr->sockaddr = *master;
+	xfr->master = *master;
 
 	isc_buffer_init(&xfr->qbuffer, xfr->qbuffer_data,
 			sizeof(xfr->qbuffer_data),
@@ -634,10 +642,10 @@ void
 xfrin_start(xfrin_ctx_t *xfr) {
 	dns_result_t result;
 	CHECK(isc_socket_create(xfr->socketmgr,
-				isc_sockaddr_pf(&xfr->sockaddr),
+				isc_sockaddr_pf(&xfr->master),
 				isc_sockettype_tcp,
 				&xfr->socket));
-	CHECK(isc_socket_connect(xfr->socket, &xfr->sockaddr, xfr->task,
+	CHECK(isc_socket_connect(xfr->socket, &xfr->master, xfr->task,
 				 xfrin_connect_done, xfr));
 	return;
  failure:
@@ -1032,21 +1040,65 @@ maybe_free(xfrin_ctx_t *xfr) {
 		
 	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
 
-	xfrin_log(xfr, ISC_LOG_DEBUG(3), "shutdown finished");
 	return (ISC_TRUE);
 }
 
-/* XXX log zone name, master sockaddr, and the words "zone transfer". */
+/*
+ * Log incoming zone transfer messages in a format like
+ * transfer of <zone> from <address>: <message> 
+ */
+static void
+xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+	   const char *fmt, va_list ap)
+{
+	isc_buffer_t znbuf;
+	char znmem[1024];
+	isc_buffer_t masterbuf;
+	char mastermem[256];
+	isc_result_t result;
+	char msgmem[2048];
+
+	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
+	result = dns_name_totext(zonename, ISC_TRUE, &znbuf);
+	if (result != DNS_R_SUCCESS) {
+		isc_buffer_clear(&znbuf);
+		isc_buffer_putmem(&znbuf, "<UNKNONWN>", strlen("<UNKNONWN>"));
+	}
+	
+	isc_buffer_init(&masterbuf, mastermem, sizeof(mastermem),
+			ISC_BUFFERTYPE_TEXT);
+	result = isc_sockaddr_totext(master, &masterbuf);
+	if (result != ISC_R_SUCCESS)
+		strcpy(masterbuf.base, "<UNKNOWN>");
+
+	vsnprintf(msgmem, sizeof(msgmem), fmt, ap);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, 
+		      DNS_LOGMODULE_XFER_IN, level,
+		      "transfer of %.*s from %s: %s", znbuf.used, znbuf.base,
+		      masterbuf.base, msgmem);
+}
+
+/* Logging function for use when a xfin_ctx_t has not yet been created. */
+
+static void
+xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *master, 
+	   const char *fmt, ...)
+{
+        va_list ap;
+	va_start(ap, fmt);
+	xfrin_logv(level, zonename, master, fmt, ap);
+	va_end(ap);
+}
+
+/* Logging function for use when there is a xfin_ctx_t. */
 
 static void
 xfrin_log(xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
         va_list ap;
 	va_start(ap, fmt);
-	xfr = xfr; /* XXX */
- 	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_XFER_IN, 
-		       DNS_LOGMODULE_XFER_IN, level, 
-		       fmt, ap);
+	xfrin_logv(level, &xfr->name, &xfr->master, fmt, ap);
 	va_end(ap);
 }
 
