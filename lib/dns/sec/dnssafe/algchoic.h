@@ -71,7 +71,6 @@ private:
   ResizeContext context;
 };
  */
-struct B_AlgorithmInfoType;
 
 typedef struct ResizeContext {
   struct {
