@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.159 2000/07/21 18:47:20 mws Exp $ */
+/* $Id: zone.c,v 1.160 2000/07/21 20:10:03 mws Exp $ */
 
 #include <config.h>
 
@@ -351,6 +351,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->expire = 0;
 	zone->minimum = 0;
 	zone->masters = NULL;
+	zone->masterkeynames = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
@@ -426,7 +427,7 @@ zone_free(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	dns_zone_cleardbargs(zone);
-	dns_zone_setmasters(zone, NULL, 0);
+	dns_zone_setmasterswithkeys(zone, NULL, NULL, 0);
 	dns_zone_setalsonotify(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
@@ -1294,7 +1295,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		goto unlock;
 
 	new = isc_mem_get(zone->mctx,
-			  count * sizeof (isc_sockaddr_t));
+			  count * sizeof(isc_sockaddr_t));
 	if (new == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto unlock;
@@ -1306,14 +1307,15 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 
 	if (keynames != NULL) {
 		newname = isc_mem_get(zone->mctx,
-				      count * sizeof (dns_name_t*));
+				      count * sizeof(dns_name_t *));
 		if (newname == NULL) {
 			result = ISC_R_NOMEMORY;
 			isc_mem_put(zone->mctx, zone->masters,
 				    count * sizeof *new);
 			goto unlock;
 		}
-		memset(newname, 0, count * sizeof (dns_name_t*));
+		for (i = 0; i < count; i++)
+			newname[i] = NULL;
 		for (i = 0; i < count; i++) {
 			if (keynames[i] != NULL) {
 				result = dns_name_dup(keynames[i], zone->mctx,
