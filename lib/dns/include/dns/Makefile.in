@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.43.2.1 2001/11/09 23:17:17 gson Exp $
+# $Id: Makefile.in,v 1.43.2.1.10.1 2003/08/25 04:16:25 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	a6.h acl.h adb.h byaddr.h cache.h callbacks.h \
+HEADERS =	acl.h adb.h byaddr.h cache.h callbacks.h \
 		cert.h compress.h \
 		db.h dbiterator.h dbtable.h diff.h dispatch.h \
 		dnssec.h events.h fixedname.h journal.h keyflags.h \

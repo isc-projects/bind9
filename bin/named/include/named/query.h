@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.28.2.3.8.2 2003/08/21 06:17:57 marka Exp $ */
+/* $Id: query.h,v 1.28.2.3.8.3 2003/08/25 04:16:17 marka Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -25,7 +25,6 @@
 #include <isc/netaddr.h>
 
 #include <dns/types.h>
-#include <dns/a6.h>
 
 #include <named/types.h>
 
@@ -51,16 +50,9 @@ struct ns_query {
 	isc_boolean_t			isreferral;
 	isc_mutex_t			fetchlock;
 	dns_fetch_t *			fetch;
-	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(ns_dbversion_t)	activeversions;
 	ISC_LIST(ns_dbversion_t)	freeversions;
-	/*
-	 * Additional state used during IPv6 response synthesis only.
-	 */
-	struct {
-		isc_netaddr_t na;
-	} synth;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001

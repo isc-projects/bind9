@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.20 2003/08/21 05:19:20 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.21 2003/08/25 04:16:24 marka Exp $ */
 
 #include <config.h>
 
@@ -3003,22 +3003,6 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (!dns_name_issubdomain(&ns.name, name))
 			continue;
-		rdataset = NULL;
-		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
-					      &ns.name, dns_rdatatype_a6,
-					      dns_rdatatype_none, NULL,
-					      &rdataset);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_db_findnode(db, &ns.name,
-						 ISC_TRUE, &node);
-			if (result != ISC_R_SUCCESS)
-				goto fail;
-			result = dns_db_addrdataset(db, node, version, 0,
-						    rdataset, 0, NULL);
-			dns_db_detachnode(db, &node);
-			if (result != ISC_R_SUCCESS)
-				goto fail;
-		}
 		rdataset = NULL;
 		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
 					      &ns.name, dns_rdatatype_aaaa,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.24 2003/08/25 02:33:11 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.25 2003/08/25 04:16:16 marka Exp $ */
 
 #include <config.h>
 
@@ -956,9 +956,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	CHECK(configure_view_acl(vconfig, config, "allow-recursion",
 				 actx, ns_g_mctx, &view->recursionacl));
-
-	CHECK(configure_view_acl(vconfig, config, "allow-v6-synthesis",
-				 actx, ns_g_mctx, &view->v6synthesisacl));
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));

@@ -6,6 +6,9 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1402.	[cleanup]	A6 has been moved to experimental and is no longer
+			fully supported.
+
 1396.	[func]		dnssec-signzone: adjust the default signing time by
 			1 hour to allow for clock skew.
 

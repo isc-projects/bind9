@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.3.2.2 2003/08/14 02:34:15 marka Exp $
+# $Id: Makefile.in,v 1.126.2.3.2.3 2003/08/25 04:16:22 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -43,7 +43,7 @@ OPENSSLOBJS =	sec/dst/openssl_link.@O@ sec/dst/openssldh_link.@O@ \
 GSSAPIOBJS =	sec/dst/gssapi_link.@O@ sec/dst/gssapictx.@O@
 
 # Alphabetically
-OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
+OBJS =		acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dnssec.@O@ forward.@O@ journal.@O@ keytable.@O@ \
@@ -59,7 +59,7 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		${OTHEROBJS} ${DSTOBJS} ${OPENSSLOBJS} ${GSSAPIOBJS}
 
 # Alphabetically
-SRCS =		a6.c acl.c adb.c byaddr.c \
+SRCS =		acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dnssec.c forward.c journal.c keytable.c \

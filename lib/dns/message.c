@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.7 2003/08/21 02:50:34 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.8 2003/08/25 04:16:22 marka Exp $ */
 
 /***
  *** Imports
@@ -1711,7 +1711,6 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	switch (rds->type) {
 	case dns_rdatatype_a:
 	case dns_rdatatype_aaaa:
-	case dns_rdatatype_a6:
 		if (preferred_glue == rds->type)
 			pass_needed = 4;
 		else

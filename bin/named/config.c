@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.10 2003/08/25 02:33:11 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.11 2003/08/25 04:16:16 marka Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,7 @@ options {\n\
 	allow-notify {none;};\n\
 	allow-update-forwarding {none;};\n\
 	allow-recursion {any;};\n\
-	allow-v6-synthesis {none;};\n\
+#	allow-v6-synthesis <obsolete>;\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
 	auth-nxdomain false;\n\

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66.2.5.2.2 2003/08/08 04:35:17 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.5.2.3 2003/08/25 04:16:25 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -47,9 +47,7 @@
  * sent instead.
  *
  * Records are stored internally until a timer expires. The timer is the
- * smaller of the TTL or signature validity period. For A6 records, the timer
- * is the smallest of all the TTL or signature validity periods in the A6
- * chain.
+ * smaller of the TTL or signature validity period.
  *
  * Lameness is stored per-zone, and this data hangs off each address field.
  * When an address is marked lame for a given zone the address will not

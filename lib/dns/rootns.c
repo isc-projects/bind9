@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.20.2.3.2.1 2003/08/04 06:53:22 marka Exp $ */
+/* $Id: rootns.c,v 1.20.2.3.2.2 2003/08/25 04:16:23 marka Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,6 @@ check_node(dns_rdataset_t *rootns, dns_name_t *name,
 		switch (rdataset.type) {
 		case dns_rdatatype_a:
 		case dns_rdatatype_aaaa:
-		case dns_rdatatype_a6:
 			result = in_rootns(rootns, name);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
