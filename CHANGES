@@ -1,3 +1,6 @@
+1473.	[bug]		free_map() and free_string() failed to handle out
+			of memory cleanup.  [RT #6813]
+
 1472.	[contrib]	idnkit-1.0 from JPNIC, replaces mdnkit.
 
 1471.	[bug]		libbind: updated to BIND 8.4.0.
