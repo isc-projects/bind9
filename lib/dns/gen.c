@@ -146,7 +146,7 @@ doswitch(char *name, char *function, char *args,
 		}
 		if (tt->class && tt->type != lasttype) {
 			fprintf(stdout, "\tcase %d: switch (%s) { \\\n" /*}*/,
-				tt->type, tsw);
+				tt->type, csw);
 			subswitch = 1;
 		}
 		if (tt->class == 0)
