@@ -832,7 +832,7 @@ shutdown_entries(dns_adb_t *adb)
 		if (adb->entry_refcnt[bucket] == 0)
 			dec_adb_irefcnt(adb, ISC_FALSE);
 
-		UNLOCK(&adb->namelocks[bucket]);
+		UNLOCK(&adb->entrylocks[bucket]);
 	}
 }
 
