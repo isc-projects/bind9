@@ -43,6 +43,12 @@
  * region.  The size of the consumed region can be changed using various
  * buffer commands.  Initially, the consumed region is empty.
  *
+ * The 'active region' is an (optional) subregion of the remaining region.
+ * It extends from the current offset to an offset in the remaining region
+ * that is selected with isc_buffer_setactive().  Initially, the active region
+ * is empty.  If the current offset advances beyond the chosen offset, the
+ * active region will also be empty.
+ *
  * The following invariants are maintained by all routines:
  *
  *	length > 0
@@ -52,6 +58,8 @@
  *	0 <= used <= length
  *
  *	0 <= current <= used
+ *
+ *	0 <= active <= used
  *
  * MP:
  *	Buffers have no synchronization.  Clients must ensure exclusive
@@ -101,6 +109,7 @@ typedef struct isc_buffer {
 	unsigned int	length;
 	unsigned int	used;
 	unsigned int 	current;
+	unsigned int 	active;
 } isc_buffer_t;
 
 
@@ -249,6 +258,30 @@ isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r);
  *	'b' is a valid buffer.
  *
  *	'r' points to a region structure.
+ */
+
+void
+isc_buffer_active(isc_buffer_t *b, isc_region_t *r);
+/*
+ * Make 'r' refer to the active region of 'b'.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ *	'r' points to a region structure.
+ */
+
+void
+isc_buffer_setactive(isc_buffer_t *b, unsigned int n);
+/*
+ * Sets the end of the active region 'n' bytes after current.
+ *
+ * Requires:
+ *
+ *	'b' is a valid buffer.
+ *
+ *	current + n <= used
  */
 
 void
