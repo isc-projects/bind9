@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.149 2001/10/22 23:49:13 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.150 2001/10/26 21:08:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -727,6 +727,8 @@ nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nxt_t nxt;
+
+	REQUIRE(type < dns_rdatatype_nxt);
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first()");
