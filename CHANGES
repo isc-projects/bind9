@@ -1,3 +1,5 @@
+ 642.	[bug]		#622 needed more work.
+
  643.	[bug]		xfrin error messages made more verbose, added class
 			of the zone.  [RT# 599]
 
