@@ -250,6 +250,13 @@ dns_c_checkconfig(dns_c_ctx_t *ctx)
 	}
 
 
+	if (dns_c_ctx_getrfc2308type1(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "rfc2308-type-1 is not yet implemented.");
+	}
+
+
 
 	/*
   	named-xfer              obsolete
