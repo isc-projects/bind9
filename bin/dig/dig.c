@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.131 2000/12/11 19:15:44 bwelling Exp $ */
+/* $Id: dig.c,v 1.132 2001/01/08 23:45:57 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1378,8 +1378,7 @@ main(int argc, char **argv) {
 		      s, default_lookup);
 		s2 = s;
 		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(default_lookup->my_server_list,
-				 (dig_server_t *)s2, link);
+		ISC_LIST_DEQUEUE(default_lookup->my_server_list, s2, link);
 		isc_mem_free(mctx, s2);
 	}
 	isc_mem_free(mctx, default_lookup);
