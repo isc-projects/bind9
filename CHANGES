@@ -1,3 +1,6 @@
+1666.	[bug]		The optional port on hostnames in dual-stack-servers
+			was being ignored.
+
 1663.	[func]		Look for OpenSSL by default.
 
 1661.	[bug]		Restore dns_name_concatenate() call in
