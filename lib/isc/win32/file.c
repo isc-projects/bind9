@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.12 2001/07/10 06:24:15 mayer Exp $ */
+/* $Id: file.c,v 1.13 2001/07/10 17:31:05 gson Exp $ */
 
 #include <config.h>
 
@@ -382,22 +382,16 @@ isc_file_exists(const char *pathname) {
 
 isc_boolean_t
 isc_file_isabsolute(const char *filename) {
-
 	REQUIRE(filename != NULL);
 	/*
-	 * Look for c:\path\... style or \\computer\shar\path...
-	 * UNC style file specs
+	 * The forms \path, \\computer\shar\path and c:\path are all
+	 * considered absolute.
 	 */
-	if ((filename[0] == '\\') && (filename[1] == '\\'))
+	if (filename[0] == '\\')
 		return (ISC_TRUE);
-	else if (strlen(filename) >= 3) {
-		return ((ISC_TF(filename[1] == ':') && 
-			 ISC_TF(filename[2] == '\\')));
-	}
-	else
-		return(ISC_FALSE);
-
-	}
+	if (filename[0] != '\0' && filename[1] == ':' && filename[2] == '\\')
+		return (ISC_TRUE);
+	return (ISC_FALSE);
 }
 
 isc_boolean_t
