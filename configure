@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.209 
+# From configure.in Revision: 1.210 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5054,6 +5054,7 @@ trap 'rm -fr `echo "make/rules
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile
+	doc/arm/Makefile
 	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/validate.sh
@@ -5304,6 +5305,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile
+	doc/arm/Makefile
 	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/validate.sh

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.209 $)
+AC_REVISION($Revision: 1.210 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1341,6 +1341,7 @@ AC_OUTPUT(
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 	doc/Makefile
+	doc/arm/Makefile
 	doc/arm/catalog
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/validate.sh
