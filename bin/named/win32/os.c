@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.11 2001/11/21 05:07:23 mayer Exp $ */
+/* $Id: os.c,v 1.12 2001/11/22 03:11:01 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -177,23 +177,26 @@ ns_os_writepidfile(const char *filename) {
 		return;
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
-	if (pidfile == NULL)
+	if (pidfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't malloc '%s': %s",
 				   filename, strbuf);
+	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
         fd = safe_open(filename, ISC_FALSE);
-        if (fd < 0)
+        if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't open pid file '%s': %s",
 				   filename, strbuf);
+	}
         lockfile = fdopen(fd, "w");
-        if (lockfile == NULL)
+        if (lockfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
 				   filename, strbuf);
+	}
 
 		pid = getpid();
         if (fprintf(lockfile, "%ld\n", (long)pid) < 0)
