@@ -23,6 +23,7 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
+#include <dns/confctx.h>
 
 #include <dst/dst.h>
 
@@ -34,6 +35,23 @@ ISC_LANG_BEGINDECLS
 #define DNS_TKEYMODE_GSSAPI			3
 #define DNS_TKEYMODE_RESOLVERASSIGNED		4
 #define DNS_TKEYMODE_DELETE			5
+
+isc_result_t
+dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx);
+/*
+ *	Obtains TKEY configuration information, including default DH key
+ *	and default domain.
+ *
+ * 	Requires:
+ *		'lctx' is not NULL
+ *		'cfg' is not NULL
+ *		'mctx' is not NULL
+ *
+ *	Returns
+ *		ISC_R_SUCCESS
+ *		ISC_R_NOMEMORY
+ *		return codes from dns_name_fromtext()
+ */
 
 isc_result_t
 dns_tkey_processquery(dns_message_t *msg);
@@ -53,6 +71,30 @@ dns_tkey_processquery(dns_message_t *msg);
  */
 
 isc_result_t
+dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
+		      dns_name_t *algorithm, isc_buffer_t *nonce);
+/*
+ *	Builds a query containing a TKEY that will generate a shared
+ *	secret using a Diffie-Hellman key exchange.  The shared key
+ *	will be of the specified algorithm (only DNS_TSIG_HMACMD5_NAME
+ *	is supported), and will be named either 'name',
+ *	'name' + server chosen domain, or random data + server chosen domain
+ *	if 'name' == dns_rootname.  If nonce is not NULL, it supplies
+ *	random data used in the shared secret computation.
+ *
+ *	Requires:
+ *		'msg' is a valid message
+ *		'key' is a valid Diffie Hellman dst key
+ *		'name' is a valid name
+ *		'algorithm' is a valid name
+ *
+ *	Returns:
+ *		ISC_R_SUCCESS	msg was successfully updated to include the
+ *				query to be sent
+ *		other		an error occurred while building the message
+ */
+
+isc_result_t
 dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 /*
  *	Builds a query containing a TKEY record that will delete the
@@ -69,26 +111,40 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
  */
 
 isc_result_t
-dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
-		      dns_name_t *algorithm);
+dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
+                           dst_key_t *key);
 /*
- *	Builds a query containing a TKEY that will generate a shared
- *	secret using a Diffie-Hellman key exchange.  The shared key
- *	will be of the specified algorithm (only DNS_TSIG_HMACMD5_NAME
- *	is supported), and will be named either 'name',
- *	'name' + server chosen domain, or random data + server chosen domain
- *	if 'name' == dns_rootname
+ *	Processes a response to a query containing a TKEY that was
+ *	designed to generate a shared secret using a Diffie-Hellman key
+ *	exchange.  If the query was successful, a new shared key
+ *	is created and added to the list of shared keys.
  *
  *	Requires:
- *		'msg' is a valid message
+ *		'qmsg' is a valid message (the query)
+ *		'rmsg' is a valid message (the response)
  *		'key' is a valid Diffie Hellman dst key
- *		'name' is a valid name
- *		'algorithm' is a valid name
  *
  *	Returns:
- *		ISC_R_SUCCESS	msg was successfully updated to include the
- *				query to be sent
- *		other		an error occurred while building the message
+ *		ISC_R_SUCCESS	the shared key was successfully added
+ *		ISC_R_NOTFOUND	an error occurred while looking for a
+ *				component of the query or response
+ */
+
+isc_result_t
+dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg);
+/*
+ *	Processes a response to a query containing a TKEY that was
+ *	designed to delete a shared secret.  If the query was successful,
+ *	the shared key is deleted from the list of shared keys.
+ *
+ *	Requires:
+ *		'qmsg' is a valid message (the query)
+ *		'rmsg' is a valid message (the response)
+ *
+ *	Returns:
+ *		ISC_R_SUCCESS	the shared key was successfully deleted
+ *		ISC_R_NOTFOUND	an error occurred while looking for a
+ *				component of the query or response
  */
 
 
