@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.24.2.2 2000/07/27 23:57:35 gson Exp $ */
+/* $Id: tsig.h,v 1.24.2.3 2000/07/28 00:00:23 gson Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -155,7 +155,7 @@ dns_tsig_sign(dns_message_t *msg);
 
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
-		dns_tsig_keyring_t *sring, dns_tsig_keyring_t *dring);
+		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2);
 /*
  *	Verifies the TSIG record in this message
  *
@@ -165,8 +165,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  *		'msg->tsigkey' is a valid TSIG key if this is a response
  *		'msg->tsig' is NULL
  *		'msg->querytsig' is not NULL if this is a response
- *		'sring' is a valid keyring or NULL
- *		'dring' is a valid keyring or NULL
+ *		'ring1' and 'ring2' are each either a valid keyring or NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
