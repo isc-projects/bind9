@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.36 2001/04/11 20:37:42 bwelling Exp $ */
+/* $Id: cache.c,v 1.37 2001/04/11 22:15:00 tale Exp $ */
 
 #include <config.h>
 
@@ -658,6 +658,12 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			end_cleaning(cleaner, event);
 			return;
 		}
+
+		/*
+		 * The node was not needed,  but was required by
+		 * dns_dbiterator_current().  Give up its reference.
+		 */
+		dns_db_detachnode(cleaner->cache->db, &node);
 
 		/*
 		 * Step to the next node.
