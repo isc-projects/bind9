@@ -402,7 +402,35 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  * Note:
  *
  *	Goodness values are silently clamped to INT_MAX and INT_MIN.
+ *
+ *	The goodness in addr will be updated to reflect the new global
+ *	goodness value.  This may include changes made by others.
  */
+
+void
+dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		   unsigned int rtt, unsigned int factor);
+/*
+ * Mix the round trip time into the existing smoothed rtt.  The formula used
+ * (where srtt is the existing rtt value, and rtt and factor are arguments to
+ * this function):
+ *
+ *	new_srtt = (srtt * (factor - 1) + rtt) / factor
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
+ *
+ * Note:
+ *
+ *	If factor is zero, 4 will be used.
+ *
+ *	The srtt in addr will be updated to reflect the new global
+ *	srtt value.  This may include changes made by others.
+ */
+
 
 /*
  * XXX Need functions/macros to:
@@ -410,11 +438,7 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *	Remove an address from a handle's linked list.  This is needed
  *	because the data pointed to by a dns_adbaddr_t is reference counted.
  *
- *	Adjust the goodness, both local and globally.
- *
  *	set/clear various flags.  (Which flags?)
- *
- *	Mix in measured RTT values.
  */
 
 ISC_LANG_ENDDECLS

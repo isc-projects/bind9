@@ -202,13 +202,23 @@ main(int argc, char **argv)
 	/*
 	 * Mark one entry as lame, then look this name up again.
 	 */
-
 	ai = ISC_LIST_HEAD(handle->list);
 	INSIST(ai != NULL);
 	ai = ISC_LIST_NEXT(ai, link);
 	INSIST(ai != NULL);
 	result = dns_adb_marklame(adb, ai, &name1, now + 10 * 60);
 	check_result(result, "dns_adb_marklame()");
+
+	/*
+	 * And while we're here, add some goodness to it and tweak up
+	 * the srtt value a bit.
+	 */
+	dns_adb_adjustgoodness(adb, ai, 100);
+	dns_adb_adjustgoodness(adb, ai, -50);
+	INSIST(ai->goodness == 50);
+	dns_adb_adjustsrtt(adb, ai, 10000, 0);
+	dns_adb_adjustsrtt(adb, ai, 10, 10);
+	INSIST(ai->srtt == 2251);
 
 	dns_adb_done(adb, &handle);
 

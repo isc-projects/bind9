@@ -1731,6 +1731,7 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	int bucket;
 	int old_goodness, new_goodness;
 
+	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
 	if (goodness_adjustment == 0)
@@ -1754,7 +1755,30 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	}
 
 	addr->entry->goodness = new_goodness;
+	addr->goodness = new_goodness;
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
 
+void
+dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		   unsigned int rtt, unsigned int factor)
+{
+	int bucket;
+	unsigned int new_srtt;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	if (factor == 0)
+		factor = 4;
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+
+	new_srtt = (addr->entry->srtt * (factor - 1) + rtt) / factor;
+	addr->entry->srtt = new_srtt;
+	addr->srtt = new_srtt;
+
+	UNLOCK(&adb->entrylocks[bucket]);
+}
