@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.57 2001/10/11 22:19:15 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.58 2001/10/11 22:53:44 gson Exp $ */
 
 #include <config.h>
 
@@ -241,7 +241,7 @@ main(int argc, char **argv) {
 		break;
 	case DNS_KEYALG_DSA:
 		if (size != 0 && !dsa_size_ok(size))
-			fatal("Invalid DSS key size: %d", size);
+			fatal("invalid DSS key size: %d", size);
 		break;
 	case DST_ALG_HMACMD5:
 		if (size < 1 || size > 512)
@@ -281,14 +281,14 @@ main(int argc, char **argv) {
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		if (size > 0)
-			fatal("Specified null key with non-zero size");
+			fatal("specified null key with non-zero size");
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0)
-			fatal("Specified null key with signing authority");
+			fatal("specified null key with signing authority");
 	}
 
 	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
 	    (alg == DNS_KEYALG_DH || alg == DST_ALG_HMACMD5))
-		fatal("A key with algorithm '%s' cannot be a zone key",
+		fatal("a key with algorithm '%s' cannot be a zone key",
 		      algname);
 
 	dns_fixedname_init(&fname);
@@ -298,7 +298,7 @@ main(int argc, char **argv) {
 	isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));
 	ret = dns_name_fromtext(name, &buf, dns_rootname, ISC_FALSE, NULL);
 	if (ret != ISC_R_SUCCESS)
-		fatal("Invalid key name %s: %s", argv[isc_commandline_index],
+		fatal("invalid key name %s: %s", argv[isc_commandline_index],
 		      isc_result_totext(ret));
 
 	switch(alg) {

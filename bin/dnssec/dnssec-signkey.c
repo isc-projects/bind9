@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.56 2001/10/04 23:48:15 gson Exp $ */
+/* $Id: dnssec-signkey.c,v 1.57 2001/10/11 22:53:46 gson Exp $ */
 
 #include <config.h>
 
@@ -358,7 +358,7 @@ main(int argc, char *argv[]) {
 	     keynode != NULL;
 	     keynode = ISC_LIST_NEXT(keynode, link))
 		if (!keynode->verified)
-			fatal("Not all zone keys self signed the key set");
+			fatal("not all zone keys self signed the key set");
 
 	argc -= 1;
 	argv += 1;
