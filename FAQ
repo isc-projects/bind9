@@ -23,6 +23,9 @@ of a security risk than a root process that has not dropped privileges.
 
   If Linux threads ever work correctly, this restriction will go away.
 
+  Configuring BIND9 with the --disable-threads option causes a non-threaded
+version to be built, which will allow -u to be used.
+
 
 Q: Why does named log the error message "no TTL specified" and refuse
 to load my zone file?
