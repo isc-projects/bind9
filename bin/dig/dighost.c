@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.69 2000/07/05 23:28:28 mws Exp $ */
+/* $Id: dighost.c,v 1.70 2000/07/06 01:02:41 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <string.h>
-#include <values.h>
+#include <limits.h>
 #if (!(defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)))
 extern int h_errno;
 #endif
@@ -1184,7 +1184,7 @@ send_udp(dig_lookup_t *lookup) {
 
 	debug("send_udp()");
 
-	if (timeout != MAXINT) {
+	if (timeout != INT_MAX) {
 		isc_interval_set(&lookup->interval, timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,

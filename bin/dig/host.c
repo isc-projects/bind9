@@ -15,11 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.35 2000/07/05 23:28:29 mws Exp $ */
+/* $Id: host.c,v 1.36 2000/07/06 01:02:42 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
-#include <values.h>
+#include <limits.h>
 
 extern int h_errno;
 
@@ -578,7 +578,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			 * The timer routines are coded such that
 			 * timeout==MAXINT doesn't enable the timer
 			 */
-			timeout = MAXINT;
+			timeout = INT_MAX;
 			break;
 		case 'W':
 			timeout = atoi(isc_commandline_argument);
