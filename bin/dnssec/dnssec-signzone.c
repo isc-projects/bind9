@@ -1290,9 +1290,10 @@ setup_logging(int level, isc_log_t **logp) {
 	dns_log_setcontext(log);
 	
 	/*
-	 * Set up a channel similar to default_stderr except
-	 * that the logging level is passed in and the
-	 * time is not printed.
+	 * Set up a channel similar to default_stderr except:
+	 *  - the logging level is passed in
+	 *  - the logging level is printed
+	 *  - no time stamp is printed
 	 */
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
@@ -1302,7 +1303,7 @@ setup_logging(int level, isc_log_t **logp) {
 				       ISC_LOG_TOFILEDESC,
 				       level,
 				       &destination,
-				       0);
+				       ISC_LOG_PRINTLEVEL);
 	check_result(result, "isc_log_createchannel()");
 
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
