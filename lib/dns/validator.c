@@ -260,8 +260,8 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		    (dns_secalg_t)dst_key_alg(val->key) &&
 		    siginfo->tag ==
 		    (dns_keytag_t)dst_key_id(val->key) &&
-		    dst_key_iszonekey(val->key) &&
-		    dst_key_proto(val->key) == DST_KEYPROTO_DNSSEC) {
+		    dst_key_iszonekey(val->key))
+		{
 			/*
 			 * This is the key we're looking for.
 			 */

@@ -48,12 +48,6 @@ typedef void *		dst_context_t;
 				 DST_SIGMODE_UPDATE | \
 				 DST_SIGMODE_FINAL)
 
-/* Key protocol octet values. */
-#define DST_KEYPROTO_TLS	1
-#define DST_KEYPROTO_EMAIL	2
-#define DST_KEYPROTO_DNSSEC	3
-#define DST_KEYPROTO_IPSEC	4
-
 /* A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE		1024
 

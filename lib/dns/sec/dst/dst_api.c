@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.26 2000/04/10 19:48:03 bwelling Exp $
+ * $Id: dst_api.c,v 1.27 2000/04/12 15:52:11 bwelling Exp $
  */
 
 #include <config.h>
@@ -722,6 +722,9 @@ dst_key_iszonekey(const dst_key_t *key) {
 	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
 		return (ISC_FALSE);
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
+		return (ISC_FALSE);
+	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
+	    key->key_proto != DNS_KEYPROTO_ANY)
 		return (ISC_FALSE);
 	return (ISC_TRUE);
 }
