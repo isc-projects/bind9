@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#ifndef ISC_PRINT_H
+#define ISC_PRINT_H
+
 /***
  *** Defines
  ***/
@@ -52,3 +55,5 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...);
 #endif
 
 ISC_LANG_ENDDECLS
+
+#endif
