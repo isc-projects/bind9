@@ -198,6 +198,7 @@ struct dns_name {
 #define DNS_NAMEATTR_DYNAMIC		0x0004
 
 extern dns_name_t *dns_rootname;
+extern dns_name_t *dns_wildcardname;
 
 /***
  *** Initialization

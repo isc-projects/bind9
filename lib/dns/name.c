@@ -150,6 +150,17 @@ static struct dns_name root = {
 
 dns_name_t *dns_rootname = &root;
 
+static struct dns_name wild = {
+	NAME_MAGIC,
+	(unsigned char *)"\001*", 2, 1,
+	DNS_NAMEATTR_READONLY,
+	(unsigned char *)"", NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
+dns_name_t *dns_wildcardname = &wild;
+
 static void set_offsets(dns_name_t *name, unsigned char *offsets,
 			isc_boolean_t set_labels, isc_boolean_t set_length,
 			isc_boolean_t set_absolute);
