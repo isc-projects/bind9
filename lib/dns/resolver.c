@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.187.2.10.6.1 2003/09/17 07:19:48 tale Exp $ */
+/* $Id: resolver.c,v 1.187.2.10.6.2 2003/09/17 18:06:22 tale Exp $ */
 
 #include <config.h>
 
@@ -295,15 +295,19 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_result_t *eresultp);
 
 static isc_boolean_t
-fix_mustbedelegationornxdomain(dns_message_t *message, dns_name_t *domain) {
-
+fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
 	dns_name_t *name;
+	dns_name_t *domain = &fctx->domain;
 	dns_rdataset_t *rdataset;
 	dns_rdatatype_t type;
 	isc_result_t result;
 	isc_boolean_t keep_auth = ISC_FALSE;
 
 	if (message->rcode == dns_rcode_nxdomain)
+		return (ISC_FALSE);
+
+	/* Querying for the NS in a delegation only domain is ok. */
+	if (fctx->type == dns_rdatatype_ns)
 		return (ISC_FALSE);
 
 	/* Look for referral. */
@@ -313,8 +317,7 @@ fix_mustbedelegationornxdomain(dns_message_t *message, dns_name_t *domain) {
 	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
 	while (result == ISC_R_SUCCESS) {
 		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY,
-					&name);
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -4279,7 +4282,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
 	    !dns_name_equal(&fctx->domain, &fctx->name) &&
-	    fix_mustbedelegationornxdomain(message, &fctx->domain)) {
+	    fix_mustbedelegationornxdomain(message, fctx)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char domainbuf[DNS_NAME_FORMATSIZE];
 
