@@ -38,7 +38,8 @@ extern int verbose;
 extern const char *program;
 
 static isc_entropysource_t *source = NULL;
-isc_keyboard_t kbd;
+static isc_keyboard_t kbd;
+static isc_boolean_t wantkeyboard = ISC_FALSE;
 
 void
 fatal(const char *format, ...) {
@@ -181,9 +182,11 @@ kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	if (!blocking)
 		return (ISC_R_NOENTROPY);
 	if (first) {
-		fprintf(stderr, "You must use the keyboard to create entropy, "
-			"since your system is lacking\n");
-		fprintf(stderr, "/dev/random\n\n");
+		if (!wantkeyboard) {
+			fprintf(stderr, "You must use the keyboard to create "
+				"entropy, since your system is lacking\n");
+			fprintf(stderr, "/dev/random\n\n");
+		}
 		first = ISC_FALSE;
 	}
 	fprintf(stderr, "start typing:\n");
@@ -255,6 +258,8 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 			if (result == ISC_R_SUCCESS)
 				return;
 		}
+		else
+			wantkeyboard = ISC_TRUE;
 		result = isc_entropy_createcallbacksource(*ectx, kbdstart,
 							  kbdget, kbdstop,
 							  &kbd, &source);
