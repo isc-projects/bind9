@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.15 2001/01/09 22:00:50 bwelling Exp $
+# $Id: kit.sh,v 1.16 2001/01/19 22:02:48 gson Exp $
 
 # Make a release kit
 #
@@ -90,10 +90,16 @@ fi
 sh util/sanitize_all.sh
 
 # Omit some files and directories from the kit.
+#
+# Some of these directories (doc/html, doc/man...) no longer
+# contain any files and should therefore be absent in the
+# checked-out tree, but they did exist at some point and
+# we still delete them from releases just in case something 
+# gets accidentally resurrected.
 
 rm -rf TODO conftools util doc/design doc/dev doc/expired \
-    doc/html doc/todo doc/private bin/lwresd doc/man/ctoman \
-    doc/man/isc doc/man/bin/resolver.5 \
+    doc/html doc/todo doc/private bin/lwresd doc/man \
+    lib/lwres/man/resolver.5 \
     bin/tests/system/relay lib/cfg
 
 find . -name .cvsignore -print | xargs rm
