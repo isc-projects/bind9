@@ -1,3 +1,5 @@
+ 161.	[cleanup]	error in yyparse prototype that only HPUX caught.
+
  160.	[cleanup]	getnet*() are not going to be implemented at this
 			stage.
 

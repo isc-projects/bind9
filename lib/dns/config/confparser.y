@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.75 2000/05/08 20:31:13 brister Exp $ */
+/* $Id: confparser.y,v 1.76 2000/05/09 16:49:50 brister Exp $ */
 
 #include <config.h>
 
@@ -117,8 +117,8 @@ static isc_result_t	tmpres;
 static isc_boolean_t	disabled;	/* if "disabled" keyword was in zone */
 static int		debug_lexer;
 
+int			yyparse(void);
 static int		yylex(void);
-static int		yyparse(void);
 static void		parser_error(isc_boolean_t lasttoken,
 				     const char *fmt, ...);
 static void		parser_warning(isc_boolean_t lasttoken,
