@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.30 
+# From configure.in Revision: 1.31 
 
 
 
@@ -2044,16 +2044,17 @@ esac
 
 echo $ac_n "checking for sa_len in struct sockaddr""... $ac_c" 1>&6
 echo "configure:2047: checking for sa_len in struct sockaddr" >&5
-cat > conftest.$ac_ext <<EOF
-#line 2049 "configure"
+if test "$cross_compiling" = yes; then
+  cat > conftest.$ac_ext <<EOF
+#line 2050 "configure"
 #include "confdefs.h"
 #include <sys/socket.h>
 EOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  egrep "sa_len[^a-z0-9_]" >/dev/null 2>&1; then
+  egrep "sa_len^a-z0-9_" >/dev/null 2>&1; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
-	cat >> confdefs.h <<\EOF
+		cat >> confdefs.h <<\EOF
 #define HAVE_SA_LEN 1
 EOF
 
@@ -2062,6 +2063,31 @@ else
   echo "$ac_t""no" 1>&6
 fi
 rm -f conftest*
+
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2070 "configure"
+#include "confdefs.h"
+
+#include <sys/types.h>
+#include <sys/socket.h>
+int main() { struct sockaddr sa; sa.sa_len = 0; return (0); }
+EOF
+if { (eval echo configure:2077: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
+then
+  echo "$ac_t""yes" 1>&6
+	cat >> confdefs.h <<\EOF
+#define HAVE_SA_LEN 1
+EOF
+
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -fr conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -fr conftest*
+fi
 
 
 
