@@ -15,14 +15,28 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.4 2000/08/01 01:16:12 tale Exp $
+# $Id: setup.sh,v 1.5 2000/12/21 23:44:49 gson Exp $
 
 #
 # jnl and database files MUST be removed before we start
 #
 
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
-cp ns1/example.orig ns1/example.db
-cp ns1/update.orig ns1/update.db
 
+cp ns1/example1.db ns1/example.db
 
+# update_test.pl has its own zone file because it
+# requires a specific NS record set.
+cat <<\EOF >ns1/update.db
+$ORIGIN .
+$TTL 300        ; 5 minutes
+update.nil              IN SOA  ns1.example.nil. hostmaster.example.nil. (
+                                1          ; serial
+                                2000       ; refresh (2000 seconds)
+                                2000       ; retry (2000 seconds)
+                                1814400    ; expire (3 weeks)
+                                3600       ; minimum (1 hour)
+                                )
+update.nil.             NS      ns1.update.nil.
+ns1.update.nil.         A       10.53.0.2
+EOF
