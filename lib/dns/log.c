@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.1 1999/09/23 17:43:50 tale Exp $ */
+/* $Id: log.c,v 1.2 1999/10/02 21:13:42 brister Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -34,6 +34,8 @@ isc_logcategory_t dns_categories[] = {
 	{ "dns_general: ", 	0 },
 	{ "dns_database: ", 	0 },
 	{ "dns_security: ", 	0 },
+	{ "dns_config: ",	0 },
+	{ "dns_parser: ",	0 },
 	{ NULL, 		0 }
 };
 
@@ -50,6 +52,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "master: ", 	0 },
 	{ "message: ", 	0 },
 	{ "cache: ", 	0 },
+	{ "config: ",	0 },
 	{ NULL, 	0 }
 };
 
