@@ -63,6 +63,7 @@ typedef struct dns_delegation			dns_delegation_t;
 typedef struct dns_forwarders			dns_forwarders_t;
 typedef isc_uint16_t				dns_messageid_t;
 typedef isc_uint16_t				dns_trust_t;
+typedef struct dns_dispatch			dns_dispatch_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,

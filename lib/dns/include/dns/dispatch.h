@@ -70,7 +70,6 @@ struct dns_dispatchevent {
 	isc_buffer_t	        buffer;		/* data buffer */
 };
 
-typedef struct dns_dispatch dns_dispatch_t;
 typedef struct dns_resentry dns_resentry_t; /* XXX name change */
 
 /*
