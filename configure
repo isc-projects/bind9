@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.285 
+# From configure.in Revision: 1.286 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -9462,6 +9462,7 @@ trap 'rm -fr `echo "make/rules
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
+	bin/rndc/unix/Makefile
 	bin/dig/Makefile
 	bin/nsupdate/Makefile
 	bin/tests/Makefile
@@ -9658,7 +9659,7 @@ cat >> $CONFIG_STATUS <<\EOF
 
 # Split the substitutions into bite-sized pieces for seds with
 # small command number limits, like on Digital OSF/1 and HP-UX.
-ac_max_sed_cmds=90 # Maximum number of lines to put in a sed script.
+ac_max_sed_cmds=50 # Maximum number of lines to put in a sed script.
 ac_file=1 # Number of current file.
 ac_beg=1 # First line for current file.
 ac_end=$ac_max_sed_cmds # Line after last line for current file.
@@ -9741,6 +9742,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
+	bin/rndc/unix/Makefile
 	bin/dig/Makefile
 	bin/nsupdate/Makefile
 	bin/tests/Makefile
