@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.64 2001/11/19 21:34:31 gson Exp $ */
+/* $Id: masterdump.c,v 1.65 2002/05/21 06:12:44 marka Exp $ */
 
 #include <config.h>
 
@@ -63,56 +63,6 @@ struct dns_master_style {
 	unsigned int line_length;
 	unsigned int tab_width;
 };
-
-/*
- * Flags affecting master file formatting.  Flags 0x0000FFFF
- * define the formatting of the rdata part and are defined in
- * rdata.h.
- */
-
-/* Omit the owner name when possible. */
-#define DNS_STYLEFLAG_OMIT_OWNER	0x00010000U
-
-/*
- * Omit the TTL when possible.  If DNS_STYLEFLAG_TTL is
- * also set, this means no TTLs are ever printed
- * because $TTL directives are generated before every
- * change in the TTL.  In this case, no columns need to
- * be reserved for the TTL.  Master files generated with
- * these options will be rejected by BIND 4.x because it
- * does not recognize the $TTL directive.
- *
- * If DNS_STYLEFLAG_TTL is not also set, the TTL will be
- * omitted when it is equal to the previous TTL.
- * This is correct according to RFC1035, but the
- * TTLs may be silently misinterpreted by older
- * versions of BIND which use the SOA MINTTL as a
- * default TTL value.
- */
-#define DNS_STYLEFLAG_OMIT_TTL		0x00020000U
-
-/* Omit the class when possible. */
-#define DNS_STYLEFLAG_OMIT_CLASS	0x00040000U
-
-/* Output $TTL directives. */
-#define DNS_STYLEFLAG_TTL		0x00080000U
-
-/*
- * Output $ORIGIN directives and print owner names relative to
- * the origin when possible.
- */
-#define DNS_STYLEFLAG_REL_OWNER		0x00100000U
-
-/* Print domain names in RR data in relative form when possible.
-   For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
-#define DNS_STYLEFLAG_REL_DATA		0x00200000U
-
-/* Print the trust level of each rdataset. */
-#define DNS_STYLEFLAG_TRUST		0x00400000U
-
-/* Print negative caching entries. */
-#define DNS_STYLEFLAG_NCACHE		0x00800000U
-
 
 /*
  * The maximum length of the newline+indentation that is output
@@ -175,7 +125,6 @@ dns_master_style_simple = {
 	0,
 	24, 32, 32, 40, 80, 8
 };
-
 
 /*
  * A style suitable for dns_rdataset_totext().
@@ -414,9 +363,10 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * TTL.
 		 */
-		if (! ((ctx->style.flags & DNS_STYLEFLAG_OMIT_TTL) != 0 &&
-		       current_ttl_valid &&
-		       rdataset->ttl == current_ttl))
+		if ((ctx->style.flags & DNS_STYLEFLAG_NO_TTL) == 0 &&
+		    !((ctx->style.flags & DNS_STYLEFLAG_OMIT_TTL) != 0 &&
+		      current_ttl_valid &&
+		      rdataset->ttl == current_ttl))
 		{
 			char ttlbuf[64];
 			isc_region_t r;
@@ -445,8 +395,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * Class.
 		 */
-		if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_CLASS) == 0 ||
-		    ctx->class_printed == ISC_FALSE)
+		if ((ctx->style.flags & DNS_STYLEFLAG_NO_CLASS) == 0 &&
+		    ((ctx->style.flags & DNS_STYLEFLAG_OMIT_CLASS) == 0 ||
+		     ctx->class_printed == ISC_FALSE))
 		{
 			unsigned int class_start;
 			INDENT_TO(class_column);
@@ -1443,3 +1394,40 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	return (result);
 }
+
+isc_result_t
+dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
+                       unsigned int ttl_column, unsigned int class_column,
+                       unsigned int type_column, unsigned int rdata_column,
+                       unsigned int line_length, unsigned int tab_width,
+                       isc_mem_t *mctx)
+{
+	dns_master_style_t *style;
+
+	REQUIRE(stylep != NULL && *stylep == NULL);
+	style = isc_mem_get(mctx, sizeof(*style));
+	if (style == NULL)
+		return (ISC_R_NOMEMORY);
+
+	style->flags = flags;
+	style->ttl_column = ttl_column;
+	style->class_column = class_column;
+	style->type_column = type_column;
+	style->rdata_column = rdata_column;
+	style->line_length = line_length;
+	style->tab_width = tab_width;
+
+	*stylep = style;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_master_styledestroy(dns_master_style_t **stylep, isc_mem_t *mctx) {
+	dns_master_style_t *style;
+
+	REQUIRE(stylep != NULL && *stylep != NULL);
+	style = *stylep;
+	*stylep = NULL;
+	isc_mem_put(mctx, style, sizeof(*style));
+}
+

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.27 2002/02/20 03:34:31 marka Exp $ */
+/* $Id: masterdump.h,v 1.28 2002/05/21 06:12:45 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -34,14 +34,66 @@
  *** Types
  ***/
 
+typedef struct dns_master_style dns_master_style_t;
+
+/***
+ *** Definitions
+ ***/
+
 /*
- * Style options for masterfile dumps.  This struct is currently
- * opaque, so applications cannot define their own style but have
- * to choose a predefined style.  A more flexible interface may
- * be exported in the future.
+ * Flags affecting master file formatting.  Flags 0x0000FFFF
+ * define the formatting of the rdata part and are defined in
+ * rdata.h.
  */
 
-typedef struct dns_master_style dns_master_style_t;
+/* Omit the owner name when possible. */
+#define	DNS_STYLEFLAG_OMIT_OWNER        0x00010000U
+
+/*
+ * Omit the TTL when possible.  If DNS_STYLEFLAG_TTL is
+ * also set, this means no TTLs are ever printed
+ * because $TTL directives are generated before every
+ * change in the TTL.  In this case, no columns need to
+ * be reserved for the TTL.  Master files generated with
+ * these options will be rejected by BIND 4.x because it
+ * does not recognize the $TTL directive.
+ *
+ * If DNS_STYLEFLAG_TTL is not also set, the TTL will be
+ * omitted when it is equal to the previous TTL.
+ * This is correct according to RFC1035, but the
+ * TTLs may be silently misinterpreted by older
+ * versions of BIND which use the SOA MINTTL as a
+ * default TTL value.
+ */
+#define	DNS_STYLEFLAG_OMIT_TTL		0x00020000U
+
+/* Omit the class when possible. */
+#define	DNS_STYLEFLAG_OMIT_CLASS	0x00040000U
+
+/* Output $TTL directives. */
+#define	DNS_STYLEFLAG_TTL		0x00080000U
+
+/*
+ * Output $ORIGIN directives and print owner names relative to
+ * the origin when possible.
+ */
+#define	DNS_STYLEFLAG_REL_OWNER		0x00100000U
+
+/* Print domain names in RR data in relative form when possible.
+   For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
+#define	DNS_STYLEFLAG_REL_DATA		0x00200000U
+
+/* Print the trust level of each rdataset. */
+#define	DNS_STYLEFLAG_TRUST		0x00400000U
+
+/* Print negative caching entries. */
+#define	DNS_STYLEFLAG_NCACHE		0x00800000U
+
+/* Never print the TTL */
+#define	DNS_STYLEFLAG_NO_TTL		0x01000000U
+                    
+/* Never print the CLASS */
+#define	DNS_STYLEFLAG_NO_CLASS		0x02000000U 
 
 ISC_LANG_BEGINDECLS
 
@@ -229,6 +281,16 @@ isc_result_t
 dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		    dns_dbnode_t *node, dns_name_t *name,
 		    const dns_master_style_t *style, const char *filename);
+
+isc_result_t
+dns_master_stylecreate(dns_master_style_t **style, unsigned int flags,
+		       unsigned int ttl_column, unsigned int class_column,
+		       unsigned int type_column, unsigned int rdata_column,
+		       unsigned int line_length, unsigned int tab_width,
+		       isc_mem_t *mctx);
+
+void
+dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
 
