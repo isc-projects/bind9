@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.37 2001/03/02 07:03:55 bwelling Exp $ */
+/* $Id: parser.c,v 1.38 2001/03/02 20:00:17 gson Exp $ */
 
 #include <config.h>
 
@@ -266,6 +266,9 @@ free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
 static isc_result_t
 create_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp);
 
+static isc_result_t
+create_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp);
+
 static void
 free_map(cfg_parser_t *pctx, cfg_obj_t *obj);
 
@@ -438,6 +441,7 @@ static cfg_type_t cfg_type_token;
 static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_notifytype;
@@ -1024,13 +1028,12 @@ static cfg_type_t cfg_type_server = {
  * These have some additional constraints that need to be
  * checked after parsing:
  *  - There must exactly one of file/syslog/null/stderr
- *  - "versions" and "size" are allowed only in the "file" case
  *
  */
 static cfg_clausedef_t
 channel_clauses[] = {
 	/* Destinations.  We no longer require these to be first. */
-	{ "file", &cfg_type_qstring, 0 },
+	{ "file", &cfg_type_logfile, 0 },
 	{ "syslog", &cfg_type_optional_facility, 0 }, /* XXX enum? */
 	{ "null", &cfg_type_void, 0 },
 	{ "stderr", &cfg_type_void, 0 },
@@ -1132,15 +1135,17 @@ cfg_print(cfg_obj_t *obj,
 	obj->type->print(&pctx, obj);
 }
 
+
+/* Tuples. */
+  
 static isc_result_t
-parse_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
-{
+create_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	unsigned int nfields = 0;
-	unsigned int i;
 	cfg_tuplefielddef_t *fields = type->of;
 	cfg_tuplefielddef_t *f;
+	cfg_obj_t *obj = NULL;
+	unsigned int nfields = 0;
+	int i;
 
 	for (f = fields; f->name != NULL; f++)
 		nfields++;
@@ -1148,9 +1153,30 @@ parse_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 	CHECK(create_cfgobj(pctx, type, &obj));
 	obj->value.tuple = isc_mem_get(pctx->mctx,
 				       nfields * sizeof(cfg_obj_t *));
+	if (obj->value.tuple == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
 	for (f = fields, i = 0; f->name != NULL; f++, i++)
 		obj->value.tuple[i] = NULL;
+	*ret = obj;
+	return (ISC_R_SUCCESS);
 
+ cleanup:
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+static isc_result_t
+parse_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
+{
+	isc_result_t result;
+	cfg_tuplefielddef_t *fields = type->of;
+	cfg_tuplefielddef_t *f;
+	cfg_obj_t *obj = NULL;
+	unsigned int i;
+
+	CHECK(create_tuple(pctx, type, &obj));
 	for (f = fields, i = 0; f->name != NULL; f++, i++)
 		CHECK(parse(pctx, f->type, &obj->value.tuple[i]));
 
@@ -1184,6 +1210,9 @@ free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	cfg_tuplefielddef_t *fields = obj->type->of;
 	cfg_tuplefielddef_t *f;
 	unsigned int nfields = 0;
+
+	if (obj->value.tuple == NULL)
+		return;
 
 	for (f = fields, i = 0; f->name != NULL; f++, i++) {
 		CLEANUP_OBJ(obj->value.tuple[i]);
@@ -1643,15 +1672,22 @@ parse_astring(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
-static isc_result_t
-check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char **enums) {
+static isc_boolean_t
+is_enum(const char *s, const char **enums) {
 	const char **p;
-	const char *s = obj->value.string.base;
 	for (p = enums; *p != NULL; p++) {
 		if (strcasecmp(*p, s) == 0)
-			return (ISC_R_SUCCESS);
+			return (ISC_TRUE);
 	}
-	parser_error(pctx, LOG_NEAR, "'%s' unexpected");
+	return (ISC_FALSE);
+}
+
+static isc_result_t
+check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char **enums) {
+	const char *s = obj->value.string.base;
+	if (is_enum(s, enums))
+		return (ISC_R_SUCCESS);
+	parser_error(pctx, LOG_NEAR, "'%s' unexpected", s);
 	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
@@ -1667,6 +1703,23 @@ parse_enum(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	CLEANUP_OBJ(obj);	
 	return (result);
 }
+
+static isc_result_t
+parse_enum_or_other(cfg_parser_t *pctx, cfg_type_t *enumtype,
+		    cfg_type_t *othertype, cfg_obj_t **ret)
+{
+        isc_result_t result;
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string &&
+	    is_enum(pctx->token.value.as_pointer, enumtype->of)) {
+		CHECK(parse_enum(pctx, enumtype, ret));
+	} else {
+		CHECK(parse(pctx, othertype, ret));
+	}
+ cleanup:
+	return (result);
+}
+
 
 /*
  * Print a string object.
@@ -1737,8 +1790,7 @@ static cfg_type_t cfg_type_size = {
  * boolean
  */
 static isc_result_t
-parse_boolean_like(cfg_parser_t *pctx, cfg_type_t *type,
-		   cfg_obj_t **ret, isc_boolean_t accept_string)
+parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 {
         isc_result_t result;
 	isc_boolean_t value;
@@ -1750,7 +1802,7 @@ parse_boolean_like(cfg_parser_t *pctx, cfg_type_t *type,
 		return (result);
 
 	if (pctx->token.type != isc_tokentype_string)
-		goto no_string;
+		goto bad_boolean;
 
 	if ((strcasecmp(pctx->token.value.as_pointer, "true") == 0) ||
 	    (strcasecmp(pctx->token.value.as_pointer, "yes") == 0) ||
@@ -1770,22 +1822,11 @@ parse_boolean_like(cfg_parser_t *pctx, cfg_type_t *type,
 	return (result);
 
  bad_boolean:
-	if (accept_string)
-		return (create_string(pctx,
-				      pctx->token.value.as_pointer,
-				      &cfg_type_ustring,
-				      ret));
- no_string:
 	parser_error(pctx, LOG_NEAR, "boolean expected");
 	return (ISC_R_UNEXPECTEDTOKEN);
 
  cleanup:
 	return (result);
-}
-
-static isc_result_t
-parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-	return (parse_boolean_like(pctx, type, ret, ISC_FALSE));
 }
 
 static void
@@ -1799,41 +1840,25 @@ print_boolean(cfg_printer_t *pctx, cfg_obj_t *obj) {
 static cfg_type_t cfg_type_boolean = {
 	"boolean", parse_boolean, print_boolean, &cfg_rep_boolean, NULL };
 
-static isc_result_t
-parse_boolean_or_enum(cfg_parser_t *pctx, cfg_type_t *type, const char **enums,
-		      cfg_obj_t **ret)
-{
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	CHECK(parse_boolean_like(pctx, type, &obj, ISC_TRUE));
-	if (obj->type != &cfg_type_boolean)
-		CHECK(check_enum(pctx, obj, enums));
-	*ret = obj;
-	return (ISC_R_SUCCESS);
- cleanup:
-	CLEANUP_OBJ(obj);
-	return (result);
-}
-
 const char *dialup_enums[] = {
 	"notify", "notify-passive", "refresh", "passive", NULL };
 static isc_result_t
 parse_dialup_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-	return (parse_boolean_or_enum(pctx, type, dialup_enums, ret));
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
 static cfg_type_t cfg_type_dialuptype = {
 	"dialuptype", parse_dialup_type, print_ustring, 
-	&cfg_rep_string, NULL
+	&cfg_rep_string, dialup_enums
 };
 
 const char *notify_enums[] = { "explicit", NULL };
 static isc_result_t
 parse_notify_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-	return (parse_boolean_or_enum(pctx, type, notify_enums, ret));
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
 }
 static cfg_type_t cfg_type_notifytype = {
 	"notifytype", parse_notify_type, print_ustring, 
-	&cfg_rep_string, NULL
+	&cfg_rep_string, notify_enums,
 };
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
@@ -3050,6 +3075,10 @@ static cfg_type_t cfg_type_server_key_kludge = {
 	"server_key_kludge", parse_server_key_kludge, NULL, NULL, NULL };
 
 
+/*
+ * An optional logging facility.
+ */
+
 static isc_result_t
 parse_optional_facility(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 {
@@ -3101,6 +3130,75 @@ parse_logseverity(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 
 static cfg_type_t cfg_type_logseverity = {
 	"logseverity", parse_logseverity, NULL, NULL, NULL };
+
+/*
+ * The "file" clause of the "channel" statement.
+ * This is yet another special case.
+ */
+
+const char *logversions_enums[] = { "unlimited", NULL };
+static isc_result_t
+parse_logversions(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_uint32, ret));
+}
+static cfg_type_t cfg_type_logversions = {
+	"logversions", parse_logversions, print_ustring, 
+	&cfg_rep_string, logversions_enums
+};
+
+static cfg_tuplefielddef_t logfile_fields[] = {
+	{ "file", &cfg_type_qstring, 0 },
+	{ "versions", &cfg_type_logversions, 0 },
+	{ "size", &cfg_type_ustring, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static isc_result_t
+parse_logfile(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	cfg_tuplefielddef_t *fields = type->of;	
+
+	CHECK(create_tuple(pctx, type, &obj));	
+
+	/* Parse the mandatory "file" field */
+	CHECK(parse(pctx, fields[0].type, &obj->value.tuple[0]));
+
+	/* Parse "versions" and "size" fields in any order. */
+	for (;;) {
+		CHECK(cfg_peektoken(pctx, 0));
+		if (pctx->token.type == isc_tokentype_string) {
+			if (strcasecmp(pctx->token.value.as_pointer, "versions") == 0 &&
+			    obj->value.tuple[1] == NULL) {
+				CHECK(parse(pctx, fields[1].type, &obj->value.tuple[1]));
+			} else if (strcasecmp(pctx->token.value.as_pointer, "size") == 0 &&
+				   obj->value.tuple[2] == NULL) {
+				CHECK(parse(pctx, fields[2].type, &obj->value.tuple[2]));
+			} else {
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+
+	/* Create void objects for missing optional values. */
+	if (obj->value.tuple[1] == NULL)
+		CHECK(parse_void(pctx, NULL, &obj->value.tuple[1]));
+	if (obj->value.tuple[2] == NULL)
+		CHECK(parse_void(pctx, NULL, &obj->value.tuple[2]));
+
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	CLEANUP_OBJ(obj);	
+	return (result);
+}
+
+static cfg_type_t cfg_type_logfile = {
+	"logfile", parse_logfile, print_tuple, &cfg_rep_tuple, logfile_fields };
+
 
 /*
  * lwres
@@ -3387,7 +3485,7 @@ cfg_obj_log(cfg_obj_t *obj, isc_log_t *lctx, int level, const char *fmt, ...) {
 }
 
 static isc_result_t
-create_cfgobj(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp) {
+create_cfgobj(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	cfg_obj_t *obj;
 
 	obj = isc_mem_get(pctx->mctx, sizeof(cfg_obj_t));
@@ -3396,7 +3494,7 @@ create_cfgobj(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp) {
 	obj->type = type;
 	obj->file = current_file(pctx);
 	obj->line = pctx->line;
-	*objp = obj;
+	*ret = obj;
 	return (ISC_R_SUCCESS);
 }
 
@@ -3415,7 +3513,7 @@ map_symtabitem_destroy(char *key, unsigned int type,
 
 
 static isc_result_t
-create_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp) {
+create_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	isc_symtab_t *symtab = NULL;
 	cfg_obj_t *obj = NULL;
@@ -3428,7 +3526,7 @@ create_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **objp) {
 	obj->value.map.symtab = symtab;
 	obj->value.map.id = NULL;
 
-	*objp = obj;
+	*ret = obj;
 	return (ISC_R_SUCCESS);
 
  cleanup:
