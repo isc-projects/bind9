@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.46.18.1 2004/09/09 01:27:56 marka Exp $
+# $Id: ifconfig.sh,v 1.46.18.2 2004/09/24 05:56:42 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -97,7 +97,7 @@ case "$1" in
 		    *-*-sysv5uw7*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
-		    *-ibm-aix4.*)
+		    *-ibm-aix4.*|*-ibm-aix5.*)
 			ifconfig lo0 alias 10.53.0.$ns
 			;;
 		    hpux)
@@ -157,7 +157,7 @@ case "$1" in
 		    *-*-sysv5uw7*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			;;
-		    *-ibm-aix4.*)
+		    *-ibm-aix4.*|*-ibm-aix5.*)
 			ifconfig lo0 delete 10.53.0.$ns
 			;;
 		    hpux)
