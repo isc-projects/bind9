@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.1 2000/07/10 11:34:59 tale Exp $ */
+/* $Id: omapiconf.c,v 1.2 2000/07/10 16:47:48 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -35,6 +35,8 @@
 
 typedef struct ns_omapilistener ns_omapilistener_t;
 
+typedef ISC_LIST(ns_omapilistener_t) ns_omapilistenerlist_t;
+
 struct ns_omapilistener {
 	/* XXXDCL magic */
 	isc_mem_t *			mctx;
@@ -45,7 +47,7 @@ struct ns_omapilistener {
 	LINK(ns_omapilistener_t)	link;
 };
 
-static ISC_LIST(ns_omapilistener_t) listeners;
+static ns_omapilistenerlist_t listeners;
 static isc_mutex_t listeners_lock;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_boolean_t server_exiting = ISC_FALSE;
@@ -384,7 +386,7 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 		   dns_aclconfctx_t *aclconfctx)
 {
 	ns_omapilistener_t *listener;
-	ISC_LIST(ns_omapilistener_t) new_listeners;
+	ns_omapilistenerlist_t new_listeners;
 	dns_c_ctrllist_t *controls = NULL;
 	dns_c_ctrl_t *control;
 	dns_c_kdeflist_t *keydeflist = NULL;
@@ -465,28 +467,8 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 	 * Put all of the valid listeners on the listeners list.
 	 * Anything already on listeners in the process of shutting down
 	 * will be taken care of by listen_done().
-	 * XXXDCL using ISC_LIST_APPENDLIST() gives an error
-	 * "incompatible types in assignment" that I can't figure out
-	 * after pulling an all-nighter coding.  It comes from the
-	 * (list1) = (list2) part of the macro.
 	 */
-	do {
-		if (ISC_LIST_EMPTY(listeners)) {
-			listeners.head = new_listeners.head;
-			listeners.tail = new_listeners.tail;
-
-		} else if (!ISC_LIST_EMPTY(new_listeners)) {
-			listeners.tail->link.next = new_listeners.head;
-			new_listeners.head->link.prev = listeners.tail;
-			listeners.tail = new_listeners.tail;
-		}
-		new_listeners.head = NULL;
-		new_listeners.tail = NULL;
-	} while (0);
-
-	/*
-	 * ISC_LIST_APPENDLIST(listeners, new_listeners, link);
-	 */
+	ISC_LIST_APPENDLIST(listeners, new_listeners, link);
 
 	UNLOCK(&listeners_lock);
 
