@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.4 2003/10/09 07:32:46 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.5 2004/02/02 04:52:50 marka Exp $
  */
 
 #include <config.h>
@@ -695,22 +695,23 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
 
+	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
-		case DST_ALG_RSAMD5:
-			*n = (key->key_size + 7) / 8;
-			break;
-		case DST_ALG_DSA:
-			*n = DNS_SIG_DSASIGSIZE;
-			break;
-		case DST_ALG_HMACMD5:
-			*n = 16;
-			break;
-		case DST_ALG_GSSAPI:
-			*n = 128; /* XXX */
-			break;
-		case DST_ALG_DH:
-		default:
-			return (DST_R_UNSUPPORTEDALG);
+	case DST_ALG_RSAMD5:
+		*n = (key->key_size + 7) / 8;
+		break;
+	case DST_ALG_DSA:
+		*n = DNS_SIG_DSASIGSIZE;
+		break;
+	case DST_ALG_HMACMD5:
+		*n = 16;
+		break;
+	case DST_ALG_GSSAPI:
+		*n = 128; /* XXX */
+		break;
+	case DST_ALG_DH:
+	default:
+		return (DST_R_UNSUPPORTEDALG);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -721,16 +722,10 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
 
-	switch (key->key_alg) {
-		case DST_ALG_DH:
-			*n = (key->key_size + 7) / 8;
-			break;
-		case DST_ALG_RSAMD5:
-		case DST_ALG_DSA:
-		case DST_ALG_HMACMD5:
-		default:
-			return (DST_R_UNSUPPORTEDALG);
-	}
+	if (key->key_alg == DST_ALG_DH)
+		*n = (key->key_size + 7) / 8;
+	else
+		return (DST_R_UNSUPPORTEDALG);
 	return (ISC_R_SUCCESS);
 }
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.31.2.1 2001/09/15 00:37:18 gson Exp $
+ * $Id: dst_parse.c,v 1.31.2.2 2004/02/02 04:52:50 marka Exp $
  */
 
 #include <config.h>
@@ -155,17 +155,18 @@ check_hmac_md5(const dst_private_t *priv) {
 
 static int
 check_data(const dst_private_t *priv, const unsigned int alg) {
+	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (alg) {
-		case DST_ALG_RSAMD5:
-			return (check_rsa(priv));
-		case DST_ALG_DH:
-			return (check_dh(priv));
-		case DST_ALG_DSA:
-			return (check_dsa(priv));
-		case DST_ALG_HMACMD5:
-			return (check_hmac_md5(priv));
-		default:
-			return (DST_R_UNSUPPORTEDALG);
+	case DST_ALG_RSAMD5:
+		return (check_rsa(priv));
+	case DST_ALG_DH:
+		return (check_dh(priv));
+	case DST_ALG_DSA:
+		return (check_dsa(priv));
+	case DST_ALG_HMACMD5:
+		return (check_hmac_md5(priv));
+	default:
+		return (DST_R_UNSUPPORTEDALG);
 	}
 }
 
@@ -386,12 +387,23 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		MINOR_VERSION);
 
 	fprintf(fp, "%s %d ", ALGORITHM_STR, dst_key_alg(key));
+	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (dst_key_alg(key)) {
-		case DST_ALG_RSAMD5: fprintf(fp, "(RSA)\n"); break;
-		case DST_ALG_DH: fprintf(fp, "(DH)\n"); break;
-		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
-		case DST_ALG_HMACMD5: fprintf(fp, "(HMAC_MD5)\n"); break;
-		default : fprintf(fp, "(?)\n"); break;
+	case DST_ALG_RSAMD5:
+		fprintf(fp, "(RSA)\n");
+		break;
+	case DST_ALG_DH:
+		fprintf(fp, "(DH)\n");
+		break;
+	case DST_ALG_DSA:
+		fprintf(fp, "(DSA)\n");
+		break;
+	case DST_ALG_HMACMD5:
+		fprintf(fp, "(HMAC_MD5)\n");
+		break;
+	default:
+		fprintf(fp, "(?)\n");
+		break;
 	}
 
 	for (i = 0; i < priv->nelements; i++) {
