@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.1 2001/09/04 03:22:23 mayer Exp $ */
+/* $Id: strerror.c,v 1.2 2001/11/20 01:45:48 gson Exp $ */
 
 #include <config.h>
 
@@ -59,7 +59,7 @@ static void init_lock(void) {
  * if that routine gets used.
  */
 
-char *
+void
 isc__strerror(int num, char *buf, size_t size) {
 	char *msg;
 	unsigned int unum = num;
@@ -81,7 +81,6 @@ isc__strerror(int num, char *buf, size_t size) {
 		freebuf = FALSE;
 	}
 	UNLOCK(&isc_strerror_lock);
-	return (buf);
 }
 
 /*
