@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.78 2000/08/01 01:24:22 tale Exp $ */
+/* $Id: name.h,v 1.79 2000/08/08 23:18:12 gson Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -335,8 +335,6 @@ dns_name_isabsolute(const dns_name_t *name);
  * Requires:
  *	'name' is a valid name
  *
- *	dns_name_countlabels(name) > 0
- *
  * Returns:
  *	TRUE		The last label in 'name' is the root label.
  *	FALSE		The last label in 'name' is not the root label.
@@ -454,11 +452,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2);
  * Requires:
  *	'name1' is a valid name
  *
- *	dns_name_countlabels(name1) > 0
- *
  *	'name2' is a valid name
- *
- *	dns_name_countlabels(name2) > 0
  *
  *	Either name1 is absolute and name2 is absolute, or neither is.
  *
@@ -534,11 +528,7 @@ dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2);
  * Requires:
  *	'name1' is a valid name
  *
- *	dns_name_countlabels(name1) > 0
- *
  *	'name2' is a valid name
- *
- *	dns_name_countlabels(name2) > 0
  *
  *	Either name1 is absolute and name2 is absolute, or neither is.
  *

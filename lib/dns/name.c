@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.100 2000/08/01 01:22:33 tale Exp $ */
+/* $Id: name.c,v 1.101 2000/08/08 23:18:10 gson Exp $ */
 
 #include <config.h>
 
@@ -383,7 +383,6 @@ dns_name_isabsolute(const dns_name_t *name) {
 	 */
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(name->labels > 0);
 
 	if ((name->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 		return (ISC_TRUE);
@@ -509,9 +508,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	 */
 
 	REQUIRE(VALID_NAME(name1));
-	REQUIRE(name1->labels > 0);
 	REQUIRE(VALID_NAME(name2));
-	REQUIRE(name2->labels > 0);
 	REQUIRE(orderp != NULL);
 	REQUIRE(nlabelsp != NULL);
 	REQUIRE(nbitsp != NULL);
