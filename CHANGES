@@ -1,3 +1,8 @@
+
+ 344.	[bug]		When shutting down, lwresd sometimes tried
+			to shut down its client tasks twice, 
+			triggering an assertion.
+
  343.	[bug]		Although zone maintenance SOA queries and
 			notify requests were signed with TSIG keys
 			when configured for the server in case,

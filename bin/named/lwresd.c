@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.8.2.2 2000/06/28 00:19:05 gson Exp $ */
+/* $Id: lwresd.c,v 1.8.2.3 2000/07/21 22:46:47 gson Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -89,14 +89,10 @@ mem_free(void *arg, void *mem, size_t size) {
 static void
 shutdown_lwresd(isc_task_t *task, isc_event_t *event) {
 	ns_lwresd_t *lwresd = event->ev_arg;
-	unsigned int i;
 
 	UNUSED(task);
 
 	dns_dispatchmgr_destroy(&lwresd->dispmgr);
-
-	for (i = 0; i < lwresd->ntasks; i++)
-		isc_task_shutdown(lwresd->cmgr[i].task);
 
 	/*
 	 * Wait for everything to die off by waiting for the sockets
