@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.8 1999/03/16 16:15:44 tale Exp $ */
+ /* $Id: compress.c,v 1.9 1999/03/18 20:32:32 tale Exp $ */
 
 #include <config.h>
 
@@ -448,10 +448,10 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 		dns_name_getlabelsequence(name, start, count, &tmpname);
 		data = NULL;
 		result = dns_rbt_findname(root, &tmpname, NULL, (void *)&data);
-		/* XXX @@@ is this right, Mark?
+		/* XXX DCL is this right, Mark?
 		   note that for data to be non-null, then result can
 		   be DNS_R_SUCCESS or DNS_R_PARTIALMATCH
-		   XXX @@@ third argument to findname is a name with a fixed
+		   XXX DCL third argument to findname is a name with a fixed
 		           buffer (eg, a dns_fixedname_name()).
 		   */
 		if (result == DNS_R_SUCCESS && data != NULL)
@@ -487,8 +487,8 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 			data = NULL;
 			result = dns_rbt_findname(root, &tmpname, NULL,
 						  (void *)&data);
-			/* XXX @@@ is this right, Mark? 
-			   XXX @@@ modify third arg for foundname?
+			/* XXX DCL is this right, Mark? 
+			   XXX DCL modify third arg for foundname?
 			   */
 			if (result == DNS_R_SUCCESS && data != NULL)
 				break;
