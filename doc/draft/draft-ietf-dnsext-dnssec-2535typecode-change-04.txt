@@ -1,11 +1,10 @@
 
 INTERNET-DRAFT                                             Samuel Weiler
-Expires: December 2003                                     June 29, 2003
+Expires: February 2004                                    August 4, 2003
 Updates: RFC 2535, [DS]
 
 	 Legacy Resolver Compatibility for Delegation Signer
-	 draft-ietf-dnsext-dnssec-2535typecode-change-03.txt
-
+	 draft-ietf-dnsext-dnssec-2535typecode-change-04.txt
 
 Status of this Memo
 
@@ -41,16 +40,26 @@ Abstract
    understands an earlier version of these semantics queries an
    authoritative server that understands the new delegation signer
    semantics, including at least one failure scenario that will cause
-   an unsecured zone to be unresolvable.  This document proposes that
-   these interactions be avoided by changing the type codes and
-   mnemonics of the DNSSEC RRs (SIG, KEY, and NXT).
+   an unsecured zone to be unresolvable.  This document changes the
+   type codes and mnemonics of the DNSSEC RRs (SIG, KEY, and NXT) to
+   avoid those interactions.
+
+Changes between 03 and 04:
+
+   Clarified that RRSIG(0) may be defined by standards action.
+
+   Created a new algorithm registry and renamed the old algorithm
+   registry for SIG(0) only.  Added references to the appropriate
+   crypto algorithm and format specifications.
+
+   Several minor rephrasings.
 
 Changes between 02 and 03:
 
    KEY (as well as SIG) retained for SIG(0) use only.
 
 Changes between 01 and 02:
-   
+
    SIG(0) still uses SIG, not RRSIG.  Added 2931 reference.
 
    Domain names embedded in NSECs and RRSIGs are not compressible and
@@ -97,8 +106,8 @@ Changes between 01 and 02:
    incompatible with the semantics in RFC 2535 [RFC2535].  Answers
    provided by DS-aware servers can trigger an unacceptable failure
    mode in some resolvers that implement RFC 2535, which provides a
-   great disincentive to sign zones with DS.  The proposed solution
-   allows for the incremental deployment of DS.
+   great disincentive to sign zones with DS.  The changes defined in
+   this document allow for the incremental deployment of DS.
 
 1.1 Terminology
 
@@ -130,15 +139,15 @@ Changes between 01 and 02:
 
 2. Possible Solutions
 
-   This section presents several possible solutions.  Section 3
-   recommends one and describes it in more detail.
+   This section presents several solutions that were considered.
+   Section 3 describes the one selected.
 
 2.1. Change SIG, KEY, and NXT type codes
 
    To avoid the problem described above, legacy (RFC2535-aware)
    resolvers need to be kept from seeing unsecure referrals that
    include NXT records in the authority section.  The simplest way to
-   do that is to change the type codes for SIG, KEY, and NXT.  
+   do that is to change the type codes for SIG, KEY, and NXT.
 
    The obvious drawback to this is that new resolvers will not be able
    to validate zones signed with the old RRs.  This problem already
@@ -181,7 +190,7 @@ Changes between 01 and 02:
 
 2.4. Increment the EDNS version
 
-   Another proposed solution is to increment the EDNS version number
+   Another possible solution is to increment the EDNS version number
    as defined in RFC 2671 [RFC2671], on the assumption that all
    existing implementations will reject higher versions than they
    support, and retain the DO bit as the signal for DNSSEC awareness.
@@ -212,11 +221,11 @@ Changes between 01 and 02:
 
 3. Protocol changes
 
-   This document proposes changing the type codes of SIG, KEY, and
-   NXT.  This approach is the cleanest and safest of those discussed
-   above, largely because the behavior of resolvers that receive
-   unknown type codes is well understood.  This approach has also
-   received the most testing.
+   This document changes the type codes of SIG, KEY, and NXT.  This
+   approach is the cleanest and safest of those discussed above,
+   largely because the behavior of resolvers that receive unknown type
+   codes is well understood.  This approach has also received the most
+   testing.
 
    To avoid operational confusion, it's also necessary to change the
    mnemonics for these RRs.  DNSKEY will be the replacement for KEY,
@@ -237,24 +246,26 @@ Changes between 01 and 02:
       for purposes of DNSSEC canonical form and ordering nor for
       equality comparison, and
 
-      3) An RRSIG with a type covered field of zero has undefined
-      semantics.
+      3) An RRSIG with a type-covered field of zero has undefined
+      semantics.  The meaning of such a resource record may only be
+      defined by IETF Standards Action.
 
    If a resolver receives the old types, it SHOULD treat them as
-   unknown RRs and SHOULD NOT assign any special semantic value to
-   them.  It MUST NOT use them for DNSSEC validations or other DNS
-   operational decision making.  For example, a resolver MUST NOT use
-   DNSKEYs to validate SIGs or use KEYs to validate RRSIGs.  If SIG,
-   KEY, or NXT RRs are included in a zone, they MUST NOT receive
-   special treatment.  As an example, if a SIG is included in a signed
-   zone, there MUST be an RRSIG for it.  Authoritative servers may
-   wish to give error messages when loading zones containing SIG or
-   NXT records (KEY records may be included for SIG(0)).
+   unknown RRs and SHOULD NOT assign any special meaning to them or
+   give them any special treatment.  It MUST NOT use them for DNSSEC
+   validations or other DNS operational decision making.  For example,
+   a resolver MUST NOT use DNSKEYs to validate SIGs or use KEYs to
+   validate RRSIGs.  If SIG, KEY, or NXT RRs are included in a zone,
+   they MUST NOT receive special treatment.  As an example, if a SIG
+   is included in a signed zone, there MUST be an RRSIG for it.
+   Authoritative servers may wish to give error messages when loading
+   zones containing SIG or NXT records (KEY records may be included
+   for SIG(0)).
 
    As a clarification to previous documents, some positive responses,
    particularly wildcard proofs and unsecure referrals, will contain
    NSEC RRs.  Resolvers MUST NOT treat answers with NSEC RRs as
-   negative answers merely because they contain an NSEC.  
+   negative answers merely because they contain an NSEC.
 
 4. IANA Considerations
 
@@ -265,12 +276,31 @@ Changes between 01 and 02:
    Types 24 and 25 (SIG and KEY) are retained for SIG(0) [RFC2931]
    use only.  Type 30 (NXT) should be marked as Obsolete.
 
+   In order to allow DNS Security and SIG(0) to use different sets of
+   algorithms, the existing "DNS Security Algorithm Numbers" registry
+   is renamed as the "SIG(0) Algorithm Numbers" registry and a new
+   "DNS Security Algorithm Numbers" registry is established.  The
+   initial algorithm values are:
+
+     2        Diffie-Hellman                    [RFC2539]
+     3        DSA/SHA1                          [RFC2536]
+     5        RSA/SHA-1                         [RFC3110]
+   253        Private algorithms - domain name	[RFC2535]
+   254        Private algorithms - OID		[RFC2535]
+
+   Values 0, 1, and 255 are reserved.  Values 4 and 6 through 252 are
+   available for assignment by IETF Standards Action.
+
+   It is suggested, but not required, that new algorithms usable by
+   both DNS Security and SIG(0) be assigned the same number in both
+   registries.
+
 5. Security Considerations
 
-   The change proposed here does not materially affect security.  The
-   implications of trying to use both new and legacy types together
-   are not well understood, and attempts to do so would probably lead
-   to unintended and dangerous results. 
+   The change introduced here does not materially affect security.
+   The implications of trying to use both new and legacy types
+   together are not well understood, and attempts to do so would
+   probably lead to unintended and dangerous results.
 
    Changing type codes will leave code paths in legacy resolvers that
    are never exercised.  Unexercised code paths are a frequent source
@@ -287,7 +317,7 @@ Changes between 01 and 02:
              RFC 2535, March 1999.
 
    [DS]      Gudmundsson, O., "Delegation Signer Resource Record",
-             draft-ietf-dnsext-delegation-signer-14.txt, work in 
+             draft-ietf-dnsext-delegation-signer-14.txt, work in
              progress, May 2003.
 
    [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
@@ -296,6 +326,15 @@ Changes between 01 and 02:
    [RFC2931] Eastlake, D., "DNS Request and Transaction Signatures
              (SIG(0)s)", RFC 2931, September 2000.
 
+   [RFC2536] Eastlake, D., "DSA KEYs and SIGs in the Domain Name
+             System (DNS)", RFC 2436, March 1999.
+
+   [RFC2539] Eastlake, D., "Storage of Diffie-Hellman Keys in the
+             Domain Name System (DNS)", RFC 2539, March 1999.
+
+   [RFC3110] Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the
+             Domain Name System (DNS)", RFC 3110, May 2001.
+
 7. Informative References
 
    [RFC2065] Eastlake, D. and C. Kaufman, "Domain Name System Security
@@ -303,7 +342,7 @@ Changes between 01 and 02:
 
    [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
 	     2671, August 1999.
-	    
+
    [RFC3225] Conrad, D., "Indicating Resolver Support of DNSSEC", RFC
              3225, December 2001.
 
@@ -315,15 +354,15 @@ Changes between 01 and 02:
 	     Resource Record (RR).  RFC 3445, December 2002.
 
    [UNKNOWN-RRs] Gustafsson, A.  Handling of Unknown DNS Resource
-             Record Types.  draft-ietf-dnsext-unknown-rrs-05.txt  
+             Record Types.  draft-ietf-dnsext-unknown-rrs-05.txt
 	     Publication as RFC pending.
 
 8. Acknowledgments
 
-   The proposed solution and the analysis of alternatives had many
-   contributors.  With apologies to anyone overlooked, those include:
-   Micheal Graff, John Ihren, Olaf Kolkman, Mark Kosters, Ed Lewis,
-   Bill Manning, and Suzanne Woolf.
+   The changes introduced here and the analysis of alternatives had
+   many contributors.  With apologies to anyone overlooked, those
+   include: Micheal Graff, John Ihren, Olaf Kolkman, Mark Kosters, Ed
+   Lewis, Bill Manning, and Suzanne Woolf.
 
    Thanks to Jakob Schlyter and Mark Andrews for identifying the
    incompatibility described in section 1.2.
@@ -340,7 +379,6 @@ Changes between 01 and 02:
    Columbia, MD 21046
    USA
    weiler@tislabs.com
-
 
 
 
