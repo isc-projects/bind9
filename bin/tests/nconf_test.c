@@ -128,7 +128,7 @@ int main (int argc, char **argv) {
 			configctx->errors);
 	}
 
-	outfp = stderr;
+	outfp = stdout;
 	if (argc > 2) {
 		if ((outfp = fopen(argv[2], "w")) == NULL) {
 			fprintf(stderr, "Cannot open %s: %s",
