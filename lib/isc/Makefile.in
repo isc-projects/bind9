@@ -37,7 +37,7 @@ UNIXOBJS =	@ISC_ISCIPV6_O@ \
 
 NLSOBJS =	nls/msgcat.@O@
 
-PTHREADOBJS =	pthreads/condition.@O@
+PTHREADOBJS =	pthreads/condition.@O@ pthreads/thread.@O@
 
 WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/once.@O@ \
 		win32/stdtime.@O@ win32/thread.@O@ win32/time.@O@

@@ -26,9 +26,9 @@ CINCLUDES =	-I${srcdir}/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		condition.@O@
+OBJS =		condition.@O@ thread.@O@
 
-SRCS =		condition.c
+SRCS =		condition.c thread.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
