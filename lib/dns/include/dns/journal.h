@@ -304,16 +304,6 @@ dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata);
  */
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
-/*
- * Get the current SOA serial number from a zone database.
- *
- * Requires:
- *      'db' is a valid database with zone semantics.
- *      'ver' is a valid version.
- */
-
-isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		   dns_diffop_t op, dns_difftuple_t **tp);
 /*

@@ -122,42 +122,6 @@ dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata) {
 }
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
-{
-	isc_result_t result;
-	dns_dbnode_t *node = NULL;
-	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
-
-	REQUIRE(dns_db_iszone(db));
-		
-	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
-				     (isc_stdtime_t) 0, &rdataset, NULL);
- 	if (result != ISC_R_SUCCESS)
-		goto freenode;
-	
-	result = dns_rdataset_first(&rdataset);
- 	if (result != ISC_R_SUCCESS)
-		goto freerdataset;
-	dns_rdataset_current(&rdataset, &rdata);
-
-	*serialp = dns_soa_getserial(&rdata);
-	result = ISC_R_SUCCESS;
-
- freerdataset:
-	dns_rdataset_disassociate(&rdataset);
-	
- freenode:
-	dns_db_detachnode(db, &node);
-	return (result);
-}
-
-isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 		      dns_diffop_t op, dns_difftuple_t **tp)
 {
@@ -228,7 +192,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 	t->mctx = mctx;
 	t->op = op;
 
-	datap = (unsigned char *) (t + 1);
+	datap = (unsigned char *)(t + 1);
 	
 	memcpy(datap, name->ndata, name->length);
 	dns_name_init(&t->name, NULL);
@@ -248,7 +212,7 @@ dns_difftuple_create(isc_mem_t *mctx,
 	ISC_LINK_INIT(&t->rdata, link);
 	t->magic = DNS_DIFFTUPLE_MAGIC;
 
-	INSIST(datap == (unsigned char *) t + size);
+	INSIST(datap == (unsigned char *)t + size);
 
 	*tp = t;
 	return (ISC_R_SUCCESS);

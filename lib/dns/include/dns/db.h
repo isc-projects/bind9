@@ -1113,6 +1113,16 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *	implementation used.
  */
 
+isc_result_t
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
+/*
+ * Get the current SOA serial number from a zone database.
+ *
+ * Requires:
+ *      'db' is a valid database with zone semantics.
+ *      'ver' is a valid version.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DB_H */

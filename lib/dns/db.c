@@ -21,11 +21,13 @@
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
 #include <dns/master.h>
+#include <dns/rdata.h>
 #include <dns/rdataset.h>
 
 /***
@@ -585,4 +587,46 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	return ((db->methods->deleterdataset)(db, node, version,
 					      type, covers));
+}
+
+isc_result_t
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
+{
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	isc_buffer_t buffer;
+
+	REQUIRE(dns_db_iszone(db));
+		
+	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
+				     (isc_stdtime_t)0, &rdataset, NULL);
+ 	if (result != ISC_R_SUCCESS)
+		goto freenode;
+	
+	result = dns_rdataset_first(&rdataset);
+ 	if (result != ISC_R_SUCCESS)
+		goto freerdataset;
+	dns_rdataset_current(&rdataset, &rdata);
+
+	INSIST(rdata.length > 20);
+	isc_buffer_init(&buffer, rdata.data, rdata.length);
+	isc_buffer_add(&buffer, rdata.length);
+	isc_buffer_forward(&buffer, rdata.length - 20);
+	*serialp = isc_buffer_getuint32(&buffer);
+
+	result = ISC_R_SUCCESS;
+
+ freerdataset:
+	dns_rdataset_disassociate(&rdataset);
+	
+ freenode:
+	dns_db_detachnode(db, &node);
+	return (result);
 }
