@@ -3,7 +3,7 @@
  756.	[bug]		dns_zone_load() could "return" success when no master
 			file was configured.
 
- 755.	[bug]		Fix format bugs in zone.c (non-exploitable).
+ 755.	[bug]		Fix incorrectly formatted log messages in zone.c.
 
  754.	[bug]		Certain failure conditions sending UDP packets
 			could cause the server to retry the transmission
