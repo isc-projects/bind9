@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3461"
+HREF="Bv9ARM.ch06.html#AEN3472"
 >Zone File</A
 ></DT
 ></DL
@@ -4802,9 +4802,9 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->&#13;These options control the server's behavior when answering queries
-which have additional data, or when following CNAME and DNAME
-chains to provide additional data.
+>&#13;These options control the behavior of an authoritative server when
+answering queries which have additional data, or when following CNAME
+and DNAME chains.
 </P
 ><P
 >&#13;When both of these options are set to <TT
@@ -4814,11 +4814,11 @@ CLASS="userinput"
 ></TT
 > 
 (the default) and a
-query is being answered from authoratitive data (a zone
+query is being answered from authoritative data (a zone
 configured into the server), the additional data section of the
-reply will be filled in using data from other authoratitive zones
+reply will be filled in using data from other authoritative zones
 and from the cache.  In some situations this is undesirable, such
-as when there is concern over the correctness of the cache, or in
+as when there is concern over the correctness of the cache, or
 in servers where slave zones may be added and modified by
 untrusted third parties.  Also, avoiding
 the search for this additional data will speed up server operations
@@ -4838,7 +4838,47 @@ records (A, A6, and AAAA) for <TT
 CLASS="literal"
 >mail.example.net</TT
 > will be provided as well,
-if known.  These options disable this behavior.
+if known.  Setting these options to <B
+CLASS="command"
+>no</B
+> disables this behavior.
+</P
+><P
+>&#13;These options are intended for use in authoritative-only 
+servers, or in authoritative-only views.  Attempts to set
+them to <B
+CLASS="command"
+>no</B
+> without also specifying
+<B
+CLASS="command"
+>recursion no;</B
+> will cause the server to
+ignore the options and log a warning message.
+</P
+><P
+>&#13;Specifying <B
+CLASS="command"
+>additional-from-cache no</B
+> actually
+disables the use of the cache not only for additional data lookups
+but also when looking up the answer.  This is usually the desired
+behavior in an authoritative-only server where the correctness of
+the cached data is an issue.
+</P
+><P
+>&#13;When a name server is non-recursively queried for a name that is not
+below the apex of any served zone, it normally answers with an
+"upwards referral" to the root servers or the servers of some other
+known parent of the query name.  Since the data in an upwards referral
+comes from the cache, the server will not be able to provide upwards
+referrals when <B
+CLASS="command"
+>additional-from-cache no</B
+>
+has been specified.  Instead, it will respond to such queries
+with REFUSED.  This should not cause any problems since
+upwards referrals are not required for the resolution process.
 </P
 ></DD
 ><DT
@@ -4872,7 +4912,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2342"
+NAME="AEN2350"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5076,7 +5116,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2407"
+NAME="AEN2415"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5171,7 +5211,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2433"
+NAME="AEN2441"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5376,39 +5416,57 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->The server supports two zone transfer methods. <B
+>&#13;Zone transfers can be sent using two different formats,
+<B
 CLASS="command"
 >one-answer</B
-> uses
-one DNS message per resource record transferred. <B
+> and <B
 CLASS="command"
 >many-answers</B
-> packs
-as many resource records as possible into a message. <B
+>.
+The <B
+CLASS="command"
+>transfer-format</B
+> option is used
+on the master server to determine which format it sends.
+<B
+CLASS="command"
+>one-answer</B
+> uses one DNS message per
+resource record transferred.
+<B
 CLASS="command"
 >many-answers</B
-> is
-more efficient, but is only known to be understood by <SPAN
+> packs as many resource records as
+possible into a message. <B
+CLASS="command"
+>many-answers</B
+> is more
+efficient, but is only supported by relatively new slave servers,
+such as <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9, <SPAN
 CLASS="acronym"
 >BIND</SPAN
->
-8.x and patched versions of <SPAN
+> 8.x and patched
+versions of <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 4.9.5. The default is <B
+> 4.9.5. The default is
+<B
 CLASS="command"
 >many-answers</B
 >. <B
 CLASS="command"
 >transfer-format</B
-> may
-be overridden on a per-server basis by using the <B
+>
+may be overridden on a per-server basis by using the
+<B
 CLASS="command"
 >server</B
-> statement.</P
+> statement.
+</P
 ></DD
 ><DT
 ><B
@@ -5584,7 +5642,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2569"
+NAME="AEN2580"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -5704,7 +5762,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2606"
+NAME="AEN2617"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -5788,7 +5846,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2634"
+NAME="AEN2645"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6155,7 +6213,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2722"
+NAME="AEN2733"
 ></A
 ><P
 ></P
@@ -6542,7 +6600,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2834"
+NAME="AEN2845"
 ></A
 ><P
 ></P
@@ -6951,7 +7009,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2942"
+NAME="AEN2953"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7026,7 +7084,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2958"
+NAME="AEN2969"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7061,7 +7119,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2966"
+NAME="AEN2977"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7124,7 +7182,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2980"
+NAME="AEN2991"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7754,7 +7812,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3127"
+NAME="AEN3138"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7765,13 +7823,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3130"
+NAME="AEN3141"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3132"
+NAME="AEN3143"
 ></A
 ><P
 ></P
@@ -8009,7 +8067,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3187"
+NAME="AEN3198"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8047,7 +8105,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3197"
+NAME="AEN3208"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8688,7 +8746,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3431"
+NAME="AEN3442"
 ></A
 ><P
 ></P
@@ -8795,7 +8853,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3461"
+NAME="AEN3472"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8816,7 +8874,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3466"
+NAME="AEN3477"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8839,7 +8897,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3472"
+NAME="AEN3483"
 ></A
 ><P
 ></P
@@ -8950,7 +9008,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3504"
+NAME="AEN3515"
 ></A
 ><P
 ></P
@@ -9327,7 +9385,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3616"
+NAME="AEN3627"
 ></A
 ><P
 ></P
@@ -9379,7 +9437,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3632"
+NAME="AEN3643"
 ></A
 ><P
 ></P
@@ -9556,7 +9614,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3680"
+NAME="AEN3691"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9586,7 +9644,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3687"
+NAME="AEN3698"
 ></A
 ><P
 ></P
@@ -9795,7 +9853,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3753"
+NAME="AEN3764"
 ></A
 ><P
 ></P
@@ -9886,7 +9944,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3781"
+NAME="AEN3792"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9919,7 +9977,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3787"
+NAME="AEN3798"
 ></A
 ><P
 ></P
@@ -10215,7 +10273,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3879"
+NAME="AEN3890"
 ></A
 ><P
 ></P
@@ -10298,7 +10356,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3902"
+NAME="AEN3913"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10322,7 +10380,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3907"
+NAME="AEN3918"
 ></A
 ><P
 ></P
@@ -10402,7 +10460,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3929"
+NAME="AEN3940"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10427,7 +10485,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3936"
+NAME="AEN3947"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10497,7 +10555,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3956"
+NAME="AEN3967"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10579,7 +10637,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3976"
+NAME="AEN3987"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10619,7 +10677,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3987"
+NAME="AEN3998"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10698,7 +10756,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4007"
+NAME="AEN4018"
 ></A
 ><P
 ></P
