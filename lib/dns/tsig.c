@@ -15,10 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.c,v 1.98.4.2 2001/01/09 22:44:24 bwelling Exp $ */
+/* $Id: tsig.c,v 1.98.4.3 2001/01/11 20:58:35 bwelling Exp $ */
 
 /*
- * $Id: tsig.c,v 1.98.4.2 2001/01/09 22:44:24 bwelling Exp $
+ * $Id: tsig.c,v 1.98.4.3 2001/01/11 20:58:35 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -591,7 +591,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_dynbuf;
+		goto cleanup_owner;
 	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_tsig;
 	datalist->covers = 0;
