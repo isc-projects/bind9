@@ -1691,7 +1691,7 @@ isc_result_t
 isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
-	return isc_socket_sendto(sock, region, task, action, arg, NULL, 0);
+	return (isc_socket_sendto(sock, region, task, action, arg, NULL, 0));
 }
 
 isc_result_t
@@ -1704,6 +1704,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
 	int cc;
+
+	REQUIRE(VALID_SOCKET(sock));
 
 	manager = sock->manager;
 
