@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.95 2001/01/09 21:51:01 bwelling Exp $ */
+/* $Id: master.c,v 1.96 2001/01/11 21:16:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1470,6 +1470,7 @@ load(dns_loadctx_t **ctxp) {
 		if ((target.length - target.used) < MINTSIZ)
 			COMMITALL;
  next_line:
+		;
 	} while (!done && (ctx->loop_cnt == 0 || loop_cnt++ < ctx->loop_cnt));
 
 	/*
