@@ -15,7 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.7 2000/12/06 01:08:37 bwelling Exp $ */
+/* $Id: dirdb.c,v 1.8 2000/12/10 07:53:11 gson Exp $ */
+
+/*
+ * A simple database driver that returns basic information about
+ * files and directories in the Unix file system as DNS data.
+ */
 
 #include <config.h>
 
@@ -35,10 +40,6 @@
 #include <named/globals.h>
 
 #include "dirdb.h"
-
-/*
- * A simple database driver that returns basic directory information.
- */
 
 static dns_sdbimplementation_t *dirdb = NULL;
 
