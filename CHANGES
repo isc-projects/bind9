@@ -1,3 +1,7 @@
+ 840.	[bug]		The config file parser could print the wrong file
+			name if an error was detected after an included file
+			was parsed. [RT #1353]
+
  839.	[func]		Dump packets for which there was no view or that the
 			class could not be determined to category "unmatched".
 

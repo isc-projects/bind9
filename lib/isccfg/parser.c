@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.52 2001/05/09 03:17:02 gson Exp $ */
+/* $Id: parser.c,v 1.53 2001/05/28 06:05:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2011,6 +2011,12 @@ create_listelt(cfg_parser_t *pctx, cfg_listelt_t **eltp) {
 }
 
 static void
+free_list_elt(cfg_parser_t *pctx, cfg_listelt_t *elt) {
+	cfg_obj_destroy(pctx, &elt->obj);
+	isc_mem_put(pctx->mctx, elt, sizeof(*elt));
+}
+
+static void
 free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	cfg_listelt_t *elt, *next;
 	for (elt = ISC_LIST_HEAD(obj->value.list);
@@ -2018,8 +2024,7 @@ free_list(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	     elt = next)
 	{
 		next = ISC_LIST_NEXT(elt, link);
-		cfg_obj_destroy(pctx, &elt->obj);
-		isc_mem_put(pctx->mctx, elt, sizeof(*elt));
+		free_list_elt(pctx, elt);
 	}
 }
 
@@ -3459,6 +3464,12 @@ cfg_gettoken(cfg_parser_t *pctx, int options) {
 				/*
 				 * Closed an included file, not the main file.
 				 */
+				cfg_listelt_t *elt;
+				elt = ISC_LIST_TAIL(pctx->files->value.list);
+				INSIST(elt != NULL);
+				ISC_LIST_UNLINK(pctx->files->value.list,
+						elt, link);
+				free_list_elt(pctx, elt);
 				goto redo;
 			}
 			pctx->seen_eof = ISC_TRUE;
