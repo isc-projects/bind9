@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.162 2002/07/19 03:50:41 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.163 2002/11/04 00:16:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1378,7 +1378,7 @@ usage(void) {
 	fprintf(stderr, "\t-d directory\n");
 	fprintf(stderr, "\t\tdirectory to find keyset files (.)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
-	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
+	fprintf(stderr, "\t\tSIG start time - absolute|offset (now - 1 hour)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now "
 				"(now + 30 days)\n");
@@ -1569,7 +1569,7 @@ main(int argc, char *argv[]) {
 	if (startstr != NULL)
 		starttime = strtotime(startstr, now, now);
 	else
-		starttime = now;
+		starttime = now - 3600;  /* Allow for some clock skew. */
 
 	if (endstr != NULL)
 		endtime = strtotime(endstr, now, starttime);
