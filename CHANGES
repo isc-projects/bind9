@@ -1,3 +1,5 @@
+1339.	[func]		libbind: log attempts to exploit #1338.
+
 1338.	[bug]		libbind: Remote buffer overrun.
 
 1337.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
