@@ -15,10 +15,10 @@
  *
  *	'ticker' timers generate a periodic tick event.
  *
- *	'idle' timers generate an idle timeout event if they are idle for too
+ *	'once' timers generate an idle timeout event if they are idle for too
  *	long, and generate a life timeout event if their lifetime expires.
- *	They are used to implement both expiring idle timers and 'one-shot'
- *	timers.
+ *	They are used to implement both (possibly expiring) idle timers and
+ *	'one-shot' timers.
  *
  * Note: unlike in eventlib, a timer's resources are never reclaimed merely
  * because it generated an event.  A timer reference will remain valid until
@@ -67,7 +67,7 @@ typedef struct timer_t		*timer_t;
 typedef struct timer_manager_t	*timer_manager_t;
 
 typedef enum {
-	timer_type_ticker = 0, timer_type_idle
+	timer_type_ticker = 0, timer_type_once
 } timer_type_t;
 
 typedef struct timer_event {
@@ -107,7 +107,7 @@ timer_create(timer_manager_t manager,
  *	For ticker timers, the timer will generate a 'tick' event every
  *	'interval' seconds.  The value of 'expires' is ignored.
  *
- *	For idle timers, 'expires' specifies the time when a life timeout
+ *	For once timers, 'expires' specifies the time when a life timeout
  *	event should be generated.  If 'expires' is 0, then no life
  *	timeout will be generated.  'interval' specifies how long the timer
  *	can be idle before it generates an idle timeout.  If 0, then no
@@ -131,8 +131,9 @@ timer_create(timer_manager_t manager,
  *
  *	The timer is attached to the task
  *
- *	If 'type' is idle, then the last-touched time is set to the
- *	current time.
+ *	An idle timeout will not be generated until at least Now + the
+ *	timer's interval if 'timer' is a once timer with a non-zero
+ *	interval.
  *
  * Returns:
  *
@@ -159,8 +160,9 @@ timer_reset(timer_t timer,
  *
  * Ensures:
  *
- *	If 'type' is idle, then the last-touched time is set to the
- *	current time.
+ *	An idle timeout will not be generated until at least Now + the
+ *	timer's interval if 'timer' is a once timer with a non-zero
+ *	interval.
  *
  * Returns:
  *
@@ -196,12 +198,13 @@ timer_touch(timer_t timer);
  *
  * Requires:
  *
- *	'timer' is a valid idle timer.
+ *	'timer' is a valid once timer.
  *
  * Ensures:
  *
  *	An idle timeout will not be generated until at least Now + the
- *	timer's interval if 'timer' is an idle timer.
+ *	timer's interval if 'timer' is a once timer with a non-zero
+ *	interval.
  *
  * Returns:
  *

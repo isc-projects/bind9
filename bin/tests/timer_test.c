@@ -47,7 +47,7 @@ tick(task_t task, task_event_t event)
 		interval.seconds = 4;
 		interval.nanoseconds = 0;
 		printf("*** resetting ti3 ***\n");
-		INSIST(timer_reset(ti3, timer_type_idle, expires, interval)
+		INSIST(timer_reset(ti3, timer_type_once, expires, interval)
 		       == ISC_R_SUCCESS);
 	}
 
@@ -106,7 +106,7 @@ main(int argc, char *argv[]) {
 	expires.nanoseconds = 0;
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_idle, expires, interval,
+	INSIST(timer_create(timgr, timer_type_once, expires, interval,
 			    t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
 	expires.seconds = 0;
 	expires.nanoseconds = 0;
@@ -119,7 +119,7 @@ main(int argc, char *argv[]) {
 	os_time_add(&now, &expires, &expires);
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_idle, expires, interval,
+	INSIST(timer_create(timgr, timer_type_once, expires, interval,
 			    t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
 
 	task_detach(&t1);

@@ -26,7 +26,7 @@
 #define WAIT(cvp, lp)		INSIST(os_condition_wait((cvp), (lp)))
 #define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
 
-#ifdef DEBUGTRACE
+#ifdef TASK_TRACE
 #define XTRACE(m)		printf("%s task %p thread %p\n", (m), \
 				       task, os_thread_self())
 #else

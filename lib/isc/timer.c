@@ -152,10 +152,12 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 		manager->nscheduled++;
 	}
 
+#ifdef TIMER_TRACE
 	printf("schedule %p at %lu.%09lu\n",
 	       timer,
 	       (unsigned long)due.seconds,
 	       (unsigned long)due.nanoseconds);
+#endif
 
 	/*
 	 * If this timer is at the head of the queue, we wake up the run
@@ -164,7 +166,9 @@ schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 	 * want it to oversleep.
 	 */
 	if (timer->index == 1 && broadcast_ok) {
+#ifdef TIMER_TRACE
 		printf("broadcast (schedule)\n");
+#endif
 		BROADCAST(&manager->wakeup);
 	}
 
@@ -189,7 +193,9 @@ deschedule(timer_t timer) {
 		INSIST(manager->nscheduled > 0);
 		manager->nscheduled--;
 		if (need_wakeup) {
+#ifdef TIMER_TRACE
 			printf("broadcast (deschedule)\n");
+#endif
 			BROADCAST(&manager->wakeup);
 		}
 	}
@@ -258,7 +264,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	timer->magic = TIMER_MAGIC;
 	timer->manager = manager;
 	timer->references = 1;
-	if (type == timer_type_idle && !ZERO(interval))
+	if (type == timer_type_once && !ZERO(interval))
 		os_time_add(&now, &interval, &timer->idle);
 	else {
 		timer->idle.seconds = 0;
@@ -333,7 +339,7 @@ timer_reset(timer_t timer, timer_type_t type,
 	timer->type = type;
 	timer->expires = expires;
 	timer->interval = interval;
-	if (type == timer_type_idle && !ZERO(interval))
+	if (type == timer_type_once && !ZERO(interval))
 		os_time_add(&now, &interval, &timer->idle);
 	else {
 		timer->idle.seconds = 0;
@@ -385,7 +391,7 @@ timer_touch(timer_t timer) {
 
 	LOCK(&timer->lock);
 
-	INSIST(timer->type == timer_type_idle);
+	INSIST(timer->type == timer_type_once);
 
 	result = os_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
@@ -474,20 +480,25 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 				/*
 				 * Idle timer has been touched; reschedule.
 				 */
+#ifdef TIMER_TRACE
 				printf("timer %p idle reschedule\n", timer);
+#endif
 				post_event = FALSE;
 				need_schedule = TRUE;
 			}
 
 			if (post_event) {
+#ifdef TIMER_TRACE
 				printf("timer %p posting %u\n", timer,
 				       type);
+#endif
 				event = task_event_allocate(manager->mctx,
 							    timer,
 							    type,
 							    timer->action,
 							    timer->arg,
 							    sizeof *event);
+
 				if (event != NULL)
 					INSIST(task_send_event(timer->task,
 							       &event));
@@ -524,26 +535,36 @@ run(void *uap) {
 	LOCK(&manager->lock);
 	while (!manager->done) {
 		INSIST(os_time_get(&now) == ISC_R_SUCCESS);
+#ifdef TIMER_TRACE
 		printf("running, now %lu.%09lu\n",
 		       (unsigned long)now.seconds,
 		       (unsigned long)now.nanoseconds);
+#endif
 
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
 			ts.tv_sec = manager->due.seconds;
 			ts.tv_nsec = manager->due.nanoseconds;
+#ifdef TIMER_TRACE
 			printf("waituntil %lu.%09lu\n",
 			       (unsigned long)manager->due.seconds,
 			       (unsigned long)manager->due.nanoseconds);
+#endif
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
 				  &timeout);
+#ifdef TIMER_TRACE
 			if (!timeout)
 				printf("wakeup\n");
+#endif
 		} else {
+#ifdef TIMER_TRACE
 			printf("wait\n");
+#endif
 			WAIT(&manager->wakeup, &manager->lock);
+#ifdef TIMER_TRACE
 			printf("wakeup\n");
+#endif
 		}
 	}
 	UNLOCK(&manager->lock);
@@ -628,7 +649,9 @@ timer_manager_destroy(timer_manager_t *managerp) {
 
 	UNLOCK(&manager->lock);
 
+#ifdef TIMER_TRACE
 	printf("broadcast (destroy)\n");
+#endif
 	BROADCAST(&manager->wakeup);
 
 	/*
