@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.17 1999/08/25 14:18:35 bwelling Exp $ */
+ /* $Id: sig_24.c,v 1.18 1999/08/31 14:55:47 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -162,7 +162,7 @@ totext_sig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* footprint */
 	foot = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%lu", ttl); 
+	sprintf(buf, "%lu", foot); 
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
@@ -428,16 +428,9 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	RETERR(dns_name_dup(&signer, mctx, sig->signer));
 	isc_region_consume(&sr, name_length(sig->signer));
 
-	/* Signature Size */
-	if (sr.length < 2)
-		return (ISC_R_UNEXPECTEDEND);
-	sig->siglen = uint16_fromregion(&sr);
-	isc_region_consume(&sr, 2);
-
 	/* Signature */
+	sig->siglen = sr.length;
 	if (sig->siglen > 0) {
-		if (sr.length < sig->siglen)
-			return (ISC_R_UNEXPECTEDEND);
 		sig->signature = isc_mem_get(mctx, sig->siglen);
 		if (sig->signature == NULL)
 			return (DNS_R_NOMEMORY);
