@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	sockaddr.h time.h stdtime.h
+HEADERS =	app.h sockaddr.h time.h stdtime.h
 
 SUBDIRS =
 TARGETS =
