@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.29 2004/03/05 04:58:40 marka Exp $ */
+/* $Id: zone_test.c,v 1.29.18.1 2005/03/16 23:24:00 marka Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	region.base = classname;
 	region.length = strlen(classname);
 	result = dns_rdataclass_fromtext(&rdclass,
-					 (isc_textregion_t *)&region);
+					 (isc_textregion_t *)(void*)&region);
 	ERRRET(result, "dns_rdataclass_fromtext");
 
 	dns_zone_setclass(zone, rdclass);
@@ -200,7 +200,7 @@ query(void) {
 			dns_zone_dumptostream(zone, stdout);
 			continue;
 		}
-		if (strlen(buf) == 0)
+		if (strlen(buf) == 0U)
 			continue;
 		dns_fixedname_init(&name);
 		isc_buffer_init(&buffer, buf, strlen(buf));

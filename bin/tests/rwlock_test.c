@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock_test.c,v 1.21.18.1 2004/08/28 06:17:29 marka Exp $ */
+/* $Id: rwlock_test.c,v 1.21.18.2 2005/03/16 23:23:59 marka Exp $ */
 
 #include <config.h>
 
@@ -136,7 +136,7 @@ main(int argc, char *argv[]) {
 	UNUSED(argc);
 	UNUSED(argv);
 	fprintf(stderr, "This test requires threads.\n");
-	exit(1);
+	return(1);
 }
 
 #endif
