@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.31 2001/04/17 04:07:38 tale Exp $ */
+/* $Id: rwlock.c,v 1.32 2001/04/17 13:42:32 tale Exp $ */
 
 #include <config.h>
 
@@ -129,6 +129,7 @@ static isc_result_t
 doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 	isc_boolean_t skip = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
