@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.141 2001/02/17 20:27:24 bwelling Exp $ */
+/* $Id: dig.c,v 1.142 2001/03/14 18:08:16 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -177,7 +177,7 @@ show_usage(void) {
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +qr                 (Print question before sending)\n"
-"                 +[no]nssearch       (Search all authorative nameservers)\n"
+"                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
 "                 +rrlimit=###        (Limit number of rr's in xfr)\n"
