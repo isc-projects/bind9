@@ -67,6 +67,7 @@
 
 #include <dns/types.h>
 #include <dns/result.h>
+#include <dns/zt.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -76,7 +77,7 @@ struct dns_view {
 	isc_mem_t *			mctx;
 	dns_rdataclass_t		rdclass;
 	char *				name;
-	dns_dbtable_t *			dbtable;
+	dns_zt_t *			zonetable;
 	dns_resolver_t *		resolver;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
@@ -221,27 +222,16 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints);
  */
 
 isc_result_t
-dns_view_addzonedb(dns_view_t *view, dns_db_t *db);
+dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
 /*
- * Add zone database 'db' to 'view'.
- *
- * Note:
- *
- *	WARNING!  THIS ROUTINE WILL PROBABLY GO AWAY.
- * 
- *      Adding/removing zones from a view is not so traumatic as
- *      adding/removing the cache or changing the resolver, so we
- *	probably don't need to "freeze" the zone table.
+ * Add zone 'zone' to 'view'.
  *
  * Requires:
  *
  *	'view' is a valid, unfrozen view.
  *
- *	'db' is a valid zone database.
- *
- * Ensures:
- *
- * The cache database of 'view' is 'cachedb'.  */
+ *	'zone' is a valid zone.
+ */
 
 void
 dns_view_freeze(dns_view_t *view);
@@ -309,6 +299,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	DNS_R_HINT				Success; result is a hint.
  *	ISC_R_NOTFOUND				No matching data found,
  *						or an error occurred.
+ */
+
+dns_view_t *
+dns_view_findinlist(dns_viewlist_t *list, const char *name,
+		    dns_rdataclass_t rdclass);
+/*
+ * XXX
  */
 
 ISC_LANG_ENDDECLS
