@@ -305,7 +305,7 @@ Building
 	  if the optimiser is enabled.  Use -O0 to disable the optimiser.
 	* gcc ultrasparc generates incorrect code at -02.
 	* gcc-3.3.5 powerpc generates incorrect code at -02.
-	* Irix, MipsPRO 7.3.1m is known to cause problems.
+	* Irix, MipsPRO 7.4.1m is known to cause problems.
 
 	A limited test suite can be run with "make test".  Many of
 	the tests require you to configure a set of virtual IP addresses
