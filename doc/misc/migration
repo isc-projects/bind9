@@ -1,5 +1,5 @@
 Copyright (C) 2000  Internet Software Consortium.
-See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 
 BIND 8 to BIND 9 Migration Notes
@@ -95,4 +95,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.1.2.2 2000/07/27 01:39:11 gson Exp $
+$Id: migration,v 1.1.2.3 2000/08/15 22:35:05 gson Exp $
