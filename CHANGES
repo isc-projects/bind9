@@ -1,3 +1,8 @@
+ 158.   [bug]		Log channel and category list copy routines
+			weren't assigning properly to output parameter.
+
+ 157.   [port]		Fix missing prototype for getopt().
+
  156.	[func]		Support new 'database' statement in zone.
 
 				database "quoted-string";
