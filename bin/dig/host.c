@@ -61,7 +61,7 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t tcp_mode,
-	have_ipv6;
+	have_ipv6, show_details;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -170,7 +170,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
-	debug("In check_next_lookup");
+	debug("check_next_lookup()");
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
@@ -244,10 +244,17 @@ show_usage() {
 
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
-	UNUSED(query);
-	if (!short_form)
-		printf("Received %u bytes from %.*s\n",
-		       bytes, frmsize, frm);
+	isc_time_t now;
+	isc_result_t result;
+	int diff;
+
+	if ((!short_form) || (show_details)) {
+		result = isc_time_now(&now);
+		check_result (result, "isc_time_now");
+		diff = isc_time_microdiff(&now, &query->time_sent);
+		printf("Received %u bytes from %.*s in %d ms\n",
+		       bytes, frmsize, frm, diff/1000);
+	}
 }
 
 void
@@ -416,12 +423,22 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_rdataset_t *opt, *tsig = NULL;
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_buffer_t *b;
+	isc_region_t r;
 
 	UNUSED (headers);
 
 	if (msg->rcode != 0) {
-		printf ("Host not found: %d(%s)\n",
+		result = isc_buffer_allocate(mctx, &b, MXNAME);
+		check_result (result, "isc_buffer_allocate");
+		result = dns_name_totext(query->lookup->name, ISC_FALSE,
+					 b);
+		check_result (result, "dns_name_totext");
+		isc_buffer_usedregion (b, &r);
+		printf ("Host %.*s not found: %d(%s)\n",
+			(int)r.length, (char *)r.base,
 			msg->rcode, rcodetext[msg->rcode]);
+		isc_buffer_free (&b);
 		return (ISC_R_SUCCESS);
 	}
 	if (!short_form) {
@@ -585,6 +602,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strcpy (queryclass, "in");
 			nsfind = ISC_TRUE;
 			showallsoa = ISC_TRUE;
+			show_details = ISC_TRUE;
 			break;
 		case 'N':
 			debug ("Setting NDOTS to %s", 
@@ -627,6 +645,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->oname=NULL;
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
+	lookup->origin = NULL;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->identify = ISC_FALSE;
 	lookup->recurse = recursion;

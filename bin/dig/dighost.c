@@ -60,7 +60,8 @@ ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t tcp_mode = ISC_FALSE, have_ipv6 = ISC_FALSE,
-	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE;
+	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
+	trace = ISC_FALSE;
 #ifdef TWIDDLE
 isc_boolean_t twiddle = ISC_FALSE;
 #endif
@@ -479,6 +480,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 					lookup->oname=NULL;
 					lookup->timer = NULL;
 					lookup->xfr_q = NULL;
+					lookup->origin = NULL;
 					lookup->doing_xfr = ISC_FALSE;
 					lookup->identify = ISC_TRUE;
 					lookup->recurse = query->lookup->
@@ -520,9 +522,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 						 srv, link);
 					isc_buffer_free (&b);
 				}
-				debug ("Before insertion, init@%ld "
-					 "-> %ld, new@%ld "
-					 "-> %ld", (long int)query->lookup,
+				debug ("Before insertion, init@%lx "
+					 "-> %lx, new@%lx "
+					 "-> %lx", (long int)query->lookup,
 					 (long int)query->lookup->link.next,
 					 (long int)lookup, (long int)lookup->
 					 link.next);
@@ -530,8 +532,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 						     lookup, lookup,
 						     link);
 				debug ("After insertion, init -> "
-					 "%ld, new = %ld, "
-					 "new -> %ld", (long int)query->
+					 "%lx, new = %lx, "
+					 "new -> %lx", (long int)query->
 					 lookup->link.next,
 					 (long int)lookup, (long int)lookup->
 					 link.next);
@@ -639,7 +641,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	char store[MXNAME];
 	
 	debug("setup_lookup()");
-	debug("Setting up for looking up %s @%ld->%ld", 
+	debug("Setting up for looking up %s @%lx->%lx", 
 		lookup->textname, (long int)lookup,
 		(long int)lookup->link.next);
 
@@ -657,6 +659,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	if (count_dots(lookup->textname) >= ndots)
 		lookup->origin = NULL; /* Force root lookup */
+	debug ("lookup->origin = %lx", (long int)lookup->origin);
 	if (lookup->origin != NULL) {
 		debug ("Trying origin %s", lookup->origin->origin);
 		result = dns_message_gettempname(lookup->sendmsg,
@@ -905,9 +908,10 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 				if (q->lookup->retries > 1)
 					printf(";; Connection to server %.*s "
 					       "for %s timed out.  "
-					       "Retrying.\n",
+					       "Retrying %d.\n",
 					       (int)r.length, r.base,
-					       q->lookup->textname);
+					       q->lookup->textname,
+					       q->lookup->retries-1);
 				else
 					printf(";; Connection to server %.*s "
 					       "for %s timed out.  "
@@ -1149,9 +1153,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (query->lookup->xfr_q == NULL)
 			query->lookup->xfr_q = query;
 		if (query->lookup->xfr_q == query) {
-			if (query->lookup->ns_search_only)
-				followup_lookup(msg, query);
-			else if ((msg->rcode != 0) &&
+			if (query->lookup->ns_search_only) {
+				if (show_details) {
+				       printmessage(query, msg, ISC_TRUE);
+				}
+				if ((msg->rcode != 0) &&
+				    (query->lookup->origin != NULL)) {
+					next_origin(msg, query);
+				} else
+					followup_lookup(msg, query);
+			} else if ((msg->rcode != 0) &&
 				 (query->lookup->origin != NULL)) {
 				next_origin(msg, query);
 				if (show_details) {
@@ -1405,7 +1416,6 @@ free_lists(void) {
 		o = ISC_LIST_NEXT(o, link);
 		isc_mem_free(mctx, ptr);
 	}
-	dns_name_invalidate(dns_rootname);
 	if (socketmgr != NULL)
 		isc_socketmgr_destroy(&socketmgr);
 	if (timermgr != NULL)
