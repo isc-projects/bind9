@@ -1,6 +1,9 @@
 
 	--- 9.2.1rc1 released ---
 
+1200.	[bug]		Log 'errno' that we are unable to convert to
+			isc_result_t. [RT #2404]
+
 1198.	[bug]		OPT printing style was not consistant with the way the
 			header fields are printed.  The DO bit was not reported
 			if set.  Report if any of the MBZ bits are set.
