@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.7 2000/08/15 20:19:36 gson Exp $
+.\" $Id: named.8,v 1.8 2000/08/21 20:40:05 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -94,6 +94,11 @@ tells
 to chroot() to
 .Ar directory
 immediately after reading its config file.
+This should be used in conjunction with the
+.Fl u
+option, as chrooting a process running as root doesn't 
+enhance security on most systems - the way chroot() is defined
+allows a process with root privileges to escape the chroot jail.
 .It Fl u
 run
 .Nm named
@@ -103,6 +108,16 @@ as UID
 will change its UID after it has
 carried out any privileged operations, such as
 creating sockets that listen on privileged ports.
+.Pp
+On Linux, 
+.Nm named
+uses the kernel's capability mechanism to drop
+all root privileges except the ability to bind() to a privileged
+port.  Unfortunately, this means that the "-u" option only works 
+when 
+.Nm named
+is run on 2.3.99-pre3 or later kernel, since previous
+kernels did not allow privileges to be retained after setuid().
 .It Fl x
 load data from
 .Ar cache-file .
