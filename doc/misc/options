@@ -160,6 +160,7 @@ view <string> <optional_class> {
                     delegation-only );
                 allow-update { <address_match_element>; ... };
                 file <quoted_string>;
+                journal <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
                 masters [ port <integer> ] { ( <masters> | <ipv4_address>
@@ -319,6 +320,7 @@ zone <string> <optional_class> {
         type ( master | slave | stub | hint | forward | delegation-only );
         allow-update { <address_match_element>; ... };
         file <quoted_string>;
+        journal <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
         masters [ port <integer> ] { ( <masters> | <ipv4_address> [port
