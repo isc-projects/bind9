@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.7 2000/08/22 01:45:20 bwelling Exp $ */
+/* $Id: zone.c,v 1.152.2.8 2000/08/25 17:30:39 gson Exp $ */
 
 #include <config.h>
 
@@ -2125,19 +2125,24 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t nscnt, cnamecnt;
 	isc_result_t result;
 	isc_stdtime_t now;
+	isc_boolean_t exiting = ISC_FALSE;
 
 	stub = revent->ev_arg;
 	INSIST(DNS_STUB_VALID(stub));
 
 	UNUSED(task);
 
-	/* XXX add test for exiting */
-
 	dns_zone_iattach(stub->zone, &zone);
 
 	DNS_ENTER;
 
 	isc_stdtime_get(&now);
+
+	if (DNS_ZONE_FLAG(stub->zone, DNS_ZONEFLG_EXITING)) {
+		zone_log(zone, me, ISC_LOG_INFO, "exiting");
+		exiting = ISC_TRUE;
+		goto next_master;
+	}
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
 
@@ -2252,12 +2257,12 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
-	if (zone->curmaster >= zone->masterscnt) {
+	if (exiting || zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONEFLG_REFRESH;
 
 		zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
-		return;
+		goto free_stub;
 	}
 	UNLOCK(&zone->lock);
 	queue_soa_query(zone);
@@ -2281,6 +2286,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_mem_put(stub->mctx, stub, sizeof(*stub));
 
  detach:
+	INSIST(event == NULL);
 	dns_zone_idetach(&zone);
 	return;
 }
