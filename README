@@ -1,4 +1,50 @@
 
+Code Drop 2 Status Update
+
+Work since February has focused almost exclusively on the DNS library,
+especially on database implementation and resolver architecture.  The
+DNS library now contains a transactional versioned database.  In zone
+mode, the database supports multiple concurrent readers as well as a
+single in-progress abortable update (e.g. dynamic DNS or IXFR).  In
+cache mode, multiple concurrent readers and writers are supported.  We
+also have added interfaces for iterating the database, DNS
+compression, parsing and writing DNS messages.  Our tree code now has
+support for bitstring labels (required for IPv6).  DNS master file
+loading is more robust than in the first code drop.
+
+A significant amount of design and implementation work that we had
+hoped to do later in the project had to be done in the current time
+period.  For example, both DNSSEC and IPv6 introduce DB and resolver
+complexities that are so fundamental that they could not be deferred
+until the time when we are actually implementing DNSSEC and IPv6
+support.  As a result, we have less code implemented than we had
+hoped, but are ahead of plan on parts of the design.
+
+We are currently finalizing the resolver design, and will start
+implementing it soon.  Also nearing completion, but not included in
+this release, are library data types representing zones, the cache,
+and a standard C structure form for each rdata type.
+
+
+Tests
+
+A basic test framework and a set of tests are included in this
+release.  The tests are in
+
+	bin/tests/master
+	bin/tests/names
+	bin/tests/rbt
+
+To run a test, 'cd' into its directory and type 'make test'.
+Result of the tests are appended to
+
+	bin/tests/t_journal
+
+We expect the test suite to become richer over time.
+
+
+Building
+
 We've had successful builds and tests on the following systems
 
 	BSDI 3.1
@@ -16,30 +62,7 @@ To build, just
 Do not run 'make install'.
 
 Building with gcc is not supported, unless gcc is the vendor's usual
-compiler (e.g. the various BSD systems, Linux).  If you have gcc installed
-on a system where it is not the vendor's usual compiler, then you should
-
-	setenv CC cc			# Solaris, HP-UX
-
-or
-
-	setenv CC c89			# Digital UNIX
-
-before doing "./configure".
-
-We know about the compiler warnings for socket.c on some systems.  The issue
-will be addressed in a future release, but in the meantime everything should
-still work.
-
-Code in bin/named is for testing purposes only, and is not representative of
-the final architecture.  Currently, it can load one zone and answer questions
-about names in that zone.
-
-All APIs are subject to change in future code drops.
-
-Out-of-zone glue is not supported yet.
-
-Trying to query for ANY RR type doesn't work yet.
+compiler (e.g. the various BSD systems, Linux).
 
 IRIX note: you must edit lib/isc/Makefile.in changing
 
@@ -52,3 +75,20 @@ to
 
 before you run ./configure.  Many compiler warnings, etc. are currently
 generated on IRIX.  They will be cleaned up in a future release.
+
+
+bin/named Note
+
+Code in bin/named is for testing purposes only, and is not representative of
+the final architecture.  Currently, it can load multiple zones and also
+a cache, and answer queries for those names.  Because the server cannot
+recurse, and because it does not yet implement the full DNS protocol,
+it runs on port 5544, not port 53.
+
+
+API Note
+
+All APIs are subject to change in future code drops.  We expect the
+existing library interfaces in the code drop to be quite stable,
+however, and unless we've specifically indicated that an interface is
+temporary, we don't expect significant changes in future releases.
