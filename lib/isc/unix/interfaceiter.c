@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.35 2004/03/05 05:11:45 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.35.18.1 2004/04/20 06:46:09 marka Exp $ */
 
 #include <config.h>
 
@@ -106,6 +106,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 							    (isc_uint32_t)zone16);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
+#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 				} else if (ifname != NULL) {
 					unsigned int zone;
 
@@ -120,6 +121,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 						isc_netaddr_setzone(dst,
 								    (isc_uint32_t)zone);
 					}
+#endif
 				}
 			}
 		}
