@@ -180,6 +180,7 @@
 ./bin/tests/headerdep_test.sh.in		SH	2000
 ./bin/tests/inter_test.c			C	2000
 ./bin/tests/keyboard_test.c			C	2000
+./bin/tests/journalprint.c			C	2000
 ./bin/tests/lex_test.c				C	1998,1999,2000
 ./bin/tests/lfsr_test.c				C	1999,2000
 ./bin/tests/log_test.c				C	1999,2000
