@@ -1,4 +1,9 @@
 
+ 433.	[func]		isc_base64_decodestring() now accepts newlines
+			within the base64 data.  This makes it possible 
+			to break up the key data in a "trusted-keys"
+			statement into multiple lines. [RT #284]
+
  432.	[func]		Added refresh/retry jitter.  This is currently
 			hard-coded to be no more than 20% of the SOA
 			provided time or 10 minutes, whichever is less.
