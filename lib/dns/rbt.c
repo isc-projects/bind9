@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.39 1999/04/16 16:12:15 tale Exp $ */
+/* $Id: rbt.c,v 1.40 1999/04/16 18:30:03 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -433,7 +433,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
                         add_labels   = FAST_COUNTLABELS(&add_name);
                         current_labels = FAST_COUNTLABELS(&current_name);
 
-			if (compared == dns_namereln_subdomain) {
+			if (compared == dns_namereln_subdomain &&
+			    common_bits == 0) {
 				/*
 				 * All of the exising labels are in common,
 				 * so the new name is in a subtree.
@@ -470,7 +471,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 */
 
 				INSIST(compared == dns_namereln_commonancestor
-				       || compared == dns_namereln_contains);
+				       || compared == dns_namereln_contains
+				       || (compared == dns_namereln_subdomain
+					   && common_bits > 0));
 
 				/*
 				 * Ensure the number of levels in the tree
@@ -690,7 +693,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	dns_namereln_t compared;
 	dns_result_t result, saved_result;
 	isc_region_t r;
-	unsigned int current_labels, common_labels, common_bits;
+	unsigned int common_labels, common_bits;
 	unsigned int first_common_label;
 	int order;
 
@@ -761,12 +764,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * the current node's name length, then follow the
 			 * down pointer and search in the new tree.
 			 */
-			current_labels = FAST_COUNTLABELS(current_name);
-
-			if (common_labels == current_labels) {
+			if (compared == dns_namereln_subdomain &&
+			    common_bits == 0) {
 				/*
 				 * Set up new name to search for as
-				 * the not-in-common part, and build foundname.
+				 * the not-in-common part.
 				 */
 				if (search_name == &name2) {
 					current_name = &name2;
@@ -842,14 +844,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 			} else {
 				/*
-				 * Though there is a suffix in common, it
-				 * is shorter than the length of the name at
-				 * this node, which means there is no down
-				 * pointer and the name does not exist.
+				 * Though there are labels in common, the
+				 * entire name at this node is not common
+				 * with the search name so the search
+				 * name does not exist in the tree.
 				 * Add this node to the ancestor chain
 				 * to simplify things for the chain fixing
 				 * logic below then end the loop.
 				 */
+				INSIST(compared == dns_namereln_commonancestor
+				       || compared == dns_namereln_contains
+				       || (compared == dns_namereln_subdomain
+					   && common_bits > 0));
+
 				ADD_ANCESTOR(chain, current);
 				current = NULL;
 			}
@@ -2073,6 +2080,15 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	if (successor != NULL) {
 		chain->end = successor;
+
+		/*
+		 * It is not necessary to use dns_rbtnodechain_next like
+		 * the other functions because this function will never
+		 * find a node in the topmost level.  This is because the
+		 * root level will never be more than one name, and everything
+		 * in the megatree is a successor to that node, down at
+		 * the second level or below.
+		 */
 
 		NODENAME(chain->end, name);
 
