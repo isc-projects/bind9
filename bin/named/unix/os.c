@@ -20,13 +20,14 @@
 #include <sys/stat.h>
 
 #include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <grp.h>		/* Required for initgroups() on IRIX. */
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <syslog.h>
-#include <fcntl.h>
-#include <pwd.h>
+#include <unistd.h>
 
 #include <isc/string.h>
 
