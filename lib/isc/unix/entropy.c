@@ -545,7 +545,10 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			 * If we've extracted half our pool size in bits
 			 * since the last refresh, try to refresh here.
 			 */
-			fillpool(ent, 0, ISC_FALSE);
+			if (ent->initialized < 20)
+				fillpool(ent, 20, blocking);
+			else
+				fillpool(ent, 0, ISC_FALSE);
 
 			/*
 			 * If we've not initialized with enough good random
