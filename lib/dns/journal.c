@@ -625,6 +625,10 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 		result = dns_rdataset_totext(&rds, &t->name,
 					     ISC_FALSE, ISC_FALSE, &buf);
 
+		/* Get rid of final newline. */
+		INSIST(buf.used >= 1 && ((char *) buf.base)[buf.used-1] == '\n');
+		buf.used--;
+
 		if (result == DNS_R_NOSPACE) {
 			isc_mem_put(diff->mctx, mem, size);
 			size += 1024;
