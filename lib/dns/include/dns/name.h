@@ -62,9 +62,7 @@
  * Standards:
  *	RFC 1035
  *	Draft EDNS0 (0)
- *	Draft EDNS1 (0)
  *	Draft Binary Labels (2)
- *	Draft Local Compression (1)
  *
  */
 
@@ -752,7 +750,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
  *	Bad Form: Bad compression pointer
  *	Bad Form: Input too short
  *	Resource Limit: Too many compression pointers
- *	Resource Limit: Not enough space in buffer */
+ *	Resource Limit: Not enough space in buffer
+ */
 
 isc_result_t
 dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target);
@@ -837,7 +836,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *	DNS_R_BITSTRINGTOOLONG
  *	DNS_R_BADDOTTEDQUAD
  *	ISC_R_NOSPACE
- *	ISC_R_UNEXPECTEDEND */
+ *	ISC_R_UNEXPECTEDEND
+ */
 
 isc_result_t
 dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
@@ -894,7 +894,8 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name,
  *	ISC_R_SUCCESS
  *	ISC_R_NOSPACE
  *
- * Note: if source == name, then the result will always be ISC_R_SUCCESS.  */
+ * Note: if source == name, then the result will always be ISC_R_SUCCESS.
+ */
 
 isc_result_t
 dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
@@ -927,7 +928,8 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE */
+ *	ISC_R_NOSPACE
+ */
 
 isc_result_t
 dns_name_split(dns_name_t *name,
