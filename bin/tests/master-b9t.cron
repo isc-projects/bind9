@@ -1,0 +1,24 @@
+#
+# check out the current bind 9 version and make the source tarball
+#
+45 * * * * PLATFORM=BSD-3.1 && . $HOME/b9t/hosts/$PLATFORM/env && nice make PLATFORM=$PLATFORM -e -f $HOME/b9t/bin/b9t.mk tarsrc  > $HOME/b9t/hosts/$PLATFORM/b9t-status 2>&1
+#
+# build the BSD-3.1 version of bind 9
+#
+0 * * * * PLATFORM=BSD-3.1 && . $HOME/b9t/hosts/$PLATFORM/env && nice make PLATFORM=$PLATFORM -e -f $HOME/b9t/bin/b9t.mk  > $HOME/b9t/hosts/$PLATFORM/b9t-status 2>&1
+#
+# run the bind 9 build status report generator
+#
+30 * * * * perl $HOME/b9t/bin/b9status.pl > /proj/build-reports/bind9/bind9.html 2> $HOME/b9t/hosts/b9t-status
+#
+# check out the current bind 8 version and make the source tarball
+#
+15 0,6,12,18 * * * PLATFORM=BSD-3.1 && . $HOME/b8t/hosts/$PLATFORM/env && nice make PLATFORM=$PLATFORM -e -f $HOME/b8t/bin/b8t.mk tarsrc  > $HOME/b8t/hosts/$PLATFORM/b8t-status 2>&1
+#
+# build the BSD-3.1 version of bind 8
+#
+30 0,6,12,18 * * * PLATFORM=BSD-3.1 && . $HOME/b8t/hosts/$PLATFORM/env && nice make PLATFORM=$PLATFORM -e -f $HOME/b8t/bin/b8t.mk > $HOME/b8t/hosts/$PLATFORM/b8t-status 2>&1
+#
+# run the bind 8 build status report generator
+#
+0  0,6,12,18 * * *  perl $HOME/b8t/bin/b8status.pl > /proj/build-reports/bind8/bind8.html 2> $HOME/b8t/hosts/b8t-status
