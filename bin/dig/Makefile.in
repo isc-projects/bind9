@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2000/08/17 02:11:36 bwelling Exp $
+# $Id: Makefile.in,v 1.16 2000/09/20 19:05:51 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -63,9 +63,7 @@ clean distclean::
 	rm -f ${TARGETS}
 
 installdirs:
-	if [ ! -d ${DESTDIR}${bindir} ]; then \
-		mkdir ${DESTDIR}${bindir}; \
-	fi
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 
 install:: dig host nslookup installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}

@@ -1,3 +1,6 @@
+ 478.	[bug]		"make install" failed if the directory specified with
+			--prefix did not already exist.
+
  477.	[bug]		The the isc-config.sh script could be installed before
 			its directory was created. [RT #324]
 

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.65 2000/08/29 18:23:58 bwelling Exp $
+# $Id: Makefile.in,v 1.66 2000/09/20 19:06:02 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -101,9 +101,7 @@ timestamp: libisc.@A@
 	touch timestamp
 
 installdirs:
-	if [ ! -d ${DESTDIR}${libdir} ]; then \
-		mkdir ${DESTDIR}${libdir}; \
-	fi
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
 	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}

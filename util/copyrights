@@ -1336,6 +1336,7 @@
 ./make/includes.in				MAKE	1999,2000
 ./make/mkdep.in					X	1999,2000
 ./make/rules.in					MAKE	1998,1999,2000
+./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000
 ./util/COPYRIGHT.BRIEF				X	1996,1997,1998,1999,2000

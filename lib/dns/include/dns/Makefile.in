@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.32 2000/08/22 00:55:21 bwelling Exp $
+# $Id: Makefile.in,v 1.33 2000/09/20 19:05:59 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -46,12 +46,7 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 installdirs:
-	if [ ! -d ${DESTDIR}${includedir} ]; then \
-		mkdir ${DESTDIR}${includedir} ; \
-	fi
-	if [ ! -d ${DESTDIR}${includedir}/dns ]; then \
-		mkdir ${DESTDIR}${includedir}/dns ; \
-	fi
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${includedir}/dns
 
 install:: installdirs
 	for i in ${HEADERS}; do \
