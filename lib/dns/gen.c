@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.36 2000/04/14 22:59:00 explorer Exp $ */
+/* $Id: gen.c,v 1.37 2000/04/19 18:32:26 explorer Exp $ */
 
 #include <config.h>
 
@@ -135,6 +135,7 @@ struct tt {
 struct ttnam {
 	char typename[11];
 	char macroname[11];
+	char attr[256];
 } typenames[256];
 
 char *	upper(char *);
@@ -143,6 +144,7 @@ void	doswitch(char *, char *, char *, char *, char *, char *);
 void	dodecl(char *, char *, char *);
 void	add(int, char *, int, char *, char *);
 void	sd(int, char *, char *, char);
+void	insert_into_typenames(int, char *, char *);
 
 /*
  * If you use more than 10 of these in, say, a printf(), you'll have problems.
@@ -150,7 +152,7 @@ void	sd(int, char *, char *, char);
 char *
 upper(char *s) {
 	static int buf_to_use = 0;
-	static char buf[10][11];
+	static char buf[10][256];
 	char *b;
 	int c;
 
@@ -159,6 +161,7 @@ upper(char *s) {
 		buf_to_use = 0;
 
 	b = buf[buf_to_use];
+	memset(b, 0, 256);
 
 	while ((c = (*s++) & 0xff)) {
 		
@@ -272,17 +275,11 @@ dodecl(char *type, char *function, char *args) {
 }
 
 void
-add(int rdclass, char *classname, int type, char *typename, char *dirname) {
-	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
-	struct tt *tt, *oldtt;
+insert_into_typenames(int type, char *typename, char *attr)
+{
 	struct ttnam *ttn;
-	struct cc *newcc;
-	struct cc *cc, *oldcc;
-
-	if (newtt == NULL) {
-		fprintf(stderr, "malloc() failed\n");
-		exit(1);
-	}
+	int c;
+	char tmp[256];
 
 	ttn = &typenames[type];
 	if (ttn->typename[0] == 0) {
@@ -295,6 +292,47 @@ add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 	} else if (strcmp(typename, ttn->typename) != 0) {
 		fprintf(stderr, "Error:  type %d has two names: %s, %s\n",
 			type, ttn->typename, typename);
+		exit(1);
+	}
+
+	strcpy(ttn->macroname, ttn->typename);
+	c = strlen(ttn->macroname);
+	while (c > 0) {
+		if (ttn->macroname[c - 1] == '-')
+			ttn->macroname[c - 1] = '_';
+		c--;
+	}
+
+	if (attr == NULL) {
+		sprintf(tmp, "RRTYPE_%s_ATTRIBUTES", upper(ttn->macroname));
+		attr = tmp;
+	}
+
+	if (ttn->attr[0] != 0 && strcmp(attr, ttn->attr) != 0) {
+		fprintf(stderr, "Error:  type %d has different attributes: "
+			"%s, %s\n", type, ttn->attr, attr);
+		exit(1);
+	}
+
+	if (strlen(attr) > sizeof(ttn->attr) - 1) {
+		fprintf(stderr, "Error:  attr (%s) [name %s] is too long\n",
+			attr, typename);
+		exit(1);
+	}
+	strcpy(ttn->attr, attr);
+}
+
+void
+add(int rdclass, char *classname, int type, char *typename, char *dirname) {
+	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
+	struct tt *tt, *oldtt;
+	struct cc *newcc;
+	struct cc *cc, *oldcc;
+
+	insert_into_typenames(type, typename, NULL);
+
+	if (newtt == NULL) {
+		fprintf(stderr, "malloc() failed\n");
 		exit(1);
 	}
 
@@ -408,14 +446,9 @@ main(int argc, char **argv) {
 	char *prefix = NULL;
 	char *suffix = NULL;
 	isc_dir_t dir;
-	int special;
 
-	for (i = 0 ; i <= 255 ; i++) {
-		memset(typenames[i].typename, 0,
-		       sizeof(typenames[i].typename));
-		memset(typenames[i].macroname, 0,
-		       sizeof(typenames[i].macroname));
-	}
+	for (i = 0 ; i <= 255 ; i++)
+		memset(&typenames[i], 0, sizeof(typenames[i]));
 
 	strcpy(srcdir, "");
 	while ((c = isc_commandline_parse(argc, argv, "cits:P:S:")) != -1)
@@ -539,29 +572,28 @@ main(int argc, char **argv) {
 					upper(tt->typename),
 					tt->next != NULL ? " \\" : "");
 
-
-		/*
-		 * Change "invalid" characters to valid ones.  In this
-		 * case, only worry about the - in the nsap-ptr and other
-		 * type names.
-		 */
-		for (i = 0 ; i <= 255 ; i++) {
-			ttn = &typenames[i];
-			if (ttn->typename[0] == 0)
-				continue;
-			strcpy(ttn->macroname, ttn->typename);
-			c = strlen(ttn->macroname);
-			while (c > 0) {
-				if (ttn->macroname[c - 1] == '-')
-					ttn->macroname[c - 1] = '_';
-				c--;
-			}
-		}
-
 #define PRINT_COMMA(x) (x == 255 ? "" : ",")
 
 #define METANOTQUESTION  "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION"
 #define METAQUESTIONONLY "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_QUESTIONONLY"
+#define RESERVED "DNS_RDATATYPEATTR_RESERVED"
+
+		/*
+		 * Add in reserved/special types.  This will let us
+		 * sort them without special cases.
+		 */
+		insert_into_typenames(0, "reserved0", RESERVED);
+		insert_into_typenames(31, "eid", RESERVED);
+		insert_into_typenames(32, "nimloc", RESERVED);
+		insert_into_typenames(34, "atma", RESERVED);
+		insert_into_typenames(100, "uinfo", RESERVED);
+		insert_into_typenames(101, "uid", RESERVED);
+		insert_into_typenames(102, "gid", RESERVED);
+		insert_into_typenames(251, "ixfr", METAQUESTIONONLY);
+		insert_into_typenames(252, "axfr", METAQUESTIONONLY);
+		insert_into_typenames(253, "mailb", METAQUESTIONONLY);
+		insert_into_typenames(254, "maila", METAQUESTIONONLY);
+		insert_into_typenames(255, "any", METAQUESTIONONLY);
 
 		printf("\ntypedef struct {\n");
 		printf("\tchar *name;\n");
@@ -570,100 +602,15 @@ main(int argc, char **argv) {
 		printf("static typeattr_t typeattr[] = {\n");
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
-			special = 0;
-			switch (i) {
-			case 0:
-				printf("\t{ \"RESERVED0\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 31:
-				printf("\t{ \"EID\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 32:
-				printf("\t{ \"NIMLOC\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 34:
-				printf("\t{ \"ATMA\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 100:
-				printf("\t{ \"UINFO\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 101:
-				printf("\t{ \"UID\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 102:
-				printf("\t{ \"GID\", "
-				       "DNS_RDATATYPEATTR_RESERVED }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 251:
-				printf("\t{ \"IXFR\", "
-				       METAQUESTIONONLY " }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 252:
-				printf("\t{ \"AXFR\", "
-				       METAQUESTIONONLY " }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 253:
-				printf("\t{ \"MAILB\", "
-				       METAQUESTIONONLY " }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 254:
-				printf("\t{ \"MAILA\", "
-				       METAQUESTIONONLY " }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			case 255:
-				printf("\t{ \"ANY\", "
-				       METAQUESTIONONLY " }%s\n",
-				       PRINT_COMMA(i));
-				special = 1;
-				break;
-			default:
-				if (ttn->typename[0] == 0) {
-
-					printf("\t{ \"RRTYPE%d\", "
-					       "DNS_RDATATYPEATTR_UNKNOWN"
-					       "}%s\n", i, PRINT_COMMA(i));
-				} else {
-				printf("\t{ \"%s\", "
-				       "RRTYPE_%s_ATTRIBUTES }%s\n",
+			if (ttn->typename[0] == 0) {
+				printf("\t{ \"RRTYPE%d\", "
+				       "DNS_RDATATYPEATTR_UNKNOWN"
+				       "}%s\n", i, PRINT_COMMA(i));
+			} else {
+				printf("\t{ \"%s\", %s }%s\n",
 				       upper(ttn->typename),
-				       upper(ttn->macroname),
+				       upper(ttn->attr),
 				       PRINT_COMMA(i));
-				}
-				break;
-			}
-
-			if (special == 1 && ttn->typename[0] != 0) {
-				fprintf(stderr, "Error!  Special processing for %s, but type is defined in a file also\n",
-				       ttn->typename);
-				exit(1);
 			}
 		}
 		printf("};\n");
