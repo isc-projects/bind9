@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.69 2000/08/13 23:51:55 gson Exp $ */
+/* $Id: zone.h,v 1.70 2000/08/16 02:16:49 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -271,7 +271,7 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, char **dbargv);
+		   unsigned int dbargc, const char **dbargv);
 /*
  *	Sets the database type to dbargv[0] and database arguments
  *	to subsequent dbargv elements.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.183 2000/08/13 23:51:52 gson Exp $ */
+/* $Id: zone.c,v 1.184 2000/08/16 02:16:47 marka Exp $ */
 
 #include <config.h>
 
@@ -388,8 +388,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->magic = ZONE_MAGIC;
 
 	/* Must be after magic is set. */
-	result = dns_zone_setdbtype(zone, dbargc_default,
-				    (char **) dbargv_default);
+	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 	if (result != ISC_R_SUCCESS)
 		goto free_mutex;
 	
@@ -538,7 +537,7 @@ zone_freedbargs(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, char **dbargv) {
+		   unsigned int dbargc, const char **dbargv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char **new = NULL;
 	unsigned int i;
@@ -1933,8 +1932,10 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 
 	dns_zone_iattach(notify->zone, &zone);
 
-	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_LOADED) == 0)
+	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_LOADED) == 0) {
+		result = ISC_R_CANCELED;
 		goto cleanup;
+	}
 
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	     DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING)) {
