@@ -31,10 +31,14 @@ while (<>) {
 	print "$file: missing\n";
 	next;
     }
-    if ($type eq "X") {
-	if ( ! -f $file ) {
-	    print "$file: type X, but missing\n";
-	}
+
+    next if $type eq "X";
+
+    if ($type =~ /\.NAI$/) {
+	# XXX Not handled yet; co-copyrighted with Network Associates.
+	# lib/isc/commandline.c should probably also have special handling.
+	print "$file: co-copyrighted with Network Associates; ",
+              "update manually\n";
 	next;
     }
 
