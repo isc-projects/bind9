@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.28 1999/10/08 22:57:20 tale Exp $ */
+ /* $Id: gen.c,v 1.29 1999/10/25 17:04:55 marka Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>
 
 #include <ctype.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,9 +143,9 @@ char *
 upper(char *s) {
 	static char buf[11];
 	char *b = buf;
-	char c;
+	int c;
 
-	while ((c = *s++)) {
+	while ((c = (*s++) & 0xff)) {
 		
 		*b++ = islower(c) ? toupper(c) : c;
 	}
