@@ -13,6 +13,15 @@ to rc.isc.org, using the following environment settings:
    CVS_RSH=ssh
 
 
+Creating a release branch
+
+
+Here's how the 9.0 release branch was created:
+
+  cvs rtag v9_0_base bind9
+  cvs rtag -b -r v9_0_base v9_0 bind9
+
+
 
 Renaming files by respository copy
 
@@ -68,5 +77,12 @@ borrowed from an ancient CVS FAQ:
         your <working-dir> to know about the name change.
 
 
+Pulling up a newly added file to a release branch:
 
-$Id: cvs,v 1.2 2000/06/21 23:48:13 tale Exp $
+In a mainline working tree, do something like this:
+
+  cvs tag v9_0_base file
+  cvs tag -b -r v9_0_base v9_0 file
+
+
+$Id: cvs,v 1.3 2000/07/10 16:16:06 gson Exp $
