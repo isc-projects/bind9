@@ -58,6 +58,9 @@
 1716.	[doc]		named.conf(5) was being installed in the wrong
 			location.  [RT# 12441]
 
+1715.	[func]		'dig +trace' now randomly selects the next servers
+			to try.  Report if there is a bad delegation.
+
 1714.	[bug]		dig/host/nslookup were only trying the first
 			address when a nameserver was specified by name.
 			[RT #12286]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.9 2004/10/05 03:01:36 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.10 2004/10/07 02:21:14 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1398,6 +1398,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	isc_result_t result;
 	isc_boolean_t success = ISC_FALSE;
 	int numLookups = 0;
+	dns_name_t *domain;
 
 	INSIST(!free_now);
 
@@ -1423,6 +1424,20 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			continue;
 
 		debug("found NS set");
+
+		if (query->lookup->trace && !query->lookup->trace_root) {
+			dns_namereln_t namereln;
+			unsigned int nlabels;
+			int order;
+
+			domain = dns_fixedname_name(&query->lookup->fdomain);
+			namereln = dns_name_fullcompare(name, domain,
+							&order, &nlabels);
+			if (namereln == dns_namereln_equal)
+				printf(";; BAD (HORIZONTAL) REFERRAL\n");
+			else if (namereln != dns_namereln_subdomain)
+				printf(";; BAD REFERRAL\n");
+		}
 
 		for (result = dns_rdataset_first(rdataset);
 		     result == ISC_R_SUCCESS;
@@ -1459,6 +1474,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				lookup->ns_search_only =
 					query->lookup->ns_search_only;
 				lookup->trace_root = ISC_FALSE;
+				dns_fixedname_init(&lookup->fdomain);
+				domain = dns_fixedname_name(&lookup->fdomain);
+				dns_name_copy(name, domain, NULL);
 			}
 			srv = make_server(namestr, namestr);
 			debug("adding server %s", srv->servername);
@@ -1472,7 +1490,29 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	    (query->lookup->trace || query->lookup->ns_search_only))
 		return (followup_lookup(msg, query, DNS_SECTION_AUTHORITY));
 
-	return numLookups;
+	/*
+	 * Randomize the order the nameserver will be tried.
+	 */
+	if (numLookups > 1) {
+		isc_uint32_t i, j;
+		dig_serverlist_t my_server_list;
+
+		ISC_LIST_INIT(my_server_list);
+
+		for (i = numLookups; i > 0; i--) {
+			isc_random_get(&j);
+			j %= i;
+			srv = ISC_LIST_HEAD(lookup->my_server_list);
+			while (j-- > 0)
+				srv = ISC_LIST_NEXT(srv, link);
+			ISC_LIST_DEQUEUE(lookup->my_server_list, srv, link);
+			ISC_LIST_APPEND(my_server_list, srv, link);
+		}
+		ISC_LIST_APPENDLIST(lookup->my_server_list,
+				    my_server_list, link);
+	}
+
+	return (numLookups);
 }
 
 /*
