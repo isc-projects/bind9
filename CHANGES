@@ -1,3 +1,6 @@
+1207.	[bug]		libbind: getaddrinfo() could call freeaddrinfo() with
+			an invalid pointer.
+
 1206.	[bug]		SERVFAIL and NOTIMP responses to a EDNS should trigger
 			a non-EDNS retry.
 

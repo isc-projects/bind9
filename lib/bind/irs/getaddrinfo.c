@@ -320,7 +320,7 @@ getaddrinfo(hostname, servname, hints, res)
 	struct addrinfo sentinel;
 	struct addrinfo *cur;
 	int error = 0;
-	struct addrinfo ai, ai0, *afai;
+	struct addrinfo ai, ai0, *afai = NULL;
 	struct addrinfo *pai;
 	const struct explore *ex;
 
