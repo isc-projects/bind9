@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.66 2000/11/25 06:40:54 marka Exp $ */
+/* $Id: mem.c,v 1.67 2000/12/01 00:32:00 gson Exp $ */
 
 #include <config.h>
 
@@ -29,13 +29,8 @@
 #include <isc/ondestroy.h>
 #include <isc/string.h>
 
-#ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
 #include <isc/util.h>
-#else
-#define LOCK(l)
-#define UNLOCK(l)
-#endif
 
 unsigned int isc_mem_debugging = 0;
 
@@ -53,7 +48,7 @@ unsigned int isc_mem_debugging = 0;
 /*
  * Types.
  */
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 typedef struct debuglink debuglink_t;
 struct debuglink {
 	ISC_LINK(debuglink_t)	link;
@@ -124,7 +119,7 @@ struct isc_mem {
 	isc_mem_water_t		water;
 	void *			water_arg;
 	ISC_LIST(isc_mempool_t)	pools;
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	ISC_LIST(debuglink_t)	debuglist;
 #endif
 };
@@ -150,7 +145,7 @@ struct isc_mempool {
 	/* Stats only. */
 	unsigned int	gets;		/* # of requests to this pool */
 	/* Debugging only. */
-#ifdef ISC_MEMPOOL_NAMES
+#if ISC_MEMPOOL_NAMES
 	char		name[16];	/* printed name in stats reports */
 #endif
 };
@@ -159,7 +154,7 @@ struct isc_mempool {
  * Private Inline-able.
  */
 
-#ifndef ISC_MEM_TRACKLINES
+#if ! ISC_MEM_TRACKLINES
 #define ADD_TRACE(a, b, c, d, e)
 #define DELETE_TRACE(a, b, c, d, e)
 #else
@@ -542,7 +537,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 
  done:
 
-#ifdef ISC_MEM_FILL
+#if ISC_MEM_FILL
 	if (ret != NULL)
 		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
 #endif
@@ -558,7 +553,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 		/*
 		 * memput() called on something beyond our upper limit.
 		 */
-#ifdef ISC_MEM_FILL
+#if ISC_MEM_FILL
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 #endif
 		(ctx->memfree)(ctx->arg, mem);
@@ -570,8 +565,8 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 		return;
 	}
 
-#ifdef ISC_MEM_FILL
-#ifdef ISC_MEM_CHECKOVERRUN
+#if ISC_MEM_FILL
+#if ISC_MEM_CHECKOVERRUN
 	check_overrun(mem, size, new_size);
 #endif
 	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
@@ -874,7 +869,7 @@ isc_mem_restore(isc_mem_t *ctx) {
 	return (result);
 }
 
-#if defined(ISC_MEM_FILL) && defined(ISC_MEM_CHECKOVERRUN)
+#if ISC_MEM_FILL && ISC_MEM_CHECKOVERRUN
 static inline void
 check_overrun(void *mem, size_t size, size_t new_size) {
 	unsigned char *cp;
@@ -1328,7 +1323,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 	mpctx->freemax = 1;
 	mpctx->fillcount = 1;
 	mpctx->gets = 0;
-#ifdef ISC_MEMPOOL_NAMES
+#if ISC_MEMPOOL_NAMES
 	mpctx->name[0] = 0;
 #endif
 	mpctx->items = NULL;
@@ -1346,7 +1341,7 @@ void
 isc_mempool_setname(isc_mempool_t *mpctx, const char *name) {
 	REQUIRE(name != NULL);
 
-#ifdef ISC_MEMPOOL_NAMES
+#if ISC_MEMPOOL_NAMES
 	if (mpctx->lock != NULL)
 		LOCK(mpctx->lock);
 

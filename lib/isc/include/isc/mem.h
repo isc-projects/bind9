@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.44 2000/09/05 22:20:36 marka Exp $ */
+/* $Id: mem.h,v 1.45 2000/12/01 00:32:02 gson Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -36,26 +36,26 @@ typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
 /*
- * ISC_MEM_DEBUG is defined by default; define ISC_MEM_DEBUGOFF to disable it.
+ * ISC_MEM_DEBUG is enabled by default; set ISC_MEM_DEBUG=0 to disable it.
  */
-#if !defined(ISC_MEM_DEBUG) && !defined(ISC_MEM_DEBUGOFF)
-#define ISC_MEM_DEBUG
+#ifndef ISC_MEM_DEBUG
+#define ISC_MEM_DEBUG 1
 #endif
 
 /*
- * Define ISC_MEM_TRACKLINES to turn on detailed tracing of memory allocation
+ * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory allocation
  * and freeing by file and line number.
  */
-#if 0
-#define ISC_MEM_TRACKLINES
+#ifndef ISC_MEM_TRACKLINES
+#define ISC_MEM_TRACKLINES 0
 #endif
 
 /*
- * Define ISC_MEM_CHECKOVERRUN to turn on checks for using memory outside
+ * Define ISC_MEM_CHECKOVERRUN=1 to turn on checks for using memory outside
  * the requested space.  This will increase the size of each allocation.
  */
-#if 0
-#define ISC_MEM_CHECKOVERRUN
+#ifndef ISC_MEM_CHECKOVERRUN
+#define ISC_MEM_CHECKOVERRUN 0
 #endif
 
 /*
@@ -64,12 +64,16 @@ typedef void (*isc_memfree_t)(void *, void *);
  * and the like.  On freeing memory, the space is filled with '0xde' for
  * the same reasons.
  */
-#define ISC_MEM_FILL
+#ifndef ISC_MEM_FILL
+#define ISC_MEM_FILL 1
+#endif
 
 /*
  * Define this to turn on memory pool names.
  */
-#define ISC_MEMPOOL_NAMES
+#ifndef ISC_MEMPOOL_NAMES
+#define ISC_MEMPOOL_NAMES 1
+#endif
 
 /*
  * _DEBUGTRACE
@@ -83,7 +87,7 @@ extern unsigned int isc_mem_debugging;
 #define ISC_MEM_DEBUGTRACE		0x00000001U
 #define ISC_MEM_DEBUGRECORD		0x00000002U
 
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 #define _ISC_MEM_FILELINE	, __FILE__, __LINE__
 #define _ISC_MEM_FLARG		, const char *, int
 #else
@@ -121,7 +125,7 @@ extern unsigned int isc_mem_debugging;
  * isc_mem_detach(&mctx);
  */
 
-#ifdef ISC_MEM_DEBUG
+#if ISC_MEM_DEBUG
 #define isc_mem_put(c, p, s) \
 	do { \
 		isc__mem_put((c), (p), (s) _ISC_MEM_FILELINE); \
