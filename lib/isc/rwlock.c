@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.21 2000/08/24 17:06:31 gson Exp $ */
+/* $Id: rwlock.c,v 1.22 2000/08/24 19:06:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -121,9 +121,9 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		while (!done) {
 			if (!skip &&
 			    ((rwl->active == 0 ||
-			      rwl->writers_waiting == 0 ||
 			      (rwl->type == isc_rwlocktype_read &&
-			       rwl->granted < rwl->read_quota))))
+			       (rwl->writers_waiting == 0 ||
+			        rwl->granted < rwl->read_quota)))))
 			{
 				rwl->type = isc_rwlocktype_read;
 				rwl->active++;
