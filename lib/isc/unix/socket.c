@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.195 2001/04/10 21:38:33 gson Exp $ */
+/* $Id: socket.c,v 1.196 2001/04/10 21:48:27 gson Exp $ */
 
 #include <config.h>
 
@@ -1674,9 +1674,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		    (void *)&addrlen);
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
-			select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
-			UNLOCK(&sock->lock);
-			return;
+			goto soft_error;
 		} else {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept: accept() %s: %s",
@@ -1685,6 +1683,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 							ISC_MSG_FAILED,
 							"failed"),
 					 strerror(errno));
+			fd = -1;
 			result = ISC_R_UNEXPECTED;
 		}
 	} else {
@@ -1695,8 +1694,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 "remote address");
 
 			(void)close(fd);
-			fd = -1;
-			result = ISC_R_UNEXPECTED;			
+			goto soft_error;
 		} else if (dev->newsocket->address.type.sa.sa_family !=
 			   sock->pf)
 		{
@@ -1708,8 +1706,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 					 type.sa.sa_family,
 					 sock->pf);
 			(void)close(fd);
-			fd = -1;
-			result = ISC_R_UNEXPECTED;			
+			goto soft_error;
 		}
 	}
 
@@ -1777,6 +1774,12 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	dev->ev_sender = sock;
 
 	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
+	return;
+
+ soft_error:
+	select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
+	UNLOCK(&sock->lock);
+	return;
 }
 
 static void
