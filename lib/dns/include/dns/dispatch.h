@@ -67,16 +67,10 @@ struct dns_dispatchevent {
 	dns_result_t		result;		/* result code */
 	isc_int16_t		id;		/* message id */
 	isc_sockaddr_t		addr;		/* address recv'd from */
-	unsigned int		lattributes;	/* some private, some public */
 	isc_buffer_t	        buffer;		/* data buffer */
 };
 
 typedef struct dns_dispentry dns_dispentry_t;
-
-/*
- * Private attributes of events
- */
-#define DNS_DISPATCHATTR_MPOOL		0x00010000 /* allocated via mpool */
 
 dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
@@ -222,7 +216,8 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
  */
 
 void
-dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispatchevent_t **sockevent);
+dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
+		       dns_dispatchevent_t **sockevent);
 /*
  * Return a dispatchevent and associated buffer to the dispatch.  This needs
  * to be called if more events are desired but a particular event is fully
@@ -242,12 +237,30 @@ void
 dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
 /*
  * Attach to a dispatch handle.
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
  */
 
 void
 dns_dispatch_detach(dns_dispatch_t **dispp);
 /*
  * Detach from a dispatch handle.
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
  */
 
 ISC_LANG_ENDDECLS
