@@ -1,3 +1,6 @@
+ 585.	[func]		dns_db_addrdataset() and and dns_rdataslab_merge()
+			now support 'exact' additions in a similar manner to
+			dns_db_subtractrdataset() and dns_rdataslab_subtract().
 
  584.	[func]		You can now say 'notify explicit'; to suppress
 			notification of the servers listed in NS records
@@ -170,10 +173,10 @@
  526.	[bug]		nsupdate incorrectly refused to add RRs with a TTL
 			of 0.
 
- 525.	[func]		New argument 'exact' for dns_db_subtractrdataset(),
-			and dns_rdataslab_subtract() requesting that the RR's
-			must exist prior to deletion.  DNS_R_NOTEXACT is
-			returned if the condition is not met.
+ 525.	[func]		New arguments 'options' for dns_db_subtractrdataset(),
+			and 'flags' for dns_rdataslab_subtract() allowing you
+			to request that the RR's must exist prior to deletion.
+			DNS_R_NOTEXACT is returned if the condition is not met.
 
  524.	[func]		The 'forward' and 'forwarders' statement in
 			non-forward zones should work now.

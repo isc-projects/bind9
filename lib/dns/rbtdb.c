@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.135 2000/11/30 13:19:06 marka Exp $ */
+/* $Id: rbtdb.c,v 1.136 2000/12/01 01:22:41 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3472,7 +3472,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 dns_rdataset_t *rdataset, isc_boolean_t exact,
+		 dns_rdataset_t *rdataset, unsigned int options,
 		 dns_rdataset_t *newrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -3524,7 +3524,10 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	while (header != NULL && IGNORE(header))
 		header = header->down;
 	if (header != NULL && EXISTS(header)) {
+		unsigned int flags = 0;
 		subresult = NULL;
+		if ((options & DNS_DBSUB_EXACT) != 0)
+			flags |= DNS_RDATASLAB_EXACT;
 		result = dns_rdataslab_subtract(
 					(unsigned char *)header,
 					(unsigned char *)newheader,
@@ -3532,7 +3535,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type,
-					exact, &subresult);
+					flags, &subresult);
 		if (result == ISC_R_SUCCESS) {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			newheader = (rdatasetheader_t *)subresult;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.26 2000/11/30 23:59:08 marka Exp $ */
+/* $Id: rdataslab.c,v 1.27 2000/12/01 01:22:42 marka Exp $ */
 
 #include <config.h>
 
@@ -302,8 +302,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	} while (ncount > 0);
 	ncount = nncount;
 
-	if ((flags & DNS_RDATASLAB_EXACT) != 0 &&
-	    tcount != ncount + ocount)
+	if (((flags & DNS_RDATASLAB_EXACT) != 0) &&
+	    (tcount != ncount + ocount))
 		return (DNS_R_NOTEXACT);
 
 	if (!added_something && (flags & DNS_RDATASLAB_FORCE) == 0)
@@ -401,7 +401,7 @@ isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       isc_boolean_t exact, unsigned char **tslabp)
+		       unsigned int flags, unsigned char **tslabp)
 {
 	unsigned char *mcurrent, *sstart, *scurrent, *tstart, *tcurrent;
 	unsigned int mcount, scount, rcount ,count, tlength, tcount;
@@ -462,7 +462,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 * Check that all the records originally existed.  The numeric
  	 * check only works as rdataslabs do not contain duplicates.
 	 */
-	if (exact && (rcount != scount))
+	if (((flags & DNS_RDATASLAB_EXACT) != 0) && (rcount != scount))
 		return (DNS_R_NOTEXACT);
 
 	/*
