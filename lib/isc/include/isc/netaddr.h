@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.18.12.3 2003/08/22 05:15:02 marka Exp $ */
+/* $Id: netaddr.h,v 1.18.12.4 2003/08/22 06:08:37 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -32,7 +32,7 @@ struct isc_netaddr {
     		struct in_addr in;
 		struct in6_addr in6;
 	} type;
-	u_int32_t zone;
+	isc_uint32_t zone;
 };
 
 isc_boolean_t
@@ -96,9 +96,9 @@ void
 isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6);
 
 void
-isc_netaddr_setzone(isc_netaddr_t *netaddr, u_int32_t zone);
+isc_netaddr_setzone(isc_netaddr_t *netaddr, isc_uint32_t zone);
 
-u_int32_t
+isc_uint32_t
 isc_netaddr_getzone(const isc_netaddr_t *netaddr);
 
 void
