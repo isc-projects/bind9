@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.149 2000/06/19 23:05:30 marka Exp $ */
+/* $Id: zone.c,v 1.150 2000/06/20 19:03:13 marka Exp $ */
 
 #include <config.h>
 
@@ -2111,6 +2111,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	DNS_ENTER;
 
 	isc_stdtime_get(&now);
+
+	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
 
 	if (revent->result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO, "failure for %s: %s",

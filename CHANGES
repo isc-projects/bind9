@@ -1,4 +1,6 @@
- 261	[func]		Add dns_zone_markdirty().
+ 262.	[bug]		'master' was not initalised in zone.c:stub_callback().
+
+ 261.	[func]		Add dns_zone_markdirty().
 
  260.	[bug]		Running named as a non-root user failed on Linux
 			kernels new enough to support retaining capabilities
