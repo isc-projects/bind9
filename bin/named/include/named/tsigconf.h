@@ -26,10 +26,11 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tsigkeyring_fromconfig(dns_c_ctx_t *confctx, isc_mem_t *mctx,
-			   dns_tsig_keyring_t **ring);
+dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
+			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
- * Create a TSIG key ring and configure it according to 'confctx'.
+ * Create a TSIG key ring and configure it according to the 'key'
+ * statements in 'confview' and 'confctx'.
  *
  *	Requires:
  *		'confctx' is a valid configuration context.

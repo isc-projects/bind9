@@ -541,7 +541,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 * Configure the view's TSIG keys.
 	 */
 	ring = NULL;
-	CHECK(dns_tsigkeyring_fromconfig(cctx, view->mctx, &ring));
+	CHECK(dns_tsigkeyring_fromconfig(cview, cctx, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
 
 	/*

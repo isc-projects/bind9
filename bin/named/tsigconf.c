@@ -124,18 +124,28 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 }
 
 isc_result_t
-dns_tsigkeyring_fromconfig(dns_c_ctx_t *confctx, isc_mem_t *mctx,
-			   dns_tsig_keyring_t **ringp)
+dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
+			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
 {
-	dns_c_kdeflist_t *keylist = NULL;
+	dns_c_kdeflist_t *keylist;
 	dns_tsig_keyring_t *ring = NULL;
 	isc_result_t result;
 
 	result = dns_tsigkeyring_create(mctx, &ring);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
+	keylist = NULL;
 	result = dns_c_ctx_getkdeflist(confctx, &keylist);
+	if (result == ISC_R_SUCCESS)
+		result = add_initial_keys(keylist, ring, mctx);
+	else if (result == ISC_R_NOTFOUND)
+		result = ISC_R_SUCCESS;
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	keylist = NULL;	
+	result = dns_c_view_getkeydefs(confview, &keylist);
 	if (result == ISC_R_SUCCESS)
 		result = add_initial_keys(keylist, ring, mctx);
 	else if (result == ISC_R_NOTFOUND)
