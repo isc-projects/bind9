@@ -1,4 +1,5 @@
 
+	--- 9.2.0rc4 released ---
 
 1013.	[bug]		It was possible to cancel a query twice when marking
 			a server as bogus or by having a blackhole acl.
