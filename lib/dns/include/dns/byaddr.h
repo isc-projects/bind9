@@ -78,6 +78,20 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 /*
  * Find the domain name of 'address'.
  *
+ * Notes:
+ *
+ *	There are two reverse lookup formats for IPv6 addresses, 'bitstring'
+ *	and 'nibble'.  The newer 'bitstring' format for the address fe80::1 is
+ *
+ *		\[xfe800000000000000000000000000001].ip6.int.
+ *
+ *	The 'nibble' format for that address is
+ *
+ *   1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.int.
+ *
+ *	The 'bitstring' format will be used unless the DNS_BYADDROPT_IPV6NIBBLE
+ *	option has been set.
+ *
  * Requires:
  *
  *	'mctx' is a valid mctx.
