@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.60 1999/10/12 14:19:47 tale Exp $ */
+/* $Id: rbt.c,v 1.61 1999/10/13 22:50:39 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2127,7 +2127,8 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * the second level or below.
 		 */
 
-		NODENAME(chain->end, name);
+		if (name != NULL)
+			NODENAME(chain->end, name);
 
 		if (new_origin) {
 			if (origin != NULL)
@@ -2152,7 +2153,6 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 {
 	dns_result_t result;
 
-	REQUIRE(name != NULL && origin != NULL);
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(VALID_CHAIN(chain));
 
