@@ -42,61 +42,14 @@
 #include <named/client.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
+#include <named/os.h>
 #include <named/server.h>
+#include <named/main.h>
 
 static isc_boolean_t			want_stats = ISC_FALSE;
 
-
-/*
- * XXXRTH  OS-specific stuff like this will eventually be moved
- *	   to a subdirectory.  The server will call a general
- *	   "if the user wants to drop privs, do it".
- */
-
-#ifdef HAVE_LINUX_CAPABILITY_H
-
-#include <sys/types.h>
-#include <sys/syscall.h>
-#include <linux/capability.h>
-#include <unistd.h>
-#include <errno.h>
-
-#ifndef SYS_capset
-#define SYS_capset __NR_capset
-#endif
-
-static void
-linux_dropprivs() {
-	struct __user_cap_header_struct caphead;
-	struct __user_cap_data_struct cap;
-	unsigned int caps;
-
-	if (getuid() != 0)
-		return;
-
-	/*
-	 * Drop all root privileges except the ability to bind() to
-	 * privileged ports.
-	 */
-
-	caps = CAP_NET_BIND_SERVICE;
-
-	memset(&caphead, 0, sizeof caphead);
-	caphead.version = _LINUX_CAPABILITY_VERSION;
-	caphead.pid = 0;
-	memset(&cap, 0, sizeof cap);
-	cap.effective = caps;
-	cap.permitted = caps;
-	cap.inheritable = caps;
-	if (syscall(SYS_capset, &caphead, &cap) < 0) {
-		fprintf(stderr, "syscall(capset): %s", strerror(errno));
-		exit(1);
-	}
-}
-#endif
-
-static void
-early_fatal(char *format, ...) {
+void
+ns_main_earlyfatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);
@@ -206,10 +159,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case '?':
 			usage();
-			early_fatal("unknown command line argument");
+			ns_main_earlyfatal("unknown command line argument");
 			break;
 		default:
-			early_fatal("parsing options returned %d", ch);
+			ns_main_earlyfatal("parsing options returned %d", ch);
 		}
 	}
 
@@ -218,7 +171,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	if (argc > 1) {
 		usage();
-		early_fatal("extra command line arguments");
+		ns_main_earlyfatal("extra command line arguments");
 	}
 }
 
@@ -294,8 +247,8 @@ setup() {
 
 	result = ns_log_init();
 	if (result != ISC_R_SUCCESS)
-		early_fatal("ns_log_init() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("ns_log_init() failed: %s",
+				   isc_result_totext(result));
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
@@ -303,23 +256,23 @@ setup() {
 	ISC_LIST_INIT(ns_g_viewlist);
 	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
-		early_fatal("isc_rwlock_init() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("isc_rwlock_init() failed: %s",
+				   isc_result_totext(result));
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
-		early_fatal("create_managers() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("create_managers() failed: %s",
+				   isc_result_totext(result));
 
 	result = ns_server_init();
 	if (result != ISC_R_SUCCESS)
-		early_fatal("ns_server_init() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("ns_server_init() failed: %s",
+				   isc_result_totext(result));
 
 	result = dns_tsig_init(ns_g_mctx);
 	if (result != ISC_R_SUCCESS)
-		early_fatal("dns_tsig_init() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("dns_tsig_init() failed: %s",
+				   isc_result_totext(result));
 }
 
 static void
@@ -336,22 +289,23 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 
-#ifdef HAVE_LINUX_CAPABILITY_H
-	linux_dropprivs();
-#endif
-
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 
+	result = ns_os_init();
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("ns_os_init() failed: %s",
+				   isc_result_totext(result));
+
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)
-		early_fatal("isc_app_start() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("isc_app_start() failed: %s",
+				   isc_result_totext(result));
 
 	result = isc_mem_create(0, 0, &ns_g_mctx);
 	if (result != ISC_R_SUCCESS)
-		early_fatal("isc_mem_create() failed: %s",
-			    isc_result_totext(result));
+		ns_main_earlyfatal("isc_mem_create() failed: %s",
+				   isc_result_totext(result));
 
 	dns_result_register();
 	dst_result_register();
@@ -375,6 +329,8 @@ main(int argc, char *argv[]) {
 	isc_mem_destroy(&ns_g_mctx);
 
 	isc_app_finish();
+
+	ns_os_shutdown();
 
 	return (0);
 }
