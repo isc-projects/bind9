@@ -1,4 +1,4 @@
- 704.	[port]		RLIMIT_NOFILE in to available on all platforms.
+ 704.	[port]		RLIMIT_NOFILE is not available on all platforms.
 			[RT #695]
 
  703.	[port]		sys/select.h is needed on older platforms. [RT #695]
