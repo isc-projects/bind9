@@ -109,7 +109,7 @@ maybe_free(ns_client_t *client) {
 	REQUIRE(client->shuttingdown == ISC_TRUE);
 
 	if (client->naccepts > 0)
-		isc_socket_cancel(client->tcpsocket, client->task,
+		isc_socket_cancel(client->tcplistener, client->task,
 				  ISC_SOCKCANCEL_ACCEPT);
 	if (client->nreads > 0)
 		dns_tcpmsg_cancelread(&client->tcpmsg);
