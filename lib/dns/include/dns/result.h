@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.h,v 1.60 2000/07/04 03:59:53 marka Exp $ */
+/* $Id: result.h,v 1.61 2000/07/13 02:41:20 bwelling Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -58,7 +58,7 @@
 #define DNS_R_NOOWNER			(ISC_RESULTCLASS_DNS + 19)
 #define DNS_R_NOTTL			(ISC_RESULTCLASS_DNS + 20)
 #define DNS_R_BADCLASS			(ISC_RESULTCLASS_DNS + 21)
-/* 22 is unused */
+#define DNS_R_NAMETOOLONG		(ISC_RESULTCLASS_DNS + 22)
 #define DNS_R_PARTIALMATCH		(ISC_RESULTCLASS_DNS + 23)
 #define DNS_R_NEWORIGIN			(ISC_RESULTCLASS_DNS + 24)
 #define DNS_R_UNCHANGED			(ISC_RESULTCLASS_DNS + 25)

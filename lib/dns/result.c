@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.64 2000/07/04 03:59:51 marka Exp $ */
+/* $Id: result.c,v 1.65 2000/07/13 02:41:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no owner",				/* 19 */
 	"no ttl",				/* 20 */
 	"bad class",				/* 21 */
-	"UNUSED22",				/* 22 */
+	"name too long",			/* 22 */
 	"partial match",			/* 23 */
 	"new origin",				/* 24 */
 	"unchanged",				/* 25 */
