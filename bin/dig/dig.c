@@ -1,4 +1,4 @@
-/*
+/
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.147 2001/06/29 06:06:00 bwelling Exp $ */
+/* $Id: dig.c,v 1.148 2001/06/30 04:29:25 mayer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -691,7 +691,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto need_value;
 			if (!state)
 				goto invalid_option;
-			lookup->udpsize = parse_int(value, "buffer size",
+			lookup->udpsize = (isc_uint16_t) parse_int(value, "buffer size",
 						    COMMSIZE);
 			if (lookup->udpsize <= 0)
 				lookup->udpsize = 0;
@@ -990,7 +990,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		keyfile[sizeof(keyfile)-1]=0;
 		return (value_from_next);
 	case 'p':
-		port = parse_int(value, "port number", MAXPORT);
+		port = (in_port_t) parse_int(value, "port number", MAXPORT);
 		return (value_from_next);
 	case 't':
 		*open_type_class = ISC_FALSE;
