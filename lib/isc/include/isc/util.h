@@ -110,9 +110,6 @@
 
 /*
  * List Macros.
- *
- * These are provided as a temporary measure to ease the transition
- * to the renamed list macros in <isc/list.h>.
  */
 
 #include <isc/list.h>
@@ -134,5 +131,22 @@
 #define INSERTBEFORE(li, b, e, ln)	ISC_LIST_INSERTBEFORE(li, b, e, ln)
 #define INSERTAFTER(li, a, e, ln)	ISC_LIST_INSERTAFTER(li, a, e, ln)
 #define APPENDLIST(list1, list2, link)	ISC_LIST_APPENDLIST(list1, list2, link)
+
+/*
+ * Assertions
+ */
+
+#define REQUIRE(e)			ISC_REQUIRE(e)
+#define ENSURE(e)			ISC_ENSURE(e)
+#define INSIST(e)			ISC_INSIST(e)
+#define INVARIANT(e)			ISC_INVARIANT(e)
+
+/*
+ * Errors
+ */
+
+#define UNEXPECTED_ERROR		isc_error_unexpected
+#define FATAL_ERROR			isc_error_fatal
+#define RUNTIME_CHECK(cond)		ISC_ERROR_RUNTIMECHECK(cond)
 
 #endif /* ISC_UTIL_H */
