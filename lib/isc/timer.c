@@ -33,9 +33,6 @@
 #define WAITUNTIL(cvp, lp, tp) \
 	isc_condition_waituntil((cvp), (lp), (tp))
 
-#define ZERO(t)				((t).seconds == 0 && \
-					 (t).nanoseconds == 0)
-
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)			printf("%s\n", (s))
 #define XTRACEID(s, t)			printf("%s %p\n", (s), (t))
@@ -64,7 +61,7 @@ struct isc_timer {
 	/* Locked by manager lock. */
 	isc_timertype_t			type;
 	struct isc_time			expires;
-	struct isc_time			interval;
+	struct isc_interval		interval;
 	isc_task_t			task;
 	isc_taskaction_t		action;
 	void *				arg;
@@ -109,9 +106,9 @@ schedule(isc_timer_t timer, isc_time_t now, isc_boolean_t signal_ok) {
 	if (timer->type == isc_timertype_ticker)
 		isc_time_add(now, &timer->interval, &due);
 	else {
-		if (ZERO(timer->idle))
+		if (isc_time_isepoch(&timer->idle))
 			due = timer->expires;
-		else if (ZERO(timer->expires))
+		else if (isc_time_isepoch(&timer->expires))
 			due = timer->idle;
 		else if (isc_time_compare(&timer->idle, &timer->expires) < 0)
 			due = timer->idle;
@@ -214,7 +211,7 @@ destroy(isc_timer_t timer) {
 
 isc_result
 isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
-		 isc_time_t expires, isc_time_t interval,
+		 isc_time_t expires, isc_interval_t interval,
 		 isc_task_t task, isc_taskaction_t action, void *arg,
 		 isc_timer_t *timerp)
 {
@@ -233,7 +230,7 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
-	REQUIRE(!(ZERO(*expires) && ZERO(*interval)));
+	REQUIRE(!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
@@ -254,12 +251,10 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 	timer->magic = TIMER_MAGIC;
 	timer->manager = manager;
 	timer->references = 1;
-	if (type == isc_timertype_once && !ZERO(*interval))
+	if (type == isc_timertype_once && !isc_interval_iszero(interval))
 		isc_time_add(&now, interval, &timer->idle);
-	else {
-		timer->idle.seconds = 0;
-		timer->idle.nanoseconds = 0;
-	}
+	else
+		isc_time_settoepoch(&timer->idle);
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
@@ -295,7 +290,8 @@ isc_timer_create(isc_timermgr_t manager, isc_timertype_t type,
 
 isc_result
 isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
-		isc_time_t expires, isc_time_t interval, isc_boolean_t purge)
+		isc_time_t expires, isc_interval_t interval,
+		isc_boolean_t purge)
 {
 	struct isc_time now;
 	isc_timermgr_t manager;
@@ -310,7 +306,7 @@ isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(!(ZERO(*expires) && ZERO(*interval)));
+	REQUIRE(!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 
 	/*
 	 * Get current time.
@@ -333,12 +329,10 @@ isc_timer_reset(isc_timer_t timer, isc_timertype_t type,
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
-	if (type == isc_timertype_once && !ZERO(*interval))
+	if (type == isc_timertype_once && !isc_interval_iszero(interval))
 		isc_time_add(&now, interval, &timer->idle);
-	else {
-		timer->idle.seconds = 0;
-		timer->idle.nanoseconds = 0;
-	}
+	else
+		isc_time_settoepoch(&timer->idle);
 	result = schedule(timer, &now, ISC_TRUE);
 
 	UNLOCK(&timer->lock);
@@ -433,15 +427,15 @@ dispatch(isc_timermgr_t manager, isc_time_t now) {
 				type = ISC_TIMEREVENT_TICK;
 				post_event = ISC_TRUE;
 				need_schedule = ISC_TRUE;
-			} else if (!ZERO(timer->expires) &&
+			} else if (!isc_time_isepoch(&timer->expires) &&
 				   isc_time_compare(now,
-						   &timer->expires) >= 0) {
+						    &timer->expires) >= 0) {
 				type = ISC_TIMEREVENT_LIFE;
 				post_event = ISC_TRUE;
 				need_schedule = ISC_FALSE;
-			} else if (!ZERO(timer->idle) &&
+			} else if (!isc_time_isepoch(&timer->idle) &&
 				   isc_time_compare(now,
-						   &timer->idle) >= 0) {
+						    &timer->idle) >= 0) {
 				type = ISC_TIMEREVENT_IDLE;
 				post_event = ISC_TRUE;
 				need_schedule = ISC_FALSE;
@@ -489,6 +483,9 @@ dispatch(isc_timermgr_t manager, isc_time_t now) {
 }
 
 static isc_threadresult_t
+#ifdef _WIN32
+WINAPI
+#endif
 run(void *uap) {
 	isc_timermgr_t manager = uap;
 	struct isc_time now;
@@ -563,8 +560,7 @@ isc_timermgr_create(isc_memctx_t mctx, isc_timermgr_t *managerp) {
 	manager->done = ISC_FALSE;
 	INIT_LIST(manager->timers);
 	manager->nscheduled = 0;
-	manager->due.seconds = 0;
-	manager->due.nanoseconds = 0;
+	isc_time_settoepoch(&manager->due);
 	manager->heap = NULL;
 	result = isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
 	if (result != ISC_R_SUCCESS) {
