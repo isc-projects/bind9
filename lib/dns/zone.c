@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.70 2000/01/28 16:10:47 bwelling Exp $ */
+ /* $Id: zone.c,v 1.71 2000/01/28 23:48:58 gson Exp $ */
 
 #include <config.h>
 
@@ -142,6 +142,7 @@ struct dns_zone {
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t *		task;
 	isc_sockaddr_t	 	xfrsource;
+	dns_xfrin_ctx_t *	xfr;
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*query_acl;
@@ -209,11 +210,11 @@ static isc_result_t default_journal(dns_zone_t *zone);
 static void releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void xfrin_start_temporary_kludge(dns_zone_t *zone);
 static void xfrdone(dns_zone_t *zone, isc_result_t result);
+static void zone_shutdown(isc_task_t *, isc_event_t *);
 #ifdef notyet
 static void refresh_callback(isc_task_t *, isc_event_t *);
 static void soa_query(dns_zone_t *, isc_taskaction_t);
 static void checkservers_callback(isc_task_t *task, isc_event_t *event);
-static void zone_shutdown(isc_task_t *, isc_event_t *);
 static int message_count(dns_message_t *msg, dns_section_t section,
 			 dns_rdatatype_t type);
 static void add_address_tocheck(dns_message_t *msg,
@@ -315,6 +316,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
 	ISC_LIST_INIT(zone->checkservers);
 	zone->xfrsource = sockaddr_any;
+	zone->xfr = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
@@ -2130,15 +2132,16 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 }
 #endif
 
-#ifdef notyet
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_zone_t *zone = (dns_zone_t *)event->arg;
+	dns_zone_t *zone = (dns_zone_t *) event->arg;
 	isc_event_free(&event);
-	task = task; /* XXX */
-	zone = zone; /* XXX */
+	UNUSED(task);
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
+	if (zone->xfr != NULL)
+		dns_xfrin_shutdown(zone->xfr);
 }
-#endif
 
 static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
@@ -2911,6 +2914,7 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 	LOCK(&zone->lock);
 	INSIST((zone->flags & DNS_ZONE_F_REFRESH) != 0);
 	zone->flags &= ~DNS_ZONE_F_REFRESH;
+
 	switch (result) {
 	case DNS_R_UPTODATE:
 	case DNS_R_SUCCESS:
@@ -2934,6 +2938,20 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 		break;
 	}
 	UNLOCK(&zone->lock);
+
+	/*
+	 * If creating the transfer object failed, zone->xfr is NULL.
+	 * Otherwise, we are called as the done callback of a zone
+	 * transfer object that just entered its shutting-down
+	 * state.  Since we are no longer responsible for shutting
+	 * it down, we can detach our reference.
+	 */
+	if (zone->xfr != NULL)
+		dns_xfrin_detach(&zone->xfr);
+
+	/*
+	 * Retry with a different server if necessary.
+	 */
 	if (again)
 		xfrin_start_temporary_kludge(zone);
 }
@@ -2944,8 +2962,10 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 static void
 xfrin_start_temporary_kludge(dns_zone_t *zone) {
+	isc_result_t result;
 	isc_sockaddr_t sa;
 	in_port_t port;
+
 	if (zone->masterscnt < 1)
 		return;
 	port = zone->masterport; 
@@ -2954,10 +2974,12 @@ xfrin_start_temporary_kludge(dns_zone_t *zone) {
 	isc_sockaddr_fromin(&sa,
 			    &zone->masters[zone->curmaster].type.sin.sin_addr,
 			    port);
-	dns_xfrin_start(zone, &sa, zone->mctx,
-			zone->zmgr->taskmgr, zone->zmgr->timermgr,
-			zone->zmgr->socketmgr,
-			xfrdone);
+	result = dns_xfrin_create(zone, &sa, zone->mctx,
+				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
+				  zone->task,
+				  xfrdone, &zone->xfr);
+	if (result != DNS_R_SUCCESS)
+		xfrdone(zone, result);
 }
 
 isc_result_t
@@ -3054,18 +3076,25 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 				  zmgr->task, zone_timer, zone,
 				  &zone->timer);
 	if (result != ISC_R_SUCCESS)
-		goto failure;
+		goto cleanup_task;
 
+	result = isc_task_onshutdown(zone->task, zone_shutdown, zone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_timer;
+	
 	zone->zmgr = zmgr;
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 
-	goto cleanup;
+	goto unlock;
 
- failure:
+ cleanup_timer:
+	isc_timer_detach(&zone->timer);
+	
+ cleanup_task:
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
 	
- cleanup:
+ unlock:
 	UNLOCK(&zone->lock);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	return (result);

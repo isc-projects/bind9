@@ -26,15 +26,55 @@
  * Incoming zone transfers (AXFR + IXFR).
  */
 
+/***
+ *** Imports
+ ***/
+
+#include <isc/lang.h>
 #include <dns/types.h>
+
+/***
+ *** Types
+ ***/
+
+typedef struct dns_xfrin_ctx dns_xfrin_ctx_t;
 
 /***
  *** Functions
  ***/
 
-void dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master, 
-		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		dns_xfrindone_t done);
+ISC_LANG_BEGINDECLS
+
+isc_result_t
+dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr, 
+		 isc_mem_t *mctx, isc_timermgr_t *timermgr,
+		 isc_socketmgr_t *socketmgr, isc_task_t *task,
+		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp);
+/*
+ * Attempt to start an incoming zone transfer of 'zone'
+ * from 'masteraddr', creating a dns_xfrin_ctx_t object to 
+ * manage it.  Attach '*xfrp' to the newly created object.
+ *
+ * Iff ISC_R_SUCCESS is returned, '*done' is guaranteed to be
+ * called in the context of 'task', with 'zone' and a result
+ * code as arguments when the transfer finishes. 
+ */
+
+void dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr);
+/*
+ * If the zone transfer 'xfr' has already finished,
+ * do nothing.  Otherwise, abort it and cause it to call
+ * its done callback with a status of ISC_R_CANCELLED.
+ */
+
+void dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
+/*
+ * Detach a reference to a zone transfer object.  
+ *
+ * (Because there is no attach() method, there can currently 
+ * only be one reference).
+ */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_XFRIN_H */
