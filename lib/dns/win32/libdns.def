@@ -646,6 +646,7 @@ dns_zone_notify
 dns_zone_notifyreceive
 dns_zone_refresh
 dns_zone_replacedb
+dns_zone_setacache
 dns_zone_setalsonotify
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource6
