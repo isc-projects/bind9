@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94 2004/03/05 04:57:30 marka Exp $ */
+/* $Id: host.c,v 1.95 2004/04/13 01:09:37 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -44,6 +44,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
+extern isc_boolean_t have_ipv4, have_ipv6;
 extern isc_boolean_t usesearch;
 extern isc_boolean_t debugging;
 extern unsigned int timeout;
@@ -140,7 +141,9 @@ show_usage(void) {
 "       -T enables TCP/IP mode\n"
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
-"       -W specifies how long to wait for a reply\n", stderr);
+"       -W specifies how long to wait for a reply\n"
+"       -4 use IPv4 query transport only\n"
+"       -6 use IPv6 query transport only\n", stderr);
 	exit(1);
 }
 
@@ -540,7 +543,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup = make_empty_lookup();
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dni"))
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dni46"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -662,6 +665,20 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		case 'D':
 			debugging = ISC_TRUE;
+			break;
+		case '4':
+			if (have_ipv4) {
+				isc_net_disableipv6();
+				have_ipv6 = ISC_FALSE;
+			} else
+				fatal("can't find IPv4 networking");
+			break;
+		case '6':
+			if (have_ipv6) {
+				isc_net_disableipv4();
+				have_ipv4 = ISC_FALSE;
+			} else
+				fatal("can't find IPv6 networking");
 			break;
 		}
 	}

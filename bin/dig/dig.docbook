@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.17 2004/03/05 04:57:30 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.18 2004/04/13 01:09:36 marka Exp $ -->
 
 <refentry>
 
@@ -47,6 +47,8 @@
 <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
 <arg><option>-x <replaceable class="parameter">addr</replaceable></option></arg>
 <arg><option>-y <replaceable class="parameter">name:key</replaceable></option></arg>
+<arg><option>-4</option></arg>
+<arg><option>-6</option></arg>
 <arg choice=opt>name</arg>
 <arg choice=opt>type</arg>
 <arg choice=opt>class</arg>
@@ -179,6 +181,12 @@ the port number that <command>dig</command> will send its queries
 instead of the standard DNS port number 53.  This option would be used
 to test a name server that has been configured to listen for queries
 on a non-standard port number.
+</para>
+
+<para>
+The <option>-4</option> option forces <command>dig</command> to only
+use IPv4 query transport.  The <option>-6</option> option forces
+<command>dig</command> to only use IPv6 query transport.
 </para>
 
 <para>
