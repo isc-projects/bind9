@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.28 2000/08/17 02:04:21 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.29 2000/09/12 09:54:34 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -47,6 +47,7 @@ struct dst_key {
 	unsigned int	key_alg;	/* algorithm of the key */
 	isc_uint32_t	key_flags;	/* flags of the public key */
 	isc_uint16_t	key_id;		/* identifier of the key */
+	dns_rdataclass_t key_class;	/* class of the key record */
 	isc_mem_t	*mctx;		/* memory context */
 	void *		opaque;		/* pointer to key in crypto pkg fmt */
 	dst_func_t *	func;		/* crypto package specific functions */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.37 2000/09/08 14:23:49 bwelling Exp $ */
+/* $Id: dst.h,v 1.38 2000/09/12 09:54:36 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -261,8 +261,8 @@ dst_key_tofile(const dst_key_t *key, const int type, const char *directory);
  */
 
 isc_result_t
-dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
-		dst_key_t **keyp);
+dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
+		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Converts a DNS KEY record into a DST key.
  *
@@ -301,6 +301,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
 isc_result_t
 dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
 		   const unsigned int flags, const unsigned int protocol,
+		   dns_rdataclass_t rdclass,
 		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Converts a buffer containing DNS KEY RDATA into a DST key.
@@ -363,6 +364,7 @@ isc_result_t
 dst_key_generate(dns_name_t *name, const unsigned int alg,
 		 const unsigned int bits, const unsigned int param,
 		 const unsigned int flags, const unsigned int protocol,
+		 const dns_rdataclass_t rdclass,
 		 isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Generate a DST key (or keypair) with the supplied parameters.  The
@@ -454,6 +456,9 @@ dst_key_flags(const dst_key_t *key);
 
 isc_uint16_t
 dst_key_id(const dst_key_t *key);
+
+dns_rdataclass_t
+dst_key_class(const dst_key_t *key);
 
 isc_boolean_t
 dst_key_isprivate(const dst_key_t *key);
