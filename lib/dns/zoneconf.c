@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.67 2000/11/07 23:49:29 mws Exp $ */
+/* $Id: zoneconf.c,v 1.68 2000/11/11 01:05:43 gson Exp $ */
 
 #include <config.h>
 
@@ -241,30 +241,26 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  dns_zone_setqueryacl,
 				  dns_zone_clearqueryacl));
 
-	if (czone->ztype != dns_c_zone_hint) {
-		result = dns_c_zone_getdialup(czone, &dialup);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getdialup(cview, &dialup);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getdialup(cctx, &dialup);
-		if (result != ISC_R_SUCCESS)
-			dialup = dns_dialuptype_no;
-		dns_zone_setdialup(zone, dialup);
-	} 
+	result = dns_c_zone_getdialup(czone, &dialup);
+	if (result != ISC_R_SUCCESS && cview != NULL)
+		result = dns_c_view_getdialup(cview, &dialup);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getdialup(cctx, &dialup);
+	if (result != ISC_R_SUCCESS)
+		dialup = dns_dialuptype_no;
+	dns_zone_setdialup(zone, dialup);
 
-	if (czone->ztype != dns_c_zone_hint) {
-		result = dns_c_zone_getstatistics(czone, &statistics);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getstatistics(cview, &statistics);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getstatistics(cctx, &statistics);
-		if (result != ISC_R_SUCCESS)
-			statistics = ISC_FALSE;
-		if (statistics)
-			dns_zone_startcounting(zone);
-		else
-			dns_zone_stopcounting(zone);
-	} 
+	result = dns_c_zone_getstatistics(czone, &statistics);
+	if (result != ISC_R_SUCCESS && cview != NULL)
+		result = dns_c_view_getstatistics(cview, &statistics);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getstatistics(cctx, &statistics);
+	if (result != ISC_R_SUCCESS)
+		statistics = ISC_FALSE;
+	if (statistics)
+		dns_zone_startcounting(zone);
+	else
+		dns_zone_stopcounting(zone);
 
 #ifndef NOMINUM_PUBLIC
 	if (czone->ztype != dns_c_zone_stub) {
