@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.91 2000/11/14 20:04:54 bwelling Exp $ */
+/* $Id: main.c,v 1.92 2000/11/14 23:59:20 tale Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/os.h>
+#include <isc/resource.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -36,7 +37,7 @@
 #include <dns/view.h>
 
 /*
- * Defining NS_MAIN provides storage declaratons (rather than extern)
+ * Defining NS_MAIN provides storage declarations (rather than extern)
  * for variables in named/globals.h.
  */
 #define NS_MAIN 1
@@ -471,6 +472,14 @@ setup(void) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
 		      saved_command_line);
+
+	/*
+	 * Get the initial resource limits.
+	 */
+	ns_g_initstacksize = isc_resource_getlimit(isc_resource_stacksize);
+	ns_g_initdatasize  = isc_resource_getlimit(isc_resource_datasize);
+	ns_g_initcoresize  = isc_resource_getlimit(isc_resource_coresize);
+	ns_g_initopenfiles = isc_resource_getlimit(isc_resource_openfiles);
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)

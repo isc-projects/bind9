@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.49 2000/11/09 19:55:19 mws Exp $ */
+/* $Id: globals.h,v 1.50 2000/11/14 23:59:21 tale Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -70,7 +70,7 @@ EXTERN isc_logmodule_t *	ns_g_modules		INIT(NULL);
 EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 
 /*
- * Current config information
+ * Current configuration information.
  */
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
@@ -80,6 +80,14 @@ EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
 							     "/resolv.conf");
 EXTERN isc_boolean_t		ns_g_conffileset	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		lwresd_g_useresolvconf	INIT(ISC_FALSE);
+
+/*
+ * Initial resource limits.
+ */
+EXTERN isc_resourcevalue_t	ns_g_initstacksize	INIT(0);
+EXTERN isc_resourcevalue_t	ns_g_initdatasize	INIT(0);
+EXTERN isc_resourcevalue_t	ns_g_initcoresize	INIT(0);
+EXTERN isc_resourcevalue_t	ns_g_initopenfiles	INIT(0);
 
 /*
  * Misc.
