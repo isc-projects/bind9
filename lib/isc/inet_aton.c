@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.6 1999/07/16 00:43:45 halley Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.7 1999/10/11 20:16:33 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -140,7 +140,7 @@ isc_net_aton(const char *cp, struct in_addr *addr)
 			 */
 			if (pp >= parts + 3 || val > 0xff)
 				return (0);
-			*pp++ = val;
+			*pp++ = (isc_uint8_t)val;
 			c = *++cp;
 		} else
 			break;
