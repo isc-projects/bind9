@@ -55,6 +55,7 @@ struct ns_client {
 	dns_message_t *			message;
 	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
+	void				(*next)(ns_client_t *, isc_result_t);
 	ns_query_t			query;
 	ISC_LINK(struct ns_client)	link;
 };

@@ -43,10 +43,9 @@
 #include "../../isc/util.h"		/* XXX */
 
 static inline void
-query_cleanup(ns_client_t *client, isc_boolean_t everything) {
+query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_dynbuffer_t *dbuf, *dbuf_next;
 
-	client->query.qname = NULL;
 	for (dbuf = ISC_LIST_HEAD(client->query.namebufs);
 	     dbuf != NULL;
 	     dbuf = dbuf_next) {
@@ -56,23 +55,21 @@ query_cleanup(ns_client_t *client, isc_boolean_t everything) {
 			isc_dynbuffer_free(client->mctx, &dbuf);
 		}
 	}
-}
-
-void
-ns_query_free(ns_client_t *client) {
-	query_cleanup(client, ISC_TRUE);
+	client->query.attributes = (NS_QUERYATTR_RECURSIONOK|
+				    NS_QUERYATTR_CACHEOK);
+	client->query.qname = NULL;
+	client->query.dboptions = 0;
 }
 
 static void
 query_next(ns_client_t *client, isc_result_t result) {
-	query_cleanup(client, ISC_FALSE);
-	ns_client_next(client, result);
+	(void)result;
+	query_reset(client, ISC_FALSE);
 }
 
-static void
-query_error(ns_client_t *client, isc_result_t result) {
-	query_cleanup(client, ISC_FALSE);
-	ns_client_error(client, result);
+void
+ns_query_free(ns_client_t *client) {
+	query_reset(client, ISC_TRUE);
 }
 
 static inline isc_result_t
@@ -120,9 +117,123 @@ query_getnamebuf(ns_client_t *client) {
 
 isc_result_t
 ns_query_init(ns_client_t *client) {
-	client->query.qname = NULL;
 	ISC_LIST_INIT(client->query.namebufs);
+	query_reset(client, ISC_FALSE);
 	return (query_newnamebuf(client));
+}
+
+static isc_result_t
+query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
+	ns_client_t *client = arg;
+	isc_result_t result;
+	dns_dbnode_t *node;
+	dns_db_t *db;
+	dns_name_t *fname, *mname;
+	dns_rdataset_t *rdataset;
+	dns_section_t section;
+	isc_dynbuffer_t *dbuf;
+	isc_region_t r;
+	isc_buffer_t b;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(type != dns_rdatatype_any);
+	/* XXXRTH  Other requirements. */
+
+	/*
+	 * XXXRTH  Should special case 'A' type.  If type is 'A', we should
+	 *	   look for A6 and AAAA too.
+	 */
+
+	/*
+	 * Get the resources we'll need.
+	 */
+	dbuf = query_getnamebuf(client);
+	if (dbuf == NULL)
+		return (ISC_R_NOMEMORY);
+	isc_buffer_available(&dbuf->buffer, &r);
+	isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
+	fname = NULL;
+	result = dns_message_gettempname(client->message, &fname);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_name_init(fname, NULL);
+	dns_name_setbuffer(fname, &b);
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message,
+						     &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_init(rdataset);
+
+	/*
+	 * Find a database to answer the query.
+	 */
+	db = NULL;
+	result = dns_dbtable_find(ns_g_dbtable, name, &db);
+	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+		return (ISC_R_SUCCESS);
+
+	/*
+	 * Now look for an answer in the database.
+	 */
+	node = NULL;
+	result = dns_db_find(db, name, NULL, type, client->query.dboptions,
+			     0, &node, fname, rdataset);
+			     
+	switch (result) {
+	case DNS_R_SUCCESS:
+	case DNS_R_GLUE:
+		dns_db_detachnode(db, &node);
+		dns_db_detach(&db);
+		break;
+	case DNS_R_NXRDATASET:
+	case DNS_R_ZONECUT:
+		dns_db_detachnode(db, &node);
+		dns_db_detach(&db);
+		return (ISC_R_SUCCESS);
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_DELEGATION:
+		dns_rdataset_disassociate(rdataset);
+		dns_db_detachnode(db, &node);
+		dns_db_detach(&db);
+		return (ISC_R_SUCCESS);
+	default:
+		dns_db_detach(&db);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Record the space we consumed from the namebuf.
+	 */
+	dns_name_toregion(fname, &r);
+	isc_buffer_add(&dbuf->buffer, r.length);
+
+	/*
+	 * This is not strictly necessary, but is done to emphasize
+	 * that the name's dedicated buffer, which is on our stack,
+	 * is no longer used.  It also prevents any later accidental
+	 * use of the dedicated buffer.
+	 */
+	dns_name_setbuffer(fname, NULL);
+
+	for (section = 0; section <= DNS_SECTION_ADDITIONAL; section++) {
+		mname = NULL;
+		result = dns_message_findname(client->message, section,
+					      name, type, &mname, NULL);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * We've already got this RRset in the response.
+			 */
+			dns_rdataset_disassociate(rdataset);
+			return (ISC_R_SUCCESS);
+		}
+	}
+	ISC_LIST_APPEND(fname->list, rdataset, link);
+
+	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -271,9 +382,21 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			 *	   to handle the glue case too.
 			 *         Also, we'll probably need to split find()
 			 *	   up into a series of event callbacks.
-			 */	   
+			 */
+			/*
+			 * The following is the "no recursion" case.
+			 */
 			section = DNS_SECTION_AUTHORITY;
+			/*
+			 * We don't have to set DNS_DBFIND_VALIDDATEGLUE
+			 * because since we'll be processing the NS records
+			 * we know the glue is good.
+			 */
+			client->query.dboptions |= DNS_DBFIND_GLUEOK;
 			ISC_LIST_APPEND(fname->list, rdataset, link);
+			dns_rdataset_additionaldata(rdataset,
+						    query_addadditional,
+						    client);
 		} else if (type == dns_rdatatype_any) {
 			/*
 			 * XXXRTH  Need to handle zonecuts with special case
@@ -287,6 +410,9 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			while (result == ISC_R_SUCCESS) {
 				dns_rdatasetiter_current(rdsiter, rdataset);
 				ISC_LIST_APPEND(fname->list, rdataset, link);
+				dns_rdataset_additionaldata(rdataset,
+							query_addadditional,
+							client);
 				rdataset = NULL;
 				result = dns_message_gettemprdataset(
 						client->message,
@@ -300,8 +426,12 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 				result = DNS_R_SERVFAIL;
 				goto cleanup_node;
 			}
-		} else
+		} else {
 			ISC_LIST_APPEND(fname->list, rdataset, link);
+			dns_rdataset_additionaldata(rdataset,
+						    query_addadditional,
+						    client);
+		}
 
 		dns_message_addname(client->message, fname, section);
 
@@ -332,11 +462,23 @@ void
 ns_query_start(ns_client_t *client) {
 	isc_result_t result;
 	dns_rdataset_t *rdataset;
-	unsigned int nquestions = 0;
+	dns_message_t *message = client->message;
 
-	result = dns_message_reply(client->message, ISC_TRUE);
+	/*
+	 * Ensure that appropriate cleanups occur.
+	 */
+	client->next = query_next;
+
+	/*
+	 * XXXRTH  Deal with allow-query and allow-recursion here.  Also,
+	 *         If the view doesn't have a cache or a resolver, then
+	 *	   NS_QUERYATTR_RECURSIONOK and NS_QUERYATTR_CACHEOK should
+	 *	   be turned off.
+	 */
+
+	result = dns_message_reply(message, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
-		query_next(client, result);
+		ns_client_next(client, result);
 		return;
 	}
 
@@ -344,37 +486,49 @@ ns_query_start(ns_client_t *client) {
 	 * Assume authoritative response until it is known to be
 	 * otherwise.
 	 */
-	client->message->flags |= DNS_MESSAGEFLAG_AA;
+	message->flags |= DNS_MESSAGEFLAG_AA;
 
 	/*
-	 * Answer each question.
+	 * If the client doesn't want recursion, turn it off.
 	 */
-	result = dns_message_firstname(client->message, DNS_SECTION_QUESTION);
-	while (result == ISC_R_SUCCESS) {
-		nquestions++;
-		client->query.qname = NULL;
-		dns_message_currentname(client->message, DNS_SECTION_QUESTION,
-					&client->query.qname);
-		for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			result = find(client, rdataset->type);
-			if (result != ISC_R_SUCCESS) {
-				query_error(client, result);
-				return;
-			}
-		}
-		result = dns_message_nextname(client->message,
-					      DNS_SECTION_QUESTION);
+	if ((message->flags & DNS_MESSAGEFLAG_RD) == 0)
+		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
+
+	/*
+	 * Get the question name.
+	 */
+	result = dns_message_firstname(message, DNS_SECTION_QUESTION);
+	if (result != ISC_R_SUCCESS) {
+		ns_client_error(client, result);
+		return;
 	}
+	dns_message_currentname(message, DNS_SECTION_QUESTION,
+				&client->query.qname);
+	result = dns_message_nextname(message, DNS_SECTION_QUESTION);
 	if (result != ISC_R_NOMORE) {
-		query_error(client, result);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * There's more than one QNAME in the question
+			 * section.
+			 */
+			ns_client_error(client, DNS_R_FORMERR);
+		} else
+			ns_client_error(client, result);
 		return;
 	}
 
-	if (nquestions == 0) {
-		query_error(client, DNS_R_FORMERR);
-		return;
+	/*
+	 * 
+	 */
+
+	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	     rdataset != NULL;
+	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		result = find(client, rdataset->type);
+		if (result != ISC_R_SUCCESS) {
+			ns_client_error(client, result);
+			return;
+		}
 	}
 
 	ns_client_send(client);

@@ -160,6 +160,11 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	CTRACE("next");
 
+	if (client->next != NULL) {
+		(client->next)(client, result);
+		client->next = NULL;
+	}
+
 	/*
 	 * XXXRTH  If result != ISC_R_SUCCESS:
 	 * 		Log result if there is interest in doing so.
@@ -283,25 +288,41 @@ ns_client_send(ns_client_t *client) {
 void
 ns_client_error(ns_client_t *client, isc_result_t result) {
 	dns_rcode_t rcode;
+	dns_message_t *message;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	CTRACE("error");
 
+	message = client->message;
 	rcode = dns_result_torcode(result);
 
 	/*
-	 * client->message may be an in-progress reply that we had trouble
+	 * message may be an in-progress reply that we had trouble
 	 * with, in which case QR will be set.  We need to clear QR before
 	 * calling dns_message_reply() to avoid triggering an assertion.
 	 */
-	client->message->flags &= ~DNS_MESSAGEFLAG_QR;
-	result = dns_message_reply(client->message, ISC_TRUE);
+	message->flags &= ~DNS_MESSAGEFLAG_QR;
+	result = dns_message_reply(message, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
-		ns_client_next(client, result);
-		return;
+		/*
+		 * It could be that we've got a query with a good header,
+		 * but a bad question section, so we try again with
+		 * want_question_section set to ISC_FALSE.
+		 */
+		result = dns_message_reply(message, ISC_FALSE);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * There's no hope of replying to this request.
+			 *
+			 * XXXRTH  Mark this client to that if it is a
+			 * TCP session, the session will be closed.
+			 */
+			ns_client_next(client, result);
+			return;
+		}
 	}
-	client->message->rcode = rcode;
+	message->rcode = rcode;
 	ns_client_send(client);
 }
 
@@ -334,7 +355,9 @@ client_recv(isc_task_t *task, isc_event_t *event) {
 	}
 	INSIST((client->message->flags & DNS_MESSAGEFLAG_QR) == 0);
 
-	/* XXXRTH Find view here. */
+	/*
+	 * XXXRTH Find view here.
+	 */
 
 	/*
 	 * Dispatch the request.
@@ -433,6 +456,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->dispentry = NULL;
 	client->dispevent = NULL;
 	client->nsends = 0;
+	client->next = NULL;
 	ISC_LINK_INIT(client, link);
 
 	/*
