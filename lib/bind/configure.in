@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.29 $)
+AC_REVISION($Revision: 1.30 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1626,6 +1626,24 @@ AC_SUBST(PROTO_R_SET_RESULT)
 AC_SUBST(PROTO_R_SET_RETURN)
 
 AC_CHECK_FUNC(getpwent_r,
+AC_TRY_COMPILE(
+[
+#include <sys/types.h>
+#include <pwd.h>
+struct passwd *
+getpwent_r(struct passwd *pwptr, char *buf, int buflen) {}
+]
+,
+[]
+,
+PASS_R_ARGS="#define PASS_R_ARGS char *buf, int buflen"
+PASS_R_BAD="#define PASS_R_BAD NULL"
+PASS_R_COPY="#define PASS_R_COPY buf, buflen"
+PASS_R_COPY_ARGS="#define PASS_R_COPY_ARGS PASS_R_ARGS"
+PASS_R_OK="#define PASS_R_OK pwptr"
+PASS_R_RETURN="#define PASS_R_RETURN struct passwd *"
+,
+)
 ,
 PASS_R_ARGS="#define PASS_R_ARGS char *buf, int buflen"
 PASS_R_BAD="#define PASS_R_BAD NULL"
