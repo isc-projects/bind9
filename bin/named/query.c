@@ -838,7 +838,6 @@ query_find(ns_client_t *client) {
 		fname = query_newname(client, dbuf, &b);
 		if (fname == NULL)
 			goto cleanup;
-		fname->buffer->length = 20;
 		result = dns_name_concatenate(prefix, tname, fname, NULL);
 		if (result != ISC_R_SUCCESS) {
 			if (result == ISC_R_NOSPACE) {
