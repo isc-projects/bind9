@@ -625,11 +625,13 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 
 	/* copy address */
 	he->h_addr_list = malloc(sizeof(char *) * 2);
+	if (he->h_addr_list == NULL)
+		goto cleanup;
 	he->h_addr_list[0] = malloc(he->h_length);
 	if (he->h_addr_list[0] == NULL)
 		goto cleanup;
 	memcpy(he->h_addr_list[0], src, he->h_length);
-	he->h_addr_list[i] = NULL;
+	he->h_addr_list[1] = NULL;
 	return (he);
 
  cleanup:
