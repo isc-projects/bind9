@@ -931,17 +931,23 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_rdata_t *rdata;
 	dns_ttl_t ttl;
 	dns_namelist_t *section;
+	isc_boolean_t free_name, free_rdataset;
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
 		int recstart = source->current;
 		isc_boolean_t skip_name_search, skip_type_search;
+
 		section = &msg->sections[sectionid];
 
 		skip_name_search = ISC_FALSE;
 		skip_type_search = ISC_FALSE;
+		free_name = ISC_FALSE;
+		free_rdataset = ISC_FALSE;
+
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
 			return (DNS_R_NOMEMORY);
+		free_name = ISC_TRUE;
 
 		/*
 		 * Parse the name out of this packet.
@@ -950,7 +956,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		isc_buffer_setactive(source, r.length);
 		result = getname(name, source, msg, dctx);
 		if (result != DNS_R_SUCCESS)
-			return (result);
+			goto cleanup;
 
 		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
@@ -958,8 +964,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * later.)
 		 */
 		isc_buffer_remaining(source, &r);
-		if (r.length < 2 + 2 + 4 + 2)
-			return (DNS_R_UNEXPECTEDEND);
+		if (r.length < 2 + 2 + 4 + 2) {
+			result = DNS_R_UNEXPECTEDEND;
+			goto cleanup;
+		}
 		rdtype = isc_buffer_getuint16(source);
 		rdclass = isc_buffer_getuint16(source);
 
@@ -968,8 +976,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * established a class.  Do so now.
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
-			if (rdclass == 0 || rdclass == dns_rdataclass_any)
-				return (DNS_R_FORMERR);
+			if (rdclass == 0 || rdclass == dns_rdataclass_any) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
@@ -983,8 +993,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    && rdtype != dns_rdatatype_opt
 		    && rdtype != dns_rdatatype_key /* XXX in a TKEY query */
 		    && rdtype != dns_rdatatype_sig /* XXX SIG(0) */
-		    && msg->rdclass != rdclass)
-			return (DNS_R_FORMERR);
+		    && msg->rdclass != rdclass) {
+			result = DNS_R_FORMERR;
+			goto cleanup;
+		}
 
 		/*
 		 * Special type handling for TSIG, OPT, and TKEY.
@@ -995,10 +1007,11 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * additional data section, and switch sections for
 			 * the rest of this rdata.
 			 */
-			if (sectionid != DNS_SECTION_ADDITIONAL)
-				return (DNS_R_FORMERR);
-			if (rdclass != dns_rdataclass_any)
-				return (DNS_R_FORMERR);
+			if ((sectionid != DNS_SECTION_ADDITIONAL)
+			    || (rdclass != dns_rdataclass_any)) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
 			section = &msg->sections[DNS_SECTION_TSIG];
 			msg->sigstart = recstart;
 			skip_name_search = ISC_TRUE;
@@ -1011,8 +1024,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 */
 			if (!dns_name_equal(dns_rootname, name) ||
 			    sectionid != DNS_SECTION_ADDITIONAL ||
-			    msg->opt != NULL)
-				return (DNS_R_FORMERR);
+			    msg->opt != NULL) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
 		} else if (rdtype == dns_rdatatype_tkey) {
@@ -1020,8 +1035,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * A TKEY must be in the additional section.
 			 * Its class is ignored.
 			 */
-			if (sectionid != DNS_SECTION_ADDITIONAL)
-				return (DNS_R_FORMERR);
+			if (sectionid != DNS_SECTION_ADDITIONAL) {
+				result = DNS_R_FORMERR;
+				goto cleanup;
+			}
 		}
 		
 		/*
@@ -1030,8 +1047,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		ttl = isc_buffer_getuint32(source);
 		rdatalen = isc_buffer_getuint16(source);
 		r.length -= (2 + 2 + 4 + 2);
-		if (r.length < rdatalen)
-			return (DNS_R_UNEXPECTEDEND);
+		if (r.length < rdatalen) {
+			result = DNS_R_UNEXPECTEDEND;
+			goto cleanup;
+		}
 
 		/*
 		 * Read the rdata from the wire format.  Interpret the 
@@ -1040,8 +1059,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Then put the meta-class back into the finished rdata.
 		 */
 		rdata = newrdata(msg);
-		if (rdata == NULL)
-			return (DNS_R_NOMEMORY);
+		if (rdata == NULL) {
+			result = DNS_R_NOMEMORY;
+			goto cleanup;
+		}
 		attributes = 0;
 		if (rdtype != dns_rdatatype_tsig) {
 			if (rdtype == dns_rdatatype_cname) {
@@ -1060,7 +1081,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			result = getrdata(name, source, msg, dctx,
 					  rdclass, rdtype, rdatalen, rdata);
 		if (result != DNS_R_SUCCESS)
-			return (result);
+			goto cleanup;
 		rdata->rdclass = rdclass;
 		if (rdtype == dns_rdatatype_sig && rdata->length > 0) {
 			covers = dns_rdata_covers(rdata);
@@ -1081,8 +1102,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_name_search) {
-			if (rdtype != dns_rdatatype_opt)
+			if (rdtype != dns_rdatatype_opt) {
 				ISC_LIST_APPEND(*section, name, link);
+				free_name = ISC_FALSE;
+			}
 		} else {
 			/*
 			 * Run through the section, looking to see if this name
@@ -1101,6 +1124,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			} else {
 				ISC_LIST_APPEND(*section, name, link);
 			}
+			free_name = ISC_FALSE;
 		}
 
 		/*
@@ -1128,11 +1152,17 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (result == DNS_R_NOTFOUND) {
 			rdataset = isc_mempool_get(msg->rdspool);
-			if (rdataset == NULL)
-				return (DNS_R_NOMEMORY);
+			if (rdataset == NULL) {
+				result = DNS_R_NOMEMORY;
+				goto cleanup;
+			}
+			free_rdataset = ISC_TRUE;
+
 			rdatalist = newrdatalist(msg);
-			if (rdatalist == NULL)
-				return (DNS_R_NOMEMORY);
+			if (rdatalist == NULL) {
+				result = DNS_R_NOMEMORY;
+				goto cleanup;
+			}
 
 			rdatalist->type = rdtype;
 			rdatalist->covers = covers;
@@ -1143,8 +1173,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			dns_rdataset_init(rdataset);
 			dns_rdatalist_tordataset(rdatalist, rdataset);
 
-			if (rdtype != dns_rdatatype_opt)
+			if (rdtype != dns_rdatatype_opt) {
 				ISC_LIST_APPEND(name->list, rdataset, link);
+				free_rdataset = ISC_FALSE;
+			}
 		}
 
 		/*
@@ -1169,14 +1201,28 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			unsigned int ercode;
 
 			msg->opt = rdataset;
+			rdataset = NULL;
+			free_rdataset = ISC_FALSE;
 			ercode = (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
 				>> 20;
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
+			free_name = ISC_FALSE;
 		}
+
+		INSIST(free_name == ISC_FALSE);
+		INSIST(free_rdataset == ISC_FALSE);
 	}
 	
 	return (DNS_R_SUCCESS);
+
+ cleanup:
+	if (free_name)
+		isc_mempool_put(msg->namepool, name);
+	if (free_rdataset)
+		isc_mempool_put(msg->rdspool, rdataset);
+
+	return (result);
 }
 
 dns_result_t
