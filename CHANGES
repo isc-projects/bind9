@@ -1,3 +1,5 @@
+1002.	[bug]		Log unknown class including file and line.  [RT #1759]
+
 1001.	[bug]		win32 socket code doio_recv was not catching a
 			WSACONNRESET error when the client was timing out
 			the request and closing the connection. [RT #1745]
