@@ -69,6 +69,7 @@ struct ns_client {
 	void				(*next)(ns_client_t *, isc_result_t);
 	ns_query_t			query;
 	isc_stdtime_t			requesttime;
+	isc_stdtime_t			now;
 	ISC_LINK(struct ns_client)	link;
 };
 
