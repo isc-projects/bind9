@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.101 2000/10/12 21:51:53 mws Exp $ */
+/* $Id: xfrin.c,v 1.102 2000/10/16 04:26:08 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -102,6 +103,9 @@ struct dns_xfrin_ctx {
 
 	dns_name_t 		name; 		/* Name of zone to transfer */
 	dns_rdataclass_t 	rdclass;
+
+	isc_boolean_t		checkid;
+	dns_messageid_t		id;
 
 	/*
 	 * Requested transfer type (dns_rdatatype_axfr or
@@ -452,6 +456,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 				  xfr->ixfr.request_serial, xfr->end_serial);
 			FAIL(DNS_R_UPTODATE);
 		}
+		if (xfr->reqtype == dns_rdatatype_axfr)
+			xfr->checkid = ISC_FALSE;
 		xfr->state = XFRST_FIRSTDATA;
 		break;
 
@@ -660,6 +666,7 @@ xfrin_create(isc_mem_t *mctx,
 	isc_result_t result;
 	isc_interval_t maxinterval, idleinterval;
 	isc_time_t expires;
+	isc_uint32_t tmp;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
@@ -681,6 +688,9 @@ xfrin_create(isc_mem_t *mctx,
 
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
+	isc_random_get(&tmp);
+	xfr->checkid = ISC_TRUE;
+	xfr->id	= tmp &0xffff;
 	xfr->reqtype = reqtype;
 
 	/* sockaddr */
@@ -911,7 +921,9 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 		dns_message_addname(msg, msgsoaname, DNS_SECTION_AUTHORITY);
 	}
 
-	msg->id = ('b' << 8) | '9'; /* Arbitrary */
+	xfr->checkid = ISC_TRUE;
+	xfr->id++;
+	msg->id = xfr->id;
 
 	CHECK(render(msg, &xfr->qbuffer));
 
@@ -1050,9 +1062,12 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	result = dns_message_parse(msg, &tcpmsg->buffer,
 				   DNS_MESSAGEPARSE_PRESERVEORDER);
 
-	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror) {
+	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
+	    (xfr->checkid && msg->id != xfr->id)) {
 		if (result == ISC_R_SUCCESS)
 			result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /*XXX*/
+		if (result == ISC_R_SUCCESS || result == DNS_R_NOERROR)
+			result = DNS_R_UNEXPECTEDID;
 		if (xfr->reqtype == dns_rdatatype_axfr ||
 		    xfr->reqtype == dns_rdatatype_soa)
 			FAIL(result);
