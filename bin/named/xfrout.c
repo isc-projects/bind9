@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.65 2000/06/01 18:44:26 tale Exp $ */
+/* $Id: xfrout.c,v 1.66 2000/06/06 18:47:19 gson Exp $ */
 
 #include <config.h>
 
@@ -180,6 +180,10 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 	if (it->result == ISC_R_NOMORE) {
 		dns_rdataset_disassociate(&it->rdataset);
 		it->result = dns_rdatasetiter_next(it->rdatasetit);
+		/*
+		 * The while loop body is executed more than once
+		 * only when an empty dbnode needs to be skipped.
+		 */
 		while (it->result == ISC_R_NOMORE) {
 			dns_rdatasetiter_destroy(&it->rdatasetit);
 			dns_db_detachnode(it->db, &it->node);
