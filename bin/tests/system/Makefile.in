@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.12 2000/07/06 00:54:01 mws Exp $
+# $Id: Makefile.in,v 1.13 2000/07/06 02:06:02 gson Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -21,15 +21,17 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-test: dnssec_test limits_test notify_test nsupdate_test stub_test views_test \
+test: dnssec_test glue_test limits_test notify_test \
+	nsupdate_test stub_test views_test \
 	xfer_test xferquota_test
 
 distclean::
 	sh ./cleanall.sh
 
-clean distclean:: dnssec_test_clean limits_test_clean notify_test_clean \
-		  nsupdate_test_clean stub_test_clean views_test_clean \
-		  xfer_test_clean xferquota_test_clean
+clean distclean:: dnssec_test_clean glue_test_clean \
+	limits_test_clean notify_test_clean \
+	nsupdate_test_clean stub_test_clean views_test_clean \
+	xfer_test_clean xferquota_test_clean
 
 installdirs:
 
@@ -37,6 +39,9 @@ install::
 
 dnssec_test:
 	sh ./run.sh dnssec
+
+glue_test
+	sh ./run.sh glue
 
 limits_test:
 	sh ./run.sh limits
@@ -64,6 +69,9 @@ distclean::
 
 dnssec_test_clean:
 	sh ./clean.sh dnssec
+
+glue_test_clean:
+	sh ./clean.sh glue
 
 limits_test_clean:
 	sh ./clean.sh limits
