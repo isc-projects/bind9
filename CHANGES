@@ -1,3 +1,5 @@
+1235.	[func]		Report 'out of memory' errors from openssl.
+
 1233.	[bug]		The flags field of a KEY record can be expressed in
 			hex as well as decimal.
 

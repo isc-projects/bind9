@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.1 2002/03/19 04:30:53 marka Exp $ */
+/* $Id: dst_openssl.h,v 1.1.202.1 2003/08/14 04:08:24 marka Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
