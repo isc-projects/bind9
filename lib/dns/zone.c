@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.8 1999/09/17 14:22:06 brister Exp $ */
+ /* $Id: zone.c,v 1.9 1999/09/21 20:03:03 halley Exp $ */
 
 #include <config.h>
 
@@ -1505,6 +1505,11 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	isc_result_t iresult;
 	dns_result_t result;
 
+	/*
+	 * XXXRTH  Zones do not have resolvers!!!!
+	 */
+
+#if 0
 	REQUIRE(VALID_ZONE(zone));
 	REQUIRE(zone->task == NULL);
 	REQUIRE(zone->timgr == NULL);
@@ -1549,6 +1554,9 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 
 	dns_zone_maintenance(zone);
 	return (DNS_R_SUCCESS);
+#endif
+
+	return (DNS_R_NOTIMPLEMENTED);
 }
 
 void
