@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.43 1999/12/13 06:39:38 marka Exp $ */
+ /* $Id: zone.c,v 1.44 1999/12/13 07:56:26 marka Exp $ */
 
 #include <config.h>
 
@@ -2610,7 +2610,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 
 		iresult = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result == ISC_R_SUCCESS)
-			zone->xfrin = maxxfr;
+			zone->maxxfrin = maxxfr;
 		else
 			zone->maxxfrin = MAX_XFER_TIME;
 
@@ -2626,9 +2626,9 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		else
 			dns_zone_setidlein(zone, 0);
 
-		iresult = dns_c_zone_getmaxtranstimeout(czone, &maxffr);
+		iresult = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result == ISC_R_SUCCESS)
-			zone->maxxfrout = maxffr;
+			zone->maxxfrout = maxxfr;
 		else
 			zone->maxxfrout = MAX_XFER_TIME;
 
@@ -2696,9 +2696,9 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else 
 			dns_zone_clearmasters(zone);
 
-		iresult = dns_c_zone_getmaxtranstimein(czone, &maxffr);
+		iresult = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result == ISC_R_SUCCESS)
-			zone->maxxfrin = maxffr;
+			zone->maxxfrin = maxxfr;
 		else
 			zone->maxxfrin = MAX_XFER_TIME;
 
@@ -2979,7 +2979,7 @@ dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin) {
 }
 
 isc_uint32_t
-dns_zone_getmamaxxfrin(dns_zone_t *zone) {
+dns_zone_getmaxxfrin(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->maxxfrin);
@@ -2993,7 +2993,7 @@ dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout) {
 }
 
 isc_uint32_t
-dns_zone_getmamaxxfrout(dns_zone_t *zone) {
+dns_zone_getmaxxfrout(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->maxxfrout);
