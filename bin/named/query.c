@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.194 2001/04/28 00:21:23 gson Exp $ */
+/* $Id: query.c,v 1.195 2001/05/19 00:08:21 gson Exp $ */
 
 #include <config.h>
 
@@ -2544,7 +2544,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	CTRACE("query_find: resume");
 	switch (result) {
 	case ISC_R_SUCCESS:
-			count_query(zone, is_zone, dns_statscounter_success);
+		count_query(zone, is_zone, dns_statscounter_success);
 		/*
 		 * This case is handled in the main line below.
 		 */
