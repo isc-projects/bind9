@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.4.12.6 2004/10/06 05:37:38 marka Exp $ */
+/* $Id: check-tool.c,v 1.4.12.7 2004/11/30 01:15:40 marka Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <isc/types.h>
 
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/types.h>

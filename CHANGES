@@ -1,3 +1,6 @@
+1774.	[port]		Aix: Silence compiler warnings / build failures.
+			[RT #13154]
+
 1770.	[bug]		named-checkconf failed to report missing a missing
 			file clause for rbt{64} master/hint zones. [RT#13009]
 
