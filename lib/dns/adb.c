@@ -93,9 +93,15 @@
 #define ADB_CACHE_MINIMUM	10	/* seconds */
 
 /*
- * Clean one bucket every CLEAN_SECONDS.
+ * Clean CLEAN_BUCKETS buckets every CLEAN_SECONDS.
  */
-#define CLEAN_SECONDS		(300 / NBUCKETS)
+#define CLEAN_PERIOD		3600 /* one pass through every N seconds */
+#define CLEAN_BUCKETS		((NBUCKETS / CLEAN_PERIOD) + 0.5)
+#if CLEAN_BUCKET < 1
+#undef CLEAN_BUCKETS
+#define CLEAN_BUCKETS 1
+#endif
+#define CLEAN_SECONDS		(CLEAN_PERIOD * CLEAN_BUCKETS / NBUCKETS)
 #if CLEAN_SECONDS < 1
 #undef CLEAN_SECONDS
 #define CLEAN_SECONDS		1
@@ -1966,7 +1972,6 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now)
 
 	INSIST(namep != NULL && DNS_ADBNAME_VALID(*namep));
 	name = *namep;
-	*namep = NULL;
 
 	if (NAME_HAS_V4(name) || NAME_HAS_V6(name))
 		return;
@@ -1983,6 +1988,7 @@ check_expire_name(dns_adbname_t **namep, isc_stdtime_t now)
 	 * The name is empty.  Delete it.
 	 */
 	kill_name(&name, DNS_EVENT_ADBEXPIRED);
+	*namep = NULL;
 
 	/*
 	 * Our caller, or one of its callers, will be calling check_exit() at
@@ -2000,7 +2006,6 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 
 	INSIST(entryp != NULL && DNS_ADBENTRY_VALID(*entryp));
 	entry = *entryp;
-	*entryp = NULL;
 
 	if (entry->refcnt != 0)
 		return;
@@ -2014,6 +2019,7 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 	INSIST(ISC_LINK_LINKED(entry, plink));
 	unlink_entry(adb, entry);
 	free_adbentry(adb, &entry);
+	*entryp = NULL;
 }
 
 /*
@@ -2050,14 +2056,30 @@ static void
 cleanup_entries(dns_adb_t *adb, int bucket, isc_stdtime_t now)
 {
 	dns_adbentry_t *entry, *next_entry;
+	int freq;
 
 	DP(CLEAN_LEVEL, "cleaning entry bucket %d", bucket);
+
+	freq = NBUCKETS / CLEAN_SECONDS;
+	REQUIRE(freq > 0);
 
 	LOCK(&adb->entrylocks[bucket]);
 	entry = ISC_LIST_HEAD(adb->entries[bucket]);
 	while (entry != NULL) {
 		next_entry = ISC_LIST_NEXT(entry, plink);
 		check_expire_entry(adb, &entry, now);
+		if (entry != NULL && entry->goodness != 0) {
+			if (entry->goodness > 0
+			    && entry->goodness < freq)
+				entry->goodness = 0;
+			else if (entry->goodness < 0
+				 && entry->goodness > -freq)
+				entry->goodness = 0;
+			else if (entry->goodness > 0)
+				entry->goodness -= freq;
+			else if (entry->goodness < 0)
+				entry->goodness += freq;
+		}
 		entry = next_entry;
 	}
 	UNLOCK(&adb->entrylocks[bucket]);
@@ -2069,8 +2091,9 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	dns_adb_t *adb;
 	isc_result_t result;
 	isc_stdtime_t now;
+	unsigned int i;
 
-	(void)task;  /* not used */
+	UNUSED(task);
 
 	adb = ev->arg;
 	INSIST(DNS_ADB_VALID(adb));
@@ -2079,21 +2102,23 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 
 	isc_stdtime_get(&now);
 
-	/*
-	 * Call our cleanup routines.
-	 */
-	cleanup_names(adb, adb->next_cleanbucket, now);
-	cleanup_entries(adb, adb->next_cleanbucket, now);
+	for (i = 0 ; i < CLEAN_BUCKETS ; i++) {
+		/*
+		 * Call our cleanup routines.
+		 */
+		cleanup_names(adb, adb->next_cleanbucket, now);
+		cleanup_entries(adb, adb->next_cleanbucket, now);
 
-	/*
-	 * Set the next bucket to be cleaned.
-	 */
-	adb->next_cleanbucket++;
-	if (adb->next_cleanbucket >= NBUCKETS) {
-		adb->next_cleanbucket = 0;
+		/*
+		 * Set the next bucket to be cleaned.
+		 */
+		adb->next_cleanbucket++;
+		if (adb->next_cleanbucket >= NBUCKETS) {
+			adb->next_cleanbucket = 0;
 #ifdef DUMP_ADB_AFTER_CLEANING
-		dump_adb(adb, stdout);
+			dump_adb(adb, stdout);
 #endif
+		}
 	}
 
 	/*
@@ -2270,6 +2295,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 				  timer_cleanup, adb, &adb->timer);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+
+	DP(5,
+	   "Cleaning interval for adb:  "
+	   "%u buckets every %u seconds, %u buckets in system, %u cl.interval",
+	   CLEAN_BUCKETS, CLEAN_SECONDS, NBUCKETS, CLEAN_PERIOD);
 
 	/*
 	 * Normal return.
