@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.28 2000/11/06 19:52:45 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.29 2000/11/06 20:40:54 gson Exp $ -->
 
 <book>
 
@@ -2377,7 +2377,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> notify <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
@@ -2632,7 +2632,15 @@ in dynamic updates.</para></entry>
 <entry colname = "1"><para><command>notify</command></para></entry>
 <entry colname = "2"><para>If <userinput>yes</userinput> (the default),
 DNS NOTIFY messages are sent when a zone the server is authoritative for
-changes, see <xref linkend="notify"/>.
+changes, see <xref linkend="notify"/>.  The messages are sent to the
+servers listed in the zone's NS records (except the master server identified
+in the SOA MNAME field), and to any servers listed in the
+<command>also-notify</command> option.
+</para><para>
+If <userinput>explicit</userinput>, notifies are sent only to
+servers explicitly listed using <command>also-notify</command>.
+If <userinput>no</userinput>, no notifies are sent.
+</para><para>
 The <command>notify</command> option may also be specified in the <command>zone</command> statement,
 in which case it overrides the <command>options notify</command> statement.
 It would only be necessary to turn off this option if it caused slaves
@@ -2890,9 +2898,10 @@ system. The following options apply to zone transfers.</para>
 <tbody>
 <row rowsep = "0">
 <entry colname = "1"><para><command>also-notify</command></para></entry>
-<entry colname = "2"><para>Defines a global list of IP addresses
+<entry colname = "2"><para>Defines a global list of IP addresses of name servers
 that are also sent NOTIFY messages whenever a fresh copy of the
-zone is loaded. This helps to ensure that copies of the zones will
+zone is loaded, in addition to the servers listed in the zone's NS records.
+This helps to ensure that copies of the zones will
 quickly converge on stealth servers. If an <command>also-notify</command> list
 is given in a <command>zone</command> statement, it will override
 the <command>options also-notify</command> statement. When a <command>zone notify</command> statement
@@ -3534,7 +3543,7 @@ Statement Grammar</title>
     <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
-    <optional> notify <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> ; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
