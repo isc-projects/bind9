@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.262 2000/11/28 20:54:37 gson Exp $ */
+/* $Id: zone.c,v 1.263 2000/11/29 14:03:29 marka Exp $ */
 
 #include <config.h>
 
@@ -350,6 +350,8 @@ static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...);
 static void queue_xfrin(dns_zone_t *zone);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
+static void zone_iattach(dns_zone_t *source, dns_zone_t **target);
+void zone_idetach(dns_zone_t **zonep);
 #ifndef NOMINUM_PUBLIC
 static void zone_deletefile(dns_zone_t *zone);
 #endif /* NOMINUM_PUBLIC */
@@ -1013,7 +1015,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_result_t result;
 	isc_result_t tresult;
 
-	if (zone->zmgr != NULL && zone->db != NULL) {
+	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
 		if (load == NULL)
 			return (ISC_R_NOMEMORY);
@@ -1025,7 +1027,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		load->magic = LOAD_MAGIC;
 
 		isc_mem_attach(zone->mctx, &load->mctx);
-		dns_zone_iattach(zone, &load->zone);
+		zone_iattach(zone, &load->zone);
 		dns_db_attach(db, &load->db);
 		dns_rdatacallbacks_init(&load->callbacks);
 		result = dns_db_beginload(db, &load->callbacks.add,
@@ -1052,7 +1054,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
  cleanup:
 	load->magic = 0;
 	dns_db_detach(&load->db);
-	dns_zone_idetach(&load->zone);
+	zone_idetach(&load->zone);
 	isc_mem_detach(&load->mctx);
 	isc_mem_put(zone->mctx, load, sizeof(*load));
 	return (result);
@@ -1466,11 +1468,36 @@ void
 dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
+	LOCK(&source->lock);
+	zone_iattach(source, target);
+	UNLOCK(&source->lock);
+}
+
+static void
+zone_iattach(dns_zone_t *source, dns_zone_t **target) {
+	REQUIRE(DNS_ZONE_VALID(source));
+	REQUIRE(target != NULL && *target == NULL);
 	source->irefs++;
 	INSIST(source->irefs != 0);
 	*target = source;
-	zone_log(source, "dns_zone_iattach", ISC_LOG_DEBUG(10),
+	zone_log(source, "zone_iattach", ISC_LOG_DEBUG(10),
 		 "eref = %d, irefs = %d", source->erefs, source->irefs);
+}
+
+void
+zone_idetach(dns_zone_t **zonep) {
+	dns_zone_t *zone;
+
+	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	zone = *zonep;
+	REQUIRE(ISLOCKED(&zone->lock));
+	*zonep = NULL;
+
+	INSIST(zone->irefs > 0);
+	zone->irefs--;
+	zone_log(zone, "zone_idetach", ISC_LOG_DEBUG(10),
+		 "eref = %d, irefs = %d", zone->erefs, zone->irefs);
+	INSIST(zone->irefs + zone->erefs > 0);
 }
 
 void
@@ -1479,11 +1506,14 @@ dns_zone_idetach(dns_zone_t **zonep) {
 
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 	zone = *zonep;
-	REQUIRE(zone->irefs > 0);
-	zone->irefs--;
 	*zonep = NULL;
+
+	LOCK(&zone->lock);
+	INSIST(zone->irefs > 0);
+	zone->irefs--;
 	zone_log(zone, "dns_zone_idetach", ISC_LOG_DEBUG(10),
 		 "eref = %d, irefs = %d", zone->erefs, zone->irefs);
+	UNLOCK(&zone->lock);
 	exit_check(zone);
 }
 
@@ -2442,7 +2472,7 @@ notify_send(dns_notify_t *notify) {
 				       &new);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		dns_zone_iattach(notify->zone, &new->zone);
+		zone_iattach(notify->zone, &new->zone);
 		ISC_LIST_APPEND(new->zone->notifies, new, link);
 		new->dst = dst;
 		result = notify_send_queue(new);
@@ -2486,7 +2516,7 @@ zone_notifyforward(dns_zone_t *zone) {
 		if (result != ISC_R_SUCCESS) {
 			return;
 		}
-		dns_zone_iattach(zone, &notify->zone);
+		zone_iattach(zone, &notify->zone);
 		notify->dst = dst;
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
@@ -2555,7 +2585,7 @@ dns_zone_notify(dns_zone_t *zone) {
 			UNLOCK(&zone->lock);
 			return;
 		}
-		dns_zone_iattach(zone, &notify->zone);
+		zone_iattach(zone, &notify->zone);
 		notify->dst = dst;
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
@@ -4654,11 +4684,9 @@ zone_loaddone(void *arg, isc_result_t result) {
 	dns_load_t *load = arg;
 	dns_zone_t *zone;
 	isc_result_t tresult;
-	isc_mem_t *mctx;
 
 	REQUIRE(DNS_LOAD_VALID(load));
 	zone = load->zone;
-	mctx = load->mctx;
 
 	DNS_ENTER;
 
@@ -4668,15 +4696,14 @@ zone_loaddone(void *arg, isc_result_t result) {
 
 	LOCK(&load->zone->lock);
 	(void)zone_postload(load->zone, load->db, load->loadtime, result);
+	zonemgr_putio(&load->zone->readio);
 	load->zone->flags &= ~DNS_ZONEFLG_LOADING;
 	UNLOCK(&load->zone->lock);
 
 	load->magic = 0;
 	dns_db_detach(&load->db);
-	zonemgr_putio(&zone->readio);
-	dns_zone_idetach(&zone);
-	isc_mem_put(mctx, load, sizeof (*load));
-	isc_mem_detach(&mctx);
+	dns_zone_idetach(&load->zone);
+	isc_mem_putanddetach(&load->mctx, load, sizeof (*load));
 }
 
 void
@@ -5053,6 +5080,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	isc_mem_attach(zone->mctx, &forward->mctx);
 	dns_zone_iattach(zone, &forward->zone);
 	result = sendtomaster(forward);
+
  cleanup:
 	if (result != ISC_R_SUCCESS) {
 		forward_destroy(forward);
@@ -5592,7 +5620,6 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 		else
 			ISC_LIST_APPEND(zmgr->low, io, link);
 	}
-	
 	UNLOCK(&zmgr->iolock);
 	*iop = io;
 
