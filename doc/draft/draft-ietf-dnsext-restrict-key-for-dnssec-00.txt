@@ -1,0 +1,480 @@
+
+
+
+
+
+
+DNSEXT Working Group                                          D. Massey
+INTERNET-DRAFT                                                  USC/ISI
+                                                                S. Rose
+Expires: April 2002                                                NIST
+Updates: RFC 2535                                         November 2001
+
+
+
+             Limiting the Scope of the KEY Resource Record
+                     ------------------------------
+           <draft-ietf-dnsext-restrict-key-for-dnssec-00.txt>
+
+
+Status of this Document
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.  Distribution of this
+   document is unlimited.  Comments regarding this document should be
+   sent to the author.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+
+Abstract
+
+   This document limits the KEY resource record to only DNS zone keys.
+   The original KEY resource record used sub-typing to store both DNS
+   zone keys and arbitrary application keys.  DNS security keys and
+   application keys differ in almost every respect and should not be
+   combined in a single sub-typed resource record.   This document
+   removes application keys from the KEY record by redefining the
+   Protocol Octet field in the KEY RDATA. Three existing application key
+   sub-types are changed to historic, but the format of the KEY record
+   is not changed.  This document updates RFC 2535.
+
+
+
+
+
+Massey, Rose                                                    [Page 1]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+1.  Introduction
+
+   This document limits the scope the KEY resource record.   The KEY
+   resource record, originally defined in [DNSSEC], uses resource record
+   sub-typing to hold any public key associated with "a zone, a user, or
+   a host or other end entity".   The KEY resource record is assigned
+   type value of 25 and the Protocol Octet in the KEY RDATA identifies
+   the sub-type.   DNSSEC Zone, User and Host keys are stored in the KEY
+   resource record and are identified by a Protocol Octet value of 3.
+   Email, IPSEC, and TLS keys are also stored in the KEY resource record
+   and are identified by Protocol Octet values of 1,2, and 4
+   (respectively).   Protocol Octet values 5-254 are available for
+   assignment by IANA and values have been requested (but not assigned)
+   for applications such as SSH.
+
+   Closer examination and limited experimental deployment has shown that
+   application keys stored in KEY records are problematic.  Any use of
+   sub-typing has inherent limitations.   A resolver can not specify the
+   desired sub-type in a DNS query and many DNS operations group
+   resource records into sets, based on the DNS name and type.  For a
+   example, a resolver can not directly request the DNSSEC key sub-type.
+   Instead, the resolver must request all KEY records associated with a
+   DNS name.   DNSSEC signatures apply to the set of all KEY resource
+   records associated with the DNS name, regardless of sub-type.
+
+   In the case of the KEY record, the inherent sub-type limitations are
+   exacerbated since DNS zone keys and application keys differ in
+   virtually every respect.   Combining two very different types of keys
+   into a single sub-typed resource record adds unnecessary complexity
+   and increases the potential for implementation and deployment errors.
+   This document addresses these issues by removing all application keys
+   from the KEY resource record.   Note that the scope of this document
+   is strictly limited to the KEY record and this document does not
+   endorse or restrict the storage of application keys in other resource
+   records.
+
+
+2.  DNS Zone Key and Application Key Differences
+
+   In the original specification, all public keys were stored in KEY
+   records, regardless of protocol or type.  This proved to be a mistake
+   as DNS security keys (zone, host and user) and application keys
+   differ in the following ways:
+
+
+        o    They serve different purposes.
+
+        o    They are managed by different administrators.
+
+
+
+Massey, Rose                                                    [Page 2]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+        o    They are authenticated according to different rules.
+
+        o    Nameservers use different rules when including them in
+             responses.
+
+        o    Resolvers process them in different ways.
+
+        o    Faults/key compromises have different consequences.
+
+   The purpose of a DNS zone key is to sign resource records associated
+   with a DNS zone but the purpose of an application key is specific to
+   the application.  DNSSEC host and user KEY RRs are used to generate
+   SIG(0) transaction signatures.   Application keys, such as PGP/email,
+   IPSEC, TLS, and SSH keys, are not a mandatory part of any zone and
+   the purpose and proper use of application keys is outside the scope
+   of DNS.
+
+   DNSSEC keys are managed by DNS administrators, but application keys
+   are managed by application administrators.   The DNS zone administra-
+   tor determines the key lifetime, handles any suspected key comprom-
+   ises, and manages any DNSSEC key changes.   Likewise, the application
+   administrator is responsible for the same functions for the applica-
+   tion keys related to the application.   For example, a user typically
+   manages her own PGP key and a server manages its own TLS key.
+   Application key management tasks are outside the scope of DNS
+   administration.
+
+   DNS zone keys are used to authenticate application keys, but applica-
+   tion keys MUST NOT be used to authenticate DNS zone keys.   A DNS
+   zone key is either configured as trusted key or authenticated by con-
+   structing a chain of trust in the DNS hierarchy.   To participate in
+   the chain of trust, a DNS zone must exchange zone key information
+   with its parent zone [DNSSEC].   Application keys are not configured
+   as trusted keys in the DNS and are never part of any DNS chain of
+   trust.   Application key data should not be exchanged with the parent
+   zone.   A resolver considers an application key authenticated if it
+   has a valid signature from the local DNS zone keys, but applications
+   may impose additional requirements before the application key is
+   accepted as authentic.
+
+   It MAY be useful for nameservers to include DNS zone keys in the
+   additional section of a response, but application keys are typically
+   not useful unless they have been specifically requested.   For exam-
+   ple, it may be useful to include the isi.edu zone key along with a
+   response that contain the www.isi.edu A record and SIG record.   A
+   secure resolver will need the isi.edu zone key in order to check the
+   SIG and authenticate the www.isi.edu A record.   It is typical not
+   useful to include the IPSEC, email, and TLS keys along with the A
+
+
+
+Massey, Rose                                                    [Page 3]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+   record.   Note that by placing application keys in the KEY record, a
+   resolver will need the IPSEC, email, TLS, and other key associated
+   with isi.edu if the resolver intends to authenticate the isi.edu zone
+   key (since signatures only apply to the entire KEY set).
+
+   DNS zone keys require special handling by resolvers, but application
+   keys should be treated the same as any other type of DNS data.   The
+   DNSSEC keys are of no value to end applications, unless the applica-
+   tions plan to do their own DNS authentication.   Secure resolvers
+   MUST NOT use application keys as part of the authentication process.
+   Application keys have no unique value to resolvers and are only use-
+   ful to the application requesting the key.   Note that if sub-types
+   are used to identify the application key, then either the interface
+   to the resolver must specify the sub-type or the application must be
+   able to accept all KEY records and pick out the desired the sub-type.
+
+   A fault or compromise of DNS zone key can lead to invalid or forged
+   DNS data, but a fault or compromise of an application key should have
+   no impact on other DNS data.   Incorrectly adding or changing a DNS
+   zone key can invalidate all of the DNS data in zone and in all of its
+   subzones.   By using a compromised key, an attacker can forge data
+   from the effected zone and any for any of its sub-zones.  A fault or
+   compromise of an application key has implications for that applica-
+   tion, but it should not have an impact on the DNS. Note that applica-
+   tion key faults and key compromises can have an impact on the entire
+   DNS if the application key and DNS zone keys are both stored in the
+   KEY record.
+
+   In summary, DNS zone keys and application keys differ in most every
+   respect.   DNS zone keys are an essential part of the DNS infrastruc-
+   ture and require special handling by DNS administrators and DNS
+   resolvers.  Application keys are simply another type of data and have
+   no special meaning to DNS administrators or resolvers.   These two
+   different types of data do not belong in the same resource record.
+
+
+3.  Redefinition of the KEY Resource Record
+
+   The KEY record is redefined as resource record for storing DNSSEC
+   keys.   The KEY RDATA format, as defined in [DNSSEC], is not changed,
+   but the Protocol Octet is redefined as follows:
+
+              VALUE   Protocol
+                0      - reserved
+                1     HISTORIC
+                2     HISTORIC
+                3     dnssec
+                4     HISTORIC
+
+
+
+Massey, Rose                                                    [Page 4]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+              5-254    - reserved
+                   255    HISTORIC
+
+   All valid KEY records MUST have a Protocol Octet value of 3.   KEY
+   records with a Protocol Octet value other than 3 SHOULD NOT be stored
+   in the DNS and SHOULD be ignored by nameservers and resolvers that
+   receive them in a response.
+
+
+4.  Backward Compatibility
+
+   Protocol Octet values of 1,2, 4, and 255 were previously defined in
+   RFC 2535.   These values are now deprecated.   To insure backward
+   compatibility, the Protocol Octet values 1,2, and 4 will be desig-
+   nated as HISTORIC. Protocol values 5-254 are reserved and are no
+   longer available for assignment by IANA.
+
+   KEY records with a Protocol Value of 1,2, or 4 were never widely
+   deployed in the DNS and some limited test deployment revealed prob-
+   lems.  Most notably, placing application keys in the KEY record can
+   create very large key sets and application keys that appear in the
+   zone apex can create zone management problems.   Some change in the
+   definition and/or usage of the KEY record would be required even if
+   the approach described here were not required.
+
+   KEY records with a Protocol Octet value of 1,2, or 4 SHOULD NOT be
+   place in a DNS zone.   Likewise, resolvers that receive KEY records
+   in a response with HISTORIC or invalid protocol field values SHOULD
+   be ignored and SHOULD NOT be stored in a resolver's/server's cache.
+
+   No changes are made to the format of the KEY record or to the use of
+   DNSSEC zone, host and user keys.   Existing nameservers and resolvers
+   will continue to correctly process KEY records that contain DNSSEC
+   keys.
+
+
+5.  Storing Application Keys in the DNS
+
+   The scope of this document is strictly limited to the KEY record.
+   This document prohibits storing application keys in the KEY record,
+   but it does not endorse or restrict the storing application keys in
+   other record types.   Other documents should describe how DNS handles
+   application keys.
+
+
+6.  IANA Consideration
+
+   Protocol Octet values 1,2,4, and 255 are changed to HISTORIC.
+
+
+
+Massey, Rose                                                    [Page 5]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+   Protocol Octet values 5-255 are reserved and are no longer available
+   for assignment by IANA.
+
+
+7.  Security Consideration
+
+   This document eliminates potential security problems that could arise
+   due to the coupling of DNS zone keys and application keys.
+
+   Prior to the change described in the document, a correctly authenti-
+   cated KEY set could include both application keys and DNSSEC keys.
+   If one of the application keys is compromised, it could be used as a
+   false zone key to create phony DNS signatures (SIG records).
+   Resolvers that do not carefully check the KEY sub-type may believe
+   these false signatures and incorrectly authenticate DNS data.   With
+   this change, application keys cannot appear in an authenticated KEY
+   set.
+
+   Applications that accept keys based solely on DNSSEC rely on the DNS
+   administrator to correctly enter the application key data and are
+   only as secure as the weakest zone in the DNS chain of trust.
+   Compromises or errors caused by DNS administrators when entering
+   DNSSEC data could results in an application key failing to verify, or
+   verified incorrectly.
+
+   The format and correct usage of DNS zone keys is not changed by this
+   document and no new security considerations are introduced.
+
+
+8.  Intellectual Property
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to per-
+   tain to the implementation or use of the technology described in this
+   document or the extent to which any license under such rights might
+   or might not be available; neither does it represent that it has made
+   any effort to identify any such rights.   Information on the IETF's
+   procedures with respect to rights in standards-track and standards-
+   related documentation can be found in BCP-11.
+
+   Copies of claims of rights made available for publication and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementors or users of this specifica-
+   tion can be obtained from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+
+
+
+Massey, Rose                                                    [Page 6]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+   rights which may cover technology that may be required to practice
+   this standard.   Please address the information to the IETF Executive
+   Director.
+
+
+9.  References
+
+   [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
+   2535, March 1999.
+
+
+10.  Author Information
+
+   Daniel Massey <masseyd@isi.edu>
+   USC Information Sciences Institute
+   3811 North Fairfax Drive, Suite 200
+   Arlington, VA 22203
+
+   Scott Rose <scott.rose@nist.gov>
+   National Institute for Standards and Technology
+   Gaithersburg, MD
+
+
+Expiration and File Name:
+
+   This draft, titled <draft-ietf-dnsext-restrict-key-for-dnssec-00.txt> expires April 2001
+
+
+Full Copyright Statement
+
+
+   Copyright (C) The Internet Society (2001).   All Rights Reserved.
+
+   This document and translations of it may be copied and furnished
+   to others, and derivative works that comment on or otherwise explain
+   it or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copy- right notice and this paragraph
+   are included on all such copies and derivative works.   However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of developing
+   Internet standards in which case the procedures for copyrights defined
+   in the Internet Standards process must be followed, or as required
+   to translate it into languages other than English.
+
+   The limited permissions granted above are perpetual and will not
+   be revoked by the Internet Society or its successors or assigns.
+
+
+
+Massey, Rose                                                    [Page 7]
+
+
+
+
+
+INTERNET-DRAFT       Limiting the Scope of KEY RRs         November 2001
+
+
+   This document and the information contained herein is provided on
+   an "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN
+   WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY
+   OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Massey, Rose                                                    [Page 8]
+
+
