@@ -98,6 +98,7 @@ options {
         min-refresh-time <integer>;
         sig-validity-interval <integer>;
         zone-statistics <boolean>;
+        key-directory <quoted_string>;
 };
 
 controls {
@@ -176,6 +177,7 @@ view <string> <optional_class> {
                 min-refresh-time <integer>;
                 sig-validity-interval <integer>;
                 zone-statistics <boolean>;
+                key-directory <quoted_string>;
         };
         server {
                 bogus <boolean>;
@@ -242,6 +244,7 @@ view <string> <optional_class> {
         min-refresh-time <integer>;
         sig-validity-interval <integer>;
         zone-statistics <boolean>;
+        key-directory <quoted_string>;
 };
 
 lwres {
@@ -298,6 +301,7 @@ zone <string> <optional_class> {
         min-refresh-time <integer>;
         sig-validity-interval <integer>;
         zone-statistics <boolean>;
+        key-directory <quoted_string>;
 };
 
 server {

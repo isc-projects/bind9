@@ -76,12 +76,28 @@ CLASS="REPLACEABLE"
 >class</I
 ></TT
 ></TT
+>] [<TT
+CLASS="OPTION"
+>-t <TT
+CLASS="REPLACEABLE"
+><I
+>directory</I
+></TT
+></TT
+>] [<TT
+CLASS="OPTION"
+>-w <TT
+CLASS="REPLACEABLE"
+><I
+>directory</I
+></TT
+></TT
 >] {zonename} {filename}</P
 ></DIV
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN27"
+NAME="AEN33"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -105,7 +121,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN33"
+NAME="AEN39"
 ></A
 ><H2
 >OPTIONS</H2
@@ -152,6 +168,44 @@ CLASS="REPLACEABLE"
 	  </P
 ></DD
 ><DT
+>-t <TT
+CLASS="REPLACEABLE"
+><I
+>directory</I
+></TT
+></DT
+><DD
+><P
+>              chroot to <TT
+CLASS="FILENAME"
+>directory</TT
+> so that include
+              directives in the configuration file are processed as if
+              run by a similarly chrooted named.
+          </P
+></DD
+><DT
+>-w <TT
+CLASS="REPLACEABLE"
+><I
+>directory</I
+></TT
+></DT
+><DD
+><P
+>              chdir to <TT
+CLASS="FILENAME"
+>directory</TT
+> so that relative
+	      filenames in master file $INCLUDE directives work.  This
+	      is similar to the directory clause in
+	      <TT
+CLASS="FILENAME"
+>named.conf</TT
+>.
+          </P
+></DD
+><DT
 >zonename</DT
 ><DD
 ><P
@@ -171,7 +225,7 @@ CLASS="REPLACEABLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN62"
+NAME="AEN81"
 ></A
 ><H2
 >RETURN VALUES</H2
@@ -186,7 +240,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN66"
+NAME="AEN85"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -211,7 +265,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN74"
+NAME="AEN93"
 ></A
 ><H2
 >AUTHOR</H2

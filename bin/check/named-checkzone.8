@@ -19,7 +19,7 @@
 named-checkzone \- zone file validity checking tool
 .SH SYNOPSIS
 .sp
-\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  \fBzonename\fR \fBfilename\fR
+\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-w \fIdirectory\fB\fR ]  \fBzonename\fR \fBfilename\fR
 .SH "DESCRIPTION"
 .PP
 \fBnamed-checkzone\fR checks the syntax and integrity of
@@ -41,6 +41,17 @@ program and exit.
 .TP
 \fB-c \fIclass\fB\fR
 Specify the class of the zone. If not specified "IN" is assumed.
+.TP
+\fB-t \fIdirectory\fB\fR
+chroot to \fIdirectory\fR so that include
+directives in the configuration file are processed as if
+run by a similarly chrooted named.
+.TP
+\fB-w \fIdirectory\fB\fR
+chdir to \fIdirectory\fR so that relative
+filenames in master file $INCLUDE directives work. This
+is similar to the directory clause in
+\fInamed.conf\fR.
 .TP
 \fBzonename\fR
 The domain name of the zone being checked.
