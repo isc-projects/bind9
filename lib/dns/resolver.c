@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.43 2004/08/28 06:25:19 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.44 2004/09/16 02:12:19 marka Exp $ */
 
 #include <config.h>
 
@@ -4127,7 +4127,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		dns_message_currentname(message, section, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
 			/*
-			 * Look for NS RRset first.
+			 * Look for NS/SOA RRsets first.
 			 */
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
@@ -4141,7 +4141,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					return (DNS_R_FORMERR);
 				if (type == dns_rdatatype_ns) {
 					/*
-					 * NS or SIG NS.
+					 * NS or RRSIG NS.
 					 *
 					 * Only one set of NS RRs is allowed.
 					 */
@@ -4159,17 +4159,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
 				}
-			}
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				type = rdataset->type;
-				if (type == dns_rdatatype_rrsig)
-					type = rdataset->covers;
-				if (type == dns_rdatatype_soa ||
-				    type == dns_rdatatype_nsec) {
+				if (type == dns_rdatatype_soa) {
 					/*
-					 * SOA, RRSIG SOA, NSEC, or RRSIG NSEC.
+					 * SOA, or RRSIG SOA.
 					 *
 					 * Only one SOA is allowed.
 					 */
@@ -4180,8 +4172,38 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							return (DNS_R_FORMERR);
 						soa_name = name;
 					}
-					if (ns_name == NULL) {
-						negative_response = ISC_TRUE;
+					name->attributes |=
+						DNS_NAMEATTR_NCACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_NCACHE;
+					if (aa)
+						rdataset->trust =
+						    dns_trust_authauthority;
+					else
+						rdataset->trust =
+							dns_trust_additional;
+				}
+			}
+			/*
+			 * A negative response has a SOA record (Type 2) 
+			 * and a optional NS RRset (Type 1) or it has neither
+			 * a SOA or a NS RRset (Type 3) or rcode is NXDOMAIN
+			 * (handled above) in which case the NS RRset is
+			 * allowed (Type 4).
+			 */
+			if (soa_name != NULL || ns_name == NULL)
+				negative_response = ISC_TRUE;
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_rrsig)
+					type = rdataset->covers;
+				if (type == dns_rdatatype_nsec) {
+					/*
+					 * NSEC or RRSIG NSEC.
+					 */
+					if (negative_response) {
 						name->attributes |=
 							DNS_NAMEATTR_NCACHE;
 						rdataset->attributes |=
@@ -4210,7 +4232,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 * this is a referral, and there
 					 * should only be one DS.
 					 */
-					if (negative_response)
+					if (ns_name == NULL)
 						return (DNS_R_FORMERR);
 					if (rdataset->type ==
 					    dns_rdatatype_ds) {
