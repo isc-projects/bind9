@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.45 2000/09/14 22:03:52 mws Exp $ */
+/* $Id: nslookup.c,v 1.46 2000/09/21 11:53:16 marka Exp $ */
 
 #include <config.h>
 
@@ -193,6 +193,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata;
 	char *ptr;
+	char *input;
 
 	UNUSED(query);
 	UNUSED(headers);
@@ -256,41 +257,41 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					check_result(result,
 						     "dns_rdata_totext");
 					((char *)isc_buffer_used(b))[0]=0;
-					ptr = strtok(isc_buffer_base(b),
-						     " \t\r\n");
+					input = isc_buffer_base(b);
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\torigin = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tmail addr = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tserial = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\trefresh = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tretry = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\texpire = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tminimum = %s\n",
@@ -347,6 +348,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata;
 	char *ptr;
+	char *input;
 
 	UNUSED(query);
 
@@ -404,41 +406,41 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					check_result(result,
 						     "dns_rdata_totext");
 					((char *)isc_buffer_used(b))[0]=0;
-					ptr = strtok(isc_buffer_base(b),
-						     " \t\r\n");
+					input = isc_buffer_base(b);
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\torigin = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tmail addr = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tserial = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\trefresh = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tretry = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\texpire = %s\n",
 					       ptr);
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tminimum = %s\n",
@@ -758,19 +760,24 @@ setsrv(char *opt) {
 
 static void
 get_next_command(void) {
-	char input[COMMSIZE];
+	char *buf;
 	char *ptr, *arg;
+	char *input;
 
+	buf = isc_mem_allocate(mctx, COMMSIZE);
+	if (buf == NULL)
+		fatal("Memory allocation failure.");
 	fputs("> ", stderr);
-	ptr = fgets(input, COMMSIZE, stdin);
+	ptr = fgets(buf, COMMSIZE, stdin);
 	if (ptr == NULL) {
 		in_use = ISC_FALSE;
-		return;
+		goto cleanup;
 	}
-	ptr = strtok(input, " \t\r\n");
+	input = buf;
+	ptr = strsep(&input, " \t\r\n");
 	if (ptr == NULL)
-		return;
-	arg = strtok(NULL, " \t\r\n");
+		goto cleanup;
+	arg = strsep(&input, " \t\r\n");
 	if ((strcasecmp(ptr, "set") == 0) &&
 	    (arg != NULL))
 		setoption(arg);
@@ -780,21 +787,23 @@ get_next_command(void) {
 		setsrv(arg);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
-		return;
+		goto cleanup;
 	} else if (strcasecmp(ptr, "help") == 0 ||
 		   strcasecmp(ptr, "?") == 0)
 	{
 		printf("The '%s' command is not yet implemented.\n", ptr);
-		return;
+		goto cleanup;
 	} else if (strcasecmp(ptr, "finger") == 0 ||
 		   strcasecmp(ptr, "root") == 0 ||
 		   strcasecmp(ptr, "ls") == 0 ||
 		   strcasecmp(ptr, "view") == 0)
 	{
 		printf("The '%s' command is not implemented.\n", ptr);
-		return;
+		goto cleanup;
 	} else
 		addlookup(ptr);
+ cleanup:
+	isc_mem_free(mctx, buf);
 }
 
 static void

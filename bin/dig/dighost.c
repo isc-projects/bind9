@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.127 2000/09/14 20:11:47 mws Exp $ */
+/* $Id: dighost.c,v 1.128 2000/09/21 11:53:14 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -500,6 +500,7 @@ setup_system(void) {
 	dig_server_t *srv;
 	dig_searchlist_t *search;
 	isc_boolean_t get_servers;
+	char *input;
 
 	debug("setup_system()");
 
@@ -521,12 +522,13 @@ setup_system(void) {
 	/* XXX Use lwres resolv.conf reader */
 	if (fp != NULL) {
 		while (fgets(rcinput, MXNAME, fp) != 0) {
-			ptr = strtok(rcinput, " \t\r\n");
+			input = rcinput;
+			ptr = strsep(&input, " \t\r\n");
 			if (ptr != NULL) {
 				if (get_servers &&
 				    strcasecmp(ptr, "nameserver") == 0) {
 					debug("got a nameserver line");
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr != NULL) {
 						srv = make_server(ptr);
 						ISC_LIST_APPEND
@@ -534,7 +536,7 @@ setup_system(void) {
 							 srv, link);
 					}
 				} else if (strcasecmp(ptr, "options") == 0) {
-					ptr = strtok(NULL, " \t\r\n");
+					ptr = strsep(&input, " \t\r\n");
 					if (ptr != NULL) {
 						if((strncasecmp(ptr, "ndots:",
 							    6) == 0) &&
@@ -547,7 +549,7 @@ setup_system(void) {
 						}
 					}
 				} else if (strcasecmp(ptr, "search") == 0){
-					while ((ptr = strtok(NULL, " \t\r\n"))
+					while ((ptr = strsep(&input, " \t\r\n"))
 					       != NULL) {
 						debug("adding search %s",
 						      ptr);
@@ -572,7 +574,7 @@ setup_system(void) {
 				} else if ((strcasecmp(ptr, "domain") == 0) &&
 					   (fixeddomain[0] == 0 )){
 					have_domain = ISC_TRUE;
-					while ((ptr = strtok(NULL, " \t\r\n"))
+					while ((ptr = strsep(&input, " \t\r\n"))
 					       != NULL) {
 						search = isc_mem_allocate(
 						   mctx, sizeof(struct

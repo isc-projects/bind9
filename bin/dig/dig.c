@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.92 2000/09/13 00:27:21 mws Exp $ */
+/* $Id: dig.c,v 1.93 2000/09/21 11:53:13 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -586,6 +586,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char rcfile[132];
 #endif
 	isc_boolean_t nibble = ISC_FALSE;
+	char *input;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -618,11 +619,12 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				     batchfp) != 0) {
 				debug("config line %s", batchline);
 				bargc = 1;
-				bargv[bargc] = strtok(batchline, " \t\r\n");
+				input = batchline;
+				bargv[bargc] = strsep(&input, " \t\r\n");
 				while ((bargv[bargc] != NULL) &&
 				       (bargc < 14)) {
 					bargc++;
-					bargv[bargc] = strtok(NULL, " \t\r\n");
+					bargv[bargc] = strsep(&input, " \t\r\n");
 				}
 
 				bargv[0] = argv[0];
@@ -909,13 +911,14 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				rv++;
 				rc--;
 			}
-			ptr = strtok(ptr,":");
+			input = ptr;
+			ptr = strsep(&input,":");
 			if (ptr == NULL) {
 				show_usage();
 				exit(1);
 			}
 			strncpy(keynametext, ptr, MXNAME);
-			ptr = strtok(NULL, "");
+			ptr = strsep(&input, "");
 			if (ptr == NULL) {
 				show_usage();
 				exit(1);
@@ -1093,10 +1096,11 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 			debug("batch line %s", batchline);
 			bargc = 1;
-			bargv[bargc] = strtok(batchline, " \t\r\n");
+			input = batchline;
+			bargv[bargc] = strsep(&input, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14)) {
 				bargc++;
-				bargv[bargc] = strtok(NULL, " \t\r\n");
+				bargv[bargc] = strsep(&input, " \t\r\n");
 			}
 
 			bargv[0] = argv[0];
@@ -1132,6 +1136,7 @@ dighost_shutdown(void) {
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
+	char *input;
 
 
 	if (batchname == NULL) {
@@ -1150,10 +1155,11 @@ dighost_shutdown(void) {
 	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 		debug("batch line %s", batchline);
 		bargc = 1;
-		bargv[bargc] = strtok(batchline, " \t\r\n");
+		input = batchline;
+		bargv[bargc] = strsep(&input, " \t\r\n");
 		while ((bargv[bargc] != NULL) && (bargc < 14)) {
 			bargc++;
-			bargv[bargc] = strtok(NULL, " \t\r\n");
+			bargv[bargc] = strsep(&input, " \t\r\n");
 		}
 
 		bargv[0] = argv0;
