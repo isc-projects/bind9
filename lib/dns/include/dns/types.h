@@ -80,7 +80,7 @@ enum {
 #include <dns/enumclass.h>
 enum {
 	CLASSENUM
-	dns_rdataclass_none = 0,
+	dns_rdataclass_none = 0
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
 } ;
 
