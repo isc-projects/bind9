@@ -1,0 +1,9 @@
+#!/usr/local/bin/perl -w
+
+if (@ARGV == 0) {
+    die "usage: merge_copyrights <copyrights_database>";
+}
+
+# Build a list of files, and then merge it into the copyrights database.
+# Notice if a file goes away.  If the file isn't in the database, add it
+# with the current year.

@@ -1,0 +1,80 @@
+#!/usr/local/bin/perl -w
+
+if (@ARGV == 0) {
+    die "usage: update_copyrights <copyright_text>";
+}
+@copyright_text = ();
+open(COPYRIGHT, "<$ARGV[0]") || die "can't open $ARGV[0]: $!";
+@copyright_text = <>;
+close(COPYRIGHT);
+
+while (<>) {
+    ($file, $years_list) = split(/\s+/);
+    @years = split(/,/, $years_list);
+
+    if ( ! -f $file ) {
+	print "$file: missing\n";
+    }
+    if ($years_list eq "SKIP") {
+	print "$file: SKIP\n";
+	next;
+    }
+
+    if ($file =~ /\.[chy]$/) {
+	$c_comment = 1;
+    } else {
+	die "only C comments are supported right now";
+    }
+    open(SOURCE, "<$file") || die "can't open $file: $!";
+    $_ = <SOURCE>;
+    if (/^\/\*/) {
+	$_ = <SOURCE>;
+	if ($_ !~ /[Cc]opyright/) {
+	    print "$file: non-copyright comment\n";
+	    close(SOURCE);
+	    next;
+	}
+	if ($_ !~ /\*\//) {
+	    while (<SOURCE>) {
+		if ($_ =~ /\*\//) {
+		    last;
+		}
+	    }
+	}
+	$first = "";
+    } else {
+	$first = $_;
+    }
+    open(TARGET, ">$file.new") || die "can't open $file.new: $!";
+    if ($c_comment) {
+	print TARGET "/*\n";
+	$prefix = " * ";
+    }
+    print TARGET "${prefix}Copyright (C) ";
+    $first_year = 1;
+    foreach $year (@years) {
+	if (! $first_year) {
+	    print TARGET ", ";
+	}
+	print TARGET "$year";
+	$first_year = 0;
+    }
+    print TARGET "  Internet Software Consortium.\n";
+    print TARGET "$prefix\n";
+    foreach $_ (@copyright_text) {
+	print TARGET "${prefix}$_";
+    }
+    if ($c_comment) {
+	print TARGET " */\n";
+    }
+    if ($first ne "") {
+	print TARGET $first;
+    }
+    while (<SOURCE>) {
+	print TARGET $_;
+    }
+    close(TARGET);
+    close(SOURCE);
+    rename("$file", "$file.bak") || die "rename($file, $file.bak): $!";
+    rename("$file.new", "$file") || die "rename($file.new, $file): $!";
+}
