@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.1 $)
+AC_REVISION($Revision: 1.2 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1797,6 +1797,9 @@ AC_SUBST_FILE(LIBOMAPI_API)
 LIBOMAPI_API=$srcdir/lib/omapi/api
 
 AC_OUTPUT(
+	make/rules
+	make/mkdep
+	make/includes
 	Makefile
 	bsd/Makefile
 	cylink/Makefile
@@ -1810,9 +1813,6 @@ AC_OUTPUT(
 	port_after.h
 	port_before.h
 	resolv/Makefile
-	make/rules
-	make/mkdep
-	make/includes
 )
 
 # Tell Emacs to edit this file in shell mode.
