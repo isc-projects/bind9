@@ -410,7 +410,6 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
 {
 	int bucket;
 	isc_boolean_t destroy_entry;
-	dns_adbzoneinfo_t *zi;
 
 	bucket = entry->lock_bucket;
 
@@ -433,12 +432,6 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
 		return;
 
 	entry->lock_bucket = DNS_ADB_INVALIDBUCKET;
-	zi = ISC_LIST_HEAD(entry->zoneinfo);
-	while (zi != NULL) {
-		ISC_LIST_UNLINK(entry->zoneinfo, zi, link);
-		free_adbzoneinfo(adb, &zi);
-		zi = ISC_LIST_HEAD(entry->zoneinfo);
-	}
 
 	free_adbentry(adb, &entry);
 }
@@ -586,6 +579,7 @@ static inline void
 free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 {
 	dns_adbentry_t *e;
+	dns_adbzoneinfo_t *zi;
 
 	INSIST(entry != NULL && DNS_ADBENTRY_VALID(*entry));
 	e = *entry;
@@ -597,6 +591,14 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 	INSIST(!ISC_LINK_LINKED(e, link));
 
 	e->magic = 0;
+
+	zi = ISC_LIST_HEAD(e->zoneinfo);
+	while (zi != NULL) {
+		ISC_LIST_UNLINK(e->zoneinfo, zi, link);
+		free_adbzoneinfo(adb, &zi);
+		zi = ISC_LIST_HEAD(e->zoneinfo);
+	}
+
 	isc_mempool_put(adb->emp, e);
 }
 
