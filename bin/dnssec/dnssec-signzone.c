@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.95 2000/09/07 15:53:15 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.96 2000/09/08 08:38:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1173,31 +1173,6 @@ loadzonekeys(dns_db_t *db) {
 	}
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &currentversion, ISC_FALSE);
-}
-
-static isc_stdtime_t
-strtotime(char *str, isc_int64_t now, isc_int64_t base) {
-	isc_int64_t val, offset;
-	isc_result_t result;
-	char *endp;
-
-	if (str[0] == '+') {
-		offset = strtol(str + 1, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
-		val = base + offset;
-	} else if (strncmp(str, "now+", 4) == 0) {
-		offset = strtol(str + 4, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
-		val = now + offset;
-	} else {
-		result = dns_time64_fromtext(str, &val);
-		if (result != ISC_R_SUCCESS)
-			fatal("time %s must be numeric", str);
-	}
-
-	return ((isc_stdtime_t) val);
 }
 
 static void

@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.h,v 1.10 2000/08/14 04:43:17 bwelling Exp $ */
+/* $Id: dnssectool.h,v 1.11 2000/09/08 08:38:59 bwelling Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
 #include <isc/log.h>
+#include <isc/stdtime.h>
 #include <dns/rdatastruct.h>
 #include <dst/dst.h>
 
@@ -57,5 +58,8 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx);
 
 void
 cleanup_entropy(isc_entropy_t **ectx);
+
+isc_stdtime_t
+strtotime(char *str, isc_int64_t now, isc_int64_t base);
 
 #endif /* DNSSEC_DNSSECTOOL_H */

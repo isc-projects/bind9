@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.20 2000/08/17 19:17:57 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.21 2000/09/08 08:38:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
+#include <dns/time.h>
 
 #include "dnssectool.h"
 
@@ -282,4 +283,29 @@ cleanup_entropy(isc_entropy_t **ectx) {
 	if (source != NULL)
 		isc_entropy_destroysource(&source);
 	isc_entropy_detach(ectx);
+}
+
+isc_stdtime_t
+strtotime(char *str, isc_int64_t now, isc_int64_t base) {
+	isc_int64_t val, offset;
+	isc_result_t result;
+	char *endp;
+
+	if (str[0] == '+') {
+		offset = strtol(str + 1, &endp, 0);
+		if (*endp != '\0')
+			fatal("time value %s is invalid", str);
+		val = base + offset;
+	} else if (strncmp(str, "now+", 4) == 0) {
+		offset = strtol(str + 4, &endp, 0);
+		if (*endp != '\0')
+			fatal("time value %s is invalid", str);
+		val = now + offset;
+	} else {
+		result = dns_time64_fromtext(str, &val);
+		if (result != ISC_R_SUCCESS)
+			fatal("time %s must be numeric", str);
+	}
+
+	return ((isc_stdtime_t) val);
 }

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.35 2000/08/14 20:39:23 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.36 2000/09/08 08:38:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -63,31 +63,6 @@ static isc_mem_t *mctx = NULL;
 static isc_entropy_t *ectx = NULL;
 
 static keylist_t keylist;
-
-static isc_stdtime_t
-strtotime(char *str, isc_int64_t now, isc_int64_t base) {
-	isc_int64_t val, offset;
-	isc_result_t result;
-	char *endp;
-
-	if (str[0] == '+') {
-		offset = strtol(str + 1, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
-		val = base + offset;
-	} else if (strncmp(str, "now+", 4) == 0) {
-		offset = strtol(str + 4, &endp, 0);
-		if (*endp != '\0')
-			fatal("time value %s is invalid", str);
-		val = now + offset;
-	} else {
-		result = dns_time64_fromtext(str, &val);
-		if (result != ISC_R_SUCCESS)
-			fatal("time %s must be numeric", str);
-	}
-
-	return ((isc_stdtime_t) val);
-}
 
 static void
 usage(void) {
