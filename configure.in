@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.202 $)
+AC_REVISION($Revision: 1.203 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -125,29 +125,6 @@ case "$INSTALL" in
                 INSTALL="$ac_dir/$ac_prog"
                 ;;
 esac
-
-#
-# Decide whether to use multithreading or not.
-#
-AC_MSG_CHECKING(whether to use threads)
-AC_ARG_ENABLE(threads,
-	[  --enable-threads	use multithreading])
-case "$enable_threads" in
-	yes|'')
-		AC_MSG_RESULT(yes)
-		use_threads=true
-		ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
-		;;
-	no)
-		AC_MSG_RESULT(no)	
-		use_threads=false
-		ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
-		;;
-	*)
-	    	AC_MSG_ERROR(["--enable-threads takes yes or no"])
-		;;
-esac
-AC_SUBST(ISC_PLATFORM_USETHREADS)
 
 #
 # On these hosts, we really want to use cc, not gcc, even if it is
@@ -327,6 +304,28 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 
+#
+# Begin pthreads checking.
+#
+# First, decide whether to use multithreading or not.
+#
+AC_MSG_CHECKING(whether to look for thread support)
+AC_ARG_ENABLE(threads,
+	[  --enable-threads	use multithreading])
+case "$enable_threads" in
+	yes|'')
+		AC_MSG_RESULT(yes)
+		use_threads=true
+		;;
+	no)
+		AC_MSG_RESULT(no)	
+		use_threads=false
+		;;
+	*)
+	    	AC_MSG_ERROR(["--enable-threads takes yes or no"])
+		;;
+esac
+
 if $use_threads
 then
 	#
@@ -376,17 +375,15 @@ Please install the devel/unproven-pthreads package and rerun configure.
 		fi
 		;;
 		*)
-			AC_CHECK_LIB(pthread, pthread_create,,
-			     AC_CHECK_LIB(pthread, __pthread_create,,
-			     AC_CHECK_LIB(pthread, __pthread_create_system,,
-			     use_threads=false)))
+			AC_CHECK_LIB(c, pthread_create,,
+				AC_CHECK_LIB(pthread, pthread_create,,
+				AC_CHECK_LIB(pthread, __pthread_create,,
+				AC_CHECK_LIB(pthread, __pthread_create_system,,
+				use_threads=false))))
 		;;
 	esac
 fi
 
-#
-# We may have failed to find libpthread, so check again.
-#
 if $use_threads
 then
 	#
@@ -471,49 +468,30 @@ then
 	else
 		case $host in
 		*-dec-osf*)
-			CC="$CC -std -pthread"
-			CCOPT="$CCOPT -std -pthread"
-			MKDEPCC="$CC"
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
 			;;
 		*-solaris*)
 			CC="$CC -mt"
 			CCOPT="$CCOPT -mt"
 			;;
-		*-hp-hpux*)
-			CC="$CC -Ae -z"
-                        # The version of the C compiler that constantly
-                        # warns about 'const' as well as alignment issues
-                        # is unfortunately not able to be discerned via
-                        # the version of the operating system, nor does
-                        # cc have a version flag.
-                        case "`$CC +W 123 2>&1`" in
-                        *Unknown?option*)
-				STD_CWARNINGS="+w1"
-				;;
-			*)
-				# Turn off the pointlessly noisy warnings.
-				STD_CWARNINGS="+w1 +W 474,530"
-				;;
-			esac
-			CCOPT="$CCOPT -Ae -z"
-                        LIBS="-Wl,+vnocompatwarnings $LIBS"
-			;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
 			;;
 		*-UnixWare*)
-			CC="$CC -Kthread -w"
+			CC="$CC -Kthread"
 			CCOPT="$CCOPT -Kthread"
 			;;
 		esac
 	fi
+	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
 	thread_dir=pthreads
 else
+	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
 fi
-# 
-# End of pthreads stuff.
-#
+
+AC_SUBST(ISC_PLATFORM_USETHREADS)
 
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
@@ -523,6 +501,81 @@ AC_SUBST(ISC_THREAD_DIR)
 # even if compiled with --disable-threads.
 #
 AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
+
+# 
+# Indicate what the final decision was regarding threads.
+#
+AC_MSG_CHECKING(whether to build with threads)
+if $use_threads; then
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+# 
+# End of pthreads stuff.
+#
+
+#
+# Additional compiler settings.
+#
+MKDEPCC="$CC"
+MKDEPCFLAGS="-M"
+IRIX_DNSSEC_WARNINGS_HACK=""
+
+if test "X$GCC" = "Xyes"; then
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings"
+else
+	case $host in
+	*-dec-osf*)
+		CC="$CC -std"
+		CCOPT="$CCOPT -std"
+		MKDEPCC="$CC"
+		;;
+	*-hp-hpux*)
+		CC="$CC -Ae -z"
+		# The version of the C compiler that constantly warns about
+                # 'const' as well as alignment issues is unfortunately not
+                # able to be discerned via the version of the operating
+                # system, nor does cc have a version flag.
+		case "`$CC +W 123 2>&1`" in
+		*Unknown?option*)
+			STD_CWARNINGS="+w1"
+			;;
+		*)
+			# Turn off the pointlessly noisy warnings.
+			STD_CWARNINGS="+w1 +W 474,530"
+			;;
+		esac
+		CCOPT="$CCOPT -Ae -z"
+		LIBS="-Wl,+vnocompatwarnings $LIBS"
+		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
+		;;
+	*-sgi-irix*)
+		STD_CWARNINGS="-fullwarn -woff 1209"
+		#
+		# Silence more than 250 instances of
+		#   "prototyped function redeclared without prototype"
+		# and 11 instances of
+		#   "variable ... was set but never used"
+		# from lib/dns/sec/openssl.
+		#
+		IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
+		;;
+	*-solaris*)
+		MKDEPCFLAGS="-xM"
+		;;
+	*-UnixWare*)
+		CC="$CC -w"
+		YACC="yacc"	# bison calls alloca, avoid on UnixWare
+		;;
+	esac
+fi
+
+AC_SUBST(MKDEPCC)
+AC_SUBST(MKDEPCFLAGS)
+AC_SUBST(MKDEPPROG)
+AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 
 #
 # NLS
@@ -547,42 +600,6 @@ case "$host" in
 		AC_CHECK_LIB(nsl, inet_ntoa)
 		;;
 esac
-
-MKDEPCC="$CC"
-MKDEPCFLAGS="-M"
-IRIX_DNSSEC_WARNINGS_HACK=""
-if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings"
-else
-	case "$host" in
-		*-solaris*)
-			MKDEPCC="$CC"
-			MKDEPCFLAGS="-xM"
-			;;
-		*-hp-hpux*)	
-			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
-			;;
-                *-sgi-irix*)
-			STD_CWARNINGS="-fullwarn -woff 1209"
-                        #
-                        # Silence more than 250 instances of
-                        #   "prototyped function redeclared without prototype"
-                        # and 11 instances of
-                        #   "variable ... was set but never used"
-                        # from lib/dns/sec/openssl.
-                        #
-                        IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
-                        ;;
-		*-UnixWare*)
-			MKDEPCC="$CC"
-			YACC="yacc"	# bison calls alloca, avoid on UnixWare
-			;;
-	esac
-fi
-AC_SUBST(MKDEPCC)
-AC_SUBST(MKDEPCFLAGS)
-AC_SUBST(MKDEPPROG)
-AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 
 #
 #
