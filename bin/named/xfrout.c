@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.80 2000/10/31 03:21:47 marka Exp $ */
+/* $Id: xfrout.c,v 1.81 2000/11/03 23:01:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1214,6 +1214,11 @@ sendstream(xfrout_ctx_t *xfr) {
 	isc_region_t used;
 	isc_region_t region;
 	dns_rdataset_t *qrdataset;
+	dns_name_t *msgname = NULL;
+	dns_rdata_t *msgrdata = NULL;
+	dns_rdatalist_t *msgrdl = NULL;
+	dns_rdataset_t *msgrds = NULL;
+
 	int n_rrs;
 
 	isc_buffer_clear(&xfr->buf);
@@ -1291,13 +1296,13 @@ sendstream(xfrout_ctx_t *xfr) {
 		isc_uint32_t ttl;
 		dns_rdata_t *rdata = NULL;
 
-		dns_name_t *msgname = NULL;
-		dns_rdata_t *msgrdata = NULL;
-		dns_rdatalist_t *msgrdl = NULL;
-		dns_rdataset_t *msgrds = NULL;
-
 		unsigned int size;
 		isc_region_t r;
+
+		msgname = NULL;
+		msgrdata = NULL;
+		msgrdl = NULL;
+		msgrds = NULL;
 
 		xfr->stream->methods->current(xfr->stream,
 					      &name, &ttl, &rdata);
@@ -1330,7 +1335,9 @@ sendstream(xfrout_ctx_t *xfr) {
 		if (isc_log_wouldlog(ns_g_lctx, XFROUT_RR_LOGLEVEL))
 			log_rr(name, rdata, ttl); /* XXX */
 
-		dns_message_gettempname(msg, &msgname);
+		result = dns_message_gettempname(msg, &msgname);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		dns_name_init(msgname, NULL);
 		isc_buffer_availableregion(&xfr->buf, &r);
 		INSIST(r.length >= name->length);
@@ -1341,7 +1348,9 @@ sendstream(xfrout_ctx_t *xfr) {
 		/* Reserve space for RR header. */
 		isc_buffer_add(&xfr->buf, 10);
 
-		dns_message_gettemprdata(msg, &msgrdata);
+		result = dns_message_gettemprdata(msg, &msgrdata);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		isc_buffer_availableregion(&xfr->buf, &r);
 		r.length = rdata->length;
 		isc_buffer_putmem(&xfr->buf, rdata->data, rdata->length);
@@ -1349,7 +1358,9 @@ sendstream(xfrout_ctx_t *xfr) {
 		dns_rdata_fromregion(msgrdata,
 				     rdata->rdclass, rdata->type, &r);
 
-		dns_message_gettemprdatalist(msg, &msgrdl);
+		result = dns_message_gettemprdatalist(msg, &msgrdl);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		msgrdl->type = rdata->type;
 		msgrdl->rdclass = rdata->rdclass;
 		msgrdl->ttl = ttl;
@@ -1357,7 +1368,9 @@ sendstream(xfrout_ctx_t *xfr) {
 		ISC_LIST_INIT(msgrdl->rdata);
 		ISC_LIST_APPEND(msgrdl->rdata, msgrdata, link);
 
-		dns_message_gettemprdataset(msg, &msgrds);
+		result = dns_message_gettemprdataset(msg, &msgrds);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
 		dns_rdataset_init(msgrds);
 		result = dns_rdatalist_tordataset(msgrdl, msgrds);
 		INSIST(result == ISC_R_SUCCESS);
@@ -1365,6 +1378,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		ISC_LIST_APPEND(msgname->list, msgrds, link);
 
 		dns_message_addname(msg, msgname, DNS_SECTION_ANSWER);
+		msgname = NULL;
 
 		result = xfr->stream->methods->next(xfr->stream);
 		if (result == ISC_R_NOMORE) {
@@ -1417,6 +1431,20 @@ sendstream(xfrout_ctx_t *xfr) {
 	 * XXXRTH  need to cleanup qname and qrdataset...
 	 */
 	if (msg != NULL) {
+		if (msgname != NULL) {
+			if (msgrds != NULL) {
+				if (dns_rdataset_isassociated(msgrds))
+					dns_rdataset_disassociate(msgrds);
+				dns_message_puttemprdataset(msg, &msgrds);
+			}
+			if (msgrdl != NULL) {
+				ISC_LIST_UNLINK(msgrdl->rdata, msgrdata, link);
+				dns_message_puttemprdatalist(msg, &msgrdl);
+			}
+			if (msgrdata != NULL)
+				dns_message_puttemprdata(msg, &msgrdata);
+			dns_message_puttempname(msg, &msgname);
+		}
 		dns_message_destroy(&msg);
 	}
 	if (result == ISC_R_SUCCESS)
