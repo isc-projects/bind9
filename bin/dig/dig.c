@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.140 2001/02/17 01:05:27 gson Exp $ */
+/* $Id: dig.c,v 1.141 2001/02/17 20:27:24 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -52,7 +52,7 @@ extern ISC_LIST(dig_searchlist_t) search_list;
 }
 
 
-extern isc_boolean_t have_ipv6, specified_source,
+extern isc_boolean_t have_ipv4, have_ipv6, specified_source,
 	usesearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -917,6 +917,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	char textname[MXNAME];
+	struct in_addr in4;
+	struct in6_addr in6;
 
 	cmd = option[0];
 	if (strlen(option) > 1) {
@@ -946,7 +948,12 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		goto invalid_option;
 	switch (cmd) {
 	case 'b':
-		get_address(value, 0, &bind_address);
+		if (have_ipv6 && inet_pton(AF_INET6, value, &in6) == 1)
+			isc_sockaddr_fromin6(&bind_address, &in6, 0);
+		else if (have_ipv4 && inet_pton(AF_INET, value, &in4) == 1)
+			isc_sockaddr_fromin(&bind_address, &in4, 0);
+		else
+			fatal("invalid address %s", value);
 		specified_source = ISC_TRUE;
 		return (value_from_next);
 	case 'c':
