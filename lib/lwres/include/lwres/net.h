@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: net.h,v 1.5 2000/06/22 21:59:53 tale Exp $ */
+/* $Id: net.h,v 1.6 2000/06/23 03:12:06 tale Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -49,13 +49,13 @@
  *** Imports.
  ***/
 
-#include <lwres/platform.h>
+#include <lwres/platform.h>	/* Required for LWRES_PLATFORM_*. */
 
 #include <sys/types.h>
-#include <sys/socket.h>
+#include <sys/socket.h>		/* Contractual promise. */
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <netinet/in.h>		/* Contractual promise. */
+#include <arpa/inet.h>		/* Contractual promise. */
 #ifdef LWRES_PLATFORM_NEEDNETINETIN6H
 #include <netinet/in6.h>	/* Required on UnixWare. */
 #endif
@@ -63,7 +63,7 @@
 #include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
 #endif
 
-#include <lwres/result.h>
+#include <lwres/lang.h>
 
 #ifndef AF_INET6
 #define AF_INET6 99
@@ -74,8 +74,10 @@
 #endif
 
 #ifndef LWRES_PLATFORM_HAVEIPV6
-#include <lwres/ipv6.h>
+#include <lwres/ipv6.h>		/* Contractual promise. */
 #endif
+
+LWRES_LANG_BEGINDECLS
 
 const char *
 lwres_net_ntop(int af, const void *src, char *dst, size_t size);
@@ -85,5 +87,7 @@ lwres_net_pton(int af, const char *src, void *dst);
 
 int
 lwres_net_aton(const char *cp, struct in_addr *addr);
+
+LWRES_LANG_ENDDECLS
 
 #endif /* LWRES_NET_H */
