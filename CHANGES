@@ -1,3 +1,5 @@
+1552.	[placeholder]	rt10049
+
 1551.	[port]		Open "/dev/null" before calling chroot().
 
 1550.	[port]		Call tzset(), if available, before calling chroot().
