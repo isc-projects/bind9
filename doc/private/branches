@@ -6,7 +6,7 @@ ipv6-improvements
 ipv6-scope
 ipv6_6to4	feedback	mark
 libbind_clean
-rt3536		review		jinmei	[ixfr=support]
+rt3536		feedback	mark	[ixfr=support]
 rt3598		review		sho
 rt3625		review		sho
 rt3666		feedback	mark
