@@ -7,7 +7,7 @@
 
  971.	[func]		'try-edns' can be use to disable edns on all queries.
 
- 970.	[func]		'journal-size' can now be used to set a target
+ 970.	[func]		'max-journal-size' can now be used to set a target
 			size for a journal.
 
  969.	[func]		dig now supports the undocumented dig 8 feature

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.72 2001/08/30 05:52:18 marka Exp $ */
+/* $Id: parser.c,v 1.73 2001/09/01 01:13:41 gson Exp $ */
 
 #include <config.h>
 
@@ -950,7 +950,7 @@ zone_only_clauses[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "journal-size", &cfg_type_size, 0},
+	{ "max-journal-size", &cfg_type_size, 0},
 	{ "masters", &cfg_type_sockaddrkeylist, 0 },
 	{ "pubkey", &cfg_type_pubkey,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
