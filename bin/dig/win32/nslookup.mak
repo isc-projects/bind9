@@ -56,13 +56,13 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "./" /I "../include" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/bind9/include" /D "WIN32" /D "__STDC__" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\nslookup.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "./" /I "../include" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/bind9/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /D "WIN32" /D "__STDC__" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\nslookup.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\nslookup.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/bind9/win32/Release/libbind9.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\nslookup.pdb" /machine:I386 /out:"../../../Build/Release/nslookup.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib ../../../lib/bind9/win32/Release/libbind9.lib  ../../../lib/lwres/win32/Release/liblwres.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\nslookup.pdb" /machine:I386 /out:"../../../Build/Release/nslookup.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\dighost.obj" \
 	"$(INTDIR)\nslookup.obj" \
@@ -112,7 +112,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "./" /I "../include" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/bind9/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "./" /I "../include" /I "../../../" /I "../../../lib/isc/win32" /I "../../../lib/isc/win32/include" /I "../../../lib/isc/include" /I "../../../lib/dns/include" /I "../../../lib/dns/sec/dst/include" /I "../../../lib/bind9/include" /I "../../../lib/lwres/win32/include" /I "../../../lib/lwres/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\nslookup.bsc" 
 BSC32_SBRS= \
@@ -125,7 +125,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/bind9/win32/Debug/libbind9.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\nslookup.pdb" /debug /machine:I386 /out:"../../../Build/Debug/nslookup.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib ../../../lib/bind9/win32/Debug/libbind9.lib  ../../../lib/lwres/win32/Debug/liblwres.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\nslookup.pdb" /debug /machine:I386 /out:"../../../Build/Debug/nslookup.exe" /pdbtype:sept 
 LINK32_OBJS= \
 	"$(INTDIR)\dighost.obj" \
 	"$(INTDIR)\nslookup.obj" \
@@ -220,24 +220,24 @@ SOURCE=..\nslookup.c
 !IF  "$(CFG)" == "nslookup - Win32 Release"
 
 "libdns - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "\bind-9.3.0a04\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" 
    cd "..\..\..\bin\dig\win32"
 
 "libdns - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "\bind-9.3.0a04\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
 !ELSEIF  "$(CFG)" == "nslookup - Win32 Debug"
 
 "libdns - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "\bind-9.3.0a04\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" 
    cd "..\..\..\bin\dig\win32"
 
 "libdns - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\dns\win32"
+   cd "\bind-9.3.0a04\lib\dns\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
@@ -246,24 +246,24 @@ SOURCE=..\nslookup.c
 !IF  "$(CFG)" == "nslookup - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\..\bin\dig\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
 !ELSEIF  "$(CFG)" == "nslookup - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\..\bin\dig\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
@@ -272,24 +272,24 @@ SOURCE=..\nslookup.c
 !IF  "$(CFG)" == "nslookup - Win32 Release"
 
 "libbind9 - Win32 Release" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "\bind-9.3.0a04\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" 
    cd "..\..\..\bin\dig\win32"
 
 "libbind9 - Win32 ReleaseCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "\bind-9.3.0a04\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
 !ELSEIF  "$(CFG)" == "nslookup - Win32 Debug"
 
 "libbind9 - Win32 Debug" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "\bind-9.3.0a04\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" 
    cd "..\..\..\bin\dig\win32"
 
 "libbind9 - Win32 DebugCLEAN" : 
-   cd "\bind-9.3.0a03\lib\bind9\win32"
+   cd "\bind-9.3.0a04\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
