@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.132 $)
+AC_REVISION($Revision: 1.133 $)
 
 AC_PREREQ(2.13)
 
@@ -191,72 +191,53 @@ AC_SUBST(DNS_OPENSSL_LIBS)
 # dst_privateopenssl=''
 # DST_OPENSSL_INC='-I/usr/pkg/include'
 # DST_OPENSSL_LIB=''
+#
 
 #
-# NetBSD has two alternative pthreads implementations.  Make the 
-# user choose one by saying --with-mit-pthreads or --with-ptl2
-# if necessary.
+# NetBSD has multiple pthreads implementations.  The recommended
+# one to use is "unproven-pthreads".  The older "mit-pthreads" 
+# may also work on some NetBSD versions.  The PTL2 thread
+# library does not currently work with bind9, but can be
+# chosen with the --with-ptl2 option for those who wish to
+# experiment with it.
 #
+
 case "$host" in
   *-netbsd*)
 	CC="gcc"
-	AC_MSG_CHECKING(which thread library to use)
+	AC_MSG_CHECKING(which NetBSD thread library to use)
 
-	AC_ARG_WITH(mit-pthreads, 
-	    [  --with-mit-pthreads	use the mit-pthreads thread library],
-	    use_mit_pthreads="$withval", use_mit_pthreads="no")
-	
 	AC_ARG_WITH(ptl2,
-	    [  --with-ptl2		use the ptl2 thread library],
+[  --with-ptl2		on NetBSD, use the ptl2 thread library (experimental)],
 	    use_ptl2="$withval", use_ptl2="no")
 
         : ${LOCALBASE:=/usr/pkg}
 
-        # If user did not choose a thread library explicitly,
-        # try to choose one automatically.  This will work when
-	# exactly one library is installed.
+	if test "X$use_ptl2" = "Xyes"
+	then
+		AC_MSG_RESULT(PTL2)
+		AC_MSG_WARN(
+[linking with PTL2 is highly experimental and not expected to work])
+		CC=ptlgcc
+	else
+		AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
 
-	case "$use_mit_pthreads+$use_ptl2" in
-		no+no)
-			if test -d $LOCALBASE/pthreads
-			then
-				use_mit_pthreads="yes"
-			fi
-			if test -d $LOCALBASE/PTL
-			then
-				use_ptl2="yes"
-			fi
-			;;
-        esac
+		if test ! -d $LOCALBASE/pthreads
+		then
+			AC_MSG_ERROR([no thread library found.
 
-	case "$use_mit_pthreads+$use_ptl2" in
-		yes+no)
-			AC_MSG_RESULT(mit-pthreads)
-			pkg="$LOCALBASE/pthreads"
-			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-			lib2="-lpthread -lm -lgcc -lpthread"
-			LIBS="$lib1 $lib2 $LIBS"
-			CPPFLAGS="$CPPFLAGS -I$pkg/include"
-			STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
-			;;
-		no+yes)
-			AC_MSG_RESULT(PTL2)
-#			pkg="$LOCALBASE/PTL"
-#			LIBS="-L$LOCALBASE/lib -lPTL $LIBS"
-#			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
-			CC=ptlgcc
-			;;
-		*)
-			AC_MSG_ERROR([no thread library.
-
-Please choose a thread library using one of 
-
-   configure --with-mit-pthreads
-   configure --with-ptl2
+Please install the devel/unproven-pthreads package and rerun configure.
 ])
-			;;
-		esac
-		;;
+		fi
+
+		pkg="$LOCALBASE/pthreads"
+		lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+		lib2="-lpthread -lm -lgcc -lpthread"
+		LIBS="$lib1 $lib2 $LIBS"
+		CPPFLAGS="$CPPFLAGS -I$pkg/include"
+		STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
+	fi
+	;;
 esac
 
 AC_PROG_CC
