@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.106 2001/02/13 03:57:04 bwelling Exp $
+ * $Id: tsig.c,v 1.107 2001/03/07 20:53:28 bwelling Exp $
  */
 
 #include <config.h>
@@ -722,11 +722,11 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		tsig_log(msg->tsigkey, 2, "signature has expired");
-		return (DNS_R_TSIGVERIFYFAILURE);
+		return (DNS_R_CLOCKSKEW);
 	} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		tsig_log(msg->tsigkey, 2, "signature is in the future");
-		return (DNS_R_TSIGVERIFYFAILURE);
+		return (DNS_R_CLOCKSKEW);
 	}
 
 	if (tsig.siglen > 0) {
@@ -855,8 +855,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->tsigstatus = dns_rcode_noerror;
 
-	if (tsig.error != dns_rcode_noerror)
-		return (DNS_R_TSIGERRORSET);
+	if (tsig.error != dns_rcode_noerror) {
+		if (tsig.error == dns_tsigerror_badtime)
+			return (DNS_R_CLOCKSKEW);
+		else
+			return (DNS_R_TSIGERRORSET);
+	}
 
 	msg->verified_sig = 1;
 
@@ -945,7 +949,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
 			tsig_log(msg->tsigkey, 2, "signature has expired");
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			ret = DNS_R_CLOCKSKEW;
 			goto cleanup_querystruct;
 		} else if (now + msg->timeadjust <
 			   tsig.timesigned - tsig.fudge)
@@ -953,7 +957,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			msg->tsigstatus = dns_tsigerror_badtime;
 			tsig_log(msg->tsigkey, 2,
 				 "signature is in the future");
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			ret = DNS_R_CLOCKSKEW;
 			goto cleanup_querystruct;
 		}
 	}
@@ -1049,9 +1053,12 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
 		if (tsig.siglen == 0) {
-			if (tsig.error != dns_rcode_noerror)
-				ret = DNS_R_TSIGERRORSET;
-			else {
+			if (tsig.error != dns_rcode_noerror) {
+				if (tsig.error == dns_tsigerror_badtime)
+					ret = DNS_R_CLOCKSKEW;
+				else
+					ret = DNS_R_TSIGERRORSET;
+			} else {
 				tsig_log(msg->tsigkey, 2,
 					 "signature is empty");
 				ret = DNS_R_TSIGVERIFYFAILURE;
