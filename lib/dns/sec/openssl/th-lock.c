@@ -83,14 +83,21 @@
 int CRYPTO_thread_setup(void);
 void CRYPTO_thread_cleanup(void);
 
+#ifdef IRIX
 static void irix_locking_callback(int mode,int type,char *file,int line);
-static void solaris_locking_callback(int mode,int type,char *file,int line);
-static void win32_locking_callback(int mode,int type,char *file,int line);
-static void pthreads_locking_callback(int mode,int type,char *file,int line);
-
 static unsigned long irix_thread_id(void );
+#endif
+#ifdef SOLARIS
+static void solaris_locking_callback(int mode,int type,char *file,int line);
 static unsigned long solaris_thread_id(void );
+#endif
+#ifdef WIN32
+static void win32_locking_callback(int mode,int type,char *file,int line);
+#endif
+#ifdef PTHREADS
+static void pthreads_locking_callback(int mode,int type,char *file,int line);
 static unsigned long pthreads_thread_id(void );
+#endif
 
 /* usage:
  * CRYPTO_thread_setup();

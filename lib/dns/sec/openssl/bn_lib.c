@@ -84,28 +84,28 @@ void BN_set_params(int mult, int high, int low, int mont)
 	{
 	if (mult >= 0)
 		{
-		if (mult > (sizeof(int)*8)-1)
+		if ((unsigned int)mult > (sizeof(int)*8)-1)
 			mult=sizeof(int)*8-1;
 		bn_limit_bits=mult;
 		bn_limit_num=1<<mult;
 		}
 	if (high >= 0)
 		{
-		if (high > (sizeof(int)*8)-1)
+		if ((unsigned int)high > (sizeof(int)*8)-1)
 			high=sizeof(int)*8-1;
 		bn_limit_bits_high=high;
 		bn_limit_num_high=1<<high;
 		}
 	if (low >= 0)
 		{
-		if (low > (sizeof(int)*8)-1)
+		if ((unsigned int)low > (sizeof(int)*8)-1)
 			low=sizeof(int)*8-1;
 		bn_limit_bits_low=low;
 		bn_limit_num_low=1<<low;
 		}
 	if (mont >= 0)
 		{
-		if (mont > (sizeof(int)*8)-1)
+		if ((unsigned int)mont > (sizeof(int)*8)-1)
 			mont=sizeof(int)*8-1;
 		bn_limit_bits_mont=mont;
 		bn_limit_num_mont=1<<mont;
@@ -235,7 +235,7 @@ int BN_num_bits_word(BN_ULONG l)
 		}
 	}
 
-int BN_num_bits(BIGNUM *a)
+int BN_num_bits(const BIGNUM *a)
 	{
 	BN_ULONG l;
 	int i;
@@ -485,9 +485,11 @@ BIGNUM *bn_expand2(BIGNUM *b, int words)
 	return(b);
 	}
 
-BIGNUM *BN_dup(BIGNUM *a)
+BIGNUM *BN_dup(const BIGNUM *a)
 	{
 	BIGNUM *r;
+
+	if (a == NULL) return NULL;
 
 	bn_check_top(a);
 
@@ -496,7 +498,7 @@ BIGNUM *BN_dup(BIGNUM *a)
 	return((BIGNUM *)BN_copy(r,a));
 	}
 
-BIGNUM *BN_copy(BIGNUM *a, BIGNUM *b)
+BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b)
 	{
 	int i;
 	BN_ULONG *A;
@@ -549,7 +551,7 @@ BN_ULONG BN_get_word(BIGNUM *a)
 	BN_ULONG ret=0;
 
 	n=BN_num_bytes(a);
-	if (n > sizeof(BN_ULONG))
+	if ((unsigned int)n > sizeof(BN_ULONG))
 		return(BN_MASK2);
 	for (i=a->top-1; i>=0; i--)
 		{
@@ -567,7 +569,7 @@ BN_ULONG BN_get_word(BIGNUM *a)
 int BN_set_word(BIGNUM *a, BN_ULONG w)
 	{
 	int i,n;
-	if (bn_expand(a,sizeof(BN_ULONG)*8) == NULL) return(0);
+	if (bn_expand(a,(int)sizeof(BN_ULONG)*8) == NULL) return(0);
 
 	n=sizeof(BN_ULONG)/BN_BYTES;
 	a->neg=0;
@@ -629,7 +631,7 @@ BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
 	}
 
 /* ignore negative */
-int BN_bn2bin(BIGNUM *a, unsigned char *to)
+int BN_bn2bin(const BIGNUM *a, unsigned char *to)
 	{
 	int n,i;
 	BN_ULONG l;
@@ -643,7 +645,7 @@ int BN_bn2bin(BIGNUM *a, unsigned char *to)
 	return(n);
 	}
 
-int BN_ucmp(BIGNUM *a, BIGNUM *b)
+int BN_ucmp(const BIGNUM *a, const BIGNUM *b)
 	{
 	int i;
 	BN_ULONG t1,t2,*ap,*bp;
@@ -665,7 +667,7 @@ int BN_ucmp(BIGNUM *a, BIGNUM *b)
 	return(0);
 	}
 
-int BN_cmp(BIGNUM *a, BIGNUM *b)
+int BN_cmp(const BIGNUM *a, const BIGNUM *b)
 	{
 	int i;
 	int gt,lt;
@@ -737,7 +739,7 @@ int BN_clear_bit(BIGNUM *a, int n)
 	return(1);
 	}
 
-int BN_is_bit_set(BIGNUM *a, int n)
+int BN_is_bit_set(const BIGNUM *a, int n)
 	{
 	int i,j;
 

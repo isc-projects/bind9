@@ -46,7 +46,7 @@ OPENSSLOBJS =	sec/openssl/bn_add.@O@ sec/openssl/bn_asm.@O@ \
 		sec/openssl/bn_comba.@O@ sec/openssl/bn_div.@O@ \
 		sec/openssl/bn_err.@O@ sec/openssl/bn_exp.@O@ \
 		sec/openssl/bn_exp2.@O@ sec/openssl/bn_gcd.@O@ \
-		sec/openssl/bn_lib.@O@ sec/openssl/bn_m.@O@ \
+		sec/openssl/bn_lib.@O@ \
 		sec/openssl/bn_mont.@O@ sec/openssl/bn_mul.@O@ \
 		sec/openssl/bn_prime.@O@ sec/openssl/bn_rand.@O@ \
 		sec/openssl/bn_recp.@O@ sec/openssl/bn_shift.@O@ \

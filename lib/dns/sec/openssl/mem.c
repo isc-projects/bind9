@@ -259,6 +259,9 @@ void *CRYPTO_dbg_realloc(void *addr, int num, const char *file, int line)
 	char *ret;
 	MEM m,*mp;
 
+	file = file; /* BEW - quiet the compiler */
+	line = line;
+
 	ret=realloc_func(addr,num);
 	if (ret == addr) return(ret);
 
