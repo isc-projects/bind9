@@ -1,3 +1,6 @@
+1252.	[func]		Report the current serial with periodic commits when
+			rolling forward the journal.
+
 1251.	[func]		Generate DNSSEC wildcard proofs.
 
 1250.	[bug]		When processing events (non-threaded) only allow
