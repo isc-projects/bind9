@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.3 2005/01/12 01:56:12 marka Exp $ */
+/* $Id: aclconf.h,v 1.4 2005/01/13 05:15:16 marka Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
@@ -60,7 +60,7 @@ cfg_acl_fromconfig(cfg_obj_t *caml,
  * 'cctx'.  Memory is allocated through 'mctx'.
  *
  * Any named ACLs referred to within 'caml' will be be converted
- * inte nested dns_acl_t objects.  Multiple references to the same
+ * into nested dns_acl_t objects.  Multiple references to the same
  * named ACLs will be converted into shared references to a single
  * nested dns_acl_t object when the referring objects were created
  * passing the same ACL configuration context 'ctx'.
