@@ -727,6 +727,7 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
+	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, dns_rdataclass_ch);
 	dns_zone_setview(zone, view);	
 	

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.135 2000/06/01 18:25:40 tale Exp $ */
+/* $Id: zone.c,v 1.136 2000/06/01 23:11:24 gson Exp $ */
 
 #include <config.h>
 
@@ -588,19 +588,16 @@ dns_zone_load(dns_zone_t *zone) {
 	LOCK(&zone->lock);
 	isc_stdtime_get(&now);
 
-	switch (zone->type) {
-	case dns_zone_none:
+	INSIST(zone->type != dns_zone_none);
+
+	if (zone->dbname == NULL) {
+		/*
+		 * The zone has no master file (maybe it is the built-in
+		 * version.bind. CH zone).  Do nothing.
+		 */
 		result = ISC_R_SUCCESS;
 		goto cleanup;
-	case dns_zone_master:
-	case dns_zone_slave:
-	case dns_zone_stub:
-		break;
-	default:
-		INSIST("bad zone type" == NULL);
 	}
-
-	REQUIRE(zone->dbname != NULL);
 
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "start");
 
@@ -1315,7 +1312,8 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_master:
 		LOCK(&zone->lock);
-		if (now >= zone->dumptime &&
+		if (zone->dbname != NULL &&
+		    now >= zone->dumptime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED) &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP)) {
 			result = zone_dump(zone);
