@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.73 2000/10/11 17:44:14 mws Exp $ */
+/* $Id: result.c,v 1.74 2000/10/16 04:08:11 marka Exp $ */
 
 #include <config.h>
 
@@ -101,8 +101,10 @@ static const char *text[DNS_R_NRESULTS] = {
 	"no valid NXT",			       /* 60 DNS_R_NOVALIDNXT	     */
 	"not insecure",			       /* 61 DNS_R_NOTINSECURE	     */
 	"zone too large",		       /* 62 DNS_R_ZONETOOLARGE	     */
-	"recoverable error occurred"	       /* 63 DNS_R_RECOVERABLE       */
-	"unknown opt attribute record"         /* 64 DNS_R_UNKNOWNOPT        */
+	"recoverable error occurred",	       /* 63 DNS_R_RECOVERABLE       */
+	"unknown opt attribute record",	       /* 64 DNS_R_UNKNOWNOPT        */
+
+	"unexpected message id"		       /* 65 DNS_R_UNEXPECTEDID      */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
