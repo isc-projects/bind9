@@ -151,6 +151,7 @@ Building
 		NetBSD 1.5
 		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
+		Windows NT/W2K
 
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
