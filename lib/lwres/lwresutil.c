@@ -100,6 +100,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	lwres_gabnrequest_t request;
 	lwres_gabnresponse_t *response;
 	int ret;
+	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
 	isc_uint32_t serial;
@@ -127,6 +128,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	 */
 	request.addrtypes = addrtypes;
 	request.name = (char *)name;
+	request.namelen = strlen(name);
 	pkt.flags = 0;
 	pkt.serial = serial;
 	pkt.result = 0;
@@ -134,15 +136,15 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 
  again:
 	ret = lwres_gabnrequest_render(ctx, &request, &pkt, &b_out);
-	if (ret != 0)
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
 	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
-				     LWRES_RECVLENGTH);
-	if (ret < 0)
+				     LWRES_RECVLENGTH, &recvlen);
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
-	lwres_buffer_init(&b_in, buffer, ret);
+	lwres_buffer_init(&b_in, buffer, recvlen);
 
 	/*
 	 * Parse the packet header.
@@ -199,6 +201,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	lwres_gnbarequest_t request;
 	lwres_gnbaresponse_t *response;
 	int ret;
+	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
 	isc_uint32_t serial;
@@ -239,11 +242,11 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 		goto out;
 
 	ret = lwres_context_sendrecv(ctx, b_out.base, b_out.length, buffer,
-				     LWRES_RECVLENGTH);
-	if (ret < 0)
+				     LWRES_RECVLENGTH, &recvlen);
+	if (ret != LWRES_R_SUCCESS)
 		goto out;
 
-	lwres_buffer_init(&b_in, buffer, ret);
+	lwres_buffer_init(&b_in, buffer, recvlen);
 
 	/*
 	 * Parse the packet header.

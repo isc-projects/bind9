@@ -80,7 +80,8 @@ lwres_context_allocmem(lwres_context_t *ctx, size_t len);
 int
 lwres_context_sendrecv(lwres_context_t *ctx,
 		       void *sendbase, int sendlen,
-		       void *recvbase, int recvlen);
+		       void *recvbase, int recvlen,
+		       int *recvd_len);
 
 ISC_LANG_ENDDECLS
 

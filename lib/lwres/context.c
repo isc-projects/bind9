@@ -186,7 +186,8 @@ context_connect(lwres_context_t *ctx)
 int
 lwres_context_sendrecv(lwres_context_t *ctx,
 		       void *sendbase, int sendlen,
-		       void *recvbase, int recvlen)
+		       void *recvbase, int recvlen,
+		       int *recvd_len)
 {
 	int ret;
 	struct sockaddr_in sin;
@@ -214,5 +215,8 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	    || sin.sin_port != htons(LWRES_UDP_PORT))
 		goto again;
 
-	return (ret);
+	if (recvd_len != NULL)
+		*recvd_len = ret;
+
+	return (LWRES_R_SUCCESS);
 }
