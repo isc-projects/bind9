@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.5 2003/03/06 04:38:10 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.6 2003/05/12 01:16:40 marka Exp $ -->
 
 <refentry>
 
@@ -96,6 +96,12 @@ Unless it is told to query a specific name server,
 <para>
 When no command line arguments or options are given, will perform an
 NS query for "." (the root).
+</para>
+
+<para>
+It is possible to set per user defaults for <command>dig</command> via
+<filename>${HOME}/.digrc</filename>.  This file is read and any options in it
+are applied before the command line arguements.
 </para>
 
 </refsect1>
@@ -526,6 +532,9 @@ will not print the initial query when it looks up the NS records for
 <title>FILES</title>
 <para>
 <filename>/etc/resolv.conf</filename>
+</para>
+<para>
+<filename>${HOME}/.digrc</filename>
 </para>
 </refsect1>
 

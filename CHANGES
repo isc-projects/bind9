@@ -8,6 +8,8 @@
 			sharing the same port for listening and querying, and
 			changing listening addresses several times. [RT# 3509]
 
+ 992.	[doc]		dig: ~/.digrc is now documented.
+
 	--- 9.2.2 released ---
 
 1428.	[port]		hpux: temporary work around of hpux 11.11 interface
