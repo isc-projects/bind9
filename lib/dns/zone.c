@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.166 2000/07/24 22:59:31 explorer Exp $ */
+/* $Id: zone.c,v 1.167 2000/07/25 19:29:00 mws Exp $ */
 
 #include <config.h>
 
@@ -69,11 +69,21 @@
 /*
  * Implementation limits.
  */
+#ifndef DNS_MIN_REFRESH
 #define DNS_MIN_REFRESH 2		/* 2 seconds */
+#endif
+#ifndef DNS_MAX_REFRESH
 #define DNS_MAX_REFRESH 2419200		/* 4 weeks */
+#endif
+#ifndef DNS_MIN_RETRY
 #define DNS_MIN_RETRY	1		/* 1 second */
+#endif
+#ifndef DNS_MAX_RETRY
 #define DNS_MAX_RETRY	1209600		/* 2 weeks */
+#endif
+#ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
+#endif
 
 /*
  * Default values.
@@ -769,7 +779,7 @@ dns_zone_load(dns_zone_t *zone) {
 		zone->serial = serial;
 		zone->refresh = RANGE(refresh, DNS_MIN_REFRESH,
 				      DNS_MAX_REFRESH);
-		zone->retry = RANGE(retry, DNS_MIN_REFRESH, DNS_MAX_REFRESH);
+		zone->retry = RANGE(retry, DNS_MIN_RETRY, DNS_MAX_RETRY);
 		zone->expire = RANGE(expire, zone->refresh + zone->retry,
 				     DNS_MAX_EXPIRE);
 		zone->minimum = minimum;
@@ -3850,8 +3860,8 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			zone->serial = serial;
 			zone->refresh = RANGE(refresh, DNS_MIN_REFRESH,
 					      DNS_MAX_REFRESH);
-			zone->retry = RANGE(retry, DNS_MIN_REFRESH,
-					    DNS_MAX_REFRESH);
+			zone->retry = RANGE(retry, DNS_MIN_RETRY,
+					    DNS_MAX_RETRY);
 			zone->expire = RANGE(expire,
 					     zone->refresh + zone->retry,
 					     DNS_MAX_EXPIRE);
