@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.27 2000/11/16 20:44:53 tale Exp $ */
+/* $Id: confparser.y.dirty,v 1.28 2000/11/16 22:18:46 gson Exp $ */
 
 #include <config.h>
 
@@ -192,7 +192,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 #define yyr2		dns__yyr2
 #define yyreds		dns__yyreds
 #define yytoks		dns__yytoks
-#undef L_SEARCH			/* <sys/lkup.h> defines this. */
 
 %}
 
@@ -377,7 +376,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_RESPONSE
 %token		L_RFC2308_TYPE1
 %token		L_RRSET_ORDER
-%token		L_SEARCH
+%token		L_SEARCHLIST	/* L_SEARCH is defined by <sys/lkup.h> on AIX */
 %token		L_SECRET
 %token		L_SEC_KEY
 %token		L_SELF
@@ -5855,7 +5854,7 @@ lwres_option: L_LISTEN_ON port_ip_list
 		}
 		isc_mem_free(memctx, $2);
 	}
-	| L_SEARCH L_LBRACE searchlist L_RBRACE
+	| L_SEARCHLIST L_LBRACE searchlist L_RBRACE
 	{
 		dns_c_lwres_t *lwres;
 		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
@@ -6078,7 +6077,7 @@ static struct token keyword_tokens [] = {
 	{ "response",			L_RESPONSE },
 	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
 	{ "rrset-order",		L_RRSET_ORDER },
-	{ "search",			L_SEARCH },
+	{ "search",			L_SEARCHLIST },
 	{ "secret",			L_SECRET },
 	{ "self",			L_SELF },
 	{ "serial-queries",		L_SERIAL_QUERIES },
