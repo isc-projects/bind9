@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.15 2003/08/15 03:09:13 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.16 2003/08/18 05:56:57 marka Exp $ */
 
 #include <config.h>
 
@@ -1067,6 +1067,10 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	options = DNS_MASTER_ZONE;
 	if (load->zone->type == dns_zone_slave)
 		options |= DNS_MASTER_SLAVE;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNS))
+		options |= DNS_MASTER_CHECKNS;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_FATALNS))
+		options |= DNS_MASTER_FATALNS;
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
@@ -1127,6 +1131,10 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	options = DNS_MASTER_ZONE;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
 		options |= DNS_MASTER_MANYERRORS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
+		options |= DNS_MASTER_CHECKNS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS))
+		options |= DNS_MASTER_FATALNS;
 	if (zone->type == dns_zone_slave)
 		options |= DNS_MASTER_SLAVE;
 	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
@@ -1159,8 +1167,8 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			goto cleanup;
 		} else
 			result = DNS_R_CONTINUE;
-	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS)) {
-		dns_rdatacallbacks_t    callbacks;
+	} else {
+		dns_rdatacallbacks_t callbacks;
 
 		dns_rdatacallbacks_init(&callbacks);
 		result = dns_db_beginload(db, &callbacks.add,
@@ -1173,8 +1181,6 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
-	} else {
-		result = dns_db_load(db, zone->masterfile);
 	}
 
 	return (result);
@@ -5265,6 +5271,17 @@ zone_loaddone(void *arg, isc_result_t result) {
 	dns_load_t *load = arg;
 	dns_zone_t *zone;
 	isc_result_t tresult;
+	unsigned int options;
+
+	options = DNS_MASTER_ZONE;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
+		options |= DNS_MASTER_MANYERRORS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
+		options |= DNS_MASTER_CHECKNS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS))
+		options |= DNS_MASTER_FATALNS;
+	if (zone->type == dns_zone_slave)
+		options |= DNS_MASTER_SLAVE;
 
 	REQUIRE(DNS_LOAD_VALID(load));
 	zone = load->zone;

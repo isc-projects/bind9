@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.7 2003/08/14 03:22:37 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.8 2003/08/18 05:56:56 marka Exp $ */
 
 #include <config.h>
 
@@ -785,6 +785,44 @@ limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source, unsigned int line
 }
 
 static isc_result_t
+check_ns(dns_loadctx_t *lctx, isc_token_t *token, const char *source,
+	 unsigned long line)
+{
+	char *tmp = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	void (*callback)(struct dns_rdatacallbacks *, const char *, ...);
+
+	if ((lctx->options & DNS_MASTER_FATALNS) != 0)
+		callback = lctx->callbacks->error;
+	else
+		callback = lctx->callbacks->warn;
+		
+	if (token->type == isc_tokentype_string) {
+		struct in_addr addr;
+		struct in6_addr addr6;
+
+		tmp = isc_mem_strdup(lctx->mctx, DNS_AS_STR(*token));
+		if (tmp == NULL)
+			return (ISC_R_NOMEMORY);
+		/*
+		 * Catch both "1.2.3.4" and "1.2.3.4."
+		 */
+		if (tmp[strlen(tmp) - 1] == '.')
+			tmp[strlen(tmp) - 1] = '\0';
+		if (inet_aton(tmp, &addr) == 1 ||
+		    inet_pton(AF_INET6, tmp, &addr6) == 1)
+			result = DNS_R_NSISADDRESS;
+	}
+	if (result != ISC_R_SUCCESS)
+		(*callback)(lctx->callbacks, "%s:%lu: NS record '%s' "
+			    "appears to be an address",
+			    source, line, DNS_AS_STR(*token));
+	if (tmp != NULL)
+		isc_mem_free(lctx->mctx, tmp);
+	return (result);
+}
+
+static isc_result_t
 load(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
@@ -1424,6 +1462,24 @@ load(dns_loadctx_t *lctx) {
 			}
 			rdata_size += RDSZ;
 			rdata = new_rdata;
+		}
+
+		/*
+		 * Peek at the NS record.
+		 */
+		if (type == dns_rdatatype_ns &&
+		    lctx->zclass == dns_rdataclass_in &&
+		    (lctx->options & DNS_MASTER_CHECKNS) != 0) {
+
+			GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
+			result = check_ns(lctx, &token, source, line);
+			isc_lex_ungettoken(lctx->lex, &token);
+			if ((lctx->options & DNS_MASTER_FATALNS) != 0) {
+				if (MANYERRS(lctx, result)) {
+					SETRESULT(lctx, result);
+				} else if (result != ISC_R_SUCCESS)
+					goto insist_and_cleanup;
+			}
 		}
 
 		/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3.8.3 2003/08/04 02:09:04 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.4 2003/08/18 05:56:56 marka Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:djqst:vw:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:djn:qst:vw:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -93,6 +93,18 @@ main(int argc, char **argv) {
 
 		case 'j':
 			nomerge = ISC_FALSE;
+			break;
+
+		case 'n':
+			if (!strcmp(isc_commandline_argument, "ignore"))
+				zone_options &= ~(DNS_ZONEOPT_CHECKNS|
+						  DNS_ZONEOPT_FATALNS);
+			else if (!strcmp(isc_commandline_argument, "warn")) {
+				zone_options |= DNS_ZONEOPT_CHECKNS;
+				zone_options &= ~DNS_ZONEOPT_FATALNS;
+			} else if (!strcmp(isc_commandline_argument, "fail"))
+				zone_options |= DNS_ZONEOPT_CHECKNS|
+					        DNS_ZONEOPT_FATALNS;
 			break;
 
 		case 'q':

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9 2003/07/22 04:03:44 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.1 2003/08/18 05:56:56 marka Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
 	"<unused 84>",
 
-	"<unused 85>",
+	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
 	"<unused 86>",
 	"<unused 87>",
 	"<unused 88>",

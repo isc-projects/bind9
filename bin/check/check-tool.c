@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.4.12.1 2003/08/01 07:09:49 marka Exp $ */
+/* $Id: check-tool.c,v 1.4.12.2 2003/08/18 05:56:55 marka Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,7 @@ static const char *dbtype[] = { "rbt" };
 
 int debug = 0;
 isc_boolean_t nomerge = ISC_TRUE;
+unsigned int zone_options = DNS_ZONEOPT_CHECKNS|DNS_ZONEOPT_MANYERRORS;
 
 isc_result_t
 setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
@@ -109,7 +110,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	CHECK(dns_rdataclass_fromtext(&rdclass, &region));
 
 	dns_zone_setclass(zone, rdclass);
-	dns_zone_setoption(zone, DNS_ZONEOPT_MANYERRORS, ISC_TRUE);
+	dns_zone_setoption(zone, zone_options, ISC_TRUE);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
 
 	CHECK(dns_zone_load(zone));
