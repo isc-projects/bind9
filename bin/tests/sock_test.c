@@ -40,10 +40,10 @@
 isc_memctx_t *mctx = NULL;
 int sockets_active = 0;
 
-static isc_boolean_t my_send(isc_task_t *task, isc_event_t *event);
-static isc_boolean_t my_recv(isc_task_t *task, isc_event_t *event);
+static void my_send(isc_task_t *task, isc_event_t *event);
+static void my_recv(isc_task_t *task, isc_event_t *event);
 
-static isc_boolean_t
+static void
 my_callback(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
@@ -51,11 +51,9 @@ my_callback(isc_task_t *task, isc_event_t *event)
 	printf("task %s (%p)\n", name, task);
 	fflush(stdout);
 	isc_event_free(&event);
-
-	return (ISC_FALSE);
 }
 
-static isc_boolean_t
+static void
 my_shutdown(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
@@ -63,11 +61,9 @@ my_shutdown(isc_task_t *task, isc_event_t *event)
 	printf("shutdown %s (%p)\n", name, task);
 	fflush(stdout);
 	isc_event_free(&event);
-
-	return (ISC_TRUE);
 }
 
-static isc_boolean_t
+static void
 my_recv(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
@@ -93,9 +89,8 @@ my_recv(isc_task_t *task, isc_event_t *event)
 
 		sockets_active--;
 		if (sockets_active == 0)
-			return (1);
-
-		return (0);
+			isc_task_shutdown(task);
+		return;
 	}
 
 	/*
@@ -120,11 +115,9 @@ my_recv(isc_task_t *task, isc_event_t *event)
 
 
 	isc_event_free(&event);
-
-	return (0);
 }
 
-static isc_boolean_t
+static void
 my_send(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
@@ -141,11 +134,9 @@ my_send(isc_task_t *task, isc_event_t *event)
 	isc_mem_put(event->mctx, dev->region.base, dev->region.length);
 
 	isc_event_free(&event);
-
-	return (0);
 }
 
-static isc_boolean_t
+static void
 my_http_get(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
@@ -163,11 +154,9 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 			event->arg);
 
 	isc_event_free(&event);
-
-	return (0);
 }
 
-static isc_boolean_t
+static void
 my_connect(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
@@ -184,8 +173,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 		isc_event_free(&event);
-
-		return (0);
+		return;
 	}
 
 	/*
@@ -200,26 +188,21 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	isc_socket_send(sock, &region, task, my_http_get, event->arg);
 
 	isc_event_free(&event);
-
-	return (0);
 }
 
-static isc_boolean_t
+static void
 my_listen(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 	isc_socket_newconnev_t *dev;
 	isc_region_t region;
 	isc_socket_t *oldsock;
-	int ret;
 
 	dev = (isc_socket_newconnev_t *)event;
 
 	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
 	       name, task, event->sender, dev->newsocket, dev->result);
 	fflush(stdout);
-
-	ret = 0;
 
 	if (dev->result == ISC_R_SUCCESS) {
 		/*
@@ -243,15 +226,14 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		isc_socket_detach(&oldsock);
 
 		sockets_active--;
-		ret = 1;
+		isc_task_shutdown(task);
+		return;
 	}
 
 	isc_event_free(&event);
-
-	return (ret);
 }
 
-static isc_boolean_t
+static void
 timeout(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock = event->arg;
@@ -260,8 +242,6 @@ timeout(isc_task_t *task, isc_event_t *event)
 
 	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
 	isc_timer_detach((isc_timer_t **)&event->sender);
-
-	return (0);
 }
 
 int
@@ -296,10 +276,10 @@ main(int argc, char *argv[])
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, my_shutdown, "1", 0, &t1) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2) ==
-	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t1, my_shutdown, "1") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t2, my_shutdown, "2") == ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);

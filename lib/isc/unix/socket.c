@@ -163,10 +163,10 @@ static void free_socket(isc_socket_t **);
 static isc_result_t allocate_socket(isc_socketmgr_t *, isc_sockettype_t,
 				    isc_socket_t **);
 static void destroy(isc_socket_t **);
-static isc_boolean_t internal_accept(isc_task_t *, isc_event_t *);
-static isc_boolean_t internal_connect(isc_task_t *, isc_event_t *);
-static isc_boolean_t internal_recv(isc_task_t *, isc_event_t *);
-static isc_boolean_t internal_send(isc_task_t *, isc_event_t *);
+static void internal_accept(isc_task_t *, isc_event_t *);
+static void internal_connect(isc_task_t *, isc_event_t *);
+static void internal_recv(isc_task_t *, isc_event_t *);
+static void internal_send(isc_task_t *, isc_event_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -307,8 +307,6 @@ done_event_destroy(isc_event_t *ev)
 	
 	if (kill_socket)
 		destroy(&sock);
-
-	/* XXXRTH looks like we're leaking the done event here... */
 }
 
 /*
@@ -692,7 +690,7 @@ send_ncdone_event(ncintev_t **iev,
  * message, and once for the message itself) so the task does not need to
  * attach to the socket again.  The task is not attached at all.
  */
-static isc_boolean_t
+static void
 internal_accept(isc_task_t *task, isc_event_t *ev)
 {
 	isc_socket_t *sock;
@@ -733,7 +731,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 
 		UNLOCK(&sock->lock);
 
-		return (ISC_FALSE);
+		return;
 	}
 
 	/*
@@ -747,7 +745,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		if (SOFT_ERROR(errno)) {
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
-			return (ISC_FALSE);
+			return;
 		}
 
 		/*
@@ -817,11 +815,9 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	}
 
 	send_ncdone_event(&iev, &dev, result);
-
-	return (ISC_FALSE);
 }
 
-static isc_boolean_t
+static void
 internal_recv(isc_task_t *task, isc_event_t *ev)
 {
 	rwintev_t *iev;
@@ -977,11 +973,9 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		select_poke(sock->manager, sock->fd);
 
 	UNLOCK(&sock->lock);
-
-	return (ISC_FALSE);
 }
 
-static isc_boolean_t
+static void
 internal_send(isc_task_t *task, isc_event_t *ev)
 {
 	rwintev_t *iev;
@@ -1113,8 +1107,6 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 		select_poke(sock->manager, sock->fd);
 
 	UNLOCK(&sock->lock);
-
-	return (ISC_FALSE);
 }
 
 /*
@@ -2095,7 +2087,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 /*
  * Called when a socket with a pending connect() finishes.
  */
-static isc_boolean_t
+static void
 internal_connect(isc_task_t *task, isc_event_t *ev)
 {
 	isc_socket_t *sock;
@@ -2127,7 +2119,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 
 		UNLOCK(&sock->lock);
 
-		return (ISC_FALSE);
+		return;
 	}
 
 	dev = iev->done_ev;
@@ -2152,7 +2144,7 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 			select_poke(sock->manager, sock->fd);
 			UNLOCK(&sock->lock);
 
-			return (ISC_FALSE);
+			return;
 		}
 
 		/*
@@ -2183,8 +2175,6 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 	ISC_TASK_SEND(iev->task, (isc_event_t **)&dev);
 	iev->done_ev = NULL;
 	isc_event_free((isc_event_t **)&iev);
-
-	return (ISC_FALSE);
 }
 
 isc_result_t

@@ -33,17 +33,15 @@ isc_task_t *t1, *t2, *t3;
 isc_timer_t *ti1, *ti2, *ti3;
 int tick_count = 0;
 
-static isc_boolean_t
+static void
 shutdown_task(isc_task_t *task, isc_event_t *event) {
 	char *name = event->arg;
 
 	printf("task %p shutdown %s\n", task, name);
 	isc_event_free(&event);
-
-	return (ISC_TRUE);
 }
 
-static isc_boolean_t
+static void
 tick(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
@@ -71,11 +69,9 @@ tick(isc_task_t *task, isc_event_t *event)
 	}
 
 	isc_event_free(&event);
-
-	return (ISC_FALSE);
 }
 
-static isc_boolean_t
+static void
 timeout(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
@@ -93,12 +89,11 @@ timeout(isc_task_t *task, isc_event_t *event)
 	if (strcmp(name, "3") == 0) {
 		printf("*** saving task 3 ***\n");
 		isc_event_free(&event);
-		return (ISC_FALSE);
+		return;
 	}
 
 	isc_event_free(&event);
-
-	return (ISC_TRUE);
+	isc_task_shutdown(task);
 }
 
 void
@@ -118,13 +113,14 @@ main(int argc, char *argv[]) {
 	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, shutdown_task, "1", 0, &t1) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, shutdown_task, "2", 0, &t2) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, shutdown_task, "3", 0, &t3) ==
-	       ISC_R_SUCCESS);
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+
+	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t1, shutdown_task, "1") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t2, shutdown_task, "2") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t3, shutdown_task, "3") == ISC_R_SUCCESS);
 
 	printf("task 1: %p\n", t1);
 	printf("task 2: %p\n", t2);

@@ -30,7 +30,7 @@
 
 isc_memctx_t *mctx = NULL;
 
-static isc_boolean_t
+static void
 my_callback(isc_task_t *task, isc_event_t *event)
 {
 	int i, j;
@@ -41,29 +41,23 @@ my_callback(isc_task_t *task, isc_event_t *event)
 		j += 100;
 	printf("task %s (%p): %d\n", name, task, j);
 	isc_event_free(&event);
-
-	return (ISC_FALSE);
 }
 
-static isc_boolean_t
+static void
 my_shutdown(isc_task_t *task, isc_event_t *event) {
 	char *name = event->arg;
 
 	printf("shutdown %s (%p)\n", name, task);
 	isc_event_free(&event);
-
-	return (ISC_TRUE);
 }
 
-static isc_boolean_t
+static void
 my_tick(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 
 	printf("task %p tick %s\n", task, name);
 	isc_event_free(&event);
-
-	return (ISC_FALSE);
 }
 
 void
@@ -89,14 +83,15 @@ main(int argc, char *argv[]) {
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, my_shutdown, "1", 0, &t1) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "3", 0, &t3) ==
-	       ISC_R_SUCCESS);
-	INSIST(isc_task_create(manager, my_shutdown, "4", 0, &t4) ==
-	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, 0, &t4) == ISC_R_SUCCESS);
+
+	INSIST(isc_task_onshutdown(t1, my_shutdown, "1") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t2, my_shutdown, "2") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t3, my_shutdown, "3") == ISC_R_SUCCESS);
+	INSIST(isc_task_onshutdown(t4, my_shutdown, "4") == ISC_R_SUCCESS);
 
 	timgr = NULL;
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
