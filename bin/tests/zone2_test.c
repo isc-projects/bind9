@@ -21,16 +21,17 @@
 
 #include <config.h>
 
-
 #include <isc/app.h>
+#include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
 
 #include <dns/confparser.h>
+#include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+#include <dns/zoneconf.h>
 #include <dns/zt.h>
-#include <dns/journal.h>
 
 #define ERRRET(result, function) \
 	do { \
@@ -48,6 +49,122 @@
 			continue; \
 		} else \
 			(void)NULL
+
+struct dns_zone_callbackarg {
+        isc_mem_t *mctx;
+	dns_viewlist_t oldviews;
+	dns_viewlist_t newviews;
+};
+
+static isc_result_t
+dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
+		  void *uap) {
+	dns_zone_callbackarg_t *cba = uap;
+	dns_name_t *name = NULL;
+	dns_view_t *oldview = NULL;
+	dns_zone_t *oldzone = NULL;
+	dns_view_t *newview = NULL;
+	dns_zone_t *newzone = NULL;
+	dns_zone_t *tmpzone = NULL;
+	isc_result_t result;
+	isc_boolean_t boolean;
+	const char *viewname;
+
+	REQUIRE(czone != NULL);
+	REQUIRE(cba != NULL);
+
+	/*
+	 * Find views by name.
+	 */
+	if (cview != NULL)
+		dns_c_view_getname(cview, &viewname);
+	else
+		viewname = "default";
+
+	printf("view %s\n", viewname);
+
+	result = dns_viewlist_find(&cba->oldviews, viewname, czone->zclass,
+				   &oldview);
+	result = dns_viewlist_find(&cba->newviews, viewname, czone->zclass,
+				   &newview);
+
+	if (newview == NULL) {
+		result = dns_view_create(cba->mctx, czone->zclass, viewname,
+					 &newview);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		ISC_LIST_APPEND(cba->newviews, newview, link);
+	}
+
+	/*
+	 * Create and populate a new zone structure.
+	 */
+	result = dns_zone_create(&newzone, cba->mctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_zone_configure(cfg, NULL, czone, NULL, newzone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+#if 0
+	/* XXX hints should be a zone */
+	if (dns_zone_gettype(newzone) == dns_zone_hint) {
+		dns_view_sethints(newview, newzone);
+		goto cleanup;
+	}
+#endif
+
+	/*
+	 * Find zone in mount table.
+	 */
+	name = dns_zone_getorigin(newzone);
+	dns_zone_print(newzone);
+
+	result = dns_zt_find(newview->zonetable, name, 0, NULL, &tmpzone);
+	if (result == ISC_R_SUCCESS) {
+		printf("zone already exists=\n");
+		result = ISC_R_EXISTS;
+		goto cleanup;
+	} else if (result != DNS_R_PARTIALMATCH && result != ISC_R_NOTFOUND)
+		goto cleanup;
+
+	if (oldview != NULL)
+		result = dns_zt_find(oldview->zonetable, name, 0, NULL,
+				     &oldzone);
+	else
+		result = ISC_R_NOTFOUND;
+
+	printf("dns_zt_find() returned %s\n", dns_result_totext(result));
+
+	if (result == ISC_R_NOTFOUND || result == DNS_R_PARTIALMATCH) {
+		if (result == DNS_R_PARTIALMATCH) {
+			dns_zone_print(oldzone);
+		}
+		result = dns_view_addzone(newview, newzone);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	} else if (result == ISC_R_SUCCESS) {
+		dns_zone_print(oldzone);
+		/* Does the new configuration match the existing one? */
+		boolean = dns_zone_equal(newzone, oldzone);
+	printf("dns_zone_equal() returned %s\n", boolean ? "TRUE" : "FALSE");
+		if (boolean)
+			result = dns_view_addzone(newview, oldzone);
+		else
+			result = dns_view_addzone(newview, newzone);
+	}
+
+ cleanup:
+	if (tmpzone != NULL)
+		dns_zone_detach(&tmpzone);
+	if (newzone != NULL)
+		dns_zone_detach(&newzone);
+	if (oldzone != NULL)
+		dns_zone_detach(&oldzone);
+	return (result);
+}
+
 static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
         isc_buffer_t text;
@@ -254,7 +371,7 @@ main(int argc, char **argv) {
 		view = ISC_LIST_HEAD(cba.newviews);
 		while (view != NULL) {
 			dns_zt_print(view->zonetable);
-			dns_zt_load(view->zonetable);
+			dns_zt_load(view->zonetable, ISC_FALSE);
 			dns_view_freeze(view);
 			view = ISC_LIST_NEXT(view, link);
 		}
@@ -290,7 +407,7 @@ main(int argc, char **argv) {
 	}
 
 	if (configctx != NULL)
-		dns_c_ctx_delete(NULL, &configctx);
+		dns_c_ctx_delete(&configctx);
 	if (view2 != NULL)
 		dns_view_detach(&view2);
 	if (view1 != NULL)
