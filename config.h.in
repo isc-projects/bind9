@@ -94,6 +94,9 @@ int sigwait(const unsigned int *set, int *sig);
  } while (0)
 #endif /* SHUTUP_STDARG_CAST && __GNUC__ */
 
+/* Define if you have the <endian.h> header file.  */
+#undef HAVE_ENDIAN_H
+
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
@@ -102,6 +105,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you have the <linux/prctl.h> header file.  */
 #undef HAVE_LINUX_PRCTL_H
+
+/* Define if you have the <sys/endian.h> header file.  */
+#undef HAVE_SYS_ENDIAN_H
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H

@@ -33,6 +33,7 @@ res_test
 rwlock_test
 sdig
 serial_test
+sha1_test
 shutdown_test
 sock_test
 sym_test

@@ -51,7 +51,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		mem.@O@ mutexblock.@O@ netaddr.@O@ ondestroy.@O@ \
 		quota.@O@ random.@O@ \
 		ratelimiter.@O@ result.@O@ rwlock.@O@ \
-		serial.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
+		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
 		task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
@@ -63,7 +63,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		mem.c mutexblock.c netaddr.c ondestroy.c \
 		quota.c random.c \
 		ratelimiter.c result.c rwlock.c \
-		serial.c sockaddr.c string.c symtab.c \
+		serial.c sha1.c sockaddr.c string.c symtab.c \
 		task.c taskpool.c timer.c version.c
 
 LIBS =		@LIBS@

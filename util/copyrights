@@ -265,6 +265,7 @@
 ./bin/tests/resolv.conf.sample			X	2000
 ./bin/tests/rwlock_test.c			C	1998,1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
+./bin/tests/sha1_test.c				C	2000
 ./bin/tests/shutdown_test.c			C	1998,1999,2000
 ./bin/tests/sock_test.c				C	1998,1999,2000
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000
@@ -688,6 +689,7 @@
 ./lib/isc/include/isc/resultclass.h		C	1999,2000
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000
 ./lib/isc/include/isc/serial.h			C	1999,2000
+./lib/isc/include/isc/sha1.h			C	2000
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000
 ./lib/isc/include/isc/str.h			C	1999,2000
@@ -732,6 +734,7 @@
 ./lib/isc/result.c				C	1998,1999,2000
 ./lib/isc/rwlock.c				C	1998,1999,2000
 ./lib/isc/serial.c				C	1999,2000
+./lib/isc/sha1.c				C	2000
 ./lib/isc/sockaddr.c				C	1999,2000
 ./lib/isc/string.c				C	1999,2000
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000
