@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.65 2002/12/04 04:54:28 marka Exp $ */
+/* $Id: rdataset.c,v 1.66 2002/12/05 04:36:26 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/random.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
@@ -370,12 +371,10 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			 */
 			for (i = 0; i < count; i++) {
 				dns_rdata_t rdata;
-#ifndef HAVE_ARC4RANDOM
-				/* rand()'s lower bits are not random. */
-				choice = i + (((u_int)rand()>>3) % (count - i));
-#else
-				choice = i + (u_int)arc4random() % (count - i);
-#endif
+				isc_uint32_t val;
+
+				isc_random_get(&val);
+				choice = i + (val % (count - i));
 				rdata = shuffled[i];
 				shuffled[i] = shuffled[choice];
 				shuffled[choice] = rdata;
@@ -390,12 +389,11 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			/*
 			 * "Cyclic" order.
 			 */
-#ifndef HAVE_ARC4RANDOM
-			/* rand()'s lower bits are not random. */
-			unsigned int j = (((unsigned int)rand()) >> 3) % count;
-#else
-			unsigned int j = (unsigned int)arc4random() % count;
-#endif
+			isc_uint32_t val;
+			unsigned int j;
+
+			isc_random_get(&val);
+			j = val % count;
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
 					sorted[j].key = (*order)(&shuffled[i],
