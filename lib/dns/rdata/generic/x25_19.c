@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.18 2000/05/15 21:14:30 tale Exp $ */
+/* $Id: x25_19.c,v 1.19 2000/05/19 02:12:56 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -25,8 +25,6 @@
 #define RDATA_GENERIC_X25_19_C
 
 #define RRTYPE_X25_ATTRIBUTES (0)
-
-#include <ctype.h>
 
 static inline isc_result_t
 fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
