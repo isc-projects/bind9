@@ -1,5 +1,5 @@
---- ./README.mdnkit.orig	Fri Dec  1 16:47:34 2000
-+++ ./README.mdnkit	Fri Dec  1 16:47:34 2000
+--- ./README.mdnkit.orig	Thu Dec 21 10:53:17 2000
++++ ./README.mdnkit	Thu Dec 21 10:53:17 2000
 @@ -0,0 +1,110 @@
 +
 +			BIND-9 MDN patch
@@ -110,9 +110,9 @@
 +mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
 +
 +
-+; $Id: README.mdnkit,v 1.5 2000/10/18 04:54:57 ishisone Exp $
---- ./acconfig.h.orig	Fri Dec  1 16:47:10 2000
-+++ ./acconfig.h	Fri Dec  1 16:47:34 2000
++; $Id: patch.most,v 1.1 2000/12/07 00:52:27 tale Exp $
+--- ./acconfig.h.orig	Thu Dec 21 10:46:01 2000
++++ ./acconfig.h	Thu Dec 21 10:53:17 2000
 @@ -110,4 +110,7 @@
  #endif /* SHUTUP_STDARG_CAST && __GNUC__ */
  
@@ -121,8 +121,8 @@
 +
  /* define if the system has a random number generating device */
  #undef PATH_RANDOMDEV
---- ./config.h.in.orig	Fri Dec  1 16:47:33 2000
-+++ ./config.h.in	Fri Dec  1 16:47:34 2000
+--- ./config.h.in.orig	Thu Dec 21 10:46:01 2000
++++ ./config.h.in	Thu Dec 21 10:53:17 2000
 @@ -124,4 +124,10 @@
  #undef PATH_RANDOMDEV
  
@@ -142,9 +142,9 @@
 +#undef HAVE_LOCALE_H
  
  /* Define if you have the <sys/sockio.h> header file.  */
---- ./configure.in.orig	Fri Dec  1 16:47:34 2000
-+++ ./configure.in	Fri Dec  1 16:47:34 2000
-@@ -1159,4 +1159,52 @@
+--- ./configure.in.orig	Thu Dec 21 10:46:00 2000
++++ ./configure.in	Thu Dec 21 10:53:18 2000
+@@ -1176,4 +1176,52 @@
  
  #
 +# MDN support
@@ -197,9 +197,9 @@
 +#
  # Substitutions
  #
---- ./lib/dns/config/confctx.c.orig	Fri Dec  1 16:46:16 2000
-+++ ./lib/dns/config/confctx.c	Fri Dec  1 16:47:34 2000
-@@ -1003,4 +1003,7 @@
+--- ./lib/dns/config/confctx.c.orig	Thu Dec 21 10:44:19 2000
++++ ./lib/dns/config/confctx.c	Thu Dec 21 10:53:18 2000
+@@ -1038,4 +1038,7 @@
  	PRINT_AS_BOOLEAN(maintain_ixfr_base, "maintain-ixfr-base");
  	PRINT_AS_BOOLEAN(has_old_clients, "has-old-clients");
 +#ifdef WITH_MDN
@@ -207,7 +207,7 @@
 +#endif
  	PRINT_AS_BOOLEAN(auth_nx_domain, "auth-nxdomain");
  	PRINT_AS_BOOLEAN(multiple_cnames, "multiple-cnames");
-@@ -1537,4 +1540,7 @@
+@@ -1573,4 +1576,7 @@
  	opts->maintain_ixfr_base = NULL;
  	opts->has_old_clients = NULL;
 +#ifdef WITH_MDN
@@ -215,7 +215,7 @@
 +#endif
  	opts->auth_nx_domain = NULL;
  	opts->multiple_cnames = NULL;
-@@ -1649,4 +1655,7 @@
+@@ -1687,4 +1693,7 @@
  	FREEFIELD(maintain_ixfr_base);
  	FREEFIELD(has_old_clients);
 +#ifdef WITH_MDN
@@ -223,7 +223,7 @@
 +#endif
  	FREEFIELD(auth_nx_domain);
  	FREEFIELD(multiple_cnames);
-@@ -1825,4 +1834,7 @@
+@@ -1864,4 +1873,7 @@
  BOOL_FUNCS(maintainixfrbase, maintain_ixfr_base)
  BOOL_FUNCS(hasoldclients, has_old_clients)
 +#ifdef WITH_MDN
@@ -231,15 +231,15 @@
 +#endif
  BOOL_FUNCS(authnxdomain, auth_nx_domain)
  BOOL_FUNCS(multiplecnames, multiple_cnames)
---- ./lib/dns/config/confparser.y.orig	Fri Dec  1 17:13:00 2000
-+++ ./lib/dns/config/confparser.y	Fri Dec  1 17:16:36 2000
-@@ -269,4 +269,5 @@
+--- ./lib/dns/config/confparser.y.orig	Thu Dec 21 10:46:17 2000
++++ ./lib/dns/config/confparser.y	Thu Dec 21 10:53:18 2000
+@@ -270,4 +270,5 @@
  %token		L_ALLOW_UPDATE
  %token		L_ALLOW_UPDATE_FORWARDING
 +%token		L_ALLOW_UTF8
  %token		L_ALSO_NOTIFY
  %token		L_AUTH_NXDOMAIN
-@@ -1677,4 +1678,19 @@
+@@ -1718,4 +1719,19 @@
  		}
  	}
 +	| L_ALLOW_UTF8 yea_or_nay
@@ -259,7 +259,7 @@
 +	}
  	| L_ADDITIONAL_DATA additional_data
  	{
-@@ -5949,4 +5965,7 @@
+@@ -6097,4 +6113,7 @@
  	{ "allow-update",		L_ALLOW_UPDATE },
  	{ "allow-update-forwarding",	L_ALLOW_UPDATE_FORWARDING },
 +#ifdef WITH_MDN
@@ -267,8 +267,8 @@
 +#endif
  	{ "also-notify",		L_ALSO_NOTIFY },
  	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
---- ./lib/dns/include/dns/confctx.h.orig	Fri Dec  1 16:45:40 2000
-+++ ./lib/dns/include/dns/confctx.h	Fri Dec  1 16:47:35 2000
+--- ./lib/dns/include/dns/confctx.h.orig	Thu Dec 21 10:44:45 2000
++++ ./lib/dns/include/dns/confctx.h	Thu Dec 21 10:53:18 2000
 @@ -185,4 +185,7 @@
  	isc_sockaddr_t	       *transfer_source_v6;
  	isc_sockaddr_t	       *query_source;
@@ -277,7 +277,7 @@
 +#endif
  	isc_sockaddr_t	       *query_source_v6;
  
-@@ -625,4 +628,11 @@
+@@ -630,4 +633,11 @@
  isc_result_t dns_c_ctx_gettreatcrasspace(dns_c_ctx_t *cfg,
  					 isc_boolean_t *retval);
 +#ifdef WITH_MDN
@@ -289,8 +289,8 @@
 +#endif
  
  
---- ./lib/dns/include/dns/name.h.orig	Fri Dec  1 16:45:32 2000
-+++ ./lib/dns/include/dns/name.h	Fri Dec  1 16:47:35 2000
+--- ./lib/dns/include/dns/name.h.orig	Thu Dec 21 10:44:34 2000
++++ ./lib/dns/include/dns/name.h	Thu Dec 21 10:53:18 2000
 @@ -220,4 +220,15 @@
  #define DNS_NAME_MAXWIRE 255
  
@@ -332,8 +332,8 @@
 +#endif /* WITH_MDN */
  
  #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
---- ./lib/dns/name.c.orig	Fri Dec  1 16:46:51 2000
-+++ ./lib/dns/name.c	Fri Dec  1 16:47:35 2000
+--- ./lib/dns/name.c.orig	Thu Dec 21 10:45:44 2000
++++ ./lib/dns/name.c	Thu Dec 21 12:14:44 2000
 @@ -32,4 +32,8 @@
  #include <dns/compress.h>
  
@@ -366,7 +366,7 @@
  	char num[4];
 +#ifdef WITH_MDN
 +	unsigned int oused = target->used;
-+	int u8len;
++	unsigned int u8len;
 +#endif
  
  	/*
@@ -413,8 +413,8 @@
 +	totext_filter_proc = proc;
 +}
 +#endif
---- ./lib/lwres/getaddrinfo.c.orig	Fri Dec  1 16:45:29 2000
-+++ ./lib/lwres/getaddrinfo.c	Fri Dec  1 16:57:06 2000
+--- ./lib/lwres/getaddrinfo.c.orig	Thu Dec 21 10:43:19 2000
++++ ./lib/lwres/getaddrinfo.c	Thu Dec 21 10:53:18 2000
 @@ -54,4 +54,12 @@
  #endif
  
@@ -541,8 +541,8 @@
 +#endif /* WITH_MDN */
  		addr = LWRES_LIST_HEAD(by->addrs);
  		while (addr != NULL) {
---- ./lib/lwres/gethost.c.orig	Fri Dec  1 16:45:28 2000
-+++ ./lib/lwres/gethost.c	Fri Dec  1 16:47:35 2000
+--- ./lib/lwres/gethost.c.orig	Thu Dec 21 10:43:17 2000
++++ ./lib/lwres/gethost.c	Thu Dec 21 10:53:18 2000
 @@ -26,4 +26,7 @@
  #include <string.h>
  
@@ -702,8 +702,8 @@
 +#endif /* WITH_MDN */
  	if (he == NULL)
  		return (NULL);
---- ./lib/lwres/getipnode.c.orig	Fri Dec  1 16:45:28 2000
-+++ ./lib/lwres/getipnode.c	Fri Dec  1 16:47:40 2000
+--- ./lib/lwres/getipnode.c.orig	Thu Dec 21 10:43:18 2000
++++ ./lib/lwres/getipnode.c	Thu Dec 21 10:53:18 2000
 @@ -99,6 +99,22 @@
   */
  
@@ -795,8 +795,8 @@
 +#endif /* WITH_MDN */
  	if (n != 0) {
  		*error_num = HOST_NOT_FOUND;
---- ./lib/lwres/getnameinfo.c.orig	Fri Dec  1 16:45:29 2000
-+++ ./lib/lwres/getnameinfo.c	Fri Dec  1 16:47:40 2000
+--- ./lib/lwres/getnameinfo.c.orig	Thu Dec 21 10:43:19 2000
++++ ./lib/lwres/getnameinfo.c	Thu Dec 21 10:53:19 2000
 @@ -106,8 +106,24 @@
  	} while (0)
  
@@ -835,8 +835,8 @@
 +#endif /* WITH_MDN */
  		if (n == 0) {
  			if (flags & NI_NOFQDN) {
---- ./lib/lwres/include/lwres/lwres.h.orig	Fri Dec  1 16:45:27 2000
-+++ ./lib/lwres/include/lwres/lwres.h	Fri Dec  1 16:47:40 2000
+--- ./lib/lwres/include/lwres/lwres.h.orig	Thu Dec 21 10:43:16 2000
++++ ./lib/lwres/include/lwres/lwres.h	Thu Dec 21 10:53:19 2000
 @@ -27,4 +27,7 @@
  #include <lwres/list.h>
  #include <lwres/lwpacket.h>
@@ -845,7 +845,7 @@
 +#endif /* WITH_MDN */
  
  /*
-@@ -248,4 +251,7 @@
+@@ -247,4 +250,7 @@
  	lwres_uint8_t	ndots;	       /* set to n in 'options ndots:n' */
  	lwres_uint8_t	no_tld_query;  /* non-zero if 'options no_tld_query' */
 +#ifdef WITH_MDN
@@ -853,7 +853,7 @@
 +#endif /* WITH_MDN */
  } lwres_conf_t;
  
-@@ -256,4 +262,10 @@
+@@ -255,4 +261,10 @@
  #define LWRES_MAX_ADDRS			64		/* max # of addrs */
  
 +#ifdef WITH_MDN
@@ -864,7 +864,7 @@
 +
  LWRES_LANG_BEGINDECLS
  
-@@ -265,4 +277,30 @@
+@@ -264,4 +276,30 @@
  extern const char *lwres_resolv_conf;
  
 +#ifdef WITH_MDN
@@ -895,7 +895,7 @@
 +
  lwres_result_t
  lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
-@@ -278,7 +316,13 @@
+@@ -277,7 +315,13 @@
  
  lwres_result_t
 +#ifdef WITH_MDN
@@ -909,7 +909,7 @@
 +#endif /* WITH_MDN */
  
  void
-@@ -333,8 +377,15 @@
+@@ -332,8 +376,15 @@
  			lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp);
  
 +#ifdef WITH_MDN
@@ -925,7 +925,7 @@
 +#endif /* WITH_MDN */
  
  void
-@@ -571,4 +622,10 @@
+@@ -570,4 +621,10 @@
  lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
  		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp);
 +#ifdef WITH_MDN
@@ -936,7 +936,7 @@
 +#endif /* WITH_MDN */
  
  lwres_result_t
-@@ -576,4 +633,10 @@
+@@ -575,4 +632,10 @@
  		    lwres_uint16_t addrlen, const unsigned char *addr,
  		    lwres_gnbaresponse_t **structp);
 +#ifdef WITH_MDN
@@ -947,7 +947,7 @@
 +#endif /* WITH_MDN */
  
  lwres_result_t
-@@ -581,4 +644,9 @@
+@@ -580,4 +643,9 @@
  		     lwres_uint16_t rdclass, lwres_uint16_t rdtype,
  		     lwres_uint32_t flags, lwres_grbnresponse_t **structp);
 +
@@ -957,8 +957,8 @@
 +#endif
  
  LWRES_LANG_ENDDECLS
---- ./lib/lwres/lwconfig.c.orig	Fri Dec  1 16:45:30 2000
-+++ ./lib/lwres/lwconfig.c	Fri Dec  1 16:47:41 2000
+--- ./lib/lwres/lwconfig.c.orig	Thu Dec 21 10:43:22 2000
++++ ./lib/lwres/lwconfig.c	Thu Dec 21 10:53:19 2000
 @@ -56,4 +56,7 @@
  #include <lwres/net.h>
  #include <lwres/result.h>
@@ -991,8 +991,8 @@
 +#endif
  	return (ret);
  }
---- ./lib/lwres/lwres_gabn.c.orig	Fri Dec  1 16:45:29 2000
-+++ ./lib/lwres/lwres_gabn.c	Fri Dec  1 16:47:41 2000
+--- ./lib/lwres/lwres_gabn.c.orig	Thu Dec 21 10:43:20 2000
++++ ./lib/lwres/lwres_gabn.c	Thu Dec 21 10:53:19 2000
 @@ -28,4 +28,7 @@
  #include <lwres/lwres.h>
  #include <lwres/result.h>
@@ -1100,8 +1100,8 @@
 +#endif /* WITH_MDN */
  	if (gabn->naliases > 0) {
  		CTXFREE(gabn->aliases, sizeof(char *) * gabn->naliases);
---- ./lib/lwres/lwres_gnba.c.orig	Fri Dec  1 16:45:29 2000
-+++ ./lib/lwres/lwres_gnba.c	Fri Dec  1 16:47:41 2000
+--- ./lib/lwres/lwres_gnba.c.orig	Thu Dec 21 10:43:20 2000
++++ ./lib/lwres/lwres_gnba.c	Thu Dec 21 10:53:19 2000
 @@ -28,4 +28,7 @@
  #include <lwres/lwres.h>
  #include <lwres/result.h>
@@ -1209,8 +1209,8 @@
 +#endif /* WITH_MDN */
  	if (gnba->naliases > 0) {
  		CTXFREE(gnba->aliases, sizeof(char *) * gnba->naliases);
---- ./lib/lwres/lwresutil.c.orig	Fri Dec  1 16:45:30 2000
-+++ ./lib/lwres/lwresutil.c	Fri Dec  1 16:47:41 2000
+--- ./lib/lwres/lwresutil.c.orig	Thu Dec 21 10:43:21 2000
++++ ./lib/lwres/lwresutil.c	Thu Dec 21 10:53:19 2000
 @@ -33,4 +33,7 @@
  #include <lwres/lwres.h>
  #include <lwres/result.h>
@@ -1357,8 +1357,8 @@
 +#endif
  
  lwres_result_t
---- ./bin/dig/dighost.c.orig	Fri Dec  1 16:45:10 2000
-+++ ./bin/dig/dighost.c	Fri Dec  1 16:47:41 2000
+--- ./bin/dig/dighost.c.orig	Thu Dec 21 10:42:00 2000
++++ ./bin/dig/dighost.c	Thu Dec 21 10:53:19 2000
 @@ -33,8 +33,18 @@
  #include <string.h>
  #include <limits.h>
@@ -1378,7 +1378,7 @@
 +
  #include <dns/byaddr.h>
  #include <dns/fixedname.h>
-@@ -129,4 +139,18 @@
+@@ -128,4 +138,18 @@
  isc_uint32_t rr_limit = INT_MAX;
  
 +#ifdef WITH_MDN
@@ -1397,7 +1397,7 @@
 +
  /*
   * Apply and clear locks at the event level in global task.
-@@ -690,4 +714,8 @@
+@@ -686,4 +710,8 @@
  	}
  
 +#ifdef WITH_MDN
@@ -1406,7 +1406,7 @@
 +
  	if (keyfile[0] != 0)
  		setup_file_key();
-@@ -1241,4 +1269,9 @@
+@@ -1221,4 +1249,9 @@
  	isc_buffer_t b;
  	char store[MXNAME];
 +	char *textname;
@@ -1416,7 +1416,7 @@
 +#endif
  
  	REQUIRE(lookup != NULL);
-@@ -1277,5 +1310,14 @@
+@@ -1257,5 +1290,14 @@
  	 */
  	/* XXX New search here? */
 -	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
@@ -1432,7 +1432,7 @@
 +	if ((count_dots(textname) >= ndots) || lookup->defname)
  		lookup->origin = NULL; /* Force abs lookup */
  	else if (lookup->origin == NULL && lookup->new_search &&
-@@ -1299,4 +1341,22 @@
+@@ -1279,4 +1321,22 @@
  	if (lookup->origin != NULL) {
  		debug("trying origin %s", lookup->origin->origin);
 +#ifdef WITH_MDN
@@ -1455,7 +1455,7 @@
 +#else
  		result = dns_message_gettempname(lookup->sendmsg,
  						 &lookup->oname);
-@@ -1337,7 +1397,26 @@
+@@ -1317,7 +1377,26 @@
  		}
  		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
 +#endif
@@ -1482,13 +1482,13 @@
 +#else
  			len = strlen(lookup->textname);
  			isc_buffer_init(&b, lookup->textname, len);
-@@ -1347,4 +1426,5 @@
+@@ -1327,4 +1406,5 @@
  						   ISC_FALSE,
  						   &lookup->namebuf);
 +#endif
  		} else {
  			dns_name_clone(dns_rootname, lookup->name);
-@@ -2819,2 +2899,123 @@
+@@ -2754,2 +2834,123 @@
  		isc_mem_destroy(&mctx);
  }
 +
@@ -1612,38 +1612,40 @@
 +}
 +
 +#endif /* WITH_MDN */
---- ./bin/named/Makefile.in.orig	Fri Dec  1 16:47:28 2000
-+++ ./bin/named/Makefile.in	Fri Dec  1 16:59:08 2000
-@@ -49,8 +49,10 @@
- LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+--- ./bin/named/Makefile.in.orig	Thu Dec 21 10:41:20 2000
++++ ./bin/named/Makefile.in	Thu Dec 21 11:42:23 2000
+@@ -34,5 +34,5 @@
+ CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
+ 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
+-		${OMAPI_INCLUDES} ${DBDRIVER_INCLUDES}
++		${OMAPI_INCLUDES} ${DBDRIVER_INCLUDES} \
  
-+ICONVLIB =	@ICONVLIB@
-+
- DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+ CDEFINES =
+@@ -52,5 +52,5 @@
  
  LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} \
 -		${DBDRIVER_LIBS} @LIBS@
 +		${DBDRIVER_LIBS} ${ICONVLIB} @LIBS@
  
  SUBDIRS =	unix
-@@ -64,5 +66,5 @@
+@@ -64,5 +64,5 @@
  		zoneconf.@O@ \
  		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
 -		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
 +		lwdgnba.@O@ lwdgrbn.@O@ lwdmdn.@O@ lwdnoop.@O@ lwsearch.@O@ \
  		$(DBDRIVER_OBJS)
  
-@@ -75,5 +77,5 @@
+@@ -75,5 +75,5 @@
  		zoneconf.c \
  		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
 -		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
 +		lwdgnba.c lwdgrbn.c lwdmdn.c lwdnoop.c lwsearch.c \
  		$(DBDRIVER_SRCS)
  
---- ./bin/named/include/named/globals.h.orig	Fri Dec  1 16:45:11 2000
-+++ ./bin/named/include/named/globals.h	Fri Dec  1 16:47:41 2000
-@@ -109,4 +109,12 @@
- EXTERN const char *		ns_g_cachefile		INIT(NULL);
+--- ./bin/named/include/named/globals.h.orig	Thu Dec 21 10:41:03 2000
++++ ./bin/named/include/named/globals.h	Thu Dec 21 10:53:19 2000
+@@ -104,4 +104,12 @@
+ EXTERN const char *		ns_g_username		INIT(NULL);
  
 +#ifdef WITH_MDN
 +/*
@@ -1655,10 +1657,10 @@
 +
  #undef EXTERN
  #undef INIT
---- ./bin/named/include/named/lwdmdn.h.orig	Fri Dec  1 16:47:41 2000
-+++ ./bin/named/include/named/lwdmdn.h	Fri Dec  1 16:47:41 2000
+--- ./bin/named/include/named/lwdmdn.h.orig	Thu Dec 21 10:53:19 2000
++++ ./bin/named/include/named/lwdmdn.h	Thu Dec 21 10:53:19 2000
 @@ -0,0 +1,23 @@
-+/* $Id: lwdmdn.h,v 1.1 2000/08/16 08:55:32 ishisone Exp $ */
++/* $Id: patch.most,v 1.1 2000/12/07 00:52:27 tale Exp $ */
 +
 +#ifndef NAMED_LWDMDN_H
 +#define NAMED_LWDMDN_H
@@ -1681,8 +1683,8 @@
 +
 +#endif /* NAMED_LWDMDN_H */
 +
---- ./bin/named/lwdgabn.c.orig	Fri Dec  1 16:45:17 2000
-+++ ./bin/named/lwdgabn.c	Fri Dec  1 16:47:41 2000
+--- ./bin/named/lwdgabn.c.orig	Thu Dec 21 10:41:14 2000
++++ ./bin/named/lwdgabn.c	Thu Dec 21 10:53:19 2000
 @@ -35,4 +35,7 @@
  #include <named/lwaddr.h>
  #include <named/lwdclient.h>
@@ -1801,8 +1803,8 @@
 +#endif
  	if (result != ISC_R_SUCCESS)
  		goto out;
---- ./bin/named/lwdgnba.c.orig	Fri Dec  1 16:45:17 2000
-+++ ./bin/named/lwdgnba.c	Fri Dec  1 16:47:41 2000
+--- ./bin/named/lwdgnba.c.orig	Thu Dec 21 10:41:15 2000
++++ ./bin/named/lwdgnba.c	Thu Dec 21 10:53:20 2000
 @@ -30,4 +30,7 @@
  #include <named/types.h>
  #include <named/lwdclient.h>
@@ -1843,10 +1845,10 @@
 +#endif
  		ns_lwdclient_log(50, "found name '%.*s'",
  				 client->recv_buffer.used - b.used,
---- ./bin/named/lwdmdn.c.orig	Fri Dec  1 16:47:41 2000
-+++ ./bin/named/lwdmdn.c	Fri Dec  1 16:47:41 2000
-@@ -0,0 +1,281 @@
-+/* $Id: lwdmdn.c,v 1.6 2000/09/07 06:27:40 ishisone Exp $ */
+--- ./bin/named/lwdmdn.c.orig	Thu Dec 21 10:53:20 2000
++++ ./bin/named/lwdmdn.c	Thu Dec 21 11:56:00 2000
+@@ -0,0 +1,283 @@
++/* $Id: patch.most,v 1.1 2000/12/07 00:52:27 tale Exp $ */
 +
 +#include <config.h>
 +
@@ -1867,7 +1869,9 @@
 +
 +#include <named/types.h>
 +#include <named/log.h>
++#ifdef WITH_MDN
 +#include <named/lwdmdn.h>
++#endif
 +#include <named/lwdclient.h>
 +#include <named/globals.h>
 +
@@ -2127,8 +2131,8 @@
 +}
 +
 +#endif /* WITH_MDN */
---- ./bin/named/lwresd.c.orig	Fri Dec  1 16:45:17 2000
-+++ ./bin/named/lwresd.c	Fri Dec  1 16:47:41 2000
+--- ./bin/named/lwresd.c.orig	Thu Dec 21 10:41:16 2000
++++ ./bin/named/lwresd.c	Thu Dec 21 10:53:20 2000
 @@ -47,4 +47,7 @@
  #include <named/log.h>
  #include <named/lwaddr.h>
@@ -2149,8 +2153,8 @@
 +#endif
  
  	if (lwres->searchlist != NULL) {
---- ./bin/named/main.c.orig	Fri Dec  1 16:45:13 2000
-+++ ./bin/named/main.c	Fri Dec  1 16:47:42 2000
+--- ./bin/named/main.c.orig	Thu Dec 21 10:41:26 2000
++++ ./bin/named/main.c	Thu Dec 21 10:53:20 2000
 @@ -277,5 +277,9 @@
  	isc_commandline_errprint = ISC_FALSE;
  	while ((ch = isc_commandline_parse(argc, argv,
