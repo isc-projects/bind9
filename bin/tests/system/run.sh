@@ -62,8 +62,10 @@ sleep 10
 
 status=$?
 
-if ! $stopservers
+if $stopservers
 then
+    :
+else
     exit $status
 fi
 
