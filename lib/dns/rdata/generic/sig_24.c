@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.11 1999/05/07 03:24:11 marka Exp $ */
+ /* $Id: sig_24.c,v 1.12 1999/05/18 17:46:59 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -92,7 +92,7 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	/* sig */
-	return (base64_tobuffer(lexer, target, -1));
+	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t
@@ -168,7 +168,7 @@ totext_sig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(" ", target));
 
 	/* sig */
-	return (base64_totext(&sr, target));
+	return (isc_base64_totext(&sr, target));
 }
 
 static dns_result_t

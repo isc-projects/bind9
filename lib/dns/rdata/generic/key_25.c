@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.5 1999/05/07 03:24:07 marka Exp $ */
+ /* $Id: key_25.c,v 1.6 1999/05/18 17:46:59 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -59,7 +59,7 @@ fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
 	if ((flags & 0xc000) == 0xc000)
 		return (DNS_R_SUCCESS);
 
-	return (base64_tobuffer(lexer, target, -1));
+	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t
@@ -98,7 +98,7 @@ totext_key(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	/* key */
 	RETERR(str_totext(" ", target));
-	return (base64_totext(&sr, target));
+	return (isc_base64_totext(&sr, target));
 }
 
 static dns_result_t

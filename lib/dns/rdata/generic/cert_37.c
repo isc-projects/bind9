@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.7 1999/05/07 03:24:06 marka Exp $ */
+ /* $Id: cert_37.c,v 1.8 1999/05/18 17:46:59 bwelling Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -70,7 +70,7 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	}
 	RETERR(mem_tobuffer(target, &secalg, 1));
 
-	return (base64_tobuffer(lexer, target, -1));
+	return (isc_base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t
@@ -103,7 +103,7 @@ totext_cert(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	isc_region_consume(&sr, 1);
 
 	/* cert */
-	return (base64_totext(&sr, target));
+	return (isc_base64_totext(&sr, target));
 }
 
 static dns_result_t

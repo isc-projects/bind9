@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.9 1999/05/07 03:24:05 marka Exp $ */
+ /* $Id: tsig_250.c,v 1.10 1999/05/18 17:46:59 bwelling Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -68,7 +68,7 @@ fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Signature */
-	RETERR(base64_tobuffer(lexer, target, token.value.as_ulong));
+	RETERR(isc_base64_tobuffer(lexer, target, token.value.as_ulong));
 
 	/* Original ID */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -89,7 +89,7 @@ fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Other Data */
-	return (base64_tobuffer(lexer, target, token.value.as_ulong));
+	return (isc_base64_tobuffer(lexer, target, token.value.as_ulong));
 }
 
 static dns_result_t
@@ -149,7 +149,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	REQUIRE(n <= sr.length);
 	sigr = sr;
 	sigr.length = n;
-	RETERR(base64_totext(&sigr, target));
+	RETERR(isc_base64_totext(&sigr, target));
 	RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, n);
 
@@ -172,7 +172,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(buf, target));
 
 	/* Other */
-	return (base64_totext(&sr, target));
+	return (isc_base64_totext(&sr, target));
 }
 
 static dns_result_t

@@ -55,7 +55,9 @@ typedef unsigned int isc_result_t;
 #define ISC_R_UNBALANCED		28
 #define ISC_R_NOMORE			29
 #define ISC_R_INVALIDFILE		30
-#define ISC_R_LASTENTRY			30	/* last entry in the list */
+#define ISC_R_BADBASE64			31
+#define ISC_R_UNEXPECTEDTOKEN		32
+#define ISC_R_LASTENTRY			32	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 

@@ -50,6 +50,9 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"not implemented",			/* 27 */
 	"unbalanced parentheses",		/* 28 */
 	"no more",				/* 29 */
+	"invalid file",				/* 30 */
+	"bad base64 encoding",			/* 31 */
+	"unexpected token",			/* 32 */
 };
 
 char *

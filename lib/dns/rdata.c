@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.45 1999/05/17 15:40:39 marka Exp $ */
+ /* $Id: rdata.c,v 1.46 1999/05/18 17:46:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/assertions.h>
@@ -72,11 +73,6 @@ static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
 static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 static int		hexvalue(char value);
 static int		decvalue(char value);
-static dns_result_t	base64_totext(isc_region_t *source,
-				      isc_buffer_t *target);
-static dns_result_t	base64_tobuffer(isc_lex_t *lexer,
-					isc_buffer_t *target,
-					int length);
 static dns_result_t	time_totext(unsigned long value,
 				    isc_buffer_t *target);
 static dns_result_t	time_tobuffer(char *source, isc_buffer_t *target);
@@ -985,113 +981,6 @@ decvalue(char value) {
 	if ((s = strchr(decdigits, value)) == NULL)
 		return (-1);
 	return (s - decdigits);
-}
-
-static const char base64[] =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-
-static dns_result_t
-base64_totext(isc_region_t *source, isc_buffer_t *target) {
-	char buf[5];
-	int loops = 0;
-
-	memset(buf, 0, sizeof buf);
-	RETERR(str_totext("( " /*)*/, target));
-	while (source->length > 2) {
-		buf[0] = base64[(source->base[0]>>2)&0x3f];
-		buf[1] = base64[((source->base[0]<<4)&0x30)|
-				((source->base[1]>>4)&0x0f)];
-		buf[2] = base64[((source->base[1]<<2)&0x3c)|
-				((source->base[2]>>6)&0x03)];
-		buf[3] = base64[source->base[2]&0x3f];
-		RETERR(str_totext(buf, target));
-		isc_region_consume(source, 3);
-		if (source->length != 0 && ++loops == 15) {
-			loops = 0;
-			RETERR(str_totext(" ", target));
-		}
-	}
-	if (source->length == 2) {
-		buf[0] = base64[(source->base[0]>>2)&0x3f];
-		buf[1] = base64[((source->base[0]<<4)&0x30)|
-				((source->base[1]>>4)&0x0f)];
-		buf[2] = base64[((source->base[1]<<2)&0x3c)];
-		buf[3] = '=';
-		RETERR(str_totext(buf, target));
-	} else if (source->length == 1) {
-		buf[0] = base64[(source->base[0]>>2)&0x3f];
-		buf[1] = base64[((source->base[0]<<4)&0x30)];
-		buf[2] = buf[3] = '=';
-		RETERR(str_totext(buf, target));
-	}
-	RETERR(str_totext(" )", target));
-	return (DNS_R_SUCCESS);
-}
-
-static dns_result_t
-base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
-	int digits = 0;
-	isc_textregion_t *tr;
-	int val[4];
-	unsigned char buf[3];
-	int seen_end = 0;
-	unsigned int i;
-	isc_token_t token;
-	char *s;
-	int n;
-
-	
-	while (!seen_end && (length != 0)) {
-		if (length > 0)
-			RETERR(gettoken(lexer, &token, isc_tokentype_string,
-					ISC_FALSE));
-		else
-			RETERR(gettoken(lexer, &token, isc_tokentype_string,
-					ISC_TRUE));
-		if (token.type != isc_tokentype_string)
-			break;
-		tr = &token.value.as_textregion;
-		for (i = 0 ;i < tr->length; i++) {
-			if (seen_end)
-				return (DNS_R_BADBASE64);
-			if ((s = strchr(base64, tr->base[i])) == NULL)
-				return (DNS_R_BADBASE64);
-			val[digits++] = s - base64;
-			if (digits == 4) {
-				if (val[0] == 64 || val[1] == 64)
-					return (DNS_R_BADBASE64);
-				if (val[2] == 64 && val[3] != 64)
-					return (DNS_R_BADBASE64);
-				n = (val[2] == 64) ? 1 :
-				    (val[3] == 64) ? 2 : 3;
-				if (n != 3) {
-					seen_end = 1;
-					if (val[2] == 64)
-						val[2] = 0;
-					if (val[3] == 64)
-						val[3] = 0;
-				}
-				buf[0] = (val[0]<<2)|(val[1]>>4);
-				buf[1] = (val[1]<<4)|(val[2]>>2);
-				buf[2] = (val[2]<<6)|(val[3]);
-				RETERR(mem_tobuffer(target, buf, n));
-				if (length >= 0) {
-					if (n > length)
-						return (DNS_R_BADBASE64);
-					else
-						length -= n;
-				}
-				digits = 0;
-			}
-		}
-	}
-	if (length < 0 && !seen_end)
-		isc_lex_ungettoken(lexer, &token);
-	if (length > 0)
-		return (DNS_R_UNEXPECTEDEND);
-	if (digits != 0)
-		return (DNS_R_BADBASE64);
-	return (DNS_R_SUCCESS);
 }
 
 static int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };

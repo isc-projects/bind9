@@ -26,8 +26,9 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		@ISC_EXTRA_OBJS@ \
-		assertions.o buffer.o error.o heap.o lex.o mem.o result.o \
-		rwlock.o symtab.o str.o event.o task.o timer.o version.o \
+		assertions.o base64.o buffer.o error.o heap.o lex.o mem.o \
+		result.o rwlock.o symtab.o str.o event.o task.o timer.o \
+		version.o \
 		unix/app.o unix/time.o unix/stdtime.o unix/socket.o \
 		pthreads/condition.o
 
