@@ -20,6 +20,7 @@
 
 #include <isc/types.h>
 #include <isc/rwlock.h>
+#include <isc/log.h>
 #include <isc/net.h>
 
 #include <dns/types.h>
