@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.6 2003/08/12 07:10:29 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.7 2003/08/13 01:59:19 marka Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,8 @@
 #define MOD CFG_LOGMODULE_PARSER
 
 #define MAP_SYM 1 	/* Unique type for isc_symtab */
+
+#define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)
 
 /* Check a return value. */
 #define CHECK(op) 						\
@@ -693,7 +695,7 @@ cfg_parse_qstring(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 	return (create_string(pctx,
-			      pctx->token.value.as_pointer,
+			      TOKEN_STRING(pctx),
 			      &cfg_type_qstring,
 			      ret));
  cleanup:
@@ -711,7 +713,7 @@ parse_ustring(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 	return (create_string(pctx,
-			      pctx->token.value.as_pointer,
+			      TOKEN_STRING(pctx),
 			      &cfg_type_ustring,
 			      ret));
  cleanup:
@@ -725,7 +727,7 @@ cfg_parse_astring(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 	CHECK(cfg_getstringtoken(pctx));
 	return (create_string(pctx,
-			      pctx->token.value.as_pointer,
+			      TOKEN_STRING(pctx),
 			      &cfg_type_qstring,
 			      ret));
  cleanup:
@@ -855,13 +857,13 @@ parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	if (pctx->token.type != isc_tokentype_string)
 		goto bad_boolean;
 
-	if ((strcasecmp(pctx->token.value.as_pointer, "true") == 0) ||
-	    (strcasecmp(pctx->token.value.as_pointer, "yes") == 0) ||
-	    (strcmp(pctx->token.value.as_pointer, "1") == 0)) {
+	if ((strcasecmp(TOKEN_STRING(pctx), "true") == 0) ||
+	    (strcasecmp(TOKEN_STRING(pctx), "yes") == 0) ||
+	    (strcmp(TOKEN_STRING(pctx), "1") == 0)) {
 		value = ISC_TRUE;
-	} else if ((strcasecmp(pctx->token.value.as_pointer, "false") == 0) ||
-		   (strcasecmp(pctx->token.value.as_pointer, "no") == 0) ||
-		   (strcmp(pctx->token.value.as_pointer, "0") == 0)) {
+	} else if ((strcasecmp(TOKEN_STRING(pctx), "false") == 0) ||
+		   (strcasecmp(TOKEN_STRING(pctx), "no") == 0) ||
+		   (strcmp(TOKEN_STRING(pctx), "0") == 0)) {
 		value = ISC_FALSE;
 	} else {
 		goto bad_boolean;
@@ -1158,7 +1160,7 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		 * We accept "include" statements wherever a map body
 		 * clause can occur.
 		 */
-		if (strcasecmp(pctx->token.value.as_pointer, "include") == 0) {
+		if (strcasecmp(TOKEN_STRING(pctx), "include") == 0) {
 			/*
 			 * Turn the file name into a temporary configuration
 			 * object just so that it is not overwritten by the
@@ -1177,7 +1179,7 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 			for (clause = *clauseset;
 			     clause->name != NULL;
 			     clause++) {
-				if (strcasecmp(pctx->token.value.as_pointer,
+				if (strcasecmp(TOKEN_STRING(pctx),
 					   clause->name) == 0)
 					goto done;
 			}
@@ -1630,7 +1632,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 	if (pctx->token.type != isc_tokentype_string)
 		return (ISC_R_UNEXPECTEDTOKEN);
 
-	s = pctx->token.value.as_pointer;
+	s = TOKEN_STRING(pctx);
 	if ((flags & CFG_ADDR_WILDOK) != 0 && strcmp(s, "*") == 0) {
 		if ((flags & CFG_ADDR_V4OK) != 0) {
 			isc_netaddr_any(na);
@@ -1699,7 +1701,7 @@ cfg_parse_rawport(cfg_parser_t *pctx, unsigned int flags, in_port_t *port) {
 
 	if ((flags & CFG_ADDR_WILDOK) != 0 &&
 	    pctx->token.type == isc_tokentype_string &&
-	    strcmp(pctx->token.value.as_pointer, "*") == 0) {
+	    strcmp(TOKEN_STRING(pctx), "*") == 0) {
 		*port = 0;
 		return (ISC_R_SUCCESS);
 	}
@@ -1757,14 +1759,17 @@ cfg_type_t cfg_type_netaddr = {
 /* netprefix */
 
 isc_result_t
-cfg_parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+cfg_parse_netprefix(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
 	cfg_obj_t *obj = NULL;
 	isc_result_t result;
 	isc_netaddr_t netaddr;
 	unsigned int addrlen, prefixlen;
 	UNUSED(type);
 
-	CHECK(cfg_parse_rawaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V4PREFIXOK | CFG_ADDR_V6OK, &netaddr));
+	CHECK(cfg_parse_rawaddr(pctx, CFG_ADDR_V4OK | CFG_ADDR_V4PREFIXOK |
+				CFG_ADDR_V6OK, &netaddr));
 	switch (netaddr.family) {
 	case AF_INET:
 		addrlen = 32;
@@ -1846,7 +1851,7 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type,
 	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
 	CHECK(cfg_peektoken(pctx, 0));
 	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(pctx->token.value.as_pointer, "port") == 0) {
+	    strcasecmp(TOKEN_STRING(pctx), "port") == 0) {
 		CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 		CHECK(cfg_parse_rawport(pctx, flags, &port));
 	}
