@@ -369,7 +369,7 @@ client_init_gabn(client_t *client)
 	client->gabn.aliaslen = client->aliaslen;
 	client->gabn.addrs = client->addrs;
 	client->gabn.base = NULL;
-	client->gabn.baselen = NULL;
+	client->gabn.baselen = 0;
 
 	/*
 	 * Set up the internal buffer to point to the receive region.
@@ -392,7 +392,7 @@ client_init_gnba(client_t *client)
 	client->gnba.realnamelen = 0;
 	client->gnba.aliaslen = client->aliaslen;
 	client->gnba.base = NULL;
-	client->gnba.baselen = NULL;
+	client->gnba.baselen = 0;
 
 	isc_buffer_init(&client->recv_buffer, client->buffer,
 			LWRES_RECVLENGTH, ISC_BUFFERTYPE_TEXT);
