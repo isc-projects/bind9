@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.21 2000/02/03 23:43:03 halley Exp $ */
+/* $Id: ns_2.c,v 1.22 2000/03/16 02:16:16 bwelling Exp $ */
+
+/* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
@@ -29,9 +31,9 @@ fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	REQUIRE(type == 2);
-
 	UNUSED(rdclass);
+
+	REQUIRE(type == 2);
 
 	RETERR(gettoken(lexer, &token,isc_tokentype_string, ISC_FALSE));
 
@@ -71,15 +73,15 @@ fromwire_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
         dns_name_t name;
 
-	REQUIRE(type == 2);
-
 	UNUSED(rdclass);
+
+	REQUIRE(type == 2);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-        
+
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
@@ -130,13 +132,11 @@ static inline isc_result_t
 fromstruct_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 2);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
