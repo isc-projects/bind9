@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.27 2000/04/28 01:24:07 gson Exp $ */
+/* $Id: nxt_30.c,v 1.28 2000/04/29 01:51:39 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -86,7 +86,6 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	   isc_buffer_t *target) 
 {
 	isc_region_t sr;
-	char buf[sizeof "65535"];
 	unsigned int i, j;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -109,19 +108,15 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		if (sr.base[i] != 0)
 			for (j = 0; j < 8; j++)
 				if ((sr.base[i] & (0x80 >> j)) != 0) {
-					result = dns_rdatatype_totext(
-						  (dns_rdatatype_t)(i * 8 + j),
-						  target);
-					if (result == ISC_R_SUCCESS) {
-						RETERR(str_totext(" ",
-								  target));
-						continue;
+					dns_rdatatype_t t = i * 8 + j;
+					if (dns_rdatatype_isknown(t)) {
+						RETERR(dns_rdatatype_totext(t, target));
+					} else {
+						char buf[sizeof "65535"];
+						sprintf(buf, "%u", t);
+						RETERR(str_totext(buf, target));
 					}
-					if (result != DNS_R_UNKNOWN)
-						return (result);
-					sprintf(buf, "%u", i * 8 + j);
 					RETERR(str_totext(" ", target));
-					RETERR(str_totext(buf, target));
 				}
 	}
 	return (str_totext(")", target));
