@@ -1141,7 +1141,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	if (memcmp(rawheader.h.format, initial_journal_header.format,
 		   sizeof(initial_journal_header.format)) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "%s: jornal format not recognized",
+				 "%s: journal format not recognized",
 				 j->filename);
 		FAIL(DNS_R_UNEXPECTED);
 	}
@@ -1153,9 +1153,10 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	 * not exist.
 	 */
 	if (! write && JOURNAL_EMPTY(&j->header)) {
-		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "journal file %s is empty", j->filename);
-		FAIL(DNS_R_NOJOURNAL);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "%s: journal unexpectedly empty",
+				 j->filename);
+		FAIL(DNS_R_UNEXPECTED);
 	}
 	
 	/*
