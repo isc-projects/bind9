@@ -68,11 +68,11 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0rc4
+BIND 9.0.0rc5
 
-	BIND 9.0.0rc4 is a release candidate for the upcoming
+	BIND 9.0.0rc5 is a release candidate for the upcoming
 	9.0.0 release.  The only changes expected between
-	rc4 and the final release are bug fixes and documentation
+	rc5 and the final release are bug fixes and documentation
 	updates.
 
 	The 9.0.0 release, and this release candidate, is aimed at
@@ -92,7 +92,7 @@ BIND 9.0.0rc4
 	experimental.  For detailed information about the state of the
 	DNSSEC implementation, see the file doc/misc/dnssec.
 
-	A small number of bugs found in rc3 have been fixed.  For a detailed
+	A small number of bugs found in rc4 have been fixed.  For a detailed
         list of user-visible changes, see the CHANGES file.
 
 	There are a few known bugs:
