@@ -97,6 +97,13 @@ dns_db_iszone(dns_db_t *db) {
 	return (!db->cache);
 }
 
+dns_name_t *
+dns_db_origin(dns_db_t *db) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	return (&db->base);
+}
+
 dns_result_t
 dns_db_load(dns_db_t *db, char *filename) {
 

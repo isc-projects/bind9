@@ -132,6 +132,9 @@ dns_db_iscache(dns_db_t *db);
 isc_boolean_t
 dns_db_iszone(dns_db_t *db);
 
+dns_name_t *
+dns_db_origin(dns_db_t *db);
+
 dns_result_t
 dns_db_load(dns_db_t *db, char *filename);
 
