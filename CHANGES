@@ -1,3 +1,4 @@
+
  894.	[bug]		When using the DNSSEC tools, a message intended to warn
 			when the keyboard was being used because of the lack
 			of a suitable random device was not being printed.
@@ -22,6 +23,9 @@
  850.	[bug]		dns_rbt_findnode() would not find nodes that were
 			split on a bitstring label somewhere other than in
 			the last label of the node. [RT #1351]
+
+ 705.	[port]		Work out resource limit type for use where rlim_t is
+			not available. [RT #695]
 
 	--- 9.1.3rc1 released ---
 

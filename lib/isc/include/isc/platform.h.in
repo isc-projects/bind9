@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.16.4.2 2001/02/21 00:15:15 gson Exp $ */
+/* $Id: platform.h.in,v 1.16.4.3 2001/06/09 00:53:22 gson Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -131,6 +131,11 @@
  * Defined if we are using threads.
  */
 @ISC_PLATFORM_USETHREADS@
+
+/*
+ * Type used for resource limits.
+ */
+@ISC_PLATFORM_RLIMITTYPE@
 
 /*
  * Tell emacs to use C mode for this file.
