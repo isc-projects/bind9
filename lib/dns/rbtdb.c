@@ -1443,6 +1443,30 @@ find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 */
 				result = DNS_R_BADDB;
 			}
+			/*
+			 * XXXRTH  This is where we'll deal with obscured
+			 * nodes.  We have to do this whether we found
+			 * a NXT or not, since we don't want to return
+			 * DNS_R_BADDB for an obscured node that has no
+			 * NXT (maybe the zone has been re-signed and the
+			 * obscured NXTs eliminated).  Here's what we'll
+			 * do:
+			 *
+			 *	Search the levels above us for a node
+			 *	with the find_callback bit set.
+			 *
+			 *	See if there is an active DNAME or zonecut.
+			 *
+			 *	If so, unbind any bindings we've made, and
+			 *	continue on.  If we really feel ambitious,
+			 *	we can unwind the chain to the cut point,
+			 *	and continue searching from there.  Probably
+			 *	not worth it for 9.0.0 since this will be a
+			 *	very uncommon case.
+			 *
+			 *	Otherwise, the result we got (a NXT or
+			 *	DNS_R_BADDB) is the right result.
+			 */
 		} else {
 			/*
 			 * This node isn't active.  We've got to keep
