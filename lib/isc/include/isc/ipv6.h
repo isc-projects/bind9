@@ -86,6 +86,42 @@ struct sockaddr_in6 {
 #define SIN6_LEN 1
 #endif
 
+/*
+ * Unspecified
+ */
+#define IN6_IS_ADDR_UNSPECIFIED(a)      \
+        (((a)->s6_addr32[0] == 0) &&    \
+         ((a)->s6_addr32[1] == 0) &&    \
+         ((a)->s6_addr32[2] == 0) &&    \
+         ((a)->s6_addr32[3] == 0))
+
+/*
+ * Loopback
+ */
+#define IN6_IS_ADDR_LOOPBACK(a)         \
+        (((a)->s6_addr32[0] == 0) &&    \
+         ((a)->s6_addr32[1] == 0) &&    \
+         ((a)->s6_addr32[2] == 0) &&    \
+         ((a)->s6_addr32[3] == htonl(1)))
+
+/*
+ * IPv4 compatible
+ */
+#define IN6_IS_ADDR_V4COMPAT(a)         \
+        (((a)->s6_addr32[0] == 0) &&    \
+         ((a)->s6_addr32[1] == 0) &&    \
+         ((a)->s6_addr32[2] == 0) &&    \
+         ((a)->s6_addr32[3] != 0) &&    \
+         ((a)->s6_addr32[3] != htonl(1)))
+
+/*
+ * Mapped
+ */
+#define IN6_IS_ADDR_V4MAPPED(a)               \
+        (((a)->s6_addr32[0] == 0) &&          \
+         ((a)->s6_addr32[1] == 0) &&          \
+         ((a)->s6_addr32[2] == htonl(0x0000ffff)))
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_IPV6_H */
