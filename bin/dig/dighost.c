@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.121 2000/09/13 00:03:27 mws Exp $ */
+/* $Id: dighost.c,v 1.122 2000/09/13 00:12:16 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -798,7 +798,7 @@ try_clear_lookup(dig_lookup_t *lookup) {
 		if (debugging) {
 			q = ISC_LIST_HEAD(lookup->q);
 			while (q != NULL) {
-				debug ("query to %s still pending",
+				debug("query to %s still pending",
 				       q->servname);
 				q = ISC_LIST_NEXT(q, link);
 			}
@@ -2288,8 +2288,8 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 		if (specified_source &&
 		    (isc_sockaddr_pf(&query->sockaddr) !=
 		     isc_sockaddr_pf(&bind_address))) {
-			printf (";; Skipping server %s, incompatable "
-				"address family\n", query->servname);
+			printf(";; Skipping server %s, incompatable "
+			       "address family\n", query->servname);
 			continue;
 			query->waiting_connect = ISC_FALSE;
 		}
