@@ -156,7 +156,11 @@ configure_view_acl(dns_c_view_t *cview,
 }
 
 /*
- * Configure 'view' according to 'cctx'.
+ * Configure 'view' according to 'cview', taking defaults from 'cctx'
+ * where values are missing in cctx.
+ *
+ * When configuring the default view, cctx will be NULL and the 
+ * glboal defaults in cview used exclusively.
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
@@ -289,7 +293,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (view->hints == NULL) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "no root hints for view '%s'", cview->name);
+			      "no root hints for view '%s'",
+			      cview == NULL ? "<default>" : cview->name);
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
