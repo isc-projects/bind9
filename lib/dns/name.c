@@ -2317,7 +2317,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 		isc_buffer_t *target)
 {
 	unsigned int methods;
-	unsigned int offset;
+	isc_uint16_t offset;
 	dns_name_t gp, gs;
 	dns_name_t lp, ls;
 	isc_boolean_t gf;
