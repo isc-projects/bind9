@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.16 $)
+AC_REVISION($Revision: 1.17 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -279,7 +279,7 @@ want_irs_nis="$withval", want_irs_nis="no")
 case "$want_irs_nis" in
 yes)
 	WANT_IRS_NIS="#define WANT_IRS_NIS 1"
-	WANT_IRS_NIS_OBJS="WANT_IRS_NIS_OBJS"
+	WANT_IRS_NIS_OBJS="\${WANT_IRS_NIS_OBJS}"
 	case "$want_irs_gr" in
 	yes)
 		WANT_IRS_NISGR_OBJS="\${WANT_IRS_NISGR_OBJS}";;
