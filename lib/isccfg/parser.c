@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.60 2001/07/03 07:43:02 marka Exp $ */
+/* $Id: parser.c,v 1.61 2001/07/03 17:12:19 gson Exp $ */
 
 #include <config.h>
 
@@ -2335,7 +2335,7 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 				if (result != ISC_R_SUCCESS) {
 					parser_error(pctx, LOG_NEAR,
 						     "isc_symtab_define(%s) "
-						     " failed", clause->name);
+						     "failed", clause->name);
 					isc_mem_put(pctx->mctx, list,
 						    sizeof(cfg_list_t));
 					goto cleanup;
