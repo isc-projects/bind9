@@ -1,3 +1,6 @@
+ 347.	[bug]		Don't crash if when an argument is left off
+			options in dig.
+
  346.	[func]		Add support for .digrc config file, in the
 			user's current directory
 
