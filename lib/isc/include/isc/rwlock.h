@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.17 2001/01/09 21:57:30 bwelling Exp $ */
+/* $Id: rwlock.h,v 1.18 2001/03/08 00:55:15 tale Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
@@ -28,7 +28,8 @@
 ISC_LANG_BEGINDECLS
 
 typedef enum {
-	isc_rwlocktype_read = 0,
+	isc_rwlocktype_none = 0,
+	isc_rwlocktype_read,
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
@@ -72,6 +73,9 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
+
+isc_result_t
+isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type);

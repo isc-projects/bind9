@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.28 2001/02/07 20:03:23 gson Exp $ */
+/* $Id: rwlock.c,v 1.29 2001/03/08 00:55:13 tale Exp $ */
 
 #include <config.h>
 
@@ -125,8 +125,8 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+static isc_result_t
+doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 	isc_boolean_t skip = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
 
@@ -153,6 +153,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 				rwl->active++;
 				rwl->granted++;
 				done = ISC_TRUE;
+			} else if (nonblock) {
+				return (ISC_R_LOCKBUSY);
 			} else {
 				skip = ISC_FALSE;
 				rwl->readers_waiting++;
@@ -169,6 +171,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 				rwl->active = 1;
 				rwl->granted++;
 				done = ISC_TRUE;
+			} else if (nonblock) {
+				return (ISC_R_LOCKBUSY);
 			} else {
 				skip = ISC_FALSE;
 				rwl->writers_waiting++;
@@ -186,6 +190,16 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	UNLOCK(&rwl->lock);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	return (doit(rwl, type, ISC_FALSE));
+}
+
+isc_result_t
+isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	return (doit(rwl, type, ISC_TRUE));
 }
 
 isc_result_t
@@ -294,6 +308,11 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		rwl->active = 1;
 	}
         return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	return (isc_rwlock_lock(rwl, type))g;
 }
 
 isc_result_t
