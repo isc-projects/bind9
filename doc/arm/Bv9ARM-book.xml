@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.94 2001/01/26 18:52:59 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.95 2001/01/29 00:50:28 marka Exp $ -->
 
 <book>
 
@@ -675,21 +675,21 @@ Use <command>dig</command> instead.</para>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
-	  <varlistentry id="check-conf" xreflabel="Named Configuration Checking application">
-            <term><command>check-conf</command></term>
+	  <varlistentry id="named-checkconf" xreflabel="Named Configuration Checking application">
+            <term><command>named-checkconf</command></term>
             <listitem>
-	      <para>The <command>check-conf</command> program
+	      <para>The <command>named-checkconf</command> program
 	      checks the syntax of a <filename>named.conf</filename> file.</para>
               <cmdsynopsis label="Usage">
-                <command>check-conf</command>
+                <command>named-checkconf</command>
                 <arg><replaceable>filename</replaceable></arg>
               </cmdsynopsis>
             </listitem>
 	  </varlistentry>
-	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
-            <term><command>check-zone</command></term>
+	  <varlistentry id="named-checkzone" xreflabel="Zone Checking application">
+            <term><command>named-checkzone</command></term>
             <listitem>
-	      <para>The <command>check-zone</command> program checks a master file for
+	      <para>The <command>named-checkzone</command> program checks a master file for
 	      syntax and consistency.</para>
               <cmdsynopsis label="Usage">
                 <command>check-zone</command>
