@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.4 2002/07/11 05:55:04 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.5 2002/07/12 01:10:23 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -74,6 +74,7 @@ static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.4 2002/07/11 05:55:04 marka E
 #include <resolv.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 
 #include <isc/memcluster.h>
 #include <irs.h>
@@ -1196,6 +1197,15 @@ gethostans(struct irs_ho *this,
 		eor = cp + n;
 		if ((qtype == T_A || qtype == T_AAAA || qtype == ns_t_a6 ||
 		     qtype == T_ANY) && type == T_CNAME) {
+			if (haveanswer) {
+				int level = LOG_CRIT;
+#ifdef LOG_SECURITY
+				level |= LOG_SECURITY;
+#endif
+				syslog(level,
+ "gethostans: possible attempt to exploit buffer overflow while looking up %s",
+					*qname ? qname : ".");
+			}
 			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof tbuf);
 			if (n < 0 || !maybe_ok(pvt->res, tbuf, name_ok)) {
 				had_error++;
