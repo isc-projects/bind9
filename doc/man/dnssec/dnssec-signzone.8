@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.6 2000/07/26 21:36:08 bwelling Exp $
+.\" $Id: dnssec-signzone.8,v 1.7 2000/07/26 21:36:43 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -78,20 +78,20 @@ If there is a
 .Ar signedkey
 file from the zone's parent, the parent's signatures will be
 incorporated into the generated signed zone file.
-Any delegation points in the signed zone will have their security
-status defined - i.e. whether they are DNSSEC-aware or not.
+The security status of delegations from the the signed zone 
+- i.e. whether the child zones are DNSSEC-aware or not - is
+set according to the presence or absence of a
+.Ar signedkey
+file for the child in case.
 .Pp
 By default,
 .Nm dnssec-signzone
 generates a file called
 .Ar zonefile.signed
 containing the signed zone file.
-This can be overridden by the
+The output file name can be overridden usign the
 .Fl f
 option.
-Instead of this default file name, the signed zone file will be
-written to
-.Ar output-file .
 .\" Don't hyphenate YYYYMMDDHHMMSS
 .nh YYYYMMDDHHMMSS
 .Pp
