@@ -2511,7 +2511,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			(unsigned int)ps->rdclass);
 		ADD_STRING(target, buf);
 		return (ISC_R_SUCCESS);
-		break;
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL)
@@ -2522,7 +2521,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					     ISC_FALSE, target);
 		ADD_STRING(target, "\n");
 		return (result);
-		break;
 	case DNS_PSEUDOSECTION_SIG0:
 		ps = dns_message_getsig0(msg, &name);
 		if (ps == NULL)
@@ -2533,7 +2531,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					     ISC_FALSE, target);
 		ADD_STRING(target, "\n");
 		return (result);
-		break;
 	}
 	return (ISC_R_UNEXPECTED);
 }
