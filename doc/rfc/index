@@ -34,6 +34,7 @@
 2181:	Clarifications to the DNS Specification
 2230:	Key Exchange Delegation Record for the DNS
 2308:	Negative Caching of DNS Queries (DNS NCACHE)
+2317:	Classless IN-ADDR.ARPA delegation
 2373:	IP Version 6 Addressing Architecture
 2374:	An IPv6 Aggregatable Global Unicast Address Format
 2375:	IPv6 Multicast Address Assignments
