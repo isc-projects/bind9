@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.41 $)
+AC_REVISION($Revision: 1.42 $)
 
 AC_PREREQ(2.13)
 
@@ -285,10 +285,12 @@ AC_TRY_COMPILE([
 	ISC_NET_HAVEIPV6="#undef ISC_NET_HAVEIPV6"
 	ISC_IPV6_H="ipv6.h"
 	ISC_IPV6_O="ipv6.o"
+	ISC_ISCIPV6_O="unix/ipv6.o"
 	ISC_IPV6_C="ipv6.c"])
 AC_SUBST(ISC_NET_HAVEIPV6)
 AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
+AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
 
 dnl
@@ -319,21 +321,27 @@ dnl Check for network functions that are often missing.  We do this
 dnl after the libtool checking, so we can put the right suffix on
 dnl the files.
 dnl
-AC_CHECK_FUNC(inet_ntop, ,
+AC_CHECK_FUNC(inet_ntop,
+	      [ISC_NET_NEEDNTOP="#undef ISC_NET_NEEDNTOP"],
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	       AC_DEFINE(NEED_INET_NTOP)]
+	       ISC_NET_NEEDNTOP="#define ISC_NET_NEEDNTOP 1"]
 )
-AC_CHECK_FUNC(inet_pton, ,
+AC_CHECK_FUNC(inet_pton,
+	      [ISC_NET_NEEDPTON="#undef ISC_NET_NEEDPTON"],
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	       AC_DEFINE(NEED_INET_PTON)]
+	       ISC_NET_NEEDPTON="#define ISC_NET_NEEDPTON 1"]
 )
-AC_CHECK_FUNC(inet_aton, ,
+AC_CHECK_FUNC(inet_aton,
+	      [ISC_NET_NEEDATON="#undef ISC_NET_NEEDATON"],
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-	       AC_DEFINE(NEED_INET_ATON)]
+	       ISC_NET_NEEDATON="#define ISC_NET_NEEDATON 1"]
 )
+AC_SUBST(ISC_NET_NEEDNTOP)
+AC_SUBST(ISC_NET_NEEDPTON)
+AC_SUBST(ISC_NET_NEEDATON)
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
 
