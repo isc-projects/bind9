@@ -1,0 +1,8 @@
+#
+# bind 9 build for Solaris 5.6
+#
+0 * * * * PLATFORM=SunOS-5.6 && . $HOME/b9t/hosts/$PLATFORM/env && make PLATFORM=$PLATFORM -e -f $HOME/b9t/bin/b9t.mk  > $HOME/b9t/hosts/$PLATFORM/b9t-status 2>&1
+#
+# bind 8 build for Solaris 5.6
+#
+30 0,6,12,18 * * * PLATFORM=SunOS-5.6 && . $HOME/b8t/hosts/$PLATFORM/env && make PLATFORM=$PLATFORM -e -f $HOME/b8t/bin/b8t.mk  > $HOME/b8t/hosts/$PLATFORM/b8t-status 2>&1
