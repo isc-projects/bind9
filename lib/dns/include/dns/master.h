@@ -37,9 +37,24 @@ dns_result_t dns_master_load(char *master_file,
 			     isc_mem_t *mctx);
 
 /*
+ * Loads a RFC 1305 master file from disk into rdatasets then call
+ * 'callbacks->commit' to commit the dataset.  Rdata memory belongs
+ * to dns_master_load and will be reused / released when the callback
+ * completes.
+ *
+ * 'callbacks->commit' is assumed to call 'callbacks->error' or
+ * 'callbacks->warn' to generate any error messages required.
+ *
  * Requires:
- *	callbacks->commit to point ta a valid function.
- *	masterfile point to a valid string.
+ *	'master_file' to point to a valid string.
+ *	'top' to point to a valid name.
+ *	'origin' to point to a valid name.
+ *	'soacount' to point to a int.
+ *	'nscount' to point to a int.
+ *	'callbacks->commit' to point ta a valid function.
+ *	'callbacks->error' to point ta a valid function.
+ *	'callbacks->warn' to point ta a valid function.
+ *	'mctx' to point to a memory context.
  */
 
 #endif	/* DNS_MASTER_H */
