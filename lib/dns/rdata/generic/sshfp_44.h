@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.h,v 1.1 2003/10/01 10:05:00 marka Exp $ */
+/* $Id: sshfp_44.h,v 1.1.8.1 2003/10/21 05:25:16 marka Exp $ */
 
 /* draft-ietf-secsh-dns-05.txt */
 

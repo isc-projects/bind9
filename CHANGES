@@ -12,6 +12,8 @@
 1521.	[bug]		dns_view_createresolver() failed to check the
 			result from isc_mem_create(). [RT# 9294]
 
+1520.	[protocol]	Add SSHFP (SSH Finger Print) type.
+
 1518.   [bug]           dns_nxt_buildrdata(), and hence dns_nxt_build(),
 			contained a off-by-one error when working out the
 			number of octets in the bitmap.
