@@ -1,4 +1,6 @@
 
+	--- 9.2.5 released ---
+
 	--- 9.2.5rc1 released ---
 
 1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
