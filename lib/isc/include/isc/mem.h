@@ -43,7 +43,7 @@ typedef void (*isc_memfree_t)(void *, void *);
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
-#define isc_mem_allocate(c, p, s)	__isc_mem_allocatedebug(c, s, \
+#define isc_mem_allocate(c, s)	__isc_mem_allocatedebug(c, s, \
 							    __FILE__, __LINE__)
 #define isc_mem_free(c, p)	__isc_mem_freedebug(c, p, __FILE__, __LINE__)
 #define isc_mem_strdup(c, p)	__isc_mem_strdupdebug(c, p, \
