@@ -86,21 +86,6 @@ struct dns_dispatchevent {
 };
 
 /*
- * Functions to:
- *
- *	Return if a packet is a query or a response,
- *	Hash IDs,
- *	Generate a new random ID,
- *	Compare entries (IDs) for equality,
- */
-struct dns_dispatchmethods {
-	isc_uint32_t (*randomid)(dns_dispatch_t *);
-	isc_uint32_t (*hash)(dns_dispatch_t *, isc_sockaddr_t *,
-			     isc_uint32_t);
-};
-typedef struct dns_dispatchmethods dns_dispatchmethods_t;
-
-/*
  * Attributes for added dispatchers.
  *
  * Values with the mask 0xffff0000 are application defined.
@@ -124,11 +109,6 @@ typedef struct dns_dispatchmethods dns_dispatchmethods_t;
  * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
- *
- * _CONNECTED
- *	The socket the dispatcher uses is a connected socket, and can
- *	only send to a specific host.  This will disallow wildcarded
- *	remote addresses.
  */
 #define DNS_DISPATCHATTR_PRIVATE	0x00000001U
 #define DNS_DISPATCHATTR_TCP		0x00000002U
@@ -197,16 +177,24 @@ dns_dispatchmgr_find(dns_dispatchmgr_t *mgr,
 
 
 isc_result_t
-dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
-		    isc_task_t *task, unsigned int maxbuffersize,
+dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
+		    isc_taskmgr_t *taskmgr, isc_sockaddr_t *localaddr,
+		    unsigned int buffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
-		    dns_dispatchmethods_t *methods, unsigned int attributes,
+		    unsigned int attributes, unsigned int mask,
 		    dns_dispatch_t **dispp);
+
+isc_result_t
+dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+		       isc_taskmgr_t *taskmgr, unsigned int buffersize,
+		       unsigned int maxbuffers, unsigned int maxrequests,
+		       unsigned int buckets, unsigned int increment,
+		       unsigned int attributes, dns_dispatch_t **dispp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
- * For all dispatches, "maxbuffersize" is the maximum packet size we will
+ * For all dispatches, "buffersize" is the maximum packet size we will
  * accept.
  *
  * "maxbuffers" and "maxrequests" control the number of buffers in the
@@ -217,10 +205,6 @@ dns_dispatch_create(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
  *
  * "increment" is used in a collision avoidance function, and needs to be
  * a prime > buckets, and not 2.
- *
- * "methods" be NULL for normal DNS wire format, or all elements in that
- * structure be filled in with function pointers to control dispatch
- * behavior.
  *
  * Requires:
  *
@@ -313,7 +297,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 
 void
-dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
+dns_dispatch_removeresponse(dns_dispentry_t **resp,
 			    dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of responses for the provided id and destination.
@@ -353,7 +337,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 
 
 void
-dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
+dns_dispatch_removerequest(dns_dispentry_t **resp,
 			   dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of requests for the provided id and destination.

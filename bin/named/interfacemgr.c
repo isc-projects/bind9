@@ -197,7 +197,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	}
 	isc_task_setname(ifp->task, "ifp", ifp);
 
-	ifp->udpsocket = NULL;
 	ifp->udpdispatch = NULL;
 	
 	ifp->tcpsocket = NULL;
@@ -232,38 +231,21 @@ static isc_result_t
 ns_interface_listenudp(ns_interface_t *ifp) {
 	isc_result_t result;
 	unsigned int attrs;
+	unsigned int attrmask;
 	
-	/*
-	 * Open a UDP socket.
-	 */
-	result = isc_socket_create(ifp->mgr->socketmgr,
-				   isc_sockaddr_pf(&ifp->addr),
-				   isc_sockettype_udp,
-				   &ifp->udpsocket);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-				 "creating UDP socket: %s",
-				 isc_result_totext(result));
-		goto udp_socket_failure;
-	}
-	result = isc_socket_bind(ifp->udpsocket, &ifp->addr);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-				 "binding UDP socket: %s",
-				 isc_result_totext(result));
-		goto udp_bind_failure;
-	}
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_UDP;
 	if (isc_sockaddr_pf(&ifp->addr) == AF_INET)
 		attrs |= DNS_DISPATCHATTR_IPV4;
 	else
 		attrs |= DNS_DISPATCHATTR_IPV6;
-	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
-	attrs |= DNS_DISPATCHATTR_ACCEPTREQUEST;
-	result = dns_dispatch_create(ifp->mgr->dispatchmgr, ifp->udpsocket,
-				     ifp->task, 4096, 1000, 32768, 8219,
-				     8237, NULL, attrs, &ifp->udpdispatch);
+	attrmask = 0;
+	attrmask |= DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
+	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
+	result = dns_dispatch_getudp(ifp->mgr->dispatchmgr, ns_g_socketmgr,
+				     ns_g_taskmgr, &ifp->addr,
+				     4096, 1000, 32768, 8219, 8237,
+				     attrs, attrmask, &ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "UDP dns_dispatch_create(): %s",
@@ -284,9 +266,6 @@ ns_interface_listenudp(ns_interface_t *ifp) {
  addtodispatch_failure:
 	dns_dispatch_detach(&ifp->udpdispatch);
  udp_dispatch_failure:
- udp_bind_failure:
-	isc_socket_detach(&ifp->udpsocket);
- udp_socket_failure:
 	return (result);
 }
 
@@ -383,10 +362,6 @@ ns_interface_destroy(ns_interface_t *ifp) {
 
 	if (ifp->udpdispatch != NULL)
 		dns_dispatch_detach(&ifp->udpdispatch);
-	if (ifp->udpsocket != NULL) {
-		isc_socket_cancel(ifp->udpsocket, NULL, ISC_SOCKCANCEL_ALL);
-		isc_socket_detach(&ifp->udpsocket);
-	}
 	if (ifp->tcpsocket != NULL) {
 		isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
 		isc_socket_detach(&ifp->tcpsocket);

@@ -351,6 +351,9 @@ dns_resolver_dispatchv6(dns_resolver_t *resolver);
 isc_socketmgr_t *
 dns_resolver_socketmgr(dns_resolver_t *resolver);
 
+isc_taskmgr_t *
+dns_resolver_taskmgr(dns_resolver_t *resolver);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

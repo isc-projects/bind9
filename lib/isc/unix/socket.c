@@ -381,7 +381,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 
 	cmsgp = CMSG_FIRSTHDR(msg);
 	while (cmsgp != NULL) {
-		socket_log(sock, NULL, TRACE, "Processing cmsg %p", cmsgp);
+		socket_log(sock, NULL, TRACE, "processing cmsg %p", cmsgp);
 
 #ifdef ISC_PLATFORM_HAVEIPV6
 		if (cmsgp->cmsg_level == IPPROTO_IPV6
@@ -2531,6 +2531,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 		}
 	}
 
+	socket_log(sock, sockaddr, TRACE, "bound");
 	sock->bound = 1;
 
 	UNLOCK(&sock->lock);

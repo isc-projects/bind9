@@ -51,6 +51,7 @@ struct dns_requestmgr {
 	isc_int32_t			iref;
 	isc_timermgr_t		       *timermgr;
 	isc_socketmgr_t		       *socketmgr;
+	isc_taskmgr_t		       *taskmgr;
 	dns_dispatchmgr_t	       *dispatchmgr;
 	dns_dispatch_t		       *dispatchv4;
 	dns_dispatch_t		       *dispatchv6;
@@ -111,6 +112,7 @@ isc_result_t
 dns_requestmgr_create(isc_mem_t *mctx,
 		      isc_timermgr_t *timermgr,
 		      isc_socketmgr_t *socketmgr,
+		      isc_taskmgr_t *taskmgr,
 		      dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4,
 		      dns_dispatch_t *dispatchv6,
@@ -126,6 +128,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	REQUIRE(requestmgrp != NULL && *requestmgrp == NULL);
 	REQUIRE(timermgr != NULL);
 	REQUIRE(socketmgr != NULL);
+	REQUIRE(taskmgr != NULL);
 	REQUIRE(dispatchmgr != NULL);
 	if (dispatchv4 != NULL) {
 		socket = dns_dispatch_getsocket(dispatchv4);
@@ -157,6 +160,7 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	}
 	requestmgr->timermgr = timermgr;
 	requestmgr->socketmgr = socketmgr;
+	requestmgr->taskmgr = taskmgr;
 	requestmgr->dispatchmgr = dispatchmgr;
 	requestmgr->dispatchv4 = NULL;
 	if (dispatchv4 != NULL)
@@ -492,10 +496,10 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		else
 			attrs |= DNS_DISPATCHATTR_IPV6;
 		attrs |= DNS_DISPATCHATTR_MAKEQUERY;
-		result = dns_dispatch_create(requestmgr->dispatchmgr,
-					     socket, task,
-					     4096, 2, 1, 1, 3, NULL, attrs,
-					     &request->dispatch);
+		result = dns_dispatch_createtcp(requestmgr->dispatchmgr,
+						socket, requestmgr->taskmgr,
+						4096, 2, 1, 1, 3, attrs,
+						&request->dispatch);
 		isc_socket_detach(&socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
@@ -530,8 +534,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		 * Try again using TCP.
 		 */
 		dns_message_renderreset(message);
-		dns_dispatch_removeresponse(request->dispatch,
-					    &request->dispentry, NULL);
+		dns_dispatch_removeresponse(&request->dispentry, NULL);
 		dns_dispatch_detach(&request->dispatch);
 		socket = NULL;
 		isc_buffer_free(&request->query);
@@ -589,8 +592,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (request->requestmgr != NULL)
 		requestmgr_detach(&request->requestmgr);
 	if (request->dispentry != NULL)
-		dns_dispatch_removeresponse(request->dispatch,
-					    &request->dispentry, NULL);
+		dns_dispatch_removeresponse(&request->dispentry, NULL);
 	if (request->dispatch != NULL)
 		dns_dispatch_detach(&request->dispatch);
 	if (request->event != NULL)
@@ -819,8 +821,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Cleanup.
 	 */
-	dns_dispatch_removeresponse(request->dispatch, &request->dispentry,
-				    &devent);
+	dns_dispatch_removeresponse(&request->dispentry, &devent);
 	req_cancel(request);
 	/*
 	 * Send completion event.
@@ -878,8 +879,7 @@ req_destroy(dns_request_t *request) {
 	if (request->event != NULL)
 		isc_event_free((isc_event_t **)&request->event);
 	if (request->dispentry != NULL)
-		dns_dispatch_removeresponse(request->dispatch,
-					    &request->dispentry, NULL);
+		dns_dispatch_removeresponse(&request->dispentry, NULL);
 	if (request->dispatch != NULL)
 		dns_dispatch_detach(&request->dispatch);
 	if (request->timer != NULL)
@@ -906,8 +906,7 @@ req_cancel(dns_request_t *request) {
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
 	if (request->dispentry != NULL)
-		dns_dispatch_removeresponse(request->dispatch,
-					    &request->dispentry, NULL);
+		dns_dispatch_removeresponse(&request->dispentry, NULL);
 	if (DNS_REQUEST_CONNECTING(request)) {
 		socket = dns_dispatch_getsocket(request->dispatch);
 		isc_socket_cancel(socket, NULL, ISC_SOCKCANCEL_CONNECT);

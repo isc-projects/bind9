@@ -56,10 +56,6 @@ struct ns_server {
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		in_roothints;
 	dns_tkey_ctx_t *	tkeyctx;
-	isc_sockaddr_t		querysrc_addressv4;
-	dns_dispatch_t *	querysrc_dispatchv4;
-	isc_sockaddr_t		querysrc_addressv6;
-	dns_dispatch_t *	querysrc_dispatchv6;
 	isc_timer_t *		interface_timer;
 	
 	isc_mutex_t		reload_event_lock;

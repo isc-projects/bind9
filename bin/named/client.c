@@ -183,9 +183,7 @@ client_deactivate(ns_client_t *client) {
 			deventp = &client->dispevent;
 		else
 			deventp = NULL;
-		dns_dispatch_removerequest(client->dispatch,
-					   &client->dispentry,
-					   deventp);
+		dns_dispatch_removerequest(&client->dispentry, deventp);
 	}
 	if (client->dispatch != NULL)
 		dns_dispatch_detach(&client->dispatch);
