@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.255 2000/11/18 02:54:18 gson Exp $ */
+/* $Id: zone.c,v 1.256 2000/11/22 18:58:12 gson Exp $ */
 
 #include <config.h>
 
@@ -4393,13 +4393,22 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			 */
 			(void)isc_time_now(&zone->loadtime);
 		}
-		if (zone->journal != NULL) {
+
+		if (dump && zone->journal != NULL) {
+			/*
+			 * The in-memory database just changed, and because 'dump'
+			 * is set, it didn't change by being loaded from disk.
+			 * Also, we have not journalled diffs for this change.
+			 * Therefore, the on-disk journal is missing the deltas
+			 * for this change and must be considered invalid.
+			 */
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "removing journal file");
 			(void)remove(zone->journal);
 		}
 	}
+	
 	dns_db_closeversion(db, &ver, ISC_FALSE);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
