@@ -247,7 +247,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ncrdataset.trust = trust;
 
 	return (dns_db_addrdataset(cache, node, NULL, now, &ncrdataset,
-				   ISC_FALSE, addedrdataset));
+				   0, addedrdataset));
 }
 
 isc_result_t

@@ -381,6 +381,7 @@ main(int argc, char *argv[]) {
 	dns_name_t *origin;
 	size_t memory_quota = 0;
 	dns_trust_t trust = 0;
+	unsigned int addopts;
 
 	dns_result_register();
 
@@ -849,10 +850,13 @@ main(int argc, char *argv[]) {
 			if (dbi != NULL && addmode && !found_as) {
 				rdataset.ttl++;
 				rdataset.trust = trust;
+				if (dns_db_iszone(db))
+					addopts = DNS_DBADD_MERGE;
+				else
+					addopts = 0;
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset,
-							    dns_db_iszone(db),
-							    NULL);
+							    addopts, NULL);
 				if (result != DNS_R_SUCCESS)
 					print_result("", result);
 				if (printnode)

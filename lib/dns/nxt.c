@@ -155,7 +155,7 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	check_result(result, "dns_rdatalist_tordataset");
 	result = dns_db_addrdataset(db, node, version, 0, &rdataset,
-				    ISC_FALSE, NULL);
+				    0, NULL);
 	if (result == DNS_R_UNCHANGED)
 		result = ISC_R_SUCCESS;
 	check_result(result, "dns_db_addrdataset");

@@ -436,7 +436,8 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			if (op == DNS_DIFFOP_ADD) {
 				result = dns_db_addrdataset(db, node, ver,
 							    0, &rds,
-							    ISC_TRUE, NULL);
+							    DNS_DBADD_MERGE,
+							    NULL);
 			} else if (op == DNS_DIFFOP_DEL) {
 				result = dns_db_subtractrdataset(db, node, ver,
 								 &rds,

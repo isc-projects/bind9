@@ -1049,7 +1049,7 @@ t_dns_db_newversion(char **av) {
 	}
 
 	dns_result = dns_db_addrdataset(db, nodep, nversionp, 0,
-				&added_rdataset, ISC_FALSE, NULL);
+				&added_rdataset, 0, NULL);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_addrdataset failed %s\n",
 				dns_result_totext(dns_result));
@@ -1384,7 +1384,7 @@ t_dns_db_closeversion_1(char **av) {
 	}
 
 	dns_result = dns_db_addrdataset(db, nodep, nversionp, 0,
-				&added_rdataset, ISC_FALSE, NULL);
+				&added_rdataset, 0, NULL);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_addrdataset failed %s\n",
 				dns_result_totext(dns_result));
@@ -1738,7 +1738,7 @@ t_dns_db_closeversion_2(char **av) {
 	}
 
 	dns_result = dns_db_addrdataset(db, nodep, nversionp, 0,
-				&added_rdataset, ISC_FALSE, NULL);
+				&added_rdataset, 0, NULL);
 	if (dns_result != DNS_R_SUCCESS) {
 		t_info("dns_db_addrdataset failed %s\n",
 				dns_result_totext(dns_result));
