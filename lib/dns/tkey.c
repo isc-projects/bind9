@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.45 2000/06/09 22:33:03 bwelling Exp $
+ * $Id: tkey.c,v 1.46 2000/06/22 23:07:00 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -433,6 +433,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	dns_rdata_t tkeyrdata, *rdata = NULL;
 	isc_buffer_t *dynbuf = NULL;
 	dns_namelist_t namelist;
+	isc_boolean_t freealg = ISC_FALSE;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(tctx != NULL);
@@ -499,6 +500,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 	dns_name_init(&tkeyout.algorithm, NULL);
 	RETERR(dns_name_dup(&tkeyin.algorithm, msg->mctx, &tkeyout.algorithm));
+	freealg = ISC_TRUE;
 
 	tkeyout.inception = tkeyout.expire = 0;
 	tkeyout.mode = tkeyin.mode;
@@ -638,6 +640,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	return (ISC_R_SUCCESS);
 
  failure:
+	if (freealg)
+		dns_name_free(&tkeyout.algorithm, msg->mctx);
 	if (tkeyin.common.rdtype == dns_rdatatype_tkey)
 		dns_rdata_freestruct(&tkeyin);
 	if (rdata != NULL)
