@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.20.2.1 2000/06/26 23:31:09 gson Exp $ */
+/* $Id: getipnode.c,v 1.20.2.2 2000/06/27 23:44:19 gson Exp $ */
 
 #include <config.h>
 
@@ -195,7 +195,10 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 				goto cleanup;
 			}
 		} else if (he1 == NULL) {
-			*error_num = HOST_NOT_FOUND;
+			if (n == LWRES_R_NOTFOUND)
+				*error_num = HOST_NOT_FOUND;
+			else
+				*error_num = NO_RECOVERY;
 			goto cleanup;
 		} 
 	} else
@@ -277,7 +280,10 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 						INADDRSZ, cp, &by);
 		if (n != LWRES_R_SUCCESS) {
 			lwres_context_destroy(&lwrctx);
-			*error_num = HOST_NOT_FOUND;
+			if (n == LWRES_R_NOTFOUND)
+				*error_num = HOST_NOT_FOUND;
+			else
+				*error_num = NO_RECOVERY;
 			return (NULL);
 		}
 		he1 = hostfromaddr(by, AF_INET, cp);
