@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.113.2.2 2001/01/22 20:12:26 bwelling Exp $ */
+/* $Id: confctx.c,v 1.113.2.3 2001/02/22 17:30:28 gson Exp $ */
 
 #include <config.h>
 
@@ -526,7 +526,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	{
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'cachefile' cannot be present if views "
+			      "option 'cache-file' cannot be present if views "
 			      "are present");
 		result = ISC_R_FAILURE;
 	}
