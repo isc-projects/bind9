@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.25 2000/11/22 01:55:38 halley Exp $ */
+/* $Id: rdataslab.c,v 1.26 2000/11/30 23:59:08 marka Exp $ */
 
 #include <config.h>
 
@@ -225,7 +225,7 @@ isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    isc_boolean_t force, unsigned char **tslabp)
+		    unsigned int flags, unsigned char **tslabp)
 {
 	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
@@ -244,6 +244,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(oslab != NULL && nslab != NULL);
+	REQUIRE((flags & (DNS_RDATASLAB_FORCE|DNS_RDATASLAB_EXACT)) !=
+		(DNS_RDATASLAB_FORCE|DNS_RDATASLAB_EXACT));
 
 	ocurrent = oslab + reservelen;
 	ocount = *ocurrent++ * 256;
@@ -300,7 +302,11 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	} while (ncount > 0);
 	ncount = nncount;
 
-	if (!added_something && !force)
+	if ((flags & DNS_RDATASLAB_EXACT) != 0 &&
+	    tcount != ncount + ocount)
+		return (DNS_R_NOTEXACT);
+
+	if (!added_something && (flags & DNS_RDATASLAB_FORCE) == 0)
 		return (DNS_R_UNCHANGED);
 
 	/*
