@@ -7,6 +7,7 @@ CINCLUDES =	-I${srcdir}/../../lib/isc/unix/include \
 		-I${srcdir}/../../lib/isc/pthreads/include \
 		-I${srcdir}/../../lib/isc/include \
 		-I${srcdir}/../../lib/dns/include \
+		-I../../lib/dns/include \
 		-I${srcdir}/../.. \
 		-I${srcdir}
 
@@ -19,7 +20,6 @@ DEPLIBS =	../../lib/dns/libdns.a \
 
 LIBS =		${DEPLIBS} \
 		@LIBS@
-# -ly -ll
 
 TARGETS =	named
 
@@ -28,8 +28,9 @@ OBJS =		server.o udpclient.o tcpclient.o wire_debug.o wire_test.o
 
 @BIND9_MAKE_RULES@
 
-wire_test.o: ../tests/wire_test.c
-	${CC} -c -o wire_test.o -DNOMAIN ${CINCLUDES} ${CFLAGS} ../tests/wire_test.c
+wire_test.o: ${srcdir}/../tests/wire_test.c
+	${CC} -c -o wire_test.o -DNOMAIN ${ALL_CFLAGS} \
+		${srcdir}/../tests/wire_test.c
 
 named: ${OBJS} ${DEPLIBS}
 	${CC} -o $@ ${OBJS} ${LIBS}

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.13 1999/02/04 06:38:41 marka Exp $ */
+ /* $Id: gen.c,v 1.14 1999/02/18 01:24:31 halley Exp $ */
 
 #include <sys/types.h>
 
@@ -104,7 +104,7 @@ struct tt {
 	int type;
 	char classname[11];
 	char typename[11];
-	char dirname[sizeof "rdata/0123456789_65535" ];
+	char dirname[256];		/* XXX Should be max path length */
 } *types;
 
 char *	upper(char *);
@@ -221,7 +221,6 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 	struct cc *newcc;
 	struct cc *cc, *oldcc;
 
-
 	if (newtt == NULL)
 		exit(1);
 
@@ -313,7 +312,8 @@ sd(int class, char *classname, char *dir) {
 int
 main(int argc, char **argv) {
 	DIR *d;
-	char buf[sizeof "rdata/0123456789_65535" ];
+	char buf[256];			/* XXX Should be max path length */
+	char srcdir[256];		/* XXX Should be max path length */
 	int class;
 	char classname[11];
 	struct dirent *dp;
@@ -329,7 +329,8 @@ main(int argc, char **argv) {
 	int c;
 	char buf1[11];
 
-	while ((c = getopt(argc, argv, "ct")) != -1)
+	strcpy(srcdir, "");
+	while ((c = getopt(argc, argv, "cts:")) != -1)
 		switch (c) {
 		case 'c':
 			code = 0;
@@ -341,11 +342,15 @@ main(int argc, char **argv) {
 			class_enum = 0;
 			type_enum = 1;
 			break;
+		case 's':
+			sprintf(srcdir, "%s/", optarg);
+			break;
 		case '?':
 			exit(1);
 		}
 
-	if ((d = opendir("rdata")) == NULL)
+	sprintf(buf, "%srdata", srcdir);
+	if ((d = opendir(buf)) == NULL)
 		exit(1);
 
 	while ((dp = readdir(d)) != NULL) {
@@ -355,12 +360,13 @@ main(int argc, char **argv) {
 		if ((class > 65535) || (class < 0))
 			continue;
 
-		sprintf(buf, "rdata/%s_%d", classname, class);
-		if (strcmp(buf + 6, dp->d_name) != 0)
+		sprintf(buf, "%srdata/%s_%d", srcdir, classname, class);
+		if (strcmp(buf + 6 + strlen(srcdir), dp->d_name) != 0)
 			continue;
 		sd(class, classname, buf);
 	}
-	sd(0, "", "rdata/generic");
+	sprintf(buf, "%srdata/generic", srcdir);
+	sd(0, "", buf);
 	closedir(d);
 
 	if (time(&now) != -1) {

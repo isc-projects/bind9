@@ -17,6 +17,8 @@ libdir =	@libdir@
 
 @SET_MAKE@
 
+top_builddir =	@BIND9_TOP_BUILDDIR@
+
 ###
 ### All
 ###
@@ -69,7 +71,7 @@ STD_CWARNINGS =	@STD_CWARNINGS@
 .SUFFIXES:
 .SUFFIXES: .c .o
 
-ALWAYS_INCLUDES = -I${top_srcdir}
+ALWAYS_INCLUDES = -I${top_builddir}
 ALWAYS_DEFINES = -D_REENTRANT
 ALWAYS_WARNINGS =
 

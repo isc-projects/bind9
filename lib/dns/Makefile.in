@@ -8,7 +8,11 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir}/../isc/unix/include \
 		-I${srcdir}/../isc/pthreads/include \
 		-I${srcdir}/../isc/include \
-		-I${srcdir}/include
+		-I${srcdir}/include \
+		-I${srcdir} \
+		-I./include \
+		-I.
+
 CDEFINES =
 CWARNINGS =
 
@@ -45,13 +49,13 @@ clean distclean::
 rdata.o: code.h
 
 include/dns/enumtype.h: gen
-	./gen -t > $@
+	./gen -s ${srcdir} -t > $@
 
 include/dns/enumclass.h: gen
-	./gen -c > $@
+	./gen -s ${srcdir} -c > $@
 
 code.h:	gen
-	./gen > code.h
+	./gen -s ${srcdir} > code.h
 
 gen: gen.c
 	${CC} ${ALL_CFLAGS} -o $@ $?

@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.16 
+# From configure.in Revision: 1.18 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.12 
@@ -1717,7 +1717,10 @@ EOF
 esac
 
 
-BIND9_MAKE_RULES=$srcdir/make/rules
+BIND9_TOP_BUILDDIR=`pwd`
+
+
+BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 
 
 BIND9_VERSION=$srcdir/version
@@ -1887,6 +1890,7 @@ s%@INSTALL_DATA@%$INSTALL_DATA%g
 s%@STD_CINCLUDES@%$STD_CINCLUDES%g
 s%@STD_CDEFINES@%$STD_CDEFINES%g
 s%@STD_CWARNINGS@%$STD_CWARNINGS%g
+s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 /@BIND9_MAKE_RULES@/r $BIND9_MAKE_RULES
 s%@BIND9_MAKE_RULES@%%g
 /@BIND9_VERSION@/r $BIND9_VERSION
