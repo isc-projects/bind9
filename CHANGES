@@ -1,4 +1,6 @@
 
+	--- 9.0.1rc2 released ---
+
  527.	[bug]		When a hint zone was configured, the spurious warning
 			messages "Hint zones do not have a forward field" and
 			"Hint zones do not have a forwarders field" were
