@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.8 2000/06/06 17:47:54 gson Exp $ */
+/* $Id: base64.h,v 1.9 2000/06/06 17:50:38 gson Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -29,44 +29,47 @@ ISC_LANG_BEGINDECLS
  *** Functions
  ***/
 
-/* Convert data into base64 encoded text.
+isc_result_t
+isc_base64_totext(isc_region_t *source, int wordlength,
+		  const char *wordbreak, isc_buffer_t *target);
+/*
+ * Convert data into base64 encoded text.
  *
  * Notes:
- *	The base64 encoded text in "target" will be divided into 
- *	words of at most "wordlength" characters, separated by
- * 	the "wordbreak" string.  No parentheses will surround
+ *	The base64 encoded text in 'target' will be divided into 
+ *	words of at most 'wordlength' characters, separated by
+ * 	the 'wordbreak' string.  No parentheses will surround
  *	the text.
  *
  * Requires:
- *	"source" is a region containing binary data
- *	"target" is a text buffer containing available space
- *	"wordbreak" points to a null-terminated string of
+ *	'source' is a region containing binary data
+ *	'target' is a text buffer containing available space
+ *	'wordbreak' points to a null-terminated string of
  *		zero or more whitespace characters
  *
  * Ensures:
  *	target will contain the base64 encoded version of the data
- *	in source.  The "used" pointer in target will be advanced as
+ *	in source.  The 'used' pointer in target will be advanced as
  *	necessary.
  */
-isc_result_t
-isc_base64_totext(isc_region_t *source, int wordlength,
-		  const char *wordbreak, isc_buffer_t *target);
 
-/* Convert base64 encoded text into data.
+isc_result_t
+isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
+/*
+ * Convert base64 encoded text into data.
  *
  * Requires:
- *	"lex" is a valid lexer context
- *	"target" is a buffer containing binary data
- *	"length" is an integer
+ *	'lex' is a valid lexer context
+ *	'target' is a buffer containing binary data
+ *	'length' is an integer
  *
  * Ensures:
  *	target will contain the data represented by the base64 encoded 
  *	string parsed by the lexer.  No more than length bytes will be read,
- *	if length is positive.  The "used" pointer in target will be
+ *	if length is positive.  The 'used' pointer in target will be
  *	advanced as necessary.
  */
-isc_result_t
-isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
+
 
 ISC_LANG_ENDDECLS
 
