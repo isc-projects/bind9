@@ -1,4 +1,7 @@
- 722.	[func]		Allow incrememtal loads to be canceled.
+ 723.	[bug]		Referrals whose NS RRs had a 0 TTL caused the resolver
+			to return DNS_R_SERVFAIL.  [RT #783]
+
+ 722.	[func]		Allow incremental loads to be canceled.
 
  721.	[cleanup]	Load manager and dns_master_loadfilequota() are no
 			more.
