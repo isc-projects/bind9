@@ -2462,7 +2462,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		result = DNS_R_SUCCESS;
 	}
 
-	if (type != dns_rdatatype_any) {
+	if (type != dns_rdatatype_any || result == DNS_R_NCACHENXDOMAIN) {
 		bind_rdataset(search.rbtdb, node, found, search.now,
 			      rdataset);
 		if (foundsig != NULL)
