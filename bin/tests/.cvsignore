@@ -14,6 +14,8 @@ gxbn_test
 headerdep_test.sh
 inter_test
 keygen
+keysettool
+keysigner
 lex_test
 lfsr_test
 log_test
