@@ -30,8 +30,6 @@
 isc_boolean_t
 isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 {
-	unsigned int length;
-
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->length != b->length)
