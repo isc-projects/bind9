@@ -1,6 +1,6 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.7 2000/10/18 01:17:45 scanner Exp $
+Version: $Id: README-SGML,v 1.8 2000/11/03 18:25:09 gson Exp $
 
 The entire ARM is in the single file:
 
@@ -205,7 +205,7 @@ sheet it is based on via a relative path.
 
 o Generate TeX documentation:
 
-openjade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
+openjade -c -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
      -t tex \
      -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
@@ -298,6 +298,7 @@ o add "hugelatex," Enlarge pool sizes, install the jadetex TeX driver
 
   sudo tex -ini -progname=hugelatex -fmt=hugelatex latex.ltx
   sudo texconfig init
+  sudo texhash
 
   o For the jadetex macros you will need I recommend you get a more
     current version than what is packaged with openjade or jade.
