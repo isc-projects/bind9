@@ -1,6 +1,9 @@
 1783.	[cleanup]	We only need one copy of libtool.m4, ltmain.sh in the
 			source tree.
 
+1782.	[port]		OSX: --with-libtool + --enable-libbind broke on
+			__evOptMonoTime.  [RT #13219]
+
 1781.	[port]		FreeBSD 5.3: set PTHREAD_SCOPE_SYSTEM. [RT #12810]
 
 1780.	[bug]		Update libtool to 1.5.10.
