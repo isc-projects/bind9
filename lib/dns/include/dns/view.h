@@ -303,7 +303,26 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
  *      The static TSIG keyring of 'view' is 'ring'.
  */
 
-
+void
+dns_view_setdstport(dns_view_t *view, in_port_t dstport);
+/*
+ * Set the view's destination port.  This is the port to
+ * which outgoing queries are sent.  The default is 53,
+ * the standard DNS port.
+ *
+ * Requires:
+ *
+ *      'view' is a valid view.
+ *
+ *      'dstport' is a valid TCP/UDP port number.
+ *
+ * Ensures:
+ *	External name servers will be assumed to be listning
+ *	on 'dstport'.  For servers whose address has already
+ *	obtained obtained at the time of the call, the view may
+ *	continue to use the previously set port until the address
+ *	times out from the view's address database.
+ */
 
 
 isc_result_t

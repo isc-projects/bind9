@@ -515,6 +515,12 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 	view->statickeys = ring;
 }
 
+void
+dns_view_setdstport(dns_view_t *view, in_port_t dstport) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->dstport = dstport;
+}
+
 isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;

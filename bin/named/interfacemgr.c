@@ -45,7 +45,8 @@ struct ns_interfacemgr {
 	dns_dispatchmgr_t *	dispatchmgr;
 	ns_clientmgr_t *	clientmgr;	/* Client manager. */
 	unsigned int		generation;	/* Current generation no. */
-	ns_listenlist_t *	listenon;
+	ns_listenlist_t *	listenon4;
+	ns_listenlist_t *	listenon6;
 	dns_aclenv_t		aclenv;		/* Localhost/localnets ACLs */
 	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
 };
@@ -80,13 +81,17 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	mgr->dispatchmgr = dispatchmgr;
 	mgr->clientmgr = clientmgr;
 	mgr->generation = 1;
-	mgr->listenon = NULL;
+	mgr->listenon4 = NULL;
+	mgr->listenon6 = NULL;	
 	ISC_LIST_INIT(mgr->interfaces);
 
-	result = ns_listenlist_default(mctx, ns_g_port,
-				       &mgr->listenon);
+	/*
+	 * The listen-on lists are initially empty.
+	 */
+	result = ns_listenlist_create(mctx, &mgr->listenon4);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mem;
+	ns_listenlist_attach(mgr->listenon4, &mgr->listenon6);
 
 	result = dns_aclenv_init(mctx, &mgr->aclenv);
 	if (result != ISC_R_SUCCESS)
@@ -98,7 +103,8 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	return (ISC_R_SUCCESS);
 
  cleanup_listenon:
-	ns_listenlist_detach(&mgr->listenon);
+	ns_listenlist_detach(&mgr->listenon4);
+	ns_listenlist_detach(&mgr->listenon6);
  cleanup_mem:
 	isc_mem_put(mctx, mgr, sizeof(*mgr));
 	return (result);
@@ -108,7 +114,8 @@ static void
 ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 	dns_aclenv_destroy(&mgr->aclenv);
-	ns_listenlist_detach(&mgr->listenon);
+	ns_listenlist_detach(&mgr->listenon4);
+	ns_listenlist_detach(&mgr->listenon6);
 	isc_mutex_destroy(&mgr->lock);
 	mgr->magic = 0;
 	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
@@ -505,7 +512,7 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if (result != ISC_R_SUCCESS)
 			goto ignore_interface;
 		
-		for (le = ISC_LIST_HEAD(mgr->listenon->elts);
+		for (le = ISC_LIST_HEAD(mgr->listenon4->elts);
 		     le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
 		{
@@ -577,23 +584,69 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	isc_interfaceiter_destroy(&iter);
 }
 
+static isc_boolean_t
+listenon_is_ip6_none(ns_listenlist_t *p) {
+	ns_listenelt_t *elt;
+	if (ISC_LIST_EMPTY(p->elts))
+		return (ISC_TRUE); /* No listen-on-v6 statements */
+	elt = ISC_LIST_HEAD(p->elts);
+	if (ISC_LIST_NEXT(elt, link) != NULL)
+		return (ISC_FALSE); /* More than one listen-on-v6 stmt */
+	if (elt->acl->length == 0)
+		return (ISC_TRUE); /* listen-on-v6 { } */
+	if (elt->acl->length > 1)
+		return (ISC_FALSE);  /* listen-on-v6 { ...; ...; } */
+	if (elt->acl->elements[0].negative == ISC_TRUE &&
+	    elt->acl->elements[0].type == dns_aclelementtype_any)
+		return (ISC_TRUE);  /* listen-on-v6 { none; } */
+	return (ISC_FALSE); /* All others */
+}
+
+static isc_boolean_t
+listenon_is_ip6_any(ns_listenlist_t *p, in_port_t *portp) {
+	ns_listenelt_t *elt;
+	if (ISC_LIST_EMPTY(p->elts))
+		return (ISC_FALSE); /* No listen-on-v6 statements */
+	elt = ISC_LIST_HEAD(p->elts);
+	if (ISC_LIST_NEXT(elt, link) != NULL)
+		return (ISC_FALSE); /* More than one listen-on-v6 stmt */
+	if (elt->acl->length != 1)
+		return (ISC_FALSE); 
+	if (elt->acl->elements[0].negative == ISC_FALSE &&
+	    elt->acl->elements[0].type == dns_aclelementtype_any) {
+		*portp = elt->port;
+		return (ISC_TRUE);  /* listen-on-v6 { any; } */
+	}
+	return (ISC_FALSE); /* All others */
+}
+
 static void
 do_ipv6(ns_interfacemgr_t *mgr) {
 	isc_result_t result;
 	ns_interface_t *ifp;
 	isc_sockaddr_t listen_addr;
 	struct in6_addr in6a;
+	in_port_t port;
 
+	if (listenon_is_ip6_none(mgr->listenon6))
+		return;
+	
+	if (! listenon_is_ip6_any(mgr->listenon6, &port)) {
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+		      ISC_LOG_ERROR,			
+		      "bad IPv6 listen-on list: must be 'any' or 'none'");
+		return;
+	}
+		
 	in6a = in6addr_any;
-	isc_sockaddr_fromin6(&listen_addr, &in6a, ns_g_port);
+	isc_sockaddr_fromin6(&listen_addr, &in6a, port);
 
 	ifp = find_matching_interface(mgr, &listen_addr);
 	if (ifp != NULL) {
 		ifp->generation = mgr->generation;
 	} else {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-			      "listening on IPv6 interfaces, port %u",
-			      ns_g_port);
+			      "listening on IPv6 interfaces, port %u", port);
 		result = ns_interface_setup(mgr, &listen_addr, "<any>", &ifp);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(IFMGR_COMMON_LOGARGS,
@@ -640,10 +693,18 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 }
 
 void
-ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
+ns_interfacemgr_setlistenon4(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
 	LOCK(&mgr->lock);
-	ns_listenlist_detach(&mgr->listenon);
-	ns_listenlist_attach(value, &mgr->listenon);
+	ns_listenlist_detach(&mgr->listenon4);
+	ns_listenlist_attach(value, &mgr->listenon4);
+	UNLOCK(&mgr->lock);
+}
+
+void
+ns_interfacemgr_setlistenon6(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
+	LOCK(&mgr->lock);
+	ns_listenlist_detach(&mgr->listenon6);
+	ns_listenlist_attach(value, &mgr->listenon6);
 	UNLOCK(&mgr->lock);
 }
 

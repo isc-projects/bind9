@@ -400,6 +400,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_mem_t *cmctx;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
+	in_port_t port;
 	
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -407,7 +408,15 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	cmctx = NULL;
 
 	RWLOCK(&view->conflock, isc_rwlocktype_write);
-	
+
+	/*
+	 * Set the view's port number for outgoing queries.
+	 */
+	result = dns_c_ctx_getport(cctx, &port);
+	if (result != ISC_R_SUCCESS)
+		port = 53;
+	dns_view_setdstport(view, port);
+			    
 	/*
 	 * Configure the view's cache.  Try to reuse an existing
 	 * cache if possible, otherwise create a new cache.
@@ -1102,6 +1111,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
 	isc_uint32_t interface_interval;
+	in_port_t listen_port;
 	
 	dns_aclconfctx_init(&aclconfctx);
 
@@ -1155,6 +1165,16 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
+	 * Determine which port to use for listening for incoming connections.
+	 */
+	if (ns_g_port != 0) {
+		listen_port = ns_g_port;
+	} else {
+		result = dns_c_ctx_getport(cctx, &listen_port);
+		if (result != ISC_R_SUCCESS)
+			listen_port = 53;
+	}
+	/*
 	 * Configure the interface manager according to the "listen-on"
 	 * statement.
 	 */
@@ -1171,11 +1191,20 @@ load_configuration(const char *filename, ns_server_t *server,
 							  &listenon);
 		} else {
 			/* Not specified, use default. */
-			CHECK(ns_listenlist_default(ns_g_mctx, ns_g_port,
+			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
 						    &listenon));
 		}
-		ns_interfacemgr_setlistenon(server->interfacemgr, listenon);
+		ns_interfacemgr_setlistenon4(server->interfacemgr, listenon);
 		ns_listenlist_detach(&listenon);
+	}
+	/*
+	 * Ditto for IPv6.
+	 */
+	{
+		ns_listenlist_t *listenon = NULL;		
+		CHECK(ns_listenlist_default(ns_g_mctx, listen_port, &listenon));
+		ns_interfacemgr_setlistenon6(server->interfacemgr, listenon);
+		ns_listenlist_detach(&listenon);		
 	}
 
 	/*

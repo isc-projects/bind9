@@ -60,18 +60,33 @@ struct ns_listenlist {
 isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port,
 		    dns_acl_t *acl, ns_listenelt_t **target);
+/*
+ * Create a listen-on list element.
+ */
 
 void
 ns_listenelt_destroy(ns_listenelt_t *elt);
+/*
+ * Destroy a listen-on list element.
+ */
 
 isc_result_t
 ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target);
+/*
+ * Create a new, empty listen-on list.
+ */
 
 void
 ns_listenlist_attach(ns_listenlist_t *source, ns_listenlist_t **target);
+/*
+ * Attach '*target' to '*source'.
+ */
 
 void
 ns_listenlist_detach(ns_listenlist_t **listp);
+/*
+ * Detach 'listp'.
+ */
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port,

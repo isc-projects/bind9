@@ -49,7 +49,7 @@ EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN omapi_object_t *		ns_g_omapimgr		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
-EXTERN in_port_t		ns_g_port		INIT(53);
+EXTERN in_port_t		ns_g_port		INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
 
