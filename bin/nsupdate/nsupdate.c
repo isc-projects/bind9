@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.68 2000/11/27 17:58:59 gson Exp $ */
+/* $Id: nsupdate.c,v 1.69 2000/12/01 20:47:15 gson Exp $ */
 
 #include <config.h>
 
@@ -574,13 +574,17 @@ parse_args(int argc, char **argv) {
 	}
 
 	if (argv[isc_commandline_index] != NULL) {
-		result = isc_stdio_open(argv[isc_commandline_index], "r",
-					&input);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "isc_stdio_open(%s): %s\n",
-				argv[isc_commandline_index],
-				isc_result_totext(result));
-			exit(1);
+		if (strcmp(argv[isc_commandline_index], "-") == 0) {
+			input = stdin;
+		} else {
+			result = isc_stdio_open(argv[isc_commandline_index],
+						"r", &input);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "isc_stdio_open(%s): %s\n",
+					argv[isc_commandline_index],
+					isc_result_totext(result));
+				exit(1);
+			}
 		}
 		interactive = ISC_FALSE;
 	}
