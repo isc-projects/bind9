@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.29.2.4 2000/08/16 17:56:12 gson Exp $
+$Id: options,v 1.29.2.5 2000/08/29 21:51:15 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -150,10 +150,6 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
 };
 
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
-  type stub;						    No
-};
-
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
   type slave;						    Yes
   [ file path_name; ]					    Yes
   [ ixfr-base  path_name; ]				    Obsolete
@@ -174,6 +170,27 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ max-transfer-idle-out number; ]			    Yes*
   [ notify yes_or_no; ]					    Yes
   [ also-notify { ip_addr; [ ip_addr; ... ] };		    Yes
+  [ pubkey number number number string; ]		    No
+};
+
+zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
+  type stub;						    Yes
+  [ file path_name; ]					    Yes
+  masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
+  [ forward ( only | first ); ]				    No
+  [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
+  [ check-names ( warn | fail | ignore ); ]		    No
+  [ allow-update { address_match_list }; ]		    Obsolete
+  [ allow-update-forwarding { address_match_list }; ]	    No*
+  [ allow-query { address_match_list }; ]		    Yes@
+  [ allow-transfer { address_match_list }; ]		    Yes@
+  [ transfer-source ip_addr; ]				    Yes
+  [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ dialup yes_or_no; ]					    No
+  [ max-transfer-time-in number; ]			    Yes
+  [ max-transfer-idle-in number; ]			    Yes*
+  [ max-transfer-time-out number; ]			    Yes*
+  [ max-transfer-idle-out number; ]			    Yes*
   [ pubkey number number number string; ]		    No
 };
 
