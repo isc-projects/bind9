@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.11 2000/08/26 01:46:42 gson Exp $ */
+/* $Id: omapiconf.c,v 1.12 2000/09/15 03:22:45 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -234,9 +234,9 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 		     if (result != ISC_R_SUCCESS)
 			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-					   "couldn't find key %s for"
+					   "couldn't find key %s for "
 					   "use with command channel %s",
-					   keydef->keyid, socktext);
+					   keyid->keyid, socktext);
 		     else if (strcasecmp(keydef->algorithm, "hmac-md5") != 0) {
 			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
