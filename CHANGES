@@ -1,3 +1,6 @@
+1769.	[port]		win32: change compiler flags /MTd ==> /MDd,
+			/MT ==> /MD.
+
 1768.	[bug]		nsecnoexistnodata() could be called with a non-NSEC
 			rdataset. [RT #12907]
 
