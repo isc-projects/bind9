@@ -1,0 +1,138 @@
+.\" Copyright (C) @YEARS@  Internet Software Consortium.
+.\" 
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+.\" ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+.\" CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+.\" DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+.\" PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+.\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+.\" SOFTWARE.
+.\" 
+.\" $Id: rndc.8,v 1.1 2000/06/29 05:31:42 jim Exp $
+.\" 
+.Dd Jun 30, 2000
+.Dt RDNC 8
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm rdnc
+.Nd name server control utility
+.Sh SYNOPSIS
+.Nm rndc
+.\"	-c option has been zapped for now
+.\"	.Op Fl c Ar config-file
+.Op Fl m
+.Op Fl p Ar port#
+.\"	-s option has been zapped for now
+.\"	.Op Fl s Ar server
+.Ar server 
+.Ar command .... 
+.Sh DESCRIPTION
+This command allows the system administrator to control the operation
+of a name server.
+It supersedes the
+.Xr ndc 8
+utility that was provided in old BIND releases.
+.Nm rndc
+uses a secure channel with encryption algorithms and keys to
+communicate with the name server.
+In the current version of
+.Nm ndc ,
+the only supported encryption algorithm is HMAC-MD5 which uses a
+shared secret.
+This provides TSIG-style authentication for the command request
+and the name server's response.
+.Pp
+.Nm
+reads its default configuration file,
+.Pa /etc/rndc.conf
+to determine how to contact the name server and decide what algorithm
+and keys is should use.
+.\" An alternate configuration file can be specified with the
+.\" .Ar c
+.\" option.
+.\" .Ar config-file
+.\" is the name of the configuration file to use instead of the default
+.\" one,
+.\" .Pa /etc/rndc.conf .
+.\" .Pp
+.Ar server
+is the name of the server which matches a
+.Dv server{}
+statement in the configuration file for
+.Nm rndc .
+If an explicit null argument is supplied in
+.Ar server ,
+.Nm rndc
+will contact some default name server which is defined by a
+.Dv default-server
+clause in the
+.Fv options{}
+statement of
+.Pa /etc/rndc.conf .
+.Pp
+Currently, the
+.Fl m
+option makes
+.Nm rndc
+print details of its internal memory usage statistics.
+This option will only be of interest to BIND9 developers and may be
+removed or changed in a future release.
+.Pp
+The
+.Fl p
+option is used to make
+.Nm rndc
+send commands to UDP port number
+.Ar port#
+on the system running the name server instead of the default.
+The standard port number used by BIND9 name servers for receiving
+control commands is 953.
+.Pp
+If
+.Nm rndc
+is invoked with no command-line options or arguments, it
+prints a short summary of the supported commands and the available
+options and their arguments.
+.Pp
+The only valid value for
+.Ar command
+is \*qreload\*q, which forces the name server to reload.
+Further commands will be provided in future releases as the management
+capabilities of
+.Nm rndc
+are extended.
+.Sh LIMITATIONS
+.Nm rndc
+currently only supports the
+.Dv reload
+command.
+Future releases will provide more commands so that
+.Nm rndc
+offers at least as many management capabilities as the old
+.Xr ndc
+utility.
+.Pp
+The configuration file for
+.Nm rdnc
+probably contains shared secrets which are used to send authenticated
+control commands to name servers.
+The file should therefore not have general read or write access.
+.Pp
+In the current BIND9 release, the name server only listens for
+.Nm rndc
+commands on the loopback interface, 127.0.0.1.
+This means that
+.Nm rndc
+only works on the same system that runs the name server.
+This limitation will be removed in a future release.
+.Sh SEE ALSO
+.Xr named 8 ,
+.Xr RFC2845 ,
+.Xr nrdc.conf 5 ,
+.Xr ndc 8 .
