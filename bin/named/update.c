@@ -28,6 +28,7 @@
 #include <isc/result.h>
 #include <isc/taskpool.h>
 
+#include <dns/confip.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dbtable.h>
@@ -1812,6 +1813,76 @@ ns_update_start(ns_client_t *client)
 	respond(client, result);
 }
 
+/*
+ * This could eventually be fleshed out to handle the other "allow-*"
+ * options, too.
+ */
+static isc_result_t
+check_permissions(dns_message_t *request, dns_c_ipmatchlist_t *aml) {
+	dns_result_t result, sig_result;
+	dns_name_t signer;
+	dns_c_ipmatchelement_t *e;
+
+	dns_name_init(&signer, NULL);
+	
+	/*
+	 * Check for a TSIG.  We log bad TSIGs regardless of whether they
+	 * cause the request to be rejected or not (it may be approved 
+	 * because of another AML).  We do not log the lack of a TSIG
+	 * unless we are debugging.
+	 */
+	sig_result = result = dns_message_signer(request, &signer);
+	if (result == DNS_R_SUCCESS) {
+		isc_log_write(UPDATE_DEBUG_LOGARGS, "signature is OK");
+	} else if (result == DNS_R_NOTFOUND) {
+		isc_log_write(UPDATE_DEBUG_LOGARGS, "request is not signed");
+	} else {
+		/* There is a signature, but it is bad. */
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+			      "signature verification failed: %s",
+			      isc_result_totext(result));
+	}
+
+	if (aml == NULL) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+			      "dynamic update request denied: "
+			      "no address match list configured");
+		FAIL(DNS_R_REFUSED);
+	}
+
+	for (e = ISC_LIST_HEAD(aml->elements);
+	     e != NULL;
+	     e = ISC_LIST_NEXT(e, next))
+	{
+		switch (e->type) {
+		case dns_c_ipmatch_key:
+			/* XXX temporary, dangerous hack: if any key
+			   is allowed, we allow them all. */
+			if (sig_result == DNS_R_SUCCESS)
+				goto approve;
+			break;
+		case dns_c_ipmatch_pattern:
+			/* XXX temporary, dangerous hack: if any IP address
+			   is allowed, we allow them all. */
+			goto approve;
+		default:
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_UPDATE, ISC_LOG_WARNING,
+				      "address match list contains "
+				      "unsupported element type");
+			break;
+		}
+	}
+	FAIL(DNS_R_REFUSED);
+	
+approve:
+	result = DNS_R_SUCCESS;
+failure:
+	return (result);
+}
+
 static void
 update_action(isc_task_t *task, isc_event_t *event)
 {
@@ -1831,13 +1902,11 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_message_t *request = client->message;
 	dns_rdataclass_t zoneclass;
 	dns_name_t *zonename;
-	dns_name_t signer;
 		
 	INSIST(event->type == DNS_EVENT_UPDATE);
 
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
-	dns_name_init(&signer, NULL);
 
 	CHECK(dns_zone_getdb(zone, &db));
 	zonename = dns_db_origin(db);
@@ -1942,18 +2011,8 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	result = dns_message_signer(request, &signer);
-	if (result != DNS_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
-			      "dynamic update request denied: "
-			      "signature verification failed: %s",
-			      isc_result_totext(result));
-		FAIL(DNS_R_REFUSED);
-	} else {
-		isc_log_write(UPDATE_DEBUG_LOGARGS, "signature is OK");
-	}
-
+	CHECK(check_permissions(request, dns_zone_getupdateacl(zone)));
+	
 	/* Perform the Update Section Prescan. */
 
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
