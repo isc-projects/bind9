@@ -416,6 +416,8 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	dns_zone_t *zone;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(rdataset != NULL);
+	REQUIRE(sigrdataset != NULL);
 
 	dns_rdataset_init(&zrdataset);
 	dns_rdataset_init(&zsigrdataset);
@@ -520,8 +522,13 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 * Otherwise, the glue is the best answer.
 		 */
 		result = ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
 		result = DNS_R_NOTFOUND;
+	}
 
  cleanup:
 	if (zrdataset.methods != NULL) {
