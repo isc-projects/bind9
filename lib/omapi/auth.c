@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.12 2000/08/01 01:32:48 tale Exp $ */
+/* $Id: auth.c,v 1.13 2000/08/26 01:42:30 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -357,5 +357,5 @@ void
 auth_destroy(void) {
 	omapi_auth_deregister(NULL);
 
-	RUNTIME_CHECK(isc_mutex_destroy(&mutex) == ISC_R_SUCCESS);
+	DESTROYLOCK(&mutex);
 }

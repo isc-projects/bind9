@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.29 2000/08/01 01:32:55 tale Exp $ */
+/* $Id: listener.c,v 1.30 2000/08/26 01:42:34 bwelling Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -433,7 +433,7 @@ listener_destroy(omapi_object_t *listener) {
 	INSIST(ISC_LIST_EMPTY(l->connections));
 	UNLOCK(&l->mutex);
 
-	RUNTIME_CHECK(isc_mutex_destroy(&l->mutex) == ISC_R_SUCCESS);
+	DESTROYLOCK(&l->mutex);
 
 	if (l->task != NULL)
 		isc_task_destroy(&l->task);

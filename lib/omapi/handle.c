@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.16 2000/08/01 01:32:52 tale Exp $ */
+/* $Id: handle.c,v 1.17 2000/08/26 01:42:33 bwelling Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -348,5 +348,5 @@ handle_destroy(void) {
 
 	UNLOCK(&mutex);
 
-	RUNTIME_CHECK(isc_mutex_destroy(&mutex) == ISC_R_SUCCESS);
+	DESTROYLOCK(&mutex);
 }

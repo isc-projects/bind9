@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.33 2000/08/01 01:32:49 tale Exp $ */
+/* $Id: connection.c,v 1.34 2000/08/26 01:42:32 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -101,8 +101,7 @@ free_connection(omapi_connection_t *connection) {
 		isc_socket_detach(&connection->socket);
 
 	if (connection->is_client) {
-		RUNTIME_CHECK(isc_mutex_destroy(&connection->wait_lock) ==
-			      ISC_R_SUCCESS);
+		DESTROYLOCK(&connection->wait_lock);
 		RUNTIME_CHECK(isc_condition_destroy(&connection->waiter) ==
 			      ISC_R_SUCCESS);
 

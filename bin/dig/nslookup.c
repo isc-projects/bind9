@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.35 2000/08/15 18:44:05 gson Exp $ */
+/* $Id: nslookup.c,v 1.36 2000/08/26 01:42:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -894,7 +894,7 @@ main(int argc, char **argv) {
 	puts("");
 	debug("done, and starting to shut down");
 	destroy_libs();
-	isc_mutex_destroy(&lock);
+	DESTROYLOCK(&lock);
 	isc_condition_destroy(&cond);
 	if (taskmgr != NULL) {
 		debug("freeing taskmgr");

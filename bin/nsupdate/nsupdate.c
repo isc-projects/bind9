@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.43 2000/08/10 02:32:14 tale Exp $ */
+/* $Id: nsupdate.c,v 1.44 2000/08/26 01:42:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1437,7 +1437,7 @@ main(int argc, char **argv) {
         } while (1);
 
         fprintf(stdout, "\n");
-        isc_mutex_destroy(&lock);
+        DESTROYLOCK(&lock);
         isc_condition_destroy(&cond);
         cleanup();
 

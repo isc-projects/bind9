@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.48 2000/08/01 01:11:40 tale Exp $ */
+/* $Id: interfacemgr.c,v 1.49 2000/08/26 01:42:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	dns_aclenv_destroy(&mgr->aclenv);
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
-	isc_mutex_destroy(&mgr->lock);
+	DESTROYLOCK(&mgr->lock);
 	mgr->magic = 0;
 	isc_mem_put(mgr->mctx, mgr, sizeof *mgr);
 }
@@ -225,7 +225,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (ISC_R_SUCCESS);
 
  task_create_failure:
-	isc_mutex_destroy(&ifp->lock);
+	DESTROYLOCK(&ifp->lock);
  lock_create_failure:
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
@@ -373,7 +373,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	}
 
 	isc_task_detach(&ifp->task);
-	isc_mutex_destroy(&ifp->lock);
+	DESTROYLOCK(&ifp->lock);
 
 	ns_interfacemgr_detach(&ifp->mgr);
 
