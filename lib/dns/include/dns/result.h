@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,8 +32,11 @@ typedef unsigned int dns_result_t;
 #define DNS_R_UNEXPECTEDEND		9
 #define DNS_R_NOTIMPLEMENTED		10
 #define DNS_R_UNKNOWN			11
+#define DNS_R_BADLABELTYPE		12
+#define DNS_R_BADPOINTER		13
+#define DNS_R_TOOMANYHOPS		14
 
-#define DNS_R_LASTENTRY			11	/* Last entry on list. */
+#define DNS_R_LASTENTRY			14	/* Last entry on list. */
 
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,6 +32,9 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"unexpected end of input",		/*  9 */
 	"not implemented",			/* 10 */
 	"unknown class/type",			/* 11 */
+	"bad label type",			/* 12 */
+	"bad compression pointer",		/* 13 */
+	"too many hops",			/* 14 */
 };
 
 char *
