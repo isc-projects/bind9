@@ -2168,6 +2168,7 @@
 ./lib/lwres/unix/include/lwres/.cvsignore	X	2001
 ./lib/lwres/unix/include/lwres/Makefile.in	MAKE	2001
 ./lib/lwres/unix/include/lwres/net.h		C	2000,2001
+./lib/lwres/include/lwres/version.h		C	2001
 ./lib/lwres/version.c				C	2000,2001
 ./lib/lwres/win32/.cvsignore			X	2001
 ./lib/lwres/win32/DLLMain.c			C	2001
