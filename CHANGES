@@ -1,3 +1,6 @@
+1092.	[bug]		libbind: get*by*() failed to check if res_init() had
+			been called.
+
 1091.	[bug]		libbind: misplaced va_end().
 
 1090.	[bug]		libbind: dns_ho.c:add_hostent() was not returning
