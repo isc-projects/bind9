@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.42.4.2 2001/04/10 01:10:20 gson Exp $ */
+/* $Id: t_dst.c,v 1.42.4.3 2001/08/27 18:35:44 gson Exp $ */
 
 #include <config.h>
 
@@ -46,6 +46,10 @@
 #include <dst/result.h>
 
 #include <tests/t_api.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX	256
+#endif
 
 /*
  * Adapted from the original dst_test.c program.
