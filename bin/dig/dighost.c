@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.1 2001/09/12 00:15:11 gson Exp $ */
+/* $Id: dighost.c,v 1.221.2.2 2001/09/27 23:30:46 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -555,6 +555,7 @@ setup_file_key(void) {
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
+		goto failure;
 	}
 	dstkey = NULL;
  failure:

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.1 2001/09/04 19:35:49 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.2 2001/09/27 23:30:49 gson Exp $ */
 
 #include <config.h>
 
@@ -273,100 +273,86 @@ reset_system(void) {
 }
 
 static void
-setup_key(void) {
+setup_keystr(void) {
 	unsigned char *secret = NULL;
 	int secretlen;
 	isc_buffer_t secretbuf;
 	isc_result_t result;
+	isc_buffer_t keynamesrc;
+	char *secretstr;
+	char *s;
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 
 	dns_fixedname_init(&fkeyname);
 	keyname = dns_fixedname_name(&fkeyname);
 
-	if (keystr != NULL) {
-		isc_buffer_t keynamesrc;
-		char *secretstr;
-		char *s;
+	debug("Creating key...");
 
-		debug("Creating key...");
+	s = strchr(keystr, ':');
+	if (s == NULL || s == keystr || *s == 0)
+		fatal("key option must specify keyname:secret");
+	secretstr = s + 1;
 
-		s = strchr(keystr, ':');
-		if (s == NULL || s == keystr || *s == 0)
-			fatal("key option must specify keyname:secret");
-		secretstr = s + 1;
+	isc_buffer_init(&keynamesrc, keystr, s - keystr);
+	isc_buffer_add(&keynamesrc, s - keystr);
 
-		isc_buffer_init(&keynamesrc, keystr, s - keystr);
-		isc_buffer_add(&keynamesrc, s - keystr);
+	debug("namefromtext");
+	result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
+				   ISC_FALSE, NULL);
+	check_result(result, "dns_name_fromtext");
 
-		debug("namefromtext");
-		result = dns_name_fromtext(keyname, &keynamesrc, dns_rootname,
-					   ISC_FALSE, NULL);
-		check_result(result, "dns_name_fromtext");
+	secretlen = strlen(secretstr) * 3 / 4;
+	secret = isc_mem_allocate(mctx, secretlen);
+	if (secret == NULL)
+		fatal("out of memory");
 
-		secretlen = strlen(secretstr) * 3 / 4;
-		secret = isc_mem_allocate(mctx, secretlen);
-		if (secret == NULL)
-			fatal("out of memory");
-
-		isc_buffer_init(&secretbuf, secret, secretlen);
-		result = isc_base64_decodestring(secretstr, &secretbuf);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "could not create key from %s: %s\n",
-				keystr, isc_result_totext(result));
-			goto failure;
-		}
-
-		secretlen = isc_buffer_usedlength(&secretbuf);
-		debug("close");
-	} else {
-		dst_key_t *dstkey = NULL;
-
-		result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE,
-					       mctx, &dstkey);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "could not read key from %s: %s\n",
-				keyfile, isc_result_totext(result));
-			goto failure;
-		}
-		secretlen = (dst_key_size(dstkey) + 7) >> 3;
-		secret = isc_mem_allocate(mctx, secretlen);
-		if (secret == NULL)
-			fatal("out of memory");
-		isc_buffer_init(&secretbuf, secret, secretlen);
-		result = dst_key_tobuffer(dstkey, &secretbuf);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "could not read key from %s: %s\n",
-				keyfile, isc_result_totext(result));
-			goto failure;
-		}
-		result = dns_name_concatenate(dst_key_name(dstkey), NULL,
-					      keyname, NULL);
-		check_result(result, "dns_name_concatenate");
-		dst_key_free(&dstkey);
-				    
+	isc_buffer_init(&secretbuf, secret, secretlen);
+	result = isc_base64_decodestring(secretstr, &secretbuf);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not create key from %s: %s\n",
+			keystr, isc_result_totext(result));
+		goto failure;
 	}
+
+	secretlen = isc_buffer_usedlength(&secretbuf);
 
 	debug("keycreate");
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
-				    secret, secretlen, ISC_TRUE, NULL, 0, 0,
-				    mctx, NULL, &key);
-	if (result != ISC_R_SUCCESS) {
-		char *str;
-		if (keystr != NULL)
-			str = keystr;
-		else
-			str = keyfile;
+				    secret, secretlen, ISC_TRUE, NULL,
+				    0, 0, mctx, NULL, &key);
+	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "could not create key from %s: %s\n",
-			str, dns_result_totext(result));
-	}
-	isc_mem_free(mctx, secret);
-	return;
-
+			keystr, dns_result_totext(result));
  failure:
-
 	if (secret != NULL)
 		isc_mem_free(mctx, secret);
+}
+
+static void
+setup_keyfile(void) {
+	dst_key_t *dstkey = NULL;
+	isc_result_t result;
+
+	debug("Creating key...");
+
+	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE, mctx,
+				       &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not read key from %s: %s\n",
+			keyfile, isc_result_totext(result));
+		return;
+	}
+	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
+					   dns_tsig_hmacmd5_name,
+					   dstkey, ISC_FALSE, NULL,
+					   0, 0, mctx, NULL, &key);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not create key from %s: %s\n",
+			keyfile, isc_result_totext(result));
+		dst_key_free(&dstkey);
+		return;
+	}
 }
 
 static void
@@ -568,8 +554,10 @@ setup_system(void) {
 	else
 		origin = dns_rootname;
 
-	if (keystr != NULL || keyfile != NULL)
-		setup_key();
+	if (keystr != NULL)
+		setup_keystr();
+	else if (keyfile != NULL)
+		setup_keyfile();
 }
 
 static void

@@ -1,4 +1,7 @@
-  
+
+1017.	[bug]		When specifying TSIG keys to dig and nsupdate using
+			the -k option, they must be HMAC-MD5 keys.  [RT #1810]
+
 1016.	[bug]		Slave zones with no backup file were re-transferred
 			on every server reload.
 
