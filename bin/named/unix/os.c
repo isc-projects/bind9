@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <syslog.h>
+#include <fcntl.h>
 
 #include <isc/result.h>
 
@@ -88,6 +89,38 @@ ns_os_init(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_dropprivs();
 #endif
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_os_daemonize(void) {
+	pid_t pid;
+	int fd;
+
+	pid = fork();
+	if (pid == -1)
+		return (ISC_R_FAILURE);
+	if (pid != 0)
+                _exit(0);
+
+	/*
+	 * We're the child.
+	 */
+
+        if (setsid() == -1)
+                return (ISC_R_FAILURE);
+
+	/*
+	 * Try to set stdin, stdout, and stderr to /dev/null, but press
+	 * on even if it fails.
+	 */
+	fd = open("/dev/null", O_RDWR, 0);
+	if (fd != -1) {
+		(void)dup2(fd, STDIN_FILENO);
+		(void)dup2(fd, STDOUT_FILENO);
+		(void)dup2(fd, STDERR_FILENO);
+	}
 
 	return (ISC_R_SUCCESS);
 }

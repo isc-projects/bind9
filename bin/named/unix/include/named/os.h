@@ -23,6 +23,9 @@
 isc_result_t
 ns_os_init(void);
 
+isc_result_t
+ns_os_daemonize(void);
+
 void
 ns_os_shutdown(void);
 
