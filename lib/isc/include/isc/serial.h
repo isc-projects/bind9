@@ -15,16 +15,13 @@
  * SOFTWARE.
  */
 
-	/* $Id: serial.h,v 1.4 2000/02/03 23:07:53 halley Exp $ */
+	/* $Id: serial.h,v 1.5 2000/04/27 23:08:18 tale Exp $ */
 
 #ifndef ISC_SERIAL_H
 #define ISC_SERIAL_H
 
-#include <isc/types.h>
-#include <isc/boolean.h>
 #include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
+#include <isc/types.h>
 
 /*
  *	Implement 32 bit serial space arithmetic comparision functions.
@@ -36,32 +33,40 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-isc_boolean_t isc_serial_lt(isc_uint32_t a, isc_uint32_t b);
+ISC_LANG_BEGINDECLS
+
+isc_boolean_t
+isc_serial_lt(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' < 'b' otherwise false.
  */
 
-isc_boolean_t isc_serial_gt(isc_uint32_t a, isc_uint32_t b);
+isc_boolean_t
+isc_serial_gt(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' > 'b' otherwise false.
  */
 
-isc_boolean_t isc_serial_le(isc_uint32_t a, isc_uint32_t b);
+isc_boolean_t
+isc_serial_le(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' <= 'b' otherwise false.
  */
 
-isc_boolean_t isc_serial_ge(isc_uint32_t a, isc_uint32_t b);
+isc_boolean_t
+isc_serial_ge(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' >= 'b' otherwise false.
  */
 
-isc_boolean_t isc_serial_eq(isc_uint32_t a, isc_uint32_t b);
+isc_boolean_t
+isc_serial_eq(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' == 'b' otherwise false.
  */
 
-isc_boolean_t isc_serial_ne(isc_uint32_t a, isc_uint32_t b);
+isc_boolean_t
+isc_serial_ne(isc_uint32_t a, isc_uint32_t b);
 /*
  *	Return true if 'a' != 'b' otherwise false.
  */
