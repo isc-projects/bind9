@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.17 2005/03/18 05:01:32 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.18 2005/03/20 22:34:00 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
