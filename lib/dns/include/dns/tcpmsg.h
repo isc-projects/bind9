@@ -1,15 +1,11 @@
 #ifndef DNS_TCPMSG_H
 #define DNS_TCPMSG_H
 
-#define DNS_TCPMSG_MAGIC	0x5443506d	/* TCPm */
-
-#define DNS_TCPMSG_VALID(foo) \
-		((foo) != NULL \
-		&& ((foo)->magic == DNS_TCPMSG_MAGIC))
+#include <isc/buffer.h>
 
 typedef struct {
 	unsigned int		magic;
-	unsigned int		size;
+	u_int16_t		size;
 	isc_buffer_t		buffer;
 	unsigned int		maxsize;
 	isc_mem_t	       *mctx;
@@ -66,7 +62,7 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
  *
  * Returns:
  *
- *	DNS_R_SUCCESS		-- no error
+ *	ISC_R_SUCCESS		-- no error
  *	Anything that the isc_socket_recv() call can return.  XXXMLG
  *
  * Notes:
