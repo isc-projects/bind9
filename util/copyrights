@@ -608,6 +608,7 @@
 ./doc/arm/Bv9ARM.css				X	2000
 ./doc/arm/Bv9ARM.html				HTML	2000
 ./doc/arm/Bv9ARM.txt				TXT.BRIEF	2000
+./doc/arm/catalog.in				X	2000
 ./doc/arm/genhtml.sh.in				SH	2000
 ./doc/arm/isc.color.gif				X	2000
 ./doc/arm/validate.sh.in			SH	2000
