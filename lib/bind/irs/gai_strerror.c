@@ -51,7 +51,7 @@ const char *
 gai_strerror(int ecode) {
 #ifndef DO_PTHREADS
 	static char buf[EAI_BUFSIZE];
-#else	DO_PTHREADS
+#else /* DO_PTHREADS */
 	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 	static pthread_key_t key;
 	static int once = 0;
