@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.8 2004/03/09 06:11:24 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.9 2004/10/26 02:08:00 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -956,6 +956,13 @@ dns_zone_setidlein(dns_zone_t *zone, isc_uint32_t idlein);
  *
  * Requires:
  *	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_BADZONE	zone failed basic consistancy checks:
+ *			* a single SOA must exist
+ *			* some NS records must exist.
+ *	Others
  */
 
 isc_uint32_t

@@ -1,3 +1,6 @@
+1753.	[bug]		Don't serve a slave zone which has no NS records.
+			[RT #12894]
+
 1752.	[port]		Move isc_app_start() to after ns_os_daemonise()
 			as some fork() implementations unblock the signals
 			that are blocked by isc_app_start(). [RT #12810]
