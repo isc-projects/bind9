@@ -48,6 +48,7 @@ typedef isc_uint8_t				dns_secalg_t;
 typedef isc_uint16_t				dns_rdataclass_t;
 typedef isc_uint16_t				dns_rdatatype_t;
 typedef isc_uint16_t				dns_rcode_t;
+typedef isc_uint16_t				dns_opcode_t;
 typedef isc_uint16_t				dns_cert_t;
 typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_rdata			dns_rdata_t;
@@ -61,10 +62,15 @@ typedef struct dns_resolver			dns_resolver_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_delegation			dns_delegation_t;
 typedef struct dns_forwarders			dns_forwarders_t;
+typedef struct dns_message			dns_message_t;
 typedef isc_uint16_t				dns_messageid_t;
 typedef isc_uint16_t				dns_trust_t;
 typedef struct dns_dispatch			dns_dispatch_t;
+typedef struct dns_dispentry			dns_dispentry_t;
+typedef struct dns_dispatchevent		dns_dispatchevent_t;
 typedef struct dns_tsig_key			dns_tsig_key_t;
+typedef struct dns_view				dns_view_t;
+typedef ISC_LIST(dns_view_t)			dns_viewlist_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
@@ -106,6 +112,9 @@ enum {
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
 };
 
+/*
+ * rcodes
+ */
 enum {
 	/* standard rcodes */
 	dns_rcode_noerror = 0,
@@ -120,14 +129,21 @@ enum {
 	dns_rcode_notauth = 9,
 	dns_rcode_notzone = 10,
 	/* extended rcodes */
-	dns_rcode_badsig = 16,
-	dns_rcode_badkey = 17,
-	dns_rcode_badtime = 18,
-	dns_rcode_badmode = 19
+	dns_rcode_badvers = 16
 };
 
 /*
- * opcodes
+ * TSIG errors
+ */
+enum {
+	dns_tsigerror_badsig = 16,
+	dns_tsigerror_badkey = 17,
+	dns_tsigerror_badtime = 18,
+	dns_tsigerror_badmode = 19
+};
+
+/*
+ * Opcodes
  */
 enum {
 	dns_opcode_query = 0,
