@@ -1993,6 +1993,26 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 }
 
 static dns_result_t
+zone_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+		 isc_stdtime_t now, dns_dbnode_t **nodep,
+		 dns_name_t *foundname,
+		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	(void)db;
+	(void)name;
+	(void)options;
+	(void)now;
+	(void)nodep;
+	(void)foundname;
+	(void)rdataset;
+	(void)sigrdataset;
+
+	FATAL_ERROR(__FILE__, __LINE__, "zone_findzonecut() called!");
+
+	return (DNS_R_NOTIMPLEMENTED);
+}
+
+static dns_result_t
 cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rbtdb_search_t *search = arg;
 	rdatasetheader_t *header, *header_prev, *header_next;
@@ -2472,6 +2492,147 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	INSIST(!search.need_cleanup);
 
 	dns_rbtnodechain_reset(&search.chain);
+
+	return (result);
+}
+
+static dns_result_t
+cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+		  isc_stdtime_t now, dns_dbnode_t **nodep,
+		  dns_name_t *foundname,
+		  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	dns_rbtnode_t *node = NULL;
+	dns_result_t result;
+	rbtdb_search_t search;
+	rdatasetheader_t *header, *header_prev, *header_next;
+	rdatasetheader_t *found, *foundsig;
+
+	search.rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(search.rbtdb));
+
+	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
+		/*
+		 * We don't need to call UNEXPECTED_ERROR() because
+		 * isc_stdtime_get() will already have done so.
+		 */
+		return (DNS_R_UNEXPECTED);
+	}
+
+	search.rbtversion = NULL;
+	search.serial = 1;
+	search.options = options;
+	search.copy_name = ISC_FALSE;
+	search.need_cleanup = ISC_FALSE;
+	search.wild = ISC_FALSE;
+	search.zonecut = NULL;
+	dns_fixedname_init(&search.zonecut_name);
+	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
+	search.now = now;
+
+	RWLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
+
+	/*
+	 * Search down from the root of the tree.
+	 */
+	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
+				  &search.chain, ISC_TRUE, NULL, &search);
+
+	if (result == DNS_R_PARTIALMATCH ||
+	    ((options & DNS_DBFIND_ONLYANCESTORS) != 0)) {
+	find_ns:
+		result = find_deepest_zonecut(&search, node, nodep, foundname,
+					      rdataset, sigrdataset);
+		goto tree_exit;
+	} else if (result != DNS_R_SUCCESS)
+		goto tree_exit;
+
+	/*
+	 * We now go looking for an NS rdataset at the node.
+	 */
+
+	LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+	
+	found = NULL;
+	foundsig = NULL;
+	header_prev = NULL;
+	for (header = node->data; header != NULL; header = header_next) {
+		header_next = header->next;
+		if (header->ttl <= now) {
+			/*
+			 * This rdataset is stale.  If no one else is using the
+			 * node, we can clean it up right now, otherwise we
+			 * mark it as stale, and the node as dirty, so it will
+			 * get cleaned up later.
+			 */
+			if (node->references == 0) {
+				INSIST(header->down == NULL);
+				if (header_prev != NULL)
+					header_prev->next = header->next;
+				else
+					node->data = header->next;
+				free_rdataset(search.rbtdb->common.mctx,
+					      header);
+			} else {
+				header->attributes |= RDATASET_ATTR_STALE;
+				node->dirty = 1;
+				header_prev = header;
+			}
+		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT)
+			   == 0) {
+			/*
+			 * If we found a type we were looking for, remember
+			 * it.
+			 */
+			if (header->type == dns_rdatatype_ns) {
+				/*
+				 * Remember a NS rdataset even if we're
+				 * not specifically looking for it, because
+				 * we might need it later.
+				 */
+				found = header;
+			} else if (header->type == RBTDB_RDATATYPE_SIGNS) {
+				/*
+				 * If we need the NS rdataset, we'll also
+				 * need its signature.
+				 */
+				foundsig = header;
+			}
+			header_prev = header;
+		} else
+			header_prev = header;
+	}
+
+	if (found == NULL) {
+		/*
+		 * No NS records here.
+		 */
+		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		goto find_ns;
+	} 
+
+	if (nodep != NULL) {
+		new_reference(search.rbtdb, node);
+		*nodep = node;
+	}
+
+	bind_rdataset(search.rbtdb, node, found, search.now, rdataset);
+	if (foundsig != NULL)
+		bind_rdataset(search.rbtdb, node, foundsig, search.now,
+			      sigrdataset);
+
+	UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+	
+ tree_exit:
+	RWUNLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
+
+	INSIST(!search.need_cleanup);
+
+	dns_rbtnodechain_reset(&search.chain);
+
+	if (result == DNS_R_DELEGATION)
+		result = DNS_R_SUCCESS;
 
 	return (result);
 }
@@ -3587,6 +3748,7 @@ static dns_dbmethods_t zone_methods = {
 	closeversion,
 	findnode,
 	zone_find,
+	zone_findzonecut,
 	attachnode,
 	detachnode,
 	expirenode,
@@ -3612,6 +3774,7 @@ static dns_dbmethods_t cache_methods = {
 	closeversion,
 	findnode,
 	cache_find,
+	cache_findzonecut,
 	attachnode,
 	detachnode,
 	expirenode,

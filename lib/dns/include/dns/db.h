@@ -98,6 +98,12 @@ typedef struct dns_dbmethods {
 				dns_dbnode_t **nodep, dns_name_t *foundname,
 				dns_rdataset_t *rdataset,
 				dns_rdataset_t *sigrdataset);
+	dns_result_t	(*findzonecut)(dns_db_t *db, dns_name_t *name,
+				       unsigned int options, isc_stdtime_t now,
+				       dns_dbnode_t **nodep,
+				       dns_name_t *foundname,
+				       dns_rdataset_t *rdataset,
+				       dns_rdataset_t *sigrdataset);
 	void		(*attachnode)(dns_db_t *db,
 				      dns_dbnode_t *source,
 				      dns_dbnode_t **targetp);
@@ -168,6 +174,10 @@ struct dns_db {
 #define DNS_DBFIND_GLUEOK		0x01
 #define DNS_DBFIND_VALIDATEGLUE		0x02
 #define DNS_DBFIND_NOWILD		0x04
+/*
+ * Options that can be specified for dns_db_findzonecut().
+ */
+#define DNS_DBFIND_ONLYANCESTORS	0x08
 
 /*****
  ***** Methods
@@ -714,6 +724,54 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						present in the DB, e.g. an NXT
  *						record in a secure zone, is not
  *						present.
+ *
+ *		Other results are possible, and should all be treated as
+ *		errors.
+ */
+
+dns_result_t
+dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
+		   unsigned int options, isc_stdtime_t now,
+		   dns_dbnode_t **nodep, dns_name_t *foundname,
+		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+/*
+ * Find the deepest known zonecut which encloses 'name' in 'db'.
+ *
+ * Notes:
+ *
+ *	If 'options' has DNS_DBFIND_ONLYANCESTORS set, then 'name' will
+ *	be returned as the deepest match if it has an NS rdataset.
+ *
+ *	If 'now' is zero, then the current time will be used.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database with cache semantics.
+ *
+ *	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
+ *
+ *	'foundname' is a valid name with a dedicated buffer.
+ *
+ *	'rdataset' is NULL, or is a valid unassociated rdataset.
+ *
+ * Ensures:
+ *	On a non-error completion:
+ *
+ *		If nodep != NULL, then it is bound to the found node.
+ *
+ *		If foundname != NULL, then it contains the full name of the
+ *		found node.
+ *
+ *		If rdataset != NULL and type != dns_rdatatype_any, then
+ *		rdataset is bound to the found rdataset.
+ *
+ * Returns:
+ *
+ *	Non-error results are:
+ *
+ *		DNS_R_SUCCESS
+ *
+ *		DNS_R_NOTFOUND
  *
  *		Other results are possible, and should all be treated as
  *		errors.

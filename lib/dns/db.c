@@ -370,6 +370,28 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				    nodep, foundname, rdataset, sigrdataset));
 }
 
+dns_result_t
+dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
+		   unsigned int options, isc_stdtime_t now,
+		   dns_dbnode_t **nodep, dns_name_t *foundname,
+		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	/*
+	 * Find the deepest known zonecut which encloses 'name' in 'db'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
+	REQUIRE(dns_name_hasbuffer(foundname));
+	REQUIRE(sigrdataset == NULL ||
+		(DNS_RDATASET_VALID(sigrdataset) &&
+		 sigrdataset->methods == NULL));
+
+	return ((db->methods->findzonecut)(db, name, options, now, nodep,
+					   foundname, rdataset, sigrdataset));
+}
+
 void
 dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 
