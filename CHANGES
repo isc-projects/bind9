@@ -1,4 +1,7 @@
 
+ 895.	[func]		New function, isc_dir_current(), akin to POSIX's
+			getcwd().
+
  894.	[bug]		When using the DNSSEC tools, a message intended to warn
 			when the keyboard was being used because of the lack
 			of a suitable random device was not being printed.
