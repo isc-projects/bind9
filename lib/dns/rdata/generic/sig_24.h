@@ -15,7 +15,22 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.11 1999/05/07 03:24:11 marka Exp $ */
+ /* $Id: sig_24.h,v 1.12 1999/08/25 14:18:35 bwelling Exp $ */
 
  /* RFC 2065 */
+
+typedef struct dns_rdata_generic_sig_t {
+	dns_rdatacommon_t	common;
+	isc_mem_t *		mctx;
+	dns_rdatatype_t		covered;
+	dns_secalg_t		algorithm;
+	isc_uint8_t		labels;
+	isc_uint32_t		originalttl;
+	isc_uint32_t		timeexpire;
+	isc_uint32_t		timesigned;
+	isc_uint16_t		keyid;
+        dns_name_t *            signer;
+	isc_uint16_t		siglen;
+	unsigned char *		signature;
+} dns_rdata_generic_sig_t;
 
