@@ -1,5 +1,7 @@
- 424	[bug]		notify_createmessage could trigger a REQUIRE failure
-			w/ two SOA records for the zone (illegal). [RT #279]
+
+ 424.	[bug]		notify_createmessage() could trigger an assertion failure
+			when creating the notify message failed, e.g. due to
+			corrupt zones with multiple SOA records. [RT #279]
 
  423.	[bug]		When responding to a recusive query, errors that occur
 			after following a CNAME should cause the query to fail.
