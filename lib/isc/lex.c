@@ -24,6 +24,7 @@
 #include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -220,7 +221,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	result = isc_file_fopen(filename, "r", &stream);
+	result = isc_stdio_open(filename, "r", &stream);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

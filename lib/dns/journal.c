@@ -23,6 +23,7 @@
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/net.h>		/* Required for ntohl. */
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -95,8 +96,7 @@ rdata_covers(dns_rdata_t *rdata) {
 }
 
 isc_uint32_t
-dns_soa_getserial(dns_rdata_t *rdata)
-{
+dns_soa_getserial(dns_rdata_t *rdata) {
 	INSIST(rdata->type == dns_rdatatype_soa);
 	/*
 	 * Locate the serial number within the SOA RDATA based
@@ -115,8 +115,7 @@ dns_soa_getserial(dns_rdata_t *rdata)
 }
 
 void
-dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata)
-{
+dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata) {
 	INSIST(rdata->type == dns_rdatatype_soa);
 	INSIST(rdata->length > 20);
 	encode_uint32(val, rdata->data + rdata->length - 20);
@@ -907,7 +906,7 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 static isc_result_t
 journal_seek(dns_journal_t *j, isc_uint32_t offset) {
 	isc_result_t result;
-	result = isc_file_fseek(j->fp, (long) offset, SEEK_SET);
+	result = isc_stdio_seek(j->fp, (long)offset, SEEK_SET);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: seek: %s", j->filename,
@@ -922,7 +921,7 @@ static isc_result_t
 journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 	isc_result_t result;
 
-	result = isc_file_fread(mem, 1, nbytes, j->fp, NULL);
+	result = isc_stdio_read(mem, 1, nbytes, j->fp, NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_EOF)
 			return (ISC_R_NOMORE);
@@ -939,7 +938,7 @@ static isc_result_t
 journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 	isc_result_t result;
 
-	result = isc_file_fwrite(mem, 1, nbytes, j->fp, NULL);
+	result = isc_stdio_write(mem, 1, nbytes, j->fp, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: write: %s",
@@ -953,14 +952,14 @@ journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 static isc_result_t
 journal_fsync(dns_journal_t *j) {
 	isc_result_t result;
-	result = isc_file_fflush(j->fp);
+	result = isc_stdio_flush(j->fp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: flush: %s",
 			      j->filename, isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	result = isc_file_ffsync(j->fp);
+	result = isc_stdio_sync(j->fp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: fsync: %s",
@@ -1026,7 +1025,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 	INSIST(sizeof(journal_rawheader_t) == JOURNAL_HEADER_SIZE);
 	
-	result = isc_file_fopen(filename, "w", &fp);
+	result = isc_stdio_open(filename, "w", &fp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: create: %s",
@@ -1043,26 +1042,26 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 	mem = isc_mem_get(mctx, size);
 	if (mem == NULL) {
-		(void)isc_file_fclose(fp);
+		(void)isc_stdio_close(fp);
 		(void)isc_file_remove(filename);
 		return (ISC_R_NOMEMORY);
 	}
 	memset(mem, 0, size);
 	memcpy(mem, &rawheader, sizeof(rawheader));
 
-	result = isc_file_fwrite(mem, 1, (size_t) size, fp, NULL);
+	result = isc_stdio_write(mem, 1, (size_t) size, fp, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: write: %s",
 				 filename, isc_result_totext(result));
-		(void)isc_file_fclose(fp);
+		(void)isc_stdio_close(fp);
 		(void)isc_file_remove(filename);		
 		isc_mem_put(mctx, mem, size); 
 		return (ISC_R_UNEXPECTED);
 	}
 	isc_mem_put(mctx, mem, size); 	
 	
-	result = isc_file_fclose(fp);
+	result = isc_stdio_close(fp);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,		
 				 "%s: close: %s",
@@ -1094,8 +1093,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	j->filename = filename;
 	j->index = NULL;
 
-	/* XXX isc_file_fopen() may need "b" (binary) on some platforms */
-	result = isc_file_fopen(j->filename, write ? "r+" : "r", &fp);
+	result = isc_stdio_open(j->filename, write ? "rb+" : "rb", &fp);
 
 	if (result == ISC_R_FILENOTFOUND) {
 		if (write) {
@@ -1105,8 +1103,10 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 				      "creating it",
 				      j->filename);
 			CHECK(journal_file_create(mctx, filename));
-			/* Retry. */
-			result = isc_file_fopen(j->filename, "r+", &fp);
+			/*
+			 * Retry.
+			 */
+			result = isc_stdio_open(j->filename, "rb+", &fp);
 		} else {
 			FAIL(ISC_R_NOTFOUND);
 		}
@@ -1199,7 +1199,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		j->index = NULL;
 	}
 	if (j->fp != NULL)
-		(void)isc_file_fclose(j->fp);
+		(void)isc_stdio_close(j->fp);
 	isc_mem_put(j->mctx, j, sizeof(*j));		
 	return (result);
 }
@@ -1699,7 +1699,7 @@ dns_journal_destroy(dns_journal_t **journalp) {
 		isc_mem_put(j->mctx, j->it.source.base, j->it.source.length);
 
 	if (j->fp != NULL)
-		(void)isc_file_fclose(j->fp);
+		(void)isc_stdio_close(j->fp);
 	j->magic = 0;
 	isc_mem_put(j->mctx, j, sizeof(*j));
 	*journalp = NULL;

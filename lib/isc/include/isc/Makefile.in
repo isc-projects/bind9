@@ -29,7 +29,7 @@ HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
 		mutexblock.h netaddr.h ondestroy.h platform.h \
 		print.h quota.h random.h ratelimiter.h region.h \
 		result.h resultclass.h rwlock.h serial.h sockaddr.h \
-		socket.h string.h symtab.h task.h taskpool.h timer.h \
+		socket.h stdio.h string.h symtab.h task.h taskpool.h timer.h \
 		types.h util.h
 
 SUBDIRS =

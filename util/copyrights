@@ -727,6 +727,7 @@
 ./lib/isc/unix/ipv6.c				C	1999,2000
 ./lib/isc/unix/net.c				C	1999,2000
 ./lib/isc/unix/socket.c				C	1998,1999,2000
+./lib/isc/unix/stdio.c				C	2000
 ./lib/isc/unix/stdtime.c			C	1999,2000
 ./lib/isc/unix/time.c				C	1998,1999,2000
 ./lib/isc/version.c				C	1998,1999,2000
@@ -747,6 +748,7 @@
 ./lib/isc/win32/include/isc/net.h		C	1999,2000
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000
 ./lib/isc/win32/include/isc/once.h		C	1999,2000
+./lib/isc/win32/include/isc/stdio.h		C	2000
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000

@@ -148,45 +148,6 @@ isc_file_openunique(char *templet, FILE **fp);
  *		Something totally unexpected happened.
  */
 
-
-isc_result_t
-isc_file_fopen(const char *filename, const char *mode, FILE **fp);
-
-isc_result_t
-isc_file_fclose(FILE *f);
-
-isc_result_t
-isc_file_fseek(FILE *f, long offset, int whence);
-
-isc_result_t
-isc_file_fread(void *ptr, size_t size, size_t nmemb, FILE *f,
-	       size_t *nret);
-
-isc_result_t
-isc_file_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f,
-		size_t *nret);
-
-isc_result_t
-isc_file_fflush(FILE *f);
-
-/*
- * These functions are wrappers around the corresponding
- * stdio functions, returning a detailed error code in the
- * form of an an isc_result_t.  ANSI C does not guarantee
- * that stdio functions set errno, hence these functions 
- * must use platform dependent methods (e.g., the POSIX errno)
- * to construct the error code.
- */
-
-isc_result_t
-isc_file_ffsync(FILE *f);
-/*
- * Invoke fsync() on the file descriptor underlying
- * an stdio stream, or an equivalent system-dependent
- * operation.  Note that this function has no direct
- * counterpart in the stdio library.
- */
-
 isc_result_t
 isc_file_remove(const char *filename);
 /*

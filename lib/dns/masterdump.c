@@ -21,6 +21,7 @@
 
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -550,7 +551,6 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 {
 	isc_region_t r;
 	isc_result_t result;
-	size_t nwritten;
 	
 	REQUIRE(buffer->length > 0);
 
@@ -603,15 +603,17 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/* Write the buffer contents to the master file. */
+	/*
+	 * Write the buffer contents to the master file.
+	 */
 	isc_buffer_usedregion(buffer, &r);
-	nwritten = fwrite(r.base, 1, (size_t) r.length, f);
+	result = isc_stdio_write(r.base, 1, (size_t)r.length, f, NULL);
 
-	if (nwritten != (size_t) r.length) {
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "master file write failed: %s",
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
+				 isc_result_totext(result));
+		return (result);
 	}
 	
 	return (ISC_R_SUCCESS);
@@ -784,7 +786,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	FILE *f = NULL;
 	isc_result_t result;
 
-	result = isc_file_fopen(filename, "w", &f);
+	result = isc_stdio_open(filename, "w", &f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
@@ -795,7 +797,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = dns_master_dumptostream(mctx, db, version, style, f);
 
-	result = isc_file_fclose(f);
+	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
