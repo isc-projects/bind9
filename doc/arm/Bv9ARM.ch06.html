@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3373"
+HREF="Bv9ARM.ch06.html#AEN3404"
 >Zone File</A
 ></DT
 ></DL
@@ -2630,9 +2630,33 @@ CLASS="optional"
 > listen-on { <TT
 CLASS="replaceable"
 ><I
->address_match_list</I
+>ip_addr</I
 ></TT
-> }; </SPAN
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; [<SPAN
+CLASS="optional"
+> <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> [<SPAN
+CLASS="optional"
+>port <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+></SPAN
+>] ; ... </SPAN
+>] }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -2677,7 +2701,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1707"
+NAME="AEN1713"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2750,7 +2774,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1726"
+NAME="AEN1732"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3086,6 +3110,15 @@ CLASS="replaceable"
     [<SPAN
 CLASS="optional"
 > allow-recursion { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> allow-v6-synthesis { <TT
 CLASS="replaceable"
 ><I
 >address_match_list</I
@@ -3636,7 +3669,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1929"
+NAME="AEN1937"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3960,7 +3993,7 @@ CLASS="filename"
 server's current directory.  The format of the file is described
 in <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.13</A
+>Section 6.2.14.14</A
 ></P
 ></TD
 ></TR
@@ -4611,7 +4644,7 @@ CLASS="command"
 >statistics-file</B
 >.  See also <A
 HREF="Bv9ARM.ch06.html#statsfile"
->Section 6.2.14.13</A
+>Section 6.2.14.14</A
 >.</P
 ></TD
 ></TR
@@ -4814,7 +4847,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2238"
+NAME="AEN2246"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5024,6 +5057,31 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>allow-v6-synthesis</B
+></P
+></TD
+><TD
+WIDTH="300"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Specifies which hosts are to receive
+synthetic responses to IPv6 queries as described in
+<A
+HREF="Bv9ARM.ch06.html#synthesis"
+>Section 6.2.14.12</A
+>.
+</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="132"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >allow-transfer</B
 ></P
 ></TD
@@ -5085,7 +5143,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2314"
+NAME="AEN2329"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5180,7 +5238,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2340"
+NAME="AEN2355"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5722,7 +5780,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2487"
+NAME="AEN2502"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5950,7 +6008,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2553"
+NAME="AEN2568"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -6510,8 +6568,79 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
+NAME="synthesis"
+>6.2.14.12. Synthetic IPv6 responses</A
+></H3
+><P
+>Many existing stub resolvers support IPv6 DNS lookups as defined in
+RFC1886, using AAAA records for forward lookups and "nibble labels" in
+the <TT
+CLASS="literal"
+>ip6.int</TT
+> domain for reverse lookups, but do not support
+RFC2874-style lookups (using A6 records and binary labels in the
+<TT
+CLASS="literal"
+>ip6.arpa</TT
+> domain).</P
+><P
+>For those who wish to continue to use such stub resolvers rather than
+switching to the BIND 9 lightweight resolver, BIND 9 provides a way
+to automatically convert RFC1886-style lookups into
+RFC2874-style lookups and return the results as "synthetic" AAAA and
+PTR records.</P
+><P
+>This feature is disabled by default and can be enabled on a per-client
+basis by adding a
+<B
+CLASS="command"
+>allow-v6-synthesis { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> };</B
+>
+clause to the <B
+CLASS="command"
+>options</B
+> or <B
+CLASS="command"
+>view</B
+> statement.
+ When it is enabled, recursive
+AAAA queries cause the server to first try an A6 lookup and if that
+fails, an AAAA lookups.  No matter which one succeeds, the results are
+returned as a set of synthetic AAAA records.  Similarly, recursive PTR
+queries in <TT
+CLASS="literal"
+>ip6.int</TT
+> will cause a
+lookup in <TT
+CLASS="literal"
+>ip6.arpa</TT
+> using binary
+labels, and if that fails, another lookup in <TT
+CLASS="literal"
+>ip6.int</TT
+>.
+The results are returned as a synthetic PTR record in
+<TT
+CLASS="literal"
+>ip6.int</TT
+>.</P
+><P
+>The synthetic records have a TTL of zero.  DNSSEC validation of
+synthetic responses is not currently supported; therefore responses
+containing synthetic RRs will not have the AD flag set.</P
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
 NAME="tuning"
->6.2.14.12. Tuning</A
+>6.2.14.13. Tuning</A
 ></H3
 ><DIV
 CLASS="informaltable"
@@ -6698,7 +6827,7 @@ CLASS="sect3"
 CLASS="sect3"
 ><A
 NAME="statsfile"
->6.2.14.13. The Statistics File</A
+>6.2.14.14. The Statistics File</A
 ></H3
 ><P
 >The statistics file generated by <SPAN
@@ -7117,7 +7246,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2854"
+NAME="AEN2885"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7192,7 +7321,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2870"
+NAME="AEN2901"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7227,7 +7356,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2878"
+NAME="AEN2909"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7290,7 +7419,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2892"
+NAME="AEN2923"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7873,7 +8002,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3029"
+NAME="AEN3060"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7884,7 +8013,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3032"
+NAME="AEN3063"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -8110,7 +8239,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3089"
+NAME="AEN3120"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8148,7 +8277,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3099"
+NAME="AEN3130"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -8771,7 +8900,7 @@ CLASS="command"
 >sig-validity-interval</B
 > in <A
 HREF="Bv9ARM.ch06.html#tuning"
->Section 6.2.14.12</A
+>Section 6.2.14.13</A
 >.</P
 ></TD
 ></TR
@@ -9054,7 +9183,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Matches when the updated name is a subdomain
-of the name in the name field.</P
+of the name in the name field (which includes the name itself).</P
 ></TD
 ></TR
 ><TR
@@ -9114,7 +9243,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3373"
+NAME="AEN3404"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9135,7 +9264,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3378"
+NAME="AEN3409"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9855,7 +9984,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3592"
+NAME="AEN3623"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10175,7 +10304,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3693"
+NAME="AEN3724"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10577,7 +10706,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3814"
+NAME="AEN3845"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10676,7 +10805,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3841"
+NAME="AEN3872"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10701,7 +10830,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3848"
+NAME="AEN3879"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10771,7 +10900,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3868"
+NAME="AEN3899"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10847,7 +10976,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3887"
+NAME="AEN3918"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10887,7 +11016,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3898"
+NAME="AEN3929"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
