@@ -392,7 +392,7 @@ isc_buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length)
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + length <= b->length);
 
-	cp = b->base + b->used;
+	cp = (unsigned char *)b->base + b->used;
 	memcpy(cp, base, length);
 	b->used += length;
 }	
