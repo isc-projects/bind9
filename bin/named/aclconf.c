@@ -24,7 +24,6 @@
 #include <dns/aclconf.h>
 #include <dns/fixedname.h>
 #include <dns/types.h>
-#include <dns/zone.h>
 
 void dns_aclconfctx_init(dns_aclconfctx_t *ctx)
 {
