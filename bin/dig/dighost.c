@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.92 2000/07/19 17:52:25 mws Exp $ */
+/* $Id: dighost.c,v 1.93 2000/07/20 17:56:20 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -421,15 +421,10 @@ setup_text_key(void) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, dns_result_totext(result));
 	}
-	isc_mem_put(mctx, secretstore, secretsize);
-	dns_name_invalidate(&keyname);
-	isc_buffer_free(&namebuf);
-	return;
  SYSSETUP_FAIL:
 	isc_mem_put(mctx, secretstore, secretsize);
 	dns_name_invalidate(&keyname);
 	isc_buffer_free(&namebuf);
-	dns_tsigkeyring_destroy(&keyring);
 	return;
 }
 

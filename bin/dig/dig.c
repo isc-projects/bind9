@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.71 2000/07/19 17:52:24 mws Exp $ */
+/* $Id: dig.c,v 1.72 2000/07/20 17:56:19 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -560,7 +560,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
 	isc_result_t result;
 	isc_textregion_t tr;
-	dig_server_t *srv = NULL, *s, *s2;
+	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -585,8 +585,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	 * anywhere, except for cloning into new lookups
 	 */
 
-	if (!is_batchfile)
+	debug("parse_args()");
+	if (!is_batchfile) {
+		debug("making new lookup");
 		default_lookup = make_empty_lookup();
+	}
 
 	lookup = default_lookup;
 
@@ -984,16 +987,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 	if (!is_batchfile) {
 		printgreeting(argc, argv);
-		s = ISC_LIST_HEAD(default_lookup->my_server_list);
-		while (s != NULL) {
-			debug("freeing server %p belonging to %p",
-			      s, default_lookup);
-			s2 = s;
-			s = ISC_LIST_NEXT(s, link);
-			ISC_LIST_DEQUEUE(default_lookup->my_server_list, 
-					 (dig_server_t *)s2, link);
-			isc_mem_free(mctx, s2);
-		}
 	}
 }
 
@@ -1046,6 +1039,7 @@ dighost_shutdown(void) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
+	dig_server_t *s, *s2;
 
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
@@ -1061,6 +1055,16 @@ main(int argc, char **argv) {
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
+	s = ISC_LIST_HEAD(default_lookup->my_server_list);
+	while (s != NULL) {
+		debug("freeing server %p belonging to %p",
+		      s, default_lookup);
+		s2 = s;
+		s = ISC_LIST_NEXT(s, link);
+		ISC_LIST_DEQUEUE(default_lookup->my_server_list, 
+				 (dig_server_t *)s2, link);
+		isc_mem_free(mctx, s2);
+	}
 	isc_mem_free(mctx, default_lookup);
 	if (batchname != NULL) {
 		fclose(batchfp);
