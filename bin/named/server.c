@@ -1501,7 +1501,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
 	
 	dns_zonemgr_shutdown(server->zonemgr);
-	dns_zonemgr_detach(&server->zonemgr);
 
 	isc_task_detach(&server->task);
 
@@ -1599,6 +1598,8 @@ void
 ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
+
+	dns_zonemgr_detach(&server->zonemgr);
 
 	if (server->tkeyctx != NULL)
 		dns_tkeyctx_destroy(&server->tkeyctx);

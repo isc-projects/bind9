@@ -88,24 +88,29 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
 /*
- * Shut down a rate limiter.  All events that have not yet been
- * dispatched to the task are dispatched immediately with
- * the ISC_EVENTATTR_CANCELED bit set in ev_attributes.
- * Further attempts to enqueue events will fail with
- * ISC_R_SHUTTINGDOWN.
+ * Shut down a rate limiter.
+ *
+ * Ensures:
+ *	All events that have not yet been
+ * 	dispatched to the task are dispatched immediately with
+ *	the ISC_EVENTATTR_CANCELED bit set in ev_attributes.
+ *
+ *	Further attempts to enqueue events will fail with
+ * 	ISC_R_SHUTTINGDOWN.
+ *
+ *	The reatelimiter is no longer attached to its task.
  */
 
 void
-isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp);
+isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target);
 /*
- * Destroy a rate limiter.
- * Does not destroy the task or events already queued on it.
- *
- * Requires:
- *	The rate limiter to have been shut down.
- *
- * Ensures:
- *	Resources used by the rate limiter will be freed.
+ * Attach to a rate limiter.
+ */
+
+void
+isc_ratelimiter_detach(isc_ratelimiter_t **ratelimiterp);
+/*
+ * Detach from a rate limiter.
  */
 
 ISC_LANG_ENDDECLS

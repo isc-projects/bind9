@@ -33,6 +33,7 @@ typedef enum {
 struct isc_ratelimiter {
 	isc_mem_t *		mctx;
 	isc_mutex_t		lock;
+	int			refs;
 	isc_task_t *		task;
 	isc_timer_t *		timer;
 	isc_interval_t		interval;
@@ -48,12 +49,7 @@ static void
 ratelimiter_tick(isc_task_t *task, isc_event_t *event);
 
 static void
-ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
-	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
-	UNUSED(task);
-	isc_mutex_destroy(&rl->lock);
-	isc_mem_put(rl->mctx, rl, sizeof(*rl));
-}
+ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
@@ -67,6 +63,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	if (rl == NULL)
 		return ISC_R_NOMEMORY;
 	rl->mctx = mctx;
+	rl->refs = 1;
 	rl->task = task;
 	isc_interval_set(&rl->interval, 0, 0);
 	rl->timer = NULL;
@@ -83,6 +80,12 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto free_mutex;
 
+	/*
+	 * Increment the reference count to indicate that we may
+	 * (soon) have events outstanding.
+	 */
+	rl->refs++;
+	
 	ISC_EVENT_INIT(&rl->shutdownevent,
 		       sizeof(isc_event_t),
 		       0, NULL, ISC_RATELIMITEREVENT_SHUTDOWN,
@@ -204,27 +207,68 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	isc_task_t *task;
 	LOCK(&rl->lock);
 	rl->state = isc_ratelimiter_shuttingdown;
-	(void) isc_timer_reset(rl->timer, isc_timertype_inactive,
-			       NULL, NULL, ISC_FALSE);
+	(void)isc_timer_reset(rl->timer, isc_timertype_inactive,
+			      NULL, NULL, ISC_FALSE);
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
 		ISC_LIST_UNLINK(rl->pending, ev, ev_link);
 		ev->ev_attributes |= ISC_EVENTATTR_CANCELED;
 		task = ev->ev_sender;
 		isc_task_send(task, &ev);
 	}
+	isc_timer_detach(&rl->timer);
+	/*
+	 * Send an event to our task.  The delivery of this event
+	 * indicates that no more timer events will be delivered.
+	 */
+	ev = &rl->shutdownevent;
+	isc_task_send(rl->task, &ev);
+	
 	UNLOCK(&rl->lock);
 }
 
-void
-isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp) {
-	isc_ratelimiter_t *rl = *ratelimiterp;
-	isc_event_t *ev = &rl->shutdownevent;
-	isc_timer_detach(&rl->timer);
-	/*
-	 * Send an event to our task and wait for it to be delivered
-	 * before freeing memory.  This guarantees that any timer
-	 * event still in the task's queue are delivered first.
-	 */
-	isc_task_send(rl->task, &ev);
-	*ratelimiterp = NULL;
+static void
+ratelimiter_shutdowncomplete(isc_task_t *task, isc_event_t *event) {
+	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
+	
+	UNUSED(task);
+
+	isc_ratelimiter_detach(&rl);
 }
+
+static void
+ratelimiter_free(isc_ratelimiter_t *rl) {
+	isc_mutex_destroy(&rl->lock);
+	isc_mem_put(rl->mctx, rl, sizeof(*rl));
+}
+
+void
+isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target) {
+	REQUIE(souce != NULL);
+	REQUIRE(target != NULL && *target == NULL);
+
+	LOCK(&source->lock);
+	REQUIRE(source->refs > 0);
+	source->refs++;
+	INSIST(source->refs > 0);
+	UNLOCK(&source->lock);
+	*target = source;
+}
+
+void
+isc_ratelimiter_detach(isc_ratelimiter_t **rlp) {
+	isc_ratelimiter_t *rl = *rlp;
+	isc_boolean_t free_now = ISC_FALSE;
+
+	LOCK(&rl->lock);
+	REQUIRE(rl->refs > 0);
+	rl->refs--;
+	if (rl->refs == 0)
+		free_now = ISC_TRUE;
+	UNLOCK(&rl->lock);
+
+	if (free_now)
+		ratelimiter_free(rl);
+
+	*rlp = NULL;
+}
+

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.147 2000/06/15 16:11:49 gson Exp $ */
+/* $Id: zone.c,v 1.148 2000/06/15 17:40:18 gson Exp $ */
 
 #include <config.h>
 
@@ -4151,6 +4151,11 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	isc_ratelimiter_shutdown(zmgr->rl);
+
+	if (zmgr->task != NULL)
+		isc_task_destroy(&zmgr->task);
+	if (zmgr->zonetasks != NULL)
+		isc_taskpool_destroy(&zmgr->zonetasks);
 }
 
 static void
@@ -4162,12 +4167,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	zmgr->magic = 0;
 
-	if (zmgr->task != NULL)
-		isc_task_destroy(&zmgr->task);
-	if (zmgr->zonetasks != NULL)
-		isc_taskpool_destroy(&zmgr->zonetasks);
-
-	isc_ratelimiter_destroy(&zmgr->rl);
+	isc_ratelimiter_detach(&zmgr->rl);
 
 	isc_rwlock_destroy(&zmgr->conflock);
 	isc_rwlock_destroy(&zmgr->rwlock);
