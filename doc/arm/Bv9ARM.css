@@ -1,22 +1,3 @@
-/*
- * Copyright (C) 2000  Internet Software Consortium.
- * 
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
- */
-
-/* $Id: Bv9ARM.css,v 1.4 2000/06/22 21:53:47 tale Exp $ */
-
 A:link {
 	color: blue;
 	text-decoration: underline;
@@ -148,7 +129,7 @@ PRE.2Level-fixed1 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 63.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -228,7 +209,7 @@ PRE.3Level-fixed {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -244,7 +225,7 @@ P.3Level-fixed-special {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -260,7 +241,7 @@ P.3Level-fixed1 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -276,7 +257,7 @@ P.3Level-fixed2 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -324,7 +305,7 @@ P.3LevelContinued21 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 99.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -381,22 +362,6 @@ LI.4Level-bullet2 {
 	text-transform: none;
 	font-family: Times;
 }
-H1.4Level-bullet21, H2.4Level-bullet21, H3.4Level-bullet21, H4.4Level-bullet21, H5.4Level-bullet21, H6.4Level-bullet21 {
-	text-align: left;
-	text-indent: -9.000000pt;
-	margin-top: 6.000000pt;
-	margin-bottom: 0.000000pt;
-	margin-right: 0.000000pt;
-	margin-left: 162.000000pt;
-	font-size: 11.000000pt;
-	font-weight: medium;
-	font-style: Regular;
-	color: #000000;
-	text-decoration: none;
-	vertical-align: baseline;
-	text-transform: none;
-	font-family: Times;
-}
 PRE.4Level-fixed {
 	text-align: left;
 	text-indent: 0.000000pt;
@@ -404,8 +369,8 @@ PRE.4Level-fixed {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 144.000000pt;
-	font-size: 9.000000pt;
-	font-weight: medium;
+	font-size: 10.000000pt;
+	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
 	text-decoration: none;
@@ -420,7 +385,7 @@ PRE.4Level-fixed1 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 144.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -436,7 +401,7 @@ P.4Level-fixed2 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 144.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -452,7 +417,7 @@ PRE.4Level-fixedSmall {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 126.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -484,7 +449,7 @@ H1.4LevelContinued1, H2.4LevelContinued1, H3.4LevelContinued1, H4.4LevelContinue
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 144.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -635,7 +600,7 @@ P.Biblio {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Times;
 }
 P.Body {
 	text-align: left;
@@ -685,6 +650,22 @@ P.Body11 {
 	text-transform: none;
 	font-family: Courier;
 }
+LI.Bulleted {
+	text-align: left;
+	text-indent: -18.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 18.000000pt;
+	font-size: 12.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
 P.CellBody {
 	text-align: left;
 	text-indent: 0.000000pt;
@@ -701,7 +682,7 @@ P.CellBody {
 	text-transform: none;
 	font-family: Times;
 }
-CODE.CellBody-fixedfont {
+P.CellBody-fixedfont {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -717,7 +698,7 @@ CODE.CellBody-fixedfont {
 	text-transform: none;
 	font-family: Courier New;
 }
-CODE.CellBody-fixedfontLG {
+P.CellBody-fixedfontLG {
 	text-align: left;
 	text-indent: 0.000000pt;
 	margin-top: 0.000000pt;
@@ -772,7 +753,7 @@ P.CellBody1 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -820,7 +801,7 @@ P.CellBody4 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -836,7 +817,7 @@ P.CellBody5 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Italic;
 	color: #000000;
@@ -852,7 +833,7 @@ P.CellBody6 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -868,7 +849,7 @@ H1.CellBody7, H2.CellBody7, H3.CellBody7, H4.CellBody7, H5.CellBody7, H6.CellBod
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Italic;
 	color: #000000;
@@ -893,6 +874,22 @@ P.CellBody8 {
 	text-transform: none;
 	font-family: Times;
 }
+P.CellHeading {
+	text-align: center;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 12.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
 THROW AWAY.Footer {
 	text-align: left;
 	text-indent: 0.000000pt;
@@ -900,7 +897,7 @@ THROW AWAY.Footer {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -916,7 +913,7 @@ THROW AWAY.Footer1 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -924,6 +921,22 @@ THROW AWAY.Footer1 {
 	vertical-align: baseline;
 	text-transform: none;
 	font-family: Helvetica;
+}
+P.Footnote {
+	text-align: left;
+	text-indent: -12.000229pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 18.000000pt;
+	margin-left: 30.000229pt;
+	font-size: 10.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
 }
 THROW AWAY.Header {
 	text-align: left;
@@ -940,6 +953,70 @@ THROW AWAY.Header {
 	vertical-align: baseline;
 	text-transform: none;
 	font-family: Arial;
+}
+H1.Heading1, H2.Heading1, H3.Heading1, H4.Heading1, H5.Heading1, H6.Heading1 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 14.000000pt;
+	margin-bottom: 6.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 14.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+H1.Heading2, H2.Heading2, H3.Heading2, H4.Heading2, H5.Heading2, H6.Heading2 {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 12.000000pt;
+	margin-bottom: 3.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 12.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+H1.HeadingRunIn, H2.HeadingRunIn, H3.HeadingRunIn, H4.HeadingRunIn, H5.HeadingRunIn, H6.HeadingRunIn {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 6.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 12.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+P.Indented {
+	text-align: left;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 18.000000pt;
+	font-size: 12.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
 }
 P.Mapping-Table-Cell {
 	text-align: left;
@@ -1044,7 +1121,7 @@ P.Mapping-Table-Cell310 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #ffffff;
@@ -1140,7 +1217,7 @@ P.Mapping-Table-Cell316 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -1204,7 +1281,7 @@ P.Mapping-Table-Cell331 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #ffffff;
@@ -1316,7 +1393,7 @@ P.Mapping-Table-Cell381 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Italic;
 	color: #ffffff;
@@ -1332,7 +1409,7 @@ P.Mapping-Table-Cell39 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Oblique;
 	color: #ffffff;
@@ -1348,7 +1425,7 @@ P.Mapping-Table-Cell391 {
 	margin-bottom: 0.000000pt;
 	margin-right: 0.000000pt;
 	margin-left: 0.000000pt;
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #ffffff;
@@ -1389,6 +1466,38 @@ P.Mapping-Table-Title {
 	text-transform: none;
 	font-family: Times;
 }
+LI.Numbered {
+	text-align: left;
+	text-indent: -18.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 18.000000pt;
+	font-size: 12.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+LI.Numbered1 {
+	text-align: left;
+	text-indent: -18.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 18.000000pt;
+	font-size: 12.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
 H1.Subhead2, H2.Subhead2, H3.Subhead2, H4.Subhead2, H5.Subhead2, H6.Subhead2 {
 	text-align: left;
 	text-indent: 63.000000pt;
@@ -1419,7 +1528,39 @@ H1.Subhead4, H2.Subhead4, H3.Subhead4, H4.Subhead4, H5.Subhead4, H6.Subhead4 {
 	text-decoration: none;
 	vertical-align: baseline;
 	text-transform: none;
-	font-family: Times New Roman;
+	font-family: Times;
+}
+P.TableFootnote {
+	text-align: left;
+	text-indent: -12.000229pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 18.000000pt;
+	margin-left: 30.000229pt;
+	font-size: 10.000000pt;
+	font-weight: medium;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
+}
+H1.TableTitle, H2.TableTitle, H3.TableTitle, H4.TableTitle, H5.TableTitle, H6.TableTitle {
+	text-align: center;
+	text-indent: 0.000000pt;
+	margin-top: 0.000000pt;
+	margin-bottom: 0.000000pt;
+	margin-right: 0.000000pt;
+	margin-left: 0.000000pt;
+	font-size: 12.000000pt;
+	font-weight: Bold;
+	font-style: Regular;
+	color: #000000;
+	text-decoration: none;
+	vertical-align: baseline;
+	text-transform: none;
+	font-family: Times;
 }
 H1.Title, H2.Title, H3.Title, H4.Title, H5.Title, H6.Title {
 	text-align: center;
@@ -1443,7 +1584,7 @@ EM.CharFmt {
 EM.CharFmt1 {
 }
 EM.Command {
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Regular;
 	color: #000000;
@@ -1488,8 +1629,8 @@ EM.Emphasis-underline {
 EM.EquationVariables {
 	font-style: Italic;
 }
-CODE.grammar_literal {
-	font-size: 9.000000pt;
+EM.grammar_literal {
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -1509,7 +1650,7 @@ EM.hypertext {
 	font-family: Times;
 }
 KBD.Literal-user-input {
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -1519,7 +1660,7 @@ KBD.Literal-user-input {
 	font-family: Courier New;
 }
 EM.Optional-meta-syntax {
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Italic;
 	color: #000000;
@@ -1542,8 +1683,8 @@ EM.pathname2 {
 	font-style: Italic;
 	font-family: Times;
 }
-CODE.production_target {
-	font-size: 9.000000pt;
+EM.production_target {
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -1553,7 +1694,7 @@ CODE.production_target {
 	font-family: Arial;
 }
 CODE.Program-Process {
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: Bold;
 	font-style: Regular;
 	color: #000000;
@@ -1573,7 +1714,7 @@ EM.URL {
 	font-family: Times;
 }
 EM.variable {
-	font-size: 9.000000pt;
+	font-size: 10.000000pt;
 	font-weight: medium;
 	font-style: Italic;
 	color: #000000;
