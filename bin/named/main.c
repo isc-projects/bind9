@@ -174,7 +174,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:d:fn:N:p:st:u:x:")) !=
+					   "c:d:fgn:N:p:st:u:x:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -187,6 +187,10 @@ parse_command_line(int argc, char *argv[]) {
 			if (ns_g_foreground == ISC_TRUE)
 				ns_g_logstderr = ISC_TRUE;
 			ns_g_foreground = ISC_TRUE;
+			break;
+		case 'g':
+			ns_g_foreground = ISC_TRUE;
+			ns_g_logstderr = ISC_TRUE;
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':

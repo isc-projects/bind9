@@ -204,6 +204,10 @@ Bug Reports and Mailing Lists
 
 	-f				Run in the foreground.
 
+	-g				Run in the foreground and log
+					to stderr, ignoring any "logging"
+					statement in in the config file
+
 	-n <number_of_cpus>		
 
 	-t <directory>			Chroot to <directory> before running.
