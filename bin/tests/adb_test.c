@@ -328,6 +328,7 @@ lookup(char *target)
 	client_t *client;
 	isc_buffer_t t, namebuf;
 	isc_result_t result;
+	unsigned int options;
 
 	INSIST(target != NULL);
 
@@ -344,9 +345,11 @@ lookup(char *target)
 	result = dns_name_dup(&name, mctx, &client->name);
 	check_result(result, "dns_name_dup %s", target);
 
+	options = DNS_ADBFIND_INET
+		| DNS_ADBFIND_INET6
+		| DNS_ADBFIND_WANTEVENT;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
-				    &client->name, dns_rootname,
-				    (DNS_ADBFIND_INET | DNS_ADBFIND_WANTEVENT),
+				    &client->name, dns_rootname, options,
 				    now, &client->find);
 	check_result(result, "dns_adb_lookup()");
 	dns_adb_dumpfind(client->find, stderr);
@@ -433,16 +436,6 @@ main(int argc, char **argv)
 	adb = view->adb;
 
 	/*
-	 * Store this address for this name.
-	 */
-#if 0
-	insert("kechara.flame.org.", "204.152.184.79", 10, now);
-	insert("moghedien.flame.org.", "204.152.184.97", 10, now);
-	insert("mailrelay.flame.org.", "204.152.184.79", 10, now);
-	insert("mailrelay.flame.org.", "204.152.184.97", 5, now);
-#endif
-
-	/*
 	 * Lock the entire client list here.  This will cause all events
 	 * for found names to block as well.
 	 */
@@ -450,6 +443,7 @@ main(int argc, char **argv)
 	lookup("kechara.flame.org.");		/* should fetch */
 	lookup("moghedien.flame.org.");		/* should fetch */
 	lookup("mailrelay.flame.org.");		/* should fetch */
+	lookup("ipv4v6.flame.org.");		/* should fetch */
 	lookup("nonexistant.flame.org.");	/* should fetch */
 	lookup("f.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();

@@ -258,6 +258,9 @@ static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
 static isc_result_t dbfind_name_v4(dns_adbfind_t *, dns_name_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
 static isc_result_t fetch_name_v4(dns_adbname_t *, isc_stdtime_t now);
+static isc_result_t dbfind_name_aaaa(dns_adbfind_t *, dns_name_t *,
+				     dns_adbname_t *, int, isc_stdtime_t);
+static isc_result_t fetch_name_aaaa(dns_adbname_t *, isc_stdtime_t now);
 static inline void check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
@@ -304,6 +307,8 @@ import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
+
+	INSIST(rdataset->type = dns_rdatatype_a);
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = ISC_FALSE;
@@ -363,8 +368,102 @@ import_rdatasetv4(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (now + rdataset->ttl < adbname->expire_v4)
 		adbname->expire_v4 = now + rdataset->ttl;
 
+	/*
+	 * Lie a little here.  This is more or less so code that cares
+	 * can find out if any new information was added or not.
+	 */
 	if (new_addresses_added)
-		return (ISC_R_SUCCESS);  /* XXX lie? */
+		return (ISC_R_SUCCESS);
+
+	return (result);
+}
+/*
+ * Requires the adbname bucket be locked and that no entry buckets be locked.
+ */
+static isc_result_t
+import_rdataset_aaaa(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
+		     isc_stdtime_t now)
+{
+	isc_result_t result;
+	dns_adb_t *adb;
+	dns_adbnamehook_t *nh;
+	dns_rdata_t rdata;
+	struct in6_addr ina;
+	isc_sockaddr_t sockaddr;
+	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
+	int addr_bucket;
+	isc_boolean_t new_addresses_added;
+
+	INSIST(DNS_ADBNAME_VALID(adbname));
+	adb = adbname->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	INSIST(rdataset->type = dns_rdatatype_aaaa);
+
+	addr_bucket = DNS_ADB_INVALIDBUCKET;
+	new_addresses_added = ISC_FALSE;
+	
+	result = dns_rdataset_first(rdataset);
+	while (result == ISC_R_SUCCESS) {
+		nh = new_adbnamehook(adb, NULL);
+		if (nh == NULL) {
+			adbname->partial_result |= DNS_ADBFIND_INET;
+			result = ISC_R_NOMEMORY;
+			goto fail;
+		}
+
+		dns_rdataset_current(rdataset, &rdata);
+		INSIST(rdata.length == 16);
+		memcpy(&ina.s6_addr, rdata.data, 16);
+		isc_sockaddr_fromin6(&sockaddr, &ina, 53);
+
+		foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
+		if (foundentry == NULL) {
+			dns_adbentry_t *entry;
+
+			entry = new_adbentry(adb);
+			if (entry == NULL) {
+				adbname->partial_result |= DNS_ADBFIND_INET;
+				result = ISC_R_NOMEMORY;
+				goto fail;
+			}
+
+			entry->sockaddr = sockaddr;
+			entry->refcnt = 1;
+			entry->lock_bucket = addr_bucket;
+
+			nh->entry = entry;
+
+			ISC_LIST_APPEND(adb->entries[addr_bucket],
+					entry, plink);
+		} else {
+			foundentry->refcnt++;
+			nh->entry = foundentry;
+		}
+
+		new_addresses_added = ISC_TRUE;
+		ISC_LIST_APPEND(adbname->v6, nh, plink);
+		nh = NULL;
+
+		result = dns_rdataset_next(rdataset);
+	}
+
+ fail:
+	if (nh != NULL)
+		free_adbnamehook(adb, &nh);
+
+	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
+		UNLOCK(&adb->entrylocks[addr_bucket]);
+
+	if (now + rdataset->ttl < adbname->expire_v6)
+		adbname->expire_v6 = now + rdataset->ttl;
+
+	/*
+	 * Lie a little here.  This is more or less so code that cares
+	 * can find out if any new information was added or not.
+	 */
+	if (new_addresses_added)
+		return (ISC_R_SUCCESS);
 
 	return (result);
 }
@@ -1128,7 +1227,6 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
 	adbname = ISC_LIST_HEAD(adb->names[bucket]);
 	while (adbname != NULL) {
 		if (adbname->dead != ISC_TRUE) {
-			/* XXX should check for expired names here? */
 			if (dns_name_equal(name, &adbname->name))
 				return (adbname);
 		}
@@ -1670,14 +1768,31 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  v6:
 	if (!HAVE_INET6(adbname)
 	    && !QUERY_INET6(adbname->query_pending)
-	    && WANT_INET6(wanted_addresses)) {
-		DP(("XXXMLG IPv6 not supported yet\n"));
+	    && WANT_INET6(wanted_addresses)) { /* XXX should start with A6 */
+		result = dbfind_name_aaaa(find, zone, adbname, bucket, now);
+		if (result == ISC_R_SUCCESS) {
+			DP(("lookup: found aaaa for name %p in db\n",
+			    adbname));
+			goto copy;
+		}
+
+		/*
+		 * Try to start fetches for aaaa.
+		 */
+		result = fetch_name_aaaa(adbname, now);
+		if (result == ISC_R_SUCCESS) {
+			DP(("lookup:  Started aaaa fetch for name %p\n",
+			    adbname));
+			adbname->query_pending |= DNS_ADBFIND_INET6;
+			goto copy;
+		}
 	}
 
 	/*
 	 * Run through the name and copy out the bits we are
 	 * interested in.
 	 */
+ copy:
 	copy_namehook_lists(adb, find, adbname, zone, now);
 
 	/*
@@ -2288,6 +2403,62 @@ dbfind_name_v4(dns_adbfind_t *find, dns_name_t *zone,
 	return (result);
 }
 
+/*
+ * On entry, "bucket" refers to a locked name bucket, "find" is not NULL,
+ * and "name" is the name we are looking for.  We will allocate an adbname
+ * and return a pointer to it in *adbnamep.
+ *
+ * If we return ISC_R_SUCCESS, the new name will have been allocated, and
+ * perhaps some namehooks will have been filled in with valid entries, and
+ * perhaps some fetches have been started.
+ */
+static isc_result_t
+dbfind_name_aaaa(dns_adbfind_t *find, dns_name_t *zone,
+		 dns_adbname_t *adbname, int bucket, isc_stdtime_t now)
+{
+	isc_result_t result;
+	isc_boolean_t use_hints;
+	dns_rdataset_t rdataset;
+	dns_adb_t *adb;
+
+	INSIST(DNS_ADBFIND_VALID(find));
+	INSIST(DNS_ADBNAME_VALID(adbname));
+	adb = adbname->adb;
+	INSIST(DNS_ADB_VALID(adb));
+	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
+
+	if (adb->view == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+
+	result = ISC_R_UNEXPECTED;
+
+	use_hints = dns_name_equal(zone, dns_rootname);
+	dns_rdataset_init(&rdataset);
+	adbname->partial_result = 0;
+
+	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_aaaa,
+			       now, DNS_DBFIND_GLUEOK, use_hints,
+			       &rdataset, NULL);
+	switch (result) {
+	case DNS_R_GLUE:
+	case DNS_R_HINT:
+	case DNS_R_SUCCESS:
+		/*
+		 * Found in the database.  Even if we can't copy out
+		 * any information, return success, or else a fetch
+		 * will be made, which will only make things worse.
+		 */
+		(void)import_rdataset_aaaa(adbname, &rdataset, now);
+		result = ISC_R_SUCCESS;
+		break;
+	}
+
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+
+	return (result);
+}
+
 static void
 fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 {
@@ -2382,6 +2553,119 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
 
+	/*
+	 * XXX should check for v4/v6 fetches, and only clean those finds
+	 * that would be affected by that address family.
+	 */
+	if (EMPTY(name->fetches)) {
+		clean_finds_at_name(name, ev_status);
+		name->query_pending &= ~DNS_ADBFIND_INET;
+	}
+
+	UNLOCK(&adb->namelocks[bucket]);
+
+	return;
+
+}
+static void
+fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
+{
+	dns_fetchevent_t *dev;
+	dns_adbname_t *name;
+	dns_adb_t *adb;
+	dns_adbfetch_t *fetch;
+	int bucket;
+	isc_eventtype_t ev_status;
+	isc_stdtime_t now;
+	isc_result_t result;
+
+	(void)task;
+
+	INSIST(ev->type == DNS_EVENT_FETCHDONE);
+	dev = (dns_fetchevent_t *)ev;
+	name = ev->arg;
+	INSIST(DNS_ADBNAME_VALID(name));
+	adb = name->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	DP(("Fetch %p\n", dev->fetch));
+
+	bucket = name->lock_bucket;
+	LOCK(&adb->namelocks[bucket]);
+
+	/*
+	 * Find the fetch.  AAAA and A records exist on the same linked
+	 * list.
+	 */
+	fetch = ISC_LIST_HEAD(name->fetches);
+	while (fetch != NULL && fetch->fetch != dev->fetch)
+		fetch = ISC_LIST_NEXT(fetch, plink);
+
+	INSIST(fetch != NULL);
+	ISC_LIST_UNLINK(name->fetches, fetch, plink);
+	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
+	dev->fetch = NULL;
+
+	/*
+	 * Cleanup things we don't care about.
+	 */
+	if (dev->node != NULL)
+		dns_db_detachnode(dev->db, &dev->node);
+	if (dev->db != NULL)
+		dns_db_detach(&dev->db);
+
+	/*
+	 * If this name is marked as dead, clean up, throwing away
+	 * potentially good data.
+	 */
+	if (name->dead) {
+		isc_boolean_t decr_adbrefcnt;
+
+		free_adbfetch(adb, &fetch);
+		isc_event_free(&ev);
+
+		kill_name(&name, DNS_EVENT_ADBCANCELED);
+
+		decr_adbrefcnt = ISC_FALSE;
+		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
+			decr_adbrefcnt = ISC_TRUE;
+
+		UNLOCK(&adb->namelocks[bucket]);
+
+		if (decr_adbrefcnt)
+			dec_adb_irefcnt(adb, ISC_TRUE);
+
+		return;
+	}
+
+	/*
+	 * Did we get back junk?  If so, and there are no more fetches
+	 * sitting out there, tell all the finds about it.
+	 */
+	if (dev->result != ISC_R_SUCCESS) {
+		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+		goto out;
+	}
+
+	/*
+	 * We got something potentially useful.
+	 */
+	result = isc_stdtime_get(&now);
+	if (result == ISC_R_SUCCESS)
+		result = import_rdataset_aaaa(name, &fetch->rdataset, now);
+	if (result == ISC_R_SUCCESS)
+		ev_status = DNS_EVENT_ADBMOREADDRESSES;
+	else
+		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+
+ out:
+	free_adbfetch(adb, &fetch);
+	isc_event_free(&ev);
+
+	/*
+	 * XXX should check for v4/v6 fetches, and only clean those finds
+	 * that would be affected by that address family.
+	 */
 	if (EMPTY(name->fetches)) {
 		clean_finds_at_name(name, ev_status);
 		name->query_pending &= ~DNS_ADBFIND_INET;
@@ -2430,6 +2714,61 @@ fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
 					  dns_rdatatype_a, dns_rootname,
 					  &nameservers, NULL, 0,
 					  adb->task, fetch_callback_v4,
+					  adbname, &fetch->rdataset, NULL,
+					  &fetch->fetch);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ISC_LIST_APPEND(adbname->fetches, fetch, plink);
+	fetch = NULL;  /* keep us from cleaning this up below */
+
+ cleanup:
+	if (fetch != NULL)
+		free_adbfetch(adb, &fetch);
+
+	if (dns_rdataset_isassociated(&nameservers))
+		dns_rdataset_disassociate(&nameservers);
+
+	return (result);
+}
+
+static isc_result_t
+fetch_name_aaaa(dns_adbname_t *adbname, isc_stdtime_t now)
+{
+	isc_result_t result;
+	dns_adbfetch_t *fetch;
+	dns_rdataset_t nameservers;
+	dns_name_t fname;
+	isc_buffer_t buffer;
+	unsigned char ndata[256];
+	dns_adb_t *adb;
+
+	INSIST(DNS_ADBNAME_VALID(adbname));
+	adb = adbname->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	isc_buffer_init(&buffer, ndata, sizeof(ndata), ISC_BUFFERTYPE_BINARY);
+
+	fetch = NULL;
+	dns_name_init(&fname, NULL);
+	dns_name_setbuffer(&fname, &buffer);
+	dns_rdataset_init(&nameservers);
+
+	result = dns_view_findzonecut(adb->view, &adbname->name, &fname, now,
+				      0, ISC_TRUE, &nameservers, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	fetch = new_adbfetch(adb);
+	if (fetch == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
+					  dns_rdatatype_aaaa, dns_rootname,
+					  &nameservers, NULL, 0,
+					  adb->task, fetch_callback_aaaa,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
