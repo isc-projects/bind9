@@ -221,7 +221,7 @@ dns_adb_destroy(dns_adb_t **adb);
 isc_result_t
 dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       dns_adbhandle_t **handle);
+	       isc_stdtime_t now, dns_adbhandle_t **handle);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -245,6 +245,11 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * fields other than the "link" field.  All values can be read at any
  * time, however.
  *
+ * The "now" parameter is used only for determining which entries that
+ * have a specific time to live or expire time should be removed from
+ * the running database.  If specified as zero, the current time will
+ * be retrieved and used.
+ *
  * Requires:
  *
  *	*adb be a valid isc_adb_t object.
@@ -264,6 +269,10 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *	ISC_R_NOMORE	Addresses might have been returned, but no events
  *			will ever be posted for this context.
  *	ISC_R_NOMEMORY	insufficient resources
+ *
+ * Calls, and returns error codes from:
+ *
+ *	isc_stdtime_get()
  *
  * Notes:
  *

@@ -32,10 +32,11 @@
 
 #include <isc/assertions.h>
 #include <isc/condition.h>
+#include <isc/event.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
-#include <isc/event.h>
+#include <isc/random.h>
 
 #include <dns/address.h>
 #include <dns/events.h>
@@ -91,6 +92,8 @@ struct dns_adb {
 	isc_mempool_t		       *emp;	/* dns_adbentry_t */
 	isc_mempool_t		       *ahmp;	/* dns_adbhandle_t */
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
+
+	isc_random_t			rand;
 
 	/*
 	 * Bucketized locks and lists for names.
@@ -158,7 +161,8 @@ struct dns_adbentry {
 	unsigned int			refcnt;
 
 	unsigned int			flags;
-	int				goodness;	/* bad <= 0 < good */
+	int				edns_level;	/* must be int! */
+	int				goodness;	/* bad < 0 <= good */
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
 
@@ -259,6 +263,9 @@ shutdown_names(dns_adb_t *adb, isc_boolean_t kill_fetches)
 	}
 }
 
+/*
+ * Assumes the name bucket is locked.
+ */
 static void
 clean_namehooks_at_name(dns_adb_t *adb, dns_adbname_t *name)
 {
@@ -302,6 +309,9 @@ clean_namehooks_at_name(dns_adb_t *adb, dns_adbname_t *name)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 }
 
+/*
+ * Assumes the name bucket is locked.
+ */
 static void
 clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 {
@@ -558,6 +568,7 @@ static inline dns_adbentry_t *
 new_adbentry(dns_adb_t *adb)
 {
 	dns_adbentry_t *e;
+	isc_uint32_t r;
 
 	e = isc_mempool_get(adb->emp);
 	if (e == NULL)
@@ -568,7 +579,8 @@ new_adbentry(dns_adb_t *adb)
 	e->refcnt = 0;
 	e->flags = 0;
 	e->goodness = 0;
-	e->srtt = 0;
+	isc_random_get(&adb->rand, &r);
+	e->srtt = (r & 0x1f) + 1;
 	ISC_LIST_INIT(e->zoneinfo);
 	ISC_LINK_INIT(e, link);
 
@@ -782,14 +794,11 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
  * Entry bucket MUST be locked!
  */
 static isc_boolean_t
-entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone)
+entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone,
+		      isc_stdtime_t now)
 {
 	dns_adbzoneinfo_t *zi, *next_zi;
-	isc_stdtime_t now;
 	isc_boolean_t is_bad;
-
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-		return (ISC_FALSE);  /* XXXMLG: assume ok if this fails? */
 
 	is_bad = ISC_FALSE;
 
@@ -807,9 +816,13 @@ entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone)
 			free_adbzoneinfo(adb, &zi);
 		}
 
-		if (zi != NULL && !is_bad)
+		/*
+		 * Order tests from least to most expensive.
+		 */
+		if (zi != NULL && !is_bad) {
 			if (dns_name_equal(zone, &zi->zone))
 				is_bad = ISC_TRUE;
+		}
 
 		zi = next_zi;
 	}
@@ -819,7 +832,7 @@ entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone)
 
 static void
 copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
-		   dns_adbname_t *name, dns_name_t *zone)
+		   dns_adbname_t *name, dns_name_t *zone, isc_stdtime_t now)
 {
 	dns_adbnamehook_t *namehook;
 	dns_adbaddrinfo_t *addrinfo;
@@ -833,7 +846,7 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 	while (namehook != NULL) {
 		bucket = namehook->entry->lock_bucket;
 		LOCK(&adb->entrylocks[bucket]);
-		if (entry_is_bad_for_zone(adb, namehook->entry, zone))
+		if (entry_is_bad_for_zone(adb, namehook->entry, zone, now))
 			goto next;
 		addrinfo = new_adbaddrinfo(adb, namehook->entry);
 		if (addrinfo == NULL) {
@@ -876,6 +889,8 @@ destroy(dns_adb_t *adb)
 	isc_mutex_destroy(&adb->lock);
 	isc_mutex_destroy(&adb->mplock);
 
+	isc_random_invalidate(&adb->rand);
+
 	isc_mem_put(adb->mctx, adb, sizeof (dns_adb_t));
 }
 
@@ -912,15 +927,19 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 	adb->ahmp = NULL;
 	adb->aimp = NULL;
 
-	result = isc_mutex_init(&adb->lock);
+	result = isc_random_init(&adb->rand);
 	if (result != ISC_R_SUCCESS)
 		goto fail0a;
-	result = isc_mutex_init(&adb->mplock);
+
+	result = isc_mutex_init(&adb->lock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0b;
-	result = isc_condition_init(&adb->shutdown_cond);
+	result = isc_mutex_init(&adb->mplock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0c;
+	result = isc_condition_init(&adb->shutdown_cond);
+	if (result != ISC_R_SUCCESS)
+		goto fail0d;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -994,10 +1013,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 		isc_mempool_destroy(&adb->aimp);
 
 	isc_condition_destroy(&adb->shutdown_cond);
- fail0c:
+ fail0d:
 	isc_mutex_destroy(&adb->mplock);
- fail0b:
+ fail0c:
 	isc_mutex_destroy(&adb->lock);
+ fail0b:
+	isc_random_invalidate(&adb->rand);
  fail0a:
 	isc_mem_put(mem, adb, sizeof (dns_adb_t));
 
@@ -1040,7 +1061,7 @@ dns_adb_destroy(dns_adb_t **adbx)
 isc_result_t
 dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	       void *arg, dns_name_t *name, dns_name_t *zone,
-	       dns_adbhandle_t **handlep)
+	       isc_stdtime_t now, dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
 	dns_adbname_t *adbname;
@@ -1058,6 +1079,12 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 	attach_to_task = ISC_FALSE;
 	result = ISC_R_UNEXPECTED;
+
+	if (now == 0) {
+		result = isc_stdtime_get(&now);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	/*
 	 * Look up the name in our internal database.
@@ -1102,7 +1129,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 */
  again:
 	if (adbname != NULL) {
-		copy_namehook_list(adb, handle, adbname, zone);
+		copy_namehook_list(adb, handle, adbname, zone, now);
 		if (handle->result == ISC_R_NOMEMORY
 		    && ISC_LIST_EMPTY(handle->list)) {
 			result = ISC_R_NOMEMORY;

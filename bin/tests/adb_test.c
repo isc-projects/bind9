@@ -167,32 +167,30 @@ main(int argc, char **argv)
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
 	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.4");
-	printf("Added 1.2.3.4\n");
+	printf("Added 1.2.3.4 -> NAME1\n");
 
 	ina.s_addr = inet_addr("1.2.3.5");
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
 	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.5");
-	printf("Added 1.2.3.5\n");
+	printf("Added 1.2.3.5 -> NAME1\n");
+
+	result = dns_adb_insert(adb, &name2, &sockaddr);
+	check_result(result, "dns_adb_insert 1.2.3.5");
+	printf("Added 1.2.3.5 -> NAME2\n");
 
 	ina.s_addr = inet_addr("1.2.3.6");
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
 	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.6");
-	printf("Added 1.2.3.6\n");
-
-	ina.s_addr = inet_addr("1.2.3.5");
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name2, &sockaddr);
-	check_result(result, "dns_adb_insert 1.2.3.5");
-	printf("Added 1.2.3.5\n");
+	printf("Added 1.2.3.6 -> NAME1\n");
 
 	/*
 	 * Try to look up a name or two.
 	 */
 	handle = NULL;
 	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
-				&name1, &name1, &handle);
+				&name1, &name1, now, &handle);
 	check_result(result, "dns_adb_lookup name1");
 	check_result(handle->result, "handle->result");
 
@@ -218,7 +216,6 @@ main(int argc, char **argv)
 	INSIST(ai->goodness == 50);
 	dns_adb_adjustsrtt(adb, ai, 10000, 0);
 	dns_adb_adjustsrtt(adb, ai, 10, 10);
-	INSIST(ai->srtt == 2251);
 
 	dns_adb_done(adb, &handle);
 
@@ -226,7 +223,7 @@ main(int argc, char **argv)
 	 * look it up again
 	 */
 	result = dns_adb_lookup(adb, t2, lookup_callback, &name1,
-				&name1, &name1, &handle);
+				&name1, &name1, now, &handle);
 	check_result(result, "dns_adb_lookup name1");
 	check_result(handle->result, "handle->result");
 
