@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.22 2000/10/07 00:09:19 bwelling Exp $ */
+/* $Id: byaddr.c,v 1.23 2000/10/17 01:57:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <dns/byaddr.h>
 #include <dns/db.h>
 #include <dns/events.h>
+#include <dns/lookup.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
@@ -47,13 +48,10 @@ struct dns_byaddr {
 	dns_fixedname_t		name;
 	/* Locked by lock. */
 	unsigned int		options;
+	dns_lookup_t *		lookup;
 	isc_task_t *		task;
-	dns_view_t *		view;
 	dns_byaddrevent_t *	event;
-	dns_fetch_t *		fetch;
-	unsigned int		restarts;
 	isc_boolean_t		canceled;
-	dns_rdataset_t		rdataset;
 };
 
 #define BYADDR_MAGIC			0x42794164U	/* ByAd. */
@@ -61,8 +59,6 @@ struct dns_byaddr {
 					 (b)->magic == BYADDR_MAGIC)
 
 #define MAX_RESTARTS 16
-
-static void byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event);
 
 static char hex_digits[] = {
 	'0', '1', '2', '3', '4', '5', '6', '7',
@@ -129,7 +125,7 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 }
 
 static inline isc_result_t
-copy_ptr_targets(dns_byaddr_t *byaddr) {
+copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_name_t *name;
 	dns_rdata_t rdata;
@@ -138,10 +134,10 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 	 * The caller must be holding the byaddr's lock.
 	 */
 
-	result = dns_rdataset_first(&byaddr->rdataset);
+	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdata_ptr_t ptr;
-		dns_rdataset_current(&byaddr->rdataset, &rdata);
+		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &ptr, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -158,7 +154,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 			return (ISC_R_NOMEMORY);
 		}
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
-		result = dns_rdataset_next(&byaddr->rdataset);
+		result = dns_rdataset_next(rdataset);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -167,196 +163,22 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 }
 
 static void
-fetch_done(isc_task_t *task, isc_event_t *event) {
+lookup_done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddr_t *byaddr = event->ev_arg;
-	dns_fetchevent_t *fevent;
+	dns_lookupevent_t *levent;
+	isc_result_t result;
 
 	UNUSED(task);
-	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
+	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->task == task);
-	fevent = (dns_fetchevent_t *)event;
-	REQUIRE(fevent->fetch == byaddr->fetch);
+	levent = (dns_lookupevent_t *)event;
 
-	byaddr_find(byaddr, fevent);
-}
-
-static inline isc_result_t
-start_fetch(dns_byaddr_t *byaddr) {
-	isc_result_t result;
-
-	/*
-	 * The caller must be holding the byaddr's lock.
-	 */
-
-	REQUIRE(byaddr->fetch == NULL);
-
-	result = dns_resolver_createfetch(byaddr->view->resolver,
-					  dns_fixedname_name(&byaddr->name),
-					  dns_rdatatype_ptr,
-					  NULL, NULL, NULL, 0,
-					  byaddr->task, fetch_done, byaddr,
-					  &byaddr->rdataset, NULL,
-					  &byaddr->fetch);
-
-	return (result);
-}
-
-static void
-byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
-	isc_result_t result;
-	isc_boolean_t want_restart;
-	isc_boolean_t send_event = ISC_FALSE;
-	isc_event_t *ievent;
-	dns_name_t *name, *fname, *prefix;
-	dns_fixedname_t foundname, fixed;
-	dns_rdata_t rdata;
-	unsigned int nlabels, nbits;
-	int order;
-	dns_namereln_t namereln;
-	dns_rdata_cname_t cname;
-	dns_rdata_dname_t dname;
-
-	REQUIRE(VALID_BYADDR(byaddr));
-
-	LOCK(&byaddr->lock);
-
-	result = ISC_R_SUCCESS;
-	name = dns_fixedname_name(&byaddr->name);
-
-	do {
-		byaddr->restarts++;
-		want_restart = ISC_FALSE;
-
-		if (event == NULL && !byaddr->canceled) {
-			dns_fixedname_init(&foundname);
-			fname = dns_fixedname_name(&foundname);
-			INSIST(!dns_rdataset_isassociated(&byaddr->rdataset));
-			result = dns_view_find(byaddr->view, name,
-					       dns_rdatatype_ptr, 0, 0,
-					       ISC_FALSE, fname,
-					       &byaddr->rdataset, NULL);
-			if (result == ISC_R_NOTFOUND) {
-				/*
-				 * We don't know anything about the name.
-				 * Launch a fetch.
-				 */
-				result = start_fetch(byaddr);
-				if (result != ISC_R_SUCCESS)
-					send_event = ISC_TRUE;
-				goto done;
-			}
-		} else {
-			result = event->result;
-			fname = dns_fixedname_name(&event->foundname);
-			dns_resolver_destroyfetch(&byaddr->fetch);
-			INSIST(event->rdataset == &byaddr->rdataset);
-			INSIST(event->sigrdataset == NULL);
-			/*
-			 * Detach (if necessary) from things we know we
-			 * don't care about.
-			 */
-			if (event->node != NULL)
-				dns_db_detachnode(event->db, &event->node);
-			if (event->db != NULL)
-				dns_db_detach(&event->db);
-		}
-
-		/*
-		 * If we've been canceled, forget about the result.
-		 */
-		if (byaddr->canceled)
-			result = ISC_R_CANCELED;
-
-		switch (result) {
-		case ISC_R_SUCCESS:
-			result = copy_ptr_targets(byaddr);
-			send_event = ISC_TRUE;
-			break;
-		case DNS_R_CNAME:
-			/*
-			 * Copy the CNAME's target into the byaddr's
-			 * query name and start over.
-			 */
-			result = dns_rdataset_first(&byaddr->rdataset);
-			if (result != ISC_R_SUCCESS)
-				break;
-			dns_rdataset_current(&byaddr->rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &cname, NULL);
-			if (result != ISC_R_SUCCESS)
-				break;
-			result = dns_name_concatenate(&cname.cname, NULL, name,
-						      NULL);
-			dns_rdata_freestruct(&cname);
-			if (result == ISC_R_SUCCESS)
-				want_restart = ISC_TRUE;
-			break;
-		case DNS_R_DNAME:
-			namereln = dns_name_fullcompare(name, fname, &order,
-							&nlabels, &nbits);
-			INSIST(namereln == dns_namereln_subdomain);
-			/*
-			 * Get the target name of the DNAME.
-			 */
-			result = dns_rdataset_first(&byaddr->rdataset);
-			if (result != ISC_R_SUCCESS)
-				break;
-			dns_rdataset_current(&byaddr->rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &dname, NULL);
-			if (result != ISC_R_SUCCESS)
-				break;
-			/*
-			 * Construct the new query name and start over.
-			 */
-			dns_fixedname_init(&fixed);
-			prefix = dns_fixedname_name(&fixed);
-			result = dns_name_split(name, nlabels, nbits, prefix,
-						NULL);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdata_freestruct(&dname);
-				break;
-			}
-			result = dns_name_concatenate(prefix, &dname.dname,
-						      name, NULL);
-			dns_rdata_freestruct(&dname);
-			if (result == ISC_R_SUCCESS)
-				want_restart = ISC_TRUE;
-			break;
-		default:
-			send_event = ISC_TRUE;
-		}
-
-	done:
-		if (dns_rdataset_isassociated(&byaddr->rdataset))
-			dns_rdataset_disassociate(&byaddr->rdataset);
-
-		if (event != NULL) {
-			ievent = (isc_event_t *)event;
-			isc_event_free(&ievent);
-			event = NULL;
-		}
-
-		/*
-		 * Limit the number of restarts.
-		 */
-		if (want_restart && byaddr->restarts == MAX_RESTARTS) {
-			want_restart = ISC_FALSE;
-			result = ISC_R_QUOTA;
-			send_event = ISC_TRUE;
-		}
-
-	} while (want_restart);
-
-	if (send_event) {
-		byaddr->event->result = result;
-		byaddr->event->ev_sender = byaddr;
-		ievent = (isc_event_t *)byaddr->event;
-		byaddr->event = NULL;
-		isc_task_sendanddetach(&byaddr->task, &ievent);
-		dns_view_detach(&byaddr->view);
-	}
-
-	UNLOCK(&byaddr->lock);
+	if (levent->result == ISC_R_SUCCESS)
+		result = copy_ptr_targets(byaddr, levent->rdataset);
+	byaddr->event->result = levent->result;
+	isc_event_free(&event);
+	isc_task_sendanddetach(&byaddr->task, (isc_event_t **)&byaddr->event);
 }
 
 static void
@@ -420,17 +242,17 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
-	byaddr->view = NULL;
-	dns_view_attach(view, &byaddr->view);
-	byaddr->fetch = NULL;
-	byaddr->restarts = 0;
+	byaddr->lookup = NULL;
+	result = dns_lookup_create(mctx, dns_fixedname_name(&byaddr->name),
+				   dns_rdatatype_ptr, view, 0, task,
+				   lookup_done, byaddr, &byaddr->lookup);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_lock;
+
 	byaddr->canceled = ISC_FALSE;
-	dns_rdataset_init(&byaddr->rdataset);
 	byaddr->magic = BYADDR_MAGIC;
 
 	*byaddrp = byaddr;
-
-	byaddr_find(byaddr, NULL);
 
 	return (ISC_R_SUCCESS);
 
@@ -458,10 +280,8 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr) {
 
 	if (!byaddr->canceled) {
 		byaddr->canceled = ISC_TRUE;
-		if (byaddr->fetch != NULL) {
-			INSIST(byaddr->view != NULL);
-			dns_resolver_cancelfetch(byaddr->fetch);
-		}
+		if (byaddr->lookup != NULL)
+			dns_lookup_cancel(byaddr->lookup);
 	}
 
 	UNLOCK(&byaddr->lock);
@@ -476,7 +296,7 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp) {
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->event == NULL);
 	REQUIRE(byaddr->task == NULL);
-	REQUIRE(byaddr->view == NULL);
+	dns_lookup_destroy(&byaddr->lookup);
 
 	DESTROYLOCK(&byaddr->lock);
 	byaddr->magic = 0;
