@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.109 2000/09/26 19:37:06 gson Exp $ */
+/* $Id: rdata.c,v 1.110 2000/10/19 05:50:53 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -325,6 +325,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
 	rdata->length = 0;
 	rdata->rdclass = 0;
 	rdata->type = 0;
+	rdata->flags = 0;
 	ISC_LINK_INIT(rdata, link);
 	/* ISC_LIST_INIT(rdata->list); */
 }

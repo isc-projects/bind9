@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.41 2000/09/06 03:25:23 marka Exp $ */
+/* $Id: rdata.h,v 1.42 2000/10/19 05:50:54 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -121,8 +121,11 @@ struct dns_rdata {
 	unsigned int			length;
 	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
+	unsigned int			flags;
 	ISC_LINK(dns_rdata_t)		link;
 };
+
+#define DNS_RDATA_UPDATE	0x0001		/* update pseudo record */
 
 /*
  * Flags affecting rdata formatting style.  Flags 0xFFFF0000
