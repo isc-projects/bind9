@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.79 2000/09/12 09:57:32 bwelling Exp $ */
+/* $Id: validator.c,v 1.80 2000/09/12 10:21:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1114,6 +1114,16 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (sigrdataset == NULL)
 				continue;
 			val->seensig = ISC_TRUE;
+			/*
+			 * If a signed zone is missing the zone key, bad
+			 * things could happen.  A query for data in the zone
+			 * would lead to a query for the zone key, which
+			 * would return a negative answer, which would contain
+			 * an SOA and an NXT signed by the missing key, which
+			 * would trigger another query for the KEY (since the
+			 * first one is still in progress), and go into an
+			 * infinite loop.  Avoid that.
+			 */
 			if (val->event->type == dns_rdatatype_key &&
 			    dns_name_equal(name, val->event->name))
 			{
