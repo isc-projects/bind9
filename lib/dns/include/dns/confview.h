@@ -128,14 +128,14 @@ struct dns_c_view {
         isc_sockaddr_t         *transfer_source;
         isc_sockaddr_t         *transfer_source_v6;
 
-        isc_int32_t            *max_transfer_time_out;
-        isc_int32_t            *max_transfer_idle_out;
-        isc_int32_t            *clean_interval;
-        isc_int32_t            *min_roots;
-        isc_int32_t            *lamettl;
-        isc_int32_t            *max_ncache_ttl;
-        isc_int32_t            *max_cache_ttl;
-        isc_int32_t            *sig_valid_interval;
+        isc_uint32_t            *max_transfer_time_out;
+        isc_uint32_t            *max_transfer_idle_out;
+        isc_uint32_t            *clean_interval;
+        isc_uint32_t            *min_roots;
+        isc_uint32_t            *lamettl;
+        isc_uint32_t            *max_ncache_ttl;
+        isc_uint32_t            *max_cache_ttl;
+        isc_uint32_t            *sig_valid_interval;
 
         dns_c_addata_t         *additional_data;
         dns_transfer_format_t  *transfer_format;
@@ -149,10 +149,10 @@ struct dns_c_view {
         /*
          * To implement later.
          */
-        isc_int32_t            *max_transfer_time_in;
-        isc_int32_t            *max_transfer_idle_in;
-        isc_int32_t            *transfers_per_ns;
-        isc_int32_t            *serial_queries;
+        isc_uint32_t            *max_transfer_time_in;
+        isc_uint32_t            *max_transfer_idle_in;
+        isc_uint32_t            *transfers_per_ns;
+        isc_uint32_t            *serial_queries;
 
 #endif
 
@@ -380,61 +380,61 @@ isc_result_t dns_c_view_unsetquerysourcev6(dns_c_view_t *view);
 
 
 isc_result_t dns_c_view_getmaxtransferidleout(dns_c_view_t *view,
-					      isc_int32_t *retval);
+					      isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxtransferidleout(dns_c_view_t *view,
-					      isc_int32_t newval);
+					      isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxtransferidleout(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getmaxtransfertimeout(dns_c_view_t *view,
-					      isc_int32_t *retval);
+					      isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxtransfertimeout(dns_c_view_t *view,
-					      isc_int32_t newval);
+					      isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxtransfertimeout(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getcleaninterval(dns_c_view_t *view,
-					 isc_int32_t *retval);
+					 isc_uint32_t *retval);
 isc_result_t dns_c_view_setcleaninterval(dns_c_view_t *view,
-					 isc_int32_t newval);
+					 isc_uint32_t newval);
 isc_result_t dns_c_view_unsetcleaninterval(dns_c_view_t *view);
 
 
 
-isc_result_t dns_c_view_getminroots(dns_c_view_t *view, isc_int32_t *retval);
-isc_result_t dns_c_view_setminroots(dns_c_view_t *view, isc_int32_t newval);
+isc_result_t dns_c_view_getminroots(dns_c_view_t *view, isc_uint32_t *retval);
+isc_result_t dns_c_view_setminroots(dns_c_view_t *view, isc_uint32_t newval);
 isc_result_t dns_c_view_unsetminroots(dns_c_view_t *view);
 
 
 
-isc_result_t dns_c_view_getlamettl(dns_c_view_t *view, isc_int32_t *retval);
-isc_result_t dns_c_view_setlamettl(dns_c_view_t *view, isc_int32_t newval);
+isc_result_t dns_c_view_getlamettl(dns_c_view_t *view, isc_uint32_t *retval);
+isc_result_t dns_c_view_setlamettl(dns_c_view_t *view, isc_uint32_t newval);
 isc_result_t dns_c_view_unsetlamettl(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getmaxncachettl(dns_c_view_t *view,
-					isc_int32_t *retval);
+					isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxncachettl(dns_c_view_t *view,
-					isc_int32_t newval);
+					isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxncachettl(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getmaxcachettl(dns_c_view_t *view,
-				       isc_int32_t *retval);
+				       isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxcachettl(dns_c_view_t *view,
-				       isc_int32_t newval);
+				       isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxcachettl(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getsigvalidityinterval(dns_c_view_t *view,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 isc_result_t dns_c_view_setsigvalidityinterval(dns_c_view_t *view,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_view_unsetsigvalidityinterval(dns_c_view_t *view);
 
 
@@ -501,33 +501,33 @@ isc_result_t dns_c_view_settrustedkeys(dns_c_view_t *view,
  */
 
 isc_result_t dns_c_view_getmaxtransfertimein(dns_c_view_t *view,
-					     isc_int32_t *retval);
+					     isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxtransfertimein(dns_c_view_t *view,
-					     isc_int32_t newval);
+					     isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxtransfertimein(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getmaxtransferidlein(dns_c_view_t *view,
-					     isc_int32_t *retval);
+					     isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxtransferidlein(dns_c_view_t *view,
-					     isc_int32_t newval);
+					     isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxtransferidlein(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_gettransfersperns(dns_c_view_t *view,
-					  isc_int32_t *retval);
+					  isc_uint32_t *retval);
 isc_result_t dns_c_view_settransfersperns(dns_c_view_t *view,
-					  isc_int32_t newval);
+					  isc_uint32_t newval);
 isc_result_t dns_c_view_unsettransfersperns(dns_c_view_t *view);
 
 
 
 isc_result_t dns_c_view_getserialqueries(dns_c_view_t *view,
-					 isc_int32_t *retval);
+					 isc_uint32_t *retval);
 isc_result_t dns_c_view_setserialqueries(dns_c_view_t *view,
-					 isc_int32_t newval);
+					 isc_uint32_t newval);
 isc_result_t dns_c_view_unsetserialqueries(dns_c_view_t *view);
 
 #endif

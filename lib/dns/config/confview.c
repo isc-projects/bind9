@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.32 2000/06/04 19:51:17 brister Exp $ */
+/* $Id: confview.c,v 1.33 2000/06/05 09:17:08 brister Exp $ */
 
 #include <config.h>
 
@@ -43,9 +43,9 @@
 #define GETBOOL(FUNC, FIELD) GETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define UNSETBOOL(FUNC, FIELD) UNSETBYTYPE(isc_boolean_t, FUNC, FIELD)
 
-#define SETINT32(FUNC, FIELD) SETBYTYPE(isc_int32_t, FUNC, FIELD)
-#define GETINT32(FUNC, FIELD) GETBYTYPE(isc_int32_t, FUNC, FIELD)
-#define UNSETINT32(FUNC, FIELD) UNSETBYTYPE(isc_int32_t, FUNC, FIELD)
+#define SETUINT32(FUNC, FIELD) SETBYTYPE(isc_uint32_t, FUNC, FIELD)
+#define GETUINT32(FUNC, FIELD) GETBYTYPE(isc_uint32_t, FUNC, FIELD)
+#define UNSETUINT32(FUNC, FIELD) UNSETBYTYPE(isc_uint32_t, FUNC, FIELD)
 
 #define SETSOCKADDR(FUNC, FIELD) SETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
 #define GETSOCKADDR(FUNC, FIELD) GETBYTYPE(isc_sockaddr_t, FUNC, FIELD)
@@ -336,7 +336,7 @@ isc_result_t
 dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	dns_c_view_t *elem;
 	isc_boolean_t bbval;
-	isc_int32_t bival;
+	isc_uint32_t buival;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_rrsolist_t *boval;
 	
@@ -370,25 +370,25 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 				      "view 'rfc2308-type1' is not yet "
 				      "implemented");
 
-		if (dns_c_view_getmaxncachettl(elem, &bival) != ISC_R_NOTFOUND)
+		if (dns_c_view_getmaxncachettl(elem,&buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'max-ncache-ttl' is not yet "
 				      "implemented");
 
-		if (dns_c_view_getmaxcachettl(elem, &bival) != ISC_R_NOTFOUND)
+		if (dns_c_view_getmaxcachettl(elem, &buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'max-cache-ttl' is not yet "
 				      "implemented");
 
-		if (dns_c_view_getlamettl(elem, &bival) != ISC_R_NOTFOUND)
+		if (dns_c_view_getlamettl(elem, &buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'lame-ttl' is not yet "
 				      "implemented");
 
-		if (dns_c_view_getminroots(elem, &bival) != ISC_R_NOTFOUND)
+		if (dns_c_view_getminroots(elem, &buival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'min-roots' is not yet "
@@ -1463,38 +1463,38 @@ GETSOCKADDR(querysourcev6, query_source_v6)
 SETSOCKADDR(querysourcev6, query_source_v6)
 UNSETSOCKADDR(querysourcev6, query_source_v6)
 
-SETINT32(maxtransfertimeout, max_transfer_time_out)
-GETINT32(maxtransfertimeout, max_transfer_time_out)
-UNSETINT32(maxtransfertimeout, max_transfer_time_out)
+SETUINT32(maxtransfertimeout, max_transfer_time_out)
+GETUINT32(maxtransfertimeout, max_transfer_time_out)
+UNSETUINT32(maxtransfertimeout, max_transfer_time_out)
 
-SETINT32(maxtransferidleout, max_transfer_idle_out)
-GETINT32(maxtransferidleout, max_transfer_idle_out)
-UNSETINT32(maxtransferidleout, max_transfer_idle_out)
+SETUINT32(maxtransferidleout, max_transfer_idle_out)
+GETUINT32(maxtransferidleout, max_transfer_idle_out)
+UNSETUINT32(maxtransferidleout, max_transfer_idle_out)
 
-SETINT32(cleaninterval, clean_interval)
-GETINT32(cleaninterval, clean_interval)
-UNSETINT32(cleaninterval, clean_interval)
+SETUINT32(cleaninterval, clean_interval)
+GETUINT32(cleaninterval, clean_interval)
+UNSETUINT32(cleaninterval, clean_interval)
 
-SETINT32(minroots, min_roots)
-GETINT32(minroots, min_roots)
-UNSETINT32(minroots, min_roots)
+SETUINT32(minroots, min_roots)
+GETUINT32(minroots, min_roots)
+UNSETUINT32(minroots, min_roots)
 
-SETINT32(lamettl, lamettl)
-GETINT32(lamettl, lamettl)
-UNSETINT32(lamettl, lamettl)
+SETUINT32(lamettl, lamettl)
+GETUINT32(lamettl, lamettl)
+UNSETUINT32(lamettl, lamettl)
 
-SETINT32(maxncachettl, max_ncache_ttl)
-GETINT32(maxncachettl, max_ncache_ttl)
-UNSETINT32(maxncachettl, max_ncache_ttl)
+SETUINT32(maxncachettl, max_ncache_ttl)
+GETUINT32(maxncachettl, max_ncache_ttl)
+UNSETUINT32(maxncachettl, max_ncache_ttl)
 
-SETINT32(maxcachettl, max_cache_ttl)
-GETINT32(maxcachettl, max_cache_ttl)
-UNSETINT32(maxcachettl, max_cache_ttl)
+SETUINT32(maxcachettl, max_cache_ttl)
+GETUINT32(maxcachettl, max_cache_ttl)
+UNSETUINT32(maxcachettl, max_cache_ttl)
 
 
-SETINT32(sigvalidityinterval, sig_valid_interval)
-GETINT32(sigvalidityinterval, sig_valid_interval)
-UNSETINT32(sigvalidityinterval, sig_valid_interval)
+SETUINT32(sigvalidityinterval, sig_valid_interval)
+GETUINT32(sigvalidityinterval, sig_valid_interval)
+UNSETUINT32(sigvalidityinterval, sig_valid_interval)
 
 
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
@@ -1511,21 +1511,21 @@ UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 /*
  * XXX waiting for implementation in server to turn these on.
  */
-SETINT32(maxtransfertimein, max_transfer_time_in)
-GETINT32(maxtransfertimein, max_transfer_time_in)
-UNSETINT32(maxtransfertimein, max_transfer_time_in)
+SETUINT32(maxtransfertimein, max_transfer_time_in)
+GETUINT32(maxtransfertimein, max_transfer_time_in)
+UNSETUINT32(maxtransfertimein, max_transfer_time_in)
 
-SETINT32(maxtransferidlein, max_transfer_idle_in)
-GETINT32(maxtransferidlein, max_transfer_idle_in)
-UNSETINT32(maxtransferidlein, max_transfer_idle_in)
+SETUINT32(maxtransferidlein, max_transfer_idle_in)
+GETUINT32(maxtransferidlein, max_transfer_idle_in)
+UNSETUINT32(maxtransferidlein, max_transfer_idle_in)
 
-SETINT32(transfersperns, transfers_per_ns)
-GETINT32(transfersperns, transfers_per_ns)
-UNSETINT32(transfersperns, transfers_per_ns)
+SETUINT32(transfersperns, transfers_per_ns)
+GETUINT32(transfersperns, transfers_per_ns)
+UNSETUINT32(transfersperns, transfers_per_ns)
 
-SETINT32(serialqueries, serial_queries)
-GETINT32(serialqueries, serial_queries)
-UNSETINT32(serialqueries, serial_queries)
+SETUINT32(serialqueries, serial_queries)
+GETUINT32(serialqueries, serial_queries)
+UNSETUINT32(serialqueries, serial_queries)
 
 #endif
 

@@ -118,25 +118,25 @@ struct dns_c_options {
 
 	in_port_t 	       *port;
 
-	isc_int32_t	       *transfers_in; 
-	isc_int32_t	       *transfers_per_ns;
-	isc_int32_t	       *transfers_out; 
-	isc_int32_t	       *max_log_size_ixfr;
-	isc_int32_t	       *clean_interval;
-	isc_int32_t	       *interface_interval;
-	isc_int32_t	       *stats_interval;
-	isc_int32_t	       *heartbeat_interval;
+	isc_uint32_t	       *transfers_in; 
+	isc_uint32_t	       *transfers_per_ns;
+	isc_uint32_t	       *transfers_out; 
+	isc_uint32_t	       *max_log_size_ixfr;
+	isc_uint32_t	       *clean_interval;
+	isc_uint32_t	       *interface_interval;
+	isc_uint32_t	       *stats_interval;
+	isc_uint32_t	       *heartbeat_interval;
 
-	isc_int32_t	       *max_transfer_time_in;
-	isc_int32_t	       *max_transfer_time_out;
-	isc_int32_t	       *max_transfer_idle_in;
-	isc_int32_t	       *max_transfer_idle_out;
-	isc_int32_t	       *lamettl;
-	isc_int32_t	       *tcp_clients;
-	isc_int32_t	       *recursive_clients;
-	isc_int32_t	       *min_roots;
-	isc_int32_t	       *serial_queries;
-	isc_int32_t	       *sig_valid_interval;
+	isc_uint32_t	       *max_transfer_time_in;
+	isc_uint32_t	       *max_transfer_time_out;
+	isc_uint32_t	       *max_transfer_idle_in;
+	isc_uint32_t	       *max_transfer_idle_out;
+	isc_uint32_t	       *lamettl;
+	isc_uint32_t	       *tcp_clients;
+	isc_uint32_t	       *recursive_clients;
+	isc_uint32_t	       *min_roots;
+	isc_uint32_t	       *serial_queries;
+	isc_uint32_t	       *sig_valid_interval;
 	
 	isc_uint32_t	       *data_size;
 	isc_uint32_t	       *stack_size;
@@ -174,7 +174,7 @@ struct dns_c_options {
 	dns_c_forw_t	       *forward;
 
 	char 		       *tkeydhkeycp;
-	isc_int32_t		tkeydhkeyi;
+	isc_uint32_t		tkeydhkeyi;
 	char 		       *tkeydomain;
 	
 	dns_c_iplist_t	       *also_notify;
@@ -314,113 +314,113 @@ isc_result_t dns_c_ctx_getport(dns_c_ctx_t *cfg, in_port_t *retval);
 isc_result_t dns_c_ctx_unsetport(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_settransfersin(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_gettransfersin(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsettransfersin(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_settransfersperns(dns_c_ctx_t *cfg,
-					 isc_int32_t newval);
+					 isc_uint32_t newval);
 isc_result_t dns_c_ctx_gettransfersperns(dns_c_ctx_t *cfg,
-					 isc_int32_t *retval);
+					 isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsettransfersperns(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_settransfersout(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_settransfersout(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_gettransfersout(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsettransfersout(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxlogsizeixfr(dns_c_ctx_t *cfg,
-					 isc_int32_t newval);
+					 isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxlogsizeixfr(dns_c_ctx_t *cfg,
-					 isc_int32_t *retval);
+					 isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxlogsizeixfr(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_setcleaninterval(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getcleaninterval(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetcleaninterval(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setinterfaceinterval(dns_c_ctx_t *cfg,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_ctx_getinterfaceinterval(dns_c_ctx_t *cfg,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetinterfaceinterval(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_setstatsinterval(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetstatsinterval(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setheartbeatinterval(dns_c_ctx_t *cfg,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetheartbeatinterval(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxtransfertimein(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxtransfertimeout(dns_c_ctx_t *cfg,
-					     isc_int32_t newval);
+					     isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxtransfertimeout(dns_c_ctx_t *cfg,
-					     isc_int32_t *retval);
+					     isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxtransfertimeout(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxtransferidlein(dns_c_ctx_t *cfg,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxtransferidlein(dns_c_ctx_t *cfg,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxtransferidlein(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxtransferidleout(dns_c_ctx_t *cfg,
-					     isc_int32_t newval);
+					     isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxtransferidleout(dns_c_ctx_t *cfg,
-					     isc_int32_t *retval);
+					     isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxtransferidleout(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setlamettl(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_getlamettl(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_setlamettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getlamettl(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetlamettl(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_settcpclients(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_gettcpclients(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_settcpclients(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_gettcpclients(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsettcpclients(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setrecursiveclients(dns_c_ctx_t *cfg,
-					   isc_int32_t newval);
+					   isc_uint32_t newval);
 isc_result_t dns_c_ctx_getrecursiveclients(dns_c_ctx_t *cfg,
-					   isc_int32_t *retval);
+					   isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetrecursiveclients(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setminroots(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_getminroots(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_setminroots(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getminroots(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetminroots(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setserialqueries(dns_c_ctx_t *cfg, isc_int32_t newval);
-isc_result_t dns_c_ctx_getserialqueries(dns_c_ctx_t *cfg, isc_int32_t *retval);
+isc_result_t dns_c_ctx_setserialqueries(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getserialqueries(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetserialqueries(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setsigvalidityinterval(dns_c_ctx_t *cfg,
-					   isc_int32_t newval);
+					   isc_uint32_t newval);
 isc_result_t dns_c_ctx_getsigvalidityinterval(dns_c_ctx_t *cfg,
-					   isc_int32_t *retval);
+					   isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetsigvalidityinterval(dns_c_ctx_t *cfg);
 
 
@@ -605,9 +605,9 @@ isc_result_t dns_c_ctx_unsetforward(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_settkeydhkey(dns_c_ctx_t *cfg, const char *newcpval,
-				    isc_int32_t newival);
+				    isc_uint32_t newival);
 isc_result_t dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg, char **retcpval,
-				    isc_int32_t *retival);
+				    isc_uint32_t *retival);
 /* XXX need unset version */
 
 

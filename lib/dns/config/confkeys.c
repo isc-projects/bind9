@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.22 2000/05/08 19:23:28 tale Exp $ */
+/* $Id: confkeys.c,v 1.23 2000/06/05 09:17:07 brister Exp $ */
 
 #include <config.h>
 
@@ -695,8 +695,8 @@ dns_c_pklist_addpubkey(dns_c_pklist_t *list,
 
 isc_result_t
 dns_c_pklist_findpubkey(dns_c_pklist_t *list,
-			dns_c_pubkey_t **pubkey, isc_int32_t flags,
-			isc_int32_t protocol, isc_int32_t algorithm,
+			dns_c_pubkey_t **pubkey, isc_uint32_t flags,
+			isc_uint32_t protocol, isc_uint32_t algorithm,
 			const char *key)
 {
 	dns_c_pubkey_t *pk;
@@ -725,8 +725,8 @@ dns_c_pklist_findpubkey(dns_c_pklist_t *list,
 
 isc_result_t
 dns_c_pklist_rmpubkey(dns_c_pklist_t *list,
-		      isc_int32_t flags,
-		      isc_int32_t protocol, isc_int32_t algorithm,
+		      isc_uint32_t flags,
+		      isc_uint32_t protocol, isc_uint32_t algorithm,
 		      const char *key)
 {
 	dns_c_pubkey_t *pk;
@@ -749,9 +749,9 @@ dns_c_pklist_rmpubkey(dns_c_pklist_t *list,
 
 
 isc_result_t
-dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags,
-		 isc_int32_t protocol,
-		 isc_int32_t algorithm,
+dns_c_pubkey_new(isc_mem_t *mem, isc_uint32_t flags,
+		 isc_uint32_t protocol,
+		 isc_uint32_t algorithm,
 		 const char *key, dns_c_pubkey_t **pubkey)
 {
 	dns_c_pubkey_t *pkey;
@@ -996,8 +996,8 @@ dns_c_tkeylist_append(dns_c_tkeylist_t *list, dns_c_tkey_t *element,
 
 
 isc_result_t
-dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_int32_t flags,
-	       isc_int32_t protocol, isc_int32_t algorithm,
+dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_uint32_t flags,
+	       isc_uint32_t protocol, isc_uint32_t algorithm,
 	       const char *key, dns_c_tkey_t **newkey)
 {
 	dns_c_tkey_t *newk;
@@ -1107,7 +1107,7 @@ dns_c_tkey_copy(isc_mem_t *mem, dns_c_tkey_t **dest, dns_c_tkey_t *src)
 
 
 isc_result_t
-dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_int32_t *flags)
+dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_uint32_t *flags)
 {
 	REQUIRE(DNS_C_TKEY_VALID(tkey));
 
@@ -1118,7 +1118,7 @@ dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_int32_t *flags)
 
 
 isc_result_t
-dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_int32_t *protocol)
+dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_uint32_t *protocol)
 {
 	REQUIRE(DNS_C_TKEY_VALID(tkey));
 
@@ -1129,7 +1129,7 @@ dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_int32_t *protocol)
 
 
 isc_result_t
-dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey, isc_int32_t *algorithm)
+dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey, isc_uint32_t *algorithm)
 {
 	REQUIRE(DNS_C_TKEY_VALID(tkey));
 

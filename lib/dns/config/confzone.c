@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.46 2000/06/04 19:51:18 brister Exp $ */
+/* $Id: confzone.c,v 1.47 2000/06/05 09:17:09 brister Exp $ */
 
 #include <config.h>
 
@@ -2502,7 +2502,7 @@ dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone, isc_sockaddr_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2555,7 +2555,7 @@ dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2613,7 +2613,7 @@ dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2666,7 +2666,7 @@ dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2724,7 +2724,7 @@ dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2777,7 +2777,7 @@ dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2835,7 +2835,7 @@ dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2888,7 +2888,7 @@ dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2947,7 +2947,7 @@ dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone, isc_uint32_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -2999,7 +2999,7 @@ dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -3055,9 +3055,9 @@ dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone, isc_int32_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone, isc_int32_t newval) {
+dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone, isc_uint32_t newval) {
 	dns_c_setbits_t *bits = NULL;
-	isc_int32_t *p = NULL;
+	isc_uint32_t *p = NULL;
 	int bit = 0;
 	isc_result_t res;
 	
@@ -3114,12 +3114,11 @@ dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone, isc_int32_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone, isc_int32_t *retval) {
+dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	isc_result_t res;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
-	isc_int32_t *ptr = NULL;
-	
+	isc_uint32_t *ptr = NULL;
 
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);

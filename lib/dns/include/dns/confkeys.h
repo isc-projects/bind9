@@ -121,9 +121,9 @@ struct dns_c_tkey_list {
 struct dns_c_pubkey {
 	isc_uint32_t	magic;
 	isc_mem_t      *mem;
-	isc_int32_t	flags;
-	isc_int32_t	protocol;
-	isc_int32_t	algorithm;
+	isc_uint32_t	flags;
+	isc_uint32_t	protocol;
+	isc_uint32_t	algorithm;
 	char	       *key;
 
 	ISC_LINK(dns_c_pubkey_t)	next;
@@ -205,20 +205,20 @@ dns_c_pklist_addpubkey(dns_c_pklist_t *list, dns_c_pubkey_t *pkey,
 
 isc_result_t
 dns_c_pklist_findpubkey(dns_c_pklist_t *list, dns_c_pubkey_t **pubkey,
-			isc_int32_t flags, isc_int32_t protocol,
-			isc_int32_t algorithm, const char *key);
+			isc_uint32_t flags, isc_uint32_t protocol,
+			isc_uint32_t algorithm, const char *key);
 
 isc_result_t
-dns_c_pklist_rmpubkey(dns_c_pklist_t *list, isc_int32_t flags,
-		      isc_int32_t protocol, isc_int32_t algorithm,
+dns_c_pklist_rmpubkey(dns_c_pklist_t *list, isc_uint32_t flags,
+		      isc_uint32_t protocol, isc_uint32_t algorithm,
 		      const char *key);
 
 void
 dns_c_pklist_print(FILE *fp, int indent, dns_c_pklist_t *pubkey);
 
 isc_result_t
-dns_c_pubkey_new(isc_mem_t *mem, isc_int32_t flags, isc_int32_t protocol,
-		 isc_int32_t algorithm, const char *key,
+dns_c_pubkey_new(isc_mem_t *mem, isc_uint32_t flags, isc_uint32_t protocol,
+		 isc_uint32_t algorithm, const char *key,
 		 dns_c_pubkey_t **pubkey);
 
 isc_result_t
@@ -315,8 +315,8 @@ dns_c_tkeylist_append(dns_c_tkeylist_t *list, dns_c_tkey_t *element,
 		      isc_boolean_t copy);
 
 isc_result_t
-dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_int32_t flags,
-	       isc_int32_t protocol, isc_int32_t algorithm,
+dns_c_tkey_new(isc_mem_t *mem, const char *domain, isc_uint32_t flags,
+	       isc_uint32_t protocol, isc_uint32_t algorithm,
 	       const char *key, dns_c_tkey_t **newkey);
 
 isc_result_t
@@ -326,13 +326,13 @@ isc_result_t
 dns_c_tkey_copy(isc_mem_t *mem, dns_c_tkey_t **dest, dns_c_tkey_t *src);
 
 isc_result_t
-dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_int32_t *flags);
+dns_c_tkey_getflags(dns_c_tkey_t *tkey, isc_uint32_t *flags);
 
 isc_result_t
-dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_int32_t *protocol);
+dns_c_tkey_getprotocol(dns_c_tkey_t *tkey, isc_uint32_t *protocol);
 
 isc_result_t
-dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey, isc_int32_t *algorithm);
+dns_c_tkey_getalgorithm(dns_c_tkey_t *tkey, isc_uint32_t *algorithm);
 
 isc_result_t
 dns_c_tkey_getkey(dns_c_tkey_t *tkey, const char **key);

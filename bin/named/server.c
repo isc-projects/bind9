@@ -388,7 +388,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 {
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
-	isc_int32_t cleaning_interval;
+	isc_uint32_t cleaning_interval;
 	dns_tsig_keyring_t *ring;
 	dns_c_forw_t forward;
 	dns_c_iplist_t *forwarders;
@@ -628,7 +628,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 				  &view->secroots));
 
 	{
-		isc_int32_t val;
+		isc_uint32_t val;
 		result = ISC_R_NOTFOUND;
 		if (cview != NULL)
 			result = dns_c_view_getmaxcachettl(cview, &val);
@@ -639,7 +639,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		view->maxcachettl = val;
 	}
 	{
-		isc_int32_t val;
+		isc_uint32_t val;
 		result = ISC_R_NOTFOUND;
 		if (cview != NULL)
 			result = dns_c_view_getmaxncachettl(cview, &val);
@@ -1026,10 +1026,10 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
  */
 static void
 configure_server_quota(dns_c_ctx_t *cctx,
-		       isc_result_t (*getquota)(dns_c_ctx_t *, isc_int32_t *),
+		       isc_result_t (*getquota)(dns_c_ctx_t *, isc_uint32_t *),
 		       isc_quota_t *quota, int defaultvalue)
 {
-	isc_int32_t val = defaultvalue;
+	isc_uint32_t val = defaultvalue;
 	(void)(*getquota)(cctx, &val);
 	quota->max = val;
 }
@@ -1101,7 +1101,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_dispatch_t *dispatchv4 = NULL;
 	dns_dispatch_t *dispatchv6 = NULL;
 	char *pidfilename;
-	isc_int32_t interface_interval;
+	isc_uint32_t interface_interval;
 	
 	dns_aclconfctx_init(&aclconfctx);
 
@@ -1144,12 +1144,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Configure the zone manager.
 	 */
 	{
- 		isc_int32_t transfersin = 10;
+ 		isc_uint32_t transfersin = 10;
 		(void) dns_c_ctx_gettransfersin(cctx, &transfersin);
 		dns_zonemgr_settransfersin(server->zonemgr, transfersin);
 	}
 	{
- 		isc_int32_t transfersperns = 2;
+ 		isc_uint32_t transfersperns = 2;
 		(void) dns_c_ctx_gettransfersperns(cctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
 	}

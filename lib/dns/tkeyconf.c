@@ -40,7 +40,7 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
 	isc_result_t result;
 	dns_tkey_ctx_t *tctx = NULL;
 	char *s;
-	int n;
+	isc_uint32_t n;
 	isc_buffer_t b, namebuf;
 	unsigned char data[1024];
 	dns_name_t domain, keyname;

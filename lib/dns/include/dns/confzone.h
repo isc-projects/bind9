@@ -109,12 +109,12 @@ struct dns_c_master_zone {
 	dns_c_iplist_t	       *also_notify;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
-	isc_int32_t		max_ixfr_log;
+	isc_uint32_t		max_ixfr_log;
 	isc_boolean_t		maint_ixfr_base;
 	dns_c_pklist_t	       *pubkeylist;
-	isc_int32_t		max_trans_time_out;
-	isc_int32_t		max_trans_idle_out;
-	isc_int32_t		sig_valid_interval;
+	isc_uint32_t		max_trans_time_out;
+	isc_uint32_t		max_trans_idle_out;
+	isc_uint32_t		sig_valid_interval;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -135,16 +135,16 @@ struct dns_c_slave_zone {
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
 	isc_boolean_t		maint_ixfr_base;
-	isc_int32_t		max_ixfr_log;
+	isc_uint32_t		max_ixfr_log;
 	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source;
 	isc_sockaddr_t		transfer_source_v6;
-	isc_int32_t		max_trans_time_in;
-	isc_int32_t		max_trans_time_out;
-	isc_int32_t		max_trans_idle_in;
-	isc_int32_t		max_trans_idle_out;
+	isc_uint32_t		max_trans_time_in;
+	isc_uint32_t		max_trans_time_out;
+	isc_uint32_t		max_trans_idle_in;
+	isc_uint32_t		max_trans_idle_out;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -165,8 +165,8 @@ struct dns_c_stub_zone {
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
 	isc_sockaddr_t		transfer_source_v6; 
-	isc_int32_t		max_trans_time_in;
-	isc_int32_t		max_trans_idle_in;
+	isc_uint32_t		max_trans_time_in;
+	isc_uint32_t		max_trans_idle_in;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -359,40 +359,42 @@ isc_result_t dns_c_zone_gettransfersourcev6(dns_c_zone_t *zone,
 
 
 isc_result_t dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
-					  isc_int32_t newval);
+					  isc_uint32_t newval);
 isc_result_t dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
-					  isc_int32_t *retval);
+					  isc_uint32_t *retval);
 
 
 isc_result_t dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
-					   isc_int32_t newval);
+					   isc_uint32_t newval);
 isc_result_t dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
-					   isc_int32_t *retval);
+					   isc_uint32_t *retval);
 
 
 
 
 
 isc_result_t dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone,
-					  isc_int32_t newval);
+					  isc_uint32_t newval);
 isc_result_t dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone,
-					  isc_int32_t *retval);
+					  isc_uint32_t *retval);
 
 
 isc_result_t dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
-					   isc_int32_t newval);
+					   isc_uint32_t newval);
 isc_result_t dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
-					   isc_int32_t *retval);
+					   isc_uint32_t *retval);
 
 
 isc_result_t dns_c_zone_setsigvalidityinterval(dns_c_zone_t *zone,
-					    isc_int32_t newval);
+					    isc_uint32_t newval);
 isc_result_t dns_c_zone_getsigvalidityinterval(dns_c_zone_t *zone,
-					    isc_int32_t *retval);
+					    isc_uint32_t *retval);
 
 
-isc_result_t dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone, isc_int32_t newval);
-isc_result_t dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone, isc_int32_t *retval);
+isc_result_t dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
+				      isc_uint32_t newval);
+isc_result_t dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
+				      isc_uint32_t *retval);
 
 
 isc_result_t dns_c_zone_setforward(dns_c_zone_t *zone,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.60 2000/06/04 19:51:13 brister Exp $ */
+/* $Id: confctx.c,v 1.61 2000/06/05 09:17:05 brister Exp $ */
 
 #include <config.h>
 
@@ -223,7 +223,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_boolean_t 		bval;
 	char     	       *cpval;
 	dns_severity_t	severity;
-	isc_int32_t		intval;
 	isc_uint32_t		uintval;
 	dns_c_ipmatchlist_t    *ipml;
 	isc_result_t 		result = ISC_R_SUCCESS;
@@ -352,7 +351,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (dns_c_ctx_getlamettl(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getlamettl(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'lame-ttl' is not yet "
@@ -376,7 +375,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getminroots(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getminroots(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'min-roots' is not yet "
@@ -384,7 +383,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getserialqueries(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getserialqueries(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'serial-queries' is not yet "
@@ -392,7 +391,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ixfr-log-size' is not yet "
@@ -432,7 +431,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
-	if (dns_c_ctx_getheartbeatinterval(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getheartbeatinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'heartbeat-interval' is not yet "
@@ -440,7 +439,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 	
-	if (dns_c_ctx_getstatsinterval(cfg, &intval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getstatsinterval(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'statistics-interval' is not yet "
@@ -1679,94 +1678,94 @@ SETBYTYPE(in_port_t, port, port)
 UNSETBYTYPE(in_port_t, port, port)
 
 
-GETINT32(transfersin, transfers_in)
-SETINT32(transfersin, transfers_in)
-UNSETINT32(transfersin, transfers_in)
+GETUINT32(transfersin, transfers_in)
+SETUINT32(transfersin, transfers_in)
+UNSETUINT32(transfersin, transfers_in)
 
 
-GETINT32(transfersperns, transfers_per_ns)
-SETINT32(transfersperns, transfers_per_ns)
-UNSETINT32(transfersperns, transfers_per_ns)
+GETUINT32(transfersperns, transfers_per_ns)
+SETUINT32(transfersperns, transfers_per_ns)
+UNSETUINT32(transfersperns, transfers_per_ns)
 
 
-GETINT32(transfersout, transfers_out)
-SETINT32(transfersout, transfers_out)
-UNSETINT32(transfersout, transfers_out)
+GETUINT32(transfersout, transfers_out)
+SETUINT32(transfersout, transfers_out)
+UNSETUINT32(transfersout, transfers_out)
 
 
-GETINT32(maxlogsizeixfr, max_log_size_ixfr)
-SETINT32(maxlogsizeixfr, max_log_size_ixfr)
-UNSETINT32(maxlogsizeixfr, max_log_size_ixfr)
+GETUINT32(maxlogsizeixfr, max_log_size_ixfr)
+SETUINT32(maxlogsizeixfr, max_log_size_ixfr)
+UNSETUINT32(maxlogsizeixfr, max_log_size_ixfr)
 
 
-GETINT32(cleaninterval, clean_interval)
-SETINT32(cleaninterval, clean_interval)
-UNSETINT32(cleaninterval, clean_interval)
+GETUINT32(cleaninterval, clean_interval)
+SETUINT32(cleaninterval, clean_interval)
+UNSETUINT32(cleaninterval, clean_interval)
 
 
-GETINT32(interfaceinterval, interface_interval)
-SETINT32(interfaceinterval, interface_interval)
-UNSETINT32(interfaceinterval, interface_interval)
+GETUINT32(interfaceinterval, interface_interval)
+SETUINT32(interfaceinterval, interface_interval)
+UNSETUINT32(interfaceinterval, interface_interval)
 
 
-GETINT32(statsinterval, stats_interval)
-SETINT32(statsinterval, stats_interval)
-UNSETINT32(statsinterval, stats_interval)
+GETUINT32(statsinterval, stats_interval)
+SETUINT32(statsinterval, stats_interval)
+UNSETUINT32(statsinterval, stats_interval)
 
 
-GETINT32(heartbeatinterval, heartbeat_interval)
-SETINT32(heartbeatinterval, heartbeat_interval)
-UNSETINT32(heartbeatinterval, heartbeat_interval)
+GETUINT32(heartbeatinterval, heartbeat_interval)
+SETUINT32(heartbeatinterval, heartbeat_interval)
+UNSETUINT32(heartbeatinterval, heartbeat_interval)
 
 
-GETINT32(maxtransfertimein, max_transfer_time_in)
-SETINT32(maxtransfertimein, max_transfer_time_in)
-UNSETINT32(maxtransfertimein, max_transfer_time_in)
+GETUINT32(maxtransfertimein, max_transfer_time_in)
+SETUINT32(maxtransfertimein, max_transfer_time_in)
+UNSETUINT32(maxtransfertimein, max_transfer_time_in)
 
 
-GETINT32(maxtransfertimeout, max_transfer_time_out)
-SETINT32(maxtransfertimeout, max_transfer_time_out)
-UNSETINT32(maxtransfertimeout, max_transfer_time_out)
+GETUINT32(maxtransfertimeout, max_transfer_time_out)
+SETUINT32(maxtransfertimeout, max_transfer_time_out)
+UNSETUINT32(maxtransfertimeout, max_transfer_time_out)
 
 
-GETINT32(maxtransferidlein, max_transfer_idle_in)
-SETINT32(maxtransferidlein, max_transfer_idle_in)
-UNSETINT32(maxtransferidlein, max_transfer_idle_in)
+GETUINT32(maxtransferidlein, max_transfer_idle_in)
+SETUINT32(maxtransferidlein, max_transfer_idle_in)
+UNSETUINT32(maxtransferidlein, max_transfer_idle_in)
 
 
-GETINT32(maxtransferidleout, max_transfer_idle_out)
-SETINT32(maxtransferidleout, max_transfer_idle_out)
-UNSETINT32(maxtransferidleout, max_transfer_idle_out)
+GETUINT32(maxtransferidleout, max_transfer_idle_out)
+SETUINT32(maxtransferidleout, max_transfer_idle_out)
+UNSETUINT32(maxtransferidleout, max_transfer_idle_out)
 
 
-GETINT32(lamettl, lamettl)
-SETINT32(lamettl, lamettl)
-UNSETINT32(lamettl, lamettl)
+GETUINT32(lamettl, lamettl)
+SETUINT32(lamettl, lamettl)
+UNSETUINT32(lamettl, lamettl)
 
 
-GETINT32(tcpclients, tcp_clients)
-SETINT32(tcpclients, tcp_clients)
-UNSETINT32(tcpclients, tcp_clients)
+GETUINT32(tcpclients, tcp_clients)
+SETUINT32(tcpclients, tcp_clients)
+UNSETUINT32(tcpclients, tcp_clients)
 
 
-GETINT32(recursiveclients, recursive_clients)
-SETINT32(recursiveclients, recursive_clients)
-UNSETINT32(recursiveclients, recursive_clients)
+GETUINT32(recursiveclients, recursive_clients)
+SETUINT32(recursiveclients, recursive_clients)
+UNSETUINT32(recursiveclients, recursive_clients)
 
 
-GETINT32(minroots, min_roots)
-SETINT32(minroots, min_roots)
-UNSETINT32(minroots, min_roots)
+GETUINT32(minroots, min_roots)
+SETUINT32(minroots, min_roots)
+UNSETUINT32(minroots, min_roots)
 
 
-GETINT32(serialqueries, serial_queries)
-SETINT32(serialqueries, serial_queries)
-UNSETINT32(serialqueries, serial_queries)
+GETUINT32(serialqueries, serial_queries)
+SETUINT32(serialqueries, serial_queries)
+UNSETUINT32(serialqueries, serial_queries)
 
 
-GETINT32(sigvalidityinterval, sig_valid_interval)
-SETINT32(sigvalidityinterval, sig_valid_interval)
-UNSETINT32(sigvalidityinterval, sig_valid_interval)
+GETUINT32(sigvalidityinterval, sig_valid_interval)
+SETUINT32(sigvalidityinterval, sig_valid_interval)
+UNSETUINT32(sigvalidityinterval, sig_valid_interval)
 
 
 GETUINT32(datasize, data_size)
@@ -1955,7 +1954,7 @@ dns_c_ctx_settkeydomain(dns_c_ctx_t *cfg, const char *newval)
 
 isc_result_t
 dns_c_ctx_settkeydhkey(dns_c_ctx_t *cfg,
-		       const char *charval, isc_int32_t intval)
+		       const char *charval, isc_uint32_t uintval)
 {
 	isc_result_t res;
 	
@@ -1966,7 +1965,7 @@ dns_c_ctx_settkeydhkey(dns_c_ctx_t *cfg,
 		return (res);
 	}
 
-	cfg->options->tkeydhkeyi = intval;
+	cfg->options->tkeydhkeyi = uintval;
 	return (cfg_set_string(cfg->options,
 			       &cfg->options->tkeydhkeycp,
 			       charval));
@@ -2362,13 +2361,13 @@ dns_c_ctx_gettkeydomain(dns_c_ctx_t *cfg, char **retval)
 
 isc_result_t
 dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
-		       char **charpval, isc_int32_t *intval)
+		       char **charpval, isc_uint32_t *uintval)
 {
 	isc_result_t res;
 
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(charpval != NULL);
-	REQUIRE(intval != NULL);
+	REQUIRE(uintval != NULL);
 
 	if (cfg->options == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -2380,7 +2379,7 @@ dns_c_ctx_gettkeydhkey(dns_c_ctx_t *cfg,
 		res = ISC_R_NOTFOUND;
 	} else {
 		*charpval = cfg->options->tkeydhkeycp;
-		*intval = cfg->options->tkeydhkeyi;
+		*uintval = cfg->options->tkeydhkeyi;
 		res = ISC_R_SUCCESS;
 	}
 
