@@ -462,7 +462,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 }
 
 void *
-__isc_mem_get(isc_mem_t *ctx, size_t size)
+isc__mem_get(isc_mem_t *ctx, size_t size)
 {
 	void *ret;
 
@@ -672,7 +672,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 }
 
 void
-__isc_mem_put(isc_mem_t *ctx, void *mem, size_t size)
+isc__mem_put(isc_mem_t *ctx, void *mem, size_t size)
 {
 	REQUIRE(VALID_CONTEXT(ctx));
 
@@ -724,22 +724,22 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 }
 
 void *
-__isc_mem_getdebug(isc_mem_t *ctx, size_t size, const char *file, int line) {
+isc__mem_getdebug(isc_mem_t *ctx, size_t size, const char *file, int line) {
 	void *ptr;
 
-	ptr = __isc_mem_get(ctx, size);
+	ptr = isc__mem_get(ctx, size);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
-__isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
+isc__mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
 		 int line)
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
-	__isc_mem_put(ctx, ptr, size);
+	isc__mem_put(ctx, ptr, size);
 }
 
 isc_result_t
@@ -842,11 +842,11 @@ isc_mem_valid(isc_mem_t *ctx, void *ptr) {
  */
 
 void *
-__isc_mem_allocate(isc_mem_t *ctx, size_t size) {
+isc__mem_allocate(isc_mem_t *ctx, size_t size) {
 	size_info *si;
 
 	size += ALIGNMENT_SIZE;
-	si = __isc_mem_get(ctx, size);
+	si = isc__mem_get(ctx, size);
 	if (si == NULL)
 		return (NULL);
 	si->u.size = size;
@@ -854,11 +854,11 @@ __isc_mem_allocate(isc_mem_t *ctx, size_t size) {
 }
 
 void *
-__isc_mem_allocatedebug(isc_mem_t *ctx, size_t size, const char *file,
+isc__mem_allocatedebug(isc_mem_t *ctx, size_t size, const char *file,
 			int line) {
 	size_info *si;
 
-	si = __isc_mem_allocate(ctx, size);
+	si = isc__mem_allocate(ctx, size);
 	if (si == NULL)
 		return (NULL);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
@@ -867,21 +867,21 @@ __isc_mem_allocatedebug(isc_mem_t *ctx, size_t size, const char *file,
 }
 
 void
-__isc_mem_free(isc_mem_t *ctx, void *ptr) {
+isc__mem_free(isc_mem_t *ctx, void *ptr) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
-	__isc_mem_put(ctx, si, si->u.size);
+	isc__mem_put(ctx, si, si->u.size);
 }
 
 void
-__isc_mem_freedebug(isc_mem_t *ctx, void *ptr, const char *file, int line) {
+isc__mem_freedebug(isc_mem_t *ctx, void *ptr, const char *file, int line) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)si->u.size);
-	__isc_mem_put(ctx, si, si->u.size);
+	isc__mem_put(ctx, si, si->u.size);
 }
 
 /*
@@ -889,12 +889,12 @@ __isc_mem_freedebug(isc_mem_t *ctx, void *ptr, const char *file, int line) {
  */
 
 char *
-__isc_mem_strdup(isc_mem_t *mctx, const char *s) {
+isc__mem_strdup(isc_mem_t *mctx, const char *s) {
 	size_t len;
 	char *ns;
 
 	len = strlen(s);
-	ns = __isc_mem_allocate(mctx, len + 1);
+	ns = isc__mem_allocate(mctx, len + 1);
 	if (ns == NULL)
 		return (NULL);
 	strncpy(ns, s, len + 1);
@@ -903,12 +903,12 @@ __isc_mem_strdup(isc_mem_t *mctx, const char *s) {
 }
 
 char *
-__isc_mem_strdupdebug(isc_mem_t *mctx, const char *s, const char *file,
+isc__mem_strdupdebug(isc_mem_t *mctx, const char *s, const char *file,
 		      int line) {
 	char *ptr;
 	size_info *si;
 
-	ptr = __isc_mem_strdup(mctx, s);
+	ptr = isc__mem_strdup(mctx, s);
 	si = &(((size_info *)ptr)[-1]);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		mctx, (unsigned long)si->u.size, ptr);
@@ -1243,7 +1243,7 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock)
 }
 
 void *
-__isc_mempool_get(isc_mempool_t *mpctx)
+isc__mempool_get(isc_mempool_t *mpctx)
 {
 	element *item;
 	isc_mem_t *mctx;
@@ -1312,7 +1312,7 @@ __isc_mempool_get(isc_mempool_t *mpctx)
 }
 
 void
-__isc_mempool_put(isc_mempool_t *mpctx, void *mem)
+isc__mempool_put(isc_mempool_t *mpctx, void *mem)
 {
 	isc_mem_t *mctx;
 	element *item;
@@ -1332,7 +1332,7 @@ __isc_mempool_put(isc_mempool_t *mpctx, void *mem)
 	 * If our free list is full, return this to the mctx directly.
 	 */
 	if (mpctx->freecount >= mpctx->freemax) {
-		__isc_mem_put(mctx, mem, mpctx->size);
+		isc__mem_put(mctx, mem, mpctx->size);
 		if (mpctx->lock != NULL)
 			UNLOCK(mpctx->lock);
 		return;
@@ -1351,12 +1351,12 @@ __isc_mempool_put(isc_mempool_t *mpctx, void *mem)
 }
 
 void *
-__isc_mempool_getdebug(isc_mempool_t *mpctx,
+isc__mempool_getdebug(isc_mempool_t *mpctx,
 		       const char *file, int line)
 {
 	void *ptr;
 
-	ptr = __isc_mempool_get(mpctx);
+	ptr = isc__mempool_get(mpctx);
 	fprintf(stderr, "%s:%d: mempool_get(%p) -> %p\n", file, line,
 		mpctx, ptr);
 
@@ -1364,12 +1364,12 @@ __isc_mempool_getdebug(isc_mempool_t *mpctx,
 }
 
 void
-__isc_mempool_putdebug(isc_mempool_t *mpctx, void *ptr,
+isc__mempool_putdebug(isc_mempool_t *mpctx, void *ptr,
 		       const char *file, int line)
 {
 	fprintf(stderr, "%s:%d: mempool_put(%p, %p)\n", file, line, 
 		mpctx, ptr);
-	__isc_mempool_put(mpctx, ptr);
+	isc__mempool_put(mpctx, ptr);
 }
 
 /*
