@@ -198,13 +198,12 @@ get_bit(unsigned char *array, unsigned int index) {
 
 static void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
-	unsigned int byte, shift, mask;
+	unsigned int shift, mask;
 	
-	byte = array[index / 8];
 	shift = 7 - (index % 8);
 	mask = 1 << shift;
 
-	if (bit)
+	if (bit != 0)
 		array[index / 8] |= mask;
 	else
 		array[index / 8] &= (~mask & 0xFF);
@@ -723,7 +722,9 @@ dns_name_equal(dns_name_t *name1, dns_name_t *name2) {
 				return (ISC_FALSE);
 			if (count == 0)
 				count = 256;
-			/* number of bytes */
+			/*
+			 * Number of bytes.
+			 */
 			count = (count + 7) / 8;
 			while (count > 0) {
 				count--;
