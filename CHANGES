@@ -1,3 +1,8 @@
+1739.	[bug]		dns_rbt_deletetree() could incorrectly return
+			ISC_R_QUOTA.  [RT #12695]
+
+1738.	[bug]		Enable overrun checking by default. [RT #12695]
+
 1734.	[cleanup]	'rndc-confgen -a -t' remove extra '/' in path.
 			[RT #12588]
 

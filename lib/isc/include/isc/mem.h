@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.54.2.1 2004/03/09 06:11:58 marka Exp $ */
+/* $Id: mem.h,v 1.54.2.2 2004/10/11 05:55:37 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -56,7 +56,7 @@ typedef void (*isc_memfree_t)(void *, void *);
  * the requested space.  This will increase the size of each allocation.
  */
 #ifndef ISC_MEM_CHECKOVERRUN
-#define ISC_MEM_CHECKOVERRUN 0
+#define ISC_MEM_CHECKOVERRUN 1
 #endif
 
 /*
