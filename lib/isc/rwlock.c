@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.19 2000/08/01 01:29:44 tale Exp $ */
+/* $Id: rwlock.c,v 1.20 2000/08/24 01:38:46 gson Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,7 @@
 #include <stdio.h>		/* Required for fprintf/stderr. */
 
 static void
-print_lock(char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
 		"%s(%s): %s, %u active, %u granted, "
 		"%u rwaiting, %u wwaiting\n",
