@@ -69,8 +69,12 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_symtab_create(mctx, 691, undefine_action,
 					case_sensitive, &st) == ISC_R_SUCCESS);
 
-	while (gets(s) != NULL) {
+	while (fgets(s, sizeof s, stdin) != NULL) {
 		len = strlen(s);
+		if (len > 0 && s[len - 1] == '\n') {
+			s[len - 1] = '\0';
+			len--;
+		}
 
 		cp = s;
 
