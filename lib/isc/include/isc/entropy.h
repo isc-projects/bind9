@@ -56,6 +56,8 @@
  *** Imports
  ***/
 
+#include <stdio.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/types.h>
@@ -183,6 +185,9 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  * Extract data from the entropy pool.  This may load the pool from various
  * sources.
  */
+
+void
+isc_entropy_stats(isc_entropy_t *ent, FILE *out);
 
 ISC_LANG_ENDDECLS
 

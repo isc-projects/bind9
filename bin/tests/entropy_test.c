@@ -49,9 +49,12 @@ CHECK(const char *msg, isc_result_t result) {
 int
 main(int argc, char **argv) {
 	isc_mem_t *mctx;
-	unsigned char buffer[1024];
+	unsigned char buffer[512];
 	isc_entropy_t *ent;
 	isc_entropysource_t *devrandom;
+	unsigned int returned;
+	unsigned int flags;
+	isc_result_t result;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -64,10 +67,38 @@ main(int argc, char **argv) {
 	CHECK("isc_entropy_create()",
 	      isc_entropy_create(mctx, &ent));
 
+	isc_entropy_stats(ent, stderr);
+
 	devrandom = NULL;
 	CHECK("isc_entropy_createfilesource()",
 	      isc_entropy_createfilesource(ent, "/dev/random",
 					   0, &devrandom));
-	
+
+	fprintf(stderr,
+		"Reading 32 bytes of GOOD random data only, partial OK\n");
+
+	flags = 0;
+	flags |= ISC_ENTROPY_GOODONLY;
+	flags |= ISC_ENTROPY_PARTIAL;
+	result = isc_entropy_getdata(ent, buffer, 32, &returned, flags);
+	if (result == ISC_R_NOENTROPY) {
+		fprintf(stderr, "No entropy.\n");
+		goto out;
+	}
+	hex_dump("good data only:", buffer, returned);
+
+	CHECK("isc_entropy_getdata()",
+	      isc_entropy_getdata(ent, buffer, 128, NULL, 0));
+
+	hex_dump("entropy data", buffer, 128);
+
+out:
+	isc_entropy_stats(ent, stderr);
+
+	isc_entropy_destroysource(&devrandom);
+	isc_entropy_destroy(&ent);
+	isc_mem_stats(mctx, stderr);
+	isc_mem_destroy(&mctx);
+
 	return (0);
 }

@@ -37,7 +37,9 @@
  * written by Michael Graff <explorer@netbsd.org>.
  */
 
-#define VALID_ENTROPY(e)	((e) != NULL)
+#define ISC_ENTROPY_MAGIC	ISC_MAGIC('E', 'n', 't', 
+
+#define VALID_ENTROPY(e)	ISC_MAGIC_VALID(e, ISC_ENTROPY_MAGIC)
 #define VALID_SOURCE(s)		((s) != NULL)
 
 /***
@@ -63,6 +65,7 @@
 #define RND_EVENTQSIZE	32
 
 typedef struct {
+	isc_uint32_t	magic;
 	isc_uint32_t	cursor;		/* current add point in the pool */
 	isc_uint32_t	entropy;	/* current entropy estimate in bits */
 	isc_uint32_t	pseudo;		/* bits extracted in pseudorandom */
@@ -71,6 +74,7 @@ typedef struct {
 } isc_entropypool_t;
 
 struct isc_entropy {
+	isc_uint32_t			magic;
 	isc_mutex_t			lock;
 	isc_mem_t		       *mctx;
 	isc_entropypool_t		pool;
@@ -92,6 +96,7 @@ typedef struct {
 } isc_entropyfilesource_t;
 
 struct isc_entropysource {
+	isc_uint32_t	magic;
 	unsigned int	type;
 	isc_entropy_t  *ent;
 	unsigned int	flags;		/* flags */
@@ -214,10 +219,7 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 		entropypool_add_word(rp, val);
 	}
 
-	rp->entropy += entropy;
-
-	if (rp->entropy > RND_POOLBITS)
-		rp->entropy = RND_POOLBITS;
+	rp->entropy = ISC_MAX(rp->entropy + entropy, RND_POOLBITS);
 }
 
 static isc_uint32_t
@@ -231,7 +233,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	if (fd == -1)
 		return (0);
 
-	desired = desired / 8 + (((desired & 0x07) == 1) ? 0 : 1);
+	desired = desired / 8 + (((desired & 0x07) > 0) ? 1 : 0);
 
 	while (desired > 0) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
@@ -247,6 +249,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 
 		entropypool_adddata(pool, buf, n, n * 8);
 		added += n * 8;
+		desired -= n;
 	}
 
  out:
@@ -262,12 +265,20 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	isc_uint32_t added, desired;
 	isc_entropysource_t *source;
 
-	if (needed < RND_ENTROPY_THRESHOLD * 8)
-		needed = RND_ENTROPY_THRESHOLD * 8;
-	if (needed > RND_POOLBITS)
-		needed = RND_POOLBITS;
+	REQUIRE(VALID_ENTROPY(ent));
 
-	added = 0;
+	/*
+	 * The best we can do is fill the pool.  Clamp to that.
+	 */
+	if (needed == 0 || (needed <= ent->pool.entropy)) {
+		if ((ent->pool.entropy >= RND_POOLBITS / 4)
+		    && (ent->pool.pseudo <= RND_POOLBITS / 4))
+			return;
+	}
+	needed = ISC_MAX(needed, RND_ENTROPY_THRESHOLD * 8);
+	needed = ISC_MIN(needed, RND_POOLBITS);
+	if (!blocking)
+		needed = ISC_MAX(needed, RND_POOLBITS / 4);
 
 	/*
 	 * Poll each file source to see if we can read anything useful from
@@ -278,6 +289,7 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 */
 
 	source = ISC_LIST_HEAD(ent->sources);
+	added = 0;
 	while (source != NULL) {
 		desired = ISC_MIN(needed, RND_POOLBITS - ent->pool.entropy);
 		if (source->type == ENTROPY_SOURCETYPE_FILE)
@@ -289,14 +301,19 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		source = ISC_LIST_NEXT(source, link);
 	}
 
+	isc_entropy_stats(ent, stderr);
+	fprintf(stderr, "fillpool:  needed %u, added %u\n",
+		needed, added);
+	isc_entropy_stats(ent, stderr);
+
 	/*
 	 * If we added any data, decrement the pseudo variable by
 	 * how much we added.
 	 */
 	if (ent->pool.pseudo <= added)
-		ent->pool.pseudo = 0;
-	else
 		ent->pool.pseudo -= added;
+	else
+		ent->pool.pseudo = 0;
 
 	/*
 	 * Increment the amount of entropy we have in the pool.
@@ -371,7 +388,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 * are not ok.
 		 */
 		if (goodonly) {
-			fillpool(ent, count * 8, blocking);
+			fillpool(ent, (length - remain) * 8, blocking);
 			if (!partial
 			    && ((ENTROPY(ent) < count * 8)
 				|| (ENTROPY(ent) < RND_ENTROPY_THRESHOLD * 8)))
@@ -407,21 +424,28 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		total += deltae;
 	}
 
+	ent->pool.pseudo = ISC_MIN(ent->pool.pseudo + total,
+				   RND_POOLBITS * 16);
+
 	memset(digest, 0, sizeof(digest));
 
-	if (*returned != NULL)
+	if (returned != NULL)
 		*returned = (length - remain);
+
+	UNLOCK(&ent->lock);
+	isc_entropy_stats(ent, stderr);
 
 	return (ISC_R_SUCCESS);
 
  zeroize:
 	/* put the entropy we almost extracted back */
-	ent->pool.entropy += total;
-	ent->pool.entropy = ISC_MIN(ent->pool.entropy, RND_POOLBITS);
+	ent->pool.entropy = ISC_MIN(ent->pool.entropy + total, RND_POOLBITS);
 	memset(data, 0, length);
 	memset(digest, 0, sizeof(digest));
-	if (*returned != NULL)
+	if (returned != NULL)
 		*returned = 0;
+
+	UNLOCK(&ent->lock);
 
 	return (ISC_R_NOENTROPY);
 }
@@ -469,6 +493,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	 */
 	ISC_LIST_INIT(ent->sources);
 	ent->mctx = mctx;
+	ent->magic = ISC_ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
 
@@ -484,6 +509,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 void
 isc_entropy_destroy(isc_entropy_t **entp) {
 	isc_entropy_t *ent;
+	isc_mem_t *mctx;
 
 	REQUIRE(entp != NULL && *entp != NULL);
 
@@ -492,6 +518,7 @@ isc_entropy_destroy(isc_entropy_t **entp) {
 
 	LOCK(&ent->lock);
 	REQUIRE(ISC_LIST_EMPTY(ent->sources));
+	mctx = ent->mctx;
 
 	isc_entropypool_invalidate(&ent->pool);
 
@@ -500,6 +527,7 @@ isc_entropy_destroy(isc_entropy_t **entp) {
 	isc_mutex_destroy(&ent->lock);
 
 	memset(ent, 0, sizeof(isc_entropy_t));
+	isc_mem_put(mctx, ent, sizeof(isc_entropy_t));
 }
 
 /*
@@ -646,4 +674,13 @@ void
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 		      isc_uint32_t extra)
 {
+}
+
+void
+isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
+	fprintf(out, "Dump of entropy stats for pool %p\n", ent);
+	fprintf(out, "\tcursor %u, rotate %u\n",
+		ent->pool.cursor, ent->pool.rotate);
+	fprintf(out, "\tentropy %u, pseudo %u\n",
+		ent->pool.entropy, ent->pool.pseudo);
 }
