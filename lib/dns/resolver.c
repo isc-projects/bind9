@@ -2724,7 +2724,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 				type = rdataset->type;
 				if (type == dns_rdatatype_sig)
 					type = rdataset->covers;
-				if (rdataset->type == dns_rdatatype_ns) {
+				if (type == dns_rdatatype_ns) {
 					/*
 					 * NS or SIG NS.
 					 *
@@ -2739,10 +2739,8 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
 					ns_rdataset = rdataset;
-				} else if (rdataset->type ==
-					   dns_rdatatype_soa ||
-					   rdataset->type ==
-					   dns_rdatatype_nxt) {
+				} else if (type == dns_rdatatype_soa ||
+					   type == dns_rdatatype_nxt) {
 					/*
 					 * SOA, SIG SOA, NXT, or SIG NXT.
 					 *

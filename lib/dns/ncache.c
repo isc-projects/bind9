@@ -157,7 +157,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 					isc_buffer_available(&buffer, &r);
 					if (r.length < 2)
 						return (ISC_R_NOSPACE);
-					isc_buffer_putuint16(&buffer, type);
+					isc_buffer_putuint16(&buffer,
+							     rdataset->type);
 					/*
 					 * Copy the rdataset into the buffer.
 					 */

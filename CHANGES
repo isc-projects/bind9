@@ -1,3 +1,10 @@
+
+  56.	[bug]		SIG records were not properly returned in cached
+			negative answers.
+
+  55.	[bug]		Responses containing multiple names in the authority
+			section were not negatively cached.
+
   54.	[bug]		If a fetch with sigrdataset==NULL joined one with
 			sigrdataset!=NULL or vice versa, the resolver
 			could catch an assertion or lose signature data,
