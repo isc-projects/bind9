@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.178.2.6 2001/04/11 17:34:47 gson Exp $ */
+/* $Id: socket.c,v 1.178.2.7 2001/04/27 21:59:31 gson Exp $ */
 
 #include <config.h>
 
@@ -298,7 +298,8 @@ wakeup_socket(isc_socketmgr_t *manager, int fd) {
 	 * This is a wakeup on a socket.  Look at the event queue for both
 	 * read and write, and decide if we need to watch on it now or not.
 	 */
-	INSIST(fd < FD_SETSIZE);
+
+	INSIST(fd >= 0 && fd < FD_SETSIZE);
 
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
 		manager->fdstate[fd] = CLOSED;
@@ -1061,6 +1062,7 @@ destroy(isc_socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->connect_ev == NULL);
+	REQUIRE(sock->fd >= 0 && sock->fd < FD_SETSIZE);
 
 	LOCK(&manager->lock);
 
@@ -1247,6 +1249,17 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);
 		break;
 	}
+
+	if (sock->fd >= FD_SETSIZE) {
+		(void)close(sock->fd);
+		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			       isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_TOOMANYFDS,
+			       "%s: too many open file descriptors", "socket");
+		free_socket(&sock);
+		return (ISC_R_NORESOURCES);
+	}
+	
 	if (sock->fd < 0) {
 		free_socket(&sock);
 
@@ -1671,20 +1684,27 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			UNLOCK(&sock->lock);
 			return;
 		}
-	} else {
-		if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_accept(): "
-					 "accept() returned peer address "
-					 "family %u (expected %u)",
-					 dev->newsocket->address.
-					 type.sa.sa_family,
-					 sock->pf);
-			(void)close(fd);
-			select_poke(sock->manager, sock->fd);
-			UNLOCK(&sock->lock);
-			return;
-		}
+	} else if (dev->newsocket->address.type.sa.sa_family != sock->pf) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "internal_accept(): "
+				 "accept() returned peer address "
+				 "family %u (expected %u)",
+				 dev->newsocket->address.
+				 type.sa.sa_family,
+				 sock->pf);
+		(void)close(fd);
+		select_poke(sock->manager, sock->fd);
+		UNLOCK(&sock->lock);
+		return;
+	} else if (fd >= FD_SETSIZE) {
+		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			       isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_TOOMANYFDS,
+			       "%s: too many open file descriptors", "accept");
+		(void)close(fd);
+		select_poke(sock->manager, sock->fd);
+		UNLOCK(&sock->lock);
+		return;
 	}
 
 	if (fd != -1) {
@@ -1711,13 +1731,13 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		result = ISC_R_UNEXPECTED;
 	}
 
-	LOCK(&manager->lock);
-	ISC_LIST_APPEND(manager->socklist, dev->newsocket, link);
-
 	/*
 	 * -1 means the new socket didn't happen.
 	 */
 	if (fd != -1) {
+		LOCK(&manager->lock);
+		ISC_LIST_APPEND(manager->socklist, dev->newsocket, link);
+
 		dev->newsocket->fd = fd;
 		dev->newsocket->bound = 1;
 		dev->newsocket->connected = 1;
@@ -1736,12 +1756,12 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
+
+		UNLOCK(&manager->lock);
+	} else {
+		dev->newsocket->references--;
+		free_socket(&dev->newsocket);
 	}
-
-	UNLOCK(&manager->lock);
-
-	if (fd == -1)
-		isc_socket_detach(&dev->newsocket);
 	
 	/*
 	 * Fill in the done event details and send it off.
@@ -1903,6 +1923,8 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 	int i;
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
+
+	REQUIRE(maxfd <= FD_SETSIZE);
 
 	/*
 	 * Process read/writes on other fds here.  Avoid locking
