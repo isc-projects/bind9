@@ -315,7 +315,7 @@ VALIGN="MIDDLE"
 ><P
 >An IPv6 address, such as <B
 CLASS="command"
->2001:ffff::200:f8ff:fe01:9742</B
+>2001:db8::1234</B
 >.
 IPv6 scoped addresses that have ambiguity on their scope zones must be
 disambiguated by an appropriate zone ID with the percent character
@@ -6513,13 +6513,13 @@ For example,</P
 ><PRE
 CLASS="programlisting"
 >listen-on-v6 { any; };
-listen-on-v6 port 1234 { !3ffe::/16; any; };
+listen-on-v6 port 1234 { !2001:db8::/32; any; };
 </PRE
 ><P
 >will enable the name server on port 53 for any IPv6 addresses
 (with a single wildcard socket),
 and on port 1234 of IPv6 addresses that is not in the prefix
-3ffe::/16 (with separate sockets for each matched address.)</P
+2001:db8::/32 (with separate sockets for each matched address.)</P
 ><P
 >To make the server not listen on any IPv6 address, use</P
 ><PRE
