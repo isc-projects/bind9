@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.68 2000/06/09 22:13:20 brister Exp $ */
+/* $Id: confctx.c,v 1.69 2000/06/15 23:38:12 brister Exp $ */
 
 #include <config.h>
 
@@ -921,6 +921,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_CHAR_P(stats_filename, "statistics-file");
 	PRINT_CHAR_P(memstats_filename, "memstatistics-file");
 	PRINT_CHAR_P(named_xfer, "named-xfer");
+	PRINT_CHAR_P(random_device, "random-device");
+	PRINT_CHAR_P(random_seed_file, "random-seed-file");
 
 	PRINT_INTEGER(port, "port");
 	
@@ -1413,6 +1415,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->stats_filename = NULL;
 	opts->memstats_filename = NULL;
 	opts->named_xfer = NULL;
+	opts->random_device = NULL;
+	opts->random_seed_file = NULL;
 
 	opts->port = NULL;
 	
@@ -1546,6 +1550,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREESTRING(stats_filename);
 	FREESTRING(memstats_filename);
 	FREESTRING(named_xfer);
+	FREESTRING(random_device);
+	FREESTRING(random_seed_file);
 
 	
 	FREEFIELD(expert_mode);
@@ -1701,6 +1707,16 @@ UNSETSTRING(memstatsfilename, memstats_filename)
 SETSTRING(namedxfer, named_xfer)
 GETSTRING(namedxfer, named_xfer)
 UNSETSTRING(namedxfer, named_xfer)
+
+
+SETSTRING(randomdevice, random_device)
+GETSTRING(randomdevice, random_device)
+UNSETSTRING(randomdevice, random_device)
+
+
+SETSTRING(randomseedfile, random_seed_file)
+GETSTRING(randomseedfile, random_seed_file)
+UNSETSTRING(randomseedfile, random_seed_file)
 
 
 GETBYTYPE(in_port_t, port, port)

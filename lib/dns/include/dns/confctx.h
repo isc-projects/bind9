@@ -115,6 +115,8 @@ struct dns_c_options {
 	char		       *stats_filename;
 	char		       *memstats_filename;
 	char		       *named_xfer;
+	char		       *random_device;
+	char		       *random_seed_file;
 
 	in_port_t 	       *port;
 
@@ -310,6 +312,16 @@ isc_result_t dns_c_ctx_unsetmemstatsfilename(dns_c_ctx_t *ctx);
 isc_result_t dns_c_ctx_setnamedxfer(dns_c_ctx_t *ctx, const char *newval);
 isc_result_t dns_c_ctx_getnamedxfer(dns_c_ctx_t *ctx, char **retval);
 isc_result_t dns_c_ctx_unsetnamedxfer(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setrandomdevice(dns_c_ctx_t *ctx, const char *newval);
+isc_result_t dns_c_ctx_getrandomdevice(dns_c_ctx_t *ctx, char **retval);
+isc_result_t dns_c_ctx_unsetrandomdevice(dns_c_ctx_t *ctx);
+
+
+isc_result_t dns_c_ctx_setrandomseedfile(dns_c_ctx_t *ctx, const char *newval);
+isc_result_t dns_c_ctx_getrandomseedfile(dns_c_ctx_t *ctx, char **retval);
+isc_result_t dns_c_ctx_unsetrandomseedfile(dns_c_ctx_t *ctx);
 
 
 isc_result_t dns_c_ctx_setport(dns_c_ctx_t *cfg, in_port_t newval);

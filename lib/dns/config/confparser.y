@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.96 2000/06/09 22:13:21 brister Exp $ */
+/* $Id: confparser.y,v 1.97 2000/06/15 23:38:14 brister Exp $ */
 
 #include <config.h>
 
@@ -321,6 +321,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_OPTIONS
 %token		L_ORDER
 %token		L_OWNER
+%token		L_RANDOM_DEVICE
+%token		L_RANDOM_SEED_FILE
 %token		L_PERM
 %token		L_PIDFILE
 %token		L_PORT
@@ -577,6 +579,38 @@ option: /* Empty */
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "set named-xfer error: %s: %s",
+				     isc_result_totext(tmpres), $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	}
+	| L_RANDOM_DEVICE L_QSTRING
+	{
+		tmpres = dns_c_ctx_setrandomdevice(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine random-device");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting random-device: %s: %s",
+				     isc_result_totext(tmpres), $2);
+			YYABORT;
+		}
+
+		isc_mem_free(memctx, $2);
+	}
+	| L_RANDOM_SEED_FILE L_QSTRING
+	{
+		tmpres = dns_c_ctx_setrandomseedfile(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine random-seed-file");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error setting random-seed-file: %s: %s",
 				     isc_result_totext(tmpres), $2);
 			YYABORT;
 		}
@@ -5128,6 +5162,8 @@ static struct token keyword_tokens [] = {
 	{ "pubkey",			L_PUBKEY },
 	{ "query-source",		L_QUERY_SOURCE },
 	{ "query-source-v6",		L_QUERY_SOURCE_V6 },
+	{ "random-device",		L_RANDOM_DEVICE },
+	{ "random-seed-file",		L_RANDOM_SEED_FILE },
 	{ "request-ixfr",		L_REQUEST_IXFR },
 	{ "rfc2308-type1",		L_RFC2308_TYPE1 },
 	{ "rrset-order",		L_RRSET_ORDER },

@@ -1,3 +1,7 @@
+ 259.	[func]		New random-device and random-seed-file statements
+			for global options block of named.conf. Both accept
+			a single string argument.
+
  258.	[bug]		Fixed printing of lwres_addr_t.address field.
 
  257.	[bug]		The server detached the last zone manager reference
