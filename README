@@ -157,6 +157,7 @@ Building
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
 
+		AIX 5L
 		SuSE Linux 7.0
 		Slackware Linux 7.x, 8.0
 	        Red Hat Linux 7.1
