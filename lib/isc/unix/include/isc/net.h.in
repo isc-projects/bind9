@@ -15,24 +15,53 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_NETADDR_H
-#define ISC_NETADDR_H 1
+#ifndef ISC_NET_H
+#define ISC_NET_H 1
+
+/*****
+ ***** Module Info
+ *****/
+
+/*
+ * Basic Networking Types
+ *
+ * This module is responsible for defining the following basic networking
+ * types:
+ *
+ *		struct in_addr
+ *		struct in6_addr
+ *		struct sockaddr
+ *		struct sockaddr_in
+ *		struct sockaddr_in6
+ *
+ * It ensures that the AF_ and PF_ macros are defined.
+ *
+ * It declares ntoh[sl]() and hton[sl]().
+ *
+ * MP:
+ *	No impact.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	N/A.
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ * Standards:
+ *	BSD Socket API
+ */
+
+
+/***
+ *** Imports.
+ ***/
+
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include <netinet/in.h>
 
-#include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
-
-typedef struct isc_netaddr {
-	union {
-    		struct in_addr in;
-#ifdef notyet
-		struct in6_addr in6;
-#endif
-	} type;
-} isc_netaddr_t;
-
-ISC_LANG_ENDDECLS
-
-#endif /* ISC_NETADDR_H */
+#endif /* ISC_NET_H */
