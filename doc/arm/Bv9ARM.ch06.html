@@ -2235,32 +2235,32 @@ HREF="Bv9ARM.ch06.html#the_category_phrase"
 ><PRE
 CLASS="programlisting"
 >channel "default_syslog" {
-    syslog daemon;			// end to syslog's daemon
-					// facility
-    severity info;			// only send priority info
-					// and higher
+    syslog daemon;                      // end to syslog's daemon
+                                        // facility
+    severity info;                      // only send priority info
+                                        // and higher
 };
 
 channel "default_debug" {
-    file "named.run";			// write to named.run in
-					// the working directory
-					// Note: stderr is used instead
-					// of "named.run"
-					// if the server is started
-					// with the '-f' option.
-    severity dynamic;			// log at the server's
-					// current debug level
+    file "named.run";                   // write to named.run in
+                                        // the working directory
+                                        // Note: stderr is used instead
+                                        // of "named.run"
+                                        // if the server is started
+                                        // with the '-f' option.
+    severity dynamic;                   // log at the server's
+                                        // current debug level
 };
 
-channel "default_stderr" {		// writes to stderr
+channel "default_stderr" {              // writes to stderr
     stderr;
-    severity info;			// only send priority info
-					// and higher
+    severity info;                      // only send priority info
+                                        // and higher
 };
 
 channel "null" {
-   null;				// toss anything sent to
-					// this channel
+   null;                                // toss anything sent to
+                                        // this channel
 };
 </PRE
 ><P
@@ -5860,20 +5860,20 @@ their directly connected networks.</P
 ><PRE
 CLASS="programlisting"
 >sortlist {
-    { localhost;				   // IF   the local host
-        { localnets;				   // THEN first fit on the
-            192.168.1/24;			   //   following nets
+    { localhost;                                   // IF   the local host
+        { localnets;                               // THEN first fit on the
+            192.168.1/24;                          //   following nets
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.1/24;				   // IF   on class C 192.168.1
-        { 192.168.1/24;				   // THEN use .1, or .2 or .3
+    { 192.168.1/24;                                // IF   on class C 192.168.1
+        { 192.168.1/24;                            // THEN use .1, or .2 or .3
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.2/24;				   // IF   on class C 192.168.2
-        { 192.168.2/24;				   // THEN use .2, or .1 or .3
+    { 192.168.2/24;                                // IF   on class C 192.168.2
+        { 192.168.2/24;                            // THEN use .2, or .1 or .3
             { 192.168.1/24; 192.168.3/24; }; }; };
-    { 192.168.3/24;				   // IF   on class C 192.168.3
-        { 192.168.3/24;				   // THEN use .3, or .1 or .2
+    { 192.168.3/24;                                // IF   on class C 192.168.3
+        { 192.168.3/24;                            // THEN use .3, or .1 or .2
             { 192.168.1/24; 192.168.2/24; }; }; };
-    { { 192.168.4/24; 192.168.5/24; };		   // if .4 or .5, prefer that net
+    { { 192.168.4/24; 192.168.5/24; };             // if .4 or .5, prefer that net
     };
 };</PRE
 ><P

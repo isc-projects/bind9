@@ -522,24 +522,24 @@ options {
     ...
     ...
     forward only;
-    forwarders { 				// forward to external servers
-    	<TT
+    forwarders {                                // forward to external servers
+        <TT
 CLASS="varname"
 >bastion-ips-go-here</TT
 >; 
     };
-    allow-transfer { none; };			// sample allow-transfer (no one)
-    allow-query { internals; externals; };	// restrict query access
-    allow-recursion { internals; };		// restrict recursion
+    allow-transfer { none; };                   // sample allow-transfer (no one)
+    allow-query { internals; externals; };      // restrict query access
+    allow-recursion { internals; };             // restrict recursion
     ...
     ...
 };
 
-zone "site1.example.com" { 			// sample slave zone
+zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.example.com";
-  forwarders { }; 				// do normal iterative
-						// resolution (do not forward)
+  forwarders { };                               // do normal iterative
+                                                // resolution (do not forward)
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
@@ -581,14 +581,14 @@ acl externals { bastion-ips-go-here; };
 options {
   ...
   ...
-  allow-transfer { none; };			// sample allow-transfer (no one)
-  allow-query { internals; externals; };	// restrict query access
-  allow-recursion { internals; externals; };	// restrict recursion
+  allow-transfer { none; };                     // sample allow-transfer (no one)
+  allow-query { internals; externals; };        // restrict query access
+  allow-recursion { internals; externals; };    // restrict recursion
   ...
   ...
 };
 
-zone "site1.example.com" {			// sample slave zone
+zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.foo.com";
   allow-query { any; };
@@ -1427,7 +1427,7 @@ NAME="AEN981"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host		3600	IN	AAAA	3ffe:8050:201:1860:42::1
+host            3600    IN      AAAA    3ffe:8050:201:1860:42::1
 </PRE
 ><P
 >While their use is deprecated, they are useful to support
@@ -1452,7 +1452,7 @@ NAME="AEN986"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host		3600	IN	A6	0 3ffe:8050:201:1860:42::1
+host            3600    IN      A6      0 3ffe:8050:201:1860:42::1
 </PRE
 ><DIV
 CLASS="sect3"
@@ -1473,23 +1473,23 @@ NAME="AEN990"
 >In the company's address space:</P
 ><PRE
 CLASS="programlisting"
->&#13;$ORIGIN	example.com.
-host		3600	IN	A6	64 0:0:0:0:42::1 company.example1.net.
-host		3600	IN	A6	64 0:0:0:0:42::1 company.example2.net.
+>&#13;$ORIGIN example.com.
+host            3600    IN      A6      64 0:0:0:0:42::1 company.example1.net.
+host            3600    IN      A6      64 0:0:0:0:42::1 company.example2.net.
 </PRE
 ><P
 >ISP1 will use:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example1.net.
-company		3600	IN	A6	0 3ffe:8050:201:1860::
+company         3600    IN      A6      0 3ffe:8050:201:1860::
 </PRE
 ><P
 >ISP2 will use:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example2.net.
-company		3600	IN	A6	0 1234:5678:90ab:fffa::
+company         3600    IN      A6      0 1234:5678:90ab:fffa::
 </PRE
 ><P
 >When <TT
@@ -1515,10 +1515,10 @@ NAME="AEN1001"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-@		14400		IN	NS		ns0
-		14400		IN	NS		ns1
-ns0		14400		IN	A6		0 3ffe:8050:201:1860:42::1
-ns1		14400		IN	A		192.168.42.1
+@               14400           IN      NS              ns0
+                14400           IN      NS              ns1
+ns0             14400           IN      A6              0 3ffe:8050:201:1860:42::1
+ns1             14400           IN      A               192.168.42.1
 </PRE
 ><P
 >It is recommended that IPv4-in-IPv6 mapped addresses not
@@ -1558,7 +1558,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0	  14400 IN 	PTR	host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0   14400 IN      PTR     host.example.com.
 </PRE
 ></DIV
 ><DIV
@@ -1585,7 +1585,7 @@ CLASS="emphasis"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64] 	14400 	IN 	PTR	host.example.com.
+\[x0042000000000001/64]         14400   IN      PTR     host.example.com.
 </PRE
 ></DIV
 ><DIV
@@ -1621,14 +1621,14 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN example.com.
-host			IN	A6	64	::1234:5678:1212:5675 cust1.example.net.
-			IN	A6	64	::1234:5678:1212:5675 subnet5.example2.net.
+host                    IN      A6      64      ::1234:5678:1212:5675 cust1.example.net.
+                        IN      A6      64      ::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1			IN	A6	48	0:0:0:dddd:: ipv6net.example.net.
-ipv6net			IN	A6	0	aa:bb:cccc::
+cust1                   IN      A6      48      0:0:0:dddd:: ipv6net.example.net.
+ipv6net                 IN      A6      0       aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5			IN	A6	48	0:0:0:1:: ipv6net2.example2.net.
-ipv6net2		IN	A6	0	6666:5555:4::
+subnet5                 IN      A6      48      0:0:0:1:: ipv6net2.example2.net.
+ipv6net2                IN      A6      0       6666:5555:4::
 </PRE
 ><P
 >This sets up forward lookups.  To handle the reverse lookups,
@@ -1640,7 +1640,7 @@ would have:</P
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]		IN	DNAME		ipv6-rev.example.com.
+\[xdddd/16]             IN      DNAME           ipv6-rev.example.com.
 </PRE
 ><P
 >and <TT
@@ -1650,7 +1650,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]		IN	DNAME		ipv6-rev.example.com.
+\[x0001/16]             IN      DNAME           ipv6-rev.example.com.
 </PRE
 ><P
 ><TT
@@ -1662,7 +1662,7 @@ CLASS="literal"
 ><PRE
 CLASS="programlisting"
 >&#13;$ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]	IN	PTR		host.example.com. 
+\[x1234567812125675/64] IN      PTR             host.example.com. 
 </PRE
 ></DIV
 ></DIV

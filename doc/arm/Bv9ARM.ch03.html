@@ -127,8 +127,8 @@ CLASS="programlisting"
 >&#13;// Two corporate subnets we wish to allow queries from.
 acl "corpnets" { 192.168.4.0/24; 192.168.7.0/24; };
 options {
-     directory "/etc/namedb";		// Working directory
-     pid-file "named.pid";		// Put pid file in working dir
+     directory "/etc/namedb";           // Working directory
+     pid-file "named.pid";              // Put pid file in working dir
      allow-query { "corpnets"; };
 };
 // Root server hints
@@ -162,10 +162,10 @@ CLASS="filename"
 ><PRE
 CLASS="programlisting"
 >&#13;options {
-     directory "/etc/namedb";		// Working directory
-     pid-file "named.pid";		// Put pid file in working dir
-     allow-query { any; };		// This is the default
-     recursion no;			// Do not provide recursive service
+     directory "/etc/namedb";           // Working directory
+     pid-file "named.pid";              // Put pid file in working dir
+     allow-query { any; };              // This is the default
+     recursion no;                      // Do not provide recursive service
 };
 // Root server hints
 zone "." { type hint; file "root.hint"; };
@@ -744,7 +744,7 @@ CLASS="command"
 CLASS="command"
 >named-checkconf</B
 > program
-	      checks the syntax of a <TT
+              checks the syntax of a <TT
 CLASS="filename"
 >named.conf</TT
 > file.</P
@@ -778,7 +778,7 @@ CLASS="command"
 CLASS="command"
 >named-checkzone</B
 > program checks a master file for
-	      syntax and consistency.</P
+              syntax and consistency.</P
 ><P
 ><B
 CLASS="command"
@@ -895,7 +895,7 @@ CLASS="replaceable"
 >class</I
 ></TT
 >
-	   [<SPAN
+           [<SPAN
 CLASS="optional"
 ><TT
 CLASS="replaceable"
@@ -1096,15 +1096,15 @@ CLASS="acronym"
 CLASS="command"
 >rndc</B
 >
-	      supports all the commands of the BIND 8 <B
+              supports all the commands of the BIND 8 <B
 CLASS="command"
 >ndc</B
 >
-	      utility except <B
+              utility except <B
 CLASS="command"
 >ndc start</B
 >, which was also
-	      not supported in <B
+              not supported in <B
 CLASS="command"
 >ndc</B
 >'s channel mode.</P
@@ -1289,7 +1289,7 @@ following controls statements:</P
 ><PRE
 CLASS="programlisting"
 >&#13;controls {
-		inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
+                inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
 };
 </PRE
 ><P
