@@ -146,23 +146,20 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 		goto free_protocol_object;
 
 	/*
-	 * Lose one reference to the connection, so it'll be gc'd when it's
-	 * reaped.  
-	 * XXXDCL that's Ted's comment, but I don't see how it can be true.
-	 * I don't see how it will "lose one reference" since
-	 * omapi_object_dereference does not decrement refcnt.
+	 * Lose the external reference to the protocol object so
+	 * both the connection object and protocol object will
+	 * be freed when the connection ends.
 	 */
-	OBJECT_DEREF(&connection);
+	OBJECT_DEREF(&protocol);
+
 	return;
 
 free_protocol_object:
 	/*
 	 * Remove the protocol object's reference to the connection
 	 * object, so that the connection object will be destroyed.
-	 * XXXDCL aigh, this is so confusing.  I don't think the
-	 * right thing is being done.
+	 * XXXDCL I am not quite sure the right thing is being done here.
 	 */
-	OBJECT_DEREF(&connection->inner);
 	OBJECT_DEREF(&protocol);
 
 	/* FALLTHROUGH */
