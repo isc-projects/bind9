@@ -346,7 +346,8 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 
 	/*
 	 * Events matching 'sender' and whose type is >= first and
-	 * <= last will be purged.  sender == NULL means "any sender".
+	 * <= last will be purged, unless they are marked as unpurgable.
+	 * sender == NULL means "any sender".
 	 *
 	 * Purging never changes the state of the task.
 	 */
@@ -360,7 +361,9 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 	     event = next_event) {
 		next_event = NEXT(event, link);
 		if ((sender == NULL || event->sender == sender) &&
-		    event->type >= first && event->type <= last) {
+		    event->type >= first &&
+		    event->type <= last &&
+		    (event->attributes & ISC_EVENTATTR_NOPURGE) == 0) {
 			DEQUEUE(task->events, event, link);
 			ENQUEUE(purgeable, event, link);
 		}

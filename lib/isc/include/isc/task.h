@@ -186,7 +186,8 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *
  * Notes:
  *	Events whose sender is 'sender', and whose type is >= first and
- *	<= last will be purged.  A sender of NULL will match any sender.
+ *	<= last will be purged, unless they are marked as unpurgable.
+ *	A sender of NULL will match any sender.
  *
  * Requires:
  *
@@ -206,7 +207,8 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
  *
  * Notes:
  *	Events whose sender is 'sender', and whose type is 'type'
- *	will be purged.  A sender of NULL will match any sender.
+ *	will be purged, unless they are marked as unpurgable.
+ *	A sender of NULL will match any sender.
  *
  *	This function is equivalent to
  *
