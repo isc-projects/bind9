@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.9 2001/01/07 21:58:22 gson Exp $ */
+/* $Id: lwdgnba.c,v 1.10 2001/01/09 17:09:02 gson Exp $ */
 
 #include <config.h>
 
@@ -105,8 +105,10 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	name = ISC_LIST_HEAD(bevent->names);
-	while (name != NULL) {
+	for (name = ISC_LIST_HEAD(bevent->names);
+	     name != NULL;
+	     name = ISC_LIST_NEXT(name, link))
+	{
 		b = client->recv_buffer;
 
 		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
@@ -127,7 +129,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 				client->recv_buffer.used - b.used;
 			gnba->naliases++;
 		}
-		name = ISC_LIST_NEXT(name, link);
 	}
 
 	dns_byaddr_destroy(&client->byaddr);
