@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.19 2000/07/07 18:16:46 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.20 2000/07/07 18:24:10 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -382,7 +382,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 	idx = 0;
 	while (strlen(word) > 0) {
 		if (confdata->searchnxt == LWRES_CONFMAXSEARCH)
-			return (LWRES_R_FAILURE); /* Too many domains. */
+			goto ignore; /* Too many domains. */
 
 		confdata->search[idx] = lwres_strdup(ctx, word);
 		if (confdata->search[idx] == NULL)
@@ -390,6 +390,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 		idx++;
 		confdata->searchnxt++;
 
+	ignore:
 		if (delim == EOF || delim == '\n')
 			break;
 		else

@@ -1,3 +1,8 @@
+ 312.	[bug]		Increase the number of allowed elements in the
+			resolv.conf search path from 6 to 8.  If there
+			are more than this, ignore the remainder rather
+			than returning a failure in lwres_conf_parse.
+
  311.	[bug]		lwres_conf_parse failed when the first line of
 			resolv.conf was empty or a comment.
 

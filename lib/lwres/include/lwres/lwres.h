@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.39 2000/07/06 20:05:13 bwelling Exp $ */
+/* $Id: lwres.h,v 1.40 2000/07/07 18:24:11 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -194,7 +194,7 @@ typedef struct {
  */
 
 #define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
-#define LWRES_CONFMAXSEARCH 6		/* max 6 domains in "search" entry */
+#define LWRES_CONFMAXSEARCH 8		/* max 8 domains in "search" entry */
 #define LWRES_CONFMAXLINELEN 256	/* max size of a line */
 #define LWRES_CONFMAXSORTLIST 10
 typedef struct {
