@@ -207,7 +207,21 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  */
 
 void
+isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
+		    isc_uint32_t entropy);
+/*
+ * Add "length" bytes in "data" to the entropy pool, incrementing the pool's
+ * entropy count by "entropy."
+ *
+ * These bytes will prime the pseudorandom portion even no entropy is actually
+ * added.
+ */
+
+void
 isc_entropy_stats(isc_entropy_t *ent, FILE *out);
+/*
+ * Dump some (trivial) stats to the stdio stream "out".
+ */
 
 ISC_LANG_ENDDECLS
 

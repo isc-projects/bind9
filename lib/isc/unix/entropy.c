@@ -278,6 +278,7 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 	}
 
 	add_entropy(ent, entropy);
+	subtract_pseudo(ent, entropy);
 }
 
 static isc_uint32_t
@@ -435,11 +436,6 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		if (fds > 0)
 			goto again;
 	}
-
-	/*
-	 * Adjust counts.
-	 */
-	subtract_pseudo(ent, added);
 
 	/*
 	 * Mark as initialized if we've added enough data.
@@ -967,13 +963,22 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 	UNLOCK(&ent->lock);
 }
 
-/*
- * This function ignores locking.  Use at your own risk.
- */
 void
-isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
+isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
+		    isc_uint32_t entropy)
+{
 	REQUIRE(VALID_ENTROPY(ent));
 
+	LOCK(&ent->lock);
+	entropypool_adddata(ent, data, length, entropy);
+
+	if (ent->initialized < THRESHOLD_BITS)
+		ent->initialized = THRESHOLD_BITS;
+	UNLOCK(&ent->lock);
+}
+
+static void
+dumpstats(isc_entropy_t *ent, FILE *out) {
 	fprintf(out,
 		"Entropy pool %p:  refcnt %u"
 		" cursor %u, rotate %u entropy %u pseudo %u nsources %u"
@@ -982,6 +987,18 @@ isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
 		ent->pool.cursor, ent->pool.rotate,
 		ent->pool.entropy, ent->pool.pseudo,
 		ent->nsources, ent->nextsource, ent->initialized);
+}
+
+/*
+ * This function ignores locking.  Use at your own risk.
+ */
+void
+isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
+	REQUIRE(VALID_ENTROPY(ent));
+
+	LOCK(&ent->lock);
+	dumpstats(ent, out);
+	UNLOCK(&ent->lock);
 }
 
 void
