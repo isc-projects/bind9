@@ -47,13 +47,13 @@ main(int argc, char *argv[]) {
 	unsigned char b[255];
 	unsigned char o[255];
 	unsigned char c[255];
-	unsigned int tbytes;
 	dns_result_t result;
 	dns_name_t name, oname, compname;
-	isc_textregion_t source, ttarget;
-	isc_region_t target, r;
+	isc_buffer_t source, target;
+	isc_region_t r;
 	dns_name_t *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
+	size_t len;
 
 	argc--;
 	argv++;
@@ -62,10 +62,12 @@ main(int argc, char *argv[]) {
 		if (strcasecmp("none", argv[0]) == 0)
 			origin = NULL;
 		else {
-			source.base = argv[0];
-			source.length = strlen(argv[0]);
-			target.base = o;
-			target.length = 255;
+			len = strlen(argv[0]);
+			isc_buffer_init(&source, argv[0], len,
+					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_add(&source, len);
+			isc_buffer_init(&target, o, 255,
+					ISC_BUFFERTYPE_BINARY);
 			result = dns_name_fromtext(&oname, &source,
 						   dns_rootname, 0,
 						   &target);
@@ -84,10 +86,12 @@ main(int argc, char *argv[]) {
 		if (strcasecmp("none", argv[0]) == 0)
 			comp = NULL;
 		else {
-			source.base = argv[1];
-			source.length = strlen(argv[1]);
-			target.base = c;
-			target.length = 255;
+			len = strlen(argv[1]);
+			isc_buffer_init(&source, argv[1], len,
+					ISC_BUFFERTYPE_TEXT);
+			isc_buffer_add(&source, len);
+			isc_buffer_init(&target, c, 255,
+					ISC_BUFFERTYPE_BINARY);
 			result = dns_name_fromtext(&compname, &source,
 						   dns_rootname, 0,
 						   &target);
@@ -103,10 +107,10 @@ main(int argc, char *argv[]) {
 		comp = NULL;
 
 	while (gets(s) != NULL) {
-		source.base = s;
-		source.length = strlen(s);
-		target.base = b;
-		target.length = 255;
+		len = strlen(s);
+		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
+		isc_buffer_add(&source, len);
+		isc_buffer_init(&target, b, 255, ISC_BUFFERTYPE_BINARY);
 		result = dns_name_fromtext(&name, &source, origin, downcase,
 					   &target);
 		if (result == DNS_R_SUCCESS) {
@@ -120,14 +124,15 @@ main(int argc, char *argv[]) {
 		} else
 			printf("%s\n", dns_result_totext(result));
 
-		if (result == 0) {
-			ttarget.base = s;
-			ttarget.length = sizeof s;
-			result = dns_name_totext(&name, 0, &ttarget, &tbytes);
+		if (result == DNS_R_SUCCESS) {
+			isc_buffer_init(&source, s, sizeof s,
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_name_totext(&name, 0, &source);
 			if (result == DNS_R_SUCCESS) {
-				printf("%.*s\n", (int)tbytes, s);
+				isc_buffer_used(&source, &r);
+				printf("%.*s\n", (int)r.length, r.base);
 #ifndef QUIET
-				printf("%u bytes.\n", tbytes);
+				printf("%u bytes.\n", source.used);
 #endif
 			} else
 				printf("%s\n", dns_result_totext(result));
