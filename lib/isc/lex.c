@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.35 2000/08/01 01:29:29 tale Exp $ */
+/* $Id: lex.c,v 1.36 2000/08/23 02:21:16 gson Exp $ */
 
 #include <config.h>
 
@@ -582,7 +582,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			INSIST(remaining > 0);
 			*curr++ = c;
-			*curr = 0;
+			*curr = '\0';
 			remaining--;
 			break;
 		case lexstate_maybecomment:
@@ -666,7 +666,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				INSIST(remaining > 0);
 				prev = curr;
 				*curr++ = c;
-				*curr = 0;
+				*curr = '\0';
 				remaining--;
 			}
 			break;
