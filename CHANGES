@@ -1,4 +1,6 @@
 
+	--- 9.1.3rc3 released ---
+
  911.	[bug]		Fail gracefully with multiple hint zones. [RT #1433]
 
  910.	[port]		Some pre-RFC2133 IPv6 implementations do not define
