@@ -24,7 +24,8 @@ CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-DEPLIBS =	../../../lib/tests/libt_api.@A@ \
+DEPLIBS =	../../../lib/dns/libdns.@A@ \
+		../../../lib/tests/libt_api.@A@ \
 		../../../lib/isc/libisc.@A@
 
 LIBS =		${DEPLIBS} \
