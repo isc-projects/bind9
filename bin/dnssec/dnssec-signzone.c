@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.123 2000/12/15 05:58:08 ogud Exp $ */
+/* $Id: dnssec-signzone.c,v 1.124 2000/12/15 19:07:07 gson Exp $ */
 
 #include <config.h>
 
@@ -1662,7 +1662,7 @@ main(int argc, char *argv[]) {
 			result = dst_key_fromnamedfile(argv[i],
 						       DST_TYPE_PRIVATE,
 						       mctx, &newkey);
-			if (result != ISC_R_SUCCESS) 
+			if (result != ISC_R_SUCCESS)
 				fatal("cannot load key %s", argv[i]); 
 
 			key = ISC_LIST_HEAD(keylist);
@@ -1785,7 +1785,7 @@ main(int argc, char *argv[]) {
 	if (printstats) {
 		isc_time_now(&timer_finish);
 
-		micro_sec = isc_time_microdiff( &timer_finish, &timer_start);
+		micro_sec = isc_time_microdiff(&timer_finish, &timer_start);
 
 		printf("Signatures generated:               %d\n",
 		       nsigned);
@@ -1799,8 +1799,8 @@ main(int argc, char *argv[]) {
 		       nverifyfailed);
 #define SEC_CONST 1000000
 		printf("Runtime in seconds                  %u.%2.2u\n", 
-		       (isc_int32_t) micro_sec/SEC_CONST, 
-		       (isc_int32_t) (micro_sec%SEC_CONST));
+		       (isc_int32_t) micro_sec / SEC_CONST, 
+		       (isc_int32_t) (micro_sec % SEC_CONST));
 		if (nsigned > 0 && micro_sec > 0) {
 			sigs_sec = nsigned;
 			sigs_sec *= 100 * SEC_CONST / micro_sec;
