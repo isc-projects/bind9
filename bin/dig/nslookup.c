@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.87 2001/07/27 05:41:46 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.88 2001/07/27 06:11:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -53,8 +53,6 @@ extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern dns_messageid_t id;
-extern char *rootspace[BUFSIZE];
-extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
@@ -64,24 +62,20 @@ extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
 extern char *progname;
 
-isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
-	filter = ISC_FALSE, showallsoa = ISC_FALSE,
-	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE;
-
-isc_uint16_t bufsize = 0;
-isc_boolean_t identify = ISC_FALSE,
+static isc_boolean_t short_form = ISC_TRUE,
+	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE,
+	identify = ISC_FALSE, stats = ISC_TRUE,
 	trace = ISC_FALSE, ns_search_only = ISC_FALSE,
-	forcecomment = ISC_FALSE, stats = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
 	aaonly = ISC_FALSE;
-isc_boolean_t busy = ISC_FALSE, in_use = ISC_FALSE;
-char defclass[MXRD] = "IN";
-char deftype[MXRD] = "A";
-isc_event_t *global_event = NULL;
+static isc_boolean_t in_use = ISC_FALSE;
+static char defclass[MXRD] = "IN";
+static char deftype[MXRD] = "A";
+static isc_event_t *global_event = NULL;
 
-char domainopt[DNS_NAME_MAXTEXT];
+static char domainopt[DNS_NAME_MAXTEXT];
 
 static const char *rcodetext[] = {
 	"NOERROR",
@@ -451,7 +445,6 @@ static void
 show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
-	isc_result_t result;
 	dig_searchlist_t *listent;
 
 	srv = ISC_LIST_HEAD(server_list);
@@ -651,7 +644,7 @@ addlookup(char *opt) {
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
 	lookup->retries = tries;
-	lookup->udpsize = bufsize;
+	lookup->udpsize = 0;
 	lookup->comments = comments;
 	lookup->tcp_mode = tcpmode;
 	lookup->stats = stats;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.71 2001/07/27 05:41:44 bwelling Exp $ */
+/* $Id: host.c,v 1.72 2001/07/27 06:11:09 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -52,7 +52,7 @@ extern int tries;
 extern char *progname;
 extern isc_task_t *global_task;
 
-isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
+static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",

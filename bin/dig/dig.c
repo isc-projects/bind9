@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.151 2001/07/27 05:26:32 bwelling Exp $ */
+/* $Id: dig.c,v 1.152 2001/07/27 06:11:06 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -60,8 +60,6 @@ extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern dns_messageid_t id;
-extern char *rootspace[BUFSIZE];
-extern isc_buffer_t rootbuf;
 extern int sendcount;
 extern int ndots;
 extern int tries;
@@ -79,18 +77,15 @@ extern isc_boolean_t free_now;
 dig_lookup_t *default_lookup = NULL;
 
 extern isc_boolean_t debugging, memdebugging;
-char *batchname = NULL;
-FILE *batchfp = NULL;
-char *argv0;
+static char *batchname = NULL;
+static FILE *batchfp = NULL;
+static char *argv0;
 
-char domainopt[DNS_NAME_MAXTEXT];
+static char domainopt[DNS_NAME_MAXTEXT];
 
-isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
+static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE;
-
-isc_uint16_t bufsize = 0;
-isc_boolean_t forcecomment = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",

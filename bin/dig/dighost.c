@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.213 2001/07/27 05:52:45 bwelling Exp $ */
+/* $Id: dighost.c,v 1.214 2001/07/27 06:11:07 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -102,7 +102,6 @@ isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 isc_sockaddr_t bind_address;
 isc_sockaddr_t bind_any;
-isc_buffer_t rootbuf;
 int sendcount = 0;
 int recvcount = 0;
 int sockcount = 0;
@@ -123,7 +122,6 @@ int exitcode = 0;
 char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
-dns_name_t keyname;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
@@ -495,6 +493,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 static void
 setup_text_key(void) {
 	isc_result_t result;
+	dns_name_t keyname;
 	isc_buffer_t secretbuf;
 	int secretsize;
 	unsigned char *secretstore;
@@ -551,9 +550,8 @@ setup_file_key(void) {
 		goto failure;
 	}
 
-	dns_name_init(&keyname, NULL);
-	dns_name_clone(dst_key_name(dstkey), &keyname);
-	result = dns_tsigkey_createfromkey(&keyname, dns_tsig_hmacmd5_name,
+	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
+					   dns_tsig_hmacmd5_name,
 					   dstkey, ISC_FALSE, NULL, 0, 0,
 					   mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {
