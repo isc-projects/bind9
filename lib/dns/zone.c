@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.152.2.1 2000/07/03 22:08:57 bwelling Exp $ */
+/* $Id: zone.c,v 1.152.2.2 2000/07/10 22:43:38 gson Exp $ */
 
 #include <config.h>
 
@@ -1316,7 +1316,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	 * adb or resolver, and we had better not try
 	 * to do maintenance on it.
 	 */
-	if (zone->view->adb == NULL)
+	if (zone->view == NULL || zone->view->adb == NULL)
 		return;
 	
 	isc_stdtime_get(&now);
