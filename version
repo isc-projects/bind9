@@ -1,4 +1,4 @@
-# $Id: version,v 1.19 2000/12/28 02:13:04 gson Exp $
+# $Id: version,v 1.19.2.1 2001/05/31 23:34:59 bwelling Exp $
 #
 # This file must follow /bin/sh rules.  It is imported directly via
 # configure.
@@ -7,4 +7,4 @@ MAJORVER=9
 MINORVER=2
 PATCHVER=0
 RELEASETYPE=a
-RELEASEVER=0
+RELEASEVER=1

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2001/04/10 21:51:12 bwelling Exp $
+# $Id: Makefile.in,v 1.5.2.1 2001/06/01 00:46:30 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -93,7 +93,7 @@ installdirs:
 man3 = ${DESTDIR}${mandir}/man3
 
 install:: installdirs
-	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man3; done
+	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man3; done
 	rm -f ${man3}/lwres_addr_parse.3
 	@LN@ ${man3}/lwres_resutil.3 ${man3}/lwres_addr_parse.3
 	rm -f ${man3}/lwres_buffer_add.3
