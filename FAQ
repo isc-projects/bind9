@@ -121,7 +121,7 @@ transfers.  I'm sure I have the keys set up correctly, but the server
 is rejecting the TSIG.  Why?
 
 A: This may be a clock skew problem.  Check that the the clocks on
-the client and server are properly synchronized (e.g., using ntp).
+the client and server are properly synchronised (e.g., using ntp).
 
 
 Q: I'm trying to compile BIND 9, and "make" is failing due to files not
@@ -300,7 +300,7 @@ A: (BIND 9.3 and later) Use TSIG to select the appropriate view.
 	};
 
 
-Q: I have Freebsd 4.x and "rndc-confgen -a" just sits there.
+Q: I have FreeBSD 4.x and "rndc-confgen -a" just sits there.
 
 A: /dev/random is not configured.  Use rndcontrol(8) to tell the kernel
 to use certain interrupts as a source of random events.  You can make this
@@ -430,11 +430,11 @@ A: This is usually a configuration error.
 
    First ensure that named is running and no errors are being
    reported at startup (/var/log/messages or equivalent).  Running
-   "named -g <usual arguements>" from a terminal can help at this
+   "named -g <usual arguments>" from a terminal can help at this
    point.
 
    Secondly ensure that named is configured to use rndc either by
-   "rndc-confgen -a", rndc-confgen or manually.  The Administators
+   "rndc-confgen -a", rndc-confgen or manually.  The Administrators
    Reference manual has details on how to do this.
 
    Old versions of rndc-confgen used localhost rather than 127.0.0.1
@@ -446,7 +446,7 @@ A: This is usually a configuration error.
    If you use "rndc-confgen -a" and named is running with -t or -u
    ensure that /etc/rndc.conf has the correct ownership and that
    a copy is in the chroot area.  You can do this by re-running
-   "rndc-confgen -a" with appropriate -t and -u arguements.
+   "rndc-confgen -a" with appropriate -t and -u arguments.
 
 
 Q: I don't get RRSIG's returned when I use "dig +dnssec".
@@ -468,3 +468,20 @@ A: This is the service manager saying that named exited.   You need to
         };
 
 
+Q: I get "transfer of 'example.com/IN' from 192.168.4.12#53: failed while
+   receiving responses: permission denied" error messages.
+
+A: These indicate a filesystem permission error preventing named creating /
+   renaming the temporary file.  These will usually also have other associated
+   error messages like
+
+   "dumping master file: /etc/named/tmp-XXXX5il3sQ: open: permission denied"
+
+   Named needs write permission on the directory containing the file.  Named
+   writes the new cache file to a temporary file then renames it to the name
+   specified in named.conf to ensure that the contents are always complete.
+   This is to prevent named loading a partial zone in the event of power
+   failure or similar interrupting the write of the master file.
+
+   Note file names are relative to the directory specified in options and
+   any chroot directory  ([<chroot dir>/][<options dir>]).
