@@ -6,7 +6,6 @@ v6source
 peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
-edns_size	review		explorer
 rt4347		review		explorer
 slavefix	review		explorer
 rt5033		review		explorer
@@ -24,6 +23,7 @@ a6_remove	closed
 adb_race	closed		explorer
 blabel-cleanup	closed
 ds_12		closed
+edns_size	closed
 ipv6-improvements closed
 ipv6-scope	closed
 ipv6_6to4	closed
