@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.sh,v 1.30 2000/08/31 23:51:54 gson Exp $
+# $Id: start.sh,v 1.31 2000/10/05 22:30:57 bwelling Exp $
 
 #
 # Start name servers for running system tests.
@@ -98,7 +98,7 @@ do
 		rm -f lwresd.pid
 	    fi
 	fi
-	$LWRESD -C resolv.conf -d 99 -g -i lwresd.pid -p 9210 -P 5300 > lwresd.run 2>&1 &
+	$LWRESD -C resolv.conf -d 99 -g -i lwresd.pid -P 9210 -p 5300 > lwresd.run 2>&1 &
 	x=1
 	while test ! -f lwresd.pid
 	do
