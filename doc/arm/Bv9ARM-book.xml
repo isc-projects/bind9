@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.122 2001/04/11 20:42:29 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.123 2001/04/11 23:37:56 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -726,81 +726,56 @@ of a server.</para>
               </cmdsynopsis>
               <para><command>command</command> is one of the following:</para>
 
-<informaltable>
-	<tgroup cols = "2">
-	<colspec colname = "1" colnum = "1" colwidth = "3.000in"/>
-        <colspec colname = "2" colnum = "2" colwidth = "3.000in"/>
-        <tbody>
+<variablelist>
 
-<row>
-<entry colname = "1"><para><userinput>reload</userinput></para></entry>
-<entry colname = "2"><para>Reload configuration file and zones.</para></entry>
-</row>
+   <varlistentry><term><userinput>reload</userinput></term>
+   <listitem><para>Reload configuration file and zones.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>reload <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
-<entry colname = "2"><para>Reload the given zone.</para></entry>
-</row>
+   <varlistentry><term><userinput>reload <replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+	   <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+   <listitem><para>Reload the given zone.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>refresh <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
-<entry colname = "2"><para>Schedule zone maintenance for the given zone.</para></entry>
-</row>
+   <varlistentry><term><userinput>refresh <replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+   <listitem><para>Schedule zone maintenance for the given zone.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>stats</userinput></para></entry>
-<entry colname = "2"><para>Write server statistics to the statistics file.</para></entry>
-</row>
+   <varlistentry><term><userinput>stats</userinput></term>
+   <listitem><para>Write server statistics to the statistics file.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>querylog</userinput></para></entry>
-<entry colname = "2"><para>Toggle query logging.</para></entry>
-</row>
+   <varlistentry><term><userinput>querylog</userinput></term>
+   <listitem><para>Toggle query logging.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>dumpdb</userinput></para></entry>
-<entry colname = "2"><para>Dump the server's caches to the dump file. </para></entry>
-</row>
+   <varlistentry><term><userinput>dumpdb</userinput></term>
+   <listitem><para>Dump the server's caches to the dump file. </para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>stop</userinput></para></entry>
-<entry colname = "2"><para>Stop the server, making sure any recent changes
-made through dynamic update or IXFR are first saved to the master files
-of the updated zones.</para></entry>
-</row>
+   <varlistentry><term><userinput>stop</userinput></term>
+   <listitem><para>Stop the server,
+   making sure any recent changes
+   made through dynamic update or IXFR are first saved to the master files
+   of the updated zones.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>halt</userinput></para></entry>
-<entry colname = "2"><para>Stop the server immediately.  Recent changes
-made through dynamic update or IXFR are not saved to the master files,
-but will be rolled forward from the journal files when the server
-is restarted.</para></entry>
-</row>
+   <varlistentry><term><userinput>halt</userinput></term>
+   <listitem><para>Stop the server immediately.  Recent changes
+   made through dynamic update or IXFR are not saved to the master files,
+   but will be rolled forward from the journal files when the server
+   is restarted.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>trace</userinput></para></entry>
-<entry colname = "2"><para>Increment the servers debugging level by one. </para></entry>
-</row>
+   <varlistentry><term><userinput>trace</userinput></term>
+   <listitem><para>Increment the servers debugging level by one. </para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>trace <replaceable>level</replaceable></userinput></para></entry>
-<entry colname = "2"><para>Sets the server's debugging level to an explicit
-value.</para></entry>
-</row>
+   <varlistentry><term><userinput>trace <replaceable>level</replaceable></userinput></term>
+   <listitem><para>Sets the server's debugging level to an explicit
+   value.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>notrace</userinput></para></entry>
-<entry colname = "2"><para>Sets the server's debugging level to 0.</para></entry>
-</row>
+   <varlistentry><term><userinput>notrace</userinput></term>
+   <listitem><para>Sets the server's debugging level to 0.</para></listitem></varlistentry>
 
-<row>
-<entry colname = "1"><para><userinput>flush</userinput></para></entry>
-<entry colname = "2"><para>Flushes the server's cache.</para></entry>
-</row>
+   <varlistentry><term><userinput>flush</userinput></term>
+   <listitem><para>Flushes the server's cache.</para></listitem></varlistentry>
 
-</tbody>
-</tgroup>
-</informaltable>
+</variablelist>
 
 <para>In <acronym>BIND</acronym> 9.1, <command>rndc</command> does not
 yet support all the commands of the BIND 8 <command>ndc</command>
@@ -2688,7 +2663,6 @@ will be generated.  If there is no <command>options</command>
 statement, an options block with each option set to its default will
 be used.</para>
 
-
 <variablelist>
 
 <varlistentry><term><command>version</command></term>
@@ -3418,8 +3392,9 @@ is preferred least of all.</para>
 <programlisting>    topology { localhost; localnets; };
 </programlisting>
 <note><simpara>The <command>topology</command> option
-is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
-      </sect3>
+is not implemented in <acronym>BIND</acronym> 9.
+</simpara></note>
+</sect3>
 
 <sect3 id="the_sortlist_statement">
 
