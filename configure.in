@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.2 $)
+AC_REVISION($Revision: 1.3 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -27,7 +27,7 @@ AC_SUBST(STD_CWARNINGS)
 if test "X$GCC" = "Xyes"; then
 	STD_CINCLUDES=
 	STD_CDEFINES=
-	STD_CWARNINGS="-W -Wall -Wmissing-prototypes -Wconversion"
+	STD_CWARNINGS="-W -Wall -Wmissing-prototypes"
 else
 	STD_CINCLUDES=
 	STD_CDEFINES=
