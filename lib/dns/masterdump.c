@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.38 2000/12/11 19:24:12 bwelling Exp $ */
+/* $Id: masterdump.c,v 1.39 2001/01/04 22:19:16 mws Exp $ */
 
 #include <config.h>
 
@@ -157,6 +157,19 @@ dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_MULTILINE,
 	24, 32, 32, 40, 80, 8
 };
+
+/*
+ * A master style that prints name, ttl, class, type, and value on every line.
+ * Similar to explicitttl above, but more verbose.  Intended for generating
+ * master files which can be easily parsed by perl scripts and similar
+ * applications.
+ */
+const dns_master_style_t
+dns_master_style_parsable = {
+	0,
+	24, 32, 32, 40, 80, 8
+};
+
 
 /*
  * A style suitable for dns_rdataset_totext().
