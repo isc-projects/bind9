@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.50 2001/11/12 19:05:13 gson Exp $ */
+/* $Id: cache.c,v 1.51 2001/11/27 03:10:29 marka Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,9 @@
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
+#include <dns/rdata.h>
+#include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 
 #define CACHE_MAGIC		ISC_MAGIC('$', '$', '$', '$')
@@ -965,4 +968,74 @@ dns_cache_flush(dns_cache_t *cache) {
 	dns_db_detach(&cache->db);
 	cache->db = db;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_cache_flushname(dns_cache_t *cache, dns_name_t *name) {
+	isc_result_t result;
+	dns_rdatasetiter_t *iter = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_db_t *db = NULL;
+	
+	LOCK(&cache->lock);
+	if (cache->db != NULL)
+		dns_db_attach(cache->db, &db);
+	UNLOCK(&cache->lock);
+	if (db == NULL)
+		return (ISC_R_SUCCESS);
+	result = dns_db_findnode(cache->db, name, ISC_FALSE, &node);
+	if (result == ISC_R_NOTFOUND) {
+		result = ISC_R_SUCCESS;
+		goto cleanup_db;
+	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_db;
+
+	result = dns_db_allrdatasets(cache->db, node, NULL,
+				     (isc_stdtime_t)0, &iter);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_node;
+
+	for (result = dns_rdatasetiter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iter))
+	{
+		dns_rdataset_t rdataset;
+		dns_rdataset_init(&rdataset);
+
+		dns_rdatasetiter_current(iter, &rdataset);
+
+		for (result = dns_rdataset_first(&rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdatatype_t covers;
+
+			dns_rdataset_current(&rdataset, &rdata);
+			if (rdata.type == dns_rdatatype_sig)
+				covers = dns_rdata_covers(&rdata);
+			else
+				covers = 0;
+			result = dns_db_deleterdataset(cache->db, node, NULL,
+						       rdata.type, covers);
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UNCHANGED)
+				break;
+		}
+		dns_rdataset_disassociate(&rdataset);
+		if (result != ISC_R_NOMORE)
+			break;
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
+	dns_rdatasetiter_destroy(&iter);
+
+ cleanup_node:
+	dns_db_detachnode(cache->db, &node);
+
+ cleanup_db:
+	dns_db_detach(&db);
+	return (result);
 }

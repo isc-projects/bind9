@@ -1,3 +1,6 @@
+1138.	[func]		It is now possible to flush given names from the
+			cache dns_cache_flushname().
+
 1137.	[func]		It is now possible to flush given names from the
 			adb cache dns_adb_flushname().
 
