@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.318 2001/04/10 19:19:49 bwelling Exp $ */
+/* $Id: zone.c,v 1.319 2001/04/24 23:03:04 gson Exp $ */
 
 #include <config.h>
 
@@ -2629,7 +2629,8 @@ zone_notify(dns_zone_t *zone) {
 		}
 
 		if (!loggednotify) {
-			notify_log(zone, ISC_LOG_INFO, "sending notifies (%u)",
+			notify_log(zone, ISC_LOG_INFO,
+				   "sending notifies (serial %u)",
 				   serial);
 			loggednotify = ISC_TRUE;
 		}
