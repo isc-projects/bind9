@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.24 2004/09/16 01:00:56 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.25 2004/09/16 02:14:14 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -636,9 +636,9 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 				 "; (%d server%s found)\n",
 				 addresscount,
 				 addresscount > 1 ? "s" : "");
-			strncat(lookup->cmdline, append, remaining);
 			remaining = sizeof(lookup->cmdline) -
 				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
 		}
 		if (first) {
 			snprintf(append, sizeof(append), 
