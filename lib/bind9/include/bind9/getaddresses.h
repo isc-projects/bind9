@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.h,v 1.1 2001/11/14 22:08:38 bwelling Exp $ */
+/* $Id: getaddresses.h,v 1.2 2001/11/15 01:04:06 gson Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1
@@ -23,7 +23,7 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#include <isccfg/cfg.h>
+#include <isc/net.h>
 
 ISC_LANG_BEGINDECLS
 
