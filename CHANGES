@@ -1,3 +1,6 @@
+1277.	[bug]		Failure to write pid-file should not be fatal on
+			reload. [RT #2861]
+
 1276.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
 
 1275.	[bug]		When verifying that an NXT proves nonexistence, check

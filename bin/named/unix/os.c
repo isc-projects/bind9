@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.57 2001/12/01 00:34:23 marka Exp $ */
+/* $Id: os.c,v 1.58 2002/05/03 05:28:25 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -470,16 +470,19 @@ cleanup_pidfile(void) {
 }
 
 void
-ns_os_writepidfile(const char *filename) {
+ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
         int fd;
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
+	void (*report)(const char *, ...);
 
 	/*
 	 * The caller must ensure any required synchronization.
 	 */
+
+	report = first_time ? ns_main_earlyfatal : ns_main_earlywarning;
 
 	cleanup_pidfile();
 
@@ -490,8 +493,8 @@ ns_os_writepidfile(const char *filename) {
 	pidfile = malloc(len + 1);
 	if (pidfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-                ns_main_earlyfatal("couldn't malloc '%s': %s",
-				   filename, strbuf);
+                (*report)("couldn't malloc '%s': %s", filename, strbuf);
+		return;
 	}
 	/* This is safe. */
 	strcpy(pidfile, filename);
@@ -499,26 +502,37 @@ ns_os_writepidfile(const char *filename) {
         fd = safe_open(filename, ISC_FALSE);
         if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-                ns_main_earlyfatal("couldn't open pid file '%s': %s",
-				   filename, strbuf);
+                (*report)("couldn't open pid file '%s': %s", filename, strbuf);
+		free(pidfile);
+		pidfile = NULL;
+		return;
 	}
         lockfile = fdopen(fd, "w");
         if (lockfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
-				   filename, strbuf);
+		(*report)("could not fdopen() pid file '%s': %s",
+			  filename, strbuf);
+		(void)close(fd);
+		cleanup_pidfile();
+		return;
 	}
 #ifdef HAVE_LINUXTHREADS
 	pid = mainpid;
 #else
 	pid = getpid();
 #endif
-        if (fprintf(lockfile, "%ld\n", (long)pid) < 0)
-                ns_main_earlyfatal("fprintf() to pid file '%s' failed",
-				   filename);
-        if (fflush(lockfile) == EOF)
-                ns_main_earlyfatal("fflush() to pid file '%s' failed",
-				   filename);
+        if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
+                (*report)("fprintf() to pid file '%s' failed", filename);
+		(void)fclose(lockfile);
+		cleanup_pidfile();
+		return;
+	}
+        if (fflush(lockfile) == EOF) {
+                (*report)("fflush() to pid file '%s' failed", filename);
+		(void)fclose(lockfile);
+		cleanup_pidfile();
+		return;
+	}
 	(void)fclose(lockfile);
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.127 2002/03/13 23:36:14 bwelling Exp $ */
+/* $Id: main.c,v 1.128 2002/05/03 05:28:19 marka Exp $ */
 
 #include <config.h>
 
@@ -70,10 +70,7 @@ static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char    		saved_command_line[512];
 
-static void
-ns_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
-
-static void
+void
 ns_main_earlywarning(const char *format, ...) {
 	va_list args;
 
