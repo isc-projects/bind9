@@ -1,10 +1,11 @@
-1344.	[func]		Log if the serial number on the master has gone backwards.
+1344.	[func]		Log if the serial number on the master has gone
+			backwards.
 			If you have multiple machines specified in the masters
-			clause you may want to set 'multi-master yes;' to suppress
-			this warning.
+			clause you may want to set 'multi-master yes;' to
+			suppress this warning.
 
-1343.	[func]		Log successful notifies received (info).  Adjust log level
-			for failed notifies to notice.
+1343.	[func]		Log successful notifies received (info).  Adjust log
+			level for failed notifies to notice.
 
 1342.	[func]		Log remote address with TCP dispatch failures.
 
