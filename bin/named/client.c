@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.207 2002/04/26 00:40:22 marka Exp $ */
+/* $Id: client.c,v 1.208 2002/04/29 23:43:46 marka Exp $ */
 
 #include <config.h>
 
@@ -857,12 +857,13 @@ ns_client_send(ns_client_t *client) {
 	else
 		dnssec_opts = DNS_MESSAGERENDER_OMITDNSSEC;
 
-	if (client->view->preferred_glue == dns_rdatatype_a)
-		preferred_glue = DNS_MESSAGERENDER_PREFER_A;
-	else if (client->view->preferred_glue == dns_rdatatype_aaaa)
-		preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
-	else
-		preferred_glue = 0;
+	preferred_glue = 0;
+	if (client->view != NULL) {
+		if (client->view->preferred_glue == dns_rdatatype_a)
+			preferred_glue = DNS_MESSAGERENDER_PREFER_A;
+		else if (client->view->preferred_glue == dns_rdatatype_aaaa)
+			preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
+	}
 
 	/*
 	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
