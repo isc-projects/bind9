@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.155 2000/11/23 01:32:45 gson Exp $ */
+/* $Id: query.c,v 1.156 2000/11/30 00:25:09 gson Exp $ */
 
 #include <config.h>
 
@@ -3321,7 +3321,8 @@ ns_query_start(ns_client_t *client) {
 		return;
 	}
 
-	log_query(client);
+	if (ns_g_server->log_queries)
+		log_query(client);
 
 	/*
 	 * Check for multiple question queries, since edns1 is dead.

@@ -1,3 +1,6 @@
+ 583.	[func]		"rndc querylog" will now toggle logging of
+			queries, like "ndc querylog" in BIND 8.
+
  582.	[bug]		dns_zone_idetach() failed to lock the zone.
 			[RT #199, #463]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.261 2000/11/28 21:32:32 gson Exp $ */
+/* $Id: server.c,v 1.262 2000/11/30 00:25:11 gson Exp $ */
 
 #include <config.h>
 
@@ -2010,6 +2010,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	ns_server_zeroglobal(server);
 
 	server->flushonshutdown = ISC_FALSE;
+	server->log_queries = ISC_FALSE;
+
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
 }
@@ -2185,6 +2187,17 @@ ns_server_refreshzone(ns_server_t *server, char *args) {
 	}
 	return (ISC_R_SUCCESS);
 }	
+
+isc_result_t
+ns_server_togglequerylog(ns_server_t *server) {
+	server->log_queries = ! server->log_queries;
+	
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "query logging is now %s",
+		      server->log_queries ? "on" : "off");
+	return (ISC_R_SUCCESS);
+}
 
 static isc_result_t
 ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.24 2000/11/08 01:36:12 gson Exp $ */
+/* $Id: omapi.c,v 1.25 2000/11/30 00:25:06 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -127,6 +127,8 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_DUMPSTATS)
 		   == 0) {
 		result = ns_server_dumpstats(ns_g_server);
+	} else if (omapi_string_strcmp(name, NS_OMAPI_COMMAND_QUERYLOG) == 0) {
+		result = ns_server_togglequerylog(ns_g_server);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,

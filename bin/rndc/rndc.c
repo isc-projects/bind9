@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.29 2000/11/25 03:27:54 mws Exp $ */
+/* $Id: rndc.c,v 1.30 2000/11/30 00:25:16 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -262,7 +262,7 @@ command is one of the following for named:\n\
   stats		Dump statistics to statistics file.\n\
   *trace	Increment debugging level by one.\n\
   *notrace	Set debugging level to 0.\n\
-  *querylog	Toggle query logging.\n\
+  querylog	Toggle query logging.\n\
   *stop		Stop the server.\n\
   *restart	Restart the server.\n\
 \n\
@@ -502,10 +502,6 @@ main(int argc, char **argv) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "notrace") == 0) {
-			result = ISC_R_NOTIMPLEMENTED;
-
-		} else if (strcmp(command, "querylog") == 0 ||
-			   strcmp(command, "qrylog") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
 
 		} else if (strcmp(command, "reload") == 0) {

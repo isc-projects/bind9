@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.44 2000/11/09 19:55:20 mws Exp $ */
+/* $Id: server.h,v 1.45 2000/11/30 00:25:14 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -67,6 +67,7 @@ struct ns_server {
 	isc_event_t *		reload_event;
 
 	isc_boolean_t		flushonshutdown;
+	isc_boolean_t		log_queries;	/* For BIND 8 compatibility */
 
 	char *			statsfile;
 	FILE *			statsfp;
@@ -111,6 +112,12 @@ ns_server_reloadzone(ns_server_t *server, char *args);
 
 isc_result_t
 ns_server_refreshzone(ns_server_t *server, char *args);
+
+isc_result_t
+ns_server_togglequerylog(ns_server_t *server);
+/*
+ * Toggle logging of queries, as in BIND 8.
+ */
 
 isc_result_t
 ns_server_dumpstats(ns_server_t *server);

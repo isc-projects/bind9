@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.56 2000/11/28 23:06:32 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.57 2000/11/30 00:25:49 gson Exp $ -->
 
 <book>
 
@@ -690,7 +690,7 @@ of a server.</para>
 </row>
 <row rowsep = "0">
                       <entry colname =
-                             "1"><para><userinput>querylog</userinput><footnoteref linkend="nyi1"/></para></entry>
+                             "1"><para><userinput>querylog</userinput></para></entry>
 <entry colname = "2"><para>Toggle query logging.</para></entry>
 </row>
 <row rowsep = "0">
