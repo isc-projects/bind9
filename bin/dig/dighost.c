@@ -24,8 +24,6 @@
  * functions in most applications.
  */
 
-#define DEBUG
-
 #include <config.h>
 
 #include <stdlib.h>
