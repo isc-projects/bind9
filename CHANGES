@@ -1,3 +1,6 @@
+1451.	[bug]		rndc-confgen didn't exit with a error code for all
+			failures. [RT #5209]
+
 1450.	[bug]		Fetching expired glue failed under certian
 			circumstances.  [RT #5124]
 
