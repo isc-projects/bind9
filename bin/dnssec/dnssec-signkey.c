@@ -327,7 +327,8 @@ main(int argc, char *argv[]) {
 					 mctx, &b, rdata);
 		if (result != ISC_R_SUCCESS)
 			fatal("key '%s/%s/%d' failed to sign data: %s",
-			      dst_key_name(key), algtostr(dst_key_alg(key)),
+			      nametostr(dst_key_name(key)),
+			      algtostr(dst_key_alg(key)),
 			      dst_key_id(key), isc_result_totext(result));
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dst_key_free(&key);
