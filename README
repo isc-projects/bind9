@@ -44,14 +44,18 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0
+BIND 9.0.0rc6
 
-	BIND 9.0.0 is the first "general availability" release of BIND
-	version 9. It is aimed at early adopters and those who wish to 
-	make use of new 9.0 features, such as IPv6 and DNSSEC secure 
-	resolution support.
+	BIND 9.0.0rc6 is a release candidate for the upcoming 
+	9.0.0 release.  The only changes expected between
+	rc5 and the final release are bug fixes and documentation
+	updates.
 
-	We are running BIND 9.0.0 in production, and it has been used
+	The 9.0.0 release, and this release candidate, is aimed at
+	early adopters and those who wish to make use of new 9.0
+	features, such as IPv6 and DNSSEC secure resolution support.
+
+	We are running BIND 9 in production, and it has been used
 	as a root name server.
 
 	BIND 9.0.0 is primarily a name server software distribution.
