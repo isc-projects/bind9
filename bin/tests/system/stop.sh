@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: stop.sh,v 1.12 2000/07/09 15:55:01 tale Exp $
+# $Id: stop.sh,v 1.13 2000/07/12 17:59:08 bwelling Exp $
 
 #
 # Stop name servers.
@@ -31,7 +31,12 @@ for d in ns*
 do
      pidfile="$d/named.pid"
      if [ -f $pidfile ]; then
-        kill -TERM `cat $pidfile`
+        kill -TERM `cat $pidfile` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:$d died before a SIGTERM was sent"
+		status=`expr $status + 1`
+		rm -f $pidfile
+	fi
      fi
 done
 
@@ -39,7 +44,12 @@ for d in lwresd*
 do
      pidfile="$d/lwresd.pid"
      if [ -f $pidfile ]; then
-        kill -TERM `cat $pidfile`
+        kill -TERM `cat $pidfile` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:$d died before a SIGTERM was sent"
+		status=`expr $status + 1`
+		rm -f $pidfile
+	fi
      fi
 done
 
@@ -51,7 +61,12 @@ do
      if [ -f $pidfile ]; then
 	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
-        kill -KILL `cat $pidfile`
+        kill -KILL `cat $pidfile` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:$d died before a SIGKILL was sent"
+		status=`expr $status + 1`
+		rm -f $pidfile
+	fi
         rm -f $pidfile
      fi
 done
@@ -62,7 +77,12 @@ do
      if [ -f $pidfile ]; then
 	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
-        kill -KILL `cat $pidfile`
+        kill -KILL `cat $pidfile` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:$d died before a SIGKILL was sent"
+		status=`expr $status + 1`
+		rm -f $pidfile
+	fi
         rm -f $pidfile
      fi
 done

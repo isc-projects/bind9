@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.22 2000/07/07 18:25:13 bwelling Exp $
+# $Id: tests.sh,v 1.23 2000/07/12 17:59:07 bwelling Exp $
 
 #
 # Perform tests
@@ -52,14 +52,24 @@ grep ";" dig.out.ns3
 
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
-kill -TERM `cat ns3/named.pid`
+kill -TERM `cat ns3/named.pid` > /dev/null 2>&1
+if [ $? != 0 ]; then
+	echo "I:ns3 died before a SIGTERM was sent"
+	status=1
+	rm -f ns3/named.pid
+fi
 rm -f ns2/example.db
 cp ns2/example3.db ns2/example.db
 sleep 6
 
 if [ -f ns3/named.pid ]; then
 	echo "I:ns3 didn't die when sent a SIGTERM"
-	kill -KILL `cat ns3/named.pid`
+	kill -KILL `cat ns3/named.pid` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:ns3 died before a SIGKILL was sent"
+		status=1
+		rm -f ns3/named.pid
+	fi
 	status=1
 fi
 
@@ -78,12 +88,22 @@ grep ";" dig.out.ns3
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
 rm -f ns2/example.db
-kill -TERM `cat ns2/named.pid`
+kill -TERM `cat ns2/named.pid` > /dev/null 2>&1
+if [ $? != 0 ]; then
+	echo "I:ns2 died before a SIGTERM was sent"
+	status=1
+	rm -f ns2/named.pid
+fi
 sleep 6
 
 if [ -f ns2/named.pid ]; then
 	echo "I:ns2 didn't die when sent a SIGTERM"
-	kill -KILL `cat ns2/named.pid`
+	kill -KILL `cat ns2/named.pid` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:ns2 died before a SIGKILL was sent"
+		status=1
+		rm -f ns2/named.pid
+	fi
 	status=1
 fi
 
