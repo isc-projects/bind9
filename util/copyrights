@@ -813,6 +813,7 @@
 ./lib/dns/config/confkeys.c			C	1999,2000
 ./lib/dns/config/conflog.c			C	1999,2000
 ./lib/dns/config/conflsn.c			C	1999,2000
+./lib/dns/config/conflwres.c			C	2000
 ./lib/dns/config/confndc.c			C	2000
 ./lib/dns/config/confparser.y.dirty		YACC	1996,1997,1998,1999,2000
 ./lib/dns/config/confpvt.h			C	1999,2000
@@ -852,6 +853,7 @@
 ./lib/dns/include/dns/confkeys.h		C	1999,2000
 ./lib/dns/include/dns/conflog.h			C	1999,2000
 ./lib/dns/include/dns/conflsn.h			C	1999,2000
+./lib/dns/include/dns/conflwres.h		C	2000
 ./lib/dns/include/dns/confndc.h			C	2000
 ./lib/dns/include/dns/confparser.h		C	1999,2000
 ./lib/dns/include/dns/confresolv.h		C	1999,2000

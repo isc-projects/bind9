@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.52 2000/08/22 17:36:29 gson Exp $ */
+/* $Id: confctx.h,v 1.53 2000/10/04 18:47:17 bwelling Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -59,6 +59,7 @@
 #include <dns/confctl.h>
 #include <dns/conflog.h>
 #include <dns/conflsn.h>
+#include <dns/conflwres.h>
 #include <dns/confresolv.h>
 #include <dns/confview.h>
 
@@ -97,6 +98,7 @@ struct dns_c_ctx {
 	dns_c_tkeylist_t       *trusted_keys;
 	dns_c_logginglist_t    *logging;
 	dns_c_viewtable_t      *views;
+	dns_c_lwreslist_t      *lwres;
 
 	dns_c_zone_t	       *currzone;
 	dns_c_view_t	       *currview;
@@ -813,6 +815,10 @@ isc_result_t dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg,
 				      dns_c_tkeylist_t **retval);
 isc_result_t dns_c_ctx_settrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t *list,
 				      isc_boolean_t copy);
+
+isc_result_t dns_c_ctx_getlwres(dns_c_ctx_t *cfg, dns_c_lwreslist_t **retval);
+isc_result_t dns_c_ctx_setlwres(dns_c_ctx_t *cfg, dns_c_lwreslist_t *list,
+				isc_boolean_t copy);
 
 
 ISC_LANG_ENDDECLS

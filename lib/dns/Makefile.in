@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.105 2000/09/28 20:29:22 bwelling Exp $
+# $Id: Makefile.in,v 1.106 2000/10/04 18:47:15 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,6 +38,7 @@ CONFOBJS =	config/confacl.@O@ config/confcache.@O@ config/confcommon.@O@ \
 		config/confctl.@O@ config/confctx.@O@ \
 		config/confip.@O@ config/confkeys.@O@ \
 		config/conflog.@O@ config/conflsn.@O@ \
+		config/conflwres.@O@ \
 		config/confndc.@O@ config/confparser.@O@ \
 		config/confresolv.@O@ config/confrrset.@O@ \
 		config/confview.@O@ config/confzone.@O@

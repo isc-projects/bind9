@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.90 2000/09/15 23:02:07 gson Exp $ */
+/* $Id: confctx.c,v 1.91 2000/10/04 18:47:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -630,6 +630,7 @@ dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **cfg)
 	tmpcfg->resolver = NULL;
 	tmpcfg->cache = NULL;
 	tmpcfg->views = NULL;
+	tmpcfg->lwres = NULL;
 
 	tmpcfg->currview = NULL;
 	tmpcfg->currzone = NULL;
@@ -700,6 +701,9 @@ dns_c_ctx_delete(dns_c_ctx_t **cfg)
 
 	if (c->views != NULL)
 		dns_c_viewtable_delete(&c->views);
+
+	if (c->lwres != NULL)
+		dns_c_lwreslist_delete(&c->lwres);
 
 	c->magic = 0;
 	isc_mem_put(c->mem, c, sizeof *c);
@@ -2480,6 +2484,50 @@ dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg, dns_c_tkeylist_t **retval)
 		*retval = cfg->trusted_keys;
 		return (ISC_R_SUCCESS);
 	}
+}
+
+
+isc_result_t
+dns_c_ctx_getlwres(dns_c_ctx_t *cfg,
+                   dns_c_lwreslist_t **retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+        REQUIRE(retval != NULL);
+
+	*retval = cfg->lwres;
+
+        if (cfg->lwres == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_ctx_setlwres(dns_c_ctx_t *cfg,
+		   dns_c_lwreslist_t *newval, isc_boolean_t deepcopy)
+{
+	isc_result_t res;
+
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	if (cfg->lwres != NULL) {
+		dns_c_lwreslist_delete(&cfg->lwres);
+	}
+
+	if (newval == NULL) {
+		cfg->lwres = NULL;
+		res = ISC_R_SUCCESS;
+	} else if (deepcopy) {
+		res = dns_c_lwreslist_copy(cfg->mem,
+					   &cfg->lwres, newval);
+	} else {
+		cfg->lwres = newval;
+		res = ISC_R_SUCCESS;
+	}
+
+	return (res);
 }
 
 

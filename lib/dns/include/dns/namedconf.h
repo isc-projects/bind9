@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.8 2000/08/01 01:24:23 tale Exp $ */
+/* $Id: namedconf.h,v 1.9 2000/10/04 18:47:19 bwelling Exp $ */
 
 #ifndef DNS_NAMEDCONF_H
 #define DNS_NAMEDCONF_H 1
@@ -28,6 +28,7 @@
 #include <dns/confkeys.h>	/* Contractual promise. */
 #include <dns/conflog.h>	/* Contractual promise. */
 #include <dns/conflsn.h>	/* Contractual promise. */
+#include <dns/conflwres.h>	/* Contractual promise. */
 #include <dns/confparser.h>	/* Contractual promise. */
 #include <dns/confrrset.h>	/* Contractual promise. */
 #include <dns/confzone.h>	/* Contractual promise. */

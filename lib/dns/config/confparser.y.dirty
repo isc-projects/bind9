@@ -1,4 +1,5 @@
 %{
+		
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
  *
@@ -16,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.17 2000/09/15 00:26:35 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.18 2000/10/04 18:47:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -309,6 +310,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_LISTEN_ON
 %token		L_LISTEN_ON_V6
 %token		L_LOGGING
+%token		L_LWRES
 %token		L_MAINTAIN_IXFR_BASE
 %token		L_MANY_ANSWERS
 %token		L_MASTER
@@ -499,6 +501,7 @@ statement: include_stmt
 	| acl_stmt L_EOS
 	| key_stmt L_EOS
 	| view_stmt L_EOS
+	| lwres_stmt L_EOS
 	| L_END_INCLUDE
 	;
 
@@ -5574,6 +5577,67 @@ trusted_key: any_string L_INTEGER L_INTEGER L_INTEGER L_QSTRING
 	}
 	;
 
+/*
+ * Lightweight resolver daemon
+ */
+
+
+lwres_stmt: L_LWRES
+	{
+		dns_c_lwres_t *lwres = NULL;
+		tmpres = dns_c_lwres_new(currcfg->mem, &lwres);
+		if (tmpres != ISC_R_SUCCESS) {
+			YYABORT;
+		}
+		if (currcfg->lwres == NULL) {
+			tmpres = dns_c_lwreslist_new(currcfg->mem,
+						     &currcfg->lwres);
+			if (tmpres != ISC_R_SUCCESS) {
+				YYABORT;
+			}
+		}
+		ISC_LIST_APPEND(currcfg->lwres->lwreslist, lwres, next);
+		
+	} L_LBRACE optional_lwres_options_list L_RBRACE
+	;
+
+optional_lwres_options_list: /* empty */
+	| lwres_options_list
+	;
+
+lwres_options_list: lwres_option L_EOS
+	| lwres_options_list lwres_option L_EOS;
+
+lwres_option: L_LISTEN_ON port_ip_list
+	{
+		dns_c_lwres_t *lwres;
+		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
+		tmpres = dns_c_lwres_setlistenon(lwres, $2);
+		dns_c_iplist_detach(&$2);
+
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE, "cannot redefine listen-on");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set listen-on");
+			YYABORT;
+		}
+	}
+	| L_VIEW any_string optional_class
+	{
+		dns_c_lwres_t *lwres;
+		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
+		tmpres = dns_c_lwres_setview(lwres, $2, $3);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE, "cannot redefine view");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set view");
+			YYABORT;
+		}
+		isc_mem_free(memctx, $2);
+	}
+	;
 
 
 /*
@@ -5703,6 +5767,7 @@ static struct token keyword_tokens [] = {
 	{ "listen-on",			L_LISTEN_ON },
 	{ "listen-on-v6",		L_LISTEN_ON_V6 },
 	{ "logging",			L_LOGGING },
+	{ "lwres",			L_LWRES },
 	{ "maintain-ixfr-base",		L_MAINTAIN_IXFR_BASE },
 	{ "many-answers",		L_MANY_ANSWERS },
 	{ "master",			L_MASTER },
@@ -5957,7 +6022,8 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 		if (res != ISC_R_SUCCESS) {
 			dns_c_ctx_delete(&currcfg);
 		}
-	}
+	} else
+		dns_c_ctx_delete(&currcfg);
 
 	*configctx = currcfg;
 
