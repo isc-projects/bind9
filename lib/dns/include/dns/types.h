@@ -110,8 +110,8 @@ enum {
 #include <dns/enumclass.h>
 enum {
 	CLASSENUM
+	dns_rdataclass_ch = 3,
 	dns_rdataclass_none = 254	/* RFC2136 */
-	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
 };
 
 /*
