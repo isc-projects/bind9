@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.5 2000/03/23 19:48:24 halley Exp $
+ * $Id: dst_result.c,v 1.6 2000/03/28 03:06:37 bwelling Exp $
  */
 
 #include <config.h>
@@ -51,6 +51,7 @@ static char *text[DST_R_NRESULTS] = {
 	"not a private key",			/* 16 */
 	"not a key that can compute a secret",	/* 17 */
 	"failure computing a shared secret",	/* 18 */
+	"no randomness available",		/* 19 */
 };
 
 #define DST_RESULT_RESULTSET			2

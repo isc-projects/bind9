@@ -43,8 +43,9 @@ ISC_LANG_BEGINDECLS
 #define DST_R_NOTPRIVATEKEY		(ISC_RESULTCLASS_DST + 16)
 #define DST_R_KEYCANNOTCOMPUTESECRET	(ISC_RESULTCLASS_DST + 17)
 #define DST_R_COMPUTESECRETFAILURE	(ISC_RESULTCLASS_DST + 18)
+#define DST_R_NORANDOMNESS		(ISC_RESULTCLASS_DST + 19)
 
-#define DST_R_NRESULTS			19	/* Number of results */
+#define DST_R_NRESULTS			20	/* Number of results */
 
 
 char *                                  dst_result_totext(isc_result_t);

@@ -1,4 +1,7 @@
 
+   2.	[bug]		Generating cryptographic randomness failed on
+			systems without /dev/random.
+
    1.	[bug]		The installdirs rule in
 			lib/isc/unix/include/isc/Makefile.in had a typo which
 			prevented the isc directory from being created if it

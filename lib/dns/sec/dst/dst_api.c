@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.23 2000/03/16 22:43:33 halley Exp $
+ * $Id: dst_api.c,v 1.24 2000/03/28 03:06:36 bwelling Exp $
  */
 
 #include <config.h>
@@ -37,7 +37,9 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/random.h>
 #include <isc/region.h>
+#include <isc/time.h>
 #include <dns/rdata.h>
 #include <dns/keyvalues.h>
 
@@ -810,6 +812,8 @@ dst_secret_size(const dst_key_t *key, unsigned int *n) {
 isc_result_t 
 dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 	isc_region_t r;
+	isc_result_t result;
+	int status;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(target != NULL);
@@ -819,10 +823,41 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 		return (ISC_R_NOSPACE);
 
 	RUNTIME_CHECK(isc_mutex_lock((&random_lock)) == ISC_R_SUCCESS);
-	RAND_bytes(r.base, wanted);
+	status = RAND_bytes(r.base, wanted);
+	if (status == 0) {
+		isc_random_t rctx;
+		isc_uint32_t val;
+		isc_time_t now;
+		int count = 0;
+
+		isc_random_init(&rctx);
+		result = isc_time_now(&now);
+		if (result != ISC_R_SUCCESS)
+			goto failure;
+		isc_random_seed(&rctx, isc_time_nanoseconds(&now));
+		while (RAND_status() == 0 && count < 1000) {
+			isc_random_get(&rctx, &val);
+			RAND_add(&val, sizeof(isc_uint32_t), 1);
+			count++;
+		}
+		isc_random_invalidate(&rctx);
+		if (RAND_status() == 0) {
+			result = DST_R_NORANDOMNESS;
+			goto failure;
+		}
+		status = RAND_bytes(r.base, wanted);
+	}
 	RUNTIME_CHECK(isc_mutex_unlock((&random_lock)) == ISC_R_SUCCESS);
+	if (status == 0)
+		return (DST_R_NORANDOMNESS);
+
 	isc_buffer_add(target, wanted);
 	return (ISC_R_SUCCESS);
+
+ failure:
+	RUNTIME_CHECK(isc_mutex_unlock((&random_lock)) == ISC_R_SUCCESS);
+	return (result);
+	
 }
 
 /***
