@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.114 2001/06/27 23:30:22 marka Exp $ */
+/* $Id: main.c,v 1.115 2001/06/27 23:50:50 marka Exp $ */
 
 #include <config.h>
 
@@ -272,7 +272,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:C:d:fgi:lm:n:N:p:P:st:u:vx:")) !=
+					   "c:C:d:fgi:ln:N:p:P:st:u:vx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -305,10 +305,6 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'l':
 			ns_g_lwresdonly = ISC_TRUE;
-			break;
-		case 'm':
-			isc_mem_debugging = strtoul(isc_commandline_argument,
-						    NULL, 0);
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
@@ -537,6 +533,16 @@ cleanup(void) {
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+
+	/*
+	 * This is a gross hack.  'isc_mem_debugging' must be set
+	 * before any calls to isc_mem_create().
+	 */
+	if (strcmp(argv[1], "-m") == 0 && argv[2] != NULL) {
+		isc_mem_debugging = strtoul(argv[2], NULL, 0);
+		argc -= 2;
+		argv += 2;
+	}
 
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
