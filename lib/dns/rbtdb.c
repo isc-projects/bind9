@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.110 2000/07/25 01:06:01 gson Exp $ */
+/* $Id: rbtdb.c,v 1.111 2000/07/25 01:19:51 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3560,7 +3560,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	result = add(rbtdb, rbtnode, rbtversion, newheader, 0,
+	result = add(rbtdb, rbtnode, rbtversion, newheader, DNS_DBADD_FORCE,
 		     ISC_FALSE, NULL, 0);
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
