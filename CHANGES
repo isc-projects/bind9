@@ -1,4 +1,6 @@
 
+ 645.	[port] 		BSD/OS 3.0 needs pthread_init(). [RT #603]
+
  642.	[bug]		Break the exit_check() race in the zone module.
 			[RT #598]
 

@@ -2556,11 +2556,11 @@ fi
 
 			;;
 		#
-		# BSDI 3.1 through 4.0.1 needs pthread_init() to be
+		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
 		# called before certain pthreads calls.	 This is deprecated
 		# in BSD/OS 4.1.
 		#
-		*-bsdi3.1*|*-bsdi4.0*)
+		*-bsdi3.*|*-bsdi4.0*)
 			cat >> confdefs.h <<\EOF
 #define NEED_PTHREAD_INIT 1
 EOF

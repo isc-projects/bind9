@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.205.2.1 $)
+AC_REVISION($Revision: 1.205.2.2 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -412,11 +412,11 @@ then
 			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 			;;
 		#
-		# BSDI 3.1 through 4.0.1 needs pthread_init() to be
+		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
 		# called before certain pthreads calls.	 This is deprecated
 		# in BSD/OS 4.1.
 		#
-		*-bsdi3.1*|*-bsdi4.0*)
+		*-bsdi3.*|*-bsdi4.0*)
 			AC_DEFINE(NEED_PTHREAD_INIT)
 			;;
 		#
