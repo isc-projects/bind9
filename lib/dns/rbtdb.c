@@ -406,7 +406,7 @@ clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		top_next = current->next;
 		dcurrent = current->down;
 		if (dcurrent != NULL) {
-			do {
+			do { /* XXX talk to Bob -- use while() instead */
 				down_next = dcurrent->down;
 				free_rdataset(mctx, dcurrent);
 				dcurrent = down_next;
