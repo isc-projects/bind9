@@ -87,10 +87,5 @@ ns_server_reloadwanted(ns_server_t *server);
  * is ignored.
  */
 
-void
-ns_update_pidfile(const char *filename);
-/*
- * Save the pid to the given file
- */
 
 #endif /* NS_SERVER_H */

@@ -263,28 +263,15 @@ cleanup() {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();
-
-	if (ns_g_pidfile != NULL) {
-		(void)unlink(ns_g_pidfile);
-		isc_mem_free(ns_g_mctx, ns_g_pidfile);
-	}
 }
 
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
-	int n;
 
 	program_name = argv[0];
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
-
-        for (n = sysconf(_SC_OPEN_MAX) - 1; n >= 0; n--)
-                if (n != STDIN_FILENO &&
-                    n != STDOUT_FILENO &&
-                    n != STDERR_FILENO)
-                        (void) close(n);
-
 
 	result = ns_os_init();
 	if (result != ISC_R_SUCCESS)
@@ -306,33 +293,6 @@ main(int argc, char *argv[]) {
 
 	parse_command_line(argc, argv);
 
-	if (ns_g_chrootdir != NULL) {
-#ifdef HAVE_CHROOT
-                if (chroot(ns_g_chrootdir) < 0) {
-			ns_main_earlyfatal("chroot %s failed: %s\n",
-					   ns_g_chrootdir, strerror(errno));
-                        exit(1);
-                }
-                if (chdir("/") < 0) {
-                        ns_main_earlyfatal("chdir(\"/\") failed: %s\n",
-					   strerror(errno));
-                        exit(1);
-                }
-#else
-                fprintf(stderr, "warning: chroot() not available\n");
-#endif
-        }
-
-	/*
-	 * deamon() must be called before any threads are created
-	 * (fork() is deadly to threads). Threads get created in setup().
-	 */
-	if (ns_g_foreground == ISC_FALSE) {
-		if (daemon(1, 0) != 0) {
-			ns_main_earlyfatal("daemon(): %s", strerror(errno));
-		}
-	}
-	
 	setup();
 
 	/*
