@@ -287,8 +287,9 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr) {
 		iter_result = isc_interfaceiter_current(iter, &interface);
 		INSIST(iter_result == ISC_R_SUCCESS);
 
-		listen_addr = interface.address;
-		INSIST(listen_addr.type.sin.sin_family == AF_INET);
+		memset(&listen_addr, 0, sizeof(listen_addr));
+		listen_addr.type.sin.sin_family = AF_INET;
+		listen_addr.type.sin.sin_addr = interface.address.type.in;
 		listen_addr.type.sin.sin_port = htons(listen_port);
 
 		ifp = find_matching_interface(mgr, &listen_addr);

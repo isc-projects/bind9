@@ -42,7 +42,7 @@
 
 #include <isc/result.h>
 #include <isc/mem.h>
-#include <isc/sockaddr.h>
+#include <isc/netaddr.h>
 
 /***
  *** Types
@@ -52,20 +52,15 @@ typedef struct isc_interfaceiter isc_interfaceiter_t;
 
 /*
  * Public structure describing a network interface.
- * 
- * In 'address', 'netmask', and 'dstaddress', 
- * only the network address field (for IPv4, type.sin.sin_addr)
- * is used.  Other fields including the port and address family
- * have undefined values.
  */
 
 typedef struct {
 	char name[32];			/* Interface name, null-terminated. */
 	unsigned int af;		/* Address family. */ 
-	isc_sockaddr_t address;		/* Local address. */
-	isc_sockaddr_t netmask;		/* Network mask
+	isc_netaddr_t address;		/* Local address. */
+	isc_netaddr_t netmask;		/* Network mask
 					   (non-point-to-point only). */
-	isc_sockaddr_t dstaddress; 	/* Destination address
+	isc_netaddr_t dstaddress; 	/* Destination address
 					   (point-to-point only). */
 	isc_uint32_t flags;		/* Flags; see below. */
 } isc_interface_t;

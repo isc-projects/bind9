@@ -148,16 +148,19 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 }
 
 /*
- * Copy a socket address.  The address family is given explicity
+ * Extract the network address part from a "struct sockaddr".
+ * 
+ * The address family is given explicity
  * instead of using src->sa_family, because the latter does not work
- * for copying the network mask as obtained by SIOCGIFNETMASK.
+ * for copying a network mask obtained by SIOCGIFNETMASK (it does
+ * not have a valid address family).
  */
+
 static void 
-copy_sockaddr(int family, isc_sockaddr_t *dst, struct sockaddr *src) {
+get_addr(int family, isc_netaddr_t *dst, struct sockaddr *src) {
 	switch (family) {
 	case AF_INET:
-		dst->type.sin.sin_family = AF_INET;
-		memcpy(&dst->type.sin.sin_addr,
+		memcpy(&dst->type.in,
 		       &((struct sockaddr_in *) src)->sin_addr,
 		       sizeof(struct in_addr));
 		break;
@@ -198,7 +201,7 @@ internal_current(isc_interfaceiter_t *iter) {
 	INSIST(sizeof(ifreq.ifr_name) <= sizeof(iter->current.name));
 	memcpy(iter->current.name, ifreq.ifr_name, sizeof(ifreq.ifr_name));
 	
-	copy_sockaddr(family, &iter->current.address, &ifreq.ifr_addr);
+	get_addr(family, &iter->current.address, &ifreq.ifr_addr);
 
 	/* Get interface flags. */
 
@@ -233,8 +236,8 @@ internal_current(isc_interfaceiter_t *iter) {
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}
-		copy_sockaddr(family, &iter->current.dstaddress,
-			      &ifreq.ifr_dstaddr);
+		get_addr(family, &iter->current.dstaddress,
+			 &ifreq.ifr_dstaddr);
 	} else {
 		if (ioctl(iter->socket, SIOCGIFNETMASK, (char *) &ifreq) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -243,8 +246,8 @@ internal_current(isc_interfaceiter_t *iter) {
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}
-		copy_sockaddr(family, &iter->current.netmask,
-			      &ifreq.ifr_addr);		
+		get_addr(family, &iter->current.netmask,
+			 &ifreq.ifr_addr);		
 	}
 	
 	return (ISC_R_SUCCESS);
