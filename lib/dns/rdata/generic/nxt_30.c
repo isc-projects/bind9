@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.29 2000/05/01 18:27:43 tale Exp $ */
+/* $Id: nxt_30.c,v 1.30 2000/05/03 23:52:35 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -24,7 +24,11 @@
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C
 
-#define RRTYPE_NXT_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_SINGLETON)
+/*
+ * The attributes do not include DNS_RDATATYPEATTR_SINGLETON
+ * because we must be able to handle a parent/child NXT pair.
+ */
+#define RRTYPE_NXT_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
 
 static inline isc_result_t
 fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
