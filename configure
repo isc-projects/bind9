@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.294 
+# From configure.in Revision: 1.294.2.1 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -2498,11 +2498,11 @@ echo "configure:2497: checking whether to build with thread support" >&5
 case $host in
 *-dec-osf*)
 	use_threads=true ;;
-*-solaris-2[0-6])
+*-solaris2.[0-6])
 	# Thread signals are broken on Solaris 2.6; they are sometimes
 	# delivered to the wrong thread.
 	use_threads=false ;;
-*-solaris-2*)
+*-solaris*)
 	use_threads=true ;;
 *-ibm-aix*)
 	use_threads=true ;;
