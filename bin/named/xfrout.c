@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.15 1999/10/21 00:36:43 gson Exp $ */
+ /* $Id: xfrout.c,v 1.16 1999/10/22 19:42:38 gson Exp $ */
 
 #include <config.h>
 
@@ -885,7 +885,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		 * IXFR over UDP (currently, we always do).
 		 */
 		if (DNS_SERIAL_GE(begin_serial, current_serial) ||
-		    (client->attributes & NS_CLIENTATTR_TCP) != 0)
+		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 	        {
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
 			goto have_stream;
