@@ -1,9 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-
-BIND 8 to BIND 9 Migration Notes
-
+                   BIND 8 to BIND 9 Migration Notes
 
 BIND 9 is designed to be mostly upwards compatible with BIND 8, but
 there is still a number of caveats you should be aware of when
@@ -95,4 +93,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.3 2000/07/14 17:11:07 gson Exp $
+$Id: migration,v 1.4 2000/07/27 23:48:49 tale Exp $
