@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.23 2000/08/01 01:32:29 tale Exp $ */
+/* $Id: lwresutil.c,v 1.24 2000/10/28 00:37:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -112,25 +112,6 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 	return (LWRES_R_SUCCESS);
 }
 
-static void
-count_dots(const char *name, unsigned int *ndots, unsigned int *last_was_dot)
-{
-	const char *p;
-
-	p = name;
-	*ndots = 0;
-	*last_was_dot = 0;
-
-	while (*p != 0) {
-		if (*p++ == '.') {
-			(*ndots)++;
-			*last_was_dot = 1;
-		} else {
-			*last_was_dot = 0;
-		}
-	}
-}
-
 lwres_result_t
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp)
@@ -143,29 +124,13 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	lwres_lwpacket_t pkt;
 	lwres_uint32_t serial;
 	char *buffer;
-	int current_suffix;
-	unsigned int ndots;
-	unsigned int last_was_dot;
-	unsigned int exact_first;
 	char target_name[1024];
 	unsigned int target_length;
-	unsigned int tried_exact;
-	unsigned int tried_search;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(addrtypes != 0);
 	REQUIRE(structp != NULL && *structp == NULL);
-
-	count_dots(name, &ndots, &last_was_dot);
-	if (last_was_dot || (ndots >= ctx->confdata.ndots))
-		exact_first = 1;
-	else
-		exact_first = 0;
-
-	current_suffix = 0;
-	tried_exact = 0;
-	tried_search = 0;
 
 	b_in.base = NULL;
 	b_out.base = NULL;
@@ -179,49 +144,10 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		goto out;
 	}
 
-	/*
-	 * First, if the name ends in a dot, do an exact search.  Lie and
-	 * pretend we have already done a search.
-	 */
-	if (last_was_dot)
-		tried_search = 1;
-
- next_suffix:
-
-	if (tried_exact && tried_search) {
-		ret = LWRES_R_NOTFOUND;
-		goto out;
-	}
-
-	/*
-	 * Try the exact search first.  If this fails, try the
-	 * search list.
-	 */
-	if (exact_first && !tried_exact) {
-		tried_exact = 1;
-		target_length = strlen(name);
-		if (target_length >= sizeof(target_name))
-			goto next_suffix;
-		strcpy(target_name, name); /* strcpy is safe */
-	} else {
-		INSIST(!tried_search);
-		if (current_suffix >= ctx->confdata.searchnxt) {
-			tried_search = 1;
-			exact_first = 1;
-			goto next_suffix;
-		}
-
-		target_length = strlen(name)
-			+ strlen(ctx->confdata.search[current_suffix])
-			+ 1;
-		if (target_length >= sizeof(target_name)) {
-			current_suffix++;
-			goto next_suffix;  /* XXXMLG */
-		}
-		sprintf(target_name, "%s.%s", /* sprintf is safe */
-			name, ctx->confdata.search[current_suffix]);
-		current_suffix++;
-	}
+	target_length = strlen(name);
+	if (target_length >= sizeof(target_name))
+		return (LWRES_R_FAILURE);
+	strcpy(target_name, name); /* strcpy is safe */
 
 	/*
 	 * Set up our request and render it to a buffer.
@@ -268,9 +194,6 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	CTXFREE(b_out.base, b_out.length);
 	b_out.base = NULL;
 	b_out.length = 0;
-
-	if (pkt.result == LWRES_R_NOTFOUND)
-		goto next_suffix;
 
 	if (pkt.result != LWRES_R_SUCCESS) {
 		ret = pkt.result;
