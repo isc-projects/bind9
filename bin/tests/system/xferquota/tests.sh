@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.16 2000/07/11 23:42:56 mws Exp $
+# $Id: tests.sh,v 1.17 2000/07/12 00:46:50 mws Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,7 +26,7 @@ SYSTEMTESTTOP=..
 
 count=0
 ticks=0
-while [ $count != 360 ]; do
+while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo "I:Changing test zone..."
 		cp ns1/changing2.db ns1/changing.db
@@ -35,7 +35,7 @@ while [ $count != 360 ]; do
 	sleep 1
 	ticks=`expr $ticks + 1`
 	seconds=`expr $ticks \* 1`
-	if [ $ticks = 300 ]; then
+	if [ $ticks = 360 ]; then
 		echo "I:Took too long to load zones"
 		exit 1
 	fi
