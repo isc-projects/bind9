@@ -1308,11 +1308,10 @@ new_adbfetch6(dns_adb_t *adb, dns_adbname_t *name, dns_a6context_t *a6ctx)
 
 	dns_rdataset_init(&f->rdataset);
 
+	dns_a6_init(&f->a6ctx, a6find, NULL, import_a6,
+		    a6missing, name);
 	if (a6ctx != NULL)
 		dns_a6_copy(a6ctx, &f->a6ctx);
-	else
-		dns_a6_init(&f->a6ctx, a6find, NULL, import_a6,
-			    a6missing, name);
 
 	f->magic = DNS_ADBFETCH6_MAGIC;
 
