@@ -3,12 +3,13 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.1 2000/01/14 03:00:59 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.2 2000/01/14 05:15:52 marka Exp $
  */
 
 
 #include <isc/net.h>
 #include <sys/un.h>
+#include <lwres/lwres.h>
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
 #include <errno.h>
 #include <string.h>
@@ -309,48 +310,53 @@ set_order(family, net_order)
 
 static char v4_loop[4] = { 127, 0, 0, 1 };
 
+#define ERR(x) do { result = (x); goto cleanup; } while (0)
+
 static int
 add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
     int socktype, int port)
 {
 	struct addrinfo *ai;
-	struct hostent *hp;
-	char **addr;
+	lwres_context_t *lwrctx = NULL;
+	lwres_getaddrsbyname_t *by = NULL;
+	int i;
+	int result = 0;
 
+	i = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	if (i != 0)
+		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET)) == NULL) {
 			freeaddrinfo(*aip);
-			return(EAI_MEMORY);
+			ERR(EAI_MEMORY);
 		}
 
 		*aip = ai;
 		ai->ai_socktype = socktype;
 		SIN(ai->ai_addr)->sin_port = port;
 		memcpy(&SIN(ai->ai_addr)->sin_addr, v4_loop, 4);
-	} else if ((hp = gethostbyname2(hostname, AF_INET)) != NULL) {
-		for (addr = hp->h_addr_list; *addr; addr++) {
-			if ((ai = ai_clone(*aip, hp->h_addrtype)) == NULL) {
+	} else if (lwres_getaddrsbyname(lwrctx, hostname,
+					LWRES_ADDRTYPE_V4, &by) == 0) {
+		for (i = 0; i < by->naddrs; i++) {
+			ai = ai_clone(*aip, AF_INET);
+			if (ai == NULL) {
 				freeaddrinfo(*aip);
-				return(EAI_MEMORY);
+				ERR(EAI_MEMORY);
 			}
 			*aip = ai;
 			ai->ai_socktype = socktype;
-
-			/* We get IPv6 addresses if RES_USE_INET6 is set */
-			if (hp->h_addrtype == AF_INET6) {
-				SIN6(ai->ai_addr)->sin6_port = port;
-				memcpy(&SIN6(ai->ai_addr)->sin6_addr, *addr,
-				    hp->h_length);
-			} else {
-				SIN(ai->ai_addr)->sin_port = port;
-				memcpy(&SIN(ai->ai_addr)->sin_addr, *addr,
-				    hp->h_length);
-			}
+			SIN(ai->ai_addr)->sin_port = port;
+			memcpy(&SIN(ai->ai_addr)->sin_addr, by->addrs[i], 4);
 			if (flags & AI_CANONNAME)
-				ai->ai_canonname = strdup(hp->h_name);
+				ai->ai_canonname = strdup(by->real_name);
 		}
 	}
-	return(0);
+ cleanup:
+	if (by != NULL)
+		lwres_freegetaddrsbyname(lwrctx, &by);
+	if (lwrctx != NULL)
+		lwres_freecontext(&lwrctx);
+	return(result);
 }
 
 static char v6_loop[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
@@ -360,35 +366,45 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	 int socktype, int port)
 {
 	struct addrinfo *ai;
-	struct hostent *hp;
-	char **addr;
+	lwres_context_t *lwrctx = NULL;
+	lwres_getaddrsbyname_t *by = NULL;
+	int i;
+	int result = 0;
 
+	i = lwres_contextcreate(&lwrctx, NULL, NULL, NULL);
+	if (i != 0)
+		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
 			freeaddrinfo(*aip);
-			return(EAI_MEMORY);
+			ERR(EAI_MEMORY);
 		}
 
 		*aip = ai;
 		ai->ai_socktype = socktype;
 		SIN6(ai->ai_addr)->sin6_port = port;
 		memcpy(&SIN6(ai->ai_addr)->sin6_addr, v6_loop, 16);
-	} else if ((hp = gethostbyname2(hostname, AF_INET6)) != NULL) {
-		for (addr = hp->h_addr_list; *addr; addr++) {
+	} else if (lwres_getaddrsbyname(lwrctx, hostname,
+					LWRES_ADDRTYPE_V4, &by) == 0) {
+		for (i = 0; i < by->naddrs; i++) {
 			if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
 				freeaddrinfo(*aip);
-				return (EAI_MEMORY);
+				ERR(EAI_MEMORY);
 			}
 			*aip = ai;
 			ai->ai_socktype = socktype;
 			SIN6(ai->ai_addr)->sin6_port = port;
-			memcpy(&SIN6(ai->ai_addr)->sin6_addr, *addr,
-			    hp->h_length);
+			memcpy(&SIN6(ai->ai_addr)->sin6_addr, by->addrs[i], 16);
 			if (flags & AI_CANONNAME)
-				ai->ai_canonname = strdup(hp->h_name);
+				ai->ai_canonname = strdup(by->real_name);
 		}
 	}
-	return (0);
+ cleanup:
+	if (by != NULL)
+		lwres_freegetaddrsbyname(lwrctx, &by);
+	if (lwrctx != NULL)
+		lwres_freecontext(&lwrctx);
+	return (result);
 }
 
 void
