@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.183 2000/11/22 23:16:04 bwelling Exp $ */
+/* $Id: resolver.c,v 1.184 2000/11/27 19:56:16 halley Exp $ */
 
 #include <config.h>
 
@@ -1535,6 +1535,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			INSIST((stdoptions & DNS_ADBFIND_RETURNLAME) == 0);
 			stdoptions |= DNS_ADBFIND_RETURNLAME;
 			pruned = ISC_FALSE;
+			fctx_cleanupfinds(fctx);
 			goto restart;
 		} else {
 			/*
