@@ -58,7 +58,10 @@ case "$1" in
 			ifconfig lo0 add 10.53.0.$ns
 			;;
 		    *-sgi-irix6.*)
-			/usr/etc/ifconfig lo0 alias 10.53.0.$ns
+			ifconfig lo0 alias 10.53.0.$ns
+			;;
+		    *-ibm-aix4.*)
+			ifconfig lo0 alias 10.53.0.$ns
 			;;
 	            *)
 			echo "Don't know how to set up interface.  Giving up."
@@ -98,6 +101,9 @@ case "$1" in
 			;;
 		    *-sgi-irix6.*)
 			ifconfig lo0 -alias 10.53.0.$ns
+			;;
+		    *-ibm-aix4.*)
+			ifconfig lo0 delete 10.53.0.$ns
 			;;
 	            *)
 			echo "Don't know how to destroy interface.  Giving up."
