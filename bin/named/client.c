@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.107 2000/08/08 23:56:10 gson Exp $ */
+/* $Id: client.c,v 1.108 2000/08/21 23:45:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -989,6 +989,14 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_error(client, DNS_R_BADVERS);
 			goto cleanup_serverlock;
 		}
+	}
+
+	if (client->message->rdclass == 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      "message class could not be determined");
+		ns_client_error(client, DNS_R_FORMERR);
+		goto cleanup_serverlock;
 	}
 
 	/*
