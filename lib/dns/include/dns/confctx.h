@@ -69,6 +69,13 @@
 #include <dns/confcache.h>
 #include <dns/confresolv.h>
 
+#define DNS_C_CONFIG_MAGIC		0x434f4e46U /* CONF */
+#define DNS_C_OPTION_MAGIC		0x4f707473U /* Opts */
+
+#define DNS_C_CONFCTX_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_CONFIG_MAGIC)
+#define DNS_C_CONFOPT_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_OPTION_MAGIC)
+
+
 
 /***
  *** Types

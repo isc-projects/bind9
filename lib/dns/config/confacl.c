@@ -27,13 +27,6 @@
 #include <dns/confcommon.h>
 
 
-#define CONFACL_MAGIC	0x4361636cU
-#define CONFACLTABLE_MAGIC 0x32616354U
-
-#define DNS_CONFACL_VALID(confacl) ISC_MAGIC_VALID(confacl, CONFACL_MAGIC)
-#define DNS_CONFACLTABLE_VALID(confacltable) \
-	ISC_MAGIC_VALID(confacltable, CONFACLTABLE_MAGIC)
-
 static isc_result_t acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr);
 
 
@@ -56,7 +49,7 @@ dns_c_acltable_new(isc_log_t *lctx,
 	}
 
 	table->mem = mem;
-	table->magic = CONFACLTABLE_MAGIC;
+	table->magic = DNS_C_CONFACLTABLE_MAGIC;
 
 	ISC_LIST_INIT(table->acl_list);
 
@@ -78,7 +71,7 @@ dns_c_acltable_delete(isc_log_t *lctx,
 	
 	acltable = *table;
 
-	REQUIRE(DNS_CONFACLTABLE_VALID(acltable));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(acltable));
 
 	dns_c_acltable_clear(lctx, acltable);
 
@@ -108,7 +101,7 @@ dns_c_acltable_print(isc_log_t *lctx,
 		return;
 	}
 		
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 			
 	acl = ISC_LIST_HEAD(table->acl_list);
 	while (acl != NULL) {
@@ -131,7 +124,7 @@ dns_c_acltable_clear(isc_log_t *lctx, dns_c_acltable_t *table)
 	dns_c_acl_t *tmpelem;
 	isc_result_t r;
 	
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 			
 	elem = ISC_LIST_HEAD(table->acl_list);
 	while (elem != NULL) {
@@ -160,7 +153,7 @@ dns_c_acltable_getacl(isc_log_t *lctx, dns_c_acltable_t *table,
 {
 	dns_c_acl_t *elem;
 
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(retval != NULL);
 	REQUIRE(aclname != NULL);
 	REQUIRE(strlen(aclname) > 0);
@@ -177,7 +170,7 @@ dns_c_acltable_getacl(isc_log_t *lctx, dns_c_acltable_t *table,
 	}
 	
 	if (elem != NULL) {
-		REQUIRE(DNS_CONFACL_VALID(elem));
+		REQUIRE(DNS_C_CONFACL_VALID(elem));
 		*retval = elem;
 	}
 
@@ -192,7 +185,7 @@ dns_c_acltable_removeacl(isc_log_t *lctx,
 	dns_c_acl_t *acl;
 	dns_c_acl_t *tmpacl;
 
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(aclname != NULL);
 	
 	acl = ISC_LIST_HEAD(table->acl_list);
@@ -218,7 +211,7 @@ dns_c_acl_new(isc_log_t *lctx,
 {
 	dns_c_acl_t *acl;
 	
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	REQUIRE(aclname != NULL);
 	REQUIRE(strlen(aclname) > 0);
 	REQUIRE(newacl != NULL);
@@ -232,7 +225,7 @@ dns_c_acl_new(isc_log_t *lctx,
 	}
 
 	acl->mytable = table;
-	acl->magic = CONFACL_MAGIC;
+	acl->magic = DNS_C_CONFACL_MAGIC;
 	acl->name = NULL;
 	acl->ipml = NULL;
 	acl->is_special = isspecial;
@@ -258,7 +251,7 @@ void
 dns_c_acl_print(isc_log_t *lctx,
 		FILE *fp, int indent, dns_c_acl_t *acl)
 {
-	REQUIRE(DNS_CONFACL_VALID(acl));
+	REQUIRE(DNS_C_CONFACL_VALID(acl));
 	
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "acl ");
@@ -285,7 +278,7 @@ dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
 {
 	isc_result_t res;
 	
-	REQUIRE(DNS_CONFACL_VALID(acl));
+	REQUIRE(DNS_C_CONFACL_VALID(acl));
 	REQUIRE(ipml != NULL);
 
 	if (acl->ipml != NULL) {
@@ -311,7 +304,7 @@ dns_c_acl_getipmlexpanded(isc_log_t *lctx, isc_mem_t *mem, dns_c_acl_t *acl,
 	dns_c_ipmatchlist_t *newlist;
 	isc_result_t r;
 
-	REQUIRE(DNS_CONFACL_VALID(acl));
+	REQUIRE(DNS_C_CONFACL_VALID(acl));
 	
 	if (acl->ipml == NULL) {
 		newlist = NULL;
@@ -344,7 +337,7 @@ dns_c_acl_expandacls(isc_log_t *lctx, dns_c_acltable_t *table,
 	isc_result_t r;
 	isc_boolean_t isneg;
 
-	REQUIRE(DNS_CONFACLTABLE_VALID(table));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(table));
 	
 	if (list == NULL) {
 		return (ISC_R_SUCCESS);
@@ -407,7 +400,7 @@ acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr)
 	
 	acl = *aclptr;
 
-	REQUIRE(DNS_CONFACL_VALID(acl));
+	REQUIRE(DNS_C_CONFACL_VALID(acl));
 
 	mem = acl->mytable->mem;
 

@@ -73,7 +73,11 @@
 #include <dns/conflsn.h>
 #include <dns/confrrset.h>
 
+#define DNS_C_VIEWTABLE_MAGIC		0x76497774 /* vIwt */
+#define DNS_C_VIEW_MAGIC 		0x56696557 /* VieW */
 
+#define DNS_C_VIEWTABLE_VALID(ptr)  ISC_MAGIC_VALID(ptr, DNS_C_VIEWTABLE_MAGIC)
+#define DNS_C_VIEW_VALID(ptr)       ISC_MAGIC_VALID(ptr, DNS_C_VIEW_MAGIC)
 /***
  *** Types
  ***/
@@ -84,6 +88,8 @@ typedef struct dns_c_viewtable		dns_c_viewtable_t;
 
 struct dns_c_viewtable
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_view_t)	views;
@@ -92,6 +98,8 @@ struct dns_c_viewtable
 
 struct dns_c_view
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 	
 	char 		       *name;

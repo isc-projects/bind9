@@ -26,13 +26,6 @@
 #include <dns/confctl.h>
 #include <dns/confcommon.h>
 
-#define CONFCTL_MAGIC	0x4363746cU
-#define CONFCTLLIST_MAGIC 0x4354424cU
-
-#define DNS_CONFCTLLIST_VALID(ctllist) \
-	ISC_MAGIC_VALID(ctllist, CONFCTLLIST_MAGIC)
-#define DNS_CONFCTL_VALID(ctl) ISC_MAGIC_VALID(ctl, CONFCTL_MAGIC)
-
 
 isc_result_t
 dns_c_ctrllist_new(isc_log_t *lctx,
@@ -52,7 +45,7 @@ dns_c_ctrllist_new(isc_log_t *lctx,
 	}
 
 	newl->mem = mem;
-	newl->magic = CONFCTLLIST_MAGIC;
+	newl->magic = DNS_C_CONFCTLLIST_MAGIC;
 	
 	ISC_LIST_INIT(newl->elements);
 
@@ -73,7 +66,7 @@ dns_c_ctrllist_print(isc_log_t *lctx,
 		return;
 	}
 
-	REQUIRE(DNS_CONFCTLLIST_VALID(cl));
+	REQUIRE(DNS_C_CONFCTLLIST_VALID(cl));
 	
 	if (ISC_LIST_EMPTY(cl->elements)) {
 		return;
@@ -104,7 +97,7 @@ dns_c_ctrllist_delete(isc_log_t *lctx,
 	
 	clist = *list;
 
-	REQUIRE(DNS_CONFCTLLIST_VALID(clist));
+	REQUIRE(DNS_C_CONFCTLLIST_VALID(clist));
 	
 	ctrl = ISC_LIST_HEAD(clist->elements);
 	while (ctrl != NULL) {
@@ -137,7 +130,7 @@ dns_c_ctrlinet_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_ctrl_t **control,
 		return (ISC_R_NOMEMORY);
 	}
 
-	ctrl->magic = CONFCTL_MAGIC;
+	ctrl->magic = DNS_C_CONFCTL_MAGIC;
 	ctrl->mem = mem;
 	ctrl->control_type = dns_c_inet_control;
 	ctrl->u.inet_v.addr = addr;
@@ -177,7 +170,7 @@ dns_c_ctrlunix_new(isc_log_t *lctx,
 		return (ISC_R_NOMEMORY);
 	}
 
-	ctrl->magic = CONFCTL_MAGIC;
+	ctrl->magic = DNS_C_CONFCTL_MAGIC;
 	ctrl->mem = mem;
 	ctrl->control_type = dns_c_unix_control;
 	ctrl->u.unix_v.pathname = isc_mem_strdup(mem, path);
@@ -211,7 +204,7 @@ dns_c_ctrl_delete(isc_log_t *lctx,
 
 	ctrl = *control;
 
-	REQUIRE(DNS_CONFCTL_VALID(ctrl));
+	REQUIRE(DNS_C_CONFCTL_VALID(ctrl));
 
 	mem = ctrl->mem;
 
@@ -249,7 +242,7 @@ dns_c_ctrl_print(isc_log_t *lctx,
 	short port;
 	dns_c_ipmatchlist_t *iml;
 
-	REQUIRE(DNS_CONFCTL_VALID(ctl));
+	REQUIRE(DNS_C_CONFCTL_VALID(ctl));
 		
 	(void) indent;
 	

@@ -20,8 +20,10 @@
 #include <sys/types.h>
 
 #include <isc/assertions.h>
+#include <isc/magic.h>
 #include <isc/net.h>
 
+#include <dns/confacl.h>
 #include <dns/confzone.h>
 #include <dns/confcommon.h>
 #include <dns/confview.h>
@@ -36,7 +38,6 @@ dns_c_viewtable_new(isc_log_t *lctx,
 {
 	dns_c_viewtable_t *table;
 	
-	REQUIRE(mem != NULL);
 	REQUIRE(viewtable != NULL);
 
 	table = isc_mem_get(mem, sizeof *table);
@@ -47,6 +48,7 @@ dns_c_viewtable_new(isc_log_t *lctx,
 		return (ISC_R_NOMEMORY);
 	}
 
+	table->magic = DNS_C_VIEWTABLE_MAGIC;
 	table->mem = mem;
 
 	ISC_LIST_INIT(table->views);
@@ -64,13 +66,14 @@ dns_c_viewtable_delete(isc_log_t *lctx,
 	dns_c_viewtable_t *table;
 	
 	REQUIRE(viewtable != NULL);
-	REQUIRE(*viewtable != NULL);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(*viewtable));
 
 	table = *viewtable;
 	*viewtable = NULL;
 	
 	dns_c_viewtable_clear(lctx, table);
 
+	table->magic = 0;
 	isc_mem_put(table->mem, table, sizeof *table);
 
 	return (ISC_R_SUCCESS);
@@ -83,8 +86,8 @@ dns_c_viewtable_addview(isc_log_t *lctx,
 {
 	(void) lctx;			/* lint */
 	
-	REQUIRE(viewtable != NULL);
-	REQUIRE(view != NULL);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
+	REQUIRE(DNS_C_VIEW_VALID(view));
 	
 	ISC_LIST_APPEND(viewtable->views, view, next);
 }
@@ -97,8 +100,8 @@ dns_c_viewtable_rmview(isc_log_t *lctx,
 {
 	(void) lctx;			/* lint */
 	
-	REQUIRE(viewtable != NULL);
-	REQUIRE(view != NULL);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
+	REQUIRE(DNS_C_VIEW_VALID(view));
 	
 	ISC_LIST_UNLINK(viewtable->views, view, next);
 }
@@ -113,7 +116,7 @@ dns_c_viewtable_clear(isc_log_t *lctx,
 	dns_c_view_t *tmpelem;
 	isc_result_t r;
 	
-	REQUIRE(table != NULL);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(table));
 	
 	elem = ISC_LIST_HEAD(table->views);
 	while (elem != NULL) {
@@ -147,7 +150,7 @@ dns_c_viewtable_viewbyname(isc_log_t *lctx,
 
 	(void) lctx;			/* lint */
 	
-	REQUIRE(viewtable != NULL);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(retval != NULL);
 	REQUIRE(viewname != NULL);
 	REQUIRE(strlen(viewname) > 0);
@@ -178,6 +181,8 @@ dns_c_viewtable_rmviewbyname(isc_log_t *lctx,
 	dns_c_view_t *view;
 	isc_result_t res;
 
+	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
+	
 	res = dns_c_viewtable_viewbyname(lctx, viewtable, name, &view);
 	if (res == ISC_R_SUCCESS) {
 		ISC_LIST_UNLINK(viewtable->views, view, next);
@@ -207,6 +212,7 @@ dns_c_view_new(isc_log_t *lctx,
 	/* XXXJAB not portable -- should set each field */
 	memset(view, 0x0, sizeof *view); 
 
+	view->magic = DNS_C_VIEW_MAGIC;
 	view->mem = mem;
 	view->name = isc_mem_strdup(mem, name);
 	if (view->name == NULL) {
@@ -231,11 +237,8 @@ dns_c_viewtable_print(isc_log_t *lctx,
 
 	REQUIRE(fp != NULL);
 	REQUIRE(indent >= 0);
+	REQUIRE(DNS_C_VIEWTABLE_VALID(table));
 
-	if (table == NULL) {
-		return;
-	}
-		
 	view = ISC_LIST_HEAD(table->views);
 	while (view != NULL) {
 		dns_c_view_print(lctx, fp, indent, view);
@@ -249,6 +252,8 @@ void
 dns_c_view_print(isc_log_t *lctx,
 		 FILE *fp, int indent, dns_c_view_t *view)
 {
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "view \"%s\" {\n", view->name);
 
@@ -275,8 +280,8 @@ dns_c_view_setallowquery(isc_log_t *lctx,
 {
 	isc_result_t res;
 	
-	REQUIRE(view != NULL);
-	REQUIRE(ipml != NULL);
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(DNS_C_IPMLIST_VALID(ipml));
 
 	if (view->allowquery != NULL) {
 		dns_c_ipmatchlist_detach(lctx, &view->allowquery);
@@ -304,6 +309,10 @@ dns_c_view_getallowqueryexpanded(isc_log_t *lctx,
 	dns_c_ipmatchlist_t *newlist;
 	isc_result_t r;
 
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(DNS_C_CONFACLTABLE_VALID(acltable));
+	REQUIRE(retval != NULL);
+	
 	if (view->allowquery == NULL) {
 		newlist = NULL;
 		r = ISC_R_SUCCESS;
@@ -330,7 +339,7 @@ dns_c_view_delete(isc_log_t *lctx,
 	dns_c_view_t *view;
 	
 	REQUIRE(viewptr != NULL);
-	REQUIRE(*viewptr != NULL);
+	REQUIRE(DNS_C_VIEW_VALID(*viewptr));
 
 	view = *viewptr;
 
@@ -339,6 +348,7 @@ dns_c_view_delete(isc_log_t *lctx,
 	if (view->allowquery != NULL)
 		dns_c_ipmatchlist_detach(lctx, &view->allowquery);
 
+	view->magic = 0;
 	isc_mem_put(view->mem, view, sizeof *view);
 	
 	return (ISC_R_SUCCESS);
@@ -350,7 +360,7 @@ dns_c_view_getname(isc_log_t *lctx, dns_c_view_t *view, const char **retval)
 {
 	(void) lctx;
 	
-	REQUIRE(view != NULL);
+	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
 
 	*retval = view->name;

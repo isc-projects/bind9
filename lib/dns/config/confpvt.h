@@ -38,8 +38,4 @@
 #define DNS_C_CHECKBIT(bit,flags) \
      ISC_TF((*(flags) & ((dns_c_setbits_t)1 << (bit))) == ((dns_c_setbits_t)1 << (bit)))
 
-#define DNS_C_VALID_STRUCT(p,m)		((p) != NULL && (p)->magic == m)
-
-
-
 #endif

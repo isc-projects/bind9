@@ -18,16 +18,12 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/magic.h>
+
 #include <dns/conflsn.h>
 #include <dns/confcommon.h>
 
 #include "confpvt.h"
-
-
-#define LISTEN_MAGIC		0x4c49534eU /* LISN */
-#define LLIST_MAGIC		0x4c6c6973U /* Llis */
-#define CHECK_LISTEN(l)		REQUIRE(DNS_C_VALID_STRUCT(l,LISTEN_MAGIC))
-#define CHECK_LLIST(l)		REQUIRE(DNS_C_VALID_STRUCT(l,LLIST_MAGIC))
 
 
 isc_result_t
@@ -43,7 +39,7 @@ dns_c_lstnon_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_lstnon_t **listen)
 	ll = isc_mem_get(mem, sizeof *ll);
 	ll->mem = mem;
 	ll->port = 0;
-	ll->magic = LISTEN_MAGIC;
+	ll->magic = DNS_C_LISTEN_MAGIC;
 
 	result = dns_c_ipmatchlist_new(lctx, mem, &ll->iml);
 	if (result != ISC_R_SUCCESS) {
@@ -66,11 +62,9 @@ dns_c_lstnon_delete(isc_log_t *lctx, dns_c_lstnon_t **listen)
 	isc_result_t r;
 
 	REQUIRE(listen != NULL);
-	REQUIRE(*listen != NULL);
+	REQUIRE(DNS_C_LISTEN_VALID(*listen));
 
 	lo = *listen;
-
-	CHECK_LISTEN(lo);
 
 	if (lo->iml != NULL) {
 		r = dns_c_ipmatchlist_detach(lctx, &lo->iml);
@@ -90,9 +84,9 @@ dns_c_lstnon_setiml(isc_log_t *lctx, dns_c_lstnon_t *listen,
 		    dns_c_ipmatchlist_t *iml, isc_boolean_t deepcopy)
 {
 	isc_result_t result;
-	
-	REQUIRE(listen != NULL);
-	REQUIRE(iml != NULL);
+
+	REQUIRE(DNS_C_LISTEN_VALID(listen));
+	REQUIRE(DNS_C_IPMLIST_VALID(iml));
 
 	if (listen->iml != NULL) {
 		result = dns_c_ipmatchlist_detach(lctx, &listen->iml);
@@ -138,7 +132,7 @@ dns_c_lstnlist_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_lstnlist_t **llist)
 	}
 
 	ll->mem = mem;
-	ll->magic = LLIST_MAGIC;
+	ll->magic = DNS_C_LLIST_MAGIC;
 	ISC_LIST_INIT(ll->elements);
 
 	*llist = ll;
@@ -155,11 +149,9 @@ dns_c_lstnlist_delete(isc_log_t *lctx, dns_c_lstnlist_t **llist)
 	isc_result_t r;
 
 	REQUIRE(llist != NULL);
-	REQUIRE(*llist != NULL);
+	REQUIRE(DNS_C_LISTENLIST_VALID(*llist));
 
 	ll = *llist;
-
-	CHECK_LLIST(ll);
 
 	lo = ISC_LIST_HEAD(ll->elements);
 	while (lo != NULL) {
@@ -173,6 +165,7 @@ dns_c_lstnlist_delete(isc_log_t *lctx, dns_c_lstnlist_t **llist)
 		lo = lotmp;
 	}
 
+	ll->magic = 0;
 	isc_mem_put(ll->mem, ll, sizeof *ll);
 
 	*llist = NULL;
@@ -187,12 +180,8 @@ dns_c_lstnlist_print(isc_log_t *lctx, FILE *fp, int indent,
 {
 	dns_c_lstnon_t *lo;
 
-	if (ll == NULL) {
-		return (ISC_R_SUCCESS);
-	}
+	REQUIRE(DNS_C_LISTENLIST_VALID(ll));
 
-	CHECK_LLIST(ll);
-	
 	lo = ISC_LIST_HEAD(ll->elements);
 	while (lo != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
@@ -209,8 +198,7 @@ isc_result_t
 dns_c_lstnon_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_lstnon_t *lo)
 {
 	REQUIRE(lo != NULL);
-	REQUIRE(lo->iml != NULL);
-	CHECK_LISTEN(lo);
+	REQUIRE(DNS_C_LISTEN_VALID(lo));
 	
 	fprintf(fp, "listen-on ");
 	if (lo->port != DNS_C_DEFAULTPORT) {

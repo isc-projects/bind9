@@ -1032,7 +1032,7 @@ dns_c_zone_setixfrbase(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 isc_result_t
 dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 {
-	isc_boolean_t existed;
+  isc_boolean_t existed;
 	char **p = NULL;
 	
 	REQUIRE(zone != NULL);
@@ -1082,33 +1082,34 @@ dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 
 
 isc_result_t
-dns_c_zone_setpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
+dns_c_zone_addpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 		     dns_c_pubkey_t *pubkey,
 		     isc_boolean_t deepcopy)
 {
-	isc_boolean_t existed;
-	dns_c_pubkey_t **p = NULL;
+	dns_c_pklist_t **p = NULL;
 	isc_result_t res;
 	
-	REQUIRE(zone != NULL);
-
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		p = &zone->u.mzone.pubkey;
+		p = &zone->u.mzone.pubkeylist;
 		break;
 			
 	case dns_c_zone_slave:
-		p = &zone->u.szone.pubkey;
+		p = &zone->u.szone.pubkeylist;
 		break;
 		
 	case dns_c_zone_stub:
-		p = &zone->u.tzone.pubkey;
+		p = &zone->u.tzone.pubkeylist;
 		break;
 		
 	case dns_c_zone_hint:
+#if 1
+		p = &zone->u.hzone.pubkeylist;
+#else
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Hint zones do not have a pubkey field");
+#endif 
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
@@ -1118,24 +1119,15 @@ dns_c_zone_setpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 		return (ISC_R_FAILURE);
 	}
 
-	if (*p != NULL) {
-		existed = ISC_TRUE;
-		dns_c_pubkey_delete(lctx, p);
-	} else {
-		existed = ISC_FALSE;
-	}
-
-	if (deepcopy) {
-		res = dns_c_pubkey_copy(lctx, zone->mem, p, pubkey);
-	} else {
-		*p = pubkey;
-		res = ISC_R_SUCCESS;
-	}
-
-	if (res == ISC_R_SUCCESS && existed) {
-		res = ISC_R_EXISTS;
+	if (*p == NULL) {
+		res = dns_c_pklist_new(lctx, zone->mem, p);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	}
 	
+	res = dns_c_pklist_addpubkey(lctx, *p, pubkey, deepcopy);
+
 	return (res);
 }
 
@@ -2073,10 +2065,10 @@ dns_c_zone_getixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char **retval)
 
 
 isc_result_t
-dns_c_zone_getpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
-		     dns_c_pubkey_t **retval)
+dns_c_zone_getpubkeylist(isc_log_t *lctx, dns_c_zone_t *zone,
+			 dns_c_pklist_t **retval)
 {
-	dns_c_pubkey_t *p = NULL;
+	dns_c_pklist_t *p = NULL;
 	isc_result_t res;
 	
 	REQUIRE(zone != NULL);
@@ -2084,21 +2076,25 @@ dns_c_zone_getpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		p = zone->u.mzone.pubkey;
+		p = zone->u.mzone.pubkeylist;
 		break;
 			
 	case dns_c_zone_slave:
-		p = zone->u.szone.pubkey;
+		p = zone->u.szone.pubkeylist;
 		break;
 		
 	case dns_c_zone_stub:
-		p = zone->u.tzone.pubkey;
+		p = zone->u.tzone.pubkeylist;
 		break;
 		
 	case dns_c_zone_hint:
+#if 1
+		p = zone->u.hzone.pubkeylist;
+#else	
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Hint zones do not have a pubkey field");
+#endif	
 		return (ISC_R_FAILURE);
 			
 	case dns_c_zone_forward:
@@ -2584,9 +2580,9 @@ master_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		fprintf(fp, "ixfr-tmp-file \"%s\";\n", mzone->ixfr_tmp);
 	}
 
-	if (mzone->pubkey != NULL) {
+	if (mzone->pubkeylist != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
-		dns_c_pubkey_print(lctx, fp, indent, mzone->pubkey);
+		dns_c_pklist_print(lctx, fp, indent, mzone->pubkeylist);
 	}
 
 	if (DNS_C_CHECKBIT(MZ_FORWARD_BIT, &mzone->setflags)) {
@@ -2697,9 +2693,9 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 	}
 
 
-	if (szone->pubkey != NULL) {
+	if (szone->pubkeylist != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
-		dns_c_pubkey_print(lctx, fp, indent, szone->pubkey);
+		dns_c_pklist_print(lctx, fp, indent, szone->pubkeylist);
 	}
 
 	if (DNS_C_CHECKBIT(SZ_FORWARD_BIT, &szone->setflags)) {
@@ -2786,9 +2782,9 @@ stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *tzone)
 			tzone->max_trans_time_in);
 	}
 	
-	if (tzone->pubkey != NULL) {
+	if (tzone->pubkeylist != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
-		dns_c_pubkey_print(lctx, fp, indent, tzone->pubkey);
+		dns_c_pklist_print(lctx, fp, indent, tzone->pubkeylist);
 	}
 
 	if (DNS_C_CHECKBIT(TZ_FORWARD_BIT, &tzone->setflags)) {
@@ -2820,6 +2816,11 @@ hint_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_hintzone_t *hzone)
 		fprintf(fp, "check-names %s;\n",
 			dns_c_nameseverity2string(lctx, hzone->check_names,
 						  ISC_TRUE));
+	}
+
+	if (hzone->pubkeylist != NULL) {
+		dns_c_printtabs(lctx, fp, indent);
+		dns_c_pklist_print(lctx, fp, indent, hzone->pubkeylist);
 	}
 }
 
@@ -2862,7 +2863,7 @@ master_zone_init(isc_log_t *lctx, dns_c_masterzone_t *mzone)
 	mzone->also_notify = NULL;
 	mzone->ixfr_base = NULL;
 	mzone->ixfr_tmp = NULL;
-	mzone->pubkey = NULL;
+	mzone->pubkeylist = NULL;
 	mzone->forwarders = NULL;
 
 	memset(&mzone->setflags, 0x0, sizeof (mzone->setflags));
@@ -2884,7 +2885,7 @@ slave_zone_init(isc_log_t *lctx, dns_c_slavezone_t *szone)
 	szone->allow_query = NULL;
 	szone->allow_transfer = NULL;
 	szone->also_notify = NULL;
-	szone->pubkey = NULL;
+	szone->pubkeylist = NULL;
 	szone->forwarders = NULL;
 
 	memset(&szone->setflags, 0x0, sizeof (szone->setflags));
@@ -2903,7 +2904,7 @@ stub_zone_init(isc_log_t *lctx, dns_c_stubzone_t *tzone)
 	tzone->allow_update = NULL;
 	tzone->allow_query = NULL;
 	tzone->allow_transfer = NULL;
-	tzone->pubkey = NULL;
+	tzone->pubkeylist = NULL;
 	tzone->forwarders = NULL;
 
 	memset(&tzone->setflags, 0x0, sizeof (tzone->setflags));
@@ -2918,6 +2919,7 @@ hint_zone_init(isc_log_t *lctx, dns_c_hintzone_t *hzone)
 	(void) lctx;
 	
 	hzone->file = NULL;
+	hzone->pubkeylist = NULL;
 	memset(&hzone->setflags, 0x0, sizeof (hzone->setflags));
 
 	return (ISC_R_SUCCESS);
@@ -3009,8 +3011,8 @@ master_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_masterzone_t *mzone)
 		isc_mem_free(mem, mzone->ixfr_tmp);
 	}
 
-	if (mzone->pubkey != NULL)
-		dns_c_pubkey_delete(lctx, &mzone->pubkey);
+	if (mzone->pubkeylist != NULL)
+		dns_c_pklist_delete(lctx, &mzone->pubkeylist);
 
 	if (mzone->forwarders != NULL)
 		dns_c_iplist_detach(lctx, &mzone->forwarders);
@@ -3056,6 +3058,9 @@ slave_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_slavezone_t *szone)
 	if (szone->forwarders != NULL)
 		dns_c_iplist_detach(lctx, &szone->forwarders);
 	
+	if (szone->pubkeylist != NULL)
+		dns_c_pklist_delete(lctx, &szone->pubkeylist);
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -3084,6 +3089,8 @@ stub_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_stubzone_t *tzone)
 	if (tzone->allow_transfer != NULL)
 		dns_c_ipmatchlist_detach(lctx, &tzone->allow_transfer);
 	
+	if (tzone->pubkeylist != NULL)
+		dns_c_pklist_delete(lctx, &tzone->pubkeylist);
 	
 	return (ISC_R_SUCCESS);
 }
@@ -3117,6 +3124,9 @@ hint_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_hintzone_t *hzone)
 	if (hzone->file != NULL) {
 		isc_mem_free(mem, hzone->file);
 	}
+	
+	if (hzone->pubkeylist != NULL)
+		dns_c_pklist_delete(lctx, &hzone->pubkeylist);
 	
 	return (ISC_R_SUCCESS);
 }

@@ -60,6 +60,15 @@
 
 #include <dns/confcommon.h>
 
+#define DNS_C_LOGCHAN_MAGIC		0x4c434841 /* LCHA */
+#define DNS_C_LOGCAT_MAGIC		0x4c434154 /* LCAT */
+#define DNS_C_LOGLIST_MAGIC		0x4c4c5354 /* LLST */
+
+
+#define DNS_C_LOGCHAN_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_LOGCHAN_MAGIC)
+#define DNS_C_LOGCAT_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_C_LOGCAT_MAGIC)
+#define DNS_C_LOGLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_LOGLIST_MAGIC)
+
 
 /***
  *** Types
@@ -72,8 +81,9 @@ typedef struct dns_c_logging_list	dns_c_logginglist_t;
 /* The structure that holds the list of channel and category definitions */
 struct dns_c_logging_list
 {
+	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
-
+	
 	ISC_LIST(dns_c_logchan_t)	channels;
 	ISC_LIST(dns_c_logcat_t)	categories;
 };
@@ -82,6 +92,7 @@ struct dns_c_logging_list
 /* Definition of a logging channel */
 struct dns_c_logchan
 {
+	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
 
 	char			       *name;
@@ -120,6 +131,7 @@ struct dns_c_logchan
 /* Structure for holding a category definition */
 struct dns_c_logcat
 {
+	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
 
 	dns_c_category_t		category;

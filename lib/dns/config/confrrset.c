@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/magic.h>
 
 #include <dns/confrrset.h>
 #include <dns/confcommon.h>
@@ -28,7 +29,7 @@ dns_c_rrsolist_clear(isc_log_t *lctx, dns_c_rrsolist_t *olist)
 {
 	dns_c_rrso_t *elem;
 	
-	REQUIRE(olist != NULL);
+	REQUIRE(DNS_C_RRSOLIST_VALID(olist));
 
 	elem = ISC_LIST_HEAD(olist->elements);
 	while (elem != NULL) {
@@ -49,8 +50,8 @@ dns_c_rrsolist_append(isc_log_t *lctx, dns_c_rrsolist_t *dest,
 	dns_c_rrso_t *newelem;
 	isc_result_t res;
 
-	REQUIRE(dest != NULL);
-	REQUIRE(src != NULL);
+	REQUIRE(DNS_C_RRSOLIST_VALID(dest));
+	REQUIRE(DNS_C_RRSOLIST_VALID(src));
 
 	oldelem = ISC_LIST_HEAD(src->elements);
 	while (oldelem != NULL) {
@@ -81,6 +82,7 @@ dns_c_rrsolist_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrsolist_t **rval)
 	
 	ISC_LIST_INIT(ro->elements);
 	ro->mem = mem;
+	ro->magic = DNS_C_RRSOLIST_MAGIC;
 
 	*rval = ro;
 	
@@ -109,6 +111,7 @@ dns_c_rrso_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrso_t **res,
 		return (ISC_R_NOMEMORY);
 	}
 
+	newo->magic = DNS_C_RRSO_MAGIC;
 	newo->mem = mem;
 	newo->otype = otype;
 	newo->oclass = oclass;
@@ -117,6 +120,7 @@ dns_c_rrso_new(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrso_t **res,
 
 	newo->name = isc_mem_strdup(mem, name);
 	if (newo->name == NULL) {
+		newo->magic = 0;
 		isc_mem_put(mem, newo, sizeof *newo);
 		return (ISC_R_NOMEMORY);
 	}
@@ -135,7 +139,7 @@ dns_c_rrsolist_delete(isc_log_t *lctx, dns_c_rrsolist_t **list)
 	isc_result_t r;
 
 	REQUIRE(list != NULL);
-	REQUIRE(*list != NULL);
+	REQUIRE(DNS_C_RRSOLIST_VALID(*list));
 
 	l = *list;
 
@@ -151,6 +155,7 @@ dns_c_rrsolist_delete(isc_log_t *lctx, dns_c_rrsolist_t **list)
 		elem = q;
 	}
 
+	l->magic = 0;
 	isc_mem_put(l->mem, l, sizeof *l);
 
 	*list = NULL;
@@ -167,13 +172,14 @@ dns_c_rrso_delete(isc_log_t *lctx, dns_c_rrso_t **order)
 	(void)lctx;
 	
 	REQUIRE(order != NULL);
-	REQUIRE(*order != NULL);
+	REQUIRE(DNS_C_RRSO_VALID(*order));
 
 	oldo = *order;
 
 	REQUIRE(oldo->name != NULL);
 	isc_mem_free(oldo->mem, oldo->name);
 
+	oldo->magic = 0;
 	isc_mem_put(oldo->mem, oldo, sizeof *oldo);
 
 	*order = NULL;
@@ -189,9 +195,8 @@ dns_c_rrso_copy(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrso_t **dest,
 	dns_c_rrso_t *newo;
 	isc_result_t res;
 
-	REQUIRE(mem != NULL);
-	REQUIRE(dest != NULL);
-	REQUIRE(source != NULL);
+	REQUIRE(DNS_C_RRSO_VALID(*dest));
+	REQUIRE(DNS_C_RRSO_VALID(source));
 
 	res = dns_c_rrso_new(lctx, mem, &newo, source->oclass,
 			     source->otype, source->name,
@@ -215,6 +220,9 @@ dns_c_rrsolist_copy(isc_log_t *lctx, isc_mem_t *mem, dns_c_rrsolist_t **dest,
 	dns_c_rrso_t *elem;
 	dns_c_rrso_t *newe;
 	dns_result_t res;
+
+	REQUIRE(DNS_C_RRSOLIST_VALID(source));
+	REQUIRE(dest != NULL);
 	
 	res = dns_c_rrsolist_new(lctx, mem, &nlist);
 	if (res != DNS_R_SUCCESS) {
@@ -246,9 +254,7 @@ dns_c_rrsolist_print(isc_log_t *lctx, FILE *fp, int indent,
 {
 	dns_c_rrso_t *or;
 
-	if (rrlist == NULL) {
-		return;
-	}
+	REQUIRE(DNS_C_RRSOLIST_VALID(rrlist));
 	
 	if (ISC_LIST_EMPTY(rrlist->elements)) {
 		return;
@@ -272,8 +278,10 @@ dns_c_rrsolist_print(isc_log_t *lctx, FILE *fp, int indent,
 void
 dns_c_rrso_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_rrso_t *order)
 {
+	REQUIRE(DNS_C_RRSO_VALID(order));
+	
 	dns_c_printtabs(lctx, fp, indent);
-
+	
 	fputs("class ", fp);
 	if (order->oclass == dns_rdataclass_any) {
 		fputc('*', fp);

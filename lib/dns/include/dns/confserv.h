@@ -60,6 +60,14 @@
 #include <dns/confcommon.h>
 #include <dns/confkeys.h>
 
+
+#define DNS_C_SRVLIST_MAGIC	0x7365524c /* seRL */
+#define DNS_C_SRV_MAGIC		0x53457276 /* SErv */
+
+#define DNS_C_SRVLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_SRVLIST_MAGIC)
+#define DNS_C_SRV_VALID(ptr)	 ISC_MAGIC_VALID(ptr, DNS_C_SRV_MAGIC)
+
+
 /***
  *** Types
  ***/
@@ -69,6 +77,8 @@ typedef struct dns_c_srv_list		dns_c_srvlist_t;
 
 struct dns_c_srv_list
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_srv_t) elements;
@@ -77,6 +87,8 @@ struct dns_c_srv_list
 
 struct dns_c_srv 
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 
 	isc_sockaddr_t		address;

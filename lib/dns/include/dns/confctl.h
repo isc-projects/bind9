@@ -65,6 +65,16 @@
 #include <dns/confip.h>
 
 
+#define DNS_C_CONFCTL_MAGIC	0x4363746cU
+#define DNS_C_CONFCTLLIST_MAGIC	0x4354424cU
+
+#define DNS_C_CONFCTLLIST_VALID(ptr) \
+		ISC_MAGIC_VALID(ptr, DNS_C_CONFCTLLIST_MAGIC)
+#define DNS_C_CONFCTL_VALID(ptr) \
+		ISC_MAGIC_VALID(ptr, DNS_C_CONFCTL_MAGIC)
+
+
+
 /***
  *** Types
  ***/

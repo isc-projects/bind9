@@ -62,6 +62,14 @@
 
 #include <dns/confip.h>
 
+#define DNS_C_LISTEN_MAGIC	0x4c49534eU /* LISN */
+#define DNS_C_LLIST_MAGIC		0x4c6c6973U /* Llis */
+
+#define DNS_C_LISTEN_VALID(l)	ISC_MAGIC_VALID(l, DNS_C_LISTEN_MAGIC)
+#define DNS_C_LISTENLIST_VALID(l) ISC_MAGIC_VALID(l, DNS_C_LLIST_MAGIC)
+
+
+
 /***
  *** Types
  ***/

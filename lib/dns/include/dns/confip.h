@@ -63,6 +63,22 @@
 #include <dns/confcommon.h>
 
 
+#define DNS_C_IPLIST_MAGIC 0x49706c73	/* Ipls */ /* dns_c_iplist */
+#define DNS_C_IPMDIRECT_MAGIC 0x49506d64 /* IPmd */ /* dns_c_ipmatch_direct */
+#define DNS_C_IPMINDIRECT_MAGIC 0x69506d69 /* iPmi */ /* dns_c_ipmatch_indirect */
+#define DNS_C_IPMELEM_MAGIC 0x49704d65	/* IpMe */ /* dns_c_ipmatch_element */
+#define DNS_C_IPMLIST_MAGIC 0x69706d6c	/* ipml */ /* dns_c_ipmatchlist */
+
+#define DNS_C_IPLIST_VALID(ptr)	ISC_MAGIC_VALID(ptr,DNS_C_IPLIST_MAGIC)
+#define DNS_C_IPDIRECT_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMDIRECT_MAGIC)
+#define DNS_C_IPINDIRECT_VALID(ptr) \
+	ISC_MAGIC_VALID(ptr, DNS_C_IPMINDIRECT_MAGIC)
+#define DNS_C_IPMELEM_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMELEM_MAGIC)
+#define DNS_C_IPMLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_IPMLIST_MAGIC)
+
+
+
+
 /***
  *** Types
  ***/

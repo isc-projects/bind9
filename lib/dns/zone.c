@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.36 1999/11/17 21:52:32 brister Exp $ */
+ /* $Id: zone.c,v 1.37 1999/12/01 16:28:53 brister Exp $ */
 
 #include <config.h>
 
@@ -2393,6 +2393,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 	dns_c_severity_t severity;
 	dns_c_iplist_t *iplist = NULL;
 	dns_c_pubkey_t *pubkey = NULL;
+	dns_c_pklist_t *pubkeylist = NULL;
 	isc_uint32_t i;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t xfrtime;
@@ -2486,13 +2487,25 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else
 			dns_zone_clearnotify(zone);
 
+#if 1					/* XXX brister */
+		
+		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		if (iresult == ISC_R_SUCCESS) {
+			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
+		}
+		dns_zone_setpubkey(zone, pubkey);
+
+#else
+		
 		iresult = dns_c_zone_getpubkey(lctx, czone, &pubkey);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
 		break;
-
+		
+#endif	
+		
 	case dns_c_zone_forward:
 #ifdef notyet
 		/*
@@ -2526,12 +2539,24 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else
 			dns_zone_clearqueryacl(zone);
 
+#if 1					/* XXX brister */
+		
+		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		if (iresult == ISC_R_SUCCESS) {
+			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
+		}
+		dns_zone_setpubkey(zone, pubkey);
+
+#else
+		
 		iresult = dns_c_zone_getpubkey(lctx, czone, &pubkey);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
 
+#endif
+		
 		iresult = dns_c_zone_getmasterport(lctx, czone, &port);
 		if (iresult != ISC_R_SUCCESS)
 			port = 53;
@@ -2584,11 +2609,23 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		} else
 			dns_zone_clearqueryacl(zone);
 
+#if 1					/* XXX brister */
+		
+		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		if (iresult == ISC_R_SUCCESS) {
+			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
+		}
+		dns_zone_setpubkey(zone, pubkey);
+
+#else
+		
 		iresult = dns_c_zone_getpubkey(lctx, czone, &pubkey);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
+
+#endif	
 
 		iresult = dns_c_zone_getmasterport(lctx, czone, &port);
 		if (iresult != ISC_R_SUCCESS)
@@ -2635,12 +2672,24 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_fail);
 
+#if 1					/* XXX brister */
+		
+		iresult = dns_c_zone_getpubkeylist(lctx, czone, &pubkeylist);
+		if (iresult == ISC_R_SUCCESS) {
+			pubkey = ISC_LIST_HEAD(pubkeylist->keylist);
+		}
+		dns_zone_setpubkey(zone, pubkey);
+
+#else
+		
 		iresult = dns_c_zone_getpubkey(lctx, czone, &pubkey);
 		if (iresult == ISC_R_SUCCESS)
 			dns_zone_setpubkey(zone, pubkey);
 		else
 			dns_zone_setpubkey(zone, NULL);
 		break;
+
+#endif	
 	}
 
 	return (DNS_R_SUCCESS);

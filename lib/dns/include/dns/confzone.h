@@ -111,7 +111,7 @@ struct dns_c_master_zone
 	char		       *ixfr_tmp;
 	isc_int32_t		max_ixfr_log;
 	isc_boolean_t		maint_ixfr_base;
-	dns_c_pubkey_t	       *pubkey;
+	dns_c_pklist_t	       *pubkeylist;
 
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
@@ -134,7 +134,7 @@ struct dns_c_slave_zone
 	char		       *ixfr_tmp;
 	isc_boolean_t		maint_ixfr_base;
 	isc_int32_t		max_ixfr_log;
-	dns_c_pubkey_t	       *pubkey;
+	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source;
@@ -155,7 +155,7 @@ struct dns_c_stub_zone
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
 	isc_boolean_t		dialup;
-	dns_c_pubkey_t	       *pubkey;
+	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
@@ -183,6 +183,7 @@ struct dns_c_hint_zone
 {
 	char		       *file;
 	dns_c_severity_t	check_names;
+	dns_c_pklist_t	       *pubkeylist;
 
 	dns_c_setbits_t		setflags;
 };
@@ -279,7 +280,7 @@ isc_result_t	dns_c_zone_setixfrbase(isc_log_t *lctx, dns_c_zone_t *zone,
 				       const char *newval);
 isc_result_t	dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone,
 				      const char *newval);
-isc_result_t	dns_c_zone_setpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
+isc_result_t	dns_c_zone_addpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 				     dns_c_pubkey_t *pubkey,
 				     isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_setmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
@@ -328,8 +329,8 @@ isc_result_t	dns_c_zone_getixfrbase(isc_log_t *lctx, dns_c_zone_t *zone,
 				       const char **retval);
 isc_result_t	dns_c_zone_getixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone,
 				      const char **retval);
-isc_result_t	dns_c_zone_getpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
-				     dns_c_pubkey_t **retval);
+isc_result_t	dns_c_zone_getpubkeylist(isc_log_t *lctx, dns_c_zone_t *zone,
+				     dns_c_pklist_t **retval);
 isc_result_t	dns_c_zone_getmasterport(isc_log_t *lctx, dns_c_zone_t *zone,
 					 in_port_t *retval);
 isc_result_t	dns_c_zone_getmasterips(isc_log_t *lctx, dns_c_zone_t *zone,

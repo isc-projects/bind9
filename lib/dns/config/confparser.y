@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.26 1999/11/30 22:01:16 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.27 1999/12/01 16:28:56 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2428,6 +2428,7 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set view allow-query.");
+			break;
                 }
         }
         | zone_stmt;
@@ -2709,6 +2710,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone master port.");
+			break;
                 }
 
                 tmpres = dns_c_zone_setmasterips(logcontext, zone,
@@ -2726,6 +2728,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone masters ips.");
+			break;
                 }
         }
         | L_TRANSFER_SOURCE maybe_wild_addr
@@ -2749,6 +2752,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone transfer-source.");
+			break;
                 }
         }
         | L_CHECK_NAMES check_names_opt
@@ -2772,6 +2776,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone check-names.");
+			break;
                 }
         }
         | L_ALLOW_UPDATE L_LBRACE address_match_list L_RBRACE
@@ -2796,6 +2801,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone allow-update.");
+                        break;
                 }
         }
         | L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
@@ -2820,6 +2826,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone allow-query.");
+                        break;
                 }
         }
         | L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
@@ -2844,6 +2851,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone allow-transfer.");
+                        break;
                 }
         }
         | L_FORWARD zone_forward_opt
@@ -2867,6 +2875,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone forward.");
+                        break;
                 }
         }
         | L_FORWARDERS L_LBRACE opt_zone_forwarders_list L_RBRACE
@@ -2932,6 +2941,7 @@ zone_option: L_FILE L_QSTRING
                         parser_error(ISC_FALSE,
                                      "Failed to set zone "
                                      "max-transfer-time-in.");
+                        break;
                 }
         }
         | L_MAX_LOG_SIZE_IXFR L_INTEGER
@@ -2955,6 +2965,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone max-ixfr-log-size.");
+                        break;
                 }
         }
         | L_NOTIFY yea_or_nay
@@ -2978,6 +2989,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone notify.");
+                        break;
                 }
         }
         | L_MAINTAIN_IXFR_BASE yea_or_nay
@@ -3001,6 +3013,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone maintain-ixfr-base.");
+                        break;
                 }
         }
         | L_PUBKEY L_INTEGER L_INTEGER L_INTEGER L_QSTRING
@@ -3019,14 +3032,9 @@ zone_option: L_FILE L_QSTRING
                         YYABORT;
                 }
                 
-                tmpres = dns_c_zone_setpubkey(logcontext, zone, pubkey,
+                tmpres = dns_c_zone_addpubkey(logcontext, zone, pubkey,
                                               ISC_FALSE);
                 switch (tmpres) {
-                case ISC_R_EXISTS:
-                        parser_warning(ISC_FALSE,
-                                       "Redefining zone pubkey.");
-                        break;
-
                 case ISC_R_SUCCESS:
                         /* nothing */
                         break;
@@ -3034,7 +3042,8 @@ zone_option: L_FILE L_QSTRING
                 default:
                         dns_c_pubkey_delete(logcontext, &pubkey);
                         parser_error(ISC_FALSE,
-                                     "Failed to set zone pubkey.");
+                                     "Failed to add a zone pubkey.");
+			break;
                 }
 
                 isc_mem_free(memctx, $5);
@@ -3061,6 +3070,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone also-notify.");
+                        break;
                 }
         }
         | L_DIALUP yea_or_nay
@@ -3084,6 +3094,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone dialup.");
+                        break;
                 }
         }
         ;
@@ -3775,6 +3786,7 @@ token_to_text(int token, YYSTYPE lval) {
                                         sizeof buffer - 1);
                                 buffer[sizeof buffer - 1] = '\0';
                         }
+                        break;
                 }
         }
 

@@ -61,6 +61,25 @@
 #include <dns/log.h>
 
 
+#define DNS_C_TKEY_MAGIC		0x544b4559 /* TKEY */
+#define DNS_C_TKEYLIST_MAGIC		0x544b4c53 /* TKLS */
+#define DNS_C_PUBKEY_MAGIC		0x5055424b /* PUBK */
+#define DNS_C_PKLIST_MAGIC		0x504b4c53 /* PKLS */
+#define DNS_C_KDEF_MAGIC		0x4b444546 /* KDEF */
+#define DNS_C_KDEFLIST_MAGIC		0x4b4c5354 /* KLST */
+#define DNS_C_KEYID_MAGIC		0x4b455949 /* KEYI */
+#define DNS_C_KEYIDLIST_MAGIC		0x4b494c53 /* KILS */
+
+#define DNS_C_TKEY_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_TKEY_MAGIC)
+#define DNS_C_TKEYLIST_VALID(ptr)  ISC_MAGIC_VALID(ptr, DNS_C_TKEYLIST_MAGIC)
+#define DNS_C_PUBKEY_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_PUBKEY_MAGIC)
+#define DNS_C_PKLIST_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_PKLIST_MAGIC)
+#define DNS_C_KDEF_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_KDEF_MAGIC)
+#define DNS_C_KDEFLIST_VALID(ptr)  ISC_MAGIC_VALID(ptr, DNS_C_KDEFLIST_MAGIC)
+#define DNS_C_KEYID_VALID(ptr)	   ISC_MAGIC_VALID(ptr, DNS_C_KEYID_MAGIC)
+#define DNS_C_KEYIDLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_KEYIDLIST_MAGIC)
+
+
 
 /***
  *** Types
@@ -68,6 +87,7 @@
 
 
 typedef struct dns_c_pubkey		dns_c_pubkey_t;
+typedef struct dns_c_pklist		dns_c_pklist_t;
 typedef struct dns_c_tkey		dns_c_tkey_t;
 typedef struct dns_c_tkey_list		dns_c_tkeylist_t;
 typedef struct dns_c_kdef		dns_c_kdef_t;
@@ -79,6 +99,7 @@ typedef struct dns_c_kid_list		dns_c_kidlist_t;
 /* The type for holding a trusted key value. */
 struct dns_c_tkey
 {
+	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 	
 	char		       *domain;
@@ -90,6 +111,7 @@ struct dns_c_tkey
 /* A list of trusted keys. */
 struct dns_c_tkey_list
 {
+	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_tkey_t)	tkeylist;
@@ -99,17 +121,30 @@ struct dns_c_tkey_list
 /* A public key value */
 struct dns_c_pubkey
 {
+	isc_uint32_t	magic;
 	isc_mem_t      *mem;
 	isc_int32_t	flags;
 	isc_int32_t	protocol;
 	isc_int32_t	algorithm;
 	char	       *key;
+
+	ISC_LINK(dns_c_pubkey_t)	next;
+};
+
+/* A list of pubkeys */
+struct dns_c_pklist
+{
+	isc_uint32_t			magic;
+	isc_mem_t		       *mem;
+
+	ISC_LIST(dns_c_pubkey_t)	keylist;
 };
 
 
 /* A private key definition from a 'key' statement */
 struct dns_c_kdef 
 {
+	isc_uint32_t		magic;
 	dns_c_kdeflist_t      *mylist;	
 
 	char		       *keyid;
@@ -123,6 +158,7 @@ struct dns_c_kdef
 /* A list of private keys */
 struct dns_c_kdef_list
 {
+	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_kdef_t)	keydefs;
@@ -132,6 +168,7 @@ struct dns_c_kdef_list
 /* A key id for in a server statement 'keys' list */
 struct dns_c_kid
 {
+	isc_uint32_t		magic;
 	dns_c_kidlist_t	      *mylist;
 	char		       *keyid;
 
@@ -143,6 +180,7 @@ struct dns_c_kid
 struct dns_c_kid_list
 {
 	isc_mem_t	       *mem;
+	isc_uint32_t		magic;
 
 	ISC_LIST(dns_c_kid_t)	keyids;
 };
@@ -151,6 +189,29 @@ struct dns_c_kid_list
 /***
  *** Functions
  ***/
+
+isc_result_t	dns_c_pklist_new(isc_log_t *lctx, isc_mem_t *mem,
+                                 dns_c_pklist_t **pklist);
+isc_result_t	dns_c_pklist_delete(isc_log_t *lctx, dns_c_pklist_t **list);
+isc_result_t	dns_c_pklist_addpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+                                       dns_c_pubkey_t *pkey,
+                                       isc_boolean_t deepcopy);
+isc_result_t	dns_c_pklist_findpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+					dns_c_pubkey_t **pubkey,
+					isc_int32_t flags,
+					isc_int32_t protocol,
+					isc_int32_t algorithm,
+					const char *key);
+isc_result_t	dns_c_pklist_rmpubkey(isc_log_t *lctx, dns_c_pklist_t *list,
+				      isc_int32_t flags,
+				      isc_int32_t protocol,
+				      isc_int32_t algorithm,
+				      const char *key);
+void		dns_c_pklist_print(isc_log_t *lctx,
+				   FILE *fp, int indent,
+				   dns_c_pklist_t *pubkey);
+
+
 
 isc_result_t	dns_c_pubkey_new(isc_log_t *lctx,
 				 isc_mem_t *mem, isc_int32_t flags,

@@ -59,6 +59,14 @@
 #include <dns/confcommon.h>
 
 
+#define DNS_C_RRSOLIST_MAGIC		0x5252534c /* RRSL */
+#define DNS_C_RRSO_MAGIC			0x7272736f /* rrso */
+
+#define DNS_C_RRSOLIST_VALID(ptr) ISC_MAGIC_VALID(ptr, DNS_C_RRSOLIST_MAGIC)
+#define DNS_C_RRSO_VALID(ptr)	ISC_MAGIC_VALID(ptr, DNS_C_RRSO_MAGIC)
+
+
+
 /***
  *** Types
  ***/
@@ -70,6 +78,8 @@ typedef struct dns_c_rrso_list		dns_c_rrsolist_t;
 
 struct dns_c_rrso 
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 	
 	dns_rdataclass_t	oclass;
@@ -83,6 +93,8 @@ struct dns_c_rrso
 
 struct dns_c_rrso_list
 {
+	isc_uint32_t		magic;
+	
 	isc_mem_t	       *mem;
 
 	ISC_LIST(dns_c_rrso_t)	elements;

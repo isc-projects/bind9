@@ -81,7 +81,7 @@ int main (int argc, char **argv) {
 	isc_mem_t *mem = NULL;
 	dns_c_cbks_t callbacks;
 
-#if 0
+#if 1
 	callbacks.zonecbk = NULL;
 	callbacks.zonecbkuap = NULL;
 	callbacks.optscbk = NULL;
