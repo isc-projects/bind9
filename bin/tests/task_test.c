@@ -75,7 +75,7 @@ main(int argc, char *argv[]) {
 	ti1 = NULL;
 	absolute.seconds = 0;
 	absolute.nanoseconds = 0;
-	interval.seconds = 5;
+	interval.seconds = 2;
 	interval.nanoseconds = 0;
 	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
 			    t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
