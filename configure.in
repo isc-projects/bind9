@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-AC_REVISION($Revision: 1.100 $)
+AC_REVISION($Revision: 1.101 $)
 
 AC_PREREQ(2.13)
 
@@ -163,17 +163,19 @@ case "$host" in
 	    [  --with-ptl2		use the ptl2 thread library],
 	    use_ptl2="$withval", use_ptl2="no")
 
+        : ${LOCALBASE:=/usr/pkg}
+
         # If user did not choose a thread library explicitly,
         # try to choose one automatically.  This will work when
 	# exactly one library is installed.
 
 	case "$use_mit_pthreads+$use_ptl2" in
 		no+no)
-			if test -d /usr/pkg/pthreads
+			if test -d $LOCALBASE/pthreads
 			then
 				use_mit_pthreads="yes"
 			fi
-			if test -d /usr/pkg/PTL
+			if test -d $LOCALBASE/PTL
 			then
 				use_ptl2="yes"
 			fi
@@ -183,7 +185,7 @@ case "$host" in
 	case "$use_mit_pthreads+$use_ptl2" in
 		yes+no)
 			AC_MSG_RESULT(mit-pthreads)
-			pkg="/usr/pkg/pthreads"
+			pkg="$LOCALBASE/pthreads"
 			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
 			lib2="-lpthread -lm -lgcc -lpthread"
 			LIBS="$lib1 $lib2 $LIBS"
@@ -192,8 +194,8 @@ case "$host" in
 			;;
 		no+yes)
 			AC_MSG_RESULT(PTL2)
-#			pkg="/usr/pkg/PTL"
-#			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
+#			pkg="$LOCALBASE/PTL"
+#			LIBS="-L$LOCALBASE/lib -lPTL $LIBS"
 #			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
 			CC=ptlgcc
 			;;
