@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.13 2001/07/19 16:29:14 bwelling Exp $ */
+/* $Id: check.c,v 1.14 2001/08/03 17:24:10 gson Exp $ */
 
 #include <config.h>
 
@@ -294,6 +294,24 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	return (result);
 }
 
+isc_result_t
+cfg_check_key(cfg_obj_t *key, isc_log_t *logctx) {
+	cfg_obj_t *algobj = NULL;
+	cfg_obj_t *secretobj = NULL;
+	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
+	
+	cfg_map_get(key, "algorithm", &algobj);
+	cfg_map_get(key, "secret", &secretobj);
+	if (secretobj == NULL || algobj == NULL) {
+		cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+			    "key '%s' must have both 'secret' and "
+			    "'algorithm' defined",
+			    keyname);
+		return ISC_R_FAILURE;
+	}
+	return ISC_R_SUCCESS;
+}
+		
 static isc_result_t
 check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 	       isc_mem_t *mctx)
@@ -341,10 +359,8 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 	{
 		cfg_obj_t *key = cfg_listelt_value(element);
 		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
-		cfg_obj_t *algobj = NULL;
-		cfg_obj_t *secretobj = NULL;
 		isc_symvalue_t symvalue;
-		
+
 		symvalue.as_pointer = NULL;
 		tresult = isc_symtab_define(symtab, keyname, 1,
 					    symvalue, isc_symexists_reject);
@@ -356,14 +372,11 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, isc_log_t *logctx,
 			isc_symtab_destroy(&symtab);
 			return (tresult);
 		}
-		cfg_map_get(key, "algorithm", &algobj);
-		cfg_map_get(key, "secret", &secretobj);
-		if (secretobj == NULL || algobj == NULL) {
-			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "key '%s' must have both 'secret' and "
-				    "algorithm defined",
-				    keyname);
-			result = ISC_R_FAILURE;
+
+		tresult = cfg_check_key(key, logctx);
+		if (result != ISC_R_SUCCESS) {
+			isc_symtab_destroy(&symtab);
+			return (tresult);
 		}
 	}
 

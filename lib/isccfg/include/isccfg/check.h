@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.3 2001/03/08 00:55:50 bwelling Exp $ */
+/* $Id: check.h,v 1.4 2001/08/03 17:24:11 gson Exp $ */
 
 #ifndef ISCCFG_CHECK_H
 #define ISCCFG_CHECK_H 1
@@ -41,6 +41,12 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
  * Returns:
  * 	ISC_R_SUCCESS
  * 	ISC_R_FAILURE
+ */
+
+isc_result_t
+cfg_check_key(cfg_obj_t *config, isc_log_t *logctx);
+/*
+ * As above, but for a single 'key' statement.
  */
 
 ISC_LANG_ENDDECLS
