@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.54 2001/06/01 03:05:07 halley Exp $ */
+/* $Id: rbt.h,v 1.55 2001/06/01 03:07:54 halley Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -26,7 +26,7 @@
 
 ISC_LANG_BEGINDECLS
 
-/* #define DNS_RBT_USEHASH 1 */
+#define DNS_RBT_USEHASH 1
 
 /*
  * Option values for dns_rbt_findnode() and dns_rbt_findname().
