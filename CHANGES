@@ -1,3 +1,7 @@
+1459.	[bug]		win32: we were leaking a bits in the exception
+			fd_set resulting in "Socket operation on non-socket"
+			errors from select(). [RT #2966]
+ 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
 1372.	[bug]		named crashes with an assertion failure on exit when

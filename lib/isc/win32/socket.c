@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.7 2002/07/31 03:10:58 mayer Exp $ */
+/* $Id: socket.c,v 1.5.2.8 2003/04/13 08:04:36 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -2131,7 +2131,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 		if (FD_ISSET(i, writefds)) {
 			if (sock == NULL) {
 				FD_CLR(i, &manager->write_fds);
-				continue;
+				goto check_except;
 			}
 			if (!unlock_sock) {
 				unlock_sock = ISC_TRUE;
@@ -2148,6 +2148,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 			FD_CLR(i, &manager->write_fds);
 			FD_CLR(i, &manager->except_fds);
 		}
+	check_except:
 		if (FD_ISSET(i, exceptfds)) {
 			if (sock == NULL) {
 				FD_CLR(i, &manager->except_fds);
