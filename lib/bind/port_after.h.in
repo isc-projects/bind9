@@ -336,4 +336,11 @@ void endnetgrent(void);
 int innetgr(const char *netgroup, const char *machine,
 	    const char *user, const char *domain);
 
+#ifdef NGR_R_ENT_ARGS
+NGR_R_SET_RETURN
+setnetgrent_r(const char *netgroup, NGR_R_ENT_ARGS);
+#else
+NGR_R_SET_RETURN
+setnetgrent_r(const char *netgroup);
+#endif
 #endif
