@@ -1,13 +1,13 @@
 
 DNSEXT Working Group                             Donald E. Eastlake, 3rd
 INTERNET-DRAFT                                                  Motorola
-Expires: October 2000                                         April 2000
+Expires: December 2000                                         June 2000
 
 
 
                Secret Key Establishment for DNS (TKEY RR)
                ------ --- ------------- --- --- ----- ---
-                    <draft-ietf-dnsext-tkey-02.txt>
+                    <draft-ietf-dnsext-tkey-03.txt>
 
 
 
@@ -24,11 +24,10 @@ Status of This Document
    and its working groups.  Note that other groups may also distribute
    working documents as Internet-Drafts.
 
-   Internet-Drafts are draft documents valid for a maximum of six
-   months.  Internet-Drafts may be updated, replaced, or obsoleted by
-   other documents at any time.  It is not appropriate to use Internet-
-   Drafts as reference material or to cite them other than as a
-   ``working draft'' or ``work in progress.''
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet- Drafts as reference
+   material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/ietf/1id-abstracts.txt
@@ -54,10 +53,11 @@ Status of This Document
 
 
 
+
 Donald Eastlake 3rd                                             [Page 1]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 Abstract
@@ -83,9 +83,9 @@ Acknowledgments
 
             Ed Lewis (TIS)
 
-            Brian Wellington (TIS)
+            Erik Nordmark (SUN)
 
-
+            Brian Wellington (Nominum)
 
 
 
@@ -115,7 +115,7 @@ Acknowledgments
 Donald Eastlake 3rd                                             [Page 2]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 Table of Contents
@@ -173,7 +173,7 @@ Table of Contents
 Donald Eastlake 3rd                                             [Page 3]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 1. Introduction
@@ -231,7 +231,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 4]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    servers which is currently used only for key deletion.
@@ -289,7 +289,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 5]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    name SHOULD be a domain locally unique at the resolver, less than 128
@@ -347,7 +347,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 6]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    To avoid different interpretations of the inception and expiration
@@ -405,7 +405,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 7]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    RR and DNS header error field could have unrelated non-zero error
@@ -463,7 +463,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 8]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    TKEY queries MUST be authenticated for all modes except GSS-API and,
@@ -521,7 +521,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                             [Page 9]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    algorithm field is set to the authentication algorithm the resolver
@@ -579,7 +579,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                            [Page 10]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    the discarded key.
@@ -637,7 +637,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                            [Page 11]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    the keying material to be used.  The KEY RR that appears in the query
@@ -681,7 +681,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 4.5 Query for Resolver Assigned Keying
 
    Optionally, a server can accept resolver assigned keys.  The keying
-   material must be encrypted under a server key for protection in
+   material MUST be encrypted under a server key for protection in
    transmission as described in Section 6.
 
    The resolver sends a TKEY query with a TKEY RR that specifies the
@@ -695,14 +695,15 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                            [Page 12]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    the corresponding private key, or it will not be able to decrypt the
-   keying material and will return a FORMERR, and for which no untrusted
-   party (preferably no other party than the server) has the private
-   key, or the untrusted private key holder can capture the messages to
-   the server, learn the shared secret, and spoof valid TSIGs.
+   keying material and will return a FORMERR. It is also important that
+   no untrusted party (preferably no other party than the server) has
+   the private key corresponding to the KEY RR because, if they do, they
+   can capture the messages to the server, learn the shared secret, and
+   spoof valid TSIGs.
 
    The query TKEY RR inception and expiry give the time period the
    querier intends to consider the keying material valid.  The server
@@ -741,19 +742,18 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
    information in a response would mean that the client might use a key
    that the server had discarded and would then get an error indication.
 
-   For server assigned and Diffie-Hellman keys, the client must truly
-   "discard" all active state associated with the key.  For querier
-   assigned keys, the querier MAY simply mark the key as no longer
-   retained by the server and may re-send it in a future query
-   specifying querier assigned keying material.
-
+   For server assigned and Diffie-Hellman keys, the client MUST
+   "discard" active state associated with the key.  For querier assigned
+   keys, the querier MAY simply mark the key as no longer retained by
+   the server and may re-send it in a future query specifying querier
+   assigned keying material.
 
 
 
 Donald Eastlake 3rd                                            [Page 13]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 6. Methods of Encryption
@@ -802,16 +802,16 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
    Specification Required as defined in [RFC 2434].
 
    Mode values should not be changed when the status of their use
-   changes.  For example, a mode value assigned for an Experimental
-   Standard should not be changed later just because that standard's
-   status is changed to Proposed.
+   changes.  For example, a mode value assigned based just on providing
+   a specification should not be changed later just because that use's
+   status is changed to standards track.
 
 
 
 Donald Eastlake 3rd                                            [Page 14]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
    The following assignments are documented herein:
@@ -869,7 +869,7 @@ INTERNET-DRAFT              The DNS TKEY RR                   April 2000
 Donald Eastlake 3rd                                            [Page 15]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 References
@@ -927,29 +927,29 @@ References
 Donald Eastlake 3rd                                            [Page 16]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                   April 2000
+INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 Author's Address
 
    Donald E. Eastlake 3rd
    Motorola
-   65 Shindegan Hill Road, RR #1
-   Carmel, NY 10512 USA
+   140 Forest Avenue
+   Hudson, MA 01749 USA
 
-   Telephone:   +1 914-276-2668 (h)
+   Telephone:   +1 978-562-2827 (h)
                 +1 508-261-5434 (w)
-   FAX:         +1 508-261-4447 (w)
+   FAX:         +1 978-567-7941 (h)
+                +1 508-261-4447 (w)
    email:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires October 2000.
+   This draft expires December 2000.
 
-   Its file name is draft-ietf-dnsext-tkey-02.txt.
-
+   Its file name is draft-ietf-dnsext-tkey-03.txt.
 
 
 

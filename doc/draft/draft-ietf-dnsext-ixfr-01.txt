@@ -1,6 +1,7 @@
+
 INTERNET DRAFT                                                   M. Ohta
-draft-ietf-dnsext-ixfr-00.txt              Tokyo Institute of Technology
-                                                              March 2000
+draft-ietf-dnsext-ixfr-01.txt              Tokyo Institute of Technology
+                                                               June 2000
 
                     Incremental Zone Transfer in DNS
 
@@ -49,20 +50,19 @@ Abstract
 
 
 
-M. Ohta               Expires on September 5, 2000              [Page 1]
+M. Ohta               Expires on December 5, 2000               [Page 1]
 
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
 
 
    In this document, a secondary name server which requests IXFR is
    called an IXFR client and a primary or secondary name server which
    responds to the request is called an IXFR server.
 
-   The AXFR specification is very terse, and in practice it does not
-   contain sufficient information to construct interoperable
-   implementations.  [XFRCLARIFY] gives the clarification on the AXFR
-   specification based on existing practice, which is, unless otherwise
-   noted, also applicable to IXFR.
+   The current AXFR specification in [STD13] is very terse, and in
+   practice it does not contain sufficient information to construct
+   interoperable implementations.  This memo assumes AXFR protocol used
+   in existing interoperable implementations.
 
 2. Brief Description of the Protocol
 
@@ -102,15 +102,14 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    ensuring backward compatibility.  If the query response is a single
    packet with the entire new zone, or if the server does not have a
    newer version than the client, everything is done.  Otherwise, a TCP
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 2]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
    IXFR query should be tried.
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 2]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
 
    To ensure integrity, servers should use UDP checksums for all UDP
    responses.  A cautious client which receives a UDP packet with a
@@ -144,30 +143,37 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    Modification of an RR is performed first by removing the original RR
    and then adding the modified one.
 
+   Each individual difference sequence must leave the zone in a
+   consistent state with contents identical to those visible in the
+   master at the time identified by the new SOA serial number.  During a
+   transfer, the slave server may save the zone data to stable storage
+   and use it in responding to queries after applying one or more
+   complete difference sequences even if they do not yet form a complete
+   incremental transfer.
+
    A difference sequence which indicates the removal of a non-existent
    RR is an indication of an error that the IXFR client is out-of-sync
    with the IXFR server. The IXFR SHOULD be aborted, and an AXFR
    requested from the same server.  A difference sequence which
-   indicates the addition of a seemingly duplicate (through a node may
-   have multiple TXT RRs of the duplicated content) or conflicting RR
-   may just be a result of malformed zone ando should be treated just as
-   a AXFR with malformed zone content.
+   indicates the addition of a seemingly duplicate (though a node may
+   have multiple TXT RR's with duplicate content) or conflicting RR may
+   just be a malformed zone. In any case the IXFR should be aborted and
+   AXFR performed.
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 3]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
 
    The sequences of differential information are ordered oldest first
    newest last.  Thus, the differential sequences are the history of
    changes made since the version known by the IXFR client up to the
    server's current version.
 
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 3]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
    RR sets (RRs of the same RR types) in the incremental transfer
-   messages may be partial.  For examle, if a single RR of multiple RRs
+   messages may be partial.  For example, if a single RR of multiple RRs
    of the same RR type changes, only the changed RR needs to be
    transferred.
 
@@ -179,28 +185,55 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    followed by the SOA of the client's version which is about to be
    replaced.
 
-   To determine whether an IXFR response received over TCP is
-   incremental or not, it is necessary to try to receive the first two
-   answer RRs in the answer stream (which may or may not involve
-   receiving two TCP DNS messages).  The first RR is always an SOA.  If
-   the second RR does not exist, the client copy of the zone is up to
-   date and no zone transfer is necessary.  If the second RR is an SOA
-   with a serial number different from the first SOA, the response is
-   incremental, in IXFR format.  If it is a non-SOA RR or a SOA RR with
-   the same serial number as the initial SOA RR, it is a nonincremental
-   response in AXFR format.  The last case cannot arise unless the zone
-   is malformed containing only the SOA record without NS records.
+   A slave receiving an IXFR response needs to classify it as one of the
+   following four cases:
 
-   This is the only way to identify an incremental response.  A slave
-   cannot reliably identify an incremental response based on the
-   presence or absence of a question section, the QTYPE field of a
-   possible question section, or the number of response RRs per message,
+      UDP-overflow     An indication that the transfer will not fit in a
+                       UDP packet and should be retried over TCP
+
+      up-to-date       An indication that the serial number of the
+                       request is current and no transfer is necessary
+
+      incremental      An incremental transfer
+
+      nonincremental   A full zone transfer
+
+   Performing this classification requires some care.  For example,
+   UDP-overflow responses differ from UDP up-to-date responses only in
+   the value of the SOA serial number.  Also, to distinguish between a
+   nonincremental and an incremental transfer, the slave needs to
+   receive the first two response RRs and check whether the second one
+   is a SOA.  If the master chose to transmit each RR in a separate TCP
+   message, this involves waiting for a second TCP response message.  On
+   the other hand, in the case of an up-to-date response, the slave must
+   not wait for a second TCP message as doing so would cause it to hang
+   waiting for a message the master will never send.  Therefore, the
+   slave must examine the first message and eliminate the possibility
+   that it is a TCP up-to-date response before it attempts to receive a
+   second message.
+
+   Slaves must not attempt to classify a response based on incidental
+   information such as the presence or absence of a question section,
+   the QTYPE field of a possible question section, or the number of
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 4]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
+
+   response RRs in a TCP response message.
+
+   An example algorithm for classifying IXFR responses appears in
+   Appendix A.
 
 5. Purging Strategy
 
    An IXFR server can not be required to hold all previous versions
-   forever and may delete them anytime. In general, there is a trade-off
-   between the size of storage space and the possibility of using IXFR.
+   forever and may delete them anytime.  In general, there is a trade-
+   off between the size of storage space and the possibility of using
+   IXFR.
 
    Information about older versions should be purged if the total length
    of an IXFR response would be longer than that of an AXFR response.
@@ -214,14 +247,6 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
 6. Optional Condensation of Multiple Versions
 
    An IXFR server may optionally condense multiple difference sequences
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 4]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
    into a single difference sequence, thus, dropping information on
    intermediate versions.
 
@@ -246,6 +271,14 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    client's IXFR request with a version number known not to exist (which
    means that the server has versions with version numbers newer and
    older than, but not equal to, the version number) and should,
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 5]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
+
    instead, attempt to perform a full zone transfer by replying with a
    single SOA record of the server's current version (UDP case) or with
    a full zone content (UDP or TCP case).
@@ -255,65 +288,64 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    Given the following three generations of data with the current serial
    number of 3,
 
-      JAIN.AD.JP.         IN SOA NS.JAIN.AD.JP. mohta.jain.ad.jp. (
+      example.domain.     IN SOA ns.example.domain. rt.example.domain. (
                                         1 600 600 3600000 604800)
-                          IN NS  NS.JAIN.AD.JP.
-      NS.JAIN.AD.JP.      IN A   133.69.136.1
-      NEZU.JAIN.AD.JP.    IN A   133.69.136.5
+                          IN NS  ns.example.domain.
+      ns.example.domain.  IN A   10.0.0.1
+      ftp.example.domain. IN A   10.0.1.1
 
-   NEZU.JAIN.AD.JP. is removed and JAIN-BB.JAIN.AD.JP. is added.
+   ftp.example.domain. is removed and www.example.domain. is added.
 
-      jain.ad.jp.         IN SOA ns.jain.ad.jp. mohta.jain.ad.jp. (
+      example.domain.     IN SOA ns.example.domain. rt.example.domain. (
                                         2 600 600 3600000 604800)
-                          IN NS  NS.JAIN.AD.JP.
-      NS.JAIN.AD.JP.      IN A   133.69.136.1
-      JAIN-BB.JAIN.AD.JP. IN A   133.69.136.4
-                          IN A   192.41.197.2
+                          IN NS  ns.example.domain.
+      ns.example.domain.  IN A   10.0.0.1
+      www.example.domain. IN A   10.0.1.2
+                          IN A   10.0.2.1
 
+   One of the IP addresses of www.example.domain. is changed.
 
-
-
-M. Ohta               Expires on September 5, 2000              [Page 5]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
-   One of the IP addresses of JAIN-BB.JAIN.AD.JP. is changed.
-
-      JAIN.AD.JP.         IN SOA ns.jain.ad.jp. mohta.jain.ad.jp. (
+      example.domain.     IN SOA ns.example.domain. rt.example.domain. (
                                         3 600 600 3600000 604800)
-                          IN NS  NS.JAIN.AD.JP.
-      NS.JAIN.AD.JP.      IN A   133.69.136.1
-      JAIN-BB.JAIN.AD.JP. IN A   133.69.136.3
-                          IN A   192.41.197.2
+                          IN NS  ns.example.domain.
+      ns.example.domain.  IN A   10.0.0.1
+      www.example.domain. IN A   10.0.3.1
+                          IN A   10.0.2.1
 
    The following IXFR query
 
                  +---------------------------------------------------+
       Header     | OPCODE=SQUERY                                     |
                  +---------------------------------------------------+
-      Question   | QNAME=JAIN.AD.JP., QCLASS=IN, QTYPE=IXFR          |
+      Question   | QNAME=example.domain., QCLASS=IN, QTYPE=IXFR      |
                  +---------------------------------------------------+
       Answer     | <empty>                                           |
                  +---------------------------------------------------+
-      Authority  | JAIN.AD.JP.         IN SOA serial=1               |
+      Authority  | example.domain.     IN SOA serial=1               |
                  +---------------------------------------------------+
       Additional | <empty>                                           |
                  +---------------------------------------------------+
 
    could be replied to with the following full zone transfer message:
 
+
+
+M. Ohta               Expires on December 5, 2000               [Page 6]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
+
                  +---------------------------------------------------+
       Header     | OPCODE=SQUERY, RESPONSE                           |
                  +---------------------------------------------------+
-      Question   | QNAME=JAIN.AD.JP., QCLASS=IN, QTYPE=IXFR          |
+      Question   | QNAME=example.domain., QCLASS=IN, QTYPE=IXFR      |
                  +---------------------------------------------------+
-      Answer     | JAIN.AD.JP.         IN SOA serial=3               |
-                 | JAIN.AD.JP.         IN NS  NS.JAIN.AD.JP.         |
-                 | NS.JAIN.AD.JP.      IN A   133.69.136.1           |
-                 | JAIN-BB.JAIN.AD.JP. IN A   133.69.136.3           |
-                 | JAIN-BB.JAIN.AD.JP. IN A   192.41.197.2           |
-                 | JAIN.AD.JP.         IN SOA serial=3               |
+      Answer     | example.domain.     IN SOA serial=3               |
+                 | example.domain.     IN NS  NS.JAIN.AD.JP.         |
+                 | ns.example.domain.  IN A   10.0.0.1               |
+                 | www.example.domain. IN A   10.0.3.1               |
+                 | www.example.domain. IN A   10.0.2.1               |
+                 | example.domain.     IN SOA serial=3               |
                  +---------------------------------------------------+
       Authority  | <empty>                                           |
                  +---------------------------------------------------+
@@ -325,27 +357,19 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
                  +---------------------------------------------------+
       Header     | OPCODE=SQUERY, RESPONSE                           |
                  +---------------------------------------------------+
-      Question   | QNAME=JAIN.AD.JP., QCLASS=IN, QTYPE=IXFR          |
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 6]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
+      Question   | QNAME=example.domain., QCLASS=IN, QTYPE=IXFR      |
                  +---------------------------------------------------+
-      Answer     | JAIN.AD.JP.         IN SOA serial=3               |
-                 | JAIN.AD.JP.         IN SOA serial=1               |
-                 | NEZU.JAIN.AD.JP.    IN A   133.69.136.5           |
-                 | JAIN.AD.JP.         IN SOA serial=2               |
-                 | JAIN-BB.JAIN.AD.JP. IN A   133.69.136.4           |
-                 | JAIN-BB.JAIN.AD.JP. IN A   192.41.197.2           |
-                 | JAIN.AD.JP.         IN SOA serial=2               |
-                 | JAIN-BB.JAIN.AD.JP. IN A   133.69.136.4           |
-                 | JAIN.AD.JP.         IN SOA serial=3               |
-                 | JAIN-BB.JAIN.AD.JP. IN A   133.69.136.3           |
-                 | JAIN.AD.JP.         IN SOA serial=3               |
+      Answer     | example.domain.     IN SOA serial=3               |
+                 | example.domain.     IN SOA serial=1               |
+                 | ftp.example.domain. IN A   10.0.1.1               |
+                 | example.domain.     IN SOA serial=2               |
+                 | www.example.domain. IN A   10.0.1.2               |
+                 | www.example.domain. IN A   10.0.2.1               |
+                 | example.domain.     IN SOA serial=2               |
+                 | www.example.domain. IN A   10.0.1.2               |
+                 | example.domain.     IN SOA serial=3               |
+                 | www.example.domain. IN A   10.0.3.1               |
+                 | example.domain.     IN SOA serial=3               |
                  +---------------------------------------------------+
       Authority  | <empty>                                           |
                  +---------------------------------------------------+
@@ -357,15 +381,23 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
                  +---------------------------------------------------+
       Header     | OPCODE=SQUERY, RESPONSE                           |
                  +---------------------------------------------------+
-      Question   | QNAME=JAIN.AD.JP., QCLASS=IN, QTYPE=IXFR          |
+      Question   | QNAME=example.domain., QCLASS=IN, QTYPE=IXFR      |
                  +---------------------------------------------------+
-      Answer     | JAIN.AD.JP.         IN SOA serial=3               |
-                 | JAIN.AD.JP.         IN SOA serial=1               |
-                 | NEZU.JAIN.AD.JP.    IN A   133.69.136.5           |
-                 | JAIN.AD.JP.         IN SOA serial=3               |
-                 | JAIN-BB.JAIN.AD.JP. IN A   133.69.136.3           |
-                 | JAIN-BB.JAIN.AD.JP. IN A   192.41.197.2           |
-                 | JAIN.AD.JP.         IN SOA serial=3               |
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 7]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
+
+      Answer     | example.domain.     IN SOA serial=3               |
+                 | example.domain.     IN SOA serial=1               |
+                 | ftp.example.domain. IN A   10.0.1.1               |
+                 | example.domain.     IN SOA serial=3               |
+                 | www.example.domain. IN A   10.0.3.1               |
+                 | www.example.domain. IN A   10.0.2.1               |
+                 | example.domain.     IN SOA serial=3               |
                  +---------------------------------------------------+
       Authority  | <empty>                                           |
                  +---------------------------------------------------+
@@ -374,28 +406,12 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
 
    or, if UDP packet overflow occurs, with the following message:
 
-
-
-
-
-
-
-
-
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 7]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
                  +---------------------------------------------------+
       Header     | OPCODE=SQUERY, RESPONSE                           |
                  +---------------------------------------------------+
-      Question   | QNAME=JAIN.AD.JP., QCLASS=IN, QTYPE=IXFR          |
+      Question   | QNAME=example.domain., QCLASS=IN, QTYPE=IXFR      |
                  +---------------------------------------------------+
-      Answer     | JAIN.AD.JP.         IN SOA serial=3               |
+      Answer     | example.domain.     IN SOA serial=3               |
                  +---------------------------------------------------+
       Authority  | <empty>                                           |
                  +---------------------------------------------------+
@@ -421,9 +437,40 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    [STD13] Mockapetris, P., "Domain Name System" (RFC1034 and RFC1035),
    November 1987.
 
-   [XFRCLARIFY]
+10. Appendix A Appendix A.  Pseudocode for response classification
 
-10. Security Considerations
+
+
+
+M. Ohta               Expires on December 5, 2000               [Page 8]
+
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
+
+
+   The following pseudocode outlines one possible algorithm for
+   classifying IXFR responses.
+
+       receive the first response message;
+       extract the first response RR, always an SOA;
+       if (the serial number of this SOA RR is less
+           than or equal to that of the request) {
+           the response is an up-to-date response;
+       } else {
+           if (the response message was received by UDP and
+               contains no more RRs after the initial SOA) {
+               the response is a UDP-overflow response;
+           } else {
+               extract the second response RR, waiting for a second TCP
+               response message if necessary;
+               if (this second RR is an SOA) {
+                   the response is an incremental transfer;
+               } else {
+                   the response is a nonincremental transfer;
+               }
+           }
+       }
+
+11. Security Considerations
 
    Though DNS is related to several security problems, no attempt is
    made to fix them in this document.
@@ -431,21 +478,13 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
    This document is believed to introduce no additional security
    problems to the current DNS protocol.
 
-11. Author's Address
+12. Author's Address
 
    Masataka Ohta
    Computer Center, Tokyo Institute of Technology
    2-12-1, O-okayama, Meguro-ku, Tokyo 152-8550, JAPAN
 
    Phone: +81-3-5734-3299, Fax: +81-3-5734-3415
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 8]
-
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
-
-
    EMail: mohta@necom830.hpcl.titech.ac.jp
 
    Comments should be directed to DNSEXT WG <namedroppers@ops.ietf.org>.
@@ -459,50 +498,12 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-M. Ohta               Expires on September 5, 2000              [Page 9]
+M. Ohta               Expires on December 5, 2000               [Page 9]
 
-INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
+INTERNET DRAFT      Incremental Zone Transfer in DNS           June 2000
 
 
-12. Full Copyright Statement
+13. Full Copyright Statement
 
    "Copyright (C) The Internet Society (March/5/2000).  All Rights
    Reserved.
@@ -553,5 +554,5 @@ INTERNET DRAFT      Incremental Zone Transfer in DNS          March 2000
 
 
 
-M. Ohta               Expires on September 5, 2000             [Page 10]
+M. Ohta               Expires on December 5, 2000              [Page 10]
 
