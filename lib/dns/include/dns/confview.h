@@ -96,7 +96,9 @@ struct dns_c_view {
 	dns_c_zonelist_t       *zonelist;
 
 	dns_c_forw_t	       *forward;
+
 	dns_c_iplist_t         *forwarders;
+	dns_c_iplist_t	       *also_notify;
 
 	dns_c_ipmatchlist_t    *allowquery;
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
@@ -139,6 +141,8 @@ struct dns_c_view {
 
 	dns_c_kdeflist_t       *keydefs;
 	dns_peerlist_t	       *peerlist;
+
+	dns_c_tkeylist_t       *trusted_keys;
 
 #if 0	
 	/*
@@ -550,6 +554,26 @@ dns_c_view_setpeerlist(dns_c_view_t *cfg, dns_peerlist_t *newval);
 
 isc_result_t
 dns_c_view_unsetpeerlist(dns_c_view_t *cfg);
+
+isc_result_t
+dns_c_view_setalsonotify(dns_c_view_t *view,
+			 dns_c_iplist_t *ipl);
+isc_result_t
+dns_c_view_unsetalsonotify(dns_c_view_t *view);
+isc_result_t
+dns_c_view_getalsonotify(dns_c_view_t *view,
+			 dns_c_iplist_t **ipl);
+
+isc_result_t
+dns_c_view_gettrustedkeys(dns_c_view_t *view,
+			  dns_c_tkeylist_t **retval);
+isc_result_t
+dns_c_view_unsettrustedkeys(dns_c_view_t *view);
+isc_result_t
+dns_c_view_settrustedkeys(dns_c_view_t *view,
+			  dns_c_tkeylist_t *newval,
+			  isc_boolean_t copy);
+
 
 #if 0
 

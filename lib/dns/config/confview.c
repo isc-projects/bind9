@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.28 2000/05/15 12:36:26 brister Exp $ */
+/* $Id: confview.c,v 1.29 2000/05/31 13:09:58 brister Exp $ */
 
 #include <config.h>
 
@@ -446,6 +446,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 	view->forward = NULL;
 	view->forwarders = NULL;
+	view->also_notify = NULL;
 
 	view->allowquery = NULL;
 	view->allowupdateforwarding = NULL;
@@ -486,6 +487,8 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->transfer_format = NULL;
 	view->keydefs = NULL;
 	view->peerlist = NULL;
+
+	view->trusted_keys = NULL;
 	
 #if 0
 	view->max_transfer_time_in = NULL;
@@ -574,12 +577,25 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			(unsigned long)(*view->FIELD / 60));	\
 	}
 
-	/* XXX print forward field */
+	if (view->forward != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(*view->forward, ISC_TRUE));
+	}
+
 	if (view->forwarders != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "forwarders ");
 		dns_c_iplist_print(fp, indent + 2,
 				   view->forwarders);
+		fprintf(fp, ";\n");
+	}
+
+	if (view->also_notify != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "also-notify ");
+		dns_c_iplist_print(fp, indent + 2,
+				   view->also_notify);
 		fprintf(fp, ";\n");
 	}
 
@@ -669,6 +685,12 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	}
 
 
+	if (view->trusted_keys != NULL) {
+		dns_c_tkeylist_print(fp, indent + 1, view->trusted_keys);
+		fprintf(fp, "\n");
+	}
+
+
 #if 0	
 	PRINT_INT32(max_transfer_time_in, "max-transfer-time-in");
 	PRINT_INT32(max_transfer_idle_in, "max-transfer-idle-in");
@@ -729,6 +751,10 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 		dns_c_iplist_detach(&view->forwarders);
 	}
 		
+	if (view->also_notify != NULL) {
+		dns_c_iplist_detach(&view->also_notify);
+	}
+		
 	FREEIPMLIST(allowquery);
 	FREEIPMLIST(allowupdateforwarding);
 	FREEIPMLIST(transferacl);
@@ -773,6 +799,8 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	dns_c_view_unsetkeydefs(view);
 	dns_c_view_unsetpeerlist(view);
 
+	dns_c_view_unsettrustedkeys(view);
+	
 #if 0	
 	FREEFIELD(max_transfer_time_in);
 	FREEFIELD(max_transfer_idle_in);
@@ -953,6 +981,59 @@ dns_c_view_getforwarders(dns_c_view_t *view,
 	REQUIRE(ipl != NULL);
 	
 	*ipl = view->forwarders;
+
+	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+
+
+
+/*
+**
+*/
+
+isc_result_t
+dns_c_view_setalsonotify(dns_c_view_t *view,
+			 dns_c_iplist_t *ipl)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(DNS_C_IPLIST_VALID(ipl));
+
+	if (view->also_notify != NULL) {
+		existed = ISC_TRUE;
+		dns_c_iplist_detach(&view->also_notify);
+	}
+
+	dns_c_iplist_attach(ipl, &view->also_notify);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+		
+
+
+isc_result_t
+dns_c_view_unsetalsonotify(dns_c_view_t *view) {
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	if (view->also_notify != NULL) {
+		dns_c_iplist_detach(&view->also_notify);
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+}
+		
+	
+
+isc_result_t
+dns_c_view_getalsonotify(dns_c_view_t *view,
+			 dns_c_iplist_t **ipl)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(ipl != NULL);
+	
+	*ipl = view->also_notify;
 
 	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
@@ -1227,6 +1308,84 @@ dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval) {
 
 	return (ISC_R_SUCCESS);
 }
+
+
+/*
+**
+*/
+
+isc_result_t
+dns_c_view_gettrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t **retval) {
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(retval != NULL);
+	
+	if (view->trusted_keys == NULL) {
+		*retval = NULL;
+		return (ISC_R_NOTFOUND);
+	} else {
+		*retval = view->trusted_keys;
+/*	XXX need to replace above line with
+	dns_tkeylist_attach(view->trusted_keys, retval);
+*/
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_view_unsettrustedkeys(dns_c_view_t *view) {
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	if (view->trusted_keys != NULL) {
+		dns_c_tkeylist_delete(&view->trusted_keys);
+/* XXX need to replace above line with
+   dns_peerlist_detach(&view->trusted_keys);
+*/
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_FAILURE);
+	}
+}
+	
+
+isc_result_t
+dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
+			  isc_boolean_t copy)
+{
+	isc_boolean_t existed;
+	dns_c_tkeylist_t *newl;
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	existed = ISC_TF(view->trusted_keys != NULL);
+	
+	if (view->trusted_keys != NULL) {
+		dns_c_view_unsettrustedkeys(view);
+	}
+
+/* XXX need to replace below stuff with
+   dns_peerlist_attach(newval, &view->trusted_keys);
+*/
+
+	if (copy) {
+		res = dns_c_tkeylist_copy(view->mem, &newl, newval);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	} else {
+		newl = newval;
+	}
+
+	view->trusted_keys = newl;
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+/*
+**
+*/
 
 GETIPMLIST(allowquery, allowquery)
 SETIPMLIST(allowquery, allowquery)
