@@ -1,5 +1,6 @@
- 989.	[func]		Report filename if $INCLUDE fails for file related
-			errors.  [RT #1736]
+
+ 989.	[bug]		Report filename if $INCLUDE fails for file related
+			errors. [RT #1736]
 
  988.	[bug]		'additional-from-auth no;' did not work reliably
 			in the case of queries answered from the cache.
