@@ -1,3 +1,13 @@
+ 230.	[func]		Support config file trusted-keys and also-notify 
+			statemenets in views.
+
+ 229.	[func]		Support config file sig-validity-interval statement 
+			in options, views and zone statements (master 
+			zones only).
+
+ 228.	[cleanup]	Logging messages in config module stripped of 
+			trailing period.
+
  227.   [cleanup]	The enumerated identifiers dns_rdataclass_*,
                         dns_rcode_*, dns_opcode_*, and dns_trust_* are
                         also now cast to their appropriate types, as with

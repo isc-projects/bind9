@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.16 2000/06/01 18:25:43 tale Exp $ */
+/* $Id: confndc.c,v 1.17 2000/06/02 15:12:28 brister Exp $ */
 
 /*
 **	options {
@@ -1172,7 +1172,7 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 
 	else if (pctx->tokstr[0] == '\0') {
 		parser_error(pctx, ISC_TRUE,
-			     "zero length key names are illegal.");
+			     "zero length key names are illegal");
 		return (ISC_R_FAILURE);
 	}
 
@@ -1205,7 +1205,7 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 			
 			if (algorithm != NULL) {
 				parser_warn(pctx, ISC_FALSE,
-					    "multiple 'algorithm' values.");
+					    "multiple 'algorithm' values");
 				isc_mem_free(pctx->themem, algorithm);
 			}
 
@@ -1224,7 +1224,7 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 			
 			if (secret != NULL) {
 				parser_warn(pctx, ISC_FALSE,
-					    "multiple 'secret' values.");
+					    "multiple 'secret' values");
 				isc_mem_free(pctx->themem, secret);
 			}
 
@@ -1415,7 +1415,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
         if (result != ISC_R_SUCCESS) {
                 isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
                               DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-                              "%s: Error opening file %s.",
+                              "%s: Error opening file %s",
                               "dns_c_parse_namedconf", filename);
 		return (result);
         }
@@ -1444,7 +1444,7 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-				      "%s: Error installing keyword.",
+				      "%s: Error installing keyword",
 				      "dns_c_parse_namedconf");
 			return (result);
 		}
@@ -1738,7 +1738,7 @@ getnexttoken(ndcpcontext *pctx) {
 		break;
 
 	case ISC_R_NOSPACE:
-		parser_error(pctx, ISC_TRUE, "token too big.");
+		parser_error(pctx, ISC_TRUE, "token too big");
 		result = ISC_R_FAILURE;
 		break;
 

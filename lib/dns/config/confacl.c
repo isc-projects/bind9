@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confacl.c,v 1.17 2000/05/08 19:23:24 tale Exp $ */
+/* $Id: confacl.c,v 1.18 2000/06/02 15:12:25 brister Exp $ */
 
 #include <config.h>
 
@@ -124,7 +124,7 @@ dns_c_acltable_clear(dns_c_acltable_t *table) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_CRITICAL,
-				      "Failed to delete acl element.");
+				      "Failed to delete acl element");
 			return (r);
 		}
 

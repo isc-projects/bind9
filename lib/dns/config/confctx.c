@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.57 2000/05/15 12:36:20 brister Exp $ */
+/* $Id: confctx.c,v 1.58 2000/06/02 15:12:27 brister Exp $ */
 
 #include <config.h>
 
@@ -241,7 +241,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getdumpfilename(cfg, &cpval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'dump-file' is not yet implemented.");
+			      "option 'dump-file' is not yet implemented");
 	}
 	
 		
@@ -249,7 +249,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'memstatistics-file' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -264,35 +264,35 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	if (dns_c_ctx_getdealloconexit(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'deallocate-on-exit' is obsolete.");
+			      "option 'deallocate-on-exit' is obsolete");
 	}
 
 	
 	if (dns_c_ctx_getdialup(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'dialup' is not yet implemented.");
+			      "option 'dialup' is not yet implemented");
 	}
 
 	
 	if (dns_c_ctx_getfakeiquery(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'fake-iquery' is obsolete.");
+			      "option 'fake-iquery' is obsolete");
 	}
 
 
 	if (dns_c_ctx_getfetchglue(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'fetch-glue' is not yet implemented.");
+			      "option 'fetch-glue' is not yet implemented");
 	}
 
 
 	if (dns_c_ctx_gethasoldclients(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'has-old-clients' is obsolete.");
+			      "option 'has-old-clients' is obsolete");
 	}
 
 
@@ -300,14 +300,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'host-statistics' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 
 	
 	if (dns_c_ctx_getmultiplecnames(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'multiple-cnames' is obsolete.");
+			      "option 'multiple-cnames' is obsolete");
 	}
 
 
@@ -315,20 +315,20 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'rfc2308-type-1' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 
 	if (dns_c_ctx_getuseidpool(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'use-id-pool' is obsolete.");
+			      "option 'use-id-pool' is obsolete");
 	}
 
 
 	if (dns_c_ctx_gettreatcrasspace(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'treat-cr-as-space' is obsolete.");
+			      "option 'treat-cr-as-space' is obsolete");
 	}
 
 
@@ -340,7 +340,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 				     &severity) != ISC_R_NOTFOUND)) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'check-names' is not yet implemented.");
+			      "option 'check-names' is not yet implemented");
 	}
 	
 
@@ -348,7 +348,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'blackhole' is not yet implemented.");
+			      "option 'blackhole' is not yet implemented");
 	}
 
 
@@ -356,7 +356,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'lame-ttl' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -364,7 +364,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ncache-ttl' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -372,7 +372,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-cache-ttl' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -380,7 +380,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'min-roots' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -388,7 +388,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'serial-queries' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -396,7 +396,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'max-ixfr-log-size' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -404,7 +404,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'coresize' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -412,7 +412,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'datasize' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -420,7 +420,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'files' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 
 	
@@ -428,7 +428,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'stacksize' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 	
 
@@ -436,7 +436,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'heartbeat-interval' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 
 	
@@ -444,7 +444,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'statistics-interval' is not yet "
-			      "implemented.");
+			      "implemented");
 	}
 
 	
@@ -452,7 +452,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'topology' is deprecated.");
+			      "option 'topology' is deprecated");
 	}
 
 
@@ -460,14 +460,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		dns_c_ipmatchlist_detach(&ipml);
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'sortlist' is not yet implemented.");
+			      "option 'sortlist' is not yet implemented");
 	}
 
 	
 	if (dns_c_ctx_getrrsetorderlist(cfg, &olist) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'rrset-order' is not yet implemented.");
+			      "option 'rrset-order' is not yet implemented");
 	}
 		
 
@@ -476,7 +476,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'allow-update-forwarding' is not "
-			      "yet implemented.");
+			      "yet implemented");
 	}
 
 
@@ -765,12 +765,6 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	}
 	
 
-	if (cfg->zlist != NULL) {
-		dns_c_zonelist_printpreopts(fp, indent, cfg->zlist);
-		fprintf(fp, "\n");
-	}
-	
-	
 	if (cfg->options != NULL) {
 		dns_c_ctx_optionsprint(fp, indent, cfg->options);
 		fprintf(fp,"\n");
@@ -784,7 +778,7 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	
 	
 	if (cfg->zlist != NULL) {
-		dns_c_zonelist_printpostopts(fp, indent, cfg->zlist);
+		dns_c_zonelist_print(fp, indent, cfg->zlist);
 		fprintf(fp, "\n");
 	}
 
@@ -931,6 +925,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(recursive_clients, "recursive-clients");
 	PRINT_INTEGER(min_roots, "min-roots");
 	PRINT_INTEGER(serial_queries, "serial-queries");
+	PRINT_INTEGER(sig_valid_interval, "sig-validity-interval");
 
 	
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");	
@@ -1410,6 +1405,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->recursive_clients = NULL;
 	opts->min_roots = NULL;
 	opts->serial_queries = NULL;
+	opts->sig_valid_interval = NULL;
 	
 	opts->data_size = NULL;
 	opts->stack_size = NULL;
@@ -1557,6 +1553,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(recursive_clients);
 	FREEFIELD(min_roots);
 	FREEFIELD(serial_queries);
+	FREEFIELD(sig_valid_interval);
 
 
 	FREEFIELD(data_size);
@@ -1808,6 +1805,10 @@ UNSETINT32(minroots, min_roots)
 GETINT32(serialqueries, serial_queries)
 SETINT32(serialqueries, serial_queries)
 UNSETINT32(serialqueries, serial_queries)
+
+GETINT32(sigvalidinterval, sig_valid_interval)
+SETINT32(sigvalidinterval, sig_valid_interval)
+UNSETINT32(sigvalidinterval, sig_valid_interval)
 
 GETUINT32(datasize, data_size)
 SETUINT32(datasize, data_size)

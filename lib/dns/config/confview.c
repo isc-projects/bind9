@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.29 2000/05/31 13:09:58 brister Exp $ */
+/* $Id: confview.c,v 1.30 2000/06/02 15:12:31 brister Exp $ */
 
 #include <config.h>
 
@@ -348,58 +348,58 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'fetch-glue' is not yet "
-				      "implemented.");
+				      "implemented");
 
 
 		if (dns_c_view_getnotify(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'notify' is not yet "
-				      "implemented.");
+				      "implemented");
 
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'rfc2308-type1' is not yet "
-				      "implemented.");
+				      "implemented");
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'rfc2308-type1' is not yet "
-				      "implemented.");
+				      "implemented");
 
 		if (dns_c_view_getmaxncachettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'max-ncache-ttl' is not yet "
-				      "implemented.");
+				      "implemented");
 
 		if (dns_c_view_getmaxcachettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'max-cache-ttl' is not yet "
-				      "implemented.");
+				      "implemented");
 
 		if (dns_c_view_getlamettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'lame-ttl' is not yet "
-				      "implemented.");
+				      "implemented");
 
 		if (dns_c_view_getminroots(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'min-roots' is not yet "
-				      "implemented.");
+				      "implemented");
 
 
 		if (dns_c_view_getordering(elem, &boval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'rrset-order' is not yet "
-				      "implemented.");
+				      "implemented");
 		
 
 		elem = ISC_LIST_NEXT(elem, next);
@@ -482,6 +482,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->lamettl = NULL;
 	view->max_ncache_ttl = NULL;
 	view->max_cache_ttl = NULL;
+	view->sig_valid_interval = NULL;
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -661,6 +662,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(lamettl, "lame-ttl");
 	PRINT_INT32(max_ncache_ttl, "max-ncache-ttl");
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
+	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
 
 	if (view->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -792,6 +794,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(lamettl);
 	FREEFIELD(max_ncache_ttl);
 	FREEFIELD(max_cache_ttl);
+	FREEFIELD(sig_valid_interval);
 
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
@@ -1487,6 +1490,11 @@ UNSETINT32(maxncachettl, max_ncache_ttl)
 SETINT32(maxcachettl, max_cache_ttl)
 GETINT32(maxcachettl, max_cache_ttl)
 UNSETINT32(maxcachettl, max_cache_ttl)
+
+
+SETINT32(sigvalidinterval, sig_valid_interval)
+GETINT32(sigvalidinterval, sig_valid_interval)
+UNSETINT32(sigvalidinterval, sig_valid_interval)
 
 
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
