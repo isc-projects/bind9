@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.51 2000/11/18 21:15:23 bwelling Exp $ */
+/* $Id: lex.c,v 1.52 2000/11/20 00:41:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,6 @@ typedef struct inputsource {
 	isc_boolean_t			need_close;
 	isc_boolean_t			at_eof;
 	isc_buffer_t *			pushback;
-	unsigned int			pushback_parens;
 	void *				input;
 	char *				name;
 	unsigned long			line;
@@ -59,6 +58,7 @@ struct isc_lex {
 	isc_boolean_t			comment_ok;
 	isc_boolean_t			last_was_eol;
 	unsigned int			paren_count;
+	unsigned int			saved_paren_count;
 	isc_lexspecials_t		specials;
 	LIST(struct inputsource)	sources;
 };
@@ -106,6 +106,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex->comment_ok = ISC_TRUE;
 	lex->last_was_eol = ISC_TRUE;
 	lex->paren_count = 0;
+	lex->saved_paren_count = 0;
 	memset(lex->specials, 0, 256);
 	INIT_LIST(lex->sources);
 	lex->magic = LEX_MAGIC;
@@ -203,7 +204,6 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 		return (ISC_R_NOMEMORY);
 	}
 	source->pushback = NULL;
-	source->pushback_parens = 0;
 	result = isc_buffer_allocate(lex->mctx, &source->pushback,
 				     lex->max_token);
 	if (result != ISC_R_SUCCESS) {
@@ -330,9 +330,7 @@ pushback(inputsource *source, int c) {
 }
 
 static isc_result_t
-pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options,
-	    lexstate state)
-{
+pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 	if (isc_buffer_availablelength(source->pushback) == 0) {
 		isc_buffer_t *tbuf = NULL;
 		unsigned int oldlen;
@@ -350,14 +348,6 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options,
 		source->pushback = tbuf;
 	}
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
-	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
-	    state == lexstate_start)
-	{
-		if (c == '(')
-			source->pushback_parens++;
-		else if (c == ')')
-			source->pushback_parens--;
-	}
 	return (ISC_R_SUCCESS);
 }
 	
@@ -387,6 +377,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	source = HEAD(lex->sources);
 	REQUIRE(tokenp != NULL);
 
+	lex->saved_paren_count = lex->paren_count;
+
 	if (source == NULL) {
 		if ((options & ISC_LEXOPT_NOMORE) != 0) {
 			tokenp->type = isc_tokentype_nomore;
@@ -412,7 +404,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	}
 
 	isc_buffer_compact(source->pushback);
-	source->pushback_parens = 0;
 
 	saved_options = options;
 	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && lex->paren_count > 0)
@@ -451,8 +442,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				}
 			}
 			if (c != EOF) {
-				source->result = pushandgrow(lex, source, c,
-							     options, state);
+				source->result = pushandgrow(lex, source, c);
 				if (source->result != ISC_R_SUCCESS)
 					return (source->result);
 			}
@@ -792,10 +782,7 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	UNUSED(tokenp);
 
 	isc_buffer_first(source->pushback);
-	if (source->pushback_parens > 0) {
-		lex->paren_count -= source->pushback_parens;
-		INSIST(lex->paren_count >= 0);
-	}
+	lex->paren_count = lex->saved_paren_count;
 	source->at_eof = ISC_FALSE;
 }
 
