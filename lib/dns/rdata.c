@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.174 2003/04/11 07:25:25 marka Exp $ */
+/* $Id: rdata.c,v 1.175 2003/06/24 05:10:32 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -27,6 +27,7 @@
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/stdlib.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>

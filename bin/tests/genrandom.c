@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.9 2002/12/04 01:19:28 marka Exp $ */
+/* $Id: genrandom.c,v 1.10 2003/06/24 05:10:31 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
+
+#include <isc/stdlib.h>
 
 int
 main(int argc, char **argv) {

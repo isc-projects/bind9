@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.31 2003/04/10 04:46:27 marka Exp $ */
+/* $Id: platform.h.in,v 1.32 2003/06/24 05:10:33 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -194,6 +194,16 @@
  * Define if the system supports if_nametoindex.
  */
 @ISC_PLATFORM_HAVEIFNAMETOINDEX@
+
+/*
+ * Define if this system needs strtoul.
+ */
+@ISC_PLATFORM_NEEDSTRTOUL@
+
+/*
+ * Define if this system needs memmove.
+ */
+@ISC_PLATFORM_NEEDMEMMOVE@
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA

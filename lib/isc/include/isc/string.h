@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.10 2003/04/10 04:46:27 marka Exp $ */
+/* $Id: string.h,v 1.11 2003/06/24 05:10:33 marka Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
@@ -49,6 +49,10 @@ isc_string_separate(char **stringp, const char *delim);
 
 #ifdef ISC_PLATFORM_NEEDSTRSEP
 #define strsep isc_string_separate
+#endif
+
+#ifdef ISC_PLATFORM_NEEDMEMMOVE
+#define memmove(a,b,c) bcopy(b,a,c)
 #endif
 
 size_t

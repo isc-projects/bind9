@@ -15,10 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.91 2002/12/11 06:31:37 marka Exp $ */
+/* $Id: host.c,v 1.92 2003/06/24 05:10:31 marka Exp $ */
 
 #include <config.h>
-#include <stdlib.h>
 #include <limits.h>
 
 #include <isc/app.h>
@@ -28,6 +27,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
+#include <isc/stdlib.h>
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
