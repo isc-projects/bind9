@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.150 2001/07/26 22:19:57 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.151 2001/07/26 22:46:44 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4078,9 +4078,9 @@ the <varname>address_match_list</varname> of the view's
 <command>match-clients</command> and <command>match-destinations</command>
 default to matching all addresses.  A view can also be specified
 as <command>match-recursive-only</command>, which means that only recursive
-queries from matching clients will match that view.
+requests from matching clients will match that view.
 The order of the <command>view</command> statements is significant &mdash; 
-a client query will be resolved in the context of the first
+a client request will be resolved in the context of the first
 <command>view</command> that it matches.</para>
 
 <para>Zones defined within a <command>view</command> statement will
