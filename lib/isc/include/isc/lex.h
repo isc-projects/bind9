@@ -55,9 +55,8 @@
 #include <stddef.h>
 
 #include <isc/lang.h>
-#include <isc/buffer.h>
-#include <isc/result.h>
-#include <isc/mem.h>
+#include <isc/region.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 

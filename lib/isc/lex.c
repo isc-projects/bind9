@@ -26,8 +26,11 @@
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
+#include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/lex.h>
+#include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 typedef struct inputsource {
