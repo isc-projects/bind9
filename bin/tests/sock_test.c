@@ -101,18 +101,16 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	 */
 	if (strcmp(event->arg, "so2")) {
 		region = dev->region;
-		strcpy(buf, "\r\nReceived: ");
-		strncat(buf, (char *)region.base, region.length);
-		buf[32] = 0;  /* ensure termination */
-		strcat(buf, "\r\n\r\n");
+		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
+			(int)region.length, (char *)region.base);
 		region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
 		strcpy((char *)region.base, buf);  /* strcpy is safe */
 		isc_socket_send(sock, &region, task, my_send, event->arg);
 	} else {
 		region = dev->region;
-		region.base[region.length - 1] = 0;
-		printf("Received: %s\r\n", region.base);
+		printf("\r\nReceived: %.*s\r\n\r\n",
+		       (int)region.length, (char *)region.base);
 	}
 
 	isc_socket_recv(sock, &dev->region, ISC_FALSE,
