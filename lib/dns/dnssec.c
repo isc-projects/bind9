@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.21 2000/02/25 01:07:17 halley Exp $
+ * $Id: dnssec.c,v 1.22 2000/03/01 22:34:39 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -228,7 +228,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	sig.covered = set->type;
 	sig.algorithm = dst_key_alg(key);
-	sig.labels = dns_name_countlabels(name) - 1;
+	sig.labels = dns_name_depth(name) - 1;
 	if (dns_name_iswildcard(name))
 		sig.labels--;
 	sig.originalttl = set->ttl;
@@ -335,7 +335,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  isc_mem_t *mctx, dns_rdata_t *sigrdata)
 {
 	dns_rdata_generic_sig_t sig;
-	dns_name_t newname;
+	dns_fixedname_t fnewname;
 	isc_region_t r;
 	isc_buffer_t envbuf;
 	dns_rdata_t *rdatas;
@@ -382,14 +382,15 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 			 key, &ctx, &r, NULL);
 
 	/* if the name is an expanded wildcard, use the wildcard name */
-	/*
-	 * XXXRTH  Note!  This will not work for names with bitstring labels!
-	 */
-	dns_name_init(&newname, NULL);
-	labels = dns_name_countlabels(name) - 1;
-	dns_name_getlabelsequence(name, labels - sig.labels, sig.labels + 1,
-				  &newname);
-	dns_name_toregion(&newname, &r);
+	labels = dns_name_depth(name) - 1;
+	if (labels - sig.labels > 0) {
+		dns_fixedname_init(&fnewname);
+		dns_name_splitatdepth(name, sig.labels + 1, NULL,
+				      dns_fixedname_name(&fnewname));
+		dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+	}
+	else
+		dns_name_toregion(name, &r);
 
 	/* create an envelope for each rdata: <name|type|class|ttl> */
 	isc_buffer_init(&envbuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
