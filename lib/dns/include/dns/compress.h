@@ -227,26 +227,86 @@ dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset);
 void
 dns_decompress_init(dns_decompress_t *dctx, int edns, isc_boolean_t strict);
 
+/*
+ *	Initalises 'dctx'.
+ *	Records 'edns' and 'strict' into the structure.
+ *
+ *	Requires:
+ *		'dctx' to be a valid pointer.
+ */
+
 void
 dns_decompress_localinit(dns_decompress_t *dctx, dns_name_t *name,
 		         isc_buffer_t *source);
 
+/*
+ *	Initalises 'dctx->name' from name.
+ *	Records 'source->current' as the start of the rdata section.
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ *		'name' to be absolute
+ *		'source' to be a BINARY buffer.
+ */
+
 void
 dns_decompress_invalidate(dns_decompress_t *dctx);
 
+/*
+ *	Invalidates 'dctx'.
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
+
 void
 dns_decompress_localinvalidate(dns_decompress_t *dctx);
+
+/*
+ *	Invalidates 'dctx->name'.
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
 		    
 void
 dns_decompress_setmethods(dns_decompress_t *dctx, unsigned int allowed);
 
+/*
+ *	Sets 'dctx->allowed' to 'allowed'.
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
+
 unsigned int
 dns_decompress_getmethods(dns_decompress_t *dctx);
+
+/*
+ *	Returns 'dctx->allowed'
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
 
 int
 dns_decompress_edns(dns_decompress_t *dctx);
 
+/*
+ *	Returns 'dctx->edns'
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
+
 isc_boolean_t
 dns_decompress_strict(dns_decompress_t *dctx);
+
+/*
+ *	Returns 'dctx->strict'
+ *
+ *	Requires:
+ *		'dctx' to be initalised
+ */
 
 #endif /* DNS_COMPRESS_H */
