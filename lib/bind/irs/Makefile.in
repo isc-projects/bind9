@@ -7,8 +7,9 @@ WANT_IRS_GR_OBJS= dns_gr.@O@ irp_gr.@O@ lcl_gr.@O@ gen_gr.@O@ getgrent.@O@ \
 
 WANT_IRS_THREADSPW_OBJS=getpwent_r.@O@
 WANT_IRS_NISPW_OBJS= nis_pw.@O@
-WANT_IRS_PW_OBJS= dns_pw.@O@ irp_pw.@O@ lcl_pw.@O@ gen_pw.@O@ getpwent.@O@ \
-	@WANT_IRS_NISPW_OBJS@ @WANT_IRS_THREADSPW_OBJS@
+WANT_IRS_DBPW_OBJS=irp_pw.@O@ lcl_pw.@O@
+WANT_IRS_PW_OBJS= dns_pw.@O@ gen_pw.@O@ getpwent.@O@ \
+	@WANT_IRS_DBPW_OBJS@ @WANT_IRS_NISPW_OBJS@ @WANT_IRS_THREADSPW_OBJS@
 
 WANT_IRS_NIS_OBJS= \
 	nis_ho.@O@ nis_ng.@O@ nis_nw.@O@ nis_pr.@O@ nis_sv.@O@

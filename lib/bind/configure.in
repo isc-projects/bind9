@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.28 $)
+AC_REVISION($Revision: 1.29 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -195,7 +195,8 @@ AC_PROG_CC
 AC_HEADER_STDC
 
 
-AC_CHECK_HEADERS(fcntl.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h)
+AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h)
+
 
 AC_C_CONST
 AC_C_INLINE
@@ -303,6 +304,21 @@ AC_SUBST(WANT_IRS_NIS)
 AC_SUBST(WANT_IRS_NIS_OBJS)
 AC_SUBST(WANT_IRS_NISGR_OBJS)
 AC_SUBST(WANT_IRS_NISPW_OBJS)
+AC_TRY_RUN([
+#ifdef HAVE_DB_H
+int have_db_h = 1;
+#else
+int have_db_h = 0;
+#endif
+main() { return(!have_db_h); }
+],
+WANT_IRS_DBPW_OBJS="\${WANT_IRS_DBPW_OBJS}"
+,
+WANT_IRS_DBPW_OBJS=""
+,
+WANT_IRS_DBPW_OBJS=""
+)
+AC_SUBST(WANT_IRS_DBPW_OBJS)
 
 #
 # was --with-randomdev specified?
