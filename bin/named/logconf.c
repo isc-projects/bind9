@@ -63,7 +63,8 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 			 * For now, the default category is the only
 			 * one that works
 			 */
-			 cat = ISC_LOGCATEGORY_DEFAULT; break;
+			 cat = ISC_LOGCATEGORY_DEFAULT;
+			 break;
 		default:
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
