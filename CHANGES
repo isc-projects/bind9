@@ -1,3 +1,9 @@
+
+ 322.	[bug]		Queries for KEY RRs are now sent to the parent 
+			server rather than the authoritative one, making
+			DNSSEC insecurity proofs work in many cases
+			where they previously didn't.
+
  321.	[bug]		When synthesizing a CNAME RR for a DNAME
 			response, query_addcname() failed to intitialize
 			the type and class of the CNAME dns_rdata_t,
