@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.69 2001/07/28 00:11:15 bwelling Exp $ */
+/* $Id: dig.h,v 1.70 2001/07/28 01:01:02 bwelling Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -82,7 +82,7 @@ struct dig_lookup {
 	        pending, /* Pending a successful answer */
 		waiting_connect,
 		doing_xfr,
-		ns_search_only,
+		ns_search_only, /* dig +nssearch, host -C */
 		identify, /* Append an "on server <foo>" message */
 		identify_previous_line, /* Prepend a "Nameserver <foo>:"
 					   message, with newline and tab */
@@ -91,8 +91,8 @@ struct dig_lookup {
 		aaonly,
 		adflag,
 		cdflag,
-		trace,
-		trace_root,
+		trace, /* dig +trace */
+		trace_root, /* initial query for either +trace or +nssearch */
 		tcp_mode,
 		nibble,
 		comments,
