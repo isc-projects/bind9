@@ -1,2 +1,3 @@
 Makefile
 t_db
+.libs
