@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.163 2001/04/16 22:10:44 gson Exp $ */
+/* $Id: client.c,v 1.164 2001/04/19 18:29:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1333,6 +1333,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 * Set the client's UDP buffer size.
 		 */
 		client->udpsize = opt->rdclass;
+
+		/*
+		 * If the requested UDP buffer size is less than 512,
+		 * ignore it and use 512.
+		 */
+		if (client->udpsize < 512)
+			client->udpsize = 512;
 
 #ifdef DNS_OPT_NEWCODES
 		/*
