@@ -1,3 +1,6 @@
+1216.	[bug]		Multiple server clauses for the same server were not
+			reported.  [RT #2514]
+
 1215.	[port]		solaris: add support to ifconfig.sh for x86 2.5.1
 
 1214.	[bug]		Win32: isc_file_renameunique() could leave zero length
