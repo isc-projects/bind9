@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.46.2.2.2.4 2003/08/26 05:38:47 marka Exp $
+ * $Id: openssl_link.c,v 1.46.2.2.2.5 2003/10/09 04:51:03 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -181,7 +181,7 @@ dst__openssl_init() {
 void
 dst__openssl_destroy() {
 	ERR_clear_error();
-#ifdef CRYPTO_LOCK_ENGINE
+#ifdef USE_ENGINE
 	if (e != NULL) {
 		ENGINE_free(e);
 		e = NULL;
