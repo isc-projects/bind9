@@ -1,10 +1,9 @@
 
- 787.	[bug]		The dnssec tools should always downcase domain names 
-			before creating and looking for files with derived
-			names.
+ 787.	[bug]		The DNSSEC tools failed to downcase domain
+			names when mapping them into file names.
 
- 786.	[bug]		When signing/verifying data, names were not properly
-			downcased.
+ 786.	[bug]		When DNSSEC signing/verifying data, owner names were
+			not properly downcased.
 
  785.	[bug]		A race condition in the resolver could cause
 			an assertion failure. [RT #673, #872, #1048]
