@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.8 1999/09/27 08:09:20 gson Exp $ */
+ /* $Id: xfrin.c,v 1.9 1999/09/28 13:51:18 gson Exp $ */
 
 #include <config.h>
 
@@ -607,7 +607,7 @@ xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 	xfrin_cleanup(xfr);
 }
 
-dns_result_t
+static dns_result_t
 xfrin_create(isc_mem_t *mctx,
 	     ns_dbinfo_t *dbi,
 	     dns_db_t *db,
