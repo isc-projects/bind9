@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.30.2.4 2004/03/09 06:12:33 marka Exp $ */
+/* $Id: getnameinfo.c,v 1.30.2.5 2004/08/28 06:15:28 marka Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -63,6 +63,7 @@
 #include <lwres/netdb.h>
 
 #include "assert_p.h"
+#include "print_p.h"
 
 #define SUCCESS 0
 

@@ -1,7 +1,9 @@
-
 	--- 9.2.4 released ---
 
 1707.	[contrib]	sdb/ldap updated to version 1.0-beta.
+
+1704.	[port]		lwres needed a snprintf() implementation for
+			platforms without snprintf(). [RT #12321]
 
 1701.	[doc]		A minimal named.conf man page.
 
