@@ -1,3 +1,7 @@
+
+ 930.	[func]		Query performance testing tool added as
+			contrib/queryperf.
+
  929.	[placeholder]
 
  928.	[bug]		nsupdate would send empty update packets if the
