@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11 2001/08/07 01:58:54 marka Exp $ */
+/* $Id: config.c,v 1.11.2.1 2001/09/21 20:30:32 gson Exp $ */
 
 #include <config.h>
 
@@ -181,6 +181,7 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		   dns_rdataclass_t *classp) {
 	char *str;
 	isc_textregion_t r;
+	isc_result_t result;
 
 	if (!cfg_obj_isstring(classobj)) {
 		*classp = defclass;
@@ -189,7 +190,11 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	str = cfg_obj_asstring(classobj);
 	r.base = str;
 	r.length = strlen(str);
-	return (dns_rdataclass_fromtext(classp, &r));
+	result = dns_rdataclass_fromtext(classp, &r);
+	if (result != ISC_R_SUCCESS)
+		cfg_obj_log(classobj, ns_g_lctx, ISC_LOG_ERROR,
+			    "unknown class '%s'", str);
+	return (result);
 }
 
 dns_zonetype_t

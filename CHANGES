@@ -1,4 +1,5 @@
 
+
 1013.	[bug]		It was possible to cancel a query twice when marking
 			a server as bogus or by having a blackhole acl.
 			[RT #1776]
@@ -15,6 +16,8 @@
 			[RT #1765]
 
 1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
+
+1002.	[bug]		Log unknown class including file and line. [RT #1759]
 
 1001.	[bug]		win32 socket code doio_recv was not catching a
 			WSACONNRESET error when a client was timing out
