@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.208 2001/07/22 18:06:40 bwelling Exp $ */
+/* $Id: dighost.c,v 1.209 2001/07/22 18:09:46 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2258,7 +2258,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
  doexit:
-	received(0, &sevent->address, query);
+	received(sevent->n, &sevent->address, query);
 	return (ISC_TRUE);
 }
 
