@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.1 2000/06/10 00:50:36 mws Exp $ */
+/* $Id: nsupdate.c,v 1.2 2000/06/16 17:10:02 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -60,8 +60,8 @@
 
 #define RESOLV_CONF "/etc/resolv.conf"
 
-isc_boolean_t busy= ISC_FALSE, debugging = ISC_FALSE, have_ipv6 = ISC_FALSE,
-	valid_zonename = ISC_FALSE;
+isc_boolean_t busy= ISC_FALSE, debugging = ISC_TRUE, ddebugging = ISC_FALSE,
+	have_ipv6 = ISC_FALSE, valid_zonename = ISC_FALSE;
 isc_mutex_t lock;
 isc_condition_t cond;
 
@@ -73,6 +73,7 @@ dns_requestmgr_t *requestmgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socket_t *sock = NULL;
+dns_dispatch_t *dispatchv4 = NULL;
 dns_message_t *updatemsg = NULL, *findmsg = NULL;
 dns_name_t domainname;
 isc_buffer_t domainname_buf;
@@ -118,6 +119,18 @@ debug(const char *format, ...) {
 }
 
 static void
+ddebug(const char *format, ...) {
+	va_list args;
+
+	if (ddebugging) {
+		va_start(args, format);	
+		vfprintf(stderr, format, args);
+		va_end(args);
+		fprintf(stderr, "\n");
+	}
+}
+
+static void
 check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		exitcode = 1;
@@ -131,13 +144,14 @@ load_resolv_conf() {
 	char rcinput[MXNAME];
 	char *ptr;
 
+	ddebug ("load_resolv_conf()");
 	fp = fopen (RESOLV_CONF, "r");
 	if (fp != NULL) {
 		while (fgets(rcinput, MXNAME, fp) != 0) {
 			ptr = strtok (rcinput, " \t\r\n");
 			if (ptr != NULL) {
 				if (strcasecmp(ptr, "nameserver") == 0) {
-					debug ("Got a nameserver line");
+					ddebug ("Got a nameserver line");
 					ptr = strtok (NULL, " \t\r\n");
 					if (ptr != NULL) {
 						if (nameservers < 3) {
@@ -153,7 +167,7 @@ load_resolv_conf() {
 						if (strncasecmp(ptr, "ndots:",
 								 6) == 0) {
 							ndots = atoi(&ptr[6]);
-							debug ("ndots is "
+							ddebug ("ndots is "
 							       "%d.",
 							       ndots);
 						}
@@ -177,6 +191,7 @@ static void
 reset_system() {
 	isc_result_t result;
 
+	ddebug ("reset_system()");
 	/* If the update message is still around, destroy it */
 	if (updatemsg != NULL)
 		dns_message_destroy(&updatemsg);
@@ -200,12 +215,12 @@ setup_system() {
 	isc_buffer_t buf;
 	isc_sockaddr_t bind_any;
 
-	debug("Setup System");
+	ddebug("setup_system()");
 
 	/*
 	 * Warning: This is not particularly good randomness.  We'll
 	 * just use random() now for getting id values, but doing so
-	 * does NOT insure that id's cann't be guessed.
+	 * does NOT insure that id's can't be guessed.
 	 */
 	srandom (getpid() + (int)&setup_system);
 
@@ -248,9 +263,17 @@ setup_system() {
 	result = isc_socket_bind(sock, &bind_any);
 	check_result(result, "isc_socket_bind");
 
+	result = dns_dispatch_getudp(dispatchmgr, socketmgr, taskmgr,
+				     &bind_any, PACKETSIZE, 4, 2, 3, 5,
+				     DNS_DISPATCHATTR_UDP |
+				     DNS_DISPATCHATTR_IPV4 |
+				     DNS_DISPATCHATTR_MAKEQUERY, 0,
+				     &dispatchv4);
+	check_result(result, "dns_dispatch_getudp");
+
 	result = dns_requestmgr_create(mctx, timermgr,
 				       socketmgr, taskmgr, dispatchmgr,
-				       NULL, NULL, &requestmgr);
+				       dispatchv4, NULL, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
 	if (domain[0] != 0) {
@@ -275,6 +298,8 @@ parse_args() {
 
 static void
 check_and_add_zone(dns_name_t *namein) {
+
+	ddebug ("check_and_add_zone()");
 	if (valid_zonename)
 		return;
 	dns_name_init(&zonename, NULL);
@@ -293,6 +318,7 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatatype_t rdatatype;
 	
+	ddebug ("make_rrset_prereq()");
 	nameptr = strtok(NULL, " \t\r\n");
 	if (nameptr == NULL) {
 		puts ("failed to read owner name");
@@ -324,6 +350,9 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	result = dns_rdatatype_fromtext(&rdatatype, &typeregion);
 	check_result (result, "dns_rdatatype_fromtext");
 
+	result = dns_message_gettemprdataset(updatemsg, &rdataset);
+	check_result(result,"dns_message_gettemprdataset");
+
 	dns_rdataset_makequestion(rdataset, rdclass, rdatatype);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
@@ -339,8 +368,9 @@ make_domain_prereq(dns_rdataclass_t rdclass) {
 	dns_name_t *name;
 	isc_buffer_t *buf;
 	isc_buffer_t source;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset = NULL;
 	
+	ddebug ("make_domain_prereq()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read owner name");
@@ -375,6 +405,7 @@ static isc_uint16_t
 evaluate_prereq() {
 	char *ptr;
 
+	ddebug ("evaluate_prereq()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read operation code");
@@ -396,6 +427,7 @@ static isc_uint16_t
 evaluate_server() {
 	char *ptr;
 
+	ddebug ("evaluate_server()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read server name");
@@ -422,6 +454,7 @@ update_add() {
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
 
+	ddebug ("update_add()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read owner name");
@@ -445,6 +478,7 @@ update_add() {
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read owner ttl");
+		dns_message_puttempname(updatemsg, &name);
 		return STATUS_FAIL;
 	}
 	ttl = atoi(ptr);
@@ -452,12 +486,14 @@ update_add() {
 	type = strtok(NULL, " \t\r\n");
 	if (type == NULL) {
 		puts ("failed to read owner type");
+		dns_message_puttempname(updatemsg, &name);
 		return STATUS_FAIL;
 	}
 
 	data = strtok(NULL, " \t\r\n");
 	if (data == NULL) {
 		puts ("failed to read owner data");
+		dns_message_puttempname(updatemsg, &name);
 		return STATUS_FAIL;
 	}
 
@@ -510,9 +546,10 @@ static isc_uint16_t
 update_delete() {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
+	isc_buffer_t *namebuf = NULL;
 	isc_buffer_t *buf = NULL;
 	isc_buffer_t source;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	char *ptr, *typeptr, *dataptr = NULL;
 	dns_rdatatype_t rdatatype;
 	dns_rdatacallbacks_t callbacks;
@@ -521,6 +558,7 @@ update_delete() {
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t typeregion;
 
+	ddebug ("update_delete()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read owner name");
@@ -529,10 +567,10 @@ update_delete() {
 
 	result = dns_message_gettempname(updatemsg, &name);
 	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(mctx, &buf, NAMEBUF);
+	result = isc_buffer_allocate(mctx, &namebuf, NAMEBUF);
 	check_result(result, "isc_buffer_allocate");
 	dns_name_init(name, NULL);
-	dns_name_setbuffer(name, buf);
+	dns_name_setbuffer(name, namebuf);
 	isc_buffer_init(&source, ptr, strlen(ptr));
 	isc_buffer_add(&source, strlen(ptr));
 	result = dns_name_fromtext(name, &source, &domainname,
@@ -583,7 +621,7 @@ update_delete() {
 		dns_rdatalist_init(rdatalist);
 		rdatalist->type = rdatatype;
 		rdatalist->rdclass = dns_rdataclass_none;
-		rdatalist->covers = rdatatype;
+		rdatalist->covers = 0;
 		rdatalist->ttl = 0;
 		ISC_LIST_INIT(rdatalist->rdata);
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
@@ -591,11 +629,25 @@ update_delete() {
 		dns_rdatalist_tordataset(rdatalist, rdataset);
 	}
 	else {
+#if 0
 		result = dns_message_gettemprdataset(updatemsg, &rdataset);
 		check_result(result, "dns_message_gettemprdataset");
 		dns_rdataset_makequestion(rdataset, dns_rdataclass_any,
 					  rdatatype);
-	}		
+#endif
+		result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
+		check_result(result, "dns_message_gettemprdatalist");
+		result = dns_message_gettemprdataset(updatemsg, &rdataset);
+		check_result(result, "dns_message_gettemprdataset");
+		dns_rdatalist_init(rdatalist);
+		rdatalist->type = rdatatype;
+		rdatalist->rdclass = dns_rdataclass_none;
+		rdatalist->covers = 0;
+		rdatalist->ttl = 0;
+		ISC_LIST_INIT(rdatalist->rdata);
+		dns_rdataset_init(rdataset);
+		dns_rdatalist_tordataset(rdatalist, rdataset);		
+	}
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
@@ -607,6 +659,7 @@ static isc_uint16_t
 evaluate_update() {
 	char *ptr;
 
+	ddebug ("evaluate_update()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
 		puts ("failed to read operation code");
@@ -626,10 +679,12 @@ show_message() {
 	char store[MSGTEXT];
 	isc_buffer_t buf;
 
+	ddebug ("show_message()");
 	isc_buffer_init(&buf, store, MSGTEXT);
 	result = dns_message_totext(updatemsg, 0, &buf);
 	check_result(result, "dns_message_totext");
-	printf ("%.*s", (int)isc_buffer_usedlength(&buf),
+	printf ("Outgoing update query:\n%.*s",
+		(int)isc_buffer_usedlength(&buf),
 		(char*)isc_buffer_base(&buf));
 }
 	
@@ -639,6 +694,7 @@ get_next_command() {
 	char cmdline[MAXCMD];
 	char *ptr;
 
+	ddebug ("get_next_command()");
 	fputs ("> ", stderr);
 	fgets (cmdline, MAXCMD, stdin);
 	ptr = strtok(cmdline, " \t\r\n");
@@ -670,6 +726,7 @@ static isc_boolean_t
 user_interaction() {
 	isc_uint16_t result = STATUS_MORE;
 
+	ddebug ("user_interaction()");
 	while (result == STATUS_MORE) {
 		result = get_next_command();
 	}
@@ -687,8 +744,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
         struct in6_addr in6;
         struct hostent *he;
 
-        debug("get_address()");
-
+        ddebug("get_address()");
         if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
                 isc_sockaddr_fromin6(sockaddr, &in6, port);
         else if (inet_pton(AF_INET, host, &in4) == 1)
@@ -707,7 +763,41 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 
 static void
 update_completed(isc_task_t *task, isc_event_t *event) {
+	dns_requestevent_t *reqev = NULL;
+	isc_result_t result;
+	isc_buffer_t buf;
+	dns_message_t *rcvmsg = NULL;
+	char bufstore[MSGTEXT];
+	
 	UNUSED (task);
+
+	ddebug ("updated_completed()");
+	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
+	reqev = (dns_requestevent_t *)event;
+	if (reqev->result != ISC_R_SUCCESS) {
+		printf ("; Communication with server failed: %d-%s\n",
+			reqev->result, isc_result_totext(reqev->result));
+		goto done;
+	}
+
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
+	check_result(result, "dns_message_create");
+	result = dns_request_getresponse(reqev->request, rcvmsg, ISC_TRUE);
+	check_result(result, "dns_request_getresponse");
+	if (debug) {
+		isc_buffer_init(&buf, bufstore, MSGTEXT);
+		result = dns_message_totext(rcvmsg, 0, &buf);
+		check_result(result, "dns_message_totext");
+		printf ("\nReply from update query:\n%.*s\n",
+			(int)isc_buffer_usedlength(&buf),
+			(char*)isc_buffer_base(&buf));
+	}
+ done:
+	isc_event_free(&event);
+	isc_mutex_lock(&lock);
+	busy = ISC_FALSE;
+	isc_condition_signal(&cond);
+	isc_mutex_unlock(&lock);
 }
 
 static void
@@ -718,14 +808,16 @@ send_update() {
 	char servername[MXNAME];
 	isc_buffer_t buf;
 	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset;
+	dns_rdataset_t *rdataset = NULL;
+
+	ddebug ("send_update()");
 
 	result = dns_message_gettempname(updatemsg, &name);
 	check_result(result, "dns_message_gettempname");
 	dns_name_init(name, NULL);
 	result = dns_name_dup(&actualzone, mctx, name);
 	check_result(result, "dns_name_dup");
-	result = dns_message_gettemprdataset(findmsg, &rdataset);
+	result = dns_message_gettemprdataset(updatemsg, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
 	dns_rdataset_makequestion(rdataset, dns_rdataclass_in,
 				  dns_rdatatype_soa);
@@ -736,11 +828,10 @@ send_update() {
 	isc_buffer_init(&buf, servername, MXNAME);
 	result = dns_name_totext(&master, ISC_TRUE, &buf);
 	check_result(result, "dns_name_totext");
-	servername[isc_buffer_usedlength(&buf)] = 0;
-	
+	servername[isc_buffer_usedlength(&buf)] = 0;	
 	get_address(servername, 53, &sockaddr);
 	result = dns_request_create(requestmgr, updatemsg, &sockaddr,
-				    DNS_REQUESTOPT_TCP, NULL,
+				    0, NULL,
 				    FIND_TIMEOUT, global_task,
 				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
@@ -759,45 +850,79 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata;
+	isc_buffer_t buf;
+	char bufstore[MSGTEXT];
 
 	UNUSED(task);
 
+	ddebug ("find_completed()");
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	if (reqev->result != ISC_R_SUCCESS) {
+		printf ("; Communication with %s failed: %d-%s\n",
+			nameservername[ns_inuse], reqev->result, 
+			isc_result_totext(reqev->result));
 		ns_inuse++;
 		if (ns_inuse >= nameservers) {
 			fatal ("Couldn't talk to any default nameserver.");
 		}
 		get_address(nameservername[ns_inuse], 53, &sockaddr);
+#if 0
+		ddebug("Destroying %lx[%lx]", &reqev->request, 
+		      reqev->request);
 		dns_request_destroy(&reqev->request);
+#endif
 		isc_event_free(&event);
 		result = dns_request_create(requestmgr, findmsg, &sockaddr,
-					    DNS_REQUESTOPT_TCP, NULL,
+					    0, NULL,
 					    FIND_TIMEOUT, global_task,
 					    find_completed, NULL, &request);
 		check_result(result, "dns_result_create");
 		return;
 	}
+	dns_message_destroy(&findmsg);
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(reqev->request, rcvmsg, ISC_TRUE);
 	check_result(result, "dns_request_getresponse");
 	section = DNS_SECTION_ANSWER;
-	result = dns_message_findname(rcvmsg, section, &zonename,
-				      dns_rdatatype_soa, dns_rdatatype_soa,
-				      &name, &rdataset);
+	if (debugging) {
+		isc_buffer_init(&buf, bufstore, MSGTEXT);
+		result = dns_message_totext(rcvmsg, 0, &buf);
+		check_result(result, "dns_message_totext");
+		printf ("Reply from SOA query:\n%.*s\n", (int)isc_buffer_usedlength(&buf),
+			(char*)isc_buffer_base(&buf));
+	}
+
+	/* XXXMWS Really shouldn't use firstname here */
+	section = DNS_SECTION_ANSWER;
+	result = dns_message_firstname(rcvmsg, section);
 	if (result != ISC_R_SUCCESS) {
 		section = DNS_SECTION_AUTHORITY;
-		result = dns_message_findname(rcvmsg, section, &zonename,
-					      dns_rdatatype_soa,
-					      dns_rdatatype_soa,
-					      &name, &rdataset);
-		check_result(result, "dns_message_findname");
+		result = dns_message_firstname(rcvmsg, section);
+		check_result(result, "dns_message_firstname");
 	}
+	dns_message_currentname(rcvmsg, section, &name);
 	dns_name_init(&actualzone, NULL);
 	result = dns_name_dup(name, mctx, &actualzone);
 	check_result(result, "dns_name_dup");
+
+	/* XXXMWS This can't be right. */
+	name = NULL;
+
+	if (debugging) {
+		isc_buffer_clear(&buf);
+		result = dns_name_totext(&actualzone, ISC_FALSE, &buf);
+		check_result(result, "dns_name_totext");
+		printf ("Found zone name: %.*s\n",
+			(int)isc_buffer_usedlength(&buf),
+			(char*)isc_buffer_base(&buf));
+	}
+
+	result = dns_message_findname(rcvmsg, section, &actualzone,
+				      dns_rdatatype_soa, 0,
+				      &name, &rdataset);
+	check_result(result, "Couldn't find SOA in reply");
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first");
@@ -808,6 +933,16 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	result = dns_name_dup(&soa.origin, mctx, &master);
 	check_result(result, "dns_name_dup");
 	
+	if (debugging) {
+		isc_buffer_clear(&buf);
+		result = dns_name_totext(&master, ISC_FALSE, &buf);
+		check_result(result, "dns_name_totext");
+		printf ("The master is: %.*s\n",
+			(int)isc_buffer_usedlength(&buf),
+			(char*)isc_buffer_base(&buf));
+	}
+
+	dns_message_destroy(&rcvmsg);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 	send_update();
@@ -821,9 +956,12 @@ start_update() {
 	isc_sockaddr_t sockaddr;
 	dns_request_t *request = NULL;
 
+	ddebug ("start_update()");
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
 				    &findmsg);
 	check_result(result, "dns_message_create");
+
+	findmsg->flags |= DNS_MESSAGEFLAG_RD;
 
 	result = dns_message_gettempname(findmsg, &name);
 	check_result(result, "dns_message_gettempname");
@@ -835,6 +973,9 @@ start_update() {
 				  dns_rdatatype_soa);
 
 	dns_name_init(name, NULL);
+	if (!valid_zonename) {
+		fatal ("don't have a valid zone yet.");
+	}
 	result = dns_name_dup(&zonename, mctx, name);
 	check_result(result, "dns_name_dup");
 
@@ -845,7 +986,7 @@ start_update() {
 	ns_inuse = 0;
 	get_address(nameservername[0], 53, &sockaddr);
 	result = dns_request_create(requestmgr, findmsg, &sockaddr,
-				    DNS_REQUESTOPT_TCP, NULL,
+				    0, NULL,
 				    FIND_TIMEOUT, global_task,
 				    find_completed, NULL, &request);
 	check_result(result, "dns_request_create");
@@ -854,6 +995,7 @@ start_update() {
 
 static void
 free_lists() {
+	ddebug ("free_lists()");
 	exit(0);
 }
 
@@ -885,7 +1027,7 @@ main(int argc, char **argv) {
         }
 
         puts ("");
-        debug ("Fell through app_run");
+        ddebug ("Fell through app_run");
         free_lists(0);
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
