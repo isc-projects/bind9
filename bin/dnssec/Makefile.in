@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I${srcdir}/unix/include ${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
@@ -33,8 +33,6 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
-
-SUBDIRS = 	unix
 
 # Alphabetically
 TARGETS =	dnssec-keygen \
