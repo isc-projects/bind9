@@ -53,6 +53,7 @@
 #include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -93,6 +94,7 @@ struct dns_rdataset {
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
 	dns_trust_t			trust;
+	dns_rdatatype_t			covers;
 	/*
 	 * attributes
 	 */

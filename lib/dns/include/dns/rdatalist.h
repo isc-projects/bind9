@@ -56,6 +56,7 @@ ISC_LANG_BEGINDECLS
 struct dns_rdatalist {
 	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
+	dns_rdatatype_t			covers;
 	dns_ttl_t			ttl;
 	ISC_LIST(dns_rdata_t)		rdata;
 	ISC_LINK(dns_rdatalist_t)	link;
