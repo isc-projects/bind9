@@ -1,3 +1,4 @@
+ 700.	[bug]		$GENERATE range check was wrong. [RT #688]
 
  699.	[bug]		The lexer mishandled empty quoted strings. [RT #694]
 

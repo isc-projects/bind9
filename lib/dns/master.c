@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.100 2001/01/19 20:45:33 marka Exp $ */
+/* $Id: master.c,v 1.101 2001/01/22 03:34:25 marka Exp $ */
 
 #include <config.h>
 
@@ -602,7 +602,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 	isc_buffer_init(&target, target_mem, target_size);
 
 	n = sscanf(range, "%u-%u/%u", &start, &stop, &step);
-	if (n < 2 || stop < stop) {
+	if (n < 2 || stop < start) {
 	       (*callbacks->warn)(callbacks,
 				  "%s: %s:%lu: invalid range '%s'",
 				  "$GENERATE",
