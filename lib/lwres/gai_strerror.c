@@ -12,32 +12,48 @@ you didn't get a copy, you may request one from <license@inner.net>.
 
 char *
 lwres_gai_strerror(int errnum) {
+	union {
+		const char *konst;
+		char *var;
+	} u;
+
+	/*
+	 * The union game is played here because RFC 2133 specifies
+	 * gai_strerror as returning just "char *", not qualified by
+	 * const, but the most reasonably way to implement this function
+	 * is with const strings.
+	 *
+	 * The caller had better not attempt to modify the return string.
+	 */
+
 	switch(errnum) {
 	case 0:
-		return ("no error");
+		u.konst = "no error";
 	case EAI_BADFLAGS:
-		return ("invalid value for ai_flags");
+		u.konst = "invalid value for ai_flags";
 	case EAI_NONAME:
-		return ("name or service is not known");
+		u.konst = "name or service is not known";
 	case EAI_AGAIN:
-		return ("temporary failure in name resolution");
+		u.konst = "temporary failure in name resolution";
 	case EAI_FAIL:
-		return ("non-recoverable failure in name resolution");
+		u.konst = "non-recoverable failure in name resolution";
 	case EAI_NODATA:
-		return ("no address associated with name");
+		u.konst = "no address associated with name";
 	case EAI_FAMILY:
-		return ("ai_family not supported");
+		u.konst = "ai_family not supported";
 	case EAI_SOCKTYPE:
-		return ("ai_socktype not supported");
+		u.konst = "ai_socktype not supported";
 	case EAI_SERVICE:
-		return ("service not supported for ai_socktype");
+		u.konst = "service not supported for ai_socktype";
 	case EAI_ADDRFAMILY:
-		return ("address family for name not supported");
+		u.konst = "address family for name not supported";
 	case EAI_MEMORY:
-		return ("memory allocation failure");
+		u.konst = "memory allocation failure";
 	case EAI_SYSTEM:
-		return ("system error");
+		u.konst = "system error";
 	default:
-		return ("unknown error");
+		u.konst = "unknown error";
 	};
+
+	return (u.var);
 }
