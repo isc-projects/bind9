@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.185 2001/01/26 23:17:26 bwelling Exp $ */
+/* $Id: socket.c,v 1.186 2001/01/27 01:16:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1814,7 +1814,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			break;
 		}
 
-	next:
 		dev = ISC_LIST_HEAD(sock->recv_list);
 	}
 
@@ -1869,7 +1868,6 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 			break;
 		}
 
-	next:
 		dev = ISC_LIST_HEAD(sock->send_list);
 	}
 
