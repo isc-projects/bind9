@@ -58,6 +58,10 @@ done
 for d in lwresd*
 do
     (
+	if test ! -d $d
+	then
+		break
+	fi
         cd $d
 	rm -f lwresd.run &&
 	if test -f lwresd.pid
