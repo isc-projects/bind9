@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.25 2000/07/10 22:49:46 mws Exp $
+# $Id: start.sh,v 1.26 2000/07/10 23:05:51 bwelling Exp $
 
 #
 # Start name servers for running system tests.
@@ -30,7 +30,7 @@ test -d "$1" || { echo No test directory: "$1";  exit 1; }
 
 portup=0
 testloop=0
-while [ $portup == 0 ]
+while [ $portup = 0 ]
 do
     if $PERL ./testsock.pl -p 5300
     then
@@ -39,7 +39,7 @@ do
 	echo "I:Couldn't bind to socket (yet)"
 	sleep 2
 	testloop=`expr $testloop + 1`
-	if [ $testloop == 5 ]; then
+	if [ $testloop = 5 ]; then
 	    echo "$0: could not bind to server addresses, still running?"
 	    echo "I:server sockets not available"
 	    echo "R:FAIL"
