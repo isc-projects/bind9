@@ -40,11 +40,10 @@ isc_result_t
 dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx);
 /*
  *	Obtains TKEY configuration information, including default DH key
- *	and default domain.
+ *	and default domain from the configuration, if it's not NULL.
  *
  * 	Requires:
  *		'lctx' is not NULL
- *		'cfg' is not NULL
  *		'mctx' is not NULL
  *
  *	Returns

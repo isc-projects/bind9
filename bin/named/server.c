@@ -376,7 +376,7 @@ load_configuration(const char *filename) {
 	/*
 	 * Load the TSIG information from the configuration
 	 */
-        result = dns_tsig_init(ns_g_confctx, ns_g_mctx);
+        result = dns_tsig_init(ns_g_lctx, ns_g_confctx, ns_g_mctx);
         if (result != ISC_R_SUCCESS)
                 ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"dns_tsig_init() failed: %s",

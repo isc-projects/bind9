@@ -175,11 +175,15 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx);
+dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx);
 /*
  *	Initializes the TSIG subsystem.  If confctx is not NULL, any
  *	specified keys are loaded.
  *
+ *	Requires:
+ *		'lctx' is not NULL
+ *		'mctx' is not NULL
+
  *	Returns:
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY

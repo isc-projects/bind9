@@ -35,6 +35,7 @@
 #include <isc/boolean.h>
 #include <isc/net.h>
 #include <isc/socket.h>
+#include <isc/log.h>
 
 #include "../../isc/util.h"		/* XXX Naughty. */
 
@@ -72,6 +73,7 @@ isc_sockaddr_t address;
 dns_message_t *query, *response, *query2, *response2;
 isc_mem_t *mctx;
 dns_tsigkey_t *tsigkey;
+isc_log_t *log = NULL;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -299,7 +301,9 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(dns_tsig_init(NULL, mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tsig_init(log, NULL, mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tkey_init(log, NULL, mctx) == ISC_R_SUCCESS);
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;

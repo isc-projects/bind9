@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.26 1999/10/28 23:13:42 bwelling Exp $
+ * $Id: tsig.c,v 1.27 1999/10/29 13:56:56 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -937,7 +937,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 }
 
 static isc_result_t
-add_initial_keys(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
+add_initial_keys(dns_c_kdeflist_t *list, isc_mem_t *mctx) {
 	isc_lex_t *lex = NULL;
 	dns_c_kdeflist_t *list;
 	dns_c_kdef_t *key;
@@ -945,7 +945,6 @@ add_initial_keys(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 	int secretlen = 0;
 	isc_result_t ret;
 
-	list = confctx->keydefs;
 	key = ISC_LIST_HEAD(list->keydefs);
 	while (key != NULL) {
 		dns_name_t keyname;
@@ -1031,11 +1030,15 @@ add_initial_keys(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 }
 
 isc_result_t
-dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
+dns_tsig_init(isc_log_t *lctx, dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 	isc_buffer_t hmacsrc, namebuf;
 	isc_result_t ret;
 	dns_name_t hmac_name;
 	unsigned char data[32];
+	dns_c_kdeflist_t *keylist = NULL;
+
+	REQUIRE(lctx != NULL);
+	REQUIRE(mctx != NULL);
 
         ret = isc_rwlock_init(&tsiglock, 0, 0);
         if (ret != ISC_R_SUCCESS) {
@@ -1064,9 +1067,11 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx) {
 	if (ret != ISC_R_SUCCESS)
 		goto failure;
 
-	if (confctx != NULL && confctx->keydefs != NULL) {
-		ret = add_initial_keys(confctx, mctx);
-		if (ret != ISC_R_SUCCESS)
+	if (confctx != NULL) {
+		ret = dns_c_ctx_getkdeflist(lctx, confctx, &keylist);
+		if (ret == ISC_R_SUCCESS)
+			ret = add_initial_keys(keylist, mctx);
+		else if (ret != ISC_R_NOTFOUND)
 			goto failure;
 	}
 

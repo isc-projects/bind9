@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.8 1999/10/29 05:41:49 marka Exp $
+ * $Id: tkey.c,v 1.9 1999/10/29 13:56:55 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -77,8 +77,10 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	RUNTIME_CHECK(tkey_dhkey == NULL);
 
 	REQUIRE(lctx != NULL);
-	REQUIRE(cfg != NULL);
 	REQUIRE(mctx != NULL);
+
+	if (cfg == NULL)
+		return (ISC_R_SUCCESS);
 
 	s = NULL;
 	result = dns_c_ctx_gettkeydhkey(lctx, cfg, &s, &n);
