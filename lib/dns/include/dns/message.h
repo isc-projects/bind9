@@ -23,12 +23,12 @@
  ***/
 
 #include <isc/mem.h>
+#include <isc/buffer.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
-#include <dns/callbacks.h>
 
 /*
  * How this beast works:
@@ -66,78 +66,124 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGE_OPCODE_SHIFT	    11
 #define DNS_MESSAGE_RCODE_MASK		0x000fU
 
+typedef int dns_section_t;
+#define DNS_SECTION_ANY			(-1) /* XXX good idea? */
+#define DNS_SECTION_QUESTION		0
+#define DNS_SECTION_ANSWER		1
+#define DNS_SECTION_AUTHORITY		2
+#define DNS_SECTION_ADDITIONAL		3
+#define DNS_SECTION_OPT			4 /* pseudo-section */
+#define DNS_SECTION_TSIG		5 /* pseudo-section */
+
+/*
+ * "helper" type, which consists of a block of some type, and is linkable.
+ * For it to work, sizeof(dns_msgblock_t) must be a multiple of the pointer
+ * size, or the allocated elements will not be alligned correctly.
+ */
+typedef struct dns_msgblock dns_msgblock_t;
+struct dns_msgblock {
+	unsigned int			length;
+	unsigned int			remaining;
+	ISC_LINK(dns_msgblock_t)	link;
+}; /* dynamically sized */
+
 typedef struct {
-	unsigned int			magic;		/* magic */
+	unsigned int			magic;
 
 	unsigned int			id;
-	unsigned int			flags;		/* this msg's flags */
-	unsigned int			rcode;		/* this msg's rcode */
-	unsigned int			opcode;		/* this msg's opcode */
-	unsigned int			qcount;		/* this msg's counts */
+	unsigned int			flags;
+	unsigned int			rcode;
+	unsigned int			opcode;
+	dns_rdataclass_t		class;
+
+	unsigned int			qcount;
 	unsigned int			ancount;
 	unsigned int			aucount;
 	unsigned int			adcount;
+
 	dns_namelist_t			question;
 	dns_namelist_t			answer;
 	dns_namelist_t			authority;
 	dns_namelist_t			additional;
 
-	/* XXX should be an isc_buffer_t? */
-	unsigned char		       *data;		/* start of raw data */
-	unsigned int			datalen;	/* length of data */
+	unsigned int			handled_question : 1;
+	unsigned int			handled_answer : 1;
+	unsigned int			handled_authority : 1;
+	unsigned int			handled_additional : 1;
+	unsigned int			from_to_wire : 2;
 
-	ISC_LINK(dns_messageelem_t)	link;		/* next msg */
-} dns_messageelem_t;
-
-
-/*
- * This structure doesn't directly map into a wire format, but is used
- * to keep track of multiple DNS messages which all refer to the same
- * "logical message" (as in edns0)
- *
- * When reading a stream of messages in, the namelists can be "flattened"
- * or "consumed" into the dns_namelist_t fields below as messages arrive.  The
- * message counts will be updated in the appropriate manner in the message.
- *
- * When rendering the "logical message" into multiple wire messages, the
- * various dns_namelist_t fields are removed from these lists and added
- * (in order, of course) to the wire format messages.  Rendering can
- * happen immediately or as time permits.
- */
-typedef struct {
-	unsigned int			magic;
-
-	unsigned int			id;		/* overall ID */
-	unsigned int			flags;		/* overall flags */
-	unsigned int			qcount;		/* total qcount */
-	unsigned int			ancount;
-	unsigned int			aucount;
-	unsigned int			adcount;
-	dns_namelist_t			question;	/* see above */
-	dns_namelist_t			answer;
-	dns_namelist_t			authority;
-	dns_namelist_t			additional;
-
-	unsigned int			nmsgs;
-	ISC_LIST(dns_messageelem_t)	msgs;
+	isc_mem_t		       *mctx;
+	isc_dynbuffer_t		       *scratchpad;
+	ISC_LIST(dns_msgblock_t)	names;
+	ISC_LIST(dns_msgblock_t)	rdatas;
+	ISC_LIST(dns_msgblock_t)	rdatalists;
 } dns_message_t;
 
-void dns_message_init(dns_message_t *msg);
+dns_result_t
+dns_message_init(isc_mem_t *mctx, dns_message_t *msg);
 /*
- * initialize msg structure.  Must be called on a new (or reused) structure.
+ * Initialize msg structure.  Must be called on a new (or reused) structure.
+ *
+ * This function will allocate some internal blocks of memory that are
+ * exptected to be needed for parsing or rendering nearly any type of message.
+ *
+ * Requires:
+ *	'mctx' be a valid memory context.
+ *
+ *	'msg' be invalid.
  *
  * Ensures:
  *	The data in "msg" is set to indicate an unused and empty msg
  *	structure.
+ *
+ *	Some bit of internal scratchpad memory is allocated.
+ *
+ * Returns:
+ *	DNS_R_NOMEMORY		- out of memory
+ *	DNS_R_SUCCESS		- success
  */
 
-dns_result_t dns_message_associate(dns_message_t *msg,
-				   void *buffer, size_t buflen);
+void
+dns_message_reset(dns_message_t *msg);
 /*
- * Associate a buffer with a message structure.  This function will
- * validate the buffer, allocate an internal message element to hold
- * the buffer's information, and update various counters.  Also, any
- * DNSSEC or TSIG signatures are verified at this time.
+ * Reset a message structure to default state.  All internal lists are freed
+ * or reset to a default state as well.  This is simply a more efficient
+ * way to call dns_message_destroy() followed by dns_message_allocate(),
+ * since it avoid many memory allocations.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ *	If any data loanouts (buffers, names, rdatas, etc) were requested,
+ *	the caller must no longer use them after this call.
+ */
+
+void
+dns_message_destroy(dns_message_t *msg);
+/*
+ * Destroy all state in the message.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ *	'msg' be "empty" with no message elements on the internal lists.
+ *
+ * Ensures:
+ *	'msg' can be reused via re-initialization with dns_message_init()
+ */
+
+dns_result_t
+dns_message_parse(dns_message_t *msg, void *buffer, size_t buflen);
+/*
+ * Parse raw wire data pointed to by "buffer" and bounded by "buflen" as a
+ * DNS message.
+ *
+ * OPT records are detected and stored in the pseudo-section "opt".
+ * TSIGs are detected and stored in the pseudo-section "tsig".  At detection
+ * time, the TSIG is verified (XXX) and the message fails if the TSIG fails
+ * to verify.
  *
  * If this is a multi-packet message (edns) and more data is required to
  * build the full message state, DNS_R_MOREDATA is returned.  In this case,
@@ -152,66 +198,200 @@ dns_result_t dns_message_associate(dns_message_t *msg,
  * Ensures:
  *	The buffer's data format is correct.
  *
- *	The buffer's contents verify as correct regarding signatures,
- *	bits set, etc.
+ *	The buffer's contents verify as correct regarding header bits, buffer
+ * 	and rdata sizes, etc.
  *
  * Returns:
  *	DNS_R_SUCCESS		-- all is well
- *	DNS_R_NOMEM		-- no memory
+ *	DNS_R_NOMEMORY		-- no memory
  *	DNS_R_MOREDATA		-- more packets needed for complete message
  *	DNS_R_???		-- bad signature (XXX need more of these)
  */
 
-dns_messageelem_t *dns_messageelem_first(dns_message_t *msg);
+dns_result_t
+dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
 /*
- * Return the first message element's pointer.
+ * Begin rendering on a message.  Only one call can be made to this function
+ * per message.
  *
  * Requires:
- *	"msg" be valid.
  *
- * Returns:
- *	The first element on the message buffer list, or NULL if no buffers
- *	are associated.
+ *	'msg' be valid.
  */
 
-dns_messageelem_t *dns_messageelem_next(dns_message_t *msg,
-					dns_messageelem_t *elem);
+dns_result_t
+dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
+			  int space);
 /*
- * Return the next message element pointer.
+ * Reserve "space" bytes in the given buffer.
  *
  * Requires:
- *	"msg" be valid.
  *
- *	"msgelem" be valid, and part of the chain of elements for "msg".
+ *	'msg' be valid.
  *
  * Returns:
- *	The next element on the message buffer list, or NULL if no more
- *	exist.
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *	DNS_R_NOSPACE		-- not enough free space in the buffer.
  */
 
-dns_name_t *dns_message_firstname(dns_message_t *msg, dns_namelist_t *section);
+dns_result_t
+dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
+			  dns_section_t section, unsigned int priority,
+			  unsigned int flags);
 /*
- * Returns a pointer to the first name in the specified section.
+ * Render all names, rdatalists, etc from the given section at the
+ * specified priority or higher.
+ *
+ * Requires:
+ *	'msg' be valid.
+ *
+ *	'section' be a valid section.
+ *
+ *	'buffer' be non-NULL and be initialized to point to a valid memory
+ *	block.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- all records were written, and there are
+ *				   no more records for this section.
+ *	DNS_R_NOSPACE		-- Not enough room in the buffer to write
+ *				   all records requested.
+ *	DNS_R_MOREDATA		-- All requested records written, and there
+ *				   are records remaining for this section.
  */
 
-dns_name_t *dns_message_nextname(dns_message_t *msg, dns_namelist_t *section,
-				 dns_name_t *name);
+dns_result_t
+dns_message_renderend(dns_message_t *msg, isc_buffer_t *buffer);
 /*
- * Returns a pointer to the next name in the specified section.
+ * Finish rendering to the buffer.  Note that more data can be in the
+ * 'msg' structure.  Destroying the structure will free this, or in a multi-
+ * part EDNS1 message this data can be rendered to another buffer later.
+ *
+ * Requires:
+ *
+ *	'msg' be a valid message.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ */
+		      
+
+dns_result_t
+dns_message_firstname(dns_message_t *msg, dns_section_t section);
+/*
+ * Set internal per-section name pointer to the beginning of the section.
+ *
+ * Requires:
+ *
+ *   	'msg' be valid.
+ *
+ *	'section' be a valid section.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMORE		-- No names on given section.
  */
 
-void dns_message_movename(dns_message_t *msg, dns_namelist_t *fromsection,
-			  dns_namelist_t *tosection);
+dns_result_t
+dns_message_nextname(dns_message_t *msg, dns_section_t section);
+/*
+ * Sets the internal per-section name pointer to point to the next name
+ * in that section.
+ *
+ * Requires:
+ *
+ *   	'msg' be valid.
+ *
+ *	'section' be a valid section.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMORE		-- No names in given section.
+ */
+
+dns_result_t
+dns_message_currentname(dns_message_t *msg, dns_section_t section,
+			dns_name_t **name);
+/*
+ * Sets 'name' to point to the name where the per-section internal name
+ * pointer is currently set.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ *	'name' be non-NULL, and *name be NULL.
+ *
+ *	'section' be a valid section.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMORE		-- No names in given section.
+ */
+
+dns_result_t
+dns_message_findname(dns_message_t *msg, dns_section_t section,
+		     dns_name_t *target, dns_rdatatype_t type,
+		     dns_name_t **name, dns_rdataset_t **rdataset);
+/*
+ * Search for a name in the specified section.  If it is found, *name is
+ * set to point to the name, and *rdataset is set to point to the found
+ * rdataset (if type is specified as other than dns_rdatatype_any.)
+ *
+ * Requires:
+ *	'msg' be valid.
+ *
+ *	'section' be a valid section.
+ *
+ *	If a pointer to the name is desired, 'name' should be non-NULL.
+ *	If it is non-NULL, '*name' MUST be NULL.
+ *
+ *	If a type other than dns_datatype_any is searched for, 'rdataset'
+ *	may be non-NULL, '*rdataset' be NULL, and will point at the found
+ *	rdataset.
+ *
+ *	'target' be a valid name.
+ *
+ *	'type' be a valid type.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *	DNS_R_NXDOMAIN		-- name does not exist in that section.
+ *	DNS_R_NXRDATASET	-- The name does exist, but the desired
+ *				   type does not.
+ */
+
+void
+dns_message_movename(dns_message_t *msg, dns_name_t *name,
+		     dns_section_t fromsection,
+		     dns_section_t tosection);
 /*
  * Move a name from one section to another.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ *	'name' must be a member of the section it is to be moved from.
+ *
+ *	'fromsection' must be a valid section.
+ *
+ *	'tosection' must be a valid section, and be renderable.
  */
 
-dns_result_t dns_message_addname(dns_message_t *msg, dns_namelist_t *section,
-				 dns_name_t *name);
+dns_result_t
+dns_message_addname(dns_message_t *msg, dns_section_t section,
+		    dns_name_t *name);
 /*
  * Adds the name to the given section.
  *
- * Caller must ensure that the name does not already exist.
+ * Caller must ensure that the name does not already exist.  This condition
+ * is NOT checked for by this function.
  */
 
 ISC_LANG_ENDDECLS
