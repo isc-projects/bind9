@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.65 2001/06/22 17:22:25 tale Exp $ */
+/* $Id: rndc.c,v 1.66 2001/07/01 17:36:46 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -196,7 +196,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	recvs--;
 
 	if (ccmsg.result == ISC_R_EOF)
-		fatal("connection to remote host closed\n",
+		fatal("connection to remote host closed\n"
 		      "This may indicate that the remote server is using "
 		      "an older version of the\n"
 		      "command protocol, this host is not authorized "

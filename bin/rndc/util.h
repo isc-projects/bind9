@@ -15,12 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.1 2001/06/22 17:22:26 tale Exp $ */
+/* $Id: util.h,v 1.2 2001/07/01 17:36:47 bwelling Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
 
 #include <isc/lang.h>
+
+#include <isc/formatcheck.h>
 
 #define NS_CONTROL_PORT		953
 
@@ -40,7 +42,7 @@ void
 notify(const char *fmt, ...);
 
 void            
-fatal(const char *format, ...);
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 ISC_LANG_ENDDECLS
 
