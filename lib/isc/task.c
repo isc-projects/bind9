@@ -226,7 +226,6 @@ task_attach(task_t task, task_t *taskp) {
 void
 task_detach(task_t *taskp) {
 	boolean_t free_task = FALSE;
-	task_manager_t manager;
 	task_t task;
 
 	XTRACE("task_detach");
