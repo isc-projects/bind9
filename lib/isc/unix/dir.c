@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.5 1999/10/31 19:08:11 halley Exp $ */
+/* $Id: dir.c,v 1.6 1999/10/31 19:29:48 halley Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <isc/dir.h>
 #include <isc/assertions.h>
