@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.40 1999/04/16 18:30:03 tale Exp $ */
+/* $Id: rbt.c,v 1.41 1999/04/16 21:01:58 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -812,11 +812,9 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * caller wants to do.
 				 */
 				if (callback != NULL && CALLBACK(current)) {
-					chain->end = current;
 					result = chain_name(chain,
 							    callback_name,
-							    ISC_TRUE);
-					chain->end = NULL;
+							    ISC_FALSE);
 
 					if (result != DNS_R_SUCCESS) {
 						dns_rbtnodechain_reset(chain);
