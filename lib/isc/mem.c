@@ -46,6 +46,14 @@
 #define ISC_MEM_FILL 1
 #endif
 
+#ifndef ISC_MEMPOOL_NAMES
+/*
+ * During development it is nice to be able to see names associated with
+ * memory pools.
+ */
+#define ISC_MEMPOOL_NAMES 1
+#endif
+
 /*
  * Types.
  */
@@ -113,6 +121,10 @@ struct isc_mempool {
 	unsigned int	fillcount;	/* # of items to fetch on each fill */
 	/* Stats only. */
 	unsigned int	gets;		/* # of requests to this pool */
+	/* Debugging only. */
+#if ISC_MEMPOOL_NAMES
+	char		name[16];	/* printed name in stats reports */
+#endif
 };
 
 /* Forward. */
@@ -547,15 +559,15 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out)
 	pool = ISC_LIST_HEAD(ctx->pools);
 	if (pool != NULL) {
 		fprintf(out, "[Pool statistics]\n");
-		fprintf(out, "%10s %10s %10s %10s %10s %10s %10s %1s\n",
-			"size", "maxalloc", "allocated", "freecount",
+		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",
+			"name", "size", "maxalloc", "allocated", "freecount",
 			"freemax", "fillcount", "gets", "L");
 	}
 	while (pool != NULL) {
-		fprintf(out, "%10u %10u %10u %10u %10u %10u %10u %s\n",
-			pool->size, pool->maxalloc, pool->allocated,
-			pool->freecount, pool->freemax, pool->fillcount,
-			pool->gets,
+		fprintf(out, "%15s %10u %10u %10u %10u %10u %10u %10u %s\n",
+			pool->name, pool->size, pool->maxalloc,
+			pool->allocated, pool->freecount, pool->freemax,
+			pool->fillcount, pool->gets,
 			(pool->lock == NULL ? "N" : "Y"));
 		pool = ISC_LIST_NEXT(pool, link);
 	}
@@ -838,6 +850,9 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp)
 	mpctx->freemax = 1;
 	mpctx->fillcount = 1;
 	mpctx->gets = 0;
+#if ISC_MEMPOOL_NAMES
+	mpctx->name[0] = 0;
+#endif
 	mpctx->items = NULL;
 
 	*mpctxp = mpctx;
@@ -847,6 +862,26 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp)
 	UNLOCK(&mctx->lock);
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc_mempool_setname(isc_mempool_t *mpctx, char *name)
+{
+	REQUIRE(name != NULL);
+
+#if ISC_MEMPOOL_NAMES
+	if (mpctx->lock != NULL)
+		LOCK(mpctx->lock);
+
+	memset(mpctx->name, 0, sizeof(mpctx->name));
+	strncpy(mpctx->name, name, sizeof(mpctx->name) - 1);
+
+	if (mpctx->lock != NULL)
+		UNLOCK(mpctx->lock);
+#else
+	(void)mpctx;
+	(void)name;
+#endif
 }
 
 void

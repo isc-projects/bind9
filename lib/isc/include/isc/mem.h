@@ -32,6 +32,12 @@ ISC_LANG_BEGINDECLS
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
 
+/*
+ * Define to 0 to remove the names from memory pools.  This will save
+ * about 16 bytes per pool.
+ */
+#define ISC_MEMPOOL_NAMES 1
+
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
@@ -138,8 +144,18 @@ isc_mempool_destroy(isc_mempool_t **mpctxp);
  * Destroy a memory pool.
  *
  * Requires:
- *	mpctxp is a valid pool.
+ *	mpctxp != NULL && *mpctxp is a valid pool.
  *	The pool has no un"put" allocations outstanding
+ */
+
+void
+isc_mempool_setname(isc_mempool_t *mpctx, char *name);
+/*
+ * Associate a name with a memory pool.  At most 15 characters may be used.
+ *
+ * Requires:
+ *	mpctx is a valid pool.
+ *	name != NULL;
  */
 
 void
