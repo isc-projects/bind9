@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_update.c,v 1.6 2001/07/03 08:11:51 marka Exp $";
+static const char rcsid[] = "$Id: res_update.c,v 1.6.2.1 2002/02/20 00:43:46 gson Exp $";
 #endif /* not lint */
 
 /*
@@ -77,8 +77,6 @@ struct zonegrp {
 
 /* Forward. */
 
-static int	nscopy(union res_sockaddr_union *,
-		       const union res_sockaddr_union *, int);
 static void	res_dprintf(const char *, ...);
 
 /* Macros. */
@@ -104,27 +102,29 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 	INIT_LIST(zgrps);
 	for (rrecp = rrecp_in; rrecp;
 	     rrecp = LINKED(rrecp, r_link) ? NEXT(rrecp, r_link) : NULL) {
-		struct in_addr nsaddrs[MAXNS];
-		int i;
+		struct in_addr addrs[MAXNS];
+		int i, nscnt;
 		/* XXX need to rewrite res_findzonecut */
 		for (i = 0; i < MAXNS; i++) {
-			nsaddrs[i].s_addr = 0;
+			addrs[i].s_addr = 0;
 			if (tgrp.z_nsaddrs[i].sin.sin_family == AF_INET)
-				nsaddrs[i] = tgrp.z_nsaddrs[i].sin.sin_addr;
+				addrs[i] = tgrp.z_nsaddrs[i].sin.sin_addr;
 		}
 		/* Find the origin for it if there is one. */
 		tgrp.z_class = rrecp->r_class;
-		tgrp.z_nscount =
-			res_findzonecut(statp, rrecp->r_dname, tgrp.z_class,
-					RES_EXHAUSTIVE,
-					tgrp.z_origin,
-					sizeof tgrp.z_origin,
-					nsaddrs, MAXNS);
-		if (tgrp.z_nscount <= 0) {
-			DPRINTF(("res_findzonecut failed (%d)",
-				 tgrp.z_nscount));
+		nscnt = res_findzonecut(statp, rrecp->r_dname, tgrp.z_class,
+					RES_EXHAUSTIVE, tgrp.z_origin,
+					sizeof tgrp.z_origin, addrs, MAXNS);
+		if (nscnt <= 0) {
+			DPRINTF(("res_findzonecut failed (%d)", nscnt));
 			goto done;
 		}
+		for (i = 0; i < nscnt; i++) {
+			tgrp.z_nsaddrs[i].sin.sin_addr = addrs[i];
+			tgrp.z_nsaddrs[i].sin.sin_family = AF_INET;
+			tgrp.z_nsaddrs[i].sin.sin_port = htons(53);
+		}
+		tgrp.z_nscount = nscnt;
 		/* Find the group for it if there is one. */
 		for (zptr = HEAD(zgrps); zptr != NULL; zptr = NEXT(zptr, z_link))
 			if (ns_samename(tgrp.z_origin, zptr->z_origin) == 1 &&
@@ -166,9 +166,8 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 			goto done;
 
 		/* Temporarily replace the resolver's nameserver set. */
-		nscount = nscopy(nsaddrs, statp->_u._ext.ext->nsaddrs, statp->nscount);
-		statp->nscount = nscopy(statp->_u._ext.ext->nsaddrs,
-					zptr->z_nsaddrs, zptr->z_nscount);
+		nscount = res_getservers(statp, nsaddrs, MAXNS);
+		res_setservers(statp, zptr->z_nsaddrs, zptr->z_nscount);
 
 		/* Send the update and remember the result. */
 		if (key != NULL)
@@ -185,7 +184,7 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 			nzones++;
 
 		/* Restore resolver's nameserver set. */
-		statp->nscount = nscopy(statp->_u._ext.ext->nsaddrs, nsaddrs, nscount);
+		res_setservers(statp, nsaddrs, nscount);
 		nscount = 0;
 	}
  done:
@@ -197,23 +196,12 @@ res_nupdate(res_state statp, ns_updrec *rrecp_in, ns_tsig_key *key) {
 		free(zptr);
 	}
 	if (nscount != 0)
-		statp->nscount = nscopy(statp->_u._ext.ext->nsaddrs, nsaddrs, nscount);
+		res_setservers(statp, nsaddrs, nscount);
 
 	return (nzones);
 }
 
 /* Private. */
-
-static int
-nscopy(union res_sockaddr_union *dst, const union res_sockaddr_union *src,
-       int n)
-{
-	int i;
-
-	for (i = 0; i < n; i++)
-		dst[i] = src[i];
-	return (n);
-}
 
 static void
 res_dprintf(const char *fmt, ...) {
