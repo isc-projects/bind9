@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.104 2003/01/10 02:37:44 marka Exp $ */
+/* $Id: update.c,v 1.105 2003/01/21 05:18:11 marka Exp $ */
 
 #include <config.h>
 
@@ -100,21 +100,37 @@
  */
 #define FAILC(code, msg) \
 	do {							\
+		const char *_what = "failed";			\
 		result = (code);				\
+		switch (result) {				\
+		case DNS_R_NXDOMAIN:				\
+		case DNS_R_YXDOMAIN:				\
+		case DNS_R_YXRRSET:				\
+		case DNS_R_NXRRSET:				\
+			_what = "unsuccessful";			\
+		}						\
 		update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
-			      "update failed: %s (%s)",		\
+			      "update %s: %s (%s)", _what,	\
 		      	      msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
 #define FAILN(code, name, msg) \
 	do {								\
+		const char *_what = "failed";				\
 		result = (code);					\
+		switch (result) {					\
+		case DNS_R_NXDOMAIN:					\
+		case DNS_R_YXDOMAIN:					\
+		case DNS_R_YXRRSET:					\
+		case DNS_R_NXRRSET:					\
+			_what = "unsuccessful";				\
+		}							\
 		if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {	\
 			char _nbuf[DNS_NAME_FORMATSIZE];		\
 			dns_name_format(name, _nbuf, sizeof(_nbuf));	\
 			update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
-				   "update failed: %s: %s (%s)", _nbuf, \
+				   "update %s: %s: %s (%s)", _what, _nbuf, \
 				   msg, isc_result_totext(result));	\
 		}							\
 		if (result != ISC_R_SUCCESS) goto failure;		\
@@ -122,15 +138,23 @@
 
 #define FAILNT(code, name, type, msg) \
 	do {								\
+		const char *_what = "failed";				\
 		result = (code);					\
+		switch (result) {					\
+		case DNS_R_NXDOMAIN:					\
+		case DNS_R_YXDOMAIN:					\
+		case DNS_R_YXRRSET:					\
+		case DNS_R_NXRRSET:					\
+			_what = "unsuccessful";				\
+		}							\
 		if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {	\
 			char _nbuf[DNS_NAME_FORMATSIZE];		\
 			char _tbuf[DNS_RDATATYPE_FORMATSIZE];		\
 			dns_name_format(name, _nbuf, sizeof(_nbuf));	\
 			dns_rdatatype_format(type, _tbuf, sizeof(_tbuf)); \
 			update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
-				   "update failed: %s/%s: %s (%s)",	\
-				   _nbuf, _tbuf, msg,			\
+				   "update %s: %s/%s: %s (%s)",		\
+				   _what, _nbuf, _tbuf, msg,		\
 				   isc_result_totext(result));		\
 		}							\
 		if (result != ISC_R_SUCCESS) goto failure;		\
@@ -143,7 +167,7 @@
 #define FAILS(code, msg) \
 	do {							\
 		result = (code);				\
-		update_log(client, zone, LOGLEVEL_PROTOCOL,		\
+		update_log(client, zone, LOGLEVEL_PROTOCOL,	\
 			      "error: %s: %s", 			\
 			      msg, isc_result_totext(result));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\

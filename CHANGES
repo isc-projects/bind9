@@ -1,3 +1,7 @@
+1421.	[func]		Differentiate updates that don't succeed due to
+			prerequisites (unsuccessful) vs other reasons
+			(failed).
+
 1420.	[port]		solaris: work around gcc optimiser bug.
 
 1419.	[port]		openbsd: use /dev/arandom. [RT #4950]
