@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_ntop.c,v 1.1 1999/01/22 04:35:11 explorer Exp $";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.2 1999/01/30 04:27:48 explorer Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <errno.h>
@@ -40,7 +40,9 @@ static char rcsid[] = "$Id: inet_ntop.c,v 1.1 1999/01/22 04:35:11 explorer Exp $
  */
 
 static const char *isc_inet_ntop4(const u_char *src, char *dst, size_t size);
+#ifdef AF_INET6
 static const char *isc_inet_ntop6(const u_char *src, char *dst, size_t size);
+#endif
 
 /* char *
  * isc_inet_ntop(af, src, dst, size)
@@ -56,8 +58,10 @@ isc_inet_ntop(int af, const void *src, char *dst, size_t size)
 	switch (af) {
 	case AF_INET:
 		return (isc_inet_ntop4(src, dst, size));
+#ifdef AF_INET6
 	case AF_INET6:
 		return (isc_inet_ntop6(src, dst, size));
+#endif
 	default:
 		errno = EAFNOSUPPORT;
 		return (NULL);
@@ -97,6 +101,7 @@ isc_inet_ntop4(const u_char *src, char *dst, size_t size)
  * author:
  *	Paul Vixie, 1996.
  */
+#ifdef AF_INET6
 static const char *
 isc_inet_ntop6(const u_char *src, char *dst, size_t size)
 {
@@ -185,3 +190,4 @@ isc_inet_ntop6(const u_char *src, char *dst, size_t size)
 	strcpy(dst, tmp);
 	return (dst);
 }
+#endif /* AF_INET6 */

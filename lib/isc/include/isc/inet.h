@@ -33,4 +33,10 @@ char *isc_inet_ntop(int af, const void *src, char *dst, size_t size);
 #define isc_inet_ntop inet_ntop
 #endif
 
+#ifdef NEED_INET_ATON
+int isc_inet_aton(const char *cp, struct in_addr *addr);
+#else
+#define isc_inet_aton inet_aton
+#endif
+
 #endif /* ISC_INET_H */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.8 1999/01/22 05:02:49 marka Exp $ */
+ /* $Id: a_1.c,v 1.9 1999/01/30 04:27:47 explorer Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -46,7 +46,7 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
-	if (inet_aton(token.value.as_pointer , &addr) != 1)
+	if (isc_inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_UNEXPECTED);
 	isc_buffer_available(target, &region);
 	if (region.length < 4)

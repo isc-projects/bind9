@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.4 1999/01/22 05:02:49 marka Exp $ */
+ /* $Id: wks_11.c,v 1.5 1999/01/30 04:27:47 explorer Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_H
 #define RDATA_IN_1_WKS_11_H
@@ -59,7 +59,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	isc_buffer_available(target, &region);
-	if (inet_aton(token.value.as_pointer , &addr) != 1)
+	if (isc_inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (DNS_R_NOSPACE);
