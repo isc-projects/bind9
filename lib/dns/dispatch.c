@@ -24,6 +24,7 @@
 
 #include <isc/assertions.h>
 #include <isc/error.h>
+#include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/socket.h>
 
@@ -31,16 +32,19 @@
 #include <dns/result.h>
 #include <dns/dispatch.h>
 
-typedef struct dns_resentry dns_resentry_t;
+#include "../isc/util.h"
+
 struct dns_resentry {
+	unsigned int			magic;
 	dns_messageid_t			id;
+	unsigned int			bucket;
 	isc_sockaddr_t			dest;
 	isc_task_t		       *task;
 	isc_taskaction_t		action;
 	void			       *arg;
-
 	ISC_LINK(dns_resentry_t)	link;
 };
+#define INVALID_BUCKET (0xffffdead);
 
 struct dns_dispatch {
 	/* Unlocked. */
@@ -55,19 +59,30 @@ struct dns_dispatch {
 	unsigned int		refcount;	/* number of users */
 	isc_mempool_t	       *epool;		/* memory pool for events */
 	isc_mempool_t	       *bpool;		/* memory pool for buffers */
-	isc_mempool_t	       *mpool;		/* resentries allocated here */
-	ISC_LIST(dns_dispatchevent_t) rq_handlers; /* request handler list */
+	isc_mempool_t	       *rpool;		/* resentries allocated here */
+	ISC_LIST(dns_resentry_t) rq_handlers; /* request handler list */
 	isc_int32_t		qid_state;	/* state generator info */
 	unsigned int		qid_hashsize;	/* hash table size */
-	ISC_LIST(dns_dispatchevent_t) *qid_table; /* the table itself */
+	unsigned int		qid_mask;	/* mask for hash table */
+	ISC_LIST(dns_resentry_t) *qid_table; /* the table itself */
 };
 
+#define REQUEST_MAGIC	0x53912051 /* "random" value */
+#define VALID_REQUEST(e)  ((e) != NULL && (e)->magic == REQUEST_MAGIC)
+
+#define RESPONSE_MAGIC	0x15021935 /* "random" value */
+#define VALID_RESPONSE(e)  ((e) != NULL && (e)->magic == RESPONSE_MAGIC)
+
+#define DISPATCH_MAGIC	0x69385829 /* "random" value */
+#define VALID_DISPATCH(e)  ((e) != NULL && (e)->magic == DISPATCH_MAGIC)
+
 /*
- * Initializes a response table.
+ * Initializes a response table.  The hash table becomes 2^hashsize
+ * entries large.
  *
  * Requires:
  *
- *	"hashsize" > 1.
+ *	0 <= "hashsize" <= 24.
  *
  * Returns:
  *
@@ -77,7 +92,20 @@ struct dns_dispatch {
 static dns_result_t
 restable_initialize(dns_dispatch_t *disp, unsigned int hashsize)
 {
-	return (DNS_R_UNKNOWN);
+	unsigned int count;
+
+	REQUIRE(hashsize <= 24);
+	INSIST(disp->qid_table == NULL);
+
+	count = (1 << hashsize);
+
+	disp->qid_table = isc_mem_get(disp->mctx, count * sizeof(void *));
+	if (disp->qid_table == NULL)
+		return (DNS_R_NOMEMORY);
+	disp->qid_mask = count - 1;
+	disp->qid_hashsize = count;
+
+	return (DNS_R_SUCCESS);
 }
 
 /*
@@ -90,100 +118,175 @@ restable_initialize(dns_dispatch_t *disp, unsigned int hashsize)
 static void
 restable_invalidate(dns_dispatch_t *disp)
 {
+	REQUIRE(disp->qid_table != NULL);
+
+	isc_mem_put(disp->mctx, disp->qid_table,
+		    disp->qid_hashsize * sizeof(void *));
+	disp->qid_table = NULL;
+	disp->qid_hashsize = 0;
 }
 
-/*
- * Add a response entry to the response table.
- * "*id" is filled in with the assigned message ID.
- *
- * The task, action, and arg are stored, and will be part of the data
- * returned on match operations.
- *
- * Requires:
- *
- *	"id" be non-NULL.
- *
- *	"task" "action" and "arg" be set as appropriate.
- *
- *	"dest" be non-NULL and valid.
- *
- * Ensures:
- *
- *	<id, dest> is a unique tuple.  That means incoming messages
- *	are identifiable.
- *
- * Returns:
- *
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOMEMORY		-- memory could not be allocated.
- *	DNS_R_NOMORE		-- no more message ids can be allocated
- *				   for this destination.
- */
-static dns_result_t
-restable_addresponse(dns_dispatch_t *disp, dns_messageid_t *id,
-		     isc_sockaddr_t *dest, isc_task_t *task,
-		     isc_taskaction_t action, void *arg)
+dns_result_t
+dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
+			 isc_task_t *task, isc_taskaction_t action, void *arg,
+			 dns_messageid_t *idp, dns_resentry_t **resp)
 {
-	return (DNS_R_UNKNOWN);
+	dns_resentry_t *res;
+	unsigned int bucket;
+	dns_messageid_t id;
+	int i;
+	isc_boolean_t ok;
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(task != NULL);
+	REQUIRE(dest != NULL);
+	REQUIRE(resp != NULL && *resp == NULL);
+	REQUIRE(idp != NULL);
+
+	LOCK(&disp->lock);
+
+	/*
+	 * Try somewhat hard to find an unique ID.
+	 */
+	id = randomid(disp);
+	bucket = hash(disp, dest, id);
+	ok = ISC_FALSE;
+	for (i = 0 ; i < 64 ; i++) {
+		if (bucket_search(disp, dest, id, bucket) == 0) {
+			ok = ISC_TRUE;
+			break;
+		}
+		id = randomid(disp);
+		bucket = hash(disp, dest, id);
+	}
+
+	if (!ok) {
+		UNLOCK(&disp->lock);
+		return (DNS_R_NOMORE);
+	}
+
+	res = isc_mempool_get(disp->rpool);
+	if (res == NULL) {
+		UNLOCK(&disp->lock);
+		return (DNS_R_NOMEMORY);
+	}
+
+	res->magic = RESPONSE_MAGIC;
+	res->id = id;
+	res->bucket = bucket;
+	res->dest = *dest;
+	res->task = task;
+	res->action = action;
+	res->arg = arg;
+	ISC_LINK_INIT(res, link);
+	ISC_LIST_APPEND(disp->qid_table[bucket], res, link);
+
+	UNLOCK(&disp->lock);
+
+	*idp = id;
+	*resp = res;
+
+	return (DNS_R_SUCCESS);
 }
 
-/*
- * Find the entry for the given id and sockaddr.
- *
- * If entry is NULL, the return code is used merely as an existance test.
- * If "entry" is non-NULL, *entry will be set to point to the resentry.
- *
- * Requires:
- *
- *	"sockaddr" is non-NULL and valid.
- *
- *	if "entry" is non-NULL, "*entry" be NULL.
- *
- * Returns:
- *
- *	DNS_R_SUCCESS		-- item found.
- *	DNS_R_NOTFOUND		-- item not present.
- */
-static dns_result_t
-restable_find(dns_dispatch_t *disp, dns_messageid_t id,
-	      isc_sockaddr_t *sockaddr, dns_resentry_t **entry)
+void
+dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
+			    dns_dispatchevent_t **sockevent)
 {
-	return (DNS_R_UNKNOWN);
+	dns_resentry_t *res;
+	dns_dispatchevent_t *ev;
+	unsigned int bucket;
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(resp != NULL);
+	REQUIRE(VALID_RESPONSE(*resp));
+
+	res = *resp;
+	*resp = NULL;
+
+	if (sockevent != NULL) {
+		REQUIRE(*sockevent != NULL);
+		ev = *sockevent;
+		*sockevent = NULL;
+	} else {
+		ev = NULL;
+	}
+
+	LOCK(&disp->lock);
+
+	res->magic = 0;
+	bucket = res->bucket;
+
+	ISC_LIST_UNLINK(disp->qid_table[bucket], res, link);
+
+	isc_mempool_put(disp->rpool, res);
+
+	UNLOCK(&disp->lock);
 }
 
-/*
- * Find an item and remove it from the response table.  This is more
- * efficient than using restable_find() followed by _remove().
- *
- * Requires:
- *
- *	"sockaddr" is non-NULL and valid.
- *
- * Returns:
- *
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOTFOUND		-- item not present.
- */
-static dns_result_t
-restable_findremove(dns_dispatch_t *disp, dns_messageid_t id,
-		    isc_sockaddr_t *sockaddr)
+dns_result_t
+dns_dispatch_addrequest(dns_dispatch_t *disp,
+			isc_task_t *task, isc_taskaction_t action, void *arg,
+			dns_resentry_t **resp)
 {
-	return (DNS_R_UNKNOWN);
+	dns_resentry_t *res;
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(task != NULL);
+	REQUIRE(resp != NULL && *resp == NULL);
+
+	LOCK(&disp->lock);
+
+	res = isc_mempool_get(disp->rpool);
+	if (res == NULL) {
+		UNLOCK(&disp->lock);
+		return (DNS_R_NOMEMORY);
+	}
+
+	res->magic = REQUEST_MAGIC;
+	res->bucket = INVALID_BUCKET;
+	res->task = task;
+	res->action = action;
+	res->arg = arg;
+	ISC_LINK_INIT(res, link);
+	ISC_LIST_APPEND(disp->rq_handlers, res, link);
+
+	UNLOCK(&disp->lock);
+
+	*resp = res;
+
+	return (DNS_R_SUCCESS);
 }
 
-/*
- * Remove an entry from the response table.
- *
- * Requires:
- *
- *	"entry" is non-NULL, and "*entry" is non-NULL and points to a
- *	valid entry.
- *
- * Ensures:
- *
- *	"*entry" is NULL.
- */
-static void
-restable_remove(dns_dispatch_t *disp, dns_resentry_t **entry)
+void
+dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
+			   dns_dispatchevent_t **sockevent)
 {
+	dns_resentry_t *res;
+	dns_dispatchevent_t *ev;
+
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(resp != NULL);
+	REQUIRE(VALID_REQUEST(*resp));
+
+	res = *resp;
+	*resp = NULL;
+
+	if (sockevent != NULL) {
+		REQUIRE(*sockevent != NULL);
+		ev = *sockevent;
+		*sockevent = NULL;
+	} else {
+		ev = NULL;
+	}
+
+	LOCK(&disp->lock);
+
+	res->magic = 0;
+
+	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
+
+	isc_mempool_put(disp->rpool, res);
+
+	UNLOCK(&disp->lock);
 }

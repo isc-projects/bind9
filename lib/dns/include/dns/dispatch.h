@@ -71,6 +71,7 @@ struct dns_dispatchevent_t {
 };
 
 typedef struct dns_dispatch dns_dispatch_t;
+typedef struct dns_resentry dns_resentry_t; /* XXX name change */
 
 /*
  * Private attributes of events
@@ -87,7 +88,7 @@ dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize, unsigned int copythresh,
 		    unsigned int maxbuffers, unsigned int maxrequests,
-		    dns_dispatch_t **dsock);
+		    dns_dispatch_t **disp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
@@ -121,7 +122,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  */
 
 void
-dns_dispatch_destroy(dns_dispatch_t **dsock);
+dns_dispatch_destroy(dns_dispatch_t **disp);
 /*
  * Destroys dispatch.  All buffers and other bits must be returned to the
  * dispatch before this is called.
@@ -137,19 +138,26 @@ dns_dispatch_destroy(dns_dispatch_t **dsock);
  */
 
 dns_result_t
-dns_dispatch_addresponse(dns_dispatch_t *dsock, isc_sockaddr_t *dest,
+dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
-			 isc_uint16_t *id);
+			 isc_uint16_t *idp, dns_resentry_t **resp);
 /*
  * Add a response entry for this dispatch.
  *
- * "*id" is filled in with the assigned message ID.
+ * "*idp" is filled in with the assigned message ID, and *resp is filled in
+ * to contain the magic token used to request event flow stop.
  *
  * Events are generated each time a packet comes in until the dispatch's quota
  * maximum is reached.
  *
  * Requires:
- *	< mumble >
+ *	"idp" be non-NULL.
+ *
+ *	"task" "action" and "arg" be set as appropriate.
+ *
+ *	"dest" be non-NULL and valid.
+ *
+ *	"resp" be non-NULL and *resp be NULL
  *
  * Ensures:
  *
@@ -157,20 +165,24 @@ dns_dispatch_addresponse(dns_dispatch_t *dsock, isc_sockaddr_t *dest,
  *	are identifiable.
  *
  * Returns:
- *	< mumble >
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *	DNS_R_NOMEMORY		-- memory could not be allocated.
+ *	DNS_R_NOMORE		-- no more message ids can be allocated
+ *				   for this destination.
  */
 
-dns_result_t
-dns_dispatch_removeresponse(dns_dispatch_t *dsock,
-			    dns_dispatchevent_t **sockevent,
-			    isc_sockaddr_t *dest, isc_uint16_t id);
+void
+dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_resentry_t **resp,
+			    dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of responses for the provided id and destination.
  * If "sockevent" is non-NULL, the dispatch event and associated buffer is
  * also returned to the system.
  *
  * Requires:
- *	< mumble >
+ *	"resp" != NULL and "*resp" contain a value previously allocated
+ *	by dns_dispatch_addresponse();
  *
  * Ensures:
  *	< mumble >
@@ -180,8 +192,9 @@ dns_dispatch_removeresponse(dns_dispatch_t *dsock,
  */
 
 dns_result_t
-dns_dispatch_addrequest(dns_dispatch_t *dsock,
-			isc_task_t *task, isc_taskaction_t action, void *arg);
+dns_dispatch_addrequest(dns_dispatch_t *disp,
+			isc_task_t *task, isc_taskaction_t action, void *arg,
+			dns_resentry_t **resp);
 /*
  * Aranges for a one-shot request handler.  Only one request will ever be
  * handled per call to this function.  (Or should this be automatically
@@ -197,10 +210,9 @@ dns_dispatch_addrequest(dns_dispatch_t *dsock,
  *	< mumble >
  */
 
-dns_result_t
-dns_dispatch_removerequest(dns_dispatch_t *dsock,
-			   isc_task_t *task, isc_taskaction_t action,
-			   void *arg);
+void
+dns_dispatch_removerequest(dns_dispatch_t *disp, dns_resentry_t **resp,
+			   dns_dispatchevent_t **sockevent);
 /*
  * Stops the flow of responses for the provided id and destination.
  * If "sockevent" is non-NULL, the dispatch event and associated buffer is
@@ -217,7 +229,7 @@ dns_dispatch_removerequest(dns_dispatch_t *dsock,
  */
 
 void
-dns_dispatch_freeevent(dns_dispatch_t *dsock, dns_dispatchevent_t **sockevent);
+dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispatchevent_t **sockevent);
 /*
  * Return a dispatchevent and associated buffer to the dispatch.  This needs
  * to be called if more events are desired but a particular event is fully
