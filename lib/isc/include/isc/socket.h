@@ -60,6 +60,7 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/types.h>
 #include <isc/boolean.h>
 #include <isc/bufferlist.h>
 #include <isc/result.h>
@@ -87,10 +88,6 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-typedef struct isc_socket isc_socket_t;
-typedef struct isc_socketmgr isc_socketmgr_t;
-
-typedef struct isc_socketevent  isc_socketevent_t;
 struct isc_socketevent {
 	ISC_EVENT_COMMON(isc_socketevent_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
