@@ -3038,6 +3038,13 @@ dbiterator_next(dns_dbiterator_t *iterator) {
 	return (result);
 }
 
+static inline isc_boolean_t
+rootname(dns_name_t *name) {
+	if (dns_name_countlabels(name) == 1 && dns_name_isabsolute(name))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
 static dns_result_t
 dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		   dns_name_t *name)
@@ -3056,7 +3063,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		resume_iteration(rbtdbiter);
 
 	if (name != NULL) {
-		if (rbtdbiter->common.relative_names)
+		if (rbtdbiter->common.relative_names || rootname(nodename))
 			origin = NULL;
 		result = dns_name_concatenate(nodename, origin, name, NULL);
 		if (result != DNS_R_SUCCESS)
