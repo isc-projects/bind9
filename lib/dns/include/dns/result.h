@@ -71,8 +71,10 @@ typedef unsigned int dns_result_t;
 #define DNS_R_ZONECUT			44
 #define DNS_R_FORMERR			45
 #define DNS_R_BADZONE			46	/* XXX MPA*/
+#define DNS_R_TIMEDOUT			47
+#define DNS_R_CANCELED			48
 
-#define DNS_R_LASTENTRY			45	/* Last entry on list. */
+#define DNS_R_LASTENTRY			48	/* Last entry on list. */
 
 #define DNS_R_UNEXPECTED		0xFFFFFFFFL
 
