@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.22 2002/02/20 03:34:38 marka Exp $ */
+/* $Id: rdataslab.h,v 1.23 2002/02/20 22:57:13 bwelling Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
@@ -81,6 +81,22 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *	ISC_R_SUCCESS		- successful completion
  *	ISC_R_NOMEMORY		- no memory.
  *	<XXX others>
+ */
+
+void
+dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
+			 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
+			 dns_rdatatype_t covers, dns_ttl_t ttl,
+			 dns_rdataset_t *rdataset);
+/*
+ * Construct an rdataset from a slab.
+ *
+ * Requires:
+ *	'slab' points to a slab.
+ *	'rdataset' is disassociated.
+ *
+ * Ensures:
+ *	'rdataset' is associated and points to a valid rdataest.
  */
 
 unsigned int
