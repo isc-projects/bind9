@@ -1539,7 +1539,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 static dns_result_t
 cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rbtdb_search_t *search = arg;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, *header_prev, *header_next;
 	dns_result_t result;
 
 	/* XXX comment */
@@ -1556,10 +1556,38 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	/*
 	 * Look for DNAME rdataset.
 	 */
-	for (header = node->data; header != NULL; header = header->next) {
-		if (header->type == dns_rdatatype_dname &&
-		    (header->attributes & RDATASET_ATTR_NONEXISTENT) == 0)
+	header_prev = NULL;
+	for (header = node->data; header != NULL; header = header_next) {
+		header_next = header->next;
+		if (header->ttl <= search->now) {
+			/*
+			 * This rdataset is stale.  If no one else is
+			 * using the node, we can clean it up right
+			 * now, otherwise we mark it as stale, and
+			 * the node as dirty, so it will get cleaned
+			 * up later.
+			 */
+			if (node->references == 0) {
+				INSIST(header->down == NULL);
+				if (header_prev != NULL)
+					header_prev->next =
+						header->next;
+				else
+					node->data = header->next;
+				free_rdataset(search->rbtdb->common.mctx,
+					      header);
+			} else {
+				header->attributes |=
+					RDATASET_ATTR_STALE;
+				node->dirty = 1;
+				header_prev = header;
+			}
+		} else if (header->type == dns_rdatatype_dname &&
+			   (header->attributes & RDATASET_ATTR_NONEXISTENT) ==
+			   0)
 			break;
+		else
+			header_prev = header;
 	}
 
 	if (header != NULL) {
@@ -1586,31 +1614,60 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_dbnode_t **nodep,
 {
 	unsigned int i;
 	dns_rbtnode_t *node, *level_node;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, *header_prev, *header_next;
 	dns_result_t result = DNS_R_NOTFOUND;
 	dns_name_t name;
+	dns_rbtdb_t *rbtdb;
 
 	/*
 	 * Caller must be holding the tree lock.
 	 */
 
+	rbtdb = search->rbtdb;
 	i = search->chain.level_matches;
 	while (i > 0) {
 		i--;
 		node = search->chain.levels[i];
 
-		LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+		LOCK(&(rbtdb->node_locks[node->locknum].lock));
 		
 		/*
 		 * Look for NS rdataset.
 		 */
+		header_prev = NULL;
 		for (header = node->data;
 		     header != NULL;
-		     header = header->next) {
-			if (header->type == dns_rdatatype_ns &&
-			    (header->attributes & RDATASET_ATTR_NONEXISTENT)
-			    == 0)
+		     header = header_next) {
+			header_next = header->next;
+			if (header->ttl <= search->now) {
+				/*
+				 * This rdataset is stale.  If no one else is
+				 * using the node, we can clean it up right
+				 * now, otherwise we mark it as stale, and
+				 * the node as dirty, so it will get cleaned
+				 * up later.
+				 */
+				if (node->references == 0) {
+					INSIST(header->down == NULL);
+					if (header_prev != NULL)
+						header_prev->next =
+							header->next;
+					else
+						node->data = header->next;
+					free_rdataset(rbtdb->common.mctx,
+						      header);
+				} else {
+					header->attributes |=
+						RDATASET_ATTR_STALE;
+					node->dirty = 1;
+					header_prev = header;
+				}
+			} else if (header->type == dns_rdatatype_ns &&
+				   (header->attributes &
+				    RDATASET_ATTR_NONEXISTENT) == 0)
 				break;
+			else
+				header_prev = header;
 		}
 
 		if (header != NULL) {
