@@ -1009,7 +1009,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion",
 			       client->view->recursionacl,
-			       ISC_TRUE) == ISC_R_SUCCESS)
+			       ISC_TRUE, ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)
@@ -1557,7 +1557,7 @@ ns_client_getsockaddr(ns_client_t *client) {
 isc_result_t
 ns_client_checkacl(ns_client_t  *client,
 		   const char *opname, dns_acl_t *acl,
-		   isc_boolean_t default_allow)
+		   isc_boolean_t default_allow, isc_boolean_t logfailure)
 {
 	isc_result_t result;
 	int match;
@@ -1589,7 +1589,8 @@ ns_client_checkacl(ns_client_t  *client,
 
  deny:
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-		      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+		      NS_LOGMODULE_CLIENT,
+		      logfailure ? ISC_LOG_ERROR : ISC_LOG_DEBUG(3),
 		      "%s denied", opname);
 	return (DNS_R_REFUSED);
 }

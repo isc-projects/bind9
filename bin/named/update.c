@@ -2017,10 +2017,11 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	if (ssutable == NULL)
 		CHECK(ns_client_checkacl(client, "update",
 					 dns_zone_getupdateacl(zone),
-					 ISC_FALSE));
+					 ISC_FALSE, ISC_TRUE));
 	else if (client->signer == NULL) {
 		/* This gets us a free log message. */
-		CHECK(ns_client_checkacl(client, "update", NULL, ISC_FALSE));
+		CHECK(ns_client_checkacl(client, "update", NULL, ISC_FALSE,
+					 ISC_TRUE));
 	}
 
 	/*

@@ -223,7 +223,8 @@ ns_client_getsockaddr(ns_client_t *client);
 isc_result_t
 ns_client_checkacl(ns_client_t  *client,
 		   const char *opname, dns_acl_t *acl,
-		   isc_boolean_t default_allow);
+		   isc_boolean_t default_allow,
+		   isc_boolean_t logfailure);
 /*
  * Convenience function for client request ACL checking.
  *

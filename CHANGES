@@ -1,3 +1,6 @@
+ 254.	[bug]		suppress "query denied" messages on additional data
+			lookups.
+
 	--- 9.0.0b4 released ---
 
  253.	[func]		resolv.conf parser now recognises ';' and '#' as
