@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.6 2000/07/24 23:54:57 mws Exp $
+# $Id: tests.sh,v 1.7 2000/07/25 00:44:18 mws Exp $
 
 #
 # Perform tests
@@ -74,6 +74,21 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
+
+echo "I:SIGKILL and restart server ns1"
+cd ns1
+kill -SIGKILL `cat named.pid`
+rm named.pid
+sleep 2
+$NAMED -c named.conf -d 99 -g >> named.run 2>&1 &
+cd ..
+
+echo "I:fetching ns1 after hard restart"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1.after || status=1
+
+echo "I:comparing zones"
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || status=1
 
 echo "I:exit status: $status"
 exit $status
