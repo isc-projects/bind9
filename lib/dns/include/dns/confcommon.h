@@ -253,7 +253,7 @@ typedef struct dns_c_addr {
 extern isc_boolean_t debug_mem_print;
 extern FILE *debug_mem_print_stream;	/* NULL means stderr */
 
-extern struct in6_addr in6addr_any;	/* all 0 bits wildcard addr. */
+extern const struct in6_addr in6addr_any;	/* all 0 bits wildcard addr. */
 
 typedef void (*dns_cfg_err_handler_t)(isc_result_t code,
 				      const char *fmt, va_list args);

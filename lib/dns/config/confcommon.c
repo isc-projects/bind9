@@ -145,7 +145,7 @@ static struct dns_c_pvt_cntable {
 
 isc_boolean_t debug_mem_print;
 FILE *debug_mem_print_stream;
-struct in6_addr in6addr_any;
+const struct in6_addr in6addr_any;
 
 
 
