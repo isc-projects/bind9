@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.12 2000/06/01 19:16:20 tale Exp $ */
+/* $Id: rndc.c,v 1.13 2000/06/28 05:38:48 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
 #include <isc/string.h>
@@ -34,11 +35,15 @@
 
 #include <dns/confndc.h>
 
+#include <dst/dst.h>
+
 #include <named/omapi.h>
 
 static const char *progname;
 static const char *conffile = "/etc/rndc.conf";
-isc_mem_t *mctx;
+
+static isc_boolean_t verbose;
+static isc_mem_t *mctx;
 
 typedef struct ndc_object {
 	OMAPI_OBJECT_PREAMBLE;
@@ -46,6 +51,19 @@ typedef struct ndc_object {
 
 static ndc_object_t ndc_g_ndc;
 static omapi_objecttype_t *ndc_type;
+
+static void
+notify(const char *fmt, ...) {
+	va_list ap;
+
+	if (verbose) {
+		va_start(ap, fmt);
+		vfprintf(stderr, fmt, ap);
+		va_end(ap);
+		fputs("\n", stderr);
+	}
+}
+
 
 /*
  * Send a control command to the server.
@@ -206,12 +224,16 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	return (result);
 }
 
+/*
+ * XXXDCL
+ * Usage: %s [-c config] [-s server] [-p port] [-m] command [command ...]\n\
+ */
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-m] command [command ...]\n\
+Usage: %s [-p port] [-m] server command [command ...]\n\
 \n\
-Where command is one of the following for named:\n\
+command is one of the following for named:\n\
 \n\
   *status	Display ps(1) status of named.\n\
   *dumpdb	Dump database and cache to /var/tmp/named_dump.db.\n\
@@ -230,33 +252,41 @@ Where command is one of the following for named:\n\
 #undef DO
 #define DO(name, function) \
 	do { \
-		if (result == ISC_R_SUCCESS) { \
-			result = function; \
-			if (result != ISC_R_SUCCESS) { \
-				fprintf(stderr, "%s: %s: %s\n", progname, \
-					name, isc_result_totext(result)); \
-				exit(1); \
-			} \
-		} \
+		result = function; \
+		if (result != ISC_R_SUCCESS) { \
+			fprintf(stderr, "%s: %s: %s\n", progname, \
+				name, isc_result_totext(result)); \
+			exit(1); \
+		} else \
+			notify(name); \
 	} while (0)
 
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
+#ifdef notyet /* XXXDCL no authentication in 9.0.0 */
+	isc_entropy_t *entropy = NULL;
+#endif
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	omapi_object_t *omapimgr = NULL;
+#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	dns_c_ndcctx_t *config = NULL;
 	dns_c_ndcopts_t *configopts = NULL;
 	dns_c_ndcserver_t *server = NULL;
 	dns_c_kdeflist_t *keys = NULL;
 	dns_c_kdef_t *key = NULL;
+	const char *keyname = NULL;
+	const char *secret = NULL;
+#endif /* notyet */
 	char *command;
-	const char *servername = NULL, *keyname = NULL;
-	const char *host = NULL, *secret = NULL;
+	const char *servername = NULL;
+	const char *host = NULL;
 	unsigned int port = NS_OMAPI_PORT;
+#ifdef notyet /* XXXDCL */
 	unsigned int algorithm;
+#endif
 	int ch;
 
 	progname = strrchr(*argv, '/');
@@ -265,7 +295,11 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:mp:s:")) != -1) {
+	/*
+	 * XXXDCL "c:mp:s:v"
+	 */
+
+	while ((ch = isc_commandline_parse(argc, argv, "mp:v")) != -1) {
 		switch (ch) {
 		case 'c':
 			conffile = isc_commandline_argument;
@@ -288,6 +322,13 @@ main(int argc, char **argv) {
 			servername = isc_commandline_argument;
 			break;
 
+		case 'v':
+			/*
+			 * Undocumented, for testing.
+			 */
+			verbose = ISC_TRUE;
+			break;
+
 		case '?':
 			usage();
 			exit(1);
@@ -303,16 +344,28 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 1) {
+	/*
+	 * XXXDCL change to 1 after 9.0.0.
+	 */
+	if (argc < 2) {
 		usage();
 		exit(1);
 	}
+
+	servername = *argv;
+	argc--;
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
 
-	DO("parse configuration", dns_c_ndcparseconf(conffile, mctx, &config));
+#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
+	DO("create entropy pool", isc_entropy_create(mctx, &entropy));
+	/* XXXDCL probably should use ISC_ENTROPY_GOOD.  talk with graff. */
+	DO("initialize digital signatures",
+	   dst_lib_init(mctx, entropy, ISC_ENTROPY_BLOCKING));
+
+	DO(conffile, dns_c_ndcparseconf(conffile, mctx, &config));
 
 	(void)dns_c_ndcctx_getoptions(config, &configopts);
 
@@ -357,6 +410,7 @@ main(int argc, char **argv) {
 
 	if (server != NULL)
 		(void)dns_c_ndcserver_gethost(server, &host);
+#endif /* notyet */
 
 	if (host == NULL)
 		host = servername;
@@ -381,15 +435,20 @@ main(int argc, char **argv) {
 	ndc_g_ndc.refcnt = 1;
 	ndc_g_ndc.type = ndc_type;
 
+#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	DO("register local authenticator",
 	   omapi_auth_register(keyname, secret, algorithm));
+#endif /* notyet */
 
 	DO("create protocol manager", omapi_object_create(&omapimgr, NULL, 0));
 
-	DO("connect", omapi_protocol_connect(omapimgr, host, port, NULL));
+	DO("connect", omapi_protocol_connect(omapimgr, host, (in_port_t)port,
+					     NULL));
 
+#ifdef notyet /* XXXDCL match documentation for 9.0; no authentication */
 	DO("send remote authenticator",
 	   omapi_auth_use(omapimgr, keyname, algorithm));
+#endif /* notyet */
 
 	/*
 	 * Preload the waitresult as successful.
@@ -399,6 +458,8 @@ main(int argc, char **argv) {
 	while ((command = *++argv) != NULL &&
 	       result == ISC_R_SUCCESS &&
 	       ndc_g_ndc.waitresult == ISC_R_SUCCESS) {
+
+		notify(command);
 
 		if (strcmp(command, "dumpdb") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
@@ -447,6 +508,8 @@ main(int argc, char **argv) {
 				progname, command);
 	}
 
+	notify("command loop done");
+
 	/*
 	 * Close the connection and wait to be disconnected.  The connection
 	 * is only still open if the protocol object is still attached
@@ -465,6 +528,10 @@ main(int argc, char **argv) {
 	isc_taskmgr_destroy(&taskmgr);
 
 	omapi_lib_destroy();
+#ifdef notyet /* XXXDCL no authentication in 9.0.0. */
+	dst_lib_destroy();
+	isc_entropy_detach(&entropy);
+#endif /* notyet */
 
 	if (mctx != NULL) {
 		if (show_final_mem)
