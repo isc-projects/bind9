@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.1 2000/12/14 21:33:11 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.2 2000/12/19 19:53:58 gson Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ optscbk(dns_c_ctx_t *ctx, void *uap) {
 }
 
 int
-main (int argc, char **argv) {
+main(int argc, char **argv) {
 	dns_c_ctx_t *configctx = NULL;
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
