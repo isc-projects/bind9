@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.31 2000/08/01 01:22:50 tale Exp $ */
+/* $Id: request.c,v 1.32 2000/08/11 16:47:33 gson Exp $ */
 
 #include <config.h>
 
@@ -827,7 +827,7 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 
 	req_log(ISC_LOG_DEBUG(3), "req_senddone: request %p", request);
 
-	(void)task;
+	UNUSED(task);
 
 	if (sevent->result != ISC_R_SUCCESS)
 		dns_request_cancel(request);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.146 2000/08/09 21:15:32 bwelling Exp $ */
+/* $Id: adb.c,v 1.147 2000/08/11 16:47:27 gson Exp $ */
 
 /*
  * Implementation notes
@@ -3263,7 +3263,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	unsigned int address_type;
 	isc_boolean_t want_check_exit = ISC_FALSE;
 
-	(void)task;
+	UNUSED(task);
 
 	INSIST(ev->ev_type == DNS_EVENT_FETCHDONE);
 	dev = (dns_fetchevent_t *)ev;
@@ -3418,7 +3418,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 	isc_result_t result;
 	isc_boolean_t want_check_exit = ISC_FALSE;
 
-	(void)task;
+	UNUSED(task);
 
 	INSIST(ev->ev_type == DNS_EVENT_FETCHDONE);
 	dev = (dns_fetchevent_t *)ev;

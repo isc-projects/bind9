@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.117 2000/08/10 02:02:10 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.118 2000/08/11 16:47:30 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2018,14 +2018,14 @@ zone_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 		 dns_name_t *foundname,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
-	(void)db;
-	(void)name;
-	(void)options;
-	(void)now;
-	(void)nodep;
-	(void)foundname;
-	(void)rdataset;
-	(void)sigrdataset;
+	UNUSED(db);
+	UNUSED(name);
+	UNUSED(options);
+	UNUSED(now);
+	UNUSED(nodep);
+	UNUSED(foundname);
+	UNUSED(rdataset);
+	UNUSED(sigrdataset);
 
 	FATAL_ERROR(__FILE__, __LINE__, "zone_findzonecut() called!");
 
@@ -2045,7 +2045,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	/*
 	 * Keep compiler silent.
 	 */
-	(void)name;
+	UNUSED(name);
 
 	LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
 
@@ -3865,8 +3865,8 @@ dns_rbtdb_create
 	dns_name_t name;
 
 	/* Keep the compiler happy. */
-	(void)argc;
-	(void)argv;
+	UNUSED(argc);
+	UNUSED(argv);
 
 	rbtdb = isc_mem_get(mctx, sizeof *rbtdb);
 	if (rbtdb == NULL)

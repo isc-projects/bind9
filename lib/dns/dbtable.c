@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.20 2000/08/01 01:22:17 tale Exp $
+ * $Id: dbtable.c,v 1.21 2000/08/11 16:47:29 gson Exp $
  */
 
 /*
@@ -56,7 +56,7 @@ static void
 dbdetach(void *data, void *arg) {
 	dns_db_t *db = data;
 
-	(void)arg;
+	UNUSED(arg);
 
 	dns_db_detach(&db);
 }

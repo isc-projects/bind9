@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.48 2000/08/01 01:22:46 tale Exp $ */
+/* $Id: rdataset.c,v 1.49 2000/08/11 16:47:32 gson Exp $ */
 
 #include <config.h>
 
@@ -122,12 +122,13 @@ dns_rdataset_isassociated(dns_rdataset_t *rdataset) {
 
 static void
 question_disassociate(dns_rdataset_t *rdataset) {
-	(void)rdataset;
+	UNUSED(rdataset);
 }
 
 static isc_result_t
 question_cursor(dns_rdataset_t *rdataset) {
-	(void)rdataset;
+	UNUSED(rdataset);
+	
 	return (ISC_R_NOMORE);
 }
 
@@ -136,8 +137,9 @@ question_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	/*
 	 * This routine should never be called.
 	 */
-	(void)rdataset;
-	(void)rdata;
+	UNUSED(rdataset);
+	UNUSED(rdata);
+	
 	REQUIRE(0);
 }
 
@@ -151,7 +153,7 @@ question_count(dns_rdataset_t *rdataset) {
 	/*
 	 * This routine should never be called.
 	 */
-	(void)rdataset;
+	UNUSED(rdataset);
 	REQUIRE(0);
 
 	return (0);
