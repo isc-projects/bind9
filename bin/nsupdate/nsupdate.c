@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.71 2000/12/07 18:12:07 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.72 2000/12/07 20:05:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -118,6 +118,7 @@ static isc_entropy_t *entp = NULL;
 static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
+static isc_boolean_t seenerror = ISC_FALSE;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -1193,6 +1194,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "; Communication with server failed: %s\n",
 			isc_result_totext(reqev->result));
+		seenerror = ISC_TRUE;
 		goto done;
 	}
 
@@ -1201,6 +1203,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(reqev->request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	check_result(result, "dns_request_getresponse");
+	if (rcvmsg->rcode != dns_rcode_noerror)
+		seenerror = ISC_TRUE;
 	if (debugging) {
 		isc_buffer_t *buf = NULL;
 		int bufsz;
@@ -1615,5 +1619,8 @@ main(int argc, char **argv) {
 
 	isc_app_finish();
 
-        return (0);
+        if (seenerror)
+		return (2);
+	else
+		return (0);
 }

@@ -1,3 +1,6 @@
+ 601.	[func]		Return a non-zero exit code if an update fails
+			in nsupdate.
+
  600.	[bug]		Reverse lookups sometimes failed in dig, etc...
 
  599.	[func]		Updated the libisc log API to support i18n message
