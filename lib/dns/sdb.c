@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.26 2001/02/13 20:11:15 bwelling Exp $ */
+/* $Id: sdb.c,v 1.27 2001/02/14 00:29:16 gson Exp $ */
 
 #include <config.h>
 
@@ -1188,7 +1188,6 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_lock;
 	}
-
 
 	result = dns_name_dupwithoffsets(origin, mctx, &sdb->common.origin);
 	if (result != ISC_R_SUCCESS)
