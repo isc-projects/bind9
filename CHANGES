@@ -1,3 +1,6 @@
+1789.	[bug]		Prerequisite test for tkey and dnssec could fail
+			with "configure --with-libtool".
+
 1788.	[bug]		libbind9.la/libbind9.so needs to link against
 			libisccfg.la/libisccfg.so.
 
