@@ -32,13 +32,18 @@ fi
 
 count=0
 ticks=0
-while [ $count != 100 ]; do
-	sleep 5
+while [ $count != 300 ]; do
+        if [ $ticks = 1 ]; then
+	        echo "Changing test zone..."
+		cp ns1/changing2.db ns1/changing.db
+		kill -HUP `cat ns1/named.pid`
+	fi
+	sleep 1
 	ticks=`expr $ticks + 1`
-	seconds=`expr $ticks \* 5`
+	seconds=`expr $ticks \* 1`
 	if [ $ticks = 60 ]; then
 		echo "Took too long to load domains."
-		exit 1;
+		exit 1
 	fi
 	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
 	echo "I:Have $count domains up in $seconds seconds"
@@ -52,6 +57,21 @@ grep ";" dig.out.ns1
 
 ../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
 	zone000099.example. @10.53.0.2 axfr > dig.out.ns2
+status=`expr $status + $?`
+grep ";" dig.out.ns2
+
+perl ../digcomp.pl dig.out.ns1 dig.out.ns2
+status=`expr $status + $?`
+
+sleep 5
+
+../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+	a.changing. @10.53.0.1 a > dig.out.ns1
+status=`expr $status + $?`
+grep ";" dig.out.ns1
+
+../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+	a.changing. @10.53.0.2 a > dig.out.ns2
 status=`expr $status + $?`
 grep ";" dig.out.ns2
 

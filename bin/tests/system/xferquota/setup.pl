@@ -23,7 +23,7 @@ use FileHandle;
 my $masterconf = new FileHandle("ns1/zones.conf", "w") or die;
 my $slaveconf  = new FileHandle("ns2/zones.conf", "w") or die;
 
-for ($z = 0; $z < 100; $z++) {
+for ($z = 0; $z < 300; $z++) {
     my $zn = sprintf("zone%06d.example", $z);
     print $masterconf "zone \"$zn\" { type master; file \"$zn.db\"; };\n";
     print $slaveconf  "zone \"$zn\" { type slave; file \"$zn.bk\"; masters { 10.53.0.1; }; };\n";
