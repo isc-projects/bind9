@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.134 2001/05/15 22:47:50 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.135 2001/05/19 00:07:33 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5037,6 +5037,12 @@ for this.
 Unlike with earlier versions of BIND, you will typically
 <emphasis>not</emphasis> need to compile <command>named</command>
 statically nor install shared libraries under the new root.
+However, depending on your operating system, you may need
+to set up things like
+<filename>/dev/zero</filename>,
+<filename>/dev/random</filename>,
+<filename>/dev/log</filename>, and/or
+<filename>/etc/localtime</filename>.
 </para>
 </sect2>
 
