@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.15 2000/04/19 18:23:30 halley Exp $
+ * $Id: dbtable.c,v 1.16 2000/04/19 18:49:10 halley Exp $
  */
 
 /*
@@ -270,15 +270,21 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable) {
 }
 
 isc_result_t
-dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp) {
+dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
+		 unsigned int options, dns_db_t **dbp)
+{
 	dns_db_t *stored_data = NULL;
 	isc_result_t result;
+	unsigned int rbtoptions = 0;
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
+	if ((options & DNS_DBTABLEFIND_NOEXACT) != 0)
+		rbtoptions |= DNS_RBTFIND_NOEXACT;
+
 	RWLOCK(&dbtable->tree_lock, isc_rwlocktype_read);
 
-	result = dns_rbt_findname(dbtable->rbt, name, 0, NULL,
+	result = dns_rbt_findname(dbtable->rbt, name, rbtoptions, NULL,
 				  (void **)&stored_data);
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)

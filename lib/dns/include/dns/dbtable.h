@@ -46,6 +46,8 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
+#define DNS_DBTABLEFIND_NOEXACT		0x01
+
 isc_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep);
@@ -138,9 +140,14 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable);
  */
 
 isc_result_t
-dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name, dns_db_t **dbp);
+dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
+		 unsigned int options, dns_db_t **dbp);
 /*
  * Find the deepest match to 'name' in the dbtable, and return it
+ *
+ * Notes:
+ *	If the DNS_DBTABLEFIND_NOEXACT option is set, the best partial
+ *	match (if any) to 'name' will be returned.
  *
  * Returns:  ISC_R_SUCCESS		on success
  *	     <something else>		no default and match
