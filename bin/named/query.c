@@ -28,6 +28,7 @@
 #include <isc/log.h>
 
 #include <dns/a6.h>
+#include <dns/aml.h>
 #include <dns/db.h>
 #include <dns/dbtable.h>
 #include <dns/dispatch.h>
@@ -1693,6 +1694,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
+	dns_c_ipmatchlist_t *queryacl;
 
 	/*	
 	 * One-time initialization.
@@ -1814,6 +1816,24 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		}
 	} else
 		version = NULL;
+
+	/*
+	 * Check the query against the "allow-query" AML.
+	 */
+	if (is_zone) {
+		queryacl = dns_zone_getqueryacl(zone);
+	} else {
+		queryacl = NULL;
+		(void) dns_c_ctx_getqueryacl(ns_g_confctx, &queryacl);
+	}
+	result = dns_aml_checkrequest(client->signer,
+				      ns_client_getsockaddr(client),
+				      ns_g_confctx->acls, "query",
+				      queryacl, NULL, ISC_TRUE);
+	if (result != DNS_R_SUCCESS) {
+		QUERY_ERROR(result);
+		goto cleanup;
+	}
 
 	/*
 	 * Find the first unanswered type in the question section.
