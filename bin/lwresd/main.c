@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.45 2000/08/01 01:11:33 tale Exp $ */
+/* $Id: main.c,v 1.46 2001/01/09 21:39:34 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.

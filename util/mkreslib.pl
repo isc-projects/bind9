@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mkreslib.pl,v 1.8 2000/09/01 01:06:23 gson Exp $
+# $Id: mkreslib.pl,v 1.9 2001/01/09 22:00:55 bwelling Exp $
 
 # Build a res_* library distribution from the BIND 8 source
 

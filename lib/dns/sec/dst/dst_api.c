@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.68 2001/01/09 00:52:59 bwelling Exp $
+ * $Id: dst_api.c,v 1.69 2001/01/09 21:55:27 bwelling Exp $
  */
 
 #include <config.h>

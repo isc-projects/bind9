@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.h,v 1.7 2000/09/13 01:30:34 marka Exp $ */
+/* $Id: update.h,v 1.8 2001/01/09 21:40:33 bwelling Exp $ */
 
 #ifndef NAMED_UPDATE_H
 #define NAMED_UPDATE_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.25 2000/08/26 01:56:46 bwelling Exp $ */
+/* $Id: private.h,v 1.26 2001/01/09 22:00:28 bwelling Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.

@@ -1,7 +1,7 @@
-Copyright (C) 2000  Internet Software Consortium.
+Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.4 2000/12/13 00:15:10 tale Exp $
+$Id: options,v 1.5 2001/01/09 21:50:31 bwelling Exp $
 
 options {
 	...

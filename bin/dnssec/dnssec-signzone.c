@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.126 2000/12/15 19:26:54 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.127 2001/01/09 21:39:25 bwelling Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.31 2000/12/29 00:54:36 bwelling Exp $ */
+/* $Id: t_names.c,v 1.32 2001/01/09 21:42:02 bwelling Exp $ */
 
 #include <config.h>
 

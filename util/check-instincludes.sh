@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.6 2000/08/01 01:33:25 tale Exp $
+# $Id: check-instincludes.sh,v 1.7 2001/01/09 22:00:47 bwelling Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header

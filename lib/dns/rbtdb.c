@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.140 2001/01/03 00:05:12 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.141 2001/01/09 21:51:14 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley

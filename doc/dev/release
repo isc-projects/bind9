@@ -1,7 +1,7 @@
-Copyright (C) 2000  Internet Software Consortium.
+Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.21 2000/12/21 17:39:17 tale Exp $
+$Id: release,v 1.22 2001/01/09 21:47:03 bwelling Exp $
 
 Preparing a bind9 release
 

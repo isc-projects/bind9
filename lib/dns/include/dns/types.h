@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.100 2001/01/04 00:16:41 bwelling Exp $ */
+/* $Id: types.h,v 1.101 2001/01/09 21:53:38 bwelling Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1

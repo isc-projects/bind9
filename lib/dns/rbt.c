@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.97 2001/01/03 00:05:11 bwelling Exp $ */
+/* $Id: rbt.c,v 1.98 2001/01/09 21:51:13 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 

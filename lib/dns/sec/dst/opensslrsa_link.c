@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.7 2001/01/09 00:53:06 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.8 2001/01/09 21:55:39 bwelling Exp $
  */
 #if defined(OPENSSL)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +15,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.1 2000/12/29 01:29:54 bwelling Exp $ */
+/* $Id: mutex.c,v 1.2 2001/01/09 21:57:49 bwelling Exp $ */
 
 /* This file intentionally left blank. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.99 2001/01/09 14:32:44 marka Exp $
+ * $Id: tsig.c,v 1.100 2001/01/09 21:51:39 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.26 2001/01/03 13:13:12 marka Exp $ */
+/* $Id: net.h,v 1.27 2001/01/09 21:58:41 bwelling Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1

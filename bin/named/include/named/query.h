@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.25 2001/01/09 18:25:50 gson Exp $ */
+/* $Id: query.h,v 1.26 2001/01/09 21:40:27 bwelling Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1

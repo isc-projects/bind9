@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.79 2001/01/08 19:58:10 gson Exp $ */
+/* $Id: task.c,v 1.80 2001/01/09 21:56:33 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley

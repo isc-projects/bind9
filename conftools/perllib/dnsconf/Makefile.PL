@@ -1,4 +1,4 @@
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.PL,v 1.5 2000/08/01 01:17:41 tale Exp $
+# $Id: Makefile.PL,v 1.6 2001/01/09 21:46:16 bwelling Exp $
 
 use ExtUtils::MakeMaker;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.96 2001/01/09 00:43:24 marka Exp $ */
+/* $Id: zone.h,v 1.97 2001/01/09 21:53:43 bwelling Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
