@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.11 1999/10/20 19:08:57 bwelling Exp $
+ * $Id: hmac_link.c,v 1.12 1999/10/20 22:14:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -119,8 +119,8 @@ dst_s_hmacmd5_init()
  *	signature	buffer to store signature
  *	mctx		memory context for temporary allocations
  * Returns 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
@@ -160,7 +160,7 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
 		RETERR(dst_s_md5(DST_SIGMODE_FINAL, context, NULL, sig, mctx));
 	}
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -178,8 +178,8 @@ dst_hmacmd5_sign(const unsigned int mode, dst_key_t *key, void **context,
  *	signature	signature
  *	mctx		memory context for temporary allocations
  * Returns 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
@@ -223,7 +223,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 			return (DST_R_VERIFYFINALFAILURE);
 	}
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -249,8 +249,8 @@ dst_hmacmd5_isprivate(const dst_key_t *key) {
  *	key		DST KEY structure
  *	data		output data
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -267,14 +267,14 @@ dst_hmacmd5_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	bytes = (key->key_size + 7) / 8;
 	if (r.length < bytes)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	for (i = 0; i < bytes; i++)
 		*r.base++ = hkey->ipad[i] ^ HMAC_IPAD;
 
 	isc_buffer_add(data, bytes);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -285,8 +285,8 @@ dst_hmacmd5_to_dns(const dst_key_t *key, isc_buffer_t *data) {
  *	key		Partially filled key structure
  *	data		Buffer containing key in DNS format
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
@@ -296,11 +296,11 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	isc_buffer_remaining(data, &r);
 	if (r.length == 0)
-		return (DST_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	hkey = (HMAC_Key *) isc_mem_get(mctx, sizeof(HMAC_Key));
 	if (hkey == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	memset(hkey->ipad, 0, sizeof(hkey->ipad));
 	memset(hkey->opad, 0, sizeof(hkey->opad));
@@ -330,7 +330,7 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	key->key_size = keylen * 8;
 	key->opaque = hkey;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -340,8 +340,8 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
  * Parameters 
  *	key		DST KEY structure 
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_hmacmd5_to_file(const dst_key_t *key) {
@@ -375,8 +375,8 @@ dst_hmacmd5_to_file(const dst_key_t *key) {
  *	id		The key id
  *	path		The directory that the file will be read from
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t 
@@ -390,21 +390,21 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	/* read private key file */
 	ret = dst_s_parse_private_key_file(key->key_name, key->key_alg, 
 					   id, &priv, mctx);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	hkey = (HMAC_Key *) isc_mem_get(mctx, sizeof(HMAC_Key *));
 	if (hkey == NULL)
-		DST_RET(DST_R_NOMEMORY);
+		DST_RET(ISC_R_NOMEMORY);
 
 	key->opaque = hkey;
 	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length,
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_hmacmd5_from_dns(key, &b, mctx);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  err:
 	dst_hmacmd5_destroy(hkey, mctx);
@@ -434,8 +434,8 @@ dst_hmacmd5_destroy(void *key, isc_mem_t *mctx) {
  *	unused		algorithm specific data, unused for HMAC-MD5.
  *	mctx		memory context to allocate key
  *  Return 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -456,13 +456,13 @@ dst_hmacmd5_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	memset(data, 0, HMAC_LEN);
 	isc_buffer_init(&b, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
 	ret = dst_random_get(bytes, &b);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	ret = dst_hmacmd5_from_dns(key, &b, mctx);
 	memset(data, 0, HMAC_LEN);
 
-	return ret;
+	return (ret);
 }
 
 
@@ -481,7 +481,7 @@ dst_hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = (HMAC_Key *) key2->opaque;
 
 	if (hkey1 == NULL && hkey2 == NULL) 
-		return(ISC_TRUE);
+		return (ISC_TRUE);
 	else if (hkey1 == NULL || hkey2 == NULL)
 		return (ISC_FALSE);
 

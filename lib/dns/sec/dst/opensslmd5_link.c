@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.1 1999/10/18 21:35:46 bwelling Exp $
+ * $Id: opensslmd5_link.c,v 1.2 1999/10/20 22:14:15 bwelling Exp $
  */
 
 #include <config.h>
@@ -59,8 +59,8 @@
  *	digest		buffer to store digest
  *	mctx		memory context for temporary allocations
  * Returns 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 dst_result_t
 dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
@@ -72,7 +72,7 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	if (mode & DST_SIGMODE_INIT) { 
 		ctx = (MD5_CTX *) isc_mem_get(mctx, sizeof(MD5_CTX));
 		if (ctx == NULL)
-			return (DST_R_NOMEMORY);
+			return (ISC_R_NOMEMORY);
 	}
 	else if (context != NULL) 
 		ctx = (MD5_CTX *) *context;
@@ -87,7 +87,7 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	if (mode & DST_SIGMODE_FINAL) {
 		isc_buffer_available(digest, &r);
 		if (r.length < MD5_DIGEST_LENGTH)
-			return DST_R_NOSPACE;
+			return (ISC_R_NOSPACE);
 
 		MD5Final(r.base, ctx);
 		isc_buffer_add(digest, MD5_DIGEST_LENGTH);
@@ -96,7 +96,7 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	else
 		*context = ctx;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 #endif

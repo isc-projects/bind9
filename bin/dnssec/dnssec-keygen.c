@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: dnssec-keygen.c,v 1.4 1999/10/10 17:13:29 halley Exp $ */
+ /* $Id: dnssec-keygen.c,v 1.5 1999/10/20 22:14:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -238,13 +238,13 @@ main(int argc, char **argv) {
 	ret = dst_key_generate(name, alg, size, param, flags, protocol, mctx,
 			       &key);
 
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		printf("Failed generating key %s\n", name);
 		exit(-1);
 	}
 
 	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		printf("Failed to write key %s(%d)\n", name, dst_key_id(key));
 		exit(-1); 
 	}

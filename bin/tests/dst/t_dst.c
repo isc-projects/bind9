@@ -133,7 +133,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 	}
 
 	ret = dst_key_fromfile(name, id, alg, type, mctx, &key);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_fromfile(%d) returned: %s\n", alg, dst_result_totext(ret));
 		++*nfails;
 		return;
@@ -187,13 +187,13 @@ generate(int alg, isc_mem_t *mctx, int *nfails) {
 	dst_key_t *key;
 
 	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_key_generate(%d) returned: %s\n", alg, dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 
-	use(key, DST_R_SUCCESS, nfails);
+	use(key, ISC_R_SUCCESS, nfails);
 	dst_key_free(key);
 }
 
@@ -210,7 +210,7 @@ get_random(int *nfails) {
 
 	isc_buffer_init(&databuf1, data1, sizeof(data1), ISC_BUFFERTYPE_BINARY);
 	ret = dst_random_get(sizeof(data1), &databuf1);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
 		++*nfails;
 		return;
@@ -218,7 +218,7 @@ get_random(int *nfails) {
 
 	isc_buffer_init(&databuf2, data2, sizeof(data2), ISC_BUFFERTYPE_BINARY);
 	ret = dst_random_get(sizeof(data2), &databuf2);
-	if (ret != DST_R_SUCCESS) {
+	if (ret != ISC_R_SUCCESS) {
 		t_info("random() returned: %s\n", dst_result_totext(ret));
 		++*nfails;
 		return;
@@ -265,9 +265,9 @@ t1() {
 
 	t_info("testing use of stored keys\n");
 	io("test.", 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-			mctx, DST_R_SUCCESS, &nfails, &nprobs);
+			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 	io("test.", 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-			mctx, DST_R_SUCCESS, &nfails, &nprobs);
+			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
 
 	io("test.", 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);

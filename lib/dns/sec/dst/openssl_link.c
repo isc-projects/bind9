@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.10 1999/10/20 19:08:57 bwelling Exp $
+ * $Id: openssl_link.c,v 1.11 1999/10/20 22:14:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -110,8 +110,8 @@ dst_s_openssldsa_init() {
  *	signature	buffer to store signature
  *	mctx		memory context for temporary allocations
  * Returns 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
@@ -123,7 +123,7 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 	if (mode & DST_SIGMODE_INIT) { 
 		ctx = (SHA_CTX *) isc_mem_get(mctx, sizeof(SHA_CTX));
 		if (ctx == NULL)
-			return (DST_R_NOMEMORY);
+			return (ISC_R_NOMEMORY);
 	}
 	else if (context != NULL) 
 		ctx = (SHA_CTX *) *context;
@@ -142,7 +142,7 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 
 		isc_buffer_available(sig, &r);
 		if (r.length < SHA_DIGEST_LENGTH * 2 + 1)
-			return DST_R_NOSPACE;
+			return (ISC_R_NOSPACE);
 
 		dsa = key->opaque;
 
@@ -164,7 +164,7 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 	else
 		*context = ctx;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -182,8 +182,8 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
  *	signature	signature
  *	mctx		memory context for temporary allocations
  * Returns 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
@@ -195,7 +195,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 	if (mode & DST_SIGMODE_INIT) { 
 		ctx = (SHA_CTX *) isc_mem_get(mctx, sizeof(SHA_CTX));
 		if (ctx == NULL)
-			return (DST_R_NOMEMORY);
+			return (ISC_R_NOMEMORY);
 	}
 	else if (context != NULL) 
 		ctx = (SHA_CTX *) *context;
@@ -236,7 +236,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 	else
 		*context = ctx;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -263,8 +263,8 @@ dst_openssl_isprivate(const dst_key_t *key) {
  *	key		DST KEY structure
  *	data		output data
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -286,7 +286,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	dnslen = 1 + (key->key_size * 3)/8 + SHA_DIGEST_LENGTH;
 	if (r.length < (unsigned int) dnslen)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	*r.base++ = t;
 	BN_bn2bin_fixed(dsa->q, r.base, SHA_DIGEST_LENGTH);
@@ -300,7 +300,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_add(data, dnslen);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -311,8 +311,8 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
  *	key		Partially filled key structure
  *	data		Buffer containing key in DNS format
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
@@ -324,12 +324,12 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	isc_buffer_remaining(data, &r);
 	if (r.length == 0)
-		return (DST_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	dsa = DSA_new();
 /*	dsa = (DSA *) isc_mem_get(mctx, sizeof(DSA));*/
 	if (dsa == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	memset(dsa, 0, sizeof(DSA));
 
@@ -366,7 +366,7 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	key->opaque = (void *) dsa;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -376,8 +376,8 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
  * Parameters 
  *	key		DST KEY structure 
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssl_to_file(const dst_key_t *key) {
@@ -435,8 +435,8 @@ dst_openssl_to_file(const dst_key_t *key) {
  *	id		The key id
  *	path		The directory that the file will be read from
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t 
@@ -453,12 +453,12 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	/* read private key file */
 	ret = dst_s_parse_private_key_file(key->key_name, key->key_alg, 
 					   id, &priv, mctx);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	dsa = DSA_new();
 	if (dsa == NULL)
-		DST_RET(DST_R_NOMEMORY);
+		DST_RET(ISC_R_NOMEMORY);
 	memset(dsa, 0, sizeof(DSA));
 	key->opaque = dsa;
 
@@ -467,7 +467,7 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 		bn = BN_bin2bn(priv.elements[i].data,
 			       priv.elements[i].length, NULL);
 		if (bn == NULL)
-			DST_RET(DST_R_NOMEMORY);
+			DST_RET(ISC_R_NOMEMORY);
 
 		switch (priv.elements[i].tag) {
 			case TAG_DSA_PRIME:
@@ -493,7 +493,7 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_openssl_to_dns(key, &dns);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_used(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
@@ -501,7 +501,7 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  err:
 	key->opaque = NULL;
@@ -535,8 +535,8 @@ dst_openssl_destroy(void *key, isc_mem_t *mctx) {
  *	unused		algorithm specific data, unused for DSA.
  *	mctx		memory context to allocate key
  *  Return 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -554,7 +554,7 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	isc_buffer_init(&rand, rand_array, sizeof(rand_array),
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_random_get(SHA_DIGEST_LENGTH, &rand);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	dsa = DSA_generate_parameters(key->key_size, rand_array,
@@ -562,10 +562,10 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 				      NULL, NULL);
 
 	if (dsa == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	if (DSA_generate_key(dsa) == 0)
-		return(DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	key->opaque = dsa;
 
@@ -575,7 +575,7 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	isc_buffer_used(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -595,7 +595,7 @@ dst_openssl_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dsa2 = (DSA *) key2->opaque;
 
 	if (dsa1 == NULL && dsa2 == NULL) 
-		return(ISC_TRUE);
+		return (ISC_TRUE);
 	else if (dsa1 == NULL || dsa2 == NULL)
 		return (ISC_FALSE);
 
@@ -622,7 +622,7 @@ BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
 	while (bytes-- > 0)
 		*buf++ = 0;
 	BN_bn2bin(bn, buf);
-	return size;
+	return (size);
 }	
 
 #endif

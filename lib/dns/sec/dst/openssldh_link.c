@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.3 1999/10/08 13:08:57 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.4 1999/10/20 22:14:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -115,8 +115,8 @@ dst_s_openssldh_init()
  *	priv		The private key
  *	secret		A buffer into which the secret is written
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
@@ -136,12 +136,12 @@ dst_openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	len = DH_size(dhpriv);
 	isc_buffer_available(secret, &r);
 	if (r.length < len)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	ret = DH_compute_key(r.base, dhpub->pub_key, dhpriv);
 	if (ret == 0)
-		return(DST_R_COMPUTESECRETFAILURE);
+		return (DST_R_COMPUTESECRETFAILURE);
 	isc_buffer_add(secret, len);
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -167,8 +167,8 @@ dst_openssldh_isprivate(const dst_key_t *key) {
  *	key		DST KEY structure
  *	data		output data
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -194,7 +194,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 	publen = BN_num_bytes(dh->pub_key);
 	dnslen = plen + glen + publen + 6;
 	if (r.length < (unsigned int) dnslen)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	uint16_toregion(plen, &r);
 	if (plen == 1) {
@@ -218,7 +218,7 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_add(data, dnslen);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -229,8 +229,8 @@ dst_openssldh_to_dns(const dst_key_t *key, isc_buffer_t *data) {
  *	key		Partially filled key structure
  *	data		Buffer containing key in DNS format
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
@@ -243,11 +243,11 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	isc_buffer_remaining(data, &r);
 	if (r.length == 0)
-		return (DST_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 
 	dh = DH_new();
 	if (dh == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	memset(dh, 0, sizeof(DH));
 
@@ -348,7 +348,7 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 
 	key->opaque = (void *) dh;
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -358,8 +358,8 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
  * Parameters 
  *	key		DST KEY structure 
  * Returns
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 static dst_result_t
 dst_openssldh_to_file(const dst_key_t *key) {
@@ -411,8 +411,8 @@ dst_openssldh_to_file(const dst_key_t *key) {
  *	id		The key id
  *	path		The directory that the file will be read from
  * Return
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t 
@@ -429,12 +429,12 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 	/* read private key file */
 	ret = dst_s_parse_private_key_file(key->key_name, key->key_alg, 
 					   id, &priv, mctx);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	dh = DH_new();
 	if (dh == NULL)
-		DST_RET(DST_R_NOMEMORY);
+		DST_RET(ISC_R_NOMEMORY);
 	memset(dh, 0, sizeof(DH));
 	key->opaque = dh;
 
@@ -443,7 +443,7 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 		bn = BN_bin2bn(priv.elements[i].data,
 			       priv.elements[i].length, NULL);
 		if (bn == NULL)
-			DST_RET(DST_R_NOMEMORY);
+			DST_RET(ISC_R_NOMEMORY);
 
 		switch (priv.elements[i].tag) {
 			case TAG_DH_PRIME:
@@ -483,7 +483,7 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 	isc_buffer_init(&dns, dns_array, sizeof(dns_array),
 			ISC_BUFFERTYPE_BINARY);
 	ret = dst_openssldh_to_dns(key, &dns);
-	if (ret != DST_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_used(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
@@ -491,7 +491,7 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
  err:
 	key->opaque = NULL;
@@ -529,8 +529,8 @@ dst_openssldh_destroy(void *key, isc_mem_t *mctx) {
  *	generator	generator
  *	mctx		memory context to allocate key
  *  Return 
- *	DST_R_SUCCESS	Success
- *	!DST_R_SUCCESS	Failure
+ *	ISC_R_SUCCESS	Success
+ *	!ISC_R_SUCCESS	Failure
  */
 
 static dst_result_t
@@ -546,7 +546,7 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 		if (key->key_size == 768 || key->key_size == 1024) {
 			dh = DH_new();
 			if (dh == NULL)
-				return (DST_R_NOMEMORY);
+				return (ISC_R_NOMEMORY);
 			if (key->key_size == 768)
 				dh->p = bn768;
 			else
@@ -566,7 +566,7 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 
 	if (DH_generate_key(dh) == 0) {
 		DH_free(dh);
-		return(DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 	}
 
 	key->opaque = dh;
@@ -577,7 +577,7 @@ dst_openssldh_generate(dst_key_t *key, int generator, isc_mem_t *mctx) {
 	isc_buffer_used(&dns, &r);
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -597,7 +597,7 @@ dst_openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = (DH *) key2->opaque;
 
 	if (dh1 == NULL && dh2 == NULL) 
-		return(ISC_TRUE);
+		return (ISC_TRUE);
 	else if (dh1 == NULL || dh2 == NULL)
 		return (ISC_FALSE);
 
@@ -633,7 +633,7 @@ dst_openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = (DH *) key2->opaque;
 
 	if (dh1 == NULL && dh2 == NULL) 
-		return(ISC_TRUE);
+		return (ISC_TRUE);
 	else if (dh1 == NULL || dh2 == NULL)
 		return (ISC_FALSE);
 
@@ -660,7 +660,7 @@ uint16_fromregion(isc_region_t *region) {
 	val |= ((unsigned int)(cp[1]));
 
 	region->base += 2;
-	return val;
+	return (val);
 }
 
 

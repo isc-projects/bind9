@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.16 1999/10/20 19:08:57 bwelling Exp $
+ * $Id: dst_api.c,v 1.17 1999/10/20 22:14:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -353,7 +353,7 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 	}
 
 	if (key == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	/* Fill in private key and some fields in the general key structure */
 	ret = key->func->from_file(key, id, mctx);
@@ -389,7 +389,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &r);
 	if (r.length < 4)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 	isc_buffer_putuint16(target, (isc_uint16_t)(key->key_flags & 0xffff));
 	isc_buffer_putuint8(target, (isc_uint8_t)key->key_proto);
 	isc_buffer_putuint8(target, (isc_uint8_t)key->key_alg);
@@ -397,7 +397,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
 		isc_buffer_available(target, &r);
 		if (r.length < 2)
-			return (DST_R_NOSPACE);
+			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target,
 				     (isc_uint16_t)((key->key_flags >> 16)
 						    & 0xffff));
@@ -457,7 +457,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 
 	*keyp = get_key_struct(name, alg, flags, proto, 0, mctx);
 	if (*keyp == NULL)
-		return(DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	ret = (*keyp)->func->from_dns(*keyp, source, mctx);
 	if (ret != ISC_R_SUCCESS) 
@@ -500,7 +500,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 	*keyp = get_key_struct(name, alg, flags, protocol, 0, mctx);
 
 	if (*keyp == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	ret = (*keyp)->func->from_dns((*keyp), source, mctx);
 	if (ret != ISC_R_SUCCESS) {
@@ -577,7 +577,7 @@ dst_key_generate(const char *name, const int alg, const int bits,
 
 	*keyp = get_key_struct(name, alg, flags, protocol, bits, mctx);
 	if (*keyp == NULL)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	if (bits == 0) { /* NULL KEY */
 		(*keyp)->key_flags |= DNS_KEYTYPE_NOKEY;
@@ -674,37 +674,37 @@ dst_key_free(dst_key_t *key) {
 char *
 dst_key_name(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_name;
+	return (key->key_name);
 }
 
 int
 dst_key_size(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_size;
+	return (key->key_size);
 }
 
 int
 dst_key_proto(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_proto;
+	return (key->key_proto);
 }
 
 int
 dst_key_alg(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_alg;
+	return (key->key_alg);
 }
 
 isc_uint32_t
 dst_key_flags(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_flags;
+	return (key->key_flags);
 }
 
 isc_uint16_t
 dst_key_id(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-	return key->key_id;
+	return (key->key_id);
 }
 
 isc_boolean_t
@@ -793,7 +793,7 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
 
 	isc_buffer_available(target, &r);
 	if (r.length < wanted)
-		return (DST_R_NOSPACE);
+		return (ISC_R_NOSPACE);
 
 	RUNTIME_CHECK(isc_mutex_lock((&random_lock)) == ISC_R_SUCCESS);
 	RAND_bytes(r.base, wanted);
@@ -913,7 +913,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	/* 1500 should be large enough for any key */
 	ret = isc_lex_create(mctx, 1500, &lex);
 	if (ret != ISC_R_SUCCESS)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	ret = isc_lex_openfile(lex, filename);
 	if (ret != ISC_R_SUCCESS) {
@@ -1065,5 +1065,5 @@ dst_mem_realloc(void *ptr, size_t size) {
 	}
 	if (ptr != NULL)
 		dst_mem_free(ptr);
-	return(p);
+	return (p);
 }

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.8 1999/10/08 22:25:14 tale Exp $
+ * $Id: dst_parse.c,v 1.9 1999/10/20 22:14:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -218,7 +218,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	iret = isc_lex_create(mctx, 1024, &lex);
 	if (iret != ISC_R_SUCCESS)
-		return (DST_R_NOMEMORY);
+		return (ISC_R_NOMEMORY);
 
 	iret = isc_lex_openfile(lex, filename);
 	if (iret != ISC_R_SUCCESS)
@@ -312,7 +312,7 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
 
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 
 fail:
 	if (lex != NULL) {
@@ -377,7 +377,7 @@ dst_s_write_private_key_file(const char *name, const int alg,
 		iret = isc_base64_totext(&r, sizeof(buffer), "", &b);
 		if (iret != ISC_R_SUCCESS) {
 			fclose(fp);
-			return(DST_R_INVALIDPRIVATEKEY);
+			return (DST_R_INVALIDPRIVATEKEY);
 		}
 		isc_buffer_used(&b, &r);
 
@@ -387,5 +387,5 @@ dst_s_write_private_key_file(const char *name, const int alg,
 	}
 	
 	fclose(fp);
-	return (DST_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
