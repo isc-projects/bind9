@@ -40,7 +40,7 @@ unsigned int k;
 
   /* Begin calc.
    */
-  while (1) {
+  do {
     if (BigSign (v3, k) == 0)
       break;
     BigPdiv (q, r, u3, v3, k, k);
@@ -57,7 +57,7 @@ unsigned int k;
     BigCopy (v1, t1, k);
     BigCopy (v2, t2, k);
     BigCopy (v3, t3, k);
-  }
+  } while (1);
 
   if (BigSign (u1, k) == -1)
     /* make positive */

@@ -191,7 +191,7 @@ A_SURRENDER_CTX *surrenderContext;
   /* Fill in the random block and try generating as long as the
        the generate operation returns BE_NEED_RANDOM.
    */
-  while (1) {
+  do {
     if ((status = B_AlgorithmGenerateRandomBytes
          (randomAlgorithm,
           (unsigned char *)generateAlgaChoice->randomBlock.z.context,
@@ -211,6 +211,6 @@ A_SURRENDER_CTX *surrenderContext;
     else
       /* Success, so return */
       return (0);
-  }
+  } while (1);
 }
 

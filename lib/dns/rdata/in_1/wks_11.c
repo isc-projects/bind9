@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.17 1999/09/15 23:03:37 explorer Exp $ */
+ /* $Id: wks_11.c,v 1.18 1999/11/03 01:07:00 marka Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
@@ -83,7 +83,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(uint8_tobuffer(proto, target));
 
 	memset(bm, 0, sizeof bm);
-	while (1) {
+	do {
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				  ISC_TRUE));
 		if (token.type != isc_tokentype_string)
@@ -101,7 +101,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		if (port > maxport)
 			maxport = port;
 		bm[port/8] |= (0x80>>(port%8));
-	}
+	} while (1);
 	isc_lex_ungettoken(lexer, &token);
 	n = (maxport + 8) / 8;
 	return (mem_tobuffer(target, bm, n));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.16 1999/09/15 23:03:33 explorer Exp $ */
+ /* $Id: txt_16.c,v 1.17 1999/11/03 01:06:59 marka Exp $ */
 
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
@@ -33,14 +33,14 @@ fromtext_txt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
-	while (1) {
+	do {
 		RETERR(gettoken(lexer, &token, isc_tokentype_qstring,
 				ISC_TRUE));
 		if (token.type != isc_tokentype_qstring &&
 		    token.type != isc_tokentype_string)
 			break;
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
-	}
+	} while (1);
 	/* Let upper layer handle eol/eof. */
 	isc_lex_ungettoken(lexer, &token);
 	return (DNS_R_SUCCESS);

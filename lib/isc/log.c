@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.11 1999/10/31 19:09:23 halley Exp $ */
+/* $Id: log.c,v 1.12 1999/11/03 01:07:02 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -868,7 +868,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	 * XXX duplicate filtering (do not write multiple times to same source
 	 * via various channels)
 	 */
-	while (1) {
+	do {
 		/*
 		 * If the channel list end was reached and a match was made,
 		 * everything is finished.
@@ -1143,7 +1143,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		}
 
-	}
+	} while (1);
 
 	isc_mutex_unlock(&lctx->lock);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.67 1999/11/03 00:17:11 tale Exp $ */
+/* $Id: rbt.c,v 1.68 1999/11/03 01:06:57 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -321,7 +321,7 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 static inline dns_result_t
 move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
-	while (1) {
+	do {
 		/*
 		 * Go as far right and then down as much as possible,
 		 * as long as the rightmost node has a down pointer.
@@ -337,7 +337,7 @@ move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
 		ADD_ANCESTOR(chain, NULL);
 		ADD_LEVEL(chain, node);
 		node = DOWN(node);
-	}
+	} while (1);
 
 	chain->end = node;
 

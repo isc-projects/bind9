@@ -70,7 +70,7 @@ unsigned int n;
   /* now we are guaranteed that a is not too small */
   BigInc (a, n + 2);
 
-  while (1) {
+  do {
     BigPmpy (p, a, t1, n + 2);
     /* makes comparison to 2**u easier */
     BigDec (p, 2 * (n + 2));
@@ -81,7 +81,7 @@ unsigned int n;
 
     /* a was too big, reduce and try again */
     BigDec (a, n + 2);
-  }
+  } while (1);
 
   T_memset ((POINTER)p, 0, sizeof (p));
   T_memset ((POINTER)q, 0, sizeof (q));

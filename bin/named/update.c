@@ -1174,13 +1174,13 @@ uniqify_name_list(dns_diff_t *list) {
 
 	p = ISC_LIST_HEAD(list->tuples);
 	while (p != NULL) {
-		while (1) {
+		do {
 			q = ISC_LIST_NEXT(p, link);
 			if (q == NULL || ! dns_name_equal(&p->name, &q->name))
 				break;
 			ISC_LIST_UNLINK(list->tuples, q, link);
 			dns_difftuple_free(&q);
-		}
+		} while (1);
 		p = ISC_LIST_NEXT(p, link);
 	}
  failure:

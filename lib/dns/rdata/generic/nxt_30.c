@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.17 1999/10/08 21:26:42 tale Exp $ */
+ /* $Id: nxt_30.c,v 1.18 1999/11/03 01:06:59 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -50,25 +50,27 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	memset(bm, 0, sizeof bm);
-	while (1) {
+	do {
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				  ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
 		n = strtol(token.value.as_pointer, &e, 10);
-		if (n  < 0 || n > 65535)
-			return (DNS_R_RANGE);
-		covered = (dns_rdatatype_t)n;
-		if (*e == 0)
-			(void) NULL;
-		else if (dns_rdatatype_fromtext(&covered, 
+		if (e != token.value.as_pointer && *e == '\0') {
+			covered = (dns_rdatatype_t)n;
+		} else if (dns_rdatatype_fromtext(&covered, 
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
 			return (DNS_R_UNKNOWN);
+		/*
+		 * NXT is only specified for types 1..127.
+		 */
+		if (covered < 1 || covered > 127)
+			return (DNS_R_RANGE);
 		if (first || covered > maxcovered)
 			maxcovered = covered;
 		first = ISC_FALSE;
 		bm[covered/8] |= (0x80>>(covered%8));
-	}
+	} while (1);
 	isc_lex_ungettoken(lexer, &token);
 	if (first) 
 		return (DNS_R_SUCCESS);
