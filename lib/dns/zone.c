@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.304 2001/02/09 06:04:53 marka Exp $ */
+/* $Id: zone.c,v 1.305 2001/02/11 02:23:12 marka Exp $ */
 
 #include <config.h>
 
@@ -3669,7 +3669,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
 	if (xfr != NULL) {
-		dns_xfrin_shutdown(zone->xfr);
+		dns_xfrin_shutdown(xfr);
 		LOCK_ZONE(zone);
 		dns_xfrin_detach(&xfr);
 		UNLOCK_ZONE(zone);
