@@ -1,3 +1,5 @@
+1677.	[bug]		dig: +aaonly didn't work, +aaflag undocumented.
+
 1674.	[port]		linux: increase buffer size used to scan
 			/proc/net/if_inet6.
 
