@@ -125,25 +125,30 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at)
 	ai = ISC_LIST_HEAD(find->list);
 	while (ai != NULL && client->gabn.naddrs < LWRES_MAX_ADDRS) {
 		sa = &ai->sockaddr->type.sa;
-		if (sa->sa_family != at)
+		if (sa->sa_family != af)
 			goto next;
 
 		addr = &client->addrs[client->gabn.naddrs];
-		addr->length = ai->sockaddr->length;
+
 		switch (sa->sa_family) {
 		case AF_INET:
 			sin = &ai->sockaddr->type.sin;
 			addr->family = LWRES_ADDRTYPE_V4;
 			addr->address = (unsigned char *)&sin->sin_addr;
+			addr->length = 4;
 			break;
 		case AF_INET6:
-			addr->family = LWRES_ADDRTYPE_V6;
 			sin6 = &ai->sockaddr->type.sin6;
+			addr->family = LWRES_ADDRTYPE_V6;
 			addr->address = (unsigned char *)&sin6->sin6_addr;
+			addr->length = 16;
 			break;
 		default:
 			goto next;
 		}
+
+		DP(50, "Adding address %p, family %d, length %d",
+		   addr->address, addr->family, addr->length);
 
 		client->gabn.naddrs++;
 
@@ -165,10 +170,16 @@ generate_reply(client_t *client)
 
 	DP(50, "Generating gabn reply for client %p", client);
 
+	/*
+	 * We must make certain the client->find is not still active.
+	 * If it is either the v4 or v6 answer, just set it to NULL and
+	 * let the cleanup code destroy it.  Otherwise, destroy it now.
+	 */
 	if (client->find == client->v4find || client->find == client->v6find)
 		client->find = NULL;
 	else
-		dns_adb_destroyfind(&client->find);
+		if (client->find != NULL)
+			dns_adb_destroyfind(&client->find);
 
 	/*
 	 * perhaps there are some here?
@@ -297,6 +308,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 {
 	client_t *client = ev->arg;
 	isc_eventtype_t result;
+	isc_boolean_t claimed;
 
 	DP(50, "Find done for task %p, client %p", task, client);
 
@@ -307,15 +319,22 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev)
 	 * No more info to be had?  If so, we have all the good stuff
 	 * right now, so we can render things.
 	 */
+	claimed = ISC_FALSE;
 	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
 		if (NEED_V4(client)) {
 			client->v4find = client->find;
-			client->find = NULL;
-		} else if (NEED_V6(client)) {
+			claimed = ISC_TRUE;
+		}
+		if (NEED_V6(client)) {
 			client->v6find = client->find;
-			client->find = NULL;
-		} else {
-			dns_adb_destroyfind(&client->find);
+			claimed = ISC_TRUE;
+		}
+		if (client->find != NULL) {
+			if (claimed)
+				client->find = NULL;
+			else
+				dns_adb_destroyfind(&client->find);
+				
 		}
 		generate_reply(client);
 		return;
@@ -354,6 +373,7 @@ start_find(client_t *client)
 {
 	unsigned int options;
 	isc_result_t result;
+	isc_boolean_t claimed;
 
 	DP(50, "Starting find for client %p", client);
 
@@ -375,9 +395,8 @@ start_find(client_t *client)
 	if (NEED_V6(client))
 		options |= DNS_ADBFIND_INET6;
 
-	INSIST(client->find == NULL);
-
  find_again:
+	INSIST(client->find == NULL);
 	result = dns_adb_createfind(client->clientmgr->view->adb,
 				    client->clientmgr->task,
 				    process_gabn_finddone, client,
@@ -416,19 +435,29 @@ start_find(client_t *client)
 		return;
 	}
 
+	claimed = ISC_FALSE;
+
 	/*
 	 * Did we get our answer to V4 addresses?
 	 */
 	if (NEED_V4(client)
-	    && ((client->find->query_pending & DNS_ADBFIND_INET) == 0))
+	    && ((client->find->query_pending & DNS_ADBFIND_INET) == 0)) {
+		DP(50, "client %p ipv4 satisfied by find %p", client,
+		   client->find);
+		claimed = ISC_TRUE;
 		client->v4find = client->find;
+	}
 
 	/*
 	 * Did we get our answer to V6 addresses?
 	 */
 	if (NEED_V6(client)
-	    && ((client->find->query_pending & DNS_ADBFIND_INET6) == 0))
+	    && ((client->find->query_pending & DNS_ADBFIND_INET6) == 0)) {
+		DP(50, "client %p ipv6 satisfied by find %p", client,
+		   client->find);
+		claimed = ISC_TRUE;
 		client->v6find = client->find;
+	}
 
 	/*
 	 * If we're going to get an event, set our internal pending flag
@@ -445,6 +474,10 @@ start_find(client_t *client)
 		return;
 	}
 	DP(50, "No event will be sent.");
+	if (claimed)
+		client->find = NULL;
+	else
+		dns_adb_destroyfind(&client->find);
 
 	/*
 	 * We seem to have everything we asked for, or at least we are
