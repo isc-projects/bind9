@@ -470,7 +470,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 }
 
 dns_result_t
-dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
+dns_message_create(isc_mem_t *mctx, dns_message_t **msgp, unsigned int intent)
 {
 	dns_message_t *m;
 	isc_result_t iresult;
@@ -479,8 +479,8 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 	unsigned int i;
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(msg != NULL);
-	REQUIRE(*msg == NULL);
+	REQUIRE(msgp != NULL);
+	REQUIRE(*msgp == NULL);
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE
 		|| intent == DNS_MESSAGE_INTENTRENDER);
 
@@ -532,7 +532,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msg, unsigned int intent)
 		ISC_LIST_APPEND(m->rdatalists, msgblock, link);
 	}
 
-	*msg = m;
+	*msgp = m;
 	return (DNS_R_SUCCESS);
 
 	/*
@@ -564,15 +564,15 @@ dns_message_reset(dns_message_t *msg)
 }
 
 void
-dns_message_destroy(dns_message_t **xmsg)
+dns_message_destroy(dns_message_t **msgp)
 {
 	dns_message_t *msg;
 
-	REQUIRE(xmsg != NULL);
-	REQUIRE(VALID_MESSAGE(*xmsg));
+	REQUIRE(msgp != NULL);
+	REQUIRE(VALID_MESSAGE(*msgp));
 
-	msg = *xmsg;
-	*xmsg = NULL;
+	msg = *msgp;
+	*msgp = NULL;
 
 	msgreset(msg, ISC_TRUE);
 	msg->magic = 0;
@@ -1150,7 +1150,7 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space)
 
 dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
-			  unsigned int priority, unsigned int flags)
+			  unsigned int priority, unsigned int options)
 {
 	unsigned int used;
 	dns_namelist_t *section;
@@ -1379,4 +1379,96 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 	REQUIRE(VALID_NAMED_SECTION(section));
 
 	ISC_LIST_APPEND(msg->sections[section], name, link);
+}
+
+dns_result_t
+dns_message_gettempname(dns_message_t *msg, dns_name_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item == NULL);
+
+	*item = newname(msg);
+	if (*item == NULL)
+		return (DNS_R_NOMEMORY);
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item == NULL);
+
+	*item = newrdata(msg);
+	if (*item == NULL)
+		return (DNS_R_NOMEMORY);
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item == NULL);
+
+	*item = newrdataset(msg);
+	if (*item == NULL)
+		return (DNS_R_NOMEMORY);
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item == NULL);
+
+	*item = newrdatalist(msg);
+	if (*item == NULL)
+		return (DNS_R_NOMEMORY);
+
+	return (DNS_R_SUCCESS);
+}
+
+void
+dns_message_puttempname(dns_message_t *msg, dns_name_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item != NULL);
+
+	releasename(msg, *item);
+	*item = NULL;
+}
+
+void
+dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item != NULL);
+
+	releaserdata(msg, *item);
+	*item = NULL;
+}
+
+void
+dns_message_puttemprdataset(dns_message_t *msg, dns_rdataset_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item != NULL);
+
+	releaserdataset(msg, *item);
+	*item = NULL;
+}
+
+void
+dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
+{
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(item != NULL && *item != NULL);
+
+	releaserdatalist(msg, *item);
+	*item = NULL;
 }

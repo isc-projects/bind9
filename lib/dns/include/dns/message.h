@@ -476,6 +476,144 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  *	'section' be a named section.
  */
 
+/*
+ * LOANOUT FUNCTIONS
+ *
+ * Each of these functions loan a particular type of data to the caller.
+ * The storage for these will vanish when the message is destroyed or
+ * reset, and must NOT be used after these operations.
+ */
+
+dns_result_t
+dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
+/*
+ * Return a name that can be used for any temporary purpose, including
+ * inserting into the message's linked lists.  The storage associated with
+ * this name will be destroyed when the message is destroyed or reset.
+ *
+ * It is the caller's responsibility to initialize this name.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item == NULL
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMEMORY		-- No item can be allocated.
+ */
+
+dns_result_t
+dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
+/*
+ * Return a rdata that can be used for any temporary purpose, including
+ * inserting into the message's linked lists.  The storage associated with
+ * this rdata will be destroyed when the message is destroyed or reset.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item == NULL
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMEMORY		-- No item can be allocated.
+ */
+
+dns_result_t
+dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
+/*
+ * Return a rdataset that can be used for any temporary purpose, including
+ * inserting into the message's linked lists.  The storage associated with
+ * this rdataset will be destroyed when the message is destroyed or reset.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item == NULL
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMEMORY		-- No item can be allocated.
+ */
+
+dns_result_t
+dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
+/*
+ * Return a rdatalist that can be used for any temporary purpose, including
+ * inserting into the message's linked lists.  The storage associated with
+ * this rdatalist will be destroyed when the message is destroyed or reset.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item == NULL
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- All is well.
+ *	DNS_R_NOMEMORY		-- No item can be allocated.
+ */
+
+void
+dns_message_puttempname(dns_message_t *msg, dns_name_t **item);
+/*
+ * Return a borrowed name to the message's name free list.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item point to a name returned by
+ *	dns_message_gettempname()
+ *
+ * Ensures:
+ *	*item == NULL
+ */
+
+void
+dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item);
+/*
+ * Return a borrowed rdata to the message's rdata free list.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item point to a rdata returned by
+ *	dns_message_gettemprdata()
+ *
+ * Ensures:
+ *	*item == NULL
+ */
+
+void
+dns_message_puttemprdataset(dns_message_t *msg, dns_rdataset_t **item);
+/*
+ * Return a borrowed rdataset to the message's rdataset free list.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item point to a rdataset returned by
+ *	dns_message_gettemprdataset()
+ *
+ * Ensures:
+ *	*item == NULL
+ */
+
+void
+dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
+/*
+ * Return a borrowed rdatalist to the message's rdatalist free list.
+ *
+ * Requires:
+ *	msg be a valid message
+ *
+ *	item != NULL && *item point to a rdatalist returned by
+ *	dns_message_gettemprdatalist()
+ *
+ * Ensures:
+ *	*item == NULL
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif	/* DNS_DNS_H */
