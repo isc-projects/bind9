@@ -46,10 +46,19 @@
 #include <dns/types.h>
 #include <dns/result.h>
 
+#define DNS_REQUESTOPT_TCP 0x00000001U
+
 ISC_LANG_BEGINDECLS
+
+typedef struct dns_requestevent {
+        ISC_EVENT_COMMON(struct dns_requestevent);
+	isc_result_t result;
+	dns_request_t *request;
+} dns_requestevent_t;
 
 isc_result_t
 dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
+		      isc_socketmgr_t *socketmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp);
 /*
@@ -60,6 +69,8 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
  *	'mctx' is a valid memory context.
  *
  *	'timermgr' is a valid timer manager.
+ *
+ *	'socketmgr' is a valid socket manager.
  *
  *	'dispatchv4' is a valid dispatcher with an IPv4 UDP socket, or is NULL.
  *
@@ -114,14 +125,14 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr);
  *
  * Requires:
  *
- *	'res' is a valid requestmgr.
+ *	'requestmgr' is a valid requestmgr.
  */
 
 void
-isc_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp);
+dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp);
 
 void
-isc_requestmgr_detach(dns_requestmgr_t **requestmgrp);
+dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 
 
 isc_result_t
