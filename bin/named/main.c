@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.117 2001/07/16 17:32:49 gson Exp $ */
+/* $Id: main.c,v 1.118 2001/08/08 20:36:13 gson Exp $ */
 
 #include <config.h>
 
@@ -515,8 +515,6 @@ cleanup(void) {
 	 * Add calls to unregister sdb drivers here.
 	 */
 	/* xxdb_clear(); */
-
-	(void)isc_file_remove(ns_g_autorndckeyfile);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
