@@ -22,12 +22,13 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
-		${DNS_INCLUDES} ${ISC_INCLUDES} 
+		${DNS_INCLUDES} ${ISC_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =	
 CWARNINGS =
 
 DEPLIBS =	../../lib/dns/libdns.@A@ \
+		../../lib/omapi/libomapi.@A@ \
 		../../lib/isc/libisc.@A@
 
 LIBS =		${DEPLIBS} \
@@ -38,13 +39,13 @@ SUBDIRS =	unix
 TARGETS =	named
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
-		log.@O@ main.@O@ notify.@O@ \
+		log.@O@ main.@O@ notify.@O@ omapi.@O@ \
 		query.@O@ server.@O@ update.@O@ xfrout.@O@
 
 UOBJS =		unix/os.@O@
 
 SRCS =		client.c interfacemgr.c listenlist.c \
-		log.c main.c notify.c \
+		log.c main.c notify.c omapi.c \
 		query.c server.c update.c xfrout.c
 
 @BIND9_MAKE_RULES@
