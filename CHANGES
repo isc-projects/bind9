@@ -1,4 +1,8 @@
 
+1010.	[bug]		The server could attempt to execute a command channel
+			command after initiating server shutdown, causing
+			an assertion failure. [RT #1766]
+
 1006.	[bug]		If a KEY RR was found missing during DNSSEC validation,
 			an assertion failure could subsequently be triggered
 			in the resolver. [RT #1763]
