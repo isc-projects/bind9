@@ -206,15 +206,24 @@
 	the key it has generated.  These strings can be used as arguments
 	to <command>dnssec-makekeyset</command>.
     </para>
-    <para>
-        <filename>nnnn</filename> is the key name.
-    </para>
-    <para>
-        <filename>aaa</filename> is the numeric representation of the algorithm.
-    </para>
-    <para>
-        <filename>iiiii</filename> is the key identifier (or footprint).
-    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <filename>nnnn</filename> is the key name.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <filename>aaa</filename> is the numeric representation of the
+          algorithm.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <filename>iiiii</filename> is the key identifier (or footprint).
+        </para>
+      </listitem>
+    </itemizedlist>
     <para>
         <command>dnssec-keygen</command> creates two file, with names based
 	on the printed string.  <filename>Knnnn.+aaa+iiiii.key</filename>

@@ -104,11 +104,15 @@ it prints a string of the form \fIKnnnn.+aaa+iiiii\fR
 to the standard output. This is an identification string for
 the key it has generated. These strings can be used as arguments
 to \fBdnssec-makekeyset\fR.
-.PP
+.TP 0.2i
+\(bu
 \fInnnn\fR is the key name.
-.PP
-\fIaaa\fR is the numeric representation of the algorithm.
-.PP
+.TP 0.2i
+\(bu
+\fIaaa\fR is the numeric representation of the
+algorithm.
+.TP 0.2i
+\(bu
 \fIiiiii\fR is the key identifier (or footprint).
 .PP
 \fBdnssec-keygen\fR creates two file, with names based
@@ -117,17 +121,21 @@ contains the public key, and
 \fIKnnnn.+aaa+iiiii.private\fR contains the private
 key.
 .PP
+.PP
 The \fI.key\fR file contains a DNS KEY record that
 can be inserted into a zone file (directly or with a $INCLUDE
 statement).
+.PP
 .PP
 The \fI.private\fR file contains algorithm specific
 fields. For obvious security reasons, this file does not have
 general read permission.
 .PP
+.PP
 Both \fI.key\fR and \fI.private\fR
 files are generated for symmetric encryption algorithm such as
 HMAC-MD5, even though the public and private key are equivalent.
+.PP
 .SH "EXAMPLE"
 .PP
 To generate a 768-bit DSA key for the domain
