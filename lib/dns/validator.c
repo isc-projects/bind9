@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.63.2.5 2000/09/11 17:04:58 gson Exp $ */
+/* $Id: validator.c,v 1.63.2.6 2000/09/12 19:20:36 gson Exp $ */
 
 #include <config.h>
 
@@ -225,6 +225,15 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 			result = proveunsecure(val, ISC_TRUE);
 			if (result != DNS_R_WAIT)
 				validator_done(val, result);
+			else {
+				/*
+				 * Don't free rdataset & sigrdataset, since
+				 * they'll be freed in nullkeyvalidated.
+				 */
+				isc_event_free(&event);
+				UNLOCK(&val->lock);
+				return;
+			}
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "found a keyset with a null key");
@@ -521,7 +530,9 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 	if (eresult == ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "proved that name is in an unsecure domain");
+		validator_log(val, ISC_LOG_DEBUG(3), "marking as answer");
 		LOCK(&val->lock);
+		val->event->rdataset->trust = dns_trust_answer;
 		validator_done(val, ISC_R_SUCCESS);
 		UNLOCK(&val->lock);
 	} else {
