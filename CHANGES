@@ -1,3 +1,4 @@
+ 992.	[doc]		dig: ~/.digrc is now documented.
 
  991.	[func]		Lower UDP refresh timeout messages to level
 			debug 1.
