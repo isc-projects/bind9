@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.16 2000/07/09 16:33:09 tale Exp $
+# $Id: tests.sh,v 1.17 2000/07/10 11:39:46 tale Exp $
 
 #
 # Perform tests
@@ -42,10 +42,10 @@ cp ns2/named2.conf ns2/named.conf
 cp ns3/named2.conf ns3/named.conf
 cp ns2/example2.db ns2/example.db
 
-echo "I:sleeping five seconds then reloading ns2 and ns3"
+echo "I:sleeping five seconds then reloading ns2 and ns3 with rndc"
 sleep 5
-kill -HUP `cat ns2/named.pid`
-kill -HUP `cat ns3/named.pid`
+$RNDC -c rndc.conf -s 10.53.0.2 -p 9953 reload
+$RNDC -c rndc.conf -s 10.53.0.3 -p 9953 reload
 
 echo "I:sleeping one minute"
 sleep 60
