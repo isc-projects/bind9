@@ -1,3 +1,6 @@
+  18.   [bug]           Use AC_TRY_LINK rather than AC_TRY_COMPILE in
+                        configure.in to check for presence of in6addr_any.
+
   17.	[func]		Do configuration file post-load validation of zones.
 
   16.	[bug]		put quotes around key names on config file 
@@ -18,7 +21,7 @@
 			db_rr_iterator_first(), possibly causing an assertion
 			to be triggered later.
 
-  10.	[bug]		An bug in the code which makes EDNS0 OPT records in
+  10.	[bug]		A bug in the code which makes EDNS0 OPT records in
 			bin/named/client.c and lib/dns/resolver.c could
 			trigger an assertion.
 
