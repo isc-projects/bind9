@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.115 2000/12/07 01:41:14 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.116 2000/12/07 21:49:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -112,6 +112,7 @@ static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
 static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
 static unsigned int assigned = 0, completed = 0;
+static isc_boolean_t nokeys = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -886,7 +887,8 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 		}
 
 		if (rdataset.type == dns_rdatatype_nxt) {
-			nxt_setbit(&rdataset, dns_rdatatype_sig);
+			if (!nokeys)
+				nxt_setbit(&rdataset, dns_rdatatype_sig);
 			if (neednullkey)
 				nxt_setbit(&rdataset, dns_rdatatype_key);
 		}
@@ -1670,9 +1672,11 @@ main(int argc, char *argv[]) {
 		loadzonepubkeys(gdb);
 	}
 
-	if (ISC_LIST_EMPTY(keylist))
+	if (ISC_LIST_EMPTY(keylist)) {
 		fprintf(stderr, "%s: warning: No keys specified or found\n",
 			program);
+		nokeys = ISC_TRUE;
+	}
 
 	gversion = NULL;
 	result = dns_db_newversion(gdb, &gversion);
