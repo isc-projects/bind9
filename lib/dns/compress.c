@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.6 1999/03/06 04:08:29 halley Exp $ */
+ /* $Id: compress.c,v 1.7 1999/03/11 00:26:20 marka Exp $ */
 
 #include <config.h>
 
@@ -124,7 +124,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 		labels --;
 		wl++;
 		ll++;
-		if (ll > 255)
+		if (ll > 254)
 			return (DNS_R_SUCCESS);
 		dns_name_getlabel(&name, 0, &label);
 		if (dns_label_type(&label) != dns_labeltype_bitstring)
@@ -159,7 +159,7 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 				return (DNS_R_SUCCESS);
 			}
 			ll++;
-			if (ll > 255)
+			if (ll > 254)
 				return (DNS_R_SUCCESS);
 		} while (bits > 1);
 	}
@@ -242,19 +242,21 @@ dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 
 void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-		 dns_name_t *suffix, isc_uint16_t offset)
+		 dns_name_t *suffix, isc_uint16_t offset,
+		 isc_boolean_t local)
 {
-	isc_uint16_t local;
+	isc_uint16_t localoffset;
 	REQUIRE(VALID_CCTX(cctx));
 
 	if (cctx->local != NULL && (cctx->allowed & DNS_COMPRESS_LOCAL) != 0) {
 		REQUIRE(cctx->rdata <= offset);
-		local = offset - cctx->rdata + 256;
-		compress_add(cctx->local, prefix, suffix, local, ISC_TRUE,
+		localoffset = offset - cctx->rdata + 256;
+		compress_add(cctx->local, prefix, suffix, localoffset, ISC_TRUE,
 			     cctx->mctx);
 	}
-	compress_add(cctx->global, prefix, suffix, offset, cctx->global16,
-		     cctx->mctx);
+	if ((cctx->edns > -1) || !local)
+		compress_add(cctx->global, prefix, suffix, offset,
+			     cctx->global16, cctx->mctx);
 }
 
 void

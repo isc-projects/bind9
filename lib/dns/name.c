@@ -2057,7 +2057,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 			isc_buffer_putuint16(target, go);
 		}
 		if (gp.length != 0)
-			dns_compress_add(cctx, &gp, &gs, offset);
+			dns_compress_add(cctx, &gp, &gs, offset, ISC_FALSE);
 	} else if (lf) {
 		if (target->length - target->used < lp.length)
 			return (DNS_R_NOSPACE);
@@ -2078,14 +2078,14 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 			isc_buffer_putuint16(target, lo);
 		}
 		if (lp.length != 0)
-			dns_compress_add(cctx, &lp, &ls, offset);
+			dns_compress_add(cctx, &lp, &ls, offset, ISC_TRUE);
 	} else {
 		if (target->length - target->used < name->length)
 			return (DNS_R_NOSPACE);
 		(void)memcpy((unsigned char *)target->base + target->used,
 			     name->ndata, (size_t)name->length);
 		isc_buffer_add(target, name->length);
-		dns_compress_add(cctx, name, NULL, offset);
+		dns_compress_add(cctx, name, NULL, offset, ISC_FALSE);
 	}
 	return (DNS_R_SUCCESS);
 }

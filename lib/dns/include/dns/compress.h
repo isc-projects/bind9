@@ -208,10 +208,14 @@ dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 
 void
 dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-		 dns_name_t *suffix, isc_uint16_t offset);
+		 dns_name_t *suffix, isc_uint16_t offset,
+		 isc_boolean_t local);
 /*
  *	Add compression pointers for labels in prefix to RBT's.
- *	If 'prefix' is absolute 'suffix' must be NULL.
+ *	If 'prefix' is absolute 'suffix' must be NULL otherwise
+ *	suffix must be absolute.
+ *	'local' indicates that the domain name at offset contains
+ *	a local compression pointer.
  *
  *	Requires:
  *		'cctx' initalised
