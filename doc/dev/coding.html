@@ -200,6 +200,13 @@ g(int i, /* other args here */
 }
 </CODE></PRE>
 
+To suppress compiler warnings, unused function arguments are declared
+using the <CODE>UNUSED()</CODE> macro.<P>
+
+In the function body, any <CODE>REQUIRE()</CODE>s are placed
+immediately after the local variabled, followed by any
+<CODE>UNUSED()</CODE> declarations.<P>
+
 <H4>Curly Braces</H4>
 Curly Braces do not get their own indentation.
 An opening brace does not start a new line.  The statements enclosed
