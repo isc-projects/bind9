@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2001/05/15 17:33:29 gson Exp $
+# $Id: Makefile.in,v 1.6 2001/05/15 18:07:15 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,24 +39,21 @@ Bv9ARM.html: Bv9ARM-book.xml
 	    -d ./nominum-docbook-html.dsl \
 	    ${XMLDCL} ./Bv9ARM-book.xml
 
-Bv9ARM-book.dvi: Bv9ARM-book.pdf
+Bv9ARM-book.tex: Bv9ARM-book.xml
 	${OPENJADE} -v \
+	     -c ${SGMLCATALOG} \
 	     -d ./nominum-docbook-print.dsl \
 	     -t tex \
 	     ${XMLDCL} ./Bv9ARM-book.xml
-	rm Bv9ARM-book.aux Bv9ARM-book.dvi Bv9ARM-book.log
-	@TEX@ "&jadetex" ./Bv9ARM-book.tex
-	@TEX@ "&jadetex" ./Bv9ARM-book.tex
-	@TEX@ "&jadetex" ./Bv9ARM-book.tex
 
-Bv9ARM-book.pdf: Bv9ARM-book.xml
-	${OPENJADE} -v \
-	    -c @SGMLDIR@/catalog \
-	    -d ./nominum-docbook-print.dsl \
-	    -t tex \
-	    ${XMLDCL} ./Bv9ARM-book.xml
-	rm Bv9ARM-book.aux Bv9ARM-book.pdf Bv9ARM-book.log
-	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
-	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
-	@PDFTEX@ "&pdfjadetex" ./Bv9ARM-book.tex
+Bv9ARM-book.dvi: Bv9ARM-book.tex
+	rm -f Bv9ARM-book.aux Bv9ARM-book.dvi Bv9ARM-book.log
+	${JADETEX} ./Bv9ARM-book.tex || true
+	${JADETEX} ./Bv9ARM-book.tex || true
+	${JADETEX} ./Bv9ARM-book.tex || true
 
+Bv9ARM-book.pdf: Bv9ARM-book.tex
+	rm -f Bv9ARM-book.aux Bv9ARM-book.pdf Bv9ARM-book.log
+	${PDFJADETEX} ./Bv9ARM-book.tex || true
+	${PDFJADETEX} ./Bv9ARM-book.tex || true
+	${PDFJADETEX} ./Bv9ARM-book.tex || true

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.253 $)
+AC_REVISION($Revision: 1.254 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1409,14 +1409,14 @@ AC_PATH_PROGS(OPENJADE, openjade, openjade)
 AC_SUBST(OPENJADE)
 
 #
-# Look for tex & pdftex.
+# Look for TeX.
 #
 
-AC_PATH_PROGS(TEX, tex, tex)
-AC_SUBST(TEX)
+AC_PATH_PROGS(JADETEX, jadetex, jadetex)
+AC_SUBST(JADETEX)
 
-AC_PATH_PROGS(PDFTEX, pdftex, pdftex)
-AC_SUBST(PDFTEX)
+AC_PATH_PROGS(PDFJADETEX, pdfjadetex, pdfjadetex)
+AC_SUBST(PDFJADETEX)
 
 AC_MSG_CHECKING(for SGML catalog)
 for d in /usr/pkg/share/sgml /usr/local/share/sgml
@@ -1467,6 +1467,28 @@ then
 	HTMLSTYLE=docbook.dsl
 fi
 AC_SUBST(HTMLSTYLE)
+
+PRINTSTYLE=""
+AC_MSG_CHECKING(for print/docbook.dsl)
+for d in /usr/pkg/share/sgml /usr/local/share/sgml
+do
+	for s in docbook/dsssl/modular dsssl/docbook
+	do
+		f=$d/$s/print/docbook.dsl
+		if test -f $f
+		then
+			PRINTSTYLE=$f
+			AC_MSG_RESULT($f)
+			break
+		fi
+	done
+done
+if test "X$PRINTSTYLE" = "X"
+then
+	AC_MSG_RESULT("not found");
+	PRINTSTYLE=docbook.dsl
+fi
+AC_SUBST(PRINTSTYLE)
 
 #
 # Look for XML declarations
