@@ -11,7 +11,7 @@
 
 1116.	[bug]		Setting transfers in a server clause, transfers-in,
 			or transfers-per-ns to a value greater than
-			2147483647 disabled transfers.  [RT #2002]
+			2147483647 disabled transfers. [RT #2002]
 
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
@@ -34,7 +34,7 @@
 1104.	[bug]		Invalid arguments to the transfer-format option
 			could cause an assertion failure. [RT #1995]
 
-1103.	[port]		OpenUNIX 8 support (ifconfig.sh).  [RT #1970]
+1103.	[port]		OpenUNIX 8 support (ifconfig.sh). [RT #1970]
 
 1102.	[doc]		Note that query logging is enabled by directing the
 			queries category to a channel.
@@ -57,8 +57,8 @@
 
 1090.	[bug]		libbind: dns_ho.c:add_hostent() was not returning
 			the amount of memory consumed resulting in garbage
-			address being returned.  Alignment calculations were   
-			wasting space.  We weren't suppressing duplicate
+			address being returned.	 Alignment calculations were   
+			wasting space.	We weren't suppressing duplicate
 			addresses.
 
 1088.	[port]		libbind: MPE/iX C.70 (incomplete)
