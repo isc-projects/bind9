@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,10 @@
 
 #include <pthread.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef pthread_t isc_thread_t;
 typedef void * isc_threadresult_t;
@@ -39,5 +42,7 @@ typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 
 #define isc_thread_self \
 	(unsigned long)pthread_self
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_THREAD_H */

@@ -18,6 +18,10 @@
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 typedef unsigned int isc_result_t;
 
 #define ISC_R_SUCCESS			0
@@ -56,5 +60,7 @@ typedef unsigned int isc_result_t;
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
 char *					isc_result_totext(isc_result_t);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_RESULT_H */

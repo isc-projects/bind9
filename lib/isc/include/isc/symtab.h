@@ -79,6 +79,9 @@
 
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Symbol Tables.
@@ -120,5 +123,7 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 
 isc_result_t
 isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_SYMBOL_H */

@@ -20,7 +20,10 @@
 
 #include <pthread.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef pthread_mutex_t	isc_mutex_t;
 
@@ -44,5 +47,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 #define isc_mutex_destroy(mp) \
 	((pthread_mutex_destroy((mp)) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_MUTEX_H */

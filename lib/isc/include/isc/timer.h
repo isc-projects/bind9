@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -74,7 +74,9 @@
 #include <isc/time.h>
 #include <isc/task.h>
 #include <isc/event.h>
+#include <isc/lang.h>
 
+ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -298,5 +300,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
  *
  *	All resources used by the manager have been freed.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_TIMER_H */

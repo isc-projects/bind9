@@ -20,6 +20,10 @@
 
 #include <stdarg.h>
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 typedef void (*isc_errorcallback_t)(char *, int, char *, va_list);
 
 void isc_error_setunexpected(isc_errorcallback_t);
@@ -33,5 +37,7 @@ void isc_error_runtimecheck(char *, int, char *);
 #define RUNTIME_CHECK(cond) \
 	((void) ((cond) || \
 		 ((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_ERROR_H */

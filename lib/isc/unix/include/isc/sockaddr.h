@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,10 @@
 
 #include <netinet/in.h>
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 typedef struct isc_sockaddr {
 	/*
 	 * XXX  Must be big enough for all sockaddr types we care about.
@@ -28,5 +32,7 @@ typedef struct isc_sockaddr {
 		struct sockaddr_in sin;
 	} type;
 } isc_sockaddr_t;
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */

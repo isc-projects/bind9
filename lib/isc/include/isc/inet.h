@@ -18,6 +18,10 @@
 #ifndef ISC_INET_H
 #define ISC_INET_H 1
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 /*
  * Provide missing functionality that functions internal to the isc/dns
  * library will need.
@@ -48,5 +52,7 @@ int isc_inet_aton(const char *cp, struct in_addr *addr);
 #else
 #define isc_inet_aton inet_aton
 #endif
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_INET_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,9 +18,12 @@
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
+#include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/mutex.h>
 #include <isc/condition.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef enum {
 	isc_rwlocktype_read = 0,
@@ -55,5 +58,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
 void
 isc_rwlock_destroy(isc_rwlock_t *rwl);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_RWLOCK_H */

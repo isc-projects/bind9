@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,9 +18,15 @@
 #ifndef ISC_BOOLEAN_H
 #define ISC_BOOLEAN_H 1
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
 
 #define ISC_FALSE isc_boolean_false
 #define ISC_TRUE isc_boolean_true
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_BOOLEAN_H */

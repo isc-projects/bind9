@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,6 +24,9 @@
 #include <isc/result.h>
 #include <isc/mutex.h>
 #include <isc/time.h>
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef pthread_cond_t isc_condition_t;
 
@@ -49,5 +52,7 @@ typedef pthread_cond_t isc_condition_t;
 
 isc_result_t isc_condition_waituntil(isc_condition_t *, isc_mutex_t *,
 				     isc_time_t *);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_CONDITION_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,6 +18,10 @@
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
 /***
  *** Registry of Predefined Event Type Classes
  ***/
@@ -30,7 +34,7 @@
  * Event number zero is always reserved in each class.
  */
 
-#define ISC_EVENTCLASS(class)		((class) << 16)
+#define ISC_EVENTCLASS(eclass)		((eclass) << 16)
 
 #define	ISC_EVENTCLASS_TASK		ISC_EVENTCLASS(0)
 #define	ISC_EVENTCLASS_TIMER		ISC_EVENTCLASS(1)
@@ -40,5 +44,7 @@
 /*
  * Event classes >= 1024 and <= 32767 are reserved for application use.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_EVENT_H */

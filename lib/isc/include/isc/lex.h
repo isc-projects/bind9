@@ -54,10 +54,12 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/result.h>
 #include <isc/mem.h>
 
+ISC_LANG_BEGINDECLS
 
 /***
  *** Options
@@ -336,5 +338,7 @@ isc_lex_getsourceline(isc_lex_t *lex);
  * Returns:
  * 	Current line number or 0 if no current source.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_LEX_H */

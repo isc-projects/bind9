@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997, 1998  Internet Software Consortium.
+ * Copyright (C) 1997, 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,11 +16,15 @@
  */
 
 /*
- * $Id: assertions.h,v 1.3 1998/12/13 23:45:03 halley Exp $
+ * $Id: assertions.h,v 1.4 1999/03/04 02:38:47 halley Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
 #define ISC_ASSERTIONS_H	1
+
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef enum {
 	isc_assertiontype_require,
@@ -106,5 +110,7 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 #else
 #define INVARIANT(cond)		((void) 0)
 #endif /* CHECK_INVARIANT */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_ASSERTIONS_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -20,8 +20,11 @@
 
 #include <time.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/boolean.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Intervals
@@ -154,5 +157,7 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
  *
  *	t >= epoch + i			(comparing times, not pointers)
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_TIME_H */

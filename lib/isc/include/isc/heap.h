@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997, 1998  Internet Software Consortium.
+ * Copyright (C) 1997, 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,9 +15,15 @@
  * SOFTWARE.
  */
 
+#ifndef ISC_HEAP_H
+#define ISC_HEAP_H 1
+
+#include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/boolean.h>
 #include <isc/mem.h>
+
+ISC_LANG_BEGINDECLS
 
 /* 
  * The comparision function returns ISC_TRUE if the first argument has
@@ -39,3 +45,7 @@ void		isc_heap_increased(isc_heap_t *, unsigned int);
 void		isc_heap_decreased(isc_heap_t *, unsigned int);
 void *		isc_heap_element(isc_heap_t *, unsigned int);
 void		isc_heap_foreach(isc_heap_t *, isc_heapaction_t, void *);
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_HEAP_H */

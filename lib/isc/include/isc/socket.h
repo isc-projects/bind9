@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -59,14 +59,16 @@
  *** Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/boolean.h>
 #include <isc/result.h>
 #include <isc/event.h>
-
 #include <isc/task.h>
 #include <isc/region.h>
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -587,5 +589,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp);
  *
  *	All resources used by the manager have been freed.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKET_H */

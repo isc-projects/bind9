@@ -15,14 +15,17 @@
  * SOFTWARE.
  */
 
- /* $Id: str.h,v 1.1 1999/02/05 04:57:20 marka Exp $ */
+ /* $Id: str.h,v 1.2 1999/03/04 02:38:48 halley Exp $ */
 
 #ifndef ISC_STR_H
 #define ISC_STR_H 1
+
+#include <isc/lang.h>
 #include <isc/types.h>
 
-isc_uint64_t isc_strtouq(char *source, char **endp, int base);
+ISC_LANG_BEGINDECLS
 
+isc_uint64_t isc_strtouq(char *source, char **endp, int base);
 /*
  * Convert the string pointed to by 'source' to isc_uint64_t.
  * 
@@ -35,5 +38,7 @@ isc_uint64_t isc_strtouq(char *source, char **endp, int base);
  *
  * On error 'endp' points to 'source'.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_INT_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997, 1998  Internet Software Consortium.
+ * Copyright (C) 1997, 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,7 +22,10 @@
 #include <stddef.h>
 
 #include <isc/boolean.h>
+#include <isc/lang.h>
 #include <isc/result.h>
+
+ISC_LANG_BEGINDECLS
 
 typedef struct isc_mem		isc_mem_t;
 
@@ -77,5 +80,7 @@ int				memvalid(void *);
 void 				memstats(FILE *);
 
 #endif /* ISC_MEMCLUSTER_LEGACY */
+
+ISC_LANG_ENDDECLS
 
 #endif /* MEM_H */

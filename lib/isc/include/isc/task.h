@@ -20,11 +20,12 @@
 
 #include <stddef.h>
 
+#include <isc/lang.h>
 #include <isc/list.h>
 #include <isc/mem.h>
-
 #include <isc/result.h>
 
+ISC_LANG_BEGINDECLS
 
 /***
  *** Core Types.
@@ -111,5 +112,7 @@ isc_result_t				isc_taskmgr_create(isc_mem_t *,
 							   unsigned int,
 							   isc_taskmgr_t **);
 void					isc_taskmgr_destroy(isc_taskmgr_t **);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_TASK_H */

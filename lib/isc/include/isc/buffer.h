@@ -82,8 +82,11 @@
  *** Imports
  ***/
 
+#include <isc/lang.h>
 #include <isc/region.h>
 #include <isc/int.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Types
@@ -416,5 +419,7 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  * Ensures:
  *	The used pointer in 'b' is advanced by 4.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_BUFFER_H */
