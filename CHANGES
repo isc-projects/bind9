@@ -1,4 +1,4 @@
-1163.	[func]		isc_time_formattimestamp() will now reports the year.
+1163.	[func]		isc_time_formattimestamp() now includes the year.
 
 1162.	[bug]		The allow-notify option was not accepted in slave
 			zone statements.
