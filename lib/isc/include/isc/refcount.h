@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.4 2003/07/24 06:41:20 marka Exp $ */
+/* $Id: refcount.h,v 1.5 2003/07/25 05:02:54 marka Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -111,7 +111,7 @@ typedef struct isc_refcount {
 
 #define isc_refcount_increment(rp, tp)				\
 	do {							\
-		unsigned int _tmp = (unsigned int *)(tp);	\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
 		LOCK(&(rp)->lock);				\
 		REQUIRE((rp)->refs > 0);			\
 		++((rp)->refs);					\
@@ -122,7 +122,7 @@ typedef struct isc_refcount {
 
 #define isc_refcount_decrement(rp, tp)				\
 	do {							\
-		unsigned int _tmp = (unsigned int *)(tp);	\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
 		LOCK(&(rp)->lock);				\
 		REQUIRE((rp)->refs > 0);			\
 		--((rp)->refs);					\
