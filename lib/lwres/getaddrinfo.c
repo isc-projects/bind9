@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.7 2000/01/21 02:03:16 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.8 2000/01/28 01:56:36 marka Exp $
  */
 
 
@@ -35,7 +35,8 @@ static int add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
     int socktype, int port);
 static int add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
     int socktype, int port);
-static void set_order(int, int (**)());
+static void set_order(int, int (**)(const char *, int, struct addrinfo **,
+         int, int));
 
 #define FOUND_IPV4	0x1
 #define FOUND_IPV6	0x2
@@ -52,7 +53,8 @@ getaddrinfo(const char *hostname, const char *servname,
 	int family, socktype, flags, protocol;
 	struct addrinfo *ai, *ai_list;
 	int port, err, i;
-	int (*net_order[FOUND_MAX+1])();
+	int (*net_order[FOUND_MAX+1])(const char *, int, struct addrinfo **,
+		 int, int);
 
 	if (hostname == NULL && servname == NULL)
 		return (EAI_NONAME);
@@ -268,7 +270,8 @@ done:
 static void
 set_order(family, net_order)
 	int family;
-	int (**net_order)();
+	int (**net_order)(const char *, int, struct addrinfo **,
+		 int, int);
 {
 	char *order, *tok;
 	int found;
