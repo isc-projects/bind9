@@ -340,7 +340,7 @@ main(int argc, char **argv) {
 	 * Create a dispatch manager.
 	 */
 	dispatchmgr = NULL;
-	result = dns_dispatchmgr_create(mem, &dispatchmgr);
+	result = dns_dispatchmgr_create(mem, NULL, &dispatchmgr);
 	INSIST(result == ISC_R_SUCCESS);
 
 	/*

@@ -364,7 +364,7 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = dns_dispatchmgr_create(ns_g_mctx, &ns_g_dispatchmgr);
+	result = dns_dispatchmgr_create(ns_g_mctx, NULL, &ns_g_dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_dispatchmgr_create() failed: %s",

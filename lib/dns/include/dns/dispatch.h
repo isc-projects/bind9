@@ -53,6 +53,7 @@
 #include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
+#include <dns/types.h>
 
 #include <dns/types.h>
 
@@ -119,10 +120,9 @@ struct dns_dispatchevent {
 #define DNS_DISPATCHATTR_MAKEQUERY	0x00000040U
 #define DNS_DISPATCHATTR_CONNECTED	0x00000080U
 
-ISC_LANG_BEGINDECLS
-
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
+		       dns_dispatchmgr_t **mgrp);
 /*
  * Creates a new dispatchmgr object.
  *
@@ -130,6 +130,10 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
  *	"mctx" be a valid memory context.
  *
  *	mgrp != NULL && *mgrp == NULL
+ *
+ *	"entropy" may be NULL, in which case an insecure random generator
+ *	will be used.  If it is non-NULL, it must be a valid entropy
+ *	source.
  *
  * Returns:
  *	ISC_R_SUCCESS	-- all ok

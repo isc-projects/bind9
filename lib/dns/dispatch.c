@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 
+#include <isc/entropy.h>
 #include <isc/lfsr.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -49,6 +50,8 @@ struct dns_dispatchmgr {
 	isc_mempool_t		       *epool;	/* memory pool for events */
 	isc_mempool_t		       *rpool;	/* memory pool request/reply */
 	isc_mempool_t		       *dpool;  /* dispatch allocations */
+
+	isc_entropy_t		       *entropy; /* entropy source */
 };
 
 #define MGR_SHUTTINGDOWN		0x00000001U
@@ -227,10 +230,22 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 static void
 reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 {
-	UNUSED(arg);
+	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
+	dns_dispatchmgr_t *mgr = disp->mgr;
+	isc_result_t result;
+	isc_uint32_t val;
+
+	if (mgr->entropy != NULL) {
+		result = isc_entropy_getdata(mgr->entropy, &val, sizeof val,
+					     NULL, 0);
+		if (result == ISC_R_SUCCESS) {
+			lfsr->count = (val & 0x1f) + 32;
+			lfsr->state = val;
+			return;
+		}
+	}
 
 	lfsr->count = (random() & 0x1f) + 32;	/* From 32 to 63 states */
-
 	lfsr->state = random();
 }
 
@@ -504,6 +519,11 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			isc_event_free(&ev_in);
 			return;
 		}
+
+		
+		dispatch_log(disp, LVL(10),
+			     "odd socket result in udp_recv():  %s\n",
+			     ev->result);
 
 		/*
 		 * otherwise, on strange error, log it and restart.
@@ -914,6 +934,9 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 	isc_mutex_destroy(&mgr->pool_lock);
 
+	if (mgr->entropy != NULL)
+		isc_entropy_detach(&mgr->entropy);
+
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 }
@@ -946,7 +969,9 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
  */
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
+		       dns_dispatchmgr_t **mgrp)
+{
 	dns_dispatchmgr_t *mgr;
 	isc_result_t result;
 
@@ -1004,6 +1029,10 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp) {
 	mgr->magic = DNS_DISPATCHMGR_MAGIC;
 	mgr->state = 0;
 	ISC_LIST_INIT(mgr->list);
+
+	mgr->entropy = NULL;
+	if (entropy != NULL)
+		isc_entropy_attach(entropy, &mgr->entropy);
 
 	*mgrp = mgr;
 	return (ISC_R_SUCCESS);
@@ -1448,7 +1477,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		   isc_sockaddr_t *localaddr, unsigned int buffersize,
 		   unsigned int maxbuffers, unsigned int maxrequests,
 		   unsigned int buckets, unsigned int increment,
-		   unsigned int attributes, dns_dispatch_t **dispp)
+		   unsigned int attributes,
+		   dns_dispatch_t **dispp)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
