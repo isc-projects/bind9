@@ -1,6 +1,9 @@
 
 	--- 9.1.1rc4 released ---
 
+ 767.	[bug]		The configuration parser handled invalid ports badly.
+
+
  766.	[bug]		A few cases in query_find() could leak fname.
 			This would trigger the mpctx->allocated == 0
 			assertion when the server exited.

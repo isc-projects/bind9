@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.4 2001/01/22 20:12:33 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.5 2001/03/06 02:05:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6098,10 +6098,9 @@ lwres_option: L_LISTEN_ON port_ip_list
 in_port: L_INTEGER
 	{
 		if ($1 < 0 || $1 > 65535) {
-			parser_warning(ISC_TRUE,
-				       "invalid IP port number '%d'; "
-				       "setting port to 0", (int)$1);
-			$1 = 0;
+			parser_error(ISC_TRUE,
+				     "invalid IP port number '%d'", (int)$1);
+			YYABORT;
 		} else {
 			$$ = $1;
 		}
