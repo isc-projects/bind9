@@ -83,6 +83,8 @@ struct isc_entropy {
 	unsigned int			refcnt;
 	isc_uint32_t			initialized;
 	isc_entropypool_t		pool;
+	unsigned int			nsources;
+	isc_entropysource_t	       *nextsource;
 	ISC_LIST(isc_entropysource_t)	sources;
 };
 
@@ -163,22 +165,22 @@ subtract_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
  * very large.
  */
 static inline void
-add_pseudo(isc_entropy_t *ent, isc_uint32_t entropy) {
+add_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
 	/* clamp input.  Yes, this must be done. */
-	entropy = ISC_MIN(entropy, RND_POOLBITS * 8);
-	/* Add in the entropy we already have. */
-	entropy += ent->pool.pseudo;
+	pseudo = ISC_MIN(pseudo, RND_POOLBITS * 8);
+	/* Add in the pseudo we already have. */
+	pseudo += ent->pool.pseudo;
 	/* Clamp. */
-	ent->pool.pseudo = ISC_MIN(entropy, RND_POOLBITS * 8);
+	ent->pool.pseudo = ISC_MIN(pseudo, RND_POOLBITS * 8);
 }
 
 /*
- * Decrement the amount of entropy the pool has.
+ * Decrement the amount of pseudo the pool has.
  */
 static inline void
-subtract_pseudo(isc_entropy_t *ent, isc_uint32_t entropy) {
-	entropy = ISC_MIN(entropy, ent->pool.pseudo);
-	ent->pool.pseudo -= entropy;
+subtract_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
+	pseudo = ISC_MIN(pseudo, ent->pool.pseudo);
+	ent->pool.pseudo -= pseudo;
 }
 
 /*
@@ -320,6 +322,7 @@ static void
 fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	isc_uint32_t added;
 	isc_uint32_t remaining;
+	unsigned int nsource;
 	isc_entropysource_t *source;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -372,7 +375,7 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	/*
 	 * But wait!  If we're not yet initialized, we need at least
 	 *	THRESHOLD_BITS
-	 * bytes of randomness.
+	 * of randomness.
 	 */
 	if (ent->initialized < THRESHOLD_BITS)
 		needed = ISC_MAX(needed, THRESHOLD_BITS - ent->initialized);
@@ -387,10 +390,18 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 
 	added = 0;
 	remaining = needed;
+	if (ent->nextsource == NULL) {
+		ent->nextsource = ISC_LIST_HEAD(ent->sources);
+		if (ent->nextsource == NULL)
+			return;
+	}
+	source = ent->nextsource;
  again:
-	source = ISC_LIST_HEAD(ent->sources);
-	while (source != NULL && remaining > 0) {
+	for (nsource = 0 ; nsource < ent->nsources ; nsource++) {
 		isc_uint32_t got;
+
+		if (remaining == 0)
+			break;
 
 		got = 0;
 
@@ -404,11 +415,14 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		else
 			remaining = 0;
 
+		source = ISC_LIST_NEXT(source, link);
+		if (source == NULL)
+			source = ISC_LIST_HEAD(ent->sources);
+
 		if (added >= needed)
 			break;
-
-		source = ISC_LIST_NEXT(source, link);
 	}
+	ent->nextsource = source;
 
 	if (blocking && remaining != 0) {
 		int fds;
@@ -652,6 +666,8 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	 * From here down, no failures will/can occur.
 	 */
 	ISC_LIST_INIT(ent->sources);
+	ent->nextsource = NULL;
+	ent->nsources = 0;
 	ent->mctx = NULL;
 	isc_mem_attach(mctx, &ent->mctx);
 	ent->refcnt = 1;
@@ -669,12 +685,63 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	return (ret);
 }
 
+/*
+ * Requires "ent" be locked.
+ */
+static void
+destroysource(isc_entropysource_t **sourcep) {
+	isc_entropysource_t *source;
+	isc_entropy_t *ent;
+	void *ptr;
+	int fd;
+
+	source = *sourcep;
+	*sourcep = NULL;
+	ent = source->ent;
+
+	ISC_LIST_UNLINK(ent->sources, source, link);
+	ent->nextsource = NULL;
+	REQUIRE(ent->nsources > 0);
+	ent->nsources--;
+
+	switch (source->type) {
+	case ENTROPY_SOURCETYPE_FILE:
+		fd = source->sources.file.fd;
+		if (fd >= 0)
+			close(fd);
+		break;
+	case ENTROPY_SOURCETYPE_SAMPLE:
+		ptr = source->sources.sample.samples;
+		if (ptr != NULL)
+			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
+		ptr = source->sources.sample.extra;
+		if (ptr != NULL)
+			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
+		break;
+	}
+
+	memset(source, 0, sizeof(isc_entropysource_t));
+
+	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+}
+
 static inline isc_boolean_t
 destroy_check(isc_entropy_t *ent) {
+	isc_entropysource_t *source;
+
 	if (ent->refcnt > 0)
 		return (ISC_FALSE);
-	if (!ISC_LIST_EMPTY(ent->sources))
-		return (ISC_FALSE);
+
+	source = ISC_LIST_HEAD(ent->sources);
+	while (source != NULL) {
+		switch (source->type) {
+		case ENTROPY_SOURCETYPE_FILE:
+			break;
+		default:
+			return (ISC_FALSE);
+		}
+		source = ISC_LIST_NEXT(source, link);
+	}
 
 	return (ISC_TRUE);
 }
@@ -682,18 +749,41 @@ destroy_check(isc_entropy_t *ent) {
 static void
 destroy(isc_entropy_t **entp) {
 	isc_entropy_t *ent;
+	isc_entropysource_t *source;
 	isc_mem_t *mctx;
 
 	REQUIRE(entp != NULL && *entp != NULL);
 	ent = *entp;
 	*entp = NULL;
 
+	LOCK(&ent->lock);
+
 	REQUIRE(ent->refcnt == 0);
+
+	/*
+	 * Here, detach non-sample sources.
+	 */
+	source = ISC_LIST_HEAD(ent->sources);
+	while (source != NULL) {
+		switch(source->type) {
+		case ENTROPY_SOURCETYPE_FILE:
+			destroysource(&source);
+			break;
+		}
+		source = ISC_LIST_HEAD(ent->sources);
+	}
+
+	/*
+	 * If there are other types of sources, we've found a bug.
+	 */
 	REQUIRE(ISC_LIST_EMPTY(ent->sources));
 
 	mctx = ent->mctx;
 
 	isc_entropypool_invalidate(&ent->pool);
+
+	UNLOCK(&ent->lock);
+
 	isc_mutex_destroy(&ent->lock);
 
 	memset(ent, 0, sizeof(isc_entropy_t));
@@ -726,8 +816,7 @@ make_nonblock(int fd) {
 
 isc_result_t
 isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
-			     unsigned int flags,
-			     isc_entropysource_t **sourcep)
+			     unsigned int flags)
 {
 	int fd;
 	isc_result_t ret;
@@ -735,7 +824,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 
 	REQUIRE(VALID_ENTROPY(ent));
 	REQUIRE(fname != NULL);
-	REQUIRE(sourcep != NULL && *sourcep == NULL);
 
 	LOCK(&ent->lock);
 
@@ -777,8 +865,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
 	 * Hook it into the entropy system.
 	 */
 	ISC_LIST_APPEND(ent->sources, source, link);
-
-	*sourcep = source;
+	ent->nsources++;
 
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
@@ -798,8 +885,6 @@ void
 isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 	isc_entropysource_t *source;
 	isc_entropy_t *ent;
-	void *ptr;
-	int fd;
 	isc_boolean_t killit;
 
 	REQUIRE(sourcep != NULL);
@@ -813,27 +898,7 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 
 	LOCK(&ent->lock);
 
-	ISC_LIST_UNLINK(ent->sources, source, link);
-
-	switch (source->type) {
-	case ENTROPY_SOURCETYPE_FILE:
-		fd = source->sources.file.fd;
-		if (fd >= 0)
-			close(fd);
-		break;
-	case ENTROPY_SOURCETYPE_SAMPLE:
-		ptr = source->sources.sample.samples;
-		if (ptr != NULL)
-			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
-		ptr = source->sources.sample.extra;
-		if (ptr != NULL)
-			isc_mem_put(ent->mctx, ptr, RND_EVENTQSIZE * 4);
-		break;
-	}
-
-	memset(source, 0, sizeof(isc_entropysource_t));
-
-	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+	destroysource(&source);
 
 	killit = destroy_check(ent);
 
@@ -851,6 +916,8 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 	REQUIRE(sourcep != NULL && *sourcep == NULL);
 
 	LOCK(&ent->lock);
+
+	ent->nsources++;
 
 	UNLOCK(&ent->lock);
 
@@ -888,10 +955,12 @@ isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
 
 	fprintf(out,
 		"Entropy pool %p:  refcnt %u"
-		" cursor %u, rotate %u entropy %u pseudo %u\n",
+		" cursor %u, rotate %u entropy %u pseudo %u nsources %u"
+		" nextsource %p initialized %u\n",
 		ent, ent->refcnt,
 		ent->pool.cursor, ent->pool.rotate,
-		ent->pool.entropy, ent->pool.pseudo);
+		ent->pool.entropy, ent->pool.pseudo,
+		ent->nsources, ent->nextsource, ent->initialized);
 }
 
 void

@@ -229,7 +229,6 @@ int
 main(void) {
 	isc_mem_t *mctx = NULL;
 	isc_entropy_t *ectx = NULL;
-	isc_entropysource_t *devrandom = NULL, *randfile = NULL;
 	isc_buffer_t b;
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -242,10 +241,8 @@ main(void) {
 	dns_result_register();
 
 	isc_entropy_create(mctx, &ectx);
-	isc_entropy_createfilesource(ectx, "/dev/random", 0,
-			&devrandom);
-	isc_entropy_createfilesource(ectx, "randomfile", 0,
-			&randfile);
+	isc_entropy_createfilesource(ectx, "/dev/random", 0);
+	isc_entropy_createfilesource(ectx, "randomfile", 0);
 	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
 	dns_fixedname_init(&fname);
@@ -270,10 +267,6 @@ main(void) {
 	generate(DST_ALG_HMACMD5, mctx);
 
 	dst_lib_destroy();
-	if (devrandom != NULL)
-		isc_entropy_destroysource(&devrandom);
-	if (randfile != NULL)
-		isc_entropy_destroysource(&randfile);
 	isc_entropy_detach(&ectx);
 
 	isc_mem_put(mctx, current, 256);

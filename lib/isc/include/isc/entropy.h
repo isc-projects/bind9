@@ -124,8 +124,7 @@ isc_entropy_detach(isc_entropy_t **entp);
 
 isc_result_t
 isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname,
-			     unsigned int flags,
-			     isc_entropysource_t **sourcep);
+			     unsigned int flags);
 /*
  * Create a new entropy source from a file.
  *

@@ -359,7 +359,6 @@ main(int argc, char *argv[]) {
 	struct in_addr inaddr;
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	isc_entropysource_t *devrandom;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -373,10 +372,8 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 
-	devrandom = NULL;
-	result = isc_entropy_createfilesource(ectx, "/dev/random", 0,
-					      &devrandom);
-	if (devrandom == NULL) {
+	result = isc_entropy_createfilesource(ectx, "/dev/random", 0);
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr,
 			"%s only runs when /dev/random is available.\n",
 			argv[0]);
@@ -476,7 +473,6 @@ main(int argc, char *argv[]) {
 	isc_log_destroy(&log);
 
 	dst_lib_destroy();
-	isc_entropy_destroysource(&devrandom);
 	isc_entropy_detach(&ectx);
 
 	if (verbose)
