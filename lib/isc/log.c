@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.12 2004/04/10 04:30:05 marka Exp $ */
+/* $Id: log.c,v 1.70.2.13 2004/06/04 02:19:13 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1139,6 +1139,10 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	unsigned int basenamelen;
 	isc_dir_t dir;
 	isc_result_t result;
+	char sep = '/';
+#ifdef _WIN32
+	char *basename2;
+#endif
 
 	REQUIRE(channel->type == ISC_LOG_TOFILE);
 
@@ -1146,7 +1150,15 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup in isc_log_createchannel.
 	 */
-	basename = strrchr(FILE_NAME(channel), '/');
+	basename = strrchr(FILE_NAME(channel), sep);
+#ifdef _WIN32
+	basename2 = strrchr(FILE_NAME(channel), '\\');
+	if ((basename != NULL && basename2 != NULL && basename2 > basename) ||
+	    (basename == NULL && basename2 != NULL)) {
+		basename = basename2;
+		sep = '\\';
+	}
+#endif
 	if (basename != NULL) {
 		*basename++ = '\0';
 		dirname = FILE_NAME(channel);
@@ -1163,7 +1175,7 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	 * Replace the file separator if it was taken out.
 	 */
 	if (basename != FILE_NAME(channel))
-		*(basename - 1) = '/';
+		*(basename - 1) = sep;
 
 	/*
 	 * Return if the directory open failed.
