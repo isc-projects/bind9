@@ -83,6 +83,15 @@ isc_file_absolutepath
 isc_fsaccess_add
 isc_fsaccess_remove
 isc_fsaccess_set
+isc_hash_calc
+isc_hash_create
+isc_hash_ctxattach
+isc_hash_ctxcalc
+isc_hash_ctxcreate
+isc_hash_ctxdetach
+isc_hash_ctxinit
+isc_hash_destroy
+isc_hash_init
 isc_hex_totext
 isc_hex_decodestring
 isc_hex_tobuffer

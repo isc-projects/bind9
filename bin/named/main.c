@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.2 2002/08/05 06:57:01 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3 2003/07/25 03:31:41 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
+#include <isc/hash.h>
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/resource.h>
@@ -38,6 +39,7 @@
 #include <isccc/result.h>
 
 #include <dns/dispatch.h>
+#include <dns/name.h>
 #include <dns/result.h>
 #include <dns/view.h>
 
@@ -433,6 +435,14 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
+	result = isc_hash_create(ns_g_mctx, ns_g_entropy, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_hash_create() failed: %s",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -440,6 +450,7 @@ static void
 destroy_managers(void) {
 	ns_lwresd_shutdown();
 
+	isc_hash_destroy();
 	isc_entropy_detach(&ns_g_entropy);
 	/*
 	 * isc_taskmgr_destroy() will block until all tasks have exited,

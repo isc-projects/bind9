@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.6 2003/07/23 06:57:48 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7 2003/07/25 03:31:43 marka Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
 
 #include <isc/buffer.h>
+#include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -459,6 +460,20 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	}
 
 	return (h);
+}
+
+unsigned int
+dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
+	/*
+	 * Provide a hash value for 'name'.
+	 */
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+
+	return (isc_hash_calc((const unsigned char *)name->ndata,
+			      name->length, case_sensitive));
 }
 
 dns_namereln_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.32.2.2 2002/08/06 06:09:07 marka Exp $ */
+/* $Id: types.h,v 1.32.2.3 2003/07/25 03:31:45 marka Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -52,6 +52,7 @@ typedef struct isc_event		isc_event_t;
 typedef ISC_LIST(isc_event_t)		isc_eventlist_t;
 typedef unsigned int			isc_eventtype_t;
 typedef isc_uint32_t			isc_fsaccess_t;
+typedef struct isc_hash			isc_hash_t;
 typedef struct isc_interface		isc_interface_t;
 typedef struct isc_interfaceiter	isc_interfaceiter_t;
 typedef struct isc_interval		isc_interval_t;

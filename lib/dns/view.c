@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.4 2003/07/22 04:03:45 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5 2003/07/25 03:31:43 marka Exp $ */
 
 #include <config.h>
 
+#include <isc/hash.h>
 #include <isc/task.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>

@@ -1,3 +1,5 @@
+1495.	[cleanup]	Replace hash functions with universal hash.
+
 1494.	[security]	Turn on RSA BLINDING as a precaution.
 
 1493.	[doc]		A6 and "bitstring" labels are now experimental.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.71.2.1 2001/10/22 23:28:13 gson Exp $
+# $Id: Makefile.in,v 1.71.2.2 2003/07/25 03:31:44 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,7 +52,7 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
 		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ \
-		heap.@O@ hex.@O@ hmacmd5.@O@ \
+		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md5.@O@ mem.@O@ mutexblock.@O@ netaddr.@O@ ondestroy.@O@ \
 		quota.@O@ random.@O@ \

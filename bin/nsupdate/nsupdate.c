@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.14 2003/07/23 06:57:59 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15 2003/07/25 03:31:42 marka Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/event.h>
+#include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -489,6 +490,10 @@ setup_system(void) {
 
 	result = isc_entropy_create(mctx, &entp);
 	check_result(result, "isc_entropy_create");
+
+	result = isc_hash_create(mctx, entp, DNS_NAME_MAXWIRE);
+	check_result(result, "isc_hash_create");
+	isc_hash_init();
 
 	result = dns_dispatchmgr_create(mctx, entp, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
@@ -1823,6 +1828,9 @@ cleanup(void) {
 
 	ddebug("Shutting down timer manager");
 	isc_timermgr_destroy(&timermgr);
+
+	ddebug("Destroying hash context");
+	isc_hash_destroy();
 
 	ddebug("Destroying memory context");
 	if (memdebugging)

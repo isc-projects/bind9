@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.9 2003/07/18 04:35:50 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.10 2003/07/25 03:31:42 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1792,7 +1792,7 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name,
 	dns_adbname_t *adbname;
 	int bucket;
 
-	bucket = dns_name_hash(name, ISC_FALSE) % NBUCKETS;
+	bucket = dns_fullname_hash(name, ISC_FALSE) % NBUCKETS;
 
 	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
 		LOCK(&adb->namelocks[bucket]);
