@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.101 2002/02/05 20:02:47 bwelling Exp $ */
+/* $Id: validator.c,v 1.102 2002/02/05 21:41:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1218,7 +1218,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	     val->labels <= dns_name_depth(val->event->name);
 	     val->labels++)
 	{
-		char namebuf[1024];
+		char namebuf[DNS_NAME_FORMATSIZE];
 
 		if (val->labels == dns_name_depth(val->event->name)) {
 			if (val->event->type == dns_rdatatype_key)
