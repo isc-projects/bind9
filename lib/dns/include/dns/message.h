@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.85 2001/01/04 01:25:08 bwelling Exp $ */
+/* $Id: message.h,v 1.86 2001/01/05 00:17:33 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -149,6 +149,8 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGEPARSE_BESTEFFORT	0x0002	/* return a message if a
 						   recoverable parse error
 						   occurs */
+#define DNS_MESSAGEPARSE_CLONEBUFFER	0x0004	/* save a copy of the
+						   source buffer */
 
 /*
  * Control behavior of rendering
@@ -185,6 +187,8 @@ struct dns_message {
 	unsigned int			tcp_continuation : 1;
 	unsigned int			verified_sig : 1;
 	unsigned int			verify_attempted : 1;
+	unsigned int			free_query : 1;
+	unsigned int			free_saved : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;

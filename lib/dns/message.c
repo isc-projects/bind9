@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.167 2001/01/04 01:55:22 bwelling Exp $ */
+/* $Id: message.c,v 1.168 2001/01/05 00:17:29 bwelling Exp $ */
 
 /***
  *** Imports
@@ -355,11 +355,6 @@ msginittsig(dns_message_t *m) {
 	m->sigstart = -1;
 	m->sig0key = NULL;
 	m->sig0status = dns_rcode_noerror;
-	m->query.base = NULL;
-	m->query.length = 0;
-	m->saved.base = NULL;
-	m->saved.length = 0;
-	m->querytsig = NULL;
 }
 
 /*
@@ -378,6 +373,13 @@ msginit(dns_message_t *m) {
 	m->verify_attempted = 0;
 	m->order = NULL;
 	m->order_arg = NULL;
+	m->query.base = NULL;
+	m->query.length = 0;
+	m->free_query = 0;
+	m->saved.base = NULL;
+	m->saved.length = 0;
+	m->free_saved = 0;
+	m->querytsig = NULL;
 }
 
 static inline void
@@ -558,11 +560,17 @@ msgreset(dns_message_t *msg, isc_boolean_t everything) {
 	}
 
 	if (msg->query.base != NULL) {
+		if (msg->free_query != 0)
+			isc_mem_put(msg->mctx, msg->query.base,
+				    msg->query.length);
 		msg->query.base = NULL;
 		msg->query.length = 0;
 	}
 
 	if (msg->saved.base != NULL) {
+		if (msg->free_saved != 0)
+			isc_mem_put(msg->mctx, msg->saved.base,
+				    msg->saved.length);
 		msg->saved.base = NULL;
 		msg->saved.length = 0;
 	}
@@ -1538,7 +1546,17 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 			      r.length);
 	}
 
-	isc_buffer_usedregion(&origsource, &msg->saved);
+	if ((options & DNS_MESSAGEPARSE_CLONEBUFFER) == 0)
+		isc_buffer_usedregion(&origsource, &msg->saved);
+	else {
+		msg->saved.length = isc_buffer_usedlength(&origsource);
+		msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
+		if (msg->saved.base == NULL)
+			return (ISC_R_NOMEMORY);
+		memcpy(msg->saved.base, isc_buffer_base(&origsource),
+		       msg->saved.length);
+		msg->free_saved = 1;
+	}
 
 	if (seen_problem == ISC_TRUE)
 		return (DNS_R_RECOVERABLE);
@@ -2255,8 +2273,10 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	if (msg->saved.base != NULL) {
 		msg->query.base = msg->saved.base;
 		msg->query.length = msg->saved.length;
+		msg->free_query = msg->free_saved;
 		msg->saved.base = NULL;
 		msg->saved.length = 0;
+		msg->free_saved = 0;
 	}
 
 	return (ISC_R_SUCCESS);

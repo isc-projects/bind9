@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.287 2001/01/04 04:10:59 marka Exp $ */
+/* $Id: zone.c,v 1.288 2001/01/05 00:17:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4993,7 +4993,8 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 
 	result = dns_request_getresponse(revent->request, msg,
-					 DNS_MESSAGEPARSE_PRESERVEORDER);
+					 DNS_MESSAGEPARSE_PRESERVEORDER |
+					 DNS_MESSAGEPARSE_CLONEBUFFER);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 
