@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.125 2001/08/30 05:12:39 marka Exp $ */
+/* $Id: xfrin.c,v 1.126 2001/09/05 23:02:28 gson Exp $ */
 
 #include <config.h>
 
@@ -647,8 +647,10 @@ xfrin_reset(dns_xfrin_ctx_t *xfr) {
 	if (xfr->ixfr.journal != NULL)
 		dns_journal_destroy(&xfr->ixfr.journal);
 
-	if (xfr->axfr.add_private != NULL)
+	if (xfr->axfr.add_private != NULL) {
 		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
+		xfr->axfr.add_func = NULL;
+	}
 
 	if (xfr->tcpmsg_valid) {
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);

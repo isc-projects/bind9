@@ -1,3 +1,7 @@
+
+ 980.	[bug]		Incoming zone transfers restarting after an error
+			could trigger an assertion failure. [RT #1692]
+
  979.	[func]		Incremental master file dumping.  dns_master_dumpinc(),
 			dns_master_dumptostreaminc(), dns_dumpctx_attach(),
 			dns_dumpctx_detach(), dns_dumpctx_cancel(),
