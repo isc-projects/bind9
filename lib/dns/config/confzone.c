@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.67 2000/11/28 05:24:53 marka Exp $ */
+/* $Id: confzone.c,v 1.68 2000/11/28 17:34:06 gson Exp $ */
 
 #include <config.h>
 
@@ -1689,7 +1689,8 @@ dns_c_zone_setdialup(dns_c_zone_t *zone, dns_dialuptype_t newval) {
 		case dns_dialuptype_passive:
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-				      "non-master dialup option '%s'",
+				      "dialup option '%s' cannot be used with "
+				      "master zones",
 				      dialup_totext(newval));
 			return (ISC_R_FAILURE);
 		default:
@@ -1713,7 +1714,8 @@ dns_c_zone_setdialup(dns_c_zone_t *zone, dns_dialuptype_t newval) {
 		    newval == dns_dialuptype_notifypassive) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-				      "non-stub dialup option '%s'",
+				      "dialup option '%s' cannot be used "
+				      "with stub zones",
 				      dialup_totext(newval));
 			return (ISC_R_FAILURE);
 		}
