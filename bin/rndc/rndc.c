@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.39 2001/02/06 23:57:16 bwelling Exp $ */
+/* $Id: rndc.c,v 1.40 2001/02/07 00:50:44 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -271,6 +271,7 @@ command is one of the following:\n\
   stop		Save pending updates to master files and stop the server.\n\
   halt		Stop the server without saving pending updates.\n\
   trace		Increment debugging level by one.\n\
+  trace level	Change the debugging level.\n\
   notrace	Set debugging level to 0.\n\
   *status	Display ps(1) status of named.\n\
   *restart	Restart the server.\n\

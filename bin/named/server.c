@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.288 2001/02/01 21:29:41 marka Exp $ */
+/* $Id: server.c,v 1.289 2001/02/07 00:50:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2458,4 +2458,30 @@ ns_server_dumpdb(ns_server_t *server) {
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);
 	return (result);
+}
+
+isc_result_t
+ns_server_setdebuglevel(ns_server_t *server, char *args) {
+	char *ptr;
+	char *levelstr;
+	char *endp;
+	unsigned int newlevel;
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Look for the new level name. */
+	levelstr = next_token(&args, " \t");
+	if (levelstr == NULL)
+		ns_g_debuglevel++;
+	else {
+		newlevel = strtol(levelstr, &endp, 10);
+		if (*endp != '\0' || newlevel < 0 || newlevel > 99)
+			return (ISC_R_RANGE);
+		ns_g_debuglevel = newlevel;
+	}
+	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+	return (ISC_R_SUCCESS);
 }

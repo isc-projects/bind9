@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.50 2001/01/29 07:08:41 marka Exp $ */
+/* $Id: server.h,v 1.51 2001/02/07 00:50:43 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -140,5 +140,11 @@ ns_server_dumpstats(ns_server_t *server);
  */
 isc_result_t
 ns_server_dumpdb(ns_server_t *server);
+
+/*
+ * Change or increment the server debug level.
+ */
+isc_result_t
+ns_server_setdebuglevel(ns_server_t *server, char *args);
 
 #endif /* NAMED_SERVER_H */
