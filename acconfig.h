@@ -1,3 +1,6 @@
+/* define if you need inet_aton() */
+#undef NEED_INET_ATON
+
 /* define if you need inet_ntop() */
 #undef NEED_INET_NTOP
 

@@ -15,6 +15,9 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #undef TIME_WITH_SYS_TIME
 
+/* define if you need inet_aton() */
+#undef NEED_INET_ATON
+
 /* define if you need inet_ntop() */
 #undef NEED_INET_NTOP
 
