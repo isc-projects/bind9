@@ -15,7 +15,8 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.sh,v 1.20 2001/05/09 21:55:44 gson Exp $
+# $Id: stop.sh,v 1.21 2001/05/10 16:28:57 gson Exp $
 
 . ./conf.sh
-./stop.pl $*
+$PERL ./stop.pl "$@"
+
