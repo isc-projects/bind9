@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.140 $)
+AC_REVISION($Revision: 1.141 $)
 
 AC_PREREQ(2.13)
 
@@ -367,10 +367,14 @@ else
 			;;
                 *-sgi-irix*)
 			STD_CWARNINGS="-fullwarn -woff 1209"
+                        #
                         # Silence more than 250 instances of
-                        # "prototyped function redeclared without prototype"
+                        #   "prototyped function redeclared without prototype"
+                        # and 11 instances of
+                        #   "variable ... was set but never used"
                         # from lib/dns/sec/{dnssafe,openssl}.
-                        IRIX_DNSSEC_WARNINGS_HACK="-woff 1692"
+                        #
+                        IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
                         ;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
