@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: run.sh,v 1.27 2000/07/05 18:48:55 bwelling Exp $
+# $Id: run.sh,v 1.28 2000/07/14 23:16:45 gson Exp $
 
 #
 # Run a system test.
@@ -48,15 +48,6 @@ then
     echo "E:$test:`date`" >&2
     exit 0;
 fi
-
-# Irix does not have /var/run
-#test -f /var/run/system_test_ifsetup ||
-#test -f /etc/system_test_ifsetup ||
-#    { echo "I:Interfaces not set up.  Not trying system tests." >&2;
-#      echo "R:UNTESTED" >&2
-#      echo "E:$test:`date`" >&2
-#      exit 0;
-#    }
 
 $PERL testsock.pl || {
     echo "I:Interfaces not set up.  Not trying system tests." >&2;
