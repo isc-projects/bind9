@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.12 2004/10/07 02:34:50 marka Exp $ */
+/* $Id: os.c,v 1.46.2.13 2005/04/05 01:29:09 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -45,6 +45,9 @@
 
 #include <named/main.h>
 #include <named/os.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#endif
 
 static char *pidfile = NULL;
 static int devnullfd = -1;
@@ -413,6 +416,9 @@ all_digits(const char *s) {
 void
 ns_os_chroot(const char *root) {
 	char strbuf[ISC_STRERRORSIZE];
+#ifdef HAVE_LIBSCF
+	ns_smf_chroot = 0;
+#endif
 	if (root != NULL) {
 		if (chroot(root) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -422,6 +428,10 @@ ns_os_chroot(const char *root) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			ns_main_earlyfatal("chdir(/): %s", strbuf);
 		}
+#ifdef HAVE_LIBSCF
+		/* Set ns_smf_chroot flag on successful chroot. */
+		ns_smf_chroot = 1;
+#endif
 	}
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.7.2.4 2004/04/06 01:38:47 marka Exp $ */
+/* $Id: control.c,v 1.7.2.5 2005/04/05 01:29:07 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,9 @@
 #include <named/control.h>
 #include <named/log.h>
 #include <named/server.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#endif
 
 static isc_boolean_t
 command_compare(const char *text, const char *command) {
@@ -56,6 +59,9 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isccc_sexpr_t *data;
 	char *command;
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	char *instance = NULL;
+#endif
 
 	data = isccc_alist_lookup(message, "_data");
 	if (data == NULL) {
@@ -88,10 +94,58 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
 		result = ns_server_refreshcommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_HALT)) {
+#ifdef HAVE_LIBSCF
+		/*
+		 * If we are managed by smf(5), AND in chroot, then
+		 * we cannot connect to the smf repository, so just
+		 * return with an appropriate message back to rndc.
+		 */
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 1) {
+			result = ns_smf_add_message(text);
+			return (result);
+		}
+		/*
+		 * If we are managed by smf(5) but not in chroot,
+		 * try to disable ourselves the smf way.
+		 */
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0) {
+			result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
+			if (result == ISC_R_SUCCESS && instance != NULL) {
+				ns_server_flushonshutdown(ns_g_server,
+					ISC_FALSE);
+				result = ns_smf_disable(instance);
+			}
+			if (instance != NULL)
+				isc_mem_free(ns_g_mctx, instance);
+			return (result);
+		}
+		/*
+		 * If ns_smf_got_instance = 0, ns_smf_chroot
+		 * is not relevant and we fall through to
+		 * isc_app_shutdown below.
+		 */
+#endif
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_STOP)) {
+#ifdef HAVE_LIBSCF
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 1) {
+			result = ns_smf_add_message(text);
+			return (result);
+		}
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0) {
+			result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
+			if (result == ISC_R_SUCCESS && instance != NULL) {
+				ns_server_flushonshutdown(ns_g_server,
+					ISC_TRUE);
+				result = ns_smf_disable(instance);
+			}
+			if (instance != NULL)
+				isc_mem_free(ns_g_mctx, instance);
+			return (result);
+		}
+#endif
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;

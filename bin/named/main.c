@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.12 2004/10/25 00:50:53 marka Exp $ */
+/* $Id: main.c,v 1.119.2.13 2005/04/05 01:29:08 marka Exp $ */
 
 #include <config.h>
 
@@ -45,10 +45,6 @@
 
 #include <dst/result.h>
 
-#ifdef HAVE_LIBSCF
-#include <libscf.h>
-#endif
-
 /*
  * Defining NS_MAIN provides storage declarations (rather than extern)
  * for variables in named/globals.h.
@@ -63,6 +59,9 @@
 #include <named/server.h>
 #include <named/lwresd.h>
 #include <named/main.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#endif
 
 /*
  * Include header files for database drivers here.
@@ -474,6 +473,9 @@ destroy_managers(void) {
 static void
 setup(void) {
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	char *instance = NULL;
+#endif
 
 	/*
 	 * Get the user and group information before changing the root
@@ -488,6 +490,18 @@ setup(void) {
 	ns_os_tzset();
 
 	ns_os_opendevnull();
+
+#ifdef HAVE_LIBSCF
+	/* Check if named is under smf control, before chroot. */
+	result = ns_smf_get_instance(&instance, 0, ns_g_mctx);
+	/* We don't care about instance, just check if we got one. */
+	if (result == ISC_R_SUCCESS)
+		ns_smf_got_instance = 1;
+	else
+		ns_smf_got_instance = 0;
+	if (instance != NULL)
+		isc_mem_free(instance);
+#endif /* HAVE_LIBSCF */
 
 	ns_os_chroot(ns_g_chrootdir);
 
@@ -587,88 +601,66 @@ cleanup(void) {
 
 #ifdef HAVE_LIBSCF
 /*
- * Get FMRI for the current named process
+ * Get FMRI for the named process.
  */
-static char *
-scf_get_ins_name(void) {
+isc_result_t
+ns_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 	scf_handle_t *h = NULL;
 	int namelen;
-	char *ins_name;
+	char *instance;
+
+	REQUIRE(ins_name != NULL && *ins_name == NULL);
 
 	if ((h = scf_handle_create(SCF_VERSION)) == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "scf_handle_create() failed: %s",
-				 scf_strerror(scf_error()));
-		return (NULL);
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_handle_create() failed: %s",
+			 		 scf_strerror(scf_error()));
+		return (ISC_R_FAILURE);
 	}
 
 	if (scf_handle_bind(h) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "scf_handle_bind() failed: %s",
-				 scf_strerror(scf_error()));
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_handle_bind() failed: %s",
+					 scf_strerror(scf_error()));
 		scf_handle_destroy(h);
-		return (NULL);
+		return (ISC_R_FAILURE);
 	}
 
 	if ((namelen = scf_myname(h, NULL, 0)) == -1) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_MAIN, ISC_LOG_INFO,
-			      "scf_myname() failed: %s",
-			      scf_strerror(scf_error()));
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_myname() failed: %s",
+					 scf_strerror(scf_error()));
 		scf_handle_destroy(h);
-		return (NULL);
+		return (ISC_R_FAILURE);
 	}
 
-	if ((ins_name = malloc(namelen + 1)) == NULL) {
+	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "scf_get_ins_named() memory "
+				 "ns_smf_get_instance memory "
 				 "allocation failed: %s",
 				 isc_result_totext(ISC_R_NOMEMORY));
 		scf_handle_destroy(h);
-		return (NULL);
+		return (ISC_R_FAILURE);
 	}
 
-	if (scf_myname(h, ins_name, namelen + 1) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "scf_myname() failed: %s",
-				 scf_strerror(scf_error()));
+	if (scf_myname(h, instance, namelen + 1) == -1) {
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_myname() failed: %s",
+					 scf_strerror(scf_error()));
 		scf_handle_destroy(h);
-		free(ins_name);
-		return (NULL);
+		isc_mem_free(mctx, instance);
+		return (ISC_R_FAILURE);
 	}
 
 	scf_handle_destroy(h);
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-		      ISC_LOG_INFO, "instance name:%s", ins_name);
-
-	return (ins_name);
+	*ins_name = instance;
+	return (ISC_R_SUCCESS);
 }
-
-static void
-scf_cleanup(void) {
-	char *s;
-	char *ins_name;
-
-	if ((ins_name = scf_get_ins_name()) != NULL) {
-		if ((s = smf_get_state(ins_name)) != NULL) {
-			if ((strcmp(SCF_STATE_STRING_ONLINE, s) == 0) ||
-			    (strcmp(SCF_STATE_STRING_DEGRADED, s) == 0)) {
-				if (smf_disable_instance(ins_name, 0) != 0) {
-				    UNEXPECTED_ERROR(__FILE__, __LINE__,
-					"smf_disable_instance() failed: %s",
-					scf_strerror(scf_error()));
-				}
-			}
-			free(s);
-		} else {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "smf_get_state() failed: %s",
-					 scf_strerror(scf_error()));
-		}
-		free(ins_name);
-	}
-}
-#endif
+#endif /* HAVE_LIBSCF */
 
 int
 main(int argc, char *argv[]) {
@@ -730,10 +722,6 @@ main(int argc, char *argv[]) {
 			result = ISC_R_SUCCESS;
 		}
 	} while (result != ISC_R_SUCCESS);
-
-#ifdef HAVE_LIBSCF
-	scf_cleanup();
-#endif
 
 	cleanup();
 
