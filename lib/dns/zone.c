@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.136 2000/06/01 23:11:24 gson Exp $ */
+/* $Id: zone.c,v 1.137 2000/06/01 23:17:46 gson Exp $ */
 
 #include <config.h>
 
@@ -2248,9 +2248,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	INSIST(zone->curmaster < zone->masterscnt);
 	zone->masteraddr = zone->masters[zone->curmaster];
 	UNLOCK(&zone->lock);
-
-	if (isc_sockaddr_getport(&zone->masteraddr) == 0)
-		isc_sockaddr_setport(&zone->masteraddr, 53); /* XXX */
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	result = dns_peerlist_peerbyaddr(zone->view->peers,
