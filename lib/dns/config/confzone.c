@@ -151,11 +151,9 @@ dns_c_zonelist_delete(isc_log_t *lctx, dns_c_zonelist_t **zlist)
 	isc_result_t res;
 
 	REQUIRE(zlist != NULL);
+	REQUIRE(*zlist != NULL);
 
 	list = *zlist;
-	if (list == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	zoneelem = ISC_LIST_HEAD(list->zones);
 	while (zoneelem != NULL) {
@@ -276,7 +274,7 @@ dns_c_zonelist_rmbyname(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 
 	if (zoneelem != NULL) {
 		ISC_LIST_UNLINK(zlist->zones, zoneelem, next);
-		res = dns_c_zone_delete(lctx, &zoneelem->thezone);
+		res = dns_c_zone_detach(lctx, &zoneelem->thezone);
 		isc_mem_put(zlist->mem, zoneelem, sizeof *zoneelem);
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -307,7 +305,7 @@ dns_c_zonelist_rmzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 
 	if (zoneelem != NULL) {
 		ISC_LIST_UNLINK(zlist->zones, zoneelem, next);
-		res = dns_c_zone_delete(lctx, &zoneelem->thezone);
+		res = dns_c_zone_detach(lctx, &zoneelem->thezone);
 		isc_mem_put(zlist->mem, zoneelem, sizeof *zoneelem);
 	} else {
 		res = ISC_R_NOTFOUND;
@@ -439,11 +437,15 @@ dns_c_zone_new(isc_log_t *lctx, isc_mem_t *mem,
 
 
 isc_result_t
-dns_c_zone_delete(isc_log_t *lctx, dns_c_zone_t **zone)
+dns_c_zone_detach(isc_log_t *lctx, dns_c_zone_t **zone)
 {
-	dns_c_zone_t *zoneptr = *zone;
+	dns_c_zone_t *zoneptr;
 	isc_result_t res = ISC_R_SUCCESS;
 
+	REQUIRE(zone != NULL);
+	REQUIRE(*zone != NULL);
+
+	zoneptr = *zone;
 	*zone = NULL;
 
 	REQUIRE(zoneptr->refcount > 0);
@@ -458,17 +460,17 @@ dns_c_zone_delete(isc_log_t *lctx, dns_c_zone_t **zone)
 
 
 void
-dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *zone,
-		  dns_c_zone_t **newzone)
+dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *source,
+		  dns_c_zone_t **target)
 {
-	REQUIRE(zone != NULL);
-	REQUIRE(newzone != NULL);
+	REQUIRE(source != NULL);
+	REQUIRE(target != NULL);
 
 	(void) lctx;
 	
-	zone->refcount++;
+	source->refcount++;
 
-	*newzone = zone;
+	*target = source;
 }
 		
 
@@ -2941,6 +2943,7 @@ zone_delete(isc_log_t *lctx, dns_c_zone_t **zone)
 	isc_result_t res = ISC_R_SUCCESS;
 	
 	REQUIRE(zone != NULL);
+	REQUIRE(*zone != NULL);
 
 	z = *zone;
 
@@ -2986,10 +2989,17 @@ master_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_masterzone_t *mzone)
 		isc_mem_free(mem, mzone->file);
 	}
 
-	dns_c_ipmatchlist_delete(lctx, &mzone->allow_update);
-	dns_c_ipmatchlist_delete(lctx, &mzone->allow_query);
-	dns_c_ipmatchlist_delete(lctx, &mzone->allow_transfer);
-	dns_c_iplist_delete(lctx, &mzone->also_notify);
+	if (mzone->allow_update != NULL)
+		dns_c_ipmatchlist_detach(lctx, &mzone->allow_update);
+
+	if (mzone->allow_query != NULL)
+		dns_c_ipmatchlist_detach(lctx, &mzone->allow_query);
+
+	if (mzone->allow_transfer != NULL)
+		dns_c_ipmatchlist_detach(lctx, &mzone->allow_transfer);
+
+	if (mzone->also_notify != NULL)
+		dns_c_iplist_detach(lctx, &mzone->also_notify);
 	
 	if (mzone->ixfr_base != NULL) {
 		isc_mem_free(mem, mzone->ixfr_base);
@@ -2998,9 +3008,12 @@ master_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_masterzone_t *mzone)
 	if (mzone->ixfr_tmp != NULL) {
 		isc_mem_free(mem, mzone->ixfr_tmp);
 	}
-		
-	dns_c_pubkey_delete(lctx, &mzone->pubkey);
-	dns_c_iplist_delete(lctx, &mzone->forwarders);
+
+	if (mzone->pubkey != NULL)
+		dns_c_pubkey_delete(lctx, &mzone->pubkey);
+
+	if (mzone->forwarders != NULL)
+		dns_c_iplist_detach(lctx, &mzone->forwarders);
 
 	return (ISC_R_SUCCESS);
 }
@@ -3025,12 +3038,23 @@ slave_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_slavezone_t *szone)
 		isc_mem_free(mem, szone->ixfr_tmp);
 	}
 		
-	dns_c_iplist_delete(lctx, &szone->master_ips);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_update);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_query);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_transfer);
-	dns_c_iplist_delete(lctx, &szone->also_notify);
-	dns_c_iplist_delete(lctx, &szone->forwarders);
+	if (szone->master_ips != NULL)
+		dns_c_iplist_detach(lctx, &szone->master_ips);
+	
+	if (szone->allow_update != NULL)
+		dns_c_ipmatchlist_detach(lctx, &szone->allow_update);
+	
+	if (szone->allow_query != NULL)
+		dns_c_ipmatchlist_detach(lctx, &szone->allow_query);
+	
+	if (szone->allow_transfer != NULL)
+		dns_c_ipmatchlist_detach(lctx, &szone->allow_transfer);
+	
+	if (szone->also_notify != NULL)
+		dns_c_iplist_detach(lctx, &szone->also_notify);
+	
+	if (szone->forwarders != NULL)
+		dns_c_iplist_detach(lctx, &szone->forwarders);
 	
 	return (ISC_R_SUCCESS);
 }
@@ -3048,10 +3072,18 @@ stub_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_stubzone_t *tzone)
 		isc_mem_free(mem, tzone->file);
 	}
 
-	dns_c_iplist_delete(lctx, &tzone->master_ips);
-	dns_c_ipmatchlist_delete(lctx, &tzone->allow_update);
-	dns_c_ipmatchlist_delete(lctx, &tzone->allow_query);
-	dns_c_ipmatchlist_delete(lctx, &tzone->allow_transfer);
+	if (tzone->master_ips != NULL)
+		dns_c_iplist_detach(lctx, &tzone->master_ips);
+	
+	if (tzone->allow_update != NULL)
+		dns_c_ipmatchlist_detach(lctx, &tzone->allow_update);
+	
+	if (tzone->allow_query != NULL)
+		dns_c_ipmatchlist_detach(lctx, &tzone->allow_query);
+	
+	if (tzone->allow_transfer != NULL)
+		dns_c_ipmatchlist_detach(lctx, &tzone->allow_transfer);
+	
 	
 	return (ISC_R_SUCCESS);
 }
@@ -3066,7 +3098,8 @@ forward_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_forwardzone_t *fzone)
 
 	(void) mem;			/* lint happiness */
 	
-	dns_c_iplist_delete(lctx, &fzone->forwarders);
+	if (fzone->forwarders != NULL)
+		dns_c_iplist_detach(lctx, &fzone->forwarders);
 	
 	return (ISC_R_SUCCESS);
 }
@@ -3099,7 +3132,7 @@ set_ipmatch_list_field(isc_log_t *lctx, isc_mem_t *mem,
 	isc_result_t res;
 	
 	if (*dest != NULL) {
-		res = dns_c_ipmatchlist_delete(lctx, dest);
+		res = dns_c_ipmatchlist_detach(lctx, dest);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -3124,7 +3157,7 @@ set_iplist_field(isc_log_t *lctx, isc_mem_t *mem,
 	isc_result_t res;
 	
 	if (*dest != NULL) {
-		res = dns_c_iplist_delete(lctx, dest);
+		res = dns_c_iplist_detach(lctx, dest);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}

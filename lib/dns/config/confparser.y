@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.24 1999/11/02 15:49:42 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.25 1999/11/17 21:52:29 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2201,7 +2201,7 @@ address_match_simple: ip_address
                         }
                 }
 
-                dns_c_ipmatchlist_delete(logcontext, &$2);
+                dns_c_ipmatchlist_detach(logcontext, &$2);
 
                 $$ = ime;
         }
@@ -2504,7 +2504,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 		tmpres = dns_c_zonelist_addzone(logcontext,
 						currcfg->zlist, zone);
 		if (tmpres != ISC_R_SUCCESS) {
-			dns_c_zone_delete(logcontext, &zone);
+			dns_c_zone_detach(logcontext, &zone);
                         isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
                                       ISC_LOG_CRITICAL,
@@ -2896,7 +2896,7 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone forwarders.");
-			dns_c_iplist_delete(logcontext, &$3);
+			dns_c_iplist_detach(logcontext, &$3);
 			break;
                 }
         }

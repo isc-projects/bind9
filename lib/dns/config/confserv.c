@@ -70,11 +70,9 @@ dns_c_srvlist_delete(isc_log_t *lctx, dns_c_srvlist_t **list)
 	isc_result_t r;
 	
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	server = ISC_LIST_HEAD(l->elements);
 	while (server != NULL) {
@@ -199,15 +197,15 @@ dns_c_srv_delete(isc_log_t *lctx, dns_c_srv_t **server)
 	isc_mem_t *mem;
 	
 	REQUIRE(server != NULL);
+	REQUIRE(*server != NULL);
 
 	serv = *server;
-	if (serv == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	mem = serv->mem;
 	serv->mem = NULL;
-	dns_c_kidlist_delete(lctx, &serv->keys);
+
+	if (serv->keys != NULL)
+		dns_c_kidlist_delete(lctx, &serv->keys);
 
 	isc_mem_put(mem, serv, sizeof *serv);
 

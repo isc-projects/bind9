@@ -100,11 +100,9 @@ dns_c_ctrllist_delete(isc_log_t *lctx,
 	dns_c_ctrllist_t      *clist;
 
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 	
 	clist = *list;
-	if (clist == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(DNS_CONFCTLLIST_VALID(clist));
 	
@@ -209,11 +207,9 @@ dns_c_ctrl_delete(isc_log_t *lctx,
 	dns_c_ctrl_t *ctrl;
 	
 	REQUIRE(control != NULL);
+	REQUIRE(*control != NULL);
 
 	ctrl = *control;
-	if (ctrl == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(DNS_CONFCTL_VALID(ctrl));
 
@@ -221,8 +217,11 @@ dns_c_ctrl_delete(isc_log_t *lctx,
 
 	switch (ctrl->control_type) {
 	case dns_c_inet_control:
-		res = dns_c_ipmatchlist_delete(lctx,
-					       &ctrl->u.inet_v.matchlist);
+		if (ctrl->u.inet_v.matchlist != NULL)
+			res = dns_c_ipmatchlist_detach(lctx,
+						   &ctrl->u.inet_v.matchlist);
+		else
+			res = ISC_R_SUCCESS;
 		break;
 
 	case dns_c_unix_control:

@@ -99,11 +99,8 @@ dns_c_ipmatchelement_delete(isc_log_t *lctx,
 	
 	REQUIRE(mem != NULL);
 	REQUIRE(ipme != NULL);
+	REQUIRE(*ipme != NULL);
 	
-	if (*ipme == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
 	elem = *ipme;
 
 	REQUIRE(DNS_IPMELEM_VALID(elem));
@@ -118,7 +115,9 @@ dns_c_ipmatchelement_delete(isc_log_t *lctx,
 	case dns_c_ipmatch_indirect:
 		INSIST(elem->u.indirect.list != NULL);
 
-		dns_c_ipmatchlist_delete(lctx, &elem->u.indirect.list);
+		if (elem->u.indirect.list != NULL)
+			dns_c_ipmatchlist_detach(lctx, &elem->u.indirect.list);
+
 		if (elem->u.indirect.refname.base != NULL) {
 			isc_mem_put(mem, elem->u.indirect.refname.base,
 				    elem->u.indirect.refname.length);
@@ -330,7 +329,7 @@ dns_c_ipmatchindirect_new(isc_log_t *lctx,
 			strcpy(ime->u.indirect.refname.base, name);
 		}
 	} else {
-		dns_c_ipmatchlist_delete(lctx, &iml_copy);
+		dns_c_ipmatchlist_detach(lctx, &iml_copy);
 	}
 	
 	*result = ime;
@@ -481,7 +480,7 @@ dns_c_ipmatchlist_new(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ipmatchlist_delete(isc_log_t *lctx,
+dns_c_ipmatchlist_detach(isc_log_t *lctx,
 			 dns_c_ipmatchlist_t **ml)
 {
 	dns_c_ipmatchelement_t *ime;
@@ -490,11 +489,9 @@ dns_c_ipmatchlist_delete(isc_log_t *lctx,
 	isc_mem_t *mem;
 
 	REQUIRE(ml != NULL);
+	REQUIRE(*ml != NULL);
 	
 	iml = *ml;
-	if (iml == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 	*ml = NULL;
 
 	REQUIRE(DNS_IPMLIST_VALID(iml));
@@ -522,19 +519,19 @@ dns_c_ipmatchlist_delete(isc_log_t *lctx,
 }
 
 
-dns_c_ipmatchlist_t *
-dns_c_ipmatchlist_attach(isc_log_t *lctx,
-			 dns_c_ipmatchlist_t *ipml)
+void
+dns_c_ipmatchlist_attach(isc_log_t *lctx, dns_c_ipmatchlist_t *source,
+			 dns_c_ipmatchlist_t **target)
 {
 
 	(void) lctx;
 
-	REQUIRE(DNS_IPMLIST_VALID(ipml));
+	REQUIRE(DNS_IPMLIST_VALID(source));
 	
-	INSIST(ipml->refcount > 0);
+	INSIST(source->refcount > 0);
 
-	ipml->refcount++;
-	return (ipml);
+	source->refcount++;
+	*target = source;
 }
 
 
@@ -586,7 +583,7 @@ dns_c_ipmatchlist_copy(isc_log_t *lctx, isc_mem_t *mem,
 	while (ime != NULL) {
 		result = dns_c_ipmatchelement_copy(lctx, mem, &ptr, ime);
 		if (result != ISC_R_SUCCESS) {
-			dns_c_ipmatchlist_delete(lctx, &newlist);
+			dns_c_ipmatchlist_detach(lctx, &newlist);
 			return (result);
 		}
 		
@@ -798,7 +795,7 @@ dns_c_iplist_new(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_iplist_delete(isc_log_t *lctx,
+dns_c_iplist_detach(isc_log_t *lctx,
 		    dns_c_iplist_t **list)
 {
 	dns_c_iplist_t *l ;
@@ -806,11 +803,9 @@ dns_c_iplist_delete(isc_log_t *lctx,
 	(void) lctx;
 	
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 	
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(DNS_IPLIST_VALID(l));
 	INSIST(l->refcount > 0);
@@ -828,18 +823,17 @@ dns_c_iplist_delete(isc_log_t *lctx,
 }
 
 
-dns_c_iplist_t *
-dns_c_iplist_attach(isc_log_t *lctx,
-		    dns_c_iplist_t *list)
+void
+dns_c_iplist_attach(isc_log_t *lctx, dns_c_iplist_t *source,
+		    dns_c_iplist_t **target)
 {
-
 	(void) lctx;
 
-	REQUIRE(DNS_IPLIST_VALID(list));
-	INSIST(list->refcount > 0);
+	REQUIRE(DNS_IPLIST_VALID(source));
+	INSIST(source->refcount > 0);
 
-	list->refcount++;
-	return (list);
+	source->refcount++;
+	*target = source;
 }
 
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.35 1999/10/30 01:53:37 gson Exp $ */
+ /* $Id: zone.c,v 1.36 1999/11/17 21:52:32 brister Exp $ */
 
 #include <config.h>
 
@@ -357,11 +357,11 @@ zone_free(dns_zone_t *zone) {
 	zone->check_names = dns_c_severity_ignore;
 	zone->pubkey = NULL; /* XXX detach */
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL, &zone->update_acl);
+		dns_c_ipmatchlist_detach(NULL, &zone->update_acl);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL, &zone->query_acl);
+		dns_c_ipmatchlist_detach(NULL, &zone->query_acl);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL, &zone->xfr_acl);
+		dns_c_ipmatchlist_detach(NULL, &zone->xfr_acl);
 	if (dns_name_dynamic(&zone->origin))
 		dns_name_free(&zone->origin, zone->mctx);
 
@@ -2445,21 +2445,21 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		iresult = dns_c_zone_getallowupd(lctx, czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setupdateacl(zone, acl);
-			dns_c_ipmatchlist_delete(lctx, &acl);
+			dns_c_ipmatchlist_detach(lctx, &acl);
 		} else
 			dns_zone_clearupdateacl(zone);
 
 		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_delete(lctx, &acl);
+			dns_c_ipmatchlist_detach(lctx, &acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
 		iresult = dns_c_zone_getallowtransfer(lctx, czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setxfracl(zone, acl);
-			dns_c_ipmatchlist_delete(lctx, &acl);
+			dns_c_ipmatchlist_detach(lctx, &acl);
 		} else
 			dns_zone_clearxfracl(zone);
 
@@ -2522,7 +2522,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_delete(lctx, &acl);
+			dns_c_ipmatchlist_detach(lctx, &acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
@@ -2580,7 +2580,7 @@ dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 		iresult = dns_c_zone_getallowquery(lctx, czone, &acl);
 		if (iresult == ISC_R_SUCCESS) {
 			dns_zone_setqueryacl(zone, acl);
-			dns_c_ipmatchlist_delete(lctx, &acl);
+			dns_c_ipmatchlist_detach(lctx, &acl);
 		} else
 			dns_zone_clearqueryacl(zone);
 
@@ -2653,10 +2653,10 @@ dns_zone_setqueryacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->query_acl);
-	zone->query_acl = dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-						   acl);
+	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
+				 acl, &zone->query_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2667,10 +2667,10 @@ dns_zone_setupdateacl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->update_acl);
-	zone->update_acl = dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-						    acl);
+	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
+				 acl, &zone->update_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2681,10 +2681,10 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_c_ipmatchlist_t *acl) {
 
 	LOCK(&zone->lock);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->xfr_acl);
-	zone->xfr_acl = dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
-						 acl);
+	dns_c_ipmatchlist_attach(NULL /* isc_log_t */,
+				 acl, &zone->xfr_acl);
 	UNLOCK(&zone->lock);
 }
 
@@ -2719,7 +2719,7 @@ dns_zone_clearupdateacl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->update_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->update_acl);
 	UNLOCK(&zone->lock);
 }
@@ -2731,7 +2731,7 @@ dns_zone_clearqueryacl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->query_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->query_acl);
 	UNLOCK(&zone->lock);
 }
@@ -2743,7 +2743,7 @@ dns_zone_clearxfracl(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	if (zone->xfr_acl != NULL)
-		dns_c_ipmatchlist_delete(NULL /* isc_log_t */,
+		dns_c_ipmatchlist_detach(NULL /* isc_log_t */,
 					 &zone->xfr_acl);
 	UNLOCK(&zone->lock);
 }

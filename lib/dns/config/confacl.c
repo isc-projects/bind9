@@ -74,11 +74,9 @@ dns_c_acltable_delete(isc_log_t *lctx,
 	isc_mem_t *mem;
 
 	REQUIRE(table != NULL);
+	REQUIRE(*table != NULL);
 	
 	acltable = *table;
-	if (acltable == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(DNS_CONFACLTABLE_VALID(acltable));
 
@@ -291,7 +289,7 @@ dns_c_acl_setipml(isc_log_t *lctx, dns_c_acl_t *acl,
 	REQUIRE(ipml != NULL);
 
 	if (acl->ipml != NULL) {
-		dns_c_ipmatchlist_delete(lctx, &acl->ipml);
+		dns_c_ipmatchlist_detach(lctx, &acl->ipml);
 	}
 
 	if (deepcopy) {
@@ -405,11 +403,9 @@ acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr)
 	isc_mem_t *mem;
 
 	REQUIRE(aclptr != NULL);
+	REQUIRE(*aclptr != NULL);
 	
 	acl = *aclptr;
-	if (acl == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(DNS_CONFACL_VALID(acl));
 
@@ -418,8 +414,12 @@ acl_delete(isc_log_t *lctx, dns_c_acl_t **aclptr)
 	acl->mytable = NULL;
 	
 	isc_mem_free(mem, acl->name);
-	res = dns_c_ipmatchlist_delete(lctx, &acl->ipml);
 
+	if (acl->ipml != NULL)
+		res = dns_c_ipmatchlist_detach(lctx, &acl->ipml);
+	else
+		res = ISC_R_SUCCESS;
+	
 	acl->magic = 0;
 	
 	isc_mem_put(mem, acl, sizeof *acl);

@@ -135,11 +135,9 @@ dns_c_rrsolist_delete(isc_log_t *lctx, dns_c_rrsolist_t **list)
 	isc_result_t r;
 
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	elem = ISC_LIST_HEAD(l->elements);
 	while (elem != NULL) {
@@ -169,11 +167,9 @@ dns_c_rrso_delete(isc_log_t *lctx, dns_c_rrso_t **order)
 	(void)lctx;
 	
 	REQUIRE(order != NULL);
+	REQUIRE(*order != NULL);
 
 	oldo = *order;
-	if (oldo == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	REQUIRE(oldo->name != NULL);
 	isc_mem_free(oldo->mem, oldo->name);

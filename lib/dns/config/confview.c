@@ -64,11 +64,9 @@ dns_c_viewtable_delete(isc_log_t *lctx,
 	dns_c_viewtable_t *table;
 	
 	REQUIRE(viewtable != NULL);
+	REQUIRE(*viewtable != NULL);
 
 	table = *viewtable;
-	if (table == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 	*viewtable = NULL;
 	
 	dns_c_viewtable_clear(lctx, table);
@@ -281,7 +279,7 @@ dns_c_view_setallowquery(isc_log_t *lctx,
 	REQUIRE(ipml != NULL);
 
 	if (view->allowquery != NULL) {
-		dns_c_ipmatchlist_delete(lctx, &view->allowquery);
+		dns_c_ipmatchlist_detach(lctx, &view->allowquery);
 	}
 
 	if (deepcopy) {
@@ -332,16 +330,14 @@ dns_c_view_delete(isc_log_t *lctx,
 	dns_c_view_t *view;
 	
 	REQUIRE(viewptr != NULL);
-
-	if (*viewptr == NULL) {
-		return (ISC_R_SUCCESS);
-	}
+	REQUIRE(*viewptr != NULL);
 
 	view = *viewptr;
 
 	isc_mem_free(view->mem, view->name);
 	
-	dns_c_ipmatchlist_delete(lctx, &view->allowquery);
+	if (view->allowquery != NULL)
+		dns_c_ipmatchlist_detach(lctx, &view->allowquery);
 
 	isc_mem_put(view->mem, view, sizeof *view);
 	

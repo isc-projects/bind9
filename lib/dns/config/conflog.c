@@ -91,11 +91,9 @@ dns_c_logginglist_delete(isc_log_t *lctx,
 	isc_result_t res;
 
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 	
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	chan = ISC_LIST_HEAD(l->channels);
 	while (chan != NULL) {
@@ -499,11 +497,9 @@ dns_c_logchan_delete(isc_log_t *lctx,
 	(void) lctx;
 	
 	REQUIRE(channel != NULL);
+	REQUIRE(*channel != NULL);
 
 	logc = *channel;
-	if (logc == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	isc_mem_free(logc->mem, logc->name);
 
@@ -1166,6 +1162,7 @@ dns_c_logcat_delete(isc_log_t *lctx,
 	(void) lctx;
 	
 	REQUIRE(logcat != NULL);
+	REQUIRE(*logcat != NULL);
 
 	logc = *logcat;
 	if (logc == NULL) {

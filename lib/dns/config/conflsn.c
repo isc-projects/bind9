@@ -66,23 +66,22 @@ dns_c_lstnon_delete(isc_log_t *lctx, dns_c_lstnon_t **listen)
 	isc_result_t r;
 
 	REQUIRE(listen != NULL);
+	REQUIRE(*listen != NULL);
 
 	lo = *listen;
-	if (lo == NULL) {
-		return (ISC_R_SUCCESS);
-	}
+
 	CHECK_LISTEN(lo);
 
-	r = dns_c_ipmatchlist_delete(lctx, &lo->iml);
-	if (r != ISC_R_SUCCESS) {
-		return (r);
-	}
+	if (lo->iml != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &lo->iml);
+	} else
+		r = ISC_R_SUCCESS;
 
 	isc_mem_put(lo->mem, lo, sizeof *lo);
 
 	*listen = NULL;
 	
-	return (ISC_R_SUCCESS);
+	return (r);
 }
 
 
@@ -94,11 +93,16 @@ dns_c_lstnon_setiml(isc_log_t *lctx, dns_c_lstnon_t *listen,
 	
 	REQUIRE(listen != NULL);
 	REQUIRE(iml != NULL);
-	
-	result = dns_c_ipmatchlist_delete(lctx, &listen->iml);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+
+	if (listen->iml != NULL) {
+		result = dns_c_ipmatchlist_detach(lctx, &listen->iml);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	} else {
+		result = ISC_R_SUCCESS;
 	}
+	
 
 	if (deepcopy) {
 		result = dns_c_ipmatchlist_copy(lctx, listen->mem,
@@ -151,11 +155,9 @@ dns_c_lstnlist_delete(isc_log_t *lctx, dns_c_lstnlist_t **llist)
 	isc_result_t r;
 
 	REQUIRE(llist != NULL);
+	REQUIRE(*llist != NULL);
 
 	ll = *llist;
-	if (ll == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	CHECK_LLIST(ll);
 

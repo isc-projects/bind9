@@ -195,15 +195,32 @@ dns_c_ctx_delete(isc_log_t *lctx,
 
 	REQUIRE(c->mem != NULL);
 
-	dns_c_ctx_optionsdelete(lctx, &c->options);
-	dns_c_ctrllist_delete(lctx, &c->controls);
-	dns_c_srvlist_delete(lctx, &c->servers);
-	dns_c_acltable_delete(lctx, &c->acls);
-	dns_c_kdeflist_delete(lctx, &c->keydefs);
-	dns_c_zonelist_delete(lctx, &c->zlist);
-	dns_c_tkeylist_delete(lctx, &c->trusted_keys);
-	dns_c_logginglist_delete(lctx, &c->logging);
-	dns_c_viewtable_delete(lctx, &c->views);
+	if (c->options != NULL)
+		dns_c_ctx_optionsdelete(lctx, &c->options);
+	
+	if (c->controls != NULL)
+		dns_c_ctrllist_delete(lctx, &c->controls);
+	
+	if (c->servers != NULL)
+		dns_c_srvlist_delete(lctx, &c->servers);
+	
+	if (c->acls != NULL)
+		dns_c_acltable_delete(lctx, &c->acls);
+	
+	if (c->keydefs != NULL)
+		dns_c_kdeflist_delete(lctx, &c->keydefs);
+	
+	if (c->zlist != NULL)
+		dns_c_zonelist_delete(lctx, &c->zlist);
+	
+	if (c->trusted_keys != NULL)
+		dns_c_tkeylist_delete(lctx, &c->trusted_keys);
+	
+	if (c->logging != NULL)
+		dns_c_logginglist_delete(lctx, &c->logging);
+	
+	if (c->views != NULL)
+		dns_c_viewtable_delete(lctx, &c->views);
 	
 	isc_mem_put(c->mem, c, sizeof *c);
 	*cfg = NULL;
@@ -3051,7 +3068,7 @@ dns_c_ctx_optionsdelete(isc_log_t *lctx,
 			dns_c_options_t **opts)
 {
 	dns_c_options_t *options;
-	isc_result_t r;
+	isc_result_t r, result;
 	
 	REQUIRE(opts != NULL);
 
@@ -3098,39 +3115,68 @@ dns_c_ctx_optionsdelete(isc_log_t *lctx,
 		isc_mem_free(options->mem, options->tkeydhkeycp);
 	}
 
-	r = dns_c_ipmatchlist_delete(lctx, &options->queryacl);
-	if (r != ISC_R_SUCCESS) return (r);
+	result = ISC_R_SUCCESS;
 	
-	r = dns_c_ipmatchlist_delete(lctx, &options->transferacl);
-	if (r != ISC_R_SUCCESS) return (r);
+	if (options->queryacl != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->queryacl);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
 	
-	r = dns_c_ipmatchlist_delete(lctx, &options->recursionacl);
-	if (r != ISC_R_SUCCESS) return (r);
+	if (options->transferacl != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->transferacl);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
 	
-	r = dns_c_ipmatchlist_delete(lctx, &options->blackhole);
-	if (r != ISC_R_SUCCESS) return (r);
+	if (options->recursionacl != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->recursionacl);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
 	
-	r = dns_c_ipmatchlist_delete(lctx, &options->topology);
-	if (r != ISC_R_SUCCESS) return (r);
+	if (options->blackhole != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->blackhole);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
 	
-	r = dns_c_ipmatchlist_delete(lctx, &options->sortlist);
-	if (r != ISC_R_SUCCESS) return (r);
-
-	r = dns_c_lstnlist_delete(lctx, &options->listens);
-	if (r != ISC_R_SUCCESS) return (r);
-
-	r = dns_c_rrsolist_delete(lctx, &options->ordering);
-	if (r != ISC_R_SUCCESS) return (r);
-
-	r = dns_c_ipmatchlist_delete(lctx, &options->forwarders);
-	if (r != ISC_R_SUCCESS) return (r);
-
+	if (options->topology != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->topology);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
+	if (options->sortlist != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->sortlist);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
+	if (options->listens != NULL) {
+		r = dns_c_lstnlist_delete(lctx, &options->listens);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
+	if (options->ordering != NULL) {
+		r = dns_c_rrsolist_delete(lctx, &options->ordering);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
+	if (options->forwarders != NULL) {
+		r = dns_c_ipmatchlist_detach(lctx, &options->forwarders);
+		if (r != ISC_R_SUCCESS)
+			result = r;
+	}
+	
 	*opts = NULL;
 	options->magic = 0;
 	
 	isc_mem_put(options->mem, options, sizeof *options);
 	
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 
@@ -3493,7 +3539,7 @@ cfg_set_iplist(isc_log_t *lctx,
 		}
 	} else {
 		if (*fieldaddr != NULL) {
-			res = dns_c_ipmatchlist_delete(lctx, fieldaddr);
+			res = dns_c_ipmatchlist_detach(lctx, fieldaddr);
 			if (res != ISC_R_SUCCESS) {
 				return (res);
 			}

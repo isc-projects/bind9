@@ -246,9 +246,9 @@ isc_result_t	dns_c_zone_new(isc_log_t *lctx, isc_mem_t *mem,
 			       dns_c_zonetype_t ztype, dns_rdataclass_t zclass,
 			       const char *name, const char *internalname,
 			       dns_c_zone_t **zone);
-isc_result_t	dns_c_zone_delete(isc_log_t *lctx, dns_c_zone_t **zone);
-void		dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *zone,
-				  dns_c_zone_t **newzone);
+isc_result_t	dns_c_zone_detach(isc_log_t *lctx, dns_c_zone_t **zone);
+void		dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *source,
+				  dns_c_zone_t **target);
 void		dns_c_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 				 dns_c_zone_t *zone);
 isc_result_t	dns_c_zone_setfile(isc_log_t *lctx, dns_c_zone_t *zone,

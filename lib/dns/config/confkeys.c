@@ -65,11 +65,9 @@ dns_c_kdeflist_delete(isc_log_t *lctx,
 	isc_result_t res;
 	
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	kd = ISC_LIST_HEAD(l->keydefs);
 	while (kd != NULL) {
@@ -277,11 +275,9 @@ dns_c_kdef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef)
 	(void)lctx;
 
 	REQUIRE(keydef != NULL);
+	REQUIRE(*keydef != NULL);
 
 	kd = *keydef;
-	if (kd == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	mem = kd->mylist->mem;
 	
@@ -451,11 +447,9 @@ dns_c_kidlist_delete(isc_log_t *lctx,
 	isc_result_t r;
 
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 	
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	ki = ISC_LIST_HEAD(l->keyids);
 	while (ki != NULL) {
@@ -483,11 +477,11 @@ keyid_delete(isc_log_t *lctx,
 	dns_c_kid_t *ki;
 
 	(void)lctx;
+
+	REQUIRE(keyid != NULL);
+	REQUIRE(*keyid != NULL);
 	
 	ki = *keyid;
-	if (ki == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	isc_mem_free(ki->mylist->mem, ki->keyid);
 	isc_mem_put(ki->mylist->mem, ki, sizeof *ki);
@@ -651,11 +645,9 @@ dns_c_pubkey_delete(isc_log_t *lctx,
 	(void)lctx;
 
 	REQUIRE(pubkey != NULL);
+	REQUIRE(*pubkey != NULL);
 
 	pkey = *pubkey;
-	if (pkey == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	if (pkey->key != NULL) {
 		isc_mem_free(pkey->mem, pkey->key);
@@ -749,11 +741,9 @@ dns_c_tkeylist_delete(isc_log_t *lctx,
 	isc_result_t res;
 
 	REQUIRE(list != NULL);
+	REQUIRE(*list != NULL);
 
 	l = *list;
-	if (l == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 		
 	tkey = ISC_LIST_HEAD(l->tkeylist);
 	while (tkey != NULL) {
@@ -922,11 +912,9 @@ dns_c_tkey_delete(isc_log_t *lctx,
 	dns_c_tkey_t *tk;
 
 	REQUIRE(tkey != NULL);
+	REQUIRE(*tkey != NULL);
 
 	tk = *tkey;
-	if (tk == NULL) {
-		return (ISC_R_SUCCESS);
-	}
 
 	isc_mem_free(tk->mem, tk->domain);
 

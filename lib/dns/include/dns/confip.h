@@ -193,10 +193,11 @@ isc_result_t	dns_c_ipmatchindirect_new(isc_log_t *lctx,
 isc_result_t	dns_c_ipmatchlist_new(isc_log_t *lctx,
 				      isc_mem_t *mem,
 				      dns_c_ipmatchlist_t **ptr);
-isc_result_t	dns_c_ipmatchlist_delete(isc_log_t *lctx,
+isc_result_t	dns_c_ipmatchlist_detach(isc_log_t *lctx,
 					 dns_c_ipmatchlist_t **ml);
-dns_c_ipmatchlist_t *dns_c_ipmatchlist_attach(isc_log_t *lctx,
-					      dns_c_ipmatchlist_t *ipml);
+void		dns_c_ipmatchlist_attach(isc_log_t *lctx,
+					  dns_c_ipmatchlist_t *source,
+					  dns_c_ipmatchlist_t **target);
 isc_result_t	dns_c_ipmatchlist_copy(isc_log_t *lctx,
 				       isc_mem_t *mem,
 				       dns_c_ipmatchlist_t **dest,
@@ -216,13 +217,14 @@ isc_result_t	dns_c_ipmatchlist_print(isc_log_t *lctx,
 isc_result_t	dns_c_iplist_new(isc_log_t *lctx,
 				 isc_mem_t *mem, int length,
 				 dns_c_iplist_t **newlist);
-isc_result_t	dns_c_iplist_delete(isc_log_t *lctx,
+isc_result_t	dns_c_iplist_detach(isc_log_t *lctx,
 				    dns_c_iplist_t **list);
 isc_result_t	dns_c_iplist_copy(isc_log_t *lctx,
 				  isc_mem_t *mem, dns_c_iplist_t **dest,
 				  dns_c_iplist_t *src);
-dns_c_iplist_t *dns_c_iplist_attach(isc_log_t *lctx,
-				    dns_c_iplist_t *list);
+void	        dns_c_iplist_attach(isc_log_t *lctx,
+				    dns_c_iplist_t *source,
+				    dns_c_iplist_t **target);
 isc_result_t	dns_c_iplist_append(isc_log_t *lctx,
 				    dns_c_iplist_t *list,
 				    isc_sockaddr_t newaddr);
