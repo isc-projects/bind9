@@ -80,10 +80,10 @@ typedef struct {
 
 ISC_LANG_BEGINDECLS
 
-typedef void *(*lwres_malloc_t)(void *arg, unsigned int length);
-typedef void (*lwres_free_t)(void *arg, unsigned int length, void *mem);
+typedef void *(*lwres_malloc_t)(void *arg, size_t length);
+typedef void (*lwres_free_t)(void *arg, size_t length, void *mem);
 
-unsigned int
+int
 lwres_getaddrsbyname(lwres_context_t *context,
 		     char *name, isc_uint32_t addrtypes,
 		     lwres_getaddrsbyname_t **structp);
@@ -128,12 +128,12 @@ lwres_freegetaddrsbyname(lwres_context_t *context,
  *	*structp == NULL.
  *
  *	All memory allocated by this structure will be returned to the
- *	system via free().
+ *	system via the context's free function.
  */
 
-unsigned int
+int
 lwres_getnamebyaddr(lwres_context_t *context, isc_uint32_t addrtype,
-		    unsigned int addrlen, unsigned char *addr,
+		    isc_uint16_t addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp);
 /*
  * Makes a lwres call to look up the hostnames associated with the address.
@@ -175,13 +175,51 @@ lwres_freegetnamebyaddr(lwres_context_t *context,
  *	*structp == NULL.
  *
  *	All memory allocated by this structure will be returned to the
- *	system via free().
+ *	system via the context's free function.
  */
 
+int
 lwres_noop(lwres_context_t *context, isc_uint16_t datalength, void *data,
 	   lwres_noop_t **structp);
+/*
+ * Transmit a noop to the lw resolver.
+ *
+ * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
+ *
+ *	structp != NULL && *structp != NULL.
+ *
+ * Returns:
+ *
+ *	Returns 0 on success, non-zero on failure.
+ *
+ *	On successful return, *structp will be non-NULL, and will point to
+ *	an allocated structure returning the data requested.  This structure
+ *	must be freed using lwres_freenoop() when it is no longer
+ *	needed.
+ */
 
-unsigned int
+void
+lwres_freenoop(lwres_context_t *context, lwres_noop_t **structp);
+/*
+ * Frees any dynamically allocated memory for this structure.
+ *
+ * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
+ *
+ *	structp != NULL && *structp != NULL.
+ *
+ * Ensures:
+ *
+ *	*structp == NULL.
+ *
+ *	All memory allocated by this structure will be returned to the
+ *	system via the context's free function.
+ */
+
+int
 lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		    lwres_malloc_t malloc_function,
 		    lwres_free_t free_function);

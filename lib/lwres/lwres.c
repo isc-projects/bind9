@@ -48,7 +48,7 @@ struct lwres_context {
 	void		       *arg;
 };
 
-unsigned int
+int
 lwres_contextcreate(lwres_context_t **contextp, void *arg,
 		    lwres_malloc_t malloc_function,
 		    lwres_free_t free_function)
@@ -95,7 +95,7 @@ lwres_contextfree(lwres_context_t **contextp)
 	context->free(context->arg, sizeof(lwres_context_t), context);
 }
 
-unsigned int
+int
 lwres_getaddrsbyname(lwres_context_t *contextp,
 		     char *name, isc_uint32_t addrtypes,
 		     lwres_getaddrsbyname_t **structp)
@@ -113,9 +113,20 @@ lwres_freegetaddrsbyname(lwres_context_t *contextp,
 {
 }
 
-unsigned int
+int
+lwres_noop(lwres_context_t *context, isc_uint16_t datalength, void *data,
+	   lwres_noop_t **structp)
+{
+}
+
+void
+lwres_freenoop(lwres_context_t *context, lwres_noop_t **structp)
+{
+}
+
+int
 lwres_getnamebyaddr(lwres_context_t *contextp, isc_uint32_t addrtype,
-		    unsigned int addrlen, unsigned char *addr,
+		    isc_uint16_t addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp)
 {
 }
