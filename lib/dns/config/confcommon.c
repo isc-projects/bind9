@@ -111,35 +111,31 @@ static struct dsn_c_pvt_sfnt {
 };
 
 
-#define category_nametable_size \
-	(sizeof (category_nametable) / sizeof(struct dns_c_pvt_cntable))
-static struct dns_c_pvt_cntable {
-	dns_c_category_t val;
-	const char *strval;
-} category_nametable[] = {
-	{ dns_c_cat_default,		"default" },
-	{ dns_c_cat_config,		"config" },
-	{ dns_c_cat_parser,		"parser" },
-	{ dns_c_cat_queries,		"queries" },
-	{ dns_c_cat_lameservers,	"lame-servers" },
-	{ dns_c_cat_statistics,		"statistics" },
-	{ dns_c_cat_panic,		"panic" },
-	{ dns_c_cat_update,		"update" },
-	{ dns_c_cat_ncache,		"ncache" },
-	{ dns_c_cat_xferin,		"xfer-in" },
-	{ dns_c_cat_xferout,		"xfer-out" },
-	{ dns_c_cat_db,			"db" },
-	{ dns_c_cat_eventlib,		"eventlib" },
-	{ dns_c_cat_packet,		"packet" },
-	{ dns_c_cat_notify,		"notify" },
-	{ dns_c_cat_cname,		"cname" },
-	{ dns_c_cat_security,		"security" },
-	{ dns_c_cat_os,			"os" },
-	{ dns_c_cat_insist,		"insist" },
-	{ dns_c_cat_maint,		"maintenance" },
-	{ dns_c_cat_load,		"load" },
-	{ dns_c_cat_respchecks,		"response-checks" },
-	{ dns_c_cat_control,		"control" }
+static const char *category_nametable[] = {
+	"cname",
+	"config",
+	"control",
+	"db",
+	"default",
+	"eventlib",
+	"insist",
+	"lame-servers",
+	"load",
+	"maintenance",
+	"ncache",
+	"notify",
+	"os",
+	"packet",
+	"panic",
+	"parser",
+	"queries",
+	"response-checks",
+	"security",
+	"statistics",
+	"update",
+	"xfer-in",
+	"xfer-out",
+	NULL
 };
 
 
@@ -313,6 +309,8 @@ dns_c_string2logseverity(const char *string,
 }
 
 
+#if 0
+
 const char *
 dns_c_category2string(dns_c_category_t cat,
 		      isc_boolean_t printable)
@@ -351,6 +349,7 @@ dns_c_string2category(const char *string,
 	return (rval);
 }
 
+#endif
 
 
 const char *
@@ -728,3 +727,26 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name)
 	return (ISC_R_SUCCESS);
 }
 
+
+
+isc_result_t
+dns_c_checkcategory(const char *name)
+{
+	unsigned int i;
+
+	REQUIRE (name != NULL);
+	REQUIRE(*name != '\0');
+
+	/*
+	 * this function isn't called very often, so no need for fancy
+	 * searches.
+	 */
+	for (i = 0 ; category_nametable[i] != NULL ; i++) {
+		if (strcmp(category_nametable[i], name) == 0) {
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_FAILURE);
+}
+	
