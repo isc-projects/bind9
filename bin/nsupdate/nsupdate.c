@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.16 2004/03/02 00:58:11 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.17 2004/03/03 22:55:58 marka Exp $ */
 
 #include <config.h>
 
@@ -1706,8 +1706,9 @@ sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		fatal("out of memory");
 	reqinfo->msg = msg;
 	reqinfo->addr = destaddr;
-	result = dns_request_createvia(requestmgr, msg, srcaddr, destaddr,
-				       0, NULL, FIND_TIMEOUT, global_task,
+	result = dns_request_createvia(requestmgr, msg, srcaddr, destaddr, 0,
+				       (userserver != NULL) ? key : NULL,
+				       FIND_TIMEOUT, global_task,
 				       recvsoa, reqinfo, request);
 	check_result(result, "dns_request_createvia");
 	requests++;
