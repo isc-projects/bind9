@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.2 1999/08/24 06:43:19 gson Exp $ */
+ /* $Id: xfrin.c,v 1.3 1999/08/25 06:39:19 gson Exp $ */
 
 #include <config.h>
 
@@ -96,7 +96,7 @@ typedef enum {
 
 struct xfrin_ctx {
 	isc_mem_t		*mctx;
-	dns_dbtable_t		*dbtable; /* XXX */
+	dns_view_t		*view; /* XXX */
 
 	isc_task_t 		*task;
 	isc_timer_t		*timer;
@@ -162,7 +162,7 @@ struct xfrin_ctx {
 
 static dns_result_t
 xfrin_create(isc_mem_t *mctx,
-	     dns_dbtable_t *dbtable,
+	     dns_view_t *view,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
@@ -279,17 +279,20 @@ axfr_commit(xfrin_ctx_t *xfr) {
 		
 		dbi = isc_mem_get(ns_g_mctx, sizeof *dbi);
 		RUNTIME_CHECK(dbi != NULL);
-		dbi->path = "dynamic.araneus.fi";
+		dbi->path = "tky.hut.fi";
 		dbi->origin = NULL;
 		dbi->iscache = ISC_FALSE;
-		dbi->db = xfr->db;
+		dbi->db = NULL;
+		dns_db_attach(xfr->db, &dbi->db);
+		dbi->view = NULL;
+		dns_view_attach(xfr->view, &dbi->view);
 		ISC_LINK_INIT(dbi, link);
 		ISC_LIST_APPEND(ns_g_dbs, dbi, link);
 
 		if (xfr->olddb != NULL)
-			dns_dbtable_remove(xfr->dbtable, xfr->olddb);
+			dns_dbtable_remove(xfr->view->dbtable, xfr->olddb);
 	
-		CHECK(dns_dbtable_add(xfr->dbtable, dbi->db));
+		CHECK(dns_dbtable_add(xfr->view->dbtable, dbi->db));
 
 		(void) unlink("journal"); /* XXX filename */
 
@@ -473,18 +476,17 @@ xfr_rr(xfrin_ctx_t *xfr,
 }
 
 void
-xfrin_test(dns_dbtable_t *dbtable) {
+xfrin_test(dns_view_t *view) {
 	dns_name_t name;
 	isc_region_t region;
 	isc_task_t *task;
 	xfrin_ctx_t *xfr;
 	dns_result_t result;
-	unsigned char dom[] = "\007dynamic\007araneus\002fi";
-	/* char dom[] = "\003tky\003hut\002fi"; */
+	unsigned char dom[] = "\003tky\003hut\002fi";
 	dns_db_t *db;
 	dns_rdatatype_t xfrtype;
 	
-	printf("Testing ixfr...\n");
+	printf("Testing zone transfer...\n");
 	
 	region.base = dom;
 	region.length = sizeof(dom);
@@ -495,7 +497,7 @@ xfrin_test(dns_dbtable_t *dbtable) {
 	RUNTIME_CHECK(isc_task_create(ns_g_taskmgr, ns_g_mctx, 0, &task)
 		      == DNS_R_SUCCESS);
 	db = NULL;
-	result = dns_dbtable_find(dbtable, &name, &db);
+	result = dns_dbtable_find(view->dbtable, &name, &db);
 	if (result == DNS_R_NOTFOUND) {
 		printf("no database exists, trying to create with axfr\n");
 		xfrtype = dns_rdatatype_axfr;		
@@ -505,13 +507,13 @@ xfrin_test(dns_dbtable_t *dbtable) {
 	}
 
 	xfrin_create(ns_g_mctx,
-		     dbtable,
+		     view,
 		     db,
 		     task,
 		     ns_g_socketmgr,
 		     &name,
 		     dns_rdataclass_in, xfrtype,
-		     "194.100.32.81", 9953, &xfr);
+		     "193.100.32.81", 53, &xfr);
 
 	xfrin_start(xfr);
 }
@@ -522,7 +524,7 @@ static void xfrin_cleanup(xfrin_ctx_t *xfr) {
 	isc_socket_detach(&xfr->socket);
 	isc_timer_detach(&xfr->timer);
 	isc_task_destroy(&xfr->task);
-	/* The rest will be done when the task runs its shutdown event */
+	/* The rest will be done when the task runs its shutdown event. */
 }
 
 static void
@@ -536,7 +538,7 @@ xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 
 dns_result_t
 xfrin_create(isc_mem_t *mctx,
-	     dns_dbtable_t *dbtable,
+	     dns_view_t *view,
 	     dns_db_t *db,
 	     isc_task_t *task,
 	     isc_socketmgr_t *socketmgr,
@@ -556,7 +558,7 @@ xfrin_create(isc_mem_t *mctx,
 	if (xfr == NULL)
 		return (DNS_R_NOMEMORY);
 	xfr->mctx = mctx;
-	xfr->dbtable = dbtable;
+	xfr->view = view;
 	xfr->task = task;
 	xfr->timer = NULL;
 	xfr->socketmgr = socketmgr;
@@ -593,7 +595,6 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->axfr.add_private = NULL;
 
 	isc_task_onshutdown(xfr->task, xfrin_shutdown, xfr);
-
 	
 	CHECK(dns_name_dup(name, mctx, &xfr->name));
 
@@ -813,7 +814,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	tcpmsg = ev->sender;
 	isc_event_free(&ev);
 	
-	printf("tcp msg recv done\n");
+	/* printf("tcp msg recv done\n"); */
 	xfr->recvs--;
 	if (maybe_free(xfr))
 		return;
@@ -843,7 +844,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 			{
 				dns_rdata_t rdata;
 				dns_rdataset_current(rds, &rdata);
-				printf("got rr type %d\n", rdata.type);
+				/* printf("got rr type %d\n", rdata.type); */
 				CHECK(xfr_rr(xfr, name, rds->ttl, &rdata));
 			}
 		}
@@ -859,6 +860,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		/* Read the next message. */
 		CHECK(dns_tcpmsg_readmessage(&xfr->tcpmsg, xfr->task,
 					     xfrin_recv_done, xfr));
+		xfr->recvs++;
 	}
 	return;
 	
@@ -900,21 +902,21 @@ maybe_free(xfrin_ctx_t *xfr) {
 	if (xfr->ixfr.journal != NULL)
 		dns_journal_destroy(&xfr->ixfr.journal);
 		
-	if (xfr->axfr.add_private != NULL) {
+	if (xfr->axfr.add_private != NULL)
 		(void) dns_db_endload(xfr->db, &xfr->axfr.add_private);
-	}
 
 	if (xfr->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
 	
-	if ((xfr->name.attributes & DNS_NAMEATTR_DYNAMIC) != 0) {
+	if ((xfr->name.attributes & DNS_NAMEATTR_DYNAMIC) != 0)
 		dns_name_free(&xfr->name, xfr->mctx);
-	}
+
 	if (xfr->ver != NULL)
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
 
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
+	
 	if (xfr->olddb != NULL)
 		dns_db_detach(&xfr->olddb);
 
