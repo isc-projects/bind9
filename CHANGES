@@ -1,6 +1,3 @@
-1065.	[func]		Runtime support to select new / old style interface
-			scanning using ioctls.
-
 1503.	[port]		win32: install libeay32.dll outside of system32.
 
 1502.	[bug]		nsupdate: adjust timeouts for UPDATE requests over TCP.
@@ -72,6 +69,8 @@
 
 1432.	[func]		The advertised EDNS UDP buffer size can now be set
 			via named.conf (edns-udp-size).
+
+1430.	[port]		linux: IPv6 interface scanning support.
 
 1422.	[func]		Log name/type/class when denying a query.  [RT #4663]
 
@@ -155,6 +154,8 @@
 
 1363.	[func]		Listen-on-v6 now supports specific addresses.
 
+1362.	[bug]		remove IFF_RUNNING test when scanning interfaces.
+
 1361.	[func]		log the reason for rejecting a server when resolving
 			queries.
 
@@ -203,7 +204,13 @@
 
 1301.	[func]		New category 'update-security'.
 
+1300.	[port]		Compaq Trucluster support.
+
 1293.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
+
+1292.	[func]		Enable IPv6 support when using ioctl style interface
+			scanning and OS supports SIOCGLIFADDR using struct
+			if_laddrreq.
 
 1291.	[func]		Enable IPv6 support when using sysctl style interface
 			scanning.
@@ -406,6 +413,9 @@
 
 1067.	[func]		Allow quotas to be soft, isc_quota_soft().
 
+1065.	[func]		Runtime support to select new / old style interface
+			scanning using ioctls.
+
 1060.	[func]		Move refresh, stub and notify UDP retry processing
 			into dns_request.
 
@@ -443,6 +453,10 @@
 
 1025.	[bug]		Don't use multicast addresses to resolve iterative
 			queries. [RT #101]
+
+1024.	[port]		Compilation failed on HP-UX 11.11 due to
+			incompatible use of the SIOCGLIFCONF macro
+			name. [RT #1831]
 
 1023.	[func]		Accept hints without TTLs.
 

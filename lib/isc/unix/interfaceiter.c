@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22.2.1.10.5 2003/09/02 04:51:12 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1.10.6 2003/09/10 05:12:54 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <isc/interfaceiter.h>
+#include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
@@ -38,7 +40,6 @@
 #include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/types.h>
-#include <isc/interfaceiter.h>
 #include <isc/util.h>
 
 /* Must follow <isc/net.h>. */
@@ -142,7 +143,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 
 	REQUIRE(VALID_IFITER(iter));
 
-	iter->pos = 0;
+	internal_first(iter);
 	for (;;) {
 		result = internal_current(iter);
 		if (result != ISC_R_IGNORE)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.14.12.1 2003/08/15 02:07:45 marka Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.14.12.2 2003/09/10 05:12:53 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -288,3 +288,7 @@ internal_destroy(isc_interfaceiter_t *iter) {
 	 */
 }
 
+static
+void internal_first(isc_interfaceiter_t *iter) {
+	iter->pos = 0;
+}

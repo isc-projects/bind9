@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.23.2.13 $)
+AC_REVISION($Revision: 1.294.2.23.2.14 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -225,6 +225,27 @@ AC_TRY_COMPILE([],[long long i = 0; return (0);],
 	[AC_MSG_RESULT(no)
 		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"])
 AC_SUBST(ISC_PLATFORM_HAVELONGLONG)
+
+#
+# check if we have lifconf
+#
+AC_MSG_CHECKING(for struct lifconf)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <net/if.h>
+],
+[
+struct lifconf lifconf;
+lifconf.lifc_len = 0;
+]
+,
+	[AC_MSG_RESULT(yes)
+		ISC_PLATFORM_HAVELIFCONF="#define ISC_PLATFORM_HAVELIFCONF 1"],
+	[AC_MSG_RESULT(no)
+		ISC_PLATFORM_HAVELIFCONF="#undef ISC_PLATFORM_HAVELIFCONF"])
+AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
+
 
 #
 # check if we need to #include sys/select.h explicitly
@@ -1685,6 +1706,20 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[AC_MSG_ERROR(cannot determine type of rlim_cur when cross compiling - define rlim_t)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
+
+#
+# Compaq TruCluster requires more code for handling cluster IP aliases
+#
+case "$host" in
+	*-dec-osf*)
+		AC_CHECK_LIB(clua, clua_getaliasaddress, LIBS="-lclua $LIBS")
+		AC_CHECK_FUNC(clua_getaliasaddress,
+				AC_DEFINE(HAVE_TRUCLUSTER, 1,
+					[Define if running under Compaq TruCluster]))
+		;;
+	*)
+		;;
+esac
 
 #
 # Microsoft has their own way of handling shared libraries that requires
