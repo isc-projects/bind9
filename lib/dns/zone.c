@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.337 2001/08/31 19:25:51 gson Exp $ */
+/* $Id: zone.c,v 1.338 2001/08/31 19:27:22 gson Exp $ */
 
 #include <config.h>
 
@@ -4048,7 +4048,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
-	isc_time_t now;
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 	int match = 0;
 	isc_netaddr_t netaddr;
@@ -4178,7 +4177,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			     fromtext);
 		return (ISC_R_SUCCESS);
 	}
-	isc_time_now(&now);
 	zone->notifyfrom = *from;
 	UNLOCK_ZONE(zone);
 	dns_zone_refresh(zone);
