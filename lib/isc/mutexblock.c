@@ -21,7 +21,7 @@
 #include <isc/mutexblock.h>
 
 isc_result_t
-isc_mutex_initblock(isc_mutex_t *block, unsigned int count)
+isc_mutexblock_initblock(isc_mutex_t *block, unsigned int count)
 {
 	isc_result_t result;
 	unsigned int i;
@@ -42,7 +42,7 @@ isc_mutex_initblock(isc_mutex_t *block, unsigned int count)
 }
 
 isc_result_t
-isc_mutex_destroyblock(isc_mutex_t *block, unsigned int count)
+isc_mutexblock_destroyblock(isc_mutex_t *block, unsigned int count)
 {
 	isc_result_t result;
 	unsigned int i;
