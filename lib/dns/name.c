@@ -874,6 +874,50 @@ dns_name_matcheswildcard(dns_name_t *name, dns_name_t *wname) {
 }
 
 unsigned int
+dns_name_depth(dns_name_t *name) {
+	unsigned int depth, count, nrem, n;
+	unsigned char *ndata;
+
+	/*
+	 * The depth of 'name'.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels == 0)
+		return (0);
+
+	depth = 0;
+	ndata = name->ndata;
+	nrem = name->length;
+	while (nrem > 0) {
+		count = *ndata++;
+		nrem--;
+		if (count > 63) {
+			INSIST(count == DNS_LABELTYPE_BITSTRING);
+			INSIST(nrem != 0);
+			n = *ndata++;
+			nrem--;
+			if (n == 0)
+				n = 256;
+			depth += n;
+			count = n / 8;
+			if (n % 8 != 0)
+				count++;
+		} else {
+			depth++;
+			if (count == 0)
+				break;
+		}
+		INSIST(nrem >= count);
+		nrem -= count;
+		ndata += count;
+	}
+
+	return (depth);
+}
+
+unsigned int
 dns_name_countlabels(dns_name_t *name) {
 	/*
 	 * How many labels does 'name' have?
@@ -2903,6 +2947,74 @@ dns_name_split(dns_name_t *name,
 	}
 
 	return (result);
+}
+
+isc_result_t
+dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
+		      dns_name_t *prefix, dns_name_t *suffix)
+{
+	unsigned int suffixlabels, nbits, label, count, n;
+	unsigned char *offsets, *ndata;
+	dns_offsets_t odata;
+
+	/*
+	 * Split 'name' into two pieces at a certain depth.
+	 */
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+	REQUIRE(depth > 0);
+
+	SETUP_OFFSETS(name, offsets, odata);
+
+	suffixlabels = 0;
+	nbits = 0;
+	label = name->labels - 1;
+	do {
+		ndata = &name->ndata[offsets[label]];
+		count = *ndata++;
+		if (count > 63) {
+			INSIST(count == DNS_LABELTYPE_BITSTRING);
+			/*
+			 * Get the number of bits in the bitstring label.
+			 */
+			n = *ndata++;
+			if (n == 0)
+				n = 256;
+			suffixlabels++;
+			if (n <= depth) {
+				/*
+				 * This entire bitstring is in the suffix.
+				 */
+				depth -= n;
+			} else {
+				/*
+				 * Only the first 'depth' bits of this
+				 * bitstring are in the suffix.
+				 */
+				nbits = depth;
+				depth = 0;
+			}
+		} else {
+			suffixlabels++;
+			depth--;
+		}
+		label--;
+	} while (depth != 0 && label != 0);
+
+	/*
+	 * If depth is not zero, then the caller violated the requirement
+	 * that depth <= dns_name_depth(name).
+	 */
+	if (depth != 0) {
+		REQUIRE(depth <= dns_name_depth(name));
+		/*
+		 * We should never get here!
+		 */
+		INSIST(0);
+	}
+
+	return (dns_name_split(name, suffixlabels, nbits, prefix, suffix));
 }
 
 isc_result_t
