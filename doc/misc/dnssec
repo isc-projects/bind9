@@ -49,8 +49,8 @@ successfully even if it does not contain the NXT records to prove the
 nonexistence of a matching wildcard.
 
 Proof of insecure status for insecure zones delegated from secure
-zones has been partially implemented but should not yet be expected to
-work in all cases.
+zones has been partially implemented, and will work when the
+subzones are insecure, but not when they are privately secured.
 
 Handling of the CD bit in queries is not yet fully implemented;
 validation is currently attempted for all recursive queries, even if
@@ -65,4 +65,4 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.4.2.1 2000/06/27 21:46:31 bwelling Exp $
+$Id: dnssec,v 1.4.2.2 2000/07/13 02:45:07 bwelling Exp $
