@@ -193,7 +193,7 @@ compile($) {
 
   my $output = $debug ? "/dev/tty" : "/dev/null";
 
-  open(COMPILE, "make $obj 2>&1 >$output |");
+  open(COMPILE, "make -e $obj 2>&1 >$output |");
   my $stderr_lines = join('', <COMPILE>);
   print $stderr_lines if $debug;
   close(COMPILE);
@@ -253,7 +253,7 @@ EOF
   # Disable builtin memcmp/memcpy/strcmp/strcpy/etc.  When they are
   # available, gcc won't warn about the lack of a prototype in a header
   # file.
-  $ENV{'EXT_CFLAGS'} = "-Wno-builtin";
+  $ENV{'CFLAGS'} = "-fno-builtin";
 
   do_dir("", ".");
 }
