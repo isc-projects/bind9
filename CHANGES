@@ -87,6 +87,10 @@
 1333.	[contrib]	queryperf now reports a summary of returned
 			rcodes (-c), rcodes are printed in mnemonic form (-v).
 
+1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+			via getaddrinfo() (affects dig, host, nslookup, rndc
+			and nsupdate).
+
 1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
 			[RT #2436]
 
@@ -891,7 +895,7 @@
  986.	[bug]		"dig +noall" failed to clear stats and command
 			printing.
 
- 984.	[bug]		Multithreading should be enabled by default on
+ 984.	[bug]		Multi-threading should be enabled by default on
 			Solaris 2.7 and newer, but it wasn't.
 
 	--- 9.2.0rc2 released ---
@@ -1219,7 +1223,7 @@
 			"severity debug 0;" like it did in BIND 9.1.
 			[RT #1367]
 
- 864.	[cleanup]	Multithreading is now enabled by default on
+ 864.	[cleanup]	Multi-threading is now enabled by default on
 			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
 
  863.	[bug]		If an error occurred while an outgoing zone transfer
@@ -1320,7 +1324,7 @@
  838.	[port]		UnixWare 7.x.x is now suported by
 			bin/tests/system/ifconfig.sh.
 
- 837.	[cleanup]	Multithreading is now enabled by default only on
+ 837.	[cleanup]	Multi-threading is now enabled by default only on
 			OSF1, Solaris 2.7 and newer, and AIX.
 
  836.	[func]		Upgraded libtool to 1.4.

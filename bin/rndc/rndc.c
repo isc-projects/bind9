@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.2 2001/11/28 23:37:50 gson Exp $ */
+/* $Id: rndc.c,v 1.77.2.3 2003/05/15 01:17:55 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -149,11 +149,25 @@ get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 			hints.ai_family = PF_INET;
 		else if (isc_net_probeipv4() != ISC_R_SUCCESS)
 			hints.ai_family = PF_INET6;
-		else
+		else {
 			hints.ai_family = PF_UNSPEC;
+#ifdef AI_ADDRCONFIG
+			hints.ai_flags = AI_ADDRCONFIG;
+#endif
+		}
 		hints.ai_socktype = SOCK_STREAM;
 		isc_app_block();
+#ifdef AI_ADDRCONFIG
+ again:
+#endif
 		result = getaddrinfo(host, NULL, &hints, &res);
+#ifdef AI_ADDRCONFIG
+		if (result == EAI_BADFLAGS &&
+		    (hints.ai_flags & AI_ADDRCONFIG) != 0) {
+			hints.ai_flags &= ~AI_ADDRCONFIG;
+			goto again;
+		}
+#endif
 		isc_app_unblock();
 		if (result != 0)
 			fatal("Couldn't find server '%s': %s",

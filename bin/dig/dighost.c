@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.15 2003/05/12 05:17:32 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.16 2003/05/15 01:17:54 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2486,11 +2486,25 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 			hints.ai_family = PF_INET;
 		else if (!have_ipv4)
 			hints.ai_family = PF_INET6;
-		else
+		else {
 			hints.ai_family = PF_UNSPEC;
+#ifdef AI_ADDRCONFIG
+			hints.ai_flags = AI_ADDRCONFIG;
+#endif
+		}
 		debug ("before getaddrinfo()");
 		isc_app_block();
+#ifdef AI_ADDRCONFIG
+ again:
+#endif
 		result = getaddrinfo(host, NULL, &hints, &res);
+#ifdef AI_ADDRCONFIG
+		if (result == EAI_BADFLAGS &&
+		    (hints.ai_flags & AI_ADDRCONFIG) != 0) {
+			hints.ai_flags &= ~AI_ADDRCONFIG;
+			goto again;
+		}
+#endif
 		isc_app_unblock();
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
