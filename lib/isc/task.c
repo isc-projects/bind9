@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.67 2000/07/27 09:51:17 tale Exp $ */
+/* $Id: task.c,v 1.68 2000/07/27 22:24:54 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -339,7 +339,6 @@ task_send(isc_task_t *task, isc_event_t **eventp) {
 	REQUIRE(eventp != NULL);
 	event = *eventp;
 	REQUIRE(event != NULL);
-	REQUIRE(event->ev_sender != NULL);
 	REQUIRE(event->ev_type > 0);
 	REQUIRE(task->state != task_state_done);
 

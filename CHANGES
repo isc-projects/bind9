@@ -1,3 +1,6 @@
+ 356.	[cleanup]	isc_task_send no longer requires event->sender to
+			be non-null.
+
  355.	[func]		Added isc_dir_createunique(), similar to mkdtemp().
 
  354.	[doc]		Man pages for the dnssec tools are now included in
