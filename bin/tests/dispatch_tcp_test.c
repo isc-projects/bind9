@@ -60,6 +60,7 @@ unsigned char render_buffer[1024];
 dns_rdataset_t rdataset;
 dns_rdatalist_t rdatalist;
 
+void my_accept(isc_task_t *, isc_event_t *);
 void got_request(isc_task_t *, isc_event_t *);
 void got_response(isc_task_t *, isc_event_t *);
 void start_response(void);
@@ -293,7 +294,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	if (ev->result != DNS_R_SUCCESS) {
 		printf("Got error, terminating application\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
-		dns_dispatch_destroy(&disp);
+		dns_dispatch_detach(&disp);
 		isc_app_shutdown();
 		return;
 	}
@@ -320,7 +321,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	case 6:
 		printf("--- removing request\n");
 		dns_dispatch_removerequest(disp, &resp, &ev);
-		dns_dispatch_destroy(&disp);
+		dns_dispatch_detach(&disp);
 		isc_app_shutdown();
 		break;
 		

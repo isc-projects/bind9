@@ -942,7 +942,19 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 }
 
 void
-dns_dispatch_destroy(dns_dispatch_t **dispp)
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp)
+{
+	REQUIRE(VALID_DISPATCH(disp));
+	REQUIRE(dispp != NULL && *dispp == NULL);
+
+	disp->refcount++;
+
+	*dispp = disp;
+}
+
+
+void
+dns_dispatch_detach(dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
 	isc_boolean_t killit;

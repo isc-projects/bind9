@@ -109,10 +109,24 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  */
 
 void
-dns_dispatch_destroy(dns_dispatch_t **dispp);
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
 /*
- * Destroys dispatch.  All buffers and other bits must be returned to the
- * dispatch before this is called.
+ * Attach to a dispatch handle.
+ *
+ * Requires:
+ *	< mumble >
+ *
+ * Ensures:
+ *	< mumble >
+ *
+ * Returns:
+ *	< mumble >
+ */
+
+void
+dns_dispatch_detach(dns_dispatch_t **dispp);
+/*
+ * Detaches from the dispatch.
  *
  * Requires:
  *	< mumble >
@@ -222,36 +236,6 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispentry_t *resp,
  * Return a dispatchevent and associated buffer to the dispatch.  This needs
  * to be called if more events are desired but a particular event is fully
  * processed, and the associated buffer is no longer needed.
- *
- * Requires:
- *	< mumble >
- *
- * Ensures:
- *	< mumble >
- *
- * Returns:
- *	< mumble >
- */
-
-void
-dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
-/*
- * Attach to a dispatch handle.
- *
- * Requires:
- *	< mumble >
- *
- * Ensures:
- *	< mumble >
- *
- * Returns:
- *	< mumble >
- */
-
-void
-dns_dispatch_detach(dns_dispatch_t **dispp);
-/*
- * Detach from a dispatch handle.
  *
  * Requires:
  *	< mumble >

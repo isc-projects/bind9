@@ -373,7 +373,7 @@ main(int argc, char *argv[])
 
 	isc_socket_detach(&s0);
 
-	dns_dispatch_destroy(&disp);
+	dns_dispatch_detach(&disp);
 
 	fprintf(stderr, "Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
