@@ -118,6 +118,7 @@ struct dns_c_master_zone
 	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
+	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	isc_boolean_t		dialup;
@@ -144,6 +145,7 @@ struct dns_c_slave_zone
 	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
+	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
 	dns_c_iplist_t	       *also_notify;
@@ -176,6 +178,7 @@ struct dns_c_stub_zone
 	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update; /* should be here??? */
 	dns_c_ipmatchlist_t    *allow_update_forwarding;
+	dns_ssutable_t	       *ssuauth;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
 	isc_boolean_t		dialup;
@@ -287,6 +290,8 @@ isc_result_t	dns_c_zone_setallowupd(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_setallowupdateforwarding(dns_c_zone_t *zone,
 						    dns_c_ipmatchlist_t *ipml,
 						    isc_boolean_t deepcopy);
+isc_result_t	dns_c_zone_setssuauth(dns_c_zone_t *zone,
+				      dns_ssutable_t *ssutable);
 isc_result_t	dns_c_zone_setallowquery(dns_c_zone_t *zone,
 					 dns_c_ipmatchlist_t *ipml,
 					 isc_boolean_t deepcopy);
@@ -343,6 +348,8 @@ isc_result_t	dns_c_zone_getchecknames(dns_c_zone_t *zone,
 					 dns_severity_t *retval);
 isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t **retval);
+isc_result_t	dns_c_zone_getssuauth(dns_c_zone_t *zone,
+				      dns_ssutable_t **ssutable);
 isc_result_t	dns_c_zone_getallowupdateforwarding(dns_c_zone_t *zone,
 						 dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_zone_getallowquery(dns_c_zone_t *zone,
