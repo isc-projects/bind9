@@ -1,10 +1,9 @@
-
 DNSIND Working Group                                       Matt Crawford
 Internet Draft                                                  Fermilab
-                                                          March 21, 1999
+                                                             May 5, 1999
 
                   Binary Labels in the Domain Name System
-                  <draft-ietf-dnsind-binary-labels-04.txt>
+                  <draft-ietf-dnsind-binary-labels-05.txt>
 
 
 
@@ -21,9 +20,13 @@ Status of this Memo
     at any time.  It is inappropriate to use Internet- Drafts as
     reference material or to cite them other than as "work in progress."
 
-    To view the list Internet-Draft Shadow Directories, see
+    The list of current Internet-Drafts can be accessed at
+    http://www.ietf.org/ietf/1id-abstracts.txt
+
+    The list of Internet-Draft Shadow Directories can be accessed at
     http://www.ietf.org/shadow.html.
 
+   
 
 1.  Introduction and Terminology
 
@@ -50,9 +53,9 @@ Status of this Memo
 
 
 
-Expires September 26, 1999      Crawford                        [Page 1]
+Expires November 10, 1999       Crawford                        [Page 1]
 
-Internet Draft             Binary DNS Labels              March 21, 1999
+Internet Draft             Binary DNS Labels                 May 5, 1999
 
 
 3.  Label Format
@@ -106,9 +109,9 @@ Internet Draft             Binary DNS Labels              March 21, 1999
 
 
 
-Expires September 26, 1999      Crawford                        [Page 2]
+Expires November 10, 1999       Crawford                        [Page 2]
 
-Internet Draft             Binary DNS Labels              March 21, 1999
+Internet Draft             Binary DNS Labels                 May 5, 1999
 
 
     Bit-String Labels so as to maximize the effectiveness of message
@@ -162,9 +165,9 @@ Internet Draft             Binary DNS Labels              March 21, 1999
 
 
 
-Expires September 26, 1999      Crawford                        [Page 3]
+Expires November 10, 1999       Crawford                        [Page 3]
 
-Internet Draft             Binary DNS Labels              March 21, 1999
+Internet Draft             Binary DNS Labels                 May 5, 1999
 
 
     than 24, but, like the other forms, insignificant bits MUST be zero.
@@ -218,9 +221,9 @@ Internet Draft             Binary DNS Labels              March 21, 1999
 
 
 
-Expires September 26, 1999      Crawford                        [Page 4]
+Expires November 10, 1999       Crawford                        [Page 4]
 
-Internet Draft             Binary DNS Labels              March 21, 1999
+Internet Draft             Binary DNS Labels                 May 5, 1999
 
 
     The canonical sort order of domain names [DNSSEC] is extended to
@@ -266,17 +269,17 @@ Internet Draft             Binary DNS Labels              March 21, 1999
 7.  Security Considerations
 
     All security considerations which apply to traditional ASCII DNS
-    labels apply equally to binary labels.  The only new consideration
-    is the particular canonical representation which must be used for
-    creating or verifying signatures [DNSSEC] on data containing binary
-    labels.
+    labels apply equally to binary labels.  he canonicalization and
+    sorting rules of section 3.3 allow these to be addressed by DNS
+    Security [DNSSEC].
 
 
 
 
-Expires September 26, 1999      Crawford                        [Page 5]
+
+Expires November 10, 1999       Crawford                        [Page 5]
 
-Internet Draft             Binary DNS Labels              March 21, 1999
+Internet Draft             Binary DNS Labels                 May 5, 1999
 
 
 8.  References
@@ -330,5 +333,5 @@ Internet Draft             Binary DNS Labels              March 21, 1999
 
 
 
-Expires September 26, 1999      Crawford                        [Page 6]
+Expires November 10, 1999       Crawford                        [Page 6]
 
