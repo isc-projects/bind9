@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.h,v 1.10 2000/08/01 01:24:25 tale Exp $ */
+/* $Id: nxt.h,v 1.11 2000/09/12 09:55:32 bwelling Exp $ */
 
 #ifndef DNS_NXT_H
 #define DNS_NXT_H 1
@@ -29,9 +29,9 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
-		  dns_dbnode_t *node, dns_name_t *target,
-		  unsigned char *buffer, dns_rdata_t *rdata);
+dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
+		   dns_dbnode_t *node, dns_name_t *target,
+		   unsigned char *buffer, dns_rdata_t *rdata);
 /*
  * Build the rdata of a NXT record.
  *
@@ -46,8 +46,8 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
  */
 
 isc_result_t
-dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *target, dns_ttl_t ttl);
+dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
+	      dns_name_t *target, dns_ttl_t ttl);
 /*
  * Build a NXT record and add it to a database.
  */

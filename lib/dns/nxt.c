@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.20 2000/08/01 01:22:36 tale Exp $ */
+/* $Id: nxt.c,v 1.21 2000/09/12 09:55:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -64,9 +64,9 @@ bit_isset(unsigned char *array, unsigned int index) {
 }
 
 isc_result_t
-dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
-		  dns_dbnode_t *node, dns_name_t *target,
-		  unsigned char *buffer, dns_rdata_t *rdata)
+dns_nxt_buildrdata(dns_db_t *db, dns_dbversion_t *version,
+		   dns_dbnode_t *node, dns_name_t *target,
+		   unsigned char *buffer, dns_rdata_t *rdata)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
@@ -133,8 +133,8 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 
 
 isc_result_t
-dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *target, dns_ttl_t ttl)
+dns_nxt_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
+	      dns_name_t *target, dns_ttl_t ttl)
 {
 	isc_result_t result;
 	dns_rdata_t rdata;
@@ -144,11 +144,11 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 	dns_rdataset_init(&rdataset);
 
-	result = dns_buildnxtrdata(db, version, node,
-					  target, data, &rdata);
-	check_result(result, "dns_buildnxtrdata");
+	result = dns_nxt_buildrdata(db, version, node,
+				    target, data, &rdata);
+	check_result(result, "dns_nxt_buildrdata");
 
-	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.rdclass = dns_db_class(db);
 	rdatalist.type = dns_rdatatype_nxt;
 	rdatalist.covers = 0;
 	rdatalist.ttl = ttl;
