@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.17 2001/01/09 21:53:21 bwelling Exp $ */
+/* $Id: request.h,v 1.18 2001/10/18 06:09:39 marka Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -199,6 +199,14 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      unsigned int timeout, isc_task_t *task,
 		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
+
+isc_result_t
+dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
+		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       unsigned int options, dns_tsigkey_t *key,
+		       unsigned int timeout, unsigned int udpretry,
+		       isc_task_t *task, isc_taskaction_t action, void *arg,
+		       dns_request_t **requestp);
 /*
  * Create and send a request.
  *
@@ -206,7 +214,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
  *
  *	'message' will be rendered and sent to 'address'.  If the
  *	DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
- *	will timeout after 'timeout' seconds.
+ *	will timeout after 'timeout' seconds.  UDP requests will be resent
+ *	at 'udpretry' intervals if non-zero.
  *
  *	When the request completes, successfully, due to a timeout, or
  *	because it was canceled, a completion event will be sent to 'task'.
@@ -234,6 +243,14 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      unsigned int options, unsigned int timeout,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
+
+isc_result_t
+dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
+		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       unsigned int options, unsigned int timeout,
+		       unsigned int udpretry, isc_task_t *task,
+		       isc_taskaction_t action, void *arg,
+		       dns_request_t **requestp);
 /*
  * Create and send a request.
  *
@@ -241,7 +258,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *
  *	'msgbuf' will be sent to 'destaddr' after setting the id.  If the
  *	DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
- *	will timeout after 'timeout' seconds.
+ *	will timeout after 'timeout' seconds.   UDP requests will be resent
+ *	at 'udpretry' intervals if non-zero.
  *
  *	When the request completes, successfully, due to a timeout, or
  *	because it was canceled, a completion event will be sent to 'task'.

@@ -1,3 +1,6 @@
+1059.	[func]		dns_request now support will now retry UDP queries,
+			dns_request_createvia2() and dns_request_createraw2().
+
 1058.	[func]		Limited lifetime ticker timers are now available,
 			isc_timertype_limited.
 
