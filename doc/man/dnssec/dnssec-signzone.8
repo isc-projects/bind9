@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.5 2000/07/26 20:58:11 bwelling Exp $
+.\" $Id: dnssec-signzone.8,v 1.6 2000/07/26 21:36:08 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -219,11 +219,10 @@ zone with the key that was generated in the example given in the
 man page for
 .Xr dnssec-keygen 8 .
 The zone file for this zone is
-.Dv example.com
-and it can be assumed to contain fully qualified domain names which
-means there is no need to use the
+.Dv example.com ,
+which is the same as the origin, so there is no need to use the
 .Fl o
-option to set the domain origin.
+option to set the origin.
 This zone file contains the keyset for
 .Dv example.com
 that was created by
