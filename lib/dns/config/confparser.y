@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.7 1999/10/02 21:23:10 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.8 1999/10/08 23:05:00 tale Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -39,7 +39,7 @@ static char rcsid[] = "$Id: confparser.y,v 1.7 1999/10/02 21:23:10 brister Exp $
 #include <isc/symtab.h>
 #include <isc/error.h>
 #include <isc/once.h>
-
+#include <isc/dir.h>
 #include <isc/net.h>
 
 #include <dns/confparser.h>
@@ -3150,7 +3150,7 @@ in_port: L_INTEGER
                                        (int)$1);
                         $1 = 0;
                 } else {
-                        $$ = htons($1);
+                        $$ = htons((isc_uint16_t)$1);
                 }
         }
         ;
@@ -3666,7 +3666,7 @@ static void
 parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
                 const char *format, va_list args)
 {
-        static char where[PATH_MAX + 100];
+        static char where[ISC_DIR_PATHMAX + 100];
         static char message[20480];
 
         const char *filename = isc_lex_getsourcename(mylexer);
