@@ -29,7 +29,6 @@
 1574.	[bug]		Don't attempt to open the controls socket(s) when
 			running tests. [RT #9091]
 
-
 1573.	[port]		linux: update to libtool 1.5.2 so that
 			"make install DESTDIR=/xx" works with
 			"configure --with-libtool".  [RT #9941]
@@ -44,9 +43,11 @@
 			New keyword 'class' which sets the default class.
 			[RT #10202]
 
-1569.	[placeholder]	rt10236
+1569.	[func]		nsupdate new command 'answer' which displays the
+			complete answer message to the last update.
 
-1568.	[placeholder]	rt10236
+1568.	[bug]		nsupdate now reports that the update failed in
+			interative mode. [RT# 10236]
 
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 

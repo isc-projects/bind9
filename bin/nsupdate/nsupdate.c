@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.127 2004/03/03 23:43:09 marka Exp $ */
+/* $Id: nsupdate.c,v 1.128 2004/03/04 01:21:38 marka Exp $ */
 
 #include <config.h>
 
@@ -53,6 +53,7 @@
 #include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -139,6 +140,7 @@ static unsigned int udp_timeout = 3;
 static unsigned int udp_retries = 3;
 static dns_rdataclass_t defaultclass = dns_rdataclass_in;
 static dns_rdataclass_t zoneclass = dns_rdataclass_none;
+static dns_message_t *answer = NULL;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -1375,6 +1377,11 @@ get_next_command(void) {
 		show_message(updatemsg);
 		return (STATUS_MORE);
 	}
+	if (strcasecmp(word, "answer") == 0) {
+		if (answer != NULL)
+			show_message(answer);
+		return (STATUS_MORE);
+	}
 	if (strcasecmp(word, "key") == 0)
 		return (evaluate_key(cmdline));
 	fprintf(stderr, "incorrect section name: %s\n", word);
@@ -1402,10 +1409,32 @@ done_update(void) {
 }
 
 static void
+check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_any_tsig_t tsig;
+
+	result = dns_rdataset_first(rdataset);
+	check_result(result, "dns_rdataset_first");
+	dns_rdataset_current(rdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+	check_result(result, "dns_rdata_tostruct");
+	if (tsig.error != 0) {
+		if (isc_buffer_remaininglength(b) < 1)
+		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
+		isc__buffer_putstr(b, "(" /*)*/);
+		result = dns_tsigrcode_totext(tsig.error, b);
+		check_result(result, "dns_tsigrcode_totext");
+		if (isc_buffer_remaininglength(b) < 1)
+		      check_result(ISC_R_NOSPACE, "isc_buffer_remaininglength");
+		isc__buffer_putstr(b,  /*(*/ ")");
+	}
+}
+
+static void
 update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
 	isc_result_t result;
-	dns_message_t *rcvmsg = NULL;
 	dns_request_t *request;
 
 	UNUSED(task);
@@ -1432,9 +1461,9 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		goto done;
 	}
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	check_result(result, "dns_message_create");
-	result = dns_request_getresponse(request, rcvmsg,
+	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -1452,8 +1481,23 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		check_result(result, "dns_request_getresponse");
 	}
 
-	if (rcvmsg->rcode != dns_rcode_noerror)
+	if (answer->rcode != dns_rcode_noerror) {
 		seenerror = ISC_TRUE;
+		if (!debugging) {
+			char buf[64];
+			isc_buffer_t b;
+			dns_rdataset_t *rds;
+			
+			isc_buffer_init(&b, buf, sizeof(buf) - 1);
+			result = dns_rcode_totext(answer->rcode, &b);
+			check_result(result, "dns_rcode_totext");
+			rds = dns_message_gettsig(answer, NULL);
+			if (rds != NULL)
+				check_tsig_error(rds, &b);
+			fprintf(stderr, "update failed: %.*s\n",
+				(int)isc_buffer_usedlength(&b), buf);
+		}
+	}
 	if (debugging) {
 		isc_buffer_t *buf = NULL;
 		int bufsz;
@@ -1469,7 +1513,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 				isc_buffer_free(&buf);
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_message_totext(rcvmsg, style, 0, buf);
+			result = dns_message_totext(answer, style, 0, buf);
 			bufsz *= 2;
 		} while (result == ISC_R_NOSPACE);
 		check_result(result, "dns_message_totext");
@@ -1478,7 +1522,6 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 			(char*)isc_buffer_base(buf));
 		isc_buffer_free(&buf);
 	}
-	dns_message_destroy(&rcvmsg);
  done:
 	dns_request_destroy(&request);
 	isc_event_free(&event);
@@ -1786,6 +1829,8 @@ start_update(void) {
 
 	ddebug("start_update()");
 
+	if (answer != NULL)
+		dns_message_destroy(&answer);
 	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
 	if (result != ISC_R_SUCCESS) {
 		done_update();
@@ -1833,6 +1878,8 @@ static void
 cleanup(void) {
 	ddebug("cleanup()");
 
+	if (answer != NULL)
+		dns_message_destroy(&answer);
 	ddebug("Shutting down task manager");
 	isc_taskmgr_destroy(&taskmgr);
 
