@@ -1,6 +1,6 @@
 /*
  * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Portions Copyright (C) 1999-2002  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.1 2004/12/09 01:41:04 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.1.2.1 2004/12/09 03:18:19 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -32,7 +32,6 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
-#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #include <openssl/dsa.h>
@@ -96,7 +95,7 @@ openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	dsasig = DSA_do_sign(digest, ISC_SHA1_DIGESTLENGTH, dsa);
 	if (dsasig == NULL)
-		return (dst__openssl_toresult(DST_R_SIGNFAILURE));
+		return (DST_R_SIGNFAILURE);
 
 	*r.base++ = (key->key_size - 512)/64;
 	BN_bn2bin_fixed(dsasig->r, r.base, ISC_SHA1_DIGESTLENGTH);
@@ -134,7 +133,7 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	status = DSA_do_verify(digest, ISC_SHA1_DIGESTLENGTH, dsasig, dsa);
 	DSA_SIG_free(dsasig);
 	if (status == 0)
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
+		return (DST_R_VERIFYFAILURE);
 
 	return (ISC_R_SUCCESS);
 }
@@ -187,11 +186,11 @@ openssldsa_generate(dst_key_t *key, int unused) {
 				      NULL, NULL);
 
 	if (dsa == NULL)
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return (DST_R_OPENSSLFAILURE);
 
 	if (DSA_generate_key(dsa) == 0) {
 		DSA_free(dsa);
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		return (DST_R_OPENSSLFAILURE);
 	}
 	dsa->flags &= ~DSA_FLAG_CACHE_MONT_P;
 
@@ -204,6 +203,11 @@ static isc_boolean_t
 openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
 	return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
+}
+
+static isc_boolean_t
+openssldsa_issymmetric(void) {
+        return (ISC_FALSE);
 }
 
 static void
@@ -350,7 +354,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
+openssldsa_fromfile(dst_key_t *key, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -359,7 +363,7 @@ openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -418,26 +422,23 @@ static dst_func_t openssldsa_functions = {
 	NULL, /* paramcompare */
 	openssldsa_generate,
 	openssldsa_isprivate,
+	openssldsa_issymmetric,
 	openssldsa_destroy,
 	openssldsa_todns,
 	openssldsa_fromdns,
 	openssldsa_tofile,
-	openssldsa_parse,
-	NULL, /* cleanup */
+	openssldsa_fromfile,
 };
 
 isc_result_t
 dst__openssldsa_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL);
-	if (*funcp == NULL)
-		*funcp = &openssldsa_functions;
+	REQUIRE(funcp != NULL && *funcp == NULL);
+	*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
 }
 
-#else /* OPENSSL */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
+void
+dst__openssldsa_destroy(void) {
+}
 
 #endif /* OPENSSL */

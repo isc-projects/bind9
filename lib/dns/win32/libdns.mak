@@ -111,7 +111,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6k/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -391,7 +391,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6k/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -797,7 +797,7 @@ SOURCE=..\dispatch.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
-CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6k/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\dispatch.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -807,7 +807,7 @@ CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/ope
 
 !ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../dns/sec/dst/include" /I "../../../../openssl-0.9.6k/inc32" /I "../sec/dst/include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\dispatch.obj"	"$(INTDIR)\dispatch.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -1605,7 +1605,7 @@ SOURCE=..\zt.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\dst_api.c
+SOURCE=..\dst_api.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1623,7 +1623,7 @@ SOURCE=..\sec\dst\dst_api.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\dst_lib.c
+SOURCE=..\dst_lib.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1641,7 +1641,7 @@ SOURCE=..\sec\dst\dst_lib.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\dst_parse.c
+SOURCE=..\dst_parse.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1659,7 +1659,7 @@ SOURCE=..\sec\dst\dst_parse.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\dst_result.c
+SOURCE=..\dst_result.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1677,7 +1677,7 @@ SOURCE=..\sec\dst\dst_result.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\gssapi_link.c
+SOURCE=..\gssapi_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1695,7 +1695,7 @@ SOURCE=..\sec\dst\gssapi_link.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\gssapictx.c
+SOURCE=..\gssapictx.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1713,7 +1713,7 @@ SOURCE=..\sec\dst\gssapictx.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\hmac_link.c
+SOURCE=..\hmac_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1731,7 +1731,7 @@ SOURCE=..\sec\dst\hmac_link.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\key.c
+SOURCE=..\key.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1749,7 +1749,7 @@ SOURCE=..\sec\dst\key.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\openssl_link.c
+SOURCE=..\openssl_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1767,7 +1767,7 @@ SOURCE=..\sec\dst\openssl_link.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\openssldh_link.c
+SOURCE=..\openssldh_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1785,7 +1785,7 @@ SOURCE=..\sec\dst\openssldh_link.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\openssldsa_link.c
+SOURCE=..\openssldsa_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 
@@ -1803,7 +1803,7 @@ SOURCE=..\sec\dst\openssldsa_link.c
 
 !ENDIF 
 
-SOURCE=..\sec\dst\opensslrsa_link.c
+SOURCE=..\opensslrsa_link.c
 
 !IF  "$(CFG)" == "libdns - Win32 Release"
 

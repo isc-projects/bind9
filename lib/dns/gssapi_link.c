@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.1 2004/12/09 01:41:02 marka Exp $
+ * $Id: gssapi_link.c,v 1.1.2.1 2004/12/09 03:18:17 marka Exp $
  */
 
 #ifdef GSSAPI
@@ -182,6 +182,12 @@ gssapi_isprivate(const dst_key_t *key) {
         return (ISC_TRUE);
 }
 
+static isc_boolean_t
+gssapi_issymmetric(const dst_key_t *key) {
+	UNUSED(key);
+        return (ISC_TRUE);
+}
+
 static void
 gssapi_destroy(dst_key_t *key) {
 	UNUSED(key);
@@ -199,20 +205,23 @@ static dst_func_t gssapi_functions = {
 	NULL, /* paramcompare */
 	gssapi_generate,
 	gssapi_isprivate,
+	gssapi_issymmetric,
 	gssapi_destroy,
 	NULL, /* todns */
 	NULL, /* fromdns */
 	NULL, /* tofile */
-	NULL, /* parse */
-	NULL, /* cleanup */
+	NULL, /* fromfile */
 };
 
 isc_result_t
 dst__gssapi_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL);
-	if (*funcp == NULL)
-		*funcp = &gssapi_functions;
+	REQUIRE(funcp != NULL && *funcp == NULL);
+	*funcp = &gssapi_functions;
 	return (ISC_R_SUCCESS);
+}
+
+void
+dst__gssapi_destroy(void) {
 }
 
 #else

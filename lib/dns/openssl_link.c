@@ -1,6 +1,6 @@
 /*
  * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Portions Copyright (C) 1999-2003  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1 2004/12/09 01:41:03 marka Exp $
+ * $Id: openssl_link.c,v 1.1.2.1 2004/12/09 03:18:18 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -33,9 +33,7 @@
 #include <isc/util.h>
 
 #include "dst_internal.h"
-#include "dst_openssl.h"
 
-#include <openssl/err.h>
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 
@@ -99,42 +97,14 @@ id_callback(void) {
 	return ((unsigned long)isc_thread_self());
 }
 
-static void *
-mem_alloc(size_t size) {
-	INSIST(dst__memory_pool != NULL);
-	return (isc_mem_allocate(dst__memory_pool, size));
-}
-
-static void
-mem_free(void *ptr) {
-	INSIST(dst__memory_pool != NULL);
-	if (ptr != NULL)
-		isc_mem_free(dst__memory_pool, ptr);
-}
-
-static void *
-mem_realloc(void *ptr, size_t size) {
-	void *p;
-
-	INSIST(dst__memory_pool != NULL);
-	p = NULL;
-	if (size > 0U) {
-		p = mem_alloc(size);
-		if (p != NULL && ptr != NULL)
-			memcpy(p, ptr, size);
-	}
-	if (ptr != NULL)
-		mem_free(ptr);
-	return (p);
-}
-
 isc_result_t
 dst__openssl_init() {
 	isc_result_t result;
 
-	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
+	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
+				 dst__mem_free);
 	nlocks = CRYPTO_num_locks();
-	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks);
+	locks = dst__mem_alloc(sizeof(isc_mutex_t) * nlocks);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
 	result = isc_mutexblock_init(locks, nlocks);
@@ -142,7 +112,7 @@ dst__openssl_init() {
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
-	rm = mem_alloc(sizeof(RAND_METHOD));
+	rm = dst__mem_alloc(sizeof(RAND_METHOD));
 	if (rm == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_mutexinit;
@@ -168,18 +138,17 @@ dst__openssl_init() {
 
 #ifdef USE_ENGINE
  cleanup_rm:
-	mem_free(rm);
+	dst__mem_free(rm);
 #endif
  cleanup_mutexinit:
-	DESTROYMUTEXBLOCK(locks, nlocks);
+	RUNTIME_CHECK(isc_mutexblock_destroy(locks, nlocks) == ISC_R_SUCCESS);
  cleanup_mutexalloc:
-	mem_free(locks);
+	dst__mem_free(locks);
 	return (result);
 }
 
 void
 dst__openssl_destroy() {
-	ERR_clear_error();
 #ifdef USE_ENGINE
 	if (e != NULL) {
 		ENGINE_free(e);
@@ -187,33 +156,12 @@ dst__openssl_destroy() {
 	}
 #endif
 	if (locks != NULL) {
-		DESTROYMUTEXBLOCK(locks, nlocks);
-		mem_free(locks);
+		RUNTIME_CHECK(isc_mutexblock_destroy(locks, nlocks) ==
+			      ISC_R_SUCCESS);
+		dst__mem_free(locks);
 	}
 	if (rm != NULL)
-		mem_free(rm);
+		dst__mem_free(rm);
 }
-
-isc_result_t
-dst__openssl_toresult(isc_result_t fallback) {
-	isc_result_t result = fallback;
-	int err = ERR_get_error();
-
-	switch (ERR_GET_REASON(err)) {
-	case ERR_R_MALLOC_FAILURE:
-		result = ISC_R_NOMEMORY;
-		break;
-	default:
-		break;
-	}
-	ERR_clear_error();
-	return (result);
-}
-
-#else /* OPENSSL */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

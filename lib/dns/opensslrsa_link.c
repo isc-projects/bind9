@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2003  Internet Software Consortium.
+ * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1 2004/12/09 01:41:04 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.2.1 2004/12/09 03:18:21 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -33,55 +33,17 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
-#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
 
-	/*
-	 * XXXMPA  Temporarially disable RSA_BLINDING as it requires
-	 * good quality random data that cannot currently be guarenteed.
-	 * XXXMPA  Find which versions of openssl use pseudo random data
-	 * and set RSA_FLAG_BLINDING for those.
-	 */
-
-#if 0
-#if OPENSSL_VERSION_NUMBER < 0x0090601fL
-#define SET_FLAGS(rsa) \
-	do { \
-	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
-	(rsa)->flags |= RSA_FLAG_BLINDING; \
-	} while (0)
-#else
-#define SET_FLAGS(rsa) \
-	do { \
-		(rsa)->flags |= RSA_FLAG_BLINDING; \
-	} while (0)
-#endif
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x0090601fL
-#define SET_FLAGS(rsa) \
-	do { \
-	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE); \
-	(rsa)->flags &= ~RSA_FLAG_BLINDING; \
-	} while (0)
-#else
-#define SET_FLAGS(rsa) \
-	do { \
-		(rsa)->flags &= ~RSA_FLAG_BLINDING; \
-	} while (0)
-#endif
-
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static isc_result_t
 opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	UNUSED(key);
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx;
@@ -102,9 +64,6 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 static void
 opensslrsa_destroyctx(dst_context_t *dctx) {
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
-
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
 
@@ -125,9 +84,6 @@ opensslrsa_destroyctx(dst_context_t *dctx) {
 
 static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
-
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
 		isc_md5_update(md5ctx, data->base, data->length);
@@ -145,17 +101,10 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t r;
 	/* note: ISC_SHA1_DIGESTLENGTH > ISC_MD5_DIGESTLENGTH */
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	unsigned int siglen = 0;
+	unsigned int siglen;
 	int status;
 	int type;
 	unsigned int digestlen;
-	char *message;
-	unsigned long err;
-	const char* file;
-	int line;
-
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	isc_buffer_availableregion(sig, &r);
 
@@ -176,13 +125,8 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	status = RSA_sign(type, digest, digestlen, r.base, &siglen, rsa);
 	if (status == 0) {
-		err = ERR_peek_error_line(&file, &line);
-		if (err != 0U) {
-			message = ERR_error_string(err, NULL);
-			fprintf(stderr, "%s:%s:%d\n", message,
-				file ? file : "", line);
-		}
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		ERR_clear_error();
+		return (DST_R_SIGNFAILURE);
 	}
 
 	isc_buffer_add(sig, siglen);
@@ -199,9 +143,6 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	int status = 0;
 	int type;
 	unsigned int digestlen;
-
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1);
 
 	if (dctx->key->key_alg == DST_ALG_RSAMD5) {
 		isc_md5_t *md5ctx = dctx->opaque;
@@ -220,8 +161,10 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	status = RSA_verify(type, digest, digestlen, sig->base,
 			    RSA_size(rsa), rsa);
-	if (status == 0)
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
+	if (status == 0) {
+		ERR_clear_error();
+		return (DST_R_VERIFYFAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -268,9 +211,14 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	else
 		e = RSA_F4;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
-	if (rsa == NULL)
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	SET_FLAGS(rsa);
+	if (rsa == NULL) {
+		ERR_clear_error();
+		return (DST_R_OPENSSLFAILURE);
+	}
+
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	rsa->flags |= RSA_FLAG_BLINDING;
+
 	key->opaque = rsa;
 
 	return (ISC_R_SUCCESS);
@@ -280,6 +228,11 @@ static isc_boolean_t
 opensslrsa_isprivate(const dst_key_t *key) {
 	RSA *rsa = (RSA *) key->opaque;
 	return (ISC_TF(rsa != NULL && rsa->d != NULL));
+}
+
+static isc_boolean_t
+opensslrsa_issymmetric(void) {
+        return (ISC_FALSE);
 }
 
 static void
@@ -343,7 +296,8 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
-	SET_FLAGS(rsa);
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	rsa->flags |= RSA_FLAG_BLINDING;
 
 	if (r.length < 1) {
 		RSA_free(rsa);
@@ -465,7 +419,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
+opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -474,14 +428,15 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parse(key, DST_ALG_RSA, lexer, mctx, &priv);
+	ret = dst__privstruct_parsefile(key, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	rsa = RSA_new();
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	SET_FLAGS(rsa);
+	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	rsa->flags |= RSA_FLAG_BLINDING;
 	key->opaque = rsa;
 
 	for (i = 0; i < priv.nelements; i++) {
@@ -542,26 +497,23 @@ static dst_func_t opensslrsa_functions = {
 	NULL, /* paramcompare */
 	opensslrsa_generate,
 	opensslrsa_isprivate,
+	opensslrsa_issymmetric,
 	opensslrsa_destroy,
 	opensslrsa_todns,
 	opensslrsa_fromdns,
 	opensslrsa_tofile,
-	opensslrsa_parse,
-	NULL, /* cleanup */
+	opensslrsa_fromfile,
 };
 
 isc_result_t
 dst__opensslrsa_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL);
-	if (*funcp == NULL)
-		*funcp = &opensslrsa_functions;
+	REQUIRE(funcp != NULL && *funcp == NULL);
+	*funcp = &opensslrsa_functions;
 	return (ISC_R_SUCCESS);
 }
 
-#else /* OPENSSL */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
+void
+dst__opensslrsa_destroy(void) {
+}
 
 #endif /* OPENSSL */

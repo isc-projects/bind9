@@ -1,6 +1,6 @@
 /*
  * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Portions Copyright (C) 2000-2002  Internet Software Consortium.
+ * Portions Copyright (C) 2000, 2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.1 2004/12/09 01:41:02 marka Exp $ */
+/* $Id: dst_parse.h,v 1.1.2.1 2004/12/09 03:18:15 marka Exp $ */
 
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1
@@ -83,8 +83,8 @@ void
 dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx);
 
 int
-dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
-		      isc_mem_t *mctx, dst_private_t *priv);
+dst__privstruct_parsefile(dst_key_t *key, const char *filename,
+			  isc_mem_t *mctx, dst_private_t *priv);
 
 int
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,

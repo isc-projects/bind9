@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.126.2.12 2004/09/16 06:05:36 marka Exp $
+# $Id: Makefile.in,v 1.126.2.13 2004/12/09 03:18:13 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -29,10 +29,10 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I. -Iinclude -Iinclude/sec/dst/include \
-		${DNS_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} \
+		${ISC_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
-CDEFINES =
+CDEFINES =	-DUSE_MD5 @USE_OPENSSL@ @USE_GSSAPI@
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
@@ -43,13 +43,13 @@ LIBS =		@LIBS@
 
 # Alphabetically
 
-DSTOBJS =	sec/dst/dst_api.@O@ sec/dst/dst_lib.@O@ sec/dst/dst_parse.@O@ \
-		sec/dst/dst_result.@O@ sec/dst/hmac_link.@O@ sec/dst/key.@O@
+DSTOBJS =	dst_api.@O@ dst_lib.@O@ dst_parse.@O@ \
+		dst_result.@O@ hmac_link.@O@ key.@O@
 
-OPENSSLOBJS =	sec/dst/openssl_link.@O@ sec/dst/openssldh_link.@O@ \
-		sec/dst/openssldsa_link.@O@ sec/dst/opensslrsa_link.@O@
+OPENSSLOBJS =	openssl_link.@O@ openssldh_link.@O@ \
+		openssldsa_link.@O@ opensslrsa_link.@O@
 
-GSSAPIOBJS =	sec/dst/gssapi_link.@O@ sec/dst/gssapictx.@O@
+GSSAPIOBJS =	gssapi_link.@O@ gssapictx.@O@
 
 # Alphabetically
 DNSOBJS =	a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
@@ -69,7 +69,13 @@ DNSOBJS =	a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 OBJS =		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${OPENSSLOBJS} ${GSSAPIOBJS}
 
 # Alphabetically
-SRCS =		a6.c acl.c adb.c byaddr.c \
+DSTSRCS =	dst_api.c dst_lib.c dst_parse.c \
+		dst_result.c gssapi_link.c gssapictx.c \
+		hmac_link.c key.c \
+		openssl_link.c openssldh_link.c \
+		openssldsa_link.c opensslrsa_link.c
+
+DNSSRCS =	a6.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dnssec.c forward.c journal.c keytable.c \
@@ -82,8 +88,9 @@ SRCS =		a6.c acl.c adb.c byaddr.c \
 		stats.c tcpmsg.c time.c timer.c tkey.c \
 		tsig.c ttl.c validator.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
+SRCS = ${DSTSRCS} ${DNSSRCS}
 
-SUBDIRS =	include sec
+SUBDIRS =	include 
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 		include/dns/rdatastruct.h timestamp
 
@@ -178,6 +185,5 @@ depend: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
 subdirs: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
-${DNSOBJS}: include/dns/enumtype.h include/dns/enumclass.h \
+${OBJS}: include/dns/enumtype.h include/dns/enumclass.h \
         include/dns/rdatastruct.h
-${DSTOBJS}: subdirs
