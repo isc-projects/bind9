@@ -39,6 +39,7 @@
 #include <dns/rdataset.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
+#include <dns/log.h>
 
 #include <dst/dst.h>
 
@@ -46,24 +47,39 @@
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
-#define RTRACE(m)	printf("res %p: %s\n", res, (m))
-#define RRTRACE(r, m)	printf("res %p: %s\n", (r), (m))
-#define FCTXTRACE(m)	printf("fctx %p: %s\n", fctx, (m))
-#define FTRACE(m)	printf("fetch %p (fctx %p): %s\n", \
-			       fetch, fetch->private, (m))
-#define QTRACE(m)	printf("query %p (res %p fctx %p): %s\n", \
-			       query, query->fctx->res, query->fctx, (m))
-#define QTRACERESULT(m, r) \
-	printf("query %p (res %p fctx %p): %s, result = %s\n", \
-	       query, query->fctx->res, query->fctx, (m), \
-	       isc_result_totext((r)))
+#define RTRACE(m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(1), \
+				      "res %p: %s", res, (m))
+#define RRTRACE(r, m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(1), \
+				      "res %p: %s", (r), (m))
+#define FCTXTRACE(m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(1), \
+				      "fctx %p: %s", fctx, (m))
+#define FTRACE(m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(1), \
+				      "fetch %p (fctx %p): %s", \
+				      fetch, fetch->private, (m))
+#define QTRACE(m)	isc_log_write(dns_lctx, \
+				      DNS_LOGCATEGORY_RESOLVER, \
+				      DNS_LOGMODULE_RESOLVER, \
+				      ISC_LOG_DEBUG(1), \
+				      "resquery %p (fctx %p): %s", \
+				      query, query->fctx, (m))
 #else
 #define RTRACE(m)
 #define RRTRACE(r, m)
 #define FCTXTRACE(m)
 #define FTRACE(m)
 #define QTRACE(m)
-#define QTRACERESULT(m, r)
 #endif
 
 
@@ -310,8 +326,6 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	(void)task;
-
-	QTRACERESULT("senddone", sevent->result);
 
 	if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL);
@@ -2165,13 +2179,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (keep_trying) {
 		if (result == DNS_R_FORMERR)
 			broken_server = ISC_TRUE;
-		if (broken_server) {
-			/*
-			 * XXXRTH  We will mark the sender as bad here instead
-			 *         of doing the printf().
-			 */
-			printf("broken server\n");
-		}
+		/*
+		 * XXXRTH  If we have a broken server at this poing, we will
+		 *	   decrease its 'goodness', possibly add a 'lame'
+		 *         entry, and maybe log a message.
+		 */
 		/*
 		 * Do we need to find the best nameservers for this fetch?
 		 */
