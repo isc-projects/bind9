@@ -15,9 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.52 2000/12/06 00:30:21 tale Exp $ */
+/* $Id: entropy.c,v 1.53 2000/12/14 22:40:17 gson Exp $ */
 
 #include <config.h>
+
+#include <sys/types.h>
+#include <sys/time.h>
 
 #include <errno.h>
 #include <fcntl.h>
