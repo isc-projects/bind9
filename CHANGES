@@ -1,4 +1,4 @@
-1352.	[bug]		dig, host, nslookup when failing back to TCP use the
+1352.	[bug]		dig, host, nslookup when falling back to TCP use the
 			current search entry (if any). [RT #3374]
 
 1351.	[bug]		lwres_getipnodebyname() returned the wrong name
