@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.323 2001/05/08 04:30:32 bwelling Exp $ */
+/* $Id: server.c,v 1.324 2001/05/09 21:35:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2781,8 +2781,22 @@ ns_server_flushcache(ns_server_t *server) {
 
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
+	dns_view_t *view;
+	int zonecount = 0;
 	int n;
+	isc_result_t result;
 
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (strcmp(view->name, "_bind") == 0)
+			continue;
+		zonecount += dns_zt_zonecount(view->zonetable);
+	}
+	isc_task_endexclusive(server->task);	
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
 		     "number of zones: %d\n"
@@ -2792,8 +2806,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "soa queries in progress: %d\n"
 		     "query logging is %s\n"
 		     "server is up and running",
-		     -1, /* XXX */
-		     ns_g_debuglevel,
+		     zonecount, ns_g_debuglevel,
 		     -1, -1, -1, /* XXX */
 		     server->log_queries ? "ON" : "OFF");
 	if (n < 0)
