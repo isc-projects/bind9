@@ -1,4 +1,6 @@
 
+#include <config.h>
+
 #include <dns/result.h>
 
 static char *text_table[DNS_R_LASTENTRY + 1] = {

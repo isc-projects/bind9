@@ -1,4 +1,6 @@
-/* $Id: socket.c,v 1.21 1998/12/11 20:47:15 halley Exp $ */
+/* $Id: socket.c,v 1.22 1998/12/12 19:25:10 halley Exp $ */
+
+#include <config.h>
 
 #include <errno.h>
 #include <stddef.h>

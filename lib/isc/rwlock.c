@@ -1,4 +1,6 @@
 
+#include <config.h>
+
 #include <stdio.h>
 
 #include <isc/assertions.h>

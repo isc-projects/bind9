@@ -15,17 +15,16 @@
  * SOFTWARE.
  */
 
-#include <sys/types.h>
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>
-
 #include <isc/mem.h>
-
 #ifndef ISC_SINGLETHREADED
 #include <isc/mutex.h>
 #endif

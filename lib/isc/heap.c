@@ -25,6 +25,8 @@
  *	ISBN 0-201-06673-4, chapter 11.
  */
 
+#include <config.h>
+
 #include <stdlib.h>
 #include <string.h>
 

@@ -1,4 +1,6 @@
 
+#include <config.h>
+
 #include <isc/thread.h>
 
 isc_result_t

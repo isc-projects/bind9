@@ -1,4 +1,6 @@
 
+#include <config.h>
+
 #include <isc/result.h>
 
 static char *text_table[ISC_R_LASTENTRY + 1] = {
