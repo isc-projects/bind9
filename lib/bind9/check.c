@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.40 2003/09/19 12:39:48 marka Exp $ */
+/* $Id: check.c,v 1.41 2003/09/25 18:16:47 jinmei Exp $ */
 
 #include <config.h>
 
@@ -806,10 +806,30 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 	cfg_obj_t *v1, *v2;
 	isc_sockaddr_t *s1, *s2;
 	isc_netaddr_t na;
+	cfg_obj_t *ts;
+	char buf[128];
+	const char *xfr;
+	isc_buffer_t target;
 
 	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
 		v1 = cfg_listelt_value(e1);
 		s1 = cfg_obj_assockaddr(cfg_map_getname(v1));
+		ts = NULL;
+		if (isc_sockaddr_pf(s1) == AF_INET)
+			xfr = "transfer-source-v6";
+		else
+			xfr = "transfer-source";
+		(void)cfg_map_get(v1, xfr, &ts);
+		if (ts != NULL) {
+			isc_netaddr_fromsockaddr(&na, s1);
+			isc_buffer_init(&target, buf, sizeof(buf) - 1);
+			RUNTIME_CHECK(isc_netaddr_totext(&na, &target)
+				      == ISC_R_SUCCESS);
+			buf[isc_buffer_usedlength(&target)] = '\0';
+			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
+				    "server '%s': %s not valid", buf, xfr);
+			result = ISC_R_FAILURE;
+		}
 		e2 = e1;
 		while ((e2 = cfg_list_next(e2)) != NULL) {
 			v2 = cfg_listelt_value(e2);
@@ -817,8 +837,6 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 			if (isc_sockaddr_eqaddr(s1, s2)) {
 				const char *file = cfg_obj_file(v1);
 				unsigned int line = cfg_obj_line(v1);
-				isc_buffer_t target;
-				char buf[128];
 
 				if (file == NULL)
 					file = "<unknown file>";

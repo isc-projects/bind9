@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.403 2003/09/19 12:39:47 marka Exp $ */
+/* $Id: server.c,v 1.404 2003/09/25 18:16:43 jinmei Exp $ */
 
 #include <config.h>
 
@@ -550,6 +550,18 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "keys", &obj);
 	if (obj != NULL) {
 		result = dns_peer_setkeybycharp(peer, cfg_obj_asstring(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
+	obj = NULL;
+	if (isc_sockaddr_pf(sa) == AF_INET)
+		(void)cfg_map_get(cpeer, "transfer-source", &obj);
+	else
+		(void)cfg_map_get(cpeer, "transfer-source-v6", &obj);
+	if (obj != NULL) {
+		result = dns_peer_settransfersource(peer,
+						    cfg_obj_assockaddr(obj));
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}

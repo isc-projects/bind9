@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.398 2003/09/24 01:03:37 marka Exp $ */
+/* $Id: zone.c,v 1.399 2003/09/25 18:16:47 jinmei Exp $ */
 
 #include <config.h>
 
@@ -3824,6 +3824,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t options;
 	isc_boolean_t cancel = ISC_TRUE;
 	int timeout;
+	isc_boolean_t have_xfrsource;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3853,30 +3854,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 
 	zone->masteraddr = zone->masters[zone->curmaster];
 
-	switch (isc_sockaddr_pf(&zone->masteraddr)) {
-	case PF_INET:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
-			if (isc_sockaddr_equal(&zone->altxfrsource4,
-					       &zone->xfrsource4))
-				goto skip_master;
-			zone->sourceaddr = zone->altxfrsource4;
-		} else
-			zone->sourceaddr = zone->xfrsource4;
-		break;
-	case PF_INET6:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
-			if (isc_sockaddr_equal(&zone->altxfrsource6,
-					       &zone->xfrsource6))
-				goto skip_master;
-			zone->sourceaddr = zone->altxfrsource6;
-		} else
-			zone->sourceaddr = zone->xfrsource6;
-		break;
-	default:
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
-
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	/*
 	 * First, look for a tsig key in the master statement, then
@@ -3897,15 +3874,45 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (key == NULL)
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
 
+	have_xfrsource = ISC_FALSE;
 	if (zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_boolean_t edns;
 		result = dns_peerlist_peerbyaddr(zone->view->peers,
 						 &masterip, &peer);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = dns_peer_getsupportedns(peer, &edns);
-		if (result == ISC_R_SUCCESS && !edns)
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			if (result == ISC_R_SUCCESS && !edns)
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			result = dns_peer_gettransfersource(peer,
+							    &zone->sourceaddr);
+			if (result == ISC_R_SUCCESS)
+				have_xfrsource = ISC_TRUE;
+		}
+	}
+
+	switch (isc_sockaddr_pf(&zone->masteraddr)) {
+	case PF_INET:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource4,
+					       &zone->xfrsource4))
+				goto skip_master;
+			zone->sourceaddr = zone->altxfrsource4;
+		} else if (!have_xfrsource)
+			zone->sourceaddr = zone->xfrsource4;
+		break;
+	case PF_INET6:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource6,
+					       &zone->xfrsource6))
+				goto skip_master;
+			zone->sourceaddr = zone->altxfrsource6;
+		} else if (!have_xfrsource)
+			zone->sourceaddr = zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
 	}
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
@@ -3968,6 +3975,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
 	int timeout;
+	isc_boolean_t have_xfrsource = ISC_FALSE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((soardataset != NULL && stub == NULL) ||
@@ -4078,10 +4086,16 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		isc_boolean_t edns;
 		result = dns_peerlist_peerbyaddr(zone->view->peers,
 						 &masterip, &peer);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = dns_peer_getsupportedns(peer, &edns);
-		if (result == ISC_R_SUCCESS && !edns)
-			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			if (result == ISC_R_SUCCESS && !edns)
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			result = dns_peer_gettransfersource(peer,
+							    &zone->sourceaddr);
+			if (result == ISC_R_SUCCESS)
+				have_xfrsource = ISC_TRUE;
+		}
+		
 	}
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message);
@@ -4098,13 +4112,13 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	case PF_INET:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
 			zone->sourceaddr = zone->altxfrsource4;
-		else
+		else if (!have_xfrsource)
 			zone->sourceaddr = zone->xfrsource4;
 		break;
 	case PF_INET6:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
 			zone->sourceaddr = zone->altxfrsource6;
-		else
+		else if (!have_xfrsource)
 			zone->sourceaddr = zone->xfrsource6;
 		break;
 	default:

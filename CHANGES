@@ -1,3 +1,6 @@
+1515.	[func]		Allow transfer source to be set in a server statement.
+			[RT #6496]
+
 1514.	[bug]		named: isc_hash_destroy() was being called to early.
 			[RT #9160]
 

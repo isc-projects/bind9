@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.17 2001/11/30 01:59:14 gson Exp $ */
+/* $Id: peer.c,v 1.18 2003/09/25 18:16:47 jinmei Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
+#include <isc/sockaddr.h>
 
 #include <dns/bit.h>
 #include <dns/fixedname.h>
@@ -193,6 +194,7 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 	peer->provide_ixfr = ISC_FALSE;
 	peer->key = NULL;
 	peer->refs = 1;
+	peer->transfer_source = NULL;
 
 	memset(&peer->bitflags, 0x0, sizeof(peer->bitflags));
 
@@ -254,6 +256,11 @@ peer_delete(dns_peer_t **peer) {
 	if (p->key != NULL) {
 		dns_name_free(p->key, mem);
 		isc_mem_put(mem, p->key, sizeof(dns_name_t));
+	}
+
+	if (p->transfer_source != NULL) {
+		isc_mem_put(mem, p->transfer_source,
+			    sizeof(*p->transfer_source));
 	}
 
 	isc_mem_put(mem, p, sizeof(*p));
@@ -481,4 +488,35 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 		isc_mem_put(peer->mem, name, sizeof(dns_name_t));
 
 	return (result);
+}
+
+isc_result_t
+dns_peer_settransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	if (peer->transfer_source != NULL) {
+		isc_mem_put(peer->mem, peer->transfer_source,
+			    sizeof(*peer->transfer_source));
+		peer->transfer_source = NULL;
+	}
+	if (transfer_source != NULL) {
+		peer->transfer_source = isc_mem_get(peer->mem,
+					        sizeof(*peer->transfer_source));
+		if (peer->transfer_source == NULL)
+			return (ISC_R_NOMEMORY);
+
+		*peer->transfer_source = *transfer_source;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(transfer_source != NULL);
+
+	if (peer->transfer_source == NULL)
+		return (ISC_R_NOTFOUND);
+	*transfer_source = *peer->transfer_source;
+	return (ISC_R_SUCCESS);
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.229 2003/09/23 07:11:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.230 2003/09/25 18:16:45 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4247,6 +4247,8 @@ to be incremented, and may additionally cause the
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
     <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
+    <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
 };
 </programlisting>
 
@@ -4327,6 +4329,18 @@ to be signed by this key.</para>
 <para>Although the grammar of the <command>keys</command> clause
 allows for multiple keys, only a single key per server is currently
 supported.</para>
+
+<para>The <command>transfer-source</command> and
+<command>transfer-source-v6</command> clauses specify the IPv4 and IPv6 source
+address to be used for zone transfer with the remote server, respectively.
+For an IPv4 remote server, only <command>transfer-source</command> can
+be specified.
+Similarly, for an IPv6 remote server, only
+<command>transfer-source-v6</command> can be specified.
+Form more details, see the description of
+<command>transfer-source</command> and
+<command>transfer-source-v6</command> in
+<xref linkend="zone_transfers"/>.</para>
 
 </sect2>
 
