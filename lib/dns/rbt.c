@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2.2.9 2004/03/08 21:06:27 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.2.2.10 2004/10/11 05:55:50 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2021,8 +2021,6 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
  done:
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (rbt->quantum != 0 && --rbt->quantum == 0)
-		return (ISC_R_QUOTA);
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
