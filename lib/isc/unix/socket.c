@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.149 2000/07/13 01:13:53 bwelling Exp $ */
+/* $Id: socket.c,v 1.150 2000/07/13 01:22:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1811,11 +1811,6 @@ watcher(void *uap) {
 			UNLOCK(&manager->lock);
 
 			cc = select(maxfd, &readfds, &writefds, NULL, NULL);
-			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
-				manager_log(manager, IOEVENT,
-					    "select(%d, ...) == %d, "
-					    "errno %d/%s",
-					    maxfd, cc, errno, strerror(errno));
 			if (cc < 0) {
 				if (!SOFT_ERROR(errno))
 					FATAL_ERROR(__FILE__, __LINE__,
