@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.123 2001/09/14 12:34:03 marka Exp $ */
+/* $Id: main.c,v 1.124 2001/10/25 01:07:45 marka Exp $ */
 
 #include <config.h>
 
@@ -220,7 +220,8 @@ lwresd_usage(void) {
 		"[-d debuglevel] [-f|-g]\n"
 		"              [-n number_of_cpus] [-p port]"
 		"[-P listen-port] [-s]\n"
-		"              [-t chrootdir] [-u username] [-i pidfile]\n");
+		"              [-t chrootdir] [-u username] [-i pidfile]\n"
+		"             [-m {usage|trace|record}]\n");
 }
 
 static void
@@ -232,7 +233,8 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
-		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
+		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
+		"             [-m {usage|trace|record}]\n");
 }
 
 static void
@@ -299,6 +301,7 @@ static struct flag_def {
 } mem_debug_flags[] = {
 	{ "trace",  ISC_MEM_DEBUGTRACE },
 	{ "record", ISC_MEM_DEBUGRECORD },
+	{ "usage", ISC_MEM_DEBUGUSAGE },
 	{ NULL, 0 }
 };
 
