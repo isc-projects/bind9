@@ -1,4 +1,4 @@
-/*
+R/*
  * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.55 1999/08/26 07:14:25 halley Exp $ */
+/* $Id: rbt.c,v 1.56 1999/09/23 17:53:03 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -372,7 +372,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 */
 	dns_fixedname_init(&fixedcopy);
 	add_name = dns_fixedname_name(&fixedcopy);
-	dns_name_concatenate(name, NULL, add_name, NULL);
+	dns_name_clone(name, add_name);
 
 	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, add_name, &new_current);
@@ -703,13 +703,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 {
 	dns_rbtnode_t *current;
 	dns_rbtnodechain_t localchain;
-	dns_name_t *search_name, current_name, *callback_name, tmp_name;
-	dns_offsets_t tmp_offsets;
-	dns_fixedname_t fixedcallbackname;
+	dns_name_t *search_name, current_name, *callback_name;
+	dns_fixedname_t fixedcallbackname, fixedsearchname;
 	dns_namereln_t compared;
 	dns_result_t result, saved_result;
-	isc_buffer_t buffer;
-	unsigned char data[255];
 	unsigned int common_labels, common_bits;
 	int order;
 
@@ -733,15 +730,13 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 	/*
 	 * search_name is the name segment being sought in each tree level.
-	 * Ensure that it has offsets by making a copy into a structure 
-	 * that has offsets.  Since weird juju happens when splitting bitstring
-	 * labels, a buffer is provided for the bitfiddling to use; however,
-	 * the input name's data is used to avoid unnecessary copying.
+	 * By using a fixedname, the search_name will definitely have offsets
+	 * and a buffer for use by any splitting that happens in the middle
+	 * of a bitstring label.  By using dns_name_clone, no name data is
+	 * copied unless a bitstring split occurs.
 	 */
-	search_name = &tmp_name;
-	dns_name_init(search_name, tmp_offsets);
-	isc_buffer_init(&buffer, data, 255, ISC_BUFFERTYPE_BINARY);
-	dns_name_setbuffer(search_name, &buffer);
+	dns_fixedname_init(&fixedsearchname);
+	search_name = dns_fixedname_name(&fixedsearchname);
 	dns_name_clone(name, search_name);
 
 	dns_name_init(&current_name, NULL);
@@ -1263,7 +1258,7 @@ join_nodes(dns_rbt_t *rbt,
 	dns_result_t result;
 	dns_fixedname_t fixed_newname;
 	dns_name_t *newname, prefix, suffix;
-	int newlength, oldlength;
+	unsigned int newlength, oldlength;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(node != NULL);
