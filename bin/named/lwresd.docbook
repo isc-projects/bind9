@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.5 2001/06/10 13:57:49 tale Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.6 2001/06/10 19:54:07 tale Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -179,7 +179,8 @@
 	<term>-s</term>
 	<listitem>
 	  <para>
-		Write memory usage statistics to <filename>stdout</filename> on exit.
+		Write memory usage statistics to <filename>stdout</filename>
+		on exit.
           </para>
 	  <note>
 	    <para>
