@@ -27,7 +27,7 @@ HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
 		file.h heap.h interfaceiter.h lang.h lex.h lfsr.h lib.h \
 		list.h log.h magic.h mem.h msgcat.h \
 		mutexblock.h netaddr.h ondestroy.h platform.h \
-		print.h quota.h random.h ratelimiter.h rbtgen.h region.h \
+		print.h quota.h random.h ratelimiter.h region.h \
 		result.h resultclass.h rwlock.h serial.h sockaddr.h \
 		socket.h str.h symtab.h task.h taskpool.h timer.h \
 		types.h util.h
