@@ -1,3 +1,5 @@
+1787.	[port]		HPUX: both "cc" and "gcc" need -Wl,+vnocompatwarnings.
+
 1785.	[bug]		libbind9.la/libbind9.so needs to link against
 			libisc.la/libisc.so.
 
