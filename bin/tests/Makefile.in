@@ -49,7 +49,6 @@ TARGETS =	adb_test \
 		nxtify \
 		rbt_test \
 		rdata_test \
-		res_test \
 		rwlock_test \
 		sdig \
 		serial_test \
@@ -79,7 +78,6 @@ SRCS =		adb_test.c \
 		printmsg.c \
 		rbt_test.c \
 		rdata_test.c \
-		res_test.c \
 		rwlock_test.c \
 		sdig.c \
 		serial_test.c \
