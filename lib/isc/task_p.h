@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_p.h,v 1.3 2000/08/30 23:47:15 bwelling Exp $ */
+/* $Id: task_p.h,v 1.4 2000/09/28 21:32:49 bwelling Exp $ */
+
+/* ISC_PLATFORM_USETHREADS_DELETE */
 
 #ifndef ISC_TASK_P_H
 #define ISC_TASK_P_H

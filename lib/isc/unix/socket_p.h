@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_p.h,v 1.1 2000/08/29 23:58:17 bwelling Exp $ */
+/* $Id: socket_p.h,v 1.2 2000/09/28 21:32:51 bwelling Exp $ */
+
+/* ISC_PLATFORM_USETHREADS_DELETE */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H
