@@ -57,13 +57,18 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_usedregion(&databuf, &datareg);
 
 	ret = dst_context_create(key, mctx, &ctx);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
+		return;
+	}
 	ret = dst_context_adddata(ctx, &datareg);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
+		dst_context_destroy(&ctx);
+		return;
+	}
 	ret = dst_context_sign(ctx, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
@@ -72,13 +77,18 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 	ret = dst_context_create(key, mctx, &ctx);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
+		return;
+	}
 	ret = dst_context_adddata(ctx, &datareg);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
+		dst_context_destroy(&ctx);
+		return;
+	}
 	ret = dst_context_verify(ctx, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
@@ -206,6 +216,8 @@ generate(int alg, isc_mem_t *mctx) {
 
 	ret = dst_key_generate(dns_rootname, alg, 512, 0, 0, 0, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
+	if (ret != ISC_R_SUCCESS)
+		return;
 
 	if (alg != DST_ALG_DH)
 		use(key, mctx);
@@ -217,7 +229,7 @@ int
 main(void) {
 	isc_mem_t *mctx = NULL;
 	isc_entropy_t *ectx = NULL;
-	isc_entropysource_t *devrandom = NULL;
+	isc_entropysource_t *devrandom = NULL, *randfile = NULL;
 	isc_buffer_t b;
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -232,6 +244,8 @@ main(void) {
 	isc_entropy_create(mctx, &ectx);
 	isc_entropy_createfilesource(ectx, "/dev/random", 0,
 			&devrandom);
+	isc_entropy_createfilesource(ectx, "randomfile", 0,
+			&randfile);
 	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
 	dns_fixedname_init(&fname);
@@ -258,6 +272,8 @@ main(void) {
 	dst_lib_destroy();
 	if (devrandom != NULL)
 		isc_entropy_destroysource(&devrandom);
+	if (randfile != NULL)
+		isc_entropy_destroysource(&randfile);
 	isc_entropy_detach(&ectx);
 
 	isc_mem_put(mctx, current, 256);
