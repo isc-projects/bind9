@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.36 2000/05/19 00:20:52 bwelling Exp $
+ * $Id: tkey.c,v 1.37 2000/05/19 22:11:20 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -611,7 +611,11 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 128));
 	result = dns_rdata_fromstruct(rdata, tkeyout.common.rdclass,
 				      tkeyout.common.rdtype, &tkeyout, dynbuf);
-	dns_rdata_freestruct(&tkeyout);
+	dns_name_free(&tkeyout.algorithm, msg->mctx);
+	if (tkeyout.key != NULL)
+		isc_mem_put(msg->mctx, tkeyout.key, tkeyout.keylen);
+	if (tkeyout.other != NULL)
+		isc_mem_put(msg->mctx, tkeyout.other, tkeyout.otherlen);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
