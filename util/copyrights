@@ -468,6 +468,11 @@
 ./bin/tests/system/setup.sh			SH	2000
 ./bin/tests/system/start.sh			SH	2000
 ./bin/tests/system/stop.sh			SH	2000
+./bin/tests/system/sortlist/tests.sh		SH	2000
+./bin/tests/system/sortlist/ns1/.cvsignore	X	2000
+./bin/tests/system/sortlist/ns1/example.db	ZONE	2000
+./bin/tests/system/sortlist/ns1/named.conf	CONF-C	2000
+./bin/tests/system/sortlist/ns1/roor.db		ZONE	2000
 ./bin/tests/system/stub/clean.sh		SH	2000
 ./bin/tests/system/stub/knowngood.dig.out.norec	X	2000
 ./bin/tests/system/stub/knowngood.dig.out.rec	X	2000
