@@ -1,3 +1,5 @@
+1822.	[bug]		check-names test for RT was reversed. [RT #13382]
+
 1819.	[bug]		The validator needed to check both the algorithm and
 			digest types of the DS to determine if it could be
 			used to introduce a secure zone. [RT #13593]
