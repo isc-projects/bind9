@@ -9,6 +9,10 @@
 
 1575.	[func]		Log TSIG name on TSIG verify failure. [RT #4404]
 
+1573.	[port]		linux: update to libtool 1.5.2 so that
+			"make install DESTDIR=/xx" works with
+			"configure --with-libtool".  [RT #9941]
+
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
 1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.25.12.5 2003/10/15 05:32:05 marka Exp $
+# $Id: Makefile.in,v 1.25.12.6 2004/02/24 02:15:19 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -66,13 +66,16 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 
@@ -87,7 +90,10 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
 install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} dig@EXEEXT@ ${DESTDIR}${bindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} host@EXEEXT@ ${DESTDIR}${bindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} nslookup@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
+		dig@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
+		host@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
+		nslookup@EXEEXT@ ${DESTDIR}${bindir}
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; done

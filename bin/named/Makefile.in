@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.74.12.4 2003/10/15 05:32:09 marka Exp $
+# $Id: Makefile.in,v 1.74.12.5 2004/02/24 02:15:20 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -94,17 +94,20 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 main.@O@: main.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 
 config.@O@: config.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
+		-DVERSION=\"${VERSION}\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-c ${srcdir}/config.c
 
 named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ \
+	${OBJS} ${UOBJS} ${LIBS}
 
 lwresd@EXEEXT@: named@EXEEXT@
 	rm -f lwresd@EXEEXT@
@@ -123,6 +126,6 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOO_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
 	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done

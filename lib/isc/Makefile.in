@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.71.2.2.2.4 2003/09/02 01:49:46 marka Exp $
+# $Id: Makefile.in,v 1.71.2.2.2.5 2004/02/24 02:15:30 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -81,7 +81,7 @@ TARGETS =	timestamp
 @BIND9_MAKE_RULES@
 
 version.@O@: version.c
-	${LIBTOOL} ${CC} ${ALL_CFLAGS} \
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DLIBINTERFACE=${LIBINTERFACE} \
 		-DLIBREVISION=${LIBREVISION} \
@@ -93,7 +93,7 @@ libisc.@SA@: ${OBJS}
 	${RANLIB} $@
 
 libisc.la: ${OBJS}
-	${LIBTOOL} --mode=link \
+	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} -o libisc.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${LIBS}
@@ -105,7 +105,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libisc.@A@ libisc.la timestamp

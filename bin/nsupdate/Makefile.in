@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15.12.5 2003/10/15 05:32:14 marka Exp $
+# $Id: Makefile.in,v 1.15.12.6 2004/02/24 02:15:20 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -64,7 +64,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 @BIND9_MAKE_RULES@
 
 nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
 
@@ -79,5 +79,5 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: nsupdate@EXEEXT@ installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} nsupdate@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsupdate@EXEEXT@ ${DESTDIR}${bindir}
 	${INSTALL_DATA} ${srcdir}/nsupdate.8 ${DESTDIR}${mandir}/man8
