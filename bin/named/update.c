@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.8 2004/04/15 02:16:25 marka Exp $ */
+/* $Id: update.c,v 1.88.2.9 2004/05/12 06:39:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1973,6 +1973,10 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		CHECK(send_update_event(client, zone));
 		break;
 	case dns_zone_slave:
+		if (dns_zone_getforwardacl(zone) == NULL) {
+			result = DNS_R_NOTIMP;
+			goto failure;
+		}
 		CHECK(ns_client_checkacl(client, "update forwarding",
 					 dns_zone_getforwardacl(zone),
 					 ISC_FALSE, ISC_LOG_ERROR));
