@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.94 2000/08/24 21:28:50 explorer Exp $ */
+/* $Id: xfrin.c,v 1.95 2000/08/31 17:48:47 gson Exp $ */
 
 #include <config.h>
 
@@ -618,7 +618,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->mctx = mctx;
 	xfr->refcount = 0;
 	xfr->zone = NULL;
-	dns_zone_attach(zone, &xfr->zone);
+	dns_zone_iattach(zone, &xfr->zone);
 	xfr->task = NULL;
 	isc_task_attach(task, &xfr->task);
 	xfr->timer = NULL;
@@ -1206,7 +1206,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 		dns_db_detach(&xfr->db);
 
 	if (xfr->zone != NULL)
-		dns_zone_detach(&xfr->zone);
+		dns_zone_idetach(&xfr->zone);
 
 	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
 }

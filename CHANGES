@@ -1,3 +1,6 @@
+ 414.	[bug]		Server did not shut down until all incoming zone 
+			transfers were finished.
+
  413.	[bug]		Notify could attempt to use the zone database after
 			it had been unloaded. [RT#267]
 
