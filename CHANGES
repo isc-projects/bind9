@@ -1,3 +1,7 @@
+1057.	[bug]		Reloading the server after adding a "file" clause
+			to a zone statement could cause the server to
+			crash due to a typo in change 1016.
+
 1056.	[bug]		Rndc could catch an assertion failure on SIGINT due
 			to an uninitialized variable. [RT #1908]
 

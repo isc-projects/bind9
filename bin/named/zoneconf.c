@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.94 2001/10/11 01:55:01 gson Exp $ */
+/* $Id: zoneconf.c,v 1.95 2001/10/17 18:57:01 gson Exp $ */
 
 #include <config.h>
 
@@ -632,7 +632,7 @@ ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig) {
 		cfilename = NULL;
 	zfilename = dns_zone_getfile(zone);
 	if (!((cfilename == NULL && zfilename == NULL) ||
-	      (cfilename != NULL && cfilename != NULL &&
+	      (cfilename != NULL && zfilename != NULL &&
 	       strcmp(cfilename, zfilename) == 0)))
 	    return (ISC_FALSE);
 
