@@ -369,12 +369,20 @@ int getnetgrent(char **machinep, char **userp, char **domainp);
 
 int getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS);
 
+#ifdef SETNETGRENT_ARGS
+void setnetgrent(SETNETGRENT_ARGS);
+#else
 void setnetgrent(const char *netgroup);
+#endif
 
 void endnetgrent(void);
 
+#ifdef INNETGR_ARGS
+int innetgr(INNETGR_ARGS);
+#else
 int innetgr(const char *netgroup, const char *machine,
 	    const char *user, const char *domain);
+#endif
 
 #ifdef NGR_R_ENT_ARGS
 NGR_R_SET_RETURN
