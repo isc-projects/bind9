@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.6 2001/10/30 20:30:33 gson Exp $ */
+/* $Id: parser.c,v 1.70.2.7 2001/11/05 20:21:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -885,7 +885,7 @@ view_clauses[] = {
 	{ "lame-ttl", &cfg_type_uint32, 0 },
 	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
-	{ "transfer-format", &cfg_type_ustring, 0 },
+	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
@@ -1844,7 +1844,7 @@ check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char *const *enums) {
 	const char *s = obj->value.string.base;
 	if (is_enum(s, enums))
 		return (ISC_R_SUCCESS);
-	parser_error(pctx, LOG_NEAR, "'%s' unexpected", s);
+	parser_error(pctx, 0, "'%s' unexpected", s);
 	return (ISC_R_UNEXPECTEDTOKEN);
 }
 
