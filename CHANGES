@@ -29,6 +29,9 @@
 
 1818.	[bug]		'named-checkconf -z' triggered an INSIST. [RT #13599]
 
+1816.	[port]		UnixWare: failed to compile lib/isc/unix/net.c.
+			[RT #13597]
+
 1815.	[bug]		nsupdate triggered a REQUIRE if the server was set
 			without also setting the zone and it encountered
 			a CNAME and was using TSIG.  [RT #13086]
