@@ -329,6 +329,7 @@ msginit(dns_message_t *m)
 		m->cursors[i] = NULL;
 		m->counts[i] = 0;
 	}
+	m->opt = NULL;
 
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
 
@@ -750,12 +751,13 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		rdclass = isc_buffer_getuint16(source);
 
 		/*
-		 * If this class is different than the one we alrady read,
+		 * If this class is different than the one we already read,
 		 * this is an error.
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
 			msg->state = DNS_SECTION_QUESTION;
 			msg->rdclass = rdclass;
+			msg->state = DNS_SECTION_QUESTION;
 		} else if (msg->rdclass != rdclass)
 			return (DNS_R_FORMERR);
 		
@@ -764,7 +766,6 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 		 * If it was found, this is an error, return FORMERR.
 		 */
 		result = findtype(NULL, name, rdtype);
-
 		if (result == DNS_R_SUCCESS)
 			return (DNS_R_FORMERR);
 
@@ -812,9 +813,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_ttl_t ttl;
 	dns_namelist_t *section;
 
-	section = &msg->sections[sectionid];
-
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
+		section = &msg->sections[sectionid];
+
 		name = newname(msg);
 		if (name == NULL)
 			return (DNS_R_NOMEMORY);
@@ -829,24 +830,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			return (result);
 
 		/*
-		 * Run through the section, looking to see if this name
-		 * is already there.  If it is found, put back the allocated
-		 * name since we no longer need it, and set our name pointer
-		 * to point to the name we found.
-		 */
-		result = findname(&name2, name, section);
-
-		/*
-		 * If it is a new name, append to the section.
-		 */
-		if (result == DNS_R_SUCCESS) {
-			releasename(msg, name);
-			name = name2;
-		} else {
-			ISC_LIST_APPEND(*section, name, link);
-		}
-
-		/*
 		 * Get type, class, ttl, and rdatalen.  Verify that at least
 		 * rdatalen bytes remain.  (Some of this is deferred to
 		 * later.
@@ -858,14 +841,21 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		rdclass = isc_buffer_getuint16(source);
 
 		/*
-		 * If this class is different than the one we already read,
-		 * this is an error.
+		 * If this class is different than the one in the question
+		 * section, bail.
 		 */
-		if (msg->state == DNS_SECTION_ANY) {
-			msg->state = sectionid;
-			msg->rdclass = rdclass;
-		} else if (msg->rdclass != rdclass)
+		if (msg->rdclass != rdclass)
 			return (DNS_R_FORMERR);
+
+		/*
+		 * If it is a tsig, verify that it is in the additional data
+		 * section, and switch sections for the rest of this rdata.
+		 */
+		if (rdtype == dns_rdatatype_tsig) {
+			if (sectionid != DNS_SECTION_ADDITIONAL)
+				return (DNS_R_FORMERR);
+			section = &msg->sections[DNS_SECTION_TSIG];
+		}
 		
 		/*
 		 * ... now get ttl and rdatalen, and check buffer.
@@ -877,10 +867,49 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			return (DNS_R_UNEXPECTEDEND);
 
 		/*
-		 * Search name for the particular type and class.
-		 * If it was found, this is an error, return FORMERR.
+		 * If we are doing a dynamic update don't bother searching
+		 * for a name, just append this one to the end of the message.
 		 */
-		result = findtype(&rdataset, name, rdtype);
+		if (msg->opcode == dns_opcode_update
+		    || rdtype == dns_rdatatype_tsig) {
+			ISC_LIST_APPEND(*section, name, link);
+		} else {
+			/*
+			 * Run through the section, looking to see if this name
+			 * is already there.  If it is found, put back the
+			 * allocated name since we no longer need it, and set
+			 * our name pointer to point to the name we found.
+			 */
+			result = findname(&name2, name, section);
+
+			/*
+			 * If it is a new name, append to the section.
+			 */
+			if (result == DNS_R_SUCCESS) {
+				releasename(msg, name);
+				name = name2;
+			} else {
+				ISC_LIST_APPEND(*section, name, link);
+			}
+		}
+
+		/*
+		 * If this is an OPT record, There Can Be Only One.
+		 */
+#if 0 /* until there is a dns_rdatatype_opt  XXXMLG */
+		if (rdtype == dns_rdatatype_opt && msg->opt != NULL)
+			return (DNS_R_FORMERR);
+#endif
+
+		/*
+		 * Search name for the particular type and class.
+		 * Skip this stage if in update mode, or this is a TSIG.
+		 */
+		if (msg->opcode == dns_opcode_update
+		    || rdtype == dns_rdatatype_tsig)
+			result = DNS_R_NOTFOUND;
+		else
+			result = findtype(&rdataset, name, rdtype);
 
 		/*
 		 * If we found an rdataset that matches, we need to
@@ -928,6 +957,14 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		rdatalist = (dns_rdatalist_t *)(rdataset->private1);
 
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+
+		/*
+		 * If this is an OPT record, remember it.
+		 */
+#if 0 /* until there is a dns_rdatatype_opt  XXXMLG */
+		if (rdtype == dns_rdatatype_opt)
+			msg->opt = rdata;
+#endif
 	}
 	
 	return (DNS_R_SUCCESS);
@@ -1176,7 +1213,7 @@ dns_message_renderend(dns_message_t *msg)
 {
 	isc_buffer_t tmpbuf;
 	isc_region_t r;
-	isc_uint16_t tmpflags;
+	isc_uint16_t tmp;
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1186,16 +1223,18 @@ dns_message_renderend(dns_message_t *msg)
 
 	isc_buffer_putuint16(&tmpbuf, msg->id);
 
-	tmpflags = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
-		    & DNS_MESSAGE_OPCODE_MASK);
-	tmpflags |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);  /* XXX edns? */
-	tmpflags |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
+	tmp = ((msg->opcode << DNS_MESSAGE_OPCODE_SHIFT)
+	       & DNS_MESSAGE_OPCODE_MASK);
+	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);  /* XXX edns? */
+	tmp |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
 
-	isc_buffer_putuint16(&tmpbuf, tmpflags);
+	isc_buffer_putuint16(&tmpbuf, tmp);
 	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_QUESTION]);
 	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_ANSWER]);
 	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_AUTHORITY]);
-	isc_buffer_putuint16(&tmpbuf, msg->counts[DNS_SECTION_ADDITIONAL]);
+	tmp  = msg->counts[DNS_SECTION_ADDITIONAL]
+		+ msg->counts[DNS_SECTION_TSIG];
+	isc_buffer_putuint16(&tmpbuf, tmp);
 
 	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
 

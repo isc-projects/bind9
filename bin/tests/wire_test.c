@@ -220,8 +220,7 @@ printmessage(dns_message_t *msg) {
 	       msg->counts[DNS_SECTION_ANSWER],
 	       msg->counts[DNS_SECTION_AUTHORITY],
 	       msg->counts[DNS_SECTION_ADDITIONAL]);
-	printf("; PSEUDOSECTIONS: OPT: %u, TSIG: %u\n",
-	       msg->counts[DNS_SECTION_OPT],
+	printf("; PSEUDOSECTIONS: TSIG: %u\n",
 	       msg->counts[DNS_SECTION_TSIG]);
 
 	result = printsection(msg, DNS_SECTION_QUESTION, "QUESTION");
@@ -234,9 +233,6 @@ printmessage(dns_message_t *msg) {
 	if (result != DNS_R_SUCCESS)
 		return (result);
 	result = printsection(msg, DNS_SECTION_ADDITIONAL, "ADDITIONAL");
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = printsection(msg, DNS_SECTION_OPT, "PSEUDOSECTION OPT");
 	if (result != DNS_R_SUCCESS)
 		return (result);
 	result = printsection(msg, DNS_SECTION_TSIG, "PSEUDOSECTION TSIG");
@@ -353,10 +349,6 @@ main(int argc, char *argv[]) {
 	result = dns_message_rendersection(message, DNS_SECTION_ADDITIONAL,
 					   0, 0);
 	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL) failed");
-
-	result = dns_message_rendersection(message, DNS_SECTION_OPT,
-					   0, 0);
-	CHECKRESULT(result, "dns_message_rendersection(OPT) failed");
 
 	result = dns_message_rendersection(message, DNS_SECTION_TSIG,
 					   0, 0);

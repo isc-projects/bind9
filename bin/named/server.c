@@ -244,11 +244,6 @@ resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	result = dns_message_rendersection(message, DNS_SECTION_OPT,
-					   0, 0);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-
 	result = dns_message_rendersection(message, DNS_SECTION_TSIG,
 					   0, 0);
 	if (result != DNS_R_SUCCESS)

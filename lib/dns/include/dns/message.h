@@ -80,9 +80,15 @@ typedef int dns_section_t;
 #define DNS_SECTION_ANSWER		1
 #define DNS_SECTION_AUTHORITY		2
 #define DNS_SECTION_ADDITIONAL		3
-#define DNS_SECTION_OPT			4 /* pseudo-section */
-#define DNS_SECTION_TSIG		5 /* pseudo-section */
-#define DNS_SECTION_MAX			6
+#define DNS_SECTION_TSIG		4 /* pseudo-section */
+#define DNS_SECTION_MAX			5
+
+/*
+ * Dynamic update named for these sections.
+ */
+#define DNS_SECTION_ZONE		DNS_SECTION_QUESTION
+#define DNS_SECTION_PREREQUISITE	DNS_SECTION_ANSWER
+#define DNS_SECTION_UPDATE		DNS_SECTION_AUTHORITY
 
 /*
  * These tell the message library how the created dns_message_t will be used.
@@ -102,10 +108,11 @@ typedef struct {
 	unsigned int			opcode;
 	dns_rdataclass_t		rdclass;
 
-	/* 4 real, 2 pseudo */
+	/* 4 real, 1 pseudo */
 	unsigned int			counts[DNS_SECTION_MAX];
 	dns_namelist_t			sections[DNS_SECTION_MAX];
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
+	dns_rdata_t		       *opt;
 
 	int				state;
 	unsigned int			from_to_wire : 2;
