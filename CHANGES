@@ -1,3 +1,10 @@
+ 244.	[bug]		empty named.conf file and empty options statement are
+			now parsed properly.
+
+ 243.	[func]		new cachesize option for named.conf
+
+ 242.	[cleanup]	fixed incorrect warning about auth-nxdomain usage.
+
  241.	[cleanup]	nscount and soacount have been removed from the
 			dns_master_*() arguement lists.
 

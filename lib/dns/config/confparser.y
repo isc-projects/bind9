@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.92 2000/06/08 05:26:38 explorer Exp $ */
+/* $Id: confparser.y,v 1.93 2000/06/08 12:04:54 brister Exp $ */
 
 #include <config.h>
 
@@ -242,6 +242,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
+%token		L_CACHESIZE
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
@@ -442,7 +443,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 
 %%
 
-config_file: statement_list
+config_file: /* nothing */
+	| statement_list
 	;
 
 statement_list: statement
@@ -527,8 +529,13 @@ options_stmt: L_OPTIONS
 	}
 	;
 
-options: option L_EOS
-	| options option L_EOS
+
+options_list: option L_EOS
+	| options_list option L_EOS
+	;
+
+options: /* nothin */
+	| options_list
 	;
 
 
@@ -1909,6 +1916,17 @@ size_clause: L_DATASIZE size_spec
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "failed to set files");
+			YYABORT;
+		}
+	}
+	| L_CACHESIZE size_spec
+	{
+		tmpres = dns_c_ctx_setcachesize(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE, "cannot redefine cachesize");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE, "failed to set cachesize");
 			YYABORT;
 		}
 	}
@@ -4983,6 +5001,7 @@ static struct token keyword_tokens [] = {
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
 	{ "bogus",			L_BOGUS },
+	{ "cachesize",			L_CACHESIZE },
 	{ "category",			L_CATEGORY },
 	{ "class",			L_CLASS },
 	{ "channel",			L_CHANNEL },

@@ -142,6 +142,7 @@ struct dns_c_options {
 	isc_uint32_t	       *stack_size;
 	isc_uint32_t	       *core_size;
 	isc_uint32_t	       *files;
+	isc_uint32_t	       *cache_size;
 	isc_uint32_t	       *max_ncache_ttl;
 	isc_uint32_t	       *max_cache_ttl;
 
@@ -446,6 +447,11 @@ isc_result_t dns_c_ctx_unsetcoresize(dns_c_ctx_t *cfg);
 isc_result_t dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetfiles(dns_c_ctx_t *cfg);
+
+
+isc_result_t dns_c_ctx_setcachesize(dns_c_ctx_t *cfg, isc_uint32_t newval);
+isc_result_t dns_c_ctx_getcachesize(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+isc_result_t dns_c_ctx_unsetcachesize(dns_c_ctx_t *cfg);
 
 
 isc_result_t dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
