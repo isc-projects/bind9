@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.12 2000/12/26 21:00:40 tale Exp $ */
+/* $Id: print.h,v 1.13 2000/12/26 21:06:49 tale Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -34,7 +34,7 @@
  * not compile print.c or archive print.o, so this is just to make test
  * compilation ("make print.o") easier.
  */
-#if !defined(ISC_PLATFORM_NEEDVSNPRINTF) && define(ISC__PRINT_SOURCE)
+#if !defined(ISC_PLATFORM_NEEDVSNPRINTF) && defined(ISC__PRINT_SOURCE)
 #define ISC_PLATFORM_NEEDVSNPRINTF
 #endif
 
