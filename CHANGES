@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1401.	[bug]		adb wasn't clearing state when the timer expired.
+
 1399.	[bug]		Use serial number arithmetic when testing SIG
 			timestamps. [RT #4268]
 
