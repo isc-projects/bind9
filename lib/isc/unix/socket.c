@@ -1990,8 +1990,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	if (!was_empty)
 		goto queue;
 
-	build_msghdr_send(sock, dev, &msghdr,
-			  iov, ISC_SOCKET_MAXSCATTERGATHER, &write_count);
+	build_msghdr_send(sock, dev, &msghdr, iov,
+			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 

@@ -114,10 +114,10 @@ struct isc_socket_connev {
 	ISC_EVENT_COMMON(isc_socket_connev_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
 };
-
-#define ISC_SOCKEVENTATTR_TRUNC			0x8000000U
-#define ISC_SOCKEVENTATTR_CTRUNC		0x4000000U
-#define ISC_SOCKEVENTATTR_TIMESTAMP		0x2000000U
+#define ISC_SOCKEVENTATTR_ATTACHED		0x8000000U /* internal */
+#define ISC_SOCKEVENTATTR_TRUNC			0x0080000U /* public */
+#define ISC_SOCKEVENTATTR_CTRUNC		0x0040000U /* public */
+#define ISC_SOCKEVENTATTR_TIMESTAMP		0x0020000U /* public */
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
