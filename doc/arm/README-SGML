@@ -100,7 +100,7 @@ HOW TO RENDER A DOCUMENT AS HTML or TeX:
 
 o Generate html doc with:
 
-jade -d /usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl \
+jade -d ./nominum-docbook-html.dsl \
      -t sgml \
      -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
@@ -124,15 +124,16 @@ You can see that I am using a DSSSL style sheet for DocBook. Actually
 two different ones - one for rendering html, and one for 'print'
 media.
 
-To use the start of a nominum DSSSL style instead of the default one
-(all it does is change the chunking to the chapter level and makes the
-files end with ".html" instead of ".htm" so far) replace the:
+NOTE: For HTML we are using a Nominum DSSSL style instead of the
+default one (all it does is change the chunking to the chapter level
+and makes the files end with ".html" instead of ".htm" so far.) If you
+want to use the plain jane DSSSL style sheet replace the:
 
-    -d /usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl
+    -d ./nominum-docbook-html.dsl
 
 with
 
-    -d ./nominum-docbook-html.dsl
+    -d /usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl
 
 This style sheet will attempt to reference the one above.
 
