@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.2 2004/03/09 06:11:02 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.3 2004/09/16 04:55:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1026,8 +1026,8 @@ dns_journal_commit(dns_journal_t *j) {
 	 */
 	if (j->x.n_soa != 2) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "malformed transaction: %d SOAs",
-			      j->x.n_soa);
+			      "%s: malformed transaction: %d SOAs",
+			      j->filename, j->x.n_soa);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (! (DNS_SERIAL_GT(j->x.pos[1].serial, j->x.pos[0].serial) ||
@@ -1035,8 +1035,8 @@ dns_journal_commit(dns_journal_t *j) {
 		j->x.pos[1].serial == j->x.pos[0].serial)))
 	{
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "malformed transaction: serial number "
-			      "would decrease");
+			      "%s: malformed transaction: serial number "
+			      "would decrease", j->filename);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (! JOURNAL_EMPTY(&j->header)) {
@@ -1271,7 +1271,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 
 		if (++n_put > 100)  {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
-				      "applying diff to database");
+				      "%s: applying diff to database",
+				      j->filename);
 			dns_diff_print(&diff, NULL);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
@@ -1284,7 +1285,8 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 
 	if (n_put != 0) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
-			      "applying final diff to database");
+			      "%s: applying final diff to database",
+			      j->filename);
 		dns_diff_print(&diff, NULL);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
@@ -1355,7 +1357,8 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "journal open failure");
+			      "journal open failure: %s: %s",
+			      isc_result_totext(result), j->filename);
 		return (result);
 	}
 
@@ -1548,7 +1551,8 @@ read_one_rr(dns_journal_t *j) {
 		CHECK(journal_read_xhdr(j, &xhdr));
 		if (xhdr.size == 0) {
 			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-				      "journal corrupt: empty transaction");
+				      "%s: journal corrupt: empty transaction",
+				      j->filename);
 			FAIL(ISC_R_UNEXPECTED);
 		}
 		if (xhdr.serial0 != j->it.current_serial) {
