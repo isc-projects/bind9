@@ -146,8 +146,6 @@ debug(char *format, ...) {
 #else
 void
 debug(char *format, ...) {
-	va_list args;
-	UNUSED(args);
 	UNUSED(format);
 }
 #endif
@@ -338,7 +336,7 @@ setup_system(void) {
 	debug ("setup_system()");
 
 	free_now = ISC_FALSE;
-	get_servers = (server_list.head == NULL);
+	get_servers = ISC_TF(server_list.head == NULL);
 	fp = fopen (RESOLVCONF, "r");
 	if (fp != NULL) {
 		while (fgets(rcinput, MXNAME, fp) != 0) {
@@ -866,10 +864,12 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->rttext[0] == 0)
 		strcpy(lookup->rttext, "A");
 
-	lookup->sendmsg->id = random();
+	lookup->sendmsg->id = (unsigned short)(random() & 0xFFFF);
 	lookup->sendmsg->opcode = dns_opcode_query;
-	/* If this is a trace request, completely disallow recursion, since
-	 * it's meaningless for traces */
+	/*
+	 * If this is a trace request, completely disallow recursion, since
+	 * it's meaningless for traces.
+	 */
 	if (lookup->recurse && !lookup->trace) {
 		debug ("Recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
@@ -935,7 +935,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)
-			fatal("Memory allocation failure in %s:%d", __FILE__, __LINE__);
+			fatal("Memory allocation failure in %s:%d",
+			      __FILE__, __LINE__);
 		debug ("Create query %lx linked to lookup %lx",
 		       (long int)query, (long int)lookup);
 		query->lookup = lookup;
@@ -1359,10 +1360,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			query->lookup->xfr_q = query;
 		if (query->lookup->xfr_q == query) {
 			if (query->lookup->trace) {
-				if (show_details || ((dns_message_firstname
-						  (msg, DNS_SECTION_ANSWER)==
-						  ISC_R_SUCCESS) &&
-						  !query->lookup->trace_root)) {
+				if (show_details ||
+				    ((dns_message_firstname(msg,
+							    DNS_SECTION_ANSWER)
+				      == ISC_R_SUCCESS) &&
+				     !query->lookup->trace_root)) {
 					printmessage(query, msg, ISC_TRUE);
 				}
 				if ((msg->rcode != 0) &&
@@ -1412,13 +1414,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					dns_message_destroy (&msg);
 					return;
 					launch_next_query(query, ISC_FALSE);
-				}
-				else {
+				} else {
 					query->first_soa_rcvd = ISC_TRUE;
 					launch_next_query(query, ISC_FALSE);
 				}
-			} 
-			else {
+			} else {
 				if (msg_contains_soa(msg, query)) {
 					isc_buffer_init(&ab, abspace, MXNAME);
 					result = isc_sockaddr_totext(&sevent->
