@@ -1,3 +1,9 @@
+
+  46.	[func]		Memory contexts are now reference counted.
+			Added isc_mem_inuse() and isc_mem_preallocate().
+			Renamed isc_mem_destroy_check() to
+			isc_mem_setdestroycheck().
+
   45.	[bug]		The trusted-key statement incorrectly loaded keys.
 
   44.	[bug]		Don't include authority data if it would force us
