@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.42 2000/09/13 01:30:33 marka Exp $ */
+/* $Id: client.h,v 1.43 2000/09/13 01:33:26 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -158,7 +158,7 @@ void
 ns_client_sendraw(ns_client_t *client, dns_message_t *msg);
 /*
  * Finish processing the current client request and
- * send client->message as a response.
+ * send msg as a response using client->message->id for the id.
  */
 
 void
