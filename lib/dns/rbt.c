@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.105 2001/02/21 02:27:56 bwelling Exp $ */
+/* $Id: rbt.c,v 1.106 2001/02/21 23:21:28 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -838,6 +838,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 	saved_result = ISC_R_SUCCESS;
 	current = rbt->root;
+	current_root = rbt->root;
 
 	while (current != NULL) {
 		NODENAME(current, &current_name);
