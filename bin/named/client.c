@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.180 2001/10/09 02:05:55 marka Exp $ */
+/* $Id: client.c,v 1.181 2001/10/09 02:30:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1160,15 +1160,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "multicast request");
-#if 0
-		ns_client_error(client, DNS_R_REFUSED);
-#endif
-	}
-
 	result = dns_message_peekheader(buffer, &id, &flags);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -1375,6 +1366,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_error(client, sigresult);
 			goto cleanup;
 		}
+	}
+
+	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
+			      "multicast request");
+		if ((flags & DNS_MESSAGEFLAG_RD) != 0)
+			ns_client_error(client, notimp ? DNS_R_NOTIMP :
+						         DNS_R_FORMERR);
 	}
 
 	/*

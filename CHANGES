@@ -1,3 +1,6 @@
+1034.	[bug]		Multicast queries must not have RD set, RFC 1123.
+			FORMERR those that do.  [RT #137]
+
 1033.	[bug]		Don't imply that we support a opcode that we don't
 			when we don't have a matching view or cannot
 			determine the class.
