@@ -1901,18 +1901,14 @@ EOF
 
 		;;
 	*-dec-osf*)
-						cat >> confdefs.h <<\EOF
-#define _SOCKADDR_LEN 1
-EOF
-
-		;;
+										;;
 esac
 
 
 echo $ac_n "checking for sa_len in struct sockaddr""... $ac_c" 1>&6
-echo "configure:1914: checking for sa_len in struct sockaddr" >&5
+echo "configure:1910: checking for sa_len in struct sockaddr" >&5
 cat > conftest.$ac_ext <<EOF
-#line 1916 "configure"
+#line 1912 "configure"
 #include "confdefs.h"
 #include <sys/socket.h>
 EOF

@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.25 $)
+AC_REVISION($Revision: 1.26 $)
 
 AC_PREREQ(2.12)
 
@@ -236,9 +236,10 @@ case "$host" in
 		AC_DEFINE(NEED_AF_INET6)
 		;;
 	*-dec-osf*)
-		dnl 4.4BSD sa_len support is not turned on
-		dnl by default, see netintro(7)
-		AC_DEFINE(_SOCKADDR_LEN)
+		dnl Turn on 4.4BSD style sa_len support.
+		dnl (Disabled for now because it is incompatible
+		dnl with the use of send() and recv()).
+		dnl AC_DEFINE(_SOCKADDR_LEN)
 		;;
 esac
 
