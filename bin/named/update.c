@@ -27,6 +27,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/taskpool.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/confip.h>
@@ -434,8 +435,8 @@ typedef isc_boolean_t rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 static isc_result_t
 rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
 {
-	data = data; /* Unused */
-	rr = rr; /* Unused */
+	UNUSED(data);
+	UNUSED(rr);
 	return (DNS_R_EXISTS);
 }
 
@@ -479,7 +480,7 @@ static isc_result_t
 cname_compatibility_action(void *data, dns_rdataset_t *rrset) 
 /*ARGSUSED*/
 {
-	data = data; /* Unused */
+	UNUSED(data);
 	if (rrset->type != dns_rdatatype_cname &&
 	    ! dns_rdatatype_isdnssec(rrset->type))
 		return (DNS_R_EXISTS);
@@ -507,7 +508,7 @@ cname_incompatible_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 static isc_result_t 
 count_rr_action(void *data, rr_t *rr) /*ARGSUSED*/ {
 	int *countp = data;
-	rr = rr; /* Unused. */
+	UNUSED(rr);
 	(*countp)++;
 	return (DNS_R_SUCCESS);
 }
@@ -578,8 +579,8 @@ matching_rr_exists(rr_predicate *predicate,
 static isc_result_t
 name_exists_action(void *data, dns_rdataset_t *rrset) /*ARGSUSED*/
 {
-	data = data; /* Unused */
-	rrset = rrset; /* Unused */
+	UNUSED(data);
+	UNUSED(rrset);
 	return (DNS_R_EXISTS);
 }
 
@@ -840,7 +841,7 @@ typedef struct {
 static isc_boolean_t
 type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) /*ARGSUSED*/
 {
-	update_rr = update_rr; /* Unused */
+	UNUSED(update_rr);
 	return ((db_rr->type != dns_rdatatype_soa &&
 		 db_rr->type != dns_rdatatype_ns) ?
 		ISC_TRUE : ISC_FALSE);
@@ -850,8 +851,8 @@ type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) /*ARGSUSED*/
 static isc_boolean_t
 true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) /*ARGSUSED*/
 {
-	update_rr = update_rr; /* Unused */ 
-	db_rr = db_rr; /* Unused */ 
+	UNUSED(update_rr);
+	UNUSED(db_rr);
 	return (ISC_TRUE);
 }
 
@@ -1129,7 +1130,7 @@ static isc_result_t
 is_non_nxt_action(void *data, dns_rdataset_t *rrset) 
 /*ARGSUSED*/
 {
-	data = data; /* Unused */
+	UNUSED(data);
 	if (!(rrset->type == dns_rdatatype_nxt ||
 	      (rrset->type == dns_rdatatype_sig &&
 	       rrset->covers == dns_rdatatype_nxt)))
