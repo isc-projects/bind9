@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.29 2002/02/20 03:34:15 marka Exp $ */
+/* $Id: ncache.c,v 1.30 2002/07/19 03:29:15 marka Exp $ */
 
 #include <config.h>
 
@@ -377,4 +377,171 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 	*target = savedbuffer;
 
 	return (result);
+}
+
+static void
+rdataset_disassociate(dns_rdataset_t *rdataset) {
+	UNUSED(rdataset);
+}
+
+static isc_result_t
+rdataset_first(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+	if (count == 0) {
+		rdataset->private5 = NULL;
+		return (ISC_R_NOMORE);
+	}
+	raw += 2;
+	/*
+	 * The private4 field is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before storing
+	 * it.
+	 */
+	count--;
+	rdataset->private4 = (void *)count;
+	rdataset->private5 = raw;
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+rdataset_next(dns_rdataset_t *rdataset) {
+	unsigned int count;
+	unsigned int length;
+	unsigned char *raw;
+
+	count = (unsigned int)rdataset->private4;
+	if (count == 0)
+		return (ISC_R_NOMORE);
+	count--;
+	rdataset->private4 = (void *)count;
+	raw = rdataset->private5;
+	length = raw[0] * 256 + raw[1];
+	raw += length + 2;
+	rdataset->private5 = raw;
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	unsigned char *raw = rdataset->private5;
+	isc_region_t r;
+
+	REQUIRE(raw != NULL);
+
+	r.length = raw[0] * 256 + raw[1];
+	raw += 2;
+	r.base = raw;
+	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+}
+
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	*target = *source;
+
+	/*
+	 * Reset iterator state.
+	 */
+	target->private4 = NULL;
+	target->private5 = NULL;
+}
+
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+
+	return (count);
+}
+
+static dns_rdatasetmethods_t rdataset_methods = {
+	rdataset_disassociate,
+	rdataset_first,
+	rdataset_next,
+	rdataset_current,
+	rdataset_clone,
+	rdataset_count
+};
+
+isc_result_t
+dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
+		       dns_rdatatype_t type, dns_rdataset_t *rdataset)
+{
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_region_t remaining;
+	isc_buffer_t source;
+	dns_name_t tname;
+	dns_rdatatype_t ttype;
+	unsigned int i, rcount;
+	isc_uint16_t length;
+
+	REQUIRE(ncacherdataset != NULL);
+	REQUIRE(ncacherdataset->type == 0);
+	REQUIRE(name != NULL);
+	REQUIRE(!dns_rdataset_isassociated(rdataset));
+	REQUIRE(type != dns_rdatatype_sig);
+
+	result = dns_rdataset_first(ncacherdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_current(ncacherdataset, &rdata);
+	INSIST(dns_rdataset_next(ncacherdataset) == ISC_R_NOMORE);
+	isc_buffer_init(&source, rdata.data, rdata.length);
+	isc_buffer_add(&source, rdata.length);
+
+	do {
+		dns_name_init(&tname, NULL);
+		isc_buffer_remainingregion(&source, &remaining);
+		dns_name_fromregion(&tname, &remaining);
+		INSIST(remaining.length >= tname.length);
+		isc_buffer_forward(&source, tname.length);
+		remaining.length -= tname.length;
+
+		INSIST(remaining.length >= 4);
+		ttype = isc_buffer_getuint16(&source);
+
+		if (ttype == type && dns_name_equal(&tname, name)) {
+			isc_buffer_remainingregion(&source, &remaining);
+			break;
+		}
+
+		rcount = isc_buffer_getuint16(&source);
+		for (i = 0; i < rcount; i++) {
+			isc_buffer_remainingregion(&source, &remaining);
+			INSIST(remaining.length >= 2);
+			length = isc_buffer_getuint16(&source);
+			isc_buffer_remainingregion(&source, &remaining);
+			INSIST(remaining.length >= length);
+			isc_buffer_forward(&source, length);
+		}
+		isc_buffer_remainingregion(&source, &remaining);
+	} while (remaining.length > 0);
+
+	if (remaining.length == 0)
+		return (ISC_R_NOTFOUND);
+
+	rdataset->methods = &rdataset_methods;
+	rdataset->rdclass = ncacherdataset->rdclass;
+	rdataset->type = type;
+	rdataset->covers = 0;
+	rdataset->ttl = ncacherdataset->ttl;
+	rdataset->trust = ncacherdataset->trust;
+	rdataset->private1 = NULL;
+	rdataset->private2 = NULL;
+
+	rdataset->private3 = remaining.base;
+
+	/*
+	 * Reset iterator state.
+	 */
+	rdataset->private4 = NULL;
+	rdataset->private5 = NULL;
+	return (ISC_R_SUCCESS);
 }

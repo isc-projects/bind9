@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.108 2002/07/15 03:25:28 marka Exp $ */
+/* $Id: validator.c,v 1.109 2002/07/19 03:29:15 marka Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <dns/keytable.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/ncache.h>
 #include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
@@ -42,7 +43,7 @@
 #include <dns/view.h>
 
 #define VALIDATOR_MAGIC			ISC_MAGIC('V', 'a', 'l', '?')
-#define VALID_VALIDATOR(v)	 	ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
+#define VALID_VALIDATOR(v)		ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
 
 #define VALATTR_SHUTDOWN		0x01
 #define VALATTR_FOUNDNONEXISTENCE	0x02
@@ -140,6 +141,39 @@ auth_nonpending(dns_message_t *message) {
 				rdataset->trust = dns_trust_authauthority;
 		}
 	}
+}
+
+static isc_boolean_t
+isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
+	     isc_result_t dbresult)
+{
+	dns_rdataset_t set;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_boolean_t found;
+	isc_result_t result;
+
+	REQUIRE(dbresult == DNS_R_NXRRSET || dbresult == DNS_R_NCACHENXRRSET);
+
+	dns_rdataset_init(&set);
+	if (dbresult == DNS_R_NXRRSET)
+		dns_rdataset_clone(rdataset, &set);
+	else {
+		result = dns_ncache_getrdataset(rdataset, name,
+						dns_rdatatype_nxt, &set);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_FALSE);
+	}
+
+	INSIST(set.type == dns_rdatatype_nxt);
+
+	found = ISC_FALSE;
+	result = dns_rdataset_first(&set);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(&set, &rdata);
+		found = dns_nxt_typepresent(&rdata, dns_rdatatype_ns);
+	}
+	dns_rdataset_disassociate(&set);
+	return (found);
 }
 
 static void
@@ -256,6 +290,7 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
+	dns_name_t *tname;
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_result_t eresult;
@@ -267,7 +302,6 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	rdataset = &val->frdataset;
 	eresult = devent->result;
 
-	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
@@ -276,10 +310,17 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 	if (eresult == DNS_R_NXRRSET || eresult == DNS_R_NCACHENXRRSET) {
 		/*
-		 * There is no DS.  We're done.
+		 * There is no DS.  If this is a delegation, we're done.
 		 */
-		val->event->rdataset->trust = dns_trust_answer;
-		validator_done(val, ISC_R_SUCCESS);
+		tname = dns_fixedname_name(&devent->foundname);
+		if (isdelegation(tname, &val->frdataset, eresult)) {
+			val->event->rdataset->trust = dns_trust_answer;
+			validator_done(val, ISC_R_SUCCESS);
+		} else {
+			result = proveunsecure(val, ISC_TRUE);
+			if (result != DNS_R_WAIT)
+				validator_done(val, result);
+		}
 	} else if (eresult == ISC_R_SUCCESS ||
 		   eresult == DNS_R_NXDOMAIN ||
 		   eresult == DNS_R_NCACHENXDOMAIN)
@@ -296,6 +337,7 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		else
 			validator_done(val, DNS_R_NOVALIDDS);
 	}
+	isc_event_free(&event);
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 	if (want_destroy)
@@ -1480,7 +1522,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		result = view_find(val, tname, dns_rdatatype_ds);
 		if (result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) {
 			/*
-			 * There is no DS.  We're hopefully done.
+			 * There is no DS.  If this is a delegation,
+			 * we're done.
 			 */
 			if (val->frdataset.trust < dns_trust_secure) {
 				/*
@@ -1492,11 +1535,14 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				result = DNS_R_NOVALIDSIG;
 				goto out;
 			}
-			val->event->rdataset->trust = dns_trust_answer;
-			return (ISC_R_SUCCESS);
+			if (isdelegation(tname, &val->frdataset, result)) {
+				val->event->rdataset->trust = dns_trust_answer;
+				return (ISC_R_SUCCESS);
+			}
+			continue;
 		} else if (result == ISC_R_SUCCESS) {
 			/*
-		 	 * There is a DS here.  Verify that it's secure and
+			 * There is a DS here.  Verify that it's secure and
 			 * continue.
 			 */
 			if (val->frdataset.trust >= dns_trust_secure)
@@ -1518,7 +1564,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			   result == DNS_R_NCACHENXDOMAIN)
 		{
 			/*
-		 	 * This is not a zone cut.  Assuming things are
+			 * This is not a zone cut.  Assuming things are
 			 * as expected, continue.
 			 */
 			if (!dns_rdataset_isassociated(&val->frdataset)) {
