@@ -48,6 +48,7 @@ typedef struct isc_entropysource	isc_entropysource_t;
 typedef struct isc_event		isc_event_t;
 typedef ISC_LIST(isc_event_t)		isc_eventlist_t;
 typedef unsigned int			isc_eventtype_t;
+typedef isc_uint32_t			isc_fsaccess_t;
 typedef struct isc_interface		isc_interface_t;
 typedef struct isc_interfaceiter	isc_interfaceiter_t;
 typedef struct isc_interval		isc_interval_t;
