@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_MD5_H
-#define HEADER_MD5_H
+#ifndef OPENSSL_MD5_H
+#define OPENSSL_MD5_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -111,4 +111,5 @@ void MD5_Transform(MD5_CTX *c, const unsigned char *b);
 }
 #endif
 
-#endif
+#endif /* OPENSSL_MD5_H */
+

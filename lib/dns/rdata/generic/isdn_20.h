@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.h,v 1.8 2000/04/28 21:48:41 marka Exp $ */
+#ifndef GENERIC_ISDN_20_H
+#define GENERIC_ISDN_20_H 1
+
+/* $Id: isdn_20.h,v 1.9 2000/04/29 02:01:38 tale Exp $ */
 
 /* RFC 1183 */
 
@@ -27,3 +30,5 @@ typedef struct dns_rdata_isdn {
 	isc_int8_t		isdn_len;
 	isc_int8_t		sa_len;
 } dns_rdata_isdn_t;
+
+#endif /* GENERIC_ISDN_20_H */

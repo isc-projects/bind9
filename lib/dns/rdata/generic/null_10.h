@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: null_10.h,v 1.14 2000/04/28 21:48:51 marka Exp $ */
+#ifndef GENERIC_NULL_10_H
+#define GENERIC_NULL_10_H 1
+
+/* $Id: null_10.h,v 1.15 2000/04/29 02:01:46 tale Exp $ */
 
 typedef struct dns_rdata_null {
 	dns_rdatacommon_t	common;
@@ -24,3 +27,5 @@ typedef struct dns_rdata_null {
 	unsigned char		*data;
 } dns_rdata_null_t;
 
+
+#endif /* GENERIC_NULL_10_H */

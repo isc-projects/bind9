@@ -15,9 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.h,v 1.3 2000/03/20 22:57:15 gson Exp $ */
+#ifndef HS_4_A_1_H
+#define HS_4_A_1_H 1
+
+/* $Id: a_1.h,v 1.4 2000/04/29 02:01:53 tale Exp $ */
 
 typedef struct dns_rdata_hs_a {
 	dns_rdatacommon_t	common;
 	struct in_addr          in_addr;
 } dns_rdata_hs_a_t;
+
+#endif /* HS_4_A_1_H */

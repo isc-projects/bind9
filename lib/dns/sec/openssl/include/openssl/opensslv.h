@@ -1,5 +1,5 @@
-#ifndef HEADER_OPENSSLV_H
-#define HEADER_OPENSSLV_H
+#ifndef OPENSSL_OPENSSLV_H
+#define OPENSSL_OPENSSLV_H 1
 
 /* Numeric release version identifier:
  * MMNNFFRBB: major minor fix final beta/patch
@@ -17,4 +17,5 @@
 #define OPENSSL_VERSION_TEXT	"OpenSSL 0.9.3a 29 May 1999"
 #define OPENSSL_VERSION_PTEXT	" part of " OPENSSL_VERSION_TEXT
 
-#endif /* HEADER_OPENSSLV_H */
+#endif /* OPENSSL_OPENSSLV_H */
+

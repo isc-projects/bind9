@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFPVT_H
-#define DNS_CONFIG_CONFPVT_H 1
+#ifndef CONFIG_CONFPVT_H
+#define CONFIG_CONFPVT_H 1
 
 /*****
  ***** Module Info
@@ -38,4 +38,4 @@
 #define DNS_C_CHECKBIT(bit,flags) \
      ISC_TF((*(flags) & ((dns_c_setbits_t)1 << (bit))) == ((dns_c_setbits_t)1 << (bit)))
 
-#endif
+#endif /* CONFIG_CONFPVT_H */

@@ -1,7 +1,7 @@
 /* e_os2.h */
 
-#ifndef HEADER_E_OS2_H
-#define HEADER_E_OS2_H
+#ifndef OPENSSL_E_OS2_H
+#define OPENSSL_E_OS2_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -24,5 +24,5 @@ extern "C" {
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_E_OS2_H */
 

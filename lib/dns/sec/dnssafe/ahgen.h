@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHGEN_H_
-#define _AHGEN_H_ 1
+#ifndef DNSSAFE_AHGEN_H
+#define DNSSAFE_AHGEN_H 1
 
 #include "btypechk.h"
 
@@ -44,4 +44,5 @@ void AHGenerateConstructor PROTO_LIST ((AHGenerate *));
      for B_TypeCheck, since this will just re-invoke this virtual
      destructor. */
 
-#endif
+#endif /* DNSSAFE_AHGEN_H */
+

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _PRIME_H_
-#define _PRIME_H_ 1
+#ifndef DNSSAFE_PRIME_H
+#define DNSSAFE_PRIME_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,4 +23,5 @@ int PseudoPrime PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_PRIME_H */
+

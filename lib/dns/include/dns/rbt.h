@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef	DNS_RBT_H
-#define	DNS_RBT_H 1
+#ifndef DNS_RBT_H
+#define DNS_RBT_H 1
 
 #include <isc/lang.h>
 #include <isc/result.h>

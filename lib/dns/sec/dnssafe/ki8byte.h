@@ -6,4 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KI8BYTE_H
+#define DNSSAFE_KI8BYTE_H 1
+
 extern B_KeyInfoType KIT_8Byte;
+
+#endif /* DNSSAFE_KI8BYTE_H */

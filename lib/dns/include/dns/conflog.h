@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFLOG_H
-#define DNS_CONFIG_CONFLOG_H 1
+#ifndef DNS_CONFLOG_H
+#define DNS_CONFLOG_H 1
 
 /*****
  ***** Module Info
@@ -254,4 +254,4 @@ isc_result_t	dns_c_logcat_setpredef(dns_c_logcat_t *logcat,
 isc_result_t	dns_c_logcat_getpredef(dns_c_logcat_t *logcat,
 					isc_boolean_t *retval);
 
-#endif /* ISC_WHATEVER_H */
+#endif /* DNS_CONFLOG_H */

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _MD5RAND_H_
-#define _MD5RAND_H_ 1
+#ifndef DNSSAFE_MD5RAND_H
+#define DNSSAFE_MD5RAND_H 1
 
 #include "digrand.h"
 #include "md5.h"
@@ -33,4 +33,5 @@ void A_MD5RandomGenerateBytes PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_MD5RAND_H */
+

@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_RAND_H
-#define HEADER_RAND_H
+#ifndef OPENSSL_RAND_H
+#define OPENSSL_RAND_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -106,5 +106,5 @@ void	ERR_load_RAND_strings(void);
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_RAND_H */
 

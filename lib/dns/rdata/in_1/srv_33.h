@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.h,v 1.10 2000/03/17 21:03:34 bwelling Exp $ */
+#ifndef IN_1_SRV_33_H
+#define IN_1_SRV_33_H 1
+
+/* $Id: srv_33.h,v 1.11 2000/04/29 02:01:58 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -30,3 +33,4 @@ typedef struct dns_rdata_in_srv {
 	dns_name_t		target;
 } dns_rdata_in_srv_t;
 
+#endif /* IN_1_SRV_33_H */

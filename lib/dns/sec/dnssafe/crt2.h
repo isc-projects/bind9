@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _RSA_H_
-#define _RSA_H_ 1
+#ifndef DNSSAFE_CRT2_H
+#define DNSSAFE_CRT2_H 1
 
 #include "bigmaxes.h"
 
@@ -47,4 +47,4 @@ void A_RSA_CRT2GetMaxOutputLen PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_CRT2_H */

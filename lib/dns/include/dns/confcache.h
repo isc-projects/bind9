@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFCACHE_H
-#define DNS_CONFIG_CONFCACHE_H 1
+#ifndef DNS_CONFCACHE_H
+#define DNS_CONFCACHE_H 1
 
 /*****
  ***** Module Info
@@ -101,4 +101,4 @@ isc_result_t dns_c_cache_delete(dns_c_cache_t **cfgres);
  */
 
 
-#endif /* DNS_CONFIG_CONFCACHE_H */
+#endif /* DNS_CONFCACHE_H */

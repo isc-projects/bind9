@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BIGMATH_H_
-#define _BIGMATH_H_ 1
+#ifndef DNSSAFE_BIGMATH_H
+#define DNSSAFE_BIGMATH_H 1
 
 #include "algae.h"
 #include "bigmaxes.h"
@@ -68,4 +68,5 @@ int CanonicalToBig PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_BIGMATH_H */
+

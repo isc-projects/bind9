@@ -885,4 +885,4 @@ dns_zonemgr_gettransferlist(dns_zonemgr_t *zmgr);
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_ZONE_H */
+#endif /* DNS_ZONE_H */

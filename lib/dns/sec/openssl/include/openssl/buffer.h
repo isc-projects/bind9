@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_BUFFER_H
-#define HEADER_BUFFER_H
+#ifndef OPENSSL_BUFFER_H
+#define OPENSSL_BUFFER_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -94,5 +94,5 @@ void ERR_load_BUF_strings(void );
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_BUFFER_H */
 

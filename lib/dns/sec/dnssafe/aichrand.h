@@ -6,12 +6,13 @@
    prohibited.
  */
 
-#ifndef _AICHRAND_H_
-#define _AICHRAND_H_ 1
+#ifndef DNSSAFE_AICHRAND_H
+#define DNSSAFE_AICHRAND_H 1
 
 #include "ainfotyp.h"
 #include "ainull.h"
 
 extern B_AlgorithmInfoTypeVTable AITChooseRandomNull_V_TABLE;
 
-#endif
+#endif /* DNSSAFE_AICHRAND_H */
+

@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_BN_H
-#define HEADER_BN_H
+#ifndef OPENSSL_BN_H
+#define OPENSSL_BN_H 1
 
 #ifndef WIN16
 #include <stdio.h> /* FILE */
@@ -379,7 +379,7 @@ int	BN_mod_mul(BIGNUM *ret, BIGNUM *a, BIGNUM *b, const BIGNUM *m, BN_CTX *ctx);
 #ifndef NO_FP_API
 int	BN_print_fp(FILE *fp, const BIGNUM *a);
 #endif
-#ifdef HEADER_BIO_H
+#ifdef OPENSSL_BIO_H
 int	BN_print(BIO *fp, const BIGNUM *a);
 #else
 int	BN_print(void *fp, const BIGNUM *a);
@@ -512,5 +512,5 @@ BN_ULONG bn_sub_words(BN_ULONG *rp, BN_ULONG *ap, BN_ULONG *bp,int num);
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_BN_H */
 

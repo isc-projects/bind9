@@ -6,12 +6,13 @@
    prohibited.
  */
 
-#ifndef _AICHENCR_H_
-#define _AICHENCR_H_ 1
+#ifndef DNSSAFE_AICHENCR_H
+#define DNSSAFE_AICHENCR_H 1
 
 #include "ainfotyp.h"
 
 struct B_TypeCheck *AITChooseEncryptNewHandler PROTO_LIST
   ((B_AlgorithmInfoType *, B_Algorithm *));
 
-#endif
+#endif /* DNSSAFE_AICHENCR_H */
+

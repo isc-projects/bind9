@@ -146,4 +146,4 @@ isc_result_t	dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval);
 isc_result_t	dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
 
 
-#endif /* DNS_CONFIG_CONFSERV_H */
+#endif /* DNS_PEER_H */

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BIGMAXES_H_
-#define _BIGMAXES_H_ 1
+#ifndef DNSSAFE_BIGMAXES_H
+#define DNSSAFE_BIGMAXES_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,4 +44,5 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_BIGMAXES_H */
+

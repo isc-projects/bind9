@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KEYOBJ_H
+#define DNSSAFE_KEYOBJ_H 1
+
 typedef struct KeyWrap {
   B_Key key;
   char *typeTag;
@@ -14,3 +17,4 @@ typedef struct KeyWrap {
 
 int KeyWrapCheck PROTO_LIST ((KeyWrap *));
 
+#endif /* DNSSAFE_KEYOBJ_H */

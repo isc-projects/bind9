@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFCOMMON_H
-#define DNS_CONFIG_CONFCOMMON_H 1
+#ifndef DNS_CONFCOMMON_H
+#define DNS_CONFCOMMON_H 1
 
 /*****
  ***** Module Info
@@ -330,4 +330,4 @@ isc_result_t		dns_c_checkmodule(const char *name);
  */
 
 
-#endif /* DNS_CONFIG_CONFCOMMON_H */
+#endif /* DNS_CONFCOMMON_H */

@@ -6,12 +6,13 @@
    prohibited.
  */
 
-#ifndef _AICHGEN_H_
-#define _AICHGEN_H_ 1
+#ifndef DNSSAFE_AICHGEN_H
+#define DNSSAFE_AICHGEN_H 1
 
 #include "ainfotyp.h"
 
 struct B_TypeCheck *AITChooseGenerateNewHandler PROTO_LIST
   ((B_AlgorithmInfoType *, B_Algorithm *));
 
-#endif
+#endif /* DNSSAFE_AICHGEN_H */
+

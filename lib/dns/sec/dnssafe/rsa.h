@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _RSA_H_
-#define _RSA_H_ 1
+#ifndef DNSSAFE_RSA_H
+#define DNSSAFE_RSA_H 1
 
 #include "bigmaxes.h"
 
@@ -41,4 +41,5 @@ int A_RSAFinal PROTO_LIST ((A_RSA_CTX *));
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_RSA_H */
+

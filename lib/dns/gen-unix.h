@@ -27,6 +27,9 @@
  * The dir stuff was shrunk to fit the needs of gen.c.
  */
 
+#ifndef DNS_GEN_UNIX_H
+#define DNS_GEN_UNIX_H 1
+
 #include <dirent.h>
 #include <unistd.h>
 
@@ -77,3 +80,4 @@ end_directory(isc_dir_t *dir) {
 	dir->handle = NULL;
 }
 
+#endif /* DNS_GEN_UNIX_H */

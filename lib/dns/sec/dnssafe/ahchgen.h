@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHCHGEN_H_
-#define _AHCHGEN_H_ 1
+#ifndef DNSSAFE_AHCHGEN_H
+#define DNSSAFE_AHCHGEN_H 1
 
 #include "ahgen.h"
 #include "algchoic.h"
@@ -41,4 +41,5 @@ int AHChooseGenerateKeypair PROTO_LIST
 int AHChooseGenerateParameters PROTO_LIST
   ((THIS_GENERATE *, B_Algorithm *, B_Algorithm *, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHCHGEN_H */
+

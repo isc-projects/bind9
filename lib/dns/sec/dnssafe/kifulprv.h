@@ -6,7 +6,12 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KIFULPRV_H
+#define DNSSAFE_KIFULPRV_H 1
+
 int CacheFullPrivateKey PROTO_LIST
   ((B_Key *, ITEM *, ITEM *, ITEM *, ITEM *, ITEM *, ITEM *));
 int GetFullPrivateKeyInfo PROTO_LIST
   ((ITEM *, ITEM *, ITEM *, ITEM *, ITEM *, ITEM *, B_Key *));
+
+#endif /* DNSSAFE_KIFULPRV_H */

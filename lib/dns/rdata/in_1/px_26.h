@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: px_26.h,v 1.10 2000/03/20 19:32:10 gson Exp $ */
+#ifndef IN_1_PX_26_H
+#define IN_1_PX_26_H 1
+
+/* $Id: px_26.h,v 1.11 2000/04/29 02:01:57 tale Exp $ */
 
 /* RFC 2163 */
 
@@ -26,3 +29,5 @@ typedef struct dns_rdata_in_px {
 	dns_name_t		map822;
 	dns_name_t		mapx400;
 } dns_rdata_in_px_t;
+
+#endif /* IN_1_PX_26_H */

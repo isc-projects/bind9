@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.h,v 1.15 2000/03/16 23:13:02 gson Exp $ */
+/* $Id: tsig_250.h,v 1.16 2000/04/29 02:01:34 tale Exp $ */
 
 /* draft-ietf-dnsext-tsig-00.txt */
+#ifndef ANY_255_TSIG_250_H
+#define ANY_255_TSIG_250_H 1
 
 typedef struct dns_rdata_any_tsig {
 	dns_rdatacommon_t	common;
@@ -32,3 +34,5 @@ typedef struct dns_rdata_any_tsig {
 	isc_uint16_t		otherlen;
 	unsigned char *		other;
 } dns_rdata_any_tsig_t;
+
+#endif /* ANY_255_TSIG_250_H */

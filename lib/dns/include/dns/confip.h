@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFIP_H
-#define DNS_CONFIG_CONFIP_H 1
+#ifndef DNS_CONFIP_H
+#define DNS_CONFIP_H 1
 
 /*****
  ***** Module Info
@@ -234,4 +234,4 @@ isc_boolean_t dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 isc_boolean_t dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1,
 				      dns_c_ipmatchlist_t *l2);
 
-#endif /* DNS_CONFIG_CONFIP_H */
+#endif /* DNS_CONFIP_H */

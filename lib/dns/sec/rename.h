@@ -14,6 +14,8 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+#ifndef SEC_RENAME_H
+#define SEC_RENAME_H 1
 
 #ifdef DST_USE_PRIVATE_OPENSSL
 #define BN_CTX_end dst__openssl_BN_CTX_end
@@ -291,3 +293,5 @@
 #define SHA1_version dst__openssl_SHA1_version
 #define STACK_version dst__openssl_STACK_version
 #endif
+
+#endif /* SEC_RENAME_H */

@@ -99,4 +99,4 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_MASTERDUMP_H */
+#endif /* DNS_MASTERDUMP_H */

@@ -52,8 +52,8 @@
  *
  */
 
-#ifndef HEADER_SAFESTACK_H
-#define HEADER_SAFESTACK_H
+#ifndef OPENSSL_SAFESTACK_H
+#define OPENSSL_SAFESTACK_H 1
 
 #include <openssl/stack.h>
 
@@ -126,4 +126,5 @@ type *sk_##type##_pop(STACK_OF(type) *sk) \
 void sk_##type##_sort(STACK_OF(type) *sk) \
     { sk_sort((STACK *)sk); }
 
-#endif /* ndef HEADER_SAFESTACK_H */
+#endif /* OPENSSL_SAFESTACK_H */
+

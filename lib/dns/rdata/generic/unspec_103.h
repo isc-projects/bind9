@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.h,v 1.7 2000/04/28 21:48:58 marka Exp $ */
+#ifndef GENERIC_UNSPEC_103_H
+#define GENERIC_UNSPEC_103_H 1
+
+ /* $Id: unspec_103.h,v 1.8 2000/04/29 02:01:52 tale Exp $ */
 
 typedef struct dns_rdata_unspec_t {
 	dns_rdatacommon_t	common;
@@ -23,3 +26,5 @@ typedef struct dns_rdata_unspec_t {
 	unsigned char		*data;
 	isc_uint16_t		datalen;
 } dns_rdata_unspec_t;
+
+#endif /* GENERIC_UNSPEC_103_H */

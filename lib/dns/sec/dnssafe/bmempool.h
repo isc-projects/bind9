@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BMEMPOOL_H_
-#define _BMEMPOOL_H_ 1
+#ifndef DNSSAFE_BMEMPOOL_H
+#define DNSSAFE_BMEMPOOL_H 1
 
 typedef void (*B_MEMORY_POOL_DELETE_FUNCTION) PROTO_LIST ((POINTER));
 
@@ -50,4 +50,5 @@ B_ALLOCED_DATA *B_MemoryPoolFindAllocedObject PROTO_LIST
 int B_MemoryPoolAdoptHelper PROTO_LIST
   ((B_MemoryPool *, POINTER, unsigned int, B_MEMORY_POOL_DELETE_FUNCTION));
 
-#endif
+#endif /* DNSSAFE_BMEMPOOL_H */
+

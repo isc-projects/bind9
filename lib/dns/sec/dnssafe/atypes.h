@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _ATYPES_H_
-#define _ATYPES_H_ 1
+#ifndef DNSSAFE_ATYPES_H
+#define DNSSAFE_ATYPES_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,4 +57,5 @@ typedef struct {
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_ATYPES_H */
+

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHRSAEPR_H_
-#define _AHRSAEPR_H_
+#ifndef DNSSAFE_AHRSAEPR_H
+#define DNSSAFE_AHRSAEPR_H 1
 
 #include "ahrsaenc.h"
 
@@ -17,4 +17,5 @@ typedef AH_RSAEncryption AH_RSAEncryptionPrivate;
 AH_RSAEncryptionPrivate *AH_RSAEncrypPrivateConstructor PROTO_LIST
   ((AH_RSAEncryptionPrivate *));
 
-#endif
+#endif /* DNSSAFE_AHRSAEPR_H */
+

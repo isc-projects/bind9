@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BSAFE_H_
-#define _BSAFE_H_ 1
+#ifndef DNSSAFE_BSAFE2_H
+#define DNSSAFE_BSAFE2_H 1
 
 #ifndef T_CALL
 #define T_CALL
@@ -191,4 +191,5 @@ extern B_ALGORITHM_METHOD T_CALL AM_RSA_KEY_GEN;
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_BSAFE2_H */
+

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHCHRAND_H_
-#define _AHCHRAND_H_ 1
+#ifndef DNSSAFE_AHCHRAND_H
+#define DNSSAFE_AHCHRAND_H 1
 
 #include "ahrandom.h"
 #include "algchoic.h"
@@ -28,4 +28,5 @@ int AHChooseRandomUpdate PROTO_LIST
 int AHChooseRandomGenerateBytes PROTO_LIST
   ((THIS_RANDOM *, unsigned char *, unsigned int, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHCHRAND_H */
+

@@ -1,6 +1,3 @@
-#ifndef DST_PARSE_H
-#define DST_PARSE_H
-
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
  *
@@ -17,6 +14,9 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
+#ifndef DST_DST_PARSE_H
+#define DST_DST_PARSE_H 1
+
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <dst/dst.h>
@@ -85,4 +85,4 @@ int	dst_s_write_private_key_file(const char *name, const int alg,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DST_PARSE_H */
+#endif /* DST_DST_PARSE_H */

@@ -952,4 +952,4 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_MESSAGE_H */
+#endif /* DNS_MESSAGE_H */

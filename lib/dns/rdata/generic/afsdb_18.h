@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.h,v 1.11 2000/04/28 21:48:37 marka Exp $ */
+#ifndef GENERIC_AFSDB_18_H
+#define GENERIC_AFSDB_18_H 1
+
+/* $Id: afsdb_18.h,v 1.12 2000/04/29 02:01:35 tale Exp $ */
 
 /* RFC 1183 */
 
@@ -25,3 +28,6 @@ typedef struct dns_rdata_afsdb {
 	isc_uint16_t		subtype;
 	dns_name_t		server;
 } dns_rdata_afsdb_t;
+
+#endif /* GENERIC_AFSDB_18_H */
+

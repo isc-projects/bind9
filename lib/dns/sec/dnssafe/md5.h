@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _MD5_H_
-#define _MD5_H_ 1
+#ifndef DNSSAFE_MD5_H
+#define DNSSAFE_MD5_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,4 +29,5 @@ void A_MD5Final PROTO_LIST ((A_MD5_CTX *, unsigned char *));
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_MD5_H */
+

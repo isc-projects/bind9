@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHCHDIG_H_
-#define _AHCHDIG_H_ 1
+#ifndef DNSSAFE_AHCHDIG_H
+#define DNSSAFE_AHCHDIG_H 1
 
 #include "ahdigest.h"
 #include "algchoic.h"
@@ -29,4 +29,5 @@ int AHChooseDigestFinal PROTO_LIST
   ((THIS_DIGEST *, unsigned char *, unsigned int *, unsigned int,
     A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHCHDIG_H */
+

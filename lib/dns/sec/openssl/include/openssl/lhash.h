@@ -60,8 +60,8 @@
  * Author - Eric Young
  */
 
-#ifndef HEADER_LHASH_H
-#define HEADER_LHASH_H
+#ifndef OPENSSL_LHASH_H
+#define OPENSSL_LHASH_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -131,7 +131,7 @@ void lh_node_stats(LHASH *lh, FILE *out);
 void lh_node_usage_stats(LHASH *lh, FILE *out);
 #endif
 
-#ifdef HEADER_BIO_H
+#ifdef OPENSSL_BIO_H
 void lh_stats_bio(LHASH *lh, BIO *out);
 void lh_node_stats_bio(LHASH *lh, BIO *out);
 void lh_node_usage_stats_bio(LHASH *lh, BIO *out);
@@ -140,5 +140,5 @@ void lh_node_usage_stats_bio(LHASH *lh, BIO *out);
 }
 #endif
 
-#endif
+#endif /* OPENSSL_LHASH_H */
 

@@ -6,12 +6,13 @@
    prohibited.
  */
 
-#ifndef _AICHENCN_H_
-#define _AICHENCN_H_ 1
+#ifndef DNSSAFE_AICHENCN_H
+#define DNSSAFE_AICHENCN_H 1
 
 #include "aichencr.h"
 #include "ainull.h"
 
 extern B_AlgorithmInfoTypeVTable AITChooseEncryptNull_V_TABLE;
 
-#endif
+#endif /* DNSSAFE_AICHENCN_H */
+

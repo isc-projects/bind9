@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.h,v 1.8 2000/04/28 21:48:39 marka Exp $ */
+#ifndef GENERIC_GPOS_27_H
+#define GENERIC_GPOS_27_H 1
+
+/* $Id: gpos_27.h,v 1.9 2000/04/29 02:01:37 tale Exp $ */
 
 /* RFC 1712 */
 
@@ -29,3 +32,5 @@ typedef struct dns_rdata_gpos {
 	isc_uint8_t		lat_len;
 	isc_uint8_t		alt_len;
 } dns_rdata_gpos_t;
+
+#endif /* GENERIC_GPOS_27_H */

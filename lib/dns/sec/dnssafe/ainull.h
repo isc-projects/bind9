@@ -6,5 +6,10 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_AINULL_H
+#define DNSSAFE_AINULL_H 1
+
 int AITNullAddInfo PROTO_LIST
   ((THIS_ALGORITHM_INFO_TYPE *, B_Algorithm *, POINTER));
+
+#endif /* DNSSAFE_AINULL_H */

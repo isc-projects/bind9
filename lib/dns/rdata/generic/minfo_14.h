@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: minfo_14.h,v 1.16 2000/04/28 21:48:47 marka Exp $ */
+#ifndef GENERIC_MINFO_14_H
+#define GENERIC_MINFO_14_H 1
+
+/* $Id: minfo_14.h,v 1.17 2000/04/29 02:01:43 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -25,3 +28,5 @@ typedef struct dns_rdata_minfo {
 	dns_name_t		rmailbox;
 	dns_name_t		emailbox;
 } dns_rdata_minfo_t;
+
+#endif /* GENERIC_MINFO_14_H */

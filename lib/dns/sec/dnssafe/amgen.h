@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_AMGEN_H
+#define DNSSAFE_AMGEN_H 1
+
 struct B_KeyInfoType;
 
 typedef struct {
@@ -17,3 +20,4 @@ typedef struct {
     ((POINTER, POINTER *, unsigned char *, A_SURRENDER_CTX *));
 } A_GENERATE_ALGA;
 
+#endif /* DNSSAFE_AMGEN_H */

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.2 2000/02/03 23:43:47 halley Exp $ */
+/* $Id: gen-win32.h,v 1.3 2000/04/29 02:01:07 tale Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -72,6 +72,9 @@
  * The commandline stuff is pretty much a straight copy from the initial
  * isc/commandline.c.  The dir stuff was shrunk to fit the needs of gen.c.
  */
+
+#ifndef DNS_GEN_WIN32_H
+#define DNS_GEN_WIN32_H 1
 
 #include <stdio.h>
 #include <string.h>
@@ -280,3 +283,5 @@ end_directory(isc_dir_t *dir) {
 	if (dir->handle != INVALID_HANDLE_VALUE)
 		FindClose(dir->handle);
 }
+
+#endif /* DNS_GEN_WIN32_H */

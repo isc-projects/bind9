@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFLSN_H
-#define DNS_CONFIG_CONFLSN_H 1
+#ifndef DNS_CONFLSN_H
+#define DNS_CONFLSN_H 1
 
 /*****
  ***** Module Info
@@ -192,4 +192,4 @@ isc_result_t	dns_c_lstnon_print(FILE *fp, int indent,
 
 
 
-#endif /* DNS_CONFIG_CONFLSN_H */
+#endif /* DNS_CONFLSN_H */

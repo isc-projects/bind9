@@ -15,10 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: proforma.h,v 1.13 2000/03/20 22:57:14 gson Exp $ */
+#ifndef GENERIC_PROFORMA_H
+#define GENERIC_PROFORMA_H 1
+
+/* $Id: proforma.h,v 1.14 2000/04/29 02:01:47 tale Exp $ */
 
 typedef struct dns_rdata_# {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;	/* if required */
 	/* type & class specific elements */
 } dns_rdata_#_t;
+
+#endif /* GENERIC_PROFORMA_H */

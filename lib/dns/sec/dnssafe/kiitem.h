@@ -6,4 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KIITEM_H
+#define DNSSAFE_KIITEM_H 1
+
 extern B_KeyInfoType KITItem;
+
+#endif /* DNSSAFE_KIITEM_H */

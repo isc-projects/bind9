@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _DIGRAND_H_
-#define _DIGRAND_H_ 1
+#ifndef DNSSAFE_DIGRAND_H
+#define DNSSAFE_DIGRAND_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,4 +50,5 @@ void A_DigestRandomGenerateBytes PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_DIGRAND_H */
+

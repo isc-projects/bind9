@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef NS_ZONECONF_H
-#define NS_ZONECONF_H 1
+#ifndef DNS_ZONECONF_H
+#define DNS_ZONECONF_H 1
 
 #include <isc/log.h>
 #include <isc/types.h>
@@ -63,4 +63,4 @@ dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zonemgr);
  */
 ISC_LANG_ENDDECLS
 
-#endif /* NS_ZONECONF_H */
+#endif /* DNS_ZONECONF_H */

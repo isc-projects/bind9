@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_BALGMETH_H
+#define DNSSAFE_BALGMETH_H 1
+
 struct B_AlgorithmInfoType;
 struct B_KeyInfoType;
 
@@ -16,3 +19,4 @@ struct B_ALGORITHM_METHOD {
   POINTER alga;
 };
 
+#endif /* DNSSAFE_BALGMETH_H */

@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFVIEW_H
-#define DNS_CONFIG_CONFVIEW_H 1
+#ifndef DNS_CONFVIEW_H
+#define DNS_CONFVIEW_H 1
 
 /*****
  ***** Module Info
@@ -493,4 +493,4 @@ isc_result_t	dns_c_view_unsetserialqueries(dns_c_view_t *view);
 
 
 
-#endif /* DNS_CONFIG_CONFVIEW_H */
+#endif /* DNS_CONFVIEW_H */

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.12 2000/02/03 23:43:16 halley Exp $ */
+#ifndef IN_1_A6_38_H
+#define IN_1_A6_38_H 1
+
+ /* $Id: a6_38.h,v 1.13 2000/04/29 02:01:54 tale Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -27,3 +30,4 @@ typedef struct dns_rdata_in_a6 {
 	struct in6_addr		in6_addr;
 } dns_rdata_in_a6_t;
 
+#endif /* IN_1_A6_38_H */

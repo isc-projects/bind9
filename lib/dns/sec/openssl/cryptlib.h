@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_CRYPTLIB_H
-#define HEADER_CRYPTLIB_H
+#ifndef OPENSSL_CRYPTLIB_H
+#define OPENSSL_CRYPTLIB_H 1
 
 #include <stdlib.h>
 #include <string.h>
@@ -93,4 +93,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* OPENSSL_CRYPTLIB_H */

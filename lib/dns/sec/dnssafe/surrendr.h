@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _SURRENDR_H_
-#define _SURRENDR_H_ 1
+#ifndef DNSSAFE_SURRENDR_H
+#define DNSSAFE_SURRENDR_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,4 +19,5 @@ int CheckSurrender PROTO_LIST ((A_SURRENDER_CTX *));
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_SURRENDR_H */
+

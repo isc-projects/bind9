@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.h,v 1.10 2000/03/17 18:18:28 gson Exp $ */
+#ifndef IN_1_NSAP_PTR_23_H
+#define IN_1_NSAP_PTR_23_H 1
+
+/* $Id: nsap-ptr_23.h,v 1.11 2000/04/29 02:01:56 tale Exp $ */
 
 /* RFC 1348.  Obsoleted in RFC 1706 - use PTR instead. */
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_in_nsap_ptr {
 	isc_mem_t		*mctx;
 	dns_name_t		owner;
 } dns_rdata_in_nsap_ptr_t;
+
+#endif /* IN_1_NSAP_PTR_23_H */

@@ -1,6 +1,3 @@
-#ifndef DST_INTERNAL_H
-#define DST_INTERNAL_H
-
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
  *
@@ -17,6 +14,10 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
+
+#ifndef DST_DST_INTERNAL_H
+#define DST_DST_INTERNAL_H 1
+
 #include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/int.h>
@@ -123,4 +124,4 @@ void *		dst_mem_realloc(void *ptr, size_t size);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DST_INTERNAL_H */
+#endif /* DST_DST_INTERNAL_H */

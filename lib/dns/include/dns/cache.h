@@ -223,5 +223,4 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_CACHE_H */
-
+#endif /* DNS_CACHE_H */

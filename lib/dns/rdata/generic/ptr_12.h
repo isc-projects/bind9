@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: ptr_12.h,v 1.16 2000/04/28 21:48:55 marka Exp $ */
+#ifndef GENERIC_PTR_12_H
+#define GENERIC_PTR_12_H 1
+
+/* $Id: ptr_12.h,v 1.17 2000/04/29 02:01:48 tale Exp $ */
 
 
 #include <dns/name.h>
@@ -25,3 +28,5 @@ typedef struct dns_rdata_ptr {
         isc_mem_t               *mctx;
         dns_name_t              ptr;
 } dns_rdata_ptr_t;
+
+#endif /* GENERIC_PTR_12_H */

@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFCTL_H
-#define DNS_CONFIG_CONFCTL_H 1
+#ifndef DNS_CONFCTL_H
+#define DNS_CONFCTL_H 1
 
 /*****
  ***** Module Info
@@ -218,4 +218,4 @@ void		dns_c_ctrllist_print(FILE *fp, int indent,
  */
 
 
-#endif /* DNS_CONFIG_CONFCTL_H */
+#endif /* DNS_CONFCTL_H */

@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#ifndef DNS_DBTABLE_H
+#define DNS_DBTABLE_H 1
+
 /*****
  ***** Module Info
  *****/
@@ -152,3 +155,5 @@ dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
  * Returns:  ISC_R_SUCCESS		on success
  *	     <something else>		no default and match
  */
+
+#endif /* DNS_DBTABLE_H */

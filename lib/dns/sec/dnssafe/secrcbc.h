@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _SECRCBC_H_
-#define _SECRCBC_H_ 1
+#ifndef DNSSAFE_SECRCBC_H
+#define DNSSAFE_SECRCBC_H 1
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,4 +33,5 @@ int SecretCBCDecryptFinal PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_SECRCBC_H */
+

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHCBCPAD_H_
-#define _AHCBCPAD_H_
+#ifndef DNSSAFE_AHCBCPAD_H
+#define DNSSAFE_AHCBCPAD_H 1
 
 #include "ahchencr.h"
 
@@ -34,4 +34,5 @@ int AHSecretCBCPadDecryptFinal PROTO_LIST
   ((THIS_ENCRYPT_DECRYPT *, unsigned char *, unsigned int *,
     unsigned int, B_Algorithm *, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHCBCPAD_H */
+

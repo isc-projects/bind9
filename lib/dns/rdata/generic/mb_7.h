@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: mb_7.h,v 1.16 2000/04/26 18:27:56 marka Exp $ */
+#ifndef GENERIC_MB_7_H
+#define GENERIC_MB_7_H 1
+
+/* $Id: mb_7.h,v 1.17 2000/04/29 02:01:40 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_mb {
 	isc_mem_t		*mctx;
 	dns_name_t		mb;
 } dns_rdata_mb_t;
+
+#endif /* GENERIC_MB_7_H */

@@ -71,4 +71,4 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_MASTER_H */
+#endif /* DNS_TTL_H */

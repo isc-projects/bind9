@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BALG_H_
-#define _BALG_H_ 1
+#ifndef DNSSAFE_BALG_H
+#define DNSSAFE_BALG_H 1
 
 #include "binfocsh.h"
 #include "btypechk.h"
@@ -113,4 +113,5 @@ int B_AlgorithmGenerateKeypair PROTO_LIST
 int B_AlgorithmGenerateParameters PROTO_LIST
   ((B_Algorithm *, B_Algorithm *, B_Algorithm *, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_BALG_H */
+

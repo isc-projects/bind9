@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_AMDIGEST_H
+#define DNSSAFE_AMDIGEST_H 1
+
 typedef struct {
   int (*Query) PROTO_LIST ((unsigned int *, POINTER));
   int (*Init) PROTO_LIST ((POINTER, POINTER, A_SURRENDER_CTX *));
@@ -17,3 +20,4 @@ typedef struct {
   int (*GetMaxOutputLen) PROTO_LIST ((POINTER, unsigned int *));
 } A_DIGEST_ALGA;
 
+#endif /* DNSSAFE_AMDIGEST_H */

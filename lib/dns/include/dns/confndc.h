@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFNDC_H
-#define DNS_CONFIG_CONFNDC_H 1
+#ifndef DNS_CONFNDC_H
+#define DNS_CONFNDC_H 1
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -153,4 +153,4 @@ void		dns_c_ndcserverlist_print(FILE *fp,
 void		dns_c_ndcserver_print(FILE *fp, dns_c_ndcserver_t *server);
 
 
-#endif /* DNS_CONFIG_CONFZONE_H */
+#endif /* DNS_CONFNDC_H */

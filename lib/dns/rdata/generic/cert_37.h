@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.h,v 1.11 2000/04/28 21:48:38 marka Exp $ */
+/* $Id: cert_37.h,v 1.12 2000/04/29 02:01:35 tale Exp $ */
 
 /* RFC 2538 */
+#ifndef GENERIC_CERT_37_H
+#define GENERIC_CERT_37_H 1
 
 typedef struct dns_rdata_cert {
 	dns_rdatacommon_t	common;
@@ -28,3 +30,5 @@ typedef struct dns_rdata_cert {
 	isc_uint16_t		length;
 	unsigned char		*certificate;
 } dns_rdata_cert_t;
+
+#endif /* GENERIC_CERT_37_H */

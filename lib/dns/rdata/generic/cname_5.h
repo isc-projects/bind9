@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: cname_5.h,v 1.17 2000/04/26 18:27:55 marka Exp $ */
+/* $Id: cname_5.h,v 1.18 2000/04/29 02:01:35 tale Exp $ */
+
+#ifndef GENERIC_CNAME_5_H
+#define GENERIC_CNAME_5_H 1
 
 #include <dns/name.h>
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_cname {
 	isc_mem_t		*mctx;
 	dns_name_t		cname;
 } dns_rdata_cname_t;
+
+#endif /* GENERIC_CNAME_5_H */

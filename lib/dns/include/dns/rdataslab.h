@@ -115,4 +115,4 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_RDATADLAB_H */
+#endif /* DNS_RDATASLAB_H */

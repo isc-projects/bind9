@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_E_OS_H
-#define HEADER_E_OS_H
+#ifndef OPENSSL_E_OS_H
+#define OPENSSL_E_OS_H 1
 
 #include <openssl/e_os2.h>
 /* <openssl/e_os2.h> contains what we can justify to make visible
@@ -369,5 +369,5 @@ extern HINSTANCE _hInstance;
 }
 #endif
 
-#endif
+#endif /* OPENSSL_E_OS_H */
 

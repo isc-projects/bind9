@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BTYPECHK_H_
-#define _BTYPECHK_H_ 1
+#ifndef DNSSAFE_BTYPECHK_H
+#define DNSSAFE_BTYPECHK_H 1
 
 struct B_TypeCheck;
 
@@ -22,4 +22,5 @@ typedef struct B_TypeCheck {
 #define B_TYPE_CHECK_Destructor(typeCheck)\
   (*(typeCheck)->_Destructor) (typeCheck)
 
-#endif
+#endif /* DNSSAFE_BTYPECHK_H */
+

@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_ERR_H
-#define HEADER_ERR_H
+#ifndef OPENSSL_ERR_H
+#define OPENSSL_ERR_H 1
 
 #ifdef	__cplusplus
 extern "C" {
@@ -69,7 +69,7 @@ extern "C" {
 
 /* The following is a bit of a trick to help the object files only contain
  * the 'name of the file' string once.  Since 'err.h' is protected by the
- * HEADER_ERR_H stuff, this should be included only once per file. */
+ * OPENSSL_ERR_H stuff, this should be included only once per file. */
 
 #define ERR_file_name	__FILE__
 
@@ -236,7 +236,7 @@ const char *ERR_reason_error_string(unsigned long e);
 #ifndef NO_FP_API
 void ERR_print_errors_fp(FILE *fp);
 #endif
-#ifdef HEADER_BIO_H
+#ifdef OPENSSL_BIO_H
 void ERR_print_errors(BIO *bp);
 void ERR_add_error_data(int num, ...);
 #endif
@@ -248,7 +248,7 @@ void ERR_free_strings(void);
 void ERR_remove_state(unsigned long pid); /* if zero we look it up */
 ERR_STATE *ERR_get_state(void);
 
-#ifdef HEADER_LHASH_H
+#ifdef OPENSSL_LHASH_H
 LHASH *ERR_get_string_table(void );
 LHASH *ERR_get_err_state_table(void );
 #else
@@ -262,4 +262,5 @@ int ERR_get_next_error_library(void );
 }
 #endif
 
-#endif
+#endif /* OPENSSL_ERR_H */
+

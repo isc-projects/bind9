@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _ALGAE_H_
-#define _ALGAE_H_ 1
+#ifndef DNSSAFE_ALGAE_H
+#define DNSSAFE_ALGAE_H 1
 
 #ifndef T_CALL
 #define T_CALL
@@ -63,4 +63,5 @@ unsigned int A_IntegerBits PROTO_LIST ((unsigned char *, unsigned int));
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_ALGAE_H */
+

@@ -56,6 +56,9 @@
  * [including the GNU Public Licence.]
  */
 
+#ifndef OPENSSL_BN_PRIME_H
+#define OPENSSL_BN_PRIME_H 1
+
 #ifndef EIGHT_BIT
 #define NUMPRIMES 2048
 #else
@@ -323,3 +326,5 @@ static unsigned int primes[NUMPRIMES]=
 	17789,17791,17807,17827,17837,17839,17851,17863,
 #endif
 	};
+
+#endif /* OPENSSL_BN_PRIME_H */

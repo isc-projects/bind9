@@ -1,3 +1,7 @@
+ 144.   [cleanup]       libdns header files too numerous to name were made
+                        to conform to the same style for multiple inclusion
+                        protection.
+
  143.   [func]		Added function dns_rdatatype_isknown().
 
  142.   [cleanup]       <isc/stdtime.h> does not need <time.h> or

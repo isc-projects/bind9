@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.h,v 1.20 2000/03/17 01:22:17 explorer Exp $ */
+#ifndef GENERIC_SOA_6_H
+#define GENERIC_SOA_6_H 1
+
+/* $Id: soa_6.h,v 1.21 2000/04/29 02:01:49 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -31,3 +34,5 @@ typedef struct dns_rdata_soa {
 	isc_uint32_t		minimum;	/* host order */
 } dns_rdata_soa_t;
 
+
+#endif /* GENERIC_SOA_6_H */

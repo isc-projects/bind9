@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHRSAENC_H_
-#define _AHRSAENC_H_
+#ifndef DNSSAFE_AHRSAENC_H
+#define DNSSAFE_AHRSAENC_H 1
 
 #include "ahchencr.h"
 
@@ -65,4 +65,5 @@ int AH_RSAEncryptionDecryptFinal PROTO_LIST
   ((THIS_ENCRYPT_DECRYPT *, unsigned char *, unsigned int *,
     unsigned int, B_Algorithm *, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHRSAENC_H */
+

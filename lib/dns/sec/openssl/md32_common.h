@@ -52,6 +52,8 @@
  * Hudson (tjh@cryptsoft.com).
  *
  */
+#ifndef OPENSSL_MD32_COMMON_H
+#define OPENSSL_MD32_COMMON_H 1
 
 /*
  * This is a generic 32 bit "collector" for message digest algorithms.
@@ -605,3 +607,5 @@ void HASH_FINAL (unsigned char *md, HASH_CTX *c)
 	memset((void *)c,0,sizeof(HASH_CTX));
 	 */
 	}
+
+#endif /* OPENSSL_MD32_COMMON_H */

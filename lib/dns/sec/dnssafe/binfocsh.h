@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BINFOCSH_H_
-#define _BINFOCSH_H_ 1
+#ifndef DNSSAFE_BINFOCSH_H
+#define DNSSAFE_BINFOCSH_H 1
 
 #include "bmempool.h"
 
@@ -30,4 +30,5 @@ void B_InfoCacheConstructor PROTO_LIST ((B_InfoCache *));
 int B_InfoCacheAddInfo PROTO_LIST ((B_InfoCache *, POINTER, POINTER));
 int B_InfoCacheFindInfo PROTO_LIST ((B_InfoCache *, POINTER *, POINTER));
 
-#endif
+#endif /* DNSSAFE_BINFOCSH_H */
+

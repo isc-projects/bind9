@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_ALGOBJ_H
+#define DNSSAFE_ALGOBJ_H 1
+
 #define THE_ALG_WRAP ((AlgorithmWrap *)algorithmObject)
 
 typedef struct AlgorithmWrap {
@@ -17,3 +20,4 @@ typedef struct AlgorithmWrap {
 int AlgorithmWrapCheck PROTO_LIST ((AlgorithmWrap *));
 int RandomAlgorithmCheck PROTO_LIST ((B_ALGORITHM_OBJ));
 
+#endif /* DNSSAFE_ALGOBJ_H */

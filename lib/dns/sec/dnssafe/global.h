@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _GLOBAL_H_
-#define _GLOBAL_H_ 1
+#ifndef DNSSAFE_GLOBAL_H
+#define DNSSAFE_GLOBAL_H 1
 
 #include "../rename-dnssafe.h"
 
@@ -59,4 +59,5 @@ typedef isc_uint32_t UINT4;
 }
 #endif
 
-#endif /* end _GLOBAL_H_ */
+#endif /* DNSSAFE_GLOBAL_H */
+

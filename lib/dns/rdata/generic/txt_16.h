@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: txt_16.h,v 1.15 2000/04/28 02:08:37 marka Exp $ */
+#ifndef GENERIC_TXT_16_H
+#define GENERIC_TXT_16_H 1
+
+/* $Id: txt_16.h,v 1.16 2000/04/29 02:01:51 tale Exp $ */
 
 
 typedef struct dns_rdata_txt_string {
@@ -42,3 +45,4 @@ isc_result_t dns_rdata_txt_current(dns_rdata_txt_t *, dns_rdata_txt_string_t *);
 
 ISC_LANG_ENDDECLS
 
+#endif /* GENERIC_TXT_16_H */

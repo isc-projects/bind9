@@ -62,8 +62,8 @@
  * work and I have just tweaked them a little to fit into my
  * stylistic vision for SSLeay :-) */
 
-#ifndef HEADER_DSA_H
-#define HEADER_DSA_H
+#ifndef OPENSSL_DSA_H
+#define OPENSSL_DSA_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -188,7 +188,7 @@ int	i2d_DSAPublicKey(DSA *a, unsigned char **pp);
 int 	i2d_DSAPrivateKey(DSA *a, unsigned char **pp);
 int	i2d_DSAparams(DSA *a,unsigned char **pp);
 
-#ifdef HEADER_BIO_H
+#ifdef OPENSSL_BIO_H
 int	DSAparams_print(BIO *bp, DSA *x);
 int	DSA_print(BIO *bp, DSA *x, int off);
 #endif
@@ -237,5 +237,5 @@ DH *DSA_dup_DH(DSA *r);
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_DSA_H */
 

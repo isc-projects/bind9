@@ -16,7 +16,7 @@
  */
 
 #ifndef DNS_ADB_H
-#define DNS_ADB_H
+#define DNS_ADB_H 1
 
 /***** 
  ***** Module Info 

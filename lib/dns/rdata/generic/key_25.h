@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: key_25.h,v 1.10 2000/04/28 02:08:31 marka Exp $ */
+#ifndef GENERIC_KEY_25_H
+#define GENERIC_KEY_25_H 1
+
+/* $Id: key_25.h,v 1.11 2000/04/29 02:01:38 tale Exp $ */
 
 /* RFC 2535 */
 
@@ -29,3 +32,5 @@ typedef struct dns_rdata_key_t {
         unsigned char *		data;
 } dns_rdata_key_t;
 
+
+#endif /* GENERIC_KEY_25_H */

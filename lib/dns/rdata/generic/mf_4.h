@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.h,v 1.15 2000/04/28 21:48:45 marka Exp $ */
+#ifndef GENERIC_MF_4_H
+#define GENERIC_MF_4_H 1
+
+/* $Id: mf_4.h,v 1.16 2000/04/29 02:01:41 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_mf {
 	isc_mem_t		*mctx;
 	dns_name_t		mf;
 } dns_rdata_mf_t;
+
+#endif /* GENERIC_MF_4_H */

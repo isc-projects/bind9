@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef	DNS_ZT_H
-#define DNS_ZT_H
+#ifndef DNS_ZT_H
+#define DNS_ZT_H 1
 
 #include <isc/lang.h>
 
@@ -157,4 +157,4 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* DNS_ZT_H */

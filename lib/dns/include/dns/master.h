@@ -107,4 +107,4 @@ isc_result_t dns_master_loadbuffer(isc_buffer_t *buffer,
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_MASTER_H */
+#endif /* DNS_MASTER_H */

@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_SHA_H
-#define HEADER_SHA_H
+#ifndef OPENSSL_SHA_H
+#define OPENSSL_SHA_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -116,4 +116,5 @@ void SHA1_Transform(SHA_CTX *c, const unsigned char *data);
 }
 #endif
 
-#endif
+#endif /* OPENSSL_SHA_H */
+

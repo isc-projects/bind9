@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.h,v 1.12 2000/04/28 21:49:01 marka Exp $ */
+#ifndef IN_1_NAPTR_35_H
+#define IN_1_NAPTR_35_H 1
+
+/* $Id: naptr_35.h,v 1.13 2000/04/29 02:01:56 tale Exp $ */
 
 /* RFC 2168 */
 
@@ -32,3 +35,5 @@ typedef struct dns_rdata_in_naptr {
 	isc_uint16_t		regexp_len;
 	dns_name_t		replacement;
 } dns_rdata_in_naptr_t;
+
+#endif /* IN_1_NAPTR_35_H */

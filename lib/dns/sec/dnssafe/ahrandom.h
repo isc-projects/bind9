@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHRANDOM_H_
-#define _AHRANDOM_H_ 1
+#ifndef DNSSAFE_AHRANDOM_H
+#define DNSSAFE_AHRANDOM_H 1
 
 #include "btypechk.h"
 
@@ -44,4 +44,5 @@ void AHRandomConstructor PROTO_LIST ((AHRandom *));
      for B_TypeCheck, since this will just re-invoke this virtual
      destructor. */
 
-#endif
+#endif /* DNSSAFE_AHRANDOM_H */
+

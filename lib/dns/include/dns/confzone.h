@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFZONE_H
-#define DNS_CONFIG_CONFZONE_H 1
+#ifndef DNS_CONFZONE_H
+#define DNS_CONFZONE_H 1
 
 /*****
  ***** Module Info
@@ -400,4 +400,4 @@ isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_zone_unsetallowupd(dns_c_zone_t *zone);
 
-#endif /* DNS_CONFIG_CONFZONE_H */
+#endif /* DNS_CONFZONE_H */

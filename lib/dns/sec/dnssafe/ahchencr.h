@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHCHENCR_H_
-#define _AHCHENCR_H_ 1
+#ifndef DNSSAFE_AHCHENCR_H
+#define DNSSAFE_AHCHENCR_H 1
 
 #include "ahencryp.h"
 #include "algchoic.h"
@@ -71,4 +71,5 @@ int AHChooseEncryptDecryptFinal PROTO_LIST
   ((THIS_ENCRYPT_DECRYPT *, unsigned char *, unsigned int *,
     unsigned int, B_Algorithm *, A_SURRENDER_CTX *));
 
-#endif
+#endif /* DNSSAFE_AHCHENCR_H */
+

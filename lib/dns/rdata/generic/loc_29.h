@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.h,v 1.8 2000/04/28 21:48:43 marka Exp $ */
+#ifndef GENERIC_LOC_29_H
+#define GENERIC_LOC_29_H 1
+
+/* $Id: loc_29.h,v 1.9 2000/04/29 02:01:39 tale Exp $ */
 
 /* RFC 1876 */
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_loc {
 	isc_mem_t		*mctx;
 	dns_name_t		loc;
 } dns_rdata_loc_t;
+
+#endif /* GENERIC_LOC_29_H */

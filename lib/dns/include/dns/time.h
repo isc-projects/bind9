@@ -62,4 +62,4 @@ isc_result_t dns_time32_totext(isc_uint32_t value, isc_buffer_t *target);
 
 ISC_LANG_ENDDECLS
 
-#endif	/* DNS_TIME_H */
+#endif /* DNS_TIME_H */

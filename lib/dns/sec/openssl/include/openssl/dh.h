@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_DH_H
-#define HEADER_DH_H
+#ifndef OPENSSL_DH_H
+#define OPENSSL_DH_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -169,7 +169,7 @@ int	i2d_DHparams(DH *a,unsigned char **pp);
 #ifndef NO_FP_API
 int	DHparams_print_fp(FILE *fp, DH *x);
 #endif
-#ifdef HEADER_BIO_H
+#ifdef OPENSSL_BIO_H
 int	DHparams_print(BIO *bp, DH *x);
 #else
 int	DHparams_print(char *bp, DH *x);
@@ -197,5 +197,5 @@ void	ERR_load_DH_strings(void );
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_DH_H */
 

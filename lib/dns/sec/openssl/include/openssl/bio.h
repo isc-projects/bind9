@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_BIO_H
-#define HEADER_BIO_H
+#ifndef OPENSSL_BIO_H
+#define OPENSSL_BIO_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -592,5 +592,4 @@ int BIO_printf(BIO *bio, ...);
 #ifdef  __cplusplus
 }
 #endif
-#endif
-
+#endif /* OPENSSL_BIO_H */

@@ -79,4 +79,4 @@ dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset,
 
 ISC_LANG_ENDDECLS
 
-#endif /* DNS_RESULT_H */
+#endif /* DNS_A6_H */

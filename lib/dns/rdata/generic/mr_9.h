@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: mr_9.h,v 1.15 2000/04/28 21:48:48 marka Exp $ */
+#ifndef GENERIC_MR_9_H
+#define GENERIC_MR_9_H 1
+
+/* $Id: mr_9.h,v 1.16 2000/04/29 02:01:44 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_mr {
 	isc_mem_t		*mctx;
 	dns_name_t		mr;
 } dns_rdata_mr_t;
+
+#endif /* GENERIC_MR_9_H */

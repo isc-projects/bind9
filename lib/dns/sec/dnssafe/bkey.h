@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _BKEY_H_
-#define _BKEY_H_ 1
+#ifndef DNSSAFE_BKEY_H
+#define DNSSAFE_BKEY_H 1
 
 #include "binfocsh.h"
 
@@ -29,4 +29,5 @@ int B_KeySetInfo PROTO_LIST ((B_Key *, struct B_KeyInfoType *, POINTER));
 int B_KeyGetInfo PROTO_LIST ((B_Key *, POINTER *, struct B_KeyInfoType *));
 int B_KeyAddItemInfo PROTO_LIST ((B_Key *, unsigned char *, unsigned int));
 
-#endif
+#endif /* DNSSAFE_BKEY_H */
+

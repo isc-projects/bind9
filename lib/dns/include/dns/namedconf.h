@@ -31,4 +31,4 @@
 #include <dns/confzone.h>
 #include <dns/peer.h>
 
-#endif
+#endif /* DNS_NAMEDCONF_H */

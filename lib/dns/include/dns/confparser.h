@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#ifndef DNS_CONFPARSER_H
+#define DNS_CONFPARSER_H 1
+
 /*****
  ***** Module Info
  *****/
@@ -108,3 +111,4 @@ isc_result_t dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
  *	ISC_R_FAILURE			file contains errors.
  */
 
+#endif /* DNS_CONFPARSER_H */

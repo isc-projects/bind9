@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AHENCRYP_H_
-#define _AHENCRYP_H_ 1
+#ifndef DNSSAFE_AHENCRYP_H
+#define DNSSAFE_AHENCRYP_H 1
 
 #include "btypechk.h"
 
@@ -82,4 +82,5 @@ void AHEncryptDecryptConstructor PROTO_LIST ((AHEncryptDecrypt *));
      for B_TypeCheck, since this will just re-invoke this virtual
      destructor. */
 
-#endif
+#endif /* DNSSAFE_AHENCRYP_H */
+

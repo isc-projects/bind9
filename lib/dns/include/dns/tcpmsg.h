@@ -16,7 +16,7 @@
  */
 
 #ifndef DNS_TCPMSG_H
-#define DNS_TCPMSG_H
+#define DNS_TCPMSG_H 1
 
 #include <isc/buffer.h>
 #include <isc/int.h>

@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFRESOLV_H
-#define DNS_CONFIG_CONFRESOLV_H 1
+#ifndef DNS_CONFRESOLV_H
+#define DNS_CONFRESOLV_H 1
 
 /*****
  ***** Module Info
@@ -100,4 +100,4 @@ isc_result_t dns_c_resolv_delete(dns_c_resolv_t **cfgres);
  */
 
 
-#endif /* DNS_CONFIG_CONFRESOLV_H */
+#endif /* DNS_CONFRESOLV_H */

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.h,v 1.14 2000/04/28 02:08:35 marka Exp $ */
+#ifndef GENERIC_TKEY_249_H
+#define GENERIC_TKEY_249_H 1
+
+/* $Id: tkey_249.h,v 1.15 2000/04/29 02:01:51 tale Exp $ */
 
 /* draft-ietf-dnsind-tkey-00.txt */
 
@@ -33,3 +36,5 @@ typedef struct dns_rdata_key {
         unsigned char *		other;
 } dns_rdata_tkey_t;
 
+
+#endif /* GENERIC_TKEY_249_H */

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _RSAKEYGN_H_
-#define _RSAKEYGN_H_ 1
+#ifndef DNSSAFE_RSAKEYGN_H
+#define DNSSAFE_RSAKEYGN_H 1
 
 #include "bigmaxes.h"
 
@@ -50,5 +50,6 @@ int A_RSAKeyGen PROTO_LIST
 }
 #endif
 
-#endif
+#endif /* DNSSAFE_RSAKEYGN_H */
+
 

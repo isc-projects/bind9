@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_AMENCDEC_H
+#define DNSSAFE_AMENCDEC_H 1
+
 typedef struct {
   int (*Query) PROTO_LIST ((unsigned int *, POINTER, POINTER));
   int (*Init) PROTO_LIST ((POINTER, POINTER, POINTER, A_SURRENDER_CTX *));
@@ -19,3 +22,4 @@ typedef struct {
   int (*GetBlockLen) PROTO_LIST ((POINTER, unsigned int *));
 } A_ENCRYPT_DECRYPT_ALGA;
 
+#endif /* DNSSAFE_AMENCDEC_H */

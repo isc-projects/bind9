@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: md_3.h,v 1.17 2000/04/28 21:48:44 marka Exp $ */
+#ifndef GENERIC_MD_3_H
+#define GENERIC_MD_3_H 1
+
+/* $Id: md_3.h,v 1.18 2000/04/29 02:01:41 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -25,3 +28,5 @@ typedef struct dns_rdata_md {
 	dns_name_t		md;
 } dns_rdata_md_t;
 
+
+#endif /* GENERIC_MD_3_H */

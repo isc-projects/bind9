@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KINFOTYP_H
+#define DNSSAFE_KINFOTYP_H 1
+
 typedef int (*KIT_ADD_INFO) PROTO_LIST ((B_Key *, POINTER));
 typedef int (*KIT_MAKE_INFO) PROTO_LIST ((POINTER *, B_Key *));
 
@@ -55,3 +58,5 @@ typedef struct B_KeyInfoType {
 } B_KeyInfoType;
 
 int B_KeyInfoTypeMakeError PROTO_LIST ((POINTER *, B_Key *));
+
+#endif /* DNSSAFE_KINFOTYP_H */

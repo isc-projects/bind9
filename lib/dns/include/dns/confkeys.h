@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFKEYS_H
-#define DNS_CONFIG_CONFKEYS_H 1
+#ifndef DNS_CONFKEYS_H
+#define DNS_CONFKEYS_H 1
 
 /*****
  ***** Module Info
@@ -304,4 +304,4 @@ void		dns_c_tkey_print(FILE *fp, int indent, dns_c_tkey_t *tkey);
 
 
 
-#endif /* DNS_CONFIG_CONFKEYS_H */
+#endif /* DNS_CONFKEYS_H */

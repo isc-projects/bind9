@@ -56,6 +56,9 @@
  * [including the GNU Public Licence.]
  */
 
+#ifndef OPENSSL_MD5_LOCL_H
+#define OPENSSL_MD5_LOCL_H 1
+
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/opensslconf.h>
@@ -177,3 +180,5 @@ void dst__openssl_md5_block_data_order (MD5_CTX *c, const void *p,int num);
 	a+=((k)+(t)+I((b),(c),(d))); \
 	a=ROTATE(a,s); \
 	a+=b; };
+
+#endif /* OPENSSL_MD5_LOCL_H */

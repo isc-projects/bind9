@@ -55,6 +55,8 @@
  * copied and put under another distribution licence
  * [including the GNU Public Licence.]
  */
+#ifndef OPENSSL_SHA_LOCL_H
+#define OPENSSL_SHA_LOCL_H 1
 
 #include <stdlib.h>
 #include <string.h>
@@ -473,3 +475,5 @@ void HASH_BLOCK_DATA_ORDER (SHA_CTX *c, const void *p, int num)
 		}
 	}
 #endif
+
+#endif /* OPENSSL_SHA_LOCL_H */

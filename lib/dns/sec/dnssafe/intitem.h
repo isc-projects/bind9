@@ -6,6 +6,10 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_INTITEM_H
+#define DNSSAFE_INTITEM_H 1
+
 int AllocAndCopyIntegerItems PROTO_LIST
   ((POINTER, POINTER, POINTER, ITEM **, unsigned int, B_MemoryPool *));
 
+#endif /* DNSSAFE_INTITEM_H */

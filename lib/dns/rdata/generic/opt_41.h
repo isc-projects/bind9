@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.h,v 1.5 2000/04/28 21:48:53 marka Exp $ */
+#ifndef GENERIC_OPT_41_H
+#define GENERIC_OPT_41_H 1
+
+/* $Id: opt_41.h,v 1.6 2000/04/29 02:01:47 tale Exp $ */
 
 /* RFC 2671 */
 
@@ -43,3 +46,5 @@ isc_result_t dns_rdata_opt_next(dns_rdata_opt_t *);
 isc_result_t dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
 
 ISC_LANG_ENDDECLS
+
+#endif /* GENERIC_OPT_41_H */

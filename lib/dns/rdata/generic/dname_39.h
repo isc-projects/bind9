@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.h,v 1.10 2000/04/26 18:27:56 marka Exp $ */
+#ifndef GENERIC_DNAME_39_H
+#define GENERIC_DNAME_39_H 1
+
+/* $Id: dname_39.h,v 1.11 2000/04/29 02:01:37 tale Exp $ */
 
 /* draft-ietf-dnsind-dname-02.txt */
 
@@ -26,3 +29,5 @@ typedef struct dns_rdata_dname {
 	isc_mem_t		*mctx;
 	dns_name_t		dname;
 } dns_rdata_dname_t;
+
+#endif /* GENERIC_DNAME_39_H */

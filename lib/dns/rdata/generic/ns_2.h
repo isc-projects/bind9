@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: ns_2.h,v 1.16 2000/03/20 22:57:13 gson Exp $ */
+#ifndef GENERIC_NS_2_H
+#define GENERIC_NS_2_H 1
+
+/* $Id: ns_2.h,v 1.17 2000/04/29 02:01:45 tale Exp $ */
 
 #include <dns/fixedname.h>
 
@@ -25,3 +28,5 @@ typedef struct dns_rdata_ns {
 	dns_name_t		name;
 } dns_rdata_ns_t;
 
+
+#endif /* GENERIC_NS_2_H */

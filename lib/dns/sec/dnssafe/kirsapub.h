@@ -6,8 +6,12 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KIRSAPUB_H
+#define DNSSAFE_KIRSAPUB_H 1
+
 extern B_KeyInfoType KIT_RSAPublic;
 
 int KIT_RSAPublicAddInfo PROTO_LIST ((B_Key *, POINTER));
 int KIT_RSAPublicMakeInfo PROTO_LIST ((POINTER *, B_Key *));
 
+#endif /* DNSSAFE_KIRSAPUB_H */

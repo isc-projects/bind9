@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: mg_8.h,v 1.15 2000/04/28 21:48:46 marka Exp $ */
+#ifndef GENERIC_MG_8_H
+#define GENERIC_MG_8_H 1
+
+/* $Id: mg_8.h,v 1.16 2000/04/29 02:01:43 tale Exp $ */
 
 #include <dns/name.h>
 
@@ -24,3 +27,5 @@ typedef struct dns_rdata_mg {
 	isc_mem_t		*mctx;
 	dns_name_t		mg;
 } dns_rdata_mg_t;
+
+#endif /* GENERIC_MG_8_H */

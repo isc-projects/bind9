@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.h,v 1.13 2000/04/28 21:48:52 marka Exp $ */
+#ifndef GENERIC_NXT_30_H
+#define GENERIC_NXT_30_H 1
+
+/* $Id: nxt_30.h,v 1.14 2000/04/29 02:01:46 tale Exp $ */
 
 /* RFC 2065 */
 
@@ -25,3 +28,5 @@ typedef struct dns_rdata_nxt {
 	isc_uint16_t		len;
 	unsigned char		*nxt;
 } dns_rdata_nxt_t;
+
+#endif /* GENERIC_NXT_30_H */

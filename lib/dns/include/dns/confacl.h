@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFACL_H
-#define DNS_CONFIG_CONFACL_H 1
+#ifndef DNS_CONFACL_H
+#define DNS_CONFACL_H 1
 
 /*****
  ***** Module Info
@@ -304,4 +304,4 @@ isc_result_t dns_c_acl_expandacls(dns_c_acltable_t *table,
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_FAILURE		-- some acl(s) couldn't be resolved.
  */
-#endif /* DNS_CONFIG_CONFACL_H */
+#endif /* DNS_CONFACL_H */

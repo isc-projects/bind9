@@ -56,8 +56,8 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef HEADER_CRYPTO_H
-#define HEADER_CRYPTO_H
+#ifndef OPENSSL_CRYPTO_H
+#define OPENSSL_CRYPTO_H 1
 
 #ifdef  __cplusplus
 extern "C" {
@@ -369,5 +369,5 @@ void ERR_load_CRYPTO_strings(void);
 #ifdef  __cplusplus
 }
 #endif
-#endif
+#endif /* OPENSSL_CRYPTO_H */
 

@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AICHENC8_H_
-#define _AICHENC8_H_ 1
+#ifndef DNSSAFE_AICHENC8_H
+#define DNSSAFE_AICHENC8_H 1
 
 #include "aichencr.h"
 
@@ -16,4 +16,5 @@ extern B_AlgorithmInfoTypeVTable AITChooseEncrypt8_V_TABLE;
 int AIT_8AddInfo PROTO_LIST
   ((THIS_ALGORITHM_INFO_TYPE *, B_Algorithm *, POINTER));
 
-#endif
+#endif /* DNSSAFE_AICHENC8_H */
+

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.h,v 1.17 2000/04/28 02:08:33 marka Exp $ */
+#ifndef GENERIC_SIG_24_H
+#define GENERIC_SIG_24_H 1
+
+/* $Id: sig_24.h,v 1.18 2000/04/29 02:01:49 tale Exp $ */
 
 /* RFC 2535 */
 
@@ -34,3 +37,5 @@ typedef struct dns_rdata_sig_t {
 	unsigned char *		signature;
 } dns_rdata_sig_t;
 
+
+#endif /* GENERIC_SIG_24_H */

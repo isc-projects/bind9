@@ -6,8 +6,8 @@
    prohibited.
  */
 
-#ifndef _AINFOTYP_H_
-#define _AINFOTYP_H_ 1
+#ifndef DNSSAFE_AINFOTYP_H
+#define DNSSAFE_AINFOTYP_H 1
 
 /* Use the THIS_ALGORITHM_INFO_TYPE macro to define the type of object in the
      virtual function prototype.  It defaults to the most base class, but
@@ -36,4 +36,5 @@ typedef struct B_AlgorithmInfoType {
 int B_AlgorithmInfoTypeMakeError PROTO_LIST
   ((THIS_ALGORITHM_INFO_TYPE *, POINTER *, B_Algorithm *));
 
-#endif
+#endif /* DNSSAFE_AINFOTYP_H */
+

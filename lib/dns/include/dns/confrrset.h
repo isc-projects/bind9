@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFRRSET_H
-#define DNS_CONFIG_CONFRRSET_H 1
+#ifndef DNS_CONFRRSET_H
+#define DNS_CONFRRSET_H 1
 
 /*****
  ***** Module Info
@@ -131,4 +131,4 @@ void		dns_c_rrso_print(FILE *fp, int indent,
 				 dns_c_rrso_t *rrlist);
 
 
-#endif /* DNS_CONFIG_CONFRRSET_H */
+#endif /* DNS_CONFRRSET_H */

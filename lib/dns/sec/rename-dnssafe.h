@@ -14,6 +14,8 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+#ifndef SEC_RENAME_DNSSAFE_H
+#define SEC_RENAME_DNSSAFE_H 1
 
 #define T_free dst__dnssafe_T_free
 #define T_malloc dst__dnssafe_T_malloc
@@ -247,3 +249,5 @@
 #define KIT_PKCS_RSAPrivate dst__dnssafe_KIT_PKCS_RSAPrivate
 #define KIT_RSA_CRT dst__dnssafe_KIT_RSA_CRT
 #define KIT_RSAPublic dst__dnssafe_KIT_RSAPublic
+
+#endif /* SEC_RENAME_DNSSAFE_H */

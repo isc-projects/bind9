@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_CONFIG_CONFCTX_H
-#define DNS_CONFIG_CONFCTX_H 1
+#ifndef DNS_CONFCTX_H
+#define DNS_CONFCTX_H 1
 
 /*****
  ***** Module Info
@@ -777,5 +777,5 @@ isc_result_t	dns_c_ctx_gettrustedkeys(dns_c_ctx_t *cfg,
 
 
 
-#endif /* DNS_CONFIG_CONFCTX_H */
+#endif /* DNS_CONFCTX_H */
 

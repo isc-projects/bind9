@@ -6,8 +6,12 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_KIPKCRPR_H
+#define DNSSAFE_KIPKCRPR_H 1
+
 extern B_KeyInfoType KIT_PKCS_RSAPrivate;
 
 int KIT_PKCS_RSAPrivateAddInfo PROTO_LIST ((B_Key *, POINTER));
 int KIT_PKCS_RSAPrivateMakeInfo PROTO_LIST ((POINTER *, B_Key *));
 
+#endif /* DNSSAFE_KIPKCRPR_H */

@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.h,v 1.16 2000/04/28 21:48:40 marka Exp $ */
+#ifndef GENERIC_HINFO_13_H
+#define GENERIC_HINFO_13_H 1
+
+/* $Id: hinfo_13.h,v 1.17 2000/04/29 02:01:37 tale Exp $ */
 
 typedef struct dns_rdata_hinfo {
 	dns_rdatacommon_t	common;
@@ -25,3 +28,5 @@ typedef struct dns_rdata_hinfo {
 	isc_int8_t		cpu_len;
 	isc_int8_t		os_len;
 } dns_rdata_hinfo_t;
+
+#endif /* GENERIC_HINFO_13_H */

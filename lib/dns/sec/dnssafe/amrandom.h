@@ -6,6 +6,9 @@
    prohibited.
  */
 
+#ifndef DNSSAFE_AMRANDOM_H
+#define DNSSAFE_AMRANDOM_H 1
+
 typedef struct {
   int (*Query) PROTO_LIST ((unsigned int *, POINTER));
   int (*Init) PROTO_LIST ((POINTER, POINTER, A_SURRENDER_CTX *));
@@ -15,3 +18,4 @@ typedef struct {
     ((POINTER, unsigned char *, unsigned int, A_SURRENDER_CTX *));
 } A_RANDOM_ALGA;
 
+#endif /* DNSSAFE_AMRANDOM_H */
