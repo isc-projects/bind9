@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.170 2001/10/25 04:57:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.171 2001/11/02 01:45:16 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -766,7 +766,11 @@ of a server.</para>
    </varlistentry>
 
    <varlistentry><term><userinput>querylog</userinput></term>
-   <listitem><para>Toggle query logging.</para></listitem></varlistentry>
+   <listitem><para>Toggle query logging. Query logging can also be enabled
+   by explictly directing the <command>queries</command>
+   <command>category</command> to a <command>channel</command> in the
+   <command>logging</command> section of
+   <filename>named.conf</filename>.</para></listitem></varlistentry>
 
    <varlistentry><term><userinput>dumpdb</userinput></term>
    <listitem><para>Dump the server's caches to the dump file. </para></listitem></varlistentry>
@@ -2666,7 +2670,7 @@ the <command>null</command> channel.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>queries</command></para></entry>
-<entry colname = "2"><para>Queries.</para></entry>
+<entry colname = "2"><para>Queries. Using the category <command>queries</command> will enable query logging.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dispatch</command></para></entry>
