@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.26 2001/10/22 04:01:29 marka Exp $ */
+/* $Id: platform.h.in,v 1.27 2001/11/01 22:39:27 gson Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -57,6 +57,12 @@
  * be defined.
  */
 @ISC_PLATFORM_NEEDIN6ADDRANY@
+
+/*
+ * If this system is missing in6addr_loopback, ISC_PLATFORM_NEEDIN6ADDRLOOPBACK
+ * will be defined.
+ */
+@ISC_PLATFORM_NEEDIN6ADDRLOOPBACK@
 
 /*
  * If this system has in6_pktinfo, ISC_PLATFORM_HAVEIN6PKTINFO will be
