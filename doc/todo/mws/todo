@@ -1,8 +1,13 @@
 Inspect dig and nsupdate (with Andreas)
 
-Remove unnecessary delays from system tests	[COMPLETED]
+Serialize dig's transmissions to servers	[COMPLETED, in testing]
 
--- Low priority:
+Clean up option parsing in dig
 
-Serialize dig's transmissions to servers
+Examine dig8's behavior when one of the servers it talks to servfail's
+back, and, if necessary, reproduce behavior in dig9.  (RT351)
+
+Remove or fix port number display in places where it is not correctly
+reported (nslookup, in particular). (RT352)
+
 
