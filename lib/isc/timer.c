@@ -234,18 +234,21 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
-	REQUIRE((type == isc_timertype_inactive &&
-		 expires == NULL && interval == NULL) ||
+	if (expires == NULL)
+		expires = isc_time_epoch;
+	if (interval == NULL)
+		interval = isc_interval_zero;
+	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
 	 * Get current time.
 	 */
-	result = isc_time_get(&now);
+	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_get() failed: %s",
+				 "isc_time_now() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -326,17 +329,20 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE((type == isc_timertype_inactive &&
-		 expires == NULL && interval == NULL) ||
+	if (expires == NULL)
+		expires = isc_time_epoch;
+	if (interval == NULL)
+		interval = isc_interval_zero;
+	REQUIRE(type == isc_timertype_inactive ||
 		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 
 	/*
 	 * Get current time.
 	 */
-	result = isc_time_get(&now);
+	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_get() failed: %s",
+				 "isc_time_now() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -392,10 +398,10 @@ isc_timer_touch(isc_timer_t *timer) {
 	 * don't want to do.
 	 */
 
-	result = isc_time_get(&now);
+	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_get() failed: %s",
+				 "isc_time_now() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -537,7 +543,7 @@ run(void *uap) {
 
 	LOCK(&manager->lock);
 	while (!manager->done) {
-		RUNTIME_CHECK(isc_time_get(&now) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_time_now(&now) == ISC_R_SUCCESS);
 
 		XTRACETIME("running", now);
 

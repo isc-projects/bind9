@@ -130,10 +130,14 @@ isc_timer_create(isc_timermgr_t *manager,
  *	'interval' seconds.  The value of 'expires' is ignored.
  *
  *	For once timers, 'expires' specifies the time when a life timeout
- *	event should be generated.  If 'expires' is 0, then no life
+ *	event should be generated.  If 'expires' is 0 (the epoch), then no life
  *	timeout will be generated.  'interval' specifies how long the timer
  *	can be idle before it generates an idle timeout.  If 0, then no
  *	idle timeout will be generated.
+ *
+ *	If 'expires' is NULL, the epoch will be used.
+ *
+ *	If 'interval' is NULL, the zero interval will be used.
  *
  * Requires:
  *
@@ -143,8 +147,12 @@ isc_timer_create(isc_timermgr_t *manager,
  *
  *	'action' is a valid action
  *
- *	(type == isc_timertype_inactive && expires == NULL && interval == NULL)
- *	|| ('expires' and 'interval' are not both 0)
+ *	'expires' points to a valid time, or is NULL.
+ *
+ *	'interval' points to a valid interval, or is NULL.
+ *
+ *	type == isc_timertype_inactive ||
+ *	('expires' and 'interval' are not both 0)
  *
  *	'timerp' is a valid pointer, and *timerp == NULL
  *
@@ -175,7 +183,13 @@ isc_timer_reset(isc_timer_t *timer,
  * Change the timer's type, expires, and interval values to the given
  * values.  If 'purge' is TRUE, any pending events from this timer
  * are purged from its task's event queue.
- *	
+ *
+ * Notes:
+ *
+ *	If 'expires' is NULL, the epoch will be used.
+ *
+ *	If 'interval' is NULL, the zero interval will be used.
+ *
  * Requires:
  *
  *	'timer' is a valid timer
