@@ -119,8 +119,8 @@ typedef struct isc_socket_connev {
 #define ISC_SOCKEVENT_INTR	(ISC_EVENTCLASS_SOCKET + 261)
 
 typedef enum {
-	isc_socket_udp = 1,
-	isc_socket_tcp = 2
+	isc_sockettype_udp = 1,
+	isc_sockettype_tcp = 2
 } isc_sockettype_t;
 
 /*
