@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.51 2000/09/28 16:39:47 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.52 2000/09/28 21:39:26 mws Exp $ */
 
 #include <config.h>
 
@@ -69,11 +69,13 @@ extern int h_errno;
 #include <lwres/net.h>
 
 #define MAXCMD (4 * 1024)
-#define MAXDATA (4 * 1024)
+#define INITDATA (32*1024)
+#define MAXDATA (64 * 1024)
 #define NAMEBUF 512
 #define WORDLEN 512
-#define PACKETSIZE (16 * 1024)
-#define MSGTEXT (16 * 1024)
+#define PACKETSIZE ((64 * 1024) - 1)
+#define INITTEXT (2 * 1024)
+#define MAXTEXT (128 * 1024)
 #define FIND_TIMEOUT 5
 #define TTL_MAX 2147483647	/* Maximum signed 32 bit integer. */
 
@@ -589,31 +591,42 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
 	dns_name_t *rn;
+	int bufsz = INITDATA;
 
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
 
 	if (*cmdline != 0) {
-		result = isc_lex_create(mctx, WORDLEN, &lex);
-		check_result(result, "isc_lex_create");
-
-		isc_buffer_init(&source, cmdline, strlen(cmdline));
-		isc_buffer_add(&source, strlen(cmdline));
-		result = isc_lex_openbuffer(lex, &source);
-		check_result(result, "isc_lex_openbuffer");
-
-		result = isc_buffer_allocate(mctx, &buf, MAXDATA);
-		check_result(result, "isc_buffer_allocate");
-		dns_rdatacallbacks_init_stdio(&callbacks);
+		dns_rdatacallbacks_init(&callbacks);
 		if (userzone != NULL)
 			rn = userzone;
 		else
 			rn = origin;
-		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype,
-					    lex, rn, ISC_FALSE, buf,
-					    &callbacks);
+		do {
+			result = isc_lex_create(mctx, strlen(cmdline), &lex);
+			check_result(result, "isc_lex_create");
+			isc_buffer_init(&source, cmdline, strlen(cmdline));
+			isc_buffer_add(&source, strlen(cmdline));
+			result = isc_lex_openbuffer(lex, &source);
+			check_result(result, "isc_lex_openbuffer");
+			if (buf != NULL)
+				isc_buffer_free(&buf);
+			if (bufsz > MAXDATA) {
+				fprintf (stderr, "couldn't allocate enough "
+					 "space for the rdata\n");
+				exit (1);
+			}
+			result = isc_buffer_allocate(mctx, &buf, bufsz);
+			check_result(result, "isc_buffer_allocate");
+			result = dns_rdata_fromtext(*rdatap, rdataclass,
+						    rdatatype,
+						    lex, rn, ISC_FALSE, buf,
+						    &callbacks);
+			bufsz *= 2;
+			isc_lex_destroy(&lex);
+		} while (result == ISC_R_NOSPACE);
+		check_result(result, "dns_rdata_fromtext");
 		dns_message_takebuffer(msg, &buf);
-		isc_lex_destroy(&lex);
 		if (result != ISC_R_SUCCESS)
 			return (STATUS_MORE);
 	}
@@ -984,19 +997,33 @@ evaluate_update(char *cmdline) {
 static void
 show_message(dns_message_t *msg) {
 	isc_result_t result;
-	char store[MSGTEXT];
-	isc_buffer_t buf;
+	isc_buffer_t *buf = NULL;
+	int bufsz;
 
 	ddebug("show_message()");
-	isc_buffer_init(&buf, store, MSGTEXT);
-	result = dns_message_totext(msg, 0, &buf);
+	bufsz = INITTEXT;
+	do { 
+		if (bufsz > MAXTEXT) {
+			fprintf (stderr, "couldn't allocate large enough"
+				 "buffer to display message\n");
+			exit(1);
+		}
+		if (buf != NULL)
+			isc_buffer_free(&buf);
+		result = isc_buffer_allocate(mctx, &buf, bufsz);
+		check_result(result, "isc_buffer_allocate");
+		result = dns_message_totext(msg, 0, buf);
+		bufsz *= 2;
+	} while (result == ISC_R_NOSPACE);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Failed to concert message to text format.\n");
+		fprintf(stderr, "Failed to convert message to text format.\n");
+		isc_buffer_free(&buf);
 		return;
 	}
 	printf("Outgoing update query:\n%.*s",
-	       (int)isc_buffer_usedlength(&buf),
-	       (char*)isc_buffer_base(&buf));
+	       (int)isc_buffer_usedlength(buf),
+	       (char*)isc_buffer_base(buf));
+	isc_buffer_free(&buf);
 }
 
 
@@ -1060,9 +1087,7 @@ static void
 update_completed(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
 	isc_result_t result;
-	isc_buffer_t buf;
 	dns_message_t *rcvmsg = NULL;
-	char bufstore[MSGTEXT];
 
 	UNUSED(task);
 
@@ -1080,12 +1105,28 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(reqev->request, rcvmsg, ISC_TRUE);
 	check_result(result, "dns_request_getresponse");
 	if (debugging) {
-		isc_buffer_init(&buf, bufstore, MSGTEXT);
-		result = dns_message_totext(rcvmsg, 0, &buf);
+		isc_buffer_t *buf = NULL;
+		int bufsz;
+
+		bufsz = INITTEXT;
+		do { 
+			if (bufsz > MAXTEXT) {
+				fprintf (stderr, "couldn't allocate large "
+					 "enough buffer to display message\n");
+				exit(1);
+			}
+			if (buf != NULL)
+				isc_buffer_free(&buf);
+			result = isc_buffer_allocate(mctx, &buf, bufsz);
+			check_result(result, "isc_buffer_allocate");
+			result = dns_message_totext(rcvmsg, 0, buf);
+			bufsz *= 2;
+		} while (result == ISC_R_NOSPACE);
 		check_result(result, "dns_message_totext");
 		fprintf(stderr, "\nReply from update query:\n%.*s\n",
-			(int)isc_buffer_usedlength(&buf),
-			(char*)isc_buffer_base(&buf));
+			(int)isc_buffer_usedlength(buf),
+			(char*)isc_buffer_base(buf));
+		isc_buffer_free(&buf);
 	}
 	dns_message_destroy(&rcvmsg);
  done:
@@ -1185,15 +1226,26 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	check_result(result, "dns_request_getresponse");
 	section = DNS_SECTION_ANSWER;
 	if (debugging) {
-		isc_buffer_t buf;
-		char bufstore[MSGTEXT];
-
-		isc_buffer_init(&buf, bufstore, MSGTEXT);
-		result = dns_message_totext(rcvmsg, 0, &buf);
+		isc_buffer_t *buf = NULL;
+		int bufsz;
+		bufsz = INITTEXT;
+		do {
+			if (buf != NULL)
+				isc_buffer_free(&buf);
+			if (bufsz > MAXTEXT) {
+				fprintf (stderr, "couldn't allocate enough "
+					 "space for debugging message\n");
+				exit (1);
+			}
+			result = isc_buffer_allocate(mctx, &buf, bufsz);
+			check_result(result, "isc_buffer_allocate");
+			result = dns_message_totext(rcvmsg, 0, buf);
+		} while (result == ISC_R_NOSPACE);
 		check_result(result, "dns_message_totext");
 		fprintf(stderr, "Reply from SOA query:\n%.*s\n",
-			(int)isc_buffer_usedlength(&buf),
-			(char*)isc_buffer_base(&buf));
+			(int)isc_buffer_usedlength(buf),
+			(char*)isc_buffer_base(buf));
+		isc_buffer_free(&buf);
 	}
 
 	if (rcvmsg->rcode != dns_rcode_noerror &&
