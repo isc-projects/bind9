@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,23 +15,29 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.5 2001/09/04 03:22:18 mayer Exp $ */
+/* $Id: strerror.h,v 1.1 2001/09/04 03:22:23 mayer Exp $ */
 
-#ifndef UNIX_ERRNO2RESULT_H
-#define UNIX_ERRNO2RESULT_H 1
+#ifndef ISC_STRERROR_H
+#define ISC_STRERROR_H
 
-/* XXXDCL this should be moved to lib/isc/include/isc/errno2result.h. */
-
-#include <errno.h>		/* Provides errno. */
+#include <sys/types.h>
 
 #include <isc/lang.h>
-#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc__errno2result(int posixerrno);
+#define ISC_STRERRORSIZE 128
+
+/*
+ * Provide a thread safe wrapper to strerrror().
+ * 'buf' is always returned.
+ *
+ * Requires:
+ * 	'buf' to be non NULL.
+ */
+char *
+isc__strerror(int num, char *buf, size_t bufsize);
 
 ISC_LANG_ENDDECLS
 
-#endif /* UNIX_ERRNO2RESULT_H */
+#endif /* ISC_STRERROR_H */

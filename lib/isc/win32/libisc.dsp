@@ -173,6 +173,10 @@ SOURCE=.\stdtime.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\strerror.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\syslog.c
 # End Source File
 # Begin Source File
@@ -458,6 +462,10 @@ SOURCE=..\include\isc\stdio.h
 # Begin Source File
 
 SOURCE=.\include\isc\stdtime.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\isc\strerror.h
 # End Source File
 # Begin Source File
 

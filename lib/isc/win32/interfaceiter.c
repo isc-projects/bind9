@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.4 2001/07/17 20:29:27 gson Exp $ */
+/* $Id: interfaceiter.c,v 1.5 2001/09/04 03:22:19 mayer Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -35,9 +35,9 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/strerror.h>
 #include <isc/types.h>
 #include <isc/util.h>
-#include "errno2result.h"
 
 /* Common utility functions */
 
@@ -101,6 +101,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
+	char strbuf[ISC_STRERRORSIZE]; 
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 	int error;
@@ -123,8 +124,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "making interface scan socket: %s",
-				 strerror(errno));
+				"making interface scan socket: %s",
+				isc__strerror(errno, strbuf, sizeof(strbuf)));
 		result = ISC_R_UNEXPECTED;
 		goto socket_failure;
 	}
@@ -151,8 +152,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-					     "get interface configuration: %s",
-						 NTstrerror(error));
+						"get interface configuration: %s",
+						isc__strerror(error,strbuf,
+							sizeof(strbuf)));
 				result = ISC_R_UNEXPECTED;
 				goto ioctl_failure;
 			}
