@@ -1,3 +1,6 @@
+1013.	[bug]		It was possible to cancel a query twice when marking
+			a server as bogus or by having a blackhole acl.
+			[RT #1776]
 
 1012.	[bug]		The -p option to named did not behave as documented.
 
