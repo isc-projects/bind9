@@ -7,19 +7,23 @@ CINCLUDES =	-I${srcdir}/../../lib/isc/unix/include \
 		-I${srcdir}/../../lib/isc/pthreads/include \
 		-I${srcdir}/../../lib/isc/include \
 		-I${srcdir}/../../lib/dns/include \
-		-I${srcdir}/../..
+		-I${srcdir}/../.. \
+		-I${srcdir}
 
 CDEFINES =
 CWARNINGS =
 
+
 DEPLIBS =	../../lib/dns/libdns.a \
 		../../lib/isc/libisc.a
+
 LIBS =		${DEPLIBS} \
-		@LIBS@
+		@LIBS@ -ly -ll
 
 TARGETS =	named
 
-OBJS =		server.o udpclient.o tcpclient.o wire_debug.o wire_test.o
+OBJS =		server.o udpclient.o tcpclient.o wire_debug.o wire_test.o \
+		zone.o configctx.o parser.o lexer.o
 
 @BIND9_MAKE_RULES@
 
@@ -31,3 +35,12 @@ named: ${OBJS} ${DEPLIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
+
+parser.c: parser.y
+	${YACC} -d parser.y
+	mv y.tab.c parser.c
+	mv y.tab.h parser_p.h
+
+lexer.c: lexer.l
+	${LEX} lexer.l
+	mv lex.yy.c lexer.c
