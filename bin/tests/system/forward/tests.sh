@@ -13,14 +13,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2000/08/24 22:23:44 bwelling Exp $
+# $Id: tests.sh,v 1.2 2000/11/20 17:53:27 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-#
-# Perform tests
-#
 
 root=10.53.0.1
 hidden=10.53.0.2

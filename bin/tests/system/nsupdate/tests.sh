@@ -15,11 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.12 2000/09/20 00:42:24 gson Exp $
-
-#
-# Perform tests
-#
+# $Id: tests.sh,v 1.13 2000/11/20 17:53:33 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -90,6 +86,10 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || status=1
+
+echo "I:performing RT #482 regression test"
+
+
 
 echo "I:exit status: $status"
 exit $status
