@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.101 2000/11/11 01:07:32 gson Exp $ */
+/* $Id: confctx.c,v 1.102 2000/11/14 20:14:17 gson Exp $ */
 
 #include <config.h>
 
@@ -1875,7 +1875,6 @@ BOOL_FUNCS(hasoldclients, has_old_clients)
 BOOL_FUNCS(authnxdomain, auth_nx_domain)
 BOOL_FUNCS(multiplecnames, multiple_cnames)
 BOOL_FUNCS(useidpool, use_id_pool)
-BOOL_FUNCS(dialup, dialup)
 BOOL_FUNCS(statistics, statistics)
 BOOL_FUNCS(rfc2308type1, rfc2308_type1)
 BOOL_FUNCS(requestixfr, request_ixfr)
@@ -1892,7 +1891,7 @@ SOCKADDR_FUNCS(querysourcev6, query_source_v6)
 BYTYPE_FUNCS(dns_c_forw_t, forward, forward)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)
 BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
-	
+BYTYPE_FUNCS(dns_dialuptype_t, dialup, dialup)
 
 
 
