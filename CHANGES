@@ -1,3 +1,6 @@
+1674.	[port]		linux: increase buffer size used to scan
+			/proc/net/if_inet6.
+
 1673.	[port]		linux: issue a error messages if IPv6 interface
 			scans fails.
 
