@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: rndc.8,v 1.9 2000/11/18 02:57:32 bwelling Exp $
+.\" $Id: rndc.8,v 1.10 2000/11/30 00:18:16 gson Exp $
 
 .Dd Jun 30, 2000
 .Dt RDNC 8
@@ -129,22 +129,14 @@ options provided debugging information and are primarily of interest
 only to the BIND 9 developers.
 They might be changed or removed in future releases.
 .Pp
-The only valid value for
-.Ar command
-is \*qreload\*q, which forces the name server to reload its configuation
-file and zones.
-Further commands will be provided in future releases as the management
-capabilities of
+For the complete set of commands supported by rndc, see the
+BIND 9 Administrator Reference Manual or run
 .Nm rndc
-are extended.
+without arguments to see its help message.
+.Pp
 .Sh LIMITATIONS
 .Nm rndc
-currently only supports the
-.Dv reload
-command.
-Future releases will provide more commands so that
-.Nm rndc
-offers at least as many management capabilities as the old
+does not yet support all the commands of the BIND 8
 .Xr ndc
 utility.
 .Pp
