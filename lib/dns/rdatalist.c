@@ -84,6 +84,9 @@ next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 
 	rdata = rdataset->private2;
+	if (rdata == NULL)
+		return (DNS_R_NOMORE);
+
 	rdataset->private2 = ISC_LIST_NEXT(rdata, link);
 
 	if (rdataset->private2 == NULL)
