@@ -446,21 +446,23 @@ main(int argc, char **argv)
 	/*
 	 * Store this address for this name.
 	 */
+#if 0
 	insert("kechara.flame.org.", "204.152.184.79", 10, now);
 	insert("moghedien.flame.org.", "204.152.184.97", 10, now);
 	insert("mailrelay.flame.org.", "204.152.184.79", 10, now);
 	insert("mailrelay.flame.org.", "204.152.184.97", 5, now);
-	insert("blackhole.flame.org.", "127.0.0.1", 0, now);
+#endif
 
 	/*
 	 * Lock the entire client list here.  This will cause all events
 	 * for found names to block as well.
 	 */
 	CLOCK();
-	lookup("kechara.flame.org.");
-	lookup("moghedien.isc.org.");
-	lookup("nonexistant.flame.org.");
-	lookup("f.root-servers.net.");
+	lookup("kechara.flame.org.");		/* should fetch */
+	lookup("moghedien.flame.org.");		/* should fetch */
+	lookup("mailrelay.flame.org.");		/* should fetch */
+	lookup("nonexistant.flame.org.");	/* should fetch */
+	lookup("f.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();
 
 	dns_adb_dump(adb, stderr);
@@ -470,9 +472,10 @@ main(int argc, char **argv)
 
 	isc_mem_stats(mctx, stdout);
 	dns_adb_dump(adb, stderr);
-	dns_adb_detach(&adb);
 
 	isc_app_run();
+
+	dns_adb_detach(&adb);
 
 	CLOCK();
 	clean_dead_client_list();

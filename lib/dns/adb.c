@@ -52,6 +52,12 @@
 
 #include "../isc/util.h"
 
+#if 1
+#define DP(x)		printf x
+#else
+#define DP(x)
+#endif
+
 #define DNS_ADB_MAGIC		  0x44616462	/* Dadb. */
 #define DNS_ADB_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
 #define DNS_ADBNAME_MAGIC	  0x6164624e	/* adbN. */
@@ -125,9 +131,17 @@ struct dns_adb {
 	isc_mutex_t			entrylocks[DNS_ADBENTRYLIST_LENGTH];
 };
 
+/*
+ * XXX:  This has a pointer to the adb it came from.  It shouldn't need
+ * this, but I can't think of how to get rid of it.  In particular, since
+ * events have but one "arg" value, and that is currently used for the name
+ * pointer in fetches, we need a way to get to the fetch contexts as well
+ * as the adb itself.
+ */
 struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
+	dns_adb_t		       *adb;
 	isc_boolean_t			partial_result;
 	isc_boolean_t			dead;
 	isc_stdtime_t			expire_time;
@@ -217,9 +231,11 @@ static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *,
 						int *);
 static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
 						  isc_sockaddr_t *, int *);
+static void dump_adb(dns_adb_t *, FILE *);
 static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, dns_adbname_t *);
 static void print_handle_list(FILE *, dns_adbname_t *);
+static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void inc_adb_irefcnt(dns_adb_t *, isc_boolean_t);
 static inline void dec_adb_irefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_adb_erefcnt(dns_adb_t *, isc_boolean_t);
@@ -233,11 +249,10 @@ static void clean_namehooks_at_name(dns_adb_t *, dns_adbname_t *);
 static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
 static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
-				   dns_name_t *, dns_name_t *,
-				   dns_adbname_t *, int, isc_stdtime_t);
-static isc_result_t fetch_name(dns_adb_t *, dns_adbhandle_t *,
-			       dns_name_t *, dns_name_t *,
-			       dns_adbname_t *, int, isc_stdtime_t);
+				   dns_name_t *, dns_adbname_t *, int,
+				   isc_stdtime_t);
+static isc_result_t fetch_name(dns_adb_t *, dns_name_t *, dns_adbname_t *,
+			       isc_stdtime_t now);
 static inline void check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
@@ -258,6 +273,8 @@ kill_name(dns_adb_t *adb, dns_adbname_t **n, isc_eventtype_t ev)
 	name = *n;
 	*n = NULL;
 	INSIST(DNS_ADBNAME_VALID(name));
+
+	DP(("killing name %p\n", name));
 
 	/*
 	 * If we're dead already, just check to see if we should go
@@ -354,8 +371,7 @@ shutdown_names(dns_adb_t *adb)
 		while (name != NULL) {
 			next_name = ISC_LIST_NEXT(name, link);
 
-			if (!name->dead)
-				kill_name(adb, &name, DNS_EVENT_ADBSHUTDOWN);
+			kill_name(adb, &name, DNS_EVENT_ADBSHUTDOWN);
 
 			name = next_name;
 		}
@@ -366,6 +382,8 @@ shutdown_names(dns_adb_t *adb)
 
 		UNLOCK(&adb->namelocks[bucket]);
 	}
+
+	dump_adb(adb, stderr);
 }
 
 /*
@@ -378,6 +396,7 @@ cancel_fetches_at_name(dns_adb_t *adb, dns_adbname_t *name)
 
 	fetch = ISC_LIST_HEAD(name->fetches);
 	while (fetch != NULL) {
+		DP(("Canceling fetch %p for name %p\n", fetch, name));
 		dns_resolver_cancelfetch(adb->view->resolver, fetch->fetch);
 		fetch = ISC_LIST_NEXT(fetch, link);
 	}
@@ -443,12 +462,6 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 	while (handle != NULL) {
 		LOCK(&handle->lock);
 
-		ev = &handle->event;
-		task = ev->sender;
-		ev->sender = handle;
-		ev->type = evtype;
-		isc_task_sendanddetach(&task, &ev);
-
 		/*
 		 * Unlink the handle from the name, letting the caller
 		 * call dns_adb_done() on it to clean it up later.
@@ -456,6 +469,12 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 		ISC_LIST_UNLINK(name->handles, handle, link);
 		handle->adbname = NULL;
 		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
+
+		ev = &handle->event;
+		task = ev->sender;
+		ev->sender = handle;
+		ev->type = evtype;
+		isc_task_sendanddetach(&task, &ev);
 
 		UNLOCK(&handle->lock);
 
@@ -588,6 +607,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	}
 
 	name->magic = DNS_ADBNAME_MAGIC;
+	name->adb = adb;
 	name->partial_result = ISC_FALSE;
 	name->dead = ISC_FALSE;
 	name->expire_time = 0;
@@ -614,6 +634,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 	INSIST(ISC_LIST_EMPTY(n->handles));
 	INSIST(!ISC_LINK_LINKED(n, link));
 	INSIST(n->lock_bucket == DNS_ADB_INVALIDBUCKET);
+	INSIST(n->adb == adb);
 
 	n->magic = 0;
 	dns_name_free(&n->name, adb->mctx);
@@ -840,8 +861,9 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 	if (f->entry != NULL)
 		free_adbentry(adb, &f->entry);
 
-	if (dns_rdataset_isassociated(&f->rdataset))
-		dns_rdataset_disassociate(&f->rdataset);
+	if (f->rdataset.methods != NULL)
+		if (dns_rdataset_isassociated(&f->rdataset))
+			dns_rdataset_disassociate(&f->rdataset);
 
 	isc_mempool_put(adb->afmp, f);
 }
@@ -1383,7 +1405,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	handle = new_adbhandle(adb);
 	if (handle == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto out;
+		goto success;
 	}
 
 	/*
@@ -1392,24 +1414,26 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
-			result = ISC_R_SHUTTINGDOWN;
-			goto fail;
+		DP(("lookup:  returning ISC_R_SHUTTINGDOWN\n"));
+		result = ISC_R_SHUTTINGDOWN;
+		goto fail;
 	}
 
 	/*
 	 * Give us a chance to expire this name.
 	 */
-	if (adbname != NULL) {
-		if (adbname->expire_time < now) {
-			printf("Should kill name!\n");
-		}
+	if (adbname != NULL && adbname->expire_time < now) {
+		DP(("lookup:  Lazy expiration of name %p\n", adbname));
+		kill_name(adb, &adbname, DNS_EVENT_ADBEXPIRED);
 	}
 
 	/*
 	 * Still there?
 	 */
-	if (adbname != NULL)
+	if (adbname != NULL) {
+		DP(("lookup:  Found name %p in adb\n", adbname));
 		goto found;  /* goodness, I hate goto's. */
+	}
 
 	/*
 	 * Nothing found.  Allocate a new adbname structure for this name
@@ -1430,19 +1454,19 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * can ever be found it will return DNS_R_NOMEMORY more
 	 * than likely.
 	 */
-	result = construct_name(adb, handle, name, zone, adbname, bucket, now);
+	result = construct_name(adb, handle, zone, adbname, bucket, now);
 	if (result == ISC_R_SUCCESS) {
+		DP(("lookup:  Found name %p in db\n", adbname));
 		link_name(adb, bucket, adbname);
-		if (adbname->partial_result)
-			handle->partial_result = ISC_TRUE;
 		goto found;
 	}
 
 	/*
 	 * Try to start fetches.
 	 */
-	result = fetch_name(adb, handle, name, zone, adbname, bucket, now);
+	result = fetch_name(adb, zone, adbname, now);
 	if (result == ISC_R_SUCCESS) {
+		DP(("lookup:  Started fetch for name %p\n", adbname));
 		link_name(adb, bucket, adbname);
 		goto found;
 	}
@@ -1456,28 +1480,30 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * missing_data bit in the header.
 	 */
  found:
-	if (adbname != NULL) {
-		copy_namehook_list(adb, handle, adbname, zone, now);
-		if (handle->result == ISC_R_NOMEMORY
-		    && ISC_LIST_EMPTY(handle->list)) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
-
-		/*
-		 * Attach to the name's query list if there are queries
-		 * already running.
-		 */
-		if (!ISC_LIST_EMPTY(adbname->fetches) && (task != NULL)) {
-			handle->adbname = adbname;
-			handle->name_bucket = bucket;
-			ISC_LIST_APPEND(adbname->handles, handle, link);
-			attach_to_task = ISC_TRUE;
-		}
-
-		result = ISC_R_SUCCESS;
-		goto out;
+	INSIST(adbname != NULL);  /* should NEVER be null at this point! */
+	copy_namehook_list(adb, handle, adbname, zone, now);
+	if (handle->result == ISC_R_NOMEMORY
+	    && ISC_LIST_EMPTY(handle->list)) {
+		result = ISC_R_NOMEMORY;
+		goto fail;
 	}
+
+	/*
+	 * Attach to the name's query list if there are queries
+	 * already running.
+	 */
+	if (!ISC_LIST_EMPTY(adbname->fetches) && (task != NULL)) {
+		handle->adbname = adbname;
+		handle->name_bucket = bucket;
+		ISC_LIST_APPEND(adbname->handles, handle, link);
+		attach_to_task = ISC_TRUE;
+	}
+
+	if (adbname->partial_result)
+		handle->partial_result = ISC_TRUE;
+
+	result = ISC_R_SUCCESS;
+	goto success;
 
 	/*
 	 * If anything other than success is returned, free the name
@@ -1497,11 +1523,11 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 
 	/*
-	 * "goto out" if the handle will be returned to the caller.  This
+	 * "goto success" if the handle will be returned to the caller.  This
 	 * is a non-fatal return, since it will give the caller a handle
 	 * at the very least.
 	 */
- out:
+ success:
 	if (handle != NULL) {
 		*handlep = handle;
 
@@ -1709,6 +1735,8 @@ dns_adb_done(dns_adbhandle_t **handlep)
 
 	LOCK(&handle->lock);
 
+	DP(("dns_adb_done on handle %p\n", handle));
+
 	adb = handle->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(!ISC_LINK_LINKED(handle, next));
@@ -1759,13 +1787,6 @@ dns_adb_done(dns_adbhandle_t **handlep)
 void
 dns_adb_dump(dns_adb_t *adb, FILE *f)
 {
-	int i;
-	isc_sockaddr_t *sa;
-	dns_adbname_t *name;
-	dns_adbentry_t *entry;
-	char tmp[512];
-	const char *tmpp;
-
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(f != NULL);
 
@@ -1777,6 +1798,19 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 	 */
 
 	LOCK(&adb->lock);
+	dump_adb(adb, f);
+	UNLOCK(&adb->lock);
+}
+
+static void
+dump_adb(dns_adb_t *adb, FILE *f)
+{
+	int i;
+	isc_sockaddr_t *sa;
+	dns_adbname_t *name;
+	dns_adbentry_t *entry;
+	char tmp[512];
+	const char *tmpp;
 
 	fprintf(f, "ADB %p DUMP:\n", adb);
 	fprintf(f, "erefcnt %u, irefcnt %u\n", adb->erefcnt, adb->irefcnt);
@@ -1803,6 +1837,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 			print_dns_name(f, &name->name);
 			fprintf(f, "\n");
 			print_namehook_list(f, name);
+			print_fetch_list(f, name);
 			print_handle_list(f, name);
 			fprintf(f, "\n");
 
@@ -1861,7 +1896,6 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 		UNLOCK(&adb->entrylocks[i]);
 	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
 		UNLOCK(&adb->namelocks[i]);
-	UNLOCK(&adb->lock);
 }
 
 void
@@ -1946,6 +1980,18 @@ print_namehook_list(FILE *f, dns_adbname_t *n)
 }
 
 static void
+print_fetch_list(FILE *f, dns_adbname_t *n)
+{
+	dns_adbfetch_t *fetch;
+
+	fetch = ISC_LIST_HEAD(n->fetches);
+	while (fetch != NULL) {
+		fprintf(f, "\t\tFetch %p\n", fetch);
+		fetch = ISC_LIST_NEXT(fetch, link);
+	}
+}
+
+static void
 print_handle_list(FILE *f, dns_adbname_t *name)
 {
 	dns_adbhandle_t *handle;
@@ -1967,9 +2013,8 @@ print_handle_list(FILE *f, dns_adbname_t *name)
  * perhaps some fetches have been started.
  */
 static isc_result_t
-construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
-	       dns_name_t *zone, dns_adbname_t *adbname, int bucket,
-	       isc_stdtime_t now)
+construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *zone,
+	       dns_adbname_t *adbname, int bucket, isc_stdtime_t now)
 {
 	dns_adbnamehook_t *nh;
 	isc_result_t result;
@@ -1985,7 +2030,6 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(DNS_ADBHANDLE_VALID(handle));
-	INSIST(name != NULL);
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	INSIST(bucket != DNS_ADB_INVALIDBUCKET);
 
@@ -2002,7 +2046,7 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	dns_rdataset_init(&rdataset);
 	adbname->partial_result = ISC_FALSE;
 
-	result = dns_view_find(adb->view, name, dns_rdatatype_a,
+	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a,
 			       now, DNS_DBFIND_GLUEOK, use_hints,
 			       &rdataset, NULL);
 	switch (result) {
@@ -2061,8 +2105,9 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	}
 
  fail:
-	if (dns_rdataset_isassociated(&rdataset))
-		dns_rdataset_disassociate(&rdataset);
+	if (rdataset.methods != NULL)
+		if (dns_rdataset_isassociated(&rdataset))
+			dns_rdataset_disassociate(&rdataset);
 
 	if (nh != NULL)
 		free_adbnamehook(adb, &nh);
@@ -2077,12 +2122,147 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	return (result);
 }
 
+static void
+fetch_callback(isc_task_t *task, isc_event_t *ev)
+{
+	dns_fetchevent_t *dev;
+	dns_adbname_t *name;
+	dns_adb_t *adb;
+	dns_adbfetch_t *fetch;
+	int bucket;
+	isc_eventtype_t ev_status;
+
+	(void)task;
+
+	fprintf(stderr, "Event!\n");
+
+	INSIST(ev->type == DNS_EVENT_FETCHDONE);
+	dev = (dns_fetchevent_t *)ev;
+	name = ev->arg;
+	INSIST(DNS_ADBNAME_VALID(name));
+	adb = name->adb;
+	INSIST(DNS_ADB_VALID(adb));
+
+	fprintf(stderr, "Fetch %p\n", dev->fetch);
+
+	bucket = name->lock_bucket;
+	LOCK(&adb->namelocks[bucket]);
+
+	/*
+	 * Find the fetch.
+	 */
+	fetch = ISC_LIST_HEAD(name->fetches);
+	while (fetch != NULL && fetch->fetch != dev->fetch)
+		fetch = ISC_LIST_NEXT(fetch, link);
+
+	INSIST(fetch != NULL);
+	ISC_LIST_UNLINK(name->fetches, fetch, link);
+	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
+	dev->fetch = NULL;
+
+	/*
+	 * If this name is marked as dead, clean up, throwing away
+	 * potentially good data.
+	 */
+	if (name->dead) {
+		isc_boolean_t decr_adbrefcnt;
+
+		free_adbfetch(adb, &fetch);
+		isc_event_free(&ev);
+
+		kill_name(adb, &name, DNS_EVENT_ADBCANCELED);
+
+		decr_adbrefcnt = ISC_FALSE;
+		if (adb->name_sd[bucket] && (adb->name_refcnt[bucket] == 0))
+			decr_adbrefcnt = ISC_TRUE;
+
+		UNLOCK(&adb->namelocks[bucket]);
+
+		if (decr_adbrefcnt)
+			dec_adb_irefcnt(adb, ISC_TRUE);
+
+		return;
+	}
+
+	/*
+	 * Did we get back junk?  If so, and there are no more fetches
+	 * sitting out there, tell all the handles about it.
+	 */
+	if (dev->result != ISC_R_SUCCESS) {
+		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+		goto out;
+	}
+
+	/*
+	 * We got something potentially useful.  For now, just assume failure
+	 * anyway. XXXMLG
+	 */
+	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+
+ out:
+	free_adbfetch(adb, &fetch);
+	isc_event_free(&ev);
+
+	if (EMPTY(name->fetches))
+		clean_handles_at_name(name, DNS_EVENT_ADBNOMOREADDRESSES);
+
+	UNLOCK(&adb->namelocks[bucket]);
+
+	return;
+
+}
+
 static isc_result_t
-fetch_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
-	   dns_name_t *zone, dns_adbname_t *adbname, int bucket,
+fetch_name(dns_adb_t *adb, dns_name_t *zone, dns_adbname_t *adbname,
 	   isc_stdtime_t now)
 {
-	return (ISC_R_NOMEMORY);
+	isc_result_t result;
+	dns_adbfetch_t *fetch;
+	dns_rdataset_t nameservers;
+	dns_name_t fname;
+	isc_buffer_t buffer;
+	unsigned char ndata[256];
+
+	isc_buffer_init(&buffer, ndata, sizeof(ndata), ISC_BUFFERTYPE_BINARY);
+
+	fetch = NULL;
+	dns_name_init(&fname, NULL);
+	dns_name_setbuffer(&fname, &buffer);
+	dns_rdataset_init(&nameservers);
+
+	result = dns_view_findzonecut(adb->view, &adbname->name, &fname, now,
+				      0, ISC_TRUE, &nameservers, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	fetch = new_adbfetch(adb);
+	if (fetch == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
+					  dns_rdatatype_a, dns_rootname,
+					  &nameservers, NULL, 0,
+					  adb->task, fetch_callback, adbname,
+					  &fetch->rdataset, NULL,
+					  &fetch->fetch);
+	INSIST(result == ISC_R_SUCCESS);  /* XXX temporary */
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ISC_LIST_APPEND(adbname->fetches, fetch, link);
+	fetch = NULL;  /* keep us from cleaning this up below */
+
+ cleanup:
+	if (fetch != NULL)
+		free_adbfetch(adb, &fetch);
+
+	if (nameservers.methods != NULL)
+		if (dns_rdataset_isassociated(&nameservers))
+			dns_rdataset_disassociate(&nameservers);
+
+	return (result);
 }
 
 isc_result_t
