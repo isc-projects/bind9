@@ -1,6 +1,6 @@
-1565.	[bug]		CD flag should be copied to outgoing queries unless the
-			query is under a secure entry point in which case CD should
-			be set.
+1565.	[bug]		CD flag should be copied to outgoing queries unless
+			the query is under a secure entry point in which case
+			CD should be set.
 
 1564.	[func]		Attempt to provide a fallback entropy source to be
 			used if named is running chrooted and named is unable
