@@ -64,6 +64,7 @@ typedef struct dbinfo {
 	dns_dbiterator_t *	dbiterator;
 	dns_dbversion_t *	iversion;
 	int			pause_every;
+	isc_boolean_t		ascending;
 	ISC_LINK(struct dbinfo)	link;
 } dbinfo;
 
@@ -73,6 +74,7 @@ static dns_dbtable_t *		dbtable;
 static ISC_LIST(dbinfo)		dbs;
 static dbinfo *			cache_dbi = NULL;
 static int			pause_every = 0;
+static isc_boolean_t		ascending = ISC_TRUE;
 
 static void
 print_result(char *message, isc_result_t result) {
@@ -158,13 +160,17 @@ select_db(char *origintext) {
 }
 
 static void
-list(dbinfo *dbi) {
+list(dbinfo *dbi, char *seektext) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *rdsiter;
 	isc_result_t result;
 	int i;
+	size_t len;
+	dns_fixedname_t fseekname;
+	dns_name_t *seekname;
+	isc_buffer_t source;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -181,8 +187,27 @@ list(dbinfo *dbi) {
 		
 		result = dns_db_createiterator(dbi->db, ISC_FALSE,
 					       &dbi->dbiterator);
-		if (result == DNS_R_SUCCESS)
-			result = dns_dbiterator_first(dbi->dbiterator);
+		if (result == DNS_R_SUCCESS) {
+			if (seektext != NULL) {
+				len = strlen(seektext);
+				isc_buffer_init(&source, seektext, len,
+						ISC_BUFFERTYPE_TEXT);
+				isc_buffer_add(&source, len);
+				dns_fixedname_init(&fseekname);
+				seekname = dns_fixedname_name(&fseekname);
+				result = dns_name_fromtext(seekname, &source,
+							   dns_rootname,
+							   ISC_FALSE,
+							   NULL);
+				if (result == ISC_R_SUCCESS)
+					result = dns_dbiterator_seek(
+							     dbi->dbiterator,
+							     seekname);
+			} else if (dbi->ascending)
+				result = dns_dbiterator_first(dbi->dbiterator);
+			else
+				result = dns_dbiterator_last(dbi->dbiterator);
+		}
 	} else
 		result = DNS_R_SUCCESS;
 
@@ -202,7 +227,10 @@ list(dbinfo *dbi) {
 		print_rdatasets(name, rdsiter);
 		dns_rdatasetiter_destroy(&rdsiter);
 		dns_db_detachnode(dbi->db, &node);
-		result = dns_dbiterator_next(dbi->dbiterator);
+		if (dbi->ascending)
+			result = dns_dbiterator_next(dbi->dbiterator);
+		else
+			result = dns_dbiterator_prev(dbi->dbiterator);
 		i++;
 		if (result == DNS_R_SUCCESS && i == dbi->pause_every) {
 			printf("[more...]\n");
@@ -244,6 +272,7 @@ load(char *filename, char *origintext, isc_boolean_t cache) {
 	dbi->dbiterator = NULL;
 	dbi->iversion = NULL;
 	dbi->pause_every = pause_every;
+	dbi->ascending = ascending;
 	
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
@@ -618,9 +647,13 @@ main(int argc, char *argv[]) {
 			       ((options & DNS_DBFIND_NOWILD) == 0) ?
 			       "TRUE" : "FALSE");
 			continue;
+		} else if (strstr(s, "!LS ") == s) {
+			DBI_CHECK(dbi);
+			list(dbi, &s[4]);
+			continue;
 		} else if (strcmp(s, "!LS") == 0) {
 			DBI_CHECK(dbi);
-			list(dbi);
+			list(dbi, NULL);
 			continue;
 		} else if (strstr(s, "!DU ") == s) {
 			DBI_CHECK(dbi);
@@ -642,6 +675,14 @@ main(int argc, char *argv[]) {
 			DBI_CHECK(dbi);
 			v = atoi(&s[2]);
 			dbi->pause_every = v;
+			continue;
+		} else if (strcmp(s, "!+") == 0) {
+			DBI_CHECK(dbi);
+			dbi->ascending = ISC_TRUE;
+			continue;
+		} else if (strcmp(s, "!-") == 0) {
+			DBI_CHECK(dbi);
+			dbi->ascending = ISC_FALSE;
 			continue;
 		} else if (strcmp(s, "!DB") == 0) {
 			dbi = NULL;

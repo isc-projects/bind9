@@ -50,6 +50,39 @@ dns_dbiterator_first(dns_dbiterator_t *iterator) {
 }
 
 dns_result_t
+dns_dbiterator_last(dns_dbiterator_t *iterator) {
+	/*
+	 * Move the node cursor to the first node in the database (if any).
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->last(iterator));
+}
+
+dns_result_t
+dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+	/*
+	 * Move the node cursor to the node with name 'name'.
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->seek(iterator, name));
+}
+
+dns_result_t
+dns_dbiterator_prev(dns_dbiterator_t *iterator) {
+	/*
+	 * Move the node cursor to the previous node in the database (if any).
+	 */
+
+	REQUIRE(DNS_DBITERATOR_VALID(iterator));
+
+	return (iterator->methods->prev(iterator));
+}
+
+dns_result_t
 dns_dbiterator_next(dns_dbiterator_t *iterator) {
 	/*
 	 * Move the node cursor to the next node in the database (if any).

@@ -76,6 +76,9 @@ ISC_LANG_BEGINDECLS
 typedef struct dns_dbiteratormethods {
 	void		(*destroy)(dns_dbiterator_t **iteratorp);
 	dns_result_t	(*first)(dns_dbiterator_t *iterator);
+	dns_result_t	(*last)(dns_dbiterator_t *iterator);
+	dns_result_t	(*seek)(dns_dbiterator_t *iterator, dns_name_t *name);
+	dns_result_t	(*prev)(dns_dbiterator_t *iterator);
 	dns_result_t	(*next)(dns_dbiterator_t *iterator);
 	dns_result_t	(*current)(dns_dbiterator_t *iterator,
 				   dns_dbnode_t **nodep, dns_name_t *name);
@@ -132,6 +135,54 @@ dns_dbiterator_first(dns_dbiterator_t *iterator);
  * Returns:
  *	DNS_R_SUCCESS
  *	DNS_R_NOMORE			There are no nodes in the database.
+ *
+ *	Other results are possible, depending on the DB implementation.
+ */
+
+dns_result_t
+dns_dbiterator_last(dns_dbiterator_t *iterator);
+/*
+ * Move the node cursor to the last node in the database (if any).
+ *
+ * Requires:
+ *	'iterator' is a valid iterator.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMORE			There are no nodes in the database.
+ *
+ *	Other results are possible, depending on the DB implementation.
+ */
+
+dns_result_t
+dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
+/*
+ * Move the node cursor to the node with name 'name'.
+ *
+ * Requires:
+ *	'iterator' is a valid iterator.
+ *
+ *	'name' is a valid name.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOTFOUND
+ *
+ *	Other results are possible, depending on the DB implementation.
+ */
+
+dns_result_t
+dns_dbiterator_prev(dns_dbiterator_t *iterator);
+/*
+ * Move the node cursor to the previous node in the database (if any).
+ *
+ * Requires:
+ *	'iterator' is a valid iterator.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMORE			There are no more nodes in the
+ *					database.
  *
  *	Other results are possible, depending on the DB implementation.
  */

@@ -222,6 +222,10 @@ typedef struct rbtdb_rdatasetiter {
 
 static void		dbiterator_destroy(dns_dbiterator_t **iteratorp);
 static dns_result_t	dbiterator_first(dns_dbiterator_t *iterator);
+static dns_result_t	dbiterator_last(dns_dbiterator_t *iterator);
+static dns_result_t	dbiterator_seek(dns_dbiterator_t *iterator,
+					dns_name_t *name);
+static dns_result_t	dbiterator_prev(dns_dbiterator_t *iterator);
 static dns_result_t	dbiterator_next(dns_dbiterator_t *iterator);
 static dns_result_t	dbiterator_current(dns_dbiterator_t *iterator,
 					   dns_dbnode_t **nodep,
@@ -233,6 +237,9 @@ static dns_result_t	dbiterator_origin(dns_dbiterator_t *iterator,
 static dns_dbiteratormethods_t dbiterator_methods = {
 	dbiterator_destroy,
 	dbiterator_first,
+	dbiterator_last,
+	dbiterator_seek,
+	dbiterator_prev,
 	dbiterator_next,
 	dbiterator_current,
 	dbiterator_pause,
@@ -3896,6 +3903,126 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 			rbtdbiter->node = NULL;
 	}
 	rbtdbiter->result = result;
+
+	return (result);
+}
+
+static dns_result_t
+dbiterator_last(dns_dbiterator_t *iterator) {
+	dns_result_t result;
+	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;
+	dns_name_t *name, *origin;
+	
+	if (rbtdbiter->result != DNS_R_SUCCESS &&
+	    rbtdbiter->result != DNS_R_NOMORE)
+		return (rbtdbiter->result);
+
+	unpause(rbtdbiter);
+
+	if (!rbtdbiter->tree_locked) {
+		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+		rbtdbiter->tree_locked = ISC_TRUE;
+	}
+
+	name = dns_fixedname_name(&rbtdbiter->name);
+	origin = dns_fixedname_name(&rbtdbiter->origin);
+	dns_rbtnodechain_reset(&rbtdbiter->chain);
+	result = dns_rbtnodechain_last(&rbtdbiter->chain, rbtdb->tree, name,
+				       origin);
+	if (result != DNS_R_NEWORIGIN) {
+		INSIST(result != DNS_R_SUCCESS);
+		if (result == DNS_R_NOTFOUND) {
+			/*
+			 * The tree is empty.
+			 */
+			result = DNS_R_NOMORE;
+		}
+		rbtdbiter->node = NULL;
+	} else {
+		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
+						  NULL, &rbtdbiter->node);
+		if (result == DNS_R_SUCCESS)
+			rbtdbiter->new_origin = ISC_TRUE;
+		else
+			rbtdbiter->node = NULL;
+	}
+	rbtdbiter->result = result;
+
+	return (result);
+}
+
+static dns_result_t
+dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+	dns_result_t result;
+	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;
+	dns_name_t *iname, *origin;
+	
+	if (rbtdbiter->result != DNS_R_SUCCESS &&
+	    rbtdbiter->result != DNS_R_NOMORE)
+		return (rbtdbiter->result);
+
+	unpause(rbtdbiter);
+
+	if (!rbtdbiter->tree_locked) {
+		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+		rbtdbiter->tree_locked = ISC_TRUE;
+	}
+
+	iname = dns_fixedname_name(&rbtdbiter->name);
+	origin = dns_fixedname_name(&rbtdbiter->origin);
+	dns_rbtnodechain_reset(&rbtdbiter->chain);
+	rbtdbiter->node = NULL;
+	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &rbtdbiter->node,
+				  &rbtdbiter->chain, ISC_TRUE, NULL, NULL);
+	if (result != DNS_R_SUCCESS) {
+		if (result == DNS_R_PARTIALMATCH)
+			result = DNS_R_NOTFOUND;
+		rbtdbiter->node = NULL;
+	} else {
+		result = dns_rbtnodechain_current(&rbtdbiter->chain, iname,
+						  origin, NULL);
+		if (result == DNS_R_SUCCESS)
+			rbtdbiter->new_origin = ISC_TRUE;
+		else
+			rbtdbiter->node = NULL;
+	}
+	rbtdbiter->result = result;
+
+	return (result);
+}
+
+static dns_result_t
+dbiterator_prev(dns_dbiterator_t *iterator) {
+	dns_result_t result;
+	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
+	dns_name_t *name, *origin;
+
+	REQUIRE(rbtdbiter->node != NULL);
+
+	if (rbtdbiter->result != DNS_R_SUCCESS)
+		return (rbtdbiter->result);
+
+	if (rbtdbiter->paused)
+		resume_iteration(rbtdbiter);
+
+	name = dns_fixedname_name(&rbtdbiter->name);
+	origin = dns_fixedname_name(&rbtdbiter->origin);
+	result = dns_rbtnodechain_prev(&rbtdbiter->chain, name, origin);
+	if (result == DNS_R_NEWORIGIN || result == DNS_R_SUCCESS) {
+		if (result == DNS_R_NEWORIGIN)
+			rbtdbiter->new_origin = ISC_TRUE;
+		else
+			rbtdbiter->new_origin = ISC_FALSE;
+		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
+						  NULL, &rbtdbiter->node);
+		if (result != DNS_R_SUCCESS) {
+			rbtdbiter->result = result;
+			rbtdbiter->node = NULL;
+		}
+	} else
+		rbtdbiter->result = result;
 
 	return (result);
 }
