@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.82 2000/08/17 13:13:34 marka Exp $ */
+/* $Id: confctx.c,v 1.83 2000/08/19 00:39:23 gson Exp $ */
 
 #include <config.h>
 
@@ -1068,7 +1068,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 #ifndef	NOMINUM_PUBLIC
 	PRINT_INTEGER(max_names, "max-names");
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 	
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -1610,7 +1610,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 #ifndef NOMINUM_PUBLIC
 	opts->max_names = NULL;
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	opts->expert_mode = NULL;
 	opts->fake_iquery = NULL;
@@ -1784,7 +1784,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(max_names);
 	FREEFIELD(notify_any);
 	FREEFIELD(notify_relay);
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
@@ -1899,7 +1899,7 @@ UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
 #ifndef NOMINUM_PUBLIC
 UINT32_FUNCS(maxnames, max_names)
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(expertmode, expert_mode)
 BOOL_FUNCS(fakeiquery, fake_iquery)
@@ -1911,7 +1911,7 @@ NOTIFYTYPE_FUNCS(notify, notify)
 #ifndef NOMINUM_PUBLIC
 BOOL_FUNCS(notifyany, notify_any)
 BOOL_FUNCS(notifyrelay, notify_relay)
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(hoststatistics, host_statistics)
 BOOL_FUNCS(dealloconexit, dealloc_on_exit)
