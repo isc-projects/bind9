@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196 2004/03/05 05:09:22 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.1 2004/05/05 01:32:37 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3669,10 +3669,13 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 			 * or RRSIG CNAME.
 			 */
 			rdtype = RBTDB_RDATATYPE_BASE(header->type);
-			if (rdtype == dns_rdatatype_rrsig)
+			if (rdtype == dns_rdatatype_rrsig ||
+			    rdtype == dns_rdatatype_sig)
 				rdtype = RBTDB_RDATATYPE_EXT(header->type);
 			if (rdtype != dns_rdatatype_nsec &&
 			    rdtype != dns_rdatatype_dnskey &&
+			    rdtype != dns_rdatatype_nxt &&
+			    rdtype != dns_rdatatype_key &&
 			    rdtype != dns_rdatatype_cname) {
 				/*
 				 * We've found a type that isn't
