@@ -1,46 +1,41 @@
 
-Code Drop 2 Status Update
+Code Drop 3 Status Update
 
-Work since February has focused almost exclusively on the DNS library,
-especially on database implementation and resolver architecture.  The
-DNS library now contains a transactional versioned database.  In zone
-mode, the database supports multiple concurrent readers as well as a
-single in-progress abortable update (e.g. dynamic DNS or IXFR).  In
-cache mode, multiple concurrent readers and writers are supported.  We
-also have added interfaces for iterating the database, DNS
-compression, parsing and writing DNS messages.  Our tree code now has
-support for bitstring labels (required for IPv6).  DNS master file
-loading is more robust than in the first code drop.
+Work since the last code drop has focused on both the libraries and
+the server.  Some of the highlights are:
 
-A significant amount of design and implementation work that we had
-hoped to do later in the project had to be done in the current time
-period.  For example, both DNSSEC and IPv6 introduce DB and resolver
-complexities that are so fundamental that they could not be deferred
-until the time when we are actually implementing DNSSEC and IPv6
-support.  As a result, we have less code implemented than we had
-hoped, but are ahead of plan on parts of the design.
+	Libraries
+		IPv6 sockets.
 
-We are currently finalizing the resolver design, and will start
-implementing it soon.  Also nearing completion, but not included in
-this release, are library data types representing zones, the cache,
-and a standard C structure form for each rdata type.
+		DNSSEC security core, TSIG.
 
+		Shared libraries can now be generated.
 
-Tests
+		Internationalization message catalog support.  (Much of the
+		code has yet to be converted to use catalogs.)
 
-A basic test framework and a set of tests are included in this
-release.  The tests are in
+	Server
+		Most of the temporary code in the server has been replaced
+		with the real thing.  One exception is config file processing,
+		which has not yet been integrated.
 
-	bin/tests/master
-	bin/tests/names
-	bin/tests/rbt
+		Basic AXFR, IXFR, and dynamic update support.
+		
+		The server now listens on IPv6 sockets, if the system
+		supports them.
 
-To run a test, 'cd' into its directory and type 'make test'.
-Result of the tests are appended to
+		The IPv6 reverse lookup scheme (bitstring labels and DNAME)
+		is supported by the server.  A6 chain following remains
+		to be implemented.
 
-	bin/tests/t_journal
+		DNSSEC NXT records are returned in negative responses
+		for secure zones.
 
-We expect the test suite to become richer over time.
+	Resolver
+		The skeleton of the resolver is in the kit.  This
+		shows how the resolver is going to work, but the
+		resolver is not yet functional.  This will be the
+		prime focus of work in the near future.
 
 
 Building
@@ -50,7 +45,8 @@ We've had successful builds and tests on the following systems
 	BSDI 3.1
 	Digital UNIX 4.0D
 	HP-UX 11
-	Red Hat Linux 5.2
+	NetBSD
+	Red Hat Linux 6.0
 	SGI IRIX 6.5
 	Solaris 2.6
 
@@ -59,31 +55,19 @@ To build, just
 	./configure
 	make
 
-Do not run 'make install'.
+Do not run 'make install'.  Shared libraries will be built if "--with-libtool"
+is added to the "configure" command.
 
 Building with gcc is not supported, unless gcc is the vendor's usual
 compiler (e.g. the various BSD systems, Linux).
 
-IRIX note: you must edit lib/isc/Makefile.in changing
-
-		pthreads/condition.o \
-		@ISC_EXTRA_OBJS@
-
-to
-
-		pthreads/condition.o @ISC_EXTRA_OBJS@
-
-before you run ./configure.  Many compiler warnings, etc. are currently
-generated on IRIX.  They will be cleaned up in a future release.
-
 
 bin/named Note
 
-Code in bin/named is for testing purposes only, and is not representative of
-the final architecture.  Currently, it can load multiple zones and also
-a cache, and answer queries for those names.  Because the server cannot
-recurse, and because it does not yet implement the full DNS protocol,
-it runs on port 5544, not port 53.
+The configuration code in bin/named does not represent the final
+architecture.  The config file processing code in lib/dns/config will be
+used by the server in the future.  The server is still running on port
+5544.
 
 
 API Note
