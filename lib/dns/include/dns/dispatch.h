@@ -244,6 +244,18 @@ dns_dispatch_freeevent(dns_dispatch_t *disp, dns_dispatchevent_t **sockevent);
  *	< mumble >
  */
 
+void
+dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
+/*
+ * Attach to a dispatch handle.
+ */
+
+void
+dns_dispatch_detach(dns_dispatch_t **dispp);
+/*
+ * Detach from a dispatch handle.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DISPATCH_H */

@@ -31,6 +31,7 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/dispatch.h>
+#include <dns/message.h>
 
 #include "../isc/util.h"
 
@@ -76,6 +77,184 @@ struct dns_dispatch {
 #define DISPATCH_MAGIC	0x69385829 /* "random" value */
 #define VALID_DISPATCH(e)  ((e) != NULL && (e)->magic == DISPATCH_MAGIC)
 
+/*
+ * statics.
+ */
+static dns_resentry_t *bucket_search(dns_dispatch_t *, isc_sockaddr_t *,
+				     dns_messageid_t, unsigned int);
+static void destroy(dns_dispatch_t *);
+static void udp_recv(isc_task_t *, isc_event_t *);
+static dns_result_t startrecv(dns_dispatch_t *);
+static dns_messageid_t randomid(dns_dispatch_t *);
+static unsigned int hash(dns_dispatch_t *, isc_sockaddr_t *, dns_messageid_t);
+
+/*
+ * Return a hash of the destination and message id.  For now, just return
+ * the message id bits, and mask off the low order bits of that.
+ */
+static unsigned int
+hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
+{
+	unsigned int ret;
+
+	(void)dest;  /* shut up compiler warning. */
+
+	ret = id;
+	ret &= disp->qid_mask;
+
+	return (ret);
+}
+
+/*
+ * Return a random message ID.  For now this isn't too clever...
+ * XXXMLG
+ */
+static dns_messageid_t
+randomid(dns_dispatch_t *disp)
+{
+	disp->qid_state++;
+
+	return ((dns_messageid_t)disp->qid_state);
+}
+
+/*
+ * Called when refcount reaches 0 at any time.
+ */
+static void
+destroy(dns_dispatch_t *disp)
+{
+	disp->magic = 0;
+
+	isc_task_detach(&disp->task);
+	isc_socket_detach(&disp->socket);
+
+	isc_mempool_destroy(&disp->rpool);
+	isc_mempool_destroy(&disp->bpool);
+	isc_mempool_destroy(&disp->epool);
+	isc_mem_put(disp->mctx, disp->qid_table,
+		    disp->qid_hashsize * sizeof(void *));
+
+	isc_mem_put(disp->mctx, disp, sizeof(dns_dispatch_t));
+}
+
+
+static dns_resentry_t *
+bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
+	      unsigned int bucket)
+{
+	dns_resentry_t *res;
+
+	res = ISC_LIST_HEAD(disp->qid_table[bucket]);
+
+	while (res != NULL) {
+		if ((res->id == id) && isc_sockaddr_equal(dest, &res->dest))
+			return (res);
+		res = ISC_LIST_NEXT(res, link);
+	}
+
+	return (NULL);
+}
+
+static void
+udp_recv(isc_task_t *task, isc_event_t *ev_in)
+{
+	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
+	dns_dispatch_t *disp = ev_in->arg;
+	dns_messageid_t id;
+	dns_result_t dres;
+	isc_buffer_t source;
+	unsigned int flags;
+
+	(void)task;  /* shut up compiler */
+
+	LOCK(&disp->lock);
+
+	if (ev->result != ISC_R_SUCCESS) {
+
+		/*
+		 * If the recv() was canceled pass the word on.
+		 * XXXMLG
+		 */
+		if (ev->result == ISC_R_CANCELED) {
+			isc_event_free(&ev_in);
+			return;
+		}
+
+		/*
+		 * otherwise, on strange error, log it and restart.
+		 * XXMLG
+		 */
+		goto restart;
+	}
+
+	/*
+	 * Peek into the buffer to see what we can see.
+	 */
+	isc_buffer_init(&source, ev->region.base, ev->region.length,
+			ISC_BUFFERTYPE_BINARY);
+	dres = dns_message_peekheader(&source, &id, &flags);
+	if (dres != DNS_R_SUCCESS) {
+		/* XXXMLG log something here... */
+		goto restart;
+	}
+
+	/*
+	 * Look at flags.  If query, check to see if we have someone handling
+	 * them.  If response, look to see where it goes.
+	 */
+
+	/*
+	 * restart recv
+	 */
+ restart:
+	dres = startrecv(disp);
+	if (dres != DNS_R_SUCCESS) {
+		/* XXXMLG kill all people listening, try again? */
+	}
+
+	UNLOCK(&disp->lock);
+
+	isc_event_free(&ev_in);
+}
+
+/*
+ * disp must be locked
+ */
+static dns_result_t
+startrecv(dns_dispatch_t *disp)
+{
+	isc_sockettype_t socktype;
+	isc_result_t res;
+	isc_region_t region;
+
+	socktype = isc_socket_gettype(disp->socket);
+
+	switch (socktype) {
+		/*
+		 * UDP reads are always maximal.
+		 */
+	case isc_socket_udp:
+		region.length = disp->buffersize;
+		region.base = isc_mempool_get(disp->bpool);
+		if (region.base == NULL)
+			return (DNS_R_NOMEMORY);
+		res = isc_socket_recv(disp->socket, &region, ISC_TRUE,
+				      disp->task, udp_recv, disp);
+		if (res != ISC_R_SUCCESS)
+			return (res);
+		break;
+	case isc_socket_tcp:
+		INSIST(1); /* XXXMLG */
+		break;
+	}
+
+	return (DNS_R_SUCCESS);
+}
+
+/*
+ * Publics.
+ */
+
 dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
@@ -85,6 +264,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	dns_dispatch_t *disp;
 	unsigned int tablesize;
 	dns_result_t res;
+	isc_sockettype_t socktype;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
@@ -94,6 +274,9 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(maxbuffers > 0);
 	REQUIRE(maxrequests <= maxbuffers);
 	REQUIRE(dispp != NULL && *dispp == NULL);
+
+	socktype = isc_socket_gettype(sock);
+	REQUIRE(socktype == isc_socket_udp || socktype == isc_socket_tcp);
 
 	res = DNS_R_SUCCESS;
 
@@ -137,6 +320,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		res = DNS_R_NOMEMORY;
 		goto out4;
 	}
+	isc_mempool_setfreemax(disp->bpool, maxbuffers);
 
 	if (isc_mempool_create(mctx, sizeof(dns_resentry_t),
 			       &disp->rpool) != ISC_R_SUCCESS) {
@@ -154,6 +338,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_socket_attach(sock, &disp->socket);
 
 	*dispp = disp;
+
 	return (DNS_R_SUCCESS);
 
 	/*
@@ -171,26 +356,6 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_mem_put(mctx, disp, sizeof(dns_dispatch_t));
 
 	return (res);
-}
-
-/*
- * Called when refcount reaches 0 at any time.
- */
-static void
-destroy(dns_dispatch_t *disp)
-{
-	disp->magic = 0;
-
-	isc_task_detach(&disp->task);
-	isc_socket_detach(&disp->socket);
-
-	isc_mempool_destroy(&disp->rpool);
-	isc_mempool_destroy(&disp->bpool);
-	isc_mempool_destroy(&disp->epool);
-	isc_mem_put(disp->mctx, disp->qid_table,
-		    disp->qid_hashsize * sizeof(void *));
-
-	isc_mem_put(disp->mctx, disp, sizeof(dns_dispatch_t));
 }
 
 void
@@ -247,7 +412,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	bucket = hash(disp, dest, id);
 	ok = ISC_FALSE;
 	for (i = 0 ; i < 64 ; i++) {
-		if (bucket_search(disp, dest, id, bucket) == 0) {
+		if (bucket_search(disp, dest, id, bucket) == NULL) {
 			ok = ISC_TRUE;
 			break;
 		}
