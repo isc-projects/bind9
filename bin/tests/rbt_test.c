@@ -105,31 +105,30 @@ print_name(dns_name_t *name) {
 
 static void
 iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
-	dns_name_t *foundname, *origin;
+	dns_name_t foundname, *origin;
 	dns_rbtnodechain_t chain;
-	dns_fixedname_t fixedfoundname, fixedorigin;
+	dns_fixedname_t fixedorigin;
 	dns_result_t result;
 	dns_result_t (*move)(dns_rbtnodechain_t *chain, dns_name_t *name,
 			     dns_name_t *origin);
 
 	dns_rbtnodechain_init(&chain, mctx);
 
-	dns_fixedname_init(&fixedfoundname);
+	dns_name_init(&foundname, NULL);
 	dns_fixedname_init(&fixedorigin);
-	foundname = dns_fixedname_name(&fixedfoundname);
-	origin    = dns_fixedname_name(&fixedorigin);
+	origin = dns_fixedname_name(&fixedorigin);
 
 	if (forward) {
 		printf("iterating forward\n" );
 		move = dns_rbtnodechain_next;
 		
-		result = dns_rbtnodechain_first(&chain, rbt, foundname, origin);
+		result = dns_rbtnodechain_first(&chain, rbt, &foundname, origin);
 
 	} else {
 		printf("iterating backward\n" );
 		move = dns_rbtnodechain_prev;
 
-		result = dns_rbtnodechain_last(&chain, rbt, foundname, origin);
+		result = dns_rbtnodechain_last(&chain, rbt, &foundname, origin);
 
 	}
 
@@ -146,7 +145,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 
 			if (result == DNS_R_SUCCESS ||
 			    result == DNS_R_NEWORIGIN) {
-				print_name(foundname);
+				print_name(&foundname);
 				printf("\n");
 
 			} else {
@@ -156,7 +155,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 				break;
 			}
 
-			result = move(&chain, foundname, origin);
+			result = move(&chain, &foundname, origin);
 		}
 	}
 }
