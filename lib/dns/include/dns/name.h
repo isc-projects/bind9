@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.92 2001/03/27 22:57:47 bwelling Exp $ */
+/* $Id: name.h,v 1.93 2001/03/27 23:43:10 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -919,7 +919,8 @@ dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
 			isc_buffer_t *target);
 /*
  * Convert 'name' into an alternate text format appropriate for filenames,
- * storing the result in 'target'.
+ * storing the result in 'target'.  The name data is downcased, guaranteeing
+ * that the filename does not depend on the case of the converted name.
  *
  * Notes:
  *	If 'omit_final_dot' is true, then the final '.' in absolute

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.122 2001/03/27 22:57:45 bwelling Exp $ */
+/* $Id: name.c,v 1.123 2001/03/27 23:43:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1926,6 +1926,9 @@ dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				{
 					if (trem == 0)
 						return (ISC_R_NOSPACE);
+					/* downcase */
+					if (c >= 0x41 && c <= 0x5A)
+						c += 0x20;
 					CONVERTFROMASCII(c);
 					*tdata++ = c;
 					ndata++;

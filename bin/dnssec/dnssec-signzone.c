@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.132 2001/03/27 22:57:43 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.133 2001/03/27 23:43:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -505,7 +505,6 @@ static void
 opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
        dns_db_t **dbp)
 {
-	dns_fixedname_t fname;
 	char filename[256];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -517,10 +516,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 			isc_buffer_putstr(&b, "/");
 	}
 	isc_buffer_putstr(&b, prefix);
-	dns_fixedname_init(&fname);
-	(void)dns_name_downcase(name, dns_fixedname_name(&fname), NULL);
-	result = dns_name_tofilenametext(dns_fixedname_name(&fname),
-					 ISC_FALSE, &b);
+	result = dns_name_tofilenametext(name, ISC_FALSE, &b);
 	check_result(result, "dns_name_tofilenametext()");
 	if (isc_buffer_availablelength(&b) == 0) {
 		char namestr[DNS_NAME_FORMATSIZE];
