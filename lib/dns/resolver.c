@@ -16,6 +16,7 @@
 #include <dns/message.h>
 #include <dns/dispatch.h>
 #include <dns/resolver.h>
+#include <dns/rdataset.h>
 
 #include "../isc/util.h"		/* XXX */
 
@@ -26,19 +27,34 @@
 #define FCTXTRACE(m)	printf("fctx %p: %s\n", fctx, (m))
 #define FTRACE(m)	printf("fetch %p (res %p fctx %p): %s\n", \
 			       fetch, fetch->res, fetch->private, (m))
+#define QTRACE(m)	printf("query %p (res %p fctx %p): %s\n", \
+			       query, query->fctx->res, query->fctx, (m))
 #else
 #define RTRACE(m)
 #define RRTRACE(r, m)
 #define FCTXTRACE(m)
 #define FTRACE(m)
+#define QTRACE(m)
 #endif
 
+typedef struct fetchctx fetchctx_t;
+
 typedef struct query {
+	/* Not locked. */
+	unsigned int			magic;
+	fetchctx_t *			fctx;
+	dns_dispatch_t *		dispatch;
+	/* Locked by fctx lock. */
 	dns_messageid_t			id;
+	dns_dispentry_t *		dispentry;	/* XXX name */
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
 	unsigned char			data[512];
 } resquery_t;
+
+#define QUERY_MAGIC			0x51212121U	/* Q!!! */
+#define VALID_QUERY(query)		((query) != NULL && \
+					 (query)->magic == QUERY_MAGIC)
 
 typedef enum {
 	fetchstate_init = 0,
@@ -47,7 +63,8 @@ typedef enum {
 	fetchstate_done
 } fetchstate;
 
-typedef struct fetchctx {
+struct fetchctx {
+	/* Not locked. */
 	unsigned int			magic;
 	fetchstate			state;
 	dns_resolver_t *		res;
@@ -56,18 +73,22 @@ typedef struct fetchctx {
 	dns_name_t			name;
 	dns_rdatatype_t			type;		/* multiple types??? */
 	unsigned int			options;
+	isc_task_t *			task;
 	/* Locked by lock. */
+	dns_name_t			domain;
+	dns_rdataset_t			nameservers;
 	isc_timer_t *			timer;
 	isc_time_t			expires;
 	isc_interval_t			interval;
 	ISC_LIST(dns_fetchdoneevent_t)	events;
 	isc_event_t			start_event;
-	dns_dispatch_t *		dispatcher;
 	dns_message_t *			qmessage;
 	dns_message_t *			rmessage;
 	ISC_LIST(resquery_t)		queries;
+	ISC_LIST(isc_sockaddr_t)	addresses;
+	isc_sockaddr_t *	        address;
 	ISC_LINK(struct fetchctx)	link;
-} fetchctx_t;
+};
 
 #define FCTX_MAGIC			0x46212121U	/* F!!! */
 #define VALID_FCTX(fctx)		((fctx) != NULL && \
@@ -83,7 +104,7 @@ struct dns_resolver {
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
-	dns_dispatch_t *		shared_dispatcher;
+	dns_dispatch_t *		dispatch;
 	unsigned int			ntasks;
 	unsigned int			next_task;
 	isc_task_t **			tasks;
@@ -96,6 +117,7 @@ struct dns_resolver {
 
 
 static void destroy(dns_resolver_t *res);
+static void query_response(isc_task_t *task, isc_event_t *event);
 
 /*
  * Internal fetch routines.  Caller must be holding the proper lock.
@@ -149,8 +171,6 @@ fctx_done(fetchctx_t *fctx, dns_result_t result) {
 
 	FCTXTRACE("done");
 
-	REQUIRE(fctx->state == fetchstate_active);
-
 	fctx_stoptimer(fctx);
 
 	fctx->state = fetchstate_done;
@@ -174,29 +194,79 @@ fctx_done(fetchctx_t *fctx, dns_result_t result) {
 	ISC_LIST_INIT(fctx->events);
 }
 
+static void
+query_senddone(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	resquery_t *query = event->arg;
+
+	REQUIRE(event->type == ISC_SOCKEVENT_SENDDONE);
+
+	(void)task;
+
+	QTRACE("senddone");
+	printf("query %p: sendto returned %s\n", query,
+	       isc_result_totext(sevent->result));
+
+	isc_event_free(&event);
+}
+
 static dns_result_t
 fctx_sendquery(fetchctx_t *fctx) {
 	resquery_t *query;
 	dns_result_t result;
 	dns_rdataset_t qrdataset;
+	isc_sockaddr_t *address = NULL;
+	isc_sockaddr_t foo;
+	isc_region_t r;
+	struct in_addr ina;
 
 	FCTXTRACE("sendquery");
+
+	RUNTIME_CHECK(inet_aton("127.0.0.1", &ina) != 0);
+	isc_sockaddr_fromin(&foo, &ina, 53);
+	address = &foo;
 
 	result = fctx_starttimer(fctx);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	dns_message_reset(fctx->rmessage);
+	dns_message_reset(fctx->rmessage, DNS_MESSAGE_INTENTPARSE);
 
 	query = isc_mem_get(fctx->res->mctx, sizeof *query);
 	if (query == NULL)
 		return (DNS_R_NOMEMORY);
 	isc_buffer_init(&query->buffer, query->data, sizeof query->data,
 			ISC_BUFFERTYPE_BINARY);
-
+	
 	/*
-	 * XXXRTH get query id from dispatcher...
+	 * If this is a TCP query, then we need to make a socket and
+	 * a dispatch for it here.  Otherwise we use the resolver's
+	 * shared dispatch.  We do not attach to the resolver's shared
+	 * dispatch if we use it, so the resolver MUST ensure that no
+	 * fetches are running before chaning the shared dispatch.
 	 */
+	if ((fctx->options & DNS_FETCHOPT_TCP) != 0) {
+		/* XXXRTH */
+		result = DNS_R_NOTIMPLEMENTED;
+		goto cleanup_query;
+	} else
+		query->dispatch = fctx->res->dispatch;
+	
+	/*
+	 * Get a query id from the dispatch.
+	 */
+	query->dispentry = NULL;
+	result = dns_dispatch_addresponse(query->dispatch,
+					  address,
+					  fctx->task,
+					  query_response,
+					  query,
+					  &query->id,
+					  &query->dispentry);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup_query;
+	query->fctx = fctx;
+	query->magic = QUERY_MAGIC;
 
 	fctx->qmessage->opcode = dns_opcode_query;
 
@@ -213,52 +283,100 @@ fctx_sendquery(fetchctx_t *fctx) {
 	/*
 	 * We don't have to set opcode because it defaults to query.
 	 */
-
+	fctx->qmessage->id = query->id;
 	/*
 	 * XXXRTH  Add TSIG and/or ENDS0 OPT record tailored to the current
 	 *         recipient.
 	 */
 
+	/*
+	 * Convert the question to wire format.
+	 */
 	result = dns_message_renderbegin(fctx->qmessage, &query->buffer);
 	if (result != DNS_R_SUCCESS)
-		goto done;
+		goto cleanup_message;
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_QUESTION, 0, 0);
 	if (result != DNS_R_SUCCESS)
-		goto done;
+		goto cleanup_message;
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_ADDITIONAL, 0, 0);
 	if (result != DNS_R_SUCCESS)
-		goto done;
+		goto cleanup_message;
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_TSIG, 0, 0);
 	if (result != DNS_R_SUCCESS)
-		goto done;
+		goto cleanup_message;
 	result = dns_message_renderend(fctx->qmessage);
 	if (result != DNS_R_SUCCESS)
-		goto done;
+		goto cleanup_message;
 
-	/* XXXRTH do the rest of the work... */
+	/*
+	 * We're now done with the query message.
+	 *
+	 * It's imperative that we reset the message before we return,
+	 * because the rdataset used for the question is on our stack,
+	 * and won't be valid after we return.
+	 */
+	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
+
+	/*
+	 * Send the query!
+	 */
+	isc_buffer_used(&query->buffer, &r);
+	result = isc_socket_sendto(dns_dispatch_getsocket(query->dispatch),
+				   &r, fctx->task, query_senddone,
+				   query, address);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_message;
 
 	/*
 	 * Finally, we've got everything going!
 	 */
 	ISC_LIST_APPEND(fctx->queries, query, link);
 
-	result = DNS_R_SUCCESS;
+	QTRACE("sent");
 
- done:
+	return (DNS_R_SUCCESS);
+
+ cleanup_message:
 	/*
 	 * It's imperative that we reset the message here, because
 	 * the rdataset used for the question is on our stack, and won't
 	 * be valid after we return.
 	 */
-	dns_message_reset(fctx->qmessage);
+	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
-	if (result != DNS_R_SUCCESS)
-		isc_mem_put(fctx->res->mctx, query, sizeof *query);
+	/*
+	 * Stop the dispatch from listening.
+	 */
+	dns_dispatch_removeresponse(query->dispatch,
+				    &query->dispentry,
+				    NULL);
+
+	/* 
+	 * XXXRTH will need to cleanup a nonshared dispatch and TCP socket
+	 * here.
+	 */
+
+ cleanup_query:
+	query->magic = 0;
+	isc_mem_put(fctx->res->mctx, query, sizeof *query);
 
 	return (result);
+}
+
+static inline void
+fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp) {
+	fetchctx_t *fctx = query->fctx;
+
+	FCTXTRACE("cancelquery");
+
+	dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
+				    deventp);
+	ISC_LIST_UNLINK(fctx->queries, query, link);
+	query->magic = 0;
+	isc_mem_put(fctx->res->mctx, query, sizeof *query);
 }
 
 static void
@@ -271,10 +389,17 @@ fctx_cancelqueries(fetchctx_t *fctx) {
 	     query != NULL;
 	     query = next_query) {
 		next_query = ISC_LIST_NEXT(query, link);
-		/* XXXRTH do the rest of the work... */
-		isc_mem_put(fctx->res->mctx, query, sizeof *query);
+		fctx_cancelquery(query, NULL);
 	}
-	ISC_LIST_INIT(fctx->queries);
+}
+
+static void
+fctx_getaddresses(fetchctx_t *fctx) {
+
+	FCTXTRACE("getaddresses");
+
+	ISC_LIST_INIT(fctx->addresses);
+	fctx->address = NULL;
 }
 
 static void
@@ -289,11 +414,23 @@ fctx_try(fetchctx_t *fctx) {
 
 	FCTXTRACE("try");
 
+	if (fctx->address != NULL)
+		fctx->address = ISC_LIST_NEXT(fctx->address, link);
+
+	if (fctx->address == NULL) {
+		fctx_getaddresses(fctx);
+		fctx->address = ISC_LIST_HEAD(fctx->addresses);
+	}
+
+	if (fctx->address == NULL) {
+		/* XXXRTH No addresses are available... */
+		INSIST(0);
+	}
+
 	/*
-	 * XXXRTH  Consult our try strategy routine here, figure out who to
-	 *         send a query (or queries) to next, and then do it.  If
-	 *	   we've exhaused all our servers for this set of tries,
-	 *	   start again by finding more addresses.
+	 * XXXRTH  This is the place where a try strategy routine would
+	 *         be called to send one or more queries.  Instead, we
+	 *	   just send a single query.
 	 */
 
 	result = fctx_sendquery(fctx);
@@ -313,6 +450,10 @@ fctx_destroy(fetchctx_t *fctx) {
 	isc_timer_detach(&fctx->timer);
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
+	if (dns_name_countlabels(&fctx->domain) > 0) {
+		dns_rdataset_disassociate(&fctx->nameservers);
+		dns_name_free(&fctx->domain, fctx->res->mctx);
+	}
 	dns_name_free(&fctx->name, fctx->res->mctx);
 	isc_mem_put(fctx->res->mctx, fctx, sizeof *fctx);
 }
@@ -332,7 +473,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("timeout");
 
 	LOCK(&fctx->res->lock);
-	INSIST(fctx->state == fetchstate_active);
+	REQUIRE(fctx->state == fetchstate_active);
 
 	if (event->type == ISC_TIMEREVENT_LIFE) {
 		fctx_cancelqueries(fctx);
@@ -372,7 +513,13 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		fctx->state = fetchstate_active;
 		fctx_try(fctx);
 	} else {
-		fctx->state = fetchstate_done;
+		/*
+		 * The events list should be empty, so we INSIST on it.
+		 * Since the event list is empty, the result code we pass
+		 * to fctx_done doesn't matter.
+		 */
+		INSIST(ISC_LIST_EMPTY(fctx->events));
+		fctx_done(fctx, ISC_R_SUCCESS);
 		need_fctx_destroy = ISC_TRUE;
 		if (res->exiting && ISC_LIST_EMPTY(res->fctxs))
 			need_resolver_destroy = ISC_TRUE;
@@ -431,6 +578,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 
 static dns_result_t
 fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
+	    dns_name_t *domain, dns_rdataset_t *nameservers,
 	    unsigned int options,
 	    isc_task_t *worker, isc_task_t *task, isc_taskaction_t action,
 	    void *arg, dns_fetch_t *fetch)
@@ -449,24 +597,41 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_name_dup(name, res->mctx, &fctx->name);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_fetch;
+	dns_name_init(&fctx->domain, NULL);
+	dns_rdataset_init(&fctx->nameservers);
+	if (domain != NULL) {
+		result = dns_name_dup(domain, res->mctx, &fctx->domain);
+		if (result != DNS_R_SUCCESS)
+			goto cleanup_name;
+		dns_rdataset_clone(nameservers, &fctx->nameservers);
+	}
 	fctx->type = type;
 	fctx->options = options;
+	/*
+	 * Note!  We do not attach to the task.  We are relying on the
+	 * resolver to ensure that this task doesn't go away while we are
+	 * using it.
+	 */
+	fctx->task = task;
 	fctx->res = res;
 	fctx->references = 0;
 	fctx->locknum = 0;
 	fctx->state = fetchstate_init;
-	fctx->dispatcher = NULL;		/* XXX */
 	ISC_LIST_INIT(fctx->queries);
+	ISC_LIST_INIT(fctx->addresses);
+	fctx->address = NULL;
 
 	fctx->qmessage = NULL;
-	result = dns_message_create(res->mctx, &fctx->qmessage,
-				    DNS_MESSAGE_INTENTRENDER);
+	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
+				    &fctx->qmessage);
+				    
 	if (result != DNS_R_SUCCESS)
-		goto cleanup_name;
+		goto cleanup_domain;
 
 	fctx->rmessage = NULL;
-	result = dns_message_create(res->mctx, &fctx->rmessage,
-				    DNS_MESSAGE_INTENTPARSE);
+	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTPARSE,
+				    &fctx->rmessage);
+				    
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_qmessage;
 
@@ -545,6 +710,12 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
  cleanup_qmessage:
 	dns_message_destroy(&fctx->qmessage);
 
+ cleanup_domain:
+	if (dns_name_countlabels(&fctx->domain) > 0) {
+		dns_rdataset_disassociate(&fctx->nameservers);
+		dns_name_free(&fctx->domain, res->mctx);
+	}
+
  cleanup_name:
 	dns_name_free(&fctx->name, res->mctx);
 
@@ -569,7 +740,6 @@ fctx_cancel(fetchctx_t *fctx) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_timer_reset(): %s",
 					 isc_result_totext(iresult));
-
 		fctx_done(fctx, DNS_R_CANCELED);
 	}
 }
@@ -613,17 +783,21 @@ same_question(fetchctx_t *fctx) {
 }
 
 static void
-fctx_response(isc_task_t *task, isc_event_t *event) {
+query_response(isc_task_t *task, isc_event_t *event) {
 	dns_result_t result;
-	fetchctx_t *fctx = event->arg;
+	resquery_t *query = event->arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_boolean_t bad_sender = ISC_FALSE;
 	dns_message_t *message;
+	fetchctx_t *fctx;
 
+	REQUIRE(VALID_QUERY(query));
+	fctx = query->fctx;
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(event->type == DNS_EVENT_DISPATCH);
 
 	(void)task;
+	QTRACE("response");
 
 	LOCK(&fctx->res->lock);
 	INSIST(fctx->state == fetchstate_active);
@@ -685,6 +859,9 @@ fctx_response(isc_task_t *task, isc_event_t *event) {
 		goto done;
 	}
 
+	fctx_stoptimer(fctx);
+	fctx_cancelquery(query, &devent);
+
 	result = DNS_R_SUCCESS;
 
  done:
@@ -697,6 +874,8 @@ fctx_response(isc_task_t *task, isc_event_t *event) {
 		 *         of doing the printf().
 		 */
 		printf("bad sender\n");
+		dns_dispatch_freeevent(query->dispatch, query->dispentry,
+				       &devent);
 		/*
 		 * Keep trying.
 		 */
@@ -710,8 +889,6 @@ fctx_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	UNLOCK(&fctx->res->lock);
-
-	isc_event_free(&event);
 }
 
 
@@ -745,7 +922,7 @@ dns_resolver_create(isc_mem_t *mctx,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
 		    isc_timermgr_t *timermgr,
 		    dns_rdataclass_t rdclass,
-		    dns_dispatch_t *dispatcher,
+		    dns_dispatch_t *dispatch,
 		    dns_resolver_t **resp)
 {
 	dns_resolver_t *res;
@@ -765,7 +942,7 @@ dns_resolver_create(isc_mem_t *mctx,
 	res->timermgr = timermgr;
 	res->ntasks = ntasks;
 	res->next_task = 0;
-	res->shared_dispatcher = dispatcher;		/* XXXRTH: attach! */
+	res->dispatch = dispatch;		/* XXXRTH: attach! */
 	res->tasks = isc_mem_get(mctx, ntasks * sizeof (isc_task_t *));
 	if (res->tasks == NULL) {
 		result = DNS_R_NOMEMORY;
@@ -877,7 +1054,7 @@ fctx_match(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 dns_result_t
 dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdatatype_t type,
-			 dns_delegation_t *delegation,
+			 dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
 			 unsigned int options, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
@@ -888,7 +1065,6 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	dns_result_t result;
 	isc_task_t *worker;
 
-	(void)delegation;
 	(void)forwarders;
 
 	REQUIRE(VALID_RESOLVER(res));
@@ -932,7 +1108,8 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 
 	if (fctx == NULL || fctx->state == fetchstate_done) {
 		result = fctx_create(res,
-				     name, type, options,
+				     name, type, domain, nameservers,
+				     options,
 				     worker,
 				     task, action, arg,
 				     fetch);

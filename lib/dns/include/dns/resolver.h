@@ -90,7 +90,7 @@ dns_resolver_detach(dns_resolver_t **resp);
 dns_result_t
 dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdatatype_t type,
-			 dns_delegation_t *delegation,
+			 dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
 			 unsigned int options, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,

@@ -34,6 +34,7 @@
 #include <isc/mutex.h>
 #include <isc/boolean.h>
 #include <isc/net.h>
+#include <isc/socket.h>
 
 #include "../../isc/util.h"		/* XXX Naughty. */
 
@@ -43,6 +44,7 @@
 #include <dns/fixedname.h>
 #include <dns/resolver.h>
 #include <dns/events.h>
+#include <dns/dispatch.h>
 
 isc_mutex_t lock;
 
@@ -118,7 +120,7 @@ launch(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
 	fetch = NULL;
 	RUNTIME_CHECK(dns_resolver_createfetch(res, name, type, NULL, NULL,
-					       options, task, done,
+					       NULL, options, task, done,
 					       NULL,
 					       &fetch) ==
 		      DNS_R_SUCCESS);
@@ -140,6 +142,9 @@ main(int argc, char *argv[]) {
 	dns_resolver_t *res;
 	int ch;
 	dns_fetch_t *fetch;
+	dns_dispatch_t *dispatch;
+	isc_socket_t *s;
+	isc_socketmgr_t *socketmgr;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
@@ -176,6 +181,8 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
+	socketmgr = NULL;
+	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	argc -= optind;
 	argv += optind;
@@ -183,9 +190,17 @@ main(int argc, char *argv[]) {
 	if (argc != 0)
 		printf("ignoring trailing arguments\n");
 
+	s = NULL;
+	RUNTIME_CHECK(isc_socket_create(socketmgr, PF_INET,
+					isc_sockettype_udp, &s) ==
+		      ISC_R_SUCCESS);
+	dispatch = NULL;
+	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000, 4,
+					  &dispatch) == DNS_R_SUCCESS);
+
 	res = NULL;
 	RUNTIME_CHECK(dns_resolver_create(mctx, taskmgr, 10, timermgr,
-					  dns_rdataclass_in, NULL, &res) ==
+					  dns_rdataclass_in, dispatch, &res) ==
 		      DNS_R_SUCCESS);
 
 	ISC_LIST_INIT(fetches);
@@ -205,7 +220,14 @@ main(int argc, char *argv[]) {
 
 	(void)isc_app_run();
 
+	/*
+	 * XXXRTH if we get a control-C before we get to isc_app_run(),
+	 * we're in trouble (because we might try to destroy things before
+	 * they've been created.
+	 */
+
 	dns_resolver_detach(&res);
+	dns_dispatch_detach(&dispatch);
 
 	isc_task_shutdown(task1);
 	isc_task_detach(&task1);
@@ -213,6 +235,8 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&task2);
 	isc_taskmgr_destroy(&taskmgr);
 
+	isc_socket_detach(&s);
+	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
 
 	if (verbose)
