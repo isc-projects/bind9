@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.136 $)
+AC_REVISION($Revision: 1.137 $)
 
 AC_PREREQ(2.13)
 
@@ -245,10 +245,7 @@ AC_PROG_YACC
 
 AC_HEADER_STDC
 
-#
-# See the IPv6 section for additional special handling of netinet6/in6.h.
-#
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h netinet6/in6.h)
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h)
 
 AC_C_CONST
 AC_C_INLINE
@@ -272,7 +269,7 @@ AC_CHECK_LIB(c, sigwait,
 )
 
 #
-# Additional OS-specific issues related to pthreads.
+# Additional OS-specific issues related to pthreads and sigwait.
 #
 case "$host" in
         #
@@ -299,6 +296,12 @@ case "$host" in
         #
 	*-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+		;;
+        #
+        # UnixWare does things its own way.
+        #
+        *-UnixWare*)
+		AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 		;;
 esac
 
@@ -365,6 +368,11 @@ else
                         ;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-UnixWare*)
+			CC="$CC -Kthread -w"
+			MKDEPCC="$CC"
+			YACC="yacc"	# bison calls alloca, avoid on UnixWare
 			;;
 	esac
 fi
@@ -645,20 +653,36 @@ esac
 # This is done before the in6_pktinfo check because that's what
 # netinet6/in6.h is needed for.
 #
-isc_netinet6_hack=""
 changequote({, })
-case "$ac_cv_header_netinet6_in6_h+$host" in
-yes+*-bsdi4.[01]*)
+case "$host" in
+*-bsdi4.[01]*)
 	ISC_PLATFORM_NEEDNETINET6IN6H="#define ISC_PLATFORM_NEEDNETINET6IN6H 1"
 	LWRES_PLATFORM_NEEDNETINET6IN6H="#define LWRES_PLATFORM_NEEDNETINET6IN6H 1"
-	isc_netinet6_hack="#include <netinet6/in6.h>"
+	isc_netinet6in6_hack="#include <netinet6/in6.h>"
 	;;
 *)
 	ISC_PLATFORM_NEEDNETINET6IN6H="#undef ISC_PLATFORM_NEEDNETINET6IN6H"
 	LWRES_PLATFORM_NEEDNETINET6IN6H="#undef LWRES_PLATFORM_NEEDNETINET6IN6H"
+	isc_netinet6in6_hack=""
 	;;
 esac
 changequote([, ])
+
+#
+# This is similar to the netinet6/in6.h issue.
+#
+case "$host" in
+*-UnixWare*)
+	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
+	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
+	isc_netinetin6_hack="#include <netinet/in6.h>"
+	;;
+*)
+	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
+	LWRES_PLATFORM_NEEDNETINETIN6H="#undef LWRES_PLATFORM_NEEDNETINETIN6H"
+	isc_netinetin6_hack=""
+	;;
+esac
 
 #
 # Now delve deeper into the suitability of the IPv6 support.
@@ -671,7 +695,8 @@ case "$found_ipv6" in
 		AC_TRY_LINK([
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>],
+#include <netinet/in.h>
+$isc_netinetin6_hack],
 		[struct in6_addr in6; in6 = in6addr_any; return (0);],
 			[AC_MSG_RESULT(yes)
 			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"],
@@ -682,7 +707,8 @@ case "$found_ipv6" in
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6_hack
+$isc_netinetin6_hack
+$isc_netinet6in6_hack
 ],
 		[struct in6_pktinfo xyzzy; return (0);],
 			[AC_MSG_RESULT(yes)
@@ -704,6 +730,8 @@ esac
 
 AC_SUBST(ISC_PLATFORM_HAVEIPV6)
 AC_SUBST(LWRES_PLATFORM_HAVEIPV6)
+AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
+AC_SUBST(LWRES_PLATFORM_NEEDNETINETIN6H)
 AC_SUBST(ISC_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(LWRES_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRANY)

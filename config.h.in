@@ -45,6 +45,9 @@
 /* define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
+/* define if sigwait() is the UnixWare flavor */
+#undef HAVE_UNIXWARE_SIGWAIT
+
 /* define on Solaris to get sigwait() to work using pthreads semantics */
 #undef _POSIX_PTHREAD_SEMANTICS
 
@@ -75,9 +78,6 @@ extern __inline int __sputaux(int _c, struct __sFILE *_p);
 
 /* Define if you have the <linux/prctl.h> header file.  */
 #undef HAVE_LINUX_PRCTL_H
-
-/* Define if you have the <netinet6/in6.h> header file.  */
-#undef HAVE_NETINET6_IN6_H
 
 /* Define if you have the <sys/sockio.h> header file.  */
 #undef HAVE_SYS_SOCKIO_H

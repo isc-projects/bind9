@@ -1,3 +1,6 @@
+ 191.   [func]          Patched to compile on UnixWare 7.x.  This platform
+                        is not directly supported by the ISC.
+
  190.   [cleanup]	The DNSSEC tools have been moved to a separate 
 			directory dnssec/ and given the following new,
 			more descriptive names:
