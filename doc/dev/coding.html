@@ -203,9 +203,9 @@ g(int i, /* other args here */
 To suppress compiler warnings, unused function arguments are declared
 using the <CODE>UNUSED()</CODE> macro.<P>
 
-In the function body, any <CODE>REQUIRE()</CODE>s are placed
-immediately after the local variabled, followed by any
-<CODE>UNUSED()</CODE> declarations.<P>
+In the function body, local variable declarations are followed by any
+<CODE>REQUIRE()</CODE>s, <CODE>UNUSED()</CODE> declarations, and other
+code, in this order.  These sections are separated by blank lines.<P>
 
 <H4>Curly Braces</H4>
 Curly Braces do not get their own indentation.
