@@ -3427,7 +3427,15 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	addr->flags = (addr->flags & ~mask) | (bits | mask);
+	addr->entry->flags = (addr->entry->flags & ~mask) | (bits & mask);
+	/*
+	 * Note that we do not update the other bits in addr->flags with
+	 * the most recent values from addr->entry->flags.
+	 *
+	 * XXXRTH  I think this is what we want, because otherwise flags
+	 *         that the caller didn't ask to change could be updated.
+	 */
+	addr->flags = (addr->flags & ~mask) | (bits & mask);
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
