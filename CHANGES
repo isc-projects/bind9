@@ -1,3 +1,6 @@
+1208.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
+			reflect written requirements.
+
 1207.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
 			a rdataset to a zone db in the rbtdb implementation of
 			addrdataset.
