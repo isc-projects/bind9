@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.25 2003/05/12 02:06:01 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.26 2003/05/15 02:47:18 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5205,12 +5205,12 @@ $GENERATE 1-2 0 NS SERVER$.EXAMPLE.
 $GENERATE 1-127 $ CNAME $.0</literal></programlisting>
 <para>is equivalent to</para>
 <programlisting><literal>0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
-0.0.0.192.IN-ADDR.ARPA NS SERVER2.EXAMPLE.
-1.0.0.192.IN-ADDR.ARPA CNAME 1.0.0.0.192.IN-ADDR.ARPA
-2.0.0.192.IN-ADDR.ARPA CNAME 2.0.0.0.192.IN-ADDR.ARPA
+0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
+1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
+2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
-127.0.0.192.IN-ADDR.ARPA CNAME 127.0.0.0.192.IN-ADDR.ARPA
-.</literal></programlisting>
+127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
+</literal></programlisting>
       <informaltable colsep = "0" rowsep = "0">
         <tgroup cols = "2" colsep = "0" rowsep = "0" tgroupstyle = "3Level-table">
           <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.875in"/>

@@ -2,6 +2,8 @@
 			fd_set resulting in "Socket operation on non-socket"
 			errors from select(). [RT #2966]
 
+1453.	[doc]		ARM: $GENERATE example wasn't accurate. [RT #5298]
+
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
 1451.	[bug]		rndc-confgen didn't exit with a error code for all
