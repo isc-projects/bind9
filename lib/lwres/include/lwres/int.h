@@ -15,14 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: int.h,v 1.3 2000/06/22 21:59:45 tale Exp $ */
+/* $Id: int.h,v 1.4 2000/06/23 03:11:25 tale Exp $ */
 
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1
-
-#include <lwres/lang.h>
-
-LWRES_LANG_BEGINDECLS
 
 typedef char				lwres_int8_t;
 typedef unsigned char			lwres_uint8_t;
@@ -32,7 +28,5 @@ typedef int				lwres_int32_t;
 typedef unsigned int			lwres_uint32_t;
 typedef long long			lwres_int64_t;
 typedef unsigned long long		lwres_uint64_t;
-
-LWRES_LANG_ENDDECLS
 
 #endif /* LWRES_INT_H */
