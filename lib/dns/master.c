@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.138 2002/02/21 00:56:14 bwelling Exp $ */
+/* $Id: master.c,v 1.139 2002/02/21 01:00:41 marka Exp $ */
 
 #include <config.h>
 
@@ -1118,7 +1118,7 @@ load(dns_loadctx_t *lctx) {
 					  ictx->origin, ISC_FALSE, NULL);
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
-				LOGITFILE(result, include_file);
+				LOGIT(result);
 				read_till_eol = ISC_TRUE;
 				continue;
 			} else if (result != ISC_R_SUCCESS)
