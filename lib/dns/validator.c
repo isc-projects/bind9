@@ -74,6 +74,7 @@ struct dns_validator {
 	unsigned int			labels;
 	dns_rdataset_t *		currentset;
 	isc_boolean_t			seensig;
+	dns_rdataset_t *		keyset;
 };
 
 #define VALIDATOR_MAGIC			0x56616c3fU	/* Val?. */
@@ -168,6 +169,8 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			UNLOCK(&val->lock);
 			goto free_event;
 		}
+		val->keyset = devent->rdataset;
+		devent->rdataset = NULL;
 		result = validate(val, ISC_TRUE);
 		if (result != DNS_R_WAIT) {
 			validator_done(val, result);
@@ -187,9 +190,12 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Free stuff from the event.
 	 */
-	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
-	isc_mem_put(val->view->mctx, devent->sigrdataset,
-		    sizeof(dns_rdataset_t));
+	if (devent->rdataset != NULL)
+		isc_mem_put(val->view->mctx, devent->rdataset,
+			    sizeof(dns_rdataset_t));
+	if (devent->sigrdataset != NULL)
+		isc_mem_put(val->view->mctx, devent->sigrdataset,
+			    sizeof(dns_rdataset_t));
 	isc_event_free(&event);
 }
 
@@ -585,7 +591,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto failure;
 	do {
 		dns_rdataset_current(rdataset, &rdata);
 		/*
@@ -595,7 +601,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		isc_buffer_init(&b, ntext, sizeof(ntext) - 1);
 		result = dns_name_totext(&siginfo->signer, ISC_FALSE, &b);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto failure;
 
 		/*
 		 * NUL-terminate the character string.
@@ -608,7 +614,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 		result = dst_key_fromdns(ntext, &b, val->view->mctx,
 					 &val->key);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto failure;
 		if (siginfo->algorithm ==
 		    (dns_secalg_t)dst_key_alg(val->key) &&
 		    siginfo->tag ==
@@ -632,6 +638,7 @@ get_dst_key(dns_validator_t *val, dns_siginfo_t *siginfo,
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_NOTFOUND;
 
+ failure:
 	if (oldkey != NULL)
 		dst_key_free(&oldkey);
 
@@ -910,12 +917,11 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					break;
 				}
 				val->key = dns_keynode_key(val->keynode);
-			}
-			else
-				if (get_dst_key(val, val->siginfo,
-						event->rdataset)
+			} else {
+				if (get_dst_key(val, val->siginfo, val->keyset)
 				    != ISC_R_SUCCESS)
 					break;
+			}
 		} while (1);
 		if (result != ISC_R_SUCCESS)
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -923,8 +929,14 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		if (val->keynode != NULL)
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);
-		else if (val->key != NULL)
-			dst_key_free(&val->key);
+		else {
+			if (val->key != NULL)
+				dst_key_free(&val->key);
+			if (val->keyset != NULL)
+				isc_mem_put(val->view->mctx, val->keyset,
+					    sizeof *val->keyset);
+				val->keyset = NULL;
+		}
 		val->key = NULL;
 		if (result == ISC_R_SUCCESS) {
 			event->rdataset->trust = dns_trust_secure;
@@ -1324,6 +1336,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->arg = arg;
 	val->labels = 0;
 	val->currentset = NULL;
+	val->keyset = NULL;
 	val->seensig = ISC_FALSE;
 	val->magic = VALIDATOR_MAGIC;
 
