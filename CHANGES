@@ -7,6 +7,9 @@
 1184.	[bug]		libbind: call res_ndestroy() if RES_INIT is set
 			when res_*init() is called.
 
+1183.	[bug]		Handle ENOSR error when writing to the internal
+			control pipe. [RT #2395]
+
 1182.	[bug]		The server could throw an assertion failure when
 			constructing a negative response packet.
 
