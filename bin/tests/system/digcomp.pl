@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: digcomp.pl,v 1.7 2000/07/07 22:43:45 gson Exp $
+# $Id: digcomp.pl,v 1.8 2000/07/08 16:37:43 tale Exp $
 
 # Compare two files, each with the output from dig, for differences.
 # Ignore "unimportant" differences, like ordering of NS lines, TTL's,
@@ -105,6 +105,7 @@ foreach $key (keys(%entry)) {
 if ($rcode1 ne $rcode2) {
 	print("< status: $rcode1\n");
 	print("> status: $rcode2\n");
+	$status = 1;
 }
 
 exit($status);
