@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5 2003/07/22 04:03:37 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.1 2003/08/04 02:04:46 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -101,6 +101,8 @@ command is one of the following:\n\
 		Reload a single zone.\n\
   refresh zone [class [view]]\n\
 		Schedule immediate maintenance for a zone.\n\
+  retransfer zone [class [view]]\n\
+		Retransfer a single zone without checking serial number.\n\
   reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\

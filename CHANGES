@@ -1,3 +1,10 @@
+ 999.	[func]		"rndc retransfer zone [class [view]]" added.
+			[RT #1752]
+
+ 998.	[func]		named-checkzone now has arguements to specify the
+			chroot directory (-t) and working directory (-w).
+			[RT #1755]
+
  997.	[func]		Add support for RSA-SHA1 keys (RFC3110).
 
  996.	[func]		Issue warning if the configuration filename contains

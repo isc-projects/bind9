@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.1 2003/08/02 00:38:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.2 2003/08/04 02:04:47 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -748,6 +748,12 @@ of a server.</para>
        <optional><replaceable>class</replaceable>
            <optional><replaceable>view</replaceable></optional></optional></userinput></term>
    <listitem><para>Schedule zone maintenance for the given zone.</para></listitem>
+   </varlistentry>
+
+   <varlistentry><term><userinput>retransfer <replaceable>zone</replaceable>
+       <optional><replaceable>class</replaceable>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+   <listitem><para>Retransfer the given zone from the master.</para></listitem>
    </varlistentry>
 
    <varlistentry><term><userinput>reconfig</userinput></term>

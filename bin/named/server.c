@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.1 2003/08/02 00:15:10 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.2 2003/08/04 02:04:45 marka Exp $ */
 
 #include <config.h>
 
@@ -2608,6 +2608,29 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
  fail1:
 	return (result);
 }
+
+/*
+ * Act on a "retransfer" command from the command channel.
+ */
+isc_result_t
+ns_server_retransfercommand(ns_server_t *server, char *args) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	dns_zonetype_t type;
+	
+	result = zone_from_args(server, args, &zone);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	type = dns_zone_gettype(zone);
+	if (type == dns_zone_slave || type == dns_zone_stub)
+		dns_zone_forcereload(zone);
+	else
+		result = ISC_R_NOTFOUND;
+	dns_zone_detach(&zone);
+	return (result);
+}	
 
 /*
  * Act on a "reload" command from the command channel.
