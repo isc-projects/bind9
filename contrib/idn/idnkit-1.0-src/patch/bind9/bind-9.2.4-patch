@@ -17,8 +17,8 @@ and install.
 
 
 Index: README.idnkit
---- /dev/null	Sat Aug 28 16:43:38 2004
-+++ README.idnkit	Sat Aug 28 16:31:41 2004
+--- /dev/null	Wed Sep  1 17:46:18 2004
++++ README.idnkit	Wed Sep  1 17:33:56 2004
 @@ -0,0 +1,113 @@
 +
 +			BIND-9 IDN patch
@@ -136,10 +136,10 @@ Index: README.idnkit
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure,v
-retrieving revision 1.284.2.31
-diff -U2 -r1.284.2.31 configure
---- configure	28 Aug 2004 06:18:24 -0000	1.284.2.31
-+++ configure	28 Aug 2004 06:46:58 -0000
+retrieving revision 1.284.2.32
+diff -U2 -r1.284.2.32 configure
+--- configure	1 Sep 2004 07:11:22 -0000	1.284.2.32
++++ configure	1 Sep 2004 07:50:08 -0000
 @@ -466,5 +466,5 @@
  #endif"
  
@@ -156,183 +156,183 @@ diff -U2 -r1.284.2.31 configure
 +  --with-idnlib=ARG    specify libidnkit
  
  Some influential environment variables:
-@@ -7681,5 +7685,5 @@
+@@ -7759,5 +7763,5 @@
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 7683 "configure"' > conftest.$ac_ext
-+  echo '#line 7687 "configure"' > conftest.$ac_ext
+-  echo '#line 7761 "configure"' > conftest.$ac_ext
++  echo '#line 7765 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
-@@ -8671,5 +8675,5 @@
+@@ -8749,5 +8753,5 @@
  
  # Provide some information about the compiler.
--echo "$as_me:8673:" \
-+echo "$as_me:8677:" \
+-echo "$as_me:8751:" \
++echo "$as_me:8755:" \
       "checking for Fortran 77 compiler version" >&5
  ac_compiler=`set X $ac_compile; echo $2`
-@@ -9709,9 +9713,9 @@
+@@ -9787,9 +9791,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9711: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9715: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:9789: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9793: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:9715: \$? = $ac_status" >&5
-+   echo "$as_me:9719: \$? = $ac_status" >&5
+-   echo "$as_me:9793: \$? = $ac_status" >&5
++   echo "$as_me:9797: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9942,9 +9946,9 @@
+@@ -10020,9 +10024,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9944: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9948: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:10022: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:10026: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:9948: \$? = $ac_status" >&5
-+   echo "$as_me:9952: \$? = $ac_status" >&5
+-   echo "$as_me:10026: \$? = $ac_status" >&5
++   echo "$as_me:10030: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -10002,9 +10006,9 @@
+@@ -10080,9 +10084,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:10004: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:10008: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:10082: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:10086: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:10008: \$? = $ac_status" >&5
-+   echo "$as_me:10012: \$? = $ac_status" >&5
+-   echo "$as_me:10086: \$? = $ac_status" >&5
++   echo "$as_me:10090: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -12186,5 +12190,5 @@
+@@ -12264,5 +12268,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 12188 "configure"
-+#line 12192 "configure"
+-#line 12266 "configure"
++#line 12270 "configure"
  #include "confdefs.h"
  
-@@ -12284,5 +12288,5 @@
+@@ -12362,5 +12366,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 12286 "configure"
-+#line 12290 "configure"
+-#line 12364 "configure"
++#line 12368 "configure"
  #include "confdefs.h"
  
-@@ -14467,9 +14471,9 @@
+@@ -14545,9 +14549,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14469: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14473: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14547: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14551: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:14473: \$? = $ac_status" >&5
-+   echo "$as_me:14477: \$? = $ac_status" >&5
+-   echo "$as_me:14551: \$? = $ac_status" >&5
++   echo "$as_me:14555: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14527,9 +14531,9 @@
+@@ -14605,9 +14609,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14529: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14533: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14607: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14611: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:14533: \$? = $ac_status" >&5
-+   echo "$as_me:14537: \$? = $ac_status" >&5
+-   echo "$as_me:14611: \$? = $ac_status" >&5
++   echo "$as_me:14615: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -15888,5 +15892,5 @@
+@@ -15966,5 +15970,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 15890 "configure"
-+#line 15894 "configure"
+-#line 15968 "configure"
++#line 15972 "configure"
  #include "confdefs.h"
  
-@@ -15986,5 +15990,5 @@
+@@ -16064,5 +16068,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 15988 "configure"
-+#line 15992 "configure"
+-#line 16066 "configure"
++#line 16070 "configure"
  #include "confdefs.h"
  
-@@ -16813,9 +16817,9 @@
+@@ -16891,9 +16895,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:16815: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16819: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:16893: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16897: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:16819: \$? = $ac_status" >&5
-+   echo "$as_me:16823: \$? = $ac_status" >&5
+-   echo "$as_me:16897: \$? = $ac_status" >&5
++   echo "$as_me:16901: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -16873,9 +16877,9 @@
+@@ -16951,9 +16955,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:16875: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16879: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:16953: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16957: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:16879: \$? = $ac_status" >&5
-+   echo "$as_me:16883: \$? = $ac_status" >&5
+-   echo "$as_me:16957: \$? = $ac_status" >&5
++   echo "$as_me:16961: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -18911,9 +18915,9 @@
+@@ -18989,9 +18993,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:18913: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:18917: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:18991: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:18995: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:18917: \$? = $ac_status" >&5
-+   echo "$as_me:18921: \$? = $ac_status" >&5
+-   echo "$as_me:18995: \$? = $ac_status" >&5
++   echo "$as_me:18999: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -19144,9 +19148,9 @@
+@@ -19222,9 +19226,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:19146: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:19150: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:19224: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:19228: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:19150: \$? = $ac_status" >&5
-+   echo "$as_me:19154: \$? = $ac_status" >&5
+-   echo "$as_me:19228: \$? = $ac_status" >&5
++   echo "$as_me:19232: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
-@@ -19204,9 +19208,9 @@
+@@ -19282,9 +19286,9 @@
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:19206: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:19210: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:19284: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:19288: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:19210: \$? = $ac_status" >&5
-+   echo "$as_me:19214: \$? = $ac_status" >&5
+-   echo "$as_me:19288: \$? = $ac_status" >&5
++   echo "$as_me:19292: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
-@@ -21388,5 +21392,5 @@
+@@ -21466,5 +21470,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 21390 "configure"
-+#line 21394 "configure"
+-#line 21468 "configure"
++#line 21472 "configure"
  #include "confdefs.h"
  
-@@ -21486,5 +21490,5 @@
+@@ -21564,5 +21568,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 21488 "configure"
-+#line 21492 "configure"
+-#line 21566 "configure"
++#line 21570 "configure"
  #include "confdefs.h"
  
-@@ -25799,4 +25803,354 @@
+@@ -25877,4 +25881,354 @@
  
  #
 +# IDN support
@@ -687,7 +687,7 @@ diff -U2 -r1.284.2.31 configure
 +#
  # Substitutions
  #
-@@ -26662,4 +27016,5 @@
+@@ -26740,4 +27094,5 @@
  s,@XMLDCL@,$XMLDCL,;t t
  s,@DOCBOOK2MANSPEC@,$DOCBOOK2MANSPEC,;t t
 +s,@IDNLIBS@,$IDNLIBS,;t t
@@ -696,11 +696,11 @@ diff -U2 -r1.284.2.31 configure
 Index: configure.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure.in,v
-retrieving revision 1.294.2.34
-diff -U2 -r1.294.2.34 configure.in
---- configure.in	28 Aug 2004 06:15:26 -0000	1.294.2.34
-+++ configure.in	28 Aug 2004 06:47:12 -0000
-@@ -1778,4 +1778,80 @@
+retrieving revision 1.294.2.35
+diff -U2 -r1.294.2.35 configure.in
+--- configure.in	1 Sep 2004 07:08:33 -0000	1.294.2.35
++++ configure.in	1 Sep 2004 07:50:15 -0000
+@@ -1783,4 +1783,80 @@
  
  #
 +# IDN support
@@ -784,18 +784,18 @@ diff -U2 -r1.294.2.34 configure.in
 Index: config.h.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/config.h.in,v
-retrieving revision 1.47.2.8
-diff -U2 -r1.47.2.8 config.h.in
---- config.h.in	15 Mar 2004 05:00:23 -0000	1.47.2.8
-+++ config.h.in	28 Aug 2004 06:47:13 -0000
+retrieving revision 1.47.2.9
+diff -U2 -r1.47.2.9 config.h.in
+--- config.h.in	1 Sep 2004 07:11:22 -0000	1.47.2.9
++++ config.h.in	1 Sep 2004 07:50:16 -0000
 @@ -17,5 +17,5 @@
   */
  
--/* $Id: config.h.in,v 1.47.2.8 2004/03/15 05:00:23 marka Exp $ */
+-/* $Id: config.h.in,v 1.47.2.9 2004/09/01 07:11:22 marka Exp $ */
 +/* $Id: acconfig.h,v 1.35.2.8 2004/03/09 06:09:07 marka Exp $ */
  
  /***
-@@ -159,7 +159,13 @@
+@@ -162,7 +162,13 @@
  #undef HAVE_LINUX_CAPABILITY_H
  
 +/* Define to 1 if you have the <locale.h> header file. */
@@ -809,7 +809,7 @@ diff -U2 -r1.47.2.8 config.h.in
 +
  /* Define to 1 if you have the <stdint.h> header file. */
  #undef HAVE_STDINT_H
-@@ -221,4 +227,7 @@
+@@ -224,4 +230,7 @@
  /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
  #undef TIME_WITH_SYS_TIME
 +
@@ -823,7 +823,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.2.4
 diff -U2 -r1.25.2.4 Makefile.in
 --- bin/dig/Makefile.in	18 Aug 2004 23:22:52 -0000	1.25.2.4
-+++ bin/dig/Makefile.in	28 Aug 2004 06:47:13 -0000
++++ bin/dig/Makefile.in	1 Sep 2004 07:50:16 -0000
 @@ -37,5 +37,5 @@
  DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
  
@@ -837,7 +837,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.6
 diff -U2 -r1.14.2.6 dig.1
 --- bin/dig/dig.1	26 Aug 2004 02:25:52 -0000	1.14.2.6
-+++ bin/dig/dig.1	28 Aug 2004 06:47:14 -0000
++++ bin/dig/dig.1	1 Sep 2004 07:50:18 -0000
 @@ -355,4 +355,15 @@
  will not print the initial query when it looks up the NS records for
  isc.org.
@@ -860,7 +860,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.9
 diff -U2 -r1.4.2.9 dig.docbook
 --- bin/dig/dig.docbook	26 Aug 2004 01:33:50 -0000	1.4.2.9
-+++ bin/dig/dig.docbook	28 Aug 2004 06:47:16 -0000
++++ bin/dig/dig.docbook	1 Sep 2004 07:50:20 -0000
 @@ -530,4 +530,19 @@
  
  <refsect1>
@@ -887,7 +887,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
 retrieving revision 1.221.2.22
 diff -U2 -r1.221.2.22 dighost.c
 --- bin/dig/dighost.c	15 Apr 2004 06:53:18 -0000	1.221.2.22
-+++ bin/dig/dighost.c	28 Aug 2004 06:47:21 -0000
++++ bin/dig/dighost.c	1 Sep 2004 07:50:27 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -1126,7 +1126,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.2
 diff -U2 -r1.11.2.2 host.1
 --- bin/dig/host.1	15 Mar 2004 04:44:38 -0000	1.11.2.2
-+++ bin/dig/host.1	28 Aug 2004 06:47:22 -0000
++++ bin/dig/host.1	1 Sep 2004 07:50:28 -0000
 @@ -122,4 +122,15 @@
  will be set to the number of seconds given by the hardware's maximum
  value for an integer quantity.
@@ -1149,7 +1149,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.3
 diff -U2 -r1.2.2.3 host.docbook
 --- bin/dig/host.docbook	9 Mar 2004 06:09:13 -0000	1.2.2.3
-+++ bin/dig/host.docbook	28 Aug 2004 06:47:22 -0000
++++ bin/dig/host.docbook	1 Sep 2004 07:50:29 -0000
 @@ -182,4 +182,19 @@
  
  <refsect1>
@@ -1173,12 +1173,12 @@ diff -U2 -r1.2.2.3 host.docbook
 Index: lib/dns/name.c
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
-retrieving revision 1.127.2.9
-diff -U2 -r1.127.2.9 name.c
---- lib/dns/name.c	9 Mar 2004 06:11:03 -0000	1.127.2.9
-+++ lib/dns/name.c	28 Aug 2004 06:47:28 -0000
-@@ -196,4 +196,11 @@
- dns_name_t *dns_wildcardname = &wild;
+retrieving revision 1.127.2.10
+diff -U2 -r1.127.2.10 name.c
+--- lib/dns/name.c	1 Sep 2004 05:22:51 -0000	1.127.2.10
++++ lib/dns/name.c	1 Sep 2004 07:50:40 -0000
+@@ -199,4 +199,11 @@
+ dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  
 +#ifdef WITH_IDN
 +/*
@@ -1189,7 +1189,7 @@ diff -U2 -r1.127.2.9 name.c
 +
  static void
  set_offsets(const dns_name_t *name, unsigned char *offsets,
-@@ -1700,4 +1707,7 @@
+@@ -1715,4 +1722,7 @@
  	isc_boolean_t saw_root = ISC_FALSE;
  	char num[4];
 +#ifdef WITH_IDN
@@ -1197,7 +1197,7 @@ diff -U2 -r1.127.2.9 name.c
 +#endif
  
  	/*
-@@ -1877,4 +1887,8 @@
+@@ -1892,4 +1902,8 @@
  	isc_buffer_add(target, tlen - trem);
  
 +#ifdef WITH_IDN
@@ -1206,7 +1206,7 @@ diff -U2 -r1.127.2.9 name.c
 +#endif
  	return (ISC_R_SUCCESS);
  }
-@@ -3341,2 +3355,8 @@
+@@ -3356,2 +3370,8 @@
  }
  
 +#ifdef WITH_IDN
@@ -1218,10 +1218,10 @@ diff -U2 -r1.127.2.9 name.c
 Index: lib/dns/include/dns/name.h
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
-retrieving revision 1.95.2.7
-diff -U2 -r1.95.2.7 name.h
---- lib/dns/include/dns/name.h	10 Aug 2004 00:41:49 -0000	1.95.2.7
-+++ lib/dns/include/dns/name.h	28 Aug 2004 06:47:30 -0000
+retrieving revision 1.95.2.8
+diff -U2 -r1.95.2.8 name.h
+--- lib/dns/include/dns/name.h	1 Sep 2004 05:22:51 -0000	1.95.2.8
++++ lib/dns/include/dns/name.h	1 Sep 2004 07:50:42 -0000
 @@ -220,4 +220,15 @@
  #define DNS_NAME_MAXWIRE 255
  
