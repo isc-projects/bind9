@@ -644,7 +644,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r);
 
 #define ISC__BUFFER_CONSUMEDREGION(_b, _r) \
 	do { \
-		(_r)->base = (_b)->base); \
+		(_r)->base = (_b)->base; \
 		(_r)->length = (_b)->current; \
 	} while (0)
 

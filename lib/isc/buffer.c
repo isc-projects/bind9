@@ -33,14 +33,7 @@ isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 
 	REQUIRE(b != NULL);
 
-	b->magic = ISC_BUFFER_MAGIC;
-	b->base = base;
-	b->length = length;
-	b->used = 0;
-	b->current = 0;
-	b->active = 0;
-	b->mctx = NULL;
-	ISC_LINK_INIT(b, link);
+	ISC__BUFFER_INIT(b, base, length);
 }
 
 void
@@ -53,12 +46,7 @@ isc__buffer_invalidate(isc_buffer_t *b) {
 	REQUIRE(!ISC_LINK_LINKED(b, link));
 	REQUIRE(b->mctx == NULL);
 	
-	b->magic = 0;
-	b->base = NULL;
-	b->length = 0;
-	b->used = 0;
-	b->current = 0;
-	b->active = 0;
+	ISC__BUFFER_INVALIDATE(b);
 }
 
 void
@@ -70,8 +58,7 @@ isc__buffer_region(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	r->base = b->base;
-	r->length = b->length;
+	ISC__BUFFER_REGION(b, r);
 }
 
 void
@@ -83,8 +70,7 @@ isc__buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	r->base = b->base;
-	r->length = b->used;
+	ISC__BUFFER_USEDREGION(b, r);
 }
 
 void
@@ -96,8 +82,7 @@ isc__buffer_availableregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	r->base = (unsigned char *)b->base + b->used;
-	r->length = b->length - b->used;
+	ISC__BUFFER_AVAILABLEREGION(b, r);
 }
 
 void
@@ -109,7 +94,7 @@ isc__buffer_add(isc_buffer_t *b, unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + n <= b->length);
 
-	b->used += n;
+	ISC__BUFFER_ADD(b, n);
 }
 
 void
@@ -121,11 +106,7 @@ isc__buffer_subtract(isc_buffer_t *b, unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used >= n);
 
-	b->used -= n;
-	if (b->current > b->used)
-		b->current = b->used;
-	if (b->active > b->used)
-		b->active = b->used;
+	ISC__BUFFER_SUBTRACT(b, n);
 }
 
 void
@@ -136,9 +117,7 @@ isc__buffer_clear(isc_buffer_t *b) {
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 
-	b->used = 0;
-	b->current = 0;
-	b->active = 0;
+	ISC__BUFFER_CLEAR(b);
 }
 
 void
@@ -150,8 +129,7 @@ isc__buffer_consumedregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	r->base = b->base;
-	r->length = b->current;
+	ISC__BUFFER_CONSUMEDREGION(b, r);
 }
 
 void
@@ -163,8 +141,7 @@ isc__buffer_remainingregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	r->base = (unsigned char *)b->base + b->current;
-	r->length = b->used - b->current;
+	ISC__BUFFER_REMAININGREGION(b, r);
 }
 
 void
@@ -176,28 +153,19 @@ isc__buffer_activeregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	if (b->current < b->active) {
-		r->base = (unsigned char *)b->base + b->current;
-		r->length = b->active - b->current;
-	} else {
-		r->base = NULL;
-		r->length = 0;
-	}
+	ISC__BUFFER_ACTIVEREGION(b, r);
 }
 
 void
 isc__buffer_setactive(isc_buffer_t *b, unsigned int n) {
-	unsigned int active;
-
 	/*
 	 * Sets the end of the active region 'n' bytes after current.
 	 */
 
 	REQUIRE(ISC_BUFFER_VALID(b));
-	active = b->current + n;
-	REQUIRE(active <= b->used);
+	REQUIRE(b->current + n <= b->used);
 
-	b->active = active;
+	ISC__BUFFER_SETACTIVE(b, n);
 }
 
 void
@@ -208,7 +176,7 @@ isc__buffer_first(isc_buffer_t *b) {
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 
-	b->current = 0;
+	ISC__BUFFER_FIRST(b);
 }
 
 void
@@ -220,7 +188,7 @@ isc__buffer_forward(isc_buffer_t *b, unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->current + n <= b->used);
 
-	b->current += n;
+	ISC__BUFFER_FORWARD(b, n);
 }
 
 void
@@ -232,7 +200,7 @@ isc__buffer_back(isc_buffer_t *b, unsigned int n) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(n <= b->current);
 
-	b->current -= n;
+	ISC__BUFFER_BACK(b, n);
 }
 
 void
@@ -283,15 +251,10 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 void
 isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val)
 {
-	unsigned char *cp;
-
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 1 <= b->length);
 
-	cp = b->base;
-	cp += b->used;
-	b->used += 1;
-	cp[0] = (val & 0x00ff);
+	ISC__BUFFER_PUTUINT8(b, val);
 }
 
 isc_uint16_t
@@ -319,16 +282,10 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 void
 isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val)
 {
-	unsigned char *cp;
-
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 2 <= b->length);
 
-	cp = b->base;
-	cp += b->used;
-	b->used += 2;
-	cp[0] = (val & 0xff00) >> 8;
-	cp[1] = (val & 0x00ff);
+	ISC__BUFFER_PUTUINT16(b, val);
 }
 
 isc_uint32_t
@@ -358,30 +315,18 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 void
 isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 {
-	unsigned char *cp;
-
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + 4 <= b->length);
 
-	cp = b->base;
-	cp += b->used;
-	b->used += 4;
-	cp[0] = (unsigned char)((val & 0xff000000) >> 24);
-	cp[1] = (unsigned char)((val & 0x00ff0000) >> 16);
-	cp[2] = (unsigned char)((val & 0x0000ff00) >> 8);
-	cp[3] = (unsigned char)(val & 0x000000ff);
+	ISC__BUFFER_PUTUINT32(b, val);
 }
 
 void
 isc__buffer_putmem(isc_buffer_t *b, unsigned char *base, unsigned int length) {
-	unsigned char *cp;
-
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->used + length <= b->length);
 
-	cp = (unsigned char *)b->base + b->used;
-	memcpy(cp, base, length);
-	b->used += length;
+	ISC__BUFFER_PUTMEM(b, base, length);
 }	
 
 void
