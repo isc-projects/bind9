@@ -300,7 +300,7 @@ A: (BIND 9.3 and later) Use TSIG to select the appropriate view.
 	};
 
 
-Q: I have Freebsd 4.4 and "rndcconfgen -a" just sits there.
+Q: I have Freebsd 4.4 and "rndc-confgen -a" just sits there.
 
 A: /dev/random is not configured.  Use rndcontrol(8) to tell the kernel
 to use certian interupts as a source of random events.  You can make this
