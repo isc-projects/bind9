@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.12 2000/10/25 19:24:18 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.13 2000/11/15 00:42:50 gson Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,8 @@
 
 #include <dns/tsig.h>
 #include <dns/tsigconf.h>
+
+#include <named/log.h>
 
 static isc_result_t
 add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
@@ -98,11 +100,21 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		secret = NULL;
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
+
 		key = ISC_LIST_NEXT(key, next);
+		continue;
+		
+	failure:
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR, "configuring TSIG key '%s': %s",
+			      key->keyid, isc_result_totext(ret));
+		ret = ISC_R_FAILURE;
+		goto cleanup;
 	}
 	return (ISC_R_SUCCESS);
 
- failure:
+ cleanup:
 	if (secret != NULL)
 		isc_mem_put(mctx, secret, secretalloc);
 	return (ret);
