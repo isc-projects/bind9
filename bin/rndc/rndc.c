@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.37.2.1 2001/01/09 22:32:56 bwelling Exp $ */
+/* $Id: rndc.c,v 1.37.2.2 2001/03/27 02:06:28 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -39,6 +39,8 @@
 #include <dns/result.h>
 
 #include <dst/dst.h>
+
+#include <omapi/result.h>
 
 #include <named/omapi.h>
 
@@ -323,6 +325,7 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
+	omapi_result_register();
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
