@@ -19,6 +19,7 @@
 
 #include <errno.h>		/* XXX */
 
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -26,6 +27,7 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
+#include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -784,7 +786,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = isc_file_fopen(filename, "w", &f);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, ISC_LOGCATEOGORY_GENERAL,
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 			      "dumping master file: %s: open: %s", filename,
 			      isc_result_totext(result));
@@ -795,7 +797,7 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = isc_file_fclose(f);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(dns_lctx, ISC_LOGCATEOGORY_GENERAL,
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
 			      "dumping master file: %s: close: %s", filename,
 			      isc_result_totext(result));
