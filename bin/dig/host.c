@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.47 2000/08/14 19:11:03 bwelling Exp $ */
+/* $Id: host.c,v 1.48 2000/08/14 19:17:42 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -675,6 +675,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		isc_buffer_putuint8(&b, 0);
 		if (result != ISC_R_SUCCESS)
 			show_usage();
+		lookup->rdtype = dns_rdatatype_ptr;
 	} else {
  notv6:
 		strncpy(lookup->textname, hostname, MXNAME);
