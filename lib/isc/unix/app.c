@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: app.c,v 1.17 2000/06/27 18:49:14 mws Exp $ */
+/* $Id: app.c,v 1.18 2000/06/27 21:04:12 gson Exp $ */
 
 #include <config.h>
 
@@ -150,9 +150,11 @@ isc_app_start(void) {
 		return (result);
 
 	/*
-	 * Delivery of a signal in SIG_IGN state will not cause sigwait()
-	 * to return, and, on Solaris programs started from cron inheret
-	 * a IGN'ed SIGHUP.  Fix it.
+	 * On Solaris 2, delivery of a signal whose action is SIG_IGN
+	 * will not cause sigwait() to return. We may have inherited
+	 * a SIG_IGN action for SIGHUP from our parent process,
+	 * (e.g, Solaris cron).  Set an action of SIG_DFL to make
+	 * sure sigwait() works as expected.
 	 */
 	result = handle_signal(SIGHUP, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
