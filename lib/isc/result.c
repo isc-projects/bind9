@@ -39,11 +39,14 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"task is shut down",			/* 16 */
 	"lock busy",				/* 17 */
 	"already exists",			/* 18 */
-	"buffer too small",			/* 19 */
+	"ran out of space",			/* 19 */
 	"operation canceled",			/* 20 */
 	"sending events is not allowed",	/* 21 */
 	"task is shutting down",		/* 22 */
-	"Not found",				/* 23 */
+	"not found",				/* 23 */
+	"unexpected end of input",		/* 24 */
+	"failure",				/* 25 */
+	"I/O error",				/* 26 */
 };
 
 char *

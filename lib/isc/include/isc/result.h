@@ -39,12 +39,15 @@ typedef unsigned int isc_result_t;
 #define ISC_R_TASKSHUTDOWN		16	/* task was shut down */
 #define ISC_R_LOCKBUSY			17
 #define ISC_R_EXISTS			18
-#define ISC_R_TOOSMALL			19	/* buffer is too small */
+#define ISC_R_NOSPACE			19	/* ran out of space */
 #define ISC_R_CANCELED			20
 #define ISC_R_TASKNOSEND		21
 #define ISC_R_TASKSHUTTINGDOWN		22	/* task is shutting down */
 #define ISC_R_NOTFOUND			23
-#define ISC_R_LASTENTRY			23	/* last entry in the list */
+#define ISC_R_UNEXPECTEDEND		24	/* unexpected end of input */
+#define ISC_R_FAILURE			25	/* generic failure */
+#define ISC_R_IOERROR			26
+#define ISC_R_LASTENTRY			26	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
