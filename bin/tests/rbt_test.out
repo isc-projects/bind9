@@ -114,6 +114,44 @@ searching for name just-parent.a.vix.com ... found parent: a.vix.com.
 	(foundname: a.vix.com.)
 searching for name no-real-parent.vix.com ... NOT FOUND!
 searching for name does.not.exist.at.all ... NOT FOUND!
+iterating forward
+  new origin: .
+vix.com
+  new origin: vix.com.
+a
+b
+c
+d.e.f
+  new origin: d.e.f.vix.com.
+a
+b.c
+  new origin: b.c.d.e.f.vix.com.
+a
+b
+c
+  new origin: d.e.f.vix.com.
+q
+  new origin: vix.com.
+g.h
+iterating backward
+  new origin: vix.com.
+g.h
+  new origin: d.e.f.vix.com.
+q
+  new origin: b.c.d.e.f.vix.com.
+c
+b
+a
+  new origin: d.e.f.vix.com.
+b.c
+a
+  new origin: vix.com.
+d.e.f
+c
+b
+a
+  new origin: .
+vix.com
 deleting name d.e.f.vix.com
 vix.com. (black)
 	++ BEG down from vix.com.

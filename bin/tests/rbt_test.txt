@@ -16,8 +16,8 @@ search q.d.e.f.vix.com
 search just-parent.a.vix.com
 search no-real-parent.vix.com
 search does.not.exist.at.all
-forward vix.com.
-backward g.h.vix.com.
+forward
+backward
 nuke d.e.f.vix.com
 print
 add x.a.vix.com
@@ -36,5 +36,3 @@ add a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.
 add b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.
 print
 quit
-
-
