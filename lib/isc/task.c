@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.69 2000/08/01 01:29:51 tale Exp $ */
+/* $Id: task.c,v 1.70 2000/08/24 01:40:46 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -39,11 +39,11 @@
 #define ISC_TASK_NAMES 1
 
 #ifdef ISC_TASK_TRACE
-#define XTRACE(m)		printf("task %p thread %lu: %s\n", \
+#define XTRACE(m)		fprintf(stderr, "task %p thread %lu: %s\n", \
 				       task, isc_thread_self(), (m))
-#define XTTRACE(t, m)		printf("task %p thread %lu: %s\n", \
+#define XTTRACE(t, m)		fprintf(stderr, "task %p thread %lu: %s\n", \
 				       (t), isc_thread_self(), (m))
-#define XTHREADTRACE(m)		printf("thread %lu: %s\n", \
+#define XTHREADTRACE(m)		fprintf(stderr, "thread %lu: %s\n", \
 				       isc_thread_self(), (m))
 #else
 #define XTRACE(m)
