@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.23 2000/11/06 17:28:24 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.24 2000/11/27 22:19:37 gson Exp $ */
 
 #include <config.h>
 
@@ -128,8 +128,8 @@ void
 setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 	isc_result_t result;
 	isc_logdestination_t destination;
-	isc_logconfig_t *logconfig;
-	isc_log_t *log = 0;
+	isc_logconfig_t *logconfig = NULL;
+	isc_log_t *log = NULL;
 	int level;
 
 	switch (verbose) {
