@@ -325,6 +325,37 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
 
+		result = dns_c_zone_getdialup(czone, &boolean);
+#ifdef notyet
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getdialup(cview, &boolean);
+#endif
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getdialup(cctx, &boolean);
+		if (result != ISC_R_SUCCESS)
+			boolean = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
+
+		result = dns_c_zone_getnotify(czone, &boolean);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getnotify(cview, &boolean);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getnotify(cctx, &boolean);
+		if (result != ISC_R_SUCCESS)
+			boolean = ISC_TRUE;
+		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
+
+		result = dns_c_zone_getalsonotify(czone, &iplist);
+		if (result == ISC_R_SUCCESS) {
+			for (i = 0; i < iplist->nextidx; i++) {
+				result = dns_zone_addnotify(zone,
+							    &iplist->ips[i]);
+				if (result != ISC_R_SUCCESS)
+					return (result);
+			}
+		} else
+			dns_zone_clearnotify(zone);
+
 		break;
 
 	case dns_c_zone_stub:
