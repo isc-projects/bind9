@@ -5,7 +5,8 @@
 1842.	[port]		cmsg_len() could produce incorrect results on
 			some platform. [RT #13744]
 
-1841.	[placeholder]	rt13694
+1841.	[bug]		"dig +nssearch" now makes a recursive query to
+			find the list of nameservers to query. [RT #13694]
 
 1840.	[func]		dnssec-signzone can now randomize signature end times
 			(dnssec-signzone -j jitter). [RT #13609]
