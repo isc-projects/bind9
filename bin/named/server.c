@@ -239,7 +239,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/*
 	 * Set resolver forwarding policy.
 	 */
-	if ((dns_c_view_getforwarders(cview, &forwarders) == ISC_R_SUCCESS) ||
+	if ((cview != NULL &&
+	     dns_c_view_getforwarders(cview, &forwarders) == ISC_R_SUCCESS) ||
 	    (dns_c_ctx_getforwarders(cctx, &forwarders) == ISC_R_SUCCESS))
 	{
 		fwdpolicy = dns_fwdpolicy_first;
@@ -264,7 +265,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		 * XXXRTH  The configuration type 'dns_c_forw_t' should be
 		 *         elminated.
 		 */
-		if ((dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
+		if ((cview != NULL &&
+		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
 		    (dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)) {
 			INSIST(forward == dns_c_forw_first ||
 			       forward == dns_c_forw_only);
