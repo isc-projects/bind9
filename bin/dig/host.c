@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.84 2002/07/25 05:46:07 marka Exp $ */
+/* $Id: host.c,v 1.85 2002/08/12 18:25:25 mayer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -41,7 +41,7 @@
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
+extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t usesearch;
@@ -472,7 +472,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char hostname[MXNAME];
-	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int c;
 	char store[MXNAME];
@@ -586,9 +585,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
 	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
-		srv = make_server(argv[isc_commandline_index+1]);
-		debug("server is %s", srv->servername);
-		ISC_LIST_APPEND(server_list, srv, link);
+		set_nameserver(argv[isc_commandline_index+1]);
+		debug("server is %s", argv[isc_commandline_index+1]);
 		listed_server = ISC_TRUE;
 	}
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.98 2002/08/01 03:28:01 mayer Exp $ */
+/* $Id: nslookup.c,v 1.99 2002/08/12 18:25:25 mayer Exp $ */
 
 #include <config.h>
 
@@ -45,7 +45,7 @@
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
+extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t usesearch, debugging;
@@ -700,39 +700,6 @@ addlookup(char *opt) {
 }
 
 static void
-flush_server_list(void) {
-	dig_server_t *s, *ps;
-
-	debug("flush_server_list()");
-	s = ISC_LIST_HEAD(server_list);
-	while (s != NULL) {
-		ps = s;
-		s = ISC_LIST_NEXT(s, link);
-		ISC_LIST_DEQUEUE(server_list, ps, link);
-		isc_mem_free(mctx, ps);
-	}
-}
-
-/*
- * This works on the global server list, instead of on a per-lookup
- * server list, since the change is persistent.
- */
-static void
-setsrv(char *opt) {
-	dig_server_t *srv;
-
-	if (opt == NULL)
-		return;
-
-	flush_server_list();
-	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-	if (srv == NULL)
-		fatal("memory allocation failure");
-	safecpy(srv->servername, opt, sizeof(srv->servername));
-	ISC_LIST_INITANDAPPEND(server_list, srv, link);
-}
-
-static void
 get_next_command(void) {
 	char *buf;
 	char *ptr, *arg;
@@ -759,7 +726,7 @@ get_next_command(void) {
 		setoption(arg);
 	else if ((strcasecmp(ptr, "server") == 0) ||
 		 (strcasecmp(ptr, "lserver") == 0)) {
-		setsrv(arg);
+		set_nameserver(arg);
 		show_settings(ISC_TRUE, ISC_TRUE);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
@@ -801,7 +768,7 @@ parse_args(int argc, char **argv) {
 				addlookup(argv[0]);
 			}
 			else
-				setsrv(argv[0]);
+				set_nameserver(argv[0]);
 		}
 	}
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.78 2002/07/25 05:46:07 marka Exp $ */
+/* $Id: dig.h,v 1.79 2002/08/12 18:25:25 mayer Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -234,6 +234,12 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 dig_server_t *
 make_server(const char *servname);
+
+void
+flush_server_list(void);
+
+void
+set_nameserver(char *opt);
 
 void
 clone_server_list(dig_serverlist_t src,
