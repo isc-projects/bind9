@@ -885,7 +885,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				
 				result = dst_key_generate("", DNS_KEYALG_DSA,
 							  0, 0,
-							  DNS_KEYTYPE_NOKEY,
+							  DNS_KEYTYPE_NOKEY |
+							  DNS_KEYOWNER_ZONE,
 							  DNS_KEYPROTO_DNSSEC,
 							  mctx, &dstkey);
 				if (result != ISC_R_SUCCESS)
