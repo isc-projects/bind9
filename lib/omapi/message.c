@@ -131,13 +131,14 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 	 * For this function, at least, generic objects have fully spelled
 	 * names and special type objects have short names.
 	 * XXXDCL It would be good to be more consistent about this throughout
-	 * the code.
+	 * the omapi library code.
 	 */
 	omapi_protocol_t *p;
 	omapi_connection_t *c;
 	omapi_message_t *m;
 	omapi_object_t *connection;
-	isc_result_t result;
+	int authlen = 0;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(message != NULL && message->type == omapi_type_message);
 	/*
@@ -161,11 +162,22 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 
 	m = (omapi_message_t *)message;
 
-	/* XXXTL Write the authenticator length */
-	result = omapi_connection_putuint32(connection, 0);
+	if (p->key != NULL) {
+		result = dst_sign(DST_SIGMODE_INIT, p->key, &p->dstctx,
+				  NULL, NULL);
+
+		if (result == ISC_R_SUCCESS)
+			result = dst_sig_size(p->key, &authlen);
+
+		p->dst_update = ISC_TRUE;
+	}
+
 	if (result == ISC_R_SUCCESS)
 		/* XXXTL Write the ID of the authentication key we're using. */
 		result = omapi_connection_putuint32(connection, 0);
+
+	if (result == ISC_R_SUCCESS)
+		result = omapi_connection_putuint32(connection, authlen);
 
 	if (result == ISC_R_SUCCESS)
 		/*
@@ -228,9 +240,22 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 		 */
 		result = omapi_connection_putuint16(connection, 0);
 
-	if (result == ISC_R_SUCCESS)
-		/* XXXTL Write the authenticator... */
-		(void)0;
+	if (result == ISC_R_SUCCESS && p->key != NULL) {
+		isc_region_t r;
+
+		isc_buffer_clear(p->signature_out);
+
+		result = dst_sign(DST_SIGMODE_FINAL, p->key, &p->dstctx,
+				  NULL, p->signature_out);
+
+		isc_buffer_region(p->signature_out, &r);
+
+		p->dst_update = ISC_FALSE;
+
+		if (result == ISC_R_SUCCESS)
+			result = omapi_connection_putmem(connection,
+							 r.base, r.length);
+	}
 
 	/*
 	 * Prime the bytes_needed for the server's reply message.
@@ -306,13 +331,29 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	omapi_message_t *message, *m;
 	omapi_object_t *object = NULL;
 	omapi_objecttype_t *type = NULL;
+	omapi_protocol_t *protocol;
+	omapi_connection_t *connection;
 	omapi_value_t *tv = NULL;
 	unsigned long create, update, exclusive;
 	isc_result_t result, waitstatus;
 
 	REQUIRE(mo != NULL && mo->type == omapi_type_message);
+	REQUIRE(po != NULL);
 
 	message = (omapi_message_t *)mo;
+	protocol = (omapi_protocol_t *)po;
+
+	INSIST(po->outer != NULL && po->outer->type == omapi_type_connection);
+
+	/*
+	 * Note that the checking of connection->is_client throughout this
+	 * function pretty much means that peer-to-peer transactions can't
+	 * happen over a single connection.  It is not clear, yet, whether that
+	 * is such a bad thing, but the original design document didn't
+	 * specify that particular operations were only valid on the client
+	 * or on the server.
+	 */
+	connection = (omapi_connection_t *)po->outer;
 
 	if (message->rid != 0) {
 		for (m = registered_messages; m != NULL; m = m->next)
@@ -328,8 +369,60 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 	} else
 		m = NULL;
 
+	if (protocol->key != NULL) {
+		if (protocol->verify_result == ISC_R_SUCCESS)
+			protocol->verify_result =
+				dst_verify(DST_SIGMODE_FINAL, protocol->key,
+					   &protocol->dstctx, NULL,
+					   &protocol->signature_in);
+
+		if (protocol->verify_result != ISC_R_SUCCESS) {
+			if (connection->is_client) {
+				INSIST(m != NULL);
+				result = omapi_object_setstring(mo, "message",
+						"failed to verify signature");
+				if (result == ISC_R_SUCCESS)
+					(void)omapi_object_getvalue(mo,
+								    "message",
+								    &tv);
+
+				object_signal((omapi_object_t *)m, "status",
+					      protocol->verify_result, tv);
+
+				if (tv != NULL)
+					omapi_value_dereference(&tv);
+
+				/*
+				 * This keeps the connection from being blown
+				 * away, although it seems fairly reasonable
+				 * to force a disconnect.
+				 */
+				return (ISC_R_SUCCESS);
+
+			} else
+				/*
+				 * XXXDCL Should the key be stricken?
+				 * The curious thing about the way this
+				 * is currently set up is that the status
+				 * message won't verify on the client if
+				 * the secret was wrong ... so rather than
+				 * getting processed in OMAPI_OP_STATUS
+				 * below, it will be handled by this ``if''
+				 * statement on the client.
+				 */
+				return (send_status(po,
+						    protocol->verify_result,
+						    message->id,
+						    "failed to verify "
+						    "signature"));
+		}
+	}
+
 	switch (message->op) {
-	      case OMAPI_OP_OPEN:
+	case OMAPI_OP_OPEN:
+		if (connection->is_client)
+			return (ISC_R_UNEXPECTED);
+
 		if (m != NULL) {
 			return (send_status(po, OMAPI_R_INVALIDARG,
 					    message->id,
@@ -397,6 +490,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 					    isc_result_totext(result)));
 
 		/*
+		 * All messages except for the first attempt to set 
+		 * the dst key used by the protocol must be signed.
+		 */
+		if (type != omapi_type_protocol && protocol->key == NULL)
+			return (send_status(po, ISC_R_NOPERM, message->id,
+					    "unauthorized access"));
+
+		/*
 		 * If we weren't given a type, look the object up with
 		 * the handle.
 		 */
@@ -409,16 +510,34 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			goto refresh;
 		}
 
-		/*
-		 * If the type doesn't provide a lookup method, we can't
-		 * look up the object.  Ditto if no lookup key is provided.
-		 */
 		if (message->object == NULL)
-			return (send_status(po, ISC_R_NOTFOUND,
-					    message->id,
+			return (send_status(po, ISC_R_NOTFOUND, message->id,
 					    "no lookup key specified"));
 
-		result = object_methodlookup(type, &object, message->object);
+		/*
+		 * This is pretty hackish, a special case for an attempt
+		 * to open the protocol object.  It was done because
+		 * under the current design of OMAPI, there just isn't
+		 * a good way to set the authentication values.  The
+		 * connection object and protocol object are the only
+		 * things that hold state on the server throughout the life 
+		 * of a particular connection, and the original design
+		 * for lookup methods does not provide a way to identify
+		 * the current protocol or connection object.
+		 *
+		 * To minimize the hackishness, at least the rest of
+		 * the manipulation of the protocol object is done through
+		 * the normal object interfaces, rather than having a
+		 * a special block do the work directly.  Small consolation.
+		 */
+		if (type == omapi_type_protocol) {
+			OBJECT_REF(&object, po);
+			result = ISC_R_SUCCESS;
+
+		} else
+			result = object_methodlookup(type, &object,
+						     message->object);
+
 		if (result == ISC_R_NOTIMPLEMENTED)
 			return (send_status(po, result, message->id,
 					    "unsearchable object type"));
@@ -477,19 +596,32 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 */
 		goto send;
 
-	      case OMAPI_OP_REFRESH:
-	      refresh:
+	case OMAPI_OP_REFRESH:
+		if (connection->is_client)
+			return (ISC_R_UNEXPECTED);
+
+		if (protocol->key == NULL)
+			return (send_status(po, ISC_R_NOPERM, message->id,
+					    "unauthorized access"));
+
+	refresh:
 		result = handle_lookup(&object, message->h);
 		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
 
-	      send:		
+	send:		
 		result = send_update(po, message->id, object);
 		OBJECT_DEREF(&object);
 		return (result);
 
-	      case OMAPI_OP_UPDATE:
+	case OMAPI_OP_UPDATE:
+		if (! connection->is_client)
+			return (send_status(po, OMAPI_R_INVALIDARG,
+					    message->id,
+					    "OMAPI_OP_UPDATE is not a "
+					    "valid server operation"));
+
 		if (m->object != NULL)
 			OBJECT_REF(&object, m->object);
 
@@ -528,11 +660,17 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		return (result);
 
-	      case OMAPI_OP_NOTIFY:
+	case OMAPI_OP_NOTIFY:
 		return (send_status(po, ISC_R_NOTIMPLEMENTED, message->id,
 				    "notify not implemented yet"));
 
-	      case OMAPI_OP_STATUS:
+	case OMAPI_OP_STATUS:
+		if (! connection->is_client)
+			return (send_status(po, OMAPI_R_INVALIDARG,
+					    message->id,
+					    "OMAPI_OP_STATUS is not a "
+					    "valid server operation"));
+
 		/*
 		 * The return status of a request.
 		 */
@@ -563,7 +701,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 */
 		return (ISC_R_SUCCESS);
 
-	      case OMAPI_OP_DELETE:
+	case OMAPI_OP_DELETE:
+		if (connection->is_client)
+			return (ISC_R_UNEXPECTED);
+
+		if (protocol->key == NULL)
+			return (send_status(po, ISC_R_NOPERM, message->id,
+					    "unauthorized delete"));
+
 		result = handle_lookup(&object, message->h);
 		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
@@ -579,6 +724,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		return (send_status(po, result, message->id, NULL));
 	}
+
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
@@ -597,6 +743,7 @@ message_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 
 	/*
 	 * Can set authenticator, but the value must be typed data.
+	 * XXXDCL (no longer meaningful)
 	 */
 	if (omapi_string_strcmp(name, "authenticator") == 0) {
 		if (m->authenticator != NULL)
@@ -746,6 +893,12 @@ message_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 
 	message = (omapi_message_t *)handle;
 	
+	/*
+	 * XXXDCL It would make the client side a bit cleaner if when "status"
+	 * is signalled, it sets both "waitresult" and "waittext" (or some
+	 * such) in the OMAPI_OBJECT_PREAMBLE of both the message and
+	 * the notify_object or regular object.
+	 */
 	if (strcmp(name, "status") == 0 &&
 	    (message->object != NULL || message->notify_object != NULL)) {
 		if (message->notify_object != NULL)
