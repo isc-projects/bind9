@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: value.c,v 1.9 2000/08/01 01:33:02 tale Exp $ */
+/* $Id: value.c,v 1.10 2000/09/16 03:20:54 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -110,8 +110,7 @@ omapi_value_storemem(omapi_value_t **vp, omapi_string_t *name,
 }
 
 isc_result_t
-omapi_value_storeint(omapi_value_t **vp, omapi_string_t *name, int value)
-{
+omapi_value_storeint(omapi_value_t **vp, omapi_string_t *name, int value) {
 	isc_result_t result;
 
 	result = omapi_value_create(vp);
@@ -120,12 +119,10 @@ omapi_value_storeint(omapi_value_t **vp, omapi_string_t *name, int value)
 
 	omapi_string_reference(&(*vp)->name, name);
 
-	if (value != 0) {
-		result = omapi_data_create(&(*vp)->value, omapi_datatype_int);
+	result = omapi_data_create(&(*vp)->value, omapi_datatype_int);
 
-		if (result == ISC_R_SUCCESS)
-			(*vp)->value->u.integer = value;
-	}
+	if (result == ISC_R_SUCCESS)
+		(*vp)->value->u.integer = value;
 
 	if (result != ISC_R_SUCCESS)
 		omapi_value_dereference(vp);
