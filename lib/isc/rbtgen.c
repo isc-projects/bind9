@@ -6,6 +6,8 @@
  *	MIT Press / McGraw Hill, 1990, ISBN 0-262-03141-8, chapter 14.
  */
 
+#include "attribute.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
