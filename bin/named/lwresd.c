@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.24 2000/11/01 23:56:29 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.25 2000/11/04 01:11:27 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -494,12 +494,10 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 }
 
 static isc_result_t
-listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
+listener_create(isc_mem_t *mctx, ns_lwresd_t *lwresd,
 		ns_lwreslistener_t **listenerp)
 {
 	ns_lwreslistener_t *listener;
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_socket_t *sock = NULL;
 
 	REQUIRE(listenerp != NULL && *listenerp == NULL);
 
@@ -519,10 +517,19 @@ listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 	listener->mctx = NULL;
 	isc_mem_attach(mctx, &listener->mctx);
 
-	listener->address = *address;
-
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->cmgrs);
+
+	*listenerp = listener;
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+listener_bind(ns_lwreslistener_t *listener, isc_sockaddr_t *address) {
+	isc_socket_t *sock = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	listener->address = *address;
 
 	if (isc_sockaddr_getport(&listener->address) == 0) {
 		in_port_t port;
@@ -541,7 +548,7 @@ listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 			      NS_LOGMODULE_LWRESD, ISC_LOG_WARNING,
 			      "failed to create socket: %s",
 			      isc_result_totext(result));
-		goto fail;
+		return (result);
 	}
 
 	result = isc_socket_bind(sock, &listener->address);
@@ -551,21 +558,18 @@ listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 			      NS_LOGMODULE_LWRESD, ISC_LOG_WARNING,
 			      "failed to bind socket: %s",
 			      isc_result_totext(result));
-		goto fail;
+		return (result);
 	}
-	if (listener->sock != NULL)
-		isc_socket_detach(&listener->sock);
 	listener->sock = sock;
-
-	*listenerp = listener;
 	return (ISC_R_SUCCESS);
+}
 
- fail:
-	DESTROYLOCK(&listener->lock);
-	if (listener != NULL)
-		ns_lwreslistener_detach(&listener);
-	listener->magic = 0;
-	return (result);
+static void
+listener_copysock(ns_lwreslistener_t *oldlistener,
+		  ns_lwreslistener_t *newlistener)
+{
+	newlistener->address = oldlistener->address;
+	isc_socket_attach(oldlistener->sock, &newlistener->sock);
 }
 
 static isc_result_t
@@ -701,8 +705,7 @@ ns_lwresd_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx) {
 			oldlistener = NULL;
 			(void)find_listener(address, &oldlistener);
 			listener = NULL;
-			result = listener_create(mctx, address,
-						 lwresd, &listener);
+			result = listener_create(mctx, lwresd, &listener);
 			if (result != ISC_R_SUCCESS) {
 				isc_sockaddr_format(address, socktext,
 						    sizeof(socktext));
@@ -717,6 +720,20 @@ ns_lwresd_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx) {
 				ns_lwdmanager_detach(&lwresd);
 				return (result);
 			}
+
+			/*
+			 * If there's already a listener, don't rebind the
+			 * socket.
+			 */
+			if (oldlistener == NULL) {
+				result = listener_bind(listener, address);
+				if (result != ISC_R_SUCCESS) {
+					ns_lwdmanager_detach(&lwresd);
+					return (result);
+				}
+			} else
+				listener_copysock(oldlistener, listener);
+
 			result = listener_startclients(listener);
 			if (result != ISC_R_SUCCESS) {
 				isc_sockaddr_format(address, socktext,
