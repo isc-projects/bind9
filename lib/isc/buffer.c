@@ -21,6 +21,9 @@
 
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/mem.h>
+#include <isc/region.h>
+#include <isc/result.h>
 
 void
 isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,

@@ -22,11 +22,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <isc/types.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
-#include <isc/sockaddr.h>
 #include <isc/netaddr.h>
+#include <isc/region.h>
+#include <isc/sockaddr.h>
+#include <isc/types.h>
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.18 2000/04/07 13:35:04 brister Exp $ */
+/* $Id: confkeys.c,v 1.19 2000/04/10 21:52:31 gson Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/assertions.h>
 #include <isc/magic.h>
+#include <isc/mem.h>
 
 #include <dns/result.h>
 #include <dns/confkeys.h>

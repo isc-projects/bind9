@@ -104,8 +104,6 @@ ISC_LANG_BEGINDECLS
 
 /* Lex */
 
-typedef struct isc_lex isc_lex_t;
-
 typedef char isc_lexspecials_t[256];
 
 /* Tokens */

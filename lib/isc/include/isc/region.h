@@ -19,18 +19,19 @@
 #define ISC_REGION_H 1
 
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-typedef struct isc_region {
+struct isc_region {
 	unsigned char *	base;
 	unsigned int	length;
-} isc_region_t;
+};
 
-typedef struct isc_textregion {
+struct isc_textregion {
 	char *		base;
 	unsigned int	length;
-} isc_textregion_t;
+};
 
 /*
  * The region structure is not opaque, and is usually directly manipulated.

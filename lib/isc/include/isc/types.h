@@ -49,6 +49,9 @@ typedef struct isc_log 			isc_log_t;
 typedef struct isc_logconfig		isc_logconfig_t;
 typedef struct isc_logcategory		isc_logcategory_t;
 typedef struct isc_logmodule		isc_logmodule_t;
+typedef struct isc_region		isc_region_t;
+typedef struct isc_textregion		isc_textregion_t;
+typedef struct isc_lex			isc_lex_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 

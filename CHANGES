@@ -1,3 +1,6 @@
+  39.	[cleanup]	Moved the typedefs for isc_region_t, isc_textregion_t, 
+			and isc_lex_t to <isc/types.h>.
+
   38.	[bug]		TSIG signed incoming zone transfers work now.
 
   37.	[bug]		If the first RR in an incoming zone transfer was 
