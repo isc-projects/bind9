@@ -1,3 +1,5 @@
+ 413.	[bug]		notify could attempt to use the zone database after
+			it had been unloaded. (RT#267)
 
  412.	[bug]		named -v didn't print the version.
 

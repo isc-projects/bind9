@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.199 2000/08/31 00:31:38 marka Exp $ */
+/* $Id: zone.c,v 1.200 2000/08/31 06:16:42 marka Exp $ */
 
 #include <config.h>
 
@@ -276,6 +276,7 @@ static void ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset,
 		     dns_stub_t *stub);
 static int message_count(dns_message_t *msg, dns_section_t section,
 			 dns_rdatatype_t type);
+static void notify_cancel(dns_zone_t *zone);
 static void notify_find_address(dns_notify_t *notify);
 static void notify_send(dns_notify_t *notify);
 #ifdef NOMINUM_PUBLIC
@@ -1535,6 +1536,7 @@ zone_expire(dns_zone_t *zone) {
 	 */
 
 	REQUIRE(ISLOCKED(&zone->lock));
+	zone_log(zone, "zone_expire", ISC_LOG_WARNING, "expired");
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
 		result = zone_dump(zone);
@@ -1688,6 +1690,24 @@ dns_zone_unload(dns_zone_t *zone) {
 	LOCK(&zone->lock);
 	zone_unload(zone);
 	UNLOCK(&zone->lock);
+}
+
+static void
+notify_cancel(dns_zone_t *zone) {
+	dns_notify_t *notify;
+
+	/*
+	 * Locked by caller.
+	 */
+
+	for (notify = ISC_LIST_HEAD(zone->notifies);
+	     notify != NULL;
+	     notify = ISC_LIST_NEXT(notify, link)) {
+		if (notify->find != NULL)
+			dns_adb_cancelfind(notify->find);
+		if (notify->request != NULL)
+			dns_request_cancel(notify->request);
+	}
 }
 
 static void
@@ -1984,7 +2004,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
 	    DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING) ||
-	    zone->view->requestmgr == NULL) {
+	    zone->view->requestmgr == NULL ||
+	    zone->db == NULL) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -3061,7 +3082,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
-	dns_notify_t *notify;
 	isc_result_t result;
 
 	UNUSED(task);
@@ -3091,14 +3111,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->request != NULL)
 		dns_request_cancel(zone->request);
 
-	for (notify = ISC_LIST_HEAD(zone->notifies);
-	     notify != NULL;
-	     notify = ISC_LIST_NEXT(notify, link)) {
-		if (notify->find != NULL)
-			dns_adb_cancelfind(notify->find);
-		if (notify->request != NULL)
-			dns_request_cancel(notify->request);
-	}
+	notify_cancel(zone);
 
 	if (zone->timer != NULL) {
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
