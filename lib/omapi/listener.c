@@ -18,7 +18,7 @@
 /*
  * Subroutines that support the generic listener object.
  */
-#include <stddef.h>		/* NULL */
+#include <stdlib.h>		/* NULL and abort() */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>

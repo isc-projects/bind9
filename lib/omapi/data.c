@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.6 2000/01/31 18:52:43 gson Exp $ */
+/* $Id: data.c,v 1.7 2000/02/01 23:18:51 marka Exp $ */
 
 /* Principal Author: Ted Lemon */
 
 /*
  * Functions supporting memory allocation for the object management protocol.
  */
+#include <stdlib.h>		/* abort() */
 #include <string.h>		/* memset */
 
 #include <isc/assertions.h>
