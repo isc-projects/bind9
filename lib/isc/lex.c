@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.59 2001/01/09 21:56:10 bwelling Exp $ */
+/* $Id: lex.c,v 1.60 2001/01/16 07:47:16 marka Exp $ */
 
 #include <config.h>
 
@@ -240,7 +240,10 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 	flockfile(stream);
 #endif
 
-	return (new_source(lex, ISC_TRUE, ISC_TRUE, stream, filename));
+	result = new_source(lex, ISC_TRUE, ISC_TRUE, stream, filename);
+	if (result != ISC_R_SUCCESS)
+		fclose(stream);
+	return (result);
 }
 
 isc_result_t

@@ -1,3 +1,5 @@
+ 683.	[bug]		file leak in isc_lex_openfile().
+
  682.	[bug]		nslookup displayed SOA records incorrectly. [RT #665]
 
  681.	[bug]		$GENERATE specifying output format was broken. [RT#653]
