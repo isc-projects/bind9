@@ -1,26 +1,29 @@
 <!--
- - Copyright (C) 2000, 2001  Internet Software Consortium.
- - 
+ - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2001  Internet Software Consortium.
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
- - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
- - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
- - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
- - INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
- - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
- - FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- - NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
- - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ -
+ - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ - PERFORMANCE OF THIS SOFTWARE.
 -->
+
+<!-- $Id: lwres_buffer.html,v 1.5 2004/03/05 08:32:19 marka Exp $ -->
+
 <HTML
 ><HEAD
 ><TITLE
 >lwres_buffer</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "></HEAD
 ><BODY
 CLASS="REFENTRY"
@@ -210,13 +213,19 @@ functions in the ISC library.</P
 ><P
 >A buffer is a region of memory, together with a set of related
 subregions.
-The <I
+The <SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >used region</I
+></SPAN
 > and the
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >available</I
+></SPAN
 > region are disjoint, and
 their union is the buffer's region.
 The used region extends from the beginning of the buffer region to the
@@ -228,31 +237,46 @@ buffer commands.
 Initially, the used region is empty.</P
 ><P
 >The used region is further subdivided into two disjoint regions: the
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >consumed region</I
-> and the <I
+></SPAN
+> and the <SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >remaining region</I
+></SPAN
 >.
 The union of these two regions is the used region.
 The consumed region extends from the beginning of the used region to
-the byte before the <I
+the byte before the <SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >current</I
+></SPAN
 > offset (if any).
-The <I
+The <SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >remaining</I
+></SPAN
 > region the current pointer to the end of the used
 region.
 The size of the consumed region can be changed using various
 buffer commands.
 Initially, the consumed region is empty.</P
 ><P
->The <I
+>The <SPAN
+CLASS="emphasis"
+><I
 CLASS="EMPHASIS"
 >active region</I
+></SPAN
 > is an (optional) subregion of the remaining
 region.
 It extends from the current offset to an offset in the
