@@ -86,9 +86,11 @@
 
 /*
  * For type 3 negative cache entries, we will remember that the address is
- * broken for this long.
+ * broken for this long.  XXXMLG This is also used for actual addresses, too.
+ * The intent is to keep us from constantly asking about A/A6/AAAA records
+ * if the zone has extremely low TTLs.
  */
-#define ADB_NCACHE_MINIMUM	600	/* seconds */
+#define ADB_CACHE_MINIMUM	600	/* seconds */
 
 /*
  * Clean one bucket every CLEAN_SECONDS.
@@ -505,8 +507,8 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	if (rdataset->ttl == 0)
-		rdataset->ttl = ADB_NCACHE_MINIMUM;
+	rdataset->ttl = ISC_MIN(rdataset->ttl, ADB_CACHE_MINIMUM);
+
 	if (rdtype == dns_rdatatype_a) {
 		DP(NCACHE_LEVEL, "expire_v4 set to MIN(%u,%u) import_rdataset",
 		   adbname->expire_v4, now + rdataset->ttl);
@@ -2959,8 +2961,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 * We found a negative cache entry.  Pull the TTL from it
 		 * so we won't ask again for a while.
 		 */
-		if (rdataset.ttl == 0)
-			rdataset.ttl = ADB_NCACHE_MINIMUM;
+		rdataset.ttl = ISC_MIN(rdataset.ttl, ADB_CACHE_MINIMUM);
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
 			DP(NCACHE_LEVEL, "adb name %p: Caching negative entry for A (ttl %u)",
@@ -3110,6 +3111,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	 * If we got a negative cache response, remember it.
 	 */
 	if (NCACHE_RESULT(dev->result)) {
+		dev->rdataset->ttl = ISC_MIN(dev->rdataset->ttl,
+					     ADB_CACHE_MINIMUM);
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A (ttl %u)",
@@ -3259,6 +3262,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		 * If we got a negative cache response, remember it.
 		 */
 		if (NCACHE_RESULT(dev->result)) {
+			dev->rdataset->ttl = ISC_MIN(dev->rdataset->ttl,
+						     ADB_CACHE_MINIMUM);
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for A6 (ttl %u)",
 			   name, dev->rdataset->ttl);
