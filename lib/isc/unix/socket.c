@@ -707,19 +707,25 @@ send_recvdone_event(isc_socket_t *sock, isc_task_t **task,
 	REQUIRE(task != NULL);
 	REQUIRE(*task != NULL);
 
-	printf("task == %p, *task == %p\n", task, *task);
 	if (iev != NULL) {
 		REQUIRE(!EMPTY(sock->recv_list));
 		REQUIRE(*iev != NULL);
+		REQUIRE((*iev)->task == *task);
+
 		DEQUEUE(sock->recv_list, *iev, link);
-		(*iev)->done_ev = NULL;
 	}
 
 	(*dev)->result = resultcode;
 	ISC_TASK_SEND(*task, (isc_event_t **)dev);
+
+	/*
+	 * task might be an element in iev, so it cannot be used after iev
+	 * is freed!
+	 */
 	if (iev != NULL) {
-		isc_event_free((isc_event_t **)iev);
 		isc_task_detach(task);
+		(*iev)->done_ev = NULL;
+		isc_event_free((isc_event_t **)iev);
 	}
 }
 
@@ -746,15 +752,22 @@ send_senddone_event(isc_socket_t *sock, isc_task_t **task,
 	if (iev != NULL) {
 		REQUIRE(*iev != NULL);
 		REQUIRE(!EMPTY(sock->send_list));
+		REQUIRE((*iev)->task == *task);
+
 		DEQUEUE(sock->send_list, *iev, link);
-		(*iev)->done_ev = NULL;
 	}
 
 	(*dev)->result = resultcode;
 	ISC_TASK_SEND(*task, (isc_event_t **)dev);
+
+	/*
+	 * task might be an element in iev, so it cannot be used after iev
+	 * is freed!
+	 */
 	if (iev != NULL) {
-		isc_event_free((isc_event_t **)iev);
 		isc_task_detach(task);
+		(*iev)->done_ev = NULL;
+		isc_event_free((isc_event_t **)iev);
 	}
 }
 
