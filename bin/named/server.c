@@ -288,7 +288,8 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			 * Create a default view.
 			 */
 			tview = NULL;
-			result = create_default_view(ctx, ns_g_mctx, czone->zclass,
+			result = create_default_view(ctx, ns_g_mctx,
+						     czone->zclass,
 						     &tview);
 			if (result != ISC_R_SUCCESS)
 				return (result);
@@ -302,7 +303,8 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 * Do we already have a production version of this view?
 	 */
 	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
-	result = dns_viewlist_find(&ns_g_server->viewlist, view->name, view->rdclass,
+	result = dns_viewlist_find(&ns_g_server->viewlist,
+				   view->name, view->rdclass,
 				   &pview);
      	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
@@ -314,7 +316,8 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	result = dns_zone_create(&zone, lctx->mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_zone_configure(ns_g_lctx, ctx, lctx->aclconf, czone, zone);
+	result = dns_zone_configure(ns_g_lctx, ctx, lctx->aclconf,
+				    czone, zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -422,7 +425,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 	callbacks.optscbkuap = NULL;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "loading configuration from '%s'", filename);
+		      ISC_LOG_INFO, "loading configuration from '%s'",
+		      filename);
 
 	configctx = NULL;
 	result = dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
@@ -645,13 +649,17 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->transferacl = NULL;
 
 	/* XXX these values are for debugging only */
-	RUNTIME_CHECK(isc_quota_init(&server->xfroutquota, 1) == ISC_R_SUCCESS); 
-	RUNTIME_CHECK(isc_quota_init(&server->tcpquota, 3) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_quota_init(&server->recursionquota, 1) == ISC_R_SUCCESS);
+	result = isc_quota_init(&server->xfroutquota, 1);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
+	result = isc_quota_init(&server->tcpquota, 3);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
+	result = isc_quota_init(&server->recursionquota, 1);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	
 	/* Initialize server data structures. */
 	ISC_LIST_INIT(server->viewlist);
-	RUNTIME_CHECK(isc_rwlock_init(&server->viewlock, 0, 0) == ISC_R_SUCCESS);
+	result = isc_rwlock_init(&server->viewlock, 0, 0);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
 
 	server->interfacemgr = NULL;
 	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
