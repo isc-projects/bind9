@@ -161,19 +161,21 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	if (devent->result == ISC_R_SUCCESS) {
+		LOCK(&val->lock);
 		result = get_dst_key(val, val->siginfo, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			/* No matching key */
 			validator_done(val, result);
+			UNLOCK(&val->lock);
 			goto free_event;
 		}
-		LOCK(&val->lock);
 		if (val->attributes & VALATTR_NEGATIVE)
 			result = nxtvalidate(val, ISC_TRUE);
 		else
 			result = validate(val, ISC_TRUE);
-		if (result != DNS_R_CONTINUE) {
+		if (result != DNS_R_WAIT) {
 			validator_done(val, result);
+			UNLOCK(&val->lock);
 			goto free_event;
 		}
 		UNLOCK(&val->lock);
@@ -203,19 +205,23 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	if (devent->result == ISC_R_SUCCESS) {
+		LOCK(&val->lock);
 		result = get_dst_key(val, val->siginfo, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			/* No matching key */
 			validator_done(val, result);
+			UNLOCK(&val->lock);
 			goto free_event;
 		}
-		LOCK(&val->lock);
 		if (val->attributes & VALATTR_NEGATIVE)
 			result = nxtvalidate(val, ISC_TRUE);
 		else
 			result = validate(val, ISC_TRUE);
-		if (result != DNS_R_WAIT)
+		if (result != DNS_R_WAIT) {
 			validator_done(val, result);
+			UNLOCK(&val->lock);
+			goto free_event;
+		}
 		UNLOCK(&val->lock);
 	}
 	else
@@ -544,6 +550,10 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 				      "marking as secure");
 			return (result);
 		}
+		else
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "verify failure: %s",
+				      dns_result_totext(result));
 	}
 	return (result);
 }
@@ -608,9 +618,6 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			val->event->name = name;
 		}
 		firstname = ISC_FALSE;
-		result = validate(val, resume);
-		if (result != ISC_R_SUCCESS)
-			return (result);
 		order = dns_name_compare(val->queryname, val->event->name);
 		if (order == 0) {
 			dns_name_t *qname = NULL;
@@ -667,6 +674,11 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			"nxt range and/or bitmask is ok");
+
+		result = validate(val, resume);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
 		return (ISC_R_SUCCESS);
 	}
 	return (result);
