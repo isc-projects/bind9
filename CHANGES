@@ -1,5 +1,5 @@
-1563.	[bug]		Gracefully fail when unable to obtain neither a IPv4
-			or a IPv6 dispatch. [RT #10230]
+1563.	[bug]		Gracefully fail when unable to obtain neither an IPv4
+			nor an IPv6 dispatch. [RT #10230]
 
 1562.	[bug]		isc_socket_create() and isc_socket_accept() could
 			leak memory under error conditions. [RT #10230]
