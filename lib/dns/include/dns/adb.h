@@ -15,6 +15,9 @@
  * SOFTWARE.
  */
 
+#ifndef DNS_ADDRESS_H
+#define DNS_ADDRESS_H
+
 /***** 
  ***** Module Info 
  *****/ 
@@ -76,12 +79,25 @@
  *
  */
 
+/***
+ *** IMPORTS
+ ***/
+
+#include <isc/mem.h>
+#include <isc/task.h>
+#include <isc/lang.h>
+#include <isc/result.h>
+#include <isc/sockaddr.h>
+
+#include <dns/rdataset.h>
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** TYPES
  ***/
 
-/* _The_ ADB */
+/* The ADB */
 typedef struct dns_adb dns_adb_t;
 
 /*
@@ -158,7 +174,7 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
  *
  */
 void
-dns_adb_destroy(isc_adb_t **adb);
+dns_adb_destroy(dns_adb_t **adb);
 
 
 /*
@@ -214,7 +230,7 @@ dns_adb_destroy(isc_adb_t **adb);
  *	returns.
  */
 isc_result_t
-dns_adb_lookup(isc_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
+dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	       void *arg, dns_rdataset_t *nsdataset, dns_name_t *zone,
 	       dns_adbhandle_t **handle);
 
@@ -273,3 +289,7 @@ dns_adb_done(dns_adb_t *adb, dns_adbhandle_t *adbhandle);
  *
  *	Mix in measured RTT values.
  */
+
+ISC_LANG_ENDDECLS
+
+#endif /* DNS_ADDRESS_H */

@@ -247,6 +247,7 @@
 ./lib/dns/.cvsignore				X	1999
 ./lib/dns/Makefile.in				MAKE	1998,1999
 ./lib/dns/a6.c					C	1999
+./lib/dns/address.c				C	1999
 ./lib/dns/api					X	1999
 ./lib/dns/callbacks.c				C	1999
 ./lib/dns/compress.c				C	1999
