@@ -5,6 +5,9 @@
 ./bin/tests/task_test.c				1998
 ./bin/tests/timer_test.c			1998
 ./lib/dns/include/dns/name.h			1998
+./lib/dns/include/dns/rdata.h			1998
+./lib/dns/include/dns/rdataclass.h		1998
+./lib/dns/include/dns/rdatatype.h		1998
 ./lib/dns/include/dns/result.h			1998
 ./lib/dns/include/dns/types.h			1998
 ./lib/dns/name.c				1998
