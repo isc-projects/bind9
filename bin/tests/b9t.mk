@@ -5,30 +5,41 @@
 # $PLATFORM is set in the environment by cron
 #
 
-BASE	= $(HOME)/b9t
-SDIR	= $(BASE)/src
-PDIR	= $(BASE)/hosts/$(PLATFORM)
-BDIR	= $(PDIR)/build
+BASE	= /build
+BDIR	= $(BASE)
+MODULE	= bind9
 
-all:	clean config build test
+# as it says
+CVSROOT	= /proj/cvs/isc
 
-shuffle:
-	@if test -f $(PDIR)/.clean-last; then rm -f $(PDIR)/.clean-last; fi
-	@if test -f $(PDIR)/.build-last; then rm -f $(PDIR)/.build-last; fi
-	@if test -f $(PDIR)/.test-last; then rm -f $(PDIR)/.test-last; fi
-	@if test -f $(PDIR)/.clean; then mv $(PDIR)/.clean $(PDIR)/.clean-last; fi
-	@if test -f $(PDIR)/.build; then mv $(PDIR)/.build $(PDIR)/.build-last; fi
-	@if test -f $(PDIR)/.test; then mv $(PDIR)/.test $(PDIR)/.test-last; fi
+# where the config, build and test output g oes
+RDIR	= /proj/build-reports/$(MODULE)/hosts/$(PLATFORM)
 
-clean:	shuffle
-	-@( cd $(BDIR); if test -f Makefile ; then $(MAKE) distclean ; fi ) > $(PDIR)/.clean 2>&1
- 
+all:	clobber checkout config build test
+
+clobber:
+	@if test ! -d $(BDIR) ; then mkdir -p $(BDIR) > /dev/null 2>&1 ; fi
+	@echo "CLOBBBER `date`"
+	( cd $(BDIR) && rm -fr $(MODULE) )
+	@echo "DONE `date`"
+
+checkout:
+	@echo "CHECKOUT `date`"
+	@( cd $(BDIR) && cvs -d $(CVSROOT) checkout $(MODULE) )
+	@echo "DONE `date`"
+
 config:
-	@( cd $(BDIR); $(SDIR)/bind9/configure ) > $(PDIR)/.configure 2>&1
+	@echo "CONFIG `date`"
+	@( cd $(BDIR)/$(MODULE) && ./configure ) > $(RDIR)/.config 2>&1
+	@echo "DONE `date`"
 
 build:
-	@( cd $(BDIR); $(MAKE) -k all ) > $(PDIR)/.build 2>&1
+	@echo "BUILD `date`"
+	@( cd $(BDIR)/$(MODULE) && $(MAKE) -k all ) > $(RDIR)/.build 2>&1
+	@echo "DONE `date`"
 
 test:
-	-@( cd $(BDIR)/bin/tests; $(MAKE) test ) > $(PDIR)/.test 2>&1
+	@echo "TEST `date`"
+	-@( cd $(BDIR)/$(MODULE)/bin/tests && $(MAKE) test ) > $(RDIR)/.test 2>&1
+	@echo "DONE `date`"
 
