@@ -10,16 +10,24 @@ there is still a number of caveats you should be aware of when
 upgrading an existing BIND 8 installation to use BIND 9.
 
 
-Unimplemented Options and Changed Defaults
+1. Configuration File Compatibility
 
-Some BIND 8 configuration options are still unimplemented in BIND 9,
-and the default values of some options have changed.  If your
-named.conf file uses an unimplemented option, named will log a warning
-message.  A message is also logged about each option whose default has
-changed unless the option is set explicitly in named.conf.
+1.1. Unimplemented Options and Changed Defaults
+
+BIND 9.0.0 supports most, but not all but not of the named.conf
+options of BIND 8.  Unimplemented options include those for selective
+(per-domain) forwarding, sortlists, statistics, and process limits;
+for a complete list, see doc/misc/options.  We plan to implement most
+of these in in BIND 9.1.
+
+If your named.conf file uses an unimplemented option, named will log a
+warning message.  A message is also logged about each option whose
+default has changed unless the option is set explicitly in named.conf.
 
 
-Strict RFC1035 Interpretation of TTLs in Zone Files
+2. Zone File Compatibility
+
+2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
 
 BIND 8 allowed you to omit all TTLs from a zone file, and used the
 value of the SOA MINTTL field as a default for missing TTL values.
@@ -34,7 +42,24 @@ logged and loading the zone file fails.
 To avoid problems, use a $TTL directive in each zone file.
 
 
-Interoperability Impact of New Query Features
+2.2. Periods in SOA Serial Numbers Deprecated
+
+Some versions of BIND allow SOA serial numbers with an embedded
+period, like "3.002", and convert them into integers in a rather
+unintuitive way.  This feature is not supported by BIND 9; serial
+numbers must be integers.
+
+
+2.3. Handling of Unbalanced Quotes
+
+TXT records with unbalanced quotes, like 'host TXT "foo', were not
+treated as errors in some versions of BIND.  If your zone files
+contain such records, you will get potentially confusing error
+messages like "unexpected end of file" because BIND 9 will interpret
+everything up to the next quote character as a literal string.
+
+
+3. Interoperability Impact of New Protocol Features
 
 BIND 9 uses EDNS0 (RFC2671) to advertise its receive buffer size.  It
 also sets the AD bit in queries to indicate that it wishes to receive
@@ -54,4 +79,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.1 2000/06/30 22:44:08 gson Exp $
+$Id: migration,v 1.1.2.1 2000/07/12 05:05:10 gson Exp $
