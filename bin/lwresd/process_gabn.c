@@ -165,7 +165,7 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 
 	result = lwres_gabnrequest_parse(client->clientmgr->lwctx,
 					 b, &client->pkt, &req);
-	if (result != ISC_R_SUCCESS)
+	if (result != LWRES_R_SUCCESS)
 		goto out;
 
 	isc_buffer_init(&namebuf, req->name, req->namelen,
@@ -180,8 +180,6 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 
 	client->find_pending = 0;
 	client->find_wanted = req->addrtypes;
-
-	goto out;
 
 	if ((req->addrtypes & LWRES_ADDRTYPE_V4) != 0) {
 		result = start_v4find(client);

@@ -150,11 +150,12 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 	 */
 	client->recvlength = dev->n;
 	client->address = dev->address;
+	isc_event_free(&ev);
+	dev = NULL;
+
 	client_start_recv(cm);
 
 	process_request(client);
-
-	isc_event_free(&ev);
 }
 
 /*
