@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.49 2000/06/02 01:07:03 tale Exp $ */
+/* $Id: gen.c,v 1.50 2000/06/02 03:26:17 tale Exp $ */
 
 #include <config.h>
 
@@ -775,7 +775,8 @@ main(int argc, char **argv) {
 	do { \
 		s = funname(name, buf1); \
 		classnum = num; \
-		printf("\tdns_rdataclass_%s = %d,\n", s, classnum); \
+		printf("\tdns_rdataclass_%s = %d%s\n", s, classnum, \
+		       classnum != 255 ? "," : ""); \
 		printf("#define dns_rdataclass_%s\t" \
 		       "((dns_rdataclass_t)dns_rdataclass_%s)\n", s, s); \
 	} while (0)
