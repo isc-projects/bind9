@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.7 1999/10/29 22:37:46 gson Exp $ */
+/* $Id: log.c,v 1.8 1999/11/30 22:04:56 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -62,6 +62,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/adb",		0 },
 	{ "dns/xfrin",		0 },
 	{ "dns/xfrout",		0 },
+	{ "dns/aml",		0 },	
 	{ NULL, 		0 }
 };
 
