@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+#
+# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2002  Internet Software Consortium.
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+
+# $Id: check-changes,v 1.2 2004/03/05 05:14:15 marka Exp $
+
+eval 'exec /usr/bin/perl -S $0 ${1+"$@"}'
+    if $running_under_some_shell;
+			# this emulates #! processing on NIH machines.
+			# (remove #! line above if indigestible)
+
+eval '$'.$1.'$2;' while $ARGV[0] =~ /^([A-Za-z_0-9]+=)(.*)/ && shift;
+			# process any FOO=bar switches
+
+$, = ' ';		# set output field separator
+$\ = "\n";		# set output record separator
+
+$change = 0;
+$status = 0;
+
+line: while (<>) {
+    ($Fld1,$Fld2) = split(' ', $_, 9999);
+    if ($Fld1 =~ /^[1-9][0-9]*\.$/ && $Fld2 =~ /^\[.*\]$/) {
+	if ($change != 0 && $Fld1 + 1 != $change) {
+	    print 'bad change number', $Fld1;
+	    $status = 1;
+	}
+	$change = $Fld1;
+    }
+}
+
+exit $status;

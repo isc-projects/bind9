@@ -1,0 +1,134 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2003  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: HOW-ADB-WORKS.txt,v 1.2 2004/03/05 05:04:50 marka Exp $
+
+Recently, several groups have expressed concern over potential
+denial of service attacks within BIND 9, specifically within the ADB
+(address database.)  This document hopes to provide a more clear
+picture of how the ADB works, and what sort of attacks are less likely
+due to its use.
+
+We will describe two scenarios, one with two CPUs (and therefore two
+worker threads in BIND 9) and one with a single CPU (and therefore one
+worker thread.)  The two CPU scenario scales to N CPUs.
+
+ADB OVERVIEW
+============
+
+The ADB acts as a cache for nameserver lookups.  If BIND 9 wishes to
+contact host ns1.example.com, it looks this name up in the ADB.  It
+will either return a set of addresses (if known) or return a result
+indicating a callback will occur when the data is found.
+
+ADB query, data not found, no fetches pending
+---------------------------------------------
+
+The name is hashed to find the "bucket" the name exists in.  Each
+bucket is a linked list of names.  There are 1009 buckets in the ADB.
+
+Once the bucket is found, it is locked.
+
+The linked list is searched to see if any addresses are known for the
+name.  If no information is found, a new fetch is started to find the
+addresses for this name.
+
+The bucket is unlocked.
+
+At some point, a callback occurs.  The end result is either a set of
+addresses for this name, or failure.
+
+NOTE:  The bucket is NOT locked while the fetch is in progress.
+
+ADB query, no data found, fetches pending
+-----------------------------------------
+
+The name is hashed to find the "bucket" the name exists in.  Each
+bucket is a linked list of names.  There are 1009 buckets in the ADB.
+
+Once the bucket is found, it is locked.
+
+The linked list is searched to see if any addresses are known for the
+name.  If an in-progress fetch is found, we schedule a callback when
+the fetch completes.  This means ONE fetch is in progress for any
+specific name.
+
+The bucket is unlocked.
+
+At some point, a callback occurs.  The end result is either a set of
+addresses for this name, or failure.
+
+NOTE:  The bucket is NOT locked while the fetch is in progress.
+
+ADB query, addresses found
+--------------------------
+
+The name is hashed to find the "bucket" the name exists in.  Each
+bucket is a linked list of names.  There are 1009 buckets in the ADB.
+
+Once the bucket is found, it is locked.
+
+The linked list is searched.  Since addresses are found, they are
+copied (referenced, actually) for the caller.
+
+The bucket is unlocked.
+
+NOTE:  The bucket is NOT locked while the addresses are used by the
+caller.
+
+Summary
+-------
+
+For any single ADB lookup, at most one bucket is locked.  If there are
+10 worker threads, at most 10 buckets will be locked, and at most 9
+CPUs will be waiting for a lock if they all happen to want the same
+bucket.  The wait time is fairly small, however, since it consists of:
+
+	a lock
+	linked list search
+	perhaps starting a fetch
+	perhaps copying addresses
+	an unlock
+
+
+TWO CPUS
+========
+
+When BIND 9 is told to use two worker threads, each runs independently
+of one another until shared data needs to be accessed.  One place this
+occurs is in the ADB.
+
+If both worker threads are trying to look up the same name (or two
+names that hash to the same ADB bucket) one will have to wait for the
+ADB lookup to complete.  Note that the lock is NOT held while the
+actual DNS fetch for the data is performed.
+
+If they are looking up different names (that hash to different
+buckets) each runs independently.
+
+This reduces the two CPU case to (at worse) a single CPU performance.
+
+ONE CPU
+=======
+
+One CPU means one worker thread in operation, so there is no lock
+contention.
+
+N-CPUs
+======
+
+As described above, a N-CPU configuration will at worse fall back to a
+one-CPU scenario while trying to access the same ADB bucket.  However,
+while the packet is decoded, data is retrieved from authority or cache
+data, and while the result is encoded into wire format and transmitted
+to the caller, no ADB locks are held, and other CPUs are free to use
+it.
+
+At worse, all the CPUs but one will be blocking on an ADB lock.
+However, the time it takes to search authority and cache, decode and
+encode a DNS packet is likely larger than the time taken in the ADB
+lock, so the worse case is unlikely to occur in practice.
+
+Also, note that one the data is cached for a given query, the ADB is
+not even used until that cache data expires.

@@ -1,0 +1,73 @@
+Name		Status		Whom
+------------------------------------
+additional_cache review			(additional RRs caching for performance)
+rt8753		review			(support IPv6-scoped addr in dig)
+queryperf-v6	review			(IPv6 transport support for queryperf)
+compiled_zonefile open			(wire format zone file, under development)
+
+
+rt6539		review		???
+libbind_clean	open		jinmei
+rt3746		open		marka
+v6source
+peter		private		peter		(hostname.bind for 9.2.x)
+openssl_stub	open		marka
+chroot		open		marka
+rt5299		open		marka
+rt5456		review		explorer
+rt9976		review		jakob
+
+a6_remove	closed
+adb_race	closed		explorer
+blabel-cleanup	closed
+chroot		closed
+ds_12		closed
+edns_size	closed
+ifiter_getifaddrs closed
+ipl		closed
+ipv6-improvements closed
+ipv6-scope	closed
+ipv6_6to4	closed
+ksk		closed
+marka_google	closed
+rt3445		closed
+rt3502		closed
+rt3507		closed		ogud (pull down by explorer)
+rt3536(ixfr)	closed
+rt3588		closed
+rt3598		closed		explorer
+rt3625		closed		explorer
+rt3653		closed
+rt3666		closed
+rt3892		closed		explorer
+rt3907		closed		explorer
+rt4090		closed		explorer
+rt4112		closed		explorer
+rt4268		closed
+rt4319		closed		explorer
+rt4347		closed
+rt4398		closed
+rt4425		closed
+rt4463		closed
+rt4663		closed
+rt4675		closed
+rt4687		closed
+rt4715		closed
+rt4764		closed
+rt4796		closed
+rt4802		closed
+rt4898		closed
+rt5033		closed
+rt5041		closed
+rt5042		closed
+rt5044		closed
+rt5066		closed
+rt5084		closed
+rt5099		closed
+rt5124		closed
+rt5127		closed
+slavefix	closed
+rt7572		closed
+rt10132		closed
+rt10133		closed
+rt10134		closed
