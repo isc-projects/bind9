@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.18 2001/01/09 22:00:27 bwelling Exp $ */
+/* $Id: omapi.h,v 1.19 2001/02/15 19:13:48 bwelling Exp $ */
 
 /*
  * Definitions for the object management API and protocol.
@@ -29,8 +29,6 @@
 #include <isc/boolean.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>
-
-#include <dns/acl.h>
 
 #include <omapi/types.h>
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.15 2001/01/09 21:59:54 bwelling Exp $ */
+/* $Id: auth.c,v 1.16 2001/02/15 19:13:47 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -41,6 +41,8 @@
 #include <isc/once.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dns/name.h>
 
 #include <dst/result.h>
 
