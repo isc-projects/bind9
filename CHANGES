@@ -1,3 +1,5 @@
+1833.	[bug]		Race condition in isc_mutex_lock_profile(). [RT #13660]
+
 1832.	[bug]		named fails to return BADKEY on unknown TSIG algorithm.
 			[RT #13620]
 
