@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.10 2000/02/03 01:28:49 explorer Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.11 2000/02/03 21:54:08 marka Exp $
  */
 
 
@@ -51,7 +51,7 @@ static void set_order(int, int (**)(const char *, int, struct addrinfo **,
 #define ISC_AI_MASK (AI_PASSIVE|AI_CANONNAME|AI_NUMERICHOST)
 
 int
-getaddrinfo(const char *hostname, const char *servname,
+lwres_getaddrinfo(const char *hostname, const char *servname,
 	const struct addrinfo *hints, struct addrinfo **res)
 {
 	struct servent *sp;
@@ -185,7 +185,7 @@ getaddrinfo(const char *hostname, const char *servname,
 		if (family == AF_INET6 || family == 0) {
 			ai = ai_alloc(AF_INET6, sizeof(struct sockaddr_in6));
 			if (ai == NULL) {
-				freeaddrinfo(ai_list);
+				lwres_freeaddrinfo(ai_list);
 				return (EAI_MEMORY);
 			}
 			ai->ai_socktype = socktype;
@@ -338,7 +338,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET)) == NULL) {
-			freeaddrinfo(*aip);
+			lwres_freeaddrinfo(*aip);
 			ERR(EAI_MEMORY);
 		}
 
@@ -351,7 +351,7 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 		for (i = 0; i < by->naddrs; i++) {
 			ai = ai_clone(*aip, AF_INET);
 			if (ai == NULL) {
-				freeaddrinfo(*aip);
+				lwres_freeaddrinfo(*aip);
 				ERR(EAI_MEMORY);
 			}
 			*aip = ai;
@@ -388,7 +388,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
-			freeaddrinfo(*aip);
+			lwres_freeaddrinfo(*aip);
 			ERR(EAI_MEMORY);
 		}
 
@@ -400,7 +400,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 					LWRES_ADDRTYPE_V6, &by) == 0) {
 		for (i = 0; i < by->naddrs; i++) {
 			if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
-				freeaddrinfo(*aip);
+				lwres_freeaddrinfo(*aip);
 				ERR(EAI_MEMORY);
 			}
 			*aip = ai;
@@ -421,7 +421,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 }
 
 void
-freeaddrinfo(struct addrinfo *ai) {
+lwres_freeaddrinfo(struct addrinfo *ai) {
 	struct addrinfo *ai_next;
 
 	while (ai != NULL) {
@@ -499,7 +499,7 @@ ai_clone(struct addrinfo *oai, int family) {
 	    sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in)));
 
 	if (ai == NULL) {
-		freeaddrinfo(oai);
+		lwres_freeaddrinfo(oai);
 		return (NULL);
 	}
 	if (oai == NULL)

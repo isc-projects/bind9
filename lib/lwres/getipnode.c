@@ -83,7 +83,7 @@ static struct hostent * hostfromname(lwres_gabnresponse_t *name, int af);
  */
 
 struct hostent *
-getipnodebyname(const char *name, int af, int flags, int *error_num) {
+lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	int have_v4 = 1, have_v6 = 1;
 	struct in_addr in4;
 	struct in6_addr in6;
@@ -179,16 +179,16 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 
  cleanup:
 	if (he1 != NULL)
-		freehostent(he1);
+		lwres_freehostent(he1);
 	if (he2 != NULL)
-		freehostent(he2);
+		lwres_freehostent(he2);
 	if (lwrctx != NULL)
 		lwres_context_destroy(&lwrctx);
 	return (he3);
 }
 
 struct hostent *
-getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
+lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	struct hostent *he1, *he2;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
@@ -246,7 +246,7 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 
 		/* Convert from AF_INET to AF_INET6 */
 		he2 = copyandmerge(he1, NULL, af, error_num);
-		freehostent(he1);
+		lwres_freehostent(he1);
 		if (he2 == NULL)
 			return (NULL);
 		/*
@@ -281,7 +281,7 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 }
 
 void
-freehostent(struct hostent *he) {
+lwres_freehostent(struct hostent *he) {
 	char **cpp;
 	int names = 1;
 	int addresses = 1;

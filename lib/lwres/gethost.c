@@ -32,73 +32,73 @@ static struct hostent *he = NULL;
 static int copytobuf(struct hostent *, struct hostent *, char *, int);
 
 struct hostent *
-gethostbyname(const char *name) {
+lwres_gethostbyname(const char *name) {
 	int error;
 
 	if (he != NULL)
-		freehostent(he);
+		lwres_freehostent(he);
 
-	he = getipnodebyname(name, AF_INET, 0, &error);
-	h_errno = error;
+	he = lwres_getipnodebyname(name, AF_INET, 0, &error);
+	lwres_h_errno = error;
 	return (he);
 }
 
 struct hostent *
-gethostbyname2(const char *name, int af) {
+lwres_gethostbyname2(const char *name, int af) {
 	int error;
 
 	if (he != NULL)
-		freehostent(he);
+		lwres_freehostent(he);
 
-	he = getipnodebyname(name, af, 0, &error);
-	h_errno = error;
+	he = lwres_getipnodebyname(name, af, 0, &error);
+	lwres_h_errno = error;
 	return (he);
 }
 
 struct hostent *
-gethostbyaddr(const char *addr, int len, int type) {
+lwres_gethostbyaddr(const char *addr, int len, int type) {
 	int error;
 
 	if (he != NULL) 
-		freehostent(he);
+		lwres_freehostent(he);
 
-	he = getipnodebyaddr(addr, len, type, &error);
-	h_errno = error;
+	he = lwres_getipnodebyaddr(addr, len, type, &error);
+	lwres_h_errno = error;
 	return (he);
 }
 
 struct hostent *
-gethostent(void) {
+lwres_gethostent(void) {
 
 	if (he != NULL)
-		freehostent(he);
+		lwres_freehostent(he);
 
 	return (NULL);
 }
 
 void
-sethostent(int stayopen) {
+lwres_sethostent(int stayopen) {
 	/* empty */
 	(void)stayopen;
 }
 
 void
-endhostent(void) {
+lwres_endhostent(void) {
 	/* empty */
 }
 
 struct hostent *
-gethostbyname_r(const char *name, struct hostent *resbuf,
+lwres_gethostbyname_r(const char *name, struct hostent *resbuf,
 		char *buf, int buflen, int *error) {
 	struct hostent *he;
 	int res;
 
-	he = getipnodebyname(name, AF_INET, 0, error);
+	he = lwres_getipnodebyname(name, AF_INET, 0, error);
 	if (he == NULL)
 		return (NULL);
 	res = copytobuf(he, resbuf, buf, buflen);
 	if (he != NULL)
-		freehostent(he);
+		lwres_freehostent(he);
 	if (res != 0) {
 		errno = ERANGE;
 		return (NULL);
@@ -107,17 +107,17 @@ gethostbyname_r(const char *name, struct hostent *resbuf,
 }
 
 struct hostent  *
-gethostbyaddr_r(const char *addr, int len, int type, struct hostent *resbuf,
+lwres_gethostbyaddr_r(const char *addr, int len, int type, struct hostent *resbuf,
 		char *buf, int buflen, int *error) {
 	struct hostent *he;
 	int res;
 
-	he = getipnodebyaddr(addr, len, type, error);
+	he = lwres_getipnodebyaddr(addr, len, type, error);
 	if (he == NULL)
 		return (NULL);
 	res = copytobuf(he, resbuf, buf, buflen);
 	if (he != NULL)
-		freehostent(he);
+		lwres_freehostent(he);
 	if (res != 0) {
 		errno = ERANGE;
 		return (NULL);
@@ -126,7 +126,7 @@ gethostbyaddr_r(const char *addr, int len, int type, struct hostent *resbuf,
 }
 
 struct hostent  *
-gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error) {
+lwres_gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error) {
 	(void)resbuf;
 	(void)buf;
 	(void)buflen;
@@ -135,13 +135,13 @@ gethostent_r(struct hostent *resbuf, char *buf, int buflen, int *error) {
 }
 
 void
-sethostent_r(int stayopen) {
+lwres_sethostent_r(int stayopen) {
 	(void)stayopen;
 	/* empty */
 }
 
 void
-endhostent_r(void) {
+lwres_endhostent_r(void) {
 	/* empty */
 }
 

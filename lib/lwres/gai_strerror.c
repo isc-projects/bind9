@@ -11,7 +11,7 @@ you didn't get a copy, you may request one from <license@inner.net>.
 #include <errno.h>
 
 char *
-gai_strerror(int errnum) {
+lwres_gai_strerror(int errnum) {
 	switch(errnum) {
 	case 0:
 		return "no error";

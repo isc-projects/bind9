@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright(C) 2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,157 +18,15 @@
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 
-/*
- * ++Copyright++ 1980, 1983, 1988, 1993
- * -
- * Copyright (c) 1980, 1983, 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * -
- * Portions Copyright (c) 1993 by Digital Equipment Corporation.
- *
- * Permission to use, copy, modify, and distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies, and that
- * the name of Digital Equipment Corporation not be used in advertising or
- * publicity pertaining to distribution of the document or software without
- * specific, written prior permission.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND DIGITAL EQUIPMENT CORP. DISCLAIMS ALL
- * WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS.   IN NO EVENT SHALL DIGITAL EQUIPMENT
- * CORPORATION BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
- * -
- * Portions Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    This product includes software developed by WIDE Project and
- *    its contributors.
- * 4. Neither the name of the project nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * -
- * --Copyright--
- */
-
-/*
- *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h.in,v 1.13 2000/02/03 02:21:18 marka Exp $
- */
-
-#include <stdio.h>
-#if 0
-#include <lwres/net.h>
-#endif
+#include <netdb.h>
 #include <lwres/lang.h>
 
-#ifndef _PATH_HEQUIV
-#define _PATH_HEQUIV	"/etc/hosts.equiv"
-#endif
-#ifndef _PATH_HOSTS
-#define	_PATH_HOSTS	"/etc/hosts"
-#endif
-#ifndef _PATH_NETWORKS
-#define	_PATH_NETWORKS	"/etc/networks"
-#endif
-#ifndef _PATH_PROTOCOLS
-#define	_PATH_PROTOCOLS	"/etc/protocols"
-#endif
-#ifndef _PATH_SERVICES
-#define	_PATH_SERVICES	"/etc/services"
-#endif
-
 /*
- * Structures returned by network data base library.  All addresses are
- * supplied in host order, and returned in network order (suitable for
- * use in system calls).
+ * Define if <netdb.h> does not declare struct addrinfo.
  */
-struct	hostent {
-	char	*h_name;	/* official name of host */
-	char	**h_aliases;	/* alias list */
-	int	h_addrtype;	/* host address type */
-	int	h_length;	/* length of address */
-	char	**h_addr_list;	/* list of addresses from name server */
-#define	h_addr	h_addr_list[0]	/* address, for backward compatiblity */
-};
+@ISC_LWRES_NEEDADDRINFO@
 
-/*
- * Assumption here is that a network number
- * fits in an unsigned long -- probably a poor one.
- */
-struct	netent {
-	char		*n_name;	/* official name of net */
-	char		**n_aliases;	/* alias list */
-	int		n_addrtype;	/* net address type */
-	unsigned long	n_net;		/* network # */
-};
-
-struct	servent {
-	char	*s_name;	/* official service name */
-	char	**s_aliases;	/* alias list */
-	int	s_port;		/* port # */
-	char	*s_proto;	/* protocol to use */
-};
-
-struct	protoent {
-	char	*p_name;	/* official protocol name */
-	char	**p_aliases;	/* alias list */
-	int	p_proto;	/* protocol # */
-};
-
+#ifdef ISC_LWRES_NEEDADDRINFO
 struct	addrinfo {
 	int		ai_flags;	/* AI_PASSIVE, AI_CANONNAME */
 	int		ai_family;	/* PF_xxx */
@@ -179,11 +37,25 @@ struct	addrinfo {
 	struct sockaddr	*ai_addr; 	/* binary address */
 	struct addrinfo	*ai_next; 	/* next structure in linked list */
 };
+#endif
+
+/*
+ * Undefine all #defines we are interested in as <netdb.h> may or may not have
+ * defined them.
+ */
 
 /*
  * Error return codes from gethostbyname() and gethostbyaddr()
- * (left in extern int h_errno).
+ *(left in extern int h_errno).
  */
+
+#undef	NETDB_INTERNAL
+#undef	NETDB_SUCCESS
+#undef	HOST_NOT_FOUND
+#undef	TRY_AGAIN
+#undef	NO_RECOVERY
+#undef	NO_DATA
+#undef	NO_ADDRESS
 
 #define	NETDB_INTERNAL	-1	/* see errno */
 #define	NETDB_SUCCESS	0	/* no problem */
@@ -196,6 +68,21 @@ struct	addrinfo {
 /*
  * Error return codes from getaddrinfo()
  */
+
+#undef	EAI_ADDRFAMILY
+#undef	EAI_AGAIN
+#undef	EAI_BADFLAGS
+#undef	EAI_FAIL
+#undef	EAI_FAMILY
+#undef	EAI_MEMORY
+#undef	EAI_NODATA
+#undef	EAI_NONAME
+#undef	EAI_SERVICE
+#undef	EAI_SOCKTYPE
+#undef	EAI_SYSTEM
+#undef	EAI_BADHINTS
+#undef	EAI_PROTOCOL
+#undef	EAI_MAX
 
 #define	EAI_ADDRFAMILY	 1	/* address family for hostname not supported */
 #define	EAI_AGAIN	 2	/* temporary failure in name resolution */
@@ -215,28 +102,45 @@ struct	addrinfo {
 /*
  * Flag values for getaddrinfo()
  */
+#undef	AI_PASSIVE
+#undef	AI_CANONNAME
+#undef	AI_NUMERICHOST
+
 #define	AI_PASSIVE	0x00000001
 #define	AI_CANONNAME	0x00000002
 #define AI_NUMERICHOST	0x00000004
-#define	AI_MASK		0x00000007
 
 /*
  * Flag values for getipnodebyname()
  */
+#undef AI_V4MAPPED
+#undef AI_ALL
+#undef AI_ADDRCONFIG
+#undef AI_DEFAULT
+
 #define AI_V4MAPPED	0x00000008
 #define AI_ALL		0x00000010
 #define AI_ADDRCONFIG	0x00000020
 #define AI_DEFAULT	(AI_V4MAPPED|AI_ADDRCONFIG)
 
 /*
- * Constants for getnameinfo()
+ * Constants for lwres_getnameinfo()
  */
+#undef	NI_MAXHOST
+#undef	NI_MAXSERV
+
 #define	NI_MAXHOST	1025
 #define	NI_MAXSERV	32
 
 /*
- * Flag values for getnameinfo()
+ * Flag values for lwres_getnameinfo()
  */
+#undef	NI_NOFQDN
+#undef	NI_NUMERICHOST
+#undef	NI_NAMEREQD
+#undef	NI_NUMERICSERV
+#undef	NI_DGRAM
+
 #define	NI_NOFQDN	0x00000001
 #define	NI_NUMERICHOST	0x00000002
 #define	NI_NAMEREQD	0x00000004
@@ -250,6 +154,10 @@ struct	addrinfo {
 #define LWRES_NAMESPACE
 
 #ifdef LWRES_NAMESPACE
+
+/*
+ * Use our versions not the ones from the C library.
+ */
 
 #define getnameinfo lwres_getnameinfo
 #define getaddrinfo lwres_getaddrinfo
@@ -277,6 +185,7 @@ struct	addrinfo {
 #define sethostent_r lwres_sethostent_r
 #define endhostent_r lwres_endhostent_r
 
+#ifdef notyet
 #define getservbyname lwres_getservbyname
 #define getservbyport lwres_getservbyport
 #define getservent lwres_getservent
@@ -300,6 +209,7 @@ struct	addrinfo {
 #define getprotoent_r lwres_getprotoent_r
 #define setprotoent_r lwres_setprotoent_r
 #define endprotoent_r lwres_endprotoent_r
+#endif
 
 #define getnetbyname lwres_getnetbyname
 #define getnetbyaddr lwres_getnetbyaddr
@@ -317,93 +227,105 @@ struct	addrinfo {
 
 #endif
 
-extern int h_errno;
-
 LWRES_LANG_BEGINDECLS
-#ifndef __P
-#define __P(x) x
-#endif
-void		endhostent __P((void));
-void		endnetent __P((void));
-void		endprotoent __P((void));
-void		endservent __P((void));
-struct hostent	*gethostbyaddr __P((const char *, int, int));
-struct hostent	*gethostbyname __P((const char *));
-struct hostent	*gethostbyname2 __P((const char *, int));
-struct hostent	*gethostent __P((void));
-struct netent	*getnetbyaddr __P((unsigned long, int));
-struct netent	*getnetbyname __P((const char *));
-struct netent	*getnetent __P((void));
-struct protoent	*getprotobyname __P((const char *));
-struct protoent	*getprotobynumber __P((int));
-struct protoent	*getprotoent __P((void));
-struct servent	*getservbyname __P((const char *, const char *));
-struct servent	*getservbyport __P((int, const char *));
-struct servent	*getservent __P((void));
-void		herror __P((const char *));
-const char	*hstrerror __P((int));
-void		sethostent __P((int));
-/* void		sethostfile __P((const char *)); */
-void		setnetent __P((int));
-void		setprotoent __P((int));
-void		setservent __P((int));
-int		getaddrinfo __P((const char *, const char *,
-				 const struct addrinfo *, struct addrinfo **));
-int		getnameinfo __P((const struct sockaddr *, size_t, char *,
-				 size_t, char *, size_t, int));
-void		freeaddrinfo __P((struct addrinfo *));
-char		*gai_strerror __P((int));
-struct hostent  *getipnodebyname __P((const char *, int, int, int *));
-struct hostent	*getipnodebyaddr __P((const void *, size_t, int, int *));
-void		freehostent __P((struct hostent *));
+
+extern int lwres_h_errno;
+
+int		lwres_getaddrinfo(const char *, const char *,
+				 const struct addrinfo *, struct addrinfo **);
+int		lwres_getnameinfo(const struct sockaddr *, size_t, char *,
+				 size_t, char *, size_t, int);
+void		lwres_freeaddrinfo(struct addrinfo *);
+char		*lwres_gai_strerror(int);
+
+struct hostent	*lwres_gethostbyaddr(const char *, int, int);
+struct hostent	*lwres_gethostbyname(const char *);
+struct hostent	*lwres_gethostbyname2(const char *, int);
+struct hostent	*lwres_gethostent(void);
+struct hostent	*lwres_getipnodebyname(const char *, int, int, int *);
+struct hostent	*lwres_getipnodebyaddr(const void *, size_t, int, int *);
+void		lwres_endhostent(void);
+void		lwres_sethostent(int);
+/* void		lwres_sethostfile(const char *); */
+void		lwres_freehostent(struct hostent *);
+
+struct netent	*lwres_getnetbyaddr(unsigned long, int);
+struct netent	*lwres_getnetbyname(const char *);
+struct netent	*lwres_getnetent(void);
+void		lwres_endnetent(void);
+void		lwres_setnetent(int);
+
+#ifdef notyet
+struct protoent	*lwres_getprotobyname(const char *);
+struct protoent	*lwres_getprotobynumber(int);
+struct protoent	*lwres_getprotoent(void);
+void		lwres_endprotoent(void);
+void		lwres_setprotoent(int);
+
+struct servent	*lwres_getservbyname(const char *, const char *);
+struct servent	*lwres_getservbyport(int, const char *);
+struct servent	*lwres_getservent(void);
+void		lwres_endservent(void);
+void		lwres_setservent(int);
+#endif /* notyet */
+
+void		lwres_herror(const char *);
+const char	*lwres_hstrerror(int);
 
 
 #ifdef _REENTRANT
-struct hostent	*gethostbyaddr_r __P((const char *, int, int, struct hostent *,
-					char *, int, int *));
-struct hostent	*gethostbyname_r __P((const char *, struct hostent *,
-					char *, int, int *));
-struct hostent	*gethostent_r __P((struct hostent *, char *, int, int *));
-void		sethostent_r __P((int));
-void		endhostent_r __P((void));
+struct hostent	*lwres_gethostbyaddr_r(const char *, int, int, struct hostent *,
+					char *, int, int *);
+struct hostent	*lwres_gethostbyname_r(const char *, struct hostent *,
+					char *, int, int *);
+struct hostent	*lwres_gethostent_r(struct hostent *, char *, int, int *);
+void		lwres_sethostent_r(int);
+void		lwres_endhostent_r(void);
 
-struct netent	*getnetbyname_r __P((const char *, struct netent *,
-					char *, int));
-struct netent	*getnetbyaddr_r __P((long, int, struct netent *,
-					char *, int));
-struct netent	*getnetent_r __P((struct netent *, char *, int));
-void		setnetent_r __P((int));
-void		endnetent_r __P((void));
+struct netent	*lwres_getnetbyname_r(const char *, struct netent *,
+					char *, int);
+struct netent	*lwres_getnetbyaddr_r(long, int, struct netent *,
+					char *, int);
+struct netent	*lwres_getnetent_r(struct netent *, char *, int);
+void		lwres_setnetent_r(int);
+void		lwres_endnetent_r(void);
 
-struct protoent	*getprotobyname_r __P((const char *,
-				struct protoent *, char *, int));
-struct protoent	*getprotobynumber_r __P((int,
-				struct protoent *, char *, int));
-struct protoent	*getprotoent_r __P((struct protoent *, char *, int));
-void		setprotoent_r __P((int));
-void		endprotoent_r __P((void));
+#ifdef notyet
+struct protoent	*lwres_getprotobyname_r(const char *,
+				struct protoent *, char *, int);
+struct protoent	*lwres_getprotobynumber_r(int,
+				struct protoent *, char *, int);
+struct protoent	*lwres_getprotoent_r(struct protoent *, char *, int);
+void		lwres_setprotoent_r(int);
+void		lwres_endprotoent_r(void);
 
-struct servent	*getservbyname_r __P((const char *name, const char *,
-					struct servent *, char *, int));
-struct servent	*getservbyport_r __P((int port, const char *,
-					struct servent *, char *, int));
-struct servent	*getservent_r __P((struct servent *, char *, int));
-void		setservent_r __P((int));
-void		endservent_r __P((void));
-#endif
+struct servent	*lwres_getservbyname_r(const char *name, const char *,
+					struct servent *, char *, int);
+struct servent	*lwres_getservbyport_r(int port, const char *,
+					struct servent *, char *, int);
+struct servent	*lwres_getservent_r(struct servent *, char *, int);
+void		lwres_setservent_r(int);
+void		lwres_endservent_r(void);
+#endif	/* notyet */
+#endif	/* _REENTRANT */
+
 LWRES_LANG_ENDDECLS
 
+#ifdef notyet
 /* This is nec'y to make this include file properly replace the sun version. */
 #ifdef sun
 #ifdef __GNU_LIBRARY__
 #include <rpc/netdb.h>
-#else
+#else /* !__GNU_LIBRARY__ */
 struct rpcent {
 	char	*r_name;	/* name of server for this rpc program */
 	char	**r_aliases;	/* alias list */
 	int	r_number;	/* rpc program number */
 };
-struct rpcent	*getrpcbyname(), *getrpcbynumber(), *getrpcent();
+struct rpcent	*lwres_getrpcbyname();
+struct rpcent	*lwres_getrpcbynumber(),
+struct rpcent	*lwres_getrpcent();
 #endif /* __GNU_LIBRARY__ */
 #endif /* sun */
+#endif /* notyet */
 #endif

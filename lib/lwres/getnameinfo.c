@@ -75,7 +75,7 @@ static struct afd {
 #define ERR(x) do { result = (x); goto cleanup; } while (0)
 
 int
-getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
+lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	    size_t hostlen, char *serv, size_t servlen, int flags)
 {
 	struct afd *afd;

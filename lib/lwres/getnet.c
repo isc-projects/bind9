@@ -25,7 +25,7 @@
 #include "assert_p.h"
 
 struct netent *
-getnetbyname(const char *name) {
+lwres_getnetbyname(const char *name) {
 
 	/* XXX */
 	UNUSED(name);
@@ -33,7 +33,7 @@ getnetbyname(const char *name) {
 }
 
 struct netent *
-getnetbyaddr(unsigned long net, int type) {
+lwres_getnetbyaddr(unsigned long net, int type) {
 
 	if (type == AF_INET) 
 		return (NULL);
@@ -44,48 +44,48 @@ getnetbyaddr(unsigned long net, int type) {
 }
 
 struct netent *
-getnetent() {
+lwres_getnetent() {
 
 	return (NULL);
 }
 
 void
-setnetent(int stayopen) {
+lwres_setnetent(int stayopen) {
 	
 	UNUSED(stayopen);
 	/* empty */
 }
 
 void
-endnetent() {
+lwres_endnetent() {
 	/* empty */
 }
 
 struct netent *
-getnetbyname_r(const char *name, struct netent *resbuf, char *buf,
+lwres_getnetbyname_r(const char *name, struct netent *resbuf, char *buf,
 	       int buflen)
 {
 	return (NULL);
 }
 
 struct netent *
-getnetbyaddr_r(long addr, int type, struct netent *resbuf, char *buf,
+lwres_getnetbyaddr_r(long addr, int type, struct netent *resbuf, char *buf,
 	       int buflen)
 {
 	return (NULL);
 }
 
 struct netent *
-getnetent_r(struct netent *resbuf, char *buf, int buflen) {
+lwres_getnetent_r(struct netent *resbuf, char *buf, int buflen) {
 	return (NULL);
 }
 
 void
-setnetent_r(int stayopen) {
+lwres_setnetent_r(int stayopen) {
 	(void)stayopen;
 }
 
 void
-endnetent_r(void) {
+lwres_endnetent_r(void) {
 	/* empty */
 }

@@ -50,13 +50,13 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: herror.c,v 1.1 2000/01/27 08:08:02 marka Exp $";
+static const char rcsid[] = "$Id: herror.c,v 1.2 2000/02/03 21:54:10 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <stdio.h>
 #include <lwres/netdb.h>
 
-int	h_errno;
+int	lwres_h_errno;
 
 /*
  * these have never been declared in any header file so make them static
@@ -78,8 +78,8 @@ static int	h_nerr = { sizeof h_errlist / sizeof h_errlist[0] };
  *	print the error indicated by the h_errno value.
  */
 void
-herror(const char *s) {
-	fprintf(stderr, "%s: %s\n", s, hstrerror(h_errno));
+lwres_herror(const char *s) {
+	fprintf(stderr, "%s: %s\n", s, lwres_hstrerror(lwres_h_errno));
 }
 
 /*
@@ -87,7 +87,7 @@ herror(const char *s) {
  *	return the string associated with a given "host" errno value.
  */
 const char *
-hstrerror(int err) {
+lwres_hstrerror(int err) {
 	if (err < 0)
 		return ("Resolver internal error");
 	else if (err < h_nerr)
