@@ -115,6 +115,13 @@ BIND 9.0.0rc2
 		for unknown reasons, but the server itself seems to
 		run fine.
 
+		On FreeBSD systems, the server logs error messages
+		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
+		device".  This is due to a bug in the FreeSBD
+		/dev/random device.  The bug has been reported
+		to the FreeBSD maintainers.  A similar problem is
+		reported to exist on OpenBSD.
+
 	If you are upgrading from BIND 8, please read the migration
 	notes in doc/misc/migration.
 
