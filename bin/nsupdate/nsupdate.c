@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.6 2001/11/06 21:50:35 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.7 2002/01/24 18:32:25 gson Exp $ */
 
 #include <config.h>
 
@@ -1101,7 +1101,7 @@ static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	long ttl;
+	unsigned long ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -1147,29 +1147,20 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto doneparsing;
 		}
 	}
-	errno = 0;
-	ttl = strtol(word, &endp, 0);
-	if (*endp != '\0') {
+	ttl = strtoul(word, &endp, 0);
+	if (!isdigit((unsigned char)*word) || *endp != '\0') {
 		if (isdelete) {
 			ttl = 0;
 			goto parseclass;
 		} else {
-			fprintf(stderr, "ttl '%s' is not numeric\n", word);
+			fprintf(stderr, "ttl '%s' is not legal\n", word);
 			goto failure;
 		}
 	}
 
 	if (isdelete)
 		ttl = 0;
-	else if (ttl < 0 || ttl > TTL_MAX ||
-		 (ttl == LONG_MAX && errno == ERANGE))
-	{
-		/*
-		 * The errno test is needed to catch when strtol()
-		 * overflows on a platform where sizeof(int) ==
-		 * sizeof(long), because ttl will be set to LONG_MAX,
-		 * which will be equal to TTL_MAX.
-		 */
+	else if (ttl > TTL_MAX) {
 		fprintf(stderr, "ttl '%s' is out of range (0 to %d)\n",
 			word, TTL_MAX);
 		goto failure;
