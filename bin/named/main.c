@@ -23,6 +23,7 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/os.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -341,6 +342,8 @@ static isc_result_t
 create_managers(void) {
 	isc_result_t result;
 
+	if (ns_g_cpus == 0)
+		ns_g_cpus = isc_os_ncpus();
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
