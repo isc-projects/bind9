@@ -52,6 +52,7 @@ struct ns_query {
 #define NS_QUERYATTR_PARTIALANSWER	0x04
 #define NS_QUERYATTR_NAMEBUFUSED	0x08
 #define NS_QUERYATTR_RECURSING		0x10
+#define NS_QUERYATTR_CACHEGLUEOK	0x20
 
 isc_result_t
 ns_query_init(ns_client_t *client);
