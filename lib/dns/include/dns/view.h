@@ -95,6 +95,11 @@ struct dns_view {
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	dns_peerlist_t *		peers;
+	/*
+	 * Configurable data for server use only,
+	 * locked by server configuration lock.
+	 */
+	dns_acl_t *			matchclients;
 	/* Locked by lock. */
 	unsigned int			references;
 	unsigned int			attributes;
