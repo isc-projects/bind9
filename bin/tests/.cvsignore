@@ -15,3 +15,4 @@ rbt_test
 db_test
 compress_test
 t_journal
+mempool_test
