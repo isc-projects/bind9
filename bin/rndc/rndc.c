@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.48 2001/03/28 20:17:09 bwelling Exp $ */
+/* $Id: rndc.c,v 1.49 2001/03/30 20:00:18 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -489,7 +489,11 @@ main(int argc, char **argv) {
 		if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
 			       keyname) == 0)
 			break;
-		key = NULL;
+	}
+	if (elt == NULL) {
+		fprintf(stderr, "%s: no key definition for name %s\n",
+			progname, keyname);
+		exit(1);
 	}
 
 	(void)cfg_map_get(key, "secret", &secretobj);
