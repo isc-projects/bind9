@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.45 1999/04/20 22:01:00 tale Exp $ */
+/* $Id: rbt.c,v 1.46 1999/04/22 14:16:52 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2076,13 +2076,12 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 				}
 			}
 
-			if (successor == NULL) {
+			if (successor == NULL && chain->level_count > 0) {
 				/*
 				 * Reached the root without having traversed
 				 * any left pointers, so this level is done.
 				 */
-				INSIST(chain->level_count > 0 &&
-				       chain->ancestor_count > 0);
+				INSIST(chain->ancestor_count > 0);
 				current = chain->levels[--chain->level_count];
 				chain->ancestor_count--;
 				new_origin = ISC_TRUE;
