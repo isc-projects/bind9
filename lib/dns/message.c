@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.4 2001/03/20 18:46:35 gson Exp $ */
+/* $Id: message.c,v 1.164.2.5 2001/04/19 18:54:26 gson Exp $ */
 
 /***
  *** Imports
@@ -1577,7 +1577,8 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer) {
 	 * buffer.
 	 */
 	isc_buffer_availableregion(buffer, &r);
-	REQUIRE(r.length >= DNS_MESSAGE_HEADERLEN);
+	if (r.length < DNS_MESSAGE_HEADERLEN)
+		return (ISC_R_NOSPACE);
 
 	if (r.length < msg->reserved)
 		return (ISC_R_NOSPACE);
