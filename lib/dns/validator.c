@@ -186,7 +186,11 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			      dns_result_totext(devent->result));
 
  free_event:
+	dns_resolver_destroyfetch(&val->fetch);
 	/* free stuff from the event */
+	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
+	isc_mem_put(val->view->mctx, devent->sigrdataset,
+		    sizeof(dns_rdataset_t));
 	isc_event_free(&event);
 }
 
@@ -229,10 +233,10 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			      "keyvalidated: got %s",
 			      dns_result_totext(devent->result));
  free_event:
+	dns_validator_destroy(&val->keyvalidator);
 	/* free stuff from the event */
-	isc_mem_put(devent->validator->view->mctx, devent->rdataset,
-		    sizeof(dns_rdataset_t));
-	isc_mem_put(devent->validator->view->mctx, devent->sigrdataset,
+	isc_mem_put(val->view->mctx, devent->rdataset, sizeof(dns_rdataset_t));
+	isc_mem_put(val->view->mctx, devent->sigrdataset,
 		    sizeof(dns_rdataset_t));
 	isc_event_free(&event);
 }
@@ -514,6 +518,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	     result = dns_rdataset_next(event->sigrdataset))
 	{
 		dns_rdataset_current(event->sigrdataset, &rdata);
+		if (val->siginfo != NULL)
+			isc_mem_put(val->view->mctx, val->siginfo,
+				    sizeof *val->siginfo);
 		val->siginfo = isc_mem_get(val->view->mctx,
 					   sizeof *val->siginfo);
 		if (val->siginfo == NULL)
@@ -588,13 +595,14 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
 		if (!resume || !firstname) {
-			rdataset = ISC_LIST_HEAD(name->list);
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link))
 			{
 				if (rdataset->type != dns_rdatatype_nxt)
 					continue;
+				if (dns_rdataset_count(rdataset) != 1)
+					return (DNS_R_FORMERR);
 				for (sigrdataset = ISC_LIST_HEAD(name->list);
 				     sigrdataset != NULL;
 				     sigrdataset = ISC_LIST_NEXT(sigrdataset,
@@ -604,7 +612,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 					    dns_rdatatype_sig
 					    &&
 					    sigrdataset->covers ==
-					    rdataset->type)
+					    dns_rdatatype_nxt)
 						break;
 				}
 				if (sigrdataset != NULL)
@@ -768,6 +776,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name,
 	val->keyvalidator = NULL;
 	val->keynode = NULL;
 	val->key = NULL;
+	val->siginfo = NULL;
 	val->task = task;
 	val->action = action;
 	val->arg = arg;
@@ -823,8 +832,12 @@ destroy(dns_validator_t *val) {
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
 	else if (val->key != NULL)
 		dst_key_free(val->key);
-	isc_mutex_destroy(&val->lock);
+	if (val->keyvalidator != NULL)
+		dns_validator_destroy(&val->keyvalidator);
 	mctx = val->view->mctx;
+	if (val->siginfo != NULL)
+		isc_mem_put(mctx, val->siginfo, sizeof *val->siginfo);
+	isc_mutex_destroy(&val->lock);
 	dns_view_detach(&val->view);
 	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof *val);
