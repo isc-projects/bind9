@@ -1,3 +1,5 @@
+1787.	[port]		HPUX: both "cc" and "gcc" need -Wl,+vnocompatwarnings.
+
 1784.	[cleanup]	"libtool -allow-undefined" is the default.
 			Leave hooks in configure to allow it to be set
 			if needed in the future.
