@@ -211,6 +211,64 @@ dns_c_ctx_delete(isc_log_t *lctx,
 }
 
 
+isc_result_t
+dns_c_ctx_setcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		      dns_c_zone_t *zone)
+{
+	(void) lctx;
+
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	cfg->currzone = zone;		/* zone may be NULL */
+
+	/* XXX should we validate that the zone is in our table? */
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+dns_c_zone_t *
+dns_c_ctx_getcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg)
+{
+	(void) lctx;
+
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	return (cfg->currzone);
+}
+
+	
+
+isc_result_t
+dns_c_ctx_setcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		      dns_c_view_t *view)
+{
+	(void) lctx;
+
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	cfg->currview = view;
+
+	/* XXX should we validate that the zone is in our table? */
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+dns_c_view_t *
+dns_c_ctx_getcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg)
+{
+	(void) lctx;
+
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	return (cfg->currview);
+}
+
+	
+
 void
 dns_c_ctx_print(isc_log_t *lctx,
 		FILE *fp, int indent, dns_c_ctx_t *cfg)
@@ -301,64 +359,6 @@ dns_c_ctx_getoptions(isc_log_t *lctx,
 
 
 isc_result_t
-dns_c_ctx_setcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg,
-		      dns_c_zone_t *zone)
-{
-	(void) lctx;
-
-	REQUIRE(DNS_CONFCTX_VALID(cfg));
-
-	cfg->currzone = zone;		/* zone may be NULL */
-
-	/* XXX should we validate that the zone is in our table? */
-
-	return (ISC_R_SUCCESS);
-}
-
-
-
-dns_c_zone_t *
-dns_c_ctx_getcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg)
-{
-	(void) lctx;
-
-	REQUIRE(DNS_CONFCTX_VALID(cfg));
-
-	return (cfg->currzone);
-}
-
-	
-
-isc_result_t
-dns_c_ctx_setcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg,
-		      dns_c_view_t *view)
-{
-	(void) lctx;
-
-	REQUIRE(DNS_CONFCTX_VALID(cfg));
-
-	cfg->currview = view;
-
-	/* XXX should we validate that the zone is in our table? */
-
-	return (ISC_R_SUCCESS);
-}
-
-
-
-dns_c_view_t *
-dns_c_ctx_getcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg)
-{
-	(void) lctx;
-
-	REQUIRE(DNS_CONFCTX_VALID(cfg));
-
-	return (cfg->currview);
-}
-
-	
-
-isc_result_t
 dns_c_ctx_getlogging(isc_log_t *lctx,
 		     dns_c_ctx_t *cfg, dns_c_logginglist_t **retval)
 {
@@ -400,6 +400,52 @@ dns_c_ctx_setlogging(isc_log_t *lctx,
 }
 
 
+isc_result_t
+dns_c_ctx_getkdeflist(isc_log_t *lctx, dns_c_ctx_t *cfg,
+                      dns_c_kdeflist_t **retval)
+{
+	(void)(lctx);
+
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+        REQUIRE(retval != NULL);
+
+	*retval = cfg->keydefs;
+	
+        if (cfg->keydefs == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_ctx_setkdeflist(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		      dns_c_kdeflist_t *newval, isc_boolean_t deepcopy)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_CONFCTX_VALID(cfg));
+
+	if (cfg->keydefs != NULL) {
+		dns_c_kdeflist_delete(lctx, &cfg->keydefs);
+	}
+	
+	if (newval == NULL) {
+		cfg->keydefs = NULL;
+		res = ISC_R_SUCCESS;
+	} else if (deepcopy) {
+		res = dns_c_kdeflist_copy(lctx, cfg->mem,
+					  &cfg->keydefs, newval);
+	} else {
+		cfg->keydefs = newval;
+		res = ISC_R_SUCCESS;
+	}
+
+	return (res);
+}
+
+	
 isc_result_t
 dns_c_ctx_addfile_channel(isc_log_t *lctx,
 			  dns_c_ctx_t *cfg, const char *name,
