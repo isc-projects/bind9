@@ -66,6 +66,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 {
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
+	size_t bufsize;
+	size_t bufused;	
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
@@ -78,13 +80,15 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 	iter->buf = 0;
 
 	/* Determine the amount of memory needed. */
-	if (sysctl(mib, 6, 0, &iter->bufsize, 0, 0) < 0) {
+	bufsize = 0;
+	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, 
 				 "getting interface list size: sysctl: %s",
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
+	iter->bufsize = bufsize;
 
 	iter->buf = isc_mem_get(iter->mctx, iter->bufsize);
 	if (iter->buf == NULL) {
@@ -92,14 +96,15 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 		goto failure;
 	}
 
-	iter->bufused = iter->bufsize;
-	if (sysctl(mib, 6, iter->buf, &iter->bufused, 0, 0) < 0) {
+	bufused = bufsize;
+	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t) 0) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, 
 				 "getting interface list: sysctl: %s",
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
+	iter->bufused = bufused;
 	INSIST(iter->bufused <= iter->bufsize);
 
 	/*
