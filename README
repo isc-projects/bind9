@@ -45,13 +45,13 @@ BIND 9
 
 
 
-BIND 9.1.0
+BIND 9.1.1rc1
 
-	BIND 9.1.0 is the first release of BIND 9.1.  Compared
-	to 9.0, BIND 9.1 has a number of new features as well
-	as numerous bug fixes and cleanups.
+	BIND 9.1.1rc1 is a release candidate for BIND 9.1.1.
+	It contains fixes for a number of bugs in BIND 9.1.0
+	but no new features.
 
-	Features added since 9.0.x include:
+	Features introduced in 9.1.0 included:
 
 	  - Many BIND 8 features previously unimplemented in BIND 9,
 	    including domain-specific forwarding, the $GENERATE
@@ -74,7 +74,7 @@ BIND 9.1.0
 
 	  - Faster lookups, particularly in large zones.
 
-	BIND 9.1.0 also includes experimental implementations of a
+	BIND 9.1 also includes experimental implementations of a
 	number of DNS protocols extensions still under development
 	in the IETF.  These include transparent processing of
 	unknown RR types and use of the EDNS "DNSSEC OK" bit to
@@ -83,7 +83,7 @@ BIND 9.1.0
 	Cryptographic operations are now based on the OpenSSL
 	library instead of DNSsafe.
 
-	BIND 9.1.0 is primarily a name server software distribution.
+	BIND 9.1 is primarily a name server software distribution.
 	In addition to the name server, it also includes a new
 	lightweight stub resolver library and associated resolver
 	daemon that fully support forward and reverse lookups of both
@@ -94,12 +94,12 @@ BIND 9.1.0
 	to be linked against the BIND 8 libraries.  For DNS lookups,
 	they can also use the new "getrrsetbyname()" API.
 
-	BIND 9.1.0 is capable of acting as an authoritative server
+	BIND 9.1 is capable of acting as an authoritative server
 	for DNSSEC secured zones.  This functionality is believed to
 	be stable and complete except for lacking support for wildcard
 	records in secure zones.
 
-	When acting as a caching server, BIND 9.1.0 can be configured
+	When acting as a caching server, BIND 9.1 can be configured
 	to perform DNSSEC secure resolution on behalf of its clients.
 	This part of the DNSSEC implementation is still considered
 	experimental.  For detailed information about the state of the
@@ -116,7 +116,9 @@ BIND 9.1.0
 		in the named.conf options statement.
 
 		There are known problems with thread signal handling 
-		under Solaris 2.6.
+		under Solaris 2.6 and BSD/OS.  We recommend disabling
+		threads with "configure --disable-threads" on these
+		platforms.
 
 		FreeBSD prior to 4.2 and OpenBSD prior to 2.8 log
 		messages like "fcntl(8, F_SETFL, 4): Inappropriate
@@ -134,7 +136,7 @@ BIND 9.1.0
 Building
 
 	BIND 9 currently requires a UNIX system with an ANSI C compiler,
-	basic POSIX support, and a good pthreads implementation.
+	basic POSIX support, and a 64 bit integer type.
 
 	We've had successful builds and tests on the following systems:
 
@@ -144,7 +146,7 @@ Building
 		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD-current (with unproven-pthreads-0.17)
+		NetBSD 1.5 (with unproven-pthreads-0.17)
 		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
 
