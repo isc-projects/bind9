@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.22 2000/03/14 19:27:55 halley Exp $ */
+/* $Id: log.c,v 1.23 2000/03/23 00:49:15 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -304,7 +304,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 	 *   	default_syslog, default_stderr, default_debug and null.
 	 */
 	if (result == ISC_R_SUCCESS) {
-		destination.facility = LOG_INFO;
+		destination.facility = LOG_DAEMON;
 		result = isc_log_createchannel(lcfg, "default_syslog",
 					       ISC_LOG_TOSYSLOG, ISC_LOG_INFO,
 					       &destination, 0);
