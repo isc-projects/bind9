@@ -86,6 +86,7 @@
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999
 ./lib/dns/include/dns/rdatalist.h		C	1999
 ./lib/dns/include/dns/rdataset.h		C	1999
+./lib/dns/include/dns/rdatasetiter.h		C	1999
 ./lib/dns/include/dns/rdataslab.h		C	1999
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999
 ./lib/dns/include/dns/result.h			C	1998,1999
@@ -141,6 +142,7 @@
 ./lib/dns/rdata/in_1/wks_11.h			C	1999
 ./lib/dns/rdatalist.c				C	1999
 ./lib/dns/rdataset.c				C	1999
+./lib/dns/rdatasetiter.c			C	1999
 ./lib/dns/rdataslab.c				C	1999
 ./lib/dns/result.c				C	1998,1999
 ./lib/dns/version.c				C	1998
@@ -205,8 +207,10 @@
 ./lib/isc/unix/include/isc/.cvsignore		X	1999
 ./lib/isc/unix/include/isc/Makefile.in		MAKE	1998
 ./lib/isc/unix/include/isc/sockaddr.h		C	1998,1999
+./lib/isc/unix/include/isc/stdtime.h		C	1999
 ./lib/isc/unix/include/isc/time.h		C	1998,1999
 ./lib/isc/unix/socket.c				C	1998,1999
+./lib/isc/unix/stdtime.c			C	1999
 ./lib/isc/unix/time.c				C	1998
 ./lib/isc/util.h				C	1998,1999
 ./lib/isc/version.c				C	1998
