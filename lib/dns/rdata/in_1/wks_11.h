@@ -15,21 +15,22 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.2 1999/01/22 00:36:59 marka Exp $ */
+ /* $Id: wks_11.h,v 1.3 1999/01/22 04:35:10 explorer Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_H
 #define RDATA_IN_1_WKS_11_H
 
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <limits.h>
 #include <netdb.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
+#include <isc/inet.h>
 
 static dns_result_t
 fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -124,7 +125,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	origin = origin;
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_available(target, &tr);
-	if (inet_ntop(AF_INET, sr.base, tr.base, tr.length) == NULL)
+	if (isc_inet_ntop(AF_INET, sr.base, tr.base, tr.length) == NULL)
 		return (DNS_R_NOSPACE);
 	isc_buffer_add(target, strlen(tr.base));
 	isc_region_consume(&sr, 4);

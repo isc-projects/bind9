@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.9 $)
+AC_REVISION($Revision: 1.10 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -23,6 +23,13 @@ AC_CHECK_LIB(xnet, socket,,
 	     AC_CHECK_LIB(socket, socket)
 	     AC_CHECK_LIB(nsl, inet_ntoa)
 )
+
+AC_CHECK_FUNC(inet_ntop, ,
+	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.o"
+	       AC_SUBST(ISC_EXTRA_OBJS)
+	       AC_DEFINE(NEED_INET_NTOP)]
+)
+
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_INSTALL
