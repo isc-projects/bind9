@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.2 2004/05/12 04:48:15 marka Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.3 2004/06/17 01:42:36 marka Exp $ */
 
 #include <config.h>
 
@@ -346,7 +346,8 @@ setup_keyfile(void) {
 
 	debug("Creating key...");
 
-	result = dst_key_fromnamedfile(keyfile, DST_TYPE_PRIVATE, mctx,
+	result = dst_key_fromnamedfile(keyfile,
+				       DST_TYPE_PRIVATE | DST_TYPE_KEY, mctx,
 				       &dstkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not read key from %s: %s\n",
