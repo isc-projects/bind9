@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.30 2001/01/09 21:58:33 bwelling Exp $ */
+/* $Id: time.c,v 1.31 2001/02/23 23:12:28 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 
 #include <sys/time.h>	/* Required for struct timeval on some platforms. */
 
+#include <isc/log.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -39,6 +40,10 @@
  * is the best we've got.  The check is only performed on functions which
  * need an initialized type.
  */
+
+#ifndef ISC_FIX_TV_USEC
+#define ISC_FIX_TV_USEC 1
+#endif
 
 /***
  *** Intervals
@@ -130,9 +135,13 @@ isc_time_isepoch(isc_time_t *t) {
 	return (ISC_FALSE);
 }
 
+
 isc_result_t
 isc_time_now(isc_time_t *t) {
 	struct timeval tv;
+#if ISC_FIX_TV_USEC
+	isc_boolean_t fixed = ISC_FALSE;
+#endif
 
 	/*
 	 * Set *t to the current absolute time.
@@ -152,8 +161,29 @@ isc_time_now(isc_time_t *t) {
 	 * happening are pretty much zero, but since the libisc library ensures
 	 * certain things to be true ...
 	 */
+#if ISC_FIX_TV_USEC
+	if (tv.tv_sec < 0) {
+		fixed = ISC_TRUE;
+		do {
+			tv.tv_sec -= 1;
+			tv.tv_usec += US_PER_S;
+		} while (tv.tv_usec < 0);
+	} else if (tv.tv_sec >= US_PER_S) {
+		fixed = ISC_TRUE;
+		do {
+			tv.tv_sec += 1;
+			tv.tv_usec -= US_PER_S;
+		} while (tv.tv_usec >=US_PER_S);
+	} else if (tv.tv_sec < 0)
+		return (ISC_R_UNEXPECTED);
+	if (fixed)
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_TIME, ISC_LOG_INFO,
+			      "gettimeofday returned bad tv_usec: corrected");
+#else
 	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
 		return (ISC_R_UNEXPECTED);
+#endif
 
 	/*
 	 * Ensure the tv_sec value fits in t->seconds.

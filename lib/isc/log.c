@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.56 2001/01/09 21:56:13 bwelling Exp $ */
+/* $Id: log.c,v 1.57 2001/02/23 23:12:25 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -192,6 +192,7 @@ isc_logcategory_t isc_categories[] = {
  */
 isc_logmodule_t isc_modules[] = {
 	{ "socket", 0 },
+	{ "time", 0 },
 	{ NULL, 0 }
 };
 

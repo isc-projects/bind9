@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.36 2001/01/09 21:57:09 bwelling Exp $ */
+/* $Id: log.h,v 1.37 2001/02/23 23:12:27 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -138,6 +138,7 @@ extern isc_logmodule_t isc_modules[];
 #define ISC_LOGCATEGORY_GENERAL	(&isc_categories[1])
 
 #define ISC_LOGMODULE_SOCKET (&isc_modules[0])
+#define ISC_LOGMODULE_TIME (&isc_modules[1])
 
 ISC_LANG_BEGINDECLS
 
