@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.187 2000/08/17 13:13:37 marka Exp $ */
+/* $Id: zone.c,v 1.188 2000/08/17 16:15:02 gson Exp $ */
 
 #include <config.h>
 
@@ -1907,20 +1907,18 @@ notify_find_address(dns_notify_t *notify) {
 		LOCK(&zone->lock);
 		notify_destroy(notify);
 		UNLOCK(&zone->lock);
-		dns_zone_idetach(&zone);
-		return;
+		goto detach;
 	}
 
 	/* More addresses pending? */
-	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		dns_zone_idetach(&zone);
-		return;
-	}
+	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0)
+		goto detach;
 
 	/* We have as many addresses as we can get. */
 	LOCK(&zone->lock);
 	notify_send(notify);
 	UNLOCK(&zone->lock);
+ detach:
 	dns_zone_idetach(&zone);
 }
 
