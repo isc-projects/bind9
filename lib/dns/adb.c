@@ -3401,14 +3401,14 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	if (factor == 0)
-		factor = 4;
+	REQUIRE(factor <= 10);
 
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
-	new_srtt = (addr->entry->srtt * (factor - 1) + rtt) / factor;
+	new_srtt = (addr->entry->srtt / 10 * factor)
+		+ (rtt / 10 * (10 - factor));
+
 	addr->entry->srtt = new_srtt;
 	addr->srtt = new_srtt;
 

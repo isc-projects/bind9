@@ -445,6 +445,12 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *	goodness value.  This may include changes made by others.
  */
 
+/*
+ * A reasonable default for RTT adjustments
+ */
+#define DNS_ADB_RTTADJDEFAULT		7	/* default scale */
+#define DNS_ADB_RTTADJREPLACE		0	/* replace with our rtt */
+
 void
 dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		   unsigned int rtt, unsigned int factor);
@@ -453,7 +459,7 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  * (where srtt is the existing rtt value, and rtt and factor are arguments to
  * this function):
  *
- *	new_srtt = (srtt * (factor - 1) + rtt) / factor
+ *	new_srtt = (old_srtt / 10 * factor) + (rtt / 10 * (10 - factor));
  *
  * Requires:
  *
@@ -461,9 +467,9 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *
  *	addr be valid.
  *
- * Note:
+ *	0 <= factor <= 10
  *
- *	If factor is zero, 4 will be used.
+ * Note:
  *
  *	The srtt in addr will be updated to reflect the new global
  *	srtt value.  This may include changes made by others.

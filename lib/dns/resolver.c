@@ -269,7 +269,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	if (finish != NULL) {
 		rtt = (unsigned int)isc_time_microdiff(finish, &query->start);
-		factor = 0;
+		factor = DNS_ADB_RTTADJDEFAULT;
 	} else {
 		/*
 		 * We don't have an RTT for this query.  Maybe the packet
@@ -280,10 +280,9 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		if (rtt > 10000000)
 			rtt = 10000000;
 		/*
-		 * We set 'factor' to 1, so that we will replace the current
-		 * RTT.
+		 * Replace the current RTT with our value.
 		 */
-		factor = 1;
+		factor = DNS_ADB_RTTADJREPLACE;
 	}
 	dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt, factor);
 
