@@ -258,11 +258,28 @@ kill_name(dns_adb_t *adb, dns_adbname_t **n, isc_eventtype_t ev)
 	name = *n;
 	*n = NULL;
 	INSIST(DNS_ADBNAME_VALID(name));
-	INSIST(name->dead == ISC_FALSE);
 
+	/*
+	 * If we're dead already, just check to see if we should go
+	 * away now or not.
+	 */
+	if (name->dead && ISC_LIST_EMPTY(name->fetches)) {
+		unlink_name(adb, name);
+		free_adbname(adb, &name);
+		return;
+	}
+
+	/*
+	 * Clean up the name's various lists.  These two are destructive
+	 * in that they will always empty the list.
+	 */
 	clean_handles_at_name(name, ev);
 	clean_namehooks_at_name(adb, name);
 
+	/*
+	 * If fetches are running, cancel them.  If none are running, we can
+	 * just kill the name here.
+	 */
 	if (ISC_LIST_EMPTY(name->fetches)) {
 		unlink_name(adb, name);
 		free_adbname(adb, &name);
