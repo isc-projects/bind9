@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.67 2001/05/29 22:54:07 bwelling Exp $
+ * $Id: dnssec.c,v 1.68 2001/06/08 19:37:27 bwelling Exp $
  */
 
 
@@ -689,12 +689,14 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
 
-	if (is_response(msg))
-		REQUIRE(msg->query.base != NULL);
-
 	mctx = msg->mctx;
 
 	msg->verify_attempted = 1;
+
+	if (is_response(msg)) {
+		if (msg->query == NULL)
+			return (DNS_R_UNEXPECTEDTSIG);
+	}
 
 	isc_buffer_usedregion(source, &source_r);
 
