@@ -597,10 +597,9 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		top_next = current->next;
 
 		/*
-		 * Find the first rdataset less than the least serial, if
-		 * any.  On the way down, clean up any instances of multiple
-		 * rdatasets with the same serial number, or that have the
-		 * IGNORE attribute.
+		 * First, we clean up any instances of multiple rdatasets
+		 * with the same serial number, or that have the IGNORE
+		 * attribute.
 		 */
 		dparent = current;
 		for (dcurrent = current->down;
@@ -608,8 +607,6 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		     dcurrent = down_next) {
 			down_next = dcurrent->down;
 			INSIST(dcurrent->serial <= dparent->serial);
-			if (dcurrent->serial < least_serial)
-				break;
 			if (dcurrent->serial == dparent->serial ||
 			    IGNORE(dcurrent)) {
 				if (down_next != NULL)
@@ -621,21 +618,7 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		}
 
 		/*
-		 * If there is a such an rdataset, delete it and any older
-		 * versions.
-		 */
-		if (dcurrent != NULL) {
-			do {
-				down_next = dcurrent->down;
-				INSIST(dcurrent->serial <= least_serial);
-				free_rdataset(mctx, dcurrent);
-				dcurrent = down_next;
-			} while (dcurrent != NULL);
-			dparent->down = NULL;
-		}
-
-		/*
-		 * We've eliminated all IGNORE datasets with the possible
+		 * We've now eliminated all IGNORE datasets with the possible
 		 * exception of current, which we now check.
 		 */
 		if (IGNORE(current)) {
@@ -667,10 +650,38 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		}
 
 		/*
+		 * We now try to find the first down node less than the
+		 * least serial.
+		 */
+		dparent = current;
+		for (dcurrent = current->down;
+		     dcurrent != NULL;
+		     dcurrent = down_next) {
+			down_next = dcurrent->down;
+			if (dcurrent->serial < least_serial)
+				break;
+			dparent = dcurrent;
+		}
+
+		/*
+		 * If there is a such an rdataset, delete it and any older
+		 * versions.
+		 */
+		if (dcurrent != NULL) {
+			do {
+				down_next = dcurrent->down;
+				INSIST(dcurrent->serial <= least_serial);
+				free_rdataset(mctx, dcurrent);
+				dcurrent = down_next;
+			} while (dcurrent != NULL);
+			dparent->down = NULL;
+		}
+
+		/*
 		 * Note.  The serial number of 'current' might be less than
 		 * least_serial too, but we cannot delete it because it is
 		 * the most recent version, unless it is a NONEXISTENT
-		 * rdataset or is IGNOREd.
+		 * rdataset.
 		 */
 		if (current->down != NULL) {
 			still_dirty = ISC_TRUE;
