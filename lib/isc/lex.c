@@ -82,7 +82,6 @@ grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	lex->data = new;
 	*remainingp += lex->max_token;
 	lex->max_token *= 2;
-	fprintf(stderr, "max_token now %d\n", lex->max_token);
 	return (ISC_R_SUCCESS);
 }
 
