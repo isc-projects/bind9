@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.33 2000/08/01 01:27:44 tale Exp $
+ * $Id: bsafe_link.c,v 1.34 2000/08/16 00:30:53 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -465,6 +465,7 @@ dnssafersa_destroy(dst_key_t *key) {
 		B_DestroyKeyObject(&rkey->rk_Public_Key);
 	memset(rkey, 0, sizeof(*rkey));
 	isc_mem_put(mctx, rkey, sizeof(*rkey));
+	key->opaque = NULL;
 }
 
 static isc_result_t

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.35 2000/08/10 22:28:33 bwelling Exp $
+ * $Id: openssl_link.c,v 1.36 2000/08/16 00:30:55 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -225,6 +225,7 @@ static void
 openssldsa_destroy(dst_key_t *key) {
 	DSA *dsa = key->opaque;
 	DSA_free(dsa);
+	key->opaque = NULL;
 }
 
 

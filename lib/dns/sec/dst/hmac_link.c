@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.43 2000/08/02 15:33:11 tale Exp $
+ * $Id: hmac_link.c,v 1.44 2000/08/16 00:30:54 bwelling Exp $
  */
 
 #include <config.h>
@@ -162,6 +162,7 @@ hmacmd5_destroy(dst_key_t *key) {
 	HMAC_Key *hkey = key->opaque;
 	memset(hkey, 0, sizeof(HMAC_Key));
 	isc_mem_put(key->mctx, hkey, sizeof(HMAC_Key));
+	key->opaque = NULL;
 }
 
 static isc_result_t

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.29 2000/08/10 22:28:34 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.30 2000/08/16 00:30:56 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -194,6 +194,7 @@ openssldh_destroy(dst_key_t *key) {
 	if (dh->g == &bn2)
 		dh->g = NULL;
 	DH_free(dh);
+	key->opaque = NULL;
 }
 
 static void
