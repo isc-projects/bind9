@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.52 2001/07/16 03:06:31 marka Exp $ */
+/* $Id: soa_6.c,v 1.53 2001/07/30 01:09:10 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -273,7 +273,7 @@ fromstruct_soa(ARGS_FROMSTRUCT) {
 
 	dns_name_toregion(&soa->origin, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
-	dns_name_toregion(&soa->mname, &region);
+	dns_name_toregion(&soa->contact, &region);
 	RETERR(isc_buffer_copyregion(target, &region));
 	RETERR(uint32_tobuffer(soa->serial, target));
 	RETERR(uint32_tobuffer(soa->refresh, target));
@@ -308,8 +308,8 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	dns_name_init(&soa->mname, NULL);
-	result = name_duporclone(&name, mctx, &soa->mname);
+	dns_name_init(&soa->contact, NULL);
+	result = name_duporclone(&name, mctx, &soa->contact);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -347,7 +347,7 @@ freestruct_soa(ARGS_FREESTRUCT) {
 		return;
 
 	dns_name_free(&soa->origin, soa->mctx);
-	dns_name_free(&soa->mname, soa->mctx);
+	dns_name_free(&soa->contact, soa->mctx);
 	soa->mctx = NULL;
 }
 

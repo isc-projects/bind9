@@ -1,3 +1,9 @@
+ 947.	[bug]		dns_rdata_soa_t had a badly name element "mname" which
+			was really the RNAME field from RFC1035.  To avoid
+			confusion and silent errors that would occur it ther
+			"origin" and "mname" elements were given their correct
+			names "mname" and "rname" respectively, the "mname"
+			element is renamed to "contact".
 
  946.	[cleanup]	doc/misc/options is now machine-generated from the
 			configuration parser syntax tables, and therefore

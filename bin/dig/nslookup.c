@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.89 2001/07/27 17:39:10 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.90 2001/07/30 01:09:14 marka Exp $ */
 
 #include <config.h>
 
@@ -170,7 +170,7 @@ printsoa(dns_rdata_t *rdata) {
 
 	dns_name_format(&soa.origin, namebuf, sizeof(namebuf));
 	printf("\torigin = %s\n", namebuf);
-	dns_name_format(&soa.mname, namebuf, sizeof(namebuf));
+	dns_name_format(&soa.contact, namebuf, sizeof(namebuf));
 	printf("\tmail addr = %s\n", namebuf);
 	printf("\tserial = %u\n", soa.serial);
 	printf("\trefresh = %u\n", soa.refresh);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.218 2001/07/29 23:23:42 bwelling Exp $ */
+/* $Id: dighost.c,v 1.219 2001/07/30 01:09:13 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1134,10 +1134,10 @@ insert_soa(dig_lookup_t *lookup) {
 	soa.common.rdtype = dns_rdatatype_soa;
 
 	dns_name_init(&soa.origin, NULL);
-	dns_name_init(&soa.mname, NULL);
+	dns_name_init(&soa.contact, NULL);
 
 	dns_name_clone(dns_rootname, &soa.origin);
-	dns_name_clone(dns_rootname, &soa.mname);
+	dns_name_clone(dns_rootname, &soa.contact);
 
 	isc_buffer_init(&lookup->rdatabuf, lookup->rdatastore,
 			sizeof(lookup->rdatastore));
