@@ -169,6 +169,8 @@ dns_c_printinunits(FILE *fp, isc_uint32_t val)
 
 	if (val == DNS_C_SIZE_SPEC_DEFAULT)
 		fprintf(fp, "default");
+	else if (val == 0)
+		fprintf(fp, "0");
 	else if ((val % one_gig) == 0)
 		fprintf(fp, "%luG", (unsigned long) val / one_gig);
 	else if ((val % one_meg) == 0)
