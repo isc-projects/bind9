@@ -147,8 +147,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
 
-	hexdump("Sending to client", lwb.base, lwb.used);
-
 	r.base = lwb.base;
 	r.length = lwb.used;
 	client->sendbuf = r.base;

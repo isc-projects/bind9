@@ -169,8 +169,6 @@ generate_reply(client_t *client)
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
 
-	hexdump("Sending to client", lwb.base, lwb.used);
-
 	r.base = lwb.base;
 	r.length = lwb.used;
 	client->sendbuf = r.base;
