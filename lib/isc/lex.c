@@ -72,7 +72,7 @@ grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	char *new;
 
 	new = isc_mem_get(lex->mctx, lex->max_token * 2 + 1);
-	if (lex == NULL)
+	if (new == NULL)
 		return (ISC_R_NOMEMORY);
 	memcpy(new, lex->data, lex->max_token + 1);
 	*currp = new + (*currp - lex->data);
