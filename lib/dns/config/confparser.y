@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.60 2000/04/06 20:12:26 brister Exp $ */
+/* $Id: confparser.y,v 1.61 2000/04/07 13:35:05 brister Exp $ */
 
 #include <config.h>
 
@@ -79,6 +79,11 @@ struct confssu_s {
 	struct confrdtype_s rdatatypes;
 };
 
+struct keydetails_s {
+	char *algorithm;
+	char *secret;
+};
+
 
 /* All these statics are protected by the above yacc_mutex */
 static dns_c_ctx_t	       *currcfg;
@@ -127,6 +132,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	struct in6_addr		ip6_addr;
 	isc_sockaddr_t		ipaddress;
 
+	struct keydetails_s	keydetails;
 	struct confssu_s	ssu;
 	struct confrdtype_s	rdatatypelist;
 	dns_rdatatype_t		rdatatype;
@@ -339,7 +345,8 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <rrclass>		class_name
 %type <rrclass>		wild_class_name
 %type <rrclass>		optional_class
-%type <severity>	check_names_opt;
+%type <severity>	check_names_opt
+%type <keydetails>	key_definition
 %type <ssu>		grant_stmt
 %type <text>		algorithm_id
 %type <text>		any_string
@@ -2445,8 +2452,16 @@ address_match_element: address_match_simple
 	| L_SEC_KEY L_STRING
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+		isc_boolean_t isdefined;
+		
+		if (view != NULL) {
+			isdefined = dns_c_view_keydefinedp(view, $2);
+		} else {
+			isdefined = dns_c_ctx_keydefinedp(currcfg, $2);
+		}
 
-		if (!dns_c_ctx_keydefinedp(currcfg, $2)) {
+		if (!isdefined) {
 			parser_error(ISC_FALSE,
 				     "address match key element (%s) "
 				     "referenced before defined", $2);
@@ -2677,62 +2692,90 @@ address_name: any_string
  */
 
 
-key_stmt: L_SEC_KEY any_string
+key_stmt: L_SEC_KEY any_string L_LBRACE key_definition L_RBRACE
 	{
 		dns_c_kdef_t *keydef;
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+		dns_c_kdeflist_t *list = NULL;
 		
-		if (currcfg->keydefs == NULL) {
+		if (view == NULL) {
+			tmpres = dns_c_ctx_getkdeflist(currcfg, &list);
+		} else {
+			tmpres = dns_c_view_getkeydefs(view, &list);
+		}
+		
+		if (tmpres == ISC_R_NOTFOUND) {
 			tmpres = dns_c_kdeflist_new(currcfg->mem,
-						    &currcfg->keydefs);
+						    &list);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
 					     "failed to create keylist");
+				isc_mem_free(memctx, $2);
+				isc_mem_free(memctx, $4.algorithm);
+				isc_mem_free(memctx, $4.secret);
+		
+				YYABORT;
+			}
+
+			if (view == NULL) {
+				tmpres = dns_c_ctx_setkdeflist(currcfg,
+							       list,
+							       ISC_FALSE);
+			} else {
+				tmpres = dns_c_view_setkeydefs(view, list);
+			}
+
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "failed to set keylist");
+				dns_c_kdeflist_delete(&list);
+				isc_mem_free(memctx, $2);
+				isc_mem_free(memctx, $4.algorithm);
+				isc_mem_free(memctx, $4.secret);
+		
 				YYABORT;
 			}
 		}
 		
-		tmpres = dns_c_kdef_new(currcfg->keydefs,
-					$2, &keydef);
+		tmpres = dns_c_kdef_new(currcfg->mem, $2, &keydef);
 		if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to create key definition");
+			parser_error(ISC_FALSE, "failed to create key");
+			isc_mem_free(memctx, $2);
+			isc_mem_free(memctx, $4.algorithm);
+			isc_mem_free(memctx, $4.secret);
 			YYABORT;
 		}
 
+		tmpres = dns_c_kdef_setalgorithm(keydef, $4.algorithm);
+		if (tmpres == ISC_R_SUCCESS) {
+			tmpres = dns_c_kdef_setsecret(keydef, $4.secret);
+		}
+
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set key details.");
+			isc_mem_free(memctx, $2);
+			isc_mem_free(memctx, $4.algorithm);
+			isc_mem_free(memctx, $4.secret);
+		}
+		
+		dns_c_kdeflist_append(list, keydef, ISC_FALSE);
+
 		isc_mem_free(memctx, $2);
+		isc_mem_free(memctx, $4.algorithm);
+		isc_mem_free(memctx, $4.secret);
 	}
-	L_LBRACE key_definition L_RBRACE
 	;
 
 key_definition: algorithm_id secret
 	{
-		dns_c_kdef_t *keydef;
-
-		INSIST(currcfg->keydefs != NULL);
-
-		keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
-		INSIST(keydef != NULL);
-
-		dns_c_kdef_setalgorithm(keydef, $1);
-		dns_c_kdef_setsecret(keydef, $2);
-
-		isc_mem_free(memctx, $1);
-		isc_mem_free(memctx, $2);
+		$$.algorithm = $1;
+		$$.secret = $2;
 	}
 	| secret algorithm_id
 	{
-		dns_c_kdef_t *keydef;
-
-		INSIST(currcfg->keydefs != NULL);
-
-		keydef = ISC_LIST_TAIL(currcfg->keydefs->keydefs);
-		INSIST(keydef != NULL);
-
-		dns_c_kdef_setsecret(keydef, $1);
-		dns_c_kdef_setalgorithm(keydef, $2);
-
-		isc_mem_free(memctx, $1);
-		isc_mem_free(memctx, $2);
+		$$.algorithm = $2;
+		$$.secret = $1;
 	}
 	;
 
@@ -3274,6 +3317,7 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| key_stmt
         | zone_stmt
 	;
 

@@ -148,6 +148,8 @@ struct dns_c_view
 
 	dns_transfer_format_t  *transfer_format;
 
+	dns_c_kdeflist_t       *keydefs;
+
 #if 0	
 	/*
 	 * To implement later.
@@ -187,6 +189,14 @@ isc_result_t	dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable);
 
 
 
+/* NOTE: For the various get* functions. The caller must not delete the
+ * refutned value.
+ *
+ *	- For functions where retval is a dns_c_ipmatchlist_t
+ *	  (e.g. dns_c_view_getallowquery) the caller must call
+ *	  dns_c_ipmatcglist_detach() when finished with retval).
+ *
+ */
 
 isc_result_t	dns_c_view_new(isc_mem_t *mem, const char *name,
 			       dns_rdataclass_t viewclass,
@@ -194,6 +204,9 @@ isc_result_t	dns_c_view_new(isc_mem_t *mem, const char *name,
 
 isc_result_t	dns_c_view_delete(dns_c_view_t **viewptr);
 void		dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view);
+isc_boolean_t	dns_c_view_keydefinedp(dns_c_view_t *view,
+				       const char *keyname);
+
 
 isc_result_t	dns_c_view_getname(dns_c_view_t *view,
 				   const char **retval);
@@ -223,50 +236,49 @@ isc_result_t	dns_c_view_getforwarders(dns_c_view_t *view,
 
 
 isc_result_t	dns_c_view_getallowquery(dns_c_view_t *view,
-					 dns_c_ipmatchlist_t **rval);
+					 dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_setallowquery(dns_c_view_t *view,
 					 dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetallowquery(dns_c_view_t *view);
 
 
-
 isc_result_t	dns_c_view_getallowupdateforwarding(dns_c_view_t *view,
-						   dns_c_ipmatchlist_t **rval);
+						 dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_setallowupdateforwarding(dns_c_view_t *view,
 						  dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetallowupdateforwarding(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_gettransferacl(dns_c_view_t *view,
-					  dns_c_ipmatchlist_t **rval);
+					  dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_settransferacl(dns_c_view_t *view,
 					  dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsettransferacl(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getrecursionacl(dns_c_view_t *view,
-					   dns_c_ipmatchlist_t **rval);
+					   dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_setrecursionacl(dns_c_view_t *view,
 					   dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetrecursionacl(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getsortlist(dns_c_view_t *view,
-				       dns_c_ipmatchlist_t **rval);
+				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_setsortlist(dns_c_view_t *view,
 				       dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetsortlist(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_gettopology(dns_c_view_t *view,
-				       dns_c_ipmatchlist_t **rval);
+				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_settopology(dns_c_view_t *view,
 				       dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsettopology(dns_c_view_t *view);
 
 
 isc_result_t	dns_c_view_getmatchclients(dns_c_view_t *view,
-				       dns_c_ipmatchlist_t **rval);
+				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_view_setmatchclients(dns_c_view_t *view,
 				       dns_c_ipmatchlist_t *newval);
 isc_result_t	dns_c_view_unsetmatchclients(dns_c_view_t *view);
@@ -419,7 +431,12 @@ isc_result_t dns_c_view_gettransferformat(dns_c_view_t *view,
 isc_result_t dns_c_view_unsettransferformat(dns_c_view_t *cfg);
 
 
-
+/* Caller must not delete retval */
+isc_result_t dns_c_view_getkeydefs(dns_c_view_t *view,
+				   dns_c_kdeflist_t **retval);
+isc_result_t dns_c_view_setkeydefs(dns_c_view_t *view,
+				   dns_c_kdeflist_t *newval);
+isc_result_t dns_c_view_unsetkeydefs(dns_c_view_t *view);
 
 
 

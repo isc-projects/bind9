@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.19 2000/04/06 10:35:26 brister Exp $ */
+/* $Id: confview.c,v 1.20 2000/04/07 13:35:06 brister Exp $ */
 
 #include <config.h>
 
@@ -503,6 +503,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->max_ncache_ttl = NULL;
 
 	view->transfer_format = NULL;
+	view->keydefs = NULL;
 	
 #if 0
 	view->max_transfer_time_in = NULL;
@@ -671,6 +672,11 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view)
 	}
 	
 
+	if (view->keydefs != NULL) {
+		dns_c_kdeflist_print(fp, indent + 1, view->keydefs);
+	}
+	
+
 #if 0	
 	PRINT_INT32(max_transfer_time_in, "max-transfer-time-in");
 	PRINT_INT32(max_transfer_idle_in, "max-transfer-idle-in");
@@ -771,6 +777,8 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 
 	FREEFIELD(transfer_format);
 
+	dns_c_view_unsetkeydefs(view);
+
 #if 0	
 	FREEFIELD(max_transfer_time_in);
 	FREEFIELD(max_transfer_idle_in);
@@ -785,7 +793,28 @@ dns_c_view_delete(dns_c_view_t **viewptr)
 	return (ISC_R_SUCCESS);
 }
 
+
+isc_boolean_t
+dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname)
+{
+	dns_c_kdef_t *keyid;
+	isc_result_t res;
+	isc_boolean_t rval = ISC_FALSE;
+
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(keyname != NULL);
+	REQUIRE(*keyname != '\0');
 	
+	if (view->keydefs != NULL) {
+		res = dns_c_kdeflist_find(view->keydefs, keyname, &keyid);
+		if (res == ISC_R_SUCCESS) {
+			rval = ISC_TRUE;
+		}
+	}
+
+	return rval;
+}
+
 isc_result_t
 dns_c_view_getname(dns_c_view_t *view, const char **retval)
 {
@@ -1125,7 +1154,54 @@ dns_c_view_unsetchecknames(dns_c_view_t *view,
 }
 
 
-		
+isc_result_t
+dns_c_view_getkeydefs(dns_c_view_t *view, dns_c_kdeflist_t **retval)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(retval != NULL);
+
+	*retval = view->keydefs;
+	
+	if (view->keydefs == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_view_setkeydefs(dns_c_view_t *view, dns_c_kdeflist_t *newval)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+	REQUIRE(DNS_C_KDEFLIST_VALID(newval));
+
+	if (view->keydefs != NULL) {
+		dns_c_view_unsetkeydefs(view);
+	}
+
+	view->keydefs = newval;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_view_unsetkeydefs(dns_c_view_t *view)
+{
+	REQUIRE(DNS_C_VIEW_VALID(view));
+
+	if (view->keydefs != NULL) {
+		dns_c_kdeflist_delete(&view->keydefs);
+		view->keydefs = NULL;
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+}
+
+
+
 GETIPMLIST(allowquery, allowquery)
 SETIPMLIST(allowquery, allowquery)
 UNSETIPMLIST(allowquery, allowquery)

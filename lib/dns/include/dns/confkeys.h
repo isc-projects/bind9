@@ -143,7 +143,7 @@ struct dns_c_pklist
 struct dns_c_kdef 
 {
 	isc_uint32_t		magic;
-	dns_c_kdeflist_t      *mylist;	
+	isc_mem_t	       *mem;
 
 	char		       *keyid;
 	char		       *algorithm;
@@ -167,7 +167,7 @@ struct dns_c_kdef_list
 struct dns_c_kid
 {
 	isc_uint32_t		magic;
-	dns_c_kidlist_t	      *mylist;
+	isc_mem_t	       *mem;
 	char		       *keyid;
 
 	ISC_LINK(dns_c_kid_t)	next;
@@ -230,10 +230,15 @@ isc_result_t	dns_c_kidlist_undef(dns_c_kidlist_t *list,
 isc_result_t	dns_c_kidlist_find(dns_c_kidlist_t *list,
 				   const char *keyid,
 				   dns_c_kid_t **retval);
+void		dns_c_kidlist_append(dns_c_kidlist_t *list,
+				     dns_c_kid_t *keyid);
 void		dns_c_kidlist_print(FILE *fp, int indent,
 				    dns_c_kidlist_t *list);
-isc_result_t	dns_c_kid_new(dns_c_kidlist_t *list, const char *name,
+isc_result_t	dns_c_kid_new(isc_mem_t *mem, const char *name,
 			      dns_c_kid_t **keyid);
+
+
+
 
 isc_result_t	dns_c_kdeflist_new(isc_mem_t *mem,
 				   dns_c_kdeflist_t **list);
@@ -252,7 +257,7 @@ isc_result_t	dns_c_kdeflist_find(dns_c_kdeflist_t *list,
 void		dns_c_kdeflist_print(FILE *fp, int indent,
 				     dns_c_kdeflist_t *list);
 
-isc_result_t	dns_c_kdef_new(dns_c_kdeflist_t *list, const char *name,
+isc_result_t	dns_c_kdef_new(isc_mem_t *mem, const char *name,
 			       dns_c_kdef_t **keyid);
 isc_result_t	dns_c_kdef_delete(dns_c_kdef_t **keydef);
 isc_result_t	dns_c_kdef_copy(isc_mem_t *mem,

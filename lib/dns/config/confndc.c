@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.7 2000/04/05 16:39:24 brister Exp $ */
+/* $Id: confndc.c,v 1.8 2000/04/07 13:35:04 brister Exp $ */
 
 /*
 **	options {
@@ -1258,9 +1258,10 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	
-	result = dns_c_kdef_new(keys, keyname, &key);
+	result = dns_c_kdef_new(keys->mem, keyname, &key);
 	if (result != ISC_R_SUCCESS)
 		goto done;
+	dns_c_kdeflist_append(keys, key, ISC_FALSE);
 
 	result = dns_c_kdef_setalgorithm(key, algorithm);
 	if (result != ISC_R_SUCCESS)

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.20 2000/03/28 22:58:17 brister Exp $ */
+/* $Id: confip.c,v 1.21 2000/04/07 13:35:04 brister Exp $ */
 
 #include <config.h>
 
@@ -107,7 +107,7 @@ dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme)
 		break;
 
 	case dns_c_ipmatch_key:
-		isc_mem_free(mem, elem->u.key );
+		isc_mem_free(mem, elem->u.key);
 		break;
 
 	case dns_c_ipmatch_acl:
