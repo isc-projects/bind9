@@ -96,6 +96,8 @@ struct dns_c_view
 	
 	char 		       *name;
 
+	dns_c_zonelist_t       *zonelist;
+
 	dns_c_forw_t		forward;
 	
 	dns_c_ipmatchlist_t    *allowquery;
@@ -354,6 +356,15 @@ void dns_c_view_print(isc_log_t *lctx, FILE *fp, int indent,
  * Requires:
  *	FP be a valid stdio stream
  *	view be a pointer to a valid dns_c_view_t
+ */
+
+
+isc_result_t dns_c_view_getname(isc_log_t *lctx, dns_c_view_t *view,
+				const char **retval);
+
+/*
+ * Returns the name of the view. Caller must NOT free or touch the returned 
+ * array.
  */
 
 
