@@ -97,8 +97,15 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 	isc_int32_t idle;
 	in_port_t port;
 	isc_sockaddr_t sockaddr_any;
+	struct in_addr in4addr_any;
 
-	isc_sockaddr_fromin6(&sockaddr_any, &in6addr_any, 0);
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
+		isc_sockaddr_fromin6(&sockaddr_any, &in6addr_any, 0);
+	else {
+		in4addr_any.s_addr = INADDR_ANY;
+		isc_sockaddr_fromin(&sockaddr_any, &in4addr_any, 0);
+	}
+
 	dns_zone_setclass(zone, czone->zclass);
 
 	/* XXX needs to be an zone option */
