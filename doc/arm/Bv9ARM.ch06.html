@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4066"
+HREF="Bv9ARM.ch06.html#AEN4073"
 >Zone File</A
 ></DT
 ></DL
@@ -5266,6 +5266,30 @@ old and new zone version, and the server will need to
 temporarily allocate memory to hold this complete
 difference set.
 </P
+><P
+>&#13;<B
+CLASS="command"
+>ixfr-from-differences</B
+> also accepts <B
+CLASS="command"
+>master</B
+>
+and <B
+CLASS="command"
+>slave</B
+> at the view and options levels which causes
+<B
+CLASS="command"
+>ixfr-from-differences</B
+> to apply to all <B
+CLASS="command"
+>master</B
+>
+or <B
+CLASS="command"
+>slave</B
+> zones respectively.
+</P
 ></DD
 ><DT
 ><B
@@ -5375,7 +5399,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2705"
+NAME="AEN2712"
 >6.2.16.2. Forwarding</A
 ></H3
 ><P
@@ -5443,7 +5467,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2724"
+NAME="AEN2731"
 >6.2.16.3. Dual-stack Servers</A
 ></H3
 ><P
@@ -5655,7 +5679,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2791"
+NAME="AEN2798"
 >6.2.16.5. Interfaces</A
 ></H3
 ><P
@@ -5758,7 +5782,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2818"
+NAME="AEN2825"
 >6.2.16.6. Query Address</A
 ></H3
 ><P
@@ -6266,7 +6290,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2984"
+NAME="AEN2991"
 >6.2.16.8. Bad UDP Port Lists</A
 ></H3
 ><P
@@ -6290,7 +6314,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2989"
+NAME="AEN2996"
 >6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6410,7 +6434,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3026"
+NAME="AEN3033"
 >6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
@@ -6533,7 +6557,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3067"
+NAME="AEN3074"
 >6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6898,7 +6922,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3155"
+NAME="AEN3162"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7360,7 +7384,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3299"
+NAME="AEN3306"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7832,7 +7856,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3438"
+NAME="AEN3445"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -7887,7 +7911,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3454"
+NAME="AEN3461"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -7975,7 +7999,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3476"
+NAME="AEN3483"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -8619,7 +8643,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3653"
+NAME="AEN3660"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8630,7 +8654,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3656"
+NAME="AEN3663"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8638,7 +8662,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3658"
+NAME="AEN3665"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -8870,7 +8894,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3721"
+NAME="AEN3728"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -8908,7 +8932,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3731"
+NAME="AEN3738"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -9678,7 +9702,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4025"
+NAME="AEN4032"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9803,7 +9827,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4066"
+NAME="AEN4073"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9824,7 +9848,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4071"
+NAME="AEN4078"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9849,7 +9873,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4077"
+NAME="AEN4084"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9930,7 +9954,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4109"
+NAME="AEN4116"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10281,7 +10305,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4261"
+NAME="AEN4268"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10363,7 +10387,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4285"
+NAME="AEN4292"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10395,7 +10419,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4292"
+NAME="AEN4299"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10550,7 +10574,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4358"
+NAME="AEN4365"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10621,7 +10645,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4386"
+NAME="AEN4393"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10659,7 +10683,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4392"
+NAME="AEN4399"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10880,7 +10904,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4484"
+NAME="AEN4491"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10943,7 +10967,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4507"
+NAME="AEN4514"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10972,7 +10996,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4512"
+NAME="AEN4519"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11038,7 +11062,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4534"
+NAME="AEN4541"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11063,7 +11087,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4541"
+NAME="AEN4548"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11129,7 +11153,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4561"
+NAME="AEN4568"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11205,7 +11229,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4581"
+NAME="AEN4588"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11241,7 +11265,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4592"
+NAME="AEN4599"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11324,7 +11348,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4616"
+NAME="AEN4623"
 ></A
 ><TABLE
 CELLPADDING="3"

@@ -84,6 +84,7 @@ options {
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
+        ixfr-from-differences <ixfrdiff>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -97,7 +98,6 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         max-journal-size <size_no_default>;
@@ -172,6 +172,7 @@ view <string> <optional_class> {
                 database <string>;
                 delegation-only <boolean>;
                 check-names ( fail | warn | ignore );
+                ixfr-from-differences <boolean>;
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
@@ -187,7 +188,6 @@ view <string> <optional_class> {
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
-                ixfr-from-differences <boolean>;
                 maintain-ixfr-base <boolean>; // obsolete
                 max-ixfr-log-size <size>; // obsolete
                 max-journal-size <size_no_default>;
@@ -265,6 +265,7 @@ view <string> <optional_class> {
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
+        ixfr-from-differences <ixfrdiff>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -278,7 +279,6 @@ view <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         max-journal-size <size_no_default>;
@@ -331,6 +331,7 @@ zone <string> <optional_class> {
         database <string>;
         delegation-only <boolean>;
         check-names ( fail | warn | ignore );
+        ixfr-from-differences <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -344,7 +345,6 @@ zone <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        ixfr-from-differences <boolean>;
         maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         max-journal-size <size_no_default>;
