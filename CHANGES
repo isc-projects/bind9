@@ -9,7 +9,8 @@
 
 1703.	[placeholder]	rt12322
 
-1702.	[placeholder]	rt12323
+1702.	[bug]		also-notify should not be applied to builtin zones.
+			[RT #12323]
 
 1701.	[doc]		A minimal named.conf man page.
 

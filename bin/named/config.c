@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.49 2004/04/20 14:11:46 marka Exp $ */
+/* $Id: config.c,v 1.50 2004/08/28 05:42:12 marka Exp $ */
 
 #include <config.h>
 
@@ -163,6 +163,7 @@ options {\n\
 #\n\
 view \"_bind\" chaos {\n\
 	recursion no;\n\
+	notify no;\n\
 \n\
 	zone \"version.bind\" chaos {\n\
 		type master;\n\
