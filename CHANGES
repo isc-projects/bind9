@@ -1,3 +1,7 @@
+
+1027.   [bug]           RRs having the reserved type 0 should be rejected.
+                        [RT #1471]
+
 1019.	[bug]		The value of the lame-ttl option was limited to 18000
 			seconds, not 1800 seconds as documented. [RT #1803]
 
