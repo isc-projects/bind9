@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.15 2000/09/28 22:16:48 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.16 2000/10/02 22:21:44 bwelling Exp $ -->
 
 <book>
 
@@ -3451,7 +3451,7 @@ zone data can be given to different clients, for example, "internal"
 and "external" clients in a split DNS setup.</para>
 <para>Many of the options given in the <command>options</command> statement
 can also be used within a <command>view</command> statement, and then
-apply only when resolving queries with that view.  When no a view-specific
+apply only when resolving queries with that view.  When no view-specific
 value is given, the value in the <command>options</command> statement
 is used as a default.  Also, zone options can have default values specified
 in the <command>view</command> statement; these view-specific defaults
