@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.40 2002/01/04 02:32:02 gson Exp $ */
+/* $Id: lwresd.c,v 1.41 2002/01/14 04:15:59 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -776,7 +776,7 @@ ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config) {
 		ns_lwresd_t *lwresd;
 		in_port_t port;
 		isc_sockaddr_t *addrs = NULL;
-		isc_uint32_t count;
+		isc_uint32_t count = 0;
 
 		lwres = cfg_listelt_value(element);
 		lwresd = NULL;

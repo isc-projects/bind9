@@ -20,8 +20,7 @@
 
 1169.	[func]		Identify recursive queries in the query log.
 
-1168.	[bug]		Empty also-notify clauses were not handled gracefully.
-			[RT #2309]
+1168.	[bug]		Empty also-notify clauses were not handled. [RT #2309]
 
 1167.	[contrib]	nslint-2.1a3 (from author).
 

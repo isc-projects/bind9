@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.24 2002/01/04 02:32:00 gson Exp $ */
+/* $Id: config.c,v 1.25 2002/01/14 04:16:00 marka Exp $ */
 
 #include <config.h>
 
@@ -249,9 +249,13 @@ ns_config_getiplist(cfg_obj_t *config, cfg_obj_t *list,
 	isc_result_t result;
 
 	INSIST(addrsp != NULL && *addrsp == NULL);
+	INSIST(countp != NULL && *addrsp == 0);
 
 	addrlist = cfg_tuple_get(list, "addresses");
 	count = ns_config_listcount(addrlist);
+
+	if (count == 0)
+		return (ISC_R_SUCCESS);
 
 	portobj = cfg_tuple_get(list, "port");
 	if (cfg_obj_isuint32(portobj)) {

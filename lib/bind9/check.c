@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.13 2001/12/29 04:49:51 marka Exp $ */
+/* $Id: check.c,v 1.14 2002/01/14 04:15:58 marka Exp $ */
 
 #include <config.h>
 
@@ -57,7 +57,7 @@ typedef struct {
 } intervaltable;
 
 static isc_result_t
-check_options(cfg_obj_t *options, isc_log_t *logctx) {
+check_options(cfg_obj_t *options, isc_log_t *logctx, isc_boolean_t toplevel) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
 	cfg_obj_t *obj = NULL;
@@ -102,12 +102,22 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	(void)cfg_map_get(options, "also-notify", &obj);
 	if (obj != NULL) {
 		cfg_obj_t *addrlist = NULL;
+		cfg_obj_t *port = NULL;
 		addrlist = cfg_tuple_get(obj, "addresses");
+		port = cfg_tuple_get(obj, "port");
 		if (cfg_list_first(addrlist) == NULL) {
-			cfg_obj_log(options, logctx, ISC_LOG_ERROR,
-				    "empty 'also-notify' entry");
-			if (result == ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
+			if (toplevel) {
+				cfg_obj_log(options, logctx, ISC_LOG_ERROR,
+					    "empty 'also-notify' entry");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_FAILURE;
+			} else if (cfg_obj_isuint32(port)) {
+				cfg_obj_log(options, logctx, ISC_LOG_ERROR,
+					    "port specified with "
+					    "empty 'also-notify'");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_FAILURE;
+			}
 		}
 	}
 	return (result);
@@ -347,7 +357,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	/*
 	 * Check various options.
 	 */
-	tresult = check_options(zoptions, logctx);
+	tresult = check_options(zoptions, logctx, ISC_FALSE);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -487,9 +497,9 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	}
 
 	if (vconfig != NULL)
-		tresult = check_options(vconfig, logctx);
+		tresult = check_options(vconfig, logctx, ISC_FALSE);
 	else
-		tresult = check_options(config, logctx);
+		tresult = check_options(config, logctx, ISC_TRUE);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -509,7 +519,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "options", &options);
 
 	if (options != NULL &&
-	    check_options(options, logctx) != ISC_R_SUCCESS)
+	    check_options(options, logctx, ISC_TRUE) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.97 2001/11/30 01:58:52 gson Exp $ */
+/* $Id: zoneconf.c,v 1.98 2002/01/14 04:16:01 marka Exp $ */
 
 #include <config.h>
 
@@ -439,14 +439,15 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		result = ns_config_get(maps, "also-notify", &obj);
 		if (result == ISC_R_SUCCESS) {
 			isc_sockaddr_t *addrs = NULL;
-			isc_uint32_t addrcount;
+			isc_uint32_t addrcount = 0;
 			result = ns_config_getiplist(config, obj, 0, mctx,
 						     &addrs, &addrcount);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			result = dns_zone_setalsonotify(zone, addrs,
 							addrcount);
-			ns_config_putiplist(mctx, &addrs, addrcount);
+			if (addrs != NULL)
+				ns_config_putiplist(mctx, &addrs, addrcount);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		} else
