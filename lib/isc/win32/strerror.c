@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.2 2001/11/20 01:45:48 gson Exp $ */
+/* $Id: strerror.c,v 1.3 2002/01/25 03:39:25 mayer Exp $ */
 
 #include <config.h>
 
@@ -39,16 +39,13 @@ FormatError(int error);
 char *
 GetWSAErrorMessage(int errval);
 
-char *  __cdecl
-NTstrerror(int err);
+char *
+NTstrerror(int err, BOOL *bfreebuf);
 
 /*
  * We need to do this this way for profiled locks.
- * Note that freebuf is only used if the FormatMessage function needs
- * to be used.
  */
 
-static BOOL freebuf = FALSE;
 static isc_mutex_t isc_strerror_lock;
 static void init_lock(void) {
 	RUNTIME_CHECK(isc_mutex_init(&isc_strerror_lock) == ISC_R_SUCCESS);
@@ -62,6 +59,7 @@ static void init_lock(void) {
 void
 isc__strerror(int num, char *buf, size_t size) {
 	char *msg;
+	BOOL freebuf;
 	unsigned int unum = num;
 	static isc_once_t once = ISC_ONCE_INIT;
 
@@ -71,14 +69,13 @@ isc__strerror(int num, char *buf, size_t size) {
 
 	LOCK(&isc_strerror_lock);
 	freebuf = FALSE;
-	msg = NTstrerror(num);
+	msg = NTstrerror(num, &freebuf);
 	if (msg != NULL)
 		snprintf(buf, size, "%s", msg);
 	else
 		snprintf(buf, size, "Unknown error: %u", unum);
 	if(freebuf == TRUE) {
 		LocalFree(msg);
-		freebuf = FALSE;
 	}
 	UNLOCK(&isc_strerror_lock);
 }
@@ -92,7 +89,6 @@ isc__strerror(int num, char *buf, size_t size) {
 char *
 FormatError(int error) {
 	LPVOID lpMsgBuf = NULL;
-	freebuf = TRUE;
 	FormatMessage( 
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
 		FORMAT_MESSAGE_FROM_SYSTEM | 
@@ -113,12 +109,14 @@ FormatError(int error) {
  * Error message function GetWSAErrorMessage below if it's within that range
  * since those messages are not available in the system error messages.
  */
-char * __cdecl
-NTstrerror(int err) {
+char *
+NTstrerror(int err, BOOL *bfreebuf) {
 	char *retmsg = NULL;
 
 	/* Copy the error value first in case of other errors */	
 	DWORD errval = err; 
+
+	*bfreebuf = FALSE;
 
 	/* Get the Winsock2 error messages */
 	if (errval >= WSABASEERR && errval <= (WSABASEERR + 1015)) {
@@ -131,6 +129,7 @@ NTstrerror(int err) {
 	 * try a system error message
 	 */
 	if (errval > (DWORD) _sys_nerr) {
+		*bfreebuf = TRUE;
 		return (FormatError(errval));
 	} else {
 		return (strerror(errval));
@@ -144,8 +143,15 @@ void __cdecl
 NTperror(char *errmsg) {
 	/* Copy the error value first in case of other errors */
 	int errval = errno; 
+	BOOL bfreebuf = FALSE;
+	char *msg;
 
-	fprintf(stderr, "%s: %s\n", errmsg, NTstrerror(errval));
+	msg = NTstrerror(errval, &bfreebuf);
+	fprintf(stderr, "%s: %s\n", errmsg, msg);
+	if(bfreebuf == TRUE) {
+		LocalFree(msg);
+	}
+
 }
 
 /*
