@@ -69,6 +69,7 @@ options {
   [ max-transfer-idle-out number; ]			    Yes*
   [ max-cache-ttl number; ]				    Yes*
   [ max-ncache-ttl number; ]				    Yes
+  [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    No
   [ serial-queries number; ]				    No
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
@@ -199,6 +200,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
   [ max-cache-ttl number; ]				    Yes*
   [ max-ncache-ttl number; ]				    Yes
+  [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    No
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
   [ transfer-source ip_addr; ]				    Yes
