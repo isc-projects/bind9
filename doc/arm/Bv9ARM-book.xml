@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.46 2000/11/22 20:26:46 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.47 2000/11/23 02:10:30 gson Exp $ -->
 
 <book>
 
@@ -2374,6 +2374,10 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>update</command></para></entry>
 <entry colname = "2"><para>Dynamic updates.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>queries</command></para></entry>
+<entry colname = "2"><para>Queries.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
