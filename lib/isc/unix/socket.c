@@ -87,7 +87,7 @@
 #define TRACE_MANAGER	0x0020
 
 int trace_level = TRACE_WATCHER | TRACE_MANAGER;
-#define XTRACE(l, a)	do { if ((l) & trace_level) printf a } while (0)
+#define XTRACE(l, a)	do { if ((l) & trace_level) printf a; } while (0)
 #define XENTER(l, a)	do {						\
 				if ((l) & trace_level)			\
 					printf("ENTER %s\n", (a));	\
@@ -176,6 +176,7 @@ struct isc_socketmgr {
 	/* Locked by manager lock. */
 	unsigned int			nsockets;  /* sockets managed */
 	isc_thread_t			watcher;
+	isc_condition_t			shutdown_ok;
 	fd_set				read_fds;
 	fd_set				write_fds;
 	isc_socket_t		       *fds[FD_SETSIZE];
@@ -290,7 +291,7 @@ socket_dump(isc_socket_t *sock)
 	rwiev = ISC_LIST_HEAD(sock->recv_list);
 	while (rwiev != NULL) {
 		printf("\tintev %p, done_ev %p, task %p, "
-		       "canceled %d, posted %d",
+		       "canceled %d, posted %d\n",
 		       rwiev, rwiev->done_ev, rwiev->task, rwiev->canceled,
 		       rwiev->posted);
 		rwiev = ISC_LIST_NEXT(rwiev, link);
@@ -300,7 +301,7 @@ socket_dump(isc_socket_t *sock)
 	rwiev = ISC_LIST_HEAD(sock->send_list);
 	while (rwiev != NULL) {
 		printf("\tintev %p, done_ev %p, task %p, "
-		       "canceled %d, posted %d",
+		       "canceled %d, posted %d\n",
 		       rwiev, rwiev->done_ev, rwiev->task, rwiev->canceled,
 		       rwiev->posted);
 		rwiev = ISC_LIST_NEXT(rwiev, link);
@@ -382,6 +383,8 @@ destroy(isc_socket_t **sockp)
 	select_poke(sock->manager, sock->fd);
 	manager->nsockets--;
 	XTRACE(TRACE_MANAGER, ("nsockets == %d\n", manager->nsockets));
+	if (manager->nsockets == 0)
+		SIGNAL(&manager->shutdown_ok);
 
 	/*
 	 * XXX should reset manager->maxfd here
@@ -460,6 +463,9 @@ free_socket(isc_socket_t **socketp)
 {
 	isc_socket_t *sock = *socketp;
 
+#ifdef ISC_SOCKET_DEBUG
+	socket_dump(sock);
+#endif
 	REQUIRE(sock->references == 0);
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(!sock->connecting);
@@ -1568,6 +1574,14 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
 		return (ISC_R_UNEXPECTED);
 	}
 
+	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
+		(void)isc_mutex_destroy(&manager->lock);
+		isc_mem_put(mctx, manager, sizeof *manager);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_condition_init() failed");
+		return (ISC_R_UNEXPECTED);
+	}
+
 	/*
 	 * Create the special fds that will be used to wake up the
 	 * select/poll loop when something internal needs to be done.
@@ -1632,16 +1646,13 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp)
 
 	XTRACE(TRACE_MANAGER, ("nsockets == %d\n", manager->nsockets));
 	/*
-	 * XXX do this right, with a condition variable
+	 * Wait for all sockets to be destroyed.
 	 */
 	while (manager->nsockets != 0) {
 		XTRACE(TRACE_MANAGER, ("nsockets == %d\n", manager->nsockets));
-		UNLOCK(&manager->lock);
-		sleep(1);
-		LOCK(&manager->lock);
+		WAIT(&manager->shutdown_ok, &manager->lock);
 	}
 
-	REQUIRE(manager->nsockets == 0);
 	UNLOCK(&manager->lock);
 
 	/*
@@ -1667,6 +1678,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp)
 		if (manager->fdstate[i] == CLOSE_PENDING)
 			close(i);
 
+	(void)isc_condition_destroy(&manager->shutdown_ok);
 	(void)isc_mutex_destroy(&manager->lock);
 	manager->magic = 0;
 	isc_mem_put(manager->mctx, manager, sizeof *manager);
@@ -2548,13 +2560,14 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			current_task = iev->task;
 
 			if (iev->posted) {
-				if (isc_task_purge(task, sock,
+				if (isc_task_purge(current_task, sock,
 						   ISC_SOCKEVENT_INTRECV)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
 				}
 			} else {
+				ISC_LIST_DEQUEUE(sock->recv_list, iev, link);
 				isc_event_free((isc_event_t **)&iev);
 			}
 
@@ -2603,6 +2616,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 					iev->done_ev = NULL;
 				}
 			} else {
+				ISC_LIST_DEQUEUE(sock->send_list, iev, link);
 				isc_event_free((isc_event_t **)&iev);
 			}
 
@@ -2640,13 +2654,14 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 			current_task = iev->task;
 
 			if (iev->posted) {
-				if (isc_task_purge(task, sock,
+				if (isc_task_purge(current_task, sock,
 						   ISC_SOCKEVENT_INTACCEPT)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
 				}
 			} else {
+				ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
 				isc_event_free((isc_event_t **)&iev);
 			}
 
@@ -2677,6 +2692,9 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		}
 	}
 
+	/*
+	 * Connecting is not a list.
+	 */
 	if (((how & ISC_SOCKCANCEL_CONNECT) == ISC_SOCKCANCEL_CONNECT)
 	    && sock->connect_ev != NULL) {
 		cnintev_t *		iev;
@@ -2689,7 +2707,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 
 		if ((task == NULL || task == iev->task) && !iev->canceled) {
 			if (iev->posted) {
-				if (isc_task_purge(task, sock,
+				if (isc_task_purge(current_task, sock,
 						   ISC_SOCKEVENT_INTCONN)
 				    == 0) {
 					iev->canceled = ISC_TRUE;
