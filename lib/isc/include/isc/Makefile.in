@@ -19,9 +19,6 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-#
-# Note: inet.h has been intentionally left off the HEADERS list.
-#
 HEADERS =	assertions.h base64.h boolean.h buffer.h error.h event.h \
 		eventclass.h heap.h int.h interfaceiter.h lang.h lex.h lib.h \
 		list.h mem.h msgcat.h netaddr.h rbtgen.h region.h result.h \
