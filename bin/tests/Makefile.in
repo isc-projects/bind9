@@ -232,8 +232,8 @@ serial_test: serial_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ serial_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
-zone2_test: zone2_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone2_test.o \
+zone2_test: zone2_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ zone2_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
