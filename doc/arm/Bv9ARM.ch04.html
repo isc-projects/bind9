@@ -4,7 +4,7 @@
 >Advanced Concepts</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.57"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.41"><LINK
 REL="HOME"
 HREF="Bv9ARM.html"><LINK
 REL="PREVIOUS"
@@ -14,7 +14,6 @@ REL="NEXT"
 TITLE="The BIND 9 Lightweight Resolver"
 HREF="Bv9ARM.ch05.html"></HEAD
 ><BODY
-CLASS="chapter"
 BGCOLOR="#FFFFFF"
 TEXT="#000000"
 LINK="#0000FF"
@@ -196,7 +195,9 @@ NAME="incremental_zone_transfers"
     transfer the entire zone. The IXFR protocol is documented in RFC
     1995. See <A
 HREF="Bv9ARM.ch09.html#proposed_standards"
->Proposed Standards</A
+><I
+>Proposed Standards</I
+></A
 ></P
 ><P
 >When acting as a master, <SPAN
@@ -614,7 +615,9 @@ for TSIG.</P
     updates, but IP-based access control is insufficient. Key-based
     access control is far superior, see <A
 HREF="Bv9ARM.ch09.html#proposed_standards"
->Proposed Standards</A
+><I
+>Proposed Standards</I
+></A
 >. The <B
 CLASS="command"
 >nsupdate</B
@@ -1024,7 +1027,8 @@ CLASS="acronym"
 CLASS="option"
 >-h</TT
 >" option prints a
-    full list of parameters.</P
+    full list of parameters.  Note that the DNSSEC tools require the
+    keyset and signedkey files to be in the working directory.</P
 ><P
 >There must also be communication with the administrators of
     the parent and/or child zone to transmit keys and signatures.  A
