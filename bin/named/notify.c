@@ -71,7 +71,7 @@
 
 /*
  * Convenience macro of common isc_log_write() arguments
- * to use in tracing dynamic update protocol requests.
+ * to use in tracing notify protocol requests.
  */
 #define NOTIFY_PROTOCOL_LOGARGS \
 	ns_g_lctx, NS_LOGCATEGORY_NOTIFY, NS_LOGMODULE_NOTIFY, \
@@ -191,7 +191,7 @@ ns_notify_start(ns_client_t *client)
 	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
 		FAILC(DNS_R_REFUSED,
-		      "not authoritative for update zone");
+		      "not authoritative for notify zone");
 
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
@@ -201,15 +201,10 @@ ns_notify_start(ns_client_t *client)
 		break;
 	default:
 		FAILC(DNS_R_REFUSED,
-		      "not authoritative for update zone");
+		      "not authoritative for notify zone");
 	}
 	return;
 	
  failure:
-	/*
-	 * We failed without having sent an update event to the zone.
-	 * We are still in the client task context, so we can 
-	 * simply give an error response without switching tasks.
-	 */
 	respond(client, result);
 }
