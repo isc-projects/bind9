@@ -24,7 +24,7 @@
 #endif
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.9 1999/10/10 17:16:04 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.10 1999/10/13 17:55:47 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2369,7 +2369,8 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
                         parser_error(ISC_FALSE,
                                      "Failed to set view allow-query.");
                 }
-        };
+        }
+	;
 
 /* XXX other view statements need to go in here???. */
 
@@ -2464,13 +2465,17 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                 isc_mem_free(memctx, $2);
         } optional_zone_options_list L_RBRACE L_EOS {
                 dns_c_zone_t *zone;
-
+		dns_c_view_t *view;
+		
+		zone = dns_c_ctx_getcurrzone(logcontext, currcfg);
+		view = dns_c_ctx_getcurrview(logcontext, currcfg);
+		
 		dns_c_ctx_setcurrzone(logcontext, currcfg, NULL);
 		
                 if (callbacks != NULL && callbacks->zonecbk != NULL) {
-                        zone = dns_c_ctx_getcurrzone(logcontext, currcfg);
                         tmpres = callbacks->zonecbk(currcfg,
                                                     zone,
+						    view,
                                                     callbacks->zonecbkuap);
                         if (tmpres != ISC_R_SUCCESS) {
                                 YYABORT;
@@ -3712,8 +3717,8 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
                 const char *format, va_list args)
 {
         static char where[ISC_DIR_PATHMAX + 100];
-        static char message[20480];
-
+        static char message[2048];
+	int level = ISC_LOG_CRITICAL;
         const char *filename = isc_lex_getsourcename(mylexer);
         int lineno = isc_lex_getsourceline(mylexer);
 
@@ -3726,21 +3731,33 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
                 filename = "(none)";
         }
 
+	if (is_warning) {
+		level = ISC_LOG_WARNING;
+	}
+
         sprintf(where, "%s:%d ", filename, lineno);
         if ((unsigned int)vsprintf(message, format, args) >= sizeof message) {
                 abort();
         }
 
-        (void) is_warning;              /* lint happiness */
-
-	/* XXXJAB when isc_log_vwrite becomes public use that insead and drop
-	 * the above vsprintf
-	 */
         if (print_last_token) {
-                fprintf(stderr, "%s%s near ``%s''\n", where, message,
-                        token_to_text(lasttoken, lastyylval));
+		if (logcontext != NULL) {
+			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+				       DNS_LOGMODULE_CONFIG, level,
+				       "%s%s near ``%s''\n", where, message,
+				       token_to_text(lasttoken, lastyylval));
+		} else {
+			fprintf(stderr, "%s%s near ``%s''\n", where, message,
+				token_to_text(lasttoken, lastyylval));
+		}
         } else {
-                fprintf(stderr, "%s%s\n", where, message);
+		if (logcontext != NULL) {
+			isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+				       DNS_LOGMODULE_CONFIG, level,
+				       "%s%s\n", where, message);
+		} else {
+			fprintf(stderr, "%s%s\n", where, message);
+		}
         }
 }
 
