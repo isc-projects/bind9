@@ -494,10 +494,10 @@ main(int argc, char *argv[])
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	result = ns_interfacemgr_create(mctx, manager, socketmgr, dispatch, &ifmgr);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 
 	result = ns_interfacemgr_scan(ifmgr);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	RUNTIME_CHECK(result == DNS_R_SUCCESS);
 
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
