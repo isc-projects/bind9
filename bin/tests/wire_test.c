@@ -393,20 +393,25 @@ printquestions(dns_namelist_t *section) {
 
 static dns_result_t
 printsection(dns_namelist_t *section, char *section_name) {
-	dns_name_t *name;
+	dns_name_t *name, *print_name;
 	dns_rdatalist_t *rdatalist;
 	dns_rdataset_t rdataset;
 	isc_buffer_t target;
 	dns_result_t result;
 	isc_region_t r;
+	dns_name_t empty_name;
 	char t[1000];
+	isc_boolean_t first;
 
 	dns_rdataset_init(&rdataset);
+	dns_name_init(&empty_name, NULL);
 	printf("\n;; %s SECTION:\n", section_name);
 	for (name = ISC_LIST_HEAD(*section);
 	     name != NULL;
 	     name = ISC_LIST_NEXT(name, link)) {
 		isc_buffer_init(&target, t, sizeof t, ISC_BUFFERTYPE_TEXT);
+		first = ISC_TRUE;
+		print_name = name;
 		for (rdatalist = ISC_LIST_HEAD(name->list);
 		     rdatalist != NULL;
 		     rdatalist = ISC_LIST_NEXT(rdatalist, link)) {
@@ -414,11 +419,17 @@ printsection(dns_namelist_t *section, char *section_name) {
 							  &rdataset);
 			if (result != DNS_R_SUCCESS)
 				return (result);
-			result = dns_rdataset_totext(&rdataset, name,
+			result = dns_rdataset_totext(&rdataset, print_name,
 						     ISC_FALSE, &target);
 			if (result != DNS_R_SUCCESS)
 				return (result);
 			dns_rdataset_disassociate(&rdataset);
+#ifdef USEINITALWS
+			if (first) {
+				print_name = &empty_name;
+				first = ISC_FALSE;
+			}
+#endif
 		}
 		isc_buffer_used(&target, &r);
 		printf("%.*s", (int)r.length, (char *)r.base);
