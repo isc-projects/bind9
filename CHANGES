@@ -1,3 +1,6 @@
+1643.	[bug]		dns_db_closeversion() could leak memory / node
+			references. [RT #11163]
+
 1642.	[port]		Support OpenSSL implementations which don't have
 			DSA support. [RT #11360]
 

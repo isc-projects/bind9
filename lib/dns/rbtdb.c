@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.3 2004/05/14 05:07:10 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.4 2004/05/23 11:09:37 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1061,9 +1061,13 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				 * isn't being used by anyone, we can clean
 				 * it up.
 				 */
-				if (rbtdb->current_version->references == 0)
+				if (rbtdb->current_version->references == 0) {
 					cleanup_version =
 						rbtdb->current_version;
+					APPENDLIST(version->changed_list,
+						 cleanup_version->changed_list,
+						   link);
+				}
 				/*
 				 * Become the current version.
 				 */
@@ -1076,6 +1080,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				 * We're rolling back this transaction.
 				 */
 				cleanup_list = version->changed_list;
+				ISC_LIST_INIT(version->changed_list);
 				rollback = ISC_TRUE;
 				cleanup_version = version;
 				rbtdb->future_version = NULL;
@@ -1096,6 +1101,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				if (least_greater == NULL)
 					least_greater = rbtdb->current_version;
 
+				INSIST(version->serial < least_greater->serial);
 				/*
 				 * Is this the least open version?
 				 */
@@ -1116,16 +1122,19 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 						   version->changed_list,
 						   link);
 				}
-			}
+			} else if (version->serial == rbtdb->least_serial)
+				INSIST(EMPTY(version->changed_list));
 			UNLINK(rbtdb->open_versions, version, link);
 		}
 	}
 	least_serial = rbtdb->least_serial;
 	UNLOCK(&rbtdb->lock);
 
-	if (cleanup_version != NULL)
+	if (cleanup_version != NULL) {
+		INSIST(EMPTY(cleanup_version->changed_list));
 		isc_mem_put(rbtdb->common.mctx, cleanup_version,
 			    sizeof(*cleanup_version));
+	}
 
 	if (!EMPTY(cleanup_list)) {
 		for (changed = HEAD(cleanup_list);
