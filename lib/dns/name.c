@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.118 2001/01/22 03:30:26 bwelling Exp $ */
+/* $Id: name.c,v 1.119 2001/02/12 05:22:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2362,7 +2362,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t gs; 	/* Global compression suffix */
 	isc_boolean_t gf;	/* Global compression target found */
 	isc_uint16_t go;	/* Global compression offset */
-	dns_offsets_t po, so, clo;
+	dns_offsets_t clo;
 	dns_name_t clname;
 
 	/*
@@ -2382,8 +2382,8 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 		dns_name_clone(name, &clname);
 		name = &clname;
 	}
-	DNS_NAME_INIT(&gp, po);
-	DNS_NAME_INIT(&gs, so);
+	DNS_NAME_INIT(&gp, NULL);
+	DNS_NAME_INIT(&gs, NULL);
 
 	offset = target->used;	/*XXX*/
 
