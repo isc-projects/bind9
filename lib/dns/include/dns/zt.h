@@ -95,7 +95,7 @@ isc_result_t dns_zt_find(dns_zt_t *zt, dns_name_t *name,
 void dns_zt_detach(dns_zt_t **ztp);
 
 /*
- * Detach the give zonetable, if the reference count goes to zero the
+ * Detach the given zonetable, if the reference count goes to zero the
  * zonetable will be freed.  In either case 'ztp' is set to NULL.
  *
  * Requires:
