@@ -1,3 +1,6 @@
+1028.	[bug]		RESOLVCONF defined in dig.h and dighost.c instead of
+			RESOLV_CONF, preventing win32 from overriding the
+			location of the resolv.conf file. [RT #1833]
 
 1027.	[bug]		RRs having the reserved type 0 should be rejected.
 			[RT #1471]
