@@ -24,6 +24,8 @@ CWARNINGS =
 
 OBJS =		msgcat.@O@
 
+SRCS =		msgcat.c
+
 SUBDIRS =
 TARGETS =	${OBJS}
 

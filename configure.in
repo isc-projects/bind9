@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.38 $)
+AC_REVISION($Revision: 1.39 $)
 
 AC_PREREQ(2.13)
 
@@ -203,6 +203,8 @@ case "$host" in
 		;;
 esac
 
+MKDEPCC="$CC"
+MKDEPCFLAGS="-M"
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
 	case "$host" in
@@ -214,15 +216,22 @@ else
 	case "$host" in
 		*-dec-osf*)
 			CC="$CC -pthread"
+			MKDEPCC="$CC"
 			;;
 		*-sun-solaris*)
 			CC="$CC -mt"
+			MKDEPCC="$CC"
+			MKDEPCFLAGS="-xM"
 			;;
 		*-hp-hpux*)
 			CC="$CC -Ae -z +w1"
+			MKDEPPROG='cc -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
 	esac
 fi
+AC_SUBST(MKDEPCC)
+AC_SUBST(MKDEPCFLAGS)
+AC_SUBST(MKDEPPROG)
 
 dnl
 dnl Networking specifics.
@@ -308,20 +317,21 @@ dnl the files.
 dnl
 AC_CHECK_FUNC(inet_ntop, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	       AC_SUBST(ISC_EXTRA_OBJS)
+	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
 	       AC_DEFINE(NEED_INET_NTOP)]
 )
 AC_CHECK_FUNC(inet_pton, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	       AC_SUBST(ISC_EXTRA_OBJS)
+	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
 	       AC_DEFINE(NEED_INET_PTON)]
 )
 AC_CHECK_FUNC(inet_aton, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
-	       AC_SUBST(ISC_EXTRA_OBJS)
+	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
 	       AC_DEFINE(NEED_INET_ATON)]
 )
-
+AC_SUBST(ISC_EXTRA_OBJS)
+AC_SUBST(ISC_EXTRA_SRCS)
 
 AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
@@ -342,6 +352,7 @@ AC_OUTPUT(
 	make/rules
 	Makefile
 	make/Makefile
+	make/mkdep
 	lib/Makefile
 	lib/isc/Makefile
 	lib/isc/include/Makefile

@@ -27,6 +27,9 @@ CWARNINGS =
 OBJS =		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
 		interfaceiter.@O@ net.@O@
 
+SRCS =		app.c time.c stdtime.c socket.c \
+		interfaceiter.c net.c
+
 SUBDIRS =	include
 TARGETS =	${OBJS}
 

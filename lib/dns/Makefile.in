@@ -113,14 +113,24 @@ OBJS =		callbacks.@O@ compress.@O@ db.@O@ dbiterator.@O@ \
 		ttl.@O@ tcpmsg.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS}
 
-OSRC =		callbacks.c compress.c db.c dbiterator.c dbtable.c dispatch.c \
-		lib.c master.c name.c rbt.c rbtdb.c rbtdb64.c \
-		rdata.c rdatalist.c rdataset.c rdatasetiter.c rdataslab.c \
-		resolver.c result.c version.c masterdump.c time.c ttl.c
+SRCS =		callbacks.c compress.c db.c dbiterator.c \
+		dbtable.c dispatch.c lib.c master.c message.c \
+		name.c rbt.c rbtdb.c rbtdb64.c rdata.c \
+		rdatalist.c rdataset.c rdatasetiter.c rdataslab.c \
+		resolver.c result.c version.c masterdump.c time.c \
+		ttl.c tcpmsg.c
 
 SUBDIRS =	include sec
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 		include/dns/rdatastruct.h timestamp
+
+#
+# These two dependencies need to be before BIND9_MAKE_RULES.
+# 
+depend:: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h code.h
+sec:: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h code.h
 
 @BIND9_MAKE_RULES@
 
@@ -157,8 +167,6 @@ clean distclean::
 	rm -f libdns.a timestamp
 	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
-
-sec: include/dns/enumtype.h include/dns/enumclass.h include/dns/rdatastruct.h
 
 rdata.@O@: code.h
 

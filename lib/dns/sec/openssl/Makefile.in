@@ -46,6 +46,17 @@ OBJS =		bn_add.@O@ bn_asm.@O@ bn_comba.@O@ bn_div.@O@ \
 		rand_lib.@O@ sha1_one.@O@ sha1dgst.@O@ stack.@O@ \
 		th-lock.@O@
 
+SRCS =		bn_add.c bn_asm.c bn_comba.c bn_div.c \
+		bn_err.c bn_exp.c bn_exp2.c bn_gcd.c \
+		bn_lib.c bn_m.c bn_mont.c bn_mul.c \
+		bn_prime.c bn_rand.c bn_recp.c \
+		bn_shift.c bn_sqr.c bn_word.c buffer.c \
+		cryptlib.c dsa_asn1.c dsa_err.c dsa_gen.c \
+		dsa_key.c dsa_lib.c dsa_sign.c dsa_vrf.c \
+		err.c lhash.c md_rand.c md5_dgst.c mem.c \
+		rand_lib.c sha1_one.c sha1dgst.c stack.c \
+		th-lock.c
+
 SUBDIRS =	include
 TARGETS =	${OBJS}
 

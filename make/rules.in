@@ -50,7 +50,7 @@ all: ${SUBDIRS} ${TARGETS}
 
 ALL_SUBDIRS = ${SUBDIRS} nulldir
 
-${ALL_SUBDIRS}: FORCE
+${ALL_SUBDIRS}::
 	@if [ "$@" != "nulldir" -a -d $@ ]; then \
 		echo "making all in `pwd`/$@"; \
 		(cd $@; ${MAKE} ${MAKEDEFS} all); \
@@ -63,8 +63,6 @@ install depend clean distclean::
 			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
 		fi \
 	done
-
-FORCE:
 
 ###
 ### C Programs
@@ -90,9 +88,12 @@ ALWAYS_INCLUDES = -I${top_builddir}
 ALWAYS_DEFINES = -D_REENTRANT
 ALWAYS_WARNINGS =
 
-ALL_CFLAGS = ${CFLAGS} \
+ALL_CPPFLAGS = \
 	${ALWAYS_INCLUDES} ${STD_CINCLUDES} ${CINCLUDES} \
-	${ALWAYS_DEFINES} ${STD_CDEFINES} ${CDEFINES} \
+	${ALWAYS_DEFINES} ${STD_CDEFINES} ${CDEFINES}
+
+ALL_CFLAGS = ${CFLAGS} \
+	${ALL_CPPFLAGS} \
 	${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS}
 
 .c.o:
@@ -100,6 +101,8 @@ ALL_CFLAGS = ${CFLAGS} \
 
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
+
+MKDEP = ${SHELL} ${top_builddir}/make/mkdep
 
 .c.lo:
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -c $<
@@ -110,6 +113,22 @@ clean distclean::
 
 distclean::
 	rm -f Makefile
+
+depend::
+	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
+		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+		${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+		echo ${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+		${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+	elif [ X"${SRCS}" != X ] ; then \
+		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+		${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+	elif [ X"${PSRCS}" != X ] ; then \
+		echo ${MKDEP} ${ALL_CPPFLAGS} ${PSRCS}; \
+		${MKDEP} -p ${ALL_CPPFLAGS} ${PSRCS}; \
+	fi
+
+FORCE:
 
 ###
 ### Libraries

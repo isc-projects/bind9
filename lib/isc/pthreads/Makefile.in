@@ -25,6 +25,8 @@ CWARNINGS =
 
 OBJS =		condition.@O@
 
+SRCS =		condition.c
+
 SUBDIRS =	include
 TARGETS =	${OBJS}
 

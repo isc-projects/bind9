@@ -41,6 +41,12 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		task.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
 
+SRCS =		@ISC_EXTRA_SRCS@ \
+		assertions.c base64.c buffer.c error.c \
+		heap.c lex.c lib.c mem.c result.c \
+		rwlock.c sockaddr.c symtab.c str.c event.c \
+		task.c timer.c version.c
+
 LIBS =		@LIBS@
 
 SUBDIRS =	include unix nls pthreads
