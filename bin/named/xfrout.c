@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999 Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.8 1999/09/10 15:01:04 bwelling Exp $ */
+ /* $Id: xfrout.c,v 1.9 1999/09/15 23:49:29 explorer Exp $ */
 
 #include <config.h>
 
