@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.19 2000/06/02 23:36:07 bwelling Exp $
+ * $Id: dst_parse.c,v 1.20 2000/06/06 21:58:07 bwelling Exp $
  */
 
 #include <config.h>
@@ -188,31 +188,41 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 
 int
 dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
-			  dst_private_t *priv, isc_mem_t *mctx)
+			  const char *filename, isc_mem_t *mctx,
+			  dst_private_t *priv)
 {
-	char filename[ISC_DIR_NAMEMAX];
 	int n = 0, ret, major, minor;
 	isc_buffer_t b;
 	isc_lex_t *lex = NULL;
 	isc_token_t token;
 	unsigned int opt = ISC_LEXOPT_EOL;
+	char *newfilename;
 	isc_result_t iret;
 
 	REQUIRE(priv != NULL);
 
+	if (strlen(filename) < 8)
+		return (DST_R_INVALIDPUBLICKEY);
+
+	newfilename = isc_mem_get(mctx, strlen(filename) + 9);
+	if (newfilename == NULL)
+		return (ISC_R_NOMEMORY);
+	strcpy(newfilename, filename);
+
+	if (strcmp(filename + strlen(filename) - 4, ".key") == 0)
+		sprintf(newfilename + strlen(filename) - 4, ".private");
+	else if (strcmp(filename + strlen(filename) - 8, ".private") != 0)
+		sprintf(newfilename + strlen(filename), ".private");
+
 	priv->nelements = 0;
 
-	isc_buffer_init(&b, filename, sizeof(filename));
 	key->key_id = id;
-	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, &b);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
 
 	iret = isc_lex_create(mctx, 1024, &lex);
 	if (iret != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	iret = isc_lex_openfile(lex, filename);
+	iret = isc_lex_openfile(lex, newfilename);
 	if (iret != ISC_R_SUCCESS)
 		goto fail;
 
@@ -308,6 +318,7 @@ dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
 
 	isc_lex_close(lex);
 	isc_lex_destroy(&lex);
+	isc_mem_put(mctx, newfilename, strlen(filename) + 9);
 
 	return (ISC_R_SUCCESS);
 
@@ -316,6 +327,7 @@ fail:
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
+	isc_mem_put(mctx, newfilename, strlen(filename) + 9);
 
 	priv->nelements = n;
 	dst__privstruct_free(priv, mctx);
@@ -323,7 +335,9 @@ fail:
 }
 
 int
-dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv) {
+dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
+			  const char *directory)
+{
 	FILE *fp;
 	int ret, i;
 	isc_result_t iret;
@@ -337,7 +351,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv) {
 		return (DST_R_INVALIDPRIVATEKEY);
 
 	isc_buffer_init(&b, filename, sizeof(filename));
-	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, &b);
+	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory, &b);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

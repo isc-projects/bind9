@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.31 2000/06/05 19:10:58 bwelling Exp $
+ * $Id: hmac_link.c,v 1.32 2000/06/06 21:58:10 bwelling Exp $
  */
 
 #include <config.h>
@@ -276,7 +276,7 @@ hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 }
 
 static isc_result_t
-hmacmd5_tofile(const dst_key_t *key) {
+hmacmd5_tofile(const dst_key_t *key, const char *directory) {
 	int cnt = 0;
 	HMAC_Key *hkey;
 	dst_private_t priv;
@@ -292,18 +292,18 @@ hmacmd5_tofile(const dst_key_t *key) {
 	priv.elements[cnt++].data = hkey->key;
 
 	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv));
+	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
 static isc_result_t 
-hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id) {
+hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;
 	isc_mem_t *mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -333,8 +333,13 @@ static dst_func_t hmacmd5_functions = {
 	hmacmd5_fromfile,
 };
 
-void
+isc_result_t
 dst__hmacmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &hmacmd5_functions;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst__hmacmd5_destroy(void) {
 }

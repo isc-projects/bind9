@@ -46,6 +46,30 @@ extern dst_key_t *dst_key_md5;
  *** Functions
  ***/
 
+isc_result_t
+dst_lib_init(isc_mem_t *mctx);
+/*
+ * Initializes the DST subsystem.  If this call is omitted, DST will allocate
+ * resources itself when the first library call is made (including its own
+ * memory context).
+ *
+ * Requires:
+ * 	"mctx" is a valid memory context
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	ISC_R_NOMEMORY
+ *
+ * Ensures:
+ * 	DST is properly initialized.
+ */
+
+void
+dst_lib_destroy(void);
+/*
+ * Releases all resources allocated by DST.
+ */
+
 isc_boolean_t
 dst_algorithm_supported(const unsigned int alg);
 /*
@@ -176,16 +200,18 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 isc_result_t
 dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 		 const unsigned int alg, const int type,
-		 isc_mem_t *mctx, dst_key_t **keyp);
+		 const char *directory, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.  The key can either be a public or
- * key, and is specified by name, algorithm, and id.
+ * private key, and is specified by name, algorithm, and id.  If a private key
+ * is specified, the public key must also be present.  If directory is NULL,
+ * the current directory is assumed.
  *
  * Requires:
  *	"name" is a valid absolute dns name.
  *	"id" is a valid key tag identifier.
  *	"alg" is a supported key algorithm.
- *	"type" is either DST_TYPE_PUBLIC or DST_TYPE_PRIVATE.
+ *	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union.
  *	"mctx" is a valid memory context.
  *	"keyp" is not NULL and "*keyp" is NULL.
  *
@@ -198,11 +224,34 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
  */
 
 isc_result_t
-dst_key_tofile(const dst_key_t *key, const int type);
+dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
+		      dst_key_t **keyp);
+/*
+ * Reads a key from permanent storage.  The key can either be a public or
+ * key, and is specified by filename.  If a private key is specified, the
+ * public key must also be present.
+ *
+ * Requires:
+ * 	"filename" is not NULL
+ *	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union
+ *	"mctx" is a valid memory context
+ *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
+ * Ensures:
+ *	If successful, *keyp will contain a valid key.
+ */
+
+isc_result_t
+dst_key_tofile(const dst_key_t *key, const int type, const char *directory);
 /*
  * Writes a key to permanent storage.  The key can either be a public or
  * private key.  Public keys are written in DNS format and private keys
- * are written as a set of base64 encoded values.
+ * are written as a set of base64 encoded values.  If directory is NULL,
+ * the current directory is assumed.
  *
  * Requires:
  *	"key" is a valid key.
@@ -397,9 +446,11 @@ isc_boolean_t
 dst_key_isnullkey(const dst_key_t *key);
 
 isc_result_t
-dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
+dst_key_buildfilename(const dst_key_t *key, const int type,
+		      const char *directory, isc_buffer_t *out);
 /*
  * Generates the filename used by dst to store the specified key.
+ * If directory is NULL, the current directory is assumed.
  *
  * Requires:
  *	"key" is a valid key
@@ -409,25 +460,6 @@ dst_key_buildfilename(const dst_key_t *key, const int type, isc_buffer_t *out);
  * Ensures:
  *	the file name will be written to "out", and the used pointer will
  *		be advanced.
- */
-
-isc_result_t
-dst_key_parsefilename(isc_buffer_t *source, isc_mem_t *mctx, dns_name_t *name,
-		      isc_uint16_t *id, unsigned int *alg, char **suffix);
-/*
- * Parses a dst key filename into its components.
- *
- * Requires:
- *	"source" is a valid buffer
- *	"mctx" is a valid memory context
- *	"name" is a valid name with a dedicated buffer
- *	"id" and "alg" are not NULL
- *	Either "suffix" is NULL or "suffix" is not NULL and "*suffix" is NULL
- *
- * Ensures:
- *	"*name" will point to allocated memory, as will "*suffix" if suffix
- *	is not NULL (strlen() + 1 bytes).  The current pointer in source
- *	will be advanced.
  */
 
 isc_result_t

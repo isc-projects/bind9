@@ -92,8 +92,9 @@ struct dst_func {
 	/* conversion functions */
 	isc_result_t (*todns)(const dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*fromdns)(dst_key_t *key, isc_buffer_t *data);
-	isc_result_t (*tofile)(const dst_key_t *key);
-	isc_result_t (*fromfile)(dst_key_t *key, const isc_uint16_t id);
+	isc_result_t (*tofile)(const dst_key_t *key, const char *directory);
+	isc_result_t (*fromfile)(dst_key_t *key, const isc_uint16_t id,
+				 const char *filename);
 };
 
 #ifndef DST_HASH_SIZE
@@ -103,16 +104,20 @@ struct dst_func {
 /*
  * Initializers
  */
-void
-dst__hmacmd5_init(struct dst_func **funcp);
-void
-dst__dnssafersa_init(struct dst_func **funcp);
-void
-dst__openssldsa_init(struct dst_func **funcp);
-void
-dst__openssldh_init(struct dst_func **funcp);
-void
-dst__opensslmd5_init(struct dst_func **funcp);
+isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
+isc_result_t dst__dnssafersa_init(struct dst_func **funcp);
+isc_result_t dst__openssldsa_init(struct dst_func **funcp);
+isc_result_t dst__openssldh_init(struct dst_func **funcp);
+isc_result_t dst__opensslmd5_init(struct dst_func **funcp);
+
+/*
+ * Destructors
+ */
+void dst__hmacmd5_destroy(void);
+void dst__dnssafersa_destroy(void);
+void dst__openssldsa_destroy(void);
+void dst__openssldh_destroy(void);
+void dst__opensslmd5_destroy(void);
 
 /*
  * Support functions.

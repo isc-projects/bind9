@@ -30,8 +30,8 @@
 #include <isc/result.h>		/* Contractual promise. */
 
 #define DST_R_UNSUPPORTEDALG		(ISC_RESULTCLASS_DST + 0)
-#define DST_R_UNSUPPORTEDTYPE		(ISC_RESULTCLASS_DST + 1)
-#define DST_R_UNSUPPORTEDMODE		(ISC_RESULTCLASS_DST + 2)
+/* 1 is unused */
+/* 2 is unused */
 #define DST_R_NULLKEY			(ISC_RESULTCLASS_DST + 3)
 #define DST_R_INVALIDPUBLICKEY		(ISC_RESULTCLASS_DST + 4)
 #define DST_R_INVALIDPRIVATEKEY		(ISC_RESULTCLASS_DST + 5)

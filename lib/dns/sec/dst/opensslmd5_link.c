@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.9 2000/06/02 23:36:14 bwelling Exp $
+ * $Id: opensslmd5_link.c,v 1.10 2000/06/06 21:58:13 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -95,10 +95,15 @@ static dst_func_t opensslmd5_functions = {
 	NULL, /* fromfile */
 };
 
-void
+isc_result_t
 dst__opensslmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &opensslmd5_functions;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst__opensslmd5_destroy(void) {
 }
 
 #endif /* OPENSSL */

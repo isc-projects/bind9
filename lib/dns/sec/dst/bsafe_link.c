@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.25 2000/06/06 16:35:59 tale Exp $
+ * $Id: bsafe_link.c,v 1.26 2000/06/06 21:58:03 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -619,7 +619,7 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 }
 
 static isc_result_t
-dnssafersa_tofile(const dst_key_t *key) {
+dnssafersa_tofile(const dst_key_t *key, const char *directory) {
 	int cnt = 0;
 	B_KEY_OBJ rkey;
 	A_PKCS_RSA_PRIVATE_KEY *private = NULL;
@@ -665,11 +665,12 @@ dnssafersa_tofile(const dst_key_t *key) {
 	priv.elements[cnt++].length = private->coefficient.len;
 
 	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv));
+	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
 static isc_result_t 
-dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id) {
+dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id,
+		    const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;
@@ -685,7 +686,7 @@ dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	/*
 	 * Read private key file.
 	 */
-	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	/*
@@ -809,10 +810,15 @@ static dst_func_t dnssafersa_functions = {
 	dnssafersa_fromfile,
 };
 
-void
+isc_result_t
 dst__dnssafersa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &dnssafersa_functions;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst__dnssafersa_destroy(void) {
 }
 
 /* 

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.10 2000/06/02 18:57:44 bwelling Exp $
+ * $Id: dst_result.c,v 1.11 2000/06/06 21:58:09 bwelling Exp $
  */
 
 #include <config.h>
@@ -30,8 +30,8 @@
 
 static const char *text[DST_R_NRESULTS] = {
 	"algorithm is unsupported",		/*  0 */
-	"key type is unsupported",		/*  1 */
-	"signature mode is unsupported",	/*  2 */
+	"UNUSED1",				/*  1 */
+	"UNUSED2",				/*  2 */
 	"illegal operation for a null key",	/*  3 */
 	"public key is invalid",		/*  4 */
 	"private key is invalid",		/*  5 */

@@ -79,10 +79,12 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx);
 
 int
 dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
-			  dst_private_t *priv, isc_mem_t *mctx);
+			  const char *filename, isc_mem_t *mctx,
+			  dst_private_t *priv);
 
 int
-dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv);
+dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
+			  const char *directory);
 
 ISC_LANG_ENDDECLS
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.25 2000/06/02 23:36:12 bwelling Exp $
+ * $Id: openssl_link.c,v 1.26 2000/06/06 21:58:11 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -57,7 +57,11 @@ static void
 openssldsa_destroyctx(dst_context_t *dctx) {
 	SHA_CTX *ctx = dctx->opaque;
 
-	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+	if (ctx != NULL) {
+		unsigned char digest[SHA_DIGEST_LENGTH];
+		SHA1_Final(digest, ctx);
+		isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+	}
 }
 
 static isc_result_t
@@ -95,6 +99,8 @@ openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	dsa = key->opaque;
 
 	SHA1_Final(digest, ctx);
+	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+	dctx->opaque = NULL;
 
 	dsasig = DSA_do_sign(digest, SHA_DIGEST_LENGTH, dsa);
 	if (dsasig == NULL)
@@ -126,6 +132,8 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dsa = key->opaque;
 
 	SHA1_Final(digest, ctx);
+	isc_mem_put(dctx->mctx, ctx, sizeof(SHA_CTX));
+	dctx->opaque = NULL;
 
 	if (sig->length < 2 * SHA_DIGEST_LENGTH + 1)
 		return (DST_R_VERIFYFAILURE);
@@ -321,7 +329,7 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 
 static isc_result_t
-openssldsa_tofile(const dst_key_t *key) {
+openssldsa_tofile(const dst_key_t *key, const char *directory) {
 	int cnt = 0;
 	DSA *dsa;
 	dst_private_t priv;
@@ -363,11 +371,12 @@ openssldsa_tofile(const dst_key_t *key) {
 	cnt++;
 
 	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv));
+	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
 static isc_result_t 
-openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
+openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
+{
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t dns;
@@ -379,7 +388,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -454,12 +463,17 @@ static dst_func_t openssldsa_functions = {
 	openssldsa_fromfile,
 };
 
-void
+isc_result_t
 dst__openssldsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
 				 dst__mem_free);
 	*funcp = &openssldsa_functions;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst__openssldsa_destroy(void) {
 }
 
 #endif /* OPENSSL */

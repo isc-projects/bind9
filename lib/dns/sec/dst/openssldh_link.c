@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.19 2000/06/02 23:36:13 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.20 2000/06/06 21:58:12 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -380,7 +380,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 }
 
 static isc_result_t
-openssldh_tofile(const dst_key_t *key) {
+openssldh_tofile(const dst_key_t *key, const char *directory) {
 	int cnt = 0;
 	DH *dh;
 	dst_private_t priv;
@@ -416,11 +416,12 @@ openssldh_tofile(const dst_key_t *key) {
 	cnt++;
 
 	priv.nelements = cnt;
-	return (dst__privstruct_writefile(key, &priv));
+	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
 static isc_result_t 
-openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
+openssldh_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
+{
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t dns;
@@ -434,7 +435,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, filename, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -549,7 +550,7 @@ static dst_func_t openssldh_functions = {
 	openssldh_fromfile,
 };
 
-void
+isc_result_t
 dst__openssldh_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
@@ -561,6 +562,14 @@ dst__openssldh_init(dst_func_t **funcp) {
 	BN_fromhex(&bn768, PRIME768);
 	BN_fromhex(&bn1024, PRIME1024);
 	*funcp = &openssldh_functions;
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst__openssldh_destroy() {
+	BN_free(&bn2);
+	BN_free(&bn768);
+	BN_free(&bn1024);
 }
 
 #endif /* OPENSSL */
