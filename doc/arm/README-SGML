@@ -112,6 +112,14 @@ jade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
      -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
 
+To convert the resulting TeX file in to a DVI file you need to do:
+
+    tex "&jadetex" Bv9ARM-book.tex
+
+You will need to up both the "pool_size" and "hash_extra" variables in
+your texmf.cnf file and regenerate them. Stay tuned for instructions
+here.
+
 You can see that I am using a DSSSL style sheet for DocBook. Actually
 two different ones - one for rendering html, and one for 'print'
 media.

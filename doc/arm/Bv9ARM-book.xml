@@ -518,9 +518,9 @@ of the time:</para>
     slave will check to see that its version of the zone is the
     current version and, if not, initiate a transfer.</para> <para><acronym>DNS</acronym>
     Notify is fully documented in RFC 1996. See also the description
-    of the zone option <command>also-notify</command>, <xref
+    of the zone option <command>also-notify</command>, see <xref
     linkend="zone_transfers"/>. For more information about
-    <command>notify</command>, <xref
+    <command>notify</command>, see <xref
     linkend="boolean_options"/>.</para>
 
   </sect1>
@@ -847,7 +847,7 @@ reload the database. </para></entry>
     <para>The incremental zone transfer (IXFR) protocol is a way for
     slave servers to transfer only changed data, instead of having to
     transfer the entire zone. The IXFR protocol is documented in RFC
-    1995. <xref linkend="proposed_standards"/></para>
+    1995. See <xref linkend="proposed_standards"/></para>
 
 <para>When acting as a master, <acronym>BIND</acronym> 9 supports IXFR for those zones
 where the necessary change history information is available. These
@@ -947,7 +947,7 @@ internal clients will now be able to:</para>
 
     <para>Here is an example configuration for the setup we just
     described above. Note that this is only configuration information;
-    for information on how to configure your zone files, <xref
+    for information on how to configure your zone files, see <xref
     linkend="sample_configuration"/></para>
 
 <para>Internal DNS server config:</para>
@@ -1057,7 +1057,7 @@ for TSIG.</para>
     <para>TSIG might be most useful for dynamic update. A primary
     server for a dynamic zone should use access control to control
     updates, but IP-based access control is insufficient. Key-based
-    access control is far superior, <xref
+    access control is far superior, see <xref
     linkend="proposed_standards"/>. The <command>nsupdate</command>
     program supports TSIG via the <option>-k</option> and
     <option>-y</option> command line options.</para>
@@ -1141,8 +1141,8 @@ allow-update { key host1-host2. ;};
 
       <para>This allows dynamic updates to succeed only if the request
       was signed by a key named
-      "<command>host1-host2.</command>".</para> <para>The more
-      powerful <command>update-policy</command> statement <xref
+      "<command>host1-host2.</command>".</para> <para>You may want to read about the more
+      powerful <command>update-policy</command> statement in <xref
       linkend="dynamic_update_policies"/>.</para>
 
     </sect2>
@@ -1399,7 +1399,7 @@ allow-update { key host1-host2. ;};
 
     <para><acronym>BIND</acronym> 9 includes a new lightweight resolver library and
     resolver daemon which new applications may choose to use to avoid
-    the complexities of A6 chain following and bitstring labels,<xref
+    the complexities of A6 chain following and bitstring labels, see <xref
     linkend="ch05"/>.</para>
 
     <sect2>
@@ -1643,7 +1643,7 @@ defined by the <command>acl</command> statement.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>address_match_list</varname></para></entry>
-<entry colname = "2"><para>A list of one or more <varname>ip_addr</varname><command>, </command><varname>ip_prefix</varname><command>, </command><varname>key_id</varname><command>, </command>or <varname>acl_name</varname> elements,
+<entry colname = "2"><para>A list of one or more <varname>ip_addr</varname><command>, </command><varname>ip_prefix</varname><command>, </command><varname>key_id</varname><command>, </command>or <varname>acl_name</varname> elements, see
 <xref linkend="address_match_lists"/>.</para></entry>
 </row>
 <row rowsep = "0">
@@ -2049,7 +2049,7 @@ Usage</title>
       <title><command>key</command> Statement Definition and Usage</title>
 
       <para>The <command>key</command> statement defines a shared
-      secret key for use with TSIG, <xref linkend="tsig"/>.</para>
+      secret key for use with TSIG, see <xref linkend="tsig"/>.</para>
 
       <para>The <replaceable>key_id</replaceable>, also known as the
       key name, is a domain name uniquely identifying the key. It can
@@ -2341,7 +2341,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <sect2>
       <title><command>options</command> Statement Grammar</title>
 
-      <para>This is the grammar of the <command>option</command>
+      <para>This is the grammar of the <command>options</command>
       statement in the <filename>named.conf</filename> file:</para>
 <programlisting><command>options</command> {
     <optional> version <replaceable>version_string</replaceable>; </optional>
@@ -2368,8 +2368,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <optional> <replaceable>in_addr</replaceable> ; <optional> <replaceable>in_addr</replaceable> ; ... </optional> </optional> }; </optional>
-    <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>
-response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable> response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
@@ -2605,7 +2604,7 @@ in dynamic updates.</para></entry>
 <entry colname = "1"><para><command>notify</command></para></entry>
 <entry colname = "2"><para>If <userinput>yes</userinput> (the default),
 DNS NOTIFY messages are sent when a zone the server is authoritative for
-changes, <xref linkend="notify"/>.
+changes, see <xref linkend="notify"/>.
 The <command>notify</command> option may also be specified in the <command>zone</command> statement,
 in which case it overrides the <command>options notify</command> statement.
 It would only be necessary to turn off this option if it caused slaves
@@ -2698,7 +2697,7 @@ for forwarding. The default is the empty list (no forwarding).</para></entry>
 for the global forwarding options to be overridden in a variety
 of ways. You can set particular domains to use different forwarders,
 or have a different <command>forward only/first</command> behavior,
-or not forward at all, <xref linkend="zone_statement_grammar"/>.</para></sect3>
+or not forward at all, see <xref linkend="zone_statement_grammar"/>.</para></sect3>
 <sect3 id="name_checking"><title>Name Checking</title>
 <para>The server can check domain names based upon their expected
 client contexts. For example, a domain name used as a hostname can
@@ -2745,7 +2744,7 @@ specified because it can be deduced from the zone type.</para>
 <para>Name checking is not yet implemented in <acronym>BIND</acronym> 9.</para></note></sect3>
 <sect3 id="access_control"><title>Access Control</title>
 <para>Access to the server can be restricted based on the IP address
-of the requesting system. <xref linkend="address_match_lists"/> for
+of the requesting system. See <xref linkend="address_match_lists"/> for
 details on how to specify IP address lists.</para>
 <para><informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
     colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
@@ -3612,11 +3611,11 @@ in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</lit
               <row rowsep = "0">
                 <entry colname = "1"><para><command>allow-query</command></para></entry>
                 <entry colname = "2"><para>See the description of
-<command>allow-query</command><xref linkend="access_control"/></para></entry>
+<command>allow-query</command> in <xref linkend="access_control"/></para></entry>
               </row>
               <row rowsep = "0">
                 <entry colname = "1"><para><command>allow-transfer</command></para></entry>
-                <entry colname = "2"><para>See the description of <command>allow-transfer</command><xref linkend="access_control"/>.</para></entry>
+                <entry colname = "2"><para>See the description of <command>allow-transfer</command> in <xref linkend="access_control"/>.</para></entry>
               </row>
               <row rowsep = "0">
                 <entry colname = "1"><para><command>allow-update</command></para></entry>
@@ -3699,12 +3698,12 @@ zone file.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>max-transfer-time-out</command></para></entry>
 <entry colname = "2"><para>See the description of
-<command>max-transfer-time-out</command> under  <xref linkend="zone_transfers"/>.</para></entry>
+<command>max-transfer-time-out</command> under <xref linkend="zone_transfers"/>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>max-transfer-idle-out</command></para></entry>
 <entry colname = "2"><para>See the description of
-<command>max-transfer-idle-out</command> under  <xref linkend="zone_transfers"/>.</para></entry>
+<command>max-transfer-idle-out</command> under <xref linkend="zone_transfers"/>.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>notify</command></para></entry>
