@@ -1,6 +1,11 @@
 #!/bin/sh
 for i
 do
+	z=`expr "$i" : 'http://www.ietf.org/internet-drafts/\(.*\)'`
+	if test -n "$z"
+	then
+		i="$z"
+	fi
 	if test -f "$i"
 	then
 		continue
