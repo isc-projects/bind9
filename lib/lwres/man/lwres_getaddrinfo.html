@@ -218,7 +218,6 @@ is set to
 CLASS="TYPE"
 >PF_UNSPEC</SPAN
 >,
-
 it means the caller will accept any protocol family supported by the
 operating system.</P
 ></DD
@@ -397,7 +396,7 @@ is not set in
 <TT
 CLASS="CONSTANT"
 >ai_flags</TT
->.&#13;</P
+>.</P
 ><P
 >If
 <TT
@@ -423,47 +422,38 @@ and no name resolution should be attempted.</P
 ></DIV
 >&#13;</P
 ><P
->All other elements of the
-<SPAN
+>All other elements of the <SPAN
 CLASS="TYPE"
 >struct addrinfo</SPAN
->
-passed via
-<TT
+> passed
+via <TT
 CLASS="PARAMETER"
 ><I
 >hints</I
 ></TT
->
-must be zero.</P
+> must be zero.</P
 ><P
->A
-<TT
+>A <TT
 CLASS="PARAMETER"
 ><I
 >hints</I
 ></TT
->
-of
-<SPAN
+> of <SPAN
 CLASS="TYPE"
 >NULL</SPAN
->
-is treated as if the caller provided a
-<SPAN
+> is treated as if
+the caller provided a <SPAN
 CLASS="TYPE"
 >struct addrinfo</SPAN
->
-initialized to zero with
-<TT
+> initialized to zero
+with <TT
 CLASS="CONSTANT"
 >ai_family</TT
 >set to
-
 <TT
 CLASS="CONSTANT"
 >PF_UNSPEC</TT
->.&#13;</P
+>.</P
 ><P
 >After a successful call to
 <TT
@@ -487,7 +477,6 @@ Each
 CLASS="TYPE"
 >struct addrinfo</SPAN
 >
-
 in this list cn be processed by following
 the
 <TT
@@ -505,12 +494,10 @@ The three members
 CLASS="CONSTANT"
 >ai_family</TT
 >,
-
 <TT
 CLASS="CONSTANT"
 >ai_socktype</TT
 >,
-
 and
 <TT
 CLASS="CONSTANT"
@@ -530,7 +517,6 @@ CLASS="REFENTRYTITLE"
 >socket</SPAN
 >(2)</SPAN
 >.
-
 For each
 <SPAN
 CLASS="TYPE"
@@ -545,7 +531,7 @@ member points to a filled-in socket address structure of length
 <TT
 CLASS="CONSTANT"
 >ai_addrlen</TT
->.&#13;</P
+>.</P
 ><P
 >All of the information returned by
 <TT
@@ -558,7 +544,6 @@ address structures and canonical host name strings pointed to by the
 CLASS="CONSTANT"
 >addrinfo</TT
 >structures.
-
 Memory allocated for the dynamically allocated structures created by
 a successful call to
 <TT
@@ -581,7 +566,6 @@ is a pointer to a
 CLASS="TYPE"
 >struct addrinfo</SPAN
 >
-
 created by a call to
 <TT
 CLASS="FUNCTION"

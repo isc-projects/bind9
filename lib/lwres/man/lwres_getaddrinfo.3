@@ -163,20 +163,12 @@ it indicates that
 should be treated as a numeric string defining an IPv4 or IPv6 address
 and no name resolution should be attempted.
 .PP
-All other elements of the
-\fBstruct addrinfo\fR
-passed via
-\fIhints\fR
-must be zero.
+All other elements of the \fBstruct addrinfo\fR passed
+via \fIhints\fR must be zero.
 .PP
-A
-\fIhints\fR
-of
-\fBNULL\fR
-is treated as if the caller provided a
-\fBstruct addrinfo\fR
-initialized to zero with
-ai_familyset to
+A \fIhints\fR of \fBNULL\fR is treated as if
+the caller provided a \fBstruct addrinfo\fR initialized to zero
+with ai_familyset to
 PF_UNSPEC.
 .PP
 After a successful call to

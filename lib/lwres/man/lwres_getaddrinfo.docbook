@@ -16,19 +16,20 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getaddrinfo.docbook,v 1.3 2001/04/24 18:11:06 gson Exp $ -->
+<!-- $Id: lwres_getaddrinfo.docbook,v 1.4 2001/06/18 17:53:59 gson Exp $ -->
 
 <refentry>
+
 <refentryinfo>
-
-
 <date>Jun 30, 2000</date>
 </refentryinfo>
+
 <refmeta>
 <refentrytitle>lwres_getaddrinfo</refentrytitle>
 <manvolnum>3</manvolnum>
 <refmiscinfo>BIND9</refmiscinfo>
 </refmeta>
+
 <refnamediv>
 <refname>lwres_getaddrinfo</refname>
 <refname>lwres_freeaddrinfo</refname>
@@ -120,9 +121,9 @@ When
 <constant>ai_family</constant>
 is set to
 <type>PF_UNSPEC</type>,
-
 it means the caller will accept any protocol family supported by the
 operating system.
+</para></listitem></varlistentry>
 <varlistentry><term><constant>ai_socktype</constant></term>
 <listitem>
 <para>
@@ -137,6 +138,7 @@ When
 is zero the caller will accept any socket type.
 </para>
 </listitem>
+</varlistentry>
 <varlistentry><term><constant>ai_protocol</constant></term>
 <listitem>
 <para>
@@ -147,6 +149,7 @@ If
 is zero the caller will accept any protocol.
 </para>
 </listitem>
+</varlistentry>
 <varlistentry><term><constant>ai_flags</constant></term>
 <listitem>
 <para>
@@ -213,7 +216,6 @@ pointer and
 <type>AI_PASSIVE</type>
 is not set in
 <constant>ai_flags</constant>.
-
 </para>
 <para>
 If
@@ -226,28 +228,21 @@ should be treated as a numeric string defining an IPv4 or IPv6 address
 and no name resolution should be attempted.
 </para>
 </listitem>
+</varlistentry>
 </variablelist>
 
 <para>
-All other elements of the
-<type>struct addrinfo</type>
-passed via
-<parameter>hints</parameter>
-must be zero.
+All other elements of the <type>struct addrinfo</type> passed
+via <parameter>hints</parameter> must be zero.
 </para>
+
 <para>
-A
-<parameter>hints</parameter>
-of
-<type>NULL</type>
-is treated as if the caller provided a
-<type>struct addrinfo</type>
-initialized to zero with
-<constant>ai_family</constant>set to
-
+A <parameter>hints</parameter> of <type>NULL</type> is treated as if
+the caller provided a <type>struct addrinfo</type> initialized to zero
+with <constant>ai_family</constant>set to
 <constant>PF_UNSPEC</constant>.
-
 </para>
+
 <para>
 After a successful call to
 <function>lwres_getaddrinfo()</function>,
@@ -257,7 +252,6 @@ is a pointer to a linked list of one or more
 structures.
 Each
 <type>struct addrinfo</type>
-
 in this list cn be processed by following
 the
 <constant>ai_next</constant>
@@ -266,9 +260,7 @@ pointer, until a
 pointer is encountered.
 The three members
 <constant>ai_family</constant>,
-
 <constant>ai_socktype</constant>,
-
 and
 <constant>ai_protocol</constant>
 in each
@@ -278,22 +270,20 @@ structure contain the corresponding arguments for a call to
 <citerefentry>
 <refentrytitle>socket</refentrytitle><manvolnum>2</manvolnum>
 </citerefentry>.
-
 For each
 <type>addrinfo</type>
 structure in the list, the
 <constant>ai_addr</constant>
 member points to a filled-in socket address structure of length
 <constant>ai_addrlen</constant>.
-
 </para>
+
 <para>
 All of the information returned by
 <function>lwres_getaddrinfo()</function>
 is dynamically allocated: the addrinfo structures, and the socket
 address structures and canonical host name strings pointed to by the
 <constant>addrinfo</constant>structures.
-
 Memory allocated for the dynamically allocated structures created by
 a successful call to
 <function>lwres_getaddrinfo()</function>
@@ -302,10 +292,10 @@ is released by
 <parameter>ai</parameter>
 is a pointer to a
 <type>struct addrinfo</type>
-
 created by a call to
 <function>lwres_getaddrinfo()</function>.
 </para>
+
 </refsect1>
 
 <refsect1>
