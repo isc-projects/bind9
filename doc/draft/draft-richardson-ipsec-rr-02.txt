@@ -1,16 +1,12 @@
 
 
-
-
-
-
 Independent submission                                     M. Richardson
 Internet-Draft                                                       SSW
-Expires: July 16, 2003                                  January 15, 2003
+Expires: August 24, 2003                               February 23, 2003
 
 
            A method for storing IPsec keying material in DNS.
-                    draft-richardson-ipsec-rr-01.txt
+                    draft-richardson-ipsec-rr-02.txt
 
 Status of this Memo
 
@@ -33,7 +29,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 16, 2003.
+   This Internet-Draft will expire on August 24, 2003.
 
 Copyright Notice
 
@@ -55,42 +51,124 @@ Abstract
 
 
 
-Richardson                Expires July 16, 2003                 [Page 1]
+
+Richardson               Expires August 24, 2003                [Page 1]
 
-Internet-Draft                   ipsecrr                    January 2003
+Internet-Draft                   ipsecrr                   February 2003
 
 
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
    1.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
-
    2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  4
-
    3.  IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  5
-   3.1 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  5
-   3.2 RDATA format - algo type . . . . . . . . . . . . . . . . . . .  5
-   3.3 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  6
-   3.4 RDATA format - RSA public key  . . . . . . . . . . . . . . . .  6
-   3.5 RDATA format - DSA public key  . . . . . . . . . . . . . . . .  6
-
+   3.1 RDATA format - algo type . . . . . . . . . . . . . . . . . . .  5
+   3.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  5
+   3.3 RDATA format - RSA public key  . . . . . . . . . . . . . . . .  5
+   3.4 RDATA format - DSA public key  . . . . . . . . . . . . . . . .  6
+   3.5 RDATA format - gateway . . . . . . . . . . . . . . . . . . . .  6
    4.  Presentation formats . . . . . . . . . . . . . . . . . . . . .  7
-   4.1 File Representation of IPSECKEY RRs  . . . . . . . . . . . . .  7
-
+   4.1 Representation of IPSECKEY RRs . . . . . . . . . . . . . . . .  7
    5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  8
-
    6.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . .  9
-
        Normative references . . . . . . . . . . . . . . . . . . . . . 10
-
        Author's Address . . . . . . . . . . . . . . . . . . . . . . . 10
-
        Full Copyright Statement . . . . . . . . . . . . . . . . . . . 11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 2]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 1. Introduction
 
 1.1 Overview
 
    Overview.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 3]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 2. Storage formats
 
    The IPSECKEY resource record (RR) is used to publish a public key
@@ -105,16 +183,49 @@ Table of Contents
    the IPSECKEY type.  This will be due to the need to rollover keys,
    and due to the presence of multiple gateways.
 
-   The type number for the IPSECKEY RR is 44 (IANA TBD).
-3. IPSECKEY RDATA format
+   The type number for the IPSECKEY RR is 45 (IANA TBD).
 
 
 
 
-Richardson                Expires July 16, 2003                 [Page 2]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 4]
 
-Internet-Draft                   ipsecrr                    January 2003
+Internet-Draft                   ipsecrr                   February 2003
 
+
+3. IPSECKEY RDATA format
 
    The RDATA for an IPSECKEY RR consists of a precedence value, a public
    key (and algorithm type), and an optional gateway address.
@@ -122,7 +233,7 @@ Internet-Draft                   ipsecrr                    January 2003
                            1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-      | gtype | algo  |  precedence   |     public key length         |
+      | RESV  | algo  |  precedence   |     public key length         |
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                               /
       /                          public key
@@ -132,25 +243,7 @@ Internet-Draft                   ipsecrr                    January 2003
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 
-3.1 RDATA format - gateway type
-
-   The gateway type ("gtype") field indicates the format of the gateway
-   field.  The gateway field may be absent.
-
-   0  No gateway field is present
-
-   1  A 32-bit IPv4 address is present in the gateway field, in section
-
-   2  A 128-bit IPv6 address is present in the gateway field.  The data
-      portion is an IPv6 address as described in section 3.2 of [4].
-      This is a 128-bit number in network byte order.
-
-   3  A fully qualified domain name is present in the gateway field.
-      The name a %lt;domain-name%gt; encoded as described in section 3.3
-      of [4].  This field occupies the space until the end of the RDATA.
-
-
-3.2 RDATA format - algo type
+3.1 RDATA format - algo type
 
    The algorithm type ("algo") field indicates the type of key that is
    present in the public key field.  Valid values are:
@@ -161,24 +254,17 @@ Internet-Draft                   ipsecrr                    January 2003
 
    2  A DSA key is present, in the format defined in
 
-3.3 RDATA format - precedence
+
+3.2 RDATA format - precedence
 
    This is an 8-bit precedence for this record.  This is interpreted in
-
-
-
-Richardson                Expires July 16, 2003                 [Page 3]
-
-Internet-Draft                   ipsecrr                    January 2003
-
-
    a similar way to the PREFERENCE field described in section 3.3.9 of
    [3].
 
-3.4 RDATA format - RSA public key
+3.3 RDATA format - RSA public key
 
    If the algorithm type has the value 1, then public key portion
-   contains an RSA public key, encoded as described in secion 2 of [7],
+   contains an RSA public key, encoded as described in secion 2 of [8],
    and repeated here:
 
                            1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
@@ -187,6 +273,14 @@ Internet-Draft                   ipsecrr                    January 2003
       | pub exp length|        public key exponent                    /
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
       |                                                               /
+
+
+
+Richardson               Expires August 24, 2003                [Page 5]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
       +-                           modulus                            /
       |                                                               /
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-/
@@ -203,13 +297,49 @@ Internet-Draft                   ipsecrr                    January 2003
 
    Leading zero bytes are prohibited in the exponent and modulus.
 
-3.5 RDATA format - DSA public key
+3.4 RDATA format - DSA public key
 
    If the algorithm type has the value 2, then public key portion
-   contains an DSA public key, encoded as described in [6].
+   contains an DSA public key, encoded as described in [7].
+
+3.5 RDATA format - gateway
+
+   The gateway field indicates a gateway to which an IPsec tunnel may be
+   created in order to reach the entity holding this resource record.
+   The length of this field is the size of the data portion minus the
+   public key length, and the 4 bytes of header.  The gateway field may
+   be absent.
+
+   The gateway field is a string.  It is most commonly a simple fully
+   qualified domain name (FQDN).  IP version 4 and IP version 6
+   addresses may be represented using names from in-addr.arpa.  and
+   ip6.arpa.
+
+   The gateway field may also include a @-character in it.  Either in
+   the form @FQDN, or user@FQDN.  In this context, it does not reference
+   a single destination, but just an identifier that will be used when
+   doing key negotiations.  This may be used in the context where the
+   gateway does not have a permanent IP address, but has permanent
+   address space behind it, and will be initiating connections only.
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 6]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 4. Presentation formats
 
-4.1 File Representation of IPSECKEY RRs
+4.1 Representation of IPSECKEY RRs
 
    IPSECKEY RRs may appear as lines in a zone data master file.  The
    precedence field is mandatory.  While both the gateway and public key
@@ -220,12 +350,9 @@ Internet-Draft                   ipsecrr                    January 2003
    indicated, then the special tokens of either "-" or "none" may be
    used.
 
-
-
-
-Richardson                Expires July 16, 2003                 [Page 4]
-
-Internet-Draft                   ipsecrr                    January 2003
+   IPv4 addresses are to be represented as a dotted decimal quad, with
+   no leading zeroes.  IPv6 addresses are to be presented as specified
+   in section 2.2 of [4].
 
 
    38.46.139.192.in-addr.arpa. 7200 IN     IPSECKEY ( 10 192.139.46.38
@@ -233,21 +360,155 @@ Internet-Draft                   ipsecrr                    January 2003
                     Th48wKVXUE9xjwUkwR4R4/+1vjNN7KFp9fcqa2OxgjsoGqCn+3OPR8La
                     9uyvZg0OBuSTj3qkbh/2HacAUJ7vqvjQ3W8Wj6sMXtTueR8NNcdSzJh1
                     49ch3zqfiXrxxna8+8UEDQaRR9KOPiSvXb2KjnuDan6hDKOT4qTZRRRC
-                 MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
+   	         MWwnNQ9zPIMNbLBp0rNcZ+ZGFg2ckWtWh5yhv1iXYLV2vmd9DB6d4Dv8
                     cW7scc3rPmDXpYR6APqPBRHlcbenfHCt+oCkEWse8OQhMM56KODIVQq3
-                 fejrfi1H )
+   	         fejrfi1H )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 7]
+
+Internet-Draft                   ipsecrr                   February 2003
+
 
 5. IANA Considerations
 
-   IANA is asked to assign resource record 44 to this resource record.
+   IANA is asked to assign resource record 45 to this resource record.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 8]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 6. Acknowledgments
 
    People who pushed me to write this.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003                [Page 9]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 Normative references
 
    [1]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
-        Record", ID internet-draft (draft-ietf-dnsext-restrict-key-for-
-        dnssec-02) (normative), March 2002.
+        Record (RR)", RFC 3445, December 2002.
 
    [2]  Mockapetris, P., "Domain names - concepts and facilities", STD
         13, RFC 1034, November 1987.
@@ -255,16 +516,19 @@ Normative references
    [3]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
 
-   [4]  Thomson, S. and C. Huitema, "DNS Extensions to support IP
+   [4]  Hinden, R. and S. Deering, "IP Version 6 Addressing
+        Architecture", RFC 1884, December 1995.
+
+   [5]  Thomson, S. and C. Huitema, "DNS Extensions to support IP
         version 6", RFC 1886, December 1995.
 
-   [5]  Eastlake, D., "Domain Name System Security Extensions", RFC
+   [6]  Eastlake, D., "Domain Name System Security Extensions", RFC
         2535, March 1999.
 
-   [6]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
+   [7]  Eastlake, D., "DSA KEYs and SIGs in the Domain Name System
         (DNS)", RFC 2536, March 1999.
 
-   [7]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
+   [8]  Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the Domain Name
         System (DNS)", RFC 3110, May 2001.
 
 
@@ -276,16 +540,27 @@ Author's Address
    Ottawa, ON  K1Z 5V7
    CA
 
-
-
-
-Richardson                Expires July 16, 2003                 [Page 5]
-
-Internet-Draft                   ipsecrr                    January 2003
-
-
    EMail: mcr@sandelman.ottawa.on.ca
    URI:   http://www.sandelman.ottawa.on.ca/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Richardson               Expires August 24, 2003               [Page 10]
+
+Internet-Draft                   ipsecrr                   February 2003
+
+
 Full Copyright Statement
 
    Copyright (C) The Internet Society (2003).  All Rights Reserved.
@@ -335,5 +610,7 @@ Acknowledgement
 
 
 
-Richardson                Expires July 16, 2003                 [Page 6]
+
+
+Richardson               Expires August 24, 2003               [Page 11]
 
