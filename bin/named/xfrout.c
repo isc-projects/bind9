@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.24 1999/12/01 00:27:13 gson Exp $ */
+ /* $Id: xfrout.c,v 1.25 1999/12/02 22:31:13 gson Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/timer.h>
 
 #include <dns/aml.h>
 #include <dns/db.h>
@@ -732,6 +733,7 @@ typedef struct {
 	dns_db_t 		*db;
 	dns_dbversion_t 	*ver;
 	rrstream_t 		*stream;	/* The XFR RR stream */
+	isc_boolean_t		end_of_stream;	/* EOS has been reached */
 	isc_buffer_t 		buf;		/* Buffer for message owner
 						   names and rdatas */
 	isc_buffer_t 		txlenbuf;	/* Transmit length buffer */
@@ -739,9 +741,11 @@ typedef struct {
 	void 			*txmem;
 	unsigned int 		txmemlen;
 	unsigned int		nmsg;		/* Number of messages sent */
-
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
+	isc_timer_t		*timer;
+	int			sends;		/* Send in progress */
+	isc_boolean_t		shuttingdown;
 } xfrout_ctx_t;
 
 static dns_result_t
@@ -749,15 +753,15 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp);
+		  dns_rdata_any_tsig_t *lasttsig, unsigned int timeout,
+		  xfrout_ctx_t **xfrp);
 
 static void sendstream(xfrout_ctx_t *xfr);
 
-static void xfrout_send_more(isc_task_t *task, isc_event_t *event);
-static void xfrout_send_end(isc_task_t *task, isc_event_t *event);
-
+static void xfrout_senddone(isc_task_t *task, isc_event_t *event);
+static void xfrout_timeout(isc_task_t *task, isc_event_t *event);
 static void xfrout_fail(xfrout_ctx_t *xfr, dns_result_t result, char *msg);
-
+static void xfrout_maybe_destroy(xfrout_ctx_t *xfr);
 static void xfrout_ctx_destroy(xfrout_ctx_t **xfrp);
 
 /**************************************************************************/
@@ -784,7 +788,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	isc_mem_t *mctx = client->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
-	dns_c_ipmatchlist_t *aml;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -886,15 +889,13 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		      mnemonic);
 
 	/* Decide whether to allow this transfer. */
-	aml = dns_zone_getxfracl(zone);
-	if (aml == NULL)
-		aml = ns_g_confctx->options->transferacl;
-	if (aml != NULL) {
-		CHECK(dns_aml_checkrequest(request,
-					   ns_client_getsockaddr(client),
-					   aml, ns_g_confctx->acls,
-					   "zone transfer", ISC_FALSE));
-	}
+	CHECK(dns_aml_checkrequest(request,
+				   ns_client_getsockaddr(client),
+				   ns_g_confctx->acls,
+				   "zone transfer", 
+				   dns_zone_getxfracl(zone),
+				   ns_g_confctx->options->transferacl,
+				   ISC_TRUE));
 
 	/* AXFR over UDP is not possible. */
 	if (reqtype == dns_rdatatype_axfr &&
@@ -966,7 +967,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, stream, request->tsigkey,
-				request->tsig, &xfr));
+				request->tsig,
+				2*3600, /* XXX need timeout config option */
+				&xfr));
 	stream = NULL;
 	db = NULL;
 	ver = NULL;
@@ -1013,12 +1016,14 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
 		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
-		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp)
+		  dns_rdata_any_tsig_t *lasttsig, unsigned int timeout,
+		  xfrout_ctx_t **xfrp)
 {
 	xfrout_ctx_t *xfr;
 	dns_result_t result;
 	unsigned int len;
 	void *mem;
+	isc_interval_t interval;
 	
 	INSIST(xfrp != NULL && *xfrp == NULL);
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -1032,12 +1037,16 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->db = db;
 	xfr->ver = ver;
 	xfr->stream = stream;
+	xfr->end_of_stream = ISC_FALSE;
 	xfr->tsigkey = tsigkey;
 	xfr->lasttsig = lasttsig;
 	xfr->txmem = NULL;
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
-
+	xfr->timer = NULL;
+	xfr->sends = 0;
+	xfr->shuttingdown = ISC_FALSE;
+	
 	/*
 	 * Allocate a temporary buffer for the uncompressed response
 	 * message data.  The size should be no more than 65535 bytes
@@ -1071,7 +1080,15 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 			ISC_BUFFERTYPE_BINARY);
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
-	
+
+	isc_interval_set(&interval, timeout, 0);
+	result = isc_timer_create(ns_g_timermgr, isc_timertype_once,
+				  NULL, &interval, 
+				  xfr->client->task,
+				  xfrout_timeout, xfr, &xfr->timer);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+
 	*xfrp = xfr;
 	return (DNS_R_SUCCESS);
 	
@@ -1094,7 +1111,6 @@ sendstream(xfrout_ctx_t *xfr)
 {
 	dns_message_t *msg = NULL;
 	dns_result_t result;
-	isc_boolean_t done = ISC_FALSE;
 	isc_region_t used;
 	isc_region_t region;
 	dns_rdataset_t *qrdataset;
@@ -1248,7 +1264,7 @@ sendstream(xfrout_ctx_t *xfr)
 
 		result = xfr->stream->methods->next(xfr->stream);
 		if (result == DNS_R_NOMORE) {
-			done = ISC_TRUE;
+			xfr->end_of_stream = ISC_TRUE;
 			break;
 		}
 		CHECK(result);
@@ -1275,10 +1291,9 @@ sendstream(xfrout_ctx_t *xfr)
 			      used.length);
 		CHECK(isc_socket_send(xfr->client->tcpsocket, /* XXX */
 				      &region, xfr->client->task,
-				      done ?
-				      xfrout_send_end :
-				      xfrout_send_more,
+				      xfrout_senddone,
 				      xfr));
+		xfr->sends++;
 	} else {
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
 			      "sending IXFR UDP response of %d bytes",
@@ -1324,6 +1339,9 @@ static void
 xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	xfrout_ctx_t *xfr = *xfrp;
 
+	INSIST(xfr->sends == 0);
+	if (xfr->timer != NULL)
+		isc_timer_detach(&xfr->timer);
 	if (xfr->stream != NULL)
 		xfr->stream->methods->destroy(&xfr->stream);
 	if (xfr->buf.base != NULL)
@@ -1347,43 +1365,61 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 }
 
 static void
-xfrout_send_more(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sev = (isc_socketevent_t *) event;
+xfrout_senddone(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
+	isc_result_t evresult = sev->result;
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
-	if (sev->result != ISC_R_SUCCESS) {
-		xfrout_fail(xfr, sev->result, "send");
-		isc_event_free(&event);		
-		return;
+	isc_event_free(&event);
+	xfr->sends--;
+	INSIST(xfr->sends == 0);
+	if (xfr->shuttingdown == ISC_TRUE) {
+		xfrout_maybe_destroy(xfr);
+	} else if (evresult != ISC_R_SUCCESS) {
+		xfrout_fail(xfr, evresult, "send");
+	} else if (xfr->end_of_stream == ISC_FALSE) {
+		sendstream(xfr);
+	} else {
+		/* End of zone transfer stream. */
+		isc_log_write(XFROUT_DEBUG_LOGARGS(6),
+			      "end of outgoing zone transfer");
+		ns_client_next(xfr->client, DNS_R_SUCCESS);
+		xfrout_ctx_destroy(&xfr);
 	}
-	isc_event_free(&event);	
-	sendstream(xfr);
 }
 
 static void
-xfrout_send_end(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
+xfrout_timeout(isc_task_t *task, isc_event_t *event) {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
 	task = task; /* Unused */
-	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "end of outgoing zone transfer");
-	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
-	if (sev->result != ISC_R_SUCCESS) {
-		xfrout_fail(xfr, sev->result, "send");
-		isc_event_free(&event);
-		return;
-	}
+	/* This will log "giving up: timeout". */
+	xfrout_fail(xfr, ISC_R_TIMEDOUT, "giving up");
 	isc_event_free(&event);
-	ns_client_next(xfr->client, DNS_R_SUCCESS);
-	xfrout_ctx_destroy(&xfr);
 }
 
 static void
 xfrout_fail(xfrout_ctx_t *xfr, dns_result_t result, char *msg)
 {
+	xfr->shuttingdown = ISC_TRUE;
 	isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_ERROR,
-		      "error in outgoing zone transfer: %s: %s",
+		      "outgoing zone transfer: %s: %s",
 		      msg, isc_result_totext(result));
-	ns_client_next(xfr->client, result);  /* XXX what is the result for? */
-	xfrout_ctx_destroy(&xfr);
+	xfrout_maybe_destroy(xfr);
+}
+
+static void
+xfrout_maybe_destroy(xfrout_ctx_t *xfr) {
+	INSIST(xfr->shuttingdown == ISC_TRUE);
+	if (xfr->sends > 0) {
+		/*
+		 * If we are currently sending, cancel it and wait for
+		 * cancel event before destroying the context.
+		 */
+		isc_socket_cancel(xfr->client->tcpsocket, xfr->client->task,
+				  ISC_SOCKCANCEL_SEND);
+	} else {
+		ns_client_next(xfr->client, ISC_R_CANCELED);
+		xfrout_ctx_destroy(&xfr);
+	}
 }
