@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.5 2002/07/22 02:47:24 marka Exp $
+ ***	Version $Id: queryperf.c,v 1.6 2002/08/22 23:57:47 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -180,7 +180,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.5 2002/07/22 02:47:24 marka Exp $\n"
+"Version: $Id: queryperf.c,v 1.6 2002/08/22 23:57:47 marka Exp $\n"
 "\n");
 }
 
@@ -194,6 +194,7 @@ show_usage(void) {
 "\n"
 "Usage: queryperf [-d datafile] [-s server_addr] [-p port] [-q num_queries]\n"
 "                 [-b bufsize] [-t timeout] [-n] [-l limit] [-1]\n"
+"                 [-e] [-D] [-c] [-v] [-h]\n"
 "  -d specifies the input data file (default: stdin)\n"
 "  -s sets the server to query (default: %s)\n"
 "  -p sets the port on which to query the server (default: %u)\n"
@@ -207,6 +208,7 @@ show_usage(void) {
 "  -D set the DNSSEC OK bit (implies EDNS)\n"
 "  -c print the number of packets with each rcode\n"
 "  -v verbose: report the RCODE of each response on stdout\n"
+"  -h print this usage\n"
 "\n",
 	        DEF_SERVER_TO_QUERY, DEF_SERVER_PORT,
 	        DEF_MAX_QUERIES_OUTSTANDING, DEF_QUERY_TIMEOUT,
@@ -423,7 +425,7 @@ parse_args(int argc, char **argv) {
 	int c;
 	unsigned int uint_arg_val;
 
-	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:eDcv")) != -1) {
+	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:eDcvh")) != -1) {
 		switch (c) {
 		case 'q':
 			if (is_uint(optarg, &uint_arg_val) == TRUE) {
@@ -523,7 +525,8 @@ parse_args(int argc, char **argv) {
 		case 'v':
 			verbose = 1;
 			break;
-
+		case 'h':
+			return (-1);
 		default:
 			fprintf(stderr, "Invalid option: -%c\n", optopt);
 			return (-1);
