@@ -134,6 +134,11 @@ struct dns_adb {
 	 */
 	dns_adbentrylist_t		entries[NBUCKETS];
 	isc_mutex_t			entrylocks[NBUCKETS];
+
+	isc_event_t			cevent;
+	isc_boolean_t			cevent_sent;
+	isc_boolean_t			shutting_down;
+	isc_eventlist_t			whenshutdown;
 };
 
 struct dns_adbname {
@@ -475,20 +480,17 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 }
 
 static void
-import_a6(void *arg, struct in6_addr *address)
+import_a6(dns_a6context_t *a6ctx)
 {
 	dns_adbname_t *name;
 	dns_adb_t *adb;
 	dns_adbnamehook_t *nh;
 	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
-	isc_stdtime_t now;
-	isc_stdtime_t expire_time;
-	isc_result_t result;
 	isc_boolean_t address_added;
 	int addr_bucket;
 	isc_sockaddr_t sockaddr;
 
-	name = arg;
+	name = a6ctx->arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
@@ -498,21 +500,13 @@ import_a6(void *arg, struct in6_addr *address)
 
 	DP(ENTER_LEVEL, "ENTER: import_a6() name %p", name);
 	
-	/*
-	 * XXX Once the time is passed in to us, this can go away.
-	 */
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		return;
-	expire_time = now + 30;  /* XXX 30 seconds */
-
 	nh = new_adbnamehook(adb, NULL);
 	if (nh == NULL) {
 		name->partial_result |= DNS_ADBFIND_INET6; /* clear for AAAA */
 		goto fail;
 	}
 
-	isc_sockaddr_fromin6(&sockaddr, address, 53);
+	isc_sockaddr_fromin6(&sockaddr, &a6ctx->in6addr, 53);
 
 	foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
 	if (foundentry == NULL) {
@@ -544,7 +538,7 @@ import_a6(void *arg, struct in6_addr *address)
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	name->expire_v6 = ISC_MIN(name->expire_v6, expire_time);
+	name->expire_v6 = ISC_MIN(name->expire_v6, a6ctx->expiration);
 
 	if (address_added)
 		name->flags |= NAME_NEEDS_POKE;
@@ -889,9 +883,38 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 static inline void
 check_exit(dns_adb_t *adb)
 {
-	if ((adb->irefcnt == 0) && (adb->erefcnt == 0)
-	    && (isc_mempool_getallocated(adb->ahmp) == 0))
-		isc_task_shutdown(adb->task);
+	isc_event_t *event, *next_event;
+	isc_task_t *etask;
+
+	/*
+	 * The caller must be holding the adb lock.
+	 */
+
+	if (adb->shutting_down && adb->irefcnt == 0 &&
+	    isc_mempool_getallocated(adb->ahmp) == 0) {
+		/*
+		 * We're now shutdown.  Send any whenshutdown events.
+		 */
+		for (event = ISC_LIST_HEAD(adb->whenshutdown);
+		     event != NULL;
+		     event = next_event) {
+			next_event = ISC_LIST_NEXT(event, link);
+			ISC_LIST_UNLINK(adb->whenshutdown, event, link);
+			etask = event->sender;
+			event->sender = adb;
+			isc_task_sendanddetach(&etask, &event);
+		}
+		/*
+		 * If there aren't any external references either, we're
+		 * done.  Send the control event to initiate shutdown.
+		 */
+		if (adb->erefcnt == 0) {
+			INSIST(!adb->cevent_sent);	/* Sanity check. */
+			event = &adb->cevent;
+			isc_task_send(adb->task, &event);
+			adb->cevent_sent = ISC_TRUE;
+		}
+	}
 }
 
 static inline void
@@ -1278,8 +1301,9 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
  * Caller must be holding the name lock.
  */
 static isc_result_t
-a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type,
-       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type, isc_stdtime_t now,
+       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
 	dns_adbname_t *name;
 	dns_adb_t *adb;
 
@@ -1288,12 +1312,7 @@ a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type,
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 	
-	/*
-	 * XXXRTH  Cache 'now' in the name so we don't have to call
-	 *         isc_stdtime_get() on every dns_view_find().
-	 */
-	
-	return (dns_view_find(adb->view, a6name, type, 0,
+	return (dns_view_find(adb->view, a6name, type, now,
 			      DNS_DBFIND_GLUEOK, ISC_FALSE,
 			      rdataset, sigrdataset));
 }
@@ -1327,8 +1346,8 @@ a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
 		name->partial_result |= DNS_ADBFIND_INET6;
 		return;
 	}
-	/* XXXRTH  Use cached 'now' from name. */
-	result = dns_view_findzonecut(adb->view, a6name, &fname, 0,
+
+	result = dns_view_findzonecut(adb->view, a6name, &fname, a6ctx->now,
 				      0, ISC_TRUE, &nameservers, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1674,14 +1693,13 @@ shutdown_task(isc_task_t *task, isc_event_t *ev)
 	 * Kill the timer, and then the ADB itself.  Note that this implies
 	 * that this task was the one scheduled to get timer events.  If
 	 * this is not true (and it is unfortunate there is no way to INSIST()
-	 * this) baddness will occur.
+	 * this) badness will occur.
 	 */
 	LOCK(&adb->lock);
 	isc_timer_detach(&adb->timer);
 	UNLOCK(&adb->lock);
-	destroy(adb);
-
 	isc_event_free(&ev);
+	destroy(adb);
 }
 
 /*
@@ -1868,6 +1886,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->taskmgr = taskmgr;
 	adb->next_namebucket = 0;
 	adb->next_entrybucket = 0;
+	ISC_EVENT_INIT(&adb->cevent, sizeof adb->cevent, 0, NULL,
+		       DNS_EVENT_ADBCONTROL, shutdown_task, adb,
+		       adb, NULL, NULL);
+	adb->cevent_sent = ISC_FALSE;
+	adb->shutting_down = ISC_FALSE;
+	ISC_LIST_INIT(adb->whenshutdown);
 
 	result = isc_random_init(&adb->rand);
 	if (result != ISC_R_SUCCESS)
@@ -1931,7 +1955,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
-	result = isc_task_onshutdown(adb->task, shutdown_task, adb);
 	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
 	result = isc_timer_create(adb->timermgr, isc_timertype_once,
 				  NULL, &adb->tick_interval, adb->task,
@@ -2000,8 +2023,60 @@ dns_adb_detach(dns_adb_t **adbx)
 	LOCK(&adb->lock);
 	dec_adb_erefcnt(adb, ISC_FALSE);
 	if (adb->erefcnt == 0)
+		INSIST(adb->shutting_down);
+	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp)
+{
+	isc_task_t *clone;
+	isc_event_t *event;
+
+	/*
+	 * Send '*eventp' to 'task' when 'adb' has shutdown.
+	 */
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(eventp != NULL);
+
+	event = *eventp;
+	*eventp = NULL;
+
+	LOCK(&adb->lock);
+	
+	if (adb->shutting_down && adb->irefcnt == 0 &&
+	    isc_mempool_getallocated(adb->ahmp) == 0) {
+		/*
+		 * We're already shutdown.  Send the event.
+		 */
+		event->sender = adb;
+		isc_task_send(task, &event);
+	} else {
+		clone = NULL;
+		isc_task_attach(task, &clone);
+		event->sender = clone;
+		ISC_LIST_APPEND(adb->whenshutdown, event, link);
+	}
+	
+	UNLOCK(&adb->lock);
+}
+
+void
+dns_adb_shutdown(dns_adb_t *adb) {
+
+	/*
+	 * Shutdown 'adb'.
+	 */
+
+	LOCK(&adb->lock);
+
+	if (!adb->shutting_down) {
+		adb->shutting_down = ISC_TRUE;
 		shutdown_names(adb);
-	check_exit(adb);
+		check_exit(adb);
+	}
+
 	UNLOCK(&adb->lock);
 }
 
@@ -2870,7 +2945,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		 */
 		dns_a6_init(&a6ctx, a6find, NULL, import_a6,
 			    a6missing, adbname);
-		(void)dns_a6_foreach(&a6ctx, &rdataset);
+		(void)dns_a6_foreach(&a6ctx, &rdataset, now);
 		result = ISC_R_SUCCESS;
 		break;
 	case DNS_R_NCACHENXDOMAIN:
@@ -3011,6 +3086,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	dns_adb_t *adb;
 	dns_adbfetch6_t *fetch;
 	int bucket;
+	isc_stdtime_t now;
+	isc_result_t result;
 
 	(void)task;
 
@@ -3071,15 +3148,17 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		return;
 	}
 
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
 	/*
 	 * If the A6 query didn't succeed, and this is the first query
 	 * in the A6 chain, try AAAA records instead.  For later failures,
 	 * don't do this.
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
-		int result;
 		isc_boolean_t use_hints;
-		isc_stdtime_t now;
 
 		DP(DEF_LEVEL, "name %p: A6 failed, result %u",
 		   name, dev->result);
@@ -3089,9 +3168,6 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		else
 			use_hints = ISC_FALSE;
 
-		result = isc_stdtime_get(&now);
-		if (result != ISC_R_SUCCESS)
-			goto out;
 
 		if (FETCH_FIRSTA6(fetch) && !NAME_HAS_V6(name)) {
 			DP(DEF_LEVEL,
@@ -3132,7 +3208,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	 */
 
 	fetch->a6ctx.chains = name->chains;
-	(void)dns_a6_foreach(&fetch->a6ctx, dev->rdataset);
+	(void)dns_a6_foreach(&fetch->a6ctx, dev->rdataset, now);
 
  out:
 	free_adbfetch6(adb, &fetch);
