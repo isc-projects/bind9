@@ -68,7 +68,6 @@ XTARGETS =	adb_test \
 		rbt_test \
 		rdata_test \
 		rwlock_test \
-		sdig \
 		serial_test \
 		shutdown_test \
 		sock_test \
@@ -107,7 +106,6 @@ SRCS =		adb_test.c \
 		rbt_test.c \
 		rdata_test.c \
 		rwlock_test.c \
-		sdig.c \
 		serial_test.c \
 		shutdown_test.c \
 		sock_test.c \
@@ -125,10 +123,6 @@ all_tests: ${XTARGETS}
 
 adb_test: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ adb_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-sdig: sdig.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.@O@ printmsg.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 nxtify: nxtify.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

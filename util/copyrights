@@ -262,7 +262,6 @@
 ./bin/tests/res_test.c				C	1999,2000
 ./bin/tests/resolv.conf.sample			X	2000
 ./bin/tests/rwlock_test.c			C	1998,1999,2000
-./bin/tests/sdig.c				C	1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
 ./bin/tests/shutdown_test.c			C	1998,1999,2000
 ./bin/tests/sock_test.c				C	1998,1999,2000

@@ -1,3 +1,7 @@
+ 201.	[cleanup]	Removed the test/sdig program, it has been
+			replaced by bin/dig/dig.
+
+
 	--- 9.0.0b3 released ---
 
  200.	[bug]		Failures in sending query responses to clients
