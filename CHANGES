@@ -1,3 +1,9 @@
+  21.   [port]          Look at STD_CINCLUDES after CINCLUDES during
+                        compilation, so additional system include directories
+                        can be searched but header files in the bind9 source
+                        tree with conflicting names take precedence.  This
+                        avoids issues with installed versions of dnssafe and
+                        openssl.
 
   20.	[func]		Configuration file post-load validation of zones
 			failed if there were no zones.
