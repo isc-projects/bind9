@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.65 2000/11/22 21:59:50 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.66 2000/11/27 00:43:32 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,7 @@ extern int h_errno;
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
+#include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -115,6 +116,7 @@ static isc_sockaddr_t *localaddr = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
 static isc_boolean_t shuttingdown = ISC_FALSE;
+static FILE *input;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -528,6 +530,7 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 static void
 parse_args(int argc, char **argv) {
 	int ch;
+	isc_result_t result;
 
 	debug("parse_args");
 	while ((ch = isc_commandline_parse(argc, argv, "dDMy:vk:")) != -1) {
@@ -567,6 +570,17 @@ parse_args(int argc, char **argv) {
 		fprintf(stderr, "%s: cannot specify both -k and -y\n",
 			argv[0]);
 		exit(1);
+	}
+
+	if (argv[isc_commandline_index] != NULL) {
+		result = isc_stdio_open(argv[isc_commandline_index], "r",
+					&input);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "isc_stdio_open(%s): %s\n",
+				argv[isc_commandline_index],
+				isc_result_totext(result));
+			exit(1);
+		}
 	}
 }
 
@@ -1107,12 +1121,12 @@ get_next_command(void) {
 
 	ddebug("get_next_command()");
 	fprintf(stdout, "> ");
-	cmdline = fgets(cmdlinebuf, MAXCMD, stdin);
+	cmdline = fgets(cmdlinebuf, MAXCMD, input);
 	if (cmdline == NULL)
 		return (STATUS_QUIT);
 	word = nsu_strsep(&cmdline, " \t\r\n");
 
-	if (feof(stdin))
+	if (feof(input))
 		return (STATUS_QUIT);
 	if (*word == 0)
 		return (STATUS_SEND);
@@ -1576,6 +1590,8 @@ getinput(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char **argv) {
         isc_result_t result;
+
+	input = stdin;
 
 	isc_app_start();
 

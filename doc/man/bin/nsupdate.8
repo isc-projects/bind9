@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: nsupdate.8,v 1.9 2000/11/18 02:57:30 bwelling Exp $
+.\" $Id: nsupdate.8,v 1.10 2000/11/27 00:43:33 marka Exp $
 
 .Dd Jun 30, 2000
 .Dt NSUPDATE 8
@@ -30,6 +30,7 @@
 .Fl k Ar keyfile
 .Oc
 .Op Fl v
+.Op filename
 .Sh DESCRIPTION
 .Nm nsupdate
 is used to submit Dynamic DNS Update requests as defined in RFC2136
@@ -130,7 +131,9 @@ use a TCP connection.
 This may be preferable when a batch of update requests is made.
 .Sh INPUT FORMAT
 .Nm nsupdate
-reads commands from its standard input.
+reads input from
+.Ar filename
+or standard input.
 Each command is supplied on exactly one line of input.
 Some commands are for administrative purposes.
 The others are either update instructions or prerequisite checks on the

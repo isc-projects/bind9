@@ -1,3 +1,6 @@
+ 579.	[bug]		nsupdate did not take a filename to read update from.
+			[RT #492]
+
  578.	[func]		Notify-source, specify the source address for notify
 			messages.
 
