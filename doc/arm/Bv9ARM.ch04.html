@@ -1,11 +1,11 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <HTML
 ><HEAD
 ><TITLE
 >Advanced DNS Features</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.73
-"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -70,8 +70,8 @@ CLASS="chapter"
 ><H1
 ><A
 NAME="ch04"
->Chapter 4. Advanced DNS Features</A
-></H1
+></A
+>Chapter 4. Advanced DNS Features</H1
 ><DIV
 CLASS="TOC"
 ><DL
@@ -122,9 +122,9 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ><DT
 >4.9. <A
 HREF="Bv9ARM.ch04.html#AEN1001"
->IPv6 Support in <SPAN
+>IPv6 Support in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9</A
 ></DT
 ></DL
@@ -138,9 +138,9 @@ NAME="notify"
 >4.1. Notify</A
 ></H1
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->DNS</SPAN
+>DNS</ACRONYM
 > NOTIFY is a mechanism that allows master
 servers to notify their slave servers of changes to a zone's data. In
 response to a <B
@@ -150,9 +150,9 @@ CLASS="command"
 slave will check to see that its version of the zone is the
 current version and, if not, initiate a zone transfer.</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->DNS</SPAN
+>DNS</ACRONYM
 >
 For more information about
 <B
@@ -261,11 +261,9 @@ CLASS="command"
     to the zone using
     <B
 CLASS="command"
->rndc freeze <TT
+>rndc freeze <VAR
 CLASS="replaceable"
-><I
->zone</I
-></TT
+>zone</VAR
 ></B
 >.
     This will also remove the zone's <TT
@@ -275,11 +273,9 @@ CLASS="filename"
     and update the master file.  Edit the zone file.  Run
     <B
 CLASS="command"
->rndc unfreeze <TT
+>rndc unfreeze <VAR
 CLASS="replaceable"
-><I
->zone</I
-></TT
+>zone</VAR
 ></B
 >
     to reload the changed zone and re-enable dynamic updates.</P
@@ -302,9 +298,9 @@ HREF="Bv9ARM.ch09.html#proposed_standards"
 >Proposed Standards</A
 >.</P
 ><P
->When acting as a master, <SPAN
+>When acting as a master, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9
 supports IXFR for those zones
 where the necessary change history information is available. These
@@ -316,17 +312,15 @@ transfer (AXFR), IXFR is supported only if the option
 CLASS="command"
 >ixfr-from-differences</B
 > is set
-to <TT
+to <KBD
 CLASS="userinput"
-><B
->yes</B
-></TT
+>yes</KBD
 >.
 </P
 ><P
->When acting as a slave, <SPAN
+>When acting as a slave, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 will 
 attempt to use IXFR unless
 it is explicitly disabled. For more information about disabling
@@ -381,9 +375,9 @@ CLASS="emphasis"
 >Example, Inc.</I
 ></SPAN
 >
-(<TT
+(<VAR
 CLASS="literal"
->example.com</TT
+>example.com</VAR
 >)
 has several corporate sites that have an internal network with reserved
 Internet Protocol (IP) space and an external demilitarized zone (DMZ),
@@ -495,9 +489,9 @@ internal hosts.</P
 >Here's an example of a wildcard MX record:</P
 ><PRE
 CLASS="programlisting"
-><TT
+><VAR
 CLASS="literal"
->*   IN MX 10 external1.example.com.</TT
+>*   IN MX 10 external1.example.com.</VAR
 ></PRE
 ><P
 >Now that they accept mail on behalf of anything in the internal
@@ -534,24 +528,24 @@ internal clients will now be able to:</P
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1.internal</TT
+>site1.internal</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.internal</TT
+>site2.internal</VAR
 > domains.</P
 ></LI
 ><LI
@@ -570,24 +564,24 @@ CLASS="literal"
 ><UL
 ><LI
 ><P
->Look up any hostnames in the <TT
+>Look up any hostnames in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ><LI
 ><P
->Exchange mail with anyone in the <TT
+>Exchange mail with anyone in the <VAR
 CLASS="literal"
->site1</TT
+>site1</VAR
 > and 
-<TT
+<VAR
 CLASS="literal"
->site2.example.com</TT
+>site2.example.com</VAR
 > zones.</P
 ></LI
 ></UL
@@ -605,9 +599,9 @@ CLASS="programlisting"
 >&#13;
 acl internals { 172.16.72.0/24; 192.168.1.0/24; };
 
-acl externals { <TT
+acl externals { <VAR
 CLASS="varname"
->bastion-ips-go-here</TT
+>bastion-ips-go-here</VAR
 >; };
 
 options {
@@ -615,9 +609,9 @@ options {
     ...
     forward only;
     forwarders {                                // forward to external servers
-        <TT
+        <VAR
 CLASS="varname"
->bastion-ips-go-here</TT
+>bastion-ips-go-here</VAR
 >; 
     };
     allow-transfer { none; };                   // sample allow-transfer (no one)
@@ -719,25 +713,25 @@ NAME="tsig"
 ></H1
 ><P
 >This is a short guide to setting up Transaction SIGnatures
-(TSIG) based transaction security in <SPAN
+(TSIG) based transaction security in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >. It describes changes
 to the configuration file as well as what changes are required for
 different features, including the process of creating transaction
-keys and using transaction signatures with <SPAN
+keys and using transaction signatures with <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >.</P
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > primarily supports TSIG for server to server communication.
 This includes zone transfer, notify, and recursive query messages.
-Resolvers based on newer versions of <SPAN
+Resolvers based on newer versions of <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 8 have limited support
 for TSIG.</P
 ><P
@@ -749,13 +743,13 @@ for TSIG.</P
 CLASS="command"
 >nsupdate</B
 >
-    program supports TSIG via the <TT
+    program supports TSIG via the <VAR
 CLASS="option"
->-k</TT
+>-k</VAR
 > and
-    <TT
+    <VAR
 CLASS="option"
->-y</TT
+>-y</VAR
 > command line options.</P
 ><DIV
 CLASS="sect2"
@@ -796,11 +790,9 @@ are easier to read. Note that the maximum key length is 512 bits;
 keys longer than that will be digested with MD5 to produce a 128
 bit key.</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</B
-></TT
+>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</KBD
 ></P
 ><P
 >The key is in the file <TT
@@ -808,18 +800,18 @@ CLASS="filename"
 >Khost1-host2.+157+00000.private</TT
 >.
 Nothing directly uses this file, but the base-64 encoded string
-following "<TT
+following "<VAR
 CLASS="literal"
->Key:</TT
+>Key:</VAR
 >"
 can be extracted from the file and used as a shared secret:</P
 ><PRE
 CLASS="programlisting"
 >Key: La/E5CjG9O+os1jq0a2jdA==</PRE
 ><P
->The string "<TT
+>The string "<VAR
 CLASS="literal"
->La/E5CjG9O+os1jq0a2jdA==</TT
+>La/E5CjG9O+os1jq0a2jdA==</VAR
 >" can
 be used as the shared secret.</P
 ></DIV
@@ -890,9 +882,9 @@ CLASS="programlisting"
 };
 </PRE
 ><P
->The algorithm, hmac-md5, is the only one supported by <SPAN
+>The algorithm, hmac-md5, is the only one supported by <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 >.
 The secret is the one generated above. Since this is a secret, it
 is recommended that either <TT
@@ -1003,9 +995,9 @@ NAME="AEN900"
 >4.5.5. TSIG Key Based Access Control</A
 ></H2
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > allows IP addresses and ranges to be specified in ACL
 definitions and
 <B
@@ -1087,9 +1079,9 @@ CLASS="command"
 CLASS="command"
 >TKEY</B
 > that specify how the key is
-    generated or assigned.  <SPAN
+    generated or assigned.  <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9
     implements only one of these modes,
     the Diffie-Hellman key exchange.  Both hosts are required to have
@@ -1145,9 +1137,9 @@ NAME="AEN932"
 >4.7. SIG(0)</A
 ></H1
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 partially supports DNSSEC SIG(0)
     transaction signatures as specified in RFC 2535 and RFC2931.  SIG(0)
     uses public/private keys to authenticate messages.  Access control
@@ -1161,9 +1153,9 @@ CLASS="acronym"
 >SIG(0) signing of multiple-message TCP streams is not
     supported.</P
 ><P
->The only tool shipped with <SPAN
+>The only tool shipped with <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 that
     generates SIG(0) signed messages is <B
 CLASS="command"
@@ -1191,21 +1183,21 @@ CLASS="emphasis"
     of DNSSEC signed zones.</P
 ><P
 >In order to set up a DNSSEC secure zone, there are a series
-    of steps which must be followed.  <SPAN
+    of steps which must be followed.  <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 ships
     with several tools
     that are used in this process, which are explained in more detail
-    below.  In all cases, the <TT
+    below.  In all cases, the <VAR
 CLASS="option"
->-h</TT
+>-h</VAR
 > option prints a
     full list of parameters.  Note that the DNSSEC tools require the
     keyset files to be in the working directory or the
-    directory specified by the <TT
+    directory specified by the <VAR
 CLASS="option"
->-h</TT
+>-h</VAR
 > option, and
     that the tools shipped with BIND 9.2.x and earlier are not compatible
     with the current ones.</P
@@ -1214,9 +1206,9 @@ CLASS="option"
     the parent and/or child zone to transmit keys.  A zone's security
     status must be indicated by the parent zone for a DNSSEC capable 
     resolver to trust its data.  This is done through the presense
-    or absence of a <TT
+    or absence of a <VAR
 CLASS="literal"
->DS</TT
+>DS</VAR
 > record at the delegation
     point.</P
 ><P
@@ -1256,11 +1248,9 @@ CLASS="filename"
 >child.example</TT
 > zone:</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-keygen -a RSASHA1 -b 768 -n ZONE child.example.</B
-></TT
+>dnssec-keygen -a RSASHA1 -b 768 -n ZONE child.example.</KBD
 ></P
 ><P
 >Two output files will be produced:
@@ -1323,24 +1313,24 @@ CLASS="filename"
 >keyset</TT
 > files corresponding
       to secure subzones should be present.  The zone signer will
-      generate <TT
+      generate <VAR
 CLASS="literal"
->NSEC</TT
-> and <TT
+>NSEC</VAR
+> and <VAR
 CLASS="literal"
->RRSIG</TT
+>RRSIG</VAR
 >
-      records for the zone, as well as <TT
+      records for the zone, as well as <VAR
 CLASS="literal"
->DS</TT
+>DS</VAR
 > for
-      the child zones if <TT
+      the child zones if <VAR
 CLASS="literal"
->'-d'</TT
+>'-d'</VAR
 > is specified.
-      If <TT
+      If <VAR
 CLASS="literal"
->'-d'</TT
+>'-d'</VAR
 > is not specified then DS RRsets for
       the secure child zones need to be added manually.</P
 ><P
@@ -1352,11 +1342,9 @@ CLASS="filename"
       default, all zone keys which have an available private key are
       used to generate signatures.</P
 ><P
-><TT
+><KBD
 CLASS="userinput"
-><B
->dnssec-signzone -o child.example zone.child.example</B
-></TT
+>dnssec-signzone -o child.example zone.child.example</KBD
 ></P
 ><P
 >One output file is produced:
@@ -1376,12 +1364,12 @@ CLASS="command"
 > will also produce a
       keyset and dsset files and optionally a dlvset file.  These
       are used to provide the parent zone administators with the
-      <TT
+      <VAR
 CLASS="literal"
->DNSKEYs</TT
-> (or their corresponding <TT
+>DNSKEYs</VAR
+> (or their corresponding <VAR
 CLASS="literal"
->DS</TT
+>DS</VAR
 >
       records) that are the secure entry point to the zone.</P
 ></DIV
@@ -1394,13 +1382,13 @@ NAME="AEN994"
 >4.8.3. Configuring Servers</A
 ></H2
 ><P
->Unlike <SPAN
+>Unlike <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 8, 
-<SPAN
+<ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 does not verify signatures on load,
 so zone keys for authoritative zones do not need to be specified
 in the configuration file.</P
@@ -1419,41 +1407,41 @@ CLASS="sect1"
 CLASS="sect1"
 ><A
 NAME="AEN1001"
->4.9. IPv6 Support in <SPAN
+>4.9. IPv6 Support in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9</A
 ></H1
 ><P
-><SPAN
+><ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 fully supports all currently defined forms of IPv6
     name to address and address to name lookups.  It will also use
     IPv6 addresses to make queries when running on an IPv6 capable
     system.</P
 ><P
->For forward lookups, <SPAN
+>For forward lookups, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 supports only AAAA
     records.  The use of A6 records is deprecated by RFC 3363, and the
-    support for forward lookups in <SPAN
+    support for forward lookups in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 is
     removed accordingly.
-    However, authoritative <SPAN
+    However, authoritative <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 name servers still
     load zone files containing A6 records correctly, answer queries
     for A6 records, and accept zone transfer for a zone containing A6
     records.</P
 ><P
->For IPv6 reverse lookups, <SPAN
+>For IPv6 reverse lookups, <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 supports
     the traditional "nibble" format used in the
     <SPAN
@@ -1470,21 +1458,21 @@ CLASS="emphasis"
 >ip6.int</I
 ></SPAN
 > domain.
-    <SPAN
+    <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 formerly
     supported the "binary label" (also known as "bitstring") format.
     The support of binary labels, however, is now completely removed
     according to the changes in RFC 3363.
-    Any applications in <SPAN
+    Any applications in <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 do not understand
     the format any more, and will return an error if given.
-    In particular, an authoritative <SPAN
+    In particular, an authoritative <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 name
     server rejects to load a zone file containing binary labels.</P
 ><P
@@ -1513,9 +1501,9 @@ host            3600    IN      AAAA    2001:db8::1
 ><P
 >It is recommended that IPv4-in-IPv6 mapped addresses not
         be used.  If a host has an IPv4 address, use an A record, not
-        a AAAA, with <TT
+        a AAAA, with <VAR
 CLASS="literal"
->::ffff:192.168.42.1</TT
+>::ffff:192.168.42.1</VAR
 > as the
         address.</P
 ></DIV
@@ -1530,15 +1518,15 @@ NAME="AEN1025"
 ><P
 >When looking up an address in nibble format, the address
       components are simply reversed, just as in IPv4, and
-      <TT
+      <VAR
 CLASS="literal"
->ip6.arpa.</TT
+>ip6.arpa.</VAR
 > is appended to the resulting name.
       For example, the following would provide reverse name lookup for
       a host with address
-      <TT
+      <VAR
 CLASS="literal"
->2001:db8::1</TT
+>2001:db8::1</VAR
 >.</P
 ><PRE
 CLASS="programlisting"
@@ -1602,9 +1590,9 @@ VALIGN="top"
 WIDTH="33%"
 ALIGN="right"
 VALIGN="top"
->The <SPAN
+>The <ACRONYM
 CLASS="acronym"
->BIND</SPAN
+>BIND</ACRONYM
 > 9 Lightweight Resolver</TD
 ></TR
 ></TABLE
