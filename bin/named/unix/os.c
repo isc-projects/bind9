@@ -44,6 +44,14 @@ static pid_t mainpid = 0;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
+/*
+ * We define _LINUX_FS_H to prevent it from being included.  We don't need
+ * anything from it, and the files it includes cause warnings with 2.2
+ * kernels, and compilation failures (due to conflicts between <linux/string.h>
+ * and <string.h>) on 2.3 kernels.
+ */
+#define _LINUX_FS_H
+
 #include <sys/syscall.h>
 #include <linux/capability.h>
 
