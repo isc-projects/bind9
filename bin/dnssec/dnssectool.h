@@ -18,8 +18,10 @@
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
+#include <isc/log.h>
+
 void
-fatal(const char *format, ...);
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
 check_result(isc_result_t result, const char *message);
