@@ -87,6 +87,9 @@ options {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         ixfr-from-differences <ixfrdiff>;
+        use-additional-cache <boolean>;
+        acache-cleaning-interval <integer>;
+        max-acache-size <size_no_default>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -270,6 +273,9 @@ view <string> <optional_class> {
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         ixfr-from-differences <ixfrdiff>;
+        use-additional-cache <boolean>;
+        acache-cleaning-interval <integer>;
+        max-acache-size <size_no_default>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
