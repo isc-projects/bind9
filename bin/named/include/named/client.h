@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.46 2000/11/13 21:33:57 bwelling Exp $ */
+/* $Id: client.h,v 1.47 2000/12/01 21:30:20 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -46,6 +46,7 @@
  * exactly once in the context of its task:
  *
  *   ns_client_send()	(sending a non-error response)
+ *   ns_client_sendraw() (sending a raw response)
  *   ns_client_error()	(sending an error response)
  *   ns_client_next()	(sending no response)
  *
