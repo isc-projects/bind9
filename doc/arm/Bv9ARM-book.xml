@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.262 2005/01/11 03:46:09 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.263 2005/01/17 00:46:02 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4463,7 +4463,7 @@ entries are purged from acache only at the periodic cleaning time.
 <sect2 id="server_statement_grammar">
 <title><command>server</command> Statement Grammar</title>
 
-<programlisting>server <replaceable>ip_addr</replaceable> {
+<programlisting>server <replaceable>ip_addr<optional>/prefixlen</optional></replaceable> {
     <optional> bogus <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
@@ -4482,7 +4482,10 @@ entries are purged from acache only at the periodic cleaning time.
 <title><command>server</command> Statement Definition and Usage</title>
 
 <para>The <command>server</command> statement defines characteristics
-to be associated with a remote name server.</para>
+to be associated with a remote name server.  If a prefix length is
+specified then a range of servers is covered.  Only the most specific
+server clause applies regardless of the order in
+<filename>named.conf</filename>.</para>
 
 <para>
 The <command>server</command> statement can occur at the top level of the

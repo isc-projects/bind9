@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.45 2005/01/11 23:10:06 marka Exp $ */
+/* $Id: namedconf.c,v 1.46 2005/01/17 00:46:04 marka Exp $ */
 
 #include <config.h>
 
@@ -912,7 +912,7 @@ server_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_server = {
-	"server", cfg_parse_addressed_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
+	"server", cfg_parse_netprefix_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
 	server_clausesets
 };
 

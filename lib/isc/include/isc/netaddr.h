@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.25 2004/03/05 05:10:59 marka Exp $ */
+/* $Id: netaddr.h,v 1.26 2005/01/17 00:46:04 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -143,6 +143,19 @@ isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s);
  * Convert an IPv6 v4mapped address into an IPv4 address.
  */
 
+isc_result_t
+isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen);
+/*
+ * Test whether the netaddr 'na' and 'prefixlen' are consistant.
+ * e.g. prefixlen within range.
+ *      na does not have bits set which are not covered by the prefixlen.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_RANGE		prefixlen out of range
+ *	ISC_R_NOTIMPLENTED	unsupported family
+ *	ISC_R_FAILURE		extra bits.
+ */
 
 ISC_LANG_ENDDECLS
 

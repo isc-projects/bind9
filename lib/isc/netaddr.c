@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.28 2004/05/15 03:37:33 jinmei Exp $ */
+/* $Id: netaddr.c,v 1.29 2005/01/17 00:46:04 marka Exp $ */
 
 #include <config.h>
 
@@ -188,6 +188,42 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size) {
 			 na->family);
 		array[size - 1] = '\0';
 	}
+}
+
+
+isc_result_t
+isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
+	static const unsigned char zeros[16];
+	unsigned int nbits, nbytes, ipbytes, i;
+	const unsigned char *p;
+
+	switch (na->family) {
+	case AF_INET:
+		p = (const unsigned char *) &na->type.in;
+		ipbytes = 4;
+		if (prefixlen > 32)
+			return (ISC_R_RANGE);
+		break;
+	case AF_INET6:
+		p = (const unsigned char *) &na->type.in6;
+		ipbytes = 16;
+		if (prefixlen > 128)
+			return (ISC_R_RANGE);
+		break;
+	default:
+		ipbytes = 0;
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+	nbytes = prefixlen / 8;
+	nbits = prefixlen % 8;
+	if (nbits != 0) {
+		if ((p[nbytes] & (0xff>>nbits)) != 0U)
+			return (ISC_R_FAILURE);
+		nbytes++;
+	}
+	if (memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
+		return (ISC_R_FAILURE);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
