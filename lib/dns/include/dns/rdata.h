@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.47 2000/11/09 19:33:48 gson Exp $ */
+/* $Id: rdata.h,v 1.48 2000/11/09 23:55:01 bwelling Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -294,8 +294,8 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin,
-		   isc_boolean_t downcase, isc_buffer_t *target,
-		   dns_rdatacallbacks_t *callbacks);
+		   isc_boolean_t downcase, isc_mem_t *mctx,
+		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks);
 /*
  * Convert the textual representation of a DNS rdata into uncompressed wire
  * form stored in the target region.  Tokens constituting the text of the rdata
@@ -313,6 +313,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	'rdclass' and 'type' are valid.
  *
  *	'lexer' is a valid isc_lex_t.
+ *
+ *	'mctx' is a valid isc_mem_t.
  *
  *	'target' is a valid region.
  *
@@ -333,6 +335,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	<Various 'Bad Form' class failures depending on class and type>
  *	Bad Form: Input too short
  *	Resource Limit: Not enough space
+ *	Resource Limit: Not enough memory
  */
 
 isc_result_t

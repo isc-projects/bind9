@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.13 2000/08/01 01:24:37 tale Exp $ */
+/* $Id: rdatatype.h,v 1.14 2000/11/09 23:55:03 bwelling Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
@@ -39,7 +39,6 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source);
  * Returns:
  *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			type is unknown
- *	ISC_R_NOTIMPLEMENTED		type is known, but not implemented
  */
 
 isc_result_t

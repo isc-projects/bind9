@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.119 2000/11/09 00:20:47 bwelling Exp $ */
+/* $Id: rdata.c,v 1.120 2000/11/09 23:54:59 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
 
 #include <isc/base64.h>
+#include <isc/hex.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -533,115 +534,36 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 isc_result_t
-dns_rdata_fromtextgeneric(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-			  dns_rdatatype_t type, isc_lex_t *lexer,
-			  isc_buffer_t *target,
-			  dns_rdatacallbacks_t *callbacks)
+rdata_valid(isc_buffer_t *buf, dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	    isc_mem_t *mctx)
 {
-	isc_result_t result = ISC_R_NOTIMPLEMENTED;
-	isc_region_t region;
-	isc_buffer_t st;
-	isc_token_t token;
-	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
-	char *name;
-	unsigned long line;
-	void (*callback)(dns_rdatacallbacks_t *, const char *, ...);
-	isc_result_t iresult;
+	isc_buffer_t *tbuf = NULL;
+	dns_decompress_t dctx;
+	dns_rdata_t rdata;
+	isc_result_t result;
 
-	if (rdata != NULL) {
-		REQUIRE(DNS_RDATA_INITIALIZED(rdata));
-		REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+	dns_decompress_init(&dctx, -1, ISC_TRUE);
+	dns_rdata_init(&rdata);
+	result = isc_buffer_allocate(mctx, &tbuf, isc_buffer_length(buf));
+	if (result == ISC_R_SUCCESS) {
+		result = dns_rdata_fromwire(&rdata, rdclass, type, buf, &dctx,
+					    ISC_FALSE, &tbuf);
+		isc_buffer_free(tbuf);
 	}
+	dns_decompress_invalidate(&dctx);
 
-	st = *target;
-	region.base = (unsigned char *)(target->base) + target->used;
-
-	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-					ISC_FALSE);
-	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
-		result = ISC_R_RANGE;
-	if (result == ISC_R_SUCCESS)
-		result = isc_base64_tobuffer(lexer, target, 
-					     token.value.as_ulong);
-
-	if (callbacks == NULL)
-		callback = NULL;
-	else
-		callback = callbacks->error;
-
-	if (callback == NULL)
-		callback = default_fromtext_callback;
-	/*
-	 * Consume to end of line / file.
-	 * If not at end of line initially set error code.
-	 * Call callback via fromtext_error once if there was an error.
-	 */
-	do {
-		name = isc_lex_getsourcename(lexer);
-		line = isc_lex_getsourceline(lexer);
-		iresult = isc_lex_gettoken(lexer, options, &token);
-		if (iresult != ISC_R_SUCCESS) {
-			if (result == ISC_R_SUCCESS) {
-				switch (iresult) {
-				case ISC_R_NOMEMORY:
-					result = ISC_R_NOMEMORY;
-					break;
-				case ISC_R_NOSPACE:
-					result = ISC_R_NOSPACE;
-					break;
-				default:
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-					    "isc_lex_gettoken() failed: %s",
-					    isc_result_totext(result));
-					result = ISC_R_UNEXPECTED;
-					break;
-				}
-			}
-			if (callback != NULL)
-				fromtext_error(callback, callbacks, name,
-					       line, NULL, result);
-			break;
-		} else if (token.type != isc_tokentype_eol &&
-			   token.type != isc_tokentype_eof) {
-			if (result == ISC_R_SUCCESS)
-				result = DNS_R_EXTRATOKEN;
-			if (callback != NULL) {
-				fromtext_error(callback, callbacks, name,
-					       line, &token, result);
-				callback = NULL;
-			}
-		} else if (result != ISC_R_SUCCESS && callback != NULL) {
-			fromtext_error(callback, callbacks, name, line,
-				       &token, result);
-			break;
-		} else {
-			if (token.type == isc_tokentype_eof)
-				fromtext_warneof(lexer, callbacks);
-			break;
-		}
-	} while (1);
-
-	if (rdata != NULL && result == ISC_R_SUCCESS) {
-		region.length = target->used - st.used;
-		dns_rdata_fromregion(rdata, rdclass, type, &region);
-	}
-	if (result != ISC_R_SUCCESS) {
-		*target = st;
-	}
 	return (result);
 }
 
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
-		   dns_name_t *origin, isc_boolean_t downcase,
+		   dns_name_t *origin, isc_boolean_t downcase, isc_mem_t *mctx,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t st;
-	isc_boolean_t use_default = ISC_FALSE;
 	isc_token_t token;
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
@@ -659,17 +581,25 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	st = *target;
 	region.base = (unsigned char *)(target->base) + target->used;
 
-	FROMTEXTSWITCH
-
-	if (use_default) {
+	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
+					ISC_FALSE);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (strcmp((char *)token.value.as_pointer, "\\#") == 0) {
 		result = isc_lex_getmastertoken(lexer, &token,
 						isc_tokentype_number,
 						ISC_FALSE);
 		if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
 			result = ISC_R_RANGE;
 		if (result == ISC_R_SUCCESS)
-			result = isc_base64_tobuffer(lexer, target, 
-						     token.value.as_ulong);
+			result = isc_hex_tobuffer(lexer, target, 
+						  token.value.as_ulong);
+		if (result == ISC_R_SUCCESS && dns_rdatatype_isknown(type))
+			result = rdata_valid(target, rdclass, type, mctx);
+	} else {
+		isc_lex_ungettoken(lexer, &token);
+
+		FROMTEXTSWITCH
 	}
 
 	if (callbacks == NULL)
@@ -763,6 +693,8 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	TOTEXTSWITCH
 
 	if (use_default) {
+		sprintf(buf, "\\# ");
+		result = str_totext(buf, target);
 		dns_rdata_toregion(rdata, &sr);
 		INSIST(sr.length < 65536);
 		sprintf(buf, "%u", sr.length);
@@ -773,9 +705,9 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			else
 				result = str_totext(" ", target);
 			if (result == ISC_R_SUCCESS)
-				result = isc_base64_totext(&sr, tctx->width - 2,
-							   tctx->linebreak,
-							   target);
+				result = isc_hex_totext(&sr, tctx->width - 2,
+							tctx->linebreak,
+							target);
 			if (result == ISC_R_SUCCESS &&
 			    (tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 				result = str_totext(" )", target);
@@ -820,7 +752,7 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		tctx.width = width;
 		tctx.linebreak = linebreak;
 	} else {
-		tctx.width = 60; /* Used for base64 word length only. */
+		tctx.width = 60; /* Used for hex word length only. */
 		tctx.linebreak = " ";
 	}
 	return (rdata_totext(rdata, &tctx, target));
@@ -1009,27 +941,16 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
  */
 isc_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
-	unsigned int attrs;
-
-	/*
-	 * Note: attrs is set and then used in the bit test with RESERVED
-	 * because testing "(flags & RESERVED) != 0" generates
-	 * warnings on IRIX about how the test always has the same value
-	 * because it is all constants.
-	 */
-#define COMPARE(string, flags, type) \
+#define COMPARE(string, rdclass) \
 	if (((sizeof(string) - 1) == source->length) \
 	    && (strcasecmp(source->base, string) == 0)) { \
-		*classp = type; \
-		attrs = flags; \
-		if ((attrs & RESERVED) != 0) \
-			return (ISC_R_NOTIMPLEMENTED); \
+		*classp = rdclass; \
 		return (ISC_R_SUCCESS); \
 	}
 
 	switch (tolower((unsigned char)source->base[0])) {
 	case 'a':
-		COMPARE("any", META, dns_rdataclass_any);
+		COMPARE("any", dns_rdataclass_any);
 		break;
 	case 'c':
 		/*
@@ -1037,20 +958,30 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		 * but historical BIND practice is to call it CHAOS.
 		 * We will accept both forms, but only generate CH.
 		 */
-		COMPARE("ch", 0, dns_rdataclass_chaos);
-		COMPARE("chaos", 0, dns_rdataclass_chaos);
+		COMPARE("ch", dns_rdataclass_chaos);
+		COMPARE("chaos", dns_rdataclass_chaos);
+		if (source->length > 5 &&
+		    strncasecmp("class", source->base, 5) == 0)
+		{
+			char *endp;
+			int val = strtol(source->base + 5, &endp, 10);
+			if (*endp == '\0' && val >= 0 && val <= 0xffff) {
+				*classp = (dns_rdataclass_t)val;
+				return (ISC_R_SUCCESS);
+			}
+		}
 		break;
 	case 'h':
-		COMPARE("hs", 0, dns_rdataclass_hs);
+		COMPARE("hs", dns_rdataclass_hs);
 		break;
 	case 'i':
-		COMPARE("in", 0, dns_rdataclass_in);
+		COMPARE("in", dns_rdataclass_in);
 		break;
 	case 'n':
-		COMPARE("none", META, dns_rdataclass_none);
+		COMPARE("none", dns_rdataclass_none);
 		break;
 	case 'r':
-		COMPARE("reserved0", META|RESERVED, dns_rdataclass_reserved0);
+		COMPARE("reserved0", dns_rdataclass_reserved0);
 		break;
 	}
 
@@ -1061,7 +992,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	char buf[sizeof("RDCLASS4294967296")];
+	char buf[sizeof("CLASS65536")];
 
 	switch (rdclass) {
 	case dns_rdataclass_any:
@@ -1077,7 +1008,7 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	case dns_rdataclass_reserved0:
 		return (str_totext("RESERVED0", target));
 	default:
-		sprintf(buf, "RDCLASS%u", rdclass);
+		sprintf(buf, "CLASS%u", rdclass);
 		return (str_totext(buf, target));
 	}
 
@@ -1106,12 +1037,21 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	 */
 	RDATATYPE_FROMTEXT_SW(hash, source->base, typep);
 
+	if (source->length > 4 && strncasecmp("type", source->base, 4) == 0) {
+		char *endp;
+		int val = strtol(source->base + 4, &endp, 10);
+		if (*endp == '\0' && val >= 0 && val <= 0xffff) {
+			*typep = (dns_rdatatype_t)val;
+			return (ISC_R_SUCCESS);
+		}
+	}
+
 	return (DNS_R_UNKNOWN);
 }
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	char buf[sizeof "TYPE4294967296"];
+	char buf[sizeof "TYPE65536"];
 
 	if (type > 255) {
 		sprintf(buf, "TYPE%u", type);

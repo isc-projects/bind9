@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.12 2000/10/18 23:53:27 marka Exp $ */
+/* $Id: sdb.c,v 1.13 2000/11/09 23:55:00 bwelling Exp $ */
 
 /* NOMINUM_PUBLIC_DELETE */
 
@@ -322,7 +322,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		result = dns_rdata_fromtext(rdata, rdatalist->rdclass,
 					    rdatalist->type, lex,
 					    origin, ISC_FALSE,
-					    rdatabuf, NULL);
+					    mctx, rdatabuf, NULL);
 		if (result != ISC_R_SUCCESS)
 			isc_buffer_free(&rdatabuf);
 		size *= 2;

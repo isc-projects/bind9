@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.56 2000/11/09 03:03:47 bwelling Exp $ */
+/* $Id: gen.c,v 1.57 2000/11/09 23:54:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -37,7 +37,7 @@
 #define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
 #define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
-#define FROMTEXTDEF "use_default = ISC_TRUE"
+#define FROMTEXTDEF "result = DNS_R_UNKNOWN"
 
 #define TOTEXTARGS "rdata, tctx, target"
 #define TOTEXTCLASS "rdata->rdclass"

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.78 2000/11/08 00:18:18 gson Exp $ */
+/* $Id: master.c,v 1.79 2000/11/09 23:54:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -639,7 +639,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 		isc_buffer_init(&target, target_mem, target_size);
 		result = dns_rdata_fromtext(&rdata, ctx->zclass, type,
 					    ctx->lex, ctx->origin, ISC_FALSE,
-					    &target, callbacks);
+					    ctx->mctx, &target, callbacks);
 		isc_lex_close(ctx->lex);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
@@ -1295,8 +1295,8 @@ load(dns_loadctx_t **ctxp) {
 		 */
 		dns_rdata_init(&rdata[rdcount]);
 		result = dns_rdata_fromtext(&rdata[rdcount], ctx->zclass, type,
-				   ctx->lex, ctx->origin, ISC_FALSE, &target,
-				   callbacks);
+				   ctx->lex, ctx->origin, ISC_FALSE, ctx->mctx,
+				   &target, callbacks);
 		if (result != ISC_R_SUCCESS)
 			goto insist_and_cleanup;
 		if (type == dns_rdatatype_sig)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataclass.h,v 1.14 2000/08/01 01:24:31 tale Exp $ */
+/* $Id: rdataclass.h,v 1.15 2000/11/09 23:55:02 bwelling Exp $ */
 
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
@@ -39,7 +39,6 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source);
  * Returns:
  *	ISC_R_SUCCESS			on success
  *	DNS_R_UNKNOWN			class is unknown
- *	ISC_R_NOTIMPLEMENTED		class is known, but not implemented
  */
 
 isc_result_t

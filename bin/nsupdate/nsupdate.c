@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.59 2000/11/08 00:55:26 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.60 2000/11/09 23:54:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -625,8 +625,8 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			check_result(result, "isc_buffer_allocate");
 			result = dns_rdata_fromtext(rdata, rdataclass,
 						    rdatatype,
-						    lex, rn, ISC_FALSE, buf,
-						    &callbacks);
+						    lex, rn, ISC_FALSE, mctx,
+						    buf, &callbacks);
 			bufsz *= 2;
 			isc_lex_destroy(&lex);
 		} while (result == ISC_R_NOSPACE);

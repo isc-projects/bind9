@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.31 2000/08/01 01:13:16 tale Exp $ */
+/* $Id: rdata_test.c,v 1.32 2000/11/09 23:54:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -929,7 +929,8 @@ main(int argc, char *argv[]) {
 		dns_rdata_init(&rdata);
 		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf));
 		result = dns_rdata_fromtext(&rdata, class, type, lex,
-					    NULL, ISC_FALSE, &dbuf, NULL);
+					    NULL, ISC_FALSE, mctx, &dbuf,
+					    NULL);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stdout,
 				"dns_rdata_fromtext returned %s(%d)\n",
