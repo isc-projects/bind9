@@ -1,3 +1,6 @@
+1501.	[func]		Allow TCP queue length to be specified via 
+			named.conf, tcp-listen-queue.
+
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
