@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.109 2000/10/02 16:43:24 mws Exp $ */
+/* $Id: dig.c,v 1.110 2000/10/03 04:29:08 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -883,9 +883,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'n':
 		nibble = ISC_TRUE;
 		return (ISC_FALSE);
-	case 'p': 
+	case 'w': 
 		show_packets = ISC_TRUE;
 		return (ISC_FALSE);
+
 	}
 	if (value == NULL)
 		goto invalid_option;
