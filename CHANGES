@@ -1,4 +1,8 @@
 
+ 416.	[bug]		Slave zones with no master file tried to use a
+			NULL pointer for a journal file name when they
+			received an IXFR.
+
  415.	[bug]		The logging code leaked file descriptors.
 
  414.	[bug]		Server did not shut down until all incoming zone 
