@@ -4,6 +4,8 @@
 1794.	[func]		Named and named-checkzone can now both check for
 			non-terminal wildcard records.
 
+1793.	[func]		Extend adjusting TTL warning messages. [RT #13378]
+
 1792.	[func]		New zone option "notify-delay".  Specify a minimum
 			delay between sets of NOTIFY messages.
 
