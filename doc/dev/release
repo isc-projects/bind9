@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.36 2001/06/08 23:45:50 gson Exp $
+$Id: release,v 1.37 2001/06/28 21:20:40 gson Exp $
 
 Preparing a bind9 release
 
@@ -73,8 +73,8 @@ release.
      ... the script should have been able to do itself. :-)
      $ cvs ci -m'update_copyrights'
 
- - Announce a CVS freeze if doing a beta release from the mainline,
-   or stop doing pullups if building from a release branch.
+ - Announce a CVS freeze if doing an alpha or beta release from 
+   the mainline, or stop doing pullups if building from a release branch.
 
  - Run util/altbuild.sh.  This is to make sure that
    builds using libtool, separate source/object directories, and other 
@@ -89,6 +89,10 @@ release.
 
       cd $top_of_9_1_tree
       sh util/altbuild.sh v9_1
+
+   Alteratively, you can do this after building the kit, by giving
+   the kit .tar.gz file as an argument to altbuild.sh instad of
+   the CVS tag.
 
  - If you can (= your system is similar enough to the one Tale is using),
    check the header files for cruft by running the command
@@ -175,12 +179,12 @@ release.
  - Sign the distribution files with the ISC signing PGP key
    and fix the permissions on the signature file:
   
-   	pgp -sba bind-9.1.3rc1.tar.gz -u 0x51BAB2ED
-	chmod 644 bind-9.1.3rc1.tar.gz.asc
+   	pgp -sba bind-9.1.3rc3.tar.gz -u 0x51BAB2ED
+	chmod 644 bind-9.1.3rc3.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.1.3rc1.tar.gz.asc bind-9.1.3rc1.tar.gz
+	pgp bind-9.1.3rc3.tar.gz.asc bind-9.1.3rc3.tar.gz
 
    (Look for the words "Good signature" in the output.)
 
@@ -188,7 +192,7 @@ release.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.1.3rc1
+     ver=9.1.3rc3
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
