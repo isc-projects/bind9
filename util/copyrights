@@ -933,6 +933,7 @@
 ./lib/dns/include/dns/ssu.h			C	2000
 ./lib/dns/include/dns/tcpmsg.h			C	1999,2000
 ./lib/dns/include/dns/time.h			C	1999,2000
+./lib/dns/include/dns/timer.h			C	2000
 ./lib/dns/include/dns/tkey.h			C	1999,2000
 ./lib/dns/include/dns/tkeyconf.h		C	1999,2000
 ./lib/dns/include/dns/tsig.h			C	1999,2000
@@ -1092,6 +1093,7 @@
 ./lib/dns/ssu.c					C	2000
 ./lib/dns/tcpmsg.c				C	1999,2000
 ./lib/dns/time.c				C	1998,1999,2000
+./lib/dns/timer.c				C	2000
 ./lib/dns/tkey.c				C	1999,2000
 ./lib/dns/tsig.c				C	1999,2000
 ./lib/dns/ttl.c					C	1999,2000

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.252 2000/11/17 02:49:11 bwelling Exp $ */
+/* $Id: zone.c,v 1.253 2000/11/17 19:04:48 gson Exp $ */
 
 #include <config.h>
 
@@ -4157,7 +4157,6 @@ message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type)
 void
 dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(maxxfrin != 0);
 
 	zone->maxxfrin = maxxfrin;
 }
@@ -4172,7 +4171,6 @@ dns_zone_getmaxxfrin(dns_zone_t *zone) {
 void
 dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(maxxfrout != 0);
 	zone->maxxfrout = maxxfrout;
 }
 
@@ -4240,8 +4238,6 @@ void
 dns_zone_setidleout(dns_zone_t *zone, isc_uint32_t idleout) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (idleout == 0)
-		idleout = DNS_DEFAULT_IDLEOUT;
 	zone->idleout = idleout;
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.81 2000/11/03 23:01:58 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.82 2000/11/17 19:04:51 gson Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
+#include <dns/timer.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -1113,8 +1114,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	isc_result_t result;
 	unsigned int len;
 	void *mem;
-	isc_interval_t maxinterval, idleinterval;
-	isc_time_t expires;
 
 	INSIST(xfrp != NULL && *xfrp == NULL);
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -1173,14 +1172,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmem = mem;
 	xfr->txmemlen = len;
 
-	isc_interval_set(&maxinterval, maxtime, 0);
-	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
-	isc_interval_set(&idleinterval, idletime, 0);
-
-	CHECK(isc_timer_reset(xfr->client->timer,
-			      isc_timertype_once,
-			      &expires, &idleinterval,
-			      ISC_FALSE));
+	CHECK(dns_timer_setidle(xfr->client->timer,
+				maxtime, idletime, ISC_FALSE));
 
 	/*
 	 * Register a shutdown callback with the client, so that we

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.105 2000/11/13 20:12:29 gson Exp $ */
+/* $Id: xfrin.c,v 1.106 2000/11/17 19:04:47 gson Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/tcpmsg.h>
+#include <dns/timer.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
@@ -669,8 +670,6 @@ xfrin_create(isc_mem_t *mctx,
 {
 	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
-	isc_interval_t maxinterval, idleinterval;
-	isc_time_t expires;
 	isc_uint32_t tmp;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
@@ -735,13 +734,12 @@ xfrin_create(isc_mem_t *mctx,
 
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
 
-	isc_interval_set(&maxinterval, dns_zone_getmaxxfrin(xfr->zone), 0);
-	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
-	isc_interval_set(&idleinterval, dns_zone_getidlein(xfr->zone), 0);
-
-	CHECK(isc_timer_create(timermgr, isc_timertype_once,
-			       &expires, &idleinterval, task,
-			       xfrin_timeout, xfr, &xfr->timer));
+	CHECK(isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
+			       task, xfrin_timeout, xfr, &xfr->timer));
+	CHECK(dns_timer_setidle(xfr->timer,
+				dns_zone_getmaxxfrin(xfr->zone),
+				dns_zone_getidlein(xfr->zone),
+				ISC_FALSE));
 
 	xfr->masteraddr = *masteraddr;
 

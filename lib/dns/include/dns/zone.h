@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.88 2000/11/11 01:15:33 gson Exp $ */
+/* $Id: zone.h,v 1.89 2000/11/17 19:04:50 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -790,7 +790,6 @@ dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
  *
  * Requires:
  * 	'zone' to be valid initialised zone.
- *	'xfrtime' to be non zero.
  */
 
 isc_uint32_t
@@ -812,7 +811,6 @@ dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout);
  *
  * Requires:
  * 	'zone' to be valid initialised zone.
- *	'xfrtime' to be non zero.
  */
 
 isc_uint32_t
@@ -835,7 +833,7 @@ dns_zone_setjournal(dns_zone_t *zone, const char *journal);
  *
  * Requires:
  *	'zone' to be a valid zone.
- *	'journal' to be non NULL.
+ *	'journal' to be non-NULL.
  *
  * Returns:
  *	ISC_R_SUCCESS

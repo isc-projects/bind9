@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.112 2000/11/16 02:05:54 bwelling Exp $
+# $Id: Makefile.in,v 1.113 2000/11/17 19:04:45 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -97,7 +97,7 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
 		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ ssu.@O@ \
-		tcpmsg.@O@ time.@O@ tkey.@O@ \
+		tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zt.@O@ \
 		${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
@@ -112,7 +112,7 @@ SRCS =		a6.c acl.c adb.c byaddr.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c sdb.c ssu.c \
-		tcpmsg.c time.c tkey.c \
+		tcpmsg.c time.c timer.c tkey.c \
 		tsig.c ttl.c validator.c \
 		version.c view.c xfrin.c zone.c zt.c
 
