@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.4 2003/08/21 02:05:47 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.5 2003/08/21 02:15:50 marka Exp $ */
 
 #include <config.h>
 
@@ -111,6 +111,9 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	isc_timermgr_t *manager;
 	isc_time_t due;
 	int cmp;
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_boolean_t timedwait;
+#endif
 
 	/*
 	 * Note: the caller must ensure locking.
@@ -121,6 +124,16 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 #ifndef ISC_PLATFORM_USETHREADS
 	UNUSED(signal_ok);
 #endif /* ISC_PLATFORM_USETHREADS */
+
+	manager = timer->manager;
+
+#ifdef ISC_PLATFORM_USETHREADS
+	/*
+	 * If the manager was timed wait, we may need to signal the
+	 * manager to force a wakeup.
+	 */
+	timedwait = ISC_TF(manager->nscheduled > 0 && manager->due.seconds != 0);
+#endif
 
 	/*
 	 * Compute the new due time.
@@ -146,7 +159,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	/*
 	 * Schedule the timer.
 	 */
-	manager = timer->manager;
+
 	if (timer->index > 0) {
 		/*
 		 * Already scheduled.
@@ -193,7 +206,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 * the dispatcher.  This isn't such a bad idea as a general purpose
 	 * watchdog, so perhaps we should just leave it in here.
 	 */
-	if (signal_ok) {
+	if (signal_ok && timedwait) {
 		isc_interval_t fifteen;
 		isc_time_t then;
 
