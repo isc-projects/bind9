@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.237 $)
+AC_REVISION($Revision: 1.238 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -190,7 +190,6 @@ if test "X$CC" = "X" ; then
 fi
 
 AC_PROG_CC
-AC_PROG_YACC
 
 AC_HEADER_STDC
 
@@ -641,7 +640,6 @@ else
 		;;
 	*-UnixWare*)
 		CC="$CC -w"
-		YACC="yacc"	# bison calls alloca, avoid on UnixWare
 		;;
 	esac
 fi
