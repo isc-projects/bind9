@@ -1,4 +1,6 @@
 
+ 610.	[func]		rndc dumpdb is now supported.
+
  609.	[bug]		getrrsetbyname() would crash lwresd if the server
 			found more SIGs than answers. [RT #554]
 
