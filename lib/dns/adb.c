@@ -2698,8 +2698,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 	}
 
-	/* dns_adb_dumpfind(find, stderr); */
-
 	if (bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->namelocks[bucket]);
 
@@ -2935,12 +2933,13 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			}
 
 			if (tmpp == NULL)
-				tmpp = "CANNOT TRANSLATE ADDRESS!";
+				tmpp = "BadAddress";
 
 			fprintf(f, "\t%p: refcnt %u flags %08x goodness %d"
-				" srtt %u addr %s\n",
+				" srtt %u addr %s, avoid_bitstring %u\n",
 				entry, entry->refcnt, entry->flags,
-				entry->goodness, entry->srtt, tmpp);
+				entry->goodness, entry->srtt, tmpp,
+				entry->avoid_bitstring);
 
 			entry = ISC_LIST_NEXT(entry, plink);
 		}
@@ -2996,11 +2995,12 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f)
 		}
 
 		if (tmpp == NULL)
-			tmpp = "CANNOT TRANSLATE ADDRESS!";
+			tmpp = "BadAddress";
 
 		fprintf(f, "\t\tentry %p, flags %08x goodness %d"
-			" srtt %u addr %s\n",
-			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp);
+			" srtt %u addr %s avoid_bitstring %u\n",
+			ai->entry, ai->flags, ai->goodness, ai->srtt, tmpp,
+			ai->avoid_bitstring);
 
 		ai = ISC_LIST_NEXT(ai, publink);
 	}
