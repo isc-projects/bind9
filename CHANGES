@@ -1,3 +1,6 @@
+
+	--- 9.1.0b2 released ---
+
  640.	[bug]		Memory leak in error path could cause
 			"mpctx->allocated == 0" failure. [RT #584]
 
@@ -25,10 +28,11 @@
 
  633.	[port]		Cope with rlim_t missing on BSD/OS systems. [RT #575]
 
-	--- 9.1.0b2 released ---
-
  632.	[bug]		The index array of the journal file was 
 			corrupted as it was written to disk.
+
+ 631.	[port]		Build without thread support on systems without
+			pthreads.
 
  630.	[bug]		Locking failure in zone code. [RT #582]
 
