@@ -1,3 +1,5 @@
+ 901.	[bug]		More Unixware config.guess related changes.
+
  900.	[bug]		A config.guess update changed the system identification
 			string of FreeBSD systems; configure now recognizes
 			the new string. 
