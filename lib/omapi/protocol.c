@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.32.4.2 2003/08/29 07:08:32 marka Exp $ */
+/* $Id: protocol.c,v 1.32.4.3 2003/09/01 06:01:12 marka Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -159,7 +159,6 @@ send_intro(omapi_object_t *h, unsigned int ver) {
 
 		/*
 		 * Make up an initial transaction ID for this connection.
-		 * XXXDCL better generator than random()?
 		 */
 		isc_random_get(&p->next_xid);
 

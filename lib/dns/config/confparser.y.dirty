@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.10 2001/07/17 07:36:03 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.11 2003/09/01 06:01:12 marka Exp $ */
 
 #include <config.h>
 
@@ -1888,7 +1888,7 @@ ordering_name: /* nothing */
 			$$ = $2;
 		}
 	}
-
+	;
 
 rrset_ordering_element: ordering_class ordering_type ordering_name
 	L_ORDER L_STRING
@@ -1918,7 +1918,7 @@ rrset_ordering_element: ordering_class ordering_type ordering_name
 		isc_mem_free(memctx, $5);
 		isc_mem_free(memctx, $3);
 	}
-
+	;
 
 transfer_format: L_ONE_ANSWER
 	{
@@ -2188,6 +2188,7 @@ yea_or_nay: L_YES
 			$$ = isc_boolean_true;
 		}
 	}
+	;
 
 notify_setting: yea_or_nay
 	{
@@ -4958,6 +4959,7 @@ class_name: any_string
 		isc_mem_free(memctx, $1);
 		$$ = cl;
 	}
+	;
 
 wild_class_name: any_string
 	{
@@ -4981,6 +4983,7 @@ wild_class_name: any_string
 		isc_mem_free(memctx, $1);
 		$$ = cl;
 	}
+	;
 
 optional_class: /* Empty */
 	{
@@ -5814,8 +5817,8 @@ ip4_prefix: L_IP4PREFIX
 ip6_address: L_IP6ADDR
 	{
 		isc_sockaddr_fromin6(&$$, &$1, 0);
-	};
-
+	}
+	;
 
 ip_prefix: ip4_address | ip4_prefix | ip6_address
 	;
