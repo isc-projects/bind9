@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.29 2000/06/09 22:32:13 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.30 2000/06/10 21:30:53 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -439,6 +439,10 @@ dnssafersa_generate(dst_key_t *key, int exp, isc_entropy_t *ectx) {
 		B_DestroyAlgorithmObject(&keypairGenerator);
 	if (randomAlgorithm != NULL)
 		B_DestroyAlgorithmObject(&randomAlgorithm);
+	if (public != NULL)
+		B_DestroyKeyObject(&public);
+	if (private != NULL)
+		B_DestroyKeyObject(&private);
 	return (ret);
 }
 
