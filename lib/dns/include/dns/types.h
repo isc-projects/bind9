@@ -56,6 +56,7 @@ typedef struct dns_signature			dns_signature_t;
 typedef struct dns_rdataset			dns_rdataset_t;
 typedef ISC_LIST(dns_rdataset_t)		dns_rdatasetlist_t;
 typedef struct dns_rdatasetiter			dns_rdatasetiter_t;
+typedef struct dns_dbtable			dns_dbtable_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
