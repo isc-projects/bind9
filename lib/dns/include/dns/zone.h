@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.2 2003/08/13 01:41:34 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.3 2003/08/13 02:08:46 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -755,6 +755,12 @@ dns_zone_clearxfracl(dns_zone_t *zone);
  * Require:
  *	'zone' to be a valid zone.
  */
+
+isc_boolean_t
+dns_zone_getupdatedisabled(dns_zone_t *zone);
+
+void
+dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state);
 
 void
 dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);

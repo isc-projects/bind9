@@ -1,3 +1,6 @@
+1190.	[func]		Add the "rndc freeze" and"rndc unfreeze" commands.
+			[RT #2394]
+
 1187.	[bug]		named was incorrectly returning DNSSEC records
 			in negative responses when the DO bit was not set.
 

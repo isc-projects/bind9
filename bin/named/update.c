@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.5 2003/08/13 02:00:19 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.6 2003/08/13 02:08:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2171,6 +2171,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
+	if (dns_zone_getupdatedisabled(zone))
+		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled");
 	if (ssutable == NULL) {
 		char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
 			 + sizeof("update '/'")];

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.6.2.2.2.2 2003/08/08 05:32:35 marka Exp $ */
+/* $Id: control.h,v 1.6.2.2.2.3 2003/08/13 02:08:45 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -45,6 +45,8 @@
 #define NS_COMMAND_FLUSH	"flush"
 #define NS_COMMAND_FLUSHNAME	"flushname"
 #define NS_COMMAND_STATUS	"status"
+#define NS_COMMAND_FREEZE	"freeze"
+#define NS_COMMAND_UNFREEZE	"unfreeze"
 #define NS_COMMAND_NULL		"null"
 
 isc_result_t
