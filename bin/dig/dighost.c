@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.176 2001/01/08 19:50:32 bwelling Exp $ */
+/* $Id: dighost.c,v 1.177 2001/01/08 20:50:04 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1521,6 +1521,12 @@ setup_lookup(dig_lookup_t *lookup) {
 	result = dns_message_renderend(lookup->sendmsg);
 	check_result(result, "dns_message_renderend");
 	debug("done rendering");
+
+	/*
+	 * Force TCP mode if the request is larger than 512 bytes.
+	 */
+	if (isc_buffer_usedlength(&lookup->sendbuf) > 512)
+		lookup->tcp_mode = ISC_TRUE;
 
 	lookup->pending = ISC_FALSE;
 

@@ -1,3 +1,6 @@
+ 666.	[bug]		If a request is longer than 512 bytes, send it using
+			TCP.
+
  665.	[bug]		Signed responses were not sent when the size of the
 			TSIG + question exceeded the maximum message size.
 			[RT #628]
