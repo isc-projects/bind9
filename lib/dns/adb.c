@@ -1139,30 +1139,48 @@ a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
 	dns_adb_t *adb;
 	dns_adbfetch6_t *fetch;
 	isc_result_t result;
+	dns_rdataset_t nameservers;
+	dns_name_t fname;
+	isc_buffer_t buffer;
+	unsigned char ndata[256];
 	
 	name = a6ctx->arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
+	isc_buffer_init(&buffer, ndata, sizeof(ndata), ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&fname, NULL);
+	dns_name_setbuffer(&fname, &buffer);
+	dns_rdataset_init(&nameservers);
+
 	fetch = new_adbfetch6(adb, a6ctx);
 	if (fetch == NULL) {
 		name->partial_result |= DNS_ADBFIND_INET6;
 		return;
 	}
+	/* XXXRTH  Use cached 'now' from name. */
+	result = dns_view_findzonecut(adb->view, a6name, &fname, 0,
+				      0, ISC_TRUE, &nameservers, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 	result = dns_resolver_createfetch(adb->view->resolver, a6name,
-					  dns_rdatatype_a6, NULL, NULL, NULL,
-					  0, adb->task, fetch_callback_a6,
+					  dns_rdatatype_a6, &fname,
+					  &nameservers, NULL, 0,
+					  adb->task, fetch_callback_a6,
 					  name, &fetch->rdataset, NULL,
 					  &fetch->fetch);
-	if (result != ISC_R_SUCCESS) {
-		free_adbfetch6(adb, &fetch);
-		name->partial_result |= DNS_ADBFIND_INET6;
-		return;
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	name->chains = a6ctx->chains;
 	ISC_LIST_APPEND(name->fetches_a6, fetch, plink);
+
+ cleanup:
+	if (result != ISC_R_SUCCESS) {
+		free_adbfetch6(adb, &fetch);
+		name->partial_result |= DNS_ADBFIND_INET6;
+	}
 }
 
 static inline dns_adbfetch6_t *
@@ -2777,9 +2795,6 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	dns_adb_t *adb;
 	dns_adbfetch6_t *fetch;
 	int bucket;
-	isc_eventtype_t ev_status;
-	isc_stdtime_t now;
-	isc_result_t result;
 
 	(void)task;
 
@@ -2911,7 +2926,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
 	}
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
-					  dns_rdatatype_a, dns_rootname,
+					  dns_rdatatype_a, &fname,
 					  &nameservers, NULL, 0,
 					  adb->task, fetch_callback_v4,
 					  adbname, &fetch->rdataset, NULL,
@@ -2968,7 +2983,7 @@ fetch_name_aaaa(dns_adbname_t *adbname, isc_stdtime_t now)
 	}
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
-					  dns_rdatatype_aaaa, dns_rootname,
+					  dns_rdatatype_aaaa, &fname,
 					  &nameservers, NULL, 0,
 					  adb->task, fetch_callback_aaaa,
 					  adbname, &fetch->rdataset, NULL,
