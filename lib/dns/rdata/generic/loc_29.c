@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.c,v 1.1 1999/02/01 07:58:13 marka Exp $ */
+ /* $Id: loc_29.c,v 1.2 1999/02/11 14:00:29 marka Exp $ */
 
  /* RFC 1876 */
 
@@ -34,7 +34,8 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 	unsigned char hp;
 	unsigned char vp;
 	unsigned char version;
-	isc_boolean_t east, north;
+	isc_boolean_t east = ISC_FALSE;
+	isc_boolean_t north = ISC_FALSE;
 	long tmp;
 	long m;
 	long cm;
@@ -69,8 +70,9 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 	d1 = token.value.as_ulong;
 	/* minute */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((north = (strcasecmp(token.value.as_pointer, "N") == 0)) ||
-	    strcasecmp(token.value.as_pointer, "S") == 0)
+	if (strcasecmp(token.value.as_pointer, "N") == 0)
+		north = ISC_TRUE;
+	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
 		goto getlong;
 	m1 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0)
@@ -82,8 +84,9 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* second */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((north = (strcasecmp(token.value.as_pointer, "N") == 0)) ||
-	    strcasecmp(token.value.as_pointer, "S") == 0)
+	if (strcasecmp(token.value.as_pointer, "N") == 0)
+		north = ISC_TRUE;
+	if (north || strcasecmp(token.value.as_pointer, "S") == 0)
 		goto getlong;
 	s1 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.')
@@ -111,10 +114,10 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* direction */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((north = (strcasecmp(token.value.as_pointer, "N") == 0)) ||
-	    strcasecmp(token.value.as_pointer, "S") == 0)
-		goto getlong;
-	return (DNS_R_SYNTAX);
+	if (strcasecmp(token.value.as_pointer, "N") == 0)
+		north = ISC_TRUE;
+	if (!north && strcasecmp(token.value.as_pointer, "S") != 0)
+		return (DNS_R_SYNTAX);
 
  getlong:
 	/* degree */
@@ -125,8 +128,9 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* minute */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((east = (strcasecmp(token.value.as_pointer, "E") == 0)) ||
-	    strcasecmp(token.value.as_pointer, "W") == 0)
+	if (strcasecmp(token.value.as_pointer, "E") == 0)
+		east = ISC_TRUE;
+	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
 		goto getalt;
 	m2 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0)
@@ -138,8 +142,9 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 		
 	/* second */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((east = (strcasecmp(token.value.as_pointer, "E") == 0)) ||
-	    strcasecmp(token.value.as_pointer, "W") == 0)
+	if (strcasecmp(token.value.as_pointer, "E") == 0)
+		east = ISC_TRUE;
+	if (east || strcasecmp(token.value.as_pointer, "W") == 0)
 		goto getalt;
 	s2 = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.')
@@ -167,10 +172,10 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	/* direction */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if ((east = (strcasecmp(token.value.as_pointer, "E") == 0)) ||
-		    strcasecmp(token.value.as_pointer, "W") == 0)
-		goto getalt;
-	return (DNS_R_SYNTAX);
+	if (strcasecmp(token.value.as_pointer, "E") == 0)
+		east = ISC_TRUE;
+	if (!east && strcasecmp(token.value.as_pointer, "W") != 0)
+		return (DNS_R_SYNTAX);
 
  getalt:
 	/* alt */
@@ -189,7 +194,7 @@ fromtext_loc(dns_rdataclass_t class, dns_rdatatype_t type,
 			if ((tmp = decvalue(*e++)) < 0)
 				return (DNS_R_SYNTAX);
 			cm *= 10;
-			if (tmp < 0)
+			if (m < 0)
 				cm -= tmp;
 			else
 				cm += tmp;
@@ -458,7 +463,7 @@ totext_loc(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 		altitude -= 10000000;
 	}
 
-	sprintf(buf, "%d %d %d.%03d %s %d %d %d.%03d %s %s%ld.%02ld %s %s %s",
+	sprintf(buf, "%d %d %d.%03d %s %d %d %d.%03d %s %s%ld.%02ldm %s %s %s",
 		d1, m1, s1, fs1, north ? "N" : "S",
 		d2, m2, s2, fs2, east ? "E" : "W",
 		below ? "-" : "", altitude/100, altitude % 100,
