@@ -23,7 +23,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
-static dns_result_t disassociate(dns_rdataset_t *rdatasetp);
+static void disassociate(dns_rdataset_t *rdatasetp);
 static dns_result_t first(dns_rdataset_t *rdataset);
 static dns_result_t next(dns_rdataset_t *rdataset);
 static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
@@ -60,10 +60,9 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static void
 disassociate(dns_rdataset_t *rdataset) {
 	(void)rdataset;				/* Keep compiler quiet. */
-	return (DNS_R_SUCCESS);
 }
 
 static dns_result_t
