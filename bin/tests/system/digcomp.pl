@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: digcomp.pl,v 1.4 2000/06/22 21:51:25 tale Exp $
+# $Id: digcomp.pl,v 1.5 2000/07/07 21:43:49 bwelling Exp $
 
 # Compare two files, each with the output from dig, for differences.
 # Ignore "unimportant" differences, like ordering of NS lines, TTL's,
@@ -27,6 +27,8 @@ $file2 = $ARGV[1];
 $count = 0;
 $firstname = "";
 $status = 0;
+$rcode1 = "none";
+$rcode2 = "none";
 
 open(FILE1, $file1) || die("$! $file1");
 while (<FILE1>) {
@@ -50,6 +52,9 @@ while (<FILE1>) {
     } else {
       $entry{"$name ; $class.$type ; $value"} = $_;
     }
+  }
+  elsif (/^;.+status:\s+(\S+).+$/) {
+    $rcode1 = $1;
   }
 }
 close (FILE1);
@@ -78,6 +83,9 @@ while (<FILE2>) {
       $status = 1;
     }
   }
+  elsif (/^;.+status:\s+(\S+).+$/) {
+    $rcode2 = $1;
+  }
 }
 close (FILE2);
 
@@ -90,6 +98,11 @@ foreach $key (keys(%entry)) {
     $status = 1;
     $printed++;
   }
+}
+
+if ($rcode1 != $rcode2) {
+	print ("< status: $rcode1\n");
+	print ("> status: $rcode2\n");
 }
 
 exit($status);
