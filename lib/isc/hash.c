@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.3 2003/07/29 04:22:53 marka Exp $ */
+/* $Id: hash.c,v 1.4 2003/07/29 04:31:23 marka Exp $ */
 
 /*
  * Some portion of this code was derived from universal hash function
@@ -57,6 +57,8 @@ whether in contract, strict liability, or tort (including negligence
 or otherwise) arising in any way out of the use of this software, even
 if advised of the possibility of such damage.
 */
+
+#include <config.h>
 
 #include <isc/entropy.h>
 #include <isc/hash.h>
