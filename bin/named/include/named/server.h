@@ -60,7 +60,7 @@ struct ns_server {
 	ns_clientmgr_t *	clientmgr;
 	dns_viewlist_t		viewlist;
 	ns_interfacemgr_t *	interfacemgr;
-	dns_db_t *		roothints;
+	dns_db_t *		in_roothints;
 	dns_tkey_ctx_t *	tkeyctx;
 	isc_sockaddr_t		querysrc_addressv4;
 	dns_dispatch_t *	querysrc_dispatchv4;

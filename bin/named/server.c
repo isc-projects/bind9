@@ -120,10 +120,70 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 /*
+ * Configure a single server ACL at '*aclp'.  Get its configuration by
+ * calling 'getacl'.
+ */
+static isc_result_t
+configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx,
+		     isc_mem_t *mctx,
+		     isc_result_t (*getcacl)
+		         (dns_c_ctx_t *, dns_c_ipmatchlist_t **),
+		     dns_acl_t **aclp)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_c_ipmatchlist_t *cacl = NULL;
+	if (*aclp != NULL)
+		dns_acl_detach(aclp);
+	(void) (*getcacl)(cctx, &cacl);
+	if (cacl != NULL) {
+		result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
+		dns_c_ipmatchlist_detach(&cacl);
+	}
+	return (result);
+}
+
+/*
+ * Configure a single view ACL at '*aclp'.  Get its configuration by
+ * calling 'getvcacl' (for per-view configuration) and maybe 'getscacl'
+ * (for a global default).
+ */
+static isc_result_t
+configure_view_acl(dns_c_view_t *cview, 
+		   dns_c_ctx_t *cctx,
+		   dns_aclconfctx_t *actx, isc_mem_t *mctx,
+		   isc_result_t (*getvcacl)
+		       (dns_c_view_t *, dns_c_ipmatchlist_t **),
+		   isc_result_t (*getscacl)
+		       (dns_c_ctx_t *, dns_c_ipmatchlist_t **),
+		   dns_acl_t **aclp)
+{
+	isc_result_t result;
+	
+	dns_c_ipmatchlist_t *cacl = NULL;
+	if (*aclp != NULL)
+		dns_acl_detach(aclp);
+	if (getvcacl != NULL && cview != NULL)
+		(void) (*getvcacl)(cview, &cacl);
+	if (cacl == NULL && getscacl != NULL)
+		(void) (*getscacl)(cctx, &cacl);
+	if (cacl == NULL) {
+		/* No value available.  *aclp == NULL. */		
+		return (ISC_R_SUCCESS);
+	}
+
+	result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
+
+	dns_c_ipmatchlist_detach(&cacl);
+
+	return (result);
+}
+
+/*
  * Configure 'view' according to 'cctx'.
  */
 static isc_result_t
-configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
+configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
+	       isc_mem_t *mctx, dns_aclconfctx_t *actx,
 	       dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6)
 {
 	dns_cache_t *cache = NULL;
@@ -238,8 +298,20 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	 * We have default hints for class IN if we need them.
 	 */
 	if (view->rdclass == dns_rdataclass_in && view->hints == NULL)
-		dns_view_sethints(view, ns_g_server->roothints);
+		dns_view_sethints(view, ns_g_server->in_roothints);
 
+	/*
+	 * If we still have no hints, this is a non-IN view with no
+	 * "hints zone" configured.  That's an error.
+	 */
+	if (view->hints == NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "no root hints for view '%s'", cview->name);
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+	
 	/*
 	 * Configure the view's TSIG keys.
 	 */
@@ -260,7 +332,14 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 		dns_peerlist_detach(&view->peers);
 		view->peers = newpeers; /* Transfer ownership. */
 	}
-	
+
+	/*
+	 * Configure the "match-clients" ACL.
+	 */
+	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx, 
+				 dns_c_view_getmatchclients, NULL,
+				 &view->matchclients));
+
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
 
@@ -379,6 +458,51 @@ configure_hints(dns_view_t *view, const char *filename) {
 }
 
 /*
+ * Find an existing view matching the name and class of 'cview'
+ * in 'viewlist', or create a new one and add it to the list.
+ *
+ * If 'cview' is NULL, find or create the default view.
+ *
+ * The view found or created is attached to '*viewp'.
+ */
+static isc_result_t
+find_or_create_view(dns_c_view_t *cview, dns_viewlist_t *viewlist,
+		    dns_view_t **viewp)
+{
+	isc_result_t result;
+	char *viewname;
+	dns_rdataclass_t viewclass;
+	dns_view_t *view = NULL;
+
+	if (cview != NULL) {
+		viewname = cview->name;
+		result = dns_c_view_getviewclass(cview, &viewclass);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	} else {
+		viewname = "_default";
+		viewclass = dns_rdataclass_in;
+	}
+	result = dns_viewlist_find(viewlist, viewname,
+				   viewclass, &view);
+	if (result == ISC_R_SUCCESS) {
+		*viewp = view;
+		return (ISC_R_SUCCESS);
+	}
+	if (result != ISC_R_NOTFOUND)
+		return (result);
+	INSIST(view == NULL);
+
+	result = dns_view_create(ns_g_mctx, viewclass, viewname, &view);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	
+	ISC_LIST_APPEND(*viewlist, view, link);
+	dns_view_attach(view, viewp);
+	return (ISC_R_SUCCESS);
+}
+
+/*
  * Configure or reconfigure a zone.  This callback function
  * is called after parsing each "zone" statement in named.conf.
  */
@@ -391,7 +515,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
 	dns_zone_t *tzone = NULL;	/* Temporary zone */
-	char *viewname;
 	
 	isc_result_t result;
 
@@ -418,22 +541,17 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 * Find or create the view in the new view list.
 	 */
 	view = NULL;
-	if (cview != NULL)
-		viewname = cview->name;
-	else
-		viewname = "_default";
-	result = dns_viewlist_find(&lctx->viewlist, viewname,
-				   czone->zclass, &view);
-	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
-		goto cleanup;
-	if (view == NULL) {
-		dns_view_t *tview = NULL;
-		CHECK(dns_view_create(ns_g_mctx, czone->zclass,
-				      viewname, &view));
-		dns_view_attach(view, &tview);
-		ISC_LIST_APPEND(lctx->viewlist, tview, link);
-	}
+	CHECK(find_or_create_view(cview, &lctx->viewlist, &view));
 
+	if (czone->zclass != view->rdclass) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "zone '%s': wrong class for view '%s'",
+			      corigin, cview ? cview->name : "<default view>");
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+	
 	/*
 	 * Master zones must have 'file' set.
 	 */
@@ -566,27 +684,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	if (view != NULL)
 		dns_view_detach(&view);
 
-	return (result);
-}
-
-/*
- * Configure a single server ACL at '*aclp'.  Get its configuration by
- * calling 'getacl'.
- */
-static isc_result_t
-configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx, isc_mem_t *mctx,
-		     isc_result_t (*getcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
-		     dns_acl_t **aclp)
-{
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_c_ipmatchlist_t *cacl = NULL;
-	if (*aclp != NULL)
-		dns_acl_detach(aclp);
-	(void) (*getcacl)(cctx, &cacl);
-	if (cacl != NULL) {
-		result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
-		dns_c_ipmatchlist_detach(&cacl);
-	}
 	return (result);
 }
 
@@ -807,7 +904,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
 	dns_c_ctx_t *configctx;
-	dns_view_t *view, *view_next;
+	dns_view_t *view;
+	dns_view_t *view_next;
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
 	dns_dispatch_t *dispatchv4 = NULL;
@@ -926,7 +1024,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	interface_interval = 3600; /* Default is 1 hour. */
 	(void) dns_c_ctx_getinterfaceinterval(configctx, &interface_interval);
 	if (interface_interval == 0) {
-		isc_timer_reset(server->interface_timer, isc_timertype_inactive,
+		isc_timer_reset(server->interface_timer,
+				isc_timertype_inactive,
 				NULL, NULL, ISC_TRUE);
 	} else {
 		isc_interval_t interval;
@@ -941,29 +1040,41 @@ load_configuration(const char *filename, ns_server_t *server,
 					   AF_INET6, &dispatchv6));
 
 	/*
-	 * If we haven't created any views, create a default view for class
-	 * IN.  (We're a caching-only server.)
+	 * Configure and freeze the views.
+	 * Views that have zones were already created at parsing
+	 * time, but views with no zones must be created here.
+	 */
+	if (configctx->views != NULL) {
+		dns_c_view_t *cview;
+		for (cview = ISC_LIST_HEAD(configctx->views->views);
+		     cview != NULL;
+		     cview = ISC_LIST_NEXT(cview, next))
+		{
+			view = NULL;
+			CHECK(find_or_create_view(cview,
+						  &lctx.viewlist, &view));
+			INSIST(view != NULL);
+			CHECK(configure_view(view, configctx, cview, ns_g_mctx,
+					     &aclconfctx,
+					     dispatchv4, dispatchv6));
+			dns_view_freeze(view);
+			dns_view_detach(&view);
+		}
+	}
+		
+	/*
+	 * If we haven't created any views, create and configure
+	 * a default view for class IN.  (We're a caching-only server.)
 	 */
 	if (ISC_LIST_EMPTY(lctx.viewlist)) {
-		view = NULL;
 		CHECKM(dns_view_create(ns_g_mctx, dns_rdataclass_in, 
 				       "_default", &view),
 		       "creating default view");
 		ISC_LIST_APPEND(lctx.viewlist, view, link);
-	}
-
-	/*
-	 * Configure and freeze the views.  Their zone tables have
-	 * already been filled in at parsing time, but other stuff
-	 * like the resolvers are still unconfigured.
-	 */
-	for (view = ISC_LIST_HEAD(lctx.viewlist);
-	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link))
-	{
-		CHECK(configure_view(view, configctx, ns_g_mctx,
+		CHECK(configure_view(view, configctx, NULL,
+				     ns_g_mctx, &aclconfctx,
 				     dispatchv4, dispatchv6));
-		dns_view_freeze(view);
+		dns_view_detach(&view);
 	}
 
 	/*
@@ -1198,10 +1309,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->clientmgr = NULL;
 	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
-	server->roothints = NULL;
+	server->in_roothints = NULL;
 		
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
-				     &server->roothints),
+				     &server->in_roothints),
 		   "setting up root hints");
 
 	CHECKFATAL(isc_mutex_init(&server->reload_event_lock),
@@ -1263,7 +1374,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	dns_zonemgr_destroy(&server->zonemgr);
 	server->zonemgr = NULL;
 
-	dns_db_detach(&server->roothints);
+	dns_db_detach(&server->in_roothints);
 	
 	if (server->queryacl != NULL)
 		dns_acl_detach(&server->queryacl);
