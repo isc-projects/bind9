@@ -196,6 +196,8 @@ struct dns_name {
 #define DNS_NAMEATTR_ABSOLUTE		0x0001
 #define DNS_NAMEATTR_READONLY		0x0002
 #define DNS_NAMEATTR_DYNAMIC		0x0004
+#define DNS_NAMEATTR_CACHE		0x0008		/* Used by resolver. */
+#define DNS_NAMEATTR_ANSWER		0x0010		/* Used by resolver. */
 
 extern dns_name_t *dns_rootname;
 extern dns_name_t *dns_wildcardname;
