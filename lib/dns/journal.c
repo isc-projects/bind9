@@ -1884,9 +1884,17 @@ read_one_rr(dns_journal_t *j) {
 	}
 	/* Read an RR. */
 	result = journal_read_rrhdr(j, &rrhdr);
-	if (rrhdr.size == 0) {
+	/*
+	 * Perform a sanity check on the journal RR size.
+	 * The smallest possible RR has a 1-byte owner name
+	 * and a 10-byte header.  The largest possible
+	 * RR has 65535 bytes of data, a header, and a maximum-
+	 * size owner name, well below 70 k total.
+	 */
+	if (rrhdr.size < 1+10 || rrhdr.size > 70000) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "journal corrupt: empty RR");
+				 "journal corrupt: impossible RR size "
+				 "(%d bytes)", rrhdr.size);
 		FAIL(DNS_R_UNEXPECTED);
 	}
 	
