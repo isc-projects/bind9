@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.c,v 1.3 2001/01/09 21:50:50 bwelling Exp $ */
+/* $Id: forward.c,v 1.4 2001/01/15 19:54:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -158,7 +158,7 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, dns_name_t *name,
 void
 dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	dns_fwdtable_t *fwdtable;
-	isc_mem_t *mctx = mctx;
+	isc_mem_t *mctx;
 
 	REQUIRE(fwdtablep != NULL && VALID_FWDTABLE(*fwdtablep));
 
