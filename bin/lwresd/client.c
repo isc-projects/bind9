@@ -32,12 +32,89 @@
 #include "client.h"
 
 static void
+hexdump(char *msg, void *base, size_t len)
+{
+	unsigned char *p;
+	unsigned int cnt;
+
+	p = base;
+	cnt = 0;
+
+	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
+
+	while (cnt < len) {
+		if (cnt % 16 == 0)
+			printf("%p: ", p);
+		else if (cnt % 8 == 0)
+			printf(" |");
+		printf(" %02x", *p++);
+		cnt++;
+
+		if (cnt % 16 == 0)
+			printf("\n");
+	}
+
+	if (cnt % 16 != 0)
+		printf("\n");
+}
+
+static void
 clientmgr_can_die(clientmgr_t *cm)
 {
+	if ((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0)
+		return;
+
 	if (ISC_LIST_HEAD(cm->running) != NULL)
 		return;
 
 	isc_task_detach(&cm->task);
+}
+
+static void
+process_request(client_t *client)
+{
+	clientmgr_t *cm = client->clientmgr;
+	lwres_lwpacket_t pkt;
+	lwres_buffer_t b;
+	isc_result_t result;
+
+	hexdump("client request", client->buffer, client->length);
+
+	lwres_buffer_init(&b, client->buffer, client->length);
+	lwres_buffer_add(&b, client->length);
+
+	result = lwres_lwpacket_parseheader(&b, &pkt);
+	if (result != ISC_R_SUCCESS) {
+		printf("Invalid packet header received\n");
+		goto restart;
+	}
+
+	printf("OPCODE %08x\n", pkt.opcode);
+
+	switch (pkt.opcode) {
+	case LWRES_OPCODE_GETADDRSBYNAME:
+		break;
+	case LWRES_OPCODE_GETNAMEBYADDR:
+		break;
+	case LWRES_OPCODE_NOOP:
+		break;
+	default:
+		printf("Unknown opcode %08x\n", pkt.opcode);
+		goto restart;
+	}
+
+	goto restart;  /* XXXMLG temporary */
+
+	/*
+	 * We're working on something, so stay in the run queue.
+	 */
+	return;
+
+ restart:
+	client->isidle = ISC_TRUE;
+	ISC_LIST_UNLINK(cm->running, client, link);
+	ISC_LIST_APPEND(cm->idle, client, link);
+	client_start_recv(cm);
 }
 
 void
@@ -60,20 +137,20 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 		/*
 		 * Go idle.
 		 */
+		client->isidle = ISC_TRUE;
 		ISC_LIST_UNLINK(cm->running, client, link);
 		ISC_LIST_APPEND(cm->idle, client, link);
 
 		clientmgr_can_die(cm);
+
 		return;
 	}
 
-	/*
-	 * XXXMLG Nothing to do right now, just go idle.
-	 */
-	ISC_LIST_UNLINK(cm->running, client, link);
-	ISC_LIST_APPEND(cm->idle, client, link);
+	client->length = dev->n;
 
 	client_start_recv(cm);
+
+	process_request(client);
 
 	isc_event_free(&ev);
 }
@@ -89,7 +166,12 @@ client_start_recv(clientmgr_t *cm)
 	isc_region_t r;
 
 	REQUIRE((cm->flags & CLIENTMGR_FLAG_SHUTTINGDOWN) == 0);
-	REQUIRE((cm->flags & CLIENTMGR_FLAG_RECVPENDING) == 0);
+
+	/*
+	 * If a recv is already running, don't bother.
+	 */
+	if ((cm->flags & CLIENTMGR_FLAG_RECVPENDING) != 0)
+		return (ISC_R_SUCCESS);
 
 	/*
 	 * If we have no idle slots, just return success.
@@ -97,6 +179,7 @@ client_start_recv(clientmgr_t *cm)
 	client = ISC_LIST_HEAD(cm->idle);
 	if (client == NULL)
 		return (ISC_R_SUCCESS);
+	INSIST(client->isidle);
 
 	/*
 	 * Issue the recv.  If it fails, return that it did.
@@ -117,6 +200,7 @@ client_start_recv(clientmgr_t *cm)
 	 * Remove the client from the idle list, and put it on the running
 	 * list.
 	 */
+	client->isidle = ISC_FALSE;
 	ISC_LIST_UNLINK(cm->idle, client, link);
 	ISC_LIST_APPEND(cm->running, client, link);
 

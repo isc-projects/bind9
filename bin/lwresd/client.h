@@ -26,6 +26,12 @@
 #include <isc/socket.h>
 #include <isc/task.h>
 
+#include <dns/adb.h>
+#include <dns/cache.h>
+#include <dns/db.h>
+#include <dns/master.h>
+#include <dns/name.h>
+
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
 
 #define LWRD_SHUTDOWN		(LWRD_EVENTCLASS + 0x0001)
@@ -34,9 +40,14 @@ typedef struct client_s client_t;
 typedef struct clientmgr_s clientmgr_t;
 
 struct client_s {
-	isc_sockaddr_t		sockaddr;		/* where to reply */
-	clientmgr_t	       *clientmgr;		/* our parent */
+	isc_sockaddr_t		sockaddr;	/* where to reply */
+	clientmgr_t	       *clientmgr;	/* our parent */
 	unsigned char		buffer[LWRES_RECVLENGTH]; /* receive buffer */
+	isc_uint32_t		length;		/* length recv'd */
+
+	isc_boolean_t		isidle;
+
+	dns_view_t	       *view;
 
 	ISC_LINK(client_t)	link;
 };
