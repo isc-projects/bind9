@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.4.10.7 2003/08/27 02:23:38 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4.10.8 2003/09/02 02:43:55 marka Exp $ */
 
 #include <config.h>
 
@@ -646,7 +646,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		if (obj == NULL) {
 			/*
 			 * Default off when views are in use otherwise
-			 * on for BIND 8 compatability.
+			 * on for BIND 8 compatibility.
 			 */
 			view = dns_zone_getview(zone);
 			if (view != NULL && strcmp(view->name, "_default") == 0)
