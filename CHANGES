@@ -8,6 +8,15 @@
 
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
 
+ 313.	[bug]		When parsing resolv.conf, don't terminate on an
+			error.  Instead, parse as much as possible, but
+			still return an error if one was found.
+
+ 312.	[bug]		Increase the number of allowed elements in the
+			resolv.conf search path from 6 to 8.  If there
+			are more than this, ignore the remainder rather
+			than returning a failure in lwres_conf_parse.
+
  309.	[bug]		When sending a referral, the server did not look
 			for name server addresses as glue in the zone
 			holding the NS RRset in the case where this zone

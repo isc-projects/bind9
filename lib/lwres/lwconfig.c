@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.15.2.1 2000/07/10 20:52:26 gson Exp $ */
+/* $Id: lwconfig.c,v 1.15.2.2 2000/07/10 20:58:07 gson Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -382,7 +382,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 	idx = 0;
 	while (strlen(word) > 0) {
 		if (confdata->searchnxt == LWRES_CONFMAXSEARCH)
-			return (LWRES_R_FAILURE); /* Too many domains. */
+			goto ignore; /* Too many domains. */
 
 		confdata->search[idx] = lwres_strdup(ctx, word);
 		if (confdata->search[idx] == NULL)
@@ -390,6 +390,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 		idx++;
 		confdata->searchnxt++;
 
+	ignore:
 		if (delim == EOF || delim == '\n')
 			break;
 		else
@@ -524,7 +525,7 @@ lwres_result_t
 lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	FILE *fp = NULL;
 	char word[256];
-	lwres_result_t rval;
+	lwres_result_t rval, ret;
 	lwres_conf_t *confdata;
 	int stopchar;
 
@@ -540,6 +541,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	if ((fp = fopen(filename, "r")) == NULL)
 		return (LWRES_R_FAILURE);
 
+	ret = LWRES_R_SUCCESS;
 	do {
 		stopchar = getword(fp, word, sizeof(word));
 		if (stopchar == EOF) {
@@ -565,11 +567,13 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 				break;
 			}
 		}
-	} while (rval == LWRES_R_SUCCESS);
+		if (ret == LWRES_R_SUCCESS && rval != LWRES_R_SUCCESS)
+			ret = rval;
+	} while (1);
 
 	fclose(fp);
 
-	return (rval);
+	return (ret);
 }
 
 lwres_result_t

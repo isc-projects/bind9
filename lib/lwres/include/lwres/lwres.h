@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.38.2.1 2000/07/10 20:51:58 gson Exp $ */
+/* $Id: lwres.h,v 1.38.2.2 2000/07/10 20:58:08 gson Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -194,7 +194,7 @@ typedef struct {
  */
 
 #define LWRES_CONFMAXNAMESERVERS 3	/* max 3 "nameserver" entries */
-#define LWRES_CONFMAXSEARCH 6		/* max 6 domains in "search" entry */
+#define LWRES_CONFMAXSEARCH 8		/* max 8 domains in "search" entry */
 #define LWRES_CONFMAXLINELEN 256	/* max size of a line */
 #define LWRES_CONFMAXSORTLIST 10
 typedef struct {
@@ -423,7 +423,8 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename);
  *
  * Returns:
  *	LWRES_R_SUCCESS on a successful parse.
- *	Anything else on error.
+ *	Anything else on error, although the structure may be partially filled
+ *	in.
  */
 
 lwres_result_t
