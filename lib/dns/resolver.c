@@ -1369,11 +1369,10 @@ fctx_destroy(fetchctx_t *fctx) {
 	isc_timer_detach(&fctx->timer);
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
-	if (dns_name_countlabels(&fctx->domain) > 0) {
-		if (dns_rdataset_isassociated(&fctx->nameservers))
-			dns_rdataset_disassociate(&fctx->nameservers);
+	if (dns_name_countlabels(&fctx->domain) > 0)
 		dns_name_free(&fctx->domain, res->mctx);
-	}
+	if (dns_rdataset_isassociated(&fctx->nameservers))
+		dns_rdataset_disassociate(&fctx->nameservers);
 	dns_name_free(&fctx->name, fctx->res->mctx);
 	isc_mem_put(res->mctx, fctx, sizeof *fctx);
 
@@ -1592,6 +1591,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t iresult;
 	isc_interval_t interval;
+	dns_fixedname_t qdomain;
 
 	/*
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
@@ -1608,7 +1608,38 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 		goto cleanup_fetch;
 	dns_name_init(&fctx->domain, NULL);
 	dns_rdataset_init(&fctx->nameservers);
-	if (domain != NULL) {
+	if (domain == NULL) {
+		if (res->fwdpolicy != dns_fwdpolicy_only) {
+			/*
+			 * The caller didn't supply a query domain and
+			 * nameservers, and we're not in forward-only mode,
+			 * so find the best nameservers to use.
+			 */
+			dns_fixedname_init(&qdomain);
+			result = dns_view_findzonecut(res->view, name,
+					      dns_fixedname_name(&qdomain), 0,
+						      0, ISC_TRUE,
+						      &fctx->nameservers,
+						      NULL);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_name;
+			result = dns_name_dup(dns_fixedname_name(&qdomain),
+					      res->mctx, &fctx->domain);
+			if (result != ISC_R_SUCCESS) {
+				dns_rdataset_disassociate(&fctx->nameservers);
+				goto cleanup_name;
+			}
+		} else {
+			/*
+			 * We're in forward-only mode.  Set the query domain
+			 * to ".".
+			 */
+			result = dns_name_dup(dns_rootname, res->mctx,
+					      &fctx->domain);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_name;
+		}
+	} else {
 		result = dns_name_dup(domain, res->mctx, &fctx->domain);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_name;
@@ -1704,10 +1735,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	dns_message_destroy(&fctx->qmessage);
 
  cleanup_domain:
-	if (dns_name_countlabels(&fctx->domain) > 0) {
-		dns_rdataset_disassociate(&fctx->nameservers);
+	if (dns_name_countlabels(&fctx->domain) > 0)
 		dns_name_free(&fctx->domain, res->mctx);
-	}
+	if (dns_rdataset_isassociated(&fctx->nameservers))
+		dns_rdataset_disassociate(&fctx->nameservers);
 
  cleanup_name:
 	dns_name_free(&fctx->name, res->mctx);
@@ -2492,10 +2523,14 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		fctx->attributes &= ~FCTX_ATTR_GLUING;
 		/*
 		 * Set the current query domain to the referral name.
+		 *
+		 * XXXRTH  We should check if we're in forward-only mode, and
+		 *         if so we should bail out.
 		 */
 		INSIST(dns_name_countlabels(&fctx->domain) > 0);
 		dns_name_free(&fctx->domain, fctx->res->mctx);
-		dns_rdataset_disassociate(&fctx->nameservers);
+		if (dns_rdataset_isassociated(&fctx->nameservers))
+			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_name_init(&fctx->domain, NULL);
 		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
 		if (result != ISC_R_SUCCESS)
@@ -3761,9 +3796,12 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(res));
 	REQUIRE(res->frozen);
 	/* XXXRTH  Check for meta type */
-	REQUIRE(DNS_RDATASET_VALID(nameservers));
+	if (domain != NULL) {
+		REQUIRE(DNS_RDATASET_VALID(nameservers));
+		REQUIRE(nameservers->type == dns_rdatatype_ns);
+	} else
+		REQUIRE(nameservers == NULL);
 	REQUIRE(forwarders == NULL);
-	REQUIRE(nameservers->type == dns_rdatatype_ns);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 	REQUIRE(sigrdataset == NULL ||
 		!dns_rdataset_isassociated(sigrdataset));

@@ -244,8 +244,6 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *	This call starts a query for 'name', type 'type'.
  *
  *	XXXRTH  Explain query domain and nameservers.
- *		Also, we should make them optional and have the resolver
- *		do dns_view_findzonecut().
  *		'forwarders' is unimplmented, and subject to change when
  *		we figure out how selective forwarding will work.
  *
@@ -264,9 +262,10 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *	'type' is not a meta type other than ANY.
  *
- *	'domain' is a valid name.
+ *	'domain' is a valid name or NULL.
  *
- *	'nameservers' is a valid NS rdataset (whose owner name is 'domain').
+ *	'nameservers' is a valid NS rdataset (whose owner name is 'domain')
+ *	iff. 'domain' is not NULL.
  *
  *	'forwarders' is NULL.
  *
