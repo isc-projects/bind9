@@ -1,4 +1,7 @@
 
+ 777.	[bug]		An empty forwarders list in a zone failed to override
+			global forwarders. [RT #995]
+
 	--- 9.1.1 released ---
 
  775.   [bug]		Address match lists with invalid netmasks caused

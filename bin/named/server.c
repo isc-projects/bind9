@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.276.2.1 2001/01/09 22:32:13 bwelling Exp $ */
+/* $Id: server.c,v 1.276.2.2 2001/03/13 02:40:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -118,9 +118,8 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 static isc_result_t
-configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
-		  dns_view_t *view, dns_name_t *origin,
-		  dns_c_iplist_t *forwarders);
+configure_forward(dns_c_ctx_t *cctx, dns_view_t *view, dns_name_t *origin,
+		  dns_c_iplist_t *forwarders, dns_c_forw_t forward);
 
 /*
  * Configure a single view ACL at '*aclp'.  Get its configuration by
@@ -534,8 +533,13 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	     dns_c_view_getforwarders(cview, &forwarders) == ISC_R_SUCCESS) ||
 	    (dns_c_ctx_getforwarders(cctx, &forwarders) == ISC_R_SUCCESS))
 	{
-		result = configure_forward(cctx, NULL, cview, view,
-					   dns_rootname, forwarders);
+		dns_c_forw_t fwd;
+		if (!((cview != NULL &&
+		       dns_c_view_getforward(cview, &fwd) == ISC_R_SUCCESS) ||
+		      (dns_c_ctx_getforward(cctx, &fwd) == ISC_R_SUCCESS)))
+			fwd = dns_c_forw_first;
+		result = configure_forward(cctx, view,
+					   dns_rootname, forwarders, fwd);
 		dns_c_iplist_detach(&forwarders);
 	}
 
@@ -956,11 +960,9 @@ configure_hints(dns_view_t *view, const char *filename) {
 }
 
 static isc_result_t
-configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
-		  dns_view_t *view, dns_name_t *origin,
-		  dns_c_iplist_t *forwarders)
+configure_forward(dns_c_ctx_t *cctx, dns_view_t *view, dns_name_t *origin,
+		  dns_c_iplist_t *forwarders, dns_c_forw_t forward)
 {
-	dns_c_forw_t forward;
 	dns_fwdpolicy_t fwdpolicy;
 	isc_sockaddrlist_t addresses;
 	isc_sockaddr_t *sa;
@@ -997,19 +999,13 @@ configure_forward(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 
 	if (ISC_LIST_EMPTY(addresses))
 		fwdpolicy = dns_fwdpolicy_none;
-	else
-		fwdpolicy = dns_fwdpolicy_first;
-
-	if ((czone != NULL &&
-	     dns_c_zone_getforward(czone, &forward) == ISC_R_SUCCESS) ||
-	    (cview != NULL &&
-	     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
-	    dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)
-	{
+	else {
 		INSIST(forward == dns_c_forw_first ||
 		       forward == dns_c_forw_only);
 		if (forward == dns_c_forw_only)
 			fwdpolicy = dns_fwdpolicy_only;
+		else
+			fwdpolicy = dns_fwdpolicy_first;
 	}
 
 	result = dns_fwdtable_add(view->fwdtable, origin, &addresses,
@@ -1089,7 +1085,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_zone_t *zone = NULL;	/* New or reused zone */
 	dns_zone_t *dupzone = NULL;
 	dns_c_iplist_t *forwarders = NULL;
-	dns_c_forw_t tfwd;
+	dns_c_forw_t forward;
 
 	isc_result_t result;
 
@@ -1156,8 +1152,11 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 * the appropriate selective forwarding configuration and return.
 	 */
 	if (czone->ztype == dns_c_zone_forward) {
-		result = configure_forward(cctx, czone, cview, view, origin,
-					   czone->u.fzone.forwarders);
+		if (dns_c_zone_getforward(czone, &forward) != ISC_R_SUCCESS)
+			forward = dns_c_forw_first;
+		result = configure_forward(cctx, view, origin,
+					   czone->u.fzone.forwarders,
+					   forward);
 		goto cleanup;
 	}
 
@@ -1216,13 +1215,15 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	}
 
 	/*
-	 * If the zone contains 'forward' or 'forwarders' statements,
+	 * If the zone contains 'forwarders' statements,
 	 * configure selective forwarding.
 	 */
-	if (dns_c_zone_getforwarders(czone, &forwarders) == ISC_R_SUCCESS ||
-	    dns_c_zone_getforward(czone, &tfwd) == ISC_R_SUCCESS)
-		CHECK(configure_forward(cctx, czone, cview, view,
-					origin, forwarders));
+	if (dns_c_zone_getforwarders(czone, &forwarders) == ISC_R_SUCCESS) {
+		if (dns_c_zone_getforward(czone, &forward) != ISC_R_SUCCESS)
+			forward = dns_c_forw_first;
+		CHECK(configure_forward(cctx, view,
+					origin, forwarders, forward));
+	}
 
 	/*
 	 * Configure the zone.

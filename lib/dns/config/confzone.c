@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.72.2.4 2001/03/05 19:35:52 bwelling Exp $ */
+/* $Id: confzone.c,v 1.72.2.5 2001/03/13 02:40:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4432,8 +4432,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		if (zone->u.mzone.forwarders != NULL &&
-		    zone->u.mzone.forwarders->nextidx > 0) {
+		if (zone->u.mzone.forwarders != NULL) {
 			*retval = zone->u.mzone.forwarders;
 			res = ISC_R_SUCCESS;
 		} else {
@@ -4442,8 +4441,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 		break;
 
 	case dns_c_zone_slave:
-		if (zone->u.szone.forwarders != NULL &&
-		    zone->u.szone.forwarders->nextidx > 0) {
+		if (zone->u.szone.forwarders != NULL) {
 			*retval = zone->u.szone.forwarders;
 			res = ISC_R_SUCCESS;
 		} else {
@@ -4452,8 +4450,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 		break;
 
 	case dns_c_zone_stub:
-		if (zone->u.tzone.forwarders != NULL &&
-		    zone->u.tzone.forwarders->nextidx > 0) {
+		if (zone->u.tzone.forwarders != NULL) {
 			*retval = zone->u.tzone.forwarders;
 			res = ISC_R_SUCCESS;
 		} else {
@@ -4468,8 +4465,7 @@ dns_c_zone_getforwarders(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_forward:
-		if (zone->u.fzone.forwarders != NULL &&
-		    zone->u.fzone.forwarders->nextidx > 0) {
+		if (zone->u.fzone.forwarders != NULL) {
 			*retval = zone->u.fzone.forwarders;
 			res = ISC_R_SUCCESS;
 		} else {
