@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.383 2003/02/26 03:06:46 marka Exp $ */
+/* $Id: zone.c,v 1.384 2003/02/26 03:45:59 marka Exp $ */
 
 #include <config.h>
 
@@ -414,7 +414,7 @@ static isc_result_t zone_dump(dns_zone_t *, isc_boolean_t);
 static void got_transfer_quota(isc_task_t *task, isc_event_t *event);
 static isc_result_t zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr,
 					     dns_zone_t *zone);
-static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr);
+static void zmgr_resume_xfrs(dns_zonemgr_t *zmgr, isc_boolean_t multi);
 static void zonemgr_free(dns_zonemgr_t *zmgr);
 static isc_result_t zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 				  isc_task_t *task, isc_taskaction_t action,
@@ -993,6 +993,34 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				goto cleanup;
 			}
 		}
+	} 
+
+	INSIST(zone->db_argc >= 1);
+
+	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub) &&
+	    (strcmp(zone->db_argv[0], "rbt") == 0 ||
+	     strcmp(zone->db_argv[0], "rbt64") == 0)) {
+		if (zone->masterfile != NULL) {
+			result = isc_file_exists(zone->masterfile);
+		} else {
+ start_timers:
+			if (zone->task != NULL)
+				zone_settimer(zone, &now);
+			result = ISC_R_SUCCESS;
+			goto cleanup;
+		}
+		if (result == ISC_R_FILENOTFOUND) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "no master file");
+			goto start_timers;
+		} else if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "loading master file %s: %s",
+				     zone->masterfile,
+				     dns_result_totext(result));
+			result = ISC_R_SUCCESS;
+			goto start_timers;
+		}
 	}
 
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "starting load");
@@ -1005,7 +1033,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	 */
 	TIME_NOW(&loadtime);
 
-	INSIST(zone->db_argc >= 1);
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, (zone->type == dns_zone_stub) ?
 			       dns_dbtype_stub : dns_dbtype_zone,
@@ -1408,6 +1435,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 		/* Mark the zone for immediate refresh. */
 		zone->refreshtime = now;
+		if (zone->task != NULL)
+			zone_settimer(zone, &now);
 		result = ISC_R_SUCCESS;
 	}
 	return (result);
@@ -5215,8 +5244,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = NULL;
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
-		zmgr_resume_xfrs(zone->zmgr);
+	zmgr_resume_xfrs(zone->zmgr, ISC_FALSE);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 
 	/*
@@ -5886,6 +5914,7 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 	{
 		dns_zone_maintenance(p);
 	}
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
 	/*
 	 * Recent configuration changes may have increased the
@@ -5893,10 +5922,20 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 	 * transfers currently blocked on quota get started if
 	 * possible.
 	 */
-	zmgr_resume_xfrs(zmgr);
-
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	zmgr_resume_xfrs(zmgr, ISC_TRUE);
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr) {
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	zmgr_resume_xfrs(zmgr, ISC_TRUE);
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 }
 
 void
@@ -5965,16 +6004,20 @@ dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr) {
  *	The zone manager is locked by the caller.
  */
 static void
-zmgr_resume_xfrs(dns_zonemgr_t *zmgr) {
+zmgr_resume_xfrs(dns_zonemgr_t *zmgr, isc_boolean_t multi) {
 	dns_zone_t *zone;
+	dns_zone_t *next;
 
 	for (zone = ISC_LIST_HEAD(zmgr->waiting_for_xfrin);
 	     zone != NULL;
-	     zone = ISC_LIST_NEXT(zone, statelink))
+	     zone = next)
 	{
 		isc_result_t result;
+		next = ISC_LIST_NEXT(zone, statelink);
 		result = zmgr_start_xfrin_ifquota(zmgr, zone);
 		if (result == ISC_R_SUCCESS) {
+			if (multi)
+				continue;
 			/*
 			 * We successfully filled the slot.  We're done.
 			 */
@@ -5982,7 +6025,7 @@ zmgr_resume_xfrs(dns_zonemgr_t *zmgr) {
 		} else if (result == ISC_R_QUOTA) {
 			/*
 			 * Not enough quota.  This is probably the per-server
-			 * quota, because we only get called when a unit of
+			 * quota, because we usually get called when a unit of
 			 * global quota has just been freed.  Try the next
 			 * zone, it may succeed if it uses another master.
 			 */

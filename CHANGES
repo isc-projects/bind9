@@ -1,3 +1,14 @@
+1436.	[func]		dns_zonemgr_resumexfrs() can be used to restart
+			stalled transfers.
+
+1435.	[bug]		zmgr_resume_xfrs() was being called read locked
+			rather than write locked.  zmgr_resume_xfrs()
+			was not being called if the zone was being
+			shutdown.
+
+1434.	[bug]		"rndc reconfig" failed to initiate the initial
+			zone transfer of new slave zones.
+
 1433.	[bug]		named could trigger a REQUIRE failure if it could
 			not get a file descriptor when attempting to write
 			a master file. [RT #4347]

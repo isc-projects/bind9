@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.121 2003/02/07 01:13:12 marka Exp $ */
+/* $Id: zone.h,v 1.122 2003/02/26 03:45:59 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1165,6 +1165,12 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
 /*
  * Force zone maintenance of all zones managed by 'zmgr' at its
  * earliest conveniene.
+ */
+
+void
+dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr);
+/*
+ * Attempt to start any stalled zone transfers.
  */
 
 void
