@@ -254,12 +254,16 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer);
  *	The caller must not write to buffer until the name has been
  *	invalidated or is otherwise known not to be in use.
  *
+ *	If buffer is NULL and the name previously had a dedicated buffer,
+ *	than that buffer is no longer dedicated to use with this name.
+ *	The caller is responsible for ensuring that the storage used by
+ *	the name remains valid.
+ *
  * Requires:
  *	'name' is a valid name.
  *
- *	'name' doesn't have a dedicated buffer already.
- *
- *	'buffer' is a valid binary buffer.
+ *	'buffer' is a valid binary buffer and 'name' doesn't have a
+ *	dedicated buffer already, or 'buffer' is NULL.
  */
 
 isc_boolean_t

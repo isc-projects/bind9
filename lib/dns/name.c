@@ -289,8 +289,10 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer) {
 	 */
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE(name->buffer == NULL);
-	REQUIRE(isc_buffer_type(buffer) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE((buffer != NULL &&
+		 name->buffer == NULL &&
+		 isc_buffer_type(buffer) == ISC_BUFFERTYPE_BINARY) ||
+		(buffer == NULL));
 
 	name->buffer = buffer;
 }
