@@ -176,18 +176,26 @@ static void
 keyvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
+	dns_rdataset_t *rdataset;
 	isc_result_t result;
 
 	UNUSED(task);
 	INSIST(event->type == DNS_EVENT_VALIDATORDONE);
 	devent = (dns_validatorevent_t *)event;
+	rdataset = devent->rdataset;
 	val = devent->arg;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	if (devent->result == ISC_R_SUCCESS) {
+		result = get_dst_key(val, val->siginfo, rdataset);
+		if (result != ISC_R_SUCCESS) {
+			/* No matching key */
+			validator_done(val, result);
+			goto free_event;
+		}
 		LOCK(&val->lock);
 		result = validate(val, ISC_TRUE);
-		if (result != DNS_R_CONTINUE)
+		if (result != DNS_R_WAIT)
 			validator_done(val, result);
 		UNLOCK(&val->lock);
 	}
@@ -195,7 +203,12 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "keyvalidated: got %s",
 			      dns_result_totext(devent->result));
+ free_event:
 	/* free stuff from the event */
+	isc_mem_put(devent->validator->view->mctx, devent->rdataset,
+		    sizeof(dns_rdataset_t));
+	isc_mem_put(devent->validator->view->mctx, devent->sigrdataset,
+		    sizeof(dns_rdataset_t));
 	isc_event_free(&event);
 }
 
@@ -500,8 +513,11 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		result = dns_dnssec_verify(event->name, event->rdataset,
 					   val->key, val->view->mctx, &rdata);
 		if (result == ISC_R_SUCCESS) {
+			event->rdataset->trust = dns_trust_secure;
+			event->sigrdataset->trust = dns_trust_secure;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure");
+			return (result);
 		}
 	}
 	return (result);
