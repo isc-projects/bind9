@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_pton.c,v 1.10.2.2 2002/03/26 00:55:06 marka Exp $";
+	"$Id: inet_pton.c,v 1.10.2.3 2003/05/15 05:12:18 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -196,6 +196,8 @@ inet_pton6(const char *src, unsigned char *dst) {
 		const int n = tp - colonp;
 		int i;
 
+		if (tp == endp)
+			return (0);
 		for (i = 1; i <= n; i++) {
 			endp[- i] = colonp[n - i];
 			colonp[n - i] = 0;

@@ -4,6 +4,9 @@
 
 1456.	[contrib]	gen-data-queryperf.py from Stephane Bortzmeyer.
 
+1454.	[bug]		inet_pton() failed to reject certain malformed
+			IPv6 literals.
+
 1453.	[doc]		ARM: $GENERATE example wasn't accurate. [RT #5298]
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
