@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.346 2001/09/21 12:34:19 marka Exp $ */
+/* $Id: server.c,v 1.347 2001/09/27 22:46:35 gson Exp $ */
 
 #include <config.h>
 
@@ -651,8 +651,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "lame-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	lame_ttl = cfg_obj_asuint32(obj);
-	if (lame_ttl > 18000)
-		lame_ttl = 18000;
+	if (lame_ttl > 1800)
+		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 	
 	/*
