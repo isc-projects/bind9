@@ -11,6 +11,9 @@
 1539.	[bug]		Open UDP sockets for notify-source and transfer-source
 			that use reserved ports at startup. [RT #9475]
 
+1536.	[bug]		Windows socket code failed to log a error description
+			when returning ISC_R_UNEXPECTED. [RT #9998]
+
 1535.	[bug]		When parsing APL records it was possible to silently
 			accept out of range ADDRESSFAMILY values. [RT# 9979]
 
