@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.5.2.5 2004/04/12 07:02:05 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5.2.6 2004/06/03 04:38:11 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -656,7 +656,7 @@ send_vc(res_state statp,
 	len = INT16SZ;
 	while ((n = read(statp->_vcsock, (char *)cp, (int)len)) > 0) {
 		cp += n;
-		if ((len -= n) <= 0)
+		if ((len -= n) == 0)
 			break;
 	}
 	if (n <= 0) {
