@@ -9,18 +9,18 @@
  963.	[bug]		bad ISC_LANG_ENDDECLS. [RT #1645]
 
  962.	[bug]		libbind: bad "#undef", don't attempt to install
-			non-existant nlist.h.  [RT #1640]
+			non-existant nlist.h. [RT #1640]
 
  961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
-			was not defined.  [RT #1482]
+			was not defined. [RT #1482]
 
  960.	[port]		liblwres failed to build on systems with support for
-			getrrsetbyname() in the OS.  [RT #1592]
+			getrrsetbyname() in the OS. [RT #1592]
 
  959.	[port]		On FreeBSD, determine the number of CPUs by calling
-			sysctlbyname().	 [RT #1584]
+			sysctlbyname(). [RT #1584]
 
- 958.	[port]		ssize_t is not available on all platforms.  [RT #1607]
+ 958.	[port]		ssize_t is not available on all platforms. [RT #1607]
 
  957.	[bug]		sys/select.h inclusion was broken on older platforms.
 			[RT #1607]
@@ -33,11 +33,11 @@
 	--- 9.2.0rc1 released ---
 
  955.	[bug]		When using views, the zone's class was not being
-			inherited from the view's class.  [RT #1583]
+			inherited from the view's class. [RT #1583]
 
  954.	[bug]		When requesting AXFRs or IXFRs using dig, host, or
 			nslookup, the RD bit should not be set as zone
-			transfers are inherently nonrecursive.  [RT #1575]
+			transfers are inherently nonrecursive. [RT #1575]
 
  953.	[func]		The /var/run/named.key file from change #843
 			has been replaced by /etc/rndc.key.  Both
@@ -86,7 +86,7 @@
 
  943.	[bug]		The server could crash when receiving a command
 			via rndc if the configuration file listed only
-			nonexistent keys in the controls statement.  [RT #1530]
+			nonexistent keys in the controls statement. [RT #1530]
 
  942.	[port]		libbind: GETNETBYADDR_ADDR_T was not correctly
 			defined on some platforms.
@@ -116,7 +116,7 @@
 			ECONNRESET.
 
  933.	[bug]		configure failed doing libbind on platforms not
-			supported by BIND 8.  [RT #1496]
+			supported by BIND 8. [RT #1496]
 
 	--- 9.2.0a3 released ---
 
@@ -278,7 +278,7 @@
 			TSIG key. [RT #1392]
 
  887.	[port]		Detect broken compilers that can't call static
-			functions from inline functions.  [RT #1212]
+			functions from inline functions. [RT #1212]
 
  866.	[func]		Close debug only file channels when debug is set to
 			zero. [RT #1246]
@@ -322,13 +322,13 @@
 
  856.	[func]		Allow partial rdatasets to be returned in answer and
 			authority sections to help non-TCP capable clients
-			recover from truncation.  [RT #1301]
+			recover from truncation. [RT #1301]
 
  855.	[bug]		Stop spurious "using RFC 1035 TTL semantics" warnings.
 
  854.	[bug]		The config parser didn't properly handle config
 			options that were specified in units of time other
-			than seconds.  [RT #1372]
+			than seconds. [RT #1372]
 
  853.	[bug]		configure_view_acl() failed to detach existing acls.
 			[RT #1374]
