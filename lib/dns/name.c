@@ -2143,7 +2143,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  isc_buffer_t *target)
 {
 	unsigned char *cdata, *ndata;
-	unsigned int cused, hops, nrem, nused, labels, n;
+	unsigned int cused; /* Bytes of compressed name data used */
+	unsigned int hops,  nused, labels, n, nmax;
 	unsigned int current, new_current, biggest_pointer;
 	isc_boolean_t saw_bitstring, done;
 	fw_state state = fw_start;
@@ -2186,11 +2187,23 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	hops = 0;
 	saw_bitstring = ISC_FALSE;
 	done = ISC_FALSE;
-	ndata = (unsigned char *)target->base + target->used;
-	nrem = target->length - target->used;
+	
+	ndata = isc_buffer_used(target);
 	nused = 0;
-	cdata = (unsigned char *)source->base + source->current;
+	
+	/*
+	 * Find the maximum number of uncompressed target name
+	 * bytes we are willing to generate.  This is the smaller
+	 * of the available target buffer length and the
+	 * maximum legal domain name length (255).
+	 */
+	nmax = isc_buffer_availablelength(target);
+	if (nmax > 255)
+		nmax = 255;
+	
+	cdata = isc_buffer_current(source);
 	cused = 0;
+	
 	current = source->current;
 	biggest_pointer = current;
 
@@ -2209,11 +2222,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		case fw_start:
 			if (c < 64) {
 				labels++;
-				if (nused + c + 1 > 255)
-					return (DNS_R_FORMERR);
-				if (nrem < c + 1)
-					return (ISC_R_NOSPACE);
-				nrem -= c + 1;
+				if (nused + c + 1 > nmax)
+					goto full;
 				nused += c + 1;
 				*ndata++ = c;
 				if (c == 0)
@@ -2239,11 +2249,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				state = fw_newcurrent;
 			} else if (c == DNS_LABELTYPE_BITSTRING) {
 				labels++;
-				if (nused == 255)
-					return (DNS_R_FORMERR);
-				if (nrem == 0)
-					return (ISC_R_NOSPACE);
-				nrem--;
+				if (nused == nmax)
+					goto full;
 				nused++;
 				*ndata++ = c;
 				saw_bitstring = ISC_TRUE;
@@ -2278,11 +2285,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				n = c / 8;
 			if ((c % 8) != 0)
 				n++;
-			if (nused + n + 1 > 255)
-				return (DNS_R_FORMERR);
-			if (nrem < n + 1)
-				return (ISC_R_NOSPACE);
-			nrem -= n + 1;
+			if (nused + n + 1 > nmax)
+				goto full;
 			nused += n + 1;
 			*ndata++ = c;
 			state = fw_copy;
@@ -2332,6 +2336,21 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	isc_buffer_add(target, name->length);
 	
 	return (ISC_R_SUCCESS);
+
+ full:
+	if (nmax == 255)
+		/*
+		 * The name did not fit even though we had a buffer
+		 * big enough to fit a maximum-length name.
+		 */
+		return (DNS_R_FORMERR);
+	else
+		/*
+		 * The name might fit if only the caller could give us a
+		 * big enough buffer.
+		 */
+		return (ISC_R_NOSPACE);
+		
 }
 
 isc_result_t
