@@ -52,7 +52,7 @@
 static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 
-/* $Id: strtoul.c,v 1.1 2003/06/24 05:10:32 marka Exp $ */
+/* $Id: strtoul.c,v 1.2 2003/07/25 02:04:28 marka Exp $ */
 
 #include <config.h>
 
@@ -61,6 +61,7 @@ static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #include <errno.h>
 
 #include <isc/stdlib.h>
+#include <isc/util.h>
 
 /*
  * Convert a string to an unsigned long integer.
@@ -122,6 +123,6 @@ isc_strtoul(const char *nptr, char **endptr, int base) {
 	} else if (neg)
 		acc = -acc;
 	if (endptr != 0)
-		*endptr = (char *)(any ? s - 1 : nptr);
+		DE_CONST(any ? s - 1 : nptr, *endptr);
 	return (acc);
 }
