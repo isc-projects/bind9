@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.16 2003/07/02 04:34:10 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.17 2003/07/02 04:37:35 marka Exp $ */
 
 #include <config.h>
 
@@ -1905,8 +1905,9 @@ print_qstring(cfg_printer_t *pctx, cfg_obj_t *obj) {
 
 static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	isc_mem_put(pctx->mctx, obj->value.string.base,
-		    obj->value.string.length + 1);
+	if (obj->value.string.base != NULL)
+		isc_mem_put(pctx->mctx, obj->value.string.base,
+			    obj->value.string.length + 1);
 }
 
 isc_boolean_t
@@ -3766,7 +3767,8 @@ create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 static void
 free_map(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	CLEANUP_OBJ(obj->value.map.id);
+	if (obj->value.map.id != NULL)
+		CLEANUP_OBJ(obj->value.map.id);
 	isc_symtab_destroy(&obj->value.map.symtab);
 }
 
