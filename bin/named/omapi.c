@@ -15,13 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.21 2000/10/17 01:09:31 gson Exp $ */
+/* $Id: omapi.c,v 1.22 2000/10/17 19:24:29 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
  */
 
 #include <config.h>
+
+#include <string.h>
 
 #include <isc/app.h>
 #include <isc/event.h>
