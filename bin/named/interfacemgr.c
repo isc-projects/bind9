@@ -198,8 +198,7 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	REQUIRE(ifpret != NULL);
 	REQUIRE(VALID_IFACE(*ifpret));
 	ifp = *ifpret;
-	printf("destroying interface\n");	
-	isc_mem_put(ifp->mgr->mctx, ifp, sizeof(*ifp));
+	printf("Destroying interface\n");	
 
 	isc_socket_cancel(ifp->udpsocket, NULL, ISC_SOCKCANCEL_ALL);
 	isc_socket_detach(&ifp->udpsocket);
@@ -210,8 +209,10 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	/* The listener will go away by itself when the socket shuts down. */
 
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
-
-	ifp->magic = 0;	
+	
+	ifp->magic = 0;
+	isc_mem_put(ifp->mgr->mctx, ifp, sizeof(*ifp));
+	
 	*ifpret = NULL;
 	return (DNS_R_SUCCESS);
 }
