@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.22 2001/01/09 21:41:15 bwelling Exp $ */
+/* $Id: log_test.c,v 1.23 2001/07/09 22:39:27 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -43,7 +43,7 @@ char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 	}
 
 int
-main (int argc, char **argv) {
+main(int argc, char **argv) {
 	const char *progname, *syslog_file, *message;
 	int ch, i, file_versions, stderr_line;
 	isc_boolean_t show_final_mem = ISC_FALSE;
@@ -264,7 +264,6 @@ main (int argc, char **argv) {
 		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
 			      "should be in base file");
-
 	} else {
 		file_versions = FILE_VERSIONS;
 		for (i = 1; i <= file_versions; i++)
