@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.65 2001/07/26 20:42:46 bwelling Exp $ */
+/* $Id: parser.c,v 1.66 2001/07/26 21:27:51 gson Exp $ */
 
 #include <config.h>
 
@@ -2310,11 +2310,10 @@ parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 				       clause->name);
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0)
 			parser_warning(pctx, 0, "option '%s' is "
-				       "not implemented",
-				       clause->name);
+				       "not implemented", clause->name);
 		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0)
 			parser_warning(pctx, 0, "option '%s' is "
-				       "not yet implemented", clause->name);
+				       "not implemented", clause->name);
 		/*
 		 * Don't log options with CFG_CLAUSEFLAG_NEWDEFAULT
 		 * set here - we need to log the *lack* of such an option,
@@ -3763,6 +3762,7 @@ struct flagtext {
 	const char *text;
 } flagtexts[] = {
 	{ CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
+	{ CFG_CLAUSEFLAG_NYI, "not yet implemented" },
 	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
 	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
 	{ 0, NULL }
