@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.3 1998/11/10 01:56:44 explorer Exp $ */
+/* $Id: socket.h,v 1.4 1998/11/10 11:37:54 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -85,6 +85,7 @@ typedef struct isc_socketevent {
 typedef struct isc_socket_newconev {
 	struct isc_event	common;
 	isc_socket_t		newsocket;
+	isc_result_t		result;		/* OK, EOF, whatever else */
 } *isc_socket_newconnev_t;
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
@@ -253,8 +254,7 @@ isc_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_listen(isc_socket_t socket, int backlog,
-		  isc_task_t task, isc_taskaction_t action, void *arg);
+isc_socket_listen(isc_socket_t socket, int backlog);
 /*
  * Listen on 'socket'.  Every time a new connection request arrives,
  * a NEWCONN event with action 'action' and arg 'arg' will be posted
@@ -278,61 +278,24 @@ isc_socket_listen(isc_socket_t socket, int backlog,
  *	Unexpected error
  */
 
-void
-isc_socket_hold(isc_socket_t socket);
-/*
- * Put a TCP listener socket on hold.  No NEWCONN events will be posted
- * 
- * Notes:
- *
- *	While 'on hold', new connection requests will be queued or dropped
- *	by the operating system.
- *
- * Requires:
- *
- *	'socket' is a valid TCP socket
- *
- *	Some task is listening on the socket.
- *
- */
-
-void
-isc_socket_unhold(isc_socket_t socket);
-/*
- * Restore normal NEWCONN event posting.
- * 
- * Requires:
- *
- *	'socket' is a valid TCP socket
- *
- *	Some task is listening on the socket.
- *
- *	'socket' is holding.
- *
- */
-
 isc_result_t
-isc_socket_accept(isc_socket_t s1, isc_socket_t *s2p);
+isc_socket_accept(isc_socket_t socket,
+		  isc_task_t task, isc_taskaction_t action, void *arg);
 /*
- * Accept a connection from 's1', creating a new socket for the connection
- * and attaching '*s2p' to it.
+ * Queue accept event.
  *
- * Requires:
+ * REQUIRES:
+ *	'socket' is a valid TCP socket that isc_socket_listen() has been
+ *	called on
  *
- *	'socket' is a valid TCP socket.
+ *	'task' is a valid task
  *
- *	s2p is a valid pointer, and *s2p == NULL;
+ *	'action' is a valid action
  *
- * Ensures:
- *
- *	*s2p is attached to the newly created socket.
- *
- * Returns:
- *
- *	Success
- *	No memory
- *	No pending connection requests
- *	Unexpected error
+ * RETURNS:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t

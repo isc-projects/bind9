@@ -41,17 +41,74 @@ my_shutdown(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
+my_recv(isc_task_t task, isc_event_t event)
+{
+	isc_socket_t sock;
+	isc_socketevent_t dev;
+
+	sock = event->sender;
+	dev = (isc_socketevent_t)event;
+
+	printf("Socket %s (sock %p, base %p, length %d, n %d, result %d)\n",
+	       (char *)(event->arg), sock,
+	       dev->region.base, dev->region.length,
+	       dev->n, dev->result);
+
+	if (dev->result != ISC_R_SUCCESS) {
+		isc_socket_detach(&sock);
+
+		isc_event_free(&event);
+
+		return (1);
+	}
+
+	isc_socket_recv(sock, &dev->region, ISC_FALSE,
+			task, my_recv, event->arg);
+
+	isc_event_free(&event);
+
+	return (0);
+}
+
+static isc_boolean_t
 my_listen(isc_task_t task, isc_event_t event)
 {
 	char *name = event->arg;
+	isc_socket_newconnev_t dev;
+	isc_region_t region;
 
-	printf("newcon %s (%p)\n", name, task);
+	dev = (isc_socket_newconnev_t)event;
+
+	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
+	       name, task, event->sender, dev->newsocket, dev->result);
 	fflush(stdout);
+
+	if (dev->result == ISC_R_SUCCESS) {
+		/*
+		 * queue another listen on this socket
+		 */
+		isc_socket_accept(event->sender, task, my_listen, event->arg);
+
+		region = isc_mem_get(event->mctx, sizeof(*region));
+		INSIST(region != NULL);
+
+		region->base = isc_mem_get(event->mctx, 21);
+		region->length = 20;
+
+		/*
+		 * queue up a read on this socket
+		 */
+		isc_socket_recv(dev->newsocket, region, ISC_FALSE,
+				task, my_recv, event->arg);
+	} else {
+		/*
+		 * Do something useful here
+		 */
+	}
+
 	isc_event_free(&event);
 
-	tasks_done++;
-
-	return (ISC_TRUE);
+	return 0;
 }
 
 int
@@ -95,7 +152,9 @@ main(int argc, char *argv[])
 	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so1) == ISC_R_SUCCESS);
 	INSIST(isc_socket_bind(so1, &sockaddr, addrlen) == ISC_R_SUCCESS);
-	INSIST(isc_socket_listen(so1, 0, t1, my_listen,
+	INSIST(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
+
+	INSIST(isc_socket_accept(so1, t1, my_listen,
 				 "so1") == ISC_R_SUCCESS);
 
 	so2 = NULL;
