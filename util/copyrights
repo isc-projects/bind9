@@ -93,6 +93,7 @@
 ./bin/tests/dst/dst_test.c			C	1999
 ./bin/tests/dst/t_dst.c				C	1999
 ./bin/tests/lex_test.c				C	1998,1999
+./bin/tests/log_test.c				C	1999
 ./bin/tests/master/.cvsignore			X	1999
 ./bin/tests/master/Makefile.in			MAKE	1999
 ./bin/tests/master/dns_master_load_1_data	X	1999
@@ -305,6 +306,7 @@
 ./lib/dns/include/dns/journal.h			C	1999
 ./lib/dns/include/dns/keyvalues.h		C	1999
 ./lib/dns/include/dns/lib.h			C	1999
+./lib/dns/include/dns/log.h			C	1999
 ./lib/dns/include/dns/master.h			C	1999
 ./lib/dns/include/dns/masterdump.h		C	1999
 ./lib/dns/include/dns/message.h			C	1999
@@ -336,6 +338,7 @@
 ./lib/dns/include/dns/zt.h			C	1999
 ./lib/dns/journal.c				C	1999
 ./lib/dns/lib.c					C	1999
+./lib/dns/log.c					C	1999
 ./lib/dns/master.c				C	1999
 ./lib/dns/masterdump.c				C	1999
 ./lib/dns/message.c				C	1999
@@ -477,6 +480,7 @@
 ./lib/isc/include/isc/lex.h			C	1998,1999
 ./lib/isc/include/isc/lib.h			C	1999
 ./lib/isc/include/isc/list.h			C	1997,1999
+./lib/isc/include/isc/log.h			C	1999
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999
 ./lib/isc/include/isc/msgcat.h			C	1999
 ./lib/isc/include/isc/netaddr.h			C	1998,1999
@@ -499,6 +503,7 @@
 ./lib/isc/inet_pton.c				FIXME	1999
 ./lib/isc/lex.c					C	1998,1999
 ./lib/isc/lib.c					C	1999
+./lib/isc/log.c					C	1999
 ./lib/isc/mem.c					C	1997,1998,1999
 ./lib/isc/nls/.cvsignore			X	1999
 ./lib/isc/nls/Makefile.in			MAKE	1999
@@ -555,8 +560,10 @@
 ./lib/isc/win32/include/isc/dir.h		C	1999
 ./lib/isc/win32/include/isc/int.h		C	1999
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999
+./lib/isc/win32/include/isc/once.h		C	1999
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999
 ./lib/isc/win32/include/isc/time.h		C	1998,1999
+./lib/isc/win32/once.c				C	1999
 ./lib/isc/win32/thread.c			C	1998,1999
 ./lib/isc/win32/time.c				C	1998,1999
 ./lib/tests/.cvsignore				X	1999
