@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.175 2001/04/30 18:27:10 gson Exp $ */
+/* $Id: adb.c,v 1.176 2001/05/01 23:17:48 gson Exp $ */
 
 /*
  * Implementation notes
@@ -1563,15 +1563,19 @@ a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type, isc_stdtime_t now,
 {
 	dns_adbname_t *name;
 	dns_adb_t *adb;
+	isc_result_t result;
 
 	name = arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
-	return (dns_view_simplefind(adb->view, a6name, type, now,
-				    DNS_DBFIND_GLUEOK, ISC_FALSE,
-				    rdataset, sigrdataset));
+	result = dns_view_simplefind(adb->view, a6name, type, now,
+				     DNS_DBFIND_GLUEOK, ISC_FALSE,
+				     rdataset, sigrdataset);
+	if (result == DNS_R_GLUE)
+		result = ISC_R_SUCCESS;
+	return (result);
 }
 
 /*
