@@ -1,3 +1,5 @@
+1710.	[placeholder]	rt9479
+
 1709.	[port]		solaris: add SMF support from Sun.
 
 1708.	[cleanup]	Replaced dns_fullname_hash() with dns_name_fullhash()
