@@ -272,6 +272,9 @@ static void
 destroy_managers(void) {
 	if (ns_g_omapimgr != NULL)
 		omapi_listener_shutdown(ns_g_omapimgr);
+	else
+		omapi_lib_destroy();
+
 	/*
 	 * isc_taskmgr_destroy() will  block until all tasks have exited,
 	 */
