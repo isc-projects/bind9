@@ -16,9 +16,32 @@
  */
 
 /*
- * Obtain the list of network interfaces using the SIOCGIFCONF ioctl.
+ * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
  */ 
+#ifndef SIOCGLIFCONF
+#define SIOCGLIFCONF SIOCGIFCONF
+#define lifc_len ifc_len
+#define lifc_buf ifc_buf
+#define lifc_req ifc_req
+#define lifconf ifconf
+#else
+#define ISC_HAVE_LIFC_FAMILY 1
+#define ISC_HAVE_LIFC_FLAGS 1
+#endif
+#ifndef SIOCGLIFADDR
+#define SIOCGLIFADDR SIOCGIFADDR
+#define SIOCGLIFFLAGS SIOCGIFFLAGS
+#define SIOCGLIFDSTADDR SIOCGIFDSTADDR
+#define SIOCGLIFNETMASK SIOCGIFNETMASK
+#define lifr_addr ifr_addr
+#define lifr_name ifr_name
+#define	lifr_dstaddr ifr_dstaddr
+#define lifr_flags ifr_flags
+#define ss_family sa_family
+#define lifreq ifreq
+#endif
+
 
 #define IFITER_MAGIC		0x49464954U	/* IFIT. */	
 #define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
@@ -27,18 +50,18 @@ struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
 	isc_mem_t		*mctx;
 	int			socket;
-	struct ifconf 		ifc;
+	struct lifconf 		ifc;
 	void			*buf;		/* Buffer for sysctl data. */
 	unsigned int		bufsize;	/* Bytes allocated. */
 	unsigned int		pos;		/* Current offset in
-						   SIOCGIFCONF data */
+						   SIOCGLIFCONF data */
 	isc_interface_t		current;	/* Current interface data. */
 	isc_result_t		result;		/* Last result code. */
 };
 
 
 /*
- * Size of buffer for SIOCGIFCONF, in bytes.  We assume no sane system
+ * Size of buffer for SIOCGLIFCONF, in bytes.  We assume no sane system
  * will have more than a megabyte of interface configuration data.
  */
 #define IFCONF_BUFSIZE_INITIAL	4096
@@ -61,7 +84,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 	iter->mctx = mctx;
 	iter->buf = NULL;
 
-	/* Create an unbound datagram socket to do the SIOCGIFADDR ioctl on. */
+	/* Create an unbound datagram socket to do the SIOCGLIFADDR ioctl on. */
 	if ((iter->socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "making interface scan socket: %s",
@@ -83,9 +106,16 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 			goto alloc_failure;
 		}
 		
-		iter->ifc.ifc_len = iter->bufsize;
-		iter->ifc.ifc_buf = iter->buf;
-		if (ioctl(iter->socket, SIOCGIFCONF, (char *) &iter->ifc) < 0) {
+		memset(&iter->ifc.lifc_len, 0, sizeof(iter->ifc.lifc_len));
+#ifdef ISC_HAVE_LIFC_FAMILY
+		iter->ifc.lifc_family = AF_UNSPEC;
+#endif
+#ifdef ISC_HAVE_LIFC_FLAGS
+		iter->ifc.lifc_flags = 0;
+#endif
+		iter->ifc.lifc_len = iter->bufsize;
+		iter->ifc.lifc_buf = iter->buf;
+		if (ioctl(iter->socket, SIOCGLIFCONF, (char *) &iter->ifc) == -1) {
 			if (errno != EINVAL) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "get interface configuration: %s",
@@ -100,11 +130,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 			 * Some OS's just return what will fit rather
 			 * than set EINVAL if the buffer is too small
 			 * to fit all the interfaces in.  If
-			 * ifc.ifc_len is too near to the end of the
+			 * ifc.lifc_len is too near to the end of the
 			 * buffer we will grow it just in case and
 			 * retry.
 			 */
-			if (iter->ifc.ifc_len + 2 * sizeof(struct ifreq)
+			if (iter->ifc.lifc_len + 2 * sizeof(struct lifreq)
 			    < iter->bufsize) 
 				break;
 		}
@@ -152,72 +182,96 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 
 static isc_result_t
 internal_current(isc_interfaceiter_t *iter) {
-	struct ifreq *ifrp;
-	struct ifreq ifreq;
+	struct lifreq *ifrp;
+	struct lifreq lifreq;
 	int family;
 	
 	REQUIRE(VALID_IFITER(iter));
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
+	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
 	
-	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
+	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
 	
-	memcpy(&ifreq, ifrp, sizeof ifreq);
+	memset(&lifreq, 0, sizeof lifreq);
+	memcpy(&lifreq, ifrp, sizeof lifreq);
 
-	family = ifreq.ifr_addr.sa_family;
-	if (family != AF_INET) /* XXX IPv6 */	
+	family = lifreq.lifr_addr.ss_family;
+	if (family != AF_INET && family != AF_INET6)
 		return (ISC_R_FAILURE); 
 	
 	memset(&iter->current, 0, sizeof(iter->current));
+	iter->current.af = family;
 	
-	INSIST(sizeof(ifreq.ifr_name) <= sizeof(iter->current.name));
-	memcpy(iter->current.name, ifreq.ifr_name, sizeof(ifreq.ifr_name));
+	INSIST(sizeof(lifreq.lifr_name) <= sizeof(iter->current.name));
+	memcpy(iter->current.name, lifreq.lifr_name, sizeof(lifreq.lifr_name));
 	
-	get_addr(family, &iter->current.address, &ifreq.ifr_addr);
+	get_addr(family, &iter->current.address,
+		 (struct sockaddr *)&lifreq.lifr_addr);
 
 	/* Get interface flags. */
 
 	iter->current.flags = 0;
 	
-	if (ioctl(iter->socket, SIOCGIFFLAGS, (char *) &ifreq) < 0) {
+	if (ioctl(iter->socket, SIOCGLIFFLAGS, (char *) &lifreq) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, 
 				 "%s: getting interface flags: %s",
-				 ifreq.ifr_name,
+				 lifreq.lifr_name,
 				 strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 	
-	if ((ifreq.ifr_flags & IFF_UP) != 0)
+	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
-	if ((ifreq.ifr_flags & IFF_POINTOPOINT) != 0)
+	if ((lifreq.lifr_flags & IFF_POINTOPOINT) != 0)
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
 
-	if ((ifreq.ifr_flags & IFF_LOOPBACK) != 0)
+	if ((lifreq.lifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 
 	/* If the interface is point-to-point, get the destination address. */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
-		if (ioctl(iter->socket, SIOCGIFDSTADDR, (char *) &ifreq) < 0) {
+		if (ioctl(iter->socket, SIOCGLIFDSTADDR, (char *) &lifreq) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__, 
 					 "%s: getting destination address: %s",
-					 ifreq.ifr_name,
+					 lifreq.lifr_name,
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}
 		get_addr(family, &iter->current.dstaddress,
-			 &ifreq.ifr_dstaddr);
+			 (struct sockaddr *)&lifreq.lifr_dstaddr);
 	}
 
 	/* Get the network mask. */ 
-	if (ioctl(iter->socket, SIOCGIFNETMASK, (char *) &ifreq) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "%s: getting netmask: %s",
-				 ifreq.ifr_name,
-				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
+	memset(&lifreq, 0, sizeof lifreq);
+	memcpy(&lifreq, ifrp, sizeof lifreq);
+	switch (family) {
+	case AF_INET:
+		if (ioctl(iter->socket, SIOCGLIFNETMASK, (char *) &lifreq) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "%s: getting netmask: %s",
+					 lifreq.lifr_name,
+					 strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+		get_addr(family, &iter->current.netmask,
+			 (struct sockaddr *)&lifreq.lifr_addr);		
+		break;
+	case AF_INET6: {
+#ifdef lifr_addrlen
+		int i, bits;
+
+		/* netmask already zeroed */
+		iter->current.netmask.family = family;
+		for (i = 0 ; i < lifreq.lifr_addrlen; i += 8) {
+			bits = lifreq.lifr_addrlen - i;
+			bits = (bits < 8 ) ? (8-bits) : 0;
+			iter->current.netmask.type.in6.s6_addr[i/8] =
+				 (~0 << bits) &0xff;
+		}
+#endif
+		break;
+		}
 	}
-	get_addr(family, &iter->current.netmask,
-		 &ifreq.ifr_addr);		
 	
 	return (ISC_R_SUCCESS);
 }
@@ -231,20 +285,20 @@ internal_current(isc_interfaceiter_t *iter) {
  */
 static isc_result_t
 internal_next(isc_interfaceiter_t *iter) {
-	struct ifreq *ifrp;
+	struct lifreq *ifrp;
 
-	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
+	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
 	
-	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
+	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
 		
 #ifdef ISC_PLATFORM_HAVESALEN
-	if (ifrp->ifr_addr.sa_len > sizeof(struct sockaddr))
-		iter->pos += sizeof(ifrp->ifr_name) + ifrp->ifr_addr.sa_len;
+	if (ifrp->lifr_addr.sa_len > sizeof(struct sockaddr))
+		iter->pos += sizeof(ifrp->lifr_name) + ifrp->lifr_addr.sa_len;
 	else
 #endif
 		iter->pos += sizeof *ifrp;
 
-	if (iter->pos >= (unsigned int) iter->ifc.ifc_len)
+	if (iter->pos >= (unsigned int) iter->ifc.lifc_len)
 		return (ISC_R_NOMORE);
 	
 	return (ISC_R_SUCCESS);
