@@ -119,6 +119,9 @@ isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
  * The resulting string is guaranteed to be null-terminated.
  */
 
+#define ISC_SOCKADDR_FORMATSIZE \
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX#YYYYY")
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SOCKADDR_H */
