@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.143 2000/09/07 21:08:51 bwelling Exp $ */
+/* $Id: message.c,v 1.144 2000/09/09 10:46:58 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2198,7 +2198,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	 * This saves the query TSIG status, if the query was signed, and
 	 * reserves space in the reply for the TSIG.
 	 */
-	if (msg->querytsig != NULL) {
+	if (msg->tsigkey != NULL) {
 		unsigned int otherlen = 0;
 		msg->querytsigstatus = msg->tsigstatus;
 		msg->tsigstatus = dns_rcode_noerror;
