@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.24 1999/10/08 21:42:23 tale Exp $ */
+ /* $Id: sig_24.c,v 1.25 1999/10/08 23:54:40 tale Exp $ */
 
  /* RFC 2065 */
 
@@ -67,7 +67,7 @@ fromtext_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xff)
 		return (DNS_R_RANGE);
-	c = token.value.as_char;
+	c = (unsigned char)token.value.as_ulong;
 	RETERR(mem_tobuffer(target, &c, 1));
 
 	/* original ttl */
