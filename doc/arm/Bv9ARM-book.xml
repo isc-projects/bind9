@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.16 2001/04/09 20:42:55 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.17 2001/04/26 18:19:27 gson Exp $ -->
 
 <book>
 
@@ -3988,6 +3988,11 @@ of the transaction log (journal) file for dynamic update and IXFR.
 <acronym>BIND</acronym> 9 ignores the option and constructs the name of the journal
 file by appending ".<filename>jnl</filename>" to the name of the
 zone file.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>ixfr-tmp-file</command></para></entry>
+<entry colname = "2"><para>Was an undocumented optino in <acronym>BIND</acronym> 8.
+Ignored in <acronym>BIND</acronym> 9.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>max-transfer-time-in</command></para></entry>

@@ -90,7 +90,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3420"
+HREF="Bv9ARM.ch06.html#AEN3428"
 >Zone File</A
 ></DT
 ></DL
@@ -1430,18 +1430,18 @@ CLASS="command"
    inet ( ip_addr | * ) [<SPAN
 CLASS="optional"
 > port ip_port </SPAN
->] allow <TT
+>] allow { <TT
 CLASS="replaceable"
 ><I
 > address_match_list </I
 ></TT
->
-                keys <TT
+> }
+                keys { <TT
 CLASS="replaceable"
 ><I
 > key_list </I
 ></TT
->;
+> };
    [<SPAN
 CLASS="optional"
 > inet ...; </SPAN
@@ -8734,6 +8734,32 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>ixfr-tmp-file</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Was an undocumented optino in <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 8.
+Ignored in <SPAN
+CLASS="acronym"
+>BIND</SPAN
+> 9.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >max-transfer-time-in</B
 ></P
 ></TD
@@ -9177,7 +9203,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3390"
+NAME="AEN3398"
 ></A
 ><P
 ></P
@@ -9284,7 +9310,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3420"
+NAME="AEN3428"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9305,7 +9331,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3425"
+NAME="AEN3433"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9328,7 +9354,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3431"
+NAME="AEN3439"
 ></A
 ><P
 ></P
@@ -9439,7 +9465,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3463"
+NAME="AEN3471"
 ></A
 ><P
 ></P
@@ -9816,7 +9842,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3575"
+NAME="AEN3583"
 ></A
 ><P
 ></P
@@ -9868,7 +9894,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3591"
+NAME="AEN3599"
 ></A
 ><P
 ></P
@@ -10045,7 +10071,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3639"
+NAME="AEN3647"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10075,7 +10101,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3646"
+NAME="AEN3654"
 ></A
 ><P
 ></P
@@ -10284,7 +10310,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3712"
+NAME="AEN3720"
 ></A
 ><P
 ></P
@@ -10375,7 +10401,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3740"
+NAME="AEN3748"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10408,7 +10434,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3746"
+NAME="AEN3754"
 ></A
 ><P
 ></P
@@ -10703,7 +10729,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3838"
+NAME="AEN3846"
 ></A
 ><P
 ></P
@@ -10786,7 +10812,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3861"
+NAME="AEN3869"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10810,7 +10836,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3866"
+NAME="AEN3874"
 ></A
 ><P
 ></P
@@ -10890,7 +10916,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3888"
+NAME="AEN3896"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10915,7 +10941,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3895"
+NAME="AEN3903"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10985,7 +11011,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3915"
+NAME="AEN3923"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11067,7 +11093,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3935"
+NAME="AEN3943"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11107,7 +11133,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3946"
+NAME="AEN3954"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11186,7 +11212,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3966"
+NAME="AEN3974"
 ></A
 ><P
 ></P

@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.54.2.6 2001/03/16 18:19:44 bwelling Exp $
+$Id: options,v 1.54.2.7 2001/04/26 18:19:38 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -177,7 +177,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type slave;						    Yes
   [ file path_name; ]					    Yes
-  [ ixfr-base  path_name; ]				    Obsolete
+  [ ixfr-base path_name; ]				    Obsolete
+  [ ixfr-tmp-file path_name; ]				    Obsolete
   masters [ port ip_port ] { ip_addr; [ ip_addr; ... ] };   Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    Yes
