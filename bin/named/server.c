@@ -34,11 +34,14 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/compress.h>
 #include <dns/db.h>
+#include <dns/dbtable.h>
 #include <dns/message.h>
 
 #include <sys/types.h>
@@ -52,9 +55,17 @@
 #include "udpclient.h"
 #include "tcpclient.h"
 
-isc_mem_t *mctx = NULL;
-isc_boolean_t want_stats = ISC_FALSE;
-dns_db_t *db;
+typedef struct dbinfo {
+	dns_db_t *		db;
+	ISC_LINK(struct dbinfo)	link;
+} dbinfo;
+
+isc_mem_t *			mctx;
+isc_boolean_t			want_stats = ISC_FALSE;
+static char			dbtype[128];
+static dns_dbtable_t *		dbtable;
+static ISC_LIST(dbinfo)		dbs;
+static dbinfo *			cache_dbi;
 
 static inline isc_boolean_t
 CHECKRESULT(dns_result_t result, char *msg)
@@ -67,51 +78,29 @@ CHECKRESULT(dns_result_t result, char *msg)
 	return (ISC_FALSE);
 }
 
-static void
-makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
-	char b[255];
-	isc_buffer_t source, target;
-	size_t len;
-	isc_region_t r1, r2;
-	dns_result_t result;
-
-	if (origin == NULL)
-		origin = dns_rootname;
-	dns_name_init(name, NULL);
-	len = strlen(text);
-	isc_buffer_init(&source, text, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&source, len);
-	isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
-	result = dns_name_fromtext(name, &source, origin, ISC_FALSE, &target);
-	RUNTIME_CHECK(result == DNS_R_SUCCESS);
-	dns_name_toregion(name, &r1);
-	r2.base = isc_mem_get(mctx, r1.length);
-	RUNTIME_CHECK(r2.base != NULL);
-	r2.length = r1.length;
-	memcpy(r2.base, r1.base, r1.length);
-	dns_name_fromregion(name, &r2);
-}
-
 /*
  * This is in bin/tests/wire_test.c, but should be in a debugging library.
  */
 extern dns_result_t
 printmessage(dns_message_t *);
 
-dns_result_t
-resolve_packet(isc_mem_t *mctx, dns_db_t *, dns_message_t *, isc_buffer_t *);
+#define MAX_RDATASETS 25
 
-dns_result_t
-resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
-	       isc_buffer_t *target)
-{
+static dns_result_t
+resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	dns_message_t *message;
-	dns_result_t result;
-	dns_name_t *name, name2;
-	dns_rdataset_t *rds, rdataset;
+	dns_result_t result, dbresult;
+	dns_name_t *qname, *fname;
+	dns_fixedname_t foundname;
+	dns_rdataset_t *rds, *rdataset, rdatasets[MAX_RDATASETS];
+	unsigned int nrdatasets = 0;
 	dns_dbnode_t *node;
+	dns_db_t *db;
+	dns_rdatasetiter_t *rdsiter;
+	dns_rdatatype_t type;
+	isc_boolean_t possibly_auth = ISC_FALSE;
 
-
+	message = NULL;
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_RENDER);
 	CHECKRESULT(result, "dns_message_create failed");
 
@@ -129,58 +118,105 @@ resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
 	result = dns_message_firstname(query, DNS_SECTION_QUESTION);
 	if (result != DNS_R_SUCCESS)
 		return (result);
-
-	name = NULL;
-	dns_message_currentname(query, DNS_SECTION_QUESTION, &name);
-	rds = ISC_LIST_HEAD(name->list);
+	qname = NULL;
+	dns_message_currentname(query, DNS_SECTION_QUESTION, &qname);
+	rds = ISC_LIST_HEAD(qname->list);
 	if (rds == NULL)
 		return (DNS_R_UNEXPECTED);
+	type = rds->type;
 
-	dns_message_addname(message, name, DNS_SECTION_QUESTION);
+	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
 	result = printmessage(message);
 	INSIST(result == DNS_R_SUCCESS);  /* XXX not in a real server */
 
 	/*
-	 * Pull the name out of the database.
+	 * Find a database to answer the query from.
 	 */
-        if (!dns_name_issubdomain(name, dns_db_origin(db))) {
+	db = NULL;
+	result = dns_dbtable_find(dbtable, qname, &db);
+	if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
+		printf("could not find a dbtable: %s\n",
+		       dns_result_totext(result));
+		message->rcode = dns_rcode_servfail;
+		goto render;
+	}
+	
+	/*
+	 * Now look for an answer in the database.
+	 */
+	dns_fixedname_init(&foundname);
+	fname = dns_fixedname_name(&foundname);
+	rdataset = &rdatasets[nrdatasets++];
+	dns_rdataset_init(rdataset);
+	node = NULL;
+	dbresult = dns_db_find(db, qname, NULL, type, 0, 0, &node, fname,
+			       rdataset);
+	switch (dbresult) {
+	case DNS_R_SUCCESS:
+	case DNS_R_DNAME:
+	case DNS_R_CNAME:
+		possibly_auth = ISC_TRUE;
+		break;
+	case DNS_R_GLUE:
+	case DNS_R_ZONECUT:
+	case DNS_R_DELEGATION:
+		break;
+	case DNS_R_NXRDATASET:
+		if (dns_db_iszone(db))
+			message->flags |= DNS_MESSAGEFLAG_AA;
+		dns_db_detachnode(db, &node);
+		dns_db_detach(&db);
+                goto render;
+	case DNS_R_NXDOMAIN:
+		if (dns_db_iszone(db))
+			message->flags |= DNS_MESSAGEFLAG_AA;
+		dns_db_detach(&db);
                 message->rcode = dns_rcode_nxdomain;
                 goto render;
-        }
-
-	dns_name_init(&name2, NULL);
-	dns_name_clone(name, &name2);
-        node = NULL;
-        result = dns_db_findnode(db, &name2, ISC_FALSE, &node);
-        if (result == DNS_R_NOTFOUND) {
-		message->flags |= DNS_MESSAGEFLAG_AA;
-                message->rcode = dns_rcode_nxdomain;
-                goto render;
-        }
-        if (result != DNS_R_SUCCESS) {
+	default:
+		printf("%s\n", dns_result_totext(result));
+		dns_db_detach(&db);
                 message->rcode = dns_rcode_servfail;
-		printf("Foo\n");
                 goto render;
-        }
+	}
 
-        dns_rdataset_init(&rdataset);
-        result = dns_db_findrdataset(db, node, NULL, rds->type, 0, &rdataset);
-        dns_db_detachnode(db, &node);
-        if (result == DNS_R_NOTFOUND) {
+	if (dbresult == DNS_R_DELEGATION) {
+		ISC_LIST_APPEND(fname->list, rdataset, link);
+		dns_message_addname(message, fname, DNS_SECTION_AUTHORITY);
+	} else if (type == dns_rdatatype_any) {
+		rdsiter = NULL;
+		result = dns_db_allrdatasets(db, node, NULL, 0, &rdsiter);
+		if (result == DNS_R_SUCCESS)
+			result = dns_rdatasetiter_first(rdsiter);
+		while (result == DNS_R_SUCCESS) {
+			dns_rdatasetiter_current(rdsiter, rdataset);
+			ISC_LIST_APPEND(fname->list, rdataset, link);
+			if (nrdatasets == MAX_RDATASETS) {
+				result = DNS_R_NOSPACE;
+			} else {
+				rdataset = &rdatasets[nrdatasets++];
+				dns_rdataset_init(rdataset);
+				result = dns_rdatasetiter_next(rdsiter);
+			}
+		}
+		if (result != DNS_R_NOMORE) {
+			dns_db_detachnode(db, &node);
+			dns_db_detach(&db);
+			message->rcode = dns_rcode_servfail;
+			goto render;
+		}
+		dns_message_addname(message, fname, DNS_SECTION_ANSWER);
+	} else {
+		ISC_LIST_APPEND(fname->list, rdataset, link);
+		dns_message_addname(message, fname, DNS_SECTION_ANSWER);
+	}
+
+	if (dns_db_iszone(db) && possibly_auth)
 		message->flags |= DNS_MESSAGEFLAG_AA;
-                message->rcode = dns_rcode_nxdomain;
-                goto render;
-        }
-        if (result != DNS_R_SUCCESS) {
-                message->rcode = dns_rcode_servfail;
-		printf("Foo2\n");
-                goto render;
-        }
 
-	ISC_LIST_APPEND(name2.list, &rdataset, link);
-	dns_message_addname(message, &name2, DNS_SECTION_ANSWER);
-	message->flags |= DNS_MESSAGEFLAG_AA;
+	dns_db_detachnode(db, &node);
+	dns_db_detach(&db);
 
  render:
 
@@ -252,6 +288,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, rxr->length);
 
+	message = NULL;
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
 	if (CHECKRESULT(result, "dns_message_create failed")) {
 		return (result);
@@ -271,7 +308,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	}
 
 	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
-	result = resolve_packet(mctx, db, message, &target);
+	result = resolve_packet(mctx, message, &target);
 	if (result != DNS_R_SUCCESS) {
 		dns_message_destroy(&message);
 		return (result);
@@ -303,6 +340,80 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	return (DNS_R_SUCCESS);
 }
 
+static dns_result_t
+load(char *filename, char *origintext, isc_boolean_t cache) {
+	dns_fixedname_t forigin;
+	dns_name_t *origin;
+	dns_result_t result;
+	isc_buffer_t source;
+	size_t len;
+	dbinfo *dbi;
+
+	dbi = isc_mem_get(mctx, sizeof *dbi);
+	if (dbi == NULL)
+		return (DNS_R_NOMEMORY);
+	dbi->db = NULL;
+	
+	len = strlen(origintext);
+	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
+				   NULL);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	result = dns_db_create(mctx, dbtype, origin, cache, dns_rdataclass_in,
+			       0, NULL, &dbi->db);
+	if (result != DNS_R_SUCCESS) {
+		isc_mem_put(mctx, dbi, sizeof *dbi);
+		return (result);
+	}
+
+	printf("loading %s (%s)\n", filename, origintext);
+	result = dns_db_load(dbi->db, filename);
+	if (result != DNS_R_SUCCESS) {
+		dns_db_detach(&dbi->db);
+		isc_mem_put(mctx, dbi, sizeof *dbi);
+		return (result);
+	}
+	printf("loaded\n");
+
+	if (cache) {
+		INSIST(cache_dbi == NULL);
+		dns_dbtable_adddefault(dbtable, dbi->db);
+		cache_dbi = dbi;
+	} else {
+		if (dns_dbtable_add(dbtable, dbi->db) != DNS_R_SUCCESS) {
+			dns_db_detach(&dbi->db);
+			isc_mem_put(mctx, dbi, sizeof *dbi);
+			return (result);
+		}
+	}
+	ISC_LIST_APPEND(dbs, dbi, link);
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+unload_all(void) {
+	dbinfo *dbi, *dbi_next;
+	
+	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
+		dbi_next = ISC_LIST_NEXT(dbi, link);
+		if (dns_db_iszone(dbi->db))
+			dns_dbtable_remove(dbtable, dbi->db);
+		else {
+			INSIST(dbi == cache_dbi);
+			dns_dbtable_removedefault(dbtable);
+			cache_dbi = NULL;
+		}
+		dns_db_detach(&dbi->db);
+		ISC_LIST_UNLINK(dbs, dbi, link);
+		isc_mem_put(mctx, dbi, sizeof *dbi);
+	}
+}
 
 int
 main(int argc, char *argv[])
@@ -315,10 +426,8 @@ main(int argc, char *argv[])
 	unsigned int addrlen;
 	udp_listener_t *ludp;
 	tcp_listener_t *ltcp;
-	dns_name_t base, *origin;
 	int ch;
-	char basetext[1000];
-	dns_rdatatype_t type = 2;
+	char *origintext;
 	dns_result_t result;
 
 #if 0 /* brister */
@@ -326,15 +435,31 @@ main(int argc, char *argv[])
 	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
 #endif
 
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
+		      DNS_R_SUCCESS);
+	strcpy(dbtype, "rbt");
+
 	/*+ XXX */
-	strcpy(basetext, "");
-	while ((ch = getopt(argc, argv, "z:t:s")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:z:s")) != -1) {
 		switch (ch) {
-		case 'z':
-			strcpy(basetext, optarg);
+		case 'c':
+			result = load(optarg, ".", ISC_TRUE);
+			if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
 			break;
-		case 't':
-			type = atoi(optarg);
+		case 'd':
+			strcpy(dbtype, optarg);
+			break;
+		case 'z':
+			origintext = strrchr(optarg, '/');
+			if (origintext == NULL)
+				origintext = optarg;
+			else
+				origintext++;	/* Skip '/'. */
+			result = load(optarg, origintext, ISC_FALSE);
+			if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
 			break;
 		case 's':
 			want_stats = ISC_TRUE;
@@ -345,10 +470,8 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (argc < 1) {
-		fprintf(stderr, "usage: named filename\n");
-		exit(1);
-	}
+	if (argc > 1)
+		fprintf(stderr, "ignoring extra command line arguments\n");
 
 	/*- XXX */
 
@@ -359,41 +482,14 @@ main(int argc, char *argv[])
 	workers = 2;
 	printf("%d workers\n", workers);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
 #if 0 /* brister */
 	parser_init();
 	RUNTIME_CHECK(parse_configuration(conffile, mctx, &configctx) ==
 		      ISC_R_SUCCESS);
 #endif
 
-	/*+ XXX */
-	if (strcmp(basetext, "") == 0)
-		strcpy(basetext, "vix.com.");
-	makename(mctx, basetext, &base, NULL);
-
-	db = NULL;
-	result = dns_db_create(mctx, "rbt", &base, ISC_FALSE, 1, 0, NULL,
-			       &db);
-	RUNTIME_CHECK(result == DNS_R_SUCCESS);
-	
-	origin = &base;
-	printf("loading %s\n", argv[0]);
-	result = dns_db_load(db, argv[0]);
-	if (result != DNS_R_SUCCESS) {
-		printf("couldn't load master file: %s\n",
-		       dns_result_totext(result));
-		exit(1);
-	}
-	/*- XXX */
-
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
-
-	/*
-	 * Open up a database.
-	 */
-	
 
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
@@ -446,6 +542,9 @@ main(int argc, char *argv[])
 	 */
 	for (;;)
 		sleep(10);
+
+	unload_all();
+	dns_dbtable_destroy(&dbtable);
 
 	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
