@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.2.2.2 2005/01/12 01:54:57 marka Exp $ */
+/* $Id: aclconf.c,v 1.2.2.3 2005/03/16 03:35:44 marka Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 
+#define LOOP_MAGIC ISC_MAGIC('L','O','O','P') 
 
 void
 cfg_aclconfctx_init(cfg_aclconfctx_t *ctx) {
@@ -81,6 +82,7 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 	isc_result_t result;
 	cfg_obj_t *cacl = NULL;
 	dns_acl_t *dacl;
+	dns_acl_t loop;
 	char *aclname = cfg_obj_asstring(nameobj);
 
 	/* Look for an already-converted version. */
@@ -89,6 +91,11 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 	     dacl = ISC_LIST_NEXT(dacl, nextincache))
 	{
 		if (strcasecmp(aclname, dacl->name) == 0) {
+			if (ISC_MAGIC_VALID(dacl, LOOP_MAGIC)) {
+				cfg_obj_log(nameobj, lctx, ISC_LOG_ERROR,
+					    "acl loop detected: %s", aclname);
+				return (ISC_R_FAILURE);
+			}
 			dns_acl_attach(dacl, target);
 			return (ISC_R_SUCCESS);
 		}
@@ -100,7 +107,18 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 			    "undefined ACL '%s'", aclname);
 		return (result);
 	}
+	/*
+	 * Add a loop detection element.
+	 */
+	memset(&loop, 0, sizeof(loop));
+	ISC_LINK_INIT(&loop, nextincache);
+	loop.name = aclname;
+	loop.magic = LOOP_MAGIC;
+	ISC_LIST_APPEND(ctx->named_acl_cache, &loop, nextincache);
 	result = cfg_acl_fromconfig(cacl, cctx, lctx, ctx, mctx, &dacl);
+	ISC_LIST_UNLINK(ctx->named_acl_cache, &loop, nextincache);
+	loop.magic = 0;
+	loop.name = NULL;
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
