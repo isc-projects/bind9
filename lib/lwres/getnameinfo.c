@@ -123,10 +123,12 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		port = ((struct sockaddr_in *)sa)->sin_port;
 		addr = &((struct sockaddr_in *)sa)->sin_addr.s_addr;
 		break;
+
 	case AF_INET6:
 		port = ((struct sockaddr_in6 *)sa)->sin6_port;
-		addr = &((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr;
+		addr = ((struct sockaddr_in6 *)sa)->sin6_addr.s6_addr;
 		break;
+
 	default:
 		INSIST(port = 0);
 		INSIST(addr = NULL);
