@@ -15,12 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.203 2000/09/07 04:20:52 marka Exp $ */
+/* $Id: zone.c,v 1.204 2000/09/08 00:07:44 explorer Exp $ */
 
 #include <config.h>
 
 #include <isc/file.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/ratelimiter.h>
 #include <isc/serial.h>
 #include <isc/string.h>
@@ -82,6 +83,9 @@
 #ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
 #endif
+
+#define REFRESH_JITTER		600	/* seconds */
+#define RETRY_JITTER		600
 
 typedef struct dns_notify dns_notify_t;
 typedef struct dns_stub dns_stub_t;
@@ -912,7 +916,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	zone->loadtime = loadtime;
 	isc_stdtime_get(&now);
 
-	zone_log(zone, me, ISC_LOG_DEBUG(1), "loaded");
+	zone_log(zone, me, ISC_LOG_INFO, "loaded");
 
 	/*
 	 * Apply update log, if any.
@@ -984,6 +988,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				    zone->minretry, zone->maxretry);
 		zone->expire = RANGE(expire, zone->refresh + zone->retry,
 				     DNS_MAX_EXPIRE);
+
 		zone->minimum = minimum;
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
@@ -1697,10 +1702,16 @@ dns_zone_refresh(dns_zone_t *zone) {
 
 	/*
 	 * Set the next refresh time as if refresh check has failed.
+	 * Setting this to the retry time will do that.  XXXMLG
 	 * If we are successful it will be reset using zone->refresh.
 	 */
+	zone->refreshtime = now + isc_random_jitter(zone->retry,
+						    zone->retry * .80,
+						    RETRY_JITTER);
+	zone_log(zone, "dns_zone_refresh", ISC_LOG_DEBUG(20),
+		 "refresh time (%u/%u), now %u",
+		 zone->refreshtime, zone->refresh, now);
 
-	zone->refreshtime = now + zone->retry;
 	zone->curmaster = 0;
 	/* initiate soa query */
 	queue_soa_query(zone);
@@ -2864,8 +2875,14 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 					 zone->dbname,
 					 dns_result_totext(result));
 		}
-		zone->refreshtime = now + zone->refresh;
+		zone->refreshtime = now +
+			isc_random_jitter(zone->refresh, zone->refresh * .80,
+					  REFRESH_JITTER);
 		zone->expiretime = now + zone->expire;
+		zone_log(zone, me, ISC_LOG_DEBUG(20),
+			 "refresh time (%u/%u), now %u",
+			 zone->refreshtime, zone->refresh, now);
+
 		goto next_master;
 	} else {
 		ZONE_LOG(1, "ahead");
@@ -4147,7 +4164,14 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			zone->refreshtime = now;
 			zone->expiretime = now + zone->expire;
 		} else {
-			zone->refreshtime = now + zone->refresh;
+			zone->refreshtime = now +
+				isc_random_jitter(zone->refresh,
+						  zone->refresh * .80,
+						  REFRESH_JITTER);
+			zone_log(zone, me, ISC_LOG_DEBUG(20),
+				 "refresh time (%u/%u), now %u",
+				 zone->refreshtime, zone->refresh, now);
+
 			zone->expiretime = now + zone->expire;
 		}
 
