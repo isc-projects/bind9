@@ -45,8 +45,7 @@ isc_result_t
 isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp);
 /*
- * Create a rate limiter.  It will execute events in the context
- * of 'task'.  The execution interval is initially undefined.
+ * Create a rate limiter.  The execution interval is initially undefined.
  */
 
 isc_result_t
