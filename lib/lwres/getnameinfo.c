@@ -45,16 +45,8 @@
 
 #include <lwres/lwres.h>
 
-#include <netdb.h>
+#include <lwres/netdb.h>
 #include <string.h>
-
-/* Add to <netdb.h> */
-#define NI_DGRAM	0x000000001
-#define NI_NUMERICSERV	0x000000002
-#define NI_NUMERICHOST	0x000000004
-#define NI_NOFQDN	0x000000001
-#define NI_NAMEREQD	0x000000010
-/* end additions */
 
 #define SUCCESS 0
 
