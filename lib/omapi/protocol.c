@@ -644,7 +644,6 @@ static isc_result_t
 protocol_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
 	isc_result_t result;
 	omapi_protocol_t *p;
-	omapi_object_t *connection;
 	omapi_connection_t *c;
 
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
@@ -659,8 +658,6 @@ protocol_signalhandler(omapi_object_t *h, const char *name, va_list ap) {
 		return (omapi_object_passsignal(h, name, ap));
 
 	INSIST(p->outer != NULL && p->outer->type == omapi_type_connection);
-
-	connection = p->outer;
 
 	do {
 		result = dispatch_messages(p, c);
