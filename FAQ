@@ -106,3 +106,9 @@ mostly DNSSEC related.  These messages indicate that you have no source
 of entropy.  On systems with /dev/random or an equivalent, it is used by
 default.  A source of entropy can also be defined using the random-device
 option in named.conf.
+
+
+Q: I installed BIND 9 and restarted named, but it's still BIND 8.  Why?
+
+A: BIND 9 is installed under /usr/local by default.  BIND 8 is often
+installed under /usr.  Check that the correct named is running.
