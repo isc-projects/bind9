@@ -609,14 +609,24 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	result = dns_view_find(view, name, type, now, options, use_hints,
 			       dns_fixedname_name(&foundname),
 			       rdataset, sigrdataset);
-	if (result != ISC_R_SUCCESS &&
-	    result != DNS_R_GLUE &&
-	    result != DNS_R_HINT &&
-	    result != DNS_R_NCACHENXDOMAIN &&
-	    result != DNS_R_NCACHENXRRSET &&
-	    result != DNS_R_NXDOMAIN &&
-	    result != DNS_R_NXRRSET &&
-	    result != DNS_R_NOTFOUND) {
+	if (result == DNS_R_NXDOMAIN) {
+		/*
+		 * The rdataset and sigrdataset of the relevant NXT record
+		 * may be returned, but the caller cannot use them because
+		 * foundname is not returned by this simplified API.  We
+		 * disassociate them here to prevent any misuse by the caller.
+		 */
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+	} else if (result != ISC_R_SUCCESS &&
+		   result != DNS_R_GLUE &&
+		   result != DNS_R_HINT &&
+		   result != DNS_R_NCACHENXDOMAIN &&
+		   result != DNS_R_NCACHENXRRSET &&
+		   result != DNS_R_NXRRSET &&
+		   result != DNS_R_NOTFOUND) {
 		if (rdataset->methods != NULL)
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
