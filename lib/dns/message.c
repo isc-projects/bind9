@@ -1384,7 +1384,9 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			 * to indicate where to continue from.
 			 */
 			if (result != DNS_R_SUCCESS) {
-				dns_compress_rollback(&msg->cctx, st.used);
+				INSIST(st.used < 65536);
+				dns_compress_rollback(&msg->cctx,
+						      (isc_uint16_t)st.used);
 				*(msg->buffer) = st;  /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
@@ -1424,10 +1426,19 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target)
 	tmp |= (msg->rcode & DNS_MESSAGE_RCODE_MASK);
 	tmp |= (msg->flags & DNS_MESSAGE_FLAG_MASK);
 
+	INSIST(msg->counts[DNS_SECTION_QUESTION]  < 65536 &&
+	       msg->counts[DNS_SECTION_ANSWER]    < 65536 &&
+	       msg->counts[DNS_SECTION_AUTHORITY] < 65536 &&
+	       (msg->counts[DNS_SECTION_ADDITIONAL] +
+		msg->counts[DNS_SECTION_TSIG]) < 65536);
+
 	isc_buffer_putuint16(target, tmp);
-	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_QUESTION]);
-	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_ANSWER]);
-	isc_buffer_putuint16(target, msg->counts[DNS_SECTION_AUTHORITY]);
+	isc_buffer_putuint16(target,
+			     (isc_uint16_t)msg->counts[DNS_SECTION_QUESTION]);
+	isc_buffer_putuint16(target,
+			     (isc_uint16_t)msg->counts[DNS_SECTION_ANSWER]);
+	isc_buffer_putuint16(target,
+			     (isc_uint16_t)msg->counts[DNS_SECTION_AUTHORITY]);
 	tmp  = msg->counts[DNS_SECTION_ADDITIONAL]
 		+ msg->counts[DNS_SECTION_TSIG];
 	isc_buffer_putuint16(target, tmp);
