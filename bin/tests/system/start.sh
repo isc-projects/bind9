@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.19 2000/06/24 01:44:28 mws Exp $
+# $Id: start.sh,v 1.20 2000/06/25 16:47:42 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -27,35 +27,40 @@ SYSTEMTESTTOP=.
 test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 
 test -d "$1" || { echo No test directory: "$1";  exit 1; }
+
+if $PERL ./testsock.pl -p 5300
+then
+    :
+else
+    echo "$0: could not bind to server addresses, server still running?"
+    echo "I:server sockets not available"
+    echo "R:FAIL"
+    sh ./stop.sh $1
+    exit 1
+fi 
+
 cd $1
 
 for d in ns*
 do
     (
         cd $d
-	rm -f *.jnl *.bk *.st named.run &&
-	if test -f named.pid
-	then
-	    if kill -0 `cat named.pid` 2>/dev/null
-	    then
-		echo "$0: named pid `cat named.pid` still running" >&2
-	        exit 1
-	    else
-		rm -f named.pid
-	    fi
-	fi
+	rm -f *.jnl *.bk *.st named.run
 	$NAMED -c named.conf -d 99 -g >named.run 2>&1 &
 	x=1
 	while test ! -f named.pid
 	do
 	    x=`expr $x + 1`
-	    if [ $x = 5 ]; then
-		echo "I: Couldn't start server $d!"
+	    if [ $x = 15 ]; then
+		echo "I:Couldn't start server $d"
+   	        echo "R:FAIL"
+		cd ../..
+		sh ./stop.sh $1
 		exit 1
 	    fi
 	    sleep 1
         done
-    )
+    ) || exit 1
 done
 
 for d in lwresd*
@@ -83,12 +88,12 @@ do
 	do
 	    x=`expr $x + 1`
 	    if [ $x = 5 ]; then
-		echo "I: Couldn't start lwresd $d!"
+		echo "I: Couldn't start lwresd $d"
 		exit 1
 	    fi
 	    sleep 1
         done
-    )
+    ) || exit 1
 done
 
 # Make sure all of the servers are up.
@@ -97,29 +102,27 @@ status=0
 
 sleep 5
 
-ret=1
-cnt=0
 for d in ns*
 do
-	while [ $ret != 0 ]
+	try=0
+	while true
 	do
-		cnt=`expr $cnt + 1`
 		n=`echo $d | sed 's/ns//'`
-		$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-		-p 5300 version.bind. chaos txt @10.53.0.$n > dig.out
-		ret=$?
+		if $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+			-p 5300 version.bind. chaos txt @10.53.0.$n > dig.out
+		then
+			break
+		fi
 		grep ";" dig.out
-		if [ $cnt = 15 ]; then
+		try=`expr $try + 1`
+		if [ $try = 22 ]; then
 			cd ..
-			sh stop.sh $1
-			echo "I: Couldn't talk to server(s)"
+			sh ./stop.sh $1
+			echo "I: no response from $d"
 			echo "R:FAIL"
-			exit 1;
+			exit 1
 		fi
-		if [ $ret != 0 ]; then
-			sleep 5
-			echo "Retrying $cnt"
-		fi
+		sleep 2
 	done
 done
 rm -f dig.out
