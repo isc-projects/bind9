@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.66 1999/12/23 00:08:32 explorer Exp $ */
+ /* $Id: rdata.c,v 1.67 2000/01/17 03:19:40 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/region.h>
+#include <isc/util.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
