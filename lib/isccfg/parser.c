@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.45 2001/03/13 03:04:06 gson Exp $ */
+/* $Id: parser.c,v 1.46 2001/03/14 00:30:06 gson Exp $ */
 
 #include <config.h>
 
@@ -563,13 +563,13 @@ static cfg_type_t cfg_type_rrtypelist = {
 	&cfg_type_astring
 };
 
-const char *mode_enums[] = { "grant", "deny", NULL };
+static const char *mode_enums[] = { "grant", "deny", NULL };
 static cfg_type_t cfg_type_mode = {
 	"mode", parse_enum, print_ustring, &cfg_rep_string,
 	&mode_enums
 };
 
-const char *matchtype_enums[] = {
+static const char *matchtype_enums[] = {
 	"name", "subdomain", "wildcard", "self", NULL };
 static cfg_type_t cfg_type_matchtype = {
 	"matchtype", parse_enum, print_ustring, &cfg_rep_string,
@@ -733,27 +733,27 @@ static cfg_type_t cfg_type_trustedkeys = {
 static cfg_type_t cfg_type_implicitlist = {
 	"implicitlist", NULL, print_list, &cfg_rep_list, NULL };
 
-const char *forwardtype_enums[] = { "first", "only", NULL };
+static const char *forwardtype_enums[] = { "first", "only", NULL };
 static cfg_type_t cfg_type_forwardtype = {
 	"forwardtype", parse_enum, print_ustring, &cfg_rep_string,
 	&forwardtype_enums
 };
 
-const char *zonetype_enums[] = {
+static const char *zonetype_enums[] = {
 	"master", "slave", "stub", "hint", "forward", NULL };
 static cfg_type_t cfg_type_zonetype = {
 	"zonetype", parse_enum, print_ustring, &cfg_rep_string,
 	&zonetype_enums
 };
 
-const char *loglevel_enums[] = {
+static const char *loglevel_enums[] = {
 	"critical", "error", "warning", "notice", "info", "dynamic", NULL };
 static cfg_type_t cfg_type_loglevel = {
 	"loglevel", parse_enum, print_ustring, &cfg_rep_string,
 	&loglevel_enums
 };
 
-const char *transferformat_enums[] = { "many-answers", "one-answer", NULL };
+static const char *transferformat_enums[] = { "many-answers", "one-answer", NULL };
 static cfg_type_t cfg_type_transferformat = {
 	"transferformat", parse_enum, print_ustring, &cfg_rep_string,
 	&transferformat_enums
@@ -1637,7 +1637,7 @@ static cfg_type_t cfg_type_sizeval = {
  * A size, "unlimited", or "default".
  */
 
-const char *size_enums[] = { "unlimited", "default", NULL };
+static const char *size_enums[] = { "unlimited", "default", NULL };
 static isc_result_t
 parse_size(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval, ret));
@@ -1936,7 +1936,7 @@ print_boolean(cfg_printer_t *pctx, cfg_obj_t *obj) {
 static cfg_type_t cfg_type_boolean = {
 	"boolean", parse_boolean, print_boolean, &cfg_rep_boolean, NULL };
 
-const char *dialup_enums[] = {
+static const char *dialup_enums[] = {
 	"notify", "notify-passive", "refresh", "passive", NULL };
 static isc_result_t
 parse_dialup_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
@@ -1947,7 +1947,7 @@ static cfg_type_t cfg_type_dialuptype = {
 	&cfg_rep_string, dialup_enums
 };
 
-const char *notify_enums[] = { "explicit", NULL };
+static const char *notify_enums[] = { "explicit", NULL };
 static isc_result_t
 parse_notify_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
@@ -3233,7 +3233,7 @@ static cfg_type_t cfg_type_logseverity = {
  * This is yet another special case.
  */
 
-const char *logversions_enums[] = { "unlimited", NULL };
+static const char *logversions_enums[] = { "unlimited", NULL };
 static isc_result_t
 parse_logversions(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_enum_or_other(pctx, type, &cfg_type_uint32, ret));
