@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.30 1999/11/02 23:40:05 bwelling Exp $
+ * $Id: tsig.c,v 1.31 1999/11/03 16:52:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -588,22 +588,23 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	}
 
 	/* Find dns_tsigkey_t based on keyname */
-	ret = dns_tsigkey_find(&tsigkey, keyname, &tsig->algorithm); 
-	if (ret != ISC_R_SUCCESS) {
-		msg->tsigstatus = dns_tsigerror_badkey;
-		msg->tsigkey = NULL;
-		/*
-		 * this key must be deleted later - an empty key can be found
-		 * by calling dns_tsigkey_empty()
-		 */
-		ret = dns_tsigkey_create(keyname, &tsig->algorithm, NULL, 0,
-					 ISC_FALSE, NULL, mctx, &msg->tsigkey);
-		if (ret != ISC_R_SUCCESS)
-			goto cleanup_struct;
-		return (DNS_R_TSIGVERIFYFAILURE);
+	if (msg->tsigkey == NULL) {
+		ret = dns_tsigkey_find(&tsigkey, keyname, &tsig->algorithm); 
+		if (ret != ISC_R_SUCCESS) {
+			msg->tsigstatus = dns_tsigerror_badkey;
+			msg->tsigkey = NULL;
+			ret = dns_tsigkey_create(keyname, &tsig->algorithm,
+						 NULL, 0, ISC_FALSE, NULL,
+						 mctx, &msg->tsigkey);
+			if (ret != ISC_R_SUCCESS)
+				goto cleanup_struct;
+			return (DNS_R_TSIGVERIFYFAILURE);
+		}
+		msg->tsigkey = tsigkey;
 	}
+	else
+		tsigkey = msg->tsigkey;
 
-	msg->tsigkey = tsigkey;
 	key = tsigkey->key;
 
 	/* Is the time ok? */
