@@ -98,6 +98,9 @@ BIND 9.0.0rc1
 		The default value of the 'transfer-format' option is
 		now 'many-answers'.
 
+		The default value of the 'listen-on-v6' option is
+		now '{ none; }'.
+
 		The 'lwresd' program is now a link to 'named'.
 
 		The DNSSEC key generation and signing tools now
