@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.7 2001/01/31 18:04:45 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.8 2001/03/01 17:48:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2891,7 +2891,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		zone_log(zone, me, ISC_LOG_INFO,
-			 "non-authorative answer from %s", master);
+			 "non-authoritative answer from %s", master);
 		goto next_master;
 	}
 
@@ -3101,7 +3101,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		zone_log(zone, me, ISC_LOG_INFO,
-			 "non-authorative answer from %s", master);
+			 "non-authoritative answer from %s", master);
 		goto next_master;
 	}
 
