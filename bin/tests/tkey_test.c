@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.26 2000/06/22 21:50:57 tale Exp $ */
+/* $Id: tkey_test.c,v 1.27 2000/07/21 21:02:46 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -72,7 +72,7 @@ isc_sockaddr_t address;
 dns_message_t *query, *response, *query2, *response2;
 isc_mem_t *mctx;
 isc_entropy_t *ectx;
-dns_tsigkey_t *tsigkey;
+dns_tsigkey_t *tsigkey, *initialkey;
 isc_log_t *log = NULL;
 isc_logconfig_t *logconfig = NULL;
 dns_tsig_keyring_t *ring = NULL;
@@ -81,6 +81,7 @@ isc_buffer_t *nonce = NULL;
 dns_view_t *view = NULL;
 char output[10 * 1024];
 isc_buffer_t outbuf;
+in_port_t port = 53;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -114,6 +115,8 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&source, sevent->region.base, sevent->region.length);
 	isc_buffer_add(&source, sevent->n);
 
+	isc_event_free(&event);
+
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 	CHECK("dns_message_create", result);
@@ -137,8 +140,6 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 
 	dns_message_destroy(&query);
 	dns_message_destroy(&response);
-
-	isc_event_free(&event);
 
 	buildquery2();
 }
@@ -176,6 +177,8 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_init(&source, sevent->region.base, sevent->region.length);
 	isc_buffer_add(&source, sevent->n);
 
+	isc_event_free(&event);
+
 	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response2);
 	result = dns_message_getquerytsig(query2, mctx, &tsigbuf);
@@ -205,8 +208,6 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	dns_message_destroy(&query2);
 	dns_message_destroy(&response2);
 
-	isc_event_free(&event);
-
 	isc_app_shutdown();
 }
 
@@ -217,7 +218,6 @@ buildquery(void) {
 	isc_region_t r, inr;
 	isc_result_t result;
 	dns_fixedname_t keyname;
-	dns_tsigkey_t *key = NULL;
 	isc_buffer_t namestr, keybuf, keybufin;
 	isc_lex_t *lex = NULL;
 	unsigned char keydata[3];
@@ -247,10 +247,11 @@ buildquery(void) {
 
 	isc_buffer_usedregion(&keybuf, &r);
 
+	initialkey = NULL;
 	result = dns_tsigkey_create(dns_fixedname_name(&keyname),
 				    DNS_TSIG_HMACMD5_NAME,
 				    r.base, r.length, ISC_FALSE,
-				    NULL, 0, 0, mctx, ring, &key);
+				    NULL, 0, 0, mctx, ring, &initialkey);
 	CHECK("dns_tsigkey_create", result);
 
 	result = isc_buffer_allocate(mctx, &nonce, 16);
@@ -265,7 +266,7 @@ buildquery(void) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	CHECK("dns_message_create", result);
 
-	dns_message_settsigkey(query, key);
+	dns_message_settsigkey(query, initialkey);
 
 	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
 				       DNS_TSIG_HMACMD5_NAME, nonce, 3600);
@@ -382,13 +383,16 @@ main(int argc, char *argv[]) {
 		exit(-1);
 	}
 
-	while ((ch = isc_commandline_parse(argc, argv, "vw:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "vp:w:")) != -1) {
 		switch (ch) {
 		case 'v':
 			verbose = ISC_TRUE;
 			break;
 		case 'w':
 			workers = (unsigned int)atoi(isc_commandline_argument);
+			break;
+		case 'p':
+			port = (unsigned int)atoi(isc_commandline_argument);
 			break;
 		}
 	}
@@ -433,7 +437,7 @@ main(int argc, char *argv[]) {
 		      ISC_R_SUCCESS);
 
 	inaddr.s_addr = htonl(INADDR_LOOPBACK);
-	isc_sockaddr_fromin(&address, &inaddr, 53);
+	isc_sockaddr_fromin(&address, &inaddr, port);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -467,6 +471,9 @@ main(int argc, char *argv[]) {
 	isc_timermgr_destroy(&timermgr);
 
 	dst_key_free(&ourkey);
+
+	dns_tsigkey_detach(&initialkey);
+	dns_tsigkey_detach(&tsigkey);
 
 	dns_tkeyctx_destroy(&tctx);
 
