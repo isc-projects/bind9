@@ -1067,7 +1067,6 @@
 ./util/check-includes.pl			PERL	2000
 ./util/check-instincludes.sh			SH	2000
 ./util/check-sources.pl				PERL	2000
-./util/conf.sh.in				SH	2000
 ./util/copyrights				X	1999,2000
 ./util/make-snapshot.sh				SH	2000
 ./util/memleak.pl				PERL	1999,2000
