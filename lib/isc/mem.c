@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.69 2000/12/06 00:30:02 tale Exp $ */
+/* $Id: mem.c,v 1.70 2000/12/06 20:32:12 tale Exp $ */
 
 #include <config.h>
 
@@ -1057,7 +1057,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 		fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
 					    ISC_MSG_DUMPALLOC,
 					    "DUMP OF ALL OUTSTANDING "
-					    "MEMORY ALLOCATIONS\n");
+					    "MEMORY ALLOCATIONS\n"));
 		dl = ISC_LIST_HEAD(ctx->debuglist);
 		if (dl == NULL)
 			fprintf(out, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
