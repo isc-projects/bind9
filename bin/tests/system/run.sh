@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: run.sh,v 1.29 2000/07/14 23:38:09 gson Exp $
+# $Id: run.sh,v 1.30 2000/07/15 00:22:08 gson Exp $
 
 #
 # Run a system test.
@@ -59,7 +59,7 @@ $PERL testsock.pl || {
 
 # Check for test-specific prerequisited.
 if
-    test -f $test/prereq.sh &&
+    test ! -f $test/prereq.sh ||
     ( cd $test && sh prereq.sh "$@" )
 then
     : prereqs ok
