@@ -6,6 +6,9 @@
 1578.	[bug]		Don't use CLASS E IPv4 addresses when resolving.
 			[RT #10346]
 
+1577.	[bug]		Use isc_uint32_t in ultrasparc optimizer bug
+			workaround code. [RT #10331]
+
 1576.	[bug]		Race condition in dns_dispatch_addresponse().
 			[RT# 10272]
 
