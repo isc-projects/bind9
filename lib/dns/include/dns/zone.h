@@ -360,7 +360,8 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count);
 /*
  *	Set the list of additional servers to be notified when
- *	a zone changes.
+ *	a zone changes.	 To clear the list use 'notify = NULL'
+ *	and 'count = 0'.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
@@ -589,13 +590,42 @@ dns_zone_getchecknames(dns_zone_t *zone);
 
 void
 dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
+/*
+ *	Sets the journal size for the zone.
+ *
+ * Requires:
+ *	'zone' to be initalised.
+ */
 
 isc_int32_t
 dns_zone_getjournalsize(dns_zone_t *zone);
+/*
+ *	Return the journal size as set with a previous call to
+ *	dns_zone_setjournalsize().
+ *
+ * Requires:
+ *	'zone' to be initalised.
+ */
 
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg);
+/*
+ *	Tell the zone that it has recieved a NOTIFY message from another
+ *	server.  This may cause some zone maintainence activity to occur.
+ *
+ * Requires:
+ *	'zone' to be initalised.
+ *	'*from' to contain the address of the server from which 'msg'
+ *		was recieved.
+ *	'msg' a message with opcode NOTIFY and qr clear.
+ *
+ * Returns:
+ *	DNS_R_REFUSED
+ *	DNS_R_NOTIMP
+ *	DNS_R_FORMERR
+ *	DNS_R_SUCCESS
+ */
 
 void
 dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
@@ -809,6 +839,15 @@ dns_zone_getmctx(dns_zone_t *zone);
  * Get the memory context of a zone.
  */
 
+dns_zonemgr_t *
+dns_zone_getmgr(dns_zone_t *zone);
+/*
+ *	If 'zone' is managed return the zone manager otherwise NULL.
+ *
+ * Requires:
+ *	'zone' to be initalised.
+ */
+  
 void
 dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 /*
@@ -822,9 +861,6 @@ dns_zone_getsigvalidityinterval(dns_zone_t *zone);
 /*
  * Get the zone's SIG validity interval.
  */
-
-dns_zonemgr_t *
-dns_zone_getmgr(dns_zone_t *zone);
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
@@ -869,8 +905,8 @@ dns_zonemgr_detach(dns_zonemgr_t **zmgrp);
  * Detach from a zone manager.
  *
  * Requires:
- *
  *	'*zmgrp' is a valid, non-NULL zone manager pointer.
+ *
  * Ensures:
  *	'*zmgrp' is NULL.
  */
@@ -892,9 +928,21 @@ dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
 
 void
 dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, int value);
+/*
+ *	Set the number of zone transfers allowed per nameserver.
+ *
+ * Requires:
+ *	'zmgr' to be initalised.
+ */
 
 int
 dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
+/*
+ *	Return the number of transfers allowed per nameserver.
+ *
+ * Requires:
+ *	'zmgr' to be initalised.
+ */
 
 ISC_LANG_ENDDECLS
 
