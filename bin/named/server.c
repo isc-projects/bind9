@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.31 2004/11/22 07:38:18 marka Exp $ */
+/* $Id: server.c,v 1.339.2.32 2004/11/30 00:32:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1112,7 +1112,7 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 					 "\0\0\0\0";	/* minimum */
 	dns_name_t origin;
 	int i;
-	static const unsigned char *authors[] = {
+	static const char *authors[] = {
 		"\014Mark Andrews",
 		"\015James Brister",
 		"\014Ben Cottrell",
@@ -1185,7 +1185,7 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	for (i = 0; authors[i] != NULL; i++) {
 		DE_CONST(authors[i], cr.base);
 		cr.length = strlen(authors[i]);
-		INSIST(cr.length == ((const unsigned char *)cr.base)[0] + 1U);
+		INSIST(cr.length == cr.base[0] + 1U);
 		dns_rdata_fromregion(&rdata, dns_rdataclass_ch,
 				     dns_rdatatype_txt, &cr);
 		tuple = NULL;
