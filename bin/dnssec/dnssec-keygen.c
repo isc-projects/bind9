@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.26 2000/05/24 23:13:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.27 2000/05/24 23:54:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/name.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -37,48 +38,12 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-#define PROGRAM "dnssec-keygen"
+#include "dnssectool.h"
 
 #define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
 
-static int verbose;
-
-static void
-fatal(char *format, ...) {
-	va_list args;
-
-	fprintf(stderr, "%s: ", PROGRAM);
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}
-
-static inline void
-check_result(isc_result_t result, char *message) {
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s: %s\n", PROGRAM, message,
-			isc_result_totext(result));
-		exit(1);
-	}
-}
-
-/* Not thread-safe! */
-static char *
-algtostr(const dns_secalg_t alg) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	static char data[10];
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_secalg_totext(alg, &b);
-	check_result(result, "dns_secalg_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
+char *program = "dnssec-keygen";
+int verbose;
 
 static isc_boolean_t
 dsa_size_ok(int size) {
@@ -88,7 +53,7 @@ dsa_size_ok(int size) {
 static void
 usage(void) {
 	printf("Usage:\n");
-	printf("    %s [options] name\n\n", PROGRAM);
+	printf("    %s [options] name\n\n", program);
 	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
@@ -130,6 +95,7 @@ main(int argc, char **argv) {
 	isc_textregion_t r;
 	char		filename[255];
 	isc_buffer_t	buf;
+	isc_log_t	*log = NULL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -205,10 +171,12 @@ main(int argc, char **argv) {
 			usage();
 		default:
 			fprintf(stderr, "%s: invalid argument -%c\n",
-				PROGRAM, ch);
+				program, ch);
 			usage();
 		} 
 	}
+
+	setup_logging(verbose, mctx, &log);
 
 	if (argc < isc_commandline_index + 1)
 		fatal("the key name was not specified");
@@ -369,7 +337,7 @@ main(int argc, char **argv) {
 				fprintf(stderr,
 					"%s: %s already exists, "
 					"generating a new key\n",
-					PROGRAM, filename);
+					program, filename);
 			}
 		}
 
@@ -394,7 +362,11 @@ main(int argc, char **argv) {
 	if (type != NULL)
 		isc_mem_free(mctx, type);
 	dst_key_free(&key);
-	isc_mem_destroy(&mctx);
+
+	if (log != NULL)
+		isc_log_destroy(&log);
+	/* isc_mem_stats(mctx, stdout);*/
+        isc_mem_destroy(&mctx);
 
 	return (0);
 }

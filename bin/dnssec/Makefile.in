@@ -43,24 +43,25 @@ TARGETS =	dnssec-keygen \
 SRCS =		dnssec-keygen.c \
 		dnssec-makekeyset.c \
 		dnssec-signkey.c \
-		dnssec-signzone.c
+		dnssec-signzone.c \
+		dnssectool.c
 
 @BIND9_MAKE_RULES@
 
-dnssec-keygen: dnssec-keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ \
+dnssec-keygen: dnssec-keygen.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ dnssectool.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dnssec-makekeyset: dnssec-makekeyset.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ \
+dnssec-makekeyset: dnssec-makekeyset.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ dnssectool.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dnssec-signkey: dnssec-signkey.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ \
+dnssec-signkey: dnssec-signkey.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ dnssectool.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-dnssec-signzone: dnssec-signzone.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ \
+dnssec-signzone: dnssec-signzone.@O@ dnssectool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ dnssectool.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::

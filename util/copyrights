@@ -18,6 +18,8 @@
 ./bin/dnssec/dnssec-makekeyset.			C	2000
 ./bin/dnssec/dnssec-signkey.c			C	2000
 ./bin/dnssec/dnssec-signzone.c			C	1999,2000
+./bin/dnssec/dnssectool.c			C	2000
+./bin/dnssec/dnssectool.h			C	2000
 ./bin/lwresd/.cvsignore				X	2000
 ./bin/lwresd/Makefile.in			MAKE	2000
 ./bin/lwresd/client.c				C	2000

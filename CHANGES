@@ -1,3 +1,5 @@
+ 207.   [func]		The dnssec tools properly use the logging subsystem.
+
  206.   [cleanup]	dst now stores the key name as a dns_name_t, not
 			a char *.
 

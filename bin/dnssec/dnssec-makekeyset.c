@@ -35,9 +35,14 @@
 #include <dns/secalg.h>
 #include <dns/time.h>
 
-#define PROGRAM "dnssec-makekeyset"
+#include <dst/dst.h>
+
+#include "dnssectool.h"
 
 #define BUFSIZE 2048
+
+char *program = "dnssec-makekeyset";
+int verbose;
 
 typedef struct keynode keynode_t;
 struct keynode {
@@ -48,64 +53,10 @@ typedef ISC_LIST(keynode_t) keylist_t;
 
 static isc_stdtime_t starttime = 0, endtime = 0, now;
 static int ttl = -1;
-static int verbose;
 
 static isc_mem_t *mctx = NULL;
 
 static keylist_t keylist;
-
-static void
-fatal(char *format, ...) {
-	va_list args;
-
-	fprintf(stderr, "%s: ", PROGRAM);
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}
-
-static inline void
-check_result(isc_result_t result, char *message) {
-	if (result != ISC_R_SUCCESS) {
-		fatal("%s: %s\n", message, isc_result_totext(result));
-		exit(1);
-	}
-}
-
-/* Not thread-safe! */
-static char *
-nametostr(dns_name_t *name) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	static char data[1025];
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_name_totext(name, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
-
-/* Not thread-safe! */
-static char *
-algtostr(const dns_secalg_t alg) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	static char data[10];
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_secalg_totext(alg, &b);
-	check_result(result, "dns_secalg_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
-
 
 static isc_stdtime_t
 strtotime(char *str, isc_int64_t now, isc_int64_t base) {
@@ -135,7 +86,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\t%s [options] keys\n", PROGRAM);
+	fprintf(stderr, "\t%s [options] keys\n", program);
 
 	fprintf(stderr, "\n");
 
@@ -176,7 +127,6 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_log_t *log = NULL;
-	isc_logconfig_t *logconfig;
 	keynode_t *keynode;
 	dns_fixedname_t fsavedname;
 	dns_name_t *savedname = NULL;
@@ -250,18 +200,10 @@ main(int argc, char *argv[]) {
 	if (ttl == -1) {
 		ttl = 3600;
 		fprintf(stderr, "%s: TTL not specified, assuming 3600\n",
-			PROGRAM);
+			program);
 	}
 
-	if (verbose > 0) {
-		RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
-			      == ISC_R_SUCCESS);
-		isc_log_setcontext(log);
-		dns_log_init(log);
-		dns_log_setcontext(log);
-		RUNTIME_CHECK(isc_log_usechannel(logconfig, "default_stderr",
-						 NULL, NULL) == ISC_R_SUCCESS);
-	}
+	setup_logging(verbose, mctx, &log);
 
 	dns_rdatalist_init(&rdatalist);
 	rdatalist.rdclass = dns_rdataclass_in;
@@ -372,7 +314,7 @@ main(int argc, char *argv[]) {
 	if (ISC_LIST_EMPTY(keylist))
 		fprintf(stderr,
 			"%s: no private zone key found; not self-signing\n",
-			PROGRAM);
+			program);
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
 	     keynode = ISC_LIST_NEXT(keynode, link))

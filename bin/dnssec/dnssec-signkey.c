@@ -34,7 +34,12 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 
-#define PROGRAM "dnssec-signkey"
+#include <dst/dst.h>
+
+#include "dnssectool.h"
+
+char *program = "dnssec-signkey";
+int verbose;
 
 #define BUFSIZE 2048
 
@@ -47,69 +52,14 @@ struct keynode {
 typedef ISC_LIST(keynode_t) keylist_t;
 
 static isc_stdtime_t now;
-static int verbose;
 
 static isc_mem_t *mctx = NULL;
 static keylist_t keylist;
 
 static void
-fatal(char *format, ...) {
-	va_list args;
-
-	fprintf(stderr, "%s: ", PROGRAM);
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}
-
-static inline void
-check_result(isc_result_t result, char *message) {
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s: %s\n", PROGRAM, message,
-			isc_result_totext(result));
-		exit(1);
-	}
-}
-
-/* Not thread-safe! */
-static char *
-nametostr(dns_name_t *name) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-	static char data[1025];
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_name_totext(name, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
-
-/* Not thread-safe! */
-static char *
-algtostr(const dns_secalg_t alg) {
-	isc_buffer_t b;
-		        isc_region_t r;
-	isc_result_t result;
-	static char data[10];
-
-	isc_buffer_init(&b, data, sizeof(data));
-	result = dns_secalg_totext(alg, &b);
-	check_result(result, "dns_secalg_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-	return (char *) r.base;
-}
-
-
-static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\t%s [options] keyset keys\n", PROGRAM);
+	fprintf(stderr, "\t%s [options] keyset keys\n", program);
 
 	fprintf(stderr, "\n");
 
@@ -194,7 +144,6 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	isc_region_t r;
 	isc_log_t *log = NULL;
-	isc_logconfig_t *logconfig;
 	keynode_t *keynode;
 
 	dns_result_register();
@@ -226,15 +175,7 @@ main(int argc, char *argv[]) {
 
 	isc_stdtime_get(&now);
 
-	if (verbose > 0) {
-		RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig)
-			      == ISC_R_SUCCESS);
-		isc_log_setcontext(log);
-		dns_log_init(log);
-		dns_log_setcontext(log);
-		RUNTIME_CHECK(isc_log_usechannel(logconfig, "default_stderr",
-						 NULL, NULL) == ISC_R_SUCCESS);
-	}
+	setup_logging(verbose, mctx, &log);
 
 	if (strlen(argv[0]) < 8 ||
 	    strcmp(argv[0] + strlen(argv[0]) - 7, ".keyset") != 0)
