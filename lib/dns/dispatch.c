@@ -238,11 +238,10 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 	if (mgr->entropy != NULL) {
 		result = isc_entropy_getdata(mgr->entropy, &val, sizeof val,
 					     NULL, 0);
-		if (result == ISC_R_SUCCESS) {
-			lfsr->count = (val & 0x1f) + 32;
-			lfsr->state = val;
-			return;
-		}
+		INSIST(result == ISC_R_SUCCESS);
+		lfsr->count = (val & 0x1f) + 32;
+		lfsr->state = val;
+		return;
 	}
 
 	lfsr->count = (random() & 0x1f) + 32;	/* From 32 to 63 states */
@@ -520,7 +519,6 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			return;
 		}
 
-		
 		dispatch_log(disp, LVL(10),
 			     "odd socket result in udp_recv():  %s\n",
 			     ev->result);

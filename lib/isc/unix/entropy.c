@@ -31,6 +31,7 @@
 #include <isc/region.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 /*
@@ -67,6 +68,15 @@
  */
 #define RND_EVENTQSIZE	32
 
+/*
+ * The number of times we'll "reseed" for pseudorandom seeds.  This is an
+ * extremely weak pseudorandom seed.  If the caller is using lots of
+ * pseudorandom data and they cannot provide a stronger random source,
+ * there is little we can do other than hope they're smart enough to
+ * call _adddata() with something better than we can come up with.
+ */
+#define RND_INITIALIZE	128
+
 typedef struct {
 	isc_uint32_t	magic;
 	isc_uint32_t	cursor;		/* current add point in the pool */
@@ -82,6 +92,7 @@ struct isc_entropy {
 	isc_mutex_t			lock;
 	unsigned int			refcnt;
 	isc_uint32_t			initialized;
+	isc_uint32_t			initcount;
 	isc_entropypool_t		pool;
 	unsigned int			nsources;
 	isc_entropysource_t	       *nextsource;
@@ -152,6 +163,9 @@ wait_for_sources(isc_entropy_t *);
 
 static unsigned int
 crunchsamples(isc_entropy_t *, sample_queue_t *sq);
+
+static inline void
+reseed(isc_entropy_t *ent);
 
 static void
 samplequeue_release(isc_entropy_t *ent, sample_queue_t *sq) {
@@ -319,6 +333,35 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 
 	add_entropy(ent, entropy);
 	subtract_pseudo(ent, entropy);
+}
+
+static inline void
+reseed(isc_entropy_t *ent) {
+	isc_result_t result;
+	isc_time_t t;
+	pid_t pid;
+
+	if (ent->initcount == 0) {
+		pid = getpid();
+		entropypool_adddata(ent, &pid, sizeof pid, 0);
+		pid = getppid();
+		entropypool_adddata(ent, &pid, sizeof pid, 0);
+	}
+
+	/*
+	 * After we've reseeded 100 times, only add new timing info every
+	 * 50 requests.  This will keep us from using lots and lots of
+	 * CPU just to return bad pseudorandom data anyway.
+	 */
+	if (ent->initcount > 100)
+		if ((ent->initcount % 50) != 0)
+			return;
+
+	result = isc_time_now(&t);
+	if (result == ISC_R_SUCCESS) {
+		entropypool_adddata(ent, &t, sizeof t, 0);
+		ent->initcount++;
+	}
 }
 
 static unsigned int
@@ -647,10 +690,10 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 			/*
 			 * If we've not initialized with enough good random
-			 * data, fail.
+			 * data, seed with our crappy code.
 			 */
 			if (ent->initialized < THRESHOLD_BITS)
-				goto zeroize;
+				reseed(ent);
 		}
 
 		isc_sha1_init(&hash);
@@ -748,6 +791,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	isc_mem_attach(mctx, &ent->mctx);
 	ent->refcnt = 1;
 	ent->initialized = 0;
+	ent->initcount = 0;
 	ent->magic = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
@@ -1287,10 +1331,12 @@ isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
 	REQUIRE(VALID_ENTROPY(ent));
 
 	LOCK(&ent->lock);
+
 	entropypool_adddata(ent, data, length, entropy);
 
 	if (ent->initialized < THRESHOLD_BITS)
 		ent->initialized = THRESHOLD_BITS;
+
 	UNLOCK(&ent->lock);
 }
 
@@ -1299,11 +1345,12 @@ dumpstats(isc_entropy_t *ent, FILE *out) {
 	fprintf(out,
 		"Entropy pool %p:  refcnt %u"
 		" cursor %u, rotate %u entropy %u pseudo %u nsources %u"
-		" nextsource %p initialized %u\n",
+		" nextsource %p initialized %u initcount %u\n",
 		ent, ent->refcnt,
 		ent->pool.cursor, ent->pool.rotate,
 		ent->pool.entropy, ent->pool.pseudo,
-		ent->nsources, ent->nextsource, ent->initialized);
+		ent->nsources, ent->nextsource, ent->initialized,
+		ent->initcount);
 }
 
 /*
