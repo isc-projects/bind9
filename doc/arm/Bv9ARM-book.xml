@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.105 2001/02/16 03:03:08 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.106 2001/02/20 23:09:39 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4708,10 +4708,10 @@ be appended to any unqualified records. When a zone is first read
 in there is an implicit <command>$ORIGIN</command> &#60;<varname>zone-name</varname>><command>.</command> The
 current <command>$ORIGIN</command> is appended to the domain specified
 in the <command>$ORIGIN</command> argument if it is not absolute.</para>
-<programlisting><literal>$ORIGIN example.com
+<programlisting><literal>$ORIGIN example.com.
 WWW     CNAME   MAIN-SERVER</literal></programlisting>
 <para>is equivalent to</para>
-<programlisting><literal>WWW.EXAMPLE.COM CNAME MAIN-SERVER.EXAMPLE.COM.</literal></programlisting></sect3>
+<programlisting><literal>WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.</literal></programlisting></sect3>
 <sect3><title>The <command>$INCLUDE</command> Directive</title>
 <para>Syntax: <command>$INCLUDE</command>
 <replaceable>filename</replaceable> <optional>
