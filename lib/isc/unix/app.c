@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: app.c,v 1.19 2000/06/29 07:40:58 explorer Exp $ */
+/* $Id: app.c,v 1.20 2000/07/11 19:18:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -152,11 +152,17 @@ isc_app_start(void) {
 	/*
 	 * On Solaris 2, delivery of a signal whose action is SIG_IGN
 	 * will not cause sigwait() to return. We may have inherited
-	 * a SIG_IGN action for SIGHUP from our parent process,
-	 * (e.g, Solaris cron).  Set an action of SIG_DFL to make
+	 * unexpected actions for SIGHUP, SIGINT, and SIGTERM from our parent
+	 * process, * (e.g, Solaris cron).  Set an action of SIG_DFL to make
 	 * sure sigwait() works as expected.
 	 */
 	result = handle_signal(SIGHUP, SIG_DFL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = handle_signal(SIGTERM, SIG_DFL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = handle_signal(SIGINT, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
