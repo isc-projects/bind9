@@ -1,3 +1,6 @@
+1627.	[bug]		win32: sockets were not being closed when the
+			last external reference was removed. [RT# 11179]
+
 1626.	[bug]		--enable-getifaddrs was broken. [RT#11259]
 
 1625.   [placeholder]	rt11237

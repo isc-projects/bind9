@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.10 2004/04/19 05:52:21 marka Exp $ */
+/* $Id: config.h.win32,v 1.11 2004/05/03 23:54:37 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -103,6 +103,10 @@
 
 /* Define if you have h_errno */
 #define HAVE_H_ERRNO
+
+#define ISC_PLATFORM_NEEDSTRLCAT
+
+#define ISC_PLATFORM_NEEDSTRLCPY
 
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */

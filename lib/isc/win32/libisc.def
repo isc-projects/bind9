@@ -433,6 +433,8 @@ isc_task_getcurrenttime
 isc_net_probe_ipv6only
 isc_timermgr_poke
 isc_net_probe_ipv6pktinfo
+isc_string_strlcat
+isc_string_strlcpy
 
 ; Exported Data
 
