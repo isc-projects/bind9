@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.5 2000/12/21 01:54:30 bwelling Exp $ */
+/* $Id: named-checkzone.c,v 1.6 2000/12/21 22:11:03 gson Exp $ */
 
 #include <config.h>
 
@@ -160,7 +160,7 @@ main(int argc, char **argv) {
 		filename = origin;
 	result = setup(origin, filename, (char *)classname);
 	if (!quiet && result == ISC_R_SUCCESS)
-		fprintf(stdout, "OK\n ");
+		fprintf(stdout, "OK\n");
 	destroy();
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
