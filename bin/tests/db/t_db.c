@@ -22,6 +22,7 @@
 
 #include <isc/mem.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/fixedname.h>
@@ -35,13 +36,13 @@
 #include <tests/t_api.h>
 
 static isc_result_t
-t_create(char *db_type, char *origin, char *class, char *cache,
-	 isc_mem_t *mctx, dns_db_t **db)
+t_create(const char *db_type, const char *origin, const char *class,
+	 const char *cache, isc_mem_t *mctx, dns_db_t **db)
 {
 	int			len;
 	isc_result_t		dns_result;
 	isc_boolean_t		iscache;
-	isc_textregion_t	textregion;
+	isc_constregion_t	region;
 	isc_buffer_t		origin_buffer;
 	dns_fixedname_t		dns_origin;
 	dns_rdataclass_t	rdataclass;
@@ -63,9 +64,10 @@ t_create(char *db_type, char *origin, char *class, char *cache,
 		return(dns_result);
 	}
 
-	textregion.base = class;
-	textregion.length = strlen(class);
-	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
+	region.base = class;
+	region.length = strlen(class);
+	dns_result = dns_rdataclass_fromtext(&rdataclass,
+					     (isc_textregion_t *)&region);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
 		       dns_result_totext(dns_result));
@@ -218,7 +220,7 @@ t_dns_db_load(char **av) {
 	return(result);
 }
 
-static char *a1 =
+static const char *a1 =
 	"A call to dns_db_load(db, filename) loads the contents of "
 	"the database in filename into db.";
 
@@ -232,7 +234,7 @@ t1(void) {
 }
 
 
-static char *a2 =
+static const char *a2 =
 	"When the database db has cache semantics, a call to "
 	"dns_db_iscache(db) returns ISC_TRUE.";
 
@@ -315,7 +317,7 @@ t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
 }
 
 static int
-test_dns_db_zc_x(char *filename, isc_boolean_t cache,
+test_dns_db_zc_x(const char *filename, isc_boolean_t cache,
 		 isc_boolean_t(*cf)(dns_db_t *), isc_boolean_t exp_result)
 {
 
@@ -394,7 +396,7 @@ t2(void) {
 }
 
 
-static char *a3 =
+static const char *a3 =
 	"When the database db has zone semantics, a call to "
 	"dns_db_iscache(db) returns ISC_FALSE.";
 
@@ -410,7 +412,7 @@ t3(void) {
 }
 
 
-static char *a4 =
+static const char *a4 =
 	"When the database db has zone semantics, a call to "
 	"dns_db_iszone(db) returns ISC_TRUE.";
 
@@ -426,7 +428,7 @@ t4(void) {
 }
 
 
-static char *a5 =
+static const char *a5 =
 	"When the database db has cache semantics, a call to "
 	"dns_db_iszone(db) returns ISC_FALSE.";
 
@@ -521,7 +523,7 @@ t_dns_db_origin(char **av) {
 
 }
 
-static char *a6 =
+static const char *a6 =
 	"A call to dns_db_origin(db) returns the origin of the database.";
 
 static void
@@ -534,7 +536,7 @@ t6(void) {
 }
 
 
-static char *a7 =
+static const char *a7 =
 	"A call to dns_db_class(db) returns the class of the database.";
 
 
@@ -625,7 +627,7 @@ t7(void) {
 }
 
 
-static char *a8 =
+static const char *a8 =
 	"A call to dns_db_currentversion() opens the current "
 	"version for reading.";
 
@@ -859,7 +861,7 @@ t8(void) {
 	t_result(result);
 }
 
-static char *a9 =
+static const char *a9 =
 	"A call to dns_db_newversion() opens a new version for "
 	"reading and writing.";
 
@@ -888,6 +890,7 @@ t_dns_db_newversion(char **av) {
 	dns_fixedname_t		dns_newname;
 	dns_fixedname_t		dns_foundname;
 	dns_rdata_t		added_rdata;
+	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
 	dns_rdata_t		found_rdata;
 	dns_rdataset_t		found_rdataset;
@@ -998,7 +1001,8 @@ t_dns_db_newversion(char **av) {
 	}
 
 	dns_rdata_init(&added_rdata);
-	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
+	added_rdata_data = "\x10\x00\x00\x01";
+	DE_CONST(added_rdata_data, added_rdata.data);
 	added_rdata.length = 4;
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = rdatatype;
@@ -1131,7 +1135,7 @@ t9(void) {
 	t_result(result);
 }
 
-static char *a10 =
+static const char *a10 =
 	"When versionp points to a read-write version and commit is "
 	"ISC_TRUE, a call to dns_db_closeversion(db, versionp, commit) "
 	"causes all changes made in the version to take effect, "
@@ -1164,6 +1168,7 @@ t_dns_db_closeversion_1(char **av) {
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_existingname;
 	dns_rdata_t		added_rdata;
+	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
 	dns_rdata_t		found_rdata;
 	dns_rdataset_t		found_rdataset;
@@ -1348,7 +1353,8 @@ t_dns_db_closeversion_1(char **av) {
 	}
 
 	dns_rdata_init(&added_rdata);
-	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
+	added_rdata_data = "\x10\x00\x00\x01";
+	DE_CONST(added_rdata_data, added_rdata.data);
 	added_rdata.length = 4;
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
@@ -1490,7 +1496,7 @@ t10(void) {
 	t_result(result);
 }
 
-static char *a11 =
+static const char *a11 =
 	"When versionp points to a read-write version and commit is "
 	"ISC_FALSE, a call to dns_db_closeversion(db, versionp, commit) "
 	"causes all changes made in the version to to be rolled back, "
@@ -1523,6 +1529,7 @@ t_dns_db_closeversion_2(char **av) {
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_existingname;
 	dns_rdata_t		added_rdata;
+	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
 	dns_rdata_t		found_rdata;
 	dns_rdataset_t		found_rdataset;
@@ -1661,7 +1668,7 @@ t_dns_db_closeversion_2(char **av) {
 				       &name_buffer, NULL, ISC_FALSE, NULL);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_name_fromtext failed %s\n",
-			dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1672,7 +1679,7 @@ t_dns_db_closeversion_2(char **av) {
 				     ISC_TRUE, &nodep);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_db_findnode failed %s\n",
-				dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1684,8 +1691,7 @@ t_dns_db_closeversion_2(char **av) {
 	dns_result = dns_rdatatype_fromtext(&new_rdatatype, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdatatype_fromtext %s failed %s\n",
-				new_type,
-				dns_result_totext(dns_result));
+		       new_type, dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1697,7 +1703,7 @@ t_dns_db_closeversion_2(char **av) {
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
-				dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1705,7 +1711,8 @@ t_dns_db_closeversion_2(char **av) {
 	}
 
 	dns_rdata_init(&added_rdata);
-	added_rdata.data = (unsigned char *)"\x10\x00\x00\x01";
+	added_rdata_data = "\x10\x00\x00\x01";
+	DE_CONST(added_rdata_data, added_rdata.data);
 	added_rdata.length = 4;
 	added_rdata.rdclass = rdataclass;
 	added_rdata.type = new_rdatatype;
@@ -1721,7 +1728,7 @@ t_dns_db_closeversion_2(char **av) {
 	dns_result = dns_rdatalist_tordataset(&rdatalist, &added_rdataset);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdatalist_tordataset failed %s\n",
-				dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_detachnode(db, &nodep);
 		dns_db_detach(&db);
 		isc_mem_destroy(&mctx);
@@ -1732,7 +1739,7 @@ t_dns_db_closeversion_2(char **av) {
 				&added_rdataset, 0, NULL);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_db_addrdataset failed %s\n",
-				dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detachnode(db, &nodep);
 		dns_db_detach(&db);
@@ -1761,7 +1768,7 @@ t_dns_db_closeversion_2(char **av) {
 	    (dns_result == DNS_R_NXRRSET)) {
 
 		t_info("dns_db_find failed %s\n",
-				dns_result_totext(dns_result));
+		       dns_result_totext(dns_result));
 		dns_db_closeversion(db, &nversionp, ISC_FALSE);
 		dns_db_detachnode(db, &nodep);
 		if (dns_rdataset_isassociated(&found_rdataset))
@@ -1911,7 +1918,7 @@ t11(void) {
 	t_result(result);
 }
 
-static char *a12 =
+static const char *a12 =
 	"A call to dns_db_expirenode() marks as stale all records at node  "
 	"which expire at or before 'now'. If 'now' is zero, then the current  "
 	"time will be used.";
@@ -2086,7 +2093,7 @@ t12(void) {
 	t_result(result);
 }
 
-static char *a13 =
+static const char *a13 =
 	"If the node name exists, then a call to "
 	"dns_db_findnode(db, name, ISC_FALSE, nodep) initializes nodep "
 	"to point to the node and returns ISC_R_SUCCESS, otherwise "
@@ -2232,7 +2239,7 @@ t13(void) {
 	t_result(result);
 }
 
-static char *a14 =
+static const char *a14 =
 	"If the node name does not exist and create is ISC_TRUE, "
 	"then a call to dns_db_findnode(db, name, create, nodep) "
 	"creates the node, initializes nodep to point to the node, "
@@ -2560,7 +2567,7 @@ t_dns_db_find_x(char **av) {
 	return(result);
 }
 
-static char *a15 =
+static const char *a15 =
 	"A call to dns_db_find(db, name, version, type, options, now, ...)  "
 	"finds the best match for 'name' and 'type' in version 'version' "
 	"of 'db'.";
@@ -2575,7 +2582,7 @@ t15(void) {
 }
 
 
-static char *a16 =
+static const char *a16 =
 	"When the desired node and type were found, but are glue, "
 	"and the DNS_DBFIND_GLUEOK option is set, a call to "
 	"dns_db_find(db, name, version, type, options, now, ...)  "
@@ -2590,7 +2597,7 @@ t16(void) {
 	t_result(result);
 }
 
-static char *a17 =
+static const char *a17 =
 	"A call to dns_db_find() returns DNS_R_DELEGATION when the data "
 	"requested is beneath a zone cut.";
 
@@ -2603,7 +2610,7 @@ t17(void) {
 	t_result(result);
 }
 
-static char *a18 =
+static const char *a18 =
 	"A call to dns_db_find() returns DNS_R_ZONECUT when type is "
 	"dns_rdatatype_any and the desired node is a zone cut.";
 
@@ -2616,7 +2623,7 @@ t18(void) {
 	t_result(result);
 }
 
-static char *a19 =
+static const char *a19 =
 	"A call to dns_db_find() returns DNS_R_DNAME when the data "
 	"requested is beneath a DNAME.";
 
@@ -2629,7 +2636,7 @@ t19(void) {
 	t_result(result);
 }
 
-static char *a20 =
+static const char *a20 =
 	"A call to dns_db_find() returns DNS_R_CNAME when the requested "
 	"rdataset was not found but there is a CNAME at the desired name.";
 
@@ -2642,7 +2649,7 @@ t20(void) {
 	t_result(result);
 }
 
-static char *a21 =
+static const char *a21 =
 	"A call to dns_db_find() returns DNS_R_NXDOMAIN when name "
 	"does not exist.";
 
@@ -2655,7 +2662,7 @@ t21(void) {
 	t_result(result);
 }
 
-static char *a22 =
+static const char *a22 =
 	"A call to dns_db_find() returns DNS_R_NXRRSET when "
 	"the desired name exists, but the desired type does not.";
 
@@ -2668,7 +2675,7 @@ t22(void) {
 	t_result(result);
 }
 
-static char *a23 =
+static const char *a23 =
 	"When db is a cache database, a call to dns_db_find() "
 	"returns ISC_R_NOTFOUND when the desired name does not exist, "
 	"and no delegation could be found.";
@@ -2682,7 +2689,7 @@ t23(void) {
 	t_result(result);
 }
 
-static char *a24 =
+static const char *a24 =
 	"When db is a cache database, an rdataset will be found only "
 	"if at least one rdataset at the found node expires after 'now'.";
 

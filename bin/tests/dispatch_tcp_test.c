@@ -46,13 +46,8 @@ unsigned char render_buffer[1024];
 dns_rdataset_t rdataset;
 dns_rdatalist_t rdatalist;
 
-void my_accept(isc_task_t *, isc_event_t *);
-void got_request(isc_task_t *, isc_event_t *);
-void got_response(isc_task_t *, isc_event_t *);
-void start_response(void);
-static inline void CHECKRESULT(isc_result_t, char *);
-void send_done(isc_task_t *, isc_event_t *);
-void hex_dump(isc_buffer_t *);
+static void
+got_request(isc_task_t *, isc_event_t *);
 
 static isc_result_t
 printmsg(dns_message_t *msg, FILE *out) {
@@ -68,12 +63,12 @@ printmsg(dns_message_t *msg, FILE *out) {
 
 	fprintf(out, "msg:\n%*s\n",
 		isc_buffer_usedlength(&textbuf),
-		isc_buffer_base(&textbuf));
+		(char *)isc_buffer_base(&textbuf));
 
 	return (ISC_R_SUCCESS);
 }
 
-void
+static void
 hex_dump(isc_buffer_t *b) {
 	unsigned int len;
 	isc_region_t r;
@@ -91,7 +86,7 @@ hex_dump(isc_buffer_t *b) {
 }
 
 static inline void
-CHECKRESULT(isc_result_t result, char *msg) {
+CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
 
@@ -99,7 +94,7 @@ CHECKRESULT(isc_result_t result, char *msg) {
 	}
 }
 
-void
+static void
 my_accept(isc_task_t *task, isc_event_t *ev_in) {
 	isc_socket_newconnev_t *ev = (isc_socket_newconnev_t *)ev_in;
 	dns_dispentry_t *resp;
@@ -132,160 +127,7 @@ my_accept(isc_task_t *task, isc_event_t *ev_in) {
 	isc_event_free(&ev_in);
 }
 
-void
-send_done(isc_task_t *task, isc_event_t *ev_in) {
-	isc_socketevent_t *ev = (isc_socketevent_t *)ev_in;
-	dns_dispentry_t *resp = (dns_dispentry_t *)ev_in->ev_arg;
-
-	(void)task;
-
-	if (ev->result == ISC_R_SUCCESS) {
-		printf("Send done (SUCCESS)\n");
-		isc_event_free(&ev_in);
-		return;
-	}
-
-	CHECKRESULT(ev->result, "send_done got event");
-
-	isc_event_free(&ev_in);
-
-	printf("--- removing response (FAILURE)\n");
-	dns_dispatch_removeresponse(&resp, NULL);
-	isc_app_shutdown();
-}
-
-void
-start_response(void) {
-	dns_dispentry_t *resp;
-	dns_messageid_t id;
-	isc_sockaddr_t from;
-	dns_message_t *msg;
-	isc_result_t result;
-	dns_name_t *name;
-	unsigned char namebuf[255];
-	isc_buffer_t target;
-	isc_buffer_t source;
-	isc_region_t region;
-
-#define QUESTION "flame.org."
-
-	isc_buffer_init(&source, QUESTION, strlen(QUESTION));
-	isc_buffer_add(&source, strlen(QUESTION));
-	isc_buffer_setactive(&source, strlen(QUESTION));
-	isc_buffer_init(&target, namebuf, sizeof(namebuf));
-
-	memset(&from, 0, sizeof(from));
-	from.length = sizeof(struct sockaddr_in);
-#ifdef ISC_PLATFORM_HAVESALEN
-	from.type.sa.sa_len = sizeof(struct sockaddr_in);
-#endif
-	from.type.sin.sin_port = htons(53);
-	from.type.sa.sa_family = AF_INET;
-	RUNTIME_CHECK(inet_aton("204.152.184.97",
-				&from.type.sin.sin_addr) == 1);
-
-	msg = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &msg);
-	CHECKRESULT(result, "dns_message_create()");
-
-	name = NULL;
-	result = dns_message_gettempname(msg, &name);
-	CHECKRESULT(result, "dns_message_gettempname()");
-
-	dns_name_init(name, NULL);
-	result = dns_name_fromtext(name, &source, dns_rootname, ISC_FALSE,
-				   &target);
-	CHECKRESULT(result, "dns_name_fromtext()");
-
-	dns_message_addname(msg, name, DNS_SECTION_QUESTION);
-
-	rdatalist.rdclass = dns_rdataclass_in;
-	rdatalist.type = dns_rdatatype_a;
-	rdatalist.ttl = 0;
-	ISC_LIST_INIT(rdatalist.rdata);
-
-	dns_rdataset_init(&rdataset);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	CHECKRESULT(result, "dns_rdatalist_tordataset()");
-
-	ISC_LIST_APPEND(name->list, &rdataset, link);
-
-	result = printmsg(msg, stderr);
-	CHECKRESULT(result, "printmsg()");
-
-	isc_buffer_init(&render, render_buffer, sizeof(render_buffer));
-	result = dns_message_renderbegin(msg, &render);
-	CHECKRESULT(result, "dns_message_renderbegin()");
-
-	rdataset.attributes |= DNS_RDATASETATTR_QUESTION;
-
-	result = dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0);
-	CHECKRESULT(result, "dns_message_rendersection(QUESTION)");
-
-	result = dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0);
-	CHECKRESULT(result, "dns_message_rendersection(ANSWER)");
-
-	result = dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0);
-	CHECKRESULT(result, "dns_message_rendersection(ADDITIONAL)");
-
-	result = dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0);
-	CHECKRESULT(result, "dns_message_rendersection(AUTHORITY)");
-
-	printf("--- adding response\n");
-	resp = NULL;
-	result = dns_dispatch_addresponse(disp, &from, t0, got_response, NULL,
-					  &id, &resp);
-	CHECKRESULT(result, "dns_dispatch_addresponse");
-
-	printf("Assigned MessageID %d\n", id);
-
-	msg->opcode = dns_opcode_query;
-	msg->rcode = dns_rcode_noerror;
-	msg->flags = DNS_MESSAGEFLAG_RD;
-	msg->id = id;
-
-	result = dns_message_renderend(msg);
-	CHECKRESULT(result, "dns_message_renderend");
-
-	dns_message_destroy(&msg);
-
-	isc_buffer_usedregion(&render, &region);
-	result = isc_socket_send(dns_dispatch_getsocket(disp), &region,
-				 t0, send_done, resp);
-	CHECKRESULT(result, "isc_socket_send()");
-}
-
-void
-got_response(isc_task_t *task, isc_event_t *ev_in) {
-	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
-	dns_dispentry_t *resp = ev->ev_sender;
-	dns_message_t *msg;
-	isc_result_t result;
-
-	(void)task;
-
-	printf("App:  Got response (id %d).  Result: %s\n",
-	       ev->id, isc_result_totext(ev->result));
-
-	msg = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	CHECKRESULT(result, "dns_message_create() failed");
-
-	result = dns_message_parse(msg, &ev->buffer, ISC_FALSE);
-	CHECKRESULT(result, "dns_message_parse() failed");
-
-	result = printmsg(msg, stderr);
-	CHECKRESULT(result, "printmsg() failed");
-
-	dns_message_destroy(&msg);
-
-	printf("--- removing response\n");
-	dns_dispatch_removeresponse(&resp, &ev);
-
-	isc_app_shutdown();
-}
-
-void
+static void
 got_request(isc_task_t *task, isc_event_t *ev_in) {
 	dns_dispatchevent_t *ev = (dns_dispatchevent_t *)ev_in;
 	dns_dispentry_t *resp = ev->ev_sender;

@@ -64,7 +64,7 @@ static int			pause_every = 0;
 static isc_boolean_t		ascending = ISC_TRUE;
 
 static void
-print_result(char *message, isc_result_t result) {
+print_result(const char *message, isc_result_t result) {
 	size_t len;
 
 	if (message == NULL) {
@@ -235,7 +235,7 @@ list(dbinfo *dbi, char *seektext) {
 }
 
 static isc_result_t
-load(char *filename, char *origintext, isc_boolean_t cache) {
+load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	dns_fixedname_t forigin;
 	dns_name_t *origin;
 	isc_result_t result;

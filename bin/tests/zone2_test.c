@@ -286,7 +286,7 @@ query(dns_view_t *view) {
 
 int
 main(int argc, char **argv) {
-	char *conf = "named.conf";
+	const char *conf = "named.conf";
 	isc_mem_t *mctx = NULL;
 	dns_c_ctx_t *configctx = NULL;
 	dns_view_t *view1 = NULL;

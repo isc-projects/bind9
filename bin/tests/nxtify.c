@@ -33,13 +33,13 @@
 static isc_mem_t *mctx = NULL;
 
 static inline void
-fatal(char *message) {
+fatal(const char *message) {
 	fprintf(stderr, "%s\n", message);
 	exit(1);
 }
 
 static inline void
-check_result(isc_result_t result, char *message) {
+check_result(isc_result_t result, const char *message) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s: %s\n", message,
 			isc_result_totext(result));

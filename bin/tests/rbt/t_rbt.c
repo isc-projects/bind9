@@ -411,7 +411,7 @@ test_rbt_gen(char *filename, char *command, char *testname,
 }
 
 static int
-test_dns_rbt_x(char *filename) {
+test_dns_rbt_x(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -471,7 +471,7 @@ test_dns_rbt_x(char *filename) {
 }
 
 
-static char	*a1 =	"dns_rbt_create creates a rbt and returns "
+static const char *a1 =	"dns_rbt_create creates a rbt and returns "
 			"ISC_R_SUCCESS on success";
 
 static void
@@ -483,7 +483,7 @@ t1() {
 	t_result(result);
 }
 
-static char	*a2 =	"dns_rbt_addname adds a name to a database and "
+static const char *a2 =	"dns_rbt_addname adds a name to a database and "
 			"returns ISC_R_SUCCESS on success";
 
 static void
@@ -495,7 +495,7 @@ t2() {
 	t_result(result);
 }
 
-static char	*a3 =	"when name already exists, dns_rbt_addname() "
+static const char *a3 =	"when name already exists, dns_rbt_addname() "
 			"returns ISC_R_EXISTS";
 
 static void
@@ -507,7 +507,7 @@ t3() {
 	t_result(result);
 }
 
-static char	*a4 =	"when name exists, dns_rbt_deletename() returns "
+static const char *a4 =	"when name exists, dns_rbt_deletename() returns "
 			"ISC_R_SUCCESS";
 
 static void
@@ -519,7 +519,7 @@ t4() {
 	t_result(result);
 }
 
-static char	*a5 =	"when name does not exist, dns_rbt_deletename() "
+static const char *a5 =	"when name does not exist, dns_rbt_deletename() "
 			"returns ISC_R_NOTFOUND";
 static void
 t5() {
@@ -530,7 +530,7 @@ t5() {
 	t_result(result);
 }
 
-static char	*a6 =	"when name exists and exactly matches the "
+static const char *a6 =	"when name exists and exactly matches the "
 			"search name dns_rbt_findname() returns ISC_R_SUCCESS";
 
 static void
@@ -542,7 +542,7 @@ t6() {
 	t_result(result);
 }
 
-static char	*a7 =	"when a name does not exist, "
+static const char *a7 =	"when a name does not exist, "
 			"dns_rbt_findname returns ISC_R_NOTFOUND";
 
 static void
@@ -554,7 +554,7 @@ t7() {
 	t_result(result);
 }
 
-static char	*a8 =	"when a superdomain is found with data matching name, "
+static const char *a8 =	"when a superdomain is found with data matching name, "
 			"dns_rbt_findname returns DNS_R_PARTIALMATCH";
 
 static void
@@ -567,7 +567,7 @@ t8() {
 }
 
 
-static char	*a9 =	"a call to dns_rbtnodechain_init(chain, mctx) "
+static const char *a9 =	"a call to dns_rbtnodechain_init(chain, mctx) "
 			"initializes chain";
 
 static int
@@ -895,7 +895,7 @@ t_dns_rbtnodechain_init(char *dbfile, char *findname,
 }
 
 static int
-test_dns_rbtnodechain_init(char *filename) {
+test_dns_rbtnodechain_init(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -1057,7 +1057,7 @@ t_dns_rbtnodechain_first(char *dbfile, char *expected_firstname,
 }
 
 static int
-test_dns_rbtnodechain_first(char *filename) {
+test_dns_rbtnodechain_first(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -1120,7 +1120,7 @@ test_dns_rbtnodechain_first(char *filename) {
 	return(result);
 }
 
-static char	*a10 =	"a call to "
+static const char *a10 = "a call to "
 			"dns_rbtnodechain_first(chain, rbt, name, origin) "
 			"sets name to point to the root of the tree, "
 			"origin to point to the origin, "
@@ -1222,7 +1222,7 @@ t_dns_rbtnodechain_last(char *dbfile, char *expected_lastname,
 }
 
 static int
-test_dns_rbtnodechain_last(char *filename) {
+test_dns_rbtnodechain_last(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -1285,7 +1285,7 @@ test_dns_rbtnodechain_last(char *filename) {
 	return(result);
 }
 
-static char	*a11 =	"a call to "
+static const char *a11 = "a call to "
 			"dns_rbtnodechain_last(chain, rbt, name, origin) "
 			"sets name to point to the last node of the megatree, "
 			"origin to the name of the level above it, "
@@ -1401,7 +1401,7 @@ t_dns_rbtnodechain_next(char *dbfile, char *findname,
 }
 
 static int
-test_dns_rbtnodechain_next(char *filename) {
+test_dns_rbtnodechain_next(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -1463,7 +1463,8 @@ test_dns_rbtnodechain_next(char *filename) {
 	return(result);
 }
 
-static char	*a12 =	"a call to dns_rbtnodechain_next(chain, name, origin) "
+static const char *a12 = "a call to "
+			"dns_rbtnodechain_next(chain, name, origin) "
 			"sets name to point to the next node of the tree "
 			"and returns ISC_R_SUCCESS or "
 			"DNS_R_NEWORIGIN on success";
@@ -1578,7 +1579,7 @@ t_dns_rbtnodechain_prev(char *dbfile, char *findname, char *prevname,
 }
 
 static int
-test_dns_rbtnodechain_prev(char *filename) {
+test_dns_rbtnodechain_prev(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -1640,7 +1641,8 @@ test_dns_rbtnodechain_prev(char *filename) {
 	return(result);
 }
 
-static char	*a13 =	"a call to dns_rbtnodechain_prev(chain, name, origin) "
+static const char *a13 = "a call to "
+			"dns_rbtnodechain_prev(chain, name, origin) "
 			"sets name to point to the previous node of the tree "
 			"and returns ISC_R_SUCCESS or "
 			"DNS_R_NEWORIGIN on success";

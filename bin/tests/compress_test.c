@@ -125,7 +125,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	unsigned char buf2[1024];
 
 	if (verbose) {
-		char *s;
+		const char *s;
 		switch (allowed) {
 		case DNS_COMPRESS_NONE: s = "DNS_COMPRESS_NONE"; break;
 		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;

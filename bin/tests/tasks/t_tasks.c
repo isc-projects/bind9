@@ -29,15 +29,15 @@
 
 #include <tests/t_api.h>
 
-isc_mem_t *mctx = NULL;
-
 static void
 t1_callback(isc_task_t *task, isc_event_t *event) {
 	int	i;
 	int	j;
 
+	UNUSED(task);
+
 	j = 0;
-	task = task;
+
 	for (i = 0; i < 1000000; i++)
 		j += 100;
 
@@ -47,15 +47,16 @@ t1_callback(isc_task_t *task, isc_event_t *event) {
 
 static void
 t1_shutdown(isc_task_t *task, isc_event_t *event) {
+	UNUSED(task);
 
-	task = task;
 	t_info("shutdown %s\n", event->ev_arg);
 	isc_event_free(&event);
 }
 
 static void
 my_tick(isc_task_t *task, isc_event_t *event) {
-	task = task;
+	UNUSED(task);
+
 	t_info("%s\n", event->ev_arg);
 	isc_event_free(&event);
 }
@@ -67,6 +68,7 @@ my_tick(isc_task_t *task, isc_event_t *event) {
 static int
 t_tasks1(void) {
 	char			*p;
+	isc_mem_t		*mctx;
 	isc_taskmgr_t		*manager;
 	isc_task_t		*task1;
 	isc_task_t		*task2;
@@ -86,6 +88,7 @@ t_tasks1(void) {
 	task2 = NULL;
 	task3 = NULL;
 	task4 = NULL;
+	mctx = NULL;
 
 	workers = 2;
 	p = t_getenv("ISC_TASK_WORKERS");
@@ -348,7 +351,7 @@ t_tasks1(void) {
 	return(T_PASS);
 }
 
-static char	*a1 =	"The task subsystem can create and manage tasks";
+static const char *a1 =	"The task subsystem can create and manage tasks";
 
 static void
 t1(void) {
@@ -546,7 +549,7 @@ t_tasks2(void) {
 	return(result);
 }
 
-static char	*a2 = "The task subsystem can create ISC_TASKS_MIN tasks";
+static const char *a2 = "The task subsystem can create ISC_TASKS_MIN tasks";
 
 static void
 t2(void) {
@@ -802,7 +805,7 @@ t_tasks3(void) {
 	return(result);
 }
 
-static char	*a3 =	"When isc_task_shutdown() is called, any shutdown "
+static const char *a3 =	"When isc_task_shutdown() is called, any shutdown "
 			"events that have been requested via prior "
 			"isc_task_onshutdown() calls are posted in "
 			"LIFO order.";
@@ -993,8 +996,9 @@ t_tasks4(void) {
 	return(result);
 }
 
-static char *a4 = "After isc_task_shutdown() has been called, any call to "
-		  "isc_task_onshutdown() will return ISC_R_SHUTTINGDOWN.";
+static const char *a4 =
+		"After isc_task_shutdown() has been called, any call to "
+		"isc_task_onshutdown() will return ISC_R_SHUTTINGDOWN.";
 
 static void
 t4(void) {
@@ -1215,7 +1219,7 @@ t_tasks7(void) {
 	return(result);
 }
 
-static char	*a7 =	"A call to isc_task_create() creates a task that can "
+static const char *a7 =	"A call to isc_task_create() creates a task that can "
 			"receive events.";
 
 static void
@@ -1679,7 +1683,8 @@ t_tasks10(void) {
 	return(result);
 }
 
-static char	*a10 =	"A call to isc_task_purge(task, sender, type, tag) "
+static const char *a10 =
+			"A call to isc_task_purge(task, sender, type, tag) "
 			"purges all events of type 'type' and with tag 'tag' "
 			"not marked as unpurgable from sender from the task's "
 			"queue and returns the number of events purged.";
@@ -1956,9 +1961,10 @@ t_tasks11(int purgable) {
 	return(result);
 }
 
-static char *a11 = "When the event is marked as purgable, a call to "
-		   "isc_task_purgeevent(task, event) purges the event 'event' "
-		   "from the task's queue and returns ISC_TRUE.";
+static const char *a11 =
+		"When the event is marked as purgable, a call to "
+		"isc_task_purgeevent(task, event) purges the event 'event' "
+		"from the task's queue and returns ISC_TRUE.";
 			
 static void
 t11(void) {
@@ -1968,7 +1974,8 @@ t11(void) {
 	t_result(result);
 }
 
-static char	*a12 =	"When the event is not marked as purgable, a call to "
+static const char *a12 =
+			"When the event is not marked as purgable, a call to "
 			"isc_task_purgeevent(task, event) does not purge the "
 			"event 'event' from the task's queue and returns "
 			"ISC_FALSE.";
@@ -1989,12 +1996,13 @@ t12(void) {
 static int	T13_nfails;
 static int	T13_nprobs;
 
-static char	*a13 =	"A call to "
-			"isc_event_purgerange(task, sender, first, last, tag) "
-			"purges all events not marked unpurgable from "
-			"sender 'sender' and of type within the range 'first' "
-			"to 'last' inclusive from the task's event queue and "
-			"returns the number of tasks purged.";
+static const char *a13 =
+		"A call to "
+		"isc_event_purgerange(task, sender, first, last, tag) "
+		"purges all events not marked unpurgable from "
+		"sender 'sender' and of type within the range 'first' "
+		"to 'last' inclusive from the task's event queue and "
+		"returns the number of tasks purged.";
 			
 static int
 t_tasks13(void) {

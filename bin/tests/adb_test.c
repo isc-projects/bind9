@@ -59,7 +59,7 @@ isc_stdtime_t now;
 dns_adb_t *adb;
 
 static void
-check_result(isc_result_t result, char *format, ...) {
+check_result(isc_result_t result, const char *format, ...) {
 	va_list args;
 
 	if (result == ISC_R_SUCCESS)
@@ -217,7 +217,7 @@ create_view(void) {
 }
 
 static void
-lookup(char *target) {
+lookup(const char *target) {
 	dns_name_t name;
 	unsigned char namedata[256];
 	client_t *client;

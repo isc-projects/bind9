@@ -29,7 +29,7 @@
 #include "printmsg.h"
 
 static inline void
-CHECKRESULT(isc_result_t result, char *msg) {
+CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, dns_result_totext(result));
 

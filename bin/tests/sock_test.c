@@ -324,8 +324,8 @@ main(int argc, char *argv[]) {
 	/*
 	 * Queue up the first accept event.
 	 */
-	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen,
-					"so1") == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_socket_accept(so1, t1, my_listen, "so1")
+		      == ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 10, 0);
 	ti1 = NULL;

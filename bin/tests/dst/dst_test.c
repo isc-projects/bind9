@@ -33,18 +33,21 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-char *current, *tmp = "/tmp";
+char *current;
+const char *tmp = "/tmp";
 
 static void
 use(dst_key_t *key) {
 	isc_result_t ret;
-	char *data = "This is some data";
+	const char *data = "This is some data";
 	unsigned char sig[512];
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
 
 	isc_buffer_init(&sigbuf, sig, sizeof(sig));
-	/* Advance 1 byte for fun */
+	/*
+	 * Advance 1 byte for fun.
+	 */
 	isc_buffer_add(&sigbuf, 1);
 
 	isc_buffer_init(&databuf, data, strlen(data));

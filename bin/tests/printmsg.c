@@ -25,7 +25,7 @@
 
 #include "printmsg.h"
 
-static char *opcodetext[] = {
+static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -44,7 +44,7 @@ static char *opcodetext[] = {
 	"RESERVED15"
 };
 
-static char *rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -65,7 +65,9 @@ static char *rcodetext[] = {
 };
 
 static isc_result_t
-printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name) {
+printsection(dns_message_t *msg, dns_section_t sectionid,
+	     const char *section_name)
+{
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
 	isc_buffer_t target;
@@ -131,7 +133,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name) {
 
 static isc_result_t
 printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
-	   char *set_name)
+	   const char *set_name)
 {
 	isc_buffer_t target;
 	isc_result_t result;

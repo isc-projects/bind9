@@ -70,7 +70,7 @@ tick(isc_task_t *task, isc_event_t *event) {
 static void
 timeout(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
-	char *type;
+	const char *type;
 
 	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE || 
 	       event->ev_type == ISC_TIMEREVENT_LIFE);

@@ -180,7 +180,7 @@ memtest(void) {
 	return(0);
 }
 
-static char	*a1 =
+static const char *a1 =
 		"the memory module supports the creation of memory contexts "
 		"and the management of memory pools.";
 static void

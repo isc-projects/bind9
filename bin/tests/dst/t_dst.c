@@ -81,7 +81,7 @@ static void
 use(dst_key_t *key, isc_result_t exp_result, int *nfails) {
 
 	isc_result_t ret;
-	char *data = "This is some data";
+	const char *data = "This is some data";
 	unsigned char sig[512];
 	isc_buffer_t databuf, sigbuf;
 	isc_region_t datareg, sigreg;
@@ -359,7 +359,7 @@ get_random(int *nfails) {
 	}
 }
 
-static char	*a1 =
+static const char *a1 =
 		"the dst module provides the capability to "
 		"generate, store and retrieve public and private keys, "
 		"sign and verify data using the RSA, DSA and MD5 algorithms, "
@@ -753,7 +753,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
  * signed at some earlier time, possibly with an entire different
  * version or implementation of the DSA and RSA algorithms
  */
-static char	*a2 =
+static const char *a2 =
 		"the dst module provides the capability to "
 		"verify data signed with the RSA and DSA algorithms";
 

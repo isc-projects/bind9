@@ -129,7 +129,7 @@ tick(isc_task_t *task, isc_event_t *event)
 }
 
 static t_info *
-new_task(isc_mem_t *mctx, char *name) {
+new_task(isc_mem_t *mctx, const char *name) {
 	t_info *ti;
 	isc_time_t expires;
 	isc_interval_t interval;
@@ -141,7 +141,7 @@ new_task(isc_mem_t *mctx, char *name) {
 	ti->timer = NULL;
 	ti->ticks = 0;
 	if (name != NULL) {
-		INSIST(strlen(name) < sizeof ti->name);
+		INSIST(strlen(name) < sizeof(ti->name));
 		strcpy(ti->name, name);
 	} else
 		sprintf(ti->name, "%d", task_count);

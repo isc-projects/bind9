@@ -29,7 +29,7 @@
 #define USE_ISC_MEM
 
 static inline void
-CHECK(int val, char *msg) {
+CHECK(int val, const char *msg) {
 	if (val != 0) {
 		fprintf(stderr, "%s returned %d\n", msg, val);
 		exit(1);
@@ -37,7 +37,7 @@ CHECK(int val, char *msg) {
 }
 
 static void
-hexdump(char *msg, void *base, size_t len) {
+hexdump(const char *msg, void *base, size_t len) {
 	unsigned char *p;
 	unsigned int cnt;
 
@@ -62,7 +62,7 @@ hexdump(char *msg, void *base, size_t len) {
 		printf("\n");
 }
 
-static char *TESTSTRING = "This is a test.  This is only a test.  !!!";
+static const char *TESTSTRING = "This is a test.  This is only a test.  !!!";
 static lwres_context_t *ctx;
 
 static void
@@ -79,7 +79,8 @@ test_noop(void) {
 	pkt.result = 0;
 
 	nooprequest.datalength = strlen(TESTSTRING);
-	nooprequest.data = (unsigned char *) TESTSTRING;
+	/* XXXDCL maybe "nooprequest.data" should be const. */
+	DE_CONST(TESTSTRING, nooprequest.data);
 	ret = lwres_nooprequest_render(ctx, &nooprequest, &pkt, &b);
 	CHECK(ret, "lwres_nooprequest_render");
 
@@ -114,7 +115,8 @@ test_noop(void) {
 	pkt.result = 0xdeadbeef;
 
 	noopresponse.datalength = strlen(TESTSTRING);
-	noopresponse.data = (unsigned char *) TESTSTRING;
+	/* XXXDCL maybe "noopresponse.data" should be const. */
+	DE_CONST(TESTSTRING, noopresponse.data);
 	ret = lwres_noopresponse_render(ctx, &noopresponse, &pkt, &b);
 	CHECK(ret, "lwres_noopresponse_render");
 
@@ -145,7 +147,7 @@ test_noop(void) {
 }
 
 static void
-test_gabn(char *target) {
+test_gabn(const char *target) {
 	lwres_gabnresponse_t *res;
 	lwres_addr_t *addr;
 	int ret;
@@ -189,7 +191,7 @@ test_gabn(char *target) {
 }
 
 static void
-test_gnba(char *target, lwres_uint32_t af) {
+test_gnba(const char *target, lwres_uint32_t af) {
 	lwres_gnbaresponse_t *res;
 	int ret;
 	unsigned int i;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.16 2000/05/16 03:33:51 tale Exp $ */
+/* $Id: log_test.c,v 1.17 2000/06/01 19:10:41 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -44,7 +44,7 @@ char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 
 int
 main (int argc, char **argv) {
-	char *progname, *syslog_file, *message;
+	const char *progname, *syslog_file, *message;
 	int ch, i, file_versions, stderr_line;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_log_t *lctx;
@@ -52,8 +52,8 @@ main (int argc, char **argv) {
 	isc_mem_t *mctx;
 	isc_result_t result;
 	isc_logdestination_t destination;
-	isc_logcategory_t *category;
-	isc_logmodule_t *module;
+	const isc_logcategory_t *category;
+	const isc_logmodule_t *module;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -116,7 +116,7 @@ main (int argc, char **argv) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_log_create(mctx, &lctx, &lcfg));
 
-	isc_log_settag(lcfg, progname);
+	CHECK(isc_log_settag(lcfg, progname));
 
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);

@@ -27,7 +27,7 @@
 #define USE_ISC_MEM
 
 static inline void
-CHECK(int val, char *msg) {
+CHECK(int val, const char *msg) {
 	if (val != 0) {
 		fprintf(stderr, "%s returned %d\n", msg, val);
 		exit(1);

@@ -334,7 +334,7 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 #define	T1_SECONDS	2
 #define	T1_NANOSECONDS	500000000
 
-static char *a1 =
+static const char *a1 =
 	"When type is isc_timertype_ticker, a call to isc_timer_create() "
 	"creates a timer that posts an ISC_TIMEREVENT_TICK event to the "
 	"specified task every 'interval' seconds and returns ISC_R_SUCCESS.";
@@ -370,7 +370,7 @@ t1(void) {
 #define	T2_SECONDS	5
 #define	T2_NANOSECONDS	300000000;
 
-static char *a2 =
+static const char *a2 =
 	"When type is isc_timertype_once, a call to isc_timer_create() "
 	"creates a timer that posts an ISC_TIMEEVENT_LIFE event to the "
 	"specified task when the current time reaches or exceeds the time "
@@ -487,7 +487,7 @@ t3_te(isc_task_t *task, isc_event_t *event) {
 #define	T3_SECONDS	4
 #define	T3_NANOSECONDS	400000000
 
-static char *a3 =
+static const char *a3 =
 	"When type is isc_timertype_once, a call to isc_timer_create() "
 	"creates a timer that posts an ISC_TIMEEVENT_IDLE event to the "
 	"specified task when the timer has been idle for 'interval' seconds.";
@@ -642,7 +642,7 @@ t4_te(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static char *a4 =
+static const char *a4 =
 	"A call to isc_timer_reset() changes the timer's type, expires and "
 	"interval values to the given values.";
 
@@ -1056,7 +1056,7 @@ t_timers5(void) {
 	return(result);
 }
 
-static char *a5 =
+static const char *a5 =
 	"When 'purge' is TRUE, a call to isc_timer_reset() purges any pending "
 	"events from 'timer' from the task's event queue.";
 

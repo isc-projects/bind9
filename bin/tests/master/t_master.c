@@ -136,8 +136,7 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 }
 
 static int
-test_master_x(char *filename) {
-
+test_master_x(const char *filename) {
 	FILE		*fp;
 	char		*p;
 	int		line;
@@ -181,7 +180,7 @@ test_master_x(char *filename) {
 	return(result);
 }
 
-static char *a1 =	"dns_master_loadfile loads a valid master file and "
+static const char *a1 =	"dns_master_loadfile loads a valid master file and "
 			"returns ISC_R_SUCCESS";
 static void
 t1(void) {
@@ -191,8 +190,9 @@ t1(void) {
 	t_result(result);
 }
 
-static char *a2 = "dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
-		  "masterfile input ends unexpectedly";
+static const char *a2 =
+	"dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
+	"masterfile input ends unexpectedly";
 
 static void
 t2(void) {
@@ -202,7 +202,7 @@ t2(void) {
 	t_result(result);
 }
 
-static char *a3 =	"dns_master_loadfile returns DNS_R_NOOWNER when the "
+static const char *a3 =	"dns_master_loadfile returns DNS_R_NOOWNER when the "
 			"an ownername is not specified";
 
 static void
@@ -213,7 +213,7 @@ t3() {
 	t_result(result);
 }
 
-static char *a4 =	"dns_master_loadfile returns DNS_R_NOTTL when the "
+static const char *a4 =	"dns_master_loadfile returns DNS_R_NOTTL when the "
 			"the ttl is not specified";
 
 static void
@@ -224,7 +224,7 @@ t4() {
 	t_result(result);
 }
 
-static char *a5 =	"dns_master_loadfile returns DNS_R_BADCLASS when the "
+static const char *a5 =	"dns_master_loadfile returns DNS_R_BADCLASS when the "
 			"the record class did not match the zone class";
 
 static void
@@ -237,8 +237,9 @@ t5() {
 	t_result(result);
 }
 
-static char *a6 = "dns_master_loadfile understands KEY RR specifications "
-		  "containing key material";
+static const char *a6 =
+	"dns_master_loadfile understands KEY RR specifications "
+	"containing key material";
 
 static void
 t6() {
@@ -250,8 +251,9 @@ t6() {
 	t_result(result);
 }
 
-static char *a7 = "dns_master_loadfile understands KEY RR specifications "
-		  "containing no key material";
+static const char *a7 =
+	"dns_master_loadfile understands KEY RR specifications "
+	"containing no key material";
 
 static void
 t7() {

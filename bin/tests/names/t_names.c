@@ -34,8 +34,9 @@
 #define	BUFLEN		256
 #define	BIGBUFLEN	4096
 
-char	*a1 =	"dns_label_countbits returns the number of "
-		"bits in a bitstring label";
+static const char *a1 =
+	"dns_label_countbits returns the number of "
+	"bits in a bitstring label";
 
 static char	*Tokens[MAXTOKS + 1];
 
@@ -429,8 +430,8 @@ t_dns_label_countbits(void) {
 	}
 }
 
-char	*a2 =	"dns_label_getbit returns the n'th most significant "
-		"bit of a bitstring label";
+static const char *a2 =	"dns_label_getbit returns the n'th most significant "
+			"bit of a bitstring label";
 
 static int
 test_dns_label_getbit(char *test_name, int label_pos, int bit_pos,
@@ -514,7 +515,7 @@ t_dns_label_getbit(void) {
 	}
 }
 
-char	*a3 =	"dns_name_init initializes 'name' to the empty name";
+static const char *a3 =	"dns_name_init initializes 'name' to the empty name";
 
 static void
 t_dns_name_init(void) {
@@ -565,7 +566,7 @@ t_dns_name_init(void) {
 	t_result(result);
 }
 
-char	*a4 =	"dns_name_invalidate invalidates 'name'";
+static const char *a4 =	"dns_name_invalidate invalidates 'name'";
 
 static void
 t_dns_name_invalidate(void) {
@@ -618,8 +619,8 @@ t_dns_name_invalidate(void) {
 	t_result(result);
 }
 
-char	*a5 =	"dns_name_setbuffer dedicates a binary buffer for use "
-		"with 'name'";
+static const char *a5 =	"dns_name_setbuffer dedicates a binary buffer for use "
+			"with 'name'";
 
 static void
 t_dns_name_setbuffer(void) {
@@ -641,8 +642,8 @@ t_dns_name_setbuffer(void) {
 	t_result(result);
 }
 
-char	*a6 =	"dns_name_hasbuffer returns ISC_TRUE if 'name' has a "
-		"dedicated buffer, otherwise it returns ISC_FALSE";
+static const char *a6 =	"dns_name_hasbuffer returns ISC_TRUE if 'name' has a "
+			"dedicated buffer, otherwise it returns ISC_FALSE";
 
 static void
 t_dns_name_hasbuffer(void) {
@@ -670,8 +671,8 @@ t_dns_name_hasbuffer(void) {
 	t_result(result);
 }
 
-char	*a7 =	"dns_name_isabsolute returns ISC_TRUE if 'name' ends "
-		"in the root label";
+static const char *a7 =	"dns_name_isabsolute returns ISC_TRUE if 'name' ends "
+			"in the root label";
 
 static int
 test_dns_name_isabsolute(char *test_name, isc_boolean_t expected) {
@@ -756,7 +757,7 @@ t_dns_name_isabsolute(void) {
 	}
 }
 
-char	*a8 =	"dns_name_hash(name, case_sensitive) returns "
+static const char *a8 =	"dns_name_hash(name, case_sensitive) returns "
 		"a hash of 'name' which is case_sensitive if case_sensitive "
 		"is true";
 
@@ -871,7 +872,8 @@ t_dns_name_hash(void) {
 	}
 }
 
-char	*a10 =	"dns_name_fullcompare(name1, name2, orderp, nlabelsp, nbitsp) "
+static const char *a10 =
+		"dns_name_fullcompare(name1, name2, orderp, nlabelsp, nbitsp) "
 		"returns the DNSSEC ordering relationship between name1 and "
 		"name2, sets orderp to -1 if name1 < name2, to 0 if "
 		"name1 == name2, or to 1 if name1 > name2, sets nlabelsp "
@@ -882,9 +884,9 @@ char	*a10 =	"dns_name_fullcompare(name1, name2, orderp, nlabelsp, nbitsp) "
 /*
  * a11 thru a22 merged into a10.
  */
-static char *
+static const char *
 dns_namereln_to_text(dns_namereln_t reln) {
-	char	*p;
+	const char *p;
 
 	if (reln == dns_namereln_contains)
 		p = "contains";
@@ -1044,7 +1046,8 @@ t_dns_name_fullcompare(void) {
 	}
 }
 
-char	*a23 =	"dns_name_compare(name1, name2) returns information about "
+static const char *a23 =
+		"dns_name_compare(name1, name2) returns information about "
 		"the relative ordering under the DNSSEC ordering relationship "
 		"of name1 and name2";
 
@@ -1144,7 +1147,8 @@ t_dns_name_compare(void) {
 	}
 }
 
-char	*a30 =	"dns_name_rdatacompare(name1, name2) returns information "
+static const char *a30 =
+		"dns_name_rdatacompare(name1, name2) returns information "
 		"about the relative ordering of name1 and name2 as if they "
 		"are part of rdata in DNSSEC canonical form";
 
@@ -1244,7 +1248,8 @@ t_dns_name_rdatacompare(void) {
 }
 
 
-char	*a33 =	"when name1 is a subdomain of name2, "
+static const char *a33 =
+		"when name1 is a subdomain of name2, "
 		"dns_name_issubdomain(name1, name2) returns true, "
 		"otherwise it returns false.";
 
@@ -1339,7 +1344,8 @@ t_dns_name_issubdomain(void) {
 	}
 }
 
-char	*a35 =	"dns_name_countlabels(name) returns the number "
+static const char *a35 =
+		"dns_name_countlabels(name) returns the number "
 		"of labels in name";
 
 static int
@@ -1415,7 +1421,8 @@ t_dns_name_countlabels(void) {
 	}
 }
 
-char	*a36 =	"when n is less than the number of labels in name, "
+static const char *a36 =
+		"when n is less than the number of labels in name, "
 		"dns_name_getlabel(name, n, labelp) initializes labelp "
 		"to point to the nth label in name";
 
@@ -1526,7 +1533,8 @@ t_dns_name_getlabel(void) {
 	}
 }
 
-char	*a37 =	"when source contains at least first + n labels, "
+static const char *a37 =
+		"when source contains at least first + n labels, "
 		"dns_name_getlabelsequence(source, first, n, target) "
 		"initializes target to point to the n label sequence of "
 		"labels in source starting with first";
@@ -1655,7 +1663,8 @@ t_dns_name_getlabelsequence(void) {
 	}
 }
 
-char	*a38 =	"dns_name_fromregion(name, region) converts a DNS name "
+static const char *a38 =
+		"dns_name_fromregion(name, region) converts a DNS name "
 		"from a region representation to a name representation";
 
 static int
@@ -1738,7 +1747,8 @@ t_dns_name_fromregion(void) {
 	}
 }
 
-char	*a39 =	"dns_name_toregion(name, region) converts a DNS name "
+static const char *a39 =
+		"dns_name_toregion(name, region) converts a DNS name "
 		"from a region representation to a name representation";
 
 static void
@@ -1785,7 +1795,8 @@ t_dns_name_toregion(void) {
 	}
 }
 
-char	*a40 =	"dns_name_fromtext(name, source, origin, downcase, target) "
+static const char *a40 =
+		"dns_name_fromtext(name, source, origin, downcase, target) "
 		"converts the textual representation of a DNS name at source "
 		"into uncompressed wire form at target, appending origin to "
 		"the converted name if origin is non-NULL and converting "
@@ -1927,7 +1938,8 @@ t_dns_name_fromtext(void) {
 	}
 }
 
-char	*a41 =	"dns_name_totext(name, omit_final_dot, target) converts "
+static const char *a41 =
+		"dns_name_totext(name, omit_final_dot, target) converts "
 		"the DNS name 'name' in wire format to textual format "
 		"at target, and adds a final '.' to the name if "
 		"omit_final_dot is false";
@@ -2057,41 +2069,56 @@ t_dns_name_totext(void) {
 	}
 }
 
-char	*a42 =	"dns_name_fromwire(name, source, dctx, downcase, target) "
+static const char *a42 =
+		"dns_name_fromwire(name, source, dctx, downcase, target) "
 		"converts the possibly compressed DNS name 'name' in wire "
 		"format to canonicalized form at target, performing upper to "
 		"lower case conversion if downcase is true, and returns "
 		"ISC_R_SUCCESS"; 
 
-char	*a43 =	"when a label length is invalid, dns_name_fromwire() "
+#if 0
+	/*
+	 * XXXRTH these tests appear to be broken, so I have
+	 * disabled them.
+	 */
+static const char *a43 =
+		"when a label length is invalid, dns_name_fromwire() "
 		"returns ISC_R_NOSPACE";
 
-char	*a44 =	"when a label type is invalid, dns_name_fromwire() "
+static const char *a44 =
+		"when a label type is invalid, dns_name_fromwire() "
 		"returns DNS_R_BADLABELTYPE";
+#endif
 
-char	*a45 =	"when a name length is invalid, dns_name_fromwire() "
+static const char *a45 =
+		"when a name length is invalid, dns_name_fromwire() "
 		"returns ISC_R_NOSPACE";
 
-char	*a46 =	"when a compression type is invalid, dns_name_fromwire() "
+static const char *a46 =
+		"when a compression type is invalid, dns_name_fromwire() "
 		"returns DNS_R_DISALLOWED";
 
-char	*a47 =	"when a bad compression pointer is encountered, "
+static const char *a47 =
+		"when a bad compression pointer is encountered, "
 		"dns_name_fromwire() returns DNS_R_BADPOINTER";
 
-char	*a48 =	"when input ends unexpected, dns_name_fromwire() "
+static const char *a48 =
+		"when input ends unexpected, dns_name_fromwire() "
 		"returns ISC_R_UNEXPECTEDEND";
 
-char	*a49 =	"when there are too many compression pointers, "
+static const char *a49 =
+		"when there are too many compression pointers, "
 		"dns_name_fromwire() returns DNS_R_TOOMANYHOPS";
 
-char	*a50 =	"when there is not enough space in target, "
+static const char *a50 =
+		"when there is not enough space in target, "
 		"dns_name_fromwire(name, source, dcts, downcase, target) "
 		"returns ISC_R_NOSPACE";
 
 static int
 test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
-		       int dc_method, char *exp_name, isc_result_t exp_result,
-		       size_t buflen)
+		       unsigned int dc_method, char *exp_name,
+		       isc_result_t exp_result, size_t buflen)
 {
 	int			result;
 	int			order;
@@ -2156,11 +2183,11 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 }
 
 static void
-t_dns_name_fromwire_x(char *testfile, size_t buflen) {
+t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 	int		line;
 	int		cnt;
 	int		result;
-	int		dc_method;
+	unsigned int	dc_method;
 	isc_result_t	exp_result;
 	char		*p;
 	char		*tok;
@@ -2242,11 +2269,11 @@ t_dns_name_fromwire(void) {
 	t_assert("dns_name_fromwire", 1, T_REQUIRED, a42);
 	t_dns_name_fromwire_x("dns_name_fromwire_1_data", BUFLEN);
 
+#if 0
 	/*
 	 * XXXRTH these tests appear to be broken, so I have
 	 * disabled them.
 	 */
-#if 0
 	t_assert("dns_name_fromwire", 2, T_REQUIRED, a43);
 	t_dns_name_fromwire_x("dns_name_fromwire_2_data", BUFLEN);
 
@@ -2274,16 +2301,18 @@ t_dns_name_fromwire(void) {
 }
 
 
-char	*a51 =	"dns_name_towire(name, cctx, target) converts the DNS name "
+static const char *a51 =
+		"dns_name_towire(name, cctx, target) converts the DNS name "
 		"'name' into wire format, compresses it as specified "
 		"by the compression context cctx, stores the result in "
 		"target and returns DNS_SUCCESS";
 
-char	*a52 =	"when not enough space exists in target, "
+static const char *a52 =
+		"when not enough space exists in target, "
 		"dns_name_towire(name, cctx, target) returns ISC_R_NOSPACE";
 
 static int
-test_dns_name_towire(char *testname, int dc_method, char *exp_data,
+test_dns_name_towire(char *testname, unsigned int dc_method, char *exp_data,
 		     int exp_data_len, isc_result_t exp_result, size_t buflen)
 {
 	int			result;
@@ -2348,11 +2377,11 @@ test_dns_name_towire(char *testname, int dc_method, char *exp_data,
 }
 
 static void
-t_dns_name_towire_x(char *testfile, size_t buflen) {
+t_dns_name_towire_x(const char *testfile, size_t buflen) {
 	int		line;
 	int		cnt;
 	int		result;
-	int		dc_method;
+	unsigned int	dc_method;
 	isc_result_t	exp_result;
 	char		*p;
 	FILE		*fp;
@@ -2420,7 +2449,8 @@ t_dns_name_towire(void) {
 	t_dns_name_towire_2();
 }
 
-char	*a53 =	"dns_name_concatenate(prefix, suffix, name, target) "
+static const char *a53 =
+		"dns_name_concatenate(prefix, suffix, name, target) "
 		"concatenates prefix and suffix, stores the result "
 		"in target, canonicalizes any bitstring labels "
 		"and returns ISC_R_SUCCESS";

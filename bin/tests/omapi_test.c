@@ -405,7 +405,7 @@ do_connect(const char *host, int port) {
 	omapi_object_t *omapi_client = NULL;
 	client_object_t *client = NULL;
 	isc_result_t result;
-	char *key;
+	const char *key;
 
 	RUNTIME_CHECK(omapi_object_register(&client_type, "client",
 					    client_setvalue,

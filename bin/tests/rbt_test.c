@@ -259,7 +259,8 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 
 int
 main (int argc, char **argv) {
-	char *command, *arg, *whitespace, buffer[1024];
+	char *command, *arg, buffer[1024];
+	const char *whitespace;
 	dns_name_t *name, *foundname;
 	dns_fixedname_t fixedname;
 	dns_rbt_t *rbt;
