@@ -1,16 +1,17 @@
- 685.	[bug]		nslookup should  use the search list/domain options
+
+ 685.	[bug]		nslookup should use the search list/domain options
 			from resolv.conf by default, and it (and host) should
 			use the search list items first. [RT #405, #630]
 
- 684.	[bug]		memory leak with view forwarders. [RT #656]
+ 684.	[bug]		Memory leak with view forwarders. [RT #656]
 
- 683.	[bug]		file leak in isc_lex_openfile().
+ 683.	[bug]		File descriptor leak in isc_lex_openfile().
 
  682.	[bug]		nslookup displayed SOA records incorrectly. [RT #665]
 
- 681.	[bug]		$GENERATE specifying output format was broken. [RT#653]
+ 681.	[bug]		$GENERATE specifying output format was broken. [RT #653]
 
- 680.	[bug]		dns_rdata_fromstruct() mis-handles options bigger
+ 680.	[bug]		dns_rdata_fromstruct() mishandled options bigger
 			than 255 octets.
 
  679.	[bug]		$INCLUDE could leak memory and file descriptors on
