@@ -6,3 +6,9 @@
 5.	isc/util.h publish or perish
 6.	magic number listing
 7.	Eliminate dns_result_t and old DNS_R_ codes
+8.	Check base 64 code; does it have the problems that
+	the BIND 8 code does?
+9.	Authority is optional if we have answers?
+10.	AD bit setting.
+11.	KEY duplication (answer + additional) in any query
+12.	Add covers to deleterdataset.
