@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.1 2000/06/27 21:50:27 jim Exp $
+.\" $Id: dnssec-signzone.8,v 1.2 2000/06/28 03:20:49 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -65,9 +65,7 @@ current working directory used by
 .Pp
 .Ar zonefile
 is the name of the unsigned zone file.
-If the fully qualified domain name is not clear from the resource
-records in the zone file because the owner-names are not fully
-qualified and dot-terminated, the
+Unless the file name is the same as the name of the zone, the
 .Ar o
 option should be given.
 .Ar origin
@@ -188,7 +186,7 @@ option instructs
 to use pseudo-random data when signing the zone's resource records.
 This is faster but less secure than using genuinely random data for signing.
 This option may be useful when the zone has many resource records to be
-signed and CPU resources are limited.
+signed and the entropy source is limited.
 It could also be used for short-lived keys and signatures that don't
 require strengthening against cryptanalysis: for instance when the signatures
 will be discarded long before the signed data could be compromised.
@@ -244,9 +242,7 @@ This zone file contains the keyset for
 .Dv example.com
 that was created by
 .Xr dnssec-makekeyset 8 .
-The zone's
-.Ar .keyset
-file was either appended to the zone file or
+The zone's keys were either appended to the zone file or
 incorporated using a 
 .Dv $INCLUDE 
 statement.
@@ -276,7 +272,7 @@ so that it can be loaded by the name server.
 .Sh FILES
 .Pa /dev/random
 .Sh SEE ALSO
-.Xr RFC2065,
+.Xr RFC2535,
 .Xr dnssec-keygen 8 ,
 .Xr dnssec-makekeyset 8 ,
 .Xr dnssec-signkey 8 .

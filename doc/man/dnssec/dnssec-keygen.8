@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.1 2000/06/27 21:50:27 jim Exp $
+.\" $Id: dnssec-keygen.8,v 1.2 2000/06/28 03:20:46 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-KEYGEN 8
@@ -39,7 +39,7 @@
 .Ar name
 .Sh DESCRIPTION
 .Nm dnssec-keygen
-generates keys for DNSSEC, Secure DNS, as defined in RFC2065.
+generates keys for DNSSEC, Secure DNS, as defined in RFC2535.
 It also generates keys for use in Transaction Signatures, TSIG, which
 is defined in RFC2845.
 A short summary of the options and arguments to
@@ -62,14 +62,18 @@ option to
 .Nm dnssec-keygen .
 .Ar algorithm
 must be one of
-.Dv RSA ,
-.Dv RSAMD5 ,
+.Dv RSAMD5
 .Dv DH ,
 .Dv DSA
 or
 .Dv HMAC-MD5
-to indicate that an RSA, RSAMD5, Diffie-Hellman, Digital Signature
+to indicate that an RSA, Diffie-Hellman, Digital Signature
 Algorithm or HMAC-MD5 key is required.
+An argument of
+.Dv RSA
+can also be given.
+It is equivalent to
+.Dv RSAMD5 .
 The argument identifying the encryption algorithm is case-insensitive.
 DNSSEC specifies DSA as a mandatory algorithm and RSA as a recommended one.
 Implementations of TSIG must support HMAC-MD5.
@@ -92,12 +96,17 @@ option specifies how the generated key will be used.
 .Ar nametype
 can be either
 .Dv ZONE ,
-.Dv HOST ,
-.Dv ENTITY 
+.Dv HOST , 
+.Dv ENTITY ,
 or
 .Dv USER
 to indicate that the key will be used for signing a zone, host,
 entity or user respectively.
+In this context
+.Dv HOST
+and
+.Dv ENTITY
+are identical.
 .Ar nametype
 is case-insensitive.
 .Pp
@@ -112,16 +121,19 @@ When creating Diffie-Hellman keys, the
 option selects the Diffie-Hellman generator
 .Ar generator
 that is to be used.
-The value of
+The only supported values value of
 .Ar generator
-must be either 2 or 5.
+are 2 and 5.
+If no Diffie-Hellman generator is supplied a known prime 
+from RFC2539 will be used if possible; otherwise 2 will be used as the
+generator.
 .Pp
 .Ar protocol-value
 sets the protocol value for the generated key.
 The default is 2 (email) for keys of type
 .Dv USER 
 and 3 (DNSSEC) for all other key types.
-Other possible values for this argument are listed in RFC2065 and its
+Other possible values for this argument are listed in RFC2535 and its
 successors.
 .Pp
 .Nm dnssec-keygen
@@ -146,6 +158,7 @@ given by
 .Ar strength-value .
 It should be a number between 0 and 15.
 The default strength is zero.
+The key strength field currently has no defined purpose in DNSSEC.
 .Pp
 The
 .Ar t
@@ -266,8 +279,9 @@ DSA key.
 .Sh FILES
 .Pa /dev/random 
 .Sh SEE ALSO
-.Xr RFC2065,
+.Xr RFC2535,
 .Xr RFC2845,
+.Xr RFC2539,
 .Xr dnssec-makekeyset 8 ,
 .Xr dnssec-signkey 8 ,
 .Xr dnssec-signzone 8 .

@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-makekeyset.8,v 1.1 2000/06/27 21:50:27 jim Exp $
+.\" $Id: dnssec-makekeyset.8,v 1.2 2000/06/28 03:20:47 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
@@ -163,7 +163,8 @@ zone for them to sign the contents with
 The following command generates a key set for the DSA key for
 .Dv example.com
 that was shown in the
-.Xr dnssec-keygen 8 man page.
+.Xr dnssec-keygen 8
+man page.
 The backslash is for typographic reasons and would not be provided on
 the command line when running
 .Nm dnssec-makekeyset .
@@ -196,6 +197,6 @@ signatures securely.
 .Sh FILES
 .Pa /dev/random .
 .Sh SEE ALSO
-.Xr RFC2065 ,
+.Xr RFC2535 ,
 .Xr dnssec-keygen 8 ,
 .Xr dnssec-signkey 8 .
