@@ -319,7 +319,7 @@ setup() {
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
 
-	result = ns_omapi_init(ns_g_mctx);
+	result = ns_omapi_init();
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("omapi_lib_init() failed: %s",
 				   isc_result_totext(result));
