@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.41 2000/11/20 17:31:33 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.42 2000/11/20 17:37:54 gson Exp $ -->
 
 <book>
 
@@ -2777,7 +2777,6 @@ refresh and retry time either per-zone, per-view, or per-server.
 These options are valid for slave and stub zones, and clamp the SOA
 refresh and retry times to the specified values.
 </para>
-<note><para>These options are not yet implemented in <acronym>BIND</acronym> 9.0.</para></note>
 </entry>
 </row>
 
