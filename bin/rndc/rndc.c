@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.68 2001/07/09 22:02:15 gson Exp $ */
+/* $Id: rndc.c,v 1.69 2001/07/23 02:58:22 mayer Exp $ */
 
 /*
  * Principal Author: DCL
@@ -56,18 +56,20 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
+#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef USE_GETADDRINFO
+#ifndef HAVE_H_ERRNO
+#define HAVE_H_ERRNO
 extern int h_errno;
 #endif
 
 char *progname;
 isc_boolean_t verbose;
 
-static const char *admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *admin_conffile;
 static const char *auto_conffile = NS_LOCALSTATEDIR "/run/named.key";
 static const char *version = VERSION;
 static const char *servername = NULL;
@@ -296,7 +298,7 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	get_address(servername, remoteport, &addr);
+	get_address(servername, (in_port_t) remoteport, &addr);
 
 	isc_sockaddr_format(&addr, socktext, sizeof(socktext));
 
@@ -367,7 +369,7 @@ main(int argc, char **argv) {
 	int ch;
 	int i;
 
-	isc_app_start();
+	admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";	isc_app_start();
 
 	result = isc_file_progname(*argv, program, sizeof(program));
 	if (result != ISC_R_SUCCESS)
