@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.3 2000/11/18 00:32:14 gson Exp $ */
+/* $Id: tcldb.c,v 1.4 2000/11/18 01:39:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,8 @@ tcldb_lookup(const char *zone, const char *name, void *dbdata,
 		goto fail;
 	}
 
-	tclres = Tcl_SplitList(driver->interp, driver->interp->result, &rrc, &rrv);
+	tclres = Tcl_SplitList(driver->interp, driver->interp->result,
+			       &rrc, &rrv);
 	if (tclres != TCL_OK)
 		goto malformed;
 
@@ -131,14 +132,16 @@ tcldb_lookup(const char *zone, const char *name, void *dbdata,
 		isc_result_t tmpres;
 		int fieldc;	/* Field count */
 		char **fieldv;	/* Field vector */
-		tclres = Tcl_SplitList(driver->interp, rrv[i], &fieldc, &fieldv);
+		tclres = Tcl_SplitList(driver->interp, rrv[i],
+				       &fieldc, &fieldv);
 		if (tclres != TCL_OK) {
 			tmpres = ISC_R_FAILURE;
 			goto failrr;
 		}
 		if (fieldc != 3)
 			goto malformed;
-		tmpres = dns_sdb_putrr(lookup, fieldv[0], atoi(fieldv[1]), fieldv[2]);
+		tmpres = dns_sdb_putrr(lookup, fieldv[0], atoi(fieldv[1]),
+				       fieldv[2]);
 		Tcl_Free((char *) fieldv);
 	failrr:
 		if (tmpres != ISC_R_SUCCESS)
@@ -151,7 +154,8 @@ tcldb_lookup(const char *zone, const char *name, void *dbdata,
  malformed:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 		      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
-		      "zone '%s': malformed return value from tcl lookup function: %s",
+		      "zone '%s': "
+		      "malformed return value from tcl lookup function: %s",
 		      zone, driver->interp->result);
 	result = ISC_R_FAILURE;
  fail:
