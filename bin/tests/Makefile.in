@@ -18,6 +18,7 @@ TARGETS =	name_test \
 		rwlock_test \
 		sock_test \
 		sym_test \
+		lex_test \
 		task_test \
 		timer_test
 
@@ -34,6 +35,9 @@ sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 
 sym_test: sym_test.o ../../lib/isc/libisc.a
 	${CC} -o $@ sym_test.o ${LIBS}
+
+lex_test: lex_test.o ../../lib/isc/libisc.a
+	${CC} -o $@ lex_test.o ${LIBS}
 
 task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ task_test.o ${LIBS}
