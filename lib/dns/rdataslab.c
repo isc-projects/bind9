@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.5 1999/06/17 00:31:32 halley Exp $ */
+/* $Id: rdataslab.c,v 1.6 1999/06/24 19:15:55 gson Exp $ */
 
 #include <config.h>
 
@@ -298,7 +298,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	scount = *scurrent++ * 256;
 	scount += *scurrent++;
 	sstart = scurrent;
-	INSIST(mcount > 0 && mcount > 0);
+	INSIST(mcount > 0 && scount > 0);
 
 	/*
 	 * Yes, this is inefficient!
@@ -372,7 +372,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	/*
 	 * Copy the parts of mslab not in sslab.
 	 */
-	mcurrent = sslab + reservelen;
+	mcurrent = mslab + reservelen;
 	mcount = *mcurrent++ * 256;
 	mcount += *mcurrent++;
 	do {
