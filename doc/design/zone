@@ -1,0 +1,49 @@
+
+			Zones
+
+	$Id: zone,v 1.1 1999/02/25 05:15:42 marka Exp $
+
+Overview
+	 
+	Zones are the unit of delegation in the DNS and may go from holding
+	RR's only at the zone top to holding the complete hierachy (private
+	roots zones).  Zones are a container for the RRsets that make up the
+	zone.
+
+	Zone have certain properties associated with them.
+
+	* name
+	* class
+	* master / slave / stub
+	* serial number
+	* signed / unsigned
+	* update periods (refresh / retry)
+	* last update time (slave)
+	* access restrictions
+	* transfer restrictions
+	* expire period
+	* updatable
+	* children => bottom
+	* glue
+	* rrsets
+	* transfer "in" in progress
+	* transfers "out" in progress
+	* "current" check in progress
+	* our masters
+
+	Zones also have versions associated with them, each of which, with
+	the exception of the current zone, has an expiry date.
+
+	Zones need to have certain operations performed on them. The need to
+	be:
+
+	* loaded
+	* unloaded
+	* dumped
+	* updated
+	* copied out in full or as partial deltas
+	* read from
+	* validated
+	* generate a delta between two given versions.
+
+	
