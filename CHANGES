@@ -1,4 +1,6 @@
 
+ 681.	[bug]		$GENERATE specifying output format was broken. [RT#653]
+
 	--- 9.1.0rc1 released ---
 
  679.	[bug]		$INCLUDE could leak memory and file descriptors on

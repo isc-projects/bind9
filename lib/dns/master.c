@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.88.2.3 2001/01/12 20:19:00 gson Exp $ */
+/* $Id: master.c,v 1.88.2.4 2001/01/16 17:43:55 gson Exp $ */
 
 #include <config.h>
 
@@ -447,7 +447,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 	char fmt[sizeof("%04000000000d")];
 	char numbuf[128];
 	char *cp;
-	char mode;
+	char mode[2];
 	int delta = 0;
 	isc_textregion_t r;
 	unsigned int n;
@@ -470,7 +470,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 			/* Get format specifier. */
 			if (*name == '{' ) {
 				n = sscanf(name, "{%d,%u,%1[doxX]}",
-					   &delta, &width, &mode);
+					   &delta, &width, mode);
 				switch (n) {
 				case 1:
 					break;
@@ -480,7 +480,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 					break;
 				case 3:
 					n = snprintf(fmt, sizeof(fmt),
-						     "%%0%u%c", width, mode);
+						     "%%0%u%c", width, mode[0]);
 					break;
 				default:
 					return (DNS_R_SYNTAX);
