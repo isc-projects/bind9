@@ -56,7 +56,7 @@ isc_mem_t *mctx = NULL;
 isc_boolean_t want_stats = ISC_FALSE;
 dns_db_t *db;
 
-static ISC_inline isc_boolean_t
+static inline isc_boolean_t
 CHECKRESULT(dns_result_t result, char *msg)
 {
 	if ((result) != DNS_R_SUCCESS) {
