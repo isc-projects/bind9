@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: inet_data.c,v 1.1 2001/03/29 06:31:37 marka Exp $";
+static char rcsid[] = "$Id: inet_data.c,v 1.2 2001/06/21 08:26:06 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -40,15 +40,5 @@ static char rcsid[] = "$Id: inet_data.c,v 1.1 2001/03/29 06:31:37 marka Exp $";
 
 #include "port_after.h"
 
-#ifndef IN6ADDR_ANY_INIT
-#define	IN6ADDR_ANY_INIT	{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}
-#endif
-#ifndef IN6ADDR_LOOPBACK_INIT
-#define	IN6ADDR_LOOPBACK_INIT	{{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1}}
-#endif
-
-
-#ifndef HAS_INET6_STRUCTS
-const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
-const struct in6_addr in6addr_loopback = IN6ADDR_LOOPBACK_INIT;
-#endif
+const struct in6_addr isc_in6addr_any = IN6ADDR_ANY_INIT;
+const struct in6_addr isc_in6addr_loopback = IN6ADDR_LOOPBACK_INIT;

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.3 2001/05/14 07:59:46 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.4 2001/06/21 08:26:26 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -132,9 +132,7 @@ static int		pselect(int, void *, void *, void *,
 #endif
 void res_pquery(const res_state, const u_char *, int, FILE *);
 
-#ifdef INET6
 static const int niflags = NI_NUMERICHOST | NI_NUMERICSERV;
-#endif
 
 /* Public. */
 
@@ -276,9 +274,7 @@ res_nsend(res_state statp,
 	  const u_char *buf, int buflen, u_char *ans, int anssiz)
 {
 	int gotsomewhere, terrno, try, v_circuit, resplen, ns, n;
-#ifdef INET6
 	char abuf[NI_MAXHOST];
-#endif
 
 	if (statp->nscount == 0) {
 		errno = ESRCH;
@@ -300,11 +296,7 @@ res_nsend(res_state statp,
 	 */
 	if (EXT(statp).nscount != 0) {
 		int needclose = 0;
-#ifdef INET6
 		struct sockaddr_storage peer;
-#else
-		struct sockaddr peer;
-#endif
 		int peerlen;
 
 		if (EXT(statp).nscount != statp->nscount)
@@ -359,35 +351,27 @@ res_nsend(res_state statp,
 	 */
 	if ((statp->options & RES_ROTATE) != 0 &&
 	    (statp->options & RES_BLAST) == 0) {
-#ifdef INET6
-		union __res_sockaddr_union inu;
-#endif
+		union res_sockaddr_union inu;
 		struct sockaddr_in ina;
 		int lastns = statp->nscount - 1;
 		int fd;
 		u_int16_t nstime;
 
-#ifdef INET6
 		if (EXT(statp).ext != NULL)
 			inu = EXT(statp).ext->nsaddrs[0];
-#endif
 		ina = statp->nsaddr_list[0];
 		fd = EXT(statp).nssocks[0];
 		nstime = EXT(statp).nstimes[0];
 		for (ns = 0; ns < lastns; ns++) {
-#ifdef INET6
 			if (EXT(statp).ext != NULL)
                                 EXT(statp).ext->nsaddrs[ns] = 
 					EXT(statp).ext->nsaddrs[ns + 1];
-#endif
 			statp->nsaddr_list[ns] = statp->nsaddr_list[ns + 1];
 			EXT(statp).nssocks[ns] = EXT(statp).nssocks[ns + 1];
 			EXT(statp).nstimes[ns] = EXT(statp).nstimes[ns + 1];
 		}
-#ifdef INET6
 		if (EXT(statp).ext != NULL)
 			EXT(statp).ext->nsaddrs[lastns] = inu;
-#endif
 		statp->nsaddr_list[lastns] = ina;
 		EXT(statp).nssocks[lastns] = fd;
 		EXT(statp).nstimes[lastns] = nstime;
@@ -433,18 +417,11 @@ res_nsend(res_state statp,
 			} while (!done);
 		}
 
-#ifdef INET6
 		Dprint(((statp->options & RES_DEBUG) &&
 			getnameinfo(nsap, nsaplen, abuf, sizeof(abuf),
 				    NULL, 0, niflags) == 0),
 		       (stdout, ";; Querying server (# %d) address = %s\n",
 			ns + 1, abuf));
-#else
-		Dprint(statp->options & RES_DEBUG,
- 		       (stdout, ";; Querying server (# %d) address = %s\n",
-			ns + 1,
-			inet_ntoa(((struct sockaddr_in *)nsap)->sin_addr)));
-#endif
 
 
 		if (v_circuit) {
@@ -477,7 +454,7 @@ res_nsend(res_state statp,
 
 		DprintQ((statp->options & RES_DEBUG) ||
 			(statp->pfcode & RES_PRF_REPLY),
-			(stdout, ""),
+			(stdout, "%s", ""),
 			ans, (resplen > anssiz) ? anssiz : resplen);
 
 		/*
@@ -551,10 +528,8 @@ get_salen(sa)
 
 	if (sa->sa_family == AF_INET)
 		return sizeof(struct sockaddr_in);
-#ifdef INET6
 	else if (sa->sa_family == AF_INET)
 		return sizeof(struct sockaddr_in6);
-#endif
 	else
 		return 0;	/* unknown, die on connect */
 }
@@ -568,7 +543,6 @@ get_nsaddr(statp, n)
 	size_t n;
 {
 
-#ifdef INET6
 	if (!statp->nsaddr_list[n].sin_family && EXT(statp).ext) {
 		/*
 		 * - EXT(statp).ext->nsaddrs[n] holds an address that is larger
@@ -584,9 +558,6 @@ get_nsaddr(statp, n)
 		 */
 		return (struct sockaddr *)(void *)&statp->nsaddr_list[n];
 	}
-#else
-	return (struct sockaddr *)(void *)&statp->nsaddr_list[n];
-#endif
 }
 
 static int
@@ -613,11 +584,7 @@ send_vc(res_state statp,
 
 	/* Are we still talking to whom we want to talk to? */
 	if (statp->_vcsock >= 0 && (statp->_flags & RES_F_VC) != 0) {
-#ifdef INET6
 		struct sockaddr_storage peer;
-#else
-		struct sockaddr_in peer;
-#endif
 		int size = sizeof peer;
 
 		if (getpeername(statp->_vcsock,
@@ -778,11 +745,7 @@ send_dg(res_state statp,
 	int nsaplen;
 	struct timespec now, timeout, finish;
 	fd_set dsmask;
-#ifdef INET6
 	struct sockaddr_storage from;
-#else
-	struct sockaddr_in from;
-#endif
 	int fromlen, resplen, seconds, n, s;
 
 	nsap = get_nsaddr(statp, ns);
@@ -980,18 +943,12 @@ Aerror(const res_state statp, FILE *file, const char *string, int error,
        const struct sockaddr *address, int alen)
 {
 	int save = errno;
-#ifdef INET6
 	char hbuf[NI_MAXHOST];
 	char sbuf[NI_MAXSERV];
-#else
-	char hbuf[sizeof "255.255.255.255"];
-	char sbuf[sizeof "65535"];
-#endif
 
 	alen = alen;
 
 	if ((statp->options & RES_DEBUG) != 0) {
-#ifdef INET6
 		if (getnameinfo(address, alen, hbuf, sizeof(hbuf),
 		    sbuf, sizeof(sbuf), niflags)) {
 			strncpy(hbuf, "?", sizeof(hbuf) - 1);
@@ -999,13 +956,6 @@ Aerror(const res_state statp, FILE *file, const char *string, int error,
 			strncpy(sbuf, "?", sizeof(sbuf) - 1);
 			sbuf[sizeof(sbuf) - 1] = '\0';
 		}
-#else
-		inet_ntop(AF_INET,
-			  &((const struct sockaddr_in *)address)->sin_addr,
-			  hbuf, sizeof hbuf),
-		snprintf(sbuf, sizeof(sbuf), "%u",
-		    ntohs(((const struct sockaddr_in *)address)->sin_port));
-#endif
 		fprintf(file, "res_send: %s ([%s].%s): %s\n",
 			string, hbuf, sbuf, strerror(error));
 	}
@@ -1025,9 +975,7 @@ Perror(const res_state statp, FILE *file, const char *string, int error) {
 static int
 sock_eq(struct sockaddr *a, struct sockaddr *b) {
 	struct sockaddr_in *a4, *b4;
-#ifdef INET6
 	struct sockaddr_in6 *a6, *b6;
-#endif
 
 	if (a->sa_family != b->sa_family)
 		return 0;
@@ -1037,7 +985,6 @@ sock_eq(struct sockaddr *a, struct sockaddr *b) {
 		b4 = (struct sockaddr_in *)b;
 		return a4->sin_port == b4->sin_port &&
 		    a4->sin_addr.s_addr == b4->sin_addr.s_addr;
-#ifdef INET6
 	case AF_INET6:
 		a6 = (struct sockaddr_in6 *)a;
 		b6 = (struct sockaddr_in6 *)b;
@@ -1046,7 +993,6 @@ sock_eq(struct sockaddr *a, struct sockaddr *b) {
 		    a6->sin6_scope_id == b6->sin6_scope_id &&
 #endif
 		    IN6_ARE_ADDR_EQUAL(&a6->sin6_addr, &b6->sin6_addr);
-#endif
 	default:
 		return 0;
 	}

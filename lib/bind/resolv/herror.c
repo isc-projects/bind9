@@ -50,7 +50,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: herror.c,v 1.1 2001/03/29 06:31:58 marka Exp $";
+static const char rcsid[] = "$Id: herror.c,v 1.2 2001/06/21 08:26:21 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -89,7 +89,6 @@ int	h_errno;
 void
 herror(const char *s) {
 	struct iovec iov[4], *v = iov;
-	extern int * __h_errno();
 	char *t;
 
 	if (s != NULL && *s != '\0') {

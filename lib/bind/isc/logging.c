@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: logging.c,v 1.2 2001/05/28 08:38:28 marka Exp $";
+static const char rcsid[] = "$Id: logging.c,v 1.3 2001/06/21 08:26:15 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -596,7 +596,7 @@ log_new_syslog_channel(unsigned int flags, int level, int facility) {
 
 log_channel
 log_new_file_channel(unsigned int flags, int level,
-		     char *name, FILE *stream, unsigned int versions,
+		     const char *name, FILE *stream, unsigned int versions,
 		     unsigned long max_size) {
 	log_channel chan;
 

@@ -81,7 +81,9 @@ struct sockinet {
 
 static int ip6_parsenumeric __P((const struct sockaddr *, const char *, char *,
 				 size_t, int));
+#ifdef HAVE_SIN6_SCOPE_ID
 static int ip6_sa2str __P((const struct sockaddr_in6 *, char *, size_t, int));
+#endif
 
 int
 getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
@@ -135,7 +137,7 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 		 * the caller does not want the result.
 		 */
 	} else if (flags & NI_NUMERICSERV) {
-		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
+		sprintf(numserv, "%d", ntohs(port));
 		if (strlen(numserv) > servlen)
 			return EAI_MEMORY;
 		strcpy(serv, numserv);
@@ -208,15 +210,16 @@ getnameinfo(sa, salen, host, hostlen, serv, servlen, flags)
 }
 
 static int
-ip6_parsenumeric(sa, addr, host, hostlen, flags)
-	const struct sockaddr *sa;
-	const char *addr;
-	char *host;
-	size_t hostlen;
-	int flags;
+ip6_parsenumeric(const struct sockaddr *sa, const char *addr, char *host,
+		 size_t hostlen, int flags)
 {
 	size_t numaddrlen;
 	char numaddr[512];
+
+#ifndef HAVE_SIN6_SCOPE_ID
+	UNUSED(sa);
+	UNUSED(flags);
+#endif
 
 	if (inet_ntop(AF_INET6, addr, numaddr, sizeof(numaddr))
 	    == NULL)
@@ -250,25 +253,27 @@ ip6_parsenumeric(sa, addr, host, hostlen, flags)
 	return 0;
 }
 
+#ifdef HAVE_SIN6_SCOPE_ID
 /* ARGSUSED */
 static int
-ip6_sa2str(sa6, buf, bufsiz, flags)
-	const struct sockaddr_in6 *sa6;
-	char *buf;
-	size_t bufsiz;
-	int flags;
+ip6_sa2str(const struct sockaddr_in6 *sa6, char *buf,
+	   size_t bufsiz, int flags)
 {
 #ifdef USE_IFNAMELINKID
 	unsigned int ifindex = (unsigned int)sa6->sin6_scope_id;
 	const struct in6_addr *a6 = &sa6->sin6_addr;
 #endif
+	char tmp[64];
 
-#ifdef HAVE_SIN6_SCOPE_ID
 #ifdef NI_NUMERICSCOPE
 	if (flags & NI_NUMERICSCOPE) {
-		return(snprintf(buf, bufsiz, "%d", sa6->sin6_scope_id));
+		sprintf(tmp, "%u", sa6->sin6_scope_id);
+		if (bufsiz != 0) {
+			strncpy(buf, tmp, bufsiz - 1);
+			buf[bufsiz - 1] = '\0';
+		}
+		return(strlen(tmp));
 	}
-#endif
 #endif
 
 #ifdef USE_IFNAMELINKID
@@ -292,9 +297,11 @@ ip6_sa2str(sa6, buf, bufsiz, flags)
 #endif
 
 	/* last resort */
-#ifdef HAVE_SIN6_SCOPE_ID
-	return(snprintf(buf, bufsiz, "%u", sa6->sin6_scope_id));
-#else
-	return(snprintf(buf, bufsiz, "0"));	/* no scope */
-#endif
+	sprintf(tmp, "%u", sa6->sin6_scope_id);
+	if (bufsiz != 0) {
+		strncpy(buf, tmp, bufsiz - 1);
+		buf[bufsiz - 1] = '\0';
+	}
+	return(strlen(tmp));
 }
+#endif

@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_sv.c,v 1.1 2001/03/29 06:31:51 marka Exp $";
+static const char rcsid[] = "$Id: lcl_sv.c,v 1.2 2001/06/21 08:26:12 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* extern */
@@ -394,7 +394,7 @@ sv_db_rec(struct lcl_sv *sv, DBT *key, DBT *data) {
 			return (NULL);
 		sv->serv.s_port = ((u_short *)key->data)[1];
 		n = strlen(p) + 1;
-		if (n > sizeof(sv->line)) {
+		if ((size_t)n > sizeof(sv->line)) {
 			n = sizeof(sv->line);
 		}
 		memcpy(sv->line, p, n);

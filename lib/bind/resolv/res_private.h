@@ -1,15 +1,8 @@
 #ifndef res_private_h
 #define res_private_h
 
-union __res_sockaddr_union {
-	struct sockaddr_in      sin;
-	struct sockaddr_in6     sin6;
-	int64_t                 __align;        /* 64bit alignment */
-	char                    __space[128];   /* max size */
-};
-
 struct __res_state_ext {
-	union __res_sockaddr_union nsaddrs[MAXNS];
+	union res_sockaddr_union nsaddrs[MAXNS];
 	struct sort_list {
 		int     af;
 		union {

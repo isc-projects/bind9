@@ -291,4 +291,6 @@ void endpwent_r(void);
 int setpassent(int stayopen);
 #endif
 
+int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
+
 #endif

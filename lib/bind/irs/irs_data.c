@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.1 2001/03/29 06:31:50 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.2 2001/06/21 08:26:10 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -30,6 +30,7 @@ static const char rcsid[] = "$Id: irs_data.c,v 1.1 2001/03/29 06:31:50 marka Exp
 
 #include <resolv.h>
 #include <stdio.h>
+#include <string.h>
 #include <isc/memcluster.h>
 
 #ifdef DO_PTHREADS
@@ -165,6 +166,7 @@ net_data_minimize(struct net_data *net_data) {
 	res_nclose(net_data->res);
 }
 
+#ifdef _REENTRANT
 struct __res_state *
 __res_state(void) {
 	/* NULL param here means use the default config file. */
@@ -174,6 +176,7 @@ __res_state(void) {
 
 	return (&_res);
 }
+#endif
 
 int *
 __h_errno(void) {

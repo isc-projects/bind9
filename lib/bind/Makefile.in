@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2001/05/31 05:53:57 marka Exp $
+# $Id: Makefile.in,v 1.6 2001/06/21 08:25:56 marka Exp $
 
 DAEMON_OBJS=bsd/daemon.@O@
 STRSEP_OBJS=bsd/strsep.@O@
@@ -66,8 +66,8 @@ WANT_IRS_THREADSGR_OBJS=irs/getgrent_r.@O@
 ISCOBJS= isc/assertions.@O@ isc/base64.@O@ isc/bitncmp.@O@ isc/ctl_clnt.@O@ \
 	isc/ctl_p.@O@ isc/ctl_srvr.@O@ isc/ev_connects.@O@ isc/ev_files.@O@ \
 	isc/ev_streams.@O@ isc/ev_timers.@O@ isc/ev_waits.@O@ \
-	isc/eventlib.@O@ isc/heap.@O@ isc/logging.@O@ \
-	isc/memcluster.@O@ isc/movefile.@O@ isc/tree.@O@ isc/ip6.@O@
+	isc/eventlib.@O@ isc/heap.@O@ isc/hex.@O@ isc/logging.@O@ \
+	isc/memcluster.@O@ isc/movefile.@O@ isc/tree.@O@
 
 NAMESEROBJS= nameser/ns_date.@O@ nameser/ns_name.@O@ nameser/ns_netint.@O@ \
 	nameser/ns_parse.@O@ nameser/ns_print.@O@  nameser/ns_samedomain.@O@ \

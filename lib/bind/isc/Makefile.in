@@ -13,17 +13,17 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2001/05/31 05:54:04 marka Exp $
+# $Id: Makefile.in,v 1.5 2001/06/21 08:26:13 marka Exp $
 
 OBJS=	assertions.@O@ base64.@O@ bitncmp.@O@ ctl_clnt.@O@ ctl_p.@O@ \
 	ctl_srvr.@O@ ev_connects.@O@ ev_files.@O@ ev_streams.@O@ \
-	ev_timers.@O@ ev_waits.@O@ eventlib.@O@ heap.@O@ logging.@O@ \
-	memcluster.@O@ movefile.@O@ tree.@O@ ip6.@O@
+	ev_timers.@O@ ev_waits.@O@ eventlib.@O@ heap.@O@ hex.@O@ \
+	logging.@O@ memcluster.@O@ movefile.@O@ tree.@O@
 
 SRCS=	assertions.c base64.c bitncmp.c ctl_clnt.c ctl_p.c \
 	ctl_srvr.c ev_connects.c ev_files.c ev_streams.c \
-	ev_timers.c ev_waits.c eventlib.c heap.c logging.c \
-	memcluster.c movefile.c tree.c ip6.c
+	ev_timers.c ev_waits.c eventlib.c heap.c hex.c logging.c \
+	memcluster.c movefile.c tree.c
 
 TARGETS= ${OBJS}
 

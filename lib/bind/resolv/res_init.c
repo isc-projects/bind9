@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.6 2001/05/28 08:38:32 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.7 2001/06/21 08:26:23 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -85,7 +85,6 @@ static const char rcsid[] = "$Id: res_init.c,v 1.6 2001/05/28 08:38:32 marka Exp
 #include <arpa/nameser.h>
 
 #include <ctype.h>
-#include <resolv.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,6 +92,10 @@ static const char rcsid[] = "$Id: res_init.c,v 1.6 2001/05/28 08:38:32 marka Exp
 #include <netdb.h>
 
 #include "port_after.h"
+
+/* ensure that sockaddr_in6 and IN6ADDR_ANY_INIT are declared / defined */
+#include <resolv.h>
+
 #include "res_private.h"
 
 /* Options.  Should all be left alone. */
@@ -314,7 +317,7 @@ __res_vinit(res_state statp, int preinit) {
 			hints.ai_family = PF_UNSPEC;
 			hints.ai_socktype = SOCK_DGRAM;	/*dummy*/
 			hints.ai_flags = AI_NUMERICHOST;
-			snprintf(sbuf, sizeof(sbuf), "%u", NAMESERVER_PORT);
+			sprintf(sbuf, "%u", NAMESERVER_PORT);
 			if (getaddrinfo(cp, sbuf, &hints, &ai) == 0 &&
 			    ai->ai_addrlen <= minsiz) {
 			    if (statp->_u._ext.ext != NULL) {
@@ -382,8 +385,7 @@ __res_vinit(res_state statp, int preinit) {
 		    continue;
 		}
 	    }
-
-	    if (nserv > 1)
+	    if (nserv > 1) 
 		statp->nscount = nserv;
 #ifdef RESOLVSORT
 	    statp->nsort = nsort;
@@ -616,4 +618,97 @@ res_get_bitstringsuffix(res_state statp) {
 	if (statp->_u._ext.ext)
 		return (statp->_u._ext.ext->bsuffix);
 	return ("ip6.arpa");
+}
+
+void
+res_setservers(res_state statp, const union res_sockaddr_union *set, int cnt) {
+	int i, nserv;
+	size_t size;
+
+	/* close open servers */
+	res_nclose(statp);
+
+	/* cause rtt times to be forgotten */
+	statp->_u._ext.nscount = 0;
+
+	nserv = 0;
+	for (i = 0; i < cnt && nserv < MAXNS; i++) {
+		switch (set->sin.sin_family) {
+		case AF_INET:
+			size = sizeof(set->sin);
+			if (statp->_u._ext.ext)
+				memcpy(&statp->_u._ext.ext->nsaddrs[nserv],
+					&set->sin, size);
+			if (size <= sizeof(statp->nsaddr_list[nserv]))
+				memcpy(&statp->nsaddr_list[nserv],
+					&set->sin, size);
+			else
+				statp->nsaddr_list[nserv].sin_family = 0;
+			nserv++;
+			break;
+
+		case AF_INET6:
+			size = sizeof(set->sin6);
+			if (statp->_u._ext.ext)
+				memcpy(&statp->_u._ext.ext->nsaddrs[nserv],
+					&set->sin6, size);
+			if (size <= sizeof(statp->nsaddr_list[nserv]))
+				memcpy(&statp->nsaddr_list[nserv],
+					&set->sin6, size);
+			else
+				statp->nsaddr_list[nserv].sin_family = 0;
+			nserv++;
+			break;
+
+		default:
+			break;
+		}
+		set++;
+	}
+	statp->nscount = nserv;
+	
+}
+
+int
+res_getservers(res_state statp, union res_sockaddr_union *set, int cnt) {
+	int i;
+	size_t size;
+	u_int16_t family;
+
+	for (i = 0; i < statp->nscount && i < cnt; i++) {
+		if (statp->_u._ext.ext)
+			family = statp->_u._ext.ext->nsaddrs[i].sin.sin_family;
+		else 
+			family = statp->nsaddr_list[i].sin_family;
+
+		switch (family) {
+		case AF_INET:
+			size = sizeof(set->sin);
+			if (statp->_u._ext.ext)
+				memcpy(&set->sin,
+				       &statp->_u._ext.ext->nsaddrs[i],
+				       size);
+			else
+				memcpy(&set->sin, &statp->nsaddr_list[i],
+				       size);
+			break;
+
+		case AF_INET6:
+			size = sizeof(set->sin6);
+			if (statp->_u._ext.ext)
+				memcpy(&set->sin6,
+				       &statp->_u._ext.ext->nsaddrs[i],
+				       size);
+			else
+				memcpy(&set->sin6, &statp->nsaddr_list[i],
+				       size);
+			break;
+
+		default:
+			set->sin.sin_family = 0;
+			break;
+		}
+		set++;
+	}
+	return (statp->nscount);
 }

@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.3 2001/05/22 22:53:24 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.4 2001/06/21 08:26:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -662,7 +662,7 @@ ar_head(cp, count, msg, eom, pvt, name_ok)
 	int (*name_ok)(const char *);
 {
 	int n;
-	u_char buf[1024];	/* XXX */
+	char buf[1024];	/* XXX */
 
 	while (count-- > 0 && cp < eom) {
 		n = dn_expand(msg, eom, cp, buf, sizeof(buf));
@@ -693,7 +693,7 @@ a6_expand(const u_char *ansbuf, const u_char *a6p,
 	int n, pbyte, plen1, pbyte1, error = 0;
 	const u_char *cp;
 	struct addrinfo sentinel, *cur;
-	u_char pname[1024], buf[1024]; /* XXX */
+	char pname[1024], buf[1024]; /* XXX */
 
 	*errorp = NETDB_SUCCESS;
 	memset(&sentinel, 0, sizeof(sentinel));
@@ -1382,7 +1382,9 @@ gethostans(struct irs_ho *this,
 			/* make addrinfo. don't overwrite constant PAI */
 			ai = *pai;
 			ai.ai_family = (type == T_AAAA) ? AF_INET6 : AF_INET;
-			cur->ai_next = addr2addrinfo((const struct addrinfo *)&ai, cp);
+			cur->ai_next = addr2addrinfo(
+					(const struct addrinfo *)&ai,
+					(const char *)cp);
 			if (cur->ai_next == NULL)
 				had_error++;
 

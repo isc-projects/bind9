@@ -90,7 +90,7 @@ int			log_remove_channel(log_context, int, log_channel);
 int			log_option(log_context, int, int);
 int			log_category_is_active(log_context, int);
 log_channel		log_new_syslog_channel(unsigned int, int, int);
-log_channel		log_new_file_channel(unsigned int, int, char *,
+log_channel		log_new_file_channel(unsigned int, int, const char *,
 					     FILE *, unsigned int,
 					     unsigned long);
 int			log_set_file_owner(log_channel, uid_t, gid_t);

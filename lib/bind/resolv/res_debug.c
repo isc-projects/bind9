@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.2 2001/04/03 13:46:25 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3 2001/06/21 08:26:22 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -536,7 +536,17 @@ sym_ntop(const struct res_sym *syms, int number, int *success) {
  */
 const char *
 p_type(int type) {
-	return (sym_ntos(__p_type_syms, type, (int *)0));
+	int success;
+	const char *result;
+	static char typebuf[20];
+
+	result = sym_ntos(__p_type_syms, type, &success);
+	if (success)
+		return (result);
+	if (type < 0 || type > 0xfff)
+		return ("BADTYPE");
+	sprintf(typebuf, "TYPE%d", type);
+	return (typebuf);
 }
 
 /*
@@ -562,7 +572,17 @@ p_section(int section, int opcode) {
  */
 const char *
 p_class(int class) {
-	return (sym_ntos(__p_class_syms, class, (int *)0));
+	int success;
+	const char *result;
+	static char classbuf[20];
+
+	result = sym_ntos(__p_class_syms, class, &success);
+	if (success)
+		return (result);
+	if (class < 0 || class > 0xfff)
+		return ("BADCLASS");
+	sprintf(classbuf, "CLASS%d", class);
+	return (classbuf);
 }
 
 /*
@@ -1060,4 +1080,40 @@ p_secstodate (u_long secs) {
 		time->tm_year, time->tm_mon, time->tm_mday,
 		time->tm_hour, time->tm_min, time->tm_sec);
 	return (output);
+}
+
+u_int16_t
+res_nametoclass(const char *buf, int *success) {
+	unsigned long result;
+	char *endptr;
+
+	result = sym_ston(__p_class_syms, buf, success);
+	if (success)
+		return (result);
+
+	if (strncasecmp(buf, "CLASS", 5) != 0 ||
+	    !isdigit((unsigned char)buf[5]))
+		return (result);
+	result = strtoul(buf, &endptr, 10);
+	if (*endptr == '\0' && result <= 0xffff)
+		*success = 1;
+	return (result);
+}
+
+u_int16_t
+res_nametotype(const char *buf, int *success) {
+	unsigned long result;
+	char *endptr;
+
+	result = sym_ston(__p_type_syms, buf, success);
+	if (success)
+		return (result);
+
+	if (strncasecmp(buf, "type", 4) != 0 ||
+	    !isdigit((unsigned char)buf[4]))
+		return (result);
+	result = strtoul(buf, &endptr, 10);
+	if (*endptr == '\0' && result <= 0xffff)
+		*success = 1;
+	return (result);
 }

@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.4 2001/05/10 07:33:30 marka Exp $
+ *	$Id: netdb.h,v 1.5 2001/06/21 08:26:00 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -118,10 +118,10 @@
 #define	_PATH_SERVICES	"/etc/services"
 #endif
 
-#ifdef _REENTRANT
 __BEGIN_DECLS
 extern int * __h_errno __P((void));
 __END_DECLS
+#ifdef _REENTRANT
 #define	h_errno (*__h_errno())
 #else
 extern int h_errno;
