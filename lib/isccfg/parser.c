@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.28 2001/02/27 01:49:44 bwelling Exp $ */
+/* $Id: parser.c,v 1.29 2001/02/28 19:54:10 gson Exp $ */
 
 #include <config.h>
 
@@ -406,7 +406,6 @@ static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_server;
-static cfg_type_t cfg_type_controls_elt;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_bracketed_sockaddrkeylist;
 static cfg_type_t cfg_type_querysource4;
@@ -433,6 +432,7 @@ static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_boolean_or_ustring;
+static cfg_type_t cfg_type_controls_sockaddr;
 
 /*
  * Configuration type definitions.
@@ -2368,102 +2368,49 @@ static cfg_type_t cfg_type_unsupported = {
 	"unsupported", parse_unsupported, print_spacelist, &cfg_rep_list, NULL };
 
 /*
- * A "controls" statement is represented as a list.  Each element
- * is either a map with the elements "inet", "port", "allow", and "keys"
- * representing an inet control channel, or a cfg_unsupported_t representing
- * a unix control channel.
+ * A "controls" statement is represented as a map with the multivalued
+ * "inet" and "unix" clauses.  Inet controls are tuples; unix controls
+ * are cfg_unsupported_t objects.
  */
 
-/*
- * Parse a single clause in a controls statement, like
- * 'port 1235;'
- */
-static isc_result_t
-parse_controls_clause(cfg_parser_t *pctx, cfg_obj_t *mapobj,
-		      const char *name, cfg_type_t *type)
-{
-	isc_result_t result;
-
-	CHECK(cfg_gettoken(pctx, 0));
-	if (pctx->token.type != isc_tokentype_string ||
-	    strcasecmp(pctx->token.value.as_pointer, name) != 0) {
-		parser_error(pctx, LOG_NEAR, "expected '%s'", name);
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
-	CHECK(parse_symtab_elt(pctx, name, type,
-			       mapobj->value.map.symtab, ISC_FALSE));
-
- cleanup:
-	return (result);
-}
-
-static isc_result_t
-parse_controls_elt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-        isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	UNUSED(type);
-
-	CHECK(cfg_peektoken(pctx, 0));
-	if (pctx->token.type == isc_tokentype_string &&
-	    strcasecmp(pctx->token.value.as_pointer, "inet") == 0) {
-		CHECK(create_map(pctx, &cfg_type_controls_elt, &obj));
-		CHECK(parse_controls_clause(pctx, obj, "inet",
-					    &cfg_type_ustring));
-		CHECK(cfg_peektoken(pctx, 0));
-		if (pctx->token.type == isc_tokentype_string &&
-		    strcasecmp(pctx->token.value.as_pointer, "port") == 0) {
-			CHECK(parse_controls_clause(pctx, obj, "port",
-						    &cfg_type_uint32));
-		}
-		CHECK(parse_controls_clause(pctx, obj, "allow",
-					    &cfg_type_bracketed_aml));
-		CHECK(parse_controls_clause(pctx, obj, "keys",
-					    &cfg_type_keylist));
-	} else {
-		CHECK(parse(pctx, &cfg_type_unsupported, &obj));
-	}
-
-	*ret = obj;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	CLEANUP_OBJ(obj);
-	return (result);
-}
-
-static void
-print_controls_clause(cfg_printer_t *pctx, cfg_obj_t *mapobj,
-		      const char *name)
-{
-	isc_result_t result;
-	isc_symvalue_t symval;
-	result = isc_symtab_lookup(mapobj->value.map.symtab, name, 0, &symval);
-	if (result != ISC_R_SUCCESS) {
-		print(pctx, "<bad>", 5);
-		return;
-	}
-	print(pctx, name, strlen(name));
-	print(pctx, " ", 1);
-	print_obj(pctx, symval.as_pointer);
-}
-
-static void
-print_controls_elt(cfg_printer_t *pctx, cfg_obj_t *obj) {
-	print_controls_clause(pctx, obj, "inet");
-	print(pctx, " ", 1);
-	print_controls_clause(pctx, obj, "allow");
-	print(pctx, " ", 1);
-	print_controls_clause(pctx, obj, "keys");
-}
-
-static cfg_type_t cfg_type_controls_elt = {
-	"controls_elt", parse_controls_elt, print_controls_elt, &cfg_rep_map,
-	NULL
+static keyword_type_t controls_allow_kw = {
+	"allow", &cfg_type_bracketed_aml };
+static cfg_type_t cfg_type_controls_allow = {
+	"controls_allow", parse_keyvalue,
+	print_keyvalue, &cfg_rep_list, &controls_allow_kw
 };
 
+static keyword_type_t controls_keys_kw = {
+	"keys", &cfg_type_keylist };
+static cfg_type_t cfg_type_controls_keys = {
+	"controls_keys", parse_keyvalue,
+	print_keyvalue, &cfg_rep_list, &controls_keys_kw
+};
+
+static cfg_tuplefielddef_t inetcontrol_fields[] = {
+	{ "address", &cfg_type_controls_sockaddr, 0 },
+	{ "allow", &cfg_type_controls_allow, 0 },
+	{ "keys", &cfg_type_controls_keys, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_inetcontrol = {
+	"inetcontrol", parse_tuple, print_tuple, &cfg_rep_tuple,
+	inetcontrol_fields
+};
+
+static cfg_clausedef_t
+controls_clauses[] = {
+	{ "inet", &cfg_type_inetcontrol, CFG_CLAUSEFLAG_MULTI },
+	{ "unix", &cfg_type_unsupported, CFG_CLAUSEFLAG_MULTI },
+	{ NULL, NULL, 0 }
+};
+static cfg_clausedef_t *
+controls_clausesets[] = {
+	controls_clauses,
+	NULL
+};
 static cfg_type_t cfg_type_controls = {
-	"controls", parse_bracketed_list, print_bracketed_list, &cfg_rep_list,
-	&cfg_type_controls_elt
+	"controls", parse_map, print_map, &cfg_rep_map,	&controls_clausesets
 };
 
 /*
@@ -2488,6 +2435,12 @@ static cfg_type_t cfg_type_optional_class = {
 
 /*
  * Try interpreting the current token as a network address.
+ *
+ * If WILDOK is set in flags, "*" can be used as a wildcard
+ * and at least one of V4OK and V6OK must also be set.  The
+ * "*" is interpreted as the IPv4 wildcard address if V4OK is 
+ * set (including the case where V4OK and V6OK are both set),
+ * and the IPv6 wildcard address otherwise.
  */
 static isc_result_t
 token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
@@ -2894,6 +2847,17 @@ parse_sockaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, V4OK|V6OK, ret));
 }
 
+/*
+ * The socket address syntax in the "controls" statement is silly.
+ * It allows both socket address families, but also allows "*",
+ * whis is gratuitously interpreted as the IPv4 wildcard address.
+ */
+static isc_result_t
+parse_controls_sockaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	UNUSED(type);
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, V4OK|V6OK|WILDOK, ret));
+}
+
 static void
 print_sockaddr(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	isc_netaddr_t netaddr;
@@ -2933,6 +2897,9 @@ static cfg_type_t cfg_type_sockaddr6wild = {
 };
 static cfg_type_t cfg_type_sockaddr = {
 	"sockaddr", parse_sockaddr, print_sockaddr,
+	&cfg_rep_sockaddr, NULL };
+static cfg_type_t cfg_type_controls_sockaddr = {
+	"controls_sockaddr", parse_controls_sockaddr, print_sockaddr,
 	&cfg_rep_sockaddr, NULL };
 
 
