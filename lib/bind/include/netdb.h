@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.1 2001/03/29 06:31:34 marka Exp $
+ *	$Id: netdb.h,v 1.2 2001/05/10 05:10:30 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -247,7 +247,7 @@ struct	addrinfo {
 
 
 #ifdef _REENTRANT
-#if defined (__hpux) || defined(__osf__)
+#if defined (__hpux) || defined(__osf__) || defined(_AIX)
 #define	_MAXALIASES	35
 #define	_MAXLINELEN	1024
 #define	_MAXADDRS	35
@@ -377,7 +377,7 @@ void		freehostent __P((struct hostent *));
 
 
 #ifdef _REENTRANT
-#if defined(__hpux) || defined(__osf__)
+#if defined(__hpux) || defined(__osf__) || defined(_AIX)
 int		gethostbyaddr_r __P((const char *, int, int, struct hostent *,
 					struct hostent_data *));
 int		gethostbyname_r __P((const char *, struct hostent *, 
