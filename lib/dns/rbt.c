@@ -253,7 +253,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	int compared, add_labels, current_labels, keep_labels, start_label;
 	dns_result_t result;
 	dns_rbtnodechain_t chain;
-	dns_offsets_t o1, o2;
+	dns_offsets_t o1, o2, new_offset;
 	isc_region_t r;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -410,7 +410,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				start_label = 0;
 				keep_labels = current_labels - compared;
 
-				dns_name_init(&new_name, NULL);
+				dns_name_init(&new_name, new_offset);
 				dns_name_getlabelsequence(&current_name,
 							  start_label,
 							  keep_labels,

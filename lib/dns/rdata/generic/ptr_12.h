@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ptr_12.h,v 1.9 1999/02/16 22:51:19 marka Exp $ */
+ /* $Id: ptr_12.h,v 1.10 1999/02/22 07:24:02 marka Exp $ */
 
 #ifndef RDATA_GENERIC_PTR_12_H
 #define RDATA_GENERIC_PTR_12_H
@@ -83,6 +83,11 @@ towire_ptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 12);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

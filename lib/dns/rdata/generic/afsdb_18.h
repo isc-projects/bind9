@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.h,v 1.3 1999/02/16 22:42:23 marka Exp $ */
+ /* $Id: afsdb_18.h,v 1.4 1999/02/22 07:23:59 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -107,6 +107,11 @@ towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 18);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &sr);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mr_9.c,v 1.8 1999/02/16 22:42:27 marka Exp $ */
+ /* $Id: mr_9.c,v 1.9 1999/02/22 07:24:01 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MR_9_H
 #define RDATA_GENERIC_MR_9_H
@@ -83,6 +83,11 @@ towire_mr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 9);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

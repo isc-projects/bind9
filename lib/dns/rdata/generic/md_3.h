@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: md_3.h,v 1.9 1999/02/16 22:51:18 marka Exp $ */
+ /* $Id: md_3.h,v 1.10 1999/02/22 07:24:00 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MD_3_H
 #define RDATA_GENERIC_MD_3_H
@@ -81,6 +81,11 @@ towire_md(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 3);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

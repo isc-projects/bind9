@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.3 1999/02/16 22:42:32 marka Exp $ */
+ /* $Id: naptr_35.c,v 1.4 1999/02/22 07:24:05 marka Exp $ */
 
  /* RFC 2168 */
 
@@ -151,6 +151,11 @@ towire_in_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->class == 1);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	/* priority, weight */
 	dns_rdata_toregion(rdata, &sr);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.2 1999/02/15 05:44:16 marka Exp $ */
+ /* $Id: dname_39.c,v 1.3 1999/02/22 07:24:00 marka Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
@@ -83,6 +83,11 @@ towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 39);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

@@ -1863,6 +1863,19 @@ dns_result_t
 dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 		isc_buffer_t *target)
 {
+	unsigned int methods;
+	unsigned int offset;
+	dns_name_t gp, gs;
+	dns_name_t lp, ls;
+	isc_boolean_t gf;
+	isc_boolean_t lf;
+	isc_int16_t go;
+	isc_int16_t lo;
+	unsigned char gb[257];
+	unsigned char lb[257];
+	isc_buffer_t gws;
+	isc_buffer_t lws;
+
 	/*
 	 * Convert 'name' into wire format, compressing it as specified by the
 	 * compression context 'cctx', and storing the result in 'target'.
@@ -1872,17 +1885,153 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
 	REQUIRE(cctx != NULL);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 
-	/*
-	 * XXX  We don't try to compress the name; we just copy the
-	 * uncompressed version into the target buffer.
-	 */
+	dns_name_init(&lp, NULL);
+	dns_name_init(&gp, NULL);
+	dns_name_init(&ls, NULL);
+	dns_name_init(&gs, NULL);
+	isc_buffer_init(&gws, gb, sizeof gb, ISC_BUFFERTYPE_BINARY);
+	isc_buffer_init(&lws, lb, sizeof lb, ISC_BUFFERTYPE_BINARY);
 
-	if (target->length - target->used < name->length)
+	offset = target->used;	/*XXX*/
+
+	methods = dns_compress_getmethods(cctx);
+
+	if ((methods & DNS_COMPRESS_GLOBAL) != 0)
+		gf = dns_compress_findglobal(cctx, name, &gp, &gs, &go, &gws);
+	else
+		gf = ISC_FALSE;
+
+	if ((methods & DNS_COMPRESS_LOCAL) != 0)
+		lf = dns_compress_findlocal(cctx, name, &lp, &ls, &lo, &lws);
+	else
+		lf = ISC_FALSE;
+
+	/* find the best compression */
+	if (lf && gf) {
+		if (lp.length < gp.length)
+			gf = ISC_FALSE;
+		else
+			lf = ISC_FALSE;
+	}
+
+	if (gf) {
+		if (target->length - target->used < gp.length)
+			return (DNS_R_NOSPACE);
+		(void)memcpy((unsigned char *)target->base + target->used,
+			     gp.ndata, (size_t)gp.length);
+		isc_buffer_add(target, gp.length);
+		if (go < 16384) {
+			go |= 0xc000;
+			if (target->length - target->used < 2)
+				return (DNS_R_NOSPACE);
+			isc_buffer_putuint16(target, go);
+		} else {
+			if (target->length - target->used < 3)
+				return (DNS_R_NOSPACE);
+			*((unsigned char*)target->base + target->used) =
+				DNS_LABELTYPE_GLOBALCOMP16;
+			isc_buffer_add(target, 1);
+			isc_buffer_putuint16(target, go);
+		}
+		if (gp.length != 0)
+			dns_compress_add(cctx, &gp, &gs, offset);
+	} else if (lf) {
+		if (target->length - target->used < lp.length)
+			return (DNS_R_NOSPACE);
+		(void)memcpy((unsigned char *)target->base + target->used,
+			     lp.ndata, (size_t)lp.length);
+		isc_buffer_add(target, lp.length);
+		if (lo < 16384) {
+			lo |= 0x8000;
+			if (target->length - target->used < 2)
+				return (DNS_R_NOSPACE);
+			isc_buffer_putuint16(target, lo);
+		} else {
+			if (target->length - target->used < 3)
+				return (DNS_R_NOSPACE);
+			*((unsigned char*)target->base + target->used) =
+				DNS_LABELTYPE_LOCALCOMP;
+			isc_buffer_add(target, 1);
+			isc_buffer_putuint16(target, lo);
+		}
+		if (lp.length != 0)
+			dns_compress_add(cctx, &lp, &ls, offset);
+	} else {
+		if (target->length - target->used < name->length)
+			return (DNS_R_NOSPACE);
+		(void)memcpy((unsigned char *)target->base + target->used,
+			     name->ndata, (size_t)name->length);
+		isc_buffer_add(target, name->length);
+		dns_compress_add(cctx, name, NULL, offset);
+	}
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_name_cat(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
+	     isc_buffer_t *target)
+{
+	unsigned char *ndata;
+	unsigned char *offsets;
+	dns_offsets_t odata;
+	unsigned int nrem;
+	unsigned int labels;
+	unsigned int count;
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(VALID_NAME(prefix));
+	if (suffix != NULL)
+		REQUIRE(VALID_NAME(suffix));
+	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+	REQUIRE((name->attributes & DNS_NAMEATTR_READONLY) == 0);
+
+	nrem = target->length - target->used;
+	ndata = (unsigned char *)target->base + target->used;
+	if (nrem > 255)
+		nrem = 255;
+	if (dns_name_isabsolute(prefix)) {
+		count = prefix->length - 1;
+		labels = prefix->labels - 1;
+	 } else {
+		count = prefix->length;
+		labels = prefix->labels;
+	}
+	if (count > nrem)
 		return (DNS_R_NOSPACE);
-	(void)memcpy((unsigned char *)target->base + target->used,
-		     name->ndata, (size_t)name->length);
+	memcpy(ndata, prefix->ndata, count);
+	nrem -= count;
+	ndata += count;
+
+	/* append suffix */
+	if (suffix != NULL) {
+		if (dns_name_isabsolute(suffix)) {
+			count = suffix->length - 1;
+			labels += suffix->labels - 1;
+		} else {
+			count = suffix->length;
+			labels += suffix->labels;
+		}
+		if (count > nrem)
+			return (DNS_R_NOSPACE);
+		memcpy(ndata, suffix->ndata, count);
+		ndata += count;
+	}
+
+	/* root label */
+	if (nrem < 1)
+		return (DNS_R_NOSPACE);
+	*ndata++ = 0;
+	labels++;
+
+	name->ndata = (unsigned char *)target->base + target->used;
+	name->labels = labels;
+	name->length = ndata - name->ndata;
+	name->attributes |= DNS_NAMEATTR_ABSOLUTE;
+
+	INIT_OFFSETS(name, offsets, odata);
+	set_offsets(name, offsets, ISC_FALSE, ISC_FALSE, ISC_FALSE);
+	compact(name, offsets);
 
 	isc_buffer_add(target, name->length);
-
 	return (DNS_R_SUCCESS);
 }

@@ -26,6 +26,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rdataset.h>
+#include <dns/compress.h>
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset) {
@@ -272,6 +273,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	isc_region_t r;
 	dns_result_t result;
 	unsigned int count;
+	isc_buffer_t st;
+	isc_buffer_t rdlen;
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -288,31 +291,54 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		/*
 		 * copy out the name, type, class, ttl.
 		 */
+		if (dns_compress_getedns(cctx) >= 1)
+			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL);
+		else
+			dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
+		st = *target;
 		result = dns_name_towire(owner_name, cctx, target);
-		if (result != DNS_R_SUCCESS)
+		if (result != DNS_R_SUCCESS) {
+			dns_compress_backout(cctx, st.used);
+			*target = st;
 			return (result);
+		}
 		isc_buffer_available(target, &r);
 		if (r.length < (sizeof(dns_rdataclass_t)
 				+ sizeof(dns_rdatatype_t)
 				+ sizeof(dns_ttl_t)
-				+ 2)) /* XXX 2? it's for the rdata length */
+				+ 2)) { /* XXX 2? it's for the rdata length */
+			dns_compress_backout(cctx, st.used);
+			*target = st;
 			return (DNS_R_NOSPACE);
+		}
 		isc_buffer_putuint16(target, rdataset->type);
 		isc_buffer_putuint16(target, rdataset->class);
 		isc_buffer_putuint32(target, rdataset->ttl);
 
 		/*
-		 * copy out the rdata length
+		 * Save space for rdlen.
 		 */
-		dns_rdataset_current(rdataset, &rdata);
-		isc_buffer_putuint16(target, rdata.length);
+		rdlen = *target;
+		isc_buffer_add(target, 2);
 
 		/*
 		 * copy out the rdata
 		 */
-		result = dns_rdata_towire(&rdata, cctx, target);
-		if (result != DNS_R_SUCCESS)
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_compress_localinit(cctx, owner_name, target);
+		if (result != DNS_R_SUCCESS) {
+			dns_compress_backout(cctx, st.used);
+			*target = st;
 			return (result);
+		}
+		result = dns_rdata_towire(&rdata, cctx, target);
+		dns_compress_localinvalidate(cctx);
+		if (result != DNS_R_SUCCESS) {
+			dns_compress_backout(cctx, st.used);
+			*target = st;
+			return (result);
+		}
+		isc_buffer_putuint16(&rdlen, target->used - rdlen.used - 2);
 
 		count++;
 

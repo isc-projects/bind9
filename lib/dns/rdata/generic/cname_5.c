@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.c,v 1.9 1999/02/16 22:51:17 marka Exp $ */
+ /* $Id: cname_5.c,v 1.10 1999/02/22 07:23:59 marka Exp $ */
 
 #ifndef RDATA_GENERIC_CNAME_5_H
 #define RDATA_GENERIC_CNAME_5_H
@@ -83,6 +83,11 @@ towire_cname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 5);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

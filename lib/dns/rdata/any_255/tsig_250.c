@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.5 1999/02/16 22:42:23 marka Exp $ */
+ /* $Id: tsig_250.c,v 1.6 1999/02/22 07:23:59 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -234,7 +234,10 @@ towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->class == 255);
 
-	cctx = cctx;	/*unused*/
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_init(&name, NULL);

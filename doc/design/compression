@@ -5,7 +5,7 @@ Overview.
 
 	BIND 4.x and BIND 8.x only had one methods of compression to deal
 	with 14 bit compression.  BIND 9 has 3 methods of compression
-	to deal with 14 bit, 16 bit and local compression.
+	to deal with 14 bit, 16 bit and local compression (14 and 16 bit).
 
 	In addition to this the allowed compression methods vary across
 	types and across client revisions thanks to EDNS.
@@ -59,20 +59,17 @@ Implementation:
 	We only need to maintain one global RBT as 16 bit compression
 	pointers are either valid or invalid for the whole message.
 
-Functions:
-	unsigned int
-	dns_compress_allowed(dns_rdatatype_t type, int edns,
-				  isc_boolean_t isowner);
+	dns_rdata_towire() will set the allowed methods based on the
+	edns version.
 
-	Returns allowed compression methods based on type, edns, and whether
-	we are about to compress a owner name.
+Functions:
 
 	dns_result_t
-	dns_compress_init(dns_compress_t *cctx, isc_boolean_t global16,
-			  isc_mem_t *mctx);
+	dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
 
 	Initalises cctx to empty and sets whether 16 bit global
-	compression targets are to be added to the global RBT.
+	compression targets are to be added to the global RBT based on the
+	edns value.
 
 	dns_result_t
 	dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
@@ -85,11 +82,18 @@ Functions:
 
 	Free any RBT's and make empty.
 
+	dns_compress_localinvalidate(dns_compress_t *cctx);
+
+	Free the local RBT.
+
 	void
 	dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed);
 
 	unsigned int
 	dns_compress_getmethods(dns_compress_t *cctx);
+
+	int
+	dns_compress_getedns(dns_compress_t *cctx);
 
 	dns_result_t
 	dns_name_towire(dns_name_t *name, dns_compress_t *cctx,
@@ -108,6 +112,33 @@ Functions:
 		dns_rbt_t *global;	/* Global RBT */
 		isc_mem_t *mctx;	/* Required by RBT */
 	};
+
+	sets allowed based on the value of edns.
+
+	isc_boolean_t
+	dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
+				dns_name_t *prefix, dns_name_t *suffix,
+				isc_uint16_t *offset, isc_buffer_t *workspace);
+
+	isc_boolean_t
+	dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
+			       dns_name_t *prefix, dns_name_t *suffix,
+			       isc_uint16_t *offset, isc_buffer_t *workspace);
+	
+	Find the best best match in the global / local RBT.  Returns prefix,
+	suffix and offset of the bestmatch.  Findglobal(), findlocal()
+	requires as workspace as it may be neccessary to spit a bit stream
+	label.  The result prefix will be such that it can be added to the
+	wire format followed by a compression pointer pointing to offset.
+	Suffix is returned so that it is possible to add the compression
+	pointers via dns_compress_add().
+
+	void
+	dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
+			 dns_name_t *suffix, isc_uint16_t offset);
+
+	Add compression pointers pointing to lebels (if any) in prefix.
+	The offset to the first label is passed in offset.
 
 Dependancy:
 

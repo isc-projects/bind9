@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.35 1999/02/16 22:42:23 marka Exp $ */
+ /* $Id: rdata.c,v 1.36 1999/02/22 07:23:57 marka Exp $ */
 
 #include <config.h>
 
@@ -296,9 +296,11 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_region_t tr;
+	isc_buffer_t st;
 
 	REQUIRE(rdata != NULL);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
+	st = *target;
 
 	TOWIRESWITCH
 	
@@ -309,6 +311,10 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 		memcpy(tr.base, rdata->data, rdata->length);
 		isc_buffer_add(target, rdata->length);
 		return (DNS_R_SUCCESS);
+	}
+	if (result != DNS_R_SUCCESS) {
+		*target = st;
+		dns_compress_backout(cctx, target->used);
 	}
 	return (result);
 }

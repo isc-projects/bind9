@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.h,v 1.5 1999/02/15 05:44:20 marka Exp $ */
+ /* $Id: tkey_249.h,v 1.6 1999/02/22 07:24:04 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -223,6 +223,11 @@ towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 249);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	/* Algorithm */
 	dns_rdata_toregion(rdata, &sr);

@@ -98,8 +98,8 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	memset(&cctx, '0', sizeof cctx);
 	memset(&dctx, '0', sizeof dctx);
+	dctx.allowed = DNS_COMPRESS_ALL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
@@ -187,6 +187,7 @@ main(int argc, char *argv[]) {
 		dns_rdata_init(&rdata);
 		isc_buffer_init(&dbuf, inbuf, sizeof(inbuf),
 				ISC_BUFFERTYPE_BINARY);
+	RUNTIME_CHECK(dns_compress_init(&cctx, -1, mctx) == DNS_R_SUCCESS);
 		result = dns_rdata_fromtext(&rdata, class, type, lex,
 					    NULL, ISC_FALSE, &dbuf, NULL);
 		if (result != DNS_R_SUCCESS) {
@@ -194,6 +195,7 @@ main(int argc, char *argv[]) {
 				"dns_rdata_fromtext returned %s(%d)\n",
 				dns_result_totext(result), result);
 			fflush(stdout);
+			dns_compress_invalidate(&cctx);
 			continue;
 		}
 		if (raw) {
@@ -219,6 +221,7 @@ main(int argc, char *argv[]) {
 				fprintf(stdout,
 					"dns_rdata_towire returned %s(%d)\n",
 					dns_result_totext(result), result);
+				dns_compress_invalidate(&cctx);
 				continue;
 			}
 			len = wbuf.used - wbuf.current;
@@ -257,6 +260,7 @@ main(int argc, char *argv[]) {
 					"dns_rdata_fromwire returned %s(%d)\n",
 					dns_result_totext(result), result);
 				fflush(stdout);
+				dns_compress_invalidate(&cctx);
 				continue;
 			}
 		}
@@ -285,6 +289,7 @@ main(int argc, char *argv[]) {
 			fprintf(stdout, "\"%.*s\"\n",
 				(int)tbuf.used, (char*)tbuf.base);
 		fflush(stdout);
+		dns_compress_invalidate(&cctx);
 		if (lasttype == type) {
 			fprintf(stdout, "dns_rdata_compare = %d\n",
 				dns_rdata_compare(&rdata, &last));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.2 1999/02/15 05:44:22 marka Exp $ */
+ /* $Id: srv_33.c,v 1.3 1999/02/22 07:24:05 marka Exp $ */
 
  /* RFC 2052 bis */
 
@@ -128,6 +128,11 @@ towire_in_srv(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 33);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	/* priority, weight, port */
 	dns_rdata_toregion(rdata, &sr);

@@ -21,10 +21,14 @@
 #include <isc/mem.h>
 
 #include <dns/types.h>
+#include <dns/rbt.h>
 
+#define DNS_COMPRESS_NONE		0x00	/* no compression */
 #define DNS_COMPRESS_GLOBAL14		0x01	/* "normal" compression. */
 #define DNS_COMPRESS_GLOBAL16		0x02	/* 16-bit global comp. */
-#define DNS_COMPRESS_LOCAL		0x04	/* Local compression. */
+#define DNS_COMPRESS_GLOBAL		0x03	/* all global comp. */
+#define DNS_COMPRESS_LOCAL		0x04	/* local compression. */
+#define DNS_COMPRESS_ALL		0x07	/* all compression. */
 
 /*
  * XXX  An API for manipulating these structures will be forthcoming.
@@ -33,14 +37,187 @@
  */
 
 struct dns_compress {
-	unsigned int allowed;			/* Allowed methods. */
-	dns_name_t owner_name;			/* For local compression. */
-	/* XXX compression table here */
+	unsigned int	magic;			/* Magic number. */
+	unsigned int	allowed;		/* Allowed methods. */
+	unsigned int	rdata;			/* Start of local rdata. */
+	isc_boolean_t	global16;		/* 16 bit offsets allowed. */
+	int		edns;			/* Edns version or -1. */
+	dns_rbt_t	*local;			/* Local RBT. */
+	dns_rbt_t	*global;		/* Global RBT. */
+	isc_mem_t	*mctx;			/* Memeory context. */
 };
 
 struct dns_decompress {
 	unsigned int allowed;			/* Allowed methods. */
 	dns_name_t owner_name;			/* For local compression. */
 };
+
+dns_result_t dns_compress_init(dns_compress_t *cctx, int edns,
+			       isc_mem_t *mctx);
+/*
+ *	Inialise the compression context structure pointed to by 'cctx'.
+ *
+ *	Requires:
+ *		'cctx' is a valid dns_compress_t structure.
+ *		'mctx' is a initalised memory context.
+ *	Ensures:
+ *		cctx->global is initalised.
+ *
+ *	Returns:
+ *		DNS_R_SUCCESS
+ *		failures from dns_rbt_create()
+ */
+
+dns_result_t
+dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
+		       isc_buffer_t *target);
+
+/*
+ *	Initalise 'cctx->local'. 
+ *	All compression pointers pointing to logical labels in owner.
+ *	Record start of rdata 'target->used'.
+ *
+ *	Ensures:
+ *		'cctx->local' is valid.
+ *
+ *	Requires:
+ *		'cctx' initaliased
+ *		'cctx->local' be NULL
+ *		'owner' is a absolute name
+ *		'target' is a valid buffer
+ *
+ *	Returns:
+ *		DNS_R_SUCCESS
+ *		failures from dns_rbt_create()
+ */
+
+void
+dns_compress_invalidate(dns_compress_t *cctx);
+
+/*
+ *	Invalidate the compression structure pointed to by cctx.
+ *	Destroys 'cctx->glocal' and 'cctx->local' RBT.
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ */
+
+void
+dns_compress_localinvalidate(dns_compress_t *cctx);
+
+/*
+ *	Destroys 'cctx->local'.
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ */
+
+void
+dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed);
+
+/*
+ *	Sets allowed compression methods.
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ */
+
+unsigned int
+dns_compress_getmethods(dns_compress_t *cctx);
+
+/*
+ *	Gets allowed compression methods.
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ *
+ *	Returns:
+ *		allowed compression bitmap.
+ */
+
+int
+dns_compress_getedns(dns_compress_t *cctx);
+
+/*
+ *	Gets edns value.
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ *
+ *	Returns:
+ *		-1 .. 255
+ */
+
+isc_boolean_t
+dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
+			dns_name_t *prefix, dns_name_t *suffix,
+			isc_uint16_t *offset, isc_buffer_t *workspace);
+/*
+ *	Finds longest possible match of 'name' in the global compression
+ *	RBT.  Workspace needs to be large enough to hold 'name' when split
+ *	in two (length->name + 3).
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ *		'name' to be a absolute name.
+ *		'prefix' to be initalised.
+ *		'suffix' to be initalised.
+ *		'offset' to point it a isc_uint16_t.
+ *		'workspace' to be initalised.
+ *
+ *	Ensures:
+ *		'prefix', 'suffix' and 'offset' are valid is ISC_TRUE is
+ *		returned.
+ *
+ *	Returns:
+ *		ISC_TRUE / ISC_FALSE
+ */
+
+isc_boolean_t
+dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
+		       dns_name_t *prefix, dns_name_t *suffix,
+		       isc_uint16_t *offset, isc_buffer_t *workspace);
+
+/*
+ *	Finds longest possible match of 'name' in the local compression
+ *	RBT.  Workspace needs to be large enough to hold 'name' when split
+ *	in two (length->name + 3).
+ *
+ *	Requires:
+ *		'cctx' to be initalised.
+ *		'name' to be a absolute name.
+ *		'prefix' to be initalised.
+ *		'suffix' to be initalised.
+ *		'offset' to point it a isc_uint16_t.
+ *		'workspace' to be initalised.
+ *
+ *	Ensures:
+ *		'prefix', 'suffix' and 'offset' are valid is ISC_TRUE is
+ *		returned.
+ *
+ *	Returns:
+ *		ISC_TRUE / ISC_FALSE
+ */
+
+void
+dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
+		 dns_name_t *suffix, isc_uint16_t offset);
+/*
+ *	Add compression pointers for labels in prefix to RBT's.
+ *
+ *	Requires:
+ *		'cctx' initalised
+ *		'prefix' to be initalised
+ */
+
+void
+dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset);
+
+/*
+ *	Remove any compression pointers from global RBT >= offset.
+ *
+ *	Requires:
+ *		'cctx' is initalised.
+ */
 
 #endif /* DNS_COMPRESS_H */

@@ -75,6 +75,7 @@ dump_packet(unsigned char *buf, u_int len)
 	dns_message_t message;
 	dns_result_t result;
 	isc_buffer_t source, target;
+	unsigned int i;
 
 	rdcount = 0;
 	rlcount = 0;
@@ -82,6 +83,17 @@ dump_packet(unsigned char *buf, u_int len)
 
 	dctx.allowed = DNS_COMPRESS_GLOBAL14;
 	dns_name_init(&dctx.owner_name, NULL);
+
+	for (i = 0 ; i < len ; /* */ ) {
+		fprintf(stdout, "%02x", buf[i]);
+		if ((++i % 20) == 0)
+			fputs("\n", stdout);
+		else
+			if (i == len)
+				fputs("\n", stdout);
+			else
+				fputs(" ", stdout);
+	}
 
 	isc_buffer_init(&source, buf, len, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, len);
@@ -144,8 +156,9 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 	dctx.allowed = DNS_COMPRESS_GLOBAL14;
 	dns_name_init(&dctx.owner_name, NULL);
 
-	cctx.allowed = DNS_COMPRESS_GLOBAL14;
-	dns_name_init(&cctx.owner_name, NULL);
+	result = dns_compress_init(&cctx, -1, db->mctx);
+	if (result != DNS_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Expand the name requested into buffer (tbuf)
@@ -244,6 +257,7 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
 			target->used = oldused;
 		}
 	}
+	dns_compress_invalidate(&cctx);
 
 	return (DNS_R_SUCCESS);
 }

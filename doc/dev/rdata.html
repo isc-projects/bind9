@@ -265,6 +265,16 @@ towire_<I>typename</I>(dns_rdata_t *rdata, dns_compress_t *cctx,
 towire_<I>classname_typename</I>(dns_rdata_t *rdata, dns_compress_t *cctx,
                           isc_buffer_t *target);<CODE>
 </PRE>
+<P>
+<CODE>towire_<I>classname_typename</I>()</CODE> is required to set the
+allowed name compression methods based on EDNS version if there is a 
+domain name in the rdata.
+<PRE>
+<CODE>if (dns_compress_getedns(cctx) >= #)
+	dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+else
+	dns_compress_setmethods(cctx, DNS_COMPRESS_LOCAL);</CODE>
+</PRE>
 <DL>
 <DT><CODE>rdata</CODE></DT>
 <DD>

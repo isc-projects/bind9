@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.3 1999/02/16 22:42:29 marka Exp $ */
+ /* $Id: rp_17.c,v 1.4 1999/02/22 07:24:03 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -107,6 +107,11 @@ towire_rp(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t email;
 
 	REQUIRE(rdata->type == 17);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.8 1999/02/16 22:42:28 marka Exp $ */
+ /* $Id: ns_2.h,v 1.9 1999/02/22 07:24:02 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_H
 #define RDATA_GENERIC_NS_2_H
@@ -83,6 +83,11 @@ towire_ns(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 2);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.h,v 1.3 1999/02/16 22:42:29 marka Exp $ */
+ /* $Id: rt_21.h,v 1.4 1999/02/22 07:24:03 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -106,6 +106,11 @@ towire_rt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t tr;
 
 	REQUIRE(rdata->type == 21);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);

@@ -96,6 +96,7 @@
 #include <dns/types.h>
 #include <dns/name.h>
 #include <dns/callbacks.h>
+#include <dns/compress.h>
 
 /*****
  ***** RData

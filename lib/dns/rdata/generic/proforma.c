@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.6 1999/02/16 22:51:19 marka Exp $ */
+ /* $Id: proforma.c,v 1.7 1999/02/22 07:24:02 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_H
 #define RDATA_GENERIC_#_#_H
@@ -59,6 +59,11 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->class == #);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL):
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_LOCAL);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.h,v 1.2 1999/02/15 05:44:21 marka Exp $ */
+ /* $Id: nsap-ptr_23.h,v 1.3 1999/02/22 07:24:05 marka Exp $ */
 
  /* RFC 1348 */
 
@@ -89,6 +89,11 @@ towire_in_nsap_ptr(dns_rdata_t *rdata, dns_compress_t *cctx,
 
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->class == 1);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

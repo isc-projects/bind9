@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.12 1999/02/16 22:51:19 marka Exp $ */
+ /* $Id: soa_6.h,v 1.13 1999/02/22 07:24:04 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -141,6 +141,11 @@ towire_soa(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t rname;
 
 	REQUIRE(rdata->type == 6);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	dns_name_init(&mname, NULL);
 	dns_name_init(&rname, NULL);

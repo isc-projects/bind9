@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.5 1999/02/16 22:42:31 marka Exp $ */
+ /* $Id: a6_38.h,v 1.6 1999/02/22 07:24:04 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -187,6 +187,11 @@ towire_in_a6(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->class == 1);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_rdata_toregion(rdata, &sr);
 	prefixlen = sr.base[0];

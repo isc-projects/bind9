@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.h,v 1.11 1999/02/16 22:42:28 marka Exp $ */
+ /* $Id: mx_15.h,v 1.12 1999/02/22 07:24:01 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -104,6 +104,11 @@ towire_mx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t tr;
 
 	REQUIRE(rdata->type == 15);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
 	isc_buffer_available(target, &tr);
 	dns_rdata_toregion(rdata, &region);

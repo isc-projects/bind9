@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.7 1999/02/16 22:42:29 marka Exp $ */
+ /* $Id: sig_24.c,v 1.8 1999/02/22 07:24:03 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -215,6 +215,11 @@ towire_sig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 24);
+
+	if (dns_compress_getedns(cctx) >= 1)
+		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
+	else
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_rdata_toregion(rdata, &sr);
 	/*
