@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.1 2001/03/04 21:21:32 bwelling Exp $ */
+/* $Id: config.h,v 1.2 2001/08/03 18:12:08 bwelling Exp $ */
 
-/* $Id: config.h,v 1.1 2001/03/04 21:21:32 bwelling Exp $ */
+/* $Id: config.h,v 1.2 2001/08/03 18:12:08 bwelling Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
@@ -62,5 +62,8 @@ ns_config_putipandkeylist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 
 isc_result_t
 ns_config_getport(cfg_obj_t *config, in_port_t *portp);
+
+isc_result_t
+ns_config_getkeyalgorithm(const char *str, dns_name_t **name);
 
 #endif /* NAMED_CONFIG_H */

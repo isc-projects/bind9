@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.20 2001/08/03 18:03:02 gson Exp $ */
+/* $Id: controlconf.c,v 1.21 2001/08/03 18:12:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -51,6 +51,7 @@
 
 #include <dst/dst.h>
 
+#include <named/config.h>
 #include <named/control.h>
 #include <named/log.h>
 #include <named/server.h>
@@ -672,7 +673,9 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 			algstr = cfg_obj_asstring(algobj);
 			secretstr = cfg_obj_asstring(secretobj);
 
-			if (strcasecmp(algstr, "hmac-md5") != 0) {
+			if (ns_config_getkeyalgorithm(algstr, NULL) !=
+			    ISC_R_SUCCESS)
+			{
 				cfg_obj_log(control, ns_g_lctx,
 					    ISC_LOG_WARNING,
 					    "unsupported algorithm '%s' in "
@@ -760,7 +763,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	algstr = cfg_obj_asstring(algobj);
 	secretstr = cfg_obj_asstring(secretobj);
 
-	if (strcasecmp(algstr, "hmac-md5") != 0) {
+	if (ns_config_getkeyalgorithm(algstr, NULL) != ISC_R_SUCCESS) {
 		cfg_obj_log(key, ns_g_lctx,
 			    ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "

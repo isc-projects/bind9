@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.19 2001/07/26 20:54:34 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.20 2001/08/03 18:12:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -83,11 +83,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		 * Create the algorithm.
 		 */
 		algstr = cfg_obj_asstring(algobj);
-		if (strcasecmp(algstr, "hmac-md5") == 0 ||
-		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int") ||
-		    strcasecmp(algstr, "hmac-md5.sig-alg.reg.int."))
-			alg = dns_tsig_hmacmd5_name;
-		else {
+		if (ns_config_getkeyalgorithm(algstr, &alg) != ISC_R_SUCCESS) {
 			cfg_obj_log(algobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "key '%s': the only supported algorithm "
 				    "is hmac-md5", keyid);
