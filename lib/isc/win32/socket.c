@@ -15,7 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.3 2001/07/09 21:06:18 gson Exp $ */
+/* $Id: socket.c,v 1.4 2001/07/10 06:27:44 mayer Exp $ */
+
 
 #define MAKE_EXTERNAL 1
 #include <config.h>
@@ -342,7 +343,6 @@ internal_recvmsg(int sock, struct msghdr *msg, int flags) {
 	DWORD NumBytes;
 	int Result;
 	int Error;
-	isc_buffer_t *b = malloc(256);
 
 	Result = WSARecvFrom((SOCKET) sock,
 			     msg->msg_iov,
