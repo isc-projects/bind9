@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.54 2000/09/22 17:14:24 mws Exp $ */
+/* $Id: nslookup.c,v 1.55 2000/09/27 00:02:02 mws Exp $ */
 
 #include <config.h>
 
@@ -45,7 +45,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, show_details,
+extern isc_boolean_t have_ipv6,
 	usesearch, trace, qr, debugging;
 extern in_port_t port;
 extern unsigned int timeout;

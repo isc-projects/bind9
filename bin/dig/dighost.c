@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.135 2000/09/26 17:21:25 mws Exp $ */
+/* $Id: dighost.c,v 1.136 2000/09/27 00:02:00 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -71,7 +71,6 @@ isc_boolean_t
 	specified_source = ISC_FALSE,
 	free_now = ISC_FALSE,
 	cancel_now = ISC_FALSE,
-	show_details = ISC_FALSE,
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
@@ -2265,12 +2264,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if ((l->trace)||
 			    (l->ns_search_only)) {
 				debug("in TRACE code");
-				if (show_details ||
-				    (((dns_message_firstname(msg,
-							 DNS_SECTION_ANSWER)
-				       == ISC_R_SUCCESS)) &&
-				     !l->trace_root))
-					printmessage(query, msg, ISC_TRUE);
+				printmessage(query, msg, ISC_TRUE);
 				if ((msg->rcode != 0) &&
 				    (l->origin != NULL)) {
 					if (!next_origin(msg, query)) {
@@ -2311,9 +2305,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					received(b->used, r.length,
 						 (char *)r.base,
 						 query);
-				}
-				if (show_details) {
-				       printmessage(query, msg, ISC_TRUE);
 				}
 			} else {
 				if (query->first_soa_rcvd &&

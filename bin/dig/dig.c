@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.103 2000/09/26 17:17:39 gson Exp $ */
+/* $Id: dig.c,v 1.104 2000/09/27 00:01:58 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -51,7 +51,7 @@ extern ISC_LIST(dig_searchlist_t) search_list;
 }
 
 
-extern isc_boolean_t have_ipv6, show_details, specified_source,
+extern isc_boolean_t have_ipv6, specified_source,
 	usesearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -164,7 +164,6 @@ show_usage(void) {
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
-"                 +[no]details        (Show details of all requests)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
@@ -649,16 +648,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 'd':
 		switch (tolower(cmd[1])) {
 		case 'e':
-			switch (tolower(cmd[2])) {
-			case 'f': /* defname */
-				lookup->defname = state;
-				break;
-			case 't': /* details */
-				show_details = state;
-				break;
-			default:
-				goto invalid_option;
-			}
+			lookup->defname = state;
 			break;
 		case 'o': /* domain */	
 			if (value == NULL)
@@ -800,7 +790,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
 					lookup->section_question = ISC_FALSE;
-					show_details = ISC_TRUE;
 				}
 				break;
 			case 'i': /* tries */

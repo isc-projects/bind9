@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.53 2000/09/13 00:27:24 mws Exp $ */
+/* $Id: host.c,v 1.54 2000/09/27 00:02:01 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -45,7 +45,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t show_details, debugging;
+extern isc_boolean_t debugging;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
 extern int ndots;
@@ -235,7 +235,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	isc_result_t result;
 	int diff;
 
-	if (!short_form || show_details) {
+	if (!short_form) {
 		result = isc_time_now(&now);
 		check_result(result, "isc_time_now");
 		diff = isc_time_microdiff(&now, &query->time_sent);
@@ -624,7 +624,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->rdclass = dns_rdataclass_in;
 			lookup->ns_search_only = ISC_TRUE;
 			lookup->trace_root = ISC_TRUE;
-			show_details = ISC_TRUE;
 			break;
 		case 'N':
 			debug("setting NDOTS to %s",
