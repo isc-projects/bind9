@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: lwinetaton.c,v 1.5 2000/06/21 22:20:14 tale Exp $";
+static char rcsid[] = "$Id: lwinetaton.c,v 1.6 2000/06/27 18:02:12 bwelling Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -98,6 +98,8 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 	lwres_uint8_t *pp = parts;
 	int digit;
 
+	REQUIRE(cp != NULL);
+
 	c = *cp;
 	for (;;) {
 		/*
@@ -107,14 +109,17 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 		 */
 		if (!isdigit(c & 0xff))
 			return (0);
-		val = 0; base = 10; digit = 0;
+		val = 0;
+		base = 10;
+		digit = 0;
 		if (c == '0') {
 			c = *++cp;
-			if (c == 'x' || c == 'X')
-				base = 16, c = *++cp;
-			else {
+			if (c == 'x' || c == 'X') {
+				base = 16;
+			       	c = *++cp;
+			} else {
 				base = 8;
-				digit = 1 ;
+				digit = 1;
 			}
 		}
 		for (;;) {
