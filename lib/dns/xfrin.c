@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.41 2000/01/28 23:48:57 gson Exp $ */
+ /* $Id: xfrin.c,v 1.42 2000/01/31 15:10:29 tale Exp $ */
 
 #include <config.h>
 
@@ -1146,9 +1146,13 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	char mastermem[256];
 	isc_result_t result;
 	char msgmem[2048];
+	isc_boolean_t omit_final_dot = ISC_TRUE;
+
+	if (dns_name_equal(zonename, dns_rootname))
+		omit_final_dot = ISC_FALSE;
 
 	isc_buffer_init(&znbuf, znmem, sizeof(znmem), ISC_BUFFERTYPE_TEXT);
-	result = dns_name_totext(zonename, ISC_TRUE, &znbuf);
+	result = dns_name_totext(zonename, omit_final_dot, &znbuf);
 	if (result != DNS_R_SUCCESS) {
 		isc_buffer_clear(&znbuf);
 		isc_buffer_putmem(&znbuf, (unsigned char *)"<UNKNOWN>",
