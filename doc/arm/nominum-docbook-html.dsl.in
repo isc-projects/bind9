@@ -7,6 +7,19 @@
 <style-specification-body>
 
 <!-- ;; your stuff goes here... -->
+
+(define %html-prefix% 
+  ;; Add the specified prefix to HTML output filenames
+  "Bv9ARM.")
+
+(define %use-id-as-filename%
+  ;; Use ID attributes as name for component HTML files?
+  #t)
+
+(define %root-filename%
+  ;; Name for the root HTML document
+  "Bv9ARM")
+
 (define %section-autolabel%
   ;; REFENTRY section-autolabel
   ;; PURP Are sections enumerated?

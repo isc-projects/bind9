@@ -9,7 +9,7 @@
 
 <book>
 
-  <chapter>
+  <chapter id="ch01">
   <title>Introduction </title>
   <para>The Internet Domain Name System (<acronym>DNS</acronym>) consists of the syntax
   to specify the names of entities in the Internet in a hierarchical
@@ -307,7 +307,7 @@ for the zone are inaccessible.</para>
   </sect1>
   </chapter>
 
-  <chapter><title><acronym>BIND</acronym> Resource Requirements</title>
+  <chapter id="ch02"><title><acronym>BIND</acronym> Resource Requirements</title>
 <sect1><title>Hardware requirements</title>
 <para><acronym>DNS</acronym> hardware requirements have traditionally been quite modest.
 For many installations, servers that have been pensioned off from
@@ -377,7 +377,7 @@ systems:</para>
   </sect1>
   </chapter>
 
-  <chapter>
+  <chapter id="ch03">
   <title>Nameserver Configuration</title>
 <para>In this section we provide some suggested configurations along
 with guidelines for their use. We also address the topic of reasonable
@@ -806,7 +806,7 @@ reload the database. </para></entry>
   </sect1>
   </chapter>
 
-  <chapter>
+  <chapter id="ch04">
   <title>Advanced Concepts</title>
   <sect1 id="dynamic_update">
     <title>Dynamic Update</title>
@@ -1400,7 +1400,7 @@ allow-update { key host1-host2. ;};
     <para><acronym>BIND</acronym> 9 includes a new lightweight resolver library and
     resolver daemon which new applications may choose to use to avoid
     the complexities of A6 chain following and bitstring labels,<xref
-    linkend="lightweight_resolver"/>.</para>
+    linkend="ch05"/>.</para>
 
     <sect2>
       <title>Address Lookups Using AAAA Records</title>
@@ -1585,7 +1585,7 @@ $ORIGIN ipv6-rev.example.com.
   </sect1>
   </chapter>
 
-  <chapter id="lightweight_resolver"><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title>
+  <chapter id="ch05"><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title>
 <sect1><title>The Lightweight Resolver Library</title>
 <para>Traditionally applications have been linked with a stub resolver
 library that sends recursive DNS queries to a local caching name
@@ -1618,7 +1618,7 @@ to run on each host, it is designed to require no or minimal configuration.
 in <filename>/etc/resolv.conf</filename> as forwarders, but is also
 capable of doing the resolution autonomously if none are specified.</para></sect1></chapter>
 
-<chapter><title><acronym>BIND</acronym> 9 Configuration Reference</title>
+<chapter id="ch06"><title><acronym>BIND</acronym> 9 Configuration Reference</title>
 <para><acronym>BIND</acronym> 9 configuration is broadly similar to <acronym>BIND</acronym> 8.x; however,
 there are a few new areas of configuration, such as views. <acronym>BIND</acronym>
 8.x configuration files should work with few alterations in <acronym>BIND</acronym>
@@ -4383,7 +4383,7 @@ and not part of the standard zone file format.
     </sect2>
   </sect1>
 </chapter>
-<chapter><title><acronym>BIND</acronym> 9 Security Considerations</title>
+<chapter id="ch07"><title><acronym>BIND</acronym> 9 Security Considerations</title>
 <sect1 id="Access_Control_Lists"><title>Access Control Lists</title>
 <para>Access Control Lists (ACLs), are address match lists that
 you can set up and nickname for future use in <command>allow-query</command>, <command>allow-recursion</command>, <command>blackhole</command>, <command>allow-transfer</command>,
@@ -4466,7 +4466,7 @@ way, the top-level zone containing critical data such as the IP addresses
 of public web and mail servers need not allow dynamic update at
 all.</para></sect1></chapter>
 
-<chapter>
+<chapter id="ch08">
   <title>Troubleshooting</title>
   <sect1>
     <title>Common Problems</title>
@@ -4526,7 +4526,7 @@ all.</para></sect1></chapter>
     to read more.</para>
   </sect1>
 </chapter>
-<appendix>
+<appendix id="ch09">
   <title>Appendices</title>
   <sect1>
     <title>Acknowledgements</title>
