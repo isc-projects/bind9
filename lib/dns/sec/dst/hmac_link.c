@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.26 2000/05/15 21:30:43 bwelling Exp $
+ * $Id: hmac_link.c,v 1.27 2000/06/01 02:04:38 bwelling Exp $
  */
 
 #include <config.h>
@@ -403,7 +403,7 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	hkey = (HMAC_Key *) isc_mem_get(mctx, sizeof(HMAC_Key *));
+	hkey = (HMAC_Key *) isc_mem_get(mctx, sizeof(HMAC_Key));
 	if (hkey == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 
