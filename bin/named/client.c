@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.214 2003/01/21 06:11:45 marka Exp $ */
+/* $Id: client.c,v 1.215 2003/02/26 02:03:57 marka Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,7 @@
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/rcode.h>
+#include <dns/resolver.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -1028,6 +1029,9 @@ client_addopt(ns_client_t *client) {
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
 	isc_result_t result;
+	dns_view_t *view;
+	dns_resolver_t *resolver;
+	isc_uint16_t udpsize;
 
 	REQUIRE(client->opt == NULL);	/* XXXRTH free old. */
 
@@ -1051,7 +1055,13 @@ client_addopt(ns_client_t *client) {
 	/*
 	 * Set the maximum UDP buffer size.
 	 */
-	rdatalist->rdclass = RECV_BUFFER_SIZE;
+	view = client->view;
+	resolver = (view != NULL) ? view->resolver : NULL;
+	if (resolver != NULL)
+		udpsize = dns_resolver_getudpsize(resolver);
+	else
+		udpsize = ns_g_udpsize;
+	rdatalist->rdclass = udpsize;
 
 	/*
 	 * Set EXTENDED-RCODE, VERSION and Z to 0.

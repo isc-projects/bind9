@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.260 2003/01/18 03:18:30 marka Exp $ */
+/* $Id: resolver.c,v 1.261 2003/02/26 02:03:59 marka Exp $ */
 
 #include <config.h>
 
@@ -93,7 +93,7 @@
 /*
  * Maximum EDNS0 input packet size.
  */
-#define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
+#define RECV_BUFFER_SIZE		4096		/* XXXRTH  Constant. */
 
 /*
  * This defines the maximum number of timeouts we will permit before we
@@ -284,6 +284,7 @@ struct dns_resolver {
 	fctxbucket_t *			buckets;
 	isc_uint32_t			lame_ttl;
 	ISC_LIST(alternate_t)		alternates;
+	isc_uint16_t			udpsize;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -706,7 +707,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 static inline isc_result_t
-fctx_addopt(dns_message_t *message) {
+fctx_addopt(dns_message_t *message, dns_resolver_t *res) {
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
@@ -732,7 +733,7 @@ fctx_addopt(dns_message_t *message) {
 	/*
 	 * Set Maximum UDP buffer size.
 	 */
-	rdatalist->rdclass = SEND_BUFFER_SIZE;
+	rdatalist->rdclass = res->udpsize;
 
 	/*
 	 * Set EXTENDED-RCODE, VERSION, and Z to 0, and the DO bit to 1.
@@ -1078,7 +1079,7 @@ resquery_send(resquery_t *query) {
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
-			result = fctx_addopt(fctx->qmessage);
+			result = fctx_addopt(fctx->qmessage, res);
 			if (result != ISC_R_SUCCESS) {
 				/*
 				 * We couldn't add the OPT, but we'll press on.
@@ -5281,6 +5282,7 @@ dns_resolver_create(dns_view_t *view,
 	res->options = options;
 	res->lame_ttl = 0;
 	ISC_LIST_INIT(res->alternates);
+	res->udpsize = RECV_BUFFER_SIZE;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -5924,4 +5926,16 @@ dns_resolver_addalternate(dns_resolver_t *resolver, isc_sockaddr_t *alt,
 	ISC_LIST_APPEND(resolver->alternates, a, link);
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	resolver->udpsize = udpsize;
+}
+
+isc_uint16_t
+dns_resolver_getudpsize(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->udpsize);
 }

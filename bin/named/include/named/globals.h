@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.60 2002/11/12 23:38:11 explorer Exp $ */
+/* $Id: globals.h,v 1.61 2003/02/26 02:03:58 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -84,6 +84,7 @@ EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
 							     "/resolv.conf");
 EXTERN isc_boolean_t		ns_g_conffileset	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		lwresd_g_useresolvconf	INIT(ISC_FALSE);
+EXTERN isc_uint16_t		ns_g_udpsize		INIT(4096);
 
 /*
  * Initial resource limits.

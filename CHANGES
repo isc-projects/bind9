@@ -1,3 +1,6 @@
+1432.	[func]		The advertised EDNS UDP buffer size can now be set
+			via named.conf (edns-udp-size).
+
 1431.	[bug]		isc_print_snprintf() "%s" with precision could walk of
 			end of arguement. [RT #5191]
 

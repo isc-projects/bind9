@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.214 2003/02/07 01:13:11 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.215 2003/02/26 02:03:58 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2782,6 +2782,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> max-cache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
+    <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
 };
 </programlisting>
 </sect2>
@@ -4014,6 +4015,16 @@ These options are valid for slave and stub zones,
 and clamp the SOA refresh and retry times to the specified values.
 </para></listitem></varlistentry>
 
+<varlistentry>
+<term><command>edns-udp-size</command></term>
+<listitem><para>
+<command>edns-udp-size</command> sets the advertised EDNS UDP buffer
+size.  Valid values are 512 to 4096 (values outside this range will be
+silently adjusted).  The default value is 4096.  The usual reason for
+setting edns-udp-size to a non default value it to get UDP answers to
+pass through broken firewalls that block fragmented packets and/or
+block UDP packets that are greater than 512 bytes.
+</para></listitem></varlistentry>
 </variablelist>
 
 </sect3>

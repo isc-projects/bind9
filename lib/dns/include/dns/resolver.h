@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.36 2003/01/16 03:59:25 marka Exp $ */
+/* $Id: resolver.h,v 1.37 2003/02/26 02:03:59 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -369,6 +369,18 @@ dns_resolver_addalternate(dns_resolver_t *resolver, isc_sockaddr_t *alt,
  *
  * Require:
  * 	only one of 'name' or 'alt' to be valid.
+ */
+
+void
+dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize);
+/*
+ * Set the EDNS UDP buffer size advertised by the server.
+ */
+
+isc_uint16_t
+dns_resolver_getudpsize(dns_resolver_t *resolver);
+/*
+ * Get the current EDNS UDP buffer size.
  */
 
 ISC_LANG_ENDDECLS
