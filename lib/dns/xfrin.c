@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.103 2000/10/25 04:26:53 marka Exp $ */
+/* $Id: xfrin.c,v 1.104 2000/11/03 21:36:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -868,7 +868,20 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target)
 	ISC_LIST_APPEND(name->list, rds, link);
 
 	*target = name;
+	return (ISC_R_SUCCESS);
+
  failure:
+
+	if (rds != NULL)
+		dns_rdataset_disassociate(rds);
+		dns_message_puttemprdataset(msg, &rds);
+	if (rdl != NULL) {
+		ISC_LIST_UNLINK(rdl->rdata, rdata, link);
+		dns_message_puttemprdatalist(msg, &rdl);
+	}
+	if (rdata != NULL)
+		dns_message_puttemprdata(msg, &rdata);
+
 	return (result);
 }
 
@@ -891,20 +904,22 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 	/* Create the request message */
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
-	dns_message_settsigkey(msg, xfr->tsigkey);
+	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 
 	/* Create a name for the question section. */
-	dns_message_gettempname(msg, &qname);
+	CHECK(dns_message_gettempname(msg, &qname));
 	dns_name_init(qname, NULL);
 	dns_name_clone(&xfr->name, qname);
 
 	/* Formulate the question and attach it to the question name. */
-	dns_message_gettemprdataset(msg, &qrdataset);
+	CHECK(dns_message_gettemprdataset(msg, &qrdataset));
 	dns_rdataset_init(qrdataset);
 	dns_rdataset_makequestion(qrdataset, xfr->rdclass, xfr->reqtype);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
+	qrdataset = NULL;
 
 	dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
+	qname = NULL;
 
 	if (xfr->reqtype == dns_rdatatype_ixfr) {
 		/* Get the SOA and add it to the authority section. */
@@ -950,6 +965,10 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	xfr->sends++;
 
  failure:
+	if (qname != NULL)
+		dns_message_puttempname(msg, &qname);
+	if (qrdataset != NULL)
+		dns_message_puttemprdataset(msg, &qrdataset);
 	if (msg != NULL)
 		dns_message_destroy(&msg);
 	if (soatuple != NULL)
