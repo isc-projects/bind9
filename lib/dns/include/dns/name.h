@@ -494,7 +494,10 @@ void dns_name_getlabelsequence(dns_name_t *source,
  *	must not be changed while 'target' is still in use.
  *
  * Requires:
+ *	'source' and 'target' are valid names.
+ *
  *	first < dns_label_countlabels(name)
+ *
  *	first + n <= dns_label_countlabels(name)
  */
 

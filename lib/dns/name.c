@@ -748,6 +748,7 @@ dns_name_getlabelsequence(dns_name_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(source));
+	REQUIRE(VALID_NAME(target));
 	REQUIRE(source->labels > 0);
 	REQUIRE(n > 0);
 	REQUIRE(first < source->labels);
