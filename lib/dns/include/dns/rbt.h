@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.52 2001/01/09 21:53:11 bwelling Exp $ */
+/* $Id: rbt.h,v 1.53 2001/03/08 01:08:39 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -538,6 +538,43 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *
  *	'name' will have offsets that also point to the information stored
  *	as part of the node.
+ */
+
+isc_result_t
+dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name);
+/*
+ * Like dns_rbt_namefromnode, but returns the full name from the root.
+ *
+ * Notes:
+ *	Unlike dns_rbt_namefromnode, the name will not point directly
+ *	to node data.  Rather, dns_name_concatenate will be used to copy
+ *	the name data from each node into the 'name' argument.
+ *
+ * Requires:
+ *	name != NULL
+ *	name has a dedicated buffer.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE		(possible via dns_name_concatenate)
+ *	DNS_R_NAMETOOLONG	(possible via dns_name_concatenate)
+ */
+
+char *
+dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
+		       unsigned int size);
+/*
+ * Format the full name of a node for printing, using dns_name_format().
+ *
+ * Notes:
+ *	'size' is the length of the printname buffer.  This should be
+ *	DNS_NAME_FORMATSIZE or larger.
+ *
+ * Requires:
+ *	node and printname are not NULL.
+ *
+ * Returns:
+ *	The 'printname' pointer.
  */
 
 unsigned int
