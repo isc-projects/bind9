@@ -66,6 +66,41 @@ use(dst_key_t *key) {
 }
 
 static void
+dns(dst_key_t *key, isc_mem_t *mctx) {
+	unsigned char buffer1[2048];
+	unsigned char buffer2[2048];
+	isc_buffer_t buf1, buf2;
+	isc_region_t r1, r2;
+	dst_key_t *newkey = NULL;
+	isc_result_t ret;
+	isc_boolean_t match;
+
+	isc_buffer_init(&buf1, buffer1, sizeof(buffer1), ISC_BUFFERTYPE_BINARY);
+	ret = dst_key_todns(key, &buf1);
+	printf("todns(%d) returned: %s\n", dst_key_alg(key),
+	       isc_result_totext(ret));
+	if (ret != ISC_R_SUCCESS)
+		return;
+	ret = dst_key_fromdns(dst_key_name(key), &buf1, mctx, &newkey);
+	printf("fromdns(%d) returned: %s\n", dst_key_alg(key),
+	       isc_result_totext(ret));
+	if (ret != ISC_R_SUCCESS)
+		return;
+	isc_buffer_init(&buf2, buffer2, sizeof(buffer2), ISC_BUFFERTYPE_BINARY);
+	ret = dst_key_todns(newkey, &buf2);
+	printf("todns2(%d) returned: %s\n", dst_key_alg(key),
+	       isc_result_totext(ret));
+	if (ret != ISC_R_SUCCESS)
+		return;
+	isc_buffer_used(&buf1, &r1);
+	isc_buffer_used(&buf2, &r2);
+	match = (r1.length == r2.length &&
+		 memcmp(r1.base, r2.base, r1.length) == 0);
+	printf("compare(%d): %s\n", dst_key_alg(key), match ? "true" : "false");
+	dst_key_free(newkey);
+}
+
+static void
 io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 	dst_key_t *key;
 	isc_result_t ret;
@@ -81,6 +116,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 	if (ret != 0)
 		return;
 	use(key);
+	dns(key, mctx);
 	dst_key_free(key);
 }
 
