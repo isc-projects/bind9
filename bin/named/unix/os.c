@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.30 2000/08/10 00:31:58 bwelling Exp $ */
+/* $Id: os.c,v 1.31 2000/08/10 18:56:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -61,9 +61,17 @@ static isc_boolean_t done_setuid = ISC_FALSE;
 
 #ifdef HAVE_LINUX_PRCTL_H
 #include <sys/prctl.h>		/* Required for prctl(). */
+
+/*
+ * If the value of PR_SET_KEEPCAPS is not in <linux/prctl.h>, define it
+ * here.  This allows setuid() to work on systems running a new enough
+ * kernel but with /usr/include/linux pointing to "standard" kernel
+ * headers.
+ */
 #ifndef PR_SET_KEEPCAPS
 #define PR_SET_KEEPCAPS 8
 #endif
+
 #endif /* HAVE_LINUX_PRCTL_H */
 
 #ifndef SYS_capset
