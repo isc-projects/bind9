@@ -95,7 +95,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_debug.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.5.4.2 2004/03/16 12:34:18 marka Exp $";
+static const char rcsid[] = "$Id: res_debug.c,v 1.3.2.5.4.3 2004/04/10 03:43:16 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -1099,9 +1099,10 @@ p_secstodate (u_long secs) {
 	static char output[15];		/* YYYYMMDDHHMMSS and null */
 	time_t clock = secs;
 	struct tm *time;
-	
 #ifdef HAVE_TIME_R
-	gmtime_r(&clock, &time);
+	struct tm res;
+	
+	time = gmtime_r(&clock, &res);
 #else
 	time = gmtime(&clock);
 #endif
