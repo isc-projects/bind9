@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.sh,v 1.29 2000/08/01 01:14:27 tale Exp $
+# $Id: start.sh,v 1.30 2000/08/31 23:51:54 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -51,7 +51,7 @@ done
 
 cd $1
 
-for d in ns*
+for d in ns[0-9]*
 do
     (
         cd $d
@@ -79,7 +79,7 @@ do
     ) || exit 1
 done
 
-for d in lwresd*
+for d in lwresd[0-9]*
 do
     (
 	if test ! -d $d
@@ -112,7 +112,7 @@ do
     ) || exit 1
 done
 
-for d in ans*
+for d in ans[0-9]*
 do
     (
 	if test ! -d $d
@@ -151,7 +151,7 @@ status=0
 
 sleep 5
 
-for d in ns*
+for d in ns[0-9]*
 do
 	try=0
 	while true
