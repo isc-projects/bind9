@@ -1,3 +1,6 @@
+1271.   [port]          win32: a make file contained absolute version specific
+                        references.
+
 1270.	[func]		Nsupdate will report the address the update was
 			sent to.
 
