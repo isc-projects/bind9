@@ -132,7 +132,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *target)
+	     dns_name_t *target, dns_ttl_t ttl)
 {
 	isc_result_t result;
 	dns_rdata_t rdata;
@@ -149,7 +149,7 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = dns_rdatatype_nxt;
 	rdatalist.covers = 0;
-	rdatalist.ttl = 3600;			/* XXXRTH */
+	rdatalist.ttl = ttl;
 	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);

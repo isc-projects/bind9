@@ -45,7 +45,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *target);
+	     dns_name_t *target, dns_ttl_t ttl);
 /*
  * Build a NXT record and add it to a database.
  */
