@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.351 2001/10/16 22:18:58 gson Exp $ */
+/* $Id: server.c,v 1.352 2001/10/17 19:34:07 gson Exp $ */
 
 #include <config.h>
 
@@ -677,7 +677,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * If we still have no hints, this is a non-IN view with no
 	 * "hints zone" configured.  Issue a warning, except if this
 	 * is a root server.  Root servers never need to consult 
-	 * their hints, so it's no point requireing users to configure
+	 * their hints, so it's no point requiring users to configure
 	 * them.
 	 */
 	if (view->hints == NULL) {
