@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.11 2001/01/09 21:46:25 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.12 2001/02/28 23:42:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@
  * A simple database driver that interfaces to a PostgreSQL database.  This
  * is not complete, and not designed for general use.  It opens one
  * connection to the database per zone, which is inefficient.  It also may
- * not support multiple threads and probably doesn't handle quoting correctly.
+ * not handle quoting correctly.
  *
  * The table must contain the fields "name", "rdtype", and "rdata", and 
  * is expected to contain a properly constructed zone.  The program "zonetodb"
@@ -52,8 +52,15 @@ static dns_sdbimplementation_t *pgsqldb = NULL;
 
 struct dbinfo {
 	PGconn *conn;
+	char *database;
 	char *table;
+	char *host;
+	char *user;
+	char *passwd;
 };
+
+static void
+pgsqldb_destroy(const char *zone, void *driverdata, void **dbdata);
 
 /*
  * Canonicalize a string before writing it to the database.
@@ -70,7 +77,33 @@ quotestring(const char *source, char *dest) {
 		*dest++ = *source++;
 	}
 	*dest++ = 0;
-}       
+}
+
+/*
+ * Connect to the database.
+ */
+static isc_result_t
+db_connect(struct dbinfo *dbi) {
+	dbi->conn = PQsetdbLogin(dbi->host, NULL, NULL, NULL, dbi->database,
+				 dbi->user, dbi->passwd);
+
+	if (PQstatus(dbi->conn) == CONNECTION_OK)
+		return (ISC_R_SUCCESS);
+	else
+		return (ISC_R_FAILURE);
+}
+
+/*
+ * Check to see if the connection is still valid.  If not, attempt to
+ * reconnect.
+ */
+static isc_result_t
+maybe_reconnect(struct dbinfo *dbi) {
+	if (PQstatus(dbi->conn) == CONNECTION_OK)
+		return (ISC_R_SUCCESS);
+
+	return (db_connect(dbi));
+}
 
 /*
  * This database operates on absolute names.
@@ -99,6 +132,11 @@ pgsqldb_lookup(const char *zone, const char *name, void *dbdata,
 		 "SELECT TTL,RDTYPE,RDATA FROM \"%s\" WHERE "
 		 "lower(NAME) = lower('%s')", dbi->table, canonname);
 	isc_mem_put(ns_g_mctx, canonname, strlen(name) * 2 + 1);
+
+	result = maybe_reconnect(dbi);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	res = PQexec(dbi->conn, str);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		PQclear(res);
@@ -148,6 +186,11 @@ pgsqldb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *allnodes) {
 	snprintf(str, sizeof(str),
 		 "SELECT TTL,NAME,RDTYPE,RDATA FROM \"%s\" ORDER BY NAME",
 		 dbi->table);
+
+	result = maybe_reconnect(dbi);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	res = PQexec(dbi->conn, str);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK ) {
 		PQclear(res);
@@ -182,15 +225,21 @@ pgsqldb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *allnodes) {
 }
 
 /*
- * Create a connection to the database and save a copy of the table name.
- * Save these in dbdata.  argv[0] is the name of the database and
- * argv[1] is the name of the table.
+ * Create a connection to the database and save any necessary information
+ * in dbdata.
+ *
+ * argv[0] is the name of the database
+ * argv[1] is the name of the table
+ * argv[2] (if present) is the name of the host to connect to
+ * argv[3] (if present) is the name of the user to connect as
+ * argv[4] (if present) is the name of the password to connect with
  */
 static isc_result_t
 pgsqldb_create(const char *zone, int argc, char **argv,
 	       void *driverdata, void **dbdata)
 {
 	struct dbinfo *dbi;
+	isc_result_t result;
 
 	UNUSED(zone);
 	UNUSED(driverdata);
@@ -201,22 +250,41 @@ pgsqldb_create(const char *zone, int argc, char **argv,
 	dbi = isc_mem_get(ns_g_mctx, sizeof(struct dbinfo));
 	if (dbi == NULL)
 		return (ISC_R_NOMEMORY);
-	dbi->table = isc_mem_strdup(ns_g_mctx, argv[1]);
-	if (dbi->table == NULL) {
-		isc_mem_put(ns_g_mctx, dbi, sizeof(struct dbinfo));
-		return (ISC_R_NOMEMORY);
-	}
+	dbi->conn = NULL;
+	dbi->database = NULL;
+	dbi->table = NULL;
+	dbi->host = NULL;
+	dbi->user = NULL;
+	dbi->passwd = NULL;
 
-	dbi->conn = PQsetdb(NULL, NULL, NULL, NULL, argv[0]);
-	if (PQstatus(dbi->conn) == CONNECTION_BAD) {
-		PQfinish(dbi->conn);
-		isc_mem_free(ns_g_mctx, dbi->table);
-		isc_mem_put(ns_g_mctx, dbi, sizeof(struct dbinfo));
-		return (ISC_R_FAILURE);
-	}
+#define STRDUP_OR_FAIL(target, source)				\
+	do {							\
+		target = isc_mem_strdup(ns_g_mctx, source);	\
+		if (target == NULL) {				\
+			result = ISC_R_NOMEMORY;		\
+			goto cleanup;				\
+		}						\
+	} while (0);
+
+	STRDUP_OR_FAIL(dbi->database, argv[0]);
+	STRDUP_OR_FAIL(dbi->table, argv[1]);
+	if (argc > 2)
+		STRDUP_OR_FAIL(dbi->host, argv[2]);
+	if (argc > 3)
+		STRDUP_OR_FAIL(dbi->user, argv[3]);
+	if (argc > 4)
+		STRDUP_OR_FAIL(dbi->passwd, argv[4]);
+
+	result = db_connect(dbi);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	*dbdata = dbi;
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	pgsqldb_destroy(zone, driverdata, (void **)&dbi);
+	return (result);
 }
 
 /*
@@ -229,8 +297,20 @@ pgsqldb_destroy(const char *zone, void *driverdata, void **dbdata) {
 	UNUSED(zone);
 	UNUSED(driverdata);
 
-	PQfinish(dbi->conn);
-	isc_mem_free(ns_g_mctx, dbi->table);
+	if (dbi->conn != NULL)
+		PQfinish(dbi->conn);
+	if (dbi->database != NULL)
+		isc_mem_free(ns_g_mctx, dbi->database);
+	if (dbi->table != NULL)
+		isc_mem_free(ns_g_mctx, dbi->table);
+	if (dbi->host != NULL)
+		isc_mem_free(ns_g_mctx, dbi->host);
+	if (dbi->user != NULL)
+		isc_mem_free(ns_g_mctx, dbi->user);
+	if (dbi->passwd != NULL)
+		isc_mem_free(ns_g_mctx, dbi->passwd);
+	if (dbi->database != NULL)
+		isc_mem_free(ns_g_mctx, dbi->database);
 	isc_mem_put(ns_g_mctx, dbi, sizeof(struct dbinfo));
 }
 
