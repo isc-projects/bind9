@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.12 2000/05/08 14:37:03 tale Exp $
+ * $Id: dst_parse.c,v 1.13 2000/05/13 19:30:19 tale Exp $
  */
 
 #include <config.h>
@@ -198,7 +198,6 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 	isc_token_t token;
 	unsigned int opt = ISC_LEXOPT_EOL;
 	isc_result_t iret;
-	isc_result_t error = DST_R_INVALIDPRIVATEKEY;
 
 	REQUIRE(priv != NULL);
 
@@ -229,7 +228,9 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 		NEXTTOKEN(lex, opt, token) \
 	} while ((*token).type != isc_tokentype_eol) \
 
-	/* Read the description line */
+	/*
+	 * Read the description line.
+	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
 	    strcmp(token.value.as_pointer, PRIVATE_KEY_STR) != 0)
@@ -248,7 +249,9 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	READLINE(lex, opt, &token);
 
-	/* Read the algorithm line */
+	/*
+	 * Read the algorithm line.
+	 */
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
 	    strcmp(token.value.as_pointer, ALGORITHM_STR) != 0)
@@ -261,7 +264,9 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 
 	READLINE(lex, opt, &token);
 
-	/* Read the key data */
+	/*
+	 * Read the key data.
+	 */
 	for (n = 0; n < MAXFIELDS; n++) {
 		int tag;
 		unsigned char *data;
@@ -282,10 +287,9 @@ dst_s_parse_private_key_file(const char *name, const int alg,
 		priv->elements[n].tag = tag;
 
 		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);
-		if (data == NULL) {
-			error = DST_R_INVALIDPRIVATEKEY;
+		if (data == NULL)
 			goto fail;
-		}
+
 		isc_buffer_init(&b, data, MAXFIELDSIZE);
 		ret = isc_base64_tobuffer(lex, &b, -1);
 		if (ret != ISC_R_SUCCESS)
