@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.20 2003/02/27 05:12:45 marka Exp $ */
+/* $Id: namedconf.c,v 1.21 2003/04/17 03:26:58 marka Exp $ */
 
 #include <config.h>
 
@@ -928,6 +928,10 @@ parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
 
 	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
 	CHECK(parse_unitstring(TOKEN_STRING(pctx), &val));
 
 	CHECK(cfg_create_obj(pctx, &cfg_type_uint64, &obj));
