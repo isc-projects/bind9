@@ -1722,6 +1722,29 @@ EOF
 		;;
 esac
 
+echo $ac_n "checking for sa_len in struct sockaddr""... $ac_c" 1>&6
+echo "configure:1727: checking for sa_len in struct sockaddr" >&5
+cat > conftest.$ac_ext <<EOF
+#line 1729 "configure"
+#include "confdefs.h"
+#include <sys/socket.h>
+EOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  egrep "sa_len" >/dev/null 2>&1; then
+  rm -rf conftest*
+  echo "$ac_t""yes" 1>&6
+	cat >> confdefs.h <<\EOF
+#define HAVE_SA_LEN 1
+EOF
+
+else
+  rm -rf conftest*
+  echo "$ac_t""no" 1>&6
+fi
+rm -f conftest*
+
+
+
 
 BIND9_TOP_BUILDDIR=`pwd`
 

@@ -26,3 +26,6 @@
 
 /* define if you need AF_INET6 */
 #undef NEED_AF_INET6
+
+/* define if your struct sockaddr has a sa_len member */
+#undef HAVE_SA_LEN
