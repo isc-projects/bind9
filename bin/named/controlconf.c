@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.21 2001/08/03 18:12:05 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.22 2001/08/03 18:28:48 gson Exp $ */
 
 #include <config.h>
 
@@ -913,13 +913,7 @@ update_listener(ns_controls_t *cp,
 		result = ns_acl_fromconfig(allow, config, aclconfctx,
 					   listener->mctx, &new_acl);
 	} else {
-		/* allow { any; } */
-		result = dns_acl_create(listener->mctx, 1, &new_acl);
-		if (result == ISC_R_SUCCESS) {
-			new_acl->elements->type = dns_aclelementtype_any;
-			new_acl->elements->negative = ISC_FALSE;
-			new_acl->length = 1;
-		}
+		result = dns_acl_any(listener->mctx, &new_acl);
 	}
 
 	if (result == ISC_R_SUCCESS) {
