@@ -170,7 +170,7 @@
 			moment. [RT #9462]
 
 1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
-			were being sent for the zone.
+			were being sent for the zone. [RT# 9442]
 
 1528.	[cleanup]	Simplify some dns_name_ functions based on the
 			deprecation of bitstring labels.
