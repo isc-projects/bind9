@@ -56,6 +56,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	rdataset->type = rdatalist->type;
 	rdataset->covers = rdatalist->covers;
 	rdataset->ttl = rdatalist->ttl;
+	rdataset->trust = 0;
 	rdataset->private1 = rdatalist;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
