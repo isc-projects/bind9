@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.40 2000/08/01 01:30:27 tale Exp $ */
+/* $Id: mem.h,v 1.41 2000/08/31 12:15:17 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -27,6 +27,10 @@
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
+
+#define ISC_MEM_LOWATER 0
+#define ISC_MEM_HIWATER 1
+typedef void (*isc_mem_water_t)(void *, int);
 
 typedef void * (*isc_memalloc_t)(void *, size_t);
 typedef void (*isc_memfree_t)(void *, void *);
@@ -146,6 +150,24 @@ isc_result_t			isc_mem_createx(size_t, size_t,
 						isc_memfree_t memfree,
 						void *arg, isc_mem_t **);
 isc_result_t			isc_mem_restore(isc_mem_t *);
+
+void
+isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
+		 size_t hiwater, size_t lowater);
+/*
+ * Set high and low water marks for this memory context.  When the memory
+ * usage of 'mctx' exceeds 'hiwater', '(water)(water_arg, ISC_MEM_HIWATER)'
+ * will be called.  When the usage drops below 'lowater', 'water' will
+ * again be called, this time with ISC_MEM_LOWATER.
+ *
+ * Requires:
+ * 	If 'water' is NULL then 'water_arg', 'hi_water' and 'lo_water' are
+ *	ignored and the state is reset otherwise.
+ *	'water' to point to a valid function.
+ *	'hi_water > lo_water'
+ *	'lo_water != 0'
+ *	'hi_water != 0'
+ */
 
 /*
  * Memory pools

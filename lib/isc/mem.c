@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.60 2000/08/26 01:23:12 bwelling Exp $ */
+/* $Id: mem.c,v 1.61 2000/08/31 12:15:16 marka Exp $ */
 
 #include <config.h>
 
@@ -118,6 +118,11 @@ struct isc_mem {
 	size_t			quota;
 	size_t			total;
 	size_t			inuse;
+	size_t			hi_water;
+	size_t			lo_water;
+	isc_boolean_t		hi_called;
+	isc_mem_water_t		water;
+	void *			water_arg;
 	ISC_LIST(isc_mempool_t)	pools;
 #ifdef ISC_MEM_TRACKLINES
 	ISC_LIST(debuglink_t)	debuglist;
@@ -651,6 +656,11 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->quota = 0;
 	ctx->total = 0;
 	ctx->inuse = 0;
+	ctx->hi_water = 0;
+	ctx->lo_water = 0;
+	ctx->hi_called = ISC_FALSE;
+	ctx->water = NULL;
+	ctx->water_arg = NULL;
 	ctx->magic = MEM_MAGIC;
 	isc_ondestroy_init(&ctx->ondestroy);
 	ISC_LIST_INIT(ctx->pools);
@@ -813,26 +823,61 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 	void *ptr;
+	isc_boolean_t call_water = ISC_FALSE;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
 	ptr = mem_getunlocked(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
+	if (ctx->hi_water != 0 && !ctx->hi_called &&
+	    ctx->inuse > ctx->hi_water) {
+		ctx->hi_called = ISC_TRUE;
+		call_water = ISC_TRUE;
+	}
 	UNLOCK(&ctx->lock);
+
+	/* XXX remove */
+	if (ctx->hi_water)
+		fprintf(stderr,"inuse %u, total %u\n", ctx->inuse, ctx->total);
+
+	if (call_water) {
+		/* XXX remove */
+		fprintf(stderr, "calling water(%p,ISC_MEM_HIWATER)\n",
+			 ctx->water_arg);
+		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
+	}
+
 	return (ptr);
 }
 
 void
 isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 {
+	isc_boolean_t call_water = ISC_FALSE;
+
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
 	LOCK(&ctx->lock);
 	DELETE_TRACE(ctx, ptr, size, file, line);
 	mem_putunlocked(ctx, ptr, size);
+	if (ctx->hi_called && ctx->inuse < ctx->lo_water) {
+		ctx->hi_called = ISC_FALSE;
+		call_water = ISC_TRUE;
+	}
 	UNLOCK(&ctx->lock);
+
+	/* XXX remove */
+	if (ctx->hi_water)
+		fprintf(stderr,"inuse %u, total %u\n", ctx->inuse, ctx->total);
+
+	if (call_water) {
+		/* XXX remove */
+		fprintf(stderr, "calling water(%p,ISC_MEM_LOWATER)\n",
+			 ctx->water_arg);
+		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
+	}
 }
 
 isc_result_t
@@ -1081,6 +1126,35 @@ isc_mem_inuse(isc_mem_t *ctx) {
 	UNLOCK(&ctx->lock);
 
 	return (inuse);
+}
+
+void
+isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
+                 size_t hiwater, size_t lowater)
+{
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	if (water != NULL) {
+		REQUIRE(hiwater > lowater);
+		REQUIRE(hiwater > 0);
+		REQUIRE(lowater > 0);
+	}
+
+	LOCK(&ctx->lock);
+	if (water == NULL) {
+		ctx->water = NULL;
+		ctx->water_arg = NULL;
+		ctx->hi_water = NULL;
+		ctx->lo_water = NULL;
+		ctx->hi_called = ISC_FALSE;
+	} else {
+		ctx->water = water;
+		ctx->water_arg = water_arg;
+		ctx->hi_water = hiwater;
+		ctx->lo_water = lowater;
+		ctx->hi_called = ISC_FALSE;
+	}
+	UNLOCK(&ctx->lock);
 }
 
 /*

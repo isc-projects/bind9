@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.56 2000/08/22 01:20:05 bwelling Exp $ */
+/* $Id: db.h,v 1.57 2000/08/31 12:15:13 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -140,6 +140,7 @@ typedef struct dns_dbmethods {
 					  dns_rdatatype_t type,
 					  dns_rdatatype_t covers);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
+	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 	unsigned int	(*nodecount)(dns_db_t *db);
 	isc_boolean_t	(*ispersistent)(dns_db_t *db);
 } dns_dbmethods_t;
@@ -1129,6 +1130,12 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
  * Requires:
  *      'db' is a valid database with zone semantics.
  *      'ver' is a valid version.
+ */
+
+void
+dns_db_overmem(dns_db_t *db, isc_boolean_t overmem);
+/*
+ * Enable / disable agressive cache cleaning.
  */
 
 unsigned int

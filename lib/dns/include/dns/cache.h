@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.13 2000/08/01 01:23:43 tale Exp $ */
+/* $Id: cache.h,v 1.14 2000/08/31 12:15:12 marka Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -217,6 +217,12 @@ void
 dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
 /*
  * Set the periodic cache cleaning interval to 'interval' seconds.
+ */
+
+void
+dns_cache_setcachesize(dns_cache_t *cache, isc_uint32_t size);
+/*
+ * Set cache size. 0 => infinite.
  */
 
 ISC_LANG_ENDDECLS

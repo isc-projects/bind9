@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.216 2000/08/24 22:15:28 bwelling Exp $ */
+/* $Id: server.c,v 1.217 2000/08/31 12:15:07 marka Exp $ */
 
 #include <config.h>
 
@@ -406,6 +406,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
 	isc_uint32_t cleaning_interval;
+	isc_uint32_t max_cache_size;
 	dns_tsig_keyring_t *ring;
 	dns_c_iplist_t *forwarders;
 	dns_view_t *pview = NULL;	/* Production view */
@@ -469,6 +470,19 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		cleaning_interval = 3600; /* Default is 1 hour. */
 	dns_cache_setcleaninginterval(cache, cleaning_interval);
+
+	result = ISC_R_NOTFOUND;
+	if (cview != NULL)
+		result = dns_c_view_getmaxcachesize(cview, &max_cache_size);
+	if (result != ISC_R_SUCCESS)
+		result = dns_c_ctx_getmaxcachesize(cctx, &max_cache_size);
+	if (result != ISC_R_SUCCESS)
+		max_cache_size = 0;
+	/*
+	 * XXX remove once rbt if fixed
+	 */
+	max_cache_size = 0;
+	dns_cache_setcachesize(cache, max_cache_size);
 
 	dns_cache_detach(&cache);
 

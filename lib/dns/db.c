@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.54 2000/08/21 22:19:04 bwelling Exp $ */
+/* $Id: db.c,v 1.55 2000/08/31 12:15:09 marka Exp $ */
 
 /***
  *** Imports
@@ -622,6 +622,14 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	return ((db->methods->deleterdataset)(db, node, version,
 					      type, covers));
+}
+
+void 
+dns_db_overmem(dns_db_t *db, isc_boolean_t overmem) {
+
+	REQUIRE(DNS_DB_VALID(db));
+
+	(db->methods->overmem)(db, overmem);
 }
 
 isc_result_t
