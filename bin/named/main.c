@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.137 2004/04/20 06:53:52 marka Exp $ */
+/* $Id: main.c,v 1.138 2004/07/01 02:03:54 marka Exp $ */
 
 #include <config.h>
 
@@ -312,16 +312,18 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 	for (;;) {
 		const struct flag_def *def;
 		const char *end = strchr(arg, ',');
+		int arglen;
 		if (end == NULL)
 			end = arg + strlen(arg);
+		arglen = end - arg;
 		for (def = defs; def->name != NULL; def++) {
-			if (end - arg == (int)strlen(def->name) &&
-			    memcmp(arg, def->name, end - arg) == 0) {
+			if (arglen == (int)strlen(def->name) &&
+			    memcmp(arg, def->name, arglen) == 0) {
 				*ret |= def->value;
 				goto found;
 			}
 		}
-		ns_main_earlyfatal("unrecognized flag '%.*s'", end - arg, arg);
+		ns_main_earlyfatal("unrecognized flag '%.*s'", arglen, arg);
 	 found:
 		if (*end == '\0')
 			break;
