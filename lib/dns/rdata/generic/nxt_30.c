@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.10 1999/06/08 10:35:18 gson Exp $ */
+ /* $Id: nxt_30.c,v 1.11 1999/07/23 09:15:10 gson Exp $ */
 
  /* RFC 2065 */
 
@@ -33,7 +33,7 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 	char *e;
 	unsigned char bm[8*1024]; /* 64k bits */
 	dns_rdatatype_t covered;
-	dns_rdatatype_t maxcovered = dns_rdatatype_none;
+	dns_rdatatype_t maxcovered = 0;
 	isc_boolean_t first = ISC_TRUE;
 	unsigned int n;
 
