@@ -800,6 +800,15 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					     dns_rdatatype_a, 0,
 					     client->now, rdataset,
 					     sigrdataset);
+		if (result == DNS_R_NCACHENXDOMAIN)
+			goto addname;
+		if (result == DNS_R_NCACHENXRRSET) {
+			dns_rdataset_disassociate(rdataset);
+			/*
+			 * Negative cache entries don't have sigrdatasets.
+			 */
+			INSIST(sigrdataset->methods == NULL);
+		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
 			 * The cache doesn't have an A, but we may have
@@ -838,6 +847,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					     dns_rdatatype_a6, 0,
 					     client->now, rdataset,
 					     sigrdataset);
+		if (result == DNS_R_NCACHENXDOMAIN)
+			goto addname;
+		if (result == DNS_R_NCACHENXRRSET) {
+			dns_rdataset_disassociate(rdataset);
+			INSIST(sigrdataset->methods == NULL);
+		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
 			 * The cache doesn't have an A6, but we may have
@@ -877,6 +892,12 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					     dns_rdatatype_aaaa, 0,
 					     client->now, rdataset,
 					     sigrdataset);
+		if (result == DNS_R_NCACHENXDOMAIN)
+			goto addname;
+		if (result == DNS_R_NCACHENXRRSET) {
+			dns_rdataset_disassociate(rdataset);
+			INSIST(sigrdataset->methods == NULL);
+		}
 		if (zdb != NULL && result == ISC_R_NOTFOUND) {
 			/*
 			 * The cache doesn't have an AAAA, but we may have
