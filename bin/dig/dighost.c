@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.7 2000/07/17 19:45:09 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.8 2000/07/26 22:28:31 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1781,7 +1781,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			 * outages won't cause the XFR to abort
 			 */
 			if ((timeout != INT_MAX) &&
-			    (query->lookup->timer != NULL)) {
+                           (query->lookup->timer != NULL) &&
+                           query->lookup->doing_xfr ) {
 				if (timeout == 0) {
 					if (query->lookup->tcp_mode)
 						local_timeout = TCP_TIMEOUT;
