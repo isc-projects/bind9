@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.37 2000/09/08 08:47:29 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.38 2000/09/08 14:11:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -272,7 +272,7 @@ main(int argc, char *argv[]) {
 						       DST_TYPE_PRIVATE,
 						       mctx, &zonekey);
 			if (result != ISC_R_SUCCESS)
-				fatal("failed to read key %s: %s",
+				fatal("failed to read private key %s: %s",
 				      argv[i], isc_result_totext(result));
 			keynode = isc_mem_get(mctx, sizeof (keynode_t));
 			if (keynode == NULL)
