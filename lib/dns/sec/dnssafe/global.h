@@ -25,7 +25,6 @@ extern "C" {
 #include <config.h>
 #include <isc/int.h>
 #include <sys/types.h>
-#include <sys/param.h>
 
 /* POINTER defines a generic pointer type */
 typedef unsigned char *POINTER;
