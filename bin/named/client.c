@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.113 2000/09/13 03:15:01 marka Exp $ */
+/* $Id: client.c,v 1.114 2000/09/18 22:54:08 gson Exp $ */
 
 #include <config.h>
 
@@ -1118,6 +1118,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (view == NULL) {
+		/*
+		 * Do a dummy TSIG verification attempt so that the
+		 * response will have a TSIG if the query did, as
+		 * required by RFC2845.
+		 */
 		isc_buffer_t b;
 		isc_region_t *r;
 		r = dns_message_getrawmessage(client->message);
