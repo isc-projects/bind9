@@ -1,3 +1,7 @@
+
+ 349.	[func]		Processing a query with the CD bit set now works
+			as expected.
+
  348.	[func]		New named.conf boolean values 'glue-from-auth' and
 			'glue-from-cache' now supported in view and global
 			options statement.
