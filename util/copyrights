@@ -441,7 +441,9 @@
 ./bin/tests/system/ixfr/clean.sh		SH	2001
 ./bin/tests/system/ixfr/setup.sh		SH	2001
 ./bin/tests/system/ixfr/tests.sh		SH	2001
+./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
 ./bin/tests/system/ixfr/ans2/ans.pl		PERL	2001
+./bin/tests/system/ixfr/ns1/.cvsignore		X	2001
 ./bin/tests/system/limits/clean.sh		SH	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.1000	X	2000,2001
 ./bin/tests/system/limits/knowngood.dig.out.2000	X	2000,2001
