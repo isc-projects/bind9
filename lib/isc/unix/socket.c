@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.158 2000/08/15 01:43:38 marka Exp $ */
+/* $Id: socket.c,v 1.159 2000/08/25 22:07:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1817,21 +1817,6 @@ watcher(void *uap) {
 			readfds = manager->read_fds;
 			writefds = manager->write_fds;
 			maxfd = manager->maxfd + 1;
-
-#ifdef ISC_SOCKET_DEBUG
-			for (i = 0 ; i < FD_SETSIZE ; i++) {
-				int printit;
-
-				printit = 0;
-
-				if (FD_ISSET(i, &readfds)) {
-					printit = 1;
-				}
-				if (FD_ISSET(i, &writefds)) {
-					printit = 1;
-				}
-			}
-#endif
 
 			UNLOCK(&manager->lock);
 
