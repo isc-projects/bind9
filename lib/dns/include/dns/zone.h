@@ -470,8 +470,8 @@ isc_int32_t dns_zone_getixfrlogsize(dns_zone_t *zone);
 void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
 isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
 void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
-dns_result_t dns_zone_copy(dns_c_ctx_t *ctx, dns_c_zone_t *czone,
-			   dns_zone_t *zone);
+dns_result_t dns_zone_copy(isc_log_t *lctx, dns_c_ctx_t *ctx,
+			   dns_c_zone_t *czone, dns_zone_t *zone);
 dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);
 
@@ -496,12 +496,45 @@ isc_uint32_t dns_zone_getxfrtime(dns_zone_t *zone);
  *	'zone' to be valid initialised zone.
  */
 
+dns_result_t dns_zone_setjournal(dns_zone_t *zone, const char *journal);
+
+/*
+ * Sets the filename used for journaling updates / IXFR transfers.
+ * The default journal name is set by dns_zone_setdatabase() to be
+ * "database.jnl".
+ *
+ * Requires:
+ *	'zone' to be initalised.
+ *	'journal' to be non NULL.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOMEMORY 
+ */
+
+char * dns_zone_getjournal(dns_zone_t *zone);
+
+/*
+ * Returns the journal name associated with this zone.
+ * If not journal has been set this will be NULL.
+ */
+
 dns_zonetype_t dns_zone_gettype(dns_zone_t *zone);
 /*
  * Returns the type of the zone (master/slave/etc.)
  *
  * Requires:
  *	'zone' to be valid initialised zone.
+ */
+
+void
+dns_zone_settask(dns_zone_t *zone, isc_task_t *task);
+/*
+ * Give a zone a task to work with.  Any current task will be detached.
+ *
+ * Requires:
+ *	'zone' to be valid.
+ *	'task' to be valid.
  */
 
 isc_task_t *dns_zone_gettask(dns_zone_t *zone);
@@ -559,6 +592,25 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 
 isc_boolean_t
 dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone);
+
+/*
+ * Tests whether the configuration of two zones is equal.
+ * Zone contents and state information is not tested.
+ *
+ * Requires:
+ *	'oldzone' and 'newzone' to be valid.
+ *
+ * Returns:
+ *	ISC_TRUE if the configurations are equal.
+ *	ISC_FALSE if the configurations differ.
+ */
+
+void
+dns_zone_print(dns_zone_t *zone);
+/*
+ * test use only
+ */
+
 
 ISC_LANG_ENDDECLS
 

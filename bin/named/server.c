@@ -192,7 +192,7 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	result = dns_zone_create(&zone, lctx->mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_zone_copy(ctx, czone, zone);
+	result = dns_zone_copy(ns_g_lctx, ctx, czone, zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -290,9 +290,19 @@ load_configuration(const char *filename) {
 	result = dns_c_parse_namedconf(ns_g_lctx,
 				       filename, ns_g_mctx, &configctx,
 				       &callbacks);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+#ifdef notyet
+		for (view = ISC_LIST_HEAD(lctx.viewlist);
+		     view != NULL;
+		     view = view_next) {
+			view_next = ISC_LIST_NEXT(view, link);
+			ISC_LIST_UNLINK(lctx.viewlist, view, link);
+			dns_view_detach(&view);
+		}
+#endif
 		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"load of '%s' failed", filename);
+	}
 	
 	/*
 	 * XXXRTH  Create default view, if required.
@@ -316,6 +326,15 @@ load_configuration(const char *filename) {
 	/*
 	 * Load zones.		(???)
 	 */
+
+#ifdef notyet
+	for (view = ISC_LIST_HEAD(lctx.viewlist);
+	     view != NULL;
+	     view = view_next) {
+		view_next = ISC_LIST_NEXT(view, link);
+		dns_view_load(view);
+	}
+#endif
 
 	/*
 	 * Put the configuration into production.
