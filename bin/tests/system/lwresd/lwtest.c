@@ -53,7 +53,7 @@ test_noop() {
 	pkt.recvlength = 0x55667788;
 	pkt.result = 0;
 
-	nooprequest.datalength = strlen(TESTSTRING);
+	nooprequest.datalength = strlen((char *)TESTSTRING);
 	nooprequest.data = TESTSTRING;
 	ret = lwres_nooprequest_render(ctx, &nooprequest, &pkt, &b);
 	CHECK(ret, "lwres_nooprequest_render");
