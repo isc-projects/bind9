@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.29 2000/08/01 01:11:17 tale Exp $ */
+/* $Id: nslookup.c,v 1.30 2000/08/02 17:58:07 mws Exp $ */
 
 #include <config.h>
 
@@ -612,6 +612,7 @@ testclass(char *typetext) {
 
 static void
 setoption(char *opt) {
+	dig_server_t *srv;
 
 	if (strncasecmp(opt,"all",4) == 0) {
 		show_settings(ISC_TRUE);
@@ -664,10 +665,14 @@ setoption(char *opt) {
 		debugging = ISC_FALSE;
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
+	} else {
+		srv = make_server(opt);
+		debug("server is %s", srv->servername);
+		ISC_LIST_APPEND(server_list, srv, link);
 	}
 }
 
-static void
+static dig_lookup_t*
 addlookup(char *opt) {
 	dig_lookup_t *lookup;
 	isc_result_t result;
@@ -709,6 +714,7 @@ addlookup(char *opt) {
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
 	debug("looking up %s", lookup->textname);
+	return (lookup);
 }
 
 static void
@@ -787,7 +793,7 @@ parse_args(int argc, char **argv) {
 		} else {
 			if (lookup == NULL) {
 				in_use = ISC_TRUE;
-				addlookup(argv[0]);
+				lookup=addlookup(argv[0]);
 			}
 			else
 				setsrv(argv[0]);

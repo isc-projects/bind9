@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.82 2000/08/01 01:11:14 tale Exp $ */
+/* $Id: dig.c,v 1.83 2000/08/02 17:58:06 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1048,7 +1048,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	 * to get the rest
 	 */
 	if ((batchname != NULL) && !(is_batchfile)) {
-		batchfp = fopen(batchname, "r");
+		if (strcmp(batchname, "-") == 0)
+			batchfp = stdin;
+		else
+			batchfp = fopen(batchname, "r");
 		if (batchfp == NULL) {
 			perror(batchname);
 			if (exitcode < 10)
@@ -1108,7 +1111,8 @@ dighost_shutdown(void) {
 	if (feof(batchfp)) {
 		batchname = NULL;
 		isc_app_shutdown();
-		fclose(batchfp);
+		if (batchfp != stdin)
+			fclose(batchfp);
 		return;
 	}
 
@@ -1128,7 +1132,8 @@ dighost_shutdown(void) {
 		start_lookup();
 	} else {
 		batchname = NULL;
-		fclose(batchfp);
+		if (batchfp != stdin)
+			fclose(batchfp);
 		isc_app_shutdown();
 		return;
 	}
@@ -1165,7 +1170,8 @@ main(int argc, char **argv) {
 	}
 	isc_mem_free(mctx, default_lookup);
 	if (batchname != NULL) {
-		fclose(batchfp);
+		if (batchfp != stdin)
+			fclose(batchfp);
 		batchname = NULL;
 	}
 	cancel_all();
