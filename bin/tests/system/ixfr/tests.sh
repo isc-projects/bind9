@@ -15,10 +15,12 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2001/05/10 18:29:09 gson Exp $
+# $Id: tests.sh,v 1.2 2001/05/10 19:05:00 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
+
+status=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 DIGCMD="$DIG $DIGOPTS @10.53.0.1 -p 5300"
