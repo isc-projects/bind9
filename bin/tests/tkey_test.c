@@ -16,7 +16,7 @@
  */
 
 /*
- * Principal Author: Brian Wellington (mostly copied from res_test.c)
+ * Principal Author: Brian Wellington (core copied from res_test.c)
  */
 
 #include <config.h>
@@ -34,8 +34,10 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/result.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
@@ -72,6 +74,8 @@ dns_tsig_keyring_t *ring = NULL;
 dns_tkey_ctx_t *tctx = NULL;
 isc_buffer_t *nonce = NULL;
 dns_view_t *view = NULL;
+char output[10 * 1024];
+isc_buffer_t outbuf;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -111,11 +115,25 @@ recvdone(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_parse(response, &source, ISC_FALSE);
 	CHECK("dns_message_parse", result);
 
+	isc_buffer_init(&outbuf, output, sizeof(output));
+	result = dns_message_totext(response, 0, &outbuf);
+	CHECK("dns_message_totext", result);
+	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
+	       (char *)isc_buffer_base(&outbuf));
+
+
 	tsigkey = NULL;
 	result = dns_tkey_processdhresponse(query, response, ourkey, nonce,
 					    &tsigkey, ring);
 	CHECK("dns_tkey_processdhresponse", result);
 	printf("response ok\n");
+
+	isc_buffer_free(&nonce);
+
+	dns_message_destroy(&query);
+	dns_message_destroy(&response);
+
+	isc_event_free(&event);
 
 	buildquery2();
 }
@@ -156,11 +174,15 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response2);
 	response2->querytsig = query2->tsig;
 	query2->tsig = NULL;
-	response2->tsigkey = query2->tsigkey;
-	query2->tsigkey = NULL;
+	dns_message_settsigkey(response2, tsigkey);
 	CHECK("dns_message_create", result);
 	result = dns_message_parse(response2, &source, ISC_FALSE);
 	CHECK("dns_message_parse", result);
+	isc_buffer_init(&outbuf, output, sizeof(output));
+	result = dns_message_totext(response2, 0, &outbuf);
+	CHECK("dns_message_totext", result);
+	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
+	       (char *)isc_buffer_base(&outbuf));
 	result = dns_view_create(mctx, 0, "_test", &view);
 	CHECK("dns_view_create", result);
 	dns_view_setkeyring(view, ring);
@@ -170,7 +192,13 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_processdeleteresponse(query2, response2, ring);
 	CHECK("dns_tkey_processdeleteresponse", result);
 	printf("response ok\n");
-	exit(0);
+
+	dns_message_destroy(&query2);
+	dns_message_destroy(&response2);
+
+	isc_event_free(&event);
+
+	isc_app_shutdown();
 }
 
 static void
@@ -204,6 +232,9 @@ buildquery(void) {
 	result = isc_base64_tobuffer(lex, &keybuf, -1);
 	CHECK("isc_base64_tobuffer", result);
 
+	isc_lex_close(lex);
+	isc_lex_destroy(&lex);
+
 	isc_buffer_usedregion(&keybuf, &r);
 
 	result = dns_tsigkey_create(dns_fixedname_name(&keyname),
@@ -222,7 +253,7 @@ buildquery(void) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 	CHECK("dns_message_create", result);
 
-	query->tsigkey = key;
+	dns_message_settsigkey(query, key);
 
 	result = dns_tkey_builddhquery(query, ourkey, dns_rootname,
 				       DNS_TSIG_HMACMD5_NAME, nonce, 3600);
@@ -242,6 +273,12 @@ buildquery(void) {
 	CHECK("dns_message_rendersection(add)", result);
 	result = dns_message_renderend(query);
 	CHECK("dns_message_renderend", result);
+
+	isc_buffer_init(&outbuf, output, sizeof(output));
+	result = dns_message_totext(query, 0, &outbuf);
+	CHECK("dns_message_totext", result);
+	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
+	       (char *)isc_buffer_base(&outbuf));
 
 	isc_buffer_usedregion(&qbuffer, &r);
 	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
@@ -263,7 +300,7 @@ buildquery2(void) {
 	query2 = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query2);
 	CHECK("dns_message_create", result);
-	query2->tsigkey = tsigkey;
+	dns_message_settsigkey(query2, tsigkey);
 
 	result = dns_tkey_builddeletequery(query2, tsigkey);
 	CHECK("dns_tkey_builddeletequery", result);
@@ -283,6 +320,12 @@ buildquery2(void) {
 	result = dns_message_renderend(query2);
 	CHECK("dns_message_renderend", result);
 
+	isc_buffer_init(&outbuf, output, sizeof(output));
+	result = dns_message_totext(query2, 0, &outbuf);
+	CHECK("dns_message_totext", result);
+	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
+	       (char *)isc_buffer_base(&outbuf));
+
 	isc_buffer_usedregion(&qbuffer, &r);
 	result = isc_socket_sendto(s, &r, task2, senddone2, NULL, &address,
 				   NULL);
@@ -301,6 +344,9 @@ main(int argc, char *argv[]) {
 	int ch;
 	isc_socketmgr_t *socketmgr;
 	struct in_addr inaddr;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_buffer_t b;
 	isc_result_t result;
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
@@ -363,8 +409,15 @@ main(int argc, char *argv[]) {
 	inaddr.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&address, &inaddr, 53);
 
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	isc_buffer_init(&b, "client.", strlen("client."));
+	isc_buffer_add(&b, strlen("client."));
+	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	CHECK("dns_name_fromtext", result);
+
 	ourkey = NULL;
-	result = dst_key_fromfile("client.", 2982, DNS_KEYALG_DH,
+	result = dst_key_fromfile(name, 2982, DNS_KEYALG_DH,
 				  DST_TYPE_PRIVATE, mctx, &ourkey);
 	CHECK("dst_key_fromfile", result);
 
@@ -389,8 +442,14 @@ main(int argc, char *argv[]) {
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
 
-	dns_tsigkeyring_destroy(&ring);
+	dst_key_free(&ourkey);
+
 	dns_tkeyctx_destroy(&tctx);
+
+	dns_view_detach(&view);
+
+	isc_log_destroy(&log);
+
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
