@@ -30,6 +30,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/result.h>
 
 #include <tests/t_api.h>
 

@@ -24,7 +24,9 @@
 #include <isc/mem.h>
 #include <isc/string.h>
 
+#include <dns/compress.h>
 #include <dns/name.h>
+#include <dns/result.h>
 
 #include <tests/t_api.h>
 

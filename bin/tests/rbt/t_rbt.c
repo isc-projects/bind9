@@ -23,8 +23,9 @@
 #include <isc/mem.h>
 #include <isc/string.h>
 
-#include <dns/rbt.h>
 #include <dns/fixedname.h>
+#include <dns/rbt.h>
+#include <dns/result.h>
 
 #include <tests/t_api.h>
 
