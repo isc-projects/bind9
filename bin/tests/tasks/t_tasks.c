@@ -995,11 +995,11 @@ t_tasks4() {
 		++T4_nprobs;
 	}
 
-	isc_mutex_destroy(&T4_mx);
-	isc_condition_destroy(&T4_cv);
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
+	isc_condition_destroy(&T4_cv);
+	isc_mutex_destroy(&T4_mx);
 
 	result = T_UNRESOLVED;
 
@@ -1216,11 +1216,11 @@ t_tasks7() {
 		++T7_nprobs;
 	}
 
-	isc_mutex_destroy(&T7_mx);
-	isc_condition_destroy(&T7_cv);
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
+	isc_condition_destroy(&T7_cv);
+	isc_mutex_destroy(&T7_mx);
 
 	result = T_UNRESOLVED;
 
