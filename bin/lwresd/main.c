@@ -214,6 +214,7 @@ main(int argc, char **argv)
 		result = isc_task_create(taskmgr, mem, 0, &cmgr[i].task);
 		if (result != ISC_R_SUCCESS)
 			break;
+		isc_task_setname(cmgr[i].task, "lwresd client", &cmgr[i]);
 		cmgr[i].lwctx = NULL;
 		result = lwres_context_create(&cmgr[i].lwctx, mem,
 					      mem_alloc, mem_free);
