@@ -1,3 +1,6 @@
+ 142.   [cleanup]       <isc/stdtime.h> does not need <time.h> or
+                        <isc/result.h>.
+
  141.	[bug]		Corrupt requests with multiple questions could
 			cause an assertion failure.
 

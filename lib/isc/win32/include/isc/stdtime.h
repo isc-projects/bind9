@@ -15,18 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: stdtime.h,v 1.3 2000/02/03 23:08:13 halley Exp $ */
+/* $Id: stdtime.h,v 1.4 2000/04/28 23:53:55 tale Exp $ */
 
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1
 
-#include <time.h>
-
 #include <isc/lang.h>
 #include <isc/int.h>
-#include <isc/result.h>
-
-ISC_LANG_BEGINDECLS
 
 /*
  * It's public information that 'isc_stdtime_t' is an unsigned integral type.
@@ -34,6 +29,8 @@ ISC_LANG_BEGINDECLS
  * about its size.
  */
 typedef isc_uint32_t isc_stdtime_t;
+
+ISC_LANG_BEGINDECLS
 
 void
 isc_stdtime_get(isc_stdtime_t *t);
