@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.85 2001/06/04 19:33:28 tale Exp $ */
+/* $Id: task.c,v 1.86 2001/11/27 01:56:08 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -164,7 +164,7 @@ task_finished(isc_task_t *task) {
 
 	DESTROYLOCK(&task->lock);
 	task->magic = 0;
-	isc_mem_put(manager->mctx, task, sizeof *task);
+	isc_mem_put(manager->mctx, task, sizeof(*task));
 }
 
 isc_result_t
@@ -177,13 +177,13 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
-	task = isc_mem_get(manager->mctx, sizeof *task);
+	task = isc_mem_get(manager->mctx, sizeof(*task));
 	if (task == NULL)
 		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
 	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
-		isc_mem_put(manager->mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof(*task));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -197,7 +197,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	task->quantum = quantum;
 	task->flags = 0;
 #ifdef ISC_TASK_NAMES
-	memset(task->name, 0, sizeof task->name);
+	memset(task->name, 0, sizeof(task->name));
 	task->tag = NULL;
 #endif
 	INIT_LINK(task, link);
@@ -215,7 +215,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 
 	if (exiting) {
 		DESTROYLOCK(&task->lock);
-		isc_mem_put(manager->mctx, task, sizeof *task);
+		isc_mem_put(manager->mctx, task, sizeof(*task));
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
@@ -636,7 +636,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, const void *arg)
 				   ISC_TASKEVENT_SHUTDOWN,
 				   action,
 				   arg,
-				   sizeof *event);
+				   sizeof(*event));
 	if (event == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -649,7 +649,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, const void *arg)
 	UNLOCK(&task->lock);
 
 	if (disallowed)
-		isc_mem_put(task->manager->mctx, event, sizeof *event);
+		isc_mem_put(task->manager->mctx, event, sizeof(*event));
 
 	return (result);
 }
@@ -1001,12 +1001,12 @@ manager_free(isc_taskmgr_t *manager) {
 	(void)isc_condition_destroy(&manager->exclusive_granted);	
 	(void)isc_condition_destroy(&manager->work_available);
 	isc_mem_put(manager->mctx, manager->threads,
-		    manager->workers * sizeof (isc_thread_t));
+		    manager->workers * sizeof(isc_thread_t));
 #endif /* ISC_PLATFORM_USETHREADS */
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
 	mctx = manager->mctx;
-	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_put(mctx, manager, sizeof(*manager));
 	isc_mem_detach(&mctx);
 }
 
@@ -1037,7 +1037,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
 
-	manager = isc_mem_get(mctx, sizeof *manager);
+	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 	manager->magic = TASK_MANAGER_MAGIC;
@@ -1052,7 +1052,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		goto cleanup_mgr;
 	}
 #ifdef ISC_PLATFORM_USETHREADS
-	manager->threads = isc_mem_get(mctx, workers * sizeof (isc_thread_t));
+	manager->threads = isc_mem_get(mctx, workers * sizeof(isc_thread_t));
 	if (manager->threads == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_lock;
@@ -1119,12 +1119,12 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  cleanup_workavailable:
 	(void)isc_condition_destroy(&manager->work_available);
  cleanup_threads:
-	isc_mem_put(mctx, manager->threads, workers * sizeof (isc_thread_t));
+	isc_mem_put(mctx, manager->threads, workers * sizeof(isc_thread_t));
  cleanup_lock:
 	DESTROYLOCK(&manager->lock);
 #endif
  cleanup_mgr:
-	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_put(mctx, manager, sizeof(*manager));
 	return (result);
 }
 

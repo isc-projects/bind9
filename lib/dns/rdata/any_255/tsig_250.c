@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.52 2001/07/16 03:05:58 marka Exp $ */
+/* $Id: tsig_250.c,v 1.53 2001/11/27 01:55:32 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -133,7 +133,7 @@ static inline isc_result_t
 totext_any_tsig(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t sigr;
-	char buf[sizeof "281474976710655 "];
+	char buf[sizeof("281474976710655 ")];
 	char *bufp;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -165,7 +165,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 		  (sr.base[2] << 24) | (sr.base[3] << 16) |
 		  (sr.base[4] << 8) | sr.base[5];
 	isc_region_consume(&sr, 6);
-	bufp = &buf[sizeof buf - 1];
+	bufp = &buf[sizeof(buf) - 1];
 	*bufp-- = 0;
 	*bufp-- = ' ';
 	do {

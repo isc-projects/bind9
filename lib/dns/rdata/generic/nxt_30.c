@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.50 2001/11/27 00:56:04 gson Exp $ */
+/* $Id: nxt_30.c,v 1.51 2001/11/27 01:55:38 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -58,7 +58,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
-	memset(bm, 0, sizeof bm);
+	memset(bm, 0, sizeof(bm));
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, ISC_TRUE));
@@ -116,7 +116,7 @@ totext_nxt(ARGS_TOTEXT) {
 						RETERR(dns_rdatatype_totext(t,
 								      target));
 					} else {
-						char buf[sizeof "65535"];
+						char buf[sizeof("65535")];
 						sprintf(buf, "%u", t);
 						RETERR(str_totext(buf,
 								  target));

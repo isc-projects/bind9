@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.24 2001/10/22 18:18:34 gson Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.25 2001/11/27 01:56:14 gson Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -296,7 +296,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	(void) close(iter->socket);
 
  socket_failure:
-	isc_mem_put(mctx, iter, sizeof *iter);
+	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
 
@@ -320,8 +320,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
-	memset(&ifreq, 0, sizeof ifreq);
-	memcpy(&ifreq, ifrp, sizeof ifreq);
+	memset(&ifreq, 0, sizeof(ifreq));
+	memcpy(&ifreq, ifrp, sizeof(ifreq));
 
 	family = ifreq.ifr_addr.sa_family;
 #ifdef ISC_PLATFORM_HAVEIPV6
@@ -397,8 +397,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 	/*
 	 * Get the network mask.
 	 */
-	memset(&ifreq, 0, sizeof ifreq);
-	memcpy(&ifreq, ifrp, sizeof ifreq);
+	memset(&ifreq, 0, sizeof(ifreq));
+	memcpy(&ifreq, ifrp, sizeof(ifreq));
 	switch (family) {
 	case AF_INET:
 		/*
@@ -443,8 +443,8 @@ internal_current6(isc_interfaceiter_t *iter) {
 
 	ifrp = (struct LIFREQ *)((char *) iter->lifc.lifc_req + iter->pos);
 
-	memset(&lifreq, 0, sizeof lifreq);
-	memcpy(&lifreq, ifrp, sizeof lifreq);
+	memset(&lifreq, 0, sizeof(lifreq));
+	memcpy(&lifreq, ifrp, sizeof(lifreq));
 
 	family = lifreq.lifr_addr.ss_family;
 #ifdef ISC_PLATFORM_HAVEIPV6
@@ -520,8 +520,8 @@ internal_current6(isc_interfaceiter_t *iter) {
 	/*
 	 * Get the network mask.
 	 */
-	memset(&lifreq, 0, sizeof lifreq);
-	memcpy(&lifreq, ifrp, sizeof lifreq);
+	memset(&lifreq, 0, sizeof(lifreq));
+	memcpy(&lifreq, ifrp, sizeof(lifreq));
 	switch (family) {
 	case AF_INET:
 		/*
@@ -593,7 +593,7 @@ internal_next4(isc_interfaceiter_t *iter) {
 		iter->pos += sizeof(ifrp->ifr_name) + ifrp->ifr_addr.sa_len;
 	else
 #endif
-		iter->pos += sizeof *ifrp;
+		iter->pos += sizeof(*ifrp);
 
 	if (iter->pos >= (unsigned int) iter->ifc.ifc_len)
 		return (ISC_R_NOMORE);
@@ -618,7 +618,7 @@ internal_next6(isc_interfaceiter_t *iter) {
 		iter->pos += sizeof(ifrp->lifr_name) + ifrp->lifr_addr.sa_len;
 	else
 #endif
-		iter->pos += sizeof *ifrp;
+		iter->pos += sizeof(*ifrp);
 
 	if (iter->pos >= (unsigned int) iter->lifc.lifc_len)
 		return (ISC_R_NOMORE);

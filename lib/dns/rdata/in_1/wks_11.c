@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.45 2001/11/27 00:56:07 gson Exp $ */
+/* $Id: wks_11.c,v 1.46 2001/11/27 01:55:51 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -92,7 +92,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 
 	RETERR(uint8_tobuffer(proto, target));
 
-	memset(bm, 0, sizeof bm);
+	memset(bm, 0, sizeof(bm));
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, ISC_TRUE));
@@ -139,7 +139,7 @@ static inline isc_result_t
 totext_in_wks(ARGS_TOTEXT) {
 	isc_region_t sr;
 	unsigned short proto;
-	char buf[sizeof "65535"];
+	char buf[sizeof("65535")];
 	unsigned int i, j;
 
 	UNUSED(tctx);

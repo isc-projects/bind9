@@ -51,7 +51,7 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)herror.c	8.1 (Berkeley) 6/4/93";
 static const char rcsid[] =
-	"$Id: herror.c,v 1.10 2001/07/18 20:14:52 gson Exp $";
+	"$Id: herror.c,v 1.11 2001/11/27 01:56:30 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -75,7 +75,7 @@ static const char *h_errlist[] = {
 	"No address associated with name",	/* 4 NO_ADDRESS */
 };
 
-static int	h_nerr = { sizeof h_errlist / sizeof h_errlist[0] };
+static int	h_nerr = { sizeof(h_errlist) / sizeof (h_errlist[0]) };
 
 
 /*

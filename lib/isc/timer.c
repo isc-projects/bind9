@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.65 2001/10/18 06:06:12 marka Exp $ */
+/* $Id: timer.c,v 1.66 2001/11/27 01:56:11 gson Exp $ */
 
 #include <config.h>
 
@@ -246,7 +246,7 @@ destroy(isc_timer_t *timer) {
 	isc_task_detach(&timer->task);
 	DESTROYLOCK(&timer->lock);
 	timer->magic = 0;
-	isc_mem_put(manager->mctx, timer, sizeof *timer);
+	isc_mem_put(manager->mctx, timer, sizeof(*timer));
 }
 
 isc_result_t
@@ -305,7 +305,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	}
 
 
-	timer = isc_mem_get(manager->mctx, sizeof *timer);
+	timer = isc_mem_get(manager->mctx, sizeof(*timer));
 	if (timer == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -339,7 +339,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	timer->index = 0;
 	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof *timer);
+		isc_mem_put(manager->mctx, timer, sizeof(*timer));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -369,7 +369,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		timer->magic = 0;
 		DESTROYLOCK(&timer->lock);
 		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof *timer);
+		isc_mem_put(manager->mctx, timer, sizeof(*timer));
 		return (result);
 	}
 
@@ -614,7 +614,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 							   type,
 							   timer->action,
 							   timer->arg,
-							   sizeof *event);
+							   sizeof(*event));
 
 				if (event != NULL)
 					isc_task_send(timer->task, &event);
@@ -736,7 +736,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
 
-	manager = isc_mem_get(mctx, sizeof *manager);
+	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -750,12 +750,12 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	result = isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(result == ISC_R_NOMEMORY);
-		isc_mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (ISC_R_NOMEMORY);
 	}
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
 		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof(*manager));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -768,7 +768,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_mem_detach(&manager->mctx);
 		DESTROYLOCK(&manager->lock);
 		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof(*manager));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -781,7 +781,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		(void)isc_condition_destroy(&manager->wakeup);
 		DESTROYLOCK(&manager->lock);
 		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof *manager);
+		isc_mem_put(mctx, manager, sizeof(*manager));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_create() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -856,7 +856,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;
 	mctx = manager->mctx;
-	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_put(mctx, manager, sizeof(*manager));
 	isc_mem_detach(&mctx);
 
 	*managerp = NULL;

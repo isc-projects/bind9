@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.92 2001/11/13 06:57:11 marka Exp $ */
+/* $Id: parser.c,v 1.93 2001/11/27 01:56:27 gson Exp $ */
 
 #include <config.h>
 
@@ -3681,7 +3681,7 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 
 	sprintf(where, "%s:%u: ", current_file(pctx), pctx->line);
 
-	if ((unsigned int)vsprintf(message, format, args) >= sizeof message)
+	if ((unsigned int)vsprintf(message, format, args) >= sizeof(message))
 		FATAL_ERROR(__FILE__, __LINE__,
 			    "error message would overflow");
 

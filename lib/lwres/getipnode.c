@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.31 2001/11/27 00:56:26 gson Exp $ */
+/* $Id: getipnode.c,v 1.32 2001/11/27 01:56:28 gson Exp $ */
 
 #include <config.h>
 
@@ -447,24 +447,24 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	for (cp = buf;
 	     (*have_v4 == 0 || *have_v6 == 0) && cp < cplim;
 	     cp += cpsize) {
-		memcpy(&ifreq, cp, sizeof ifreq);
+		memcpy(&ifreq, cp, sizeof(ifreq));
 #ifdef LWRES_PLATFORM_HAVESALEN
 #ifdef FIX_ZERO_SA_LEN
 		if (ifreq.ifr_addr.sa_len == 0)
 			ifreq.ifr_addr.sa_len = IN6ADDRSZ;
 #endif
 #ifdef HAVE_MINIMUM_IFREQ
-		cpsize = sizeof ifreq;
-		if (ifreq.ifr_addr.sa_len > sizeof (struct sockaddr))
+		cpsize = sizeof(ifreq);
+		if (ifreq.ifr_addr.sa_len > sizeof(struct sockaddr))
 			cpsize += (int)ifreq.ifr_addr.sa_len -
 				(int)(sizeof(struct sockaddr));
 #else
-		cpsize = sizeof ifreq.ifr_name + ifreq.ifr_addr.sa_len;
+		cpsize = sizeof(ifreq.ifr_name) + ifreq.ifr_addr.sa_len;
 #endif /* HAVE_MINIMUM_IFREQ */
 #elif defined SIOCGIFCONF_ADDR
-		cpsize = sizeof ifreq;
+		cpsize = sizeof(ifreq);
 #else
-		cpsize = sizeof ifreq.ifr_name;
+		cpsize = sizeof(ifreq.ifr_name);
 		/* XXX maybe this should be a hard error? */
 		if (ioctl(s, SIOCGIFADDR, (char *)&ifreq) < 0)
 			continue;
@@ -563,7 +563,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 		return (NULL);
 	}
 
-	he = malloc(sizeof *he);
+	he = malloc(sizeof(*he));
 	if (he == NULL)
 		goto no_recovery;
 
@@ -587,8 +587,8 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 			 */
 			if (af == AF_INET6 && he1->h_addrtype == AF_INET) {
 				memcpy(*npp, in6addr_mapped,
-				       sizeof in6addr_mapped);
-				memcpy(*npp + sizeof in6addr_mapped, *cpp,
+				       sizeof(in6addr_mapped));
+				memcpy(*npp + sizeof(in6addr_mapped), *cpp,
 				       INADDRSZ);
 			} else {
 				memcpy(*npp, *cpp,
@@ -610,8 +610,8 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 			 */
 			if (af == AF_INET6 && he2->h_addrtype == AF_INET) {
 				memcpy(*npp, in6addr_mapped,
-				       sizeof in6addr_mapped);
-				memcpy(*npp + sizeof in6addr_mapped, *cpp,
+				       sizeof(in6addr_mapped));
+				memcpy(*npp + sizeof(in6addr_mapped), *cpp,
 				       INADDRSZ);
 			} else {
 				memcpy(*npp, *cpp,
@@ -688,7 +688,7 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 	struct hostent *he;
 	int i;
 
-	he = malloc(sizeof *he);
+	he = malloc(sizeof(*he));
 	if (he == NULL)
 		goto cleanup;
 	memset(he, 0, sizeof(*he));
@@ -765,7 +765,7 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 	int i;
 	lwres_addr_t *addr;
 
-	he = malloc(sizeof *he);
+	he = malloc(sizeof(*he));
 	if (he == NULL)
 		goto cleanup;
 	memset(he, 0, sizeof(*he));

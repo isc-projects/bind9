@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.24 2001/06/04 19:33:27 tale Exp $ */
+/* $Id: symtab.c,v 1.25 2001/11/27 01:56:07 gson Exp $ */
 
 #include <config.h>
 
@@ -64,13 +64,13 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	REQUIRE(symtabp != NULL && *symtabp == NULL);
 	REQUIRE(size > 0);	/* Should be prime. */
 
-	symtab = (isc_symtab_t *)isc_mem_get(mctx, sizeof *symtab);
+	symtab = (isc_symtab_t *)isc_mem_get(mctx, sizeof(*symtab));
 	if (symtab == NULL)
 		return (ISC_R_NOMEMORY);
 	symtab->table = (eltlist_t *)isc_mem_get(mctx,
-						 size * sizeof (eltlist_t));
+						 size * sizeof(eltlist_t));
 	if (symtab->table == NULL) {
-		isc_mem_put(mctx, symtab, sizeof *symtab);
+		isc_mem_put(mctx, symtab, sizeof(*symtab));
 		return (ISC_R_NOMEMORY);
 	}
 	for (i = 0; i < size; i++)
@@ -105,13 +105,13 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 							 elt->type,
 							 elt->value,
 							 symtab->undefine_arg);
-			isc_mem_put(symtab->mctx, elt, sizeof *elt);
+			isc_mem_put(symtab->mctx, elt, sizeof(*elt));
 		}
 	}
 	isc_mem_put(symtab->mctx, symtab->table,
-		    symtab->size * sizeof (eltlist_t));
+		    symtab->size * sizeof(eltlist_t));
 	symtab->magic = 0;
-	isc_mem_put(symtab->mctx, symtab, sizeof *symtab);
+	isc_mem_put(symtab->mctx, symtab, sizeof(*symtab));
 
 	*symtabp = NULL;
 }
@@ -202,7 +202,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 						  elt->value,
 						  symtab->undefine_arg);
 	} else {
-		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof *elt);
+		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof(*elt));
 		if (elt == NULL)
 			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(elt, link);
@@ -244,7 +244,7 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type) {
 		(symtab->undefine_action)(elt->key, elt->type,
 					  elt->value, symtab->undefine_arg);
 	UNLINK(symtab->table[bucket], elt, link);
-	isc_mem_put(symtab->mctx, elt, sizeof *elt);
+	isc_mem_put(symtab->mctx, elt, sizeof(*elt));
 
 	return (ISC_R_SUCCESS);
 }

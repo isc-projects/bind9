@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.6 2001/11/27 00:56:09 gson Exp $ */
+/* $Id: entropy.c,v 1.7 2001/11/27 01:55:55 gson Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -353,9 +353,9 @@ reseed(isc_entropy_t *ent) {
 
 	if (ent->initcount == 0) {
 		pid = getpid();
-		entropypool_adddata(ent, &pid, sizeof pid, 0);
+		entropypool_adddata(ent, &pid, sizeof(pid), 0);
 		pid = getppid();
-		entropypool_adddata(ent, &pid, sizeof pid, 0);
+		entropypool_adddata(ent, &pid, sizeof(pid), 0);
 	}
 
 	/*
@@ -369,7 +369,7 @@ reseed(isc_entropy_t *ent) {
 
 	result = isc_time_now(&t);
 	if (result == ISC_R_SUCCESS) {
-		entropypool_adddata(ent, &t, sizeof t, 0);
+		entropypool_adddata(ent, &t, sizeof(t), 0);
 		ent->initcount++;
 	}
 }

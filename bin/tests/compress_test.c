@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.25 2001/11/27 00:55:39 gson Exp $ */
+/* $Id: compress_test.c,v 1.26 2001/11/27 01:55:13 gson Exp $ */
 
 #include <config.h>
 
@@ -72,42 +72,42 @@ main(int argc, char *argv[]) {
 
 	dns_name_init(&name1, NULL);
 	region.base = plain1;
-	region.length = sizeof plain1;
+	region.length = sizeof(plain1);
 	dns_name_fromregion(&name1, &region);
 
 	dns_name_init(&name2, NULL);
 	region.base = plain2;
-	region.length = sizeof plain2;
+	region.length = sizeof(plain2);
 	dns_name_fromregion(&name2, &region);
 
 	dns_name_init(&name3, NULL);
 	region.base = plain3;
-	region.length = sizeof plain3;
+	region.length = sizeof(plain3);
 	dns_name_fromregion(&name3, &region);
 
-	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, plain, sizeof plain);
+	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, plain, sizeof(plain));
 	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, plain,
-	     sizeof plain);
-	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, plain, sizeof plain);
+	     sizeof(plain));
+	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, plain, sizeof(plain));
 
 	dns_name_init(&name1, NULL);
 	region.base = bit1;
-	region.length = sizeof bit1;
+	region.length = sizeof(bit1);
 	dns_name_fromregion(&name1, &region);
 
 	dns_name_init(&name2, NULL);
 	region.base = bit2;
-	region.length = sizeof bit2;
+	region.length = sizeof(bit2);
 	dns_name_fromregion(&name2, &region);
 
 	dns_name_init(&name3, NULL);
 	region.base = bit3;
-	region.length = sizeof bit3;
+	region.length = sizeof(bit3);
 	dns_name_fromregion(&name3, &region);
 
-	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof bit);
-	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof bit);
-	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, bit, sizeof bit);
+	test(DNS_COMPRESS_NONE, &name1, &name2, &name3, bit, sizeof(bit));
+	test(DNS_COMPRESS_GLOBAL14, &name1, &name2, &name3, bit, sizeof(bit));
+	test(DNS_COMPRESS_ALL, &name1, &name2, &name3, bit, sizeof(bit));
 
 	return (0);
 }

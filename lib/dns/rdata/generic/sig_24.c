@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.54 2001/07/16 03:06:29 marka Exp $ */
+/* $Id: sig_24.c,v 1.55 2001/11/27 01:55:40 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -127,7 +127,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_sig(ARGS_TOTEXT) {
 	isc_region_t sr;
-	char buf[sizeof "4294967295"];
+	char buf[sizeof("4294967295")];
 	dns_rdatatype_t covered;
 	unsigned long ttl;
 	unsigned long when;
@@ -154,7 +154,7 @@ totext_sig(ARGS_TOTEXT) {
 	if (dns_rdatatype_isknown(covered) && covered != 0) {
 		RETERR(dns_rdatatype_totext(covered, target));
 	} else {
-		char buf[sizeof "65535"];
+		char buf[sizeof("65535")];
 		sprintf(buf, "%u", covered);
 		RETERR(str_totext(buf, target));
 	}

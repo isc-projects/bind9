@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.61 2001/09/29 18:23:56 gson Exp $ */
+/* $Id: wire_test.c,v 1.62 2001/11/27 01:55:29 gson Exp $ */
 
 #include <config.h>
 
@@ -126,7 +126,7 @@ main(int argc, char *argv[]) {
 		f = stdin;
 
 	bp = b;
-	while (fgets(s, sizeof s, f) != NULL) {
+	while (fgets(s, sizeof(s), f) != NULL) {
 		rp = s;
 		wp = s;
 		len = 0;
@@ -146,7 +146,7 @@ main(int argc, char *argv[]) {
 			printf("bad input format: %d\n", len);
 			exit(1);
 		}
-		if (len > (sizeof b) * 2) {
+		if (len > sizeof(b) * 2) {
 			printf("input too long\n");
 			exit(2);
 		}

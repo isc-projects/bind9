@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.94 2001/11/07 23:03:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.95 2001/11/27 01:55:52 gson Exp $
  */
 
 #include <config.h>
@@ -332,7 +332,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 
 	CHECKALG(alg);
 
-	isc_buffer_init(&b, filename, sizeof filename);
+	isc_buffer_init(&b, filename, sizeof(filename));
 	result = buildfilename(name, id, alg, type, directory, &b);
 	if (result != ISC_R_SUCCESS)
 		return (result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.10 2001/01/09 21:56:35 bwelling Exp $ */
+/* $Id: taskpool.c,v 1.11 2001/11/27 01:56:09 gson Exp $ */
 
 #include <config.h>
 
@@ -46,7 +46,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	isc_result_t result;
 
 	INSIST(ntasks > 0);
-	pool = isc_mem_get(mctx, sizeof *pool);
+	pool = isc_mem_get(mctx, sizeof(*pool));
 	if (pool == NULL)
 		return (ISC_R_NOMEMORY);
 	pool->mctx = mctx;

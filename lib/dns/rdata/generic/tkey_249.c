@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.48 2001/07/16 03:06:32 marka Exp $ */
+/* $Id: tkey_249.c,v 1.49 2001/11/27 01:55:43 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -126,7 +126,7 @@ fromtext_tkey(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_tkey(ARGS_TOTEXT) {
 	isc_region_t sr, dr;
-	char buf[sizeof "4294967295 "];
+	char buf[sizeof("4294967295 ")];
 	unsigned long n;
 	dns_name_t name;
 	dns_name_t prefix;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.c,v 1.15 2001/01/09 21:56:01 bwelling Exp $ */
+/* $Id: event.c,v 1.16 2001/11/27 01:55:56 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -45,7 +45,7 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	isc_event_t *event;
 	void *deconst_arg;
 
-	REQUIRE(size >= sizeof (struct isc_event));
+	REQUIRE(size >= sizeof(struct isc_event));
 	REQUIRE(action != NULL);
 
 	event = isc_mem_get(mctx, size);

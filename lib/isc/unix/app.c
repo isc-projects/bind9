@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.45 2001/11/14 22:11:58 bwelling Exp $ */
+/* $Id: app.c,v 1.46 2001/11/27 01:56:13 gson Exp $ */
 
 #include <config.h>
 
@@ -100,7 +100,7 @@ handle_signal(int sig, void (*handler)(int)) {
 	struct sigaction sa;
 	char strbuf[ISC_STRERRORSIZE];
 
-	memset(&sa, 0, sizeof sa);
+	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handler;
 
 	if (sigfillset(&sa.sa_mask) != 0 ||
@@ -273,7 +273,7 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	 */
 	isc_task_attach(task, &cloned_task);
 	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
-				   action, arg, sizeof *event);
+				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto unlock;

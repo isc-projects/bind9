@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.36 2001/11/27 00:55:46 gson Exp $ */
+/* $Id: rdata_test.c,v 1.37 2001/11/27 01:55:21 gson Exp $ */
 
 #include <config.h>
 
@@ -836,7 +836,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	memset(&dctx, '0', sizeof dctx);
+	memset(&dctx, '0', sizeof(dctx));
 	dctx.allowed = DNS_COMPRESS_ALL;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);

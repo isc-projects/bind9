@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.54 2001/11/27 00:56:06 gson Exp $ */
+/* $Id: soa_6.c,v 1.55 2001/11/27 01:55:42 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -112,13 +112,13 @@ totext_soa(ARGS_TOTEXT) {
 	RETERR(str_totext(tctx->linebreak, target));
 
 	for (i = 0; i < 5; i++) {
-		char buf[sizeof "2147483647"];
+		char buf[sizeof("2147483647")];
 		unsigned long num;
 		unsigned int numlen;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4);
 		numlen = sprintf(buf, "%lu", num);
-		INSIST(numlen > 0 && numlen < sizeof "2147483647");
+		INSIST(numlen > 0 && numlen < sizeof("2147483647"));
 		RETERR(str_totext(buf, target));
 		if (multiline && comment) {
 			RETERR(str_totext("           ; " + numlen, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxtify.c,v 1.19 2001/01/09 21:41:26 bwelling Exp $ */
+/* $Id: nxtify.c,v 1.20 2001/11/27 01:55:20 gson Exp $ */
 
 #include <config.h>
 
@@ -184,7 +184,7 @@ nxtify(char *filename) {
 	 */
 	dns_db_closeversion(db, &wversion, ISC_TRUE);
 	len = strlen(filename);
-	if (len + 4 + 1 > sizeof newfilename)
+	if (len + 4 + 1 > sizeof(newfilename))
 		fatal("filename too long");
 	sprintf(newfilename, "%s.new", filename);
 	result = dns_db_dump(db, NULL, newfilename);

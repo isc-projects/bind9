@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.6 2001/11/22 03:08:12 mayer Exp $ */
+/* $Id: interfaceiter.c,v 1.7 2001/11/27 01:56:21 gson Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -209,7 +209,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	(void) closesocket(iter->socket);
 
  socket_failure:
-	isc_mem_put(mctx, iter, sizeof *iter);
+	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
 
@@ -374,7 +374,7 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp) {
 	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 
 	iter->magic = 0;
-	isc_mem_put(iter->mctx, iter, sizeof *iter);
+	isc_mem_put(iter->mctx, iter, sizeof(*iter));
 	*iterp = NULL;
 }
 

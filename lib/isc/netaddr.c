@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.18 2001/04/14 00:20:07 tale Exp $ */
+/* $Id: netaddr.c,v 1.19 2001/11/27 01:56:04 gson Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 			return (ISC_FALSE);
 		break;
 	case AF_INET6:
-		if (memcmp(&a->type.in6, &b->type.in6, sizeof a->type.in6)
+		if (memcmp(&a->type.in6, &b->type.in6, sizeof(a->type.in6))
 		    != 0)
 			return (ISC_FALSE);
 		break;
@@ -111,13 +111,13 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 
 isc_result_t
 isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
-	char abuf[sizeof "xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255"];
+	char abuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
 	unsigned int alen;
 	const char *r;
 
 	REQUIRE(netaddr != NULL);
 
-	r = inet_ntop(netaddr->family, &netaddr->type, abuf, sizeof abuf);
+	r = inet_ntop(netaddr->family, &netaddr->type, abuf, sizeof(abuf));
 	if (r == NULL)
 		return (ISC_R_FAILURE);
 
@@ -204,14 +204,14 @@ isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 
 void
 isc_netaddr_fromin(isc_netaddr_t *netaddr, const struct in_addr *ina) {
-	memset(netaddr, 0, sizeof *netaddr);
+	memset(netaddr, 0, sizeof(*netaddr));
 	netaddr->family = AF_INET;
 	netaddr->type.in = *ina;
 }
 
 void
 isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6) {
-	memset(netaddr, 0, sizeof *netaddr);
+	memset(netaddr, 0, sizeof(*netaddr));
 	netaddr->family = AF_INET6;
 	netaddr->type.in6 = *ina6;
 }
@@ -234,14 +234,14 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 
 void
 isc_netaddr_any(isc_netaddr_t *netaddr) {
-	memset(netaddr, 0, sizeof *netaddr);
+	memset(netaddr, 0, sizeof(*netaddr));
 	netaddr->family = AF_INET;
 	netaddr->type.in.s_addr = INADDR_ANY;
 }
 
 void
 isc_netaddr_any6(isc_netaddr_t *netaddr) {
-	memset(netaddr, 0, sizeof *netaddr);
+	memset(netaddr, 0, sizeof(*netaddr));
 	netaddr->family = AF_INET6;
 	netaddr->type.in6 = in6addr_any;
 }

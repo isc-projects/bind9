@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.3 2001/06/04 19:33:39 tale Exp $ */
+/* $Id: symtab.c,v 1.4 2001/11/27 01:56:26 gson Exp $ */
 
 #include <config.h>
 
@@ -65,10 +65,10 @@ isccc_symtab_create(unsigned int size,
 	REQUIRE(symtabp != NULL && *symtabp == NULL);
 	REQUIRE(size > 0);	/* Should be prime. */
 
-	symtab = malloc(sizeof *symtab);
+	symtab = malloc(sizeof(*symtab));
 	if (symtab == NULL)
 		return (ISC_R_NOMEMORY);
-	symtab->table = malloc(size * sizeof (eltlist_t));
+	symtab->table = malloc(size * sizeof(eltlist_t));
 	if (symtab->table == NULL) {
 		free(symtab);
 		return (ISC_R_NOMEMORY);
@@ -220,7 +220,7 @@ isccc_symtab_define(isccc_symtab_t *symtab, char *key, unsigned int type,
 						  elt->value,
 						  symtab->undefine_arg);
 	} else {
-		elt = malloc(sizeof *elt);
+		elt = malloc(sizeof(*elt));
 		if (elt == NULL)
 			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(elt, link);

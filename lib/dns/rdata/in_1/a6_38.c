@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.46 2001/07/26 21:34:00 gson Exp $ */
+/* $Id: a6_38.c,v 1.47 2001/11/27 01:55:44 gson Exp $ */
 
 /* RFC2874 */
 
@@ -94,7 +94,7 @@ totext_in_a6(ARGS_TOTEXT) {
 	unsigned char prefixlen;
 	unsigned char octets;
 	unsigned char mask;
-	char buf[sizeof "128"];
+	char buf[sizeof("128")];
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
@@ -113,7 +113,7 @@ totext_in_a6(ARGS_TOTEXT) {
 
 	if (prefixlen != 128) {
 		octets = prefixlen/8;
-		memset(addr, 0, sizeof addr);
+		memset(addr, 0, sizeof(addr));
 		memcpy(&addr[octets], sr.base, 16 - octets);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;

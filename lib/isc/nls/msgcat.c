@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.10 2001/06/04 19:33:31 tale Exp $ */
+/* $Id: msgcat.c,v 1.11 2001/11/27 01:56:12 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -62,7 +62,7 @@ isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp) {
 	REQUIRE(name != NULL);
 	REQUIRE(msgcatp != NULL && *msgcatp == NULL);
 
-	msgcat = malloc(sizeof *msgcat);
+	msgcat = malloc(sizeof(*msgcat));
 	if (msgcat == NULL) {
 		*msgcatp = NULL;
 		return;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.33 2001/01/09 21:41:20 bwelling Exp $ */
+/* $Id: name_test.c,v 1.34 2001/11/27 01:55:19 gson Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,7 @@ main(int argc, char *argv[]) {
 	dns_fixedname_init(&wname);
 	name = dns_fixedname_name(&wname);
 	dns_fixedname_init(&wname2);
-	while (fgets(s, sizeof s, stdin) != NULL) {
+	while (fgets(s, sizeof(s), stdin) != NULL) {
 		len = strlen(s);
 		if (len > 0 && s[len - 1] == '\n') {
 			s[len - 1] = '\0';

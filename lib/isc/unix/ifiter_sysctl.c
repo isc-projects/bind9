@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.15 2001/08/31 05:57:51 marka Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.16 2001/11/27 01:56:15 gson Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -136,7 +136,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  failure:
 	if (iter->buf != NULL)
 		isc_mem_put(mctx, iter->buf, iter->bufsize);
-	isc_mem_put(mctx, iter, sizeof *iter);
+	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
 

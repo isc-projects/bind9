@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.26 2001/01/22 22:29:36 gson Exp $ */
+/* $Id: zone_test.c,v 1.27 2001/11/27 01:55:30 gson Exp $ */
 
 #include <config.h>
 
@@ -179,7 +179,7 @@ query(void) {
 		FD_ZERO(&rfdset);
 		FD_SET(0, &rfdset);
 		select(1, &rfdset, NULL, NULL, NULL);
-		if (fgets(buf, sizeof buf, stdin) == NULL) {
+		if (fgets(buf, sizeof(buf), stdin) == NULL) {
 			fprintf(stdout, "\n");
 			break;
 		}
@@ -254,7 +254,7 @@ main(int argc, char **argv) {
 			filename = isc_commandline_argument;
 			break;
 		case 'm':
-			memset(&addr, 0, sizeof addr);
+			memset(&addr, 0, sizeof(addr));
 			addr.type.sin.sin_family = AF_INET;
 			inet_pton(AF_INET, isc_commandline_argument,
 				  &addr.type.sin.sin_addr);

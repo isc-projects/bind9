@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.4 2001/04/12 20:36:53 tale Exp $ */
+/* $Id: cc.c,v 1.5 2001/11/27 01:56:24 gson Exp $ */
 
 #include <config.h>
 
@@ -218,7 +218,7 @@ isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
 	unsigned char *hmd5_rstart, *signed_rstart;
 	isc_result_t result;
 
-	if (REGION_SIZE(*target) < 4 + sizeof auth_hmd5)
+	if (REGION_SIZE(*target) < 4 + sizeof(auth_hmd5))
 		return (ISC_R_NOSPACE);
 	/*
 	 * Emit protocol version.
@@ -231,7 +231,7 @@ isccc_cc_towire(isccc_sexpr_t *alist, isccc_region_t *target,
 		 * we know what it is.
 		 */
 		hmd5_rstart = target->rstart + HMD5_OFFSET;
-		PUT_MEM(auth_hmd5, sizeof auth_hmd5, target->rstart);
+		PUT_MEM(auth_hmd5, sizeof(auth_hmd5), target->rstart);
 	} else
 		hmd5_rstart = NULL;
 	signed_rstart = target->rstart;

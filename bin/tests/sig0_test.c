@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.9 2001/03/28 02:43:44 bwelling Exp $ */
+/* $Id: sig0_test.c,v 1.10 2001/11/27 01:55:24 gson Exp $ */
 
 #include <config.h>
 
@@ -155,7 +155,7 @@ buildquery(void) {
 	CHECK("dns_message_gettempname", result);
 	isc_buffer_init(&namesrc, nametext, strlen(nametext));
 	isc_buffer_add(&namesrc, strlen(nametext));
-	isc_buffer_init(&namedst, namedata, sizeof namedata);
+	isc_buffer_init(&namedst, namedata, sizeof(namedata));
 	dns_name_init(qname, NULL);
 	result = dns_name_fromtext(qname, &namesrc, dns_rootname, ISC_FALSE,
 				   &namedst);

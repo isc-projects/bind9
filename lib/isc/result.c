@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.57 2001/10/22 07:09:21 marka Exp $ */
+/* $Id: result.c,v 1.58 2001/11/27 01:56:05 gson Exp $ */
 
 #include <config.h>
 
@@ -117,7 +117,7 @@ register_table(unsigned int base, unsigned int nresults, const char **text,
 	 * We use malloc() here because we we want to be able to use
 	 * isc_result_totext() even if there is no memory context.
 	 */
-	table = malloc(sizeof *table);
+	table = malloc(sizeof(*table));
 	if (table == NULL)
 		return (ISC_R_NOMEMORY);
 	table->base = base;
