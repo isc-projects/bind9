@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.205 2002/08/17 03:26:46 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.206 2002/10/24 03:52:32 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1908,7 +1908,21 @@ in <varname>dotted_decimal</varname> notation.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip6_addr</varname></para></entry>
-<entry colname = "2"><para>An IPv6 address, such as <command>fe80::200:f8ff:fe01:9742</command>.</para></entry>
+<entry colname = "2"><para>An IPv6 address, such as <command>2001:ffff::200:f8ff:fe01:9742</command>.
+IPv6 scoped addresses that have ambiguity on their scope zones must be
+disambiguated by an appropriate zone ID with the percent character
+(`%') as delimiter.
+It is strongly recommended to use string zone names rather than
+numeric identifiers, in order to be robust against system
+configuration changes.
+However, since there is no standard mapping for such names and
+identifier values, currently only interface names as link identifiers
+are supported, assuming one-to-one mapping between interfaces and links.
+For example, a link-local address <command>fe80::1</command> on the
+link attached to the interface <command>ne0</command>
+can be specified as <command>fe80::1%ne0</command>.
+Note that on most systems link-local addresses always have the
+ambiguity, and need to be disambiguated.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>ip_addr</varname></para></entry>

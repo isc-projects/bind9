@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.27 2002/07/02 05:51:43 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.28 2002/10/24 03:52:34 marka Exp $ */
 
 #include <config.h>
 
@@ -53,7 +53,7 @@
 /*
  * Extract the network address part from a "struct sockaddr".
  *
- * The address family is given explicity
+ * The address family is given explicitly
  * instead of using src->sa_family, because the latter does not work
  * for copying a network mask obtained by SIOCGIFNETMASK (it does
  * not have a valid address family).
@@ -61,6 +61,8 @@
 
 static void
 get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
+	struct sockaddr_in6 *sa6;
+
 	dst->family = family;
 	switch (family) {
 	case AF_INET:
@@ -69,9 +71,40 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		       sizeof(struct in_addr));
 		break;
 	case	AF_INET6:
-		memcpy(&dst->type.in6,
-		       &((struct sockaddr_in6 *) src)->sin6_addr,
+		sa6 = (struct sockaddr_in6 *)src;
+		memcpy(&dst->type.in6, &sa6->sin6_addr,
 		       sizeof(struct in6_addr));
+#ifdef ISC_PLATFORM_HAVESCOPEID
+		if (sa6->sin6_scope_id != 0)
+			isc_netaddr_setzone(dst, sa6->sin6_scope_id);
+		else 
+#endif
+		{
+			/*
+			 * BSD variants embed scope zone IDs in the 128bit
+			 * address as a kernel internal form.  Unfortunately,
+			 * the embedded IDs are not hidden from applications
+			 * when getting access to them by sysctl or ioctl.
+			 * We convert the internal format to the pure address
+			 * part and the zone ID part.
+			 * Since multicast addresses should not appear here
+			 * and they cannot be distinguished from netmasks,
+			 * we only consider unicast link-local addresses.
+			 */
+			if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
+				u_int16_t zone;
+
+				memcpy(&zone, &sa6->sin6_addr.s6_addr[2],
+				       sizeof(zone));
+				zone = ntohs(zone);
+				if (zone != 0) { /* the zone ID is embedded */
+					isc_netaddr_setzone(dst,
+							    (u_int32_t)zone);
+					dst->type.in6.s6_addr[2] = 0;
+					dst->type.in6.s6_addr[3] = 0;
+				}
+			}
+		}
 		break;
 	default:
 		INSIST(0);

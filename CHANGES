@@ -1,3 +1,5 @@
+1391.	[func]		Add support for IPv6 scoped addresses in named.
+
 1390.	[func]		host now supports ixfr.
 
 1389.	[bug]		named could fail to rotate long log files.  [RT #3666]

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.211 2002/09/10 04:45:52 marka Exp $ */
+/* $Id: client.c,v 1.212 2002/10/24 03:52:31 marka Exp $ */
 
 #include <config.h>
 
@@ -1340,9 +1340,25 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * the address of the interface where the request was received.
 	 */
 	if (client->interface->addr.type.sa.sa_family == AF_INET6) {
-		if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
-			isc_netaddr_fromin6(&destaddr, &client->pktinfo.ipi6_addr);
-		else
+		if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0) {
+			u_int32_t zone = 0;
+
+			/*
+			 * XXXJT technically, we should convert the receiving
+			 * interface ID to a proper scope zone ID.  However,
+			 * due to the fact there is no standard API for this,
+			 * we only handle link-local addresses and use the
+			 * interface index as link ID.  Despite the assumption,
+			 * it should cover most typical cases.
+			 */
+			if (IN6_IS_ADDR_LINKLOCAL(&client->pktinfo.ipi6_addr))
+				zone = (u_int32_t)client->pktinfo.ipi6_ifindex;
+
+			isc_netaddr_fromin6(&destaddr,
+					    &client->pktinfo.ipi6_addr);
+			isc_netaddr_setzone(&destaddr, zone);
+						      
+		} else
 			isc_netaddr_any6(&destaddr);
 	} else {
 		isc_netaddr_fromsockaddr(&destaddr, &client->interface->addr);

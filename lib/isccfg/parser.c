@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.102 2002/02/20 03:35:49 marka Exp $ */
+/* $Id: parser.c,v 1.103 2002/10/24 03:52:35 marka Exp $ */
 
 #include <config.h>
 
@@ -1662,9 +1662,31 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 				}
 			}
 		}
-		if (flags & CFG_ADDR_V6OK) {
-			if (inet_pton(AF_INET6, s, &in6a) == 1) {
+		if ((flags & CFG_ADDR_V6OK) != 0 &&
+		    strlen(s) <= 127) {
+			char buf[128];
+			char *d; /* zone delimiter */
+			u_int32_t zone = 0; /* scope zone ID */
+
+			strcpy(buf, s);
+			d = strchr(buf, '%');
+			if (d != NULL)
+				*d = '\0';
+
+			if (inet_pton(AF_INET6, buf, &in6a) == 1) {
+				if (d != NULL) {
+					isc_result_t result;
+
+					result = isc_netscope_pton(AF_INET6,
+								   d + 1,
+								   &in6a,
+								   &zone);
+					if (result != ISC_R_SUCCESS)
+						return (result);
+				}
+
 				isc_netaddr_fromin6(na, &in6a);
+				isc_netaddr_setzone(na, zone);
 				return (ISC_R_SUCCESS);
 			}
 		}

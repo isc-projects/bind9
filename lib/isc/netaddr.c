@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.22 2002/04/03 06:38:31 marka Exp $ */
+/* $Id: netaddr.c,v 1.23 2002/10/24 03:52:32 marka Exp $ */
 
 #include <config.h>
 
@@ -36,14 +36,17 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 	if (a->family != b->family)
 		return (ISC_FALSE);
 
+	if (a->zone != b->zone)
+		return (ISC_FALSE);
+
 	switch (a->family) {
 	case AF_INET:
 		if (a->type.in.s_addr != b->type.in.s_addr)
 			return (ISC_FALSE);
 		break;
 	case AF_INET6:
-		if (memcmp(&a->type.in6, &b->type.in6, sizeof(a->type.in6))
-		    != 0)
+		if (memcmp(&a->type.in6, &b->type.in6,
+			   sizeof(a->type.in6)) != 0)
 			return (ISC_FALSE);
 		break;
 	default:
@@ -64,6 +67,9 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->family != b->family)
+		return (ISC_FALSE);
+
+	if (a->zone != b->zone)
 		return (ISC_FALSE);
 
 	switch (a->family) {
@@ -112,22 +118,44 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 isc_result_t
 isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 	char abuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
+	char zbuf[sizeof("%4294967295")];
 	unsigned int alen;
+	int zlen;
 	const char *r;
+	const void *type;
 
 	REQUIRE(netaddr != NULL);
 
-	r = inet_ntop(netaddr->family, &netaddr->type, abuf, sizeof(abuf));
+	switch (netaddr->family) {
+	case AF_INET:
+		type = &netaddr->type.in;
+		break;
+	case AF_INET6:
+		type = &netaddr->type.in6;
+		break;
+	default:
+		return (ISC_R_FAILURE);
+	}
+	r = inet_ntop(netaddr->family, type, abuf, sizeof(abuf));
 	if (r == NULL)
 		return (ISC_R_FAILURE);
 
 	alen = strlen(abuf);
 	INSIST(alen < sizeof(abuf));
 
-	if (alen > isc_buffer_availablelength(target))
+	zlen = 0;
+	if (netaddr->family == AF_INET6 && netaddr->zone != 0) {
+		zlen = snprintf(zbuf, sizeof(zbuf), "%%%u", netaddr->zone);
+		if (zlen < 0)
+			return (ISC_R_FAILURE);
+		INSIST((unsigned int)zlen < sizeof(zbuf));
+	}
+
+	if (alen + zlen > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
 
 	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
+	isc_buffer_putmem(target, (unsigned char *)zbuf, zlen);
 
 	return (ISC_R_SUCCESS);
 }
@@ -217,19 +245,37 @@ isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6) {
 }
 
 void
+isc_netaddr_setzone(isc_netaddr_t *netaddr, u_int32_t zone) {
+	/* we currently only support AF_INET6. */
+	REQUIRE(netaddr->family == AF_INET6);
+
+	netaddr->zone = zone;
+}
+
+u_int32_t
+isc_netaddr_getzone(const isc_netaddr_t *netaddr) {
+	return (netaddr->zone);
+}
+
+void
 isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 	int family = s->type.sa.sa_family;
 	t->family = family;
 	switch (family) {
-        case AF_INET:
+	case AF_INET:
 		t->type.in = s->type.sin.sin_addr;
-                break;
-        case AF_INET6:
+		break;
+	case AF_INET6:
 		memcpy(&t->type.in6, &s->type.sin6.sin6_addr, 16);
-                break;
-        default:
-                INSIST(0);
-        }
+#ifdef ISC_PLATFORM_HAVESCOPEID
+		t->zone = s->type.sin6.sin6_scope_id;
+#else
+		t->zone = 0;
+#endif
+		break;
+	default:
+		INSIST(0);
+	}
 }
 
 void
