@@ -30,13 +30,39 @@
 isc_boolean_t
 isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 {
+	unsigned int length;
+
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->length != b->length)
 		return (ISC_FALSE);
 
-	if (memcmp(&a->type, &b->type, a->length) != 0)
+	/*
+	 * We don't just memcmp because the sin_zero field isn't always
+	 * zero.
+	 */
+
+	if (a->type.sa.sa_family != b->type.sa.sa_family)
 		return (ISC_FALSE);
+	switch (a->type.sa.sa_family) {
+	case AF_INET:
+		if (memcmp(&a->type.sin.sin_addr, &b->type.sin.sin_addr,
+			   sizeof a->type.sin.sin_addr) != 0)
+			return (ISC_FALSE);
+		if (a->type.sin.sin_port != b->type.sin.sin_port)
+			return (ISC_FALSE);
+		break;
+	case AF_INET6:
+		if (memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
+			   sizeof a->type.sin6.sin6_addr) != 0)
+			return (ISC_FALSE);
+		if (a->type.sin6.sin6_port != b->type.sin6.sin6_port)
+			return (ISC_FALSE);
+		break;
+	default:
+		if (memcmp(&a->type, &b->type, a->length) != 0)
+			return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }
