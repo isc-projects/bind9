@@ -1,3 +1,6 @@
+
+ 420.	[bug]		nslookup failed to implement the "exit" command.
+
  418.	[bug]		At debug levels >= 10, getting an unexpected
 			socket receive error would crash the server
 			while trying to log the error message.

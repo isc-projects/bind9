@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.5 2000/08/15 19:20:22 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.20.2.6 2000/09/05 21:50:43 gson Exp $ */
 
 #include <config.h>
 
@@ -752,6 +752,9 @@ get_next_command(void) {
 		 (strcasecmp(ptr, "lserver") == 0)) {
 		printf("Server:\t%s\n", arg); 
 		setsrv(arg);
+	} else if (strcasecmp(ptr, "exit") == 0) {
+		in_use = ISC_FALSE;
+		return;
 	} else 
 		addlookup(ptr);
 }
