@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.4 2000/06/17 00:16:50 mws Exp $ */
+/* $Id: nsupdate.c,v 1.5 2000/06/19 22:09:46 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -216,7 +216,6 @@ reset_system() {
 static void
 setup_system(){
 	isc_result_t result;
-	isc_buffer_t buf;
 	isc_sockaddr_t bind_any;
 
 	ddebug("setup_system()");
@@ -321,7 +320,9 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	isc_buffer_t source;
 	isc_textregion_t typeregion;
 	dns_rdataset_t *rdataset = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdatatype_t rdatatype;
+	dns_rdata_t *rdata = NULL;
 	
 	ddebug ("make_rrset_prereq()");
 	nameptr = strtok(NULL, " \t\r\n");
@@ -356,10 +357,26 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	result = dns_rdatatype_fromtext(&rdatatype, &typeregion);
 	check_result (result, "dns_rdatatype_fromtext");
 
+	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
+	check_result(result, "dns_message_gettemprdatalist");
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
-	check_result(result,"dns_message_gettemprdataset");
+	check_result(result, "dns_message_gettemprdataset");
+	dns_rdatalist_init(rdatalist);
+	rdatalist->type = rdatatype;
+	rdatalist->rdclass = rdclass;
+	rdatalist->covers = 0;
+	rdatalist->ttl = 0;
+	result = dns_message_gettemprdata(updatemsg, &rdata);
+	check_result(result, "dns_message_gettemprdata");
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->rdclass = rdclass;
+	rdata->type = rdatatype;
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdataset_init(rdataset);
+	dns_rdatalist_tordataset(rdatalist, rdataset);		
 
-	dns_rdataset_makequestion(rdataset, rdclass, rdatatype);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
@@ -375,7 +392,9 @@ make_domain_prereq(dns_rdataclass_t rdclass) {
 	isc_buffer_t *buf;
 	isc_buffer_t source;
 	dns_rdataset_t *rdataset = NULL;
-	
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdata_t *rdata = NULL;
+
 	ddebug ("make_domain_prereq()");
 	ptr = strtok(NULL, " \t\r\n");
 	if (ptr == NULL) {
@@ -398,10 +417,26 @@ make_domain_prereq(dns_rdataclass_t rdclass) {
 
 	check_and_add_zone(name);
 
+	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
+	check_result(result, "dns_message_gettemprdatalist");
 	result = dns_message_gettemprdataset(updatemsg, &rdataset);
 	check_result(result, "dns_message_gettemprdataset");
+	dns_rdatalist_init(rdatalist);
+	rdatalist->type = dns_rdatatype_any;
+	rdatalist->rdclass = rdclass;
+	rdatalist->covers = 0;
+	rdatalist->ttl = 0;
+	result = dns_message_gettemprdata(updatemsg, &rdata);
+	check_result(result, "dns_message_gettemprdata");
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->rdclass = rdclass;
+	rdata->type = dns_rdatatype_any;
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdataset_init(rdataset);
+	dns_rdatalist_tordataset(rdatalist, rdataset);		
 
-	dns_rdataset_makequestion(rdataset, rdclass, dns_rdatatype_any);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
@@ -547,7 +582,10 @@ update_add() {
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
+	dns_message_takebuffer(updatemsg, &buf);
+#if 0
 	isc_buffer_free(&buf);
+#endif
 	return STATUS_MORE;
 }
 
