@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.38 2001/01/09 21:53:17 bwelling Exp $ */
+/* $Id: rdataset.h,v 1.39 2001/03/28 00:22:16 gson Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -278,7 +278,7 @@ isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_boolean_t no_rdata_or_ttl,
+		    isc_boolean_t question,
 		    isc_buffer_t *target);
 /*
  * Convert 'rdataset' to text format, storing the result in 'target'.
@@ -286,18 +286,17 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * Notes:
  *	The rdata cursor position will be changed.
  *
- *	The no_rdata_or_ttl should normally be ISC_FALSE.  If it is ISC_TRUE
- *	the ttl and rdata fields are not printed.  This is mainly for use
- *	in the question section.
+ *	The 'question' flag should normally be ISC_FALSE.  If it is 
+ *	ISC_TRUE, the TTL and rdata fields are not printed.  This is 
+ *	for use when printing an rdata representing a question section.
  *
- *	XXX may need to add 'origin' parameter if we go with that in rdata.
+ *	This interface is deprecated; use dns_master_rdatasettottext()
+ * 	and/or dns_master_questiontotext() instead.
  *
  * Requires:
  *	'rdataset' is a valid rdataset.
  *
  *	'rdataset' is not empty.
- *
- * XXX Supply more Requires and Ensures XXX
  */
 
 isc_result_t

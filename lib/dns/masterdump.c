@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.45 2001/03/07 22:30:21 gson Exp $ */
+/* $Id: masterdump.c,v 1.46 2001/03/28 00:22:13 gson Exp $ */
 
 #include <config.h>
 
@@ -526,16 +526,11 @@ question_totext(dns_rdataset_t *rdataset,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * Provide a backwards compatible interface for printing a
- * single rdataset or question section.  This is now used
- * only by wire_test.c.
- */
 isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_boolean_t no_rdata_or_ttl,
+		    isc_boolean_t question,
 		    isc_buffer_t *target)
 {
 	dns_totext_ctx_t ctx;
@@ -556,12 +551,40 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	if (dns_name_countlabels(owner_name) == 0)
 		owner_name = NULL;
 
-	if (no_rdata_or_ttl)
+	if (question)
 		return (question_totext(rdataset, owner_name, &ctx,
 					omit_final_dot, target));
 	else
 		return (rdataset_totext(rdataset, owner_name, &ctx,
 					omit_final_dot, target));
+}
+
+isc_result_t
+dns_master_rdatasettotext(dns_name_t *owner_name,
+			  dns_rdataset_t *rdataset,
+			  const dns_master_style_t *style,
+			  isc_buffer_t *target)
+{
+	dns_totext_ctx_t ctx;
+	isc_result_t result;
+	result = totext_ctx_init(style, &ctx);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "could not set master file style");
+		return (ISC_R_UNEXPECTED);
+	}
+
+	return (rdataset_totext(rdataset, owner_name, &ctx,
+				ISC_FALSE, target));
+}
+
+isc_result_t
+dns_master_questiontotext(dns_name_t *owner_name,
+			  dns_rdataset_t *rdataset,
+			  isc_buffer_t *target)
+{
+	return (question_totext(rdataset, owner_name, NULL,
+				ISC_FALSE, target));
 }
 
 /*
