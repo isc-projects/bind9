@@ -67,6 +67,7 @@ main(int argc, char **argv)
 	dns_name_t name;
 	isc_buffer_t t, namebuf;
 	unsigned char namestorage[512];
+	dns_view_t *view;
 	dns_adb_t *adb;
 
 	(void)argc;
@@ -97,11 +98,15 @@ main(int argc, char **argv)
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
 
+	view = NULL;
+	result = dns_view_create(mctx, dns_rdataclass_in, "foo", &view);
+	check_result(result, "dns_view_create");
+
 	/*
 	 * Create the address database.
 	 */
 	adb = NULL;
-	result = dns_adb_create(mctx, &adb);
+	result = dns_adb_create(mctx, view, &adb);
 	check_result(result, "dns_adb_create");
 
 #define NAME1 "nonexistant.flame.org."
