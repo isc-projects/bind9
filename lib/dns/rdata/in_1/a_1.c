@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.37 2000/08/01 01:26:18 tale Exp $ */
+/* $Id: a_1.c,v 1.38 2000/08/08 23:40:46 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -34,11 +34,12 @@ fromtext_in_a(ARGS_FROMTEXT) {
 	struct in_addr addr;
 	isc_region_t region;
 
-	UNUSED(origin);
-	UNUSED(downcase);
-
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(origin);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -56,11 +57,11 @@ static inline isc_result_t
 totext_in_a(ARGS_TOTEXT) {
 	isc_region_t region;
 
-	UNUSED(tctx);
-
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(rdata->length == 4);
+
+	UNUSED(tctx);
 
 	isc_buffer_availableregion(target, &region);
 	if (inet_ntop(AF_INET, rdata->data,
@@ -76,11 +77,12 @@ fromwire_in_a(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	UNUSED(dctx);
-	UNUSED(downcase);
-
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(dctx);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
@@ -99,10 +101,10 @@ static inline isc_result_t
 towire_in_a(ARGS_TOWIRE) {
 	isc_region_t region;
 
-	UNUSED(cctx);
-
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(cctx);
 
 	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length)
@@ -138,6 +140,8 @@ fromstruct_in_a(ARGS_FROMSTRUCT) {
 	REQUIRE(a->common.rdtype == type);
 	REQUIRE(a->common.rdclass == rdclass);
 
+	UNUSED(rdclass);
+
 	n = ntohl(a->in_addr.s_addr);
 
 	return (uint32_tobuffer(n, target));
@@ -150,10 +154,10 @@ tostruct_in_a(ARGS_TOSTRUCT) {
 	isc_uint32_t n;
 	isc_region_t region;
 
-	UNUSED(mctx);
-
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(mctx);
 
 	a->common.rdclass = rdata->rdclass;
 	a->common.rdtype = rdata->type;
