@@ -95,9 +95,20 @@ dns_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned char **tslabp);
+		    isc_boolean_t force, unsigned char **tslabp);
 /*
  * Merge 'oslab' and 'nslab'.
+ *
+ * XXX
+ */
+
+dns_result_t
+dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
+		       unsigned int reservelen, isc_mem_t *mctx,
+		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		       unsigned char **tslabp);
+/*
+ * Subtract 'sslab' from 'mslab'.
  *
  * XXX
  */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.3 1999/04/01 04:00:39 halley Exp $ */
+/* $Id: rdataslab.c,v 1.4 1999/06/16 21:03:07 halley Exp $ */
 
 #include <config.h>
 
@@ -128,12 +128,13 @@ dns_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned char **tslabp)
+		    isc_boolean_t force, unsigned char **tslabp)
 {
 	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
 	isc_region_t oregion, nregion;
 	dns_rdata_t ordata, nrdata;
+	isc_boolean_t added_something = ISC_FALSE;
 
 	/*
 	 * Merge 'oslab' and 'nslab'.
@@ -202,10 +203,14 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 			 */
 			tlength += nregion.length + 2;
 			tcount++;
+			added_something = ISC_TRUE;
 		}
 		ncurrent += nregion.length;
 		ncount--;
 	} while (ncount > 0);
+
+	if (!added_something && !force)
+		return (DNS_R_UNCHANGED);
 
 	/*
 	 * Copy the reserved area from the new slab.
@@ -261,6 +266,135 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		ncurrent += nregion.length;
 		ncount--;
 	} while (ncount > 0);
+
+	*tslabp = tstart;
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
+		       unsigned int reservelen, isc_mem_t *mctx,
+		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		       unsigned char **tslabp)
+{
+	unsigned char *mcurrent, *sstart, *scurrent, *tstart, *tcurrent;
+	unsigned int mcount, scount, count, tlength, tcount;
+	isc_region_t mregion, sregion;
+	dns_rdata_t srdata, mrdata;
+
+	/*
+	 * Subtract 'sslab' from 'mslab'.
+	 */
+
+	REQUIRE(tslabp != NULL && *tslabp == NULL);
+	REQUIRE(mslab != NULL && sslab != NULL);
+
+	mcurrent = mslab + reservelen;
+	mcount = *mcurrent++ * 256;
+	mcount += *mcurrent++;
+	scurrent = sslab + reservelen;
+	scount = *scurrent++ * 256;
+	scount += *scurrent++;
+	sstart = scurrent;
+	INSIST(mcount > 0 && mcount > 0);
+
+	/*
+	 * Yes, this is inefficient!
+	 */
+
+	/*
+	 * Start figuring out the target length and count.
+	 */
+	tlength = reservelen + 2;
+	tcount = 0;
+
+	/*
+	 * Add in the length of rdata in the mslab that aren't in
+	 * the sslab.
+	 */
+	do {
+		mregion.length = *mcurrent++ * 256;
+		mregion.length += *mcurrent++;
+		mregion.base = mcurrent;
+		dns_rdata_fromregion(&mrdata, rdclass, type, &mregion);
+		scurrent = sstart;
+		for (count = 0; count < scount; count++) {
+			sregion.length = *scurrent++ * 256;
+			sregion.length += *scurrent++;
+			sregion.base = scurrent;
+			dns_rdata_fromregion(&srdata, rdclass, type, &sregion);
+			scurrent += sregion.length;
+			if (dns_rdata_compare(&mrdata, &srdata) == 0)
+				break;
+		}
+		if (count == scount) {
+			/*
+			 * This rdata isn't in the sslab, and thus isn't
+			 * being subtracted.
+			 */
+			tlength += mregion.length + 2;
+			tcount++;
+		}
+		mcurrent += mregion.length;
+		mcount--;
+	} while (mcount > 0);
+
+	/*
+	 * Don't continue if the new rdataslab would be empty.
+	 */
+	if (tcount == 0)
+		return (DNS_R_NXRDATASET);
+
+	/*
+	 * Copy the reserved area from the mslab.
+	 */
+	tstart = isc_mem_get(mctx, tlength);
+	if (tstart == NULL)
+		return (DNS_R_NOMEMORY);
+	memcpy(tstart, mslab, reservelen);
+	tcurrent = tstart + reservelen;
+	
+	/*
+	 * Write the new count.
+	 */
+	*tcurrent++ = (tcount & 0xff00) >> 8;
+	*tcurrent++ = (tcount & 0x00ff);
+
+	/*
+	 * Copy the parts of mslab not in sslab.
+	 */
+	mcurrent = sslab + reservelen;
+	mcount = *mcurrent++ * 256;
+	mcount += *mcurrent++;
+	do {
+		mregion.length = *mcurrent++ * 256;
+		mregion.length += *mcurrent++;
+		mregion.base = mcurrent;
+		dns_rdata_fromregion(&mrdata, rdclass, type, &mregion);
+		scurrent = sstart;
+		for (count = 0; count < scount; count++) {
+			sregion.length = *scurrent++ * 256;
+			sregion.length += *scurrent++;
+			sregion.base = scurrent;
+			dns_rdata_fromregion(&srdata, rdclass, type, &sregion);
+			scurrent += sregion.length;
+			if (dns_rdata_compare(&mrdata, &srdata) == 0)
+				break;
+		}
+		if (count == scount) {
+			/*
+			 * This rdata isn't in the sslab, and thus should be
+			 * copied to the tslab.
+			 */
+			*tcurrent++ = (mregion.length & 0xff00) >> 8;
+			*tcurrent++ = (mregion.length & 0x00ff);
+			memcpy(tcurrent, mregion.base, mregion.length);
+			tcurrent += mregion.length;
+		}
+		mcurrent += mregion.length;
+		mcount--;
+	} while (mcount > 0);
 
 	*tslabp = tstart;
 
