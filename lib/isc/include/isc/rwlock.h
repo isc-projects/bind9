@@ -12,6 +12,7 @@ typedef enum {
 } isc_rwlocktype_t;
 
 typedef struct isc_rwlock {
+	unsigned int		magic;
 	isc_mutex_t		lock;
 	isc_condition_t		readable;
 	isc_condition_t		writeable;
