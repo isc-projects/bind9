@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.22 2001/01/09 22:01:04 bwelling Exp $
+# $Id: update_copyrights,v 1.23 2001/03/27 17:57:28 halley Exp $
 
 require 5.002;
 
@@ -68,7 +68,7 @@ while (<>) {
         $c_comment = 0;
         $shell_comment = 0;
         $m4_comment = 0;
-        $html_comment = 0;
+        $sgml_comment = 0;
         $zone_comment = 0;
         $man_comment = 0;
         $start_comment = "";
@@ -91,8 +91,8 @@ while (<>) {
         } elsif ($type eq "M4") {
                 $m4_comment = 1;
                 $prefix = "dnl ";
-        } elsif ($type eq "HTML") {
-                $html_comment = 1;
+        } elsif ($type eq "HTML" || $type eq "SGML") {
+                $sgml_comment = 1;
                 $start_comment = "<!--\n";
                 $prefix = " - ";
                 $end_comment = "-->\n";
@@ -168,7 +168,7 @@ while (<>) {
                                 last;
                         }
                 }
-        } elsif ($html_comment) {
+        } elsif ($sgml_comment) {
                 if (/^<!DOCTYPE/) {
                         $before_copyright = $_;
                         $_ = <SOURCE>;
