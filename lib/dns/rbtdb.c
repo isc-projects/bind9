@@ -2332,7 +2332,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * it.
 			 */
 			if (header->type == type ||
-			    type == dns_rdatatype_any ||
+			    (type == dns_rdatatype_any &&
+			     RBTDB_RDATATYPE_BASE(header->type) != 0) ||
 			    (cname_ok && header->type ==
 			     dns_rdatatype_cname)) {
 				/*
