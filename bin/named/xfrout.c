@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.68 2000/06/15 04:41:59 marka Exp $ */
+/* $Id: xfrout.c,v 1.68.2.1 2000/08/07 22:04:31 gson Exp $ */
 
 #include <config.h>
 
@@ -263,15 +263,16 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	result = dns_rdataset_totext(&rds, name,
 				     ISC_FALSE, ISC_FALSE, &buf);
 
-	/* Get rid of final newline. */
-	INSIST(buf.used >= 1 && ((char *) buf.base)[buf.used-1] == '\n');
-	buf.used--;
-
 	/*
 	 * We could use xfrout_log(), but that would produce
 	 * very long lines with a repetitive prefix.
 	 */
 	if (result == ISC_R_SUCCESS) {
+		/* Get rid of final newline. */
+		INSIST(buf.used >= 1 &&
+		       ((char *) buf.base)[buf.used-1] == '\n');
+		buf.used--;
+		
 		isc_buffer_usedregion(&buf, &r);
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
 			      "%.*s", (int) r.length, (char *) r.base);

@@ -1,6 +1,10 @@
 
 	--- 9.0.0rc2 released ---
 
+ 371.	[bug]		At high debug levels, doing an outgoing zone transfer
+			of a very large RRset could cause an assertion failure
+			during logging.
+
  370.	[bug]		The error messages for rollforward failures were
 			overly terse.
 
