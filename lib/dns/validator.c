@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.99 2002/02/05 07:54:08 bwelling Exp $ */
+/* $Id: validator.c,v 1.100 2002/02/05 19:46:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -94,7 +94,6 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->event->ev_action = val->action;
 	val->event->ev_arg = val->arg;
 	isc_task_sendanddetach(&task, (isc_event_t **)&val->event);
-
 }
 
 static void
@@ -137,16 +136,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		return;
-	}
-
-	if (val->event == NULL) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "fetch_callback_validator: event == NULL");
-		return;
-	}
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
 	LOCK(&val->lock);
@@ -170,7 +160,10 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_validator: got %s",
 			      isc_result_totext(eresult));
-		validator_done(val, DNS_R_NOVALIDKEY);
+		if (eresult == ISC_R_CANCELED)
+			validator_done(val, eresult);
+		else
+			validator_done(val, DNS_R_NOVALIDKEY);
 	}
 
  out:
@@ -203,18 +196,7 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 
 	dns_resolver_destroyfetch(&val->fetch);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		isc_event_free(&event);
-		return;
-	}
-
-	if (val->event == NULL) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "fetch_callback_nullkey: event == NULL");
-		isc_event_free(&event);
-		return;
-	}
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_nullkey");
 
@@ -288,7 +270,10 @@ fetch_callback_nullkey(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "fetch_callback_nullkey: got %s",
 			      isc_result_totext(eresult));
-		validator_done(val, DNS_R_NOVALIDKEY);
+		if (eresult == ISC_R_CANCELED)
+			validator_done(val, eresult);
+		else
+			validator_done(val, DNS_R_NOVALIDKEY);
 	}
 	UNLOCK(&val->lock);
 
@@ -318,13 +303,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		return;
-	}
-
-	if (val->event == NULL)
-		return;
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
 	LOCK(&val->lock);
@@ -468,13 +447,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	eresult = devent->result;
 	dns_validator_destroy(&val->authvalidator);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		return;
-	}
-
-	if (val->event == NULL)
-		return;
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
@@ -518,13 +491,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	dns_validator_destroy(&val->authvalidator);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		return;
-	}
-
-	if (val->event == NULL)
-		return;
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in negauthvalidated");
 	LOCK(&val->lock);
@@ -568,13 +535,7 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validator_destroy(&val->keyvalidator);
 	isc_event_free(&event);
 
-	if (SHUTDOWN(val)) {
-		dns_validator_destroy(&val);
-		return;
-	}
-
-	if (val->event == NULL)
-		return;
+	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in nullkeyvalidated");
 	LOCK(&val->lock);
@@ -1536,8 +1497,6 @@ dns_validator_cancel(dns_validator_t *validator) {
 	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
 
 	if (validator->event != NULL) {
-		validator_done(validator, ISC_R_CANCELED);
-
 		if (validator->fetch != NULL)
 			dns_resolver_cancelfetch(validator->fetch);
 
