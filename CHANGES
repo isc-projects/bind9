@@ -1,4 +1,8 @@
 
+ 416.	[bug]		Slave zones with no master file tried to use a
+			NULL pointer for a journal file name when they
+			received an IXFR. [RT #273]
+
  415.	[bug]		The logging code leaked file descriptors.
 
  413.	[bug]		Notify could attempt to use the zone database after
