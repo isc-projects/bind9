@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.39 2000/05/24 23:13:19 bwelling Exp $
+ * $Id: dnssec.c,v 1.40 2000/05/30 22:30:39 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 
+#include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -36,6 +37,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/tsig.h>		/* for DNS_TSIG_FUDGE */
 
