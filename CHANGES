@@ -3,6 +3,9 @@
 1706.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #12328]
 
+1702.	[bug]		also-notify should not be applied to builtin zones.
+			[RT #12323]
+
 1701.	[doc]		A minimal named.conf man page.
 
 1700.	[func]		nslookup is no longer to be treated as deprecated.
