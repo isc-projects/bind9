@@ -332,6 +332,8 @@
 ./bin/tests/system/Makefile.in			MAKE	2000
 ./bin/tests/system/README			X	2000
 ./bin/tests/system/cleanall.sh			SH	2000
+./bin/tests/system/common/controls.conf		CONF-C	2000
+./bin/tests/system/common/rndc.conf		CONF-C	2000
 ./bin/tests/system/conf.sh.in			SH	2000
 ./bin/tests/system/dialup/ns1/.cvsignore	X	2000
 ./bin/tests/system/dialup/ns1/example.db	ZONE	2000
