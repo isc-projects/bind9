@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.52 2000/11/03 07:16:00 marka Exp $ */
+/* $Id: confview.c,v 1.53 2000/11/03 10:43:12 marka Exp $ */
 
 #include <config.h>
 
@@ -507,6 +507,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->request_ixfr = NULL;
 	view->fetch_glue = NULL;
 	view->notify = NULL;
+	view->dialup = NULL;
 	view->rfc2308_type1 = NULL;
 	view->additional_from_cache = NULL;
 	view->additional_from_auth = NULL;
@@ -739,6 +740,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 
 	PRINT_AS_NOTIFYTYPE(notify, "notify");
+	PRINT_AS_DIALUPTYPE(dialup, "dialup");
 	
 	PRINT_AS_BOOLEAN(auth_nx_domain, "auth-nxdomain");
 	PRINT_AS_BOOLEAN(recursion, "recursion");
@@ -898,6 +900,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(request_ixfr);
 	FREEFIELD(fetch_glue);
 	FREEFIELD(notify);
+	FREEFIELD(dialup);
 	FREEFIELD(rfc2308_type1);
 	FREEFIELD(additional_from_auth);
 	FREEFIELD(additional_from_cache);
