@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.98 2001/01/16 07:04:30 marka Exp $ */
+/* $Id: master.c,v 1.99 2001/01/18 08:53:34 marka Exp $ */
 
 #include <config.h>
 
@@ -635,6 +635,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 	case dns_rdatatype_ns:
 	case dns_rdatatype_ptr:
 	case dns_rdatatype_cname:
+	case dns_rdatatype_dname:
 		break;
 
 	case dns_rdatatype_a:
