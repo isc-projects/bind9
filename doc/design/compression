@@ -67,15 +67,15 @@ Functions:
 	Returns allowed compression methods based on type, edns, and whether
 	we are about to compress a owner name.
 
-	void
+	dns_result_t
 	dns_compress_init(dns_compress_t *cctx, isc_boolean_t global16,
 			  isc_mem_t *mctx);
 
 	Initalises cctx to empty and sets whether 16 bit global
 	compression targets are to be added to the global RBT.
 
-	void
-	dns_compress_localinit(dns_compress_t *cctx, dns_name_t owner,
+	dns_result_t
+	dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 			       isc_buffer_t *target);
 
 	Initalise a RBT for local compression, freeing and existing RBT.
@@ -108,3 +108,9 @@ Functions:
 		dns_rbt_t *global;	/* Global RBT */
 		isc_mem_t *mctx;	/* Required by RBT */
 	};
+
+Dependancy:
+
+	Requires RBT deepest match.
+	Requires the ability to walk the RBT and remove any node which
+	meets the removal condition.
