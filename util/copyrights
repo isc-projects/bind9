@@ -595,6 +595,7 @@
 ./contrib/.cvsignore				X	2000
 ./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000
 ./contrib/nanny/nanny.pl			PERL	2000
+./doc/arm/.cvsignore				X	2000
 ./doc/arm/Bv9ARM.1.html				HTML	2000
 ./doc/arm/Bv9ARM.2.html				HTML	2000
 ./doc/arm/Bv9ARM.3.html				HTML	2000
