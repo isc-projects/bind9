@@ -36,10 +36,10 @@
 #define omapi_make_int_value		omapi_value_storeint
 #define omapi_make_handle_value		omapi_value_storeobject
 #define omapi_make_string_value		omapi_value_storestr
-#define omapi_get_int_value		omapi_value_asint
 
 #define omapi_data_new			omapi_data_create
 #define omapi_td_strcmp			omapi_data_strcmp
+#define omapi_get_int_value		omapi_data_getint
 
 #define omapi_data_string_new(s, l, i)	omapi_string_create(s, l)
 #define omapi_data_string_cmp		omapi_string_stringcmp
@@ -63,7 +63,7 @@
 	omapi_object_setobject(h, name, value)
 #define omapi_set_string_value(h, id, name, value) \
 	omapi_object_setstring(h, name, value)
-#define omapi_get_value(h, id, name, value) \
+#define omapi_get_value_str(h, id, name, value) \
 	omapi_object_getvalue(h, name, value)
 #define omapi_object_type_register	omapi_object_register
 
