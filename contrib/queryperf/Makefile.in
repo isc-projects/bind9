@@ -1,0 +1,18 @@
+# Copyright (C) 2000, 2001  Nominum, Inc.  All Rights Reserved.
+
+LIBS = @LIBS@
+
+queryperf: queryperf.o
+	$(CC) $(CFLAGS) queryperf.o $(LIBS) -lm -o queryperf
+
+queryperf.o: queryperf.c
+	$(CC) $(CFLAGS) -c queryperf.c
+
+clean:
+	rm -f *.o queryperf
+
+distclean: clean
+	rm -f config.log
+	rm -f config.cache
+	rm -f config.status
+	rm -f Makefile

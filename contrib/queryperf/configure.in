@@ -1,0 +1,15 @@
+/*
+ * Copyright (C) 2000, 2001  Nominum, Inc.  All Rights Reserved.
+ */
+
+AC_INIT(queryperf.c)
+
+AC_PREREQ(2.13)
+
+AC_PROG_CC
+
+AC_SEARCH_LIBS(res_mkquery, resolv bind);
+AC_CHECK_LIB(socket, socket)
+AC_CHECK_LIB(nsl, inet_ntoa)
+
+AC_OUTPUT(Makefile)
