@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.2 2001/10/23 01:31:08 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.3 2002/07/10 06:10:44 marka Exp $ */
 
 #include <config.h>
 
@@ -603,8 +603,8 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-			      "begin cache cleaning, mem inuse %d",
-			      isc_mem_inuse(cleaner->cache->mctx));
+			      "begin cache cleaning, mem inuse %lu",
+		            (unsigned long)isc_mem_inuse(cleaner->cache->mctx));
 		cleaner->state = cleaner_s_busy;
 		isc_task_send(cleaner->task, &cleaner->resched_event);
 	}
@@ -623,8 +623,8 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
 				      cleaner->cleaning_interval);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "end cache cleaning, mem inuse %d",
-		      isc_mem_inuse(cleaner->cache->mctx));
+		      ISC_LOG_DEBUG(1), "end cache cleaning, mem inuse %lu",
+		      (unsigned long)isc_mem_inuse(cleaner->cache->mctx));
 
 	cleaner->state = cleaner_s_idle;
 	cleaner->resched_event = event;
@@ -784,8 +784,8 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_DEBUG(1), "cache cleaner: checked %d nodes, "
-		      "mem inuse %d, sleeping",
-		      cleaner->increment, isc_mem_inuse(cleaner->cache->mctx));
+		      "mem inuse %lu, sleeping", cleaner->increment,
+		      (unsigned long)isc_mem_inuse(cleaner->cache->mctx));
 
 	isc_task_send(task, &event);
 	INSIST(CLEANER_BUSY(cleaner));
