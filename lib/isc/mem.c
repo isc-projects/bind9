@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.105 2001/10/19 00:38:18 gson Exp $ */
+/* $Id: mem.c,v 1.106 2001/10/19 01:29:09 gson Exp $ */
 
 #include <config.h>
 
@@ -1457,6 +1457,7 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	/*
 	 * Return any items on the free list
 	 */
+	LOCK(&mctx->lock);
 	while (mpctx->items != NULL) {
 		INSIST(mpctx->freecount > 0);
 		mpctx->freecount--;
@@ -1464,13 +1465,13 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 		mpctx->items = item->next;
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
-		LOCK(&mctx->lock);
 		mem_putunlocked(mctx, item, mpctx->size);
-		UNLOCK(&mctx->lock);
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 		mem_put(mctx, item, mpctx->size);
+		mem_putstats(mctx, item, mpctx->size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 	}
+	UNLOCK(&mctx->lock);
 
 	/*
 	 * Remove our linked list entry from the memory context.
@@ -1536,13 +1537,14 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 	 * We need to dip into the well.  Lock the memory context here and
 	 * fill up our free list.
 	 */
+	LOCK(&mctx->lock);
 	for (i = 0 ; i < mpctx->fillcount ; i++) {
 #if ISC_MEM_USE_INTERNAL_MALLOC
-		LOCK(&mctx->lock);
 		item = mem_getunlocked(mctx, mpctx->size);
-		UNLOCK(&mctx->lock);
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 		item = mem_get(mctx, mpctx->size);
+		if (item != NULL)
+			mem_getstats(mctx, mpctx->size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 		if (item == NULL)
 			break;
@@ -1550,6 +1552,7 @@ isc__mempool_get(isc_mempool_t *mpctx FLARG) {
 		mpctx->items = item;
 		mpctx->freecount++;
 	}
+	UNLOCK(&mctx->lock);
 
 	/*
 	 * If we didn't get any items, return NULL.
@@ -1606,6 +1609,9 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 		UNLOCK(&mctx->lock);
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 		mem_put(mctx, mem, mpctx->size);
+		LOCK(&mctx->lock);
+		mem_putstats(mctx, mem, mpctx->size);
+		UNLOCK(&mctx->lock);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 		if (mpctx->lock != NULL)
 			UNLOCK(mpctx->lock);
