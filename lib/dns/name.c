@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.144.18.4 2005/01/11 01:39:38 marka Exp $ */
+/* $Id: name.c,v 1.144.18.5 2005/03/04 02:57:29 marka Exp $ */
 
 #include <config.h>
 
@@ -695,6 +695,35 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 				return (ISC_FALSE);
 		}
 	}
+
+	return (ISC_TRUE);
+}
+
+isc_boolean_t
+dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2) {
+
+	/*
+	 * Are 'name1' and 'name2' equal?
+	 *
+	 * Note: It makes no sense for one of the names to be relative and the
+	 * other absolute.  If both names are relative, then to be meaningfully
+	 * compared the caller must ensure that they are both relative to the
+	 * same domain.
+	 */
+
+	REQUIRE(VALID_NAME(name1));
+	REQUIRE(VALID_NAME(name2));
+	/*
+	 * Either name1 is absolute and name2 is absolute, or neither is.
+	 */
+	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) ==
+		(name2->attributes & DNS_NAMEATTR_ABSOLUTE));
+
+	if (name1->length != name2->length)
+		return (ISC_FALSE);
+
+	if (memcmp(name1->ndata, name2->ndata, name1->length) != 0)
+		return (ISC_FALSE);
 
 	return (ISC_TRUE);
 }

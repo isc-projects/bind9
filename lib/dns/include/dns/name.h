@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.107.18.6 2005/01/11 01:39:40 marka Exp $ */
+/* $Id: name.h,v 1.107.18.7 2005/03/04 02:57:30 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -417,6 +417,8 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2);
 
 isc_boolean_t
 dns_name_equal(const dns_name_t *name1, const dns_name_t *name2);
+isc_boolean_t
+dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2);
 /*
  * Are 'name1' and 'name2' equal?
  *

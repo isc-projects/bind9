@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.52 2004/03/05 05:09:18 marka Exp $ */
+/* $Id: compress.c,v 1.52.18.1 2005/03/04 02:57:29 marka Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -82,13 +82,31 @@ void
 dns_compress_setmethods(dns_compress_t *cctx, unsigned int allowed) {
 	REQUIRE(VALID_CCTX(cctx));
 
-	cctx->allowed = allowed;
+	cctx->allowed &= ~DNS_COMPRESS_ALL;
+	cctx->allowed |= (allowed & DNS_COMPRESS_ALL);
 }
 
 unsigned int
 dns_compress_getmethods(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->allowed);
+	return (cctx->allowed & DNS_COMPRESS_ALL);
+}
+
+void
+dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive) {
+	REQUIRE(VALID_CCTX(cctx));
+
+	if (sensitive)
+		cctx->allowed |= DNS_COMPRESS_CASESENSITIVE;
+	else
+		cctx->allowed &= ~DNS_COMPRESS_CASESENSITIVE;
+}
+
+isc_boolean_t
+dns_compress_getsensitive(dns_compress_t *cctx) {
+	REQUIRE(VALID_CCTX(cctx));
+
+	return (ISC_TF((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0));
 }
 
 int
@@ -138,8 +156,13 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 		for (node = cctx->table[hash]; node != NULL; node = node->next)
 		{
 			NODENAME(node, &nname);
-			if (dns_name_equal(&nname, &tname))
-				break;
+			if ((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0) {
+				if (dns_name_caseequal(&nname, &tname))
+					break;
+			} else {
+				if (dns_name_equal(&nname, &tname))
+					break;
+			}
 		}
 		if (node != NULL)
 			break;
