@@ -1,3 +1,8 @@
+
+ 555.	[bug]		A slave server attempting a zone transfer could 
+			crash with an assertion failure on certain
+			malformed responses from the master. [RT #457]
+
  554.	[bug]		In some cases, not all of the dnssec tools were
 			properly installed.
 
