@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec_47.c,v 1.3 2003/12/13 04:20:43 marka Exp $ */
+/* $Id: nsec_47.c,v 1.4 2003/12/13 04:31:37 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -35,10 +35,8 @@ fromtext_nsec(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	char *e;
 	unsigned char bm[8*1024]; /* 64k bits */
 	dns_rdatatype_t covered;
-	long n;
 	int octet;
 	int window;
 
