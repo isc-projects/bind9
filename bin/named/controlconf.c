@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.16 2001/07/05 18:39:14 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.17 2001/07/23 01:01:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -350,7 +350,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	}
 
 	request = NULL;
-	INSIST(!ISC_LIST_EMPTY(listener->keys));
 
 	for (key = ISC_LIST_HEAD(listener->keys);
 	     key != NULL;
