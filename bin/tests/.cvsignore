@@ -11,6 +11,7 @@ keygen
 lex_test
 lfsr_test
 log_test
+lwres_test
 master_test
 mem_test
 mempool_test
