@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.34.12.6 2004/03/08 02:08:01 marka Exp $ */
+/* $Id: resolver.h,v 1.34.12.7 2004/04/15 23:56:31 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -415,6 +415,16 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
  * dns_resolver_disable_algorithm() then the underlying
  * crypto libraries if not specifically disabled.
  */
+
+void
+dns_resolver_resetmustbesecure(dns_resolver_t *resolver);
+
+isc_result_t
+dns_resolver_setmustbesecure(dns_resolver_t *resolver, dns_name_t *name,
+			     isc_boolean_t value);
+
+isc_boolean_t
+dns_resolver_getmustbesecure(dns_resolver_t *resolver, dns_name_t *name);
 
 ISC_LANG_ENDDECLS
 

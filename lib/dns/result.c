@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.11 2004/03/22 01:52:22 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.12 2004/04/15 23:56:30 marka Exp $ */
 
 #include <config.h>
 
@@ -148,7 +148,9 @@ static const char *text[DNS_R_NRESULTS] = {
 	"bad owner name (check-names)",	       /* 96 DNS_R_BADOWNERNAME	     */
 	"bad name (check-names)",	       /* 97 DNS_R_BADNAME	     */
 	"dynamic zone",			       /* 98 DNS_R_DYNAMIC	     */
-	"unknown command"		       /* 99 DNS_R_UNKNOWNCOMMAND    */
+	"unknown command",		       /* 99 DNS_R_UNKNOWNCOMMAND    */
+
+	"must-be-secure"		       /* 100 DNS_R_MUSTBESECURE     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

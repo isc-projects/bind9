@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.24 2004/03/10 02:55:57 marka Exp $ */
+/* $Id: check.c,v 1.37.6.25 2004/04/15 23:56:28 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,13 @@
 #include <isccfg/cfg.h>
 
 #include <bind9/check.h>
+
+static void
+freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
+	UNUSED(type);
+	UNUSED(value);
+	isc_mem_free(userarg, key);
+}
 
 static isc_result_t
 check_orderent(cfg_obj_t *ent, isc_log_t *logctx) {
@@ -272,6 +279,67 @@ disabled_algorithms(cfg_obj_t *disabled, isc_log_t *logctx) {
 	return (result);
 }
 
+static isc_result_t
+mustbesecure(cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
+	     isc_mem_t *mctx)
+{
+	cfg_obj_t *obj;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_buffer_t b;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	isc_symvalue_t symvalue;
+	char *key;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	obj = cfg_tuple_get(secure, "name");
+	str = cfg_obj_asstring(obj);
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	tresult = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	if (tresult != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "bad domain name '%s'", str);
+		result = tresult;
+	} else {
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		key = isc_mem_strdup(mctx, namebuf);
+		if (key == NULL)
+			return (ISC_R_NOMEMORY);
+		symvalue.as_pointer = secure;
+		tresult = isc_symtab_define(symtab, key, 1, symvalue,
+					    isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			const char *file;
+			unsigned int line;
+
+			RUNTIME_CHECK(isc_symtab_lookup(symtab, key, 1,
+					    &symvalue) == ISC_R_SUCCESS);
+			isc_mem_free(mctx, key);
+			file = cfg_obj_file(symvalue.as_pointer);
+			line = cfg_obj_line(symvalue.as_pointer);
+
+			if (file == NULL)
+				file = "<unknown file>";
+
+			cfg_obj_log(secure, logctx, ISC_LOG_ERROR,
+				    "dnssec-must-be-secure '%s': already "
+				    "exists previous definition: %s:%u",
+				    namebuf, file, line);
+			result = tresult;
+		} else if (tresult != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, key);
+			result = tresult;
+		}
+	}
+	return (result);
+}
+
 typedef struct {
 	const char *name;
 	unsigned int scale;
@@ -279,7 +347,7 @@ typedef struct {
 } intervaltable;
 
 static isc_result_t
-check_options(cfg_obj_t *options, isc_log_t *logctx) {
+check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
@@ -406,6 +474,31 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 			result = tresult;
 		}
 	}
+
+	/*
+	 * Check dnssec-must-be-secure.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "dnssec-must-be-secure", &obj);
+	if (obj != NULL) {
+		isc_symtab_t *symtab = NULL;
+		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+					    ISC_FALSE, &symtab);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			obj = cfg_listelt_value(element);
+			tresult = mustbesecure(obj, symtab, logctx, mctx);
+			if (tresult != ISC_R_SUCCESS)
+				result = tresult;
+		}
+		if (symtab != NULL)
+			isc_symtab_destroy(&symtab);
+	}
+
 	return (result);
 }
 
@@ -703,7 +796,8 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 				    zname, file, line);
 			result = ISC_R_FAILURE;
 		} else if (tresult != ISC_R_SUCCESS) {
-			isc_mem_strdup(mctx, key);
+			isc_mem_free(mctx, key);
+
 			return (tresult);
 		}
 	}
@@ -818,7 +912,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	/*
 	 * Check various options.
 	 */
-	tresult = check_options(zoptions, logctx);
+	tresult = check_options(zoptions, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -884,13 +978,6 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 			return (tresult);
 	}
 	return (result);
-}
-
-static void
-freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
-	UNUSED(type);
-	UNUSED(value);
-	isc_mem_free(userarg, key);
 }
 
 static isc_result_t
@@ -969,7 +1056,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	 * there are no duplicate zones.
 	 */
 	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-				    ISC_TRUE, &symtab);
+				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
@@ -1067,9 +1154,9 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	}
 
 	if (vconfig != NULL)
-		tresult = check_options(vconfig, logctx);
+		tresult = check_options(vconfig, logctx, mctx);
 	else
-		tresult = check_options(config, logctx);
+		tresult = check_options(config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -1095,7 +1182,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "options", &options);
 
 	if (options != NULL &&
-	    check_options(options, logctx) != ISC_R_SUCCESS)
+	    check_options(options, logctx, mctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "server", &servers);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.26 2004/03/10 02:55:59 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.27 2004/04/15 23:56:34 marka Exp $ */
 
 #include <config.h>
 
@@ -647,6 +647,17 @@ static cfg_type_t cfg_type_disablealgorithm = {
 	&cfg_rep_tuple, disablealgorithm_fields
 };
 
+static cfg_tuplefielddef_t mustbesecure_fields[] = {
+        { "name", &cfg_type_astring, 0 },
+        { "value", &cfg_type_boolean, 0 },
+        { NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_mustbesecure = {
+	"mustbesecure", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, mustbesecure_fields
+};
+
 /*
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -693,6 +704,8 @@ view_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_astring, 0 },
+	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
+	   CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 

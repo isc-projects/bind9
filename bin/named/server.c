@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.49 2004/04/10 05:02:53 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.50 2004/04/15 23:56:11 marka Exp $ */
 
 #include <config.h>
 
@@ -376,6 +376,39 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 	return (result);
 }
 
+static isc_result_t
+mustbesecure(cfg_obj_t *mbs, dns_resolver_t *resolver)
+{
+	cfg_listelt_t *element;
+	cfg_obj_t *obj;
+	const char *str;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_boolean_t value;
+	isc_result_t result;
+	isc_buffer_t b;
+	
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	for (element = cfg_list_first(mbs);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		CHECK(dns_name_fromtext(name, &b, dns_rootname,
+				        ISC_FALSE, NULL));
+		value = cfg_obj_asboolean(cfg_tuple_get(obj, "value"));
+		CHECK(dns_resolver_setmustbesecure(resolver, name, value));
+	}
+
+	result = ISC_R_SUCCESS;
+	
+ cleanup:
+	return (result);
+}
 
 /*
  * Get a dispatch appropriate for the resolver of a given view.
@@ -1164,9 +1197,15 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	if (view->enablednssec)
+	if (view->enablednssec) {
 		CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
 					        &view->secroots));
+		dns_resolver_resetmustbesecure(view->resolver);
+		obj = NULL;
+		result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
+		if (result == ISC_R_SUCCESS)
+			CHECK(mustbesecure(obj, view->resolver));
+	}
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-ttl", &obj);

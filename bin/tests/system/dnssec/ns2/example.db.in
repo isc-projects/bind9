@@ -13,7 +13,7 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.8.12.3 2004/03/08 04:04:34 marka Exp $
+; $Id: example.db.in,v 1.8.12.4 2004/04/15 23:56:23 marka Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -65,6 +65,10 @@ ns.bogus		A	10.53.0.3
 ; A dynamic secure subdomain
 dynamic			NS	dynamic
 dynamic			A	10.53.0.3
+
+; A insecure subdomain
+mustbesecure		NS	ns.mustbesecure
+ns.mustbesecure		A	10.53.0.3
 
 z			A	10.0.0.26
 
