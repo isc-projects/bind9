@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.49 2000/10/10 01:17:30 marka Exp $ */
+/* $Id: confview.c,v 1.50 2000/10/12 04:03:28 marka Exp $ */
 
 #include <config.h>
 
@@ -370,7 +370,6 @@ isc_result_t
 dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	dns_c_view_t *elem;
 	isc_boolean_t bbval;
-	dns_notifytype_t notifytype;
 	isc_uint32_t buival;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_rrsolist_t *boval;
