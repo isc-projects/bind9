@@ -144,6 +144,7 @@
 
 1525.	[bug]		dns_cache_create() could trigger a REQUIRE
 			failure in isc_mem_put() during error cleanup.
+			[RT# 9360]
 
 1524.	[port]		AIX needs to be able to resolve all symbols when
 			creating shared libraries (--with-libtool).
