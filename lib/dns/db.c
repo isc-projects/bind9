@@ -37,7 +37,7 @@ typedef struct {
 	char *			name;	
 	dns_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
 					  isc_boolean_t cache,
-					  dns_rdataclass_t class,
+					  dns_rdataclass_t rdclass,
 					  unsigned int argc, char *argv[],
 					  dns_db_t **dbp);
 } impinfo_t;
@@ -53,9 +53,11 @@ typedef struct {
  */
 
 #include "rbtdb.h"
+#include "rbtdb64.h"
 
 impinfo_t implementations[] = {
 	{ "rbt", dns_rbtdb_create },
+	{ "rbt64", dns_rbtdb64_create },
 	{ NULL, NULL }
 };
 
@@ -65,7 +67,7 @@ impinfo_t implementations[] = {
 
 dns_result_t
 dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
-	      isc_boolean_t cache, dns_rdataclass_t class,
+	      isc_boolean_t cache, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
 {
 	impinfo_t *impinfo;
@@ -79,7 +81,7 @@ dns_db_create(isc_mem_t *mctx, char *db_type, dns_name_t *origin,
 
 	for (impinfo = implementations; impinfo->name != NULL; impinfo++)
 		if (strcasecmp(db_type, impinfo->name) == 0)
-			return ((impinfo->create)(mctx, origin, cache, class,
+			return ((impinfo->create)(mctx, origin, cache, rdclass,
 						  argc, argv, dbp));
 
 	return (DNS_R_NOTFOUND);
@@ -163,7 +165,6 @@ dns_db_load(dns_db_t *db, char *filename) {
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE((db->attributes & DNS_DBATTR_LOADED) == 0);
 
 	return (db->methods->load(db, filename));
 }
@@ -180,6 +181,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	 */
 	
 	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(versionp != NULL && *versionp == NULL);
 
 	(db->methods->currentversion)(db, versionp);
@@ -193,6 +195,7 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(versionp != NULL && *versionp == NULL);
 
 	return ((db->methods->newversion)(db, versionp));
@@ -208,6 +211,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(versionp != NULL && *versionp != NULL);
 
 	(db->methods->closeversion)(db, versionp, commit);
@@ -300,7 +304,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
-	REQUIRE(version != NULL);
+	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)
+		|| version == NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
@@ -318,7 +323,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
-	REQUIRE(version != NULL);
+	REQUIRE(((db->attributes & DNS_DBATTR_CACHE) == 0 && version != NULL)
+		|| version == NULL);
 
 	return ((db->methods->deleterdataset)(db, node, version, type));
 }
