@@ -1,3 +1,5 @@
+1284.	[bug]		Memory leak if dns_db_beginload() failed.
+
 1283.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
 
