@@ -1,7 +1,7 @@
 
 #include <isc/result.h>
 
-static char *text_table[ISC_R_LAST_ENTRY + 1] = {
+static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"success",				/*  0 */
 	"out of memory",			/*  1 */
 	"timed out",				/*  2 */
@@ -19,13 +19,14 @@ static char *text_table[ISC_R_LAST_ENTRY + 1] = {
 	"end of file",				/* 14 */
 	"socket already bound",			/* 15 */
 	"task was shut down",			/* 16 */
+	"lock busy",				/* 17 */
 };
 
 char *
 isc_result_totext(isc_result_t result) {
 	if (result == ISC_R_UNEXPECTED)
 		return ("unexpected error");
-	if (result > ISC_R_LAST_ENTRY)
+	if (result > ISC_R_LASTENTRY)
 		return ("unknown result code");
 	return (text_table[result]);
 }
