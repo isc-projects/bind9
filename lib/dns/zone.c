@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.60 2000/01/21 19:52:00 gson Exp $ */
+ /* $Id: zone.c,v 1.61 2000/01/24 23:10:19 gson Exp $ */
 
 #include <config.h>
 
@@ -244,7 +244,7 @@ static void xfrdone(dns_zone_t *zone, isc_result_t result);
 
 isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
-	isc_result_t iresult;
+	isc_result_t result;
 	dns_zone_t *zone;
 	isc_sockaddr_t sockaddr_any;
 
@@ -257,12 +257,12 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	if (zone == NULL)
 		return (DNS_R_NOMEMORY);
 
-	iresult = isc_mutex_init(&zone->lock);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&zone->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, zone, sizeof *zone);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(iresult));
+				 isc_result_totext(result));
 		return (DNS_R_UNEXPECTED);
 	}
 
@@ -1777,7 +1777,6 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	dns_zone_maintenance(zone);
 	return (DNS_R_SUCCESS);
 #else
-	isc_result_t iresult;
 	isc_result_t result;
 
 	/*
@@ -1787,13 +1786,13 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->task == NULL);
 
-	iresult = isc_task_create(tmgr, zone->mctx, 0, &zone->task);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_task_create(tmgr, zone->mctx, 0, &zone->task);
+	if (result != ISC_R_SUCCESS) {
 		/* XXX */
 		return (DNS_R_UNEXPECTED);
 	}
-	iresult = isc_task_onshutdown(zone->task, zone_shutdown, zone);
-	if (iresult != ISC_R_SUCCESS) {
+	result = isc_task_onshutdown(zone->task, zone_shutdown, zone);
+	if (result != ISC_R_SUCCESS) {
 		/* XXX */
 		return (DNS_R_UNEXPECTED);
 	}
@@ -2149,7 +2148,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	isc_stdtime_t next = 0;
 	isc_time_t expires;
 	isc_interval_t interval;
-	isc_result_t iresult;
+	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2193,7 +2192,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 
 	if (next == 0) {
 		zone_log(zone, me, ISC_LOG_INFO, "settimer inactive");
-		iresult = isc_timer_reset(zone->timer, isc_timertype_inactive,
+		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
 					  NULL, NULL, ISC_TRUE);
 	} else {
 		if (next <= now)
@@ -2202,10 +2201,10 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 			 next, now, next - now);
 		isc_time_settoepoch(&expires);
 		isc_interval_set(&interval, next - now, 0);
-		iresult = isc_timer_reset(zone->timer, isc_timertype_once,
+		result = isc_timer_reset(zone->timer, isc_timertype_once,
 					  &expires, &interval, ISC_TRUE);
 	}
-	if (iresult != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		/* XXX */
 		return (DNS_R_UNEXPECTED);
 	}
