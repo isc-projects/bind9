@@ -63,6 +63,10 @@
 1746.	[func]		Make public the function to read a key file,
 			dst_key_read_public(). [RT #12450]
 
+1745.	[bug]		Dig/host/nslookup accept replies from link locals
+			regardless of scope if no scope was specified when
+			query was sent. [RT #12745]
+
 1744.	[bug]		If tuple2msgname() failed to convert a tuple to
 			a name a REQUIRE could be triggered. [RT #12796]
 

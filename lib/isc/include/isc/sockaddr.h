@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.42 2004/03/05 05:11:01 marka Exp $ */
+/* $Id: sockaddr.h,v 1.42.18.1 2004/11/22 23:30:02 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -36,7 +36,26 @@ struct isc_sockaddr {
 
 typedef ISC_LIST(struct isc_sockaddr)	isc_sockaddrlist_t;
 
+#define ISC_SOCKADDR_CMPADDR	  0x0001	/* compare the address
+						 * sin_addr/sin6_addr */
+#define ISC_SOCKADDR_CMPPORT 	  0x0002	/* compare the port
+						 * sin_port/sin6_port */
+#define ISC_SOCKADDR_CMPSCOPE     0x0004	/* compare the scope
+						 * sin6_scope */
+#define ISC_SOCKADDR_CMPSCOPEZERO 0x0008	/* when comparing scopes
+						 * zero scopes always match */
+
 ISC_LANG_BEGINDECLS
+
+isc_boolean_t
+isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
+		     unsigned int flags);
+/*
+ * Compare the elements of the two address ('a' and 'b') as specified
+ * by 'flags' and report if they are equal or not.
+ *
+ * 'flags' is set from ISC_SOCKADDR_CMP*.
+ */
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);

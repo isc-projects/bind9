@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.11 2004/10/21 01:44:34 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.12 2004/11/22 23:30:01 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2638,7 +2638,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
 
 	if (!l->tcp_mode &&
-	    !isc_sockaddr_equal(&sevent->address, &query->sockaddr)) {
+	    !isc_sockaddr_compare(&sevent->address, &query->sockaddr,
+				  ISC_SOCKADDR_CMPADDR|
+				  ISC_SOCKADDR_CMPPORT|
+				  ISC_SOCKADDR_CMPSCOPE|
+				  ISC_SOCKADDR_CMPSCOPEZERO)) {
 		char buf1[ISC_SOCKADDR_FORMATSIZE];
 		char buf2[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_t any;
