@@ -81,7 +81,7 @@ static int	t_putinfo(const char *key, const char *info);
 static char	*t_getdate(char *buf, size_t buflen);
 static void	printhelp(void);
 static void	printusage(void);
-static void	t_sighandler();
+static void	t_sighandler(void);
 
 static int	T_int;
 
@@ -328,7 +328,6 @@ main(int argc, char **argv) {
 
 void
 t_assert(const char *component, int anum, int class, const char *what, ...) {
-	int	n;
 	va_list	args;
 
 	(void)printf("T:%s:%d:%s\n", component, anum, class == T_REQUIRED ?
@@ -338,7 +337,7 @@ t_assert(const char *component, int anum, int class, const char *what, ...) {
 	 * Format text to a buffer.
 	 */
 	va_start(args, what);
-	n = vsprintf(T_buf, what, args);
+	(void)vsprintf(T_buf, what, args);
 	va_end(args);
 
 	(void)t_putinfo("A", T_buf);
@@ -681,7 +680,7 @@ t_bustline(char *line, char **toks) {
 }
 
 static void
-printhelp() {
+printhelp(void) {
 	int		cnt;
 	testspec_t	*pts;
 
@@ -697,7 +696,7 @@ printhelp() {
 }
 
 static void
-printusage() {
+printusage(void) {
 	printf("Usage:\n%s\n", Usage);
 }
 
