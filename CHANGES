@@ -1,3 +1,7 @@
+ 234.	[bug]		Allow a trusted-key's first field (domain-name) be
+			either a quoted or an unquoted string, instead of
+			requiring a quoted string.
+
  233.	[cleanup]	Convert all config structure integer values to unsigned
 			integer (isc_uint32_t) to match grammer.
 

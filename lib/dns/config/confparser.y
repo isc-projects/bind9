@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.89 2000/06/04 19:51:16 brister Exp $ */
+/* $Id: confparser.y,v 1.90 2000/06/05 20:32:00 brister Exp $ */
 
 #include <config.h>
 
@@ -4843,7 +4843,7 @@ trusted_keys_list: trusted_key L_EOS
 	;
 
 
-trusted_key: domain_name L_INTEGER L_INTEGER L_INTEGER L_QSTRING
+trusted_key: any_string L_INTEGER L_INTEGER L_INTEGER L_QSTRING
 	{
 		dns_c_tkey_t *tkey;
 		dns_c_tkeylist_t *list;
