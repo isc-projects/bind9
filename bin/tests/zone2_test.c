@@ -29,6 +29,7 @@
 #include <dns/confparser.h>
 #include <dns/view.h>
 #include <dns/zone.h>
+#include <dns/zt.h>
 #include <dns/journal.h>
 
 #define ERRRET(result, function) \
@@ -111,7 +112,7 @@ query(dns_view_t *view) {
 			continue;
 		}
 		if (strcasecmp(buf, "journal") == 0) {
-			dns_journal_print(view->mctx, "dv.isc.org.ixfr");
+			dns_journal_print(view->mctx, "dv.isc.org.ixfr", stdout);
 			reload = 0;
 			continue;
 		}
@@ -215,11 +216,11 @@ main(int argc, char **argv) {
 	cbks.optscbk = NULL;
 	cbks.optscbkuap = NULL;
 
-	result = dns_c_parse_namedconf(NULL, conf, mctx, &configctx, &cbks);
+	result = dns_c_parse_namedconf(conf, mctx, &configctx, &cbks);
 	fprintf(stdout, "%s() returned %s\n", "dns_c_parse_namedconf",
 		dns_result_totext(result));
 	if (configctx != NULL)
-		dns_c_ctx_delete(NULL, &configctx);
+		dns_c_ctx_delete(&configctx);
 
 	view = ISC_LIST_HEAD(cba.newviews);
 
@@ -243,11 +244,11 @@ main(int argc, char **argv) {
 	}
 	*/
 
-	result = dns_c_parse_namedconf(NULL, conf, mctx, &configctx, &cbks);
+	result = dns_c_parse_namedconf(conf, mctx, &configctx, &cbks);
 	fprintf(stdout, "%s() returned %s\n", "dns_c_parse_namedconf",
 		dns_result_totext(result));
 	if (result == ISC_R_SUCCESS) {
-		result = dns_c_ctx_getdirectory(NULL, configctx, &dir);
+		result = dns_c_ctx_getdirectory(configctx, &dir);
 		if (result == ISC_R_SUCCESS)
 			chdir(dir);
 		view = ISC_LIST_HEAD(cba.newviews);
