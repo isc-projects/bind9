@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.37 2002/02/06 03:28:58 bwelling Exp $
+# $Id: tests.sh,v 1.38 2002/02/13 01:32:12 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -300,6 +300,34 @@ $DIG $DIGOPTS +noauth foo.dname2.example. any @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that positive validation in a privately secure zone works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth a.private.secure.example. a @10.53.0.2 \
+	> dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth a.private.secure.example. a @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+# Note - this is looking for failure, hence the &&
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that negative validation in a privately secure zone works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth q.private.secure.example. a @10.53.0.2 \
+	> dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth q.private.secure.example. a @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+# Note - this is looking for failure, hence the &&
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
