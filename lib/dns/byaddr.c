@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.18 2000/08/01 01:22:11 tale Exp $ */
+/* $Id: byaddr.c,v 1.19 2000/08/14 19:09:55 bwelling Exp $ */
 
 #include <config.h>
 
@@ -68,8 +68,10 @@ static char hex_digits[] = {
 	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 };
 
-static inline isc_result_t
-address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
+isc_result_t
+dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+			 dns_name_t *name)
+{
 	char textname[128];
 	unsigned char *bytes;
 	int i;
@@ -77,9 +79,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 	isc_buffer_t buffer;
 	unsigned int len;
 
-	/*
-	 * The caller must be holding the byaddr's lock.
-	 */
+	REQUIRE(address != NULL);
 
 	/*
 	 * We create the text representation and then convert to a
@@ -87,7 +87,6 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 	 * of the knowledge of wire format in the dns_name_ routines.
 	 */
 
-	dns_fixedname_init(&byaddr->name);
 	bytes = (unsigned char *)(&address->type);
 	if (address->family == AF_INET) {
 		(void)sprintf(textname, "%u.%u.%u.%u.in-addr.arpa.",
@@ -96,7 +95,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 			      (bytes[1] & 0xff),
 			      (bytes[0] & 0xff));
 	} else if (address->family == AF_INET6) {
-		if ((byaddr->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
+		if (nibble) {
 			cp = textname;
 			for (i = 15; i >= 0; i--) {
 				*cp++ = hex_digits[bytes[i] & 0x0f];
@@ -124,8 +123,23 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 	len = (unsigned int)strlen(textname);
 	isc_buffer_init(&buffer, textname, len);
 	isc_buffer_add(&buffer, len);
-	return (dns_name_fromtext(dns_fixedname_name(&byaddr->name),
-				  &buffer, dns_rootname, ISC_FALSE, NULL));
+	return (dns_name_fromtext(name, &buffer, dns_rootname,
+				  ISC_FALSE, NULL));
+}
+
+static inline isc_result_t
+address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
+	isc_boolean_t nibble;
+
+	/*
+	 * The caller must be holding the byaddr's lock.
+	 */
+
+	dns_fixedname_init(&byaddr->name);
+	nibble = ISC_TF(byaddr->options & DNS_BYADDROPT_IPV6NIBBLE);
+	return (dns_byaddr_createptrname(address, nibble,
+					 dns_fixedname_name(&byaddr->name)));
+
 }
 
 static inline isc_result_t

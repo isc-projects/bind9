@@ -1,4 +1,7 @@
 
+ 387.	[func]		Add dns_byaddr_createptrname(), which converts
+			an address into the name used by a PTR query.
+
  386.	[bug]		Missing strdup() of ACL name caused random
 			ACL matching failures [RT #228].
 
