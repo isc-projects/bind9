@@ -1,3 +1,6 @@
+1160.	[bug]		Generating Diffie-Hellman keys longer than 1024
+			bits could fail. [RT #2241]
+
 1156.	[port]		The configure test for strsep() incorrectly
 			succeeded on certain patched versions of
 			AIX 4.3.3. [RT #2190]
