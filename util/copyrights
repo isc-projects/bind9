@@ -39,7 +39,10 @@
 ./bin/dig/host.docbook				SGML	2000,2001,2003,2004
 ./bin/dig/host.html				HTML	2000,2001,2003,2004
 ./bin/dig/include/dig/dig.h			C	2000,2001,2003,2004
+./bin/dig/nslookup.1				MAN	2004
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004
+./bin/dig/nslookup.docbook			SGML	2004
+./bin/dig/nslookup.html				HTML	2004
 ./bin/dig/win32/dig.dsp				X	2001
 ./bin/dig/win32/dig.dsw				X	2001
 ./bin/dig/win32/dig.mak				X	2001
