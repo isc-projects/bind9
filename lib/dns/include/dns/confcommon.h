@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.h,v 1.30 2000/10/19 01:25:38 gson Exp $ */
+/* $Id: confcommon.h,v 1.31 2000/12/07 22:42:22 tale Exp $ */
 
 #ifndef DNS_CONFCOMMON_H
 #define DNS_CONFCOMMON_H 1
@@ -300,6 +300,9 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer);
 
 void
 dns_c_peerlist_print(FILE *fp, int indent, dns_peerlist_t *peers);
+
+isc_result_t
+dns_c_nameprint(dns_name_t *name, FILE *stream);
 
 void
 dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable);
