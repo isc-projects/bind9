@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.75 2000/12/22 18:30:26 gson Exp $ */
+/* $Id: mem.c,v 1.76 2000/12/29 01:02:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -41,8 +41,8 @@ unsigned int isc_mem_debugging = 0;
 
 #define DEF_MAX_SIZE		1100
 #define DEF_MEM_TARGET		4096
-#define ALIGNMENT_SIZE		8
-#define NUM_BASIC_BLOCKS	64			/* must be > 1 */
+#define ALIGNMENT_SIZE		8		/* must be a power of 2 */
+#define NUM_BASIC_BLOCKS	64		/* must be > 1 */
 #define TABLE_INCREMENT		1024
 #define DEBUGLIST_COUNT		1024
 
@@ -271,14 +271,11 @@ rmsize(size_t size) {
 	/*
  	 * round down to ALIGNMENT_SIZE
 	 */
-	size -= (size % ALIGNMENT_SIZE);
-	return (size);
+	return (size & (~(ALIGNMENT_SIZE - 1)));
 }
 
 static inline size_t
 quantize(size_t size) {
-	int temp;
-
 	/*
 	 * Round up the result in order to get a size big
 	 * enough to satisfy the request and be aligned on ALIGNMENT_SIZE
@@ -287,8 +284,7 @@ quantize(size_t size) {
 
 	if (size == 0)
 		return (ALIGNMENT_SIZE);
-	temp = size + (ALIGNMENT_SIZE - 1);
-	return (temp - temp % ALIGNMENT_SIZE);
+	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
 
 static inline void
@@ -642,6 +638,8 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 	REQUIRE(memalloc != NULL);
 	REQUIRE(memfree != NULL);
+
+	INSIST((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0);
 
 	ctx = (memalloc)(arg, sizeof *ctx);
 	if (ctx == NULL)
