@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.189 2001/01/02 17:59:13 gson Exp $ */
+/* $Id: resolver.c,v 1.190 2001/01/02 18:51:07 gson Exp $ */
 
 #include <config.h>
 
@@ -2244,8 +2244,8 @@ is_lame(fetchctx_t *fctx) {
 
 static inline void
 log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
-	char namebuf[1024];
-	char domainbuf[1024];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char domainbuf[DNS_NAME_FORMATSIZE];	
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	
 	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
@@ -4763,29 +4763,19 @@ fctx_match(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 
 static inline void
 log_fetch(dns_name_t *name, dns_rdatatype_t type) {
-	isc_buffer_t b;
-	char text[1024];
-	isc_region_t r;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	int level = ISC_LOG_DEBUG(1);
 
-	/*
-	 * XXXRTH  Allow this to be turned on and off...
-	 */
+	if (! isc_log_wouldlog(dns_lctx, level))
+		return;
 
-	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
-	if (dns_name_totext(name, ISC_FALSE, &b) != ISC_R_SUCCESS)
-		return;
-	isc_buffer_availableregion(&b, &r);
-	if (r.length < 1)
-		return;
-	*r.base = ' ';
-	isc_buffer_add(&b, 1);
-	if (dns_rdatatype_totext(type, &b) != ISC_R_SUCCESS)
-		return;
-	isc_buffer_usedregion(&b, &r);
-	/* XXXRTH  Give them their own category? */
+	dns_name_format(name, namebuf, sizeof(namebuf));
+	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
-		      "createfetch: %.*s", (int)r.length, (char *)r.base);
+		      DNS_LOGMODULE_RESOLVER, level,
+		      "createfetch: %s %s", namebuf, typebuf);
 }
 
 isc_result_t
