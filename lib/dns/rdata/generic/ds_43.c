@@ -15,14 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.3 2002/08/01 03:31:44 mayer Exp $ */
+/* $Id: ds_43.c,v 1.4 2002/12/20 01:19:20 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
 #ifndef RDATA_GENERIC_DS_43_C
 #define RDATA_GENERIC_DS_43_C
 
-#define RRTYPE_DS_ATTRIBUTES (DNS_RDATATYPEATTR_ATPARENT)
+#define RRTYPE_DS_ATTRIBUTES \
+	(DNS_RDATATYPEATTR_DNSSEC|DNS_RDATATYPEATTR_ATPARENT)
 
 static inline isc_result_t
 fromtext_ds(ARGS_FROMTEXT) {
