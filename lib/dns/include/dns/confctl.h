@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.15 2000/06/22 21:55:19 tale Exp $ */
+/* $Id: confctl.h,v 1.16 2000/07/07 13:56:13 brister Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -87,6 +87,7 @@ struct dns_c_ctrl {
 			isc_sockaddr_t addr;
 			in_port_t port;
 			dns_c_ipmatchlist_t *matchlist;
+			char *key;
 		} inet_v; /* when control_type == dns_c_inet_control  */
 		struct {
 			char *pathname;
@@ -116,7 +117,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   isc_sockaddr_t addr, in_port_t port,
-		   dns_c_ipmatchlist_t *iml, isc_boolean_t copy);
+		   dns_c_ipmatchlist_t *iml, const char *key,
+		   isc_boolean_t copy);
 /*
  * Creates a new INET control object. If COPY is true then a deep copy is
  * made of IML, otherwise the value of IML is stored directly in the new
@@ -209,6 +211,11 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl);
  *	fp be a pointer to a valid stdio stream.
  *
  */
+
+
+dns_c_ctrl_t *dns_c_ctrllist_head (dns_c_ctrllist_t *list);
+dns_c_ctrl_t *dns_c_ctrl_next(dns_c_ctrl_t *ctrl);
+
 
 ISC_LANG_ENDDECLS
 

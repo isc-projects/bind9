@@ -1,3 +1,17 @@
+ 310.	[func]		Changes to named.conf "controls" statement (inet
+			subtype only)
+
+			  - support "keys" clause
+
+				controls {
+				   inet * port 1024
+					allow { any; } keys { "foo"; }
+				}
+
+			  - allow "port xxx" to be left out of statement,
+			    in which case it defaults to omapi's default port
+			    of 953.
+ 
  309.	[bug]		When sending a referral, the server did not look
 			for name server addresses as glue in the zone
 			holding the NS RRset in the case where this zone

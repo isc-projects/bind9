@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.99 2000/06/21 22:44:19 tale Exp $ */
+/* $Id: confparser.y,v 1.100 2000/07/07 13:56:11 brister Exp $ */
 
 #include <config.h>
 
@@ -92,6 +92,14 @@ static isc_symtab_t	       *keywords;
 static dns_c_cbks_t	       *callbacks;
 static isc_lexspecials_t	specials;
 
+
+/*
+ * XXXJAB The #define for the default OMAPI port is not available
+ * to us, so we make our own.
+ */
+ 
+#define OMAPI_DEFAULT_PORT 953
+ 
 #define CONF_MAX_IDENT 1024
 
 /* This should be sufficient to permit multiple parsers and lexers if needed */
@@ -420,6 +428,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <port_int>	maybe_port
 %type <port_int>	maybe_wild_port
 %type <port_int>	maybe_zero_port
+%type <port_int>	control_port
 %type <rdatatype>	rdatatype
 %type <rdatatypelist>	rdatatype_list
 %type <rrclass>		class_name
@@ -434,6 +443,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <text>		channel_name
 %type <text>		domain_name
 %type <text>		key_value
+%type <text>		control_key
 %type <text>		ordering_name
 %type <text>		secret
 %type <tformat>		transfer_format
@@ -1480,13 +1490,18 @@ controls: control L_EOS
 	;
 
 control: /* Empty */
-	| L_INET maybe_wild_addr L_PORT in_port
-	  L_ALLOW L_LBRACE address_match_list L_RBRACE
+	| L_INET maybe_wild_addr control_port
+	  L_ALLOW L_LBRACE address_match_list L_RBRACE control_key
 	{
 		dns_c_ctrl_t *control;
 
 		tmpres = dns_c_ctrlinet_new(currcfg->mem, &control,
-					    $2, $4, $7, ISC_FALSE);
+					    $2, $3, $6, $8, ISC_FALSE);
+
+		if ($8 != NULL) {
+			isc_mem_free(memctx, $8);
+		}
+		
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to build inet control structure");
@@ -1512,6 +1527,28 @@ control: /* Empty */
 		isc_mem_free(memctx, $2);
 	}
 	;
+
+
+control_key: /* nothing */
+	{
+		$$ = NULL;
+	}
+	| L_KEYS key_value
+	{
+		$$ = $2;
+	};
+
+		
+			
+control_port: /* nothing */
+	{
+		$$ = OMAPI_DEFAULT_PORT;
+	}
+	| L_PORT in_port
+	{
+		$$ = $2;
+	};
+
 
 rrset_ordering_list: rrset_ordering_element L_EOS
 	| rrset_ordering_list rrset_ordering_element L_EOS

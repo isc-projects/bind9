@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.20 2000/05/13 19:44:53 tale Exp $ */
+/* $Id: confctl.c,v 1.21 2000/07/07 13:56:10 brister Exp $ */
 
 #include <config.h>
 
@@ -58,7 +58,8 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl) {
 	REQUIRE(DNS_C_CONFCTLLIST_VALID(cl));
 	
 	fprintf(fp, "controls {\n");
-	ctl = ISC_LIST_HEAD(cl->elements);
+
+	ctl = dns_c_ctrllist_head(cl);
 	if (ctl == NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp,"/* empty list */\n");
@@ -66,9 +67,10 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl) {
 		while (ctl != NULL) {
 			dns_c_printtabs(fp, indent + 1);
 			dns_c_ctrl_print(fp, indent + 1, ctl);
-			ctl = ISC_LIST_NEXT(ctl, next);
+			ctl = dns_c_ctrl_next(ctl);
 		}
 	}
+		
 	fprintf(fp, "};\n");
 }
 
@@ -103,7 +105,8 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list) {
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   isc_sockaddr_t addr, in_port_t port,
-		   dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
+		   dns_c_ipmatchlist_t *iml, const char *key,
+		   isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
 	isc_result_t	res;
@@ -121,6 +124,15 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	ctrl->control_type = dns_c_inet_control;
 	ctrl->u.inet_v.addr = addr;
 	ctrl->u.inet_v.port = port;
+	ctrl->u.inet_v.key = NULL;
+
+	if (key != NULL) {
+		ctrl->u.inet_v.key = isc_mem_strdup(mem, key);
+		if (ctrl->u.inet_v.key == NULL) {
+			isc_mem_put(mem, ctrl, sizeof *ctrl);
+			return (ISC_R_NOMEMORY);
+		}
+	}
 
 	if (copy) {
 		res = dns_c_ipmatchlist_copy(mem,
@@ -193,6 +205,11 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 						       u.inet_v.matchlist);
 		else
 			res = ISC_R_SUCCESS;
+
+		if (ctrl->u.inet_v.key != NULL) {
+			isc_mem_free(mem, ctrl->u.inet_v.key);
+		}
+		
 		break;
 
 	case dns_c_unix_control:
@@ -235,6 +252,12 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow ");
 		dns_c_ipmatchlist_print(fp, indent + 2, iml);
+
+		if (ctl->u.inet_v.key != NULL) {
+			fprintf(fp, "\n");
+			dns_c_printtabs(fp, indent + 1);
+			fprintf(fp, "key { \"%s\" ; }", ctl->u.inet_v.key);
+		}
 		fprintf(fp, ";\n");
 	} else {
 		/* The "#" means force a leading zero */
@@ -247,3 +270,22 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 }
 
 
+
+dns_c_ctrl_t *
+dns_c_ctrllist_head (dns_c_ctrllist_t *list)
+{
+	REQUIRE(DNS_C_CONFCTLLIST_VALID(list));
+
+	return(ISC_LIST_HEAD(list->elements));
+}
+
+	
+dns_c_ctrl_t *
+dns_c_ctrl_next(dns_c_ctrl_t *ctl)
+{
+	REQUIRE(DNS_C_CONFCTL_VALID(ctl));
+
+	return (ISC_LIST_NEXT(ctl, next));
+}
+		
+	
