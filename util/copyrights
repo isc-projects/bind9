@@ -997,7 +997,6 @@
 ./lib/dns/include/dns/masterdump.h		C	1999,2000,2001
 ./lib/dns/include/dns/message.h			C	1999,2000,2001
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001
-./lib/dns/include/dns/namedconf.h		C	1999,2000,2001
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001
 ./lib/dns/include/dns/nxt.h			C	1999,2000,2001
 ./lib/dns/include/dns/opt.h			C	2000,2001
