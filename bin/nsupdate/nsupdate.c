@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.22 2004/04/10 04:07:09 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.23 2004/05/12 04:46:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1843,10 +1843,15 @@ start_update(void) {
 	dns_request_t *request = NULL;
 	dns_message_t *soaquery = NULL;
 	dns_name_t *firstname;
+	dns_section_t section = DNS_SECTION_UPDATE;
 
 	ddebug("start_update()");
 
-	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
+	result = dns_message_firstname(updatemsg, section);
+	if (result == ISC_R_NOMORE) {
+		section = DNS_SECTION_PREREQUISITE;
+		result = dns_message_firstname(updatemsg, section);
+	}
 	if (result != ISC_R_SUCCESS) {
 		done_update();
 		return;
@@ -1873,7 +1878,7 @@ start_update(void) {
 	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
 
 	firstname = NULL;
-	dns_message_currentname(updatemsg, DNS_SECTION_UPDATE, &firstname);
+	dns_message_currentname(updatemsg, section, &firstname);
 	dns_name_init(name, NULL);
 	dns_name_clone(firstname, name);
 
