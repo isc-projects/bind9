@@ -125,6 +125,7 @@ const FileData installFiles[] =
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-makekeyset.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signkey.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE},
