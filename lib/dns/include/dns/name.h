@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.8 2004/09/01 05:22:51 marka Exp $ */
+/* $Id: name.h,v 1.95.2.9 2004/09/08 00:34:23 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -650,7 +650,7 @@ dns_name_getlabel(const dns_name_t *name, unsigned int n, dns_label_t *label);
  *	be changed while 'label' is still in use.
  *
  * Requires:
- *	n < dns_label_countlabels(name)
+ *	n < dns_name_countlabels(name)
  */
 
 void
@@ -672,9 +672,9 @@ dns_name_getlabelsequence(const dns_name_t *source, unsigned int first,
  * Requires:
  *	'source' and 'target' are valid names.
  *
- *	first < dns_label_countlabels(name)
+ *	first < dns_name_countlabels(name)
  *
- *	first + n <= dns_label_countlabels(name)
+ *	first + n <= dns_name_countlabels(name)
  */
 
 
@@ -691,7 +691,7 @@ dns_name_clone(dns_name_t *source, dns_name_t *target);
  *	This call is functionally equivalent to:
  *
  *		dns_name_getlabelsequence(source, 0,
- *					  dns_label_countlabels(source),
+ *					  dns_name_countlabels(source),
  *					  target);
  *
  *	but is more efficient.  Also, dns_name_clone() works even if 'source'
