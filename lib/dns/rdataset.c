@@ -315,3 +315,35 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 
 	return (DNS_R_SUCCESS);
 }
+
+dns_result_t
+dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
+			    dns_additionaldatafunc_t add, void *arg)
+{
+	dns_rdata_t rdata;
+	dns_result_t result;
+
+	/*
+	 * For each rdata in rdataset, call 'add' for each name and type in the
+	 * rdata which is subject to additional section processing.
+	 */
+
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_QUESTION) == 0);
+
+	result = dns_rdataset_first(rdataset);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	do {
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_rdata_additionaldata(&rdata, add, arg);
+		if (result == DNS_R_SUCCESS)
+			result = dns_rdataset_next(rdataset);
+	} while (result == DNS_R_SUCCESS);
+
+	if (result != DNS_R_NOMORE)
+		return (result);
+
+	return (DNS_R_SUCCESS);
+}

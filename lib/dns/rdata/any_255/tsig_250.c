@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.12 1999/06/08 20:41:30 gson Exp $ */
+ /* $Id: tsig_250.c,v 1.13 1999/08/02 22:17:58 halley Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -24,7 +24,7 @@
 #include <isc/str.h>
 
 static dns_result_t
-fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_lex_t *lexer, dns_name_t *origin,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -35,7 +35,7 @@ fromtext_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 	char *e;
 
 	REQUIRE(type == 250);
-	REQUIRE(class == 255);
+	REQUIRE(rdclass == 255);
 
 	/* Algorithm Name */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -107,7 +107,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	unsigned short n;
 
 	REQUIRE(rdata->type == 250);
-	REQUIRE(rdata->class == 255);
+	REQUIRE(rdata->rdclass == 255);
 
 	dns_rdata_toregion(rdata, &sr);
 	/* Algorithm Name */
@@ -185,7 +185,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_buffer_t *source, dns_decompress_t *dctx,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -194,7 +194,7 @@ fromwire_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
 	unsigned long n;
 
 	REQUIRE(type == 250);
-	REQUIRE(class == 255);
+	REQUIRE(rdclass == 255);
 	
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -246,7 +246,7 @@ towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 250);
-	REQUIRE(rdata->class == 255);
+	REQUIRE(rdata->rdclass == 255);
 
 	if (dns_compress_getedns(cctx) >= 1)
 		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
@@ -270,9 +270,9 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 250);
-	REQUIRE(rdata1->class == 255);
+	REQUIRE(rdata1->rdclass == 255);
 	
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -289,12 +289,12 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_any_tsig(dns_rdataclass_t class, dns_rdatatype_t type,
+fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 250);
-	REQUIRE(class == 255);
+	REQUIRE(rdclass == 255);
 	
 	source = source;
 	target = target;
@@ -306,7 +306,7 @@ static dns_result_t
 tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 250);
-	REQUIRE(rdata->class == 255);
+	REQUIRE(rdata->rdclass == 255);
 	
 	target = target;
 	mctx = mctx;
@@ -324,4 +324,18 @@ freestruct_any_tsig(void *source) {
 	REQUIRE(ISC_FALSE);
 
 }
+
+static dns_result_t
+additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+			void *arg)
+{
+	REQUIRE(rdata->type == 250);
+	REQUIRE(rdata->rdclass == 255);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_ANY_255_TSIG_250_C */

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.6 1999/06/08 10:35:22 gson Exp $ */
+ /* $Id: nsap_22.c,v 1.7 1999/08/02 22:18:01 halley Exp $ */
 
  /* RFC 1706 */
 
@@ -25,7 +25,7 @@
 #include <string.h>
 
 static dns_result_t
-fromtext_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	         isc_lex_t *lexer, dns_name_t *origin,
 	         isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
@@ -35,7 +35,7 @@ fromtext_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
 	unsigned char c;
 
 	REQUIRE(type == 22);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
@@ -79,7 +79,7 @@ totext_in_nsap(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	char buf[sizeof "xx"];
 
 	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	tctx = tctx;	/* unused */
 
@@ -94,14 +94,14 @@ totext_in_nsap(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		 isc_buffer_t *source, dns_decompress_t *dctx,
 		 isc_boolean_t downcase, isc_buffer_t *target)
 {
 	isc_region_t region;
 
 	REQUIRE(type == 22);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	dctx = dctx;		/* unused */
 	downcase = downcase;	/* unused */
@@ -118,7 +118,7 @@ static dns_result_t
 towire_in_nsap(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	cctx = cctx;	/*unused*/
 
@@ -131,9 +131,9 @@ compare_in_nsap(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 22);
-	REQUIRE(rdata1->class == 1);
+	REQUIRE(rdata1->rdclass == 1);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -141,12 +141,12 @@ compare_in_nsap(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_in_nsap(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
-		   isc_buffer_t *target)
+fromstruct_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		   void *source, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 22);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	source = source;
 	target = target;
@@ -158,7 +158,7 @@ static dns_result_t
 tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 22);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	target = target;
 	mctx = mctx;
@@ -171,4 +171,18 @@ freestruct_in_nsap(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
+
+static dns_result_t
+additionaldata_in_nsap(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		       void *arg)
+{
+	REQUIRE(rdata->type == 22);
+	REQUIRE(rdata->rdclass == 1);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_IN_1_NSAP_22_C */

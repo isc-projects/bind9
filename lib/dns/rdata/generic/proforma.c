@@ -15,19 +15,19 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.11 1999/06/08 10:35:19 gson Exp $ */
+ /* $Id: proforma.c,v 1.12 1999/08/02 22:18:00 halley Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
 
 static dns_result_t
-fromtext_#(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
 	isc_token_t token;
 
 	REQUIRE(type == #);
-	REQUIRE(class == #);
+	REQUIRE(rdclass == #);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -40,18 +40,18 @@ totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 
 	REQUIRE(rdata->type == #);
-	REQUIRE(rdata->class == #);
+	REQUIRE(rdata->rdclass == #);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static dns_result_t
-fromwire_#(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	   isc_buffer_t *source, dns_decompress_t *dctx,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
 
 	REQUIRE(type == #);
-	REQUIRE(class == #);
+	REQUIRE(rdclass == #);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -65,7 +65,7 @@ static dns_result_t
 towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == #);
-	REQUIRE(rdata->class == #);
+	REQUIRE(rdata->rdclass == #);
 
 	if (dns_compress_getedns(cctx) >= 1)
 		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL):
@@ -81,9 +81,9 @@ compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == #);
-	REQUIRE(rdata1->class == #);
+	REQUIRE(rdata1->rdclass == #);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -91,11 +91,11 @@ compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_#(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
 	REQUIRE(type == #);
-	REQUIRE(class == #);
+	REQUIRE(rdclass == #);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -104,7 +104,7 @@ static dns_result_t
 tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == #);
-	REQUIRE(rdata->class == #);
+	REQUIRE(rdata->rdclass == #);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -118,4 +118,18 @@ freestruct_#(void *source) {
 	REQUIRE(#->common.rdclass == #);
 	
 }
+
+static dns_result_t
+additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		 void *arg)
+{
+	REQUIRE(rdata->type == #);
+	REQUIRE(rdata->rdclass == #);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_#_#_C */

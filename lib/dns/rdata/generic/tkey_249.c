@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.12 1999/06/08 20:41:31 gson Exp $ */
+ /* $Id: tkey_249.c,v 1.13 1999/08/02 22:18:01 halley Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -23,7 +23,7 @@
 #define RDATA_GENERIC_TKEY_249_C
 
 static dns_result_t
-fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_lex_t *lexer, dns_name_t *origin,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -35,7 +35,7 @@ fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 249);
 	
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 
 
 	/* Algorithm */
@@ -177,7 +177,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_buffer_t *source, dns_decompress_t *dctx,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -187,7 +187,7 @@ fromwire_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 249);
 	
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -262,7 +262,7 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 249);
 	
 	/* Algorithm */
@@ -280,12 +280,12 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
+fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target) {
 
 	REQUIRE(type == 249);
 	
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 	
 	source = source;
 	target = target;
@@ -309,4 +309,17 @@ freestruct_tkey(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
+
+static dns_result_t
+additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		    void *arg)
+{
+	REQUIRE(rdata->type == 249);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_TKEY_249_C */

@@ -15,13 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.14 1999/06/08 10:35:12 gson Exp $ */
+ /* $Id: minfo_14.c,v 1.15 1999/08/02 22:18:00 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MINFO_14_C
 #define RDATA_GENERIC_MINFO_14_C
 
 static dns_result_t
-fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -32,7 +32,7 @@ fromtext_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 14);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 	
 	for (i = 0; i < 2 ; i++) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
@@ -82,7 +82,7 @@ totext_minfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -96,7 +96,7 @@ fromwire_minfo(dns_rdataclass_t class, dns_rdatatype_t type,
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);
@@ -143,7 +143,7 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 14);
 
 	dns_name_init(&name1, NULL);
@@ -173,13 +173,13 @@ compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_minfo(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
 
 	REQUIRE(type == 14);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -203,4 +203,17 @@ freestruct_minfo(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
+
+static dns_result_t
+additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		     void *arg)
+{
+	REQUIRE(rdata->type == 14);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_MINFO_14_C */

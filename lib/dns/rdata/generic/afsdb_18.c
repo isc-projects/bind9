@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.c,v 1.8 1999/06/08 10:35:09 gson Exp $ */
+ /* $Id: afsdb_18.c,v 1.9 1999/08/02 22:17:58 halley Exp $ */
 
  /* RFC 1183 */
 
@@ -23,7 +23,7 @@
 #define RDATA_GENERIC_AFSDB_18_C
 
 static dns_result_t
-fromtext_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
 	   isc_boolean_t downcase, isc_buffer_t *target) 
 {
@@ -33,7 +33,7 @@ fromtext_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 18);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	/* subtype */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -76,7 +76,7 @@ totext_afsdb(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -86,7 +86,7 @@ fromwire_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 18);
 	
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -143,7 +143,7 @@ compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region2;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 18);
 
 	result = memcmp(rdata1->data, rdata2->data, 2);
@@ -166,13 +166,13 @@ compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_afsdb(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
 
 	REQUIRE(type == 18);
 	
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -200,4 +200,17 @@ freestruct_afsdb(void *source) {
 	REQUIRE(afsdb->common.rdtype == 18);
 	REQUIRE(ISC_FALSE);
 }
+
+static dns_result_t
+additionaldata_afsdb(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		     void *arg)
+{
+	REQUIRE(rdata->type == 18);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_AFSDB_18_C */

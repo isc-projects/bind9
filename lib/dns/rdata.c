@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.55 1999/07/24 01:01:08 halley Exp $ */
+ /* $Id: rdata.c,v 1.56 1999/08/02 22:18:30 halley Exp $ */
 
 #include <config.h>
 
@@ -195,7 +195,7 @@ dns_rdata_init(dns_rdata_t *rdata) {
 
 	rdata->data = NULL;
 	rdata->length = 0;
-	rdata->class = 0;
+	rdata->rdclass = 0;
 	rdata->type = 0;
 	ISC_LINK_INIT(rdata, link);
 	/* ISC_LIST_INIT(rdata->list); */
@@ -215,8 +215,8 @@ dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	REQUIRE(rdata1->data != NULL);
 	REQUIRE(rdata2->data != NULL);
 
-	if (rdata1->class != rdata2->class)
-		return (rdata1->class < rdata2->class ? -1 : 1);
+	if (rdata1->rdclass != rdata2->rdclass)
+		return (rdata1->rdclass < rdata2->rdclass ? -1 : 1);
 
 	if (rdata1->type != rdata2->type)
 		return (rdata1->type < rdata2->type ? -1 : 1);
@@ -239,7 +239,7 @@ dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
  ***/
 
 void
-dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t class,
+dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, isc_region_t *r)
 {
 			  
@@ -248,7 +248,7 @@ dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t class,
 
 	rdata->data = r->base;
 	rdata->length = r->length;
-	rdata->class = class;
+	rdata->rdclass = rdclass;
 	rdata->type = type;
 }
 
@@ -263,7 +263,7 @@ dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r) {
 }
 
 dns_result_t
-dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t class,
+dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
 		   dns_decompress_t *dctx, isc_boolean_t downcase,
 		   isc_buffer_t *target)
@@ -294,7 +294,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t class,
 
 	if (rdata && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
-		dns_rdata_fromregion(rdata, class, type, &region);
+		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 
 	if (result != DNS_R_SUCCESS) {
@@ -335,7 +335,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 }
 
 dns_result_t
-dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
+dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
 		   dns_name_t *origin, isc_boolean_t downcase,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
@@ -420,7 +420,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
 
 	if (rdata != NULL && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
-		dns_rdata_fromregion(rdata, class, type, &region);
+		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != DNS_R_SUCCESS) {
 		*target = st;
@@ -485,7 +485,7 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 }
 
 dns_result_t
-dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t class,
+dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, void *source,
 		     isc_buffer_t *target)
 {
@@ -507,7 +507,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t class,
 
 	if (rdata != NULL && result == DNS_R_SUCCESS) {
 		region.length = target->used - st.used;
-		dns_rdata_fromregion(rdata, class, type, &region);
+		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
 	if (result != DNS_R_SUCCESS)
 		*target = st;
@@ -538,6 +538,29 @@ dns_rdata_freestruct(void *source) {
 }
 
 dns_result_t
+dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+			 void *arg)
+{
+	dns_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t use_default = ISC_FALSE;
+
+	/*
+	 * Call 'add' for each name and type from 'rdata' which is subject to
+	 * additional section processing.
+	 */
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(add != NULL);
+
+	ADDITIONALDATASWITCH
+
+	if (use_default)
+		(void)NULL;
+
+	return (result);
+}
+
+dns_result_t
 dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 	int i = 0;
 	unsigned int n;
@@ -557,17 +580,17 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 }
 
 dns_result_t
-dns_rdataclass_totext(dns_rdataclass_t class, isc_buffer_t *target) {
+dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	int i = 0;
 	char buf[sizeof "65000"];
 
 	while (classes[i].name != NULL) {
-		if (classes[i].value == class) {
+		if (classes[i].value == rdclass) {
 			return (str_totext(classes[i].name, target));
 		}
 		i++;
 	}
-	sprintf(buf, "%u", class);
+	sprintf(buf, "%u", rdclass);
 	return (str_totext(buf, target));
 }
 

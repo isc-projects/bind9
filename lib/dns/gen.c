@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.21 1999/07/03 20:55:16 halley Exp $ */
+ /* $Id: gen.c,v 1.22 1999/08/02 22:18:30 halley Exp $ */
 
 #include <config.h>
 
@@ -31,39 +31,39 @@
 #include <unistd.h>
 
 
-#define FROMTEXTDECL "dns_rdataclass_t class, dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin, isc_boolean_t downcase, isc_buffer_t *target"
-#define FROMTEXTARGS "class, type, lexer, origin, downcase, target"
-#define FROMTEXTCLASS "class"
+#define FROMTEXTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin, isc_boolean_t downcase, isc_buffer_t *target"
+#define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
+#define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "use_default = ISC_TRUE"
 
 #define TOTEXTDECL "dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target"
 #define TOTEXTARGS "rdata, tctx, target"
-#define TOTEXTCLASS "rdata->class"
+#define TOTEXTCLASS "rdata->rdclass"
 #define TOTEXTTYPE "rdata->type"
 #define TOTEXTDEF "use_default = ISC_TRUE"
 
-#define FROMWIREDECL "dns_rdataclass_t class, dns_rdatatype_t type, isc_buffer_t *source, dns_decompress_t *dctx, isc_boolean_t downcase, isc_buffer_t *target"
-#define FROMWIREARGS "class, type, source, dctx, downcase, target"
-#define FROMWIRECLASS "class"
+#define FROMWIREDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, isc_buffer_t *source, dns_decompress_t *dctx, isc_boolean_t downcase, isc_buffer_t *target"
+#define FROMWIREARGS "rdclass, type, source, dctx, downcase, target"
+#define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE "type"
 #define FROMWIREDEF "use_default = ISC_TRUE"
 
 #define TOWIREDECL "dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target"
 #define TOWIREARGS "rdata, cctx, target"
-#define TOWIRECLASS "rdata->class"
+#define TOWIRECLASS "rdata->rdclass"
 #define TOWIRETYPE "rdata->type"
 #define TOWIREDEF "use_default = ISC_TRUE"
 
-#define FROMSTRUCTDECL "dns_rdataclass_t class, dns_rdatatype_t type, void *source, isc_buffer_t *target"
-#define FROMSTRUCTARGS "class, type, source, target"
-#define FROMSTRUCTCLASS "class"
+#define FROMSTRUCTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source, isc_buffer_t *target"
+#define FROMSTRUCTARGS "rdclass, type, source, target"
+#define FROMSTRUCTCLASS "rdclass"
 #define FROMSTRUCTTYPE "type"
 #define FROMSTRUCTDEF "use_default = ISC_TRUE"
 
 #define TOSTRUCTDECL "dns_rdata_t *rdata, void *target, isc_mem_t *mctx"
 #define TOSTRUCTARGS "rdata, target, mctx"
-#define TOSTRUCTCLASS "rdata->class"
+#define TOSTRUCTCLASS "rdata->rdclass"
 #define TOSTRUCTTYPE "rdata->type"
 #define TOSTRUCTDEF "use_default = ISC_TRUE"
 
@@ -75,9 +75,16 @@
 
 #define COMPAREDECL "dns_rdata_t *rdata1, dns_rdata_t *rdata2"
 #define COMPAREARGS "rdata1, rdata2"
-#define COMPARECLASS "rdata1->class"
+#define COMPARECLASS "rdata1->rdclass"
 #define COMPARETYPE "rdata1->type"
 #define COMPAREDEF "use_default = ISC_TRUE"
+
+#define ADDITIONALDATADECL \
+	"dns_rdata_t *rdata, dns_additionaldatafunc_t add, void *arg"
+#define ADDITIONALDATAARGS "rdata, add, arg"
+#define ADDITIONALDATACLASS "rdata->rdclass"
+#define ADDITIONALDATATYPE "rdata->type"
+#define ADDITIONALDATADEF "use_default = ISC_TRUE"
 
 char copyright[] =
 "/*\n\
@@ -102,13 +109,13 @@ char copyright[] =
 
 struct cc {
 	struct cc *next;
-	int class;
+	int rdclass;
 	char classname[11];
 } *classes;
 
 struct tt {
 	struct tt *next;
-	int class;
+	int rdclass;
 	int type;
 	char classname[11];
 	char typename[11];
@@ -178,12 +185,12 @@ doswitch(char *name, char *function, char *args,
 			fputs("\t\tbreak; \\\n", stdout);
 			subswitch = 0;
 		}
-		if (tt->class && tt->type != lasttype) {
+		if (tt->rdclass && tt->type != lasttype) {
 			fprintf(stdout, "\tcase %d: switch (%s) { \\\n" /*}*/,
 				tt->type, csw);
 			subswitch = 1;
 		}
-		if (tt->class == 0)
+		if (tt->rdclass == 0)
 			fprintf(stdout,
 				"\tcase %d:%s %s_%s(%s); break;",
 				tt->type, result, function,
@@ -191,7 +198,7 @@ doswitch(char *name, char *function, char *args,
 		else
 			fprintf(stdout,
 			        "\t\tcase %d:%s %s_%s_%s(%s); break;",
-				tt->class, result, function, 
+				tt->rdclass, result, function, 
 				funname(tt->classname, buf1),
 				funname(tt->typename, buf2), args);
 		fputs(" \\\n", stdout);
@@ -226,7 +233,7 @@ dodecl(char *type, char *function, char *args) {
 
 	fputs("\n", stdout);
 	for (tt = types; tt ; tt = tt->next)
-		if (tt->class)
+		if (tt->rdclass)
 			fprintf(stdout,
 				"static %s %s_%s_%s(%s);\n",
 				type, function,
@@ -240,7 +247,7 @@ dodecl(char *type, char *function, char *args) {
 }
 
 void
-add(int class, char *classname, int type, char *typename, char *dirname) {
+add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 	struct tt *newtt = (struct tt *)malloc(sizeof *newtt);
 	struct tt *tt, *oldtt;
 	struct cc *newcc;
@@ -250,7 +257,7 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 		exit(1);
 
 	newtt->next = NULL;
-	newtt->class = class;
+	newtt->rdclass = rdclass;
 	newtt->type = type;
 	strcpy(newtt->classname, classname);
 	strcpy(newtt->typename, typename);
@@ -264,14 +271,14 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 		tt = tt->next;
 	}
 
-	while ((tt != NULL) && (tt->type == type) && (tt->class < class)) {
+	while ((tt != NULL) && (tt->type == type) && (tt->rdclass < rdclass)) {
 		if (strcmp(tt->typename, typename) != 0)
 			exit(1);
 		oldtt = tt;
 		tt = tt->next;
 	}
 
-	if ((tt != NULL) && (tt->type == type) && (tt->class == class))
+	if ((tt != NULL) && (tt->type == type) && (tt->rdclass == rdclass))
 		exit(1);
 
 	newtt->next = tt;
@@ -282,21 +289,21 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 
 	/* do a class switch for this type */
 	 
-	if (class == 0)
+	if (rdclass == 0)
 		return;
 
 	newcc = (struct cc *)malloc(sizeof *newcc);
-	newcc->class = class;
+	newcc->rdclass = rdclass;
 	strcpy(newcc->classname, classname);
 	cc = classes;
 	oldcc = NULL;
 	
-	while ((cc != NULL) && (cc->class < class)) {
+	while ((cc != NULL) && (cc->rdclass < rdclass)) {
 		oldcc = cc;
 		cc = cc->next;
 	}
 
-	if ((cc != NULL) && cc->class == class) {
+	if ((cc != NULL) && cc->rdclass == rdclass) {
 		free((char *)newcc);
 		return;
 	}
@@ -309,7 +316,7 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 }
 
 void
-sd(int class, char *classname, char *dir, char filetype) {
+sd(int rdclass, char *classname, char *dir, char filetype) {
 	char buf[sizeof "0123456789_65535.h"];
 	char fmt[sizeof "%10[-0-9a-z]_%d.h"];
 	DIR *d;
@@ -330,7 +337,7 @@ sd(int class, char *classname, char *dir, char filetype) {
 		sprintf(buf, "%s_%d.%c", typename, type, filetype);
 		if (strcmp(buf, dp->d_name) != 0)
 			continue;
-		add(class, classname, type, typename, dir);
+		add(rdclass, classname, type, typename, dir);
 	}
 	closedir(d);
 }
@@ -340,7 +347,7 @@ main(int argc, char **argv) {
 	DIR *d;
 	char buf[256];			/* XXX Should be max path length */
 	char srcdir[256];		/* XXX Should be max path length */
-	int class;
+	int rdclass;
 	char classname[11];
 	struct dirent *dp;
 	struct tt *tt;
@@ -403,15 +410,15 @@ main(int argc, char **argv) {
 
 	while ((dp = readdir(d)) != NULL) {
 		if (sscanf(dp->d_name, "%10[0-9a-z]_%d",
-			   classname, &class) != 2)
+			   classname, &rdclass) != 2)
 			continue;
-		if ((class > 65535) || (class < 0))
+		if ((rdclass > 65535) || (rdclass < 0))
 			continue;
 
-		sprintf(buf, "%srdata/%s_%d", srcdir, classname, class);
+		sprintf(buf, "%srdata/%s_%d", srcdir, classname, rdclass);
 		if (strcmp(buf + 6 + strlen(srcdir), dp->d_name) != 0)
 			continue;
-		sd(class, classname, buf, filetype);
+		sd(rdclass, classname, buf, filetype);
 	}
 	closedir(d);
 	sprintf(buf, "%srdata/generic", srcdir);
@@ -436,6 +443,7 @@ main(int argc, char **argv) {
 		dodecl("dns_result_t", "fromstruct", FROMSTRUCTDECL);
 		dodecl("dns_result_t", "tostruct", TOSTRUCTDECL);
 		dodecl("void", "freestruct", FREESTRUCTDECL);
+		dodecl("dns_result_t", "additionaldata", ADDITIONALDATADECL);
 
 		doswitch("FROMTEXTSWITCH", "fromtext", FROMTEXTARGS,
 			 FROMTEXTTYPE, FROMTEXTCLASS, FROMTEXTDEF);
@@ -453,6 +461,9 @@ main(int argc, char **argv) {
 			  TOSTRUCTTYPE, TOSTRUCTCLASS, TOSTRUCTDEF);
 		doswitch("FREESTRUCTSWITCH", "freestruct", FREESTRUCTARGS,
 			  FREESTRUCTTYPE, FREESTRUCTCLASS, FREESTRUCTDEF);
+		doswitch("ADDITIONALDATASWITCH", "additionaldata",
+			 ADDITIONALDATAARGS, ADDITIONALDATATYPE,
+			 ADDITIONALDATACLASS, ADDITIONALDATADEF);
 
 		fprintf(stdout, "\n#define TYPENAMES%s\n",
 			types != NULL ? " \\" : "");
@@ -470,8 +481,8 @@ main(int argc, char **argv) {
 			classes != NULL ? " \\" : "");
 
 		for (cc = classes; cc != NULL; cc = cc->next)
-			fprintf(stdout, "\t{ %d, \"%s\", 0 },%s\n", cc->class,
-				upper(cc->classname),
+			fprintf(stdout, "\t{ %d, \"%s\", 0 },%s\n",
+				cc->rdclass, upper(cc->classname),
 				cc->next != NULL ? " \\" : "");
 
 
@@ -500,7 +511,7 @@ main(int argc, char **argv) {
 		for (cc = classes; cc != NULL; cc = cc->next)
 			fprintf(stdout, "\t dns_rdataclass_%s = %d,%s\n",
 				funname(cc->classname, buf1),
-				cc->class,
+				cc->rdclass,
 				cc->next != NULL ? " \\" : "");
 		fprintf(stdout, "#endif /* CLASSENUM */\n");
 	} else if (structs) {

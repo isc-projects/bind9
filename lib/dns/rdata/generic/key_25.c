@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.8 1999/06/08 20:41:31 gson Exp $ */
+ /* $Id: key_25.c,v 1.9 1999/08/02 22:17:59 halley Exp $ */
 
  /* RFC 2065 */
 
@@ -23,7 +23,7 @@
 #define RDATA_GENERIC_KEY_25_C
 
 static dns_result_t
-fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -33,7 +33,7 @@ fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 25);
 
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
@@ -111,7 +111,7 @@ totext_key(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_key(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_key(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -119,7 +119,7 @@ fromwire_key(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 25);
 	
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	dctx = dctx;		/*unused*/
 	downcase = downcase;	/*unused*/
 
@@ -149,7 +149,7 @@ compare_key(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 25);
 
 	dns_rdata_toregion(rdata1, &r1);
@@ -158,13 +158,13 @@ compare_key(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_key(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_key(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
 
 	REQUIRE(type == 25);
 	
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -188,4 +188,17 @@ freestruct_key(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
+
+static dns_result_t
+additionaldata_key(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		   void *arg)
+{
+	REQUIRE(rdata->type == 25);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_KEY_25_C */

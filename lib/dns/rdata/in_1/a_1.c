@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.16 1999/07/16 00:24:32 halley Exp $ */
+ /* $Id: a_1.c,v 1.17 1999/08/02 22:18:01 halley Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C
@@ -25,7 +25,7 @@
 #include <isc/net.h>
 
 static dns_result_t
-fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -34,7 +34,7 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t region;
 
 	REQUIRE(type == 1);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
@@ -58,7 +58,7 @@ totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 1);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(rdata->length == 4);
 
 	tctx = tctx;	/* unused */
@@ -73,7 +73,7 @@ totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -81,7 +81,7 @@ fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t tregion;
 
 	REQUIRE(type == 1);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	dctx = dctx;		/* unused */
 	downcase = downcase;	/* unused */
@@ -105,7 +105,7 @@ towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 1);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	cctx = cctx;	/*unused*/
 
@@ -122,9 +122,9 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 	
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->type);
 	REQUIRE(rdata1->type == 1);
-	REQUIRE(rdata1->class == 1);
+	REQUIRE(rdata1->rdclass == 1);
 
 	result = memcmp(rdata1->data, rdata2->data, 4);
 	if (result != 0)
@@ -134,12 +134,12 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_in_a(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
 
 	REQUIRE(type == 1);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	source = source;
 	target = target;
@@ -151,7 +151,7 @@ static dns_result_t
 tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 1);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	target = target;
 	mctx = mctx;
@@ -165,4 +165,18 @@ freestruct_in_a(void *source) {
 	REQUIRE(ISC_FALSE);	/*XXX*/
 
 }
+
+static dns_result_t
+additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		    void *arg)
+{
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->rdclass == 1);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_IN_1_A_1_C */

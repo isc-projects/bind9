@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.10 1999/06/08 20:41:31 gson Exp $ */
+ /* $Id: cert_37.c,v 1.11 1999/08/02 22:17:58 halley Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -23,7 +23,7 @@
 #define RDATA_GENERIC_CERT_37_C
 
 static dns_result_t
-fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -35,7 +35,7 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 37);
 
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	origin = origin;	/*unused*/
 	downcase = downcase;	/*unused*/
 
@@ -115,7 +115,7 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_cert(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -123,7 +123,7 @@ fromwire_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 37);
 	
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	dctx = dctx;		/*unused*/
 	downcase = downcase;	/*unused*/
 
@@ -153,7 +153,7 @@ compare_cert(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 37);
 
 	dns_rdata_toregion(rdata1, &r1);
@@ -162,13 +162,13 @@ compare_cert(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_cert(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
 
 	REQUIRE(type == 37);
 	
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -193,4 +193,17 @@ freestruct_cert(void *target) {
 	REQUIRE(target != NULL && target != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
 }
+
+static dns_result_t
+additionaldata_cert(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		    void *arg)
+{
+	REQUIRE(rdata->type == 37);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_CERT_37_C */

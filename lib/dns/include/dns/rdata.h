@@ -121,7 +121,7 @@ ISC_LANG_BEGINDECLS
 struct dns_rdata {
 	unsigned char *			data;
 	unsigned int			length;
-	dns_rdataclass_t		class;
+	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
 	ISC_LINK(dns_rdata_t)		link;
 };
@@ -177,7 +177,7 @@ int dns_rdata_compare(dns_rdata_t *rdata1, dns_rdata_t *rdata2);
  ***/
 
 void dns_rdata_fromregion(dns_rdata_t *rdata,
-			  dns_rdataclass_t class, dns_rdatatype_t type,
+			  dns_rdataclass_t rdclass, dns_rdatatype_t type,
 			  isc_region_t *r);
 /*
  * Make 'rdata' refer to region 'r'.
@@ -193,7 +193,7 @@ void dns_rdata_toregion(dns_rdata_t *rdata, isc_region_t *r);
  */
 
 dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
-				dns_rdataclass_t class, dns_rdatatype_t type,
+				dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				isc_buffer_t *source,
 				dns_decompress_t *dctx,
 				isc_boolean_t downcase,
@@ -209,7 +209,7 @@ dns_result_t dns_rdata_fromwire(dns_rdata_t *rdata,
  *
  * Requires:
  *
- *	'class' and 'type' are valid.
+ *	'rdclass' and 'type' are valid.
  *
  *	'source' is a valid binary buffer, and the active region of 'source'
  *	references the rdata to be processed.
@@ -267,7 +267,7 @@ dns_result_t dns_rdata_towire(dns_rdata_t *rdata,
  */
 
 dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
-				dns_rdataclass_t class, dns_rdatatype_t type,
+				dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				isc_lex_t *lexer,
 				dns_name_t *origin,
 				isc_boolean_t downcase,
@@ -287,7 +287,7 @@ dns_result_t dns_rdata_fromtext(dns_rdata_t *rdata,
  *
  * Requires:
  *
- *	'class' and 'type' are valid.
+ *	'rdclass' and 'type' are valid.
  *
  *	'lexer' is a valid isc_lex_t.
  *
@@ -372,7 +372,8 @@ dns_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
  */
 
 dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
-				  dns_rdataclass_t class, dns_rdatatype_t type,
+				  dns_rdataclass_t rdclass,
+				  dns_rdatatype_t type,
 				  void *source,
 				  isc_buffer_t *target);
 /*
@@ -383,7 +384,7 @@ dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
  *
  * Requires:
  *
- *	'class' and 'type' are valid.
+ *	'rdclass' and 'type' are valid.
  *
  *	'source' points to a valid C struct for the class and type.
  *
@@ -436,6 +437,34 @@ isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
  * Requires:
  * 	'type' is a valid rdata type.
  *
+ */
+
+dns_result_t
+dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+			 void *arg);
+/*
+ * Call 'add' for each name and type from 'rdata' which is subject to
+ * additional section processing.
+ *
+ * Requires:
+ *
+ *	'rdata' is a valid, non-empty rdata.
+ *
+ *	'add' is a valid dns_additionalfunc_t.
+ *
+ * Ensures:
+ *
+ *	If successful, then add() will have been called for each name
+ *	and type subject to additional section processing.
+ *
+ *	If add() returns something other than DNS_R_SUCCESS, that result
+ *	will be returned as the result of dns_rdata_additionaldata().
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *
+ *	Many other results are possible if not successful.
  */
 
 ISC_LANG_ENDDECLS

@@ -15,13 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.13 1999/06/08 10:35:14 gson Exp $ */
+ /* $Id: ns_2.c,v 1.14 1999/08/02 22:18:00 halley Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
 
 static dns_result_t
-fromtext_ns(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -31,7 +31,7 @@ fromtext_ns(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 2);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	RETERR(gettoken(lexer, &token,isc_tokentype_string, ISC_FALSE));
 
@@ -65,7 +65,7 @@ totext_ns(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_ns(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	    isc_buffer_t *source, dns_decompress_t *dctx,
 	    isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -73,7 +73,7 @@ fromwire_ns(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 2);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -111,7 +111,7 @@ compare_ns(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t region2;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 2);
 
 	dns_name_init(&name1, NULL);
@@ -127,13 +127,13 @@ compare_ns(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_ns(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
 
 	REQUIRE(type == 2);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -151,7 +151,7 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	mctx = mctx;	/*unused*/
 
-	ns->common.rdclass = rdata->class;
+	ns->common.rdclass = rdata->rdclass;
 	ns->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&ns->common, link);
 
@@ -167,4 +167,17 @@ freestruct_ns(void *source) {
 	REQUIRE(source != NULL);
 	/* No action required. */
 }
+
+static dns_result_t
+additionaldata_ns(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		  void *arg)
+{
+	REQUIRE(rdata->type == 2);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_NS_2_C */

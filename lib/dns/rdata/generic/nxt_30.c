@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.11 1999/07/23 09:15:10 gson Exp $ */
+ /* $Id: nxt_30.c,v 1.12 1999/08/02 22:18:00 halley Exp $ */
 
  /* RFC 2065 */
 
@@ -23,7 +23,7 @@
 #define RDATA_GENERIC_NXT_30_C
 
 static dns_result_t
-fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -39,7 +39,7 @@ fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 30);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 	
 	/* next domain */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -119,7 +119,7 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -128,7 +128,7 @@ fromwire_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	REQUIRE(type == 30);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -176,7 +176,7 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 30);
 
 	dns_name_init(&name1, NULL);
@@ -193,13 +193,13 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_nxt(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
 
 	REQUIRE(type == 30);
 
-	class = class; 	/*unused*/
+	rdclass = rdclass; 	/*unused*/
 
 	source = source;
 	target = target;
@@ -226,4 +226,17 @@ freestruct_nxt(void *source) {
 	REQUIRE(nxt->common.rdtype == 30);
 	REQUIRE(ISC_FALSE);
 }
+
+static dns_result_t
+additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		   void *arg)
+{
+	REQUIRE(rdata->type == 30);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_NXT_30_C */

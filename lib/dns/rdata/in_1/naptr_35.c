@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.8 1999/06/08 10:35:21 gson Exp $ */
+ /* $Id: naptr_35.c,v 1.9 1999/08/02 22:18:01 halley Exp $ */
 
  /* RFC 2168 */
 
@@ -23,7 +23,7 @@
 #define RDATA_IN_1_NAPTR_35_C
 
 static dns_result_t
-fromtext_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_lex_t *lexer, dns_name_t *origin,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -32,7 +32,7 @@ fromtext_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_buffer_t buffer;
 
 	REQUIRE(type == 35);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	/* priority */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -75,7 +75,7 @@ totext_in_naptr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	unsigned short num;
 
 	REQUIRE(rdata->type == 35);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -114,7 +114,7 @@ totext_in_naptr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_buffer_t *source, dns_decompress_t *dctx,
 		  isc_boolean_t downcase, isc_buffer_t *target)
 {
@@ -122,7 +122,7 @@ fromwire_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
 	isc_region_t sr;
 
 	REQUIRE(type == 35);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -157,7 +157,7 @@ towire_in_naptr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 35);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	if (dns_compress_getedns(cctx) >= 1)
 		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
@@ -196,9 +196,9 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 35);
-	REQUIRE(rdata1->class == 1);
+	REQUIRE(rdata1->rdclass == 1);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -242,12 +242,12 @@ compare_in_naptr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 }
 
 static dns_result_t
-fromstruct_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
+fromstruct_in_naptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 35);
-	REQUIRE(class == 1);
+	REQUIRE(rdclass == 1);
 
 	source = source;
 	target = target;
@@ -259,7 +259,7 @@ static dns_result_t
 tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 35);
-	REQUIRE(rdata->class == 1);
+	REQUIRE(rdata->rdclass == 1);
 
 	target = target;
 	mctx = mctx;
@@ -272,4 +272,18 @@ freestruct_in_naptr(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);
 }
+
+static dns_result_t
+additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+			void *arg)
+{
+	REQUIRE(rdata->type == 35);
+	REQUIRE(rdata->rdclass == 1);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_IN_1_NAPTR_35_C */

@@ -15,20 +15,20 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.10 1999/06/08 10:35:18 gson Exp $ */
+ /* $Id: null_10.c,v 1.11 1999/08/02 22:18:00 halley Exp $ */
 
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
 
 static dns_result_t
-fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
+fromtext_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 10);
 
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	type = type;		/*unused*/
 	lexer = lexer;		/*unused*/
 	origin = origin;	/*unused*/
@@ -54,14 +54,14 @@ totext_null(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 static dns_result_t
-fromwire_null(dns_rdataclass_t class, dns_rdatatype_t type,
+fromwire_null(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
 {
 
 	REQUIRE(type == 10);
 
-	class = class;		/*unused*/
+	rdclass = rdclass;		/*unused*/
 	dctx = dctx;		/*unused*/
 	downcase = downcase;	/*unused*/
 	target = target;	/*unused*/
@@ -85,20 +85,20 @@ static int
 compare_null(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 	REQUIRE(rdata1->type == rdata1->type);
-	REQUIRE(rdata1->class == rdata2->class);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 10);
 
 	return (0);
 }
 
 static dns_result_t
-fromstruct_null(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
+fromstruct_null(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
 
 	REQUIRE(type == 10);
 
-	class = class;	/*unused*/
+	rdclass = rdclass;	/*unused*/
 
 	source = source;
 	target = target;
@@ -116,7 +116,7 @@ tostruct_null(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	mctx = mctx;
 
 	null->common.rdtype = rdata->type;
-	null->common.rdclass = rdata->class;
+	null->common.rdclass = rdata->rdclass;
 	ISC_LINK_INIT(&null->common, link);
 
 	return (DNS_R_SUCCESS);
@@ -127,4 +127,17 @@ freestruct_null(void *source) {
 	REQUIRE(source != NULL);
 	/* No action required. */
 }
+
+static dns_result_t
+additionaldata_null(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
+		    void *arg)
+{
+	REQUIRE(rdata->type == 10);
+
+	(void)add;
+	(void)arg;
+
+	return (DNS_R_SUCCESS);
+}
+
 #endif	/* RDATA_GENERIC_NULL_10_C */
