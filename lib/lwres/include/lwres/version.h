@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.2 2001/11/19 03:08:43 mayer Exp $ */
+/* $Id: version.h,v 1.2.224.1 2003/10/17 07:06:15 marka Exp $ */
 
 #include <lwres/platform.h>
 

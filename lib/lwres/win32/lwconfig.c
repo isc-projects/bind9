@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.1 2002/08/11 03:29:32 mayer Exp $ */
+/* $Id: lwconfig.c,v 1.1.222.1 2003/10/17 07:06:16 marka Exp $ */
 
 /*
  * We do this so that we may incorporate everything in the main routines

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.23.2.2 2003/05/19 05:46:24 marka Exp $
+# $Id: conf.sh.in,v 1.23.2.2.4.1 2003/10/17 07:06:13 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -44,10 +44,10 @@ KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
 # load on the machine to make it unusable to other users.
 #
 # dnssec is missing from SUBDIRS as RFC 2535 support is disabled
-# 
+# v6synth in no longer supported. 
 SUBDIRS="cacheclean forward glue ixfr limits lwresd \
     masterfile notify nsupdate resolver sortlist stub tkey \
-    unknown upforwd v6synth views xfer xferquota"
+    unknown upforwd views xfer xferquota"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@

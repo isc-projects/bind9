@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2 2002/02/20 03:34:02 marka Exp $
+# $Id: setup.sh,v 1.2.224.1 2003/10/17 07:06:14 marka Exp $
 
 sh ../genzone.sh 2 3 >ns2/example.db
 sh ../genzone.sh 2 3 >ns2/tsigzone.db
