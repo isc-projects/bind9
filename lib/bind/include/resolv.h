@@ -32,25 +32,25 @@
  */
 
 /*
+ * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (c) 1996-1999 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.7.2.11 2003/06/27 03:51:37 marka Exp $
+ *	$Id: resolv.h,v 1.7.2.12 2004/03/09 09:17:24 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -115,13 +115,21 @@ __END_DECLS
 typedef enum { res_goahead, res_nextns, res_modified, res_done, res_error }
 	res_sendhookact;
 
-typedef res_sendhookact (*res_send_qhook)__P((struct sockaddr * const *,
-					      const u_char **, int *,
-					      u_char *, int, int *));
+#ifndef __PMT
+#if defined(__STDC__) || defined(__cplusplus)
+#define __PMT(args) args
+#else
+#define __PMT(args) ()
+#endif
+#endif
 
-typedef res_sendhookact (*res_send_rhook)__P((const struct sockaddr *,
-					      const u_char *, int, u_char *,
-					      int, int *));
+typedef res_sendhookact (*res_send_qhook)__PMT((struct sockaddr * const *,
+						const u_char **, int *,
+						u_char *, int, int *));
+
+typedef res_sendhookact (*res_send_rhook)__PMT((const struct sockaddr *,
+						const u_char *, int, u_char *,
+						int, int *));
 
 struct res_sym {
 	int		number;	   /* Identifying number, like T_MX */
@@ -251,7 +259,8 @@ union res_sockaddr_union {
 #define RES_USE_EDNS0	0x40000000	/* use EDNS0 if configured */
 #define RES_NO_NIBBLE2	0x80000000	/* disable alternate nibble lookup */
 
-#define RES_DEFAULT	(RES_RECURSE | RES_DEFNAMES | RES_DNSRCH)
+#define RES_DEFAULT	(RES_RECURSE | RES_DEFNAMES | \
+			 RES_DNSRCH | RES_NO_NIBBLE2)
 
 /*
  * Resolver "pfcode" values.  Used by dig.
