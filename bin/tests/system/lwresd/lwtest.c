@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.21 2001/01/22 22:12:45 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.22 2001/02/05 23:09:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -493,6 +493,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			printf("I:getaddrinfo(%s) returned wrong family\n",
 			       name);
 			fails++;
+			freeaddrinfo(ai);
 			return;
 		}
 		if (len != (unsigned int) ai->ai_addrlen) {
@@ -502,6 +503,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			printf("I:getaddrinfo(%s) returned %db, "
 			       "expected %db\n", name, ai->ai_addrlen, len);
 			fails++;
+			freeaddrinfo(ai);
 			return;
 		} else if (af == AF_INET) {
 			struct sockaddr_in *sin;
@@ -513,6 +515,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 				printf("I:getaddrinfo(%s) returned %s, "
 				       "expected %s\n", name, outbuf, address);
 				fails++;
+				freeaddrinfo(ai);
 				return;
 			}
 		} else {
@@ -526,9 +529,11 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 				printf("I:getaddrinfo(%s) returned %s, "
 				       "expected %s\n", name, outbuf, address);
 				fails++;
+				freeaddrinfo(ai);
 				return;
 			}
 		}
+		freeaddrinfo(ai);
 	}
 }
 
@@ -611,6 +616,7 @@ test_getrrsetbyname(const char *name, int rdclass, int rdtype,
 		printf("I:getrrsetbyname(%s, %d) unexpectedly succeeded\n",
 			name, rdtype);
 		fails++;
+		freerrset(rrinfo);
 		return;
 	} else if (ret != 0)
 		return;
@@ -624,6 +630,7 @@ test_getrrsetbyname(const char *name, int rdclass, int rdtype,
 			name, rdtype, rrinfo->rri_nsigs, nsigs);
 		fails++;
 	}
+	freerrset(rrinfo);
 	return;
 }
 
