@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.76 2000/09/11 05:55:27 marka Exp $ */
+/* $Id: message.h,v 1.77 2000/09/11 23:37:34 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -1157,6 +1157,17 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
 
 isc_region_t *
 dns_message_getrawmessage(dns_message_t *msg);
+/*
+ * Retrieve the raw message in compressed wire format.  The message must
+ * have been successfully parsed for it to have been saved.
+ *
+ * Requires:
+ *	msg is a valid parsed message.
+ *
+ * Returns:
+ *	NULL	if there is no saved message.
+ *	a pointer to a region which refers the dns message.
+ */
 
 ISC_LANG_ENDDECLS
 
