@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.3 2000/03/06 20:06:01 bwelling Exp $
+ * $Id: opensslmd5_link.c,v 1.4 2000/04/20 01:12:27 explorer Exp $
  */
 
 #include <config.h>
@@ -41,10 +41,6 @@
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
 #include <openssl/md5.h>
-
-#define MD5Init MD5_Init
-#define MD5Update MD5_Update
-#define MD5Final MD5_Final
 
 /*
  * dst_s_md5
@@ -79,17 +75,17 @@ dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
 	REQUIRE (ctx != NULL);
 
 	if (mode & DST_SIGMODE_INIT)
-		MD5Init(ctx);
+		MD5_Init(ctx);
 
 	if (mode & DST_SIGMODE_UPDATE)
-		MD5Update(ctx, data->base, data->length);
+		MD5_Update(ctx, data->base, data->length);
 
 	if (mode & DST_SIGMODE_FINAL) {
 		isc_buffer_available(digest, &r);
 		if (r.length < MD5_DIGEST_LENGTH)
 			return (ISC_R_NOSPACE);
 
-		MD5Final(r.base, ctx);
+		MD5_Final(r.base, ctx);
 		isc_buffer_add(digest, MD5_DIGEST_LENGTH);
 		isc_mem_put(mctx, ctx, sizeof(MD5_CTX));
 	}

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.17 2000/03/15 18:52:23 bwelling Exp $
+ * $Id: hmac_link.c,v 1.18 2000/04/20 01:12:26 explorer Exp $
  */
 
 #include <config.h>
@@ -41,10 +41,6 @@
 #define HMAC_LEN	64
 #define HMAC_IPAD	0x36
 #define HMAC_OPAD	0x5c
-
-#define MD5Init MD5_Init
-#define MD5Update MD5_Update
-#define MD5Final MD5_Final
 
 #define RETERR(x) do { \
 	ret = (x); \
@@ -321,9 +317,9 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		MD5_CTX ctx;
 		unsigned char digest[MD5_DIGEST_LENGTH];
 
-		MD5Init(&ctx);
-		MD5Update(&ctx, r.base, r.length);
-		MD5Final(digest, &ctx);
+		MD5_Init(&ctx);
+		MD5_Update(&ctx, r.base, r.length);
+		MD5_Final(digest, &ctx);
 		memcpy(hkey->ipad, digest, MD5_DIGEST_LENGTH);
 		memcpy(hkey->opad, digest, MD5_DIGEST_LENGTH);
 		keylen = MD5_DIGEST_LENGTH;

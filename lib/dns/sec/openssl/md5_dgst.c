@@ -1,3 +1,4 @@
+#include "../rename.h"
 /* crypto/md5/md5_dgst.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -81,8 +82,8 @@ void MD5_Init(MD5_CTX *c)
 	c->num=0;
 	}
 
-#ifndef md5_block_host_order
-void md5_block_host_order (MD5_CTX *c, const void *data, int num)
+#ifndef dst_md5_block_host_order
+void dst_md5_block_host_order (MD5_CTX *c, const void *data, int num)
 	{
 	const MD5_LONG *X=data;
 	register unsigned long A,B,C,D;
@@ -185,11 +186,11 @@ void md5_block_host_order (MD5_CTX *c, const void *data, int num)
 	}
 #endif
 
-#ifndef md5_block_data_order
+#ifndef dst_md5_block_data_order
 #ifdef X
 #undef X
 #endif
-void md5_block_data_order (MD5_CTX *c, const void *data_, int num)
+void dst_md5_block_data_order (MD5_CTX *c, const void *data_, int num)
 	{
 	const unsigned char *data=data_;
 	register unsigned long A,B,C,D,l;

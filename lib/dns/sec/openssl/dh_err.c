@@ -1,3 +1,4 @@
+#include "../rename.h"
 /* crypto/dh/dh_err.c */
 /* ====================================================================
  * Copyright (c) 1999 The OpenSSL Project.  All rights reserved.

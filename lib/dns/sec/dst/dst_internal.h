@@ -22,6 +22,8 @@
 #include <isc/int.h>
 #include <isc/region.h>
 
+#include "../rename.h"
+
 #include <dst/dst.h>
 #include <dst/result.h>
 

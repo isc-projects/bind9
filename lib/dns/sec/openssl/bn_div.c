@@ -1,3 +1,4 @@
+#include "../rename.h"
 /* crypto/bn/bn_div.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.

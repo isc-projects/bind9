@@ -1,3 +1,4 @@
+#include "../rename.h"
 /* crypto/bn/bn_ctx.c */
 /* Written by Ulf Moeller for the OpenSSL project. */
 /* ====================================================================

@@ -17,6 +17,8 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+CDEFINES =	@DST_PRIVATEOPENSSL@
+
 SUBDIRS =
 TARGETS =
 

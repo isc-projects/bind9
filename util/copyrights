@@ -557,6 +557,7 @@
 ./lib/dns/rootns.c				C	1999,2000
 ./lib/dns/sec/.cvsignore			X	1999,2000
 ./lib/dns/sec/Makefile.in			MAKE	1998,1999,2000
+./lib/dns/sec/rename.h				C	2000
 ./lib/dns/sec/dnssafe/.cvsignore		X	1999,2000
 ./lib/dns/sec/dnssafe/Makefile.in		MAKE	1998,1999,2000
 ./lib/dns/sec/dst/.cvsignore			X	1999,2000

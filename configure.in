@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.115 $)
+AC_REVISION($Revision: 1.116 $)
 
 AC_PREREQ(2.13)
 
@@ -144,6 +144,18 @@ if test "X$CC" = "X" ; then
 			;;
 	esac
 fi
+
+#
+# If the user didn't specify where openssl is, and we didn't find or it
+# is imcompatible with our code, use our internal one.
+# XXXMLG Implement this check!
+#
+AC_MSG_CHECKING(for compatible OpenSSL library)
+DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
+dst_privateopenssl='openssl'
+AC_MSG_RESULT(using private library)
+AC_SUBST(DST_PRIVATEOPENSSL)
+AC_SUBST(dst_privateopenssl)
 
 #
 # NetBSD has two alternative pthreads implementations.  Make the 

@@ -1,3 +1,4 @@
+#include "../rename.h"
 /* crypto/bn/bn_asm.c */
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
  * All rights reserved.
@@ -430,6 +431,8 @@ BN_ULONG bn_sub_words(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n)
 #undef bn_mul_comba4
 #undef bn_sqr_comba8
 #undef bn_sqr_comba4
+
+#include "../rename.h"
 
 /* mul_add_c(a,b,c0,c1,c2)  -- c+=a*b for three word number c=(c2,c1,c0) */
 /* mul_add_c2(a,b,c0,c1,c2) -- c+=2*a*b for three word number c=(c2,c1,c0) */
