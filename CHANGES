@@ -1,6 +1,9 @@
 
 	--- 9.1.0b2 released ---
 
+ 641.	[bug]		$GENERATE caused a uninitialized link to be used.
+			[RT #595]
+
  640.	[bug]		Memory leak in error path could cause
 			"mpctx->allocated == 0" failure. [RT #584]
 
