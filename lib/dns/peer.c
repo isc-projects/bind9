@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.14 2001/03/06 23:54:33 bwelling Exp $ */
+/* $Id: peer.c,v 1.15 2001/11/09 04:21:55 marka Exp $ */
 
 #include <config.h>
 
@@ -386,7 +386,7 @@ dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_settransfers(dns_peer_t *peer, isc_int32_t newval) {
+dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
@@ -400,7 +400,7 @@ dns_peer_settransfers(dns_peer_t *peer, isc_int32_t newval) {
 }
 
 isc_result_t
-dns_peer_gettransfers(dns_peer_t *peer, isc_int32_t *retval) {
+dns_peer_gettransfers(dns_peer_t *peer, isc_uint32_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 

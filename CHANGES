@@ -1,3 +1,7 @@
+1116.	[bug]		Setting transfers in a server clause, transfers-in,
+			or transfers-per-ns to a value greater than
+			2147483647 disabled transfers.  [RT #2002]
+
 1115.	[func]		Set maximum values for cleaning-interval,
 			heartbeat-interval, interface-interval,
 			max-transfer-idle-in, max-transfer-idle-out,
