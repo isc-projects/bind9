@@ -367,7 +367,10 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
  */
 #define FIND_WANTEVENT(fn)	(((fn)->options & DNS_ADBFIND_WANTEVENT) != 0)
 #define FIND_WANTEMPTYEVENT(fn)	(((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
+#define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) \
+				 != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
+
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -2158,6 +2161,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	isc_result_t result;
 	isc_boolean_t want_event;
 	unsigned int wanted_addresses;
+	unsigned int wanted_fetches;
 	unsigned int query_pending;
 
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -2172,6 +2176,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 	result = ISC_R_UNEXPECTED;
 	wanted_addresses = (options & DNS_ADBFIND_ADDRESSMASK);
+	wanted_fetches = 0;
 	query_pending = 0;
 	want_event = ISC_FALSE;
 
@@ -2270,16 +2275,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (NCACHE_RESULT(result))
 			goto v6;
 
-		/*
-		 * Try to start fetches for v4.
-		 */
-		result = fetch_name_v4(adbname, now);
-		if (result == ISC_R_SUCCESS) {
-			DP(DEF_LEVEL,
-			   "dns_adb_createfind: Started A fetch for name %p",
-			   adbname);
-			goto v6;
-		}
+		wanted_fetches |= DNS_ADBFIND_INET;
 	}
 
  v6:
@@ -2291,7 +2287,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Found A6 for name %p",
 			   adbname);
-			goto copy;
+			goto fetch;
 		}
 
 		/*
@@ -2299,17 +2295,39 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * another query.
 		 */
 		if (NCACHE_RESULT(result))
-			goto copy;
+			goto fetch;
+
+		wanted_fetches |= DNS_ADBFIND_INET6;
+	}
+
+ fetch:
+	if (wanted_fetches != 0 &&
+	    (!FIND_AVOIDFETCHES(find) || wanted_addresses == wanted_fetches)) {
+		/*
+		 * We're missing at least one address family.  Either the
+		 * caller hasn't instructed us to avoid fetches, or we don't
+		 * know anything about any of the address families that would
+		 * be acceptable so we have to launch fetches.
+		 */
 
 		/*
-		 * Try to start fetches for a6.
+		 * Start V4.
 		 */
-		result = fetch_name_a6(adbname, now, use_hints);
-		if (result == ISC_R_SUCCESS) {
+		if (WANT_INET(wanted_fetches) &&
+		    fetch_name_v4(adbname, now) == ISC_R_SUCCESS) {
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind: Started A fetch for name %p",
+			   adbname);
+		}
+
+		/*
+		 * Start V6.
+		 */
+		if (WANT_INET6(wanted_fetches) &&
+		    fetch_name_a6(adbname, now, use_hints) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Started A6 fetch for name %p",
 			   adbname);
-			goto copy;
 		}
 	}
 
@@ -2317,7 +2335,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * Run through the name and copy out the bits we are
 	 * interested in.
 	 */
- copy:
 	copy_namehook_lists(adb, find, zone, adbname, now);
 
 	if (NAME_FETCH_V4(adbname))

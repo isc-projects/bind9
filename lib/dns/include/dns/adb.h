@@ -140,6 +140,7 @@ struct dns_adbfind {
 
 #define DNS_ADBFIND_EMPTYEVENT		0x00000004
 #define DNS_ADBFIND_WANTEVENT		0x00000008
+#define DNS_ADBFIND_AVOIDFETCHES	0x00000010
 
 /* dns_adbaddrinfo_t
  *

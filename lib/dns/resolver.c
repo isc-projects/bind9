@@ -1026,7 +1026,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		return (DNS_R_SERVFAIL);
 
 	res = fctx->res;
-	options = DNS_ADBFIND_WANTEVENT|DNS_ADBFIND_EMPTYEVENT;
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT |
+		DNS_ADBFIND_AVOIDFETCHES;
 	if (res->dispatch4 != NULL)
 		options |= DNS_ADBFIND_INET;
 	if (res->dispatch6 != NULL)
