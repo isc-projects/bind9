@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.171 2002/03/27 23:31:32 marka Exp $ */
+/* $Id: rdata.c,v 1.172 2002/06/17 04:01:21 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -2043,6 +2043,13 @@ isc_boolean_t
 dns_rdatatype_questiononly(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_QUESTIONONLY)
 	    != 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_rdatatype_atparent(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }

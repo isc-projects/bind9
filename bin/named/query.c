@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.219 2002/03/28 04:03:50 marka Exp $ */
+/* $Id: query.c,v 1.220 2002/06/17 04:01:08 marka Exp $ */
 
 #include <config.h>
 
@@ -2046,6 +2046,70 @@ query_addbestns(ns_client_t *client) {
 }
 
 static void
+query_addds(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node) {
+	dns_name_t *rname;
+	dns_rdataset_t *rdataset, *sigrdataset;
+	isc_result_t result;
+
+	CTRACE("query_addds");
+	rname = NULL;
+	rdataset = NULL;
+	sigrdataset = NULL;
+
+	/*
+	 * We'll need some resources...
+	 */
+	rdataset = query_newrdataset(client);
+	sigrdataset = query_newrdataset(client);
+	if (rdataset == NULL || sigrdataset == NULL)
+		return;
+
+	/*
+	 * Look for the DS record, which may or may not be present.
+	 */
+	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds, 0,
+				     client->now, rdataset, sigrdataset);
+	/*
+	 * If we didn't find it, look for an NXT. */
+	if (result == ISC_R_NOTFOUND)
+		result = dns_db_findrdataset(db, node, NULL,
+					     dns_rdatatype_nxt, 0, client->now,
+					     rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		goto cleanup;
+	if (!dns_rdataset_isassociated(rdataset) ||
+	    !dns_rdataset_isassociated(sigrdataset))
+		goto cleanup;
+
+	/*
+	 * We've already added the NS record, so if the name's not there,
+	 * we have other problems.  Use this name rather than calling
+	 * query_addrrset().
+	 */
+	result = dns_message_firstname(client->message, DNS_SECTION_AUTHORITY);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	rname = NULL;
+	dns_message_currentname(client->message, DNS_SECTION_AUTHORITY,
+				&rname);
+	result = dns_message_findtype(rname, dns_rdatatype_ns, 0, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	ISC_LIST_APPEND(rname->list, rdataset, link);
+	ISC_LIST_APPEND(rname->list, sigrdataset, link);
+	rdataset = NULL;
+	sigrdataset = NULL;
+
+ cleanup:
+	if (rdataset != NULL)
+		query_putrdataset(client, &rdataset);
+	if (sigrdataset != NULL)
+		query_putrdataset(client, &sigrdataset);
+}
+
+static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
@@ -2206,98 +2270,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	return (result);
 }
 
-static inline isc_result_t
-query_findparentkey(ns_client_t *client, dns_name_t *name,
-		    dns_zone_t **zonep, dns_db_t **dbp,
-		    dns_dbversion_t **versionp, dns_dbnode_t **nodep,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	dns_db_t *pdb;
-	dns_dbnode_t *pnode;
-	dns_dbversion_t *pversion;
-	dns_rdataset_t prdataset, psigrdataset;
-	dns_rdataset_t *psigrdatasetp;
-	isc_result_t result;
-	dns_zone_t *pzone;
-	isc_boolean_t is_zone;
-	dns_fixedname_t pfoundname;
-
-	/*
-	 * 'name' is at a zone cut.  Try to find a KEY for 'name' in
-	 * the deepest ancestor zone of 'name' (if any).  If it exists,
-	 * update *zonep, *dbp, *nodep, rdataset, and sigrdataset and
-	 * return ISC_R_SUCCESS.  If not, leave them alone and return a
-	 * non-success status.
-	 */
-
-	pzone = NULL;
-	pdb = NULL;
-	pnode = NULL;
-	pversion = NULL;
-	dns_rdataset_init(&prdataset);
-	if (sigrdataset != NULL)
-		dns_rdataset_init(&psigrdataset);
-	is_zone = ISC_FALSE;
-	dns_fixedname_init(&pfoundname);
-
-	result = query_getdb(client, name, DNS_GETDB_NOEXACT,
-			     &pzone, &pdb, &pversion, &is_zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	if (!is_zone) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	if (sigrdataset != NULL)
-		psigrdatasetp = &psigrdataset;
-	else
-		psigrdatasetp = NULL;
-	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key,
-			     client->query.dboptions,
-			     client->now, &pnode,
-			     dns_fixedname_name(&pfoundname),
-			     &prdataset, psigrdatasetp);
-	if (result == ISC_R_SUCCESS) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		dns_rdataset_clone(&prdataset, rdataset);
-		if (sigrdataset != NULL) {
-			if (dns_rdataset_isassociated(sigrdataset))
-				dns_rdataset_disassociate(sigrdataset);
-			if (dns_rdataset_isassociated(&psigrdataset))
-				dns_rdataset_clone(&psigrdataset, sigrdataset);
-		}
-		if (*nodep != NULL)
-			dns_db_detachnode(*dbp, nodep);
-		*nodep = pnode;
-		pnode = NULL;
-		*versionp = pversion;
-		if (*dbp != NULL)
-			dns_db_detach(dbp);
-		*dbp = pdb;
-		pdb = NULL;
-		if (*zonep != NULL)
-			dns_zone_detach(zonep);
-		*zonep = pzone;
-		pzone = NULL;
-	}
-
- cleanup:
-	if (dns_rdataset_isassociated(&prdataset))
-		dns_rdataset_disassociate(&prdataset);
-	if (sigrdataset != NULL && dns_rdataset_isassociated(&psigrdataset))
-		dns_rdataset_disassociate(&psigrdataset);
-	if (pnode != NULL)
-		dns_db_detachnode(pdb, &pnode);
-	if (pdb != NULL)
-		dns_db_detach(&pdb);
-	if (pzone != NULL)
-		dns_zone_detach(&pzone);
-
-	return (result);
-}
-
 #define MAX_RESTARTS 16
 
 #define QUERY_ERROR(r) \
@@ -2419,6 +2391,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_zone_t *zone;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
+	unsigned int options;
 
 	CTRACE("query_find");
 
@@ -2508,7 +2481,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * First we must find the right database.
 	 */
-	result = query_getdb(client, client->query.qname, 0, &zone, &db,
+	options = 0;
+	if (dns_rdatatype_atparent(qtype) &&
+	    !dns_name_equal(client->query.qname, dns_rootname))
+		options |= DNS_GETDB_NOEXACT;
+	result = query_getdb(client, client->query.qname, options, &zone, &db,
 			     &version, &is_zone);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED)
@@ -2559,63 +2536,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	result = dns_db_find(db, client->query.qname, version, type,
 			     client->query.dboptions, client->now,
 			     &node, fname, rdataset, sigrdataset);
-
-	/*
-	 * We interrupt our normal query processing to bring you this special
-	 * case...
-	 *
-	 * RFC 2535 (DNSSEC), section 2.3.4, discusses various special
-	 * cases that can occur at delegation points.
-	 *
-	 * One of these cases is that the NULL KEY for an unsecure zone
-	 * may occur in the delegating zone instead of in the delegated zone.
-	 * If we're authoritative for both zones, we need to look for the
-	 * key in the delegator if we didn't find it in the delegatee.  If
-	 * we didn't do this, a client doing DNSSEC validation could fail
-	 * because it couldn't get the NULL KEY.
-	 */
-	if (type == dns_rdatatype_key &&
-	    is_zone &&
-	    result == DNS_R_NXRRSET &&
-	    !dns_db_issecure(db) &&
-	    dns_name_equal(client->query.qname, dns_db_origin(db))) {
-		/*
-		 * We're looking for a KEY at the top of an unsecure zone,
-		 * and we didn't find it.
-		 */
-		result = query_findparentkey(client, client->query.qname,
-					     &zone, &db, &version, &node,
-					     rdataset, sigrdataset);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We found the parent KEY.
-			 *
-			 * zone, db, version, node, rdataset, and sigrdataset
-			 * have all been updated to refer to the parent's
-			 * data.  We will resume query processing as if
-			 * we had looked for the KEY in the parent zone in
-			 * the first place.
-			 *
-			 * We need to set fname correctly.  We do this here
-			 * instead of in query_findparentkey() because
-			 * dns_name_copy() can fail (though it shouldn't
-			 * ever do so since we should have enough space).
-			 */
-			result = dns_name_copy(client->query.qname,
-					       fname, NULL);
-			if (result != ISC_R_SUCCESS) {
-				QUERY_ERROR(DNS_R_SERVFAIL);
-				goto cleanup;
-			}
-		} else {
-			/*
-			 * We couldn't find the KEY in a parent zone.
-			 * Continue with processing of the original
-			 * results of dns_db_find().
-			 */
-			result = DNS_R_NXRRSET;
-		}
-	}
 
  resume:
 	CTRACE("query_find: resume");
@@ -2730,6 +2650,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 					       &rdataset, sigrdatasetp,
 					       dbuf, DNS_SECTION_AUTHORITY);
 				client->query.gluedb = NULL;
+				if (WANTDNSSEC(client) && dns_db_issecure(db))
+					query_addds(client, db, node);
 			} else {
 				/*
 				 * We might have a better answer or delegation
@@ -2789,6 +2711,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				/*
 				 * Recurse!
 				 */
+				/* XXXBEW look at this? */
 				if (type == dns_rdatatype_key)
 					result = query_recurse(client, qtype,
 							       NULL, NULL);
@@ -2826,6 +2749,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				client->query.gluedb = NULL;
 				client->query.attributes &=
 					~NS_QUERYATTR_CACHEGLUEOK;
+				if (WANTDNSSEC(client) &&
+				    !dns_rdataset_isassociated(sigrdataset))
+					query_addds(client, db, node);
 			}
 		}
 		goto cleanup;
@@ -2857,8 +2783,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		/*
 		 * Add NXT record if we found one.
 		 */
-		if (dns_rdataset_isassociated(rdataset)) {
-			if (WANTDNSSEC(client))
+		if (WANTDNSSEC(client)) {
+			if (dns_rdataset_isassociated(rdataset))
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);

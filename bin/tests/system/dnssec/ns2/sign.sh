@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.19 2002/02/20 03:33:55 marka Exp $
+# $Id: sign.sh,v 1.20 2002/06/17 04:01:14 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,29 +26,21 @@ zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
-
-# Have the child generate a zone key and pass it to us,
-# sign it, and pass it back
+# Have the child generate a zone key and pass it to us.
 
 ( cd ../ns3 && sh sign.sh )
 
 for subdomain in secure bogus dynamic
 do
 	cp ../ns3/keyset-$subdomain.example. .
-
-	$KEYSIGNER -r $RANDFILE keyset-$subdomain.example. $keyname > /dev/null
-
-	# This will leave two copies of the child's zone key in the signed db file;
-	# that shouldn't cause any problems.
-	cat signedkey-$subdomain.example. >>../ns3/$subdomain.example.db.signed
 done
 
-$KEYSETTOOL -r $RANDFILE -t 3600 $keyname > /dev/null
+keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname2=`$KEYGEN -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
-cat $infile $keyname.key >$zonefile
+cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -r $RANDFILE -o $zone $zonefile > /dev/null
+$SIGNER -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 
 # Sign the privately secure file
 

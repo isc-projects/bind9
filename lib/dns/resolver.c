@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.242 2002/05/27 06:30:24 marka Exp $ */
+/* $Id: resolver.c,v 1.243 2002/06/17 04:01:24 marka Exp $ */
 
 #include <config.h>
 
@@ -2198,7 +2198,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 * nameservers, and we're not in forward-only mode,
 			 * so find the best nameservers to use.
 			 */
-			if (type == dns_rdatatype_key)
+			if (dns_rdatatype_atparent(type))
 				findoptions |= DNS_DBFIND_NOEXACT;
 			dns_fixedname_init(&qdomain);
 			result = dns_view_findzonecut(res->view, name,
@@ -3478,7 +3478,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *qname, *ns_name, *soa_name;
+	dns_name_t *name, *qname, *ns_name, *soa_name, *ds_name;
 	dns_rdataset_t *rdataset, *ns_rdataset;
 	isc_boolean_t done, aa, negative_response;
 	dns_rdatatype_t type;
@@ -3543,6 +3543,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	ns_name = NULL;
 	ns_rdataset = NULL;
 	soa_name = NULL;
+	ds_name = NULL;
 	result = dns_message_firstname(message, section);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
@@ -3591,11 +3592,22 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							return (DNS_R_FORMERR);
 						soa_name = name;
 					}
-					negative_response = ISC_TRUE;
-					name->attributes |=
-						DNS_NAMEATTR_NCACHE;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_NCACHE;
+					/*
+					 * This is wrong, but maybe it'll
+					 * work for now.
+					 */
+					if (ns_name == NULL) {
+						negative_response = ISC_TRUE;
+						name->attributes |=
+							DNS_NAMEATTR_NCACHE;
+						rdataset->attributes |=
+							DNS_RDATASETATTR_NCACHE;
+					} else {
+						name->attributes |=
+							DNS_NAMEATTR_CACHE;
+						rdataset->attributes |=
+							DNS_RDATASETATTR_CACHE;
+					}
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
@@ -3606,6 +3618,33 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 * No additional data needs to be
 					 * marked.
 					 */
+				} else if (type == dns_rdatatype_ds) {
+					/*
+					 * DS or SIG DS.
+					 *
+					 * These should only be here if
+					 * this is a referral, and there
+					 * should only be one DS.
+					 */
+					if (negative_response)
+						return (DNS_R_FORMERR);
+					if (rdataset->type ==
+					    dns_rdatatype_ds) {
+						if (ds_name != NULL &&
+						    name != ds_name)
+							return (DNS_R_FORMERR);
+						ds_name = name;
+					}
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+					if (aa)
+						rdataset->trust =
+						    dns_trust_authauthority;
+					else
+						rdataset->trust =
+							dns_trust_additional;
 				}
 			}
 		}
@@ -4112,6 +4151,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_time_t tnow, *finish;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int options;
+	unsigned int findoptions;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
@@ -4548,10 +4588,14 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
+			findoptions = 0;
+			if (dns_rdatatype_atparent(fctx->type))
+				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(fctx->res->view,
 						      &fctx->domain,
 						      fname,
-						      now, 0, ISC_TRUE,
+						      now, findoptions,
+						      ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {

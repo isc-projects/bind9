@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.175 2002/05/28 05:49:20 marka Exp $ */
+/* $Id: rbtdb.c,v 1.176 2002/06/17 04:01:20 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1839,7 +1839,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 */
 		if (node->find_callback &&
 		    (node != search.rbtdb->origin_node ||
-		     IS_STUB(search.rbtdb)))
+		     IS_STUB(search.rbtdb)) &&
+		    !dns_rdatatype_atparent(type))
 			maybe_zonecut = ISC_TRUE;
 	}
 

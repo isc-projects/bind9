@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.129 2002/03/07 06:29:36 marka Exp $
+# $Id: Makefile.in,v 1.130 2002/06/17 04:01:17 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -46,7 +46,7 @@ DSTOBJS =	sec/dst/dst_api.@O@ \
 OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
-		dnssec.@O@ forward.@O@ journal.@O@ keytable.@O@ \
+		dnssec.@O@ ds.@O@ forward.@O@ journal.@O@ keytable.@O@ \
 		lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nxt.@O@ order.@O@ peer.@O@ \
@@ -62,7 +62,7 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 SRCS =		a6.c acl.c adb.c byaddr.c \
 		cache.c callbacks.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
-		dnssec.c forward.c journal.c keytable.c \
+		dnssec.c ds.c forward.c journal.c keytable.c \
 		lib.c log.c lookup.c \
 		master.c masterdump.c message.c \
 		name.c ncache.c nxt.c order.c peer.c \

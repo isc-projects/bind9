@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.98 2002/03/14 18:34:44 bwelling Exp $ */
+/* $Id: result.c,v 1.99 2002/06/17 04:01:25 marka Exp $ */
 
 #include <config.h>
 
@@ -125,7 +125,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"obsolete",			       /* 80 DNS_R_OBSOLETE	     */
 	"already frozen",		       /* 81 DNS_R_FROZEN	     */
 	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
-	"expected a response"		       /* 83 DNS_R_EXPECTEDRESPONSE  */
+	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
+	"no valid DS"			       /* 84 DNS_R_NOVALIDDS	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

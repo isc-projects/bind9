@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.23 2001/08/01 19:00:58 gson Exp $
+# $Id: conf.sh.in,v 1.24 2002/06/17 04:01:10 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -37,8 +37,6 @@ RNDC=$TOP/bin/rndc/rndc
 NSUPDATE=$TOP/bin/nsupdate/nsupdate
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
-KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
-KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
