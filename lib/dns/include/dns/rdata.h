@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.42 2000/10/19 05:50:54 marka Exp $ */
+/* $Id: rdata.h,v 1.43 2000/10/20 13:22:36 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -151,6 +151,16 @@ dns_rdata_init(dns_rdata_t *rdata);
  *
  * Requires:
  *	'rdata' is a valid rdata (i.e. not NULL, points to a struct dns_rdata)
+ */
+
+void
+dns_rdata_clone(dns_rdata_t *src, dns_rdata_t *target);
+/*
+ * Clone 'target' from 'src'.
+ *
+ * Requires:
+ *	'src' to be initalised.
+ *	'target' to be initalised.
  */
 
 /***
