@@ -2040,16 +2040,16 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	(void)task;
 	QTRACE("response");
 
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		goto done;
-
 	(void)isc_timer_touch(fctx->timer);
 
 	keep_trying = ISC_FALSE;
 	broken_server = ISC_FALSE;
 	get_nameservers = ISC_FALSE;
 	covers = 0;
+
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		goto done;
 
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;
