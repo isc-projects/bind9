@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.269 2000/12/05 00:47:42 bwelling Exp $ */
+/* $Id: zone.c,v 1.270 2000/12/05 20:02:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3649,7 +3649,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		return;
 
 	switch (zone->type) {
