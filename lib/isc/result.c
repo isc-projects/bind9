@@ -57,12 +57,12 @@ static char *text[ISC_R_NRESULTS] = {
 	"not enough free resources",		/* 13 */
 	"end of file",				/* 14 */
 	"socket already bound",			/* 15 */
-	"task is done",				/* 16 */
+	"<available code 16>",			/* 16 */
 	"lock busy",				/* 17 */
 	"already exists",			/* 18 */
 	"ran out of space",			/* 19 */
 	"operation canceled",			/* 20 */
-	"sending events is not allowed",	/* 21 */
+	"<available code 21>",			/* 21 */
 	"shutting down",			/* 22 */
 	"not found",				/* 23 */
 	"unexpected end of input",		/* 24 */
