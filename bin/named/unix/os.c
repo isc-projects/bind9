@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.58 2002/05/03 05:28:25 marka Exp $ */
+/* $Id: os.c,v 1.59 2002/07/03 05:09:43 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -132,6 +132,9 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 #endif /* HAVE_SYS_PRCTL_H */
 
 #ifndef SYS_capset
+#ifndef __NR_capset
+#include <asm/unistd.h> /* Slackware 4.0 needs this. */
+#endif
 #define SYS_capset __NR_capset
 #endif
 

@@ -1,3 +1,5 @@
+1341.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>.
+
 1342.	[bug]		dnssec-signzone usage message was misleading.
 
 1341.	[bug]		If the last RRset in a zone is glue, dnssec-signzone
