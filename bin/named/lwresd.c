@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.25 2000/11/04 01:11:27 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.26 2000/11/15 23:56:21 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -45,6 +45,7 @@
 
 #include <named/globals.h>
 #include <named/log.h>
+#include <named/lwaddr.h>
 #include <named/lwresd.h>
 #include <named/lwdclient.h>
 #include <named/lwsearch.h>
@@ -89,6 +90,70 @@ ns__lwresd_memfree(void *arg, void *mem, size_t size) {
 }
 
 
+#define CHECK(op)						\
+	do { result = (op);					\
+		if (result != ISC_R_SUCCESS) goto cleanup;	\
+	} while (0)
+
+static isc_result_t
+parse_sortlist(lwres_conf_t *lwc, isc_mem_t *mctx,
+	       dns_c_ipmatchlist_t **sortlist)
+{
+	dns_c_ipmatchlist_t *inner = NULL, *middle = NULL, *outer = NULL;
+	dns_c_ipmatchelement_t *element = NULL;
+	int i;
+	isc_result_t result;
+
+	REQUIRE(sortlist != NULL && *sortlist == NULL);
+
+	REQUIRE (lwc->sortlistnxt > 0);
+
+	CHECK(dns_c_ipmatchlist_new(mctx, &middle));
+
+	CHECK(dns_c_ipmatchany_new(mctx, &element));
+	ISC_LIST_APPEND(middle->elements, element, next);
+	element = NULL;
+
+	CHECK(dns_c_ipmatchlist_new(mctx, &inner));
+	for (i = 0; i < lwc->sortlistnxt; i++) {
+		isc_sockaddr_t sa;
+		isc_netaddr_t ma;
+		unsigned int mask;
+
+		CHECK(lwaddr_sockaddr_fromlwresaddr(&sa,
+						    &lwc->sortlist[i].addr,
+						    0));
+		CHECK(lwaddr_netaddr_fromlwresaddr(&ma,
+						   &lwc->sortlist[i].mask));
+		CHECK(isc_netaddr_masktoprefixlen(&ma, &mask));
+		CHECK(dns_c_ipmatchpattern_new(mctx, &element, sa, mask));
+		ISC_LIST_APPEND(inner->elements, element, next);
+		element = NULL;
+	}
+
+	CHECK(dns_c_ipmatchindirect_new(mctx, &element, inner, NULL));
+	dns_c_ipmatchlist_detach(&inner);
+	ISC_LIST_APPEND(middle->elements, element, next);
+	element = NULL;
+
+	CHECK(dns_c_ipmatchlist_new(mctx, &outer));
+	CHECK(dns_c_ipmatchindirect_new(mctx, &element, middle, NULL));
+	dns_c_ipmatchlist_detach(&middle);
+	ISC_LIST_APPEND(outer->elements, element, next);
+
+	*sortlist = outer;
+
+	return (ISC_R_SUCCESS);
+ cleanup:
+	if (inner != NULL)
+		dns_c_ipmatchlist_detach(&inner);
+	if (outer != NULL)
+		dns_c_ipmatchlist_detach(&outer);
+	if (element != NULL)
+		dns_c_ipmatchelement_delete(mctx, &element);
+	return (result);
+}
+
 /*
  * Convert a resolv.conf file into a config structure.
  */
@@ -106,24 +171,27 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	dns_c_lwres_t *lwres = NULL;
 	dns_c_search_t *search = NULL;
 	dns_c_searchlist_t *searchlist = NULL;
+	dns_c_ipmatchlist_t *sortlist = NULL;
 	isc_result_t result;
 	lwres_result_t lwresult;
 	struct in_addr localhost;
 
-	result = dns_c_ctx_new(mctx, &ctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_ctx_new(mctx, &ctx));
 	
 	lwctx = NULL;
 	lwresult = lwres_context_create(&lwctx, mctx, ns__lwresd_memalloc,
 					ns__lwresd_memfree,
 					LWRES_CONTEXT_SERVERMODE);
-	if (lwresult != LWRES_R_SUCCESS)
+	if (lwresult != LWRES_R_SUCCESS) {
+		result = ISC_R_NOMEMORY;
 		goto cleanup;
+	}
 
 	lwresult = lwres_conf_parse(lwctx, lwresd_g_resolvconffile);
-	if (lwresult != LWRES_R_SUCCESS)
+	if (lwresult != LWRES_R_SUCCESS) {
+		result = DNS_R_SYNTAX;
 		goto cleanup;
+	}
 
 	lwc = lwres_conf_get(lwctx);
 	INSIST(lwc != NULL);
@@ -132,9 +200,7 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	 * Build the list of forwarders.
 	 */
 	if (lwc->nsnext > 0) {
-		result = dns_c_iplist_new(mctx, lwc->nsnext, &forwarders);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(dns_c_iplist_new(mctx, lwc->nsnext, &forwarders));
 
 		if (ns_g_port != 0)
 			port = ns_g_port;
@@ -142,39 +208,24 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 			port = 53;
 
 		for (i = 0 ; i < lwc->nsnext ; i++) {
-			if (lwc->nameservers[i].family != LWRES_ADDRTYPE_V4 &&
-			    lwc->nameservers[i].family != LWRES_ADDRTYPE_V6)
-				continue;
-	
-			if (lwc->nameservers[i].family == LWRES_ADDRTYPE_V4) {
-				struct in_addr ina;
-				memcpy(&ina.s_addr,
-				       lwc->nameservers[i].address, 4);
-				isc_sockaddr_fromin(&sa, &ina, port);
-			} else {
-				struct in6_addr ina6;
-				memcpy(&ina6.s6_addr,
-				       lwc->nameservers[i].address, 16);
-				isc_sockaddr_fromin6(&sa, &ina6, port);
-			}
-#ifndef NOMINUM_PUBLIC
-			result = dns_c_iplist_append(forwarders, sa, NULL);
-#else /* NOMINUM_PUBLIC */
-			result = dns_c_iplist_append(forwarders, sa);
-#endif /* NOMINUM_PUBLIC */
+			CHECK(lwaddr_sockaddr_fromlwresaddr(
+							&sa,
+							&lwc->nameservers[i],
+							port));
 			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+				continue;
+#ifndef NOMINUM_PUBLIC
+			CHECK(dns_c_iplist_append(forwarders, sa, NULL));
+#else /* NOMINUM_PUBLIC */
+			CHECK(dns_c_iplist_append(forwarders, sa));
+#endif /* NOMINUM_PUBLIC */
 		}
 	
 		if (forwarders->nextidx != 0) {
-			result = dns_c_ctx_setforwarders(ctx, ISC_FALSE,
-							 forwarders);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			CHECK(dns_c_ctx_setforwarders(ctx, ISC_FALSE,
+						      forwarders));
 			forwarders = NULL;
-			result = dns_c_ctx_setforward(ctx, dns_c_forw_first);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			CHECK(dns_c_ctx_setforward(ctx, dns_c_forw_first));
 		}
 	}
 
@@ -182,26 +233,25 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	 * Build the search path
 	 */
 	if (lwc->searchnxt > 0) {
-		result = dns_c_searchlist_new(mctx, &searchlist);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		CHECK(dns_c_searchlist_new(mctx, &searchlist));
 		for (i = 0; i < lwc->searchnxt; i++) {
 			search = NULL;
-			result = dns_c_search_new(mctx, lwc->search[i],
-						  &search);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			CHECK(dns_c_search_new(mctx, lwc->search[i], &search));
 			dns_c_searchlist_append(searchlist, search);
 		}
 	}
 
-	result = dns_c_lwreslist_new(mctx, &lwreslist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	/*
+	 * Build the sortlist
+	 */
+	if (lwc->sortlistnxt > 0) {
+		CHECK(parse_sortlist(lwc, mctx, &sortlist));
+		CHECK(dns_c_ctx_setsortlist(ctx, sortlist));
+		dns_c_ipmatchlist_detach(&sortlist);
+	}
 
-	result = dns_c_lwres_new(mctx, &lwres);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_lwreslist_new(mctx, &lwreslist));
+	CHECK(dns_c_lwres_new(mctx, &lwres));
 
 	port = lwresd_g_listenport;
 	if (port == 0)
@@ -211,57 +261,29 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 		localhost.s_addr = htonl(INADDR_LOOPBACK);
 		isc_sockaddr_fromin(&sa, &localhost, port);
 	} else {
-		if (lwc->lwservers[0].family != LWRES_ADDRTYPE_V4 &&
-		    lwc->lwservers[0].family != LWRES_ADDRTYPE_V6)
-		{
-			result = ISC_R_FAMILYNOSUPPORT;
-			goto cleanup;
-		}
-
-		if (lwc->lwservers[0].family == LWRES_ADDRTYPE_V4) {
-			struct in_addr ina;
-			memcpy(&ina.s_addr, lwc->lwservers[0].address, 4);
-			isc_sockaddr_fromin(&sa, &ina, port);
-		} else {
-			struct in6_addr ina6;
-			memcpy(&ina6.s6_addr, lwc->lwservers[0].address, 16);
-			isc_sockaddr_fromin6(&sa, &ina6, port);
-		}
+		CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, &lwc->lwservers[0],
+						    port));
 	}
 
-	result = dns_c_iplist_new(mctx, 1, &locallist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_iplist_new(mctx, 1, &locallist));
 #ifndef NOMINUM_PUBLIC
-	result = dns_c_iplist_append(locallist, sa, NULL);
+	CHECK(dns_c_iplist_append(locallist, sa, NULL));
 #else /* NOMINUM_PUBLIC */
-	result = dns_c_iplist_append(locallist, sa);
+	CHECK(dns_c_iplist_append(locallist, sa));
 #endif /* NOMINUM_PUBLIC */
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 
-	result = dns_c_lwres_setlistenon(lwres, locallist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_lwres_setlistenon(lwres, locallist));
 	dns_c_iplist_detach(&locallist);
 
-	result = dns_c_lwres_setsearchlist(lwres, searchlist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_lwres_setsearchlist(lwres, searchlist));
 	searchlist = NULL;
 
-	result = dns_c_lwres_setndots(lwres, lwc->ndots);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_lwres_setndots(lwres, lwc->ndots));
 
-	result = dns_c_lwreslist_append(lwreslist, lwres);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_lwreslist_append(lwreslist, lwres));
 	lwres = NULL;
 
-	result = dns_c_ctx_setlwres(ctx, lwreslist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_c_ctx_setlwres(ctx, lwreslist));
 	lwreslist = NULL;
 
 	*ctxp = ctx;
@@ -276,6 +298,8 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 			dns_c_iplist_detach(&locallist);
 		if (searchlist != NULL)
 			dns_c_searchlist_delete(&searchlist);
+		if (sortlist != NULL)
+			dns_c_ipmatchlist_detach(&sortlist);
 		if (lwres != NULL)
 			dns_c_lwres_delete(&lwres);
 		if (lwreslist != NULL)

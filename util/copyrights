@@ -41,6 +41,7 @@
 ./bin/named/include/named/listenlist.h		C	2000
 ./bin/named/include/named/log.h			C	1999,2000
 ./bin/named/include/named/logconf.h		C	1999,2000
+./bin/named/include/named/lwaddr.h		C	2000
 ./bin/named/include/named/lwdclient.h		C	2000
 ./bin/named/include/named/lwresd.h		C	2000
 ./bin/named/include/named/lwsearch.h		C	2000
@@ -57,6 +58,7 @@
 ./bin/named/listenlist.c			C	2000
 ./bin/named/log.c				C	1999,2000
 ./bin/named/logconf.c				C	1999,2000
+./bin/named/lwaddr.c				C	2000
 ./bin/named/lwdclient.c				C	2000
 ./bin/named/lwderror.c				C	2000
 ./bin/named/lwdgabn.c				C	2000

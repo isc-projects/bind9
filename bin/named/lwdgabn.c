@@ -15,10 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.9 2000/10/31 22:39:26 bwelling Exp $ */
+/* $Id: lwdgabn.c,v 1.10 2000/11/15 23:56:20 bwelling Exp $ */
 
 #include <config.h>
 
+#include <stdlib.h>
+
+#include <isc/netaddr.h>
+#include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
@@ -28,9 +32,11 @@
 #include <dns/result.h>
 
 #include <named/types.h>
+#include <named/lwaddr.h>
 #include <named/lwdclient.h>
 #include <named/lwresd.h>
 #include <named/lwsearch.h>
+#include <named/sortlist.h>
 
 #define NEED_V4(c)	((((c)->find_wanted & LWRES_ADDRTYPE_V4) != 0) \
 			 && ((c)->v4find == NULL))
@@ -65,8 +71,7 @@ setup_addresses(ns_lwdclient_t *client, dns_adbfind_t *find, unsigned int at) {
 	lwres_addr_t *addr;
 	int af;
 	const struct sockaddr *sa;
-	const struct sockaddr_in *sin;
-	const struct sockaddr_in6 *sin6;
+	isc_result_t result;
 
 	if (at == DNS_ADBFIND_INET)
 		af = AF_INET;
@@ -81,22 +86,9 @@ setup_addresses(ns_lwdclient_t *client, dns_adbfind_t *find, unsigned int at) {
 
 		addr = &client->addrs[client->gabn.naddrs];
 
-		switch (sa->sa_family) {
-		case AF_INET:
-			sin = &ai->sockaddr.type.sin;
-			addr->family = LWRES_ADDRTYPE_V4;
-			memcpy(addr->address, &sin->sin_addr, 4);
-			addr->length = 4;
-			break;
-		case AF_INET6:
-			sin6 = &ai->sockaddr.type.sin6;
-			addr->family = LWRES_ADDRTYPE_V6;
-			memcpy(addr->address, &sin6->sin6_addr, 16);
-			addr->length = 16;
-			break;
-		default:
+		result = lwaddr_lwresaddr_fromsockaddr(addr, &ai->sockaddr);
+		if (result != ISC_R_SUCCESS)
 			goto next;
-		}
 
 		ns_lwdclient_log(50, "adding address %p, family %d, length %d",
 				 addr->address, addr->family, addr->length);
@@ -108,6 +100,62 @@ setup_addresses(ns_lwdclient_t *client, dns_adbfind_t *find, unsigned int at) {
 	next:
 		ai = ISC_LIST_NEXT(ai, publink);
 	}
+}
+
+typedef struct {
+	isc_netaddr_t address;
+	int rank;
+} rankedaddress;
+
+static int
+addr_compare(const void *av, const void *bv) {
+	const rankedaddress *a = (const rankedaddress *) av;
+	const rankedaddress *b = (const rankedaddress *) bv;
+	return (a->rank - b->rank);
+}
+
+static void
+sort_addresses(ns_lwdclient_t *client) {
+	unsigned int naddrs;
+	rankedaddress *addrs;
+	isc_netaddr_t remote;
+	dns_addressorderfunc_t order;
+	void *arg;
+	ns_lwresd_t *lwresd = client->clientmgr->listener->manager;
+	unsigned int i;
+	isc_result_t result;
+
+	naddrs = client->gabn.naddrs;
+
+	if (naddrs <= 1 || lwresd->view->sortlist == NULL)
+		return;
+
+	addrs = isc_mem_get(lwresd->mctx, sizeof(rankedaddress) * naddrs);
+	if (addrs == NULL)
+		return;
+
+	isc_netaddr_fromsockaddr(&remote, &client->address);
+	ns_sortlist_byaddrsetup(lwresd->view->sortlist,
+				&remote, &order, &arg);
+	if (order == NULL) {
+		isc_mem_put(lwresd->mctx, addrs,
+			    sizeof(rankedaddress) * naddrs);
+		return;
+	}
+	for (i = 0; i < naddrs; i++) {
+		result = lwaddr_netaddr_fromlwresaddr(&addrs[i].address,
+						      &client->addrs[i]);
+		INSIST(result == ISC_R_SUCCESS);
+		addrs[i].rank = (*order)(&addrs[i].address, arg);
+	}
+	qsort(addrs, naddrs, sizeof(rankedaddress), addr_compare);
+	for (i = 0; i < naddrs; i++) {
+		result = lwaddr_lwresaddr_fromnetaddr(&client->addrs[i],
+						      &addrs[i].address);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+
+	isc_mem_put(lwresd->mctx, addrs, sizeof(rankedaddress) * naddrs);
 }
 
 static void
@@ -175,15 +223,14 @@ generate_reply(ns_lwdclient_t *client) {
 	client->pkt.authlength = 0;
 
 	/*
-	 * If there are no addresses, return incomplete or failure , depending
-	 * on whether or not there are aliases.
+	 * If there are no addresses, return failure.
 	 */
 	if (client->gabn.naddrs != 0)
 		client->pkt.result = LWRES_R_SUCCESS;
-	else if (client->gabn.naliases != 0)
-		client->pkt.result = LWRES_R_INCOMPLETE;
 	else
 		client->pkt.result = LWRES_R_NOTFOUND;
+
+	sort_addresses(client);
 
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
 					  &client->pkt, &lwb);
