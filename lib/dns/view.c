@@ -360,15 +360,13 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 
 void
 dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
-
 	/*
-	 * Set the view's static TSIG keyring
+	 * Set the view's static TSIG keyring.
 	 */
-
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->statickeys == NULL);
 	REQUIRE(ring != NULL);
-
+	if (view->statickeys != NULL)
+		dns_tsig_destroy(&view->statickeys);
 	view->statickeys = ring;
 }
 
