@@ -25,10 +25,12 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		condition.@O@ dir.@O@ once.@O@ stdtime.@O@ thread.@O@ time.@O@
+OBJS =		condition.@O@ dir.@O@ file.@O@ once.@O@ stdtime.@O@ \
+		thread.@O@ time.@O@
 
 # Alphabetically
-SRCS =		condition.c dir.c once.c stdtime.c thread.c time.c
+SRCS =		condition.c dir.c file.c once.c stdtime.c \
+		thread.c time.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

@@ -30,17 +30,18 @@ CWARNINGS =
 
 # Alphabetically
 UNIXOBJS =	@ISC_ISCIPV6_O@ \
-		unix/app.@O@ unix/dir.@O@ unix/interfaceiter.@O@ \
-		unix/mktemplate.@O@ unix/net.@O@ unix/socket.@O@ \
-		unix/time.@O@ unix/stdtime.@O@ unix/ufile.@O@
+		unix/app.@O@ unix/dir.@O@ unix/file.@O@ \
+		unix/interfaceiter.@O@ unix/net.@O@ unix/socket.@O@ \
+		unix/time.@O@ unix/stdtime.@O@
 
 
 NLSOBJS =	nls/msgcat.@O@
 
 PTHREADOBJS =	pthreads/condition.@O@ pthreads/thread.@O@
 
-WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/once.@O@ \
-		win32/stdtime.@O@ win32/thread.@O@ win32/time.@O@
+WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
+		win32/once.@O@ win32/stdtime.@O@ win32/thread.@O@ \
+		win32/time.@O@
 
 # Alphabetically
 OBJS =		@ISC_EXTRA_OBJS@ \
