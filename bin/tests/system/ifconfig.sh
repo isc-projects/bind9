@@ -23,10 +23,10 @@ do
 		ifconfig lo0:$ns 10.53.0.$ns up
 		;;
 	    lo)
-		ifconfig lo:$ns 10.50.0.$ns up
+		ifconfig lo:$ns 10.53.0.$ns up
 		;;
 	    alias)
-		ifconfig lo0 10.50.0.$ns alias
+		ifconfig lo0 10.53.0.$ns alias
 		;;
             *)
 		echo "Don't know how to set up interface.  Giving up."

@@ -10,17 +10,14 @@ keyname=`$KEYGEN -a RSA -b 768 -n zone $zone`
 
 cp ../ns2/example.keyset .
 
-echo $KEYSIGNER example.keyset $keyname
 $KEYSIGNER example.keyset $keyname
 
 cat example.signedkey >> ../ns2/example.db.signed
 
-echo $KEYSETTOOL $keyname
-$KEYSETTOOL $keyname
+$KEYSETTOOL -t 3600 $keyname
 
 cat $infile $keyname.key > $zonefile
 
-echo $SIGNER -o $zone $zonefile
 $SIGNER -o $zone $zonefile
 
 # Configure the resolving server with a trusted key.
