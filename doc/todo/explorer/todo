@@ -1,4 +1,4 @@
-$Id: todo,v 1.9 2000/09/06 22:04:16 explorer Exp $
+$Id: todo,v 1.10 2000/09/06 22:55:08 explorer Exp $
 
 Document {min,max}-{refresh,retry}-time
 
@@ -15,7 +15,7 @@ max-retry-time
 
 	These options allow the administrator to set a minimum and maximum
 	refresh and retry time either per-zone, per-view, or per-server.
-	These options are valid for all types of zones, and clamp the SOA
+	These options are valid for slave and stub zones, and clamp the SOA
 	refresh and retry times to the specified values.
 
 ----------------------------------------------------------------------
