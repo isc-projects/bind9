@@ -63,7 +63,9 @@ static char root_ns[] =
 "M.ROOT-SERVERS.NET.     3600000 IN      A       202.12.27.33\n";
 
 isc_result_t
-dns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
+dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
+		  const char *filename, dns_db_t **target)
+{
 	isc_result_t result, eresult;
 	isc_buffer_t source;
 	size_t len;
@@ -74,7 +76,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_FALSE,
-			       dns_rdataclass_in, 0, NULL, &db);
+			       rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -88,11 +90,26 @@ dns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
 				  &callbacks.add_private);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadbuffer(&source, &db->origin,
-				       &db->origin,
-				       db->rdclass, ISC_FALSE,
-				       &soacount, &nscount, &callbacks,
-				       db->mctx);
+	if (filename != NULL) {
+		/*
+		 * Load the hints from the specified filename.
+		 */
+		result = dns_master_loadfile(filename, &db->origin,
+					       &db->origin,
+					       db->rdclass, ISC_FALSE,
+					       &soacount, &nscount, &callbacks,
+					       db->mctx);
+	} else if (rdclass == dns_rdataclass_in) {
+		/*
+		 * Default to using the Internet root servers.
+		 */
+		result = dns_master_loadbuffer(&source, &db->origin,
+					       &db->origin,
+					       db->rdclass, ISC_FALSE,
+					       &soacount, &nscount, &callbacks,
+					       db->mctx);
+	} else
+		result = DNS_R_NOTFOUND;
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
