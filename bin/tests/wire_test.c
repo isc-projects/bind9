@@ -98,6 +98,8 @@ main(int argc, char *argv[]) {
 		wp = s;
 		len = 0;
 		while (*rp != '\0') {
+			if (*rp == '#')
+				break;
 			if (*rp != ' ' && *rp != '\t' &&
 			    *rp != '\r' && *rp != '\n') {
 				*wp++ = *rp;
