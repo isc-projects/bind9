@@ -26,6 +26,12 @@ one of the following lines to the named.conf options { } block:
    auth-nxdomain no;	# conform to RFC1035
    auth-nxdomain yes;	# do what BIND 8 did by default
 
+The default of the "transfer-format" option has changed from
+"one-answer" to "many-answers".  If you have slave servers that do not
+understand the many-answers zone transfer format (e.g., BIND 4.9.5 or
+older) you need to explicitly specify "transfer-format one-answer;" in
+either the options block or a server statement.
+
 1.2. Handling of Configuration File Errors
 
 In BIND 9, named refuses to start if it detects an error in
@@ -209,4 +215,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.17.2.5 2001/03/11 18:39:53 bwelling Exp $
+$Id: migration,v 1.17.2.6 2001/03/19 18:07:45 gson Exp $
