@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.166 2001/10/15 18:20:22 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.167 2001/10/16 20:04:40 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2913,9 +2913,11 @@ the default is <filename>named.memstats</filename>.</para>
 <listitem><para>The pathname of the file the server writes its process ID
 in. If not specified, the default is <filename>/var/run/named.pid</filename>.
 The pid-file is used by programs that want to send signals to the running
-nameserver. If the the <command>pid-file</command> is the keyword
-<userinput>"none"</userinput> then no file will be written and any
-existing one will be removed.</para>
+nameserver. Specifying <command>pid-file none;</command> disables the
+use of a PID file &mdash; no file will be written and any
+existing one will be removed.  Note that <command>none</command>
+is a keyword, not a file name, and therefore is not enclosed in
+double quotes.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>statistics-file</command></term>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.349 2001/10/08 07:46:06 marka Exp $ */
+/* $Id: server.c,v 1.350 2001/10/16 20:04:36 gson Exp $ */
 
 #include <config.h>
 
@@ -2138,7 +2138,10 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	obj = NULL;
 	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		ns_os_writepidfile(cfg_obj_asstring(obj));
+		if (cfg_obj_isvoid(obj))
+			ns_os_writepidfile(NULL);
+		else
+			ns_os_writepidfile(cfg_obj_asstring(obj));
 	else if (ns_g_lwresdonly)
 		ns_os_writepidfile(lwresd_g_defaultpidfile);
 	else

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.79 2001/10/12 22:00:31 gson Exp $ */
+/* $Id: parser.c,v 1.80 2001/10/16 20:04:41 gson Exp $ */
 
 #include <config.h>
 
@@ -270,6 +270,9 @@ free_list(cfg_parser_t *pctx, cfg_obj_t *obj);
 static isc_result_t
 create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
 	      cfg_obj_t **ret);
+
+static isc_result_t
+parse_qstring(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
 static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
@@ -776,6 +779,41 @@ static cfg_type_t cfg_type_transferformat = {
 };
 
 /*
+ * The special keyword "none", as used in the pid-file option.
+ */
+
+static void
+print_none(cfg_printer_t *pctx, cfg_obj_t *obj) {
+	UNUSED(obj);
+	print(pctx, "none", 4);
+}
+
+static cfg_type_t cfg_type_none = {
+	"none", NULL, print_none, &cfg_rep_void, NULL
+};
+
+/*
+ * A quoted string or the special keyword "none".  Used in the pid-file option.
+ */
+static isc_result_t
+parse_qstringornone(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
+	isc_result_t result;
+	CHECK(cfg_gettoken(pctx, QSTRING));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(pctx->token.value.as_pointer, "none") == 0)
+		return (create_cfgobj(pctx, &cfg_type_none, ret));
+	cfg_ungettoken(pctx);
+	return (parse_qstring(pctx, type, ret));
+ cleanup:
+	return (result);
+}
+
+static cfg_type_t cfg_type_qstringornone = {
+	"qstringornone", parse_qstringornone, NULL, NULL, NULL };
+
+/*
  * Clauses that can be found within the top level of the named.conf
  * file only.
  */
@@ -828,7 +866,7 @@ options_clauses[] = {
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "pid-file", &cfg_type_qstring, 0 },
+	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
