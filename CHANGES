@@ -1,3 +1,6 @@
+1778.   [port]   	HUX 11.11: fix broken IN6ADDR_ANY_INIT and
+			IN6ADDR_LOOPBACK_INIT macros.
+
 1777.   [port]   	OSF 5.1: fix broken IN6ADDR_ANY_INIT and
 			IN6ADDR_LOOPBACK_INIT macros.
 
