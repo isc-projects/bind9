@@ -130,7 +130,8 @@
 
 1538.	[placeholder]	rt9997
 
-1537.	[placeholder]	rt9989
+1537.	[func]		New option "querylog".  If set specify whether query
+			logging	is to be enabled or disabled at startup.
 
 1536.	[bug]		Windows socket code failed to log a error description
 			when returning ISC_R_UNEXPECTED. [RT #9998]

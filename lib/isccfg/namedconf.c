@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.27 2004/02/27 20:41:51 marka Exp $ */
+/* $Id: namedconf.c,v 1.28 2004/03/02 01:15:00 marka Exp $ */
 
 #include <config.h>
 
@@ -596,6 +596,7 @@ options_clauses[] = {
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
+	{ "querylog", &cfg_type_boolean, 0 },
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },

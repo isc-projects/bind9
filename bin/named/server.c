@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.414 2004/02/27 20:41:42 marka Exp $ */
+/* $Id: server.c,v 1.415 2004/03/02 01:14:59 marka Exp $ */
 
 #include <config.h>
 
@@ -2499,23 +2499,31 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (first_time) {
 		cfg_obj_t *logobj = NULL;
 		cfg_obj_t *categories = NULL;
-		(void)cfg_map_get(config, "logging", &logobj);
-		if (logobj != NULL)
-			(void)cfg_map_get(logobj, "category", &categories);
-		if (categories != NULL) {
-			cfg_listelt_t *element;
-			for (element = cfg_list_first(categories);
-			     element != NULL;
-			     element = cfg_list_next(element))
-			{
-				cfg_obj_t *catobj;
-				char *str;
 
-				obj = cfg_listelt_value(element);
-				catobj = cfg_tuple_get(obj, "name");
-				str = cfg_obj_asstring(catobj);
-				if (strcasecmp(str, "queries") == 0)
-					server->log_queries = ISC_TRUE;
+		obj = NULL;
+		if (ns_config_get(maps, "querylog", &obj) == ISC_R_SUCCESS) {
+			server->log_queries = cfg_obj_asboolean(obj);
+		} else {
+
+			(void)cfg_map_get(config, "logging", &logobj);
+			if (logobj != NULL)
+				(void)cfg_map_get(logobj, "category",
+						  &categories);
+			if (categories != NULL) {
+				cfg_listelt_t *element;
+				for (element = cfg_list_first(categories);
+				     element != NULL;
+				     element = cfg_list_next(element))
+				{
+					cfg_obj_t *catobj;
+					char *str;
+
+					obj = cfg_listelt_value(element);
+					catobj = cfg_tuple_get(obj, "name");
+					str = cfg_obj_asstring(catobj);
+					if (strcasecmp(str, "queries") == 0)
+						server->log_queries = ISC_TRUE;
+				}
 			}
 		}
 	}

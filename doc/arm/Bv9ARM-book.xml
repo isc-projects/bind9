@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.236 2004/02/27 05:10:41 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.237 2004/03/02 01:15:00 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2624,7 +2624,12 @@ the <command>null</command> channel.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>queries</command></para></entry>
-<entry colname = "2"><para>Queries. Using the category <command>queries</command> will enable query logging.</para></entry>
+<entry colname = "2"><para>Specify where queries should be logged to.</para>
+<para>
+At startup, specifing the category <command>queries</command> will also
+enable query logging unless <command>querylog</command> option has been
+specified.
+</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dispatch</command></para></entry>
@@ -2823,6 +2828,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
+    <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
 };
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
 </programlisting>
@@ -3336,6 +3342,14 @@ has.  The default is <userinput>no</userinput>.
 Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
 named behaves as if it does not support DNSSEC.
 The default is <userinput>no</userinput>.
+</para></listitem></varlistentry>
+
+<varlistentry><term><command>querylog</command></term>
+<listitem>
+<para>
+Specify whether query logging should be started when named start.
+If <command>querylog</command> is not specified then the query logging
+is determined by the presence of the logging category <command>queries<command>.
 </para></listitem></varlistentry>
 
 </variablelist>
