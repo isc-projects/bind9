@@ -577,7 +577,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 {
 	isc_result_t result;
 	dns_db_t *db;
-	isc_boolean_t is_zone;
+	isc_boolean_t is_cache;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone;
 
@@ -613,7 +613,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	else
 		goto cleanup;
 
-	is_zone = dns_db_iszone(db);
+	is_cache = dns_db_iscache(db);
 
  db_find:
 	/*
@@ -629,13 +629,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
-		if (is_zone) {
+		if (!is_cache) {
 			if (view->cachedb != NULL) {
 				/*
 				 * Either the answer is in the cache, or we
 				 * don't know it.
 				 */
-				is_zone = ISC_FALSE;
+				is_cache = ISC_TRUE;
 				dns_db_detach(&db);
 				dns_db_attach(view->cachedb, &db);
 				goto db_find;
@@ -665,7 +665,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			 * We found an answer, but the cache may be better.
 			 * Remember what we've got and go look in the cache.
 			 */
-			is_zone = ISC_FALSE;
+			is_cache = ISC_TRUE;
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
@@ -780,7 +780,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 {
 	isc_result_t result;
 	dns_db_t *db;
-	isc_boolean_t is_zone, use_zone, try_hints;
+	isc_boolean_t is_cache, use_zone, try_hints;
 	dns_zone_t *zone;
 	dns_name_t *zfname;
 	dns_rdataset_t zrdataset, zsigrdataset;
@@ -836,13 +836,13 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		 */
 		goto cleanup;
 	}
-	is_zone = dns_db_iszone(db);
+	is_cache = dns_db_iscache(db);
 
  db_find:
 	/*
 	 * Look for the zonecut.
 	 */
-	if (is_zone) {
+	if (!is_cache) {
 		result = dns_db_find(db, name, NULL, dns_rdatatype_ns, options,
 				     now, NULL, fname, rdataset, sigrdataset);
 		if (result == DNS_R_DELEGATION)
@@ -867,7 +867,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			}
 			dns_db_detach(&db);
 			dns_db_attach(view->cachedb, &db);
-			is_zone = ISC_FALSE;
+			is_cache = ISC_TRUE;
 			goto db_find;
 		}
 	} else {

@@ -334,7 +334,7 @@ main(int argc, char *argv[]) {
 	}
 
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", domain, ISC_FALSE,
+	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to create a database for %s", nametostr(domain));

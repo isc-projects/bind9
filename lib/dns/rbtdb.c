@@ -268,6 +268,8 @@ typedef struct rbtdb_dbiterator {
 } rbtdb_dbiterator_t;
 
 
+#define IS_STUB(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_STUB) != 0)
+
 /*
  * Locking
  *
@@ -1048,7 +1050,8 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					 */
 					found = header;
 					break;
-				} else if (node != onode) {
+				} else if (node != onode ||
+					   IS_STUB(search->rbtdb)) {
 					/*
 					 * We've found an NS rdataset that
 					 * isn't at the origin node.  We check
@@ -1707,7 +1710,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * The node may be a zone cut itself.  If it might be one,
 		 * make sure we check for it later.
 		 */
-		if (node->find_callback && node != search.rbtdb->origin_node)
+		if (node->find_callback &&
+		    (node != search.rbtdb->origin_node ||
+		     IS_STUB(search.rbtdb)))
 			maybe_zonecut = ISC_TRUE;
 	}
 
@@ -3323,7 +3328,8 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		else
 			return (ISC_FALSE);
 	} else if (type == dns_rdatatype_dname ||
-		   (type == dns_rdatatype_ns && node != rbtdb->origin_node))
+		   (type == dns_rdatatype_ns && 
+		    (node != rbtdb->origin_node || IS_STUB(rbtdb))))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -3813,7 +3819,7 @@ dns_rbtdb64_create
 #else
 dns_rbtdb_create
 #endif
-		(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
+		(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 dns_db_t **dbp)
 {
@@ -3832,9 +3838,12 @@ dns_rbtdb_create
 	memset(rbtdb, '\0', sizeof *rbtdb);
 	dns_name_init(&rbtdb->common.origin, NULL);
 	rbtdb->common.attributes = 0;
-	if (cache) {
+	if (type == dns_dbtype_cache) {
 		rbtdb->common.methods = &cache_methods;
 		rbtdb->common.attributes |= DNS_DBATTR_CACHE;
+	} else if (type == dns_dbtype_stub) {
+		rbtdb->common.methods = &zone_methods;
+		rbtdb->common.attributes |= DNS_DBATTR_STUB;
 	} else
 		rbtdb->common.methods = &zone_methods;
 	rbtdb->common.rdclass = rdclass;

@@ -271,7 +271,9 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_create(mctx, dbtype, origin, cache, dns_rdataclass_in,
+	result = dns_db_create(mctx, dbtype, origin,
+			       cache? dns_rb_cache : dns_dbtype_zone,
+			       dns_rdataclass_in,
 			       0, NULL, &dbi->db);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, dbi, sizeof *dbi);

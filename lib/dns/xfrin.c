@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.77 2000/06/02 18:59:19 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.78 2000/06/07 02:38:37 marka Exp $ */
 
 #include <config.h>
 
@@ -251,7 +251,7 @@ axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp) {
 	return (dns_db_create(xfr->mctx, /* XXX */
 			      "rbt", /* XXX guess */
 			      &xfr->name,
-			      ISC_FALSE,
+			      dns_dbtype_zone,
 			      xfr->rdclass,
 			      0, NULL, /* XXX guess */
 			      dbp));

@@ -203,7 +203,7 @@ main(int argc, char *argv[]) {
 	strcat(output, "signedkey");
 
 	db = NULL;
-	result = dns_db_create(mctx, "rbt", domain, ISC_FALSE,
+	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	check_result(result, "dns_db_create()");
 

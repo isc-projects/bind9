@@ -744,7 +744,7 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 	
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
 
-	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
+	CHECK(dns_db_create(ns_g_mctx, "rbt", &origin, dns_dbtype_zone,
 			    dns_rdataclass_ch, 0, NULL, &db));
 	
 	CHECK(dns_db_newversion(db, &dbver));
@@ -926,20 +926,6 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 				      corigin);
 			result = ISC_R_SUCCESS;
 		}
-		goto cleanup;
-	}
-
-	/*
-	 * "stub zones" aren't zones either.  Eventually we'll
-	 * create a "cache freshener" to keep the stub data in the
-	 * cache.
-	 */
-	if (czone->ztype == dns_c_zone_stub) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-	      "stub zone '%s': stub zones are not supported in this release",
-			      corigin);
-		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 

@@ -73,7 +73,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	
 	REQUIRE(target != NULL && *target == NULL);
 
-	result = dns_db_create(mctx, "rbt", dns_rootname, ISC_FALSE,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS)
 		return (result);

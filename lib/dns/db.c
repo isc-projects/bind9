@@ -37,7 +37,7 @@
 typedef struct {
 	const char *		name;	
 	isc_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
-					  isc_boolean_t cache,
+					  dns_dbtype_t type,
 					  dns_rdataclass_t rdclass,
 					  unsigned int argc, char *argv[],
 					  dns_db_t **dbp);
@@ -68,7 +68,7 @@ static impinfo_t implementations[] = {
 
 isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
-	      isc_boolean_t cache, dns_rdataclass_t rdclass,
+	      dns_dbtype_t type, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp)
 {
 	impinfo_t *impinfo;
@@ -82,7 +82,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 
 	for (impinfo = implementations; impinfo->name != NULL; impinfo++)
 		if (strcasecmp(db_type, impinfo->name) == 0)
-			return ((impinfo->create)(mctx, origin, cache, rdclass,
+			return ((impinfo->create)(mctx, origin, type, rdclass,
 						  argc, argv, dbp));
 
 	return (ISC_R_NOTFOUND);
@@ -151,7 +151,22 @@ dns_db_iszone(dns_db_t *db) {
 	
 	REQUIRE(DNS_DB_VALID(db));
 
-	if ((db->attributes & DNS_DBATTR_CACHE) == 0)
+	if ((db->attributes & (DNS_DBATTR_CACHE|DNS_DBATTR_STUB)) == 0)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
+isc_boolean_t
+dns_db_isstub(dns_db_t *db) {
+
+	/*
+	 * Does 'db' have stub semantics?
+	 */
+	
+	REQUIRE(DNS_DB_VALID(db));
+
+	if ((db->attributes & DNS_DBATTR_STUB) != 0)
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
@@ -598,7 +613,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 	dns_rdata_t rdata;
 	isc_buffer_t buffer;
 
-	REQUIRE(dns_db_iszone(db));
+	REQUIRE(dns_db_iszone(db) || dns_db_isstub(db));
 		
 	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)

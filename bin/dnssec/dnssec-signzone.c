@@ -517,8 +517,8 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	check_result(result, "dns_name_totext()");
 	isc_buffer_usedregion(&b, &r);
 	strcpy((char *)r.base + r.length, "signedkey");
-	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
-			       0, NULL, &newdb);
+	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
+			       dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
 	result = dns_db_load(newdb, (char *)filename);
 	if (result != ISC_R_SUCCESS)
@@ -596,8 +596,8 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 	check_result(result, "dns_name_totext()");
 	isc_buffer_usedregion(&b, &r);
 	strcpy((char *)r.base + r.length, "signedkey");
-	result = dns_db_create(mctx, "rbt", name, ISC_FALSE, dns_db_class(db),
-			       0, NULL, &newdb);
+	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
+			      dns_db_class(db), 0, NULL, &newdb);
 	check_result(result, "dns_db_create()");
 	result = dns_db_load(newdb, (char *)filename);
 	if (result != ISC_R_SUCCESS)
@@ -1077,7 +1077,7 @@ loadzone(char *file, char *origin, dns_db_t **db) {
 		fatal("failed converting name '%s' to dns format: %s",
 		      origin, isc_result_totext(result));
 
-	result = dns_db_create(mctx, "rbt", &name, ISC_FALSE,
+	result = dns_db_create(mctx, "rbt", &name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.22 2000/06/01 18:25:25 tale Exp $ */
+/* $Id: cache.c,v 1.23 2000/06/07 02:38:30 marka Exp $ */
 
 #include <config.h>
 
@@ -151,8 +151,9 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	cache->rdclass = rdclass;
 
 	cache->db = NULL;
-	result = dns_db_create(cache->mctx, db_type, dns_rootname, ISC_TRUE,
-				rdclass, db_argc, db_argv, &cache->db);
+	result = dns_db_create(cache->mctx, db_type, dns_rootname,
+			       dns_dbtype_cache, rdclass, db_argc, db_argv,
+			       &cache->db);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutex;
 

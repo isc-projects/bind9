@@ -164,6 +164,7 @@ struct dns_db {
 };
 
 #define DNS_DBATTR_CACHE		0x01
+#define DNS_DBATTR_STUB			0x02
 
 /*
  * Options that can be specified for dns_db_find().
@@ -190,7 +191,7 @@ struct dns_db {
 
 isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
-	      isc_boolean_t cache, dns_rdataclass_t rdclass,
+	      dns_dbtype_t type, dns_rdataclass_t rdclass,
 	      unsigned int argc, char *argv[], dns_db_t **dbp);
 /*
  * Create a new database using implementation 'db_type'.
@@ -200,9 +201,6 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
  *	'rdclass'.  The database makes its own copy of the origin, so the
  *	caller may do whatever they like with 'origin' and its storage once the
  *	call returns.
- *
- *	If 'cache' is ISC_TRUE, then cache semantics will be used, otherwise
- *	zone semantics will apply.
  *
  *	DB implementation-specific parameters are passed using argc and argv.
  *
@@ -280,8 +278,6 @@ dns_db_iscache(dns_db_t *db);
 /*
  * Does 'db' have cache semantics?
  *
- * Note: dns_db_iscache(db) == !dns_db_iszone(db)
- *
  * Requires:
  *
  *	'db' is a valid database.
@@ -296,7 +292,19 @@ dns_db_iszone(dns_db_t *db);
 /*
  * Does 'db' have zone semantics?
  *
- * Note: dns_db_iszone(db) == !dns_db_iscache(db)
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ * Returns:
+ *	ISC_TRUE	'db' has zone semantics
+ *	ISC_FALSE	otherwise
+ */
+
+isc_boolean_t
+dns_db_isstub(dns_db_t *db);
+/*
+ * Does 'db' have stub semantics?
  *
  * Requires:
  *
