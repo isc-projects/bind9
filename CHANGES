@@ -16,7 +16,7 @@
 
  752.	[func]		Correct bad tv_usec elements returned by gettimeofday().
 
- 751.	[func]		Log successful zone loads / transfers.
+ 751.	[func]		Log successful zone loads / transfers.	[RT #898]
 
  750.	[bug]		A query should not match a DNAME whose trust level
 			is pending.  [RT #916]
