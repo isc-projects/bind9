@@ -1,16 +1,18 @@
-Network Working Group                                          R. Arends
+
+
+DNS Extensions                                                 R. Arends
 Internet-Draft                                                   Nominum
-Expires: August 23, 2002                                       M. Larson
+Expires: August 2, 2002                                        M. Larson
                                                                 VeriSign
                                                                D. Massey
                                                                  USC/ISI
                                                                  S. Rose
                                                                     NIST
-                                                       February 22, 2002
+                                                           February 2002
 
 
               Resource Records for DNS Security Extensions
-                  draft-ietf-dnsext-dnssec-records-00
+                  draft-ietf-dnsext-dnssec-records-01
 
 Status of this Memo
 
@@ -33,7 +35,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on August 23, 2002.
+   This Internet-Draft will expire on August 2, 2002.
 
 Copyright Notice
 
@@ -50,7 +52,7 @@ Abstract
 
 
 
-Arends, et al.           Expires August 23, 2002                [Page 1]
+Arends, et al.           Expires August 2, 2002                 [Page 1]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -76,7 +78,7 @@ Table of Contents
    2.2     The KEY RR Presentation Format . . . . . . . . . . . . . .  7
    2.3     KEY RR Examples  . . . . . . . . . . . . . . . . . . . . .  7
    2.3.1   Example 1  . . . . . . . . . . . . . . . . . . . . . . . .  7
-   2.3.2   Example 2  . . . . . . . . . . . . . . . . . . . . . . . .  7
+   2.3.2   Example 2  . . . . . . . . . . . . . . . . . . . . . . . .  8
    3.      The SIG Resource Record  . . . . . . . . . . . . . . . . .  9
    3.1     The SIG RDATA  . . . . . . . . . . . . . . . . . . . . . .  9
    3.1.1   The Type Covered Field . . . . . . . . . . . . . . . . . . 10
@@ -94,25 +96,32 @@ Table of Contents
    4.1.1   The Next Domain Name Field . . . . . . . . . . . . . . . . 13
    4.1.2   The Type Bit Map Field . . . . . . . . . . . . . . . . . . 13
    4.2     The NXT RR Presentation Format . . . . . . . . . . . . . . 14
-   5.      The DS Resource Record (placeholder) . . . . . . . . . . . 15
-   6.      DNSSEC message bits  . . . . . . . . . . . . . . . . . . . 16
-   6.1     The AD and CD Header Bits  . . . . . . . . . . . . . . . . 16
-   6.2     The DO Extended Flags Field Bit  . . . . . . . . . . . . . 16
-   7.      IANA Considerations  . . . . . . . . . . . . . . . . . . . 18
-   8.      Security Considerations  . . . . . . . . . . . . . . . . . 19
-   9.      Acknowledgements . . . . . . . . . . . . . . . . . . . . . 20
-           References . . . . . . . . . . . . . . . . . . . . . . . . 21
-           Authors' Addresses . . . . . . . . . . . . . . . . . . . . 22
+   5.      The DS Resource Record . . . . . . . . . . . . . . . . . . 15
+   5.1     DS RDATA Wire Format . . . . . . . . . . . . . . . . . . . 15
+   5.1.1   The Key Tag Field  . . . . . . . . . . . . . . . . . . . . 15
+   5.1.2   The Algorithm Field  . . . . . . . . . . . . . . . . . . . 15
+   5.1.3   The Digest Type Field  . . . . . . . . . . . . . . . . . . 16
+   5.1.4   The Digest Field . . . . . . . . . . . . . . . . . . . . . 16
+   5.2     DS Record Example  . . . . . . . . . . . . . . . . . . . . 16
+   5.3     Resolver Example . . . . . . . . . . . . . . . . . . . . . 16
+   6.      DNSSEC message bits  . . . . . . . . . . . . . . . . . . . 18
 
 
 
-Arends, et al.           Expires August 23, 2002                [Page 2]
+Arends, et al.           Expires August 2, 2002                 [Page 2]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
 
-   A.      Key Tag Calculation  . . . . . . . . . . . . . . . . . . . 23
-           Full Copyright Statement . . . . . . . . . . . . . . . . . 24
+   6.1     The AD and CD Header Bits  . . . . . . . . . . . . . . . . 18
+   6.2     The DO Extended Flags Field Bit  . . . . . . . . . . . . . 18
+   7.      IANA Considerations  . . . . . . . . . . . . . . . . . . . 20
+   8.      Security Considerations  . . . . . . . . . . . . . . . . . 21
+   9.      Acknowledgements . . . . . . . . . . . . . . . . . . . . . 22
+           References . . . . . . . . . . . . . . . . . . . . . . . . 23
+           Authors' Addresses . . . . . . . . . . . . . . . . . . . . 24
+   A.      Key Tag Calculation  . . . . . . . . . . . . . . . . . . . 25
+           Full Copyright Statement . . . . . . . . . . . . . . . . . 26
 
 
 
@@ -155,14 +164,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-
-
-
-
-
-
-
-Arends, et al.           Expires August 23, 2002                [Page 3]
+Arends, et al.           Expires August 2, 2002                 [Page 3]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -218,7 +220,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002                [Page 4]
+Arends, et al.           Expires August 2, 2002                 [Page 4]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -274,7 +276,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002                [Page 5]
+Arends, et al.           Expires August 2, 2002                 [Page 5]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -292,8 +294,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 2.1.2 The Protocol Octet Field
 
-   The Protocol Octet value MUST be 3.  Name servers and resolvers
-   SHOULD reject KEY records with a Protocol Octet value other than 3.
+   The Protocol Octet value MUST be 3.
 
 2.1.2.1 Explanation for a Fixed Value Protocol Octet Field
 
@@ -315,7 +316,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
     1      RSA/MD5                     RFC 2536     NOT RECOMMENDED
     2      Diffie-Hellman              RFC 2539     OPTIONAL
     3      DSA                         RFC 2536     MANDATORY
-    4      elliptic curve              -            reserved
+    4      elliptic curve              Work in Progress
     5      RSA/SHA1                    RFC 3110     MANDATORY
     6-251  available for assignment    -
     252    reserved                    -            indirect keys
@@ -323,17 +324,38 @@ Internet-Draft           DNSSEC Resource Records           February 2002
     254    private                     -            OID
     255    reserved                    -            -
 
-   EDITORS NOTE:  indirect keys (252), private keys 253/254 and the
-   implication of making a key MANDATORY need further clarification.
-   This clarification will be in the next version of this document.
+   It is expected that a signed zone will contain at least one KEY
+   record with one of the MANDATORY algorithms.  A DNS security aware
+   resolver MUST implement all MANDATORY and SHOULD implement all
+   OPTIONAL algorithms.  Currently RSA/MD5 is NOT RECOMMENDED for zone
+   signing, but it may be found in older DNS implementations.
 
 
 
-
-Arends, et al.           Expires August 23, 2002                [Page 6]
+Arends, et al.           Expires August 2, 2002                 [Page 6]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
+
+   Therefore, if may be useful for a security aware resolver to
+   implement RSA/MD5 as well as RSA/SHA1.
+
+   Algorithm number 252 is reserved for indirect key format where the
+   actual key material is elsewhere (non-DNS).  This format will be
+   defined in a separate document.
+
+   Algorithm numbers 253 and 254 are reserved for private use and will
+   never be assigned a specific algorithm.  For number 253, the public
+   key area and the signature begin with a wire encoded domain name
+   indicating the algorithm the key uses.  Only local domain name
+   compression is permitted.  The remainder of the public key area is
+   privately defined.  For number 254, the public key area for the KEY
+   RR and the signature begin with an unsigned length byte followed by a
+   BER encoded Object Identifier (ISO OID) of that length.  The OID
+   indicates the private algorithm in use and the remainder of the area
+   is whatever is required by that algorithm.  Entities should only use
+   domain names and OIDs they control to designate their private
+   algorithms.
 
 2.2 The KEY RR Presentation Format
 
@@ -363,6 +385,14 @@ Internet-Draft           DNSSEC Resource Records           February 2002
    256 indicates the flags field has the zone key bit is set.  3 is the
    fixed Protocol Octet value.  5 indicates the public key algorithm is
    RSA/SHA1 RFC 3110].  The remaining text is base 64 encoding of the
+
+
+
+Arends, et al.           Expires August 2, 2002                 [Page 7]
+
+Internet-Draft           DNSSEC Resource Records           February 2002
+
+
    public key and the format of the public key is defined in [12].
 
    Resolvers might use this public key to authenticate signed RR sets
@@ -383,14 +413,6 @@ Internet-Draft           DNSSEC Resource Records           February 2002
    the public key and the format of the public key is defined in [7].
 
    This public key can be used to sign dynamic DNS updates for the
-
-
-
-Arends, et al.           Expires August 23, 2002                [Page 7]
-
-Internet-Draft           DNSSEC Resource Records           February 2002
-
-
    isi.edu zone.  The process is for signing the dynamic DNS updates is
    described in [11].
 
@@ -422,27 +444,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Arends, et al.           Expires August 23, 2002                [Page 8]
+Arends, et al.           Expires August 2, 2002                 [Page 8]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -498,7 +500,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002                [Page 9]
+Arends, et al.           Expires August 2, 2002                 [Page 9]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -554,7 +556,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 10]
+Arends, et al.           Expires August 2, 2002                [Page 10]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -610,7 +612,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 11]
+Arends, et al.           Expires August 2, 2002                [Page 11]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -666,7 +668,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 12]
+Arends, et al.           Expires August 2, 2002                [Page 12]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -686,7 +688,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
    The type number for the NXT RR is 30.
 
-   The NXT RR is class independant.
+   The NXT RR is class independent.
 
    The NXT RR TTL SHOULD NOT exceed the zone minimum TTL.
 
@@ -722,7 +724,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 13]
+Arends, et al.           Expires August 2, 2002                [Page 13]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -778,48 +780,165 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 14]
+Arends, et al.           Expires August 2, 2002                [Page 14]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
 
-5. The DS Resource Record (placeholder)
+5. The DS Resource Record
 
-   [This section will be finalised once DS has WG consensus and is
-   proposed standard]
+   The DS record is a major change to DNS: it is the first resource
+   record that can appear only on the upper side of a delegation.  Other
+   keys MAY sign the child's apex KEY RRset.  DS records MUST point to
+   zone KEY records that are allowed to authenticate DNS data.
 
+   The type number for the DS record is 43.
 
+   The DS record is class independent.
 
+5.1 DS RDATA Wire Format
 
+   This record contains these fields: key tag, algorithm, digest type,
+   and the digest of a public key KEY record that is allowed and/or used
+   to sign the child's apex KEY RRset.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                              1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+          0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         |           key tag             |  algorithm    |  Digest type  |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         |                 Digest                                        |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         |                (20 bytes for SHA-1)                           |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         |                                                               |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+         |                                                               |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+         |                                                               |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 
 
+5.1.1 The Key Tag Field
+
+   The key tag value is the same key tag value in the SIG RRs generated
+   using the KEY record this DS record points too.  Having the key tag
+   in the RDATA provides additional reliability in matching than just
+   the KEY digest alone.  See the key tag for details.
+
+5.1.2 The Algorithm Field
+
+   The algorithm value has the same defined values as the KEY and SIG
+   records.  The value MUST be an algorithm number assigned in the range
+   1..251 and the algorithm MUST be allowed to sign DNS data.
+
+
+
+
+Arends, et al.           Expires August 2, 2002                [Page 15]
+
+Internet-Draft           DNSSEC Resource Records           February 2002
+
+
+5.1.3 The Digest Type Field
+
+   The digest type is an identifier for the digest algorithm used.  The
+   following numbers have been assigned and the assignment of future
+   numbers requires IETF standards action.
+
+              VALUE   Algorithm                 STATUS
+                0      Reserved                   -
+                1      RSA/SHA-1			   MANDATORY
+              2-255    Unassigned			       -
+
+
+
+5.1.4 The Digest Field
+
+   The digest is calculated over the canonical name of the delegated
+   domain name followed by the whole RDATA of the KEY record (all four
+   fields).  The size of the DS RDATA for type 1 (SHA-1) is 24 bytes,
+   regardless of key size.  Other digest algorithms may have a differing
+   digest size, to be described in other documents.
+
+         digest = hash( cannonical FQDN on KEY RR | KEY_RR_rdata)
+
+         KEY_RR_rdata = Flags | Protocol | Algorithm | Public Key
+
+
+5.2 DS Record Example
+
+   The presentation format of the DS record consists of three numbers
+   (key tag, algorithm and digest type) followed by the digest itself
+   presented in hex:
+
+         example.   DS  12345 3 1 123456789abcdef67890123456789abcdef67890
+
+   This is a example of a KEY record and corresponding DS record.
+
+      dskey.example. KEY  256 3 1 (
+                     encoded public key
+                     ) ; key id = 28668
+                DS   28668 1  1  49FD46E6C4B45C55D4AC69CBD3CD34AC1AFE51DE
+
+
+5.3 Resolver Example
+
+   To create a chain of trust, a resolver goes from trusted KEY to DS to
+   KEY.
+
+      Assume the key for domain "example." is trusted.  Zone "example."
+
+
+
+Arends, et al.           Expires August 2, 2002                [Page 16]
+
+Internet-Draft           DNSSEC Resource Records           February 2002
+
+
+      contains at least the following records:
+      example.          SOA     (soa stuff)
+      example.          NS       ns.example.
+      example.          KEY     (encoded public key)
+      example.          NXT      NS SOA KEY SIG NXT
+      example.          SIG(SOA)
+      example.          SIG(NS)
+      example.          SIG(NXT)
+      example.          SIG(KEY)
+      secure.example.   NS      ns1.secure.example.
+      secure.example.   DS      tag=10243 alg=3 digest_type=1
+      secure.example.   NXT     NS SIG NXT DS unsecure.example.
+      secure.example.   SIG(NXT)
+      secure.example.   SIG(DS)
+      unsecure.example  NS      ns1.unsecure.example.
+      unsecure.example. NXT     NS SIG NXT .example.
+      unsecure.example. SIG(NXT)
+
+      In zone "secure.example." following records exist:
+      secure.example.   SOA      (soa stuff)
+      secure.example.   NS       ns1.secure.example.
+      secure.example.   KEY      (tag=12345 alg=3)
+      secure.example.   SIG(KEY) (key-tag=12345 alg=3)
+      secure.example.   SIG(SOA) (key-tag=12345 alg=3)
+      secure.example.   SIG(NS)  (key-tag=12345 alg=5)
+
+
+   In this example the private key for "example." signs the DS record
+   for "secure.example.", making that a secure delegation.  The DS
+   record states which key is expected to sign the RRsets at
+   "secure.example.".  Here "secure.example." signs its KEY RRset with
+   the KEY identified in the DS RRset, thus the KEY RRset is validated
+   and trusted.
+
+   This example has only one DS record for the child, but parents MUST
+   allow multiple DS records to facilitate key rollover.  It is strongly
+   recommended that the DS RRset be kept small: two or three DS records
+   should be sufficient in all cases.
+
+   The resolver determines the security status of "unsecure.example." by
+   examining the parent zone's NXT record for this name.  The absence of
+   the DS bit indicates an unsecure delegation.
 
 
 
@@ -829,12 +948,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-
-
-
-
-
-Arends, et al.           Expires August 23, 2002               [Page 15]
+Arends, et al.           Expires August 2, 2002                [Page 17]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -890,7 +1004,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 16]
+Arends, et al.           Expires August 2, 2002                [Page 18]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -946,7 +1060,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 17]
+Arends, et al.           Expires August 2, 2002                [Page 19]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -956,6 +1070,27 @@ Internet-Draft           DNSSEC Resource Records           February 2002
    This document clarifies the use of existing types and introduces no
    new IANA considerations.
 
+   The definitions of the flag bits in the KEY RR are set by working
+   group consensus and there is no IANA registry for their definition.
+   Changes to the meaning of the bits in the flags section of the KEY
+   RDATA must be done through working group consensus.
+
+   RFC 2535 created an IANA registry for DNSSEC Resource Record
+   algorithm Octet values.  Values to 1-5, and 255 were assigned and
+   values 6-254 were made available for assignment by IANA.  This
+   document re-assigns DNS KEY Resource Record Protocol Octet values 1,
+   2, 4, and 255 to ``reserved''.  DNS Key Resource Record Protocol
+   Octet Value 3 remains unchanged as ``DNSSEC''.
+
+   New protocol values are no longer available for assignment by IANA
+   and this document closes the IANA registry for DNS KEY Resource
+   Record Protocol Octet Values.  Assignment of any future KEY Resource
+   Record Protocol Octet values requires a standards action.  New
+   numbers for algorithm values will continue to be assigned by IANA.
+
+   IANA needs to open a new registry for the DS RR type digest
+   algorithms.  Defined types are: 0 is Reserved, 1 is SHA-1.  Adding
+   new reservations requires IETF standards action.
 
 
 
@@ -981,28 +1116,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Arends, et al.           Expires August 23, 2002               [Page 18]
+Arends, et al.           Expires August 2, 2002                [Page 20]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -1010,7 +1124,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 8. Security Considerations
 
    This document describes the format of resource records used by DNS
-   security.   The threats facing DNS are described in a seperate
+   security.   The threats facing DNS are described in a separate
    document and these records are used to help counter those threats.
    The records themselves introduce no new security considerations, but
    the protocol use of these records is described in a second document.
@@ -1058,13 +1172,18 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 19]
+Arends, et al.           Expires August 2, 2002                [Page 21]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 9. Acknowledgements
 
+   This document was created from the input and ideas of several members
+   of the DNS Extensions Working Group and working group mailing list.
+   The co-authors of this draft would like to express their thanks for
+   the comments and suggestions received during the re-writing of these
+   security extension specifications.
 
 
 
@@ -1109,12 +1228,7 @@ Internet-Draft           DNSSEC Resource Records           February 2002
 
 
 
-
-
-
-
-
-Arends, et al.           Expires August 23, 2002               [Page 20]
+Arends, et al.           Expires August 2, 2002                [Page 22]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -1170,7 +1284,7 @@ References
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 21]
+Arends, et al.           Expires August 2, 2002                [Page 23]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -1226,7 +1340,7 @@ Authors' Addresses
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 22]
+Arends, et al.           Expires August 2, 2002                [Page 24]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -1239,8 +1353,10 @@ Appendix A. Key Tag Calculation
    possible for more than one candidate key to have the same tag, in
    which case each must be tried until one works or all fail.  The
    following reference implementation of how to calculate the Key Tag,
-   for all algorithms other than algorithm 1, is in ANSI C.  It is coded
-   for clarity, not efficiency.
+   for all algorithms other than algorithm 1 (which is NOT RECOMMENDED),
+   is in ANSI C.  The input is the key material in base 64,not the
+   entire RDATA of the KEY record that contains the public key.  It is
+   coded for clarity, not efficiency.
 
       /* assumes int is at least 16 bits
          first byte of the key tag is the most significant byte of return
@@ -1280,9 +1396,7 @@ Appendix A. Key Tag Calculation
 
 
 
-
-
-Arends, et al.           Expires August 23, 2002               [Page 23]
+Arends, et al.           Expires August 2, 2002                [Page 25]
 
 Internet-Draft           DNSSEC Resource Records           February 2002
 
@@ -1338,5 +1452,5 @@ Acknowledgement
 
 
 
-Arends, et al.           Expires August 23, 2002               [Page 24]
+Arends, et al.           Expires August 2, 2002                [Page 26]
 
