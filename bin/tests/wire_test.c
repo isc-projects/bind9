@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.55 2001/03/05 21:15:40 bwelling Exp $ */
+/* $Id: wire_test.c,v 1.56 2001/03/13 02:48:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -149,7 +149,7 @@ main(int argc, char *argv[]) {
 	result = dns_compress_init(&cctx, -1, mctx);
 	CHECKRESULT(result, "dns_compress_init() failed");
 
-	result = dns_message_renderbegin(message, &source);
+	result = dns_message_renderbegin(message, &cctx, &source);
 	CHECKRESULT(result, "dns_message_renderbegin() failed");
 
 	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);

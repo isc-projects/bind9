@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.6 2001/03/05 21:15:38 bwelling Exp $ */
+/* $Id: sig0_test.c,v 1.7 2001/03/13 02:48:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,7 @@ buildquery(void) {
 
 	result = dns_compress_init(&cctx, -1, mctx);
 	CHECK("dns_compress_init", result);
-	result = dns_message_renderbegin(query, &qbuffer);
+	result = dns_message_renderbegin(query, &cctx, &qbuffer);
 	CHECK("dns_message_renderbegin", result);
 	result = dns_message_rendersection(query, DNS_SECTION_QUESTION, 0);
 	CHECK("dns_message_rendersection(question)", result);
