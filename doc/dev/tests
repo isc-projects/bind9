@@ -52,19 +52,11 @@ among systems.  On most of them, it's on a local disk, under /build.
 On some, it's on NFS; in this case the location is defined in
 ~wpk/b9t/hosts/$PLATFORM/env.
 
-To make things more confusing, "sol" also builds an extra
-copy of bind9 using gcc, even though it is not shown
-on the web pages:
-
-    #
-    # bind 8 build for Solaris 5.6-gcc
-    #
-    30 4,10,16,22 * * * $HOME/b8t/bin/b8t.cron SunOS-5.6-gcc
-
-The output from the various stages is under
-/proj/build-reports/bind9/hosts/$(PLATFORM).
-To make the files harder to find (?), they have
-names starting with a period:
+The output from the make process is in
+~wpk/b9t/hosts/$PLATFORM/b9t-status, and the output from
+The output from the later stages of the process is under
+/proj/build-reports/bind9/hosts/$PLATFORM.  To make the files 
+harder to find (?), they have names starting with a period:
 
   .populate
   .config
