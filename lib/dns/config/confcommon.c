@@ -33,10 +33,10 @@
 
 /* XXX this next include is needed by <dns/rdataclass.h>  */
 #include <dns/result.h>
-
+#include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-
+#include <dns/ssu.h>
 #include <dns/confcommon.h>
 
 
@@ -607,7 +607,7 @@ dns_c_need_quote(const char *string)
 
 		
 void
-dns_peerlist_print(FILE *fp, int indent,
+dns_c_peerlist_print(FILE *fp, int indent,
 		   dns_peerlist_t *servers)
 {
 	dns_peer_t *server;
@@ -617,7 +617,7 @@ dns_peerlist_print(FILE *fp, int indent,
 	
 	server = ISC_LIST_HEAD(servers->elements);
 	while (server != NULL) {
-		dns_peer_print(fp, indent, server);
+		dns_c_peer_print(fp, indent, server);
 		server = ISC_LIST_NEXT(server, next);
 		if (server != NULL) {
 			fprintf(fp, "\n");
@@ -629,7 +629,7 @@ dns_peerlist_print(FILE *fp, int indent,
 
 
 void
-dns_peer_print(FILE *fp, int indent, dns_peer_t *peer)
+dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer)
 {
 	isc_boolean_t bval;
 	isc_result_t res;
@@ -727,6 +727,69 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name)
 	return (ISC_R_SUCCESS);
 }
 
+void
+dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable)
+{
+	dns_ssurule_t *rule = NULL;
+	dns_ssurule_t *tmprule = NULL;
+	isc_result_t res;
+	dns_rdatatype_t *types;
+	unsigned int i;
+	unsigned int tcount;
+	
+	res = dns_ssutable_firstrule(ssutable, &rule);
+	if (res != ISC_R_SUCCESS) {
+		return;
+	}
+
+	fputc('\n', fp);
+	do {
+		dns_c_printtabs(fp, indent);
+
+		fputs ((dns_ssurule_isgrant(rule) ? "grant" : "deny"), fp);
+		fputc(' ', fp);
+		
+		dns_name_print(dns_ssurule_identity(rule), fp);
+		fputc(' ', fp);
+
+		switch(dns_ssurule_matchtype(rule)) {
+		case DNS_SSUMATCHTYPE_NAME:
+			fputs("name", fp);
+			break;
+
+		case DNS_SSUMATCHTYPE_SUBDOMAIN:
+			fputs("subdomain", fp);
+			break;
+
+		case DNS_SSUMATCHTYPE_WILDCARD:
+			fputs("wildcard", fp);
+			break;
+
+		case DNS_SSUMATCHTYPE_SELF:
+			fputs("self", fp);
+			break;
+
+		default:
+			REQUIRE(0);
+			break;
+		}
+		fputc(' ', fp);
+
+		dns_name_print(dns_ssurule_name(rule), fp);
+		fputc(' ', fp);
+
+		tcount = dns_ssurule_types(rule, &types);
+		for(i = 0 ; i < tcount ; i++) {
+			dns_c_datatype_tostream(fp, types[i]);
+			fputc(' ', fp);
+		}
+
+		fputs(";\n", fp);
+		tmprule = rule;
+		rule = NULL;
+	} while (dns_ssutable_nextrule(tmprule, &rule) == ISC_R_SUCCESS);
+	fputc('\n', fp);
+}
 
 
 isc_result_t
