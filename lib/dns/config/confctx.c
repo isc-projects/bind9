@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.70 2000/06/20 21:36:43 brister Exp $ */
+/* $Id: confctx.c,v 1.70.2.1 2000/06/28 00:32:18 explorer Exp $ */
 
 #include <config.h>
 
@@ -356,22 +356,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'lame-ttl' is not yet "
-			      "implemented");
-	}
-	
-
-	if (dns_c_ctx_getmaxncachettl(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'max-ncache-ttl' is not yet "
-			      "implemented");
-	}
-	
-
-	if (dns_c_ctx_getmaxcachettl(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'max-cache-ttl' is not yet "
 			      "implemented");
 	}
 	
