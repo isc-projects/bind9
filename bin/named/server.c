@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.240 2000/11/08 03:53:05 marka Exp $ */
+/* $Id: server.c,v 1.241 2000/11/08 18:46:40 halley Exp $ */
 
 #include <config.h>
 
@@ -503,7 +503,10 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/*
 	 * Set resolver's lame-ttl.
 	 */
-	result = dns_c_view_getlamettl(cctx, &lame_ttl);
+	if (cview != NULL)
+		result = dns_c_view_getlamettl(cview, &lame_ttl);
+	else
+		result = ISC_R_NOTFOUND;
 	if (result == ISC_R_NOTFOUND)
 		result = dns_c_ctx_getlamettl(cctx, &lame_ttl);
 	if (result == ISC_R_NOTFOUND)
