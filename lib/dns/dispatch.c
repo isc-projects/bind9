@@ -466,7 +466,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	mgr = disp->mgr;
 
 	dispatch_log(disp, LVL(90),
-		     "Got packet: requests %d, buffers %d, recvs %d",
+		     "got packet: requests %d, buffers %d, recvs %d",
 		     disp->requests, disp->buffers, disp->recvs);
 
 	INSIST(disp->recvs > 0);
@@ -522,12 +522,12 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	dres = dns_message_peekheader(&source, &id, &flags);
 	if (dres != ISC_R_SUCCESS) {
 		free_buffer(disp, ev->region.base, ev->region.length);
-		dispatch_log(disp, LVL(10), "Got garbage packet");
+		dispatch_log(disp, LVL(10), "got garbage packet");
 		goto restart;
 	}
 
 	dispatch_log(disp, LVL(92),
-		     "Got valid DNS message header, /QR %c, id %u",
+		     "got valid DNS message header, /QR %c, id %u",
 		     ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
 
 	/*
@@ -556,7 +556,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		bucket = dns_hash(disp, &ev->address, id);
 		resp = bucket_search(disp, &ev->address, id, bucket);
 		dispatch_log(disp, LVL(90),
-			     "Search for response in bucket %d: %s",
+			     "search for response in bucket %d: %s",
 			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
 
 		if (resp == NULL) {
@@ -655,7 +655,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	mgr = disp->mgr;
 
 	dispatch_log(disp, LVL(90),
-		     "Got TCP packet: requests %d, buffers %d, recvs %d",
+		     "got TCP packet: requests %d, buffers %d, recvs %d",
 		     disp->requests, disp->buffers, disp->recvs);
 
 	LOCK(&disp->lock);
@@ -675,7 +675,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		break;
 
 	case ISC_R_EOF:
-		dispatch_log(disp, LVL(90), "Shutting down on EOF");
+		dispatch_log(disp, LVL(90), "shutting down on EOF");
 		disp->shutdown_why = ISC_R_EOF;
 		disp->shutting_down = 1;
 		do_cancel(disp, NULL);
@@ -723,12 +723,12 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	 */
 	dres = dns_message_peekheader(&tcpmsg->buffer, &id, &flags);
 	if (dres != ISC_R_SUCCESS) {
-		dispatch_log(disp, LVL(10), "Got garbage packet");
+		dispatch_log(disp, LVL(10), "got garbage packet");
 		goto restart;
 	}
 
 	dispatch_log(disp, LVL(92),
-		     "Got valid DNS message header, /QR %c, id %u",
+		     "got valid DNS message header, /QR %c, id %u",
 		     ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
 
 	/*
@@ -760,7 +760,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		bucket = dns_hash(disp, &tcpmsg->address, id);
 		resp = bucket_search(disp, &tcpmsg->address, id, bucket);
 		dispatch_log(disp, LVL(90),
-			     "Search for response in bucket %d: %s",
+			     "search for response in bucket %d: %s",
 			     bucket, (resp == NULL ? "NOT FOUND" : "FOUND"));
 
 		if (resp == NULL)

@@ -2518,7 +2518,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_name(adbname, now, dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
-			   "dns_adb_createfind: Found A for name %p in db",
+			   "dns_adb_createfind: found A for name %p in db",
 			   adbname);
 			goto v6;
 		}
@@ -2551,7 +2551,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_a6(adbname, now);
 		if (result == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
-			   "dns_adb_createfind: Found A6 for name %p",
+			   "dns_adb_createfind: found A6 for name %p",
 			   adbname);
 			goto fetch;
 		}
@@ -2596,7 +2596,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (WANT_INET(wanted_fetches) &&
 		    fetch_name_v4(adbname, start_at_root) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
-			   "dns_adb_createfind: Started A fetch for name %p",
+			   "dns_adb_createfind: started A fetch for name %p",
 			   adbname);
 		}
 
@@ -2606,7 +2606,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (WANT_INET6(wanted_fetches) &&
 		    fetch_name_a6(adbname, start_at_root) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
-			   "dns_adb_createfind: Started A6 fetch for name %p",
+			   "dns_adb_createfind: started A6 fetch for name %p",
 			   adbname);
 		}
 	}
