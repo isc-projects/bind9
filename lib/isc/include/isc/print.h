@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.15 2001/02/21 06:13:33 marka Exp $ */
+/* $Id: print.h,v 1.16 2001/02/22 18:01:48 gson Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -41,14 +41,10 @@
 /***
  *** Macros
  ***/
-#ifdef ISC_PLATFORM_HAVELONGLONG
 #ifdef ISC_PLATFORM_LONGLONGEQUALLONG
 #define ISC_PRINT_QUADFORMAT	"l"
 #else
 #define ISC_PRINT_QUADFORMAT	"ll"
-#endif
-#else
-#define ISC_PRINT_QUADFORMAT	"l"
 #endif
 
 /***

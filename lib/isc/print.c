@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.18 2001/02/21 06:13:32 marka Exp $ */
+/* $Id: print.c,v 1.19 2001/02/22 18:01:47 gson Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,7 @@
 /*
  * Return length of string that would have been written if not truncated.
  */
+
 int
 isc_print_snprintf(char *str, size_t size, const char *format, ...) {
 	va_list ap;
@@ -61,13 +62,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	int plus;
 	int space;
 	int neg;
-#ifdef ISC_PLATFORM_HAVELONGLONG
 	long long tmpi;
-	unsigned long long tmpui;
-#else
-	long tmpi;
-	unsigned long tmpui;
-#endif
+	isc_uint64_t tmpui;
 	unsigned long width;
 	unsigned long precision;
 	unsigned int length;
@@ -174,14 +170,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			count++;
 			break;
 		case 'q':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 			q = 1;
-#else
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_NOQUAD,
-					      "quads are not supported")
-			       == NULL);
-#endif
 			format++;
 			goto doint;
 		case 'h':
@@ -192,13 +181,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			l = 1;
 			format++;
 			if (*format == 'l')
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				q = 1;
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_NOLL,
-					      "long longs are not supported")
-			       == NULL);
-#endif
 			goto doint;
 		case 'n':
 		case 'i':
@@ -231,12 +214,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				break;
 			case 'i':
 			case 'd':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				if (q)
-					tmpi = va_arg(ap, long long int);
-				else
-#endif
-				if (l)
+					tmpi = va_arg(ap, isc_int64_t);
+				else if (l)
 					tmpi = va_arg(ap, long int);
 				else
 					tmpi = va_arg(ap, int);
@@ -256,29 +236,21 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui);
 				goto printint;
 			case 'o':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				if (q)
-					tmpui = va_arg(ap,
-						       unsigned long long int);
+					tmpui = va_arg(ap, isc_uint64_t);
+				else if (l)
+					tmpui = va_arg(ap, long int);
 				else
-#endif
-				if (l)
-					tmpui = va_arg(ap, unsigned long int);
-				else
-					tmpui = va_arg(ap, unsigned int);
+					tmpui = va_arg(ap, int);
 				sprintf(buf,
 					alt ? "%#" ISC_PRINT_QUADFORMAT "o"
 					    : "%" ISC_PRINT_QUADFORMAT "o",
 					tmpui);
 				goto printint;
 			case 'u':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				if (q)
-					tmpui = va_arg(ap,
-						       unsigned long long int);
-				else
-#endif
-				if (l)
+					tmpui = va_arg(ap, isc_uint64_t);
+				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
@@ -286,13 +258,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui);
 				goto printint;
 			case 'x':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				if (q)
-					tmpui = va_arg(ap,
-						       unsigned long long int);
-				else
-#endif
-				if (l)
+					tmpui = va_arg(ap, isc_uint64_t);
+				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
@@ -305,13 +273,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui);
 				goto printint;
 			case 'X':
-#ifdef ISC_PLATFORM_HAVELONGLONG
 				if (q)
-					tmpui = va_arg(ap,
-						       unsigned long long int);
-				else
-#endif
-				if (l)
+					tmpui = va_arg(ap, isc_uint64_t);
+				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
