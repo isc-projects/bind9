@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.58 1999/08/16 06:45:13 gson Exp $ */
+ /* $Id: rdata.c,v 1.59 1999/08/31 22:08:07 halley Exp $ */
 
 #include <config.h>
 
@@ -548,7 +548,7 @@ dns_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			 void *arg)
 {
-	dns_result_t result = ISC_R_SUCCESS;
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
 	/*
@@ -560,6 +560,26 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(add != NULL);
 
 	ADDITIONALDATASWITCH
+
+	if (use_default)
+		(void)NULL;
+
+	return (result);
+}
+
+dns_result_t
+dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+	dns_result_t result = DNS_R_NOTIMPLEMENTED;
+	isc_boolean_t use_default = ISC_FALSE;
+
+	/*
+	 * Send 'rdata' in DNSSEC canonical form to 'digest'.
+	 */
+
+	REQUIRE(rdata != NULL);
+	REQUIRE(digest != NULL);
+
+	DIGESTSWITCH
 
 	if (use_default)
 		(void)NULL;
@@ -1393,7 +1413,13 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	}
 }
 
-static isc_boolean_t ismeta(unsigned int code, struct tbl *table) {
+dns_rdatatype_t
+dns_rdata_covers(dns_rdata_t *rdata) {
+	return (covers_sig(rdata));
+}
+
+static isc_boolean_t
+ismeta(unsigned int code, struct tbl *table) {
 	struct tbl *t;
 	REQUIRE(code < 65536);
 	for (t = table; t->name != NULL; t++) {

@@ -477,6 +477,51 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
  *	Many other results are possible if not successful.
  */
 
+dns_result_t
+dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
+/*
+ * Send 'rdata' in DNSSEC canonical form to 'digest'.
+ *
+ * Note:
+ *	'digest' may be called more than once by dns_rdata_digest().  The
+ *	concatenation of all the regions, in the order they were given
+ *	to 'digest', will be the DNSSEC canonical form of 'rdata'.
+ *
+ * Requires:
+ *
+ *	'rdata' is a valid, non-empty rdata.
+ *
+ *	'digest' is a valid dns_digestfunc_t.
+ *
+ * Ensures:
+ *
+ *	If successful, then all of the rdata's data has been sent, in
+ *	DNSSEC canonical form, to 'digest'.
+ *
+ *	If digest() returns something other than DNS_R_SUCCESS, that result
+ *	will be returned as the result of dns_rdata_digest().
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *
+ *	Many other results are possible if not successful.
+ */
+
+dns_rdatatype_t
+dns_rdata_covers(dns_rdata_t *rdata);
+/*
+ * Return the rdatatype that this type covers.
+ *
+ * Requires:
+ *	'rdata' is a valid, non-empty rdata.
+ *
+ *	'rdata' is a type that covers other rdata types.
+ *
+ * Returns:
+ *	The type covered.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATA_H */
