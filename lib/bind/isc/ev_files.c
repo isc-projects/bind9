@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_files.c,v 1.2 2001/06/27 03:55:45 marka Exp $";
+static const char rcsid[] = "$Id: ev_files.c,v 1.3 2001/07/02 02:02:27 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -28,6 +28,7 @@ static const char rcsid[] = "$Id: ev_files.c,v 1.2 2001/06/27 03:55:45 marka Exp
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -72,7 +73,12 @@ evSelectFD(evContext opaqueCtx,
 		if (mode & PORT_NONBLOCK)
 			FD_SET(fd, &ctx->nonblockBefore);
 		else {
+#ifdef USE_FIONBIO_IOCTL
+			int on = 1;
+			OK(ioctl(fd, FIONBIO, (char *)&on));
+#else
 			OK(fcntl(fd, F_SETFL, mode | PORT_NONBLOCK));
+#endif
 			FD_CLR(fd, &ctx->nonblockBefore);
 		}
 	}
@@ -197,7 +203,12 @@ evDeselectFD(evContext opaqueCtx, evFileID opaqueID) {
 		 * this fcntl() fails since (a) we've already done the work
 		 * and (b) the caller didn't ask us anything about O_NONBLOCK.
 		 */
+#ifdef USE_FIONBIO_IOCTL
+		int off = 1;
+		(void) ioctl(del->fd, FIONBIO, (char *)&off);
+#else
 		(void) fcntl(del->fd, F_SETFL, mode & ~PORT_NONBLOCK);
+#endif
 	}
 
 	/*

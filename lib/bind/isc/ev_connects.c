@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_connects.c,v 1.1 2001/03/29 06:31:53 marka Exp $";
+static const char rcsid[] = "$Id: ev_connects.c,v 1.2 2001/07/02 02:02:26 marka Exp $";
 #endif
 
 /* Import. */
@@ -30,6 +30,7 @@ static const char rcsid[] = "$Id: ev_connects.c,v 1.1 2001/03/29 06:31:53 marka 
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 
 #include <unistd.h>
 
@@ -77,7 +78,12 @@ evListen(evContext opaqueCtx, int fd, int maxconn,
 	 * incorrectly.
 	 */
 	if ((mode & PORT_NONBLOCK) == 0) {
+#ifdef USE_FIONBIO_IOCTL
+		int on = 1;
+		OK(ioctl(fd, FIONBIO, (char *)&on));
+#else
 		OK(fcntl(fd, F_SETFL, mode | PORT_NONBLOCK));
+#endif
 		new->flags |= EV_CONN_BLOCK;
 	}
 	OK(listen(fd, maxconn));
@@ -160,8 +166,14 @@ evCancelConn(evContext opaqueCtx, evConnID id) {
 		if (mode == -1) {
 			if (errno != EBADF)
 				return (-1);
-		} else
+		} else {
+#ifdef USE_FIONBIO_IOCTL
+			int on = 1;
+			OK(ioctl(this->fd, FIONBIO, (char *)&on));
+#else
 			OK(fcntl(this->fd, F_SETFL, mode | PORT_NONBLOCK));
+#endif
+		}
 	}
 	
 	/* Unlink from ctx->conns. */
