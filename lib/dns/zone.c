@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.418 2004/08/27 12:28:10 marka Exp $ */
+/* $Id: zone.c,v 1.419 2004/08/27 12:35:03 marka Exp $ */
 
 #include <config.h>
 
@@ -2349,8 +2349,10 @@ dump_done(void *arg, isc_result_t result) {
 
 		tresult = dns_db_getsoaserial(db, version, &serial);
 		if (tresult == ISC_R_SUCCESS) {
-			tresult = dns_journal_compact(zone->mctx, zone->journal,
-						     serial, zone->journalsize);
+			tresult = dns_journal_compact(zone->mctx,
+						      zone->journal,
+						      serial,
+						      zone->journalsize);
 			switch (tresult) {
 			case ISC_R_SUCCESS:
 			case ISC_R_NOSPACE:
