@@ -1,4 +1,4 @@
-16.	[bug]		Rndc could catch an assertion failure on SIGINT due
+1056.	[bug]		Rndc could catch an assertion failure on SIGINT due
 			to an uninitialized variable. [RT #1908]
 
 1055.	[func]		Version and hostname queries can now be disabled
