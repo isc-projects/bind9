@@ -2296,8 +2296,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * simplifies the code.
 		 */
 		changed = add_changed(rbtdb, rbtversion, rbtnode);
-		if (changed == NULL)
+		if (changed == NULL) {
+			free_rdataset(rbtdb->common.mctx, newheader);
 			return (DNS_R_NOMEMORY);
+		}
 	}
 
 	newheader_nx = ((newheader->attributes & RDATASET_ATTR_NONEXISTENT)
@@ -2510,14 +2512,117 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static dns_result_t
 subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *newrdataset) {
-	(void)db;
-	(void)node;
-	(void)version;
-	(void)rdataset;
-	(void)newrdataset;
+		 dns_rdataset_t *rdataset, dns_rdataset_t *newrdataset)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
+	rbtdb_version_t *rbtversion = version;
+	rdatasetheader_t *header, *header_prev, *newheader;
+	unsigned char *subresult;
+	isc_region_t region;
+	dns_result_t result;
+	rbtdb_changed_t *changed;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
+					    &region,
+					    sizeof (rdatasetheader_t));
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	newheader = (rdatasetheader_t *)region.base;
+	newheader->ttl = 0;
+	newheader->type = rdataset->type;
+	newheader->attributes = 0;
+	newheader->serial = rbtversion->serial;
+	newheader->trust = 0;
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	changed = add_changed(rbtdb, rbtversion, rbtnode);
+	if (changed == NULL) {
+		free_rdataset(rbtdb->common.mctx, newheader);
+		return (DNS_R_NOMEMORY);
+	}
+
+	header_prev = NULL;
+	for (header = rbtnode->data; header != NULL; header = header->next) {
+		if (header->type == newheader->type)
+			break;
+		header_prev = header;
+	}
+	if (header != NULL) {
+		result = dns_rdataslab_subtract(
+					(unsigned char *)header,
+					(unsigned char *)newheader,
+					(unsigned int)(sizeof *newheader),
+					rbtdb->common.mctx,
+					rbtdb->common.rdclass,
+					header->type,
+					&subresult);
+		if (result == DNS_R_SUCCESS) {
+			free_rdataset(rbtdb->common.mctx, newheader);
+			newheader = (rdatasetheader_t *)subresult;
+			/*
+			 * We have to set the serial since the rdataslab
+			 * subtraction routine copies the reserved portion of
+			 * header, not newheader.
+			 */
+			newheader->serial = rbtversion->serial;
+		} else if (result == DNS_R_NXRDATASET) {
+			/*
+			 * This subtraction would remove all of the rdata;
+			 * add a nonexistent header instead.
+			 */
+			free_rdataset(rbtdb->common.mctx, newheader);
+			newheader = isc_mem_get(rbtdb->common.mctx,
+						sizeof *newheader);
+			if (newheader == NULL) {
+				result = DNS_R_NOMEMORY;
+				goto unlock;
+			}
+			newheader->ttl = 0;
+			newheader->type = rdataset->type;
+			newheader->attributes = RDATASET_ATTR_NONEXISTENT;
+			newheader->trust = 0;
+			newheader->serial = rbtversion->serial;
+		} else {
+			free_rdataset(rbtdb->common.mctx, newheader);
+			goto unlock;
+		}
+
+		/*
+		 * If we're here, we want to link newheader in front of
+		 * header.
+		 */
+		
+		INSIST(rbtversion->serial >= header->serial);
+		if (header_prev != NULL)
+			header_prev->next = newheader;
+		else
+			rbtnode->data = newheader;
+		newheader->next = header->next;
+		newheader->down = header;
+		header->next = newheader;
+		rbtnode->dirty = 1;
+		changed->dirty = ISC_TRUE;
+	} else {
+		/*
+		 * The rdataset doesn't exist, so we don't need to do anything
+		 * to satisfy the deletion request.
+		 */
+		free_rdataset(rbtdb->common.mctx, newheader);
+		result = DNS_R_UNCHANGED;
+	}
+
+	if (result == DNS_R_SUCCESS && newrdataset != NULL)
+		bind_rdataset(rbtdb, rbtnode, newheader, 0, newrdataset);
+
+ unlock:
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	return (result);
 }
 
 static dns_result_t
