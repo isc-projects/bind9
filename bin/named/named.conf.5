@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.6 2004/11/11 01:55:56 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.7 2005/01/13 04:43:02 marka Exp $
 .\"
 .TH "NAMED.CONF" "5" "Aug 13, 2004" "BIND9" ""
 .SH NAME
@@ -223,6 +223,7 @@ options {
 	notify \fInotifytype\fR;
 	notify-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify-source-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
+	notify-delay \fIseconds\fR;
 	also-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
 		[ port \fIinteger\fR ]; ... };
 	allow-notify { \fIaddress_match_element\fR; ... };
@@ -351,6 +352,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	notify \fInotifytype\fR;
 	notify-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify-source-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
+	notify-delay \fIseconds\fR;
 	also-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
 		[ port \fIinteger\fR ]; ... };
 	allow-notify { \fIaddress_match_element\fR; ... };
@@ -427,6 +429,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	notify \fInotifytype\fR;
 	notify-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify-source-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
+	notify-delay \fIseconds\fR;
 	also-notify [ port \fIinteger\fR ] { ( \fIipv4_address\fR | \fIipv6_address\fR )
 		[ port \fIinteger\fR ]; ... };
 	allow-notify { \fIaddress_match_element\fR; ... };
