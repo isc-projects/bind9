@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.27 2002/02/20 03:33:10 marka Exp $ */
+/* $Id: config.c,v 1.28 2002/03/06 23:52:38 marka Exp $ */
 
 #include <config.h>
 
@@ -224,11 +224,11 @@ ns_config_getzonetype(cfg_obj_t *zonetypeobj) {
 	char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
-	if (strcmp(str, "master") == 0)
+	if (strcasecmp(str, "master") == 0)
 		ztype = dns_zone_master;
-	else if (strcmp(str, "slave") == 0)
+	else if (strcasecmp(str, "slave") == 0)
 		ztype = dns_zone_slave;
-	else if (strcmp(str, "stub") == 0)
+	else if (strcasecmp(str, "stub") == 0)
 		ztype = dns_zone_stub;
 	else
 		INSIST(0);

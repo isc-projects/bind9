@@ -1,3 +1,6 @@
+1221.	[bug]		Zone types 'master', 'slave' and 'stub' were not being
+			compared case insensitively. [RT #2542]
+
 1220.	[func]		Support for APL rdata type.
 
 1219.	[func]		Named now reports the TSIG extended error code when
