@@ -30,15 +30,15 @@
 ./bin/dig/.cvsignore				X	2000,2001
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004
 ./bin/dig/dig.1					MAN	2000,2001,2002,2003,2004
-./bin/dig/dig.c					C	2000,2001,2002,2003,2004
+./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004
 ./bin/dig/dig.html				HTML	2000,2001,2002,2003,2004
-./bin/dig/dighost.c				C	2000,2001,2002,2003,2004
+./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005
 ./bin/dig/host.1				MAN	2000,2001,2002,2004
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004
 ./bin/dig/host.html				HTML	2000,2001,2002,2004
-./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004
+./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005
 ./bin/dig/nslookup.1				MAN	2004
 ./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004
 ./bin/dig/nslookup.docbook			SGML	2004
@@ -1949,7 +1949,7 @@
 ./lib/isc/include/isc/version.h			C	2001,2004
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004
-./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004
+./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004
 ./lib/isc/lib.c					C	1999,2000,2001,2004
@@ -2201,7 +2201,7 @@
 ./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004
 ./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004
 ./lib/lwres/lwinetntop.c			C	1996,1997,1998,1999,2000,2001,2003,2004
-./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004
+./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004,2005
 ./lib/lwres/lwpacket.c				C	2000,2001,2004
 ./lib/lwres/lwres_gabn.c			C	2000,2001,2004
 ./lib/lwres/lwres_gnba.c			C	2000,2001,2002,2004
