@@ -55,6 +55,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	isc_socketevent_t *dev;
 	isc_region_t region;
 	char buf[1024];
+	char host[256];
 
 	sock = event->sender;
 	dev = (isc_socketevent_t *)event;
@@ -63,9 +64,17 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	       (char *)(event->arg), sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
-	printf("\tFrom: %s port %d\n",
-	       inet_ntoa(dev->address.type.sin.sin_addr),
-	       ntohs(dev->address.type.sin.sin_port));
+	if (dev->address.type.sa.sa_family == AF_INET6) {
+		inet_ntop(AF_INET6, &dev->address.type.sin6.sin6_addr,
+			  host, sizeof (host));
+		printf("\tFrom: %s port %d\n", host,
+		       ntohs(dev->address.type.sin6.sin6_port));
+	} else {
+		inet_ntop(AF_INET, &dev->address.type.sin.sin_addr,
+			  host, sizeof (host));
+		printf("\tFrom: %s port %d\n", host,
+		       ntohs(dev->address.type.sin.sin_port));
+	}
 
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
@@ -342,14 +351,15 @@ main(int argc, char *argv[])
 	 * Why not.  :)
 	 */
 	so2 = NULL;
-	ina.s_addr = inet_addr("204.152.186.34");
-	if (pf == PF_INET6)
+	ina.s_addr = inet_addr("204.152.184.97");
+	if (0 && pf == PF_INET6)
 		isc_sockaddr_v6fromin(&sockaddr, &ina, 80);
 	else
 		isc_sockaddr_fromin(&sockaddr, &ina, 80);
 	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockaddr_pf(&sockaddr),
 					isc_sockettype_tcp,
 					&so2) == ISC_R_SUCCESS);
+
 	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, t2,
 					 my_connect, "so2") == ISC_R_SUCCESS);
 
