@@ -62,6 +62,24 @@ extern const dns_master_style_t dns_master_style_default;
  ***/
 
 isc_result_t
+dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
+		dns_dbversion_t *version,
+		const dns_master_style_t *style, FILE *f);
+/*
+ * Dump the database 'db' to the steam 'f' in RFC1035 master 
+ * file format, in the style defined by 'style'
+ * (e.g., &dns_default_master_style_default)
+ *
+ * Temporary dynamic memory may be allocated from 'mctx'.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS 
+ *	DNS_R_NOMEMORY
+ * 	Any database or rrset iterator error.
+ *	Any dns_rdata_totext() error code.
+ */
+
+isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 		dns_dbversion_t *version,
 		const dns_master_style_t *style, const char *filename);

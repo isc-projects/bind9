@@ -666,7 +666,7 @@ const int initial_buffer_length = 1200;
 /*
  * Dump an entire database into a master file.
  */
-static isc_result_t
+isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
 			const dns_master_style_t *style,
