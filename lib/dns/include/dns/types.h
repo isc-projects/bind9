@@ -77,6 +77,9 @@ typedef enum {
 } dns_namereln_t;
 
 #include <dns/enumtype.h>
+
+/* XXXRTH why don't these enums have typedefs? */
+
 enum {
 	dns_rdatatype_none = 0,
 	TYPEENUM
