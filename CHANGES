@@ -1,4 +1,12 @@
 
+ 399.	[bug]		When reloading the server with a config file
+			containing a syntax error, it could catch an
+			assertion failure trying to perform zone
+			maintenance on, or sending notifies from,
+			tentatively created zones whose	views were
+			never fully configured and lacked an address 
+			database and request manager.
+
  398.	[bug]		"dig" sometimes caught an assertion failure when
 			using TSIG, depending on the key length.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.189 2000/08/18 02:34:29 bwelling Exp $ */
+/* $Id: zone.c,v 1.190 2000/08/18 22:51:36 gson Exp $ */
 
 #include <config.h>
 
@@ -1894,6 +1894,10 @@ notify_find_address(dns_notify_t *notify) {
 		  DNS_ADBFIND_INET6 | DNS_ADBFIND_RETURNLAME;
 
 	dns_zone_iattach(notify->zone, &zone);
+
+	if (zone->view->adb == NULL)
+		goto destroy;
+	
 	result = dns_adb_createfind(zone->view->adb,
 				    zone->task,
 				    process_adb_event, notify,
@@ -1902,12 +1906,8 @@ notify_find_address(dns_notify_t *notify) {
 				    &notify->find);
 
 	/* Something failed? */
-	if (result != ISC_R_SUCCESS) {
-		LOCK(&zone->lock);
-		notify_destroy(notify);
-		UNLOCK(&zone->lock);
-		goto detach;
-	}
+	if (result != ISC_R_SUCCESS)
+		goto destroy;
 
 	/* More addresses pending? */
 	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0)
@@ -1916,6 +1916,12 @@ notify_find_address(dns_notify_t *notify) {
 	/* We have as many addresses as we can get. */
 	LOCK(&zone->lock);
 	notify_send(notify);
+	UNLOCK(&zone->lock);
+	goto detach;
+
+ destroy:
+	LOCK(&zone->lock);
+	notify_destroy(notify);
 	UNLOCK(&zone->lock);
  detach:
 	dns_zone_idetach(&zone);
@@ -1966,7 +1972,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0 ||
-	     DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING)) {
+	    DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_EXITING) ||
+	    zone->view->requestmgr == NULL) {
 		result = ISC_R_CANCELED;
 		goto cleanup;
 	}
@@ -2861,7 +2868,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	DNS_ENTER;
 
 	if (((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0) ||
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) ||
+	    zone->view->requestmgr == NULL) {
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 			cancel_refresh(zone);
 		isc_event_free(&event);
