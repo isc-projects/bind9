@@ -3,5 +3,4 @@ Makefile
 *.la
 *.lo
 named
-named.8
 lwresd

@@ -12,51 +12,38 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.TH "LWRESD" "8" "June 30, 2000" "BIND9" ""
+.TH "NAMED" "8" "June 30, 2000" "BIND9" ""
 .SH NAME
-lwresd \- lightweight resolver daemon
+named \- Internet domain name server
 .SH SYNOPSIS
 .sp
-\fBlwresd\fR [ \fB-C \fIconfig-file\fB\fR ]  [ \fB-d \fIdebug-level\fB\fR ]  [ \fB-f\fR ]  [ \fB-g\fR ]  [ \fB-i \fIpid-file\fB\fR ]  [ \fB-n \fI#cpus\fB\fR ]  [ \fB-P \fIport\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-s\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-u \fIuser\fB\fR ]  [ \fB-v\fR ] 
+\fBnamed\fR [ \fB-c \fIconfig-file\fB\fR ]  [ \fB-d \fIdebug-level\fB\fR ]  [ \fB-f\fR ]  [ \fB-g\fR ]  [ \fB-n \fI#cpus\fB\fR ]  [ \fB-p \fIport\fB\fR ]  [ \fB-s\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-u \fIuser\fB\fR ]  [ \fB-v\fR ]  [ \fB-x \fIcache-file\fB\fR ] 
 .SH "DESCRIPTION"
 .PP
-\fBlwresd\fR is the daemon providing name lookup
-services to clients that use the BIND 9 lightweight resolver
-library. It is essentially a stripped-down, caching-only name
-server that answers queries using the BIND 9 lightweight
-resolver protocol rather than the DNS protocol.
+\fBnamed\fR is a Domain Name System (DNS) server,
+part of the BIND 9 distribution from ISC. For more
+information on the DNS, see RFCs 1033, 1034, and 1035.
 .PP
-\fBlwresd\fR listens for resolver queries on a
-UDP port on the IPv4 loopback interface, 127.0.0.1. This
-means that \fBlwresd\fR can only be used by
-processes running on the local machine. By default UDP port
-number 921 is used for lightweight resolver requests and
-responses.
-.PP
-Incoming lightweight resolver requests are decoded by the
-server which then resolves them using the DNS protocol. When
-the DNS lookup completes, \fBlwresd\fR encodes
-the answers in the lightweight resolver format and returns
-them to the client that made the request.
-.PP
-If \fI/etc/resolv.conf\fR contains any
-\fBnameserver\fR entries, \fBlwresd\fR
-sends recursive DNS queries to those servers. This is similar
-to the use of forwarders in a caching name server. If no
-\fBnameserver\fR entries are present, or if
-forwarding fails, \fBlwresd\fR resolves the
-queries autonomously starting at the root name servers, using
-a built-in list of root server hints.
+When invoked without arguments, \fBnamed\fR will
+read the default configuration file
+\fI/etc/named.conf\fR, read any initial
+data, and listen for queries.
 .SH "OPTIONS"
 .TP
-\fB-C \fIconfig-file\fB\fR
+\fB-c \fIconfig-file\fB\fR
 Use \fIconfig-file\fR as the
 configuration file instead of the default,
-\fI/etc/resolv.conf\fR.
+\fI/etc/named.conf\fR. To
+ensure that reloading the configuration file continues
+to work after the server has changed its working
+directory due to to a possible
+\fBdirectory\fR option in the configuration
+file, \fIconfig-file\fR should be
+an absolute pathname.
 .TP
 \fB-d \fIdebug-level\fB\fR
 Set the daemon's debug level to \fIdebug-level\fR.
-Debugging traces from \fBlwresd\fR become
+Debugging traces from \fBnamed\fR become
 more verbose as the debug level increases.
 .TP
 \fB-f\fR
@@ -69,22 +56,14 @@ to \fIstderr\fR.
 \fB-n \fI#cpus\fB\fR
 Create \fI#cpus\fR worker threads
 to take advantage of multiple CPUs. If not specified,
-\fBlwresd\fR will try to determine the
+\fBnamed\fR will try to determine the
 number of CPUs present and create one thread per CPU.
 If it is unable to determine the number of CPUs, a
 single worker thread will be created.
 .TP
-\fB-P \fIport\fB\fR
-Listen for lightweight resolver queries on port
-\fIport\fR. If
-not specified, the default is port 921.
-.TP
 \fB-p \fIport\fB\fR
-Send DNS lookups to port \fIport\fR. If not
-specified, the default is port 53. This provides a
-way of testing the lightweight resolver daemon with a
-name server that listens for queries on a non-standard
-port number.
+Listen for queries on port \fIport\fR. If not
+specified, the default is port 53.
 .TP
 \fB-s\fR
 Write memory usage statistics to \fIstdout\fR on exit.
@@ -116,21 +95,70 @@ escape a chroot jail.
 \fBsetuid()\fR to \fIuser\fR after completing
 privileged operations, such as creating sockets that
 listen on privileged ports.
+.sp
+.RS
+.B "Note:"
+On Linux, \fBnamed\fR uses the kernel's
+capability mechanism to drop all root privileges
+except the ability to \fBbind()\fR to a
+privileged port and set process resource limits.
+Unfortunately, this means that the \fB-u\fR
+option only works when \fBnamed\fR is run
+on kernel 2.2.18 or later, or kernel 2.3.99-pre3 or
+later, since previous kernels did not allow privileges
+to be retained after \fBsetuid()\fR.
+.RE
+.sp
 .TP
 \fB-v\fR
 Report the version number and exit.
+.TP
+\fB-x \fIcache-file\fB\fR
+Load data from \fIcache-file\fR into the
+cache of the default view.
+.sp
+.RS
+.B "Warning:"
+This option must not be used. It is only of interest
+to BIND 9 developers and may be removed or changed in a
+future release.
+.RE
+.sp
+.SH "SIGNALS"
+.PP
+In routine operation, signals should not be used to control
+the nameserver; \fBrndc\fR should be used
+instead.
+.TP
+\fBSIGHUP\fR
+Force a reload of the server.
+.TP
+\fBSIGINT, SIGTERM\fR
+Shut down the server.
+.PP
+The result of sending any other signals to the server is undefined.
+.PP
+.SH "CONFIGURATION"
+.PP
+The \fBnamed\fR configuration file is too complex
+to describe in detail here. A complete description is
+provided in the \fIBIND 9 Administrator Reference
+Manual\fR.
 .SH "FILES"
 .TP
-\fB\fI/etc/resolv.conf\fB\fR
+\fB\fI/etc/named.conf\fB\fR
 The default configuration file.
 .TP
-\fB\fI/var/run/lwresd.pid\fB\fR
+\fB\fI/var/run/named.pid\fB\fR
 The default process-id file.
 .SH "SEE ALSO"
 .PP
-\fBnamed\fR(8),
-\fBlwres\fR(3),
-\fBresolver\fR(5).
+\fIRFC 1033\fR,
+\fIRFC 1034\fR,
+\fIRFC 1035\fR,
+\fBrndc\fR(8),
+\fBlwresd\fR(8),
+\fIBIND 9 Administrator Reference Manual\fR.
 .SH "AUTHOR"
 .PP
 Internet Software Consortium
