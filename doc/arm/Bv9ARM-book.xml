@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.33 2004/03/15 04:13:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.34 2004/05/12 02:08:12 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3247,7 +3247,7 @@ the server will not listen on any IPv6 address.</para></sect3>
 query other nameservers. <command>query-source</command> specifies
 the address and port used for such queries. For queries sent over
 IPv6, there is a separate <command>query-source-v6</command> option.
- If <command>address</command> is <command>*</command> or is omitted,
+If <command>address</command> is <command>*</command> or is omitted,
 a wildcard IP address (<command>INADDR_ANY</command>) will be used.
 If <command>port</command> is <command>*</command> or is omitted,
 a random unprivileged port will be used. The defaults are</para>
@@ -3258,7 +3258,11 @@ query-source-v6 address * port *;
 <para>The address specified in the <command>query-source</command> option
 is used for both UDP and TCP queries, but the port applies only to 
 UDP queries.  TCP queries always use a random
-unprivileged port.</para></note></sect3>
+unprivileged port.</para></note>
+<note>
+<para>See also <command>transfer-source</command> and
+<command>notify-source</command>.</para></note>
+</sect3>
 
 <sect3 id="zone_transfers"><title>Zone Transfers</title>
 <para><acronym>BIND</acronym> has mechanisms in place to facilitate zone transfers
