@@ -1,3 +1,6 @@
+1278.	[bug]		libbind: res_nametotype() and res_nametoclass() were
+			broken.
+
 1277.	[bug]		Failure to write pid-file should not be fatal on
 			reload. [RT #2861]
 
