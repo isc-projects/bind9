@@ -1,4 +1,8 @@
 
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+
 CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../pthreads/include \
 		-I${srcdir}/../include

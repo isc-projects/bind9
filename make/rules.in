@@ -5,10 +5,9 @@
 ###
 ### Paths
 ###
+### Note: paths that vary by Makefile MUST NOT be listed
+### here, or they won't get expanded correctly.
 
-srcdir =	@srcdir@
-VPATH =		@srcdir@
-top_srcdir =	@top_srcdir@
 prefix =	@prefix@
 exec_prefix =	@exec_prefix@
 bindir =	@bindir@
