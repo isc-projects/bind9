@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.254 2000/11/25 03:27:53 mws Exp $ */
+/* $Id: server.c,v 1.255 2000/11/25 03:55:43 mws Exp $ */
 
 #include <config.h>
 
@@ -2128,7 +2128,7 @@ zone_from_args(char *args, dns_zone_t **zone) {
 		}
 		ptr = next_token(&input, " \t");
 	}
-	if (zonetxt == NULL)
+	if ((zonetxt == NULL) || (zonetxt[0] == 0))
 		return DNS_R_BADZONE; /* Nothing to do! */
 	isc_buffer_init(&buf, zonetxt, strlen(zonetxt));
 	isc_buffer_add(&buf, strlen(zonetxt));
@@ -2137,7 +2137,7 @@ zone_from_args(char *args, dns_zone_t **zone) {
 				   ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
-	if (viewtxt == NULL)
+	if ((viewtxt == NULL) || (viewtxt[0] == 0))
 		viewtxt = "_default";
 	result = dns_viewlist_find(&ns_g_server->viewlist, viewtxt,
 				   dns_rdataclass_in, &view);
