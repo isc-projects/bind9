@@ -22,7 +22,9 @@
 #include <isc/resultclass.h>
 #include <isc/once.h>
 #include <isc/error.h>
+
 #include <dns/result.h>
+#include <dns/lib.h>
 
 static char *text[DNS_R_NRESULTS] = {
 	"success",				/*  0 */
@@ -80,13 +82,11 @@ static char *text[DNS_R_NRESULTS] = {
 #define DNS_RESULT_RESULTSET			2
 
 static isc_once_t		once = ISC_ONCE_INIT;
-static isc_msgcat_t *		dns_msgcat = NULL;
 
 static void
 initialize_action(void) {
 	isc_result_t result;
 
-	isc_msgcat_open("libdns.cat", &dns_msgcat);
 	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
 				     text, dns_msgcat, DNS_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
@@ -96,6 +96,7 @@ initialize_action(void) {
 
 static void
 initialize(void) {
+	dns_lib_initmsgcat();
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 

@@ -27,6 +27,7 @@
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/msgcat.h>
+#include <isc/lib.h>
 
 #include "util.h"
 
@@ -81,7 +82,6 @@ static char *text[ISC_R_NRESULTS] = {
 #define ISC_RESULT_UNAVAILABLESET		3
 
 static isc_once_t 				once = ISC_ONCE_INIT;
-static isc_msgcat_t *				isc_msgcat = NULL;
 static ISC_LIST(resulttable)			tables;
 static isc_mutex_t				lock;
 
@@ -125,7 +125,6 @@ initialize_action(void) {
 	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 	ISC_LIST_INIT(tables);
 
-	isc_msgcat_open("libisc.cat", &isc_msgcat);
 	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS, text,
 				isc_msgcat, ISC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
@@ -135,6 +134,7 @@ initialize_action(void) {
 
 static void
 initialize(void) {
+	isc_lib_initmsgcat();
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 
