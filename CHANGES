@@ -1,3 +1,5 @@
+  79.   [cleanup]       <dns/callbacks.h> does not need <stdio.h>.
+
   78.   [cleanup]       lwres_conftest renamed to lwresconf_test for
                         consistency with other *_test programs.
 
