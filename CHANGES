@@ -86,7 +86,7 @@
 			bin/tests/system/ifconfig.sh.
 
  837.	[cleanup]	Multithreading is now enabled by default only on
-			OSF1, Solaris 2.7 and newer, and AIX.
+			OSF1, Solaris 2.7 and newer, AIX, IRIX, and HP-UX.
 
  836.	[func]		Upgraded libtool to 1.4.
 
