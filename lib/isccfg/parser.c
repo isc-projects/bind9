@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.88 2001/11/05 22:24:31 gson Exp $ */
+/* $Id: parser.c,v 1.89 2001/11/07 03:52:20 marka Exp $ */
 
 #include <config.h>
 
@@ -928,7 +928,6 @@ view_clauses[] = {
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
-	{ "max-adb-size", &cfg_type_sizenodefault, 0 },
 	{ "check-names", &cfg_type_checknames,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
