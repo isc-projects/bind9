@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 static void
-hex_dump(char *msg, void *data, unsigned int length) {
+hex_dump(const char *msg, void *data, unsigned int length) {
         unsigned int len;
 	unsigned char *base;
 	isc_boolean_t first = ISC_TRUE;
@@ -43,7 +43,7 @@ hex_dump(char *msg, void *data, unsigned int length) {
 static void
 CHECK(const char *msg, isc_result_t result) {
 	if (result != ISC_R_SUCCESS) {
-		printf("FAILURE:  %s\n", msg);
+		printf("FAILURE:  %s:  %s\n", msg, isc_result_totext(result));
 		exit(1);
 	}
 }
@@ -71,7 +71,7 @@ main(int argc, char **argv) {
 
 	isc_entropy_stats(ent, stderr);
 
-#if 0
+#if 1
 	devrandom = NULL;
 	flags = 0;
 	CHECK("isc_entropy_createfilesource()",
