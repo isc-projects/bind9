@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.57 2001/04/16 23:07:34 bwelling Exp $ */
+/* $Id: rndc.c,v 1.58 2001/05/08 01:19:01 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -103,6 +103,7 @@ command is one of the following:\n\
 		Reload a single zone.\n\
   refresh zone [class [view]]\n\
 		Schedule immediate maintenance for a zone.\n\
+  reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
   dumpdb	Dump cache(s) to the dump file (named_dump.db).\n\
