@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.7 2004/12/08 03:00:28 marka Exp $
+# $Id: Makefile.in,v 1.8 2004/12/08 13:18:52 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,7 +32,7 @@ CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
-ISCCFGLIBS =    ../../lib/isccfg/libisccfg.@A
+ISCCFGLIBS =    ../../lib/isccfg/libisccfg.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
