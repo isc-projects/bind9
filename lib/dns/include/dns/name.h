@@ -286,6 +286,26 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2);
  *	1		'name1' is greater than 'name2'
  */
 
+int
+dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2);
+/*
+ * Compare two names as if they are part of rdata. 
+ *
+ * Requires:
+ *	'name1' is a valid absolute name
+ *
+ *	dns_name_countlabels(name1) > 0
+ *
+ *	'name2' is a valid absolute name
+ *
+ *	dns_name_countlabels(name2) > 0
+ *
+ * Returns:
+ *	-1		'name1' is less than 'name2'
+ *	0		'name1' is equal to 'name2'
+ *	1		'name1' is greater than 'name2'
+ */
+
 isc_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2);
 /*

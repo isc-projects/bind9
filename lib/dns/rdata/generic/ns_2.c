@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.6 1999/01/22 05:02:46 marka Exp $ */
+ /* $Id: ns_2.c,v 1.7 1999/02/15 05:44:18 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_H
 #define RDATA_GENERIC_NS_2_H
@@ -109,7 +109,7 @@ compare_ns(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

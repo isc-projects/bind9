@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.4 1999/02/05 05:15:16 marka Exp $ */
+ /* $Id: tkey_249.c,v 1.5 1999/02/15 05:44:20 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -253,7 +253,7 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_init(&name2, NULL);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	if ((result = dns_name_compare(&name1, &name2)) != 0)
+	if ((result = dns_name_rdatacompare(&name1, &name2)) != 0)
 		return (result);
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));

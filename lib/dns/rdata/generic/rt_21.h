@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.h,v 1.1 1999/01/22 05:02:48 marka Exp $ */
+ /* $Id: rt_21.h,v 1.2 1999/02/15 05:44:19 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -147,7 +147,7 @@ compare_rt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

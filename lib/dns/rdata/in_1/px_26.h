@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.h,v 1.1 1999/01/31 22:38:40 marka Exp $ */
+ /* $Id: px_26.h,v 1.2 1999/02/15 05:44:22 marka Exp $ */
 
  /* RFC 2163 */
 
@@ -172,7 +172,7 @@ compare_in_px(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 
@@ -182,7 +182,7 @@ compare_in_px(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

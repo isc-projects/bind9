@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.9 1999/01/22 05:02:46 marka Exp $ */
+ /* $Id: mx_15.c,v 1.10 1999/02/15 05:44:18 marka Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -145,7 +145,7 @@ compare_mx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

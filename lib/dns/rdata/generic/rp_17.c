@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rp_17.c,v 1.1 1999/01/22 05:02:47 marka Exp $ */
+ /* $Id: rp_17.c,v 1.2 1999/02/15 05:44:19 marka Exp $ */
 
  /* RFC 1183 */
 
@@ -143,7 +143,7 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 
@@ -156,7 +156,7 @@ compare_rp(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	return (result);
 }
 

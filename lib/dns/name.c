@@ -456,6 +456,78 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	return (ldiff);
 }
 
+int
+dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2) {
+	unsigned int l1, l2, l, count1, count2, count;
+	unsigned char c1, c2;
+	unsigned char *label1, *label2;
+
+	/*
+	 * Compare two absolute names as rdata.
+	 */
+
+	REQUIRE(VALID_NAME(name1));
+	REQUIRE(name1->labels > 0);
+	REQUIRE((name1->attributes & DNS_NAMEATTR_ABSOLUTE) != 0);
+	REQUIRE(VALID_NAME(name2));
+	REQUIRE(name2->labels > 0);
+	REQUIRE((name2->attributes & DNS_NAMEATTR_ABSOLUTE) != 0);
+
+	l1 = name1->labels;
+	l2 = name2->labels;
+
+	l = (l1 < l2) ? l1 : l2;
+
+	label1 = name1->ndata;
+	label2 = name2->ndata;
+	while (l > 0) {
+		l--;
+		count1 = *label1++;
+		count2 = *label2++;
+		if (count1 <= 63 && count2 <= 63) {
+			if (count1 != count2)
+				return ((count1 < count2) ? -1 : 1);
+			count = count1;
+			while (count > 0) {
+				count--;
+				c1 = maptolower[*label1++];
+				c2 = maptolower[*label2++];
+				if (c1 < c2)
+					return (-1);
+				else if (c1 > c2)
+					return (1);
+			}
+		} else if (count1 == DNS_LABELTYPE_BITSTRING && count2 <= 63) {
+			return (1);
+		} else if (count2 == DNS_LABELTYPE_BITSTRING && count1 <= 63) {
+			return (-1);
+		} else {
+			INSIST(count1 == DNS_LABELTYPE_BITSTRING &&
+			       count2 == DNS_LABELTYPE_BITSTRING);
+			count2 = *label2++;
+			count1 = *label1++;
+			if (count1 != count2)
+				return ((count1 < count2) ? -1 : 1);
+			if (count1 == 0)
+				count1 = 256;
+			if (count2 == 0)
+				count2 = 256;
+			/* number of bytes */
+			count = (count1 + 7) / 8;
+			while (count > 0) {
+				c1 = *label1++;
+				c2 = *label2++;
+				if (c1 != c2)
+					return ((c1 < c2) ? -1 : 1);
+			}
+		}
+	}
+
+	INSIST(l1 == l2);
+
+	return (0);
+}
+
 isc_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	unsigned int l1, l2, count1, count2;

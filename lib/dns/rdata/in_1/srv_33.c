@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.1 1999/02/01 22:05:56 marka Exp $ */
+ /* $Id: srv_33.c,v 1.2 1999/02/15 05:44:22 marka Exp $ */
 
  /* RFC 2052 bis */
 
@@ -171,7 +171,7 @@ compare_in_srv(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

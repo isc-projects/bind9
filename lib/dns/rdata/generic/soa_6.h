@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.9 1999/01/22 05:02:48 marka Exp $ */
+ /* $Id: soa_6.h,v 1.10 1999/02/15 05:44:20 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -182,7 +182,7 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 
@@ -195,7 +195,7 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.c,v 1.1 1999/02/01 23:49:47 marka Exp $ */
+ /* $Id: kx_36.c,v 1.2 1999/02/15 05:44:21 marka Exp $ */
 
  /* RFC 2230 */
 
@@ -138,7 +138,7 @@ compare_in_kx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

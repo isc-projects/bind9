@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.3 1999/02/09 07:52:32 marka Exp $ */
+ /* $Id: a6_38.h,v 1.4 1999/02/15 05:44:21 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -234,7 +234,7 @@ compare_in_a6(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_init(&name2, NULL);
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

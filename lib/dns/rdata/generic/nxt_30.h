@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.h,v 1.3 1999/02/04 06:38:43 marka Exp $ */
+ /* $Id: nxt_30.h,v 1.4 1999/02/15 05:44:18 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -171,7 +171,7 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_rdata_toregion(rdata2, &r2);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 

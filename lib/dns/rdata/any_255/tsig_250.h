@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.3 1999/02/05 05:15:15 marka Exp $ */
+ /* $Id: tsig_250.h,v 1.4 1999/02/15 05:44:15 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -263,7 +263,7 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_init(&name2, NULL);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 	isc_region_consume(&r1, name_length(&name1));

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.h,v 1.1 1999/02/02 05:03:10 marka Exp $ */
+ /* $Id: dname_39.h,v 1.2 1999/02/15 05:44:16 marka Exp $ */
 
  /* draft-ietf-dnsind-dname-02.txt */
 
@@ -111,7 +111,7 @@ compare_dname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_compare(&name1, &name2));
+	return (dns_name_rdatacompare(&name1, &name2));
 }
 
 static dns_result_t

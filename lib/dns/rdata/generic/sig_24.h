@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.5 1999/02/04 00:03:29 marka Exp $ */
+ /* $Id: sig_24.h,v 1.6 1999/02/15 05:44:20 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -268,7 +268,7 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_consume(&r2, 18);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	result = dns_name_compare(&name1, &name2);
+	result = dns_name_rdatacompare(&name1, &name2);
 	if (result != 0)
 		return (result);
 	isc_region_consume(&r1, name_length(&name1));
