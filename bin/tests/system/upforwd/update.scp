@@ -1,0 +1,4 @@
+server 10.53.0.2 5300
+update add updated.example. 600 A 10.10.10.1
+update add updated.example. 600 TXT Foo
+
