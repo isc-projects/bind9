@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsecify.c,v 1.3 2004/03/05 04:58:39 marka Exp $ */
+/* $Id: nsecify.c,v 1.4 2004/08/28 06:16:52 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/string.h>
 
 #include <dns/db.h>

@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.10 2004/03/05 05:12:09 marka Exp $ */
+/* $Id: cc.c,v 1.11 2004/08/28 06:16:58 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
+#include <isc/print.h>
 #include <isc/stdlib.h>
 
 #include <isccc/alist.h>

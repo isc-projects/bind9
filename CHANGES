@@ -5,7 +5,9 @@
 
 1705.	[placeholder]	rt12327
 
-1704.	[placeholder]	rt12321
+1704.	[port]		lwres needed a snprintf() implementation for
+			platforms without snprintf().  Add missing
+			"#include <isc/print.h>". [RT #12321]
 
 1703.	[bug]		named would loop sending NOTIFY messages when it
 			failed to receive a response. [RT #12322]
@@ -4771,7 +4773,6 @@
 
  201.	[cleanup]	Removed the test/sdig program, it has been
 			replaced by bin/dig/dig.
-
 
 	--- 9.0.0b3 released ---
 

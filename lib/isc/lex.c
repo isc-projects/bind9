@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.78 2004/03/05 05:10:46 marka Exp $ */
+/* $Id: lex.c,v 1.79 2004/08/28 06:16:57 marka Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/parseint.h>
+#include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>

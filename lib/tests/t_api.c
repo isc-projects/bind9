@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.53 2004/06/21 05:36:40 marka Exp $ */
+/* $Id: t_api.c,v 1.54 2004/08/28 06:17:00 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 
 #include <isc/boolean.h>
 #include <isc/commandline.h>
+#include <isc/print.h>
 #include <isc/string.h>
 
 #include <dns/compress.h>
