@@ -49,13 +49,13 @@ number of threads running is n+4, where n is the number of CPUs.
 
 
 Q: Why does BIND 9 log "permission denied" errors accessing its
-configuration files on my Linux system even though it is running as
-root?
+configuration files or zones on my Linux system even though it is running
+as root?
 
 A: On Linux, BIND 9 drops most of its root privileges on startup.
 This including the privilege to open files owned by other users.
 Therefore, if the server is running as root, the configuration files
-should also be owned by root.
+and zone files should also be owned by root.
 
 
 Q: Why do I get errors like "dns_zone_load: zone foo/IN: loading master file
@@ -96,4 +96,3 @@ caveats of the previous answer still apply, of course.
 		  file "/dev/null";  // or any empty file
 	  };
   };
-
