@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.46 1999/04/22 14:16:52 tale Exp $ */
+/* $Id: rbt.c,v 1.47 1999/04/22 14:36:30 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2076,11 +2076,14 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 				}
 			}
 
-			if (successor == NULL && chain->level_count > 0) {
+			if (successor == NULL) {
 				/*
 				 * Reached the root without having traversed
 				 * any left pointers, so this level is done.
 				 */
+				if (chain->level_count == 0)
+					break;
+
 				INSIST(chain->ancestor_count > 0);
 				current = chain->levels[--chain->level_count];
 				chain->ancestor_count--;
@@ -2089,7 +2092,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 				if (RIGHT(current) != NULL)
 					break;
 			}
-		} while (successor == NULL && chain->level_count > 0);
+		} while (successor == NULL);
 	}
 
 	if (successor == NULL && RIGHT(current) != NULL) {
@@ -2108,7 +2111,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		chain->end = successor;
 
 		/*
-		 * It is not necessary to use dns_rbtnodechain_next like
+		 * It is not necessary to use dns_rbtnodechain_current like
 		 * the other functions because this function will never
 		 * find a node in the topmost level.  This is because the
 		 * root level will never be more than one name, and everything
