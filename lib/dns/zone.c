@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.38 1999/12/01 17:59:22 brister Exp $ */
+ /* $Id: zone.c,v 1.39 1999/12/01 18:31:09 gson Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@
 
 #define DEFAULT_REFRESH	900	/*XXX*/
 #define DEFAULT_RETRY 300	/*XXX*/
-#define MAX_XFER_TIME 3600	/*XXX*/
+#define MAX_XFER_TIME (2*3600)	/* Documented default is 2 hours. */
 
 #define RANGE(a, b, c) (((a) < (b)) ? (b) : ((a) < (c) ? (a) : (c)))
 
