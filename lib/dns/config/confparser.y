@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.64 2000/04/12 01:25:07 halley Exp $ */
+/* $Id: confparser.y,v 1.65 2000/04/18 00:18:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1285,7 +1285,7 @@ ordering_type: /* nothing */
 			tmpres = dns_rdatatype_fromtext(&ty, &reg);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_warning(ISC_TRUE,
-					       "unknown type. Assuming ``*''");
+					       "unknown type. Assuming '*'");
 				ty = dns_rdatatype_any;
 			}
 		}
@@ -1320,7 +1320,7 @@ rrset_ordering_element: ordering_class ordering_type ordering_name
 		tmpres = dns_c_string2ordering($5, &o);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_warning(ISC_FALSE,
-				       "unknown ordering type ``%s''."
+				       "unknown ordering type '%s'."
 				       " Using default", $5);
 			o = DNS_DEFAULT_ORDERING;
 		}
@@ -1364,7 +1364,7 @@ maybe_wild_addr: ip4_address
 
 		if (strcmp($1, "*") != 0) {
 			parser_error(ISC_TRUE,
-				     "bad ip-address. using ipv4 ``*''");
+				     "bad ip-address. using ipv4 '*'");
 		}
 
 		isc_mem_free(memctx, $1);
@@ -1391,7 +1391,7 @@ maybe_wild_ip4_only_addr: ip4_address
 
 		if (strcmp($1, "*") != 0) {
 			parser_error(ISC_TRUE,
-				     "bad IPv4-address. using ``*''");
+				     "bad IPv4-address. using '*'");
 		}
 
 		isc_mem_free(memctx, $1);
@@ -1414,7 +1414,7 @@ maybe_wild_ip6_only_addr: ip6_address
 
 		if (strcmp($1, "*") != 0) {
 			parser_error(ISC_TRUE,
-				     "bad IPv6-address. using ``*''");
+				     "bad IPv6-address. using '*'");
 		}
 
 		isc_mem_free(memctx, $1);
@@ -1431,7 +1431,7 @@ maybe_wild_port: in_port
 
 		if (strcmp ($1, "*") != 0) {
 			parser_error(ISC_TRUE,
-				     "bad port specification. Using ``*''");
+				     "bad port specification. Using '*'");
 		}
 
 		isc_mem_free(memctx, $1);
@@ -1812,7 +1812,7 @@ channel_stmt:
 			parser_warning(ISC_FALSE, "redefining channel %s", $2);
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to add new channel ``%s''", $2);
+				     "failed to add new channel '%s'", $2);
 			YYABORT;
 		}
 
@@ -1821,7 +1821,7 @@ channel_stmt:
 	| L_CHANNEL channel_name L_LBRACE logging_non_type_keywords {
 		parser_error(ISC_FALSE,
 			     "first statment inside a channel definition "
-			     "must be ``file'' or ``syslog'' or ``null''.");
+			     "must be 'file' or 'syslog' or 'null'.");
 		YYABORT;
 	}
 	;
@@ -1842,7 +1842,7 @@ category_stmt: L_CATEGORY category_name {
 		tmpres = dns_c_ctx_addcategory(currcfg, $2, &cat);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
-				       "redefining category ``%s''", $2);
+				       "redefining category '%s'", $2);
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to add new logging category.");
@@ -1862,7 +1862,7 @@ channel_severity: any_string
 		tmpres = dns_c_string2logseverity($1, &severity);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "unknown severity ``%s''", $1);
+				     "unknown severity '%s'", $1);
 			YYABORT;
 		}
 
@@ -2170,7 +2170,7 @@ category_name: any_string
 		tmpres = dns_c_checkcategory($1);
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_warning(ISC_FALSE,
-				       "unknown category ``%s''", $1);
+				       "unknown category '%s'", $1);
 		}
 
 		$$ = $1;
@@ -2399,7 +2399,7 @@ server_info: L_BOGUS yea_or_nay
 
 		if (!keydefinedinscope(currcfg, $2)) {
 			parser_error(ISC_FALSE,
-				     "undefined key `%s' referenced.", $2);
+				     "undefined key '%s' referenced.", $2);
 			YYABORT;
 		}
 		
@@ -2664,7 +2664,7 @@ address_name: any_string
 			tmpres = dns_c_ipmatchany_new(currcfg->mem, &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create ``any''"
+					     "failed to create 'any'"
 					     " ipmatch element");
 				YYABORT;
 			}
@@ -2672,7 +2672,7 @@ address_name: any_string
 			tmpres = dns_c_ipmatchany_new(currcfg->mem, &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create ``none''"
+					     "failed to create 'none'"
 					     " ipmatch element");
 				YYABORT;
 			}
@@ -2682,7 +2682,7 @@ address_name: any_string
 							    &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create ``localhost''"
+					     "failed to create 'localhost'"
 					     " ipmatch element");
 				YYABORT;
 			}
@@ -2691,7 +2691,7 @@ address_name: any_string
 							    &elem);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_FALSE,
-					     "failed to create ``localnets''"
+					     "failed to create 'localnets'"
 					     " ipmatch element");
 				YYABORT;
 			}
@@ -2700,7 +2700,7 @@ address_name: any_string
 						       $1, &acl);
 			if (tmpres == ISC_R_NOTFOUND) {
 				parser_warning(ISC_FALSE,
-					       "undefined acl ``%s'' "
+					       "undefined acl '%s' "
 					       "referenced", $1);
 				elem = NULL;
 			} else {
@@ -3591,7 +3591,7 @@ domain_name: L_QSTRING
 	;
 
 /*
- * ``type'' is no longer optional and must be the first statement in the 
+ * 'type' is no longer optional and must be the first statement in the 
  * zone block.
  */
 zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
@@ -3676,7 +3676,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	{
 		parser_error(ISC_FALSE,
 			     "first statement in a zone definition must "
-			     "be ``type''");
+			     "be 'type'");
 		YYABORT;
 	}
 	| L_ZONE domain_name
@@ -3722,7 +3722,7 @@ wild_class_name: any_string
 			tmpres = dns_rdataclass_fromtext(&cl, &reg);
 			if (tmpres != ISC_R_SUCCESS) {
 				parser_error(ISC_TRUE,
-					     "unknown class assuming ``*''.");
+					     "unknown class assuming '*'.");
 				cl = dns_rdataclass_any;
 			}
 		}
@@ -4442,7 +4442,7 @@ static int		lasttoken;
 
 /*
  * Definition of all unique keyword tokens to be recognised by the
- * lexer. All the ``L_'' tokens defined in parser.y must be defined here too.
+ * lexer. All the 'L_' tokens defined in parser.y must be defined here too.
  */
 struct token
 {
@@ -4989,10 +4989,10 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 		if (dns_lctx != NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				       DNS_LOGMODULE_CONFIG, level,
-				       "%s%s near `%s'", where, message,
+				       "%s%s near '%s'", where, message,
 				       token_to_text(lasttoken, lastyylval));
 		} else {
-			fprintf(stderr, "%s%s near `%s'\n", where, message,
+			fprintf(stderr, "%s%s near '%s'\n", where, message,
 				token_to_text(lasttoken, lastyylval));
 		}
 	} else {

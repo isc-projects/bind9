@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.22 2000/04/07 18:30:11 gson Exp $ */
+/* $Id: confview.c,v 1.23 2000/04/18 00:18:38 gson Exp $ */
 
 #include <config.h>
 
@@ -375,52 +375,52 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable)
 		if (dns_c_view_getfetchglue(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `fetch-glue' is not yet "
+				      "view 'fetch-glue' is not yet "
 				      "implemented.");
 
 
 		if (dns_c_view_getnotify(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `notify' is not yet "
+				      "view 'notify' is not yet "
 				      "implemented.");
 
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `rfc2308-type1' is not yet "
+				      "view 'rfc2308-type1' is not yet "
 				      "implemented.");
 
 		if (dns_c_view_getrfc2308type1(elem, &bbval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `rfc2308-type1' is not yet "
+				      "view 'rfc2308-type1' is not yet "
 				      "implemented.");
 
 		if (dns_c_view_getmaxncachettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `max-ncache-ttl' is not yet "
+				      "view 'max-ncache-ttl' is not yet "
 				      "implemented.");
 
 		if (dns_c_view_getlamettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `lame-ttl' is not yet "
+				      "view 'lame-ttl' is not yet "
 				      "implemented.");
 
 		if (dns_c_view_getminroots(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `min-roots' is not yet "
+				      "view 'min-roots' is not yet "
 				      "implemented.");
 
 
 		if (dns_c_view_getordering(elem, &boval) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view `rrset-order' is not yet "
+				      "view 'rrset-order' is not yet "
 				      "implemented.");
 		
 
