@@ -4,9 +4,6 @@
 			[RT #739, #776, #798, #812, #818, #821, #845,
 			#892, #935, #966]
 
- 709.	[bug]		ANY or SIG queries for data with a TTL of 0
-			would return SERVFAIL. [RT #620]
-
  759.	[bug]		The resolver didn't turn off "avoid fetches" mode
 			when restarting, possibly causing resolution
 			to fail when it should not.  This bug only affected
@@ -21,6 +18,9 @@
 			file was configured.
 
  755.	[bug]		Fix incorrectly formatted log messages in zone.c.
+
+ 709.	[bug]		ANY or SIG queries for data with a TTL of 0
+			would return SERVFAIL. [RT #620]
 
 	--- 9.1.1rc3 released ---
 
