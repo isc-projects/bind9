@@ -1,3 +1,8 @@
+1024.   [port]          Compilation failed on HP-UX 11.11 due to
+                        incompatible use of the SIOCGLIFCONF macro
+                        name. [RT #1831]
+			[needs more work]
+
 1143.   [bug]           When a trusted-keys statement was present and named
                         was built without crypto support, it would leak memory.
 			[ Not applicable to 9.2 ]
