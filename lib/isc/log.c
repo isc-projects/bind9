@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.67 2001/06/10 17:06:45 tale Exp $ */
+/* $Id: log.c,v 1.68 2001/06/27 04:37:11 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 
 #include <isc/dir.h>
+#include <isc/file.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -1242,12 +1243,12 @@ roll_log(isc_logchannel_t *channel) {
 	for (i = greatest; i > 0; i--) {
 		sprintf(current, "%s.%d", path, i - 1);
 		sprintf(new, "%s.%d", path, i);
-		(void)rename(current, new);
+		(void)isc_file_rename(current, new);
 	}
 
 	if (FILE_VERSIONS(channel) != 0) {
 		sprintf(new, "%s.0", path);
-		(void)rename(path, new);
+		(void)isc_file_rename(path, new);
 
 	} else if (FILE_VERSIONS(channel) == 0)
 		(void)remove(path);
