@@ -260,7 +260,7 @@ add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
 
-void
+static void
 followup_lookup(dns_message_t *msg, dig_query_t *query) {
 	dig_lookup_t *lookup = NULL;
 	dig_server_t *srv = NULL;
@@ -403,7 +403,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_textregion_t r;
 	isc_buffer_t b;
-	ISC_LIST(dig_server_t) *sl;
 	
 #ifdef DEBUG
 	fprintf(stderr, "Setting up for looking up %s @%ld->%ld\n", 
@@ -486,11 +485,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	lookup->pending = ISC_FALSE;
 
 	if (lookup->use_my_server_list)
-		sl = &lookup->my_server_list;
+		serv = ISC_LIST_HEAD(lookup->my_server_list);
 	else
-		sl = &server_list;
-	for (serv = ISC_LIST_HEAD(*sl);
-	     serv != NULL;
+		serv = ISC_LIST_HEAD(server_list);
+	for (; serv != NULL;
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
 		if (query == NULL)

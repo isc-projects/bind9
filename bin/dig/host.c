@@ -365,6 +365,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
 
+	UNUSED (headers);
+
 	if (msg->rcode != 0) {
 		printf ("Host not found: %d(%s)\n",
 			msg->rcode, rcodetext[msg->rcode]);
@@ -470,12 +472,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		recursion=ISC_TRUE,
 		xfr_mode=ISC_FALSE;
 	char hostname[MXNAME];
-	char servname[MXNAME];
 	char querytype[32]="";
 	char queryclass[32]="";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
 	int c;
+
+	UNUSED(is_batchfile);
 
 	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:aTC")) != EOF) {
 		switch (c) {
