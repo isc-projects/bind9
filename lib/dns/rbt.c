@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.83 2000/06/19 22:55:42 tale Exp $ */
+/* $Id: rbt.c,v 1.83.2.1 2000/07/10 23:54:33 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -890,7 +890,14 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		}
 	}
 
-	if (current != NULL && (options & DNS_RBTFIND_NOEXACT) == 0) {
+	/*
+	 * If current is not NULL, NOEXACT is not disallowing exact matches,
+	 * and either the node has data or an empty node is ok, return
+	 * ISC_R_SUCCESS to indicate an exact match.
+	 */
+	if (current != NULL && (options & DNS_RBTFIND_NOEXACT) == 0 &&
+	    (DATA(current) != NULL ||
+	     (options & DNS_RBTFIND_EMPTYDATA) != 0)) {
 		/*
 		 * Found an exact match.
 		 */
@@ -949,15 +956,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 
 		if (current != NULL) {
 			/*
-			 * There was an exact match but DNS_RBTFIND_NOEXACT
-			 * was set.  A policy decision was made to set the
+			 * There was an exact match but either
+			 * DNS_RBTFIND_NOEXACT was set, or
+			 * DNS_RBTFIND_EMPTYDATA was set and the node had no
+			 * data.  A policy decision was made to set the
 			 * chain to the exact match, but this is subject
 			 * to change if it becomes apparent that something
 			 * else would be more useful.  It is important that
 			 * this case is handled here, because the predecessor
 			 * setting code below assumes the match was not exact.
 			 */
-			INSIST((options & DNS_RBTFIND_NOEXACT) != 0);
+			INSIST(((options & DNS_RBTFIND_NOEXACT) != 0) ||
+			       ((options & DNS_RBTFIND_EMPTYDATA) == 0 &&
+				DATA(current) == NULL));
 			chain->end = current;
 
 		} else if ((options & DNS_RBTFIND_NOPREDECESSOR) != 0) {
@@ -1087,7 +1098,8 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
 	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL,
 				  options, NULL, NULL);
 
-	if (node != NULL && DATA(node) != NULL)
+	if (node != NULL &&
+	    (DATA(node) != NULL || (options & DNS_RBTFIND_EMPTYDATA) != 0))
 		*data = DATA(node);
 	else
 		result = ISC_R_NOTFOUND;
