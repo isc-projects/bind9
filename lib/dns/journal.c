@@ -486,22 +486,26 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 
 		name = &t->name;
 		while (t != NULL && dns_name_equal(&t->name, name)) {
-			dns_rdatatype_t type;
+			dns_rdatatype_t type, covers;
 			dns_diffop_t op;
 			dns_rdatalist_t rdl;
 			dns_rdataset_t rds;
 
 			op = t->op;
 			type = t->rdata.type;
+			covers = rdata_covers(&t->rdata);
 
-			rdl.type = t->rdata.type;
+			rdl.type = type;
+			rdl.covers = covers;
 			rdl.rdclass = t->rdata.rdclass;
 			rdl.ttl = t->ttl;
 			ISC_LIST_INIT(rdl.rdata);
 			ISC_LINK_INIT(&rdl, link);
 
 			while (t != NULL && dns_name_equal(&t->name, name) &&
-			       t->op == op && t->rdata.type == type) {
+			       t->op == op && t->rdata.type == type &&
+			       rdata_covers(&t->rdata) == covers)
+			{
 				ISC_LIST_APPEND(rdl.rdata, &t->rdata, link);
 				t = ISC_LIST_NEXT(t, link);
 			}
