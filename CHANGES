@@ -1,4 +1,7 @@
 
+ 709.	[bug]		ANY or SIG queries for data with a TTL of 0
+			would return SERVFAIL. [RT #620]
+
  708.	[bug]		When building with --with-openssl, the openssl headers
 			included should not be used. [RT #702]
 
