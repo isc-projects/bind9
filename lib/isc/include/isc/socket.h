@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.54.12.1 2003/08/08 06:50:17 marka Exp $ */
+/* $Id: socket.h,v 1.54.12.2 2003/08/15 01:16:06 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -324,6 +324,13 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp);
  *	ISC_R_ADDRINUSE
  *	ISC_R_BOUND
  *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_socket_filter(isc_socket_t *sock, const char *filter);
+/*
+ * Inform the kernel that it should perform accept filtering.
+ * If filter is NULL the current filter will be removed.:w
  */
 
 isc_result_t

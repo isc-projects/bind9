@@ -1,3 +1,5 @@
+1283.	[func]		Use "dataready" accept filter if available.
+
 1281.	[func]		Log zone when unable to get private keys to update
 			zone.  Log zone when NXT records are missing from
 			secure zone.

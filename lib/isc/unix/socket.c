@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.2 2003/08/14 04:31:55 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.3 2003/08/15 01:16:06 marka Exp $ */
 
 #include <config.h>
 
@@ -2829,6 +2829,35 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_filter(isc_socket_t *sock, const char *filter) {
+#ifdef SO_ACCEPTFILTER
+	char strbuf[ISC_STRERRORSIZE];
+	struct accept_filter_arg afa;
+#else
+	UNUSED(sock);
+	UNUSED(filter);
+#endif
+
+	REQUIRE(VALID_SOCKET(sock));
+
+#ifdef SO_ACCEPTFILTER
+	bzero(&afa, sizeof(afa));
+	strncpy(afa.af_name, filter, sizeof(afa.af_name));
+	if (setsockopt(sock->fd, SOL_SOCKET, SO_ACCEPTFILTER,
+			 &afa, sizeof(afa)) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
+			   ISC_MSG_FILTER, "setsockopt(SO_ACCEPTFILTER): %s",
+			   strbuf);
+		return (ISC_R_FAILURE);
+	}
+	return (ISC_R_SUCCESS);
+#else
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }
 
 /*

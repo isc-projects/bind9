@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.2 2003/08/08 07:12:25 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.3 2003/08/15 01:16:05 marka Exp $ */
 
 #include <config.h>
 
@@ -311,6 +311,12 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto tcp_listen_failure;
 	}
+
+	/* 
+	 * If/when there a multiple filters listen to the
+	 * result.
+	 */
+	(void)isc_socket_filter(ifp->tcpsocket, "dataready");
 
 	result = ns_clientmgr_createclients(ifp->clientmgr,
 					    ifp->ntcptarget, ifp,
