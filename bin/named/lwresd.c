@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.31 2001/03/04 21:21:23 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.32 2001/03/06 02:49:28 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -39,8 +39,6 @@
 
 #include <isccfg/cfg.h>
 
-#include <dns/confctx.h>
-#include <dns/conflwres.h>
 #include <dns/log.h>
 #include <dns/result.h>
 #include <dns/view.h>

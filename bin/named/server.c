@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.295 2001/03/06 01:57:19 bwelling Exp $ */
+/* $Id: server.c,v 1.296 2001/03/06 02:49:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,6 @@
 #include <isccfg/check.h>
 
 #include <dns/cache.h>
-#include <dns/confparser.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/forward.h>
