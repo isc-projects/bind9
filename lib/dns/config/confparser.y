@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.77 2000/05/09 22:22:15 tale Exp $ */
+/* $Id: confparser.y,v 1.78 2000/05/10 00:16:09 gson Exp $ */
 
 #include <config.h>
 
@@ -5007,10 +5007,6 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	}
 
 	callbacks = cbks;
-
-#if 0
-	fprintf(stderr, "uniion size: %d\n", sizeof (YYSTYPE));
-#endif
 
 	if (yyparse() != 0) {
 		res = ISC_R_FAILURE;
