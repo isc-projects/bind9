@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.131.2.2 2001/02/15 23:39:41 bwelling Exp $ */
+/* $Id: dig.c,v 1.131.2.3 2001/02/17 01:19:54 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -517,28 +517,34 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 static void
 printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 	int i;
+	int remaining;
 	static isc_boolean_t first = ISC_TRUE;
 	char append[MXNAME];
 
 	if (printcmd) {
+		lookup->cmdline[sizeof(lookup->cmdline) - 1] = 0;
 		snprintf(lookup->cmdline, sizeof(lookup->cmdline),
 			 "%s; <<>> DiG " VERSION " <<>>",
 			 first?"\n":"");
 		i = 1;
 		while (i < argc) {
 			snprintf(append, sizeof(append), " %s", argv[i++]);
-			strncat(lookup->cmdline, append,
-				sizeof (lookup->cmdline));
+			remaining = sizeof(lookup->cmdline) -
+				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
 		}
-		strncat(lookup->cmdline, "\n", sizeof (lookup->cmdline));
+		remaining = sizeof(lookup->cmdline) -
+			    strlen(lookup->cmdline) - 1;
+		strncat(lookup->cmdline, "\n", remaining);
 		if (first) {
 			snprintf(append, sizeof (append), 
 				 ";; global options: %s %s\n",
 			       short_form ? "short_form" : "",
 			       printcmd ? "printcmd" : "");
 			first = ISC_FALSE;
-			strncat(lookup->cmdline, append,
-				sizeof (lookup->cmdline));
+			remaining = sizeof(lookup->cmdline) -
+				    strlen(lookup->cmdline) - 1;
+			strncat(lookup->cmdline, append, remaining);
 		}
 	}
 }
