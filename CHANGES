@@ -1,13 +1,15 @@
+1511.	[bug]		delegation-only was generating false positives
+			on negative answers from subzones.
 
 	--- 9.2.3rc3 released ---
 
 1510.	[func]		New view option "root-delegation-only".  Apply
 			delegation-only check to all TLDs and root.
 			Note there are some TLDs that are NOT delegation
-			only (e.g. DE and MUSEUM) these can be excluded
+			only (e.g. DE, LV and MUSEUM) these can be excluded
 			from the checks by using exclude.
 
-			root-delegation-only exclude { "DE"; "MUSEUM"; };
+			root-delegation-only exclude { "DE"; "LV: "MUSEUM"; };
 
 1509.	[bug]		Hint zones should accept delegation-only.  Forward
 			zone should not accept delegation-only.
