@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.14.4.1 2003/02/18 06:02:47 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.14.4.2 2003/02/18 07:28:41 marka Exp $ */
 
 #include <config.h>
 
@@ -2007,7 +2007,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
 
-	REQUIRE(maxfd <= FD_SETSIZE);
+	REQUIRE(maxfd <= (int)FD_SETSIZE);
 
 	/*
 	 * Process read/writes on other fds here.  Avoid locking
