@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.10 1998/12/04 11:21:11 explorer Exp $ */
+/* $Id: socket.h,v 1.11 1998/12/05 00:28:13 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -106,20 +106,31 @@ typedef struct isc_socket_connev {
 /*
  * Internal events.
  */
-#define ISC_SOCKEVENT_INTIO	(ISC_EVENTCLASS_SOCKET + 257)
-#define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 258)
-
+#define ISC_SOCKEVENT_INTRECV	(ISC_EVENTCLASS_SOCKET + 257)
+#define ISC_SOCKEVENT_INTSEND	(ISC_EVENTCLASS_SOCKET + 258)
+#define ISC_SOCKEVENT_INTACCEPT	(ISC_EVENTCLASS_SOCKET + 259)
+#define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 260)
 
 typedef enum {
 	isc_socket_udp,
 	isc_socket_tcp
 } isc_sockettype_t;
 
-typedef enum {
-	isc_sockshut_reading,
-	isc_sockshut_writing,
-	isc_sockshut_all
-} isc_socketshutdown_t;
+/*
+ * How a socket should be shutdown in isc_socket_shutdown() calls.
+ */
+#define ISC_SOCKSHUT_RECV	0x00000001	/* close read side */
+#define ISC_SOCKSHUT_SEND	0x00000002	/* close write side */
+#define ISC_SOCKSHUT_ALL	0x00000003	/* close them all */
+
+/*
+ * What I/O events to cancel in isc_socket_cancel() calls.
+ */
+#define ISC_SOCKCANCEL_RECV	0x00000001	/* cancel recv */
+#define ISC_SOCKCANCEL_SEND	0x00000002	/* cancel send */
+#define ISC_SOCKCANCEL_ACCEPT	0x00000004	/* cancel accept */
+#define ISC_SOCKCANCEL_CONNECT	0x00000008	/* cancel connect */
+#define ISC_SOCKCANCEL_ALL	0x0000000f	/* cancel everything */
 
 /***
  *** Socket and Socket Manager Functions
@@ -153,8 +164,8 @@ isc_socket_create(isc_socketmgr_t manager,
  *	ISC_R_UNEXPECTED
  */
 
-int
-isc_socket_cancel(isc_socket_t socket, isc_task_t task,
+void
+isc_socket_cancel(isc_socket_t sock, isc_task_t task,
 		  unsigned int how);
 /*
  * Cancel pending I/O of the type specified by "how".
@@ -178,11 +189,15 @@ isc_socket_cancel(isc_socket_t socket, isc_task_t task,
  * ISC_SOCKCANCEL_SEND:
  *	Cancel pending isc_socket_send() and isc_socket_sendto() calls.
  *
- * ISC_SOCKCANCEL_
+ * ISC_SOCKCANCEL_ACCEPT:
+ *	Cancel pending isc_socket_accept() calls.
+ *
+ * ISC_SOCKCANCEL_CONNECT:
+ *	Cancel pending isc_socket_connect() call.
  */
 
 void 
-isc_socket_shutdown(isc_socket_t socket, isc_socketshutdown_t how);
+isc_socket_shutdown(isc_socket_t sock, unsigned int how);
 /*
  * Shutdown 'socket' according to 'how'.
  *
@@ -192,13 +207,13 @@ isc_socket_shutdown(isc_socket_t socket, isc_socketshutdown_t how);
  *
  *	'task' is NULL or is a valid task.
  *
- *	If 'how' is 'isc_sockshut_reading' or 'isc_sockshut_all' then
+ *	If 'how' is 'ISC_SOCKSHUT_RECV' or 'ISC_SOCKSHUT_ALL' then
  *
  *		The read queue must be empty.
  *
  *		No further read requests may be made.
  *
- *	If 'how' is 'isc_sockshut_writing' or 'isc_sockshut_all' then
+ *	If 'how' is 'ISC_SOCKSHUT_SEND' or 'ISC_SOCKSHUT_ALL' then
  *
  *		The write queue must be empty.
  *
@@ -206,7 +221,7 @@ isc_socket_shutdown(isc_socket_t socket, isc_socketshutdown_t how);
  */
 
 void
-isc_socket_attach(isc_socket_t socket, isc_socket_t *socketp);
+isc_socket_attach(isc_socket_t sock, isc_socket_t *socketp);
 /*
  * Attach *socketp to socket.
  *
@@ -249,7 +264,7 @@ isc_socket_detach(isc_socket_t *socketp);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
+isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *addressp,
 		int length);
 /*
  * Bind 'socket' to '*addressp'.
@@ -273,7 +288,7 @@ isc_socket_bind(isc_socket_t socket, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_listen(isc_socket_t socket, int backlog);
+isc_socket_listen(isc_socket_t sock, int backlog);
 /*
  * Set listen mode on the socket.  After this call, the only function that
  * can be used (other than attach and detach) is isc_socket_accept().
@@ -295,7 +310,7 @@ isc_socket_listen(isc_socket_t socket, int backlog);
  */
 
 isc_result_t
-isc_socket_accept(isc_socket_t socket,
+isc_socket_accept(isc_socket_t sock,
 		  isc_task_t task, isc_taskaction_t action, void *arg);
 /*
  * Queue accept event.  When a new connection is received, the task will
@@ -318,7 +333,7 @@ isc_socket_accept(isc_socket_t socket,
  */
 
 isc_result_t
-isc_socket_connect(isc_socket_t socket, struct isc_sockaddr *addressp,
+isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addressp,
 		   int length, isc_task_t task, isc_taskaction_t action,
 		   void *arg);
 /*
@@ -354,7 +369,7 @@ isc_socket_connect(isc_socket_t socket, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t socket, struct isc_sockaddr *addressp,
+isc_socket_getpeername(isc_socket_t sock, struct isc_sockaddr *addressp,
 		       int *lengthp);
 /*
  * Get the name of the peer connected to 'socket'.
@@ -373,7 +388,7 @@ isc_socket_getpeername(isc_socket_t socket, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t socket, struct isc_sockaddr *addressp,
+isc_socket_getsockname(isc_socket_t sock, struct isc_sockaddr *addressp,
 		       int *lengthp);
 /*
  * Get the name of 'socket'.
@@ -392,7 +407,7 @@ isc_socket_getsockname(isc_socket_t socket, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_recv(isc_socket_t socket, isc_region_t region,
+isc_socket_recv(isc_socket_t sock, isc_region_t region,
 		isc_boolean_t partial,
 		isc_task_t task, isc_taskaction_t action, void *arg);
 /*
@@ -438,10 +453,10 @@ isc_socket_recv(isc_socket_t socket, isc_region_t region,
  */
 
 isc_result_t
-isc_socket_send(isc_socket_t socket, isc_region_t region,
+isc_socket_send(isc_socket_t sock, isc_region_t region,
 		isc_task_t task, isc_taskaction_t action, void *arg);
 isc_result_t
-isc_socket_sendto(isc_socket_t socket, isc_region_t region,
+isc_socket_sendto(isc_socket_t sock, isc_region_t region,
 		  isc_task_t task, isc_taskaction_t action, void *arg,
 		  isc_sockaddr_t address, unsigned int addrlength);
 /*

@@ -12,6 +12,7 @@
 #include <isc/thread.h>
 #include <isc/result.h>
 #include <isc/socket.h>
+#include <isc/timer.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -21,8 +22,7 @@
 #include <arpa/inet.h>
 
 isc_memctx_t mctx = NULL;
-
-volatile int tasks_done = 0;
+int sockets_active = 0;
 
 static isc_boolean_t my_send(isc_task_t task, isc_event_t event);
 static isc_boolean_t my_recv(isc_task_t task, isc_event_t event);
@@ -51,7 +51,6 @@ my_shutdown(isc_task_t task, isc_event_t event)
 	return (ISC_TRUE);
 }
 
-
 static isc_boolean_t
 my_recv(isc_task_t task, isc_event_t event)
 {
@@ -74,6 +73,10 @@ my_recv(isc_task_t task, isc_event_t event)
 		isc_socket_detach(&sock);
 
 		isc_event_free(&event);
+
+		sockets_active--;
+		if (sockets_active == 0)
+			return (1);
 
 		return (0);
 	}
@@ -190,12 +193,16 @@ my_listen(isc_task_t task, isc_event_t event)
 	char *name = event->arg;
 	isc_socket_newconnev_t dev;
 	struct isc_region region;
+	isc_socket_t oldsock;
+	int ret;
 
 	dev = (isc_socket_newconnev_t)event;
 
 	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
 	       name, task, event->sender, dev->newsocket, dev->result);
 	fflush(stdout);
+
+	ret = 0;
 
 	if (dev->result == ISC_R_SUCCESS) {
 		/*
@@ -211,15 +218,33 @@ my_listen(isc_task_t task, isc_event_t event)
 		 */
 		isc_socket_recv(dev->newsocket, &region, ISC_FALSE,
 				task, my_recv, event->arg);
+		sockets_active++;
 	} else {
-		/*
-		 * Do something useful here
-		 */
+		printf("detaching from socket %p\n", event->sender);
+		oldsock = event->sender;
+
+		isc_socket_detach(&oldsock);
+
+		sockets_active--;
+		ret = 1;
 	}
 
 	isc_event_free(&event);
 
-	return 0;
+	return (ret);
+}
+
+static isc_boolean_t
+timeout(isc_task_t task, isc_event_t event)
+{
+	isc_socket_t sock = event->arg;
+
+	printf("Timeout, canceling IO on socket %p\n", sock);
+
+	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
+	isc_timer_detach((isc_timer_t *)&event->sender);
+
+	return (0);
 }
 
 int
@@ -227,12 +252,17 @@ main(int argc, char *argv[])
 {
 	isc_taskmgr_t manager = NULL;
 	isc_task_t t1 = NULL, t2 = NULL;
+	isc_timermgr_t timgr = NULL;
+	struct isc_time expires, now;
+	struct isc_interval interval;
+	isc_timer_t ti1 = NULL;
 	isc_event_t event;
 	unsigned int workers;
 	isc_socketmgr_t socketmgr;
 	isc_socket_t so1, so2;
 	struct isc_sockaddr sockaddr;
 	unsigned int addrlen;
+	
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
@@ -257,12 +287,20 @@ main(int argc, char *argv[])
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
 
+	/*
+	 * create the timer we'll need
+	 */
+	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+
+	(void)isc_time_get(&now);
+
 	socketmgr = NULL;
 	INSIST(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	/*
 	 * open up a listener socket
 	 */
+	sockets_active++;
 	so1 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_family = AF_INET;
@@ -278,11 +316,16 @@ main(int argc, char *argv[])
 	 */
 	INSIST(isc_socket_accept(so1, t1, my_listen,
 				 "so1") == ISC_R_SUCCESS);
+	isc_time_settoepoch(&expires);
+	isc_interval_set(&interval, 30, 0);
+	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
+				t1, timeout, so1, &ti1) == ISC_R_SUCCESS);
 
 	/*
 	 * open up a socket that will connect to www.flame.org, port 80.
 	 * Why not.  :)
 	 */
+	sockets_active++;
 	so2 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(80);
@@ -294,7 +337,7 @@ main(int argc, char *argv[])
 	INSIST(isc_socket_connect(so2, &sockaddr, addrlen, t1, my_connect,
 				  "so2") == ISC_R_SUCCESS);
 
-	sleep(2);
+	sleep(1);
 
 	event = isc_event_allocate(mctx, (void *)main, 1, my_callback, "1",
 				   sizeof *event);
@@ -330,24 +373,16 @@ main(int argc, char *argv[])
 				   sizeof *event);
 	isc_task_send(t2, &event);
 
-	/*
-	 * Grr!  there is no way to say "wake me when it's over"
-	 */
-	while (tasks_done != 2) {
-		fprintf(stderr, "Tasks done: %d\n", tasks_done);
-		sleep(2);
-	}
-		
+	sleep(60);
+
 	isc_task_shutdown(t1);
 	isc_task_shutdown(t2);
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
-	printf("destroy\n");
-	isc_socket_detach(&so1);
-	isc_socket_detach(&so2);
-
+	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
+	printf("Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");
 	
