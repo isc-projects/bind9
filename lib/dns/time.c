@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18.2.1 2003/05/12 05:52:09 marka Exp $ */
+/* $Id: time.c,v 1.18.2.2 2003/05/20 07:32:31 marka Exp $ */
 
 #include <config.h>
 
@@ -165,7 +165,7 @@ dns_time32_fromtext(char *source, isc_uint32_t *target) {
 	result = dns_time64_fromtext(source, &value64);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	*target = value64;
+	*target = (isc_uint32_t)value64;
 
 	return (ISC_R_SUCCESS);
 }
