@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.217 2001/11/30 01:59:46 gson Exp $ */
+/* $Id: socket.c,v 1.218 2001/12/19 05:44:54 marka Exp $ */
 
 #include <config.h>
 
@@ -2246,14 +2246,14 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	 */
 	if (isc_thread_create(watcher, manager, &manager->watcher) !=
 	    ISC_R_SUCCESS) {
+		(void)close(manager->pipe_fds[0]);
+		(void)close(manager->pipe_fds[1]);
 		DESTROYLOCK(&manager->lock);
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_create() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
-		(void)close(manager->pipe_fds[0]);
-		(void)close(manager->pipe_fds[1]);
 		return (ISC_R_UNEXPECTED);
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
