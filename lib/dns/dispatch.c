@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.94 2001/02/13 20:21:52 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.95 2001/02/16 21:29:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -902,6 +902,7 @@ startrecv(dns_dispatch_t *disp) {
 		res = isc_socket_recv(disp->socket, &region, 1,
 				      disp->task, udp_recv, disp);
 		if (res != ISC_R_SUCCESS) {
+			free_buffer(disp, region.base, region.length);
 			disp->shutdown_why = res;
 			disp->shutting_down = 1;
 			do_cancel(disp, NULL);
