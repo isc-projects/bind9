@@ -283,6 +283,20 @@ dns_db_origin(dns_db_t *db);
  *	The origin of the database.
  */
 
+dns_rdataclass_t
+dns_db_class(dns_db_t *db);
+/*
+ * The class of the database.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ * Returns:
+ *
+ *	The class of the database.
+ */
+
 dns_result_t
 dns_db_load(dns_db_t *db, char *filename);
 /*
