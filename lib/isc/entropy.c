@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.3.2.2.2.1 2003/08/11 05:28:20 marka Exp $ */
+/* $Id: entropy.c,v 1.3.2.2.2.2 2003/08/15 02:11:27 marka Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -147,12 +147,14 @@ struct isc_entropysource {
 		isc_entropysamplesource_t	sample;
 		isc_entropyfilesource_t		file;
 		isc_cbsource_t			callback;
+		isc_entropyusocketsource_t	usocket;
 	} sources;
 };
 
 #define ENTROPY_SOURCETYPE_SAMPLE	1	/* Type is a sample source */
 #define ENTROPY_SOURCETYPE_FILE		2	/* Type is a file source */
 #define ENTROPY_SOURCETYPE_CALLBACK	3	/* Type is a callback source */
+#define ENTROPY_SOURCETYPE_USOCKET	4	/* Type is a Unix socket source */
 
 /*
  * The random pool "taps"
@@ -175,6 +177,9 @@ wait_for_sources(isc_entropy_t *);
 
 static void
 destroyfilesource(isc_entropyfilesource_t *source);
+
+static void
+destroyusocketsource(isc_entropyusocketsource_t *source);
 
 
 static void
@@ -721,6 +726,10 @@ destroysource(isc_entropysource_t **sourcep) {
 		if (! source->bad)
 			destroyfilesource(&source->sources.file);
 		break;
+	case ENTROPY_SOURCETYPE_USOCKET:
+		if (! source->bad)
+			destroyusocketsource(&source->sources.usocket);
+		break;
 	case ENTROPY_SOURCETYPE_SAMPLE:
 		samplequeue_release(ent, &source->sources.sample.samplequeue);
 		break;
@@ -750,6 +759,7 @@ destroy_check(isc_entropy_t *ent) {
 	while (source != NULL) {
 		switch (source->type) {
 		case ENTROPY_SOURCETYPE_FILE:
+		case ENTROPY_SOURCETYPE_USOCKET:
 			break;
 		default:
 			return (ISC_FALSE);
@@ -781,6 +791,7 @@ destroy(isc_entropy_t **entp) {
 	while (source != NULL) {
 		switch(source->type) {
 		case ENTROPY_SOURCETYPE_FILE:
+		case ENTROPY_SOURCETYPE_USOCKET:
 			destroysource(&source);
 			break;
 		}

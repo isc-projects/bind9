@@ -1,3 +1,5 @@
+1293.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
+
 1291.	[func]		Enable IPv6 support when using sysctl style interface
 			scanning.
 
