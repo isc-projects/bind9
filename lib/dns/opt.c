@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.2 2000/10/11 17:57:35 halley Exp $ */
+/* $Id: opt.c,v 1.3 2000/10/19 23:40:31 gson Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ isc_result_t
 dns_opt_add(dns_rdata_t *rdata, dns_optlist_t *optlist,
 	    isc_buffer_t *target)
 {
-	char *base;
+	unsigned char *base;
 	unsigned int i;
 
 	REQUIRE(rdata->length == 0);
