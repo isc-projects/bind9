@@ -1,3 +1,13 @@
+ 285.	[bug]		A change made to the dst API for beta4 inadvertently
+			broke OMAPI's creation of a dst key from an incoming
+			message, causing an assertion to be triggered.  Fixed.
+
+ 284.	[func]		The DNSSEC key generation and signing tools now
+			generate randomness from keyboard input on systems
+			that lack /dev/random.
+
+ 283.	[cleanup]	The 'lwresd' program is now a link to 'named'.
+
  282.	[bug]		lexer now returns ISC_R_RANGE if parsed integer is 
 			too big for an usigned long.
 
