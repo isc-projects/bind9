@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.288 $)
+AC_REVISION($Revision: 1.289 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -220,7 +220,7 @@ AC_TRY_COMPILE(, [
          AC_DEFINE(inline, )])
 
 AC_TYPE_SIZE_T
-AC_CHECK_TYPE(ssize_t, unsigned)
+AC_CHECK_TYPE(ssize_t, int)
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
 AC_TRY_COMPILE([],[long long i = 0; return (0);],
