@@ -31,7 +31,7 @@ for (;;) {
   close(FILE);
   chomp($pid);
   
-  $ps_command = "ps -axw | grep named | grep $pid |";
+  $ps_command = "ps -axw | grep named | grep $pid | grep -v grep |";
   # ps_command MUST end in a pipe (|) character!
 
   # Make sure there's a named on the pid we just got.  Since there is no
@@ -47,7 +47,7 @@ for (;;) {
   $return = system($dig_command);
   goto restart if ($return == 9);
 
-  sleep 90;
+  sleep 30;
   next;
 
  restart:
