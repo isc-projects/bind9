@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.44 2000/02/01 23:28:09 halley Exp $
+ * $Id: tsig.c,v 1.45 2000/02/02 06:38:43 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -980,7 +980,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 			    key->expire < now)
 			{
 				/* the key has expired */
-				key->deleted = 1;
+				key->deleted = ISC_TRUE;
 				continue;
 			}
 			isc_mutex_lock(&key->lock);
