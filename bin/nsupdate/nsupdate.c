@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.74 2000/12/11 20:53:25 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.75 2000/12/11 23:09:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1279,7 +1279,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *soaset = NULL;
 	dns_rdata_soa_t soa;
-	dns_rdata_t soarr;
+	dns_rdata_t soarr = DNS_RDATA_INIT;
 	int pass = 0;
 	dns_name_t master;
 	isc_sockaddr_t *serveraddr, tempaddr;

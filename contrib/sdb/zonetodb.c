@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.7 2000/11/20 19:56:12 bwelling Exp $ */
+/* $Id: zonetodb.c,v 1.8 2000/12/11 23:09:44 marka Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -134,7 +134,7 @@ main(int argc, char **argv) {
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *rdsiter;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_mem_t *mctx = NULL;
 	isc_buffer_t b;
 	isc_result_t result;

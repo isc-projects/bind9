@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.120 2000/12/11 22:55:25 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.121 2000/12/11 23:09:36 marka Exp $ */
 
 #include <config.h>
 
@@ -475,14 +475,14 @@ signset(dns_diff_t *diff, dns_dbnode_t *node, dns_name_t *name,
 static isc_boolean_t
 hasnullkey(dns_rdataset_t *rdataset) {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t found = ISC_FALSE;
 
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dst_key_t *key = NULL;
 
-		dns_rdata_init(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(dns_rootname,
 						 &rdata, mctx, &key);
@@ -542,13 +542,11 @@ importparentsig(dns_diff_t *diff, dns_name_t *name, dns_rdataset_t *set) {
 	dns_db_t *newdb = NULL;
 	dns_dbnode_t *newnode = NULL;
 	dns_rdataset_t newset, sigset;
-	dns_rdata_t rdata, newrdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT, newrdata = DNS_RDATA_INIT;
 	isc_result_t result;
 
 	dns_rdataset_init(&newset);
 	dns_rdataset_init(&sigset);
-	dns_rdata_init(&rdata);
-	dns_rdata_init(&newrdata);
 
 	opendb("signedkey-", name, dns_db_class(gdb), &newdb);
 	if (newdb == NULL)
@@ -1375,7 +1373,7 @@ loadzonepubkeys(dns_db_t *db) {
 	dns_dbversion_t *currentversion = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *pubkey;
 	signer_key_t *key;
 	isc_result_t result;
@@ -1397,7 +1395,7 @@ loadzonepubkeys(dns_db_t *db) {
 	check_result(result, "dns_rdataset_first");
 	while (result == ISC_R_SUCCESS) {
 		pubkey = NULL;
-		dns_rdata_init(&rdata);
+		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(gorigin, &rdata, mctx,
 						 &pubkey);

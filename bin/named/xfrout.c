@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.84 2000/12/11 19:19:14 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.85 2000/12/11 23:09:39 marka Exp $ */
 
 #include <config.h>
 
@@ -263,7 +263,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	char mem[2000];
 	dns_rdatalist_t rdl;
 	dns_rdataset_t rds;
-	dns_rdata_t rd;
+	dns_rdata_t rd = DNS_RDATA_INIT;
 
 	rdl.type = rdata->type;
 	rdl.rdclass = rdata->rdclass;

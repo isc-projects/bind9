@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.33 2000/11/14 23:29:46 bwelling Exp $ */
+/* $Id: rdata_test.c,v 1.34 2000/12/11 23:09:42 marka Exp $ */
 
 #include <config.h>
 
@@ -786,8 +786,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_t dbuf;
 	isc_buffer_t tbuf;
 	isc_buffer_t wbuf;
-	dns_rdata_t rdata;
-	dns_rdata_t last;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_t last = DNS_RDATA_INIT;
 	int need_eol = 0;
 	int wire = 0;
 	dns_compress_t cctx;
@@ -1028,7 +1028,7 @@ main(int argc, char *argv[]) {
 		}
 		if (tostruct) {
 			isc_mem_t *mctx2 = NULL;
-			dns_rdata_t rdata2;
+			dns_rdata_t rdata2 = DNS_RDATA_INIT;
 			isc_buffer_t vbuf;
 
 			RUNTIME_CHECK(isc_mem_create(0, 0, &mctx2)

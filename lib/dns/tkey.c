@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.56 2000/12/11 19:24:25 bwelling Exp $
+ * $Id: tkey.c,v 1.57 2000/12/11 23:09:47 marka Exp $
  */
 
 #include <config.h>
@@ -227,7 +227,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_name_t *keyname, ourname;
 	dns_rdataset_t *keyset;
-	dns_rdata_t keyrdata, ourkeyrdata;
+	dns_rdata_t keyrdata = DNS_RDATA_INIT, ourkeyrdata = DNS_RDATA_INIT;
 	isc_boolean_t found_key = ISC_FALSE, found_incompatible = ISC_FALSE;
 	dst_key_t *pubkey = NULL;
 	isc_buffer_t ourkeybuf, *shared = NULL;
@@ -535,7 +535,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	dns_rdata_tkey_t tkeyin, tkeyout;
 	dns_name_t *qname, *name, *keyname, tempkeyname, *signer, tsigner;
 	dns_rdataset_t *tkeyset;
-	dns_rdata_t tkeyrdata, *rdata = NULL;
+	dns_rdata_t tkeyrdata = DNS_RDATA_INIT, *rdata = NULL;
 	isc_buffer_t *dynbuf = NULL;
 	dns_namelist_t namelist;
 	isc_boolean_t freealg = ISC_FALSE;
@@ -1022,10 +1022,10 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			   dst_key_t *key, isc_buffer_t *nonce,
 			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring)
 {
-	dns_rdata_t qtkeyrdata, rtkeyrdata;
+	dns_rdata_t qtkeyrdata = DNS_RDATA_INIT, rtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t keyname, *tkeyname, *theirkeyname, *ourkeyname, *tempname;
 	dns_rdataset_t *theirkeyset = NULL, *ourkeyset = NULL;
-	dns_rdata_t theirkeyrdata;
+	dns_rdata_t theirkeyrdata = DNS_RDATA_INIT;
 	dst_key_t *theirkey;
 	dns_rdata_tkey_t qtkey, rtkey;
 	unsigned char secretdata[256];
@@ -1156,7 +1156,7 @@ dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			    dns_name_t *gname, void *cred, void **context,
 			    dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring)
 {
-	dns_rdata_t rtkeyrdata, qtkeyrdata;
+	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;
 	dns_rdata_tkey_t rtkey, qtkey;
 	isc_buffer_t outtoken;
@@ -1216,7 +1216,7 @@ isc_result_t
 dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			       dns_tsig_keyring_t *ring)
 {
-	dns_rdata_t qtkeyrdata, rtkeyrdata;
+	dns_rdata_t qtkeyrdata = DNS_RDATA_INIT, rtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname, *tempname;
 	dns_rdata_tkey_t qtkey, rtkey;
 	dns_tsigkey_t *tsigkey = NULL;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.25 2000/08/01 01:13:35 tale Exp $ */
+/* $Id: t_db.c,v 1.26 2000/12/11 23:09:43 marka Exp $ */
 
 #include <config.h>
 
@@ -896,10 +896,10 @@ t_dns_db_newversion(char **av) {
 	isc_buffer_t		newname_buffer;
 	dns_fixedname_t		dns_newname;
 	dns_fixedname_t		dns_foundname;
-	dns_rdata_t		added_rdata;
+	dns_rdata_t		added_rdata = DNS_RDATA_INIT;
 	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
-	dns_rdata_t		found_rdata;
+	dns_rdata_t		found_rdata = DNS_RDATA_INIT;
 	dns_rdataset_t		found_rdataset;
 	dns_rdatatype_t		rdatatype;
 	dns_rdataclass_t	rdataclass;
@@ -1174,10 +1174,10 @@ t_dns_db_closeversion_1(char **av) {
 	dns_fixedname_t		dns_newname;
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_existingname;
-	dns_rdata_t		added_rdata;
+	dns_rdata_t		added_rdata = DNS_RDATA_INIT;
 	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
-	dns_rdata_t		found_rdata;
+	dns_rdata_t		found_rdata = DNS_RDATA_INIT;
 	dns_rdataset_t		found_rdataset;
 	dns_rdatatype_t		new_rdatatype;
 	dns_rdatatype_t		existing_rdatatype;
@@ -1535,10 +1535,10 @@ t_dns_db_closeversion_2(char **av) {
 	dns_fixedname_t		dns_newname;
 	dns_fixedname_t		dns_foundname;
 	dns_fixedname_t		dns_existingname;
-	dns_rdata_t		added_rdata;
+	dns_rdata_t		added_rdata = DNS_RDATA_INIT;
 	const char *		added_rdata_data;
 	dns_rdataset_t		added_rdataset;
-	dns_rdata_t		found_rdata;
+	dns_rdata_t		found_rdata = DNS_RDATA_INIT;
 	dns_rdataset_t		found_rdataset;
 	dns_rdatatype_t		new_rdatatype;
 	dns_rdatatype_t		existing_rdatatype;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.52 2000/11/10 03:16:19 gson Exp $ */
+/* $Id: rdataset.c,v 1.53 2000/12/11 23:09:45 marka Exp $ */
 
 #include <config.h>
 
@@ -278,7 +278,7 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  void *order_arg,
 			  unsigned int *countp)
 {
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_result_t result;
 	unsigned int i, count;
@@ -466,7 +466,7 @@ isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 			    dns_additionaldatafunc_t add, void *arg)
 {
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 
 	/*

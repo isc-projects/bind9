@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.2 2000/11/18 02:57:07 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.3 2000/12/11 23:09:38 marka Exp $ */
 
 #include <config.h>
 
@@ -46,7 +46,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *name;
 	dns_rdataset_t *rdataset;
 	dns_rdataset_t *sigrdataset;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	lwres_result_t lwresult;
 	isc_region_t r;
