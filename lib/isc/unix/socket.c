@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.141 2000/06/22 21:58:46 tale Exp $ */
+/* $Id: socket.c,v 1.142 2000/06/23 19:58:38 explorer Exp $ */
 
 #include <config.h>
 
@@ -719,7 +719,6 @@ dump_msg(struct msghdr *msg) {
 #define DOIO_SOFT		1	/* i/o ok, soft error, no event sent */
 #define DOIO_HARD		2	/* i/o error, event sent */
 #define DOIO_EOF		3	/* EOF, no event sent */
-#define DOIO_UNEXPECTED		(-1)	/* bad stuff, no event sent */
 
 static int
 doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
@@ -1636,7 +1635,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			} while (dev != NULL);
 			goto poke;
 
-		case DOIO_UNEXPECTED:
 		case DOIO_SUCCESS:
 		case DOIO_HARD:
 			break;
@@ -1708,7 +1706,6 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 			goto poke;
 
 		case DOIO_HARD:
-		case DOIO_UNEXPECTED:
 		case DOIO_SUCCESS:
 			break;
 		}
@@ -2178,7 +2175,6 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		return (ISC_R_SUCCESS);
 
 	case DOIO_HARD:
-	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2278,7 +2274,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		return (ISC_R_SUCCESS);
 
 	case DOIO_HARD:
-	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2384,7 +2379,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		goto queue;
 
 	case DOIO_HARD:
-	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2495,7 +2489,6 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		goto queue;
 
 	case DOIO_HARD:
-	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
