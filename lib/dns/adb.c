@@ -111,7 +111,7 @@ struct dns_adb {
 	isc_mempool_t		       *nhmp;	/* dns_adbnamehook_t */
 	isc_mempool_t		       *zimp;	/* dns_adbzoneinfo_t */
 	isc_mempool_t		       *emp;	/* dns_adbentry_t */
-	isc_mempool_t		       *ahmp;	/* dns_adbhandle_t */
+	isc_mempool_t		       *ahmp;	/* dns_adbfind_t */
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
 	isc_mempool_t		       *afmp;	/* dns_adbfetch_t */
 
@@ -152,7 +152,7 @@ struct dns_adbname {
 	dns_adbnamehooklist_t		v4;
 	dns_adbnamehooklist_t		v6;
 	ISC_LIST(dns_adbfetch_t)	fetches;
-	ISC_LIST(dns_adbhandle_t)	handles;
+	ISC_LIST(dns_adbfind_t)	handles;
 	ISC_LINK(dns_adbname_t)		plink;
 };
 
@@ -226,8 +226,8 @@ static inline dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *, dns_name_t *);
 static inline void free_adbzoneinfo(dns_adb_t *, dns_adbzoneinfo_t **);
 static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
 static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
-static inline dns_adbhandle_t *new_adbhandle(dns_adb_t *);
-static inline void free_adbhandle(dns_adb_t *, dns_adbhandle_t **);
+static inline dns_adbfind_t *new_adbhandle(dns_adb_t *);
+static inline void free_adbhandle(dns_adb_t *, dns_adbfind_t **);
 static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
 						 dns_adbentry_t *);
 static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
@@ -255,7 +255,7 @@ static void clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static void check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
-static isc_result_t dbfind_name_v4(dns_adbhandle_t *, dns_name_t *,
+static isc_result_t dbfind_name_v4(dns_adbfind_t *, dns_name_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
 static isc_result_t fetch_name_v4(dns_adbname_t *, isc_stdtime_t now);
 static inline void check_exit(dns_adb_t *);
@@ -593,11 +593,11 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks)
 static void
 event_free(isc_event_t *event)
 {
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 
 	INSIST(event != NULL);
 	handle = event->destroy_arg;
-	INSIST(DNS_ADBHANDLE_VALID(handle));
+	INSIST(DNS_ADBFIND_VALID(handle));
 
 	LOCK(&handle->lock);
 	handle->flags |= HANDLE_EVENT_FREED;
@@ -613,7 +613,7 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 {
 	isc_event_t *ev;
 	isc_task_t *task;
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 
 	handle = ISC_LIST_HEAD(name->handles);
 	while (handle != NULL) {
@@ -931,10 +931,10 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 	isc_mempool_put(adb->emp, e);
 }
 
-static inline dns_adbhandle_t *
+static inline dns_adbfind_t *
 new_adbhandle(dns_adb_t *adb)
 {
-	dns_adbhandle_t *h;
+	dns_adbfind_t *h;
 	isc_result_t result;
 
 	h = isc_mempool_get(adb->ahmp);
@@ -970,7 +970,7 @@ new_adbhandle(dns_adb_t *adb)
 	ISC_EVENT_INIT(&h->event, sizeof (isc_event_t), 0, 0, 0, NULL, NULL,
 		       NULL, NULL, h);
 
-	h->magic = DNS_ADBHANDLE_MAGIC;
+	h->magic = DNS_ADBFIND_MAGIC;
 	return (h);
 }
 
@@ -1037,11 +1037,11 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 }
 
 static inline void
-free_adbhandle(dns_adb_t *adb, dns_adbhandle_t **handlep)
+free_adbhandle(dns_adb_t *adb, dns_adbfind_t **handlep)
 {
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 
-	INSIST(handlep != NULL && DNS_ADBHANDLE_VALID(*handlep));
+	INSIST(handlep != NULL && DNS_ADBFIND_VALID(*handlep));
 	handle = *handlep;
 	*handlep = NULL;
 
@@ -1217,7 +1217,7 @@ entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone,
 }
 
 static void
-copy_namehook_lists(dns_adb_t *adb, dns_adbhandle_t *handle,
+copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
 		    dns_adbname_t *name, dns_name_t *zone, isc_stdtime_t now)
 {
 	dns_adbnamehook_t *namehook;
@@ -1466,7 +1466,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	MPINIT(dns_adbnamehook_t, adb->nhmp, ISC_TRUE, "adbnamehook");
 	MPINIT(dns_adbzoneinfo_t, adb->zimp, ISC_TRUE, "adbzoneinfo");
 	MPINIT(dns_adbentry_t, adb->emp, ISC_TRUE, "adbentry");
-	MPINIT(dns_adbhandle_t, adb->ahmp, ISC_TRUE, "adbhandle");
+	MPINIT(dns_adbfind_t, adb->ahmp, ISC_TRUE, "adbhandle");
 	MPINIT(dns_adbaddrinfo_t, adb->aimp, ISC_TRUE, "adbaddrinfo");
 	MPINIT(dns_adbfetch_t, adb->afmp, ISC_TRUE, "adbfetch");
 
@@ -1554,9 +1554,9 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int options, isc_stdtime_t now,
-		   dns_adbhandle_t **handlep)
+		   dns_adbfind_t **handlep)
 {
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 	dns_adbname_t *adbname;
 	int bucket;
 	isc_result_t result;
@@ -1901,15 +1901,15 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 }
 
 void
-dns_adb_destroyfind(dns_adbhandle_t **handlep)
+dns_adb_destroyfind(dns_adbfind_t **handlep)
 {
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 	dns_adbentry_t *entry;
 	dns_adbaddrinfo_t *ai;
 	int bucket;
 	dns_adb_t *adb;
 
-	REQUIRE(handlep != NULL && DNS_ADBHANDLE_VALID(*handlep));
+	REQUIRE(handlep != NULL && DNS_ADBFIND_VALID(*handlep));
 	handle = *handlep;
 	*handlep = NULL;
 
@@ -1958,7 +1958,7 @@ dns_adb_destroyfind(dns_adbhandle_t **handlep)
 }
 
 void
-dns_adb_cancelfind(dns_adbhandle_t *handle)
+dns_adb_cancelfind(dns_adbfind_t *handle)
 {
 	isc_event_t *ev;
 	isc_task_t *task;
@@ -2129,7 +2129,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 }
 
 void
-dns_adb_dumphandle(dns_adbhandle_t *handle, FILE *f)
+dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f)
 {
 	char tmp[512];
 	const char *tmpp;
@@ -2223,7 +2223,7 @@ print_fetch_list(FILE *f, dns_adbname_t *n)
 static void
 print_handle_list(FILE *f, dns_adbname_t *name)
 {
-	dns_adbhandle_t *handle;
+	dns_adbfind_t *handle;
 
 	handle = ISC_LIST_HEAD(name->handles);
 	while (handle != NULL) {
@@ -2242,7 +2242,7 @@ print_handle_list(FILE *f, dns_adbname_t *name)
  * perhaps some fetches have been started.
  */
 static isc_result_t
-dbfind_name_v4(dns_adbhandle_t *handle, dns_name_t *zone,
+dbfind_name_v4(dns_adbfind_t *handle, dns_name_t *zone,
 	       dns_adbname_t *adbname, int bucket, isc_stdtime_t now)
 {
 	isc_result_t result;
@@ -2250,7 +2250,7 @@ dbfind_name_v4(dns_adbhandle_t *handle, dns_name_t *zone,
 	dns_rdataset_t rdataset;
 	dns_adb_t *adb;
 
-	INSIST(DNS_ADBHANDLE_VALID(handle));
+	INSIST(DNS_ADBFIND_VALID(handle));
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));

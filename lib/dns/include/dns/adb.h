@@ -95,8 +95,8 @@ ISC_LANG_BEGINDECLS
  *** Magic number checks
  ***/
 
-#define DNS_ADBHANDLE_MAGIC	  0x61646248	/* adbH. */
-#define DNS_ADBHANDLE_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBHANDLE_MAGIC)
+#define DNS_ADBFIND_MAGIC	  0x61646248	/* adbH. */
+#define DNS_ADBFIND_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFIND_MAGIC)
 #define DNS_ADBADDRINFO_MAGIC	  0x61644149	/* adAI. */
 #define DNS_ADBADDRINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBADDRINFO_MAGIC)
 
@@ -105,7 +105,9 @@ ISC_LANG_BEGINDECLS
  *** TYPES
  ***/
 
-/* dns_adbhandle_t
+typedef struct dns_adbname	dns_adbname_t;
+
+/* dns_adbfind_t
  *
  * The handle into our internal state of what is going on, where, when...
  * This is returned to the user as a handle, so requests can be canceled,
@@ -115,14 +117,14 @@ ISC_LANG_BEGINDECLS
  * Items may not be _deleted_ from this list, however, or added to it
  * other than by using the dns_adb_*() API.
  */
-struct dns_adbhandle {
+struct dns_adbfind {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
 	unsigned int			options;	/* RO: options */
-	ISC_LINK(dns_adbhandle_t)	publink;	/* RW: client use */
+	ISC_LINK(dns_adbfind_t)	publink;	/* RW: client use */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
@@ -131,7 +133,7 @@ struct dns_adbhandle {
 	dns_adbname_t		       *adbname;
 	dns_adb_t		       *adb;
 	isc_event_t			event;
-	ISC_LINK(dns_adbhandle_t)	plink;
+	ISC_LINK(dns_adbfind_t)	plink;
 };
 
 #define DNS_ADBFIND_INET		0x00000001
@@ -162,7 +164,7 @@ struct dns_adbaddrinfo {
  * to indicate that another address resolved, or all partially resolved
  * addresses have failed to resolve.
  *
- * "sender" is the dns_adbhandle_t used to issue this query.
+ * "sender" is the dns_adbfind_t used to issue this query.
  *
  * This is simply a standard event, with the "type" set to:
  *
@@ -225,7 +227,7 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int families, isc_stdtime_t now,
-		   dns_adbhandle_t **handle);
+		   dns_adbfind_t **handle);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -233,7 +235,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  * If other addresses resolve after this call completes, an event will
  * be sent to the <task, taskaction, arg> with the sender of that event
- * set to a pointer to the dns_adbhandle_t returned by this function.
+ * set to a pointer to the dns_adbfind_t returned by this function.
  *
  * The list of addresses returned is unordered.  The caller must impose
  * any ordering required.  The list will not contain "known bad" addresses,
@@ -327,7 +329,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
  */
 
 void
-dns_adb_cancelfind(dns_adbhandle_t *handle);
+dns_adb_cancelfind(dns_adbfind_t *handle);
 /*
  * Cancels the find, and sends the event off to the caller.
  *
@@ -336,7 +338,7 @@ dns_adb_cancelfind(dns_adbhandle_t *handle);
  *
  * Requires:
  *
- *	'handle' be a valid dns_adbhandle_t pointer.
+ *	'handle' be a valid dns_adbfind_t pointer.
  *
  *	events would have been posted to the task.  This can be checked
  *	with (handle->options & DNS_ADBFIND_WANTEVENT).
@@ -354,13 +356,13 @@ dns_adb_cancelfind(dns_adbhandle_t *handle);
  */
 
 void
-dns_adb_destroyfind(dns_adbhandle_t **handle);
+dns_adb_destroyfind(dns_adbfind_t **handle);
 /*
  * Destroys the handle reference.
  *
  * Requires:
  *
- *	'handle' != NULL and *handle be valid dns_adbhandle_t pointer.
+ *	'handle' != NULL and *handle be valid dns_adbfind_t pointer.
  *
  * Ensures:
  *
@@ -388,7 +390,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f);
  */
 
 void
-dns_adb_dumphandle(dns_adbhandle_t *handle, FILE *f);
+dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f);
 /*
  * Dump the data associated with a handle.
  *

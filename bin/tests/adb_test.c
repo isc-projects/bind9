@@ -44,7 +44,7 @@ typedef struct client client_t;
 struct client {
 	dns_name_t		name;
 	ISC_LINK(client_t)	link;
-	dns_adbhandle_t	       *handle;
+	dns_adbfind_t	       *handle;
 };
 
 isc_mem_t *mctx;
