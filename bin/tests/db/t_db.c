@@ -37,20 +37,20 @@
 
 static isc_result_t
 t_create(const char *db_type, const char *origin, const char *class,
-	 const char *cache, isc_mem_t *mctx, dns_db_t **db)
+	 const char *model, isc_mem_t *mctx, dns_db_t **db)
 {
 	int			len;
 	isc_result_t		dns_result;
-	isc_boolean_t		iscache;
+	dns_dbtype_t		dbtype;
 	isc_constregion_t	region;
 	isc_buffer_t		origin_buffer;
 	dns_fixedname_t		dns_origin;
 	dns_rdataclass_t	rdataclass;
 
 
-	iscache = ISC_FALSE;
-	if (strcasecmp(cache, "cache") == 0)
-		iscache = ISC_TRUE;
+	dbtype = ISC_FALSE;
+	if (strcasecmp(model, "cache") == 0)
+		dbtype = ISC_TRUE;
 
 	dns_fixedname_init(&dns_origin);
 	len = strlen(origin);
@@ -76,7 +76,7 @@ t_create(const char *db_type, const char *origin, const char *class,
 
 	dns_result = dns_db_create(mctx, db_type,
 				   dns_fixedname_name(&dns_origin),
-				   iscache, rdataclass, 0, NULL, db);
+				   dbtype, rdataclass, 0, NULL, db);
 	if (dns_result != ISC_R_SUCCESS)
 		t_info("dns_db_create failed %s\n",
 		       dns_result_totext(dns_result));
@@ -90,7 +90,7 @@ t_dns_db_load(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*cache;
+	char			*model;
 	char			*class;
 	char			*expected_load_result;
 	char			*findname;
@@ -120,7 +120,7 @@ t_dns_db_load(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	cache = T_ARG(3);
+	model = T_ARG(3);
 	class = T_ARG(4);
 	expected_load_result = T_ARG(5);
 	findname = T_ARG(6);
@@ -139,7 +139,7 @@ t_dns_db_load(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -240,7 +240,7 @@ static const char *a2 =
 
 static int
 t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
-	      isc_boolean_t cache, isc_boolean_t(*cf)(dns_db_t *),
+	      dns_dbtype_t dbtype, isc_boolean_t(*cf)(dns_db_t *),
 	      isc_boolean_t exp_result)
 {
 	int			result;
@@ -291,7 +291,7 @@ t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
 
 	dns_result = dns_db_create(mctx, db_type,
 				   dns_fixedname_name(&dns_origin),
-				   cache, rdataclass, 0, NULL, &db);
+				   dbtype, rdataclass, 0, NULL, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_db_create failed %s\n",
 		       dns_result_totext(dns_result));
@@ -317,7 +317,7 @@ t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
 }
 
 static int
-test_dns_db_zc_x(const char *filename, isc_boolean_t cache,
+test_dns_db_zc_x(const char *filename, dns_dbtype_t dbtype,
 		 isc_boolean_t(*cf)(dns_db_t *), isc_boolean_t exp_result)
 {
 
@@ -352,7 +352,7 @@ test_dns_db_zc_x(const char *filename, isc_boolean_t cache,
 						       tokens[1], /* type */
 						       tokens[2], /* origin */
 						       tokens[3], /* class */
-						       cache,     /* cache */
+						       dbtype,     /* cache */
 						       cf,     /* check func */
 						       exp_result);/* expect */
 				if (result != T_PASS) {
@@ -637,7 +637,7 @@ t_dns_db_currentversion(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*class;
-	char			*cache;
+	char			*model;
 	char			*findname;
 	char			*findtype;
 
@@ -663,7 +663,7 @@ t_dns_db_currentversion(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	findname = T_ARG(5);
 	findtype = T_ARG(6);
 	db = NULL;
@@ -678,7 +678,7 @@ t_dns_db_currentversion(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -872,7 +872,7 @@ t_dns_db_newversion(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*class;
-	char			*cache;
+	char			*model;
 	char			*newname;
 	char			*newtype;
 
@@ -905,7 +905,7 @@ t_dns_db_newversion(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	newname = T_ARG(5);
 	newtype = T_ARG(6);
 	db = NULL;
@@ -926,7 +926,7 @@ t_dns_db_newversion(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -1147,7 +1147,7 @@ t_dns_db_closeversion_1(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*class;
-	char			*cache;
+	char			*model;
 	char			*new_name;
 	char			*new_type;
 	char			*existing_name;
@@ -1183,7 +1183,7 @@ t_dns_db_closeversion_1(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	new_name = T_ARG(5);
 	new_type = T_ARG(6);
 	existing_name = T_ARG(7);
@@ -1209,7 +1209,7 @@ t_dns_db_closeversion_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -1508,7 +1508,7 @@ t_dns_db_closeversion_2(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*class;
-	char			*cache;
+	char			*model;
 	char			*new_name;
 	char			*new_type;
 	char			*existing_name;
@@ -1544,7 +1544,7 @@ t_dns_db_closeversion_2(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	new_name = T_ARG(5);
 	new_type = T_ARG(6);
 	existing_name = T_ARG(7);
@@ -1570,7 +1570,7 @@ t_dns_db_closeversion_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -2105,7 +2105,7 @@ t_dns_db_findnode_1(char **av) {
 	char		*db_type;
 	char		*origin;
 	char		*class;
-	char		*cache;
+	char		*model;
 	char		*find_name;
 	char		*find_type;
 	char		*expected_result;
@@ -2129,7 +2129,7 @@ t_dns_db_findnode_1(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	find_name = T_ARG(5);
 	find_type = T_ARG(6);
 	expected_result = T_ARG(7);
@@ -2159,7 +2159,7 @@ t_dns_db_findnode_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -2251,7 +2251,7 @@ t_dns_db_findnode_2(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*class;
-	char			*cache;
+	char			*model;
 	char			*newname;
 
 	int			nfails;
@@ -2273,7 +2273,7 @@ t_dns_db_findnode_2(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	class = T_ARG(3);
-	cache = T_ARG(4);
+	model = T_ARG(4);
 	newname = T_ARG(5);
 
 	result = T_UNRESOLVED;
@@ -2290,7 +2290,7 @@ t_dns_db_findnode_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, cache, mctx, &db);
+	dns_result = t_create(db_type, origin, class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -2417,7 +2417,7 @@ t_dns_db_find_x(char **av) {
 	char			*dbtype;
 	char			*dborigin;
 	char			*dbclass;
-	char			*dbcache;
+	char			*dbmodel;
 	char			*findname;
 	char			*findtype;
 	char			*findopts;
@@ -2449,7 +2449,7 @@ t_dns_db_find_x(char **av) {
 	dbtype = T_ARG(1);
 	dborigin = T_ARG(2);
 	dbclass = T_ARG(3);
-	dbcache = T_ARG(4);
+	dbmodel = T_ARG(4);
 	findname = T_ARG(5);
 	findtype = T_ARG(6);
 	findopts = T_ARG(7);
@@ -2469,7 +2469,7 @@ t_dns_db_find_x(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(dbtype, dborigin, dbclass, dbcache, mctx, &db);
+	dns_result = t_create(dbtype, dborigin, dbclass, dbmodel, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
