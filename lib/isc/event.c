@@ -29,6 +29,13 @@
  *** Events.
  ***/
 
+static void
+destroy(isc_event_t *event) {
+	isc_mem_t *mctx = event->destroy_arg;
+
+	isc_mem_put(mctx, event, event->size);
+}
+
 isc_event_t *
 isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 		   isc_taskaction_t action, void *arg, size_t size)
@@ -43,13 +50,14 @@ isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	event = isc_mem_get(mctx, size);
 	if (event == NULL)
 		return (NULL);
-	event->mctx = mctx;
 	event->size = size;
-	event->sender = sender;
+	event->attributes = 0;
 	event->type = type;
+	event->sender = sender;
 	event->action = action;
 	event->arg = arg;
-	event->destroy = NULL;
+	event->destroy = destroy;
+	event->destroy_arg = mctx;
 	ISC_LINK_INIT(event, link);
 
 	return (event);
@@ -65,7 +73,6 @@ isc_event_free(isc_event_t **eventp) {
 
 	if (event->destroy != NULL)
 		(event->destroy)(event);
-	isc_mem_put(event->mctx, event, event->size);
 
 	*eventp = NULL;
 }

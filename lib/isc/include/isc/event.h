@@ -32,18 +32,33 @@ ISC_LANG_BEGINDECLS
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 /*
+ * XXXRTH  These fields may soon be prefixed with something like "ev_"
+ *         so that there's no way someone using ISC_EVENT_COMMON could
+ *         have a namespace conflict with us.
+ *
+ *	   On the other hand, if we ever changed the contents of this
+ *	   structure, we'd break binary compatibility, so maybe this isn't
+ *         really an issue.
+ */
+#define ISC_EVENT_COMMON(ltype)		\
+	size_t				size; \
+	unsigned int			attributes; \
+	isc_eventtype_t			type; \
+	isc_taskaction_t		action; \
+	void *				arg; \
+	void *				sender; \
+	isc_eventdestructor_t		destroy; \
+	void *				destroy_arg; \
+	ISC_LINK(ltype)			link
+
+#define ISC_EVENTATTR_NOPURGE		0x00000001
+
+/*
  * This structure is public because "subclassing" it may be useful when
  * defining new event types.
  */ 
 struct isc_event {
-	isc_mem_t *			mctx;
-	size_t				size;
-	void *				sender;
-	isc_eventtype_t			type;
-	isc_taskaction_t		action;
-	void *				arg;
-	isc_eventdestructor_t		destroy;
-	ISC_LINK(struct isc_event)	link;
+	ISC_EVENT_COMMON(struct isc_event);
 };
 
 #define ISC_EVENTTYPE_FIRSTEVENT	0x00000000
