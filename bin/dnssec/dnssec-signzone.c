@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.156 2001/12/07 01:55:42 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.157 2001/12/08 00:38:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,6 @@ typedef struct signer_event sevent_t;
 struct signer_event {
 	ISC_EVENT_COMMON(sevent_t);
 	dns_fixedname_t *fname;
-	dns_fixedname_t *fnextname;
 	dns_dbnode_t *node;
 };
 
@@ -108,9 +107,6 @@ static dns_db_t *gdb;			/* The database */
 static dns_dbversion_t *gversion;	/* The database version */
 static dns_dbiterator_t *gdbiter;	/* The database iterator */
 static dns_name_t *gorigin;		/* The database origin */
-static dns_dbnode_t *gnode = NULL;	/* The "current" database node */
-static dns_fixedname_t flastzonecut;
-static dns_name_t *lastzonecut;
 static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
 static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
@@ -725,7 +721,7 @@ nxt_setbit(dns_rdataset_t *rdataset, dns_rdatatype_t type) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nxt_t nxt;
 
-	REQUIRE(type < dns_rdatatype_nxt);
+	REQUIRE(type <= dns_rdatatype_nxt);
 
 	result = dns_rdataset_first(rdataset);
 	check_result(result, "dns_rdataset_first()");
@@ -988,47 +984,6 @@ active_node(dns_dbnode_t *node) {
 	return (active);
 }
 
-static inline isc_result_t
-next_active(dns_name_t *name, dns_dbnode_t **nodep) {
-	isc_result_t result;
-	isc_boolean_t active;
-
-	do {
-		active = ISC_FALSE;
-		result = dns_dbiterator_current(gdbiter, nodep, name);
-		if (result == ISC_R_SUCCESS) {
-			active = active_node(*nodep);
-			if (!active) {
-				dns_db_detachnode(gdb, nodep);
-				result = dns_dbiterator_next(gdbiter);
-			}
-		}
-	} while (result == ISC_R_SUCCESS && !active);
-
-	return (result);
-}
-
-static inline isc_result_t
-next_nonglue(dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *origin,
-	     dns_name_t *lastcut)
-{
-	isc_result_t result;
-
-	do {
-		result = next_active(name, nodep);
-		if (result == ISC_R_SUCCESS) {
-			if (dns_name_issubdomain(name, origin) &&
-			    (lastcut == NULL ||
-			     !dns_name_issubdomain(name, lastcut)))
-				return (ISC_R_SUCCESS);
-			dumpnode(name, *nodep);
-			dns_db_detachnode(gdb, nodep);
-			result = dns_dbiterator_next(gdbiter);
-		}
-	} while (result == ISC_R_SUCCESS);
-	return (result);
-}
-
 /*
  * Extracts the TTL from the SOA.
  */
@@ -1095,8 +1050,6 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
  */
 static void
 presign(void) {
-	dns_fixedname_t ftname;
-	dns_name_t *tname;
 	isc_result_t result;
 
 	gdbiter = NULL;
@@ -1105,19 +1058,6 @@ presign(void) {
 
 	result = dns_dbiterator_first(gdbiter);
 	check_result(result, "dns_dbiterator_first()");
-
-	dns_fixedname_init(&flastzonecut);
-	lastzonecut = NULL;
-
-	dns_fixedname_init(&ftname);
-	tname = dns_fixedname_name(&ftname);
-
-	gnode = NULL;
-	result = next_nonglue(tname, &gnode, gorigin, NULL);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to iterate through the zone");
-
-	zonettl = soattl();
 }
 
 /*
@@ -1129,80 +1069,64 @@ postsign(void) {
 }
 
 /*
- * Find the next name to nxtify & sign
- */
-static isc_result_t
-getnextname(dns_name_t *name, dns_name_t *nextname, dns_dbnode_t **nodep) {
-	isc_result_t result;
-	dns_dbnode_t *nextnode, *curnode;
-
-	LOCK(&namelock);
-
-	if (shuttingdown || finished) {
-		result = ISC_R_NOMORE;
-		if (gnode != NULL)
-			dns_db_detachnode(gdb, &gnode);
-		goto out;
-	}
-
-	nextnode = NULL;
-	curnode = NULL;
-	dns_dbiterator_current(gdbiter, &curnode, name);
-	if (delegation(name, curnode)) {
-		lastzonecut = dns_fixedname_name(&flastzonecut);
-		dns_name_reset(lastzonecut);
-		dns_name_copy(name, lastzonecut, NULL);
-	}
-	result = dns_dbiterator_next(gdbiter);
-	if (result == ISC_R_SUCCESS)
-		result = next_nonglue(nextname, &nextnode, gorigin,
-				      lastzonecut);
-	if (result == ISC_R_NOMORE) {
-		dns_name_clone(gorigin, nextname);
-		finished = ISC_TRUE;
-		result = ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS)
-		fatal("iterating through the database failed: %s",
-		      isc_result_totext(result));
-	dns_db_detachnode(gdb, &curnode);
-
-	*nodep = gnode;
-	gnode = nextnode;
-
- out:
-	UNLOCK(&namelock);
-	return (result);
-}
-
-/*
  * Assigns a node to a worker thread.  This is protected by the master task's
  * lock.
  */
 static void
 assignwork(isc_task_t *task, isc_task_t *worker) {
-	dns_fixedname_t *fname, *fnextname;
+	dns_fixedname_t *fname;
+	dns_name_t *name;
 	dns_dbnode_t *node;
 	sevent_t *sevent;
+	dns_rdataset_t nxt;
+	isc_boolean_t found;
 	isc_result_t result;
 
-	fname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
-	fnextname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
-	if (fname == NULL || fnextname == NULL)
-		fatal("out of memory");
-	dns_fixedname_init(fname);
-	dns_fixedname_init(fnextname);
-	node = NULL;
-	result = getnextname(dns_fixedname_name(fname),
-			     dns_fixedname_name(fnextname), &node);
-	if (result == ISC_R_NOMORE) {
-		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
-		isc_mem_put(mctx, fnextname, sizeof(dns_fixedname_t));
+	if (shuttingdown)
+		return;
+
+	if (finished) {
 		if (assigned == completed) {
 			isc_task_detach(&task);
 			isc_app_shutdown();
 		}
 		return;
 	}
+
+	fname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
+	if (fname == NULL)
+		fatal("out of memory");
+	dns_fixedname_init(fname);
+	name = dns_fixedname_name(fname);
+	node = NULL;
+	found = ISC_FALSE;
+	LOCK(&namelock);
+	while (!found) {
+		result = dns_dbiterator_current(gdbiter, &node, name);
+		if (result != ISC_R_SUCCESS)
+			fatal("failure iterating database: %s",
+			      isc_result_totext(result));
+		dns_rdataset_init(&nxt);
+		result = dns_db_findrdataset(gdb, node, gversion,
+					     dns_rdatatype_nxt, 0, 0,
+					     &nxt, NULL);
+		if (result == ISC_R_SUCCESS)
+			found = ISC_TRUE;
+		else
+			dumpnode(name, node);
+		if (dns_rdataset_isassociated(&nxt))
+			dns_rdataset_disassociate(&nxt);
+
+		result = dns_dbiterator_next(gdbiter);
+		if (result == ISC_R_NOMORE)
+			finished = ISC_TRUE;
+		else if (result != ISC_R_SUCCESS)
+			fatal("failure iterating database: %s",
+			      isc_result_totext(result));
+		if (!found)
+			dns_db_detachnode(gdb, &node);
+	}
+	UNLOCK(&namelock);
 	sevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WORK,
 				    sign, NULL, sizeof(sevent_t));
@@ -1211,7 +1135,6 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 
 	sevent->node = node;
 	sevent->fname = fname;
-	sevent->fnextname = fnextname;
 	isc_task_send(worker, (isc_event_t **)&sevent);
 	assigned++;
 }
@@ -1247,25 +1170,19 @@ writenode(isc_task_t *task, isc_event_t *event) {
 }
 
 /*
- *  Sign and nxtify a database node.
+ *  Sign a database node.
  */
 static void
 sign(isc_task_t *task, isc_event_t *event) {
-	dns_fixedname_t *fname, *fnextname;
+	dns_fixedname_t *fname;
 	dns_dbnode_t *node;
 	sevent_t *sevent, *wevent;
-	isc_result_t result;
 
 	sevent = (sevent_t *)event;
 	node = sevent->node;
 	fname = sevent->fname;
-	fnextname = sevent->fnextname;
 	isc_event_free(&event);
 
-	result = dns_nxt_build(gdb, gversion, node,
-			       dns_fixedname_name(fnextname), zonettl);
-	check_result(result, "dns_nxt_build()");
-	isc_mem_put(mctx, fnextname, sizeof(dns_fixedname_t));
 	signname(node, dns_fixedname_name(fname));
 	wevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WRITE,
@@ -1275,6 +1192,80 @@ sign(isc_task_t *task, isc_event_t *event) {
 	wevent->node = node;
 	wevent->fname = fname;
 	isc_task_send(master, (isc_event_t **)&wevent);
+}
+
+/*
+ * Generate NXT records for the zone.
+ */
+static void
+nxtify(void) {
+	dns_dbiterator_t *dbiter = NULL;
+	dns_dbnode_t *node = NULL, *nextnode = NULL;
+	dns_fixedname_t fname, fnextname, fzonecut;
+	dns_name_t *name, *nextname, *zonecut;
+	isc_boolean_t done = ISC_FALSE;
+	isc_result_t result;
+
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	dns_fixedname_init(&fnextname);
+	nextname = dns_fixedname_name(&fnextname);
+	dns_fixedname_init(&fzonecut);
+	zonecut = NULL;
+
+	result = dns_db_createiterator(gdb, ISC_FALSE, &dbiter);
+	check_result(result, "dns_db_createiterator()");
+
+	result = dns_dbiterator_first(dbiter);
+	check_result(result, "dns_dbiterator_first()");
+
+	while (!done) {
+		dns_dbiterator_current(dbiter, &node, name);
+		if (delegation(name, node)) {
+			zonecut = dns_fixedname_name(&fzonecut);
+			dns_name_copy(name, zonecut, NULL);
+		}
+		result = dns_dbiterator_next(dbiter);
+		nextnode = NULL;
+		while (result == ISC_R_SUCCESS) {
+			isc_boolean_t active = ISC_FALSE;
+			result = dns_dbiterator_current(dbiter, &nextnode,
+							nextname);
+			if (result != ISC_R_SUCCESS)
+				break;
+			active = active_node(nextnode);
+			if (!active) {
+				dns_db_detachnode(gdb, &nextnode);
+				result = dns_dbiterator_next(dbiter);
+				continue;
+			}
+			if (result != ISC_R_SUCCESS) {
+				dns_db_detachnode(gdb, &nextnode);
+				break;
+			}
+			if (!dns_name_issubdomain(nextname, gorigin) ||
+			    (zonecut != NULL &&
+			     dns_name_issubdomain(nextname, zonecut)))
+			{
+				dns_db_detachnode(gdb, &nextnode);
+				result = dns_dbiterator_next(dbiter);
+				continue;
+			}
+			dns_db_detachnode(gdb, &nextnode);
+			break;
+		}
+		if (result == ISC_R_NOMORE) {
+			dns_name_clone(gorigin, nextname);
+			done = ISC_TRUE;
+		} else if (result != ISC_R_SUCCESS)
+			fatal("iterating through the database failed: %s",
+			      isc_result_totext(result));
+		result = dns_nxt_build(gdb, gversion, node, nextname, zonettl);
+		check_result(result, "dns_nxt_build()");
+		dns_db_detachnode(gdb, &node);
+	}
+
+	dns_dbiterator_destroy(&dbiter);
 }
 
 /*
@@ -1650,12 +1641,11 @@ main(int argc, char *argv[]) {
 	TIME_NOW(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
+	zonettl = soattl();
 
 	ISC_LIST_INIT(keylist);
 
 	if (argc == 0) {
-		signer_key_t *key;
-
 		loadzonekeys(gdb);
 
 		key = ISC_LIST_HEAD(keylist);
@@ -1711,6 +1701,8 @@ main(int argc, char *argv[]) {
 	gversion = NULL;
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
+
+	nxtify();
 
 	tempfilelen = strlen(output) + 20;
 	tempfile = isc_mem_get(mctx, tempfilelen);
