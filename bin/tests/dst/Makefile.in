@@ -29,8 +29,9 @@ CWARNINGS =
 
 LIBS =		../../../lib/dns/libdns.@A@ \
 		../../../lib/isc/libisc.@A@ \
-		../../../lib/tests/libt_api.@A@
 		@LIBS@
+
+TLIB =		../../../lib/tests/libt_api.@A@
 
 TARGETS =	dst_test t_dst
 
@@ -41,11 +42,11 @@ SRCS =		dst_test.c t_dst.c
 dst_test: dst_test.o
 	${LIBTOOL} ${CC} -o $@ dst_test.o ${LIBS}
 
-t_dst: t_dst.o
-	${LIBTOOL} ${CC} -o $@ t_dst.o ${LIBS}
+t_dst: t_dst.o ${LIBS} ${TLIB}
+	${LIBTOOL} ${CC} -o $@ t_dst.o ${LIBS} ${TLIB}
 
 test:
-	-@ ./t_dst
+	-@ ./t_dst -a
 
 clean distclean::
 	rm -f ${TARGETS}
