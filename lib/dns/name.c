@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.c,v 1.94 2000/07/13 18:10:18 bwelling Exp $ */
+/* $Id: name.c,v 1.95 2000/07/14 19:12:53 tale Exp $ */
 
 #include <config.h>
 
@@ -318,6 +318,16 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	name->buffer = NULL;
 	ISC_LINK_INIT(name, link);
 	ISC_LIST_INIT(name->list);
+}
+
+void
+dns_name_reset(dns_name_t *name) {
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(BINDABLE(name));
+
+	MAKE_EMPTY(name);
+	if (name->buffer != NULL)
+		isc_buffer_clear(name->buffer);
 }
 
 void
@@ -2476,7 +2486,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	REQUIRE(BINDABLE(name));
 
 	/*
-	 * IMPORTANT NOTE
+	 * XXX IMPORTANT NOTE
 	 *
 	 * If the most-signficant label in prefix is a bitstring,
 	 * and the least-signficant label in suffix is a bitstring,

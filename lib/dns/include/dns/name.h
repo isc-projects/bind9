@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.h,v 1.74 2000/07/13 18:10:16 bwelling Exp $ */
+/* $Id: name.h,v 1.75 2000/07/14 19:12:51 tale Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -236,6 +236,32 @@ dns_name_init(dns_name_t *name, unsigned char *offsets);
  * Ensures:
  *	'name' is a valid name.
  *	dns_name_countlabels(name) == 0
+ *	dns_name_isabsolute(name) == ISC_FALSE
+ */
+
+void
+dns_name_reset(dns_name_t *name);
+/*
+ * Reinitialize 'name'.
+ *
+ * Notes:
+ *	This function distinguishes itself from dns_name_init() in two
+ *	key ways:
+ *
+ *	+ If any buffer is associated with 'name' (via dns_name_setbuffer()
+ *	  or by being part of a dns_fixedname_t) the link to the buffer
+ *	  is retained but the buffer itself is cleared.  
+ *
+ *	+ Of the attributes associated with 'name', all are retained except
+ *	  DNS_NAMEATTR_ABSOLUTE.
+ *
+ * Requires:
+ *	'name' is a valid name.
+ *
+ * Ensures:
+ *	'name' is a valid name.
+ *	dns_name_countlabels(name) == 0
+ *	dns_name_isabsolute(name) == ISC_FALSE
  */
 
 void
@@ -1182,6 +1208,7 @@ ISC_LANG_ENDDECLS
 #ifdef DNS_NAME_USEINLINE
 
 #define dns_name_init(n, o)		DNS_NAME_INIT(n, o)
+#define dns_name_reset(n)		DNS_NAME_RESET(n)
 #define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
 #define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
 
@@ -1196,6 +1223,16 @@ do { \
 	(n)->buffer = NULL; \
 	ISC_LINK_INIT((n), link); \
 	ISC_LIST_INIT((n)->list); \
+} while (0)
+
+#define DNS_NAME_RESET(n) \
+do { \
+	(n)->ndata = NULL; \
+	(n)->length = 0; \
+	(n)->labels = 0; \
+	(n)->attributes &= ~DNS_NAMEATTR_ABSOLUTE; \
+	if ((n)->buffer != NULL) \
+		isc_buffer_clear((n)->buffer); \
 } while (0)
 
 #define DNS_NAME_SETBUFFER(n, b) \
