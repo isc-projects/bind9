@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.292 $)
+AC_REVISION($Revision: 1.293 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -321,6 +321,7 @@ case "$use_openssl" in
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
 		LIBS="$LIBS $DNS_OPENSSL_LIBS"
 		AC_TRY_RUN([
+#include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
         if (OPENSSL_VERSION_NUMBER >= 0x0090581fL)
