@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.31 2000/09/20 17:51:08 gson Exp $
+# $Id: Makefile.in,v 1.32 2000/09/20 18:05:33 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -31,7 +31,12 @@ distclean::
 	rm -f libtool isc-config.sh
 	rm -f util/conf.sh
 
-install:: isc-config.sh
+installdirs:
+	if [ ! -d ${DESTDIR}${bindir} ]; then \
+		mkdir ${DESTDIR}${bindir}; \
+	fi
+
+install:: isc-config.sh installdirs
 	${INSTALL_PROGRAM} isc-config.sh ${DESTDIR}${bindir}
 
 tags:

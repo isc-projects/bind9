@@ -1,3 +1,6 @@
+ 477.	[bug]		The the isc-config.sh script could be installed before
+			its directory was created. [RT #324]
+
  476.	[bug]		A zone could expire while a zone transfer was in
 			progress triggering a INSIST failure. [RT #329]
 
