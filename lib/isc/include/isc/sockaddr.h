@@ -83,6 +83,12 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port);
  * Set the port of 'sockaddr' to 'port'.
  */
 
+in_port_t
+isc_sockaddr_getport(isc_sockaddr_t *sockaddr);
+/*
+ * Get the port stored in 'sockaddr'.
+ */
+
 isc_result_t
 isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
 /*

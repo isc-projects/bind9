@@ -337,3 +337,21 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port) {
 		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
 	}
 }
+
+in_port_t
+isc_sockaddr_getport(isc_sockaddr_t *sockaddr) {
+	in_port_t port = 0;
+
+	switch (sockaddr->type.sa.sa_family) {
+	case AF_INET:
+		port = ntohs(sockaddr->type.sin.sin_port);
+		break;
+	case AF_INET6:
+		port = ntohs(sockaddr->type.sin6.sin6_port);
+		break;
+	default:
+		FATAL_ERROR(__FILE__, __LINE__, "unknown address family");
+	}
+
+	return (port);
+}
