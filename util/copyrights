@@ -301,7 +301,6 @@
 ./bin/tests/system/.cvsignore			X	2000
 ./bin/tests/system/Makefile.in			MAKE	2000
 ./bin/tests/system/README			X	2000
-./bin/tests/system/clean.sh			SH	2000
 ./bin/tests/system/cleanall.sh			SH	2000
 ./bin/tests/system/conf.sh.in			SH	2000
 ./bin/tests/system/digcomp.pl			PERL	2000
