@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.113 2001/01/17 03:02:01 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.114 2001/02/09 06:04:51 marka Exp $ */
 
 #include <config.h>
 
@@ -584,6 +584,13 @@ void
 dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr) {
 	if (! xfr->shuttingdown)
 		xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+}
+
+void
+dns_xfrin_attach(dns_xfrin_ctx_t *source, dns_xfrin_ctx_t **target) {
+	REQUIRE(target != NULL && *target == NULL);
+	source->refcount++;
+	*target = source;
 }
 
 void

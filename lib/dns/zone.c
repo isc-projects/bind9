@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.303 2001/02/01 21:29:37 marka Exp $ */
+/* $Id: zone.c,v 1.304 2001/02/09 06:04:53 marka Exp $ */
 
 #include <config.h>
 
@@ -3604,6 +3604,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
 	isc_result_t result;
 	isc_boolean_t free_needed;
+	dns_xfrin_ctx_t *xfr = NULL;
 
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3636,7 +3637,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	LOCK_ZONE(zone);
 	if (zone->xfr != NULL)
-		dns_xfrin_shutdown(zone->xfr);
+		dns_xfrin_attach(zone->xfr, &xfr);
 
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
@@ -3667,6 +3668,12 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SHUTDOWN);
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
+	if (xfr != NULL) {
+		dns_xfrin_shutdown(zone->xfr);
+		LOCK_ZONE(zone);
+		dns_xfrin_detach(&xfr);
+		UNLOCK_ZONE(zone);
+	}
 	if (free_needed)
 		zone_free(zone);
 }

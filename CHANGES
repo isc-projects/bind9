@@ -1,3 +1,5 @@
+ 734.	[bug]		An attempt to re-lock the zone lock could occur if
+			the zone was shutdown during a zone tranfer. [RT #830]
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be
 			locked but were not. [RT #801]
