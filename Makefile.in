@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.30 2000/08/08 23:33:03 gson Exp $
+# $Id: Makefile.in,v 1.31 2000/09/20 17:51:08 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,14 +23,6 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	make lib bin
 TARGETS =
-DISTFILES =	CHANGES COPYRIGHT Makefile.in README \
-		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
-		config.status.win32 config.sub configure configure.in \
-		isc-config.sh.in install-sh libtool.m4 ltconfig ltmain.sh \
-		lib make contrib \
-		version
-DOCDISTFILES =	arm draft misc rfc
-BINDISTFILES =	Makefile.in dig dnssec named nsupdate rndc tests
 
 @BIND9_MAKE_RULES@
 
@@ -45,3 +37,8 @@ install:: isc-config.sh
 tags:
 	rm -f TAGS
 	find lib bin -name "*.[ch]" -print | @ETAGS@ -
+
+check: test
+
+test:
+	(cd bin/tests && ${MAKE} ${MAKEDEFS} test)
