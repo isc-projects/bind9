@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.14 2000/03/16 00:53:00 explorer Exp $ */
+/* $Id: dname_39.c,v 1.15 2000/03/16 02:18:13 explorer Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -82,7 +82,7 @@ fromwire_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_LOCAL);
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 	return(dns_name_fromwire(&name, source, dctx, downcase, target));
@@ -99,7 +99,7 @@ towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 	if (dns_compress_getedns(cctx) >= 1)
 		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL);
 	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_LOCAL);
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);

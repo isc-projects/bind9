@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.h,v 1.6 2000/02/03 23:43:00 halley Exp $ */
+/* $Id: loc_29.h,v 1.7 2000/03/16 02:18:16 explorer Exp $ */
 
- /* RFC 1876 */
+/* RFC 1876 */
 

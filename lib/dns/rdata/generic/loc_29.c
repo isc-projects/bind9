@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: loc_29.c,v 1.11 2000/02/03 23:43:00 halley Exp $ */
+/* $Id: loc_29.c,v 1.12 2000/03/16 02:18:15 explorer Exp $ */
 
- /* RFC 1876 */
+/* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
+
+/* RFC 1876 */
 
 #ifndef RDATA_GENERIC_LOC_29_C
 #define RDATA_GENERIC_LOC_29_C
@@ -40,7 +42,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	long m;
 	long cm;
 	long poweroften[8] = { 1, 10, 100, 1000,
-					10000, 100000, 1000000, 10000000 };
+			       10000, 100000, 1000000, 10000000 };
 	int man;
 	int exp;
 	char *e;
@@ -49,12 +51,12 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	unsigned long longitude;
 	unsigned long altitude;
 
+	UNUSED(rdclass);
+	UNUSED(origin);
+	UNUSED(downcase);
+
 	REQUIRE(type == 29);
 	
-	rdclass = rdclass;		/*unused*/
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
-
 	/* defaults */
 	m1 = s1 = 0;
 	m2 = s2 = 0;
@@ -397,9 +399,9 @@ totext_loc(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	unsigned long poweroften[8] = { 1, 10, 100, 1000,
 					10000, 100000, 1000000, 10000000 };
 
-	REQUIRE(rdata->type == 29);
+	UNUSED(tctx);
 
-	tctx = tctx;	/*unused*/
+	REQUIRE(rdata->type == 29);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -484,12 +486,12 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	unsigned long latitude;
 	unsigned long longitude;
 
+	UNUSED(rdclass);
+	UNUSED(dctx);
+	UNUSED(downcase);
+
 	REQUIRE(type == 29);
 	
-	rdclass = rdclass;		/*unused*/
-	dctx = dctx;		/*unused*/
-	downcase = downcase;	/*unused*/
-
 	isc_buffer_active(source, &sr);
 	if (sr.length < 1)
 		return (DNS_R_UNEXPECTEDEND);
@@ -539,17 +541,18 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_loc(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_loc(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
+	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 29);
 	
-	cctx = cctx;	/*unused*/
-
 	return(mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
-compare_loc(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_loc(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -566,30 +569,29 @@ static inline isc_result_t
 fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
                isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 29);
 	
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
-
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
+	UNUSED(target);
+	UNUSED(mctx);
 
 	REQUIRE(rdata->type == 29);
-
-	target = target;
-	mctx = mctx;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_loc(void *source) {
+freestruct_loc(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
@@ -598,16 +600,17 @@ static inline isc_result_t
 additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {
-	REQUIRE(rdata->type == 29);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 29);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_loc(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_loc(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 29);
