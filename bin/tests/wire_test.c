@@ -131,7 +131,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_add(&source, bp - b);
 
 	message = NULL;
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source);
@@ -185,7 +185,7 @@ main(int argc, char *argv[]) {
 	printf("Message rendered.\n");
 	isc_mem_stats(mctx, stdout);
 
-	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	result = dns_message_parse(message, &source);

@@ -185,7 +185,7 @@ start_response(void)
 				&from.type.sin.sin_addr) == 1);
 
 	msg = NULL;
-	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTRENDER);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECKRESULT(result, "dns_message_create()");
 
 	dns_message_addname(msg, &name, DNS_SECTION_QUESTION);
@@ -261,7 +261,7 @@ got_response(isc_task_t *task, isc_event_t *ev_in)
 	       ev->id, isc_result_totext(ev->result));
 
 	msg = NULL;
-	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTPARSE);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
 	result = dns_message_parse(msg, &ev->buffer);
@@ -301,7 +301,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 	hex_dump(&ev->buffer);
 
 	msg = NULL;
-	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTPARSE);
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	CHECKRESULT(result, "dns_message_create() failed");
 
 	result = dns_message_parse(msg, &ev->buffer);
