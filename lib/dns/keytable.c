@@ -283,7 +283,6 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 			      dns_name_t *foundname)
 {
 	isc_result_t result;
-	dns_keynode_t *knode;
 	void *data;
 
 	/*
@@ -296,7 +295,6 @@ dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
-	knode = NULL;
 	data = NULL;
 	result = dns_rbt_findname(keytable->table, name, 0, foundname, &data);
 
