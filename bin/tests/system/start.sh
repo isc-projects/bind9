@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.21.2.2 2000/07/10 04:51:49 gson Exp $
+# $Id: start.sh,v 1.21.2.3 2000/07/10 22:45:00 mws Exp $
 
 #
 # Start name servers for running system tests.
@@ -28,16 +28,26 @@ test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
 
 test -d "$1" || { echo No test directory: "$1";  exit 1; }
 
-if $PERL ./testsock.pl -p 5300
-then
-    :
-else
-    echo "$0: could not bind to server addresses, server still running?"
-    echo "I:server sockets not available"
-    echo "R:FAIL"
-    sh ./stop.sh $1
-    exit 1
-fi 
+portup=0
+testloop=0
+while [ $portup == 0 ]
+do
+    if $PERL ./testsock.pl -p 5300
+    then
+	portup=1
+    else
+	echo "I:Couldn't bind to socket (yet)"
+	sleep 2
+	testloop=`expr $testloop + 1`
+	if [ $testloop == 5 ]; then
+	    echo "$0: could not bind to server addresses, still running?"
+	    echo "I:server sockets not available"
+	    echo "R:FAIL"
+	    sh ./stop.sh $1
+	    exit 1
+	fi
+    fi 
+done
 
 cd $1
 
