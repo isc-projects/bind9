@@ -1,3 +1,7 @@
+
+ 818.	[bug]		Certain pathological responses to ANY queries could
+			cause an assertion failure. [RT #1218]
+
  817.	[func]		Adjust timeouts for dialup zone queries.
 
  816.	[func]		Report potential problems with log file accessibility
