@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.118 2000/11/08 01:55:25 bwelling Exp $ */
+/* $Id: rdata.c,v 1.119 2000/11/09 00:20:47 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -700,7 +700,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 				default:
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 					    "isc_lex_gettoken() failed: %s",
-					    isc_result_totext(result));
+					    isc_result_totext(iresult));
 					result = ISC_R_UNEXPECTED;
 					break;
 				}
