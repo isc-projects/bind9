@@ -18,12 +18,8 @@
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 
-#include <stddef.h>
-
 #include <isc/lang.h>
 #include <isc/types.h>
-
-ISC_LANG_BEGINDECLS
 
 /*****
  ***** Events.
@@ -93,13 +89,14 @@ struct isc_event {
 #define ISC_EVENTTYPE_FIRSTEVENT	0x00000000
 #define ISC_EVENTTYPE_LASTEVENT		0xffffffff
 
-isc_event_t *				isc_event_allocate(isc_mem_t *,
-							   void *,
-							   isc_eventtype_t,
-							   isc_taskaction_t,
-							   void *arg,
-							   size_t);
-void					isc_event_free(isc_event_t **);
+ISC_LANG_BEGINDECLS
+
+isc_event_t *
+isc_event_allocate(isc_mem_t *, void *, isc_eventtype_t, isc_taskaction_t,
+		   void *arg, size_t);
+
+void
+isc_event_free(isc_event_t **);
 
 ISC_LANG_ENDDECLS
 

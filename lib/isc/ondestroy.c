@@ -17,6 +17,8 @@
 
 #include <config.h>
 
+#include <stddef.h>
+
 #include <isc/assertions.h>
 #include <isc/event.h>
 #include <isc/ondestroy.h>
@@ -33,10 +35,9 @@ isc_ondestroy_init(isc_ondestroy_t *ondest) {
 	ISC_LIST_INIT(ondest->events);
 }
 
-
 isc_result_t
-isc_ondestroy_register(isc_ondestroy_t *ondest,
-		       isc_task_t *task, isc_event_t **eventp)
+isc_ondestroy_register(isc_ondestroy_t *ondest, isc_task_t *task,
+		       isc_event_t **eventp)
 {
 	isc_event_t *theevent;
 	isc_task_t *thetask = NULL;
@@ -57,8 +58,6 @@ isc_ondestroy_register(isc_ondestroy_t *ondest,
 
 	return (ISC_R_SUCCESS);
 }
-
-
 
 void
 isc_ondestroy_notify(isc_ondestroy_t *ondest, void *sender) {

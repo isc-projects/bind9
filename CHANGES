@@ -1,3 +1,5 @@
+ 123.   [cleanup]       <isc/event.h> does not need <stddef.h>.
+
  122.   [cleanup]       <isc/task.h> does not need <isc/mem.h> or
                         <isc/result.h>.
 
