@@ -53,6 +53,12 @@ typedef struct dns_message {
 	dns_namelist_t		additional;
 } dns_message_t;
 
+void
+dump_packet(char *buf, u_int len);
+
+dns_result_t
+resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
+
 /*
  * in wire_test.c
  */

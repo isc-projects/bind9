@@ -227,6 +227,9 @@ udp_listener_start(udp_listener_t *l,
 	u_int i;
 	isc_region_t region;
 
+	(void)nwkeep;		/* Make compiler happy. */
+	(void)nwtimeout;	/* Make compiler happy. */
+
 	LOCK(&l->lock);
 	INSIST(l->nwactive == 0);
 	INSIST(dispatch != NULL);

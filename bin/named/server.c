@@ -86,6 +86,12 @@ makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
 }
 
 /*
+ * XXX This will be in a .h file soon...
+ */
+dns_result_t
+resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
+
+/*
  * Process the wire format message given in r, and return a new packet to
  * transmit.
  *
@@ -140,7 +146,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 
 	dump_packet(rxr->base + reslen, rxr->length - reslen);
 
-	isc_mem_stats(mctx, stdout);
+	/* isc_mem_stats(mctx, stdout); */
 
 	return (DNS_R_SUCCESS);
 }
@@ -157,13 +163,15 @@ main(int argc, char *argv[])
 	unsigned int addrlen;
 	udp_listener_t *ludp;
 	tcp_listener_t *ltcp;
-	isc_cfgctx_t *configctx = NULL;
-	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
 	dns_name_t base, *origin;
 	int ch;
 	char basetext[1000];
 	dns_rdatatype_t type = 2;
 	dns_result_t result;
+#if 0
+	isc_cfgctx_t *configctx = NULL;
+	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
+#endif
 
 	/*+ XXX */
 	strcpy(basetext, "");

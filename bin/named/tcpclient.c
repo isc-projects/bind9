@@ -411,6 +411,9 @@ tcp_listener_start(tcp_listener_t *l,
 {
 	u_int i;
 
+	(void)nwkeep;		/* Make compiler happy. */
+	(void)nwtimeout;	/* Make compiler happy. */
+
 	LOCK(&l->lock);
 	INSIST(l->nwactive == 0);
 	INSIST(dispatch != NULL);
