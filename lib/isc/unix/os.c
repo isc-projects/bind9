@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.5 2000/08/01 01:31:25 tale Exp $ */
+/* $Id: os.c,v 1.6 2001/01/04 02:52:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,8 +27,12 @@ unsigned int
 isc_os_ncpus(void) {
 	long ncpus = 1;
 
-#if defined(HAVE_SYSCONF) && defined(_SC_NPROCESSORS_ONLN)
+#if defined(HAVE_SYSCONF)
+#if defined(_SC_NPROCESSORS_ONLN)
 	ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+#elif defined(_SC_NPROC_ONLN)
+	ncpus = sysconf(_SC_NPROC_ONLN);
+#endif
 	if (ncpus <= 0)
 		ncpus = 1;
 #endif
