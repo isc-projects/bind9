@@ -95,7 +95,8 @@
 #define O_TRUNC         _O_TRUNC
 #define O_EXCL          _O_EXCL
 
-/* open() under unix allows setting of read/write permissions
+/* 
+ * open() under unix allows setting of read/write permissions
  * at the owner, group and other levels.  These don't exist in NT
  * We'll just map them all to the NT equivalent 
  */
@@ -129,7 +130,7 @@
 #define utime _utime
 #define utimbuf _utimbuf
 
-//#define EAFNOSUPPORT EINVAL
+/* #define EAFNOSUPPORT EINVAL */
 #define chmod _chmod
 #define getpid _getpid
 #define getppid _getpid	/* WARNING!!! For now this gets the same pid */
@@ -148,7 +149,7 @@ typedef long off_t;
 /*
  * Set up the NT Path Information
  */
-//#include <isc/ntpaths.h>
+/* #include <isc/ntpaths.h> */
 #include <versions.h>
 /*
  * Information about where this are on disk
@@ -160,7 +161,7 @@ typedef long off_t;
  * DO NOT REMOVE TRAILING COMMENT, even though it is not conformant
  * to C standards
  */
-#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); // Done
+#define RNDC_SYSCONFDIR isc_ntpaths_get(RNDC_CONF_PATH); /* Done */
 /* We actually are using the CryptAPI and not a device */
 #define PATH_RANDOMDEV		"CryptAPI"
 
