@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.150 2000/06/20 19:03:13 marka Exp $ */
+/* $Id: zone.c,v 1.151 2000/06/20 23:54:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1991,7 +1991,7 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 {
 	dns_rdataset_t *nsrdataset = NULL;
 	dns_rdataset_t *rdataset = NULL;
-	dns_dbnode_t *node;
+	dns_dbnode_t *node = NULL;
 	dns_rdata_ns_t ns;
 	isc_result_t result;
 	dns_rdata_t rdata;
