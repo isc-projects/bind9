@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.266 2000/12/01 08:58:10 marka Exp $ */
+/* $Id: server.c,v 1.267 2000/12/01 23:49:49 gson Exp $ */
 
 #include <config.h>
 
@@ -48,6 +48,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
+#include <dns/stats.h>
 #include <dns/tkey.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -1310,57 +1311,19 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&server->conflock, isc_rwlocktype_read);
 }
 
-static void
-ns_server_freestatsfile(ns_server_t *serv) {
-	if (serv->statsfile != NULL)
-		isc_mem_free(serv->mctx, serv->statsfile);
-	serv->statsfile = NULL;
-}
-
-static void
-ns_server_setstatsfile(const char *name, ns_server_t *serv) {
-	int len;
-
-	ns_server_freestatsfile(serv);
-	len = strlen(name);
-	serv->statsfile = isc_mem_allocate(serv->mctx, len + 1);
-	if (serv->statsfile == NULL)
-                fatal("allocate memory for server stats", ISC_R_NOMEMORY);
-	strcpy(serv->statsfile, name);
-}
-
-
 static isc_result_t
-ns_server_openstatsfile(ns_server_t *serv) {
-	isc_result_t result;
-	const char *defname = "named.stats";
-	union { char *nc;
-		const char *cc; } deconst;
+setstatsfile(ns_server_t *server, const char *name) {
+	char *p;
 
-	if (serv->statsfile == NULL)
-		deconst.cc = defname;
-	else
-		deconst.nc = serv->statsfile;
-	result = isc_stdio_open(deconst.nc, "a", &serv->statsfp);
-	return (result);
-}
+	REQUIRE(name != NULL);
 
-static isc_result_t
-ns_server_closestatsfile(ns_server_t *serv) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	if (serv->statsfp != NULL)
-		result = isc_stdio_close(serv->statsfp);
-	serv->statsfp = NULL;
-	return (result);
-}
-
-static void
-ns_server_zeroglobal(ns_server_t *serv) {
-	int i;
-
-	for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-		serv->globalcount[i] = 0;
+	p = isc_mem_strdup(server->mctx, name);
+	if (p == NULL)
+		return (ISC_R_NOMEMORY);
+	if (server->statsfile != NULL)
+		isc_mem_free(server->mctx, server->statsfile);
+	server->statsfile = p;
+	return (ISC_R_SUCCESS);
 }
 
 #define SETLIMIT(cfgvar, resource, description) \
@@ -1377,7 +1340,7 @@ ns_server_zeroglobal(ns_server_t *serv) {
 			      NS_LOGMODULE_SERVER,			      \
 			      result == ISC_R_SUCCESS ?			      \
 			      	ISC_LOG_DEBUG(1) : ISC_LOG_WARNING,	      \
-			      "set maximum " description " to %"		      \
+			      "set maximum " description " to %"	      \
 			      ISC_PRINT_QUADFORMAT "d: %s", value,	      \
 			      isc_result_totext(result));		      \
 	}
@@ -1778,8 +1741,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
 
-	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
-		ns_server_setstatsfile(statsfilename, server);
+	result = dns_c_ctx_getstatsfilename(cctx, &statsfilename);
+	if (result == ISC_R_NOTFOUND) {
+		CHECKM(setstatsfile(server, "named.stats"), "strdup");
+	} else {
+		CHECKM(setstatsfile(server, statsfilename), "strdup");		
+	}
 
  cleanup:
 	ns_aclconfctx_destroy(&aclconfctx);
@@ -2024,9 +1991,12 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_loadmgr_create(ns_g_mctx, &server->loadmgr),
 		   "dns_loadmgr_create");
 
-	server->statsfile = NULL;
-	server->statsfp = NULL;
-	ns_server_zeroglobal(server);
+	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");
+	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
+		   "isc_mem_strdup");
+	server->querystats = NULL;
+	CHECKFATAL(dns_stats_alloccounters(ns_g_mctx, &server->querystats),
+		   "dns_stats_alloccounters");
 
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
@@ -2040,7 +2010,8 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
-	ns_server_freestatsfile(server);
+	dns_stats_freecounters(server->mctx, &server->querystats);
+	isc_mem_free(server->mctx, server->statsfile);
 
 	dns_loadmgr_detach(&server->loadmgr);
 	dns_zonemgr_detach(&server->zonemgr);
@@ -2313,70 +2284,64 @@ ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
 	return (ISC_R_SUCCESS);
 }
 
-void
-ns_server_querycount(dns_zone_t *zone, isc_boolean_t is_zone,
-	    dns_zonecount_t counter)
-{
-	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
-
-	ns_g_server->globalcount[counter]++;
-	if (is_zone && zone != NULL && !dns_zone_hascounts(zone))
-		dns_zone_count(zone, counter);
-}
-
-/*
- * Dump the current statistics to a file
- *
- * XXXMWS this should really be done asynchronously
- */
 isc_result_t
 ns_server_dumpstats(ns_server_t *server) {
 	isc_result_t result;
-	dns_zone_t *zone = NULL, *next = NULL;
-	char zonestore[DNS_NAME_FORMATSIZE];
-	dns_view_t *zoneview = NULL;
-	char *viewname;
+	dns_zone_t *zone;
 	isc_stdtime_t now;
-	FILE *fp;
+	FILE *fp = NULL;
 	int i;
-	int numbercounters;
+	int ncounters;
 
 	isc_stdtime_get(&now);
-	result = ns_server_openstatsfile(server);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "could not open statistics dump file: %s",
-			      isc_result_totext(result));
-		return (result);
-	}
-	numbercounters = dns_zone_numbercounters();
-	fp = server->statsfp;
-	fprintf(fp, "+++ Statistics Dump +++ (%ld)\n",
-			  (long)now);
-	for (i = 0; i < numbercounters; i++)
-		fprintf(fp, "%s %ld\n", dns_zonecount_names[i],
-			(long)server->globalcount[i]);
+
+	CHECKM(isc_stdio_open(server->statsfile, "a", &fp),
+	       "could not open statistics dump file");
+	
+	ncounters = dns_stats_ncounters();
+	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
+	
+	for (i = 0; i < ncounters; i++)
+		fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT "d\n",
+			dns_statscounter_names[i],
+			server->querystats[i]);
+	
 	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
-	dns_zone_first(server->zonemgr, &zone);
-	while (zone != NULL) {
-		dns_name_format(dns_zone_getorigin(zone),
-				zonestore, sizeof(zonestore));
-		zoneview = dns_zone_getview(zone);
-		viewname = zoneview->name;
-		if (dns_zone_hascounts(zone)) {
-			for (i = 0; i < numbercounters; i++)
-				fprintf(fp, "%s %ld %s:%s\n",
-					dns_zonecount_names[i],
-					(long)dns_zone_getcounts(zone, i),
-					viewname, zonestore);
+	for (result = dns_zone_first(server->zonemgr, &zone);
+	     result == ISC_R_SUCCESS;
+	     result = dns_zone_next(zone, &zone))
+	{
+		isc_uint64_t *zonestats = dns_zone_getstatscounters(zone);
+		if (zonestats != NULL) {
+			char zonename[DNS_NAME_FORMATSIZE];
+			dns_view_t *view;
+			char *viewname;
+			
+			dns_name_format(dns_zone_getorigin(zone),
+					zonename, sizeof(zonename));
+			view = dns_zone_getview(zone);
+			viewname = view->name;
+			for (i = 0; i < ncounters; i++) {
+				fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT
+					"d %s",
+					dns_statscounter_names[i],
+					zonestats[i],
+					zonename);
+				if (strcmp(viewname, "_default") != 0)
+					fprintf(fp, " %s", viewname);
+				fprintf(fp, "\n");
+			}
 		}
-		dns_zone_next(zone, &next);
-		zone = next;
-		next = NULL;
 	}
-	fprintf(fp, "--- Statistics Dump --- (%ld)\n", (long)now);
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	CHECK(result);
+	
+	fprintf(fp, "--- Statistics Dump --- (%lu)\n", (unsigned long)now);
 	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
-	ns_server_closestatsfile(server);
-	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (fp != NULL)
+		(void)isc_stdio_close(fp);
+	return (result);
 }

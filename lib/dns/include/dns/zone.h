@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.92 2000/11/25 02:43:56 marka Exp $ */
+/* $Id: zone.h,v 1.93 2000/12/01 23:49:57 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -38,18 +38,7 @@ typedef enum {
 	dns_zone_stub
 } dns_zonetype_t;
 
-typedef enum {
-	dns_zonecount_success = 0,  /* Successful lookups */
-	dns_zonecount_delegate = 1, /* Delegation result */
-	dns_zonecount_nxrrset = 2,  /* NXRRSET result */
-	dns_zonecount_nxdomain = 3, /* NXDOMAIN result */
-	dns_zonecount_recurse = 4,  /* Recursion was used */
-	dns_zonecount_failure = 5   /* Some other failure */
-} dns_zonecount_t;
-
-extern const char *dns_zonecount_names[];
-
-#define DNS_ZONE_COUNTSIZE      6
+#define DNS_STATS_NCOUNTERS      6
 
 #define DNS_ZONEOPT_SERVERS	0x00000001U	/* perform server checks */
 #define DNS_ZONEOPT_PARENTS	0x00000002U	/* perform parent checks */
@@ -1298,83 +1287,25 @@ dns_zone_isforced(dns_zone_t *zone);
  *      'zone' to be a valid zone.
  */
 
-void
-dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter);
-/*
- *      Increment a zone statistics counter.
- *
- * Requires:
- *      zone be a valid zone.
- *	MAY be safely called even if zone doesn't have counters
- *      counter be a valid counter ID
- */
-
-isc_uint64_t
-dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter);
-/*
- *      Return the value of a zone statistics counter.
- *
- * Requires:
- *      zone be a valid zone.
- *	MAY be safely called even if zone doesn't have statistics counters
- *      counter be a valid counter ID
- *
- * Returns:
- *	count if the zone has counters
- *	0 if the zone does not have counters
- */
-
-void
-dns_zone_resetcounts(dns_zone_t *zone);
-/*
- *      Reset the statistics counters of 'zone'.
- *
- * Requires:
- *      zone be a valid zone.
- *	MAY be safely called even if zone doesn't have statistics counters
- */
-
-int
-dns_zone_numbercounters(void);
-/*
- *	Return the number of statistics counters per zone.
- *
- *	Use this instead of DNS_ZONE_COUNTSIZE if possible, to ensure
- *	binary compatibility if the number of counters is changed in
- *	future library releases.
- */
-
-isc_boolean_t
-dns_zone_hascounts(dns_zone_t *zone);
-/*
- *	Return ISC_TRUE iff the zone has statistics counters.
- *
- * Requires:
- *	zone be a valid zone.
- */
-
 isc_result_t
-dns_zone_startcounting(dns_zone_t *zone);
+dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on);
 /*
- *	Start maintaining statistics counters for 'zone'.
+ *      Make the zone keep or not keep an array of statistics
+ * 	counter.
  *
  * Requires:
- * 	zone be a valid zone.
- *	MAY be safely called even if zone already has statistics counters
- *
- * Returns:
- *	ISC_R_NOMEMORY -- memory allocation failed.
- *	ISC_R_SUCCESS -- Success
+ *      zone be a valid zone.
  */
 
-void
-dns_zone_stopcounting(dns_zone_t *zone);
+isc_uint64_t *
+dns_zone_getstatscounters(dns_zone_t *zone);
 /*
- *	Stop maintaining statistics counters for 'zone'.
- *
  * Requires:
- * 	zone be a valid zone.
- *	MAY be safely called even if zone doesn't have statistics counters
+ *      zone be a valid zone.
+ *
+ * Returns:
+ *      A pointer to the zone's array of statistics counters,
+ *	or NULL if it has none.
  */
 
 void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.264 2000/12/01 03:20:00 marka Exp $ */
+/* $Id: zone.c,v 1.265 2000/12/01 23:49:55 gson Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 #include <dns/ssu.h>
 #include <dns/tsig.h>
 #include <dns/xfrin.h>
@@ -192,7 +193,7 @@ struct dns_zone {
 	ISC_LINK(dns_zone_t)	statelink;
 	dns_zonelist_t		*statelist;
 	/*
-	 * Optional per-zone statistics counters
+	 * Optional per-zone statistics counters (NULL if not present).
 	 */
 	isc_uint64_t            *counters;
 };
@@ -329,17 +330,6 @@ struct dns_io {
 	ISC_LINK(dns_io_t) link;
 	isc_event_t	*event;
 };
-
-/*
- * Names of the zone counters
- */
-const char *dns_zonecount_names[] = {
-	"SUCCESS",
-	"DELEGATION",
-	"NXRRSET",
-	"NXDOMAIN",
-	"RECURSION",
-        "SERVFAIL" };
 
 static isc_result_t zone_settimer(dns_zone_t *, isc_stdtime_t);
 static void cancel_refresh(dns_zone_t *);
@@ -577,9 +567,7 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, zone->journal);
 	zone->journal = NULL;
 	if (zone->counters != NULL)
-		isc_mem_put(zone->mctx, zone->counters,
-			    DNS_ZONE_COUNTSIZE * sizeof(isc_uint64_t));
-	zone->counters = NULL;
+		dns_stats_freecounters(zone->mctx, &zone->counters);
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	zone_freedbargs(zone);
@@ -5788,96 +5776,27 @@ dns_zone_isforced(dns_zone_t *zone) {
 	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD));
 }
 
-void
-dns_zone_count(dns_zone_t *zone, dns_zonecount_t counter) {
-	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
-
-	LOCK(&zone->lock);
-	if (zone->counters != NULL)
-		zone->counters[counter]++;
-	UNLOCK(&zone->lock);
-}
-
-isc_uint64_t
-dns_zone_getcounts(dns_zone_t *zone, dns_zonecount_t counter) {
-	isc_uint64_t count = 0;
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
-	
-	LOCK(&zone->lock);
-	if (zone->counters != NULL)
-		count = zone->counters[counter];
-	UNLOCK(&zone->lock);
-	return (count);
-}
-
-int
-dns_zone_numbercounters(void) {
-	return (DNS_ZONE_COUNTSIZE);
-}
-
-void
-dns_zone_resetcounts(dns_zone_t *zone) {
-	int i;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK(&zone->lock);
-	if (zone->counters != NULL)
-		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-			zone->counters[i] = 0;
-	UNLOCK(&zone->lock);
-}
-
-isc_boolean_t
-dns_zone_hascounts(dns_zone_t *zone) {
-	isc_boolean_t hascount = ISC_FALSE;
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK(&zone->lock);
-	if (zone->counters != NULL)
-		hascount = ISC_TRUE;
-	UNLOCK(&zone->lock);
-	return (hascount);
-}
-
 isc_result_t
-dns_zone_startcounting(dns_zone_t *zone) {
-	isc_result_t result = ISC_R_SUCCESS;
-	int i;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
+dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on) {
+	isc_result_t result = ISC_R_SUCCESS;	
 	LOCK(&zone->lock);
-	if (zone->counters != NULL)
-		goto done;
-
-	zone->counters = isc_mem_get(zone->mctx, sizeof(isc_uint64_t) *
-				     DNS_ZONE_COUNTSIZE);
-	if (zone->counters == NULL)
-		result = ISC_R_NOMEMORY;
-	else
-		for (i = 0; i < DNS_ZONE_COUNTSIZE; i++)
-			zone->counters[i] = 0;
+	if (on) {
+		if (zone->counters != NULL)
+			goto done;
+		result = dns_stats_alloccounters(zone->mctx, &zone->counters);
+	} else {
+		if (zone->counters == NULL)
+			goto done;
+		dns_stats_freecounters(zone->mctx, &zone->counters);		
+	}
  done:
 	UNLOCK(&zone->lock);
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
-void
-dns_zone_stopcounting(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK(&zone->lock);
-	if (zone->counters == NULL)
-		goto done;
-
-	isc_mem_put(zone->mctx, zone->counters,
-		    sizeof(isc_uint64_t) * DNS_ZONE_COUNTSIZE);
-	zone->counters = NULL;
- done:
-	UNLOCK(&zone->lock);
-	return;
+isc_uint64_t *
+dns_zone_getstatscounters(dns_zone_t *zone) {
+	return (zone->counters);
 }
 
 void

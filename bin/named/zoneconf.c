@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.75 2000/12/01 18:22:14 gson Exp $ */
+/* $Id: zoneconf.c,v 1.76 2000/12/01 23:49:50 gson Exp $ */
 
 #include <config.h>
 
@@ -258,10 +258,7 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		result = dns_c_ctx_getstatistics(cctx, &statistics);
 	if (result != ISC_R_SUCCESS)
 		statistics = ISC_FALSE;
-	if (statistics)
-		dns_zone_startcounting(zone);
-	else
-		dns_zone_stopcounting(zone);
+	dns_zone_setstatistics(zone, statistics);
 
 #ifndef NOMINUM_PUBLIC
 	if (czone->ztype != dns_c_zone_stub) {
