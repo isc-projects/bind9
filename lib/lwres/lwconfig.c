@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.15.2.2 2000/07/10 20:58:07 gson Exp $ */
+/* $Id: lwconfig.c,v 1.15.2.3 2000/07/10 23:20:12 gson Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -536,7 +536,6 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	REQUIRE(strlen(filename) > 0);
 	REQUIRE(confdata != NULL);
 
-	rval = LWRES_R_FAILURE;		/* Make compiler happy. */
 	errno = 0;
 	if ((fp = fopen(filename, "r")) == NULL)
 		return (LWRES_R_FAILURE);
@@ -549,7 +548,9 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			break;
 		}
 
-		if (strcmp(word, "nameserver") == 0)
+		if (strlen(word) == 0)
+			rval = LWRES_R_SUCCESS;
+		else if (strcmp(word, "nameserver") == 0)
 			rval = lwres_conf_parsenameserver(ctx, fp);
 		else if (strcmp(word, "domain") == 0)
 			rval = lwres_conf_parsedomain(ctx, fp);
