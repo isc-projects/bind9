@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.9 2000/11/16 22:33:52 bwelling Exp $ */
+/* $Id: sdb.h,v 1.10 2000/11/16 23:10:19 gson Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -96,11 +96,12 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 		 void *driverdata, unsigned int flags, isc_mem_t *mctx,
 		 dns_sdbimplementation_t **sdbimp);
 /*
- * Register a simple database driver of name 'drivername' with the
- * specified functions, and return a handle to the implementation structure.
+ * Register a simple database driver for the database type 'drivername',
+ * implemented by the functions in '*methods'.
  *
- * sdbimp must point to an object with the value NULL.  That is,
- * sdbimp != NULL && *sdbimp == NULL.
+ * sdbimp must point to a NULL dns_sdbimplementation_t pointer.  That is,
+ * sdbimp != NULL && *sdbimp == NULL.  It will be assigned a value that
+ * will later be used to identify the driver when deregistering it.
  *
  * The name server will perform lookups in the database by calling the
  * function 'lookup', passing it a printable zone name 'zone', a printable
@@ -121,14 +122,17 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * The allnodes function, if non-NULL, fills in an opaque structure to be
  * used by a database iterator.  This allows the zone to be transferred.
  * This may use a considerable amount of memory for large zones, and the
- * zone transfer may not be RFC 1035 compliant if the zone is frequently
- * changed.
+ * zone transfer may not be fully RFC 1035 compliant if the zone is 
+ * frequently changed.
  *
- * The create function will be called when a database is created, and
- * allows the implementation to create database specific data.
+ * The create function will be called for each zone configured
+ * into the name server using this database type.  It can be used
+ * to create a "database object" containg zone specific data,
+ * which can make use of the database arguments specified in the
+ * name server configuration.
  *
- * The destroy function will be called when a database is destroyed,
- * and allows the implementation to free any database specific data.
+ * The destroy function will be called to free the database object
+ * when its zone is destroyed.
  *
  * The create and destroy functions may be NULL.
  *
