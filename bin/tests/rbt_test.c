@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.32 2000/07/21 21:02:15 gson Exp $ */
+/* $Id: rbt_test.c,v 1.33 2000/07/21 21:13:40 gson Exp $ */
 
 #include <config.h>
 
@@ -93,17 +93,9 @@ delete_name(void *data, void *arg) {
 
 static void
 print_name(dns_name_t *name) {
-	isc_buffer_t target;
-	char *buffer[256];
-
-	isc_buffer_init(&target, buffer, sizeof(buffer));
-
-	/*
-	 * ISC_FALSE means absolute names have the final dot added.
-	 */
-	dns_name_totext(name, ISC_FALSE, &target);
-
-	printf("%.*s", (int)target.used, (char *)target.base);
+	char buffer[1024];
+	dns_name_format(name, buffer, sizeof(buffer));
+	printf("%s", buffer);
 }
 
 static void
