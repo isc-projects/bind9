@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.17 2000/07/07 23:11:47 brister Exp $ */
+/* $Id: confctl.h,v 1.18 2000/07/10 11:28:31 tale Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -86,7 +86,6 @@ struct dns_c_ctrl {
 	union {
 		struct {
 			isc_sockaddr_t addr;
-			in_port_t port;
 			dns_c_ipmatchlist_t *matchlist;
 		} inet_v; /* when control_type == dns_c_inet_control  */
 		struct {

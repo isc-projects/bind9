@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.23 2000/07/07 23:11:42 brister Exp $ */
+/* $Id: confctl.c,v 1.24 2000/07/10 11:28:30 tale Exp $ */
 
 #include <config.h>
 
@@ -115,20 +115,15 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 	REQUIRE(control != NULL);
 
 	ctrl = isc_mem_get(mem, sizeof *ctrl);
-	if (ctrl == NULL) {
+	if (ctrl == NULL)
 		return (ISC_R_NOMEMORY);
-	}
 
 	ctrl->magic = DNS_C_CONFCTL_MAGIC;
 	ctrl->mem = mem;
 	ctrl->control_type = dns_c_inet_control;
+	isc_sockaddr_setport(&addr, port);
 	ctrl->u.inet_v.addr = addr;
-	ctrl->u.inet_v.port = port;
-	ctrl->keyidlist = NULL;
-
-	if (keylist != NULL) {
-		ctrl->keyidlist = keylist;
-	}
+	ctrl->keyidlist = keylist;
 
 	if (copy) {
 		res = dns_c_ipmatchlist_copy(mem,
@@ -235,7 +230,7 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 	(void) indent;
 	
 	if (ctl->control_type == dns_c_inet_control) {
-		port = ctl->u.inet_v.port;
+		port = isc_sockaddr_getport(&ctl->u.inet_v.addr);
 		iml = ctl->u.inet_v.matchlist;
 		
 		fprintf(fp, "inet ");
