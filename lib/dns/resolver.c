@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12.4.4 2003/02/18 03:32:01 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.4.2.1 2003/09/17 05:40:39 explorer Exp $ */
 
 #include <config.h>
 
@@ -290,6 +290,53 @@ static isc_result_t ncache_adderesult(dns_message_t *message,
 				      isc_stdtime_t now, dns_ttl_t maxttl,
 				      dns_rdataset_t *ardataset,
 				      isc_result_t *eresultp);
+
+static isc_boolean_t
+fix_mustbedelegationornxdomain(dns_message_t *message, dns_name_t *domain) {
+
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	dns_rdatatype_t type;
+	isc_result_t result;
+	isc_boolean_t keep_auth = ISC_FALSE;
+
+	if (message->rcode == dns_rcode_nxdomain)
+		return (ISC_FALSE);
+
+	/* Look for referral. */
+	if (message->counts[DNS_SECTION_AUTHORITY] == 0)
+		goto munge;
+
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	while (result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY,
+					&name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			type = rdataset->type;
+			if (type == dns_rdatatype_soa &&
+			    dns_name_equal(name, domain))
+				keep_auth = ISC_TRUE;
+			if (type != dns_rdatatype_ns)
+				continue;
+			if (dns_name_equal(name, domain))
+				goto munge;
+			if (dns_name_issubdomain(name, domain))
+				return (ISC_FALSE);
+		}
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
+	}
+
+ munge:
+	message->rcode = dns_rcode_nxdomain;
+	message->counts[DNS_SECTION_ANSWER] = 0;
+	if (!keep_auth)
+		message->counts[DNS_SECTION_AUTHORITY] = 0;
+	message->counts[DNS_SECTION_ADDITIONAL] = 0;
+	return (ISC_TRUE);
+}
 
 static inline isc_result_t
 fctx_starttimer(fetchctx_t *fctx) {
@@ -4426,6 +4473,24 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		broken_server = ISC_TRUE;
 		keep_trying = ISC_TRUE;
 		goto done;
+	}
+
+	/*
+	 * Enforce delegations only zones like NET and COM.
+	 */
+	if (dns_view_isdelegationonly(fctx->res->view, &fctx->domain) &&
+	    !dns_name_equal(&fctx->domain, &fctx->name) &&
+	    fix_mustbedelegationornxdomain(message, &fctx->domain)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char domainbuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
+			     DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+			     "enforced delegation-only for '%s' (%s)",
+			     domainbuf, namebuf);
 	}
 
 	/*
