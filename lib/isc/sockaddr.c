@@ -110,3 +110,31 @@ isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 
 	return (h);
 }
+
+void
+isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+		    unsigned int port)
+{
+	sockaddr->type.sin.sin_family = AF_INET;
+#ifdef ISC_NET_HAVESALEN
+	sockaddr->type.sin.sin_len = sizeof sockaddr->type.sin;
+#endif
+	sockaddr->type.sin.sin_addr = *ina;
+	sockaddr->type.sin.sin_port = htons(port);
+	sockaddr->length = sizeof sockaddr->type.sin;
+	ISC_LINK_INIT(sockaddr, link);
+}
+
+void
+isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
+		     unsigned int port)
+{
+	sockaddr->type.sin6.sin6_family = AF_INET6;
+#ifdef ISC_NET_HAVESALEN
+	sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
+#endif
+	sockaddr->type.sin6.sin6_addr = *ina6;
+	sockaddr->type.sin6.sin6_port = htons(port);
+	sockaddr->length = sizeof sockaddr->type.sin6;
+	ISC_LINK_INIT(sockaddr, link);
+}

@@ -19,6 +19,7 @@
 #define ISC_SOCKADDR_H 1
 
 #include <isc/net.h>
+#include <isc/list.h>
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
@@ -30,6 +31,7 @@ typedef struct isc_sockaddr {
 		struct sockaddr_in6	sin6;
 	}				type;
 	unsigned int			length;		/* XXXRTH beginning? */
+	ISC_LINK(struct isc_sockaddr)	link;
 } isc_sockaddr_t;
 
 isc_boolean_t
@@ -37,6 +39,14 @@ isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b);
 
 unsigned int
 isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
+
+void
+isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, struct in_addr *ina,
+		    unsigned int port);
+
+void
+isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, struct in6_addr *ina6,
+		     unsigned int port);
 
 ISC_LANG_ENDDECLS
 
