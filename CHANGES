@@ -1,4 +1,8 @@
 
+ 897.	[bug]		A config.guess update change the system identification
+			string of UnixWare systems; configure now recognizes
+			the new string.
+
  896.	[bug]		If a configuration file is set on named's command line
 			and it has a relative pathname, the current directory
 			(after any possible jailing resulting from named -t)
