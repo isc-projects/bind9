@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.25.2.3 2004/07/20 07:00:09 marka Exp $
+# $Id: Makefile.in,v 1.25.2.4 2004/08/18 23:22:52 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -48,9 +48,9 @@ UOBJS =
 
 SRCS =		dig.c dighost.c host.c nslookup.c
 
-MANPAGES =	dig.1 host.1
+MANPAGES =	dig.1 host.1 nslookup.1
 
-HTMLPAGES =	dig.html host.html
+HTMLPAGES =	dig.html host.html nslookup.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 

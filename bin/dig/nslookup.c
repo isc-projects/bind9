@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90.2.7 2004/06/07 03:59:08 marka Exp $ */
+/* $Id: nslookup.c,v 1.90.2.8 2004/08/18 23:22:53 marka Exp $ */
 
 #include <config.h>
 
@@ -62,7 +62,7 @@ extern isc_task_t *global_task;
 extern char *progname;
 
 static isc_boolean_t short_form = ISC_TRUE,
-	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE,
+	tcpmode = ISC_FALSE,
 	identify = ISC_FALSE, stats = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
@@ -596,7 +596,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "nosearch",5) == 0) {
 		usesearch = ISC_FALSE;
 	} else if (strncasecmp(opt, "sil",3) == 0) {
-		deprecation_msg = ISC_FALSE;
+		/* deprecation_msg = ISC_FALSE; */
 	} else {
 		printf("*** Invalid option: %s\n", opt);	
 	}
@@ -851,12 +851,6 @@ main(int argc, char **argv) {
 
 	parse_args(argc, argv);
 
-	if (deprecation_msg) {
-		fputs(
-"Note:  nslookup is deprecated and may be removed from future releases.\n"
-"Consider using the `dig' or `host' programs instead.  Run nslookup with\n"
-"the `-sil[ent]' option to prevent this message from appearing.\n", stderr);
-	}
 	setup_system();
 	if (domainopt[0] != '\0')
 		set_search_domain(domainopt);
