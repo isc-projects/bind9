@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.95 2000/10/31 03:22:01 marka Exp $
+ * $Id: tsig.c,v 1.96 2000/11/15 00:52:04 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -141,7 +141,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		tkey->algorithm = DNS_TSIG_GSSAPIMS_NAME;
 	else {
 		if (key != NULL) {
-			ret = ISC_R_NOTIMPLEMENTED;
+			ret = DNS_R_BADALG;
 			goto cleanup_name;
 		}
 		tkey->algorithm = isc_mem_get(mctx, sizeof(dns_name_t));
@@ -244,7 +244,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		REQUIRE(secret != NULL);
 
 	if (!dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME) && length > 0)
-		return (ISC_R_NOTIMPLEMENTED);
+		return (DNS_R_BADALG);
 
 	if (length > 0) {
 		isc_buffer_t b;
