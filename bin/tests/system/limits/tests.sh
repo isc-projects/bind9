@@ -24,7 +24,6 @@ SYSTEMTESTTOP=..
 
 # sleep 5
 
-set -x
 status=0;
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
@@ -62,11 +61,12 @@ status=`expr $status + $?`
 $PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.ns1
 status=`expr $status + $?`
 
-$DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
+$DIG +tcp +nosea +nostat +noquest +nocmd +norec \
 	5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
 status=`expr $status + $?`
+grep 'flags: qr aa tc ad;' dig.out.ns1
+status=`expr $status + $?`
 
-echo "$status"
 if [ $status != 0 ]; then
 	echo "R:FAIL"
 else
