@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.66.18.4 2004/09/29 06:43:53 marka Exp $ */
+/* $Id: os.c,v 1.66.18.5 2004/10/07 02:33:48 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -464,10 +464,14 @@ ns_os_changeuser(void) {
 #ifdef HAVE_LINUXTHREADS
 #ifdef HAVE_LINUX_CAPABILITY_H
 	if (!non_root_caps)
+		ns_main_earlyfatal("-u with Linux threads not supported: "
+				   "requires kernel support for "
+				   "prctl(PR_SET_KEEPCAPS)");
+#else
+	ns_main_earlyfatal("-u with Linux threads not supported: "
+			   "no capabilities support or capabilities "
+			   "disabled at build time");
 #endif
-		ns_main_earlyfatal(
-		   "-u not supported on Linux kernels older than "
-		   "2.3.99-pre3 or 2.2.18 when using threads");
 #endif
 
 	if (setgid(runas_pw->pw_gid) < 0) {
