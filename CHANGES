@@ -1,7 +1,7 @@
  911.	[placeholder]
 
  910.	[port]		Some pre-RFC2133 IPv6 implementations do not define
-			IN6ADDR_ANY_INIT. [RT# 1416]
+			IN6ADDR_ANY_INIT. [RT #1416]
 
  908.	[func]		New program, rndc-confgen, to simplify setting up rndc.
 
@@ -18,10 +18,10 @@
 			did not work. [RT #1418]
 
  904.	[bug]		The server would leak memory if attempting to use
- 			an expired TSIG key. [RT #1406]
+			an expired TSIG key. [RT #1406]
 
  903.	[bug]		dig should not crash when receiving a TCP packet
- 			of length 0.
+			of length 0.
 
  902.	[bug]		The -d option was ignored if both -t and -g were also
 			specified.
