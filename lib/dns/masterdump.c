@@ -779,23 +779,26 @@ isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		const dns_master_style_t *style, const char *filename)
 {
-	FILE *f;
+	FILE *f = NULL;
 	isc_result_t result;
-	
-	f = fopen(filename, "w");
-	if (f == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not open %s",
-				 filename);
+
+	result = isc_file_fopen(filename, "w", &f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEOGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: open: %s", filename,
+			      isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 
 	result = dns_master_dumptostream(mctx, db, version, style, f);
 
-	if (fclose(f) != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "error closing %s",
-				 filename);
+	result = isc_file_fclose(f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEOGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: close: %s", filename,
+			      isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 
