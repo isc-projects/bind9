@@ -12,6 +12,7 @@
 ./bin/named/include/named/globals.h		C	1999
 ./bin/named/include/named/interfacemgr.h	C	1999
 ./bin/named/include/named/query.h		C	1999
+./bin/named/include/named/rootns.h		C	1999
 ./bin/named/include/named/server.h		C	1999
 ./bin/named/include/named/types.h		C	1999
 ./bin/named/include/named/update.h		C	1999
@@ -21,6 +22,7 @@
 ./bin/named/main.c				C	1999
 ./bin/named/named.conf.test			X	1999
 ./bin/named/query.c				C	1999
+./bin/named/rootns.c				C	1999
 ./bin/named/server.c				C	1999
 ./bin/named/update.c				C	1999
 ./bin/named/xfrin.c				C	1999
