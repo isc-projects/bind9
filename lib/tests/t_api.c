@@ -59,7 +59,8 @@ static char *Usage =	"\t-a               : run all tests\n"
 #define	T_DEFAULT_CONFIG	"t_config"
 #define	T_BUFSIZ		256
 #define	T_BIGBUF		4096
-#define	T_TIMEOUT		60
+
+#define	T_TCTOUT		60
 
 int		T_debug;
 int		T_timeout;
@@ -101,7 +102,7 @@ main(int argc, char **argv)
 
 	first = 1;
 	subprocs = 1;
-	T_timeout = T_TIMEOUT;
+	T_timeout = T_TCTOUT;
 
 	/* -a option is now default */
 	memset(T_tvec, 0xffff, sizeof(T_tvec));
