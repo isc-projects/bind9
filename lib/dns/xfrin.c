@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.27 1999/10/31 00:02:31 halley Exp $ */
+ /* $Id: xfrin.c,v 1.28 1999/12/01 03:55:22 gson Exp $ */
 
 #include <config.h>
 
@@ -53,7 +53,6 @@
 #include <dns/types.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
-#include <dns/zone.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
 
@@ -619,7 +618,7 @@ xfrin_create(isc_mem_t *mctx,
 	
 	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
 
-	isc_interval_set(&interval, 3600, 0); /* XXX */
+	isc_interval_set(&interval, dns_zone_getxfrtime(xfr->zone), 0);
 	CHECK(isc_timer_create(timermgr, isc_timertype_once,
 			       NULL, &interval, task,
 			       xfrin_timeout, xfr, &xfr->timer));
@@ -880,7 +879,10 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(tcpmsg->result);
 
-	CHECK(isc_timer_touch(xfr->timer));
+	/*
+	 * If we wanted to do idle timeouts, this would be the place
+	 * to say "CHECK(isc_timer_touch(xfr->timer));".
+	 */
 	
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
 
@@ -989,7 +991,6 @@ static void
 xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	xfrin_ctx_t *xfr = (xfrin_ctx_t *) event->arg;
 	task = task; /* Unused */
-	INSIST(event->type == ISC_TIMEREVENT_IDLE);
 	isc_event_free(&event);
 	/* This will log "giving up: timeout". */
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "giving up");
