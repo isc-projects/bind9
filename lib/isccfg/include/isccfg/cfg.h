@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.19 2001/03/01 23:03:43 bwelling Exp $ */
+/* $Id: cfg.h,v 1.20 2001/03/03 02:18:13 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -208,13 +208,31 @@ cfg_obj_isuint32(cfg_obj_t *obj);
 isc_uint32_t
 cfg_obj_asuint32(cfg_obj_t *obj);
 /*
- * Returns the value of a configuration object of integer type.
+ * Returns the value of a configuration object of 32-bit integer type.
  *
  * Requires:
- *      'obj' points to a valid configuration object of integer type.
+ *      'obj' points to a valid configuration object of 32-bit integer type.
  *
  * Returns:
  *      A 32-bit unsigned integer.
+ */
+
+isc_boolean_t
+cfg_obj_isuint64(cfg_obj_t *obj);
+/*
+ * Return true iff 'obj' is of integer type.
+ */
+
+isc_uint64_t
+cfg_obj_asuint64(cfg_obj_t *obj);
+/*
+ * Returns the value of a configuration object of 64-bit integer type.
+ *
+ * Requires:
+ *      'obj' points to a valid configuration object of 64-bit integer type.
+ *
+ * Returns:
+ *      A 64-bit unsigned integer.
  */
 
 isc_boolean_t

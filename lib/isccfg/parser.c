@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.40 2001/03/03 01:08:02 gson Exp $ */
+/* $Id: parser.c,v 1.41 2001/03/03 02:18:11 gson Exp $ */
 
 #include <config.h>
 
@@ -220,6 +220,7 @@ struct cfg_obj {
 	cfg_type_t *	 type;
 	union {
 		isc_uint32_t  	uint32;
+		isc_uint64_t  	uint64;
 		isc_textregion_t string;
 		isc_boolean_t 	boolean;
 		cfg_map_t	map;
@@ -280,6 +281,10 @@ print(cfg_printer_t *pctx, const char *text, int len);
 
 static void
 print_void(cfg_printer_t *pctx, cfg_obj_t *obj);
+
+static isc_result_t
+parse_enum_or_other(cfg_parser_t *pctx, cfg_type_t *enumtype,
+		    cfg_type_t *othertype, cfg_obj_t **ret);
 
 static isc_result_t
 parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
@@ -386,6 +391,7 @@ parse_enum(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
  * not need a union member).
  */
 cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop };
+cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop };
 cfg_rep_t cfg_rep_string = { "string", free_string };
 cfg_rep_t cfg_rep_boolean = { "boolean", free_noop };
 cfg_rep_t cfg_rep_map = { "map", free_map };
@@ -1493,14 +1499,9 @@ parse_uint32(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	cfg_obj_t *obj = NULL;
 	UNUSED(type);
 
-	result = cfg_gettoken(pctx,
-			      ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
+	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
 	if (pctx->token.type != isc_tokentype_number) {
-		parser_error(pctx, LOG_NEAR,
-			     "number expected");
+		parser_error(pctx, LOG_NEAR, "expected number");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
@@ -1515,7 +1516,7 @@ parse_uint32(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 static void
 print_uint(cfg_printer_t *pctx, unsigned int u) {
 	char buf[32];
-	sprintf(buf, "%u", u);
+	snprintf(buf, sizeof(buf), "%u", u);
 	print(pctx, buf, strlen(buf));
 }
 
@@ -1539,6 +1540,110 @@ cfg_obj_asuint32(cfg_obj_t *obj) {
 static cfg_type_t cfg_type_uint32 = {
 	"uint32", parse_uint32, print_uint32, &cfg_rep_uint32, NULL };
 
+
+/*
+ * uint64
+ */
+isc_boolean_t
+cfg_obj_isuint64(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (ISC_TF(obj->type->rep == &cfg_rep_uint64));
+}
+
+isc_uint64_t
+cfg_obj_asuint64(cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_uint64);
+	return (obj->value.uint64);
+}
+
+static isc_result_t
+parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
+	char *endp;
+	unsigned int len;
+	isc_uint64_t value;
+	isc_uint64_t unit;
+
+	value = isc_string_touint64(str, &endp, 10);
+	if (*endp == 0) {
+		*valuep = value;
+		return (ISC_R_SUCCESS);
+	}
+
+	len = strlen(str);
+	if (len < 2 || endp[1] != '\0')
+		return (ISC_R_FAILURE);
+
+	switch (str[len - 1]) {
+	case 'k':
+	case 'K':
+		unit = 1024;
+		break;
+	case 'm':
+	case 'M':
+		unit = 1024 * 1024;
+		break;
+	case 'g':
+	case 'G':
+		unit = 1024 * 1024 * 1024;
+		break;
+	default:
+		return (ISC_R_FAILURE);
+	}
+	if (value > ISC_UINT64_MAX / unit)
+		return (ISC_R_FAILURE);
+	*valuep = value * unit;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+print_uint64(cfg_printer_t *pctx, cfg_obj_t *obj) {
+	char buf[32];
+	sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u", obj->value.uint64);
+	print(pctx, buf, strlen(buf));
+}
+
+static cfg_type_t cfg_type_uint64 = {
+	"uint64", NULL, print_uint64, &cfg_rep_uint64, NULL };
+
+static isc_result_t
+parse_sizeval(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_uint64_t val;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	CHECK(parse_unitstring(pctx->token.value.as_pointer, &val));
+
+	CHECK(create_cfgobj(pctx, &cfg_type_uint64, &obj));
+	obj->value.uint64 = val;
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	parser_error(pctx, LOG_NEAR, "expected integer and optional unit");
+	return (result);
+}
+
+/*
+ * A size value (number + optional unit).
+ */
+static cfg_type_t cfg_type_sizeval = {
+	"sizeval", parse_sizeval, print_uint64, &cfg_rep_uint64, NULL };
+
+/*
+ * A size, "unlimited", or "default".
+ */
+
+const char *size_enums[] = { "unlimited", "default", NULL };
+static isc_result_t
+parse_size(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_sizeval, ret));
+}
+static cfg_type_t cfg_type_size = {
+	"size", parse_size, print_ustring, &cfg_rep_string, size_enums
+};
 
 /*
  * optional_keyvalue
@@ -1774,13 +1879,6 @@ static cfg_type_t cfg_type_ustring = {
 /* Any string (quoted or unquoted); printed with quotes */
 static cfg_type_t cfg_type_astring = {
 	"string", parse_astring, print_qstring, &cfg_rep_string, NULL };
-
-/*
- * A size, used by resource limits, log files sizes, etc.
- * Returned as a string and parsed by the caller.
- */
-static cfg_type_t cfg_type_size = {
-	"size", parse_ustring, print_ustring, &cfg_rep_string, NULL };
 
 
 /*
@@ -3146,7 +3244,7 @@ static cfg_type_t cfg_type_logversions = {
 static cfg_tuplefielddef_t logfile_fields[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "versions", &cfg_type_logversions, 0 },
-	{ "size", &cfg_type_ustring, 0 },
+	{ "size", &cfg_type_size, 0 },
 	{ NULL, NULL, 0 }
 };
 
