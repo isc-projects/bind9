@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.59 2000/11/28 05:24:51 marka Exp $ */
+/* $Id: confview.c,v 1.60 2000/12/01 09:03:42 marka Exp $ */
 
 #include <config.h>
 
@@ -275,12 +275,24 @@ dns_c_viewtable_print(FILE *fp, int indent,
 }
 
 
-void
+isc_result_t
 dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
+	dns_c_view_t *elem;
+
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
+	elem = ISC_LIST_HEAD(viewtable->views);
+	while (elem != NULL) {
+		if (strcmp(view->name, elem->name) == 0) {
+			return (ISC_R_EXISTS);
+		}
+
+		elem = ISC_LIST_NEXT(elem, next);
+	}
+	
 	ISC_LIST_APPEND(viewtable->views, view, next);
+	return (ISC_R_SUCCESS);
 }
 
 
@@ -299,7 +311,6 @@ isc_result_t
 dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 	dns_c_view_t *elem;
 	dns_c_view_t *tmpelem;
-	isc_result_t r;
 
 	REQUIRE(DNS_C_VIEWTABLE_VALID(table));
 
@@ -308,15 +319,7 @@ dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 		tmpelem = ISC_LIST_NEXT(elem, next);
 		ISC_LIST_UNLINK(table->views, elem, next);
 
-		r = dns_c_view_delete(&elem);
-		if (r != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG,
-				      ISC_LOG_CRITICAL,
-				      "failed to delete view");
-			return (r);
-		}
-
+		dns_c_view_delete(&elem);
 		elem = tmpelem;
 	}
 
@@ -830,7 +833,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 
 
-isc_result_t
+void
 dns_c_view_delete(dns_c_view_t **viewptr) {
 	dns_c_view_t *view;
 
@@ -943,8 +946,6 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 
 	view->magic = 0;
 	isc_mem_put(view->mem, view, sizeof *view);
-
-	return (ISC_R_SUCCESS);
 }
 
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.44 2000/11/25 02:43:54 marka Exp $ */
+/* $Id: confview.h,v 1.45 2000/12/01 09:03:44 marka Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -192,7 +192,8 @@ isc_result_t dns_c_viewtable_new(isc_mem_t *mem,
 isc_result_t dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
 
 void dns_c_viewtable_print(FILE *fp, int indent, dns_c_viewtable_t *table);
-void dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view);
+isc_result_t dns_c_viewtable_addview(dns_c_viewtable_t *viewtable,
+				     dns_c_view_t *view);
 void dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view);
 isc_result_t dns_c_viewtable_clear(dns_c_viewtable_t *table);
 isc_result_t dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
@@ -215,7 +216,7 @@ isc_result_t dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable);
 isc_result_t dns_c_view_new(isc_mem_t *mem, const char *name,
 			    dns_rdataclass_t viewclass,
 			    dns_c_view_t **newview);
-isc_result_t dns_c_view_delete(dns_c_view_t **viewptr);
+void dns_c_view_delete(dns_c_view_t **viewptr);
 void dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view);
 
 isc_boolean_t dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname);

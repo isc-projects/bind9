@@ -1,3 +1,5 @@
+ 586.	[bug]		multiple views with the same name were fatal. [RT #516]
+
  585.	[func]		dns_db_addrdataset() and and dns_rdataslab_merge()
 			now support 'exact' additions in a similar manner to
 			dns_db_subtractrdataset() and dns_rdataslab_subtract().
