@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.4 2000/02/17 20:06:31 gson Exp $ */
+/* $Id: omapi.c,v 1.5 2000/03/14 04:07:26 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -139,10 +139,47 @@ control_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 }
 
 isc_result_t
+ns_omapi_init(isc_mem_t *mctx) {
+	isc_result_t result;
+
+	result = omapi_lib_init(mctx);
+
+	if (result == ISC_R_SUCCESS)
+		/*
+		 * Register the control_object.  NS_OMAPI_CONTROL is
+		 * what a client would need to specify as a value for
+		 * the value of "type" in a message when contacting
+		 * the server to perform a control function.
+		 */
+		result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
+					       control_setvalue,
+					       NULL, 	/* getvalue */
+					       NULL,	/* destroy */
+					       NULL,	/* signalhandler */
+					       control_stuffvalues,
+					       control_lookup,
+					       NULL,	/* create */
+					       NULL);	/* remove */
+
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * Initialize the static control object.
+		 */
+		control.refcnt = 1;
+		control.type = control_type;
+	}
+
+	return (result);
+}
+
+isc_result_t
 ns_omapi_listen(omapi_object_t **managerp) {
 	omapi_object_t *manager = NULL;
 	isc_result_t result;
 	isc_sockaddr_t sockaddr;
+	isc_netaddr_t netaddr;
+	dns_acl_t *acl;		/* XXXDCL make a parameter */
+	dns_aclelement_t elt;
 	struct in_addr inaddr4;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
@@ -155,39 +192,31 @@ ns_omapi_listen(omapi_object_t **managerp) {
 	isc_sockaddr_fromin(&sockaddr, &inaddr4, NS_OMAPI_PORT);
 
 	/*
-	 * Register the control_object.  NS_OMAPI_CONTROL is what a client
-	 * would need to specify as a value for the value of "type" in
-	 * a message when contacting the server to perform a control function.
+	 * XXXDCL this is not right either
 	 */
-	result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
-				       control_setvalue,
-				       NULL, 	/* getvalue */
-				       NULL,	/* destroy */
-				       NULL,	/* signalhandler */
-				       control_stuffvalues,
-				       control_lookup,
-				       NULL,	/* create */
-				       NULL);	/* remove */
+	isc_netaddr_fromsockaddr(&netaddr, &sockaddr);
+	elt.type = dns_aclelementtype_ipprefix;
+	elt.negative = ISC_FALSE;
+	elt.u.ip_prefix.address = netaddr;
+	elt.u.ip_prefix.prefixlen = 32;
 
-	if (result == ISC_R_SUCCESS) {
-		/*
-		 * Initialize the static control object.
-		 */
-		control.refcnt = 1;
-		control.type = control_type;
+	result = dns_acl_create(ns_g_mctx, 1, &acl);
 
+	if (result == ISC_R_SUCCESS)
+		result = dns_acl_appendelement(acl, &elt);
+
+	if (result == ISC_R_SUCCESS)
 		/*
 		 * Create a generic object to be the manager for handling
 		 * incoming server connections.
 		 */
 		result = omapi_object_create(&manager, NULL, 0);
-	}
 
 	if (result == ISC_R_SUCCESS)
 		/*
 		 * Start listening for connections.
 		 */
-		result = omapi_protocol_listen(manager, &sockaddr, 1);
+		result = omapi_protocol_listen(manager, &sockaddr, acl, 1);
 
 	if (result == ISC_R_SUCCESS)
 		*managerp = manager;
