@@ -1,3 +1,8 @@
+  54.	[bug]		If a fetch with sigrdataset==NULL joined one with
+			sigrdataset!=NULL or vice versa, the resolver
+			could catch an assertion or lose signature data,
+			respectively.
+
   53.	[port]		freebsd 4.0: lib/isc/unix/socket.c requires
 			<sys/param.h>.
 

@@ -1795,8 +1795,15 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	event->sigrdataset = sigrdataset;
 	event->fetch = fetch;
 	dns_fixedname_init(&event->foundname);
-	ISC_LIST_APPEND(fctx->events, event, link);
 
+	/*
+	 * Make sure that we can store the sigrdataset in the
+	 * first event if it is needed by any of the events.
+	 */
+	if (event->sigrdataset != NULL)
+		ISC_LIST_PREPEND(fctx->events, event, link);
+	else
+		ISC_LIST_APPEND(fctx->events, event, link);
 	fctx->references++;
 
 	fetch->magic = DNS_FETCH_MAGIC;
@@ -2041,11 +2048,15 @@ clone_results(fetchctx_t *fctx) {
 			event->result = hevent->result;
 		dns_db_attach(hevent->db, &event->db);
 		dns_db_attachnode(hevent->db, hevent->node, &event->node);
-		if (hevent->rdataset != NULL &&
-		    dns_rdataset_isassociated(hevent->rdataset))
+		INSIST(hevent->rdataset != NULL);
+		INSIST(event->rdataset != NULL);
+		if (dns_rdataset_isassociated(hevent->rdataset))
 			dns_rdataset_clone(hevent->rdataset, event->rdataset);
+		INSIST(! (hevent->sigrdataset == NULL &&
+			  event->sigrdataset != NULL));
 		if (hevent->sigrdataset != NULL &&
-		    dns_rdataset_isassociated(hevent->sigrdataset))
+		    dns_rdataset_isassociated(hevent->sigrdataset) &&
+		    event->sigrdataset != NULL)
 			dns_rdataset_clone(hevent->sigrdataset,
 					   event->sigrdataset);
 	}
