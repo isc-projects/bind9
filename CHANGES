@@ -1,3 +1,7 @@
+
+ 691.	[bug]		Configuring per-view forwarders caused an assertion
+			failure. [RT #675]
+
  690.	[func]		$GENERATE now supports DNAME. [RT #654]
 
  689.	[doc]		man pages are now installed. [RT #210]
