@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.54 2000/06/22 21:50:04 tale Exp $ */
+/* $Id: adb_test.c,v 1.54.2.1 2000/06/28 16:45:22 gson Exp $ */
 
 #include <config.h>
 
@@ -152,7 +152,7 @@ create_managers(void) {
 	check_result(result, "isc_socketmgr_create");
 
 	dispatchmgr = NULL;
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 }
 

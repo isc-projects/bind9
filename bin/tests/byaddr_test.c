@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.16 2000/06/22 21:50:10 tale Exp $ */
+/* $Id: byaddr_test.c,v 1.16.2.1 2000/06/28 16:45:24 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -126,7 +126,7 @@ main(int argc, char *argv[]) {
 	isc_task_setname(task, "byaddr", NULL);	
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, NULL, &dispatchmgr)
 		      == ISC_R_SUCCESS);
 
 	timermgr = NULL;
