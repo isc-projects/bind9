@@ -1,5 +1,7 @@
 1688.	[bug]		LDFLAGS was not supported.
 
+1687.	[bug]		Race condition in dispatch. [RT #10272]
+
 1686.	[bug]		Named sent a extraneous NOTIFY when it received a
 			redundant UPDATE request. [RT #11943]
 

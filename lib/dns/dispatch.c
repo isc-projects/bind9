@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.7 2004/04/15 02:10:39 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.8 2004/07/21 00:49:28 marka Exp $ */
 
 #include <config.h>
 
@@ -162,7 +162,7 @@ static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_udp_buffer(dns_dispatch_t *disp);
 static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
 static inline dns_dispatchevent_t *allocate_event(dns_dispatch_t *disp);
-static void do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp);
+static void do_cancel(dns_dispatch_t *disp);
 static dns_dispentry_t *linear_first(dns_qid_t *disp);
 static dns_dispentry_t *linear_next(dns_qid_t *disp,
 				    dns_dispentry_t *resp);
@@ -627,26 +627,25 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		/* query */
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto restart;
-	} else {
- 		/* response */
-		bucket = dns_hash(qid, &ev->address, id);
-		LOCK(&qid->lock);
-		resp = bucket_search(qid, &ev->address, id, bucket);
-		UNLOCK(&qid->lock);
-		dispatch_log(disp, LVL(90),
-			     "search for response in bucket %d: %s",
-			     bucket, (resp == NULL ? "not found" : "found"));
+	}
 
-		if (resp == NULL) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto restart;
-		} 
-		queue_response = resp->item_out;
-		rev = allocate_event(resp->disp);
-		if (rev == NULL) {
-			free_buffer(disp, ev->region.base, ev->region.length);
-			goto restart;
-		}
+	/* response */
+	bucket = dns_hash(qid, &ev->address, id);
+	LOCK(&qid->lock);
+	resp = bucket_search(qid, &ev->address, id, bucket);
+	dispatch_log(disp, LVL(90),
+		     "search for response in bucket %d: %s",
+		     bucket, (resp == NULL ? "not found" : "found"));
+
+	if (resp == NULL) {
+		free_buffer(disp, ev->region.base, ev->region.length);
+		goto unlock;
+	} 
+	queue_response = resp->item_out;
+	rev = allocate_event(resp->disp);
+	if (rev == NULL) {
+		free_buffer(disp, ev->region.base, ev->region.length);
+		goto unlock;
 	}
 
 	/*
@@ -674,6 +673,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		resp->item_out = ISC_TRUE;
 		isc_task_send(resp->task, ISC_EVENT_PTR(&rev));
 	}
+ unlock:
+	UNLOCK(&qid->lock);
 
 	/*
 	 * Restart recv() to get the next packet.
@@ -746,7 +747,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			
 		case ISC_R_EOF:
 			dispatch_log(disp, LVL(90), "shutting down on EOF");
-			do_cancel(disp, NULL);
+			do_cancel(disp);
 			break;
 
 		case ISC_R_CONNECTIONRESET:
@@ -760,7 +761,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			dispatch_log(disp, level, "shutting down due to TCP "
 				     "receive error: %s: %s", buf,
 				     isc_result_totext(tcpmsg->result));
-			do_cancel(disp, NULL);
+			do_cancel(disp);
 			break;
 		}
 
@@ -816,25 +817,24 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		 * Query.
 		 */
 		goto restart;
-	} else {
- 		/*
-		 * Response.
-		 */
-		bucket = dns_hash(qid, &tcpmsg->address, id);
-		LOCK(&qid->lock);
-		resp = bucket_search(qid, &tcpmsg->address, id, bucket);
-		UNLOCK(&qid->lock);
-		dispatch_log(disp, LVL(90),
-			     "search for response in bucket %d: %s",
-			     bucket, (resp == NULL ? "not found" : "found"));
-
-		if (resp == NULL)
-			goto restart;
-		queue_response = resp->item_out;
-		rev = allocate_event(disp);
-		if (rev == NULL)
-			goto restart;
 	}
+
+	/*
+	 * Response.
+	 */
+	bucket = dns_hash(qid, &tcpmsg->address, id);
+	LOCK(&qid->lock);
+	resp = bucket_search(qid, &tcpmsg->address, id, bucket);
+	dispatch_log(disp, LVL(90),
+		     "search for response in bucket %d: %s",
+		     bucket, (resp == NULL ? "not found" : "found"));
+
+	if (resp == NULL)
+		goto unlock;
+	queue_response = resp->item_out;
+	rev = allocate_event(disp);
+	if (rev == NULL)
+		goto unlock;
 
 	/*
 	 * At this point, rev contains the event we want to fill in, and
@@ -858,6 +858,8 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		resp->item_out = ISC_TRUE;
 		isc_task_send(resp->task, ISC_EVENT_PTR(&rev));
 	}
+ unlock:
+	UNLOCK(&qid->lock);
 
 	/*
 	 * Restart recv() to get the next packet.
@@ -905,7 +907,7 @@ startrecv(dns_dispatch_t *disp) {
 			free_buffer(disp, region.base, region.length);
 			disp->shutdown_why = res;
 			disp->shutting_down = 1;
-			do_cancel(disp, NULL);
+			do_cancel(disp);
 			return;
 		}
 		INSIST(disp->recv_pending == 0);
@@ -918,7 +920,7 @@ startrecv(dns_dispatch_t *disp) {
 		if (res != ISC_R_SUCCESS) {
 			disp->shutdown_why = res;
 			disp->shutting_down = 1;
-			do_cancel(disp, NULL);
+			do_cancel(disp);
 			return;
 		}
 		INSIST(disp->recv_pending == 0);
@@ -2018,7 +2020,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	res->magic = 0;
 	isc_mempool_put(disp->mgr->rpool, res);
 	if (disp->shutting_down == 1)
-		do_cancel(disp, NULL);
+		do_cancel(disp);
 	else
 		startrecv(disp);
 
@@ -2029,8 +2031,9 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 }
 
 static void
-do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
+do_cancel(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
+	dns_dispentry_t *resp;
 	dns_qid_t *qid;
 
 	if (disp->shutdown_out == 1)
@@ -2041,28 +2044,16 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	/*
 	 * Search for the first response handler without packets outstanding.
 	 */
-	if (resp == NULL) {
-		LOCK(&qid->lock);
-		resp = linear_first(qid);
-		if (resp == NULL) {
-			/* no first item? */
-			UNLOCK(&qid->lock);
-			return;
-		}
-		do {
-			if (resp->item_out == ISC_FALSE)
-				break;
-
-			resp = linear_next(qid, resp);
-		} while (resp != NULL);
-		UNLOCK(&qid->lock);
-	}
-
+	LOCK(&qid->lock);
+	for (resp = linear_first(qid);
+	     resp != NULL && resp->item_out != ISC_FALSE;
+	     /* Empty. */)
+		resp = linear_next(qid, resp);
 	/*
 	 * No one to send the cancel event to, so nothing to do.
 	 */
 	if (resp == NULL)
-		return;
+		goto unlock;
 
 	/*
 	 * Send the shutdown failsafe event to this resp.
@@ -2079,6 +2070,8 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		    ev, resp->task);
 	resp->item_out = ISC_TRUE;
 	isc_task_send(resp->task, ISC_EVENT_PTR(&ev));
+ unlock:
+	UNLOCK(&qid->lock);
 }
 
 isc_socket_t *
@@ -2114,7 +2107,7 @@ dns_dispatch_cancel(dns_dispatch_t *disp) {
 
 	disp->shutdown_why = ISC_R_CANCELED;
 	disp->shutting_down = 1;
-	do_cancel(disp, NULL);
+	do_cancel(disp);
 
 	UNLOCK(&disp->lock);
 
