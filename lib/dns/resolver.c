@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.243 2002/06/17 04:01:24 marka Exp $ */
+/* $Id: resolver.c,v 1.244 2002/07/15 02:23:58 marka Exp $ */
 
 #include <config.h>
 
@@ -3763,7 +3763,7 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
-	isc_boolean_t have_answer, found_cname, found_type;
+	isc_boolean_t have_answer, found_cname, found_type, wanted_chaining;
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname, fqname;
@@ -3795,6 +3795,7 @@ answer_response(fetchctx_t *fctx) {
 		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
 		external = ISC_TF(!dns_name_issubdomain(name, &fctx->domain));
 		if (dns_name_equal(name, qname)) {
+			wanted_chaining = ISC_FALSE;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -3915,7 +3916,7 @@ answer_response(fetchctx_t *fctx) {
 					 * CNAME chaining.
 					 */
 					if (want_chaining) {
-						chaining = ISC_TRUE;
+						wanted_chaining = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_CHAINING;
 						rdataset->attributes |=
@@ -3927,12 +3928,27 @@ answer_response(fetchctx_t *fctx) {
 				 * We could add an "else" clause here and
 				 * log that we're ignoring this rdataset.
 				 */
+				
+				/*
+				 * If wanted_chaining is true, we've done
+				 * some chaining as the result of processing
+				 * this node, and thus we need to set
+				 * chaining to true.
+				 *
+				 * We don't set chaining inside of the
+				 * rdataset loop because doing that would
+				 * cause us to ignore the signatures of
+				 * CNAMEs.
+				 */
+				if (wanted_chaining)
+					chaining = ISC_TRUE;
 			}
 		} else {
 			/*
 			 * Look for a DNAME (or its SIG).  Anything else is
 			 * ignored.
 			 */
+			wanted_chaining = ISC_FALSE;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -4028,7 +4044,7 @@ answer_response(fetchctx_t *fctx) {
 						  NULL);
 						if (result != ISC_R_SUCCESS)
 							return (result);
-						chaining = ISC_TRUE;
+						wanted_chaining = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_CHAINING;
 						rdataset->attributes |=
@@ -4038,6 +4054,8 @@ answer_response(fetchctx_t *fctx) {
 					}
 				}
 			}
+			if (wanted_chaining)
+				chaining = ISC_TRUE;
 		}
 		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
 	}

@@ -1,3 +1,6 @@
+1246.	[bug]		DNAME/CNAME signatures were not being cached when
+			validation was not being performed. [RT #3284]
+
 1345.	[bug]		If the tcpquota was exhausted it was possible to
 			to trigger a INSIST() failure.
 
