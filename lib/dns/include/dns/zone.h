@@ -120,7 +120,7 @@ dns_result_t dns_zone_setorigin(dns_zone_t *zone, char *origin);
  *	All possible values from dns_name_fromtext().
  */
 
-dns_result_t dns_zone_getorigin(dns_zone_t *zone, isc_mem_t *mctx, dns_name_t *name);
+dns_name_t * dns_zone_getorigin(dns_zone_t *zone);
 /*
  *	Returns the value of the origin.
  *

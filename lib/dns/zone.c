@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.19 1999/10/13 23:32:02 marka Exp $ */
+ /* $Id: zone.c,v 1.20 1999/10/14 00:46:58 marka Exp $ */
 
 #include <config.h>
 
@@ -2274,7 +2274,7 @@ isc_result_t
 dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 		  void *uap) {
 	dns_zone_callbackarg_t *cba = uap;
-	dns_name_t name;
+	dns_name_t *name = NULL;
 	dns_view_t *oldview = NULL;
 	dns_zone_t *oldzone = NULL;
 	dns_view_t *newview = NULL;
@@ -2286,11 +2286,6 @@ dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 
 	REQUIRE(czone != NULL);
 	REQUIRE(cba != NULL);
-
-	/*
-	 * Initialization.
-	 */
-	dns_name_init(&name, NULL);
 
 	/*
 	 * Find views by name.
@@ -2335,12 +2330,10 @@ dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Find zone in mount table.
 	 */
-	result = dns_zone_getorigin(newzone, cba->mctx, &name);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
+	name = dns_zone_getorigin(newzone);
 	dns_zone_print(newzone);
 
-	result = dns_zt_find(newview->zonetable, &name, NULL, &tmpzone);
+	result = dns_zt_find(newview->zonetable, name, NULL, &tmpzone);
 	if (result == DNS_R_SUCCESS) {
 		printf("zone already exists=\n");
 		result = DNS_R_EXISTS;
@@ -2349,7 +2342,7 @@ dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 		goto cleanup;
 
 	if (oldview != NULL)
-		result = dns_zt_find(oldview->zonetable, &name, NULL, &oldzone);
+		result = dns_zt_find(oldview->zonetable, name, NULL, &oldzone);
 	else
 		result = DNS_R_NOTFOUND;
 
@@ -2374,8 +2367,6 @@ dns_zone_callback(dns_c_ctx_t *cfg, dns_c_zone_t *czone, dns_c_view_t *cview,
 	}
 
  cleanup:
-	if (dns_name_dynamic(&name))
-		dns_name_free(&name, cba->mctx);
 	if (tmpzone != NULL)
 		dns_zone_detach(&tmpzone);
 	if (newzone != NULL)
@@ -2956,11 +2947,11 @@ dns_zonetype_t dns_zone_gettype(dns_zone_t *zone) {
 	return (zone->type);
 }
 
-dns_result_t
-dns_zone_getorigin(dns_zone_t *zone, isc_mem_t *mctx, dns_name_t *name) {
+dns_name_t *
+dns_zone_getorigin(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (dns_name_dup(&zone->origin, mctx, name));
+	return (&zone->origin);
 }
 
 isc_task_t *dns_zone_gettask(dns_zone_t *zone) {

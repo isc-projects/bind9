@@ -88,30 +88,19 @@ isc_result_t
 dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 	isc_result_t result;
 	dns_zone_t *dummy = NULL;
-	dns_name_t name;
+	dns_name_t *name;
 
 	REQUIRE(VALID_ZT(zt));
 
-	/*
-	 * XXXRTH  I don't understand why dns_zone_getorigin() is
-	 *	   returning a dup'd name.  I think we should make it
-	 *	   return a pointer to the name in the zone structure
-	 *	   and let the caller dup it if they need to.
-	 */
-	dns_name_init(&name, NULL);
-	result = dns_zone_getorigin(zone, zt->mctx, &name);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	name = dns_zone_getorigin(zone);
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	result = dns_rbt_addname(zt->table, &name, zone);
+	result = dns_rbt_addname(zt->table, name, zone);
 	if (result == ISC_R_SUCCESS)
 		dns_zone_attach(zone, &dummy);
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
-
-	dns_name_free(&name, zt->mctx);
 
 	return (result);
 }
@@ -119,28 +108,17 @@ dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 isc_result_t
 dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 	isc_result_t result;
-	dns_name_t name;
+	dns_name_t *name;
 
 	REQUIRE(VALID_ZT(zt));
 
-	/*
-	 * XXXRTH  I don't understand why dns_zone_getorigin() is
-	 *	   returning a dup'd name.  I think we should make it
-	 *	   return a pointer to the name in the zone structure
-	 *	   and let the caller dup it if they need to.
-	 */
-	dns_name_init(&name, NULL);
-	result = dns_zone_getorigin(zone, zt->mctx, &name);
-	if (result != DNS_R_SUCCESS)
-		return (result);
+	name = dns_zone_getorigin(zone);
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	result = dns_rbt_deletename(zt->table, &name, ISC_FALSE);
+	result = dns_rbt_deletename(zt->table, name, ISC_FALSE);
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
-
-	dns_name_free(&name, zt->mctx);
 
 	return (result);
 }
