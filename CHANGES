@@ -1,3 +1,6 @@
+
+	--- 9.0.0rc1 released ---
+
  291.	[func]		Caching servers no longer send outgoing queries
 			over TCP just because the incoming recursive query
 			was a TCP one.
