@@ -16,11 +16,11 @@
  */
 
 /*
- * $Id: assertions.h,v 1.8 2000/04/28 01:03:24 halley Exp $
+ * $Id: assertions.h,v 1.9 2000/04/28 16:54:53 tale Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
-#define ISC_ASSERTIONS_H	1
+#define ISC_ASSERTIONS_H 1
 
 #include <isc/lang.h>
 
