@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.10 2001/11/13 05:07:57 mayer Exp $ */
+/* $Id: fsaccess.c,v 1.11 2002/02/02 01:01:15 mayer Exp $ */
 
 /*
  * Note that Win32 does not have the concept of files having access
@@ -28,6 +28,8 @@
  */
 
 #include <config.h>
+
+#include <aclapi.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -204,7 +206,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 		NTFSbits |= FILE_GENERIC_EXECUTE;
 
 	/* For directories check the directory-specific bits */
-	if(isdir == ISC_TRUE) {
+	if (isdir == ISC_TRUE) {
 		if (caccess & ISC_FSACCESS_CREATECHILD)
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
 		if (caccess & ISC_FSACCESS_DELETECHILD)
@@ -215,7 +217,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 			NTFSbits |= FILE_TRAVERSE;
 	}
 
-	if(NTFSbits == (FILE_GENERIC_READ | FILE_GENERIC_WRITE
+	if (NTFSbits == (FILE_GENERIC_READ | FILE_GENERIC_WRITE
 		     | FILE_GENERIC_EXECUTE))
 		     NTFSbits |= FILE_ALL_ACCESS;
 	/*
@@ -253,7 +255,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 		NTFSbits |= FILE_GENERIC_EXECUTE;
 
 	/* For directories check the directory-specific bits */
-	if(isdir == TRUE) {
+	if (isdir == TRUE) {
 		if (caccess & ISC_FSACCESS_CREATECHILD)
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
 		if (caccess & ISC_FSACCESS_DELETECHILD)
@@ -270,7 +272,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 
 	if (!SetSecurityDescriptorDacl(&sd, TRUE, pacl, FALSE))
 		return (ISC_R_NOPERM);
-	if(!SetFileSecurity(filename, DACL_SECURITY_INFORMATION, &sd)) {
+	if (!SetFileSecurity(filename, DACL_SECURITY_INFORMATION, &sd)) {
 		return (ISC_R_NOPERM);
 	}
 
@@ -320,3 +322,54 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 	else
 		return (FAT_fsaccess_set(path, access));
 }
+
+isc_result_t
+isc_fsaccess_changeowner(const char *filename, const char *user) {
+	SECURITY_DESCRIPTOR psd;
+	BYTE sidBuffer[500];
+	BYTE groupBuffer[500];
+	PSID psid=(PSID) &sidBuffer;
+	DWORD sidBufferSize = sizeof(sidBuffer);
+	char domainBuffer[100];
+	DWORD domainBufferSize = sizeof(domainBuffer);
+	SID_NAME_USE snu;
+	PSID pSidGroup = (PSID) &groupBuffer;
+	DWORD groupBufferSize = sizeof(groupBuffer);
+
+
+	/*
+	 * Determine if this is a FAT or NTFS disk and
+	 * call the appropriate function to set the ownership
+	 * FAT disks do not have ownership attributes so it's
+	 * a noop.
+	 */
+	if (is_ntfs(filename) == FALSE)
+		return (ISC_R_SUCCESS);
+
+	if (!InitializeSecurityDescriptor(&psd, SECURITY_DESCRIPTOR_REVISION))
+		return (ISC_R_NOPERM);
+
+	if (!LookupAccountName(0, user, psid, &sidBufferSize, domainBuffer,
+		&domainBufferSize, &snu))
+		return (ISC_R_NOPERM);
+
+	/* Make sure administrators can get to it */
+	domainBufferSize = sizeof(domainBuffer);
+	if (!LookupAccountName(0, "Administrators", pSidGroup,
+		&groupBufferSize, domainBuffer, &domainBufferSize, &snu))
+		return (ISC_R_NOPERM);
+
+	if (!SetSecurityDescriptorOwner(&psd, psid, FALSE))
+		return (ISC_R_NOPERM);
+
+	if (!SetSecurityDescriptorGroup(&psd, pSidGroup, FALSE))
+		return (ISC_R_NOPERM);
+
+	if (!SetFileSecurity(filename,
+		OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION,
+		&psd))
+		return (ISC_R_NOPERM);
+
+	return (ISC_R_SUCCESS);
+}
+
