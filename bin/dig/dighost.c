@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.229 2001/10/01 18:53:53 gson Exp $ */
+/* $Id: dighost.c,v 1.230 2001/10/04 03:20:21 mayer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -619,7 +619,7 @@ setup_system(void) {
 
 	free_now = ISC_FALSE;
 	get_servers = ISC_TF(server_list.head == NULL);
-	fp = fopen(RESOLVCONF, "r");
+	fp = fopen(RESOLV_CONF, "r");
 	/* XXX Use lwres resolv.conf reader */
 	if (fp == NULL)
 		goto no_file;
