@@ -105,9 +105,9 @@
 			(list1).tail->link.next = (list2).head; \
 			(list2).head->link.prev = (list1).tail; \
 			(list1).tail = (list2).tail; \
-			(list2).head = NULL; \
-			(list2).tail = NULL; \
 		} \
+		(list2).head = NULL; \
+		(list2).tail = NULL; \
 	} while (0)
 
 #define ISC_LIST_ENQUEUE(list, elt, link) ISC_LIST_APPEND(list, elt, link)
