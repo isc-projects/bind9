@@ -35,7 +35,6 @@ struct dns_zt {
 	/* Locked by lock. */
 	isc_uint32_t		references;
 	dns_rbt_t		*table;
-	isc_boolean_t		shutdown;	/* Has been shut down. */
 };
 
 #define ZTMAGIC			0x5a54626cU	/* ZTbl */
@@ -46,9 +45,6 @@ auto_detach(void *, void *);
 
 static isc_result_t
 load(dns_zone_t *zone, void *uap);
-
-static isc_result_t
-shutdown(dns_zone_t *zone, void *uap);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -78,7 +74,6 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	zt->mctx = mctx;
 	zt->references = 1;
 	zt->rdclass = rdclass;
-	zt->shutdown = ISC_FALSE;
 	zt->magic = ZTMAGIC;
 	*ztp = zt;
 
@@ -243,24 +238,6 @@ static isc_result_t
 load(dns_zone_t *zone, void *uap) {
 	UNUSED(uap);
 	return (dns_zone_load(zone));
-}
-
-void
-dns_zt_shutdown(dns_zt_t *zt) {
-	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
-	if (! zt->shutdown) {
-		(void)dns_zt_apply(zt, ISC_FALSE, shutdown, NULL);
-		zt->shutdown = ISC_TRUE;
-	}
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write); 
-}
-
-static isc_result_t
-shutdown(dns_zone_t *zone, void *uap) {
-	
-	UNUSED(uap);
-	dns_zone_shutdown(zone);
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

@@ -134,15 +134,6 @@ dns_zt_print(dns_zt_t *zt);
  *	'zt' to be valid.
  */
 
-void
-dns_zt_shutdown(dns_zt_t *zt);
-/*
- * Shut down all zones in the table.
- *
- * Requires
- *	'zt' to be valid.
- */
-
 isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);

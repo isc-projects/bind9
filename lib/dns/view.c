@@ -224,7 +224,6 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->queryacl);
 	if (view->recursionacl != NULL)
 		dns_acl_detach(&view->recursionacl);
-	dns_zt_detach(&view->zonetable);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	isc_mutex_destroy(&view->lock);
@@ -282,7 +281,7 @@ dns_view_detach(dns_view_t **viewp) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-		dns_zt_shutdown(view->zonetable);
+		dns_zt_detach(&view->zonetable);
 		done = all_done(view);
 	}
 	UNLOCK(&view->lock);
