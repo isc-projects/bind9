@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.18.12.5 2003/08/22 06:09:24 marka Exp $ */
+/* $Id: netaddr.c,v 1.18.12.6 2004/02/20 00:50:49 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/buffer.h>
 #include <isc/msgs.h>
+#include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -300,6 +301,16 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 		return (ISC_TF(ISC_IPADDR_ISMULTICAST(na->type.in.s_addr)));
 	case AF_INET6:
 		return (ISC_TF(IN6_IS_ADDR_MULTICAST(&na->type.in6)));
+	default:
+		return (ISC_FALSE);  /* XXXMLG ? */
+	}
+}
+
+isc_boolean_t
+isc_netaddr_isexperimental(isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_TF(ISC_IPADDR_ISEXPERIMENTAL(na->type.in.s_addr)));
 	default:
 		return (ISC_FALSE);  /* XXXMLG ? */
 	}
