@@ -120,7 +120,7 @@ static char *rtypetext[] = {
 	"AFSDB",			/* 18 */
 	"x25 address",			/* 19 */
 	"isdn address",			/* 20 */
-	"RT"				/* 21 */
+	"RT",				/* 21 */
 	"NSAP",				/* 22 */
 	"NSAP_PTR",			/* 23 */
 	"has signature",		/* 24 */
@@ -130,17 +130,78 @@ static char *rtypetext[] = {
 	"has AAAA address",		/* 28 */
 	"LOC",				/* 29 */
 	"has next record",		/* 30 */
-	"has 31 record",		/* 31 */
-	"has 32 record",		/* 32 */
+	"EID",				/* 31 */
+	"NIMLOC",			/* 32 */
 	"SRV",				/* 33 */
-	"has 34 record",		/* 34 */
+	"ATMA",				/* 34 */
 	"NAPTR",			/* 35 */
 	"KX",				/* 36 */
 	"CERT",				/* 37 */
 	"has v6 address",		/* 38 */
 	"DNAME",			/* 39 */
-	"has 40 record",       		/* 40 */
-	"has optional information"};	/* 41 */
+	"has optional information",	/* 41 */
+	"has 42 record",       		/* 42 */
+	"has 43 record",       		/* 43 */
+	"has 44 record",       		/* 44 */
+	"has 45 record",       		/* 45 */
+	"has 46 record",       		/* 46 */
+	"has 47 record",       		/* 47 */
+	"has 48 record",       		/* 48 */
+	"has 49 record",       		/* 49 */
+	"has 50 record",       		/* 50 */
+	"has 51 record",       		/* 51 */
+	"has 52 record",       		/* 52 */
+	"has 53 record",       		/* 53 */
+	"has 54 record",       		/* 54 */
+	"has 55 record",       		/* 55 */
+	"has 56 record",       		/* 56 */
+	"has 57 record",       		/* 57 */
+	"has 58 record",       		/* 58 */
+	"has 59 record",       		/* 59 */
+	"has 60 record",       		/* 60 */
+	"has 61 record",       		/* 61 */
+	"has 62 record",       		/* 62 */
+	"has 63 record",       		/* 63 */
+	"has 64 record",       		/* 64 */
+	"has 65 record",       		/* 65 */
+	"has 66 record",       		/* 66 */
+	"has 67 record",       		/* 67 */
+	"has 68 record",       		/* 68 */
+	"has 69 record",       		/* 69 */
+	"has 70 record",       		/* 70 */
+	"has 71 record",       		/* 71 */
+	"has 72 record",       		/* 72 */
+	"has 73 record",       		/* 73 */
+	"has 74 record",       		/* 74 */
+	"has 75 record",       		/* 75 */
+	"has 76 record",       		/* 76 */
+	"has 77 record",       		/* 77 */
+	"has 78 record",       		/* 78 */
+	"has 79 record",       		/* 79 */
+	"has 80 record",       		/* 80 */
+	"has 81 record",       		/* 81 */
+	"has 82 record",       		/* 82 */
+	"has 83 record",       		/* 83 */
+	"has 84 record",       		/* 84 */
+	"has 85 record",       		/* 85 */
+	"has 86 record",       		/* 86 */
+	"has 87 record",       		/* 87 */
+	"has 88 record",       		/* 88 */
+	"has 89 record",       		/* 89 */
+	"has 90 record",       		/* 90 */
+	"has 91 record",       		/* 91 */
+	"has 92 record",       		/* 92 */
+	"has 93 record",       		/* 93 */
+	"has 94 record",       		/* 94 */
+	"has 95 record",       		/* 95 */
+	"has 96 record",       		/* 96 */
+	"has 97 record",       		/* 97 */
+	"has 98 record",       		/* 98 */
+	"has 99 record",       		/* 99 */
+	"UNIFO",			/* 100 */
+	"UID",				/* 101 */
+	"GID",				/* 102 */
+	"UNSPEC"};			/* 103 */
 
 
 static void
@@ -284,18 +345,15 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
-					if (rdata.type <= 41)
-						rtt = rtypetext[rdata.type];
-					else if (rdata.type == 103)
-						rtt = "unspecified data";
+					if (rdata.type <= 103)
+						rtt=rtypetext[rdata.type];
 					else if (rdata.type == 249)
 						rtt = "key";
 					else if (rdata.type == 250)
 						rtt = "signature";
 					else
-						rtt = "unknown";
-					say_message(print_name,
-						    rtypetext[rdata.type],
+						rtt="unknown";
+					say_message(print_name, rtt,
 						    &rdata, query);
 					loopresult = dns_rdataset_next(
 								 rdataset);

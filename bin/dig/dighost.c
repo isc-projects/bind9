@@ -164,8 +164,8 @@ isclass(char *text) {
 	 * initialized.  This list will have to be manually kept in 
 	 * sync with what the libs support.
 	 */
-	const char *classlist[] = {"in", "hs"};
-	const int numclasses = 2;
+	const char *classlist[] = {"in", "hs", "chaos"};
+	const int numclasses = 3;
 	int i;
 
 	for (i = 0; i < numclasses; i++)
@@ -1413,8 +1413,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					isc_event_free (&event);
 					dns_message_destroy (&msg);
 					return;
-					launch_next_query(query, ISC_FALSE);
-				} else {
+				}
+				else {
 					query->first_soa_rcvd = ISC_TRUE;
 					launch_next_query(query, ISC_FALSE);
 				}
