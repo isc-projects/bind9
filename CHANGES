@@ -36,6 +36,8 @@
 1561.	[bug]		It was possible to release the same name twice if
 			named ran out of memory. [RT #10197]
 
+1559.	[port]		named should ignore SIGFSZ.
+
 1556.	[bug]		nsupdate now treats all names as fully qualified.
 			[RT #6427]
 

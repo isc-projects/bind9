@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.6 2004/01/07 06:30:44 marka Exp $ */
+/* $Id: os.c,v 1.46.2.7 2004/03/03 23:07:05 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -30,6 +30,7 @@
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <syslog.h>
 #include <unistd.h>
 
@@ -283,6 +284,9 @@ ns_os_init(const char *progname) {
 #endif
 #ifdef HAVE_LINUXTHREADS
 	mainpid = getpid();
+#endif
+#ifdef SIGXFSZ
+	signal(SIGXFSZ, SIG_IGN);
 #endif
 }
 
