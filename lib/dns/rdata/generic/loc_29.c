@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.33 2002/01/21 01:07:19 marka Exp $ */
+/* $Id: loc_29.c,v 1.34 2002/01/27 20:52:47 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -119,8 +119,10 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for (; i < 3; i++)
 			s1 *= 10;
-		if (*e != 0)
-			RETTOK(DNS_R_SYNTAX);
+		while (*e != 0) {
+			if (decvalue(*e++) < 0)
+				RETTOK(DNS_R_SYNTAX);
+		}
 	} else
 		s1 *= 1000;
 	if (d1 == 90 && s1 != 0)
@@ -189,8 +191,10 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for (; i < 3; i++)
 			s2 *= 10;
-		if (*e != 0)
-			RETTOK(DNS_R_SYNTAX);
+		while (*e != 0) {
+			if (decvalue(*e++) < 0)
+				RETTOK(DNS_R_SYNTAX);
+		}
 	} else
 		s2 *= 1000;
 	if (d2 == 180 && s2 != 0)
