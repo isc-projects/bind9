@@ -1,3 +1,6 @@
+ 900.	[bug]		A config.guess update changed the system identification
+			string of FreeBSD systems; configure now recognizes
+			the new string. 
 
 	--- 9.2.0a2 released ---
 
