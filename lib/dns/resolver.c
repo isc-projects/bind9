@@ -889,6 +889,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 * We could cancel the running queries here, or we could let
 		 * them keep going.  Right now we choose the latter...
 		 */
+		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		fctx_try(fctx);
 	}
 
