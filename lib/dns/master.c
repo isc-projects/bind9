@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.6 2003/08/14 00:50:18 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.7 2003/08/14 03:22:37 marka Exp $ */
 
 #include <config.h>
 
@@ -2075,11 +2075,9 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	void    (*error)(struct dns_rdatacallbacks *, const char *, ...);
-	void    (*warn)(struct dns_rdatacallbacks *, const char *, ...);
 
 	this = ISC_LIST_HEAD(*head);
 	error = callbacks->error;
-	warn = callbacks->warn;
 
 	if (this == NULL)
 		return (ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.4 2003/08/13 03:58:09 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.5 2003/08/14 03:22:36 marka Exp $ */
 
 #include <config.h>
 
@@ -388,8 +388,6 @@ parse_command_line(int argc, char *argv[]) {
 		usage();
 		ns_main_earlyfatal("extra command line arguments");
 	}
-
-	
 }
 
 static isc_result_t

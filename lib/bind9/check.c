@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.10 2003/08/14 02:34:15 marka Exp $ */
+/* $Id: check.c,v 1.37.6.11 2003/08/14 03:22:37 marka Exp $ */
 
 #include <config.h>
 
@@ -110,8 +110,7 @@ check_orderent(cfg_obj_t *ent, isc_log_t *logctx) {
 		result = ISC_R_FAILURE;
 	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "rrset-order: order 'fixed' not implemented",
-			    cfg_obj_asstring(obj));
+			    "rrset-order: order 'fixed' not implemented");
 	} else if (/* strcasecmp(cfg_obj_asstring(obj), "fixed") != 0 && */
 		   strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {
