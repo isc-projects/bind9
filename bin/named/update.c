@@ -25,6 +25,7 @@
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
+#include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/message.h>
 #include <dns/nxt.h>
