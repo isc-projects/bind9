@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.html,v 1.6.18.3 2004/06/03 04:17:55 marka Exp $ -->
+<!-- $Id: rndc.conf.html,v 1.6.18.4 2004/06/18 06:00:24 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -166,21 +166,30 @@ CLASS="OPTION"
 	will be used to connect.
     </P
 ><P
->        After the <TT
+>	After the <TT
 CLASS="OPTION"
 >server</TT
-> keyword, the server statement
-	includes a string which is the hostname or address for a name
-	server.  The statement has two possible clauses:
+> keyword, the server
+	statement includes a string which is the hostname or address
+	for a name server.  The statement has three possible clauses:
 	<TT
 CLASS="OPTION"
 >key</TT
-> and <TT
+>, <TT
 CLASS="OPTION"
 >port</TT
->. The key name must
-	match the name of a key statement in the file.  The port number
-	specifies the port to connect to.
+> and
+	<TT
+CLASS="OPTION"
+>addresses</TT
+>. The key name must match the
+	name of a key statement in the file.  The port number
+	specifies the port to connect to.  If an <TT
+CLASS="OPTION"
+>addresses</TT
+>
+	clause is supplied these addresses will be used instead of
+	the server name.  Each address can take a optional port.
     </P
 ><P
 >        The <TT
@@ -226,13 +235,13 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN54"
+NAME="AEN56"
 ></A
 ><H2
 >EXAMPLE</H2
 ><PRE
 CLASS="PROGRAMLISTING"
->    options {
+>      options {
         default-server  localhost;
         default-key     samplekey;
       };
@@ -241,10 +250,20 @@ CLASS="PROGRAMLISTING"
         key             samplekey;
       };
 
+      server testserver {
+        key		testkey;
+        addresses	{ localhost port 5353; };
+      };
+
       key samplekey {
         algorithm       hmac-md5;
-        secret          "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+        secret          "6FMfj43Osz4lyb24OIe2iGEz9lf1llJO+lz";
       };
+	
+      key testkey {
+        algorithm	hmac-md5;
+        secret		"R3HI8P6BKw9ZwXwN3VZKuQ==";
+      }
     </PRE
 ><P
 >        In the above example, <B
@@ -257,6 +276,16 @@ CLASS="COMMAND"
 	same name and secret.  The key statement indicates that samplekey
 	uses the HMAC-MD5 algorithm and its secret clause contains the
 	base-64 encoding of the HMAC-MD5 secret enclosed in double quotes.
+    </P
+><P
+>	If <B
+CLASS="COMMAND"
+>rndc -s testserver</B
+> is used then <B
+CLASS="COMMAND"
+>rndc</B
+> will
+	connect to server on localhost port 5353 using the key testkey.
     </P
 ><P
 >        To generate a random secret with <B
@@ -309,7 +338,7 @@ CLASS="USERINPUT"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN72"
+NAME="AEN77"
 ></A
 ><H2
 >NAME SERVER CONFIGURATION</H2
@@ -333,7 +362,7 @@ CLASS="OPTION"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN78"
+NAME="AEN83"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -368,7 +397,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN91"
+NAME="AEN96"
 ></A
 ><H2
 >AUTHOR</H2
