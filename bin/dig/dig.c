@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.13 2004/10/21 01:44:33 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.14 2005/03/31 02:37:23 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -897,7 +897,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			lookup->ns_search_only = state;
 			if (state) {
 				lookup->trace_root = ISC_TRUE;
-				lookup->recurse = ISC_FALSE;
+				lookup->recurse = ISC_TRUE;
 				lookup->identify = ISC_TRUE;
 				lookup->stats = ISC_FALSE;
 				lookup->comments = ISC_FALSE;
