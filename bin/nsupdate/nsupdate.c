@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.119 2002/06/17 02:30:40 marka Exp $ */
+/* $Id: nsupdate.c,v 1.120 2002/08/06 03:21:59 marka Exp $ */
 
 #include <config.h>
 
@@ -84,8 +84,7 @@ extern int h_errno;
 #endif
 
 #define MAXCMD (4 * 1024)
-#define INITDATA (32 * 1024)
-#define MAXDATA (64 * 1024)
+#define MAXWIRE (64 * 1024)
 #define PACKETSIZE ((64 * 1024) - 1)
 #define INITTEXT (2 * 1024)
 #define MAXTEXT (128 * 1024)
@@ -697,12 +696,12 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	    dns_rdata_t *rdata)
 {
 	char *cmdline = *cmdlinep;
-	isc_buffer_t source, *buf = NULL;
+	isc_buffer_t source, *buf = NULL, *newbuf = NULL;
+	isc_region_t r;
 	isc_lex_t *lex = NULL;
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
 	dns_name_t *rn;
-	int bufsz = INITDATA;
 
 	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
@@ -713,33 +712,31 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 			rn = userzone;
 		else
 			rn = origin;
-		do {
-			result = isc_lex_create(mctx, strlen(cmdline), &lex);
-			check_result(result, "isc_lex_create");
-			isc_buffer_init(&source, cmdline, strlen(cmdline));
-			isc_buffer_add(&source, strlen(cmdline));
-			result = isc_lex_openbuffer(lex, &source);
-			check_result(result, "isc_lex_openbuffer");
-			if (buf != NULL)
-				isc_buffer_free(&buf);
-			if (bufsz > MAXDATA) {
-				fprintf(stderr, "could not allocate enough "
-					"space for the rdata\n");
-				exit(1);
-			}
-			result = isc_buffer_allocate(mctx, &buf, bufsz);
+		result = isc_lex_create(mctx, strlen(cmdline), &lex);
+		check_result(result, "isc_lex_create");
+		isc_buffer_init(&source, cmdline, strlen(cmdline));
+		isc_buffer_add(&source, strlen(cmdline));
+		result = isc_lex_openbuffer(lex, &source);
+		check_result(result, "isc_lex_openbuffer");
+		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
+		check_result(result, "isc_buffer_allocate");
+		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
+					    rn, ISC_FALSE, mctx, buf,
+					    &callbacks);
+		isc_lex_destroy(&lex);
+		if (result == ISC_R_SUCCESS) {
+			isc_buffer_usedregion(buf, &r);
+			result = isc_buffer_allocate(mctx, &newbuf, r.length);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_rdata_fromtext(rdata, rdataclass,
-						    rdatatype,
-						    lex, rn, ISC_FALSE, mctx,
-						    buf, &callbacks);
-			bufsz *= 2;
-			isc_lex_destroy(&lex);
-		} while (result == ISC_R_NOSPACE);
-		dns_message_takebuffer(msg, &buf);
-		if (result != ISC_R_SUCCESS) {
+			isc_buffer_putmem(newbuf, r.base, r.length);
+			isc_buffer_usedregion(newbuf, &r);
+			dns_rdata_fromregion(rdata, rdataclass, rdatatype, &r);
+			isc_buffer_free(&buf);
+			dns_message_takebuffer(msg, &newbuf);
+		} else {
 			fprintf(stderr, "invalid rdata format: %s\n",
 				isc_result_totext(result));
+			isc_buffer_free(&buf);
 			return (STATUS_SYNTAX);
 		}
 	} else {
