@@ -90,6 +90,13 @@
 #define LWRES_RECVLENGTH	2048	/* XXXMLG */
 
 /*
+ * XXXMLG
+ */
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK 0x7f000001UL
+#endif
+
+/*
  * NO-OP
  */
 #define LWRES_OPCODE_NOOP		0x00000000U

@@ -142,7 +142,7 @@ ISC_LANG_BEGINDECLS
 typedef struct lwres_buffer lwres_buffer_t;
 struct lwres_buffer {
 	unsigned int		magic;
-	void		       *base;
+	unsigned char 	       *base;
 	/* The following integers are byte offsets from 'base'. */
 	unsigned int		length;
 	unsigned int		used;
