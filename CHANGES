@@ -18,8 +18,8 @@
 			DNAME, would trigger an INSIST(!search.need_cleanup)
 			assertion. [RT #399]
 
- 515.	[bug]		The ssu table was not beinge attached / detached
-			by dns_zone_[sg]etssutable.  [RT#397]
+ 515.	[bug]		The ssu table was not being attached / detached
+			by dns_zone_[sg]etssutable. [RT#397]
 
  514.	[func]		Retry refresh and notify queries if they timeout.
 			[RT #388]
