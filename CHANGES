@@ -1,6 +1,9 @@
 
 	--- 9.1.0b3 released ---
 
+ 666.	[bug]		If a request sent by dig is longer than 512 bytes,
+			use TCP.
+
  661.	[bug]		Certain UDP IXFR requests caused an assertion failure
 			(mpctx->allocated == 0). [RT #355, #394, #623]
 
