@@ -32,4 +32,9 @@
 	typedef long			  int64_t, int64m_t;
 	typedef unsigned long		u_int64_t, u_int64m_t;
 
+	typedef u_int8_t uint8_t;
+	typedef u_int16_t uint16_t;
+	typedef u_int32_t uint32_t;
+	typedef u_int64_t uint64_t;
+
 #endif	/* __BIT_TYPES_DEFINED__ */
