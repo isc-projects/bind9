@@ -4,6 +4,10 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1439.	[bug]		Named could return NOERROR with certain NOTIFY
+			failures.  Return NOTAUTH if the NOTIFY zone is
+			not being served.
+
 1435.	[bug]		zmgr_resume_xfrs() was being called read locked
 			rather than write locked.  zmgr_resume_xfrs()
 			was not being called if the zone was being
