@@ -44,7 +44,7 @@ typedef struct client client_t;
 struct client {
 	dns_name_t		name;
 	ISC_LINK(client_t)	link;
-	dns_adbfind_t	       *handle;
+	dns_adbfind_t	       *find;
 };
 
 isc_mem_t *mctx;
@@ -175,7 +175,7 @@ new_client(void)
 	INSIST(client != NULL);
 	dns_name_init(&client->name, NULL);
 	ISC_LINK_INIT(client, link);
-	client->handle = NULL;
+	client->find = NULL;
 
 	return (client);
 }
@@ -191,7 +191,7 @@ free_client(client_t **c)
 	INSIST(client != NULL);
 	dns_name_free(&client->name, mctx);
 	INSIST(!ISC_LINK_LINKED(client, link));
-	INSIST(client->handle == NULL);
+	INSIST(client->find == NULL);
 
 	isc_mempool_put(cmp, client);
 }
@@ -214,17 +214,17 @@ lookup_callback(isc_task_t *task, isc_event_t *ev)
 	client_t *client;
 
 	client = ev->arg;
-	INSIST(client->handle == ev->sender);
+	INSIST(client->find == ev->sender);
 
 	printf("Task %p got event %p type %08x from %p, client %p\n",
-	       task, ev, ev->type, client->handle, client);
+	       task, ev, ev->type, client->find, client);
 
 	isc_event_free(&ev);
 
 	CLOCK();
 
-	dns_adb_dumphandle(client->handle, stderr);
-	dns_adb_destroyfind(&client->handle);
+	dns_adb_dumpfind(client->find, stderr);
+	dns_adb_destroyfind(&client->find);
 
 	ISC_LIST_UNLINK(clients, client, link);
 	free_client(&client);
@@ -347,14 +347,14 @@ lookup(char *target)
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname,
 				    (DNS_ADBFIND_INET | DNS_ADBFIND_WANTEVENT),
-				    now, &client->handle);
+				    now, &client->find);
 	check_result(result, "dns_adb_lookup()");
-	dns_adb_dumphandle(client->handle, stderr);
+	dns_adb_dumpfind(client->find, stderr);
 
-	if ((client->handle->options & DNS_ADBFIND_WANTEVENT) != 0)
+	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0)
 		ISC_LIST_APPEND(clients, client, link);
 	else {
-		dns_adb_destroyfind(&client->handle);
+		dns_adb_destroyfind(&client->find);
 		free_client(&client);
 	}
 }

@@ -19,7 +19,7 @@
  * Implementation notes
  * --------------------
  *
- * In handles, if task == NULL, no events will be generated, and no events
+ * In finds, if task == NULL, no events will be generated, and no events
  * have been sent.  If task != NULL but taskaction == NULL, an event has been
  * posted but not yet freed.  If neigher are NULL, no event was posted.
  *
@@ -152,7 +152,7 @@ struct dns_adbname {
 	dns_adbnamehooklist_t		v4;
 	dns_adbnamehooklist_t		v6;
 	ISC_LIST(dns_adbfetch_t)	fetches;
-	ISC_LIST(dns_adbfind_t)	handles;
+	ISC_LIST(dns_adbfind_t)		finds;
 	ISC_LINK(dns_adbname_t)		plink;
 };
 
@@ -226,8 +226,8 @@ static inline dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *, dns_name_t *);
 static inline void free_adbzoneinfo(dns_adb_t *, dns_adbzoneinfo_t **);
 static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
 static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
-static inline dns_adbfind_t *new_adbhandle(dns_adb_t *);
-static inline void free_adbhandle(dns_adb_t *, dns_adbfind_t **);
+static inline dns_adbfind_t *new_adbfind(dns_adb_t *);
+static inline void free_adbfind(dns_adb_t *, dns_adbfind_t **);
 static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
 						 dns_adbentry_t *);
 static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
@@ -240,7 +240,7 @@ static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
 static void dump_adb(dns_adb_t *, FILE *);
 static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, dns_adbname_t *);
-static void print_handle_list(FILE *, dns_adbname_t *);
+static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void inc_adb_irefcnt(dns_adb_t *, isc_boolean_t);
 static inline void dec_adb_irefcnt(dns_adb_t *, isc_boolean_t);
@@ -252,7 +252,7 @@ static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static void clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
-static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
+static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t);
 static void check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
 static isc_result_t dbfind_name_v4(dns_adbfind_t *, dns_name_t *,
@@ -266,11 +266,11 @@ static inline void link_name(dns_adb_t *, int, dns_adbname_t *);
 static inline void unlink_name(dns_adb_t *, dns_adbname_t *);
 static void kill_name(dns_adbname_t **, isc_eventtype_t ev);
 
-#define HANDLE_EVENT_SENT	0x00000001
-#define HANDLE_EVENT_FREED	0x00000002
+#define FIND_EVENT_SENT		0x00000001
+#define FIND_EVENT_FREED	0x00000002
 
-#define EVENT_SENT(h)		(((h)->flags & HANDLE_EVENT_SENT) != 0)
-#define EVENT_FREED(h)		(((h)->flags & HANDLE_EVENT_FREED) != 0)
+#define EVENT_SENT(h)		(((h)->flags & FIND_EVENT_SENT) != 0)
+#define EVENT_FREED(h)		(((h)->flags & FIND_EVENT_FREED) != 0)
 
 #define WANTEVENT(x)		(((x) & DNS_ADBFIND_WANTEVENT) != 0)
 #define WANTEMPTYEVENT(x)	(((x) & DNS_ADBFIND_EMPTYEVENT) != 0)
@@ -401,7 +401,7 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev)
 	 * Clean up the name's various lists.  These two are destructive
 	 * in that they will always empty the list.
 	 */
-	clean_handles_at_name(name, ev);
+	clean_finds_at_name(name, ev);
 	clean_namehooks(adb, &name->v4);
 	clean_namehooks(adb, &name->v6);
 
@@ -501,7 +501,7 @@ shutdown_names(dns_adb_t *adb)
 		adb->name_sd[bucket] = ISC_TRUE;
 
 		/*
-		 * Run through the list.  For each name, clean up handles
+		 * Run through the list.  For each name, clean up finds
 		 * found there, and cancel any fetches running.  When
 		 * all the fetches are canceled, the name will destroy
 		 * itself.
@@ -593,57 +593,57 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks)
 static void
 event_free(isc_event_t *event)
 {
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 
 	INSIST(event != NULL);
-	handle = event->destroy_arg;
-	INSIST(DNS_ADBFIND_VALID(handle));
+	find = event->destroy_arg;
+	INSIST(DNS_ADBFIND_VALID(find));
 
-	LOCK(&handle->lock);
-	handle->flags |= HANDLE_EVENT_FREED;
+	LOCK(&find->lock);
+	find->flags |= FIND_EVENT_FREED;
 	event->destroy_arg = NULL;
-	UNLOCK(&handle->lock);
+	UNLOCK(&find->lock);
 }
 
 /*
  * Assumes the name bucket is locked.
  */
 static void
-clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
+clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 {
 	isc_event_t *ev;
 	isc_task_t *task;
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 
-	handle = ISC_LIST_HEAD(name->handles);
-	while (handle != NULL) {
-		LOCK(&handle->lock);
+	find = ISC_LIST_HEAD(name->finds);
+	while (find != NULL) {
+		LOCK(&find->lock);
 
 		/*
-		 * Unlink the handle from the name, letting the caller
+		 * Unlink the find from the name, letting the caller
 		 * call dns_adb_destroyfind() on it to clean it up later.
 		 */
-		ISC_LIST_UNLINK(name->handles, handle, plink);
-		handle->adbname = NULL;
-		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
+		ISC_LIST_UNLINK(name->finds, find, plink);
+		find->adbname = NULL;
+		find->name_bucket = DNS_ADB_INVALIDBUCKET;
 
-		INSIST(!EVENT_SENT(handle));
+		INSIST(!EVENT_SENT(find));
 
-		ev = &handle->event;
+		ev = &find->event;
 		task = ev->sender;
-		ev->sender = handle;
+		ev->sender = find;
 		ev->type = evtype;
 		ev->destroy = event_free;
-		ev->destroy_arg = handle;
+		ev->destroy_arg = find;
 
-		DP(("Sending event %p to task %p for handle %p\n",
-		    ev, task, handle));
+		DP(("Sending event %p to task %p for find %p\n",
+		    ev, task, find));
 
 		isc_task_sendanddetach(&task, &ev);
 
-		UNLOCK(&handle->lock);
+		UNLOCK(&find->lock);
 
-		handle = ISC_LIST_HEAD(name->handles);
+		find = ISC_LIST_HEAD(name->finds);
 	}
 }
 
@@ -782,7 +782,7 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname)
 	ISC_LIST_INIT(name->v4);
 	ISC_LIST_INIT(name->v6);
 	ISC_LIST_INIT(name->fetches);
-	ISC_LIST_INIT(name->handles);
+	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
 
 	return (name);
@@ -799,7 +799,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 
 	INSIST(!HAVE_INET(n));
 	INSIST(ISC_LIST_EMPTY(n->fetches));
-	INSIST(ISC_LIST_EMPTY(n->handles));
+	INSIST(ISC_LIST_EMPTY(n->finds));
 	INSIST(!ISC_LINK_LINKED(n, plink));
 	INSIST(n->lock_bucket == DNS_ADB_INVALIDBUCKET);
 	INSIST(n->adb == adb);
@@ -932,7 +932,7 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 }
 
 static inline dns_adbfind_t *
-new_adbhandle(dns_adb_t *adb)
+new_adbfind(dns_adb_t *adb)
 {
 	dns_adbfind_t *h;
 	isc_result_t result;
@@ -962,7 +962,7 @@ new_adbhandle(dns_adb_t *adb)
 	result = isc_mutex_init(&h->lock);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init failed in new_adbhandle()");
+				 "isc_mutex_init failed in new_adbfind()");
 		isc_mempool_put(adb->ahmp, h);
 		return (NULL);
 	}
@@ -1037,24 +1037,24 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 }
 
 static inline void
-free_adbhandle(dns_adb_t *adb, dns_adbfind_t **handlep)
+free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp)
 {
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 
-	INSIST(handlep != NULL && DNS_ADBFIND_VALID(*handlep));
-	handle = *handlep;
-	*handlep = NULL;
+	INSIST(findp != NULL && DNS_ADBFIND_VALID(*findp));
+	find = *findp;
+	*findp = NULL;
 
-	INSIST(!HAVE_ADDRS(handle));
-	INSIST(!ISC_LINK_LINKED(handle, publink));
-	INSIST(!ISC_LINK_LINKED(handle, plink));
-	INSIST(handle->name_bucket == DNS_ADB_INVALIDBUCKET);
-	INSIST(handle->adbname == NULL);
+	INSIST(!HAVE_ADDRS(find));
+	INSIST(!ISC_LINK_LINKED(find, publink));
+	INSIST(!ISC_LINK_LINKED(find, plink));
+	INSIST(find->name_bucket == DNS_ADB_INVALIDBUCKET);
+	INSIST(find->adbname == NULL);
 
-	handle->magic = 0;
+	find->magic = 0;
 
-	isc_mutex_destroy(&handle->lock);
-	isc_mempool_put(adb->ahmp, handle);
+	isc_mutex_destroy(&find->lock);
+	isc_mempool_put(adb->ahmp, find);
 }
 
 /*
@@ -1217,7 +1217,7 @@ entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone,
 }
 
 static void
-copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
+copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 		    dns_adbname_t *name, dns_name_t *zone, isc_stdtime_t now)
 {
 	dns_adbnamehook_t *namehook;
@@ -1226,7 +1226,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
 
 	bucket = DNS_ADB_INVALIDBUCKET;
 
-	if (handle->options & DNS_ADBFIND_INET) {
+	if (find->options & DNS_ADBFIND_INET) {
 		namehook = ISC_LIST_HEAD(name->v4);
 		while (namehook != NULL) {
 			bucket = namehook->entry->lock_bucket;
@@ -1236,14 +1236,14 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
 				goto nextv4;
 			addrinfo = new_adbaddrinfo(adb, namehook->entry);
 			if (addrinfo == NULL) {
-				handle->partial_result |= DNS_ADBFIND_INET;
+				find->partial_result |= DNS_ADBFIND_INET;
 				goto out;
 			}
 			/*
-			 * Found a valid entry.  Add it to the handle's list.
+			 * Found a valid entry.  Add it to the find's list.
 			 */
 			inc_entry_refcnt(adb, namehook->entry, ISC_FALSE);
-			ISC_LIST_APPEND(handle->list, addrinfo, publink);
+			ISC_LIST_APPEND(find->list, addrinfo, publink);
 			addrinfo = NULL;
 		nextv4:
 			UNLOCK(&adb->entrylocks[bucket]);
@@ -1252,7 +1252,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
 		}
 	}
 
-	if (handle->options & DNS_ADBFIND_INET) {
+	if (find->options & DNS_ADBFIND_INET) {
 		namehook = ISC_LIST_HEAD(name->v6);
 		while (namehook != NULL) {
 			bucket = namehook->entry->lock_bucket;
@@ -1262,14 +1262,14 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *handle,
 				goto nextv6;
 			addrinfo = new_adbaddrinfo(adb, namehook->entry);
 			if (addrinfo == NULL) {
-				handle->partial_result |= DNS_ADBFIND_INET;
+				find->partial_result |= DNS_ADBFIND_INET;
 				goto out;
 			}
 			/*
-			 * Found a valid entry.  Add it to the handle's list.
+			 * Found a valid entry.  Add it to the find's list.
 			 */
 			inc_entry_refcnt(adb, namehook->entry, ISC_FALSE);
-			ISC_LIST_APPEND(handle->list, addrinfo, publink);
+			ISC_LIST_APPEND(find->list, addrinfo, publink);
 			addrinfo = NULL;
 		nextv6:
 			UNLOCK(&adb->entrylocks[bucket]);
@@ -1466,7 +1466,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	MPINIT(dns_adbnamehook_t, adb->nhmp, ISC_TRUE, "adbnamehook");
 	MPINIT(dns_adbzoneinfo_t, adb->zimp, ISC_TRUE, "adbzoneinfo");
 	MPINIT(dns_adbentry_t, adb->emp, ISC_TRUE, "adbentry");
-	MPINIT(dns_adbfind_t, adb->ahmp, ISC_TRUE, "adbhandle");
+	MPINIT(dns_adbfind_t, adb->ahmp, ISC_TRUE, "adbfind");
 	MPINIT(dns_adbaddrinfo_t, adb->aimp, ISC_TRUE, "adbaddrinfo");
 	MPINIT(dns_adbfetch_t, adb->afmp, ISC_TRUE, "adbfetch");
 
@@ -1554,9 +1554,9 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int options, isc_stdtime_t now,
-		   dns_adbfind_t **handlep)
+		   dns_adbfind_t **findp)
 {
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
 	isc_result_t result;
@@ -1569,7 +1569,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 	REQUIRE(name != NULL);
 	REQUIRE(zone != NULL);
-	REQUIRE(handlep != NULL && *handlep == NULL);
+	REQUIRE(findp != NULL && *findp == NULL);
 
 	if (WANTEVENT(options)) {
 		REQUIRE(task != NULL);
@@ -1603,14 +1603,14 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 *	list and remember to tell the caller that there will be
 	 *	more info coming later.
 	 */
-	handle = new_adbhandle(adb);
-	if (handle == NULL)
+	find = new_adbfind(adb);
+	if (find == NULL)
 		return (ISC_R_NOMEMORY);
 
 	/*
 	 * Remember what types of addresses we are interested in.
 	 */
-	handle->options = options;
+	find->options = options;
 
 	/*
 	 * Try to see if we know anything about this name at all.
@@ -1619,7 +1619,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
 		DP(("lookup:  returning ISC_R_SHUTTINGDOWN\n"));
-		free_adbhandle(adb, &handle);
+		free_adbfind(adb, &find);
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
 	}
@@ -1630,7 +1630,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (adbname == NULL) {
 		adbname = new_adbname(adb, name);
 		if (adbname == NULL) {
-			free_adbhandle(adb, &handle);
+			free_adbfind(adb, &find);
 			result = ISC_R_NOMEMORY;
 			goto out;
 		}
@@ -1649,7 +1649,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (!HAVE_INET(adbname)
 	    && !QUERY_INET(adbname->query_pending)
 	    && WANT_INET(wanted_addresses)) {
-		result = dbfind_name_v4(handle, zone, adbname, bucket, now);
+		result = dbfind_name_v4(find, zone, adbname, bucket, now);
 		if (result == ISC_R_SUCCESS) {
 			DP(("lookup:  Found v4 for name %p in db\n", adbname));
 			goto v6;
@@ -1678,20 +1678,20 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 * Run through the name and copy out the bits we are
 	 * interested in.
 	 */
-	copy_namehook_lists(adb, handle, adbname, zone, now);
+	copy_namehook_lists(adb, find, adbname, zone, now);
 
 	/*
 	 * Attach to the name's query list if there are queries
 	 * already running, and we have been asked to.
 	 */
-	if (WANTEVENT(handle->options)
+	if (WANTEVENT(find->options)
 	    && QUERYPENDING(wanted_addresses, adbname->query_pending)
-	    && (WANTEMPTYEVENT(handle->options) ? HAVE_ADDRS(handle) : 1)) {
-		handle->adbname = adbname;
-		handle->name_bucket = bucket;
-		ISC_LIST_APPEND(adbname->handles, handle, plink);
+	    && (WANTEMPTYEVENT(find->options) ? HAVE_ADDRS(find) : 1)) {
+		find->adbname = adbname;
+		find->name_bucket = bucket;
+		ISC_LIST_APPEND(adbname->finds, find, plink);
 		attach_to_task = ISC_TRUE;
-		handle->query_pending = (adbname->query_pending
+		find->query_pending = (adbname->query_pending
 					 & wanted_addresses);
 	} else {
 		/*
@@ -1700,25 +1700,25 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * the event was sent and freed, so dns_adb_destroyfind() will
 		 * do the right thing.
 		 */
-		handle->options &= ~DNS_ADBFIND_WANTEVENT;
-		handle->flags |= (HANDLE_EVENT_SENT | HANDLE_EVENT_FREED);
+		find->options &= ~DNS_ADBFIND_WANTEVENT;
+		find->flags |= (FIND_EVENT_SENT | FIND_EVENT_FREED);
 	}
 
-	handle->partial_result |= (adbname->partial_result & wanted_addresses);
+	find->partial_result |= (adbname->partial_result & wanted_addresses);
 	result = ISC_R_SUCCESS;
 
  out:
-	if (handle != NULL) {
-		*handlep = handle;
+	if (find != NULL) {
+		*findp = find;
 
 		if (attach_to_task) {
 			isc_task_t *taskp;
 
 			taskp = NULL;
 			isc_task_attach(task, &taskp);
-			handle->event.sender = taskp;
-			handle->event.action = action;
-			handle->event.arg = arg;
+			find->event.sender = taskp;
+			find->event.action = action;
+			find->event.arg = arg;
 		}
 	}
 
@@ -1901,114 +1901,114 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 }
 
 void
-dns_adb_destroyfind(dns_adbfind_t **handlep)
+dns_adb_destroyfind(dns_adbfind_t **findp)
 {
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 	dns_adbentry_t *entry;
 	dns_adbaddrinfo_t *ai;
 	int bucket;
 	dns_adb_t *adb;
 
-	REQUIRE(handlep != NULL && DNS_ADBFIND_VALID(*handlep));
-	handle = *handlep;
-	*handlep = NULL;
+	REQUIRE(findp != NULL && DNS_ADBFIND_VALID(*findp));
+	find = *findp;
+	*findp = NULL;
 
-	LOCK(&handle->lock);
+	LOCK(&find->lock);
 
-	DP(("dns_adb_done on handle %p\n", handle));
+	DP(("dns_adb_done on find %p\n", find));
 
-	adb = handle->adb;
+	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	REQUIRE(EVENT_FREED(handle));
+	REQUIRE(EVENT_FREED(find));
 
-	bucket = handle->name_bucket;
+	bucket = find->name_bucket;
 	INSIST(bucket == DNS_ADB_INVALIDBUCKET);
 
-	UNLOCK(&handle->lock);
+	UNLOCK(&find->lock);
 
 	/*
-	 * The handle doesn't exist on any list, and nothing is locked.
-	 * Return the handle to the memory pool, and decrement the adb's
+	 * The find doesn't exist on any list, and nothing is locked.
+	 * Return the find to the memory pool, and decrement the adb's
 	 * reference count.
 	 */
-	ai = ISC_LIST_HEAD(handle->list);
+	ai = ISC_LIST_HEAD(find->list);
 	while (ai != NULL) {
-		ISC_LIST_UNLINK(handle->list, ai, publink);
+		ISC_LIST_UNLINK(find->list, ai, publink);
 		entry = ai->entry;
 		ai->entry = NULL;
 		ai->sockaddr = NULL;
 		INSIST(DNS_ADBENTRY_VALID(entry));
 		dec_entry_refcnt(adb, entry, ISC_TRUE);
 		free_adbaddrinfo(adb, &ai);
-		ai = ISC_LIST_HEAD(handle->list);
+		ai = ISC_LIST_HEAD(find->list);
 	}
 
 	/*
-	 * WARNING:  The handle is freed with the adb locked.  This is done
-	 * to avoid a race condition where we free the handle, some other
+	 * WARNING:  The find is freed with the adb locked.  This is done
+	 * to avoid a race condition where we free the find, some other
 	 * thread tests to see if it should be destroyed, detects it should
 	 * be, destroys it, and then we try to lock it for our check, but the
 	 * lock is destroyed.
 	 */
 	LOCK(&adb->lock);
-	free_adbhandle(adb, &handle);
+	free_adbfind(adb, &find);
 	check_exit(adb);
 	UNLOCK(&adb->lock);
 }
 
 void
-dns_adb_cancelfind(dns_adbfind_t *handle)
+dns_adb_cancelfind(dns_adbfind_t *find)
 {
 	isc_event_t *ev;
 	isc_task_t *task;
 	dns_adb_t *adb;
 	int bucket;
 
-	LOCK(&handle->lock);
+	LOCK(&find->lock);
 
-	DP(("dns_adb_cancelfind on handle %p\n", handle));
+	DP(("dns_adb_cancelfind on find %p\n", find));
 
-	adb = handle->adb;
+	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
 
-	REQUIRE(!EVENT_FREED(handle));
-	REQUIRE(WANTEVENT(handle->options));
+	REQUIRE(!EVENT_FREED(find));
+	REQUIRE(WANTEVENT(find->options));
 
-	bucket = handle->name_bucket;
+	bucket = find->name_bucket;
 	if (bucket == DNS_ADB_INVALIDBUCKET)
 		goto cleanup;
 
 	/*
-	 * We need to get the adbname's lock to unlink the handle.
+	 * We need to get the adbname's lock to unlink the find.
 	 */
-	violate_locking_hierarchy(&handle->lock, &adb->namelocks[bucket]);
-	bucket = handle->name_bucket;
+	violate_locking_hierarchy(&find->lock, &adb->namelocks[bucket]);
+	bucket = find->name_bucket;
 	if (bucket != DNS_ADB_INVALIDBUCKET) {
-		ISC_LIST_UNLINK(handle->adbname->handles, handle, plink);
-		handle->adbname = NULL;
-		handle->name_bucket = DNS_ADB_INVALIDBUCKET;
+		ISC_LIST_UNLINK(find->adbname->finds, find, plink);
+		find->adbname = NULL;
+		find->name_bucket = DNS_ADB_INVALIDBUCKET;
 	}
 	UNLOCK(&adb->namelocks[bucket]);
 	bucket = DNS_ADB_INVALIDBUCKET;
 
  cleanup:
 
-	if (!EVENT_SENT(handle)) {
-		ev = &handle->event;
+	if (!EVENT_SENT(find)) {
+		ev = &find->event;
 		task = ev->sender;
-		ev->sender = handle;
+		ev->sender = find;
 		ev->type = DNS_EVENT_ADBCANCELED;
 		ev->destroy = event_free;
-		ev->destroy_arg = handle;
+		ev->destroy_arg = find;
 
-		DP(("Sending event %p to task %p for handle %p\n",
-		    ev, task, handle));
+		DP(("Sending event %p to task %p for find %p\n",
+		    ev, task, find));
 
 		isc_task_sendanddetach(&task, &ev);
 	}
 
-	UNLOCK(&handle->lock);
+	UNLOCK(&find->lock);
 }
 
 void
@@ -2040,7 +2040,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 	const char *tmpp;
 
 	fprintf(f, "ADB %p DUMP:\n", adb);
-	fprintf(f, "erefcnt %u, irefcnt %u, handles out %u\n",
+	fprintf(f, "erefcnt %u, irefcnt %u, finds out %u\n",
 		adb->erefcnt, adb->irefcnt,
 		isc_mempool_getallocated(adb->nhmp));
 
@@ -2068,7 +2068,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			fprintf(f, "\n");
 			print_namehook_list(f, name);
 			print_fetch_list(f, name);
-			print_handle_list(f, name);
+			print_find_list(f, name);
 			fprintf(f, "\n");
 
 			name = ISC_LIST_NEXT(name, plink);
@@ -2129,7 +2129,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 }
 
 void
-dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f)
+dns_adb_dumpfind(dns_adbfind_t *find, FILE *f)
 {
 	char tmp[512];
 	const char *tmpp;
@@ -2141,16 +2141,16 @@ dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f)
 	 * want to dump out the name and/or entries too.
 	 */
 
-	LOCK(&handle->lock);
+	LOCK(&find->lock);
 
-	fprintf(f, "Handle %p\n", handle);
+	fprintf(f, "Find %p\n", find);
 	fprintf(f, "\tqpending %08x partial %08x options %08x\n",
-		handle->query_pending, handle->partial_result,
-		handle->options);
+		find->query_pending, find->partial_result,
+		find->options);
 	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
-		handle->name_bucket, handle->adbname, handle->event.sender);
+		find->name_bucket, find->adbname, find->event.sender);
 
-	ai = ISC_LIST_HEAD(handle->list);
+	ai = ISC_LIST_HEAD(find->list);
 	if (ai != NULL)
 		fprintf(f, "\tAddresses:\n");
 	while (ai != NULL) {
@@ -2178,7 +2178,7 @@ dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f)
 		ai = ISC_LIST_NEXT(ai, publink);
 	}
 
-	UNLOCK(&handle->lock);
+	UNLOCK(&find->lock);
 }
 
 static void
@@ -2221,19 +2221,19 @@ print_fetch_list(FILE *f, dns_adbname_t *n)
 }
 
 static void
-print_handle_list(FILE *f, dns_adbname_t *name)
+print_find_list(FILE *f, dns_adbname_t *name)
 {
-	dns_adbfind_t *handle;
+	dns_adbfind_t *find;
 
-	handle = ISC_LIST_HEAD(name->handles);
-	while (handle != NULL) {
-		fprintf(f, "\t\tHandle %p\n", handle);
-		handle = ISC_LIST_NEXT(handle, plink);
+	find = ISC_LIST_HEAD(name->finds);
+	while (find != NULL) {
+		fprintf(f, "\t\tFind %p\n", find);
+		find = ISC_LIST_NEXT(find, plink);
 	}
 }
 
 /*
- * On entry, "bucket" refers to a locked name bucket, "handle" is not NULL,
+ * On entry, "bucket" refers to a locked name bucket, "find" is not NULL,
  * and "name" is the name we are looking for.  We will allocate an adbname
  * and return a pointer to it in *adbnamep.
  *
@@ -2242,7 +2242,7 @@ print_handle_list(FILE *f, dns_adbname_t *name)
  * perhaps some fetches have been started.
  */
 static isc_result_t
-dbfind_name_v4(dns_adbfind_t *handle, dns_name_t *zone,
+dbfind_name_v4(dns_adbfind_t *find, dns_name_t *zone,
 	       dns_adbname_t *adbname, int bucket, isc_stdtime_t now)
 {
 	isc_result_t result;
@@ -2250,7 +2250,7 @@ dbfind_name_v4(dns_adbfind_t *handle, dns_name_t *zone,
 	dns_rdataset_t rdataset;
 	dns_adb_t *adb;
 
-	INSIST(DNS_ADBFIND_VALID(handle));
+	INSIST(DNS_ADBFIND_VALID(find));
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
@@ -2272,7 +2272,13 @@ dbfind_name_v4(dns_adbfind_t *handle, dns_name_t *zone,
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
 	case DNS_R_SUCCESS:
-		result = import_rdatasetv4(adbname, &rdataset, now);
+		/*
+		 * Found in the database.  Even if we can't copy out
+		 * any information, return success, or else a fetch
+		 * will be made, which will only make things worse.
+		 */
+		(void)import_rdatasetv4(adbname, &rdataset, now);
+		result = ISC_R_SUCCESS;
 		break;
 	}
 
@@ -2354,7 +2360,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 
 	/*
 	 * Did we get back junk?  If so, and there are no more fetches
-	 * sitting out there, tell all the handles about it.
+	 * sitting out there, tell all the finds about it.
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
 		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
@@ -2377,7 +2383,7 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	isc_event_free(&ev);
 
 	if (EMPTY(name->fetches)) {
-		clean_handles_at_name(name, ev_status);
+		clean_finds_at_name(name, ev_status);
 		name->query_pending &= ~DNS_ADBFIND_INET;
 	}
 

@@ -109,8 +109,8 @@ typedef struct dns_adbname	dns_adbname_t;
 
 /* dns_adbfind_t
  *
- * The handle into our internal state of what is going on, where, when...
- * This is returned to the user as a handle, so requests can be canceled,
+ * The find into our internal state of what is going on, where, when...
+ * This is returned to the user as a find, so requests can be canceled,
  * etc.
  *
  * On return, the client can safely use "list", and can reorder the list.
@@ -227,7 +227,7 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
 		   unsigned int families, isc_stdtime_t now,
-		   dns_adbfind_t **handle);
+		   dns_adbfind_t **find);
 /*
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -262,7 +262,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  *	zone != NULL and *zone be a valid dns_name_t.
  *
- *	handle != NULL && *handle == NULL.
+ *	find != NULL && *find == NULL.
  *
  * Returns:
  *
@@ -329,19 +329,19 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
  */
 
 void
-dns_adb_cancelfind(dns_adbfind_t *handle);
+dns_adb_cancelfind(dns_adbfind_t *find);
 /*
  * Cancels the find, and sends the event off to the caller.
  *
- * It is an error to call dns_adb_cancelfind() on a handle where
+ * It is an error to call dns_adb_cancelfind() on a find where
  * no event is wanted, or will ever be sent.
  *
  * Requires:
  *
- *	'handle' be a valid dns_adbfind_t pointer.
+ *	'find' be a valid dns_adbfind_t pointer.
  *
  *	events would have been posted to the task.  This can be checked
- *	with (handle->options & DNS_ADBFIND_WANTEVENT).
+ *	with (find->options & DNS_ADBFIND_WANTEVENT).
  *
  * Ensures:
  *
@@ -351,18 +351,18 @@ dns_adb_cancelfind(dns_adbfind_t *handle);
  *
  *	It is possible that the real completion event was posted just
  *	before the dns_adb_cancelfind() call was made.  In this case,
- *	dns_adb_cancelfind() will do nothing.  The event handler needs
- *	to be prepared to handle this situation.
+ *	dns_adb_cancelfind() will do nothing.  The event findr needs
+ *	to be prepared to find this situation.
  */
 
 void
-dns_adb_destroyfind(dns_adbfind_t **handle);
+dns_adb_destroyfind(dns_adbfind_t **find);
 /*
- * Destroys the handle reference.
+ * Destroys the find reference.
  *
  * Requires:
  *
- *	'handle' != NULL and *handle be valid dns_adbfind_t pointer.
+ *	'find' != NULL and *find be valid dns_adbfind_t pointer.
  *
  * Ensures:
  *
@@ -372,7 +372,7 @@ dns_adb_destroyfind(dns_adbfind_t **handle);
  * Note:
  *
  *	This can only be called after the event was delivered for a
- *	handle.  Additionally, the event MUST have been freed via
+ *	find.  Additionally, the event MUST have been freed via
  *	isc_event_free() BEFORE this function is called.
  */
 
@@ -390,15 +390,15 @@ dns_adb_dump(dns_adb_t *adb, FILE *f);
  */
 
 void
-dns_adb_dumphandle(dns_adbfind_t *handle, FILE *f);
+dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
 /*
- * Dump the data associated with a handle.
+ * Dump the data associated with a find.
  *
  * Requires:
  *
  *	adb be valid.
  *
- *	adbhandle be valid.
+ *	adbfind be valid.
  *
  *	f != NULL, and be a file open for writing.
  */
@@ -473,7 +473,7 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 /*
  * XXX Need functions/macros to:
  *
- *	Remove an address from a handle's linked list.  This is needed
+ *	Remove an address from a find's linked list.  This is needed
  *	because the data pointed to by a dns_adbaddr_t is reference counted.
  *
  *	set/clear various flags.  (Which flags?)
