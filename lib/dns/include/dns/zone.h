@@ -468,7 +468,8 @@ dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 /*
  *
  */
-isc_result_t dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap);
+isc_result_t dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
+			       dns_c_view_t *view, void *uap);
 /*
  * 
  */
