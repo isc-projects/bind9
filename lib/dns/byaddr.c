@@ -17,7 +17,11 @@
 
 #include <config.h>
 
+#include <stdio.h>
+#include <string.h>
+
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/error.h>
 #include <isc/result.h>
 #include <isc/task.h>
@@ -46,6 +50,7 @@ struct dns_byaddr {
 	isc_mutex_t		lock;
 	dns_fixedname_t		name;
 	/* Locked by lock. */
+	unsigned int		options;
 	isc_task_t *		task;
 	dns_view_t *		view;
 	dns_byaddrevent_t *	event;
@@ -63,18 +68,69 @@ struct dns_byaddr {
 
 static void byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event);
 
+static char hex_digits[] = {
+	'0', '1', '2', '3', '4', '5', '6', '7', 
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+};
+
 static inline isc_result_t
 address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
+	char textname[128];
+	unsigned char *bytes;
+	int i;
+	char *cp;
+	isc_buffer_t buffer;
+	unsigned int len;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
 	 */
 
-	/* XXX */
-	(void)address;
+	/*
+	 * We create the text representation and then convert to a
+	 * dns_name_t.  This is not maximally efficient, but it keeps all
+	 * of the knowledge of wire format in the dns_name_ routines.
+	 */
 
 	dns_fixedname_init(&byaddr->name);
-	return (DNS_R_NOTIMPLEMENTED);
+	bytes = (unsigned char *)(&address->type);
+	if (address->family == AF_INET) {
+		(void)sprintf(textname, "%u.%u.%u.%u.in-addr.arpa.",
+			      (bytes[3] & 0xff),
+			      (bytes[2] & 0xff),
+			      (bytes[1] & 0xff),
+			      (bytes[0] & 0xff));
+	} else if (address->family == AF_INET6) {
+		if ((byaddr->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
+			cp = textname;
+			for (i = 15; i >= 0; i--) {
+				*cp++ = hex_digits[bytes[i] & 0x0f];
+				*cp++ = '.';
+				*cp++ = hex_digits[(bytes[i] >> 4) & 0x0f];
+				*cp++ = '.';
+			}
+			strcpy(cp, "ip6.int.");
+		} else {
+			cp = textname;
+			*cp++ = '\\';
+			*cp++ = '[';
+			*cp++ = 'x';
+			for (i = 0; i < 16; i += 2) {
+				*cp++ = hex_digits[(bytes[i] >> 4) & 0x0f];
+				*cp++ = hex_digits[bytes[i] & 0x0f];
+				*cp++ = hex_digits[(bytes[i+1] >> 4) & 0x0f];
+				*cp++ = hex_digits[bytes[i+1] & 0x0f];
+			}
+			strcpy(cp, "].ip6.int.");
+		}
+	} else
+		return (DNS_R_NOTIMPLEMENTED);
+
+	len = (unsigned int)strlen(textname);
+	isc_buffer_init(&buffer, textname, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&buffer, len);
+	return (dns_name_fromtext(dns_fixedname_name(&byaddr->name),
+				  &buffer, dns_rootname, ISC_FALSE, NULL));
 }
 
 static inline isc_result_t
@@ -95,9 +151,9 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddr_t *byaddr = event->arg;
 	dns_fetchevent_t *fevent;
 
+	REQUIRE(event->type == DNS_EVENT_FETCHDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->task == task);
-	REQUIRE(event->type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
 	REQUIRE(fevent->fetch == byaddr->fetch);
 
@@ -107,8 +163,6 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 static inline isc_result_t
 start_fetch(dns_byaddr_t *byaddr) {
 	isc_result_t result;
-	dns_rdataset_t nameservers;
-	dns_fixedname_t foundname;
 
 	/*
 	 * The caller must be holding the byaddr's lock.
@@ -116,31 +170,10 @@ start_fetch(dns_byaddr_t *byaddr) {
 
 	REQUIRE(byaddr->fetch == NULL);
 
-	/*
-	 * XXXRTH  Calling dns_view_findzonecut() is suboptimal...
-	 *
-	 *	First of all, it would be better if dns_view_find() could
-	 *	give us the delegation, so we don't have to this extra
-	 *	search.
-	 *	
-	 *	Secondly, the client might be using a forwarding-only
-	 *	resolver.  The resolver API needs to be changed to allow
-	 *	nameservers not to be specified, in which case the resolver
-	 *	can do its own dns_view_findzonecut() (if appropriate).
-	 */
-	dns_fixedname_init(&foundname);
-	dns_rdataset_init(&nameservers);
-	result = dns_view_findzonecut(byaddr->view,
-				      dns_fixedname_name(&byaddr->name),
-				      dns_fixedname_name(&foundname), 0,
-				      0, ISC_TRUE, &nameservers, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 	result = dns_resolver_createfetch(byaddr->view->resolver,
 					  dns_fixedname_name(&byaddr->name),
 					  dns_rdatatype_ptr,
-					  dns_fixedname_name(&foundname),
-					  &nameservers, NULL, 0,
+					  NULL, NULL, NULL, 0,
 					  byaddr->task, fetch_done, byaddr,
 					  &byaddr->rdataset, NULL,
 					  &byaddr->fetch);
@@ -188,6 +221,8 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 				 * Launch a fetch.
 				 */
 				result = start_fetch(byaddr);
+				if (result == ISC_R_SUCCESS)
+					goto done;
 			}
 		} else {
 			result = event->result;
@@ -268,6 +303,7 @@ byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event) {
 			send_event = ISC_TRUE;
 		}
 
+	done:
 		if (dns_rdataset_isassociated(&byaddr->rdataset))
 			dns_rdataset_disassociate(&byaddr->rdataset);
 
@@ -308,12 +344,12 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	dns_byaddr_t *byaddr;
 	isc_event_t *ievent;
 
-	(void)options;
-
 	byaddr = isc_mem_get(mctx, sizeof *byaddr);
 	if (byaddr == NULL)
 		return (ISC_R_NOMEMORY);
 	byaddr->mctx = mctx;
+	byaddr->options = options;
+
 	byaddr->event = (dns_byaddrevent_t *)
 		isc_event_allocate(mctx, NULL, DNS_EVENT_BYADDRDONE,
 				   action, arg, sizeof *byaddr->event);
@@ -321,9 +357,12 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 		result = ISC_R_NOMEMORY;
 		goto cleanup_byaddr;
 	}
-	isc_task_attach(task, &byaddr->task);
+	byaddr->event->byaddr = byaddr;
 	byaddr->event->result = ISC_R_FAILURE;
 	ISC_LIST_INIT(byaddr->event->names);
+
+	byaddr->task = NULL;
+	isc_task_attach(task, &byaddr->task);
 
 	result = isc_mutex_init(&byaddr->lock);
 	if (result != ISC_R_SUCCESS)
