@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.40 2005/03/15 01:40:52 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.41 2005/03/16 03:51:23 marka Exp $ */
 
 #include <config.h>
 
@@ -2270,7 +2270,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t iresult;
 	isc_interval_t interval;
-	dns_fixedname_t qdomain;
+	dns_fixedname_t fixed;
 	unsigned int findoptions = 0;
 
 	/*
@@ -2320,8 +2320,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;
-		result = dns_fwdtable_find(fctx->res->view->fwdtable,
-					   &fctx->name, &forwarders);
+		dns_fixedname_init(&fixed);
+		domain = dns_fixedname_name(&fixed);
+		result = dns_fwdtable_find2(fctx->res->view->fwdtable,
+					    &fctx->name, domain, &forwarders);
 		if (result == ISC_R_SUCCESS)
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 
@@ -2333,27 +2335,22 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			 */
 			if (type == dns_rdatatype_key)
 				findoptions |= DNS_DBFIND_NOEXACT;
-			dns_fixedname_init(&qdomain);
-			result = dns_view_findzonecut(res->view, name,
-					      dns_fixedname_name(&qdomain), 0,
-						      findoptions, ISC_TRUE,
+			result = dns_view_findzonecut(res->view, name, domain,
+						      0, findoptions, ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_name;
-			result = dns_name_dup(dns_fixedname_name(&qdomain),
-					      res->mctx, &fctx->domain);
+			result = dns_name_dup(domain, res->mctx, &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
 				dns_rdataset_disassociate(&fctx->nameservers);
 				goto cleanup_name;
 			}
 		} else {
 			/*
-			 * We're in forward-only mode.  Set the query domain
-			 * to ".".
+			 * We're in forward-only mode.  Set the query domain.
 			 */
-			result = dns_name_dup(dns_rootname, res->mctx,
-					      &fctx->domain);
+			result = dns_name_dup(domain, res->mctx, &fctx->domain);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_name;
 		}
