@@ -332,7 +332,7 @@ main(int argc, char *argv[])
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(80);
 	sockaddr.type.sin.sin_family = AF_INET;
-	INSIST(inet_aton("204.152.184.97", &sockaddr.type.sin.sin_addr) == 1);
+	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.184.97");
 	addrlen = sizeof(struct sockaddr_in);
 	INSIST(isc_socket_create(socketmgr, isc_socket_tcp,
 				 &so2) == ISC_R_SUCCESS);
