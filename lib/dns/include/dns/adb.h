@@ -263,6 +263,19 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 
 
 isc_result_t
+dns_adb_refresh(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
+		void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
+		dns_adbhandle_t *handle);
+/*
+ * Refresh addresses associated with a handle.
+ *
+ * Requires:
+ *	Same restrictions and behavior as above, other than:
+ *		'handle' is a valid dns_adbhandle_t.
+ */
+
+
+isc_result_t
 dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
 /*
  * Insert a host name and address into the database.  A new (blank, no

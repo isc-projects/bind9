@@ -522,6 +522,23 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	REQUIRE(zone != NULL);
 	REQUIRE(handle != NULL && *handle == NULL);
 
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_adb_refresh(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
+		void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
+		dns_adbhandle_t *handle)
+{
+	REQUIRE(DNS_ADB_VALID(adb));
+	if (task != NULL) {
+		REQUIRE(action != NULL);
+	}
+	REQUIRE(nsrdataset != NULL);
+	REQUIRE(zone != NULL);
+	REQUIRE(DNS_ADBHANDLE_VALID(handle));
+
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
