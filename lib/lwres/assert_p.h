@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: assert_p.h,v 1.5 2000/06/22 21:59:22 tale Exp $ */
+/* $Id: assert_p.h,v 1.6 2000/06/23 03:11:01 tale Exp $ */
 
 #ifndef LWRES_ASSERT_P_H
 #define LWRES_ASSERT_P_H 1
 
-#include <assert.h>
+#include <assert.h>		/* Required for assert() prototype. */
 
 #define REQUIRE(x)		assert(x)
 #define INSIST(x)		assert(x)
