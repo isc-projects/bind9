@@ -32,3 +32,4 @@ zone_test
 zone2_test
 adb_test
 nconf_test
+tkey_test
