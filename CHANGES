@@ -1,3 +1,6 @@
+1425.	[port]		linux/libbind: define __USE_MISC when testing *_r()
+			function prototypes in netdb.h.  [RT #4921]
+
 1424.	[bug]		EDNS version not being correctly printed.
 
 1423.	[contrib]	queryperf: added A6 and SRV.
