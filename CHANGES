@@ -1,3 +1,9 @@
+1439.	[bug]		Named could return NOERROR with certian NOTIFY
+			failures.  Return NOTAUTH is the NOTIFY zone is
+			not being served.
+
+1438.	[func]		Log TSIG (if any) when logging NOTIFY requests.
+
 1437.	[bug]		Leave space for stdio to work in. [RT #5033]
 
 1436.	[func]		dns_zonemgr_resumexfrs() can be used to restart
