@@ -36,6 +36,7 @@
 #include <dns/name.h>
 #include <dns/db.h>
 #include <dns/events.h>
+#include <dns/keytable.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/dispatch.h>
@@ -47,6 +48,7 @@
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/log.h>
+
 #include <dst/dst.h>
 #include <dns/peer.h>
 
@@ -2083,10 +2085,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_rdataset_t *addedrdataset, *ardataset, *asigrdataset;
 	dns_dbnode_t *node, **anodep;
 	dns_db_t **adbp;
-	dns_fixedname_t foundname;
-	dns_name_t *fname, *aname;
+	dns_name_t *aname;
 	dns_resolver_t *res;
-	void *data;
 	isc_boolean_t need_validation, have_answer;
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
@@ -2107,22 +2107,25 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	dns_fixedname_init(&foundname);
-	fname = dns_fixedname_name(&foundname);
-	data = NULL;
-	result = dns_rbt_findname(res->view->secroots, name, fname, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		/*
-		 * This name is at or below one of the view's security roots,
-		 * so DNSSEC validation is required.
-		 */
-		need_validation = ISC_TRUE;
-	} else if (result != ISC_R_NOTFOUND) {
-		/*
-		 * Something bad happened.
-		 */
+	result = dns_keytable_issecuredomain(res->view->secroots, name,
+					     &need_validation);
+	if (result != ISC_R_SUCCESS)
 		return (result);
+#ifdef notyet
+	if (need_validation) {
+		/*
+		 * XXXRTH
+		 *
+		 * If some of the rdatasets associated with this name
+		 * don't have signatures, it could be that data we got is in
+		 * an unsecured subzone of a secure domain.
+		 * 
+		 * In this case we need to see if we can find a key chain
+		 * starting at the most-enclosing security root that proves
+		 * that this name is not secure.
+		 */
 	}
+#endif
 
 	adbp = NULL;
 	aname = NULL;
@@ -2189,9 +2192,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			if (sigrdataset == NULL) {
 				if (ANSWER(rdataset)) {
 					/*
-					 * rdataset is the answer, but we have
-					 * no SIG.  The remote server is
-					 * broken.
+					 * The peer is broken.
 					 */
 					result = DNS_R_FORMERR;
 					break;
@@ -2378,10 +2379,8 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	dns_dbnode_t *node, **anodep;
 	dns_rdataset_t *ardataset;
 	isc_boolean_t need_validation;
-	dns_fixedname_t foundname;
-	dns_name_t *fname, *aname;
+	dns_name_t *aname;
 	dns_fetchevent_t *event;
-	void *data;
 
 	FCTXTRACE("ncache_message");
 
@@ -2395,26 +2394,25 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	dns_fixedname_init(&foundname);
-	fname = dns_fixedname_name(&foundname);
-	data = NULL;
-	result = dns_rbt_findname(res->view->secroots, name, fname, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		/*
-		 * This name is at or below one of the view's security roots,
-		 * so DNSSEC validation is required.
-		 */
-		need_validation = ISC_TRUE;
+	result = dns_keytable_issecuredomain(res->view->secroots, name,
+					     &need_validation);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+#ifdef notyet
+	if (need_validation) {
 		/*
 		 * XXXRTH
+		 *
+		 * If some of the rdatasets associated with this name
+		 * don't have signatures, it could be that data we got is in
+		 * an unsecured subzone of a secure domain.
+		 * 
+		 * In this case we need to see if we can find a key chain
+		 * starting at the most-enclosing security root that proves
+		 * that this name is not secure.
 		 */
-		return (DNS_R_NOTIMPLEMENTED);
-	} else if (result != ISC_R_NOTFOUND) {
-		/*
-		 * Something bad happened.
-		 */
-		return (result);
 	}
+#endif
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
