@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.126 $)
+AC_REVISION($Revision: 1.127 $)
 
 AC_PREREQ(2.13)
 
@@ -261,11 +261,13 @@ AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h netinet6/in6.h)
 # Kame has an #error against direct inclusion.   So include it on only
 # the platform that is otherwise broken without it -- BSD/OS 4.0 through 4.1.
 #
+isc_netinet6_hack=""
 changequote({, })
 case "$ac_cv_header_netinet6_in6_h+$host" in
 yes+*-bsdi4.[01]*)
 	ISC_PLATFORM_HAVENETINET6IN6H="#define ISC_PLATFORM_HAVENETINET6IN6H 1"
 	LWRES_PLATFORM_HAVENETINET6IN6H="#define LWRES_PLATFORM_HAVENETINET6IN6H 1"
+	isc_netinet6_hack="#include <netinet6/in6.h>"
 	;;
 *)
 	ISC_PLATFORM_HAVENETINET6IN6H="#undef ISC_PLATFORM_HAVENETINET6IN6H"
@@ -634,7 +636,9 @@ case "$found_ipv6" in
 		AC_TRY_LINK([
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>],
+#include <netinet/in.h>
+$isc_netinet6_hack
+],
 		[struct in6_pktinfo xyzzy; return (0);],
 			[AC_MSG_RESULT(yes)
 			 ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"],
