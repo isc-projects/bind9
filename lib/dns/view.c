@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.81 2000/10/05 06:39:20 marka Exp $ */
+/* $Id: view.c,v 1.82 2000/10/20 15:59:52 halley Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
+#include <dns/master.h>
 #include <dns/peer.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
