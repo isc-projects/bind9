@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.23 2000/08/01 01:32:14 tale Exp $ */
+/* $Id: gethost.c,v 1.24 2000/08/14 01:28:21 marka Exp $ */
 
 #include <config.h>
 
@@ -106,8 +106,7 @@ lwres_gethostbyname_r(const char *name, struct hostent *resbuf,
 	if (he == NULL)
 		return (NULL);
 	res = copytobuf(he, resbuf, buf, buflen);
-	if (he != NULL)
-		lwres_freehostent(he);
+	lwres_freehostent(he);
 	if (res != 0) {
 		errno = ERANGE;
 		return (NULL);
@@ -127,8 +126,7 @@ lwres_gethostbyaddr_r(const char *addr, int len, int type,
 	if (he == NULL)
 		return (NULL);
 	res = copytobuf(he, resbuf, buf, buflen);
-	if (he != NULL)
-		lwres_freehostent(he);
+	lwres_freehostent(he);
 	if (res != 0) {
 		errno = ERANGE;
 		return (NULL);
