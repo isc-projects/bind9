@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.86 2000/09/28 21:18:07 bwelling Exp $ */
+/* $Id: main.c,v 1.87 2000/09/28 21:21:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -236,7 +236,7 @@ parse_int(char *arg, const char *desc) {
 	int tmp;
 	long int ltmp;
 
-	ltmp = strtol(arg, &endp, 0);
+	ltmp = strtol(arg, &endp, 10);
 	tmp = (int) ltmp;
 	if (*endp != '\0')
 		ns_main_earlyfatal("%s '%s' must be numeric", desc, arg);
