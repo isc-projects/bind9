@@ -1,5 +1,8 @@
 1470.	[bug]		Incorrect length passed to snprintf. [RT #5966]
 
+1466.	[bug]		lwresd configuration errors resulted in memory
+			and lock leaks.  [RT #5228]
+			
 1465.	[bug]		isc_base64_decodestring() and isc_base64_tobuffer()
 			failed to check that trailing bits were zero allowing
 			some invalid base64 strings to be accepted.  [RT #5397]
