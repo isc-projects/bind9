@@ -74,6 +74,7 @@
 #include <isc/time.h>
 #include <isc/task.h>
 #include <isc/event.h>
+#include <isc/eventclass.h>
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
@@ -86,18 +87,20 @@ typedef struct isc_timer	isc_timer_t;
 typedef struct isc_timermgr	isc_timermgr_t;
 
 typedef enum {
-	isc_timertype_ticker = 0, isc_timertype_once
+	isc_timertype_ticker = 0,
+	isc_timertype_once = 1,
+	isc_timertype_inactive = 2
 } isc_timertype_t;
 
 typedef struct isc_timerevent {
 	struct isc_event	common;
-	/* XXX Anything else? XXX */
 } isc_timerevent_t;
 
-#define ISC_TIMEREVENT_TICK	(ISC_EVENTCLASS_TIMER + 1)
-#define ISC_TIMEREVENT_IDLE	(ISC_EVENTCLASS_TIMER + 2)
-#define ISC_TIMEREVENT_LIFE	(ISC_EVENTCLASS_TIMER + 3)
-
+#define ISC_TIMEREVENT_FIRSTEVENT	(ISC_EVENTCLASS_TIMER + 0)
+#define ISC_TIMEREVENT_TICK		(ISC_EVENTCLASS_TIMER + 1)
+#define ISC_TIMEREVENT_IDLE		(ISC_EVENTCLASS_TIMER + 2)
+#define ISC_TIMEREVENT_LIFE		(ISC_EVENTCLASS_TIMER + 3)
+#define ISC_TIMEREVENT_LASTEVENT	(ISC_EVENTCLASS_TIMER + 65535)
 
 /***
  *** Timer and Timer Manager Functions
@@ -140,7 +143,8 @@ isc_timer_create(isc_timermgr_t *manager,
  *
  *	'action' is a valid action
  *
- *	'expires' and 'interval' may not both be 0
+ *	(type == isc_timertype_inactive && expires == NULL && interval == NULL)
+ *	|| ('expires' and 'interval' are not both 0)
  *
  *	'timerp' is a valid pointer, and *timerp == NULL
  *

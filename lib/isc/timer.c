@@ -98,6 +98,8 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 * Note: the caller must ensure locking.
 	 */
 
+	REQUIRE(timer->type != isc_timertype_inactive);
+
 	/*
 	 * Compute the new due time.
 	 */
@@ -190,12 +192,15 @@ destroy(isc_timer_t *timer) {
 	isc_timermgr_t *manager = timer->manager;
 
 	/*
-	 * The caller must ensure locking.
+	 * The caller must ensure it is safe to destroy the timer.
 	 */
 
 	LOCK(&manager->lock);
 
-	isc_task_purge(timer->task, timer, ISC_TASKEVENT_ANYEVENT);
+	isc_task_purgerange(timer->task,
+			    timer,
+			    ISC_TASKEVENT_FIRSTEVENT,
+			    ISC_TASKEVENT_LASTEVENT);
 	deschedule(timer);
 	UNLINK(manager->timers, timer, link);
 
@@ -229,7 +234,9 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
-	REQUIRE(!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
+	REQUIRE((type == isc_timertype_inactive &&
+		 expires == NULL && interval == NULL) ||
+		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
@@ -279,10 +286,13 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	 * there are no external references to it yet.
 	 */
 
-	result = schedule(timer, &now, ISC_TRUE);
+	if (type != isc_timertype_inactive)
+		result = schedule(timer, &now, ISC_TRUE);
+	else
+		result = ISC_R_SUCCESS;
 	if (result == ISC_R_SUCCESS)
 		APPEND(manager->timers, timer, link);
-
+	
 	UNLOCK(&manager->lock);
 
 	if (result != ISC_R_SUCCESS) {
@@ -316,7 +326,9 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
+	REQUIRE((type == isc_timertype_inactive &&
+		 expires == NULL && interval == NULL) ||
+		!(isc_time_isepoch(expires) && isc_interval_iszero(interval)));
 
 	/*
 	 * Get current time.
@@ -335,7 +347,10 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	LOCK(&timer->lock);
 
 	if (purge)
-		isc_task_purge(timer->task, timer, ISC_TASKEVENT_ANYEVENT);
+		isc_task_purgerange(timer->task,
+				    timer,
+				    ISC_TASKEVENT_FIRSTEVENT,
+				    ISC_TASKEVENT_LASTEVENT);
 	timer->type = type;
 	timer->expires = *expires;
 	timer->interval = *interval;
@@ -343,7 +358,11 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		isc_time_add(&now, interval, &timer->idle);
 	else
 		isc_time_settoepoch(&timer->idle);
-	result = schedule(timer, &now, ISC_TRUE);
+	if (type == isc_timertype_inactive) {
+		deschedule(timer);
+		result = ISC_R_SUCCESS;
+	} else
+		result = schedule(timer, &now, ISC_TRUE);
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -364,7 +383,14 @@ isc_timer_touch(isc_timer_t *timer) {
 
 	LOCK(&timer->lock);
 
-	INSIST(timer->type == isc_timertype_once);
+	/*
+	 * We'd like to
+	 *
+	 *	REQUIRE(timer->type == isc_timertype_once);
+	 *
+	 * but we cannot without locking the manager lock too, which we
+	 * don't want to do.
+	 */
 
 	result = isc_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
@@ -430,8 +456,13 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 	isc_timer_t *timer;
 	isc_result_t result;
 
+	/*
+	 * The caller must be holding the manager lock.
+	 */
+
 	while (manager->nscheduled > 0 && !done) {
 		timer = isc_heap_element(manager->heap, 1);
+		INSIST(timer->type != isc_timertype_inactive);
 		if (isc_time_compare(now, &timer->due) >= 0) {
 			if (timer->type == isc_timertype_ticker) {
 				type = ISC_TIMEREVENT_TICK;
