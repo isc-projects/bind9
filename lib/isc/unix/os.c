@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.9 2001/02/11 00:52:31 bwelling Exp $ */
+/* $Id: os.c,v 1.10 2001/02/17 01:23:43 gson Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,6 @@ sysconf_ncpus(void) {
 #else
 	return (0);
 #endif
-
 }
 #endif /* HAVE_SYSCONF */
 
