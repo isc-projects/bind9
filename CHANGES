@@ -1277,7 +1277,7 @@
 				query-source-v6 transfer-source
 				transfer-source-v6 max-transfer-time-out
 				max-transfer-idle-out transfer-format
-				request-ixfr privide-ixfr cleaning-interval
+				request-ixfr provide-ixfr cleaning-interval
 				fetch-glue notify rfc2308-type1 lame-ttl
 				max-ncache-ttl min-roots
 
