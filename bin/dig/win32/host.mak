@@ -39,12 +39,12 @@ ALL : "..\..\..\Build\Release\host.exe"
 
 !ELSE 
 
-ALL : "libbind9 - Win32 Release" "libisc - Win32 Release" "libdns - Win32 Release" "..\..\..\Build\Release\host.exe"
+ALL : "liblwres - Win32 Release" "libbind9 - Win32 Release" "libisc - Win32 Release" "libdns - Win32 Release" "..\..\..\Build\Release\host.exe"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libdns - Win32 ReleaseCLEAN" "libisc - Win32 ReleaseCLEAN" "libbind9 - Win32 ReleaseCLEAN" 
+CLEAN :"libdns - Win32 ReleaseCLEAN" "libisc - Win32 ReleaseCLEAN" "libbind9 - Win32 ReleaseCLEAN" "liblwres - Win32 ReleaseCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -68,7 +68,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\host.obj" \
 	"..\..\..\lib\dns\win32\Release\libdns.lib" \
 	"..\..\..\lib\isc\win32\Release\libisc.lib" \
-	"..\..\..\lib\bind9\win32\Release\libbind9.lib"
+	"..\..\..\lib\bind9\win32\Release\libbind9.lib" \
+	"..\..\..\lib\lwres\win32\Release\liblwres.lib"
 
 "..\..\..\Build\Release\host.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -89,12 +90,12 @@ ALL : "..\..\..\Build\Debug\host.exe" "$(OUTDIR)\host.bsc"
 
 !ELSE 
 
-ALL : "libbind9 - Win32 Debug" "libisc - Win32 Debug" "libdns - Win32 Debug" "..\..\..\Build\Debug\host.exe" "$(OUTDIR)\host.bsc"
+ALL : "liblwres - Win32 Debug" "libbind9 - Win32 Debug" "libisc - Win32 Debug" "libdns - Win32 Debug" "..\..\..\Build\Debug\host.exe" "$(OUTDIR)\host.bsc"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libdns - Win32 DebugCLEAN" "libisc - Win32 DebugCLEAN" "libbind9 - Win32 DebugCLEAN" 
+CLEAN :"libdns - Win32 DebugCLEAN" "libisc - Win32 DebugCLEAN" "libbind9 - Win32 DebugCLEAN" "liblwres - Win32 DebugCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -131,7 +132,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\host.obj" \
 	"..\..\..\lib\dns\win32\Debug\libdns.lib" \
 	"..\..\..\lib\isc\win32\Debug\libisc.lib" \
-	"..\..\..\lib\bind9\win32\Debug\libbind9.lib"
+	"..\..\..\lib\bind9\win32\Debug\libbind9.lib" \
+	"..\..\..\lib\lwres\win32\Debug\liblwres.lib"
 
 "..\..\..\Build\Debug\host.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -291,6 +293,32 @@ SOURCE=..\host.c
 "libbind9 - Win32 DebugCLEAN" : 
    cd "\bind-9.3.0a04\lib\bind9\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libbind9.mak" CFG="libbind9 - Win32 Debug" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\dig\win32"
+
+!ENDIF 
+
+!IF  "$(CFG)" == "host - Win32 Release"
+
+"liblwres - Win32 Release" : 
+   cd "\bind-9.3.0a04\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" 
+   cd "..\..\..\bin\dig\win32"
+
+"liblwres - Win32 ReleaseCLEAN" : 
+   cd "\bind-9.3.0a04\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Release" RECURSE=1 CLEAN 
+   cd "..\..\..\bin\dig\win32"
+
+!ELSEIF  "$(CFG)" == "host - Win32 Debug"
+
+"liblwres - Win32 Debug" : 
+   cd "\bind-9.3.0a04\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" 
+   cd "..\..\..\bin\dig\win32"
+
+"liblwres - Win32 DebugCLEAN" : 
+   cd "\bind-9.3.0a04\lib\lwres\win32"
+   $(MAKE) /$(MAKEFLAGS) /F ".\liblwres.mak" CFG="liblwres - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\..\bin\dig\win32"
 
 !ENDIF 
