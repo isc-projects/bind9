@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.2 2000/08/22 00:53:31 bwelling Exp $ */
-
-/* $Id: sdb.h,v 1.2 2000/08/22 00:53:31 bwelling Exp $ */
+/* $Id: sdb.h,v 1.3 2000/08/22 01:26:08 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -86,9 +84,9 @@ dns_sdb_register(const char *drivername, dns_sdblookupfunc_t lookup,
  * Register a simple database driver of name 'drivername'.  The name
  * server will perform lookups in the database by calling the function
  * 'lookup', passing it a printable zone name 'zone', a printable
- * domain name 'name', and copy of the argument 'driverdata' that
- * was given to ns_sdb_register().  The 'dns_sdblookup_t' argument to
- * 'lookup' and 'authority' is an opaque pointer to be passed to
+ * domain name 'name', and a copy of the argument 'dbdata' that
+ * was potentially returned by the create function.  The 'dns_sdblookup_t'
+ * argument to 'lookup' and 'authority' is an opaque pointer to be passed to
  * ns_sdb_putrr().
  *
  * The lookup function returns the lookup results to the name server
@@ -139,9 +137,9 @@ dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
  * This function may optionally be called from the 'authority' callback
  * to simplify construction of the SOA record for 'zone'.  It will
  * provide a SOA listing 'mname' as as the master server and 'rname' as
- * the responsible person mailbox.  The serial number will increase
- * with each query, and all other SOA fields will have reasonable
- * default values.
+ * the responsible person mailbox.  It is the responsibility of the
+ * driver to increment the serial number between responses if necessary.
+ * All other SOA fields will have reasonable default values.
  */
 
 ISC_LANG_ENDDECLS
