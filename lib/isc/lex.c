@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.65 2001/07/06 20:34:09 gson Exp $ */
+/* $Id: lex.c,v 1.66 2001/07/12 03:51:14 marka Exp $ */
 
 #include <config.h>
 
@@ -371,7 +371,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	FILE *stream;
 	char *curr, *prev;
 	size_t remaining;
-	unsigned long ulong;
+	unsigned long as_ulong;
 	unsigned int saved_options;
 	char *e;
 	isc_result_t result;
@@ -583,15 +583,15 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					else
 						base = 10;
 					pushback(source, c);
-					ulong = strtoul(lex->data, &e, base);
-					if (ulong == ULONG_MAX &&
+					as_ulong = strtoul(lex->data, &e, base);
+					if (as_ulong == ULONG_MAX &&
 					    errno == ERANGE) {
 						return (ISC_R_RANGE);
 					} else if (*e == 0) {
 						tokenp->type =
 							isc_tokentype_number;
 						tokenp->value.as_ulong =
-							ulong;
+							as_ulong;
 					} else {
 						isc_tokenvalue_t *v;
 
