@@ -1,3 +1,6 @@
+1139.	[func]		It is now possible to flush a given name from the
+			caches via 'rndc flushname name [view]'.  [RT #2051]
+
 1138.	[func]		It is now possible to flush given names from the
 			cache dns_cache_flushname().
 

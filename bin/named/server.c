@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.363 2001/11/20 22:30:35 gson Exp $ */
+/* $Id: server.c,v 1.364 2001/11/27 04:06:07 marka Exp $ */
 
 #include <config.h>
 
@@ -2753,6 +2753,58 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 	else
 		result = ISC_R_FAILURE;
  out:
+	isc_task_endexclusive(server->task);	
+	return (result);
+}
+
+isc_result_t
+ns_server_flushname(ns_server_t *server, char *args) {
+	char *ptr, *target, *viewname;
+	dns_view_t *view;
+	isc_boolean_t flushed = ISC_FALSE;
+	isc_result_t result;
+	isc_buffer_t b;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Find the domain name to flush. */
+	target = next_token(&args, " \t");
+	if (target == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	isc_buffer_init(&b, target, strlen(target));
+	isc_buffer_add(&b, strlen(target));
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	result = dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/* Look for the view name. */
+	viewname = next_token(&args, " \t");
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	flushed = ISC_TRUE;
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
+			continue;
+		result = dns_view_flushname(view, name);
+		if (result != ISC_R_SUCCESS)
+			flushed = ISC_FALSE;
+	}
+	if (flushed)
+		result = ISC_R_SUCCESS;
+	else
+		result = ISC_R_FAILURE;
 	isc_task_endexclusive(server->task);	
 	return (result);
 }

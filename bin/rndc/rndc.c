@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.85 2001/11/14 23:54:29 bwelling Exp $ */
+/* $Id: rndc.c,v 1.86 2001/11/27 04:06:13 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -106,6 +106,8 @@ command is one of the following:\n\
   notrace	Set debugging level to 0.\n\
   flush 	Flushes all of the server's caches.\n\
   flush [view]	Flushes the server's cache for a view.\n\
+  flushname name [view]\n\
+		Flush the give name from the server's cache(s)\n\
   status	Display status of the server.\n\
   *restart	Restart the server.\n\
 \n\

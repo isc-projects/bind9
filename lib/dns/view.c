@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.107 2001/11/12 19:05:36 gson Exp $ */
+/* $Id: view.c,v 1.108 2001/11/27 04:06:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1133,4 +1133,16 @@ dns_view_flushcache(dns_view_t *view) {
 
 	dns_adb_flush(view->adb);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_view_flushname(dns_view_t *view, dns_name_t *name) {
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->adb != NULL)
+		dns_adb_flushname(view->adb, name);
+	if (view->cache == NULL)
+		return (ISC_R_SUCCESS);
+	return (dns_cache_flushname(view->cache, name));
 }
