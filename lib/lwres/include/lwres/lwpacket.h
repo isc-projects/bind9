@@ -32,6 +32,7 @@ struct lwres_lwpacket {
 	isc_uint32_t		serial;
 	isc_uint32_t		opcode;
 	isc_uint32_t		result;
+	isc_uint32_t		recvlength;
 	isc_uint16_t		authtype;
 	isc_uint16_t		authlength;
 };
@@ -67,6 +68,10 @@ struct lwres_lwpacket {
  * (This is the same reserved range defined in <isc/resultclass.h>, so it
  * would be trivial to map ISC_R_* result codes into packet result codes
  * when appropriate.)
+ *
+ * "recvlength" is set to the maximum buffer size that the receiver can
+ * handle on requests, and the size of the buffer needed to satisfy a request
+ * when the buffer is too large for replies.
  *
  * "authtype" is the packet level auth type used.
  * Authtypes between 0x1000 and 0xffff are application defined.  Authtypes
