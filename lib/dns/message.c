@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.181 2001/02/23 01:38:07 bwelling Exp $ */
+/* $Id: message.c,v 1.182 2001/02/23 01:45:29 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2720,6 +2720,12 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		dns_rdata_freestruct(&tsig);
 
 		if (msg->tsigkey == NULL) {
+			/*
+			 * If msg->tsigstatus & tsig.error are both
+			 * dns_rcode_noerror, the message must have been
+			 * verified, which means msg->tsigkey will be
+			 * non-NULL.
+			 */
 			INSIST(result != ISC_R_SUCCESS);
 		} else {
 			identity = dns_tsigkey_identity(msg->tsigkey);
