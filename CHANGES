@@ -15,6 +15,9 @@
 
 1726.	[port]		aix5: add support for aix5.
 
+1724.	[bug]		Look for DNSKEY records with "dig +sigtrace".
+			[RT #12557]
+
 1723.	[cleanup]	Silence compiler warnings from t_tasks.c. [RT #12493]
 
 1722.	[bug]		Don't commit the journal on malformed ixfr streams.
