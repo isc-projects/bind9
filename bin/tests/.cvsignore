@@ -12,6 +12,7 @@ dispatch_test
 entropy_test
 entropy2_test
 fsaccess_test
+genrandom
 gxba_test
 gxbn_test
 headerdep_test.sh
