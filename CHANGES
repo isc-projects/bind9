@@ -1,3 +1,8 @@
+
+ 973.	[bug]		Failed to log the question name when logging:
+			"bad zone transfer request: non-authoritative zone
+			(NOTAUTH)".
+
  968.	[bug]		On win32, the isc_time_now() function was unnecessarily
 			calling strtime(). [RT #1671]
 
