@@ -1,0 +1,2092 @@
+
+     DNS Extensions Working Group                                R.B. Hibbs 
+     INTERNET-DRAFT                                           Nominum, Inc. 
+     Category: Experimental                                                 
+                                                             November 2001 
+      
+        
+
+                         Domain Name System (DNS) Server MIB 
+
+                                           
+
+                         <draft-hibbs-dns-server-mib-00.txt> 
+
+                      Saved Monday, November 12, 2001, 2:52 PM 
+
+                                           
+
+        Status of this Memo 
+
+        This document is an Internet-Draft and is in full conformance with 
+        all provisions of Section 10 of RFC2026. 
+
+        Internet-Drafts are working documents of the Internet Engineering 
+        Task Force (IETF), its areas, and its working groups.  Note that 
+        other groups may also distribute working documents as Internet-
+        Drafts. 
+
+        Internet-Drafts are draft documents valid for a maximum of six months 
+        and may be updated, replaced, or obsoleted by other documents at any 
+        time.  It is inappropriate to use Internet-Drafts as reference 
+        material or to cite them other than as "work in progress." 
+
+
+
+     The list of current Internet-Drafts can be accessed at
+     http://www.ietf.org/1id-abstracts.html
+
+     The list of Internet-Draft Shadow Directories can be accessed at
+     http://www.ietf.org/shadow.html
+
+
+     Copyright Notice 
+
+        Copyright (C) 2001, The Internet Society.  All Rights Reserved. 
+
+     Abstract 
+
+        This memo defines an experimental portion of the Management 
+        Information Base (MIB) for use with network management protocols in 
+        the Internet Community.  In particular, it defines objects used for 
+        the management of Domain Name System (DNS) servers, and reserves an 
+        experimental branch in the MIB-2 tree for DNS servers and resolvers. 
+
+        This version (the "-00" draft) is the initial draft of an intended 
+        replacement for RFC1611 which was changed to Historic status in 
+        October, 2001, and is intended to generate discussion and comment on 
+        the desirability and usefulness of a DNS server MIB. 
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 1] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        Table of Contents 
+
+       1. Introduction                                                   2 
+       2. The SNMP Network Management Framework                          3 
+       3. DNS Overview                                                   4 
+         3.1. Name Servers                                               4 
+         3.2. Resolvers                                                  5 
+       4. Structure of this MIB                                          5 
+         4.1. Server Identification Group                                6 
+         4.2. Server Configuration Group                                 6 
+         4.3. Server Basic Counters Group                                6 
+         4.4. Server Optional Counters Group                             6 
+         4.5. Server Optional Statistics Group                           6 
+         4.6. Server Zone Group                                          6 
+       5. Textual Conventions                                            6 
+       6. Relationship to Other MIBs                                     7 
+         6.1. DNS Resolver MIB                                           8 
+         6.2. Host System MIB                                            8 
+       7. Definitions                                                    8 
+       8. Intellectual Property                                         30 
+       9. Notes                                                         30 
+         9.1. Issues                                                    31 
+           9.1.1. DNS vs. SNMP Names                                    31 
+           9.1.2. Use of DNS Names as Indices                           31 
+           9.1.3. Binary Labels and Internationalized Domain Names      31 
+           9.1.4. Zone Update Methods Other Than Zone Transfer          31 
+           9.1.5. Basis for Counters and Statistics                     31 
+           9.1.6. Simplicity vs. Completeness                           32 
+         9.2. Changes from Prior Drafts                                 32 
+       10. Acknowledgements                                             32 
+       11. Security Considerations                                      32 
+       12. References                                                   33 
+       13. Editors' Addresses                                           35 
+       14. Full Copyright Statement                                     35 
+        
+
+
+     1. Introduction 
+
+        This memo was produced by the DNS Extensions Working Group and 
+        defines a portion of the Management Information Base (MIB) for use 
+        with network management protocols in the Internet community.  In 
+        particular, it describes a set of MIB extensions that instrument 
+        Domain Name servers. 
+
+        With the adoption of the Internet-standard Network Management 
+        Framework [RFC1155, RFC1156, RFC1157, RFC1212], and with a large 
+        number of vendor implementations of these standards in commercially 
+        available products, it became possible to provide a higher level of 
+        effective network management in TCP/IP-based internets than was 
+        previously available.  With the growth in the use of these standards, 
+        it has become possible to consider the management of other elements 
+        of the infrastructure beyond the basic TCP/IP protocols.  A key 
+        element of the TCP/IP infrastructure is the DNS. 
+
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 2] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        This memo obsoletes [RFC1611], which has been moved to Historic 
+        status by consensus of the DNS Extensions Working Group. 
+
+        This memo is based on the Internet-standard Network Management 
+        Framework as defined by documents [RFC1902, RFC1903, and RFC1904]. 
+
+        Objects defined in this MIB allow access to DNS server software for 
+        reporting of a basic set of counters, optional statistics, and 
+        controls associated with the counters and statistics.  Servers MAY 
+        also provide additional management capabilities through the use of 
+        the Applications MIB [RFC2287]. 
+
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", 
+        "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this 
+        document are to be interpreted as described in document [RFC2119]. 
+
+
+     2. The SNMP Network Management Framework 
+
+        The SNMP Management Framework presently consists of five major 
+        components: 
+
+           o  An overall architecture, described in [RFC2571]. 
+
+           o  Mechanisms for describing and naming objects and events for the 
+              purpose of management.  The first version of this Structure of 
+              Management Information (SMI) is called SMIv1 and described in 
+              [RFC1155], [RFC1212] and [RFC1215].  The second version, called 
+              SMIv2, is described in [RFC2578], [RFC2579] and [RFC2580].  
+              This MIB is based upon the use of SMIv2 for describing objects. 
+
+           o  Message protocols for transferring management information.  The 
+              first version of the SNMP message protocol is called SNMPv1 and 
+              described in [RFC1157].  A second version of the SNMP message 
+              protocol, which is not an Internet standards track protocol, is 
+              called SNMPv2c and described in [RFC1901] and [RFC1906].  The 
+              third version of the message protocol is called SNMPv3 and 
+              described in [RFC1906], [RFC2572] and [RFC2574].  This MIB is 
+              intended ONLY for use with SNMPv3. 
+
+           o  Protocol operations and associated PDU formats for accessing 
+              management information are described in [RFC1157] and 
+              [RFC1905]. 
+
+           o  A set of fundamental applications described in [RFC2573] and 
+              the view-based access control mechanism described in [RFC2575]. 
+
+        A more detailed introduction to the current SNMP Management Framework 
+        can be found in [RFC2570]. 
+
+        Managed objects are accessed via a virtual information store, termed 
+        the Management Information Base or MIB.  Objects in the MIB are 
+        defined using the mechanisms defined in the SMI.  STD 17, [RFC 1213] 
+        defines MIB-II, the core set of managed objects for the Internet 
+        suite of protocols. 
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 3] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        This memo specifies a MIB module that is compliant to the SMIv2.  A 
+        MIB conforming to the SMIv1 can be produced through the appropriate 
+        translations.  The resulting translated MIB must be semantically 
+        equivalent, except where objects or events are omitted because no 
+        translation is possible (use of Counter64).  Some machine-readable 
+        information in SMIv2 will be converted into textual descriptions in 
+        SMIv1 during the translation process.  However, this loss of machine-
+        readable information is not considered to change the semantics of the 
+        MIB. 
+
+
+     3. DNS Overview 
+
+        The Domain Name Service is provided by two kinds of entities:  
+        resolvers and name servers.  Resolvers ask questions while name 
+        servers answer them. 
+
+        Implementors have made widely differing choices about how to divide 
+        DNS functions between resolvers and servers, including a number of 
+        hybrids.  Other implementation considerations are the trade-offs 
+        between speed, size, and functionality.  The most difficult task in 
+        creating this MIB was to define managed objects that did not 
+        interfere with implementation decisions. 
+
+        The various DNS functions have been divided into two non-overlapping 
+        classes, called "resolver functions" and "name server functions."  A 
+        DNS entity that performs what we define as resolver functions must 
+        implement the MIB groups required of all resolvers that are defined 
+        in a separate MIB Module.  A DNS entity which implements name server 
+        functions must implement the MIB groups required for name servers in 
+        this module.  If the same piece of software performs both resolver 
+        and server functions, we imagine that it contains both a resolver and 
+        a server and would thus implement both the DNS Server and DNS 
+        Resolver MIBs. 
+
+
+     3.1. Name Servers 
+
+        In this model, a name server is a program that provides resource 
+        records to resolvers.  All references in this document to "a name 
+        server" imply "the name server's role"; in some cases the name 
+        server's role and the resolver's role might be combined into a single 
+        program.  A name server receives DNS protocol queries and sends DNS 
+        protocol replies.  A name server neither sends queries nor receives 
+        replies.  As a consequence, name servers do not have caches.  
+        Normally, a name server would expect to receive only those queries to 
+        which it could respond with authoritative information.  However, if a 
+        name server receives a query that it cannot respond to with purely 
+        authoritative information, it may choose to try to obtain the 
+        necessary additional information from a resolver which may or may not 
+        be a separate process. 
+
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 4] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+     3.2. Resolvers 
+
+        A resolver is a program that obtains resource records from servers.  
+        Normally it does so at the behest of an application, but may also do 
+        so as part of its own operation.  A resolver sends DNS protocol 
+        queries and receives DNS protocol replies.  A resolver neither 
+        receives queries nor sends replies.  A full service resolver is one 
+        that knows how to resolve queries:  it obtains the needed resource 
+        records by contacting a server authoritative for the records desired.  
+        A stub resolver does not know how to resolve queries:  it sends all 
+        queries to a local name server, setting the "recursion desired" flag 
+        to indicate that it hopes that the name server will be willing to 
+        resolve the query.  A resolver may (optionally) have a cache for 
+        remembering previously acquired resource records.  It may also have a 
+        negative cache for remembering names or data that have been 
+        determined not to exist. 
+
+
+     4. Structure of this MIB 
+
+        In the tradition of the Simple Network Management Protocol (SNMP) the 
+        minimum number of objects possible are defined in this MIB, while 
+        still providing as rich a set of management information as possible.  
+        An object is left out of this MIB when it can be easily derived from 
+        other objects that are provided.  Further to the tradition of the 
+        SNMP, computationally intense operations are left to the domain of 
+        the management station.  Thus, this MIB provides a set of objects 
+        from which other management information may be derived. 
+
+        Many of the objects included in this memo have been created from 
+        information contained in the DNS specifications [RFC1034, RFC1035], 
+        as amended and clarified by subsequent host requirements documents 
+        [RFC1123].  Other objects have been created based on experience with 
+        existing DNS management tools, expected operational needs, the 
+        statistics generated by existing DNS implementations, and the 
+        configuration files used by existing DNS implementations.  These 
+        objects have been ordered into groups as follows: 
+
+           o  Server Identification Group 
+
+           o  Server Configuration Group 
+
+           o  Server Basic Counters Group 
+
+           o  Server Optional Counters Group 
+
+           o  Server Optional Statistics Group 
+
+           o  Server Zone Group 
+
+        This information has been converted into a standard form using the 
+        SNMPv2 SMI defined in [RFC2578].  For the most part, the descriptions 
+        are influenced by the DNS related RFCs noted above.  For example, the 
+        descriptions for counters used for the various types of queries of 
+
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 5] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        DNS records are influenced by the definitions used for the various 
+        record types found in [RFC1035]. 
+
+
+     4.1. Server Identification Group 
+
+        The server identification group contains objects that describe and 
+        identify the server and its current operating status. 
+
+
+     4.2. Server Configuration Group 
+
+        The server configuration group contains objects that report 
+        fundamental server configuration information such as whether 
+        recursion is enabled. 
+
+
+     4.3. Server Basic Counters Group 
+
+        The server basic counters group contains objects that count things 
+        implied by [RFC1035], such as authoritative answers and errors. 
+
+
+     4.4. Server Optional Counters Group 
+
+       The server optional counters group currently has no objects defined. 
+
+
+     4.5. Server Optional Statistics Group 
+
+        The server optional statistics group primarily contains statistics 
+        about messages received, specifically inter-arrival times useful in 
+        traffic engineering and server load calculations. 
+
+
+     4.6. Server Zone Group 
+
+        The server zone group contains objects that report detailed 
+        information about the configuration of each zone, but does not give 
+        access to resource records. 
+
+
+     5. Textual Conventions 
+
+        Several conceptual data types have been introduced as textual 
+        conventions in this DNS MIB document.  These additions will 
+        facilitate the common understanding of information used by the DNS.  
+        No changes to the SMI or the SNMP are necessary to support these 
+        conventions. 
+
+        Readers familiar with MIBs designed to manage entities in the lower 
+        layers of the Internet protocol suite may be surprised at the number 
+        of non-enumerated integers used in this MIB to represent values such 
+        as DNS RR class and type numbers.  The reason for this choice is 
+        simple:  the DNS itself is designed as an extensible protocol, 
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 6] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        allowing new classes and types of resource records to be added to the 
+        protocol without recoding the core DNS software.  Using non- 
+        enumerated integers to represent these data types in this MIB allows 
+        the MIB to accommodate these changes as well. 
+
+        DnsName 
+
+        This data type is used to represent the various names recorded in DNS 
+        Resource Records 
+
+       DnsNameAsIndex 
+
+        This textual convention is like a DnsName, but is used as an index 
+        component in tables.  This data type requires a new definition to be 
+        compatible with [RFC2xxx] and [draft-ieft-idn-zzz-nn] to support 
+        internationalized domain names. 
+
+        DnsOpCode 
+
+        This textual convention is used to represent the DNS OPCODE values 
+        used in the header section of DNS messages. 
+
+        DnsQueryClass 
+
+        This data type is used to represent the Qclass values which appear in 
+        Resource Records in the DNS. 
+
+        DnsQueryType 
+
+        This data type is used to represent the Qtype values which appear in 
+        DNS Resource Records. 
+
+        DnsResponseCode 
+
+        This data type is used to represent the DNS RCODE value in DNS 
+        response messages. 
+
+        DnsTime 
+
+        This data type measures time in seconds. 
+
+        DnsTimeInterval 
+
+        This data type measures time in milliseconds. 
+
+
+     6. Relationship to Other MIBs 
+
+        MIBs, even experimental ones such as defined in this memo, do not 
+        stand alone, but rely on the existence and behavior of other MIBs for 
+        definitions and management of objects not defined in the MIB. 
+
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 7] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+     6.1. DNS Resolver MIB 
+
+        The DNS Resolver MIB will join its sibling, the DNS Server MIB, in 
+        the "dns" branch of the standard MIB-2 tree, as illustrated by the 
+        following diagram: 
+
+      
+                                     +-------+ 
+                                     | MIB-2 | 
+                                     +---+---+ 
+                                         | 
+                                         | 
+                                     +---+---+ 
+                                     |  dns  | 
+                                     +---+---+ 
+                                         | 
+                                         | 
+                            +------------+------------+ 
+                            |                         | 
+                    +-------+--------+       +--------+-------+ 
+                    |  dnsServerMIB  |       | dnsResolverMIB | 
+                    +----------------+       +----------------+ 
+         
+
+        The two MIBs will share a common branching point, but are 
+        independently defined. 
+
+
+     6.2. Host System MIB 
+
+        The Host System MIB [RFC1123] provides for information, command, and 
+        control of the host computer system on which a DNS server resides.  
+        The DNS Server MIB specifically does not include any objects that may 
+        be accessible using the Host System MIB. 
+
+
+     7. Definitions 
+
+         
+        -- definitions for a DNS (Domain Name System) server 
+         
+        DNS-SERVER-MIB DEFINITIONS ::= BEGIN 
+         
+        IMPORTS 
+           mib-2 
+              FROM RFC-1213 
+            
+           Counter64, Counter32, Gauge32, Unsigned32, mib-2, MODULE-IDENTITY, 
+           OBJECT-TYPE, OBJECT-IDENTITY, IpAddress 
+              FROM SNMPv2-SMI 
+            
+           TEXTUAL-CONVENTION, RowStatus, DisplayString, TruthValue, 
+           DateAndTime 
+              FROM SNMPv2-TC 
+            
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 8] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP 
+              FROM SNMPv2-CONF; 
+         
+        dns OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "The dns branch in the standard network management framework." 
+           ::= { mib-2 32 }  -- IANA will make official assignment 
+         
+        dnsServerMIB MODULE-IDENTITY   
+           LAST-UPDATED      "2001-11-12 14:52:11" 
+           ORGANIZATION      "Richard Barr Hibbs, P.E." 
+           CONTACT-INFO 
+              "        Barr Hibbs 
+                       Nominum, Inc. 
+                       950 Charter Street 
+                       Redwood City, California 94063 
+               Phone:  +1-(415)-648-3920 
+                 Fax:  +1-(415)-648-9017 
+              E-mail:  Barr.Hibbs@Nominum.com" 
+               
+            
+           DESCRIPTION 
+              "The DNS branch in the standard management framework consists 
+              of two parts:  the DNS server and the DNS resolver.  This is 
+              the branch point for distinguishing the two parts." 
+           ::= { dns 1 } 
+         
+        dnsServerMIBObjects OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "The MIB module for entities implementing the server side 
+              of the Domain Name System (DNS) protocol.  This MIB does not 
+              include support for Dynamic DNS (DDNS)." 
+           ::= { dnsServerMIB 1 } 
+         
+         
+         
+        -- Textual conventions defined by this memo 
+         
+        DnsQueryClass ::= TEXTUAL-CONVENTION 
+           DISPLAY-HINT   "2d" 
+           STATUS      current 
+           DESCRIPTION 
+              "This data type is used to represent the class values that 
+              appear in DNS Resource Records.  A 16-bit unsigned integer is 
+              used to allow room for new classes of records to be defined.  
+              Existing standard classes are listed in the DNS 
+              specifications." 
+           REFERENCE 
+              "RFC1035 section 3.2.4." 
+           SYNTAX      INTEGER (0..65535) 
+         
+        DnsName ::= TEXTUAL-CONVENTION 
+           -- A DISPLAY-HINT would be nice, but difficult to express. 
+     Hibbs                Expires: Nov 2001 + 6 months             [Page 9] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           STATUS      current 
+           DESCRIPTION 
+              "A DNS name is a sequence of labels.  When DNS names are 
+              displayed, the boundaries between labels are typically 
+              indicated by dots (e.g., 'Acme' and 'COM' are labels in the 
+              name 'Acme.  COM').  In the DNS protocol, however, no such 
+              separators are needed because each label is encoded as a length 
+              octet followed by the indicated number of octets of label. 
+               
+              For example, 'Acme.COM' is encoded as the octet sequence:  { 4, 
+              'A', 'c', 'm', 'e', 3, 'C', 'O', 'M', 0 } where the final 0 is 
+              the length of the name of the root domain, which appears 
+              implicitly at the end of any DNS name.  This MIB uses the same 
+              encoding as the DNS protocol.  Each label that comprises a DNS 
+              name is restricted to 63 octets, and the entire DNS name 
+              restricted to 255 octets.  A DNS name may be composed of an 
+              arbitrary number of labels, as long as it fits within the 
+              maximum overall length. 
+               
+              A DNS name is not restricted to alphabetic, numeric, and a 
+              limited set of special characters as might be inferred from the 
+              example above.  Names may be stored in any character coding 
+              appropriate for the use, subject only to the length 
+              restrictions. 
+               
+              A DnsName must always be a fully qualified name.  It is an 
+              error to encode a relative domain name as a DnsName without 
+              first making it a fully qualified name." 
+           REFERENCE 
+              "RFC-1034 section 3.1." 
+           SYNTAX      OCTET STRING (SIZE (0..255)) 
+         
+        DnsNameAsIndex ::= TEXTUAL-CONVENTION 
+           STATUS      current 
+           DESCRIPTION 
+              "This textual convention is like a DnsName, but is used as an 
+              index componant in tables.  Alphabetic characters in names of 
+              this type are restricted to uppercase:  the characters 'a' 
+              through 'z' are mapped to the characters 'A' through 'Z'.  This 
+              restriction is intended to make the lexical ordering imposed by 
+              SNMP useful when applied to DNS names. 
+               
+              Note that it is theoretically possible for a valid DNS name to 
+              exceed the allowed length of an SNMP object identifer, and thus 
+              be impossible to represent in tables in this MIB that are 
+              indexed by DNS name.  Sampling of DNS names in current use on 
+              the Internet suggests that this limit does not yet pose a 
+              serious problem in practice, but requires further study. 
+               
+              This convention is no longer appropriate, given the support for 
+              binary labels and internationalized domain names.  This 
+              definition MUST be updated to be in conformance with current 
+              status of DNS names." 
+           REFERENCE 
+              "RFC-1034 section 3.1, RFC-1448 section 4.1; RFC-2673." 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 10] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           SYNTAX      DnsName 
+         
+        DnsOpCode ::= TEXTUAL-CONVENTION 
+           STATUS      current 
+           DESCRIPTION 
+              "This textual convention is used to represent the DNS OPCODE 
+              values used in the header section of DNS messages.  Existing 
+              standard OPCODE values are listed in the DNS specifications." 
+           REFERENCE 
+              "RFC1035 section 4.1.1." 
+           SYNTAX      INTEGER (0..15) 
+         
+        DnsQueryClass ::= TEXTUAL-CONVENTION 
+           DISPLAY-HINT   "2d" 
+           STATUS      current 
+           DESCRIPTION 
+              "This data type is used to represent the Qclass values which 
+              appear in Resource Records in the DNS.  A 16-bit unsigned 
+              integer is used to allow room for new Qclass records to be 
+              defined.  Existing standard Qclasses are listed in the DNS 
+              specification." 
+           REFERENCE 
+              "RFC1035 section 3.2.5." 
+           SYNTAX      INTEGER (0..65535) 
+         
+        DnsQueryType ::= TEXTUAL-CONVENTION 
+           DISPLAY-HINT   "2d" 
+           STATUS      current 
+           DESCRIPTION 
+              "This data type is used to represent the Qtype values which 
+              appear in DNS Resource Records.  A 16-bit unsigned integer is 
+              used to allow room for new Qtype records to be defined.  
+              Existing standard Qtypes are listed in the DNS specification." 
+           REFERENCE 
+              "RFC1035 section 3.2.3." 
+           SYNTAX      INTEGER (0..65535) 
+         
+        DnsResponseCode ::= TEXTUAL-CONVENTION 
+           STATUS      current 
+           DESCRIPTION 
+              "This data type is used to represent the DNS RCODE value in DNS 
+              response messages.  Existing standard RCODE values are listed 
+              in the DNS specifications." 
+           REFERENCE 
+              "RFC1035 section 4.1.1." 
+           SYNTAX      INTEGER (0..15) 
+         
+        DnsTime ::= TEXTUAL-CONVENTION 
+           DISPLAY-HINT   "5d" 
+           STATUS      current 
+           DESCRIPTION 
+              "DnsTime values are 32-bit unsigned integers that measure time 
+              in seconds." 
+           REFERENCE 
+              "RFC-1035." 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 11] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           SYNTAX      Unsigned32 
+         
+        DnsTimeInterval ::= TEXTUAL-CONVENTION 
+           DISPLAY-HINT   "2d.3d" 
+           STATUS      current 
+           DESCRIPTION 
+              "DnsTimeInterval values are 32-bit unsigned integers that 
+              measures time in milliseconds.  If the host system does not 
+              support millisecond clock resolution, this value is computed 
+              from the closest available resolution." 
+           SYNTAX      Unsigned32 
+         
+         
+         
+        -- (Old-style) groups in the DNS server MIB. 
+         
+        dnsServerIdentification OBJECT IDENTIFIER  
+           ::= { dnsServerMibObjects 1 } 
+        dnsServerConfiguration  OBJECT IDENTIFIER 
+           ::= { dnsServerMibObjects 2 } 
+        dnsServerCounters       OBJECT IDENTIFIER 
+           ::= { dnsServerMibObjects 3 } 
+        dnsServerOptCounters OBJECT IDENTIFIER 
+           ::= { dnsServerMibObjects 4 } 
+        dnsServerOptStats       OBJECT IDENTIFIER 
+           ::= { dnsServerMibObjects 5 } 
+        dnsServerZone        OBJECT IDENTIFIER  
+           ::= { dnsServerMibObjects 6 } 
+         
+         
+        dnsServerIdentification OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "Group of objects that are related to the overall system." 
+           ::= { dnsServerMIBObjects 1 } 
+         
+        dnsServerConfiguration OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              Group of objects that report server configuration." 
+           ::= { dnsServerMIBObjects 2 } 
+         
+        dnsBasicCounters OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "Group of objects that count various DNS events." 
+           ::= { dnsServerMIBObjects 3 } 
+         
+        dnsOptionalCounters OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "Group of objects that count various DNS events." 
+           ::= { dnsServerMIBObjects 4 } 
+         
+        dnsStatsistics OBJECT-IDENTITY 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 12] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           STATUS      current 
+           DESCRIPTION 
+              "Group of objects that measure various DNS statistics." 
+           ::= { dnsServerMIBObjects 5 } 
+         
+        dnsZones OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "Group of objects that report server zone information." 
+           ::= { dnsServerMIBObjects 6 } 
+         
+         
+         
+        -- serverIdentification Group 
+         
+        dnsServerIdentificationDescription OBJECT-TYPE 
+           SYNTAX      DisplayString (SIZE (0..255)) 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "A textual description of the server.  This value should 
+              include the full name and version identification of the server.  
+              This string MUST contain only printable NVT ASCII characters." 
+           ::= { dnsServerIdentification 1 } 
+         
+        dnsServerIdentificationObjectID OBJECT-TYPE 
+           SYNTAX      OBJECT IDENTIFIER 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The vendor's authoritative identification of the network 
+              management subsystem contained in this entity.  This value is 
+              allocated within the SMI enterprise subtree (1.3.6.1.4.1) and 
+              provides an easy and unambiguous means for determining what 
+              kind of server is being managed.  For example, if vendor 
+              'VeryBigServers, Inc.' is assigned the subtree 
+              1.3.6.1.4.1.4242, it may assign the identifier 
+              1.3.6.1.4.1.4242.1.1 to its 'Nomenclator' DNS server." 
+           ::= { dnsServerIdentification 2 } 
+         
+        dnsServerIdentificationUpTime OBJECT-TYPE 
+           SYNTAX      DnsTimeInterval 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "If the server has a persistent state (e.g., a process), this 
+              value will be the time elapsed since it started.  For software 
+              without persistant state, this value will be zero." 
+           ::= { dnsServerIdentification 3 } 
+         
+        dnsServerIdentificationOperatingState OBJECT-TYPE 
+           SYNTAX      INTEGER { 
+               other(1), 
+               initializing(2), 
+               running(4) 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 13] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           } 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Status object to report the persistant name server state, 
+              returning one of the following values: 
+                   other(1) - server in some unknown state; 
+                   initializing(2) - server (re)initializing; 
+                   running(4) - server currently running." 
+           ::= { dnsServerIdentification 4 } 
+         
+         
+         
+        -- Server Configuration Group 
+         
+        dnsServerConfigurationRecursion  OBJECT-TYPE 
+           SYNTAX      INTEGER { 
+               available(1), 
+               restricted(2), 
+               unavailable(4) 
+           } 
+           MAX-ACCESS  read-write 
+           STATUS      current 
+           DESCRIPTION 
+              "This represents the recursion services offered by this name 
+              server.  The values of this object are: 
+                   available(1) - performs recursion on requests from 
+                   clients. 
+                   restricted(2) - recursion is performed on requests only 
+                      from certain clients, for example; clients on an 
+                      access control list. 
+                   unavailable(4) - recursion is not available." 
+           ::= { dnsServerConfiguration 1 } 
+         
+         
+         
+        --  Server Basic Counters Group 
+         
+        --  Authoritative Answer Counters 
+         
+        dnsServerCountersAuthoritativeAnswers  OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of queries which were authoritatively answered." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to responses with RCODE 
+              value 0 and the AA bit set." 
+           ::= { dnsServerCounters 1 } 
+         
+        dnsServerCountersAuthoritativeNoNames OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 14] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           DESCRIPTION 
+              "Number of queries for which 'authoritative no such name' 
+              responses were made." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to responses with RCODE 
+              value 3 and the AA bit set." 
+           ::= { dnsServerCounters 2 } 
+         
+        dnsServerCountersAuthNoDataResps OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of queries for which 'authoritative no such data' 
+              (empty answer) responses were made." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to RCODE 0 with ANCOUNT 
+              and ARCOUNT both 0, and the AA bit set." 
+           ::= { dnsServerCounters 3 } 
+         
+         
+        --  Non-Authoritative Answer Counters 
+         
+        dnsServerCountersNonAuthAnswers OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of queries which were non-authoritatively answered 
+              (cached data)." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to replies with RCODE 0 
+              and the AA bit NOT set." 
+           ::= { dnsServerCounters 5 } 
+         
+        dnsServerCountersNonAuthNoData OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of queries which were non-authoritatively answered with 
+              no data (empty answer)." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to RCODE 0 with ANCOUNT 
+              and ARCOUNT both 0, and the AA bit NOT set." 
+           ::= { dnsServerCounters 6 } 
+         
+        dnsServerCountersReferrals OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests that were referred to other servers." 
+           ::= { dnsServerCounters 7 } 
+         
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 15] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+         
+        --  Error Counters 
+         
+        dnsServerCountersFormatErrors OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests the server has processed that were answered 
+              with RCODE value 1." 
+           REFERENCE 
+              "RFC1035 section 4.1.1." 
+           ::= { dnsServerCounters 9 } 
+         
+        dnsServerCountersServerFailures OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests the server has processed that were answered 
+              with RCODE value 2."  
+           REFERENCE 
+              "RFC1035 section 4.1.1." 
+           ::= { dnsServerCounters 10 } 
+         
+        dnsServerCountersNotImplemented OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests the server has processed that were answered 
+              with RCODE value 4."  
+           REFERENCE 
+              "RFC1035 section 4.1.1." 
+           ::= { dnsServerCounters 11 } 
+         
+        dnsServerCountersRequestsRefused OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of DNS requests refused by the server." 
+           REFERENCE 
+              "RFC1035 section 4.1.1.  Corresponds to responses with RCODE 
+              value 5." 
+           ::= { dnsServerCounters 12 } 
+         
+         
+        --  DNS Server Counters Table 
+         
+        dnsServerOpCodeCountersTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF dnsServerOpCodeCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 16] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+              "Counters of queries received by DNS OPCODE value.  This table 
+              should contain one row for each OPCODE value, but may be 
+              configured, using some unspecified external mechanism, to 
+              contain only rows of interest to the server administrator, plus 
+              one row (with a zero index value) corresponding to 'all other 
+              OPCODES.'" 
+           ::= { dnsServerCounters 15 } 
+         
+        dnsServerQClassCountersTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF dnsServerQClassCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "Counters of queries received by DNS class.  This table 
+              contains one row for every class to be counted as configured by 
+              the server administrator using some unspecified external 
+              mechanism. 
+               
+              For example, the administrator may only with to count queries 
+              for a few specific classes.  In this case, the table would 
+              contain one row for each class to be counted, plus one row 
+              (with zero index value) for 'all other classes.'" 
+           ::= { dnsServerCounters 16 } 
+         
+        dnsServerQtypeCountersTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF dnsServerQTypeCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "Counters of queries received by DNS RR type.  This table 
+              contains one row for every RR type to be counted as configured 
+              by the server administrator using some unspecified external 
+              mechanism. 
+               
+              For example, the administrator may only wish to count queries 
+              for A and PTR records, plus 'Any.'  In this case the table 
+              would contain only three rows.  In the context of this MIB, a 
+              value of zero for RR type means 'all other RR types.'" 
+           ::= { dnsServerCounters 17 }                   
+         
+        dnsServerTransportCountersTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF dnsServerTransportCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "Counters of queries received by DNS transport protocol." 
+           ::= { dnsServerCounters 18 }                   
+         
+        dnsServerOpCodeCountersEntry OBJECT-TYPE 
+           SYNTAX      DnsServerOpCodedCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "" 
+           INDEX { dnsServerCountersOpCode } 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 17] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           ::= { dnsServerCountersTable 1 } 
+         
+        dnsServerQClassCountersEntry OBJECT-TYPE 
+           SYNTAX      DnsServerQClassCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "" 
+           INDEX { dnsServerCountersQueryClass } 
+           ::= { dnsServerCountersTable 2 } 
+         
+        dnsServeQTypeCountersEntry OBJECT-TYPE 
+           SYNTAX      DnsServerQTypeCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "" 
+           INDEX { dnsServerCountersQueryType } 
+           ::= { dnsServerCountersTable 3 } 
+         
+        dnsServerTransportCountersEntry OBJECT-TYPE 
+           SYNTAX      DnsServerTransportCountersEntry  
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "" 
+           INDEX { dnsServerCountersTransport } 
+           ::= { dnsServerCountersTable 4 } 
+         
+        DnsServerOpCodeCountersEntry  ::= 
+           SEQUENCE { 
+              DnsServerCountersOpCode       DnsOpCode, 
+              DnsServerCountersOpCodeRequests  Counter32, 
+           } 
+         
+        DnsServerQClassCountersEntry  ::= 
+           SEQUENCE { 
+              DnsServerCountersQueryClass      DnsQueryClass, 
+              DnsServerCountersQClassRequests  Counter32, 
+           } 
+         
+        DnsServerQTypeCountersEntry  ::= 
+           SEQUENCE { 
+              DnsServerCountersQueryType    DnsQueryType, 
+              DnsServerCountersQTypeRequests   Counter32, 
+           } 
+         
+        DnsServerTransportCountersEntry  ::= 
+           SEQUENCE { 
+              DnsServerCountersTransport    INTEGER, 
+              DnsServerCountersTransportRequests  Counter32, 
+           } 
+         
+        dnsServerCountersOpCode OBJECT-TYPE 
+           SYNTAX      DnsOpCode 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 18] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "The DNS OPCODE being counted in this row of the table." 
+           ::= { dnsServerOpCodeCountersEntry 1 } 
+         
+        dnsServerCountersopCodeRequests OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests (queries) that have been recorded in this 
+              row of the table." 
+           ::= { dnsServerOpCodeCountersEntry 2 } 
+         
+        dnsServerCountersQueryClass OBJECT-TYPE 
+           SYNTAX      DnsQueryClass 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "The class of record being counted in this row of the table." 
+           ::= { dnsServerQClassCountersEntry 1 } 
+         
+        dnsServerCountersQClassRequests OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests (queries) that have been recorded in this 
+              row of the table." 
+           ::= { dnsServerQClassCountersEntry 2 } 
+         
+        dnsServerCountersQueryType OBJECT-TYPE 
+           SYNTAX      DnsQueryType 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "The type of record which is being counted in this row in the 
+              table." 
+           ::= { dnsServerQTypeCountersEntry 1 } 
+         
+        dnsServerCountersQTypeRequests OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests (queries) that have been recorded in this 
+              row of the table." 
+           ::= { dnsServerQTypeCountersEntry 2 } 
+         
+        dnsServerCountersTransport OBJECT-TYPE 
+           SYNTAX      INTEGER { 
+              udp(1), 
+              tcp(2), 
+              other(4) 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 19] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           } 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "A value of udp(1) indicates that the queries reported on this 
+              row were sent using UDP. 
+               
+              A value of tcp(2) indicates that the queries reported on this 
+              row were sent using TCP. 
+               
+              A value of other(3) indicates that the queries reported on this 
+              row were sent using a transport that was neither TCP nor UDP." 
+           ::= { dnsServerTransportCountersEntry 1 } 
+         
+        dnsServerCountersTransportRequests OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Number of requests (queries) that have been recorded in this 
+              row of the table." 
+           ::= { dnsServerTransportCountersEntry 2 } 
+         
+         
+         
+        --  Server Optional Counters Group 
+         
+        -- [None defined at this time] 
+         
+         
+         
+        -- dnsStatsistics group 
+         
+        dnsStatsMinArrivalInterval OBJECT-TYPE 
+           SYNTAX      DnsTimeInterval 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The minimum amount of time between receiving two DNS messages.  
+              A message is received at the server when the server is able to 
+              begin processing the message.  This typically occurs 
+              immediately after the message is read into server memory.  If 
+              no messages have been received, then this object contains a 
+              zero value." 
+           ::= { dnsStatsistics 1 } 
+         
+        dnsStatsMaxArrivalInterval OBJECT-TYPE 
+           SYNTAX      DnsTimeInterval 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The maximum amount of time between receiving two DNS messages.  
+              A message is received at the server when the server is able to 
+              begin processing the message.  This typically occurs 
+              immediately after the message is read into server memory.  If 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 20] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+              no messages have been received, then this object contains a 
+              zero value." 
+           ::= { dnsStatsistics 2 } 
+         
+        dnsStatsSumArrivalTime OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The sum of the DNS packet inter-arrival times in milli-
+              seconds.  This value may be used to compute the arithmetic mean 
+              of the DNS arrival times." 
+           ::= { dnsStatsistics 3 } 
+         
+        dnsStatsSumSquaresArrivalTime OBJECT-TYPE 
+           SYNTAX      Counter64 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "The sum of the squared DNS packet inter-arrival times in 
+              micro-seconds.  This value may be used to compute the variance 
+              and standard deviation of the DNS arrival times.  Note that a 
+              micro-second resolution of this object requires a clock 
+              resolution to the milli-second since the square of a milli-
+              second value produces a value with micro-second resolution." 
+           ::= { dnsStatsistics 4 } 
+         
+         
+         
+        --  Server Zone Group 
+         
+        --  DNS Management Zone Configuration Table 
+         
+        --  This table contains zone configuration information. 
+         
+        dnsServerZoneTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF DnsServZoneEntry 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "Table of zones for which this name server provides 
+              information.  Each of the zones may be loaded from stable 
+              storage via an implementation-specific mechanism or may be 
+              obtained from another name server via a zone transfer. 
+               
+              If name server doesn't load any zones, this table is empty." 
+           ::= { dnsServerZone 1 } 
+         
+        dnsServerZoneEntry OBJECT-TYPE 
+           SYNTAX      DnsServZoneEntry 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "An entry in the name server zone table.  New rows may be added 
+              either via SNMP or by the name server itself." 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 21] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           INDEX { 
+              dnsServerZoneName, 
+              dnsServerZoneClass  
+           } 
+           ::= { dnsServerZoneTable 1 } 
+         
+        DnsServerZoneEntry ::= 
+           SEQUENCE { 
+              DnsServerZoneName          DnsNameAsIndex, 
+              DnsServerZoneClass         DnsQueryClass, 
+              DnsServerZoneLastReloadSuccess   DnsTime, 
+              DnsServerZoneLastReloadAttempt   DnsTime, 
+              DnsServerZoneLastSourceAttempt   IpAddress, 
+              DnsServerZoneStatus        RowStatus, 
+              dnsServerZoneSerial        Counter32, 
+              dnsServerZoneCurrent       TruthValue, 
+              dnsServerZoneLastSourceSuccess   IpAddress 
+           } 
+         
+        dnsServerZoneName OBJECT-TYPE 
+           SYNTAX      DnsNameAsIndex 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "DNS name of the zone described by this row of the table. This 
+              is the owner name of the SOA RR that defines the top of the 
+              zone. This is name is in uppercase: characters 'a' through 'z' 
+              are mapped to 'A' through 'Z' in order to make the lexical 
+              ordering useful. 
+               
+              This definition is obsolete and must be replaced to accommodate 
+              binary labels and internationalized domain names." 
+           ::= { dnsServerZoneEntry 1 } 
+         
+        dnsServerZoneClass OBJECT-TYPE 
+           SYNTAX      DnsQueryClass 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "DNS class of the RRs in this zone." 
+           ::= { dnsServerZoneEntry 2 } 
+         
+        dnsServerZoneLastReloadSuccess OBJECT-TYPE 
+           SYNTAX      DnsTime 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Elapsed time in seconds since last successful reload of this 
+              zone. 
+               
+              This definition requires update to account for new update 
+              methods." 
+           ::= { dnsServerZoneEntry 3 } 
+         
+        dnsServerZoneLastReloadAttempt OBJECT-TYPE 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 22] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           SYNTAX      DnsTime 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Elapsed time in seconds since last attempted reload of this 
+              zone. 
+               
+              This definition requires update to account for new update 
+              methods." 
+           ::= { dnsServerZoneEntry 4 } 
+         
+        dnsServerZoneLastSourceAttempt OBJECT-TYPE 
+           SYNTAX      IpAddress 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "IP address of host from which most recent zone transfer of 
+              this zone was attempted.  This value should match the value of 
+              dnsServerZoneSourceSuccess if the attempt was succcessful.  If 
+              zone transfer has not been attempted within the memory of this 
+              name server, this value should be 0.0.0.0." 
+               
+              This definition requires update to account for new update 
+              methods." 
+           ::= { dnsServerZoneEntry 5 } 
+         
+        dnsServerZoneStatus OBJECT-TYPE 
+           SYNTAX      RowStatus 
+           MAX-ACCESS  read-create 
+           STATUS      current 
+           DESCRIPTION 
+              "The status of the information represented in this row of the 
+              table." 
+           ::= { dnsServerZoneEntry 6 } 
+         
+        dnsServerZoneSerial OBJECT-TYPE 
+           SYNTAX      Counter32 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Zone serial number (from the SOA RR) of the zone represented 
+              by this row of the table.  If the zone has not been 
+              successfully loaded within the memory of this name server, the 
+              value of this variable is zero." 
+           ::= { dnsServerZoneEntry 7 } 
+         
+        dnsServerZoneCurrent OBJECT-TYPE 
+           SYNTAX      TruthValue 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "Whether the server's copy of the zone represented by this row 
+              of the table is currently valid.  If the zone has never been 
+              successfully loaded or has expired since it was last 
+              succesfully loaded, this variable will have the value false(2), 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 23] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+              otherwise this variable will have the value true(1)." 
+           ::= { dnsServerZoneEntry 8 } 
+         
+        dnsServerZoneLastSourceSuccess OBJECT-TYPE 
+           SYNTAX      IpAddress 
+           MAX-ACCESS  read-only 
+           STATUS      current 
+           DESCRIPTION 
+              "IP address of host which was the source of the most recent 
+              successful zone transfer for this zone. If unknown (e.g., zone 
+              has never been successfully transfered) or irrelevant (e.g., 
+              zone was loaded from stable storage), this value should be 
+              0.0.0.0." 
+           ::= { dnsServerZoneEntry 9 } 
+         
+         
+        --  DNS Zone Source Table 
+         
+        dnsServerZoneSourceTable OBJECT-TYPE 
+           SYNTAX      SEQUENCE OF DnsServZoneSourceEntry 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "This table is a list of IP addresses from which the server 
+              will attempt to load zone information using DNS zone transfer 
+              operations.  A reload may occur due to SNMP operations that 
+              create a row in dnsServerZoneTable or a SET to object 
+              dnsServerZoneReload.  This table is only used when the zone is 
+              loaded via zone transfer." 
+           ::= { dnsServerZone 2 } 
+         
+        dnsServerZoneSourceEntry OBJECT-TYPE 
+           SYNTAX      DnsServZoneSourceEntry 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "An entry in the name server zone source table." 
+           INDEX { 
+              dnsServerZoneSourceName, 
+              dnsServerZoneSourceClass, 
+              dnsServerZoneSourceAddr  
+           } 
+           ::= { dnsServerZoneSourceTable 1 } 
+         
+        DnsServZoneSourceEntry ::= 
+           SEQUENCE { 
+              DnsServerZoneSourceName    DnsNameAsIndex, 
+              DnsServerZoneSourceClass   DnsQueryClass, 
+              DnsServerZoneSourceAddr    IpAddress, 
+              DnsServerZoneSourceStatus  RowStatus 
+           } 
+         
+        dnsServerZoneSourceName OBJECT-TYPE 
+           SYNTAX      DnsNameAsIndex 
+           MAX-ACCESS  not-accessible 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 24] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           STATUS      current 
+           DESCRIPTION 
+              "DNS name of the zone to which this entry applies." 
+           ::= { dnsServerZoneSourceEntry 1 } 
+         
+        dnsServerZoneSourceClass OBJECT-TYPE 
+           SYNTAX      DnsQueryClass 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "DNS class of zone to which this entry applies." 
+           ::= { dnsServerZoneSourceEntry 2 } 
+         
+        dnsServerZoneSourceAddr OBJECT-TYPE 
+           SYNTAX      IpAddress 
+           MAX-ACCESS  not-accessible 
+           STATUS      current 
+           DESCRIPTION 
+              "IP address of name server host from which this zone might be 
+              obtainable." 
+           ::= { dnsServerZoneSourceEntry 3 } 
+         
+        dnsServerZoneSourceStatus OBJECT-TYPE 
+           SYNTAX      RowStatus 
+           MAX-ACCESS  read-create 
+           STATUS      current 
+           DESCRIPTION 
+              "The status of the information represented in this row of the 
+              table." 
+           ::= { dnsServerZoneSourceEntry 4 } 
+         
+         
+         
+        --  SNMPv2 groups. 
+         
+        dnsServerMibGroups OBJECT IDENTIFIER 
+           ::= { dnsServerMib 2 } 
+         
+        dnsServerIdentificationGroup OBJECT-GROUP 
+           OBJECTS {  
+              dnsServerIdentificationIdentifier, 
+              dnsServerIdentificationUpTime, 
+              dnsServerIdentificationResetTime, 
+              dnsServerIdentificationOperatingState  
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing identification of a DNS name 
+              server." 
+           ::= { dnsServerMibGroups 1 } 
+         
+        dnsServerConfigurationGroup OBJECT-GROUP 
+           OBJECTS {  
+              dnsServerConfigurationRecursion 
+           } 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 25] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing basic configuration of a DNS 
+              name server." 
+           ::= { dnsServerMibGroups 2 } 
+         
+        dnsServerCountersGroup OBJECT-GROUP 
+           OBJECTS { 
+              dnsServerCountersAuthoritativeAnswers , 
+              dnsServerCountersAuthoritativeNoNames, 
+              dnsServerCountersAuthNoDataResps, 
+              dnsServerCountersNonAuthAnswers, 
+              dnsServerCountersNonAuthNoData, 
+              dnsServerCountersReferrals, 
+              dnsServerCountersFormatErrors, 
+              dnsServerCountersServerFailures, 
+              dnsServerCountersNotImplemented, 
+              dnsServerCountersRequestsRefused, 
+              dnsServerCountersReqUnparses, 
+              dnsServerCountersOtherErrors, 
+              dnsServerCountersOpCode, 
+              dnsServerCountersQueryClass, 
+              dnsServerCountersQueryType, 
+              dnsServerCountersTransport, 
+              dnsServerCountersRequests, 
+              dnsServerCountersResponses 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing basic instrumentation of a 
+              DNS name server." 
+           ::= { dnsServerMibGroups 3 } 
+         
+        dnsServerOptCountersGroup OBJECT-GROUP 
+           OBJECTS {  
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing extended instrumentation of 
+              a DNS name server." 
+           ::= { dnsServerMibGroups 4 } 
+         
+        dnsServerStatisticsGroup OBJECT-GROUP 
+           OBJECTS {  
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing extended instrumentation of 
+              a DNS name server." 
+           ::= { dnsServerMibGroups 5 } 
+         
+        dnsServerZoneGroup OBJECT-GROUP 
+           OBJECTS {  
+              dnsServerZoneName, 
+              dnsServerZoneClass, 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 26] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+              dnsServerZoneLastReloadSuccess, 
+              dnsServerZoneLastReloadAttempt, 
+              dnsServerZoneLastSourceAttempt, 
+              dnsServerZoneLastSourceSuccess, 
+              dnsServerZoneStatus, 
+              dnsServerZoneSerial, 
+              dnsServerZoneCurrent, 
+              dnsServerZoneSourceName, 
+              dnsServerZoneSourceClass, 
+              dnsServerZoneSourceAddr, 
+              dnsServerZoneSourceStatus  
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "A collection of objects providing configuration control of a 
+              DNS name server which loads authoritative zones." 
+           ::= { dnsServerMibGroups 6 } 
+         
+         
+         
+        --  serverNotifyObjects:  Objects which are used only in 
+        notifications 
+         
+        --  [no new objects defined in this MIB] 
+         
+         
+        --  Notifications 
+         
+        serverServerStart NOTIFICATION-TYPE 
+           OBJECTS     { serverNotifyServer } 
+           STATUS      current 
+           DESCRIPTION 
+              "This notification signifies that the server of the specified 
+              type has started on the host from which this notification has 
+              been sent." 
+           ::= { dnsServerMIBNotifications 3 } 
+         
+        serverServerStop NOTIFICATION-TYPE 
+           OBJECTS     { serverNotifyServer } 
+           STATUS      current 
+           DESCRIPTION 
+              "This notification signifies that the server of the specified 
+              type has stopped normally on the host from which this 
+              notification has been sent." 
+           ::= { dnsServerMIBNotifications 4 } 
+         
+         
+         
+        --  Compliances. 
+         
+        dnsServerMibCompliances OBJECT IDENTIFIER  
+           ::= { dnsServerMib 3 } 
+         
+        dnsServerMibCompliance MODULE-COMPLIANCE 
+           STATUS      current 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 27] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           DESCRIPTION 
+              "The compliance statement for agents implementing the DNS name 
+              server MIB extensions." 
+           MODULE -- This MIB module 
+           MANDATORY-GROUPS {  
+              dnsServerIdentificationGroup, 
+              dnsServerConfigurationGroup, 
+              dnsServerCountersGroup  
+           } 
+         
+        GROUP dnsServerOptCountersGroup 
+           DESCRIPTION 
+              "The server optional counter group is unconditionally 
+              optional." 
+         
+        GROUP dnsServerStatisticsGroup 
+           DESCRIPTION 
+              "The server statistics group is unconditionally optional." 
+         
+        GROUP dnsServerZoneGroup 
+           DESCRIPTION 
+              "The server zone group is mandatory for any name server that 
+              acts as an authoritative server for any DNS zone." 
+         
+         
+         
+        -- Conformance 
+         
+        dnsServerMIBConformance OBJECT-IDENTITY 
+           STATUS      current 
+           DESCRIPTION 
+              "DNS Server MIB objects are all defined in this branch." 
+           ::= { dnsServerMIB 3 } 
+         
+        dnsServerMIBCompliances OBJECT IDENTIFIER 
+           ::= { dnsServerMIBConformance 1 } 
+         
+        dnsServerMIBGroups OBJECT IDENTIFIER 
+           ::= { dnsServerMIBConformance 2 } 
+         
+         
+        -- Compliance groups 
+         
+        dnsServerMIBCompliance MODULE-COMPLIANCE 
+           MODULE  -- this module 
+              MANDATORY-GROUPS { 
+              serverIdentificationGroup, 
+              dnsBasicCountersGroup, 
+              dnsOptionalCountersGroup, 
+              dnsStatsisticsGroup, 
+              serverConfigurationGroup 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Describes the requirements for conformance to the DNS Server 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 28] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+              MIB." 
+           ::= { dnsServerMIBCompliances 1 } 
+         
+        dnsBasicCountersGroup OBJECT-GROUP 
+           OBJECTS { 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Objects belonging to the dnsBasicCountersGroup." 
+           ::= { dnsServerMIBGroups 3 } 
+         
+        dnsOptionalCountersGroup OBJECT-GROUP 
+           OBJECTS { 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Objects belonging to the dnsOptionalCountersGroup." 
+           ::= { dnsServerMIBGroups 3 } 
+         
+        dnsStatisticsGroup OBJECT-GROUP 
+           OBJECTS { 
+              dnsStatsMinArrivalInterval, 
+              dnsStatsMaxArrivalInterval, 
+              dnsStatsSumArrivalTime, 
+              dnsStatsSumSquaresArrivalTime 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Objects belonging to the dnsStatisticsGroup." 
+           ::= { dnsServerMIBGroups 5 } 
+         
+        serverZoneGroup OBJECT-GROUP 
+           OBJECTS { 
+              dnsServerZoneName, 
+              dnsServerZoneClass, 
+              dnsServerZoneLastReloadSuccess, 
+              dnsServerZoneLastReloadAttempt, 
+              dnsServerZoneLastSourceAttempt, 
+              dnsServerZoneLastSourceSuccess, 
+              dnsServerZoneStatus, 
+              dnsServerZoneSerial, 
+              dnsServerZoneCurrent, 
+              dnsServerZoneSourceName, 
+              dnsServerZoneSourceClass, 
+              dnsServerZoneSourceAddr, 
+              dnsServerZoneSourceStatus  
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Objects belonging to the serverConfigurationGroup." 
+           ::= { dnsServerMIBGroups 6 } 
+         
+        serverNotifyObjectsGroup OBJECT-GROUP 
+           OBJECTS { 
+              serverNotifyServer 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 29] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+           } 
+           STATUS current 
+           DESCRIPTION 
+              "DNS Server MIB objects used in notifications." 
+           ::= { dnsServerMIBGroups 7 } 
+         
+        serverNotificationsGroup NOTIFICATION-GROUP 
+           NOTIFICATIONS { 
+              serverServerStart, 
+              serverServerStop, 
+              serverDNSQueueTooBig 
+           } 
+           STATUS      current 
+           DESCRIPTION 
+              "Notifications which are implemented by the DNS Server agent." 
+           ::= { dnsServerMIBGroups 8 } 
+         
+        END 
+         
+         
+
+     8. Intellectual Property 
+
+        The IETF takes no position regarding the validity or scope of any 
+        intellectual property or other rights that might be claimed to 
+        pertain to the implementation or use of the technology described in 
+        this document or the extent to which any license under such rights 
+        might or might not be available; neither does it represent that it 
+        has made any effort to identify any such rights.  Information on the 
+        IETF's procedures with respect to rights in standards-track and 
+        standards-related documentation can be found in BCP-11. 
+
+        Copies of claims of rights made available for publication and any 
+        assurances of licenses to be made available, or the result of an 
+        attempt made to obtain a general license or permission for the use of 
+        such proprietary rights by implementers or users of this 
+        specification can be obtained from the IETF Secretariat. 
+
+        The IETF invites any interested party to bring to its attention any 
+        copyrights, patents or patent applications, or other proprietary 
+        rights that may cover technology that may be required to practice 
+        this standard.  Please address the information to the IETF Executive 
+        Director. 
+
+
+     9. Notes 
+
+        This section will be removed when this memo is published as an RFC. 
+
+
+
+
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 30] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+     9.1. Issues 
+
+
+     9.1.1. DNS vs. SNMP Names 
+
+        Note that it is theoretically possible for a valid DNS name to exceed 
+        the allowed length of an SNMP object identifer, and thus be 
+        impossible to represent in tables in this MIB that are indexed by DNS 
+        name.  Sampling of DNS names in current use on the Internet suggests 
+        that this limit does not yet pose a serious problem in practice, but 
+        requires further study. 
+
+
+     9.1.2. Use of DNS Names as Indices 
+
+        When [RFC1611] was written, DNS names were restricted to be the NVT-
+        ASCII characters "A" through "Z," "0" through "9," the dot (".") and 
+        dash ("-") characters.  Today, DNS names are no longer restricted to 
+        this limited character set, but may be any value that can be 
+        expressed by octets.  As a result of this and the work underway by 
+        the Internationalized Domain Names Working Group of the IETF, the 
+        simple case folding and limited character set imposed by the original 
+        definition of the textual convention DnsNameAsIndex is no longer 
+        valid.  A more appropriate definition of this index will require 
+        further study. 
+
+
+     9.1.3. Binary Labels and Internationalized Domain Names 
+
+        The convention used in [RFC1611] for DNS names also conflicts with 
+        the common assumption used in MIBs that many objects are defined as 
+        NVT-ASCII, which is also no longer appropriate given the support for 
+        binary labels and internationalized domain names.  This is an item 
+        for further study. 
+
+
+     9.1.4. Zone Update Methods Other Than Zone Transfer 
+
+        Incremental zone transfers [RFC1995] and dynamic DNS updating 
+        [RFC2136] and [RFC3007] introduce new methods for updating zone data 
+        that were not envisioned at the time that [RFC1611] was written.  
+        Several object definitions may require modification to account for 
+        these additions. 
+
+
+     9.1.5. Basis for Counters and Statistics 
+
+        The basic counters correspond to specific categories of errors, 
+        responses, and messages as described in RFC1034 and RFC1035.  In all 
+        cases the document sections underlying an object are given in the 
+        REFERENCE of each object definition, where such sections exist.  
+        Statistics were generally created from the desire to be able to 
+        characterize the traffic patterns presented to a server and to 
+        provide more detailed performance monitoring tools than simple 
+        counters can provide. 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 31] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        The editors specifically did not survey all available DNS management 
+        tools to determine the statistics and optional counters included in 
+        the MIB. 
+
+
+     9.1.6. Simplicity vs. Completeness 
+
+        A DNS server in many cases must be capable of very high performance.  
+        In these cases a DNS server MIB should include the least number of 
+        objects necessary to monitor the server.  In other cases DNS 
+        administrators may be more concerned with management and control than 
+        performance, wishing for a rich server MIB to provide them as much 
+        information as possible.  Designing a MIB to meet these quite 
+        opposite goals is a bit of a challenge:  hopefully the editors have 
+        struck a workable balance by defining a basic set of counters and 
+        configuration objects, with a rich set of optional objects. 
+
+
+     9.2. Changes from Prior Drafts 
+
+        [none û initial version of the draft] 
+
+
+     10. Acknowledgements 
+
+        This document is the result of work undertaken the by DNS Extensions 
+        working group.  The editors would like to particularly acknowledge 
+        the efforts of the editors of [RFC1611], Rob Austein and Jon Saperia, 
+        who created the original DNS Server MIB. 
+
+
+     11. Security Considerations 
+
+        There are a number of management objects defined in this MIB that 
+        have a MAX-ACCESS clause of read-write and/or read-create.  Such 
+        objects may be considered sensitive or vulnerable in some 
+        environments.  The support for SET operations in a non-secure 
+        environment without proper protection can have a negative effect on 
+        network operations. 
+
+        SNMPv1 by itself is not a secure environment.  Even if the network 
+        itself is secure (for example by using IPSEC), even then, there is no 
+        control as to who on the secure network is allowed to access and 
+        GET/SET (read/change/create/delete) the objects in this MIB. 
+
+        It is recommended that the implementers consider the security 
+        features as provided by the SNMPv3 framework.  Specifically, the use 
+        of the User-based Security Model [RFC2274] and the View-based Access 
+        Control Model [RFC2275] is recommended. 
+
+        It is then a customer/user responsibility to ensure that the SNMP 
+        entity giving access to an instance of this MIB, is properly 
+        configured to give access to the objects only to those principals 
+        (users) that have legitimate rights to indeed GET or SET 
+        (change/create/delete) them. 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 32] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+     12. References 
+
+        [DEN] Directory Enabled Networks Working Group, 
+           http://www.universe.digex.net/~murchiso/den. 
+
+        [ISO8824] International Organization for Standardization, 
+           "Information processing systems - Open Systems Interconnection -- 
+           Specification of Abstract Syntax Notation One (ASN.1)," 
+           International Standard 8824, December 1987. 
+
+        [RFC1034] Mockapetris, P., "Domain Names -- Concepts and Facilities", 
+           STD 13, RFC 1034, USC/Information Sciences Institute, November 
+           1987. 
+
+        [RFC1035] Mockapetris, P., "Domain Names -- Implementation and 
+           Specification," STD 13, RFC 1035, USC/Information Sciences 
+           Institute, November 1987. 
+
+        [RFC1123] Braden, R., Editor, "Requirements for Internet Hosts -- 
+           Application and Support, STD 3, RFC 1123, USC/Information Sciences 
+           Institute, October 1989. 
+
+        [RFC1155] Rose, M., and K. McCloghrie, "Structure and Identification 
+           of Management Information for TCP/IP-based internets", STD 16, RFC 
+           1155, Performance Systems International, Hughes LAN Systems, May 
+           1990. 
+
+        [RFC1156] McCloghrie, K., and M. Rose, "Management Information Base 
+           for Network Management of TCP/IP-based internets", RFC 1156, May 
+           1990. 
+
+        [RFC1157] Case, J., Fedor, M., Schoffstall, M., and J. Davin, "Simple 
+           Network Management Protocol", STD 15, RFC 1157, May 1990. 
+
+        [RFC1212] Rose, M., and K. McCloghrie, Editors, "Concise MIB 
+           Definitions", STD 16, RFC 1212, March 1991. 
+
+        [RFC1213] McCloghrie, K., and M. Rose, "Management Information Base 
+           for Network Management of TCP/IP-based internets:  MIB-II", STD 
+           17, RFC 1213, March 1991. 
+
+        [RFC1215] Rose, M. T., "Convention for defining traps for use with 
+           the SNMP," RFC 1215, March 1991. 
+
+        [RFC1445] Galvin, J., and K. McCloghrie, "Administrative Model for 
+           version 2 of the Simple Network Management Protocol (SNMPv2)", RFC 
+           1445, April 1993. 
+
+        [RFC1448] Case, J., McCloghrie, K., Rose, M., and S. Waldbusser, 
+           "Protocol Operations for version 2 of the Simple Network 
+           Management Protocol (SNMPv2)", RFC 1448, April 1993. 
+
+        [RFC1611] Austein, R. and Saperia, J., ôDNS Server MIB Extensions,ö 
+           RFC 1611, May 1994. 
+
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 33] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        [RFC1612] Austein, R. and Saperia, J., "DNS Resolver MIB Extensions," 
+           RFC 1612, May 1994 
+
+        [RFC1901] Case, J., McCloghrie, K., Rose, M., and S. Waldbusser, 
+           "Introduction to Community-based SNMPv2," RFC 1901, January 1996. 
+
+        [RFC1904] Case, J., McCloghrie, K., Rose, M., and S. Waldbusser, 
+           "Conformance Statements for Version 2 of the Simple Network 
+           Management Protocol (SNMPv2)," RFC 1904, January 1996. 
+
+        [RFC1905] Case, J., McCloghrie, K., Rose, M., and S. Waldbusser, 
+           Protocol Operations for Version 2 of the Simple Network Management 
+           Protocol (SNMPv2)," January 1996. 
+
+        [RFC1906] Case, J., McCloghrie, K., Rose, M., and S. Waldbusser, 
+           "Transport Mappings for Version 2 of the Simple Network Management 
+           Protocol (SNMPv2)," RFC 1906, January 1996. 
+
+        [RFC1995] Ohta, M., "Incremental Zone Transfer in DNS," RFC 1995, 
+           August 1996. 
+
+        [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate 
+           Requirement Levels", RFC 2119, BCP 14, March 1997. 
+
+        [RFC2136] Vixie, P., Thompson, S., Rekhter, Y., Bound, J., "Dynamic 
+           Updates in the Domain Name System (DNS UPDATE)," RFC 2136, April 
+           1997. 
+
+        [RFC2287] Krupczak, C. and Saperia, J., "Definitions of System-Level 
+           Managed Objects for Applications," RFC 2287, February 1998. 
+
+        [RFC2535] Eastlake, D., "Domain Name System Security Extensions," RFC 
+           2535, March 1999. 
+
+        [RFC2570] Case, J., Mundy, R., Partain, D., and Stewart, B., 
+           "Introduction to Version 3 of the Internet-standard Network 
+           Management Framework,"  
+
+        [RFC2571] Harrington, D., Presuhn, R., and Wijnen, B., "An 
+           Architecture for Describing SNMP Management Frameworks," RFC 2571, 
+           April 1999. 
+
+        [RFC2572] Case, J., Harrington, D., Presuhn, R., and Wijnen, B., 
+           Message Processing and Dispatching for the Simple Network 
+           Management Protocol (SNMP)," RFC 2572, April 1999. 
+
+        [RFC2573] Levi, D., Meyer, P., and Stuart, "SNMP Applications," RFC 
+           2573, April 1999. 
+
+        [RFC2574] Blumenthal, U. and Wijnen, B., "User-based Security Model 
+           (USM) for version 3 of the Simple Network Management Protocol 
+           (SNMPv3)," RFC 2574, April 1999. 
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 34] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        [RFC2575] Wijnen, B., R. Presuhn, R., McCloghrie, K., "View-based 
+           Access Control Model (VACM) for the Simple Network Management 
+           Protocol (SNMP)," RFC 2575, April 1999. 
+
+        [RFC2578] McCloghrie, K., Perkins, D., Schoenwaelder, J., Case, J., 
+           Rose, M., and S. Waldbusser, "Structure of Management Information 
+           Version 2 (SMIv2)," RFC 2578, April 1999. 
+
+        [RFC2579] McCloghrie, K., Perkins, D., Schoenwaelder, J., Case, J., 
+           Rose, M., and S. Waldbusser, "Textual Conventions for SMIv2", RFC 
+           2579, January 1999. 
+
+        [RFC2580] McCloghrie, K., Perkins, D., Schoenwaelder, J., Case, J., 
+           Rose, M., and S. Waldbusser, "Conformance Statements for SMIv2," 
+           RFC 2580, April 1999. 
+
+        [RFC2673] Crawford, M., " Binary Labels in the Domain Name System," 
+           RFC 2673, August 1999. 
+
+        [RFC3007] Wellington, B., " Secure Domain Name System (DNS) Dynamic 
+           Update," RFC 3007, November 2000. 
+
+
+     13. Editors' Addresses 
+
+        Barr Hibbs 
+        Nominum, Inc. 
+        950 Charter Street 
+        Redwood City, California 94063 
+        USA 
+        Phone: +1-(415)-648-3920 
+        Fax: +1-(415)-648-9017 
+        E-mail: Barr.Hibbs@Nominum.com 
+
+
+     14. Full Copyright Statement 
+
+        Copyright (C) The Internet Society (2001).  All Rights Reserved. 
+
+        This document and translations of it may be copied and furnished to 
+        others, and derivative works that comment on or otherwise explain it 
+        or assist in its implementation may be prepared, copied, published 
+        and distributed, in whole or in part, without restriction of any 
+        kind, provided that the above copyright notice and this paragraph are 
+        included on all such copies and derivative works.  However, this 
+        document itself may not be modified in any way, such as by removing 
+        the copyright notice or references to the Internet Society or other 
+        Internet organizations, except as needed for the purpose of 
+        developing Internet standards in which case the procedures for 
+        copyrights defined in the Internet Standards process must be 
+        followed, or as required to translate it into languages other than 
+        English. 
+
+        The limited permissions granted above are perpetual and will not be 
+        revoked by the Internet Society or its successors or assigns. 
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 35] 
+     Internet Draft              DNS Server MIB               November 2001 
+
+        This document and the information contained herein is provided on an 
+        "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING 
+        TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING 
+        BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION 
+        HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF 
+        MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Hibbs                Expires: Nov 2001 + 6 months            [Page 36] 
