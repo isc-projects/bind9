@@ -1,3 +1,5 @@
+1493.	[doc]		A6 and "bitstring" labels are now experimental.
+
 1492.	[cleanup]	Preserve rwlock quota context when upgrading /
 			downgrading. [RT #5599]
 
