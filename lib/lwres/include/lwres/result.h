@@ -30,5 +30,6 @@ typedef unsigned int lwres_result_t;
 #define LWRES_R_NOTIMPLEMENTED		7
 #define LWRES_R_UNEXPECTED		8
 #define LWRES_R_TRAILINGDATA		9
+#define LWRES_R_INCOMPLETE		10
 
 #endif /* LWRES_RESULT_H */
