@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.52 2001/01/23 07:45:39 marka Exp $ */
+/* $Id: request.c,v 1.53 2001/01/23 19:50:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -433,6 +433,38 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	return (result);
 }
 
+static isc_result_t
+new_request(isc_mem_t *mctx, dns_request_t **requestp) {
+	dns_request_t *request;
+
+	request = isc_mem_get(mctx, sizeof(*request));
+	if (request == NULL)
+		return (ISC_R_NOMEMORY);
+
+	/*
+	 * Zero structure.
+	 */
+	request->magic = 0;
+	request->mctx = NULL;
+	request->flags = 0;
+	ISC_LINK_INIT(request, link);
+	request->query = NULL;
+	request->answer = NULL;
+	request->event = NULL;
+	request->dispatch = NULL;
+	request->dispentry = NULL;
+	request->timer = NULL;
+	request->requestmgr = NULL;
+	request->tsig = NULL;
+	request->tsigkey = NULL;
+
+	isc_mem_attach(mctx, &request->mctx);
+
+	*requestp = request;
+	return (ISC_R_SUCCESS);
+}
+
+
 static isc_boolean_t
 isblackholed(dns_dispatchmgr_t *dispatchmgr, isc_sockaddr_t *destaddr) {
 	dns_acl_t *blackhole = NULL;
@@ -616,27 +648,10 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	if (isblackholed(requestmgr->dispatchmgr, destaddr))
 		return (DNS_R_BLACKHOLED);
 
-	request = isc_mem_get(mctx, sizeof(*request));
-	if (request == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
-	/*
-	 * Zero structure.
-	 */
-	request->magic = 0;
-	request->mctx = NULL;
-	request->flags = 0;
-	ISC_LINK_INIT(request, link);
-	request->query = NULL;
-	request->answer = NULL;
-	request->event = NULL;
-	request->dispatch = NULL;
-	request->dispentry = NULL;
-	request->timer = NULL;
-	request->requestmgr = NULL;
-	request->tsig = NULL;
-	request->tsigkey = NULL;
+	request = NULL;
+	result = new_request(mctx, &request);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Create timer now.  We will set it below once.
@@ -698,7 +713,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	r.base[0] = (id>>8) & 0xff;
 	r.base[1] = id & 0xff;
 
-	isc_mem_attach(mctx, &request->mctx);
 	LOCK(&requestmgr->lock);
 	if (requestmgr->exiting) {
 		UNLOCK(&requestmgr->lock);
@@ -727,7 +741,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 			goto unlink;
 	}
 
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create: request %p", request);
+	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw: request %p",
+		request);
 	*requestp = request;
 	return (ISC_R_SUCCESS);
 
@@ -737,24 +752,10 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	UNLOCK(&requestmgr->lock);
 
  cleanup:
-	if (request->requestmgr != NULL)
-		requestmgr_detach(&request->requestmgr);
-	if (request->dispentry != NULL)
-		dns_dispatch_removeresponse(&request->dispentry, NULL);
-	if (request->dispatch != NULL)
-		dns_dispatch_detach(&request->dispatch);
-	if (request->event != NULL)
-		isc_event_free((isc_event_t **)&request->event);
-	if (request->query != NULL)
-		isc_buffer_free(&request->query);
-	if (request->timer != NULL)
-		isc_timer_detach(&request->timer);
 	if (tclone != NULL)
 		isc_task_detach(&tclone);
-	if (request->mctx != NULL)
-		isc_mem_detach(&request->mctx);
-	isc_mem_put(mctx, request, sizeof *request);
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create: failed %s",
+	req_destroy(request);
+	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw: failed %s",
 		dns_result_totext(result));
 	return (result);
 }
@@ -800,32 +801,15 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 	mctx = requestmgr->mctx;
 
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create");
+	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia");
 
 	if (isblackholed(requestmgr->dispatchmgr, destaddr))
 		return (DNS_R_BLACKHOLED);
 
-	request = isc_mem_get(mctx, sizeof(*request));
-	if (request == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-
-	/*
-	 * Zero structure.
-	 */
-	request->magic = 0;
-	request->mctx = NULL;
-	request->flags = 0;
-	ISC_LINK_INIT(request, link);
-	request->query = NULL;
-	request->answer = NULL;
-	request->event = NULL;
-	request->dispatch = NULL;
-	request->dispentry = NULL;
-	request->timer = NULL;
-	request->requestmgr = NULL;
-	request->tsig = NULL;
-	request->tsigkey = NULL;
+	request = NULL;
+	result = new_request(mctx, &request);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Create timer now.  We will set it below once.
@@ -887,7 +871,6 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	isc_mem_attach(mctx, &request->mctx);
 	LOCK(&requestmgr->lock);
 	if (requestmgr->exiting) {
 		UNLOCK(&requestmgr->lock);
@@ -916,7 +899,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 			goto unlink;
 	}
 
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create: request %p", request);
+	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: request %p",
+		request);
 	*requestp = request;
 	return (ISC_R_SUCCESS);
 
@@ -926,24 +910,10 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	UNLOCK(&requestmgr->lock);
 
  cleanup:
-	if (request->requestmgr != NULL)
-		requestmgr_detach(&request->requestmgr);
-	if (request->dispentry != NULL)
-		dns_dispatch_removeresponse(&request->dispentry, NULL);
-	if (request->dispatch != NULL)
-		dns_dispatch_detach(&request->dispatch);
-	if (request->event != NULL)
-		isc_event_free((isc_event_t **)&request->event);
-	if (request->query != NULL)
-		isc_buffer_free(&request->query);
-	if (request->timer != NULL)
-		isc_timer_detach(&request->timer);
 	if (tclone != NULL)
 		isc_task_detach(&tclone);
-	if (request->mctx != NULL)
-		isc_mem_detach(&request->mctx);
-	isc_mem_put(mctx, request, sizeof *request);
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create: failed %s",
+	req_destroy(request);
+	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: failed %s",
 		dns_result_totext(result));
 	return (result);
 }
@@ -1277,7 +1247,8 @@ req_destroy(dns_request_t *request) {
 		isc_buffer_free(&request->tsig);
 	if (request->tsigkey != NULL)
 		dns_tsigkey_detach(&request->tsigkey);
-	requestmgr_detach(&request->requestmgr);
+	if (request->requestmgr != NULL)
+		requestmgr_detach(&request->requestmgr);
 	mctx = request->mctx;
 	isc_mem_put(mctx, request, sizeof(*request));
 	isc_mem_detach(&mctx);
