@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.322 2001/05/08 04:09:39 bwelling Exp $ */
+/* $Id: server.c,v 1.323 2001/05/08 04:30:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2745,9 +2745,10 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 
 	/* Look for the new level name. */
 	levelstr = next_token(&args, " \t");
-	if (levelstr == NULL)
-		ns_g_debuglevel++;
-	else {
+	if (levelstr == NULL) {
+		if (ns_g_debuglevel < 99)
+			ns_g_debuglevel++;
+	} else {
 		newlevel = strtol(levelstr, &endp, 10);
 		if (*endp != '\0' || newlevel < 0 || newlevel > 99)
 			return (ISC_R_RANGE);
