@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: release,v 1.10 2000/07/10 16:16:25 gson Exp $
+$Id: release,v 1.11 2000/07/19 20:34:40 gson Exp $
 
 Preparing a bind9 release
 
@@ -104,12 +104,13 @@ release.
    and sign them with the ISC signing PGP key:
    "pgp -sba bind-9.0.0b3.tar.gz -u 0x51BAB2ED"
 
- - Fix the perissions permissions on the signature file:
+ - Fix the permissions permissions on the signature file:
 
 	chmod 644 bind-9.0.0b3.tar.gz.asc
 
  - Verify the PGP signature:
-   pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
+
+	pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
 
  - Prepare a release announcement based on the previous one
 
@@ -121,7 +122,7 @@ release.
      scp bind-9.0.0b4.tar.gz bind-9.0.0b4.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/9.0.0b4   
 
- - Download using FTP and verify the PGP signature again
+ - Download using FTP (or Netscape) and verify the PGP signature again
 
  - Increment the version in the file "version"
 
