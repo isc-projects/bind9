@@ -39,6 +39,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	lwres_buffer_t lwb;
 	dns_name_t *name;
 	isc_result_t result;
+	lwres_result_t lwresult;
 	isc_region_t r;
 	isc_buffer_t b;
 	lwres_gnbaresponse_t *gnba;
@@ -67,14 +68,21 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Were we trying bitstring or nibble mode?  If bitstring,
 		 * and we got FORMERROR or SERVFAIL, set the flag to
-		 * avoid bitstring lables for 10 minutes.  If we got any
+		 * avoid bitstring labels for 10 minutes.  If we got any
 		 * other error (NXDOMAIN, etc) just try again without
 		 * bitstrings, and let our cache handle the negative answer
 		 * for bitstrings.
 		 */
 		if ((client->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
 			dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
-			ns_lwdclient_errorpktsend(client, LWRES_R_FAILURE);
+			if (result == DNS_R_NCACHENXDOMAIN ||
+			    result == DNS_R_NCACHENXRRSET ||
+			    result == DNS_R_NXDOMAIN ||
+			    result == DNS_R_NXRRSET)
+				lwresult = LWRES_R_NOTFOUND;
+			else
+				lwresult = LWRES_R_FAILURE;
+			ns_lwdclient_errorpktsend(client, lwresult);
 			return;
 		}
 
