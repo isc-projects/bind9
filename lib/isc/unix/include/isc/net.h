@@ -90,6 +90,14 @@
 #endif
 
 /*
+ * Cope with a missing in6addr_any.
+ */
+#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
+extern const struct in6_addr isc_net_in6addrany;
+#define in6addr_any isc_net_in6addrany
+#endif
+
+/*
  * Ensure type in_port_t is defined.
  */
 #ifdef ISC_PLATFORM_NEEDPORTT

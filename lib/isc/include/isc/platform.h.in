@@ -44,6 +44,12 @@
 @ISC_PLATFORM_HAVEIPV6@
 
 /*
+ * If this system is missing in6addr_any, ISC_PLATFORM_NEEDIN6ADDRANY will
+ * be defined.
+ */
+@ISC_PLATFORM_NEEDIN6ADDRANY@
+
+/*
  * If this system needs inet_ntop(), ISC_PLATFORM_NEEDNTOP will be defined.
  */
 @ISC_PLATFORM_NEEDNTOP@
