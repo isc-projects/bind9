@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.24 2000/07/05 23:24:18 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.25 2000/07/05 23:42:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1344,6 +1344,8 @@ cleanup(void) {
 
 	lwres_conf_clear(lwctx);
 	lwres_context_destroy(&lwctx);
+
+	isc_mem_put(mctx, servers, ns_total * sizeof(isc_sockaddr_t));
 		
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
