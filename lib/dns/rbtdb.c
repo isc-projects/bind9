@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.160 2001/04/24 17:03:54 halley Exp $ */
+/* $Id: rbtdb.c,v 1.161 2001/05/05 02:42:38 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2821,26 +2821,26 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node;
 	isc_boolean_t maybe_free = ISC_FALSE;
-	isc_mutex_t *lock;
+	unsigned int locknum;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
 
 	node = (dns_rbtnode_t *)(*targetp);
-	lock = &rbtdb->node_locks[node->locknum].lock;
+	locknum = node->locknum;
 
-	LOCK(lock);
+	LOCK(&rbtdb->node_locks[locknum].lock);
 
 	INSIST(node->references > 0);
 	node->references--;
 	if (node->references == 0) {
 		no_references(rbtdb, node, 0, isc_rwlocktype_none);
-		if (rbtdb->node_locks[node->locknum].references == 0 &&
-		    rbtdb->node_locks[node->locknum].exiting)
+		if (rbtdb->node_locks[locknum].references == 0 &&
+		    rbtdb->node_locks[locknum].exiting)
 			maybe_free = ISC_TRUE;
 	}
 
-	UNLOCK(lock);
+	UNLOCK(&rbtdb->node_locks[locknum].lock);
 
 	*targetp = NULL;
 
