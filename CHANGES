@@ -1,5 +1,8 @@
 1617.	[port]		win32: VC++ 6.0 support.
 
+1616.	[compat]	Ensure that named's version is visible in the core
+			dump. [RT #11127]
+
 1615.	[port]		Define ISC_SOCKADDR_LEN_T based on _BSD_SOCKLEN_T_ if
 			it is defined.
 

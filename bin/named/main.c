@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.8 2004/03/09 06:09:19 marka Exp $ */
+/* $Id: main.c,v 1.119.2.9 2004/04/20 06:52:53 marka Exp $ */
 
 #include <config.h>
 
@@ -68,7 +68,8 @@
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
-static char    		saved_command_line[512];
+static char		saved_command_line[512];
+static char		version[512];
 
 void
 ns_main_earlywarning(const char *format, ...) {
@@ -575,6 +576,18 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 
+	/*
+	 * Record version in core image.
+	 * strings named.core | grep "named version:"
+	 */
+	strncat(version,
+#ifdef __DATE__
+		"named version: BIND " VERSION " (" __DATE__ ")",
+#else
+		"named version: BIND " VERSION,
+#endif
+		sizeof(version));
+	version[sizeof(version) - 1] = '\0';
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("program name too long");
