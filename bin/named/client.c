@@ -113,7 +113,8 @@ release_quotas(ns_client_t *client) {
 static void
 maybe_free(ns_client_t *client) {
 	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
-
+	ns_clientmgr_t *manager;
+	
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	/*
@@ -181,7 +182,7 @@ maybe_free(ns_client_t *client) {
 	if (client->task != NULL)
 		isc_task_detach(&client->task);
 	if (client->manager != NULL) {
-		ns_clientmgr_t *manager = client->manager;
+		manager = client->manager;
 		LOCK(&manager->lock);
 		
 		INSIST(manager->nclients > 0);
@@ -200,7 +201,7 @@ maybe_free(ns_client_t *client) {
 	isc_mem_put(client->mctx, client, sizeof *client);
 	
 	if (need_clientmgr_destroy)
-		clientmgr_destroy(client->manager);
+		clientmgr_destroy(manager);
 }
 
 /*
