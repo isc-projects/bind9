@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.34 2000/11/08 18:58:00 mws Exp $ */
+/* $Id: os.c,v 1.35 2000/11/14 23:57:45 tale Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -32,8 +32,9 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include <isc/string.h>
+#include <isc/print.h>
 #include <isc/result.h>
+#include <isc/string.h>
 
 #include <named/main.h>
 #include <named/os.h>
@@ -185,7 +186,11 @@ linux_initialprivs(void) {
 	/*
 	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
 	 *      clear it would work right given the way linuxthreads work.
+	 * XXXDCL But since we need to be able to set the maximum number
+	 * of files, the stack size, data size, and core dump size to
+	 * support named.conf options, this is now being added to test.
 	 */
+	caps |= (1 << CAP_SYS_RESOURCE);
 
 	linux_setcaps(caps);
 }
