@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.158 2001/03/11 06:19:34 marka Exp $ */
+/* $Id: client.c,v 1.159 2001/03/12 22:27:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -692,7 +692,8 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 			isc_buffer_init(buffer, data + 2, TCP_BUFFER_SIZE - 2);
 		} else {
 			isc_buffer_init(buffer, data, TCP_BUFFER_SIZE);
-			isc_buffer_putuint16(buffer, length);
+			INSIST(length <= 0xffff);
+			isc_buffer_putuint16(buffer, (isc_uint16_t)length);
 		}
 	} else {
 		data = sendbuf;
@@ -1301,7 +1302,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Get the flags out of the OPT record.
 		 */
-		client->extflags = opt->ttl & 0xFFFF;
+		client->extflags = (isc_uint16_t)(opt->ttl & 0xFFFF);
 #endif /* DNS_OPT_NEWCODES */		
 
 		/*
