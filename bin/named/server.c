@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.218 2000/09/05 03:35:14 marka Exp $ */
+/* $Id: server.c,v 1.219 2000/09/06 20:52:05 gson Exp $ */
 
 #include <config.h>
 
@@ -1777,9 +1777,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   "isc_app_onrun");
 
 	server->interface_timer = NULL;
-	/*
-	 * Create a timer for periodic interface scanning.
-	 */
+
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
