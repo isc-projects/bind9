@@ -170,7 +170,7 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist)
 
 		zone = zoneelem->thezone;
 		isc_mem_put(list->mem, zoneelem, sizeof *zoneelem);
-		
+
 		res = dns_c_zone_detach(&zone);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
@@ -342,11 +342,12 @@ zone_list_print(zone_print_type zpt, FILE *fp, int indent,
 		return;
 	}
 
-#define PRINTIT(zone, zpt)						\
-	((zpt == zones_preopts && zone->afteropts == ISC_FALSE) ||	\
-	 (zpt == zones_postopts && zone->afteropts == ISC_TRUE) ||	\
-	 zpt == zones_all)
-			    
+#define PRINTIT(zone, zpt)						  \
+	(zpt == zones_all ||						  \
+	 (zone->view == NULL &&						  \
+	  ((zpt == zones_preopts && zone->afteropts == ISC_FALSE) ||	  \
+	   ((zpt == zones_postopts && zone->afteropts == ISC_TRUE)))))
+	
 	zoneelem = ISC_LIST_HEAD(list->zones);
 	while (zoneelem != NULL) {
 		if (PRINTIT(zoneelem->thezone, zpt)) {
@@ -392,6 +393,7 @@ dns_c_zone_new(isc_mem_t *mem,
 	newzone->refcount = 1;
 	newzone->ztype = ztype;
 	newzone->zclass = zclass;
+	newzone->view = NULL;
 	newzone->afteropts = ISC_FALSE;
 	newzone->name = isc_mem_strdup(mem, name);
 	newzone->internalname = (internalname == NULL ?
@@ -831,16 +833,16 @@ dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval)
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		zone->u.mzone.notify = newval;
-		existed = DNS_C_CHECKBIT(MZ_DIALUP_BIT,
+		existed = DNS_C_CHECKBIT(MZ_NOTIFY_BIT,
 					 &zone->u.mzone.setflags);
-		DNS_C_SETBIT(MZ_DIALUP_BIT, &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_NOTIFY_BIT, &zone->u.mzone.setflags);
 		break;
 			
 	case dns_c_zone_slave:
 		zone->u.szone.notify = newval;
-		existed = DNS_C_CHECKBIT(SZ_DIALUP_BIT,
+		existed = DNS_C_CHECKBIT(SZ_NOTIFY_BIT,
 					 &zone->u.szone.setflags);
-		DNS_C_SETBIT(SZ_DIALUP_BIT, &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_NOTIFY_BIT, &zone->u.szone.setflags);
 		break;
 		
 	case dns_c_zone_stub:
@@ -883,7 +885,7 @@ dns_c_zone_setmaintixfrbase(dns_c_zone_t *zone,
 		break;
 			
 	case dns_c_zone_slave:
-		zone->u.szone.notify = newval;
+		zone->u.szone.maint_ixfr_base = newval;
 		existed = DNS_C_CHECKBIT(SZ_MAINT_IXFR_BASE_BIT,
 					 &zone->u.szone.setflags);
 		DNS_C_SETBIT(SZ_MAINT_IXFR_BASE_BIT, &zone->u.szone.setflags);
@@ -1335,9 +1337,9 @@ dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		zone->u.mzone.max_trans_time_out = newval ;
-		existed = DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+		existed = DNS_C_CHECKBIT(MZ_MAX_TRANS_TIME_OUT_BIT,
 					 &zone->u.mzone.setflags);
-		DNS_C_SETBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+		DNS_C_SETBIT(MZ_MAX_TRANS_TIME_OUT_BIT,
 			     &zone->u.mzone.setflags);
 		break;
 			
@@ -1437,9 +1439,9 @@ dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		zone->u.mzone.max_trans_idle_out = newval ;
-		existed = DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+		existed = DNS_C_CHECKBIT(MZ_MAX_TRANS_IDLE_OUT_BIT,
 					 &zone->u.mzone.setflags);
-		DNS_C_SETBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+		DNS_C_SETBIT(MZ_MAX_TRANS_IDLE_OUT_BIT,
 			     &zone->u.mzone.setflags);
 		break;
 			
@@ -2028,7 +2030,7 @@ dns_c_zone_getmaintixfrbase(dns_c_zone_t *zone,
 		break;
 			
 	case dns_c_zone_slave:
-		val = zone->u.szone.notify;
+		val = zone->u.szone.maint_ixfr_base;
 		bit = SZ_MAINT_IXFR_BASE_BIT;
 		bits = &zone->u.szone.setflags;
 		break;
@@ -2880,6 +2882,12 @@ master_zone_print(FILE *fp, int indent,
 			(mzone->dialup ? "true" : "false"));
 	}
 
+	if (DNS_C_CHECKBIT(MZ_MAINT_IXFR_BASE_BIT, &mzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "maintain-ixfr-base %s;\n",
+			(mzone->maint_ixfr_base ? "true" : "false"));
+	}
+
 	if (DNS_C_CHECKBIT(MZ_NOTIFY_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "notify %s;\n",
@@ -2890,6 +2898,7 @@ master_zone_print(FILE *fp, int indent,
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "also-notify ");
 		dns_c_iplist_print(fp, indent + 1, mzone->also_notify);
+		fprintf(fp, ";\n");
 	}
 
 	if (mzone->ixfr_base != NULL) {
@@ -2915,7 +2924,7 @@ master_zone_print(FILE *fp, int indent,
 	}
 	
 	if (mzone->pubkeylist != NULL) {
-		dns_c_printtabs(fp, indent);
+		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, mzone->pubkeylist);
 	}
 
@@ -2930,6 +2939,7 @@ master_zone_print(FILE *fp, int indent,
 		fprintf(fp, "forwarders ");
 		dns_c_iplist_print(fp, indent + 1,
 				   mzone->forwarders);
+		fprintf(fp, ";\n");
 	}
 }
 
@@ -2945,13 +2955,6 @@ slave_zone_print(FILE *fp, int indent,
 		fprintf(fp, "file \"%s\";\n", szone->file);
 	}
 
-	if (DNS_C_CHECKBIT(SZ_CHECK_NAME_BIT, &szone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "check-names %s;\n",
-			dns_c_nameseverity2string(szone->check_names,
-						  ISC_TRUE));
-	}
-
 	if (szone->ixfr_base != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "ixfr-base \"%s\";\n", szone->ixfr_base);
@@ -2960,6 +2963,12 @@ slave_zone_print(FILE *fp, int indent,
 	if (szone->ixfr_tmp != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "ixfr-tmp-file \"%s\";\n", szone->ixfr_tmp);
+	}
+
+	if (DNS_C_CHECKBIT(SZ_MAINT_IXFR_BASE_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "maintain-ixfr-base %s;\n",
+			(szone->maint_ixfr_base ? "true" : "false"));
 	}
 
 	dns_c_printtabs(fp, indent);
@@ -2971,9 +2980,31 @@ slave_zone_print(FILE *fp, int indent,
 	}
 	if (szone->master_ips == NULL ||
 	    szone->master_ips->nextidx == 0) {
-		fprintf(fp, "{ /* none defined */ };\n");
+		fprintf(fp, "{ /* none defined */ }");
 	} else {
 		dns_c_iplist_print(fp, indent + 1, szone->master_ips);
+	}
+	fprintf(fp, ";\n");
+
+	if (DNS_C_CHECKBIT(SZ_FORWARD_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(szone->forward, ISC_TRUE));
+	}
+
+	if (szone->forwarders != NULL && szone->forwarders->nextidx > 0) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "forwarders ");
+		dns_c_iplist_print(fp, indent + 1,
+				   szone->forwarders);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(SZ_CHECK_NAME_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "check-names %s;\n",
+			dns_c_nameseverity2string(szone->check_names,
+						  ISC_TRUE));
 	}
 
 	if (szone->allow_update != NULL &&
@@ -3034,6 +3065,12 @@ slave_zone_print(FILE *fp, int indent,
 			szone->max_trans_idle_out / 60);
 	}
 	
+	if (DNS_C_CHECKBIT(SZ_DIALUP_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "dialup %s;\n",
+			(szone->dialup ? "true" : "false"));
+	}
+
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "notify %s;\n",
@@ -3044,25 +3081,12 @@ slave_zone_print(FILE *fp, int indent,
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "also-notify ");
 		dns_c_iplist_print(fp, indent + 1, szone->also_notify);
+		fprintf(fp, ";\n");
 	}
-
 
 	if (szone->pubkeylist != NULL) {
-		dns_c_printtabs(fp, indent);
+		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, szone->pubkeylist);
-	}
-
-	if (DNS_C_CHECKBIT(SZ_FORWARD_BIT, &szone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "forward %s;\n",
-			dns_c_forward2string(szone->forward, ISC_TRUE));
-	}
-
-	if (szone->forwarders != NULL && szone->forwarders->nextidx > 0) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "forwarders ");
-		dns_c_iplist_print(fp, indent + 1,
-				   szone->forwarders);
 	}
 }
 
@@ -3077,12 +3101,6 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		fprintf(fp, "file \"%s\";\n", tzone->file);
 	}
 
-	if (DNS_C_CHECKBIT(TZ_CHECK_NAME_BIT, &tzone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "check-names %s;\n",
-			dns_c_nameseverity2string(tzone->check_names,
-						  ISC_TRUE));
-	}
 
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "masters ");
@@ -3093,9 +3111,31 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 	}
 	if (tzone->master_ips == NULL ||
 	    tzone->master_ips->nextidx == 0) {
-		fprintf(fp, "{ /* none defined */ };\n");
+		fprintf(fp, "{ /* none defined */ }");
 	} else {
 		dns_c_iplist_print(fp, indent + 1, tzone->master_ips);
+	}
+	fprintf(fp, ";\n");
+
+	if (DNS_C_CHECKBIT(TZ_FORWARD_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(tzone->forward, ISC_TRUE));
+	}
+
+	if (tzone->forwarders != NULL && tzone->forwarders->nextidx > 0) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "forwarders ");
+		dns_c_iplist_print(fp, indent + 1,
+				   tzone->forwarders);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(TZ_CHECK_NAME_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "check-names %s;\n",
+			dns_c_nameseverity2string(tzone->check_names,
+						  ISC_TRUE));
 	}
 
 	if (tzone->allow_update != NULL &&
@@ -3125,43 +3165,35 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		fprintf(fp, ";\n");
 	}
 
+	if (DNS_C_CHECKBIT(TZ_DIALUP_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "dialup %s;\n",
+			(tzone->dialup ? "true" : "false"));
+	}
+
 	if (DNS_C_CHECKBIT(TZ_TRANSFER_SOURCE_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "transfer-source ;\n");
+		fprintf(fp, "transfer-source ");
 		dns_c_print_ipaddr(fp, &tzone->transfer_source);
 		fprintf(fp, ";\n");
 	}
 
-	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT, &tzone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "max-transfer-idle-in %d;\n",
-			tzone->max_trans_idle_in / 60);
-	}
-	
 	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-in %d;\n",
 			tzone->max_trans_time_in / 60);
 	}
 	
-	if (tzone->pubkeylist != NULL) {
+	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-idle-in %d;\n",
+			tzone->max_trans_idle_in / 60);
+	}
+	
+	if (tzone->pubkeylist != NULL) {
+		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, tzone->pubkeylist);
 	}
-
-	if (DNS_C_CHECKBIT(TZ_FORWARD_BIT, &tzone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "forward %s;\n",
-			dns_c_forward2string(tzone->forward, ISC_TRUE));
-	}
-
-	if (tzone->forwarders != NULL && tzone->forwarders->nextidx > 0) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "forwarders ");
-		dns_c_iplist_print(fp, indent + 1,
-				   tzone->forwarders);
-	}
-
 }
 
 
@@ -3183,7 +3215,7 @@ hint_zone_print(FILE *fp, int indent, dns_c_hintzone_t *hzone)
 	}
 
 	if (hzone->pubkeylist != NULL) {
-		dns_c_printtabs(fp, indent);
+		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, hzone->pubkeylist);
 	}
 }
@@ -3195,13 +3227,6 @@ forward_zone_print(FILE *fp, int indent,
 {
 	REQUIRE(fzone != NULL);
 	
-	if (DNS_C_CHECKBIT(FZ_CHECK_NAME_BIT, &fzone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "check-names %s;\n",
-			dns_c_nameseverity2string(fzone->check_names,
-						  ISC_TRUE));
-	}
-
 	if (DNS_C_CHECKBIT(FZ_FORWARD_BIT, &fzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "forward %s;\n",
@@ -3213,6 +3238,14 @@ forward_zone_print(FILE *fp, int indent,
 		fprintf(fp, "forwarders ");
 		dns_c_iplist_print(fp, indent + 1,
 				   fzone->forwarders);
+		fprintf(fp, ";\n");
+	}
+
+	if (DNS_C_CHECKBIT(FZ_CHECK_NAME_BIT, &fzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "check-names %s;\n",
+			dns_c_nameseverity2string(fzone->check_names,
+						  ISC_TRUE));
 	}
 }
 
@@ -3341,6 +3374,7 @@ zone_delete(dns_c_zone_t **zone)
 	}
 
 	z->magic = 0;
+	z->view = NULL;
 	isc_mem_put(z->mem, z, sizeof *z);
 
 	return (res);
@@ -3461,6 +3495,9 @@ stub_zone_clear(isc_mem_t *mem, dns_c_stubzone_t *tzone)
 	
 	if (tzone->allow_transfer != NULL)
 		dns_c_ipmatchlist_detach(&tzone->allow_transfer);
+	
+	if (tzone->forwarders != NULL)
+		dns_c_iplist_detach(&tzone->forwarders);
 	
 	if (tzone->pubkeylist != NULL)
 		dns_c_pklist_delete(&tzone->pubkeylist);
