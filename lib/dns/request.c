@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: request.c,v 1.26.2.2 2000/07/28 05:37:34 gson Exp $ */
+/* $Id: request.c,v 1.26.2.3 2000/08/14 19:52:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -525,19 +525,23 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
+		dns_dispatch_t *disp = NULL;
 		switch (isc_sockaddr_pf(address)) {
 		case PF_INET:
-			dns_dispatch_attach(requestmgr->dispatchv4,
-					    &request->dispatch);
+			disp = requestmgr->dispatchv4;
 			break;
 		case PF_INET6:
-			dns_dispatch_attach(requestmgr->dispatchv6,
-					    &request->dispatch);
+			disp = requestmgr->dispatchv6;
 			break;
 		default:
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		}
+		if (disp == NULL) {
+			result = ISC_R_NETUNREACH;
+			goto cleanup;
+		}
+		dns_dispatch_attach(disp, &request->dispatch);
 	}
 	socket = dns_dispatch_getsocket(request->dispatch);
 	INSIST(socket != NULL);
