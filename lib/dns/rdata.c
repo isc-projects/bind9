@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.17 1999/01/29 08:04:12 marka Exp $ */
+ /* $Id: rdata.c,v 1.18 1999/02/01 07:59:43 marka Exp $ */
 
 #include <config.h>
 
@@ -64,6 +64,7 @@ static dns_result_t	mem_tobuffer(isc_buffer_t *target, void *base,
 				     unsigned int length);
 static int		compare_region(isc_region_t *r1, isc_region_t *r2);
 static int		hexvalue(char value);
+static int		decvalue(char value);
 static dns_result_t	base64_totext(isc_region_t *source,
 				      isc_buffer_t *target);
 static dns_result_t	base64_tobuffer(isc_lex_t *lexer,
@@ -683,6 +684,16 @@ hexvalue(char value) {
 	if ((s = strchr(hexdigits, value)) == NULL)
 		return (-1);
 	return (s - hexdigits);
+}
+
+static int
+decvalue(char value) {
+	char *s;
+	if (!isascii(value&0xff))
+		return (-1);
+	if ((s = strchr(decdigits, value)) == NULL)
+		return (-1);
+	return (s - decdigits);
 }
 
 static const char base64[] =
