@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.88 2001/07/27 06:11:10 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.89 2001/07/27 17:39:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -47,8 +47,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6,
-	usesearch, trace, qr, debugging;
+extern isc_boolean_t have_ipv6, usesearch, qr, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -65,7 +64,6 @@ extern char *progname;
 static isc_boolean_t short_form = ISC_TRUE,
 	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE,
 	identify = ISC_FALSE, stats = ISC_TRUE,
-	trace = ISC_FALSE, ns_search_only = ISC_FALSE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
@@ -637,9 +635,9 @@ addlookup(char *opt) {
 	}
 	lookup->rdclass = rdclass;
 	lookup->rdclassset = ISC_TRUE;
-	lookup->trace = ISC_TF(trace || ns_search_only);
-	lookup->trace_root = trace;
-	lookup->ns_search_only = ns_search_only;
+	lookup->trace = ISC_FALSE;
+	lookup->trace_root = lookup->trace;
+	lookup->ns_search_only = ISC_FALSE;
 	lookup->identify = identify;
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
