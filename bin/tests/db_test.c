@@ -32,6 +32,7 @@
 #include <isc/error.h>
 #include <isc/boolean.h>
 #include <isc/region.h>
+#include <isc/list.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -45,18 +46,30 @@
 #include <dns/rdatasetiter.h>
 #include <dns/compress.h>
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/dbtable.h>
 
 #define MAXDBS			100
 #define MAXHOLD			100
 #define MAXVERSIONS		100
 
+typedef struct dbinfo {
+	dns_db_t *		db;
+	dns_dbversion_t *	version;
+	dns_dbversion_t *	wversion;
+	dns_dbversion_t *	rversions[MAXVERSIONS];
+	int			rcount;
+	dns_dbnode_t *		hold_nodes[MAXHOLD];
+	int			hold_count;
+	ISC_LINK(struct dbinfo)	link;
+} dbinfo;
+
 static isc_mem_t *		mctx = NULL;
 static char			dbtype[128];
 static dns_dbtable_t *		dbtable;
-static dns_db_t *		dbs[MAXDBS];
-static dns_db_t *		default_db = NULL;
-static unsigned int		db_count = 0;
+static ISC_LIST(dbinfo)		dbs;
+static dbinfo *			cache_dbi = NULL;
+static int			pause_every = 0;
 
 static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
@@ -91,17 +104,125 @@ print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
 		printf("%s\n", dns_result_totext(result));
 }
 
+static dbinfo *
+select_db(char *origintext) {
+	dns_fixedname_t forigin;
+	dns_name_t *origin;
+	isc_buffer_t source;
+	size_t len;
+	dbinfo *dbi;
+	dns_result_t result;
+
+	if (strcasecmp(origintext, "cache") == 0) {
+		if (cache_dbi == NULL)
+			printf("the cache does not exist\n");
+		return (cache_dbi);
+	}
+	len = strlen(origintext);
+	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
+				   NULL);
+	if (result != DNS_R_SUCCESS) {
+		printf("bad name: %s\n", dns_result_totext(result));
+		return (NULL);
+	}
+
+	for (dbi = ISC_LIST_HEAD(dbs);
+	     dbi != NULL;
+	     dbi = ISC_LIST_NEXT(dbi, link)) {
+		if (dns_name_compare(dns_db_origin(dbi->db), origin) == 0)
+			break;
+	}
+
+	return (dbi);
+}
+
+static void
+dump(dbinfo *dbi) {
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	dns_dbiterator_t *dbiterator;
+	dns_dbnode_t *node;
+	dns_rdatasetiter_t *rdsiter;
+	dns_dbversion_t *version;
+	dns_result_t result;
+	isc_boolean_t close_version = ISC_FALSE;
+	int i;
+
+	if (dns_db_iszone(dbi->db)) {
+		if (dbi->version != NULL)
+			version = dbi->version;
+		else {
+			dns_db_currentversion(dbi->db, &version);
+			close_version = ISC_TRUE;
+		}
+	} else
+		version = NULL;
+		
+	dbiterator = NULL;
+	dns_db_createiterator(dbi->db, ISC_FALSE, &dbiterator);
+
+	node = NULL;
+	rdsiter = NULL;
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+	result = dns_dbiterator_first(dbiterator);
+	i = 0;
+	while (result == DNS_R_SUCCESS) {
+		result = dns_dbiterator_current(dbiterator, &node, name);
+		if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
+			break;
+		result = dns_db_allrdatasets(dbi->db, node, version, 0,
+					     &rdsiter);
+		if (result != DNS_R_SUCCESS) {
+			dns_db_detachnode(dbi->db, &node);
+			break;
+		}
+		print_rdatasets(name, rdsiter);
+		dns_rdatasetiter_destroy(&rdsiter);
+		dns_db_detachnode(dbi->db, &node);
+		i++;
+		if (i == pause_every) {
+			result = dns_dbiterator_pause(dbiterator);
+			if (result != DNS_R_SUCCESS)
+				break;
+			i = 0;
+		}
+		result = dns_dbiterator_next(dbiterator);
+	}
+	if (result != DNS_R_NOMORE)
+		printf("%s\n", dns_result_totext(result));
+
+	dns_dbiterator_destroy(&dbiterator);
+	if (close_version)
+		dns_db_closeversion(dbi->db, &version, ISC_FALSE);
+}
+
 static dns_result_t
 load(char *filename, char *origintext, isc_boolean_t cache) {
 	dns_fixedname_t forigin;
 	dns_name_t *origin;
-	dns_db_t *db;
 	dns_result_t result;
 	isc_buffer_t source;
 	size_t len;
+	dbinfo *dbi;
+	unsigned int i;
 
-	if (!cache && db_count == MAXDBS)
-		return (DNS_R_NOSPACE);
+	dbi = isc_mem_get(mctx, sizeof *dbi);
+	if (dbi == NULL)
+		return (DNS_R_NOMEMORY);
+
+	dbi->db = NULL;
+	dbi->version = NULL;
+	dbi->wversion = NULL;
+	for (i = 0; i < MAXVERSIONS; i++)
+		dbi->rversions[i] = NULL;
+	dbi->hold_count = 0;
+	for (i = 0; i < MAXHOLD; i++)
+		dbi->hold_nodes[i] = NULL;
 	
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
@@ -113,48 +234,63 @@ load(char *filename, char *origintext, isc_boolean_t cache) {
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	db = NULL;
 	result = dns_db_create(mctx, dbtype, origin, cache, dns_rdataclass_in,
-			       0, NULL, &db);
-	if (result != DNS_R_SUCCESS)
+			       0, NULL, &dbi->db);
+	if (result != DNS_R_SUCCESS) {
+		isc_mem_put(mctx, dbi, sizeof *dbi);
 		return (result);
+	}
 
 	printf("loading %s (%s)\n", filename, origintext);
-	result = dns_db_load(db, filename);
-	if (result != DNS_R_SUCCESS)
+	result = dns_db_load(dbi->db, filename);
+	if (result != DNS_R_SUCCESS) {
+		dns_db_detach(&dbi->db);
+		isc_mem_put(mctx, dbi, sizeof *dbi);
 		return (result);
+	}
 	printf("loaded\n");
 
 	if (cache) {
-		RUNTIME_CHECK(default_db == NULL);
-		dns_dbtable_adddefault(dbtable, db);
-		default_db = db;
+		INSIST(cache_dbi == NULL);
+		dns_dbtable_adddefault(dbtable, dbi->db);
+		cache_dbi = dbi;
 	} else {
-		if (dns_dbtable_add(dbtable, db) != DNS_R_SUCCESS)
+		if (dns_dbtable_add(dbtable, dbi->db) != DNS_R_SUCCESS) {
+			dns_db_detach(&dbi->db);
+			isc_mem_put(mctx, dbi, sizeof *dbi);
 			return (result);
-		dbs[db_count++] = db;
-	} 
+		}
+	}
+	ISC_LIST_APPEND(dbs, dbi, link);
 
 	return (DNS_R_SUCCESS);
 }
 
 static void
 unload_all(void) {
-	unsigned int i;
+	dbinfo *dbi, *dbi_next;
 	
-	for (i = 0; i < db_count; i++) {
-		dns_dbtable_remove(dbtable, dbs[i]);
-		dns_db_detach(&dbs[i]);
-	}
-	db_count = 0;
-
-	if (default_db != NULL) {
-		dns_dbtable_removedefault(dbtable);
-		dns_db_detach(&default_db);
-		default_db = NULL;
+	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
+		dbi_next = ISC_LIST_NEXT(dbi, link);
+		if (dns_db_iszone(dbi->db))
+			dns_dbtable_remove(dbtable, dbi->db);
+		else {
+			INSIST(dbi == cache_dbi);
+			dns_dbtable_removedefault(dbtable);
+			cache_dbi = NULL;
+		}
+		dns_db_detach(&dbi->db);
+		ISC_LIST_UNLINK(dbs, dbi, link);
+		isc_mem_put(mctx, dbi, sizeof *dbi);
 	}
 }
 
+#define DBI_CHECK(dbi) \
+if ((dbi) == NULL) { \
+	printf("You must first select a database with !DB\n"); \
+	continue; \
+}
+ 
 int
 main(int argc, char *argv[]) {
 	dns_db_t *db;
@@ -178,10 +314,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t quiet = ISC_FALSE;
 	isc_boolean_t time_lookups = ISC_FALSE;
 	isc_boolean_t found_as;
-	dns_dbversion_t *version = NULL;
-	dns_dbversion_t *wversion = NULL;
-	dns_dbversion_t *rversions[MAXVERSIONS];
-	int i, rcount = 0, v;
+	int i, v;
 	dns_rdatasetiter_t *rdsiter;
 	char t1[256];
 	char t2[256];
@@ -191,16 +324,16 @@ main(int argc, char *argv[]) {
 	dns_name_t *fname;
 	unsigned int options = 0;
 	struct timeval start, finish;
-	int hold_count = 0;
-	dns_dbnode_t *hold_node[MAXHOLD];
-	dns_db_t *hold_db[MAXHOLD];
 	char *origintext;
+	dbinfo *dbi;
+	dns_dbversion_t *version;
+	dns_name_t *origin;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_dbtable_create(mctx, &dbtable) == DNS_R_SUCCESS);
 
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "c:d:t:z:gpqvT")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:t:z:P:gpqvT")) != -1) {
 		switch (ch) {
 		case 'c':
 			result = load(optarg, ".", ISC_TRUE);
@@ -219,6 +352,9 @@ main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			printnode = ISC_TRUE;
+			break;
+		case 'P':
+			pause_every = atoi(optarg);
 			break;
 		case 't':
 			type = atoi(optarg);
@@ -253,8 +389,9 @@ main(int argc, char *argv[]) {
 	 */
 	dns_fixedname_init(&foundname);
 	fname = dns_fixedname_name(&foundname);
-	for (i = 0; i < MAXVERSIONS; i++)
-		rversions[i] = NULL;
+	dbi = NULL;
+	origin = dns_rootname;
+	version = NULL;
 
 	if (time_lookups) {
 		/* Naughty */
@@ -264,84 +401,101 @@ main(int argc, char *argv[]) {
 	while (!done) {
 		if (!quiet)
 			printf("\n");
-		if (gets(s) == NULL) {
+		if (fgets(s, sizeof s, stdin) == NULL) {
 			done = ISC_TRUE;
 			continue;
 		}
-		if (verbose) {
-			if (wversion != NULL)
-				printf("future version (%p)\n", wversion);
-			for (i = 0; i < rcount; i++)
-				if (rversions[i] != NULL)
+		len = strlen(s);
+		if (len > 0 && s[len - 1] == '\n') {
+			s[len - 1] = '\0';
+			len--;
+		}
+		if (verbose && dbi != NULL) {
+			if (dbi->wversion != NULL)
+				printf("future version (%p)\n", dbi->wversion);
+			for (i = 0; i < dbi->rcount; i++)
+				if (dbi->rversions[i] != NULL)
 					printf("open version %d (%p)\n", i,
-					       rversions[i]);
+					       dbi->rversions[i]);
 		}
 		dns_name_init(&name, offsets);
-		len = strlen(s);
 		if (strcmp(s, "!R") == 0) {
-			if (rcount == MAXVERSIONS) {
+			DBI_CHECK(dbi);
+			if (dbi->rcount == MAXVERSIONS) {
 				printf("too many open versions\n");
 				continue;
 			}
-			dns_db_currentversion(db, &rversions[rcount]);
-			printf("opened version %d\n", rcount);
-			version = rversions[rcount];
-			rcount++;
+			dns_db_currentversion(dbi->db,
+					      &dbi->rversions[dbi->rcount]);
+			printf("opened version %d\n", dbi->rcount);
+			dbi->version = dbi->rversions[dbi->rcount];
+			version = dbi->version;
+			dbi->rcount++;
 			continue;
 		} else if (strcmp(s, "!W") == 0) {
-			if (wversion != NULL) {
+			DBI_CHECK(dbi);
+			if (dbi->wversion != NULL) {
 				printf("using existing future version\n");
-				version = wversion;
+				dbi->version = dbi->wversion;
+				version = dbi->version;
 				continue;
 			}
-			result = dns_db_newversion(db, &wversion);
+			result = dns_db_newversion(dbi->db, &dbi->wversion);
 			if (result != DNS_R_SUCCESS)
 				printf("%s\n", dns_result_totext(result));
 			else
 				printf("newversion\n");
-			version = wversion;
+			dbi->version = dbi->wversion;
+			version = dbi->version;
 			continue;
 		} else if (strcmp(s, "!C") == 0) {
+			DBI_CHECK(dbi);
 			addmode = ISC_FALSE;
 			delmode = ISC_FALSE;
-			if (version == NULL)
+			if (dbi->version == NULL)
 				continue;
-			if (version == wversion) {
+			if (dbi->version == dbi->wversion) {
 				printf("closing future version\n");
-				wversion = NULL;
+				dbi->wversion = NULL;
 			} else {
-				for (i = 0; i < rcount; i++) {
-					if (version == rversions[i]) {
-						rversions[i] = NULL;
+				for (i = 0; i < dbi->rcount; i++) {
+					if (dbi->version ==
+					    dbi->rversions[i]) {
+						dbi->rversions[i] = NULL;
 					  printf("closing open version %d\n",
 						 i);
 						break;
 					}
 				}
 			}
-			dns_db_closeversion(db, &version, ISC_TRUE);
+			dns_db_closeversion(dbi->db, &dbi->version, ISC_TRUE);
+			version = NULL;
 			continue;
 		} else if (strcmp(s, "!X") == 0) {
+			DBI_CHECK(dbi);
 			addmode = ISC_FALSE;
 			delmode = ISC_FALSE;
-			if (version == NULL)
+			if (dbi->version == NULL)
 				continue;
-			if (version == wversion) {
+			if (dbi->version == dbi->wversion) {
 				printf("aborting future version\n");
-				wversion = NULL;
+				dbi->wversion = NULL;
 			} else {
-				for (i = 0; i < rcount; i++) {
-					if (version == rversions[i]) {
-						rversions[i] = NULL;
+				for (i = 0; i < dbi->rcount; i++) {
+					if (dbi->version ==
+					    dbi->rversions[i]) {
+						dbi->rversions[i] = NULL;
 					  printf("closing open version %d\n",
 						 i);
 						break;
 					}
 				}
 			}
-			dns_db_closeversion(db, &version, ISC_FALSE);
+			dns_db_closeversion(dbi->db, &dbi->version, ISC_FALSE);
+			version = NULL;
 			continue;
 		} else if (strcmp(s, "!A") == 0) {
+			DBI_CHECK(dbi);
 			delmode = ISC_FALSE;
 			if (addmode)
 				addmode = ISC_FALSE;
@@ -350,6 +504,7 @@ main(int argc, char *argv[]) {
 			printf("addmode = %s\n", addmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!D") == 0) {
+			DBI_CHECK(dbi);
 			addmode = ISC_FALSE;
 			if (delmode)
 				delmode = ISC_FALSE;
@@ -358,6 +513,7 @@ main(int argc, char *argv[]) {
 			printf("delmode = %s\n", delmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!H") == 0) {
+			DBI_CHECK(dbi);
 			if (holdmode)
 				holdmode = ISC_FALSE;
 			else
@@ -365,29 +521,33 @@ main(int argc, char *argv[]) {
 			printf("holdmode = %s\n", holdmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!HR") == 0) {
-			for (i = 0; i < hold_count; i++) {
-				dns_db_detachnode(hold_db[i], &hold_node[i]);
-				dns_db_detach(&hold_db[i]);
-			}
-			hold_count = 0;
+			DBI_CHECK(dbi);
+			for (i = 0; i < dbi->hold_count; i++)
+				dns_db_detachnode(dbi->db,
+						  &dbi->hold_nodes[i]);
+			dbi->hold_count = 0;
 			holdmode = ISC_FALSE;
 			printf("held nodes have been detached\n");
 			continue;
 		} else if (strcmp(s, "!VC") == 0) {
+			DBI_CHECK(dbi);
 			printf("switching to current version\n");
+			dbi->version = NULL;
 			version = NULL;
 			continue;
 		} else if (strstr(s, "!V") == s) {
+			DBI_CHECK(dbi);
 			v = atoi(&s[2]);
-			if (v >= rcount) {
+			if (v >= dbi->rcount) {
 				printf("unknown open version %d\n", v);
 				continue;
-			} else if (rversions[v] == NULL) {
+			} else if (dbi->rversions[v] == NULL) {
 				printf("version %d is not open\n", v);
 				continue;
 			}
 			printf("switching to open version %d\n", v);
-			version = rversions[v];
+			dbi->version = dbi->rversions[v];
+			version = dbi->version;
 			continue;
 		} else if (strstr(s, "!T") == s) {
 			type = (unsigned int)atoi(&s[2]);
@@ -411,30 +571,78 @@ main(int argc, char *argv[]) {
 			       ((options & DNS_DBFIND_VALIDATEGLUE) != 0) ?
 			       "TRUE" : "FALSE");
 			continue;
+		} else if (strcmp(s, "!LS") == 0) {
+			DBI_CHECK(dbi);
+			dump(dbi);
+			continue;
+		} else if (strcmp(s, "!DB") == 0) {
+			dbi = NULL;
+			origin = dns_rootname;
+			version = NULL;
+			printf("now searching all databases\n");
+			continue;
+		} else if (strncmp(s, "!DB ", 4) == 0) {
+			dbi = select_db(s+4);
+			if (dbi != NULL) {
+				db = dbi->db;
+				origin = dns_db_origin(dbi->db);
+				version = dbi->version;
+				addmode = ISC_FALSE;
+				delmode = ISC_FALSE;
+				holdmode = ISC_FALSE;
+			} else {
+				db = NULL;
+				version = NULL;
+				origin = dns_rootname;
+				printf("database not found; "
+				       "now searching all databases\n");
+			}
+			continue;
 		}
+
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
 		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
-		result = dns_name_fromtext(&name, &source, dns_rootname,
+		result = dns_name_fromtext(&name, &source, origin,
 					   ISC_FALSE, &target);
 		if (result != DNS_R_SUCCESS) {
 			printf("bad name: %s\n", dns_result_totext(result));
 			continue;
 		}
 
-		db = NULL;
-		result = dns_dbtable_find(dbtable, &name, &db);
-		if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
-			if (!quiet)
+		if (dbi == NULL) {
+			db = NULL;
+			result = dns_dbtable_find(dbtable, &name, &db);
+			if (result != DNS_R_SUCCESS &&
+			    result != DNS_R_PARTIALMATCH) {
+				if (!quiet)
+					printf("\n%s\n",
+					       dns_result_totext(result));
+				continue;
+			}
+			isc_buffer_init(&tb1, t1, sizeof t1,
+					ISC_BUFFERTYPE_TEXT);
+			result = dns_name_totext(dns_db_origin(db), ISC_FALSE,
+						 &tb1);
+			if (result != DNS_R_SUCCESS) {
 				printf("\n%s\n", dns_result_totext(result));
-			continue;
+				dns_db_detach(&db);
+				continue;
+			}
+			isc_buffer_used(&tb1, &r1);
+			printf("\ndatabase = %.*s (%s)\n",
+			       (int)r1.length, r1.base,
+			       (dns_db_iszone(db)) ? "zone" : "cache");
 		}
 		node = NULL;
 		dns_rdataset_init(&rdataset);
 		result = dns_db_find(db, &name, version, type, options, 0,
 				     &node, fname, &rdataset);
-		if (!quiet)
-			printf("\n%s\n", dns_result_totext(result));
+		if (!quiet) {
+			if (dbi != NULL)
+				printf("\n");
+			printf("%s\n", dns_result_totext(result));
+		}
 
 		found_as = ISC_FALSE;
 		switch (result) {
@@ -448,19 +656,23 @@ main(int argc, char *argv[]) {
 			found_as = ISC_TRUE;
 			break;
 		case DNS_R_NXRDATASET:
-			if (holdmode) {
-				RUNTIME_CHECK(hold_count < MAXHOLD);
-				hold_node[hold_count++] = node;
-				hold_db[hold_count++] = db;
-				node = NULL;
-				db = NULL;
+			if (dbi != NULL) {
+				if (holdmode) {
+					RUNTIME_CHECK(dbi->hold_count <
+						      MAXHOLD);
+					dbi->hold_nodes[dbi->hold_count++] =
+						node;
+					node = NULL;
+				} else
+					dns_db_detachnode(db, &node);
 			} else {
 				dns_db_detachnode(db, &node);
 				dns_db_detach(&db);
 			}
 			continue;
 		default:
-			dns_db_detach(&db);
+			if (dbi == NULL)
+				dns_db_detach(&db);
 			if (quiet)
 				printf("%s\n", dns_result_totext(result));
 			continue;
@@ -474,14 +686,16 @@ main(int argc, char *argv[]) {
 			if (result != DNS_R_SUCCESS) {
 				printf("%s\n", dns_result_totext(result));
 				dns_db_detachnode(db, &node);
-				dns_db_detach(&db);
+				if (dbi == NULL)
+					dns_db_detach(&db);
 				continue;
 			}
 			result = dns_name_totext(fname, ISC_FALSE, &tb2);
 			if (result != DNS_R_SUCCESS) {
 				printf("%s\n", dns_result_totext(result));
 				dns_db_detachnode(db, &node);
-				dns_db_detach(&db);
+				if (dbi == NULL)
+					dns_db_detach(&db);
 				continue;
 			}
 			isc_buffer_used(&tb1, &r1);
@@ -507,7 +721,7 @@ main(int argc, char *argv[]) {
 		} else {
 			if (!quiet)
 				print_rdataset(fname, &rdataset);
-			if (addmode && !found_as) {
+			if (dbi != NULL && addmode && !found_as) {
 				rdataset.ttl++;
 				result = dns_db_addrdataset(db, node, version,
 							    0, &rdataset);
@@ -516,7 +730,7 @@ main(int argc, char *argv[]) {
 					       dns_result_totext(result));
 				if (printnode)
 					dns_db_printnode(db, node, stdout);
-			} else if (delmode && !found_as) {
+			} else if (dbi != NULL && delmode && !found_as) {
 				result = dns_db_deleterdataset(db, node,
 							       version, type);
 				if (result != DNS_R_SUCCESS)
@@ -528,12 +742,13 @@ main(int argc, char *argv[]) {
 			dns_rdataset_disassociate(&rdataset);
 		}
 
-		if (holdmode) {
-			RUNTIME_CHECK(hold_count < MAXHOLD);
-			hold_node[hold_count++] = node;
-			hold_db[hold_count++] = db;
-			node = NULL;
-			db = NULL;
+		if (dbi != NULL) {
+			if (holdmode) {
+				RUNTIME_CHECK(dbi->hold_count < MAXHOLD);
+				dbi->hold_nodes[dbi->hold_count++] = node;
+				node = NULL;
+			} else
+				dns_db_detachnode(db, &node);
 		} else {
 			dns_db_detachnode(db, &node);
 			dns_db_detach(&db);
