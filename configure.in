@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.313 $)
+AC_REVISION($Revision: 1.314 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -349,7 +349,10 @@ int main() {
 ],
 	        [AC_MSG_RESULT(yes)],
 		[AC_MSG_RESULT(no)
-		 AC_MSG_ERROR(Please check the argument to --with-openssl and your LD_LIBRARY_PATH.)],
+		 AC_MSG_ERROR(Could not run test program using OpenSSL from
+$use_openssl/lib and $use_openssl/include.
+Please check the argument to --with-openssl and your
+shared library configuration (e.g., LD_LIBRARY_PATH).)],
 		[AC_MSG_RESULT(assuming it does work on target platform)])
 		AC_MSG_CHECKING(OpenSSL library version)
 		AC_TRY_RUN([
