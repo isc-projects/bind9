@@ -827,6 +827,7 @@
 ./make/mkdep.in					X	1999,2000
 ./make/rules.in					MAKE	1998,1999,2000
 ./util/COPYRIGHT				X	1999,2000
+./util/check-includes				PERL	2000
 ./util/copyrights				X	1999,2000
 ./util/memleak.pl				PERL	1999,2000
 ./util/merge_copyrights				PERL	1998,1999,2000

@@ -1,3 +1,11 @@
+ 146.   [cleanup]       More general redundant header file cleanup.  Rather
+                        than continuing to itemize every header which changed,
+                        this changelog entry just notes that if a header file
+                        did not need another header file that it was including
+                        in order to provide its advertized functionality, the
+                        inclusion of the other header file was removed.  See
+                        util/check-includes for how this was tested.
+
  145.   [cleanup]       Added <isc/lang.h> and ISC_LANG_BEGINDECLS/
                         ISC_LANG_ENDDECLS to header files that had function
                         prototypes, and removed it from those that did not.
