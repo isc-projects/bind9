@@ -351,3 +351,44 @@ the serial query rate.
 
 	serial-query-rate 5; // default 20
 
+Q: How do I share a dynamic zone between multiple views?
+
+A: You choose one view to be master and the second a slave and transfer
+the zone between views.
+
+	Master 10.0.1.1:
+	key "external" {
+		algorithm hmac-md5;
+		secret "xxxxxxxx";
+	};
+
+	key "mykey" {
+		algorithm hmac-md5;
+		secret "yyyyyyyy";
+	};
+
+	view "internal" {
+		match-clients { !external; 10.0.1/24; };
+		server 10.0.1.1 {
+			/* Deliver notify messages to external view. */
+			keys { external; };
+		};
+		zone "example.com" {
+			type master;
+			file "internal/example.db";
+			allow-update { key mykey; };
+			notify-also { 10.0.1.1; };
+		};
+	};
+
+	view "external" {
+		match-clients { external; any; };
+		zone "example.com" {
+			type slave;
+			file "external/example.db";
+			masters { 10.0.1.1; };
+			transfer-source { 10.0.1.1; };
+			// allow-update-forwarding { any; };
+			// allow-notify { ... };
+		};
+	};
