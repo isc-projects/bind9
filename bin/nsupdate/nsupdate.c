@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.32 2000/07/19 18:24:40 mws Exp $ */
+/* $Id: nsupdate.c,v 1.33 2000/07/21 20:38:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1307,7 +1307,6 @@ cleanup(void) {
 
 	if (key != NULL) {
 		debug("Freeing key");
-		dns_tsigkey_setdeleted(key);
 		dns_tsigkey_detach(&key);
 	}
 
