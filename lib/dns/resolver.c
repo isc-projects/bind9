@@ -3994,7 +3994,7 @@ dns_resolver_create(dns_view_t *view,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_buckets;
 		isc_sockaddr_any(&saddr);
-#if 0 /* XXXMLG */
+#if 1 /* XXXMLG */
 		result = isc_socket_bind(res->udpsocketv4, &saddr);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocketv4;
@@ -4031,7 +4031,7 @@ dns_resolver_create(dns_view_t *view,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_dispatchv4;
 		isc_sockaddr_any6(&saddr);
-#if 0 /* XXXMLG */
+#if 1 /* XXXMLG */
 		result = isc_socket_bind(res->udpsocketv6, &saddr);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocketv6;
