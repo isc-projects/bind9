@@ -43,8 +43,8 @@
 #include <named/server.h>
 #include <named/main.h>
 
-static isc_boolean_t			want_stats = ISC_FALSE;
-static char *				program_name = "named";
+static isc_boolean_t	want_stats = ISC_FALSE;
+static const char *	program_name = "named";
 
 void
 ns_main_earlyfatal(const char *format, ...) {
@@ -70,7 +70,9 @@ ns_main_earlyfatal(const char *format, ...) {
 }
 
 static void
-assertion_failed(char *file, int line, isc_assertiontype_t type, char *cond) {
+assertion_failed(const char *file, int line, isc_assertiontype_t type,
+		 const char *cond)
+{
 	/*
 	 * Handle assertion failures.
 	 */
@@ -101,7 +103,9 @@ assertion_failed(char *file, int line, isc_assertiontype_t type, char *cond) {
 }
 
 static void
-library_fatal_error(char *file, int line, char *format, va_list args) {
+library_fatal_error(const char *file, int line, const char *format,
+		    va_list args)
+{
 	/*
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
@@ -135,7 +139,9 @@ library_fatal_error(char *file, int line, char *format, va_list args) {
 }
 
 static void
-library_unexpected_error(char *file, int line, char *format, va_list args) {
+library_unexpected_error(const char *file, int line, const char *format,
+			 va_list args)
+{
 	/*
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */

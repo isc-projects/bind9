@@ -165,7 +165,7 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 
 static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		    char *name, ns_interface_t **ifpret)
+		    const char *name, ns_interface_t **ifpret)
 {
         ns_interface_t *ifp;
 	isc_result_t result;
@@ -322,7 +322,7 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 
 static isc_result_t
 ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
-		   char *name, ns_interface_t **ifpret)
+		   const char *name, ns_interface_t **ifpret)
 {
 	isc_result_t result;
 	ns_interface_t *ifp = NULL;

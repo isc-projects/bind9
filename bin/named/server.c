@@ -86,8 +86,11 @@ typedef struct {
 	dns_aclconfctx_t	*aclconf;
 } ns_load_t;
 
-static void fatal(char *msg, isc_result_t result);
-static void ns_server_reload(isc_task_t *task, isc_event_t *event);
+static void
+fatal(const char *msg, isc_result_t result);
+
+static void
+ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
 ns_listenelt_fromconfig(dns_c_lstnon_t *celt, dns_c_ctx_t *cctx,
@@ -705,7 +708,13 @@ create_version_view(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t **viewp)
 
 	result = dns_c_ctx_getversion(cctx, &versiontext);
 	if (result != ISC_R_SUCCESS)
-		versiontext = ns_g_version;
+		/*
+		 * Removing the const qualifier from ns_g_version is ok
+		 * because the resulting string is not modified, only
+		 * copied into a new buffer.
+		 */
+		DE_CONST(ns_g_version, versiontext);
+
 	len = strlen(versiontext);
 	if (len > 255)
 		len = 255; /* Silently truncate. */
@@ -789,7 +798,7 @@ find_or_create_view(dns_c_view_t *cview, dns_viewlist_t *viewlist,
 		    dns_view_t **viewp)
 {
 	isc_result_t result;
-	char *viewname;
+	const char *viewname;
 	dns_rdataclass_t viewclass;
 	dns_view_t *view = NULL;
 
@@ -1325,11 +1334,11 @@ load_configuration(const char *filename, ns_server_t *server,
 		      "now using logging configuration from "
 		      "config file");
 
-	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) ==
-	    ISC_R_NOTFOUND)
-		pidfilename = ns_g_defaultpidfile;
-	ns_os_writepidfile(pidfilename);
-	
+	if (dns_c_ctx_getpidfilename(cctx, &pidfilename) != ISC_R_NOTFOUND)
+		ns_os_writepidfile(pidfilename);
+	else
+		ns_os_writepidfile(ns_g_defaultpidfile);
+
 	dns_aclconfctx_destroy(&aclconfctx);	
 
 	dns_c_ctx_delete(&cctx);
@@ -1566,7 +1575,7 @@ ns_server_destroy(ns_server_t **serverp) {
 }
 
 static void
-fatal(char *msg, isc_result_t result) {
+fatal(const char *msg, isc_result_t result) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_CRITICAL, "%s: %s", msg,
 		      isc_result_totext(result));

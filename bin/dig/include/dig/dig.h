@@ -133,19 +133,21 @@ struct dig_searchlist {
 	ISC_LINK(dig_searchlist_t) link;
 };
 
-/* Routines in dighost.c */
+/*
+ * Routines in dighost.c.
+ */
 void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 void
-fatal(char *format, ...) ;
+fatal(const char *format, ...);
 void
-debug(char *format, ...) ;
+debug(const char *format, ...);
 void
-check_result(isc_result_t result, char *msg);
+check_result(isc_result_t result, const char *msg);
 isc_boolean_t
-isclass(char *text) ;
+isclass(char *text);
 isc_boolean_t
-istype(char *text) ;
+istype(char *text);
 void
 setup_lookup(dig_lookup_t *lookup);
 void
@@ -162,13 +164,15 @@ void
 setup_system(void);
 void
 free_lists(int exitcode);
-dig_lookup_t
-*requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
+dig_lookup_t *
+requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
 
-/* Routines needed in dig.c and host.c */
+/*
+ * Routines needed in dig.c and host.c.
+ */
 isc_result_t
-printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) ;
+printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers);
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query);
 void

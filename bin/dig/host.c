@@ -56,7 +56,7 @@ isc_boolean_t short_form = ISC_TRUE,
 	showallsoa = ISC_FALSE,
 	tcpmode = ISC_FALSE;
 
-static char *opcodetext[] = {
+static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -75,7 +75,7 @@ static char *opcodetext[] = {
 	"RESERVED15"
 };
 
-static char *rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -95,7 +95,7 @@ static char *rcodetext[] = {
 	"BADVERS"
 };
 
-static char *rtypetext[] = {
+static const char *rtypetext[] = {
 	"zero",				/* 0 */
 	"has address",			/* 1 */
 	"name server",			/* 2 */
@@ -251,7 +251,7 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 }
 
 static void
-say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata,
+say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	    dig_query_t *query)
 {
 	isc_buffer_t *b = NULL, *b2 = NULL;
@@ -280,8 +280,9 @@ say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata,
 
 
 static isc_result_t
-printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
-	     isc_boolean_t headers, dig_query_t *query)
+printsection(dns_message_t *msg, dns_section_t sectionid,
+	     const char *section_name, isc_boolean_t headers,
+	     dig_query_t *query)
 {
 	dns_name_t *name, *print_name;
 	dns_rdataset_t *rdataset;
@@ -293,7 +294,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 	char t[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
-	char *rtt;
+	const char *rtt;
 	
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
@@ -349,11 +350,11 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 					else if (rdata.type == 250)
 						rtt = "signature";
 					else
-						rtt="unknown";
+						rtt = "unknown";
 					say_message(print_name, rtt,
 						    &rdata, query);
-					loopresult = dns_rdataset_next(
-								 rdataset);
+					loopresult =
+						dns_rdataset_next(rdataset);
 				}
 			}
 		}
@@ -378,7 +379,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name,
 
 static isc_result_t
 printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
-	   char *set_name, isc_boolean_t headers)
+	   const char *set_name, isc_boolean_t headers)
 {
 	isc_buffer_t target;
 	isc_result_t result;

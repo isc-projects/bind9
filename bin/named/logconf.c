@@ -70,7 +70,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 	isc_result_t result;
 	isc_logdestination_t dest;
 	unsigned int type;
-	int flags = 0;
+	unsigned int flags = 0;
 	int level;
 	
 	type = ISC_LOG_TONULL;

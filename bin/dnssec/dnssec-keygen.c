@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.28 2000/06/01 02:32:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.29 2000/06/01 18:49:16 tale Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@
 
 #define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
 
-char *program = "dnssec-keygen";
+const char *program = "dnssec-keygen";
 int verbose;
 
 static isc_boolean_t

@@ -32,10 +32,10 @@
 #include "dnssectool.h"
 
 extern int verbose;
-extern char *program;
+extern const char *program;
 
 void
-fatal(char *format, ...) {
+fatal(const char *format, ...) {
 	va_list args;
 
 	fprintf(stderr, "%s: ", program);
@@ -47,7 +47,7 @@ fatal(char *format, ...) {
 }
 
 void
-check_result(isc_result_t result, char *message) {
+check_result(isc_result_t result, const char *message) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s: %s: %s\n", program, message,
 			isc_result_totext(result));
@@ -140,8 +140,8 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 	dns_log_init(log);
 	dns_log_setcontext(log);
 
-	isc_log_settag(logconfig, program);
-	
+	RUNTIME_CHECK(isc_log_settag(logconfig, program) == ISC_R_SUCCESS);
+
 	/*
 	 * Set up a channel similar to default_stderr except:
 	 *  - the logging level is passed in

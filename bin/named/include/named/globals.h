@@ -48,7 +48,7 @@ EXTERN dns_dispatchmgr_t *	ns_g_dispatchmgr	INIT(NULL);
 EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN omapi_object_t *		ns_g_omapimgr		INIT(NULL);
-EXTERN char *			ns_g_version		INIT(VERSION);
+EXTERN const char *		ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(53);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
@@ -75,7 +75,7 @@ EXTERN const char *		ns_g_chrootdir		INIT(NULL);
 EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
 
-EXTERN char *			ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 							     "/run/named.pid");
 EXTERN const char *		ns_g_username		INIT(NULL);
 

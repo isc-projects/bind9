@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.64 2000/05/30 23:14:48 bwelling Exp $ */
+/* $Id: xfrout.c,v 1.65 2000/06/01 18:44:26 tale Exp $ */
 
 #include <config.h>
 
@@ -766,7 +766,7 @@ static void
 xfrout_senddone(isc_task_t *task, isc_event_t *event);
 
 static void
-xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg);
+xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, const char *msg);
 
 static void
 xfrout_maybe_destroy(xfrout_ctx_t *xfr);
@@ -803,7 +803,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	dns_rdataset_t *soa_rdataset;
 	dns_rdata_t soa_rdata;
 	isc_boolean_t have_soa = ISC_FALSE;
-	char *mnemonic = NULL;	
+	const char *mnemonic = NULL;	
 	isc_mem_t *mctx = client->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
@@ -1469,7 +1469,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, char *msg) {
+xfrout_fail(xfrout_ctx_t *xfr, isc_result_t result, const char *msg) {
 	xfr->shuttingdown = ISC_TRUE;
 	xfrout_log(xfr, ISC_LOG_ERROR, "%s: %s",
 		   msg, isc_result_totext(result));

@@ -38,7 +38,7 @@
 
 #include "dnssectool.h"
 
-char *program = "dnssec-signkey";
+const char *program = "dnssec-signkey";
 int verbose;
 
 #define BUFSIZE 2048

@@ -718,7 +718,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 }
 
 static isc_result_t
-query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
+query_addadditional(void *arg, dns_name_t *name, int qtype) {
 	ns_client_t *client = arg;
 	isc_result_t result, eresult;
 	dns_dbnode_t *node, *znode;

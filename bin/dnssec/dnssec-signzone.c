@@ -45,7 +45,7 @@
 
 #include "dnssectool.h"
 
-char *program = "dnssec-signzone";
+const char *program = "dnssec-signzone";
 int verbose;
 
 /*#define USE_ZONESTATUS*/
@@ -1141,23 +1141,23 @@ static isc_stdtime_t
 strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 	isc_int64_t val, offset;
 	isc_result_t result;
-	char *endp = "";
+	char *endp;
 
 	if (str[0] == '+') {
 		offset = strtol(str + 1, &endp, 0);
+		if (*endp != '\0')
+			fatal("time value %s is invalid", str);
 		val = base + offset;
-	}
-	else if (strncmp(str, "now+", 4) == 0) {
+	} else if (strncmp(str, "now+", 4) == 0) {
 		offset = strtol(str + 4, &endp, 0);
+		if (*endp != '\0')
+			fatal("time value %s is invalid", str);
 		val = now + offset;
-	}
-	else {
+	} else {
 		result = dns_time64_fromtext(str, &val);
 		if (result != ISC_R_SUCCESS)
 			fatal("time %s must be numeric", str);
 	}
-	if (*endp != '\0')
-		fatal("time value %s is invalid", str);
 
 	return ((isc_stdtime_t) val);
 }

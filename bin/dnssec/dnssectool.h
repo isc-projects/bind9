@@ -16,14 +16,27 @@
  */
 
 #ifndef DNSSECTOOL_H
-#define DNSSECTOOL_H
+#define DNSSECTOOL_H 1
 
-void fatal(char *format, ...);
-void check_result(isc_result_t result, char *message);
-void vbprintf(int level, const char *fmt, ...);
-char *nametostr(dns_name_t *name);
-char *typetostr(const dns_rdatatype_t type);
-char *algtostr(const dns_secalg_t alg);
-void setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);
+void
+fatal(const char *format, ...);
 
-#endif
+void
+check_result(isc_result_t result, const char *message);
+
+void
+vbprintf(int level, const char *fmt, ...);
+
+char *
+nametostr(dns_name_t *name);
+
+char *
+typetostr(const dns_rdatatype_t type);
+
+char *
+algtostr(const dns_secalg_t alg);
+
+void
+setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp);
+
+#endif /* DNSSEC_DNSSECTOOL_H */

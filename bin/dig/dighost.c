@@ -113,7 +113,7 @@ hex_dump(isc_buffer_t *b) {
 
 
 void
-fatal(char *format, ...) {
+fatal(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);	
@@ -137,7 +137,7 @@ fatal(char *format, ...) {
 
 #ifdef DEBUG
 void
-debug(char *format, ...) {
+debug(const char *format, ...) {
 	va_list args;
 
 	va_start(args, format);	
@@ -147,13 +147,13 @@ debug(char *format, ...) {
 }
 #else
 void
-debug(char *format, ...) {
+debug(const char *format, ...) {
 	UNUSED(format);
 }
 #endif
 
 void
-check_result(isc_result_t result, char *msg) {
+check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		exitcode = 1;
 		fatal("%s: %s", msg, isc_result_totext(result));
@@ -748,7 +748,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	dig_server_t *serv;
 	dig_query_t *query;
 	isc_region_t r;
-	isc_textregion_t tr;
+	isc_constregion_t tr;
 	isc_buffer_t b;
 	char store[MXNAME];
 	
@@ -898,7 +898,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		tr.base=lookup->rttext;
 		tr.length=strlen(lookup->rttext);
 	}
-	result = dns_rdatatype_fromtext(&rdtype, &tr);
+	result = dns_rdatatype_fromtext(&rdtype, (isc_textregion_t *)&tr);
 	check_result(result, "dns_rdatatype_fromtext");
 	if (rdtype == dns_rdatatype_axfr) {
 		lookup->doing_xfr = ISC_TRUE;
@@ -914,7 +914,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		tr.base=lookup->rctext;
 		tr.length=strlen(lookup->rctext);
 	}
-	result = dns_rdataclass_fromtext(&rdclass, &tr);
+	result = dns_rdataclass_fromtext(&rdclass, (isc_textregion_t *)&tr);
 	check_result(result, "dns_rdataclass_fromtext");
 	add_type(lookup->sendmsg, lookup->name, rdclass, rdtype);
 

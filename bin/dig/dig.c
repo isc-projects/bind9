@@ -75,7 +75,7 @@ isc_boolean_t identify = ISC_FALSE,
 	defname = ISC_TRUE, aaonly = ISC_FALSE, tcpmode = ISC_FALSE;
 
 
-static char *opcodetext[] = {
+static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
 	"STATUS",
@@ -94,7 +94,7 @@ static char *opcodetext[] = {
 	"RESERVED15"
 };
 
-static char *rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -494,6 +494,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	FILE *fp = NULL;
 	int bargc;
 	char *bargv[16];
+	char bargv0[sizeof("dig")];
 	int i, n;
 	int adrs[4];
 	int rc;
@@ -1028,15 +1029,23 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug ("Batch line %s", batchline);
 			bargc = 1;
 			bargv[bargc] = strtok(batchline, " \t\r\n");
-			while ((bargv[bargc] != NULL) &&
-			       (bargc < 14 )) {
+			while ((bargv[bargc] != NULL) && (bargc < 14 )) {
 				bargc++;
 				bargv[bargc] = strtok(NULL, " \t\r\n");
 			}
-			bargc--;
-			bargv[0] = "dig";
-			reorder_args(bargc+1, (char**)bargv);
-			parse_args(ISC_TRUE, bargc+1, (char**)bargv);
+
+			/*
+			 * This silliness (instead of ``bargv[0] = "dig";'')
+			 * dances around the const string issue.  If in
+			 * the future the 2nd argument to strncpy() is made
+			 * longer than three characters, don't forget to resize
+			 * bargv0 to accommodate it.
+			 */
+			strncpy(bargv0, "dig", sizeof(bargv0));
+			bargv[0] = bargv0;
+
+			reorder_args(bargc, (char **)bargv);
+			parse_args(ISC_TRUE, bargc, (char **)bargv);
 		}
 	}
 	if (lookup_list.head == NULL) {
