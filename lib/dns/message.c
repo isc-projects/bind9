@@ -322,6 +322,7 @@ msginittsig(dns_message_t *m)
 	m->tsigstatus = m->querytsigstatus = dns_rcode_noerror;
 	m->tsig = m->querytsig = NULL;
 	m->tsigkey = NULL;
+	m->tsigctx = NULL;
 	m->tsigstart = -1;
 }
 
@@ -337,6 +338,7 @@ msginit(dns_message_t *m)
 	msginittsig(m);
 	m->header_ok = 0;
 	m->question_ok = 0;
+	m->tcp_continuation = 0;
 }
 
 static inline void
@@ -1219,8 +1221,13 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	if (r.length != 0)
 		return (DNS_R_FORMERR);
 
-	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG])) {
-		ret = dns_tsig_verify(source, msg);
+	if (msg->tsigkey != NULL ||
+	    !ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG]))
+	{
+		if (!msg->tcp_continuation)
+			ret = dns_tsig_verify(source, msg);
+		else
+			ret = dns_tsig_verify_tcp(source, msg);
 		if (ret != DNS_R_SUCCESS)
 			return ret;
 	}

@@ -157,6 +157,7 @@ struct dns_message {
 	unsigned int			need_cctx_cleanup : 1;
 	unsigned int			header_ok : 1;
 	unsigned int			question_ok : 1;
+	unsigned int			tcp_continuation: 1;
 
 	unsigned int			reserved; /* reserved space (render) */
 
@@ -181,6 +182,7 @@ struct dns_message {
 	dns_rdata_any_tsig_t	       *tsig;
 	dns_rdata_any_tsig_t	       *querytsig;
 	dns_tsig_key_t		       *tsigkey;
+	void			       *tsigctx;
 	int				tsigstart;
 };
 
