@@ -242,6 +242,7 @@
 #define lh_retrieve dst_lh_retrieve
 #define lh_strhash dst_lh_strhash
 #define md5_block_host_order dst_md5_block_host_order
+#define md5_block_data_order dst_md5_block_data_order
 #define sha1_block_data_order dst_sha1_block_data_order
 #define sha1_block_host_order dst_sha1_block_host_order
 #define sk_CRYPTO_EX_DATA_FUNCS_delete dst_sk_CRYPTO_EX_DATA_FUNCS_delete
