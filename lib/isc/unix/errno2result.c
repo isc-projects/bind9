@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.8.2.2 2002/02/20 02:17:27 marka Exp $ */
+/* $Id: errno2result.c,v 1.8.2.3 2002/03/20 20:59:39 marka Exp $ */
 
 #include <config.h>
 
@@ -100,6 +100,8 @@ isc__errno2result(int posixerrno) {
 	case EADDRINUSE:
 		return (ISC_R_ADDRINUSE);
 #endif
+	case EADDRNOTAVAIL:
+		return (ISC_R_ADDRNOTAVAIL);
 	default:
 		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
