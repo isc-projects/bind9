@@ -117,16 +117,16 @@ typedef isc_event_t intev_t;
 
 struct isc_socket {
 	/* Not locked. */
-	unsigned int			magic;
-	isc_socketmgr_t		       *manager;
-	isc_mutex_t			lock;
-	isc_sockettype_t		type;
+	unsigned int		magic;
+	isc_socketmgr_t	       *manager;
+	isc_mutex_t		lock;
+	isc_sockettype_t	type;
 
 	/* Locked by socket lock. */
-	unsigned int			references;
-	int				fd;
-	isc_result_t			recv_result;
-	isc_result_t			send_result;
+	unsigned int		references;
+	int			fd;
+	isc_result_t		recv_result;
+	isc_result_t		send_result;
 
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
@@ -138,45 +138,46 @@ struct isc_socket {
 	 * writable.  These are statically allocated and never freed.
 	 * They will be set to non-purgable before use.
 	 */
-	intev_t				readable_ev;
-	intev_t				writable_ev;
+	intev_t			readable_ev;
+	intev_t			writable_ev;
 
-	isc_sockaddr_t			address;  /* remote address */
+	isc_sockaddr_t		address;  /* remote address */
 
-	unsigned int			pending_recv : 1,
-					pending_send : 1,
-					pending_accept : 1,
-					listener : 1, /* listener socket */
-					connected : 1,
-					connecting : 1; /* connect pending */
+	unsigned int		pending_recv : 1,
+				pending_send : 1,
+				pending_accept : 1,
+				listener : 1, /* listener socket */
+				connected : 1,
+				connecting : 1, /* connect pending */
+				bound : 1; /* bound to local addr */
 
 #ifdef ISC_NET_RECVOVERFLOW
-	unsigned char			overflow; /* used for MSG_TRUNC fake */
+	unsigned char		overflow; /* used for MSG_TRUNC fake */
 #endif
 #ifdef USE_CMSG
-	unsigned char		       *cmsg;
-	unsigned int			cmsglen;
+	unsigned char	       *cmsg;
+	unsigned int		cmsglen;
 #endif
 };
 
-#define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
-#define VALID_MANAGER(m)		((m) != NULL && \
-					 (m)->magic == SOCKET_MANAGER_MAGIC)
+#define SOCKET_MANAGER_MAGIC	0x494f6d67U	/* IOmg */
+#define VALID_MANAGER(m)	((m) != NULL && \
+				 (m)->magic == SOCKET_MANAGER_MAGIC)
 struct isc_socketmgr {
 	/* Not locked. */
-	unsigned int			magic;
-	isc_mem_t		       *mctx;
-	isc_mutex_t			lock;
+	unsigned int		magic;
+	isc_mem_t	       *mctx;
+	isc_mutex_t		lock;
 	/* Locked by manager lock. */
-	unsigned int			nsockets;  /* sockets managed */
-	isc_thread_t			watcher;
-	isc_condition_t			shutdown_ok;
-	fd_set				read_fds;
-	fd_set				write_fds;
-	isc_socket_t		       *fds[FD_SETSIZE];
-	int				fdstate[FD_SETSIZE];
-	int				maxfd;
-	int				pipe_fds[2];
+	unsigned int		nsockets;  /* sockets managed */
+	isc_thread_t		watcher;
+	isc_condition_t		shutdown_ok;
+	fd_set			read_fds;
+	fd_set			write_fds;
+	isc_socket_t	       *fds[FD_SETSIZE];
+	int			fdstate[FD_SETSIZE];
+	int			maxfd;
+	int			pipe_fds[2];
 };
 
 #define CLOSED		0	/* this one must be zero */
@@ -1025,6 +1026,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->listener = 0;
 	sock->connected = 0;
 	sock->connecting = 0;
+	sock->bound = 0;
 
 	sock->recv_result = ISC_R_SUCCESS;
 	sock->send_result = ISC_R_SUCCESS;
@@ -2127,6 +2129,10 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 	LOCK(&sock->lock);
 
+#if 0 /* XXXMLG */
+	INSIST(sock->bound);
+#endif
+
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
@@ -2237,6 +2243,10 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 
 	LOCK(&sock->lock);
 
+#if 0 /* XXXMLG */
+	INSIST(sock->bound);
+#endif
+
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
@@ -2345,6 +2355,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&sock->lock);
+
+#if 0 /* XXXMLG */
+	INSIST(sock->bound);
+#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
@@ -2526,6 +2540,10 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 
 	LOCK(&sock->lock);
 
+#if 0 /* XXXMLG */
+	INSIST(!sock->bound);
+#endif
+
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof on) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
@@ -2550,12 +2568,14 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 		}
 	}
 
+	sock->bound = 1;
+
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
 /*
- * set up to listen on a given socket.  We do this by creating an internal
+ * Set up to listen on a given socket.  We do this by creating an internal
  * event that will be dispatched when the socket has read activity.  The
  * watcher will send the internal event to the task when there is a new
  * connection.
@@ -2572,6 +2592,9 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog)
 	LOCK(&sock->lock);
 
 	REQUIRE(!sock->listener);
+#if 0 /* XXXMLG */
+	REQUIRE(sock->bound);
+#endif
 	REQUIRE(sock->type == isc_sockettype_tcp);
 
 	if (backlog == 0)
@@ -2729,6 +2752,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	 */
 	if (cc == 0) {
 		sock->connected = 1;
+		sock->bound = 1;
 		dev->result = ISC_R_SUCCESS;
 		isc_task_send(task, (isc_event_t **)&dev);
 
@@ -3046,6 +3070,10 @@ isc_socket_recvmark(isc_socket_t *sock,
 
 	LOCK(&sock->lock);
 
+#if 0 /* XXXMLG */
+	INSIST(sock->bound);
+#endif
+
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVMARK, action, arg);
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
@@ -3098,6 +3126,10 @@ isc_socket_sendmark(isc_socket_t *sock,
 	REQUIRE(VALID_MANAGER(manager));
 
 	LOCK(&sock->lock);
+
+#if 0 /* XXXMLG */
+	INSIST(sock->bound);
+#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDMARK, action, arg);
 	if (dev == NULL) {
