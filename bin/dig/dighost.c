@@ -971,6 +971,7 @@ setup_lookup(dig_lookup_t *lookup) {
 static void
 send_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
+
 	isc_event_free(&event);
 
 	debug("send_done()");
@@ -1131,10 +1132,10 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 
 	debug("tcp_length_done()");
 
-	isc_event_free(&event);
-
-	if (free_now)
+	if (free_now) {
+		isc_event_free(&event);
 		return;
+	}
 
 	sevent = (isc_socketevent_t *)event;	
 
@@ -1161,6 +1162,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		debug ("Socket = %d",sockcount);
 		isc_socket_detach(&query->sock);
 		check_next_lookup(query->lookup);
+		isc_event_free(&event);
 		return;
 	}
 	b = ISC_LIST_HEAD(sevent->bufferlist);
@@ -1185,6 +1187,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 				  recv_done, query);
 	check_result(result, "isc_socket_recvv");
 	debug("Resubmitted recv request with length %d", length);
+	isc_event_free(&event);
 }
 
 static void
@@ -1251,10 +1254,12 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 
-	isc_event_free(&event);
+	debug ("connect_done()");
 
-	if (free_now)
+	if (free_now) {
+		isc_event_free(&event);
 		return;
+	}
 
 	sevent = (isc_socketevent_t *)event;
 	query = sevent->ev_arg;
@@ -1263,7 +1268,6 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	query->waiting_connect = ISC_FALSE;
 
-	debug("connect_done()");
 	if (sevent->result != ISC_R_SUCCESS) {
 		debug ("Buffer Allocate connect_timeout");
 		result = isc_buffer_allocate(mctx, &b, 256);
@@ -1280,9 +1284,11 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
 		check_next_lookup(query->lookup);
+		isc_event_free(&event);
 		return;
 	}
 	launch_next_query(query, ISC_TRUE);
+	isc_event_free(&event);
 }
 
 static isc_boolean_t
@@ -1320,17 +1326,20 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	
 	UNUSED (task);
 
-	isc_event_free(&event);
+	debug ("recv_done()");
 
-	if (free_now)
+	if (free_now) {
+		isc_event_free(&event);
 		return;
+	}
 
 	query = event->ev_arg;
-	debug("recv_done(lookup=%lx, query=%lx)",
+	debug("(lookup=%lx, query=%lx)",
 	      (long int)query->lookup, (long int)query);
 
 	if (free_now) {
 		debug("Bailing out, since freeing now.");
+		isc_event_free(&event);
 		return;
 	}
 
@@ -1347,6 +1356,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		query->waiting_connect = ISC_FALSE;
 		
 		cancel_lookup(query->lookup);
+		isc_event_free(&event);
 		return;
 	}
 
@@ -1370,6 +1380,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			}
 			cancel_lookup(query->lookup);
 			dns_message_destroy(&msg);
+			isc_event_free(&event);
 			return;
 		}
 		debug ("After parse has started");
@@ -1428,6 +1439,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					query->working = ISC_FALSE;
 					cancel_lookup(query->lookup);
 					dns_message_destroy (&msg);
+					isc_event_free(&event);
 					return;
 				}
 				else {
@@ -1448,6 +1460,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					query->working = ISC_FALSE;
 					cancel_lookup(query->lookup);
 					dns_message_destroy (&msg);
+					isc_event_free(&event);
 					return;
 				}
 				else {
@@ -1475,6 +1488,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			check_next_lookup(query->lookup);
 		}
 		dns_message_destroy(&msg);
+		isc_event_free(&event);
 		return;
 	}
 	/* In truth, we should never get into the CANCELED routine, since
