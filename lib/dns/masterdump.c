@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.62 2001/11/12 19:05:21 gson Exp $ */
+/* $Id: masterdump.c,v 1.63 2001/11/19 03:08:10 mayer Exp $ */
 
 #include <config.h>
 
@@ -160,7 +160,7 @@ dns_master_style_explicitttl = {
 	24, 32, 32, 40, 80, 8
 };
 
-const dns_master_style_t
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
 dns_master_style_cache = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -171,7 +171,7 @@ dns_master_style_cache = {
 };
 
 const dns_master_style_t
-dns_master_style_simple = {
+LIBDNS_EXTERNAL_DATA dns_master_style_simple = {
 	0,
 	24, 32, 32, 40, 80, 8
 };

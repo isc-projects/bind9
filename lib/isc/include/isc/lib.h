@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.6 2001/01/09 21:57:06 bwelling Exp $ */
+/* $Id: lib.h,v 1.7 2001/11/19 03:08:25 mayer Exp $ */
 
 #ifndef ISC_LIB_H
 #define ISC_LIB_H 1
@@ -25,7 +25,7 @@
 
 ISC_LANG_BEGINDECLS
 
-extern isc_msgcat_t *isc_msgcat;
+LIBISC_EXTERNAL_DATA extern isc_msgcat_t *isc_msgcat;
 
 void
 isc_lib_initmsgcat(void);

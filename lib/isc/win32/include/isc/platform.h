@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.5 2001/07/26 03:15:15 mayer Exp $ */
+/* $Id: platform.h,v 1.6 2001/11/19 03:08:31 mayer Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -77,6 +77,12 @@
 #define LIBDNS_EXTERNAL_DATA __declspec( dllexport )
 #else
 #define LIBDNS_EXTERNAL_DATA __declspec( dllimport )
+#endif
+
+#ifdef LIBBIND9_EXPORTS
+#define LIBBIND9_EXTERNAL_DATA __declspec( dllexport )
+#else
+#define LIBBIND9_EXTERNAL_DATA __declspec( dllimport )
 #endif
 
 #endif /* ISC_PLATFORM_H */

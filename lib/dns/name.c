@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.128 2001/11/12 19:05:24 gson Exp $ */
+/* $Id: name.c,v 1.129 2001/11/19 03:08:11 mayer Exp $ */
 
 #include <config.h>
 
@@ -176,7 +176,7 @@ static dns_name_t root =
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_rootname = &root;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_rootname = &root;
 
 static unsigned char wild_ndata[] = { '\001', '*' };
 static unsigned char wild_offsets[] = { 0 };
@@ -192,7 +192,7 @@ static dns_name_t wild =
 };
 
 /* XXXDCL make const? */
-dns_name_t *dns_wildcardname = &wild;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_wildcardname = &wild;
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95 2001/08/28 03:58:19 marka Exp $ */
+/* $Id: name.h,v 1.96 2001/11/19 03:08:15 mayer Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -211,7 +211,7 @@ struct dns_name {
 #define DNS_NAMEATTR_CHAINING		0x0800		/* Used by resolver. */
 
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_rootname;
-extern dns_name_t *dns_wildcardname;
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
 
 /*
  * Standard size of a wire format name

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.49 2001/07/02 20:46:29 bwelling Exp $ */
+/* $Id: lwres.h,v 1.50 2001/11/19 03:08:41 mayer Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -26,6 +26,7 @@
 #include <lwres/lang.h>
 #include <lwres/list.h>
 #include <lwres/lwpacket.h>
+#include <lwres/platform.h>
 
 /*
  * Design notes:
@@ -252,9 +253,9 @@ LWRES_LANG_BEGINDECLS
 /*
  * This is in host byte order.
  */
-extern lwres_uint16_t lwres_udp_port;
+LIBLWRES_EXTERNAL_DATA extern lwres_uint16_t lwres_udp_port;
 
-extern const char *lwres_resolv_conf;
+LIBLWRES_EXTERNAL_DATA extern const char *lwres_resolv_conf;
 
 lwres_result_t
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,

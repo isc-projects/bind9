@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_lib.c,v 1.8 2001/01/09 21:55:29 bwelling Exp $
+ * $Id: dst_lib.c,v 1.9 2001/11/19 03:08:19 mayer Exp $
  */
 
 #include <config.h>
@@ -34,7 +34,7 @@
  *** Globals
  ***/
 
-isc_msgcat_t *			dst_msgcat = NULL;
+LIBDNS_EXTERNAL_DATA isc_msgcat_t *		dst_msgcat = NULL;
 
 
 /***

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.9 2001/01/09 21:50:57 bwelling Exp $ */
+/* $Id: lib.c,v 1.10 2001/11/19 03:08:08 mayer Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
  *** Globals
  ***/
 
-isc_msgcat_t *			dns_msgcat = NULL;
+LIBDNS_EXTERNAL_DATA isc_msgcat_t *			dns_msgcat = NULL;
 
 
 /***

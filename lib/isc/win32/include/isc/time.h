@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.23 2001/09/05 17:22:55 gson Exp $ */
+/* $Id: time.h,v 1.24 2001/11/19 03:08:32 mayer Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -39,7 +39,7 @@ struct isc_interval {
 	isc_int64_t interval;
 };
 
-extern isc_interval_t *isc_interval_zero;
+LIBISC_EXTERNAL_DATA extern isc_interval_t *isc_interval_zero;
 
 ISC_LANG_BEGINDECLS
 
@@ -82,7 +82,7 @@ struct isc_time {
 	FILETIME absolute;
 };
 
-extern isc_time_t *isc_time_epoch;
+LIBISC_EXTERNAL_DATA extern isc_time_t *isc_time_epoch;
 
 void
 isc_time_settoepoch(isc_time_t *t);

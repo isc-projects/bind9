@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.33 2001/10/13 01:57:37 gson Exp $ */
+/* $Id: time.c,v 1.34 2001/11/19 03:08:28 mayer Exp $ */
 
 #include <config.h>
 
@@ -48,14 +48,14 @@
  ***/
 
 static isc_time_t epoch = { { 0, 0 } };
-isc_time_t *isc_time_epoch = &epoch;
+LIBISC_EXTERNAL_DATA isc_time_t *isc_time_epoch = &epoch;
 
 /***
  *** Intervals
  ***/
 
 static isc_interval_t zero_interval = { 0 };
-isc_interval_t *isc_interval_zero = &zero_interval;
+LIBISC_EXTERNAL_DATA isc_interval_t *isc_interval_zero = &zero_interval;
 
 void
 isc_interval_set(isc_interval_t *i, unsigned int seconds,

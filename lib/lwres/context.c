@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.41 2001/07/19 16:59:32 gson Exp $ */
+/* $Id: context.c,v 1.42 2001/11/19 03:08:40 mayer Exp $ */
 
 #include <config.h>
 
@@ -60,8 +60,8 @@ do { \
 } while (0)
 #endif
 
-lwres_uint16_t lwres_udp_port = LWRES_UDP_PORT;
-const char *lwres_resolv_conf = LWRES_RESOLV_CONF;
+LIBLWRES_EXTERNAL_DATA lwres_uint16_t lwres_udp_port = LWRES_UDP_PORT;
+LIBLWRES_EXTERNAL_DATA const char *lwres_resolv_conf = LWRES_RESOLV_CONF;
 
 static void *
 lwres_malloc(void *, size_t);

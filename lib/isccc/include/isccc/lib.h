@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.2 2001/03/27 20:08:09 bwelling Exp $ */
+/* $Id: lib.h,v 1.3 2001/11/19 03:08:34 mayer Exp $ */
 
 #ifndef ISCCC_LIB_H
 #define ISCCC_LIB_H 1
@@ -26,7 +26,7 @@
 
 ISC_LANG_BEGINDECLS
 
-extern isc_msgcat_t *isccc_msgcat;
+LIBISCCC_EXTERNAL_DATA extern isc_msgcat_t *isccc_msgcat;
 
 void
 isccc_lib_initmsgcat(void);
