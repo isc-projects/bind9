@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.189 2001/03/28 02:42:54 bwelling Exp $ */
+/* $Id: message.c,v 1.190 2001/04/19 18:28:35 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1612,7 +1612,8 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
 	 * buffer.
 	 */
 	isc_buffer_availableregion(buffer, &r);
-	REQUIRE(r.length >= DNS_MESSAGE_HEADERLEN);
+	if (r.length < DNS_MESSAGE_HEADERLEN)
+		return (ISC_R_NOSPACE);
 
 	if (r.length < msg->reserved)
 		return (ISC_R_NOSPACE);
