@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.76 2000/07/12 00:22:57 gson Exp $ */
+/* $Id: dighost.c,v 1.77 2000/07/12 00:42:54 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1793,11 +1793,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if ((query->lookup->trace)||
 			    (query->lookup->ns_search_only)) {
 				debug("in TRACE code");
-				if ((show_details ||
-				    ((dns_message_firstname(msg,
-							    DNS_SECTION_ANSWER)
-				      == ISC_R_SUCCESS))) &&
-				    !query->lookup->trace_root ) {
+				if (show_details ||
+				    (((dns_message_firstname(msg,
+							 DNS_SECTION_ANSWER)
+				       == ISC_R_SUCCESS)) &&
+				     !query->lookup->trace_root)) {
 					printmessage(query, msg, ISC_TRUE);
 				}
 				if ((msg->rcode != 0) &&
