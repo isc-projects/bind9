@@ -70,26 +70,33 @@ cd bin
 
 cd named\win32
 nmake /nologo -f named.mak CFG="named - Win32 Release"
+
+copy ..\named.html ..\..\..\Build\Release
 cd ..\..
 
 cd rndc\win32
 nmake /nologo -f rndc.mak CFG="rndc - Win32 Release"
 nmake /nologo -f confgen.mak CFG="rndcconfgen - Win32 Release"
+
+copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd dig\win32
 nmake /nologo -f dig.mak CFG="dig - Win32 Release"
 nmake /nologo /nologo -f host.mak CFG="host - Win32 Release"
 nmake /nologo -f nslookup.mak CFG="nslookup - Win32 Release"
+copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd nsupdate\win32
 nmake /nologo -f nsupdate.mak CFG="nsupdate - Win32 Release"
+copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd check\win32
 nmake /nologo -f namedcheckconf.mak CFG="namedcheckconf - Win32 Release"
 nmake /nologo -f namedcheckzone.mak CFG="namedcheckzone - Win32 Release"
+copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 cd dnssec\win32
@@ -97,6 +104,7 @@ nmake /nologo -f keygen.mak CFG="keygen - Win32 Release"
 nmake /nologo -f makekeyset.mak CFG="makekeyset - Win32 Release"
 nmake /nologo -f signkey.mak CFG="signkey - Win32 Release"
 nmake /nologo -f signzone.mak CFG="signzone - Win32 Release"
+copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
 rem This is the BIND 9 Installer
@@ -106,13 +114,6 @@ nmake /nologo -f BINDInstall.mak CFG="BINDInstall - Win32 Release"
 cd ..\..
 
 cd ..
-
-echo Copying the OpenSSL DLL and the Installation Notes.
-rem Copy the OpenSSL DLL to the Build Directory
-
-copy ..\openssl-0.9.6b\out32dll\libeay32.dll Build\Release\
-
-copy win32utils\readme1st.txt Build\Release\
 
 cd win32utils
 
