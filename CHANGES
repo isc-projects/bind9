@@ -1,3 +1,7 @@
+1351.	[bug]		lwres_getipnodebyname() returned the wrong name
+			when given a IPv4 literal, af=AF_INET6 and AI_MAPPED
+			was set.
+
 1350.	[bug]		dns_name_fromtext() failed to handle too many labels
 			gracefully.
 
