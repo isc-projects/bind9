@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.8.2.6 2000/08/15 01:14:51 gson Exp $ */
+/* $Id: nsupdate.c,v 1.8.2.7 2000/09/15 23:47:14 gson Exp $ */
 
 #include <config.h>
 
@@ -1198,6 +1198,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			fatal("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
+		dns_message_renderreset(soaquery);
 		sendrequest(&servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		return;

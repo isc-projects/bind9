@@ -1,6 +1,10 @@
 
 	--- 9.0.0 released ---
 
+ 463.	[bug]		nsupdate sent malformed SOA queries to the second
+			and subsequent name servers in resolv.conf if the
+			query sent to the first one failed.
+
  461.	[bug]		Specifying an unknown key in the "keys" clause of the
 			"controls" statement caused a NULL pointer dereference.
 			[RT #316]
