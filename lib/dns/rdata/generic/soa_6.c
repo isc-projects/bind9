@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.15 1999/05/05 00:19:03 marka Exp $ */
+ /* $Id: soa_6.c,v 1.16 1999/05/05 00:20:36 marka Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_C
 #define RDATA_GENERIC_SOA_6_C
@@ -221,7 +221,6 @@ static dns_result_t
 fromstruct_soa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
-
 	REQUIRE(type == 6);
 
 	class = class;	/*unused*/
@@ -234,11 +233,34 @@ fromstruct_soa(dns_rdataclass_t class, dns_rdatatype_t type, void *source,
 
 static dns_result_t
 tostruct_soa(dns_rdata_t *rdata, void *target) {
+	isc_region_t region;
+	dns_rdata_soa_t *soa = target;
 	
 	REQUIRE(rdata->type == 6);
 
-	target = target;
+	soa->rdclass = rdata->class;
+	soa->rdtype = rdata->type;
+	ISC_LINK_INIT(soa, link);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &region);
+	dns_fixedname_init(&soa->origin);
+	dns_name_fromregion(dns_fixedname_name(&soa->origin), &region);
+	isc_region_consume(&region,
+			   name_length(dns_fixedname_name(&soa->origin)));
+	dns_fixedname_init(&soa->mname);
+	dns_name_fromregion(dns_fixedname_name(&soa->mname), &region);
+	isc_region_consume(&region,
+			   name_length(dns_fixedname_name(&soa->mname)));
+	soa->serial = uint32_fromregion(&region);
+	isc_region_consume(&region, 4);
+	soa->refresh = uint32_fromregion(&region);
+	isc_region_consume(&region, 4);
+	soa->retry = uint32_fromregion(&region);
+	isc_region_consume(&region, 4);
+	soa->expire = uint32_fromregion(&region);
+	isc_region_consume(&region, 4);
+	soa->minimum = uint32_fromregion(&region);
+
+	return (DNS_R_SUCCESS);
 }
 #endif	/* RDATA_GENERIC_SOA_6_C */
