@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.45 2001/02/09 02:13:06 bwelling Exp $ */
+/* $Id: compress.c,v 1.46 2001/02/10 01:18:19 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -124,6 +124,9 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 	REQUIRE(VALID_CCTX(cctx));
 	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
 	REQUIRE(offset != NULL);
+
+	if (cctx->count == 0)
+		return (ISC_FALSE);
 
 	labels = dns_name_countlabels(name);
 	INSIST(labels > 0);
