@@ -1,3 +1,5 @@
+ 325.	[bug]		isc_lex_gettoken was processing octal strings when
+			ISC_LEXOPT_CNUMBER was not set.
 
  324.	[func]		In the resolver, turn EDNS0 off if there is no
 			response after a number of retransmissions.

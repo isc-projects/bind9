@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.32 2000/07/10 05:11:17 marka Exp $ */
+/* $Id: lex.c,v 1.33 2000/07/11 02:44:54 marka Exp $ */
 
 #include <config.h>
 
@@ -511,8 +511,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				if (c == ' ' || c == '\t' || c == '\r' ||
 				    c == '\n' || c == EOF ||
 				    lex->specials[c]) {
+					int base;
+					if ((options & ISC_LEXOPT_CNUMBER) != 0)
+						base = 0;
+					else
+						base = 10;
 					pushback(source, c);
-					ulong = strtoul(lex->data, &e, 0);
+					ulong = strtoul(lex->data, &e, base);
 					if (ulong == ULONG_MAX &&
 					    errno == ERANGE) {
 						return (ISC_R_RANGE);
