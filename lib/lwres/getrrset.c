@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.11 2001/07/10 18:25:44 gson Exp $ */
+/* $Id: getrrset.c,v 1.12 2002/06/20 02:31:17 marka Exp $ */
 
 #include <config.h>
 
@@ -175,6 +175,7 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	}
 
 	lwres_grbnresponse_free(lwrctx, &response);
+	lwres_conf_clear(lwrctx);
 	lwres_context_destroy(&lwrctx);
 	*res = rrset;
 	return (ERRSET_SUCCESS);
@@ -183,10 +184,11 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 		lwres_freerrset(rrset);
 	if (response != NULL)
 		lwres_grbnresponse_free(lwrctx, &response);
-	if (lwrctx != NULL)
+	if (lwrctx != NULL) {
+		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
+	}
 	return (result);
-
 }
 
 void
