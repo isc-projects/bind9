@@ -15,12 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.7 2000/09/26 22:45:59 bwelling Exp $ */
+/* $Id: sdb.h,v 1.8 2000/11/16 21:58:09 marka Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
-
-/* NOMINUM_PUBLIC_DELETE */
 
 /*****
  ***** Module Info
