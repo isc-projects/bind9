@@ -118,8 +118,6 @@ typedef struct rwintev {
 typedef struct intev intev_t;
 struct intev {
 	ISC_EVENT_COMMON(intev_t);
-	isc_task_t		       *task;	   /* task to send these to */
-	isc_boolean_t			posted;	   /* event posted to task */
 };
 
 typedef struct cnintev {
@@ -654,14 +652,12 @@ dispatch_accept(isc_socket_t *sock)
 
 	INSIST(ev != NULL);
 	INSIST(!sock->pending_accept);
-	INSIST(iev->posted == ISC_FALSE);
 
 	sock->references++;  /* keep socket around for this internal event */
 	iev->sender = sock;
 	iev->action = internal_accept;
 	iev->arg = sock;
 	sock->pending_accept = ISC_TRUE;
-	iev->posted = ISC_TRUE;
 
 	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
 }
@@ -808,8 +804,6 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	 * function.
 	 */
 	iev = (intev_t *)ev;
-	INSIST(iev->posted);
-	iev->posted = ISC_FALSE;
 	iev = NULL;  /* Make certain we don't use this anymore */
 	INSIST(sock->references > 0);
 	sock->references--;  /* the internal event is done with this socket */
