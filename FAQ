@@ -188,3 +188,14 @@ depending on whether they were last received as answers or as glue.
 You can always look up the addresses with explicit queries like
 "dig a.root-servers.net A".
 
+
+Q: Zone transfers from my BIND 9 master to my Windows 2000 slave
+fail.  Why?
+
+A: This may be caused by a bug in the Windows 2000 DNS server where
+DNS messages larger than 16K are not handled properly.  This can be
+worked around by setting the option "transfer-format one-answer;".
+Also check whether your zone contains domain names with embedded
+spaces or other special characters, like "John\032Doe\213s\032Computer",
+since such names have been known to cause Windows 2000 slaves to
+incorrectly reject the zone.
