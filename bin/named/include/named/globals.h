@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.58 2001/08/03 05:56:17 marka Exp $ */
+/* $Id: globals.h,v 1.59 2001/08/08 20:37:31 gson Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -105,8 +105,6 @@ EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
 							     "/run/named.pid");
 EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
 							    "/run/lwresd.pid");
-EXTERN const char *		ns_g_autorndckeyfile	INIT(NS_LOCALSTATEDIR
-							     "/run/named.key");
 EXTERN const char *		ns_g_username		INIT(NULL);
 
 #undef EXTERN
