@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -72,6 +72,13 @@
 #define ISC_LEXOPT_INITIALWS		0x04	/* Want initial whitespace. */
 #define ISC_LEXOPT_NUMBER		0x08	/* Recognize numbers. */
 #define ISC_LEXOPT_QSTRING		0x10	/* Recognize qstrings. */
+/*
+ * The ISC_LEXOPT_DNSMULTILINE option handles the processing of '(' and ')' in
+ * the DNS master file format.  If this option is set, then the
+ * ISC_LEXOPT_INITIALWS and ISC_LEXOPT_EOL options will be ignored.
+ * To use this option, '(' and ')' must be special characters.
+ */
+#define ISC_LEXOPT_DNSMULTILINE		0x20	/* Handle '(' and ')'. */
 
 /*
  * Various commenting styles, which may be changed at any time with
