@@ -54,12 +54,6 @@ typedef void *		dst_context_t;
 #define DST_KEYPROTO_DNSSEC	3
 #define DST_KEYPROTO_IPSEC	4
 
-/* Key flag values. */
-#define DST_KEYFLAG_NOAUTH	0x00008000
-#define DST_KEYFLAG_NTMASK	0x00000300
-#define DST_KEYFLAG_NTSHIFT	8
-#define DST_NAMTYP_ZONE		0x02
-
 /* A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE		1024
 

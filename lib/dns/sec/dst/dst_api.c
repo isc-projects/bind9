@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.25 2000/04/07 20:50:30 bwelling Exp $
+ * $Id: dst_api.c,v 1.26 2000/04/10 19:48:03 bwelling Exp $
  */
 
 #include <config.h>
@@ -717,14 +717,11 @@ dst_key_isprivate(const dst_key_t *key) {
 
 isc_boolean_t
 dst_key_iszonekey(const dst_key_t *key) {
-	unsigned int namtyp;
-
 	REQUIRE(VALID_KEY(key));
       
-	if ((key->key_flags & DST_KEYFLAG_NOAUTH) != 0)
+	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
 		return (ISC_FALSE);
-	namtyp = (key->key_flags & DST_KEYFLAG_NTMASK) >> DST_KEYFLAG_NTSHIFT;
-	if (namtyp != DST_NAMTYP_ZONE)
+	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
 		return (ISC_FALSE);
 	return (ISC_TRUE);
 }
