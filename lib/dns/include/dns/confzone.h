@@ -333,7 +333,7 @@ isc_result_t	dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
 					     isc_int32_t newval);
 isc_result_t	dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
-					 isc_int32_t new);
+					 isc_int32_t newval);
 isc_result_t	dns_c_zone_setforward(dns_c_zone_t *zone,
 				      dns_c_forw_t newval);
 isc_result_t	dns_c_zone_setforwarders(dns_c_zone_t *zone,
