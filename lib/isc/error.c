@@ -66,7 +66,7 @@ isc_error_fatal(char *file, int line, char *format, ...) {
 
 void
 isc_error_runtimecheck(char *file, int line, char *expression) {
-	isc_error_fatal(file, line, "RUNTIME_CHECK(%s) failed.", expression);
+	isc_error_fatal(file, line, "RUNTIME_CHECK(%s) failed", expression);
 }
 
 static void
