@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.8,v 1.1 2000/06/27 21:49:15 jim Exp $
+.\" $Id: named.8,v 1.2 2000/06/28 02:51:46 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NAMED 8
@@ -96,7 +96,8 @@ When
 .Ar #cpus
 is set to zero,
 .Nm named
-will use 1 CPU.
+will try to determine the number of CPUs present and use 1 if this
+attempt fails.
 .It Fl p
 listen for queries on  port
 .Ar port#

@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwresd.8,v 1.1 2000/06/27 21:49:15 jim Exp $
+.\" $Id: lwresd.8,v 1.2 2000/06/28 02:51:45 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRESD 8
@@ -142,7 +142,8 @@ When
 .Ar #cpus
 is set to zero,
 .Nm lwresd
-will use 1 CPU.
+will try to determine the number of CPUs present and use 1 if this
+attempt fails.
 .It Fl P
 send DNS lookups to port number
 .Ar query-port#
@@ -175,10 +176,10 @@ carried out any privileged operations, such as writing the PID file
 or creating a socket that uses its default UDP port number.
 .El
 .Sh FILES
-.Bl -tag -width  /var/run/named.pid -compact
+.Bl -tag -width  /var/run/lwresd.pid -compact
 .It Pa /etc/resolv.conf
 default configuration file
-.It Pa /var/run/named.pid
+.It Pa /var/run/lwresd.pid
 default process-id file
 .El
 .Sh SEE ALSO
