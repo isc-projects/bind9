@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.25 2001/09/04 03:10:33 mayer Exp $ */
+/* $Id: file.c,v 1.26 2001/09/05 04:17:13 mayer Exp $ */
 
 #include <config.h>
 
@@ -205,7 +205,7 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 	REQUIRE(file != NULL);
 	REQUIRE(time != NULL);
 
-	if ((fh = open(file, _O_RDWR | _O_BINARY)) < 0)
+	if ((fh = open(file, _O_RDONLY | _O_BINARY)) < 0)
 		return (isc__errno2result(errno));
 
 	if (!GetFileTime((HANDLE) _get_osfhandle(fh),
