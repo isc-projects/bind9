@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.41 2001/03/03 02:18:11 gson Exp $ */
+/* $Id: parser.c,v 1.42 2001/03/06 18:17:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -796,7 +796,7 @@ options_clauses[] = {
 	{ "coresize", &cfg_type_size, 0 },
 	{ "datasize", &cfg_type_size, 0 },
 	{ "deallocate-on-exit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "directory", &cfg_type_qstring, 0 },
+	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 	{ "dump-file", &cfg_type_qstring, 0 },
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "files", &cfg_type_size, 0 },
