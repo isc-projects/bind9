@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.18 1999/10/25 20:22:39 gson Exp $ */
+ /* $Id: xfrout.c,v 1.19 1999/10/26 19:40:18 gson Exp $ */
 
 #include <config.h>
 
@@ -47,8 +47,9 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
-#include <named/globals.h>
 #include <named/client.h>
+#include <named/globals.h>
+#include <named/log.h>
 #include <named/xfrout.h>
 
 /*
@@ -58,15 +59,33 @@
 /*
  * TODO:
  *  - timeouts
- *  - IXFR over UDP (needs client to export UDP/TCP flag
+ *  - IXFR over UDP
  */
 
-#define FAIL(code) do { result = (code); goto failure; } while (0)
-#define FAILMSG(code, msg) do { printf("%s\n", msg); \
-				result = (code); goto failure; } while (0)
-#define CHECK(op) do { result = (op); \
-		       if (result != DNS_R_SUCCESS) goto failure; \
-		     } while (0)
+#define XFROUT_COMMON_LOGARGS \
+	ns_g_lctx, NS_LOGCATEGORY_XFER_OUT, NS_LOGMODULE_XFER_OUT
+
+#define XFROUT_PROTOCOL_LOGARGS \
+	XFROUT_COMMON_LOGARGS, ISC_LOG_INFO
+
+#define XFROUT_DEBUG_LOGARGS(n) \
+	XFROUT_COMMON_LOGARGS, ISC_LOG_DEBUG(n)
+
+/*
+ * Fail unconditionally and log as a client error.
+ */
+#define FAILC(code, msg) \
+	do {							\
+		isc_log_write(XFROUT_PROTOCOL_LOGARGS,		\
+			      "bad zone transfer request: %s (%s)", \
+		      	      msg, isc_result_totext(code));	\
+		goto failure;					\
+	} while (0)
+
+#define CHECK(op) \
+     	do { result = (op); 					\
+		if (result != DNS_R_SUCCESS) goto failure; 	\
+	} while (0)
 
 /**************************************************************************/
 /*
@@ -216,10 +235,10 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 
 /**************************************************************************/
 
-/* Print an RR (for debugging) */
+/* Log an RR (for debugging) */
 
 static void
-dns_rr_print(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
+log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	dns_result_t result;
 
 	isc_buffer_t buf;
@@ -243,9 +262,11 @@ dns_rr_print(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 
 	if (result == DNS_R_SUCCESS) {
 		isc_buffer_used(&buf, &r);
-		printf("%.*s", (int) r.length, (char *) r.base);
+		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
+			      "%.*s", (int) r.length, (char *) r.base);
 	} else {
-		printf("<diff RR too long to print>\n");
+		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
+			      "<RR too large to print>");
 	}
 }
 
@@ -770,7 +791,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		break;
 	}
 	
-	printf("got %s request\n", mnemonic);
+	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "got %s request", mnemonic);
 
 	/*
 	 * Interpret the question section.
@@ -788,29 +809,30 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	question_class = question_rdataset->rdclass;
 	INSIST(question_rdataset->type == reqtype);
 	if (ISC_LIST_NEXT(question_rdataset, link) != NULL)
-		FAILMSG(DNS_R_FORMERR,
-			"multiple questions in AXFR/IXFR request");
+		FAILC(DNS_R_FORMERR,
+		      "multiple questions in AXFR/IXFR request");
 	result = dns_message_nextname(request, DNS_SECTION_QUESTION);
 	if (result != DNS_R_NOMORE)
-		FAILMSG(DNS_R_FORMERR,
-			"multiple questions in AXFR/IXFR request");
+		FAILC(DNS_R_FORMERR,
+		      "multiple questions in AXFR/IXFR request");
 
 	result = dns_zt_find(client->view->zonetable, question_name, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
-		FAILMSG(DNS_R_NOTAUTH,
-			"AXFR/IXFR requested for non-authoritative zone");
+		FAILC(DNS_R_NOTAUTH,
+		      "AXFR/IXFR requested for non-authoritative zone");
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		break;	/* Master and slave zones are OK for transfer. */
 	default:
-		FAILMSG(DNS_R_NOTAUTH,
-			"AXFR/IXFR requested for non-authoritative zone"); 
+		FAILC(DNS_R_NOTAUTH,
+		      "AXFR/IXFR requested for non-authoritative zone"); 
 	}
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);
 
-	printf("%s question checked out OK\n", mnemonic);
+	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "%s question section OK",
+		      mnemonic);
 
 	/*
 	 * Check the authority section.  Look for a SOA record with
@@ -842,9 +864,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			dns_rdataset_current(soa_rdataset, &soa_rdata);
 			result = dns_rdataset_next(soa_rdataset);
 			if (result == DNS_R_SUCCESS)
-				FAILMSG(DNS_R_FORMERR,
-					"IXFR authority section "
-					"has multiple SOAs");
+				FAILC(DNS_R_FORMERR,
+				      "IXFR authority section "
+				      "has multiple SOAs");
 			have_soa = ISC_TRUE;
 			goto got_soa;
 		}
@@ -853,11 +875,12 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (result != DNS_R_NOMORE)
 		CHECK(result);
 
-	printf("%s authority section checked out ok\n", mnemonic);
+	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "%s authority section OK",
+		      mnemonic);
 
 	if (reqtype == dns_rdatatype_axfr &&
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
-		FAILMSG(DNS_R_FORMERR, "attempted AXFR over UDP\n");
+		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
 	}
 	    
 	/* Get a dynamically allocated copy of the current SOA. */
@@ -868,8 +891,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		isc_uint32_t begin_serial, current_serial;
 
 		if (! have_soa)
-			FAILMSG(DNS_R_FORMERR,
-				"IXFR request missing SOA");
+			FAILC(DNS_R_FORMERR,
+			      "IXFR request missing SOA");
 
 		begin_serial = dns_soa_getserial(&soa_rdata);
 		current_serial = dns_soa_getserial(&current_soa_tuple->rdata);
@@ -898,8 +921,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 					      &data_stream);
 		if (result == ISC_R_NOTFOUND ||
 		    result == DNS_R_RANGE) {
-			printf("IXFR version not in journal, "
-			       "falling back to AXFR\n");
+			isc_log_write(XFROUT_DEBUG_LOGARGS(4),
+				      "IXFR version not in journal, "
+				      "falling back to AXFR");
 			goto axfr_fallback;
 		}
 		CHECK(result);
@@ -948,9 +972,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	
 	/* XXX kludge */
 	if (xfr != NULL) {
-		xfrout_fail(xfr, result, "setting up transfer");
+		xfrout_fail(xfr, result, "setting up zone transfer");
 	} else {
-		printf("transfer setup failed\n"); 
+		isc_log_write(XFROUT_DEBUG_LOGARGS(5),
+			      "zone transfer setup failed"); 
 		ns_client_error(client, result);
 	}
 }
@@ -1154,14 +1179,18 @@ sendstream(xfrout_ctx_t *xfr)
 			 * slave.
 			 */
 			if (n_rrs == 0) {
-				printf("RR too large for zone transfer "
-				       "(%d bytes)\n", size);
-				FAIL(ISC_R_NOSPACE); /* XXX DNS_R_RRTOOLONG? */
+				isc_log_write(XFROUT_COMMON_LOGARGS,
+					      ISC_LOG_WARNING,
+					      "RR too large for zone transfer "
+					      "(%d bytes)", size);
+				/* XXX DNS_R_RRTOOLARGE? */
+				result = ISC_R_NOSPACE;
+				goto failure;
 			}
 			break;
 		}
 
-		dns_rr_print(name, rdata, ttl); /* XXX */
+		log_rr(name, rdata, ttl); /* XXX */
 		
 		dns_message_gettempname(msg, &msgname);
 		dns_name_init(msgname, NULL);
@@ -1223,8 +1252,9 @@ sendstream(xfrout_ctx_t *xfr)
 		isc_buffer_putuint16(&xfr->txlenbuf, used.length);
 		region.base = xfr->txlenbuf.base;
 		region.length = 2 + used.length;
-		printf("sending zone transfer TCP message of %d bytes\n",
-		       used.length);
+		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
+			      "sending zone transfer TCP message of %d bytes",
+			      used.length);
 		CHECK(isc_socket_send(xfr->client->tcpsocket, /* XXX */
 				      &region, xfr->client->task,
 				      done ?
@@ -1232,7 +1262,9 @@ sendstream(xfrout_ctx_t *xfr)
 				      xfrout_send_more,
 				      xfr));
 	} else {
-		printf("sending IXFR UDP response of %d bytes\n", used.length);
+		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
+			      "sending IXFR UDP response of %d bytes",
+			      used.length);
 		/* XXX kludge */
 		dns_message_destroy(&xfr->client->message);
 		xfr->client->message = msg;
@@ -1316,7 +1348,7 @@ xfrout_send_end(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
 	task = task; /* Unused */
-	printf("end of outgoing zone transfer\n");
+	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "end of outgoing zone transfer");
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
 	if (sev->result != ISC_R_SUCCESS) {
 		xfrout_fail(xfr, sev->result, "send");
@@ -1332,8 +1364,9 @@ xfrout_send_end(isc_task_t *task, isc_event_t *event) {
 static void
 xfrout_fail(xfrout_ctx_t *xfr, dns_result_t result, char *msg)
 {
-	printf("error in outgoing zone transfer: %s: %s\n",
-	       msg, isc_result_totext(result));
+	isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_ERROR,
+		      "error in outgoing zone transfer: %s: %s",
+		      msg, isc_result_totext(result));
 	ns_client_next(xfr->client, result);  /* XXX what is the result for? */
 	xfrout_ctx_destroy(&xfr);
 }
