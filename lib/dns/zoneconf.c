@@ -25,10 +25,19 @@
 #include <dns/zoneconf.h>
 #include <dns/ssu.h>
 
-/* XXX copied from zone.c */
+/*
+ * These are BIND9 server defaults, not necessarily identical to the
+ * library defaults defined in zone.c.
+ */
 #define MAX_XFER_TIME (2*3600)	/* Documented default is 2 hours. */
 #define DNS_DEFAULT_IDLEIN 3600		/* 1 hour */
 #define DNS_DEFAULT_IDLEOUT 3600	/* 1 hour */
+
+#define RETERR(x) do { \
+	isc_result_t _r = (x); \
+	if (_r != ISC_R_SUCCESS) \
+		return (_r); \
+	} while (0)
 
 /*
  * Convenience function for configuring a single zone ACL.
@@ -72,23 +81,26 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	}
 }
 
-
+/*
+ * Conver a config file zone type into a server zone type.
+ */
 static dns_zonetype_t
 dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
 	switch (cztype) {
 	case dns_c_zone_master:
 		return dns_zone_master;
-	case dns_c_zone_forward:
-		return dns_zone_forward;
 	case dns_c_zone_slave:
 		return dns_zone_slave;
 	case dns_c_zone_stub:
 		return dns_zone_stub;
-	case dns_c_zone_hint:
-		return dns_zone_hint;
+	default:
+		/*
+		 * Hint and forward zones are not really zones;
+		 * they should never get this far.
+		 */
+		INSIST(0);
+		return (dns_zone_none); /*NOTREACHED*/
 	}
-	INSIST(0);
-	return (dns_zone_none); /*NOTREACHED*/
 }
 
 isc_result_t
@@ -106,72 +118,56 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
-	dns_ssutable_t *ssutable;
+	dns_ssutable_t *ssutable = NULL;
 
 	isc_sockaddr_any(&sockaddr_any4);	
 	isc_sockaddr_any6(&sockaddr_any6);
 	
+	/*
+	 * Configure values common to all zone types.
+	 */
+
 	dns_zone_setclass(zone, czone->zclass);
 
+	dns_zone_settype(zone, dns_zonetype_fromconf(czone->ztype));
+
 	/* XXX needs to be an zone option */
-	result = dns_zone_setdbtype(zone, "rbt");
+	RETERR(dns_zone_setdbtype(zone, "rbt"));
+
+	RETERR(dns_c_zone_getfile(czone, &filename));
+	RETERR(dns_zone_setdatabase(zone, filename));
+
+#ifdef notyet
+	result = dns_c_zone_getchecknames(czone, &severity);
+	if (result == ISC_R_SUCCESS)
+		dns_zone_setchecknames(zone, severity);
+	else
+		dns_zone_setchecknames(zone, dns_c_severity_warn);
+#endif
+
+	/*
+	 * XXXAG This probably does not make sense for stubs.
+	 */
+	RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
+				  dns_c_zone_getallowquery,
+				  dns_c_view_getallowquery,
+				  dns_c_ctx_getallowquery,
+				  dns_zone_setqueryacl,
+				  dns_zone_clearqueryacl));
+
+	result = dns_c_zone_getdialup(czone, &boolean);
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		result = dns_c_ctx_getdialup(cctx, &boolean);
+	if (result != ISC_R_SUCCESS)
+		boolean = ISC_FALSE;
+	dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
 
-	switch (czone->ztype) {
-	case dns_c_zone_master:
-		dns_zone_settype(zone, dns_zone_master);
-		result = dns_c_zone_getfile(czone, &filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		result = dns_zone_setdatabase(zone, filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-#ifdef notyet
-		result = dns_c_zone_getchecknames(czone, &severity);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setchecknames(zone, severity);
-		else
-			dns_zone_setchecknames(zone, dns_c_severity_fail);
-#endif
-		result = configure_zone_acl(czone, cctx, NULL, ac, zone,
-					    dns_c_zone_getallowupd,
-					    NULL, NULL,
-					    dns_zone_setupdateacl,
-					    dns_zone_clearupdateacl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		result = configure_zone_acl(czone, cctx, cview, ac, zone,
-					    dns_c_zone_getallowquery,
-					    dns_c_view_getallowquery,
-					    dns_c_ctx_getallowquery,
-					    dns_zone_setqueryacl,
-					    dns_zone_clearqueryacl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		result = configure_zone_acl(czone, cctx, cview, ac, zone,
-					    dns_c_zone_getallowtransfer,
-					    dns_c_view_gettransferacl,
-					    dns_c_ctx_getallowtransfer,
-					    dns_zone_setxfracl,
-					    dns_zone_clearxfracl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		result = dns_c_zone_getdialup(czone, &boolean);
-#ifdef notyet
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getdialup(cview, &boolean);
-#endif
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getdialup(cctx, &boolean);
-		if (result != ISC_R_SUCCESS)
-			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
-
+	/*
+	 * Configure master functionality.  This applies
+	 * to primary masters (type "master") and slaves
+	 * acting as masters (type "slave"), but not to stubs.
+	 */
+	if (czone->ztype != dns_c_zone_stub) {
 		result = dns_c_zone_getnotify(czone, &boolean);
 		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getnotify(cview, &boolean);
@@ -183,12 +179,17 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		result = dns_c_zone_getalsonotify(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setalsonotify(zone, iplist->ips,
-						        iplist->nextidx);
+			RETERR(dns_zone_setalsonotify(zone, iplist->ips,
+						      iplist->nextidx));
 		else
-			result = dns_zone_setalsonotify(zone, NULL, 0);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
+		
+		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
+					  dns_c_zone_getallowtransfer,
+					  dns_c_view_gettransferacl,
+					  dns_c_ctx_getallowtransfer,
+					  dns_zone_setxfracl,
+					  dns_zone_clearxfracl));
 
 		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
@@ -211,181 +212,44 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			maxxfr = DNS_DEFAULT_IDLEOUT;
 		dns_zone_setidleout(zone, maxxfr);
+	}
 
-		ssutable = NULL;
+	/*
+	 * Configure update-related options.  These apply to
+	 * primary masters only.
+	 */
+	if (czone->ztype == dns_c_zone_master) {
+		RETERR(configure_zone_acl(czone, cctx, NULL, ac, zone,
+					  dns_c_zone_getallowupd,
+					  NULL, NULL,
+					  dns_zone_setupdateacl,
+					  dns_zone_clearupdateacl));
+
+		/*
+		 * XXXAG This will fail to clear the ssutable when
+		 * the config option is removed.
+		 */
 		result = dns_c_zone_getssuauth(czone, &ssutable);
 		if (result == ISC_R_SUCCESS) {
 			dns_ssutable_t *newssutable = NULL;
 			dns_ssutable_attach(ssutable, &newssutable);
 			dns_zone_setssutable(zone, newssutable);
 		}
+	}
 
-		break;
-		
-	case dns_c_zone_forward:
-#ifdef notyet
-		/*
-		 * Forward zones are still in a state of flux.
-		 */
-		czone->u.fzone.check_names; /* XXX unused in BIND 8 */
-		czone->u.fzone.forward; /* XXX*/
-		czone->u.fzone.forwarders; /* XXX*/
-#endif
-		break;
-
+	/*
+	 * Configure slave functionality.
+	 */
+	switch (czone->ztype) {
 	case dns_c_zone_slave:
-		dns_zone_settype(zone, dns_zone_slave);
-		result = dns_c_zone_getfile(czone, &filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = dns_zone_setdatabase(zone, filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-#ifdef notyet
-		result = dns_c_zone_getchecknames(czone, &severity);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setchecknames(zone, severity);
-		else
-			dns_zone_setchecknames(zone, dns_c_severity_warn);
-#endif
-		result = configure_zone_acl(czone, cctx, cview, ac, zone,
-					    dns_c_zone_getallowquery,
-					    dns_c_view_getallowquery,
-					    dns_c_ctx_getallowquery,
-					    dns_zone_setqueryacl,
-					    dns_zone_clearqueryacl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		
-		result = dns_c_zone_getmasterips(czone, &iplist);
-		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setmasters(zone, iplist->ips,
-						     iplist->nextidx);
-		else
-			result = dns_zone_setmasters(zone, NULL, 0);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransfertimein(cctx, &maxxfr);
-		if (result != ISC_R_SUCCESS)
-			maxxfr = MAX_XFER_TIME;
-		dns_zone_setmaxxfrin(zone, maxxfr);
-
-		result = dns_c_zone_getmaxtransidlein(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidlein(cctx, &maxxfr);
-		if (result != ISC_R_SUCCESS)
-			maxxfr = DNS_DEFAULT_IDLEIN;
-		dns_zone_setidlein(zone, maxxfr);
-
-		result = dns_c_zone_gettransfersource(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersource(cview,
-							      &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			sockaddr = sockaddr_any4;
-		dns_zone_setxfrsource4(zone, &sockaddr);
-
-		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_gettransfersourcev6(cview,
-								&sockaddr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_gettransfersourcev6(cctx,
-							       &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			sockaddr = sockaddr_any6;
-		dns_zone_setxfrsource6(zone, &sockaddr);
-
-		result = dns_c_zone_getmaxtranstimeout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getmaxtransfertimeout(cview,
-								  &maxxfr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getmaxtransfertimeout(cctx,
-								 &maxxfr);
-		if (result != ISC_R_SUCCESS)
-			maxxfr = MAX_XFER_TIME;
-		dns_zone_setmaxxfrout(zone, maxxfr);
-
-		result = dns_c_zone_getmaxtransidleout(czone, &maxxfr);
-		if (result != ISC_R_SUCCESS && cview != NULL) 
-			result = dns_c_view_getmaxtransferidleout(cview,
-								  &maxxfr);
-		if (result != ISC_R_SUCCESS) 
-			result = dns_c_ctx_getmaxtransferidleout(cctx,
-								 &maxxfr);
-		if (result != ISC_R_SUCCESS)
-			maxxfr = DNS_DEFAULT_IDLEOUT;
-		dns_zone_setidleout(zone, maxxfr);
-
-		result = dns_c_zone_getdialup(czone, &boolean);
-#ifdef notyet
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getdialup(cview, &boolean);
-#endif
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getdialup(cctx, &boolean);
-		if (result != ISC_R_SUCCESS)
-			boolean = ISC_FALSE;
-		dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
-
-		result = dns_c_zone_getnotify(czone, &boolean);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getnotify(cview, &boolean);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getnotify(cctx, &boolean);
-		if (result != ISC_R_SUCCESS)
-			boolean = ISC_TRUE;
-		dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
-
-		result = dns_c_zone_getalsonotify(czone, &iplist);
-		if (result == ISC_R_SUCCESS)
-			result = dns_zone_setalsonotify(zone, iplist->ips,
-						        iplist->nextidx);
-		else
-			result = dns_zone_setalsonotify(zone, NULL, 0);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
-		break;
-
 	case dns_c_zone_stub:
-		dns_zone_settype(zone, dns_zone_stub);
-		result = dns_c_zone_getfile(czone, &filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = dns_zone_setdatabase(zone, filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-#ifdef notyet
-		result = dns_c_zone_getchecknames(czone, &severity);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setchecknames(zone, severity);
-		else
-			dns_zone_setchecknames(zone, dns_c_severity_warn);
-#endif
-		result = configure_zone_acl(czone, cctx, cview, ac, zone,
-					    dns_c_zone_getallowquery,
-					    dns_c_view_getallowquery,
-					    dns_c_ctx_getallowquery,
-					    dns_zone_setqueryacl,
-					    dns_zone_clearqueryacl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
 			result = dns_zone_setmasters(zone, iplist->ips,
 						     iplist->nextidx);
 		else
 			result = dns_zone_setmasters(zone, NULL, 0);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		RETERR(result);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &maxxfr);
 		if (result != ISC_R_SUCCESS) 
@@ -422,23 +286,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			sockaddr = sockaddr_any6;
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
-	case dns_c_zone_hint:
-		dns_zone_settype(zone, dns_zone_hint);
-		result = dns_c_zone_getfile(czone, &filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = dns_zone_setdatabase(zone, filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-#ifdef notyet
-		result = dns_c_zone_getchecknames(czone, &severity);
-		if (result == ISC_R_SUCCESS)
-			dns_zone_setchecknames(zone, severity);
-		else
-			dns_zone_setchecknames(zone, dns_c_severity_fail);
-#endif
 		break;
-
+		
+	default:
+		break;
 	}
 
 	return (ISC_R_SUCCESS);
@@ -473,6 +324,11 @@ dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr) {
 	if (result != ISC_R_SUCCESS)
 		val = 10;
 	dns_zonemgr_settransfersin(zmgr, val);
+
+	result = dns_c_ctx_gettransfersperns(cctx, &val);
+	if (result != ISC_R_SUCCESS)
+		val = 2;
+	dns_zonemgr_settransfersperns(zmgr, val);
 
 	return (ISC_R_SUCCESS);
 }
