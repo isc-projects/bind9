@@ -55,6 +55,9 @@
 
 1542.	[bug]		Reversed timestamp sanity test on SIG. [RT #10095]
 
+1540.	[bug]		"rndc reload <dynamiczone>" was silently accepted.
+			[RT #8934]
+
 1539.	[bug]		Open UDP sockets for notify-source and transfer-source
 			that use reserved ports at startup. [RT #9475]
 
