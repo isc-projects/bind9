@@ -140,10 +140,12 @@ query(dns_view_t *view) {
 			reload = 0;
 			dns_zone_detach(&zone);
 		} else {
-			result = dns_view_find(view, dns_fixedname_name(&name),
+			result = dns_view_simplefind(view,
+				       dns_fixedname_name(&name),
 				       dns_rdatatype_a, 0, 0,
 				       ISC_FALSE, &rdataset, &sigset);
-			fprintf(stdout, "%s() returned %s\n", "dns_view_find",
+			fprintf(stdout, "%s() returned %s\n",
+				"dns_view_simplefind",
 				dns_result_totext(result));
 			switch (result) {
 			case DNS_R_SUCCESS:
