@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.15 2002/07/10 01:13:44 marka Exp $ */
+/* $Id: os.c,v 1.16 2002/08/01 03:25:34 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -36,6 +36,7 @@
 #include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/ntpaths.h>
+#include <isc/util.h>
 
 #include <named/main.h>
 #include <named/os.h>
@@ -210,13 +211,13 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	if (fprintf(lockfile, "%ld\n", (long)pid) < 0) {
 		(*report)("fprintf() to pid file '%s' failed", filename);
-		(void)fclose(fd);
+		(void)fclose(lockfile);
 		cleanup_pidfile();
 		return;
 	}
 	if (fflush(lockfile) == EOF) {
 		(*report)("fflush() to pid file '%s' failed", filename);
-		(void)fclose(fd);
+		(void)fclose(lockfile);
 		cleanup_pidfile();
 		return;
 	}
