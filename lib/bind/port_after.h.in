@@ -65,7 +65,7 @@ struct sockaddr_in6 {
 };
 #endif  /* HAS_INET6_STRUCTS */
 
-#ifdef NEED_IN6ADDR_ANY
+#if !defined(HAS_INET6_STRUCTS) || defined(NEED_IN6ADDR_ANY)
 #define in6addr_any isc_in6addr_any
 extern const struct in6_addr in6addr_any;
 #endif
