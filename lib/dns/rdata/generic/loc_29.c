@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.17 2000/05/05 05:49:48 marka Exp $ */
+/* $Id: loc_29.c,v 1.18 2000/05/13 21:24:37 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -59,7 +59,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 29);
 	
-	/* defaults */
+	/*
+	 * Defaults.
+	 */
 	m1 = s1 = 0;
 	m2 = s2 = 0;
 	size = 0x12;	/* 1.00m */
@@ -67,12 +69,16 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	vp = 0x13;	/* 10.00 m */
 	version = 0;
 
-	/* degree */
+	/*
+	 * Degrees.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 90)
 		return (DNS_R_RANGE);
-	d1 = token.value.as_ulong;
-	/* minute */
+	d1 = (int)token.value.as_ulong;
+	/*
+	 * Minutes.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
@@ -86,7 +92,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (d1 == 90 && m1 != 0)
 		return (DNS_R_RANGE);
 
-	/* second */
+	/*
+	 * Seconds.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
@@ -116,7 +124,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (d1 == 90 && s1 != 0)
 		return (DNS_R_RANGE);
 
-	/* direction */
+	/*
+	 * Direction.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "N") == 0)
 		north = ISC_TRUE;
@@ -124,13 +134,17 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_SYNTAX);
 
  getlong:
-	/* degree */
+	/*
+	 * Degrees.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 180)
 		return (DNS_R_RANGE);
-	d2 = token.value.as_ulong;
+	d2 = (int)token.value.as_ulong;
 
-	/* minute */
+	/*
+	 * Minutes.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
@@ -144,7 +158,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (d2 == 180 && m2 != 0)
 		return (DNS_R_RANGE);
 		
-	/* second */
+	/*
+	 * Seconds.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
@@ -174,7 +190,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (d2 == 180 && s2 != 0)
 		return (DNS_R_RANGE);
 
-	/* direction */
+	/*
+	 * Direction.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	if (strcasecmp(token.value.as_pointer, "E") == 0)
 		east = ISC_TRUE;
@@ -182,7 +200,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_SYNTAX);
 
  getalt:
-	/* alt */
+	/*
+	 * Altitude.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	m = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
@@ -214,12 +234,16 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_RANGE);
 	if (m == 42849672 && cm > 95)
 		return (DNS_R_RANGE);
-	/* adjust base */
+	/*
+	 * Adjust base.
+	 */
 	altitude = m + 100000;
 	altitude *= 100;
 	altitude += cm;
 
-	/* size: optional */
+	/*
+	 * Size: optional.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
@@ -249,7 +273,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		e++;
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
-	/* we don't just multiply out as we will overflow */
+	/*
+	 * We don't just multiply out as we will overflow.
+	 */
 	if (m > 0) {
 		for (exp = 0 ; exp < 7 ; exp++)
 			if (m < poweroften[exp+1])
@@ -267,7 +293,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 	size = (man << 4) + exp;
 
-	/* hp: optional */
+	/*
+	 * Horizontal precision: optional.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
@@ -297,7 +325,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		e++;
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
-	/* we don't just multiply out as we will overflow */
+	/*
+	 * We don't just multiply out as we will overflow.
+	 */
 	if (m > 0) {
 		for (exp = 0 ; exp < 7 ; exp++)
 			if (m < poweroften[exp+1])
@@ -313,7 +343,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	}
 	hp = (man << 4) + exp;
 
-	/* vp: optional */
+	/*
+	 * Vertical precision: optional.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
@@ -343,7 +375,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		e++;
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
-	/* we don't just multiply out as we will overflow */
+	/*
+	 * We don't just multiply out as we will overflow.
+	 */
 	if (m > 0) {
 		for (exp = 0 ; exp < 7 ; exp++)
 			if (m < poweroften[exp+1])
@@ -392,11 +426,11 @@ totext_loc(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	isc_boolean_t east;
 	isc_boolean_t below;
 	isc_region_t sr;
-	char buf[sizeof
-   "89 59 59.999 N 179 59 59.999 E 42849672.95m 90000000m 90000000m 90000000m"];
-	char sbuf[sizeof "90000000m"];
-	char hbuf[sizeof "90000000m"];
-	char vbuf[sizeof "90000000m"];
+	char buf[sizeof("89 59 59.999 N 179 59 59.999 E "
+			"42849672.95m 90000000m 90000000m 90000000m")];
+	char sbuf[sizeof("90000000m")];
+	char hbuf[sizeof("90000000m")];
+	char vbuf[sizeof("90000000m")];
 	unsigned char size, hp, vp;
 	unsigned long poweroften[8] = { 1, 10, 100, 1000,
 					10000, 100000, 1000000, 10000000 };
@@ -434,13 +468,13 @@ totext_loc(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		north = ISC_FALSE;
 		latitude = 0x80000000 - latitude;
 	}
-	fs1 = latitude % 1000;
+	fs1 = (int)(latitude % 1000);
 	latitude /= 1000;
-	s1 = latitude % 60;
+	s1 = (int)(latitude % 60);
 	latitude /= 60;
-	m1 = latitude % 60;
+	m1 = (int)(latitude % 60);
 	latitude /= 60;
-	d1 = latitude;
+	d1 = (int)latitude;
 
 	longitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
@@ -451,13 +485,13 @@ totext_loc(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		east = ISC_FALSE;
 		longitude = 0x80000000 - longitude;
 	}
-	fs2 = longitude % 1000;
+	fs2 = (int)(longitude % 1000);
 	longitude /= 1000;
-	s2 = longitude % 60;
+	s2 = (int)(longitude % 60);
 	longitude /= 60;
-	m2 = longitude % 60;
+	m2 = (int)(longitude % 60);
 	longitude /= 60;
-	d2 = longitude;
+	d2 = (int)longitude;
 
 	altitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
@@ -502,40 +536,52 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (sr.length < 16)
 		return (ISC_R_UNEXPECTEDEND);
 
-	/* size */
+	/*
+	 * Size.
+	 */
 	c = sr.base[1];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 			return (DNS_R_RANGE);
 
-	/* horiz pre */
+	/*
+	 * Horizontal precision.
+	 */
 	c = sr.base[2];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 			return (DNS_R_RANGE);
 
-	/* vert pre */
+	/*
+	 * Vertical precision.
+	 */
 	c = sr.base[3];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
 			return (DNS_R_RANGE);
 	isc_region_consume(&sr, 4);
 
-	/* latitude */
+	/*
+	 * Latitude.
+	 */
 	latitude = uint32_fromregion(&sr);
 	if (latitude < (0x80000000UL - 90 * 3600000) ||
 	    latitude > (0x80000000UL + 90 * 3600000))
 		return (DNS_R_RANGE);
 	isc_region_consume(&sr, 4);
 
-	/* longitude */
+	/*
+	 * Longitude.
+	 */
 	longitude = uint32_fromregion(&sr);
 	if (longitude < (0x80000000UL - 180 * 3600000) ||
 	    longitude > (0x80000000UL + 180 * 3600000))
 		return (DNS_R_RANGE);
 
-	/* altitiude */
-	/* all values possible */
+	/*
+	 * Altitiude.
+	 * All values possible.
+	 */
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, 16);
@@ -543,18 +589,16 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_loc(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_loc(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 29);
 	
-	return(mem_tobuffer(target, rdata->data, rdata->length));
+	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
-compare_loc(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_loc(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -581,8 +625,7 @@ fromstruct_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_rdata_loc_t *loc = target;
 	isc_region_t r;
 	isc_uint8_t version;
@@ -619,9 +662,9 @@ tostruct_loc(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_loc(void *source)
-{
+freestruct_loc(void *source) {
 	dns_rdata_loc_t *loc = source;
+
 	REQUIRE(source != NULL);
 	REQUIRE(loc->common.rdtype == 29);
 
@@ -629,8 +672,7 @@ freestruct_loc(void *source)
 }
 
 static inline isc_result_t
-additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-		   void *arg)
+additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add, void *arg)
 {
 	REQUIRE(rdata->type == 29);
 
@@ -642,8 +684,7 @@ additionaldata_loc(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_loc(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_loc(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 29);
