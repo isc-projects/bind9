@@ -141,12 +141,14 @@ struct	addrinfo {
 #undef	NI_NAMEREQD
 #undef	NI_NUMERICSERV
 #undef	NI_DGRAM
+#undef	NI_NUMERICSCOPE
 
 #define	NI_NOFQDN	0x00000001
 #define	NI_NUMERICHOST	0x00000002
 #define	NI_NAMEREQD	0x00000004
 #define	NI_NUMERICSERV	0x00000008
 #define	NI_DGRAM	0x00000010
+#define	NI_NUMERICSCOPE	0x00000020	/*2553bis-00*/
 
 /*
  * Define to map into lwres_ namespace.

@@ -89,7 +89,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 {
 	struct afd *afd;
 	struct servent *sp;
-	u_short port;
+	unsigned short port;
 #ifdef ISC_PLATFORM_HAVESALEN
 	size_t len;
 #endif
@@ -97,11 +97,12 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	const void *addr;
 	char *p;
 #if 0
-	u_long v4a;
-	u_char pfx;
+	unsigned long v4a;
+	unsigned char pfx;
 #endif
 	char numserv[sizeof("65000")];
-	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")];
+	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")
+		    + 1 + sizeof("4294967295")];
 	const char *proto;
 	lwres_uint32_t lwf = 0;
 	lwres_context_t *lwrctx = NULL;
@@ -189,6 +190,28 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		if (lwres_net_ntop(afd->a_af, addr, numaddr, sizeof(numaddr))
 		    == NULL)
 			ERR(ENI_SYSTEM);
+		if (afd->a_af == AF_INET6 &&
+		    ((const struct sockaddr_in6 *)sa)->sin6_scope_id) {
+			char *p = numaddr + strlen(numaddr);
+			const char *stringscope = NULL;
+#if 0
+			if (flags & NI_NUMERICSCOPE) {
+				/*
+				 * vendors may want to add support for
+				 * non-numeric scope identifier.
+				 */
+				stringscope = foo;
+			}
+#endif
+			if (!stringscope) {
+				snprintf(p, sizeof(numaddr) - (p - numaddr),
+				    "%%%u",
+				    ((const struct sockaddr_in6 *)sa)->sin6_scope_id);
+			} else {
+				snprintf(p, sizeof(numaddr) - (p - numaddr),
+				    "%%%s", stringscope);
+			}
+		}
 		if (strlen(numaddr) > hostlen)
 			ERR(ENI_MEMORY);
 		strcpy(host, numaddr);

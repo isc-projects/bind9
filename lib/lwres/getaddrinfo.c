@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.18 2000/06/01 17:39:24 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.19 2000/06/15 18:28:09 explorer Exp $
  */
 
 #include <config.h>
@@ -214,10 +214,32 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 	if (hostname != NULL &&
 	    (family == 0 || (flags & AI_NUMERICHOST) != 0)) {
 		char abuf[sizeof(struct in6_addr)];
-		char nbuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx00")];
+		char nbuf[NI_MAXHOST];
+		char ntmp[NI_MAXHOST];
 		int addrsize, addroff;
+		char *p, *ep;
+		lwres_uint32_t scopeid;
 
-		if (lwres_net_aton(hostname, (struct in_addr *)abuf)) {
+		/* scope identifier portion */
+		ntmp[0] = '\0';
+		if (strchr(hostname, '%') != NULL) {
+			strncpy(ntmp, hostname, sizeof(ntmp) - 1);
+			ntmp[sizeof(ntmp) - 1] = '\0';
+			p = strchr(ntmp, '%');
+			ep = NULL;
+			if (p != NULL)
+				scopeid = (lwres_uint32_t)strtoul(p + 1,
+								  &ep, 10);
+			if (p != NULL && ep != NULL && ep[0] == '\0')
+				*p = '\0';
+			else {
+				ntmp[0] = '\0';
+				scopeid = 0;
+			}
+		} else
+			scopeid = 0;
+
+               if (lwres_net_pton(AF_INET, hostname, (struct in_addr *)abuf)) {
 			if (family == AF_INET6) {
 				/*
 				 * Convert to a V4 mapped address.
@@ -232,7 +254,13 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			addroff = (char *)(&SIN(0)->sin_addr) - (char *)0;
 			family = AF_INET;
 			goto common;
-
+		} else if (ntmp[0] && lwres_net_pton(AF_INET6, ntmp, abuf)) {
+			if (family && family != AF_INET6)
+				return (EAI_NONAME);
+			addrsize = sizeof(struct in6_addr);
+			addroff = (char *)(&SIN6(0)->sin6_addr) - (char *)0;
+			family = AF_INET6;
+			goto common;
 		} else if (lwres_net_pton(AF_INET6, hostname, abuf)) {
 			if (family && family != AF_INET6)
 				return (EAI_NONAME);
@@ -249,12 +277,19 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy((char *)ai->ai_addr + addroff, abuf, addrsize);
 			if (flags & AI_CANONNAME) {
-				lwres_net_ntop(family, abuf, nbuf,
-					       sizeof(nbuf));
-				ai->ai_canonname = strdup(nbuf);
+			if (ai->ai_family == AF_INET6)
+				SIN6(ai->ai_addr)->sin6_scope_id = scopeid;
+				if (lwres_getnameinfo(ai->ai_addr,
+				    ai->ai_addrlen, nbuf, sizeof(nbuf), NULL, 0,
+				    NI_NUMERICHOST) == 0) {
+					ai->ai_canonname = strdup(nbuf);
+				} else {
+					/* XXX raise error? */
+					ai->ai_canonname = NULL;
+				}
 			}
 			goto done;
-		} else if ((flags & AI_NUMERICHOST) != 0){
+		} else if ((flags & AI_NUMERICHOST) != 0) {
 			return (EAI_NONAME);
 		}
 	}
