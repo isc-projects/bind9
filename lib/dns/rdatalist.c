@@ -39,6 +39,21 @@ static dns_rdatasetmethods_t methods = {
 	rdatalist_count
 };
 
+void
+dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
+
+	/*
+	 * Initialize rdatalist.
+	 */
+
+	rdatalist->rdclass = 0;
+	rdatalist->type = 0;
+	rdatalist->covers = 0;
+	rdatalist->ttl = 0;
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LINK_INIT(rdatalist, link);
+}
+
 dns_result_t
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 			 dns_rdataset_t *rdataset) {

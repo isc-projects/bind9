@@ -62,6 +62,16 @@ struct dns_rdatalist {
 	ISC_LINK(dns_rdatalist_t)	link;
 };
 
+void
+dns_rdatalist_init(dns_rdatalist_t *rdatalist);
+/*
+ * Initialize rdatalist.
+ *
+ * Ensures:
+ *	All fields of rdatalist have been initialized to their default
+ *	values.
+ */
+
 dns_result_t
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 			 dns_rdataset_t *rdataset);
