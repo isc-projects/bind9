@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.22 2000/06/26 20:56:33 mws Exp $
+# $Id: start.sh,v 1.23 2000/07/06 01:26:05 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -46,7 +46,13 @@ do
     (
         cd $d
 	rm -f *.jnl *.bk *.st named.run
-	$NAMED -c named.conf -d 99 -g >named.run 2>&1 &
+	if test -f namedopts
+	then
+	    opts=`cat namedopts`
+	else
+	    opts=""
+	fi
+	$NAMED $opts -c named.conf -d 99 -g >named.run 2>&1 &
 	x=1
 	while test ! -f named.pid
 	do
