@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.10 $)
+AC_REVISION($Revision: 1.11 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1302,6 +1302,22 @@ GETGROUPLIST_ARGS="#define GETGROUPLIST_ARGS const char *name, gid_t basegid, gi
 AC_SUBST(GETGROUPLIST_ARGS)
 
 AC_CHECK_FUNC(getnetbyaddr_r,
+AC_TRY_COMPILE(
+[#include <netdb.h>
+struct netent *
+getnetbyaddr_r(long net, int type, struct netent *result, char *buffer,
+int buflen) {}
+],
+[return (0)],
+[
+NET_R_ARGS="#define NET_R_ARGS char *buf, int buflen"
+NET_R_BAD="#define NET_R_BAD NULL"
+NET_R_COPY="#define NET_R_COPY buf, buflen"
+NET_R_COPY_ARGS="#define NET_R_COPY_ARGS NET_R_ARGS"
+NET_R_OK="#define NET_R_OK nptr"
+NET_R_RETURN="#define NET_R_RETURN struct netent *"
+],
+)
 ,
 NET_R_ARGS="#define NET_R_ARGS char *buf, int buflen"
 NET_R_BAD="#define NET_R_BAD NULL"
