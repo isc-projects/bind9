@@ -1,3 +1,5 @@
+1323.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.
+
 1322.	[func]		Extended rndc dumpdb to support dumping of zones and
 			view selection: 'dumpdb [-all|-zones|-cache] [view]'.
 
