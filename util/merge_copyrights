@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.19 2004/03/05 12:56:28 marka Exp $
+# $Id: merge_copyrights,v 1.19.18.1 2004/08/16 23:57:13 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -62,6 +62,8 @@ while (<FILES>) {
 	    $file_types{$_} = "PERL";
         } elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
+        } elsif ($base =~ /\.docbook$/) {
+	    $file_types{$_} = "SGML";
         } elsif ($base =~ /\.html$/) {
 	    $file_types{$_} = "HTML";
         } elsif ($base =~ /\.(man|[0-9])$/) {
