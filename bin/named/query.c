@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.8 2003/08/19 04:11:23 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.9 2003/08/20 03:29:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2568,6 +2568,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 
 		result = event->result;
+		need_wildcardproof = ISC_FALSE;
 
 		goto resume;
 	}
@@ -3367,7 +3368,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 * Add NXT records to the authority section if they're needed for
 	 * DNSSEC wildcard proofs.
 	 */
-	if (need_wildcardproof)
+	if (need_wildcardproof && dns_db_issecure(db))
 		query_addwildcardproof(client, db,
 				       dns_fixedname_name(&wildcardname),
 				       ISC_TRUE);
