@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.122 2000/08/08 17:14:33 gson Exp $ */
+/* $Id: query.c,v 1.123 2000/08/08 19:16:19 gson Exp $ */
 
 #include <config.h>
 
@@ -457,6 +457,11 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	dns_acl_t *queryacl;
 	ns_dbversion_t *dbversion;
 	unsigned int ztoptions;
+	dns_zone_t *zone = NULL;
+	dns_db_t *db = NULL;
+
+	REQUIRE(zonep != NULL && *zonep == NULL);
+	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	/*
 	 * Find a zone database to answer the query.
@@ -465,12 +470,12 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		DNS_ZTFIND_NOEXACT : 0;
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
-			     zonep);
+			     &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		result = dns_zone_getdb(*zonep, dbp);
+		result = dns_zone_getdb(zone, &db);
 
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto fail;
 
 	/*
 	 * If this is the first time we are called (that is, looking up
@@ -486,14 +491,11 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	 */
 	if (!client->view->additionalfromauth) {
 		if (client->query.authdb != NULL) {
-			if (*dbp != client->query.authdb) {
-				dns_zone_detach(zonep);
-				dns_db_detach(dbp);
-				return (DNS_R_REFUSED);
-			}
-			dns_db_attach(client->query.authdb, dbp);
+			if (db != client->query.authdb)
+				goto refuse;
+			dns_db_attach(client->query.authdb, &db);
 		} else {
-			dns_db_attach(*dbp, &client->query.authdb);
+			dns_db_attach(db, &client->query.authdb);
 		}
 	}
 
@@ -511,19 +513,21 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	/*
 	 * Get the current version of this database.
 	 */
-	dbversion = query_findversion(client, *dbp, &new_zone);
-	if (dbversion == NULL)
-		return (DNS_R_SERVFAIL);
+	dbversion = query_findversion(client, db, &new_zone);
+	if (dbversion == NULL) {
+		result = DNS_R_SERVFAIL;
+		goto fail;
+	}
 	*versionp = dbversion->version;
 	if (new_zone) {
 		check_acl = ISC_TRUE;
 	} else if (!dbversion->queryok) {
-		return (DNS_R_REFUSED);
+		goto refuse;
 	} else {
 		check_acl = ISC_FALSE;
 	}
 
-	queryacl = dns_zone_getqueryacl(*zonep);
+	queryacl = dns_zone_getqueryacl(zone);
 	if (queryacl == NULL) {
 		queryacl = client->view->queryacl;
 		if ((client->query.attributes &
@@ -537,7 +541,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			check_acl = ISC_FALSE;
 			if ((client->query.attributes &
 			     NS_QUERYATTR_QUERYOK) == 0)
-				return (DNS_R_REFUSED);
+				goto refuse;
 		} else {
 			/*
 			 * We haven't evaluated the view's queryacl yet.
@@ -550,6 +554,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		result = ns_client_checkacl(client, "query", queryacl,
 					    ISC_TRUE, log);
+
 		if (queryacl == client->view->queryacl) {
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -566,15 +571,32 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 			 */
 			client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
 		}
-	} else
-		result = ISC_R_SUCCESS;
+
+		if (result != ISC_R_SUCCESS)
+			goto refuse;
+	}
+
+	/* Approved. */
 
 	/*
 	 * Remember the result of the ACL check so we
 	 * don't have to check again.
 	 */
-	if (result == ISC_R_SUCCESS)
-		dbversion->queryok = ISC_TRUE;
+	dbversion->queryok = ISC_TRUE;
+
+	/* Transfer ownership. */
+	*zonep = zone;
+	*dbp = db;
+
+	return (ISC_R_SUCCESS);
+
+ refuse:
+	result = DNS_R_REFUSED;
+ fail:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (db != NULL)
+		dns_db_detach(&db);
 
 	return (result);
 }
@@ -584,16 +606,19 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl;
+	dns_db_t *db = NULL;
+
+	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	/*
 	 * Find a cache database to answer the query.
-	 * This may fail with ISC_R_REFUSED if the client
+	 * This may fail with DNS_R_REFUSED if the client
 	 * is not allowed to use the cache.
 	 */
 
 	if (!USECACHE(client))
 		return (DNS_R_REFUSED);
-	dns_db_attach(client->view->cachedb, dbp);
+	dns_db_attach(client->view->cachedb, &db);
 
 	if ((client->query.attributes &
 	     NS_QUERYATTR_QUERYOKVALID) != 0) {
@@ -606,7 +631,7 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		check_acl = ISC_FALSE;
 		if ((client->query.attributes &
 		     NS_QUERYATTR_QUERYOK) == 0)
-			return (DNS_R_REFUSED);
+			goto refuse;
 	} else {
 		/*
 		 * We haven't evaluated the view's queryacl yet.
@@ -633,8 +658,22 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		 */
 		client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
 
-	} else
-		result = ISC_R_SUCCESS;
+		if (result != ISC_R_SUCCESS)
+			goto refuse;
+	}
+
+	/* Approved. */
+
+	/* Transfer ownership. */
+	*dbp = db;
+
+	return (ISC_R_SUCCESS);
+
+ refuse:
+	result = DNS_R_REFUSED;
+
+	if (db != NULL)
+		dns_db_detach(&db);
 
 	return (result);
 }
