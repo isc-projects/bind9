@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.44 2001/06/28 13:51:40 marka Exp $ */
+/* $Id: cache.c,v 1.45 2001/07/02 20:44:30 gson Exp $ */
 
 #include <config.h>
 
@@ -761,7 +761,6 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	result = dns_dbiterator_pause(cleaner->iterator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_DEBUG(1), "cache cleaner: checked %d nodes, "
 		      "mem inuse %d, sleeping",
