@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.37 $)
+AC_REVISION($Revision: 1.38 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1706,6 +1706,15 @@ AC_CHECK_FUNC(setpassent_r,,AC_DEFINE(NEED_SETPASSENT_R))
 AC_CHECK_FUNC(setpassent,,AC_DEFINE(NEED_SETPASSENT))
 
 AC_CHECK_FUNC(setpwent_r,
+AC_TRY_COMPILE([
+#include <pwd.h>
+int  getpwent_r(struct passwd *result, char *buffer, int buflen,
+           FILE **pwfp);
+], ,
+PASS_R_SET_RESULT="#undef PASS_R_SET_RESULT PASS_R_OK"
+PASS_R_SET_RETURN="#define PASS_R_SET_RETURN int"
+,
+)
 ,
 PASS_R_SET_RESULT="#undef PASS_R_SET_RESULT /*empty*/"
 PASS_R_SET_RETURN="#define PASS_R_SET_RETURN void"
