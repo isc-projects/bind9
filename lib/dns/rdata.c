@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.155 2001/11/26 23:37:24 gson Exp $ */
+/* $Id: rdata.c,v 1.156 2001/11/30 01:02:09 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -24,6 +24,7 @@
 #include <isc/hex.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -961,34 +962,51 @@ dns_rdatatype_attributes(dns_rdatatype_t type)
 
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
 
+/*
+ * If 'source' contains a decimal number no larger than 'max',
+ * store it at '*value' and return ISC_R_SUCCESS.  If out of
+ * range return ISC_R_RANGE; if not a number, return
+ * ISC_R_BADNUMBER.
+ */
+static isc_result_t
+maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
+	      unsigned int max)
+{
+	isc_result_t result;
+	isc_uint32_t n;
+	char buffer[NUMBERSIZE];
+
+	if (! isdigit(source->base[0] & 0xff) ||
+	    source->length > NUMBERSIZE - 1)
+		return (ISC_R_BADNUMBER);
+
+	/*
+	 * We have a potential number.  Try to parse it with
+	 * isc_parse_uint32().  isc_parse_uint32() requires
+	 * null termination, so we must make a copy.
+	 */
+	strncpy(buffer, source->base, NUMBERSIZE);
+	INSIST(buffer[source->length] == '\0');
+	
+	result = isc_parse_uint32(&n, buffer, 10);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (n > max)
+		return (ISC_R_RANGE);
+	*valuep = n;
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		      struct tbl *table, unsigned int max)
 {
+	isc_result_t result;
 	int i;
 
-	if (isdigit(source->base[0] & 0xff) &&
-	    source->length <= NUMBERSIZE - 1) {
-		unsigned int n;
-		char *e;
-		char buffer[NUMBERSIZE];
-		/*
-		 * We have a potential number.  Try to parse it with strtoul().
-		 * strtoul() requires null termination, so we must make
-		 * a copy.
-		 */
-		strncpy(buffer, source->base, NUMBERSIZE);
-		INSIST(buffer[source->length] == '\0');
-
-		n = strtoul(buffer, &e, 10);
-		if (*e == 0) {
-			if (n > max)
-				return (ISC_R_RANGE);
-			*valuep = n;
-			return (ISC_R_SUCCESS);
-		}
-		/* It was not a number after all; fall through. */
-	}
+	result = maybe_numeric(valuep, source, max);
+	if (result != ISC_R_BADNUMBER)
+		return (result);
 
 	for (i = 0; table[i].name != NULL; i++) {
 		unsigned int n;
@@ -1264,31 +1282,17 @@ dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target) {
 isc_result_t
 dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 {
+	isc_result_t result;
 	char *text, *end;
 	unsigned int value, mask;
 
-	if (isdigit(source->base[0] & 0xff) &&
-	    source->length <= NUMBERSIZE - 1) {
-		unsigned int n;
-		char *e;
-		char buffer[NUMBERSIZE];
-		/*
-		 * We have a potential number.  Try to parse it with strtoul().
-		 * strtoul() requires null termination, so we must make
-		 * a copy.
-		 */
-		strncpy(buffer, source->base, NUMBERSIZE);
-		INSIST(buffer[source->length] == '\0');
-
-		n = strtoul(buffer, &e, 0); /* Allow hex/octal. */
-		if (*e == 0) {
-			if (n > 0xffff)
-				return (ISC_R_RANGE);
-			*flagsp = n;
-			return (ISC_R_SUCCESS);
-		}
-		/* It was not a number after all; fall through. */
+	result = maybe_numeric(&value, source, 0xffff);
+	if (result == ISC_R_SUCCESS) {
+		*flagsp = value;
+		return (ISC_R_SUCCESS);
 	}
+	if (result != ISC_R_BADNUMBER)
+		return (result);
 
 	text = source->base;
 	end = source->base + source->length;

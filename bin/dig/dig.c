@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.173 2001/11/28 02:46:21 gson Exp $ */
+/* $Id: dig.c,v 1.174 2001/11/30 01:02:05 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
+#include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -598,14 +599,14 @@ reorder_args(int argc, char *argv[]) {
 
 static isc_uint32_t
 parse_uint(char *arg, const char *desc, isc_uint32_t max) {
-	char *endp;
+	isc_result_t result;
 	isc_uint32_t tmp;
 
-	tmp = strtoul(arg, &endp, 10);
-	if (*endp != '\0')
-		fatal("%s '%s' must be numeric", desc, arg);
-	if (tmp > max)
-		fatal("%s '%s' out of range", desc, arg);
+	result = isc_parse_uint32(&tmp, arg, 10);
+	if (result == ISC_R_SUCCESS && tmp > max)
+		result = ISC_R_RANGE;
+	if (result != ISC_R_SUCCESS)
+		fatal("%s '%s': %s", desc, arg, isc_result_totext(result));
 	return (tmp);
 }
 

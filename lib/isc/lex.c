@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.69 2001/11/27 01:56:02 gson Exp $ */
+/* $Id: lex.c,v 1.70 2001/11/30 01:02:13 gson Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
+#include <isc/parseint.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -361,9 +362,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	FILE *stream;
 	char *curr, *prev;
 	size_t remaining;
-	unsigned long as_ulong;
+	isc_uint32_t as_ulong;
 	unsigned int saved_options;
-	char *e;
 	isc_result_t result;
 
 	/*
@@ -519,7 +519,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				    != 0) {
 					lex->last_was_eol = ISC_FALSE;
 					tokenp->type = isc_tokentype_initialws;
-					tokenp->value.as_char = c;
+ 					tokenp->value.as_char = c;
 					done = ISC_TRUE;
 				}
 			} else if (c == '\n') {
@@ -588,17 +588,16 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					else
 						base = 10;
 					pushback(source, c);
-					as_ulong = strtoul(lex->data, &e, base);
-					if (as_ulong == ULONG_MAX &&
-					    errno == ERANGE) {
-						result = ISC_R_RANGE;
-						goto done;
-					} else if (*e == 0) {
+
+					result = isc_parse_uint32(&as_ulong,
+								  lex->data,
+								  base);
+					if (result == ISC_R_SUCCESS) {
 						tokenp->type =
 							isc_tokentype_number;
 						tokenp->value.as_ulong =
 							as_ulong;
-					} else {
+					} else if (result == ISC_R_BADNUMBER) {
 						isc_tokenvalue_t *v;
 
 						tokenp->type =
@@ -609,7 +608,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						v->as_textregion.length =
 							lex->max_token -
 							remaining;
-					}
+					} else
+						goto done;
 					done = ISC_TRUE;
 					continue;
 				} else if (!(options & ISC_LEXOPT_CNUMBER) ||

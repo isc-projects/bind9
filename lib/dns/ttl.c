@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.23 2001/11/26 23:51:21 gson Exp $ */
+/* $Id: ttl.c,v 1.24 2001/11/30 01:02:10 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/string.h>
@@ -146,9 +147,10 @@ dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl) {
 static isc_result_t
 bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	isc_uint32_t tmp = 0;
-	unsigned long n;
-	char *e, *s;
+	isc_uint32_t n;
+	char *s;
 	char buf[64];
+	char nbuf[64]; /* Number buffer */
 
 	/*
 	 * Copy the buffer as it may not be NULL terminated.
@@ -161,49 +163,52 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	s = buf;
 
 	do {
-		errno = 0;
-		n = strtoul(s, &e, 10);
-		if (s == e)
+		isc_result_t result;
+
+		char *np = nbuf;
+		while (*s != '\0' && isdigit((unsigned char)*s))
+			*np++ = *s++;
+		*np++ = '\0';
+		INSIST(np - nbuf <= (int)sizeof(nbuf));
+		result = isc_parse_uint32(&n, nbuf, 10);
+		if (result != ISC_R_SUCCESS)
 			return (DNS_R_SYNTAX);
-		if (n == UINT_MAX && errno == ERANGE)
-			return (DNS_R_SYNTAX);
-		switch (*e) {
+		switch (*s) {
 		case 'w':
 		case 'W':
 			tmp += n * 7 * 24 * 3600;
-			s = e + 1;
+			s++;
 			break;
 		case 'd':
 		case 'D':
 			tmp += n * 24 * 3600;
-			s = e + 1;
+			s++;
 			break;
 		case 'h':
 		case 'H':
 			tmp += n * 3600;
-			s = e + 1;
+			s++;
 			break;
 		case 'm':
 		case 'M':
 			tmp += n * 60;
-			s = e + 1;
+			s++;
 			break;
 		case 's':
 		case 'S':
 			tmp += n;
-			s = e + 1;
+			s++;
 			break;
 		case '\0':
 			/* Plain number? */
 			if (tmp != 0)
 				return (DNS_R_SYNTAX);
 			tmp = n;
-			s = e;
 			break;
 		default:
 			return (DNS_R_SYNTAX);
 		}
-	} while (*s != 0);
+	} while (*s != '\0');
 	*ttl = tmp;
 	return (ISC_R_SUCCESS);
 }

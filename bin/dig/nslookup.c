@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.93 2001/11/22 01:59:02 gson Exp $ */
+/* $Id: nslookup.c,v 1.94 2001/11/30 01:02:06 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/event.h>
+#include <isc/parseint.h>
 #include <isc/string.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -517,7 +518,45 @@ safecpy(char *dest, char *src, int size) {
 	strncpy(dest, src, size);
 	dest[size-1] = 0;
 }
-	
+
+static isc_result_t
+parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max, const char *desc) {
+	isc_uint32_t n;
+	isc_result_t result = isc_parse_uint32(&n, value, 10);
+	if (result == ISC_R_SUCCESS && n > max)
+		result = ISC_R_RANGE;
+	if (result != ISC_R_SUCCESS) {
+		printf("invalid %s '%s': %s\n", desc,
+		       value, isc_result_totext(result));
+		return result;
+	}
+	*uip = n;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+set_port(const char *value) {
+	isc_uint32_t n;
+	isc_result_t result = parse_uint(&n, value, 65535, "port");
+	if (result == ISC_R_SUCCESS)
+		port = n;
+}
+
+static void
+set_timeout(const char *value) {
+	isc_uint32_t n;
+	isc_result_t result = parse_uint(&n, value, UINT_MAX, "timeout");
+	if (result == ISC_R_SUCCESS)
+		timeout = n;
+}
+
+static void
+set_tries(const char *value) {
+	isc_uint32_t n;
+	isc_result_t result = parse_uint(&n, value, INT_MAX, "tries");
+	if (result == ISC_R_SUCCESS)
+		tries = n;
+}
 
 static void
 setoption(char *opt) {
@@ -553,21 +592,21 @@ setoption(char *opt) {
 		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
-		port = atoi(&opt[5]);
+		set_port(&opt[5]);
 	} else if (strncasecmp(opt, "po=", 3) == 0) {
-		port = atoi(&opt[3]);
+		set_port(&opt[3]);
 	} else if (strncasecmp(opt, "timeout=", 8) == 0) {
-		timeout = atoi(&opt[8]);
+		set_timeout(&opt[8]);
 	} else if (strncasecmp(opt, "t=", 2) == 0) {
-		timeout = atoi(&opt[2]);
+		set_timeout(&opt[2]);
  	} else if (strncasecmp(opt, "rec", 3) == 0) {
 		recurse = ISC_TRUE;
 	} else if (strncasecmp(opt, "norec", 5) == 0) {
 		recurse = ISC_FALSE;
 	} else if (strncasecmp(opt, "retry=", 6) == 0) {
-		tries = atoi(&opt[6]);
+		set_tries(&opt[6]);
 	} else if (strncasecmp(opt, "ret=", 4) == 0) {
-		tries = atoi(&opt[4]);
+		set_tries(&opt[4]);
  	} else if (strncasecmp(opt, "def", 3) == 0) {
 		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodef", 5) == 0) {
