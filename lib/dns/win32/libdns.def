@@ -42,6 +42,7 @@ dns_byaddr_create
 dns_byaddr_cancel
 dns_byaddr_destroy
 dns_byaddr_createptrname
+dns_byaddr_createptrname2
 dns_cache_create
 dns_cache_attach
 dns_cache_detach
