@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.12 2003/08/26 04:34:14 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.13 2003/08/26 05:56:14 marka Exp $ */
 
 #include <config.h>
 
@@ -91,6 +91,7 @@ options {\n\
 	treat-cr-as-space true;\n\
 	use-id-pool true;\n\
 	use-ixfr true;\n\
+	edns-udp-size 4096;\n\
 \n\
 	/* view */\n\
 	allow-notify {none;};\n\

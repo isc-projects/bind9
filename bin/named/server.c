@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.27 2003/08/26 04:34:14 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.28 2003/08/26 05:56:14 marka Exp $ */
 
 #include <config.h>
 
@@ -605,6 +605,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	int i;
 	char *str;
 	dns_order_t *order = NULL;
+	isc_uint32_t udpsize;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -785,6 +786,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 	
+	/*
+	 * Set the resolver's EDNS UDP size.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "edns-udp-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	udpsize = cfg_obj_asuint32(obj);
+	if (udpsize < 512)
+		udpsize = 512;
+	if (udpsize > 4096)
+		udpsize = 4096;
+	dns_resolver_setudpsize(view->resolver, udpsize);
+
 	/*
 	 * A global or view "forwarders" option, if present,
 	 * creates an entry for "." in the forwarding table.
@@ -1798,6 +1812,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	dns_dispatch_t *dispatchv6 = NULL;
 	isc_uint32_t interface_interval;
 	isc_uint32_t heartbeat_interval;
+	isc_uint32_t udpsize;
 	in_port_t listen_port;
 	int i;
 
@@ -1897,6 +1912,19 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "match-mapped-addresses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	server->aclenv.match_mapped = cfg_obj_asboolean(obj);
+
+	/*
+	 * Set the EDNS UDP size when we don't match a view.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "edns-udp-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	udpsize = cfg_obj_asuint32(obj);
+	if (udpsize < 512)
+		udpsize = 512;
+	if (udpsize > 4096)
+		udpsize = 4096;
+	ns_g_udpsize = udpsize;
 
 	/*
 	 * Configure the zone manager.

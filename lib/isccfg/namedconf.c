@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.11 2003/08/26 04:34:17 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.12 2003/08/26 05:56:18 marka Exp $ */
 
 #include <config.h>
 
@@ -613,6 +613,7 @@ view_clauses[] = {
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
+	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 
