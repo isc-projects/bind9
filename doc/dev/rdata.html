@@ -4,7 +4,26 @@
   <TITLE>Adding new RDATA type</TITLE>
 </HEAD>
 <BODY>
-<H1>Adding new RDATA types</H1>
+<H2>Overview</H2>
+The dns rdata routines (<CODE>dns_rdata_fromtext()</CODE>,
+<CODE>dns_rdata_totext()</CODE>, <CODE>dns_rdata_fromwire()</CODE>,
+<CODE>dns_rdata_towire()</CODE> <CODE>dns_rdata_fromstruct()</CODE>,
+<CODE>dns_rdata_tostruct()</CODE> and <CODE>dns_rdata_compare()</CODE>) 
+are designed to provide a single set of routines
+for encoding, decoding and comparing dns data preventing the problems that
+occurred in BIND 8.x and earlier where there were multiple places in the
+code base that
+decoded wire format to internal format or compared rdata sometimes with
+subtly different behaviour (bugs) or didn't support a particular type leading
+to internal inconsistancy.
+<P>
+Each of these generic routines calls type specific routines that provide
+the type specific details.
+<P>
+From time to time new types are defined and it is necessary to add these types
+into the existing structure.
+This document is written to provide instruction on how to do this.
+<H2>Adding new RDATA types</H2>
 
 Adding a new rdata type requires determining if the new rdata type is class
 specific or generic.
@@ -91,6 +110,11 @@ Class and type names must be from the following alphabet and less that 11
 characters in length or otherwise they will be ignored.
 Permissible alphabet: a to z, 0 to 9 and dash (-).
 Dash is mapped to underscore (_) for the C function names below.
+
+<H2>Internal Format</H2>
+The internal format choosen is DNS wire format without any compression being
+applied to domain names in the rdata.
+
 <H2>Convert from text format to internal format</H2>
 The functions to convert from text format has the following call formats and
 is declared as follows for class generic functions.
