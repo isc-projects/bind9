@@ -1,4 +1,9 @@
 
+ 744.	[bug]		When returning DNS_R_CNAME or DNS_R_DNAME as the
+			result of an ANY or SIG query, the resolver failed
+			to setup the return event's rdatasets, causing an
+			assertion failure in the query code.  [RT #881]
+
  743.	[bug]		Receiving a large number of certain malformed
 			answers could cause named to stop responding.
 			[RT #861]
