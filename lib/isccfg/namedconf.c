@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.19 2003/02/26 23:29:00 marka Exp $ */
+/* $Id: namedconf.c,v 1.20 2003/02/27 05:12:45 marka Exp $ */
 
 #include <config.h>
 
@@ -696,7 +696,7 @@ zone_clauses[] = {
 	{ "sig-validity-interval", &cfg_type_uint32, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "alt-transfer-source-v4", &cfg_type_sockaddr4wild, 0 },
+	{ "alt-transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },

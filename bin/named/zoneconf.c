@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.105 2003/02/26 23:28:58 marka Exp $ */
+/* $Id: zoneconf.c,v 1.106 2003/02/27 05:12:47 marka Exp $ */
 
 #include <config.h>
 
@@ -632,7 +632,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		RETERR(dns_zone_setxfrsource6(zone, cfg_obj_assockaddr(obj)));
 
 		obj = NULL;
-		result = ns_config_get(maps, "alt-transfer-source-v4", &obj);
+		result = ns_config_get(maps, "alt-transfer-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
 		RETERR(dns_zone_setaltxfrsource4(zone, cfg_obj_assockaddr(obj)));
 
