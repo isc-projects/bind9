@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.5 2001/11/29 00:15:34 gson Exp $ */
+/* $Id: diff.c,v 1.6 2002/08/06 14:33:08 marka Exp $ */
 
 #include <config.h>
 
@@ -499,13 +499,6 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 		result = dns_rdataset_totext(&rds, &t->name,
 					     ISC_FALSE, ISC_FALSE, &buf);
 
-		/*
-		 * Get rid of final newline.
-		 */
-		INSIST(buf.used >= 1 &&
-		       ((char *) buf.base)[buf.used-1] == '\n');
-		buf.used--;
-
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(diff->mctx, mem, size);
 			size += 1024;
@@ -516,22 +509,26 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			}
 			goto again;
 		}
-		if (result == ISC_R_SUCCESS) {
-			isc_buffer_usedregion(&buf, &r);
-			if (file != NULL)
-				fprintf(file, "%s %.*s\n",
-					t->op == DNS_DIFFOP_ADD ?
-					"add" : "del", (int) r.length,
-					(char *) r.base);
-			else
-				isc_log_write(DIFF_COMMON_LOGARGS,
-					      ISC_LOG_DEBUG(7),
-					      "%s %.*s",
-					      t->op == DNS_DIFFOP_ADD ?
-					      "add" : "del",
-					      (int) r.length, (char *) r.base);
-		} else
+
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		/*
+		 * Get rid of final newline.
+		 */
+		INSIST(buf.used >= 1 &&
+		       ((char *) buf.base)[buf.used-1] == '\n');
+		buf.used--;
+
+		isc_buffer_usedregion(&buf, &r);
+		if (file != NULL)
+			fprintf(file, "%s %.*s\n",
+				t->op == DNS_DIFFOP_ADD ?  "add" : "del",
+				(int) r.length, (char *) r.base);
+		else
+			isc_log_write(DIFF_COMMON_LOGARGS, ISC_LOG_DEBUG(7),
+				      "%s %.*s",
+				      t->op == DNS_DIFFOP_ADD ?  "add" : "del",
+				      (int) r.length, (char *) r.base);
 	}
 	result = ISC_R_SUCCESS;
  cleanup:
