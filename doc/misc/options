@@ -83,6 +83,7 @@ options {
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
         dnssec-lookaside <string>;
+        dnssec-must-be-secure <string> <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -262,6 +263,7 @@ view <string> <optional_class> {
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
         dnssec-lookaside <string>;
+        dnssec-must-be-secure <string> <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
