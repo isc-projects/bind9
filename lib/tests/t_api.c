@@ -44,11 +44,12 @@ static char *Usage =	"\t-a               : run all tests\n"
 /*
  *		-a		-->	run all tests
  *		-b dir		-->	chdir to dir before running tests
- *		-tn		-->	run test n
  *		-c config	-->	use config file 'config'
  *		-d		-->	turn on api debugging
- *		-n name		-->	run test named name
  *		-h		-->	print out available test names
+ *		-u		-->	print usage info
+ *		-n name		-->	run test named name
+ *		-tn		-->	run test n
  *		-x		-->	don't execute testcases in a subproc
  *		-q timeout	-->	use 'timeout' as the timeout value
  */
@@ -75,36 +76,39 @@ static int	t_putinfo(const char *key, const char *info);
 static char	*t_getdate(char *buf, size_t buflen);
 static void	printhelp(void);
 static void	printusage(void);
-static void	t_sigalrm();
+static void	t_sighandler();
+
+static int	T_int;
 
 static void
-t_sigalrm() {
-	int	a;
-	a = 1;
+t_sighandler() {
+	T_int = 1;
 }
 
 int
 main(int argc, char **argv)
 {
 
-	int		c;
-	int		tnum;
-	int		subprocs;
-	pid_t		deadpid;
-	int		status;
-	int		len;
-	testspec_t	*pts;
+	int			c;
+	int			tnum;
+	int			subprocs;
+	pid_t			deadpid;
+	int			status;
+	int			len;
+	testspec_t		*pts;
+	struct sigaction	sa;
 
 	subprocs = 1;
 	T_timeout = T_TIMEOUT;
 
+	/* -a option is now default */
+	memset(T_tvec, 0xffff, sizeof(T_tvec));
+
 	/* parse args */
-	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:b:"))
-	       != -1) {
+	while ((c = isc_commandline_parse(argc, argv, ":at:c:d:n:huxq:b:")) != -1) {
 		if (c == 'a') {
 			/* flag all tests to be run */
 			memset(T_tvec, 0xffff, sizeof(T_tvec));
-			/* memset(T_tvec, UINT_MAX, sizeof(T_tvec)); */
 		}
 		else if (c == 'b') {
 			T_dir = isc_commandline_argument;
@@ -167,11 +171,23 @@ main(int argc, char **argv)
 		}
 	}
 
+	/* set cwd */
+
 	if (T_dir != NULL)
 		(void) chdir(T_dir);
 
+	/* we don't want buffered output */
+
 	(void) setbuf(stdout, NULL);
 	(void) setbuf(stderr, NULL);
+
+	/* setup signals */
+
+	sa.sa_flags = 0;
+	sigfillset(&sa.sa_mask);
+	sa.sa_handler = t_sighandler;
+	(void) sigaction(SIGALRM, &sa, NULL);
+	(void) sigaction(SIGINT,  &sa, NULL);
 
 	/* output start stanza to journal */
 
@@ -180,9 +196,8 @@ main(int argc, char **argv)
 	(void) t_getdate(T_buf + len, T_BIGBUF - len);
 	t_putinfo("S", T_buf);
 
-	/*
-	 * setup the test environment using the config file
-	 */
+	/* setup the test environment using the config file */
+
 	if (T_config == NULL)
 		T_config = T_DEFAULT_CONFIG;
 
@@ -190,9 +205,8 @@ main(int argc, char **argv)
 	if (T_debug)
 		t_dumpconf(T_config);
 
-	/*
-	 * now invoke all the test cases
-	 */
+	/* now invoke all the test cases */
+
 	tnum = 0;
 	pts = &T_testlist[0];
 	while (*pts->pfv != NULL) {
@@ -205,14 +219,7 @@ main(int argc, char **argv)
 				}
 				else if (T_pid > 0) {
 
-					struct sigaction sa;
-					struct sigaction osa;
-
-					sa.sa_flags = 0;
-					sigfillset(&sa.sa_mask);
-					sa.sa_handler = t_sigalrm;
-					(void) sigaction(SIGALRM, &sa, &osa);
-
+					T_int = 0;
 					alarm(T_timeout);
 
 					deadpid = (pid_t) -1;
@@ -220,26 +227,22 @@ main(int argc, char **argv)
 						deadpid = waitpid(T_pid, &status, 0);
 						if (deadpid == T_pid) {
 							if (WIFSIGNALED(status)) {
-								if (WTERMSIG(status) == SIGABRT) {
-									t_info("the test case caused an exception\n");
-									t_result(T_UNRESOLVED);
-								}
+								t_info("the test case caught an exception\n");
+								t_result(T_UNRESOLVED);
 							}
 						}
-						else if ((deadpid == -1) && (errno == EINTR)) {
+						else if ((deadpid == -1) && (errno == EINTR) && T_int) {
 							t_info("the test case was interrupted\n");
 							kill(T_pid, SIGTERM);
 							t_result(T_UNRESOLVED);
-							alarm(0);
 							break;
 						}
 					}
 
 					alarm(0);
-					(void) sigaction(SIGALRM, &osa, NULL);
 				}
 				else {
-					t_info("fork failed errno = %d\n", errno);
+					t_info("fork failed, errno == %d\n", errno);
 					t_result(T_UNRESOLVED);
 				}
 			}
