@@ -2635,8 +2635,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		iev = ISC_LIST_HEAD(sock->accept_list);
 		next = ISC_LIST_NEXT(iev, link);
 
-		if ((task == NULL || task == iev->task)
-		    && iev->posted && !iev->canceled) {
+		if ((task == NULL || task == iev->task) && !iev->canceled) {
 			dev = iev->done_ev;
 			current_task = iev->task;
 
