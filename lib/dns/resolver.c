@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.156 2000/07/27 09:46:34 tale Exp $ */
+/* $Id: resolver.c,v 1.157 2000/07/27 18:42:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2851,7 +2851,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	dns_db_t **adbp;
 	dns_dbnode_t *node, **anodep;
 	dns_rdataset_t *ardataset;
-	isc_boolean_t need_validation;
+	isc_boolean_t need_validation, secure_domain;
 	dns_name_t *aname;
 	dns_fetchevent_t *event;
 
@@ -2861,6 +2861,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 
 	res = fctx->res;
 	need_validation = ISC_FALSE;
+	secure_domain = ISC_FALSE;
 	eresult = ISC_R_SUCCESS;
 	name = &fctx->name;
 
@@ -2868,15 +2869,43 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	 * Is DNSSEC validation required for this name?
 	 */
 	result = dns_keytable_issecuredomain(res->view->secroots, name,
-					     &need_validation);
+					     &secure_domain);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (need_validation) {
+
+	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)
+		need_validation = ISC_FALSE;
+	else
+		need_validation = secure_domain;
+
+	if (secure_domain) {
 		/*
 		 * Do negative response validation.
 		 */
-		dns_validator_t *validator = NULL;		
-		isc_task_t *task = res->buckets[fctx->bucketnum].task;
+		dns_validator_t *validator;
+		isc_task_t *task;
+		dns_rdataset_t *trdataset;
+		dns_name_t *tname;
+
+		result = dns_message_firstname(fctx->rmessage,
+					       DNS_SECTION_AUTHORITY);
+		while (result == ISC_R_SUCCESS) {
+			tname = NULL;
+			dns_message_currentname(fctx->rmessage,
+						DNS_SECTION_AUTHORITY,
+						&tname);
+			for (trdataset = ISC_LIST_HEAD(tname->list);
+			     trdataset != NULL;
+			     trdataset = ISC_LIST_NEXT(trdataset, link))
+				trdataset->trust = dns_trust_pending;
+			result = dns_message_nextname(fctx->rmessage,
+						      DNS_SECTION_AUTHORITY);
+		}
+		if (result != ISC_R_NOMORE)
+			return (result);
+
+		validator = NULL;
+		task = res->buckets[fctx->bucketnum].task;
 		result = dns_validator_create(res->view, name, fctx->type,
 					      NULL, NULL,
 					      fctx->rmessage, 0, task,
@@ -2885,7 +2914,13 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		fctx->validating++;
-		return (ISC_R_SUCCESS);
+		/*
+		 * If validation is necessary, return now.  Otherwise continue
+		 * to process the message, letting the validation complete
+		 * in its own good time.
+		 */
+		if (need_validation)
+			return (ISC_R_SUCCESS);
 	}
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.69 2000/07/27 09:46:46 tale Exp $ */
+/* $Id: validator.c,v 1.70 2000/07/27 18:42:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -441,7 +441,9 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3), 
 			      "authvalidated: got %s",
 			      dns_result_totext(eresult));
-		validator_done(val, eresult);
+		result = nxtvalidate(val, ISC_TRUE);
+		if (result != DNS_R_WAIT)
+			validator_done(val, result);
 	} else {
 		if (rdataset->type == dns_rdatatype_nxt &&
 		    nxtprovesnonexistence(val, devent->name, rdataset,
@@ -1051,14 +1053,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			val->currentset = NULL;
 			resume = ISC_FALSE;
 		}
-		else {
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-				rdataset->trust = dns_trust_pending;
-
+		else
 			rdataset = ISC_LIST_HEAD(name->list);
-		}
 
 		for (;
 		     rdataset != NULL;
