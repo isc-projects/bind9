@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.149 2001/07/01 23:47:49 bwelling Exp $ */
+/* $Id: dig.c,v 1.150 2001/07/18 21:03:54 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -219,7 +219,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	result = isc_time_now(&now);
 	check_result(result, "isc_time_now");
 
-	if (query->lookup->stats) {
+	if (query->lookup->stats && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
 		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
@@ -364,7 +364,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		style = &dns_master_style_debug;
 
 	if (query->lookup->cmdline[0] != 0) {
-		fputs(query->lookup->cmdline, stdout);
+		if (!short_form)
+			fputs(query->lookup->cmdline, stdout);
 		query->lookup->cmdline[0]=0;
 	}
 	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
