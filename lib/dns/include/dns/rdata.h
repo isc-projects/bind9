@@ -121,17 +121,6 @@ struct dns_rdata {
 	ISC_LINK(dns_rdata_t)		link;
 };
 
-/*
- * Clients may use this type directly.
- */
-struct dns_rdatalist {
-	dns_rdataclass_t		class;
-	dns_rdatatype_t			type;
-	dns_ttl_t			ttl;
-	ISC_LIST(dns_rdata_t)		rdata;
-	ISC_LINK(dns_rdatalist_t)	link;
-};
-
 /***
  *** Initialization
  ***/
