@@ -41,6 +41,7 @@ ISC_LANG_BEGINDECLS
  * multiple dns_rbtnode structures will not work.
  */
 typedef struct dns_rbtnode {
+	struct dns_rbtnode *parent;
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
 	struct dns_rbtnode *down;
@@ -197,15 +198,15 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
  *	arg == NULL iff deleter == NULL
  *
  * Ensures:
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		*rbtp points to a valid red-black tree manager
  *
  *	If result is failure:
  *		*rbtp does not point to a valid red-black tree manager.
  *
  * Returns:
- *	DNS_R_SUCCESS	Success
- *	DNS_R_NOMEMORY	Resource limit: Out of Memory
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_NOMEMORY	Resource limit: Out of Memory
  */
 
 isc_result_t
@@ -231,22 +232,22 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	Any external references to nodes in the tree are unaffected by
  *	node splits that are necessary to insert the new name.
  *
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		'name' is findable in the red/black tree of trees in O(log N).
  *
  *		The data pointer of the node for 'name' is set to 'data'.
  *
- *	If result is DNS_R_EXISTS or DNS_R_NOSPACE:
+ *	If result is ISC_R_EXISTS or ISC_R_NOSPACE:
  *		The tree of trees is unaltered.
  *
- *	If result is DNS_R_NOMEMORY:
+ *	If result is ISC_R_NOMEMORY:
  *		No guarantees.
  *
  * Returns:
- *	DNS_R_SUCCESS	Success
- *	DNS_R_EXISTS	The name already exists with associated data.
- *	DNS_R_NOSPACE 	The name had more logical labels than are allowed.
- *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_EXISTS	The name already exists with associated data.
+ *	ISC_R_NOSPACE 	The name had more logical labels than are allowed.
+ *	ISC_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
 isc_result_t
@@ -266,23 +267,23 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
  *	Any external references to nodes in the tree are unaffected by
  *	node splits that are necessary to insert the new name.
  *
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		'name' is findable in the red/black tree of trees in O(log N).
  *
  *		*nodep is the node that was added for 'name'.
  *
- *	If result is DNS_R_EXISTS:
+ *	If result is ISC_R_EXISTS:
  *		The tree of trees is unaltered.
  *
  *		*nodep is the existing node for 'name'.
  *
- *	If result is DNS_R_NOMEMORY:
+ *	If result is ISC_R_NOMEMORY:
  *		No guarantees.
  *
  * Returns:
- *	DNS_R_SUCCESS	Success
- *	DNS_R_EXISTS	The name already exists, possibly without data.
- *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_EXISTS	The name already exists, possibly without data.
+ *	ISC_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
 isc_result_t
@@ -302,21 +303,21 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name,
  * Ensures:
  *	'name' and the tree are not altered in any way.
  *
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		*data is the data associated with 'name'.
  *
  *	If result is DNS_R_PARTIALMATCH:
  *		*data is the data associated with the deepest superdomain
  * 		of 'name' which has data.
  *
- *	If result is DNS_R_NOTFOUND:
+ *	If result is ISC_R_NOTFOUND:
  *		Neither the name nor a superdomain was found with data.
  *
  * Returns:
- *	DNS_R_SUCCESS		Success
+ *	ISC_R_SUCCESS		Success
  *	DNS_R_PARTIALMATCH	Superdomain found with data
- *	DNS_R_NOTFOUND		No match
- *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
+ *	ISC_R_NOTFOUND		No match
+ *	ISC_R_NOSPACE		Concatenating nodes to form foundname failed
  */
 
 isc_result_t
@@ -336,7 +337,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	to the DNSSEC predecessor of the searched for name is maintained.
  *	If there is no predecessor, then the chain will point to nowhere, as
  *	indicated by chain->end being NULL or dns_rbtnodechain_current
- *	returning DNS_R_NOTFOUND.  Note that in a normal Internet DNS RBT
+ *	returning ISC_R_NOTFOUND.  Note that in a normal Internet DNS RBT
  *	there will always be a predecessor for all names except the root
  *	name, because '.' will exist and '.' is the predecessor of
  *	everything.  But you can certainly construct a trivial tree and a
@@ -380,7 +381,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Ensures:
  *	'name' and the tree are not altered in any way.
  *
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		*node is the terminal node for 'name'.
  *
  *		'foundname' and 'name' represent the same name (though not
@@ -399,14 +400,14 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *
  *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
  *
- *	If result is DNS_R_NOTFOUND:
+ *	If result is ISC_R_NOTFOUND:
  *		Neither the name nor a superdomain was found.  *node is NULL.
  *
  *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
  *
  *		chain->level_matches is 0.
  *
- *	If result is DNS_R_NOMEMORY:
+ *	If result is ISC_R_NOMEMORY:
  *		The function could not complete because memory could not
  *		be allocated to maintain the chain.  However, it
  *		is possible that some memory was allocated;
@@ -414,11 +415,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *		DNS_RBT_ANCESTORBLOCK if so.
  *
  * Returns:
- *	DNS_R_SUCCESS		Success
+ *	ISC_R_SUCCESS		Success
  *	DNS_R_PARTIALMATCH	Superdomain found with data
- *	DNS_R_NOTFOUND		No match, or superdomain with no data
- *	DNS_R_NOMEMORY		Resource Limit: Out of Memory building chain
- *	DNS_R_NOSPACE 		Concatenating nodes to form foundname failed
+ *	ISC_R_NOTFOUND		No match, or superdomain with no data
+ *	ISC_R_NOMEMORY		Resource Limit: Out of Memory building chain
+ *	ISC_R_NOSPACE 		Concatenating nodes to form foundname failed
  */
 
 isc_result_t
@@ -440,22 +441,22 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse);
  *	Does NOT ensure that any external references to nodes in the tree
  *	are unaffected by node joins.
  *
- *	If result is DNS_R_SUCCESS:
+ *	If result is ISC_R_SUCCESS:
  *		'name' does not appear in the tree with data; however,
  *		the node for the name might still exist which can be
  *		found with dns_rbt_findnode (but not dns_rbt_findname).
  *
- *	If result is DNS_R_NOTFOUND:
+ *	If result is ISC_R_NOTFOUND:
  *		'name' does not appear in the tree with data, because
  *		it did not appear in the tree before the function was called.
  *
- *	If result is DNS_R_NOMEMORY:
+ *	If result is ISC_R_NOMEMORY:
  *		'name' remains in the tree, if it was there to begin with.
  *
  * Returns:
- *	DNS_R_SUCCESS	Success
- *	DNS_R_NOTFOUND	No match
- *	DNS_R_NOMEMORY	Resource Limit: Out of Memory
+ *	ISC_R_SUCCESS	Success
+ *	ISC_R_NOTFOUND	No match
+ *	ISC_R_NOMEMORY	Resource Limit: Out of Memory
  */
 
 void
@@ -578,7 +579,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	by dns_rbt_findnode, dns_rbtnodechain_first or dns_rbtnodechain_last.
  *	If none were called for the chain since it was initialized or reset,
  *	or if the was no predecessor to the name searched for with
- *	dns_rbt_findnode, then '*node' is NULL and DNS_R_NOTFOUND is returned.
+ *	dns_rbt_findnode, then '*node' is NULL and ISC_R_NOTFOUND is returned.
  *
  *	'name', if non-NULL, is the name stored at the terminal level of
  *	the chain.  This is typically a single label, like the "www" of
@@ -594,8 +595,8 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	
  *
  * Returns:
- *	DNS_R_SUCCESS		name, origin & node were successfully set.
- *	DNS_R_NOTFOUND		The chain does not point to any node.
+ *	ISC_R_SUCCESS		name, origin & node were successfully set.
+ *	ISC_R_NOTFOUND		The chain does not point to any node.
  *	<something_else>	Any error return from dns_name_concatenate.
  */
 
@@ -643,7 +644,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *
  * Returns:
  *	DNS_R_NEWORIGIN		The name & origin were successfully set.
- *	DNS_R_NOMEMORY		Resource Limit: Out of Memory building chain.
+ *	ISC_R_NOMEMORY		Resource Limit: Out of Memory building chain.
  *	<something_else>	Any error result from dns_name_concatenate.
  */
 
@@ -670,10 +671,10 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	'origin' is only if a new origin was found.
  *
  * Returns:
- *	DNS_R_SUCCESS		The predecessor was found and 'name' was set.
+ *	ISC_R_SUCCESS		The predecessor was found and 'name' was set.
  *	DNS_R_NEWORIGIN		The predecessor was found with a different
  *				origin and 'name' and 'origin' were set.
- *	DNS_R_NOMORE		There was no predecessor.
+ *	ISC_R_NOMORE		There was no predecessor.
  *	<something_else>	Any error result from dns_rbtnodechain_current.
  */
 
@@ -700,10 +701,10 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	'origin' is only if a new origin was found.
  *
  * Returns:
- *	DNS_R_SUCCESS		The successor was found and 'name' was set.
+ *	ISC_R_SUCCESS		The successor was found and 'name' was set.
  *	DNS_R_NEWORIGIN		The successor was found with a different
  *				origin and 'name' and 'origin' were set.
- *	DNS_R_NOMORE		There was no successor.
+ *	ISC_R_NOMORE		There was no successor.
  *	<something_else>	Any error result from dns_name_concatenate.
  */
 
