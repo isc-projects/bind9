@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.66 2000/06/06 18:47:19 gson Exp $ */
+/* $Id: xfrout.c,v 1.67 2000/06/15 00:08:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -102,24 +102,24 @@ struct db_rr_iterator {
 	dns_rdata_t		rdata;
 };
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 		    isc_stdtime_t now);
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_first(db_rr_iterator_t *it);
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_next(db_rr_iterator_t *it);
 
-void
+static void
 db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 		       isc_uint32_t *ttl, dns_rdata_t **rdata);
 
-void
+static void
 db_rr_iterator_destroy(db_rr_iterator_t *it);
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 		    isc_stdtime_t now)
 {
@@ -140,7 +140,7 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 	return (it->result);
 }
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_first(db_rr_iterator_t *it) {
 	it->result = dns_dbiterator_first(it->dbit);
 	if (it->result != ISC_R_SUCCESS)
@@ -167,7 +167,7 @@ db_rr_iterator_first(db_rr_iterator_t *it) {
 }
 
 
-isc_result_t
+static isc_result_t
 db_rr_iterator_next(db_rr_iterator_t *it) {
 	if (it->result != ISC_R_SUCCESS)
 		return (it->result);
@@ -213,7 +213,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 	return (it->result);
 }
 
-void
+static void
 db_rr_iterator_destroy(db_rr_iterator_t *it) {
 	if (dns_rdataset_isassociated(&it->rdataset))
 		dns_rdataset_disassociate(&it->rdataset);
@@ -224,7 +224,7 @@ db_rr_iterator_destroy(db_rr_iterator_t *it) {
 	dns_dbiterator_destroy(&it->dbit);
 }
 
-void
+static void
 db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 		      isc_uint32_t *ttl, dns_rdata_t **rdata)
 {
