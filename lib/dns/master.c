@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.50 2000/04/28 01:10:05 halley Exp $ */
+/* $Id: master.c,v 1.51 2000/04/28 23:15:24 gson Exp $ */
 
 #include <config.h>
 
@@ -99,8 +99,8 @@ static isc_result_t	loadfile(const char *master_file, dns_name_t *top,
 				 dns_rdatacallbacks_t *callbacks,
 				 loadctx_t *ctx,
 				 isc_mem_t *mctx);
-static isc_result_t	commit(dns_rdatacallbacks_t *, rdatalist_head_t *,
-			       dns_name_t *, dns_name_t *);
+static isc_result_t	commit(dns_rdatacallbacks_t *, isc_lex_t *,
+			       rdatalist_head_t *, dns_name_t *, dns_name_t *);
 static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
 static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
 				        rdatalist_head_t *,
@@ -470,7 +470,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			 */
 			if (in_glue && dns_name_compare(&glue_name,
 							&new_name) != 0) {
-				result = commit(callbacks, &glue_list,
+				result = commit(callbacks, lex, &glue_list,
 						&glue_name, top);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
@@ -503,7 +503,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					glue_in_use = new_in_use;
 					name_in_use[glue_in_use] = ISC_TRUE;
 				} else {
-					result = commit(callbacks,
+					result = commit(callbacks, lex,
 							&current_list,
 							&current_name, top);
 					if (result != ISC_R_SUCCESS)
@@ -771,11 +771,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		 * If we don't commit everything we have so far.
 		 */
 		if ((target.length - target.used) < MINTSIZ) {
-			result = commit(callbacks, &current_list,
+			result = commit(callbacks, lex, &current_list,
 					&current_name, top);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
-			result = commit(callbacks, &glue_list, &glue_name,
+			result = commit(callbacks, lex, &glue_list, &glue_name,
 					top);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
@@ -792,10 +792,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	/*
 	 * Commit what has not yet been committed.
 	 */
-	result = commit(callbacks, &current_list, &current_name, top);
+	result = commit(callbacks, lex, &current_list, &current_name, top);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = commit(callbacks, &glue_list, &glue_name, top);
+	result = commit(callbacks, lex, &glue_list, &glue_name, top);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	else
@@ -1047,8 +1047,8 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
  */
 
 static isc_result_t
-commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
-       dns_name_t *owner, dns_name_t *top)
+commit(dns_rdatacallbacks_t *callbacks, isc_lex_t *lex,
+       rdatalist_head_t *head, dns_name_t *owner, dns_name_t *top)
 {
 	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
@@ -1062,6 +1062,10 @@ commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
 		/*
 		 * Ignore out-of-zone data.
 		 */
+		(callbacks->warn)(callbacks,
+		"dns_master_load: %s:%d: ignoring out-of-zone data",
+				  isc_lex_getsourcename(lex),
+				  isc_lex_getsourceline(lex));
 		ignore = ISC_TRUE;
 	}
 	do {
