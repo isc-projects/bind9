@@ -1,4 +1,7 @@
 
+1005.	[bug]		Don't copy nonzero RCODEs from request to response.
+			[RT #1765]
+
 1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
 
 1001.	[bug]		win32 socket code doio_recv was not catching a
