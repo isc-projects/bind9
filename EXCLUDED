@@ -9,9 +9,32 @@
 			name. [RT #1831]
 			[needs more work]
 
+1025.   [bug]           Don't use multicast addresses to resolve iterative
+                        queries. [RT #101]
+
+1034.   [bug]           Ignore the RD bit on multicast queries as specified
+                        in RFC 1123. [RT #137]
+
+1035.   [bug]           If we respond to multicast queries (which we
+                        currently do not), respond from a unicast address
+                        as specified in RFC 1123. [RT #137]
+
+1037.   [bug]           Negative responses whose authority section contain
+                        SOA or NS records whose owner names are not equal
+                        equal to or parents of the query name should be
+                        rejected. [RT #1862]
+
 1073.	[bug]		The ADB cache cleaning should also be space driven.
 			[RT #1915, #1938]
 			[ New function dns_adb_setadbsize() ]
+
+1079.   [bug]           BIND 8 compatibility: accept bare elements at top
+                        level of sort list treating them as if they were
+                        a single element list. [RT #1963]
+
+1080.   [bug]           BIND 8 compatibility: accept bare IP prefixes
+                        as the second element of a two-element top level
+                        sort list statement. [RT #1964]
 
 1105.	[port]		OpenUNIX 8 enable threads by default. [RT #1970]
 			[Functional change]
@@ -44,25 +67,13 @@
 			dns_rdataset_towire(), dns_rdataset_towirepartial()
 			and dns_rdataset_towirepartial() ]
 
-1025.   [bug]           Don't use multicast addresses to resolve iterative
-                        queries. [RT #101]
+1192.   [bug]           The seconds fields in LOC records were restricted
+                        to three decimal places.  More decimal places should
+                        be allowed but warned about.
 
-1034.   [bug]           Ignore the RD bit on multicast queries as specified
-                        in RFC 1123. [RT #137]
+1209.   [bug]           Dig, host, nslookup were not checking the message ids
+                        on the responses. [RT #2454]
 
-1035.   [bug]           If we respond to multicast queries (which we
-                        currently do not), respond from a unicast address
-                        as specified in RFC 1123. [RT #137]
+1234.   [bug]           'rrset-order' and 'sortlist' should be additive
+                        not exclusive.
 
-1037.   [bug]           Negative responses whose authority section contain
-                        SOA or NS records whose owner names are not equal
-                        equal to or parents of the query name should be
-                        rejected. [RT #1862]
-
-1079.   [bug]           BIND 8 compatibility: accept bare elements at top
-                        level of sort list treating them as if they were
-                        a single element list. [RT #1963]
-
-1080.   [bug]           BIND 8 compatibility: accept bare IP prefixes
-                        as the second element of a two-element top level
-                        sort list statement. [RT #1964]
