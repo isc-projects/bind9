@@ -97,6 +97,11 @@ omapi_lib_init(isc_mem_t *mctx) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	/*
+	 * XXXDCL should the caller specify an existing taskmgr instead?
+	 * how about having the caller specify an existing task?
+	 * i need clarity on how taskmgr/task/event all work together.
+	 */
 	result = isc_taskmgr_create(omapi_mctx, 1, 0, &omapi_taskmgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -146,4 +151,6 @@ omapi_lib_destroy() {
 	object_destroytypes();
 
 	handle_destroy();
+
+	auth_destroy();
 }
