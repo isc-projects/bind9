@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.94 2000/04/18 11:43:45 marka Exp $ */
+/* $Id: zone.c,v 1.95 2000/04/18 20:30:47 gson Exp $ */
 
 #include <config.h>
 
@@ -2221,6 +2221,9 @@ dns_zone_notify(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	zone->flags &= ~DNS_ZONE_F_NEEDNOTIFY;
+
+	goto unlock; /* XXXAG disable notify until locking bug is fixed */
+	
 	/*
 	 * Enqueue notify request.
 	 */
