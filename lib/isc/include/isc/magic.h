@@ -20,4 +20,8 @@
 
 #define ISC_MAGIC_VALID(a,b)	(((a) != NULL) && ((a)->magic == (b)))
 
+#define ISC_MAGIC(a, b, c, d)	((unsigned int)(a) << 24 \
+				 | (unsigned int)(b) << 16 \
+				 | (unsigned int)(c) << 8 | (d))
+
 #endif /* ISC_MAGIC_H */
