@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.42 2000/08/01 01:29:32 tale Exp $ */
+/* $Id: log.c,v 1.43 2000/08/24 18:21:40 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1264,10 +1264,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 	time_string[0]  = '\0';
 	level_string[0] = '\0';
-	lctx->buffer[0] = '\0';
 
 	LOCK(&lctx->lock);
 
+	lctx->buffer[0] = '\0';
+	
 	lcfg = lctx->logconfig;
 
 	category_channels = ISC_LIST_HEAD(lcfg->channellists[category->id]);
