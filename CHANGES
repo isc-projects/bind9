@@ -1,3 +1,6 @@
+
+1026.	[placeholder]	
+
 1025.	[bug]		Don't use multicast addresses to resolve iterative
 			queries.  [RT #101]
 
