@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.10 1999/11/02 00:46:36 bwelling Exp $
+ * $Id: tkey.c,v 1.11 1999/11/02 19:56:34 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -86,7 +86,8 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	result = dns_c_ctx_gettkeydhkey(lctx, cfg, &s, &n);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_R_SUCCESS);
-	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH, DST_TYPE_PRIVATE,
+	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH,
+				DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 				mctx, &tkey_dhkey));
 	s = NULL;
 	RETERR(dns_c_ctx_gettkeydomain(lctx, cfg, &s));
@@ -397,9 +398,9 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 	if (msg->tsigkey == NULL)
 		return (DNS_R_REFUSED);
 	if (!dns_name_equal(&msg->tsigkey->name, name)) {
-		if (msg->tsigkey->creator == NULL ||
-		    tsigkey->creator == NULL ||
-		    !dst_key_compare(msg->tsigkey->creator, tsigkey->creator))
+		dns_name_t *id1 = dns_tsigkey_identity(msg->tsigkey);
+		dns_name_t *id2 = dns_tsigkey_identity(tsigkey);
+		if (id1 == NULL || id2 == NULL || !dns_name_equal(id1, id2))
 			return (DNS_R_REFUSED);
 	}
 
