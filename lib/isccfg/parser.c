@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.38 2001/03/02 20:00:17 gson Exp $ */
+/* $Id: parser.c,v 1.39 2001/03/03 00:52:39 gson Exp $ */
 
 #include <config.h>
 
@@ -3168,6 +3168,7 @@ parse_logfile(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
+			CHECK(cfg_gettoken(pctx, 0));		
 			if (strcasecmp(pctx->token.value.as_pointer, "versions") == 0 &&
 			    obj->value.tuple[1] == NULL) {
 				CHECK(parse(pctx, fields[1].type, &obj->value.tuple[1]));
@@ -3196,8 +3197,23 @@ parse_logfile(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
+static void
+print_logfile(cfg_printer_t *pctx, cfg_obj_t *obj) {
+	print_obj(pctx, obj->value.tuple[0]); /* file */
+	if (obj->value.tuple[1]->type->print != print_void) {
+		print(pctx, " versions ", 10);
+		print_obj(pctx, obj->value.tuple[1]);
+	}
+	if (obj->value.tuple[2]->type->print != print_void) {
+		print(pctx, " size ", 6);
+		print_obj(pctx, obj->value.tuple[2]);
+	}
+}
+
 static cfg_type_t cfg_type_logfile = {
-	"logfile", parse_logfile, print_tuple, &cfg_rep_tuple, logfile_fields };
+	"logfile", parse_logfile, print_logfile, &cfg_rep_tuple,
+	logfile_fields
+};
 
 
 /*
