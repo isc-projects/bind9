@@ -1,6 +1,8 @@
 1680.	[placeholder]	rt11697
 
-1679.	[placeholder]	rt11706
+1679.	[bug]		When there was a single nameserver with multiple
+			addresses for a zone not all addresses were tried.
+			[RT #11706]
 
 1678.	[bug]		RRSIG should use TYPEXXXXX for unknown types.
 
