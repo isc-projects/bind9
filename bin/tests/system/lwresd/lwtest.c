@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.6.2.3 2000/07/10 04:52:01 gson Exp $ */
+/* $Id: lwtest.c,v 1.6.2.4 2000/08/02 21:01:44 gson Exp $ */
 
 #include <config.h>
 
@@ -254,8 +254,8 @@ test_gethostbyname(const char *name, const char *address) {
 			char outbuf[16];
 			(void)inet_ntop(AF_INET, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
-			printf("I:gethostbyname(%s) returned %s, expected %s\n",
-			       name, outbuf, address);
+			printf("I:gethostbyname(%s) returned %s, "
+			       "expected %s\n", name, outbuf, address);
 			fails++;
 			return;
 		}
@@ -301,8 +301,8 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 			char outbuf[16];
 			(void)inet_ntop(af, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
-			printf("I:gethostbyname(%s) returned %s, expected %s\n",
-			       name, outbuf, address);
+			printf("I:gethostbyname(%s) returned %s, "
+			       "expected %s\n", name, outbuf, address);
 			fails++;
 			return;
 		}
@@ -312,7 +312,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 static void
 test_gethostbyaddr(const char *address, int af, const char *name) {
 	struct hostent *hp;
-	unsigned char addrbuf[16];
+	char addrbuf[16];
 	int len, ret;
 
 	if (af == AF_INET)
@@ -340,8 +340,8 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 		}
 	} else {
 		if (strcmp(hp->h_name, name) != 0) {
-			printf("I:gethostbyname(%s) returned %s, expected %s\n",
-			       address, hp->h_name, name);
+			printf("I:gethostbyname(%s) returned %s, "
+			       "expected %s\n", address, hp->h_name, name);
 			fails++;
 			return;
 		}
@@ -399,8 +399,8 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			char outbuf[16];
 			(void)inet_ntop(af, ai->ai_addr,
 					outbuf, sizeof(outbuf));
-			printf("I:getaddrinfo(%s) returned %db, expected %db\n",
-			       name, ai->ai_addrlen, len);
+			printf("I:getaddrinfo(%s) returned %db, "
+			       "expected %db\n", name, ai->ai_addrlen, len);
 			fails++;
 			return;
 		} else if (af == AF_INET) {
@@ -482,8 +482,8 @@ test_getnameinfo(const char *address, int af, const char *name) {
 		}
 	} else {
 		if (name == NULL) {
-			printf("I:getaddrinfo(%s) returned %s, expected NULL\n",
-			       address, host);
+			printf("I:getaddrinfo(%s) returned %s, "
+			       "expected NULL\n", address, host);
 			fails++;
 			return;
 		} else if (strcmp(host, name) != 0) {
@@ -526,17 +526,22 @@ main(void) {
 	test_gabn("a3", LWRES_R_INCOMPLETE, NULL, LWRES_ADDRTYPE_V4);
 
 	test_gabn("b.example1", LWRES_R_SUCCESS,
-		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+		  LWRES_ADDRTYPE_V6);
 	test_gabn("b.example1.", LWRES_R_SUCCESS,
-		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+		  LWRES_ADDRTYPE_V6);
 	test_gabn("b.example2", LWRES_R_SUCCESS,
-		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+		  LWRES_ADDRTYPE_V6);
 	test_gabn("b.example2.", LWRES_R_SUCCESS,
-		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+		  LWRES_ADDRTYPE_V6);
 	test_gabn("b.example3", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
 	test_gabn("b.example3.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
 	test_gabn("b", LWRES_R_SUCCESS,
-		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff", LWRES_ADDRTYPE_V6);
+		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
+		  LWRES_ADDRTYPE_V6);
 	test_gabn("b.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
 
 	test_gabn("d.example1", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V6);
