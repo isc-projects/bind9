@@ -88,7 +88,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3338"
+HREF="Bv9ARM.ch06.html#AEN3382"
 >Zone File</A
 ></DT
 ></DL
@@ -732,7 +732,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1180"
+NAME="AEN1204"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -763,7 +763,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1188"
+NAME="AEN1212"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -824,11 +824,16 @@ and whether the element was negated.</P
 access and a negated match denies access. If there is no match,
 access is denied. The clauses <B
 CLASS="command"
+>allow-notify</B
+>,
+<B
+CLASS="command"
 >allow-query</B
 >, <B
 CLASS="command"
 >allow-transfer</B
->, <B
+>,
+<B
 CLASS="command"
 >allow-update</B
 > and <B
@@ -869,7 +874,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1216"
+NAME="AEN1241"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -888,7 +893,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1221"
+NAME="AEN1246"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -920,7 +925,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1230"
+NAME="AEN1255"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1253,7 +1258,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1323"
+NAME="AEN1348"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1393,7 +1398,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1365"
+NAME="AEN1390"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1432,7 +1437,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1374"
+NAME="AEN1399"
 >6.2.4. <B
 CLASS="command"
 >controls</B
@@ -1539,7 +1544,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1400"
+NAME="AEN1425"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1559,7 +1564,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1405"
+NAME="AEN1430"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1589,7 +1594,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1412"
+NAME="AEN1437"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1623,7 +1628,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1419"
+NAME="AEN1444"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1677,7 +1682,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1431"
+NAME="AEN1456"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1837,7 +1842,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1471"
+NAME="AEN1496"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1903,7 +1908,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1488"
+NAME="AEN1513"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2599,7 +2604,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1673"
+NAME="AEN1698"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2672,7 +2677,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1691"
+NAME="AEN1716"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2745,7 +2750,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1710"
+NAME="AEN1735"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3050,6 +3055,15 @@ CLASS="replaceable"
 >ignore</I
 ></TT
 > ); </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> allow-notify { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> }; </SPAN
 >]
     [<SPAN
 CLASS="optional"
@@ -3622,7 +3636,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1911"
+NAME="AEN1938"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -3849,20 +3863,7 @@ CLASS="filename"
 >named_dump.db</TT
 >.</P
 >
-<DIV
-CLASS="note"
-><BLOCKQUOTE
-CLASS="note"
-><P
-><B
->Note: </B
->Not yet implemented in <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9.</P
-></BLOCKQUOTE
-></DIV
-></TD
+</TD
 ></TR
 ><TR
 ><TD
@@ -4813,7 +4814,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2223"
+NAME="AEN2247"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -4925,6 +4926,40 @@ CLASS="informaltable"
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TR
+><TD
+WIDTH="132"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>allow-notify</B
+></P
+></TD
+><TD
+WIDTH="300"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Specifies which hosts are allowed to
+notify slaves of a zone change in addition to the zone masters.
+<B
+CLASS="command"
+>allow-notify</B
+> may also be specified in the
+<B
+CLASS="command"
+>zone</B
+> statement, in which case it overrides the
+<B
+CLASS="command"
+>options allow-notify</B
+> statement.  It is only meaningful
+for a slave zone.  If not specified, the default is to process notify messages
+only from a zone's master.</P
+></TD
+></TR
 ><TR
 ><TD
 WIDTH="132"
@@ -5050,7 +5085,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2290"
+NAME="AEN2323"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5145,7 +5180,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2316"
+NAME="AEN2349"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5632,7 +5667,10 @@ This address must appear in the slave server's <B
 CLASS="command"
 >masters</B
 >
-zone clause.
+zone clause or in an <B
+CLASS="command"
+>allow-notify</B
+> clause.
 This statement sets the <B
 CLASS="command"
 >notify-source</B
@@ -5684,7 +5722,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2462"
+NAME="AEN2496"
 >6.2.14.7. Resource Limits</A
 ></H3
 ><P
@@ -5912,7 +5950,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2528"
+NAME="AEN2562"
 >6.2.14.8. Periodic Task Intervals</A
 ></H3
 ><DIV
@@ -7079,7 +7117,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2829"
+NAME="AEN2863"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7154,7 +7192,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2845"
+NAME="AEN2879"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7189,7 +7227,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2853"
+NAME="AEN2887"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7252,7 +7290,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2867"
+NAME="AEN2901"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7419,6 +7457,15 @@ CLASS="replaceable"
 CLASS="optional"
 >{ 
     type ( master | slave | hint | stub | forward ) ;
+    [<SPAN
+CLASS="optional"
+> allow-notify { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> } ; </SPAN
+>]
     [<SPAN
 CLASS="optional"
 > allow-query { <TT
@@ -7606,13 +7653,6 @@ CLASS="replaceable"
 ><I
 >ip_addr</I
 ></TT
-> ; [<SPAN
-CLASS="optional"
-><TT
-CLASS="replaceable"
-><I
->ip_addr</I
-></TT
 > [<SPAN
 CLASS="optional"
 >port <TT
@@ -7621,10 +7661,17 @@ CLASS="replaceable"
 >ip_port</I
 ></TT
 ></SPAN
->] ; [<SPAN
+>] [<SPAN
+CLASS="optional"
+>key <TT
+CLASS="replaceable"
+><I
+>key</I
+></TT
+></SPAN
+>]; [<SPAN
 CLASS="optional"
 >...</SPAN
->]</SPAN
 >] } ; </SPAN
 >]
     [<SPAN
@@ -7826,7 +7873,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3002"
+NAME="AEN3038"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7837,7 +7884,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3005"
+NAME="AEN3041"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
@@ -7894,6 +7941,7 @@ of master servers that the slave contacts to update its copy of the zone.
 By default, transfers are made from port 53 on the servers; this can
 be changed for all servers by specifying a port number before the
 list of IP addresses, or on a per-server basis after the IP address.
+Authentication to the master can also be done with per-server TSIG keys.
 If a file is specified, then the
 replica will be written to this file whenever the zone is changed,
 and reloaded from this file on a server restart. Use of a file is
@@ -8062,7 +8110,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3062"
+NAME="AEN3098"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8100,7 +8148,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3072"
+NAME="AEN3108"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
@@ -8111,6 +8159,32 @@ CLASS="informaltable"
 CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
+><TR
+><TD
+WIDTH="159"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>allow-notify</B
+></P
+></TD
+><TD
+WIDTH="273"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>See the description of
+<B
+CLASS="command"
+>allow-notify</B
+> in <A
+HREF="Bv9ARM.ch06.html#access_control"
+>Section 6.2.14.3</A
+></P
+></TD
+></TR
 ><TR
 ><TD
 WIDTH="159"
@@ -9040,7 +9114,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3338"
+NAME="AEN3382"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9061,7 +9135,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3343"
+NAME="AEN3387"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9781,7 +9855,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3557"
+NAME="AEN3601"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10101,7 +10175,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3658"
+NAME="AEN3702"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10502,7 +10576,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3779"
+NAME="AEN3823"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10601,7 +10675,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3806"
+NAME="AEN3850"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10626,7 +10700,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3813"
+NAME="AEN3857"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10696,7 +10770,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3833"
+NAME="AEN3877"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10772,7 +10846,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3852"
+NAME="AEN3896"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10812,7 +10886,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3863"
+NAME="AEN3907"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
