@@ -18,7 +18,7 @@
 			were specified in /etc/resolv.conf. [RT #8232]
 
 1553.	[bug]		The windows socket code could stop accepting
-			connections.
+			connections. [RT#10115]
 
 1552.	[placeholder]	rt10049
 
