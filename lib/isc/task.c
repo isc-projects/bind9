@@ -55,10 +55,6 @@
  ***/
 
 typedef enum {
-	detach_result_ok, detach_result_finished, detach_result_wasidle
-} detach_result_t;
-
-typedef enum {
 	task_state_idle, task_state_ready, task_state_running,
 	task_state_done
 } task_state_t;
@@ -85,13 +81,8 @@ struct isc_task {
 	LINK(isc_task_t)		ready_link;
 };
 
-#define TASK_F_DONEOK			0x01
-#define TASK_F_SENDOK			0x02
-#define TASK_F_SHUTTINGDOWN		0x04
+#define TASK_F_SHUTTINGDOWN		0x01
 
-#define DONE_FLAGS			(TASK_F_DONEOK|TASK_F_SHUTTINGDOWN)
-#define TASK_WANTDONE(t)		(((t)->flags & DONE_FLAGS) == \
-					 DONE_FLAGS)
 #define TASK_SHUTTINGDOWN(t)		(((t)->flags & TASK_F_SHUTTINGDOWN) \
 					 != 0)
 
@@ -178,7 +169,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
 	task->quantum = quantum;
-	task->flags = (TASK_F_DONEOK|TASK_F_SENDOK);
+	task->flags = 0;
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
@@ -267,9 +258,8 @@ task_ready(isc_task_t *task) {
 	UNLOCK(&manager->lock);
 }
 
-static inline detach_result_t
+static inline isc_boolean_t
 task_detach(isc_task_t *task) {
-	detach_result_t dresult = detach_result_ok;
 
 	/*
 	 * Caller must be holding the task lock.
@@ -280,29 +270,27 @@ task_detach(isc_task_t *task) {
 	XTRACE("detach");
 
 	task->references--;
-	if (task->references == 0) {
-		if (task->state == task_state_done)
-			dresult = detach_result_finished;
-		else if (task->state == task_state_idle) {
-			INSIST(EMPTY(task->events));
-			/*
-			 * There are no references to this task, and no
-			 * pending events.  We initiate shutdown, since
-			 * otherwise this task would just sit around until
-			 * the task manager was destroyed.
-			 */
-			if (task_shutdown(task))
-				dresult = detach_result_wasidle;
-		}
+	if (task->references == 0 && task->state == task_state_idle) {
+		INSIST(EMPTY(task->events));
+		/*
+		 * There are no references to this task, and no
+		 * pending events.  We could try to optimize and
+		 * either initiate shutdown or clean up the task,
+		 * depending on its state, but it's easier to just
+		 * make the task ready and allow run() to deal with
+		 * shutting down and termination.
+		 */
+		task->state = task_state_ready;
+		return (ISC_TRUE);
 	}
 
-	return (dresult);
+	return (ISC_FALSE);
 }
 
 void
 isc_task_detach(isc_task_t **taskp) {
 	isc_task_t *task;
-	detach_result_t dresult;
+	isc_boolean_t was_idle;
 
 	/*
 	 * Detach *taskp from its task.
@@ -315,12 +303,10 @@ isc_task_detach(isc_task_t **taskp) {
 	XTRACE("isc_task_detach");
 
 	LOCK(&task->lock);
-	dresult = task_detach(task);
+	was_idle = task_detach(task);
 	UNLOCK(&task->lock);
 
-	if (dresult == detach_result_finished)
-		task_finished(task);
-	else if (dresult == detach_result_wasidle)
+	if (was_idle)
 		task_ready(task);
 
 	*taskp = NULL;
@@ -338,9 +324,9 @@ isc_task_mem(isc_task_t *task) {
 	return (task->mctx);
 }
 
-static inline isc_result_t
-task_send(isc_task_t *task, isc_event_t **eventp, isc_boolean_t *was_idlep) {
-	isc_result_t result = ISC_R_SUCCESS;
+static inline isc_boolean_t
+task_send(isc_task_t *task, isc_event_t **eventp) {
+	isc_boolean_t was_idle = ISC_FALSE;
 	isc_event_t *event;
 	
 	/*
@@ -352,39 +338,26 @@ task_send(isc_task_t *task, isc_event_t **eventp, isc_boolean_t *was_idlep) {
 	REQUIRE(event != NULL);
 	REQUIRE(event->sender != NULL);
 	REQUIRE(event->type > 0);
+	REQUIRE(task->state != task_state_done);
 
 	XTRACE("task_send");
 
-	/*
-	 * Note: we require that task->state == task_state_done implies
-	 * (task->flags & TASK_F_SENDOK) == 0.
-	 */
-	*was_idlep = ISC_FALSE;
-	if ((task->flags & TASK_F_SENDOK) != 0) {
-		if (task->state == task_state_idle) {
-			*was_idlep = ISC_TRUE;
-			INSIST(EMPTY(task->events));
-			task->state = task_state_ready;
-		}
-		INSIST(task->state == task_state_ready ||
-		       task->state == task_state_running);
-		ENQUEUE(task->events, event, link);
-		*eventp = NULL;
-	} else {
-		if (task->state == task_state_done)
-			result = ISC_R_TASKDONE;
-		else
-			result = ISC_R_TASKNOSEND;
+	if (task->state == task_state_idle) {
+		was_idle = ISC_TRUE;
+		INSIST(EMPTY(task->events));
+		task->state = task_state_ready;
 	}
-	
-	return (result);
+	INSIST(task->state == task_state_ready ||
+	       task->state == task_state_running);
+	ENQUEUE(task->events, event, link);
+	*eventp = NULL;
+
+	return (was_idle);
 }	
 
-
-isc_result_t
+void
 isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 	isc_boolean_t was_idle;
-	isc_result_t result;
 
 	/*
 	 * Send '*event' to 'task'.
@@ -400,11 +373,8 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 	 * some processing is deferred until after the lock is released.
 	 */
 	LOCK(&task->lock);
-	result = task_send(task, eventp, &was_idle);
+	was_idle = task_send(task, eventp);
 	UNLOCK(&task->lock);
-
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	if (was_idle) {
 		/*
@@ -424,16 +394,12 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 		 */
 		task_ready(task);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
-	isc_boolean_t was_idle;
-	isc_result_t result;
+	isc_boolean_t idle1, idle2;
 	isc_task_t *task;
-	detach_result_t dresult = detach_result_ok;
 
 	/*
 	 * Send '*event' to '*taskp' and then detach '*taskp' from its
@@ -447,40 +413,21 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 	XTRACE("isc_task_sendanddetach");
 
 	LOCK(&task->lock);
-	result = task_send(task, eventp, &was_idle);
-	if (result == ISC_R_SUCCESS)
-		dresult = task_detach(task);
+	idle1 = task_send(task, eventp);
+	idle2 = task_detach(task);
 	UNLOCK(&task->lock);
 
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	/*
+	 * If idle1, then idle2 shouldn't be true as well since we're holding
+	 * the task lock, and thus the task cannot switch from ready back to
+	 * idle.
+	 */
+	INSIST(!(idle1 && idle2));
 
-	if (dresult == detach_result_finished) {
-		/*
-		 * If was_idle is true, then the task is ready with at least
-		 * one event in the queue, and nothing will happen until
-		 * we call task_ready().  In particular, the task cannot
-		 * be executing or have entered the done state, so if
-		 * dresult is detach_result_finished, was_idle must have been
-		 * false.  We INSIST on it.
-		 */
-		INSIST(!was_idle);
-		task_finished(task);
-	} else {
-		/*
-		 * If was_idle, then dresult shouldn't be	
-		 * detach_result_wasidle, since that would mean someone else
-		 * changed the task's state from ready back to idle, which
-		 * should never happen.  We INSIST on it.
-		 */
-		INSIST(!(was_idle && dresult == detach_result_wasidle));
-		if (was_idle || dresult == detach_result_wasidle)
-			task_ready(task);
-	}
+	if (idle1 || idle2)
+		task_ready(task);
 
 	*taskp = NULL;
-
-	return (ISC_R_SUCCESS);
 }
 
 #define PURGE_OK(event)	(((event)->attributes & ISC_EVENTATTR_NOPURGE) == 0)
@@ -641,71 +588,6 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
 }
 
 isc_result_t
-isc_task_allowsend(isc_task_t *task, isc_boolean_t allowed) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	/*
-	 * Allow or disallow sending events to 'task'.
-	 *
-	 * XXXRTH:  WARNING:  This method may be removed before beta.
-	 */
-
-	REQUIRE(VALID_TASK(task));
-
-	LOCK(&task->lock);
-	if (task->state == task_state_done)
-		result = ISC_R_TASKDONE;
-	else {
-		if (allowed)
-			task->flags |= TASK_F_SENDOK;
-		else
-			task->flags &= ~TASK_F_SENDOK;
-	}
-	UNLOCK(&task->lock);
-
-	return (result);
-}
-
-isc_result_t
-isc_task_allowdone(isc_task_t *task, isc_boolean_t allowed) {
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t was_idle = ISC_FALSE;
-
-	/*
-	 * Allow or disallow automatic termination of 'task'.
-	 */
-
-	REQUIRE(VALID_TASK(task));
-
-	LOCK(&task->lock);
-	if (task->state == task_state_done)
-		result = ISC_R_TASKDONE;
-	else {
-		if (allowed) {
-			task->flags |= TASK_F_DONEOK;
-			/*
-			 * To simply things, transition to the done state
-			 * only occurs after running the task, so we do not
-			 * attempt to go directly to the done state here.
-			 */
-			if (TASK_WANTDONE(task) &&
-			    task->state == task_state_idle) {
-				INSIST(EMPTY(task->events));
-				task->state = task_state_ready;
-				was_idle = ISC_TRUE;
-			}
-		} else
-			task->flags &= ~TASK_F_DONEOK;
-	}
-	UNLOCK(&task->lock);
-
-	if (was_idle)
-		task_ready(task);
-
-	return (result);
-}
-
-isc_result_t
 isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 	isc_boolean_t disallowed = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -729,10 +611,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 		return (ISC_R_NOMEMORY);
 
 	LOCK(&task->lock);
-	if (task->state == task_state_done) {
-		disallowed = ISC_TRUE;
-		result = ISC_R_TASKDONE;
-	} else if (TASK_SHUTTINGDOWN(task)) {
+	if (TASK_SHUTTINGDOWN(task)) {
 		disallowed = ISC_TRUE;
 		result = ISC_R_SHUTTINGDOWN;
 	} else
@@ -898,38 +777,51 @@ run(void *uap) {
 					}
 					dispatch_count++;
 				}
-				
-				if (task->references == 0 &&
-				    EMPTY(task->events)) {
-					if (! TASK_SHUTTINGDOWN(task)) {
-						isc_boolean_t was_idle;
 
-						was_idle = task_shutdown(task);
-						INSIST(!was_idle);
-					} else {
-						/*
-						 * We force the DONEOK flag
-						 * to true so this task does
-						 * not become a zombie.
-						 */
-						task->flags |= TASK_F_DONEOK;
-					}
+				if (task->references == 0 &&
+				    EMPTY(task->events) &&
+				    !TASK_SHUTTINGDOWN(task)) {
+					isc_boolean_t was_idle;
+					
+					/*
+					 * There are no references and no
+					 * pending events for this task,
+					 * which means it will not become
+					 * runnable again via an external
+					 * action (such as sending an event
+					 * or detaching).
+					 *
+					 * We initiate shutdown to prevent
+					 * it from becoming a zombie.
+					 *
+					 * We do this here instead of in
+					 * the "if EMPTY(task->events)" block
+					 * below because:
+					 *
+					 *	If we post no shutdown events,
+					 *	we want the task to finish.
+					 *
+					 *	If we did post shutdown events,
+					 *	will still want the task's
+					 *	quantum to be applied.
+					 */
+					was_idle = task_shutdown(task);
+					INSIST(!was_idle);
 				}
 
 				if (EMPTY(task->events)) {
 					/*
 					 * Nothing else to do for this task
-					 * right now.  If it is shutting down,
-					 * then it is done, otherwise we just
-					 * put it to sleep.
+					 * right now.
 					 */
 					XTRACE("empty");
-					if (TASK_WANTDONE(task)) {
+					if (task->references == 0 &&
+					    TASK_SHUTTINGDOWN(task)) {
+						/*
+						 * The task is done.
+						 */
 						XTRACE("done");
-						if (task->references == 0)
-							finished = ISC_TRUE;
-						task->flags &=
-							~TASK_F_SENDOK;
+						finished = ISC_TRUE;
 						task->state = task_state_done;
 					} else
 						task->state = task_state_idle;
