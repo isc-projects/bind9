@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.4 2000/11/15 22:41:56 tale Exp $ */
+/* $Id: resource.c,v 1.5 2000/11/28 21:40:52 gson Exp $ */
 
 #include <sys/types.h>
 #include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
@@ -34,34 +34,43 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 	switch (resource) {
 	case isc_resource_coresize:
 		*rlim_resource = RLIMIT_CORE;
+		break;
 	case isc_resource_cputime:
 		*rlim_resource = RLIMIT_CPU;
+		break;		
 	case isc_resource_datasize:
 		*rlim_resource = RLIMIT_DATA;
+		break;		
 	case isc_resource_filesize:
 		*rlim_resource = RLIMIT_FSIZE;
+		break;		
 	case isc_resource_lockedmemory:
 #ifdef RLIMIT_MEMLOCK
 		*rlim_resource = RLIMIT_MEMLOCK;
 #else
 		result = ISC_R_NOTIMPLEMENTED;
 #endif
+		break;
 	case isc_resource_openfiles:
 		*rlim_resource = RLIMIT_NOFILE;
+		break;
 	case isc_resource_processes:
 #ifdef RLIMIT_NPROC
 		*rlim_resource = RLIMIT_NPROC;
 #else
 		result = ISC_R_NOTIMPLEMENTED;
 #endif
+		break;
 	case isc_resource_residentsize:
 #ifdef RLIMIT_RSS
 		*rlim_resource = RLIMIT_RSS;
 #else
 		result = ISC_R_NOTIMPLEMENTED;
 #endif
+		break;
 	case isc_resource_stacksize:
 		*rlim_resource = RLIMIT_STACK;
+		break;
 	default:
                 /*
 		 * This test is not very robust if isc_resource_t
@@ -71,6 +80,7 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 			resource <= isc_resource_stacksize);
 
 		result = ISC_R_RANGE;
+		break;
 	}
 
 	return (result);
