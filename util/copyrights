@@ -2158,7 +2158,7 @@
 ./lib/lwres/man/lwres_resutil.html		HTML	2001,2004
 ./lib/lwres/man/resolver.5			MAN	2000,2001,2004
 ./lib/lwres/print.c				C	1999,2000,2001,2003,2004
-./lib/lwres/print_p.h				C	1999,2000,2001,2004
+./lib/lwres/print_p.h				C	1999,2000,2001,2003,2004
 ./lib/lwres/unix/.cvsignore			X	2001
 ./lib/lwres/unix/Makefile.in			MAKE	2001,2004
 ./lib/lwres/unix/include/.cvsignore		X	2001
