@@ -37,7 +37,7 @@
  * written by Michael Graff <explorer@netbsd.org>.
  */
 
-#define ISC_ENTROPY_MAGIC	ISC_MAGIC('E', 'n', 't', 
+#define ISC_ENTROPY_MAGIC	ISC_MAGIC('E', 'n', 't', 'e')
 
 #define VALID_ENTROPY(e)	ISC_MAGIC_VALID(e, ISC_ENTROPY_MAGIC)
 #define VALID_SOURCE(s)		((s) != NULL)
