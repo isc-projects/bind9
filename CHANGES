@@ -81,7 +81,8 @@
 			* NOWILDARD proof with NXDOMAIN.
 			Cache and return NOQNAME with wildcard answers.
 
-1556.	[placeholder]	rt6427
+1556.   [bug]		nsupdate now treats all names as fully qualified.
+			[RT #6427]
 
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
 			point. [RT #7572]
