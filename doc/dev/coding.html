@@ -15,7 +15,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: coding.html,v 1.13 2000/08/01 01:18:21 tale Exp $ -->
+<!-- $Id: coding.html,v 1.14 2000/09/19 22:47:14 gson Exp $ -->
 
 <H2>C Language</H2>
 
@@ -345,6 +345,11 @@ Bad (obviously for more than one reason ...):
 <H4>Clear Success or Failure</H4>
 A function should report success or failure, and do so accurately.  It
 should never fail silently.  Use of Design by Contract can help here.<P>
+
+When a function is designed to return results to the caller by
+assigning to caller variables through pointer arguments, it should
+perform the assignment only if it succeeds and leave the variables
+unmodified if it fails.<P>
 
 <H4>Testing Bits</H4>
 Bit testing should be as follows:<P>
