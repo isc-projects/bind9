@@ -1,4 +1,4 @@
-1692.	[bug]		Don't set -I, -L and -R flags when librcypto is in
+1692.	[bug]		Don't set -I, -L and -R flags when libcrypto is in
 			/usr/lib. [RT #11971]
 
 1691.	[bug]		sdb's attachversion was not complete. [RT #11990]
