@@ -1,3 +1,6 @@
+1330.	[bug]		'rndc stop' failed to cause zones to be flushed
+			sometimes. [RT #3157]
+
 1289.	[port]		Openserver: ifconfig.sh support.
 
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
