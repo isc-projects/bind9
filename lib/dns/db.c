@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.49 2000/08/01 01:22:15 tale Exp $ */
+/* $Id: db.c,v 1.50 2000/08/03 19:46:31 bwelling Exp $ */
 
 /***
  *** Imports
@@ -645,4 +645,11 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
  freenode:
 	dns_db_detachnode(db, &node);
 	return (result);
+}
+
+unsigned int
+dns_db_nodecount(dns_db_t *db) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	return ((db->methods->nodecount)(db));
 }

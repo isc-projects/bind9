@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.113 2000/08/01 01:22:39 tale Exp $ */
+/* $Id: rbtdb.c,v 1.114 2000/08/03 19:46:34 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3778,6 +3778,22 @@ issecure(dns_db_t *db) {
 	return (secure);
 }
 
+static isc_boolean_t
+nodecount(dns_db_t *db) {
+	dns_rbtdb_t *rbtdb;
+	unsigned int count;
+
+	rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	count = dns_rbt_nodecount(rbtdb->tree);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+
+	return (count);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -3801,7 +3817,8 @@ static dns_dbmethods_t zone_methods = {
 	addrdataset,
 	subtractrdataset,
 	deleterdataset,
-	issecure
+	issecure,
+	nodecount
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -3827,7 +3844,8 @@ static dns_dbmethods_t cache_methods = {
 	addrdataset,
 	subtractrdataset,
 	deleterdataset,
-	issecure
+	issecure,
+	nodecount
 };
 
 isc_result_t

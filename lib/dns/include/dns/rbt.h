@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.46 2000/08/01 01:24:28 tale Exp $ */
+/* $Id: rbt.h,v 1.47 2000/08/03 19:46:37 bwelling Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -568,6 +568,15 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *
  *	'name' will have offsets that also point to the information stored
  *	as part of the node.
+ */
+
+unsigned int
+dns_rbt_nodecount(dns_rbt_t *rbt);
+/*
+ * Obtain the number of nodes tree of trees.
+ *
+ * Requires:
+ *	rbt is a valid rbt manager.
  */
 
 void

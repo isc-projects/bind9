@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.53 2000/08/01 01:24:04 tale Exp $ */
+/* $Id: db.h,v 1.54 2000/08/03 19:46:36 bwelling Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -140,6 +140,7 @@ typedef struct dns_dbmethods {
 					  dns_rdatatype_t type,
 					  dns_rdatatype_t covers);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
+	unsigned int	(*nodecount)(dns_db_t *db);
 } dns_dbmethods_t;
 
 #define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
@@ -1127,6 +1128,19 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
  * Requires:
  *      'db' is a valid database with zone semantics.
  *      'ver' is a valid version.
+ */
+
+unsigned int
+dns_db_nodecount(dns_db_t *db);
+/*
+ * Count the number of nodes in 'db'.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ * Returns:
+ * 	The number of nodes in the database
  */
 
 ISC_LANG_ENDDECLS

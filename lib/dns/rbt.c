@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.90 2000/08/01 01:22:38 tale Exp $ */
+/* $Id: rbt.c,v 1.91 2000/08/03 19:46:32 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -52,6 +52,7 @@ struct dns_rbt {
 	dns_rbtnode_t *		root;
 	void			(*data_deleter)(void *, void *);
 	void *			deleter_arg;
+	unsigned int		nodecount;
 };
 
 #define RED 0
@@ -205,6 +206,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	rbt->data_deleter = deleter;
 	rbt->deleter_arg = deleter_arg;
 	rbt->root = NULL;
+	rbt->nodecount = 0;
 	rbt->magic = RBT_MAGIC;
 
 	*rbtp = rbt;
@@ -225,11 +227,19 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 
 	dns_rbt_deletetree(rbt, rbt->root);
 
+	INSIST(rbt->nodecount == 0);
+
 	rbt->magic = 0;
 
 	isc_mem_put(rbt->mctx, rbt, sizeof(*rbt));
 
 	*rbtp = NULL;
+}
+
+unsigned int
+dns_rbt_nodecount(dns_rbt_t *rbt) {
+	REQUIRE(VALID_RBT(rbt));
+	return (rbt->nodecount);
 }
 
 /*
@@ -368,6 +378,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 		if (result == ISC_R_SUCCESS) {
+			rbt->nodecount++;
 			IS_ROOT(new_current) = ISC_TRUE;
 			rbt->root = new_current;
 			*nodep = new_current;
@@ -618,6 +629,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				MAKE_BLACK(current);
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
+				rbt->nodecount++;
+
 				if (common_labels ==
 				    dns_name_countlabels(add_name) &&
 				    common_bits == add_bits) {
@@ -669,6 +682,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	if (result == ISC_R_SUCCESS) {
 		dns_rbt_addonlevel(new_current, current, order, root, &chain);
+		rbt->nodecount++;
 		*nodep = new_current;
 	}
 
@@ -1206,6 +1220,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	if (rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
+	rbt->nodecount--;
 
 	/*
 	 * If there is one node left on this level, and the node one level up
@@ -1378,9 +1393,12 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 			PARENT(DOWN(down))  = newnode;
 
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
+		rbt->nodecount--;
 
-		if (newnode != down)
+		if (newnode != down) {
 			isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
+			rbt->nodecount--;
+		}
 	}
 
 	return (result);
@@ -1829,6 +1847,7 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
+	rbt->nodecount--;
 }
 
 static void
