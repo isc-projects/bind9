@@ -134,7 +134,9 @@ typetostr(const dns_rdatatype_t type) {
 	return (char *) r.base;
 }
 
-/* Not thread-safe! */
+/*
+ * Not thread-safe!
+ */
 static char *
 algtostr(const dns_secalg_t alg) {
 	isc_buffer_t b;
@@ -147,18 +149,17 @@ algtostr(const dns_secalg_t alg) {
 	check_result(result, "dns_secalg_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
-	return (char *) r.base;
+	return ((char *)r.base);
 }
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
-	unsigned int byte, shift, mask;
+	unsigned int shift, mask;
 
-	byte = array[index / 8];
 	shift = 7 - (index % 8);
 	mask = 1 << shift;
 
-	if (bit)
+	if (bit != 0)
 		array[index / 8] |= mask;
 	else
 		array[index / 8] &= (~mask & 0xFF);
@@ -1251,7 +1252,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 }
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", PROGRAM);
 
@@ -1261,7 +1262,8 @@ usage() {
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
-	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now (now + 30 days)\n");
+	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now "
+				"(now + 30 days)\n");
 	fprintf(stderr, "\t-c ttl:\n");
 	fprintf(stderr, "\t\tcycle period - regenerate "
 				"if < cycle from end ( (end-start)/4 )\n");
@@ -1270,11 +1272,11 @@ usage() {
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
-	fprintf(stderr, "\t\tfile the signed zone is written in " \
-			"(zonefile + .signed)\n");
+	fprintf(stderr, "\t\tfile the signed zone is written in "
+				"(zonefile + .signed)\n");
 	fprintf(stderr, "\t-a:\n");
 	fprintf(stderr, "\t\tverify generated signatures "
-					"(if currently valid)\n");
+				"(if currently valid)\n");
 
 	fprintf(stderr, "\n");
 

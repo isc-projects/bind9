@@ -133,7 +133,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 }
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] keys\n", PROGRAM);
 

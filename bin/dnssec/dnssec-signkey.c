@@ -107,7 +107,7 @@ algtostr(const dns_secalg_t alg) {
 
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "\t%s [options] keyset keys\n", PROGRAM);
 

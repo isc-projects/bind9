@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.23 2000/05/19 00:20:39 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.24 2000/05/24 03:16:16 tale Exp $ */
 
 #include <config.h>
 
@@ -82,7 +82,7 @@ dsa_size_ok(int size) {
 }
 
 static void
-usage() {
+usage(void) {
 	printf("Usage:\n");
 	printf("    %s [options] name\n\n", PROGRAM);
 	printf("Required options:\n");
@@ -157,7 +157,8 @@ main(int argc, char **argv) {
 			rsa_exp = 1;
 			break;
 		case 'g':
-			generator = strtol(isc_commandline_argument, &endp, 10);
+			generator = strtol(isc_commandline_argument,
+					   &endp, 10);
 			if (*endp != '\0' || generator <= 0)
 				fatal("-g requires a positive number");
 			break;
@@ -190,6 +191,11 @@ main(int argc, char **argv) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
+			/*
+			 * XXXDCL - shut up IRIX. true, this variable
+			 * isn't used yet.  but it will be.
+			 */
+			UNUSED(verbose);
 			break;
 
 		case 'h':
@@ -365,7 +371,7 @@ main(int argc, char **argv) {
 	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
 	if (ret != ISC_R_SUCCESS)
 		fatal("failed to write key %s/%s/%d: %s\n", name, 
-			dst_key_id(key), algtostr(alg), isc_result_totext(ret));
+		      dst_key_id(key), algtostr(alg), isc_result_totext(ret));
 
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, &buf);
