@@ -10012,6 +10012,13 @@ CLASS="command"
 >$ORIGIN</B
 > is
 used.</P
+><P
+>The origin and the current domain name
+revert to the values they had prior to the <B
+CLASS="command"
+>$INCLUDE</B
+> once
+the file has been read.</P
 ><DIV
 CLASS="note"
 ><BLOCKQUOTE
@@ -10019,16 +10026,15 @@ CLASS="note"
 ><P
 ><B
 >Note: </B
->The behavior when <B
-CLASS="command"
->origin</B
-> is
-specified differs from that described in RFC 1035. The origin and
-current domain revert to the values they were prior to the <B
+>
+RFC 1035 specifies that the current origin should be restored after
+an <B
 CLASS="command"
 >$INCLUDE</B
-> once
-the file has been read.</P
+>, but it is silent on whether the current
+domain name should also be restored.  BIND 9 restores both of them.
+This could be construed as a deviation from RFC 1035, a feature, or both.
+</P
 ></BLOCKQUOTE
 ></DIV
 ></DIV
@@ -10037,7 +10043,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3819"
+NAME="AEN3820"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10077,7 +10083,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3830"
+NAME="AEN3831"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN

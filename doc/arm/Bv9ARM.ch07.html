@@ -83,7 +83,7 @@ HREF="Bv9ARM.ch07.html#Access_Control_Lists"
 ></DT
 ><DT
 >7.2. <A
-HREF="Bv9ARM.ch07.html#AEN3922"
+HREF="Bv9ARM.ch07.html#AEN3923"
 ><B
 CLASS="command"
 >chroot</B
@@ -185,7 +185,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3922"
+NAME="AEN3923"
 >7.2. <B
 CLASS="command"
 >chroot</B
@@ -264,7 +264,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3945"
+NAME="AEN3946"
 >7.2.1. The <B
 CLASS="command"
 >chroot</B
@@ -320,7 +320,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3960"
+NAME="AEN3961"
 >7.2.2. Using the <B
 CLASS="command"
 >setuid</B
@@ -343,7 +343,12 @@ set the user id and/or group id) on files to which you want <SPAN
 CLASS="acronym"
 >BIND</SPAN
 >
-to write.</P
+to write.  Note that if the <B
+CLASS="command"
+>named</B
+> daemon is running as a
+nonprivileged user, it will not be able to bind to new restricted ports if the
+server is reloaded.</P
 ></DIV
 ></DIV
 ><DIV
