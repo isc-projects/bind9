@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.220 2000/09/26 17:23:57 gson Exp $ */
+/* $Id: zone.c,v 1.221 2000/09/26 17:28:13 gson Exp $ */
 
 #include <config.h>
 
@@ -5201,8 +5201,13 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 	LOCK(&zmgr->iolock);
 	zmgr->ioactive++;
 	queue = ISC_TF(zmgr->ioactive > zmgr->iolimit);
-	if (queue)
-		ISC_LIST_APPEND(io->high ? zmgr->high : zmgr->low, io, link);
+	if (queue) {
+		if (io->high)
+			ISC_LIST_APPEND(zmgr->high, io, link);
+		else
+			ISC_LIST_APPEND(zmgr->low, io, link);
+	}
+	
 	UNLOCK(&zmgr->iolock);
 	*iop = io;
 
@@ -5239,8 +5244,10 @@ zonemgr_putio(dns_io_t **iop) {
 	if (next == NULL)
 		next = HEAD(zmgr->low);
 	if (next != NULL) {
-		ISC_LIST_UNLINK(next->high ? zmgr->high : zmgr->low,
-			        next, link);
+		if (next->high)
+			ISC_LIST_UNLINK(zmgr->high, next, link);
+		else
+			ISC_LIST_UNLINK(zmgr->low, next, link);
 		INSIST(next->event != NULL);
 	}
 	UNLOCK(&zmgr->iolock);
@@ -5259,8 +5266,11 @@ zonemgr_cancelio(dns_io_t *io) {
 	 */
 	LOCK(&io->zmgr->iolock);
 	if (ISC_LINK_LINKED(io, link)) {
-		ISC_LIST_UNLINK(io->high ? io->zmgr->high : io->zmgr->low,
-				io, link);
+		if (io->high)
+			ISC_LIST_UNLINK(io->zmgr->high, io, link);
+		else
+			ISC_LIST_UNLINK(io->zmgr->low, io, link);
+
 		send_event = ISC_TRUE;
 		INSIST(io->event != NULL);
 	} 
