@@ -45,40 +45,18 @@
 #include <dns/rdatasetiter.h>
 #include <dns/compress.h>
 #include <dns/db.h>
+#include <dns/dbtable.h>
 
-static void
-makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
-	char b[255];
-	isc_buffer_t source, target;
-	size_t len;
-	isc_region_t r1, r2;
-	dns_result_t result;
+#define MAXDBS			100
+#define MAXHOLD			100
+#define MAXVERSIONS		100
 
-	if (origin == NULL)
-		origin = dns_rootname;
-	dns_name_init(name, NULL);
-	len = strlen(text);
-	isc_buffer_init(&source, text, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&source, len);
-	isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
-	result = dns_name_fromtext(name, &source, origin, ISC_FALSE, &target);
-	RUNTIME_CHECK(result == DNS_R_SUCCESS);
-	dns_name_toregion(name, &r1);
-	r2.base = isc_mem_get(mctx, r1.length);
-	RUNTIME_CHECK(r2.base != NULL);
-	r2.length = r1.length;
-	memcpy(r2.base, r1.base, r1.length);
-	dns_name_fromregion(name, &r2);
-}
-
-static void
-freename(isc_mem_t *mctx, dns_name_t *name) {
-	isc_region_t r;
-
-	dns_name_toregion(name, &r);
-	isc_mem_put(mctx, r.base, r.length);
-	dns_name_invalidate(name);
-}
+static isc_mem_t *		mctx = NULL;
+static char			dbtype[128];
+static dns_dbtable_t *		dbtable;
+static dns_db_t *		dbs[MAXDBS];
+static dns_db_t *		default_db = NULL;
+static unsigned int		db_count = 0;
 
 static void
 print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
@@ -113,21 +91,82 @@ print_rdatasets(dns_name_t *name, dns_rdatasetiter_t *rdsiter) {
 		printf("%s\n", dns_result_totext(result));
 }
 
+static dns_result_t
+load(char *filename, char *origintext, isc_boolean_t cache) {
+	dns_fixedname_t forigin;
+	dns_name_t *origin;
+	dns_db_t *db;
+	dns_result_t result;
+	isc_buffer_t source;
+	size_t len;
+
+	if (!cache && db_count == MAXDBS)
+		return (DNS_R_NOSPACE);
+	
+	len = strlen(origintext);
+	isc_buffer_init(&source, origintext, len, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&source, len);
+	dns_fixedname_init(&forigin);
+	origin = dns_fixedname_name(&forigin);
+	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
+				   NULL);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	db = NULL;
+	result = dns_db_create(mctx, dbtype, origin, cache, dns_rdataclass_in,
+			       0, NULL, &db);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+
+	printf("loading %s (%s)\n", filename, origintext);
+	result = dns_db_load(db, filename);
+	if (result != DNS_R_SUCCESS)
+		return (result);
+	printf("loaded\n");
+
+	if (cache) {
+		RUNTIME_CHECK(default_db == NULL);
+		dns_dbtable_adddefault(dbtable, db);
+		default_db = db;
+	} else {
+		if (dns_dbtable_add(dbtable, db) != DNS_R_SUCCESS)
+			return (result);
+		dbs[db_count++] = db;
+	} 
+
+	return (DNS_R_SUCCESS);
+}
+
+static void
+unload_all(void) {
+	unsigned int i;
+	
+	for (i = 0; i < db_count; i++) {
+		dns_dbtable_remove(dbtable, dbs[i]);
+		dns_db_detach(&dbs[i]);
+	}
+	db_count = 0;
+
+	if (default_db != NULL) {
+		dns_dbtable_removedefault(dbtable);
+		dns_db_detach(&default_db);
+		default_db = NULL;
+	}
+}
+
 int
 main(int argc, char *argv[]) {
-	isc_mem_t *mctx = NULL;
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_result_t result;
-	dns_name_t name, base, *origin;
+	dns_name_t name;
 	dns_offsets_t offsets;
 	size_t len;
 	isc_buffer_t source, target;
 	char s[1000];
 	char b[255];
 	dns_rdataset_t rdataset;
-	char basetext[1000];
-	char dbtype[128];
 	int ch;
 	dns_rdatatype_t type = 1;
 	isc_boolean_t printnode = ISC_FALSE;
@@ -136,13 +175,12 @@ main(int argc, char *argv[]) {
 	isc_boolean_t holdmode = ISC_FALSE;
 	isc_boolean_t verbose = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
-	isc_boolean_t cache = ISC_FALSE;
 	isc_boolean_t quiet = ISC_FALSE;
 	isc_boolean_t time_lookups = ISC_FALSE;
 	isc_boolean_t found_as;
 	dns_dbversion_t *version = NULL;
 	dns_dbversion_t *wversion = NULL;
-	dns_dbversion_t *rversions[100];
+	dns_dbversion_t *rversions[MAXVERSIONS];
 	int i, rcount = 0, v;
 	dns_rdatasetiter_t *rdsiter;
 	char t1[256];
@@ -154,14 +192,20 @@ main(int argc, char *argv[]) {
 	unsigned int options = 0;
 	struct timeval start, finish;
 	int hold_count = 0;
-	dns_dbnode_t *hold_node[100];
+	dns_dbnode_t *hold_node[MAXHOLD];
+	dns_db_t *hold_db[MAXHOLD];
+	char *origintext;
 
-	strcpy(basetext, "");
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_dbtable_create(mctx, &dbtable) == DNS_R_SUCCESS);
+
 	strcpy(dbtype, "rbt");
-	while ((ch = getopt(argc, argv, "z:d:t:gpqvcT")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:t:z:gpqvT")) != -1) {
 		switch (ch) {
 		case 'c':
-			cache = ISC_TRUE;
+			result = load(optarg, ".", ISC_TRUE);
+			if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
 			break;
 		case 'd':
 			strcpy(dbtype, optarg);
@@ -186,7 +230,14 @@ main(int argc, char *argv[]) {
 			verbose = ISC_TRUE;
 			break;
 		case 'z':
-			strcpy(basetext, optarg);
+			origintext = strrchr(optarg, '/');
+			if (origintext == NULL)
+				origintext = optarg;
+			else
+				origintext++;	/* Skip '/'. */
+			result = load(optarg, origintext, ISC_FALSE);
+			if (result != DNS_R_SUCCESS)
+				printf("%s\n", dns_result_totext(result));
 			break;
 		}
 	}
@@ -194,46 +245,22 @@ main(int argc, char *argv[]) {
 	argc -= optind;
 	argv += optind;
 
-	if (argc < 1) {
-		fprintf(stderr, "usage: db_test filename\n");
-		exit(1);
-	}
+	if (argc != 0)
+		printf("ignoring trailing arguments\n");
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
-	if (strcmp(basetext, "") == 0)
-		strcpy(basetext, "vix.com.");
-	makename(mctx, basetext, &base, NULL);
-
-	db = NULL;
-	result = dns_db_create(mctx, dbtype, &base, cache, dns_rdataclass_in,
-			       0, NULL, &db);
-	if (result != DNS_R_SUCCESS) {
-		printf("dns_db_create(), DB type '%s', failed: %s\n",
-		       dbtype, dns_result_totext(result));
-		exit(1);
-	}
-
+	/*
+	 * Some final initialization...
+	 */
 	dns_fixedname_init(&foundname);
 	fname = dns_fixedname_name(&foundname);
-
-	origin = &base;
-	printf("loading %s\n", argv[0]);
-	result = dns_db_load(db, argv[0]);
-	if (result != DNS_R_SUCCESS) {
-		printf("couldn't load master file: %s\n",
-		       dns_result_totext(result));
-		exit(1);
-	}
-	printf("loaded\n");
+	for (i = 0; i < MAXVERSIONS; i++)
+		rversions[i] = NULL;
 
 	if (time_lookups) {
 		/* Naughty */
 		(void)gettimeofday(&start, NULL);
 	}
 
-	for (i = 0; i < 100; i++)
-		rversions[i] = NULL;
 	while (!done) {
 		if (!quiet)
 			printf("\n");
@@ -252,7 +279,7 @@ main(int argc, char *argv[]) {
 		dns_name_init(&name, offsets);
 		len = strlen(s);
 		if (strcmp(s, "!R") == 0) {
-			if (rcount == 100) {
+			if (rcount == MAXVERSIONS) {
 				printf("too many open versions\n");
 				continue;
 			}
@@ -338,8 +365,10 @@ main(int argc, char *argv[]) {
 			printf("holdmode = %s\n", holdmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!HR") == 0) {
-			for (i = 0; i < hold_count; i++)
-				dns_db_detachnode(db, &hold_node[i]);
+			for (i = 0; i < hold_count; i++) {
+				dns_db_detachnode(hold_db[i], &hold_node[i]);
+				dns_db_detach(&hold_db[i]);
+			}
 			hold_count = 0;
 			holdmode = ISC_FALSE;
 			printf("held nodes have been detached\n");
@@ -386,13 +415,20 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
 		isc_buffer_init(&target, b, sizeof b, ISC_BUFFERTYPE_BINARY);
-		result = dns_name_fromtext(&name, &source, origin, ISC_FALSE,
-					   &target);
+		result = dns_name_fromtext(&name, &source, dns_rootname,
+					   ISC_FALSE, &target);
 		if (result != DNS_R_SUCCESS) {
 			printf("bad name: %s\n", dns_result_totext(result));
 			continue;
 		}
 
+		db = NULL;
+		result = dns_dbtable_find(dbtable, &name, &db);
+		if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
+			if (!quiet)
+				printf("\n%s\n", dns_result_totext(result));
+			continue;
+		}
 		node = NULL;
 		dns_rdataset_init(&rdataset);
 		result = dns_db_find(db, &name, version, type, options, 0,
@@ -413,13 +449,18 @@ main(int argc, char *argv[]) {
 			break;
 		case DNS_R_NXRDATASET:
 			if (holdmode) {
-				RUNTIME_CHECK(hold_count < 100);
+				RUNTIME_CHECK(hold_count < MAXHOLD);
 				hold_node[hold_count++] = node;
+				hold_db[hold_count++] = db;
 				node = NULL;
-			} else
+				db = NULL;
+			} else {
 				dns_db_detachnode(db, &node);
+				dns_db_detach(&db);
+			}
 			continue;
 		default:
+			dns_db_detach(&db);
 			if (quiet)
 				printf("%s\n", dns_result_totext(result));
 			continue;
@@ -432,11 +473,15 @@ main(int argc, char *argv[]) {
 			result = dns_name_totext(&name, ISC_FALSE, &tb1);
 			if (result != DNS_R_SUCCESS) {
 				printf("%s\n", dns_result_totext(result));
+				dns_db_detachnode(db, &node);
+				dns_db_detach(&db);
 				continue;
 			}
 			result = dns_name_totext(fname, ISC_FALSE, &tb2);
 			if (result != DNS_R_SUCCESS) {
 				printf("%s\n", dns_result_totext(result));
+				dns_db_detachnode(db, &node);
+				dns_db_detach(&db);
 				continue;
 			}
 			isc_buffer_used(&tb1, &r1);
@@ -484,11 +529,15 @@ main(int argc, char *argv[]) {
 		}
 
 		if (holdmode) {
-			RUNTIME_CHECK(hold_count < 100);
+			RUNTIME_CHECK(hold_count < MAXHOLD);
 			hold_node[hold_count++] = node;
+			hold_db[hold_count++] = db;
 			node = NULL;
-		} else
+			db = NULL;
+		} else {
 			dns_db_detachnode(db, &node);
+			dns_db_detach(&db);
+		}
 	}
 
 	if (time_lookups) {
@@ -508,8 +557,9 @@ main(int argc, char *argv[]) {
 		       (unsigned long)interval.tv_usec);
 	}
 
-	dns_db_detach(&db);
-	freename(mctx, &base);
+	unload_all();
+
+	dns_dbtable_destroy(&dbtable);
 
 	if (!quiet)
 		isc_mem_stats(mctx, stdout);
