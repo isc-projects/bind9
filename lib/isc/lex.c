@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.49 2000/11/18 00:54:19 bwelling Exp $ */
+/* $Id: lex.c,v 1.50 2000/11/18 01:02:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -335,7 +335,9 @@ unpushback(inputsource *source) {
 }
 
 static isc_result_t
-pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options) {
+pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options,
+	    lexstate state)
+{
 	if (isc_buffer_availablelength(source->pushback) == 0) {
 		isc_buffer_t *tbuf = NULL;
 		unsigned int oldlen;
@@ -353,10 +355,14 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options) {
 		source->pushback = tbuf;
 	}
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
-	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && c == '(')
-		source->pushback_parens++;
-	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && c == ')')
-		source->pushback_parens--;
+	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
+	    state == lexstate_start)
+	{
+		if (c == '(')
+			source->pushback_parens++;
+		else if (c == ')')
+			source->pushback_parens--;
+	}
 	return (ISC_R_SUCCESS);
 }
 	
@@ -451,7 +457,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			if (c != EOF) {
 				source->result = pushandgrow(lex, source, c,
-							     options);
+							     options, state);
 				if (source->result != ISC_R_SUCCESS)
 					return (source->result);
 			}
