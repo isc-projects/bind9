@@ -1,4 +1,6 @@
 
+ 434.	[func]		New function isc_file_isabsolute().
+
  433.	[func]		isc_base64_decodestring() now accepts newlines
 			within the base64 data.  This makes it possible 
 			to break up the key data in a "trusted-keys"

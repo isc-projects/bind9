@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.9 2000/08/01 01:30:10 tale Exp $ */
+/* $Id: file.h,v 1.10 2000/09/08 18:37:25 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -159,12 +159,17 @@ isc_file_remove(const char *filename);
  * Remove the file named by 'filename'.
  */
 
+isc_boolean_t
+isc_file_isabsolute(const char *filename);
+/*
+ * Return ISC_TRUE iff the given file name is absolute.
+ */
+
 /*
  * XXX We should also have a isc_file_writeeopen() function
  * for safely open a file in a publicly writable directory
  * (see write_open() in BIND 8's ns_config.c).
  */
-
 
 ISC_LANG_ENDDECLS
 

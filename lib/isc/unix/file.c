@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.20 2000/08/01 01:31:16 tale Exp $ */
+/* $Id: file.c,v 1.21 2000/09/08 18:37:26 gson Exp $ */
 
 #include <config.h>
 
@@ -179,4 +179,9 @@ isc_file_remove(const char *filename) {
 		return (ISC_R_SUCCESS);
 	else
 		return (isc__errno2result(errno));
+}
+
+isc_boolean_t
+isc_file_isabsolute(const char *filename) {
+	return (ISC_TF(filename[0] == '/'));
 }
