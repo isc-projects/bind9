@@ -3224,6 +3224,9 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/lwres/Makefile
+	lib/lwres/include/Makefile
+	lib/lwres/include/lwres/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile
@@ -3407,6 +3410,9 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/lwres/Makefile
+	lib/lwres/include/Makefile
+	lib/lwres/include/lwres/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile

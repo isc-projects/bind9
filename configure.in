@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.71 $)
+AC_REVISION($Revision: 1.72 $)
 
 AC_PREREQ(2.13)
 
@@ -545,6 +545,9 @@ AC_OUTPUT(
 	lib/dns/sec/dst/include/Makefile
 	lib/dns/sec/dst/include/dst/Makefile
 	lib/dns/config/Makefile
+	lib/lwres/Makefile
+	lib/lwres/include/Makefile
+	lib/lwres/include/lwres/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile

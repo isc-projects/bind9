@@ -670,6 +670,17 @@
 ./lib/isc/win32/stdtime.c			C	1999
 ./lib/isc/win32/thread.c			C	1998,1999
 ./lib/isc/win32/time.c				C	1998,1999
+./lib/lwres/.cvsignore				X	2000
+./lib/lwres/Makefile.in				MAKE	2000
+./lib/lwres/lwbuffer.c				C	2000
+./lib/lwres/lwres.c				C	2000
+./lib/lwres/include/.cvsignore			X	2000
+./lib/lwres/include/Makefile.in			MAKE	2000
+./lib/lwres/include/lwres/.cvsignore		X	2000
+./lib/lwres/include/lwres/Makefile.in		MAKE	2000
+./lib/lwres/include/lwres/lwpacket.h		C	1999
+./lib/lwres/include/lwres/lwres.h		C	2000
+./lib/lwres/include/lwres/lwbuffer.h		C	2000
 ./lib/omapi/.cvsignore			        X	1999
 ./lib/omapi/Makefile.in         		MAKE	1999
 ./lib/omapi/alloc.c				C	1996,1997,1998,1999
