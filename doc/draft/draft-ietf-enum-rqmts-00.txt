@@ -1,0 +1,201 @@
+Telephone Number Mapping                                       A. Brown
+Internet Draft                                          Nortel Networks
+Document: <draft-ietf-enum-rqmts-00.txt>                       November 1999
+Category: Informational
+
+
+                           ENUM Requirements
+
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026 [1].
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that
+   other groups may also distribute working documents as Internet-
+   Drafts. Internet-Drafts are draft documents valid for a maximum of
+   six months and may be updated, replaced, or obsoleted by other
+   documents at any time. It is inappropriate to use Internet- Drafts
+   as reference material or to cite them other than as "work in
+   progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+1.      Abstract
+
+   This paper defines the requirements for a DNS-based architecture and
+   protocols for mapping a telephone number to a set of attributes
+   (e.g., URLs) which can be used to contact a resource associated with
+   that number. There are many possible protocols that can be
+   considered for a telephone number mapping service.  The purpose of
+   this document is to focus discussion on a DNS-based solution.  The
+   intention is to enumerate the expectations of such a solution and to
+   clarify the scope.
+
+2.      Conventions used in this document
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in
+   this document are to be interpreted as described in RFC-2119 [2].
+
+3.      Requirements
+
+3.1     Endpoint Address Lookup
+
+   The system SHALL provide a service for the retrieval of endpoint
+   addresses (e.g., email address, IP address, SIP address, etc. )in
+   the form or URLs. The system SHALL also be capable of retrieving the
+   addresses of servers, if available, which may contain this endpoint
+   information.
+                          ENUM Requirements              November 1999
+
+
+3.2     Capabilities Retrieval/Negotiation
+
+   The retrieval or negotiation of capabilities is beyond the scope of
+   the system.
+
+3.3     Retrieval of Additional Information
+
+   The retrieval of additional, application-specific information (e.g.,
+   spoken name for verification purposes) is beyond the scope of the
+   system.  The system MUST provide a service for the retrieval of
+   protocol and service information if available.
+
+
+3.4     Qualification of the Request
+
+   The system is not required to enable the qualification of a request
+   by a user, for the purposes of filtering for reducing returned
+   information or for traffic reduction.
+
+3.5     Provisioning
+
+   The scope of the architecture and protocol does not include
+   provisioning.  As well, propagation of changes to information
+   accessible via the system is not expected to be instantaneous.
+
+3.6     Response Timeout
+
+   The system SHALL have a defined timeout mechanism.
+
+3.7     Global Number Portability
+
+   The system MUST support existing local number portability
+   mechanisms, where applicable.  It is RECOMMENDED that the system not
+   be designed in such as way as to impede future global number
+   portability.
+
+3.8     Scalability
+
+   The system MUST scale to handle quantities of telephone numbers and
+   queries comparable to current and expected future PSTN usage.
+
+3.9     Query Performance
+
+   The system is not expected to respond to queries with the same
+   performance levels as current PSTN queries.
+
+3.10    Other PSTN Services
+
+   Other PSTN type services such as Emergency 911, directory assistance
+   411, and other carrier codes and services accessible via phone
+   signaling is outside the scope of ENUM.
+                          ENUM Requirements              November 1999
+
+3.11    Privacy
+
+   The system MUST allow the owner of the telephone number to control
+   the information which prospective callers may receive.
+
+3.12    Competition
+
+   The system MUST provide the capability for more than one
+   organization to provide information on the same telephone number.
+
+3.13    Authorization of Requests and Responses
+
+   The system SHALL enable the authorization of requests and responses.
+
+3.14    Privacy and Integrity of Requests and Responses
+
+   The system SHALL enable the privacy and integrity of requests and
+   responses.
+
+3.15    Call Routing
+
+   The system is not required to provide a service for routing calls or
+   locating gateways to a specific service.
+
+3.16    Service Logic
+
+   The system is not responsible for employing service logic for the
+   intelligent retrieval of information.
+
+3.17    E.164 Numbers
+
+   The system is not responsible for returning information on private
+   numbering plans and non-E.164 numbers.  The system is responsible
+   for returning information on 1-800 and other legitimate E.164
+   numbers.
+
+4.      Security Considerations
+
+   This document specifies several security requirements including
+   privacy of information, and authorization, privacy and integrity or
+   requests and responses.
+
+   The system will be designed to retrieve information required to
+   initiate an Internet telephony session.  Each of these session types
+   will have their own security threats, which should be addressed in
+   the groups responsible for those services.
+
+5.      References
+
+
+   1  Bradner, S., "The Internet Standards Process -- Revision 3", BCP
+      9, RFC 2026, October 1996.
+                          ENUM Requirements              November 1999
+
+
+
+   2  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+      Levels", BCP 14, RFC 2119, March 1997
+
+6.      Acknowledgements
+
+   This document is based on discussions from the ENUM working group.
+
+7.      Author's Addresses
+
+   Anne Brown
+   Nortel Networks
+   1050 Morrison Drive
+   Nepean, Ontario
+   K2H 8K7
+   Phone: +1 613 765 5274
+   Email: arbrown@nortelnetworks.com
+
+
+Full Copyright Statement
+
+   "Copyright (C) The Internet Society (date). All Rights Reserved.
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implmentation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph
+   are included on all such copies and derivative works. However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into
+
