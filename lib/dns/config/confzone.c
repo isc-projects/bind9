@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.58 2000/09/27 01:50:01 bwelling Exp $ */
+/* $Id: confzone.c,v 1.59 2000/10/11 05:15:23 marka Exp $ */
 
 #include <config.h>
 
@@ -673,7 +673,8 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      checknameserror, zone->name);
 
-	if (dns_c_zone_getdialup(zone, &tbool) == ISC_R_SUCCESS &&
+	if (zone->ztype != dns_c_zone_hint &&
+	    dns_c_zone_getdialup(zone, &tbool) == ISC_R_SUCCESS &&
 	    tbool == ISC_TRUE)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
