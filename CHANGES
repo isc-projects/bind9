@@ -4,6 +4,9 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1450.	[bug]		Fetching expired glue failed under certian
+			circumstances.  [RT #5124]
+
 1449.	[bug]		query_addbestns() didn't handle running out of memory
 			gracefully.
 
