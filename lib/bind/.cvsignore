@@ -9,3 +9,4 @@ Makefile
 config.cache
 config.status
 timestamp
+libtool
