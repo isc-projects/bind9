@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.56 2000/10/19 16:31:05 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.57 2000/10/20 18:31:27 gson Exp $ */
 
 #include <config.h>
 
@@ -1006,7 +1006,7 @@ show_message(dns_message_t *msg) {
 	bufsz = INITTEXT;
 	do { 
 		if (bufsz > MAXTEXT) {
-			fprintf(stderr, "couldn't allocate large enough"
+			fprintf(stderr, "couldn't allocate large enough "
 				"buffer to display message\n");
 			exit(1);
 		}
