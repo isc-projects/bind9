@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.17 2003/09/19 06:20:55 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.18 2003/09/19 12:44:39 marka Exp $ */
 
 #include <config.h>
 
@@ -613,6 +613,17 @@ options_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
+
+static cfg_type_t cfg_type_namelist = {
+	"namelist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_qstring };
+
+static keyword_type_t exclude_kw = { "exclude", &cfg_type_namelist };
+
+static cfg_type_t cfg_type_optional_exclude = {
+	"optional_exclude", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_list, &exclude_kw };
+
 /*
  * Clauses that can be found within the 'view' statement,
  * with defaults in the 'options' statement.
@@ -655,6 +666,7 @@ view_clauses[] = {
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
+	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ NULL, NULL, 0 }
 };
 

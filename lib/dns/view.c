@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.7 2003/09/19 06:20:54 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.8 2003/09/19 12:44:37 marka Exp $ */
 
 #include <config.h>
 
@@ -1224,6 +1224,41 @@ dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name) {
 	return (result);
 }
 
+isc_result_t
+dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name) {
+	isc_result_t result;
+	dns_name_t *new;
+	isc_uint32_t hash;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->rootexlude == NULL) {
+		view->rootexlude = isc_mem_get(view->mctx,
+					    sizeof(dns_namelist_t) *
+					    DNS_VIEW_DELONLYHASH);
+		if (view->rootexlude == NULL)
+			return (ISC_R_NOMEMORY);
+		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
+			ISC_LIST_INIT(view->delonly[hash]);
+	}
+	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
+	new = ISC_LIST_HEAD(view->rootexlude[hash]);
+	while (new != NULL && !dns_name_equal(new, name))
+		new = ISC_LIST_NEXT(new, link);
+	if (new != NULL)
+		return (ISC_R_SUCCESS);
+	new = isc_mem_get(view->mctx, sizeof(*new));
+	if (new == NULL)
+		return (ISC_R_NOMEMORY);
+	dns_name_init(new, NULL);
+	result = dns_name_dup(name, view->mctx, new);
+	if (result == ISC_R_SUCCESS)
+		ISC_LIST_APPEND(view->rootexlude[hash], new, link);
+	else
+		isc_mem_put(view->mctx, new, sizeof(*new));
+	return (result);
+}
+
 isc_boolean_t
 dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 	dns_name_t *new;
@@ -1231,14 +1266,39 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->delonly == NULL)
+	if (!view->rootdelonly && view->delonly == NULL)
 		return (ISC_FALSE);
 
 	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
+	if (view->rootdelonly && dns_name_countlabels(name) <= 2) {
+		if (view->rootexlude == NULL)
+			return (ISC_TRUE);
+		new = ISC_LIST_HEAD(view->rootexlude[hash]);
+		while (new != NULL && !dns_name_equal(new, name))
+			new = ISC_LIST_NEXT(new, link);
+		if (new == NULL)
+			return (ISC_TRUE);
+	}
+
+	if (view->delonly == NULL)
+		return (ISC_FALSE);
+
 	new = ISC_LIST_HEAD(view->delonly[hash]);
 	while (new != NULL && !dns_name_equal(new, name))
 		new = ISC_LIST_NEXT(new, link);
 	if (new == NULL)
 		return (ISC_FALSE);
 	return (ISC_TRUE);
+}
+
+void 
+dns_view_setrootdelonly(dns_view_t *view, isc_boolean_t value) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->rootdelonly = value;
+}
+
+isc_boolean_t
+dns_view_getrootdelonly(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	return (view->rootdelonly);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.4.2.5 2003/09/19 06:20:54 marka Exp $ */
+/* $Id: view.h,v 1.73.2.4.2.6 2003/09/19 12:44:38 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -120,6 +120,8 @@ struct dns_view {
 	dns_rdatatype_t			preferred_glue;
 	isc_boolean_t			flush;
 	dns_namelist_t *		delonly;
+	isc_boolean_t			rootdelonly;
+	dns_namelist_t *		rootexlude;;
 
 	/*
 	 * Configurable data for server use only,
@@ -720,6 +722,22 @@ isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
 /*
  * Add the given name to the delegation only table.
+ * 
+ *
+ * Requires:
+ *	'view' is valid.
+ *	'name' is valid.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
+/*
+ * Add the given name to be excluded from the root-delegation-only.
+ * 
  *
  * Requires:
  *	'view' is valid.
@@ -733,7 +751,8 @@ dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
 isc_boolean_t
 dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
 /*
- * Check if 'name' is in the delegation only table.
+ * Check if 'name' is in the delegation only table or if
+ * rootdelonly is set that name is not being excluded.
  *
  * Requires:
  *	'view' is valid.
@@ -744,7 +763,22 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
  *	ISC_FALSE othewise.
  */
 
+void
+dns_view_setrootdelonly(dns_view_t *view, isc_boolean_t value);
+/*
+ * Set the root delegation only flag.
+ *
+ * Requires:
+ *	'view' is valid.
+ */
 
-ISC_LANG_ENDDECLS
+isc_boolean_t
+dns_view_getrootdelonly(dns_view_t *view);
+/*
+ * Get the root delegation only flag.
+ *
+ * Requires:
+ *	'view' is valid.
+ */
 
 #endif /* DNS_VIEW_H */
