@@ -520,6 +520,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msgp, unsigned int intent)
 	ISC_LIST_INIT(m->scratchpad);
 	ISC_LIST_INIT(m->names);
 	ISC_LIST_INIT(m->rdatas);
+	ISC_LIST_INIT(m->rdatasets);
 	ISC_LIST_INIT(m->rdatalists);
 	ISC_LIST_INIT(m->freename);
 	ISC_LIST_INIT(m->freerdata);
