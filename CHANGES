@@ -6,6 +6,9 @@
 
  359.	[bug]		dnssec-signzone occasionally signed glue records.
 
+ 357.	[bug]		The zone file parser crashed if the argument
+			to $INCLUDE was a quoted string.
+
  354.	[doc]		Man pages for the dnssec tools are now included in
 			the distribution, in doc/man/dnssec.
 

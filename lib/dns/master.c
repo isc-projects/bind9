@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.54.2.3 2000/07/10 19:17:35 gson Exp $ */
+/* $Id: master.c,v 1.54.2.4 2000/08/02 21:22:27 gson Exp $ */
 
 #include <config.h>
 
@@ -120,6 +120,8 @@ on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 		default: \
 			goto error_cleanup; \
 		} \
+		if ((token)->type == isc_tokentype_special) \
+			goto error_cleanup; \
 	} while (0)
 
 #define WARNUNEXPECTEDEOF(lexer) \
@@ -335,7 +337,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					   isc_lex_getsourceline(lex));
 					goto cleanup;
 				}
-				GETTOKEN(lex, 0, &token, ISC_FALSE);
+				GETTOKEN(lex, ISC_LEXOPT_QSTRING, &token,
+					 ISC_FALSE);
 				if (include_file != NULL)
 					isc_mem_free(mctx, include_file);
 				include_file = isc_mem_strdup(mctx,
