@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.6 1998/11/11 00:43:13 explorer Exp $ */
+/* $Id: socket.c,v 1.7 1998/11/11 01:44:08 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -110,6 +110,7 @@ struct isc_socketmgr {
 	fd_set				read_fds;
 	fd_set				write_fds;
 	isc_socket_t			fds[FD_SETSIZE];
+	int				maxfd;
 	int				pipe_fds[2];
 	sig_atomic_t			pipe_msgs;
 };
@@ -263,6 +264,10 @@ destroy(isc_socket_t *sockp)
 	manager->fds[sock->fd] = NULL;
 	manager->nsockets--;
 
+	/*
+	 * XXX should reset manager->maxfd here
+	 */
+
 	UNLOCK(&manager->lock);
 
 	free_socket(sockp);
@@ -412,6 +417,8 @@ isc_socket_create(isc_socketmgr_t manager, isc_sockettype_t type,
 
 	manager->fds[sock->fd] = sock;
 	manager->nsockets++;
+	if (manager->maxfd < sock->fd)
+		manager->maxfd = sock->fd;
 
 	UNLOCK(&manager->lock);
 
@@ -666,6 +673,8 @@ internal_accept(isc_task_t task, isc_event_t ev)
 	 */
 	LOCK(&sock->manager->lock);
 	sock->manager->fds[fd] = dev->newsocket;
+	if (sock->manager->maxfd < fd)
+		sock->manager->maxfd = fd;
 	UNLOCK(&sock->manager->lock);
 
 	send_ncdone_event(sock, &iev, &dev, ISC_R_SUCCESS);
@@ -977,6 +986,7 @@ watcher(void *uap)
 	int i;
 	isc_socket_intev_t	iev;
 	isc_socket_ncintev_t	nciev;
+	int maxfd;
 
 	/*
 	 * Get the control fd here.  This will never change.
@@ -989,11 +999,14 @@ watcher(void *uap)
 		do {
 			readfds = manager->read_fds;
 			writefds = manager->write_fds;
+			maxfd = manager->maxfd + 1;
 
 			UNLOCK(&manager->lock);
 
-			cc = select(FD_SETSIZE, &readfds, &writefds, NULL,
+			cc = select(maxfd, &readfds, &writefds, NULL,
 				    NULL);
+			XTRACE(("select(%d, ...) == %d, errno %d\n",
+				maxfd, cc, errno));
 			if (cc < 0) {
 				if (errno != EINTR)
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1085,7 +1098,7 @@ watcher(void *uap)
 		 * Process read/writes on other fds here.  Avoid locking
 		 * and unlocking twice if both reads and writes are possible.
 		 */
-		for (i = 0 ; i < FD_SETSIZE ; i++) {
+		for (i = 0 ; i < maxfd ; i++) {
 			if (manager->fds[i] != NULL) {
 				sock = manager->fds[i];
 				unlock_sock = ISC_FALSE;
@@ -1172,6 +1185,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp)
 	FD_ZERO(&manager->read_fds);
 	FD_ZERO(&manager->write_fds);
 	FD_SET(manager->pipe_fds[0], &manager->read_fds);
+	manager->maxfd = manager->pipe_fds[0];
 
 	/*
 	 * Start up the select/poll thread.
