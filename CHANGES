@@ -1,3 +1,7 @@
+1672.	[cleanup]	Tests which only function in a threaded build
+			now return R:THREADONLY (rather than R:UNTESTED)
+			in a non-threaded build.
+
 1671.	[contrib]	queryperf: add NAPTR to the list of known types.
 
 1670.	[func]		Log UPDATE requests to slave zones without an acl as

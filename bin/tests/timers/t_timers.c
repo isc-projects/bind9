@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.22.206.1 2004/03/06 10:22:52 marka Exp $ */
+/* $Id: t_timers.c,v 1.22.206.2 2004/06/21 06:57:59 marka Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,7 @@ static	int		Tx_nanoseconds;
 static void
 require_threads(void) {
 	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
+	t_result(T_THREADONLY);
 	return;
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.29.12.4 2004/03/08 09:04:20 marka Exp $ */
+/* $Id: t_tasks.c,v 1.29.12.5 2004/06/21 06:57:59 marka Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@ isc_boolean_t threaded = ISC_FALSE;
 static void
 require_threads(void) {
 	t_info("This test requires threads\n");
-	t_result(T_UNTESTED);
+	t_result(T_THREADONLY);
 	return;
 }
 
