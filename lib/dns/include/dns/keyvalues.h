@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.9 2000/08/01 01:24:15 tale Exp $ */
+/* $Id: keyvalues.h,v 1.10 2000/08/29 19:45:33 bwelling Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -57,8 +57,8 @@
 #define DNS_KEYFLAG_RESERVEDMASK2 0xFFFF	/* no bits defined here */
 
 /* The Algorithm field of the KEY and SIG RR's is an integer, {1..254} */
-#define DNS_KEYALG_MD5RSA	1       /* MD5 with RSA */
-#define DNS_KEYALG_RSA		DNS_KEYALG_MD5RSA
+#define DNS_KEYALG_RSAMD5	1       /* RSA with MD5 */
+#define DNS_KEYALG_RSA		DNS_KEYALG_RSAMD5
 #define DNS_KEYALG_DH		2       /* Diffie Hellman KEY */
 #define DNS_KEYALG_DSA		3       /* DSA KEY */
 #define DNS_KEYALG_DSS		NS_ALG_DSA
