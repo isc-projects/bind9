@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.65 2000/12/12 21:33:18 bwelling Exp $ */
+/* $Id: confview.c,v 1.66 2000/12/13 00:15:24 tale Exp $ */
 
 #include <config.h>
 
@@ -530,9 +530,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->forwarders = NULL;
 	view->also_notify = NULL;
 
-#ifndef NOMINUM_PUBLIC
 	view->allownotify = NULL;
-#endif /* NOMINUM_PUBLIC */
 	view->allowquery = NULL;
 	view->allowupdateforwarding = NULL;
 	view->transferacl = NULL;
@@ -582,7 +580,6 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->max_refresh_time = NULL;
 
 #ifndef NOMINUM_PUBLIC
-	view->max_names = NULL;
 	view->notify_forward = NULL;
 #endif /* NOMINUM_PUBLIC */
 
@@ -773,9 +770,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		fprintf(fp, ";\n");
 	}
 
-#ifndef NOMINUM_PUBLIC
 	PRINT_IPMLIST(allownotify, "allow-notify");
-#endif /* NOMINUM_PUBLIC */
 	PRINT_IPMLIST(allowquery, "allow-query");
 	PRINT_IPMLIST(allowupdateforwarding, "allow-update-forwarding");
 	PRINT_IPMLIST(transferacl, "alllow-transfer");
@@ -854,10 +849,6 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_retry_time, "max-retry-time");
 	PRINT_INT32(min_refresh_time, "min-refresh-time");
 	PRINT_INT32(max_refresh_time, "max-refresh-time");
-
-#ifndef NOMINUM_PUBLIC
-	PRINT_INT32(max_names, "max-names");
-#endif /* NOMINUM_PUBLIC */
 
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -953,9 +944,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 		dns_c_iplist_detach(&view->also_notify);
 	}
 
-#ifndef NOMINUM_PUBLIC
 	FREEIPMLIST(allownotify);
-#endif /* NOMINUM_PUBLIC */
 	FREEIPMLIST(allowquery);
 	FREEIPMLIST(allowupdateforwarding);
 	FREEIPMLIST(transferacl);
@@ -1008,7 +997,6 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(max_refresh_time);
 
 #ifndef NOMINUM_PUBLIC
-	FREEFIELD(max_names);
 	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
@@ -1606,9 +1594,7 @@ dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
 **
 */
 
-#ifndef NOMINUM_PUBLIC
 IPMLIST_FUNCS(allownotify, allownotify)
-#endif /* NOMINUM_PUBLIC */
 IPMLIST_FUNCS(allowquery, allowquery)
 IPMLIST_FUNCS(allowupdateforwarding, allowupdateforwarding)
 IPMLIST_FUNCS(transferacl, transferacl)
@@ -1658,10 +1644,6 @@ UINT32_FUNCS(minretrytime, min_retry_time)
 UINT32_FUNCS(maxretrytime, max_retry_time)
 UINT32_FUNCS(minrefreshtime, min_refresh_time)
 UINT32_FUNCS(maxrefreshtime, max_refresh_time)
-
-#ifndef NOMINUM_PUBLIC	
-UINT32_FUNCS(maxnames, max_names)
-#endif /* NOMINUM_PUBLIC */
 
 BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)

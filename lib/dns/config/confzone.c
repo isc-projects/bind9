@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.71 2000/12/07 01:45:57 brister Exp $ */
+/* $Id: confzone.c,v 1.72 2000/12/13 00:15:26 tale Exp $ */
 
 #include <config.h>
 
@@ -42,9 +42,7 @@
 #define MZ_MAX_TRANS_TIME_OUT_BIT	6
 #define MZ_MAX_TRANS_IDLE_OUT_BIT	7
 #define MZ_SIG_VALID_INTERVAL_BIT	8
-#ifndef NOMINUM_PUBLIC
-#define MZ_MAX_NAMES_BIT		9
-#endif /* NOMINUM_PUBLIC */
+/* #define unused			9 */
 #define MZ_MIN_RETRY_TIME_BIT		10
 #define MZ_MAX_RETRY_TIME_BIT		11
 #define MZ_MIN_REFRESH_TIME_BIT		12
@@ -71,9 +69,7 @@
 #define SZ_MAINT_IXFR_BASE_BIT                  10
 #define SZ_MAX_IXFR_LOG_BIT                     11
 #define SZ_FORWARD_BIT                          12
-#ifndef NOMINUM_PUBLIC
-#define SZ_MAX_NAMES_BIT			13
-#endif /* NOMINUM_PUBLIC */
+/* #define unused 				13 */
 #define SZ_MIN_RETRY_TIME_BIT			14
 #define SZ_MAX_RETRY_TIME_BIT			15
 #define SZ_MIN_REFRESH_TIME_BIT			16
@@ -1239,11 +1235,6 @@ dns_c_zone_getssuauth(dns_c_zone_t *zone, dns_ssutable_t **retval) {
 }
 
 
-#ifndef NOMINUM_PUBLIC
-/*
- *
- */
-
 isc_result_t
 dns_c_zone_setallownotify(dns_c_zone_t *zone,
 			 dns_c_ipmatchlist_t *ipml,
@@ -1351,10 +1342,6 @@ dns_c_zone_getallownotify(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval) {
 
 	return (res);
 }
-#endif /* NOMINUM_PUBLIC */
-/*
- *
- */
 
 isc_result_t
 dns_c_zone_setallowquery(dns_c_zone_t *zone,
@@ -4159,117 +4146,6 @@ dns_c_zone_getmaxrefreshtime(dns_c_zone_t *zone, isc_uint32_t *retval) {
 	return (res);
 }
 
-
-#ifndef NOMINUM_PUBLIC
-isc_result_t
-dns_c_zone_setmaxnames(dns_c_zone_t *zone, isc_uint32_t newval) {
-	isc_boolean_t existed = ISC_FALSE;
-
-	REQUIRE(DNS_C_ZONE_VALID(zone));
-
-	switch (zone->ztype) {
-	case dns_c_zone_master:
-		zone->u.mzone.max_names = newval ;
-		existed = DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT,
-					 &zone->u.mzone.setflags);
-		DNS_C_SETBIT(MZ_MAX_NAMES_BIT,
-			     &zone->u.mzone.setflags);
-		break;
-
-	case dns_c_zone_slave:
-		zone->u.szone.max_names = newval ;
-		existed = DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT,
-					 &zone->u.szone.setflags);
-		DNS_C_SETBIT(SZ_MAX_NAMES_BIT,
-			     &zone->u.szone.setflags);
-		break;
-
-	case dns_c_zone_stub:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_hint:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_forward:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-	}
-
-	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
-}
-
-
-/*
- *
- */
-
-isc_result_t
-dns_c_zone_getmaxnames(dns_c_zone_t *zone, isc_uint32_t *retval) {
-	isc_result_t res = ISC_R_SUCCESS;
-
-	REQUIRE(DNS_C_ZONE_VALID(zone));
-	REQUIRE(retval != NULL);
-
-	switch (zone->ztype) {
-	case dns_c_zone_master:
-		if (DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT,
-				   &zone->u.mzone.setflags)) {
-			*retval = zone->u.mzone.max_names;
-			res = ISC_R_SUCCESS;
-		} else {
-			res = ISC_R_NOTFOUND;
-		}
-		break;
-
-
-	case dns_c_zone_slave:
-		if (DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT,
-				   &zone->u.szone.setflags)) {
-			*retval = zone->u.szone.max_names;
-			res = ISC_R_SUCCESS;
-		} else {
-			res = ISC_R_NOTFOUND;
-		}
-		break;
-
-	case dns_c_zone_stub:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_hint:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-
-	case dns_c_zone_forward:
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a "
-			      "max_names field");
-		return (ISC_R_FAILURE);
-	}
-
-	return (res);
-}
-#endif /* NOMINUM_PUBLIC */
-
-
 /*
  *
  */
@@ -5092,13 +4968,6 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 		fprintf(fp, "max-refresh-time %d;\n", mzone->max_refresh_time);
 	}
 
-#ifndef NOMINUM_PUBLIC
-	if (DNS_C_CHECKBIT(MZ_MAX_NAMES_BIT, &mzone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "max-names %d;\n", mzone->max_names);
-	}
-#endif /* NOMINUM_PUBLIC */
-
 	if (mzone->pubkeylist != NULL) {
 		fprintf(fp, "\n");
 		dns_c_pklist_print(fp, indent, mzone->pubkeylist);
@@ -5210,7 +5079,6 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 		fprintf(fp, ";\n");
 	}
 
-#ifndef NOMINUM_PUBLIC
 	if (szone->allow_notify != NULL &&
 	    !ISC_LIST_EMPTY(szone->allow_notify->elements)) {
 		dns_c_printtabs(fp, indent);
@@ -5219,7 +5087,6 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 					szone->allow_notify);
 		fprintf(fp, ";\n");
 	}
-#endif /* NOMINUM_PUBLIC */
 
 	if (szone->allow_query != NULL &&
 	    !ISC_LIST_EMPTY(szone->allow_query->elements)) {
@@ -5354,11 +5221,6 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 	}
 
 #ifndef NOMINUM_PUBLIC
-	if (DNS_C_CHECKBIT(SZ_MAX_NAMES_BIT, &szone->setflags)) {
-		dns_c_printtabs(fp, indent);
-		fprintf(fp, "max-names %d;\n", szone->max_names);
-	}
-	
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_RELAY_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "notify-forward %s;\n",
@@ -5643,9 +5505,7 @@ slave_zone_init(dns_c_slavezone_t *szone) {
 	szone->master_ips = NULL;
 	szone->allow_update = NULL;
 	szone->allow_update_forwarding = NULL;
-#ifndef NOMINUM_PUBLIC
 	szone->allow_notify = NULL;
-#endif /* NOMINUM_PUBLIC */
 	szone->allow_query = NULL;
 	szone->allow_transfer = NULL;
 	szone->also_notify = NULL;
@@ -5846,10 +5706,8 @@ slave_zone_clear(isc_mem_t *mem, dns_c_slavezone_t *szone) {
 	if (szone->allow_update_forwarding != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_update_forwarding);
 
-#ifndef NOMINUM_PUBLIC
 	if (szone->allow_notify != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_notify);
-#endif /* NOMINUM_PUBLIC */
 
 	if (szone->allow_query != NULL)
 		dns_c_ipmatchlist_detach(&szone->allow_query);

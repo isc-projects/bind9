@@ -1,42 +1,25 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.3 2000/11/18 03:01:02 bwelling Exp $
+$Id: options,v 1.4 2000/12/13 00:15:10 tale Exp $
 
 options {
 	...
-	[ allow-notify { address_match_list }; ]
 	[ notify-forward yes_or_no; ]
 };
 
 view "view_name" [ ( in | hs | hesiod | chaos ) ] {
 	...
-	[ allow-notify { address_match_list }; ]
 	[ notify-forward yes_or_no; ]
 };
 
 zone "zone_name" {
 	type slave;
 	...
-	[ allow-notify { address_match_list };]
 	[ notify-forward yes_or_no; ]
-	[ max-names integer; ]
 };
-
-allow-notify:
-	Accept notify messages which match this acl in addition to
-	the zone masters.  Zone masters implicitly do not match.
 
 notify-forward:
 	If 'yes' forward notifies which match 'allow-notify' to zone
 	masters.  If 'no' accept the notify which match 'allow-notify'
 	as if it came from a master.  Default 'no'.
-
-max-names:
-	The maximum number of names allowed in a slave zone.
-	If an incoming zone transfer contains more than this
-	many names, the zone will be unloaded.
-
-
-Also, the "masters" list for slave zones can contain per-master TSIG keys
-using a syntax like "masters { 1.2.3.4 port 5555 key "foo." };".

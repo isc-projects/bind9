@@ -1,4 +1,8 @@
 
+ 611.	[func]		allow-notify can be used to permit processing of
+			notify messages from hosts other than a slave's
+			masters.
+
  610.	[func]		rndc dumpdb is now supported.
 
  609.	[bug]		getrrsetbyname() would crash lwresd if the server
@@ -869,6 +873,14 @@
  342.	[bug]		The wrong name was being passed to
 			dns_name_dup() when generating a TSIG
 			key using TKEY.
+
+ 341.	[func]		Support 'key' clause in named.conf zone masters
+			statement to allow authentication via TSIG keys:
+
+				masters {
+					10.0.0.1 port 5353 key "foo";
+					10.0.0.2 ;
+				};
 
  340.	[bug]		The top-level COPYRIGHT file was missing from
 			the distribution.

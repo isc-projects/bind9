@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.47 2000/12/12 21:33:20 bwelling Exp $ */
+/* $Id: confview.h,v 1.48 2000/12/13 00:15:33 tale Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -102,9 +102,7 @@ struct dns_c_view {
 	dns_c_iplist_t	       *forwarders;
 	dns_c_iplist_t	       *also_notify;
 
-#ifndef NOMINUM_PUBLIC
 	dns_c_ipmatchlist_t    *allownotify;
-#endif /* NOMINUM_PUBLIC */
 	dns_c_ipmatchlist_t    *allowquery;
 	dns_c_ipmatchlist_t    *allowupdateforwarding;
 	dns_c_ipmatchlist_t    *transferacl;
@@ -154,10 +152,6 @@ struct dns_c_view {
 	isc_uint32_t	       *max_retry_time;
 	isc_uint32_t	       *min_refresh_time;
 	isc_uint32_t	       *max_refresh_time;
-
-#ifndef NOMINUM_PUBLIC
-	isc_uint32_t	       *max_names;
-#endif /* NOMINUM_PUBLIC */
 
 	dns_c_addata_t	       *additional_data;
 	dns_transfer_format_t  *transfer_format;
@@ -242,15 +236,11 @@ isc_result_t dns_c_view_unsetforwarders(dns_c_view_t *view);
 isc_result_t dns_c_view_getforwarders(dns_c_view_t *view,
 				      dns_c_iplist_t **ipl);
 
-
-#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_view_getallownotify(dns_c_view_t *view,
 				       dns_c_ipmatchlist_t **retval);
 isc_result_t dns_c_view_setallownotify(dns_c_view_t *view,
 				       dns_c_ipmatchlist_t *newval);
 isc_result_t dns_c_view_unsetallownotify(dns_c_view_t *view);
-#endif /* NOMINUM_PUBLIC */
-
 
 isc_result_t dns_c_view_getallowquery(dns_c_view_t *view,
 				      dns_c_ipmatchlist_t **retval);
@@ -557,13 +547,6 @@ isc_result_t dns_c_view_setmaxrefreshtime(dns_c_view_t *view,
 					  isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxrefreshtime(dns_c_view_t *view);
 
-#ifndef NOMINUM_PUBLIC
-isc_result_t dns_c_view_getmaxnames(dns_c_view_t *view,
-				    isc_uint32_t *retval);
-isc_result_t dns_c_view_setmaxnames(dns_c_view_t *view,
-				    isc_uint32_t newval);
-isc_result_t dns_c_view_unsetmaxnames(dns_c_view_t *view);
-#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_view_setadditionaldata(dns_c_view_t *view,
 					  dns_c_addata_t newval);

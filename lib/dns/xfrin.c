@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.108 2000/12/11 19:24:27 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.109 2000/12/13 00:15:14 tale Exp $ */
 
 #include <config.h>
 
@@ -1169,23 +1169,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		}
 	}
 
-#ifndef NOMINUM_PUBLIC
-	/*
-	 * Check the database size.  Note that xfr->db can still
-	 * be NULL at this point, e.g. when doing an initial AXFR
-	 * and the first response message contains only the SOA.
-	 */
-	if (xfr->db != NULL) {
-		unsigned int count = dns_db_nodecount(xfr->db);
-		unsigned int maxnames = dns_zone_getmaxnames(xfr->zone);
-		
-		if (maxnames != 0 && count > maxnames) {
-			result = DNS_R_ZONETOOLARGE;
-			goto failure;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
-	
 	/*
 	 * Update the number of messages received.
 	 */

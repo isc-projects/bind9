@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.h,v 1.27 2000/08/01 01:23:53 tale Exp $ */
+/* $Id: confip.h,v 1.28 2000/12/13 00:15:31 tale Exp $ */
 
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1
@@ -95,9 +95,7 @@ struct dns_c_iplist {
 	isc_mem_t	       *mem;
 	int			refcount;
 	isc_sockaddr_t	       *ips;
-#ifndef NOMINUM_PUBLIC
 	dns_name_t	       **keys;
-#endif /* NOMINUM_PUBLIC */
 	isc_uint32_t		size;
 	isc_uint32_t		nextidx;
 };
@@ -229,19 +227,12 @@ isc_result_t dns_c_iplist_detach(dns_c_iplist_t **list);
 isc_result_t dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest,
 			       dns_c_iplist_t *src);
 
-#ifndef NOMINUM_PUBLIC
 isc_boolean_t dns_c_iplist_haskeys(dns_c_iplist_t *list);
-#endif /* NOMINUM_PUBLIC */
 
 void dns_c_iplist_attach(dns_c_iplist_t *source, dns_c_iplist_t **target);
 
-#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_iplist_append(dns_c_iplist_t *list,
 				 isc_sockaddr_t newaddr, const char *key);
-#else /* NOMINUM_PUBLIC */
-isc_result_t dns_c_iplist_append(dns_c_iplist_t *list,
-				 isc_sockaddr_t newaddr);
-#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.93 2000/12/01 23:49:57 gson Exp $ */
+/* $Id: zone.h,v 1.94 2000/12/13 00:15:39 tale Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -381,11 +381,9 @@ dns_zone_maintenance(dns_zone_t *zone);
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count);
-#ifndef NOMINUM_PUBLIC
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    dns_name_t **keynames, isc_uint32_t count);
-#endif /* NOMINUM_PUBLIC */
 /*
  *	Set the list of master servers for the zone.
  *
@@ -393,21 +391,17 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
  *	'zone' to be a valid zone.
  *	'masters' array of isc_sockaddr_t with port set or NULL.
  *	'count' the number of masters.
-#ifndef NOMINUM_PUBLIC
  *      'keynames' array of dns_name_t's for tsig keys or NULL.
  *
  *      dns_zone_setmasters() is just a wrapper to setmasterswithkeys(),
  *      passing NULL in the keynames field.
-#endif NOMINUM_PUBLIC
  *
  * 	If 'masters' is NULL then 'count' must be zero.
  *
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
-#ifndef NOMINUM_PUBLIC
  *      Any result dns_name_dup() can return, if keynames!=NULL
-#endif NOMINUM_PUBLIC
  */
 
 isc_result_t
@@ -508,15 +502,6 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val);
  *	val > 0.
  */
 
-#ifndef NOMINUM_PUBLIC
-void
-dns_zone_setmaxnames(dns_zone_t *zone, isc_uint32_t val);
-isc_uint32_t dns_zone_getmaxnames(dns_zone_t *zone);
-/*
- *	Set/get the maximum number of names allowed in the zone.
- */
-#endif /* NOMINUM_PUBLIC */
-
 isc_result_t
 dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource);
 /*
@@ -609,7 +594,6 @@ dns_zone_getnotifysrc6(dns_zone_t *zone);
  *	'zone' to be a valid zone.
  */
 
-#ifndef NOMINUM_PUBLIC
 void
 dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
@@ -619,7 +603,7 @@ dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl);
  *	'zone' to be a valid zone.
  *	'acl' to be a valid acl.
  */
-#endif /* NOMINUM_PUBLIC */
+
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl);
 /*
@@ -660,7 +644,6 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
  *	'acl' to be valid acl.
  */
 
-#ifndef NOMINUM_PUBLIC
 dns_acl_t *
 dns_zone_getnotifyacl(dns_zone_t *zone);
 /*
@@ -673,7 +656,6 @@ dns_zone_getnotifyacl(dns_zone_t *zone);
  *	acl a pointer to the acl.
  *	NULL
  */
-#endif /* NOMINUM_PUBLIC */
 
 dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone);
@@ -745,7 +727,6 @@ dns_zone_clearforwardacl(dns_zone_t *zone);
  *	'zone' to be a valid zone.
  */
 
-#ifndef NOMINUM_PUBLIC
 void
 dns_zone_clearnotifyacl(dns_zone_t *zone);
 /*
@@ -754,7 +735,6 @@ dns_zone_clearnotifyacl(dns_zone_t *zone);
  * Require:
  *	'zone' to be a valid zone.
  */
-#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_clearqueryacl(dns_zone_t *zone);

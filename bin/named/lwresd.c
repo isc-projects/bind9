@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.26 2000/11/15 23:56:21 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.27 2000/12/13 00:15:02 tale Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -214,11 +214,7 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 							port));
 			if (result != ISC_R_SUCCESS)
 				continue;
-#ifndef NOMINUM_PUBLIC
 			CHECK(dns_c_iplist_append(forwarders, sa, NULL));
-#else /* NOMINUM_PUBLIC */
-			CHECK(dns_c_iplist_append(forwarders, sa));
-#endif /* NOMINUM_PUBLIC */
 		}
 	
 		if (forwarders->nextidx != 0) {
@@ -266,11 +262,7 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	}
 
 	CHECK(dns_c_iplist_new(mctx, 1, &locallist));
-#ifndef NOMINUM_PUBLIC
 	CHECK(dns_c_iplist_append(locallist, sa, NULL));
-#else /* NOMINUM_PUBLIC */
-	CHECK(dns_c_iplist_append(locallist, sa));
-#endif /* NOMINUM_PUBLIC */
 
 	CHECK(dns_c_lwres_setlistenon(lwres, locallist));
 	dns_c_iplist_detach(&locallist);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.59 2000/12/12 21:33:19 bwelling Exp $ */
+/* $Id: confctx.h,v 1.60 2000/12/13 00:15:30 tale Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -158,10 +158,6 @@ struct dns_c_options {
 	isc_uint32_t	       *min_refresh_time;
 	isc_uint32_t	       *max_refresh_time;
 
-#ifndef NOMINUM_PUBLIC
-	isc_uint32_t	       *max_names;
-#endif /* NOMINUM_PUBLIC */
-
 	isc_boolean_t	       *expert_mode;
 	isc_boolean_t	       *fake_iquery;
 	isc_boolean_t	       *recursion;
@@ -209,9 +205,7 @@ struct dns_c_options {
 
 	dns_transfer_format_t  *transfer_format;
 
-#ifndef NOMINUM_PUBLIC
 	dns_c_ipmatchlist_t    *notifyacl;
-#endif /* NOMINUM_PUBLIC */
 	dns_c_ipmatchlist_t    *queryacl;
 	dns_c_ipmatchlist_t    *transferacl;
 	dns_c_ipmatchlist_t    *recursionacl;
@@ -522,12 +516,6 @@ isc_result_t dns_c_ctx_getmaxrefreshtime(dns_c_ctx_t *cfg,
 					 isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxrefreshtime(dns_c_ctx_t *cfg);
 
-#ifndef NOMINUM_PUBLIC
-isc_result_t dns_c_ctx_setmaxnames(dns_c_ctx_t *cfg, isc_uint32_t newval);
-isc_result_t dns_c_ctx_getmaxnames(dns_c_ctx_t *cfg, isc_uint32_t *retval);
-isc_result_t dns_c_ctx_unsetmaxnames(dns_c_ctx_t *cfg);
-#endif /* NOMINUM_PUBLIC */
-
 isc_result_t dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxncachettl(dns_c_ctx_t *cfg);
@@ -759,13 +747,11 @@ isc_result_t dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 					 dns_transfer_format_t *tformat);
 isc_result_t dns_c_ctx_unsettransferformat(dns_c_ctx_t *cfg);
 
-#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_ctx_setallownotify(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t *iml);
 isc_result_t dns_c_ctx_getallownotify(dns_c_ctx_t *cfg,
 				      dns_c_ipmatchlist_t **list);
 isc_result_t dns_c_ctx_unsetallownotify(dns_c_ctx_t *cfg);
-#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_ctx_setallowquery(dns_c_ctx_t *cfg,
 				     dns_c_ipmatchlist_t *iml);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.77 2000/12/11 19:19:15 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.78 2000/12/13 00:15:03 tale Exp $ */
 
 #include <config.h>
 
@@ -223,7 +223,6 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setchecknames(zone, dns_c_severity_warn);
 #endif
 
-#ifndef NOMINUM_PUBLIC
 	if (czone->ztype == dns_c_zone_slave)
 		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
 					  dns_c_zone_getallownotify,
@@ -231,7 +230,6 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					  dns_c_ctx_getallownotify,
 					  dns_zone_setnotifyacl,
 					  dns_zone_clearnotifyacl));
-#endif /* NOMINUM_PUBLIC */
 	/*
 	 * XXXAG This probably does not make sense for stubs.
 	 */
@@ -261,17 +259,6 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_zone_setstatistics(zone, statistics);
 
 #ifndef NOMINUM_PUBLIC
-	if (czone->ztype != dns_c_zone_stub) {
-		result = dns_c_zone_getmaxnames(czone, &uintval);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getmaxnames(cview, &uintval);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getmaxnames(cctx, &uintval);
-		if (result != ISC_R_SUCCESS)
-			uintval = 0;
-		dns_zone_setmaxnames(zone, uintval);
-	}
-
 	if (czone->ztype == dns_c_zone_slave) {
 		isc_boolean_t boolean;
 

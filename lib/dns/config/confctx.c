@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.112 2000/12/12 21:33:15 bwelling Exp $ */
+/* $Id: confctx.c,v 1.113 2000/12/13 00:15:18 tale Exp $ */
 
 #include <config.h>
 
@@ -1015,10 +1015,6 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(min_refresh_time, "min-refresh-time");
 	PRINT_INTEGER(max_refresh_time, "max-refresh-time");
 
-#ifndef	NOMINUM_PUBLIC
-	PRINT_INTEGER(max_names, "max-names");
-#endif /* NOMINUM_PUBLIC */
-	
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");
@@ -1091,9 +1087,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 	fprintf(fp, "\n");
 
-#ifndef NOMINUM_PUBLIC
 	PRINT_IPMLIST(queryacl, "allow-notify");
-#endif /* NOMINUM_PUBLIC */
 	PRINT_IPMLIST(queryacl, "allow-query");
 	PRINT_IPMLIST(transferacl, "allow-transfer");
 	PRINT_IPMLIST(recursionacl, "allow-recursion");
@@ -1571,10 +1565,6 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->min_refresh_time = NULL;
 	opts->max_refresh_time = NULL;
 
-#ifndef NOMINUM_PUBLIC
-	opts->max_names = NULL;
-#endif /* NOMINUM_PUBLIC */
-
 	opts->expert_mode = NULL;
 	opts->fake_iquery = NULL;
 	opts->recursion = NULL;
@@ -1623,9 +1613,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 	opts->transfer_format = NULL;
 
-#ifndef NOMINUM_PUBLIC
 	opts->notifyacl = NULL;
-#endif /* NOMINUM_PUBLIC */
 	opts->queryacl = NULL;
 	opts->transferacl = NULL;
 	opts->recursionacl = NULL;
@@ -1752,7 +1740,6 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(max_refresh_time);
 
 #ifndef NOMINUM_PUBLIC
-	FREEFIELD(max_names);
 	FREEFIELD(notify_forward);
 #endif /* NOMINUM_PUBLIC */
 
@@ -1780,9 +1767,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 	FREEFIELD(transfer_format);
 
-#ifndef NOMINUM_PUBLIC
 	FREEIPMLIST(notifyacl);
-#endif /* NOMINUM_PUBLIC */
 	FREEIPMLIST(queryacl);
 	FREEIPMLIST(transferacl);
 	FREEIPMLIST(recursionacl);
@@ -1873,10 +1858,6 @@ UINT32_FUNCS(minretrytime, min_retry_time)
 UINT32_FUNCS(maxretrytime, max_retry_time)
 UINT32_FUNCS(minrefreshtime, min_refresh_time)
 UINT32_FUNCS(maxrefreshtime, max_refresh_time)
-
-#ifndef NOMINUM_PUBLIC
-UINT32_FUNCS(maxnames, max_names)
-#endif /* NOMINUM_PUBLIC */
 
 BOOL_FUNCS(expertmode, expert_mode)
 BOOL_FUNCS(fakeiquery, fake_iquery)
@@ -2105,9 +2086,7 @@ dns_c_ctx_unsetchecknames(dns_c_ctx_t *cfg,
 	return (ISC_R_SUCCESS);
 }
 
-#ifndef NOMINUM_PUBLIC
 IPMLIST_FUNCS(allownotify, notifyacl)
-#endif /* NOMINUM_PUBLIC */
 IPMLIST_FUNCS(allowquery, queryacl)
 IPMLIST_FUNCS(allowtransfer, transferacl)
 IPMLIST_FUNCS(allowrecursion, recursionacl)

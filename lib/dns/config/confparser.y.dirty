@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.42 2000/12/12 21:33:16 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.43 2000/12/13 00:15:23 tale Exp $ */
 
 #include <config.h>
 
@@ -263,9 +263,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_ADDRESS
 %token		L_ALGID
 %token		L_ALLOW
-#ifndef NOMINUM_PUBLIC
 %token		L_ALLOW_NOTIFY
-#endif /* NOMINUM_PUBLIC */
 %token		L_ALLOW_QUERY
 %token		L_ALLOW_RECURSION
 %token		L_ALLOW_TRANSFER
@@ -342,9 +340,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MAX_CACHE_SIZE
 %token		L_MAX_CACHE_TTL
 %token		L_MAX_LOG_SIZE_IXFR
-#ifndef NOMINUM_PUBLIC
-%token		L_MAX_NAMES
-#endif /* NOMINUM_PUBLIC */
 %token		L_MAX_NCACHE_TTL
 %token		L_MAX_REFRESH_TIME
 %token		L_MAX_RETRY_TIME
@@ -497,9 +492,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <text>		channel_name
 %type <text>		domain_name
 %type <text>		key_value
-#ifndef NOMINUM_PUBLIC
 %type <text>		maybe_key
-#endif /* NOMINUM_PUBLIC */
 %type <kidlist>		control_keys
 %type <kidlist>		keyid_list
 %type <searchlist>	searchlist
@@ -1200,7 +1193,6 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
 	| L_ALLOW_NOTIFY L_LBRACE address_match_list L_RBRACE
 	{
 		if ($3 == NULL)
@@ -1218,7 +1210,6 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-#endif /* NOMINUM_PUBLIC */
 	| L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 	{
 		if ($3 == NULL)
@@ -1654,21 +1645,6 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_MAX_NAMES L_INTEGER
-	{
-		tmpres = dns_c_ctx_setmaxnames(currcfg, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine max-names");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set max-names");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_HEARTBEAT L_INTEGER
 	{
 		if (int_too_big($2, 60)) {
@@ -1948,8 +1924,6 @@ transfer_format: L_ONE_ANSWER
 	}
 	;
 
-#ifndef NOMINUM_PUBLIC
-
 maybe_key: /* nothing */
 	{
 		$$ = NULL;
@@ -1958,7 +1932,6 @@ maybe_key: /* nothing */
 	{
 		$$ = $2;
 	};
-#endif /* NOMINUM_PUBLIC */
 
 maybe_wild_addr: ip4_address
 	| ip6_address
@@ -2062,11 +2035,7 @@ ip_and_port_element: ip_address maybe_zero_port
 	};
 
 
-#ifndef NOMINUM_PUBLIC
 ip_and_port_list: ip_and_port_element maybe_key L_EOS
-#else /* NOMINUM_PUBLIC */
-ip_and_port_list: ip_and_port_element L_EOS
-#endif /* NOMINUM_PUBLIC */
 	{
 		dns_c_iplist_t *list;
 
@@ -2077,47 +2046,31 @@ ip_and_port_list: ip_and_port_element L_EOS
 			YYABORT;
 		}
 
-#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(list, $1, $2);
-#else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append(list, $1);
-#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
-#ifndef NOMINUM_PUBLIC
 		if ($2 != NULL) {
 			isc_mem_free(memctx, $2);
 		}
-#endif /* NOMINUM_PUBLIC */
 
 		$$ = list;
 	}
-#ifndef NOMINUM_PUBLIC
 	| ip_and_port_list ip_and_port_element maybe_key L_EOS
-#else /* NOMINUM_PUBLIC */
-	| ip_and_port_list ip_and_port_element L_EOS
-#endif /* NOMINUM_PUBLIC */
 	{
-#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append($1, $2, $3);
-#else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append($1, $2);
-#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
 			YYABORT;
 		}
 
-#ifndef NOMINUM_PUBLIC
 		if ($3 != NULL) {
 			isc_mem_free(memctx, $3);
 		}
-#endif /* NOMINUM_PUBLIC */
 
 		$$ = $1;
 	}
@@ -2485,13 +2438,8 @@ forwarders_in_addr_list: forwarders_in_addr L_EOS
 
 forwarders_in_addr: ip_address
 	{
-#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
 					     $1, NULL);
-#else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append(currcfg->options->forwarders,
-					     $1);
-#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to add forwarders "
@@ -3774,7 +3722,6 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-#ifndef	NOMINUM_PUBLIC
 	| L_ALLOW_NOTIFY L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -3794,7 +3741,6 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-#endif /* NOMINUM_PUBLIC */
 	| L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -4507,25 +4453,6 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_MAX_NAMES L_INTEGER
-	{
-		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
-
-		INSIST(view != NULL);
-
-		tmpres = dns_c_view_setmaxnames(view, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine view max-names");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set view max-names");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_SIG_VALIDITY_INTERVAL L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -5084,7 +5011,7 @@ zone_option_list: zone_option L_EOS
  */
 zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE |
-	L_ALLOW_UPDATE_FORWARDING | L_ALLOW_QUERY |
+	L_ALLOW_UPDATE_FORWARDING | L_ALLOW_NOTIFY | L_ALLOW_QUERY |
 	L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
 	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS | L_UPDATE_POLICY | L_DENY |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
@@ -5092,10 +5019,9 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
 	L_ENABLE_ZONE | L_DATABASE | L_PORT | L_MIN_RETRY_TIME |
 	L_MAX_RETRY_TIME | L_MIN_REFRESH_TIME | L_MAX_REFRESH_TIME |
-	L_ZONE_STATISTICS | L_NOTIFY_SOURCE |
-	L_NOTIFY_SOURCE_V6
+	L_ZONE_STATISTICS | L_NOTIFY_SOURCE | L_NOTIFY_SOURCE_V6 |
 #ifndef NOMINUM_PUBLIC
-	| L_ALLOW_NOTIFY | L_NOTIFY_FORWARD | L_MAX_NAMES 
+	| L_NOTIFY_FORWARD
 #endif /* NOMINUM_PUBLIC */
 	;
 
@@ -5370,7 +5296,6 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
 	| L_ALLOW_NOTIFY L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5389,7 +5314,6 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-#endif /* NOMINUM_PUBLIC */
 	| L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5668,25 +5592,6 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-#ifndef NOMINUM_PUBLIC
-	| L_MAX_NAMES L_INTEGER
-	{
-		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
-
-		INSIST(zone != NULL);
-
-		tmpres = dns_c_zone_setmaxnames(zone, $2);
-		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE,
-				     "cannot redefine zone max-names");
-			YYABORT;
-		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE,
-				     "failed to set zone max-names");
-			YYABORT;
-		}
-	}
-#endif /* NOMINUM_PUBLIC */
 	| L_MAX_LOG_SIZE_IXFR L_INTEGER
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5931,11 +5836,7 @@ in_addr_list: in_addr_elem L_EOS
 			YYABORT;
 		}
 
-#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append(list, $1, NULL);
-#else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append(list, $1);
-#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
@@ -5946,11 +5847,7 @@ in_addr_list: in_addr_elem L_EOS
 	}
 	| in_addr_list in_addr_elem L_EOS
 	{
-#ifndef NOMINUM_PUBLIC
 		tmpres = dns_c_iplist_append($1, $2, NULL);
-#else /* NOMINUM_PUBLIC */
-		tmpres = dns_c_iplist_append($1, $2);
-#endif /* NOMINUM_PUBLIC */
 		if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_TRUE,
 				     "failed to append master address");
@@ -6232,9 +6129,7 @@ static struct token keyword_tokens [] = {
 	{ "address",			L_ADDRESS },
 	{ "algorithm",			L_ALGID },
 	{ "allow",			L_ALLOW },
-#ifndef NOMINUM_PUBLIC
 	{ "allow-notify",		L_ALLOW_NOTIFY },
-#endif /* NOMINUM_PUBLIC */
 	{ "allow-query",		L_ALLOW_QUERY },
 	{ "allow-recursion",		L_ALLOW_RECURSION },
 	{ "allow-transfer",		L_ALLOW_TRANSFER },
@@ -6316,9 +6211,6 @@ static struct token keyword_tokens [] = {
 	{ "max-retry-time",		L_MAX_RETRY_TIME },
 	{ "min-refresh-time",		L_MIN_REFRESH_TIME },
 	{ "max-refresh-time",		L_MAX_REFRESH_TIME },
-#ifndef NOMINUM_PUBLIC
-	{ "max-names",			L_MAX_NAMES },
-#endif /* NOMINUM_PUBLIC */
 	{ "maximal",			L_MAXIMAL },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
 	{ "min-roots",			L_MIN_ROOTS },

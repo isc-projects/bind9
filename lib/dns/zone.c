@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.275 2000/12/11 19:24:29 bwelling Exp $ */
+/* $Id: zone.c,v 1.276 2000/12/13 00:15:16 tale Exp $ */
 
 #include <config.h>
 
@@ -159,14 +159,9 @@ struct dns_zone {
 	isc_uint32_t		minrefresh;
 	isc_uint32_t		maxretry;
 	isc_uint32_t		minretry;
-#ifndef NOMINUM_PUBLIC
-	isc_uint32_t		maxnames;
-#endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t		*masters;
-#ifndef NOMINUM_PUBLIC
 	dns_name_t		**masterkeynames;
-#endif /* NOMINUM_PUBLIC */
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	unsigned int		refreshcnt;
@@ -184,9 +179,7 @@ struct dns_zone {
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*forward_acl;
-#ifndef NOMINUM_PUBLIC
 	dns_acl_t		*notify_acl;
-#endif /* NOMINUM_PUBLIC */
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
 	dns_severity_t		check_names;
@@ -369,9 +362,6 @@ static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
 static void zone_iattach(dns_zone_t *source, dns_zone_t **target);
 void zone_idetach(dns_zone_t **zonep);
-#ifndef NOMINUM_PUBLIC
-static void zone_deletefile(dns_zone_t *zone);
-#endif /* NOMINUM_PUBLIC */
 static isc_result_t zone_replacedb(dns_zone_t *zone, dns_db_t *db,
 				   isc_boolean_t dump);
 static isc_result_t default_journal(dns_zone_t *zone);
@@ -500,13 +490,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->minrefresh = DNS_ZONE_MINREFRESH;
 	zone->maxretry = DNS_ZONE_MAXRETRY;
 	zone->minretry = DNS_ZONE_MINRETRY;
-#ifndef NOMINUM_PUBLIC
-	zone->maxnames = 0;
-#endif /* NOMINUM_PUBLIC */
 	zone->masters = NULL;
-#ifndef NOMINUM_PUBLIC
 	zone->masterkeynames = NULL;
-#endif /* NOMINUM_PUBLIC */
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->refreshcnt = 0;
@@ -516,9 +501,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->task = NULL;
 	zone->update_acl = NULL;
 	zone->forward_acl = NULL;
-#ifndef NOMINUM_PUBLIC
 	zone->notify_acl = NULL;
-#endif /* NOMINUM_PUBLIC */
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
 	zone->check_names = dns_severity_ignore;
@@ -602,21 +585,15 @@ zone_free(dns_zone_t *zone) {
 	if (zone->db != NULL)
 		dns_db_detach(&zone->db);
 	zone_freedbargs(zone);
-#ifndef NOMINUM_PUBLIC
 	dns_zone_setmasterswithkeys(zone, NULL, NULL, 0);
-#else /* NOMINUM_PUBLIC */
-	dns_zone_setmasters(zone, NULL, 0);
-#endif /* NOMINUM_PUBLIC */
 	dns_zone_setalsonotify(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
 	if (zone->forward_acl != NULL)
 		dns_acl_detach(&zone->forward_acl);
-#ifndef NOMINUM_PUBLIC
 	if (zone->notify_acl != NULL)
 		dns_acl_detach(&zone->notify_acl);
-#endif /* NOMINUM_PUBLIC */
 	if (zone->query_acl != NULL)
 		dns_acl_detach(&zone->query_acl);
 	if (zone->xfr_acl != NULL)
@@ -887,13 +864,14 @@ dns_zone_getjournal(dns_zone_t *zone) {
 static isc_boolean_t
 zone_isdynamic(dns_zone_t *zone) {
 	return (ISC_TF(zone->type == dns_zone_slave ||
-	       zone->type == dns_zone_stub ||
-	       zone->ssutable != NULL ||
-	       (zone->update_acl != NULL &&
-	       ! (zone->update_acl->length == 0 && 
-		  zone->update_acl->elements[0].negative == ISC_TRUE &&
-		  zone->update_acl->elements[0].type ==
-		  	dns_aclelementtype_any))));
+		       zone->type == dns_zone_stub ||
+		       zone->ssutable != NULL ||
+		       (zone->update_acl != NULL &&
+			! (zone->update_acl->length == 0 && 
+			   zone->update_acl->elements[0].negative == ISC_TRUE
+			   &&
+			   zone->update_acl->elements[0].type ==
+			   dns_aclelementtype_any))));
 }
 
 
@@ -1699,7 +1677,6 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 	return (ISC_R_SUCCESS);
 }
 
-#ifndef NOMINUM_PUBLIC
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		    isc_uint32_t count)
@@ -1713,26 +1690,17 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    dns_name_t **keynames, isc_uint32_t count)
-#else /* NOMINUM_PUBLIC */
-isc_result_t
-dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
-		    isc_uint32_t count)
-#endif /* NOMINUM_PUBLIC */
 {
 	isc_sockaddr_t *new;
 	isc_result_t result = ISC_R_SUCCESS;
-#ifndef NOMINUM_PUBLIC
 	dns_name_t **newname;
 	unsigned int i;
-#endif /* NOMINUM_PUBLIC */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(count == 0 || masters != NULL);
-#ifndef NOMINUM_PUBLIC
 	if (keynames != NULL) {
 		REQUIRE(count != 0);
 	}
-#endif /* NOMINUM_PUBLIC */
 
 	LOCK_ZONE(zone);
 	if (zone->masters != NULL) {
@@ -1740,7 +1708,6 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof *new);
 		zone->masters = NULL;
 	}
-#ifndef NOMINUM_PUBLIC
 	if (zone->masterkeynames != NULL) {
 		for (i = 0; i < zone->masterscnt; i++) {
 			if (zone->masterkeynames[i] != NULL) {
@@ -1756,7 +1723,6 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof(dns_name_t *));
 		zone->masterkeynames = NULL;
 	}
-#endif /* NOMINUM_PUBLIC */
 	zone->masterscnt = 0;
 	/*
 	 * If count == 0, don't allocate any space for masters or keynames
@@ -1779,7 +1745,6 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 	zone->masterscnt = count;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
 
-#ifndef NOMINUM_PUBLIC
 	/*
 	 * if keynames is non-NULL, it must contain count elements!
 	 */
@@ -1820,7 +1785,6 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 		}
 		zone->masterkeynames = newname;
 	}
-#endif /* NOMINUM_PUBLIC */
  unlock:
 	UNLOCK_ZONE(zone);
 	return (result);
@@ -2199,36 +2163,6 @@ zone_unload(dns_zone_t *zone) {
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADED);
 }
 
-#ifndef NOMINUM_PUBLIC
-/*
- * Note: the only reason this is protected is to avoid a compiler warning
- * about an unused static function.  The protection can be removed if
- * this is needed elsewhere.
- */
-static void
-zone_deletefile(dns_zone_t *zone) {
-	const char me[] = "zone_deletefile";
-	isc_result_t result;
-
-	/*
-	 * Locked by caller.
-	 */
-	REQUIRE(LOCKED_ZONE(zone));
-
-	if (zone->masterfile == NULL)
-		return;
-	result = isc_file_remove(zone->masterfile);
-	if (result != ISC_R_SUCCESS) {
-		zone_log(zone, me, ISC_LOG_WARNING,
-			 "failed to delete '%s': %s",
-			 zone->masterfile, dns_result_totext(result));
-	}
-	if (zone->journal != NULL)
-		(void)isc_file_remove(zone->journal);
-
-}
-#endif /* NOMINUM_PUBLIC */
-
 void
 dns_zone_setminrefreshtime(dns_zone_t *zone, isc_uint32_t val) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2260,21 +2194,6 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 
 	zone->maxretry = val;
 }
-
-#ifndef NOMINUM_PUBLIC
-void
-dns_zone_setmaxnames(dns_zone_t *zone, isc_uint32_t val) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone->maxnames = val;
-}
-
-isc_uint32_t dns_zone_getmaxnames(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->maxnames);
-}
-#endif /* NOMINUM_PUBLIC */
 
 static isc_boolean_t
 notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
@@ -3239,9 +3158,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "Serial: new %u, old %u",
 		 serial, zone->serial);
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
-#ifndef NOMINUM_PUBLIC
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCELOAD) ||
-#endif /* NOMINUM_PUBLIC */
 	    isc_serial_gt(serial, zone->serial)) {
  tcp_transfer:
 		isc_event_free(&event);
@@ -3964,9 +3881,9 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	isc_result_t result;
 	isc_stdtime_t now;
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
-#ifndef NOMINUM_PUBLIC
 	int match = 0;
 	isc_netaddr_t netaddr;
+#ifdef NOMINUM_PUBLIC
 	isc_boolean_t forward = ISC_FALSE;
 #endif /* NOMINUM_PUBLIC */
 
@@ -4025,7 +3942,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		if (isc_sockaddr_eqaddr(from, &zone->masters[i]))
 			break;
 
-#ifndef	NOMINUM_PUBLIC
 	/*
 	 * Accept notify requests from non masters if they are on
 	 * 'zone->notify_acl'.  If DNS_ZONEOPT_NOTIFYFORWARD is set
@@ -4035,13 +3951,12 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
 	    dns_acl_match(&netaddr, NULL, zone->notify_acl, NULL, &match,
 			  NULL) == ISC_R_SUCCESS && match > 0) {
-		
+#ifndef NOMINUM_PUBLIC
 		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYFORWARD))
 			forward = ISC_TRUE;
-		/* Accept notify. */
-	} else
 #endif /* NOMINUM_PUBLIC */
-	if (i >= zone->masterscnt) {
+		/* Accept notify. */
+	} else if (i >= zone->masterscnt) {
 		UNLOCK_ZONE(zone);
 		zone_log(zone, me, ISC_LOG_DEBUG(3),
 			 "REFUSED notify from non master: %s", fromtext);
@@ -4111,7 +4026,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	return (ISC_R_SUCCESS);
 }
 
-#ifndef NOMINUM_PUBLIC
 void
 dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl) {
 
@@ -4123,7 +4037,6 @@ dns_zone_setnotifyacl(dns_zone_t *zone, dns_acl_t *acl) {
 	dns_acl_attach(acl, &zone->notify_acl);
 	UNLOCK_ZONE(zone);
 }
-#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_setqueryacl(dns_zone_t *zone, dns_acl_t *acl) {
@@ -4173,7 +4086,6 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl) {
 	UNLOCK_ZONE(zone);
 }
 
-#ifndef NOMINUM_PUBLIC
 dns_acl_t *
 dns_zone_getnotifyacl(dns_zone_t *zone) {
 
@@ -4181,7 +4093,6 @@ dns_zone_getnotifyacl(dns_zone_t *zone) {
 
 	return (zone->notify_acl);
 }
-#endif /* NOMINUM_PUBLIC */
 
 dns_acl_t *
 dns_zone_getqueryacl(dns_zone_t *zone) {
@@ -4237,7 +4148,6 @@ dns_zone_clearforwardacl(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 }
 
-#ifndef NOMINUM_PUBLIC
 void
 dns_zone_clearnotifyacl(dns_zone_t *zone) {
 
@@ -4248,7 +4158,6 @@ dns_zone_clearnotifyacl(dns_zone_t *zone) {
 		dns_acl_detach(&zone->notify_acl);
 	UNLOCK_ZONE(zone);
 }
-#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_clearqueryacl(dns_zone_t *zone) {
@@ -4723,18 +4632,6 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 		break;
 
-#ifndef NOMINUM_PUBLIC
-	case DNS_R_ZONETOOLARGE:
-		zone_log(zone, me, ISC_LOG_WARNING,
-			 "transfer aborted, zone unloaded",
-			 dns_result_totext(result));
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
-			zone_unload(zone);
-			zone_deletefile(zone);
-		}
-		break;
-
-#endif /* NOMINUM_PUBLIC */
 	default:
 		zone->curmaster++;
 	same_master:
@@ -4939,7 +4836,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 * Determine if we should attempt to sign the request with TSIG.
 	 */
 	result = ISC_R_NOTFOUND;
-#ifndef NOMINUM_PUBLIC
 	/*
 	 * First, look for a tsig key in the master statement, then
 	 * try for a server key.
@@ -4950,7 +4846,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		dns_name_t *keyname = zone->masterkeynames[zone->curmaster];
 		result = dns_view_gettsig(view, keyname, &tsigkey);
 	}
-#endif /* NOMINUM_PUBLIC */
 	if (tsigkey == NULL)
 		result = dns_view_getpeertsig(zone->view, &masterip, &tsigkey);
 
