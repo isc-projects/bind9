@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.20 2002/06/17 04:01:14 marka Exp $
+# $Id: sign.sh,v 1.21 2002/07/19 06:20:24 marka Exp $
 
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
@@ -30,7 +30,7 @@ zonefile=example.db
 
 ( cd ../ns3 && sh sign.sh )
 
-for subdomain in secure bogus dynamic
+for subdomain in secure bogus dynamic keyless
 do
 	cp ../ns3/keyset-$subdomain.example. .
 done

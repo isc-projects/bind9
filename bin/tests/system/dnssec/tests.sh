@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.40 2002/06/17 04:01:11 marka Exp $
+# $Id: tests.sh,v 1.41 2002/07/19 06:20:24 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -62,10 +62,38 @@ status=`expr $status + $ret`
 
 echo "I:checking 1-server insecurity proof ($n)"
 ret=0
-$DIG $DIGOPTS a.insecure.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS a.insecure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+$DIG $DIGOPTS +noauth a.insecure.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS +noauth a.insecure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+# Note - this is looking for failure, hence the &&
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking 1-server negative insecurity proof ($n)"
+ret=0
+$DIG $DIGOPTS q.insecure.example. a @10.53.0.3 \
+	> dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS q.insecure.example. a @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+# Note - this is looking for failure, hence the &&
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking 1-server negative insecurity proof with SOA hack ($n)"
+ret=0
+$DIG $DIGOPTS r.insecure.example. soa @10.53.0.3 \
+	> dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS r.insecure.example. soa @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -133,9 +161,9 @@ status=`expr $status + $ret`
 
 echo "I:checking 2-server insecurity proof ($n)"
 ret=0
-$DIG $DIGOPTS a.insecure.secure.example. @10.53.0.2 a \
+$DIG $DIGOPTS +noauth a.insecure.secure.example. @10.53.0.2 a \
 	> dig.out.ns2.test$n || ret=1
-$DIG $DIGOPTS a.insecure.secure.example. @10.53.0.4 a \
+$DIG $DIGOPTS +noauth a.insecure.secure.example. @10.53.0.4 a \
 	> dig.out.ns4.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
@@ -152,6 +180,20 @@ ret=0
 $DIG $DIGOPTS q.insecure.secure.example. @10.53.0.2 a > dig.out.ns2.test$n \
 	|| ret=1
 $DIG $DIGOPTS q.insecure.secure.example. @10.53.0.4 a > dig.out.ns4.test$n \
+	|| ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+# Note - this is looking for failure, hence the &&
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking 2-server insecurity proof with a negative answer and SOA hack ($n)"
+ret=0
+$DIG $DIGOPTS r.insecure.secure.example. @10.53.0.2 soa > dig.out.ns2.test$n \
+	|| ret=1
+$DIG $DIGOPTS r.insecure.secure.example. @10.53.0.4 soa > dig.out.ns4.test$n \
 	|| ret=1
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
@@ -231,9 +273,9 @@ status=`expr $status + $ret`
 
 echo "I:checking cd bit on a negative insecurity proof ($n)"
 ret=0
-$DIG $DIGOPTS q.insecure.example. soa @10.53.0.4 \
+$DIG $DIGOPTS q.insecure.example. a @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$DIG $DIGOPTS +cdflag q.insecure.example. soa @10.53.0.5 \
+$DIG $DIGOPTS +cdflag q.insecure.example. a @10.53.0.5 \
 	> dig.out.ns5.test$n || ret=1
 $PERL ../digcomp.pl dig.out.ns4.test$n dig.out.ns5.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
@@ -336,16 +378,6 @@ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:checking positive validation of dynamic zone ($n)"
-ret=0
-$DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.3 > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth dynamic.example. SOA @10.53.0.4 > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
