@@ -75,12 +75,11 @@ query_maybeputqname(ns_client_t *client) {
 	if (client->query.restarts > 0) {
 		/*
 		 * client->query.qname was dynamically allocated.
-		 * We must free it before we set it.
 		 */
 		dns_message_puttempname(client->message,
 					&client->query.qname);
-	} else
 		client->query.qname = NULL;
+	}
 }
 
 static inline void
@@ -150,6 +149,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
 	client->query.origqname = NULL;
+	client->query.qname = NULL;
 	client->query.qrdataset = NULL;
 	client->query.dboptions = 0;
 	client->query.gluedb = NULL;
@@ -1339,6 +1339,10 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
+	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
+	dns_resolver_destroyfetch(client->view->resolver,
+				  &client->query.fetch);
+
 	client->waiting--;
 
 	/*
@@ -1450,7 +1454,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	zdb = NULL;
 	version = NULL;
 	zone = NULL;
-	qcount = 0;
 
 	if (event != NULL) {
 		/*
@@ -1462,8 +1465,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		authoritative = ISC_FALSE;
 		clear_fname = ISC_FALSE;
 		is_zone = ISC_FALSE;
-
-		client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 
 		qtype = event->qtype;
 		if (qtype == dns_rdatatype_sig)
@@ -1557,7 +1558,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	/*
 	 * Find the first unanswered type in the question section.
 	 */
-	qtype = dns_rdatatype_null;
+	qtype = 0;
+	qcount = 0;
+	client->query.qrdataset = NULL;
 	for (trdataset = ISC_LIST_HEAD(client->query.origqname->list);
 	     trdataset != NULL;
 	     trdataset = ISC_LIST_NEXT(trdataset, link)) {
@@ -1573,16 +1576,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 * We had better have found something!
 	 */
 	INSIST(client->query.qrdataset != NULL && qcount > 0);
+
 	/*
-	 * If there's more than one question, we'll retrieve the node and
-	 * iterate it, trying to find answers.
+	 * If there's more than one question, we'll eventually retrieve the
+	 * node and iterate it, trying to find answers.  For now, we simply
+	 * refuse requests with more than one question.
 	 */
 	if (qcount == 1)
 		type = qtype;
 	else {
-		type = dns_rdatatype_any;
-		/* XXXRTH */
-		QUERY_ERROR(DNS_R_NOTIMP);
+		QUERY_ERROR(DNS_R_REFUSED);
 		goto cleanup;
 	}
 
@@ -2188,11 +2191,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		client->query.restarts++;
 		goto restart;
 	}
-
-	/*
-	 * Cleanup qname?
-	 */
-	query_maybeputqname(client);
 
 	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client))
 		ns_client_error(client, eresult);
