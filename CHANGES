@@ -1,14 +1,17 @@
-1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
-
 1459.	[bug]		win32: we were leaking a bits in the exception
 			fd_set resulting in "Socket operation on non-socket"
 			errors from select(). [RT #2966]
  
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1385.	[bug]		Setting serial-query-rate to 10 would trigger a
+			REQUIRE failure.
+
 1372.	[bug]		named crashes with an assertion failure on exit when
 			sharing the same port for listening and querying, and
 			changing listening addresses several times. [RT# 3509]
+
+1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
 
 1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
 			[RT #2436]

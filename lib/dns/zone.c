@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.15 2003/03/06 04:38:21 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.16 2003/05/12 02:54:59 marka Exp $ */
 
 #include <config.h>
 
@@ -5895,7 +5895,7 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
 		s = 1;
 		ns = 0;
 		pertic = 1;		
-	} else if (value < 10) {
+	} else if (value <= 10) {
 		s = 0;
 		ns = 1000000000 / value;
 		pertic = 1;
