@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.112 2001/03/27 00:53:16 bwelling Exp $
+# $Id: Makefile.in,v 1.113 2001/07/26 21:33:28 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -41,13 +41,20 @@ LIBS =		@LIBS@
 
 SUBDIRS = db dst master mem names net rbt sockaddr tasks timers system
 
-# Alphabetically
-TARGETS =	genrandom
+# A few of the test programs are built by default:
+# cfg_test is needed for regenerating doc/misc/options;
+# genrandom is needed by the system tests
 
+# Alphabetically
+TARGETS =	cfg_test \
+		genrandom
+
+# All the other tests are optional and not built by default.
+
+# Alphabetically
 XTARGETS =	adb_test \
 		byaddr_test \
 		byname_test \
-		cfg_test \
 		compress_test \
 		db_test \
 		entropy_test \
