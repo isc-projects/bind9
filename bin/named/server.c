@@ -681,6 +681,36 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * This function is called as soon as the 'options' statement has been
+ * parsed.
+ */
+static isc_result_t
+options_callback(dns_c_ctx_t *cctx, void *uap) {
+	isc_result_t result;
+
+	(void)uap;
+
+	/*
+	 * Change directory.
+	 */
+	if (cctx->options != NULL &&
+	    cctx->options->directory != NULL) {
+		result = isc_dir_chdir(cctx->options->directory);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR, "change directory "
+				      "to '%s' failed: %s",
+				      cctx->options->directory,
+				      isc_result_totext(result));
+			return (result);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
@@ -706,7 +736,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	callbacks.zonecbk = configure_zone;
 	callbacks.zonecbkuap = &lctx;
-	callbacks.optscbk = NULL;
+	callbacks.optscbk = options_callback;
 	callbacks.optscbkuap = NULL;
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
@@ -821,24 +851,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	CHECK(create_version_view(configctx, &view));
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	view = NULL;
-
-	/*
-	 * Change directory.
-	 */
-	if (configctx->options != NULL &&
-	    configctx->options->directory != NULL) {
-		result = isc_dir_chdir(configctx->options->directory);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_SERVER,
-				      ISC_LOG_ERROR, "change directory "
-				      "to '%s' failed: %s",
-				      configctx->options->directory,
-				      isc_result_totext(result));
-			CHECK(result);
-		}
-	}
-
 
 	/*
 	 * Swap our new view list with the production one.
