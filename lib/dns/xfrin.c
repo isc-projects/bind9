@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.35 1999/12/23 00:08:34 explorer Exp $ */
+ /* $Id: xfrin.c,v 1.36 1999/12/24 00:44:59 marka Exp $ */
 
 #include <config.h>
 
@@ -292,8 +292,6 @@ axfr_commit(xfrin_ctx_t *xfr) {
 	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
 
 	result = ISC_R_SUCCESS;
-	if (xfr->done != NULL)
-		(xfr->done)(xfr->zone, result);
  failure:
 	return (result);
 }
@@ -1024,6 +1022,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		CHECK(xfrin_send_request(xfr));
 	} else if (xfr->state == XFRST_END) {
 		xfr->shuttingdown = ISC_TRUE;
+		/*
+		 * Inform the caller we succeeded.
+		 */
+		if (xfr->done != NULL)
+			(xfr->done)(xfr->zone, ISC_R_SUCCESS);
 		/*
 		 * We should have no outstanding events at this
 		 * point, thus maybe_free() should succeed.
