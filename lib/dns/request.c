@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.34 2000/08/15 01:43:34 marka Exp $ */
+/* $Id: request.c,v 1.35 2000/08/23 19:46:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -503,7 +503,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					   isc_sockettype_tcp, &socket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		isc_sockaddr_any(&bind_any);
+		isc_sockaddr_anyofpf(&bind_any, isc_sockaddr_pf(address));
 		result = isc_socket_bind(socket, &bind_any);
 		if (result != ISC_R_SUCCESS) {
 			isc_socket_detach(&socket);
