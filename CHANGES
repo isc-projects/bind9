@@ -1,3 +1,6 @@
+1747.	[func]		Make public the function to read a key file,
+			dst_key_read_public(). [RT #12450]
+
 1745.	[placeholder]	rt12745
 
 1744.	[bug]		If tuple2msgname() failed to convert a tuple to

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.48 2004/06/11 00:27:01 marka Exp $ */
+/* $Id: dst.h,v 1.49 2004/10/14 05:55:52 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -247,6 +247,29 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
  *
  * Returns:
  * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
+ * Ensures:
+ *	If successful, *keyp will contain a valid key.
+ */
+
+
+isc_result_t
+dst_key_read_public(const char *filename, int type,
+		    isc_mem_t *mctx, dst_key_t **keyp);
+/*
+ * Reads a public key from permanent storage.  The key must be a public key.
+ *
+ * Requires:
+ * 	"filename" is not NULL
+ *	"type" is DST_TYPE_KEY look for a KEY record otherwise DNSKEY
+ *	"mctx" is a valid memory context
+ *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ *      DST_R_BADKEYTYPE if the key type is not the expected one
+ *      ISC_R_UNEXPECTEDTOKEN if the file can not be parsed as a public key
  * 	any other result indicates failure
  *
  * Ensures:
