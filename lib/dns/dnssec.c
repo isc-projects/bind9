@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.6 1999/09/23 20:56:59 bwelling Exp $
+ * $Id: dnssec.c,v 1.7 1999/09/30 02:50:54 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -280,6 +280,11 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.timeexpire = *expire;
 	sig.keyid = dst_key_id(key);
 	sig.siglen = dst_sig_size(key);
+	if (sig.siglen < 0) {
+		/* close enough for now */
+		return (DNS_R_KEYUNAUTHORIZED);
+		goto cleanup_signer;
+	}
 	sig.signature = isc_mem_get(mctx, sig.siglen);
 	if (sig.signature == NULL)
 		goto cleanup_name;
