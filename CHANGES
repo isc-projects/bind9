@@ -1,3 +1,5 @@
+1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
+			[RT #13453]
 
 1808.	[bug]		zone.c:notify_zone() contained a race condition,
 			zone->db could change underneath it.  [RT #13511]
