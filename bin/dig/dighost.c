@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.155 2000/10/20 05:03:30 mws Exp $ */
+/* $Id: dighost.c,v 1.156 2000/10/23 17:49:03 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -97,6 +97,7 @@ int ndots = -1;
 int tries = 2;
 int lookup_counter = 0;
 char fixeddomain[MXNAME] = "";
+dig_server_t *fixedsearch = NULL;
 /*
  * Exit Codes:
  *   0   Everything went well, including things like NXDOMAIN
@@ -260,6 +261,7 @@ clone_server_list(dig_serverlist_t src,
 	srv = ISC_LIST_HEAD(src);
 	while (srv != NULL) {
 		newsrv = make_server(srv->servername);
+		ISC_LINK_INIT(newsrv, link);
 		ISC_LIST_ENQUEUE(*dest, newsrv, link);
 		srv = ISC_LIST_NEXT(srv, link);
 	}
@@ -538,19 +540,6 @@ setup_system(void) {
 	char *input;
 
 	debug("setup_system()");
-
-	if (fixeddomain[0] != 0) {
-		debug("using fixed domain %s", fixeddomain);
-		search = isc_mem_allocate(mctx, sizeof(struct dig_server));
-		if (search == NULL)
-			fatal("Memory allocation failure in %s:%d",
-			      __FILE__, __LINE__);
-		strncpy(search->origin, fixeddomain,
-			sizeof(search->origin));
-		search->origin[sizeof(search->origin)-1]=0;
-		/* XXX Check ordering, with search -vs- domain */
-		ISC_LIST_PREPEND(search_list, search, link);
-	}
 
 	free_now = ISC_FALSE;
 	get_servers = ISC_TF(server_list.head == NULL);
@@ -1080,6 +1069,16 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	debug("next_origin()");
 	debug("following up %s", query->lookup->textname);
 
+	if (fixedsearch == query->lookup->origin) {
+		/*
+		 * This is a fixed domain search; there is no next entry.
+		 * While we're here, clear out the fixedsearch alloc.
+		 */
+		isc_mem_free(mctx, fixedsearch);
+		fixedsearch = NULL;
+		query->lookup->origin = NULL;
+		return (ISC_FALSE);
+	}
 	if (!usesearch)
 		/*
 		 * We're not using a search list, so don't even think
@@ -1218,8 +1217,24 @@ setup_lookup(dig_lookup_t *lookup) {
 	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
 		lookup->origin = NULL; /* Force abs lookup */
 	else if (lookup->origin == NULL && lookup->new_search &&
-		 (usesearch || have_domain))
-		lookup->origin = ISC_LIST_HEAD(search_list);
+		 (usesearch || have_domain)) {
+		if (fixeddomain[0] != 0) {
+			debug("using fixed domain %s", fixeddomain);
+			if (fixedsearch != NULL)
+				isc_mem_free(mctx, fixedsearch);
+			fixedsearch = isc_mem_allocate(mctx,
+						sizeof(struct dig_server));
+			if (fixedsearch == NULL)
+				fatal("Memory allocation failure in %s:%d",
+				      __FILE__, __LINE__);
+			strncpy(fixedsearch->servername, fixeddomain,
+				sizeof(fixedsearch->servername));
+			fixedsearch->servername[sizeof
+					       (fixedsearch->servername)-1]=0;
+			lookup->origin = fixedsearch;
+		} else
+			lookup->origin = ISC_LIST_HEAD(search_list);
+	}
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
 		result = dns_message_gettempname(lookup->sendmsg,
@@ -1460,6 +1475,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&query->lengthbuf, query->lengthspace, 2);
 		isc_buffer_init(&query->slbuf, query->slspace, 2);
 
+		ISC_LINK_INIT(query, link);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
 	/* XXX qrflag, print_query, etc... */
@@ -1664,6 +1680,7 @@ send_udp(dig_query_t *query) {
 		check_result(result, "isc_socket_bind");
 
 		query->recv_made = ISC_TRUE;
+		ISC_LINK_INIT(&query->recvbuf, link);
 		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf,
 				 link);
 		debug("recving with lookup=%p, query=%p, sock=%p",
@@ -1678,6 +1695,7 @@ send_udp(dig_query_t *query) {
 		debug("recvcount=%d", recvcount);
 	}
 	ISC_LIST_INIT(query->sendlist);
+	ISC_LINK_INIT(&l->sendbuf, link);
 	ISC_LIST_ENQUEUE(query->sendlist, &l->sendbuf,
 			 link);
 	debug("sending a request");
@@ -1828,6 +1846,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_init(&query->recvbuf, query->recvspace, length);
 	ENSURE(ISC_LIST_EMPTY(query->recvlist));
+	ISC_LINK_INIT(&query->recvbuf, link);
 	ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf, link);
 	debug("recving with lookup=%p, query=%p",
 	       query->lookup, query);
@@ -1871,11 +1890,14 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	isc_buffer_clear(&query->lengthbuf);
 	isc_buffer_putuint16(&query->slbuf, query->lookup->sendbuf.used);
 	ISC_LIST_INIT(query->sendlist);
+	ISC_LINK_INIT(&query->slbuf, link);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
 	if (include_question) {
+		ISC_LINK_INIT(&query->lookup->sendbuf, link);
 		ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf,
 				 link);
 	}
+	ISC_LINK_INIT(&query->lengthbuf, link);
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 
 	result = isc_socket_recvv(query->sock, &query->lengthlist, 0,
@@ -2679,6 +2701,11 @@ destroy_libs(void) {
 
 	free_now = ISC_TRUE;
 
+	if (fixedsearch != NULL) {
+		debug("freeing fixed search");
+		isc_mem_free(mctx, fixedsearch);
+		fixedsearch = NULL;
+	}
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
 		debug("freeing global server %p", s);

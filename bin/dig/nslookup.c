@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.58 2000/10/19 22:49:34 mws Exp $ */
+/* $Id: nslookup.c,v 1.59 2000/10/23 17:49:05 mws Exp $ */
 
 #include <config.h>
 
@@ -578,9 +578,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	printf("\t  timeout = %d\t\tretry = %d\tport = %d\n",
 		timeout, tries, port);
 	printf("\t  querytype = %-8s\tclass = %s\n", deftype, defclass);
-#if 0
 	printf("\t  domain = %s\n", fixeddomain);
-#endif
 
 }
 
@@ -650,13 +648,12 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
 		if (testtype(&opt[3]))
 			safecpy(deftype, &opt[3], MXRD);
-#if 0
-		/* XXXMWS domain= doesn't work now. */
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
 		safecpy(fixeddomain, &opt[7], MXNAME);
+		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "do=", 3) == 0) {
 		safecpy(fixeddomain, &opt[3], MXNAME);
-#endif
+		usesearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
 		port = atoi(&opt[5]);
 	} else if (strncasecmp(opt, "po=", 3) == 0) {
@@ -673,6 +670,10 @@ setoption(char *opt) {
 		defname = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodef", 5) == 0) {
 		defname = ISC_FALSE;
+ 	} else if (strncasecmp(opt, "vc", 3) == 0) {
+		tcpmode = ISC_TRUE;
+	} else if (strncasecmp(opt, "novc", 5) == 0) {
+		tcpmode = ISC_FALSE;
  	} else if (strncasecmp(opt, "deb", 3) == 0) {
 		short_form = ISC_FALSE;
 	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
@@ -779,6 +780,7 @@ addlookup(char *opt) {
 	lookup->section_additional = section_additional;
 	lookup->new_search = ISC_TRUE;
 	ISC_LIST_INIT(lookup->q);
+	ISC_LINK_INIT(lookup, link);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;
 	ISC_LIST_INIT(lookup->my_server_list);
@@ -816,6 +818,7 @@ setsrv(char *opt) {
 	if (srv == NULL)
 		fatal("Memory allocation failure.");
 	safecpy(srv->servername, opt, MXNAME-1);
+	ISC_LINK_INIT(srv, link);
 	ISC_LIST_APPEND(server_list, srv, link);
 }
 
