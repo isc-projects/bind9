@@ -1119,7 +1119,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->rctext[0]=0;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
-	printgreeting (argc, argv);
+	if (!is_batchfile)
+		printgreeting (argc, argv);
 }
 
 int
