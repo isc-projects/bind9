@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.30 2001/02/28 20:40:48 gson Exp $ */
+/* $Id: parser.c,v 1.31 2001/02/28 23:56:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -712,7 +712,7 @@ namedconf_clauses[] = {
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "view", &cfg_type_view, CFG_CLAUSEFLAG_MULTI },
-	{ "lwres", &cfg_type_lwres, 0 },
+	{ "lwres", &cfg_type_lwres, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 
