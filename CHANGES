@@ -1,3 +1,6 @@
+1788.	[bug]		libbind9.la/libbind9.so needs to link against
+			libisccfg.la/libisccfg.so.
+
 1787.	[port]		HPUX: both "cc" and "gcc" need -Wl,+vnocompatwarnings.
 
 1786.	[port]		AIX: libt_api needs to be taught to look for
