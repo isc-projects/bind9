@@ -1,3 +1,6 @@
+1824.	[bug]		Memory leak on dns_zone_setdbtype() failure.
+			[RT #13510]
+
 1823.	[bug]		Wrong macro used to check for point to point interface.
 			[RT#13418]
 
