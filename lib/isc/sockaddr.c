@@ -239,7 +239,7 @@ isc_sockaddr_any6(isc_sockaddr_t *sockaddr)
 #endif
 	sockaddr->type.sin6.sin6_addr = in6addr_any;
 	sockaddr->type.sin6.sin6_port = 0;
-	sockaddr->length = sizeof sockaddr->type.sin;
+	sockaddr->length = sizeof sockaddr->type.sin6;
 	ISC_LINK_INIT(sockaddr, link);
 }
 
