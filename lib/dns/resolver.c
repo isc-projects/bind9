@@ -1,4 +1,6 @@
 
+#include <config.h>
+
 #include <isc/assertions.h>
 #include <isc/result.h>
 #include <isc/timer.h>
