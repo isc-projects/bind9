@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.h,v 1.73 2000/06/22 21:55:49 tale Exp $ */
+/* $Id: name.h,v 1.74 2000/07/13 18:10:16 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -931,6 +931,7 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_NOSPACE
+ *	DNS_R_NAMETOOLONG
  */
 
 isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.c,v 1.93 2000/06/22 21:54:32 tale Exp $ */
+/* $Id: name.c,v 1.94 2000/07/13 18:10:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2345,7 +2345,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		 * The name did not fit even though we had a buffer
 		 * big enough to fit a maximum-length name.
 		 */
-		return (DNS_R_FORMERR);
+		return (DNS_R_NAMETOOLONG);
 	else
 		/*
 		 * The name might fit if only the caller could give us a
@@ -2512,6 +2512,10 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	if (copy_suffix) {
 		length += suffix->length;
 		labels += suffix->labels;
+	}
+	if (length > 255) {
+		MAKE_EMPTY(name);
+		return (DNS_R_NAMETOOLONG);
 	}
 	if (length > nrem) {
 		MAKE_EMPTY(name);
