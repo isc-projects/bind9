@@ -38,12 +38,6 @@
 #include <dns/callbacks.h>
 #include <dns/confctx.h> 
 
-struct dns_zone_callbackarg {
-	isc_mem_t *mctx;
-	dns_viewlist_t oldviews;
-	dns_viewlist_t newviews;
-};
-
 typedef enum {
 	dns_zone_none,
 	dns_zone_master,
@@ -481,15 +475,6 @@ dns_result_t dns_zone_copy(dns_c_ctx_t *ctx, dns_c_zone_t *czone,
 dns_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);
 
-/*
- *
- */
-isc_result_t dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
-			       dns_c_view_t *view, void *uap);
-/*
- * 
- */
-
 void
 dns_zone_setxfrtime(dns_zone_t *zone, isc_uint32_t xfrtime);
 /*
@@ -572,6 +557,8 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db,
  *	'zone' to be a valid zone.
  */
 
+isc_boolean_t
+dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone);
 
 ISC_LANG_ENDDECLS
 
