@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.225 $)
+AC_REVISION($Revision: 1.226 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1317,6 +1317,16 @@ AC_PATH_PROGS(JADE, openjade jade, jade)
 AC_SUBST(JADE)
 
 #
+# Look for tex & pdftex.
+#
+
+AC_PATH_PROGS(TEX, tex)
+AC_SUBST(TEX)
+
+AC_PATH_PROGS(PDFTEX, pdftex)
+AC_SUBST(PDFTEX)
+
+#
 # Look for SGML files.  NetBSD has them under /usr/pkg/share 
 # (if installed), FreeBSD has them under /usr/local/share.
 #
@@ -1479,6 +1489,8 @@ AC_OUTPUT(
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/validate.sh
 	doc/arm/genhtml.sh
+	doc/arm/gendvi.sh
+	doc/arm/genpdf.sh
 	isc-config.sh
 )
 chmod a+x isc-config.sh

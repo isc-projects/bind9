@@ -3,7 +3,7 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.14 2001/02/01 20:06:14 scanner Exp $
+Version: $Id: README-SGML,v 1.15 2001/02/02 22:37:18 scanner Exp $
 
 The entire ARM is in the single file:
 
@@ -212,9 +212,8 @@ sheet it is based on via a relative path.
 
 o Generate TeX documentation:
 
-openjade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl \
-     -t tex \
-     -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
+openjade -d ./nominum-docbook-print.dsl -t tex -v \
+     /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl \
      Bv9ARM-book.xml
 
 If you have "jade" installed instead of "openjade" then use that as
@@ -228,6 +227,11 @@ To convert the resulting TeX file in to a DVI file you need to do:
 You can also directly generate the pdf file via:
 
     pdftex "&pdfjadetex" Bv9ARM-book.tex
+
+The scripts "genpdf.sh" and "gendvi." have been added to simply
+generating the  PDF and DVI output. These substitute the correct paths
+of NetBSD & FreeBSD. You still need to have TeX, jadeTeX, and pdfTeX
+installed and configured properly for these to work.
 
 You will need to up both the "pool_size" and "hash_extra" variables in
 your texmf.cnf file and regenerate them. See below.

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.99 2001/02/02 20:23:22 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.100 2001/02/02 22:37:17 scanner Exp $ -->
 
 <book>
 
@@ -56,34 +56,31 @@
     <para>In this document, we use the following general typographic
     conventions:</para>
 
-<informaltable colsep = "0" frame = "all" rowsep = "0">
-        <tgroup cols = "2" colsep = "0" rowsep = "0"
-                tgroupstyle = "2Level-table">
-          <colspec colname = "1" colnum = "1" colsep = "0"
-                   colwidth = "3.000in"/>
-          <colspec colname = "2" colnum = "2" colsep = "0"
-                   colwidth = "2.625in"/>
+<informaltable>
+        <tgroup cols = "2">
+          <colspec colname = "1" colnum = "1" colwidth = "3.000in"/>
+          <colspec colname = "2" colnum = "2" colwidth = "2.625in"/>
           <tbody>
-            <row rowsep = "0">
-              <entry colname = "1" colsep = "1" rowsep = "1">
+            <row>
+              <entry colname = "1">
 <para><emphasis>To
 describe:</emphasis></para></entry>
-              <entry colname = "2" rowsep = "1">
+              <entry colname = "2">
 <para><emphasis>We use the style:</emphasis></para></entry>
             </row>
-            <row rowsep = "0">
-              <entry colname = "1" colsep = "1" rowsep = "1">
+            <row>
+              <entry colname = "1">
 <para>a pathname, filename, URL, hostname,
 mailing list name, or new term or concept</para></entry>
-              <entry colname = "2" rowsep = "1"><para><filename>Fixed width</filename></para></entry>
+              <entry colname = "2"><para><filename>Fixed width</filename></para></entry>
             </row>
-            <row rowsep = "0">
-              <entry colname = "1" colsep = "1" rowsep = "1"><para>literal user
+            <row>
+              <entry colname = "1"><para>literal user
 input</para></entry>
-              <entry colname = "2" rowsep = "1"><para><userinput>Fixed Width Bold</userinput></para></entry>
+              <entry colname = "2"><para><userinput>Fixed Width Bold</userinput></para></entry>
             </row>
-            <row rowsep = "0">
-              <entry colname = "1" colsep = "1"><para>program output</para></entry>
+            <row>
+              <entry colname = "1"><para>program output</para></entry>
               <entry colname = "2"><para><computeroutput>Fixed Width</computeroutput></para></entry>
             </row>
           </tbody>
@@ -720,45 +717,45 @@ of a server.</para>
               </cmdsynopsis>
               <para><command>command</command> is one of the following:</para>
 
-<informaltable colsep = "0" rowsep = "0">
-	<tgroup cols = "2" colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
-	<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "3.000in"/>
-        <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "3.000in"/>
+<informaltable>
+	<tgroup cols = "2">
+	<colspec colname = "1" colnum = "1" colwidth = "3.000in"/>
+        <colspec colname = "2" colnum = "2" colwidth = "3.000in"/>
         <tbody>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>reload</userinput></para></entry>
 <entry colname = "2"><para>Reload configuration file and zones.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>reload <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
 <entry colname = "2"><para>Reload the given zone.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>refresh <replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></para></entry>
 <entry colname = "2"><para>Schedule zone maintenance for the given zone.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>stats</userinput></para></entry>
 <entry colname = "2"><para>Write server statistics to the statistics file.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>querylog</userinput></para></entry>
 <entry colname = "2"><para>Toggle query logging.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>stop</userinput></para></entry>
 <entry colname = "2"><para>Stop the server, making sure any recent changes
 made through dynamic update or IXFR are first saved to the master files
 of the updated zones.</para></entry>
 </row>
 
-<row rowsep = "0">
+<row>
 <entry colname = "1"><para><userinput>halt</userinput></para></entry>
 <entry colname = "2"><para>Stop the server immediately.  Recent changes
 made through dynamic update or IXFR are not saved to the master files,
@@ -854,8 +851,7 @@ controls {
 <para>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <command>kill</command> command.</para>
-<informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
-    colsep = "0" rowsep = "0" tgroupstyle = "3Level-table">
+<informaltable frame = "all" ><tgroup cols = "2">
 <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.125in"/>
 <colspec colname = "2" colnum = "2" colsep = "0" colwidth = "4.000in"/>
 <tbody>
@@ -2316,7 +2312,7 @@ level is set either by starting the <command>named</command> server
 with the <option>-d</option> flag followed by a positive integer,
 or by running <command>rndc trace</command>. <note>
             <simpara>the latter
-method is not yet implemented</simpara></note> The global debug level
+method is not yet implemented.</simpara></note> The global debug level
 can be set to zero, and debugging mode turned off, by running <command>ndc
 notrace</command>. All debugging messages in the server have a debug
 level, and higher debug levels give more detailed output. Channels
@@ -2685,7 +2681,7 @@ If not specified, the default is <filename>named_dump.db</filename>.</para>
 <listitem><para>The pathname of the file the server writes memory
 usage statistics to on exit. If not specified,
 the default is <filename>named.memstats</filename>.</para>
-<note><simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
+<note><para>Not yet implemented in <acronym>BIND</acronym> 9.</para></note>
 </listitem></varlistentry>
 
 <varlistentry><term><command>pid-file</command></term>
