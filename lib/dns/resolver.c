@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.210 2001/03/13 05:49:58 marka Exp $ */
+/* $Id: resolver.c,v 1.211 2001/03/15 02:00:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4163,9 +4163,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				broken_server = ISC_TRUE;
 				keep_trying = ISC_TRUE;
 			}
-			goto done;
-		case DNS_R_MOREDATA:
-			result = ISC_R_NOTIMPLEMENTED;
 			goto done;
 		default:
 			/*
