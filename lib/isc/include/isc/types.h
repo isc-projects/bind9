@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.29 2000/08/01 01:30:54 tale Exp $ */
+/* $Id: types.h,v 1.30 2000/08/17 23:33:02 bwelling Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -45,6 +45,7 @@ typedef struct isc_bitstring		isc_bitstring_t;
 typedef struct isc_buffer		isc_buffer_t;
 typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;
 typedef struct isc_constregion		isc_constregion_t;
+typedef struct isc_consttextregion	isc_consttextregion_t;
 typedef struct isc_entropy		isc_entropy_t;
 typedef struct isc_entropysource	isc_entropysource_t;
 typedef struct isc_event		isc_event_t;

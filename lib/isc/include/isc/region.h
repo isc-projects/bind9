@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.h,v 1.14 2000/08/01 01:30:39 tale Exp $ */
+/* $Id: region.h,v 1.15 2000/08/17 23:33:04 bwelling Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
@@ -37,6 +37,11 @@ struct isc_textregion {
  */
 struct isc_constregion {
 	const void *	base;
+	unsigned int	length;
+};
+
+struct isc_consttextregion {
+	const char *	base;
 	unsigned int	length;
 };
 
