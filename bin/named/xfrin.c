@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.13 1999/10/14 01:36:59 halley Exp $ */
+ /* $Id: xfrin.c,v 1.14 1999/10/14 02:12:03 gson Exp $ */
 
 #include <config.h>
 
@@ -461,7 +461,7 @@ xfr_rr(xfrin_ctx_t *xfr,
 
 void
 ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
-	dns_name_t zonename;
+	dns_name_t *zonename;
 	isc_task_t *task;
 	xfrin_ctx_t *xfr;
 	dns_result_t result;
@@ -471,8 +471,7 @@ ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
 	
 	printf("attempting zone transfer\n");
 
-	dns_name_init(&zonename, NULL);
-	CHECK(dns_zone_getorigin(zone, xfr->mctx, &zonename));
+	zonename = dns_zone_getorigin(zone);
 	result = dns_zone_getdb(zone, &db);
 	if (result == DNS_R_NOTLOADED)
 		INSIST(db == NULL);
@@ -496,18 +495,14 @@ ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
 			   db,
 			   task,
 			   ns_g_socketmgr,
-			   &zonename,
+			   zonename,
 			   dns_rdataclass_in, xfrtype,
 			   master, key, &xfr));
 
-	dns_name_free(&zonename, ns_g_mctx);
-		
 	xfrin_start(xfr);
 	return;
 	
  failure:
-	if (zonename.ndata != NULL)
-		dns_name_free(&zonename, ns_g_mctx);
 	printf("zone transfer setup failed\n");
 	return;
 }
