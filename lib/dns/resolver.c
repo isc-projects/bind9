@@ -594,7 +594,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 		result = dns_dispatch_create(res->mctx, socket, task,
-					     4096, 2, 1, 1, &query->dispatch);
+					     4096, 2, 1, 1, 3,
+					     &query->dispatch);
 		/*
 		 * Regardless of whether dns_dispatch_create() succeeded or
 		 * not, we don't need our reference to the socket anymore.
@@ -3226,7 +3227,8 @@ dns_resolver_create(dns_view_t *view,
 		}
 		result = dns_dispatch_create(res->mctx, res->udpsocket4,
 					     res->buckets[0].task, 4096,
-					     1000, 32768, 14, &res->dispatch4);
+					     1000, 32768, 16411, 16433,
+					     &res->dispatch4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocket4;
 	}
@@ -3247,7 +3249,8 @@ dns_resolver_create(dns_view_t *view,
 			goto cleanup_dispatch4;
 		result = dns_dispatch_create(res->mctx, res->udpsocket6,
 					     res->buckets[0].task, 4096, 
-					     1000, 32768, 14, &res->dispatch6);
+					     1000, 32768, 16411, 16433,
+					     &res->dispatch6);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocket6;
 	}

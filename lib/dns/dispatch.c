@@ -57,7 +57,7 @@ struct dns_dispentry {
 	ISC_LINK(dns_dispentry_t)	link;
 };
 
-#define INVALID_BUCKET (0xffffdead)
+#define INVALID_BUCKET		(0xffffdead)
 
 typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
 
@@ -89,8 +89,8 @@ struct dns_dispatch {
 	ISC_LIST(dns_dispatchevent_t) rq_events; /* holder for rq events */
 	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
 	isc_lfsr_t		qid_lfsr;	/* state generator info */
-	unsigned int		qid_hashsize;	/* hash table size */
-	unsigned int		qid_mask;	/* mask for hash table */
+	unsigned int		qid_nbuckets;	/* hash table size */
+	unsigned int		qid_increment;	/* id increment on collision */
 	dns_displist_t	        *qid_table;	/* the table itself */
 };
 
@@ -146,7 +146,7 @@ linear_first(dns_dispatch_t *disp)
 
 	bucket = 0;
 
-	while (bucket < disp->qid_hashsize) {
+	while (bucket < disp->qid_nbuckets) {
 		ret = ISC_LIST_HEAD(disp->qid_table[bucket]);
 		if (ret != NULL)
 			return (ret);
@@ -167,7 +167,7 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
 		return (ret);
 
 	bucket = resp->bucket;
-	while (bucket < disp->qid_hashsize) {
+	while (bucket < disp->qid_nbuckets) {
 		ret = ISC_LIST_HEAD(disp->qid_table[bucket]);
 		if (ret != NULL)
 			return (ret);
@@ -178,20 +178,18 @@ linear_next(dns_dispatch_t *disp, dns_dispentry_t *resp)
 }
 
 /*
- * Return a hash of the destination and message id.  For now, just return
- * the message id bits, and mask off the low order bits of that.
+ * Return a hash of the destination and message id.
  */
 static unsigned int
 hash(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id)
 {
 	unsigned int ret;
 
-	(void)dest;  /* shut up compiler warning. */
+	ret = isc_sockaddr_hash(dest, ISC_TRUE);
+	ret ^= (id & 0x0000ffff); /* important to mask off garbage bits */
+	ret %= disp->qid_nbuckets;
 
-	ret = id;
-	ret &= disp->qid_mask;
-
-	INSIST(ret < disp->qid_hashsize);
+	INSIST(ret < disp->qid_nbuckets);
 
 	return (ret);
 }
@@ -235,7 +233,7 @@ destroy(dns_dispatch_t *disp)
 	isc_mempool_destroy(&disp->bpool);
 	isc_mempool_destroy(&disp->epool);
 	isc_mem_put(disp->mctx, disp->qid_table,
-		    disp->qid_hashsize * sizeof(dns_displist_t));
+		    disp->qid_nbuckets * sizeof(dns_displist_t));
 
 	isc_mem_put(disp->mctx, disp, sizeof(dns_dispatch_t));
 }
@@ -247,7 +245,7 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 {
 	dns_dispentry_t *res;
 
-	REQUIRE(bucket < disp->qid_hashsize);
+	REQUIRE(bucket < disp->qid_nbuckets);
 
 	res = ISC_LIST_HEAD(disp->qid_table[bucket]);
 
@@ -775,11 +773,10 @@ isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
-		    unsigned int hashsize,
+		    unsigned int buckets, unsigned int increment,
 		    dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
-	unsigned int tablesize;
 	isc_result_t res;
 	isc_sockettype_t socktype;
 	unsigned int i;
@@ -787,7 +784,8 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(mctx != NULL);
 	REQUIRE(sock != NULL);
 	REQUIRE(task != NULL);
-	REQUIRE(hashsize <= 24);
+	REQUIRE(buckets < 2097169);  /* next prime > 65536 * 32 */
+	REQUIRE(increment > buckets);
 	REQUIRE(maxbuffersize >= 512 && maxbuffersize < (64 * 1024));
 	REQUIRE(maxbuffers > 0);
 	REQUIRE(dispp != NULL && *dispp == NULL);
@@ -822,20 +820,18 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	ISC_LIST_INIT(disp->rq_handlers);
 	ISC_LIST_INIT(disp->rq_events);
 
-	tablesize = (1 << hashsize);
-
 	disp->qid_table = isc_mem_get(disp->mctx,
-				      tablesize * sizeof(dns_displist_t));
+				      buckets * sizeof(dns_displist_t));
 	if (disp->qid_table == NULL) {
 		res = DNS_R_NOMEMORY;
 		goto out1;
 	}
 
-	for (i = 0 ; i < tablesize ; i++)
+	for (i = 0 ; i < buckets ; i++)
 		ISC_LIST_INIT(disp->qid_table[i]);
 
-	disp->qid_mask = tablesize - 1;
-	disp->qid_hashsize = tablesize;
+	disp->qid_nbuckets = buckets;
+	disp->qid_increment = increment;
 
 	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
 		res = DNS_R_UNEXPECTED;
@@ -924,7 +920,7 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  out3:
 	isc_mutex_destroy(&disp->lock);
  out2:
-	isc_mem_put(mctx, disp->mctx, disp->qid_hashsize * sizeof(void *));
+	isc_mem_put(mctx, disp->mctx, disp->qid_nbuckets * sizeof(void *));
  out1:
 	isc_mem_put(mctx, disp, sizeof(dns_dispatch_t));
 
@@ -1015,7 +1011,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			ok = ISC_TRUE;
 			break;
 		}
-		id = randomid(disp);
+		id += disp->qid_increment;
+		id &= 0x0000ffff;
 		bucket = hash(disp, dest, id);
 	}
 

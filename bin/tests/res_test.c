@@ -205,8 +205,8 @@ main(int argc, char *argv[]) {
 				      &view) == ISC_R_SUCCESS);
 
 	dispatch = NULL;
-	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000, 4,
-					  &dispatch) == DNS_R_SUCCESS);
+	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000,
+					  17, 19, &dispatch) == DNS_R_SUCCESS);
 
 #ifdef notyet
 	res = NULL;

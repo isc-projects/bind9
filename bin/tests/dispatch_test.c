@@ -405,7 +405,7 @@ main(int argc, char *argv[])
 	 */
 	disp = NULL;
 	RUNTIME_CHECK(dns_dispatch_create(mctx, s0, t0, 512, 6, 1024,
-					 4, &disp) == ISC_R_SUCCESS);
+					 17, 19, &disp) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_mutex_init(&client_lock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_lock(&client_lock) == ISC_R_SUCCESS);

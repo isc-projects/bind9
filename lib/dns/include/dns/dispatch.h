@@ -91,7 +91,8 @@ isc_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
-		    unsigned int hashsize, dns_dispatch_t **dispp);
+		    unsigned int buckets, unsigned int increment,
+		    dns_dispatch_t **dispp);
 /*
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
@@ -102,8 +103,10 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  * overall system and the number of buffers which can be allocated to
  * requests.
  *
- * "hashsize" is the size of the hash table used to handle responses.  The
- * size is 2^hashsize, maximum of 2^24.
+ * "buckets" is the number of buckets to use, and should be prime.
+ *
+ * "increment" is used in a collision avoidance function, and needs to be
+ * a prime > buckets, and not 2.
  *
  * Requires:
  *
@@ -120,7 +123,9 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
  *
  *	maxrequests <= maxbuffers.
  *
- *	hashsize <= 24.
+ *	buckets < 2097169 (the next prime after 65536 * 32)
+ *
+ *	increment > buckets (and prime)
  */
 
 void

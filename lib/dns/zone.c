@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.44 1999/12/13 07:56:26 marka Exp $ */
+ /* $Id: zone.c,v 1.45 1999/12/15 17:14:52 explorer Exp $ */
 
 #include <config.h>
 
@@ -1815,7 +1815,8 @@ dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 			      isc_sockettype_udp, &s) == ISC_R_SUCCESS);
 		dispatch = NULL;
 		RUNTIME_CHECK(dns_dispatch_create(zone->mctx, s, zone->task,
-			      4096, 1000, 1000, 4, &dispatch) == DNS_R_SUCCESS);
+						  4096, 1000, 1000, 17, 19,
+						  &dispatch) == DNS_R_SUCCESS);
 		result = dns_resolver_create(zone->mctx, tmgr, 10, zone->timgr,
 				             zone->rdclass, dispatch,
 					     &zone->res); 

@@ -146,11 +146,11 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	/* 
 	 * XXXRTH hardwired constants.  We're going to need to determine if
 	 * this UDP socket will be shared with the resolver, and if so, we
-	 * need to set the hashsize to be be something bigger than 4.
+	 * need to set the hashsize to be be something bigger than 17.
 	 */
 	ifp->udpdispatch = NULL;
 	result = dns_dispatch_create(mgr->mctx, ifp->udpsocket, ifp->task,
-				     4096, 50, 50, 4, &ifp->udpdispatch);
+				     4096, 50, 50, 17, 19, &ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "UDP dns_dispatch_create(): %s",
