@@ -1,4 +1,4 @@
-# makeversion.pl
+#!/usr/bin/perl
 #
 # Copyright (C) 2001  Internet Software Consortium.
 #
@@ -15,8 +15,9 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: makedefs.pl,v 1.3 2001/07/27 05:20:28 mayer Exp $ 
+# $Id: makedefs.pl,v 1.4 2001/07/27 17:25:41 gson Exp $ 
 #
+
 # makedefs.pl
 # This script goes through all of the lib header files and creates a .def file
 # for each DLL for Win32. It recurses as necessary through the subdirectories
@@ -29,7 +30,7 @@
 #
 # Search String: ^(([_a-z0-9])*( ))*prefix_[_a-z0-9]+_[a-z0-9]+( )*\(
 # List of directories
-#
+
 @prefixlist = ("isc", "isccfg","dns", "isccc", "libres");
 @prefixlist = ("isccc");
 @iscdirlist = ("isc/include/isc","isc/win32/include/isc");
@@ -90,61 +91,60 @@ foreach $dir (@lwresdirlist) {
 close OUTDEFFILE;
 
 exit;
+
 #
 # Subroutines
 #
 sub createdeffile {
-$xdir = $_[0];
+	$xdir = $_[0];
 
-#
-# Get the List of files in the directory to be processed.
-#
-#^(([_a-z0-9])*( ))*prefix_[_a-z]+_[a-z]+( )*\(
-$prefix = $_[1];
-$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*\(\\*\( \)\+\)\*$prefix";
-$pattern = "$pattern\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
+	#
+	# Get the List of files in the directory to be processed.
+	#
+	#^(([_a-z0-9])*( ))*prefix_[_a-z]+_[a-z]+( )*\(
+	$prefix = $_[1];
+	$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*\(\\*\( \)\+\)\*$prefix";
+	$pattern = "$pattern\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
 
-opendir(DIR,$xdir) || die "No Directory: $!";
-@files = grep(/\.h$/i, readdir(DIR));
-closedir(DIR);
+	opendir(DIR,$xdir) || die "No Directory: $!";
+	@files = grep(/\.h$/i, readdir(DIR));
+	closedir(DIR);
 
-foreach $filename (sort @files) {
-#
-# Open the file and locate the pattern.
-#
-	open (HFILE, "$xdir/$filename") ||
-              die "Can't open file $filename : $!";
-#
-	while (<HFILE>) {
-		if(/$pattern/) {
-			$func = $&;
-			chop($func);
-			$space = rindex($func, " ") + 1;
-			if($space >= 0) {
-				# strip out return values
-				$func = substr($func, $space, 100);
+	foreach $filename (sort @files) {
+		#
+		# Open the file and locate the pattern.
+		#
+		open (HFILE, "$xdir/$filename") ||
+		      die "Can't open file $filename : $!";
+
+		while (<HFILE>) {
+			if(/$pattern/) {
+				$func = $&;
+				chop($func);
+				$space = rindex($func, " ") + 1;
+				if($space >= 0) {
+					# strip out return values
+					$func = substr($func, $space, 100);
+				}
+				print OUTDEFFILE "$func\n";
 			}
-			print OUTDEFFILE "$func\n";
 		}
- 	}
-# Set up the Patterns
- 	close(HFILE);
-}
+		# Set up the Patterns
+		close(HFILE);
+	}
 }
 
 # This is the routine that applies the changes
 
 # output the result to the platform specific directory.
 sub createoutfile {
+	$outfile = "lib$_[0].def";
 
-$outfile = "lib$_[0].def";
-
-open (OUTDEFFILE, ">$outfile") || die "Can't open output file $outfile: $!";
-print OUTDEFFILE "LIBRARY lib$_[0]\n";
-print OUTDEFFILE "\n";
-print OUTDEFFILE "; Exported Functions\n";
-print OUTDEFFILE "EXPORTS\n";
-print OUTDEFFILE "\n";
-
+	open (OUTDEFFILE, ">$outfile")
+	    || die "Can't open output file $outfile: $!";
+	print OUTDEFFILE "LIBRARY lib$_[0]\n";
+	print OUTDEFFILE "\n";
+	print OUTDEFFILE "; Exported Functions\n";
+	print OUTDEFFILE "EXPORTS\n";
+	print OUTDEFFILE "\n";
 }
-
