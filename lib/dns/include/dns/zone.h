@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.86 2000/11/07 23:49:42 mws Exp $ */
+/* $Id: zone.h,v 1.87 2000/11/10 03:14:25 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1053,7 +1053,7 @@ dns_zone_next(dns_zone_t *zone, dns_zone_t **next);
  *	'zone' to be valid
  *	The zone manager for the indicated zone MUST be locked
  *	by the caller.  This is not checked.
- *	'next' be non-NULL, and '*next' be NULL
+ *	'next' be non-NULL, and '*next' be NULL.
  *
  * Ensures:
  *	'next' points to a valid zone (result ISC_R_SUCCESS) or to NULL
@@ -1066,7 +1066,7 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
  * Find the first zone in the list of managed zones.
  *
  * Requires:
- *	'zone,gr' to be valid
+ *	'zonemgr' to be valid
  *	The zone manager for the indicated zone MUST be locked
  *	by the caller.  This is not checked.
  *	'first' be non-NULL, and '*first' be NULL
