@@ -884,7 +884,7 @@ CLASS="OPTION"
 ></DT
 ><DD
 ><P
->Sets the number of times to retry UDP queries to server to
+>Sets the number of times to try UDP queries to server to
 <TT
 CLASS="PARAMETER"
 ><I
@@ -897,7 +897,29 @@ CLASS="PARAMETER"
 >T</I
 ></TT
 > is less than or equal to zero, the number of
-retries is silently rounded up to 1.</P
+tries is silently rounded up to 1.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+retry=A</TT
+></DT
+><DD
+><P
+>Sets the number of times to retry UDP queries to server to
+<TT
+CLASS="PARAMETER"
+><I
+>T</I
+></TT
+> instead of the default, 2.  Unlike
+<TT
+CLASS="PARAMETER"
+><I
+>+tries</I
+></TT
+>, this does not include the initial
+query.</P
 ></DD
 ><DT
 ><TT
@@ -976,7 +998,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN323"
+NAME="AEN330"
 ></A
 ><H2
 >MULTIPLE QUERIES</H2
@@ -1056,7 +1078,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN340"
+NAME="AEN347"
 ></A
 ><H2
 >FILES</H2
@@ -1074,7 +1096,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN346"
+NAME="AEN353"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1108,7 +1130,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN359"
+NAME="AEN366"
 ></A
 ><H2
 >BUGS </H2
