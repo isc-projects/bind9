@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.c,v 1.7 2003/09/30 05:56:10 marka Exp $ */
+/* $Id: diff.c,v 1.8 2004/03/04 02:46:27 marka Exp $ */
 
 #include <config.h>
 
@@ -270,6 +270,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			 */
 			dns_rdataset_init(&rds);
 			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+			rds.trust = dns_trust_ultimate;
 
 			/*
 			 * Merge the rdataset into the database.

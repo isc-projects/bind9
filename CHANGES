@@ -4,7 +4,8 @@
 
 1584.	[placeholder]	rt10461
 
-1583.	[placeholder]	rt10452
+1583.	[bug]		Records add via UPDATE failed to get the correct trust
+			level. [RT #10452]
 
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
