@@ -35,7 +35,8 @@ ISCDEPLIBS =	../../lib/isc/libisc.a
 LIBS =		@LIBS@
 
 SUBDIRS = master names rbt
-TARGETS =	lex_test \
+TARGETS =	res_test \
+		lex_test \
 		name_test \
 		sock_test \
 		sym_test \
@@ -52,6 +53,9 @@ TARGETS =	lex_test \
 		mempool_test
 
 @BIND9_MAKE_RULES@
+
+res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} ${CFLAGS} -o $@ res_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 lex_test: lex_test.o ${ISCDEPLIBS}
 	${CC} ${CFLAGS} -o $@ lex_test.o ${ISCLIBS} ${LIBS}

@@ -16,3 +16,4 @@ db_test
 compress_test
 t_journal
 mempool_test
+res_test
