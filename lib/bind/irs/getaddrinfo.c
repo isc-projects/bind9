@@ -937,11 +937,7 @@ copy_ai(pai)
 			free(ai);
 			return NULL;
 		}
-#ifdef HAVE_STRLCPY
-		strlcpy(ai->ai_canonname, pai->ai_canonname, l);
-#else
-		strncpy(ai->ai_canonname, pai->ai_canonname, l);
-#endif
+		strcpy(ai->ai_canonname, pai->ai_canonname);	/* (checked) */
 	} else {
 		/* just to make sure */
 		ai->ai_canonname = NULL;
