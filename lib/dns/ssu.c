@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.9 2000/05/08 14:35:05 tale Exp $
+ * $Id: ssu.c,v 1.10 2000/05/08 19:23:16 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -24,6 +24,7 @@
 
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/name.h>

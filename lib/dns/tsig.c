@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.55 2000/05/08 14:35:11 tale Exp $
+ * $Id: tsig.c,v 1.56 2000/05/08 19:23:20 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -24,6 +24,7 @@
 
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>

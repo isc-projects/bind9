@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.25 2000/05/08 14:38:09 tale Exp $ */
+/* $Id: connection.c,v 1.26 2000/05/08 19:23:32 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -28,6 +28,7 @@
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/netdb.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/util.h>
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.26 2000/05/08 14:35:23 tale Exp $ */
+/* $Id: confcommon.c,v 1.27 2000/05/08 19:23:25 tale Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/confcommon.h>

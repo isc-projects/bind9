@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 
 #include <errno.h>
+#include <string.h>
 
 #include <lwres/netdb.h>
 

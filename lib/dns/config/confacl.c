@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: confacl.c,v 1.16 2000/05/08 14:35:22 tale Exp $ */
+/* $Id: confacl.c,v 1.17 2000/05/08 19:23:24 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/log.h>

@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.12 2000/05/08 14:35:00 tale Exp $ */
+/* $Id: rdataslab.c,v 1.13 2000/05/08 19:23:14 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/region.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/result.h>

@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.55 2000/05/08 14:35:26 tale Exp $ */
+/* $Id: confctx.c,v 1.56 2000/05/08 19:23:27 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/confctx.h>

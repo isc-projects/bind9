@@ -36,6 +36,7 @@
 
 #include <isc/mutexblock.h>
 #include <isc/random.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -15,13 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.78 2000/05/08 14:34:50 tale Exp $ */
+/* $Id: rbt.c,v 1.79 2000/05/08 19:23:13 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/rbt.h>

@@ -15,12 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.66 2000/05/08 14:35:17 tale Exp $ */
+/* $Id: xfrin.c,v 1.67 2000/05/08 19:23:22 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -22,8 +22,9 @@
 #include <unistd.h>		/* XXX */
 
 #include <isc/buffer.h>
-#include <isc/region.h>
 #include <isc/mem.h>
+#include <isc/region.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 
 #include <dns/result.h>
 

@@ -15,22 +15,22 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.21 2000/05/08 14:35:28 tale Exp $ */
+/* $Id: confkeys.c,v 1.22 2000/05/08 19:23:28 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/confkeys.h>
 #include <dns/confcommon.h>
 
-static isc_result_t keyid_delete(dns_c_kid_t **ki);
-
+static isc_result_t
+keyid_delete(dns_c_kid_t **ki);
 
 isc_result_t
-dns_c_kdeflist_new(isc_mem_t *mem, dns_c_kdeflist_t **list)
-{
+dns_c_kdeflist_new(isc_mem_t *mem, dns_c_kdeflist_t **list) {
 	dns_c_kdeflist_t *newlist;
 
 	REQUIRE(mem != NULL);

@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.11 2000/05/08 14:35:08 tale Exp $ */
+/* $Id: time.c,v 1.12 2000/05/08 19:23:17 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <time.h>
 
 #include <isc/region.h>

@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/acl.h>

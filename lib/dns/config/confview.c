@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.26 2000/05/08 14:35:36 tale Exp $ */
+/* $Id: confview.c,v 1.27 2000/05/08 19:23:29 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/confview.h>
