@@ -44,9 +44,9 @@
 	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
 } while (0);
 
-#define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR)
+#define SOFT_ERROR(e)	((e) == EAGAIN || (e) == EWOULDBLOCK || (e) == EINTR || (e) == 0) /* XXX 0? */
 
-#if 1
+#if 0
 #define ISC_SOCKET_DEBUG
 #endif
 
@@ -903,14 +903,18 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 				      read_count, 0,
 				      (struct sockaddr *)&addr,
 				      &addrlen);
-			memcpy(&dev->address, &addr, addrlen);
-			dev->addrlength = addrlen;
+			if (cc >= 0) {
+				memcpy(&dev->address, &addr, addrlen);
+				dev->addrlength = addrlen;
+			}
 		} else {
 			cc = recv(sock->fd, dev->region.base + dev->n,
 				  read_count, 0);
-			memcpy(&dev->address, &sock->address,
-			       (size_t)sock->addrlength);
-			dev->addrlength = sock->addrlength;
+			if (cc >= 0) {
+				memcpy(&dev->address, &sock->address,
+				       (size_t)sock->addrlength);
+				dev->addrlength = sock->addrlength;
+			}
 		}			
 
 		XTRACE(TRACE_RECV,
@@ -923,7 +927,6 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 			if (SOFT_ERROR(errno))
 				goto poke;
 
-#if 0
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
@@ -948,7 +951,6 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 
 				goto next;
 			}
-#endif
 
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal read: %s", strerror(errno));
