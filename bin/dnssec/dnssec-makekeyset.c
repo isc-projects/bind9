@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.28 2000/06/22 21:49:02 tale Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.29 2000/07/30 20:53:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -146,7 +146,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:r:v:")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:t:r:v:h")) != -1)
 	{
 		switch (ch) {
 		case 's':
