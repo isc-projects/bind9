@@ -197,10 +197,14 @@ fctx_stoptimer(fetchctx_t *fctx) {
 
 
 static inline void
-fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp) {
-	fetchctx_t *fctx = query->fctx;
+fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp) {
+	fetchctx_t *fctx;
+	resquery_t *query;
 
 	FCTXTRACE("cancelquery");
+
+	query = *queryp;
+	fctx = query->fctx;
 
 	/*
 	 * XXXRTH  I don't think that dns_dispatch_removeresponse() will
@@ -216,6 +220,7 @@ fctx_cancelquery(resquery_t *query, dns_dispatchevent_t **deventp) {
 	if (query->tsig != NULL)
 		dns_rdata_freestruct(query->tsig);
 	isc_mem_put(fctx->res->mctx, query, sizeof *query);
+	*queryp = NULL;
 }
 
 static void
@@ -228,8 +233,21 @@ fctx_cancelqueries(fetchctx_t *fctx) {
 	     query != NULL;
 	     query = next_query) {
 		next_query = ISC_LIST_NEXT(query, link);
-		fctx_cancelquery(query, NULL);
+		fctx_cancelquery(&query, NULL);
 	}
+}
+
+static void
+fctx_freeaddresses(fetchctx_t *fctx) {
+	isc_sockaddr_t *address, *next_address;
+
+	for (address = ISC_LIST_HEAD(fctx->addresses);
+	     address != NULL;
+	     address = next_address) {
+		next_address = ISC_LIST_NEXT(address, link);
+		isc_mem_put(fctx->res->mctx, address, sizeof *address);
+	}
+	fctx->address = NULL;
 }
 
 static void
@@ -242,18 +260,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 
 	res = fctx->res;
 
-	/* XXXRTH  Free our scaffolding addresses. */
-	{
-		isc_sockaddr_t *address, *next_address;
-
-		for (address = ISC_LIST_HEAD(fctx->addresses);
-		     address != NULL;
-		     address = next_address) {
-			next_address = ISC_LIST_NEXT(address, link);
-			isc_mem_put(fctx->res->mctx, address, sizeof *address);
-		}
-	}
-
+	fctx_freeaddresses(fctx);
 	fctx_cancelqueries(fctx);
 	fctx_stoptimer(fctx);
 
@@ -302,7 +309,7 @@ query_senddone(isc_task_t *task, isc_event_t *event) {
 	       isc_result_totext(sevent->result));
 
 	if (sevent->result != ISC_R_SUCCESS)
-		fctx_cancelquery(query, NULL);
+		fctx_cancelquery(&query, NULL);
 				 
 	isc_event_free(&event);
 }
@@ -569,8 +576,6 @@ fctx_try(fetchctx_t *fctx) {
 	 * Caller must be holding the fetch's lock.
 	 */
 
-	REQUIRE(fctx->state == fetchstate_active);
-
 	FCTXTRACE("try");
 
 	if (fctx->address != NULL)
@@ -628,7 +633,8 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
 	if (dns_name_countlabels(&fctx->domain) > 0) {
-		dns_rdataset_disassociate(&fctx->nameservers);
+		if (dns_rdataset_isassociated(&fctx->nameservers))
+			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_name_free(&fctx->domain, res->mctx);
 	}
 	dns_name_free(&fctx->name, fctx->res->mctx);
@@ -1418,25 +1424,24 @@ answer_response(fetchctx_t *fctx) {
 	return (ISC_R_SUCCESS);
 }
 
-#if 0
 static inline isc_result_t
 noanswer_response(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *qname;
+	dns_name_t *name, *qname, *ns_name, *soa_name;
 	dns_rdataset_t *rdataset;
-	isc_boolean_t done, external, aa, found, negative_response;
-	unsigned int aflag;
+	isc_boolean_t done, external, aa, negative_response;
+	dns_rdatatype_t type;
 
 	message = fctx->rmessage;
-	negative->response = ISC_FALSE;
+	negative_response = ISC_FALSE;
 
 	/*
 	 * We have to figure out if this is a negative response, or a
 	 * referral.  We start by examining the rcode.
 	 */
 	if (message->rcode == dns_rcode_nxdomain)
-		negative->response = ISC_TRUE;
+		negative_response = ISC_TRUE;
 
 	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
 		aa = ISC_TRUE;
@@ -1445,10 +1450,10 @@ noanswer_response(fetchctx_t *fctx) {
 	qname = &fctx->name;
 
 	if (message->counts[DNS_SECTION_ANSWER] != 0) {
-		if (!negative->response)
+		INSIST(0);
+		if (!negative_response)
 			return (DNS_R_FORMERR);
 		done = ISC_FALSE;
-		chaining = ISC_FALSE;
 		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
 		while (!done && result == ISC_R_SUCCESS) {
 			name = NULL;
@@ -1475,21 +1480,136 @@ noanswer_response(fetchctx_t *fctx) {
 			return (result);
 	}
 
+	done = ISC_FALSE;
+	ns_name = NULL;
+	soa_name = NULL;
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	while (!done && result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		if (dns_name_issubdomain(name, &fctx->domain)) {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
+				if (rdataset->type == dns_rdatatype_ns) {
+					/*
+					 * NS or SIG NS.
+					 *
+					 * Only one set of NS RRs is allowed.
+					 */
+					if (ns_name != NULL && name != ns_name)
+						return (DNS_R_FORMERR);
+					ns_name = name;
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+					/*
+					 * XXXRTH  Should really use a lower
+					 * level and then look for it in
+					 * query.c.  We don't want to return
+					 * glue we've cached as an answer.
+					 */
+					rdataset->trust = dns_trust_additional;
+					/*
+					 * Mark any additional data related
+					 * to this rdataset.
+					 */
+					(void)dns_rdataset_additionaldata(
+							rdataset,
+							check_related,
+							fctx);
+				} else if (rdataset->type ==
+					   dns_rdatatype_soa ||
+					   rdataset->type ==
+					   dns_rdatatype_nxt) {
+					/*
+					 * SOA, SIG SOA, NXT, or SIG NXT.
+					 *
+					 * Only one SOA is allowed.
+					 */
+					if (soa_name != NULL &&
+					    name != soa_name)
+						return (DNS_R_FORMERR);
+					soa_name = name;
+					negative_response = ISC_TRUE;
+					name->attributes |=
+						DNS_NAMEATTR_NCACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_NCACHE;
+					if (aa)
+						rdataset->trust =
+						    dns_trust_authauthority;
+					else
+						rdataset->trust =
+							dns_trust_additional;
+					/*
+					 * No additional data needs to be
+					 * marked.
+					 */
+				}
+			}
+		}
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
+		if (result != ISC_R_NOMORE)
+			return (result);
+	}
+
 	/*
-	 * XXXRTH  Authority section.
+	 * If we found nothing, this responder is insane.
 	 */
+	if (!negative_response && ns_name == NULL)
+		return (DNS_R_FORMERR);
+
+	/*
+	 * If we found both NS and SOA, they should be the same name.
+	 */
+	if (ns_name != NULL && soa_name != NULL) {
+		if (ns_name != soa_name)
+			return (DNS_R_FORMERR);
+		/*
+		 * Don't cache the NS RRs.
+		 */
+		ns_name->attributes &= ~DNS_NAMEATTR_CACHE;
+	}
+
+	/*
+	 * A negative response without an SOA isn't useful.
+	 *
+	 * XXXRTH  This is probably not right...
+	 */
+	if (negative_response && soa_name == NULL)
+		return (DNS_R_FORMERR);
+
+	/*
+	 * Do we have a referral?
+	 */
+	if (!negative_response && ns_name != NULL) {
+		/*
+		 * Set the current query domain to the referral name.
+		 */
+		INSIST(dns_name_countlabels(&fctx->domain) > 0);
+		dns_name_free(&fctx->domain, fctx->res->mctx);
+		dns_rdataset_disassociate(&fctx->nameservers);
+		dns_name_init(&fctx->domain, NULL);
+		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		return (DNS_R_DELEGATION);
+	}
 
 	return (ISC_R_SUCCESS);
 }
-#endif
 
 static void
 query_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	resquery_t *query = event->arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	isc_boolean_t keep_trying = ISC_FALSE;
-	isc_boolean_t broken_server = ISC_FALSE;
+	isc_boolean_t keep_trying, broken_server, get_nameservers;
 	dns_message_t *message;
 	fetchctx_t *fctx;
 
@@ -1500,6 +1620,10 @@ query_response(isc_task_t *task, isc_event_t *event) {
 
 	(void)task;
 	QTRACE("response");
+
+	keep_trying = ISC_FALSE;
+	broken_server = ISC_FALSE;
+	get_nameservers = ISC_FALSE;
 
 	LOCK(&fctx->res->lock);
 	INSIST(fctx->state == fetchstate_active);
@@ -1588,12 +1712,15 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
-#if 0
 		result = noanswer_response(fctx);
-#else
-		result = ISC_R_NOTIMPLEMENTED;
-#endif
-		if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_DELEGATION) {
+			/*
+			 * We don't have the answer, but we know a better
+			 * place to look.
+			 */
+			get_nameservers = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+		} else if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_FORMERR)
 				broken_server = ISC_TRUE;
 			keep_trying = ISC_TRUE;
@@ -1611,7 +1738,7 @@ query_response(isc_task_t *task, isc_event_t *event) {
 
 	query->tsig = NULL;
 	fctx_stoptimer(fctx);
-	fctx_cancelquery(query, &devent);
+	fctx_cancelquery(&query, &devent);
 
 	result = cache_message(fctx);
 
@@ -1620,16 +1747,35 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	 * XXXRTH  Record round-trip statistics here.
 	 */
 	if (keep_trying) {
-		/*
-		 * XXXRTH  We will mark the sender as bad here instead
-		 *         of doing the printf().
-		 */
-		if (broken_server)
+		if (broken_server) {
+			/*
+			 * XXXRTH  We will mark the sender as bad here instead
+			 *         of doing the printf().
+			 */
 			printf("broken sender\n");
-		dns_dispatch_freeevent(query->dispatch, query->dispentry,
-				       &devent);
+		}
+		if (query != NULL) {
+			INSIST(devent != NULL);
+			dns_dispatch_freeevent(query->dispatch,
+					       query->dispentry,
+					       &devent);
+		}
+
 		/*
-		 * Keep trying.
+		 * Do we need to find the best nameservers for this fetch?
+		 */
+		if (get_nameservers) {
+			result = dns_view_find(fctx->res->view, &fctx->domain,
+					       dns_rdatatype_ns, 0, 0,
+					       ISC_FALSE, &fctx->nameservers,
+					       NULL);
+			if (result != ISC_R_SUCCESS)
+				fctx_done(fctx, DNS_R_SERVFAIL);
+			fctx_freeaddresses(fctx);
+		}					  
+
+		/*
+		 * Try again.
 		 */
 		fctx_try(fctx);
 	} else {
