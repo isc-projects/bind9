@@ -182,6 +182,7 @@ main(int argc, char *argv[]) {
 				fatal("verbose level must be numeric");
 			break;
 
+		case 'h':
 		default:
 			usage();
 
