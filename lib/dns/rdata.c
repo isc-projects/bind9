@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.150 2001/09/19 00:14:47 bwelling Exp $ */
+/* $Id: rdata.c,v 1.151 2001/10/02 23:33:04 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -613,7 +613,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_buffer_t *buf = NULL;
 	isc_token_t token;
 
-	if (dns_rdatatype_ismeta(type))
+	if (type == 0 || dns_rdatatype_ismeta(type))
 		return (DNS_R_METATYPE);
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
