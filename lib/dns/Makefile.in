@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.140 2003/11/04 07:01:35 marka Exp $
+# $Id: Makefile.in,v 1.141 2004/01/14 02:12:45 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,7 +47,7 @@ DSTOBJS =	sec/dst/dst_api.@O@ \
 		sec/dst/opensslrsa_link.@O@
 
 # Alphabetically
-OBJS =		acl.@O@ adb.@O@ byaddr.@O@ \
+DNSOBJS =	acl.@O@ adb.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dnssec.@O@ ds.@O@ forward.@O@ journal.@O@ keytable.@O@ \
@@ -59,8 +59,9 @@ OBJS =		acl.@O@ adb.@O@ byaddr.@O@ \
 		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ soa.@O@ ssu.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
-		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@ \
-		${OTHEROBJS} ${DSTOBJS}
+		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@
+
+OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS}
 
 # Alphabetically
 SRCS =		acl.c adb.c byaddr.c \
@@ -152,6 +153,6 @@ depend: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
 subdirs: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h code.h
-${OBJS}: include/dns/enumtype.h include/dns/enumclass.h \
+${DNSOBJS}: include/dns/enumtype.h include/dns/enumclass.h \
 	include/dns/rdatastruct.h
 rdata.${0}: code.h
