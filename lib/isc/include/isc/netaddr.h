@@ -24,6 +24,7 @@
 ISC_LANG_BEGINDECLS
 
 typedef struct isc_netaddr {
+	unsigned int family;
 	union {
     		struct in_addr in;
 		struct in6_addr in6;

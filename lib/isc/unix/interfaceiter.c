@@ -51,7 +51,8 @@
  */
 
 static void 
-get_addr(int family, isc_netaddr_t *dst, struct sockaddr *src) {
+get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
+	dst->family = family;
 	switch (family) {
 	case AF_INET:
 		memcpy(&dst->type.in,
