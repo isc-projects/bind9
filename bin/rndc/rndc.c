@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.31 2000/11/30 19:38:04 gson Exp $ */
+/* $Id: rndc.c,v 1.32 2000/11/30 20:45:07 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -315,6 +315,8 @@ main(int argc, char **argv) {
 		progname++;
 	else
 		progname = *argv;
+
+	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
