@@ -463,7 +463,7 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 static void
 destroy(dns_validator_t *val) {
-	dns_view_t *view;
+	isc_mem_t *mctx;
 
 	REQUIRE(SHUTDOWN(val));
 	REQUIRE(val->event == NULL);
@@ -473,12 +473,11 @@ destroy(dns_validator_t *val) {
 		dst_key_free(val->key);
 	if (val->keynode != NULL)
 		dns_keytable_detachkeynode(val->keytable, &val->keynode);
-	view = val->view;
 	isc_mutex_destroy(&val->lock);
-	val->magic = 0;
-	isc_mem_put(view->mctx, val, sizeof *val);
-
+	mctx = val->view->mctx;
 	dns_view_detach(&val->view);
+	val->magic = 0;
+	isc_mem_put(mctx, val, sizeof *val);
 }
 
 void
