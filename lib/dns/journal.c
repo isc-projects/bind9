@@ -1513,7 +1513,6 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
 	     t = ISC_LIST_NEXT(t, link))
 	{
-		isc_region_t avail;
 		/* Write the RR header */
 		isc_buffer_putuint32(&buffer, t->name.length + 10 +
 				     t->rdata.length);
@@ -1524,8 +1523,8 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		isc_buffer_putuint32(&buffer, t->ttl);
 		INSIST(t->rdata.length < 65536);
 		isc_buffer_putuint16(&buffer, (isc_uint16_t)t->rdata.length);
-		isc_buffer_availableregion(&buffer, &avail);
-		isc_buffer_putmem(&buffer, t->rdata.data, t->rdata.length);		
+		INSIST(isc_buffer_availablelength(&buffer) >= t->rdata.length);
+		isc_buffer_putmem(&buffer, t->rdata.data, t->rdata.length);
 	}
 	
 	isc_buffer_usedregion(&buffer, &used);
