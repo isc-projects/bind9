@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.14 2000/07/06 04:36:55 gson Exp $
+# $Id: Makefile.in,v 1.15 2000/07/06 19:40:57 mws Exp $
 
 @BIND9_INCLUDES@
 SUBDIRS =	lwresd
@@ -21,75 +21,15 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
-test: dnssec_test glue_test limits_test notify_test \
-	nsupdate_test stub_test views_test \
-	xfer_test xferquota_test
+test: 
+	sh ./runall.sh
 
 distclean::
 	sh ./cleanall.sh
 
-clean distclean:: dnssec_test_clean glue_test_clean \
-	limits_test_clean notify_test_clean \
-	nsupdate_test_clean stub_test_clean views_test_clean \
-	xfer_test_clean xferquota_test_clean
+clean distclean::
+	sh ./cleanall.sh
 
 installdirs:
 
 install::
-
-dnssec_test:
-	sh ./run.sh dnssec
-
-glue_test:
-	sh ./run.sh glue
-
-limits_test:
-	sh ./run.sh limits
-
-notify_test:
-	sh ./run.sh notify
-
-nsupdate_test:
-	sh ./run.sh nsupdate
-
-stub_test:
-	sh ./run.sh stub
-
-views_test:
-	sh ./run.sh views
-
-xfer_test:
-	sh ./run.sh xfer
-
-xferquota_test:
-	sh ./run.sh xferquota
-
-distclean::
-	rm -f conf.sh
-
-dnssec_test_clean:
-	sh ./clean.sh dnssec
-
-glue_test_clean:
-	sh ./clean.sh glue
-
-limits_test_clean:
-	sh ./clean.sh limits
-
-notify_test_clean:
-	sh ./clean.sh notify
-
-nsupdate_test_clean:
-	sh ./clean.sh nsupdate
-
-stub_test_clean:
-	sh ./clean.sh stub
-
-views_test_clean:
-	sh ./clean.sh views
-
-xfer_test_clean:
-	sh ./clean.sh xfer
-
-xferquota_test_clean:
-	sh ./clean.sh xferquota
