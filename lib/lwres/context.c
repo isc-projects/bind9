@@ -227,6 +227,11 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		return (LWRES_R_TIMEOUT);
 
 	fromlen = sizeof(sin);
+	/*
+	 * Compilers that use an older prototype for recvfrom() will
+	 * warn about the type of the sixth parameter, fromlen.  It
+	 * is now standardized as unsigned, specifically as socklen_t.
+	 */
 	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
 		       (struct sockaddr *)&sin, &fromlen);
 
