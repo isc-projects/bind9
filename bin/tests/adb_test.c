@@ -58,7 +58,7 @@ check_result(isc_result_t result, char *msg)
 }
 
 int
-main()
+main(int argc, char **argv)
 {
 	isc_task_t *t1, *t2;
 	isc_sockaddr_t sockaddr;
@@ -68,6 +68,9 @@ main()
 	isc_buffer_t t, namebuf;
 	unsigned char namestorage[512];
 	dns_adb_t *adb;
+
+	(void)argc;
+	(void)argv;
 
 	dns_result_register();
 
