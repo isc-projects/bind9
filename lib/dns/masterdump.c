@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.54 2001/07/16 17:14:38 gson Exp $ */
+/* $Id: masterdump.c,v 1.55 2001/07/16 17:15:08 gson Exp $ */
 
 #include <config.h>
 
@@ -809,7 +809,8 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 		dns_rdataset_t *rds = sorted[i];
 		if (ctx->style.flags & DNS_STYLEFLAG_TRUST) {
 			unsigned int trust = rds->trust;
-			INSIST(trust < (sizeof(trustnames) / sizeof(trustnames[0])));
+			INSIST(trust < (sizeof(trustnames) /
+					sizeof(trustnames[0])));
 			fprintf(f, "; %s\n", trustnames[trust]);
 		}
 		if (rds->type == 0 &&
