@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <isc/assertions.h>
@@ -251,6 +252,11 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	(rdataset->methods->current)(rdataset, rdata);
 }
 
+#define MAX_SHUFFLE	32
+#define WANT_FIXED(r)	(((r)->attributes & DNS_RDATASETATTR_FIXEDORDER) != 0)
+#define WANT_RANDOM(r)	(((r)->attributes & DNS_RDATASETATTR_RANDOMIZE) != 0)
+			 
+
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
@@ -261,10 +267,12 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	dns_rdata_t rdata;
 	isc_region_t r;
 	isc_result_t result;
-	unsigned int count;
+	unsigned int i, count, tcount, choice;
 	isc_buffer_t savedbuffer, rdlen;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
+	isc_boolean_t shuffle = ISC_FALSE;
+	dns_rdata_t shuffled[MAX_SHUFFLE];
 
 	/*
 	 * Convert 'rdataset' to wire format, compressing names as specified
@@ -274,8 +282,10 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(countp != NULL);
 
+	count = 0;
 	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0) {
 		question = ISC_TRUE;
+		count = 1;
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == DNS_R_NOMORE);
 	} else if (rdataset->type == 0) {
@@ -284,6 +294,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		 */
 		return (dns_ncache_towire(rdataset, cctx, target, countp));
 	} else {
+		count = (rdataset->methods->count)(rdataset);
 		result = dns_rdataset_first(rdataset);
 		if (result == DNS_R_NOMORE)
 			return (DNS_R_SUCCESS);
@@ -291,9 +302,60 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			return (result);
 	}
 
-	savedbuffer = *target;
+	choice = 0;
+	if (!question && count > 1 && !WANT_FIXED(rdataset)) {
+		/*
+		 * We'll only shuffle if we've got enough slots in our
+		 * deck.
+		 *
+		 * There's no point to shuffling SIGs.
+		 */
+		if (count <= MAX_SHUFFLE &&
+		    rdataset->type != dns_rdatatype_sig) {
+			shuffle = ISC_TRUE;
+			/*
+			 * First we get handles to all of the rdata.
+			 */
+			i = 0;
+			do {
+				INSIST(i < count);
+				dns_rdataset_current(rdataset, &shuffled[i]);
+				i++;
+				result = dns_rdataset_next(rdataset);
+			} while (result == ISC_R_SUCCESS);
+			if (result != DNS_R_NOMORE)
+				return (result);
+			INSIST(i == count);
+			/*
+			 * Now we shuffle.
+			 */
+			if (WANT_RANDOM(rdataset)) {
+				/*
+				 * "Random" order.
+				 */
+				tcount = count;
+				for (i = 0; i < count; i++) {
+					choice = (((unsigned int)rand()) >> 3)
+						% tcount;
+					rdata = shuffled[i];
+					shuffled[i] = shuffled[i + choice];
+					shuffled[i + choice] = rdata;
+					tcount--;
+				}
+				choice = 0;
+			} else {
+				/*
+				 * "Cyclic" order.
+				 */
+				choice = (((unsigned int)rand()) >> 3) % count;
+			}
+		}
+	}
 
-	count = 0;
+	savedbuffer = *target;
+	i = choice;
+	tcount = 0;
+
 	do {
 		/*
 		 * copy out the name, type, class, ttl.
@@ -328,7 +390,10 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 			/*
 			 * copy out the rdata
 			 */
-			dns_rdataset_current(rdataset, &rdata);
+			if (shuffle)
+				rdata = shuffled[i];
+			else
+				dns_rdataset_current(rdataset, &rdata);
 			result = dns_compress_localinit(cctx, owner_name,
 							target);
 			if (result != DNS_R_SUCCESS)
@@ -344,13 +409,24 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 							    rdlen.used - 2));
 		}
 
-		count++;
-
-		result = dns_rdataset_next(rdataset);
+		if (shuffle) {
+			i++;
+			/*
+			 * Wrap around in case we're doing cyclic ordering.
+			 */
+			if (i == count)
+				i = 0;
+			tcount++;
+			if (tcount == count)
+				result = DNS_R_NOMORE;
+			else
+				result = ISC_R_SUCCESS;
+		} else
+			result = dns_rdataset_next(rdataset);
 	} while (result == DNS_R_SUCCESS);
 
 	if (result != DNS_R_NOMORE)
-		return (result);
+		goto rollback;
 
 	*countp += count;
 
