@@ -1,3 +1,6 @@
+1060.	[func]		Move refresh, stub and notify UDP retry processing
+			into dns_request.
+
 1059.	[func]		dns_request now support will now retry UDP queries,
 			dns_request_createvia2() and dns_request_createraw2().
 
