@@ -27,14 +27,14 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 installdirs:
-	if [ ! -d ${includedir} ]; then \
-		mkdir ${includedir} ; \
+	if [ ! -d ${DESTDIR}${includedir} ]; then \
+		mkdir ${DESTDIR}${includedir} ; \
 	fi
-	if [ ! -d ${includedir}/dst ]; then \
-		mkdir ${includedir}/dst ; \
+	if [ ! -d ${DESTDIR}${includedir}/dst ]; then \
+		mkdir ${DESTDIR}${includedir}/dst ; \
 	fi
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/dst ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/dst ; \
 	done

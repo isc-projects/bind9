@@ -27,14 +27,14 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 installdirs:
-	if [ ! -d ${includedir} ]; then \
-		mkdir ${includedir} ; \
+	if [ ! -d ${DESTDIR}${includedir} ]; then \
+		mkdir ${DESTDIR}${includedir} ; \
 	fi
-	if [ ! -d ${includedir}/omapi ]; then \
-		mkdir ${includedir}/omapi ; \
+	if [ ! -d ${DESTDIR}${includedir}/omapi ]; then \
+		mkdir ${DESTDIR}${includedir}/omapi ; \
 	fi
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/omapi ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/omapi ; \
 	done

@@ -29,16 +29,16 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 installdirs:
-	if [ ! -d ${includedir} ]; then \
-		mkdir ${includedir} ; \
+	if [ ! -d ${DESTDIR}${includedir} ]; then \
+		mkdir ${DESTDIR}${includedir} ; \
 	fi
-	if [ ! -d ${includedir}/lwres ]; then \
-		mkdir ${includedir}/lwres ; \
+	if [ ! -d ${DESTDIR}${includedir}/lwres ]; then \
+		mkdir ${DESTDIR}${includedir}/lwres ; \
 	fi
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/lwres ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/lwres ; \
 	done
 
 distclean::

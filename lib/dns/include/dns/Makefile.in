@@ -41,17 +41,17 @@ TARGETS =
 @BIND9_MAKE_RULES@
 
 installdirs:
-	if [ ! -d ${includedir} ]; then \
-		mkdir ${includedir} ; \
+	if [ ! -d ${DESTDIR}${includedir} ]; then \
+		mkdir ${DESTDIR}${includedir} ; \
 	fi
-	if [ ! -d ${includedir}/dns ]; then \
-		mkdir ${includedir}/dns ; \
+	if [ ! -d ${DESTDIR}${includedir}/dns ]; then \
+		mkdir ${DESTDIR}${includedir}/dns ; \
 	fi
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/dns ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/dns ; \
 	done
 	for i in ${GENHEADERS}; do \
-		${INSTALL_DATA} $$i ${includedir}/dns ; \
+		${INSTALL_DATA} $$i ${DESTDIR}${includedir}/dns ; \
 	done

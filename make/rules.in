@@ -30,6 +30,8 @@ sbindir =	@sbindir@
 includedir =	@includedir@
 libdir =	@libdir@
 
+DESTDIR =
+
 @SET_MAKE@
 
 top_builddir =	@BIND9_TOP_BUILDDIR@

@@ -170,12 +170,12 @@ timestamp: libdns.@A@
 	touch timestamp
 
 installdirs:
-	if [ ! -d ${libdir} ]; then \
-		mkdir ${libdir} ; \
+	if [ ! -d ${DESTDIR}${libdir} ]; then \
+		mkdir ${DESTDIR}${libdir} ; \
 	fi
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libdns.@A@ timestamp

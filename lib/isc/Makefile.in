@@ -92,12 +92,12 @@ timestamp: libisc.@A@
 	touch timestamp
 
 installdirs:
-	if [ ! -d ${libdir} ]; then \
-		mkdir ${libdir}; \
+	if [ ! -d ${DESTDIR}${libdir} ]; then \
+		mkdir ${DESTDIR}${libdir}; \
 	fi
 
 install:: timestamp installdirs
-	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${libdir}
+	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
 
 clean distclean::
 	rm -f libisc.@A@ libisc.la timestamp
