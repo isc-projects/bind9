@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.65 2001/02/05 19:50:42 bwelling Exp $
+ * $Id: tkey.c,v 1.66 2001/02/05 20:29:56 bwelling Exp $
  */
 
 #include <config.h>
@@ -735,8 +735,10 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	}
 
  failure_with_tkey:
-	if (freetkeyin)
+	if (freetkeyin) {
 		dns_rdata_freestruct(&tkeyin);
+		freetkeyin = ISC_FALSE;
+	}
 
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 384));
