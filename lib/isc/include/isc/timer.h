@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.28 2001/01/09 21:57:41 bwelling Exp $ */
+/* $Id: timer.h,v 1.29 2001/10/18 06:06:13 marka Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -37,6 +37,9 @@
  *	long, and generate a life timeout event if their lifetime expires.
  *	They are used to implement both (possibly expiring) idle timers and
  *	'one-shot' timers.
+ *
+ *	'limited' timers generate a periodic tick event until they reach
+ *	their lifetime when they generate a life timeout event.
  *
  *	'inactive' timers generate no events.
  *
@@ -87,7 +90,8 @@ ISC_LANG_BEGINDECLS
 typedef enum {
 	isc_timertype_ticker = 0,
 	isc_timertype_once = 1,
-	isc_timertype_inactive = 2
+	isc_timertype_limited = 2,
+	isc_timertype_inactive = 3
 } isc_timertype_t;
 
 typedef struct isc_timerevent {

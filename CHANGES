@@ -1,3 +1,6 @@
+1058.	[func]		Limited lifetime ticker timers are now available,
+			isc_timertype_limited.
+
 1057.	[bug]		Reloading the server after adding a "file" clause
 			to a zone statement could cause the server to
 			crash due to a typo in change 1016.
