@@ -13,11 +13,13 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.13 2001/06/01 00:44:55 bwelling Exp $
+# $Id: Makefile.in,v 1.14 2001/06/29 01:04:53 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
+
+@BIND9_VERSION@
 
 @BIND9_INCLUDES@
 
@@ -51,6 +53,14 @@ HTMLPAGES =	named-checkconf.html named-checkzone.html
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
+
+named-checkconf.@O@: named-checkconf.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+		-c ${srcdir}/named-checkconf.c
+
+named-checkzone.@O@: named-checkzone.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+		-c ${srcdir}/named-checkzone.c
 
 named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \

@@ -19,7 +19,7 @@
 named-checkconf \- named configuration file syntax checking tool
 .SH SYNOPSIS
 .sp
-\fBnamed-checkconf\fR [ \fB-t \fIdirectory\fB\fR ]  \fBfilename\fR
+\fBnamed-checkconf\fR [ \fB-v\fR ]  [ \fB-t \fIdirectory\fB\fR ]  \fBfilename\fR
 .SH "DESCRIPTION"
 .PP
 \fBnamed-checkconf\fR checks the syntax, but not
@@ -30,6 +30,10 @@ the semantics, of a named configuration file.
 chroot to \fIdirectory\fR so that include
 directives in the configuration file are processed as if
 run by a similarly chrooted named.
+.TP
+\fB-v\fR
+Print the version of the \fBnamed-checkconf\fR
+program and exit.
 .TP
 \fBfilename\fR
 The name of the configuration file to be checked. If not

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.8 2001/05/18 23:50:04 gson Exp $ */
+/* $Id: named-checkconf.c,v 1.9 2001/06/29 01:04:55 gson Exp $ */
 
 #include <config.h>
 
@@ -40,7 +40,7 @@ isc_log_t *log = NULL;
 
 static void
 usage(void) {
-        fprintf(stderr, "usage: named-checkconf [-t directory] [named.conf]\n");
+        fprintf(stderr, "usage: named-checkconf [-v] [-t directory] [named.conf]\n");
         exit(1);
 }
 
@@ -78,7 +78,7 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 
-	while ((c = isc_commandline_parse(argc, argv, "t:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "t:v")) != EOF) {
 		switch (c) {
 		case 't':
 			result = isc_dir_chroot(isc_commandline_argument);
@@ -94,6 +94,10 @@ main(int argc, char **argv) {
 				exit(1);
 			}
 			break;
+
+		case 'v':
+			printf(VERSION "\n");
+			exit(0);
 
 		default:
 			usage();

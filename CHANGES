@@ -1,4 +1,8 @@
 
+ 915.	[func]		The named-checkconf and named-checkzone programs
+			now have a '-v' option for printing their version.
+			[RT #1151]
+
  914.	[bug]		Global 'server' statements were rejected when
 			using views, even though they were accepted
 			in 9.1. [RT #1368]

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.12 2001/03/03 23:11:36 bwelling Exp $ */
+/* $Id: named-checkzone.c,v 1.13 2001/06/29 01:04:59 gson Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ static const char *dbtype[] = { "rbt" };
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named-checkzone [-dq] [-c class] zonename filename\n");
+		"usage: named-checkzone [-dqv] [-c class] zonename filename \n");
 	exit(1);
 }
 
@@ -128,7 +128,7 @@ main(int argc, char **argv) {
 	char classname_in[] = "IN";
 	char *classname = classname_in;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dqs")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dqsv")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -139,6 +139,9 @@ main(int argc, char **argv) {
 		case 'q':
 			quiet++;
 			break;
+		case 'v':
+			printf(VERSION "\n");
+			exit(0);
 		default:
 			usage();
 		}
