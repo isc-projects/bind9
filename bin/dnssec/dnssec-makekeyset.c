@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.38 2000/09/08 14:11:53 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.39 2000/09/12 10:07:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -205,7 +205,7 @@ main(int argc, char *argv[]) {
 	setup_logging(verbose, mctx, &log);
 
 	dns_rdatalist_init(&rdatalist);
-	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.rdclass = 0;
 	rdatalist.type = dns_rdatatype_key;
 	rdatalist.covers = 0;
 	rdatalist.ttl = ttl;
@@ -221,6 +221,8 @@ main(int argc, char *argv[]) {
 					       mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			fatal("error loading key from %s", argv[i]);
+		if (rdatalist.rdclass == 0)
+			rdatalist.rdclass = dst_key_class(key);
 
 		isc_buffer_init(&namebuf, namestr, sizeof namestr);
 		result = dns_name_totext(dst_key_name(key), ISC_FALSE,
@@ -293,7 +295,7 @@ main(int argc, char *argv[]) {
 			fatal("failed to convert key %s to a DNS KEY: %s",
 			      argv[i], isc_result_totext(result));
 		isc_buffer_usedregion(&b, &r);
-		dns_rdata_fromregion(rdata, dns_rdataclass_in,
+		dns_rdata_fromregion(rdata, rdatalist.rdclass,
 				     dns_rdatatype_key, &r);
 		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
 		dst_key_free(&key);
@@ -304,7 +306,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_rdatalist_tordataset()");
 
 	dns_rdatalist_init(&sigrdatalist);
-	sigrdatalist.rdclass = dns_rdataclass_in;
+	sigrdatalist.rdclass = rdatalist.rdclass;
 	sigrdatalist.type = dns_rdatatype_sig;
 	sigrdatalist.covers = dns_rdatatype_key;
 	sigrdatalist.ttl = ttl;
@@ -342,7 +344,7 @@ main(int argc, char *argv[]) {
 
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, &db);
+			       rdataset.rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
 		dns_name_format(domain, domainstr, sizeof domainstr);

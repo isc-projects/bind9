@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.97 2000/09/08 14:16:43 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.98 2000/09/12 10:07:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,7 @@
 #include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
@@ -1081,8 +1082,8 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 			fatal("iterating through the database failed: %s",
 			      isc_result_totext(result));
 		}
-		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
-		check_result(nxtresult, "dns_buildnxt()");
+		nxtresult = dns_nxt_build(db, version, node, target, zonettl);
+		check_result(nxtresult, "dns_nxt_build()");
 		signname(db, version, node, name);
 		dresult = dns_master_dumpnodetostream(mctx, db, version,
 						      node, name,
@@ -1107,7 +1108,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
  * Load the zone file from disk
  */
 static void
-loadzone(char *file, char *origin, dns_db_t **db) {
+loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	isc_buffer_t b, b2;
 	unsigned char namedata[1024];
 	int len;
@@ -1127,7 +1128,7 @@ loadzone(char *file, char *origin, dns_db_t **db) {
 		      origin, isc_result_totext(result));
 
 	result = dns_db_create(mctx, "rbt", &name, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, db);
+			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file);
@@ -1190,14 +1191,15 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
+	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
 	fprintf(stderr, "\t\tSIG end time  - absolute|from start|from now "
 				"(now + 30 days)\n");
-	fprintf(stderr, "\t-c ttl:\n");
-	fprintf(stderr, "\t\tcycle period - regenerate "
-				"if < cycle from end ( (end-start)/4 )\n");
+	fprintf(stderr, "\t-i interval:\n");
+	fprintf(stderr, "\t\tcycle interval - resign "
+				"if < interval from end ( (end-start)/4 )\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
@@ -1223,7 +1225,7 @@ usage(void) {
 int
 main(int argc, char *argv[]) {
 	int i, ch;
-	char *startstr = NULL, *endstr = NULL;
+	char *startstr = NULL, *endstr = NULL, *classname;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *randomfile = NULL;
 	char *endp;
@@ -1235,6 +1237,8 @@ main(int argc, char *argv[]) {
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
+	dns_rdataclass_t rdclass;
+	isc_textregion_t r;
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS)
@@ -1242,9 +1246,13 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ahpr:"))
+	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:i:v:o:f:ahpr:"))
 	       != -1) {
 		switch (ch) {
+		case 'c':
+			classname = isc_commandline_argument;
+			break;
+
 		case 's':
 			startstr = isc_commandline_argument;
 			break;
@@ -1253,7 +1261,7 @@ main(int argc, char *argv[]) {
 			endstr = isc_commandline_argument;
 			break;
 
-		case 'c':
+		case 'i':
 			endp = NULL;
 			cycle = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0' || cycle < 0)
@@ -1318,6 +1326,16 @@ main(int argc, char *argv[]) {
 	if (cycle == -1)
 		cycle = (endtime - starttime) / 4;
 
+
+	if (classname != NULL) {
+		r.base = classname;
+		r.length = strlen(classname);
+		result = dns_rdataclass_fromtext(&rdclass, &r);
+		if (result != ISC_R_SUCCESS)
+			fatal("unknown class %s",classname);
+	} else
+		rdclass = dns_rdataclass_in;
+
 	setup_logging(verbose, mctx, &log);
 
 	argc -= isc_commandline_index;
@@ -1344,7 +1362,7 @@ main(int argc, char *argv[]) {
 		origin = file;
 
 	db = NULL;
-	loadzone(file, origin, &db);
+	loadzone(file, origin, rdclass, &db);
 
 	ISC_LIST_INIT(keylist);
 	loadzonekeys(db);

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.34 2000/09/08 14:15:10 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.35 2000/09/12 10:07:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
@@ -71,6 +72,7 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
+	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (from keyset)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
@@ -142,7 +144,7 @@ findkey(dns_rdata_sig_t *sig) {
 int
 main(int argc, char *argv[]) {
 	int i, ch;
-	char *startstr = NULL, *endstr = NULL;
+	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char tdomain[1025];
 	dns_fixedname_t fdomain;
 	dns_name_t *domain;
@@ -161,19 +163,25 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_textregion_t tr;
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
 	isc_boolean_t pseudorandom = ISC_FALSE;
 	unsigned int eflags;
+	dns_rdataclass_t rdclass;
 
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:pr:v:h")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:pr:v:h")) != -1)
 	{
 		switch (ch) {
+		case 'c':
+			classname = isc_commandline_argument;
+			break;
+
 		case 's':
 			startstr = isc_commandline_argument;
 			break;
@@ -212,6 +220,15 @@ main(int argc, char *argv[]) {
 
 	if (argc < 2)
 		usage();
+
+	if (classname != NULL) {
+		tr.base = classname;
+		tr.length = strlen(classname);
+		result = dns_rdataclass_fromtext(&rdclass, &tr);
+		if (result != ISC_R_SUCCESS)
+			fatal("unknown class %s",classname);
+	} else
+		rdclass = dns_rdataclass_in;
 
 	setup_entropy(mctx, randomfile, &ectx);
 	if (randomfile != NULL)
@@ -257,7 +274,7 @@ main(int argc, char *argv[]) {
 
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", domain, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, &db);
+			       rdclass, 0, NULL, &db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(db, argv[0]);

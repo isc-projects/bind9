@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.38 2000/08/14 04:43:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.39 2000/09/12 10:07:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/name.h>
+#include <dns/rdataclass.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
 
@@ -67,6 +68,7 @@ usage(void) {
 	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	printf("    name: owner of the key\n");
 	printf("Other options:\n");
+	printf("    -c class (IN)\n");
 	printf("    -e use large exponent (RSA only)\n");
 	printf("    -g use specified generator (DH only)\n");
 	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF\n");
@@ -86,6 +88,7 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
+	char		*classname = NULL;
 	char		*randomfile = NULL;
 	char		*prog, *endp;
 	dst_key_t	*key = NULL, *oldkey;
@@ -103,6 +106,7 @@ main(int argc, char **argv) {
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
 	isc_entropy_t	*ectx = NULL;
+	dns_rdataclass_t rdclass;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -119,19 +123,19 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "a:b:eg:n:t:p:s:hr:v:")) != -1)
+					   "a:b:c:eg:n:t:p:s:hr:v:")) != -1)
 	{
 	    switch (ch) {
 		case 'a':
-			algname = isc_mem_strdup(mctx,
-						  isc_commandline_argument);
-			if (algname == NULL)
-				fatal("out of memory");
+			algname = isc_commandline_argument;
 			break;
 		case 'b':
 			size = strtol(isc_commandline_argument, &endp, 10);
 			if (*endp != '\0' || size < 0)
 				fatal("-b requires a non-negative number");
+			break;
+		case 'c':
+			classname = isc_commandline_argument;
 			break;
 		case 'e':
 			rsa_exp = 1;
@@ -143,13 +147,12 @@ main(int argc, char **argv) {
 				fatal("-g requires a positive number");
 			break;
 		case 'n':
-			nametype = isc_mem_strdup(mctx,
-						  isc_commandline_argument);
+			nametype = isc_commandline_argument;
 			if (nametype == NULL)
 				fatal("out of memory");
 			break;
 		case 't':
-			type = isc_mem_strdup(mctx, isc_commandline_argument);
+			type = isc_commandline_argument;
 			if (type == NULL)
 				fatal("out of memory");
 			break;
@@ -167,8 +170,7 @@ main(int argc, char **argv) {
 				      "[0..15]");
 			break;
 		case 'r':
-			randomfile = isc_mem_strdup(mctx,
-						    isc_commandline_argument);
+			randomfile = isc_commandline_argument;
 			if (randomfile == NULL)
 				fatal("out of memory");
 			break;
@@ -275,6 +277,15 @@ main(int argc, char **argv) {
 	else
 		fatal("invalid nametype %s", nametype);
 
+	if (classname != NULL) {
+		r.base = classname;
+		r.length = strlen(classname);
+		ret = dns_rdataclass_fromtext(&rdclass, &r);
+		if (ret != ISC_R_SUCCESS)
+			fatal("unknown class %s",classname);
+	} else 
+		rdclass = dns_rdataclass_in;
+
 	flags |= signatory;
 
 	if (protocol == -1) {
@@ -325,7 +336,7 @@ main(int argc, char **argv) {
 
 		/* generate the key */
 		ret = dst_key_generate(name, alg, size, param, flags, protocol,
-				       mctx, &key);
+				       rdclass, mctx, &key);
 		isc_entropy_stopcallbacksources(ectx);
 
 		if (ret != ISC_R_SUCCESS) {
@@ -382,11 +393,7 @@ main(int argc, char **argv) {
 	isc_buffer_clear(&buf);
 	ret = dst_key_buildfilename(key, 0, NULL, &buf);
 	printf("%s\n", filename);
-	isc_mem_free(mctx, algname);
-	isc_mem_free(mctx, nametype);
 	isc_mem_free(mctx, prog);
-	if (type != NULL)
-		isc_mem_free(mctx, type);
 	dst_key_free(&key);
 
 	if (log != NULL)
