@@ -349,13 +349,13 @@ dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
  *	two names have *nbitsp significant bits in common.
  *
  * Returns:
- *	dns_namerel_none		There's no hierarchical relationship
+ *	dns_namereln_none		There's no hierarchical relationship
  *					between name1 and name2.
- *	dns_namerel_contains		name1 properly contains name2; i.e.
+ *	dns_namereln_contains		name1 properly contains name2; i.e.
  *					name2 is a proper subdomain of name1.
- *	dns_namerel_subdomain		name1 is a proper subdomain of name2.
- *	dns_namerel_equal		name1 and name2 are equal.
- *	dns_namerel_commonancestor	name1 and name2 share a common
+ *	dns_namereln_subdomain		name1 is a proper subdomain of name2.
+ *	dns_namereln_equal		name1 and name2 are equal.
+ *	dns_namereln_commonancestor	name1 and name2 share a common
  *					ancestor.
  */
 
