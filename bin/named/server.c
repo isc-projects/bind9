@@ -166,9 +166,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 				      0, dispatch, NULL));
 
 	/*
-	 * We have default hints for class IN.
+	 * We have default hints for class IN if we need them.
 	 */
-	if (view->rdclass == dns_rdataclass_in)
+	if (view->rdclass == dns_rdataclass_in && view->hints == NULL)
 		dns_view_sethints(view, ns_g_server->roothints);
 
 	/*
@@ -273,6 +273,21 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	return (result);
 }
 
+static isc_result_t
+configure_hints(dns_view_t *view, const char *filename) {
+	isc_result_t result;
+	dns_db_t *db;
+
+	db = NULL;
+	result = dns_rootns_create(view->mctx, view->rdclass, filename, &db);
+	if (result == ISC_R_SUCCESS) {
+		dns_view_sethints(view, db);
+		dns_db_detach(&db);
+	}
+
+	return (result);
+}
+
 /*
  * Configure or reconfigure a zone.  This callback function
  * is called after parsing each "zone" statement in named.conf.
@@ -301,7 +316,8 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	corigin = NULL;
 	/* XXX casting away const */
 	CHECK(dns_c_zone_getname(czone, (const char **) &corigin));
-	isc_buffer_init(&buffer, corigin, strlen(corigin), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&buffer, corigin, strlen(corigin),
+			ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&buffer, strlen(corigin));
 	dns_fixedname_init(&fixorigin);
 	CHECK(dns_name_fromtext(dns_fixedname_name(&fixorigin),
@@ -326,6 +342,72 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 				      viewname, &view));
 		dns_view_attach(view, &tview);
 		ISC_LIST_APPEND(lctx->viewlist, tview, link);
+	}
+
+	/*
+	 * Master zones must have 'file' set.
+	 */
+	if (czone->ztype == dns_c_zone_master &&
+	    czone->u.mzone.file == NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "zone '%s': 'file' not specified",
+			      corigin);
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
+
+	/*
+	 * "hints zones" aren't zones.  If we've got one,
+	 * configure it and return.
+	 */
+	if (czone->ztype == dns_c_zone_hint) {
+		if (czone->u.hzone.file == NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "zone '%s': 'file' not specified",
+				      corigin);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+		if (dns_name_equal(origin, dns_rootname)) {
+			result = configure_hints(view, czone->u.hzone.file);
+		} else {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "ignoring non-root hint zone '%s'",
+				      corigin);
+			result = ISC_R_SUCCESS;
+		}
+		goto cleanup;
+	}
+
+	/*
+	 * "stub zones" aren't zones either.  Eventually we'll
+	 * create a "cache freshener" to keep the stub data in the
+	 * cache.
+	 */
+	if (czone->ztype == dns_c_zone_stub) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+	      "stub zone '%s': stub zones are not supported in this release",
+			      corigin);
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	/*
+	 * "forward zones" aren't zones either.  Eventually we'll
+	 * translate this syntax into the appropriate selective forwarding
+	 * configuration.
+	 */
+	if (czone->ztype == dns_c_zone_forward) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+      "forward zone '%s': forward zones are not supported in this release",
+			      corigin);
+		result = ISC_R_SUCCESS;
+		goto cleanup;
 	}
 
 	/*
@@ -842,7 +924,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	ISC_LIST_INIT(server->viewlist);
 	server->roothints = NULL;
 		
-	CHECKFATAL(dns_rootns_create(mctx, &server->roothints),
+	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
+				     &server->roothints),
 		   "setting up root hints");
 
 	CHECKFATAL(isc_mutex_init(&server->reload_event_lock),
