@@ -4,7 +4,12 @@
  995.	[bug]		dig, host, nslookup: using a raw IPv6 address as a
 			target address should be fatal on a IPv4 only system.
 
- 994.	[placeholder]
+ 994.	[func]		Treat non-authoritative responses to queries for type
+			NS as referrals even if the NS records are in the
+			answer section, because BIND 8 servers incorrectly
+			send them that way.  This is necessary for DNSSEC
+			validation of the NS records of a secure zone to
+			succeed when the parent is a BIND 8 server. [RT #1706]
 
  993.	[func]		dig: -v now reports the version.
 
