@@ -292,8 +292,6 @@ load_configuration(void) {
 		/* XXXRTH */
 		printf("load_all(): %s\n", isc_result_totext(result));
 	}
-
-	ns_interfacemgr_scan(ns_g_interfacemgr);
 }
 
 static void
@@ -302,6 +300,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	printf("server running\n");
 
 	load_configuration();
+	ns_interfacemgr_scan(ns_g_interfacemgr);
 
 	isc_event_free(&event);
 }
@@ -352,6 +351,15 @@ ns_server_init(void) {
 		goto cleanup_views;
 	ISC_LIST_APPEND(ns_g_viewlist, view, link);
 	dns_view_sethints(view, ns_g_rootns);
+	/*
+	 * XXXRTH hardwired number of tasks.  Also, we'll need to see
+	 * if we are dealing with a shared dispatcher in this view.
+	 */
+	result = dns_view_createresolver(view, ns_g_taskmgr, 16,
+					 ns_g_socketmgr, ns_g_timermgr,
+					 NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_views;
 	view = NULL;
 	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "default/CHAOS",
 				 &view);

@@ -39,6 +39,7 @@ struct ns_query {
 	dns_name_t *			origqname;
 	unsigned int			dboptions;
 	dns_db_t *			gluedb;
+	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(ns_dbversion_t)	activeversions;
@@ -49,6 +50,7 @@ struct ns_query {
 #define NS_QUERYATTR_CACHEOK		0x02
 #define NS_QUERYATTR_PARTIALANSWER	0x04
 #define NS_QUERYATTR_NAMEBUFUSED	0x08
+#define NS_QUERYATTR_RECURSING		0x10
 
 isc_result_t
 ns_query_init(ns_client_t *client);
