@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.25.12.3 2003/08/25 05:40:24 marka Exp $
+# $Id: Makefile.in,v 1.25.12.4 2003/10/09 04:52:58 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -31,15 +31,17 @@ CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	 ../../lib/bind9/libbind9.@A@
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} @LIBS@
+LIBS =		${DNSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =
 
