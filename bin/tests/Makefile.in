@@ -26,9 +26,13 @@ CINCLUDES =	-I${srcdir}/../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-LIBS =		../../lib/dns/libdns.a \
-		../../lib/isc/libisc.a \
-		@LIBS@
+DNSLIBS =	../../lib/dns/libdns.a
+ISCLIBS =	../../lib/isc/libisc.a
+
+DNSDEPLIBS =	../../lib/dns/libdns.a
+ISCDEPLIBS =	../../lib/isc/libisc.a
+
+LIBS =		@LIBS@
 
 SUBDIRS = master names rbt
 TARGETS =	lex_test \
@@ -44,51 +48,55 @@ TARGETS =	lex_test \
 		wire_test \
 		master_test \
 		db_test \
-		compress_test
+		compress_test \
+		mempool_test
 
 @BIND9_MAKE_RULES@
 
-lex_test: lex_test.o ../../lib/isc/libisc.a
-	${CC} -o $@ lex_test.o ${LIBS}
+lex_test: lex_test.o ${ISCDEPLIBS}
+	${CC} -o $@ lex_test.o ${ISCLIBS} ${LIBS}
 
-name_test: name_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ name_test.o ${LIBS}
+name_test: name_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ name_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ sock_test.o ${LIBS}
+sock_test: sock_test.o ${ISCDEPLIBS}
+	${CC} -o $@ sock_test.o ${ISCLIBS} ${LIBS}
 
-sym_test: sym_test.o ../../lib/isc/libisc.a
-	${CC} -o $@ sym_test.o ${LIBS}
+sym_test: sym_test.o ${ISCDEPLIBS}
+	${CC} -o $@ sym_test.o ${ISCLIBS} ${LIBS}
 
-task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ task_test.o ${LIBS}
+task_test: task_test.o ${ISCDEPLIBS}
+	${CC} -o $@ task_test.o ${ISCLIBS} ${LIBS}
 
-shutdown_test: shutdown_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ shutdown_test.o ${LIBS}
+shutdown_test: shutdown_test.o ${ISCDEPLIBS}
+	${CC} -o $@ shutdown_test.o ${ISCLIBS} ${LIBS}
 
-timer_test: timer_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ timer_test.o ${LIBS}
+timer_test: timer_test.o ${ISCDEPLIBS}
+	${CC} -o $@ timer_test.o ${ISCLIBS} ${LIBS}
 
-rbt_test: rbt_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ rbt_test.o ${LIBS}
+rbt_test: rbt_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ rbt_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rdata_test: rdata_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ rdata_test.o ${LIBS}
+rdata_test: rdata_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ rdata_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ rwlock_test.o ${LIBS}
+rwlock_test: rwlock_test.o ${ISCDEPLIBS}
+	${CC} -o $@ rwlock_test.o ${ISCLIBS} ${LIBS}
 
-wire_test: wire_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ wire_test.o ${LIBS}
+wire_test: wire_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ wire_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-master_test: master_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ master_test.o ${LIBS}
+master_test: master_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ master_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-db_test: db_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ db_test.o ${LIBS}
+db_test: db_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ db_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-compress_test: compress_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ compress_test.o ${LIBS}
+compress_test: compress_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${CC} -o $@ compress_test.o ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+mempool_test: mempool_test.o ${ISCDEPLIBS}
+	${CC} -o $@ mempool_test.o ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
