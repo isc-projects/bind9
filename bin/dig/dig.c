@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.79 2000/07/27 09:36:26 tale Exp $ */
+/* $Id: dig.c,v 1.80 2000/07/28 00:04:44 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -74,7 +74,6 @@ extern isc_uint32_t name_limit;
 extern isc_uint32_t rr_limit;
 
 extern isc_boolean_t debugging;
-extern isc_boolean_t isc_mem_debugging;
 char *batchname = NULL;
 FILE *batchfp = NULL;
 char *argv0;
