@@ -104,9 +104,11 @@ typedef struct rbtdb_changed {
 typedef ISC_LIST(rbtdb_changed_t)	rbtdb_changedlist_t;
 
 typedef struct rbtdb_version {
+	/* Not locked */
 	rbtdb_serial_t			serial;
-	unsigned int			references;
+	/* Locked by database lock. */
 	isc_boolean_t			writer;
+	unsigned int			references;
 	isc_boolean_t			commit_ok;
 	rbtdb_changedlist_t		changed_list;
 	ISC_LINK(struct rbtdb_version)	link;
@@ -410,16 +412,22 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	 */
 
 	changed = isc_mem_get(rbtdb->common.mctx, sizeof *changed);
-	if (changed == NULL) {
+
+	LOCK(&rbtdb->lock);
+
+	REQUIRE(version->writer);
+
+	if (changed != NULL) {
+		INSIST(node->references > 0);
+		node->references++;
+		INSIST(node->references != 0);
+		changed->node = node;
+		changed->dirty = ISC_FALSE;
+		APPEND(version->changed_list, changed, link);
+	} else
 		version->commit_ok = ISC_FALSE;
-		return (NULL);
-	}
-	INSIST(node->references > 0);
-	node->references++;
-	INSIST(node->references != 0);
-	changed->node = node;
-	changed->dirty = ISC_FALSE;
-	APPEND(version->changed_list, changed, link);
+
+	UNLOCK(&rbtdb->lock);
 
 	return (changed);
 }
@@ -688,6 +696,8 @@ cleanup_nondirty(rbtdb_version_t *version, rbtdb_changedlist_t *cleanup_list) {
 	 * If the changed record isn't dirty, then
 	 * we don't need it anymore since we're
 	 * committing and not rolling back.
+	 *
+	 * The caller must be holding the database lock.
 	 */
 	for (changed = HEAD(version->changed_list);
 	     changed != NULL;
@@ -720,8 +730,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	ISC_LIST_INIT(cleanup_list);
 
 	LOCK(&rbtdb->lock);
-	INSIST((version->writer && version->references == 1) ||
-	       version->references > 0);
+	INSIST(version->references > 0);
+	INSIST(!version->writer || !(commit && version->references > 1));
 	version->references--;
 	serial = version->serial;
 	if (version->references == 0) {
@@ -2083,6 +2093,13 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		now = 0;
 		if (rbtversion == NULL)
 			currentversion(db, (dns_dbversion_t **)(&rbtversion));
+		else {
+			LOCK(&rbtdb->lock);
+			INSIST(rbtversion->references > 0);
+			rbtversion->references++;
+			INSIST(rbtversion->references != 0);
+			UNLOCK(&rbtdb->lock);
+		}
 	} else {
 		if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
 			/*
