@@ -1681,7 +1681,18 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		ns_client_unwait(client);
 	} else {
 		ns_client_unwait(client);
+
+		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		dns_view_attach(client->view, &client->lockview);
+		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
+
 		query_find(client, devent);
+		
+		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
+		dns_view_detach(&client->lockview);		
+		dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	}
 }
 

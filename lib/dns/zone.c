@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.64 2000/01/27 00:44:53 gson Exp $ */
+ /* $Id: zone.c,v 1.65 2000/01/27 01:00:10 gson Exp $ */
 
 #include <config.h>
 
@@ -25,7 +25,6 @@
 #include <isc/error.h>
 #include <isc/magic.h>
 #include <isc/print.h>
-#include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
@@ -185,6 +184,7 @@ struct dns_zonemgr {
 	isc_taskpool_t *	zonetasks;
 	isc_task_t *		task;
 	isc_rwlock_t		rwlock;
+	isc_rwlock_t		conflock;
 	/* Locked by rwlock. */
 	ISC_LIST(dns_zone_t)	zones;
 };
@@ -2134,12 +2134,16 @@ static void
 zone_timer(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "zone_timer";
 	dns_zone_t *zone = (dns_zone_t *)event->arg;
+	UNUSED(task);
 
 	DNS_ENTER;
 
+	dns_zonemgr_lockconf(zone->zmgr, isc_rwlocktype_read);
+	/* XXX if we use a view, we need to lock its configuration, too. */
 	dns_zone_maintenance(zone);
+	dns_zonemgr_unlockconf(zone->zmgr, isc_rwlocktype_read);
+	
 	isc_event_free(&event);
-	task = task; /* XXX */
 }
 
 static isc_result_t
@@ -2970,26 +2974,42 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_rwlock_init() failed: %s",
 				 isc_result_totext(result));
-		return (DNS_R_UNEXPECTED);
+		result = DNS_R_UNEXPECTED;
+		goto free_mem;
+	}
+	result = isc_rwlock_init(&zmgr->conflock, UINT_MAX, UINT_MAX);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, zmgr, sizeof *zmgr);
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_rwlock_init() failed: %s",
+				 isc_result_totext(result));
+		result = DNS_R_UNEXPECTED;
+		goto free_rwlock;
 	}
 
 	/* Create the zone task pool. */
 	result = isc_taskpool_create(taskmgr, mctx, 
 				     8 /* XXX */, 0, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
-		goto failure;
+		goto free_conflock;
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, mctx, 1, &zmgr->task);
 	if (result != ISC_R_SUCCESS)
-		goto failure;
+		goto free_taskpool;
 	isc_task_setname(zmgr->task, "zmgr", zmgr);
 
 	*zmgrp = zmgr;
 	return (ISC_R_SUCCESS);
 
- failure:
-	dns_zonemgr_destroy(&zmgr);
+ free_taskpool:
+	isc_taskpool_destroy(&zmgr->zonetasks);	
+ free_conflock:
+	isc_rwlock_destroy(&zmgr->conflock);
+ free_rwlock:
+	isc_rwlock_destroy(&zmgr->rwlock);
+ free_mem:
+	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
 	return (result);
 }
 
@@ -3093,7 +3113,18 @@ dns_zonemgr_destroy(dns_zonemgr_t **zmgrp) {
 	/* Probably done already, but does not hurt to repeat. */
 	dns_zonemgr_shutdown(zmgr);
 
+	isc_rwlock_destroy(&zmgr->conflock);
 	isc_rwlock_destroy(&zmgr->rwlock);
 	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
 	*zmgrp = NULL;
+}
+
+void
+dns_zonemgr_lockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
+	RWLOCK(&zmgr->conflock, type);
+}
+
+void
+dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
+	RWUNLOCK(&zmgr->conflock, type);
 }

@@ -35,6 +35,9 @@ struct ns_server {
 	isc_mem_t *		mctx;
 
 	isc_task_t *		task;
+
+	/* Common rwlock for the server's configurable data. */
+	isc_rwlock_t		conflock;
 	
 	/* Configurable data. */
 	isc_boolean_t		recursion;
@@ -51,7 +54,6 @@ struct ns_server {
 	dns_zonemgr_t *		zonemgr;
 	ns_clientmgr_t *	clientmgr;
 	dns_viewlist_t		viewlist;
-	isc_rwlock_t		viewlock;
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		roothints;
 	dns_tkey_ctx_t *	tkeyctx;

@@ -34,6 +34,7 @@
 #include <dns/rdataset.h>
 #include <dns/view.h>
 #include <dns/xfrin.h>
+#include <dns/zone.h>
 
 #include <named/globals.h>
 #include <named/client.h>
@@ -361,7 +362,23 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (client->waiting_for_bufs == ISC_TRUE) {
 		client->waiting_for_bufs = ISC_FALSE;
+
+		/*
+		 * Must lock the view here because ns_client_send()
+		 * uses view configuration for TSIGs and stuff.
+		 */
+		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		dns_view_attach(client->view, &client->lockview);
+		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
+		
 		ns_client_send(client);
+		
+		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
+		dns_view_detach(&client->lockview);
+		dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+
 		return;
 	}
 	/* XXXRTH need to add exit draining mode. */
@@ -603,6 +620,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 
 	INSIST(client->recursionquota == NULL);
+
+	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
 	
 	if (event->type == DNS_EVENT_DISPATCH) {
 		devent = (dns_dispatchevent_t *)event;
@@ -623,7 +643,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (client->shuttingdown) {
 		maybe_free(client);
-		return;
+		goto cleanup_serverlock;
 	}
 		
 	isc_stdtime_get(&client->requesttime);
@@ -634,13 +654,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, result);
 		else
 			isc_task_shutdown(client->task);
-		return;
+		goto cleanup_serverlock;
 	}
 
 	result = dns_message_parse(client->message, buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
-		return;
+		goto cleanup_serverlock;
 	}
 
 	/*
@@ -651,7 +671,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if ((client->message->flags & DNS_MESSAGEFLAG_QR) != 0) {
 		CTRACE("unexpected response");
 		ns_client_next(client, DNS_R_FORMERR);
-		return;
+		goto cleanup_serverlock;
 	}
 
 	/*
@@ -672,7 +692,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		result = client_addopt(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_error(client, result);
-			return;
+			goto cleanup_serverlock;
 		}
 
 		/*
@@ -683,7 +703,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		version = (opt->ttl & 0x00FF0000) >> 16;
 		if (version != 0) {
 			ns_client_error(client, DNS_R_BADVERS);
-			return;
+			goto cleanup_serverlock;
 		}
 	}
 
@@ -691,7 +711,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * XXXRTH  View list management code will be moving to its own module
 	 *         soon.
 	 */
-	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
@@ -705,13 +724,24 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 	}
-	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 
 	if (view == NULL) {
 		CTRACE("no view");
 		ns_client_error(client, DNS_R_REFUSED);
-		return;
+		goto cleanup_serverlock;
 	}
+
+	/*
+	 * Lock the view's configuration data for reading.
+	 * We must attach a separate view reference for this
+	 * purpose instad of using client->view, because
+	 * client->view may or may not be detached at the point
+	 * when whe return from this event handler depending
+	 * on whether the request handler causes ns_client_next()
+	 * to be called or not.
+	 */
+	dns_view_attach(client->view, &client->lockview);
+	RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 
 	/*
 	 * Check for a signature.  We log bad signatures regardless of 
@@ -722,7 +752,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_checksig(client->message, client->view);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
-		return;
+		goto cleanup_viewlock;
 	}
 
 	client->signer = NULL;
@@ -797,6 +827,13 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		CTRACE("unknown opcode");
 		ns_client_error(client, DNS_R_NOTIMP);
 	}
+
+ cleanup_viewlock:
+	RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
+	dns_view_detach(&client->lockview);
+ cleanup_serverlock:
+	dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
+	RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 }
 
 static void
@@ -882,6 +919,7 @@ client_create(ns_clientmgr_t *manager,
 	client->nwaiting = 0;
 	client->attributes = 0;
 	client->view = NULL;
+	client->lockview = NULL;
 	client->dispatch = NULL;
 	client->dispentry = NULL;
 	client->dispevent = NULL;

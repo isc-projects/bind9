@@ -89,6 +89,7 @@ struct ns_client {
 	unsigned int			attributes;
 	isc_task_t *			task;
 	dns_view_t *			view;
+	dns_view_t *			lockview;
 	dns_dispatch_t *		dispatch;
 	dns_dispentry_t *		dispentry;
 	dns_dispatchevent_t *		dispevent;

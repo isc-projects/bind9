@@ -25,6 +25,7 @@
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/rwlock.h>
 #include <isc/time.h>
 #include <isc/stdtime.h>
 #include <isc/socket.h>
@@ -797,6 +798,12 @@ dns_zonemgr_destroy(dns_zonemgr_t **zmgrp);
 
 void
 dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+
+void
+dns_zonemgr_lockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
+
+void
+dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
 
 ISC_LANG_ENDDECLS
 

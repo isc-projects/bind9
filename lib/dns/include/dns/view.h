@@ -63,6 +63,7 @@
 #include <isc/lang.h>
 #include <isc/event.h>
 #include <isc/mutex.h>
+#include <isc/rwlock.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
@@ -84,10 +85,12 @@ struct dns_view {
 	dns_db_t *			hints;
 	dns_rbt_t *			secroots;
 	isc_mutex_t			lock;
+	isc_rwlock_t			conflock;
 	isc_boolean_t			frozen;
 	isc_task_t *			task;
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
+	/* Configurable data, locked by conflock. */
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	/* Locked by lock. */

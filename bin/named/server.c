@@ -131,6 +131,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
+	RWLOCK(&view->conflock, isc_rwlocktype_write);
+	
 	/*
 	 * Cache.
 	 */
@@ -177,6 +179,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	dns_view_setkeyring(view, ring);
 
  cleanup:
+	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
+	
 	return (result);
 }
 
@@ -274,7 +278,7 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
  * is called after parsing each "zone" statement in named.conf.
  */
 static isc_result_t
-load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
+configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	  void *uap)
 {
 	ns_load_t *lctx = (ns_load_t *) uap;
@@ -290,7 +294,7 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
-	
+
 	/*
 	 * Get the zone origin as a dns_name_t.
 	 */
@@ -345,11 +349,9 @@ load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	 *     options (e.g., an existing master zone cannot 
 	 *     be reused if the options specify a slave zone)
 	 */
-	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	result = dns_viewlist_find(&ns_g_server->viewlist,
 				   view->name, view->rdclass,
 				   &pview);
-     	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (pview != NULL)
@@ -530,11 +532,14 @@ load_configuration(const char *filename, ns_server_t *server) {
 
 	dns_aclconfctx_init(&aclconfctx);
 
+	RWLOCK(&server->conflock, isc_rwlocktype_write);
+	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_write);
+	
 	lctx.mctx = ns_g_mctx;
 	lctx.aclconf = &aclconfctx;
 	ISC_LIST_INIT(lctx.viewlist);
 
-	callbacks.zonecbk = load_zone;
+	callbacks.zonecbk = configure_zone;
 	callbacks.zonecbkuap = &lctx;
 	callbacks.optscbk = NULL;
 	callbacks.optscbkuap = NULL;
@@ -546,7 +551,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	/*
 	 * Parse the configuration file creating a parse tree.  Any
 	 * 'zone' statements are handled immediately by calling
-	 * load_zone() through 'callbacks'.
+	 * configure_zone() through 'callbacks'.
 	 */
 	configctx = NULL;
 	CHECK(dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
@@ -673,11 +678,9 @@ load_configuration(const char *filename, ns_server_t *server) {
 	/*
 	 * Swap our new view list with the production one.
 	 */
-	RWLOCK(&server->viewlock, isc_rwlocktype_write);
 	tmpviewlist = server->viewlist;
 	server->viewlist = lctx.viewlist;
 	lctx.viewlist = tmpviewlist;
-	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
 	/*
 	 * Load the TKEY information from the configuration.
@@ -707,7 +710,11 @@ load_configuration(const char *filename, ns_server_t *server) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(lctx.viewlist, view, link);
 		dns_view_detach(&view);
+
 	}
+
+	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_write);
+	RWUNLOCK(&server->conflock, isc_rwlocktype_write);	
 	return (result);
 }
 
@@ -715,6 +722,8 @@ static isc_result_t
 load_zones(ns_server_t *server, isc_boolean_t stop) {
 	isc_result_t result;
 	dns_view_t *view;
+
+	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	
 	/*
 	 * Load zone data from disk.
@@ -733,6 +742,7 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	 */
 	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
  cleanup:
+	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);	
 	return (result);
 }
 
@@ -768,12 +778,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view, *view_next;
 	ns_server_t *server = (ns_server_t *) event->arg;
 		
-	(void)task;
+	UNUSED(task);
+
+	RWLOCK(&server->conflock, isc_rwlocktype_write);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "shutting down");
-
-	RWLOCK(&server->viewlock, isc_rwlocktype_write);
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
@@ -783,17 +793,16 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_view_detach(&view);
 	}
 
-	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
-
-
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
 	dns_zonemgr_shutdown(server->zonemgr);
 	
 	isc_task_detach(&server->task);
-	
+
 	isc_event_free(&event);
+
+	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
 }
 
 void
@@ -807,11 +816,14 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->mctx = mctx;
 	server->task = NULL;
 	
+	CHECKFATAL(isc_rwlock_init(&server->conflock, UINT_MAX, UINT_MAX),
+		   "initializing server configuration lock");
+
 	/* Initialize configuration data with default values. */
 	server->recursion = ISC_TRUE;
 	server->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	server->transfer_format = dns_one_answer;
-		
+
 	server->queryacl = NULL;
 	server->recursionacl = NULL;
 	server->transferacl = NULL;
@@ -828,8 +840,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->clientmgr = NULL;
 	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
-	result = isc_rwlock_init(&server->viewlock, 0, 0);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
 	server->roothints = NULL;
 		
 	CHECKFATAL(dns_rootns_create(mctx, &server->roothints),
@@ -888,8 +898,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	
 	dns_db_detach(&server->roothints);
 	
-	isc_rwlock_destroy(&server->viewlock);
-	
 	if (server->queryacl != NULL)
 		dns_acl_detach(&server->queryacl);
 	if (server->recursionacl != NULL)
@@ -900,6 +908,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_quota_destroy(&server->recursionquota);
 	isc_quota_destroy(&server->tcpquota);
 	isc_quota_destroy(&server->xfroutquota);
+	isc_rwlock_destroy(&server->conflock);
 
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
