@@ -1,17 +1,18 @@
-Name		Status		Responsible
--------------------------------------------
+Name		Status		Whom
+------------------------------------
 a6_remove
 blabel-cleanup
 ipv6-improvements
 ipv6-scope
 ipv6_6to4	review		jinmei
 libbind_clean
-rt3445
-rt3536
-rt3588
-rt3598
-rt3625
-rt3653
+rt3536		review		jinmei	[ixfr=support]
+rt3588		review		jinmei
+rt3598		review		sho
+rt3625		review		sho
+rt3653		review		sho/jinmei
 rt3666		review		jinmei
 v6source
+
+rt3445		closed
 marka_google	closed
