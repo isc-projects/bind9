@@ -1694,17 +1694,25 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	unsigned int options = 0;
 
 	/*
-	 * Set up a new client object to handle incoming queries while
-	 * this one is being resolved.
+	 * We are about to recurse, which means that this client will
+	 * be unavailable for serving new requests for an indeterminate
+	 * amount of time.  If this client is currently responsible
+	 * for handling incoming queries, set up a new client 
+	 * object to handle them while we are waiting for a
+	 * response.
 	 */
-	result = ns_client_replace(client, &ns_g_server->recursionquota);
-	if (result != ISC_R_SUCCESS) {
-		/* Most likely the quota was full. */
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-			      "no more recursive clients: %s",
-			      isc_result_totext(result));
-		return (result); 
+	if (! client->mortal) {
+		result = isc_quota_attach(&ns_g_server->recursionquota, 
+					  &client->recursionquota);
+		if (result == ISC_R_SUCCESS)
+			result = ns_client_replace(client);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "no more recursive clients: %s",
+				      isc_result_totext(result));
+			return (result); 
+		}
 	}
 
 	/*
