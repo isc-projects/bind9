@@ -14,12 +14,12 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwresd.8,v 1.2 2000/06/28 02:51:45 jim Exp $
+.\" $Id: lwresd.8,v 1.3 2000/07/12 19:39:49 tale Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRESD 8
 .Os BIND9 9
-.ds vT BIND9 Programmer's Manual
+.ds vT BIND 9 Programmer's Manual
 .Sh NAME
 .Nm lwresd
 .Nd lightweight resolver daemon
@@ -36,7 +36,7 @@
 .Op Fl u Ar user-id
 .Sh DESCRIPTION
 .Nm lwresd
-is the daemon for processes that use the BIND9 lightweight resolver
+is the daemon for processes that use the BIND 9 lightweight resolver
 library.
 The daemon is actually a DNS name server, 
 .Nm named ,
@@ -60,12 +60,7 @@ requests and responses.
 .Pp
 Incoming lightweight resolver requests are decoded by
 .Nm lwresd
-which resolves them using the DNS protocol.
-.Nm lwresd
-either forwards the DNS queries to the name servers listed in
-.Pa /etc/resolv.conf
-or else resolves the request for itself by querying its built-in list
-of root name servers.
+which then resolves them using the DNS protocol.
 When the DNS lookup completes,
 .Nm lwresd
 encodes the answers from the name servers in the lightweight
@@ -88,7 +83,7 @@ is present,
 uses its built-in list of root name servers.
 In this mode of operation,
 .Nm lwresd
-analagous to a caching-only name server, albeit one that does not
+analogous to a caching-only name server, albeit one that does not
 receive conventional DNS queries.
 .Pp
 The lightweight resolver simplifies the task of looking up hostnames
@@ -102,7 +97,7 @@ having to make many DNS queries to resolve the hostname or IP address.
 Without the lightweight resolver, clients would be expected to deal
 with the complexities of 
 processing the DNS resource records used for IPv6 addresses, dealing
-with DNAME records and possibly DNSSEC.
+with DNAME records and deciphering DNSSEC.
 Instead of directly handling those complications, clients can make
 .Nm lwresd
 do the work for them.
@@ -131,7 +126,7 @@ also runs the lightweight resolver daemon in the foreground, but
 logs to
 .Dv stderr .
 .It Fl i
-write the daemon's process id (PID) to
+write the daemon's process id to
 .Ar pid-file
 instead of the default pathname.
 .It Fl n
@@ -158,22 +153,26 @@ instead of the default port number, 921.
 .It Fl s
 write memory usage statistics to
 .Dv stdout
-on exit. This option is only of interest
-to BIND9 developers and may be removed or changed in a future release.
+on exit.
+This option is only of interest to BIND 9 developers and may be
+removed or changed in a future release.
 .It Fl t
 tells
 .Nm lwresd
 to chroot() to
 .Ar directory
-immediately after reading its config file.
+immediately after reading its configuration file.
 .It Fl u
 run
 .Nm lwresd
-as UID
-.Ar user-id .
-The lightweight resolver daemon will change its UID after it has
-carried out any privileged operations, such as writing the PID file
-or creating a socket that uses its default UDP port number.
+as
+.Ar user-id ,
+which is a user name or numeric id that must be present in the
+password file.
+The lightweight resolver daemon will change its user-id after it has
+carried out any privileged operations, such as writing the process-id
+file or binding a socket to a privileged port (typically any port
+less than 1024).
 .El
 .Sh FILES
 .Bl -tag -width  /var/run/lwresd.pid -compact
@@ -185,7 +184,7 @@ default process-id file
 .Sh SEE ALSO
 .Xr named 8 ,
 .Xr lwres 3 .
-.Sh BUGS
+.Sh NOTES
 .Nm lwresd
 is a daemon for lightweight resolvers, not a lightweight daemon
 for resolvers.
