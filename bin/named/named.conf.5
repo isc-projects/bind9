@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.4 2004/10/17 23:41:55 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.5 2004/10/21 02:45:14 marka Exp $
 .\"
 .TH "NAMED.CONF" "5" "Aug 13, 2004" "BIND9" ""
 .SH NAME
@@ -215,6 +215,7 @@ options {
 	ixfr-from-differences \fIixfrdiff\fR;
 
 	allow-query { \fIaddress_match_element\fR; ... };
+	allow-query-cache { \fIaddress_match_element\fR; ... };
 	allow-transfer { \fIaddress_match_element\fR; ... };
 	allow-update-forwarding { \fIaddress_match_element\fR; ... };
 
@@ -341,6 +342,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	ixfr-from-differences \fIixfrdiff\fR;
 
 	allow-query { \fIaddress_match_element\fR; ... };
+	allow-query-cache { \fIaddress_match_element\fR; ... };
 	allow-transfer { \fIaddress_match_element\fR; ... };
 	allow-update-forwarding { \fIaddress_match_element\fR; ... };
 
