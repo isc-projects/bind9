@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: stop.sh,v 1.10 2000/07/05 23:28:07 bwelling Exp $
+# $Id: stop.sh,v 1.11 2000/07/07 00:41:18 bwelling Exp $
 
 #
 # Stop name servers.
@@ -49,7 +49,7 @@ for d in ns*
 do
      pidfile="$d/named.pid"
      if [ -f $pidfile ]; then
-	echo "I: $d didn't die when sent a SIGTERM"
+	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
      fi
@@ -59,7 +59,7 @@ for d in lwresd*
 do
      pidfile="$d/lwresd.pid"
      if [ -f $pidfile ]; then
-	echo "I: $d didn't die when sent a SIGTERM"
+	echo "I:$d didn't die when sent a SIGTERM"
 	status=`expr $status + 1`
         kill -KILL `cat $pidfile`
      fi

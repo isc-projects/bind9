@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.20 2000/07/05 22:13:56 gson Exp $
+# $Id: tests.sh,v 1.21 2000/07/07 00:41:17 bwelling Exp $
 
 #
 # Perform tests
@@ -58,7 +58,7 @@ cp ns2/example3.db ns2/example.db
 sleep 6
 
 if [ -f ns3/named.pid ]; then
-	echo "I: ns3 didn't die when sent a SIGTERM"
+	echo "I:ns3 didn't die when sent a SIGTERM"
 	kill -KILL `cat ns3/named.pid`
 	status=1
 fi
@@ -82,7 +82,7 @@ kill -TERM `cat ns2/named.pid`
 sleep 6
 
 if [ -f ns2/named.pid ]; then
-	echo "I: ns2 didn't die when sent a SIGTERM"
+	echo "I:ns2 didn't die when sent a SIGTERM"
 	kill -KILL `cat ns2/named.pid`
 	status=1
 fi
