@@ -56,20 +56,17 @@ fromhex(char c) {
 	exit(3);
 }
 
-static unsigned int
+static isc_uint16_t
 getshort(isc_buffer_t *buffer) {
 	isc_region_t r;
-	unsigned int result;
 
 	isc_buffer_remaining(buffer, &r);
 	if (r.length < 2) {
 		printf("not enough input\n");
 		exit(5);
 	}
-	result = r.base[0]*256 + r.base[1];
-	isc_buffer_forward(buffer, 2);
 
-	return (result);
+	return (isc_buffer_getuint16(buffer));
 }
 
 static unsigned int
