@@ -1,6 +1,6 @@
-1342.	[port]		darwin: ifconfig.sh now supports darwin.
+1344.	[port]		darwin: ifconfig.sh now supports darwin.
 
-1341.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
+1343.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
 
 1342.	[bug]		dnssec-signzone usage message was misleading.
 
