@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.31 2000/11/06 22:23:59 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.32 2000/11/06 23:48:48 gson Exp $ -->
 
 <book>
 
@@ -2483,6 +2483,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> port <replaceable>ip_port</replaceable>; </optional>
 };
 </programlisting>
 </sect2>
@@ -2575,6 +2576,22 @@ to. If not specified, the default is <filename>named.stats</filename>.</para><no
                       <simpara>Not
 yet implemented in <acronym>BIND</acronym> 9.</simpara></note></entry>
 </row>
+
+<row rowsep = "0">
+<entry colname = "1"><para><command>port</command></para></entry>
+<entry colname = "2"><para>
+The UDP/TCP port number the server uses for receiving and sending DNS protocol traffic.
+The default is 53.  This option is mainly intended for server testing;
+a server using a port other than 53 will not be able to communicate with
+the global DNS.
+The <command>port</command> option should be placed at
+the beginning of the options block, before
+any other options that take port numbers or IP addresses,
+to ensure that the port value takes effect for all addresses
+used by the server.</para>
+</entry>
+</row>
+
 </tbody>
 </tgroup></informaltable> </para>
 <sect3 id="boolean_options"><title>Boolean Options</title>
