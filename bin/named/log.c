@@ -15,9 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.22 2000/08/01 01:11:42 tale Exp $ */
+/* $Id: log.c,v 1.23 2000/08/25 01:08:19 bwelling Exp $ */
 
 #include <config.h>
+
+#include <isc/result.h>
 
 #include <named/log.h>
 
