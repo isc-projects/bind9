@@ -34,6 +34,7 @@ typedef struct ns_dbversion {
 
 struct ns_query {
 	unsigned int			attributes;
+	unsigned int			restarts;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	unsigned int			dboptions;
