@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.33 2000/06/22 21:51:07 tale Exp $ */
+/* $Id: t_dst.c,v 1.34 2000/07/27 02:30:27 tale Exp $ */
 
 #include <config.h>
 
 #include <sys/types.h>		/* Required for dirent.h */
 #include <sys/stat.h>
 
-#include <dirent.h>
+#include <dirent.h>		/* XXX */
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -31,7 +31,9 @@
 #include <unistd.h>		/* XXX */
 
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/string.h>
@@ -47,6 +49,7 @@
 
 /*
  * Adapted from the original dst_test.c program.
+ * XXXDCL should use isc_dir_*.
  */
 
 static void
@@ -69,14 +72,14 @@ cleandir(char *path) {
 		strcpy(fullname, path);
 		strcat(fullname, "/");
 		strcat(fullname, pe->d_name);
-		if (remove(fullname)) {
+		if (remove(fullname))
 			t_info("remove(%s) failed %d\n", fullname, errno);
-		}
+
 	}
-	(void) closedir(dirp);
-	if (rmdir(path)) {
+	(void)closedir(dirp);
+	if (rmdir(path))
 		t_info("rmdir(%s) failed %d\n", path, errno);
-	}
+
 	return;
 }
 
@@ -157,7 +160,6 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 {
 	dst_key_t	*key1 = NULL, *key2 = NULL;
 	isc_result_t	ret;
-	int		rval;
 	char		current[PATH_MAX + 1];
 	char		tmp[PATH_MAX + 1];
 	char		*p;
@@ -192,16 +194,16 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 		return;
 	}
 
-	p = tmpnam(tmp);
-	if (p == NULL) {
-		t_info("tmpnam failed %d\n", errno);
+	ret = isc_file_mktemplate("/tmp/", tmp, sizeof(tmp));
+	if (ret != ISC_R_SUCCESS) {
+		t_info("tmpnam failed %s\n", isc_result_totext(ret));
 		++*nprobs;
 		return;
 	}
 
-	rval = mkdir(tmp, S_IRWXU | S_IRWXG );
-	if (rval != 0) {
-		t_info("mkdir failed %d\n", errno);
+	ret = isc_dir_createunique(tmp);
+	if (ret != ISC_R_SUCCESS) {
+		t_info("mkdir failed %s\n", isc_result_totext(ret));
 		++*nprobs;
 		return;
 	}
