@@ -49,6 +49,7 @@ options {
         use-id-pool <boolean>; // obsolete
         use-ixfr <boolean>;
         version ( <quoted_string> | none );
+        allow-query-cache { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };
@@ -230,6 +231,7 @@ view <string> <optional_class> {
         };
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
+        allow-query-cache { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
         sortlist { <address_match_element>; ... };

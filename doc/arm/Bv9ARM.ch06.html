@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4080"
+HREF="Bv9ARM.ch06.html#AEN4098"
 >Zone File</A
 ></DT
 ></DL
@@ -728,6 +728,10 @@ CLASS="command"
 >allow-query</B
 >, <B
 CLASS="command"
+>allow-query-cache</B
+>,
+<B
+CLASS="command"
 >allow-transfer</B
 >,
 <B
@@ -740,10 +744,10 @@ CLASS="command"
 and <B
 CLASS="command"
 >blackhole</B
-> all
-use address match lists  this. Similarly, the listen-on option will cause
-the server to not accept queries on any of the machine's addresses
-which do not match the list.</P
+> all use address match lists.
+Similarly, the listen-on option will cause the server to not accept
+queries on any of the machine's addresses which do not match the
+list.</P
 ><P
 >Because of the first-match aspect of the algorithm, an element
 that defines a subset of another element in the list should come
@@ -768,7 +772,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1290"
+NAME="AEN1291"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -787,7 +791,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1295"
+NAME="AEN1296"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -819,7 +823,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1304"
+NAME="AEN1305"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -932,7 +936,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN1328"
+NAME="AEN1329"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -1132,7 +1136,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1411"
+NAME="AEN1412"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1181,7 +1185,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN1424"
+NAME="AEN1425"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -1264,7 +1268,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1455"
+NAME="AEN1456"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1578,7 +1582,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1534"
+NAME="AEN1535"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1596,7 +1600,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1539"
+NAME="AEN1540"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1625,7 +1629,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1546"
+NAME="AEN1547"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1653,7 +1657,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1553"
+NAME="AEN1554"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1735,7 +1739,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1573"
+NAME="AEN1574"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1877,7 +1881,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1613"
+NAME="AEN1614"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -1940,7 +1944,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1629"
+NAME="AEN1630"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2456,7 +2460,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN1753"
+NAME="AEN1754"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -2783,7 +2787,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1883"
+NAME="AEN1884"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2864,7 +2868,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1907"
+NAME="AEN1908"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -2938,7 +2942,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1926"
+NAME="AEN1927"
 >6.2.13. <B
 CLASS="command"
 >masters</B
@@ -2987,7 +2991,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1941"
+NAME="AEN1942"
 >6.2.14. <B
 CLASS="command"
 >masters</B
@@ -3005,7 +3009,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1946"
+NAME="AEN1947"
 >6.2.15. <B
 CLASS="command"
 >options</B
@@ -3354,6 +3358,13 @@ CLASS="replaceable"
     [<SPAN
 CLASS="optional"
 > allow-query { <VAR
+CLASS="replaceable"
+>address_match_list</VAR
+> }; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> allow-query-cache { <VAR
 CLASS="replaceable"
 >address_match_list</VAR
 > }; </SPAN
@@ -4530,7 +4541,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN2413"
+NAME="AEN2416"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -5406,7 +5417,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2714"
+NAME="AEN2717"
 >6.2.16.2. Forwarding</A
 ></H3
 ><P
@@ -5474,7 +5485,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2733"
+NAME="AEN2736"
 >6.2.16.3. Dual-stack Servers</A
 ></H3
 ><P
@@ -5573,8 +5584,61 @@ CLASS="command"
 case it overrides the <B
 CLASS="command"
 >options allow-query</B
-> statement. If
-not specified, the default is to allow queries from all hosts.</P
+> statement.
+<B
+CLASS="command"
+>allow-query-cache</B
+> may also be specified and will
+overrides access to the cache.
+If not specified, the default is to allow queries from all hosts.</P
+></DD
+><DT
+><B
+CLASS="command"
+>allow-query-cache</B
+></DT
+><DD
+><P
+>Specifies which hosts are allowed to get answers
+from the cache.  If not set <B
+CLASS="command"
+>allow-query</B
+> applies.
+</P
+><P
+>The recommended way to set query access to the cache is now via
+<B
+CLASS="command"
+>allow-query-cache</B
+> rather than <B
+CLASS="command"
+>allow-query</B
+>.
+Inheritance from <B
+CLASS="command"
+>allow-query</B
+> has been retained for
+backwards compatability.
+</P
+><DIV
+CLASS="note"
+><BLOCKQUOTE
+CLASS="note"
+><P
+><B
+>Note: </B
+>If <B
+CLASS="command"
+>allow-query-cache</B
+> is set at the options
+level and not set in the view it will still override a
+<B
+CLASS="command"
+>allow-query</B
+> set at the view level.
+</P
+></BLOCKQUOTE
+></DIV
 ></DD
 ><DT
 ><B
@@ -5686,7 +5750,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2800"
+NAME="AEN2818"
 >6.2.16.5. Interfaces</A
 ></H3
 ><P
@@ -5789,7 +5853,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2827"
+NAME="AEN2845"
 >6.2.16.6. Query Address</A
 ></H3
 ><P
@@ -6297,7 +6361,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2993"
+NAME="AEN3011"
 >6.2.16.8. Bad UDP Port Lists</A
 ></H3
 ><P
@@ -6321,7 +6385,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2998"
+NAME="AEN3016"
 >6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6441,7 +6505,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3035"
+NAME="AEN3053"
 >6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
@@ -6576,7 +6640,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3081"
+NAME="AEN3099"
 >6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6941,7 +7005,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3169"
+NAME="AEN3187"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7403,7 +7467,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3313"
+NAME="AEN3331"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -7875,7 +7939,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3452"
+NAME="AEN3470"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -7930,7 +7994,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3468"
+NAME="AEN3486"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -8018,7 +8082,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3490"
+NAME="AEN3508"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -8662,7 +8726,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3667"
+NAME="AEN3685"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8673,7 +8737,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3670"
+NAME="AEN3688"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8681,7 +8745,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3672"
+NAME="AEN3690"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -8913,7 +8977,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3735"
+NAME="AEN3753"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -8951,7 +9015,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3745"
+NAME="AEN3763"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -9721,7 +9785,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4039"
+NAME="AEN4057"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9846,7 +9910,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4080"
+NAME="AEN4098"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9867,7 +9931,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4085"
+NAME="AEN4103"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9892,7 +9956,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4091"
+NAME="AEN4109"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9973,7 +10037,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4123"
+NAME="AEN4141"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10324,7 +10388,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4275"
+NAME="AEN4293"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10406,7 +10470,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4299"
+NAME="AEN4317"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10438,7 +10502,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4306"
+NAME="AEN4324"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10593,7 +10657,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4372"
+NAME="AEN4390"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10664,7 +10728,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4400"
+NAME="AEN4418"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10702,7 +10766,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4406"
+NAME="AEN4424"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10923,7 +10987,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4498"
+NAME="AEN4516"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10986,7 +11050,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4521"
+NAME="AEN4539"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -11015,7 +11079,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4526"
+NAME="AEN4544"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11081,7 +11145,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4548"
+NAME="AEN4566"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11106,7 +11170,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4555"
+NAME="AEN4573"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11172,7 +11236,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4575"
+NAME="AEN4593"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11248,7 +11312,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4595"
+NAME="AEN4613"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11284,7 +11348,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4606"
+NAME="AEN4624"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11367,7 +11431,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4630"
+NAME="AEN4648"
 ></A
 ><TABLE
 CELLPADDING="3"

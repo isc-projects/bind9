@@ -668,7 +668,8 @@ options {
   ...
   ...
   allow-transfer { none; };                     // sample allow-transfer (no one)
-  allow-query { internals; externals; };        // restrict query access
+  allow-query { any; };  			// default query access
+  allow-query-cache { internals; externals; };  // restrict cache access
   allow-recursion { internals; externals; };    // restrict recursion
   ...
   ...
@@ -677,7 +678,6 @@ options {
 zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.foo.com";
-  allow-query { any; };
   allow-transfer { internals; externals; };
 };
 
@@ -685,7 +685,6 @@ zone "site2.example.com" {
   type slave;
   file "s/site2.foo.com";
   masters { another_bastion_host_maybe; };
-  allow-query { any; };
   allow-transfer { internals; externals; }
 };
 </PRE

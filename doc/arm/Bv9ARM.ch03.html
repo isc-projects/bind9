@@ -163,6 +163,7 @@ CLASS="filename"
 CLASS="programlisting"
 >&#13;options {
      directory "/etc/namedb";           // Working directory
+     allow-query-cache { none; };       // Do not allow access to cache
      allow-query { any; };              // This is the default
      recursion no;                      // Do not provide recursive service
 };
