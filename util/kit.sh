@@ -15,13 +15,17 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.6 2000/08/22 17:28:09 gson Exp $
+# $Id: kit.sh,v 1.7 2000/09/06 16:20:47 gson Exp $
 
 # Make a release kit
 #
 # Usage: sh kit.sh tag tmpdir
 #
-# (e.g., sh kit.sh v9_0_0b5 /tmp/bindkit
+#    (e.g., sh kit.sh v9_0_0b5 /tmp/bindkit
+#
+# To build a snapshot release, use the pseudo-tag "snapshot".
+#
+#   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
 case $# in
@@ -30,6 +34,12 @@ case $# in
        exit 1
        ;;
 esac
+
+case $tag in
+    snapshot) tag="HEAD"; snapshot=true ;;
+    *) snapshot=false ;;
+esac
+
 
 test -d $tmpdir ||
 mkdir $tmpdir || {
@@ -42,11 +52,20 @@ cd $tmpdir || exit 1
 cvs checkout -p -r $tag bind9/version >version.tmp
 . ./version.tmp
 
-VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
 
-echo "building release kit for BIND version $VERSION, hold on..."
+if $snapshot
+then
+    dstamp=`date +'%Y%m%d'`
 
-topdir=bind-$VERSION
+    RELEASETYPE=s
+    RELEASEVER=$dstamp
+fi
+
+version=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}
+
+echo "building release kit for BIND version $version, hold on..."
+
+topdir=bind-$version
 
 test ! -d $topdir || {
     echo "$0: directory `pwd`/$topdir already exists" >&2
@@ -56,6 +75,17 @@ test ! -d $topdir || {
 cvs -Q export -r $tag -d $topdir bind9
 
 cd $topdir || exit 1
+
+if $snapshot
+then
+    cat <<EOF >version
+MAJORVER=$MAJORVER
+MINORVER=$MINORVER
+PATCHVER=$PATCHVER
+RELEASETYPE=$RELEASETYPE
+RELEASEVER=$RELEASEVER
+EOF
+fi
 
 sh util/sanitize_all.sh
 
