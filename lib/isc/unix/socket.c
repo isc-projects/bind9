@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.3 2004/06/30 23:28:05 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.4 2004/07/01 04:52:28 marka Exp $ */
 
 #include <config.h>
 
@@ -2864,7 +2864,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 	 */
 	if (isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-			       sizeof(on)) < 0) {
+		       sizeof(on)) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d) %s", sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
