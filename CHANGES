@@ -1,4 +1,4 @@
- 353.	[bug]		double incrememnt in lwres/gethost.c:copytobuf().
+ 353.	[bug]		double increment in lwres/gethost.c:copytobuf().
 			(RT# 187)
 
  352.	[bug]		Race condition in dns_client_t startup could cause
