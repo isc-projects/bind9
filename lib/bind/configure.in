@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.26 $)
+AC_REVISION($Revision: 1.27 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1463,6 +1463,17 @@ HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 AC_SUBST(HOST_R_SET_RESULT)
 AC_SUBST(HOST_R_SET_RETURN)
 
+
+AC_MSG_CHECKING(struct passwd element pw_class)
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <pwd.h>
+],[struct passwd *pw; pw->pw_class = "";],
+AC_MSG_RESULT(yes)
+AC_DEFINE(HAS_PW_CLASS)
+,
+		AC_MSG_RESULT(no)
+)
 
 AC_TRY_COMPILE([
 #include <sys/types.h>

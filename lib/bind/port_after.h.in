@@ -116,6 +116,7 @@ char * strsep(char **stringp, const char *delim);
 
 /* forward declarations */
 struct group;
+struct passwd;
 
 #ifdef NEED_SETGROUPENT
 int setgroupent(int stayopen);
