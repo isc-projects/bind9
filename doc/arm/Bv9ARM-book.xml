@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.74 2001/01/02 20:22:32 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.75 2001/01/03 02:19:05 gson Exp $ -->
 
 <book>
 
@@ -675,7 +675,8 @@ of a server.</para>
 	  <varlistentry id="check-conf" xreflabel="Named Configuration Checking application">
             <term><command>check-conf</command></term>
             <listitem>
-	      <para>Performs syntax consistancy checks on <filename>named.conf</filename>.</para>
+	      <para>The <command>check-conf</command> program
+	      checks the syntax of a <filename>named.conf</filename> file.</para>
               <cmdsynopsis label="Usage">
                 <command>check-conf</command>
                 <arg><replaceable>filename</replaceable></arg>
@@ -685,7 +686,8 @@ of a server.</para>
 	  <varlistentry id="check-zone" xreflabel="Zone Checking application">
             <term><command>check-zone</command></term>
             <listitem>
-	      <para>Perform consistancy checks on a individual zone.</para>
+	      <para>The <command>check-zone</command> program checks a master file for
+	      syntax and consistency.</para>
               <cmdsynopsis label="Usage">
                 <command>check-zone</command>
                 <arg>-dq</arg>
