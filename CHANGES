@@ -1,4 +1,7 @@
 
+ 352.	[bug]		Race condition in dns_client_t startup could cause
+			an assertion failure.
+
  351.	[bug]		Constructing a response with rcode SERVFAIL to a TSIG
 			signed query could crash the server.
 
