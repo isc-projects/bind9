@@ -52,7 +52,6 @@
 
 #include <arpa/inet.h>
 
-#include "confparser.h"
 #include "udpclient.h"
 #include "tcpclient.h"
 #include "interfacemgr.h"
@@ -430,11 +429,6 @@ main(int argc, char *argv[])
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
-#if 0 /* brister */
-	isc_cfgctx_t *configctx = NULL;
-	const char *conffile = "/etc/named.conf"; /* XXX hardwired */
-#endif
-
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
 		      DNS_R_SUCCESS);
@@ -481,12 +475,6 @@ main(int argc, char *argv[])
 
 	workers = 2;
 	printf("%d workers\n", workers);
-
-#if 0 /* brister */
-	parser_init();
-	RUNTIME_CHECK(parse_configuration(conffile, mctx, &configctx) ==
-		      ISC_R_SUCCESS);
-#endif
 
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
