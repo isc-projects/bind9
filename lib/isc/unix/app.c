@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.29 2000/09/01 21:31:51 bwelling Exp $ */
+/* $Id: app.c,v 1.30 2000/09/28 21:31:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -39,11 +39,11 @@
 
 #ifdef ISC_PLATFORM_USETHREADS
 #include <pthread.h>
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 #include "../timer_p.h"
 #include "../task_p.h"
 #include "socket_p.h"
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
@@ -61,7 +61,7 @@ static isc_boolean_t		want_reload = ISC_FALSE;
 static isc_boolean_t		blocked  = ISC_FALSE;
 #ifdef ISC_PLATFORM_USETHREADS
 static pthread_t		blockedthread;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 #ifdef HAVE_LINUXTHREADS
 /*
@@ -115,7 +115,7 @@ isc_app_start(void) {
 #ifdef ISC_PLATFORM_USETHREADS
 	int presult;
 	sigset_t sset;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Start an ISC library application.
@@ -213,7 +213,7 @@ isc_app_start(void) {
 				 strerror(presult));
 		return (ISC_R_UNEXPECTED);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	ISC_LIST_INIT(on_run);
 
@@ -268,7 +268,7 @@ isc_app_run(void) {
 	isc_task_t *task;
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 #ifdef HAVE_SIGWAIT
 	int sig;
 #endif
@@ -531,7 +531,7 @@ void
 isc_app_block(void) {
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	REQUIRE(running);
 	REQUIRE(!blocked);
 
@@ -542,14 +542,14 @@ isc_app_block(void) {
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_UNBLOCK, &sset, NULL) == 0);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 void
 isc_app_unblock(void) {
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	REQUIRE(running);
 	REQUIRE(blocked);
@@ -563,6 +563,6 @@ isc_app_unblock(void) {
 		      sigaddset(&sset, SIGINT) == 0 && 
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 

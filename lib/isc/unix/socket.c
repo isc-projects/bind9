@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.167 2000/09/21 21:40:29 explorer Exp $ */
+/* $Id: socket.c,v 1.168 2000/09/28 21:31:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@
 
 #ifndef ISC_PLATFORM_USETHREADS
 #include "socket_p.h"
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Some systems define the socket length argument as an int, some as size_t,
@@ -193,14 +193,14 @@ struct isc_socketmgr {
 	isc_thread_t		watcher;
 	isc_condition_t		shutdown_ok;
 	int			pipe_fds[2];
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	unsigned int		refs;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 };
 
 #ifndef ISC_PLATFORM_USETHREADS
 static isc_socketmgr_t *socketmgr = NULL;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 #define CLOSED		0	/* this one must be zero */
 #define MANAGED		1
@@ -372,7 +372,7 @@ select_readmsg(isc_socketmgr_t *mgr) {
 
 	return (msg);
 }
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 /*
  * Update the state of the socketmgr when something changes.
  */
@@ -384,7 +384,7 @@ select_poke(isc_socketmgr_t *manager, int msg) {
 		wakeup_socket(manager, msg);
 	return;
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Make a fd non-blocking.
@@ -1051,7 +1051,7 @@ destroy(isc_socket_t **sockp) {
 #ifdef ISC_PLATFORM_USETHREADS
 	if (ISC_LIST_EMPTY(manager->socklist))
 		SIGNAL(&manager->shutdown_ok);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * XXX should reset manager->maxfd here
@@ -1841,7 +1841,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 #ifdef ISC_PLATFORM_USETHREADS
 		if (i == manager->pipe_fds[0] || i == manager->pipe_fds[1])
 			continue;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 		if (manager->fdstate[i] == CLOSE_PENDING) {
 			manager->fdstate[i] = CLOSED;
@@ -1986,7 +1986,7 @@ watcher(void *uap) {
 	UNLOCK(&manager->lock);
 	return ((isc_threadresult_t)0);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Create a new socket manager.
@@ -2003,7 +2003,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 		*managerp = socketmgr;
 		return (ISC_R_SUCCESS);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
@@ -2046,9 +2046,9 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 #if 0
 	RUNTIME_CHECK(make_nonblock(manager->pipe_fds[1]) == ISC_R_SUCCESS);
 #endif
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	manager->refs = 1;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Set up initial state for the select loop
@@ -2058,9 +2058,9 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 #ifdef ISC_PLATFORM_USETHREADS
 	FD_SET(manager->pipe_fds[0], &manager->read_fds);
 	manager->maxfd = manager->pipe_fds[0];
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	manager->maxfd = 0;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	memset(manager->fdstate, 0, sizeof(manager->fdstate));
 
 #ifdef ISC_PLATFORM_USETHREADS
@@ -2077,12 +2077,12 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 		close(manager->pipe_fds[1]);
 		return (ISC_R_UNEXPECTED);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	isc_mem_attach(mctx, &manager->mctx);
 
 #ifndef ISC_PLATFORM_USETHREADS
 	socketmgr = manager;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	*managerp = manager;
 
 	return (ISC_R_SUCCESS);
@@ -2108,7 +2108,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		*managerp = NULL;
 		return;
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	LOCK(&manager->lock);
 
@@ -2120,7 +2120,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		manager_log(manager, CREATION, "sockets exist");
 		WAIT(&manager->shutdown_ok, &manager->lock);
 	}
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	/*
 	 * Hope all sockets have been destroyed.
 	 */
@@ -2128,7 +2128,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		manager_log(manager, CREATION, "sockets exist");
 		INSIST(0);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	UNLOCK(&manager->lock);
 
@@ -2146,7 +2146,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	if (isc_thread_join(manager->watcher, NULL) != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_join() failed");
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Clean up.
@@ -2155,7 +2155,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	close(manager->pipe_fds[0]);
 	close(manager->pipe_fds[1]);
 	(void)isc_condition_destroy(&manager->shutdown_ok);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	for (i = 0 ; i < FD_SETSIZE ; i++)
 		if (manager->fdstate[i] == CLOSE_PENDING)
@@ -3256,4 +3256,4 @@ isc__socketmgr_dispatch(fd_set *readset, fd_set *writeset, int maxfd) {
 	process_fds(manager, maxfd, readset, writeset);
 	return (ISC_R_SUCCESS);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */

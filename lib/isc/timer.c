@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.56 2000/08/29 21:30:02 bwelling Exp $ */
+/* $Id: timer.c,v 1.57 2000/09/28 21:31:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 
 #ifndef ISC_PLATFORM_USETHREADS
 #include "timer_p.h"
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)			printf("%s\n", (s))
@@ -88,9 +88,9 @@ struct isc_timermgr {
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_condition_t			wakeup;
 	isc_thread_t			thread;
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	unsigned int			refs;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	isc_heap_t *			heap;
 };
 
@@ -99,7 +99,7 @@ struct isc_timermgr {
  * If threads are not in use, there can be only one.
  */
 static isc_timermgr_t *timermgr = NULL;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 static inline isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
@@ -116,7 +116,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 
 #ifndef ISC_PLATFORM_USETHREADS
 	UNUSED(signal_ok);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Compute the new due time.
@@ -180,11 +180,11 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		XTRACE("signal (schedule)");
 		SIGNAL(&manager->wakeup);
 	}
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	if (timer->index == 1 &&
 	    isc_time_compare(&timer->due, &manager->due) < 0)
 		manager->due = timer->due;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	return (ISC_R_SUCCESS);
 }
@@ -211,7 +211,7 @@ deschedule(isc_timer_t *timer) {
 			XTRACE("signal (deschedule)");
 			SIGNAL(&manager->wakeup);
 		}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	}
 }
 
@@ -631,7 +631,7 @@ run(void *uap) {
 
 	return ((isc_threadresult_t)0);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 static isc_boolean_t
 sooner(void *v1, void *v2) {
@@ -674,7 +674,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		*managerp = timermgr;
 		return (ISC_R_SUCCESS);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
@@ -722,10 +722,10 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 				 "isc_thread_create() failed");
 		return (ISC_R_UNEXPECTED);
 	}
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	manager->refs = 1;
 	timermgr = manager;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	*managerp = manager;
 
@@ -756,7 +756,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	}
 
 	isc__timermgr_dispatch();
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	REQUIRE(EMPTY(manager->timers));
 	manager->done = ISC_TRUE;
@@ -764,7 +764,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 #ifdef ISC_PLATFORM_USETHREADS
 	XTRACE("signal (destroy)");
 	SIGNAL(&manager->wakeup);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	UNLOCK(&manager->lock);
 
@@ -775,14 +775,14 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	if (isc_thread_join(manager->thread, NULL) != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_thread_join() failed");
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	/*
 	 * Clean up.
 	 */
 #ifdef ISC_PLATFORM_USETHREADS
 	(void)isc_condition_destroy(&manager->wakeup);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	DESTROYLOCK(&manager->lock);
 	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;
@@ -811,4 +811,4 @@ isc__timermgr_dispatch(void) {
 	dispatch(timermgr, &now);
 	return (ISC_R_SUCCESS);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */

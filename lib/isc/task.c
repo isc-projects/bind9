@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.74 2000/08/30 23:47:14 bwelling Exp $ */
+/* $Id: task.c,v 1.75 2000/09/28 21:31:04 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -39,7 +39,7 @@
 
 #ifndef ISC_PLATFORM_USETHREADS
 #include "task_p.h"
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 #define ISC_TASK_NAMES 1
 
@@ -107,18 +107,18 @@ struct isc_taskmgr {
 	unsigned int			workers;
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_thread_t *			threads;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
 	LIST(isc_task_t)		tasks;
 	LIST(isc_task_t)		ready_tasks;
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_condition_t			work_available;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	isc_boolean_t			exiting;
 #ifndef ISC_PLATFORM_USETHREADS
 	unsigned int			refs;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 };
 
 #define DEFAULT_TASKMGR_QUANTUM		10
@@ -127,7 +127,7 @@ struct isc_taskmgr {
 
 #ifndef ISC_PLATFORM_USETHREADS
 static isc_taskmgr_t *taskmgr = NULL;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 /***
  *** Tasks.
@@ -156,7 +156,7 @@ task_finished(isc_task_t *task) {
 		 */
 		BROADCAST(&manager->work_available);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	UNLOCK(&manager->lock);
 
 	DESTROYLOCK(&task->lock);
@@ -289,7 +289,7 @@ task_ready(isc_task_t *task) {
 	ENQUEUE(manager->ready_tasks, task, ready_link);
 #ifdef ISC_PLATFORM_USETHREADS
 	SIGNAL(&manager->work_available);
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	UNLOCK(&manager->lock);
 }
@@ -720,7 +720,7 @@ dispatch(isc_taskmgr_t *manager) {
 	isc_task_t *task;
 #ifndef ISC_PLATFORM_USETHREADS
 	unsigned int total_dispatch_count = 0;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -789,11 +789,11 @@ dispatch(isc_taskmgr_t *manager) {
 			WAIT(&manager->work_available, &manager->lock);
 			XTHREADTRACE("awake");
 		}
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 		if (total_dispatch_count >= DEFAULT_TASKMGR_QUANTUM ||
 		    EMPTY(manager->ready_tasks))
 			break;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 		XTHREADTRACE("working");
 
 		task = HEAD(manager->ready_tasks);
@@ -835,7 +835,7 @@ dispatch(isc_taskmgr_t *manager) {
 					dispatch_count++;
 #ifndef ISC_PLATFORM_USETHREADS
 					total_dispatch_count++;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 				}
 
 				if (task->references == 0 &&
@@ -953,7 +953,7 @@ run(void *uap) {
 
 	return ((isc_threadresult_t)0);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 static void
 manager_free(isc_taskmgr_t *manager) {
@@ -963,7 +963,7 @@ manager_free(isc_taskmgr_t *manager) {
 	(void)isc_condition_destroy(&manager->work_available);
 	isc_mem_put(manager->mctx, manager->threads,
 		    manager->workers * sizeof (isc_thread_t));
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
 	mctx = manager->mctx;
@@ -994,7 +994,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		*managerp = taskmgr;
 		return (ISC_R_SUCCESS);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
@@ -1024,7 +1024,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 				 "isc_condition_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 	if (default_quantum == 0)
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	manager->default_quantum = default_quantum;
@@ -1054,10 +1054,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		manager_free(manager);
 		return (ISC_R_NOTHREADS);
 	}
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	manager->refs = 0;
 	taskmgr = manager;
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	*managerp = manager;
 
@@ -1086,7 +1086,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 		*managerp = NULL;
 		return;
 	}
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	XTHREADTRACE("isc_taskmgr_destroy");
 	/*
@@ -1140,14 +1140,14 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 */
 	for (i = 0; i < manager->workers; i++)
 		(void)isc_thread_join(manager->threads[i], NULL);
-#else
+#else /* ISC_PLATFORM_USETHREADS */
 	/*
 	 * Dispatch the shutdown events.
 	 */
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
 
 	manager_free(manager);
 
@@ -1173,4 +1173,4 @@ isc__taskmgr_dispatch(void) {
 
 	return (ISC_R_SUCCESS);
 }
-#endif
+#endif /* ISC_PLATFORM_USETHREADS */
