@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.45 2004/10/21 01:53:53 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.46 2004/11/10 21:48:01 marka Exp $ */
 
 #include <config.h>
 
@@ -524,7 +524,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			 */
 			INSIST(no_response);
 			rtt = query->addrinfo->srtt +
-				(100000 * fctx->restarts);
+				(200000 * fctx->restarts);
 			if (rtt > 10000000)
 				rtt = 10000000;
 			/*
@@ -791,7 +791,13 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 				isc_socket_detach(&query->tcpsocket);
 			resquery_destroy(&query);
 		}
-	} else if (sevent->result != ISC_R_SUCCESS)
+	} else if (sevent->result == ISC_R_HOSTUNREACH ||
+		   sevent->result == ISC_R_NETUNREACH)
+		/*
+		 * No route to remote.
+		 */
+		fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+	else if (sevent->result != ISC_R_SUCCESS)
 		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 
 	isc_event_free(&event);
@@ -1378,6 +1384,13 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 						 ISC_FALSE);
 				fctx_done(fctx, result);
 			}
+		} else if (sevent->result == ISC_R_HOSTUNREACH ||
+			   sevent->result == ISC_R_NETUNREACH) {
+			/*
+			 * No route to remote.
+			 */
+			isc_socket_detach(&query->tcpsocket);
+			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
 		} else {
 			isc_socket_detach(&query->tcpsocket);
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
@@ -1386,8 +1399,6 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 }
-
-
 
 static void
 fctx_finddone(isc_task_t *task, isc_event_t *event) {
