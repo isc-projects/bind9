@@ -1,3 +1,6 @@
+ 511.	[bug]		The message code could throw an assertion on an
+			out of memory failure. [RT #392]
+
  510.	[bug]		Remove spurious view notify warning. [RT #376]
 
  509.	[func]		Add support for write of zone files on shutdown.
