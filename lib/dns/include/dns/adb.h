@@ -88,6 +88,7 @@
 #include <isc/task.h>
 
 #include <dns/rdataset.h>
+#include <dns/view.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -126,14 +127,14 @@ typedef struct dns_adbhandle dns_adbhandle_t;
 struct dns_adbhandle {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
-	dns_adb_t		       *adb;		/* RO: parent adb */
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
+	ISC_LINK(dns_adbhandle_t)	next;		/* RW: next handle */
+	isc_boolean_t			query_pending;	/* RO: partial list */
+	isc_result_t			result;		/* RO: extra result */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
-	isc_task_t		       *task;		/* task to send ev */
-	isc_taskaction_t	       *taskaction;
-	void			       *arg;
+
 	isc_event_t			event;
 
 	ISC_LINK(dns_adbhandle_t)	link;		/* private */
@@ -176,7 +177,7 @@ struct dns_adbaddrinfo {
 
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb);
 /*
  * Create a new ADB.
  *
@@ -185,6 +186,12 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
  *	'mem' must be a pointer to a valid memory manager that all internal
  *	allocations will happen through (and so must remain valid at least
  *	until the new isc_addrtable_t is deleted)
+ *
+ *	'view' be a pointer to a valid viewif the database is to make
+ *	queries to resolve names.  If it is used only as storage, this
+ *	entry may be NULL.
+ *
+ *	'newadb' != NULL && '*newadb' == NULL.
  *
  * Returns:
  *
@@ -208,12 +215,12 @@ dns_adb_destroy(dns_adb_t **adb);
 
 
 isc_result_t
-dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
-	       void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
+dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
+	       void *arg, dns_name_t *name, dns_name_t *zone,
 	       dns_adbhandle_t **handle);
 /*
- * Main interface for clients. The adb will iterate over the rdata items in
- * NSDATASET and will build up a list of found addresses, and perhaps start
+ * Main interface for clients. The adb will look up the name given in
+ * "name" and will build up a list of found addresses, and perhaps start
  * internal fetches to resolve names that are unknown currently.
  *
  * If other addresses resolve after this call completes, an event will
@@ -221,11 +228,9 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  * set to a pointer to the dns_adbhandle_t returned by this function.
  *
  * The events must be canceled using either dns_adb_cancel() or
- * dns_adb_done().  dns_adb_cancel() will cancel internal fetches as well
- * as stop events from being delivered.  dns_adb_done() may leave them
- * running (with the task passed here) after returning.  Calling either will
- * ensure that no more events are delivered, and pending events will be
- * removed from the task's queue.
+ * dns_adb_done().  dns_adb_cancel() will cause no more events to be posted
+ * to the task, but the handle is not destroyed.  dns_adb_done() will
+ * stop events as well, and will also destroy the handle.
  *
  * The list of addresses returned is unordered.  The caller must impose
  * any ordering required.  The list will not contain "known bad" addresses,
@@ -242,8 +247,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *
  *	*task be a valid task, and isc_taskaction_t != NULL.
  *
- *	*nsdataset be a valid dns_rdataset_t with a non-zero number of NS
- *	 records in it.
+ *	*name is a valid dns_name_t.
  *
  *	zone != NULL and *zone be a valid dns_name_t.
  *
@@ -256,11 +260,10 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *	ISC_R_NOMORE	Addresses might have been returned, but no events
  *			will ever be posted for this context.
  *	ISC_R_NOMEMORY	insufficient resources
- *	ISC_R_FAILURE	Empty nsdataset, or not containing NS records.
  *
- * Ensures:
+ * Notes:
  *
- *	No internal reference to "nsrdataset" exists after this function
+ *	No internal reference to "name" exists after this function
  *	returns.
  */
 

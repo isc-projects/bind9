@@ -41,6 +41,7 @@
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/view.h>
 
 #include "../isc/util.h"
 
@@ -78,6 +79,7 @@ struct dns_adb {
 	isc_mutex_t			lock;
 	isc_condition_t			shutdown_cond;
 	isc_mem_t		       *mctx;
+	dns_view_t		       *view;
 
 	unsigned int			refcnt;
 	isc_boolean_t			done;
@@ -113,6 +115,7 @@ struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
 	ISC_LIST(dns_adbnamehook_t)	namehooks;
+	ISC_LIST(dns_adbhandle_t)	handles;
 	ISC_LINK(dns_adbname_t)		link;
 };
 
@@ -139,7 +142,7 @@ struct dns_adbnamehook {
 struct dns_adbzoneinfo {
 	unsigned int			magic;
 
-	dns_name_t		       *zone;
+	dns_name_t			zone;
 	unsigned int			lame_timer;
 
 	ISC_LINK(dns_adbzoneinfo_t)	link;
@@ -153,7 +156,7 @@ struct dns_adbentry {
 	unsigned int			magic;
 
 	int				lock_bucket;
-	unsigned int			refcount;
+	unsigned int			refcnt;
 
 	unsigned int			flags;
 	int				goodness;	/* bad <= 0 < good */
@@ -167,41 +170,32 @@ struct dns_adbentry {
 /*
  * Internal functions (and prototypes).
  */
-static inline dns_adbname_t *
-new_adbname(dns_adb_t *);
+static inline dns_adbname_t *new_adbname(dns_adb_t *);
+static inline void free_adbname(dns_adb_t *, dns_adbname_t **);
+static inline dns_adbnamehook_t *new_adbnamehook(dns_adb_t *,
+						 dns_adbentry_t *);
+static inline void free_adbnamehook(dns_adb_t *, dns_adbnamehook_t **);
+static inline dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *);
+static inline void free_adbzoneinfo(dns_adb_t *, dns_adbzoneinfo_t **);
+static inline dns_adbentry_t *new_adbentry(dns_adb_t *);
+static inline void free_adbentry(dns_adb_t *, dns_adbentry_t **);
+static inline dns_adbhandle_t *new_adbhandle(dns_adb_t *);
+static inline void free_adbhandle(dns_adb_t *, dns_adbhandle_t **);
+static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
+						 dns_adbentry_t *);
 
-static inline dns_adbnamehook_t *
-new_adbnamehook(dns_adb_t *, dns_adbentry_t *);
-
-static inline dns_adbzoneinfo_t *
-new_adbzoneinfo(dns_adb_t *);
-
-static inline dns_adbentry_t *
-new_adbentry(dns_adb_t *);
-
-static inline dns_adbhandle_t *
-new_adbhandle(dns_adb_t *);
-
-static inline dns_adbaddrinfo_t *
-new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *);
-
-static inline dns_adbname_t *
-find_name_and_lock(dns_adb_t *, dns_name_t *, int *);
-
-static inline dns_adbentry_t *
-find_entry_and_lock(dns_adb_t *, isc_sockaddr_t *, int *);
-
-static void
-print_dns_name(FILE *, dns_name_t *);
-
-static void
-print_namehook_list(FILE *, dns_adbname_t *);
-
-static inline void
-inc_adb_refcnt(dns_adb_t *, isc_boolean_t);
-
-static inline void
-dec_adb_refcnt(dns_adb_t *, isc_boolean_t);
+static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *,
+						int *);
+static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
+						  isc_sockaddr_t *, int *);
+static void print_dns_name(FILE *, dns_name_t *);
+static void print_namehook_list(FILE *, dns_adbname_t *);
+static inline void inc_adb_refcnt(dns_adb_t *, isc_boolean_t);
+static inline void dec_adb_refcnt(dns_adb_t *, isc_boolean_t);
+static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
+				    isc_boolean_t);
+static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
+				    isc_boolean_t);
 
 static inline void
 inc_adb_refcnt(dns_adb_t *adb, isc_boolean_t lock)
@@ -232,6 +226,60 @@ dec_adb_refcnt(dns_adb_t *adb, isc_boolean_t lock)
 		UNLOCK(&adb->lock);
 }
 
+static inline void
+inc_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
+{
+	int bucket;
+
+	bucket = entry->lock_bucket;
+
+	if (lock)
+		LOCK(&adb->entrylocks[bucket]);
+
+	entry->refcnt++;
+
+	if (lock)
+		UNLOCK(&adb->entrylocks[bucket]);
+}
+
+static inline void
+dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
+{
+	int bucket;
+	isc_boolean_t destroy_entry;
+	dns_adbzoneinfo_t *zi;
+
+	bucket = entry->lock_bucket;
+
+	if (lock)
+		LOCK(&adb->entrylocks[bucket]);
+
+	INSIST(entry->refcnt > 0);
+	entry->refcnt--;
+
+	destroy_entry = ISC_FALSE;
+	if (entry->refcnt == 0) {
+		destroy_entry = ISC_TRUE;
+		ISC_LIST_UNLINK(adb->entries[bucket], entry, link);
+	}
+
+	if (lock)
+		UNLOCK(&adb->entrylocks[bucket]);
+
+	if (!destroy_entry)
+		return;
+
+	entry->lock_bucket = DNS_ADB_INVALIDBUCKET;
+	zi = ISC_LIST_HEAD(entry->zoneinfo);
+	while (zi != NULL) {
+		ISC_LIST_UNLINK(entry->zoneinfo, zi, link);
+		free_adbzoneinfo(adb, &zi);
+		zi = ISC_LIST_HEAD(entry->zoneinfo);
+	}
+
+	free_adbentry(adb, &entry);
+}
+
 static inline dns_adbname_t *
 new_adbname(dns_adb_t *adb)
 {
@@ -244,6 +292,7 @@ new_adbname(dns_adb_t *adb)
 	name->magic = DNS_ADBNAME_MAGIC;
 	dns_name_init(&name->name, NULL);
 	ISC_LIST_INIT(name->namehooks);
+	ISC_LIST_INIT(name->handles);
 	ISC_LINK_INIT(name, link);
 
 	return (name);
@@ -259,6 +308,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 	*name = NULL;
 
 	INSIST(ISC_LIST_EMPTY(n->namehooks));
+	INSIST(ISC_LIST_EMPTY(n->handles));
 	INSIST(!ISC_LINK_LINKED(n, link));
 
 	n->magic = 0;
@@ -309,11 +359,28 @@ new_adbzoneinfo(dns_adb_t *adb)
 		return (NULL);
 
 	zi->magic = DNS_ADBZONEINFO_MAGIC;
-	zi->zone = NULL;
+	dns_name_init(&zi->zone, NULL);
 	zi->lame_timer = 0;
 	ISC_LINK_INIT(zi, link);
 
 	return (zi);
+}
+
+static inline void
+free_adbzoneinfo(dns_adb_t *adb, dns_adbzoneinfo_t **zoneinfo)
+{
+	dns_adbzoneinfo_t *zi;
+
+	zi = *zoneinfo;
+	*zoneinfo = NULL;
+
+	INSIST(!ISC_LINK_LINKED(zi, link));
+
+	dns_name_free(&zi->zone, adb->mctx);
+
+	zi->magic = 0;
+
+	isc_mempool_put(adb->zimp, zi);
 }
 
 static inline dns_adbentry_t *
@@ -327,7 +394,7 @@ new_adbentry(dns_adb_t *adb)
 
 	e->magic = DNS_ADBENTRY_MAGIC;
 	e->lock_bucket = DNS_ADB_INVALIDBUCKET;
-	e->refcount = 0;
+	e->refcnt = 0;
 	e->flags = 0;
 	e->goodness = 0;
 	e->srtt = 0;
@@ -346,7 +413,7 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 	*entry = NULL;
 
 	INSIST(e->lock_bucket == DNS_ADB_INVALIDBUCKET);
-	INSIST(e->refcount == 0);
+	INSIST(e->refcnt == 0);
 	INSIST(ISC_LIST_EMPTY(e->zoneinfo));
 	INSIST(!ISC_LINK_LINKED(e, link));
 
@@ -368,8 +435,10 @@ new_adbhandle(dns_adb_t *adb)
 	 * public members
 	 */
 	h->magic = 0;
-	h->adb = adb;
+	h->query_pending = ISC_FALSE;
+	h->result = ISC_R_UNEXPECTED;
 	ISC_LIST_INIT(h->list);
+	ISC_LINK_INIT(h, next);
 
 	/*
 	 * private members
@@ -381,9 +450,6 @@ new_adbhandle(dns_adb_t *adb)
 		isc_mempool_put(adb->ahmp, h);
 		return (NULL);
 	}
-	h->task = NULL;
-	h->taskaction = NULL;
-	h->arg = NULL;
 	ISC_LINK_INIT(h, link);
 
 	ISC_EVENT_INIT(&h->event, sizeof (isc_event_t), 0, 0, 0, NULL, NULL,
@@ -391,6 +457,23 @@ new_adbhandle(dns_adb_t *adb)
 
 	h->magic = DNS_ADBHANDLE_MAGIC;
 	return (h);
+}
+
+static inline void
+free_adbhandle(dns_adb_t *adb, dns_adbhandle_t **handlep)
+{
+	dns_adbhandle_t *handle;
+
+	handle = *handlep;
+	*handlep = NULL;
+
+	handle->magic = 0;
+	INSIST(ISC_LIST_EMPTY(handle->list));
+	INSIST(!ISC_LINK_LINKED(handle, next));
+	INSIST(!ISC_LINK_LINKED(handle, link));
+
+	isc_mutex_destroy(&handle->lock);
+	isc_mempool_put(adb->ahmp, handle);
 }
 
 /*
@@ -492,6 +575,40 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 }
 
 static void
+copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
+		   dns_adbname_t *name)
+{
+	dns_adbnamehook_t *namehook;
+	dns_adbaddrinfo_t *addrinfo;
+
+	handle->query_pending = ISC_FALSE;
+	handle->result = ISC_R_UNEXPECTED;
+
+	namehook = ISC_LIST_HEAD(name->namehooks);
+	while (namehook != NULL) {
+		if (namehook->entry->lock_bucket == DNS_ADB_INVALIDBUCKET) {
+			handle->query_pending = ISC_TRUE;
+		} else {
+			/* XXX check for expired entries, zoneinfo */
+			addrinfo = new_adbaddrinfo(adb, namehook->entry);
+			if (addrinfo == NULL) {
+				handle->result = ISC_R_NOMEMORY;
+				return;
+			}
+			/*
+			 * Found a valid entry.  Add it to the handle's list.
+			 */
+			inc_entry_refcnt(adb, namehook->entry, ISC_TRUE);
+			ISC_LIST_APPEND(handle->list, addrinfo, link);
+		}
+
+		namehook = ISC_LIST_NEXT(namehook, link);
+	}
+
+	handle->result = ISC_R_SUCCESS; /* all were copied */
+}
+
+static void
 destroy(dns_adb_t *adb)
 {
 	adb->magic = 0;
@@ -518,7 +635,7 @@ destroy(dns_adb_t *adb)
  */
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 {
 	dns_adb_t *adb;
 	isc_result_t result;
@@ -599,6 +716,7 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 	 * Normal return.
 	 */
 	adb->mctx = mem;
+	adb->view = view;
 	adb->magic = DNS_ADB_MAGIC;
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
@@ -666,47 +784,37 @@ dns_adb_destroy(dns_adb_t **adbx)
 }
 
 isc_result_t
-dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
-	       void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
+dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
+	       void *arg, dns_name_t *name, dns_name_t *zone,
 	       dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
+	dns_adbname_t *adbname;
+	int bucket;
 	isc_boolean_t use_hints;
 	dns_rdata_t rdata;
-	isc_region_t r;
-	dns_name_t name;
 	dns_rdataset_t rdataset;
 	isc_sockaddr_t *address;
-	struct in_addr ina;
 	isc_result_t result;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	if (task != NULL) {
 		REQUIRE(action != NULL);
 	}
-	REQUIRE(nsrdataset != NULL);
+	REQUIRE(name != NULL);
 	REQUIRE(zone != NULL);
 	REQUIRE(handlep != NULL && *handlep == NULL);
-	REQUIRE(nsrdataset->type == dns_rdatatype_ns);
+
+	result = ISC_R_UNEXPECTED;
 
 	/*
-	 * Bump our reference count to the adb, so it cannot go away while
-	 * we're using it.
-	 */
-	LOCK(&adb->lock);
-	REQUIRE(!adb->done);
-	inc_adb_refcnt(adb, ISC_FALSE);
-	UNLOCK(&adb->lock);
-
-	/*
-	 * Iterate through the nsrdataset.  For each name found, do a search
-	 * for it in our database.
+	 * Look up the name in our internal database.
 	 *
 	 * Possibilities:  Note that these are not always exclusive.
 	 *
-	 *	No name found.  In this case, allocate a new name header,
-	 *	an initial namehook or two, and a job id.  If any of these
-	 *	allocations fail, clean up and simply skip this address.
+	 *	No name found.  In this case, allocate a new name header and
+	 *	an initial namehook or two.  If any of these allocations
+	 *	fail, clean up and return ISC_R_NOMEMORY.
 	 *
 	 *	Name found, valid addresses present.  Allocate one addrinfo
 	 *	structure for each found and append it to the linked list
@@ -719,14 +827,68 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	 */
 
 	handle = new_adbhandle(adb);
-	if (handle == NULL) {
-		dec_adb_refcnt(adb, ISC_TRUE);
-		return (ISC_R_NOMEMORY);
-	}
+	if (handle == NULL)
+		result = ISC_R_NOMEMORY;
+
+	handle->event.sender = task; /* store it here for a while */
+	handle->event.action = action;
+	handle->event.arg = arg;
 
 	use_hints = dns_name_equal(zone, dns_rootname);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	/*
+	 * Look things up in our database first.
+	 */
+	bucket = DNS_ADB_INVALIDBUCKET;
+	adbname = find_name_and_lock(adb, name, &bucket);
+
+	/*
+	 * Found!  Run through the name and copy out the bits we are
+	 * interested in.  If we cannot copy at least one address, return
+	 * ISC_R_NOMEMORY, otherwise copy out what we can and set the
+	 * missing_data bit in the header.
+	 */
+	if (adbname != NULL) {
+		copy_namehook_list(adb, handle, adbname);
+		if (handle->result == ISC_R_NOMEMORY
+		    && ISC_LIST_EMPTY(handle->list)) {
+			free_adbhandle(adb, &handle);
+			result = ISC_R_NOMEMORY;
+			goto out;
+		}
+
+		/*
+		 * Attach to the name's query list if there are queries
+		 * already running.
+		 */
+		if (handle->query_pending)
+			ISC_LIST_APPEND(adbname->handles, handle, link);
+
+		result = ISC_R_SUCCESS;
+
+		goto out;
+	}
+
+	/*
+	 * Nothing found.  Allocate a new adbname structure for this name
+	 * and look in the database for details.  If the database has
+	 * nothing useful, start a fetch if we can.
+	 */
+
+	/*
+	 * Temporary XXX
+	 */
+	result = ISC_R_UNEXPECTED;
+	free_adbhandle(adb, &handle);
+	
+ out:
+	if (handle != NULL)
+		*handlep = handle;
+
+	if (bucket != DNS_ADB_INVALIDBUCKET)
+		UNLOCK(&adb->namelocks[bucket]);
+
+	return (result);
 }
 
 isc_result_t
@@ -798,15 +960,7 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 				LOCK(&adb->entrylocks[addr_bucket]);
 			}
 
-			INSIST(entry->refcount > 0);
-			entry->refcount--;
-			if (entry->refcount == 0) {
-				/* XXX kill zoneinfo here */
-				ISC_LIST_UNLINK(adb->entries[addr_bucket],
-						entry, link);
-				entry->lock_bucket = DNS_ADB_INVALIDBUCKET;
-				free_adbentry(adb, &entry);
-			}
+			dec_entry_refcnt(adb, entry, ISC_FALSE);
 		}
 
 		/*
@@ -926,7 +1080,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	ISC_LIST_APPEND(name->namehooks, namehook, link);
 
 	entry->lock_bucket = addr_bucket;
-	entry->refcount++;
+	inc_entry_refcnt(adb, entry, ISC_FALSE);
 	entry->sockaddr = *addr;
 
 	/*
@@ -1048,9 +1202,9 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 			if (tmpp == NULL)
 				tmpp = "CANNOT TRANSLATE ADDRESS!";
 
-			fprintf(f, "\trefcount %u flags %08x goodness %d"
+			fprintf(f, "\trefcnt %u flags %08x goodness %d"
 				" srtt %u host %s\n",
-				entry->refcount, entry->flags, entry->goodness,
+				entry->refcnt, entry->flags, entry->goodness,
 				entry->srtt, tmpp);
 
 			entry = ISC_LIST_NEXT(entry, link);
