@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.292 2004/07/02 21:37:58 sra Exp $ */
+/* $Id: resolver.c,v 1.293 2004/08/10 00:38:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1821,8 +1821,23 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	sa = ISC_LIST_HEAD(fctx->forwarders);
 	if (sa == NULL) {
 		dns_forwarders_t *forwarders = NULL;
-		result = dns_fwdtable_find(fctx->res->view->fwdtable,
-					   &fctx->name, &forwarders);
+		dns_name_t *name = &fctx->name;
+		dns_name_t suffix;
+		unsigned int labels;
+
+		/*
+		 * DS records are found in the parent server.
+		 * Strip label to get the correct forwarder (if any).
+		 */
+		if (fctx->type == dns_rdatatype_ds &&
+		    dns_name_countlabels(name) > 1) {
+			dns_name_init(&suffix, NULL);
+			labels = dns_name_countlabels(name);
+			dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
+			name = &suffix;
+		}
+		result = dns_fwdtable_find(fctx->res->view->fwdtable, name,
+					   &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			sa = ISC_LIST_HEAD(forwarders->addrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
@@ -2590,6 +2605,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	dns_name_t suffix;
 
 	/*
 	 * Caller must be holding the lock for bucket number 'bucketnum'.
@@ -2649,8 +2665,21 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;
-		result = dns_fwdtable_find(fctx->res->view->fwdtable,
-					   &fctx->name, &forwarders);
+		unsigned int labels;
+
+		/*
+		 * DS records are found in the parent server.
+		 * Strip label to get the correct forwarder (if any).
+		 */
+		if (fctx->type == dns_rdatatype_ds &&
+		    dns_name_countlabels(name) > 1) {
+			dns_name_init(&suffix, NULL);
+			labels = dns_name_countlabels(name);
+			dns_name_getlabelsequence(name, 1, labels - 1, &suffix);
+			name = &suffix;
+		}
+		result = dns_fwdtable_find(fctx->res->view->fwdtable, name,
+					   &forwarders);
 		if (result == ISC_R_SUCCESS)
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 
