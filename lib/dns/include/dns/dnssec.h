@@ -20,6 +20,7 @@
 
 #include <isc/mem.h>
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 #include <isc/time.h>
 
 #include <dns/types.h>
