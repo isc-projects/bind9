@@ -1,3 +1,5 @@
+1084.	[cleanup]	libbind: gai_strerror() re-written.
+
 1083.	[bug]		The default control channel listened on the
 			wildcard adress, not the loopback as documented.
 			[RT #1975]
