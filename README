@@ -280,7 +280,8 @@ Building
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
 	
-	* gcc-3.2.1 and gcc-3.1.1 is known to cause problems with solaris-x86.
+	* gcc-3.2.1 and gcc-3.1.1 is known to cause problems with solaris-x86
+	  if the optimiser is enabled.  Use -O0 to disable the optimiser.
 	* gcc ultrasparc generates incorrect code at -02.
 
 	A limited test suite can be run with "make test".  Many of
