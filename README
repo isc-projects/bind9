@@ -48,7 +48,7 @@ BIND 9.3.1
         BIND 9.3.1 is a maintenance release, containing fixes for
         a number of bugs in 9.3.0.
 
-        libbind: corresponds to that from BIND 8.4.6-SNAP1.
+        libbind: corresponds to that from BIND 8.4.6-REL.
 
 BIND 9.3.0
 
