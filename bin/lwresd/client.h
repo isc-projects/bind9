@@ -21,6 +21,7 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/list.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -32,6 +33,7 @@
 #include <dns/master.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
+#include <dns/log.h>
 
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
 
@@ -64,12 +66,13 @@ struct client_s {
 	/*
 	 * gabn (get address by name) state info.
 	 */
+	dns_adbfind_t		*find;
 	dns_adbfind_t		*v4find;
 	dns_adbfind_t		*v6find;
-	unsigned int		find_pending;	/* Addresses remaining */
 	unsigned int		find_wanted;	/* Addresses we want */
 	dns_fixedname_t		target_name;
 	lwres_gabnresponse_t	gabn;
+	isc_buffer_t		recv_buffer;
 
 	/*
 	 * gnba (get name by address) state info.
@@ -77,15 +80,16 @@ struct client_s {
 	lwres_gnbaresponse_t	gnba;
 
 	/*
-	 * Alias info.  This is copied up to the gabn/gnba structures
-	 * eventually.
+	 * Alias and address info.  This is copied up to the gabn/gnba
+	 * structures eventually.
 	 *
 	 * XXXMLG We can keep all of this in a client since we only service
 	 * three packet types right now.  If we started handling more,
 	 * we'd need to use "arg" above and allocate/destroy things.
 	 */
 	char		       *aliases[LWRES_MAX_ALIASES];
-	unsigned int		naliases;
+	u_int16_t		aliaslen[LWRES_MAX_ALIASES];
+	lwres_addr_t		addrs[LWRES_MAX_ADDRS];
 };
 
 /*
@@ -178,5 +182,11 @@ void process_gnba(client_t *, lwres_buffer_t *);
 void process_noop(client_t *, lwres_buffer_t *);
 
 void error_pkt_send(client_t *, isc_uint32_t);
+
+void client_init_aliases(client_t *);
+void client_init_gabn(client_t *);
+void client_init_gnba(client_t *);
+
+void DP(int level, char *format, ...);
 
 #endif /* LWD_CLIENT_H */

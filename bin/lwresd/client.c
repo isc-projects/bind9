@@ -58,6 +58,18 @@ hexdump(char *msg, void *base, size_t len)
 		printf("\n");
 }
 
+void
+DP(int level, char *format, ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	isc_log_vwrite(dns_lctx,
+		       DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
+		       ISC_LOG_DEBUG(level), format, args);
+	va_end(args);
+}
+
 static void
 clientmgr_can_die(clientmgr_t *cm)
 {
@@ -276,6 +288,8 @@ client_send(isc_task_t *task, isc_event_t *ev)
 	INSIST(CLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 
+	printf("Task %p for client %p got send-done event\n", task, client);
+
 	if (client->sendbuf != client->buffer)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,
 				      client->sendlength);
@@ -287,8 +301,6 @@ client_send(isc_task_t *task, isc_event_t *ev)
 void
 client_initialize(client_t *client, clientmgr_t *cmgr)
 {
-	int i;
-
 	client->clientmgr = cmgr;
 	ISC_LINK_INIT(client, link);
 	CLIENT_SETIDLE(client);
@@ -299,15 +311,69 @@ client_initialize(client_t *client, clientmgr_t *cmgr)
 	client->sendbuf = NULL;
 	client->sendlength = 0;
 
+	client->find = NULL;
 	client->v4find = NULL;
 	client->v6find = NULL;
 
-	client->find_pending = 0;
 	client->find_wanted = 0;
 
-	for (i = 0 ; i < LWRES_MAX_ALIASES ; i++)
-		client->aliases[i] = NULL;
-	client->naliases = 0;
-
 	ISC_LIST_APPEND(cmgr->idle, client, link);
+}
+
+void
+client_init_aliases(client_t *client)
+{
+	int i;
+
+	for (i = 0 ; i < LWRES_MAX_ALIASES ; i++) {
+		client->aliases[i] = NULL;
+		client->aliaslen[i] = 0;
+	}
+	for (i = 0 ; i < LWRES_MAX_ADDRS ; i++) {
+		client->addrs[i].family = 0;
+		client->addrs[i].length = 0;
+		client->addrs[i].address = NULL;
+	}
+}
+
+void
+client_init_gabn(client_t *client)
+{
+	/*
+	 * Initialize the real name and alias arrays in the reply we're
+	 * going to build up.
+	 */
+	client_init_aliases(client);
+	client->gabn.naliases = 0;
+	client->gabn.naddrs = 0;
+	client->gabn.realname = NULL;
+	client->gabn.aliases = client->aliases;
+	client->gabn.realnamelen = 0;
+	client->gabn.aliaslen = client->aliaslen;
+	client->gabn.addrs = client->addrs;
+	client->gabn.base = NULL;
+	client->gabn.baselen = NULL;
+
+	/*
+	 * Set up the internal buffer to point to the receive region.
+	 */
+	isc_buffer_init(&client->recv_buffer, client->buffer,
+			LWRES_RECVLENGTH, ISC_BUFFERTYPE_TEXT);
+}
+
+void
+client_init_gnba(client_t *client)
+{
+	/*
+	 * Initialize the real name and alias arrays in the reply we're
+	 * going to build up.
+	 */
+	client_init_aliases(client);
+	client->gnba.naliases = 0;
+	client->gnba.realname = NULL;
+	client->gnba.aliases = client->aliases;
+	client->gnba.realnamelen = 0;
+	client->gnba.aliaslen = client->aliaslen;
+	client->gnba.base = NULL;
+	client->gnba.baselen = NULL;
 }

@@ -23,6 +23,7 @@
 #include <isc/assertions.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/log.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -30,6 +31,7 @@
 #include <isc/util.h>
 
 #include <dns/rootns.h>
+#include <dns/log.h>
 
 #include <lwres/lwres.h>
 
@@ -136,6 +138,8 @@ main(int argc, char **argv)
 	isc_result_t result;
 	unsigned int i, j;
 	client_t *client;
+	isc_logdestination_t destination;
+	isc_log_t *lctx;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -149,8 +153,31 @@ main(int argc, char **argv)
 	result = isc_mem_create(0, 0, &mem);
 	INSIST(result == ISC_R_SUCCESS);
 
-	cmgr = isc_mem_get(mem, sizeof(clientmgr_t) * NTASKS);
-	INSIST(cmgr != NULL);
+	/*
+	 * Set up logging.
+	 */
+	lctx = NULL;
+        result = isc_log_create(mem, &lctx);
+	INSIST(result == ISC_R_SUCCESS);
+        result = dns_log_init(lctx);
+	INSIST(result == ISC_R_SUCCESS);
+
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.maximum_size = 0;
+	result = isc_log_createchannel(lctx, "_default",
+				       ISC_LOG_TOFILEDESC,
+				       ISC_LOG_DYNAMIC,
+				       &destination, ISC_LOG_PRINTTIME);
+	INSIST(result == ISC_R_SUCCESS);
+	result = isc_log_usechannel(lctx, "_default", NULL, NULL);
+	INSIST(result == ISC_R_SUCCESS);
+
+	/*
+	 * Set the initial debug level.
+	 */
+	isc_log_setdebuglevel(lctx, 99);
 
 	/*
 	 * Create a task manager.
@@ -195,6 +222,9 @@ main(int argc, char **argv)
 
 	result = isc_socket_bind(sock, &localhost);
 	INSIST(result == ISC_R_SUCCESS);
+
+	cmgr = isc_mem_get(mem, sizeof(clientmgr_t) * NTASKS);
+	INSIST(cmgr != NULL);
 
 	/*
 	 * Create one task for each client manager.
@@ -307,6 +337,8 @@ main(int argc, char **argv)
 	 */
 	isc_mem_put(mem, cmgr, sizeof(clientmgr_t) * NTASKS);
 	cmgr = NULL;
+
+	isc_log_destroy(&lctx);
 
 	/*
 	 * Kill the memory system.
