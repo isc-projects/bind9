@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.139 2001/01/16 23:02:58 gson Exp $ */
+/* $Id: client.c,v 1.140 2001/01/22 18:58:36 gson Exp $ */
 
 #include <config.h>
 
-#include <isc/print.h>
 #include <isc/mutex.h>
-#include <isc/task.h>
+#include <isc/print.h>
 #include <isc/string.h>
+#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
