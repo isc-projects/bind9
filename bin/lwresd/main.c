@@ -188,6 +188,21 @@ out:
 	return (result);
 }
 
+/*
+ * Wrappers around our memory management stuff, for the lwres functions.
+ */
+static void *
+mem_alloc(void *arg, size_t size)
+{
+	return (isc_mem_get(arg, size));
+}
+
+static void
+mem_free(void *arg, void *mem, size_t size)
+{
+	isc_mem_put(arg, mem, size);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -264,7 +279,7 @@ main(int argc, char **argv)
 	for (i = 0 ; i < NTASKS ; i++) {
 		cmgr[i].task = NULL;
 		cmgr[i].sock = sock;
-		dns_view_attach(view, &cmgr[i].view);
+		cmgr[i].view = NULL;
 		cmgr[i].flags = 0;
 		ISC_EVENT_INIT(&cmgr[i].sdev, sizeof(isc_event_t),
 			       ISC_EVENTATTR_NOPURGE,
@@ -274,7 +289,16 @@ main(int argc, char **argv)
 		ISC_LIST_INIT(cmgr[i].idle);
 		ISC_LIST_INIT(cmgr[i].running);
 		result = isc_task_create(taskmgr, mem, 0, &cmgr[i].task);
-		INSIST(result == ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS)
+			break;
+		cmgr[i].lwctx = NULL;
+		result = lwres_context_create(&cmgr[i].lwctx, mem,
+					      mem_alloc, mem_free);
+		if (result != ISC_R_SUCCESS) {
+			isc_task_detach(&cmgr[i].task);
+			break;
+		}
+		dns_view_attach(view, &cmgr[i].view);
 	}
 	INSIST(i > 0);
 	ntasks = i;  /* remember how many we managed to create */
@@ -293,7 +317,7 @@ main(int argc, char **argv)
 			client[j].clientmgr = &cmgr[j];
 			ISC_LINK_INIT(&client[j], link);
 			ISC_LIST_APPEND(cmgr[j].idle, &client[j], link);
-			client[j].isidle = ISC_TRUE;
+			CLIENT_SETIDLE(&client[j]);
 		}
 	}
 	INSIST(i > 0);

@@ -67,6 +67,7 @@ clientmgr_can_die(clientmgr_t *cm)
 	if (ISC_LIST_HEAD(cm->running) != NULL)
 		return;
 
+	lwres_context_destroy(&cm->lwctx);
 	dns_view_detach(&cm->view);
 	isc_task_detach(&cm->task);
 }
@@ -94,27 +95,30 @@ process_request(client_t *client)
 
 	switch (pkt.opcode) {
 	case LWRES_OPCODE_GETADDRSBYNAME:
+		result = process_gabn(client, &b, &pkt);
 		break;
 	case LWRES_OPCODE_GETNAMEBYADDR:
+		result = process_gnba(client, &b, &pkt);
 		break;
 	case LWRES_OPCODE_NOOP:
+		result = process_noop(client, &b, &pkt);
 		break;
 	default:
 		printf("Unknown opcode %08x\n", pkt.opcode);
 		goto restart;
 	}
 
-	goto restart;  /* XXXMLG temporary */
-
 	/*
 	 * We're working on something, so stay in the run queue.
 	 */
-	return;
+	if (result == ISC_R_SUCCESS)
+		return;
 
  restart:
-	client->isidle = ISC_TRUE;
+	printf("restarting client %p...\n", client);
+	client->state = CLIENT_STATE_IDLE;
 	ISC_LIST_UNLINK(cm->running, client, link);
-	ISC_LIST_APPEND(cm->idle, client, link);
+	ISC_LIST_PREPEND(cm->idle, client, link);
 	client_start_recv(cm);
 }
 
@@ -124,6 +128,9 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 	client_t *client = ev->arg;
 	clientmgr_t *cm = client->clientmgr;
 	isc_socketevent_t *dev = (isc_socketevent_t *)ev;
+
+	INSIST(CLIENT_ISRECV(client));
+	CLIENT_SETRECVDONE(client);
 
 	INSIST((cm->flags & CLIENTMGR_FLAG_RECVPENDING) != 0);
 	cm->flags &= ~CLIENTMGR_FLAG_RECVPENDING;
@@ -138,7 +145,7 @@ client_recv(isc_task_t *task, isc_event_t *ev)
 		/*
 		 * Go idle.
 		 */
-		client->isidle = ISC_TRUE;
+		CLIENT_SETIDLE(client);
 		ISC_LIST_UNLINK(cm->running, client, link);
 		ISC_LIST_APPEND(cm->idle, client, link);
 
@@ -180,7 +187,7 @@ client_start_recv(clientmgr_t *cm)
 	client = ISC_LIST_HEAD(cm->idle);
 	if (client == NULL)
 		return (ISC_R_SUCCESS);
-	INSIST(client->isidle);
+	INSIST(CLIENT_ISIDLE(client));
 
 	/*
 	 * Issue the recv.  If it fails, return that it did.
@@ -201,7 +208,7 @@ client_start_recv(clientmgr_t *cm)
 	 * Remove the client from the idle list, and put it on the running
 	 * list.
 	 */
-	client->isidle = ISC_FALSE;
+	CLIENT_SETRECV(client);
 	ISC_LIST_UNLINK(cm->idle, client, link);
 	ISC_LIST_APPEND(cm->running, client, link);
 

@@ -36,9 +36,9 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	lwresd
 
-OBJS =		main.@O@ client.@O@
+OBJS =		main.@O@ client.@O@ process.@O@
 
-SRCS =		main.c client.c
+SRCS =		main.c client.c process.c
 
 @BIND9_MAKE_RULES@
 
