@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.197 2001/02/02 00:10:26 halley Exp $ */
+/* $Id: resolver.c,v 1.198 2001/02/08 19:14:58 halley Exp $ */
 
 #include <config.h>
 
@@ -3156,9 +3156,15 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 	     isc_boolean_t external, isc_boolean_t gluing)
 {
 	name->attributes |= DNS_NAMEATTR_CACHE;
-	if (gluing)
+	if (gluing) {
 		rdataset->trust = dns_trust_glue;
-	else
+		/*
+		 * Glue with 0 TTL causes problems.  We force the TTL to
+		 * 1 second to prevent this.
+		 */
+		if (rdataset->ttl == 0)
+			rdataset->ttl = 1;
+	} else
 		rdataset->trust = dns_trust_additional;
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)

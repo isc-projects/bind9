@@ -1,3 +1,5 @@
+ 732.	[bug]		Glue with 0 TTL could also cause SERVFAIL.  [RT #828]
+
  731.	[bug]		Certain zone errors could cause named-checkzone to
 			fail ungracefully.  [RT #819]
 
