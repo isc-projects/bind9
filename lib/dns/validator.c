@@ -683,6 +683,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 		/*
 		 * We have an rrset for the given keyname.
 		 */
+		val->keyset = &val->frdataset;
 		if (val->frdataset.trust == dns_trust_pending &&
 		    dns_rdataset_isassociated(&val->fsigrdataset))
 		{
@@ -723,7 +724,7 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "keyset with trust %d",
 				      val->frdataset.trust);
-			result = get_dst_key(val, siginfo, &val->frdataset);
+			result = get_dst_key(val, siginfo, val->keyset);
 			if (result != ISC_R_SUCCESS) {
 				/*
 				 * Either the key we're looking for is not
@@ -762,7 +763,8 @@ get_key(dns_validator_t *val, dns_rdata_sig_t *siginfo) {
 		result = DNS_R_CONTINUE;
 	}
 
-	if (dns_rdataset_isassociated(&val->frdataset))
+	if (dns_rdataset_isassociated(&val->frdataset) &&
+	    val->keyset != &val->frdataset)
 		dns_rdataset_disassociate(&val->frdataset);
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
 		dns_rdataset_disassociate(&val->fsigrdataset);
