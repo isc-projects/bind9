@@ -154,24 +154,37 @@ main(int argc, char *argv[]) {
 		}
 
 		if (comp != NULL) {
-			int i;
-			isc_boolean_t b;
+			int order;
+			unsigned int nlabels, nbits;
+			dns_namereln_t namereln;
 
-			i = dns_name_compare(&name, comp);
-			b = dns_name_issubdomain(&name, comp);
+			namereln = dns_name_fullcompare(&name, comp, &order,
+							&nlabels, &nbits);
 			if (!quiet) {
-				if (i < 0)
-					printf("<, ");
-				else if (i > 0)
-					printf(">, ");
+				if (order < 0)
+					printf("<");
+				else if (order > 0)
+					printf(">");
 				else
-					printf("=, ");
-				if (!b)
-					printf("not ");
-				printf("subdomain\n");
-			} else {
-				if (!b)
-					printf("not subdomain\n");
+					printf("=");
+				switch (namereln) {
+				case dns_namereln_contains:
+					printf(", contains");
+					break;
+				case dns_namereln_subdomain:
+					printf(", subdomain");
+					break;
+				case dns_namereln_commonancestor:
+					printf(", common ancestor");
+					break;
+				default:
+					break;
+				}
+				if (namereln != dns_namereln_none &&
+				    namereln != dns_namereln_equal)
+					printf(", nlabels = %u, nbits = %u",
+					       nlabels, nbits);
+				printf("\n");
 			}
 		}
 	}
