@@ -102,11 +102,11 @@ BIND 9.2
 		threads with "configure --disable-threads" on these
 		platforms.
 
-		FreeBSD prior to 4.2 and OpenBSD prior to 2.8 log
-		messages like "fcntl(8, F_SETFL, 4): Inappropriate
-		ioctl for device".  This is due to a bug in
-		"/dev/random" and impacts the server's DNSSEC
-		support.
+		FreeBSD prior to 4.2 (and 4.2 if running as non-root)
+		and OpenBSD prior to 2.8 log messages like
+		"fcntl(8, F_SETFL, 4): Inappropriate ioctl for device".
+		This is due to a bug in "/dev/random" and impacts the
+		server's DNSSEC support.
 
 		--with-libtool does not work on AIX.
 
