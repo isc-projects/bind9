@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.6 2003/05/12 01:16:40 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7 2003/05/12 02:50:15 marka Exp $ -->
 
 <refentry>
 
@@ -315,7 +315,7 @@ Set [do not set] the CD (checking disabled) bit in the query.  This
 requests the server to not perform DNSSEC validation of responses.
 </para></listitem></varlistentry>
 
-<varlistentry><term><option>+[no]recursive</option></term>
+<varlistentry><term><option>+[no]recurse</option></term>
 <listitem><para>
 Toggle the setting of the RD (recursion desired) bit in the query.
 This bit is set by default, which means <command>dig</command>

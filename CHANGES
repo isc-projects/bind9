@@ -1,3 +1,5 @@
+1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
+
 1459.	[bug]		win32: we were leaking a bits in the exception
 			fd_set resulting in "Socket operation on non-socket"
 			errors from select(). [RT #2966]
