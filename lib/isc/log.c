@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.1 1999/09/23 17:43:50 tale Exp $ */
+/* $Id: log.c,v 1.2 1999/09/30 22:14:53 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>		/* XXXDCL NT -- for unlink */
-#include <dirent.h>		/* XXXDCL NT -- for opendir/readdir */
 
 #include <isc/assertions.h>
 #include <isc/boolean.h>
