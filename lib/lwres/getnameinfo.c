@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.21 2000/07/06 21:42:05 bwelling Exp $ */
+/* $Id: getnameinfo.c,v 1.22 2000/07/06 22:13:15 bwelling Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -57,12 +57,12 @@
  *   but INRIA implementation returns EAI_xxx defined for getaddrinfo().
  */
 
+#include <config.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
 #include <netinet/in.h>
-
-#include <config.h>
 
 #include <stdio.h>
 #include <string.h>
