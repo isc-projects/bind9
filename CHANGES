@@ -1,3 +1,6 @@
+1025.	[bug]		Don't use multicast addresses to resolve iterative
+			queries. [RT #101]
+
 1023.	[func]		Accept hints without TTLs.
 
 1011.	[cleanup]	Removed isc_dir_current().
