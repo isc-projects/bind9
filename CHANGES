@@ -1,3 +1,6 @@
+ 128.   [cleanup]       <isc/dir.h> had ISC_LANG_BEGINDECLS instead of
+                        ISC_LANG_ENDDECLS at end of header.
+
  127.	[cleanup]	The contracts for the comparision routines
 			dns_name_fullcompare(), dns_name_compare(),
 			dns_name_rdatacompare(), and dns_rdata_compare() now
