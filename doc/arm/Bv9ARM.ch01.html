@@ -4,7 +4,7 @@
 >Introduction </TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -150,9 +153,12 @@ NAME="AEN20"
 >1.2. Organization of This Document</A
 ></H1
 ><P
->In this document, <I
+>In this document, <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 1</I
+></SPAN
 > introduces
     the basic <SPAN
 CLASS="acronym"
@@ -160,62 +166,92 @@ CLASS="acronym"
 > and <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> concepts. <I
+> concepts. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 2</I
+></SPAN
 >
     describes resource requirements for running <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > in various
-    environments. Information in <I
+    environments. Information in <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 3</I
+></SPAN
 > is
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >task-oriented</I
+></SPAN
 > in its presentation and is
     organized functionally, to aid in the process of installing the
     <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9 software. The task-oriented section is followed by
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 4</I
+></SPAN
 >, which contains more advanced
     concepts that the system administrator may need for implementing
-    certain options. <I
+    certain options. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 5</I
+></SPAN
 >
     describes the <SPAN
 CLASS="acronym"
 >BIND</SPAN
 > 9 lightweight
-    resolver.  The contents of <I
+    resolver.  The contents of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 6</I
+></SPAN
 > are
     organized as in a reference manual to aid in the ongoing
-    maintenance of the software. <I
+    maintenance of the software. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 7
     </I
+></SPAN
 >addresses security considerations, and
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Section 8</I
+></SPAN
 > contains troubleshooting help. The
     main body of the document is followed by several
-    <I
+    <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Appendices</I
+></SPAN
 > which contain useful reference
-    information, such as a <I
+    information, such as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Bibliography</I
+></SPAN
 > and
     historic information related to <SPAN
 CLASS="acronym"
@@ -252,10 +288,13 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 >&#13;<P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >To
 describe:</I
+></SPAN
 ></P
 ></TD
 ><TD
@@ -263,9 +302,12 @@ WIDTH="252"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 >&#13;<P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >We use the style:</I
+></SPAN
 ></P
 ></TD
 ></TR
@@ -358,10 +400,13 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >To
 describe:</I
+></SPAN
 ></P
 ></TD
 ><TD
@@ -369,9 +414,12 @@ WIDTH="252"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >We use the style:</I
+></SPAN
 ></P
 ></TD
 ></TR
@@ -480,13 +528,19 @@ addresses and vice versa, mail routing information, and other data
 used by Internet applications.</P
 ><P
 >Clients look up information in the DNS by calling a
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >resolver</I
+></SPAN
 > library, which sends queries to one or
-more <I
+more <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >name servers</I
+></SPAN
 > and interprets the responses.
 The <SPAN
 CLASS="acronym"
@@ -503,29 +557,41 @@ NAME="AEN119"
 >1.4.2. Domains and Domain Names</A
 ></H2
 ><P
->The data stored in the DNS is identified by <I
+>The data stored in the DNS is identified by <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain
 names</I
+></SPAN
 > that are organized as a tree according to
 organizational or administrative boundaries. Each node of the tree,
-called a <I
+called a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >, is given a label. The domain name of the
 node is the concatenation of all the labels on the path from the
-node to the <I
+node to the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >root</I
+></SPAN
 > node.  This is represented
 in written form as a string of labels listed from right to left and
 separated by dots. A label need only be unique within its parent
 domain.</P
 ><P
 >For example, a domain name for a host at the
-company <I
+company <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > could be
 <TT
 CLASS="literal"
@@ -555,26 +621,38 @@ CLASS="literal"
 name of the host.</P
 ><P
 >For administrative purposes, the name space is partitioned into
-areas called <I
+areas called <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zones</I
+></SPAN
 >, each starting at a node and
 extending down to the leaf nodes or to nodes where other zones start.
-The data for each zone is stored in a <I
+The data for each zone is stored in a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >name
 server</I
+></SPAN
 >, which answers queries about the zone using the
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >DNS protocol</I
+></SPAN
 >.
 </P
 ><P
 >The data associated with each domain name is stored in the
-form of <I
+form of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >resource records</I
+></SPAN
 > (<SPAN
 CLASS="acronym"
 >RR</SPAN
@@ -602,13 +680,19 @@ NAME="AEN143"
 ></H2
 ><P
 >To properly operate a name server, it is important to understand
-the difference between a <I
+the difference between a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zone</I
+></SPAN
 >
-and a <I
+and a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >.</P
 ><P
 >As we stated previously, a zone is a point of delegation in
@@ -621,9 +705,12 @@ tree for which a a name server has complete information and over which
 it has authority. It contains all domain names from a certain point
 downward in the domain tree except those which are delegated to
 other zones. A delegation point is marked by one or more
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >NS records</I
+></SPAN
 > in the
 parent zone, which should be matched by equivalent NS records at
 the root of the delegated zone.</P
@@ -659,17 +746,26 @@ name servers. Every name in the <SPAN
 CLASS="acronym"
 >DNS</SPAN
 > tree is a
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >, even if it is
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >terminal</I
+></SPAN
 >, that is, has no
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >subdomains</I
+></SPAN
 >.  Every subdomain is a domain and
 every domain except the root is also a subdomain. The terminology is
 not intuitive and we suggest that you read RFCs 1033, 1034 and 1035 to
@@ -686,9 +782,12 @@ CLASS="filename"
 >named.conf</TT
 > file specify
 zones, not domains. When you ask some other site if it is willing to
-be a slave server for your <I
+be a slave server for your <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >domain</I
+></SPAN
 >, you are
 actually asking for slave service for some collection of zones.</P
 ></DIV
@@ -702,9 +801,12 @@ NAME="AEN166"
 ></H2
 ><P
 >Each zone is served by at least
-one <I
+one <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >authoritative name server</I
+></SPAN
 >,
 which contains the complete data for the zone.
 To make the DNS tolerant of server and network failures,
@@ -731,22 +833,34 @@ NAME="AEN173"
 ></H3
 ><P
 >&#13;The authoritative server where the master copy of the zone data is maintained is
-called the <I
+called the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primary master</I
+></SPAN
 > server, or simply the
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >primary</I
+></SPAN
 >.  It loads the zone contents from some
 local file edited by humans or perhaps generated mechanically from
 some other local file which is edited by humans.  This file is called
-the <I
+the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zone file</I
-> or <I
+></SPAN
+> or <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >master file</I
+></SPAN
 >.</P
 ></DIV
 ><DIV
@@ -758,18 +872,27 @@ NAME="AEN180"
 >1.4.4.2. Slave Servers</A
 ></H3
 ><P
->The other authoritative servers, the <I
+>The other authoritative servers, the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >slave</I
+></SPAN
 >
-servers (also known as <I
+servers (also known as <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >secondary</I
+></SPAN
 > servers) load
 the zone contents from another server using a replication process
-known as a <I
+known as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >zone transfer</I
+></SPAN
 >.  Typically the data are
 transferred directly from the primary master, but it is also possible
 to transfer it from another slave.  In other words, a slave server
@@ -786,26 +909,38 @@ NAME="AEN186"
 ><P
 >Usually all of the zone's authoritative servers are listed in 
 NS records in the parent zone.  These NS records constitute
-a <I
+a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >delegation</I
+></SPAN
 > of the zone from the parent.
 The authoritative servers are also listed in the zone file itself,
-at the <I
+at the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >top level</I
-> or <I
+></SPAN
+> or <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >apex</I
+></SPAN
 >
 of the zone.  You can list servers in the zone's top-level NS
 records that are not in the parent's NS delegation, but you cannot
 list servers in the parent's delegation that are not present at
 the zone's top level.</P
 ><P
->A <I
+>A <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >stealth server</I
+></SPAN
 > is a server that is
 authoritative for a zone but is not listed in that zone's NS
 records.  Stealth servers can be used for keeping a local copy of a
@@ -830,32 +965,47 @@ NAME="AEN195"
 ></H2
 ><P
 >The resolver libraries provided by most operating systems are 
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >stub resolvers</I
+></SPAN
 >, meaning that they are not capable of
 performing the full DNS resolution process by themselves by talking
 directly to the authoritative servers.  Instead, they rely on a local
 name server to perform the resolution on their behalf.  Such a server
-is called a <I
+is called a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >recursive</I
+></SPAN
 > name server; it performs
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >recursive lookups</I
+></SPAN
 > for local clients.</P
 ><P
 >To improve performance, recursive servers cache the results of
 the lookups they perform.  Since the processes of recursion and
 caching are intimately connected, the terms
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >recursive server</I
+></SPAN
 > and
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >caching server</I
+></SPAN
 > are often used synonymously.</P
 ><P
 >The length of time for which a record may be retained in
@@ -873,14 +1023,20 @@ NAME="AEN205"
 ><P
 >Even a caching name server does not necessarily perform
 the complete recursive lookup itself.  Instead, it can
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >forward</I
+></SPAN
 > some or all of the queries
 that it cannot satisfy from its cache to another caching name server,
-commonly referred to as a <I
+commonly referred to as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >forwarder</I
+></SPAN
 >.
 </P
 ><P
@@ -925,17 +1081,23 @@ and caching/recursive name service are logically separate, it is
 often advantageous to run them on separate server machines.
 
 A server that only provides authoritative name service
-(an <I
+(an <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >authoritative-only</I
+></SPAN
 > server) can run with
 recursion disabled, improving reliability and security.
 
 A server that is not authoritative for any zones and only provides
 recursive service to local
-clients (a <I
+clients (a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >caching-only</I
+></SPAN
 > server)
 does not need to be reachable from the Internet at large and can
 be placed inside a firewall.</P
@@ -947,6 +1109,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -958,6 +1121,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -966,6 +1130,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -974,6 +1139,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

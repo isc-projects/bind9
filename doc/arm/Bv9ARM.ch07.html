@@ -4,7 +4,7 @@
 >BIND 9 Security Considerations</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch06.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch08.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -86,7 +89,7 @@ HREF="Bv9ARM.ch07.html#Access_Control_Lists"
 ></DT
 ><DT
 >7.2. <A
-HREF="Bv9ARM.ch07.html#AEN4189"
+HREF="Bv9ARM.ch07.html#AEN4218"
 ><B
 CLASS="command"
 >chroot</B
@@ -137,9 +140,12 @@ etc.</P
 your nameserver, without cluttering up your config files with huge
 lists of IP addresses.</P
 ><P
->It is a <I
+>It is a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >good idea</I
+></SPAN
 > to use ACLs, and to
 control access to your server. Limiting access to your server by
 outside parties can help prevent spoofing and DoS attacks against
@@ -173,9 +179,12 @@ zone "example.com" {
 unless recursion has been previously disabled.</P
 ><P
 >For more information on how to use ACLs to protect your server,
-see the <I
+see the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >AUSCERT</I
+></SPAN
 > advisory at
 <A
 HREF="ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos"
@@ -188,7 +197,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4189"
+NAME="AEN4218"
 >7.2. <B
 CLASS="command"
 >chroot</B
@@ -202,9 +211,12 @@ UNIX servers)</A
 >On UNIX servers, it is possible to run <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> in a <I
+> in a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >chrooted</I
+></SPAN
 > environment
 (<B
 CLASS="command"
@@ -267,7 +279,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4212"
+NAME="AEN4241"
 >7.2.1. The <B
 CLASS="command"
 >chroot</B
@@ -307,9 +319,12 @@ for this.
 </P
 ><P
 >&#13;Unlike with earlier versions of BIND, you will typically
-<I
+<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >not</I
+></SPAN
 > need to compile <B
 CLASS="command"
 >named</B
@@ -340,7 +355,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4230"
+NAME="AEN4259"
 >7.2.2. Using the <B
 CLASS="command"
 >setuid</B
@@ -428,6 +443,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -439,6 +455,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch06.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -447,6 +464,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -455,6 +473,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch08.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

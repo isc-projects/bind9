@@ -4,7 +4,7 @@
 >Advanced Concepts</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch03.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -88,7 +91,7 @@ HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
 ></DT
 ><DT
 >4.3. <A
-HREF="Bv9ARM.ch04.html#AEN725"
+HREF="Bv9ARM.ch04.html#AEN727"
 >Split DNS</A
 ></DT
 ><DT
@@ -98,12 +101,12 @@ HREF="Bv9ARM.ch04.html#tsig"
 ></DT
 ><DT
 >4.5. <A
-HREF="Bv9ARM.ch04.html#AEN885"
+HREF="Bv9ARM.ch04.html#AEN887"
 >TKEY</A
 ></DT
 ><DT
 >4.6. <A
-HREF="Bv9ARM.ch04.html#AEN900"
+HREF="Bv9ARM.ch04.html#AEN902"
 >SIG(0)</A
 ></DT
 ><DT
@@ -113,7 +116,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.8. <A
-HREF="Bv9ARM.ch04.html#AEN985"
+HREF="Bv9ARM.ch04.html#AEN987"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -206,14 +209,20 @@ CLASS="command"
     or using <B
 CLASS="command"
 >rndc halt</B
-> is <I
+> is <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >not</I
+></SPAN
 >
     sufficient). Wait for the server to exit,
-    then <I
+    then <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >remove</I
+></SPAN
 > the zone's 
     <TT
 CLASS="filename"
@@ -274,15 +283,18 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN725"
+NAME="AEN727"
 >4.3. Split DNS</A
 ></H1
 ><P
 >Setting up different views, or visibility, of DNS space to
-internal and external resolvers is usually referred to as a <I
+internal and external resolvers is usually referred to as a <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Split
 DNS</I
+></SPAN
 > setup. There are several reasons an organization
 would want to set up its DNS this way.</P
 ><P
@@ -301,17 +313,23 @@ back in to the internal network.</P
 ><P
 >Here is an example of a split DNS setup:</P
 ><P
->Let's say a company named <I
+>Let's say a company named <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > (example.com)
 has several corporate sites that have an internal network with reserved
 Internet Protocol (IP) space and an external demilitarized zone (DMZ),
 or "outside" section of a network, that is available to the public.</P
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 > wants its internal clients
 to be able to resolve external hostnames and to exchange mail with
 people on the outside. The company also wants its internal resolvers
@@ -345,9 +363,12 @@ CLASS="filename"
 >, <TT
 CLASS="filename"
 >site2.example.com</TT
->,<I
+>,<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 > </I
+></SPAN
 ><TT
 CLASS="filename"
 >site1.internal</TT
@@ -425,16 +446,22 @@ servers, and queries for external hostnames will be forwarded back
 out to the DNS servers on the bastion hosts.</P
 ><P
 >In order for all this to work properly, internal clients will
-need to be configured to query <I
+need to be configured to query <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >only</I
+></SPAN
 > the internal
 nameservers for DNS queries. This could also be enforced via selective
 filtering on the network.</P
 ><P
->If everything has been set properly, <I
+>If everything has been set properly, <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Example, Inc.</I
+></SPAN
 >'s
 internal clients will now be able to:</P
 ><P
@@ -672,16 +699,22 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN816"
+NAME="AEN818"
 >4.4.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
->A shared secret is generated to be shared between <I
+>A shared secret is generated to be shared between <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
-> and <I
+></SPAN
+> and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 >.
 An arbitrary key name is chosen: "host1-host2.". The key name must
 be the same on both hosts.</P
@@ -690,7 +723,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN821"
+NAME="AEN823"
 >4.4.1.1. Automatic Generation</A
 ></H3
 ><P
@@ -732,7 +765,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN832"
+NAME="AEN834"
 >4.4.1.2. Manual Generation</A
 ></H3
 ><P
@@ -753,7 +786,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN837"
+NAME="AEN839"
 >4.4.2. Copying the Shared Secret to Both Machines</A
 ></H2
 ><P
@@ -765,16 +798,22 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN840"
+NAME="AEN842"
 >4.4.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
->Imagine <I
+>Imagine <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
-> and <I
+></SPAN
+> and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host 2</I
+></SPAN
 > are
 both servers. The following is added to each server's <TT
 CLASS="filename"
@@ -813,7 +852,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN852"
+NAME="AEN854"
 >4.4.4. Instructing the Server to Use the Key</A
 ></H2
 ><P
@@ -822,12 +861,18 @@ be told when keys are to be used. The following is added to the <TT
 CLASS="filename"
 >named.conf</TT
 > file
-for <I
+for <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
->, if the IP address of <I
+></SPAN
+>, if the IP address of <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 > is
 10.1.2.3:</P
 ><PRE
@@ -841,31 +886,49 @@ CLASS="programlisting"
 This directive does not contain any secrets, so it may be in a world-readable
 file.</P
 ><P
->If <I
+>If <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 > sends a message that is a request
-to that address, the message will be signed with the specified key. <I
+to that address, the message will be signed with the specified key. <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 > will
 expect any responses to signed messages to be signed with the same
 key.</P
 ><P
->A similar statement must be present in <I
+>A similar statement must be present in <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 >'s
-configuration file (with <I
+configuration file (with <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
->'s address) for <I
+></SPAN
+>'s address) for <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host2</I
+></SPAN
 > to
-sign request messages to <I
+sign request messages to <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >host1</I
+></SPAN
 >.</P
 ></DIV
 ><DIV
@@ -873,7 +936,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN868"
+NAME="AEN870"
 >4.4.5. TSIG Key Based Access Control</A
 ></H2
 ><P
@@ -919,7 +982,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN881"
+NAME="AEN883"
 >4.4.6. Errors</A
 ></H2
 ><P
@@ -948,7 +1011,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN885"
+NAME="AEN887"
 >4.5. TKEY</A
 ></H1
 ><P
@@ -1014,7 +1077,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN900"
+NAME="AEN902"
 >4.6. SIG(0)</A
 ></H1
 ><P
@@ -1050,9 +1113,12 @@ NAME="DNSSEC"
 ></H1
 ><P
 >Cryptographic authentication of DNS information is possible
-    through the DNS Security (<I
+    through the DNS Security (<SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >DNSSEC</I
+></SPAN
 >) extensions,
     defined in RFC 2535. This section describes the creation and use
     of DNSSEC signed zones.</P
@@ -1086,7 +1152,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN917"
+NAME="AEN919"
 >4.7.1. Generating Keys</A
 ></H2
 ><P
@@ -1166,7 +1232,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN937"
+NAME="AEN939"
 >4.7.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1219,7 +1285,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN949"
+NAME="AEN951"
 >4.7.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1269,7 +1335,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN962"
+NAME="AEN964"
 >4.7.4. Signing the Zone</A
 ></H2
 ><P
@@ -1331,7 +1397,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN978"
+NAME="AEN980"
 >4.7.5. Configuring Servers</A
 ></H2
 ><P
@@ -1359,7 +1425,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN985"
+NAME="AEN987"
 >4.8. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1389,14 +1455,20 @@ CLASS="acronym"
 CLASS="acronym"
 >BIND</SPAN
 > 9 supports the new
-    "bitstring" format used in the <I
+    "bitstring" format used in the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.arpa</I
+></SPAN
 >
     domain, as well as the older, deprecated "nibble" format used in
-    the <I
+    the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.int</I
+></SPAN
 > domain.</P
 ><P
 ><SPAN
@@ -1419,7 +1491,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1001"
+NAME="AEN1003"
 >4.8.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1441,7 +1513,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1006"
+NAME="AEN1008"
 >4.8.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1461,7 +1533,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1010"
+NAME="AEN1012"
 >4.8.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1507,7 +1579,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1021"
+NAME="AEN1023"
 >4.8.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1537,7 +1609,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1027"
+NAME="AEN1029"
 >4.8.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1568,19 +1640,25 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1034"
+NAME="AEN1036"
 >4.8.4. Address to Name Lookups Using Bitstring Format</A
 ></H2
 ><P
 >Bitstring labels can start and end on any bit boundary,
       rather than on a multiple of 4 bits as in the nibble
-      format. They also use <I
+      format. They also use <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.arpa</I
+></SPAN
 > rather than
-      <I
+      <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >ip6.int</I
+></SPAN
 >.</P
 ><P
 >To replicate the previous example using bitstrings:</P
@@ -1595,7 +1673,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1041"
+NAME="AEN1043"
 >4.8.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
@@ -1674,6 +1752,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1685,6 +1764,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch03.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -1693,6 +1773,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -1701,6 +1782,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

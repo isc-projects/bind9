@@ -4,7 +4,7 @@
 >Appendices</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -22,6 +22,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -39,6 +40,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch08.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -72,7 +74,7 @@ CLASS="TOC"
 ></DT
 ><DT
 >A.1. <A
-HREF="Bv9ARM.ch09.html#AEN4277"
+HREF="Bv9ARM.ch09.html#AEN4306"
 >Acknowledgements</A
 ></DT
 ><DT
@@ -85,7 +87,7 @@ CLASS="acronym"
 ></DT
 ><DT
 >A.3. <A
-HREF="Bv9ARM.ch09.html#AEN4318"
+HREF="Bv9ARM.ch09.html#AEN4347"
 >General <SPAN
 CLASS="acronym"
 >DNS</SPAN
@@ -103,7 +105,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4277"
+NAME="AEN4306"
 >A.1. Acknowledgements</A
 ></H1
 ><DIV
@@ -111,7 +113,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4279"
+NAME="AEN4308"
 >A.1.1. A Brief History of the <SPAN
 CLASS="acronym"
 >DNS</SPAN
@@ -246,7 +248,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4309"
+NAME="AEN4338"
 >A.2.1.1. HS = hesiod</A
 ></H3
 ><P
@@ -267,7 +269,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4314"
+NAME="AEN4343"
 >A.2.1.2. CH = chaos</A
 ></H3
 ><P
@@ -285,7 +287,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4318"
+NAME="AEN4347"
 >A.3. General <SPAN
 CLASS="acronym"
 >DNS</SPAN
@@ -305,17 +307,26 @@ sets of interfaces which were introduced in the <SPAN
 CLASS="acronym"
 >DNS</SPAN
 > to facilitate
-scalable Internet routing. There are three types of addresses: <I
+scalable Internet routing. There are three types of addresses: <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Unicast</I
+></SPAN
 >,
-an identifier for a single interface; <I
+an identifier for a single interface; <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Anycast</I
+></SPAN
 >,
-an identifier for a set of interfaces; and <I
+an identifier for a set of interfaces; and <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Multicast</I
+></SPAN
 >,
 an identifier for a set of interfaces. Here we describe the global
 Unicast address scheme. For more information, see RFC 2374.</P
@@ -324,7 +335,7 @@ Unicast address scheme. For more information, see RFC 2374.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4329"
+NAME="AEN4358"
 ></A
 ><P
 ></P
@@ -543,7 +554,7 @@ VALIGN="MIDDLE"
 <DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4398"
+NAME="AEN4427"
 ></A
 ><P
 ></P
@@ -697,22 +708,34 @@ VALIGN="MIDDLE"
 ></DIV
 ></P
 ><P
->The <I
+>The <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Public Topology</I
+></SPAN
 > is provided by the
-upstream provider or ISP, and (roughly) corresponds to the IPv4 <I
+upstream provider or ISP, and (roughly) corresponds to the IPv4 <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >network</I
+></SPAN
 > section
-of the address range. The <I
+of the address range. The <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Site Topology</I
+></SPAN
 > is
 where you can subnet this space, much the same as subnetting an
-IPv4 /16 network into /24 subnets. The <I
+IPv4 /16 network into /24 subnets. The <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >Interface Identifier</I
+></SPAN
 > is
 the address of an individual interface on a given network. (With
 IPv6, addresses belong to interfaces rather than machines.)</P
@@ -726,7 +749,7 @@ unicast address consists of:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4453"
+NAME="AEN4482"
 ></A
 ><P
 ></P
@@ -886,19 +909,19 @@ TARGET="_top"
 </P
 ><H3
 ><A
-NAME="AEN4497"
+NAME="AEN4526"
 >Bibliography</A
 ></H3
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4498"
+NAME="AEN4527"
 >Standards</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4500"
+NAME="AEN4529"
 ></A
 ><P
 >[RFC974]&nbsp;<SPAN
@@ -915,7 +938,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4507"
+NAME="AEN4536"
 ></A
 ><P
 >[RFC1034]&nbsp;<SPAN
@@ -932,7 +955,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4514"
+NAME="AEN4543"
 ></A
 ><P
 >[RFC1035]&nbsp;<SPAN
@@ -947,16 +970,16 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
 NAME="proposed_standards"
 >Proposed Standards</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4523"
+NAME="AEN4552"
 ></A
 ><P
 >[RFC2181]&nbsp;<SPAN
@@ -976,7 +999,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4531"
+NAME="AEN4560"
 ></A
 ><P
 >[RFC2308]&nbsp;<SPAN
@@ -996,7 +1019,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4539"
+NAME="AEN4568"
 ></A
 ><P
 >[RFC1995]&nbsp;<SPAN
@@ -1016,7 +1039,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4547"
+NAME="AEN4576"
 ></A
 ><P
 >[RFC1996]&nbsp;<SPAN
@@ -1033,7 +1056,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4554"
+NAME="AEN4583"
 ></A
 ><P
 >[RFC2136]&nbsp;<SPAN
@@ -1059,7 +1082,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4571"
+NAME="AEN4600"
 ></A
 ><P
 >[RFC2845]&nbsp;<SPAN
@@ -1085,16 +1108,16 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4590"
+NAME="AEN4619"
 >Proposed Standards Still Under Development</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4595"
+NAME="AEN4624"
 ></A
 ><P
 >[RFC1886]&nbsp;<SPAN
@@ -1117,7 +1140,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4607"
+NAME="AEN4636"
 ></A
 ><P
 >[RFC2065]&nbsp;<SPAN
@@ -1137,7 +1160,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4619"
+NAME="AEN4648"
 ></A
 ><P
 >[RFC2137]&nbsp;<SPAN
@@ -1151,19 +1174,19 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4627"
+NAME="AEN4656"
 >Other Important RFCs About <SPAN
 CLASS="acronym"
 >DNS</SPAN
 > Implementation</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4630"
+NAME="AEN4659"
 ></A
 ><P
 >[RFC1535]&nbsp;<SPAN
@@ -1183,7 +1206,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4638"
+NAME="AEN4667"
 ></A
 ><P
 >[RFC1536]&nbsp;<SPAN
@@ -1215,7 +1238,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4659"
+NAME="AEN4688"
 ></A
 ><P
 >[RFC1982]&nbsp;<SPAN
@@ -1232,16 +1255,16 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4670"
+NAME="AEN4699"
 >Resource Record Types</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4672"
+NAME="AEN4701"
 ></A
 ><P
 >[RFC1183]&nbsp;<SPAN
@@ -1270,7 +1293,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4690"
+NAME="AEN4719"
 ></A
 ><P
 >[RFC1706]&nbsp;<SPAN
@@ -1293,7 +1316,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4702"
+NAME="AEN4731"
 ></A
 ><P
 >[RFC2168]&nbsp;<SPAN
@@ -1314,7 +1337,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4713"
+NAME="AEN4742"
 ></A
 ><P
 >[RFC1876]&nbsp;<SPAN
@@ -1341,7 +1364,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4730"
+NAME="AEN4759"
 ></A
 ><P
 >[RFC2052]&nbsp;<SPAN
@@ -1365,7 +1388,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4742"
+NAME="AEN4771"
 ></A
 ><P
 >[RFC2163]&nbsp;<SPAN
@@ -1386,7 +1409,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4750"
+NAME="AEN4779"
 ></A
 ><P
 >[RFC2230]&nbsp;<SPAN
@@ -1403,19 +1426,19 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4758"
+NAME="AEN4787"
 ><SPAN
 CLASS="acronym"
 >DNS</SPAN
 > and the Internet</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4761"
+NAME="AEN4790"
 ></A
 ><P
 >[RFC1101]&nbsp;<SPAN
@@ -1435,7 +1458,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4769"
+NAME="AEN4798"
 ></A
 ><P
 >[RFC1123]&nbsp;<SPAN
@@ -1452,7 +1475,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4776"
+NAME="AEN4805"
 ></A
 ><P
 >[RFC1591]&nbsp;<SPAN
@@ -1469,7 +1492,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4783"
+NAME="AEN4812"
 ></A
 ><P
 >[RFC2317]&nbsp;<SPAN
@@ -1489,19 +1512,19 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4797"
+NAME="AEN4826"
 ><SPAN
 CLASS="acronym"
 >DNS</SPAN
 > Operations</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4800"
+NAME="AEN4829"
 ></A
 ><P
 >[RFC1537]&nbsp;<SPAN
@@ -1521,7 +1544,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4808"
+NAME="AEN4837"
 ></A
 ><P
 >[RFC1912]&nbsp;<SPAN
@@ -1541,7 +1564,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4816"
+NAME="AEN4845"
 ></A
 ><P
 >[RFC1912]&nbsp;<SPAN
@@ -1561,7 +1584,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4824"
+NAME="AEN4853"
 ></A
 ><P
 >[RFC2010]&nbsp;<SPAN
@@ -1581,7 +1604,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4835"
+NAME="AEN4864"
 ></A
 ><P
 >[RFC2219]&nbsp;<SPAN
@@ -1601,19 +1624,19 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4847"
+NAME="AEN4876"
 >Other <SPAN
 CLASS="acronym"
 >DNS</SPAN
 >-related RFCs</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4853"
+NAME="AEN4882"
 ></A
 ><P
 >[RFC1464]&nbsp;<SPAN
@@ -1630,7 +1653,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4860"
+NAME="AEN4889"
 ></A
 ><P
 >[RFC1713]&nbsp;<SPAN
@@ -1650,7 +1673,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4868"
+NAME="AEN4897"
 ></A
 ><P
 >[RFC1794]&nbsp;<SPAN
@@ -1670,7 +1693,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4876"
+NAME="AEN4905"
 ></A
 ><P
 >[RFC2240]&nbsp;<SPAN
@@ -1687,7 +1710,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4883"
+NAME="AEN4912"
 ></A
 ><P
 >[RFC2345]&nbsp;<SPAN
@@ -1710,7 +1733,7 @@ STYLE="margin-left=0.5in"
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4897"
+NAME="AEN4926"
 ></A
 ><P
 >[RFC2352]&nbsp;<SPAN
@@ -1724,16 +1747,16 @@ CLASS="BIBLIOENTRYBLOCK"
 STYLE="margin-left=0.5in"
 ></DIV
 ></DIV
-><H1
+><H2
 CLASS="bibliodiv"
 ><A
-NAME="AEN4904"
+NAME="AEN4933"
 >Obsolete and Unimplemented Experimental RRs</A
-></H1
+></H2
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4906"
+NAME="AEN4935"
 ></A
 ><P
 >[RFC1712]&nbsp;<SPAN
@@ -1784,7 +1807,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4927"
+NAME="AEN4956"
 >A.4.3. Other Documents About <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1794,13 +1817,13 @@ CLASS="acronym"
 ></P
 ><H3
 ><A
-NAME="AEN4931"
+NAME="AEN4960"
 >Bibliography</A
 ></H3
 ><DIV
 CLASS="biblioentry"
 ><A
-NAME="AEN4932"
+NAME="AEN4961"
 ></A
 ><P
 ><SPAN
@@ -1831,6 +1854,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1842,6 +1866,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch08.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -1850,6 +1875,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD

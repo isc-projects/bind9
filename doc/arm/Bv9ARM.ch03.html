@@ -4,7 +4,7 @@
 >Nameserver Configuration</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch04.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -1103,7 +1106,16 @@ CLASS="userinput"
 ></DT
 ><DD
 ><P
->Display status of the server.</P
+>Display status of the server.
+Note the number of zones includes the internal <B
+CLASS="command"
+>bind/CH</B
+> zone
+and the default <B
+CLASS="command"
+>./IN</B
+> hint zone if there is not a
+explicit root zone configured.</P
 ></DD
 ></DL
 ></DIV
@@ -1391,7 +1403,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN661"
+NAME="AEN663"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1404,7 +1416,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN665"
+NAME="AEN667"
 ></A
 ><P
 ></P
@@ -1488,6 +1500,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -1499,6 +1512,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch02.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -1507,6 +1521,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -1515,6 +1530,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch04.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR

@@ -4,7 +4,7 @@
 >BIND 9 Configuration Reference</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.61
+CONTENT="Modular DocBook HTML Stylesheet Version 1.73
 "><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
@@ -25,6 +25,7 @@ ALINK="#0000FF"
 ><DIV
 CLASS="NAVHEADER"
 ><TABLE
+SUMMARY="Header navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -42,6 +43,7 @@ ALIGN="left"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -55,6 +57,7 @@ ALIGN="right"
 VALIGN="bottom"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
@@ -91,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3536"
+HREF="Bv9ARM.ch06.html#AEN3565"
 >Zone File</A
 ></DT
 ></DL
@@ -145,7 +148,7 @@ file documentation:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1103"
+NAME="AEN1105"
 ></A
 ><P
 ></P
@@ -735,7 +738,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1265"
+NAME="AEN1267"
 >6.1.1.1. Syntax</A
 ></H3
 ><PRE
@@ -766,7 +769,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1273"
+NAME="AEN1275"
 >6.1.1.2. Definition and Usage</A
 ></H3
 ><P
@@ -877,7 +880,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1302"
+NAME="AEN1304"
 >6.1.2. Comment Syntax</A
 ></H2
 ><P
@@ -896,7 +899,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1307"
+NAME="AEN1309"
 >6.1.2.1. Syntax</A
 ></H3
 ><P
@@ -928,7 +931,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1316"
+NAME="AEN1318"
 >6.1.2.2. Definition and Usage</A
 ></H3
 ><P
@@ -1038,7 +1041,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1340"
+NAME="AEN1342"
 ></A
 ><P
 ></P
@@ -1266,7 +1269,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1409"
+NAME="AEN1411"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1313,7 +1316,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1422"
+NAME="AEN1424"
 ></A
 ><P
 ></P
@@ -1431,7 +1434,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1456"
+NAME="AEN1458"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1734,7 +1737,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1529"
+NAME="AEN1531"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1754,7 +1757,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1534"
+NAME="AEN1536"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1783,7 +1786,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1541"
+NAME="AEN1543"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1817,7 +1820,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1548"
+NAME="AEN1550"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1895,7 +1898,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1566"
+NAME="AEN1568"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -2055,7 +2058,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1606"
+NAME="AEN1608"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -2118,16 +2121,19 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1622"
+NAME="AEN1624"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
 > Phrase</A
 ></H3
 ><P
->All log output goes to one or more <I
+>All log output goes to one or more <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >channels</I
+></SPAN
 >;
 you can make as many of them as you want.</P
 ><P
@@ -2257,7 +2263,76 @@ syslog facility as described in the <B
 CLASS="command"
 >syslog</B
 > man
-page. How <B
+page. Known facilities are <B
+CLASS="command"
+>kern</B
+>, <B
+CLASS="command"
+>user</B
+>,
+<B
+CLASS="command"
+>mail</B
+>, <B
+CLASS="command"
+>daemon</B
+>, <B
+CLASS="command"
+>auth</B
+>,
+<B
+CLASS="command"
+>syslog</B
+>, <B
+CLASS="command"
+>lpr</B
+>, <B
+CLASS="command"
+>news</B
+>,
+<B
+CLASS="command"
+>uucp</B
+>, <B
+CLASS="command"
+>cron</B
+>, <B
+CLASS="command"
+>authpriv</B
+>,
+<B
+CLASS="command"
+>ftp</B
+>, <B
+CLASS="command"
+>local0</B
+>, <B
+CLASS="command"
+>local1</B
+>,
+<B
+CLASS="command"
+>local2</B
+>, <B
+CLASS="command"
+>local3</B
+>, <B
+CLASS="command"
+>local4</B
+>,
+<B
+CLASS="command"
+>local5</B
+>, <B
+CLASS="command"
+>local6</B
+> and
+<B
+CLASS="command"
+>local7</B
+>, however not all facilities are supported on
+all operating systems.
+How <B
 CLASS="command"
 >syslog</B
 > will handle messages sent to
@@ -2560,7 +2635,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1726"
+NAME="AEN1748"
 ></A
 ><P
 ></P
@@ -2931,7 +3006,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1837"
+NAME="AEN1859"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -3028,7 +3103,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1861"
+NAME="AEN1883"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3102,7 +3177,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1880"
+NAME="AEN1902"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3518,6 +3593,36 @@ CLASS="replaceable"
     [<SPAN
 CLASS="optional"
 > query-source [<SPAN
+CLASS="optional"
+> address ( <TT
+CLASS="replaceable"
+><I
+>ip_addr</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>*</I
+></TT
+> ) </SPAN
+>] [<SPAN
+CLASS="optional"
+> port ( <TT
+CLASS="replaceable"
+><I
+>ip_port</I
+></TT
+> | <TT
+CLASS="replaceable"
+><I
+>*</I
+></TT
+> ) </SPAN
+>]; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> query-source-v6 [<SPAN
 CLASS="optional"
 > address ( <TT
 CLASS="replaceable"
@@ -4061,7 +4166,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2098"
+NAME="AEN2127"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4135,9 +4240,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete.</I
+></SPAN
 >
 It was used in <SPAN
 CLASS="acronym"
@@ -4592,9 +4700,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
  It was used in <SPAN
 CLASS="acronym"
@@ -4795,9 +4906,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
 <SPAN
 CLASS="acronym"
@@ -4839,9 +4953,12 @@ CLASS="command"
 ></DT
 ><DD
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >This option is obsolete</I
+></SPAN
 >.
 If you need to disable IXFR to a particular server or servers see
 the information on the <B
@@ -5044,7 +5161,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2398"
+NAME="AEN2427"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5248,7 +5365,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2463"
+NAME="AEN2492"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5343,7 +5460,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2489"
+NAME="AEN2518"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5379,7 +5496,7 @@ a random unprivileged port will be used. The defaults are</P
 ><PRE
 CLASS="programlisting"
 >query-source address * port *;
-query-source-v6 address * port *
+query-source-v6 address * port *;
 </PRE
 ><DIV
 CLASS="note"
@@ -5775,7 +5892,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2628"
+NAME="AEN2657"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -5895,7 +6012,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2665"
+NAME="AEN2694"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -5979,7 +6096,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2693"
+NAME="AEN2722"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6346,7 +6463,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2781"
+NAME="AEN2810"
 ></A
 ><P
 ></P
@@ -6571,9 +6688,12 @@ CLASS="command"
 ><P
 >Sets the number of seconds to cache a
 lame server indication. 0 disables caching. (This is
-<I
+<SPAN
+CLASS="bold"
+><B
 CLASS="emphasis"
->NOT</I
+>NOT</B
+></SPAN
 > recommended.)
 Default is <TT
 CLASS="literal"
@@ -6747,7 +6867,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2896"
+NAME="AEN2925"
 ></A
 ><P
 ></P
@@ -7183,7 +7303,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3011"
+NAME="AEN3040"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7258,7 +7378,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3027"
+NAME="AEN3056"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7293,7 +7413,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3035"
+NAME="AEN3064"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7327,12 +7447,12 @@ CLASS="replaceable"
 >address_match_list</I
 ></TT
 > } ;
-      match-recursive-only { <TT
+      match-recursive-only <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
 ></TT
-> } ;
+> ;
       [<SPAN
 CLASS="optional"
 > <TT
@@ -7368,7 +7488,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3051"
+NAME="AEN3080"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -8019,7 +8139,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3202"
+NAME="AEN3231"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8030,13 +8150,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3205"
+NAME="AEN3234"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3207"
+NAME="AEN3236"
 ></A
 ><P
 ></P
@@ -8274,7 +8394,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3262"
+NAME="AEN3291"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8312,7 +8432,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3272"
+NAME="AEN3301"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8953,7 +9073,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3506"
+NAME="AEN3535"
 ></A
 ><P
 ></P
@@ -9060,7 +9180,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3536"
+NAME="AEN3565"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9081,7 +9201,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3541"
+NAME="AEN3570"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9104,7 +9224,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3547"
+NAME="AEN3576"
 ></A
 ><P
 ></P
@@ -9206,16 +9326,19 @@ data that describes the resource.</P
 ></P
 ></DIV
 ><P
->The following are <I
+>The following are <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >types</I
+></SPAN
 > of valid RRs
 (some of these listed, although not obsolete, are experimental (x)
 or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3579"
+NAME="AEN3608"
 ></A
 ><P
 ></P
@@ -9698,15 +9821,18 @@ VALIGN="MIDDLE"
 ></P
 ></DIV
 ><P
->The following <I
+>The following <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >classes</I
+></SPAN
 > of resource records
 are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3726"
+NAME="AEN3755"
 ></A
 ><P
 ></P
@@ -9750,15 +9876,18 @@ HREF="Bv9ARM.ch09.html#classes_of_resource_records"
 ></P
 ></DIV
 ><P
+><SPAN
+CLASS="emphasis"
 ><I
 CLASS="emphasis"
 >RDATA</I
+></SPAN
 > is the type-dependent or class-dependent
 data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3742"
+NAME="AEN3771"
 ></A
 ><P
 ></P
@@ -9935,7 +10064,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3790"
+NAME="AEN3819"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9965,7 +10094,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3797"
+NAME="AEN3826"
 ></A
 ><P
 ></P
@@ -10174,7 +10303,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3863"
+NAME="AEN3892"
 ></A
 ><P
 ></P
@@ -10265,7 +10394,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3891"
+NAME="AEN3920"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10285,9 +10414,12 @@ chosen randomly. If no servers at a given priority are responding,
 the mail transport agent will fall back to the next largest priority.
 Priority numbers do not have any absolute meaning &#8212; they are relevant
 only respective to other MX records for that domain name. The domain
-name given is the machine to which the mail will be delivered. It <I
+name given is the machine to which the mail will be delivered. It <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >must</I
+></SPAN
 > have
 an associated A record &#8212; CNAME is not sufficient.</P
 ><P
@@ -10298,7 +10430,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3897"
+NAME="AEN3926"
 ></A
 ><P
 ></P
@@ -10594,7 +10726,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3989"
+NAME="AEN4018"
 ></A
 ><P
 ></P
@@ -10677,14 +10809,17 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4012"
+NAME="AEN4041"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
 >Reverse name resolution (that is, translation from IP address
-to name) is achieved by means of the <I
+to name) is achieved by means of the <SPAN
+CLASS="emphasis"
+><I
 CLASS="emphasis"
 >in-addr.arpa</I
+></SPAN
 > domain
 and PTR records. Entries in the in-addr.arpa domain are made in
 least-to-most significant order, read left to right. This is the
@@ -10701,7 +10836,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4017"
+NAME="AEN4046"
 ></A
 ><P
 ></P
@@ -10781,7 +10916,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4039"
+NAME="AEN4068"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10806,7 +10941,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4046"
+NAME="AEN4075"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10876,7 +11011,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4066"
+NAME="AEN4095"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10958,7 +11093,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4086"
+NAME="AEN4115"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10998,7 +11133,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4097"
+NAME="AEN4126"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11077,7 +11212,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4117"
+NAME="AEN4146"
 ></A
 ><P
 ></P
@@ -11266,6 +11401,7 @@ CLASS="NAVFOOTER"
 ><HR
 ALIGN="LEFT"
 WIDTH="100%"><TABLE
+SUMMARY="Footer navigation table"
 WIDTH="100%"
 BORDER="0"
 CELLPADDING="0"
@@ -11277,6 +11413,7 @@ ALIGN="left"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch05.html"
+ACCESSKEY="P"
 >Prev</A
 ></TD
 ><TD
@@ -11285,6 +11422,7 @@ ALIGN="center"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.html"
+ACCESSKEY="H"
 >Home</A
 ></TD
 ><TD
@@ -11293,6 +11431,7 @@ ALIGN="right"
 VALIGN="top"
 ><A
 HREF="Bv9ARM.ch07.html"
+ACCESSKEY="N"
 >Next</A
 ></TD
 ></TR
