@@ -250,6 +250,17 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  */
 
 void
+dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
+/*
+ * Attach to an 'adb' to 'adbp'.
+ *
+ * Requires:
+ *	'adb' to be a valid dns_adb_t, created via dns_adb_create().
+ *	'adbp' to be a valid pointer to a *dns_adb_t which is initalized
+ *		to NULL.
+ */
+
+void
 dns_adb_detach(dns_adb_t **adb);
 /*
  * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.

@@ -2352,6 +2352,16 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 }
 
 void
+dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbx) {
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(adbx != NULL && *adbx == NULL);
+
+	inc_adb_erefcnt(adb, ISC_TRUE);
+	*adbx = adb;
+}
+
+void
 dns_adb_detach(dns_adb_t **adbx)
 {
 	dns_adb_t *adb;
