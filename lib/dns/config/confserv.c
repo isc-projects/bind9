@@ -37,8 +37,6 @@
 #define SERVER_TRANSFER_FORMAT_BIT	1
 #define TRANSFERS_BIT			2
 #define SUPPORT_IXFR_BIT		3
-#define KEY_LIST_BIT			4
-
 
 isc_result_t
 dns_c_srvlist_new(isc_mem_t *mem, dns_c_srvlist_t **list)
@@ -254,12 +252,16 @@ dns_c_srv_print(FILE *fp, int indent, dns_c_srv_t *server)
 isc_result_t
 dns_c_srv_setbogus(dns_c_srv_t *server, isc_boolean_t newval)
 {
+	isc_boolean_t existed;
+		
 	REQUIRE(DNS_C_SRV_VALID(server));
 
+	existed = DNS_C_CHECKBIT(BOGUS_BIT, &server->bitflags);
+	
 	server->bogus = newval;
 	DNS_C_SETBIT(BOGUS_BIT, &server->bitflags);
 
-	return (ISC_R_SUCCESS);
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
 
@@ -283,13 +285,18 @@ isc_result_t
 dns_c_srv_setsupportixfr(dns_c_srv_t *server,
 			 isc_boolean_t newval)
 {
+	isc_boolean_t existed;
+
 	REQUIRE(DNS_C_SRV_VALID(server));
 
+	existed = DNS_C_CHECKBIT(SUPPORT_IXFR_BIT, &server->bitflags);
+	
 	server->support_ixfr = newval;
 	DNS_C_SETBIT(SUPPORT_IXFR_BIT, &server->bitflags);
 
-	return (ISC_R_SUCCESS);
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
+
 
 isc_result_t
 dns_c_srv_getsupportixfr(dns_c_srv_t *server,
@@ -311,12 +318,16 @@ isc_result_t
 dns_c_srv_settransfers(dns_c_srv_t *server,
 		       isc_int32_t newval)
 {
+	isc_boolean_t existed;
+	
 	REQUIRE(DNS_C_SRV_VALID(server));
+
+	existed = DNS_C_CHECKBIT(TRANSFERS_BIT, &server->bitflags);
 
 	server->transfers = newval;
 	DNS_C_SETBIT(TRANSFERS_BIT, &server->bitflags);
 
-	return (ISC_R_SUCCESS);
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
 
@@ -340,12 +351,17 @@ isc_result_t
 dns_c_srv_settransferformat(dns_c_srv_t *server,
 			    dns_transfer_format_t newval)
 {
+	isc_boolean_t existed;
+
 	REQUIRE(DNS_C_SRV_VALID(server));
+
+	existed = DNS_C_CHECKBIT(SERVER_TRANSFER_FORMAT_BIT,
+				 &server->bitflags);
 
 	server->transfer_format = newval;
 	DNS_C_SETBIT(SERVER_TRANSFER_FORMAT_BIT, &server->bitflags);
 
-	return (ISC_R_SUCCESS);
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
 
@@ -363,3 +379,36 @@ dns_c_srv_gettransferformat(dns_c_srv_t *server,
 		return (ISC_R_NOTFOUND);
 	}
 }
+
+
+isc_result_t
+dns_c_srv_getkeys(dns_c_srv_t *server, dns_c_kidlist_t **retval)
+{
+	REQUIRE(DNS_C_SRV_VALID(server));
+	REQUIRE(retval != NULL);
+	
+	*retval = server->keys;
+
+	return (server->keys == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_srv_setkeys(dns_c_srv_t *server, dns_c_kidlist_t *newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_SRV_VALID(server));
+	REQUIRE(DNS_C_KEYIDLIST_VALID(newval));
+	
+	if (server->keys != NULL) {
+		dns_c_kidlist_delete(&server->keys);
+		existed = ISC_TRUE;
+	}
+	
+	server->keys = newval;
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
