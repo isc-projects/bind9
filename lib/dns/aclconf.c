@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.18.2.1 2000/08/11 02:13:02 bwelling Exp $ */
+/* $Id: aclconf.c,v 1.18.2.2 2000/08/11 02:38:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,6 @@ dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
 	     dacl = next)
 	{
 		next = ISC_LIST_NEXT(dacl, nextincache);
-		dacl->name = NULL;
 		dns_acl_detach(&dacl);
 	}
 }
