@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.17 1999/10/07 19:39:53 halley Exp $ */
+ /* $Id: zone.c,v 1.18 1999/10/13 17:53:15 brister Exp $ */
 
 #include <config.h>
 
@@ -2149,12 +2149,14 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 }
 
 isc_result_t
-dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap) {
+dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone,
+		  dns_c_view_t *view, void *uap) {
 	
 	/*
 	 * Find zone in mount table.
 	 */
-	return (ISC_R_NOTIMPLEMENTED);
+	fprintf(stderr, "Loading (but not really...) a zone\n");
+	return (ISC_R_SUCCESS);
 }
 /*
  *	Copy / translate zone configuration data to dns_zone_t.
