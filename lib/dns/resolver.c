@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.195 2001/01/11 19:38:10 gson Exp $ */
+/* $Id: resolver.c,v 1.196 2001/01/19 22:22:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -598,6 +598,24 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+static void
+resquery_aborted(isc_task_t *task, isc_event_t *event) {
+	resquery_t *query = event->ev_arg;
+
+	REQUIRE(event->ev_type == DNS_EVENT_QUERYABORTED);
+
+	QTRACE("blackholed");
+
+	UNUSED(task);
+
+	/*
+	 * Treat this as a "no response" to cause the RTT estimate to go up.
+	 */
+	fctx_cancelquery(&query, NULL, NULL, ISC_TRUE);
+
+	isc_event_free(&event);
+}
+
 static inline isc_result_t
 fctx_addopt(dns_message_t *message) {
 	dns_rdataset_t *rdataset;
@@ -835,6 +853,7 @@ resquery_send(resquery_t *query) {
 	dns_acl_t *blackhole = NULL;
 	dns_peer_t *peer = NULL;
 	isc_boolean_t bogus;
+	isc_boolean_t aborted = ISC_FALSE;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -1023,17 +1042,12 @@ resquery_send(resquery_t *query) {
 	(void)dns_dispatchmgr_getblackhole(query->dispatchmgr, &blackhole);
 	if (blackhole != NULL) {
 		int match;
-		isc_boolean_t drop = ISC_FALSE;
 
 		if (dns_acl_match(&ipaddr, NULL, blackhole,
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
-			drop = ISC_TRUE;
+			aborted = ISC_TRUE;
 		dns_acl_detach(&blackhole);
-		if (drop) {
-			result = DNS_R_BLACKHOLED;
-			goto cleanup_message;
-		}
 	}
 
 	peer = NULL;
@@ -1042,8 +1056,18 @@ resquery_send(resquery_t *query) {
 	if (result == ISC_R_SUCCESS &&
 	    dns_peer_getbogus(peer, &bogus) == ISC_R_SUCCESS &&
 	    bogus)
-	{
-		result = DNS_R_BLACKHOLED;
+		aborted = ISC_TRUE;
+
+	if (aborted) {
+		isc_event_t *event;
+		event = isc_event_allocate(fctx->res->mctx, NULL,
+					   DNS_EVENT_QUERYABORTED,
+					   resquery_aborted, query,
+					   sizeof(isc_event_t));
+		if (event == NULL)
+			return (ISC_R_NOMEMORY);
+		isc_task_send(task, &event);
+		result = ISC_R_SUCCESS;
 		goto cleanup_message;
 	}
 
