@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.58 2000/10/25 04:26:26 marka Exp $ */
+/* $Id: nsupdate.c,v 1.59 2000/11/08 00:55:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -84,6 +84,7 @@ extern int h_errno;
 #define RESOLV_CONF "/etc/resolv.conf"
 
 static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
+static isc_boolean_t memdebugging = ISC_FALSE;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
 static isc_boolean_t is_dst_up = ISC_FALSE;
 static isc_boolean_t usevc = ISC_FALSE;
@@ -517,7 +518,9 @@ parse_args(int argc, char **argv) {
 		case 'M': /* was -dm */
 			debugging = ISC_TRUE;
 			ddebugging = ISC_TRUE;
-			isc_mem_debugging = 1;
+			memdebugging = ISC_TRUE;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
+					    ISC_MEM_DEBUGRECORD;
 			break;
 		case 'y':
 			keystr = isc_commandline_argument;
@@ -1472,7 +1475,7 @@ cleanup(void) {
 	isc_timermgr_destroy(&timermgr);
 
 	ddebug("Destroying memory context");
-	if (isc_mem_debugging)
+	if (memdebugging)
 		isc_mem_stats(mctx, stderr);
 	isc_mem_destroy(&mctx);
 }
