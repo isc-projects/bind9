@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.22 2000/09/22 23:15:55 bwelling Exp $
+# $Id: ifconfig.sh,v 1.23 2000/09/26 16:30:53 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -54,19 +54,13 @@ case "$1" in
 			ifconfig lo0 10.53.0.$ns alias netmask 0xffffffff
 			;;
 		    *-unknown-netbsd*)
-			ifconfig lo0 10.53.0.$ns alias
+			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
 			;;
-		    *-pc-bsdi3.*)
-			ifconfig lo0 add 10.53.0.$ns
+		    *-pc-bsdi[3-4].*)
+			ifconfig lo0 add 10.53.0.$ns netmask 255.255.255.0
 			;;
-		    *-dec-osf5.*)
+		    *-dec-osf[4-5].*)
 			/sbin/ifconfig lo0 alias 10.53.0.$ns
-			;;
-		    *-dec-osf4.*)
-			/sbin/ifconfig lo0 alias 10.53.0.$ns
-			;;
-		    *-pc-bsdi4.*)
-			ifconfig lo0 add 10.53.0.$ns
 			;;
 		    *-sgi-irix6.*)
 			ifconfig lo0 alias 10.53.0.$ns
@@ -91,7 +85,7 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns down
 			;;
-		    *-sun-solaris2.8])
+		    *-sun-solaris2.8)
 			ifconfig lo0:$ns 10.53.0.$ns down
 			;;
 		    *-pc-linux-gnu)
@@ -106,17 +100,11 @@ case "$1" in
 		    *-unknown-netbsd*)
 			ifconfig lo0 10.53.0.$ns delete
 			;;
-		    *-pc-bsdi3.*)
+		    *-pc-bsdi[3-4].*)
 			ifconfig lo0 remove 10.53.0.$ns
 			;;
-		    *-dec-osf5.*)
+		    *-dec-osf[4-5].*)
 			ifconfig lo0 -alias 10.53.0.$ns
-			;;
-		    *-dec-osf4.*)
-			ifconfig lo0 -alias 10.53.0.$ns
-			;;
-		    *-pc-bsdi4.*)
-			ifconfig lo0 remove 10.53.0.$ns
 			;;
 		    *-sgi-irix6.*)
 			ifconfig lo0 -alias 10.53.0.$ns
