@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.40 2000/08/01 01:12:03 tale Exp $ */
+/* $Id: client.h,v 1.41 2000/09/12 18:45:39 explorer Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -229,7 +229,7 @@ isc_result_t
 ns_client_checkacl(ns_client_t  *client,
 		   const char *opname, dns_acl_t *acl,
 		   isc_boolean_t default_allow,
-		   isc_boolean_t logfailure);
+		   int log_level);
 /*
  * Convenience function for client request ACL checking.
  *

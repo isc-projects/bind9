@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.75 2000/08/29 19:07:11 gson Exp $ */
+/* $Id: xfrout.c,v 1.76 2000/09/12 18:45:36 explorer Exp $ */
 
 #include <config.h>
 
@@ -942,7 +942,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 */
 	CHECK(ns_client_checkacl(client, "zone transfer",
 				 dns_zone_getxfracl(zone), ISC_TRUE,
-				 ISC_TRUE));
+				 ISC_LOG_ERROR));
 
 	/*
 	 * AXFR over UDP is not possible.

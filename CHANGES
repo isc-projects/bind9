@@ -1,3 +1,8 @@
+ 444.	[func]		"recursion denied" messages are always logged at
+			debug level 1, now, rather than sometimes at ERROR.
+			This silences these warnings in the usual case, where
+			some clients set the RD bit in all queries.
+
  443.	[bug]		When loading a master file failed because of an
 			unrecognized RR type name, the error message
 			did not include the file name and line number. 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.61 2000/09/12 10:38:51 bwelling Exp $ */
+/* $Id: update.c,v 1.62 2000/09/12 18:45:34 explorer Exp $ */
 
 #include <config.h>
 
@@ -2019,11 +2019,11 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	if (ssutable == NULL)
 		CHECK(ns_client_checkacl(client, "update",
 					 dns_zone_getupdateacl(zone),
-					 ISC_FALSE, ISC_TRUE));
+					 ISC_FALSE, ISC_LOG_ERROR));
 	else if (client->signer == NULL) {
 		/* This gets us a free log message. */
 		CHECK(ns_client_checkacl(client, "update", NULL, ISC_FALSE,
-					 ISC_TRUE));
+					 ISC_LOG_ERROR));
 	}
 
 	/*
