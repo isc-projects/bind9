@@ -1,5 +1,5 @@
-1218.	[bug]		Named incorrectlty SERVFAIL rather than NOTAUTH on
-			when there was a BADTIME error. [RT #2519]
+1218.	[bug]		Named incorrectlty returned SERVFAIL rather than
+			NOTAUTH on when there was a BADTIME error. [RT #2519]
 
 1217.	[func]		Report locations of previous key definition when a
 			duplicate is detected.
