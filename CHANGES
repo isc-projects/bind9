@@ -46,7 +46,7 @@
  501.	[bug]		Incorrect port numbers were being displayed by
 			nslookup.  [RT #352]
 
- 500.   [func]		Nearly useless +details option removed from DiG.
+ 500.	[func]		Nearly useless +details option removed from DiG.
 
  499.	[func]		In DiG, specifying a class with -c or type with -t
 			changes command-line parsing so that classes and
@@ -57,7 +57,7 @@
  498.	[doc]		There is now a man page for "dig" 
 			in doc/man/bin/dig.1.
 
- 495.	[bug]		nsupdate was unable to handle large records [RT #368]
+ 495.	[bug]		nsupdate was unable to handle large records. [RT #368]
 
  491.	[bug]		nsupdate would segfault when sending certain
 			prerequisites with empty RDATA. [RT #356]
@@ -71,13 +71,14 @@
  485.	[func]		When dig had more than one server to query, it would
 			send all of the messages at the same time.  Add
 			rate limiting of the transmitted messages.
- 483.	[bug]		nslookup: "set all" showed search but it was not
-			settable.
+
+ 483.	[bug]		nslookup: "set all" showed a "search" option but it 
+			was not settable.
 
  482.	[bug]		nslookup: a plain "server" or "lserver" should be
 			treated as a lookup.
 
- 481.	[bug]		nslookup:get_next_command() stack size exceeds
+ 481.	[bug]		nslookup:get_next_command() stack size could exceed
 			per thread limit.
 
  480.	[bug]		strtok() is not thread safe. [RT #349]
@@ -124,7 +125,7 @@
 			timeouts in certain situations, causing an 
 			unnecessary warning message to be printed.
 
- 447.   [bug]		Dig didn't properly retry in TCP mode after
+ 447.	[bug]		Dig didn't properly retry in TCP mode after
 			a truncated reply.  [RT #277]
 
  403.	[bug]		"host" did not use the search list.
@@ -134,14 +135,12 @@
 
  388.	[func]		dig and host can now do reverse ipv6 lookups.
 
-
  387.	[func]		Add dns_byaddr_createptrname(), which converts
 			an address into the name used by a PTR query.
 
  379.	[func]		New library function isc_sockaddr_anyofpf().
 
- 347.	[bug]		Don't crash if when an argument is left off
-			options in dig.
+ 347.	[bug]		Don't crash if an argument is left off options in dig.
 
  346.	[func]		Add support for .digrc config file, in the
 			user's current directory
