@@ -10,15 +10,15 @@ To apply this patch, you should go to the top directory of the BIND
 distribution (where you see `README' file), then invoke `patch'
 command like this:
 
-	% patch -p0 < this-file
+        % patch -p0 < this-file
 
 Then follow the instructions described in `README.idnkit' to compile
 and install.
 
 
 Index: README.idnkit
---- /dev/null	Mon Mar 15 13:41:54 2004
-+++ README.idnkit	Mon Mar 15 13:36:55 2004
+--- /dev/null	Tue Apr 13 13:44:07 2004
++++ README.idnkit	Tue Apr 13 13:36:50 2004
 @@ -0,0 +1,113 @@
 +
 +			BIND-9 IDN patch
@@ -139,7 +139,7 @@ RCS file: /proj/cvs/prod/bind9/config.h.in,v
 retrieving revision 1.47.2.3.2.9
 diff -U2 -r1.47.2.3.2.9 config.h.in
 --- config.h.in	14 Mar 2004 23:55:14 -0000	1.47.2.3.2.9
-+++ config.h.in	15 Mar 2004 02:43:13 -0000
++++ config.h.in	13 Apr 2004 03:44:24 -0000
 @@ -17,5 +17,5 @@
   */
  
@@ -177,7 +177,7 @@ RCS file: /proj/cvs/prod/bind9/configure,v
 retrieving revision 1.284.2.19.2.19
 diff -U2 -r1.284.2.19.2.19 configure
 --- configure	14 Mar 2004 00:00:31 -0000	1.284.2.19.2.19
-+++ configure	15 Mar 2004 02:44:17 -0000
++++ configure	13 Apr 2004 03:45:28 -0000
 @@ -15,5 +15,5 @@
  # PERFORMANCE OF THIS SOFTWARE.
  #
@@ -744,7 +744,7 @@ RCS file: /proj/cvs/prod/bind9/configure.in,v
 retrieving revision 1.294.2.23.2.23
 diff -U2 -r1.294.2.23.2.23 configure.in
 --- configure.in	13 Mar 2004 23:59:10 -0000	1.294.2.23.2.23
-+++ configure.in	15 Mar 2004 02:44:21 -0000
++++ configure.in	13 Apr 2004 03:45:32 -0000
 @@ -1994,4 +1994,80 @@
  
  #
@@ -829,11 +829,11 @@ diff -U2 -r1.294.2.23.2.23 configure.in
 Index: bin/dig/Makefile.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
-retrieving revision 1.25.12.8
-diff -U2 -r1.25.12.8 Makefile.in
---- bin/dig/Makefile.in	8 Mar 2004 04:04:15 -0000	1.25.12.8
-+++ bin/dig/Makefile.in	15 Mar 2004 02:44:22 -0000
-@@ -46,5 +46,5 @@
+retrieving revision 1.25.12.9
+diff -U2 -r1.25.12.9 Makefile.in
+--- bin/dig/Makefile.in	13 Apr 2004 03:00:05 -0000	1.25.12.9
++++ bin/dig/Makefile.in	13 Apr 2004 03:45:33 -0000
+@@ -47,5 +47,5 @@
  
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
 -		${ISCCFGLIBS} @LIBS@
@@ -846,7 +846,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.4.2.4
 diff -U2 -r1.14.2.4.2.4 dig.1
 --- bin/dig/dig.1	8 Mar 2004 04:04:15 -0000	1.14.2.4.2.4
-+++ bin/dig/dig.1	15 Mar 2004 02:44:23 -0000
++++ bin/dig/dig.1	13 Apr 2004 03:45:34 -0000
 @@ -369,4 +369,15 @@
  will not print the initial query when it looks up the NS records for
  isc.org.
@@ -866,11 +866,11 @@ diff -U2 -r1.14.2.4.2.4 dig.1
 Index: bin/dig/dig.docbook
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
-retrieving revision 1.4.2.7.4.6
-diff -U2 -r1.4.2.7.4.6 dig.docbook
---- bin/dig/dig.docbook	8 Mar 2004 04:04:15 -0000	1.4.2.7.4.6
-+++ bin/dig/dig.docbook	15 Mar 2004 02:44:24 -0000
-@@ -550,4 +550,19 @@
+retrieving revision 1.4.2.7.4.8
+diff -U2 -r1.4.2.7.4.8 dig.docbook
+--- bin/dig/dig.docbook	13 Apr 2004 03:00:05 -0000	1.4.2.7.4.8
++++ bin/dig/dig.docbook	13 Apr 2004 03:45:35 -0000
+@@ -575,4 +575,19 @@
  
  <refsect1>
 +<title>IDN SUPPORT</title>
@@ -893,12 +893,12 @@ diff -U2 -r1.4.2.7.4.6 dig.docbook
 Index: bin/dig/dighost.c
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
-retrieving revision 1.221.2.19.2.9
-diff -U2 -r1.221.2.19.2.9 dighost.c
---- bin/dig/dighost.c	6 Mar 2004 10:21:12 -0000	1.221.2.19.2.9
-+++ bin/dig/dighost.c	15 Mar 2004 02:44:30 -0000
-@@ -33,4 +33,15 @@
- #include <limits.h>
+retrieving revision 1.221.2.19.2.11
+diff -U2 -r1.221.2.19.2.11 dighost.c
+--- bin/dig/dighost.c	13 Apr 2004 03:00:06 -0000	1.221.2.19.2.11
++++ bin/dig/dighost.c	13 Apr 2004 03:45:45 -0000
+@@ -42,4 +42,15 @@
+ #endif 
  
 +#ifdef HAVE_LOCALE_H
 +#include <locale.h>
@@ -912,9 +912,9 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#endif
 +
  #include <dns/byaddr.h>
- #include <dns/fixedname.h>
-@@ -133,4 +144,16 @@
- dig_lookup_t *current_lookup = NULL;
+ #ifdef DIG_SIGCHASE
+@@ -129,4 +140,16 @@
+ int lookup_counter = 0;
  
 +#ifdef WITH_IDN
 +static void	      initialize_idn(void);
@@ -929,8 +929,8 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#endif
 +
  /*
-  * Apply and clear locks at the event level in global task.
-@@ -771,4 +794,8 @@
+  * Exit Codes:
+@@ -965,4 +988,8 @@
  		copy_server_list(lwconf, &server_list);
  
 +#ifdef WITH_IDN
@@ -939,7 +939,7 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +
  	if (keyfile[0] != 0)
  		setup_file_key();
-@@ -1291,4 +1318,12 @@
+@@ -1570,4 +1597,12 @@
  	dns_compress_t cctx;
  	char store[MXNAME];
 +#ifdef WITH_IDN
@@ -952,7 +952,7 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#endif
  
  	REQUIRE(lookup != NULL);
-@@ -1319,4 +1354,15 @@
+@@ -1598,4 +1633,15 @@
  			sizeof(lookup->onamespace));
  
 +#ifdef WITH_IDN
@@ -968,7 +968,7 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +
  	/*
  	 * If the name has too many dots, force the origin to be NULL
-@@ -1327,4 +1373,11 @@
+@@ -1606,4 +1652,11 @@
  	 */
  	/* XXX New search here? */
 +#ifdef WITH_IDN
@@ -980,13 +980,13 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#else
  	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
  		lookup->origin = NULL; /* Force abs lookup */
-@@ -1332,5 +1385,27 @@
+@@ -1611,5 +1664,27 @@
  		lookup->origin = ISC_LIST_HEAD(search_list);
  	}
 +#endif
 +
 +#ifdef WITH_IDN
- 	if (lookup->origin != NULL) {
++	if (lookup->origin != NULL) {
 +		mr = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP,
 +				    lookup->origin->origin, utf8_origin,
 +				    sizeof(utf8_origin));
@@ -1004,11 +1004,11 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#ifdef WITH_IDN
 +	if (0) {
 +#else
-+	if (lookup->origin != NULL) {
+ 	if (lookup->origin != NULL) {
 +#endif
  		debug("trying origin %s", lookup->origin->origin);
  		result = dns_message_gettempname(lookup->sendmsg,
-@@ -1377,4 +1452,13 @@
+@@ -1656,4 +1731,13 @@
  			dns_name_clone(dns_rootname, lookup->name);
  		else {
 +#ifdef WITH_IDN
@@ -1022,16 +1022,15 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +#else
  			len = strlen(lookup->textname);
  			isc_buffer_init(&b, lookup->textname, len);
-@@ -1384,4 +1468,5 @@
+@@ -1663,4 +1747,5 @@
  						   ISC_FALSE,
  						   &lookup->namebuf);
 +#endif
  		}
  		if (result != ISC_R_SUCCESS) {
-@@ -2749,2 +2834,100 @@
- 		isc_mem_destroy(&mctx);
+@@ -3154,4 +3239,102 @@
  }
-+
+ 
 +#ifdef WITH_IDN
 +static void
 +initialize_idn(void) {
@@ -1129,13 +1128,16 @@ diff -U2 -r1.221.2.19.2.9 dighost.c
 +}
 +
 +#endif /* WITH_IDN */
++
+  
+ 
 Index: bin/dig/host.1
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.1.4.3
 diff -U2 -r1.11.2.1.4.3 host.1
 --- bin/dig/host.1	8 Mar 2004 04:04:15 -0000	1.11.2.1.4.3
-+++ bin/dig/host.1	15 Mar 2004 02:44:30 -0000
++++ bin/dig/host.1	13 Apr 2004 03:45:45 -0000
 @@ -124,4 +124,15 @@
  will be set to the number of seconds given by the hardware's maximum
  value for an integer quantity.
@@ -1155,11 +1157,11 @@ diff -U2 -r1.11.2.1.4.3 host.1
 Index: bin/dig/host.docbook
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
-retrieving revision 1.2.2.2.4.4
-diff -U2 -r1.2.2.2.4.4 host.docbook
---- bin/dig/host.docbook	8 Mar 2004 04:04:15 -0000	1.2.2.2.4.4
-+++ bin/dig/host.docbook	15 Mar 2004 02:44:31 -0000
-@@ -184,4 +184,19 @@
+retrieving revision 1.2.2.2.4.5
+diff -U2 -r1.2.2.2.4.5 host.docbook
+--- bin/dig/host.docbook	13 Apr 2004 01:26:26 -0000	1.2.2.2.4.5
++++ bin/dig/host.docbook	13 Apr 2004 03:45:46 -0000
+@@ -192,4 +192,19 @@
  
  <refsect1>
 +<title>IDN SUPPORT</title>
@@ -1185,7 +1187,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.7.2.9
 diff -U2 -r1.127.2.7.2.9 name.c
 --- lib/dns/name.c	8 Mar 2004 21:06:26 -0000	1.127.2.7.2.9
-+++ lib/dns/name.c	15 Mar 2004 02:44:34 -0000
++++ lib/dns/name.c	13 Apr 2004 03:45:50 -0000
 @@ -180,4 +180,11 @@
  LIBDNS_EXTERNAL_DATA dns_name_t *dns_wildcardname = &wild;
  
@@ -1228,10 +1230,10 @@ diff -U2 -r1.127.2.7.2.9 name.c
 Index: lib/dns/include/dns/name.h
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
-retrieving revision 1.95.2.3.2.7
-diff -U2 -r1.95.2.3.2.7 name.h
---- lib/dns/include/dns/name.h	8 Mar 2004 21:06:28 -0000	1.95.2.3.2.7
-+++ lib/dns/include/dns/name.h	15 Mar 2004 02:44:36 -0000
+retrieving revision 1.95.2.3.2.8
+diff -U2 -r1.95.2.3.2.8 name.h
+--- lib/dns/include/dns/name.h	16 Mar 2004 12:57:17 -0000	1.95.2.3.2.8
++++ lib/dns/include/dns/name.h	13 Apr 2004 03:45:52 -0000
 @@ -156,4 +156,15 @@
  #define DNS_NAME_MAXWIRE 255
  
