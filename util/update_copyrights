@@ -254,13 +254,31 @@ while (<>) {
 	$first = <SOURCE>;
     }
     if (defined($first)) {
-	if ($first !~ /^\s*$/) {
-	    print TARGET "\n";
-	}
-	print TARGET $first;
-	while (<SOURCE>) {
-	    print TARGET $_;
-	}
+        print TARGET "\n";
+
+        undef $/;
+        $_ = <SOURCE>;
+        $/ = "\n";
+
+        my $pat = '\$(Id|Revision):.*\$';
+        my ($start, $end);
+        if ($start_comment ne "") {
+            ($start = $start_comment) =~ s/\s*\n/ /;
+            ($end = $end_comment) =~ s/^\s*(.*)\n/ $1\n/;
+        } elsif ($prefix ne "") {
+            ($start = $prefix) =~ s/\s*\n//;
+            $end = "\n";
+        } else {
+            $start = "";
+            $end = "\n";
+        }
+
+        if ($first !~ /$pat/ && $_ !~ /$pat/) {
+            print TARGET "$start\$Id: update_copyrights,v 1.13 2000/06/22 21:46:35 tale Exp $$end\n";
+        }
+
+        print TARGET $first if $first !~ /^\s*$/;
+        print TARGET $_;
     }
     close(TARGET);
     close(SOURCE);
