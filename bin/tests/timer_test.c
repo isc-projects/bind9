@@ -27,8 +27,9 @@
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/thread.h>
-#include <isc/result.h>
+#include <isc/time.h>
 #include <isc/timer.h>
+#include <isc/result.h>
 
 isc_mem_t *mctx1, *mctx2, *mctx3;
 isc_task_t *t1, *t2, *t3;
@@ -44,8 +45,7 @@ shutdown_task(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-tick(isc_task_t *task, isc_event_t *event)
-{
+tick(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
@@ -73,8 +73,7 @@ tick(isc_task_t *task, isc_event_t *event)
 }
 
 static void
-timeout(isc_task_t *task, isc_event_t *event)
-{
+timeout(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 	char *type;
 

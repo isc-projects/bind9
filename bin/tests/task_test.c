@@ -25,15 +25,15 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/task.h>
+#include <isc/time.h>
+#include <isc/timer.h>
 #include <isc/thread.h>
 #include <isc/result.h>
-#include <isc/timer.h>
 
 isc_mem_t *mctx = NULL;
 
 static void
-my_callback(isc_task_t *task, isc_event_t *event)
-{
+my_callback(isc_task_t *task, isc_event_t *event) {
 	int i, j;
 	char *name = event->ev_arg;
 
@@ -53,8 +53,7 @@ my_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-my_tick(isc_task_t *task, isc_event_t *event)
-{
+my_tick(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 
 	printf("task %p tick %s\n", task, name);

@@ -27,6 +27,7 @@
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/result.h>
+#include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/ratelimiter.h>
 #include <isc/util.h>
