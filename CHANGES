@@ -1,3 +1,5 @@
+1364.	[func]		Use response times to select forwarders.
+
 1363.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
 1362.	[func]		"localhost" and "localnet" acls now include IPv6
