@@ -110,6 +110,8 @@ typedef struct {
 	unsigned int			from_to_wire : 2;
 	unsigned int			reserved;
 
+	isc_buffer_t		       *buffer;
+
 	isc_mem_t		       *mctx;
 	ISC_LIST(isc_dynbuffer_t)	scratchpad;
 	ISC_LIST(dns_msgblock_t)	names;
@@ -221,17 +223,43 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  * Requires:
  *
  *	'msg' be valid.
+ *
+ *	buffer != NULL.
+ *
+ *	buffer is empty.
  */
 
 dns_result_t
-dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
-			  unsigned int space);
+dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
+/*
+ * Reset the buffer.  This can be used after growing the old buffer
+ * on a DNS_R_NOSPACE return from most of the render functions.
+ *
+ * Requires:
+ *
+ *	'msg' be valid.
+ *
+ *	dns_message_renderbegin() was called.
+ *
+ *	buffer != NULL.
+ *
+ * Returns:
+ *
+ *	DNS_R_NOSPACE		- new buffer is too small
+ *
+ *	DNS_R_SUCCESS		- all is well.
+ */
+
+dns_result_t
+dns_message_renderreserve(dns_message_t *msg, unsigned int space);
 /*
  * Reserve "space" bytes in the given buffer.
  *
  * Requires:
  *
  *	'msg' be valid.
+ *
+ *	dns_message_renderbegin() was called.
  *
  * Returns:
  *
@@ -248,6 +276,8 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  *
  *	'msg' be valid.
  *
+ *	dns_message_renderbegin() was called.
+ *
  * Returns:
  *
  *	DNS_R_SUCCESS		-- all is well.
@@ -255,9 +285,8 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  */
 
 dns_result_t
-dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
-			  dns_section_t section, unsigned int priority,
-			  unsigned int flags);
+dns_message_rendersection(dns_message_t *msg, dns_section_t section,
+			  unsigned int priority, unsigned int flags);
 /*
  * Render all names, rdatalists, etc from the given section at the
  * specified priority or higher.
@@ -270,6 +299,8 @@ dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
  *	'buffer' be non-NULL and be initialized to point to a valid memory
  *	block.
  *
+ *	dns_message_renderbegin() was called.
+ *
  * Returns:
  *	DNS_R_SUCCESS		-- all records were written, and there are
  *				   no more records for this section.
@@ -280,7 +311,7 @@ dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
  */
 
 dns_result_t
-dns_message_renderend(dns_message_t *msg, isc_buffer_t *buffer);
+dns_message_renderend(dns_message_t *msg);
 /*
  * Finish rendering to the buffer.  Note that more data can be in the
  * 'msg' structure.  Destroying the structure will free this, or in a multi-
@@ -289,6 +320,8 @@ dns_message_renderend(dns_message_t *msg, isc_buffer_t *buffer);
  * Requires:
  *
  *	'msg' be a valid message.
+ *
+ *	dns_message_renderbegin() was called.
  *
  * Returns:
  *

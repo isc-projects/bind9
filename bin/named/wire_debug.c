@@ -42,60 +42,31 @@
 #include <dns/rdataset.h>
 #include <dns/compress.h>
 #include <dns/db.h>
-
-#define DNS_FLAG_QR		0x8000U
-#define DNS_FLAG_AA		0x0400U
-#define DNS_FLAG_TC		0x0200U
-#define DNS_FLAG_RD		0x0100U
-#define DNS_FLAG_RA		0x0080U
-
-#define DNS_OPCODE_MASK		0x7000U
-#define DNS_OPCODE_SHIFT	11
-#define DNS_RCODE_MASK		0x000FU
-
-/*
- * XXX All of the following is for debugging only, and will eventually
- * be in a library or removed when we really answer queries.
- */
-typedef struct dns_message {
-	unsigned int		id;
-	unsigned int		flags;
-	unsigned int		qcount;
-	unsigned int		ancount;
-	unsigned int		aucount;
-	unsigned int		adcount;
-	dns_namelist_t		question;
-	dns_namelist_t		answer;
-	dns_namelist_t		authority;
-	dns_namelist_t		additional;
-} dns_message_t;
+#include <dns/message.h>
 
 void
-dump_packet(unsigned char *buf, u_int len);
+dump_packet(isc_mem_t *mctx, unsigned char *buf, u_int len);
 
 dns_result_t
 resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
 
-/*
- * in wire_test.c
- */
-void getmessage(dns_message_t *message, isc_buffer_t *source,
-		isc_buffer_t *target);
 dns_result_t printmessage(dns_message_t *message);
 
-void
-dump_packet(unsigned char *buf, u_int len)
-{
-	extern unsigned int rdcount, rlcount, ncount;
-	char t[5000]; /* XXX */
-	dns_message_t message;
-	dns_result_t result;
-	isc_buffer_t source, target;
-	unsigned int i;
+#define CHECKRESULT(result, msg) \
+{ \
+	if ((result) != DNS_R_SUCCESS) { \
+		printf("%s: %s\n", (msg), dns_result_totext(result)); \
+		return; \
+	} \
+}
 
-	rdcount = 0;
-	rlcount = 0;
-	ncount = 0;
+void
+dump_packet(isc_mem_t *mctx, unsigned char *buf, u_int len)
+{
+	dns_message_t *message;
+	dns_result_t result;
+	isc_buffer_t source;
+	unsigned int i;
 
 	for (i = 0 ; i < len ; /* */ ) {
 		fprintf(stdout, "%02x", buf[i]);
@@ -110,13 +81,17 @@ dump_packet(unsigned char *buf, u_int len)
 
 	isc_buffer_init(&source, buf, len, ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, len);
-	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
 
-	getmessage(&message, &source, &target);
-	result = printmessage(&message);
-	if (result != DNS_R_SUCCESS)
-		printf("printmessage() failed: %s\n",
-		       dns_result_totext(result));
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	CHECKRESULT(result, "dns_message_create failed");
+
+	result = dns_message_parse(message, &source);
+	CHECKRESULT(result, "dns_message_parse failed");
+
+	result = printmessage(message);
+	CHECKRESULT(result, "printmessage() failed");
+
+	dns_message_destroy(&message);
 }
 
 static isc_uint16_t
@@ -133,13 +108,13 @@ getshort(isc_buffer_t *buffer) {
 }
 
 dns_result_t
-resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target)
+resolve_packet(dns_db_t *db, dns_message_t *query, dns_message_t **reply,
+	       isc_buffer_t *target)
 {
 	dns_decompress_t dctx;
 	dns_compress_t cctx;
 	dns_result_t result;
 	unsigned int count;
-	dns_message_t message;
 	dns_name_t name;
 	isc_uint16_t qtype;
 	isc_uint16_t qclass;

@@ -39,10 +39,7 @@
 #include <dns/message.h>
 
 dns_decompress_t dctx;
-unsigned int rdcount, rlcount, ncount;
 
-void getmessage(dns_message_t *message, isc_buffer_t *source,
-		isc_buffer_t *target);
 dns_result_t printmessage(dns_message_t *message);
 
 static inline void
@@ -69,6 +66,7 @@ print_wirename(isc_region_t *name) {
 }
 #endif
 
+#ifndef NOMAIN
 static int
 fromhex(char c) {
 	if (c >= '0' && c <= '9')
@@ -82,6 +80,7 @@ fromhex(char c) {
 	exit(3);
 	/* NOTREACHED */
 }
+#endif
 
 static char *opcodetext[] = {
 	"QUERY",
@@ -260,7 +259,6 @@ main(int argc, char *argv[]) {
 	unsigned char b[1000];
 	char s[1000];
 	dns_message_t *message;
-	dns_message_t *message2;
 	dns_result_t result;
 	isc_mem_t *mctx;
 

@@ -39,6 +39,7 @@
 #include <dns/rdataset.h>
 #include <dns/compress.h>
 #include <dns/db.h>
+#include <dns/message.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -55,10 +56,16 @@ isc_mem_t *mctx = NULL;
 isc_boolean_t want_stats = ISC_FALSE;
 dns_db_t *db;
 
-/*
- * For debugging only... XXX
- */
-void dump_packet(unsigned char *buf, u_int len);
+static inline isc_boolean_t
+CHECKRESULT(dns_result_t result, char *msg)
+{
+	if ((result) != DNS_R_SUCCESS) {
+		printf("%s: %s\n", (msg), dns_result_totext(result));
+		return (ISC_TRUE);
+	}
+
+	return (ISC_FALSE);
+}
 
 static void
 makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
@@ -86,10 +93,33 @@ makename(isc_mem_t *mctx, char *text, dns_name_t *name, dns_name_t *origin) {
 }
 
 /*
- * XXX This will be in a .h file soon...
+ * This is in bin/tests/wire_test.c, but should be in a debugging library.
  */
+extern dns_result_t
+printmessage(dns_message_t *);
+
 dns_result_t
-resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
+resolve_packet(isc_mem_t *mctx, dns_db_t *, dns_message_t *,
+	       dns_message_t **, isc_buffer_t *);
+
+dns_result_t
+resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
+	       dns_message_t **reply, isc_buffer_t *target)
+{
+	dns_message_t *message;
+	dns_result_t result;
+
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_RENDER);
+	CHECKRESULT(result, "dns_message_create failed");
+
+	message->id = query->id;
+	message->rcode = 
+
+	result = printmessage(message);
+	CHECKRESULT(result, "printmessage() failed");
+
+	return (DNS_R_NOSPACE);
+}
 
 /*
  * Process the wire format message given in r, and return a new packet to
@@ -103,19 +133,12 @@ resolve_packet(dns_db_t *db, isc_buffer_t *source, isc_buffer_t *target);
 static dns_result_t
 dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 {
-	char t[5000];
+	char t[512];
 	isc_buffer_t source;
 	isc_buffer_t target;
 	dns_result_t result;
 	isc_region_t txr;
-
-	dump_packet(rxr->base, rxr->length);
-
-	/*
-	 * Set up the temporary output buffer.
-	 */
-	isc_buffer_init(&target, t + reslen, sizeof(t) - reslen,
-			ISC_BUFFERTYPE_BINARY);
+	dns_message_t *message, *reply;
 
 	/*
 	 * Set up the input buffer from the contents of the region passed
@@ -125,17 +148,43 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 			ISC_BUFFERTYPE_BINARY);
 	isc_buffer_add(&source, rxr->length);
 
-	result = resolve_packet(db, &source, &target);
-	if (result != DNS_R_SUCCESS)
+	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_PARSE);
+	if (CHECKRESULT(result, "dns_message_create failed")) {
 		return (result);
+	}
+
+	result = dns_message_parse(message, &source);
+	if (CHECKRESULT(result, "dns_message_parsed failed")) {
+		dns_message_destroy(&message);
+		return (result);
+	}
+	CHECKRESULT(result, "dns_message_parse failed");
+
+	result = printmessage(message);
+	if (CHECKRESULT(result, "printmessage failed")) {
+		dns_message_destroy(&message);
+		return (result);
+	}
+
+	isc_buffer_init(&target, t, sizeof(t), ISC_BUFFERTYPE_BINARY);
+	result = resolve_packet(mctx, db, message, &reply, &target);
+	dns_message_destroy(&message);
+	if (result != DNS_R_SUCCESS) {
+		if (reply != NULL)
+			dns_message_destroy(&reply);
+		return (result);
+	}
 
 	/*
 	 * Copy the reply out, adjusting for reslen
 	 */
 	isc_buffer_used(&target, &txr);
 	txr.base = isc_mem_get(mctx, txr.length + reslen);
-	if (txr.base == NULL)
+	if (txr.base == NULL) {
+		dns_message_destroy(&reply);
+
 		return (DNS_R_NOMEMORY);
+	}
 
 	memcpy(txr.base + reslen, t + reslen, txr.length);
 	rxr->base = txr.base;
@@ -144,10 +193,10 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 	printf("Base == %p, length == %u\n", txr.base, txr.length);
 	fflush(stdout);
 
-	dump_packet(rxr->base + reslen, rxr->length - reslen);
-
 	if (want_stats)
 		isc_mem_stats(mctx, stdout);
+
+	dns_message_destroy(&reply);
 
 	return (DNS_R_SUCCESS);
 }

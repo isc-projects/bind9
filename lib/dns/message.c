@@ -345,6 +345,8 @@ msginit(dns_message_t *m)
 	m->nextrdata = NULL;
 	m->nextrdataset = NULL;
 	m->nextrdatalist = NULL;
+
+	m->buffer = NULL;
 }
 
 /*
@@ -992,17 +994,69 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 dns_result_t
 dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer)
 {
+	isc_region_t r;
+
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(buffer != NULL);
+	REQUIRE(msg->buffer == NULL);
 
-	/* XXX implement */
-	return (ISC_R_NOTIMPLEMENTED);
+	/*
+	 * Erase the contents of this buffer.
+	 */
+	isc_buffer_clear(buffer);
+
+	/*
+	 * Make certain there is enough for at least the header in this
+	 * buffer.
+	 */
+	isc_buffer_available(buffer, &r);
+	if (r.length < DNS_MESSAGE_HEADER_LEN)
+		return (DNS_R_NOSPACE);
+
+	/*
+	 * Reserve enough space for the header in this buffer.
+	 */
+	isc_buffer_add(buffer, DNS_MESSAGE_HEADER_LEN);
+
+	return (DNS_R_SUCCESS);
+}
+
+dns_result_t
+dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer)
+{
+	isc_region_t r, rn;
+
+	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(buffer != NULL);
+	REQUIRE(msg->buffer != NULL);
+
+	/*
+	 * ensure that the new buffer is empty, and has enough space to
+	 * hold the current contents.
+	 */
+	isc_buffer_clear(buffer);
+
+	isc_buffer_available(buffer, &rn);
+	isc_buffer_used(msg->buffer, &r);
+	if (rn.length < r.length)
+		return (DNS_R_NOSPACE);
+
+	/*
+	 * Copy the contents from the old to the new buffer.
+	 */
+	isc_buffer_add(buffer, r.length);
+	memcpy(rn.base, r.base, r.length);
+
+	msg->buffer = buffer;
+
+	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
 dns_message_renderrelease(dns_message_t *msg, unsigned int space)
 {
 	REQUIRE(VALID_MESSAGE(msg));
+	REQUIRE(msg->buffer != NULL);
 
 	if (msg->reserved < space)
 		return (DNS_R_NOSPACE);
@@ -1013,13 +1067,12 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space)
 }
 
 dns_result_t
-dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
-			  unsigned int space)
+dns_message_renderreserve(dns_message_t *msg, unsigned int space)
 {
 	isc_region_t r;
 
 	REQUIRE(VALID_MESSAGE(msg));
-	REQUIRE(buffer != NULL);
+	REQUIRE(msg->buffer != NULL);
 
 	/*
 	 * "space" can be positive or negative.  If it is negative we are
@@ -1027,7 +1080,7 @@ dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
 	 * requesting more space to be reserved.
 	 */
 
-	isc_buffer_available(buffer, &r);
+	isc_buffer_available(msg->buffer, &r);
 	if (r.length < (space + msg->reserved))
 		return (DNS_R_NOSPACE);
 
@@ -1037,12 +1090,11 @@ dns_message_renderreserve(dns_message_t *msg, isc_buffer_t *buffer,
 }
 
 dns_result_t
-dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
-			  dns_section_t section, unsigned int priority,
-			  unsigned int flags)
+dns_message_rendersection(dns_message_t *msg, dns_section_t section,
+			  unsigned int priority, unsigned int flags)
 {
 	REQUIRE(VALID_MESSAGE(msg));
-	REQUIRE(buffer != NULL);
+	REQUIRE(msg->buffer != NULL);
 	REQUIRE(VALID_NAMED_SECTION(section));
 
 	/* XXX implement */
@@ -1050,10 +1102,12 @@ dns_message_rendersection(dns_message_t *msg, isc_buffer_t *buffer,
 }
 
 dns_result_t
-dns_message_renderend(dns_message_t *msg, isc_buffer_t *buffer)
+dns_message_renderend(dns_message_t *msg)
 {
 	REQUIRE(VALID_MESSAGE(msg));
-	REQUIRE(buffer != NULL);
+	REQUIRE(msg->buffer != NULL);
+
+	msg->buffer = NULL;  /* forget about this buffer only on success XXX */
 
 	/* XXX implement */
 	return (ISC_R_NOTIMPLEMENTED);
