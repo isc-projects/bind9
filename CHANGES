@@ -2,6 +2,13 @@
 1808.	[bug]		zone.c:notify_zone() contained a race condition,
 			zone->db could change underneath it.  [RT #13511]
 
+1806.	[bug]		The resolver returned the wrong result when a CNAME /
+			DNAME was encountered when fetching glue from a
+			secure namespace. [RT #13501]
+
+1805.	[bug]		Pending status was not being cleared when DLV was
+			active. [RT #13501]
+
 	--- 9.3.1beta2 released ---
 
 1800.	[bug]		Changes #1719 allowed a INSIST to be triggered.

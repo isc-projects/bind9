@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.13 2004/11/17 23:53:10 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.14 2005/02/08 23:59:45 marka Exp $ */
 
 #include <config.h>
 
@@ -2356,8 +2356,18 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	}
 
 	if (result == ISC_R_NOTFOUND) {
-		if (!val->havedlvsep)
+		if (!val->havedlvsep) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "not beneath secure root / DLV");
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure");
+				result = DNS_R_MUSTBESECURE;
+				goto out;
+			}
+			val->event->rdataset->trust = dns_trust_answer;
 			return (ISC_R_SUCCESS);
+		}
 		dns_name_copy(dns_fixedname_name(&val->dlvsep),
 			      dns_fixedname_name(&secroot), NULL);
 	} else if (result != ISC_R_SUCCESS)
