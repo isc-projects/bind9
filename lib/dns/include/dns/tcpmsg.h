@@ -3,6 +3,7 @@
 
 #include <isc/buffer.h>
 #include <isc/int.h>
+#include <isc/socket.h>
 
 typedef struct {
 	/* private (don't touch!) */
