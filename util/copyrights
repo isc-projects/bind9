@@ -121,6 +121,7 @@
 ./bin/nsupdate/nsupdate.html			X	2001
 ./bin/rndc/.cvsignore				X	2000,2001
 ./bin/rndc/Makefile.in				MAKE	2000,2001
+./bin/rndc/rndc-confgen.c			C	2001
 ./bin/rndc/rndc.8				X	2000,2001
 ./bin/rndc/rndc.c				C	2000,2001
 ./bin/rndc/rndc.conf				CONF-C	2000,2001
@@ -129,6 +130,8 @@
 ./bin/rndc/rndc.conf.html			X	2001
 ./bin/rndc/rndc.docbook				SGML	2001
 ./bin/rndc/rndc.html				X	2001
+./bin/rndc/util.c				C	2000,2001
+./bin/rndc/util.h				C	2000,2001
 ./bin/tests/.cvsignore				X	1999,2000,2001
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
