@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.387 2002/09/10 02:23:44 marka Exp $ */
+/* $Id: server.c,v 1.388 2002/09/10 04:45:53 marka Exp $ */
 
 #include <config.h>
 
@@ -2133,6 +2133,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	       "strdup");
 
 	obj = NULL;
+	result = ns_config_get(maps, "recursing-file", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	CHECKM(setstring(server, &server->recfile, cfg_obj_asstring(obj)),
+	       "strdup");
+
+	obj = NULL;
 	result = ns_config_get(maps, "version", &obj);
 	if (result == ISC_R_SUCCESS) {
 		CHECKM(setoptstring(server, &server->version, obj), "strdup");
@@ -2453,6 +2459,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->dumpfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
 
+	server->recfile = isc_mem_strdup(server->mctx, "named.recursing");
+	CHECKFATAL(server->recfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
+		   "isc_mem_strdup");
+
 	server->hostname_set = ISC_FALSE;
 	server->hostname = NULL;
 	server->version_set = ISC_FALSE;	
@@ -2483,6 +2493,7 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->dumpfile);
+	isc_mem_free(server->mctx, server->recfile);
 
 	if (server->version != NULL)
 		isc_mem_free(server->mctx, server->version);
@@ -3019,6 +3030,23 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
  cleanup:
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);
+	return (result);
+}
+
+isc_result_t
+ns_server_dumprecursing(ns_server_t *server) {
+	FILE *fp = NULL;
+	isc_result_t result;
+
+	CHECKMF(isc_stdio_open(server->recfile, "w", &fp),
+		"could not open dump file", server->recfile);
+	fprintf(fp,";\n; Recursing Queries\n;\n");
+	ns_interfacemgr_dumprecursing(fp, server->interfacemgr);
+	fprintf(fp, "; Dump complete\n");
+
+ cleanup:
+	if (fp != NULL)
+		result = isc_stdio_close(fp);
 	return (result);
 }
 

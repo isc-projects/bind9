@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.70 2002/08/30 02:05:29 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.71 2002/09/10 04:45:52 marka Exp $ */
 
 #include <config.h>
 
@@ -854,5 +854,19 @@ ns_interfacemgr_setlistenon6(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
 	LOCK(&mgr->lock);
 	ns_listenlist_detach(&mgr->listenon6);
 	ns_listenlist_attach(value, &mgr->listenon6);
+	UNLOCK(&mgr->lock);
+}
+
+void
+ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr) {
+	ns_interface_t *interface;
+
+	LOCK(&mgr->lock);
+	interface = ISC_LIST_HEAD(mgr->interfaces);
+	while (interface != NULL) {
+		if (interface->clientmgr != NULL)
+			ns_client_dumprecursing(f, interface->clientmgr);
+		interface = ISC_LIST_NEXT(interface, link);
+	}
 	UNLOCK(&mgr->lock);
 }

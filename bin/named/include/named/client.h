@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.66 2002/02/20 03:33:29 marka Exp $ */
+/* $Id: client.h,v 1.67 2002/09/10 04:45:54 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -318,6 +318,12 @@ ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest);
 /*
  * Add client to end of recursing list.  If 'killoldest' is true
  * kill the oldest recursive client (list head). 
+ */
+
+void
+ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager);
+/*
+ * Dump the outstanding recursive queries to 'f'.
  */
 
 #endif /* NAMED_CLIENT_H */

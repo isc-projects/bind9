@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.24 2002/08/30 02:05:30 marka Exp $ */
+/* $Id: interfacemgr.h,v 1.25 2002/09/10 04:45:54 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -163,5 +163,8 @@ ns_interface_shutdown(ns_interface_t *ifp);
  * Stop listening for queries on interface 'ifp'.
  * May safely be called multiple times.
  */
+
+void
+ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr);
 
 #endif /* NAMED_INTERFACEMGR_H */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.210 2002/05/24 06:22:30 marka Exp $ */
+/* $Id: client.c,v 1.211 2002/09/10 04:45:52 marka Exp $ */
 
 #include <config.h>
 
@@ -2255,4 +2255,35 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 
 	if (buf != NULL)
 		isc_mem_put(client->mctx, buf, len);
+}
+
+void
+ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
+	ns_client_t *client;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	const char *name;
+	const char *sep;
+
+	REQUIRE(VALID_MANAGER(manager));
+	      
+	LOCK(&manager->lock);
+	client = ISC_LIST_HEAD(manager->recursing);
+	while (client != NULL) {
+		ns_client_name(client, peerbuf, sizeof(peerbuf));
+		if (client->view != NULL &&
+		    strcmp(client->view->name, "_bind") != 0 &&
+		    strcmp(client->view->name, "_default") != 0) {
+			name = client->view->name;
+			sep = ": view ";
+		} else {
+			name = "";
+			sep = "";
+		}
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		fprintf(f, "; client %s%s%s: '%s' requesttime %d\n",
+			peerbuf, sep, name, namebuf, client->requesttime);
+		client = ISC_LIST_NEXT(client, link);
+	}
+	UNLOCK(&manager->lock);
 }

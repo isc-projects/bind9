@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.31 2002/08/01 03:23:36 mayer Exp $ */
+/* $Id: config.c,v 1.32 2002/09/10 04:45:52 marka Exp $ */
 
 #include <config.h>
 
@@ -64,6 +64,7 @@ options {\n\
 #	named-xfer <obsolete>;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/named.pid\"; /* or /lwresd.pid */\n\
 	port 53;\n\
+	recursing-file \"named.recursing\";\n\
 "
 #ifdef PATH_RANDOMDEV
 "\
