@@ -2,10 +2,11 @@
 			master files because totext_ctx_init() failed to
 			initialize ctx->current_ttl_valid.
 
- 171.   [cleanup]       On NetBSD systems, the mit-pthreads or unproven-pthreads
-			library is now always used unless --with-ptl2 is
-			explicitly specified on the configure command line.
-			The --with-mit-pthreads option is no longer needed
+ 171.  [cleanup] 	On NetBSD systems, the mit-pthreads or
+			unproven-pthreads library is now always used
+			unless --with-ptl2 is explicitly specified on
+			the configure command line.  The
+			--with-mit-pthreads option is no longer needed
 			and has been removed.
 
  170.	[cleanup]	Remove inter server consistancy checks from zone,
