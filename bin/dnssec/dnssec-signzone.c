@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.96 2000/09/08 08:38:57 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.97 2000/09/08 14:16:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -64,10 +64,12 @@ typedef struct signer_key_struct signer_key_t;
 struct signer_key_struct {
 	dst_key_t *key;
 	isc_boolean_t isdefault;
+	unsigned int position;
 	ISC_LINK(signer_key_t) link;
 };
 
 static ISC_LIST(signer_key_t) keylist;
+static unsigned int keycount = 0;
 static isc_stdtime_t starttime = 0, endtime = 0, now;
 static int cycle = -1;
 static isc_boolean_t tryverify = ISC_FALSE;
@@ -166,6 +168,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 	else
 		key->key = pubkey;
 	key->isdefault = ISC_FALSE;
+	key->position = keycount++;
 	ISC_LIST_APPEND(keylist, key, link);
 	return key;
 }
@@ -224,8 +227,9 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	dns_rdata_sig_t sig;
 	signer_key_t *key;
 	isc_result_t result;
-	isc_boolean_t notsigned = ISC_TRUE, nosigs = ISC_FALSE;
-	isc_boolean_t wassignedby[256], nowsignedby[256];
+	isc_boolean_t nosigs = ISC_FALSE;
+	isc_boolean_t *wassignedby, *nowsignedby;
+	int arraysize;
 	dns_difftuple_t *tuple;
 	dns_ttl_t ttl;
 	int i;
@@ -237,9 +241,6 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	type_format(set->type, typestr, sizeof typestr);
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
-
-	for (i = 0; i < 256; i++)
-		wassignedby[i] = nowsignedby[i] = ISC_FALSE;
 
 	dns_rdataset_init(&sigset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_sig,
@@ -253,6 +254,19 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		      namestr, typestr, isc_result_totext(result));
 
 	vbprintf(1, "%s/%s:\n", namestr, typestr);
+
+	arraysize = keycount;
+	if (!nosigs)
+		arraysize += dns_rdataset_count(&sigset);
+	wassignedby = isc_mem_get(mctx,
+				  arraysize * sizeof(isc_boolean_t));
+	nowsignedby = isc_mem_get(mctx,
+				  arraysize * sizeof(isc_boolean_t));
+	if (wassignedby == NULL || nowsignedby == NULL)
+		fatal("out of memory");
+
+	for (i = 0; i < arraysize; i++)
+		wassignedby[i] = nowsignedby[i] = ISC_FALSE;
 
 	if (nosigs)
 		result = ISC_R_NOMORE;
@@ -296,13 +310,14 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			{
 				vbprintf(2, "\tsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
-				wassignedby[sig.algorithm] = ISC_TRUE;
+				wassignedby[key->position] = ISC_TRUE;
+				nowsignedby[key->position] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\tsig by %s dropped - %s\n",
 					 sigstr,
 					 expired ? "expired" :
 						   "failed to verify");
-				wassignedby[sig.algorithm] = ISC_TRUE;
+				wassignedby[key->position] = ISC_TRUE;
 				resign = ISC_TRUE;
 			}
 		} else if (iszonekey(key, db)) {
@@ -310,16 +325,14 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			{
 				vbprintf(2, "\tsig by %s retained\n", sigstr);
 				keep = ISC_TRUE;
-				wassignedby[sig.algorithm] = ISC_TRUE;
-				nowsignedby[sig.algorithm] = ISC_TRUE;
+				wassignedby[key->position] = ISC_TRUE;
+				nowsignedby[key->position] = ISC_TRUE;
 			} else {
 				vbprintf(2, "\tsig by %s dropped - %s\n",
 					 sigstr,
 					 expired ? "expired" :
 						   "failed to verify");
-				wassignedby[sig.algorithm] = ISC_TRUE;
-				if (dst_key_isprivate(key->key))
-					resign = ISC_TRUE;
+				wassignedby[key->position] = ISC_TRUE;
 			}
 		} else if (!expired) {
 			vbprintf(2, "\tsig by %s retained\n", sigstr);
@@ -329,7 +342,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		}
 
 		if (keep)
-			nowsignedby[sig.algorithm] = ISC_TRUE;
+			nowsignedby[key->position] = ISC_TRUE;
 		else {
 			tuple = NULL;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
@@ -349,7 +362,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			vbprintf(1, "\tresigning with key %s\n", keystr);
 			isc_buffer_init(&b, array, sizeof(array));
 			signwithkey(name, set, &trdata, key->key, &b);
-			nowsignedby[sig.algorithm] = ISC_TRUE;
+			nowsignedby[key->position] = ISC_TRUE;
 			tuple = NULL;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
 						      name, ttl, &trdata,
@@ -368,18 +381,9 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 	if (dns_rdataset_isassociated(&sigset))
 		dns_rdataset_disassociate(&sigset);
 
-	for (i = 0; i < 256; i++)
-		if (wassignedby[i]) {
-			notsigned = ISC_FALSE;
-			break;
-		}
-
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
-		unsigned int alg = dst_key_alg(key->key);
-		if (key->isdefault &&
-		    (notsigned || (wassignedby[alg] && !nowsignedby[alg])))
-		{
+		if (key->isdefault && !nowsignedby[key->position]) {
 			isc_buffer_t b;
 			dns_rdata_t trdata;
 			unsigned char array[BUFSIZE];
@@ -398,6 +402,9 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		}
 		key = ISC_LIST_NEXT(key, link);
 	}
+
+	isc_mem_put(mctx, wassignedby, arraysize * sizeof(isc_boolean_t));
+	isc_mem_put(mctx, nowsignedby, arraysize * sizeof(isc_boolean_t));
 }
 
 /* Determine if a KEY set contains a null key */
@@ -1168,7 +1175,7 @@ loadzonekeys(dns_db_t *db) {
 			fatal("out of memory");
 		key->key = keys[i];
 		key->isdefault = ISC_FALSE;
-
+		key->position = keycount++;
 		ISC_LIST_APPEND(keylist, key, link);
 	}
 	dns_db_detachnode(db, &node);
@@ -1383,6 +1390,7 @@ main(int argc, char *argv[]) {
 					fatal("out of memory");
 				key->key = newkey;
 				key->isdefault = ISC_TRUE;
+				key->position = keycount++;
 				ISC_LIST_APPEND(keylist, key, link);
 			} else
 				dst_key_free(&newkey);
