@@ -27,6 +27,7 @@
 #include <isc/sockaddr.h>
 #include <isc/types.h>
 
+#include <dns/adb.h>
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
@@ -436,16 +437,12 @@ void dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
  *	'zone' to be a valid initalised zone.
  */
 
-void dns_zone_getoptions(dns_zone_t *zone, unsigned int *options,
-			 unsigned int *optionsmask);
+unsigned int dns_zone_getoptions(dns_zone_t *zone);
 /*
- *	Return which options a set ('options') and which are active
- *	('optionsmask').
+ *	Return which options a set.
  *
  * Require:
  *	'zone' to be a valid initalised zone.
- *	'options' to be non NULL.
- *	'optionsmask' to be non NULL.
  */
 
 void dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
@@ -614,6 +611,9 @@ void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
 isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
 
 void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
+void dns_zone_setrequestmgr(dns_zone_t *zone, dns_requestmgr_t *requestmgr);
+void dns_zone_setadb(dns_zone_t *zone, dns_adb_t *adb);
+
 
 isc_result_t dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 				dns_message_t *msg);

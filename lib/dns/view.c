@@ -39,6 +39,7 @@
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
+#include <dns/request.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -46,9 +47,11 @@
 
 #define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
 #define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
+#define REQSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_REQSHUTDOWN) != 0)
 
 static void resolver_shutdown(isc_task_t *task, isc_event_t *event);
 static void adb_shutdown(isc_task_t *task, isc_event_t *event);
+static void req_shutdown(isc_task_t *task, isc_event_t *event);
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
@@ -121,12 +124,14 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->hints = NULL;
 	view->resolver = NULL;
 	view->adb = NULL;
+	view->requestmgr = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
 	view->references = 1;
-	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN);
+	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
+			    DNS_VIEWATTR_REQSHUTDOWN);
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
@@ -153,6 +158,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		       view, NULL, NULL, NULL);
 	ISC_EVENT_INIT(&view->adbevent, sizeof view->adbevent, 0, NULL,
 		       DNS_EVENT_VIEWADBSHUTDOWN, adb_shutdown,
+		       view, NULL, NULL, NULL);
+	ISC_EVENT_INIT(&view->reqevent, sizeof view->reqevent, 0, NULL,
+		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown,
 		       view, NULL, NULL, NULL);
 	view->magic = DNS_VIEW_MAGIC;
 	
@@ -214,6 +222,7 @@ destroy(dns_view_t *view) {
 	REQUIRE(view->references == 0);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
+	REQUIRE(REQSHUTDOWN(view));
 
 	if (view->peers != NULL)
 		dns_peerlist_detach(&view->peers);
@@ -225,6 +234,8 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
+	if (view->requestmgr != NULL)
+		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)
 		isc_task_detach(&view->task);
 	if (view->hints != NULL)
@@ -253,7 +264,8 @@ all_done(dns_view_t *view) {
 	 * Caller must be holding the view lock.
 	 */
 
-	if (view->references == 0 && RESSHUTDOWN(view) && ADBSHUTDOWN(view))
+	if (view->references == 0 && RESSHUTDOWN(view) &&
+	    ADBSHUTDOWN(view) && REQSHUTDOWN(view))
 		return (ISC_TRUE);
 
 	return (ISC_FALSE);
@@ -281,6 +293,8 @@ dns_view_detach(dns_view_t **viewp) {
 			dns_resolver_shutdown(view->resolver);
 		if (!ADBSHUTDOWN(view))
 			dns_adb_shutdown(view->adb);
+		if (!REQSHUTDOWN(view))
+			dns_requestmgr_shutdown(view->requestmgr);
 		done = all_done(view);
 	}
 	UNLOCK(&view->lock);
@@ -325,6 +339,28 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
+	done = all_done(view);
+
+	UNLOCK(&view->lock);
+
+	isc_event_free(&event);
+
+	if (done)
+		destroy(view);
+}
+
+static void
+req_shutdown(isc_task_t *task, isc_event_t *event) {
+	dns_view_t *view = event->ev_arg;
+	isc_boolean_t done;
+	
+	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->task == task);
+
+	LOCK(&view->lock);
+
+	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;
 	done = all_done(view);
 
 	UNLOCK(&view->lock);
@@ -380,6 +416,19 @@ dns_view_createresolver(dns_view_t *view,
 	event = &view->adbevent;
 	dns_adb_whenshutdown(view->adb, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
+
+	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
+				       dns_resolver_dispatchv4(view->resolver),
+				       dns_resolver_dispatchv6(view->resolver),
+				       &view->requestmgr);
+	if (result != ISC_R_SUCCESS) {
+		dns_adb_shutdown(view->adb);
+		dns_resolver_shutdown(view->resolver);
+		return (result);
+	}
+	event = &view->reqevent;
+	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
+	view->attributes &= ~DNS_VIEWATTR_REQSHUTDOWN;
 
 	return (ISC_R_SUCCESS);
 }
@@ -447,6 +496,24 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	return (result);
 }
 
+static isc_result_t
+set_resolver(dns_zone_t *zone, void *ptr) {
+	dns_zone_setresolver(zone, ptr);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+set_requestmgr(dns_zone_t *zone, void *ptr) {
+	dns_zone_setrequestmgr(zone, ptr);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+set_adb(dns_zone_t *zone, void *ptr) {
+	dns_zone_setadb(zone, ptr);
+	return (ISC_R_SUCCESS);
+}
+
 void
 dns_view_freeze(dns_view_t *view) {
 	
@@ -460,6 +527,16 @@ dns_view_freeze(dns_view_t *view) {
 	if (view->resolver != NULL) {
 		INSIST(view->cachedb != NULL);
 		dns_resolver_freeze(view->resolver);
+		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
+				   set_resolver, view->resolver);
+	}
+	if (view->requestmgr != NULL) {
+		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
+				   set_requestmgr, view->requestmgr);
+	}
+	if (view->adb != NULL) {
+		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
+				   set_adb, view->adb);
 	}
 	view->frozen = ISC_TRUE;
 }

@@ -1,3 +1,7 @@
+  63	[func]		generate NOTIFY messages.
+
+  62.	[func]		add UDP refresh support.
+
   61.   [cleanup]       use single quotes consistently in log messages.
 
   60.	[func]		Catch and disallow singleton types on message

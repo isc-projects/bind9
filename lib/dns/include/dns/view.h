@@ -80,6 +80,7 @@ struct dns_view {
 	dns_zt_t *			zonetable;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
+	dns_requestmgr_t *		requestmgr;
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
@@ -91,6 +92,7 @@ struct dns_view {
 	isc_task_t *			task;
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
+	isc_event_t			reqevent;
 	/* Configurable data, locked by conflock. */
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
@@ -121,6 +123,7 @@ struct dns_view {
 
 #define DNS_VIEWATTR_RESSHUTDOWN	0x01
 #define DNS_VIEWATTR_ADBSHUTDOWN	0x02
+#define DNS_VIEWATTR_REQSHUTDOWN	0x04
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,

@@ -169,13 +169,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result == ISC_R_SUCCESS)  
 			dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, boolean);
 		else
-			dns_zone_clearoption(zone, DNS_ZONE_O_DIALUP);
+			dns_zone_setoption(zone, DNS_ZONE_O_DIALUP, ISC_FALSE);
 
 		result = dns_c_zone_getnotify(czone, &boolean);
 		if (result == ISC_R_SUCCESS)  
 			dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, boolean);
 		else
-			dns_zone_clearoption(zone, DNS_ZONE_O_NOTIFY);
+			dns_zone_setoption(zone, DNS_ZONE_O_NOTIFY, ISC_TRUE);
 
 		result = dns_c_zone_getalsonotify(czone, &iplist);
 		if (result == ISC_R_SUCCESS) {
