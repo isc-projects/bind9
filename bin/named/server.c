@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.210 2000/08/02 20:47:21 tale Exp $ */
+/* $Id: server.c,v 1.211 2000/08/02 20:55:40 tale Exp $ */
 
 #include <config.h>
 
@@ -844,7 +844,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	dns_dbversion_t *dbver = NULL;
 	dns_difftuple_t *tuple;
 	dns_diff_t diff;
-	isc_region_t r;
+	isc_constregion_t r;
 	isc_constregion_t cr;
 	dns_rdata_t rdata;
 	static const char origindata[] = "\007authors\004bind";
@@ -867,7 +867,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	dns_name_init(&origin, NULL);
 	r.base = origindata;
 	r.length = sizeof(origindata);
-	dns_name_fromregion(&origin, &r);
+	dns_name_fromregion(&origin, (isc_region_t *)&r);
 
 	CHECK(dns_zone_create(&zone, ns_g_mctx));
 	CHECK(dns_zone_setorigin(zone, &origin));
