@@ -24,7 +24,6 @@
 #include <isc/net.h>
 
 #include <dns/types.h>
-#include <dns/confctx.h>
 
 #include <named/types.h>
 
