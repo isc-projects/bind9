@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66 2001/08/28 03:58:12 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.1 2002/07/10 06:43:01 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -483,6 +483,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  */
 #define DNS_ADB_RTTADJDEFAULT		7	/* default scale */
 #define DNS_ADB_RTTADJREPLACE		0	/* replace with our rtt */
+#define DNS_ADB_RTTADJAGE		10	/* age this rtt */
 
 void
 dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
