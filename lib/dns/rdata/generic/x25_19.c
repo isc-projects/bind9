@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.29 2001/03/16 22:53:07 bwelling Exp $ */
+/* $Id: x25_19.c,v 1.30 2001/06/21 04:00:43 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -114,11 +114,13 @@ fromstruct_x25(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(x25->common.rdtype == type);
 	REQUIRE(x25->common.rdclass == rdclass);
-	REQUIRE((x25->x25 == NULL && x25->x25_len == 0) ||
-		(x25->x25 != NULL && x25->x25_len != 0));
+	REQUIRE(x25->x25 != NULL && x25->x25_len != 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
+
+	if (x25->x25_len < 4)
+		return (ISC_R_RANGE);
 
 	for (i = 0; i < x25->x25_len; i++)
 		if (!isdigit(x25->x25[i] & 0xff))
@@ -144,12 +146,9 @@ tostruct_x25(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	x25->x25_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	if (x25->x25_len != 0) {
-		x25->x25 = mem_maybedup(mctx, r.base, x25->x25_len);
-		if (x25->x25 == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		x25->x25 = NULL;
+	x25->x25 = mem_maybedup(mctx, r.base, x25->x25_len);
+	if (x25->x25 == NULL)
+		return (ISC_R_NOMEMORY);
 
 	x25->mctx = mctx;
 	return (ISC_R_SUCCESS);

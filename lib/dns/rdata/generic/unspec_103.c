@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.26 2001/03/16 22:53:06 bwelling Exp $ */
+/* $Id: unspec_103.c,v 1.27 2001/06/21 04:00:42 marka Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -93,8 +93,7 @@ fromstruct_unspec(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(unspec->common.rdtype == type);
 	REQUIRE(unspec->common.rdclass == rdclass);
-	REQUIRE((unspec->data != NULL && unspec->datalen != 0) ||
-		(unspec->data == NULL && unspec->datalen == 0));
+	REQUIRE(unspec->data != NULL || unspec->datalen == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -116,12 +115,9 @@ tostruct_unspec(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	unspec->datalen = r.length;
-	if (unspec->datalen != 0) {
-		unspec->data = mem_maybedup(mctx, r.base, r.length);
-		if (unspec->data == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		unspec->data = NULL;
+	unspec->data = mem_maybedup(mctx, r.base, r.length);
+	if (unspec->data == NULL)
+		return (ISC_R_NOMEMORY);
 
 	unspec->mctx = mctx;
 	return (ISC_R_SUCCESS);

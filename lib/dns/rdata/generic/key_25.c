@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.39 2001/03/28 02:57:26 bwelling Exp $ */
+/* $Id: key_25.c,v 1.40 2001/06/21 04:00:34 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -238,12 +238,9 @@ tostruct_key(ARGS_TOSTRUCT) {
 
 	/* Data */
 	key->datalen = sr.length;
-	if (key->datalen > 0) {
-		key->data = mem_maybedup(mctx, sr.base, key->datalen);
-		if (key->data == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		key->data = NULL;
+	key->data = mem_maybedup(mctx, sr.base, key->datalen);
+	if (key->data == NULL)
+		return (ISC_R_NOMEMORY);
 
 	key->mctx = mctx;
 	return (ISC_R_SUCCESS);

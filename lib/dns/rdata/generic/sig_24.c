@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.52 2001/03/16 22:53:01 bwelling Exp $ */
+/* $Id: sig_24.c,v 1.53 2001/06/21 04:00:38 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -364,8 +364,7 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(sig->common.rdtype == type);
 	REQUIRE(sig->common.rdclass == rdclass);
-	REQUIRE((sig->signature != NULL && sig->siglen != 0) ||
-		(sig->signature == NULL && sig->siglen == 0));
+	REQUIRE(sig->signature != NULL || sig->siglen == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -484,12 +483,9 @@ tostruct_sig(ARGS_TOSTRUCT) {
 	 * Signature.
 	 */
 	sig->siglen = sr.length;
-	if (sig->siglen > 0) {
-		sig->signature = mem_maybedup(mctx, sr.base, sig->siglen);
-		if (sig->signature == NULL)
-			goto cleanup;
-	} else
-		sig->signature = NULL;
+	sig->signature = mem_maybedup(mctx, sr.base, sig->siglen);
+	if (sig->signature == NULL)
+		goto cleanup;
 
 
 	sig->mctx = mctx;

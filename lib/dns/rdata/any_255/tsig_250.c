@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.50 2001/03/16 22:52:32 bwelling Exp $ */
+/* $Id: tsig_250.c,v 1.51 2001/06/21 04:00:28 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -476,13 +476,10 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	 * Signature.
 	 */
 	INSIST(sr.length >= tsig->siglen);
-	if (tsig->siglen != 0) {
-		tsig->signature = mem_maybedup(mctx, sr.base, tsig->siglen);
-		if (tsig->signature == NULL)
-			goto cleanup;
-		isc_region_consume(&sr, tsig->siglen);
-	} else
-		tsig->signature = NULL;
+	tsig->signature = mem_maybedup(mctx, sr.base, tsig->siglen);
+	if (tsig->signature == NULL)
+		goto cleanup;
+	isc_region_consume(&sr, tsig->siglen);
 
 	/*
 	 * Original ID.
@@ -506,12 +503,9 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	 * Other.
 	 */
 	INSIST(sr.length == tsig->otherlen);
-	if (tsig->otherlen != 0) {
-		tsig->other = mem_maybedup(mctx, sr.base, tsig->otherlen);
-		if (tsig->other == NULL)
-			goto cleanup;
-	} else
-		tsig->other = NULL;
+	tsig->other = mem_maybedup(mctx, sr.base, tsig->otherlen);
+	if (tsig->other == NULL)
+		goto cleanup;
 
 	tsig->mctx = mctx;
 	return (ISC_R_SUCCESS);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.35 2001/03/16 22:52:39 bwelling Exp $ */
+/* $Id: hinfo_13.c,v 1.36 2001/06/21 04:00:32 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -137,22 +137,17 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	hinfo->cpu_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	if (hinfo->cpu_len > 0) {
-		hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
-		if (hinfo->cpu == NULL)
-			return (ISC_R_NOMEMORY);
-		isc_region_consume(&region, hinfo->cpu_len);
-	} else
-		hinfo->cpu = NULL;
+	hinfo->cpu = mem_maybedup(mctx, region.base, hinfo->cpu_len);
+	if (hinfo->cpu == NULL)
+		return (ISC_R_NOMEMORY);
+	isc_region_consume(&region, hinfo->cpu_len);
 
 	hinfo->os_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	if (hinfo->os_len > 0) {
-		hinfo->os = mem_maybedup(mctx, region.base, hinfo->os_len);
-		if (hinfo->os == NULL)
-			goto cleanup;
-	} else
-		hinfo->os = NULL;
+	hinfo->os = mem_maybedup(mctx, region.base, hinfo->os_len);
+	if (hinfo->os == NULL)
+		goto cleanup;
+
 	hinfo->mctx = mctx;
 	return (ISC_R_SUCCESS);
 

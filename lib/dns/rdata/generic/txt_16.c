@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.35 2001/03/16 22:53:05 bwelling Exp $ */
+/* $Id: txt_16.c,v 1.36 2001/06/21 04:00:41 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -27,6 +27,7 @@
 static inline isc_result_t
 fromtext_txt(ARGS_FROMTEXT) {
 	isc_token_t token;
+	int strings;
 
 	REQUIRE(type == 16);
 
@@ -35,7 +36,8 @@ fromtext_txt(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(downcase);
 
-	for(;;) {
+	strings = 0;
+	for (;;) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring,
 					      ISC_TRUE));
@@ -43,10 +45,11 @@ fromtext_txt(ARGS_FROMTEXT) {
 		    token.type != isc_tokentype_string)
 			break;
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));
+		strings++;
 	}
 	/* Let upper layer handle eol/eof. */
 	isc_lex_ungettoken(lexer, &token);
-	return (ISC_R_SUCCESS);
+	return (strings == 0 ? ISC_R_UNEXPECTEDEND : ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -79,11 +82,11 @@ fromwire_txt(ARGS_FROMWIRE) {
 	UNUSED(rdclass);
 	UNUSED(downcase);
 
-	while (!buffer_empty(source)) {
+	do {
 		result = txt_fromwire(source, target);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-	}
+	} while (!buffer_empty(source));
 	return (ISC_R_SUCCESS);
 }
 
@@ -128,8 +131,7 @@ fromstruct_txt(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(txt->common.rdtype == type);
 	REQUIRE(txt->common.rdclass == rdclass);
-	REQUIRE((txt->txt == NULL && txt->txt_len == 0) ||
-		(txt->txt != NULL && txt->txt_len != 0));
+	REQUIRE(txt->txt != NULL && txt->txt_len != 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -161,12 +163,9 @@ tostruct_txt(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	txt->txt_len = r.length;
-	if (txt->txt_len != 0) {
-		txt->txt = mem_maybedup(mctx, r.base, r.length);
-		if (txt->txt == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		txt->txt = NULL;
+	txt->txt = mem_maybedup(mctx, r.base, r.length);
+	if (txt->txt == NULL)
+		return (ISC_R_NOMEMORY);
 
 	txt->offset = 0;
 	txt->mctx = mctx;

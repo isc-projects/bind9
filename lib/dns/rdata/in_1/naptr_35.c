@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.41 2001/03/16 22:53:14 bwelling Exp $ */
+/* $Id: naptr_35.c,v 1.42 2001/06/21 04:00:45 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -319,12 +319,9 @@ fromstruct_in_naptr(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(naptr->common.rdtype == type);
 	REQUIRE(naptr->common.rdclass == rdclass);
-	REQUIRE((naptr->flags == NULL && naptr->flags_len == 0) ||
-		(naptr->flags != NULL && naptr->flags_len != 0));
-	REQUIRE((naptr->service == NULL && naptr->service_len == 0) ||
-		(naptr->service != NULL && naptr->service_len != 0));
-	REQUIRE((naptr->regexp == NULL && naptr->regexp_len == 0) ||
-		(naptr->regexp != NULL && naptr->regexp_len != 0));
+	REQUIRE(naptr->flags != NULL || naptr->flags_len == 0);
+	REQUIRE(naptr->service != NULL && naptr->service_len == 0);
+	REQUIRE(naptr->regexp != NULL && naptr->regexp_len == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -371,34 +368,27 @@ tostruct_in_naptr(ARGS_TOSTRUCT) {
 
 	naptr->flags_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	if (naptr->flags_len != 0) {
-		INSIST(naptr->flags_len <= r.length);
-		naptr->flags = mem_maybedup(mctx, r.base, naptr->flags_len);
-		if (naptr->flags == NULL)
-			goto cleanup;
-		isc_region_consume(&r, naptr->flags_len);
-	}
+	INSIST(naptr->flags_len <= r.length);
+	naptr->flags = mem_maybedup(mctx, r.base, naptr->flags_len);
+	if (naptr->flags == NULL)
+		goto cleanup;
+	isc_region_consume(&r, naptr->flags_len);
 
 	naptr->service_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	if (naptr->service_len != 0) {
-		INSIST(naptr->service_len <= r.length);
-		naptr->service = mem_maybedup(mctx, r.base,
-					       naptr->service_len);
-		if (naptr->service == NULL)
-			goto cleanup;
-		isc_region_consume(&r, naptr->service_len);
-	}
+	INSIST(naptr->service_len <= r.length);
+	naptr->service = mem_maybedup(mctx, r.base, naptr->service_len);
+	if (naptr->service == NULL)
+		goto cleanup;
+	isc_region_consume(&r, naptr->service_len);
 
 	naptr->regexp_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
-	if (naptr->regexp_len != 0) {
-		INSIST(naptr->regexp_len <= r.length);
-		naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
-		if (naptr->regexp == NULL)
-			goto cleanup;
-		isc_region_consume(&r, naptr->regexp_len);
-	}
+	INSIST(naptr->regexp_len <= r.length);
+	naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
+	if (naptr->regexp == NULL)
+		goto cleanup;
+	isc_region_consume(&r, naptr->regexp_len);
 
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);

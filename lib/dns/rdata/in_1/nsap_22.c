@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.31 2001/03/16 22:53:16 bwelling Exp $ */
+/* $Id: nsap_22.c,v 1.32 2001/06/21 04:00:46 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -152,8 +152,7 @@ fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(nsap->common.rdtype == type);
 	REQUIRE(nsap->common.rdclass == rdclass);
-	REQUIRE((nsap->nsap == NULL && nsap->nsap_len == 0) ||
-		(nsap->nsap != NULL && nsap->nsap_len != 0));
+	REQUIRE(nsap->nsap != NULL || nsap->nsap_len == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -177,12 +176,9 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	nsap->nsap_len = r.length;
-	if (nsap->nsap_len != 0) {
-		nsap->nsap = mem_maybedup(mctx, r.base, r.length);
-		if (nsap->nsap == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		nsap->nsap = NULL;
+	nsap->nsap = mem_maybedup(mctx, r.base, r.length);
+	if (nsap->nsap == NULL)
+		return (ISC_R_NOMEMORY);
 
 	nsap->mctx = mctx;
 	return (ISC_R_SUCCESS);

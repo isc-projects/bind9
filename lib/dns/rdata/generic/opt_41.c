@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.23 2001/03/16 22:52:57 bwelling Exp $ */
+/* $Id: opt_41.c,v 1.24 2001/06/21 04:00:37 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -166,8 +166,7 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(opt->common.rdtype == type);
 	REQUIRE(opt->common.rdclass == rdclass);
-	REQUIRE((opt->options != NULL && opt->length != 0) ||
-		(opt->options == NULL && opt->length == 0));
+	REQUIRE(opt->options != NULL || opt->length == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -202,12 +201,9 @@ tostruct_opt(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	opt->length = r.length;
-	if (opt->length != 0) {
-		opt->options = mem_maybedup(mctx, r.base, r.length);
-		if (opt->options == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		opt->options = NULL;
+	opt->options = mem_maybedup(mctx, r.base, r.length);
+	if (opt->options == NULL)
+		return (ISC_R_NOMEMORY);
 
 	opt->offset = 0;
 	opt->mctx = mctx;

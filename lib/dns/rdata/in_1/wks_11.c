@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.42 2001/03/16 22:53:20 bwelling Exp $ */
+/* $Id: wks_11.c,v 1.43 2001/06/21 04:00:47 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -242,6 +242,7 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(wks->common.rdtype == type);
 	REQUIRE(wks->common.rdclass == rdclass);
+	REQUIRE(wks->map != NULL || wks->map_len == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -273,12 +274,9 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 	wks->protocol = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	wks->map_len = region.length;
-	if (wks->map_len > 0) {
-		wks->map = mem_maybedup(mctx, region.base, region.length);
-		if (wks->map == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		wks->map = NULL;
+	wks->map = mem_maybedup(mctx, region.base, region.length);
+	if (wks->map == NULL)
+		return (ISC_R_NOMEMORY);
 	wks->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

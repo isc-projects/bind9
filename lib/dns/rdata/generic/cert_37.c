@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.38 2001/03/16 22:52:35 bwelling Exp $ */
+/* $Id: cert_37.c,v 1.39 2001/06/21 04:00:30 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -205,13 +205,9 @@ tostruct_cert(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 1);
 	cert->length = region.length;
 
-	if (cert->length > 0) {
-		cert->certificate = mem_maybedup(mctx, region.base,
-						 region.length);
-		if (cert->certificate == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		cert->certificate = NULL;
+	cert->certificate = mem_maybedup(mctx, region.base, region.length);
+	if (cert->certificate == NULL)
+		return (ISC_R_NOMEMORY);
 
 	cert->mctx = mctx;
 	return (ISC_R_SUCCESS);

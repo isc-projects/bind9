@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.30 2001/03/16 22:52:38 bwelling Exp $ */
+/* $Id: gpos_27.c,v 1.31 2001/06/21 04:00:31 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -147,25 +147,17 @@ tostruct_gpos(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	gpos->long_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	if (gpos->long_len != 0) {
-		gpos->longitude = mem_maybedup(mctx, region.base,
-					       gpos->long_len);
-		if (gpos->longitude == NULL)
-			return (ISC_R_NOMEMORY);
-		isc_region_consume(&region, gpos->long_len);
-	} else
-		gpos->longitude = NULL;
+	gpos->longitude = mem_maybedup(mctx, region.base, gpos->long_len);
+	if (gpos->longitude == NULL)
+		return (ISC_R_NOMEMORY);
+	isc_region_consume(&region, gpos->long_len);
 
 	gpos->lat_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
-	if (gpos->lat_len > 0) {
-		gpos->latitude =
-			mem_maybedup(mctx, region.base, gpos->lat_len);
-		if (gpos->latitude == NULL)
-			goto cleanup_longitude;
-		isc_region_consume(&region, gpos->lat_len);
-	} else
-		gpos->latitude = NULL;
+	gpos->latitude = mem_maybedup(mctx, region.base, gpos->lat_len);
+	if (gpos->latitude == NULL)
+		goto cleanup_longitude;
+	isc_region_consume(&region, gpos->lat_len);
 
 	gpos->alt_len = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);

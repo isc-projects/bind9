@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.46 2001/03/16 22:53:04 bwelling Exp $ */
+/* $Id: tkey_249.c,v 1.47 2001/06/21 04:00:39 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -458,13 +458,10 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	/*
 	 * Key.
 	 */
-	if (tkey->keylen > 0) {
-		tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
-		if (tkey->key == NULL)
-			goto cleanup;
-		isc_region_consume(&sr, tkey->keylen);
-	} else
-		tkey->key = NULL;
+	tkey->key = mem_maybedup(mctx, sr.base, tkey->keylen);
+	if (tkey->key == NULL)
+		goto cleanup;
+	isc_region_consume(&sr, tkey->keylen);
 
 	/*
 	 * Other size.
@@ -475,12 +472,9 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	/*
 	 * Other.
 	 */
-	if (tkey->otherlen > 0) {
-		tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
-		if (tkey->other == NULL)
-			goto cleanup;
-	} else
-		tkey->other = NULL;
+	tkey->other = mem_maybedup(mctx, sr.base, tkey->otherlen);
+	if (tkey->other == NULL)
+		goto cleanup;
 
 	tkey->mctx = mctx;
 	return (ISC_R_SUCCESS);

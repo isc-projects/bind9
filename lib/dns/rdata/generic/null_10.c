@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.33 2001/06/20 17:43:31 gson Exp $ */
+/* $Id: null_10.c,v 1.34 2001/06/21 04:00:36 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -96,8 +96,7 @@ fromstruct_null(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(null->common.rdtype == type);
 	REQUIRE(null->common.rdclass == rdclass);
-	REQUIRE((null->data != NULL && null->length != 0) ||
-		(null->data == NULL && null->length == 0));
+	REQUIRE(null->data != NULL || null->length == 0);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -119,12 +118,9 @@ tostruct_null(ARGS_TOSTRUCT) {
 
 	dns_rdata_toregion(rdata, &r);
 	null->length = r.length;
-	if (null->length != 0) {
-		null->data = mem_maybedup(mctx, r.base, r.length);
-		if (null->data == NULL)
-			return (ISC_R_NOMEMORY);
-	} else
-		null->data = NULL;
+	null->data = mem_maybedup(mctx, r.base, r.length);
+	if (null->data == NULL)
+		return (ISC_R_NOMEMORY);
 
 	null->mctx = mctx;
 	return (ISC_R_SUCCESS);
