@@ -1,3 +1,6 @@
+1386.	[bug]		named-checkzone -z stopped on errors in a zone.
+			[RT #3653]
+
 1385.	[bug]		Setting serial-query-rate to 10 would trigger a
 			REQUIRE failure.
 
