@@ -13,15 +13,17 @@ options {
         files <size>;
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
-        host-statistics <boolean>;
+        host-statistics <boolean>; // not implemented
+        hostname ( <quoted_string> | none );
         interface-interval <integer>;
         listen-on [ port <integer> ] { <address_match_element>; ... };
         listen-on-v6 [ port <integer> ] { <address_match_element>; ... };
         match-mapped-addresses <boolean>;
+        max-journal-size <size_no_default>;
         memstatistics-file <quoted_string>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
-        pid-file <quoted_string>;
+        pid-file ( <quoted_string> | none );
         port <integer>;
         random-device <quoted_string>;
         recursive-clients <integer>;
@@ -42,7 +44,7 @@ options {
         treat-cr-as-space <boolean>; // obsolete
         use-id-pool <boolean>; // obsolete
         use-ixfr <boolean>;
-        version <quoted_string>;
+        version ( <quoted_string> | none );
         allow-notify { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
@@ -69,7 +71,7 @@ options {
         max-ncache-ttl <integer>;
         max-cache-ttl <integer>;
         transfer-format <string>;
-        max-cache-size <size>;
+        max-cache-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
@@ -81,7 +83,8 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        maintain-ixfr-base <boolean>;
+        ixfr-from-differences <boolean>;
+        maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
@@ -134,7 +137,6 @@ view <string> <optional_class> {
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
-                max-journal-size <size>;
                 masters [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ] [ key <string> ]; ... };
                 pubkey <integer> <integer> <integer> <quoted_string>; //
@@ -152,7 +154,8 @@ view <string> <optional_class> {
                 forward ( first | only );
                 forwarders [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
-                maintain-ixfr-base <boolean>;
+                ixfr-from-differences <boolean>;
+                maintain-ixfr-base <boolean>; // obsolete
                 max-ixfr-log-size <size>; // obsolete
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
                     * ) ];
@@ -207,7 +210,7 @@ view <string> <optional_class> {
         max-ncache-ttl <integer>;
         max-cache-ttl <integer>;
         transfer-format <string>;
-        max-cache-size <size>;
+        max-cache-size <size_no_default>;
         check-names <string> <string>; // not implemented
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
@@ -219,7 +222,8 @@ view <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        maintain-ixfr-base <boolean>;
+        ixfr-from-differences <boolean>;
+        maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
@@ -255,7 +259,6 @@ zone <string> <optional_class> {
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
-        max-journal-size <size>;
         masters [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [
             port <integer> ] [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
@@ -272,7 +275,8 @@ zone <string> <optional_class> {
         forward ( first | only );
         forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
             [ port <integer> ]; ... };
-        maintain-ixfr-base <boolean>;
+        ixfr-from-differences <boolean>;
+        maintain-ixfr-base <boolean>; // obsolete
         max-ixfr-log-size <size>; // obsolete
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
