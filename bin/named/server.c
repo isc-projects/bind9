@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.427 2004/06/04 02:31:40 marka Exp $ */
+/* $Id: server.c,v 1.428 2004/06/18 04:38:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1368,7 +1368,7 @@ configure_alternates(cfg_obj_t *config, dns_view_t *view,
 			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
 						ISC_FALSE, NULL));
 
-			portobj = cfg_tuple_get(alternates, "port");
+			portobj = cfg_tuple_get(alternate, "port");
 			if (cfg_obj_isuint32(portobj)) {
 				isc_uint32_t val = cfg_obj_asuint32(portobj);
 				if (val > ISC_UINT16_MAX) {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.34 2004/06/04 02:31:43 marka Exp $ */
+/* $Id: namedconf.c,v 1.35 2004/06/18 04:38:45 marka Exp $ */
 
 #include <config.h>
 
@@ -70,6 +70,7 @@ static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
+static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
@@ -1708,6 +1709,7 @@ static cfg_clausedef_t
 rndcconf_server_clauses[] = {
 	{ "key", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_uint32, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrnameportlist, 0 },
 	{ NULL, NULL, 0 }
 };
 

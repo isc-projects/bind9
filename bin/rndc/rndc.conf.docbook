@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.docbook,v 1.6 2004/06/03 02:22:33 marka Exp $ -->
+<!-- $Id: rndc.conf.docbook,v 1.7 2004/06/18 04:38:47 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -86,12 +86,15 @@
 	will be used to connect.
     </para>
     <para>
-        After the <option>server</option> keyword, the server statement
-	includes a string which is the hostname or address for a name
-	server.  The statement has two possible clauses:
-	<option>key</option> and <option>port</option>. The key name must
-	match the name of a key statement in the file.  The port number
-	specifies the port to connect to.
+	After the <option>server</option> keyword, the server
+	statement includes a string which is the hostname or address
+	for a name server.  The statement has three possible clauses:
+	<option>key</option>, <option>port</option> and
+	<option>addresses</option>. The key name must match the
+	name of a key statement in the file.  The port number
+	specifies the port to connect to.  If an <option>addresses</option>
+	clause is supplied these addresses will be used instead of
+	the server name.  Each address can take a optional port.
     </para>
     <para>
         The <option>key</option> statement begins with an identifying
@@ -118,7 +121,7 @@
     <title>EXAMPLE</title>
 
     <programlisting>
-    options {
+      options {
         default-server  localhost;
         default-key     samplekey;
       };
@@ -127,10 +130,20 @@
         key             samplekey;
       };
 
+      server testserver {
+        key		testkey;
+        addresses	{ localhost port 5353; };
+      };
+
       key samplekey {
         algorithm       hmac-md5;
-        secret          "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
+        secret          "6FMfj43Osz4lyb24OIe2iGEz9lf1llJO+lz";
       };
+	
+      key testkey {
+        algorithm	hmac-md5;
+        secret		"R3HI8P6BKw9ZwXwN3VZKuQ==";
+      }
     </programlisting>
 
     <para>
@@ -141,6 +154,10 @@
 	same name and secret.  The key statement indicates that samplekey
 	uses the HMAC-MD5 algorithm and its secret clause contains the
 	base-64 encoding of the HMAC-MD5 secret enclosed in double quotes.
+    </para>
+    <para>
+	If <command>rndc -s testserver</command> is used then <command>rndc</command> will
+	connect to server on localhost port 5353 using the key testkey.
     </para>
     <para>
         To generate a random secret with <command>rndc-confgen</command>:
