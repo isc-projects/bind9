@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.120 2001/11/30 01:59:15 gson Exp $ */
+/* $Id: rbt.c,v 1.121 2001/12/03 19:44:07 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1406,7 +1406,6 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	if (DOWN(node) != NULL) {
 		if (recurse)
 			dns_rbt_deletetree(rbt, DOWN(node));
-
 		else {
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node),
@@ -1925,7 +1924,6 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 * This node has one child, on the left.
 		 */
 		child = LEFT(delete);
-
 	else {
 		dns_rbtnode_t holder, *tmp = &holder;
 

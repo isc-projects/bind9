@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.198 2001/11/30 01:59:12 gson Exp $ */
+/* $Id: message.c,v 1.199 2001/12/03 19:44:05 gson Exp $ */
 
 /***
  *** Imports
@@ -1457,8 +1457,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
 			free_name = ISC_FALSE;
-		}
-		else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
+		} else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
 			msg->tsig = rdataset;
 			msg->tsigname = name;
 			rdataset = NULL;
