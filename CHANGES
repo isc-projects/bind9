@@ -12,8 +12,8 @@
  218.	[func]		When an rdataset is signed, its ttl is normalized
 			based on the signature validity period.
 
- 217.	[func]		Also-notify and trusted-keys can now be used in a
-			config file.
+ 217.	[func]		Also-notify and trusted-keys can now be used in
+			the 'view' statement.
 
  216.   [func]		The 'cache-ttl' and 'ncache-ttl' options now work.
 
