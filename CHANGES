@@ -1,11 +1,12 @@
+
+	--- 9.2.0rc9 released ---
+
 1107.	[bug]		nsupdate could catch an assertion failure if an
 			invalid domain name was given as the argument to
 			the "zone" command.
 
 1106.	[bug]		After seeing an out of range TTL, nsupdate would
 			treat all TTLs as out of range. [RT #2001]
-
-	--- 9.2.0rc9 released ---
 
 1104.	[bug]		Invalid arguments to the transfer-format option
 			could cause an assertion failure. [RT #1995]
