@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.20 2001/01/04 23:34:03 neild Exp $ */
+/* $Id: mutex.h,v 1.21 2001/01/06 01:26:36 gson Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -24,6 +24,18 @@
 #include <stdio.h>
 
 #include <isc/result.h>		/* for ISC_R_ codes */
+
+/*
+ * Supply mutex attributes that enable deadlock detection
+ * (helpful when debugging).  This is system dependent and
+ * currently only supported on NetBSD.
+ */
+#ifdef __NetBSD__
+extern pthread_mutexattr_t isc__mutex_attrs;
+#define ISC__MUTEX_ATTRS &isc__mutex_attrs
+#else
+#define ISC__MUTEX_ATTRS NULL
+#endif
 
 /* XXX We could do fancier error handling... */
 
@@ -54,7 +66,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 	isc_mutex_init_profile((mp), __FILE__, __LINE__)
 #else
 #define isc_mutex_init(mp) \
-	((pthread_mutex_init((mp), NULL) == 0) ? \
+	((pthread_mutex_init((mp), ISC__MUTEX_ATTRS) == 0) ? \
 	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 #endif
 
