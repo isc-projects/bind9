@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.16 2001/11/27 01:56:15 gson Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.17 2002/05/30 01:24:12 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -238,7 +238,7 @@ internal_current(isc_interfaceiter_t *iter) {
 			return (ISC_R_IGNORE);
 
 		family = addr_sa->sa_family;
-		if (family != AF_INET) /* XXX IP6 */
+		if (family != AF_INET && family != AF_INET6)
 			return (ISC_R_IGNORE);
 
 		iter->current.af = family;
