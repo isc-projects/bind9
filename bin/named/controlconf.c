@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.24 2001/08/03 21:44:45 gson Exp $ */
+/* $Id: controlconf.c,v 1.25 2001/08/04 07:38:06 marka Exp $ */
 
 #include <config.h>
 
@@ -808,10 +808,15 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	return (result);
 }
 			
+/*
+ * Ensures that both '*global_keylistp' and '*control_keylistp' are
+ * valid or both are NULL.
+ */
 static void
 get_key_info(cfg_obj_t *config, cfg_obj_t *control,
 	     cfg_obj_t **global_keylistp, cfg_obj_t **control_keylistp)
 {
+	isc_result_t result;
 	cfg_obj_t *control_keylist = NULL;
 	cfg_obj_t *global_keylist = NULL;
 
@@ -821,11 +826,14 @@ get_key_info(cfg_obj_t *config, cfg_obj_t *control,
 	control_keylist = cfg_tuple_get(control, "keys");
 
 	if (!cfg_obj_isvoid(control_keylist) &&
-	    cfg_list_first(control_keylist) != NULL)
-		cfg_map_get(config, "key", &global_keylist);
+	    cfg_list_first(control_keylist) != NULL) {
+		result = cfg_map_get(config, "key", &global_keylist);
 
-	*global_keylistp = global_keylist;
-	*control_keylistp = control_keylist;
+		if (result == ISC_R_SUCCESS) {
+			*global_keylistp = global_keylist;
+			*control_keylistp = control_keylist;
+		}
+	}
 }
 
 static void
