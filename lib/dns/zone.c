@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.223 2000/09/27 13:05:04 marka Exp $ */
+/* $Id: zone.c,v 1.224 2000/09/28 18:03:18 gson Exp $ */
 
 #include <config.h>
 
@@ -3339,7 +3339,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = now;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
-			INSIST(zone->dumptime != 0);
+			/* XXXAG zone->dumptime will be 0 here */
 			if (zone->dumptime < next || next == 0)
 				next = zone->dumptime;
 		}
