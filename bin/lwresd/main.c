@@ -136,6 +136,8 @@ create_view(isc_mem_t *mctx) {
 	result = dns_view_createresolver(view, taskmgr, 16, sockmgr,
 					 timermgr, 0, dispatchmgr,
 					 disp4, disp6);
+	dns_dispatch_detach(&disp4);
+	dns_dispatch_detach(&disp6);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -478,6 +480,8 @@ main(int argc, char **argv) {
 	isc_mem_put(mem, cmgr, sizeof(clientmgr_t) * NTASKS);
 	cmgr = NULL;
 
+	dns_dispatchmgr_destroy(&dispatchmgr);
+	
 	isc_log_destroy(&lctx);
 
 	/*
