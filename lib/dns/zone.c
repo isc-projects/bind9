@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283 2000/12/28 01:29:06 marka Exp $ */
+/* $Id: zone.c,v 1.284 2000/12/29 01:04:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1253,8 +1253,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	return (result);
 }
 
-static void
+static isc_boolean_t
 exit_check(dns_zone_t *zone) {
+
+	REQUIRE(LOCKED_ZONE(zone));
+
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) &&
 	    zone->irefs == 0)
 	{
@@ -1262,8 +1265,9 @@ exit_check(dns_zone_t *zone) {
 		 * DNS_ZONEFLG_EXITING can only be set if erefs == 0.
 		 */
 		INSIST(zone->erefs == 0);
-		zone_free(zone);
+		return (ISC_TRUE);
 	}
+	return (ISC_FALSE);
 }
 
 static isc_result_t
@@ -1520,6 +1524,7 @@ zone_idetach(dns_zone_t **zonep) {
 void
 dns_zone_idetach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
+	isc_boolean_t free_needed;
 
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 	zone = *zonep;
@@ -1530,8 +1535,10 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	zone->irefs--;
 	zone_log(zone, "dns_zone_idetach", ISC_LOG_DEBUG(10),
 		 "eref = %d, irefs = %d", zone->erefs, zone->irefs);
+	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
-	exit_check(zone);
+	if (free_needed)
+		zone_free(zone);
 }
 
 isc_mem_t *
@@ -3562,6 +3569,7 @@ static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
 	isc_result_t result;
+	isc_boolean_t free_needed;
 
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3570,7 +3578,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	zone_log(zone, "zone_shutdown", ISC_LOG_DEBUG(3), "shutting down");
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
-	UNLOCK_ZONE(zone);
 
 	/*
 	 * If we were waiting for xfrin quota, step out of
@@ -3587,18 +3594,14 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->xfr != NULL)
 		dns_xfrin_shutdown(zone->xfr);
 
-	LOCK_ZONE(zone);
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
 	}
-	UNLOCK_ZONE(zone);
 
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
 
-	LOCK_ZONE(zone);
 	notify_cancel(zone);
-	UNLOCK_ZONE(zone);
 
 	if (zone->timer != NULL) {
 		result = isc_timer_reset(zone->timer, isc_timertype_inactive,
@@ -3609,7 +3612,10 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->view != NULL)
 		dns_view_weakdetach(&zone->view);
 
-	exit_check(zone);
+	free_needed = exit_check(zone);
+	UNLOCK_ZONE(zone);
+	if (free_needed)
+		zone_free(zone);
 }
 
 static void
