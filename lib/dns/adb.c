@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.148 2000/08/26 01:36:45 bwelling Exp $ */
+/* $Id: adb.c,v 1.149 2000/08/26 02:21:44 explorer Exp $ */
 
 /*
  * Implementation notes
@@ -193,6 +193,8 @@ struct dns_adbname {
 	dns_adbfetch_t		       *fetch_a;
 	dns_adbfetch_t		       *fetch_aaaa;
 	ISC_LIST(dns_adbfetch6_t)	fetches_a6;
+	unsigned int			fetch_err;
+	unsigned int			fetch6_err;
 	dns_adbfindlist_t		finds;
 	ISC_LINK(dns_adbname_t)		plink;
 };
@@ -416,7 +418,33 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 				 (r) == DNS_R_NCACHENXRRSET)
 #define AUTH_NX(r)		((r) == DNS_R_NXDOMAIN || \
 				 (r) == DNS_R_NXRRSET)
+#define NXDOMAIN_RESULT(r)	((r) == DNS_R_NXDOMAIN || \
+				 (r) == DNS_R_NCACHENXDOMAIN)
 
+/*
+ * Error state rankings.
+ */
+
+#define FIND_ERR_SUCCESS		0  /* highest rank */
+#define FIND_ERR_CANCELED		1
+#define FIND_ERR_FAILURE		2
+#define FIND_ERR_NXDOMAIN		3
+#define FIND_ERR_NXRRSET		4
+#define FIND_ERR_UNEXPECTED		5
+#define FIND_ERR_NOTFOUND		6
+#define FIND_ERR_MAX			7
+
+#define NEWERR(old, new)	(ISC_MIN((old), (new)))
+
+static isc_result_t find_err_map[FIND_ERR_MAX] = {
+	ISC_R_SUCCESS,
+	ISC_R_CANCELED,
+	ISC_R_FAILURE,
+	DNS_R_NXDOMAIN,
+	DNS_R_NXRRSET,
+	ISC_R_UNEXPECTED,
+	ISC_R_NOTFOUND		/* not YET found */
+};
 
 static void
 DP(int level, const char *format, ...) {
@@ -1037,7 +1065,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 	dns_adbfind_t *find;
 	dns_adbfind_t *next_find;
 	isc_boolean_t process;
-	unsigned int wanted;
+	unsigned int wanted, notify;
 
 	DP(ENTER_LEVEL,
 	   "ENTER clean_finds_at_name, name %p, evtype %08x, addrs %08x",
@@ -1050,12 +1078,12 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 		process = ISC_FALSE;
 		wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
+		notify = wanted & addrs;
 
 		switch (evtype) {
 		case DNS_EVENT_ADBMOREADDRESSES:
 			DP(3, "DNS_EVENT_ADBMOREADDRESSES");
-			if ((wanted & addrs) != 0) {
-				DP(3, "processing");
+			if ((notify) != 0) {
 				find->flags &= ~addrs;
 				process = ISC_TRUE;
 			}
@@ -1064,10 +1092,8 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			DP(3, "DNS_EVENT_ADBNOMOREADDRESSES");
 			find->flags &= ~addrs;
 			wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
-			if (wanted == 0) {
+			if (wanted == 0)
 				process = ISC_TRUE;
-				DP(3, "processing");
-			}
 			break;
 		default:
 			find->flags &= ~addrs;
@@ -1090,6 +1116,8 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			ev = &find->event;
 			task = ev->ev_sender;
 			ev->ev_sender = find;
+			find->result_v4 = find_err_map[name->fetch_err];
+			find->result_v6 = find_err_map[name->fetch6_err];
 			ev->ev_type = evtype;
 			ev->ev_destroy = event_free;
 			ev->ev_destroy_arg = find;
@@ -1098,7 +1126,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 			   "Sending event %p to task %p for find %p",
 			   ev, task, find);
 
-			isc_task_sendanddetach(&task, &ev);
+			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
 		} else {
 			DP(DEF_LEVEL, "cfan: skipping find %p", find);
 		}
@@ -1264,6 +1292,8 @@ new_adbname(dns_adb_t *adb, dns_name_t *dnsname) {
 	name->fetch_a = NULL;
 	name->fetch_aaaa = NULL;
 	ISC_LIST_INIT(name->fetches_a6);
+	name->fetch_err = FIND_ERR_UNEXPECTED;
+	name->fetch6_err = FIND_ERR_UNEXPECTED;
 	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
 
@@ -1427,6 +1457,8 @@ new_adbfind(dns_adb_t *adb) {
 	h->partial_result = 0;
 	h->options = 0;
 	h->flags = 0;
+	h->result_v4 = ISC_R_UNEXPECTED;
+	h->result_v6 = ISC_R_UNEXPECTED;
 	ISC_LINK_INIT(h, publink);
 	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
@@ -2672,6 +2704,12 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	} else
 		result = ISC_R_SUCCESS;
 
+	/*
+	 * Copy out error flags from the name structure into the find.
+	 */
+	find->result_v4 = find_err_map[adbname->fetch_err];
+	find->result_v6 = find_err_map[adbname->fetch6_err];
+
  out:
 	if (find != NULL) {
 		*findp = find;
@@ -2794,11 +2832,13 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 		ev->ev_type = DNS_EVENT_ADBCANCELED;
 		ev->ev_destroy = event_free;
 		ev->ev_destroy_arg = find;
+		find->result_v4 = ISC_R_CANCELED;
+		find->result_v6 = ISC_R_CANCELED;
 
 		DP(DEF_LEVEL, "Sending event %p to task %p for find %p",
 		   ev, task, find);
 
-		isc_task_sendanddetach(&task, &ev);
+		isc_task_sendanddetach(&task, (isc_event_t **)&ev);
 	}
 
 	UNLOCK(&find->lock);
@@ -2876,6 +2916,8 @@ dump_adb(dns_adb_t *adb, FILE *f) {
 				print_dns_name(f, &name->target);
 			}
 			fprintf(f, "\n");
+			fprintf(f, "\terr4: %u err6: %u\n",
+				name->fetch_err, name->fetch6_err);
 			print_namehook_list(f, name);
 			print_fetch_list(f, name);
 			print_find_list(f, name);
@@ -3075,6 +3117,11 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	fname =	dns_fixedname_name(&foundname);
 	dns_rdataset_init(&rdataset);
 
+	if (rdtype == dns_rdatatype_a)
+		adbname->fetch_err = FIND_ERR_UNEXPECTED;
+	else
+		adbname->fetch6_err = FIND_ERR_UNEXPECTED;
+
 	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
 			       NAME_GLUEOK(adbname),
 			       ISC_TF(NAME_HINTOK(adbname)),
@@ -3089,6 +3136,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		 * any information, return success, or else a fetch
 		 * will be made, which will only make things worse.
 		 */
+		if (rdtype == dns_rdatatype_a)
+			adbname->fetch_err = FIND_ERR_SUCCESS;
+		else
+			adbname->fetch6_err = FIND_ERR_SUCCESS;
 		result = import_rdataset(adbname, &rdataset, now);
 		break;
 	case DNS_R_NXDOMAIN:
@@ -3106,11 +3157,19 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 			DP(NCACHE_LEVEL,
 			   "adb name %p: Caching auth negative entry for A",
 			   adbname);
+			if (result == DNS_R_NXDOMAIN)
+				adbname->fetch_err = FIND_ERR_NXDOMAIN;
+			else
+				adbname->fetch_err = FIND_ERR_NXRRSET;
 		} else {
 			DP(NCACHE_LEVEL,
 			   "adb name %p: Caching auth negative entry for AAAA",
 			   adbname);
 			adbname->expire_v6 = now + 30;
+			if (result == DNS_R_NXDOMAIN)
+				adbname->fetch6_err = FIND_ERR_NXDOMAIN;
+			else
+				adbname->fetch6_err = FIND_ERR_NXRRSET;
 		}
 		break;
 	case DNS_R_NCACHENXDOMAIN:
@@ -3122,6 +3181,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		rdataset.ttl = ttlclamp(rdataset.ttl);
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
+			if (result == DNS_R_NCACHENXDOMAIN)
+				adbname->fetch_err = FIND_ERR_NXDOMAIN;
+			else
+				adbname->fetch_err = FIND_ERR_NXRRSET;
 			DP(NCACHE_LEVEL,
 			  "adb name %p: Caching negative entry for A (ttl %u)",
 			   adbname, rdataset.ttl);
@@ -3130,6 +3193,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		       "adb name %p: Caching negative entry for AAAA (ttl %u)",
 			   adbname, rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
+			if (result == DNS_R_NCACHENXDOMAIN)
+				adbname->fetch6_err = FIND_ERR_NXDOMAIN;
+			else
+				adbname->fetch6_err = FIND_ERR_NXRRSET;
 		}
 		break;
 	case DNS_R_CNAME:
@@ -3152,6 +3219,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 			   adbname);
 			adbname->expire_target = rdataset.ttl + now;
 		}
+		if (rdtype == dns_rdatatype_a)
+			adbname->fetch_err = FIND_ERR_SUCCESS;
+		else
+			adbname->fetch6_err = FIND_ERR_SUCCESS;
 		break;
 	}
 
@@ -3181,6 +3252,8 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	fname =	dns_fixedname_name(&foundname);
 	dns_rdataset_init(&rdataset);
 
+	adbname->fetch6_err = FIND_ERR_UNEXPECTED;
+
 	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
 			       now, NAME_GLUEOK(adbname),
 			       ISC_TF(NAME_HINTOK(adbname)),
@@ -3195,6 +3268,7 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		 * who might be waiting, since this is call requires there
 		 * are none.
 		 */
+		adbname->fetch6_err = FIND_ERR_SUCCESS;
 		dns_a6_init(&a6ctx, a6find, NULL, import_a6,
 			    a6missing, adbname);
 		(void)dns_a6_foreach(&a6ctx, &rdataset, now);
@@ -3214,6 +3288,10 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		   "adb name %p: Caching auth negative entry for AAAA",
 		   adbname);
 		adbname->expire_v6 = now + 30;
+		if (result == DNS_R_NXDOMAIN)
+			adbname->fetch6_err = FIND_ERR_NXDOMAIN;
+		else
+			adbname->fetch6_err = FIND_ERR_NXRRSET;
 		break;
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
@@ -3226,6 +3304,10 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 		   adbname, rdataset.ttl);
 		adbname->expire_v6 = ISC_MIN(rdataset.ttl + now,
 					     adbname->expire_v6);
+		if (result == DNS_R_NCACHENXDOMAIN)
+			adbname->fetch6_err = FIND_ERR_NXDOMAIN;
+		else
+			adbname->fetch6_err = FIND_ERR_NXRRSET;
 		break;
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
@@ -3343,12 +3425,20 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			   name, dev->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
 						  dev->rdataset->ttl + now);
+			if (dev->result == DNS_R_NCACHENXDOMAIN)
+				name->fetch_err = FIND_ERR_NXDOMAIN;
+			else
+				name->fetch_err = FIND_ERR_NXRRSET;
 		} else {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "Caching negative entry for AAAA (ttl %u)",
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
+			if (dev->result == DNS_R_NCACHENXDOMAIN)
+				name->fetch6_err = FIND_ERR_NXDOMAIN;
+			else
+				name->fetch6_err = FIND_ERR_NXRRSET;
 		}
 		goto out;
 	}
@@ -3379,13 +3469,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
 		/* XXXMLG Don't pound on bad servers. */
-		if (address_type == DNS_ADBFIND_INET)
+		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
-		else
+			name->fetch_err = FIND_ERR_FAILURE;
+		} else {
 			name->expire_v6 = ISC_MIN(name->expire_v6, now + 300);
-		DP(1, "got junk in fetch for name %p (%s)",
-		   name, isc_result_totext(dev->result));
-
+			name->fetch6_err = FIND_ERR_FAILURE;
+		}
 		goto out;
 	}
 
@@ -3395,8 +3485,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	result = import_rdataset(name, &fetch->rdataset, now);
 
  check_result:
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
+		if (address_type == DNS_ADBFIND_INET)
+			name->fetch_err = FIND_ERR_SUCCESS;
+		else
+			name->fetch6_err = FIND_ERR_SUCCESS;
+	}
 
  out:
 	free_adbfetch(adb, &fetch);
@@ -3502,6 +3597,10 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 			   name, dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
+			if (dev->result == DNS_R_NCACHENXDOMAIN)
+				name->fetch6_err = FIND_ERR_NXDOMAIN;
+			else
+				name->fetch6_err = FIND_ERR_NXRRSET;
 		}
 
 		/*
@@ -3553,8 +3652,13 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 			 * Listen to negative cache hints, and don't start
 			 * another query.
 			 */
-			if (NCACHE_RESULT(result) || AUTH_NX(result))
+			if (NCACHE_RESULT(result) || AUTH_NX(result)) {
+				if (NXDOMAIN_RESULT(result))
+					name->fetch6_err = NEWERR(name->fetch6_err, FIND_ERR_NXDOMAIN);
+				else
+					name->fetch6_err = NEWERR(name->fetch6_err, FIND_ERR_NXRRSET);
 				goto out;
+			}
 
 			/*
 			 * Try to start fetches for AAAA.
@@ -3583,10 +3687,11 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 	free_adbfetch6(adb, &fetch);
 	isc_event_free(&ev);
 
-	if (NAME_NEEDSPOKE(name))
+	if (NAME_NEEDSPOKE(name)) {
 		clean_finds_at_name(name, DNS_EVENT_ADBMOREADDRESSES,
 				    DNS_ADBFIND_INET6);
-	else if (!NAME_FETCH_V6(name))
+			name->fetch6_err = FIND_ERR_SUCCESS;
+	} else if (!NAME_FETCH_V6(name))
 		clean_finds_at_name(name, DNS_EVENT_ADBNOMOREADDRESSES,
 				    DNS_ADBFIND_INET6);
 
@@ -3611,6 +3716,8 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	INSIST(!NAME_FETCH_V4(adbname));
+
+	adbname->fetch_err = FIND_ERR_NOTFOUND;
 
 	name = NULL;
 	nameservers = NULL;
@@ -3654,6 +3761,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	return (result);
 }
 
+/* XXXMLG Why doesn't this look a lot like fetch_name_a and fetch_name_a6? */
 static isc_result_t
 fetch_name_aaaa(dns_adbname_t *adbname) {
 	isc_result_t result;
@@ -3665,6 +3773,8 @@ fetch_name_aaaa(dns_adbname_t *adbname) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	INSIST(!NAME_FETCH_AAAA(adbname));
+
+	adbname->fetch6_err = FIND_ERR_NOTFOUND;
 
 	fetch = new_adbfetch(adb);
 	if (fetch == NULL) {
@@ -3705,6 +3815,8 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	INSIST(DNS_ADB_VALID(adb));
 
 	INSIST(!NAME_FETCH_V6(adbname));
+
+	adbname->fetch6_err = FIND_ERR_NOTFOUND;
 
 	name = NULL;
 	nameservers = NULL;

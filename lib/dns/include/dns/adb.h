@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.59 2000/08/01 01:23:39 tale Exp $ */
+/* $Id: adb.h,v 1.60 2000/08/26 02:21:45 explorer Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -115,6 +115,8 @@ struct dns_adbfind {
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
 	unsigned int			options;	/* RO: options */
+	isc_result_t			result_v4;	/* RO: v4 result */
+	isc_result_t			result_v6;	/* RO: v6 result */
 	ISC_LINK(dns_adbfind_t)		publink;	/* RW: client use */
 
 	/* Private */
@@ -307,6 +309,15 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * If other addresses resolve after this call completes, an event will
  * be sent to the <task, taskaction, arg> with the sender of that event
  * set to a pointer to the dns_adbfind_t returned by this function.
+ *
+ * If no events will be generated, the *find->result_v4 and/or result_v6
+ * members may be examined for address lookup status.  The usual ISC_R_SUCCESS,
+ * ISC_R_FAILURE, and DNS_R_NX{DOMAIN,RRSET} are returned, along with
+ * ISC_R_NOTFOUND meaning the ADB has not _yet_ found the values.  In this
+ * latter case, retrying may produce more addresses.
+ *
+ * If events will be returned, the result_v[46] members are only valid
+ * when that event is actually returned.
  *
  * The list of addresses returned is unordered.  The caller must impose
  * any ordering required.  The list will not contain "known bad" addresses,
