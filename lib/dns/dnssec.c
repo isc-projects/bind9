@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.17 2000/02/03 23:43:47 halley Exp $
+ * $Id: dnssec.c,v 1.18 2000/02/04 18:19:48 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -576,8 +576,15 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  mctx, &keys[count++]);
 		if (result == DST_R_INVALIDPRIVATEKEY)
 			count--;
-		else
+		else {
 			check_result(result, "dst_key_fromfile()");
+			if (dst_key_flags(keys[count - 1]) & DNS_KEYTYPE_NOAUTH)
+			{
+				dst_key_free(keys[count - 1]);
+				keys[count - 1] = NULL;
+				count--;
+			}
+		}
  next:
 		dst_key_free(pubkey);
 		pubkey = NULL;
