@@ -1,11 +1,13 @@
+
+
 DNS Extensions Working Group                            J. Schlyter, Ed.
-Internet-Draft                                             March 3, 2004
+Internet-Draft                                            March 11, 2004
 Updates: RFC 2535, RFC TCR
-Expires: September 1, 2004
+Expires: September 9, 2004
 
 
                         DNSSEC NSEC RDATA Format
-                  draft-ietf-dnsext-nsec-rdata-04.txt
+                  draft-ietf-dnsext-nsec-rdata-05.txt
 
 Status of this Memo
 
@@ -27,7 +29,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on September 1, 2004.
+   This Internet-Draft will expire on September 9, 2004.
 
 Copyright Notice
 
@@ -49,7 +51,7 @@ Abstract
 
 
 
-Schlyter               Expires September 1, 2004                [Page 1]
+Schlyter               Expires September 9, 2004                [Page 1]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -105,16 +107,16 @@ Table of Contents
 
 
 
-Schlyter               Expires September 1, 2004                [Page 2]
+Schlyter               Expires September 9, 2004                [Page 2]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
 
 1. Introduction
 
-   The NSEC [5] Resource Record (RR) is used for authenticated proof of
+   The NSEC [6] Resource Record (RR) is used for authenticated proof of
    the non-existence of DNS owner names and types.  The NSEC RR is based
-   on the NXT RR as described in RFC 2535 [2], and is similar except for
+   on the NXT RR as described in RFC 2535 [3], and is similar except for
    the name and typecode. The RDATA format for the NXT RR had a
    limitation in that, without using a yet undefined extension
    mechanism, the the RDATA could only carry information about the
@@ -137,10 +139,10 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
    For convenience and completeness this document presents the syntax
    and semantics for the NSEC RR based on the specification in RFC 2535
-   [2] and as updated by RFC TCR [5], thereby not introducing changes
+   [3] and as updated by RFC TCR [6], thereby not introducing changes
    except for the syntax of the type bit map.
 
-   This document updates RFC 2535 [2] and RFC TCR [5].
+   This document updates RFC 2535 [3] and RFC TCR [6].
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -154,14 +156,14 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
    NSEC RRs in a zone both indicate which RRsets exist in a zone and
    also form a chain of owner names in the zone.  This information is
    used to provide authenticated denial of existence for DNS data, as
-   described in RFC 2535 [2].
+   described in RFC 2535 [3].
 
    The type value for the NSEC RR is 47.
 
 
 
 
-Schlyter               Expires September 1, 2004                [Page 3]
+Schlyter               Expires September 9, 2004                [Page 3]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -169,7 +171,8 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
    The NSEC RR RDATA format is class independent and defined for all
    classes.
 
-   The NSEC RR has no special TTL requirements.
+   The NSEC RR SHOULD have the same TTL value as the SOA minimum TTL
+   field. This is in the spirit of negative caching [2].
 
 2.1 NSEC RDATA Wire Format
 
@@ -216,8 +219,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
 
 
-
-Schlyter               Expires September 1, 2004                [Page 4]
+Schlyter               Expires September 9, 2004                [Page 4]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -237,7 +239,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
    it MUST be set to 0.  After verification, the validator MUST ignore
    the value of bit 0 in window block 0.
 
-   Bits representing Meta-TYPEs or QTYPEs as specified in RFC 2929 [3]
+   Bits representing Meta-TYPEs or QTYPEs as specified in RFC 2929 [4]
    (section 3.1) or within the range reserved for assignment only to
    QTYPEs and Meta-TYPEs MUST be set to 0, since they do not appear in
    zone data.  If encountered, they must be ignored upon reading.
@@ -255,7 +257,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
    is treated as a literal symbol and is treated the same as any other
    owner name for purposes of generating NSEC RRs. Wildcard owner names
    appear in the Next Domain Name field without any wildcard expansion.
-   RFC 2535 [2] describes the impact of wildcards on authenticated
+   RFC 2535 [3] describes the impact of wildcards on authenticated
    denial of existence.
 
 2.2 The NSEC RR Presentation Format
@@ -266,14 +268,14 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
    The List of Type Bit Map(s) Field is represented as a sequence of RR
    type mnemonics.  When the mnemonic is not known, the TYPE
-   representation as described in RFC 3597 [4] (section 5) MUST be used.
+   representation as described in RFC 3597 [5] (section 5) MUST be used.
 
 
 
 
 
 
-Schlyter               Expires September 1, 2004                [Page 5]
+Schlyter               Expires September 9, 2004                [Page 5]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -307,13 +309,13 @@ Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
    could be used to prove that beta.example.com does not exist, or could
    be used to prove there is no AAAA record associated with
    alfa.example.com.  Authenticated denial of existence is discussed in
-   RFC 2535 [2].
+   RFC 2535 [3].
 
 3. IANA Considerations
 
    This document introduces no new IANA considerations, because all of
    the protocol parameters used in this document have already been
-   assigned by RFC TCR [5].
+   assigned by RFC TCR [6].
 
 4. Security Considerations
 
@@ -325,34 +327,37 @@ Normative References
    [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
 
-   [2]  Eastlake, D., "Domain Name System Security Extensions", RFC
+   [2]  Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)", RFC
 
 
 
-Schlyter               Expires September 1, 2004                [Page 6]
+Schlyter               Expires September 9, 2004                [Page 6]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
 
+        2308, March 1998.
+
+   [3]  Eastlake, D., "Domain Name System Security Extensions", RFC
         2535, March 1999.
 
-   [3]  Eastlake, D., Brunner-Williams, E. and B. Manning, "Domain Name
+   [4]  Eastlake, D., Brunner-Williams, E. and B. Manning, "Domain Name
         System (DNS) IANA Considerations", BCP 42, RFC 2929, September
         2000.
 
-   [4]  Gustafsson, A., "Handling of Unknown DNS Resource Record (RR)
+   [5]  Gustafsson, A., "Handling of Unknown DNS Resource Record (RR)
         Types", RFC 3597, September 2003.
 
-   [5]  Weiler, S., "Legacy Resolver Compatibility for Delegation
+   [6]  Weiler, S., "Legacy Resolver Compatibility for Delegation
         Signer", draft-ietf-dnsext-dnssec-2535typecode-change-05 (work
         in progress), October 2003.
 
 Informational References
 
-   [6]  Mockapetris, P., "Domain names - concepts and facilities", STD
+   [7]  Mockapetris, P., "Domain names - concepts and facilities", STD
         13, RFC 1034, November 1987.
 
-   [7]  Mockapetris, P., "Domain names - implementation and
+   [8]  Mockapetris, P., "Domain names - implementation and
         specification", STD 13, RFC 1035, November 1987.
 
 
@@ -382,10 +387,7 @@ Appendix A. Acknowledgements
 
 
 
-
-
-
-Schlyter               Expires September 1, 2004                [Page 7]
+Schlyter               Expires September 9, 2004                [Page 7]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -441,7 +443,7 @@ Full Copyright Statement
 
 
 
-Schlyter               Expires September 1, 2004                [Page 8]
+Schlyter               Expires September 9, 2004                [Page 8]
 
 Internet-Draft          DNSSEC NSEC RDATA Format              March 2004
 
@@ -497,5 +499,5 @@ Acknowledgment
 
 
 
-Schlyter               Expires September 1, 2004                [Page 9]
+Schlyter               Expires September 9, 2004                [Page 9]
 

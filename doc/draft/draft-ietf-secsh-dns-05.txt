@@ -1,15 +1,12 @@
-
-
 Secure Shell Working Group                                   J. Schlyter
-Internet-Draft                                      Carlstedt Research &
-Expires: October 1, 2003                                      Technology
-                                                              W. Griffin
-                                         Network Associates Laboratories
-                                                           April 2, 2003
+Internet-Draft                                                   OpenSSH
+Expires: March 5, 2004                                        W. Griffin
+                                                                  SPARTA
+                                                       September 5, 2003
 
 
-           Using DNS to securely publish SSH key fingerprints
-                      draft-ietf-secsh-dns-04.txt
+           Using DNS to Securely Publish SSH Key Fingerprints
+                      draft-ietf-secsh-dns-05.txt
 
 Status of this Memo
 
@@ -31,7 +28,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on October 1, 2003.
+   This Internet-Draft will expire on March 5, 2004.
 
 Copyright Notice
 
@@ -52,9 +49,10 @@ Abstract
 
 
 
-Schlyter & Griffin      Expires October 1, 2003                 [Page 1]
 
-Internet-Draft          DNS and SSH fingerprints              April 2003
+Schlyter & Griffin       Expires March 5, 2004                  [Page 1]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
 
 
 Table of Contents
@@ -66,7 +64,7 @@ Table of Contents
    2.3   Fingerprint Matching . . . . . . . . . . . . . . . . . . . .  4
    2.4   Authentication . . . . . . . . . . . . . . . . . . . . . . .  4
    3.    The SSHFP Resource Record  . . . . . . . . . . . . . . . . .  4
-   3.1   The SSHFP RDATA Format . . . . . . . . . . . . . . . . . . .  4
+   3.1   The SSHFP RDATA Format . . . . . . . . . . . . . . . . . . .  5
    3.1.1 Algorithm Number Specification . . . . . . . . . . . . . . .  5
    3.1.2 Fingerprint Type Specification . . . . . . . . . . . . . . .  5
    3.1.3 Fingerprint  . . . . . . . . . . . . . . . . . . . . . . . .  5
@@ -75,7 +73,7 @@ Table of Contents
    5.    IANA Considerations  . . . . . . . . . . . . . . . . . . . .  7
          Normative References . . . . . . . . . . . . . . . . . . . .  8
          Informational References . . . . . . . . . . . . . . . . . .  8
-         Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  8
+         Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  9
    A.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  9
          Intellectual Property and Copyright Statements . . . . . . . 10
 
@@ -108,34 +106,35 @@ Table of Contents
 
 
 
-Schlyter & Griffin      Expires October 1, 2003                 [Page 2]
+Schlyter & Griffin       Expires March 5, 2004                  [Page 2]
 
-Internet-Draft          DNS and SSH fingerprints              April 2003
+Internet-Draft          DNS and SSH Fingerprints          September 2003
 
 
 1. Introduction
 
-   The SSH [5] protocol provides secure remote login and other secure
+   The SSH [6] protocol provides secure remote login and other secure
    network services over an insecure network.  The security of the
-   connection relies on the server authenticating itself to the client.
+   connection relies on the server authenticating itself to the client
+   as well as the user authenticating itself to the server.
 
-   Server authentication is normally done by presenting the fingerprint
-   of an unknown public key to the user for verification. If the user
-   decides the fingerprint is correct and accepts the key, the key is
-   saved locally and used for verification for all following
-   connections.  While some security-conscious users verify the
-   fingerprint out-of-band before accepting the key, many users blindly
-   accepts the presented key.
+   If a connection is established to a server whose public key is not
+   already known to the client, a fingerprint of the key is presented to
+   the user for verification.  If the user decides that the fingerprint
+   is correct and accepts the key, the key is saved locally and used for
+   verification for all following connections. While some
+   security-conscious users verify the fingerprint out-of-band before
+   accepting the key, many users blindly accept the presented key.
 
    The method described here can provide out-of-band verification by
    looking up a fingerprint of the server public key in the DNS [1][2]
-   and using DNSSEC [4] to verify the lookup.
+   and using DNSSEC [5] to verify the lookup.
 
    In order to distribute the fingerprint using DNS, this document
-   defines a new DNS resource record to carry the fingerprint.
+   defines a new DNS resource record, "SSHFP", to carry the fingerprint.
 
    Basic understanding of the DNS system [1][2] and the DNS security
-   extensions [4] is assumed by this document.
+   extensions [5] is assumed by this document.
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -148,7 +147,7 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    Upon connection to a SSH server, the SSH client MAY look up the SSHFP
    resource record(s) for the host it is connecting to.  If the
    algorithm and fingerprint of the key received from the SSH server
-   matches the algorithm and fingerprint of one of the SSHFP resource
+   match the algorithm and fingerprint of one of the SSHFP resource
    record(s) returned from DNS, the client MAY accept the identity of
    the server.
 
@@ -157,18 +156,18 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    Client implementors SHOULD provide a configurable policy used to
    select the order of methods used to verify a host key. This document
    defines one method: Fingerprint storage in DNS. Another method
-   defined in the SSH Architecture [5] uses local files to store keys
+   defined in the SSH Architecture [6] uses local files to store keys
    for comparison. Other methods that could be defined in the future
    might include storing fingerprints in LDAP or other databases. A
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 3]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
+
+
    configurable policy will allow administrators to determine which
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 3]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
-
-
    methods they want to use and in what order the methods should be
    prioritized. This will allow administrators to determine how much
    trust they want to place in the different methods.
@@ -191,17 +190,20 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
 
       A message digest of the public key, using the message digest
       algorithm specified in the SSHFP fingerprint type, MUST match the
-      SSH FP fingerprint.
+      SSHFP fingerprint.
 
 
 2.4 Authentication
 
-   A public key verified using this method MUST only be trusted if the
-   SSHFP resource record (RR) used for verification was authenticated by
-   a trusted SIG RR.
+   A public key verified using this method MUST NOT be trusted if the
+   SSHFP resource record (RR) used for verification was not
+   authenticated by a trusted SIG RR.
+
+   Clients that do validate the DNSSEC signatures themselves SHOULD use
+   standard DNSSEC validation procedures.
 
    Clients that do not validate the DNSSEC signatures themselves MUST
-   use a secure transport, e.g. TSIG [8], SIG(0) [9] or IPsec [7],
+   use a secure transport, e.g. TSIG [9], SIG(0) [10] or IPsec [8],
    between themselves and the entity performing the signature
    validation.
 
@@ -213,17 +215,18 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
 
    The RR type code for the SSHFP RR is TBA.
 
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 4]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
+
+
 3.1 The SSHFP RDATA Format
 
    The RDATA for a SSHFP RR consists of an algorithm number, fingerprint
    type and the fingerprint of the public host key.
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 4]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
-
 
          1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
          0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -247,7 +250,7 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
           1        RSA
           2        DSS
 
-   Reserving other types requires IETF consensus.
+   Reserving other types requires IETF consensus [4].
 
 3.1.2 Fingerprint Type Specification
 
@@ -260,35 +263,37 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
           0        reserved
           1        SHA-1
 
-   Reserving other types requires IETF consensus.  For interoperability
-   reasons, as few fingerprint types as possible should be reserved.
-   The only reason to reserve additional types is to increase security.
+   Reserving other types requires IETF consensus [4].
+
+   For interoperability reasons, as few fingerprint types as possible
+   should be reserved.  The only reason to reserve additional types is
+   to increase security.
 
 3.1.3 Fingerprint
 
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 5]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
+
+
    The fingerprint is calculated over the public key blob as described
-   in [6].
+   in [7].
 
    The message-digest algorithm is presumed to produce an opaque octet
    string output which is placed as-is in the RDATA fingerprint field.
 
-
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 5]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
-
-
 3.2 Presentation Format of the SSHFP RR
 
-   The presentation format of the SSHFP resource record consists of two
-   numbers (algorithm and fingerprint type) followed by the fingerprint
-   itself presented in hex, e.g:
+   The RDATA of the presentation format of the SSHFP resource record
+   consists of two numbers (algorithm and fingerprint type) followed by
+   the fingerprint itself presented in hex, e.g:
 
          host.example.  SSHFP 2 1 123456789abcdef67890123456789abcdef67890
 
+   The use of mnemonics instead of numbers is not allowed.
 
 4. Security Considerations
 
@@ -299,27 +304,22 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    the fingerprint with something learned through a secured channel, the
    connection is vulnerable to a man-in-the-middle attack.
 
-   The approach suggested here shifts the burden of key checking from
-   each user of a machine to the key checking performed by the
-   administrator of the DNS recursive server used to resolve the host
-   information.  Hopefully, by reducing the number of times that keys
-   need to be verified by hand, each verification is performed more
-   completely.  Furthermore, by requiring an administrator do the
-   checking, the result may be more reliable than placing this task in
-   the hands of an application user.
-
    The overall security of using SSHFP for SSH host key verification is
-   dependent on detailed aspects of how verification is done in SSH
-   implementations.  One such aspect is in which order fingerprints are
-   looked up (e.g. first checking local file and then SSHFP).  We note
-   that in addition to protecting the first-time transfer of host keys,
-   SSHFP can optionally be used for stronger host key protection.
+   dependent on the security policies of the SSH host administrator and
+   DNS zone administrator (in transferring the fingerprint), detailed
+   aspects of how verification is done in the SSH implementation, and in
+   the client's diligence in accessing the DNS in a secure manner.
+
+   One such aspect is in which order fingerprints are looked up (e.g.
+   first checking local file and then SSHFP).  We note that in addition
+   to protecting the first-time transfer of host keys, SSHFP can
+   optionally be used for stronger host key protection.
 
       If SSHFP is checked first, new SSH host keys may be distributed by
       replacing the corresponding SSHFP in DNS.
 
       If SSH host key verification can be configured to require SSHFP,
-      we can implement SSH host key revocation by removing the
+      SSH host key revocation can be implemented by removing the
       corresponding SSHFP from DNS.
 
    As stated in Section 2.2, we recommend that SSH implementors provide
@@ -327,16 +327,16 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    verification. One specific scenario for having a configurable policy
    is where clients use unqualified host names to connect to servers. In
    this case, we recommend that SSH implementations check the host key
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 6]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
+
+
    against a local database before verifying the key via the fingerprint
    returned from DNS. This would help prevent an attacker from injecting
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 6]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
-
-
    a DNS search path into the local resolver and forcing the client to
    connect to a different host.
 
@@ -357,7 +357,7 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    after it is signed by the DNS zone administrator, the fingerprint
    must be transferred securely from the SSH host administrator to the
    DNS zone administrator.  This could be done manually between the
-   administrators or automatically using secure DNS dynamic update [10]
+   administrators or automatically using secure DNS dynamic update [11]
    between the SSH server and the nameserver.  We note that this is no
    different from other key enrollment situations, e.g. a client sending
    a certificate request to a certificate authority for signing.
@@ -374,7 +374,7 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
          1 is RSA
          2 is DSA
 
-    Adding new reservations requires IETF consensus.
+    Adding new reservations requires IETF consensus [4].
 
    IANA needs to open a new registry for the SSHFP RR type for
    fingerprint types.  Defined types are:
@@ -382,16 +382,16 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
          0 is reserved
          1 is SHA-1
 
-    Adding new reservations requires IETF consensus.
+    Adding new reservations requires IETF consensus [4].
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 7]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
+
 
 Normative References
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 7]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
-
 
    [1]  Mockapetris, P., "Domain names - concepts and facilities", STD
         13, RFC 1034, November 1987.
@@ -402,65 +402,75 @@ Internet-Draft          DNS and SSH fingerprints              April 2003
    [3]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
 
-   [4]  Eastlake, D., "Domain Name System Security Extensions", RFC
+   [4]  Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+        Considerations Section in RFCs", BCP 26, RFC 2434, October 1998.
+
+   [5]  Eastlake, D., "Domain Name System Security Extensions", RFC
         2535, March 1999.
 
-   [5]  Rinne, T., Ylonen, T., Kivinen, T. and S. Lehtinen, "SSH
-        Protocol Architecture", draft-ietf-secsh-architecture-13 (work
-        in progress), September 2002.
+   [6]  Ylonen, T., Kivinen, T., Saarinen, M., Rinne, T. and S.
+        Lehtinen, "SSH Protocol Architecture",
+        draft-ietf-secsh-architecture-14 (work in progress), July 2003.
 
-   [6]  Rinne, T., Ylonen, T., Kivinen, T., Saarinen, M. and S.
+   [7]  Ylonen, T., Kivinen, T., Saarinen, M., Rinne, T. and S.
         Lehtinen, "SSH Transport Layer Protocol",
-        draft-ietf-secsh-transport-15 (work in progress), September
-        2002.
+        draft-ietf-secsh-transport-16 (work in progress), July 2003.
 
 Informational References
 
-   [7]   Thayer, R., Doraswamy, N. and R. Glenn, "IP Security Document
+   [8]   Thayer, R., Doraswamy, N. and R. Glenn, "IP Security Document
          Roadmap", RFC 2411, November 1998.
 
-   [8]   Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
+   [9]   Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
          "Secret Key Transaction Authentication for DNS (TSIG)", RFC
          2845, May 2000.
 
-   [9]   Eastlake, D., "DNS Request and Transaction Signatures (
+   [10]  Eastlake, D., "DNS Request and Transaction Signatures (
          SIG(0)s)", RFC 2931, September 2000.
 
-   [10]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
+   [11]  Wellington, B., "Secure Domain Name System (DNS) Dynamic
          Update", RFC 3007, November 2000.
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter & Griffin       Expires March 5, 2004                  [Page 8]
+
+Internet-Draft          DNS and SSH Fingerprints          September 2003
 
 
 Authors' Addresses
 
    Jakob Schlyter
-   Carlstedt Research & Technology
-   Stora Badhusgatan 18-20
-   Goteborg  SE-411 21
-   Sweden
+   OpenSSH
+   812 23rd Avenue SE
+   Calgary, Alberta  T2G 1N8
+   Canada
 
-   EMail: jakob@crt.se
-   URI:   http://www.crt.se/~jakob/
-
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 8]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
+   EMail: jakob@openssh.com
+   URI:   http://www.openssh.com/
 
 
    Wesley Griffin
-   Network Associates Laboratories
-   15204 Omega Drive Suite 300
-   Rockville, MD  20850
+   SPARTA
+   7075 Samuel Morse Drive
+   Columbia, MD  21046
    USA
 
-   EMail: wgriffin@tislabs.com
-   URI:   http://www.nailabs.com/
+   EMail: wgriffin@sparta.com
+   URI:   http://www.sparta.com/
 
 Appendix A. Acknowledgements
 
-   The authors gratefully acknowledges, in no particular order, the
+   The authors gratefully acknowledge, in no particular order, the
    contributions of the following persons:
 
       Martin Fredriksson
@@ -488,21 +498,9 @@ Appendix A. Acknowledgements
 
 
 
+Schlyter & Griffin       Expires March 5, 2004                  [Page 9]
 
-
-
-
-
-
-
-
-
-
-
-
-Schlyter & Griffin      Expires October 1, 2003                 [Page 9]
-
-Internet-Draft          DNS and SSH fingerprints              April 2003
+Internet-Draft          DNS and SSH Fingerprints          September 2003
 
 
 Intellectual Property Statement
@@ -556,9 +554,9 @@ Full Copyright Statement
 
 
 
-Schlyter & Griffin      Expires October 1, 2003                [Page 10]
+Schlyter & Griffin       Expires March 5, 2004                 [Page 10]
 
-Internet-Draft          DNS and SSH fingerprints              April 2003
+Internet-Draft          DNS and SSH Fingerprints          September 2003
 
 
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
@@ -612,5 +610,5 @@ Acknowledgement
 
 
 
-Schlyter & Griffin      Expires October 1, 2003                [Page 11]
+Schlyter & Griffin       Expires March 5, 2004                 [Page 11]
 
