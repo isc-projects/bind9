@@ -443,6 +443,7 @@
 ./bin/tests/system/digcomp.pl			PERL	2000,2001
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001
+./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2000,2001,2002
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001
@@ -455,6 +456,7 @@
 ./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001
 ./bin/tests/system/dnssec/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001
+./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001
