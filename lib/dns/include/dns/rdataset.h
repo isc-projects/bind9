@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.35 2000/08/01 01:24:33 tale Exp $ */
+/* $Id: rdataset.h,v 1.36 2000/09/08 21:35:45 gson Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -211,7 +211,7 @@ dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
  *	'target' is a valid, dissociated rdataset.
  *
  * Ensures:
- *	'target' references the same rdataset as 'source.
+ *	'target' references the same rdataset as 'source'.
  */
 
 unsigned int
