@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.16 1999/09/15 23:03:33 explorer Exp $ */
+ /* $Id: tkey_249.c,v 1.17 1999/10/07 21:49:38 bwelling Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
@@ -281,7 +281,11 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 
 static inline dns_result_t
 fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    void *source, isc_buffer_t *target) {
+		    void *source, isc_buffer_t *target)
+{
+	isc_region_t tr;
+	dns_rdata_generic_tkey_t *tkey;
+	dns_compress_t cctx;
 
 	REQUIRE(type == 249);
 	
@@ -290,24 +294,152 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	source = source;
 	target = target;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	tkey = (dns_rdata_generic_tkey_t *) source;
+	REQUIRE(tkey->mctx != NULL);
+
+	/* Algorithm Name */
+	RETERR(dns_compress_init(&cctx, -1, tkey->mctx));
+	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
+	RETERR(dns_name_towire(&tkey->algorithm, &cctx, target));
+	dns_compress_invalidate(&cctx);
+
+	/* Inception: 32 bits */
+	RETERR(uint32_tobuffer(tkey->inception, target));
+
+	/* Expire: 32 bits */
+	RETERR(uint32_tobuffer(tkey->expire, target));
+
+	/* Mode: 16 bits */
+	RETERR(uint16_tobuffer(tkey->mode, target));
+
+	/* Error: 16 bits */
+	RETERR(uint16_tobuffer(tkey->error, target));
+
+	/* Key size: 16 bits */
+	RETERR(uint16_tobuffer(tkey->keylen, target));
+
+	/* Key */
+	if (tkey->keylen > 0) {
+		isc_buffer_available(target, &tr);
+		if (tr.length < tkey->keylen)
+			return (DNS_R_NOSPACE);
+		memcpy(tr.base, tkey->key, tkey->keylen);
+		isc_buffer_add(target, tkey->keylen);
+	}
+
+	/* Other size: 16 bits */
+	RETERR(uint16_tobuffer(tkey->otherlen, target));
+
+	/* Other data */
+	if (tkey->otherlen > 0) {
+		isc_buffer_available(target, &tr);
+		if (tr.length < tkey->otherlen)
+			return (DNS_R_NOSPACE);
+		memcpy(tr.base, tkey->other, tkey->otherlen);
+		isc_buffer_add(target, tkey->otherlen);
+	}
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline dns_result_t
 tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_generic_tkey_t *tkey;
+	dns_name_t alg;
+	isc_region_t sr;
 
 	REQUIRE(rdata->type == 249);
 	
 	target = target;
 	mctx = mctx;
 
-	return (DNS_R_NOTIMPLEMENTED);
+	tkey = (dns_rdata_generic_tkey_t *) target;
+
+	tkey->common.rdclass = rdata->rdclass;
+	tkey->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&tkey->common, link);
+	tkey->mctx = mctx;
+	dns_rdata_toregion(rdata, &sr);
+
+	/* Algorithm Name */
+	dns_name_init(&alg, NULL);
+	dns_name_fromregion(&alg, &sr);
+	dns_name_init(&tkey->algorithm, NULL);
+	RETERR(dns_name_dup(&alg, mctx, &tkey->algorithm));
+	isc_region_consume(&sr, name_length(&tkey->algorithm));
+
+	/* Inception */
+	if (sr.length < 4)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->inception = uint32_fromregion(&sr);
+	isc_region_consume(&sr, 4);
+
+	/* Expire */
+	if (sr.length < 4)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->expire = uint32_fromregion(&sr);
+	isc_region_consume(&sr, 4);
+
+	/* Mode */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->mode = uint16_fromregion(&sr);
+	isc_region_consume(&sr, 2);
+
+	/* Error */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->error = uint16_fromregion(&sr);
+	isc_region_consume(&sr, 2);
+
+	/* Key size */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->keylen = uint16_fromregion(&sr);
+	isc_region_consume(&sr, 2);
+
+	/* Key */
+	if (tkey->keylen > 0) {
+		tkey->key = isc_mem_get(mctx, tkey->keylen);
+		if (tkey->key == NULL)
+			return (DNS_R_NOMEMORY);
+		memcpy(tkey->key, sr.base, tkey->keylen);
+		isc_region_consume(&sr, tkey->keylen);
+	}
+	else
+		tkey->key = NULL;
+
+	/* Other size */
+	if (sr.length < 2)
+		return (ISC_R_UNEXPECTEDEND);
+	tkey->otherlen = uint16_fromregion(&sr);
+	isc_region_consume(&sr, 2);
+
+	/* Other */
+	if (tkey->otherlen > 0) {
+		tkey->other = isc_mem_get(mctx, tkey->otherlen);
+		if (tkey->other == NULL)
+			return (DNS_R_NOMEMORY);
+		memcpy(tkey->other, sr.base, tkey->otherlen);
+		isc_region_consume(&sr, tkey->otherlen);
+	}
+	else
+		tkey->other = NULL;
+
+	return (DNS_R_SUCCESS);
 }
 
 static inline void
 freestruct_tkey(void *source) {
+	dns_rdata_generic_tkey_t *tkey = (dns_rdata_generic_tkey_t *) source;
+
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+
+	dns_name_free(&tkey->algorithm, tkey->mctx);
+	if (tkey->keylen > 0)
+		isc_mem_put(tkey->mctx, tkey->key, tkey->keylen);
+	if (tkey->otherlen > 0)
+		isc_mem_put(tkey->mctx, tkey->other, tkey->otherlen);
 }
 
 static inline dns_result_t

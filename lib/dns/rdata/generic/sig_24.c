@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.22 1999/09/17 09:22:40 gson Exp $ */
+ /* $Id: sig_24.c,v 1.23 1999/10/07 21:49:38 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -342,7 +342,7 @@ fromstruct_sig(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	/* Signer name */
 	RETERR(dns_compress_init(&cctx, -1, sig->mctx));
 	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-	RETERR(dns_name_towire(sig->signer, &cctx, target));
+	RETERR(dns_name_towire(&sig->signer, &cctx, target));
 	dns_compress_invalidate(&cctx);
 
 	/* Signature */
@@ -419,12 +419,9 @@ tostruct_sig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	dns_name_init(&signer, NULL);
 	dns_name_fromregion(&signer, &sr);
-	sig->signer = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (sig->signer == NULL)
-		return (DNS_R_NOMEMORY);
-	dns_name_init(sig->signer, NULL);
-	RETERR(dns_name_dup(&signer, mctx, sig->signer));
-	isc_region_consume(&sr, name_length(sig->signer));
+	dns_name_init(&sig->signer, NULL);
+	RETERR(dns_name_dup(&signer, mctx, &sig->signer));
+	isc_region_consume(&sr, name_length(&sig->signer));
 
 	/* Signature */
 	sig->siglen = sr.length;
@@ -448,8 +445,7 @@ freestruct_sig(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(sig->common.rdtype == 24);
 
-	dns_name_free(sig->signer, sig->mctx);
-	isc_mem_put(sig->mctx, sig->signer, sizeof(dns_name_t));
+	dns_name_free(&sig->signer, sig->mctx);
 	if (sig->siglen > 0)
 		isc_mem_put(sig->mctx, sig->signature, sig->siglen);
 }

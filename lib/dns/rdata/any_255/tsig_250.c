@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.18 1999/09/15 23:03:26 explorer Exp $ */
+ /* $Id: tsig_250.c,v 1.19 1999/10/07 21:49:38 bwelling Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -308,7 +308,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/* Algorithm Name */
 	RETERR(dns_compress_init(&cctx, -1, tsig->mctx));
 	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
-	RETERR(dns_name_towire(tsig->algorithm, &cctx, target));
+	RETERR(dns_name_towire(&tsig->algorithm, &cctx, target));
 	dns_compress_invalidate(&cctx);
 
 	isc_buffer_available(target, &tr);
@@ -381,13 +381,10 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	/* Algorithm Name */
 	dns_name_init(&alg, NULL);
 	dns_name_fromregion(&alg, &sr);
-	tsig->algorithm = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
-	if (tsig->algorithm == NULL)
-		return (DNS_R_NOMEMORY);
-	dns_name_init(tsig->algorithm, NULL);
-	RETERR(dns_name_dup(&alg, mctx, tsig->algorithm));
+	dns_name_init(&tsig->algorithm, NULL);
+	RETERR(dns_name_dup(&alg, mctx, &tsig->algorithm));
 	
-	isc_region_consume(&sr, name_length(tsig->algorithm));
+	isc_region_consume(&sr, name_length(&tsig->algorithm));
 
 	/* Time Signed */
 	if (sr.length < 6)
@@ -465,8 +462,7 @@ freestruct_any_tsig(void *source) {
 	REQUIRE(tsig->common.rdclass == 255);
 	REQUIRE(tsig->common.rdtype == 250);
 
-	dns_name_free(tsig->algorithm, tsig->mctx);	
-	isc_mem_put(tsig->mctx, tsig->algorithm, sizeof(dns_name_t));
+	dns_name_free(&tsig->algorithm, tsig->mctx);	
 	if (tsig->siglen > 0)
 		isc_mem_put(tsig->mctx, tsig->signature, tsig->siglen);
 	if (tsig->otherlen > 0)

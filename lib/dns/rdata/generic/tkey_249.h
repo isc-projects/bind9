@@ -15,7 +15,21 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.h,v 1.10 1999/09/15 23:03:33 explorer Exp $ */
+ /* $Id: tkey_249.h,v 1.11 1999/10/07 21:49:39 bwelling Exp $ */
 
- /* draft-ietf-dnssec-tkey-01.txt */
+ /* draft-ietf-dnsind-tkey-00.txt */
+
+typedef struct dns_rdata_generic_tkey {
+        dns_rdatacommon_t	common;
+        isc_mem_t *		mctx;
+        dns_name_t		algorithm;
+        isc_uint32_t		inception;
+        isc_uint32_t		expire;
+        isc_uint16_t		mode;
+        isc_uint16_t		error;
+        isc_uint16_t		keylen;
+        unsigned char *		key;
+        isc_uint16_t		otherlen;
+        unsigned char *		other;
+} dns_rdata_generic_tkey_t;
 

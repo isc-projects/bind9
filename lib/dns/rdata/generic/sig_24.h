@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.h,v 1.13 1999/09/15 23:03:32 explorer Exp $ */
+ /* $Id: sig_24.h,v 1.14 1999/10/07 21:49:38 bwelling Exp $ */
 
  /* RFC 2065 */
 
@@ -29,7 +29,7 @@ typedef struct dns_rdata_generic_sig_t {
 	isc_uint32_t		timeexpire;
 	isc_uint32_t		timesigned;
 	isc_uint16_t		keyid;
-        dns_name_t *            signer;
+        dns_name_t		signer;
 	isc_uint16_t		siglen;
 	unsigned char *		signature;
 } dns_rdata_generic_sig_t;

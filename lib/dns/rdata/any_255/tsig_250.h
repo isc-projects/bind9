@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.h,v 1.11 1999/09/15 23:03:26 explorer Exp $ */
+ /* $Id: tsig_250.h,v 1.12 1999/10/07 21:49:38 bwelling Exp $ */
 
  /* draft-ietf-dnsind-tsig-10.txt */
 
 typedef struct dns_rdata_any_tsig {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;
-	dns_name_t *		algorithm;
+	dns_name_t		algorithm;
 	isc_uint64_t		timesigned;
 	isc_uint16_t		fudge;
 	isc_uint16_t		siglen;
