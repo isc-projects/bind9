@@ -22,6 +22,7 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
 
 #include <dst/dst.h>
 
