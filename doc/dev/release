@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.18 2000/12/07 00:52:30 tale Exp $
+$Id: release,v 1.19 2000/12/11 04:00:36 gson Exp $
 
 Preparing a bind9 release
 
@@ -24,12 +24,11 @@ release.
  - Check that http://status.isc.org/bind9/bind9.html shows
    a clean build and test status for all supported systems.
 
- - Check that "make all_tests" does not produce compile errors.
+ - Check that running "make all_tests" in bin/tests does not
+   produce compile errors.
 
- - Make sure that the most recent version of the ARM has been
-   checked in.  Look for any obvious broken links in the
-   .html files.  If "fgrep .HTML *.html" produces output,
-   there is a problem.
+ - Regenereate the .html files in doc/arm by running genhtml.sh
+   and check them in.
 
  - Verify that the documents in doc/misc are up-to-date
 
@@ -53,7 +52,8 @@ release.
      ... the script should have been able to do itself. :-)
      $ cvs ci -m'update_copyrights'
 
- - Stop doing pullups.
+ - Announce a CVS freeze if doing a beta release from the mainline,
+   or stop doing pullups if building from a release branch.
 
  - Run util/altbuild.sh (from the mainline).  This is to make sure that
    builds using libtool, separate source/object directories, and other 
@@ -138,21 +138,21 @@ release.
  - Take the resulting distribution files to a secure system
    and sign them with the ISC signing PGP key:
 
-   	pgp -sba bind-9.0.0rc5.tar.gz -u 0x51BAB2ED
+   	pgp -sba bind-9.1.0b1.tar.gz -u 0x51BAB2ED
 
  - Fix the permissions on the signature file:
 
-	chmod 644 bind-9.0.0rc5.tar.gz.asc
+	chmod 644 bind-9.1.0b1.tar.gz.asc
 
  - Verify the PGP signature:
 
-	pgp bind-9.0.0rc5.tar.gz.asc bind-9.0.0rc5.tar.gz
+	pgp bind-9.1.0b1.tar.gz.asc bind-9.1.0b1.tar.gz
 
  - Prepare a release announcement based on the previous one.
 
  - Copy the distribution and PGP signature files to the FTP site:
 
-     ver=9.0.1
+     ver=9.1.0b1
      ssh -n isrv4.pa.vix.com "mkdir /udir/ftp/isc/bind9/$ver"
      scp bind-$ver.tar.gz bind-$ver.tar.gz.asc \
 	isrv4.pa.vix.com:/udir/ftp/isc/bind9/$ver
