@@ -1,3 +1,6 @@
+
+	--- 9.2.3 released ---
+
 1524.	[port]		AIX needs to be able to resolve all symbols when
 			creating shared libraries (--with-libtool).
 
@@ -13,7 +16,7 @@
 1514.	[bug]		named: isc_hash_destroy() was being called to early.
 			[RT #9160]
 
-1513.	[doc]		Add "US" to root-delgation-only exclude list.
+1513.	[doc]		Add "US" to root-delegation-only exclude list.
 
 	--- 9.2.3rc4 released ---
 
