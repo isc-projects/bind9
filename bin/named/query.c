@@ -48,6 +48,10 @@
 
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
+#define USECACHE(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_CACHEOK) != 0)
+#define RECURSIONOK(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_RECURSIONOK) != 0)
 
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
@@ -110,12 +114,6 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 			isc_buffer_free(&dbuf);
 		}
 	}
-	/*
-	 * We don't need to free items from these two lists because they
-	 * will be taken care of when the message is reset.
-	 */
-	ISC_LIST_INIT(client->query.tmpnames);
-	ISC_LIST_INIT(client->query.tmprdatasets);
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK|
 				    NS_QUERYATTR_CACHEOK);
@@ -213,13 +211,12 @@ query_releasename(ns_client_t *client, dns_name_t **namep) {
 	 * rights on the buffer.
 	 */
 
-	ISC_LIST_APPEND(client->query.tmpnames, name, link);
 	if (dns_name_hasbuffer(name)) {
 		INSIST((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED)
 		       != 0);
 		client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
 	}
-	*namep = NULL;
+	dns_message_puttempname(client->message, namep);
 }
 
 static inline dns_name_t *
@@ -232,13 +229,10 @@ query_newname(ns_client_t *client, isc_buffer_t *dbuf,
 
 	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) == 0);
 
-	name = ISC_LIST_HEAD(client->query.tmpnames);
-	if (name == NULL) {
-		result = dns_message_gettempname(client->message, &name);
-		if (result != ISC_R_SUCCESS)
-			return (NULL);
-	} else
-		ISC_LIST_UNLINK(client->query.tmpnames, name, link);
+	name = NULL;
+	result = dns_message_gettempname(client->message, &name);
+	if (result != ISC_R_SUCCESS)
+		return (NULL);
 	isc_buffer_available(dbuf, &r);
 	isc_buffer_init(nbuf, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 	dns_name_init(name, NULL);
@@ -253,17 +247,24 @@ query_newrdataset(ns_client_t *client) {
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
 
-	rdataset = ISC_LIST_HEAD(client->query.tmprdatasets);
-	if (rdataset == NULL) {
-		result = dns_message_gettemprdataset(client->message,
-						     &rdataset);
-		if (result != ISC_R_SUCCESS)
-			return (NULL);
-	} else
-		ISC_LIST_UNLINK(client->query.tmprdatasets, rdataset, link);
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (NULL);
 	dns_rdataset_init(rdataset);
 
 	return (rdataset);
+}
+
+static inline void
+query_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
+	dns_rdataset_t *rdataset = *rdatasetp;
+
+	if (rdataset != NULL) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		dns_message_puttemprdataset(client->message, rdatasetp);
+	}
 }
 
 static inline isc_result_t
@@ -368,27 +369,36 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	unsigned int dboptions;
+	isc_boolean_t is_zone;
+	dns_rdataset_t zrdataset, zsigrdataset;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+
+	dns_rdataset_init(&zrdataset);
+	dns_rdataset_init(&zsigrdataset);
 
 	/*
 	 * Find a database to answer the query.
 	 */
 	db = NULL;
 	result = dns_dbtable_find(client->view->dbtable, name, &db);
-	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	if (result == ISC_R_NOTFOUND && USECACHE(client))
+		dns_db_attach(client->view->cachedb, &db);
+	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		goto cleanup;
 
 	/*
 	 * Get the current version of this database.
 	 */
 	version = NULL;
-	if (dns_db_iszone(db)) {
+	is_zone = dns_db_iszone(db);
+	if (is_zone) {
 		version = query_findversion(client, db);
 		if (version == NULL)
 			goto cleanup;
 	}
 
+ db_find:
 	/*
 	 * Now look for an answer in the database.
 	 */
@@ -401,14 +411,76 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 			     dns_fixedname_name(&foundname),
 			     rdataset, sigrdataset);
 
+	if (result == DNS_R_DELEGATION ||
+	    result == DNS_R_NOTFOUND ||
+	    result == DNS_R_NXGLUE) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		if (is_zone) {
+			if (USECACHE(client)) {
+				/*
+				 * Either the answer is in the cache, or we
+				 * don't know it.
+				 */
+				is_zone = ISC_FALSE;
+				version = NULL;
+				dns_db_detach(&db);
+				dns_db_attach(client->view->cachedb, &db);
+				goto db_find;
+			}
+		} else {
+			/*
+			 * We don't have the data in the cache.  If we've got
+			 * glue from the zone, use it.
+			 */
+			if (zrdataset.methods != NULL) {
+				dns_rdataset_clone(&zrdataset, rdataset);
+				if (zsigrdataset.methods != NULL)
+					dns_rdataset_clone(&zsigrdataset,
+							   sigrdataset);
+				result = ISC_R_SUCCESS;
+				goto cleanup;
+			}
+		}
+		/*
+		 * We don't know the answer.
+		 */
+		result = DNS_R_NOTFOUND;
+	} else if (result == DNS_R_GLUE) {
+		if (USECACHE(client)) {
+			/*
+			 * We found an answer, but the cache may be better.
+			 * Remember what we've got and go look in the cache.
+			 */
+			is_zone = ISC_FALSE;
+			version = NULL;
+			dns_rdataset_clone(rdataset, &zrdataset);
+			dns_rdataset_disassociate(rdataset);
+			if (sigrdataset->methods != NULL) {
+				dns_rdataset_clone(sigrdataset, &zsigrdataset);
+				dns_rdataset_disassociate(sigrdataset);
+			}
+			dns_db_detach(&db);
+			dns_db_attach(client->view->cachedb, &db);
+			goto db_find;
+		}
+		/*
+		 * Otherwise, the glue is the best answer.
+		 */
+		result = ISC_R_SUCCESS;
+	} else if (result != ISC_R_SUCCESS)
+		result = DNS_R_NOTFOUND;
+
  cleanup:
+	if (zrdataset.methods != NULL) {
+		dns_rdataset_disassociate(&zrdataset);
+		if (zsigrdataset.methods != NULL)
+			dns_rdataset_disassociate(&zsigrdataset);
+	}
 	if (db != NULL)
 		dns_db_detach(&db);
-
-	if (result == DNS_R_GLUE)
-		result = ISC_R_SUCCESS;
-	else if (result != ISC_R_SUCCESS)
-		result = DNS_R_NOTFOUND;
 
 	return (result);
 }
@@ -441,36 +513,61 @@ static isc_result_t
 query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	ns_client_t *client = arg;
 	isc_result_t result, eresult;
-	dns_dbnode_t *node;
-	dns_db_t *db;
-	dns_name_t *fname;
+	dns_dbnode_t *node, *znode;
+	dns_db_t *db, *zdb;
+	dns_name_t *fname, *zfname;
 	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset;
+	dns_rdataset_t *zrdataset, *zsigrdataset;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
-	dns_dbversion_t *version;
+	dns_dbversion_t *version, *zversion;
 	unsigned int dboptions;
+	isc_boolean_t is_zone, nxglue, added_something;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(type != dns_rdatatype_any);
 	/* XXXRTH  Other requirements. */
 
 	/*
-	 * XXXRTH  Should special case 'A' type.  If type is 'A', we should
-	 *	   look for A6 and AAAA too.
-	 */
-
-	/*
 	 * Initialization.
 	 */
 	eresult = ISC_R_SUCCESS;
 	fname = NULL;
+	zfname = NULL;
 	rdataset = NULL;
+	zrdataset = NULL;
 	sigrdataset = NULL;
+	zsigrdataset = NULL;
 	a6rdataset = NULL;
 	db = NULL;
+	zdb = NULL;
 	version = NULL;
+	zversion = NULL;
 	node = NULL;
+	znode = NULL;
+	nxglue = ISC_FALSE;
+	added_something = ISC_FALSE;
 
+	/*
+	 * Find a database to answer the query.
+	 */
+	result = dns_dbtable_find(client->view->dbtable, name, &db);
+	if (result == ISC_R_NOTFOUND && USECACHE(client))
+		dns_db_attach(client->view->cachedb, &db);
+	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+		goto cleanup;
+
+	/*
+	 * Get the current version of this database.
+	 */
+	is_zone = dns_db_iszone(db);
+	if (is_zone) {
+		version = query_findversion(client, db);
+		if (version == NULL)
+			goto cleanup;
+	}
+
+ db_find:
 	/*
 	 * Get some resources...
 	 */
@@ -484,22 +581,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 
 	/*
-	 * Find a database to answer the query.
-	 */
-	result = dns_dbtable_find(client->view->dbtable, name, &db);
-	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
-		goto cleanup;
-
-	/*
-	 * Get the current version of this database.
-	 */
-	if (dns_db_iszone(db)) {
-		version = query_findversion(client, db);
-		if (version == NULL)
-			goto cleanup;
-	}
-
-	/*
 	 * Now look for an answer in the database.
 	 */
 	node = NULL;
@@ -509,19 +590,92 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	result = dns_db_find(db, name, version, type, dboptions,
 			     client->requesttime, &node, fname, rdataset,
 			     sigrdataset);
-	switch (result) {
-	case DNS_R_SUCCESS:
-	case DNS_R_GLUE:
-		break;
-	default:
+
+	if (result == DNS_R_DELEGATION || result == DNS_R_NOTFOUND) {
+		if (is_zone) {
+			if (USECACHE(client)) {
+				/*
+				 * Either the answer is in the cache, or we
+				 * don't know it.  Go look in the cache.
+				 */
+				query_releasename(client, &fname);
+				is_zone = ISC_FALSE;
+				version = NULL;
+				query_putrdataset(client, &rdataset);
+				query_putrdataset(client, &sigrdataset);
+				dns_db_detachnode(db, &node);
+				dns_db_detach(&db);
+				dns_db_attach(client->view->cachedb, &db);
+				goto db_find;
+			} else {
+				/*
+				 * We don't know the answer.
+				 */
+				goto cleanup;
+			}
+		} else {
+			/*
+			 * We don't have the data in the cache.  If we've
+			 * got glue from the zone, use it.
+			 */
+			if (zdb != NULL) {
+				query_releasename(client, &fname);
+				query_putrdataset(client, &rdataset);
+				query_putrdataset(client, &sigrdataset);
+				dns_db_detachnode(db, &node);
+				dns_db_detach(&db);
+				db = zdb;
+				zdb = NULL;
+				fname = zfname;
+				dbuf = NULL;
+				node = znode;
+				version = zversion;
+				rdataset = zrdataset;
+				sigrdataset = zsigrdataset;
+			} else {
+				/*
+				 * We don't know the answer.
+				 */
+				goto cleanup;
+			}
+		}
+	} else if (result == DNS_R_GLUE || result == DNS_R_NXGLUE) {
+		if (result == DNS_R_NXGLUE) {
+			/*
+			 * XXXRTH  Explain NXGLUE here.
+			 */
+			nxglue = ISC_TRUE;
+		}
+		if (USECACHE(client)) {
+			/*
+			 * We found an answer, but the cache may be
+			 * better.  Remember what we've got and go look in
+			 * the cache.
+			 */
+			query_keepname(client, fname, dbuf);
+			zfname = fname;
+			zdb = db;
+			zversion = version;
+			znode = node;
+			zrdataset = rdataset;
+			zsigrdataset = sigrdataset;
+			version = NULL;
+			db = NULL;
+			dns_db_attach(client->view->cachedb, &db);
+			is_zone = ISC_FALSE;
+			goto db_find;
+		}
+	} else if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	}
 
-	query_keepname(client, fname, dbuf);
+	if (dbuf != NULL)
+		query_keepname(client, fname, dbuf);
 
-	if (!query_isduplicate(client, fname, type)) {
+	if (rdataset->methods != NULL &&
+	    !query_isduplicate(client, fname, type)) {
 		ISC_LIST_APPEND(fname->list, rdataset, link);
 		rdataset = NULL;
+		added_something = ISC_TRUE;
 		/*
 		 * Note: we only add SIGs if we've added the type they cover,
 		 * so we do not need to check if the SIG rdataset is already
@@ -563,11 +717,23 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 					     dns_rdatatype_a6, 0,
 					     client->requesttime, rdataset,
 					     sigrdataset);
+		if (zdb != NULL && result == ISC_R_NOTFOUND) {
+			/*
+			 * The cache doesn't have an A6, but we may have
+			 * one in the zone's glue.
+			 */
+			result = dns_db_findrdataset(zdb, znode, zversion,
+						     dns_rdatatype_a6, 0,
+						     client->requesttime,
+						     rdataset,
+						     sigrdataset);
+		}
 		if (result == ISC_R_SUCCESS) {
 			if (!query_isduplicate(client, fname,
 					       dns_rdatatype_a6)) {
 				a6rdataset = rdataset;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
+				added_something = ISC_TRUE;
 				if (sigrdataset->methods != NULL) {
 					ISC_LIST_APPEND(fname->list,
 							sigrdataset, link);
@@ -584,10 +750,22 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 					     dns_rdatatype_aaaa, 0,
 					     client->requesttime, rdataset,
 					     sigrdataset);
+		if (zdb != NULL && result == ISC_R_NOTFOUND) {
+			/*
+			 * The cache doesn't have an AAAA, but we may have
+			 * one in the zone's glue.
+			 */
+			result = dns_db_findrdataset(zdb, znode, zversion,
+						     dns_rdatatype_aaaa, 0,
+						     client->requesttime,
+						     rdataset,
+						     sigrdataset);
+		}
 		if (result == ISC_R_SUCCESS) {
 			if (!query_isduplicate(client, fname,
 					       dns_rdatatype_aaaa)) {
 				ISC_LIST_APPEND(fname->list, rdataset, link);
+				added_something = ISC_TRUE;
 				if (sigrdataset->methods != NULL) {
 					ISC_LIST_APPEND(fname->list,
 							sigrdataset, link);
@@ -599,6 +777,16 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	}
 
  addname:
+	/*
+	 * If we haven't added anything, then we're done.
+	 */
+	if (!added_something)
+		goto cleanup;
+
+	/*
+	 * Finally!  Add the name and the rdatasets we found to the additional
+	 * data section.
+	 */
 	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
 	fname = NULL;
 
@@ -644,22 +832,23 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		dns_a6_foreach(&client->query.a6ctx, a6rdataset);
 
  cleanup:
-	if (sigrdataset != NULL) {
-		if (sigrdataset->methods != NULL)
-			dns_rdataset_disassociate(sigrdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
-	}
-	if (rdataset != NULL) {
-		if (rdataset->methods != NULL)
-			dns_rdataset_disassociate(rdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, rdataset, link);
-	}
+	query_putrdataset(client, &rdataset);
+	query_putrdataset(client, &sigrdataset);
 	if (fname != NULL)
 		query_releasename(client, &fname);
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zdb != NULL) {
+		if (zfname != NULL)
+			query_releasename(client, &zfname);
+		query_putrdataset(client, &zrdataset);
+		query_putrdataset(client, &zsigrdataset);
+		if (znode != NULL)
+			dns_db_detachnode(zdb, &znode);
+		dns_db_detach(&zdb);
+	}
 
 	return (eresult);
 }
@@ -725,17 +914,8 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	 */
 
  cleanup:
-	if (csigrdataset != NULL) {
-		if (csigrdataset->methods != NULL)
-			dns_rdataset_disassociate(csigrdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, csigrdataset,
-				link);
-	}
-	if (crdataset != NULL) {
-		if (crdataset->methods != NULL)
-			dns_rdataset_disassociate(crdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, crdataset, link);
-	}
+	query_putrdataset(client, &crdataset);
+	query_putrdataset(client, &csigrdataset);
 	if (fname != NULL)
 		query_releasename(client, &fname);
 }
@@ -883,16 +1063,8 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	}
 
  cleanup:
-	if (sigrdataset != NULL) {
-		if (sigrdataset->methods != NULL)
-			dns_rdataset_disassociate(sigrdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
-	}
-	if (rdataset != NULL) {
-		if (rdataset->methods != NULL)
-			dns_rdataset_disassociate(rdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, rdataset, link);
-	}
+	query_putrdataset(client, &rdataset);
+	query_putrdataset(client, &sigrdataset);
 	if (name != NULL)
 		query_releasename(client, &name);
 	if (node != NULL)
@@ -967,15 +1139,13 @@ query_a6additional(ns_client_t *client, dns_db_t *db, dns_dbnode_t *node,
 				/*
 				 * We've already got this one.
 				 */
-				dns_rdataset_disassociate(rdataset);
-				ISC_LIST_APPEND(client->query.tmprdatasets,
-						rdataset, link);
+				query_putrdataset(client, &rdataset);
 			}
 		} else {
 			/*
 			 * We're not interested in this rdataset.
 			 */
-			dns_rdataset_disassociate(rdataset);
+			query_putrdataset(client, &rdataset);
 		}
 		result = dns_rdatasetiter_next(rdsiter);
 	}
@@ -992,16 +1162,15 @@ do { \
 
 static void
 query_find(ns_client_t *client) {
-	dns_db_t *db;
+	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
 	dns_rdatatype_t qtype, type;
-	dns_name_t *fname, *tname, *prefix;
+	dns_name_t *fname, *zfname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *qrdataset, *trdataset;
-	dns_rdataset_t *sigrdataset;
+	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t use_cache, recursion_ok, want_restart;
-	isc_boolean_t auth, is_zone, clear_fname;
+	isc_boolean_t want_restart, auth, is_zone, clear_fname;
 	unsigned int restarts, qcount, n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
@@ -1021,21 +1190,17 @@ query_find(ns_client_t *client) {
 
 	eresult = ISC_R_SUCCESS;
 	restarts = 0;
-	use_cache = ISC_FALSE;
-	recursion_ok = ISC_FALSE;
 	fname = NULL;
+	zfname = NULL;
 	rdataset = NULL;
+	zrdataset = NULL;
 	sigrdataset = NULL;
+	zsigrdataset = NULL;
 	node = NULL;
 	db = NULL;
+	zdb = NULL;
 	version = NULL;
 
-	if (client->view->cachedb == NULL ||
-	    client->view->resolver == NULL) {
-		use_cache = ISC_FALSE;
-		recursion_ok = ISC_FALSE;
-	}
-	
  restart:
 	want_restart = ISC_FALSE;
 	auth = ISC_FALSE;
@@ -1052,7 +1217,7 @@ query_find(ns_client_t *client) {
 		 * is it a subdomain of any zone for which we're
 		 * authoritative.
 		 */
-		if (!use_cache) {
+		if (!USECACHE(client)) {
 			/*
 			 * If we can't use the cache, either because we
 			 * don't have one or because its use has been
@@ -1135,6 +1300,7 @@ query_find(ns_client_t *client) {
 	if (qtype == dns_rdatatype_sig)
 		type = dns_rdatatype_any;
 
+ db_find:
 	/*
 	 * We'll need some resources...
 	 */
@@ -1151,9 +1317,6 @@ query_find(ns_client_t *client) {
 		goto cleanup;
 	}
 
-#if notyet
- db_find:
-#endif
 	/*
 	 * Now look for an answer in the database.
 	 */
@@ -1171,6 +1334,7 @@ query_find(ns_client_t *client) {
 		/*
 		 * These cases are handled in the main line below.
 		 */
+		INSIST(is_zone);
 		auth = ISC_FALSE;
 		break;
 	case DNS_R_DELEGATION:
@@ -1179,7 +1343,7 @@ query_find(ns_client_t *client) {
 			/*
 			 * We're authoritative for an ancestor of QNAME.
 			 */
-			if (!use_cache) {
+			if (!USECACHE(client)) {
 				/*
 				 * We don't have a cache, so this is the best
 				 * answer.
@@ -1196,20 +1360,71 @@ query_find(ns_client_t *client) {
 				/*
 				 * We might have a better answer or delegation
 				 * in the cache.  We'll remember the current
-				 * values of fname and rdataset, and then
-				 * go looking for QNAME in the cache.  If we
-				 * find something better, we'll use it instead.
+				 * values of fname, rdataset, and sigrdataset.
+				 * We'll then go looking for QNAME in the
+				 * cache.  If we find something better, we'll
+				 * use it instead.
 				 */
-				QUERY_ERROR(DNS_R_NOTIMP);
-				goto cleanup;
+				query_keepname(client, fname, dbuf);
+				zdb = db;
+				zfname = fname;
+				zrdataset = rdataset;
+				zsigrdataset = sigrdataset;
+				dns_db_detachnode(db, &node);
+				version = NULL;
+				db = NULL;
+				dns_db_attach(client->view->cachedb, &db);
+				is_zone = ISC_FALSE;
+				goto db_find;
 			}
 		} else {
-			INSIST(recursion_ok);
+			if (zfname != NULL &&
+			    !dns_name_issubdomain(fname, zfname)) {
+				/*
+				 * We've already got a delegation from
+				 * authoritative data, and it is better
+				 * than what we found in the cache.  Use
+				 * it instead of the cache delegation.
+				 */
+				query_releasename(client, &fname);
+				fname = zfname;
+				zfname = NULL;
+				/*
+				 * We've already done query_keepname() on
+				 * zfname, so we must set dbuf to NULL to
+				 * prevent query_addrrset() from trying to
+				 * call query_keepname() again.
+				 */
+				dbuf = NULL;
+				query_putrdataset(client, &rdataset);
+				query_putrdataset(client, &sigrdataset);
+				rdataset = zrdataset;
+				zrdataset = NULL;
+				sigrdataset = zsigrdataset;
+				zsigrdataset = NULL;
+				/*
+				 * We don't clean up zdb here because we
+				 * may still need it.  It will get cleaned
+				 * up by the main cleanup code.
+				 */
+			}
 
-			/*
-			 * Recurse using the best delegation.
-			 */
-			QUERY_ERROR(DNS_R_NOTIMP);
+			if (!RECURSIONOK(client)) {
+				/*
+				 * This is the best answer.
+				 */
+				client->query.gluedb = zdb;
+				query_addrrset(client, &fname,
+					       &rdataset, &sigrdataset,
+					       dbuf, DNS_SECTION_AUTHORITY);
+				client->query.gluedb = NULL;
+			} else {
+				/*
+				 * XXXRTH  Recurse (using zone
+				 *	   delegation).
+				 */
+				QUERY_ERROR(DNS_R_NOTIMP);
+			}
 		}
 		goto cleanup;
 	case DNS_R_NXRDATASET:
@@ -1251,13 +1466,13 @@ query_find(ns_client_t *client) {
 				       NULL, DNS_SECTION_AUTHORITY);
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
+		INSIST(is_zone);
 		if (restarts > 0) {
 			/*
 			 * We hit a dead end following a CNAME or DNAME.
 			 */
 			goto cleanup;
 		}
-		INSIST(is_zone);
 		if (dns_rdataset_isassociated(rdataset)) {
 			/*
 			 * If we've got a NXT record, we need to save the
@@ -1299,6 +1514,10 @@ query_find(ns_client_t *client) {
 		client->message->rcode = dns_rcode_nxdomain;
 		goto cleanup;
 	case DNS_R_NOTFOUND:
+		/*
+		 * XXXRTH  If we've got a remembered zone delegation, 
+		 *         and recursion is disabled, use it.
+		 */
 		QUERY_ERROR(DNS_R_NOTIMP);
 		goto cleanup;
 	case DNS_R_CNAME:
@@ -1553,29 +1772,24 @@ query_find(ns_client_t *client) {
 	 * XXXRTH  Handle additional questions above.  Find all the question
 	 *         types we can from the node we found, and (if recursion is
 	 *	   OK) launch queries for any types we don't have answers to.
-	 *
-	 *	   Special case:  they make an ANY query as well as some
-	 *         other type.  Perhaps ANY should be disallowed in a
-	 *         multiple question query?
 	 */
 
  cleanup:
-	if (sigrdataset != NULL) {
-		if (sigrdataset->methods != NULL)
-			dns_rdataset_disassociate(sigrdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, sigrdataset, link);
-	}
-	if (rdataset != NULL) {
-		if (rdataset->methods != NULL)
-			dns_rdataset_disassociate(rdataset);
-		ISC_LIST_APPEND(client->query.tmprdatasets, rdataset, link);
-	}
+	query_putrdataset(client, &rdataset);
+	query_putrdataset(client, &sigrdataset);
 	if (fname != NULL)
 		query_releasename(client, &fname);
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zdb != NULL) {
+		query_putrdataset(client, &zrdataset);
+		query_putrdataset(client, &zsigrdataset);
+		if (zfname != NULL)
+			query_releasename(client, &zfname);
+		dns_db_detach(&zdb);
+	}
 
 	if (restarts == 0 && !auth) {
 		/*
@@ -1628,15 +1842,25 @@ ns_query_start(ns_client_t *client) {
 	 */
 	client->next = query_next;
 
+	if (client->view->cachedb == NULL) {
+		/*
+		 * We don't have a cache.  Turn off cache support and
+		 * recursion.
+		 */
+		client->query.attributes &=
+			~(NS_QUERYATTR_RECURSIONOK|NS_QUERYATTR_CACHEOK);
+	} else if ((message->flags & DNS_MESSAGEFLAG_RD) == 0 ||
+		   client->view->resolver == NULL) {
+		/*
+		 * If the client doesn't want recursion, or we don't have
+		 * a resolver, turn recursion off.
+		 */
+		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
+	}
+
 	/*
 	 * XXXRTH  Deal with allow-query and allow-recursion here.
 	 */
-
-	/*
-	 * If the client doesn't want recursion, turn it off.
-	 */
-	if ((message->flags & DNS_MESSAGEFLAG_RD) == 0)
-		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 
 	/*
 	 * Get the question name.

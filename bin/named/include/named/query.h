@@ -40,8 +40,6 @@ struct ns_query {
 	dns_db_t *			gluedb;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;
-	ISC_LIST(dns_name_t)		tmpnames;
-	ISC_LIST(dns_rdataset_t)	tmprdatasets;
 	ISC_LIST(ns_dbversion_t)	activeversions;
 	ISC_LIST(ns_dbversion_t)	freeversions;
 };
