@@ -27,12 +27,19 @@ CINCLUDES =	\
 CDEFINES =	
 CWARNINGS =
 
-DEPLIBS =	../../lib/lwres/liblwres.@A@ \
-		../../lib/dns/libdns.@A@ \
-		../../lib/isc/libisc.@A@
+OMAPILIBS =	../../lib/omapi/libomapi.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
+ISCLIBS =	../../lib/isc/libisc.@A@
+LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
-LIBS =		${DEPLIBS} \
-		@LIBS@
+OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
+DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
+LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+
+DEPLIBS =	${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS} ${LWRESDEPLIBS}
+
+LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} ${LWRESLIBS} @LIBS@
 
 TARGETS =	lwresd
 

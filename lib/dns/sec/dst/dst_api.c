@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.28 2000/04/18 17:39:36 bwelling Exp $
+ * $Id: dst_api.c,v 1.29 2000/04/20 18:27:40 explorer Exp $
  */
 
 #include <config.h>
@@ -43,10 +43,10 @@
 #include <dns/rdata.h>
 #include <dns/keyvalues.h>
 
-#include <openssl/rand.h>
-
 #include "dst_internal.h"
 #include "dst/result.h"
+
+#include <openssl/rand.h>
 
 #define KEY_MAGIC	0x44535421U	/* DST! */
 

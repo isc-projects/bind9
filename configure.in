@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.116 $)
+AC_REVISION($Revision: 1.117 $)
 
 AC_PREREQ(2.13)
 
@@ -151,11 +151,36 @@ fi
 # XXXMLG Implement this check!
 #
 AC_MSG_CHECKING(for compatible OpenSSL library)
+
 DST_PRIVATEOPENSSL='-DDST_USE_PRIVATE_OPENSSL'
 dst_privateopenssl='openssl'
+DST_OPENSSL_INC='-I${srcdir}/../openssl/include'
+DST_OPENSSL_LIB=''
+DST_OPENSSL_OBJS='${OPENSSLOBJS}'
 AC_MSG_RESULT(using private library)
+
 AC_SUBST(DST_PRIVATEOPENSSL)
 AC_SUBST(dst_privateopenssl)
+AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(DST_OPENSSL_LIB)
+AC_SUBST(DST_OPENSSL_OBJS)
+
+#
+# This would include the system openssl path (and linker options to use
+# it as needed) if it is found.
+#
+
+DNS_OPENSSL_LIBS=""
+AC_SUBST(DNS_OPENSSL_LIBS)
+
+#
+# testing with alternate openssl libraries...  XXXMLG
+#
+# DNS_OPENSSL_LIBS="-L/usr/pkg/lib -lssl -lcrypto"
+# DST_PRIVATEOPENSSL=''
+# dst_privateopenssl=''
+# DST_OPENSSL_INC='-I/usr/pkg/include'
+# DST_OPENSSL_LIB=''
 
 #
 # NetBSD has two alternative pthreads implementations.  Make the 

@@ -27,12 +27,17 @@ CINCLUDES =	-I${top_srcdir}/bin/named/include \
 CDEFINES =	
 CWARNINGS =
 
-DEPLIBS =	../../lib/omapi/libomapi.@A@ \
-		../../lib/dns/libdns.@A@ \
-		../../lib/isc/libisc.@A@
+OMAPILIBS =	../../lib/omapi/libomapi.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
+ISCLIBS =	../../lib/isc/libisc.@A@
 
-LIBS =		${DEPLIBS} \
-		@LIBS@
+OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
+DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
+
+DEPLIBS =	${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+
+LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
 TARGETS =	rndc
 

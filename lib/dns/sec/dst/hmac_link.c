@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.18 2000/04/20 01:12:26 explorer Exp $
+ * $Id: hmac_link.c,v 1.19 2000/04/20 18:27:42 explorer Exp $
  */
 
 #include <config.h>
@@ -33,10 +33,10 @@
 #include <isc/int.h>
 #include <isc/region.h>
 
-#include <openssl/md5.h>
-
 #include "dst_internal.h"
 #include "dst_parse.h"
+
+#include <openssl/md5.h>
 
 #define HMAC_LEN	64
 #define HMAC_IPAD	0x36

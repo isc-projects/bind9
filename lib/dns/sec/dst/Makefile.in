@@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir} \
 		-I${srcdir}/../dnssafe \
 		-I${srcdir}/../openssl/include \
-		${DNS_INCLUDES} ${ISC_INCLUDES}
+		${DNS_INCLUDES} ${ISC_INCLUDES} @DST_OPENSSL_INC@
 
 CDEFINES =	-DUSE_MD5 -DDNSSAFE -DOPENSSL @DST_PRIVATEOPENSSL@
 CWARNINGS =

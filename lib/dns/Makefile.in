@@ -128,7 +128,7 @@ OBJS =		a6.@O@ acl.@O@ aclconf.@O@ adb.@O@ byaddr.@O@ \
 		tcpmsg.@O@ time.@O@ tkey.@O@ tkeyconf.@O@ \
 		tsig.@O@ tsigconf.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zoneconf.@O@ zt.@O@ \
-		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
+		${DSTOBJS} @DST_OPENSSL_OBJS@ ${DNSSAFEOBJS} ${CONFOBJS}
 
 # Alphabetically
 SRCS =		a6.c acl.c aclconf.c adb.c byaddr.c \

@@ -25,7 +25,7 @@ CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${LWRES_INCLUDES} \
 CDEFINES =
 CWARNINGS =
 
-DNSLIBS =	../../lib/dns/libdns.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 OMAPILIBS =	../../lib/omapi/libomapi.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
