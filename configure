@@ -1635,6 +1635,7 @@ trap 'rm -fr `echo "make/rules
 	lib/dns/include/dns/Makefile
 	bin/Makefile
 	bin/tests/Makefile
+	bin/server/Makefile
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -1742,6 +1743,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/dns/include/dns/Makefile
 	bin/Makefile
 	bin/tests/Makefile
+	bin/server/Makefile
 "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF

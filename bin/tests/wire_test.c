@@ -300,7 +300,7 @@ getsection(isc_buffer_t *source, dns_namelist_t *section, unsigned int count,
 	}
 }
 
-static void
+void
 getmessage(dns_message_t *message, isc_buffer_t *source,
 	   isc_buffer_t *target)
 {
@@ -438,7 +438,7 @@ printsection(dns_namelist_t *section, char *section_name) {
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+dns_result_t
 printmessage(dns_message_t *message) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	unsigned int opcode, rcode;
@@ -484,6 +484,7 @@ printmessage(dns_message_t *message) {
 	return (result);
 }
 
+#ifndef NOMAIN
 int
 main(int argc, char *argv[]) {
 	char *rp, *wp;
@@ -563,3 +564,4 @@ main(int argc, char *argv[]) {
 
 	return (0);
 }
+#endif /* !NOMAIN */
