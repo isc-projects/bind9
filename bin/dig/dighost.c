@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.177 2001/01/08 20:50:04 bwelling Exp $ */
+/* $Id: dighost.c,v 1.178 2001/01/08 23:38:37 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -356,7 +356,7 @@ make_empty_lookup(void) {
 	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
 	looknew->ixfr_serial = ISC_FALSE;
-	looknew->defname = ISC_TRUE;
+	looknew->defname = ISC_FALSE;
 	looknew->trace = ISC_FALSE;
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
