@@ -30,8 +30,8 @@
 
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
-typedef struct dns_compression			dns_compression_t;
-typedef struct dns_decompression		dns_decompression_t;
+typedef struct dns_compress			dns_compress_t;
+typedef struct dns_decompress			dns_decompress_t;
 typedef unsigned int				dns_rdataclass_t;
 typedef unsigned int				dns_rdatatype_t;
 typedef struct dns_rdata			dns_rdata_t;

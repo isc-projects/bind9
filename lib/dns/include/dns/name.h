@@ -73,6 +73,7 @@
  ***/
 
 #include <isc/boolean.h>
+#include <isc/buffer.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
@@ -85,7 +86,13 @@
  ***** label of either type 00 (ordinary) or type 01000001 (bitstring).
  *****/
 
+/***
+ *** Extended Label Types
+ ***/
+
+#define DNS_LABELTYPE_GLOBALCOMP16	0x40
 #define DNS_LABELTYPE_BITSTRING		0x41
+#define DNS_LABELTYPE_LOCALCOMP		0x42
 
 /***
  *** Properties
@@ -164,6 +171,12 @@ dns_bitlabel_t dns_label_getbit(dns_label_t *label, unsigned int n);
  *****/
 
 /***
+ *** Compression pointer chaining limit
+ ***/
+
+#define DNS_POINTER_MAXHOPS		16
+
+/***
  *** Types
  ***/
 
@@ -171,6 +184,7 @@ dns_bitlabel_t dns_label_getbit(dns_label_t *label, unsigned int n);
  * Clients are strongly discouraged from using this type directly.
  */
 struct dns_name {
+	unsigned int magic;
 	unsigned char *ndata;
 	unsigned int length;
 	unsigned int labels;
@@ -194,6 +208,19 @@ void dns_name_init(dns_name_t *name);
  *	dns_name_countlabels(name) == 0
  */
 
+void dns_name_invalidate(dns_name_t *name);
+/*
+ * Make 'name' invalid.
+ *
+ * Requires:
+ *	'name' is a valid name.
+ *
+ * Ensures:
+ *	If assertion checking is enabled, future attempts to use 'name' without
+ *	initializing it will cause an assertion failure.  A name can be
+ *	initialized by calling dns_name_init(), or by calling one of the
+ *	dns_name_from*() functions.
+ */
 
 /***
  *** Properties
@@ -357,10 +384,10 @@ void dns_name_toregion(dns_name_t *name, isc_region_t *r);
  */
 
 dns_result_t dns_name_fromwire(dns_name_t *name,
-			       isc_region_t *source,
-			       dns_decompression_t *dctx,
+			       isc_buffer_t *source,
+			       dns_decompress_t *dctx,
 			       isc_boolean_t downcase,
-			       isc_region_t *target);
+			       isc_buffer_t *target);
 /*
  * Copy the possibly-compressed name at source into target, decompressing it.
  *
@@ -380,7 +407,11 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *
  * Requires:
  *
- *	'source' and 'target' are valid regions.
+ *	'source' is a valid buffer of type ISC_BUFFERTYPE_BINARY, and the
+ *	first byte of the used region should be the first byte of a DNS wire
+ *	format message.
+ *
+ *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY.
  *
  *	'dctx' is a valid decompression context.
  *
@@ -395,21 +426,24 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *		Any bitstring labels in source are canonicalized.
  *		(i.e. maximally packed and any padding bits zeroed.)
  *
+ *		The current location in source is advanced, and the used space
+ *		in target is updated.
+ *
  * Result:
  *	Success
  *	Bad Form: Label Length
  *	Bad Form: Unknown Label Type
  *	Bad Form: Name Length
- *	Bad Form: Local compression not allowed
- *	Bad Form: Compression pointer loop
+ *	Bad Form: Compression type not allowed
+ *	Bad Form: Bad compression pointer
  *	Bad Form: Input too short
  *	Resource Limit: Too many compression pointers
  *	Resource Limit: Not enough space in buffer
  */
 
 dns_result_t dns_name_towire(dns_name_t *name,
-			     dns_compression_t *cctx,
-			     isc_region_t *target, unsigned int *bytesp);
+			     dns_compress_t *cctx,
+			     isc_buffer_t *target);
 /*
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -425,17 +459,18 @@ dns_result_t dns_name_towire(dns_name_t *name,
  *
  *	dns_name_isabsolute(name) == TRUE
  *
- *	target is a valid region
+ *	target is a valid buffer of type ISC_BUFFERTYPE_BINARY.
  *
  *	Any offsets specified in a global compression table are valid
  *	for buffer.
  *
  * Ensures:
+ *
  *	If the result is success:
+ *
  *		Any bitstring labels are in canonical form.
  *
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in target is updated.
  *
  * Returns:
  *	Success
@@ -443,10 +478,10 @@ dns_result_t dns_name_towire(dns_name_t *name,
  */
 
 dns_result_t dns_name_fromtext(dns_name_t *name,
-			       isc_textregion_t *source,
+			       isc_buffer_t *source,
 			       dns_name_t *origin,
 			       isc_boolean_t downcase,
-			       isc_region_t *target);
+			       isc_buffer_t *target);
 /*
  * Convert the textual representation of a DNS name at source
  * into uncompressed wire form stored in target.
@@ -461,13 +496,14 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *
  * Requires:
  *
- *	'source' is a valid text region.
+ *	'source' is a valid buffer of type ISC_BUFFERTYPE_TEXT.
  *
- *	'target' is a valid region.
+ *	'target' is a valid region of type ISC_BUFFERTYPE_BINARY.
  *
  *	'name' is a valid name.
  *
  * Ensures:
+ *
  *	If result is success:
  *	 	'name' is attached to the target.
  *
@@ -480,18 +516,20 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *		in target is updated.
  *
  * Result:
- *	Success
- *	Bad Form: Label Length
- *	Bad Form: Unknown Label Type
- *	Bad Form: Name Length
- *	Bad Form: Empty Label
- *	Bad Form: Input too short
- *	Resource Limit: Not enough space in buffer
+ *	DNS_R_SUCCESS
+ *	DNS_R_EMPTYLABEL
+ *	DNS_R_LABELTOOLONG
+ *	DNS_R_BADESCAPE
+ *	DNS_R_BADBITSTRING
+ *	DNS_R_BITSTRINGTOOLONG
+ *	DNS_R_BADDOTTEDQUAD
+ *	DNS_R_NOSPACE
+ *	DNS_R_UNEXPECTEDEND
  */
 
 dns_result_t dns_name_totext(dns_name_t *name,
 			     isc_boolean_t omit_final_dot,
-			     isc_textregion_t *target, unsigned int *bytesp);
+			     isc_buffer_t *target);
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	
@@ -500,24 +538,26 @@ dns_result_t dns_name_totext(dns_name_t *name,
  *	name will not be emitted.
  *
  * Requires:
+ *
  *	'name' is a valid name
  *
- *	'target' is a valid text region
+ *	'target' is a valid buffer of type ISC_BUFFERTYPE_TEXT
  *
  *	dns_name_countlabels(name) > 0
  *
  *	if dns_name_isabsolute == FALSE, then omit_final_dot == FALSE
  *
  * Ensures:
+ *
  *	If the result is success:
+ *
  *		Any bitstring labels are in canonical form.
  *
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in target is updated.
  *
  * Returns:
- *	Success
- *	Resource Limit: Not enough space in buffer
+ *	DNS_R_SUCCESS
+ *	DNS_R_NOSPACE
  */
 
 #endif /* DNS_NAME_H */
