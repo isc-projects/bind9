@@ -159,30 +159,106 @@ struct	addrinfo {
  * Use our versions not the ones from the C library.
  */
 
+#ifdef getnameinfo
+#undef getnameinfo
+#endif
 #define getnameinfo lwres_getnameinfo
+
+#ifdef getaddrinfo
+#undef getaddrinfo
+#endif
 #define getaddrinfo lwres_getaddrinfo
+
+#ifdef freeaddrinfo
+#undef freeaddrinfo
+#endif
 #define freeaddrinfo lwres_freeaddrinfo
+
+#ifdef gai_strerror
+#undef gai_strerror
+#endif
 #define gai_strerror lwres_gai_strerror
 
+#ifdef herror
+#undef herror
+#endif
 #define herror lwres_herror
+
+#ifdef hstrerror
+#undef hstrerror
+#endif
 #define hstrerror lwres_hstrerror
 
+#ifdef getipnodebyname
+#undef getipnodebyname
+#endif
 #define getipnodebyname lwres_getipnodebyname
+
+#ifdef getipnodebyaddr
+#undef getipnodebyaddr
+#endif
 #define getipnodebyaddr lwres_getipnodebyaddr
+
+#ifdef freehostent
+#undef freehostent
+#endif
 #define freehostent lwres_freehostent
 
+#ifdef gethostbyname
+#undef gethostbyname
+#endif
 #define gethostbyname lwres_gethostbyname
+
+#ifdef gethostbyname2
+#undef gethostbyname2
+#endif
 #define gethostbyname2 lwres_gethostbyname2
+
+#ifdef gethostbyaddr
+#undef gethostbyaddr
+#endif
 #define gethostbyaddr lwres_gethostbyaddr
+
+#ifdef gethostent
+#undef gethostent
+#endif
 #define gethostent lwres_gethostent
+
+#ifdef sethostent
+#undef sethostent
+#endif
 #define sethostent lwres_sethostent
+
+#ifdef endhostent
+#undef endhostent
+#endif
 #define endhostent lwres_endhostent
+
 /* #define sethostfile lwres_sethostfile */
 
+#ifdef gethostbyname_r
+#undef gethostbyname_r
+#endif
 #define gethostbyname_r lwres_gethostbyname_r
+
+#ifdef gethostbyaddr_r
+#undef gethostbyaddr_r
+#endif
 #define gethostbyaddr_r lwres_gethostbyaddr_r
+
+#ifdef gethostent_r
+#undef gethostent_r
+#endif
 #define gethostent_r lwres_gethostent_r
+
+#ifdef sethostent_r
+#undef sethostent_r
+#endif
 #define sethostent_r lwres_sethostent_r
+
+#ifdef endhostent_r
+#undef endhostent_r
+#endif
 #define endhostent_r lwres_endhostent_r
 
 #ifdef notyet
@@ -211,18 +287,60 @@ struct	addrinfo {
 #define endprotoent_r lwres_endprotoent_r
 #endif
 
+#ifdef getnetbyname
+#undef getnetbyname
+#endif
 #define getnetbyname lwres_getnetbyname
+
+#ifdef getnetbyaddr
+#undef getnetbyaddr
+#endif
 #define getnetbyaddr lwres_getnetbyaddr
+
+#ifdef getnetent
+#undef getnetent
+#endif
 #define getnetent lwres_getnetent
+
+#ifdef setnetent
+#undef setnetent
+#endif
 #define setnetent lwres_setnetent
+
+#ifdef endnetent
+#undef endnetent
+#endif
 #define endnetent lwres_endnetent
 
+
+#ifdef getnetbyname_r
+#undef getnetbyname_r
+#endif
 #define getnetbyname_r lwres_getnetbyname_r
+
+#ifdef getnetbyaddr_r
+#undef getnetbyaddr_r
+#endif
 #define getnetbyaddr_r lwres_getnetbyaddr_r
+
+#ifdef getnetent_r
+#undef getnetent_r
+#endif
 #define getnetent_r lwres_getnetent_r
+
+#ifdef setnetent_r
+#undef setnetent_r
+#endif
 #define setnetent_r lwres_setnetent_r
+
+#ifdef endnetent_r
+#undef endnetent_r
+#endif
 #define endnetent_r lwres_endnetent_r
 
+#ifdef h_errno
+#undef h_errno
+#endif
 #define h_errno lwres_h_errno
 
 #endif
