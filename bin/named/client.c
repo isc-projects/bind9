@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.98.2.1 2000/07/17 17:30:11 gson Exp $ */
+/* $Id: client.c,v 1.98.2.2 2000/07/17 18:56:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1053,6 +1053,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
+	else
+		client->attributes &= ~NS_CLIENTATTR_RA;
 
 	/*
 	 * Dispatch the request.

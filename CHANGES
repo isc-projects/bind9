@@ -1,3 +1,6 @@
+ 335.	[bug]		named would occasionally attempt recursion when
+			it was disallowed or undesired.
+
  333.	[bug]		The resolver incorrectly accepted referrals to
 			domains that were not parents of the query name,
 			causing assertion failures.
