@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.60.2.3 2004/03/09 06:09:21 marka Exp $ */
+/* $Id: client.h,v 1.60.2.4 2004/07/23 02:57:01 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -91,6 +91,7 @@ struct ns_client {
 	int			nreads;
 	int			nsends;
 	int			nrecvs;
+	int			nupdates;
 	int			nctls;
 	int			references;
 	unsigned int		attributes;
