@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: query.c,v 1.109.2.5 2000/07/19 16:22:16 gson Exp $ */
+/* $Id: query.c,v 1.109.2.6 2000/07/26 23:15:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1414,7 +1414,8 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 	/*
 	 * Find the SOA.
 	 */
-	result = dns_db_find(db, name, NULL, dns_rdatatype_soa, 0, 0, &node,
+	result = dns_db_find(db, name, NULL, dns_rdatatype_soa,
+			     client->query.dboptions, 0, &node,
 			     fname, rdataset, sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -1479,7 +1480,8 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 	 * Find the NS rdataset.
 	 */
 	CTRACE("query_addns: calling dns_db_find");
-	result = dns_db_find(db, name, NULL, dns_rdatatype_ns, 0, 0, &node,
+	result = dns_db_find(db, name, NULL, dns_rdatatype_ns,
+			     client->query.dboptions, 0, &node,
 			     fname, rdataset, sigrdataset);
 	CTRACE("query_addns: dns_db_find complete");
 	if (result != ISC_R_SUCCESS) {
@@ -1621,7 +1623,7 @@ query_addbestns(ns_client_t *client) {
 	 */
 	if (is_zone) {
 		result = dns_db_find(db, client->query.qname, version,
-				     dns_rdatatype_ns, 0,
+				     dns_rdatatype_ns, client->query.dboptions,
 				     client->now, &node, fname,
 				     rdataset, sigrdataset);
 		if (result != DNS_R_DELEGATION)
@@ -1640,7 +1642,8 @@ query_addbestns(ns_client_t *client) {
 			goto db_find;
 		}
 	} else {
-		result = dns_db_findzonecut(db, client->query.qname, 0,
+		result = dns_db_findzonecut(db, client->query.qname,
+					    client->query.dboptions,
 					    client->now, &node, fname,
 					    rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
@@ -1681,7 +1684,7 @@ query_addbestns(ns_client_t *client) {
 		zsigrdataset = NULL;
 	}
 
-	if ((client->message->flags & DNS_MESSAGEFLAG_CD) == 0 &&
+	if ((client->query.dboptions & DNS_DBFIND_PENDINGOK) == 0 &&
 	    (rdataset->trust == dns_trust_pending ||
 	     sigrdataset->trust == dns_trust_pending))
 		goto cleanup;
@@ -1917,7 +1920,8 @@ query_findparentkey(ns_client_t *client, dns_name_t *name,
 		goto cleanup;
 	}
 		
-	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key, 0,
+	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key,
+			     client->query.dboptions,
 			     client->now, &pnode,
 			     dns_fixedname_name(&pfoundname),
 			     &prdataset, &psigrdataset);
@@ -2151,9 +2155,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	/*
 	 * Now look for an answer in the database.
 	 */
-	result = dns_db_find(db, client->query.qname, version, type, 0,
-			     client->now, &node, fname, rdataset,
-			     sigrdataset);
+	result = dns_db_find(db, client->query.qname, version, type,
+			     client->query.dboptions, client->now,
+			     &node, fname, rdataset, sigrdataset);
 
 	/*
 	 * We interrupt our normal query processing to bring you this special
@@ -2952,6 +2956,13 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
+	 * If the client has requested that DNSSEC checking be disabled,
+	 * allow lookups to return pending data.
+	 */
+	if (message->flags & DNS_MESSAGEFLAG_CD)
+		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
+
+	/*
 	 * This is an ordinary query.
 	 */
 	result = dns_message_reply(message, ISC_TRUE);
@@ -2969,9 +2980,6 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Set AD.  We need only clear it if we add "pending" data to
 	 * a response.
-	 *
-	 * Note: as currently written, the server does not return "pending"
-	 * data even if a client says it's OK to do so.
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
 
