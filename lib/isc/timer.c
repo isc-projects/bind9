@@ -24,6 +24,9 @@
 #define WAITUNTIL(cvp, lp, tp, bp)	INSIST(os_condition_waituntil((cvp), \
 					       (lp), (tp), (bp)))
 
+#define ZERO(t)				((t).seconds == 0 && \
+					 (t).nanoseconds == 0)
+
 #define TIMER_MAGIC			0x54494D52U	/* TIMR. */
 #define VALID_TIMER(t)			((t) != NULL && \
 					 (t)->magic == TIMER_MAGIC)
@@ -34,16 +37,16 @@ struct timer_t {
 	os_mutex_t			lock;
 	/* Locked by timer lock. */
 	unsigned int			references;
-	os_time_t			touched;
+	os_time_t			idle;
 	/* Locked by manager lock. */
 	timer_type_t			type;
-	os_time_t			absolute;
+	os_time_t			expires;
 	os_time_t			interval;
 	task_t				task;
 	task_action_t			action;
 	void *				arg;
 	unsigned int			index;
-	os_time_t			next_time;
+	os_time_t			due;
 	LINK(struct timer_t)		link;
 };
 
@@ -60,7 +63,7 @@ struct timer_manager_t {
 	boolean_t			done;
 	LIST(struct timer_t)		timers;
 	unsigned int			nscheduled;
-	os_time_t			next_time;
+	os_time_t			due;
 	os_condition_t			wakeup;
 	os_thread_t			thread;
 	heap_t				heap;
@@ -76,7 +79,7 @@ sooner(void *v1, void *v2) {
 	REQUIRE(VALID_TIMER(t1));
 	REQUIRE(VALID_TIMER(t2));
 
-	if (os_time_compare(&t1->next_time, &t2->next_time) < 0)
+	if (os_time_compare(&t1->due, &t2->due) < 0)
 		return (TRUE);
 	return (FALSE);
 }
@@ -91,58 +94,37 @@ set_index(void *what, unsigned int index) {
 	timer->index = index;
 }
 
-static inline void
-nexttime(timer_t timer, os_time_t *nowp, boolean_t first_time) {
-	/* 
-	 * The caller must ensure locking.
-	 */
-
-	if (timer->type == timer_type_ticker) {
-		if (first_time) {
-			if (timer->absolute.seconds == 0 &&
-			    timer->absolute.nanoseconds == 0)
-				timer->next_time = *nowp;
-			else
-				timer->next_time = timer->absolute;
-		} else
-			os_time_add(nowp, &timer->interval, &timer->next_time);
-	} else {
-		/* Idle timer. */
-		if (os_time_compare(&timer->touched, nowp) <= 0) {
-			os_time_t idle, remaining;
-
-			os_time_subtract(nowp, &timer->touched, &idle);
-			if (os_time_compare(&idle, &timer->interval) >= 0) {
-				os_time_add(nowp, &timer->interval,
-					    &timer->next_time);
-			} else {
-				
-			}
-		} else {
-			/*
-			 * Time touched is in the future!  Make it now.
-			 */
-			timer->touched = *nowp;
-			os_time_add(nowp, &timer->interval, &timer->next_time);
-		}
-	}
-}
-
 static inline isc_result
-schedule(timer_t timer, os_time_t *new_nextimep) {
+schedule(timer_t timer, os_time_t *nowp) {
 	isc_result result;
 	timer_manager_t manager;
+	os_time_t due;
 
 	/* 
-	 * The caller must ensure locking.
+	 * Note: the caller must ensure locking.
 	 */
+
+	/*
+	 * Compute the new due time.
+	 */
+	if (timer->type == timer_type_ticker)
+		os_time_add(nowp, &timer->interval, &due);
+	else {
+		if (os_time_compare(&timer->idle, &timer->expires) < 0)
+			due = timer->idle;
+		else
+			due = timer->expires;
+	}
 	
+	/*
+	 * Schedule the timer.
+	 */
 	manager = timer->manager;
 	if (timer->index > 0) {
 		/*
 		 * Already scheduled.
 		 */
-		switch (os_time_compare(new_nextimep, &timer->next_time)) {
+		switch (os_time_compare(&due, &timer->due)) {
 		case -1:
 			heap_increased(manager->heap, timer->index);
 			break;
@@ -161,11 +143,13 @@ schedule(timer_t timer, os_time_t *new_nextimep) {
 		}
 		manager->nscheduled++;
 	}
-	timer->next_time = *new_nextimep;
+	timer->due = due;
 
 	/*
-	 * If this timer is at the head of the queue, we must wake up the
-	 * run thread so it doesn't sleep too long.
+	 * If this timer is at the head of the queue, we wake up the run
+	 * thread.  We do this, because we likely have set a more recent
+	 * due time than the one the run thread is sleeping on, and we don't
+	 * want it to oversleep.
 	 */
 	if (timer->index == 1)
 		BROADCAST(&manager->wakeup);
@@ -219,16 +203,16 @@ destroy(timer_t timer) {
 
 isc_result
 timer_create(timer_manager_t manager, timer_type_t type,
-	     os_time_t absolute, os_time_t interval,
+	     os_time_t expires, os_time_t interval,
 	     task_t task, task_action_t action, void *arg, timer_t *timerp)
 {
 	timer_t timer;
 	isc_result result;
-	os_time_t now, next_time;
+	os_time_t now;
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
-	 * parameters are specified by 'absolute' and 'interval'.  Events
+	 * parameters are specified by 'expires' and 'interval'.  Events
 	 * will be posted to 'task' and when dispatched 'action' will be
 	 * called with 'arg' as the arg value.  The new timer is returned
 	 * in 'timerp'.
@@ -237,8 +221,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
-	REQUIRE(!(absolute.seconds == 0 && absolute.nanoseconds == 0 &&
-		  interval.seconds == 0 && interval.nanoseconds == 0));
+	REQUIRE(!(ZERO(expires) && ZERO(interval)));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
 	/*
@@ -259,9 +242,14 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	timer->magic = TIMER_MAGIC;
 	timer->manager = manager;
 	timer->references = 1;
-	timer->touched = now;
+	if (type == timer_type_idle && !ZERO(interval))
+		os_time_add(&now, &interval, &timer->idle);
+	else {
+		timer->idle.seconds = 0;
+		timer->idle.nanoseconds = 0;
+	}
 	timer->type = type;
-	timer->absolute = absolute;
+	timer->expires = expires;
 	timer->interval = interval;
 	timer->task = NULL;
 	task_attach(task, &timer->task);
@@ -282,11 +270,7 @@ timer_create(timer_manager_t manager, timer_type_t type,
 	 */
 
 	APPEND(manager->timers, timer, link);
-
-	/* XXX */
-	os_time_add(&now, &timer->interval, &next_time);
-
-	result = schedule(timer, &next_time);
+	result = schedule(timer, &now);
 
 	UNLOCK(&manager->lock);
 
@@ -298,22 +282,21 @@ timer_create(timer_manager_t manager, timer_type_t type,
 
 isc_result
 timer_reset(timer_t timer, timer_type_t type,
-	    os_time_t absolute, os_time_t interval)
+	    os_time_t expires, os_time_t interval)
 {
-	os_time_t now, next_time;
+	os_time_t now;
 	timer_manager_t manager;
 	isc_result result;
 
 	/*
-	 * Change the timer's type, absolute, and interval values to the
+	 * Change the timer's type, expires, and interval values to the
 	 * given values.
 	 */
 
 	REQUIRE(VALID_TIMER(timer));
 	manager = timer->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(!(absolute.seconds == 0 && absolute.nanoseconds == 0 &&
-		  interval.seconds == 0 && interval.nanoseconds == 0));
+	REQUIRE(!(ZERO(expires) && ZERO(interval)));
 
 	/*
 	 * Get current time.
@@ -332,11 +315,15 @@ timer_reset(timer_t timer, timer_type_t type,
 	LOCK(&timer->lock);
 
 	timer->type = type;
-	timer->absolute = absolute;
+	timer->expires = expires;
 	timer->interval = interval;
-	timer->touched = now;
-
-	result = schedule(timer, &next_time);
+	if (type == timer_type_idle && !ZERO(interval))
+		os_time_add(&now, &interval, &timer->idle);
+	else {
+		timer->idle.seconds = 0;
+		timer->idle.nanoseconds = 0;
+	}
+	result = schedule(timer, &now);
 
 	UNLOCK(&timer->lock);
 	UNLOCK(&manager->lock);
@@ -372,6 +359,7 @@ timer_shutdown(timer_t timer) {
 isc_result
 timer_touch(timer_t timer) {
 	isc_result result;
+	os_time_t now;
 
 	/*
 	 * Set the last-touched time of 'timer' to the current time.
@@ -383,13 +371,14 @@ timer_touch(timer_t timer) {
 
 	INSIST(timer->type == timer_type_idle);
 
-	result = os_time_get(&timer->touched);
+	result = os_time_get(&now);
 	if (result != ISC_R_SUCCESS) {
 		unexpected_error(__FILE__, __LINE__,
 				 "os_time_get() failed: %s",
 				 isc_result_to_text(result));
 		return (ISC_R_UNEXPECTED);
 	}
+	os_time_add(&now, &timer->interval, &timer->idle);
 
 	UNLOCK(&timer->lock);
 
@@ -442,36 +431,38 @@ static void
 dispatch(timer_manager_t manager, os_time_t *nowp) {
 	boolean_t done = FALSE, post_event, need_schedule;
 	task_event_t event;
-	task_eventtype_t type;
+	task_eventtype_t type = 0;
 	timer_t timer;
-	os_time_t next_time;
 	isc_result result;
 
 	while (manager->nscheduled > 0 && !done) {
 		timer = heap_element(manager->heap, 1);
-		printf("next_time = %d.%09d\n", timer->next_time.seconds,
-		       timer->next_time.nanoseconds);
-		if (os_time_compare(nowp, &timer->next_time) >= 0) {
-			post_event = FALSE;
-
+		printf("due = %lu.%09lu\n",
+		       (unsigned long)timer->due.seconds,
+		       (unsigned long)timer->due.nanoseconds);
+		if (os_time_compare(nowp, &timer->due) >= 0) {
 			if (timer->type == timer_type_ticker) {
 				type = TIMER_EVENT_TICK;
 				post_event = TRUE;
-				os_time_add(nowp, &timer->interval,
-					    &next_time);
 				need_schedule = TRUE;
-			} else if (os_time_compare(nowp,
-						   &timer->absolute) >= 0) {
+			} else if (!ZERO(timer->expires) &&
+				   os_time_compare(nowp,
+						   &timer->expires) >= 0) {
 				type = TIMER_EVENT_LIFE;
+				post_event = TRUE;
+				need_schedule = FALSE;
+			} else if (!ZERO(timer->idle) &&
+				   os_time_compare(nowp,
+						   &timer->idle) >= 0) {
+				type = TIMER_EVENT_IDLE;
 				post_event = TRUE;
 				need_schedule = FALSE;
 			} else {
 				/*
-				 * Check if idle too long.
+				 * Idle timer has been touched; reschedule.
 				 */
-				/* XXX */
 				post_event = FALSE;
-				need_schedule = FALSE;
+				need_schedule = TRUE;
 			}
 
 			if (post_event) {
@@ -495,14 +486,14 @@ dispatch(timer_manager_t manager, os_time_t *nowp) {
 			manager->nscheduled--;
 
 			if (need_schedule) {
-				result = schedule(timer, &next_time);
+				result = schedule(timer, nowp);
 				if (result != ISC_R_SUCCESS)
 					unexpected_error(__FILE__, __LINE__,
 						"couldn't schedule timer: %s",
 							 result);
 			}
 		} else {
-			manager->next_time = timer->next_time;
+			manager->due = timer->due;
 			done = TRUE;
 		}
 	} 
@@ -524,8 +515,8 @@ run(void *uap) {
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
-			ts.tv_sec = manager->next_time.seconds;
-			ts.tv_nsec = manager->next_time.nanoseconds;
+			ts.tv_sec = manager->due.seconds;
+			ts.tv_nsec = manager->due.nanoseconds;
 			WAITUNTIL(&manager->wakeup, &manager->lock, &ts,
 				  &timeout);
 		} else
@@ -556,8 +547,8 @@ timer_manager_create(mem_context_t mctx, timer_manager_t *managerp) {
 	manager->done = FALSE;
 	INIT_LIST(manager->timers);
 	manager->nscheduled = 0;
-	manager->next_time.seconds = 0;
-	manager->next_time.nanoseconds = 0;
+	manager->due.seconds = 0;
+	manager->due.nanoseconds = 0;
 	manager->heap = NULL;
 	result = heap_create(mctx, sooner, set_index, 0, &manager->heap);
 	if (result != ISC_R_SUCCESS) {
