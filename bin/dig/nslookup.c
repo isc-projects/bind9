@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.33 2000/08/07 23:54:46 gson Exp $ */
+/* $Id: nslookup.c,v 1.34 2000/08/09 18:35:40 gson Exp $ */
 
 #include <config.h>
 
@@ -856,10 +856,10 @@ main(int argc, char **argv) {
 	parse_args(argc, argv);
 
 	if (deprecation_msg) {
-		puts(
+		fputs(
 "Note:  nslookup is deprecated and may be removed from future releases.\n"
 "Consider using the `dig' or `host' programs instead.  Run nslookup with\n"
-"the `-sil[ent]' option to prevent this message from appearing.\n");
+"the `-sil[ent]' option to prevent this message from appearing.\n", stderr);
 	}
 	setup_system();
 
