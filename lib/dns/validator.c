@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.106 2002/06/19 04:15:12 marka Exp $ */
+/* $Id: validator.c,v 1.107 2002/07/15 02:57:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1044,11 +1044,12 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure");
 			return (result);
-		}
-		else
+		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
 				      isc_result_totext(result));
+			resume = ISC_FALSE;
+		}
 	}
 	if (result != ISC_R_NOMORE) {
 		validator_log(val, ISC_LOG_DEBUG(3),
