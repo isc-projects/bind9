@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.51 2000/11/28 22:44:10 gson Exp $
+$Id: options,v 1.52 2000/12/02 00:25:40 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -55,6 +55,7 @@ options {
   [ recursion yes_or_no; ]				    Yes
   [ rfc2308-type1 yes_or_no; ]				    No
   [ use-id-pool yes_or_no; ]				    Obsolete+
+  [ use-ixfr yes_or_no; ]				    Obsolete
   [ treat-cr-as-space yes_or_no; ]			    Obsolete#
   [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ forward ( only | first ); ]				    Yes

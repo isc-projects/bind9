@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.61 2000/12/02 00:14:23 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.62 2000/12/02 00:25:39 gson Exp $ -->
 
 <book>
 
@@ -2767,6 +2767,15 @@ using <command>rndc stats</command>, which will dump them to the file listed
 in the <command>statistics-file</command>.  See also <xref linkend="statsfile"/>.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para><command>use-ixfr</command></para></entry>
+<entry colname = "2"><para></para>The <command>use-ixfr</command> option
+is deprecated in <acronym>BIND</acronym> 9. If
+you need to disable IXFR to a particular server or servers see
+the information on the <command>provide-ixfr</command> option
+in <xref linkend="server_statement_definition_and_usage"/>. See also
+<xref linkend="incremental_zone_transfers"/>.</entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para><command>treat-cr-as-space</command></para></entry>
 <entry colname = "2"><para>This option was used in <acronym>BIND</acronym> 8 to make
 the server treat carriage return ("<command>\r</command>") characters the same way
@@ -3425,16 +3434,6 @@ to allow for a limited amount of clock skew.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable></sect3>
-<sect3>
-        <title>Deprecated Features</title>
-
-        <para><command>use-ixfr</command> is deprecated in <acronym>BIND</acronym> 9. If
-        you need to disable IXFR to a particular server or servers see
-        the information on the <command>provide-ixfr</command> option
-        in <xref
-        linkend="server_statement_definition_and_usage"/>. See also
-        <xref linkend="incremental_zone_transfers"/>.</para>
-</sect3>
 
 <sect3 id="statsfile">
         <title>The Statistics File</title>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.108 2000/11/28 21:43:37 gson Exp $ */
+/* $Id: confctx.c,v 1.109 2000/12/02 00:25:42 gson Exp $ */
 
 #include <config.h>
 
@@ -419,6 +419,11 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "option 'use-id-pool' is obsolete");
 	}
 
+	if (dns_c_ctx_getuseixfr(cfg, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'use-ixfr' is obsolete");
+	}
 
 	if (dns_c_ctx_gettreatcrasspace(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
