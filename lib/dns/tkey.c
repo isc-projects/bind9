@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.24 2000/03/08 20:15:16 bwelling Exp $
+ * $Id: tkey.c,v 1.25 2000/03/17 19:50:22 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -751,7 +751,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	if (nonce != NULL)
 		isc_buffer_region(nonce, &r);
 	else {
-		r.base = NULL;
+		r.base = isc_mem_get(msg->mctx, 0);
 		r.length = 0;
 	}
 	tkey.error = 0;
@@ -761,6 +761,9 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	tkey.otherlen = 0;
 
 	RETERR(buildquery(msg, name, &tkey));
+
+	if (nonce == NULL)
+		isc_mem_put(msg->mctx, r.base, 0);
 
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024,
@@ -945,10 +948,12 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	if (nonce != NULL)
 		isc_buffer_region(nonce, &r2);
 	else {
-		r2.base = NULL;
+		r2.base = isc_mem_get(rmsg->mctx, 0);
 		r2.length = 0;
 	}
 	RETERR(compute_secret(shared, &r2, &r, &secret));
+	if (nonce == NULL)
+		isc_mem_put(rmsg->mctx, r2.base, 0);
 
 	isc_buffer_used(&secret, &r);
 	tsigkey = NULL;
