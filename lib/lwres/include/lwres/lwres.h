@@ -23,6 +23,11 @@
 #include <isc/lang.h>
 #include <isc/int.h>
 
+/*
+ * Used to set various options such as timeout, authentication, etc
+ */
+typedef struct lwres_context lwres_context_t;
+
 #define LWRES_OPCODE_NOOP		0x00000000U
 typedef struct {
 	/* public */
@@ -42,9 +47,9 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
-	unsigned char	       *real_name;
+	char		       *real_name;
 	unsigned int		naliases;
-	unsigned char	      **aliases;
+	char		      **aliases;
 	unsigned int		naddrs;
 	lwres_addr_t	      **addrs;
 	/* private */
@@ -57,9 +62,9 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
-	unsigned char	       *real_name;
+	char		       *real_name;
 	unsigned int		naliases;
-	unsigned char	      **aliases;
+	char		      **aliases;
 	/* private */
 	unsigned int		buflen;
 	void		       *buffer;  /* must be last to keep alignment */
@@ -71,13 +76,19 @@ typedef struct {
 
 ISC_LANG_BEGINDECLS
 
+typedef void *(*lwres_malloc_t)(void *arg, unsigned int length);
+typedef void (*lwres_free_t)(void *arg, unsigned int length, void *mem);
+
 unsigned int
-lwres_getaddrsbyname(unsigned char *name, unsigned int addrtypes,
+lwres_getaddrsbyname(lwres_context_t *context,
+		     char *name, unsigned int addrtypes,
 		     lwres_getaddrsbyname_t **structp);
 /*
  * Makes a lwres call to look up all addresses associated with "name".
  *
  * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp == NULL.
  *
@@ -97,11 +108,14 @@ lwres_getaddrsbyname(unsigned char *name, unsigned int addrtypes,
  */
 
 void
-lwres_freegetaddrsbyname(lwres_getaddrsbyname_t **structp);
+lwres_freegetaddrsbyname(lwres_context_t *context,
+			 lwres_getaddrsbyname_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *
  * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp != NULL.
  *
@@ -114,12 +128,15 @@ lwres_freegetaddrsbyname(lwres_getaddrsbyname_t **structp);
  */
 
 unsigned int
-lwres_getnamebyaddr(unsigned int addrlen, unsigned char *addr,
-		    unsigned int addrtype, lwres_getnamebyaddr_t **structp);
+lwres_getnamebyaddr(lwres_context_t *context, unsigned int addrtype,
+		    unsigned int addrlen, unsigned char *addr,
+		    lwres_getnamebyaddr_t **structp);
 /*
  * Makes a lwres call to look up the hostnames associated with the address.
  *
  * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp == NULL.
  *
@@ -138,11 +155,14 @@ lwres_getnamebyaddr(unsigned int addrlen, unsigned char *addr,
  */
 
 void
-lwres_freegetnamebyaddr(lwres_getnamebyaddr_t **structp);
+lwres_freegetnamebyaddr(lwres_context_t *context,
+			lwres_getnamebyaddr_t **structp);
 /*
  * Frees any dynamically allocated memory for this structure.
  *
  * Requires:
+ *
+ *	context != NULL, and be a context returned via lwres_contextcreate().
  *
  *	structp != NULL && *structp != NULL.
  *
@@ -152,6 +172,40 @@ lwres_freegetnamebyaddr(lwres_getnamebyaddr_t **structp);
  *
  *	All memory allocated by this structure will be returned to the
  *	system via free().
+ */
+
+unsigned int
+lwres_contextcreate(lwres_context_t **contextp, void *arg,
+		    lwres_malloc_t malloc_function,
+		    lwres_free_t free_function);
+/*
+ * Allocated a lwres context.  This is used in all lwres calls.
+ *
+ * Memory management can be replaced here by passing in two functions.
+ * If one is non-NULL, they must both be non-NULL.  "arg" is passed to
+ * these functions.
+ *
+ * If they are NULL, the standard malloc() and free() will be used.
+ *
+ * Requires:
+ *
+ *	contextp != NULL && contextp == NULL.
+ *
+ *	
+ *
+ * Returns:
+ *
+ *	Returns 0 on success, non-zero on failure.
+ */
+
+void
+lwres_contextfree(lwres_context_t **contextp);
+/*
+ * Frees all memory associated with a lwres context.
+ *
+ * Requires:
+ *
+ *	contextp != NULL && contextp == NULL.
  */
 
 ISC_LANG_ENDDECLS
