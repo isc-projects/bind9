@@ -1,35 +1,33 @@
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
-OBSOLETES: RFC 2539                                  Donald Eastlake 3rd
-                                                                Motorola
-Expires: November 2002                                          May 2002
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
+OBSOLETES: RFC 2539                               Donald E. Eastlake 3rd
+                                                   Motorola Laboratories
+Expires: January 2004                                          July 2003
 
 
 
 
-     Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
-     ------- -- -------------- ---- -- --- ------ ---- ------ -----
-               <draft-ietf-dnsext-rfc2539bis-dhk-02.txt>
+        Storage of Diffie-Hellman Keying Information in the DNS
+        ------- -- -------------- ------ ----------- -- --- ---
+               <draft-ietf-dnsext-rfc2539bis-dhk-03.txt>
 
-                         Donald E. Eastlake 3rd
 
 
 Status of This Document
 
-   This draft is intended to be become a Draft Standard RFC.
    Distribution of this document is unlimited. Comments should be sent
    to the DNS extensions working group mailing list
    <namedroppers@ops.ietf.org> or to the author.
 
-   This document is an Internet-Draft and is in full conformance with
-   all provisions of Section 10 of RFC 2026.  Internet-Drafts are
+   This document is an Internet Draft and is in full conformance with
+   all provisions of Section 10 of RFC 2026.  Internet Drafts are
    working documents of the Internet Engineering Task Force (IETF), its
    areas, and its working groups.  Note that other groups may also
-   distribute working documents as Internet-Drafts.
+   distribute working documents as Internet Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet- Drafts as reference
+   time.  It is inappropriate to use Internet Drafts as reference
    material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
@@ -40,8 +38,10 @@ Status of This Document
 
 
 
+Abstract
 
-
+   A standard method for encoding Diffie-Hellman keys in the Domain Name
+   System is described.
 
 
 
@@ -57,86 +57,38 @@ Status of This Document
 D. Eastlake 3rd                                                 [Page 1]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
-
-
-Abstract
-
-   A standard method for storing Diffie-Hellman keys in the Domain Name
-   System is described which utilizes DNS KEY resource records.
-
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 Acknowledgements
 
    Part of the format for Diffie-Hellman keys and the description
    thereof was taken from a work in progress by Ashar Aziz, Tom Markson,
-   and Hemma Prafullchandra.
+   and Hemma Prafullchandra.  In addition, the following persons
+   provided useful comments that were incorporated into the predecessor
+   of this document: Ran Atkinson, Thomas Narten.
 
-   In addition, the following persons provided useful comments that were
-   incorporated into the predecessor of this document: Ran Atkinson,
-   Thomas Narten.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-D. Eastlake 3rd                                                 [Page 2]
-
-
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
 
 Table of Contents
 
       Status of This Document....................................1
+      Abstract...................................................1
 
-      Abstract...................................................2
       Acknowledgements...........................................2
+      Table of Contents..........................................2
 
-      Table of Contents..........................................3
+      1. Introduction............................................3
+      1.1 About This Document....................................3
+      1.2 About Diffie-Hellman...................................3
+      2. Encoding Diffie-Hellman Keying Information..............4
+      3. Performance Considerations..............................5
+      4. IANA Considerations.....................................5
+      5. Security Considerations.................................5
 
-      1. Introduction............................................4
-      1.1 About This Document....................................4
-      1.2 About Diffie-Hellman...................................4
-      2. Diffie-Hellman KEY Resource Records.....................5
-      3. Performance Considerations..............................6
-      4. IANA Considerations.....................................6
-      5. Security Considerations.................................6
-
-      References.................................................7
-      Author's Address...........................................7
+      Normative References.......................................6
+      Informative Refences.......................................6
+      Author's Address...........................................6
       Expiration and File Name...................................7
 
       Appendix A: Well known prime/generator pairs...............8
@@ -160,28 +112,20 @@ Table of Contents
 
 
 
-
-
-
-
-
-
-
-
-
-
-D. Eastlake 3rd                                                 [Page 3]
+D. Eastlake 3rd                                                 [Page 2]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 1. Introduction
 
    The Domain Name System (DNS) is the global hierarchical replicated
    distributed database system for Internet addressing, mail proxy, and
-   similar information. The DNS has been extended to include digital
-   signatures and cryptographic keys as described in [RFC 2535].
+   similar information [RFC 1034, 1035]. The DNS has been extended to
+   include digital signatures and cryptographic keys as described in
+   [RFC 2535] and additonal work is underway which would require the
+   storage of keying and signature information in the DNS.
 
 
 
@@ -196,11 +140,11 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 1.2 About Diffie-Hellman
 
    Diffie-Hellman requires two parties to interact to derive keying
-   information which can then be used for authentication.  Since DNS SIG
-   RRs are primarily used as stored authenticators of zone information
-   for many different resolvers, no Diffie-Hellman algorithm SIG RR is
-   defined. For example, assume that two parties have local secrets "i"
-   and "j".  Assume they each respectively calculate X and Y as follows:
+   information which can then be used for authentication.  Thus Diffie-
+   Hellman is inherently a key agreement algorithm. As a result, no
+   format is defined for Diffie-Hellman "signature information".  For
+   example, assume that two parties have local secrets "i" and "j".
+   Assume they each respectively calculate X and Y as follows:
 
         X = g**i ( mod p )
 
@@ -224,26 +168,26 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    their individual X (or Y).
 
    For further information about Diffie-Hellman and precautions to take
+
+
+D. Eastlake 3rd                                                 [Page 3]
+
+
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
+
+
    in deciding on a p and g, see [RFC 2631].
 
 
 
-D. Eastlake 3rd                                                 [Page 4]
-
+2. Encoding Diffie-Hellman Keying Information
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+   When Diffie-Hellman keys appear within the RDATA portion of a RR,
+   they are encoded as shown below.
 
-
-2. Diffie-Hellman KEY Resource Records
-
-   Diffie-Hellman keys are stored in the DNS as KEY RRs using algorithm
-   number 2.  The structure of the RDATA portion of this RR is as shown
-   below.  The first 4 octets, including the flags, protocol, and
-   algorithm fields are common to all KEY RRs as described in [RFC
-   2535].  The remainder, from prime length through public value is the
-   "public key" part of the KEY RR. The period of key validity is not in
-   the KEY RR but is indicated by the SIG RR(s) which signs and
-   authenticates the KEY RR(s) at that domain name.
+   The period of key validity is not included in this data but is
+   indicated separately, for example by an RR which signs and
+   authenticates the RR containing the keying information.
 
                             1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -278,18 +222,16 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    representation of the DH public value with most significant byte
    first.
 
-   The corresponding algorithm=2 SIG resource record is not used so no
-   format for it is defined.
 
 
 
 
 
 
-D. Eastlake 3rd                                                 [Page 5]
+D. Eastlake 3rd                                                 [Page 4]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 3. Performance Considerations
@@ -299,9 +241,8 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    transfers will perform correctly and extensions have been
    standardized [RFC 2671] to make larger transfers more efficient, it
    is still advisable at this time to make reasonable efforts to
-   minimize the size of KEY RR sets stored within the DNS consistent
-   with adequate security.  Keep in mind that in a secure zone, at least
-   one authenticating SIG RR will also be returned.
+   minimize the size of RR sets containing keying information consistent
+   with adequate security.
 
 
 
@@ -313,24 +254,23 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
    Well known prime/generator pairs number 0x0000 through 0x07FF can
    only be assigned by an IETF standards action. RFC 2539, the Proposed
    Standard predecessor of this document, assigned 0x0001 through
-   0x0002. This document proposes to assign 0x0003.  Pairs number 0s0800
-   through 0xBFFF can be assigned based on RFC documentation.  Pairs
-   number 0xC000 through 0xFFFF are available for private use and are
-   not centrally coordinated. Use of such private pairs outside of a
-   closed environment may result in conflicts.
+   0x0002. This document assigns 0x0003.  Pairs number 0s0800 through
+   0xBFFF can be assigned based on RFC documentation.  Pairs number
+   0xC000 through 0xFFFF are available for private use and are not
+   centrally coordinated. Use of such private pairs outside of a closed
+   environment may result in conflicts.
 
 
 
 5. Security Considerations
 
-   Many of the general security consideration in [RFC 2535] apply.  Keys
-   retrieved from the DNS should not be trusted unless (1) they have
-   been securely obtained from a secure resolver or independently
-   verified by the user and (2) this secure resolver and secure
-   obtainment or independent verification conform to security policies
-   acceptable to the user.  As with all cryptographic algorithms,
-   evaluating the necessary strength of the key is important and
-   dependent on security policy.
+   Keying information retrieved from the DNS should not be trusted
+   unless (1) it has been securely obtained from a secure resolver or
+   independently verified by the user and (2) this secure resolver and
+   secure obtainment or independent verification conform to security
+   policies acceptable to the user.  As with all cryptographic
+   algorithms, evaluating the necessary strength of the key is important
+   and dependent on security policy.
 
    In addition, the usual Diffie-Hellman key strength considerations
    apply. (p-1)/2 should also be prime, g should be primitive mod p, p
@@ -344,13 +284,25 @@ INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
 
 
 
-D. Eastlake 3rd                                                 [Page 6]
+
+
+D. Eastlake 3rd                                                 [Page 5]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
-References
+Normative References
+
+   [RFC 2631] - "Diffie-Hellman Key Agreement Method", E. Rescorla, June
+   1999.
+
+   [RFC 2434] - Guidelines for Writing an IANA Considerations Section in
+   RFCs, T.  Narten, H. Alvestrand, October 1998.
+
+
+
+Informative Refences
 
    [RFC 1034] - P. Mockapetris, "Domain names - concepts and
    facilities", November 1987.
@@ -358,17 +310,11 @@ References
    [RFC 1035] - P. Mockapetris, "Domain names - implementation and
    specification", November 1987.
 
-   [RFC 2434] - Guidelines for Writing an IANA Considerations Section in
-   RFCs, T.  Narten, H. Alvestrand, October 1998.
-
    [RFC 2535] - Domain Name System Security Extensions, D. Eastlake 3rd,
    March 1999.
 
    [RFC 2539] - Storage of Diffie-Hellman Keys in the Domain Name System
    (DNS), D. Eastlake, March 1999, obsoleted by this RFC.
-
-   [RFC 2631] - Diffie-Hellman Key Agreement Method, E. Rescorla, June
-   1999.
 
    [RFC 2671] - Extension Mechanisms for DNS (EDNS0), P. Vixie, August
    1999.
@@ -383,29 +329,83 @@ References
 Author's Address
 
    Donald E. Eastlake 3rd
-   Motorola
+   Motorola Laboratories
    155 Beaver Street
    Milford, MA 01757 USA
 
    Telephone:   +1-508-851-8280 (w)
                 +1-508-634-2066 (h)
-   FAX:         +1-508-851-8507 (w)
    EMail:       Donald.Eastlake@motorola.com
 
 
 
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 6]
+
+
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
+
+
 Expiration and File Name
 
-   This draft expires in November 2002.
+   This draft expires in January 2004.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-02.txt.
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-03.txt.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 D. Eastlake 3rd                                                 [Page 7]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 Appendix A: Well known prime/generator pairs
@@ -463,7 +463,7 @@ A.2. Well-Known Group 2:  A 1024 bit prime
 D. Eastlake 3rd                                                 [Page 8]
 
 
-INTERNET-DRAFT                            Diffie-Hellman Keys in the DNS
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 A.3. Well-Known Group 3:  A 1536 bit prime
