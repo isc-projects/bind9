@@ -77,7 +77,8 @@ XTARGETS =	adb_test \
 		timer_test \
 		tkey_test \
 		wire_test \
-		zone_test
+		zone_test \
+		zone2_test
 
 # Alphabetically
 SRCS =		adb_test.c \
