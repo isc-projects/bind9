@@ -1943,9 +1943,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
 	CHECK(dns_aml_checkrequest(request, ns_client_getsockaddr(client),
+				   ns_g_confctx->acls, "update",
 				   dns_zone_getupdateacl(zone),
-				   ns_g_confctx->acls,
-				   "update", ISC_FALSE));
+				   NULL, ISC_FALSE));
 
 	/* Perform the Update Section Prescan. */
 
