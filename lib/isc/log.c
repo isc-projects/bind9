@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.27 2000/04/28 02:08:11 tale Exp $ */
+/* $Id: log.c,v 1.28 2000/04/28 17:29:25 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -179,11 +179,11 @@ isc_logcategory_t isc_categories[] = {
 };
 
 /*
- * This essentially static structure must be filled in at run time,
+ * This essentially constant structure must be filled in at run time,
  * because its channel member is pointed to a channel that is created
  * dynamically with isc_log_createchannel.
  */
-isc_logchannellist_t default_channel;
+static isc_logchannellist_t default_channel;
 
 /*
  * Forward declarations.
