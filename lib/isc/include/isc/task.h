@@ -8,6 +8,7 @@
 #include <isc/memcluster.h>
 
 #include <isc/boolean.h>
+#include <isc/result.h>
 
 
 /***
@@ -64,16 +65,16 @@ void					isc_event_free(isc_event_t *);
  *** Tasks.
  ***/
 
-isc_boolean_t				isc_task_create(isc_taskmgr_t,
-						    isc_taskaction_t,
-						    void *,
-						    unsigned int,
-						    isc_task_t *);
+isc_result_t				isc_task_create(isc_taskmgr_t,
+							isc_taskaction_t,
+							void *,
+							unsigned int,
+							isc_task_t *);
 void					isc_task_attach(isc_task_t,
 							isc_task_t *);
 void					isc_task_detach(isc_task_t *);
-isc_boolean_t				isc_task_send(isc_task_t,
-							isc_event_t *);
+void					isc_task_send(isc_task_t, 
+						      isc_event_t *);
 void					isc_task_purge(isc_task_t, void *,
 						   isc_eventtype_t);
 void					isc_task_shutdown(isc_task_t);
@@ -83,7 +84,7 @@ void					isc_task_destroy(isc_task_t *);
  *** Task Manager.
  ***/
 
-unsigned int				isc_taskmgr_create(isc_memctx_t,
+isc_result_t				isc_taskmgr_create(isc_memctx_t,
 							   unsigned int,
 							   unsigned int,
 							   isc_taskmgr_t *);

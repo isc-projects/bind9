@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/assertions.h>
 #include <isc/memcluster.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -53,7 +54,7 @@ main(int argc, char *argv[]) {
 	unsigned int workers;
 	isc_timermgr_t timgr;
 	isc_timer_t ti1, ti2;
-	os_time_t absolute, interval;
+	struct isc_time absolute, interval;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -63,12 +64,17 @@ main(int argc, char *argv[]) {
 
 	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) == workers);
+	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+	       ISC_R_SUCCESS);
 
-	INSIST(isc_task_create(manager, my_shutdown, "1", 0, &t1));
-	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2));
-	INSIST(isc_task_create(manager, my_shutdown, "3", 0, &t3));
-	INSIST(isc_task_create(manager, my_shutdown, "4", 0, &t4));
+	INSIST(isc_task_create(manager, my_shutdown, "1", 0, &t1) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, my_shutdown, "2", 0, &t2) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, my_shutdown, "3", 0, &t3) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, my_shutdown, "4", 0, &t4) ==
+	       ISC_R_SUCCESS);
 
 	timgr = NULL;
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
@@ -78,11 +84,11 @@ main(int argc, char *argv[]) {
 	interval.seconds = 1;
 	interval.nanoseconds = 0;
 	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
-				absolute, interval,
+				&absolute, &interval,
 				t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
 	ti2 = NULL;
 	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
-				absolute, interval,
+				&absolute, &interval,
 				t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);

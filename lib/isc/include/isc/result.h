@@ -9,6 +9,8 @@ typedef unsigned int isc_result_t;
 
 #define ISC_R_SUCCESS			0
 #define ISC_R_NOMEMORY			1
+#define ISC_R_TIMEDOUT			2
+#define ISC_R_NOTHREADS			3
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
 #define isc_result_totext		__isc_result_totext

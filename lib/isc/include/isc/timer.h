@@ -91,8 +91,8 @@ typedef struct isc_timerevent {
 isc_result_t
 isc_timer_create(isc_timermgr_t manager,
 		 isc_timertype_t type,
-		 os_time_t expires,
-		 os_time_t interval,
+		 isc_time_t expires,
+		 isc_time_t interval,
 		 isc_task_t task,
 		 isc_taskaction_t action,
 		 void *arg,
@@ -146,8 +146,8 @@ isc_timer_create(isc_timermgr_t manager,
 isc_result_t
 isc_timer_reset(isc_timer_t timer,
 		isc_timertype_t type,
-		os_time_t expires,
-		os_time_t interval,
+		isc_time_t expires,
+		isc_time_t interval,
 		isc_boolean_t purge);
 /*
  * Change the timer's type, expires, and interval values to the given

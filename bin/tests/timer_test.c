@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/assertions.h>
 #include <isc/memcluster.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -38,17 +39,17 @@ tick(isc_task_t task, isc_event_t event)
 		isc_timer_touch(ti3);
 
 	if (tick_count == 7) {
-		os_time_t expires, interval, now;
+		struct isc_time expires, interval, now;
 
-		(void)os_time_get(&now);
+		(void)isc_time_get(&now);
 		expires.seconds = 5;
 		expires.nanoseconds = 0;
-		os_time_add(&now, &expires, &expires);
+		isc_time_add(&now, &expires, &expires);
 		interval.seconds = 4;
 		interval.nanoseconds = 0;
 		printf("*** resetting ti3 ***\n");
-		INSIST(isc_timer_reset(ti3, isc_timertype_once, expires,
-				       interval, ISC_TRUE)
+		INSIST(isc_timer_reset(ti3, isc_timertype_once, &expires,
+				       &interval, ISC_TRUE)
 		       == ISC_R_SUCCESS);
 	}
 
@@ -82,7 +83,7 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_t manager = NULL;
 	isc_timermgr_t timgr = NULL;
 	unsigned int workers;
-	os_time_t expires, interval, now;
+	struct isc_time expires, interval, now;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
@@ -91,36 +92,41 @@ main(int argc, char *argv[]) {
 	printf("%d workers\n", workers);
 
 	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) == workers);
-	INSIST(isc_task_create(manager, shutdown_task, "1", 0, &t1));
-	INSIST(isc_task_create(manager, shutdown_task, "2", 0, &t2));
-	INSIST(isc_task_create(manager, shutdown_task, "3", 0, &t3));
+	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, shutdown_task, "1", 0, &t1) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, shutdown_task, "2", 0, &t2) ==
+	       ISC_R_SUCCESS);
+	INSIST(isc_task_create(manager, shutdown_task, "3", 0, &t3) ==
+	       ISC_R_SUCCESS);
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
 	printf("task 1: %p\n", t1);
 	printf("task 2: %p\n", t2);
 	printf("task 3: %p\n", t3);
 
-	(void)os_time_get(&now);
+	(void)isc_time_get(&now);
 
 	expires.seconds = 0;
 	expires.nanoseconds = 0;
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(isc_timer_create(timgr, isc_timertype_once, expires, interval,
+	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
 				t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
 	expires.seconds = 0;
 	expires.nanoseconds = 0;
 	interval.seconds = 1;
 	interval.nanoseconds = 0;
-	INSIST(isc_timer_create(timgr, isc_timertype_ticker, expires, interval,
+	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
+				&expires, &interval,
 				t1, tick, "1", &ti1) == ISC_R_SUCCESS);
 	expires.seconds = 10;
 	expires.nanoseconds = 0;
-	os_time_add(&now, &expires, &expires);
+	isc_time_add(&now, &expires, &expires);
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(isc_timer_create(timgr, isc_timertype_once, expires, interval,
+	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
 				t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
 
 	isc_task_detach(&t1);

@@ -6,12 +6,11 @@
 #include <errno.h>
 
 #include <isc/assertions.h>
-#include <isc/assertions.h>
 #include <isc/unexpect.h>
 #include <isc/time.h>
 
 isc_result
-os_time_get(os_time_t *timep) {
+isc_time_get(isc_time_t timep) {
 	struct timeval tv;
 
 	/*
@@ -33,56 +32,56 @@ os_time_get(os_time_t *timep) {
 }
 
 int
-os_time_compare(os_time_t *t1p, os_time_t *t2p) {
+isc_time_compare(isc_time_t t1, isc_time_t t2) {
 	/*
-	 * Compare the times referenced by 't1p' and 't2p'
+	 * Compare the times referenced by 't1' and 't2'
 	 */
 
-	REQUIRE(t1p != NULL && t2p != NULL);
+	REQUIRE(t1 != NULL && t2 != NULL);
 
-	if (t1p->seconds < t2p->seconds)
+	if (t1->seconds < t2->seconds)
 		return (-1);
-	if (t1p->seconds > t2p->seconds)
+	if (t1->seconds > t2->seconds)
 		return (1);
-	if (t1p->nanoseconds < t2p->nanoseconds)
+	if (t1->nanoseconds < t2->nanoseconds)
 		return (-1);
-	if (t1p->nanoseconds > t2p->nanoseconds)
+	if (t1->nanoseconds > t2->nanoseconds)
 		return (1);
 	return (0);
 }
 
 void
-os_time_add(os_time_t *t1p, os_time_t *t2p, os_time_t *t3p)
+isc_time_add(isc_time_t t1, isc_time_t t2, isc_time_t t3)
 {
 	/*
-	 * Add 't1p' to 't2p', storing the result in 't3p'.
+	 * Add 't1' to 't2', storing the result in 't3'.
 	 */
 
-	REQUIRE(t1p != NULL && t2p != NULL && t3p != NULL);
+	REQUIRE(t1 != NULL && t2 != NULL && t3 != NULL);
 
-	t3p->seconds = t1p->seconds + t2p->seconds;
-	t3p->nanoseconds = t1p->nanoseconds + t2p->nanoseconds;
-	if (t3p->nanoseconds > 1000000000) {
-		t3p->seconds++;
-		t3p->nanoseconds -= 1000000000;
+	t3->seconds = t1->seconds + t2->seconds;
+	t3->nanoseconds = t1->nanoseconds + t2->nanoseconds;
+	if (t3->nanoseconds > 1000000000) {
+		t3->seconds++;
+		t3->nanoseconds -= 1000000000;
 	}
 }
 
 void
-os_time_subtract(os_time_t *t1p, os_time_t *t2p, os_time_t *t3p) {
+isc_time_subtract(isc_time_t t1, isc_time_t t2, isc_time_t t3) {
 	/*
-	 * Subtract 't2p' from 't1p', storing the result in 't1p'.
+	 * Subtract 't2' from 't1', storing the result in 't1'.
 	 */
 
-	REQUIRE(t1p != NULL && t2p != NULL && t3p != NULL);
-	REQUIRE(os_time_compare(t1p, t2p) >= 0);
+	REQUIRE(t1 != NULL && t2 != NULL && t3 != NULL);
+	REQUIRE(isc_time_compare(t1, t2) >= 0);
 	
-	t3p->seconds = t1p->seconds - t2p->seconds;
-	if (t1p->nanoseconds >= t2p->nanoseconds)
-		t3p->nanoseconds = t1p->nanoseconds - t2p->nanoseconds;
+	t3->seconds = t1->seconds - t2->seconds;
+	if (t1->nanoseconds >= t2->nanoseconds)
+		t3->nanoseconds = t1->nanoseconds - t2->nanoseconds;
 	else {
-		t3p->nanoseconds = 1000000000 - t2p->nanoseconds +
-			t1p->nanoseconds;
-		t3p->seconds--;
+		t3->nanoseconds = 1000000000 - t2->nanoseconds +
+			t1->nanoseconds;
+		t3->seconds--;
 	}
 }

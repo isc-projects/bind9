@@ -32,7 +32,7 @@
 #endif
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.6 1998/10/21 22:00:56 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.7 1998/10/22 01:33:03 halley Exp $";
 #endif /* not lint */
 
 /*
@@ -68,7 +68,7 @@ struct isc_memctx {
 	unsigned char *		lowest;
 	unsigned char *		highest;
 	struct stats *		stats;
-	os_mutex_t		mutex;
+	isc_mutex_t		mutex;
 };
 
 /* Forward. */
@@ -84,8 +84,10 @@ static size_t			quantize(size_t);
 #define TABLE_INCREMENT		1024
 
 #ifdef MULTITHREADED
-#define LOCK_CONTEXT(ctx)	INSIST(os_mutex_lock(&(ctx)->mutex))
-#define UNLOCK_CONTEXT(ctx)	INSIST(os_mutex_unlock(&(ctx)->mutex))
+#define LOCK_CONTEXT(ctx) \
+	INSIST(isc_mutex_lock(&(ctx)->mutex) == ISC_R_SUCCESS)
+#define UNLOCK_CONTEXT(ctx) \
+	INSIST(isc_mutex_unlock(&(ctx)->mutex) == ISC_R_SUCCESS)
 #else
 #define LOCK_CONTEXT(ctx)
 #define UNLOCK_CONTEXT(ctx)
@@ -152,12 +154,12 @@ isc_memctx_create(size_t init_max_size, size_t target_size,
 	ctx->basic_table_size = 0;
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
-	if (!os_mutex_init(&ctx->mutex)) {
+	if (isc_mutex_init(&ctx->mutex) != ISC_R_SUCCESS) {
 		free(ctx->stats);
 		free(ctx->freelists);
 		free(ctx);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "os_mutex_init() failed");
+				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
 	*ctxp = ctx;
@@ -181,7 +183,7 @@ isc_memctx_destroy(isc_memctx_t *ctxp) {
 	free(ctx->freelists);
 	free(ctx->stats);
 	free(ctx->basic_table);
-	(void)os_mutex_destroy(&ctx->mutex);
+	(void)isc_mutex_destroy(&ctx->mutex);
 	free(ctx);
 
 	*ctxp = NULL;
@@ -453,8 +455,7 @@ meminit(size_t init_max_size, size_t target_size) {
 	/* need default_context lock here */
 	if (default_context != NULL)
 		return (-1);
-	return (isc_mem_create(init_max_size, target_size,
-				   &default_context));
+	return (isc_mem_create(init_max_size, target_size, &default_context));
 }
 
 isc_memctx_t
