@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.12 2001/11/29 07:31:23 marka Exp $ */
+/* $Id: socket.c,v 1.13 2002/01/10 03:50:13 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -3038,6 +3038,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 			ERROR_MATCH(WSAENOBUFS, ISC_R_NORESOURCES);
 			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
 			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
+			ERROR_MATCH(WSAECONNRESET, ISC_R_CONNECTIONRESET);
 #undef ERROR_MATCH
 		}
 
