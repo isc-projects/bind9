@@ -95,6 +95,7 @@ typedef struct query {
 	/* Locked by task event serialization. */
 	unsigned int			magic;
 	fetchctx_t *			fctx;
+	isc_mem_t *			mctx;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatch;
 	dns_adbaddrinfo_t *		addrinfo;
@@ -328,7 +329,7 @@ resquery_destroy(resquery_t **queryp) {
 	INSIST(query->tcpsocket == NULL);
 	
 	query->magic = 0;
-	isc_mem_put(query->fctx->res->mctx, query, sizeof *query);
+	isc_mem_put(query->mctx, query, sizeof *query);
 	*queryp = NULL;
 }
 
@@ -642,6 +643,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		result = ISC_R_NOMEMORY;
 		goto stop_idle_timer;
 	}
+	query->mctx = res->mctx;
 	query->options = options;
 	query->attributes = 0;
 	/*
@@ -1058,9 +1060,9 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				result = resquery_send(query);
 			
 			if (result != ISC_R_SUCCESS) {
-				fctx_cancelquery(&query, NULL, NULL,
-						 ISC_FALSE);
-				fctx_done(query->fctx, result);
+				fetchctx_t *fctx = query->fctx;
+				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+				fctx_done(fctx, result);
 			}
 		} else {
 			isc_socket_detach(&query->tcpsocket);
@@ -4583,6 +4585,11 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
+	/*
+	 * Find the completion event for this fetch (as opposed
+	 * to those for other fetches that have joined the same
+	 * fctx) and send it with result = ISC_R_CANCELED.
+	 */
 	event = NULL;
 	if (fctx->state != fetchstate_done) {
 		for (event = ISC_LIST_HEAD(fctx->events);
@@ -4601,6 +4608,10 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 		event->result = ISC_R_CANCELED;
 		isc_task_sendanddetach(&etask, (isc_event_t **)&event);
 	}
+	/*
+	 * The fctx continues running even if no fetches remain;
+	 * the answer is still cached.
+	 */
 
 	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 }
