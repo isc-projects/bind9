@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.99 2000/04/24 21:59:08 tale Exp $ */
+/* $Id: zone.c,v 1.100 2000/04/24 23:30:46 tale Exp $ */
 
 #include <config.h>
 
@@ -675,6 +675,8 @@ dns_zone_load(dns_zone_t *zone) {
 
 	REQUIRE(zone->dbname != NULL);
 
+	zone_log(zone, me, ISC_LOG_DEBUG(1), "start");
+
 	/*
 	 * Don't do the load if the file that stores the zone is older
 	 * than the last time the zone was loaded.  If the zone has not
@@ -682,8 +684,12 @@ dns_zone_load(dns_zone_t *zone) {
 	 */
 	result = isc_file_getmodtime(zone->dbname, &filetime);
 	if (result == ISC_R_SUCCESS && ! isc_time_isepoch(&zone->loadtime) &&
-	    isc_time_compare(&filetime, &zone->loadtime) < 0)
-		return (ISC_R_SUCCESS);
+	    isc_time_compare(&filetime, &zone->loadtime) < 0) {
+		zone_log(zone, me, ISC_LOG_DEBUG(1),
+			 "skipping: database file older than last load");
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
 
 	/*
 	 * Store the current time before the zone is loaded, so that if the
@@ -726,6 +732,8 @@ dns_zone_load(dns_zone_t *zone) {
 	}
 
 	zone->loadtime = loadtime;
+
+	zone_log(zone, me, ISC_LOG_DEBUG(1), "loaded");
 
 	/*
 	 * Apply update log, if any.
