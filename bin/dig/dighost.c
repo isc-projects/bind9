@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.93 2000/07/20 17:56:20 mws Exp $ */
+/* $Id: dighost.c,v 1.94 2000/07/20 17:58:59 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -390,7 +390,7 @@ setup_text_key(void) {
 	check_result(result, "dns_name_init");
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = strlen(keysecret) * 3 / 4;
-	secretstore = isc_mem_get(mctx, secretsize);
+	secretstore = isc_mem_allocate(mctx, secretsize);
 	if (secretstore == NULL)
 		fatal("Memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
@@ -422,7 +422,7 @@ setup_text_key(void) {
 		       keynametext, dns_result_totext(result));
 	}
  SYSSETUP_FAIL:
-	isc_mem_put(mctx, secretstore, secretsize);
+	isc_mem_free(mctx, secretstore);
 	dns_name_invalidate(&keyname);
 	isc_buffer_free(&namebuf);
 	return;
