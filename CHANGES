@@ -1,3 +1,8 @@
+ 443.	[bug]		When loading a master file failed because of an
+			unrecognized RR type name, the error message
+			did not include the file name and line number. 
+			[RT #285]
+
  442.	[bug]		TSIG signed messages that did not match any view
 			crashed the server. [RT #290]
 

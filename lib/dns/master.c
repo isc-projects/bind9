@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.64 2000/09/05 03:35:17 marka Exp $ */
+/* $Id: master.c,v 1.65 2000/09/12 18:10:24 gson Exp $ */
 
 #include <config.h>
 
@@ -883,8 +883,16 @@ load(dns_loadctx_t **ctxp) {
 
 		result = dns_rdatatype_fromtext(&type,
 						&token.value.as_textregion);
-		if (result != ISC_R_SUCCESS)
+               if (result != ISC_R_SUCCESS) {
+                       (*callbacks->warn)(callbacks,
+                                          "%s: %s:%lu: unknown RR type '%.*s'",
+                                          "dns_master_load",
+                                          isc_lex_getsourcename(ctx->lex),
+                                          isc_lex_getsourceline(ctx->lex),
+					  token.value.as_textregion.length,
+					  token.value.as_textregion.base);
 			goto cleanup;
+               }
 
 		/*
 		 * If the class specified does not match the zone's class
