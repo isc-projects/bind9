@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.50 2000/08/03 19:46:31 bwelling Exp $ */
+/* $Id: db.c,v 1.51 2000/08/08 18:41:42 gson Exp $ */
 
 /***
  *** Imports
@@ -98,7 +98,7 @@ dns_db_attach(dns_db_t *source, dns_db_t **targetp) {
 	 */
 
 	REQUIRE(DNS_DB_VALID(source));
-	REQUIRE(targetp != NULL);
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	(source->methods->attach)(source, targetp);
 
