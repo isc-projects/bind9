@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.16 2000/06/30 06:35:50 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.17 2000/06/30 18:44:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -638,6 +638,46 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	} else
 		rdatatype = dns_rdatatype_any;
 
+	result = dns_message_gettemprdata(updatemsg, &rdata);
+	check_result(result, "dns_message_gettemprdata");
+
+	rdata->data = NULL;
+	rdata->length = 0;
+
+	if (isrrset && ispositive) {
+		while (*cmdline != 0 && isspace(*cmdline))
+			cmdline++;
+
+		if (*cmdline != 0) {
+			isc_lex_t *lex = NULL;
+			dns_rdatacallbacks_t callbacks;
+			isc_buffer_t *buf = NULL;
+
+			result = isc_lex_create(mctx, WORDLEN, &lex);
+			check_result(result, "isc_lex_create");	
+			isc_buffer_invalidate(&source);
+
+			isc_buffer_init(&source, cmdline, strlen(cmdline));
+			isc_buffer_add(&source, strlen(cmdline));
+			result = isc_lex_openbuffer(lex, &source);
+			check_result(result, "isc_lex_openbuffer");
+
+			result = isc_buffer_allocate(mctx, &buf, MXNAME);
+			check_result(result, "isc_buffer_allocate");
+			dns_rdatacallbacks_init_stdio(&callbacks);
+			result = dns_rdata_fromtext(rdata, rdataclass,
+						    rdatatype, lex,
+						    current_zone, ISC_FALSE,
+						    buf, &callbacks);
+			dns_message_takebuffer(updatemsg, &buf);
+			isc_lex_destroy(&lex);
+			if (result != ISC_R_SUCCESS) {
+				dns_message_puttempname(updatemsg, &name);
+				dns_message_puttemprdata(updatemsg, &rdata);
+				return (STATUS_MORE);
+			}
+		}
+	}
 
 	result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
 	check_result(result, "dns_message_gettemprdatalist");
@@ -645,16 +685,15 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	check_result(result, "dns_message_gettemprdataset");
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
-	if (ispositive)
-		rdatalist->rdclass = dns_rdataclass_any;
-	else
+	if (ispositive) {
+		if (isrrset && rdata->data != NULL)
+			rdatalist->rdclass = rdataclass;
+		else
+			rdatalist->rdclass = dns_rdataclass_any;
+	} else
 		rdatalist->rdclass = dns_rdataclass_none;
 	rdatalist->covers = 0;
 	rdatalist->ttl = 0;
-	result = dns_message_gettemprdata(updatemsg, &rdata);
-	check_result(result, "dns_message_gettemprdata");
-	rdata->data = NULL;
-	rdata->length = 0;
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatatype;
 	ISC_LIST_INIT(rdatalist->rdata);
@@ -709,41 +748,6 @@ evaluate_zone(char *cmdline) {
 	UNUSED(cmdline);
 	printf("The zone statement is not currently implemented.\n");
 	return (STATUS_MORE);
-#if 0
-	char *word;
-	dns_name_t *name;
-	isc_buffer_t src;
-	isc_result_t result;
-	dns_fixedname_t fname;
-
-	ddebug ("evaluate_zone()");
-	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (*word == 0) {
-		printf("failed to read zone name");
-		return (STATUS_SYNTAX);
-	} else if (zonename != NULL)
-		dns_name_free(zonename, mctx);
-
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-
-	isc_buffer_init(&src, word, strlen(word));
-	isc_buffer_add(&src, strlen(word));
-
-	result = dns_name_fromtext(name, &src, dns_rootname, ISC_FALSE, NULL);
-	check_result(result, "dns_name_fromtext");
-
-	if (zonename == NULL) {
-		zonename = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (zonename == NULL)
-			fatal("out of memory");
-	}
-	dns_name_init(zonename, NULL);
-	dns_name_dup(name, mctx, zonename);
-	current_zone = zonename;
-
-	return (STATUS_MORE);
-#endif
 }
 
 static isc_uint16_t
