@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.91 2001/01/23 23:26:52 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.92 2001/01/24 18:28:47 brister Exp $ -->
 
 <book>
 
@@ -782,8 +782,9 @@ utility.  Additonal commands will be added in future releases.</para>
 
               <para>The format of the configuration file is similar to
               that of <filename>named.conf</filename>, but limited to
-              only three statements, the <command>options</command>,
-              <command>key</command> and <command>server</command>
+              only four statements, the <command>options</command>,
+              <command>key</command>, <command>server</command> and
+              <command>include</command>
               statements.  These statements are what associate the
               secret keys to the servers with which they are meant to
               be shared.  The order of statements is not
