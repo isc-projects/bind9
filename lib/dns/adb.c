@@ -73,7 +73,8 @@
 #define DNS_ADBNAMELIST_LENGTH	31	/* how many buckets for names */
 #define DNS_ADBENTRYLIST_LENGTH	31	/* how many buckets for addresses */
 
-#define CLEAN_SECONDS		20	/* clean this many seconds initially */
+/* clean this many seconds initially */
+#define CLEAN_SECONDS		(300 / DNS_ADBNAMELIST_LENGTH)
 
 #define FREE_ITEMS		16	/* free count for memory pools */
 #define FILL_COUNT		 8	/* fill count for memory pools */
@@ -97,7 +98,10 @@ struct dns_adb {
 	isc_timer_t		       *timer;
 	isc_taskmgr_t		       *taskmgr;
 	isc_task_t		       *task;
+
 	isc_interval_t			tick_interval;
+	int				next_namebucket;
+	int				next_entrybucket;
 
 	unsigned int			irefcnt;
 	unsigned int			erefcnt;
@@ -477,6 +481,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v4 addresses
 	 */
 	if (QUERY_INET(name->query_pending) && (name->expire_v4 < now)) {
+		DP(1, "expiring v4 for name %p", name);
 		clean_namehooks(adb, &name->v4);
 		name->partial_result &= ~DNS_ADBFIND_INET;
 	}
@@ -486,6 +491,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v6 addresses
 	 */
 	if (QUERY_INET6(name->query_pending) && (name->expire_v6 < now)) {
+		DP(1, "expiring v6 for name %p", name);
 		clean_namehooks(adb, &name->v6);
 		name->partial_result &= ~DNS_ADBFIND_INET6;
 	}
@@ -1350,11 +1356,53 @@ shutdown_task(isc_task_t *task, isc_event_t *ev)
 }
 
 /*
- * ADB must be locked
+ * name bucket must be locked; adb may be locked; no other locks held.
  */
 static void
-cleanup(dns_adb_t *adb)
+check_expire_name(dns_adbname_t **namep)
 {
+	dns_adbname_t *name;
+
+	INSIST(namep != NULL && DNS_ADBNAME_VALID(*namep));
+	name = *namep;
+	*namep = NULL;
+
+	if (HAVE_INET(name) || HAVE_INET6(name))
+		return;
+	if (!NO_FETCHES(name))
+		return;
+	INSIST(!QUERYPENDING(name->query_pending, DNS_ADBFIND_ADDRESSMASK));
+
+	/*
+	 * The name is empty.  Delete it.
+	 */
+	kill_name(&name, DNS_EVENT_ADBEXPIRED);
+}
+
+/*
+ * ADB must be locked, and no other locks held.
+ */
+static void
+cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now)
+{
+	dns_adbname_t *name;
+	dns_adbname_t *next_name;
+
+	DP(1, "cleaning bucket %d", bucket);
+	LOCK(&adb->namelocks[bucket]);
+	if (adb->name_sd[bucket]) {
+		UNLOCK(&adb->namelocks[bucket]);
+		return;
+	}
+
+	name = ISC_LIST_HEAD(adb->names[bucket]);
+	while (name != NULL) {
+		next_name = ISC_LIST_NEXT(name, plink);
+		check_expire_namehooks(name, now);
+		check_expire_name(&name);
+		name = next_name;
+	}
+	UNLOCK(&adb->namelocks[bucket]);
 }
 
 static void
@@ -1362,6 +1410,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 {
 	dns_adb_t *adb;
 	isc_result_t result;
+	isc_stdtime_t now;
 
 	(void)task;  /* not used */
 
@@ -1370,14 +1419,38 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 
 	LOCK(&adb->lock);
 
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS) {
+		DP(1, "isc_stdtime_get() failed!  Resetting clean timer.");
+		goto reset;
+	}
+
 	/*
 	 * Call our cleanup routine.
 	 */
-	cleanup(adb);
+	cleanup_names(adb, adb->next_namebucket, now);
+
+	/*
+	 * Set the next bucket to be cleaned.
+	 */
+	adb->next_namebucket++;
+	if (adb->next_namebucket >= DNS_ADBNAMELIST_LENGTH)
+		adb->next_namebucket = 0;
+
+#if 0
+	/*
+	 * Call the entry cleanup routine
+	 */
+	cleanup_entries(adb, adb->next_entrybucket, now);
+	adb->next_entrybucket++;
+	if (adb->next_entrybucket >= DNS_ADBENTRYLIST_LENGTH)
+		adb->next_entrybucket = 0;
+#endif
 
 	/*
 	 * Reset the timer.
 	 */
+ reset:
 	result = isc_timer_reset(adb->timer, isc_timertype_once, NULL,
 				 &adb->tick_interval, ISC_FALSE);
 
@@ -1458,6 +1531,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->view = view;
 	adb->timermgr = timermgr;
 	adb->taskmgr = taskmgr;
+	adb->next_namebucket = 0;
+	adb->next_entrybucket = 0;
 
 	result = isc_random_init(&adb->rand);
 	if (result != ISC_R_SUCCESS)
@@ -1827,6 +1902,7 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 	return (DNS_R_SUCCESS);
 }
 
+/* XXXMLG needs v6 support */
 isc_result_t
 dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 	       dns_ttl_t ttl, isc_stdtime_t now)
@@ -2391,6 +2467,8 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
 	dev->fetch = NULL;
 
+	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+
 	/*
 	 * Cleanup things we don't care about.
 	 */
@@ -2427,10 +2505,8 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 	 * Did we get back junk?  If so, and there are no more fetches
 	 * sitting out there, tell all the finds about it.
 	 */
-	if (dev->result != ISC_R_SUCCESS) {
-		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+	if (dev->result != ISC_R_SUCCESS)
 		goto out;
-	}
 
 	/*
 	 * We got something potentially useful.
@@ -2440,21 +2516,13 @@ fetch_callback_v4(isc_task_t *task, isc_event_t *ev)
 		result = import_rdataset(name, &fetch->rdataset, now);
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
-	else
-		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
 
  out:
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
 
-	/*
-	 * XXX should check for v4/v6 fetches, and only clean those finds
-	 * that would be affected by that address family.
-	 */
-	if (name->fetch_a == NULL) {
-		clean_finds_at_name(name, ev_status);
-		name->query_pending &= ~DNS_ADBFIND_INET;
-	}
+	clean_finds_at_name(name, ev_status);
+	name->query_pending &= ~DNS_ADBFIND_INET;
 
 	UNLOCK(&adb->namelocks[bucket]);
 
@@ -2493,6 +2561,8 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
 	dev->fetch = NULL;
 
+	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+
 	/*
 	 * Cleanup things we don't care about.
 	 */
@@ -2529,10 +2599,8 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 	 * Did we get back junk?  If so, and there are no more fetches
 	 * sitting out there, tell all the finds about it.
 	 */
-	if (dev->result != ISC_R_SUCCESS) {
-		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
+	if (dev->result != ISC_R_SUCCESS)
 		goto out;
-	}
 
 	/*
 	 * We got something potentially useful.
@@ -2542,21 +2610,13 @@ fetch_callback_aaaa(isc_task_t *task, isc_event_t *ev)
 		result = import_rdataset(name, &fetch->rdataset, now);
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
-	else
-		ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
 
  out:
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
 
-	/*
-	 * XXX should check for v4/v6 fetches, and only clean those finds
-	 * that would be affected by that address family.
-	 */
-	if (name->fetch_aaaa == NULL) {
-		clean_finds_at_name(name, ev_status);
-		name->query_pending &= ~DNS_ADBFIND_INET6;
-	}
+	clean_finds_at_name(name, ev_status);
+	name->query_pending &= ~DNS_ADBFIND_INET6;
 
 	UNLOCK(&adb->namelocks[bucket]);
 
