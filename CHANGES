@@ -1,3 +1,7 @@
+1623.	[bug]		A serial number of zero was being displayed in the
+			"sending notifies" log message when also-notify was
+			used. [RT #11177]
+
 1620.	[func]		When loading a zone report if it is signed. [RT #11149]
 
 1619.	[bug]		Missing ISC_LIST_UNLINK in end_reserved_dispatches().
