@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.366 2002/04/02 06:53:58 marka Exp $ */
+/* $Id: zone.c,v 1.367 2002/04/02 08:04:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2228,7 +2228,8 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	if (isc_time_isepoch(&zone->dumptime) ||
 	    isc_time_compare(&zone->dumptime, &dumptime) > 0)
 		zone->dumptime = dumptime;
-	zone_settimer(zone, &now);
+	if (zone->task != NULL)
+		zone_settimer(zone, &now);
 }
 
 static void
