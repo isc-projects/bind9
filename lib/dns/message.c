@@ -505,6 +505,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 		goto cleanup;
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
 	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
+	isc_mempool_setname(m->namepool, "msg:names");
 
 	result = isc_mempool_create(m->mctx, sizeof(dns_rdataset_t),
 				    &m->rdspool);
@@ -512,6 +513,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 		goto cleanup;
 	isc_mempool_setfreemax(m->rdspool, NAME_COUNT);
 	isc_mempool_setfillcount(m->rdspool, NAME_COUNT);
+	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	dynbuf = NULL;
 	result = isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE,
