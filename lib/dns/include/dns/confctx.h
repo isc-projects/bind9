@@ -211,6 +211,10 @@ struct dns_c_options
  *** Functions
  ***/
 
+isc_result_t	dns_c_checkconfig(dns_c_ctx_t *ctx);
+
+
+
 
 isc_result_t	dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **cfg);
 isc_result_t	dns_c_ctx_delete(dns_c_ctx_t **cfg);
@@ -261,7 +265,6 @@ isc_boolean_t	dns_c_ctx_channeldefinedp(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_optionsnew(isc_mem_t *mem,
 				     dns_c_options_t **options);
 isc_result_t	dns_c_ctx_optionsdelete(dns_c_options_t **options);
-isc_result_t	dns_c_ctx_erase_options(dns_c_ctx_t *cfg);
 
 
 
@@ -374,9 +377,8 @@ isc_result_t	dns_c_ctx_settopology(dns_c_ctx_t *cfg, isc_boolean_t copy,
 isc_result_t	dns_c_ctx_setsortlist(dns_c_ctx_t *cfg, isc_boolean_t copy,
 				      dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw);
-isc_result_t	dns_c_ctx_setforwarders(dns_c_ctx_t *cfg,
-					dns_c_ipmatchlist_t *iml,
-					isc_boolean_t copy);
+isc_result_t	dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
+					dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_setrrsetorderlist(dns_c_ctx_t *cfg,
 					    isc_boolean_t copy,
 					    dns_c_rrsolist_t *olist);
@@ -454,8 +456,8 @@ isc_result_t	dns_c_ctx_getstacksize(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_getcoresize(dns_c_ctx_t *cfg,
 				      isc_uint32_t *retval);
 isc_result_t	dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval);
-isc_result_t	dns_c_ctx_get_expert_mode(dns_c_ctx_t *cfg,
-					  isc_boolean_t *retval);
+isc_result_t	dns_c_ctx_getexpertmode(dns_c_ctx_t *cfg,
+					isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg,
 					isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getrecursion(dns_c_ctx_t *cfg,
@@ -473,7 +475,7 @@ isc_result_t	dns_c_ctx_getmaintainixfrbase(dns_c_ctx_t *cfg,
 					      isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg,
 					   isc_boolean_t *retval);
-isc_result_t	dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg,
+isc_result_t	dns_c_ctx_getauthnxdomain(dns_c_ctx_t *cfg,
 					    isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getmultiplecnames(dns_c_ctx_t *cfg,
 					    isc_boolean_t *retval);
