@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.43 2000/10/31 20:09:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.44 2000/11/07 20:10:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@
 
 #include "dnssectool.h"
 
-#define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
+#define MAX_RSA 4096 /* should be long enough... */
 
 const char *program = "dnssec-keygen";
 int verbose;
