@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.35.2.1 2001/10/22 23:28:07 gson Exp $ */
+/* $Id: acconfig.h,v 1.35.2.2 2003/05/12 03:28:43 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -53,7 +53,7 @@
 /* define if catgets() is available */
 #undef HAVE_CATGETS
 
-/* define if you have the NET_RT_IFLIST sysctl variable. */
+/* define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
 #undef HAVE_IFLIST_SYSCTL
 
 /* define if you need to #define _XPG4_2 before including sys/socket.h */
