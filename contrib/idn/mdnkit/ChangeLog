@@ -1,0 +1,192 @@
+2000-11-27
+	* wsock/config/mdnconf.tcl: implement "unwrap all" button.
+	* wsock/README.txt, wsock/README_j.txt: add description on "unwrap
+ 	all" button.  add important notice on installing a new version
+	to the top of each file.
+	* Makefile.in, tools/rpm/mdnkit.spec: update for version 1.2.
+	* wsock/bin/README_e.txt, wsock/bind/README_j.txt: updated.
+	* version 1.2 release.
+	
+2000-11-22
+	* lib/brace.c, lib/lace.c, lib/race.c: keep lint happy.
+	* lib/brace.c: fix a bug that the encoder outputs a broken string.
+	* dnsproxy/dnsproxy.conf.sample, lib/mdnres.conf.sample: add
+	description of new normalization schemes.
+
+2000-11-21
+	* lib/translator.c, include/mdn/translator.h: add new parameter
+	"local_alternate_converter" to mdn_translator_translate(), to
+	accept and correctly process names encoded in alternate-encoding.
+	* lib/msgtrans.c, include/mdn/msgtrans.h: add a new parameter
+	to mdn_msgtrans_param_t which is required for the new
+	mdn_translator_translate() above.
+	* dnsproxy/translate.c, wsock/common/convert.c: according to the
+ 	changes above.
+	* DISTFILES: replace patch/bind8/bind-8.2.2-P5-patch with
+	patch/bind8/bind-8.2.2-P7-patch.
+	* lib/Makefile.in, tools/runmdn/Makefile.in: increase version
+	number.
+	* lib/brace.c, lib/lace.c, lib/race.c: fix buffer overrun bugs.
+	* wsock/README.txt, wsock/README_j.txt: updated.
+	* README, README.ja: updated for version 1.2 release.
+	* Makefile.in: updated for version 1.2-rc1.
+
+2000-11-20
+	* lib/race.c: fix a buffer overrun bug.
+	* patch/bind8/bind-8.2.2-P5-patch: removed.
+	* patch/bind8/bind-8.2.2-P7-patch: created.
+
+2000-11-17
+	* lib/normalizer.c: add normalize scheme "ja-kana-fullwidth"
+	as an alias of "ja-fullwidth".  also add new scheme
+	"ja-alnum-halfwidth".
+	* lib/normalizer.c: make the size of intermediate buffer used for
+ 	normalization grow dynamically.  previously, the size was a fixed
+ 	value based on the size of the input string and overflow was
+ 	possible.
+	* lib/brace.c: add internal error checking.  keep lint happy.
+	* dnsproxy/config.c, dnsproxy/config.h: removed (renamed to
+	proxycnf.[ch], in order to avoid confusion with include/config.h).
+	* dnsproxy/proxycnf.c, dnsproxy/proxycnf.h: created.
+	* DISTFILES, dnsproxy/Makefile.in, dnsproxy/make.os2,
+ 	dnsproxy/make.wnt: remove dnsproxy/config.[ch], add
+ 	dnsproxy/proxycnf.[ch]
+	* dnsproxy/logging.c, dnsproxy/message.c dnsproxy/proxycnf.c:
+	include <config.h>.
+	* configure.in, configure, acconfig.h, include/config.h.in:
+	add checking whether the system defines BOOL type or not.
+	add configuration option --with-brace-suffix and --with-lace-prefix.
+	* README, README.ja: mention about new configuration options above.
+	* dnsproxy/dnsproxy.h: take the definition of BOOL out.  use own
+ 	version of TRUE/FALSE, instead of system-supplied ones.
+	* wsock/config/mdnconf.tcl: add log configuration feature (log level
+	and log file).  implement log file operation (view/delete).
+	change widgets layout so that they look neater.
+	* wsock/common/encoding.c, wsock/common/jpnicmdn.h: add new
+ 	function for retrieving the pathname of the log file from the
+ 	registry.
+	* wsock/common/printf.c: retrieve log file pathname from the
+	registry.  stop writing log if the log level is negative.
+	* tools/mdnconv/Makefile.in: add dependency to libmdn.la.
+	* man/mdnres.conf.5.in, tools/mdnconv/mdnconv.1: add description
+	on the new encodings and normalization schemes.
+	* dnsproxy/dnsproxy.8: removed.
+	* dnsproxy/dnsproxy.8.in: created.
+	* dnsproxy/Makefile.in: generate dnsproxy.8 from dnsproxy.8.in,
+	reflecting correct path.
+	* DISTFILES: replace dnsproxy/dnsproxy.8 with dnsproxy/dnsproxy.8.in.
+	
+2000-11-16
+	* lib/brace.c: fix buffer-overrun bugs.
+
+2000-11-14
+	* include/mdn/brace.h, lib/mdn/brace.c: created. (for BRACE encoding)
+	* include/mdn/lace.h, lib/mdn/lace.c: created. (for LACE encoding)
+	* include/mdn/util.h, lib/util.c: incorporate some functionalities
+	from race.c, such as UTF-8 <-> UTF-16 conversion.
+	* lib/race.c: move some functionalities shared with brace.c and
+	lace.c out to util.c.
+	* lib/converter.c: add BRACE and LACE converters.
+	* include/mdn/Makefile.in: add brace.h and lace.h to the intall files.
+	* lib/Makefile.in: add brace.c and lace.c.
+	* DISTFILES: add include/mdn/{brace,lace}.h, lib/{brace,lace}.c.
+
+2000-11-10
+	* lib/normalizer.c: add normalize scheme
+	"ja-compose-voiced-sound".
+
+2000-11-06
+	* wsock/common/printf.c:   mDN Wrapper enable libmdn trace
+	* wsock/wsock11/dllmain.c: mDN Wrapper enable libmdn trace
+	* wsock/wsock20/dllmain.c: mDN Wrapper enable libmdn trace
+        * wsock/common/jpnicmdn.h: mDN Wrapper enable libmdn trace
+	* wsock/common/jpnicmdn.def:  mDN Wrapper enable libmdn trace
+        * wsock/wsock11/dllfunc.c: check status of conversion
+        * wsock/wsock20/dllfunc.c: check status of conversion
+        * wsock/common/encoding.c: Fixed query on program side encoding
+	* wsock/common/convert.c : Fixed setting program side encoding
+
+2000-11-02
+	* lib/util.c, include/mdn/util.h: created.
+	* lib/race.c, tools/mdnconv/util.c: make use of the above util
+ 	module.
+	* DISTFILES, include/mdn/Makefile.in, lib/Makefile.in,
+ 	tools/runmdn/Makefile.in, lib/make.wnt, lib/make.os2: add
+ 	util.[ch].
+	* lib/Makefile.in, tools/runmdn/Makefile.in: increase revision
+ 	number.
+	* tools/runmdn/Makefile.in: use INSTALL_SCRIPT rather than
+ 	  INSTALL_PROGRAM for shell script installation.
+	* tools/rpm/mdnkit.spec: increase version and serial.
+	* Makefile.in: change package name to mdnkit-1.1-src.  add patch
+ 	target.
+	* DISTFILES: add ChangeLog and NEWS.
+	* lib/msgtrans.c: remove extra semicolon at the end of #undef
+ 	line.
+	* tools/rpm/mdnkit.spec: update for version 1.1.
+	* README, README.ja: update for version 1.1.
+	* version 1.1 release.
+
+2000-11-01
+	* lib/race.c, tools/mdnconv/util.c: fix race prefix matching bug.
+  	Previously, matching failed if the prefix contains any uppercase
+ 	letters (such as Bq--),
+
+2000-10-31
+	* dnsproxy/dnsproxy.8: fix typo.
+	* dnsproxy/dnsproxy.conf.sample: add log-level entry.  correct
+ 	description of the behavior when log-file is not specified.
+	* NEWS: created.
+
+2000-10-30
+	* patch/bind9/bind-9.0.0-patch (lib/dns/config/confparser.y):
+	typo fixed.
+
+2000-10-27
+	* dnsproxy/Makefile.in: remove -DDEBUG.
+	* dnsproxy/logging.c: supply default log file if not specfied.
+	* dnsproxy/translate.c: make the log correctly display "tcp" or
+	"udp" instead of "unknown".  fix typo.
+	* dnsproxy/winserv.c: comment out message logging code because
+	they are also recorded in event logger.
+	
+2000-10-26
+	* dnsproxy/config.c: stop redefining logging macros (since it's
+ 	not needed).  use fprintf instead of log_printf for logging (since
+ 	log file is not yet determined at this stage).
+  	* dnsproxy/dnsproxy.8: add description on log-level entry.
+  	mention about SIGHUP feature.
+	* dnsproxy/dnsproxy.h: add log-level constants. change log macro
+ 	definitions. add prototypes for new logging functions.
+	* dnsproxy/logging.c: add log-level setting feature, including new
+ 	logging interface functions and log-level entry in the
+ 	configuration file.  add log file turnover support
+ 	(close and reopen the file when receiving SIGHUP)
+	* dnsproxy/server.c: ignore transient errors such as EAGAIN or
+	EINTR.  do not quit server process even if recvfrom returns
+	ECONNREFUSED, which seems to happen on Linux.  Same for
+	ENETUNREACH and EHOSTUNREACH.
+	* dnsproxy/translate.c: make mdn_log_level_info messages are
+	logged at 'warn' level instead of 'trace' level.
+	* dnsproxy/unxmain.c: add handler for SIGHUP.
+	
+2000-10-25
+	* lib/utf8.c: fix mdn_utf8_getmb so that it returns correct
+	value.
+
+2000-10-24
+	* dnsproxy/server.c: don't terminate server process even if
+	recvfrom (on UDP socket) returns 0.
+	* tools/mdnconv/mdnconv.1: correct syntax of -noconf option.
+
+2000-10-23
+	* dnsproxy/message.c: fix DNS message ID allocation bug (only
+	4096 IDs out of 65536 could be used before).  release internal
+	data structure for each request when receiving reply (previously
+	it is kept for 10 minutes, causing large memory footprint for
+	busy servers).  add some debug statements.
+	* dnsproxy/server.c: increase interval for calling timer dispatch
+ 	routine (1sec -> 10sec).
+	
+2000-10-08
+	* version 1.0 release

@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.17 2000/11/14 18:09:44 gson Exp $
+$Id: release,v 1.18 2000/12/07 00:52:30 tale Exp $
 
 Preparing a bind9 release
 
@@ -64,10 +64,49 @@ release.
       cd $top_of_mainline_tree
       sh util/altbuild.sh v9_0
 
- - If you can (= your system is similar enougn to the on Tale is using),
+ - If you can (= your system is similar enough to the one Tale is using),
    check the header files for cruft by running the command
+   [ This step is quite imperfect and should probably be skipped
+     for now -- Tale ]
 
       find lib -name '*.h' -print | xargs perl util/check-includes.pl
+
+ - Ensure that the JPNIC patch applies cleanly:
+
+   XXX This is impacted by sanitize.pl
+
+   $ patch -p0 < contrib/idn/mdnkit/patch/bind9/patch.most > patch.out 2>&1
+   $ egrep Hunk patch.out
+
+   All hunks should have applied successfully with no offset or fuzz.
+   Check any that did not, and regenerate the patch as appropriate.
+
+   the build tests.
+   $ cd contrib/idn/mdnkit
+   [ Sample on netbsd ... ]
+   $ CFLAGS=-I/usr/local/include ./configure  '--with-iconv=-L/usr/local/lib -liconv'
+   $ make
+   $ cd ../../.. ; : cd back to top level
+   $ cp configure configure.orig
+   $ autoconf
+   $ ./configure
+
+   $ make
+   ... should cleanly compile
+   $ make distclean
+   $ rm -rf /tmp/mdn
+   $ mkdir -p /tmp/mdn/{lib,include}
+   $ mdn=`pwd`/contrib/idn/mdnkit
+   $ cp $mdn/lib/.libs/libmdn.so /tmp/mdn/lib
+   $ cp -r $mdn/include/mdn /tmp/mdn/include
+   $ ./configure --with-mdn=/tmp/mdn --with-iconv="-L/usr/local/lib -liconv" 
+   $ LD_LIBRARY_PATH=/usr/local/lib:/tmp/mdn/lib:/usr/lib make
+   ... should cleanly compile
+
+   [ Some tests will be added to bin/tests/system to validate operation. ]
+
+   Generate a fresh copy of the configure diffs, and append to the patch.
+   $ cvs diff -u2 configure >> contrib/idn/mdnkit/patch/bind9/patch.configure
 
  - Add a marker line like "	--- 9.0.0b3 released ---"
    to the CHANGES file.

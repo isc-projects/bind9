@@ -1,0 +1,304 @@
+.\" $Id: mdnconv.1,v 1.11 2000/11/17 07:18:58 ishisone Exp $
+.\"
+.\" Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
+.\"  
+.\" By using this file, you agree to the terms and conditions set forth bellow.
+.\" 
+.\" 			LICENSE TERMS AND CONDITIONS 
+.\" 
+.\" The following License Terms and Conditions apply, unless a different
+.\" license is obtained from Japan Network Information Center ("JPNIC"),
+.\" a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
+.\" Tokyo, Japan.
+.\" 
+.\" 1. Use, Modification and Redistribution (including distribution of any
+.\"    modified or derived work) in source and/or binary forms is permitted
+.\"    under this License Terms and Conditions.
+.\" 
+.\" 2. Redistribution of source code must retain the copyright notices as they
+.\"    appear in each source code file, this License Terms and Conditions.
+.\" 
+.\" 3. Redistribution in binary form must reproduce the Copyright Notice,
+.\"    this License Terms and Conditions, in the documentation and/or other
+.\"    materials provided with the distribution.  For the purposes of binary
+.\"    distribution the "Copyright Notice" refers to the following language:
+.\"    "Copyright (c) Japan Network Information Center.  All rights reserved."
+.\" 
+.\" 4. Neither the name of JPNIC may be used to endorse or promote products
+.\"    derived from this Software without specific prior written approval of
+.\"    JPNIC.
+.\" 
+.\" 5. Disclaimer/Limitation of Liability: THIS SOFTWARE IS PROVIDED BY JPNIC
+.\"    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\"    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+.\"    PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL JPNIC BE LIABLE
+.\"    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+.\"    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+.\"    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+.\"    BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+.\"    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+.\"    OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+.\"    ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+.\" 
+.\" 6. Indemnification by Licensee
+.\"    Any person or entities using and/or redistributing this Software under
+.\"    this License Terms and Conditions shall defend indemnify and hold
+.\"    harmless JPNIC from and against any and all judgements damages,
+.\"    expenses, settlement liabilities, cost and other liabilities of any
+.\"    kind as a result of use and redistribution of this Software or any
+.\"    claim, suite, action, litigation or proceeding by any third party
+.\"    arising out of or relates to this License Terms and Conditions.
+.\" 
+.\" 7. Governing Law, Jurisdiction and Venue
+.\"    This License Terms and Conditions shall be governed by and and
+.\"    construed in accordance with the law of Japan. Any person or entities
+.\"    using and/or redistributing this Software under this License Terms and
+.\"    Conditions hereby agrees and consent to the personal and exclusive
+.\"    jurisdiction and venue of Tokyo District Court of Japan.
+.\"
+.TH MDNCONV 1 "June 30, 2000"
+.\"
+.SH NAME
+mdnconv \- codeset converter for named.conf and zone master files
+.\"
+.SH SYNOPSIS
+\fBmdnconv\fP [\fIoptions..\fP] [\fIfile\fP...]
+.\"
+.SH DESCRIPTION
+.B mdnconv
+is a codeset converter for named configuration files and zone master files.
+.B mdnconv
+performs codeset conversion specified by the command-line arguments,
+and writes the converted text to stdout.
+If file name is specified,
+.B mdnconv
+converts the contents of the file.  Otherwise,
+.B mdnconv
+converts stdin.
+.PP
+.B mdnconv
+is specifically designed for converting internatinalized domain names,
+and may not be suitable as a general codeset converter.
+.SH OPTIONS
+.TP 4
+\fB\-in\fP \fIin-code\fP
+Specify the codeset name of the input text.
+Any of the following codeset names can be specified.
+.RS 4
+.IP "\(bu" 2
+Codeset names which iconv_open() library function accepts
+.IP "\(bu" 2
+``UTF-5''
+.IP "\(bu" 2
+``RACE''
+.IP "\(bu" 2
+``BRACE''
+.IP "\(bu" 2
+``LACE''
+.IP "\(bu" 2
+Any alias names for the above, defined by the codeset alias file.
+.RE
+.IP "" 4
+If this option is not specified, the default codeset is determined
+from the current locale.
+.TP 4
+\fB\-out\fP \fIout-code\fP
+Specify the codeset name of the output text. \fIout-code\fP can be any
+codeset name that can be specified for 
+.B \-in
+option.
+If this option is not specified, the default is the codeset specified
+in MDN resolver configuration file (``server-encoding'' line).
+.TP 4
+\fB\-normalize\fP \fIscheme\fP
+Perform normalization specified by \fIscheme\fP.
+Currently, following \fIscheme\fPs are available:
+.RS 4
+.IP ``ascii-uppercase''
+ASCII lowercase to uppercase mapping.
+.IP ``ascii-lowercase''
+ASCII uppercase to lowercase mapping.
+.IP ``unicode-uppercase''
+Unicode lowercase to uppercase mapping, which is described in
+``Unicode Technical Report #21: Case Mappings'',
+available from unicode.org.
+.IP ``unicode-lowercase''
+Unicode uppercase to lowercase mapping, according ``Case Mappings''.
+.IP ``unicode-form-c''
+Unicode Normlization Form C, which is described in
+``Unicode Technical Report #15: Unicode Normalization Forms'',
+also available from unicode.org.
+.IP ``unicode-form-kc''
+Perform Unicode Normlization Form KC, also described in the above
+document.
+.IP ``ja-compose-voiced-sound''
+Compose Japanese full-width hiragana/katakana character and the following
+(semi) voiced sound mark (dakuten or han-dakuten in Japanese) into a
+single combined letter if such letter exists.
+.IP ``ja-kana-fullwidth''
+Convert Japanese half-width katakana characters (aka ``hankaku katakana'')
+to their corresponding full-width characters.
+.IP ``ja-alnum-halfwidth''
+Convert full-width alphabets, digits and minus sign to half-width.
+.IP ``ja-minus-hack''
+Convert Japanese full-width minus sign (U+2212 ``MINUS SIGN'') to
+``\-'' (U+002D ``HYPHEN-MINUS'').
+.IP ``ja-delimiter-hack''
+Map ``IDEOGRAPHIC FULL STOP'' (U+3002) and ``FULLWIDTH FULL STOP'' (U+FF0E)
+characters to period (``.'') so that these two characters can be used as
+domain component separaters.
+.br
+Note that there is no good reason to use this scheme when you convert
+configuration files or zone files, and its use is strongly
+deprecated.
+.RE
+.IP "" 4
+This option can be specified more than once.
+In that case, each normalization will be performed in the order of the
+specification.
+.br
+If this option is not specified, the schemes specified in MDN resolver
+configuration file (``normalize'' line) are used.
+.TP 4
+\fB\-zld\fP \fIZLD\fP
+Specify ZLD (zero-level domain) to use.
+If a domain name to be converted ends with the specified ZLD,
+the matching part will not be converted.
+This is important for some codesets such as UTF-5, in order to
+protect ZLD part intact from conversion.
+.br
+If this option is not specified, the default is the one specified
+in MDN resolver configuration file (``server-zld'' line) or empty (no ZLD).
+.TP 4
+\fB\-auto\fP
+Automatically append ZLD specified by \-zld option to domain names,
+if they contain non-ASCII character and end with period (``.'').
+By using this option, you don't have to specify ZLD explicitly in
+your zone master file.  It is not perfect though, there are cases
+you have to write ZLD explicitly.  So take care.
+.TP 4
+\fB\-whole\fP
+Perform normalization and conversion to output codeset for the entire
+input text.  If this option is not specified, only non-ASCII characters
+and their surrounding texts will be normalized and converted.
+See ``CONVERSION MECHANISM'' for details.
+.TP 4
+\fB\-alias\fP \fIpath\fP
+Specify a codeset alias file.  It is a simple text file, where
+each line has a pair of alias name and real name separated by one
+or more white spaces like below:
+.nf
+.ft CW
+
+    some-alias-codeset-name    real-codeset-name
+
+.ft P
+.fi
+Lines starting with ``#'' are treated as comments.
+.TP 4
+\fB\-conf\fP \fIpath\fP
+Specify a MDN resolver configuration file (``mdnres.conf'').
+If not specified, system's default file is used.
+.TP 4
+\fB\-noconf\fP
+Specify that no configuration file is to be used.
+.TP 4
+\fB\-flush\fP
+Force line-buffering mode.
+.SH CONVERSION MECHANISM
+Here is a brief step-by-step description of how
+.B mdnconv
+does its job.
+.IP "1. input-side convnersion" 4
+.B mdnconv
+reads input text line by line, and converts them from the input codeset
+to UTF-8 encoding.  Basically this conversion is done using iconv() utility,
+but for some special codesets like UTF-5, special converter will be used.
+.IP "2. finding where to process" 4
+Then
+.B mdnconv
+looks for (part of) internationalized domain name in the converted line,
+and picks them up for further processing.
+.br
+.B mdnconv
+recognizes the character sequence having the following property as
+the internationalized domain name.
+.RS 4
+.IP "\(bu" 2
+containing at least one non-ASCII character, and
+.IP "\(bu" 2
+consisting of legal domain name characters (alphabets, digits, hypens),
+non-ASCII characters and period.
+.RE
+.IP "" 4
+If you are not quite sure what this means (as I), 
+the following regular expression may help you.
+.nf
+.ft CW
+
+    [-A-Za-z0-9.]*<non-ASCII char>([-A-Za-z0-9.]|<non-ASCII char>)*
+
+.ft P
+.fi
+For example, only ``www.###.com'' will be picked up from
+the following lines (`#' denotes non-ASCII character).
+.nf
+.ft CW
+
+    www.###.com.    IN CNAME serv.xyz.com.
+    serv.xyz.com.   IN A     10.0.0.1
+
+.ft P
+.fi
+If \-whole option is specified, this step is skipped and the entire line
+is subject to further processing.
+.IP "3. normalization"
+For each string picked up by the last step, normalization is performed.
+Multiple normalization schemes can be applied. 
+.IP "4. output-side conversion" 4
+Finally,
+.B mdnconv
+converts the normalized strings from UTF-8 encoding to the output codeset,
+typically UTF-8, UTF-5 or RACE.  And it writes them to stdout together with
+the rest of the line.
+.SH FILE MANAGEMENT
+Maybe the best way to manage named.conf or zone master files that contains
+internationalized domain name is to keep them in your local codeset so that
+they can be edited with your favorite editor, and generate UTF-8 or
+UTF-5 (or whatever) version using \fBmdnconv\fP.
+
+`make' is a convenient tool for this purpose.
+Suppose the local codeset version has suffix `.lc', and its UTF-8 version
+has suffix `.utf8'.  The following Makefile enables you to generate
+UTF-8 version from local codeset version by just typing `make'.
+.RS 4
+.nf
+.ft CW
+
+\&.SUFFIXES: .lc .utf8
+\&.lc.utf8:
+        mdnconv -in $(LOCALCODE) -out UTF-8 $(MDNCONVOPT) $< > $@
+
+LOCALCODE = EUC-JP
+MDNCONVOPT = -normalize unicode-form-c
+
+DESTFILES = db.zone1.utf8 db.zone2.utf8
+
+all: $(DESTFILES)
+.ft
+.fi
+.RE
+.\"
+.SH SEE ALSO
+mdnres.conf(5),
+iconv(3) (if your system has one)
+.\"
+.SH BUGS
+The automatic input-code selection depends on your system, and sometimes
+it cannot guess or guess wrong.  It is better to explicitly specify it using \-in option.
+.PP
+ZLD handling has some problems.  Especially automatic ZLD supply feature
+(\-auto option) is inherently imperfect and you shouldn't rely on it.
+.PP
+Some mechanism is required to force normalization and output-side conversion
+on ASCII-only domain names.

@@ -1,0 +1,58 @@
+; $Id: NEWS,v 1.5 2000/11/21 09:03:23 ishisone Exp $
+
+Major changes in version 1.2:
+
+* New encoding converters for `BRACE' and `LACE' are implemented.
+
+* New normalize schemes `ja-compose-voiced-sound', 'ja-kana-fullwidth'
+  and 'ja-alnum-halfwidth' introduced.
+
+* mDN Wrapper is thoroughly overhauled.
+  - Log level can be specified by using GUI (or directly editing the
+    registry Software\JPNIC\MDN\LogLevel).  Note that fine grain
+    control over logging is supported only by the MDN library (libmdn).
+    Log output from mDN Wrapper itself can be turned on or off, but
+    no log level support.
+  - Log file can also specified.
+  - Some serious bugs are fixed, including incorrect program-side
+    encoding (codeset) detection.
+  - Advanced configuration feature implemented.  Now DNS encoding and
+    normalization can be customizable.  Also you can configure which
+    winsock DLL to be wrapped.
+
+* dnsproxy and mDN Wrapper now correctly accept and process client-
+  supplied domain names encoded in the alternate encoding.  Previously
+  worked correctly only when the alternate encoding happened to be the
+  same as the server encoding.
+
+* 8bit-through patch for BIND-8.2.2-P5 is replaced by a new patch
+  for BIND-8.2.2-P7.
+
+* A buffer overrun bug in RACE converter is fixed.
+
+
+Major changes in version 1.1:
+
+* Log level of dnsproxy can be specified with ``log-level'' entry.
+  available levels are `none', `fatal', `warning' and `trace'.  See
+  dnsproxy.8 or dnsproxy.conf.sample for details.
+
+* Sending SIGHUP to dnsproxy causes it to close and re-open the log file.
+  Useful for log file turnover.
+
+* If log file is not specified, dnsproxy uses the default log file
+  /tmp/dnsproxy.log.  Previously behavior was that no logging was done
+  at all, conflicting with what document says.
+
+* dnsproxy won't terminate even if recvfrom() returns unexpected
+  errors such as `connection refused (ECONNREFUSED)'.  On Linux, it is
+  reported that it sometimes returns this error even for
+  connection-less (ie UDP) sockets.
+
+* DNS message ID allocation/release bugs in dnsproxy are fixed.
+  Previously dnsproxy seems to stop working if it receives more than
+  4096 requests in 10 minutes.
+
+* RACE conversion bug is fixed.  Previously, if the prefix part contains
+  any uppercase letters (such as "Bq--"), it is not recognized as a
+  RACE prefix.

@@ -1,0 +1,82 @@
+This directory contains source files for MDN library.
+
+Here's the brief description of each module.
+
+
+* Higher level modules
+
+msgtrans.c
+	DNS message translator.
+	This is the heart of 'dnsproxy' daemon.
+
+translator.c
+	Domain name translator.
+	Perform domain name translation, including
+	  + add/remove ZLD
+	  + conversion between local codeset and target codeset
+	  + normalization
+
+res.c
+resconf.c
+	Domain name translation interface suitable for embedding in
+	client-side resolver library, including configuration file
+	(mdnres.conf) reader.
+
+* Lower level modules
+
+converter.c
+	Codeset converter.
+	All the conversion is done between some local encoding and UTF-8.
+	It is specially designed for domain-name conversion.
+	For example some converter (such as UTF-5 <-> UTF-8)
+	treats period specially.
+
+normalizer.c
+	String normalizer, including Unicode normalization forms.
+
+unormalize.c
+	Perform normalization defined in "Unicode Normalization Forms".
+
+zldrule.c
+	Find out ZLD and codeset of a domain name.
+
+
+* Utility modules
+
+localencoding.c
+	Local encoding (codeset) detecter based on the locale information.
+
+debug.c
+	Debug utilities.
+
+log.c
+	Logging facility.
+
+msgheader.c
+	DNS message header parser/builder.
+
+dn.c
+	Domain name compression/expansion, similar to dn_comp/dn_expand
+	in the resolver library.
+
+race.c
+	Codeset conversion routine for RACE encoding.
+
+result.c
+	MDN result code to string conversion.
+
+strhash.c
+	String-keyed hash table.
+
+utf5.c
+	UTF-5 encoding utility.
+
+utf8.c
+	UTF-8 encoding utility.
+
+unicode.c
+	Provide access to various information contained in "UnicodeData.txt".
+
+selectiveencode.c
+	Find a substring which seems to be a part of domain name containing
+	non-ascii characters.
