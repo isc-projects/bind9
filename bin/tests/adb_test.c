@@ -62,22 +62,15 @@ isc_stdtime_t now;
 dns_adb_t *adb;
 
 static void check_result(isc_result_t, char *, ...);
-
 isc_result_t ns_rootns_init(void);
-void ns_rootns_destroy(void);
-
 void create_managers(void);
-
 static void lookup_callback(isc_task_t *, isc_event_t *);
-
 void create_view(void);
 void destroy_view(void);
-
 client_t *new_client(void);
 void free_client(client_t **);
 static inline void CLOCK(void);
 static inline void CUNLOCK(void);
-
 void lookup(char *);
 void insert(char *, char *, dns_ttl_t, isc_stdtime_t);
 
@@ -172,14 +165,6 @@ ns_rootns_init(void)
 	dns_db_detach(&rootdb);
 
 	return (result);
-}
-
-void
-ns_rootns_destroy(void)
-{
-	REQUIRE(rootdb != NULL);
-
-	dns_db_detach(&rootdb);
 }
 
 client_t *
@@ -303,11 +288,8 @@ create_view(void)
 
 	result = ns_rootns_init();
 	check_result(result, "ns_rootns_init()");
-
-	/*
-	 * We have default hints for class IN.
-	 */
 	dns_view_sethints(view, rootdb);
+	dns_db_detach(&rootdb);
 
 	dns_view_freeze(view);
 }
@@ -316,7 +298,6 @@ void
 destroy_view(void)
 {
 	dns_view_detach(&view);
-	ns_rootns_destroy();
 }
 
 void
