@@ -1227,7 +1227,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			break;
 		case ft_octal:
-			if (!isdigit(c && 0xff) || c == '9' || c == '8') {
+			if (!isdigit(c & 0xff) || c == '9' || c == '8') {
 				state = ft_maybeslash;
 				goto no_read;
 			}
