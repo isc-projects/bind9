@@ -1,14 +1,13 @@
 
 
 DNS Extensions Working Group                            J. Schlyter, Ed.
-Internet-Draft                                          December 4, 2003
-Updates: RFC 2535, RFC TCR (if
-approved)
-Expires: June 3, 2004
+Internet-Draft                                         December 16, 2003
+Updates: RFC 2535, RFC TCR (if approved)
+Expires: June 15, 2004
 
 
                         DNSSEC NSEC RDATA Format
-                  draft-ietf-dnsext-nsec-rdata-01.txt
+                  draft-ietf-dnsext-nsec-rdata-02.txt
 
 Status of this Memo
 
@@ -30,7 +29,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on June 3, 2004.
+   This Internet-Draft will expire on June 15, 2004.
 
 Copyright Notice
 
@@ -52,7 +51,7 @@ Abstract
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 1]
+Schlyter                 Expires June 15, 2004                  [Page 1]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -108,7 +107,7 @@ Table of Contents
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 2]
+Schlyter                 Expires June 15, 2004                  [Page 2]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -164,7 +163,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 3]
+Schlyter                 Expires June 15, 2004                  [Page 3]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -220,7 +219,7 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 4]
+Schlyter                 Expires June 15, 2004                  [Page 4]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -228,6 +227,10 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
    1, it indicates that an RRset of that type is present for the NSEC
    RR's owner name.  If a bit is set to 0, it indicates that no RRset of
    that type is present for the NSEC RR's owner name.
+
+   Since bit 0 in window block 0 refers to the non-existing RR type 0,
+   it MUST be set to 0.  After verification, the validator SHOULD ignore
+   the value of bit 0 in window block 0.
 
    Bits representing Meta-TYPEs or QTYPEs as specified in RFC 2929 [3]
    (section 3.1) or within the range reserved for assignment only to
@@ -269,17 +272,18 @@ Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
    alfa.example.com. 86400 IN NSEC host.example.com. A MX RRSIG NSEC TYPE1234
 
    The first four text fields specify the name, TTL, Class, and RR type
+
+
+
+Schlyter                 Expires June 15, 2004                  [Page 5]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
+
+
    (NSEC).  The entry host.example.com. is the next authoritative name
    after alfa.example.com. in canonical order. The A, MX, RRSIG and NSEC
    mnemonics indicate there are A, MX, RRSIG, NSEC and TYPE1234 RRsets
    associated with the name alfa.example.com.
-
-
-
-Schlyter                  Expires June 3, 2004                  [Page 5]
-
-Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
-
 
    The RDATA section of the NSEC RR above would be encoded as:
 
@@ -324,18 +328,19 @@ Normative References
    [4]  Gustafsson, A., "Handling of Unknown DNS Resource Record (RR)
         Types", RFC 3597, September 2003.
 
+
+
+
+Schlyter                 Expires June 15, 2004                  [Page 6]
+
+Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
+
+
    [5]  Weiler, S., "Legacy Resolver Compatibility for Delegation
         Signer", draft-ietf-dnsext-dnssec-2535typecode-change-05 (work
         in progress), October 2003.
 
 Informational References
-
-
-
-Schlyter                  Expires June 3, 2004                  [Page 6]
-
-Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
-
 
    [6]  Mockapetris, P., "Domain names - concepts and facilities", STD
         13, RFC 1034, November 1987.
@@ -382,13 +387,7 @@ Appendix A. Acknowledgements
 
 
 
-
-
-
-
-
-
-Schlyter                  Expires June 3, 2004                  [Page 7]
+Schlyter                 Expires June 15, 2004                  [Page 7]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -444,7 +443,7 @@ Full Copyright Statement
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 8]
+Schlyter                 Expires June 15, 2004                  [Page 8]
 
 Internet-Draft          DNSSEC NSEC RDATA Format           December 2003
 
@@ -500,5 +499,5 @@ Acknowledgment
 
 
 
-Schlyter                  Expires June 3, 2004                  [Page 9]
+Schlyter                 Expires June 15, 2004                  [Page 9]
 
