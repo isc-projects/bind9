@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.55.2.3 2001/05/18 16:35:57 gson Exp $ */
+/* $Id: log.c,v 1.55.2.4 2001/05/29 22:35:37 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -336,7 +336,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		lcfg->magic = LCFG_MAGIC;
 
 	} else
-		result = ISC_R_NOMEMORY;
+		return (ISC_R_NOMEMORY);
 
 	/*
 	 * Create the default channels:
