@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112 2001/08/08 22:54:44 gson Exp $
+ * $Id: tsig.c,v 1.112.2.1 2001/09/27 23:17:10 gson Exp $
  */
 
 #include <config.h>
@@ -148,13 +148,25 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		goto cleanup_key;
 	dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
-	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
+	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey->algorithm = DNS_TSIG_HMACMD5_NAME;
-	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME))
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_HMACMD5) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME)) {
 		tkey->algorithm = DNS_TSIG_GSSAPI_NAME;
-	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME))
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_GSSAPI) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
 		tkey->algorithm = DNS_TSIG_GSSAPIMS_NAME;
-	else {
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_GSSAPI) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else {
 		if (key != NULL) {
 			ret = DNS_R_BADALG;
 			goto cleanup_name;
