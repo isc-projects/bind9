@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.4 2001/10/05 22:25:54 mayer Exp $ */
+/* $Id: ntgroups.c,v 1.5 2001/10/06 01:10:06 mayer Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are
@@ -40,11 +40,7 @@
 #include <isc/ntgroups.h>
 #include <isc/result.h>
 
-#define MAX_NAME_LENGTH 25
-
-#ifndef STATUS_SUCCESS
-#define STATUS_SUCCESS  ((NTSTATUS)0x00000000L)
-#endif
+#define MAX_NAME_LENGTH 256
 
 isc_result_t
 isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
