@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.72.2.2 2001/01/22 20:12:36 bwelling Exp $ */
+/* $Id: confzone.c,v 1.72.2.3 2001/03/05 18:28:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2219,19 +2219,19 @@ dns_c_zone_setixfrbase(dns_c_zone_t *zone, const char *newval) {
 	case dns_c_zone_stub:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "stub zones do not have a ixfr_base field");
+			      "stub zones do not have an ixfr_base field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_hint:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "hint zones do not have a ixfr_base field");
+			      "hint zones do not have an ixfr_base field");
 		return (ISC_R_FAILURE);
 
 	case dns_c_zone_forward:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "forward zones do not have a file field");
+			      "forward zones do not have an ixfr-base field");
 		return (ISC_R_FAILURE);
 	}
 
