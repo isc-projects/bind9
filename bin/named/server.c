@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.237 2000/11/03 07:53:13 marka Exp $ */
+/* $Id: server.c,v 1.238 2000/11/03 17:54:52 gson Exp $ */
 
 #include <config.h>
 
@@ -1467,7 +1467,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
-	 * heartbeat timer
+	 * Configure the dialup heartbeat timer.
 	 */
 	heartbeat_interval = 3600; /* Default is 1 hour. */
 	(void)dns_c_ctx_getheartbeatinterval(cctx, &heartbeat_interval);
@@ -1482,6 +1482,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		isc_timer_reset(server->heartbeat_timer, isc_timertype_ticker,
 				NULL, &interval, ISC_FALSE);
 	}
+
 	/*
 	 * Configure and freeze all explicit views.  Explicit
 	 * views that have zones were already created at parsing
