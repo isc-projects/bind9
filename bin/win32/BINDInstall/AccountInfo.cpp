@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.4 2001/10/05 17:08:09 gson Exp $ */
+/* $Id: AccountInfo.cpp,v 1.5 2002/08/06 03:35:30 mayer Exp $ */
 
 #ifndef UNICODE
 #define UNICODE
@@ -202,7 +202,8 @@ CreateServiceAccount(char *name, char *password) {
 	ui.usri1_priv = USER_PRIV_USER;
 	ui.usri1_home_dir = NULL;
 	ui.usri1_comment = L"ISC BIND Service Account";
-	ui.usri1_flags = UF_PASSWD_CANT_CHANGE | UF_DONT_EXPIRE_PASSWD;
+	ui.usri1_flags = UF_PASSWD_CANT_CHANGE | UF_DONT_EXPIRE_PASSWD |
+			 UF_SCRIPT;
 	ui.usri1_script_path = NULL;
 	/*
 	 * Call the NetUserAdd function, specifying level 1.
