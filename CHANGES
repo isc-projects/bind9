@@ -1,3 +1,5 @@
+ 408.	[bug]		stub zones could leak memory and refernce counts if
+			all the masters were unreachable.
 
  407.	[bug]		isc_rwlock_lock() would needlessly block
 			readers when it reached the read quota even
