@@ -44,19 +44,15 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0
+BIND 9.0.1rc1
 
-	BIND 9.0.0 is the first "general availability" release of BIND
-	version 9. It is aimed at early adopters and those who wish to 
-	make use of new 9.0 features, such as IPv6 and DNSSEC secure 
-	resolution support.
+	BIND 9.0.1rc1 is a release candidate for BIND 9.0.1.  BIND 9.0.1
+	will be a maintenance release, containing fixes for a number of
+	bugs in BIND 9.0.0 but no new features.
 
-	We are running BIND 9 in production, and it has been used
-	as a root name server.
-
-	BIND 9.0.0 is primarily a name server software distribution.
-	In addition to the name server, it also includes a new
-	lightweight stub resolver library and associated resolver
+	Like BIND 9.0.0, BIND 9.0.1 is primarily a name server software
+	distribution.  In addition to the name server, it also includes 
+	a new lightweight stub resolver library and associated resolver
 	daemon that fully support forward and reverse lookups of both
 	IPv4 and IPv6 addresses.  This library is still considered
 	experimental and is not a complete replacement for the BIND 8
@@ -64,12 +60,12 @@ BIND 9.0.0
 	BIND 8 res_* functions to perform DNS queries or dynamic
 	updates still need to be linked against the BIND 8 libraries.
 
-	BIND 9.0.0 is capable of acting as an authoritative server
+	BIND 9.0.1 is capable of acting as an authoritative server
 	for DNSSEC secured zones.  This functionality is believed to
 	be stable and complete except for lacking support for wildcard
 	records in secure zones.
 
-	When acting as a caching server, BIND 9.0.0 can be configured
+	When acting as a caching server, BIND 9.0.1 can be configured
 	to perform DNSSEC secure resolution on behalf of its clients.
 	This part of the DNSSEC implementation is still considered
 	experimental.  For detailed information about the state of the
@@ -181,9 +177,8 @@ Building
 Documentation
 
 	The BIND 9 Administrator Reference Manual is included with the
-	source distribution in HTML and plain text format, in the
-	doc/arm directory.  A PDF version can be downloaded separately
-	at <http://www.nominum.com/resources/>.
+	source distribution in DocBook XML and HTML format, in the
+	doc/arm directory.
 
 	Some of the programs in the BIND 9 distribution have man pages
 	under the doc/man directory.  In particular, the command line
