@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: run.sh,v 1.36 2001/01/09 21:42:21 bwelling Exp $
+# $Id: run.sh,v 1.37 2001/01/17 20:53:39 bwelling Exp $
 
 #
 # Run a system test.
@@ -78,8 +78,6 @@ fi
 
 # Start name servers running
 sh start.sh $test || exit 1
-
-sleep 10
 
 # Run the tests
 ( cd $test ; sh tests.sh )

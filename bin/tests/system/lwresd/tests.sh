@@ -15,12 +15,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.11 2001/01/09 21:43:36 bwelling Exp $
+# $Id: tests.sh,v 1.12 2001/01/17 20:53:41 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-sleep 5
 
 status=0
 
@@ -38,7 +36,7 @@ if [ $? != 0 ]; then
         status=1
         rm -f lwresd1/lwresd.pid
 fi
-sleep 6
+sleep 5
 if [ -f lwresd1/lwresd.pid ]; then
         echo "I:lwresd1 didn't die when sent a SIGTERM"
         kill -KILL `cat lwresd1/lwresd.pid` > /dev/null 2>&1

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.27 2001/01/09 21:43:50 bwelling Exp $
+# $Id: tests.sh,v 1.28 2001/01/17 20:53:42 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -34,9 +34,8 @@ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
 
 rm -f ns2/example.db
 cp ns2/example2.db ns2/example.db
-sleep 6
 kill -HUP `cat ns2/named.pid`
-sleep 60
+sleep 45
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a -p 5300 > dig.out.ns2 || status=1
@@ -104,9 +103,8 @@ if [ -f ns2/named.pid ]; then
 fi
 
 cp ns2/example4.db ns2/example.db
-sleep 6
 (cd ns2 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
-sleep 60
+sleep 45
 
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd a.example.\
 	@10.53.0.2 a -p 5300 > dig.out.ns2 || status=1

@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.sh,v 1.32 2001/01/09 21:42:24 bwelling Exp $
+# $Id: start.sh,v 1.33 2001/01/17 20:53:40 bwelling Exp $
 
 #
 # Start name servers for running system tests.
@@ -74,7 +74,6 @@ do
 		sh ./stop.sh $1
 		exit 1
 	    fi
-	    sleep 1
         done
     ) || exit 1
 done
@@ -107,7 +106,6 @@ do
 		echo "I:Couldn't start lwresd $d"
 		exit 1
 	    fi
-	    sleep 1
         done
     ) || exit 1
 done
@@ -140,7 +138,6 @@ do
 		echo "I:Couldn't start ans $d"
 		exit 1
 	    fi
-	    sleep 1
         done
     ) || exit 1
 done
@@ -148,8 +145,6 @@ done
 # Make sure all of the servers are up.
 
 status=0
-
-sleep 5
 
 for d in ns[0-9]*
 do
@@ -171,7 +166,7 @@ do
 			echo "R:FAIL"
 			exit 1
 		fi
-		sleep 9
+		sleep 2
 	done
 done
 rm -f dig.out
