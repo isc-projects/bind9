@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/result.h>
 
 isc_mem_t *mctx;
@@ -36,10 +37,13 @@ main(int argc, char *argv[])
 	void *tmp;
 	isc_mempool_t *mp1, *mp2;
 	unsigned int i, j;
+	isc_mutex_t lock;
 
 	/* Silence annoying compiler warning. */
 	(void)argc;
 	(void)argv;
+
+	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -49,6 +53,9 @@ main(int argc, char *argv[])
 
 	mp2 = NULL;
 	RUNTIME_CHECK(isc_mempool_create(mctx, 31, &mp2) == ISC_R_SUCCESS);
+
+	isc_mempool_associatelock(mp1, &lock);
+	isc_mempool_associatelock(mp2, &lock);
 
 	isc_mem_stats(mctx, stderr);
 
@@ -119,6 +126,8 @@ main(int argc, char *argv[])
 	isc_mem_stats(mctx, stderr);
 
 	isc_mem_destroy(&mctx);
+
+	(void)isc_mutex_destroy(&lock);
 
 	return (0);
 }
