@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.1 2003/07/31 04:41:27 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.2 2003/08/04 00:23:23 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -145,6 +145,11 @@ usage(void) {
 }
 
 static void
+version(void) {
+	fputs("DiG " VERSION "\n", stderr);
+}
+
+static void
 help(void) {
 	print_usage(stdout);
 	fputs(
@@ -197,7 +202,9 @@ help(void) {
 "                 +[no]dnssec         (Request DNSSEC records)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
-"        local d-opts and servers (after host name) affect only that lookup.\n",
+"        local d-opts and servers (after host name) affect only that lookup.\n"
+"        -h                           (print help and exit)\n"
+"        -v                           (print version and exit)\n",
 	stdout);
 }
 
@@ -913,6 +920,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'n':
 		/* deprecated */
 		return (ISC_FALSE);
+	case 'v':
+		version();
+		exit(0);
+		break;
 	}
 	if (value == NULL)
 		goto invalid_option;
