@@ -21,6 +21,7 @@ unsigned char bit3[] = "\101\020b\264";
 unsigned char bit[] = "\101\010b\0\101\014b\260\0\101\014b\260\0\101\020b\264";
 
 int raw = 0;
+int verbose = 0;
 
 void test(unsigned int, dns_name_t *, dns_name_t *, dns_name_t *,
           unsigned char *, unsigned int);
@@ -33,10 +34,13 @@ main(int argc, char *argv[]) {
 	isc_region_t region;
 	int c;
 
-	while ((c = getopt(argc, argv, "r")) != -1) {
+	while ((c = getopt(argc, argv, "rv")) != -1) {
 		switch (c) {
 		case 'r':
 			raw++;
+			break;
+		case 'v':
+			verbose++;
 			break;
 		}
 	}
@@ -100,6 +104,19 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	unsigned char buf1[1024];
 	unsigned char buf2[1024];
 
+	if (verbose) {
+		char *s;
+		switch (allowed) {
+		case DNS_COMPRESS_NONE: s = "DNS_COMPRESS_NONE"; break;
+		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;
+		case DNS_COMPRESS_GLOBAL16: s = "DNS_COMPRESS_GLOBAL16"; break;
+		case DNS_COMPRESS_GLOBAL: s = "DNS_COMPRESS_GLOBAL"; break;
+		case DNS_COMPRESS_LOCAL: s = "DNS_COMPRESS_LOCAL"; break;
+		case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break;
+		default: s = "UNKOWN"; break;
+		}
+		fprintf(stdout, "Allowed = %s\n", s);
+	}
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	isc_buffer_init(&source, buf1, sizeof buf1, ISC_BUFFERTYPE_BINARY);
 	RUNTIME_CHECK(dns_compress_init(&cctx, -1, mctx) == DNS_R_SUCCESS);
