@@ -8,24 +8,25 @@
 BASE	= /build
 BDIR	= $(BASE)
 MODULE	= bind9
+SDIR	= $(HOME)/b9t/src
 
 # as it says
 CVSROOT	= /proj/cvs/isc
 
-# where the config, build and test output g oes
+# where the config, build and test output goes
 RDIR	= /proj/build-reports/$(MODULE)/hosts/$(PLATFORM)
 
-all:	clobber checkout config build test
+all:	clobber populate config build test
 
 clobber:
-	@if test ! -d $(BDIR) ; then mkdir -p $(BDIR) > /dev/null 2>&1 ; fi
 	@echo "CLOBBBER `date`"
-	( cd $(BDIR) && rm -fr $(MODULE) )
+	@if test ! -d $(BDIR) ; then mkdir -p $(BDIR) > /dev/null 2>&1 ; fi
+	@( cd $(BDIR) && rm -fr $(MODULE) )
 	@echo "DONE `date`"
 
-checkout:
-	@echo "CHECKOUT `date`"
-	@( cd $(BDIR) && cvs -d $(CVSROOT) checkout $(MODULE) )
+populate:
+	@echo "POPULATE `date`"
+	@( cd $(BDIR) && tar -xvf $(SDIR)/$(MODULE).tar ) > $(RDIR)/.populate 2>&1
 	@echo "DONE `date`"
 
 config:
@@ -41,5 +42,11 @@ build:
 test:
 	@echo "TEST `date`"
 	-@( cd $(BDIR)/$(MODULE)/bin/tests && $(MAKE) test ) > $(RDIR)/.test 2>&1
+	@echo "DONE `date`"
+
+tarsrc:
+	@echo "TARSRC `date`"
+	@rm -fr $(SDIR)/$(MODULE)
+	@( cd $(SDIR) && cvs -d $(CVSROOT) checkout $(MODULE) && tar -cvf $(MODULE).tar $(MODULE) )
 	@echo "DONE `date`"
 
