@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.7 2001/07/06 05:06:25 mayer Exp $ */
+/* $Id: file.c,v 1.8 2001/07/06 21:57:22 gson Exp $ */
 
 #include <config.h>
 
@@ -79,7 +79,8 @@ gettemp(char *path, int *doopen) {
 	for (;;) {
 		if (doopen) {
 			if ((*doopen =
-			    open(path, O_CREAT|O_EXCL|O_RDWR, _S_IREAD | _S_IWRITE)) >= 0)
+			     open(path, O_CREAT | O_EXCL | O_RDWR,
+				  _S_IREAD | _S_IWRITE)) >= 0)
 				return(1);
 			if (errno != EEXIST)
 				return(0);
@@ -130,9 +131,11 @@ file_stats(const char *file, struct stat *stats) {
 	return (result);
 }
 
-/* isc_file_safemovefile is needed to be defined here to ensure that any file with
- * the new name is renamed to a backup name and then the rename is done. If all goes
- * well then the backup can be deleted, otherwise it gets renamed back.
+/*
+ * isc_file_safemovefile is needed to ensure that
+ * any file with the new name is renamed to a backup name and then the
+ * rename is done. If all goes well then the backup can be deleted,
+ * otherwise it gets renamed back.
  */
 
 int
@@ -146,7 +149,7 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	/*
 	 * Make sure we have something to do
 	 */
-	if(stat(oldname, &sbuf) != 0) {
+	if (stat(oldname, &sbuf) != 0) {
 		errno = ENOENT;
 		return(-1);
 	}
@@ -154,48 +157,50 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	/*
 	 * Rename to a backup the new file if it still exists
 	 */
-	if(stat(newname, &sbuf) == 0)
+	if (stat(newname, &sbuf) == 0)
 		exists = TRUE;
 
 	strcpy(buf, newname);
 	strcat(buf, ".XXXXX");
 	tmpfd = mkstemp(buf);
-	if(tmpfd > 0)
+	if (tmpfd > 0)
 		_close(tmpfd);
 	DeleteFile(buf);
 
-	if(exists == TRUE) {
+	if (exists == TRUE)
 		_chmod(newname, _S_IREAD | _S_IWRITE);
-	}
 
 	filestatus = MoveFile(newname, buf);
-	if(filestatus == 0) {
+	if (filestatus == 0) {
 	}
 
-	/* Now rename the file to the new name
+	/*
+	 * Now rename the file to the new name
 	 */
 	_chmod(oldname, _S_IREAD | _S_IWRITE);
 
 	filestatus = MoveFile(oldname, newname);
-	if(filestatus == 0) {
-
-		/* Try and rename the backup back to the original name if the backup got created
+	if (filestatus == 0) {
+		/* 
+		 * Try to rename the backup back to the original name
+		 * if the backup got created
 		 */
-		if(exists == TRUE) {
+		if (exists == TRUE) {
 			filestatus = MoveFile(buf, newname);
-			if(filestatus == 0) {
+			if (filestatus == 0) {
 				errno = EACCES;
 			}
 		}
-		return(-1);
+		return (-1);
 	}
 
-	/* Delete the backup file if it got created 
+	/*
+	 * Delete the backup file if it got created 
 	 */
-	if(exists == TRUE) {
+	if (exists == TRUE) {
 		filestatus = DeleteFile(buf);
 	}
-	return(0);
+	return (0);
 }
 
 isc_result_t
@@ -388,9 +393,9 @@ isc_file_basename(const char *filename) {
 	char *s;
 
 	s = strrchr(filename, '\\');
-	if(s == NULL)
-		return(filename);
-	return(s + 1);
+	if (s == NULL)
+		return (filename);
+	return (s + 1);
 }
 
 isc_result_t
@@ -404,30 +409,29 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	 * Strip the path from the name
 	 */
 	s = isc_file_basename(filename);
-	if(s == NULL) {
-		return(ISC_R_NOSPACE);
-	}
+	if (s == NULL)
+		return (ISC_R_NOSPACE);
 
 	/*
 	 * Strip any and all suffixes
 	 */
 	p = strchr(s, '.');
-	if(p == NULL) {
-		if(namelen <= strlen(s))
-			return(ISC_R_NOSPACE);
+	if (p == NULL) {
+		if (namelen <= strlen(s))
+			return (ISC_R_NOSPACE);
 
 		strcpy(progname, s);
-		return(ISC_R_SUCCESS);
+		return (ISC_R_SUCCESS);
 	}
 
 	/* 
 	 * Copy the result to the buffer
 	 */
 	len = p - s;
-	if(len >= namelen)
-		return(ISC_R_NOSPACE);
+	if (len >= namelen)
+		return (ISC_R_NOSPACE);
 
 	strncpy(progname, s, len);
 	progname[len] = '\0';
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
