@@ -60,7 +60,7 @@
 ./doc/dev/unexpected				TXT	1999
 ./install-sh					X	1999
 ./lib/.cvsignore				X	1999
-./lib/Makefile.in				MAKE	1998
+./lib/Makefile.in				MAKE	1998,1999
 ./lib/dns/.cvsignore				X	1999
 ./lib/dns/Makefile.in				MAKE	1998,1999
 ./lib/dns/callbacks.c				C	1999
