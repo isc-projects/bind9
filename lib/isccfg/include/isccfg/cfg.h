@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.8 2001/02/22 01:40:53 bwelling Exp $ */
+/* $Id: cfg.h,v 1.9 2001/02/22 04:17:37 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -165,6 +165,18 @@ cfg_map_getname(cfg_obj_t *mapobj);
  * Returns:
  *      A pointer to a configuration object naming the map object,
  *	or NULL if the map object does not have a name.
+ */
+
+cfg_obj_t *
+cfg_tuple_get(cfg_obj_t *tupleobj, const char* name);
+/*
+ * Extract an element from a configuration object, which
+ * must be of a tuple type.
+ *
+ * Requires:
+ *      'tupleobj' ponts to a valid configuraration object of a tuple type.
+ *      'name' points to a null-terminated string naming one of the
+ *	fields of said tuple type.
  */
 
 isc_uint32_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.15 2001/02/22 03:13:08 gson Exp $ */
+/* $Id: parser.c,v 1.16 2001/02/22 04:17:36 gson Exp $ */
 
 #include <config.h>
 
@@ -1133,6 +1133,26 @@ free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
 		    nfields * sizeof(cfg_obj_t *));
 }
 
+cfg_obj_t *
+cfg_tuple_get(cfg_obj_t *tupleobj, const char* name) {
+	unsigned int i;
+	cfg_tuplefielddef_t *fields;
+	cfg_tuplefielddef_t *f;
+	
+	REQUIRE(tupleobj != NULL && tupleobj->type->rep == &cfg_rep_tuple);
+
+	fields = tupleobj->type->of;
+	for (f = fields, i = 0; f->name != NULL; f++, i++) {
+		if (strcmp(f->name, name) == 0)
+			return (tupleobj->value.tuple[i]);
+	}
+	INSIST(0);
+	return (NULL);
+}
+
+/*
+ * Parse a required special character.
+ */
 static isc_result_t
 parse_special(cfg_parser_t *pctx, int special) {
         isc_result_t result;
