@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.34 1999/04/09 15:27:58 tale Exp $ */
+/* $Id: rbt.c,v 1.35 1999/04/09 22:49:46 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1776,13 +1776,6 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	current = chain->end;
 
-	if (DOWN(current) != NULL && origin != NULL) {
-		/* XXX came up through this down pointer? */
-		/* XXX DCL probably needs work on the concept */
-		result = chain_name(chain, origin, ISC_FALSE);
-		new_origin = ISC_TRUE;
-	}
-
 	if (LEFT(current) != NULL) {
 		ADD_ANCESTOR(chain, current);
 		current = LEFT(current);
@@ -1850,6 +1843,11 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		predecessor = chain->levels[--chain->level_count];
 		chain->ancestor_count--;
 
+		/* XXX DCL probably needs work on the concept */
+		if (origin && chain->level_count > 0) {
+			result = chain_name(chain, origin, ISC_FALSE);
+			new_origin = ISC_TRUE;
+		}
 	}
 
 	if (result == DNS_R_SUCCESS) {
@@ -1886,6 +1884,11 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	 * to go down, and if so whether it is a new origin.
 	 */
 	if (DOWN(current) != NULL) {
+		if (origin != NULL) {
+			result = chain_name(chain, origin, ISC_TRUE);
+			new_origin = ISC_TRUE;
+		}
+
 		ADD_ANCESTOR(chain, NULL);
 		ADD_LEVEL(chain, current);
 		current = DOWN(current);
@@ -1925,7 +1928,6 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 			} while (RIGHT(current) == NULL &&
 				 chain->level_count > 0);
 
-			/* XXX origin needs to include itself */
 			if (origin != NULL) {
 				result = chain_name(chain, origin, ISC_FALSE);
 				new_origin = ISC_TRUE;
@@ -1949,12 +1951,6 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	if (result == DNS_R_SUCCESS) {
 		if (successor != NULL) {
 			chain->end = successor;
-
-			/* XXX DCL clean up? */
-			if (DOWN(successor) != NULL && origin != NULL) {
-				result = chain_name(chain, origin, ISC_TRUE);
-				new_origin = ISC_TRUE;
-			}
 
 			if (result == DNS_R_SUCCESS)
 				result = chain_name(chain, name, ISC_TRUE);
