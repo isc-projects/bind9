@@ -183,7 +183,7 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 	tcpmsg->result = ISC_R_UNEXPECTED;  /* unknown right now */
 
 	ISC_EVENT_INIT(&tcpmsg->event, sizeof(isc_event_t), 0, 0,
-		       DNS_EVENT_TCPMSG, action, arg, &tcpmsg,
+		       DNS_EVENT_TCPMSG, action, arg, tcpmsg,
 		       NULL, NULL);
 
 	region.base = (unsigned char *)&tcpmsg->size;
