@@ -155,7 +155,7 @@
 			the answer was coming from against the address it was
 			sent to. [RT# 2692]
 
-1268.	[bug]		DESTDIR was not being propogated between makes.
+1248.	[bug]		DESTDIR was not being propogated between makes.
 
 1245.	[bug]		Treat ENOBUFS, ENOMEM and ENFILE as soft errors for
 			accept().
