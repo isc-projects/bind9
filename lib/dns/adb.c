@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/condition.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -38,6 +39,8 @@
 
 #include <dns/address.h>
 #include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdataset.h>
 
 #include "../isc/util.h"
 
@@ -73,7 +76,11 @@ struct dns_adb {
 	unsigned int			magic;
 
 	isc_mutex_t			lock;
+	isc_condition_t			shutdown_cond;
 	isc_mem_t		       *mctx;
+
+	unsigned int			refcnt;
+	isc_boolean_t			done;
 
 	isc_mutex_t			mplock;
 	isc_mempool_t		       *nmp;	/* dns_adbname_t */
@@ -160,19 +167,72 @@ struct dns_adbentry {
 /*
  * Internal functions (and prototypes).
  */
-static dns_adbname_t *new_adbname(dns_adb_t *);
-static dns_adbnamehook_t *new_adbnamehook(dns_adb_t *, dns_adbentry_t *);
-static dns_adbzoneinfo_t *new_adbzoneinfo(dns_adb_t *);
-static dns_adbentry_t *new_adbentry(dns_adb_t *);
-static dns_adbhandle_t *new_adbhandle(dns_adb_t *);
-static dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *);
-static dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *, int *);
-static dns_adbentry_t *find_entry_and_lock(dns_adb_t *, isc_sockaddr_t *,
-					   int *);
-static void print_dns_name(FILE *, dns_name_t *);
-static void print_namehook_list(FILE *, dns_adbname_t *);
+static inline dns_adbname_t *
+new_adbname(dns_adb_t *);
 
-static dns_adbname_t *
+static inline dns_adbnamehook_t *
+new_adbnamehook(dns_adb_t *, dns_adbentry_t *);
+
+static inline dns_adbzoneinfo_t *
+new_adbzoneinfo(dns_adb_t *);
+
+static inline dns_adbentry_t *
+new_adbentry(dns_adb_t *);
+
+static inline dns_adbhandle_t *
+new_adbhandle(dns_adb_t *);
+
+static inline dns_adbaddrinfo_t *
+new_adbaddrinfo(dns_adb_t *, dns_adbentry_t *);
+
+static inline dns_adbname_t *
+find_name_and_lock(dns_adb_t *, dns_name_t *, int *);
+
+static inline dns_adbentry_t *
+find_entry_and_lock(dns_adb_t *, isc_sockaddr_t *, int *);
+
+static void
+print_dns_name(FILE *, dns_name_t *);
+
+static void
+print_namehook_list(FILE *, dns_adbname_t *);
+
+static inline void
+inc_adb_refcnt(dns_adb_t *, isc_boolean_t);
+
+static inline void
+dec_adb_refcnt(dns_adb_t *, isc_boolean_t);
+
+static inline void
+inc_adb_refcnt(dns_adb_t *adb, isc_boolean_t lock)
+{
+	if (lock)
+		LOCK(&adb->lock);
+
+	REQUIRE(!adb->done);
+	adb->refcnt++;
+
+	if (lock)
+		UNLOCK(&adb->lock);
+}
+
+static inline void
+dec_adb_refcnt(dns_adb_t *adb, isc_boolean_t lock)
+{
+	if (lock)
+		LOCK(&adb->lock);
+
+	INSIST(adb->refcnt > 0);
+	adb->refcnt--;
+
+	if (adb->done && adb->refcnt == 0)
+		SIGNAL(&adb->shutdown_cond);
+
+	if (lock)
+		UNLOCK(&adb->lock);
+}
+
+static inline dns_adbname_t *
 new_adbname(dns_adb_t *adb)
 {
 	dns_adbname_t *name;
@@ -189,7 +249,7 @@ new_adbname(dns_adb_t *adb)
 	return (name);
 }
 
-static void
+static inline void
 free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 {
 	dns_adbname_t *n;
@@ -207,7 +267,7 @@ free_adbname(dns_adb_t *adb, dns_adbname_t **name)
 	isc_mempool_put(adb->nmp, n);
 }
 
-static dns_adbnamehook_t *
+static inline dns_adbnamehook_t *
 new_adbnamehook(dns_adb_t *adb, dns_adbentry_t *entry)
 {
 	dns_adbnamehook_t *nh;
@@ -223,7 +283,7 @@ new_adbnamehook(dns_adb_t *adb, dns_adbentry_t *entry)
 	return (nh);
 }
 
-static void
+static inline void
 free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehook)
 {
 	dns_adbnamehook_t *nh;
@@ -239,7 +299,7 @@ free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehook)
 	isc_mempool_put(adb->nhmp, nh);
 }
 
-static dns_adbzoneinfo_t *
+static inline dns_adbzoneinfo_t *
 new_adbzoneinfo(dns_adb_t *adb)
 {
 	dns_adbzoneinfo_t *zi;
@@ -256,7 +316,7 @@ new_adbzoneinfo(dns_adb_t *adb)
 	return (zi);
 }
 
-static dns_adbentry_t *
+static inline dns_adbentry_t *
 new_adbentry(dns_adb_t *adb)
 {
 	dns_adbentry_t *e;
@@ -277,7 +337,7 @@ new_adbentry(dns_adb_t *adb)
 	return (e);
 }
 
-static void
+static inline void
 free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 {
 	dns_adbentry_t *e;
@@ -294,7 +354,7 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry)
 	isc_mempool_put(adb->emp, e);
 }
 
-static dns_adbhandle_t *
+static inline dns_adbhandle_t *
 new_adbhandle(dns_adb_t *adb)
 {
 	dns_adbhandle_t *h;
@@ -338,7 +398,7 @@ new_adbhandle(dns_adb_t *adb)
  * must be locked, and the reference count must be bumped up by one
  * if this function returns a valid pointer.
  */
-static dns_adbaddrinfo_t *
+static inline dns_adbaddrinfo_t *
 new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry)
 {
 	dns_adbaddrinfo_t *ai;
@@ -365,17 +425,23 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry)
  * On the first call to this function, *bucketp must be set to
  * DNS_ADB_INVALIDBUCKET.
  */
-static dns_adbname_t *
+static inline dns_adbname_t *
 find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
 {
 	dns_adbname_t *adbname;
-	unsigned int bucket;
+	int bucket;
 
 	bucket = dns_name_hash(name, ISC_FALSE);
 	bucket &= (DNS_ADBNAMELIST_LENGTH - 1);
 
-	LOCK(&adb->namelocks[bucket]);
-	*bucketp = (int)bucket;
+	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
+		LOCK(&adb->namelocks[bucket]);
+		*bucketp = bucket;
+	} else if (*bucketp != bucket) {
+		UNLOCK(&adb->namelocks[*bucketp]);
+		LOCK(&adb->namelocks[bucket]);
+		*bucketp = bucket;
+	}
 
 	adbname = ISC_LIST_HEAD(adb->names[bucket]);
 	while (adbname != NULL) {
@@ -397,7 +463,7 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
  * if this function is called multiple times locking is only done if
  * the bucket changes.
  */
-static dns_adbentry_t *
+static inline dns_adbentry_t *
 find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 {
 	dns_adbentry_t *entry;
@@ -470,6 +536,8 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 	 * that must be NULL for the error return to work properly.
 	 */
 	adb->magic = 0;
+	adb->refcnt = 0;
+	adb->done = ISC_FALSE;
 	adb->nmp = NULL;
 	adb->nhmp = NULL;
 	adb->zimp = NULL;
@@ -479,10 +547,13 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 
 	result = isc_mutex_init(&adb->lock);
 	if (result != ISC_R_SUCCESS)
-		goto fail1;
+		goto fail0a;
 	result = isc_mutex_init(&adb->mplock);
 	if (result != ISC_R_SUCCESS)
-		goto fail1;
+		goto fail0b;
+	result = isc_condition_init(&adb->shutdown_cond);
+	if (result != ISC_R_SUCCESS)
+		goto fail0c;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -552,9 +623,12 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb)
 	if (adb->aimp != NULL)
 		isc_mempool_destroy(&adb->aimp);
 
-	isc_mutex_destroy(&adb->lock);
+	isc_condition_destroy(&adb->shutdown_cond);
+ fail0c:
 	isc_mutex_destroy(&adb->mplock);
-
+ fail0b:
+	isc_mutex_destroy(&adb->lock);
+ fail0a:
 	isc_mem_put(mem, adb, sizeof (dns_adb_t));
 
 	return (result);
@@ -564,6 +638,7 @@ void
 dns_adb_destroy(dns_adb_t **adbx)
 {
 	dns_adb_t *adb;
+	isc_boolean_t done;
 
 	REQUIRE(adbx != NULL && DNS_ADB_VALID(*adbx));
 
@@ -571,13 +646,21 @@ dns_adb_destroy(dns_adb_t **adbx)
 	*adbx = NULL;
 
 	/*
-	 * XXX Need to wait here until the adb is fully shut down.
-	 */
-
-	/*
 	 * If all lists are empty, destroy the memory used by this
-	 * adb.  XXX Need to implement this.
+	 * adb.
 	 */
+	LOCK(&adb->lock);
+	REQUIRE(adb->done != ISC_TRUE);
+	adb->done = ISC_TRUE;
+	do {
+		done = ISC_TRUE;
+		if (adb->refcnt != 0)
+			done = ISC_FALSE;
+
+		if (!done)
+			WAIT(&adb->shutdown_cond, &adb->lock);
+	} while (!done);
+	UNLOCK(&adb->lock);
 
 	destroy(adb);
 }
@@ -585,15 +668,35 @@ dns_adb_destroy(dns_adb_t **adbx)
 isc_result_t
 dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	       void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
-	       dns_adbhandle_t **handle)
+	       dns_adbhandle_t **handlep)
 {
+	dns_adbhandle_t *handle;
+	isc_boolean_t use_hints;
+	dns_rdata_t rdata;
+	isc_region_t r;
+	dns_name_t name;
+	dns_rdataset_t rdataset;
+	isc_sockaddr_t *address;
+	struct in_addr ina;
+	isc_result_t result;
+
 	REQUIRE(DNS_ADB_VALID(adb));
 	if (task != NULL) {
 		REQUIRE(action != NULL);
 	}
 	REQUIRE(nsrdataset != NULL);
 	REQUIRE(zone != NULL);
-	REQUIRE(handle != NULL && *handle == NULL);
+	REQUIRE(handlep != NULL && *handlep == NULL);
+	REQUIRE(nsrdataset->type == dns_rdatatype_ns);
+
+	/*
+	 * Bump our reference count to the adb, so it cannot go away while
+	 * we're using it.
+	 */
+	LOCK(&adb->lock);
+	REQUIRE(!adb->done);
+	inc_adb_refcnt(adb, ISC_FALSE);
+	UNLOCK(&adb->lock);
 
 	/*
 	 * Iterate through the nsrdataset.  For each name found, do a search
@@ -614,6 +717,14 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
 	 *	list and remember to tell the caller that there will be
 	 *	more info coming later.
 	 */
+
+	handle = new_adbhandle(adb);
+	if (handle == NULL) {
+		dec_adb_refcnt(adb, ISC_TRUE);
+		return (ISC_R_NOMEMORY);
+	}
+
+	use_hints = dns_name_equal(zone, dns_rootname);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -731,6 +842,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	isc_boolean_t free_entry;
 	dns_adbnamehook_t *namehook;
 	isc_boolean_t free_namehook;
+	isc_boolean_t decr_refcnt;
 	int name_bucket, addr_bucket; /* unlock if != DNS_ADB_INVALIDBUCKET */
 	isc_result_t result;
 
@@ -744,6 +856,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 	free_entry = ISC_FALSE;
 	namehook = NULL;
 	free_namehook = ISC_FALSE;
+	decr_refcnt = ISC_FALSE;
 	result = ISC_R_UNEXPECTED;
 
 	/*
@@ -798,6 +911,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 			result = ISC_R_EXISTS;
 			goto out;
 		}
+		namehook = ISC_LIST_NEXT(namehook, link);
 	}
 
 	/*
@@ -871,7 +985,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 	dns_adbname_t *name;
 	dns_adbentry_t *entry;
 	char tmp[512];
-	char *tmpp;
+	const char *tmpp;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(f != NULL);
@@ -905,6 +1019,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 				fprintf(f, "\tMAGIC %08x\n", name->magic);
 			fprintf(f, "\t");
 			print_dns_name(f, &name->name);
+			fprintf(f, "\n");
 			print_namehook_list(f, name);
 
 			name = ISC_LIST_NEXT(name, link);
@@ -942,7 +1057,6 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 		}
 	}
 
- out:
 	/*
 	 * Unlock everything
 	 */

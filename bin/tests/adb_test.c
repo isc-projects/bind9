@@ -101,13 +101,7 @@ main(int argc, char *argv[])
 	result = dns_adb_create(mctx, &adb);
 	check_result(result, "dns_adb_create");
 
-	/*
-	 * Store this address and name in it.
-	 */
-	ina.s_addr = inet_addr("204.152.184.97");
-	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-
-#define NAME1 "kechara.flame.org."
+#define NAME1 "nonexistant.flame.org."
 
 	isc_buffer_init(&t, NAME1, sizeof NAME1 - 1, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&t, strlen(NAME1));
@@ -118,8 +112,26 @@ main(int argc, char *argv[])
 				   &namebuf);
 	check_result(result, "dns_name_fromtext");
 
+	/*
+	 * Store this address for this name.
+	 */
+	ina.s_addr = inet_addr("1.2.3.4");
+	isc_sockaddr_fromin(&sockaddr, &ina, 53);
 	result = dns_adb_insert(adb, &name, &sockaddr);
-	check_result(result, "dns_adb_insert");
+	check_result(result, "dns_adb_insert 1.2.3.4");
+	printf("Added 1.2.3.4\n");
+
+	ina.s_addr = inet_addr("1.2.3.5");
+	isc_sockaddr_fromin(&sockaddr, &ina, 53);
+	result = dns_adb_insert(adb, &name, &sockaddr);
+	check_result(result, "dns_adb_insert 1.2.3.5");
+	printf("Added 1.2.3.5\n");
+
+	ina.s_addr = inet_addr("1.2.3.6");
+	isc_sockaddr_fromin(&sockaddr, &ina, 53);
+	result = dns_adb_insert(adb, &name, &sockaddr);
+	check_result(result, "dns_adb_insert 1.2.3.6");
+	printf("Added 1.2.3.6\n");
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
