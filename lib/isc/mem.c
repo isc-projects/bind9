@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.111 2002/02/20 03:35:25 marka Exp $ */
+/* $Id: mem.c,v 1.112 2002/03/19 02:40:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1606,7 +1606,11 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	INSIST(mpctx->allocated > 0);
 	mpctx->allocated--;
 
+#if ISC_MEM_TRACKLINES
+	LOCK(&mctx->lock);
 	DELETE_TRACE(mctx, mem, mpctx->size, file, line);
+	UNLOCK(&mctx->lock);
+#endif /* ISC_MEM_TRACKLINES */
 
 	/*
 	 * If our free list is full, return this to the mctx directly.
