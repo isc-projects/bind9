@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.34 2001/05/24 00:43:57 gson Exp $
+$Id: release,v 1.35 2001/05/30 23:05:12 bwelling Exp $
 
 Preparing a bind9 release
 
@@ -25,7 +25,7 @@ release.
  - Update the lib/*/api files as needed.  See the libtool 
    info file for information about what the various numbers mean.
 
- - If building from a relese branch, check that any important
+ - If building from a release branch, check that any important
    bug fixes made on the mainline since the last release have
    been pulled up.  You can do this by comparing the CHANGES
    files using the util/check-pullups.pl script.  For example,
