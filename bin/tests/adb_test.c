@@ -446,6 +446,7 @@ main(int argc, char **argv)
 	lookup("ipv4v6.flame.org.");		/* should fetch */
 	lookup("nonexistant.flame.org.");	/* should fetch */
 	lookup("f.root-servers.net.");		/* Should be in hints */
+	lookup("i.root-servers.net.");		/* Should be in hints */
 	CUNLOCK();
 
 	dns_adb_dump(adb, stderr);

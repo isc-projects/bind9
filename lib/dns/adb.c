@@ -318,6 +318,11 @@ static isc_result_t dbfind_a6(dns_adbfind_t *, dns_name_t *,
 				 && NO_FETCHES_AAAA(n) \
 				 && NO_FETCHES_A6(n))
 
+#define ENTER_LEVEL		50
+#define EXIT_LEVEL		ENTER_LEVEL
+#define CLEAN_LEVEL		100
+#define DEF_LEVEL		5
+
 static void
 DP(int level, char *format, ...)
 {
@@ -460,7 +465,7 @@ import_a6(void *arg, struct in6_addr *address)
 
 	address_added = ISC_FALSE;
 
-	DP(1, "ENTER: import_a6() name %p", name);
+	DP(ENTER_LEVEL, "ENTER: import_a6() name %p", name);
 	
 	/*
 	 * XXX Once the time is passed in to us, this can go away.
@@ -530,7 +535,7 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev)
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
 
-	DP(1, "killing name %p", name);
+	DP(DEF_LEVEL, "killing name %p", name);
 
 	/*
 	 * If we're dead already, just check to see if we should go
@@ -579,7 +584,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v4 addresses
 	 */
 	if (QUERY_INET(name->query_pending) && (name->expire_v4 < now)) {
-		DP(1, "expiring v4 for name %p", name);
+		DP(DEF_LEVEL, "expiring v4 for name %p", name);
 		clean_namehooks(adb, &name->v4);
 		name->partial_result &= ~DNS_ADBFIND_INET;
 	}
@@ -589,7 +594,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now)
 	 * Check to see if we need to remove the v6 addresses
 	 */
 	if (QUERY_INET6(name->query_pending) && (name->expire_v6 < now)) {
-		DP(1, "expiring v6 for name %p", name);
+		DP(DEF_LEVEL, "expiring v6 for name %p", name);
 		clean_namehooks(adb, &name->v6);
 		name->partial_result &= ~DNS_ADBFIND_INET6;
 	}
@@ -765,50 +770,78 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 	isc_task_t *task;
 	dns_adbfind_t *find;
 	dns_adbfind_t *next_find;
+	isc_boolean_t process;
+	unsigned int wanted;
+
+	DP(ENTER_LEVEL,
+	   "ENTER clean_finds_at_name, name %p, evtype %08x, addrs %08x",
+	   name, evtype, addrs);
 
 	find = ISC_LIST_HEAD(name->finds);
 	while (find != NULL) {
 		LOCK(&find->lock);
 		next_find = ISC_LIST_NEXT(find, plink);
 
-		/*
-		 * If this is a successful poke, we want to match only
-		 * finds that are interested in the address family.
-		 * If it is an unsuccessful poke (kill all names, etc)
-		 * match everything that matches the "addrs" mask.
-		 */
-		find->options &= ~addrs;
-		if (evtype != DNS_EVENT_ADBMOREADDRESSES) {
-			if ((find->options & DNS_ADBFIND_ADDRESSMASK) != 0)
-				goto next;
+		process = ISC_FALSE;
+		wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
+
+		switch (evtype) {
+		case DNS_EVENT_ADBMOREADDRESSES:
+			DP(1, "DNS_EVENT_ADBMOREADDRESSES");
+			if ((wanted & addrs) != 0) {
+				DP(1, "processing");
+				find->flags &= ~addrs;
+				process = ISC_TRUE;
+			}
+			break;
+		case DNS_EVENT_ADBNOMOREADDRESSES:
+			DP(1, "DNS_EVENT_ADBNOMOREADDRESSES");
+			find->flags &= ~addrs;
+			wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
+			if (wanted == 0) {
+				process = ISC_TRUE;
+				DP(1, "processing");
+			}
+			break;
+		default:
+			find->flags &= ~addrs;
+			process = ISC_TRUE;
 		}
-			
-		/*
-		 * Unlink the find from the name, letting the caller
-		 * call dns_adb_destroyfind() on it to clean it up later.
-		 */
-		ISC_LIST_UNLINK(name->finds, find, plink);
-		find->adbname = NULL;
-		find->name_bucket = DNS_ADB_INVALIDBUCKET;
 
-		INSIST(!EVENT_SENT(find));
+		if (process) {
+			DP(DEF_LEVEL, "cfan: processing find %p", find);
+			/*
+			 * Unlink the find from the name, letting the caller
+			 * call dns_adb_destroyfind() on it to clean it up
+			 * later.
+			 */
+			ISC_LIST_UNLINK(name->finds, find, plink);
+			find->adbname = NULL;
+			find->name_bucket = DNS_ADB_INVALIDBUCKET;
 
-		ev = &find->event;
-		task = ev->sender;
-		ev->sender = find;
-		ev->type = evtype;
-		ev->destroy = event_free;
-		ev->destroy_arg = find;
+			INSIST(!EVENT_SENT(find));
 
-		DP(1, "Sending event %p to task %p for find %p",
-		    ev, task, find);
+			ev = &find->event;
+			task = ev->sender;
+			ev->sender = find;
+			ev->type = evtype;
+			ev->destroy = event_free;
+			ev->destroy_arg = find;
 
-		isc_task_sendanddetach(&task, &ev);
+			DP(DEF_LEVEL,
+			   "Sending event %p to task %p for find %p",
+			   ev, task, find);
 
-	next:
+			isc_task_sendanddetach(&task, &ev);
+		} else {
+			DP(DEF_LEVEL, "cfan: skipping find %p", find);
+		}
+
 		UNLOCK(&find->lock);
 		find = next_find;
 	}
+
+	DP(ENTER_LEVEL, "EXIT clean_finds_at_name, name %p", name);
 }
 
 static inline void
@@ -1117,12 +1150,12 @@ new_adbfind(dns_adb_t *adb)
 	h->query_pending = 0;
 	h->partial_result = 0;
 	h->options = 0;
+	h->flags = 0;
 	ISC_LINK_INIT(h, publink);
 	ISC_LINK_INIT(h, plink);
 	ISC_LIST_INIT(h->list);
 	h->adbname = NULL;
 	h->name_bucket = DNS_ADB_INVALIDBUCKET;
-	h->flags = 0;
 
 	/*
 	 * private members
@@ -1642,7 +1675,7 @@ cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now)
 	dns_adbname_t *name;
 	dns_adbname_t *next_name;
 
-	DP(1, "cleaning bucket %d", bucket);
+	DP(CLEAN_LEVEL, "cleaning bucket %d", bucket);
 	LOCK(&adb->namelocks[bucket]);
 	if (adb->name_sd[bucket]) {
 		UNLOCK(&adb->namelocks[bucket]);
@@ -1675,7 +1708,8 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 
 	result = isc_stdtime_get(&now);
 	if (result != ISC_R_SUCCESS) {
-		DP(1, "isc_stdtime_get() failed!  Resetting clean timer.");
+		DP(DEF_LEVEL,
+		   "isc_stdtime_get() failed!  Resetting clean timer.");
 		goto reset;
 	}
 
@@ -1996,7 +2030,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	bucket = DNS_ADB_INVALIDBUCKET;
 	adbname = find_name_and_lock(adb, name, &bucket);
 	if (adb->name_sd[bucket]) {
-		DP(1, "dns_adb_createfind:  returning ISC_R_SHUTTINGDOWN");
+		DP(DEF_LEVEL,
+		   "dns_adb_createfind:  returning ISC_R_SHUTTINGDOWN");
 		free_adbfind(adb, &find);
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
@@ -2030,7 +2065,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = dbfind_name(find, zone, adbname, bucket, now,
 				     dns_rdatatype_a);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "dns_adb_createfind:  Found A for name %p in db",
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind:  Found A for name %p in db",
 			   adbname);
 			goto v6;
 		}
@@ -2040,7 +2076,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_v4(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1,
+			DP(DEF_LEVEL,
 			   "dns_adb_createfind:  Started A fetch for name %p",
 			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET;
@@ -2054,7 +2090,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	    && WANT_INET6(wanted_addresses)) {
 		result = dbfind_a6(find, zone, adbname, bucket, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1, "dns_adb_createfind:  Found A6 for name %p",
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind:  Found A6 for name %p",
 			   adbname);
 			goto copy;
 		}
@@ -2064,7 +2101,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		result = fetch_name_a6(adbname, now);
 		if (result == ISC_R_SUCCESS) {
-			DP(1,
+			DP(DEF_LEVEL,
 			   "dns_adb_createfind:  Started A6 fetch for name %p",
 			   adbname);
 			adbname->query_pending |= DNS_ADBFIND_INET6;
@@ -2082,6 +2119,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	/*
 	 * Attach to the name's query list if there are queries
 	 * already running, and we have been asked to.
+	 *
+	 * This is complicated in that the "flags" bits must be right.
 	 */
 	if (WANTEVENT(find->options)
 	    && QUERYPENDING(wanted_addresses, adbname->query_pending)
@@ -2092,7 +2131,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		attach_to_task = ISC_TRUE;
 		find->query_pending = (adbname->query_pending
 					 & wanted_addresses);
-		DP(1, "createfind: attaching find %p to adbname %p\n",
+		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
+		find->flags |= (find->query_pending & DNS_ADBFIND_ADDRESSMASK);
+		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p\n",
 		   find, adbname);
 	} else {
 		/*
@@ -2103,6 +2144,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		find->options &= ~DNS_ADBFIND_WANTEVENT;
 		find->flags |= (FIND_EVENT_SENT | FIND_EVENT_FREED);
+		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 	}
 
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
@@ -2115,6 +2157,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		if (attach_to_task) {
 			isc_task_t *taskp;
 
+			INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
 			taskp = NULL;
 			isc_task_attach(task, &taskp);
 			find->event.sender = taskp;
@@ -2318,7 +2361,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp)
 
 	LOCK(&find->lock);
 
-	DP(1, "dns_adb_done on find %p", find);
+	DP(DEF_LEVEL, "dns_adb_done on find %p", find);
 
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -2370,7 +2413,7 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 
 	LOCK(&find->lock);
 
-	DP(1, "dns_adb_cancelfind on find %p", find);
+	DP(DEF_LEVEL, "dns_adb_cancelfind on find %p", find);
 
 	adb = find->adb;
 	REQUIRE(DNS_ADB_VALID(adb));
@@ -2405,7 +2448,7 @@ dns_adb_cancelfind(dns_adbfind_t *find)
 		ev->destroy = event_free;
 		ev->destroy_arg = find;
 
-		DP(1, "Sending event %p to task %p for find %p",
+		DP(DEF_LEVEL, "Sending event %p to task %p for find %p",
 		   ev, task, find);
 
 		isc_task_sendanddetach(&task, &ev);
@@ -2547,9 +2590,9 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f)
 	LOCK(&find->lock);
 
 	fprintf(f, "Find %p\n", find);
-	fprintf(f, "\tqpending %08x partial %08x options %08x\n",
+	fprintf(f, "\tqpending %08x partial %08x options %08x flags %08x\n",
 		find->query_pending, find->partial_result,
-		find->options);
+		find->options, find->flags);
 	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
 		find->name_bucket, find->adbname, find->event.sender);
 
@@ -2964,8 +3007,6 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 
 	INSIST(!NAME_NEEDSPOKE(name));
 
-	DP(1, "ENTER: fetch_callback_a6() name %p", name);
-	
 	for (fetch = ISC_LIST_HEAD(name->fetches_a6);
 	     fetch != NULL;
 	     fetch = ISC_LIST_NEXT(fetch, plink))
@@ -2974,6 +3015,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 	INSIST(fetch != NULL);
 	ISC_LIST_UNLINK(name->fetches_a6, fetch, plink);
 
+	DP(ENTER_LEVEL, "ENTER: fetch_callback_a6() name %p", name);
+	
 	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
 	dev->fetch = NULL;
 
@@ -3032,9 +3075,9 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		clean_finds_at_name(name, DNS_EVENT_ADBMOREADDRESSES,
 				    DNS_ADBFIND_INET6);
 	else if (ISC_LIST_EMPTY(name->fetches_a6)) {
+		name->query_pending &= ~DNS_ADBFIND_INET6;
 		clean_finds_at_name(name, DNS_EVENT_ADBNOMOREADDRESSES,
 				    DNS_ADBFIND_INET6);
-		name->query_pending &= ~DNS_ADBFIND_INET6;
 	}
 
 	name->flags &= ~NAME_NEEDS_POKE;
