@@ -550,6 +550,31 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Check for a signature.  We log bad signatures regardless of 
+	 * whether they ultimately cause the request to be rejected or
+	 * not.  We do not log the lack of a signature unless we are
+	 * debugging.
+	 */
+	client->signer = NULL;
+	result = dns_message_signer(client->message, &client->signername);
+	if (result == DNS_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "request has valid signature");
+		client->signer = &client->signername;
+	} else if (result == DNS_R_NOTFOUND) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "request is not signed");
+	} else {
+		/* There is a signature, but it is bad. */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+			      "request has invalid signature: %s",
+			      isc_result_totext(result));
+	}
+
+	/*
 	 * XXXRTH  View list management code will be moving to its own module
 	 *         soon.
 	 */
@@ -572,7 +597,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_REFUSED);
 		return;
 	}
-
+	
 	/*
 	 * Dispatch the request.
 	 */
@@ -685,6 +710,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->opt = NULL;
 	client->udpsize = 512;
 	client->next = NULL;
+	dns_name_init(&client->signername, NULL);
 	ISC_LINK_INIT(client, link);
 
 	/*

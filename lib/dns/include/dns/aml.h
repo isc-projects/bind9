@@ -42,7 +42,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
+dns_aml_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     dns_c_acltable_t *acltable, const char *opname,
 		     dns_c_ipmatchlist_t *main_aml,
 		     dns_c_ipmatchlist_t *fallback_aml,
@@ -50,8 +50,10 @@ dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
 /*
  * Convenience function for "typical" DNS request permission checking.
  *
- * Check the DNS request 'request', from IP address 'reqaddr',
- * against the address match list 'main_aml'.  If main_aml is NULL,
+ * Check the DNS request signed by the key whose name is 'signer',
+ * from IP address 'reqaddr', against the address match list 'main_aml'.
+ * 
+ * If main_aml is NULL,
  * check against 'fallback_aml' instead.  If fallback_aml
  * is also NULL, allow the request iff 'default_allow' is ISC_TRUE.
  * Log the outcome of the check if deemed appropriate.
@@ -67,7 +69,7 @@ dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
  *	the case of the blackhole list this would be backwards.
  *
  * Requires:
- *	'request' points to a valid DNS message.
+ *	'signer' points to a valid name or is NULL.
  *	'reqaddr' points to a valid socket address.
  *	'acltable' points to a valid ACL table.
  *	'opname' points to a null-terminated string.

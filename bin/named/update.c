@@ -1942,7 +1942,7 @@ update_action(isc_task_t *task, isc_event_t *event)
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
-	CHECK(dns_aml_checkrequest(request, ns_client_getsockaddr(client),
+	CHECK(dns_aml_checkrequest(client->signer, ns_client_getsockaddr(client),
 				   ns_g_confctx->acls, "update",
 				   dns_zone_getupdateacl(zone),
 				   NULL, ISC_FALSE));

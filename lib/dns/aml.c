@@ -31,43 +31,16 @@
 #include <dns/types.h>
 
 isc_result_t
-dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
+dns_aml_checkrequest(dns_name_t *signer, isc_sockaddr_t *reqaddr,
 		     dns_c_acltable_t *acltable, const char *opname,
 		     dns_c_ipmatchlist_t *main_aml,
 		     dns_c_ipmatchlist_t *fallback_aml,
 		     isc_boolean_t default_allow)
 {
-	isc_result_t result, sig_result;
-	dns_name_t signer;
+	isc_result_t result;
 	dns_name_t *ok_signer = NULL;
 	int match;
 	dns_c_ipmatchlist_t *aml = NULL;
-
-	dns_name_init(&signer, NULL);
-	
-	/*
-	 * Check for a TSIG.  We log bad TSIGs regardless of whether they
-	 * cause the request to be rejected or not (it may be allowd 
-	 * because of another AML).  We do not log the lack of a TSIG
-	 * unless we are debugging.
-	 */
-	sig_result = result = dns_message_signer(request, &signer);
-	if (result == DNS_R_SUCCESS) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-			      DNS_LOGMODULE_AML, ISC_LOG_DEBUG(3),
-			      "request has valid signature");
-		ok_signer = &signer;
-	} else if (result == DNS_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-			      DNS_LOGMODULE_AML, ISC_LOG_DEBUG(3),
-			      "request is not signed");
-	} else {
-		/* There is a signature, but it is bad. */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
-			      DNS_LOGMODULE_AML, ISC_LOG_ERROR,
-			      "request has invalid signature: %s",
-			      isc_result_totext(result));
-	}
 
 	if (main_aml != NULL)
 		aml = main_aml;
@@ -78,7 +51,7 @@ dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
 	else
 		goto deny;
 
-	result = dns_aml_match(reqaddr, ok_signer, aml,
+	result = dns_aml_match(reqaddr, signer, aml,
 			       acltable, &match, NULL);
 	if (result != DNS_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */

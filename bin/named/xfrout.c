@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.26 1999/12/06 18:11:49 gson Exp $ */
+ /* $Id: xfrout.c,v 1.27 1999/12/10 18:14:49 gson Exp $ */
 
 #include <config.h>
 
@@ -888,7 +888,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		      mnemonic);
 
 	/* Decide whether to allow this transfer. */
-	CHECK(dns_aml_checkrequest(request,
+	CHECK(dns_aml_checkrequest(client->signer,
 				   ns_client_getsockaddr(client),
 				   ns_g_confctx->acls,
 				   "zone transfer", 

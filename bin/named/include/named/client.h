@@ -22,6 +22,7 @@
 #include <isc/stdtime.h>
 #include <isc/buffer.h>
 
+#include <dns/name.h>
 #include <dns/types.h>
 #include <dns/tcpmsg.h>
 
@@ -70,6 +71,8 @@ struct ns_client {
 	ns_query_t			query;
 	isc_stdtime_t			requesttime;
 	isc_stdtime_t			now;
+	dns_name_t			signername; /* [T]SIG key name */
+	dns_name_t *			signer; /* NULL if not valid sig */
 	ISC_LINK(struct ns_client)	link;
 };
 
