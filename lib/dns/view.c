@@ -498,24 +498,6 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	return (result);
 }
 
-static isc_result_t
-set_resolver(dns_zone_t *zone, void *ptr) {
-	dns_zone_setresolver(zone, ptr);
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-set_requestmgr(dns_zone_t *zone, void *ptr) {
-	dns_zone_setrequestmgr(zone, ptr);
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-set_adb(dns_zone_t *zone, void *ptr) {
-	dns_zone_setadb(zone, ptr);
-	return (ISC_R_SUCCESS);
-}
-
 void
 dns_view_freeze(dns_view_t *view) {
 	
@@ -529,16 +511,6 @@ dns_view_freeze(dns_view_t *view) {
 	if (view->resolver != NULL) {
 		INSIST(view->cachedb != NULL);
 		dns_resolver_freeze(view->resolver);
-		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-				   set_resolver, view->resolver);
-	}
-	if (view->requestmgr != NULL) {
-		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-				   set_requestmgr, view->requestmgr);
-	}
-	if (view->adb != NULL) {
-		(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-				   set_adb, view->adb);
 	}
 	view->frozen = ISC_TRUE;
 }

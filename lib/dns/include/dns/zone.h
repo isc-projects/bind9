@@ -179,46 +179,6 @@ dns_zone_load(dns_zone_t *zone);
  */
 
 void
-dns_zone_checkservers(dns_zone_t *zone);
-/*
- *	Initiate a consistancy check of the zones servers.
- *	XXX MPA to be implemented.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- */
-
-void
-dns_zone_checkparents(dns_zone_t *zone);
-/*
- *	Initiate a consistancy check of the zone and the parent zone servers.
- *	XXX MPA to be implemented.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- */
-
-void
-dns_zone_checkchildren(dns_zone_t *zone);
-/*
- *	Initiate a consistancy check of the child delegations from this zone.
- *	XXX MPA to be implemented.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- */
-
-void
-dns_zone_checkglue(dns_zone_t *zone);
-/*
- *	Initiate a consistancy check of the glue records in this zone.
- *	XXX MPA to be implemented.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- */
-
-void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
 /*
  *	Attach 'zone' to 'target' incrementing its external
@@ -638,15 +598,6 @@ dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
 
 isc_int32_t
 dns_zone_getjournalsize(dns_zone_t *zone);
-
-void
-dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
-
-void
-dns_zone_setrequestmgr(dns_zone_t *zone, dns_requestmgr_t *requestmgr);
-
-void
-dns_zone_setadb(dns_zone_t *zone, dns_adb_t *adb);
 
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,

@@ -1,3 +1,12 @@
+ 170.	[cleanup]	Remove inter server consistancy checks from zone,
+			these should return as a seperate module in 9.1.
+			dns_zone_checkservers(), dns_zone_checkparents(),
+			dns_zone_checkchildren(), dns_zone_checkglue().
+
+			Remove dns_zone_setadb(), dns_zone_setresolver(),
+			dns_zone_setrequestmgr() these should now be found
+			via the view.
+
  169.	[func]		ratelimiter can now process N events per interval.
 
  168.	[bug]		include statements in named.conf caused syntax errors
