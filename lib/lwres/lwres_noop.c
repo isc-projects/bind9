@@ -43,7 +43,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	payload_length = sizeof(isc_uint16_t) + req->datalength;
+	payload_length = sizeof(lwres_uint16_t) + req->datalength;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -94,7 +94,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	payload_length = sizeof(isc_uint16_t) + req->datalength;
+	payload_length = sizeof(lwres_uint16_t) + req->datalength;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -149,7 +149,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (req == NULL)
 		return (LWRES_R_NOMEMORY);
 
-	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
+	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t))) {
 		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
@@ -196,7 +196,7 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (req == NULL)
 		return (LWRES_R_NOMEMORY);
 
-	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t))) {
+	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t))) {
 		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}

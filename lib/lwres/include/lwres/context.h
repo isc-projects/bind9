@@ -20,15 +20,15 @@
 
 #include <stddef.h>
 
-#include <isc/lang.h>
-#include <isc/int.h>
+#include <lwres/lang.h>
+#include <lwres/int.h>
 
 /*
  * Used to set various options such as timeout, authentication, etc
  */
 typedef struct lwres_context lwres_context_t;
 
-ISC_LANG_BEGINDECLS
+LWRES_LANG_BEGINDECLS
 
 typedef void *(*lwres_malloc_t)(void *arg, size_t length);
 typedef void (*lwres_free_t)(void *arg, void *mem, size_t length);
@@ -65,11 +65,11 @@ lwres_context_destroy(lwres_context_t **contextp);
  *	contextp != NULL && contextp == NULL.
  */
 
-isc_uint32_t
+lwres_uint32_t
 lwres_context_nextserial(lwres_context_t *ctx);
 
 void
-lwres_context_initserial(lwres_context_t *ctx, isc_uint32_t serial);
+lwres_context_initserial(lwres_context_t *ctx, lwres_uint32_t serial);
 
 void
 lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);
@@ -83,7 +83,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 		       void *recvbase, int recvlen,
 		       int *recvd_len);
 
-ISC_LANG_ENDDECLS
+LWRES_LANG_ENDDECLS
 
 #endif /* LWRES_CONTEXT_H */
 

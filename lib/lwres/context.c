@@ -73,7 +73,7 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 	ctx->sock = -1;
 
 	ctx->timeout = LWRES_DEFAULT_TIMEOUT;
-	ctx->serial = (isc_uint32_t)ctx; /* XXXMLG */
+	ctx->serial = (lwres_uint32_t)ctx; /* XXXMLG */
 
 	(void)context_connect(ctx); /* XXXMLG */
 
@@ -99,7 +99,7 @@ lwres_context_destroy(lwres_context_t **contextp)
 	CTXFREE(ctx, sizeof(lwres_context_t));
 }
 
-isc_uint32_t
+lwres_uint32_t
 lwres_context_nextserial(lwres_context_t *ctx)
 {
 	REQUIRE(ctx != NULL);
@@ -108,7 +108,7 @@ lwres_context_nextserial(lwres_context_t *ctx)
 }
 
 void
-lwres_context_initserial(lwres_context_t *ctx, isc_uint32_t serial)
+lwres_context_initserial(lwres_context_t *ctx, lwres_uint32_t serial)
 {
 	REQUIRE(ctx != NULL);
 

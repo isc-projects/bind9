@@ -33,7 +33,7 @@
  */
 struct lwres_context {
 	unsigned int		timeout;	/* time to wait for reply */
-	isc_uint32_t		serial;		/* serial number state */
+	lwres_uint32_t		serial;		/* serial number state */
 
 	/*
 	 * For network I/O.

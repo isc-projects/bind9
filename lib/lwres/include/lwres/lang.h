@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,25 +15,15 @@
  * SOFTWARE.
  */
 
-#ifndef LWRES_RESULT_H
-#define LWRES_RESULT_H 1
+#ifndef LWRES_LANG_H
+#define LWRES_LANG_H 1
 
-/*
- * XXXMLG
- * should be unsigned when functions are fixed to return a status, not both
- * a status and an FD or whatever.
- */
-typedef int lwres_result_t;
+#ifdef __cplusplus
+#define LWRES_LANG_BEGINDECLS	extern "C" {
+#define LWRES_LANG_ENDDECLS	}
+#else
+#define LWRES_LANG_BEGINDECLS
+#define LWRES_LANG_ENDDECLS
+#endif
 
-#define LWRES_R_SUCCESS			0
-#define LWRES_R_NOMEMORY	       -1
-#define LWRES_R_TIMEOUT		       -2
-#define LWRES_R_NOTFOUND	       -3
-#define LWRES_R_UNEXPECTEDEND	       -4	/* unexpected end of input */
-#define LWRES_R_FAILURE		       -5	/* generic failure */
-#define LWRES_R_IOERROR		       -6
-#define LWRES_R_NOTIMPLEMENTED	       -7
-#define LWRES_R_UNEXPECTED	       -8
-#define LWRES_R_TRAILINGDATA	       -9
-
-#endif /* LWRES_RESULT_H */
+#endif /* LWRES_LANG_H */

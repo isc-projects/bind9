@@ -3,20 +3,26 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.9 2000/02/01 06:55:36 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.10 2000/02/03 01:28:49 explorer Exp $
  */
 
 
-#include <isc/net.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/un.h>
+
+#include <netinet/in.h>
+
+#include <arpa/nameser.h>
+#include <arpa/inet.h>
+
+#include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <resolv.h>
+
 #include <lwres/lwres.h>
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
-#include <errno.h>
-#include <isc/string.h>		/* need strsep */
-#include <stdlib.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
-#include <arpa/inet.h>
 
 #define SA(addr)	((struct sockaddr *)(addr))
 #define SIN(addr)	((struct sockaddr_in *)(addr))

@@ -20,8 +20,8 @@
 
 #include <stddef.h>
 
-#include <isc/lang.h>
-#include <isc/int.h>
+#include <lwres/lang.h>
+#include <lwres/int.h>
 
 #include <lwres/context.h>
 #include <lwres/lwpacket.h>
@@ -101,13 +101,13 @@
 
 typedef struct {
 	/* public */
-	isc_uint16_t		datalength;
+	lwres_uint16_t		datalength;
 	unsigned char	       *data;
 } lwres_nooprequest_t;
 
 typedef struct {
 	/* public */
-	isc_uint16_t		datalength;
+	lwres_uint16_t		datalength;
 	unsigned char	       *data;
 } lwres_noopresponse_t;
 
@@ -117,26 +117,26 @@ typedef struct {
 #define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 
 typedef struct {
-	isc_uint32_t		family;
-	isc_uint16_t		length;
+	lwres_uint32_t		family;
+	lwres_uint16_t		length;
 	const unsigned char	*address;
 } lwres_addr_t;
 
 typedef struct {
 	/* public */
-	isc_uint32_t		addrtypes;
-	isc_uint16_t		namelen;
+	lwres_uint32_t		addrtypes;
+	lwres_uint16_t		namelen;
 	char		       *name;
 } lwres_gabnrequest_t;
 
 typedef struct {
 	/* public */
-	isc_uint16_t		naliases;
-	isc_uint16_t		naddrs;
+	lwres_uint16_t		naliases;
+	lwres_uint16_t		naddrs;
 	char		       *realname;
 	char		      **aliases;
-	isc_uint16_t		realnamelen;
-	isc_uint16_t	       *aliaslen;
+	lwres_uint16_t		realnamelen;
+	lwres_uint16_t	       *aliaslen;
 	lwres_addr_t	       *addrs;
 	/* if base != NULL, it will be freed when this structure is freed. */
 	void		       *base;
@@ -154,11 +154,11 @@ typedef struct {
 
 typedef struct {
 	/* public */
-	isc_uint16_t		naliases;
+	lwres_uint16_t		naliases;
 	char		       *realname;
 	char		      **aliases;
-	isc_uint16_t		realnamelen;
-	isc_uint16_t	       *aliaslen;
+	lwres_uint16_t		realnamelen;
+	lwres_uint16_t	       *aliaslen;
 	/* if base != NULL, it will be freed when this structure is freed. */
 	void		       *base;
 	size_t			baselen;
@@ -170,7 +170,7 @@ typedef struct {
 #define LWRES_MAX_ALIASES		8		/* max # of aliases */
 #define LWRES_MAX_ADDRS			32		/* max # of addrs */
 
-ISC_LANG_BEGINDECLS
+LWRES_LANG_BEGINDECLS
 
 int
 lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
@@ -356,20 +356,20 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  */
 
 int
-lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len);
+lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len);
 
 int
 lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr);
 
 int
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
-		     isc_uint32_t addrtypes, lwres_gabnresponse_t **structp);
+		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp);
 
 int
-lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
-		    isc_uint16_t addrlen, const unsigned char *addr,
+lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
+		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);
 
-ISC_LANG_ENDDECLS
+LWRES_LANG_ENDDECLS
 
 #endif /* LWRES_LWRES_H */

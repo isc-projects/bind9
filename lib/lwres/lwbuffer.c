@@ -140,11 +140,11 @@ lwres_buffer_back(lwres_buffer_t *b, unsigned int n)
 	b->current -= n;
 }
 
-isc_uint8_t
+lwres_uint8_t
 lwres_buffer_getuint8(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	isc_uint8_t result;
+	lwres_uint8_t result;
 
 	/*
 	 * Read an unsigned 8-bit integer from 'b' and return it.
@@ -162,7 +162,7 @@ lwres_buffer_getuint8(lwres_buffer_t *b)
 }
 
 void
-lwres_buffer_putuint8(lwres_buffer_t *b, isc_uint8_t val)
+lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val)
 {
 	unsigned char *cp;
 
@@ -175,11 +175,11 @@ lwres_buffer_putuint8(lwres_buffer_t *b, isc_uint8_t val)
 	cp[0] = (val & 0x00ff);
 }
 
-isc_uint16_t
+lwres_uint16_t
 lwres_buffer_getuint16(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	isc_uint16_t result;
+	lwres_uint16_t result;
 
 	/*
 	 * Read an unsigned 16-bit integer in network byte order from 'b',
@@ -199,7 +199,7 @@ lwres_buffer_getuint16(lwres_buffer_t *b)
 }
 
 void
-lwres_buffer_putuint16(lwres_buffer_t *b, isc_uint16_t val)
+lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val)
 {
 	unsigned char *cp;
 
@@ -213,11 +213,11 @@ lwres_buffer_putuint16(lwres_buffer_t *b, isc_uint16_t val)
 	cp[1] = (val & 0x00ff);
 }
 
-isc_uint32_t
+lwres_uint32_t
 lwres_buffer_getuint32(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	isc_uint32_t result;
+	lwres_uint32_t result;
 
 	/*
 	 * Read an unsigned 32-bit integer in network byte order from 'b',
@@ -239,7 +239,7 @@ lwres_buffer_getuint32(lwres_buffer_t *b)
 }
 
 void
-lwres_buffer_putuint32(lwres_buffer_t *b, isc_uint32_t val)
+lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val)
 {
 	unsigned char *cp;
 

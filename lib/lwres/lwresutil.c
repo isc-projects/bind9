@@ -50,9 +50,9 @@
  *
  */
 int
-lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
+lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len)
 {
-	isc_uint16_t datalen;
+	lwres_uint16_t datalen;
 	char *string;
 
 	REQUIRE(b != NULL);
@@ -60,7 +60,7 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
 	/*
 	 * Pull off the length (2 bytes)
 	 */
-	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t)))
+	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t)))
 		return (LWRES_R_UNEXPECTEDEND);
 	datalen = lwres_buffer_getuint16(b);
 
@@ -94,7 +94,7 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 {
 	REQUIRE(addr != NULL);
 
-	if (!SPACE_REMAINING(b, sizeof(isc_uint32_t) + sizeof(isc_uint16_t)))
+	if (!SPACE_REMAINING(b, sizeof(lwres_uint32_t) + sizeof(lwres_uint16_t)))
 		return (LWRES_R_UNEXPECTEDEND);
 	addr->family = lwres_buffer_getuint32(b);
 	addr->length = lwres_buffer_getuint16(b);
@@ -108,7 +108,7 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 
 int
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
-		     isc_uint32_t addrtypes, lwres_gabnresponse_t **structp)
+		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp)
 {
 	lwres_gabnrequest_t request;
 	lwres_gabnresponse_t *response;
@@ -116,7 +116,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
-	isc_uint32_t serial;
+	lwres_uint32_t serial;
 	char *buffer;
 
 	REQUIRE(ctx != NULL);
@@ -128,7 +128,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	b_out.base = NULL;
 	response = NULL;
 	buffer = NULL;
-	serial = (isc_uint32_t)name;
+	serial = (lwres_uint32_t)name;
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {
@@ -213,8 +213,8 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 
 
 int
-lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
-		    isc_uint16_t addrlen, const unsigned char *addr,
+lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
+		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp)
 {
 	lwres_gnbarequest_t request;
@@ -223,7 +223,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
-	isc_uint32_t serial;
+	lwres_uint32_t serial;
 	char *buffer;
 
 	REQUIRE(ctx != NULL);
@@ -236,7 +236,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	b_out.base = NULL;
 	response = NULL;
 	buffer = NULL;
-	serial = (isc_uint32_t)addr;
+	serial = (lwres_uint32_t)addr;
 
 	buffer = CTXMALLOC(LWRES_RECVLENGTH);
 	if (buffer == NULL) {

@@ -20,23 +20,23 @@
 
 #include <stddef.h>
 
-#include <isc/lang.h>
-#include <isc/int.h>
+#include <lwres/lang.h>
+#include <lwres/int.h>
 
 #include <lwres/lwbuffer.h>
 
 typedef struct lwres_lwpacket lwres_lwpacket_t;
 
 struct lwres_lwpacket {
-	isc_uint32_t		length;
-	isc_uint16_t		version;
-	isc_uint16_t		flags;
-	isc_uint32_t		serial;
-	isc_uint32_t		opcode;
-	isc_uint32_t		result;
-	isc_uint32_t		recvlength;
-	isc_uint16_t		authtype;
-	isc_uint16_t		authlength;
+	lwres_uint32_t		length;
+	lwres_uint16_t		version;
+	lwres_uint16_t		flags;
+	lwres_uint32_t		serial;
+	lwres_uint32_t		opcode;
+	lwres_uint32_t		result;
+	lwres_uint32_t		recvlength;
+	lwres_uint16_t		authtype;
+	lwres_uint16_t		authlength;
 };
 
 #define LWRES_LWPACKET_LENGTH		(4 * 5 + 2 * 4)
@@ -113,7 +113,7 @@ struct lwres_lwpacket {
  *		NS, SOA, etc. using this opcode.
  */
 
-ISC_LANG_BEGINDECLS
+LWRES_LANG_BEGINDECLS
 
 int
 lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
@@ -121,6 +121,6 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
 int
 lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
 
-ISC_LANG_ENDDECLS
+LWRES_LANG_ENDDECLS
 
 #endif /* LWRES_LWPACKET_H */

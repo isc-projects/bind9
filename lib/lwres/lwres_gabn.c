@@ -37,7 +37,7 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	size_t buflen;
 	int ret;
 	size_t payload_length;
-	isc_uint16_t datalen;
+	lwres_uint16_t datalen;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
@@ -99,7 +99,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	size_t buflen;
 	int ret;
 	size_t payload_length;
-	isc_uint16_t datalen;
+	lwres_uint16_t datalen;
 	int x;
 
 	REQUIRE(ctx != NULL);
@@ -108,7 +108,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	REQUIRE(b != NULL);
 
 	/* naliases, naddrs */
-	payload_length = sizeof(isc_uint16_t) * 2;
+	payload_length = sizeof(lwres_uint16_t) * 2;
 	/* real name encoding */
 	payload_length += 2 + req->realnamelen + 1;
 	/* each alias */
@@ -116,7 +116,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 		payload_length += 2 + req->aliaslen[x] + 1;
 	/* each address */
 	for (x = 0 ; x < req->naddrs ; x++) {
-		payload_length += sizeof(isc_uint32_t) + sizeof(isc_uint16_t);
+		payload_length += sizeof(lwres_uint32_t) + sizeof(lwres_uint16_t);
 		payload_length += req->addrs[x].length;
 	}
 
@@ -142,7 +142,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	/* encode naliases and naddrs */
 
-	INSIST(SPACE_OK(b, sizeof(isc_uint16_t) * 2));
+	INSIST(SPACE_OK(b, sizeof(lwres_uint16_t) * 2));
 	lwres_buffer_putuint16(b, req->naliases);
 	lwres_buffer_putuint16(b, req->naddrs);
 
@@ -164,8 +164,8 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 
 	/* encode the addresses */
 	for (x = 0 ; x < req->naddrs ; x++) {
-		datalen = req->addrs[x].length + sizeof(isc_uint16_t)
-			+ sizeof(isc_uint32_t);
+		datalen = req->addrs[x].length + sizeof(lwres_uint16_t)
+			+ sizeof(lwres_uint32_t);
 		INSIST(SPACE_OK(b, datalen));
 		lwres_buffer_putuint32(b, req->addrs[x].family);
 		lwres_buffer_putuint16(b, req->addrs[x].length);
@@ -186,8 +186,8 @@ lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	int ret;
 	char *name;
 	lwres_gabnrequest_t *gabn;
-	isc_uint32_t addrtypes;
-	isc_uint16_t namelen;
+	lwres_uint32_t addrtypes;
+	lwres_uint16_t namelen;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);
@@ -230,8 +230,8 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 {
 	int ret;
 	unsigned int x;
-	isc_uint16_t naliases;
-	isc_uint16_t naddrs;
+	lwres_uint16_t naliases;
+	lwres_uint16_t naddrs;
 	lwres_gabnresponse_t *gabn;
 
 	REQUIRE(ctx != NULL);
@@ -247,7 +247,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	/*
 	 * Pull off the name itself
 	 */
-	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t) * 2))
+	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t) * 2))
 		return (LWRES_R_UNEXPECTEDEND);
 	naliases = lwres_buffer_getuint16(b);
 	naddrs = lwres_buffer_getuint16(b);
@@ -270,7 +270,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			goto out;
 		}
 
-		gabn->aliaslen = CTXMALLOC(sizeof(isc_uint16_t) * naliases);
+		gabn->aliaslen = CTXMALLOC(sizeof(lwres_uint16_t) * naliases);
 		if (gabn->aliaslen == NULL) {
 			ret = LWRES_R_NOMEMORY;
 			goto out;
@@ -325,7 +325,7 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			CTXFREE(gabn->aliases, sizeof(char *) * naliases);
 		if (gabn->aliaslen != NULL)
 			CTXFREE(gabn->aliaslen,
-				sizeof(isc_uint16_t) * naliases);
+				sizeof(lwres_uint16_t) * naliases);
 		if (gabn->addrs != NULL)
 			CTXFREE(gabn->addrs, sizeof(lwres_addr_t) * naddrs);
 		CTXFREE(gabn, sizeof(lwres_gabnresponse_t));
@@ -361,7 +361,7 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 
 	if (gabn->naliases > 0) {
 		CTXFREE(gabn->aliases, sizeof(char *) * gabn->naliases);
-		CTXFREE(gabn->aliaslen, sizeof(isc_uint16_t) * gabn->naliases);
+		CTXFREE(gabn->aliaslen, sizeof(lwres_uint16_t) * gabn->naliases);
 	}
 	if (gabn->naddrs > 0)
 		CTXFREE(gabn->addrs, sizeof(lwres_addr_t) * gabn->naddrs);

@@ -161,6 +161,7 @@ struct dns_adbfind {
  *
  * _LAMEPRUNED:
  *	At least one address was omitted from the list because it was lame.
+ *	This bit will NEVER be set if _RETURNLAME is set in the createfind().
  */
 #define DNS_ADBFIND_INET		0x00000001
 #define DNS_ADBFIND_INET6		0x00000002
