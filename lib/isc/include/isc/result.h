@@ -62,8 +62,9 @@
 #define ISC_R_FILENOTFOUND		38
 #define ISC_R_FILEEXISTS		39
 #define ISC_R_NOTCONNECTED		40	/* socket is not connected */
+#define ISC_R_RANGE			41	/* out of range */
 
-#define ISC_R_NRESULTS 			41	/* Number of results */
+#define ISC_R_NRESULTS 			42	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 
