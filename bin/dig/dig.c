@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.107 2000/09/30 00:09:57 mws Exp $ */
+/* $Id: dig.c,v 1.108 2000/10/02 16:16:50 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -847,7 +847,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
  * ISC_TRUE returned if value was used
  */
 static isc_boolean_t
-dash_option(char *option, char *next, dig_lookup_t **lookup)
+dash_option(char *option, char *next, dig_lookup_t **lookup,
+	    isc_boolean_t *open_type_class)
 {
 	char cmd, *value, *ptr;
 	isc_result_t result;
@@ -891,6 +892,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		specified_source = ISC_TRUE;
 		return (value_from_next);
 	case 'c':
+		*open_type_class = ISC_FALSE;
 		tr.base = value;
 		tr.length = strlen(value);
 		result = dns_rdataclass_fromtext(&rdclass,
@@ -912,6 +914,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup)
 		port = atoi(value);
 		return (value_from_next);
 	case 't':
+		*open_type_class = ISC_FALSE;
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
 			(*lookup)->rdtype = dns_rdatatype_ixfr;
 			(*lookup)->ixfr_serial =
@@ -1013,6 +1016,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	dig_lookup_t *lookup = NULL;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
+	isc_boolean_t open_type_class = ISC_TRUE;
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
@@ -1093,13 +1097,13 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		} else if (rv[0][0] == '-') {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL,
-						&lookup)) {
+						&lookup, &open_type_class)) {
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1],
-						&lookup)) {
+						&lookup, &open_type_class)) {
 					rc--;
 					rv++;
 				}
@@ -1108,26 +1112,28 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			/*
 			 * Anything which isn't an option
 			 */
-			tr.base = rv[0];
-			tr.length = strlen(rv[0]);
-			if (strncmp(rv[0], "ixfr=", 5) == 0) {
-				lookup->rdtype = dns_rdatatype_ixfr;
-				lookup->ixfr_serial =
-					atoi(&rv[0][5]);
-				continue;
-			}
-			result = dns_rdatatype_fromtext(&rdtype,
-					      (isc_textregion_t *)&tr);
-			if ((result == ISC_R_SUCCESS) &&
-			    (rdtype != dns_rdatatype_ixfr)) {
-				lookup->rdtype = rdtype;
-				continue;
-			}
-			result = dns_rdataclass_fromtext(&rdclass,
-					       (isc_textregion_t *)&tr);
-			if (result == ISC_R_SUCCESS) {
-				lookup->rdclass = rdclass;
-				continue;
+			if (open_type_class) {
+				tr.base = rv[0];
+				tr.length = strlen(rv[0]);
+				if (strncmp(rv[0], "ixfr=", 5) == 0) {
+					lookup->rdtype = dns_rdatatype_ixfr;
+					lookup->ixfr_serial =
+						atoi(&rv[0][5]);
+					continue;
+				}
+				result = dns_rdatatype_fromtext(&rdtype,
+						     (isc_textregion_t *)&tr);
+				if ((result == ISC_R_SUCCESS) &&
+				    (rdtype != dns_rdatatype_ixfr)) {
+					lookup->rdtype = rdtype;
+					continue;
+				}
+				result = dns_rdataclass_fromtext(&rdclass,
+						     (isc_textregion_t *)&tr);
+				if (result == ISC_R_SUCCESS) {
+					lookup->rdclass = rdclass;
+					continue;
+				}
 			}
 			if (!config_only) {
 				lookup = clone_lookup(default_lookup,
