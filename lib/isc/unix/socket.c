@@ -33,6 +33,7 @@
 #include <isc/mutex.h>
 #include <isc/condition.h>
 #include <isc/socket.h>
+#include <isc/list.h>
 
 #include "util.h"
 
@@ -112,7 +113,7 @@ typedef struct rwintev {
 	isc_boolean_t			partial;   /* partial i/o ok */
 	isc_boolean_t			canceled;  /* I/O was canceled */
 	isc_boolean_t			posted;	   /* event posted to task */
-	LINK(struct rwintev)		link;	   /* next event */
+	ISC_LINK(struct rwintev)	link;	   /* next event */
 } rwintev_t;
 
 typedef struct ncintev {
@@ -121,7 +122,7 @@ typedef struct ncintev {
 	isc_socket_newconnev_t	       *done_ev;   /* the done event */
 	isc_boolean_t			canceled;  /* accept was canceled */
 	isc_boolean_t			posted;	   /* event posted to task */
-	LINK(struct ncintev)		link;	   /* next event */
+	ISC_LINK(struct ncintev)	link;	   /* next event */
 } ncintev_t;
 
 typedef struct cnintev {
@@ -147,9 +148,9 @@ struct isc_socket {
 	int				fd;
 	isc_result_t			recv_result;
 	isc_result_t			send_result;
-	LIST(rwintev_t)			recv_list;
-	LIST(rwintev_t)			send_list;
-	LIST(ncintev_t)			accept_list;
+	ISC_LIST(rwintev_t)		recv_list;
+	ISC_LIST(rwintev_t)		send_list;
+	ISC_LIST(ncintev_t)		accept_list;
 	cnintev_t		       *connect_ev;
 	isc_boolean_t			pending_recv;
 	isc_boolean_t			pending_send;
@@ -286,33 +287,33 @@ socket_dump(isc_socket_t *sock)
 	printf("fd: %d, references %u\n", sock->fd, sock->references);
 
 	printf("recv queue:\n");
-	rwiev = HEAD(sock->recv_list);
+	rwiev = ISC_LIST_HEAD(sock->recv_list);
 	while (rwiev != NULL) {
 		printf("\tintev %p, done_ev %p, task %p, "
 		       "canceled %d, posted %d",
 		       rwiev, rwiev->done_ev, rwiev->task, rwiev->canceled,
 		       rwiev->posted);
-		rwiev = NEXT(rwiev, link);
+		rwiev = ISC_LIST_NEXT(rwiev, link);
 	}
 
 	printf("send queue:\n");
-	rwiev = HEAD(sock->send_list);
+	rwiev = ISC_LIST_HEAD(sock->send_list);
 	while (rwiev != NULL) {
 		printf("\tintev %p, done_ev %p, task %p, "
 		       "canceled %d, posted %d",
 		       rwiev, rwiev->done_ev, rwiev->task, rwiev->canceled,
 		       rwiev->posted);
-		rwiev = NEXT(rwiev, link);
+		rwiev = ISC_LIST_NEXT(rwiev, link);
 	}
 
 	printf("accept queue:\n");
-	aiev = HEAD(sock->accept_list);
+	aiev = ISC_LIST_HEAD(sock->accept_list);
 	while (aiev != NULL) {
 		printf("\tintev %p, done_ev %p, task %p, "
 		       "canceled %d, posted %d\n",
 		       aiev, aiev->done_ev, aiev->task, aiev->canceled,
 		       aiev->posted);
-		aiev = NEXT(aiev, link);
+		aiev = ISC_LIST_NEXT(aiev, link);
 	}
 
 	printf("--------\n");
@@ -412,9 +413,9 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * set up list of readers and writers to be initially empty
 	 */
-	INIT_LIST(sock->recv_list);
-	INIT_LIST(sock->send_list);
-	INIT_LIST(sock->accept_list);
+	ISC_LIST_INIT(sock->recv_list);
+	ISC_LIST_INIT(sock->send_list);
+	ISC_LIST_INIT(sock->accept_list);
 	sock->connect_ev = NULL;
 	sock->pending_recv = ISC_FALSE;
 	sock->pending_send = ISC_FALSE;
@@ -619,7 +620,7 @@ dispatch_read(isc_socket_t *sock)
 	rwintev_t *iev;
 	isc_event_t *ev;
 
-	iev = HEAD(sock->recv_list);
+	iev = ISC_LIST_HEAD(sock->recv_list);
 	ev = (isc_event_t *)iev;
 
 	REQUIRE(!sock->pending_recv);
@@ -640,7 +641,7 @@ dispatch_write(isc_socket_t *sock)
 	rwintev_t *iev;
 	isc_event_t *ev;
 
-	iev = HEAD(sock->send_list);
+	iev = ISC_LIST_HEAD(sock->send_list);
 	ev = (isc_event_t *)iev;
 
 	REQUIRE(!sock->pending_send);
@@ -657,7 +658,7 @@ dispatch_listen(isc_socket_t *sock)
 	ncintev_t *iev;
 	isc_event_t *ev;
 
-	iev = HEAD(sock->accept_list);
+	iev = ISC_LIST_HEAD(sock->accept_list);
 	ev = (isc_event_t *)iev;
 
 	REQUIRE(!sock->pending_accept);
@@ -716,7 +717,7 @@ send_recvdone_event(isc_socket_t *sock, isc_task_t **task,
 		REQUIRE(*iev != NULL);
 		REQUIRE((*iev)->task == *task);
 
-		DEQUEUE(sock->recv_list, *iev, link);
+		ISC_LIST_DEQUEUE(sock->recv_list, *iev, link);
 	}
 
 	(*dev)->result = resultcode;
@@ -753,7 +754,7 @@ send_senddone_event(isc_socket_t *sock, isc_task_t **task,
 		REQUIRE(!EMPTY(sock->send_list));
 		REQUIRE((*iev)->task == *task);
 
-		DEQUEUE(sock->send_list, *iev, link);
+		ISC_LIST_DEQUEUE(sock->send_list, *iev, link);
 	}
 
 	(*dev)->result = resultcode;
@@ -829,7 +830,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	 * Has this event been canceled?
 	 */
 	if (iev->canceled) {
-		DEQUEUE(sock->accept_list, iev, link);
+		ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
 		isc_event_free((isc_event_t **)iev);
 		if (!EMPTY(sock->accept_list))
 			select_poke(sock->manager, sock->fd);
@@ -880,7 +881,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		result = ISC_R_UNEXPECTED;
 	}
 
-	DEQUEUE(sock->accept_list, iev, link);
+	ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
 
 	if (!EMPTY(sock->accept_list))
 		select_poke(sock->manager, sock->fd);
@@ -951,7 +952,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 	 * Pull the first entry off the list, and look at it.  If it is
 	 * NULL, or not ours, something bad happened.
 	 */
-	iev = HEAD(sock->recv_list);
+	iev = ISC_LIST_HEAD(sock->recv_list);
 	INSIST(iev != NULL);
 	INSIST(iev->task == task);
 
@@ -962,14 +963,14 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 	 * regardless of quantum.
 	 */
 	do {
-		iev = HEAD(sock->recv_list);
+		iev = ISC_LIST_HEAD(sock->recv_list);
 		dev = iev->done_ev;
 
 		/*
 		 * check for canceled I/O
 		 */
 		if (iev->canceled) {
-			DEQUEUE(sock->recv_list, iev, link);
+			ISC_LIST_DEQUEUE(sock->recv_list, iev, link);
 			isc_event_free((isc_event_t **)&iev);
 			goto next;
 		}
@@ -1070,7 +1071,7 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 				send_recvdone_event(sock, &iev->task,
 						    &iev, &dev,
 						    ISC_R_EOF);
-				iev = HEAD(sock->recv_list);
+				iev = ISC_LIST_HEAD(sock->recv_list);
 			} while (iev != NULL);
 
 			goto poke;
@@ -1148,7 +1149,7 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 	 * Pull the first entry off the list, and look at it.  If it is
 	 * NULL, or not ours, something bad happened.
 	 */
-	iev = HEAD(sock->send_list);
+	iev = ISC_LIST_HEAD(sock->send_list);
 	INSIST(iev != NULL);
 	INSIST(iev->task == task);
 
@@ -1159,14 +1160,14 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 	 * regardless of quantum.
 	 */
 	do {
-		iev = HEAD(sock->send_list);
+		iev = ISC_LIST_HEAD(sock->send_list);
 		dev = iev->done_ev;
 
 		/*
 		 * check for canceled I/O
 		 */
 		if (iev->canceled) {
-			DEQUEUE(sock->send_list, iev, link);
+			ISC_LIST_DEQUEUE(sock->send_list, iev, link);
 			isc_event_free((isc_event_t **)&iev);
 			goto next;
 		}
@@ -1435,8 +1436,8 @@ watcher(void *uap)
 					 * task's queue, clear the bit.
 					 * Otherwise, set it.
 					 */
-					iev = HEAD(sock->recv_list);
-					nciev = HEAD(sock->accept_list);
+					iev = ISC_LIST_HEAD(sock->recv_list);
+					nciev = ISC_LIST_HEAD(sock->accept_list);
 					if ((iev == NULL && nciev == NULL)
 					    || sock->pending_recv
 					    || sock->pending_accept) {
@@ -1451,7 +1452,7 @@ watcher(void *uap)
 						       ("watch set r\n"));
 					}
 
-					iev = HEAD(sock->send_list);
+					iev = ISC_LIST_HEAD(sock->send_list);
 					if ((iev == NULL
 					     || sock->pending_send)
 					    && !sock->connecting) {
@@ -1709,7 +1710,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 			return (ISC_R_NOMEMORY);
 		}
 
-		INIT_LINK(iev, link);
+		ISC_LINK_INIT(iev, link);
 		iev->posted = ISC_FALSE;
 
 
@@ -1851,10 +1852,10 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	 * watched, poke the watcher to start paying attention to it.
 	 */
 	if (EMPTY(sock->recv_list)) {
-		ENQUEUE(sock->recv_list, iev, link);
+		ISC_LIST_ENQUEUE(sock->recv_list, iev, link);
 		select_poke(sock->manager, sock->fd);
 	} else {
-		ENQUEUE(sock->recv_list, iev, link);
+		ISC_LIST_ENQUEUE(sock->recv_list, iev, link);
 	}
 
 	XTRACE(TRACE_RECV,
@@ -1913,7 +1914,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 			return (ISC_R_NOMEMORY);
 		}
 
-		INIT_LINK(iev, link);
+		ISC_LINK_INIT(iev, link);
 		iev->posted = ISC_FALSE;
 
 		sock->wiev = iev;
@@ -2044,10 +2045,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	 * watched, poke the watcher to start paying attention to it.
 	 */
 	if (EMPTY(sock->send_list)) {
-		ENQUEUE(sock->send_list, iev, link);
+		ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 		select_poke(sock->manager, sock->fd);
 	} else {
-		ENQUEUE(sock->send_list, iev, link);
+		ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 	}
 
 	XTRACE(TRACE_SEND,
@@ -2200,7 +2201,7 @@ isc_socket_accept(isc_socket_t *sock,
 		return (ret);
 	}
 
-	INIT_LINK(iev, link);
+	ISC_LINK_INIT(iev, link);
 
 	/*
 	 * Attach to socket and to task
@@ -2225,7 +2226,7 @@ isc_socket_accept(isc_socket_t *sock,
 	if (EMPTY(sock->accept_list))
 		select_poke(manager, sock->fd);
 
-	ENQUEUE(sock->accept_list, iev, link);
+	ISC_LIST_ENQUEUE(sock->accept_list, iev, link);
 
 	UNLOCK(&sock->lock);
 
@@ -2539,8 +2540,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		isc_socketevent_t      *dev;
 		isc_task_t	       *current_task;
 
-		iev = HEAD(sock->recv_list);
-		next = NEXT(iev, link);
+		iev = ISC_LIST_HEAD(sock->recv_list);
+		next = ISC_LIST_NEXT(iev, link);
 
 		if ((task == NULL || task == iev->task) && !iev->canceled) {
 			dev = iev->done_ev;
@@ -2569,7 +2570,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		 * canceled result, and freeing the internal event.
 		 */
 		while (iev != NULL) {
-			next = NEXT(iev, link);
+			next = ISC_LIST_NEXT(iev, link);
 
 			if (task == NULL || task == iev->task)
 				send_recvdone_event(sock, &iev->task, &iev,
@@ -2587,8 +2588,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		isc_socketevent_t      *dev;
 		isc_task_t	       *current_task;
 
-		iev = HEAD(sock->send_list);
-		next = NEXT(iev, link);
+		iev = ISC_LIST_HEAD(sock->send_list);
+		next = ISC_LIST_NEXT(iev, link);
 
 		if ((task == NULL || task == iev->task) && !iev->canceled) {
 			dev = iev->done_ev;
@@ -2613,7 +2614,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		iev = next;
 
 		while (iev != NULL) {
-			next = NEXT(iev, link);
+			next = ISC_LIST_NEXT(iev, link);
 
 			if ((task == NULL) || (task == iev->task))
 				send_senddone_event(sock, &iev->task, &iev,
@@ -2631,8 +2632,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		isc_socket_newconnev_t *dev;
 		isc_task_t	       *current_task;
 
-		iev = HEAD(sock->accept_list);
-		next = NEXT(iev, link);
+		iev = ISC_LIST_HEAD(sock->accept_list);
+		next = ISC_LIST_NEXT(iev, link);
 
 		if ((task == NULL || task == iev->task)
 		    && iev->posted && !iev->canceled) {
@@ -2661,7 +2662,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		iev = next;
 
 		while (iev != NULL) {
-			next = NEXT(iev, link);
+			next = ISC_LIST_NEXT(iev, link);
 
 			if (task == NULL || task == iev->task) {
 				dev = iev->done_ev;
@@ -2669,7 +2670,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 
 				dev->newsocket->references--;
 				free_socket(&dev->newsocket);
-				DEQUEUE(sock->accept_list, iev, link);
+				ISC_LIST_DEQUEUE(sock->accept_list, iev, link);
 				send_ncdone_event(&iev, &dev, ISC_R_CANCELED);
 			}
 
@@ -2769,7 +2770,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 		return (ISC_R_NOMEMORY);
 	}
 
-	INIT_LINK(iev, link);
+	ISC_LINK_INIT(iev, link);
 	iev->posted = ISC_FALSE;
 
 	sock->references++;
@@ -2782,7 +2783,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 	iev->task = ntask;
 	iev->partial = ISC_FALSE; /* doesn't matter */
 
-	ENQUEUE(sock->send_list, iev, link);
+	ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 
 	XTRACE(TRACE_RECV,
 	       ("isc_socket_recvmark: posted ievent %p, dev %p, task %p\n",
@@ -2847,7 +2848,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 		return (ISC_R_NOMEMORY);
 	}
 
-	INIT_LINK(iev, link);
+	ISC_LINK_INIT(iev, link);
 	iev->posted = ISC_FALSE;
 
 	sock->references++;
@@ -2860,7 +2861,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 	iev->task = ntask;
 	iev->partial = ISC_FALSE; /* doesn't matter */
 
-	ENQUEUE(sock->send_list, iev, link);
+	ISC_LIST_ENQUEUE(sock->send_list, iev, link);
 
 	XTRACE(TRACE_SEND,
 	       ("isc_socket_sendmark: posted ievent %p, dev %p, task %p\n",
