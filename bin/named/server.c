@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.37 2004/01/26 23:53:41 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.38 2004/01/27 01:17:41 marka Exp $ */
 
 #include <config.h>
 
@@ -760,8 +760,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	CHECK(get_view_querysource_dispatch(maps, AF_INET6, &dispatch6));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to obtain neither a IPv4 or"
-				 " a IPv6 dispatch");
+				 "unable to obtain neither an IPv4 nor"
+				 " an IPv6 dispatch");
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
