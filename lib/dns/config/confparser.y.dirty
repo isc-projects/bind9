@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.43 2000/12/13 00:15:23 tale Exp $ */
+/* $Id: confparser.y.dirty,v 1.44 2000/12/20 03:36:19 marka Exp $ */
 
 #include <config.h>
 
@@ -3644,6 +3644,7 @@ secret: L_SECRET any_string L_EOS
 view_stmt: L_VIEW any_string optional_class L_LBRACE
 	{
 		dns_c_view_t *view;
+		dns_rdataclass_t rdclass;
 
 		if (currcfg->views == NULL) {
 			tmpres = dns_c_viewtable_new(currcfg->mem,
@@ -3655,8 +3656,10 @@ view_stmt: L_VIEW any_string optional_class L_LBRACE
 				YYABORT;
 			}
 		}
+		rdclass = ($3 == dns_rdataclass_reserved0) ?
+			  dns_rdataclass_in : $3;
 
-		tmpres = dns_c_view_new(currcfg->mem, $2, $3, &view);
+		tmpres = dns_c_view_new(currcfg->mem, $2, rdclass, &view);
 		if (tmpres != ISC_R_SUCCESS) {
 			isc_mem_free(memctx, $2);
 			parser_error(ISC_FALSE,
@@ -4831,6 +4834,8 @@ domain_name: L_QSTRING
 zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	{
 		dns_c_zone_t *zone;
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+		dns_rdataclass_t rdclass;
 
 		if (currcfg->zlist == NULL) {
 			tmpres = dns_c_zonelist_new(currcfg->mem,
@@ -4844,10 +4849,17 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 				YYABORT;
 			}
 		}
+		rdclass = $3;
+		if (rdclass == dns_rdataclass_reserved0) {
+			if (view != NULL)
+				(void)dns_c_view_getviewclass(view, &rdclass);
+			else
+				rdclass = dns_rdataclass_in;
+		}
 
 		/* XXX internal name support needed! */
 		tmpres = dns_c_zone_new(currcfg->mem,
-					$6, $3, $2, $2, &zone);
+					$6, rdclass, $2, $2, &zone);
 		if (tmpres != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
@@ -4971,7 +4983,7 @@ wild_class_name: any_string
 
 optional_class: /* Empty */
 	{
-		$$ = dns_rdataclass_in;
+		$$ = dns_rdataclass_reserved0;
 	}
 	| class_name
 	;
@@ -6021,8 +6033,12 @@ lwres_option: L_LISTEN_ON port_ip_list
 	| L_VIEW any_string optional_class
 	{
 		dns_c_lwres_t *lwres;
+		dns_rdataclass_t rdclass;
+
 		lwres = ISC_LIST_TAIL(currcfg->lwres->lwreslist);
-		tmpres = dns_c_lwres_setview(lwres, $2, $3);
+		rdclass = ($3 == dns_rdataclass_reserved0) ?
+			  dns_rdataclass_in : $3;
+		tmpres = dns_c_lwres_setview(lwres, $2, rdclass);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE, "cannot redefine view");
 			YYABORT;

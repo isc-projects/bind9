@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.71 2000/12/19 19:48:06 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72 2000/12/20 03:36:18 marka Exp $ -->
 
 <book>
 
@@ -3805,9 +3805,12 @@ Classes other than IN have no built-in defaults hints.</para></entry>
 </tbody>
 </tgroup></informaltable></sect3>
 <sect3><title>Class</title>
-<para>The zone's name may optionally be followed by a class. If
-a class is not specified, class <literal>IN</literal> (for <varname>Internet</varname>),
-is assumed. This is correct for the vast majority of cases.</para>
+<para>In general <command>class</command> can now be omitted from
+a <command>zone's</command> definition.
+It is now inherited for the enclosing <command>view</command> or if
+there is no explicit <command>view</command>, from the default 
+<command>view</command> which is <literal>IN</literal>
+(for <varname>Internet</varname>).</para>
 <para>The <literal>hesiod</literal> class is
 named for an information service from MIT's Project Athena. It is
 used to share information about various systems databases, such
