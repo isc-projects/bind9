@@ -2572,7 +2572,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
-					ISC_LIST_PREPEND(socket->recv_list,
+					ISC_LIST_PREPEND(sock->recv_list,
 							 iev, link);
 				}
 			} else {
@@ -2623,7 +2623,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
-					ISC_LIST_PREPEND(socket->send_list,
+					ISC_LIST_PREPEND(sock->send_list,
 							 iev, link);
 				}
 			} else {
@@ -2670,7 +2670,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 				    == 0) {
 					iev->canceled = ISC_TRUE;
 					iev->done_ev = NULL;
-					ISC_LIST_PREPEND(socket->accept_list,
+					ISC_LIST_PREPEND(sock->accept_list,
 							 iev, link);
 				}
 			} else {
