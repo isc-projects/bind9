@@ -257,11 +257,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		
-		result = dns_c_zone_getmasterport(czone, &port);
-		if (result != ISC_R_SUCCESS)
-			port = 53;
-		dns_zone_setmasterport(zone, port);
-
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)
 			result = dns_zone_setmasters(zone, iplist->ips,
@@ -375,11 +370,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 					    dns_zone_clearqueryacl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-
-		result = dns_c_zone_getmasterport(czone, &port);
-		if (result != ISC_R_SUCCESS)
-			port = 53;
-		dns_zone_setmasterport(zone, port);
 
 		result = dns_c_zone_getmasterips(czone, &iplist);
 		if (result == ISC_R_SUCCESS)

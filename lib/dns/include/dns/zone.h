@@ -598,9 +598,6 @@ dns_severity_t dns_zone_getchecknames(dns_zone_t *zone);
 void dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
 isc_int32_t dns_zone_getjournalsize(dns_zone_t *zone);
 
-void dns_zone_setmasterport(dns_zone_t *zone,  isc_uint16_t port);
-isc_uint16_t dns_zone_getmasterport(dns_zone_t *zone);
-
 void dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver);
 void dns_zone_setrequestmgr(dns_zone_t *zone, dns_requestmgr_t *requestmgr);
 void dns_zone_setadb(dns_zone_t *zone, dns_adb_t *adb);

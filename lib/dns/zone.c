@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.103 2000/04/28 00:58:40 marka Exp $ */
+/* $Id: zone.c,v 1.104 2000/04/28 17:18:19 marka Exp $ */
 
 #include <config.h>
 
@@ -152,7 +152,6 @@ struct dns_zone {
 	isc_uint32_t		minimum;
 	isc_sockaddr_t		*masters;
 	unsigned int		masterscnt;
-	in_port_t		masterport;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
 	isc_sockaddr_t		*notify;
@@ -358,7 +357,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->minimum = 0;
 	zone->masters = NULL;
 	zone->masterscnt = 0;
-	zone->masterport = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
 	zone->notifycnt = 0;
@@ -445,7 +443,6 @@ zone_free(dns_zone_t *zone) {
 		dns_db_detach(&zone->db);
 	dns_zone_cleardbargs(zone);
 	dns_zone_setmasters(zone, NULL, 0);
-	zone->masterport = 0;
 	dns_zone_setnotifyalso(zone, NULL, 0);
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
@@ -2174,7 +2171,8 @@ notify_send(notify_t *notify) {
 	ai = ISC_LIST_HEAD(notify->find->list);
 	while (ai != NULL) {
 		dst = *ai->sockaddr;
-		isc_sockaddr_setport(&dst, 53); /* XXX */
+		if (isc_sockaddr_getport(&dst) == 0)
+			isc_sockaddr_setport(&dst, 53); /* XXX */
 #ifdef notyet
 		switch (isc_sockaddr_pf(&dst)) {
 		case AF_INET:
@@ -2253,7 +2251,8 @@ dns_zone_notify(dns_zone_t *zone) {
 	 */
 	for (i = 0; i < zone->notifycnt; i++) {
 		dst = zone->notify[i];
-		isc_sockaddr_setport(&dst, 53); /* XXX */
+		if (isc_sockaddr_getport(&dst) == 0)
+			isc_sockaddr_setport(&dst, 53); /* XXX */
 #ifdef notyet
 		switch (isc_sockaddr_pf(&dst)) {
 		case AF_INET:
@@ -2581,7 +2580,6 @@ static void
 soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 	const char me[] = "soa_query";
 	isc_result_t result;
-	in_port_t port;
 	dns_message_t *message = NULL;
 	dns_name_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
@@ -2625,13 +2623,10 @@ soa_query(dns_zone_t *zone, isc_taskaction_t callback) {
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
 	zone->masteraddr = zone->masters[zone->curmaster];
-	port = zone->masterport;
 	UNLOCK(&zone->lock);
 
-	if (port == 0)
-		port = 53; /* XXX is this the right place? */
-	isc_sockaddr_setport(&zone->masteraddr, port);
-
+	if (isc_sockaddr_getport(&zone->masteraddr) == 0)
+		isc_sockaddr_setport(&zone->masteraddr, 53); /* XXX */
 	result = dns_request_create(zone->requestmgr, message,
 				    &zone->masteraddr, 0,
 				    15 /* XXX */, zone->task,
@@ -3197,22 +3192,6 @@ dns_zone_getjournalsize(dns_zone_t *zone) {
 	return (zone->journalsize);
 }
 
-void
-dns_zone_setmasterport(dns_zone_t *zone,  in_port_t port) {
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone->masterport = port;
-}
-
-in_port_t
-dns_zone_getmasterport(dns_zone_t *zone) {
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->masterport);
-}
-
 static void
 zone_log(dns_zone_t *zone, const char *me, int level,
 		  const char *fmt, ...) {
@@ -3436,7 +3415,6 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 	    oldzone->db_argc != newzone->db_argc ||
 	    oldzone->notifycnt != newzone->notifycnt ||
 	    oldzone->masterscnt != newzone->masterscnt ||
-	    oldzone->masterport != newzone->masterport ||
 	    oldzone->check_names != newzone->check_names ||
 	    oldzone->diff_on_reload != newzone->diff_on_reload ||
 	    oldzone->journalsize != newzone->journalsize)
