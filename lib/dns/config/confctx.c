@@ -45,32 +45,35 @@
 #define STATS_INTERVAL_BIT		7 
 #define HEARTBEAT_INTERVAL_BIT		8 
 #define MAX_TRANSFER_TIME_IN_BIT	9 
-#define DATA_SIZE_BIT			10
-#define STACK_SIZE_BIT			11
-#define CORE_SIZE_BIT			12
-#define FILES_BIT			13
-#define QUERY_SOURCE_ADDR_BIT		14
-#define QUERY_SOURCE_PORT_BIT		15
-#define FAKE_IQUERY_BIT			16
-#define RECURSION_BIT			17
-#define FETCH_GLUE_BIT			18
-#define NOTIFY_BIT			19
-#define HOST_STATISTICS_BIT		20
-#define DEALLOC_ON_EXIT_BIT		21
-#define USE_IXFR_BIT			22
-#define MAINTAIN_IXFR_BASE_BIT		23
-#define HAS_OLD_CLIENTS_BIT		24
-#define AUTH_NX_DOMAIN_BIT		25
-#define MULTIPLE_CNAMES_BIT		26
-#define USE_ID_POOL_BIT			27
-#define DIALUP_BIT			28
-#define CHECKNAME_PRIM_BIT		29
-#define CHECKNAME_SEC_BIT		30
-#define CHECKNAME_RESP_BIT		31
-#define OPTIONS_TRANSFER_FORMAT_BIT	32
-#define FORWARD_BIT			33
-#define EXPERT_MODE_BIT			34
-#define RFC2308_TYPE1_BIT		35
+#define MAX_TRANSFER_TIME_OUT_BIT	10
+#define MAX_TRANSFER_IDLE_IN_BIT	11
+#define MAX_TRANSFER_IDLE_OUT_BIT	12
+#define DATA_SIZE_BIT			13
+#define STACK_SIZE_BIT			14
+#define CORE_SIZE_BIT			15
+#define FILES_BIT			16
+#define QUERY_SOURCE_ADDR_BIT		17
+#define QUERY_SOURCE_PORT_BIT		18
+#define FAKE_IQUERY_BIT			19
+#define RECURSION_BIT			20
+#define FETCH_GLUE_BIT			21
+#define NOTIFY_BIT			22
+#define HOST_STATISTICS_BIT		23
+#define DEALLOC_ON_EXIT_BIT		24
+#define USE_IXFR_BIT			25
+#define MAINTAIN_IXFR_BASE_BIT		26
+#define HAS_OLD_CLIENTS_BIT		27
+#define AUTH_NX_DOMAIN_BIT		28
+#define MULTIPLE_CNAMES_BIT		29
+#define USE_ID_POOL_BIT			30
+#define DIALUP_BIT			31
+#define CHECKNAME_PRIM_BIT		32
+#define CHECKNAME_SEC_BIT		33
+#define CHECKNAME_RESP_BIT		34
+#define OPTIONS_TRANSFER_FORMAT_BIT	35
+#define FORWARD_BIT			36
+#define EXPERT_MODE_BIT			37
+#define RFC2308_TYPE1_BIT		38
 
 
 static isc_result_t cfg_set_iplist(dns_c_options_t *options,
@@ -996,6 +999,66 @@ dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t newval)
 			      newval,
 			      &cfg->options->setflags1,
 			      MAX_TRANSFER_TIME_IN_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_setmaxtransfertimeout(dns_c_ctx_t *cfg, isc_int32_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_int32(cfg->options,
+			      &cfg->options->max_transfer_time_out,
+			      newval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_TIME_OUT_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_setmaxtransferidlein(dns_c_ctx_t *cfg, isc_int32_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_int32(cfg->options,
+			      &cfg->options->max_transfer_idle_in,
+			      newval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_IDLE_IN_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_setmaxtransferidleout(dns_c_ctx_t *cfg, isc_int32_t newval)
+{
+	isc_result_t res;
+	
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+
+	res = make_options(cfg);
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
+	
+	return (cfg_set_int32(cfg->options,
+			      &cfg->options->max_transfer_idle_out,
+			      newval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_IDLE_OUT_BIT));
 }
 
 
@@ -2184,6 +2247,63 @@ dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg, isc_int32_t *retval)
 
 
 isc_result_t
+dns_c_ctx_getmaxtransfertimeout(dns_c_ctx_t *cfg, isc_int32_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_int32(cfg->options, 
+			      &cfg->options->max_transfer_time_out,
+			      retval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_TIME_OUT_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_getmaxtransferidlein(dns_c_ctx_t *cfg, isc_int32_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_int32(cfg->options, 
+			      &cfg->options->max_transfer_idle_in,
+			      retval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_IDLE_IN_BIT));
+}
+
+
+isc_result_t
+dns_c_ctx_getmaxtransferidleout(dns_c_ctx_t *cfg, isc_int32_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_int32(cfg->options, 
+			      &cfg->options->max_transfer_idle_out,
+			      retval,
+			      &cfg->options->setflags1,
+			      MAX_TRANSFER_IDLE_OUT_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_getdatasize(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
@@ -2886,6 +3006,9 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->dialup = ISC_FALSE;
 
 	opts->max_transfer_time_in = 0;
+	opts->max_transfer_time_out = 0;
+	opts->max_transfer_idle_in = 0;
+	opts->max_transfer_idle_out = 0;
 
 	opts->data_size = 0;
 	opts->stack_size = 0;
@@ -3127,6 +3250,12 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			 "heartbeat-interval", setflags1);
 	PRINT_AS_MINUTES(max_transfer_time_in, MAX_TRANSFER_TIME_IN_BIT,
 			 "max-transfer-time-in", setflags1);
+	PRINT_AS_MINUTES(max_transfer_time_out, MAX_TRANSFER_TIME_OUT_BIT,
+			 "max-transfer-time-out", setflags1);
+	PRINT_AS_MINUTES(max_transfer_idle_in, MAX_TRANSFER_IDLE_IN_BIT,
+			 "max-transfer-idle-in", setflags1);
+	PRINT_AS_MINUTES(max_transfer_idle_out, MAX_TRANSFER_IDLE_OUT_BIT,
+			 "max-transfer-idle-out", setflags1);
 
 	PRINT_AS_SIZE_CLAUSE(data_size, DATA_SIZE_BIT, "datasize",
 			     setflags1);	

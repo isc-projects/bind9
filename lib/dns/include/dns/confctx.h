@@ -150,6 +150,9 @@ struct dns_c_options
 	isc_int32_t		heartbeat_interval;
 
 	isc_int32_t		max_transfer_time_in;
+	isc_int32_t		max_transfer_time_out;
+	isc_int32_t		max_transfer_idle_in;
+	isc_int32_t		max_transfer_idle_out;
 	isc_int32_t		lamettl; /* XXX not implemented yet */
 	
 
@@ -311,6 +314,12 @@ isc_result_t	dns_c_ctx_setheartbeat_interval(dns_c_ctx_t *cfg,
 						isc_int32_t newval);
 isc_result_t	dns_c_ctx_setmaxtransfertimein(dns_c_ctx_t *cfg,
 					       isc_int32_t newval);
+isc_result_t	dns_c_ctx_setmaxtransfertimeout(dns_c_ctx_t *cfg,
+					       isc_int32_t newval);
+isc_result_t	dns_c_ctx_setmaxtransferidlein(dns_c_ctx_t *cfg,
+					       isc_int32_t newval);
+isc_result_t	dns_c_ctx_setmaxtransferidleout(dns_c_ctx_t *cfg,
+					       isc_int32_t newval);
 isc_result_t	dns_c_ctx_setdatasize(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t	dns_c_ctx_setstacksize(dns_c_ctx_t *cfg,
 				       isc_uint32_t newval);
@@ -431,6 +440,12 @@ isc_result_t	dns_c_ctx_getstatsinterval(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_getheartbeatinterval(dns_c_ctx_t *cfg,
 					       isc_int32_t *retval);
 isc_result_t	dns_c_ctx_getmaxtransfertimein(dns_c_ctx_t *cfg,
+					       isc_int32_t *retval);
+isc_result_t	dns_c_ctx_getmaxtransfertimeout(dns_c_ctx_t *cfg,
+					       isc_int32_t *retval);
+isc_result_t	dns_c_ctx_getmaxtransferidlein(dns_c_ctx_t *cfg,
+					       isc_int32_t *retval);
+isc_result_t	dns_c_ctx_getmaxtransferidleout(dns_c_ctx_t *cfg,
 					       isc_int32_t *retval);
 isc_result_t	dns_c_ctx_getdatasize(dns_c_ctx_t *cfg,
 				      isc_uint32_t *retval);

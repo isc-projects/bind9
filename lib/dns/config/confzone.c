@@ -45,18 +45,26 @@
 #define SZ_MASTER_PORT_BIT		2
 #define SZ_TRANSFER_SOURCE_BIT		3
 #define SZ_MAX_TRANS_TIME_IN_BIT	4
-#define SZ_NOTIFY_BIT			5
-#define SZ_MAINT_IXFR_BASE_BIT		6
-#define SZ_MAX_IXFR_LOG_BIT		7
-#define SZ_FORWARD_BIT			8
+#define SZ_MAX_TRANS_TIME_OUT_BIT	5
+#define SZ_MAX_TRANS_IDLE_IN_BIT	6
+#define SZ_MAX_TRANS_IDLE_OUT_BIT	7
+#define SZ_NOTIFY_BIT			8
+#define SZ_MAINT_IXFR_BASE_BIT		9
+#define SZ_MAX_IXFR_LOG_BIT		10
+#define SZ_FORWARD_BIT			11
 
 
+
+/* Bit positions of the stub zones */
 #define TZ_CHECK_NAME_BIT		0
 #define TZ_DIALUP_BIT			1
 #define TZ_MASTER_PORT_BIT		2
 #define TZ_TRANSFER_SOURCE_BIT		3
 #define TZ_MAX_TRANS_TIME_IN_BIT	4
-#define TZ_FORWARD_BIT			5
+#define TZ_MAX_TRANS_TIME_OUT_BIT	5
+#define TZ_MAX_TRANS_IDLE_IN_BIT	6
+#define TZ_MAX_TRANS_IDLE_OUT_BIT	7
+#define TZ_FORWARD_BIT			8
 
 
 /*
@@ -1314,6 +1322,159 @@ dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 
 
 isc_result_t
+dns_c_zone_setmaxtranstimeout(dns_c_zone_t *zone,
+			      isc_int32_t newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		zone->u.szone.max_trans_time_out = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+			     &zone->u.szone.setflags);
+		break;
+		
+	case dns_c_zone_stub:
+		zone->u.tzone.max_trans_time_out = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_OUT_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MAX_TRANS_TIME_OUT_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_zone_setmaxtransidlein(dns_c_zone_t *zone,
+			     isc_int32_t newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		zone->u.szone.max_trans_idle_in = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_IN_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_TRANS_IDLE_IN_BIT,
+			     &zone->u.szone.setflags);
+		break;
+		
+	case dns_c_zone_stub:
+		zone->u.tzone.max_trans_idle_in = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MAX_TRANS_IDLE_IN_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_zone_setmaxtransidleout(dns_c_zone_t *zone,
+			      isc_int32_t newval)
+{
+	isc_boolean_t existed = ISC_FALSE;
+	
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		zone->u.szone.max_trans_idle_out = newval ;
+		existed = DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+			     &zone->u.szone.setflags);
+		break;
+		
+	case dns_c_zone_stub:
+		zone->u.tzone.max_trans_idle_out = newval ;
+		existed = DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_OUT_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_MAX_TRANS_IDLE_OUT_BIT,
+			     &zone->u.tzone.setflags);
+		break;
+
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+
+isc_result_t
 dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
 			 isc_int32_t newval)
 {
@@ -2315,6 +2476,176 @@ dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 
 
 isc_result_t
+dns_c_zone_getmaxtranstimeout(dns_c_zone_t *zone,
+			     isc_int32_t *retval)
+{
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_trans_time_out;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_OUT_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.max_trans_time_out;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_time_out field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+
+
+
+isc_result_t
+dns_c_zone_getmaxtransidlein(dns_c_zone_t *zone,
+			     isc_int32_t *retval)
+{
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_IN_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_trans_idle_in;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.max_trans_idle_in;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_idle_in field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_zone_getmaxtransidleout(dns_c_zone_t *zone,
+			     isc_int32_t *retval)
+{
+	isc_result_t res = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	switch (zone->ztype) {
+	case dns_c_zone_master:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Master zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_slave:
+		if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT,
+				   &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.max_trans_idle_out;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_stub:
+		if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_OUT_BIT,
+				   &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.max_trans_idle_out;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+		
+	case dns_c_zone_hint:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Hint zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+			
+	case dns_c_zone_forward:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
+			      "Forward zones do not have a "
+			      "max_trans_idle_out field");
+		return (ISC_R_FAILURE);
+	}
+
+	return (res);
+}
+
+
+
+isc_result_t
 dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,
 			 isc_int32_t *retval)
 {
@@ -2668,6 +2999,24 @@ slave_zone_print(FILE *fp, int indent,
 			szone->max_trans_time_in);
 	}
 	
+	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_TIME_OUT_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-time-out %d;\n",
+			szone->max_trans_time_out);
+	}
+	
+	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_IN_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-idle-in %d;\n",
+			szone->max_trans_idle_in);
+	}
+	
+	if (DNS_C_CHECKBIT(SZ_MAX_TRANS_IDLE_OUT_BIT, &szone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-idle-out %d;\n",
+			szone->max_trans_idle_out);
+	}
+	
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "notify %s;\n",
@@ -2766,10 +3115,28 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		fprintf(fp, ";\n");
 	}
 
+	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_IN_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-idle-in %d;\n",
+			tzone->max_trans_idle_in);
+	}
+	
+	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_IDLE_OUT_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-idle-out %d;\n",
+			tzone->max_trans_idle_out);
+	}
+	
 	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "max-transfer-time-in %d;\n",
 			tzone->max_trans_time_in);
+	}
+	
+	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_OUT_BIT, &tzone->setflags)) {
+		dns_c_printtabs(fp, indent);
+		fprintf(fp, "max-transfer-time-out %d;\n",
+			tzone->max_trans_time_out);
 	}
 	
 	if (tzone->pubkeylist != NULL) {

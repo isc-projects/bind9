@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.28 1999/12/06 12:40:34 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.29 1999/12/11 13:44:43 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -237,6 +237,9 @@ static void             yyerror(const char *);
 %token          L_TRANSFERS_PER_NS
 %token          L_TRANSFER_FORMAT
 %token          L_MAX_TRANSFER_TIME_IN
+%token          L_MAX_TRANSFER_TIME_OUT
+%token          L_MAX_TRANSFER_IDLE_IN
+%token          L_MAX_TRANSFER_IDLE_OUT
 %token          L_ONE_ANSWER
 %token          L_MANY_ANSWERS
 %token          L_NOTIFY
@@ -789,6 +792,42 @@ option: /* Empty */
                 } else if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE,
                                      "Failed to set max-transfer-time-in.");
+                        YYABORT;
+                }
+        }
+        | L_MAX_TRANSFER_TIME_OUT L_INTEGER
+        {
+                tmpres = dns_c_ctx_setmaxtransfertimeout(currcfg, $2 * 60);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE,
+                                     "Redefining max-transfer-time-out.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+                                     "Failed to set max-transfer-time-out.");
+                        YYABORT;
+                }
+        }
+        | L_MAX_TRANSFER_IDLE_IN L_INTEGER
+        {
+                tmpres = dns_c_ctx_setmaxtransferidlein(currcfg, $2 * 60);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE,
+                                     "Redefining max-transfer-idle-in.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+                                     "Failed to set max-transfer-idle-in.");
+                        YYABORT;
+                }
+        }
+        | L_MAX_TRANSFER_IDLE_OUT L_INTEGER
+        {
+                tmpres = dns_c_ctx_setmaxtransferidleout(currcfg, $2 * 60);
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE,
+                                     "Redefining max-transfer-idle-out.");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+                                     "Failed to set max-transfer-idle-out.");
                         YYABORT;
                 }
         }
@@ -2605,8 +2644,9 @@ zone_option_list: zone_option L_EOS
 zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
         L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE | L_ALLOW_QUERY |
         L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
-        L_MAX_LOG_SIZE_IXFR | L_NOTIFY | L_MAINTAIN_IXFR_BASE | L_PUBKEY |
-        L_ALSO_NOTIFY | L_DIALUP
+	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
+	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
+	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP
         ;
 
 
@@ -3340,6 +3380,9 @@ static struct token keyword_tokens [] = {
         { "max-ixfr-log-size",          L_MAX_LOG_SIZE_IXFR },
         { "max-ncache-ttl",             L_MAX_NCACHE_TTL },
         { "max-transfer-time-in",       L_MAX_TRANSFER_TIME_IN },
+        { "max-transfer-time-out",      L_MAX_TRANSFER_TIME_OUT },
+        { "max-transfer-idle-in",       L_MAX_TRANSFER_IDLE_IN },
+        { "max-transfer-idle-out",      L_MAX_TRANSFER_IDLE_OUT },
         { "memstatistics-file",         L_MEMSTATS_FILE },
         { "multiple-cnames",            L_MULTIPLE_CNAMES },
         { "name",                       L_NAME },
