@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.29 2000/03/17 19:20:25 gson Exp $ */
+/* $Id: sig_24.c,v 1.30 2000/03/17 21:43:46 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -266,6 +266,7 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r2;
 	dns_name_t name1;
 	dns_name_t name2;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -278,7 +279,9 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	INSIST(r2.length > 18);
 	r1.length = 18;
 	r2.length = 18;
-	RETERR(compare_region(&r1, &r2));
+	order = compare_region(&r1, &r2);
+	if (order != 0)
+		return (order);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -288,7 +291,9 @@ compare_sig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_consume(&r2, 18);
 	dns_name_fromregion(&name1, &r1);
 	dns_name_fromregion(&name2, &r2);
-	RETERR(dns_name_rdatacompare(&name1, &name2));
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&r1, name_length(&name1));
 	isc_region_consume(&r2, name_length(&name2));

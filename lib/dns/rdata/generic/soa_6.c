@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.28 2000/03/17 01:22:16 explorer Exp $ */
+/* $Id: soa_6.c,v 1.29 2000/03/17 21:43:46 gson Exp $ */
 
 /* Required: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -219,6 +219,7 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	isc_region_t region2;
 	dns_name_t name1;
 	dns_name_t name2;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
@@ -233,7 +234,9 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	RETERR(dns_name_rdatacompare(&name1, &name2));
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
@@ -244,7 +247,9 @@ compare_soa(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	RETERR(dns_name_rdatacompare(&name1, &name2));
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
