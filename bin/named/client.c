@@ -367,7 +367,6 @@ exit_check(ns_client_t *client) {
 		 * if any.
 		 */
 		INSIST(client->newstate <= NS_CLIENTSTATE_READY);
-		CTRACE("closetcp");
 		if (client->nreads > 0)
 			dns_tcpmsg_cancelread(&client->tcpmsg);
 		if (! client->nreads == 0) {
@@ -379,8 +378,10 @@ exit_check(ns_client_t *client) {
 			dns_tcpmsg_invalidate(&client->tcpmsg);
 			client->tcpmsg_valid = ISC_FALSE;
 		}
-		if (client->tcpsocket != NULL)
+		if (client->tcpsocket != NULL) {
+			CTRACE("closetcp");
 			isc_socket_detach(&client->tcpsocket);
+		}
 
 		if (client->tcpquota != NULL)
 			isc_quota_detach(&client->tcpquota);
