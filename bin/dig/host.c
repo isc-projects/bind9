@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.89 2002/11/12 22:57:06 explorer Exp $ */
+/* $Id: host.c,v 1.90 2002/11/12 22:57:57 explorer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -712,7 +712,6 @@ main(int argc, char **argv) {
 
 	debug("main()");
 	progname = argv[0];
-	check_result(result, "isc_app_start");
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
