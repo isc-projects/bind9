@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.71 2000/03/17 17:45:03 gson Exp $ */
+/* $Id: rdata.c,v 1.72 2000/03/22 17:28:57 gson Exp $ */
 
 #include <config.h>
 
@@ -1498,36 +1498,36 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	if (token != NULL) {
 		switch (token->type) {
 		case isc_tokentype_eol:
-			(*callback)(callbacks, "%s: %s:%d: near eol: %s\n",
+			(*callback)(callbacks, "%s: %s:%d: near eol: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_eof:
-			(*callback)(callbacks, "%s: %s:%d: near eof: %s\n",
+			(*callback)(callbacks, "%s: %s:%d: near eof: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_number:
-			(*callback)(callbacks, "%s: %s:%d: near %lu: %s\n",
+			(*callback)(callbacks, "%s: %s:%d: near %lu: %s",
 				    "dns_rdata_fromtext", name, line,
 				    token->value.as_ulong,
 				    dns_result_totext(result));
 			break;
 		case isc_tokentype_string:
 		case isc_tokentype_qstring:
-			(*callback)(callbacks, "%s: %s:%d: near \"%s\": %s\n",
+			(*callback)(callbacks, "%s: %s:%d: near '%s': %s",
 				    "dns_rdata_fromtext", name, line,
 				    (char *)token->value.as_pointer,
 				    dns_result_totext(result));
 			break;
 		default:
-			(*callback)(callbacks, "%s: %s:%d: %s\n",
+			(*callback)(callbacks, "%s: %s:%d: %s",
 				    "dns_rdata_fromtext", name, line,
 				    dns_result_totext(result));
 			break;
 		}
 	} else {
-		(*callback)(callbacks, "dns_rdata_fromtext: %s:%d: %s\n",
+		(*callback)(callbacks, "dns_rdata_fromtext: %s:%d: %s",
 			    name, line, dns_result_totext(result));
 	}
 }
