@@ -2,6 +2,9 @@
 			if there was no SOA record in the replacment db.
 			[RT #13016]
 
+1760.	[bug]		Host / net unreachable was not penalising rtt
+			estimates. [RT #12970]
+
 1753.	[bug]		Don't serve a slave zone which has no NS records.
 			[RT #12894]
 
