@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.11 2002/07/10 00:04:55 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.12 2002/07/10 00:24:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1745,6 +1745,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		if (SOFT_ERROR(errno))
 			goto soft_error;
 		switch (errno) {
+		case ENOBUFS:
+		case ENFILE:
+		case ENOMEM:
 		case ECONNRESET:
 		case ECONNABORTED:
 		case EHOSTUNREACH:
