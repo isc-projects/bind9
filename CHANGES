@@ -1,3 +1,6 @@
+ 357.	[bug]		The server would crash if a response contained both
+			a CNAME and records of the query type.
+
  356.	[cleanup]	isc_task_send no longer requires event->sender to
 			be non-null.
 
