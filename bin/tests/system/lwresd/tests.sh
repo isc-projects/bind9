@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2000/07/05 18:49:00 bwelling Exp $
+# $Id: tests.sh,v 1.4 2000/07/06 02:33:42 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -26,9 +26,9 @@ SYSTEMTESTTOP=..
 
 sleep 5
 
-status=0;
-./lwtest
-status=`expr $status + $?`
+status=0
+
+./lwtest || status=1
 
 echo "I: exit status: $status"
 exit $status

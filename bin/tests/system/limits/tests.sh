@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2000/07/05 18:48:59 bwelling Exp $
+# $Id: tests.sh,v 1.5 2000/07/06 02:33:40 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -24,50 +24,36 @@ SYSTEMTESTTOP=..
 # Perform tests
 #
 
-# sleep 5
-
-status=0;
+status=0
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	1000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	1000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 1000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.1000
-$PERL ../digcomp.pl knowngood.dig.out.1000 dig.out.ns1
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out.1000 dig.out.ns1 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	2000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	2000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 2000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.2000
-$PERL ../digcomp.pl knowngood.dig.out.2000 dig.out.ns1
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out.2000 dig.out.ns1 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	3000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	3000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 3000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.3000
-$PERL ../digcomp.pl knowngood.dig.out.3000 dig.out.ns1
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out.3000 dig.out.ns1 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	4000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	4000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig 4000.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.4000
-$PERL ../digcomp.pl knowngood.dig.out.4000 dig.out.ns1
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out.4000 dig.out.ns1 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocomm +nocmd +norec \
-	a-maximum-rrset.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
+	a-maximum-rrset.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
 #dig a-maximum-rrset.example. @10.53.0.1 a -p 5300 > knowngood.dig.out.a-maximum-rrset
-$PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.ns1
-status=`expr $status + $?`
+$PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.ns1 || status=1
 
 $DIG +tcp +nosea +nostat +noquest +nocmd +norec \
-	5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1
-status=`expr $status + $?`
-grep 'flags: qr aa tc ad;' dig.out.ns1
-status=`expr $status + $?`
+	5000.example. @10.53.0.1 a -p 5300 > dig.out.ns1 || status=1
+grep 'flags: qr aa tc ad;' dig.out.ns1 || status=1
 
 echo "I: exit status: $status"
 exit $status
