@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.62 $)
+AC_REVISION($Revision: 1.63 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1943,6 +1943,7 @@ AC_SUBST(SERV_R_SET_RETURN)
 #
 AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
 ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
+BROKEN_IN6ADDR_INIT_MACROS="#undef BROKEN_IN6ADDR_INIT_MACROS"
 
 case "$host" in
 	*-bsdi3.1*)
@@ -1951,12 +1952,14 @@ case "$host" in
 	*-bsdi4.0*)
 		hack_shutup_sigwait=yes
 		hack_shutup_sputaux=yes
+		hack_shutup_in6addr_init_macros=yes
 		;;
 	*-bsdi4.1*)
 		hack_shutup_stdargcast=yes
 		;;
 	*-solaris2.8)
 		hack_shutup_pthreadonceinit=yes
+		hack_shutup_in6addr_init_macros=yes
 		;;
 esac
 
@@ -1993,6 +1996,12 @@ case "$hack_shutup_stdargcast" in
 		# Shut up a -Wcast-qual warning from va_start().
 		#
 		AC_DEFINE(SHUTUP_STDARG_CAST)
+		;;
+esac
+
+case "$hack_shutup_in6addr_init_macros" in
+	yes)
+		AC_DEFINE(BROKEN_IN6ADDR_INIT_MACROS)
 		;;
 esac
 
