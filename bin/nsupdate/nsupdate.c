@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.12 2000/06/30 01:56:14 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.13 2000/06/30 01:59:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1279,4 +1279,3 @@ main(int argc, char **argv) {
 
         return (0);
 }
-
