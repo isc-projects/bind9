@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.229 2002/07/24 11:53:52 marka Exp $ */
+/* $Id: query.c,v 1.230 2002/07/25 05:16:10 marka Exp $ */
 
 #include <config.h>
 
@@ -3915,7 +3915,6 @@ synth_rev_start(ns_client_t *client) {
 				   client, &byaddr_dummy);
 	if (result == ISC_R_SUCCESS)
 		return; /* Wait for completion event. */
- cleanup:
 	synth_finish(client, result);
 }
 
