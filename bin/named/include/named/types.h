@@ -26,27 +26,4 @@ typedef struct ns_client		ns_client_t;
 typedef struct ns_clientmgr		ns_clientmgr_t;
 typedef struct ns_query			ns_query_t;
 
-/*
- * XXXRTH  This stuff is temporary.  As soon as we have zone and config
- *         support, it will go away.
- */
-
-typedef struct ns_dbinfo {
-	char *				path;
-	char *				origin;
-	char *				master; /* Dotted quad, or NULL */
-	isc_boolean_t			iscache;
-	isc_boolean_t			isslave;
-	dns_view_t *			view;
-	dns_zone_t *			zone;
-	dns_db_t *			db;
-	ISC_LINK(struct ns_dbinfo)	link;
-} ns_dbinfo_t;
-
-typedef ISC_LIST(ns_dbinfo_t)		ns_dbinfolist_t;
-
-/*
- * XXXRTH  End of temporary stuff.
- */
-
 #endif /* NS_TYPES_H */
