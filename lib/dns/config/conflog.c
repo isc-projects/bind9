@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.18 2000/08/01 01:23:22 tale Exp $ */
+/* $Id: conflog.c,v 1.19 2000/10/24 17:24:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1110,6 +1110,7 @@ dns_c_logcat_new(isc_mem_t *mem, const char *name, dns_c_logcat_t **newlc) {
 	for (i = 0 ; i < newc->cnames_len ; i++) {
 		newc->channel_names[i] = NULL;
 	}
+	ISC_LINK_INIT(newc, next);
 
 	*newlc = newc;
 
