@@ -151,7 +151,7 @@ struct dns_c_options
 	isc_boolean_t		use_id_pool;
 	isc_boolean_t		dialup;
 	
-	dns_c_addr_t	 	query_source_addr;
+	isc_sockaddr_t	 	query_source_addr;
 	short 			query_source_port;
 
 	dns_c_severity_t 	check_names[DNS_C_TRANSCOUNT];
@@ -160,6 +160,7 @@ struct dns_c_options
 
 	dns_c_ipmatchlist_t   *queryacl;
 	dns_c_ipmatchlist_t   *transferacl;
+	dns_c_ipmatchlist_t   *recursionacl;
 	dns_c_ipmatchlist_t   *blackhole;
 	dns_c_ipmatchlist_t   *topology;
 	dns_c_ipmatchlist_t   *sortlist;
@@ -300,7 +301,7 @@ isc_result_t	dns_c_ctx_setuseidpool(dns_c_ctx_t *cfg,
 					  isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval);
 isc_result_t	dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg,
-						dns_c_addr_t addr);
+						isc_sockaddr_t addr);
 isc_result_t	dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port);
 isc_result_t	dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 					 dns_c_trans_t transtype,
@@ -310,6 +311,8 @@ isc_result_t	dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 				       dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
+					  dns_c_ipmatchlist_t *iml);
+isc_result_t	dns_c_ctx_setrecursionacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 					  dns_c_ipmatchlist_t *iml);
 isc_result_t	dns_c_ctx_setblackhole(dns_c_ctx_t *cfg, isc_boolean_t copy,
 					dns_c_ipmatchlist_t *iml);
@@ -414,7 +417,7 @@ isc_result_t	dns_c_ctx_getuseidpool(dns_c_ctx_t *cfg,
 					  isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t	dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg,
-						dns_c_addr_t *addr);
+						isc_sockaddr_t *addr);
 isc_result_t	dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg,
 						short *port);
 isc_result_t	dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
@@ -425,6 +428,8 @@ isc_result_t	dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg,
 				       dns_c_ipmatchlist_t **list);
 isc_result_t	dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg,
+					  dns_c_ipmatchlist_t **list);
+isc_result_t	dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg,
 					  dns_c_ipmatchlist_t **list);
 isc_result_t	dns_c_ctx_getblackhole(dns_c_ctx_t *cfg,
 					dns_c_ipmatchlist_t **list);

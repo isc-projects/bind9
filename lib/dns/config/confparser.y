@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.4 1999/09/15 23:56:24 explorer Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.5 1999/09/17 14:21:43 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -95,7 +95,7 @@ static int		debug_lexer;
 	dns_c_zonetype_t	ztype;
 	struct in_addr		ip4_addr;
 	struct in6_addr		ip6_addr;
-	dns_c_addr_t		ipaddress;
+	isc_sockaddr_t		ipaddress;
 
 	isc_boolean_t		boolean;
 	dns_rdataclass_t	rrclass;
@@ -160,6 +160,7 @@ static int		debug_lexer;
 %token		L_ALLOW_QUERY
 %token		L_ALLOW_TRANSFER
 %token		L_ALLOW_UPDATE
+%token		L_ALLOW_RECURSION
 %token		L_ALSO_NOTIFY
 %token		L_BLACKHOLE
 %token		L_BOGUS
@@ -660,6 +661,18 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+	| L_ALLOW_RECURSION L_LBRACE address_match_list L_RBRACE
+	{
+		tmpres = dns_c_ctx_setrecursionacl(currcfg, ISC_FALSE, $3);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "Redefining allow-recursion list");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "Failed to set allow-recursion");
+			YYABORT;
+		}
+	}
 	| L_SORTLIST  L_LBRACE address_match_list L_RBRACE
 	{
 		tmpres = dns_c_ctx_setsortlist(currcfg, ISC_FALSE, $3);
@@ -973,8 +986,8 @@ maybe_wild_addr: ip_address
 	}
 	| L_STRING
 	{
-		$$.a_family = AF_INET;
-		$$.u.a.s_addr = htonl(INADDR_ANY);
+		$$.type.sin.sin_family = AF_INET;
+		$$.type.sin.sin_addr.s_addr = htonl(INADDR_ANY);
 
 		if (strcmp($1, "*") != 0) {
 			parser_error(ISC_TRUE,
@@ -1770,7 +1783,7 @@ server_stmt: L_SERVER ip_address
 		while (server != NULL) {
 			tmpserver = ISC_LIST_NEXT(server, next);
 			if (memcmp(&server->address, &$2,
-				   sizeof(dns_c_addr_t)) == 0) {
+				   sizeof(isc_sockaddr_t)) == 0) {
 				parser_error(ISC_TRUE, "Redefining server");
 				ISC_LIST_UNLINK(servers->elements,
 						server, next);
@@ -1987,11 +2000,13 @@ address_match_simple: ip_address
 
 		$$ = ime;
 	}
-	| ip4_address L_SLASH L_INTEGER
+	| ip_address L_SLASH L_INTEGER
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
 
-		if ($3 < 0 || $3 > 32) {
+		if ($3 < 0 ||
+		    ($1.type.sa.sa_family == AF_INET && $3 > 31) ||
+		    ($1.type.sa.sa_family == AF_INET6 && $3 > 127)) {
 			parser_warning(ISC_FALSE,
 				       "mask bits (%d) out of range: "
 				       "skipping", (int)$3);
@@ -2022,7 +2037,7 @@ address_match_simple: ip_address
 	{
 		struct in_addr ia;
 		dns_c_ipmatchelement_t *ime = NULL;
-		dns_c_addr_t address;
+		isc_sockaddr_t address;
 
 		if ($1 > 255) {
 			parser_error(ISC_FALSE,
@@ -2036,8 +2051,8 @@ address_match_simple: ip_address
 			} else {
 				ia.s_addr = htonl(($1 & 0xff) << 24);
 
-				address.a_family = AF_INET;
-				address.u.a = ia;
+				address.type.sin.sin_family = AF_INET;
+				address.type.sin.sin_addr = ia;
 				
 				tmpres = dns_c_ipmatchpattern_new(currcfg->mem,
 								   &ime,
@@ -2823,26 +2838,19 @@ notify_in_addr_list: opt_in_addr_list
 
 ip4_address: L_IP4ADDR
 	{
-		$$.a_family = AF_INET;
-		$$.u.a = $1;
+		$$.type.sin.sin_family = AF_INET;
+		$$.type.sin.sin_addr = $1;
 	}
 	;
 
 ip6_address: L_IP6ADDR
 	{
-		$$.a_family = AF_INET6;
-		$$.u.a6 = $1;
+		$$.type.sin6.sin6_family = AF_INET6;
+		$$.type.sin6.sin6_addr = $1;
 	}
 
 
-ip_address: ip4_address
-	{
-		$$ = $1;
-	}
-        | ip6_address
-	{
-		$$ = $1;
-	}
+ip_address: ip4_address | ip6_address
 	;
 	
 in_addr_elem: ip_address
@@ -3049,6 +3057,7 @@ static struct token keyword_tokens [] = {
 	{ "allow",			L_ALLOW },
 	{ "allow-query",		L_ALLOW_QUERY },
 	{ "allow-transfer",		L_ALLOW_TRANSFER },
+	{ "allow-recursion",		L_ALLOW_RECURSION },
 	{ "allow-update",		L_ALLOW_UPDATE },
 	{ "also-notify",		L_ALSO_NOTIFY },
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
@@ -3193,7 +3202,7 @@ init_action(void)
   
 isc_result_t
 dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
-		    dns_c_ctx_t **configctx, dns_c_cbks_t *cbks)
+		      dns_c_ctx_t **configctx, dns_c_cbks_t *cbks)
 {
 	isc_result_t res;
 	const char *funcname = "dns_parse_namedconf";

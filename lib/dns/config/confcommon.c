@@ -145,7 +145,6 @@ static struct dns_c_pvt_cntable {
 
 isc_boolean_t debug_mem_print;
 FILE *debug_mem_print_stream;
-const struct in6_addr in6addr_any;
 
 
 
@@ -472,18 +471,52 @@ dns_c_forward2string(dns_c_forw_t forw, isc_boolean_t printable)
 
 
 
+int
+dns_c_isanyaddr(isc_sockaddr_t *inaddr)
+{
+	int result = 0;
+	
+	if (inaddr->type.sa.sa_family == AF_INET) {
+		if (inaddr->type.sin.sin_addr.s_addr == htonl(INADDR_ANY)) {
+			result = 1;
+		}
+	} else {
+		if (memcmp(&inaddr->type.sin6.sin6_addr,
+			   &in6addr_any, sizeof in6addr_any) == 0) {
+			result = 1;
+		}
+	}
+
+	return (result);
+}
+	
+
+	
 void
-dns_c_print_ipaddr(FILE *fp, dns_c_addr_t *inaddr)
+dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr)
 {
 	const char *p;
 	char tmpaddrstr[64];
+	int family = inaddr->type.sa.sa_family;
+	void *addr;
 
-	p = inet_ntop(inaddr->a_family, &inaddr->u,
-		      tmpaddrstr, sizeof tmpaddrstr);
-	if (p == NULL) {
-		fprintf(fp, "BAD-IP-ADDRESS");
+	if (dns_c_isanyaddr(inaddr)) {
+		if (family == AF_INET) {
+			fprintf(fp, "*");
+		} else {
+			fprintf(fp, "0::0");
+		}
 	} else {
-		fprintf(fp, "%s", tmpaddrstr);
+		addr = (family == AF_INET ?
+			&inaddr->type.sin.sin_addr :
+			&inaddr->type.sin6.sin6_addr);
+		
+		p = inet_ntop(family, addr, tmpaddrstr, sizeof tmpaddrstr);
+		if (p == NULL) {
+			fprintf(fp, "BAD-IP-ADDRESS");
+		} else {
+			fprintf(fp, "%s", tmpaddrstr);
+		}
 	}
 }
 

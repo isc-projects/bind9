@@ -82,7 +82,7 @@ struct dns_c_iplist {
 
 	int refcount;
 	
-	dns_c_addr_t		*ips;
+	isc_sockaddr_t		*ips;
 	isc_uint32_t		size;
 	isc_uint32_t		nextidx;
 };
@@ -91,8 +91,8 @@ struct dns_c_iplist {
 
 struct dns_c_ipmatch_direct
 {
-	dns_c_addr_t	address;		/* XXX IPv6??? */
-	dns_c_addr_t	mask;
+	isc_sockaddr_t	address;		/* XXX IPv6??? */
+	isc_uint32_t	mask;
 };
 
 
@@ -164,7 +164,7 @@ isc_result_t	dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
 					    dns_c_ipmatchelement_t **result); 
 isc_result_t	dns_c_ipmatchpattern_new(isc_mem_t *mem,
 					  dns_c_ipmatchelement_t **result,
-					  dns_c_addr_t address,
+					  isc_sockaddr_t address,
 					  isc_uint32_t maskbits);
 isc_result_t	dns_c_ipmatchindirect_new(isc_mem_t *mem,
 					   dns_c_ipmatchelement_t **result,
@@ -194,9 +194,9 @@ isc_result_t	dns_c_iplist_copy(isc_mem_t *mem, dns_c_iplist_t **dest,
 				  dns_c_iplist_t *src);
 dns_c_iplist_t *dns_c_iplist_attach(dns_c_iplist_t *list);
 isc_result_t	dns_c_iplist_append(dns_c_iplist_t *list,
-				    dns_c_addr_t newaddr);
+				    isc_sockaddr_t newaddr);
 isc_result_t	dns_c_iplist_remove(dns_c_iplist_t *list,
-				    dns_c_addr_t newaddr);
+				    isc_sockaddr_t newaddr);
 void		dns_c_iplist_print(FILE *fp, int indent,
 				   dns_c_iplist_t *list);
 

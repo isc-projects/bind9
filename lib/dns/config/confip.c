@@ -28,6 +28,9 @@
 #define DNS_C_IPMATCH_NEGATE	0x01	/* match means deny access */
 
 
+static isc_result_t checkmask(isc_sockaddr_t *address, isc_uint32_t bits);
+static isc_result_t bits2v6mask(struct in6_addr *addr, isc_uint32_t bits);
+
 isc_result_t
 dns_c_ipmatchelement_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
 {
@@ -261,18 +264,22 @@ dns_c_ipmatchindirect_new(isc_mem_t *mem,
 isc_result_t
 dns_c_ipmatchpattern_new(isc_mem_t *mem,
 			  dns_c_ipmatchelement_t **result,
-			  dns_c_addr_t address,
+			  isc_sockaddr_t address,
 			  isc_uint32_t maskbits)
 {
 	dns_c_ipmatchelement_t *ime ;
 	isc_result_t res;
-	isc_uint32_t mask;
 
 	REQUIRE(result != NULL);
 	REQUIRE(mem != NULL);
-	REQUIRE(maskbits < 32);
 
 	*result = NULL;
+
+	res = checkmask(&address, maskbits);
+
+	if (res != ISC_R_SUCCESS) {
+		return (res);
+	}
 
 	res = dns_c_ipmatchelement_new(mem, &ime);
 	if (res != ISC_R_SUCCESS) {
@@ -280,36 +287,111 @@ dns_c_ipmatchpattern_new(isc_mem_t *mem,
 	}
 
 	ime->type = dns_c_ipmatch_pattern;
-
-	if (maskbits == 0) {
-		mask = 0;
-	} else {
-		mask = 0xffffffffU;
-		mask >>= (32 - maskbits);
-		mask <<= (32 - maskbits);
-	}
-
-#if 0
-	/* XXX this is not complete for IPV6 -- masks need fixing. */
-#endif
-	
-	if (mask != 0) {
-		mask = ntohl(mask);
-		/* Make sure mask is on a net and not a host. */
-		if ((mask & address.u.a.s_addr) != address.u.a.s_addr) {
-			dns_c_ipmatchelement_delete(mem, &ime);
-			return (ISC_R_FAILURE);
-		}
-	}
-
 	ime->u.direct.address = address;
-	ime->u.direct.mask.u.a.s_addr = mask; /* XXX not right. */
+	ime->u.direct.mask = maskbits;
 
 	*result = ime;
 
 	return (ISC_R_SUCCESS);
 }
 
+
+/*
+ * Check that the address given is a network address with the given number
+ * of high order bits.
+ */
+static isc_result_t
+checkmask(isc_sockaddr_t *address, isc_uint32_t bits)
+{
+	if (bits > 0) {
+		if (address->type.sa.sa_family == AF_INET) {
+			isc_uint32_t mask;
+			
+			mask = ntohl(0xffffffffU << (32 - bits));
+			
+			if ((mask & address->type.sin.sin_addr.s_addr) !=
+			    address->type.sin.sin_addr.s_addr) {
+				return (ISC_R_FAILURE);
+			}
+		} else if (address->type.sa.sa_family == AF_INET6) {
+			struct in6_addr iaddr;
+			unsigned char *maskp;
+			unsigned char *addrp;
+			int i;
+			
+			if (bits2v6mask(&iaddr, bits) != ISC_R_SUCCESS) {
+				return (ISC_R_FAILURE);
+			}
+			
+			addrp = (unsigned char *)&address->type.sin6.sin6_addr;
+			maskp = (unsigned char *)&iaddr;
+			for (i = 0 ; i < 16 ; i++) {
+				if ((addrp[i] & maskp[i]) != addrp[i]) {
+					return (ISC_R_FAILURE);
+				}
+			}
+		}
+	}
+	
+	return (ISC_R_SUCCESS);
+}
+
+
+
+/*
+ * Create a 128 bits mask in network byte order in the the IPv6 address
+ * section of the sockaddr. The bits argument is the number of high bits
+ * that are to be set to 1.
+ */
+static isc_result_t
+bits2v6mask(struct in6_addr *addr, isc_uint32_t bits)
+{
+	int i;
+	isc_uint32_t bitmask[4];
+	char addrbuff [ sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" + 1 ];
+
+	INSIST(bits < 128);
+	
+	/* Break the 128 bits up into 32-bit sections */
+	bitmask[0] = bitmask[1] = bitmask[2] = bitmask[3] = 0U;
+	
+	if (bits > 32) {
+		bitmask[0] = 0xffffffffU;
+        } else if (bits > 0) {
+		bitmask[0] = 0xffffffffU << (32 - bits);
+        }
+
+	if (bits > 64) {
+		bitmask[1] = 0xffffffffU;
+        } else if (bits > 32) {
+		bitmask[1] = 0xffffffffU << (64 - bits);
+        }
+
+	if (bits > 96) {
+		bitmask[2] = 0xffffffffU;
+		bitmask[3] = 0xffffffffU << (128 - bits);
+        } else if (bits > 64) {
+		bitmask[2] = 0xffffffffU << (96 - bits);
+        }
+      
+	memset(addr, 0x0, sizeof *addr);
+	
+	sprintf(addrbuff, "%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
+		(((bitmask[0] & 0xffff0000U) >> 16) & 0xffffU),
+		(bitmask[0] & 0xffff),
+		(((bitmask[1] & 0xffff0000U) >> 16) & 0xffffU),
+		(bitmask[1] & 0xffff),
+		(((bitmask[2] & 0xffff0000U) >> 16) & 0xffffU),
+		(bitmask[2] & 0xffff),
+		(((bitmask[3] & 0xffff0000U) >> 16) & 0xffffU),
+		(bitmask[3] & 0xffff));
+
+	i = inet_pton(AF_INET6, addrbuff, &addr);
+
+	return (i == 1 ? ISC_R_SUCCESS : ISC_R_FAILURE);
+}
+
+	
 
 isc_result_t
 dns_c_ipmatchkey_new(isc_mem_t *mem,
@@ -558,7 +640,6 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 			    dns_c_ipmatchelement_t *ipme)
 {
 	int bits;
-	isc_uint32_t tmpaddr;
 
 	REQUIRE(fp != NULL);
 	REQUIRE(ipme != NULL);
@@ -572,18 +653,10 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 	switch (ipme->type) {
 	case dns_c_ipmatch_pattern:
 		dns_c_print_ipaddr(fp, &ipme->u.direct.address);
-
-		bits = 0;
-		if (ipme->u.direct.mask.u.a.s_addr != 0) {
-			tmpaddr = ntohl(ipme->u.direct.mask.u.a.s_addr);
-			while ((tmpaddr & 0x1) == 0x0) {
-				bits++;
-				tmpaddr >>= 1;
-			}
-			INSIST(bits < 32);
-		}
+		
+		bits = ipme->u.direct.mask;
 		if (bits > 0) {
-			fprintf(fp, "/%d", 32 - bits);
+			fprintf(fp, "/%d", bits);
 		}
 		break;
 
@@ -669,7 +742,7 @@ dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist)
 		return (ISC_R_NOMEMORY);
 	}
 
-	bytes = sizeof (dns_c_addr_t) * length;
+	bytes = sizeof (isc_sockaddr_t) * length;
 	list->ips = isc_mem_get(mem, bytes);
 	if (list->ips == NULL) {
 		isc_mem_put(mem, list, sizeof *list);
@@ -706,7 +779,7 @@ dns_c_iplist_delete(dns_c_iplist_t **list)
 	l->refcount--;
 
 	if (l->refcount == 0) {
-		isc_mem_put(l->mem, l->ips, sizeof (dns_c_addr_t) * l->size);
+		isc_mem_put(l->mem, l->ips, sizeof (isc_sockaddr_t) * l->size);
 		isc_mem_put(l->mem, l, sizeof *l);
 	}
 
@@ -777,7 +850,7 @@ dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list)
 
 
 isc_result_t
-dns_c_iplist_append(dns_c_iplist_t *list, dns_c_addr_t newaddr)
+dns_c_iplist_append(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
 {
 	isc_uint32_t i;
 
@@ -794,7 +867,7 @@ dns_c_iplist_append(dns_c_iplist_t *list, dns_c_addr_t newaddr)
 	}
 
 	if (list->nextidx == list->size) {
-		dns_c_addr_t *newlist;
+		isc_sockaddr_t *newlist;
 		size_t newbytes;
 		size_t oldbytes = list->size * sizeof (list->ips[0]);
 		size_t newsize = list->size + 10;
@@ -820,7 +893,7 @@ dns_c_iplist_append(dns_c_iplist_t *list, dns_c_addr_t newaddr)
 
 
 isc_result_t
-dns_c_iplist_remove(dns_c_iplist_t *list, dns_c_addr_t newaddr)
+dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr)
 {
 	isc_uint32_t i;
 	

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.7 1999/09/15 23:03:25 explorer Exp $ */
+ /* $Id: zone.c,v 1.8 1999/09/17 14:22:06 brister Exp $ */
 
 #include <config.h>
 
@@ -2675,12 +2675,12 @@ dns_zone_transfer_in(dns_zone_t *zone) {
 static void
 sockaddr_fromaddr(isc_sockaddr_t *sockaddr, dns_c_addr_t *a,
 		  unsigned int port) {
-	switch (a->a_family) {
+	switch (a->type.sa.sa_family) {
 	case AF_INET:
-		isc_sockaddr_fromin(sockaddr, &a->u.a, port);
+		isc_sockaddr_fromin(sockaddr, &a->type.sin, port);
 		break;
 	case AF_INET6:
-		isc_sockaddr_fromin6(sockaddr, &a->u.a6, port);
+		isc_sockaddr_fromin6(sockaddr, &a->type.sin6, port);
 		break;
 	default:
 		INSIST(0);

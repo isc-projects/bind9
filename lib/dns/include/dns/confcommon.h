@@ -68,6 +68,7 @@
 #include <isc/types.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/sockaddr.h>
 
 #include <dns/types.h>
 
@@ -235,6 +236,8 @@ typedef isc_int64_t	dns_setbits_t;
 /* XXX This should be moved to a more general (non-config specific) place */
 /* An IP address. We support IPv4 and IPv6 addresses together so we wrap
    them up in this strcture*/
+#if 0
+
 typedef struct dns_c_addr {
 	int	a_family;		/* AF_INET or AF_INET6 */
 	union {
@@ -242,6 +245,12 @@ typedef struct dns_c_addr {
 		struct in6_addr a6;	/* if a_family == AF_INET6 */
 	} u;
 } dns_c_addr_t;
+
+#else
+
+typedef isc_sockaddr_t dns_c_addr_t;
+
+#endif
 
 
 /*
@@ -252,8 +261,6 @@ typedef struct dns_c_addr {
 
 extern isc_boolean_t debug_mem_print;
 extern FILE *debug_mem_print_stream;	/* NULL means stderr */
-
-extern const struct in6_addr in6addr_any;	/* all 0 bits wildcard addr. */
 
 typedef void (*dns_cfg_err_handler_t)(isc_result_t code,
 				      const char *fmt, va_list args);
@@ -307,8 +314,9 @@ isc_result_t		dns_c_string2facility(const char *string, int *res);
 
 
 
+int			dns_c_isanyaddr(isc_sockaddr_t *inaddr);
 void	 		dns_c_error(isc_result_t result, const char *fmt, ...);
-void 			dns_c_print_ipaddr(FILE *fp, dns_c_addr_t *addr);
+void 			dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *addr);
 dns_cfg_err_handler_t	dns_c_seterrorhandler(dns_cfg_err_handler_t
 						newhandler);
 isc_boolean_t		dns_c_need_quote(const char *string);

@@ -79,7 +79,7 @@ struct dns_c_srv
 {
 	isc_mem_t	       *mem;
 
-	dns_c_addr_t		address;
+	isc_sockaddr_t		address;
 	isc_boolean_t		bogus;
 	dns_transfer_format_t	transfer_format;
 	int			transfers;
@@ -102,8 +102,8 @@ isc_result_t	dns_c_srvlist_delete(dns_c_srvlist_t **list);
 void		dns_c_srvlist_print(FILE *fp, int indent,
 				     dns_c_srvlist_t *servers);
 
-isc_result_t	dns_c_srv_new(isc_mem_t *mem, dns_c_addr_t ipaddr,
-			      dns_c_srv_t **server); /* XX ipv6??? */
+isc_result_t	dns_c_srv_new(isc_mem_t *mem, isc_sockaddr_t ipaddr,
+			      dns_c_srv_t **server);
 isc_result_t	dns_c_srv_delete(dns_c_srv_t **server);
 void		dns_c_srv_print(FILE *fp, int indent, dns_c_srv_t *server);
 

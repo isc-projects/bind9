@@ -117,7 +117,7 @@ dns_c_srvlist_print(FILE *fp, int indent, dns_c_srvlist_t *servers)
 
 
 isc_result_t
-dns_c_srv_new(isc_mem_t *mem, dns_c_addr_t addr, dns_c_srv_t **server)
+dns_c_srv_new(isc_mem_t *mem, isc_sockaddr_t addr, dns_c_srv_t **server)
 {
 	dns_c_srv_t *serv;
 

@@ -79,7 +79,7 @@ struct dns_c_ctrl
 	dns_c_control_t control_type;
 	union {
 		struct {
-			dns_c_addr_t addr;
+			isc_sockaddr_t addr;
 			short port;
 			dns_c_ipmatchlist_t *matchlist;
 		} inet_v; /* when control_type == dns_c_inet_control  */
@@ -110,7 +110,7 @@ struct dns_c_ctrl_list
 
 
 isc_result_t	dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
-				    dns_c_addr_t addr, short port,
+				    isc_sockaddr_t addr, short port,
 				    dns_c_ipmatchlist_t *iml,
 				    isc_boolean_t copy);
 /*

@@ -1027,7 +1027,7 @@ dns_c_zone_setmasterips(dns_c_zone_t *zone, dns_c_iplist_t *newval,
 
 
 isc_result_t
-dns_c_zone_settransfersource(dns_c_zone_t *zone, dns_c_addr_t newval)
+dns_c_zone_settransfersource(dns_c_zone_t *zone, isc_sockaddr_t newval)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	
@@ -1885,7 +1885,7 @@ dns_c_zone_getmasterips(dns_c_zone_t *zone, dns_c_iplist_t **retval)
 
 
 isc_result_t
-dns_c_zone_gettransfersource(dns_c_zone_t *zone, dns_c_addr_t *retval)
+dns_c_zone_gettransfersource(dns_c_zone_t *zone, isc_sockaddr_t *retval)
 {
 	isc_result_t res = ISC_R_SUCCESS;
 

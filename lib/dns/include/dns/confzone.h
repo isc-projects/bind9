@@ -126,7 +126,7 @@ struct dns_c_slave_zone
 	dns_c_pubkey_t	       *pubkey;
 	isc_int32_t		master_port;
 	dns_c_iplist_t	       *master_ips;
-	dns_c_addr_t		transfer_source; /* XXX ipv6?? */
+	isc_sockaddr_t		transfer_source;
 	isc_int32_t		max_trans_time_in;
 
 	dns_setbits_t		setflags;
@@ -144,7 +144,7 @@ struct dns_c_stub_zone
 	dns_c_pubkey_t	       *pubkey;
 	isc_int32_t		master_port;
 	dns_c_iplist_t	       *master_ips;
-	dns_c_addr_t		transfer_source; /* XXX ipv6?? */
+	isc_sockaddr_t		transfer_source; 
 	isc_int32_t		max_trans_time_in;
 
 	dns_setbits_t		setflags;
@@ -254,7 +254,7 @@ isc_result_t	dns_c_zone_setmasterips(dns_c_zone_t *zone,
 					  dns_c_iplist_t *newval,
 					  isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_settransfersource(dns_c_zone_t *zone,
-					       dns_c_addr_t newval);
+					       isc_sockaddr_t newval);
 isc_result_t	dns_c_zone_setmaxtranstimein(dns_c_zone_t *zone,
 						 isc_int32_t newval);
 isc_result_t	dns_c_zone_setmaxixfrlog(dns_c_zone_t *zone,
@@ -297,7 +297,7 @@ isc_result_t	dns_c_zone_getmasterport(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_getmasterips(dns_c_zone_t *zone,
 					  dns_c_iplist_t **retval);
 isc_result_t	dns_c_zone_gettransfersource(dns_c_zone_t *zone,
-					       dns_c_addr_t *retval);
+					       isc_sockaddr_t *retval);
 isc_result_t	dns_c_zone_getmaxtranstimein(dns_c_zone_t *zone,
 						 isc_int32_t *retval);
 isc_result_t	dns_c_zone_getmaxixfrlog(dns_c_zone_t *zone,

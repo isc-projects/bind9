@@ -56,7 +56,7 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
-		    dns_c_addr_t addr, short port,
+		    isc_sockaddr_t addr, short port,
 		    dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
@@ -175,26 +175,19 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 		iml = ctl->u.inet_v.matchlist;
 		
 		fprintf(fp, "inet ");
-		if (ctl->u.inet_v.addr.a_family == AF_INET &&
-		    ctl->u.inet_v.addr.u.a.s_addr == htonl(INADDR_ANY)) {
-			fputc('*', fp);
-		} else if (ctl->u.inet_v.addr.a_family == AF_INET6 &&
-			   memcmp(&ctl->u.inet_v.addr.u.a6,
-				  &in6addr_any, sizeof in6addr_any) == 0) {
-			fprintf(fp, "0::0");
-		} else {
-			dns_c_print_ipaddr(fp,  &ctl->u.inet_v.addr);
-		}
-
+		dns_c_print_ipaddr(fp,  &ctl->u.inet_v.addr);
+		
 		if (port == htons(0)) {
 			fprintf(fp, " port *\n");
 		} else {
 			fprintf(fp, " port %d\n", (int)ntohs(port));
 		}
+		
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow ");
 		dns_c_ipmatchlist_print(fp, indent + 2, iml);
 	} else {
+		/* The "#" means force a leading zero */
 		fprintf(fp, "unix \"%s\" perm %#o owner %d group %d;\n",
 			ctl->u.unix_v.pathname,
 			ctl->u.unix_v.perm,

@@ -1296,7 +1296,7 @@ dns_c_ctx_setdialup(dns_c_ctx_t *cfg, isc_boolean_t newval)
 
 
 isc_result_t
-dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, dns_c_addr_t addr)
+dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
@@ -1471,6 +1471,32 @@ dns_c_ctx_settransferacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
 	REQUIRE(iml != NULL);
 
 	res = cfg_set_iplist(cfg->options, &cfg->options->transferacl,
+			     iml, copy);
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ctx_setrecursionacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
+			  dns_c_ipmatchlist_t *iml)
+{
+	isc_result_t res;
+	
+	CHECK_CONFIG(cfg);
+
+	if (cfg->options == NULL) {
+		res = dns_c_ctx_optionsnew(cfg->mem, &cfg->options);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
+	}
+	
+	CHECK_OPTION(cfg->options);
+
+	REQUIRE(iml != NULL);
+
+	res = cfg_set_iplist(cfg->options, &cfg->options->recursionacl,
 			     iml, copy);
 
 	return (res);
@@ -2391,7 +2417,7 @@ dns_c_ctx_getdialup(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, dns_c_addr_t *addr)
+dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 {
 	isc_result_t res;
 	
@@ -2531,6 +2557,21 @@ dns_c_ctx_gettransferacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
 	REQUIRE(list != NULL);
 
 	return (cfg_get_iplist(cfg->options, cfg->options->transferacl, list));
+}
+
+
+isc_result_t
+dns_c_ctx_getrecursionacl(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t **list)
+{
+	CHECK_CONFIG(cfg);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	REQUIRE(list != NULL);
+
+	return (cfg_get_iplist(cfg->options, cfg->options->recursionacl, list));
 }
 
 
@@ -2737,6 +2778,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 	opts->queryacl = NULL;
 	opts->transferacl = NULL;
+	opts->recursionacl = NULL;
 	opts->blackhole = NULL;
 	opts->topology = NULL;
 	opts->sortlist = NULL;
@@ -2801,6 +2843,9 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	r = dns_c_ipmatchlist_delete(&options->transferacl);
+	if (r != ISC_R_SUCCESS) return (r);
+	
+	r = dns_c_ipmatchlist_delete(&options->recursionacl);
 	if (r != ISC_R_SUCCESS) return (r);
 	
 	r = dns_c_ipmatchlist_delete(&options->blackhole);
@@ -2965,14 +3010,9 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	if (DNS_C_CHECKBIT(QUERY_SOURCE_PORT_BIT, &options->setflags1) ||
 	    DNS_C_CHECKBIT(QUERY_SOURCE_ADDR_BIT, &options->setflags1)) {
 		dns_c_printtabs(fp, indent + 1);
-		fprintf(fp, "query-source");
-		if (options->query_source_addr.u.a.s_addr ==
-		    htonl(INADDR_ANY)) {
-			fprintf(fp, " address *");
-		} else {
-			fprintf(fp, " address ");
-			dns_c_print_ipaddr(fp, &options->query_source_addr);
-		}
+		fprintf(fp, "query-source address ");
+		dns_c_print_ipaddr(fp, &options->query_source_addr);
+
 		if (options->query_source_port == htons(0)) {
 			fprintf(fp, " port *");
 		} else {
@@ -3020,6 +3060,13 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(fp, 2, options->transferacl);
+		fprintf(fp, "\n");
+	}
+
+	if (options->recursionacl != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "allow-recursion ");
+		dns_c_ipmatchlist_print(fp, 2, options->recursionacl);
 		fprintf(fp, "\n");
 	}
 
@@ -3341,13 +3388,14 @@ acl_init(dns_c_ctx_t *cfg)
 {
 	dns_c_ipmatchelement_t *ime;
 	dns_c_ipmatchlist_t *iml;
-	dns_c_addr_t addr;
+	isc_sockaddr_t addr;
 	dns_c_acl_t *acl;
 	isc_result_t r;
+	static struct in_addr zeroaddr;
 
 	CHECK_CONFIG(cfg);
 
-	addr.u.a.s_addr = 0U;
+	isc_sockaddr_fromin(&addr, &zeroaddr, 0);
 
 	r = dns_c_acltable_new(cfg->mem, &cfg->acls);
 	if (r != ISC_R_SUCCESS) return (r);
