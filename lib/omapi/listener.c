@@ -34,8 +34,6 @@ typedef struct omapi_listener_object {
 	isc_task_t *task;
 	isc_socket_t *socket;	/* Listening socket. */
 	dns_acl_t *acl;
-	void (*callback)(void *);
-	void *callback_arg;
 	/*
 	 * Locked by mutex.
 	 */
@@ -273,8 +271,8 @@ free_task:
 
 isc_result_t
 omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, int max, void (*callback)(void *),
-		      void *callback_arg)
+		      dns_acl_t *acl, int max,
+		      isc_taskaction_t destroy_action, void *destroy_arg)
 {
 	isc_result_t result;
 	isc_task_t *task;
@@ -343,8 +341,8 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
 		 * The callback is not set until here because it should
 		 * only be called if the listener was successfully set up.
 		 */
-		listener->callback = callback;
-		listener->callback_arg = callback_arg;
+		listener->destroy_action = destroy_action;
+		listener->destroy_arg = destroy_arg;
 
 
 	} else {
@@ -431,14 +429,6 @@ listener_destroy(omapi_object_t *listener) {
 
 	if (l->acl != NULL)
 		dns_acl_detach(&l->acl);
-
-	/*
-	 * XXDCL Technically, all the memory is not yet freed.  Hmm.
-	 * Somehow this callback stuff (or its "event" equivalent) needs to
-	 * go into object_dereference.
-	 */
-	if (l->callback != NULL)
-		(*l->callback)(l->callback_arg);
 }
 
 static isc_result_t
