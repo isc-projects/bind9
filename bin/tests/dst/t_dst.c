@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.44 2001/04/04 02:02:51 bwelling Exp $ */
+/* $Id: t_dst.c,v 1.45 2001/07/11 21:46:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -385,6 +385,13 @@ t1(void) {
 		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
 		t_result(T_UNRESOLVED);
+		return;
+	}
+
+	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
+		dst_lib_destroy();
+		t_info("library built without crypto support\n");
+		t_result(T_UNTESTED);
 		return;
 	}
 
@@ -857,6 +864,12 @@ t2_vfy(char **av) {
 		t_info("dst_lib_init failed %d\n",
 		       isc_result_totext(isc_result));
 		return(T_UNRESOLVED);
+	}
+
+	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
+		dst_lib_destroy();
+		t_info("library built without crypto support\n");
+		return (T_UNTESTED);
 	}
 
 	t_info("testing %s, %s, %s, %s, %s, %s\n",
