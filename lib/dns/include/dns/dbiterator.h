@@ -201,6 +201,8 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  * Requires:
  *	'iterator' is a valid iterator.
  *
+ *	'iterator' has not been paused already.
+ *
  * Ensures:
  *	Any database locks being held for efficiency of iterator access are
  *	released.
