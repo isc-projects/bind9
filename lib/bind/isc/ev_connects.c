@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_connects.c,v 1.3 2001/07/03 06:49:53 marka Exp $";
+static const char rcsid[] = "$Id: ev_connects.c,v 1.4 2001/07/03 13:44:53 marka Exp $";
 #endif
 
 /* Import. */
@@ -287,8 +287,8 @@ listener(evContext opaqueCtx, void *uap, int fd, int evmask) {
 		struct sockaddr_un un;
 #endif
 	} la, ra;
-	int new, lalen = 0;
-	ISC_SOCKLEN_T ralen;
+	int new; 
+	ISC_SOCKLEN_T lalen = 0, ralen;
 
 	REQUIRE((evmask & EV_READ) != 0);
 	ralen = sizeof ra;
