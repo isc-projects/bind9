@@ -229,9 +229,34 @@ No attempt is made to filter out duplicate destinations, so it is
 certainly possible to define things such that a single log gets more
 than one copy of the same message.  This may change in the future.
 
-Finally, here is a note about multiprocessing.  The entire logging
-context is pthread locked for most of duration of the isc_log_write.
-That's it, that's the note.
+EXTERNALLY VISIBLE STRUCTURE
+
+Two of the fundamental types used by programs for configuring log
+message destinations are isc_log_t and isc_logconfig_t.  The isc_log_t
+type is normally created only once by a program, to hold the (relatively)
+static information about what categories and modules exist in the program
+and some other housekeeping information.  isc_logconfig_t is used to
+store the configurable specification of message destinations, which
+can be changed during the course of the program.
+
+A starting configuration (isc_logconfig_t) is created implicitly when
+the context (isc_log_t) is created.  The pointer to this configuration
+is returned via a parameter to isc_log_create so that it can then be
+configurated.  A new configuration can be established by creating
+it with isc_logconfig_create, configuring it, then installing it as
+the active configuration with isc_logconfig_use.
+
+MULTITHREADED PROGRAMS
+
+The entire logging context is thread locked for most of duration of
+the isc_log_write.   However, isc_log_write does avoid the delays
+caused by locking when it is clear that there are no possible outputs
+for a message based on its debugging level --- this is so that a
+program can have debugging messages sprinkled liberally throughout it
+but not incur any locking penalty when debugging is not enabled.
+
+The logging context is locked when a new configuration is installed
+by isc_logconfig_use.
 
 USING LIBRARIES THAT USE THE LOGGING SYSTEM
 
@@ -251,9 +276,10 @@ rudimentary initialization of both.
 
   isc_mem_t *mctx;
   isc_log_t *lctx;
+  isc_logconfig_t *lcfg;
 
   if (isc_mem_create(0, 0, &mctx) != ISC_R_SUCCESS) ||
-      isc_log_create(mctx, &lctx) != ISC_R_SUCCESS))
+      isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
           oops_it_didnt_work();
 
 3) Initalize any additional libraries.  The convention for the name of
@@ -277,17 +303,17 @@ descriptor log, and syslog.
   destination.file.name = "/var/log/example";
   destination.file.maximum_size = 0;              /* No byte limit. */
   destination.file.versions = ISC_LOG_ROLLNEVER;  /* External rolling. */
-  if (isc_log_createchannel(lctx, "sample1" ISC_LOG_TOFILE, ISC_LOG_DYNAMIC,
+  if (isc_log_createchannel(lcfg, "sample1" ISC_LOG_TOFILE, ISC_LOG_DYNAMIC,
                             &destination, ISC_LOG_PRINTTIME) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
   destination.file.stream = stdout;
-  if (isc_log_createchannel(lctx, "sample2" ISC_LOG_TOFILEDESC, ISC_LOG_INFO,
+  if (isc_log_createchannel(lcfg, "sample2" ISC_LOG_TOFILEDESC, ISC_LOG_INFO,
                             &destination, ISC_LOG_PRINTTIME) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
   destination.facility = LOG_ERR;
-  if (isc_log_createchannel(lctx, "sample3" ISC_LOG_SYSLOG, ISC_LOG_ERROR,
+  if (isc_log_createchannel(lcfg, "sample3" ISC_LOG_SYSLOG, ISC_LOG_ERROR,
                             &destination, 0) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
@@ -307,15 +333,15 @@ sending all messages to default_stderr is acceptable.  The following
 examples sends DNS security messages to stderr, DNS database messages
 to null, and all other messages to syslog.
 
-  if (isc_log_usechannel(lctx, "default_stderr", DNS_LOGCATEGORY_SECURITY,
+  if (isc_log_usechannel(lcfg, "default_stderr", DNS_LOGCATEGORY_SECURITY,
                          NULL) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
-  if (isc_log_usechannel(lctx, "null", DNS_LOGCATEGORY_DATABASE, NULL)
+  if (isc_log_usechannel(lcfg, "null", DNS_LOGCATEGORY_DATABASE, NULL)
       != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
-  if (isc_log_usechannel(lctx, "default_syslog", ISC_LOGCATEGORY_DEFAULT,
+  if (isc_log_usechannel(lcfg, "default_syslog", ISC_LOGCATEGORY_DEFAULT,
                          NULL) != ISC_R_SUCCESS)
           oops_it_didnt_work();
 
@@ -335,6 +361,19 @@ system logging facility on Windows NT.
 
 Now the libraries used by your program will write messages according
 to your specifications.
+
+7) If you want to swap in a new configuration to replace the existing
+configuration, first create the new configuration with:
+
+  result = isc_logconfig_create(lctx, &newlcfg);
+
+and then configure newlcfg with isc_log_createchannel() and
+isc_log_usechannel().  When it is all ready:
+
+  result = isc_logconfig_use(lctx, newlcfg);
+
+If the new configration is successfully installed, then the old one
+will be destroyed, freeing all memory it used.
 
 There are three additional functions you might find useful in your
 program to control logging behavior, two to work with the debugging
