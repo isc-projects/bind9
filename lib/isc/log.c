@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.11 2004/03/09 06:11:47 marka Exp $ */
+/* $Id: log.c,v 1.70.2.12 2004/04/10 04:30:05 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1316,7 +1316,7 @@ isc_log_open(isc_logchannel_t *channel) {
 	if (stat(path, &statbuf) == 0) {
 		regular_file = S_ISREG(statbuf.st_mode) ? ISC_TRUE : ISC_FALSE;
 		/* XXXDCL if not regular_file complain? */
-		roll = ISC_TF(regular_file &&
+		roll = ISC_TF(regular_file && FILE_MAXSIZE(channel) > 0 &&
 			      statbuf.st_size >= FILE_MAXSIZE(channel));
 	} else if (errno == ENOENT)
 		regular_file = ISC_TRUE;
@@ -1710,7 +1710,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			 * threshold, note it so that it will not be logged
 			 * to any more.
 			 */
-			if (FILE_MAXSIZE(channel) != 0) {
+			if (FILE_MAXSIZE(channel) > 0) {
 				INSIST(channel->type == ISC_LOG_TOFILE);
 
 				/* XXXDCL NT fstat/fileno */
