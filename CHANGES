@@ -1,3 +1,6 @@
+ 219.	[bug]		Signed truncated messages more correctly follow
+			the respective specs.
+
  218.	[func]		When an rdataset is signed, its ttl is normalized
 			based on the signature validity period.
 
