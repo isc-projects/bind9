@@ -1,0 +1,140 @@
+.\" Copyright (C) @YEARS@  Internet Software Consortium.
+.\" 
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" 
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+.\" ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+.\" CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+.\" DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+.\" PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+.\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+.\" SOFTWARE.
+.\" 
+.\" $Id: rndc.conf.5,v 1.1 2000/06/29 06:14:18 jim Exp $
+.\" 
+.Dd Jun 30, 2000
+.Dt RDNC.CONF 5
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm rdnc.conf
+.Nd rdnc configuration file
+.Sh SYNOPSIS
+.Nm rdnc.conf
+.Sh DESCRIPTION 
+The BIND9 utility for controlling the name server,
+.Nm rndc ,
+has its own configuration file
+.Pa /etc/rndc.conf .
+This file has a similar structure and syntax to
+.Pa named.conf ,
+the file used to configure the name server.
+Statements are enclosed in braces and terminated with a semi-colon.
+Clauses in the statements are also semi-colon terminated.
+The usual comment styles are supported:
+.Bl -tag -width UNIX-style:
+.It C style: /* */
+.It C++ style: // to end of line
+.It Unix style: # to end of line
+.El
+.Pp
+.Pa rndc.conf
+is much simpler than
+.Pa named.conf .
+The file uses three statements: an
+.Dv options{}
+statement, a
+.Dv server{}
+statement and a
+.Dv key{}
+statement.
+.Pp
+The
+.Dv options{}
+statement contains two clauses.
+The
+.Dv default-server
+clause
+is followed by the name of a name server.
+This must be identified by a
+.Dv server{}
+statement elsewhere in the file.
+This server will
+be used when no name server is given as an argument to
+.Nm rndc .
+The
+.Dv default-key
+clause
+is followed by the name of a key which is identified by a 
+.Dv key{}
+statement.
+If no other suitable key can be found in the file, this default key
+will be used to authenticate commands sent to the name
+server and its responses.
+The key name is enclosed in double quotes.
+.Pp
+After the keyword
+.Dv server ,
+the 
+.Dv server{}
+statement is followed by a string which is the hostname for the
+name server.
+The statement has a single clause:
+.Dv key .
+This contains the name of a key which is enclosed in double quotes.
+The key name must match the name of a
+.Dv key{}
+statement in the file.
+.Pp
+The
+.Dv key{}
+statement begins with an identifying string - the name of the key.
+The statement has two clauses.
+.Dv algorithm
+identifies the encryption algorithm for
+.Nm rndc
+to use.
+Currently only HMAC-MD5 is supported.
+This is followed by a 
+.Dv secret
+clause which contains the base-64 encoding of the
+algorithm's encryption key.
+The base-64 string is enclosed in double quotes.
+.Sh EXAMPLE
+.Bd -literal indent
+options {
+        default-server  localhost;
+        default-key     "samplekey";
+};
+
+server localhost {
+        key     "samplekey";
+};
+
+key "samplekey" {
+        algorithm       hmac-md5;
+        secret          "strong enough for a man, but made for a woman";
+};
+.Ed
+.Pp
+In the above example,
+.Nm rndc
+will by default use the server at localhost (127.0.0.1) and the key called
+.Dv samplekey .
+Commands to the localhost server will use the
+.Dv samplekey
+key.
+The
+.Dv key{}
+statement indicates that
+.Dv samplekey
+uses the HMAC-MD5 algorithm and its
+.Dv secret
+clause contains the base-64 encoding of the HMAC-MD5 secret enclosed
+in double quotes.
+.Sh SEE ALSO
+.Xr rndc 8 ,
+"BIND9 Administrators Manual"
