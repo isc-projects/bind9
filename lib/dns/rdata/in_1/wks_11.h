@@ -15,5 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.h,v 1.11 1999/09/15 23:03:38 explorer Exp $ */
+ /* $Id: wks_11.h,v 1.12 2000/01/17 03:21:52 marka Exp $ */
 
+typedef	struct dns_rdata_in_wks {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	struct in_addr		in_addr;
+	isc_uint16_t		protocol;
+	unsigned char		*map;
+	isc_uint16_t		length;
+} dns_rdata_in_wks_t;

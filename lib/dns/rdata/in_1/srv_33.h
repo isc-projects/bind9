@@ -15,7 +15,16 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.h,v 1.7 1999/09/15 23:03:37 explorer Exp $ */
+ /* $Id: srv_33.h,v 1.8 2000/01/17 03:21:52 marka Exp $ */
 
  /* RFC 2052 bis */
+
+typedef struct dns_rdata_in_srv {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	isc_uint16_t		priority;
+	isc_uint16_t		weight;
+	isc_uint16_t		port;
+	dns_name_t		target;
+} dns_rdata_in_srv_t;
 

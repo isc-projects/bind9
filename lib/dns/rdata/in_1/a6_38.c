@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.18 1999/12/23 00:09:01 explorer Exp $ */
+ /* $Id: a6_38.c,v 1.19 2000/01/17 03:21:49 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -262,12 +262,27 @@ static inline isc_result_t
 fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	dns_rdata_in_a6_t *a6 = source;
+	unsigned char prefixlen;
+	unsigned char octets;
 
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(a6->common.rdtype == type);
+	REQUIRE(a6->common.rdclass == rdclass);
 
-	source = source;
-	target = target;
+	if (a6->prefixlen > 128)
+		return (DNS_R_RANGE);
+
+	prefixlen = a6->prefixlen;
+	RETERR(mem_tobuffer(target, &prefixlen, 1));
+
+	if (a6->prefixlen != 128) {
+
+	}
+
+	octets = 16 - prefixlen / 8;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }

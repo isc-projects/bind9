@@ -15,7 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.h,v 1.7 1999/09/15 23:03:37 explorer Exp $ */
+ /* $Id: px_26.h,v 1.8 2000/01/17 03:21:52 marka Exp $ */
 
  /* RFC 2163 */
 
+typedef struct dns_rdata_in_px {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	isc_uint16_t		preference;
+	dns_name_t		map822;
+	dns_name_t		mapx400;
+} dns_rdata_in_px_t;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.c,v 1.14 1999/12/23 00:09:02 explorer Exp $ */
+ /* $Id: kx_36.c,v 1.15 2000/01/17 03:21:50 marka Exp $ */
 
  /* RFC 2230 */
 
@@ -159,33 +159,59 @@ static inline isc_result_t
 fromstruct_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	dns_rdata_in_kx_t *kx = source;
+	isc_region_t region;
 
 	REQUIRE(type == 36);
 	REQUIRE(rdclass == 1);
+	REQUIRE(source != NULL);
+	REQUIRE(kx->common.rdtype == type);
+	REQUIRE(kx->common.rdclass == rdclass);
 
-	source = source;
-	target = target;
-
-	return (DNS_R_NOTIMPLEMENTED);
+	RETERR(uint16_tobuffer(kx->preference, target));
+	dns_name_toregion(&kx->exchange, &region);
+	return (isc_buffer_copyregion(target, &region));
 }
 
 static inline isc_result_t
 tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	isc_region_t region;
+	dns_rdata_in_kx_t *kx = target;
+	dns_name_t name;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(target != NULL);
+	REQUIRE(mctx != NULL);
 
-	target = target;
-	mctx = mctx;
+	kx->common.rdclass = rdata->rdclass;
+	kx->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&kx->common, link);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+
+	kx->preference = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+
+	dns_name_fromregion(&name, &region);
+	kx->mctx = mctx;
+	dns_name_init(&kx->exchange, NULL);
+	result = dns_name_dup(&name, kx->mctx, &kx->exchange);
+	if (result != ISC_R_SUCCESS)
+		kx->mctx = NULL;
+	return (result);
 }
 
 static inline void
 freestruct_in_kx(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+	dns_rdata_in_kx_t *kx = source;
 
+	REQUIRE(source != NULL);
+
+	dns_name_free(&kx->exchange, kx->mctx);
+	kx->mctx = NULL;
 }
 
 static inline isc_result_t

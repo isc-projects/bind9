@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.19 1999/12/23 00:08:55 explorer Exp $ */
+ /* $Id: ns_2.c,v 1.20 2000/01/17 03:21:53 marka Exp $ */
 
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
@@ -31,7 +31,7 @@ fromtext_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 2);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	RETERR(gettoken(lexer, &token,isc_tokentype_string, ISC_FALSE));
 
@@ -73,7 +73,7 @@ fromwire_ns(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 2);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -146,6 +146,7 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_ns_t *ns = target;
 	dns_name_t name;
+	isc_result_t result;
 
 	REQUIRE(rdata->type == 2);
 	REQUIRE(target != NULL);
@@ -160,9 +161,11 @@ tostruct_ns(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_name_fromregion(&name, &region);
 	ns->mctx = mctx;
 	dns_name_init(&ns->name, NULL);
-	dns_name_dup(&name, ns->mctx, &ns->name);
+	result = dns_name_dup(&name, ns->mctx, &ns->name);
+	if (result != ISC_R_SUCCESS)
+		ns->mctx = NULL;
 
-	return (DNS_R_SUCCESS);
+	return (result);
 }
 
 static inline void

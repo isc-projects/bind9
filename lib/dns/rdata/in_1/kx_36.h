@@ -15,7 +15,13 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.h,v 1.8 1999/09/15 23:03:35 explorer Exp $ */
+ /* $Id: kx_36.h,v 1.9 2000/01/17 03:21:50 marka Exp $ */
 
  /* RFC 2230 */
 
+typedef struct dns_rdata_in_kx {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	isc_uint16_t		preference;
+	dns_name_t		exchange;
+} dns_rdata_in_kx_t;

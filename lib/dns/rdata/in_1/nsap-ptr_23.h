@@ -15,7 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.h,v 1.7 1999/09/15 23:03:36 explorer Exp $ */
+ /* $Id: nsap-ptr_23.h,v 1.8 2000/01/17 03:21:50 marka Exp $ */
 
  /* RFC 1348 */
 
+typedef struct dns_rdata_in_nsap_ptr {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		owner;
+} dns_rdata_in_nsap_ptr_t;
