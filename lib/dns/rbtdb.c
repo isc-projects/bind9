@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.7 2003/10/17 05:37:20 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.8 2004/01/12 04:29:41 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -122,6 +122,14 @@ typedef struct rdatasetheader {
 	 * this rdataset.
 	 */
 
+	isc_uint32_t			count;
+	/*
+	 * Monotonously increased every time this rdataset is bound so that
+	 * it is used as the base of the starting point in DNS responses
+	 * when the "cyclic" rrset-order is required.  Since the ordering
+	 * should not be so crucial, no lock is set for the counter for
+	 * performance reasons.
+	 */
 } rdatasetheader_t;
 
 #define RDATASET_ATTR_NONEXISTENT	0x0001
@@ -1355,7 +1363,10 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
-	
+	rdataset->count = header->count++;
+	if (header->count == ISC_UINT32_MAX)
+		header->count = 0;
+
 	/*
 	 * Reset iterator state.
 	 */
@@ -3972,6 +3983,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->type = RBTDB_RDATATYPE_VALUE(rdataset->type,
 						rdataset->covers);
 	newheader->attributes = 0;
+	newheader->count = 0;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
 		newheader->trust = 0;
@@ -4038,6 +4050,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->attributes = 0;
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
+	newheader->count = 0;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -4107,6 +4120,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->attributes = RDATASET_ATTR_NONEXISTENT;
 			newheader->trust = 0;
 			newheader->serial = rbtversion->serial;
+			newheader->count = 0;
 		} else {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			goto unlock;
@@ -4175,6 +4189,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->serial = rbtversion->serial;
 	else
 		newheader->serial = 0;
+	newheader->count = 0;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -4250,6 +4265,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->attributes = 0;
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
+	newheader->count = 0;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader,
 		     DNS_DBADD_MERGE, ISC_TRUE, NULL, 0);

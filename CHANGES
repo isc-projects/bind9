@@ -1,3 +1,6 @@
+1555.	[func]		'rrset-order cyclic' no longer has a random starting
+			point. [RT #7572]
+
 1554.	[bug]		dig, host, nsloolup failed when no nameservers
 			were specified in /etc/resolv.conf. [RT #8232]
 

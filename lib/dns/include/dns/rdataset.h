@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.41.2.5.2.2 2003/08/13 02:18:19 marka Exp $ */
+/* $Id: rdataset.h,v 1.41.2.5.2.3 2004/01/12 04:29:42 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -97,6 +97,13 @@ struct dns_rdataset {
 	 * attributes
 	 */
 	unsigned int			attributes;
+	/*
+	 * the counter provides the starting point in the "cyclic" order.
+	 * The value ISC_UINT32_MAX has a special meaning of "picking up a
+	 * random value." in order to take care of databases that do not
+	 * increment the counter.
+	 */
+	isc_uint32_t			count;
 	/*
 	 * These are for use by the rdataset implementation, and MUST NOT
 	 * be changed by clients.
