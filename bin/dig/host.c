@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.63 2001/01/24 19:28:32 gson Exp $ */
+/* $Id: host.c,v 1.64 2001/02/13 23:12:16 tamino Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -272,7 +272,11 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	result = dns_rdata_totext(rdata, NULL, b2);
 	check_result(result, "dns_rdata_totext");
 	isc_buffer_usedregion(b2, &r2);
-	printf("%.*s %s %.*s", (int)r.length, (char *)r.base,
+	if (query->lookup->identify_previous_line) {
+		printf("Nameserver %s:\n",
+			query->servname);
+	}
+	printf("\t%.*s %s %.*s", (int)r.length, (char *)r.base,
 	       msg, (int)r2.length, (char *)r2.base);
 	if (query->lookup->identify) {
 		printf(" on server %s", query->servname);
@@ -417,6 +421,12 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_region_t r;
 
 	UNUSED(headers);
+
+	/* Special case. If we're doing an ns_search_only query, but we're
+	 * still following pointers, haven't gotten to the real NS records
+	 * yet, don't print anything. */
+	if (query->lookup->ns_search_only && !query->lookup->ns_search_only_leafnode)
+		return (ISC_R_SUCCESS);
 
 	if (listed_server) {
 		printf("Using domain server:\n");
@@ -635,6 +645,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->rdclassset = ISC_TRUE;
 			lookup->ns_search_only = ISC_TRUE;
 			lookup->trace_root = ISC_TRUE;
+			lookup->identify_previous_line = ISC_TRUE;
 			break;
 		case 'N':
 			debug("setting NDOTS to %s",

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.135 2001/01/24 19:28:29 gson Exp $ */
+/* $Id: dig.c,v 1.136 2001/02/13 23:12:13 tamino Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -411,18 +411,22 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       msg->counts[DNS_SECTION_ANSWER],
 			       msg->counts[DNS_SECTION_AUTHORITY],
 			       msg->counts[DNS_SECTION_ADDITIONAL]);
-
-			result = dns_message_pseudosectiontotext(msg,
-						 DNS_PSEUDOSECTION_OPT,
-						 flags, buf);
-			check_result(result,
-				     "dns_message_pseudosectiontotext");
 		}
+	}
+
+buftoosmall:
+
+	if (query->lookup->comments && headers && !short_form)
+	{
+		result = dns_message_pseudosectiontotext(msg,
+			 DNS_PSEUDOSECTION_OPT,
+			 flags, buf);
+		check_result(result,
+		     "dns_message_pseudosectiontotext");
 	}
 
 	if (query->lookup->section_question && headers) {
 		if (!short_form) {
-		question_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_QUESTION,
 						       flags, buf);
@@ -431,14 +435,13 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				isc_buffer_free(&buf);
 				result = isc_buffer_allocate(mctx, &buf, len);
 				if (result == ISC_R_SUCCESS)
-					goto question_again;
+					goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}
 	if (query->lookup->section_answer) {
 		if (!short_form) {
-		answer_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_ANSWER,
 						       flags, buf);
@@ -447,7 +450,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				isc_buffer_free(&buf);
 				result = isc_buffer_allocate(mctx, &buf, len);
 				if (result == ISC_R_SUCCESS)
-					goto answer_again;
+					goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		} else {
@@ -457,7 +460,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 	if (query->lookup->section_authority) {
 		if (!short_form) {
-		authority_again:
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_AUTHORITY,
 						       flags, buf);
@@ -466,14 +468,13 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				isc_buffer_free(&buf);
 				result = isc_buffer_allocate(mctx, &buf, len);
 				if (result == ISC_R_SUCCESS)
-					goto authority_again;
+					goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 		}
 	}
 	if (query->lookup->section_additional) {
 		if (!short_form) {
-		additional_again:
 			result = dns_message_sectiontotext(msg,
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
@@ -482,7 +483,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				isc_buffer_free(&buf);
 				result = isc_buffer_allocate(mctx, &buf, len);
 				if (result == ISC_R_SUCCESS)
-					goto additional_again;
+					goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
 			/*
@@ -913,6 +914,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	char textname[MXNAME];
+	isc_boolean_t orig_rdtypeset;
+	dns_rdatatype_t orig_rdtype;
+	isc_uint32_t orig_ixfr_serial;
+	isc_boolean_t orig_section_question;
+	isc_boolean_t orig_comments;
+	dns_rdataclass_t orig_rdclass;
+	isc_boolean_t orig_rdclassset;
 
 	cmd = option[0];
 	if (strlen(option) > 1) {
@@ -947,9 +955,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'c':
 		if ((*lookup)->rdclassset) {
-			fprintf(stderr, ";; Warning, ignoring multiple "
-				"class options\n");
-			return (value_from_next);
+			fprintf(stderr, ";; Warning, extra class option\n");
 		}
 		*open_type_class = ISC_FALSE;
 		tr.base = value;
@@ -976,32 +982,45 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		port = parse_int(value, "port number", MAXPORT);
 		return (value_from_next);
 	case 't':
-		if ((*lookup)->rdtypeset) {
-			fprintf(stderr, ";; Warning, ignoring multiple "
-				"type options\n");
-			return (value_from_next);
-		}
 		*open_type_class = ISC_FALSE;
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
-			(*lookup)->rdtype = dns_rdatatype_ixfr;
-			(*lookup)->rdtypeset = ISC_TRUE;
-			(*lookup)->ixfr_serial =
-				parse_int(&value[5], "serial number",
-					  MAXSERIAL);
-			(*lookup)->section_question = plusquest;
-			(*lookup)->comments = pluscomm;
-			return (value_from_next);
+			rdtype = dns_rdatatype_ixfr;
+			result = ISC_R_SUCCESS;
 		}
-		tr.base = value;
-		tr.length = strlen(value);
-		result = dns_rdatatype_fromtext(&rdtype,
+		else
+		{
+			tr.base = value;
+			tr.length = strlen(value);
+			result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
+		}
 		if (result == ISC_R_SUCCESS) {
-			(*lookup)->rdtype = rdtype;
-			(*lookup)->rdtypeset = ISC_TRUE;
-			if (rdtype == dns_rdatatype_axfr) {
+			if ((*lookup)->rdtypeset) {
+				fprintf(stderr, ";; Warning, "
+						"extra type option\n");
+			}
+			if (rdtype == dns_rdatatype_ixfr) {
+				(*lookup)->rdtype = dns_rdatatype_ixfr;
+				(*lookup)->rdtypeset = ISC_TRUE;
+				(*lookup)->ixfr_serial =
+					parse_int(&value[5], "serial number",
+					  	MAXSERIAL);
 				(*lookup)->section_question = plusquest;
 				(*lookup)->comments = pluscomm;
+			}
+			else
+			{
+				(*lookup)->rdtype = rdtype;
+				(*lookup)->rdtypeset = ISC_TRUE;
+				if (rdtype == dns_rdatatype_axfr) {
+					(*lookup)->section_question = plusquest;
+					(*lookup)->comments = pluscomm;
+				}
+				else {
+					(*lookup)->section_question = ISC_TRUE;
+					(*lookup)->comments = ISC_TRUE;
+				}
+				(*lookup)->ixfr_serial = ISC_FALSE;
 			}
 		} else
 			fprintf(stderr, ";; Warning, ignoring "
@@ -1025,6 +1044,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		keysecret[sizeof(keysecret)-1]=0;
 		return (value_from_next);
 	case 'x':
+		orig_rdtypeset = (*lookup)->rdtypeset;
+		orig_rdtype = (*lookup)->rdtype;
+		orig_ixfr_serial = (*lookup)->ixfr_serial;
+		orig_section_question = (*lookup)->section_question;
+		orig_comments = (*lookup)->comments;
+		orig_rdclassset = (*lookup)->rdclassset;
+		orig_rdclass = (*lookup)->rdclass;
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
 		if (get_reverse(textname, value, nibble) == ISC_R_SUCCESS) {
 			strncpy((*lookup)->textname, textname,
@@ -1033,10 +1059,23 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
 						(*lookup)->ns_search_only);
 			(*lookup)->nibble = nibble;
-			(*lookup)->rdtype = dns_rdatatype_ptr;
-			(*lookup)->rdtypeset = ISC_TRUE;
-			(*lookup)->rdclass = dns_rdataclass_in;
-			(*lookup)->rdclassset = ISC_TRUE;
+			if (!orig_rdtypeset)
+				(*lookup)->rdtype = dns_rdatatype_ptr;
+			else
+			{
+				(*lookup)->rdtypeset = orig_rdtypeset;
+				(*lookup)->rdtype = orig_rdtype;
+				(*lookup)->ixfr_serial = orig_ixfr_serial;
+				(*lookup)->section_question = orig_section_question;
+				(*lookup)->comments = orig_comments;
+			}
+			if (!orig_rdclassset)
+				(*lookup)->rdclass = dns_rdataclass_in;
+			else
+			{
+				(*lookup)->rdclassset = orig_rdclassset;
+				(*lookup)->rdclass = orig_rdclass;
+			}
 			(*lookup)->new_search = ISC_TRUE;
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
@@ -1186,36 +1225,48 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			 * Anything which isn't an option
 			 */
 			if (open_type_class) {
-				tr.base = rv[0];
-				tr.length = strlen(rv[0]);
 				if (strncmp(rv[0], "ixfr=", 5) == 0) {
-					lookup->rdtype = dns_rdatatype_ixfr;
-					lookup->rdtypeset = ISC_TRUE;
-					lookup->ixfr_serial =
-						parse_int(&rv[0][5],
-							  "serial number",
-							  MAXSERIAL);
-					lookup->section_question = plusquest;
-					lookup->comments = pluscomm;
-					continue;
+					rdtype = dns_rdatatype_ixfr;
+					result = ISC_R_SUCCESS;
 				}
-				result = dns_rdatatype_fromtext(&rdtype,
-						     (isc_textregion_t *)&tr);
-				if ((result == ISC_R_SUCCESS) &&
-				    (rdtype != dns_rdatatype_ixfr)) {
+				else
+				{
+					tr.base = rv[0];
+					tr.length = strlen(rv[0]);
+					result = dns_rdatatype_fromtext(&rdtype,
+						     	(isc_textregion_t *)&tr);
+				}
+				if (result == ISC_R_SUCCESS)
+				{
 					if (lookup->rdtypeset) {
 						fprintf(stderr, ";; Warning, "
-							"ignoring multiple "
-							"type options\n");
-						continue;
+							"extra type option\n");
 					}
-					if (rdtype == dns_rdatatype_axfr) {
-						lookup->section_question =
-							plusquest;
+					if (rdtype == dns_rdatatype_ixfr) {
+						lookup->rdtype = dns_rdatatype_ixfr;
+						lookup->rdtypeset = ISC_TRUE;
+						lookup->ixfr_serial =
+							parse_int(&rv[0][5],
+							  	"serial number",
+							  	MAXSERIAL);
+						lookup->section_question = plusquest;
 						lookup->comments = pluscomm;
 					}
-					lookup->rdtype = rdtype;
-					lookup->rdtypeset = ISC_TRUE;
+					else
+					{
+						lookup->rdtype = rdtype;
+						lookup->rdtypeset = ISC_TRUE;
+						if (rdtype == dns_rdatatype_axfr) {
+							lookup->section_question =
+								plusquest;
+							lookup->comments = pluscomm;
+						}
+						else {
+							lookup->section_question = ISC_TRUE;
+							lookup->comments = ISC_TRUE;
+						}
+						lookup->ixfr_serial = ISC_FALSE;
+					}
 					continue;
 				}
 				result = dns_rdataclass_fromtext(&rdclass,
@@ -1223,9 +1274,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				if (result == ISC_R_SUCCESS) {
 					if (lookup->rdclassset) {
 						fprintf(stderr, ";; Warning, "
-							"ignoring multiple "
-							"class options\n");
-						continue;
+							"extra class option\n");
 					}
 					lookup->rdclass = rdclass;
 					lookup->rdclassset = ISC_TRUE;
@@ -1301,7 +1350,18 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		lookup->rdtype = dns_rdatatype_ns;
 		lookup->rdtypeset = ISC_TRUE;
 		printgreeting(argc, argv, lookup);
+		firstarg = ISC_FALSE;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
+	}
+
+	/* If we haven't already printed a greeting, and we have a lookup
+	 * with which to print one, do it now. The reason that we sometimes
+	 * call it earlier than this is that we munge some of the things
+	 * printgreeting() needs under certain circumstances. */
+	if (lookup && firstarg)
+	{
+		printgreeting(argc, argv, lookup);
+		firstarg = ISC_FALSE;
 	}
 }
 
