@@ -1,6 +1,9 @@
 1640.	[bug]		win32: isc_socket_cancel(ISC_SOCKCANCEL_ACCEPT) was
 			incorrectly closing the socket.  [RT #11291]
 
+1634.	[bug]		named didn't supply a useful error message when it
+			detected duplicate views.  [RT #11208]
+
 1633.	[bug]		named should return NOTIMP to update requests to a
 			slaves without a allow-update-forwarding acl specified.
 			[RT #11331]

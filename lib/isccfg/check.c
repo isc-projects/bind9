@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.23 2004/04/16 00:02:00 marka Exp $ */
+/* $Id: check.c,v 1.14.2.24 2004/05/17 06:18:40 marka Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
+#include <dns/rdataclass.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/check.h>
@@ -589,6 +590,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
+	isc_symtab_t *symtab = NULL;
 
 	static const char *builtin[] = { "localhost", "localnets",
 					 "any", "none" };
@@ -622,17 +624,51 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 	}
 
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
 	for (velement = cfg_list_first(views);
 	     velement != NULL;
 	     velement = cfg_list_next(velement))
 	{
 		cfg_obj_t *view = cfg_listelt_value(velement);
+		cfg_obj_t *vname = cfg_tuple_get(view, "name");
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
+		cfg_obj_t *vclassobj = cfg_tuple_get(view, "class");
+		dns_rdataclass_t vclass = dns_rdataclass_in;
+		isc_result_t tresult = ISC_R_SUCCESS;
+		const char *key = cfg_obj_asstring(vname);
+		isc_symvalue_t symvalue;
 
+		if (cfg_obj_isstring(vclassobj)) {
+			isc_textregion_t r;
+		
+			DE_CONST(cfg_obj_asstring(vclassobj), r.base);
+			r.length = strlen(r.base);
+			tresult = dns_rdataclass_fromtext(&vclass, &r);
+			if (tresult != ISC_R_SUCCESS)
+				cfg_obj_log(vclassobj, logctx, ISC_LOG_ERROR,
+					    "view '%s': invalid class %s",
+					    cfg_obj_asstring(vname), r.base);
+		}
+		if (tresult == ISC_R_SUCCESS && symtab != NULL) {
+			symvalue.as_pointer = view;
+			tresult = isc_symtab_define(symtab, key, vclass,
+						    symvalue,
+						    isc_symexists_reject);
+			if (tresult == ISC_R_EXISTS) {
+				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
+					    "view '%s': already exists", key);
+				result = tresult;
+			} else if (result != ISC_R_SUCCESS)
+				result = tresult;
+		}
 		if (check_viewconf(config, voptions, logctx, mctx)
 		    != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+	if (symtab != NULL)
+		isc_symtab_destroy(&symtab);
 
 	if (views != NULL && options != NULL) {
 		obj = NULL;
