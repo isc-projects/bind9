@@ -268,6 +268,8 @@ bucket_search(dns_dispatch_t *disp, isc_sockaddr_t *dest, dns_messageid_t id,
 {
 	dns_dispentry_t *res;
 
+	REQUIRE(bucket < disp->qid_tablesize);
+
 	res = ISC_LIST_HEAD(disp->qid_table[bucket]);
 
 	while (res != NULL) {
