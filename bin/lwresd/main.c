@@ -264,6 +264,7 @@ main(int argc, char **argv)
 	for (i = 0 ; i < NTASKS ; i++) {
 		cmgr[i].task = NULL;
 		cmgr[i].sock = sock;
+		cmgr[i].view = view;
 		cmgr[i].flags = 0;
 		ISC_EVENT_INIT(&cmgr[i].sdev, sizeof(isc_event_t),
 			       ISC_EVENTATTR_NOPURGE,

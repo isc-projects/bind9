@@ -47,14 +47,13 @@ struct client_s {
 
 	isc_boolean_t		isidle;
 
-	dns_view_t	       *view;
-
 	ISC_LINK(client_t)	link;
 };
 
 struct clientmgr_s {
 	isc_task_t	       *task;		/* owning task */
 	isc_socket_t	       *sock;		/* socket to use */
+	dns_view_t	       *view;
 	unsigned int		flags;
 	isc_event_t		sdev;		/* shutdown event */
 	ISC_LIST(client_t)	idle;		/* idle client slots */
