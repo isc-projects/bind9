@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.20.2.2 2004/03/09 06:12:47 marka Exp $
+# $Id: kit.sh,v 1.20.2.3 2004/06/03 02:53:42 marka Exp $
 
 # Make a release kit
 #
@@ -103,6 +103,11 @@ rm -rf EXCLUDED TODO conftools util doc/design doc/dev doc/expired \
     bin/tests/system/relay lib/cfg
 
 find . -name .cvsignore -print | xargs rm
+
+# The following files should be executable.
+chmod +x configure install-sh mkinstalldirs \
+	 lib/bind/configure lib/bind/mkinstalldirs \
+	 bin/tests/system/ifconfig.sh
 
 cd .. || exit 1
 
