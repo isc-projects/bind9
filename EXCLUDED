@@ -44,3 +44,25 @@
 			dns_rdataset_towire(), dns_rdataset_towirepartial()
 			and dns_rdataset_towirepartial() ]
 
+1025.   [bug]           Don't use multicast addresses to resolve iterative
+                        queries. [RT #101]
+
+1034.   [bug]           Ignore the RD bit on multicast queries as specified
+                        in RFC 1123. [RT #137]
+
+1035.   [bug]           If we respond to multicast queries (which we
+                        currently do not), respond from a unicast address
+                        as specified in RFC 1123. [RT #137]
+
+1037.   [bug]           Negative responses whose authority section contain
+                        SOA or NS records whose owner names are not equal
+                        equal to or parents of the query name should be
+                        rejected. [RT #1862]
+
+1079.   [bug]           BIND 8 compatibility: accept bare elements at top
+                        level of sort list treating them as if they were
+                        a single element list. [RT #1963]
+
+1080.   [bug]           BIND 8 compatibility: accept bare IP prefixes
+                        as the second element of a two-element top level
+                        sort list statement. [RT #1964]
