@@ -32,7 +32,7 @@
  *	making a call that affects that timer.  Failure to follow this rule
  *	can result in deadlock.
  *
- *	The caller must ensure that timer_manager_destroy() is called only
+ *	The caller must ensure that isc_timermgr_destroy() is called only
  *	once for a given manager.
  *
  * Reliability:
@@ -64,39 +64,39 @@
  *** Types
  ***/
 
-typedef struct timer_t		*timer_t;
-typedef struct timer_manager_t	*timer_manager_t;
+typedef struct isc_timer	*isc_timer_t;
+typedef struct isc_timermgr	*isc_timermgr_t;
 
 typedef enum {
-	timer_type_ticker = 0, timer_type_once
-} timer_type_t;
+	isc_timertype_ticker = 0, isc_timertype_once
+} isc_timertype_t;
 
-typedef struct timer_event {
+typedef struct isc_timerevent {
 	struct task_event	common;
 	/* XXX Anything else? XXX */
-} *timer_event_t;
+} *isc_timerevent_t;
 
-#define TIMER_EVENT_TICK	(EVENT_CLASS_TIMER + 1)
-#define TIMER_EVENT_IDLE	(EVENT_CLASS_TIMER + 2)
-#define TIMER_EVENT_LIFE	(EVENT_CLASS_TIMER + 3)
+#define ISC_TIMEREVENT_TICK	(ISC_EVENTCLASS_TIMER + 1)
+#define ISC_TIMEREVENT_IDLE	(ISC_EVENTCLASS_TIMER + 2)
+#define ISC_TIMEREVENT_LIFE	(ISC_EVENTCLASS_TIMER + 3)
 
 
 /***
  *** Timer and Timer Manager Functions
  ***
  *** Note: all Ensures conditions apply only if the result is success for
- *** those functions which return an isc_result.
+ *** those functions which return an isc_result_t.
  ***/
 
-isc_result
-timer_create(timer_manager_t manager,
-	     timer_type_t type,
-	     os_time_t expires,
-	     os_time_t interval,
-	     task_t task,
-	     task_action_t action,
-	     void *arg,
-	     timer_t *timerp);
+isc_result_t
+isc_timer_create(isc_timermgr_t manager,
+		 isc_timertype_t type,
+		 os_time_t expires,
+		 os_time_t interval,
+		 task_t task,
+		 task_action_t action,
+		 void *arg,
+		 isc_timer_t *timerp);
 /*
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
  * are specified by 'expires' and 'interval'.  Events will be posted to
@@ -143,12 +143,12 @@ timer_create(timer_manager_t manager,
  *	Unexpected error
  */
 
-isc_result
-timer_reset(timer_t timer,
-	    timer_type_t type,
-	    os_time_t expires,
-	    os_time_t interval,
-	    isc_boolean_t purge);
+isc_result_t
+isc_timer_reset(isc_timer_t timer,
+		isc_timertype_t type,
+		os_time_t expires,
+		os_time_t interval,
+		isc_boolean_t purge);
 /*
  * Change the timer's type, expires, and interval values to the given
  * values.  If 'purge' is TRUE, any pending events from this timer
@@ -158,7 +158,7 @@ timer_reset(timer_t timer,
  *
  *	'timer' is a valid timer
  *
- *	The same requirements that timer_create() imposes on 'type',
+ *	The same requirements that isc_timer_create() imposes on 'type',
  *	'expires' and 'interval' apply.
  *
  * Ensures:
@@ -174,8 +174,8 @@ timer_reset(timer_t timer,
  *	Unexpected error
  */
 
-isc_result
-timer_touch(timer_t timer);
+isc_result_t
+isc_timer_touch(isc_timer_t timer);
 /*
  * Set the last-touched time of 'timer' to the current time.
  *
@@ -196,7 +196,7 @@ timer_touch(timer_t timer);
  */
 
 void
-timer_attach(timer_t timer, timer_t *timerp);
+isc_timer_attach(isc_timer_t timer, isc_timer_t *timerp);
 /*
  * Attach *timerp to timer.
  *
@@ -212,7 +212,7 @@ timer_attach(timer_t timer, timer_t *timerp);
  */
 
 void 
-timer_detach(timer_t *timerp);
+isc_timer_detach(isc_timer_t *timerp);
 /*
  * Detach *timerp from its timer.
  *
@@ -234,8 +234,8 @@ timer_detach(timer_t *timerp);
  *		All resources used by the timer have been freed
  */
 
-isc_result
-timer_manager_create(mem_context_t mctx, timer_manager_t *managerp);
+isc_result_t
+isc_timermgr_create(mem_context_t mctx, isc_timermgr_t *managerp);
 /*
  * Create a timer manager.
  *
@@ -247,11 +247,11 @@ timer_manager_create(mem_context_t mctx, timer_manager_t *managerp);
  *
  *	'mctx' is a valid memory context.
  *
- *	'managerp' points to a NULL timer_manager_t.
+ *	'managerp' points to a NULL isc_timermgr_t.
  *
  * Ensures:
  *
- *	'*managerp' is a valid timer_manager_t.
+ *	'*managerp' is a valid isc_timermgr_t.
  *
  * Returns:
  *
@@ -261,7 +261,7 @@ timer_manager_create(mem_context_t mctx, timer_manager_t *managerp);
  */
 
 void
-timer_manager_destroy(timer_manager_t *);
+isc_timermgr_destroy(isc_timermgr_t *);
 /*
  * Destroy a timer manager.
  *
@@ -269,12 +269,12 @@ timer_manager_destroy(timer_manager_t *);
  *	
  *	This routine blocks until there are no timers left in the manager,
  *	so if the caller holds any timer references using the manager, it
- *	must detach them before calling timer_manager_destroy() or it will
+ *	must detach them before calling isc_timermgr_destroy() or it will
  *	block forever.
  *
  * Requires:
  *
- *	'*managerp' is a valid timer_manager_t.
+ *	'*managerp' is a valid isc_timermgr_t.
  *
  * Ensures:
  *

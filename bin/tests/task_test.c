@@ -22,7 +22,7 @@ my_callback(task_t task, task_event_t event)
 	j = 0;
 	for (i = 0; i < 1000000; i++)
 		j += 100;
-	printf("task %s: %d\n", name, j);
+	printf("task %s (%p): %d\n", name, task, j);
 	
 	return (ISC_FALSE);
 }
@@ -31,7 +31,7 @@ static isc_boolean_t
 my_shutdown(task_t task, task_event_t event) {
 	char *name = event->arg;
 
-	printf("shutdown %s\n", name);
+	printf("shutdown %s (%p)\n", name, task);
 	return (ISC_TRUE);
 }
 
@@ -51,8 +51,8 @@ main(int argc, char *argv[]) {
 	task_t t3 = NULL, t4 = NULL;
 	task_event_t event;
 	unsigned int workers;
-	timer_manager_t timgr;
-	timer_t ti1, ti2;
+	isc_timermgr_t timgr;
+	isc_timer_t ti1, ti2;
 	os_time_t absolute, interval;
 
 	if (argc > 1)
@@ -71,17 +71,19 @@ main(int argc, char *argv[]) {
 	INSIST(task_create(manager, my_shutdown, "4", 0, &t4));
 
 	timgr = NULL;
-	INSIST(timer_manager_create(mctx, &timgr) == ISC_R_SUCCESS);
+	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 	ti1 = NULL;
 	absolute.seconds = 0;
 	absolute.nanoseconds = 0;
 	interval.seconds = 1;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
-			    t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
+	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
+				absolute, interval,
+				t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
 	ti2 = NULL;
-	INSIST(timer_create(timgr, timer_type_ticker, absolute, interval,
-			    t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);
+	INSIST(isc_timer_create(timgr, isc_timertype_ticker,
+				absolute, interval,
+				t2, my_tick, "bar", &ti2) == ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
 	printf("task 2 = %p\n", t2);
@@ -141,9 +143,9 @@ main(int argc, char *argv[]) {
 
 	sleep(10);
 	printf("destroy\n");
-	timer_detach(&ti1);
-	timer_detach(&ti2);
-	timer_manager_destroy(&timgr);
+	isc_timer_detach(&ti1);
+	isc_timer_detach(&ti2);
+	isc_timermgr_destroy(&timgr);
 	task_manager_destroy(&manager);
 	printf("destroyed\n");
 	

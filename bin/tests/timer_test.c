@@ -13,14 +13,14 @@
 
 mem_context_t mctx = NULL;
 task_t t1, t2, t3;
-timer_t ti1, ti2, ti3;
+isc_timer_t ti1, ti2, ti3;
 int tick_count = 0;
 
 static isc_boolean_t
 shutdown_task(task_t task, task_event_t event) {
 	char *name = event->arg;
 
-	printf("shutdown %s\n", name);
+	printf("task %p shutdown %s\n", task, name);
 	return (ISC_TRUE);
 }
 
@@ -29,13 +29,13 @@ tick(task_t task, task_event_t event)
 {
 	char *name = event->arg;
 
-	INSIST(event->type == TIMER_EVENT_TICK);
+	INSIST(event->type == ISC_TIMEREVENT_TICK);
 
 	printf("task %s (%p) tick\n", name, task);
 
 	tick_count++;
 	if (tick_count % 3 == 0)
-		timer_touch(ti3);
+		isc_timer_touch(ti3);
 
 	if (tick_count == 7) {
 		os_time_t expires, interval, now;
@@ -47,8 +47,8 @@ tick(task_t task, task_event_t event)
 		interval.seconds = 4;
 		interval.nanoseconds = 0;
 		printf("*** resetting ti3 ***\n");
-		INSIST(timer_reset(ti3, timer_type_once, expires, interval,
-				   ISC_TRUE)
+		INSIST(isc_timer_reset(ti3, isc_timertype_once, expires,
+				       interval, ISC_TRUE)
 		       == ISC_R_SUCCESS);
 	}
 
@@ -61,10 +61,10 @@ timeout(task_t task, task_event_t event)
 	char *name = event->arg;
 	char *type;
 
-	INSIST(event->type == TIMER_EVENT_IDLE || 
-	       event->type == TIMER_EVENT_LIFE);
+	INSIST(event->type == ISC_TIMEREVENT_IDLE || 
+	       event->type == ISC_TIMEREVENT_LIFE);
 
-	if (event->type == TIMER_EVENT_IDLE)
+	if (event->type == ISC_TIMEREVENT_IDLE)
 		type = "idle";
 	else
 		type = "life";
@@ -80,7 +80,7 @@ timeout(task_t task, task_event_t event)
 void
 main(int argc, char *argv[]) {
 	task_manager_t manager = NULL;
-	timer_manager_t timgr = NULL;
+	isc_timermgr_t timgr = NULL;
 	unsigned int workers;
 	os_time_t expires, interval, now;
 
@@ -95,7 +95,7 @@ main(int argc, char *argv[]) {
 	INSIST(task_create(manager, shutdown_task, "1", 0, &t1));
 	INSIST(task_create(manager, shutdown_task, "2", 0, &t2));
 	INSIST(task_create(manager, shutdown_task, "3", 0, &t3));
-	INSIST(timer_manager_create(mctx, &timgr) == ISC_R_SUCCESS);
+	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 
 	printf("task 1: %p\n", t1);
 	printf("task 2: %p\n", t2);
@@ -107,21 +107,21 @@ main(int argc, char *argv[]) {
 	expires.nanoseconds = 0;
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_once, expires, interval,
-			    t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
+	INSIST(isc_timer_create(timgr, isc_timertype_once, expires, interval,
+				t2, timeout, "2", &ti2) == ISC_R_SUCCESS);
 	expires.seconds = 0;
 	expires.nanoseconds = 0;
 	interval.seconds = 1;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_ticker, expires, interval,
-			    t1, tick, "1", &ti1) == ISC_R_SUCCESS);
+	INSIST(isc_timer_create(timgr, isc_timertype_ticker, expires, interval,
+				t1, tick, "1", &ti1) == ISC_R_SUCCESS);
 	expires.seconds = 10;
 	expires.nanoseconds = 0;
 	os_time_add(&now, &expires, &expires);
 	interval.seconds = 2;
 	interval.nanoseconds = 0;
-	INSIST(timer_create(timgr, timer_type_once, expires, interval,
-			    t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
+	INSIST(isc_timer_create(timgr, isc_timertype_once, expires, interval,
+				t3, timeout, "3", &ti3) == ISC_R_SUCCESS);
 
 	task_detach(&t1);
 	task_detach(&t2);
@@ -129,11 +129,11 @@ main(int argc, char *argv[]) {
 
 	sleep(15);
 	printf("destroy\n");
-	timer_detach(&ti1);
-	timer_detach(&ti2);
-	timer_detach(&ti3);
+	isc_timer_detach(&ti1);
+	isc_timer_detach(&ti2);
+	isc_timer_detach(&ti3);
 	sleep(2);
-	timer_manager_destroy(&timgr);
+	isc_timermgr_destroy(&timgr);
 	task_manager_destroy(&manager);
 	printf("destroyed\n");
 	
