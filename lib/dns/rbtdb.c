@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.142 2001/01/12 18:56:40 gson Exp $ */
+/* $Id: rbtdb.c,v 1.143 2001/01/12 20:11:28 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4667,6 +4667,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 		return (ISC_R_SUCCESS);
 
 	if (node != NULL) {
+		INSIST(rbtdbiter->tree_locked);
 		LOCK(&rbtdb->node_locks[node->locknum].lock);
 		new_reference(rbtdb, node);
 		UNLOCK(&rbtdb->node_locks[node->locknum].lock);
