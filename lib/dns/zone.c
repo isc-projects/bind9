@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.290 2001/01/05 03:12:43 marka Exp $ */
+/* $Id: zone.c,v 1.291 2001/01/05 22:09:02 gson Exp $ */
 
 #include <config.h>
 
@@ -4600,7 +4600,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 				result = isc_file_settime(zone->journal, &t);
 			if (result != ISC_R_SUCCESS &&
 			    zone->masterfile != NULL)
-			result = isc_file_settime(zone->masterfile, &t);
+				result = isc_file_settime(zone->masterfile, &t);
 			if (result != ISC_R_SUCCESS)
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "isc_file_settime(%s): %s",
