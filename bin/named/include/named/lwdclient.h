@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.9 2000/10/31 22:39:28 bwelling Exp $ */
+/* $Id: lwdclient.h,v 1.10 2000/11/02 01:53:25 bwelling Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -81,6 +81,15 @@ struct ns_lwdclient {
 	unsigned int		options;
 	isc_netaddr_t		na;
 	dns_adbaddrinfo_t      *addrinfo;
+
+	/*
+	 * grbn (get rrset by name) state info.
+	 *
+	 * Note: this also uses target_name and searchctx.
+	 */
+	lwres_grbnresponse_t	grbn;
+	dns_lookup_t	       *lookup;
+	dns_rdatatype_t		rdtype;
 
 	/*
 	 * Alias and address info.  This is copied up to the gabn/gnba
@@ -211,6 +220,7 @@ ns_lwdclient_sendreply(ns_lwdclient_t *client, isc_region_t *r);
  */
 void ns_lwdclient_processgabn(ns_lwdclient_t *, lwres_buffer_t *);
 void ns_lwdclient_processgnba(ns_lwdclient_t *, lwres_buffer_t *);
+void ns_lwdclient_processgrbn(ns_lwdclient_t *, lwres_buffer_t *);
 void ns_lwdclient_processnoop(ns_lwdclient_t *, lwres_buffer_t *);
 
 void ns_lwdclient_errorpktsend(ns_lwdclient_t *, isc_uint32_t);

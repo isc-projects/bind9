@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.10 2000/10/31 22:39:25 bwelling Exp $ */
+/* $Id: lwdclient.c,v 1.11 2000/11/02 01:53:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -189,6 +189,9 @@ process_request(ns_lwdclient_t *client) {
 		return;
 	case LWRES_OPCODE_GETNAMEBYADDR:
 		ns_lwdclient_processgnba(client, &b);
+		return;
+	case LWRES_OPCODE_GETRDATABYNAME:
+		ns_lwdclient_processgrbn(client, &b);
 		return;
 	case LWRES_OPCODE_NOOP:
 		ns_lwdclient_processnoop(client, &b);
@@ -439,6 +442,8 @@ ns_lwdclient_initialize(ns_lwdclient_t *client, ns_lwdclientmgr_t *cmgr) {
 	client->options = 0;
 	client->byaddr = NULL;
 	client->addrinfo = NULL;
+
+	client->lookup = NULL;
 
 	client->pktinfo_valid = ISC_FALSE;
 
