@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.6 2000/04/28 17:46:30 tale Exp $ */
+/* $Id: dir.h,v 1.7 2000/04/28 21:29:27 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -24,7 +24,6 @@
 
 #include <sys/types.h>
 #include <dirent.h>
-#include <limits.h>
 
 #include <isc/lang.h>
 #include <isc/result.h>
