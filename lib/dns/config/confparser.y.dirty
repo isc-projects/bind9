@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.20 2000/10/12 00:38:27 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.21 2000/10/17 22:21:34 bwelling Exp $ */
 
 #include <config.h>
 
@@ -4648,6 +4648,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	{
 		parser_warning(ISC_FALSE,
 			       "references to zones not implemented yet");
+		isc_mem_free(memctx, $2);
 	}
 	;
 
