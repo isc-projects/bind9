@@ -4,6 +4,8 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1424.	[bug]		EDNS version not being correctly printed.
+
 1423.	[contrib]	queryperf: added A6 and SRV.
 
 1418.	[bug]		'rndc reconfig' did not cause new slaves to load.
