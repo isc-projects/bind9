@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.183 2003/07/25 04:02:54 marka Exp $ */
+/* $Id: dig.c,v 1.184 2003/07/30 00:19:06 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -733,8 +733,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			lookup->udpsize = (isc_uint16_t) parse_uint(value,
 						    "buffer size", COMMSIZE);
-			if (lookup->udpsize > COMMSIZE)
-				lookup->udpsize = COMMSIZE;
 			break;
 		default:
 			goto invalid_option;
