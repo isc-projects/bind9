@@ -14,7 +14,7 @@
 
 1116.	[bug]		Setting transfers in a server clause, transfers-in,
 			or transfers-per-ns to a value greater than
-			2147483647 disabled transfers.  [RT #2002]
+			2147483647 disabled transfers. [RT #2002]
 
 1115.	[func]		Set maximum values for cleaning-interval,
 			heartbeat-interval, interface-interval,
@@ -55,7 +55,7 @@
 1104.	[bug]		Invalid arguments to the transfer-format option
 			could cause an assertion failure. [RT #1995]
 
-1103.	[port]		OpenUNIX 8 support (ifconfig.sh).  [RT #1970]
+1103.	[port]		OpenUNIX 8 support (ifconfig.sh). [RT #1970]
 
 1102.	[doc]		Note that query logging is enabled by directing the
 			queries category to a channel.
@@ -124,7 +124,7 @@
 
 1079.	[bug]		BIND 8 compatibility: accept bare elements at top
 			level of sort list treating them as if they were
-			a single element list.  [RT #1963]
+			a single element list. [RT #1963]
 
 1078.	[bug]		We failed to correct bad tv_usec values in one case.
 			[RT #1966]
