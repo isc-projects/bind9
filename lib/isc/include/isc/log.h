@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.39 2001/07/12 05:58:23 mayer Exp $ */
+/* $Id: log.h,v 1.40 2002/01/23 01:27:52 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -735,9 +735,6 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag);
  *	Setting the tag to NULL or the empty string will also cause the
  *	ISC_LOG_PRINTTAG channel flag to not print anything.  If tag equals the
  *	empty string, calls to isc_log_gettag will return NULL.
- *
- *	Because the name is used by ISC_LOG_PRINTTAG, it should not be
- *	altered or destroyed after isc_log_settag().
  *
  * Returns:
  *	ISC_R_SUCCESS	Success
