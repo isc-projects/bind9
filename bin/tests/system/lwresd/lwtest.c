@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.16 2000/10/13 18:51:57 halley Exp $ */
+/* $Id: lwtest.c,v 1.17 2000/10/28 00:44:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -624,7 +624,7 @@ main(void) {
 	test_gabn("a.", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V4);
 
 	test_gabn("a2", LWRES_R_SUCCESS, "10.0.1.1", LWRES_ADDRTYPE_V4);
-	test_gabn("a3", LWRES_R_INCOMPLETE, NULL, LWRES_ADDRTYPE_V4);
+	test_gabn("a3", LWRES_R_NOTFOUND, NULL, LWRES_ADDRTYPE_V4);
 
 	test_gabn("b.example1", LWRES_R_SUCCESS,
 		  "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff",
