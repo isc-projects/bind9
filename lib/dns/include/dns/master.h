@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.33 2001/09/30 04:31:28 marka Exp $ */
+/* $Id: master.h,v 1.34 2001/12/11 20:52:41 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -38,6 +38,7 @@
 #define DNS_MASTER_NOINCLUDE 	0x00000004	/* Disallow $INCLUDE directives. */
 #define DNS_MASTER_ZONE 	0x00000008	/* Loading a zone master file. */
 #define DNS_MASTER_HINT 	0x00000010	/* Loading a hint master file. */
+#define DNS_MASTER_SLAVE 	0x00000020	/* Loading a slave master file. */
 
 ISC_LANG_BEGINDECLS
 

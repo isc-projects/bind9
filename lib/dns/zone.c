@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.356 2001/12/05 03:21:23 marka Exp $ */
+/* $Id: zone.c,v 1.357 2001/12/11 20:52:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1053,6 +1053,7 @@ static void
 zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	dns_load_t *load = event->ev_arg;
 	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int options;
 
 	REQUIRE(DNS_LOAD_VALID(load));
 
@@ -1062,11 +1063,14 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED)
 		goto fail;
 
+	options = DNS_MASTER_ZONE;
+	if (load->zone->type == dns_zone_slave)
+		options |= DNS_MASTER_SLAVE;
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
 					load->zone->rdclass,
-					DNS_MASTER_ZONE,
+					options,
 					&load->callbacks, task,
 					zone_loaddone, load,
 					&load->zone->lctx, load->zone->mctx);
@@ -1158,6 +1162,8 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		options = DNS_MASTER_MANYERRORS|DNS_MASTER_ZONE;
+		if (zone->type == dns_zone_slave)
+			options |= DNS_MASTER_SLAVE;
 		result = dns_master_loadfile(zone->masterfile, &zone->origin,
 					     &zone->origin, zone->rdclass,
 					     options, &callbacks, zone->mctx);

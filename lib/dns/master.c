@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.132 2001/12/11 20:37:14 marka Exp $ */
+/* $Id: master.c,v 1.133 2001/12/11 20:52:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1383,6 +1383,7 @@ load(dns_loadctx_t *lctx) {
 		 * master files.
 		 */
 		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
 		    (type == dns_rdatatype_md || type == dns_rdatatype_mf)) {
 			char typename[DNS_RDATATYPE_FORMATSIZE];
 
