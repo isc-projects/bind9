@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.209 2002/05/16 04:05:42 marka Exp $ */
+/* $Id: client.c,v 1.210 2002/05/24 06:22:30 marka Exp $ */
 
 #include <config.h>
 
@@ -2181,12 +2181,19 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 {
 	char msgbuf[2048];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	const char *name = "";
+	const char *sep = "";
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	ns_client_name(client, peerbuf, sizeof(peerbuf));
+	if (client->view != NULL && strcmp(client->view->name, "_bind") != 0 &&
+	    strcmp(client->view->name, "_default") != 0) {
+		name = client->view->name;
+		sep = ": view ";
+	}
 
 	isc_log_write(ns_g_lctx, category, module, level,
-		      "client %s: %s", peerbuf, msgbuf);
+		      "client %s%s%s: %s", peerbuf, sep, name, msgbuf);
 }
 
 void
