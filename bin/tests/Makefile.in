@@ -40,7 +40,8 @@ LIBS =		@LIBS@
 SUBDIRS = db dst master mem names rbt sockaddr tasks timers
 
 # Alphabetically
-TARGETS =	adb_test \
+TARGETS =	sdig signer
+XTARGETS =	adb_test \
 		compress_test \
 		db_test \
 		dispatch_tcp_test \
