@@ -31,7 +31,7 @@ sleep 10
 # Run the tests
 ( cd $test ; sh tests.sh )
 
-status=$_
+status=$?
 
 # Shutdown
 sh stop.sh $test
