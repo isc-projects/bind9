@@ -1,4 +1,6 @@
 
+ 421.	[bug]		nslookup would exit when given a blank line as input.
+
  420.	[bug]		nslookup failed to implement the "exit" command.
 
  418.	[bug]		At debug levels >= 10, getting an unexpected

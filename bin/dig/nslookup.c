@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.20.2.6 2000/09/05 21:50:43 gson Exp $ */
+/* $Id: nslookup.c,v 1.20.2.7 2000/09/05 21:58:09 gson Exp $ */
 
 #include <config.h>
 
@@ -740,10 +740,8 @@ get_next_command(void) {
 		return;
 	}
 	ptr = strtok(input, " \t\r\n");
-	if (ptr == NULL) {
-		in_use = ISC_FALSE;
+	if (ptr == NULL)
 		return;
-	}
 	arg = strtok(NULL, " \t\r\n");
 	if ((strcasecmp(ptr, "set") == 0) &&
 	    (arg != NULL))
@@ -754,6 +752,18 @@ get_next_command(void) {
 		setsrv(arg);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
+		return;
+	} else if (strcasecmp(ptr, "help") == 0 ||
+		   strcasecmp(ptr, "?") == 0)
+	{
+		printf("The '%s' command is not yet implemented.\n", ptr);
+		return;
+	} else if (strcasecmp(ptr, "finger") == 0 ||
+		   strcasecmp(ptr, "root") == 0 ||
+		   strcasecmp(ptr, "ls") == 0 ||
+		   strcasecmp(ptr, "view") == 0)
+	{
+		printf("The '%s' command is not implemented.\n", ptr);
 		return;
 	} else 
 		addlookup(ptr);
