@@ -3,7 +3,6 @@ Name		Status		Whom
 libbind_clean	open		jinmei
 rt3746		open		marka
 v6source
-rt4715		review		explorer
 peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
@@ -51,6 +50,7 @@ rt4463		closed
 rt4663		closed
 rt4675		closed
 rt4687		closed
+rt4715		closed
 rt4764		closed
 rt4802		closed
 rt4898		closed
