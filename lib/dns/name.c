@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.9 2004/03/08 21:06:26 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.10 2004/04/19 21:55:38 marka Exp $ */
 
 #include <config.h>
 
@@ -285,7 +285,7 @@ dns_name_ismailbox(const dns_name_t *name) {
 
 	ndata = name->ndata;
 	n = *ndata++;
-	INSIST(n < 63);
+	INSIST(n <= 63);
 	while (n--) {
 		ch = *ndata++;
 		if (!domainchar(ch))
@@ -300,7 +300,7 @@ dns_name_ismailbox(const dns_name_t *name) {
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
-		INSIST(n < 63);
+		INSIST(n <= 63);
 		first = ISC_TRUE;
 		while (n--) {
 			ch = *ndata++;
@@ -345,7 +345,7 @@ dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard) {
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
-		INSIST(n < 63);
+		INSIST(n <= 63);
 		first = ISC_TRUE;
 		while (n--) {
 			ch = *ndata++;
