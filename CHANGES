@@ -2,7 +2,8 @@
 
 1594.	[placeholder]	rt10565
 
-1593.	[placeholder]	rt10642
+1593.	[bug]		rndc should return "unknown command" to unknown
+			commands. [RT# 10642]
 
 1592.	[bug]		configure_view() could leak a dispatch. [RT# 10675]
 
