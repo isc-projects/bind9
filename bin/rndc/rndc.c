@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.42 2001/02/16 00:41:43 bwelling Exp $ */
+/* $Id: rndc.c,v 1.43 2001/03/22 00:07:01 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -488,7 +488,7 @@ main(int argc, char **argv) {
 
 	isc_buffer_init(&secretbuf, secretarray, sizeof(secretarray));
 	DO("decode base64 secret",
-	   isc_base64_decodestring(mctx, secret, &secretbuf));
+	   isc_base64_decodestring(secret, &secretbuf));
 
 	DO("initialize omapi",  omapi_lib_init(mctx, taskmgr, socketmgr));
 

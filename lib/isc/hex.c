@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.7 2001/01/09 21:56:04 bwelling Exp $ */
+/* $Id: hex.c,v 1.8 2001/03/22 00:07:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -152,10 +152,8 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 }
 
 isc_result_t
-isc_hex_decodestring(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
+isc_hex_decodestring(char *cstr, isc_buffer_t *target) {
 	hex_decode_ctx_t ctx;
-
-	UNUSED(mctx);
 
 	hex_decode_init(&ctx, -1, target);
 	for (;;) {

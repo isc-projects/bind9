@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.307 2001/03/19 22:34:06 bwelling Exp $ */
+/* $Id: server.c,v 1.308 2001/03/22 00:06:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -214,7 +214,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
 	keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
-	CHECK(isc_base64_decodestring(mctx, keystr, &keydatabuf));
+	CHECK(isc_base64_decodestring(keystr, &keydatabuf));
 	isc_buffer_usedregion(&keydatabuf, &r);
 	keystruct.datalen = r.length;
 	keystruct.data = r.base;

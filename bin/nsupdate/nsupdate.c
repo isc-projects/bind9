@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.83 2001/03/09 18:18:42 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.84 2001/03/22 00:06:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -295,7 +295,7 @@ setup_key(void) {
 			fatal("out of memory");
 
 		isc_buffer_init(&secretbuf, secret, secretlen);
-		result = isc_base64_decodestring(mctx, secretstr, &secretbuf);
+		result = isc_base64_decodestring(secretstr, &secretbuf);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "Couldn't create key from %s: %s\n",
 				keystr, isc_result_totext(result));

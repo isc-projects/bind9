@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.196 2001/03/14 23:13:57 gson Exp $ */
+/* $Id: dighost.c,v 1.197 2001/03/22 00:06:50 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -515,8 +515,7 @@ setup_text_key(void) {
 		fatal("Memory allocation failure in %s:%d",
 		      __FILE__, __LINE__);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
-	result = isc_base64_decodestring(mctx, keysecret,
-					 &secretbuf);
+	result = isc_base64_decodestring(keysecret, &secretbuf);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));

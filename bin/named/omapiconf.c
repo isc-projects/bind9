@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.16 2001/03/04 21:21:24 bwelling Exp $ */
+/* $Id: omapiconf.c,v 1.17 2001/03/22 00:06:51 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -352,8 +352,7 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist, char *socktext) {
 			}
 
 			isc_buffer_init(&b, secret, sizeof(secret));
-			result = isc_base64_decodestring(ns_g_mctx,
-							 secretstr, &b);
+			result = isc_base64_decodestring(secretstr, &b);
 
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(keydef, ns_g_lctx, ISC_LOG_WARNING,

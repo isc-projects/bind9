@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.16 2001/03/04 21:21:28 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.17 2001/03/22 00:06:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 			goto failure;
 		}
 		isc_buffer_init(&secretbuf, secret, secretlen);
-		ret = isc_base64_decodestring(mctx, secretstr, &secretbuf);
+		ret = isc_base64_decodestring(secretstr, &secretbuf);
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
 		secretlen = isc_buffer_usedlength(&secretbuf);
