@@ -15,10 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.22.4.1 2001/01/09 22:34:04 bwelling Exp $ */
+/* $Id: zone_test.c,v 1.22.4.2 2001/01/24 00:05:23 gson Exp $ */
 
 #include <config.h>
 
+#include <sys/types.h>
+#include <sys/time.h>
+
+#include <unistd.h>
 #include <stdlib.h>
 
 #include <isc/app.h>
@@ -74,13 +78,14 @@ usage() {
 }
 
 static void
-setup(char *zonename, char *filename, char *classname) {
+setup(const char *zonename, const char *filename, const char *classname) {
 	isc_result_t result;
 	dns_rdataclass_t rdclass;
-	isc_textregion_t region;
+	isc_consttextregion_t region;
 	isc_buffer_t buffer;
 	dns_fixedname_t fixorigin;
 	dns_name_t *origin;
+	const char *rbt = "rbt";
 
 	if (debug)
 		fprintf(stderr, "loading \"%s\" from \"%s\" class \"%s\"\n",
@@ -101,15 +106,16 @@ setup(char *zonename, char *filename, char *classname) {
 	result = dns_zone_setorigin(zone, origin);
 	ERRRET(result, "dns_zone_setorigin");
 
-	result = dns_zone_setdbtype(zone, "rbt");
+	result = dns_zone_setdbtype(zone, 1, &rbt);
 	ERRRET(result, "dns_zone_setdatabase");
 
-	result = dns_zone_setdatabase(zone, filename);
-	ERRRET(result, "dns_zone_setdatabase");
+	result = dns_zone_setfile(zone, filename);
+	ERRRET(result, "dns_zone_setfile");
 
 	region.base = classname;
 	region.length = strlen(classname);
-	result = dns_rdataclass_fromtext(&rdclass, &region);
+	result = dns_rdataclass_fromtext(&rdclass,
+					 (isc_textregion_t *)&region);
 	ERRRET(result, "dns_rdataclass_fromtext");
 
 	dns_zone_setclass(zone, rdclass);
@@ -228,18 +234,11 @@ query(void) {
 	dns_db_detach(&db);
 }
 
-static void
-destroy(void) {
-	if (zone == NULL)
-		return;
-	dns_zone_detach(&zone);
-}
-
 int
 main(int argc, char **argv) {
 	int c;
 	char *filename = NULL;
-	char *classname = "IN";
+	const char *classname = "IN";
 
 	while ((c = isc_commandline_parse(argc, argv, "cdf:m:qsMS")) != EOF) {
 		switch (c) {
@@ -293,8 +292,13 @@ main(int argc, char **argv) {
 		filename = argv[isc_commandline_index];
 	setup(argv[isc_commandline_index], filename, classname);
 	query();
-	destroy();
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	dns_zonemgr_shutdown(zonemgr);
+	dns_zonemgr_detach(&zonemgr);
+	isc_socketmgr_destroy(&socketmgr);
 	isc_taskmgr_destroy(&taskmgr);
+	isc_timermgr_destroy(&timermgr);
 	if (!quiet && stats)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
