@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.114 2000/08/03 19:46:34 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.115 2000/08/08 21:41:58 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2799,6 +2799,7 @@ createiterator(dns_db_t *db, isc_boolean_t relative_names,
 		return (ISC_R_NOMEMORY);
 
 	rbtdbiter->common.methods = &dbiterator_methods;
+	rbtdbiter->common.db = NULL;
 	dns_db_attach(db, &rbtdbiter->common.db);
 	rbtdbiter->common.relative_names = relative_names;
 	rbtdbiter->common.magic = DNS_DBITERATOR_MAGIC;
