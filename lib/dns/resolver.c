@@ -857,7 +857,6 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	res = fetch->res;
 	fctx = fetch->private;
-	mctx = res->mctx;
 
 	FTRACE("destroyfetch");
 
@@ -904,6 +903,9 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 
 	UNLOCK(&res->lock);
 
+	isc_mem_put(res->mctx, fetch, sizeof *fetch);
+	*fetchp = NULL;
+
 	if (event != NULL) {
 		etask = event->sender;
 		isc_task_detach(&etask);
@@ -913,8 +915,4 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 		fctx_destroy(fctx);
 	if (need_resolver_destroy)
 		destroy(res);
-
-	isc_mem_put(mctx, fetch, sizeof *fetch);
-
-	*fetchp = NULL;
 }
