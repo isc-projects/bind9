@@ -113,7 +113,7 @@ BIND 9.2
 Building
 
 	BIND 9 currently requires a UNIX system with an ANSI C compiler,
-	basic POSIX support, and a good pthreads implementation.
+	basic POSIX support, and a 64 bit integer type.
 
 	We've had successful builds and tests on the following systems:
 
