@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.100 2001/07/14 20:17:48 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.101 2001/07/22 06:11:44 mayer Exp $ */
 
 #include <config.h>
 
@@ -70,11 +70,12 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
+#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef USE_GETADDRINFO
+#ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
 
@@ -128,7 +129,7 @@ static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
-static const dns_master_style_t *style = &dns_master_style_debug;
+static const dns_master_style_t *style;
 static int requests = 0;
 
 typedef struct nsu_requestinfo {
@@ -1845,6 +1846,7 @@ getinput(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
+	style = &dns_master_style_debug;
 
 	input = stdin;
 
