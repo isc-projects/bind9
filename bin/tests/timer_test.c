@@ -56,12 +56,11 @@ tick(isc_task_t *task, isc_event_t *event)
 		isc_timer_touch(ti3);
 
 	if (ti3 != NULL && tick_count == 7) {
-		isc_time_t expires, now;
+		isc_time_t expires;
 		isc_interval_t interval;
 
-		(void)isc_time_get(&now);
 		isc_interval_set(&interval, 5, 0);
-		isc_time_add(&now, &interval, &expires);
+		(void)isc_time_nowplusinterval(&expires, &interval);
 		isc_interval_set(&interval, 4, 0);
 		printf("*** resetting ti3 ***\n");
 		RUNTIME_CHECK(isc_timer_reset(ti3, isc_timertype_once,
@@ -135,18 +134,18 @@ main(int argc, char *argv[]) {
 	printf("task 2: %p\n", t2);
 	printf("task 3: %p\n", t3);
 
-	(void)isc_time_get(&now);
+	(void)isc_time_now(&now);
 
-	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, 2, 0);
-	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, &expires,
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_once, NULL,
 				       &interval, t2, timeout, "2", &ti2) ==
 		      ISC_R_SUCCESS);
-	isc_time_settoepoch(&expires);
+
 	isc_interval_set(&interval, 1, 0);
-	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
-				&expires, &interval,
-				t1, tick, "1", &ti1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
+				       &interval, t1, tick, "1", &ti1) ==
+		      ISC_R_SUCCESS);
+				       
 	isc_interval_set(&interval, 10, 0);
 	isc_time_add(&now, &interval, &expires);
 	isc_interval_set(&interval, 2, 0);

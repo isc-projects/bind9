@@ -70,7 +70,6 @@ main(int argc, char *argv[]) {
 	unsigned int workers;
 	isc_timermgr_t *timgr;
 	isc_timer_t *ti1, *ti2;
-	struct isc_time absolute;
 	struct isc_interval interval;
 
 	if (argc > 1)
@@ -101,17 +100,16 @@ main(int argc, char *argv[]) {
 	timgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
 	ti1 = NULL;
-	isc_time_settoepoch(&absolute);
+
 	isc_interval_set(&interval, 1, 0);
-	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
-				&absolute, &interval,
-				t1, my_tick, "foo", &ti1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
+				       &interval, t1, my_tick, "foo", &ti1) ==
+		      ISC_R_SUCCESS);
+
 	ti2 = NULL;
-	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
-	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker,
-				       &absolute, &interval,
-				       t2, my_tick, "bar", &ti2) ==
+	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
+				       &interval, t2, my_tick, "bar", &ti2) ==
 		      ISC_R_SUCCESS);
 
 	printf("task 1 = %p\n", t1);
