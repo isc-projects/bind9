@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.70 2000/12/06 20:32:12 tale Exp $ */
+/* $Id: mem.c,v 1.71 2000/12/06 20:34:34 tale Exp $ */
 
 #include <config.h>
 
@@ -552,6 +552,21 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 	return (ret);
 }
 
+#if ISC_MEM_FILL && ISC_MEM_CHECKOVERRUN
+static inline void
+check_overrun(void *mem, size_t size, size_t new_size) {
+	unsigned char *cp;
+
+	cp = (unsigned char *)mem;
+	cp += size;
+	while (size < new_size) {
+		INSIST(*cp == 0xbe);
+		cp++;
+		size++;
+	}
+}
+#endif
+
 static inline void
 mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
@@ -877,21 +892,6 @@ isc_mem_restore(isc_mem_t *ctx) {
 
 	return (result);
 }
-
-#if ISC_MEM_FILL && ISC_MEM_CHECKOVERRUN
-static inline void
-check_overrun(void *mem, size_t size, size_t new_size) {
-	unsigned char *cp;
-
-	cp = (unsigned char *)mem;
-	cp += size;
-	while (size < new_size) {
-		INSIST(*cp == 0xbe);
-		cp++;
-		size++;
-	}
-}
-#endif
 
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
