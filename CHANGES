@@ -1,4 +1,7 @@
 
+ 812.	[bug]		dig sometimes printed incomplete IXFR responses
+			due to an uninitialized variable. [RT #1188]
+
  811.	[bug]		Parentheses were not quoted in zone dumps. [RT #1194]
 
  810.	[bug]		The signer name in SIG records was not properly
