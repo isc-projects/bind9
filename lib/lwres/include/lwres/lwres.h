@@ -84,8 +84,6 @@
  * printable character strings, and C needs the trailing NUL.
  */
 
-#define LWRES_STRING_LENGTH(x) (sizeof(isc_uint16_t) + strlen(x) + 1)
-
 #define LWRES_UDP_PORT		921	/* XXXMLG */
 #define LWRES_RECVLENGTH	2048	/* XXXMLG */
 
@@ -127,6 +125,7 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint32_t		addrtypes;
+	isc_uint16_t		namelen;
 	char		       *name;
 } lwres_gabnrequest_t;
 
@@ -134,8 +133,10 @@ typedef struct {
 	/* public */
 	isc_uint16_t		naliases;
 	isc_uint16_t		naddrs;
-	char		       *real_name;
+	char		       *realname;
 	char		      **aliases;
+	isc_uint16_t		realnamelen;
+	isc_uint16_t	       *aliaslen;
 	lwres_addr_t	       *addrs;
 	/* if base != NULL, it will be freed when this structure is freed. */
 	void		       *base;
@@ -154,8 +155,10 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint16_t		naliases;
-	char		       *real_name;
+	char		       *realname;
 	char		      **aliases;
+	isc_uint16_t		realnamelen;
+	isc_uint16_t	       *aliaslen;
 	/* if base != NULL, it will be freed when this structure is freed. */
 	void		       *base;
 	size_t			baselen;
@@ -175,12 +178,13 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
-lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			lwres_buffer_t *b, lwres_gabnrequest_t **structp);
+lwres_gabnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			lwres_lwpacket_t *pkt, lwres_gabnrequest_t **structp);
 
 int
-lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			lwres_buffer_t *b, lwres_gabnresponse_t **structp);
+lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt,
+			 lwres_gabnresponse_t **structp);
 
 void
 lwres_gabnrequest_free(lwres_context_t *ctx, lwres_gabnrequest_t **structp);
@@ -230,12 +234,13 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b);
 
 int
-lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			lwres_buffer_t *b, lwres_gnbarequest_t **structp);
+lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp);
 
 int
-lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			lwres_buffer_t *b, lwres_gnbaresponse_t **structp);
+lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt,
+			 lwres_gnbaresponse_t **structp);
 
 void
 lwres_gnbarequest_free(lwres_context_t *ctx, lwres_gnbarequest_t **structp);

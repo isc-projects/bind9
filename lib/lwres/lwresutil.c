@@ -169,7 +169,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	/*
 	 * Parse the response.
 	 */
-	ret = lwres_gabnresponse_parse(ctx, &pkt, &b, &response);
+	ret = lwres_gabnresponse_parse(ctx, &b, &pkt, &response);
 	if (ret != 0)
 		goto out;
 	response->base = buffer;
@@ -270,7 +270,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	/*
 	 * Parse the response.
 	 */
-	ret = lwres_gnbaresponse_parse(ctx, &pkt, &b, &response);
+	ret = lwres_gnbaresponse_parse(ctx, &b, &pkt, &response);
 	if (ret != 0)
 		goto out;
 	response->base = buffer;

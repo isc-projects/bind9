@@ -106,10 +106,10 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	/* naliases */
 	payload_length = sizeof(isc_uint16_t);
 	/* real name encoding */
-	payload_length += LWRES_STRING_LENGTH(req->real_name);
+	payload_length += 2 + req->realnamelen + 1;
 	/* each alias */
 	for (x = 0 ; x < req->naliases ; x++)
-		payload_length += LWRES_STRING_LENGTH(req->aliases[x]);
+		payload_length += 2 + req->aliaslen[x] + 1;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -138,15 +138,15 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 	lwres_buffer_putuint16(b, req->naliases);
 
 	/* encode the real name */
-	datalen = strlen(req->real_name);
-	INSIST(SPACE_OK(b, LWRES_STRING_LENGTH(req->real_name)));
+	datalen = req->realnamelen;
+	INSIST(SPACE_OK(b, (unsigned int)(2 + req->realnamelen + 1)));
 	lwres_buffer_putuint16(b, datalen);
-	lwres_buffer_putmem(b, req->real_name, datalen + 1);
+	lwres_buffer_putmem(b, req->realname, datalen + 1);
 
 	/* encode the aliases */
 	for (x = 0 ; x < req->naliases ; x++) {
-		datalen = strlen(req->aliases[x]);
-		INSIST(SPACE_OK(b, LWRES_STRING_LENGTH(req->aliases[x])));
+		datalen = req->aliaslen[x];
+		INSIST(SPACE_OK(b, (unsigned int)(2 + req->aliaslen[x] + 1)));
 		lwres_buffer_putuint16(b, datalen);
 		lwres_buffer_putmem(b, req->aliases[x], datalen + 1);
 	}
@@ -157,8 +157,8 @@ lwres_gnbaresponse_render(lwres_context_t *ctx, lwres_gnbaresponse_t *req,
 }
 
 int
-lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			lwres_buffer_t *b, lwres_gnbarequest_t **structp)
+lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			lwres_lwpacket_t *pkt, lwres_gnbarequest_t **structp)
 {
 	int ret;
 	lwres_gnbarequest_t *gnba;
@@ -195,8 +195,8 @@ lwres_gnbarequest_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 }
 
 int
-lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
-			 lwres_buffer_t *b, lwres_gnbaresponse_t **structp)
+lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
+			 lwres_lwpacket_t *pkt, lwres_gnbaresponse_t **structp)
 {
 	int ret;
 	unsigned int x;
@@ -223,20 +223,28 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	gnba = CTXMALLOC(sizeof(lwres_gnbaresponse_t));
 	if (gnba == NULL)
 		return (-1);
-	gnba->naliases = 0;
 	gnba->base = NULL;
+	gnba->aliases = NULL;
+	gnba->aliaslen = NULL;
+
+	gnba->naliases = naliases;
 
 	gnba->aliases = CTXMALLOC(sizeof(char *) * naliases);
 	if (gnba->aliases == NULL) {
 		ret = -1;
 		goto out;
 	}
-	gnba->naliases = naliases;
+
+	gnba->aliaslen = CTXMALLOC(sizeof(isc_uint16_t) * naliases);
+	if (gnba->aliaslen == NULL) {
+		ret = -1;
+		goto out;
+	}
 
 	/*
 	 * Now, pull off the real name.
 	 */
-	ret = lwres_string_parse(b, &gnba->real_name, NULL);
+	ret = lwres_string_parse(b, &gnba->realname, &gnba->realnamelen);
 	if (ret != 0)
 		goto out;
 
@@ -244,7 +252,8 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	 * Parse off the aliases.
 	 */
 	for (x = 0 ; x < gnba->naliases ; x++) {
-		ret = lwres_string_parse(b, &gnba->aliases[x], NULL);
+		ret = lwres_string_parse(b, &gnba->aliases[x],
+					 &gnba->aliaslen[x]);
 		if (ret != 0)
 			goto out;
 	}
@@ -258,8 +267,14 @@ lwres_gnbaresponse_parse(lwres_context_t *ctx, lwres_lwpacket_t *pkt,
 	return (0);
 
  out:
-	if (gnba != NULL)
-		lwres_gnbaresponse_free(ctx, &gnba);
+	if (gnba != NULL) {
+		if (gnba->aliases != NULL)
+			CTXFREE(gnba->aliases, sizeof(char *) * naliases);
+		if (gnba->aliaslen != NULL)
+			CTXFREE(gnba->aliaslen,
+				sizeof(isc_uint16_t) * naliases);
+		CTXFREE(gnba, sizeof(lwres_gnbaresponse_t));
+	}
 
 	return (ret);
 }

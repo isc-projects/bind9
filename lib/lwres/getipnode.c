@@ -602,7 +602,7 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 	}
 
 	/* copy name */
-	he->h_name = strdup(addr->real_name);
+	he->h_name = strdup(addr->realname);
 	if (he->h_name == NULL)
 		goto cleanup;
 
@@ -665,7 +665,7 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 	}
 
 	/* copy name */
-	he->h_name = strdup(name->real_name);
+	he->h_name = strdup(name->realname);
 	if (he->h_name == NULL)
 		goto cleanup;
 

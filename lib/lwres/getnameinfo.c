@@ -201,13 +201,13 @@ getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 						addr, &by);
 		if (n == 0) {
 			if (flags & NI_NOFQDN) {
-				p = strchr(by->real_name, '.');
+				p = strchr(by->realname, '.');
 				if (p)
 					*p = '\0';
 			}
-			if ((strlen(by->real_name) + 1) > hostlen)
+			if ((strlen(by->realname) + 1) > hostlen)
 				ERR(ENI_MEMORY);
-			strcpy(host, by->real_name);
+			strcpy(host, by->realname);
 		} else {
 			if (flags & NI_NAMEREQD)
 				ERR(ENI_NOHOSTNAME);
