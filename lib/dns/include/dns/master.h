@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.29 2001/01/09 21:53:01 bwelling Exp $ */
+/* $Id: master.h,v 1.30 2001/01/30 23:12:27 gson Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -30,8 +30,12 @@
 
 #include <dns/types.h>
 
-#define	DNS_MASTER_AGETTL 0x01		/* Age the ttl based on $DATE. */
-#define DNS_MASTER_MANYERRORS 0x2	/* Continue processing on errors. */
+/*
+ * Flags to be passed in the 'options' argument in the functions below.
+ */
+#define	DNS_MASTER_AGETTL 	0x00000001	/* Age the ttl based on $DATE. */
+#define DNS_MASTER_MANYERRORS 	0x00000002	/* Continue processing on errors. */
+#define DNS_MASTER_NOINCLUDE 	0x00000004	/* Disallow $INCLUDE directives. */
 
 ISC_LANG_BEGINDECLS
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.102 2001/01/30 13:23:32 marka Exp $ */
+/* $Id: master.c,v 1.103 2001/01/30 23:12:26 gson Exp $ */
 
 #include <config.h>
 
@@ -877,6 +877,15 @@ load(dns_loadctx_t **ctxp) {
 			} else if (strcasecmp(token.value.as_pointer,
 					      "$INCLUDE") == 0) {
 				COMMITALL;
+				if ((ctx->options & DNS_MASTER_NOINCLUDE) != 0) {
+					(callbacks->error)(callbacks,
+					   "%s: %s:%lu: $INCLUDE not allowed",
+					   "dns_master_load",
+					   isc_lex_getsourcename(ctx->lex),
+					   isc_lex_getsourceline(ctx->lex));
+					result = DNS_R_REFUSED;
+					goto insist_and_cleanup;
+				}
 				if (ttl_offset != 0) {
 					(callbacks->error)(callbacks,
 					   "%s: %s:%lu: $INCLUDE "
