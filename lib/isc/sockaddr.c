@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.49 2001/09/17 06:58:18 marka Exp $ */
+/* $Id: sockaddr.c,v 1.50 2001/10/02 06:06:15 marka Exp $ */
 
 #include <config.h>
 
@@ -175,47 +175,45 @@ isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
 
 unsigned int
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
-	unsigned int length;
-	const unsigned char *s;
+	unsigned int length = 0;
+	const unsigned char *s = NULL;
 	unsigned int h = 0;
 	unsigned int g;
+	unsigned int p = 0;
 	const struct in6_addr *in6;
 
 	REQUIRE(sockaddr != NULL);
 
-	if (address_only) {
-		switch (sockaddr->type.sa.sa_family) {
-		case AF_INET:
-			return (ntohl(sockaddr->type.sin.sin_addr.s_addr));
-		case AF_INET6:
-			in6 = &sockaddr->type.sin6.sin6_addr;
-			if (IN6_IS_ADDR_V4MAPPED(in6)) {
-				g = (in6->s6_addr[12] << 24) |
-				    (in6->s6_addr[13] << 16) |
-				    (in6->s6_addr[14] << 8) |
-				    in6->s6_addr[15];
-				return (g);
-			}
+	switch (sockaddr->type.sa.sa_family) {
+	case AF_INET:
+		h = ntohl(sockaddr->type.sin.sin_addr.s_addr);
+		p = ntohs(sockaddr->type.sin.sin_port);
+		break;
+	case AF_INET6:
+		in6 = &sockaddr->type.sin6.sin6_addr;
+		if (IN6_IS_ADDR_V4MAPPED(in6)) {
+			h = (in6->s6_addr[12] << 24) |
+			    (in6->s6_addr[13] << 16) |
+			    (in6->s6_addr[14] << 8) |
+			    in6->s6_addr[15];
+		} else {
 			s = (const unsigned char *)&sockaddr->
-							   type.sin6.sin6_addr;
+						   type.sin6.sin6_addr;
 			length = sizeof sockaddr->type.sin6.sin6_addr;
-			break;
-		default:
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_SOCKADDR,
-							ISC_MSG_UNKNOWNFAMILY,
-							"unknown "
-							"address family: %d"),
-					 (int)sockaddr->type.sa.sa_family);
-			s = (const unsigned char *)&sockaddr->type;
-			length = sockaddr->length;
 		}
-	} else {
+		p = ntohs(sockaddr->type.sin6.sin6_port);
+		break;
+	default:
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_SOCKADDR,
+						ISC_MSG_UNKNOWNFAMILY,
+						"unknown address family: %d"),
+					     (int)sockaddr->type.sa.sa_family);
 		s = (const unsigned char *)&sockaddr->type;
 		length = sockaddr->length;
+		p = 0;
 	}
-
 	while (length > 0) {
 		h = ( h << 4 ) + *s;
 		if ((g = ( h & 0xf0000000 )) != 0) {
@@ -224,6 +222,13 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		}
 		s++;
 		length--;
+	}
+	if (!address_only) {
+		h = h ^ (p << 4);
+		if ((g = ( h & 0xf0000000 )) != 0) {
+			h = h ^ (g >> 24);
+			h = h ^ g;
+		}
 	}
 	return (h);
 }
