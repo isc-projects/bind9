@@ -1,3 +1,5 @@
+1294.	[bug]		Memory leak in lwres_gnbarequest_parse().
+
 1293.	[port]		libbind: solaris: 64 bit binary compatability.
 
 1292.	[contrib]	Berkeley DB 4.0 sdb implementation from
