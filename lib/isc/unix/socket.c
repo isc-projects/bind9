@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.183 2001/01/23 21:07:12 bwelling Exp $ */
+/* $Id: socket.c,v 1.184 2001/01/25 22:25:10 neild Exp $ */
 
 #include <config.h>
 
@@ -130,6 +130,27 @@ typedef isc_event_t intev_t;
 #undef USE_CMSG
 #endif
 
+/*
+ * Determine the size of the control data buffer.
+ */
+#if USE_CMSG
+
+#ifdef ISC_PLATFORM_HAVEIPV6
+#define CMSG_BUF_V6_SIZE (CMSG_SPACE(sizeof(struct in6_pktinfo)))
+#else
+#define CMSG_BUF_V6_SIZE 0
+#endif
+
+#ifdef SO_TIMESTAMP
+#define CMSG_BUF_TS_SIZE (CMSG_SPACE(sizeof(struct timeval)))
+#else
+#define CMSG_BUF_TS_SIZE 0
+#endif
+
+#define CMSG_BUF_SIZE (CMSG_BUF_V6_SIZE + CMSG_BUF_TS_SIZE)
+
+#endif /* USE_CMSG */
+
 struct isc_socket {
 	/* Not locked. */
 	unsigned int		magic;
@@ -168,10 +189,6 @@ struct isc_socket {
 
 #ifdef ISC_NET_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
-#endif
-#ifdef USE_CMSG
-	unsigned char	       *cmsg;
-	unsigned int		cmsglen;
 #endif
 };
 
@@ -231,12 +248,19 @@ static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
 static void build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, size_t *);
+			      struct msghdr *, char *cmsg,
+			      struct iovec *, size_t *);
 static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, size_t *);
+			      struct msghdr *, char *cmsg,
+			      struct iovec *, size_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
+#define SELECT_POKE_READ		(-3)
+#define SELECT_POKE_ACCEPT		(-3) /* Same as _READ */
+#define SELECT_POKE_WRITE		(-4)
+#define SELECT_POKE_CONNECT		(-4) /* Same as _WRITE */
+#define SELECT_POKE_CLOSE		(-5)
 
 #define SOCK_DEAD(s)			((s)->references == 0)
 
@@ -289,14 +313,13 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 }
 
 static void
-wakeup_socket(isc_socketmgr_t *manager, int fd) {
-	isc_event_t *ev2;
-	isc_socketevent_t *rev;
+wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 	isc_socket_t *sock;
 
 	/*
-	 * This is a wakeup on a socket.  Look at the event queue for both
-	 * read and write, and decide if we need to watch on it now or not.
+	 * This is a wakeup on a socket.  If the socket is not in the
+	 * process of being closed, start watching it for either reads
+	 * or writes.
 	 */
 	INSIST(fd < FD_SETSIZE);
 
@@ -317,33 +340,28 @@ wakeup_socket(isc_socketmgr_t *manager, int fd) {
 	 * have already queued up the internal event on a task's
 	 * queue, clear the bit.  Otherwise, set it.
 	 */
-	rev = ISC_LIST_HEAD(sock->recv_list);
-	ev2 = (isc_event_t *) ISC_LIST_HEAD(sock->accept_list);
-	if ((rev == NULL && ev2 == NULL)
-	    || sock->pending_recv || sock->pending_accept)
-		FD_CLR(sock->fd, &manager->read_fds);
-	else
+	if (msg == SELECT_POKE_READ)
 		FD_SET(sock->fd, &manager->read_fds);
-
-	rev = ISC_LIST_HEAD(sock->send_list);
-	if ((rev == NULL || sock->pending_send) && !sock->connecting)
-		FD_CLR(sock->fd, &manager->write_fds);
-	else
+	if (msg == SELECT_POKE_WRITE)
 		FD_SET(sock->fd, &manager->write_fds);
 }
 
 #ifdef ISC_PLATFORM_USETHREADS
 /*
  * Poke the select loop when there is something for us to do.
- * We assume that if a write completes here, it will be inserted into the
- * queue fully.  That is, we will not get partial writes.
+ * The write is required (by POSIX) to complete.  That is, we
+ * will not get partial writes.
  */
 static void
-select_poke(isc_socketmgr_t *mgr, int msg) {
+select_poke(isc_socketmgr_t *mgr, int fd, int msg) {
 	int cc;
+	int buf[2];
+
+	buf[0] = fd;
+	buf[1] = msg;
 
 	do {
-		cc = write(mgr->pipe_fds[1], &msg, sizeof(int));
+		cc = write(mgr->pipe_fds[1], buf, sizeof(buf));
 	} while (cc < 0 && SOFT_ERROR(errno));
 			        
 	if (cc < 0)
@@ -354,21 +372,22 @@ select_poke(isc_socketmgr_t *mgr, int msg) {
 					   "during watcher poke: %s"),
 			    strerror(errno));
 
-	INSIST(cc == sizeof(int));
+	INSIST(cc == sizeof(buf));
 }
 
 /*
  * Read a message on the internal fd.
  */
-static int
-select_readmsg(isc_socketmgr_t *mgr) {
-	int msg;
+static void
+select_readmsg(isc_socketmgr_t *mgr, int *fd, int *msg) {
+	int buf[2];
 	int cc;
 
-	cc = read(mgr->pipe_fds[0], &msg, sizeof(int));
+	cc = read(mgr->pipe_fds[0], buf, sizeof(buf));
 	if (cc < 0) {
+		*msg = SELECT_POKE_NOTHING;
 		if (SOFT_ERROR(errno))
-			return (SELECT_POKE_NOTHING);
+			return;
 
 		FATAL_ERROR(__FILE__, __LINE__,
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
@@ -377,21 +396,23 @@ select_readmsg(isc_socketmgr_t *mgr) {
 					   "during watcher poke: %s"),
 			    strerror(errno));
 		
-		return (SELECT_POKE_NOTHING);
+		return;
 	}
+	INSIST(cc == sizeof(buf));
 
-	return (msg);
+	*fd = buf[0];
+	*msg = buf[1];
 }
 #else /* ISC_PLATFORM_USETHREADS */
 /*
  * Update the state of the socketmgr when something changes.
  */
 static void
-select_poke(isc_socketmgr_t *manager, int msg) {
+select_poke(isc_socketmgr_t *manager, int fd, int msg) {
 	if (msg == SELECT_POKE_SHUTDOWN)
 		return;
-	else if (msg >= 0)
-		wakeup_socket(manager, msg);
+	else if (fd >= 0)
+		wakeup_socket(manager, fd, msg);
 	return;
 }
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -522,10 +543,10 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 }
 
 /*
- * Construct an iov array and attach it to the msghdr passed in.  Return
- * 0 on success, non-zero on failure.  This is the SEND constructor, which
- * will used the used region of the buffer (if using a buffer list) or
- * will use the internal region (if a single buffer I/O is requested).
+ * Construct an iov array and attach it to the msghdr passed in.  This is
+ * the SEND constructor, which will use the used region of the buffer
+ * (if using a buffer list) or will use the internal region (if a single
+ * buffer I/O is requested).
  *
  * Nothing can be NULL, and the done event must list at least one buffer
  * on the buffer linked list for this function to be meaningful.
@@ -535,13 +556,18 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
  */
 static void
 build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
-		  struct msghdr *msg, struct iovec *iov, size_t *write_countp)
+		  struct msghdr *msg, char *cmsg,
+		  struct iovec *iov, size_t *write_countp)
 {
 	unsigned int iovcount;
 	isc_buffer_t *buffer;
 	isc_region_t used;
 	size_t write_count;
 	size_t skip_count;
+
+#ifndef USE_CMSG
+	UNUSED(cmsg);
+#endif
 
 	memset(msg, 0, sizeof (*msg));
 
@@ -608,7 +634,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
-#if defined(USE_CMSG)
+#ifdef USE_CMSG
 	if ((sock->type == isc_sockettype_udp)
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
@@ -620,9 +646,9 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 			   dev->pktinfo.ipi6_ifindex);
 
 		msg->msg_controllen = CMSG_SPACE(sizeof(struct in6_pktinfo));
-		msg->msg_control = (void *)sock->cmsg;
+		msg->msg_control = (void *)cmsg;
 
-		cmsgp = (struct cmsghdr *)sock->cmsg;
+		cmsgp = (struct cmsghdr *)cmsg;
 		cmsgp->cmsg_level = IPPROTO_IPV6;
 		cmsgp->cmsg_type = IPV6_PKTINFO;
 		cmsgp->cmsg_len = CMSG_LEN(sizeof(struct in6_pktinfo));
@@ -640,10 +666,10 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 }
 
 /*
- * Construct an iov array and attach it to the msghdr passed in.  Return
- * 0 on success, non-zero on failure.  This is the RECV constructor, which
- * will use the avialable region of the buffer (if using a buffer list) or
- * will use the internal region (if a single buffer I/O is requested).
+ * Construct an iov array and attach it to the msghdr passed in.  This is
+ * the RECV constructor, which will use the avialable region of the buffer
+ * (if using a buffer list) or will use the internal region (if a single
+ * buffer I/O is requested).
  *
  * Nothing can be NULL, and the done event must list at least one buffer
  * on the buffer linked list for this function to be meaningful.
@@ -653,12 +679,17 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
  */
 static void
 build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
-		  struct msghdr *msg, struct iovec *iov, size_t *read_countp)
+		  struct msghdr *msg, char *cmsg,
+		  struct iovec *iov, size_t *read_countp)
 {
 	unsigned int iovcount;
 	isc_buffer_t *buffer;
 	isc_region_t available;
 	size_t read_count;
+
+#ifndef USE_CMSG
+	UNUSED(cmsg);
+#endif
 
 	memset(msg, 0, sizeof (struct msghdr));
 
@@ -741,8 +772,8 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_flags = 0;
 #if defined(USE_CMSG)
 	if (sock->type == isc_sockettype_udp) {
-		msg->msg_control = (void *)sock->cmsg;
-		msg->msg_controllen = sock->cmsglen;
+		msg->msg_control = cmsg;
+		msg->msg_controllen = CMSG_BUF_SIZE;
 	}
 #endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
@@ -826,8 +857,13 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	size_t actual_count;
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
+#if USE_CMSG
+	char cmsg[CMSG_BUF_SIZE];
+#else
+	char *cmsg = NULL;
+#endif
 
-	build_msghdr_recv(sock, dev, &msghdr, iov, &read_count);
+	build_msghdr_recv(sock, dev, &msghdr, cmsg, iov, &read_count);
 
 #if defined(ISC_SOCKET_DEBUG)
 	dump_msg(&msghdr);
@@ -963,8 +999,13 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	size_t write_count;
 	struct msghdr msghdr;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+#if USE_CMSG
+	char cmsg[CMSG_BUF_SIZE];
+#else
+	char *cmsg = NULL;
+#endif
 
-	build_msghdr_send(sock, dev, &msghdr, iov, &write_count);
+	build_msghdr_send(sock, dev, &msghdr, cmsg, iov, &write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
@@ -1070,7 +1111,7 @@ destroy(isc_socket_t **sockp) {
 	 */
 	manager->fds[sock->fd] = NULL;
 	manager->fdstate[sock->fd] = CLOSE_PENDING;
-	select_poke(manager, sock->fd);
+	select_poke(manager, sock->fd, SELECT_POKE_CLOSE);
 	ISC_LIST_UNLINK(manager->socklist, sock, link);
 
 #ifdef ISC_PLATFORM_USETHREADS
@@ -1098,21 +1139,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	if (sock == NULL)
 		return (ISC_R_NOMEMORY);
-
-#if USE_CMSG  /* Let's hope the OSs are sane, and pad correctly XXXMLG */
-	sock->cmsglen = 0;
-#ifdef ISC_PLATFORM_HAVEIPV6
-	sock->cmsglen += CMSG_SPACE(sizeof(struct in6_pktinfo));
-#endif
-#ifdef SO_TIMESTAMP
-	sock->cmsglen += CMSG_SPACE(sizeof(struct timeval));
-#endif
-	sock->cmsg = isc_mem_get(manager->mctx, sock->cmsglen);
-	if (sock->cmsg == NULL) {
-		ret = ISC_R_NOMEMORY;
-		goto err1;
-	}
-#endif
 
 	ret = ISC_R_UNEXPECTED;
 
@@ -1150,7 +1176,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
 		ret = ISC_R_UNEXPECTED;
-		goto err2;
+		goto error;
 	}
 
 	/*
@@ -1168,14 +1194,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	return (ISC_R_SUCCESS);
 
- err2: /* cmsg allocated */
-#ifdef USE_CMSG
-	isc_mem_put(manager->mctx, sock->cmsg, sock->cmsglen);
-	sock->cmsglen = 0;
-	sock->cmsg = NULL;
- err1: /* socket allocated */
-#endif
-	isc_mem_put(manager->mctx, sock, sizeof *sock);
+ error: /* socket allocated */
 
 	return (ret);
 }
@@ -1206,17 +1225,13 @@ free_socket(isc_socket_t **socketp) {
 
 	DESTROYLOCK(&sock->lock);
 
-#ifdef USE_CMSG
-	isc_mem_put(sock->manager->mctx, sock->cmsg, sock->cmsglen);
-#endif
 	isc_mem_put(sock->manager->mctx, sock, sizeof *sock);
 
 	*socketp = NULL;
 }
 
 /*
- * Create a new 'type' socket managed by 'manager'.  The sockets
- * parameters are specified by 'expires' and 'interval'.  Events
+ * Create a new 'type' socket managed by 'manager'.  Events
  * will be posted to 'task' and when dispatched 'action' will be
  * called with 'arg' as the arg value.  The new socket is returned
  * in 'socketp'.
@@ -1540,7 +1555,7 @@ dispatch_connect(isc_socket_t *sock) {
  * If the event to be sent is on a list, remove it before sending.  If
  * asked to, send and detach from the socket as well.
  *
- * Caller must have the socket locked.
+ * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
 send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
@@ -1566,7 +1581,7 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 /*
  * See comments for send_recvdone_event() above.
  *
- * Caller must have the socket locked.
+ * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
 send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
@@ -1656,7 +1671,8 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		    (void *)&addrlen);
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
-			select_poke(sock->manager, sock->fd);
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_ACCEPT);
 			UNLOCK(&sock->lock);
 			return;
 		}
@@ -1696,7 +1712,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * Poke watcher if there are more pending accepts.
 	 */
 	if (!ISC_LIST_EMPTY(sock->accept_list))
-		select_poke(sock->manager, sock->fd);
+		select_poke(sock->manager, sock->fd, SELECT_POKE_ACCEPT);
 
 	UNLOCK(&sock->lock);
 
@@ -1797,7 +1813,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			 * read of 0 means the remote end was closed.
 			 * Run through the event queue and dispatch all
 			 * the events with an EOF result code.  This will
-			 *  set the EOF flag in markers as well, but
+			 * set the EOF flag in markers as well, but
 			 * that's really ok.
 			 */
 			do {
@@ -1817,7 +1833,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 
  poke:
 	if (!ISC_LIST_EMPTY(sock->recv_list))
-		select_poke(sock->manager, sock->fd);
+		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
 
 	UNLOCK(&sock->lock);
 }
@@ -1883,7 +1899,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 
  poke:
 	if (!ISC_LIST_EMPTY(sock->send_list))
-		select_poke(sock->manager, sock->fd);
+		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
 
 	UNLOCK(&sock->lock);
 }
@@ -1972,7 +1988,7 @@ watcher(void *uap) {
 	int cc;
 	fd_set readfds;
 	fd_set writefds;
-	int msg;
+	int msg, fd;
 	int maxfd;
 
 	/*
@@ -2011,7 +2027,7 @@ watcher(void *uap) {
 		 */
 		if (FD_ISSET(ctlfd, &readfds)) {
 			for (;;) {
-				msg = select_readmsg(manager);
+				select_readmsg(manager, &fd, &msg);
 
 				manager_log(manager, IOEVENT,
 					    isc_msgcat_get(isc_msgcat,
@@ -2027,7 +2043,7 @@ watcher(void *uap) {
 					break;
 
 				/*
-				 * handle shutdown message.  We really should
+				 * Handle shutdown message.  We really should
 				 * jump out of this loop right away, but
 				 * it doesn't matter if we have to do a little
 				 * more work first.
@@ -2044,8 +2060,7 @@ watcher(void *uap) {
 				 * and decide if we need to watch on it now
 				 * or not.
 				 */
-				if (msg >= 0)
-					wakeup_socket(manager, msg);
+				wakeup_socket(manager, fd, msg);
 			}
 		}
 
@@ -2224,7 +2239,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * half of the pipe, which will send EOF to the read half.
 	 * This is currently a no-op in the non-threaded case.
 	 */
-	select_poke(manager, SELECT_POKE_SHUTDOWN);
+	select_poke(manager, 0, SELECT_POKE_SHUTDOWN);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	/*
@@ -2268,9 +2283,10 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc_boolean_t was_empty;
 	unsigned int iocount;
 	isc_buffer_t *buffer;
+	int io_state;
+	isc_boolean_t have_lock = ISC_FALSE;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(buflist != NULL);
@@ -2284,13 +2300,10 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	iocount = isc_bufferlist_availablecount(buflist);
 	REQUIRE(iocount > 0);
 
-	LOCK(&sock->lock);
-
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -2324,50 +2337,60 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		buffer = ISC_LIST_HEAD(*buflist);
 	}
 
-	/*
-	 * If the read queue is empty, try to do the I/O right now.
-	 */
-	was_empty = ISC_LIST_EMPTY(sock->recv_list);
-	if (!was_empty)
-		goto queue;
+	if (sock->type == isc_sockettype_udp) {
+		io_state = doio_recv(sock, dev);
+	} else {
+		LOCK(&sock->lock);
+		have_lock = ISC_TRUE;
 
-	switch (doio_recv(sock, dev)) {
+		if (ISC_LIST_EMPTY(sock->recv_list))
+			io_state = doio_recv(sock, dev);
+		else
+			io_state = DOIO_SOFT;
+	}
+
+	switch (io_state) {
 	case DOIO_SOFT:
-		goto queue;
+		/*
+		 * We couldn't read all or part of the request right now, so
+		 * queue it.
+		 *
+		 * Attach to socket and to task
+		 */
+		isc_task_attach(task, &ntask);
+		dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+		if (!have_lock) {
+			LOCK(&sock->lock);
+			have_lock = ISC_TRUE;
+		}
+
+		/*
+		 * Enqueue the request.  If the socket was previously not being
+		 * watched, poke the watcher to start paying attention to it.
+		 */
+		if (ISC_LIST_EMPTY(sock->recv_list))
+			select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
+		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "isc_socket_recvv: event %p -> task %p",
+			   dev, ntask);
+
+		break;
 
 	case DOIO_EOF:
 		send_recvdone_event(sock, &dev, ISC_R_EOF);
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 	}
 
- queue:
-	/*
-	 * We couldn't read all or part of the request right now, so queue
-	 * it.
-	 *
-	 * Attach to socket and to task
-	 */
-	isc_task_attach(task, &ntask);
-	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+	if (have_lock)
+		UNLOCK(&sock->lock);
 
-	/*
-	 * Enqueue the request.  If the socket was previously not being
-	 * watched, poke the watcher to start paying attention to it.
-	 */
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
-	if (was_empty)
-		select_poke(sock->manager, sock->fd);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_recvv: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2378,7 +2401,8 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc_boolean_t was_empty;
+	isc_boolean_t have_lock = ISC_FALSE;
+	int io_state;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -2389,13 +2413,10 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	LOCK(&sock->lock);
-
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -2416,51 +2437,60 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	dev->region = *region;
 	dev->ev_sender = task;
 
+	if (sock->type == isc_sockettype_udp) {
+		io_state = doio_recv(sock, dev);
+	} else {
+		LOCK(&sock->lock);
+		have_lock = ISC_TRUE;
 
-	/*
-	 * If the read queue is empty, try to do the I/O right now.
-	 */
-	was_empty = ISC_LIST_EMPTY(sock->recv_list);
-	if (!was_empty)
-		goto queue;
+		if (ISC_LIST_EMPTY(sock->recv_list))
+			io_state = doio_recv(sock, dev);
+		else
+			io_state = DOIO_SOFT;
+	}
 
-	switch (doio_recv(sock, dev)) {
+	switch (io_state) {
 	case DOIO_SOFT:
-		goto queue;
+		/*
+		 * We couldn't read all or part of the request right now, so
+		 * queue it.
+		 *
+		 * Attach to socket and to task
+		 */
+		isc_task_attach(task, &ntask);
+		dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+		if (!have_lock) {
+			LOCK(&sock->lock);
+			have_lock = ISC_TRUE;
+		}
+
+		/*
+		 * Enqueue the request.  If the socket was previously not being
+		 * watched, poke the watcher to start paying attention to it.
+		 */
+		if (ISC_LIST_EMPTY(sock->recv_list))
+			select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
+		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "isc_socket_recv: event %p -> task %p",
+			   dev, ntask);
+
+		break;
 
 	case DOIO_EOF:
 		send_recvdone_event(sock, &dev, ISC_R_EOF);
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 	}
 
- queue:
-	/*
-	 * We couldn't read all or part of the request right now, so queue
-	 * it.
-	 *
-	 * Attach to socket and to task.
-	 */
-	isc_task_attach(task, &ntask);
-	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+	if (have_lock)
+		UNLOCK(&sock->lock);
 
-	/*
-	 * Enqueue the request.  If the socket was previously not being
-	 * watched, poke the watcher to start paying attention to it.
-	 */
-	ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
-	if (was_empty)
-		select_poke(sock->manager, sock->fd);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_recv: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2483,7 +2513,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc_boolean_t was_empty;
+	isc_boolean_t have_lock = ISC_FALSE;
+	int io_state;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -2493,13 +2524,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	LOCK(&sock->lock);
-
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -2522,43 +2550,55 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		dev->pktinfo.ipi6_ifindex = 0;
 	}
 
-	/*
-	 * If the write queue is empty, try to do the I/O right now.
-	 */
-	was_empty = ISC_LIST_EMPTY(sock->send_list);
-	if (!was_empty)
-		goto queue;
+	if (sock->type == isc_sockettype_udp) {
+		io_state = doio_send(sock, dev);
+	} else {
+		LOCK(&sock->lock);
+		have_lock = ISC_TRUE;
 
-	switch (doio_send(sock, dev)) {
+		if (ISC_LIST_EMPTY(sock->send_list))
+			io_state = doio_send(sock, dev);
+		else
+			io_state = DOIO_SOFT;
+	}
+
+	switch (io_state) {
 	case DOIO_SOFT:
-		goto queue;
+		/*
+		 * We couldn't send all or part of the request right now, so
+		 * queue it.
+		 */
+		isc_task_attach(task, &ntask);
+		dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+		if (!have_lock) {
+			LOCK(&sock->lock);
+			have_lock = ISC_TRUE;
+		}
+
+		/*
+		 * Enqueue the request.  If the socket was previously not being
+		 * watched, poke the watcher to start paying attention to it.
+		 */
+		if (ISC_LIST_EMPTY(sock->send_list))
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_WRITE);
+		ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
+
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "isc_socket_sendto: event %p -> task %p",
+			   dev, ntask);
+
+		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 	}
 
- queue:
-	/*
-	 * We couldn't send all or part of the request right now, so queue
-	 * it.
-	 */
-	isc_task_attach(task, &ntask);
-	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+	if (have_lock)
+		UNLOCK(&sock->lock);
 
-	/*
-	 * Enqueue the request.  If the socket was previously not being
-	 * watched, poke the watcher to start paying attention to it.
-	 */
-	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
-	if (was_empty)
-		select_poke(sock->manager, sock->fd);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_sendto: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2578,9 +2618,10 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc_boolean_t was_empty;
 	unsigned int iocount;
 	isc_buffer_t *buffer;
+	int io_state;
+	isc_boolean_t have_lock = ISC_FALSE;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(buflist != NULL);
@@ -2594,11 +2635,8 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 	iocount = isc_bufferlist_usedcount(buflist);
 	REQUIRE(iocount > 0);
 
-	LOCK(&sock->lock);
-
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -2626,43 +2664,55 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		buffer = ISC_LIST_HEAD(*buflist);
 	}
 
-	/*
-	 * If the read queue is empty, try to do the I/O right now.
-	 */
-	was_empty = ISC_LIST_EMPTY(sock->send_list);
-	if (!was_empty)
-		goto queue;
+	if (sock->type == isc_sockettype_udp) {
+		io_state = doio_send(sock, dev);
+	} else {
+		LOCK(&sock->lock);
+		have_lock = ISC_TRUE;
 
-	switch (doio_send(sock, dev)) {
+		if (ISC_LIST_EMPTY(sock->send_list))
+			io_state = doio_send(sock, dev);
+		else
+			io_state = DOIO_SOFT;
+	}
+
+	switch (io_state) {
 	case DOIO_SOFT:
-		goto queue;
+		/*
+		 * We couldn't send all or part of the request right now, so
+		 * queue it.
+		 */
+		isc_task_attach(task, &ntask);
+		dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+
+		if (!have_lock) {
+			LOCK(&sock->lock);
+			have_lock = ISC_TRUE;
+		}
+
+		/*
+		 * Enqueue the request.  If the socket was previously not being
+		 * watched, poke the watcher to start paying attention to it.
+		 */
+		if (ISC_LIST_EMPTY(sock->send_list))
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_WRITE);
+		ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
+
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "isc_socket_sendtov: event %p -> task %p",
+			   dev, ntask);
+
+		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		UNLOCK(&sock->lock);
-		return (ISC_R_SUCCESS);
+		break;
 	}
 
- queue:
-	/*
-	 * We couldn't send all or part of the request right now, so queue
-	 * it.
-	 */
-	isc_task_attach(task, &ntask);
-	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+	if (have_lock)
+		UNLOCK(&sock->lock);
 
-	/*
-	 * Enqueue the request.  If the socket was previously not being
-	 * watched, poke the watcher to start paying attention to it.
-	 */
-	ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
-	if (was_empty)
-		select_poke(sock->manager, sock->fd);
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "isc_socket_sendtov: event %p -> task %p", dev, ntask);
-
-	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -2812,7 +2862,7 @@ isc_socket_accept(isc_socket_t *sock,
 	ISC_LIST_ENQUEUE(sock->accept_list, dev, ev_link);
 
 	if (do_poke)
-		select_poke(manager, sock->fd);
+		select_poke(manager, sock->fd, SELECT_POKE_ACCEPT);
 
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
@@ -2927,7 +2977,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	 * bit of time waking it up now or later won't matter all that much.
 	 */
 	if (sock->connect_ev == NULL)
-		select_poke(manager, sock->fd);
+		select_poke(manager, sock->fd, SELECT_POKE_CONNECT);
 
 	sock->connect_ev = dev;
 
@@ -2996,7 +3046,8 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 		 */
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS) {
 			sock->connecting = 1;
-			select_poke(sock->manager, sock->fd);
+			select_poke(sock->manager, sock->fd,
+				    SELECT_POKE_CONNECT);
 			UNLOCK(&sock->lock);
 
 			return;
@@ -3213,11 +3264,6 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 					       (isc_event_t **)&dev);
 		}
 	}
-
-	/*
-	 * Need to guess if we need to poke or not... XXX
-	 */
-	select_poke(sock->manager, sock->fd);
 
 	UNLOCK(&sock->lock);
 }
