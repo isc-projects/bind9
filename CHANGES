@@ -1,4 +1,7 @@
 
+ 340.	[bug]		The top-level COPYRIGHT file was missing from
+			the distribution.
+
  339.	[bug]		DNSSEC validation of the response to an ANY
 			query at a name with a CNAME RR in a secure
 			zone triggered an assertion failure.

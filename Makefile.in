@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.25 2000/06/27 00:09:58 gson Exp $
+# $Id: Makefile.in,v 1.26 2000/07/20 00:41:50 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -23,7 +23,7 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	make lib bin
 TARGETS =
-DISTFILES =	CHANGES Makefile.in README \
+DISTFILES =	CHANGES COPYRIGHT Makefile.in README \
 		acconfig.h aclocal.m4 config.guess config.h.in config.h.win32 \
 		config.status.win32 config.sub configure configure.in \
 		isc-config.sh.in install-sh libtool.m4 ltconfig ltmain.sh \
