@@ -1,4 +1,7 @@
 
+ 708.	[bug]		When building with --with-openssl, the openssl headers
+			included should not be used. [RT #702]
+
  707.	[func]		The "filename" argument to named-checkzone is no
 			longer optional, to reduce confusion. [RT #612]
 
