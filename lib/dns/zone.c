@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.107 2000/05/10 04:47:03 marka Exp $ */
+/* $Id: zone.c,v 1.108 2000/05/10 21:51:17 marka Exp $ */
 
 #include <config.h>
 
@@ -189,6 +189,9 @@ struct dns_zone {
 						 * messages */
 #define DNS_ZONE_F_DIFFONRELOAD 0x00000800U	/* generate a journal diff on
 						 * reload */
+#define DNS_ZONE_F_NOMASTERS	0x00001000U	/* an attempt to refresh a
+						 * zone with no masters
+						 * occured */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -1613,7 +1616,8 @@ dns_zone_setnotifyalso(dns_zone_t *zone, isc_sockaddr_t *notify,
 	isc_sockaddr_t *new;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE((notify == NULL) ^ (count != 0));
+	REQUIRE((notify == NULL && count == 0) ||
+		(notify != NULL && count != 0));
 	
 	LOCK(&zone->lock);
 	if (zone->notify != NULL) {
@@ -1644,7 +1648,8 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 	isc_sockaddr_t *new;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE((masters == NULL) ^ (count != 0));
+	REQUIRE((masters == NULL && count == 0) ||
+		(masters != NULL && count != 0));
 	
 	LOCK(&zone->lock);
 	if (zone->masters != NULL) {
@@ -1663,6 +1668,7 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 	memcpy(new, masters, count * sizeof *new);
 	zone->masters = new;
 	zone->masterscnt = count;
+	zone->flags &= ~DNS_ZONE_F_NOMASTERS;
  unlock:
 	UNLOCK(&zone->lock);
 	return (ISC_R_SUCCESS);
@@ -1852,7 +1858,6 @@ dns_zone_refresh(dns_zone_t *zone) {
 	isc_uint32_t oldflags;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->masterscnt > 0);
 
 	isc_stdtime_get(&now);
 
@@ -1863,6 +1868,14 @@ dns_zone_refresh(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	oldflags = zone->flags;
+	if (zone->masterscnt == 0) {
+		zone->flags |= DNS_ZONE_F_NOMASTERS;
+		if ((oldflags & DNS_ZONE_F_NOMASTERS) == 0)
+			zone_log(zone, "dns_zone_refresh", ISC_LOG_ERROR,
+				 "no masters");
+		UNLOCK(&zone->lock);
+		return;
+	}
 	zone->flags |= DNS_ZONE_F_REFRESH;
 	UNLOCK(&zone->lock);
 	if ((oldflags & DNS_ZONE_F_REFRESH) != 0)
@@ -2761,6 +2774,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 			next = now;
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONE_F_NOMASTERS) &&
 		    (zone->refreshtime < next || next == 0))
 			next = zone->refreshtime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED)) {
