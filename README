@@ -105,6 +105,8 @@ BIND 9.0.0
 
 		The configure option --disable-ipv6 is not functional.
 
+		--with-libtool does not work on AIX.
+
 Building
 
 	BIND 9 currently requires a UNIX system with an ANSI C compiler,
