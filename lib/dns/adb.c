@@ -2092,6 +2092,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		attach_to_task = ISC_TRUE;
 		find->query_pending = (adbname->query_pending
 					 & wanted_addresses);
+		DP(1, "createfind: attaching find %p to adbname %p\n",
+		   find, adbname);
 	} else {
 		/*
 		 * Remove the flag so the caller knows there will never
@@ -2637,7 +2639,7 @@ print_find_list(FILE *f, dns_adbname_t *name)
 
 	find = ISC_LIST_HEAD(name->finds);
 	while (find != NULL) {
-		fprintf(f, "\t\tFind %p\n", find);
+		dns_adb_dumpfind(find, f);
 		find = ISC_LIST_NEXT(find, plink);
 	}
 }
