@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.6 2002/04/26 00:40:37 marka Exp $ */
+/* $Id: namedconf.c,v 1.7 2002/07/13 00:53:34 marka Exp $ */
 
 #include <config.h>
 
@@ -488,7 +488,6 @@ options_clauses[] = {
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
-	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
@@ -588,6 +587,7 @@ zone_clauses[] = {
 	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "max-transfer-time-in", &cfg_type_uint32, 0 },
