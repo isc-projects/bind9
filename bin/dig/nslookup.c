@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.92 2001/09/20 19:26:57 gson Exp $ */
+/* $Id: nslookup.c,v 1.93 2001/11/22 01:59:02 gson Exp $ */
 
 #include <config.h>
 
@@ -132,7 +132,8 @@ static const char *rtypetext[] = {
 	"v6 address = ",		/* 38 */
 	"dname = ",			/* 39 */
 	"rtype_40 = ",			/* 40 */
-	"optional = "};			/* 41 */
+	"optional = "			/* 41 */
+};
 
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
@@ -583,11 +584,11 @@ setoption(char *opt) {
 		debugging = ISC_TRUE;
 	} else if (strncasecmp(opt, "nod2", 4) == 0) {
 		debugging = ISC_FALSE;
-	} else if (strncasecmp(opt, "search",3) == 0) {
+	} else if (strncasecmp(opt, "search", 3) == 0) {
 		usesearch = ISC_TRUE;
-	} else if (strncasecmp(opt, "nosearch",5) == 0) {
+	} else if (strncasecmp(opt, "nosearch", 5) == 0) {
 		usesearch = ISC_FALSE;
-	} else if (strncasecmp(opt, "sil",3) == 0) {
+	} else if (strncasecmp(opt, "sil", 3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
 		printf("*** Invalid option: %s\n", opt);	

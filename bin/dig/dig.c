@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.170 2001/11/07 05:40:48 marka Exp $ */
+/* $Id: dig.c,v 1.171 2001/11/22 01:59:01 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1277,8 +1277,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						continue;
 					}
 				}
-				if (result == ISC_R_SUCCESS)
-				{
+				if (result == ISC_R_SUCCESS) {
 					if (lookup->rdtypeset) {
 						fprintf(stderr, ";; Warning, "
 							"extra type option\n");
