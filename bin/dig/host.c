@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.78 2001/11/22 02:18:52 gson Exp $ */
+/* $Id: host.c,v 1.79 2001/11/29 01:08:43 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -93,111 +93,28 @@ static const char *rcodetext[] = {
 	"BADVERS"
 };
 
-static const char *rtypetext[] = {
-	"zero",				/* 0 */
-	"has address",			/* 1 */
-	"name server",			/* 2 */
-	"MD",				/* 3 */
-	"MF",				/* 4 */
-	"is an alias for",		/* 5 */
-	"SOA",				/* 6 */
-	"MB",				/* 7 */
-	"MG",				/* 8 */
-	"MR",				/* 9 */
-	"NULL",				/* 10 */
-	"has well known services",	/* 11 */
-	"domain name pointer",		/* 12 */
-	"host information",		/* 13 */
-	"MINFO",			/* 14 */
-	"mail is handled by",	       	/* 15 */
-	"text",				/* 16 */
-	"RP",				/* 17 */
-	"AFSDB",			/* 18 */
-	"x25 address",			/* 19 */
-	"isdn address",			/* 20 */
-	"RT",				/* 21 */
-	"NSAP",				/* 22 */
-	"NSAP_PTR",			/* 23 */
-	"has signature",		/* 24 */
-	"has key",			/* 25 */
-	"PX",				/* 26 */
-	"GPOS",				/* 27 */
-	"has AAAA address",		/* 28 */
-	"LOC",				/* 29 */
-	"has next record",		/* 30 */
-	"EID",				/* 31 */
-	"NIMLOC",			/* 32 */
-	"SRV",				/* 33 */
-	"ATMA",				/* 34 */
-	"NAPTR",			/* 35 */
-	"KX",				/* 36 */
-	"CERT",				/* 37 */
-	"has v6 address",		/* 38 */
-	"DNAME",			/* 39 */
-	"has optional information",	/* 41 */
-	"has 42 record",       		/* 42 */
-	"has 43 record",       		/* 43 */
-	"has 44 record",       		/* 44 */
-	"has 45 record",       		/* 45 */
-	"has 46 record",       		/* 46 */
-	"has 47 record",       		/* 47 */
-	"has 48 record",       		/* 48 */
-	"has 49 record",       		/* 49 */
-	"has 50 record",       		/* 50 */
-	"has 51 record",       		/* 51 */
-	"has 52 record",       		/* 52 */
-	"has 53 record",       		/* 53 */
-	"has 54 record",       		/* 54 */
-	"has 55 record",       		/* 55 */
-	"has 56 record",       		/* 56 */
-	"has 57 record",       		/* 57 */
-	"has 58 record",       		/* 58 */
-	"has 59 record",       		/* 59 */
-	"has 60 record",       		/* 60 */
-	"has 61 record",       		/* 61 */
-	"has 62 record",       		/* 62 */
-	"has 63 record",       		/* 63 */
-	"has 64 record",       		/* 64 */
-	"has 65 record",       		/* 65 */
-	"has 66 record",       		/* 66 */
-	"has 67 record",       		/* 67 */
-	"has 68 record",       		/* 68 */
-	"has 69 record",       		/* 69 */
-	"has 70 record",       		/* 70 */
-	"has 71 record",       		/* 71 */
-	"has 72 record",       		/* 72 */
-	"has 73 record",       		/* 73 */
-	"has 74 record",       		/* 74 */
-	"has 75 record",       		/* 75 */
-	"has 76 record",       		/* 76 */
-	"has 77 record",       		/* 77 */
-	"has 78 record",       		/* 78 */
-	"has 79 record",       		/* 79 */
-	"has 80 record",       		/* 80 */
-	"has 81 record",       		/* 81 */
-	"has 82 record",       		/* 82 */
-	"has 83 record",       		/* 83 */
-	"has 84 record",       		/* 84 */
-	"has 85 record",       		/* 85 */
-	"has 86 record",       		/* 86 */
-	"has 87 record",       		/* 87 */
-	"has 88 record",       		/* 88 */
-	"has 89 record",       		/* 89 */
-	"has 90 record",       		/* 90 */
-	"has 91 record",       		/* 91 */
-	"has 92 record",       		/* 92 */
-	"has 93 record",       		/* 93 */
-	"has 94 record",       		/* 94 */
-	"has 95 record",       		/* 95 */
-	"has 96 record",       		/* 96 */
-	"has 97 record",       		/* 97 */
-	"has 98 record",       		/* 98 */
-	"has 99 record",       		/* 99 */
-	"UINFO",			/* 100 */
-	"UID",				/* 101 */
-	"GID",				/* 102 */
-	"UNSPEC"};			/* 103 */
+struct rtype {
+	unsigned int type;
+	const char *text;
+};
 
+struct rtype rtypes[] = {
+	{ 1, 	"has address" },
+	{ 2, 	"name server" },
+	{ 5, 	"is an alias for" },
+	{ 11,	"has well known services" },
+	{ 12,	"domain name pointer" },
+	{ 13,	"host information" },
+	{ 15,	"mail is handled by" },
+	{ 16,	"descriptive text" },
+	{ 19,	"x25 address" },
+	{ 20,	"ISDN address" },
+	{ 24,	"has signature" },
+	{ 25,	"has key" },
+	{ 28,	"has IPv6 address" },
+	{ 29,	"location" },
+	{ 0, NULL }
+};
 
 static void
 show_usage(void) {
@@ -302,7 +219,6 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	char t[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
-	const char *rtt;
 
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
@@ -350,15 +266,27 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			} else {
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
+					struct rtype *t;
+					const char *rtt;
+					char typebuf[DNS_RDATATYPE_FORMATSIZE];
+					char typebuf2[DNS_RDATATYPE_FORMATSIZE
+						     + 20];
 					dns_rdataset_current(rdataset, &rdata);
-					if (rdata.type <= 103)
-						rtt = rtypetext[rdata.type];
-					else if (rdata.type == 249)
-						rtt = "key";
-					else if (rdata.type == 250)
-						rtt = "signature";
-					else
-						rtt = "unknown";
+
+					for (t = rtypes; t->text != NULL; t++) {
+						if (t->type == rdata.type) {
+							rtt = t->text;
+							goto found;
+						}
+					}
+
+					dns_rdatatype_format(rdata.type,
+							     typebuf,
+							     sizeof(typebuf));
+					snprintf(typebuf2, sizeof(typebuf2),
+						 "has %s record", typebuf);
+					rtt = typebuf2;
+				found:
 					say_message(print_name, rtt,
 						    &rdata, query);
 					dns_rdata_reset(&rdata);
