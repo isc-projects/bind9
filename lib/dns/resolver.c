@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.141 2000/07/04 01:19:20 tale Exp $ */
+/* $Id: resolver.c,v 1.142 2000/07/05 20:26:46 explorer Exp $ */
 
 #include <config.h>
 
@@ -555,7 +555,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 	query->sends--;
 
-	if (sevent->result != ISC_R_SUCCESS)
+	if (sevent->result != ISC_R_SUCCESS) {
 		if (RESQUERY_CANCELED(query)) {
 			if (query->sends == 0) {
 				/*
@@ -568,6 +568,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 			}
 		} else
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
+	}
 
 	isc_event_free(&event);
 }
