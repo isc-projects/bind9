@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.132 2000/05/30 22:30:13 bwelling Exp $ */
+/* $Id: zone.c,v 1.133 2000/05/31 21:13:57 gson Exp $ */
 
 #include <config.h>
 
@@ -579,7 +579,6 @@ dns_zone_load(dns_zone_t *zone) {
 	unsigned int nscount = 0;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_result_t result;
-	dns_rdata_soa_t soa;
 	isc_stdtime_t now;
 	isc_time_t loadtime, filetime;
 	dns_db_t *db = NULL;
@@ -777,8 +776,6 @@ dns_zone_load(dns_zone_t *zone) {
 
  cleanup:
 	UNLOCK(&zone->lock);
-	if (soacount != 0)
-		dns_rdata_freestruct(&soa);
 	if (db != NULL)
 		dns_db_detach(&db);
 	return (result);
