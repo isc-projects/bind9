@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: altbuild.sh,v 1.1 2000/08/08 01:06:43 gson Exp $
+# $Id: altbuild.sh,v 1.2 2000/08/30 17:04:55 gson Exp $
 
 #
 # "Alternative build" test.
@@ -40,6 +40,9 @@ mkdir $srcdir
 test ! -d $builddir || rm -rf $builddir
 mkdir $builddir
 
+test ! -d $instdir || rm -rf $instdir
+mkdir $instdir
+
 cd $srcdir || exit 1
 
 cvs export -r $tag bind9
@@ -62,5 +65,9 @@ CFLAGS="-g -DISC_CHECK_NONE -DISC_MEM_FILL=0" \
     sh configure --with-libtool --prefix=$instdir
 make
 make install
-cd bin/tests
-make test
+
+( cd bin/tests && make test )
+
+# Check the installed header files
+
+sh util/check-instincludes.sh $instdir
