@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.4 2000/01/06 03:36:28 tale Exp $ */
+/* $Id: generic.c,v 1.5 2000/01/06 23:52:59 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -192,10 +192,7 @@ omapi_generic_get_value(omapi_object_t *h, omapi_object_t *id,
 		}
 	}			
 
-	if (h->inner != NULL && h->inner->type->get_value != NULL)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(h);
 }
 
 void
@@ -225,9 +222,7 @@ omapi_generic_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
 
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
-	if (h->inner != NULL && h->inner->type->signal_handler != NULL)
-		return (*(h->inner->type->signal_handler))(h->inner, name, ap);
-	return (ISC_R_NOTFOUND);
+	PASS_SIGNAL(h);
 }
 
 /*
@@ -236,7 +231,7 @@ omapi_generic_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
  */
 
 isc_result_t
-omapi_generic_stuff_values(omapi_object_t *c, omapi_object_t *id,
+omapi_generic_stuff_values(omapi_object_t *connection, omapi_object_t *id,
 			   omapi_object_t *h)
 {
 	omapi_generic_object_t *src;
@@ -250,24 +245,22 @@ omapi_generic_stuff_values(omapi_object_t *c, omapi_object_t *id,
 	for (i = 0; i < src->nvalues; i++) {
 		if (src->values[i] != NULL &&
 		    src->values[i]->name->len != 0) {
-			result = omapi_connection_putuint16(c,
+			result = omapi_connection_putuint16(connection,
 						   src->values[i]->name->len);
 			if (result != ISC_R_SUCCESS)
 				return (result);
-			result = omapi_connection_copyin(c,
+			result = omapi_connection_copyin(connection,
 						   src->values[i]->name->value,
 						   src->values[i]->name->len);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 
-			result = omapi_connection_puttypeddata(c,
+			result = omapi_connection_puttypeddata(connection,
 						       src->values[i]->value);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
 	}			
 
-	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
-		return (*(h->inner->type->stuff_values))(c, id, h->inner);
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(h);
 }

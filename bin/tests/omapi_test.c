@@ -110,11 +110,8 @@ main (int argc, char **argv) {
 		if (result != ISC_R_SUCCESS)
 			exit (1);
 
-		result = omapi_wait_for_completion(connection, NULL);
-		fprintf(stderr, "completion: %s\n", isc_result_totext(result));
-
-		if (result != ISC_R_SUCCESS)
-			exit (1);
+		omapi_protocol_disconnect(connection, ISC_FALSE);
+		fprintf(stderr, "completed\n");
 		/* ... */
 
 	} else {
@@ -125,7 +122,6 @@ main (int argc, char **argv) {
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
-
 
 	return (0);
 }

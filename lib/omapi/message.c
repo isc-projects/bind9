@@ -29,42 +29,38 @@ omapi_message_object_t *omapi_registered_messages;
 
 isc_result_t
 omapi_message_new(omapi_object_t **o, const char *name) {
-	omapi_message_object_t *m;
+	omapi_message_object_t *message = NULL;
 	omapi_object_t *g;
 	isc_result_t result;
 
-	m = isc_mem_get(omapi_mctx, sizeof(*m));
-	if (m == NULL)
-		return (ISC_R_NOMEMORY);
-	memset(m, 0, sizeof(*m));
-	m->object_size = sizeof(*m);
-	m->refcnt = 1;
-	m->type = omapi_type_message;
+	result = omapi_object_new((omapi_object_t **)&message,
+				  omapi_type_message, sizeof(*message));
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	g = NULL;
 	result = omapi_generic_new(&g, name);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(omapi_mctx, m, sizeof(*m));
+		OBJECT_DEREF(&message, "omapi_message_new");
 		return (result);
 	}
 
-	OBJECT_REF(&m->inner, g, name);
-	OBJECT_REF(&g->outer, m, name);
-	OBJECT_REF(o, m, name);
+	OBJECT_REF(&message->inner, g, name);
+	OBJECT_REF(&g->outer, message, name);
+	OBJECT_REF(o, message, name);
 
-	OBJECT_DEREF(&m, name);
+	OBJECT_DEREF(&message, name);
 	OBJECT_DEREF(&g, name);
 
 	return (result);
 }
 
 isc_result_t
-omapi_message_set_value(omapi_object_t *h, omapi_object_t *id,
+omapi_message_setvalue(omapi_object_t *h, omapi_object_t *id,
 			omapi_data_string_t *name,
 			omapi_typed_data_t *value)
 {
 	omapi_message_object_t *m;
-	isc_result_t result;
 
 	REQUIRE(h != NULL && h->type == omapi_type_message);
 
@@ -153,18 +149,11 @@ omapi_message_set_value(omapi_object_t *h, omapi_object_t *id,
 	/*
 	 * Try to find some inner object that can take the value.
 	 */
-	if (h->inner != NULL && h->inner->type->set_value != NULL) {
-		result = ((*(h->inner->type->set_value))(h->inner, id,
-							 name, value));
-		if (result == ISC_R_SUCCESS)
-			return (result);
-	}
-
-	return (ISC_R_NOTFOUND);
+	PASS_SETVALUE(h);
 }
 
 isc_result_t
-omapi_message_get_value(omapi_object_t *h, omapi_object_t *id,
+omapi_message_getvalue(omapi_object_t *h, omapi_object_t *id,
 			omapi_data_string_t *name,
 			omapi_value_t **value)
 {
@@ -206,55 +195,52 @@ omapi_message_get_value(omapi_object_t *h, omapi_object_t *id,
 	/*
 	 * See if there's an inner object that has the value.
 	 */
-	if (h->inner != NULL && h->inner->type->get_value != NULL)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(h);
 }
 
 void
-omapi_message_destroy(omapi_object_t *h, const char *name) {
-	omapi_message_object_t *m;
+omapi_message_destroy(omapi_object_t *handle, const char *name) {
+	omapi_message_object_t *message;
 
-	REQUIRE(h != NULL && h->type == omapi_type_message);
+	REQUIRE(handle != NULL && handle->type == omapi_type_message);
 
-	m = (omapi_message_object_t *)h;
+	message = (omapi_message_object_t *)handle;
 
-	if (m->authenticator != NULL)
-		omapi_data_dereference(&m->authenticator, name);
+	if (message->authenticator != NULL)
+		omapi_data_dereference(&message->authenticator, name);
 
-	if (m->prev == NULL && omapi_registered_messages != m)
-		omapi_message_unregister(h);
-	if (m->prev != NULL)
-		OBJECT_DEREF(&m->prev, name);
-	if (m->next != NULL)
-		OBJECT_DEREF(&m->next, name);
-	if (m->id_object != NULL)
-		OBJECT_DEREF(&m->id_object, name);
-	if (m->object != NULL)
-		OBJECT_DEREF(&m->object, name);
+	if (message->prev == NULL && omapi_registered_messages != message)
+		omapi_message_unregister(handle);
+	if (message->prev != NULL)
+		OBJECT_DEREF(&message->prev, name);
+	if (message->next != NULL)
+		OBJECT_DEREF(&message->next, name);
+	if (message->id_object != NULL)
+		OBJECT_DEREF(&message->id_object, name);
+	if (message->object != NULL)
+		OBJECT_DEREF(&message->object, name);
 }
 
 isc_result_t
-omapi_message_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
-	omapi_message_object_t *m;
+omapi_message_signalhandler(omapi_object_t *handle, const char *name,
+			    va_list ap) {
+	omapi_message_object_t *message;
 
-	REQUIRE(h != NULL && h->type == omapi_type_message);
+	REQUIRE(handle != NULL && handle->type == omapi_type_message);
 
-	m = (omapi_message_object_t *)h;
+	message = (omapi_message_object_t *)handle;
 	
-	if (strcmp(name, "status") == 0 && 
-	    (m->object != NULL || m->notify_object != NULL)) {
-		if (m->object != NULL)
-			return ((m->object->type->signal_handler))(m->object,
-								   name, ap);
+	if (strcmp(name, "status") == 0 &&
+	    (message->object != NULL || message->notify_object != NULL)) {
+		if (message->object != NULL)
+			return ((message->object->type->signal_handler))
+				(message->object, name, ap);
 		else
-			return ((m->notify_object->type->signal_handler))
-				(m->notify_object, name, ap);
+			return ((message->notify_object->type->signal_handler))
+				(message->notify_object, name, ap);
 	}
-	if (h->inner != NULL && h->inner->type->signal_handler != NULL)
-		return (*(h->inner->type->signal_handler))(h->inner, name, ap);
-	return (ISC_R_NOTFOUND);
+
+	PASS_SIGNAL(handle);
 }
 
 /*
@@ -263,14 +249,12 @@ omapi_message_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
  */
 
 isc_result_t
-omapi_message_stuff_values(omapi_object_t *c, omapi_object_t *id,
-			   omapi_object_t *h)
+omapi_message_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+			  omapi_object_t *message)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_message);
+	REQUIRE(message != NULL && message->type == omapi_type_message);
 
-	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
-		return (*(h->inner->type->stuff_values))(c, id, h->inner);
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(message);
 }
 
 isc_result_t
@@ -380,7 +364,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 	      case OMAPI_OP_OPEN:
 		if (m != NULL) {
 			return (omapi_protocol_send_status(po, NULL,
-							   ISC_R_INVALIDARG,
+							   OMAPI_R_INVALIDARG,
 							   message->id,
 							   "OPEN can't be "
 							   "a response"));
@@ -460,7 +444,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (type == NULL) {
 			if (create != 0) {
 				return (omapi_protocol_send_status(po, NULL,
-						 ISC_R_INVALIDARG, message->id,
+						 OMAPI_R_INVALIDARG, message->id,
 						 "type required on create"));
 			}
 			goto refresh;
@@ -485,7 +469,7 @@ omapi_message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_NOTFOUND &&
-		    result != ISC_R_NOKEYS) {
+		    result != OMAPI_R_NOKEYS) {
 			return (omapi_protocol_send_status(po, NULL, 
 						      result, message->id,
 						      "object lookup failed"));

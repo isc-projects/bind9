@@ -53,7 +53,7 @@ typedef struct {
 	/*
 	 * True when reading message-specific values.
 	 */
-	int				reading_message_values;
+	isc_boolean_t			reading_message_values;
 	omapi_message_object_t *	message;	/* Incoming message. */
 	omapi_data_string_t *		name;		/* Incoming name. */
 	omapi_typed_data_t *		value;		/* Incoming value. */
@@ -112,6 +112,24 @@ omapi_protocol_connect(omapi_object_t *h, const char *server_name,
 	return (ISC_R_SUCCESS);
 }
 
+void
+omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force) {
+	omapi_protocol_object_t *protocol;
+	omapi_connection_object_t *connection;
+
+	REQUIRE(handle != NULL);
+
+	protocol = (omapi_protocol_object_t *)handle->outer;
+
+	ENSURE(protocol != NULL && protocol->type == omapi_type_protocol);
+
+	connection = (omapi_connection_object_t *)protocol->outer;
+
+	ENSURE(connection != NULL && connection->type == omapi_type_connection);
+
+	omapi_connection_disconnect((omapi_object_t *)connection, force);
+}
+
 /*
  * Send the protocol introduction message.
  */
@@ -120,7 +138,6 @@ omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
 			  unsigned int hsize)
 {
 	isc_result_t result;
-	isc_task_t *task;
 	omapi_protocol_object_t *p;
 	omapi_connection_object_t *connection;
 
@@ -130,7 +147,7 @@ omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
 	connection = (omapi_connection_object_t *)h->outer;
 
 	if (h->outer == NULL || h->outer->type != omapi_type_connection)
-		return (ISC_R_NOTCONNECTED);
+		return (OMAPI_R_NOTCONNECTED);
 
 	result = omapi_connection_putuint32((omapi_object_t *)connection,
 					     ver);
@@ -171,7 +188,6 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	omapi_object_t *c;
 	omapi_message_object_t *m;
 	omapi_message_object_t *om;
-	isc_task_t *task;
 	isc_result_t result;
 
 	REQUIRE(po != NULL && po->type == omapi_type_protocol &&
@@ -192,7 +208,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	/* XXXTL Write the ID of the authentication key we're using. */
 	result = omapi_connection_putuint32(c, 0);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -201,7 +217,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	result = omapi_connection_putuint32(c, m->op);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -216,7 +232,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 						    m->object->handle
 						    : 0)));
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -226,7 +242,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	m->id = p->next_xid++;
 	result = omapi_connection_putuint32(c, m->id);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -236,7 +252,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	result = omapi_connection_putuint32(c, om ? om->id : m->rid);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -245,7 +261,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	result = omapi_stuff_values(c, id, (omapi_object_t *)m);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -255,7 +271,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	result = omapi_connection_putuint16(c, 0);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -266,7 +282,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	if (m->object != NULL) {
 		result = omapi_stuff_values(c, id, m->object);
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 	}
@@ -277,7 +293,7 @@ omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
 	 */
 	result = omapi_connection_putuint16(c, 0);
 	if (result != ISC_R_SUCCESS) {
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 		return (result);
 	}
 
@@ -333,13 +349,15 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * We currently only support the current protocol version.
 		 */
 		if (p->protocol_version != OMAPI_PROTOCOL_VERSION) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
-			return (ISC_R_VERSIONMISMATCH);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
+			return (OMAPI_R_VERSIONMISMATCH);
 		}
 
 		if (p->header_size < sizeof(omapi_protocol_header_t)) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
-			return (ISC_R_PROTOCOLERROR);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
+			return (OMAPI_R_PROTOCOLERROR);
 		}
 
 		result = omapi_signal_in(h->inner, "ready");
@@ -369,7 +387,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		result = omapi_message_new((omapi_object_t **)&p->message,
 					   "omapi_protocol_signal_handler");
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -410,7 +429,7 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		 * First we read in message-specific values, then object
 		 * values.
 		 */
-		p->reading_message_values = 1;
+		p->reading_message_values = ISC_TRUE;
 
 	need_name_length:
 		/*
@@ -431,7 +450,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 	case omapi_protocol_name_length_wait:
 		result = omapi_connection_getuint16(connection, &nlen);
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -448,7 +468,7 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 			 * object.
 			 */
 			if (p->reading_message_values) {
-				p->reading_message_values = 0;
+				p->reading_message_values = ISC_FALSE;
 				goto need_name_length;
 			}
 
@@ -484,7 +504,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		result = omapi_data_newstring(&p->name, nlen,
 					      "omapi_protocol_signal_handler");
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 		p->state = omapi_protocol_name_wait;
@@ -500,7 +521,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		result = omapi_connection_copyout(p->name->value, connection,
 						  p->name->len);
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -530,7 +552,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 					      omapi_datatype_data, vlen,
 					      "omapi_protocol_signal_handler");
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -546,12 +569,13 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 						  connection,
 						  p->value->u.buffer.len);
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
 	insert_new_value:
-		if (p->reading_message_values != 0) {
+		if (p->reading_message_values) {
 			result = omapi_set_value((omapi_object_t *)p->message,
 						 p->message->id_object,
 						 p->name, p->value);
@@ -564,7 +588,7 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 				result = omapi_generic_new(&p->message->object,
 					      "omapi_protocol_signal_handler");
 				if (result != ISC_R_SUCCESS) {
-					omapi_disconnect(connection,
+					omapi_connection_disconnect(connection,
 						       OMAPI_FORCE_DISCONNECT);
 					return (result);
 				}
@@ -575,7 +599,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 				   p->name, p->value));
 		}
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 		omapi_data_stringdereference(&p->name,
@@ -591,14 +616,16 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 					p->message->authlen);
 
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 		result = (omapi_connection_copyout
 			  (p->message->authenticator->u.buffer.value,
 			   connection, p->message->authlen));
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -611,7 +638,8 @@ omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 		result = omapi_message_process((omapi_object_t *)p->message,
 					       h);
 		if (result != ISC_R_SUCCESS) {
-			omapi_disconnect(connection, OMAPI_FORCE_DISCONNECT);
+			omapi_connection_disconnect(connection,
+						    OMAPI_FORCE_DISCONNECT);
 			return (result);
 		}
 
@@ -641,10 +669,7 @@ omapi_protocol_set_value(omapi_object_t *h, omapi_object_t *id,
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
-	if (h->inner != NULL && h->inner->type->set_value != NULL)
-		return (*(h->inner->type->set_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_SETVALUE(h);
 }
 
 isc_result_t
@@ -654,10 +679,7 @@ omapi_protocol_get_value(omapi_object_t *h, omapi_object_t *id,
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 	
-	if (h->inner != NULL && h->inner->type->get_value != NULL)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(h);
 }
 
 void
@@ -681,14 +703,12 @@ omapi_protocol_destroy(omapi_object_t *h, const char *name) {
  */
 
 isc_result_t
-omapi_protocol_stuff_values(omapi_object_t *c, omapi_object_t *id,
+omapi_protocol_stuff_values(omapi_object_t *connection, omapi_object_t *id,
 			    omapi_object_t *h)
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
-	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
-		return (*(h->inner->type->stuff_values))(c, id, h->inner);
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(h);
 }
 
 /*
@@ -739,10 +759,7 @@ omapi_protocol_listener_signal(omapi_object_t *h, const char *name, va_list ap)
 	 * Not a signal we recognize?
 	 */
 	if (strcmp(name, "connect") != 0) {
-		if (p->inner != NULL && p->inner->type->signal_handler != NULL)
-			return (*(p->inner->type->signal_handler))(p->inner,
-								   name, ap);
-		return (ISC_R_NOTFOUND);
+		PASS_SIGNAL(h);
 	}
 
 	c = va_arg(ap, omapi_object_t *);
@@ -768,7 +785,7 @@ omapi_protocol_listener_signal(omapi_object_t *h, const char *name, va_list ap)
 					   sizeof(omapi_protocol_header_t));
 
 	if (result != ISC_R_SUCCESS)
-		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		omapi_connection_disconnect(c, OMAPI_FORCE_DISCONNECT);
 
 	OBJECT_DEREF(&obj, "omapi_protocol_accept");
 	return (result);
@@ -781,10 +798,7 @@ omapi_protocol_listener_set_value(omapi_object_t *h, omapi_object_t *id,
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
 
-	if (h->inner != NULL && h->inner->type->set_value != NULL)
-		return (*(h->inner->type->set_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_SETVALUE(h);
 }
 
 isc_result_t
@@ -794,10 +808,7 @@ omapi_protocol_listener_get_value(omapi_object_t *h, omapi_object_t *id,
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
 
-	if (h->inner != NULL && h->inner->type->get_value != NULL)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(h);
 }
 
 void
@@ -813,15 +824,13 @@ omapi_protocol_listener_destroy(omapi_object_t *h, const char *name) {
  */
 
 isc_result_t
-omapi_protocol_listener_stuff(omapi_object_t *c, omapi_object_t *id,
+omapi_protocol_listener_stuff(omapi_object_t *connection, omapi_object_t *id,
 			      omapi_object_t *h)
 {
 
 	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
 
-	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
-		return (*(h->inner->type->stuff_values)) (c, id, h->inner);
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(h);
 }
 
 isc_result_t

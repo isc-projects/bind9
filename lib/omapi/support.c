@@ -89,11 +89,11 @@ omapi_init(isc_mem_t *mctx) {
 	 */
 	result = omapi_object_type_register(&omapi_type_connection,
 					    "connection",
-					    omapi_connection_set_value,
-					    omapi_connection_get_value,
+					    omapi_connection_setvalue,
+					    omapi_connection_getvalue,
 					    omapi_connection_destroy,
-					    omapi_connection_signal_handler,
-					    omapi_connection_stuff_values,
+					    omapi_connection_signalhandler,
+					    omapi_connection_stuffvalues,
 					    0, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -111,11 +111,11 @@ omapi_init(isc_mem_t *mctx) {
 
 	result = omapi_object_type_register(&omapi_type_io_object,
 					    "io",
-					    omapi_io_set_value,
-					    omapi_io_get_value,
+					    omapi_io_setvalue,
+					    omapi_io_getvalue,
 					    omapi_io_destroy,
-					    omapi_io_signal_handler,
-					    omapi_io_stuff_values,
+					    omapi_io_signalhandler,
+					    omapi_io_stuffvalues,
 					    0, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -155,11 +155,11 @@ omapi_init(isc_mem_t *mctx) {
 
 	result = omapi_object_type_register(&omapi_type_message,
 					    "message",
-					    omapi_message_set_value,
-					    omapi_message_get_value,
+					    omapi_message_setvalue,
+					    omapi_message_getvalue,
 					    omapi_message_destroy,
-					    omapi_message_signal_handler,
-					    omapi_message_stuff_values,
+					    omapi_message_signalhandler,
+					    omapi_message_stuffvalues,
 					    0, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);

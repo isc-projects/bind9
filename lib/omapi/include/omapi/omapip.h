@@ -159,7 +159,7 @@ struct omapi_object_type {
 #define OMAPI_PROTOCOL_PORT	7911
 
 /*
- * For use with omapi_disconnect().
+ * For use with omapi_connection_disconnect().
  */
 #define OMAPI_FORCE_DISCONNECT	ISC_TRUE
 #define OMAPI_CLEAN_DISCONNECT	ISC_FALSE
@@ -189,6 +189,9 @@ extern omapi_object_type_t *omapi_object_types;
 isc_result_t
 omapi_protocol_connect(omapi_object_t *object, const char *server, int port,
 		       omapi_object_t *authinfo);
+
+void
+omapi_protocol_disconnect(omapi_object_t *handle, isc_boolean_t force);
 
 isc_result_t
 omapi_protocol_listen(omapi_object_t *object, int port, int backlog);
@@ -262,7 +265,7 @@ omapi_connection_toserver(omapi_object_t *connection, const char *server,
 			  int port);
 
 void
-omapi_disconnect(omapi_object_t *connection, isc_boolean_t force);
+omapi_connection_disconnect(omapi_object_t *connection, isc_boolean_t force);
 
 int
 omapi_connection_readfd(omapi_object_t *connection);
@@ -283,23 +286,23 @@ isc_result_t
 omapi_connection_reaper(omapi_object_t *connection);
 
 isc_result_t
-omapi_connection_set_value(omapi_object_t *connection, omapi_object_t *id,
+omapi_connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
 			   omapi_data_string_t *name,
 			   omapi_typed_data_t *value);
 
 isc_result_t
-omapi_connection_get_value(omapi_object_t *connection, omapi_object_t *id,
+omapi_connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
 			   omapi_data_string_t *name, omapi_value_t **value); 
 
 void
 omapi_connection_destroy(omapi_object_t *connection, const char *name);
 
 isc_result_t
-omapi_connection_signal_handler(omapi_object_t *connection, const char *name,
+omapi_connection_signalhandler(omapi_object_t *connection, const char *name,
 				va_list args);
 
 isc_result_t
-omapi_connection_stuff_values(omapi_object_t *connection, omapi_object_t *id,
+omapi_connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 			      omapi_object_t *object);
 
 isc_result_t
@@ -385,21 +388,21 @@ isc_result_t
 omapi_one_dispatch(omapi_object_t *waiter, struct timeval *timeout);
 
 isc_result_t
-omapi_io_set_value(omapi_object_t *io, omapi_object_t *id,
+omapi_io_setvalue(omapi_object_t *io, omapi_object_t *id,
 		   omapi_data_string_t *name, omapi_typed_data_t *value);
 
 isc_result_t
-omapi_io_get_value(omapi_object_t *io, omapi_object_t *id,
+omapi_io_getvalue(omapi_object_t *io, omapi_object_t *id,
 		   omapi_data_string_t *name, omapi_value_t **value); 
 
 void
 omapi_io_destroy(omapi_object_t *io, const char *name);
 
 isc_result_t
-omapi_io_signal_handler(omapi_object_t *io, const char *name, va_list args);
+omapi_io_signalhandler(omapi_object_t *io, const char *name, va_list args);
 
 isc_result_t
-omapi_io_stuff_values(omapi_object_t *io, omapi_object_t *id,
+omapi_io_stuffvalues(omapi_object_t *io, omapi_object_t *id,
 		      omapi_object_t *object);
 isc_result_t
 omapi_waiter_signal_handler(omapi_object_t *waiter, const char *name,
@@ -437,20 +440,20 @@ isc_result_t
 omapi_message_new(omapi_object_t **message, const char *name);
 
 isc_result_t
-omapi_message_set_value(omapi_object_t *message, omapi_object_t *id,
+omapi_message_setvalue(omapi_object_t *message, omapi_object_t *id,
 			omapi_data_string_t *name, omapi_typed_data_t *value);
 isc_result_t
-omapi_message_get_value(omapi_object_t *message, omapi_object_t *id,
+omapi_message_getvalue(omapi_object_t *message, omapi_object_t *id,
 			omapi_data_string_t *name, omapi_value_t **value); 
 void
 omapi_message_destroy(omapi_object_t *message, const char *name);
 
 isc_result_t
-omapi_message_signal_handler(omapi_object_t *message, const char *name,
+omapi_message_signalhandler(omapi_object_t *message, const char *name,
 			     va_list args);
 
 isc_result_t
-omapi_message_stuff_values(omapi_object_t *message, omapi_object_t *id,
+omapi_message_stuffvalues(omapi_object_t *message, omapi_object_t *id,
 			   omapi_object_t *object);
 isc_result_t
 omapi_message_register(omapi_object_t *message);

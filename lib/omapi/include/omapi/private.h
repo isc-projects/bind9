@@ -22,6 +22,8 @@
 #ifndef OMAPI_OMAPIP_P_H
 #define OMAPI_OMAPIP_P_H
 
+#define ISC_MEM_DEBUG 1
+
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/net.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.2 2000/01/06 03:36:29 tale Exp $ */
+/* $Id: object.c,v 1.3 2000/01/06 23:53:00 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -30,8 +30,7 @@
 #include <omapi/private.h>
 
 isc_result_t
-omapi_object_new(omapi_object_t **object, omapi_object_type_t *type,
-		    size_t size)
+omapi_object_new(omapi_object_t **object, omapi_object_type_t *type, size_t size)
 {
 	omapi_object_t *new;
 

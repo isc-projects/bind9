@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.4 2000/01/06 03:36:27 tale Exp $ */
+/* $Id: dispatch.c,v 1.5 2000/01/06 23:52:59 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -67,12 +67,10 @@ omapi_wait_for_completion(omapi_object_t *object, struct timeval *t) {
 	omapi_object_t *inner;
 
 	if (object != NULL) {
-		waiter = isc_mem_get(omapi_mctx, sizeof(*waiter));
-		if (waiter == NULL)
-			return (ISC_R_NOMEMORY);
-		memset(waiter, 0, sizeof(*waiter));
-		waiter->refcnt = 1;
-		waiter->type = omapi_type_waiter;
+		result = omapi_object_new((omapi_object_t **)&waiter,
+					  omapi_type_waiter, sizeof(*waiter));
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
 		/*
 		 * Paste the waiter object onto the inner object we're
@@ -277,57 +275,45 @@ omapi_one_dispatch(omapi_object_t *wo, struct timeval *t) {
 }
 
 isc_result_t
-omapi_io_set_value(omapi_object_t *h, omapi_object_t *id,
-		   omapi_data_string_t *name, omapi_typed_data_t *value)
+omapi_io_setvalue(omapi_object_t *io, omapi_object_t *id,
+		  omapi_data_string_t *name, omapi_typed_data_t *value)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_io_object);
+	REQUIRE(io != NULL && io->type == omapi_type_io_object);
 
-	if (h->inner != NULL && h->inner->type->set_value != NULL)
-		return (*(h->inner->type->set_value))(h->inner, id,
-						      name, value);
-
-	return (ISC_R_NOTFOUND);
+	PASS_SETVALUE(io);
 }
 
 isc_result_t
-omapi_io_get_value(omapi_object_t *h, omapi_object_t *id,
-		   omapi_data_string_t *name, omapi_value_t **value)
+omapi_io_getvalue(omapi_object_t *io, omapi_object_t *id,
+		  omapi_data_string_t *name, omapi_value_t **value)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_io_object);
+	REQUIRE(io != NULL && io->type == omapi_type_io_object);
 	
-	if (h->inner != NULL && h->inner->type->get_value != NULL)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(io);
 }
 
 void
-omapi_io_destroy(omapi_object_t *h, const char *name) {
-	REQUIRE(h != NULL && h->type == omapi_type_io_object);
+omapi_io_destroy(omapi_object_t *io, const char *name) {
+	REQUIRE(io != NULL && io->type == omapi_type_io_object);
 
 	(void)name;		/* Unused. */
 }
 
 isc_result_t
-omapi_io_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
-	REQUIRE(h != NULL && h->type == omapi_type_io_object);
+omapi_io_signalhandler(omapi_object_t *io, const char *name, va_list ap)
+{
+	REQUIRE(io != NULL && io->type == omapi_type_io_object);
 
-	if (h->inner != NULL && h->inner->type->signal_handler != NULL)
-		return (*(h->inner->type->signal_handler))(h->inner, name, ap);
-
-	return (ISC_R_NOTFOUND);
+	PASS_SIGNAL(io);
 }
 
 isc_result_t
-omapi_io_stuff_values(omapi_object_t *c, omapi_object_t *id, omapi_object_t *h)
+omapi_io_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+		      omapi_object_t *io)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_io_object);
+	REQUIRE(io != NULL && io->type == omapi_type_io_object);
 
-	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
-		return (*(h->inner->type->stuff_values))(c, id, h->inner);
-
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(io);
 }
 
 isc_result_t
@@ -342,9 +328,6 @@ omapi_waiter_signal_handler(omapi_object_t *h, const char *name, va_list ap) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (h->inner != NULL && h->inner->type->signal_handler != NULL)
-		return ((*(h->inner->type->signal_handler))(h->inner, name,
-							    ap));
-	return (ISC_R_NOTFOUND);
+	PASS_SIGNAL(h);
 }
 

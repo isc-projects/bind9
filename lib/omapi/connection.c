@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.4 2000/01/06 03:36:27 tale Exp $ */
+/* $Id: connection.c,v 1.5 2000/01/06 23:52:58 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -239,15 +239,30 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 	ENSURE(socket == connection->socket && task == connection->task);
 
+	/*
+	 * XXXDCL I am assuming that partial writes are not done.  I hope this
+	 * does not prove to be incorrect.  But the assumption can be tested ...
+	 */
+	ENSURE(socketevent->n == connection->out_bytes &&
+	       socketevent->n ==
+	       isc_bufferlist_usedcount(&socketevent->bufferlist));
+
 	connection->events_pending--;
 
 	/*
-	 * Restore the bufferlist into the connection object.
+	 * Restore the head of bufferlist into the connection object, resetting
+	 * it to have zero used space, and free the remaining buffers.
+	 * This is done before the test of the socketevent's result so that
+	 * abandon_connection() can free the buffer, if it is called below.
 	 */
-	for (buffer = ISC_LIST_HEAD(socketevent->bufferlist);
-	     buffer != NULL;
-	     buffer = ISC_LIST_NEXT(buffer, link))
-		ISC_LIST_APPEND(connection->output_buffers, buffer, link);
+	buffer = ISC_LIST_HEAD(socketevent->bufferlist);
+	ISC_LIST_APPEND(connection->output_buffers, buffer, link);
+	isc_buffer_clear(buffer);
+
+	while ((buffer = ISC_LIST_NEXT(buffer, link)) != NULL) {
+		ISC_LIST_UNLINK(socketevent->bufferlist, buffer, link);
+		isc_buffer_free(&buffer);
+	}
 
 	if (socketevent->result != ISC_R_SUCCESS) {
 		abandon_connection(connection, event, socketevent->result);
@@ -255,11 +270,6 @@ send_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	connection->out_bytes -= socketevent->n;
-
-	/*
-	 * If there is still data to be written, another send event is queued.
-	 */
-	connection_send(connection);
 
 	isc_event_free(&event);
 
@@ -390,27 +400,61 @@ omapi_connection_toserver(omapi_object_t *protocol, const char *server_name,
  * Put some bytes into the output buffer for a connection.
  */
 isc_result_t
-omapi_connection_copyin(omapi_object_t *h, unsigned char *bufp,
+omapi_connection_copyin(omapi_object_t *generic, unsigned char *src,
 			unsigned int len)
 {
 	omapi_connection_object_t *connection;
 	isc_buffer_t *buffer;
+	isc_bufferlist_t bufferlist;
+	isc_result_t result;
+	unsigned int space_available;
 
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
 
-	connection = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)generic;
 
-	buffer = ISC_LIST_HEAD(connection->output_buffers);
+	/*
+	 * Check for enough space in the output buffers.
+	 */
+	bufferlist = connection->output_buffers;
+	space_available = isc_bufferlist_availablecount(&bufferlist);
 
-	if (ISC_BUFFER_AVAILABLECOUNT(buffer) < len)
-		isc_buffer_compact(buffer);
+	while (space_available < len) {
+		/*
+		 * Add new buffers until there is sufficient space.
+		 */
+		buffer = NULL;
+		result = isc_buffer_allocate(omapi_mctx, &buffer,
+					     OMAPI_BUFFER_SIZE,
+					     ISC_BUFFERTYPE_BINARY);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
-	/* XXXDCL allocate new buffers */
-	ENSURE(ISC_BUFFER_AVAILABLECOUNT(buffer) >= len);
+		space_available += OMAPI_BUFFER_SIZE;
+		ISC_LIST_APPEND(bufferlist, buffer, link);
+	}
 
-	isc_buffer_putmem(buffer->base + buffer->used, bufp, len);
-
+	/*
+	 * XXXDCL out_bytes hardly seems needed as it is easy to get a
+	 * total of how much data is in the output buffers.
+	 */
 	connection->out_bytes += len;
+
+	/*
+	 * Copy the data into the buffers, splitting across buffers as necessary.
+	 */
+	for (buffer = ISC_LIST_HEAD(bufferlist); len > 0;
+	     buffer = ISC_LIST_NEXT(buffer, link)) {
+
+		space_available = ISC_BUFFER_AVAILABLECOUNT(buffer);
+		if (space_available > len)
+			space_available = len;
+
+		isc_buffer_putmem(buffer, src, space_available);
+
+		src += space_available;
+		len -= space_available;
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -420,11 +464,12 @@ omapi_connection_copyin(omapi_object_t *h, unsigned char *bufp,
  * pointer beyond the bytes copied out.
  */
 isc_result_t
-omapi_connection_copyout(unsigned char *buffer, omapi_object_t *generic,
+omapi_connection_copyout(unsigned char *dst, omapi_object_t *generic,
 			 unsigned int size)
 {
 	omapi_connection_object_t *connection;
-	isc_buffer_t *ibuffer;
+	isc_buffer_t *buffer;
+	unsigned int copy_bytes;
 
 	REQUIRE(generic != NULL && generic->type == omapi_type_connection);
 
@@ -433,13 +478,26 @@ omapi_connection_copyout(unsigned char *buffer, omapi_object_t *generic,
 	if (size > connection->in_bytes)
 		return (ISC_R_NOMORE);
 	
-	ibuffer = ISC_LIST_HEAD(connection->input_buffers);
+	buffer = ISC_LIST_HEAD(connection->input_buffers);
 
-	(void)memcpy(buffer, ibuffer->base, size);
-	isc_buffer_forward(ibuffer, size);
-	isc_buffer_compact(ibuffer);
-	
-	connection->in_bytes -= size;
+	/*
+	 * The data could potentially be split across multiple buffers,
+	 * so rather than a simple memcpy, a loop is needed.
+	 */
+	while (size > 0) {
+		copy_bytes = buffer->used - buffer->current;
+		if (copy_bytes > size)
+			copy_bytes = size;
+
+		(void)memcpy(dst, buffer->base + buffer->current, copy_bytes);
+
+		isc_buffer_forward(buffer, copy_bytes);
+
+		size -= copy_bytes;
+		connection->in_bytes -= copy_bytes;
+
+		buffer = ISC_LIST_NEXT(buffer, link);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -451,7 +509,7 @@ omapi_connection_copyout(unsigned char *buffer, omapi_object_t *generic,
  */
 
 void
-omapi_disconnect(omapi_object_t *generic, isc_boolean_t force) {
+omapi_connection_disconnect(omapi_object_t *generic, isc_boolean_t force) {
 	omapi_connection_object_t *connection;
 
 	REQUIRE(generic != NULL);
@@ -494,7 +552,7 @@ omapi_disconnect(omapi_object_t *generic, isc_boolean_t force) {
 	 * Disconnect from I/O object, if any.
 	 */
 	if (connection->outer != NULL)
-		OBJECT_DEREF(&connection->outer, "omapi_disconnect");
+		OBJECT_DEREF(&connection->outer, "omapi_connection_disconnect");
 
 	/*
 	 * If whatever created us registered a signal handler, send it
@@ -540,7 +598,7 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 		buffer = ISC_LIST_HEAD(bufferlist);
 
 		/*
-		 * Lop off any completelyu used buffers, except the last one.
+		 * Lop off any completely used buffers, except the last one.
 		 */
 		while (ISC_BUFFER_AVAILABLECOUNT(buffer) == 0 &&
 		       buffer != ISC_LIST_TAIL(bufferlist)) {
@@ -588,96 +646,68 @@ omapi_connection_require(omapi_object_t *generic, unsigned int bytes) {
 	return (OMAPI_R_NOTYET);
 }
 
-/*
- * Reaper function for connection - if the connection is completely closed,
- * reap it.   If it's in the disconnecting state, there were bytes left
- * to write when the user closed it, so if there are now no bytes left to
- * write, we can close it.
- */
 isc_result_t
-omapi_connection_reaper(omapi_object_t *h) {
-	omapi_connection_object_t *c;
-
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
-
-	c = (omapi_connection_object_t *)h;
-	if (c->state == omapi_connection_disconnecting && c->out_bytes == 0)
-		omapi_disconnect(h, OMAPI_FORCE_DISCONNECT);
-	if (c->state == omapi_connection_closed)
-		return (ISC_R_NOTCONNECTED);
-	return (ISC_R_SUCCESS);
+omapi_connection_setvalue(omapi_object_t *connection, omapi_object_t *id,
+			  omapi_data_string_t *name, omapi_typed_data_t *value)
+{
+	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
+	
+	PASS_SETVALUE(connection);
 }
 
 isc_result_t
-omapi_connection_set_value(omapi_object_t *h, omapi_object_t *id,
-			   omapi_data_string_t *name,
-			   omapi_typed_data_t *value)
+omapi_connection_getvalue(omapi_object_t *connection, omapi_object_t *id,
+			  omapi_data_string_t *name, omapi_value_t **value)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
 	
-	if (h->inner != NULL && h->inner->type->set_value)
-		return (*(h->inner->type->set_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
-}
-
-isc_result_t
-omapi_connection_get_value(omapi_object_t *h, omapi_object_t *id,
-			   omapi_data_string_t *name,
-			   omapi_value_t **value)
-{
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
-	
-	if (h->inner != NULL && h->inner->type->get_value)
-		return (*(h->inner->type->get_value))(h->inner, id,
-						      name, value);
-	return (ISC_R_NOTFOUND);
+	PASS_GETVALUE(connection);
 }
 
 void
-omapi_connection_destroy(omapi_object_t *h, const char *name) {
-	omapi_connection_object_t *c;
+omapi_connection_destroy(omapi_object_t *handle, const char *name) {
+	omapi_connection_object_t *connection;
 
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(handle != NULL && handle->type == omapi_type_connection);
 
-	c = (omapi_connection_object_t *)h;
+	connection = (omapi_connection_object_t *)handle;
 
-	if (c->state == omapi_connection_connected)
-		omapi_disconnect(h, OMAPI_FORCE_DISCONNECT);
+	if (connection->state == omapi_connection_connected)
+		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
 
-	if (c->listener != NULL)
-		OBJECT_DEREF(&c->listener, name);
+	/*
+	 * XXXDCL why is the listener object is being referenced?
+	 * does it need to be in the connection structure at all?
+	 */
+	if (connection->listener != NULL)
+		OBJECT_DEREF(&connection->listener, name);
 }
 
 isc_result_t
-omapi_connection_signal_handler(omapi_object_t *h, const char *name,
-				va_list ap)
+omapi_connection_signalhandler(omapi_object_t *connection, const char *name,
+			       va_list ap)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
 	
-	if (h->inner != NULL && h->inner->type->signal_handler)
-		return (*(h->inner->type->signal_handler))(h->inner, name, ap);
-
-	return (ISC_R_NOTFOUND);
+	PASS_SIGNAL(connection);
 }
 
 /*
  * Write all the published values associated with the object through the
  * specified connection.
  */
-
 isc_result_t
-omapi_connection_stuff_values(omapi_object_t *c, omapi_object_t *id,
-			      omapi_object_t *h)
+omapi_connection_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
+			     omapi_object_t *handle)
 {
-	REQUIRE(h != NULL && h->type == omapi_type_connection);
+	REQUIRE(connection != NULL && connection->type == omapi_type_connection);
 
-	if (h->inner != NULL && h->inner->type->stuff_values)
-		return ((*(h->inner->type->stuff_values))(c, id, h->inner));
-
-	return (ISC_R_SUCCESS);
+	PASS_STUFFVALUES(handle);
 }
 
+/*
+ * XXXDCL These could potentially use the isc_buffer_* integer functions
+ */
 isc_result_t
 omapi_connection_getuint32(omapi_object_t *c, isc_uint32_t *value) {
 	isc_uint32_t inbuf;
@@ -712,7 +742,7 @@ omapi_connection_getuint16(omapi_object_t *c, isc_uint16_t *value) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	*value = ntohs (inbuf);
+	*value = ntohs(inbuf);
 	return (ISC_R_SUCCESS);
 }
 
