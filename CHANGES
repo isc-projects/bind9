@@ -1,16 +1,18 @@
- 148.   [func + cleanup] support 'disabled' statement in zone config (causes
+
+ 151.   [func]		Support 'disabled' statement in zone config (causes
 			zone to be parsed and then ignored). Currently must
 			come after the 'type' clause.
 
-			support optional ports in masters and also-notify
+ 150.	[func]		Support optional ports in masters and also-notify
 			statements: 
 
 				masters [ port xxx ] { y.y.y.y [ port zzz ] ; }
 
-			removed some unused arguments.
+ 149.   [cleanup]	Removed usused argument 'olist' from
+			dns_c_view_unsetordering().
 
-			stop issuing some warnings about some features that
-			were not implemented, but now are.
+ 148.   [cleanup]	Stop issuing some warnings about some configuration file
+			statements that were not implemented, but now are.
 
  147.   [bug]		Changed yacc union size to be smaller for yaccs that
 			put yacc-stack on the real stack.
