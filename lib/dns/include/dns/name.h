@@ -265,11 +265,19 @@ unsigned int dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  *** Comparisons
  ***/
 
-int
-dns_name_compare(dns_name_t *name1, dns_name_t *name2);
+dns_namereln_t
+dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
+		     int *orderp,
+		     unsigned int *nlabelsp, unsigned int *nbitsp);
 /*
  * Determine the relative ordering under the DNSSEC order relation of
- * 'name1' and 'name2'.
+ * 'name1' and 'name2', and also determine the hierarchical
+ * relationship of the names.
+ *
+ * Note: It makes no sense for one of the names to be relative and the
+ * other absolute.  If both names are relative, then to be meaningfully
+ * compared the caller must ensure that they are both relative to the
+ * same domain.
  *
  * Requires:
  *	'name1' is a valid name
@@ -279,6 +287,43 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2);
  *	'name2' is a valid name
  *
  *	dns_name_countlabels(name2) > 0
+ *
+ *	orderp, nlabelsp, and nbitsp are valid pointers.
+ *
+ *	Either name1 is absolute and name2 is absolute, or neither is.
+ *
+ * Returns:
+ *	dns_namerel_none		There's no hierarchical relationship
+ *					between name1 and name2.
+ *	dns_namerel_contains		name1 properly contains name2; i.e.
+ *					name2 is a proper subdomain of name1.
+ *	dns_namerel_subdomain		name1 is a proper subdomain of name2.
+ *	dns_namerel_equal		name1 and name2 are equal.
+ *	dns_namerel_commonancestor	name1 and name2 share a common
+ *					ancestor.
+ */
+
+int
+dns_name_compare(dns_name_t *name1, dns_name_t *name2);
+/*
+ * Determine the relative ordering under the DNSSEC order relation of
+ * 'name1' and 'name2'.
+ *
+ * Note: It makes no sense for one of the names to be relative and the
+ * other absolute.  If both names are relative, then to be meaningfully
+ * compared the caller must ensure that they are both relative to the
+ * same domain.
+ *
+ * Requires:
+ *	'name1' is a valid name
+ *
+ *	dns_name_countlabels(name1) > 0
+ *
+ *	'name2' is a valid name
+ *
+ *	dns_name_countlabels(name2) > 0
+ *
+ *	Either name1 is absolute and name2 is absolute, or neither is.
  *
  * Returns:
  *	-1		'name1' is less than 'name2'
@@ -329,6 +374,8 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2);
  *	'name2' is a valid name
  *
  *	dns_name_countlabels(name2) > 0
+ *
+ *	Either name1 is absolute and name2 is absolute, or neither is.
  *
  * Returns:
  *	TRUE		'name1' is a subdomain of 'name2'
