@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_date.c,v 1.3.2.1 2004/03/09 09:17:37 marka Exp $";
+static const char rcsid[] = "$Id: ns_date.c,v 1.3.2.2 2004/03/16 12:35:32 marka Exp $";
 #endif
 
 /* Import. */
@@ -57,7 +57,7 @@ ns_datetosecs(const char *cp, int *errp) {
 	static const int days_per_month[12] =
 		{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-	if (strlen(cp) != 14) {
+	if (strlen(cp) != 14U) {
 		*errp = 1;
 		return (0);
 	}

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.9.2.6 2004/03/09 09:17:49 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.9.2.7 2004/03/16 12:35:35 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -170,7 +170,7 @@ __res_vinit(res_state statp, int preinit) {
 		statp->id = res_randomid();
 	}
 
-	if ((statp->options & RES_INIT) != 0)
+	if ((statp->options & RES_INIT) != 0U)
 		res_ndestroy(statp);
 
 	memset(u, 0, sizeof(u));

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_mkquery.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_mkquery.c,v 1.1.2.3 2004/03/09 09:17:49 marka Exp $";
+static const char rcsid[] = "$Id: res_mkquery.c,v 1.1.2.4 2004/03/16 12:35:35 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -125,7 +125,7 @@ res_nmkquery(res_state statp,
 	hp = (HEADER *) buf;
 	hp->id = htons(++statp->id);
 	hp->opcode = op;
-	hp->rd = (statp->options & RES_RECURSE) != 0;
+	hp->rd = (statp->options & RES_RECURSE) != 0U;
 	hp->rcode = NOERROR;
 	cp = buf + HFIXEDSZ;
 	ep = buf + buflen;
@@ -219,7 +219,7 @@ res_nopt(res_state statp,
 	u_int16_t flags = 0;
 
 #ifdef DEBUG
-	if ((statp->options & RES_DEBUG) != 0)
+	if ((statp->options & RES_DEBUG) != 0U)
 		printf(";; res_nopt()\n");
 #endif
 
