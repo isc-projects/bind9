@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.66 2000/11/09 23:55:05 bwelling Exp $
+ * $Id: dst_api.c,v 1.67 2000/12/18 21:09:42 gson Exp $
  */
 
 #include <config.h>
@@ -96,6 +96,8 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 	REQUIRE(mctx != NULL && ectx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
+
+	UNUSED(mctx);
 
 	dst_memory_pool = NULL;
 	/*
