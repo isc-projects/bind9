@@ -677,6 +677,15 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *		DNS_R_NXRDATASET		The desired name exists, but
  *						the desired type does not.
  *
+ *		DNS_R_NXGLUE			The desired name exists, but
+ *						is at or beneath a zonecut.
+ *						The desired type does not
+ *						exist.  This result can only
+ *						occur if 'db' is a zone
+ *						database and the
+ *						DNS_DBFIND_GLUEOK option is
+ *						set.
+ *
  *		DNS_R_NOTFOUND			The desired name does not
  *						exist, and no delegation could
  *						be found.  This result can only

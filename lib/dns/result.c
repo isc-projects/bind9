@@ -74,6 +74,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"invalid time",				/* 44 */
 	"expected a TSIG",			/* 45 */
 	"did not expect a TSIG",		/* 46 */
+	"glue does not exist",			/* 47 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {

@@ -1828,7 +1828,22 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		if (search.zonecut != NULL) {
 		    /*
 		     * We were trying to find glue at a node beneath a
-		     * zone cut, but didn't, so we return the delegation.
+		     * zone cut, but didn't.
+		     */
+		    if ((search.options & DNS_DBFIND_GLUEOK) != 0) {
+			    /*
+			     * Finding glue is OK.  Tell the caller the
+			     * glue doesn't exist.
+			     */
+			    result = DNS_R_NXGLUE;
+			    if (nodep != NULL) {
+				    new_reference(search.rbtdb, node);
+				    *nodep = node;
+			    }
+			    goto node_exit;
+		    }
+		    /*
+		     * Return the delegation.
 		     */
 		    UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		    result = setup_delegation(&search, nodep, foundname,
