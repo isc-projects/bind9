@@ -209,11 +209,9 @@ static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
 static void build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, unsigned int,
-			      size_t *);
+			      struct msghdr *, struct iovec *, size_t *);
 static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
-			      struct msghdr *, struct iovec *, unsigned int,
-			      size_t *);
+			      struct msghdr *, struct iovec *, size_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -438,8 +436,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
  */
 static void
 build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
-		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
-		  size_t *write_countp)
+		  struct msghdr *msg, struct iovec *iov, size_t *write_countp)
 {
 	unsigned int iovcount;
 	isc_buffer_t *buffer;
@@ -487,7 +484,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	}
 
 	while (buffer != NULL) {
-		INSIST(iovcount < maxiov);
+		INSIST(iovcount < MAXSCATTERGATHER_SEND);
 
 		isc_buffer_usedregion(buffer, &used);
 
@@ -556,8 +553,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
  */
 static void
 build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
-		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
-		  size_t *read_countp)
+		  struct msghdr *msg, struct iovec *iov, size_t *read_countp)
 {
 	unsigned int iovcount;
 	isc_buffer_t *buffer;
@@ -608,7 +604,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	iovcount = 0;
 	while (buffer != NULL) {
-		INSIST(iovcount < maxiov);
+		INSIST(iovcount < MAXSCATTERGATHER_RECV);
 
 		isc_buffer_availableregion(buffer, &available);
 
@@ -732,8 +728,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
 
-	build_msghdr_recv(sock, dev, &msghdr, iov,
-			  MAXSCATTERGATHER_RECV, &read_count);
+	build_msghdr_recv(sock, dev, &msghdr, iov, &read_count);
 
 #if defined(ISC_SOCKET_DEBUG)
 	dump_msg(&msghdr);
@@ -857,9 +852,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	size_t write_count;
 	struct msghdr msghdr;
 
-	/* XXXMLG Should verify that we didn't overflow MAXSCATTERGATHER? */
-	build_msghdr_send(sock, dev, &msghdr, iov,
-			  MAXSCATTERGATHER_SEND, &write_count);
+	build_msghdr_send(sock, dev, &msghdr, iov, &write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 

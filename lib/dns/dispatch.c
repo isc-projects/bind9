@@ -139,7 +139,7 @@ static inline void startrecv(dns_dispatch_t *);
 static isc_uint32_t dns_randomid(dns_dispatch_t *);
 static isc_uint32_t dns_hash(dns_dispatch_t *, isc_sockaddr_t *, isc_uint32_t);
 static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
-static void *allocate_udp_buffer(dns_dispatch_t *disp, unsigned int len);
+static void *allocate_udp_buffer(dns_dispatch_t *disp);
 static inline void free_event(dns_dispatch_t *disp, dns_dispatchevent_t *ev);
 static inline dns_dispatchevent_t *allocate_event(dns_dispatch_t *disp);
 static void do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp);
@@ -386,10 +386,8 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 }
 
 static void *
-allocate_udp_buffer(dns_dispatch_t *disp, unsigned int len) {
+allocate_udp_buffer(dns_dispatch_t *disp) {
 	void *temp;
-
-	INSIST(len > 0 && len == disp->buffersize);
 
 	temp = isc_mempool_get(disp->bpool);
 
@@ -836,8 +834,7 @@ startrecv(dns_dispatch_t *disp) {
 			 */
 		case isc_sockettype_udp:
 			region.length = disp->buffersize;
-			region.base = allocate_udp_buffer(disp,
-							  disp->buffersize);
+			region.base = allocate_udp_buffer(disp);
 			if (region.base == NULL)
 				return;
 			res = isc_socket_recv(disp->socket, &region, 1,
