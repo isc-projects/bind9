@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.2 2004/04/20 14:12:43 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.3 2004/10/07 02:15:27 marka Exp $ */
 
 #include <config.h>
 
@@ -392,6 +392,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	if (result == ISC_R_SUCCESS)
 		filename = cfg_obj_asstring(obj);
 	RETERR(dns_zone_setfile(zone, filename));
+
+	obj = NULL;
+	result = cfg_map_get(zoptions, "journal", &obj);
+	if (result == ISC_R_SUCCESS)
+		RETERR(dns_zone_setjournal(zone, cfg_obj_asstring(obj)));
 
 	if (ztype == dns_zone_slave)
 		RETERR(configure_zone_acl(zconfig, vconfig, config,

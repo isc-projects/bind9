@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.6 2004/07/23 04:12:47 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.7 2004/10/07 02:15:30 marka Exp $ */
 
 #include <config.h>
 
@@ -793,6 +793,7 @@ zone_only_clauses[] = {
 	{ "type", &cfg_type_zonetype, 0 },
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "file", &cfg_type_qstring, 0 },
+	{ "journal", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "masters", &cfg_type_namesockaddrkeylist, 0 },
