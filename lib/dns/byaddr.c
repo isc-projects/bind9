@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.26 2000/11/15 23:07:58 tale Exp $ */
+/* $Id: byaddr.c,v 1.27 2000/11/20 10:20:10 marka Exp $ */
 
 #include <config.h>
 
@@ -200,6 +200,7 @@ bevent_destroy(isc_event_t *event) {
 	     name != NULL;
 	     name = next_name) {
 		next_name = ISC_LIST_NEXT(name, link);
+		ISC_LIST_UNLINK(bevent->names, name, link);
 		dns_name_free(name, mctx);
 		isc_mem_put(mctx, name, sizeof *name);
 	}
