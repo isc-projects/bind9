@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.59 2000/11/21 21:40:12 mws Exp $ */
+/* $Id: dig.h,v 1.60 2000/12/08 17:06:52 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -108,6 +108,8 @@ struct dig_lookup {
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
+	isc_boolean_t rdtypeset;
+	isc_boolean_t rdclassset;
 	char namespace[BUFSIZE];
 	char onamespace[BUFSIZE];
 	isc_buffer_t namebuf;

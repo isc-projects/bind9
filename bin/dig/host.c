@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.59 2000/10/31 03:21:38 marka Exp $ */
+/* $Id: host.c,v 1.60 2000/12/08 17:06:49 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -560,6 +560,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		case 'l':
 			lookup->tcp_mode = ISC_TRUE;
 			lookup->rdtype = dns_rdatatype_axfr;
+			lookup->rdtypeset = ISC_TRUE;
 			break;
 		case 'v':
 		case 'd':
@@ -577,8 +578,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (result != ISC_R_SUCCESS)
 				fprintf (stderr,"Warning: invalid type: %s\n",
 					 isc_commandline_argument);
-			else
+			else {
 				lookup->rdtype = rdtype;
+				lookup->rdtypeset = ISC_TRUE;
+			}
 			break;
 		case 'c':
 			tr.base = isc_commandline_argument;
@@ -589,11 +592,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (result != ISC_R_SUCCESS)
 				fprintf (stderr,"Warning: invalid class: %s\n",
 					 isc_commandline_argument);
-			else
+			else {
 				lookup->rdclass = rdclass;
+				lookup->rdclassset = ISC_TRUE;
+			}
 			break;
 		case 'a':
 			lookup->rdtype = dns_rdatatype_any;
+			lookup->rdtypeset = ISC_TRUE;
 			short_form = ISC_FALSE;
 			break;
 		case 'n':
@@ -622,7 +628,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		case 'C':
 			debug("showing all SOAs");
 			lookup->rdtype = dns_rdatatype_soa;
+			lookup->rdtypeset = ISC_TRUE;
 			lookup->rdclass = dns_rdataclass_in;
+			lookup->rdclassset = ISC_TRUE;
 			lookup->ns_search_only = ISC_TRUE;
 			lookup->trace_root = ISC_TRUE;
 			break;
@@ -653,6 +661,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;
+		lookup->rdtypeset = ISC_TRUE;
 	} else {
 		strncpy(lookup->textname, hostname, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1]=0;

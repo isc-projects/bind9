@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.129 2000/11/21 20:54:59 mws Exp $ */
+/* $Id: dig.c,v 1.130 2000/12/08 17:06:46 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -749,6 +749,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				lookup->section_authority = ISC_FALSE;
 				lookup->section_question = ISC_FALSE;
 				lookup->rdtype = dns_rdatatype_soa;
+				lookup->rdtypeset = ISC_TRUE;
 				short_form = ISC_TRUE;
 			}
 			break;
@@ -942,13 +943,20 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		specified_source = ISC_TRUE;
 		return (value_from_next);
 	case 'c':
+		if ((*lookup)->rdclassset) {
+			fprintf(stderr, ";; Warning, ignoring multiple "
+				"class options\n");
+			return (value_from_next);
+		}
 		*open_type_class = ISC_FALSE;
 		tr.base = value;
 		tr.length = strlen(value);
 		result = dns_rdataclass_fromtext(&rdclass,
 						 (isc_textregion_t *)&tr);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			(*lookup)->rdclass = rdclass;
+			(*lookup)->rdclassset = ISC_TRUE;
+		}
 		else
 			fprintf(stderr, ";; Warning, ignoring "
 				"invalid class %s\n",
@@ -965,9 +973,15 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		port = parse_int(value, "port number", MAXPORT);
 		return (value_from_next);
 	case 't':
+		if ((*lookup)->rdtypeset) {
+			fprintf(stderr, ";; Warning, ignoring multiple "
+				"type options\n");
+			return (value_from_next);
+		}
 		*open_type_class = ISC_FALSE;
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
 			(*lookup)->rdtype = dns_rdatatype_ixfr;
+			(*lookup)->rdtypeset = ISC_TRUE;
 			(*lookup)->ixfr_serial =
 				parse_int(&value[5], "serial number",
 					  MAXSERIAL);
@@ -981,6 +995,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 						(isc_textregion_t *)&tr);
 		if (result == ISC_R_SUCCESS) {
 			(*lookup)->rdtype = rdtype;
+			(*lookup)->rdtypeset = ISC_TRUE;
 			if (rdtype == dns_rdatatype_axfr) {
 				(*lookup)->section_question = plusquest;
 				(*lookup)->comments = pluscomm;
@@ -1016,7 +1031,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					        (*lookup)->ns_search_only);
 			(*lookup)->nibble = nibble;
 			(*lookup)->rdtype = dns_rdatatype_ptr;
+			(*lookup)->rdtypeset = ISC_TRUE;
 			(*lookup)->rdclass = dns_rdataclass_in;
+			(*lookup)->rdclassset = ISC_TRUE;
 			(*lookup)->new_search = ISC_TRUE;
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
@@ -1170,6 +1187,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				tr.length = strlen(rv[0]);
 				if (strncmp(rv[0], "ixfr=", 5) == 0) {
 					lookup->rdtype = dns_rdatatype_ixfr;
+					lookup->rdtypeset = ISC_TRUE;
 					lookup->ixfr_serial =
 						parse_int(&rv[0][5],
 							  "serial number",
@@ -1182,18 +1200,32 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 						     (isc_textregion_t *)&tr);
 				if ((result == ISC_R_SUCCESS) &&
 				    (rdtype != dns_rdatatype_ixfr)) {
+					if (lookup->rdtypeset) {
+						fprintf(stderr, ";; Warning, "
+							"ignoring multiple "
+							"type options\n");
+						continue;
+					}
 					if (rdtype == dns_rdatatype_axfr) {
 						lookup->section_question =
 							plusquest;
 						lookup->comments = pluscomm;
 					}
 					lookup->rdtype = rdtype;
+					lookup->rdtypeset = ISC_TRUE;
 					continue;
 				}
 				result = dns_rdataclass_fromtext(&rdclass,
 						     (isc_textregion_t *)&tr);
 				if (result == ISC_R_SUCCESS) {
+					if (lookup->rdclassset) {
+						fprintf(stderr, ";; Warning, "
+							"ignoring multiple "
+							"class options\n");
+						continue;
+					}
 					lookup->rdclass = rdclass;
+					lookup->rdclassset = ISC_TRUE;
 					continue;
 				}
 			}
@@ -1264,6 +1296,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		lookup->new_search = ISC_TRUE;
 		strcpy(lookup->textname, ".");
 		lookup->rdtype = dns_rdatatype_ns;
+		lookup->rdtypeset = ISC_TRUE;
 		printgreeting(argc, argv, lookup);
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}

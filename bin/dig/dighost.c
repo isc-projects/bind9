@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.170 2000/12/07 20:15:40 marka Exp $ */
+/* $Id: dighost.c,v 1.171 2000/12/08 17:06:48 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -343,8 +343,10 @@ make_empty_lookup(void) {
 	looknew->pending = ISC_TRUE;
 	looknew->textname[0] = 0;
 	looknew->cmdline[0] = 0; /* Not copied in clone_lookup! */
-	looknew->rdtype = dns_rdatatype_a;
-	looknew->rdclass = dns_rdataclass_in;
+	looknew->rdtype = dns_rdatatype_none;
+	looknew->rdclass = dns_rdataclass_none;
+	looknew->rdtypeset = ISC_FALSE;
+	looknew->rdclassset = ISC_FALSE;
 	looknew->sendspace = NULL;
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
@@ -412,6 +414,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->textname[MXNAME-1]=0;
 	looknew->rdtype = lookold->rdtype;
 	looknew->rdclass = lookold->rdclass;
+	looknew->rdtype = lookold->rdtypeset;
+	looknew->rdclass = lookold->rdclassset;
 	looknew->doing_xfr = lookold->doing_xfr;
 	looknew->ixfr_serial = lookold->ixfr_serial;
 	looknew->defname = lookold->defname;
@@ -1411,6 +1415,15 @@ setup_lookup(dig_lookup_t *lookup) {
 		 */
 		lookup->tcp_mode = ISC_TRUE;
 	}
+
+	/*
+	 * Change NONE lookups to something meaningful.
+	 */
+	if (!lookup->rdtypeset)
+		lookup->rdtype = dns_rdatatype_a;
+	if (!lookup->rdclassset)
+		lookup->rdclass = dns_rdataclass_in;
+
 	add_question(lookup->sendmsg, lookup->name, lookup->rdclass,
 		     lookup->rdtype);
 
