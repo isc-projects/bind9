@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: callbacks.c,v 1.2 1999/03/06 04:08:29 halley Exp $ */
+ /* $Id: callbacks.c,v 1.3 1999/07/30 23:32:51 halley Exp $ */
 
 #include <config.h>
 
@@ -35,10 +35,10 @@ dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks) {
 
 	REQUIRE(callbacks != NULL);
 
-	callbacks->commit = NULL;
+	callbacks->add = NULL;
 	callbacks->error = default_error_warn_callback;
 	callbacks->warn = default_error_warn_callback;
-	callbacks->commit_private = NULL;
+	callbacks->add_private = NULL;
 	callbacks->error_private = NULL;
 	callbacks->warn_private = NULL;
 }

@@ -38,22 +38,21 @@
 #define	BUFLEN		255
 #define	BIGBUFLEN	(64 * 1024)
 
-static dns_result_t	t1_commit_callback(dns_rdatacallbacks_t *callbacks,
-			   dns_name_t *owner, dns_rdataset_t *dataset);
+static dns_result_t	t1_add_callback(void *arg, dns_name_t *owner,
+					dns_rdataset_t *dataset);
 static void		t1(void);
 
 isc_mem_t	*T1_mctx;
 char		*Tokens[T_MAXTOKS + 1];
 
 static dns_result_t
-t1_commit_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *owner,
-	      dns_rdataset_t *dataset) {
+t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	dns_result_t result;
 	
-	callbacks = callbacks;	/*unused*/
+	arg = arg;	/*unused*/
 
 	isc_buffer_init(&target, buf, BIGBUFLEN, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
@@ -106,7 +105,7 @@ test_master(char *testfile, char *origin, char *class, dns_result_t exp_result) 
 	}
 
 	dns_rdatacallbacks_init(&callbacks);
-	callbacks.commit = t1_commit_callback;
+	callbacks.add = t1_add_callback;
 	
 	textregion.base = class;
 	textregion.length = strlen(class);

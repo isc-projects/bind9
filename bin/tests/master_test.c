@@ -30,19 +30,18 @@
 #include <dns/result.h>
 #include <dns/types.h>
 
-dns_result_t print_dataset(dns_rdatacallbacks_t *callbacks,
-			   dns_name_t *owner, dns_rdataset_t *dataset);
+dns_result_t print_dataset(void *arg, dns_name_t *owner,
+			   dns_rdataset_t *dataset);
 
 isc_mem_t *mctx;
 
 dns_result_t
-print_dataset(dns_rdatacallbacks_t *callbacks, dns_name_t *owner,
-	      dns_rdataset_t *dataset) {
+print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[64*1024];
 	isc_buffer_t target;
 	dns_result_t result;
 	
-	callbacks = callbacks;	/*unused*/
+	arg = arg;	/*unused*/
 
 	isc_buffer_init(&target, buf, 64*1024, ISC_BUFFERTYPE_TEXT);
 	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
@@ -88,9 +87,10 @@ main(int argc, char *argv[]) {
 		}
 				
 		dns_rdatacallbacks_init(&callbacks);
-		callbacks.commit = print_dataset;
+		callbacks.add = print_dataset;
 		
-		result = dns_master_load(argv[1], &origin, &origin, 1, ISC_FALSE,
+		result = dns_master_load(argv[1], &origin, &origin, 1,
+					 ISC_FALSE,
 					 &soacount, &nscount, 
 					 &callbacks, mctx);
 		fprintf(stdout, "dns_master_load: %s\n",

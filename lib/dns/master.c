@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.20 1999/06/24 17:55:38 halley Exp $ */
+ /* $Id: master.c,v 1.21 1999/07/30 23:32:51 halley Exp $ */
 
 #include <config.h>
 
@@ -195,7 +195,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 	REQUIRE(dns_name_isabsolute(top));
 	REQUIRE(dns_name_isabsolute(origin));
 	REQUIRE(callbacks != NULL);
-	REQUIRE(callbacks->commit != NULL);
+	REQUIRE(callbacks->add != NULL);
 	REQUIRE(callbacks->error != NULL);
 	REQUIRE(callbacks->warn != NULL);
 	REQUIRE(nscount != NULL);
@@ -934,7 +934,8 @@ commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
 	while ((this = ISC_LIST_HEAD(*head)) != NULL) {
 		dns_rdataset_init(&dataset);
 		dns_rdatalist_tordataset(this, &dataset);
-		result = ((*callbacks->commit)(callbacks, owner, &dataset));
+		result = ((*callbacks->add)(callbacks->add_private, owner,
+					    &dataset));
 		if (result != DNS_R_SUCCESS)
 			return (result);
 		ISC_LIST_UNLINK(*head, this, link);
