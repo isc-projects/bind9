@@ -1,4 +1,7 @@
 
+ 904.	[bug]		The server would leak memory if attempting to use
+ 			an expired TSIG key. [RT #1406]
+
  903.	[bug]		dig should not crash when receiving a TCP packet
  			of length 0.
 

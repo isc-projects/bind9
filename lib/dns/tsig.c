@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.109 2001/06/04 19:33:14 tale Exp $
+ * $Id: tsig.c,v 1.110 2001/06/15 02:24:02 bwelling Exp $
  */
 
 #include <config.h>
@@ -1123,7 +1123,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 * The key has expired.
 		 */
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-		isc_refcount_decrement(&key->refs, NULL);
 		RWLOCK(&ring->lock, isc_rwlocktype_write);
 		(void) dns_rbt_deletename(ring->keys, name, ISC_FALSE);
 		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
