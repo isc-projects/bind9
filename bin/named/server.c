@@ -156,7 +156,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 	 */
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      NULL));
+				      0, NULL, NULL));
 
 	/*
 	 * We have default hints for class IN.

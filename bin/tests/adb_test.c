@@ -205,7 +205,7 @@ create_view(void)
 	 * see if we are dealing with a shared dispatcher in this view.
 	 */
 	result = dns_view_createresolver(view, taskmgr, 16, socketmgr,
-					 timermgr, NULL);
+					 timermgr, 0, NULL, NULL);
 	check_result(result, "dns_view_createresolver()");
 
 	rootdb = NULL;

@@ -159,7 +159,7 @@ main(int argc, char *argv[]) {
 				      &view) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10, socketmgr,
-					      timermgr, NULL) ==
+					      timermgr, 0, NULL, NULL) ==
 		      DNS_R_SUCCESS);
 
 	{
