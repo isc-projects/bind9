@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.133 2002/03/14 00:36:06 bwelling Exp $ */
+/* $Id: name.c,v 1.134 2002/05/28 03:39:46 marka Exp $ */
 
 #include <config.h>
 
@@ -2075,7 +2075,8 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name, isc_buffer_t *target) {
 		ndata = source->ndata;
 	} else {
 		REQUIRE(BINDABLE(name));
-		if (target == NULL && name->buffer != NULL) {
+		REQUIRE(target != NULL || name->buffer != NULL);
+		if (target == NULL) {
 			target = name->buffer;
 			isc_buffer_clear(name->buffer);
 		}
