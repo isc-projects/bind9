@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.2 2001/04/02 07:53:19 marka Exp $
+ *	$Id: resolv.h,v 1.3 2001/05/21 14:31:29 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -218,6 +218,8 @@ typedef struct __res_state *res_state;
 #define	RES_NOCHECKNAME	0x00008000	/* do not check names for sanity. */
 #define	RES_KEEPTSIG	0x00010000	/* do not strip TSIG records */
 #define	RES_BLAST	0x00020000	/* blast all recursive servers */
+#define RES_NO_NIBBLE	0x00040000	/* disable IPv6 nibble mode reverse */
+#define RES_NO_BITSTRING 0x00080000	/* disable IPv6 bits tring mode reverse */
 /* KAME extensions: use higher bit to avoid conflict with ISC use */
 #define RES_USE_EDNS0	0x40000000	/* use EDNS0 if configured */
 #define RES_USE_A6	0x20000000	/* use A6 */
@@ -350,6 +352,7 @@ extern const struct res_sym __p_rcode_syms[];
 #define sym_ntos		__sym_ntos
 #define sym_ston		__sym_ston
 #define res_nopt		__res_nopt
+#define res_ndestroy		__res_ndestroy
 __BEGIN_DECLS
 int		res_hnok __P((const char *));
 int		res_ownok __P((const char *));
@@ -424,6 +427,9 @@ const char *	res_servicename __P((u_int16_t port, const char *proto));
 const char *	res_protocolname __P((int num));
 void		res_destroyprotolist __P((void));
 void		res_buildprotolist __P((void));
+const char *	res_get_nibblesuffix __P((res_state));
+const char *	res_get_bitstringsuffix __P((res_state));
+void		res_ndestroy __P((res_state));
 __END_DECLS
 
 #endif /* !_RESOLV_H_ */

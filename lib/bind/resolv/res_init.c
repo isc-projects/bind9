@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.3 2001/04/06 05:35:41 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.4 2001/05/21 14:31:31 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -189,6 +189,8 @@ __res_vinit(res_state statp, int preinit) {
 	    if (statp->_u._ext.ext != NULL) {
 	        memset(statp->_u._ext.ext, 0, sizeof(*statp->_u._ext.ext));
 		statp->_u._ext.ext->nsaddrs[0].sin = statp->nsaddr;
+		strcpy(statp->_u._ext.ext->nsuffix, "ip6.int");
+		strcpy(statp->_u._ext.ext->bsuffix, "ip6.arpa");
 	    }
 	}
 
@@ -438,6 +440,7 @@ res_setoptions(res_state statp, const char *options, const char *source)
 {
 	const char *cp = options;
 	int i;
+	struct __res_state_ext *ext = statp->_u._ext.ext;
 
 #ifdef DEBUG
 	if (statp->options & RES_DEBUG)
@@ -500,9 +503,40 @@ res_setoptions(res_state statp, const char *options, const char *source)
 		else if (!strncmp(cp, "dname", sizeof("dname") - 1)) {
 			statp->options |= RES_USE_DNAME;
 		}
+		else if (!strncmp(cp, "nibble:", sizeof("nibble:") - 1)) {
+			if (ext == NULL)
+				goto skip;
+			cp += sizeof("nibble:") - 1;
+			i = MIN(strcspn(cp, " \t"), sizeof(ext->nsuffix) - 1);
+			strncpy(ext->nsuffix, cp, i);
+			ext->nsuffix[i] = '\0';
+		}
+		else if (!strncmp(cp, "bitstring:", sizeof("bitstring:") - 1)) {
+			if (ext == NULL)
+				goto skip;
+			cp += sizeof("bitstring:") - 1;
+			i = MIN(strcspn(cp, " \t"), sizeof(ext->bsuffix) - 1);
+			strncpy(ext->bsuffix, cp, i);
+			ext->bsuffix[i] = '\0';
+		}
+		else if (!strncmp(cp, "v6revmode:", sizeof("v6revmode:") - 1)) {
+			cp += sizeof("v6revmode:") - 1;
+			if (!strncmp(cp, "nibble", sizeof("nibble") - 1)) {
+				statp->options &= ~RES_NO_NIBBLE;
+				statp->options |= RES_NO_BITSTRING;
+			} else if (!strncmp(cp, "bitstring",
+				    sizeof("bitstring") - 1)) {
+				statp->options |= RES_NO_NIBBLE;
+				statp->options &= ~RES_NO_BITSTRING;
+			} else if (!strncmp(cp, "both", sizeof("both") - 1)) {
+				statp->options &=
+					 ~(RES_NO_NIBBLE|RES_NO_BITSTRING);
+			}
+		}
 		else {
 			/* XXX - print a warning here? */
 		}
+   skip:
 		/* skip to next run of spaces */
 		while (*cp && *cp != ' ' && *cp != '\t')
 			cp++;
@@ -555,4 +589,27 @@ res_nclose(res_state statp) {
 			statp->_u._ext.nssocks[ns] = -1;
 		}
 	}
+}
+
+void
+res_ndestroy(res_state statp) {
+	res_nclose(statp);
+	if (statp->_u._ext.ext != NULL)
+		free(statp->_u._ext.ext);
+	statp->options &= ~RES_INIT;
+	statp->_u._ext.ext = NULL;
+}
+
+const char *
+res_get_nibblesuffix(res_state statp) {
+	if (statp->_u._ext.ext)
+		return (statp->_u._ext.ext->nsuffix);
+	return ("ip6.int");
+}
+
+const char *
+res_get_bitstringsuffix(res_state statp) {
+	if (statp->_u._ext.ext)
+		return (statp->_u._ext.ext->bsuffix);
+	return ("ip6.arpa");
 }

@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.1 2001/03/29 06:31:42 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.2 2001/05/21 14:31:30 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -388,17 +388,18 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 		q.answer = q.qbuf.buf;
 		q.anslen = sizeof(q.qbuf);
 		q.next = &q2;
-#ifdef RES_USE_DNAME
-		if ((pvt->res->options & RES_USE_DNAME) == 0)
+		if ((pvt->res->options & RES_NO_BITSTRING) != 0)
 			q.action = RESTGT_IGNORE;
 		else
-#endif
 			q.action = RESTGT_DOALWAYS;
 		q2.qclass = C_IN;
 		q2.qtype = T_PTR;
 		q2.answer = q2.qbuf.buf;
 		q2.anslen = sizeof(q2.qbuf);
-		q2.action = RESTGT_AFTERFAILURE;
+		if ((pvt->res->options & RES_NO_NIBBLE) != 0)
+			q2.action = RESTGT_IGNORE;
+		else
+			q2.action = RESTGT_AFTERFAILURE;
 		break;
 	default:
 		errno = EAFNOSUPPORT;
@@ -425,15 +426,18 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 			qp += SPRINTF((qp, "\\[x"));
 			for (n = 0; n < IN6ADDRSZ; n++)
 				qp += SPRINTF((qp, "%02x", uaddr[n]));
-			strcpy(qp, "/128].ip6.arpa");
+			SPRINTF((qp, "/128].%s",
+				 res_get_bitstringsuffix(pvt->res)));
 		}
-		qp = q2.qname;
-		for (n = IN6ADDRSZ - 1; n >= 0; n--) {
-			qp += SPRINTF((qp, "%x.%x.",
-				       uaddr[n] & 0xf,
-				       (uaddr[n] >> 4) & 0xf));
+		if (q2.action != RESTGT_IGNORE) {
+			qp = q2.qname;
+			for (n = IN6ADDRSZ - 1; n >= 0; n--) {
+				qp += SPRINTF((qp, "%x.%x.",
+					       uaddr[n] & 0xf,
+					       (uaddr[n] >> 4) & 0xf));
+			}
+			strcpy(qp, res_get_nibblesuffix(pvt->res));
 		}
-		strcpy(qp, "ip6.int");
 		break;
 	default:
 		abort();
@@ -1048,6 +1052,7 @@ gethostans(struct irs_ho *this,
 	int (*name_ok)(const char *);
 	const HEADER *hp;
 	const u_char *eom;
+	const u_char *eor;
 	const u_char *cp;
 	const char *tname;
 	const char *hname;
@@ -1155,11 +1160,12 @@ gethostans(struct irs_ho *this,
 			cp += n;
 			continue;
 		}
+		eor = cp + n;
 		if ((qtype == T_A || qtype == T_AAAA || qtype == ns_t_a6 ||
 		     qtype == T_ANY) && type == T_CNAME) {
 			if (ap >= &pvt->host_aliases[MAXALIASES-1])
 				continue;
-			n = dn_expand(ansbuf, eom, cp, tbuf, sizeof tbuf);
+			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof tbuf);
 			if (n < 0 || !maybe_ok(pvt->res, tbuf, name_ok)) {
 				had_error++;
 				continue;
@@ -1188,11 +1194,11 @@ gethostans(struct irs_ho *this,
 
 			/*
 			 * just replace the query target; do not update the
-			 * aliase list. (Or should we?)
+			 * alias list. (Or should we?)
 			 */
 			t0 = (qtype == T_PTR) ? tname : hname;
 
-			n = dn_expand(ansbuf, eom, cp, tbuf, sizeof(tbuf));
+			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof(tbuf));
 			if (n < 0 || !maybe_dnok(pvt->res, tbuf)) {
 				had_error++;
 				continue;
@@ -1231,7 +1237,7 @@ gethostans(struct irs_ho *this,
 			continue;
 		}
 		if (qtype == T_PTR && type == T_CNAME) {
-			n = dn_expand(ansbuf, eom, cp, tbuf, sizeof tbuf);
+			n = dn_expand(ansbuf, eor, cp, tbuf, sizeof tbuf);
 			if (n < 0 || !maybe_dnok(pvt->res, tbuf)) {
 				had_error++;
 				continue;
@@ -1283,7 +1289,7 @@ gethostans(struct irs_ho *this,
 				cp += n;
 				continue;
 			}
-			n = dn_expand(ansbuf, eom, cp, bp, buflen);
+			n = dn_expand(ansbuf, eor, cp, bp, buflen);
 			if (n < 0 || !maybe_hnok(pvt->res, bp) ||
 			    n >= MAXHOSTNAMELEN) {
 				had_error++;

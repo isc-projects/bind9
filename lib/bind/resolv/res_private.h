@@ -17,6 +17,8 @@ struct __res_state_ext {
 			struct in6_addr in6a;
 		} addr, mask;
 	} sort_list[MAXRESOLVSORT];
+	char nsuffix[64];
+	char bsuffix[64];
 };
 
 extern int
