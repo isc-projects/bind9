@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.111 2001/03/13 02:47:15 bwelling Exp $
+# $Id: Makefile.in,v 1.112 2001/03/27 00:53:16 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,13 +30,11 @@ CWARNINGS =
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
-OMAPILIBS =	../../lib/omapi/libomapi.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
-OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
@@ -70,7 +68,6 @@ XTARGETS =	adb_test \
 		mempool_test \
 		name_test \
 		nxtify \
-		omapi_test \
 		ratelimiter_test \
 		rbt_test \
 		rdata_test \
@@ -109,7 +106,6 @@ SRCS =		adb_test.c \
 		mempool_test.c \
 		name_test.c \
 		nxtify.c \
-		omapi_test.c \
 		printmsg.c \
 		ratelimiter_test.c \
 		rbt_test.c \
@@ -163,10 +159,6 @@ log_test: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 name_test: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ name_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-omapi_test: omapi_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${OMAPIDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ omapi_test.@O@ \
-		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 hash_test: hash_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ hash_test.@O@ \

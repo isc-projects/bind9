@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: roadmap,v 1.2 2001/01/09 21:47:05 bwelling Exp $
+$Id: roadmap,v 1.3 2001/03/27 00:53:20 bwelling Exp $
 
 Road Map to the BIND 9 Source Tree
 
@@ -27,7 +27,7 @@ lib/dns/sec		Cryptographic libraries for DNSSEC
 lib/isc			The ISC library
     task.c		Task library
     unix/socket.c	Unix implementation of socket library
-lib/omapi		The OMAPI remote object access library, used by rndc.
+lib/isccc		The command channel library, used by rndc.
 lib/tests		Support code for the test suites.
 lib/lwres		The lightweight resolver library.
 doc/draft		Current internet-drafts pertaining to the DNS
