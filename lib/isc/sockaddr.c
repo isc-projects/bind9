@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.45 2000/08/09 18:55:53 gson Exp $ */
+/* $Id: sockaddr.c,v 1.46 2000/08/09 19:09:08 gson Exp $ */
 
 #include <config.h>
 
@@ -65,9 +65,6 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 	return (ISC_TRUE);
 }
 
-/*
- * Compare just the addresses (ignore ports)
- */
 isc_boolean_t
 isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 	REQUIRE(a != NULL && b != NULL);
@@ -94,11 +91,6 @@ isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 	}
 	return (ISC_TRUE);
 }
-
-/*
- * Compare just a prefix of the addresses (ignore ports and
- * low address bits)
- */
 
 isc_boolean_t
 isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
@@ -181,10 +173,6 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned int g;
-
-	/*
-	 * Provide a hash value for 'sockaddr'.
-	 */
 
 	REQUIRE(sockaddr != NULL);
 

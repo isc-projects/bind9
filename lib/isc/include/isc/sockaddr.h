@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.33 2000/08/09 18:55:54 gson Exp $ */
+/* $Id: sockaddr.h,v 1.34 2000/08/09 19:09:09 gson Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -40,41 +40,81 @@ ISC_LANG_BEGINDECLS
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
+/*
+ * Return ISC_TRUE iff the socket addresses 'a' and 'b' are equal.
+ */
 
 isc_boolean_t
 isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b);
+/*
+ * Return ISC_TRUE iff the address parts of the socket addresses
+ * 'a' and 'b' are equal, ignoring the ports.
+ */
 
 isc_boolean_t
 isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 			  unsigned int prefixlen);
+/*
+ * Return ISC_TRUE iff the most significant 'prefixlen' bits of the
+ * socket addresses 'a' and 'b' are equal, ignoring the ports.
+ */
 
 unsigned int
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
+/*
+ * Return a hash value for the socket address 'sockaddr'.  If 'address_only'
+ * is ISC_TRUE, the hash value will not depend on the port.
+ */
 
 void
 isc_sockaddr_any(isc_sockaddr_t *sockaddr);
+/*
+ * Return the IPv4 wildcard address.
+ */
 
 void
 isc_sockaddr_any6(isc_sockaddr_t *sockaddr);
+/*
+ * Return the IPv6 wildcard address.
+ */
 
 void
 isc_sockaddr_anyofpf(isc_sockaddr_t *sockaddr, int family);
+/*
+ * Set '*sockaddr' to the wildcard address of protocol family
+ * 'family'.
+ *
+ * Requires:
+ *	'family' is AF_INET or AF_INET6.
+ */
 
 void
 isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		    in_port_t port);
+/*
+ * Construct an isc_sockaddr_t from an IPv4 address and port.
+ */
 
 void
 isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 		     in_port_t port);
+/*
+ * Construct an isc_sockaddr_t from an IPv6 address and port.
+ */
 
 void
 isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 		      in_port_t port);
+/*
+ * Construct an IPv6 isc_sockaddr_t representing a mapped IPv4 address.
+ */
 
 void
 isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 			 in_port_t port);
+/*
+ * Construct an isc_sockaddr_t from an isc_netaddr_t and port.
+ */
 
 int
 isc_sockaddr_pf(const isc_sockaddr_t *sockaddr);
