@@ -66,6 +66,24 @@ query-source as in BIND 8.
 
 Multiple classes have to be put into explicit views for each class.
 
+1.7. New Reserved Words
+
+When specifying the names of entities like ACLs, logging channels, or
+views, they can be written with or without surrounding double quotes.
+However, the quotes are required if the name is identical to an option
+name or other reserved word.  Since BIND 9 has a number of new options
+and reserves some additional words for anticipated future options, it
+is possible that some of these option names conflict with existing
+names in named.conf.  For example, instead of
+
+   acl internal { 127.0.0.1/32; 10.0.0.0/8; };
+
+you need to write
+
+   acl "internal" { 127.0.0.1/32; 10.0.0.0/8; };
+
+because "internal" is now a reserved word.
+
 2. Zone File Compatibility
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
@@ -192,4 +210,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.17.2.3 2001/01/16 20:36:06 gson Exp $
+$Id: migration,v 1.17.2.4 2001/01/30 21:39:44 gson Exp $
