@@ -30,6 +30,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/result.h>
 #include <isc/buffer.h>
 
@@ -747,6 +748,11 @@ typedef enum {
 	JOURNAL_STATE_TRANSACTION,
 } journal_state_t;
 
+/*
+ * XXXRTH  We use 'off_t' in the following structure.  If we continue to
+ *         use stdio instead of creating an ISC file module, we'll convert
+ *         'off_t' to 'long'.
+ */
 
 struct dns_journal {
 	unsigned int		magic;		/* JOUR */
@@ -1857,6 +1863,11 @@ read_one_rr(dns_journal_t *j) {
 	journal_rrhdr_t rrhdr;
 	isc_region_t r;
 
+	/*
+	 * XXXRTH  Need to resolve the comparison between int and unsigned
+	 *         int here, but we can defer this until we decide what type
+	 *	   we want j->offset to be.
+	 */
 	INSIST(j->offset <= j->it.epos.offset);
 	if (j->offset == j->it.epos.offset)
 		return (DNS_R_NOMORE);
