@@ -375,9 +375,6 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * others are always drained.
 	 */
 
-	if (blocking)
-		printf("Waiting for %u bytes...\n", needed);
-
 	added = 0;
 	remaining = needed;
  again:
@@ -406,14 +403,10 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	if (blocking && remaining != 0) {
 		int fds;
 		fds = wait_for_sources(ent);
-		printf("wait_for_sources() returned %d (%u of %u, %u remaining)\n",
 		       fds, added, needed, remaining);
 		if (fds > 0)
 			goto again;
 	}
-
-	if (blocking)
-		printf("Got %u bytes...\n", added);
 
 	/*
 	 * Adjust counts.
