@@ -8,5 +8,5 @@ TARGETS=
 
 @BIND9_MAKE_RULES@
 
-clean::
+distclean::
 	rm -f rules
