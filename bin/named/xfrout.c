@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.71 2000/08/07 20:39:10 gson Exp $ */
+/* $Id: xfrout.c,v 1.72 2000/08/09 00:09:30 gson Exp $ */
 
 #include <config.h>
 
@@ -1512,7 +1512,7 @@ xfrout_logv(ns_client_t *client, dns_name_t *zonename, int level,
 	    const char *fmt, va_list ap)
 {
 	char msgbuf[2048];
-	char namebuf[1024];
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(zonename, namebuf, sizeof(namebuf));
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);

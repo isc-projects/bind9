@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.90 2000/08/08 23:49:28 gson Exp $ */
+/* $Id: xfrin.c,v 1.91 2000/08/09 00:09:36 gson Exp $ */
 
 #include <config.h>
 
@@ -1217,8 +1217,8 @@ static void
 xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	   const char *fmt, va_list ap)
 {
-	char zntext[1024];
-	char mastertext[256];
+	char zntext[DNS_NAME_FORMATSIZE];
+	char mastertext[ISC_SOCKADDR_FORMATSIZE];
 	char msgtext[2048];
 
 	dns_name_format(zonename, zntext, sizeof(zntext));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.40 2000/08/02 02:34:40 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.41 2000/08/09 00:09:31 gson Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,6 @@
 #include <unistd.h>
 
 #define MXNAME 256
-#define MAXPNAME 1025
 #define MAXCMD 1024
 #define NAMEBUF 512
 #define WORDLEN 512
@@ -1191,7 +1190,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (debugging) {
-		char namestr[MAXPNAME];
+		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
 		fprintf(stderr, "Found zone name: %s\n", namestr);
 	}
@@ -1213,7 +1212,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		zonename = name;
 
 	if (debugging) {
-		char namestr[MAXPNAME];
+		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(&master, namestr, sizeof(namestr));
 		fprintf(stderr, "The master is: %s\n", namestr);
 	}

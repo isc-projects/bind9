@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.124 2000/08/08 23:57:13 gson Exp $ */
+/* $Id: query.c,v 1.125 2000/08/09 00:09:29 gson Exp $ */
 
 #include <config.h>
 
@@ -2905,7 +2905,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 static inline void
 log_query(ns_client_t *client) {
 	isc_buffer_t b;
-	char namebuf[1024];
+	char namebuf[DNS_NAME_FORMATSIZE];
 	char text[256];
 	isc_region_t r;
 	dns_rdataset_t *rdataset;

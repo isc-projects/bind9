@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.19 2000/08/01 01:12:37 tale Exp $ */
+/* $Id: byaddr_test.c,v 1.20 2000/08/09 00:09:32 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -59,7 +59,7 @@ done(isc_task_t *task, isc_event_t *event) {
 		for (name = ISC_LIST_HEAD(bevent->names);
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, link)) {
-			char text[1024];
+			char text[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, text, sizeof(text));
 			printf("%s\n", text);
 		}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.144 2000/08/01 01:22:09 tale Exp $ */
+/* $Id: adb.c,v 1.145 2000/08/09 00:09:35 gson Exp $ */
 
 /*
  * Implementation notes
@@ -2994,7 +2994,7 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 
 static void
 print_dns_name(FILE *f, dns_name_t *name) {
-	char buf[1024];
+	char buf[DNS_NAME_FORMATSIZE];
 
 	INSIST(f != NULL);
 

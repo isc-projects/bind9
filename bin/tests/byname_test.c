@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.21 2000/08/01 01:12:38 tale Exp $ */
+/* $Id: byname_test.c,v 1.22 2000/08/09 00:09:34 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -101,7 +101,7 @@ print_addresses(dns_adbfind_t *find) {
 
 static void
 print_name(dns_name_t *name) {
-	char text[1024];
+	char text[DNS_NAME_FORMATSIZE];
 
 	dns_name_format(name, text, sizeof(text));
 	printf("%s\n", text);
