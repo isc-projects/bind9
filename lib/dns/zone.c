@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.85 2000/03/06 19:06:01 bwelling Exp $ */
+/* $Id: zone.c,v 1.86 2000/03/17 17:45:07 gson Exp $ */
 
 #include <config.h>
 

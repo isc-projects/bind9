@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.31 2000/02/03 23:43:47 halley Exp $ */
+/* $Id: gen.c,v 1.32 2000/03/17 17:45:01 gson Exp $ */
 
 #include <config.h>
 

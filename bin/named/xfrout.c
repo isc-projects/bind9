@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.46 2000/02/24 22:55:37 gson Exp $ */
+/* $Id: xfrout.c,v 1.47 2000/03/17 17:41:50 gson Exp $ */
 
 #include <config.h>
 

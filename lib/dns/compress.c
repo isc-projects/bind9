@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.20 2000/02/03 23:43:45 halley Exp $ */
+/* $Id: compress.c,v 1.21 2000/03/17 17:49:37 gson Exp $ */
 
 #include <config.h>
 #include <string.h>

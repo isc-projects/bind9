@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: callbacks.c,v 1.5 2000/02/03 23:43:45 halley Exp $ */
+/* $Id: callbacks.c,v 1.6 2000/03/17 17:49:37 gson Exp $ */
 
 #include <config.h>
 

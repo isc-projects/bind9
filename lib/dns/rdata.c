@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.70 2000/02/17 19:58:57 gson Exp $ */
+/* $Id: rdata.c,v 1.71 2000/03/17 17:45:03 gson Exp $ */
 
 #include <config.h>
 

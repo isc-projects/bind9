@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.13 2000/02/03 23:43:44 halley Exp $ */
+/* $Id: cache.c,v 1.14 2000/03/17 17:45:00 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.c,v 1.7 2000/02/17 19:58:58 gson Exp $ */
+/* $Id: base64.c,v 1.8 2000/03/17 17:45:50 gson Exp $ */
 
 #include <config.h>
 

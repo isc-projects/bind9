@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.51 2000/02/25 17:34:04 gson Exp $ */
+/* $Id: xfrin.c,v 1.52 2000/03/17 17:45:05 gson Exp $ */
 
 #include <config.h>
 

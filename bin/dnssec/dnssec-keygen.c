@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: dnssec-keygen.c,v 1.8 2000/03/06 20:04:15 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.9 2000/03/17 17:48:44 gson Exp $ */
 
 #include <config.h>
 

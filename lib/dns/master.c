@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.39 2000/02/03 23:43:49 halley Exp $ */
+/* $Id: master.c,v 1.40 2000/03/17 17:45:02 gson Exp $ */
 
 #include <config.h>
 
