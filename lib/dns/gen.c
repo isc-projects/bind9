@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.39 2000/04/25 19:09:06 explorer Exp $ */
+/* $Id: gen.c,v 1.40 2000/04/25 21:10:33 explorer Exp $ */
 
 #include <config.h>
 
@@ -698,11 +698,15 @@ main(int argc, char **argv) {
 		fprintf(stdout, "#define CLASSENUM%s\n",
 			classes != NULL ? " \\" : "");
 
-		for (cc = classes; cc != NULL; cc = cc->next)
+		printf("\t dns_rdataclass_reserved0 = 0, \\\n");
+		for (cc = classes; cc != NULL; cc = cc->next) {
+			if (cc->rdclass == 4)
+				printf("\t dns_rdataclass_chaos = 3, \\\n");
 			fprintf(stdout, "\t dns_rdataclass_%s = %d,%s\n",
 				funname(cc->classname, buf1),
 				cc->rdclass,
 				cc->next != NULL ? " \\" : "");
+		}
 		fprintf(stdout, "#endif /* CLASSENUM */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
