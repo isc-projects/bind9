@@ -824,6 +824,13 @@ dns_name_rdatacompare(dns_name_t *name1, dns_name_t *name2) {
 		}
 	}
 
+	/*
+	 * If one name had more labels than the other, their common
+	 * prefix must have been different because the shorter name
+	 * ended with the root label and the longer one can't have
+	 * a root label in the middle of it.  Therefore, if we get
+	 * to this point, the lengths must be equal.
+	 */
 	INSIST(l1 == l2);
 
 	return (0);
