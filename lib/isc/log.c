@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.79 2002/10/16 13:15:29 jinmei Exp $ */
+/* $Id: log.c,v 1.80 2002/11/29 01:42:18 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -51,6 +51,10 @@
  * XXXDCL make dynamic?
  */
 #define LOG_BUFFER_SIZE	(8 * 1024)
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024	/* AIX and others don't define this. */
+#endif
 
 /*
  * This is the structure that holds each named channel.  A simple linked
