@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.6 2003/08/13 02:08:44 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.7 2003/08/15 01:08:33 marka Exp $ */
 
 #include <config.h>
 
@@ -1384,8 +1384,9 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * a zone cut.
  */
 static isc_result_t
-next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
-     dns_name_t *newname, isc_boolean_t forward)
+next_active(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
+	    dns_dbversion_t *ver, dns_name_t *oldname, dns_name_t *newname,
+	    isc_boolean_t forward)
 {
 	isc_result_t result;
 	dns_dbiterator_t *dbit = NULL;
@@ -1412,10 +1413,8 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 				CHECK(dns_dbiterator_last(dbit));
 			wraps++;
 			if (wraps == 2) {
-				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
-					      NS_LOGMODULE_UPDATE,
-					      ISC_LOG_ERROR,
-					      "secure zone with no NXTs");
+				update_log(client, zone, ISC_LOG_ERROR,
+					   "secure zone with no NXTs");
 				result = DNS_R_BADZONE;
 				goto failure;
 			}
@@ -1446,7 +1445,8 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
  * The existing NXT is removed.
  */
 static isc_result_t
-add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
+add_nxt(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
+	dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1462,7 +1462,7 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	/*
 	 * Find the successor name, aka NXT target.
 	 */
-	CHECK(next_active(db, ver, name, target, ISC_TRUE));
+	CHECK(next_active(client, zone, db, ver, name, target, ISC_TRUE));
 
 	/*
 	 * Create the NXT RDATA.
@@ -1591,7 +1591,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  * The SIGs generated will be valid for 'sigvalidityinterval' seconds.
  */
 static isc_result_t
-update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
+update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		  dns_dbversion_t *oldver, dns_dbversion_t *newver,
 		  dns_diff_t *diff, isc_uint32_t sigvalidityinterval)
 {
@@ -1608,20 +1608,18 @@ update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	unsigned int i;
 	isc_stdtime_t now, inception, expire;
 
-	dns_diff_init(mctx, &diffnames);
-	dns_diff_init(mctx, &affected);
+	dns_diff_init(client->mctx, &diffnames);
+	dns_diff_init(client->mctx, &affected);
 
-	dns_diff_init(mctx, &sig_diff);
-	dns_diff_init(mctx, &nxt_diff);
-	dns_diff_init(mctx, &nxt_mindiff);
+	dns_diff_init(client->mctx, &sig_diff);
+	dns_diff_init(client->mctx, &nxt_diff);
+	dns_diff_init(client->mctx, &nxt_mindiff);
 
-	result = find_zone_keys(zone, db, newver, mctx,
+	result = find_zone_keys(zone, db, newver, client->mctx,
 				MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_UPDATE,
-			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
-			      "could not get zone keys for secure "
-			      "dynamic update");
+		update_log(client, zone, ISC_LOG_ERROR,
+			   "could not get zone keys for secure dynamic update");
 		goto failure;
 	}
 
@@ -1673,7 +1671,8 @@ update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 			if (flag) {
 				CHECK(add_sigs(db, newver, name, type,
 					       &sig_diff, zone_keys, nkeys,
-					       mctx, inception, expire));
+					       client->mctx, inception,
+					       expire));
 			}
 		skip:
 			/* Skip any other updates to the same RRset. */
@@ -1729,7 +1728,8 @@ update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		 * a newly unobscured node, and those nodes are on the
 		 * "affected" list in any case.
 		 */
-		CHECK(next_active(db, newver, &t->name, prevname, ISC_FALSE));
+		CHECK(next_active(client, zone, db, newver,
+				  &t->name, prevname, ISC_FALSE));
 		CHECK(namelist_append_name(&affected, prevname));
 	}
 
@@ -1830,7 +1830,8 @@ update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 			 * there is other data, and if there is other data,
 			 * there are other SIGs.
 			 */
-			CHECK(add_nxt(db, newver, &t->name, &nxt_diff));
+			CHECK(add_nxt(client, zone, db, newver,
+				      &t->name, &nxt_diff));
 		}
 	}
 
@@ -1855,8 +1856,8 @@ update_signatures(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 					NULL, &sig_diff));
 		} else if (t->op == DNS_DIFFOP_ADD) {
 			CHECK(add_sigs(db, newver, &t->name, dns_rdatatype_nxt,
-				       &sig_diff, zone_keys, nkeys, mctx,
-				       inception, expire));
+				       &sig_diff, zone_keys, nkeys,
+				       client->mctx, inception, expire));
 		} else {
 			INSIST(0);
 		}
@@ -2505,8 +2506,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		}
 
 		if (dns_db_issecure(db)) {
-			result = update_signatures(mctx, zone, db, oldver, ver,
-			   &diff, dns_zone_getsigvalidityinterval(zone));
+			result = update_signatures(client, zone, db, oldver,
+						   ver, &diff,
+					 dns_zone_getsigvalidityinterval(zone));
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone,
 					   ISC_LOG_ERROR,
