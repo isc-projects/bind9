@@ -95,9 +95,11 @@ main(int argc, char **argv)
 	pid_t			deadpid;
 	int			status;
 	int			len;
+	int			first;
 	testspec_t		*pts;
 	struct sigaction	sa;
 
+	first = 1;
 	subprocs = 1;
 	T_timeout = T_TIMEOUT;
 
@@ -116,6 +118,15 @@ main(int argc, char **argv)
 		else if (c == 't') {
 			tnum = atoi(isc_commandline_argument);
 			if ((tnum > 0) && (tnum < T_MAXTESTS)) {
+				if (first) {
+					/*
+					 * turn off effect of -a default
+					 * and allow multiple -t and -n
+					 * options
+					 */
+					memset(T_tvec, 0, sizeof(T_tvec));
+					first = 0;
+				}
 				/* flag test tnum to be run */
 				tnum -= 1;
 				T_tvec[tnum / 8] |= (0x01 << (tnum % 8));
@@ -133,6 +144,10 @@ main(int argc, char **argv)
 			while (pts->pfv != NULL) {
 				if (! strcmp(pts->func_name,
 					     isc_commandline_argument)) {
+					if (first) {
+						memset(T_tvec, 0, sizeof(T_tvec));
+						first = 0;
+					}
 					T_tvec[tnum/8] |= (0x01 << (tnum%8));
 					break;
 				}
