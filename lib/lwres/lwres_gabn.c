@@ -263,22 +263,26 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	gabn->naliases = naliases;
 	gabn->naddrs = naddrs;
 
-	gabn->aliases = CTXMALLOC(sizeof(char *) * naliases);
-	if (gabn->aliases == NULL) {
-		ret = LWRES_R_NOMEMORY;
-		goto out;
+	if (naliases > 0) {
+		gabn->aliases = CTXMALLOC(sizeof(char *) * naliases);
+		if (gabn->aliases == NULL) {
+			ret = LWRES_R_NOMEMORY;
+			goto out;
+		}
+
+		gabn->aliaslen = CTXMALLOC(sizeof(isc_uint16_t) * naliases);
+		if (gabn->aliaslen == NULL) {
+			ret = LWRES_R_NOMEMORY;
+			goto out;
+		}
 	}
 
-	gabn->aliaslen = CTXMALLOC(sizeof(isc_uint16_t) * naliases);
-	if (gabn->aliaslen == NULL) {
-		ret = LWRES_R_NOMEMORY;
-		goto out;
-	}
-
-	gabn->addrs = CTXMALLOC(sizeof(lwres_addr_t) * naddrs);
-	if (gabn->addrs == NULL) {
-		ret = LWRES_R_NOMEMORY;
-		goto out;
+	if (naddrs > 0) {
+		gabn->addrs = CTXMALLOC(sizeof(lwres_addr_t) * naddrs);
+		if (gabn->addrs == NULL) {
+			ret = LWRES_R_NOMEMORY;
+			goto out;
+		}
 	}
 
 	/*
@@ -360,7 +364,7 @@ lwres_gabnresponse_free(lwres_context_t *ctx, lwres_gabnresponse_t **structp)
 		CTXFREE(gabn->aliaslen, sizeof(isc_uint16_t) * gabn->naliases);
 	}
 	if (gabn->naddrs > 0)
-		CTXFREE(gabn->addrs, sizeof(lwres_addr_t *) * gabn->naddrs);
+		CTXFREE(gabn->addrs, sizeof(lwres_addr_t) * gabn->naddrs);
 	if (gabn->base != NULL)
 		CTXFREE(gabn->base, gabn->baselen);
 	CTXFREE(gabn, sizeof(lwres_gabnresponse_t));
