@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.201 2002/11/27 09:52:54 marka Exp $ */
+/* $Id: adb.c,v 1.202 2003/02/26 22:54:28 marka Exp $ */
 
 /*
  * Implementation notes
@@ -328,7 +328,7 @@ static void water(void *arg, int mark);
 #define NAME_IS_DEAD		0x40000000
 #define NAME_HINT_OK		DNS_ADBFIND_HINTOK
 #define NAME_GLUE_OK		DNS_ADBFIND_GLUEOK
-#define NAME_STARTATROOT	DNS_ADBFIND_STARTATROOT
+#define NAME_STARTATZONE	DNS_ADBFIND_STARTATZONE
 #define NAME_DEAD(n)		(((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n)	(((n)->flags & NAME_NEEDS_POKE) != 0)
 #define NAME_GLUEOK(n)		(((n)->flags & NAME_GLUE_OK) != 0)
@@ -362,7 +362,7 @@ static void water(void *arg, int mark);
 #define FIND_WANTEMPTYEVENT(fn)	(((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
 #define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) \
 				 != 0)
-#define FIND_STARTATROOT(fn)	(((fn)->options & DNS_ADBFIND_STARTATROOT) \
+#define FIND_STARTATZONE(fn)	(((fn)->options & DNS_ADBFIND_STARTATZONE) \
 				 != 0)
 #define FIND_HINTOK(fn)		(((fn)->options & DNS_ADBFIND_HINTOK) != 0)
 #define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
@@ -386,8 +386,8 @@ static void water(void *arg, int mark);
 #define GLUE_OK(nf, o) (!NAME_GLUEOK(nf) || (((o) & DNS_ADBFIND_GLUEOK) != 0))
 #define HINT_OK(nf, o) (!NAME_HINTOK(nf) || (((o) & DNS_ADBFIND_HINTOK) != 0))
 #define GLUEHINT_OK(nf, o) (GLUE_OK(nf, o) || HINT_OK(nf, o))
-#define STARTATROOT_MATCHES(nf, o) (((nf)->flags & NAME_STARTATROOT) == \
-				    ((o) & DNS_ADBFIND_STARTATROOT))
+#define STARTATZONE_MATCHES(nf, o) (((nf)->flags & NAME_STARTATZONE) == \
+				    ((o) & DNS_ADBFIND_STARTATZONE))
 
 #define ENTER_LEVEL		ISC_LOG_DEBUG(50)
 #define EXIT_LEVEL		ENTER_LEVEL
@@ -1587,7 +1587,7 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name,
 		if (!NAME_DEAD(adbname)) {
 			if (dns_name_equal(name, &adbname->name)
 			    && GLUEHINT_OK(adbname, options)
-			    && STARTATROOT_MATCHES(adbname, options))
+			    && STARTATZONE_MATCHES(adbname, options))
 				return (adbname);
 		}
 		adbname = ISC_LIST_NEXT(adbname, plink);
@@ -2260,7 +2260,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
-	isc_boolean_t want_event, start_at_root, alias, have_address;
+	isc_boolean_t want_event, start_at_zone, alias, have_address;
 	isc_result_t result;
 	unsigned int wanted_addresses;
 	unsigned int wanted_fetches;
@@ -2282,7 +2282,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	wanted_fetches = 0;
 	query_pending = 0;
 	want_event = ISC_FALSE;
-	start_at_root = ISC_FALSE;
+	start_at_zone = ISC_FALSE;
 	alias = ISC_FALSE;
 
 	if (now == 0)
@@ -2352,8 +2352,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			adbname->flags |= NAME_HINT_OK;
 		if (FIND_GLUEOK(find))
 			adbname->flags |= NAME_GLUE_OK;
-		if (FIND_STARTATROOT(find))
-			adbname->flags |= NAME_STARTATROOT;
+		if (FIND_STARTATZONE(find))
+			adbname->flags |= NAME_STARTATZONE;
 	}
 
 	/*
@@ -2467,14 +2467,14 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * be acceptable so we have to launch fetches.
 		 */
 
-		if (FIND_STARTATROOT(find))
-			start_at_root = ISC_TRUE;
+		if (FIND_STARTATZONE(find))
+			start_at_zone = ISC_TRUE;
 
 		/*
 		 * Start V4.
 		 */
 		if (WANT_INET(wanted_fetches) &&
-		    fetch_name(adbname, start_at_root,
+		    fetch_name(adbname, start_at_zone,
 			       dns_rdatatype_a) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: started A fetch for name %p",
@@ -2485,7 +2485,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V6.
 		 */
 		if (WANT_INET6(wanted_fetches) &&
-		    fetch_name(adbname, start_at_root,
+		    fetch_name(adbname, start_at_zone,
 			       dns_rdatatype_aaaa) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: "
@@ -3222,12 +3222,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 static isc_result_t
 fetch_name(dns_adbname_t *adbname,
-	   isc_boolean_t start_at_root,
+	   isc_boolean_t start_at_zone,
 	   dns_rdatatype_t type)
 {
 	isc_result_t result;
 	dns_adbfetch_t *fetch = NULL;
 	dns_adb_t *adb;
+	dns_fixedname_t fixed;
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t *nameservers;
@@ -3247,12 +3248,14 @@ fetch_name(dns_adbname_t *adbname,
 	dns_rdataset_init(&rdataset);
 
 	options = 0;
-	if (start_at_root) {
-		DP(50, "fetch_name: starting at DNS root for name %p",
+	if (start_at_zone) {
+		DP(50, "fetch_name: starting at zone for %p",
 		   adbname);
-		name = dns_rootname;
-		result = dns_view_simplefind(adb->view, name, dns_rdatatype_ns,
-					     0, 0, ISC_TRUE, &rdataset, NULL);
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+		result = dns_view_findzonecut2(adb->view, &adbname->name, name,
+					       0, 0, ISC_TRUE, ISC_FALSE,
+					       &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;

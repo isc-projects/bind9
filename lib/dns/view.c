@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.114 2002/11/27 09:52:55 marka Exp $ */
+/* $Id: view.c,v 1.115 2003/02/26 22:54:28 marka Exp $ */
 
 #include <config.h>
 
@@ -862,8 +862,19 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		     isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints,
+		     isc_boolean_t use_hints, 
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	return(dns_view_findzonecut2(view, name, fname, now, options,
+				     use_hints, ISC_TRUE,
+				     rdataset, sigrdataset));
+}
+
+isc_result_t
+dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
+		      isc_stdtime_t now, unsigned int options,
+		      isc_boolean_t use_hints,  isc_boolean_t use_cache,
+		      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db;
@@ -901,7 +912,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		 * is it a subdomain of any zone for which we're
 		 * authoritative.
 		 */
-		if (view->cachedb != NULL) {
+		if (use_cache && view->cachedb != NULL) {
 			/*
 			 * We have a cache; try it.
 			 */
@@ -932,7 +943,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			result = ISC_R_SUCCESS;
 		else if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		if (view->cachedb != NULL && db != view->hints) {
+		if (use_cache && view->cachedb != NULL && db != view->hints) {
 			/*
 			 * We found an answer, but the cache may be better.
 			 */

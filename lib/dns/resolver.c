@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.261 2003/02/26 02:03:59 marka Exp $ */
+/* $Id: resolver.c,v 1.262 2003/02/26 22:54:28 marka Exp $ */
 
 #include <config.h>
 
@@ -1579,20 +1579,13 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
 	/*
 	 * If this name is a subdomain of the query domain, tell
-	 * the ADB to start looking at "." if it doesn't know the
-	 * address.  This keeps us from getting stuck if the
-	 * nameserver is beneath the zone cut and we don't know its
-	 * address (e.g. because the A record has expired).
-	 * By restarting from ".", we ensure that any missing glue
-	 * will be reestablished.
-	 *
-	 * A further optimization would be to get the ADB to start
-	 * looking at the most enclosing zone cut above fctx->domain.
-	 * We don't expect this situation to happen very frequently,
-	 * so we've chosen the simple solution.
+	 * the ADB to start looking using zone/hint data. This keeps us
+	 * from getting stuck if the nameserver is beneath the zone cut
+	 * and we don't know its address (e.g. because the A record has
+	 * expired).
 	 */
 	if (dns_name_issubdomain(name, &fctx->domain))
-		options |= DNS_ADBFIND_STARTATROOT;
+		options |= DNS_ADBFIND_STARTATZONE;
 	options |= DNS_ADBFIND_GLUEOK;
 	options |= DNS_ADBFIND_HINTOK;
 

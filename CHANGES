@@ -1,3 +1,10 @@
+1445.	[bug]		DNS_ADBFIND_STARTATROOT broke stub zones.  This has
+			been replaced with DNS_ADBFIND_STARTATZONE which
+			causes the search to start using the closest zone.
+
+1444.	[func]		dns_view_findzonecut2() allows you to specify if the
+			cache should be searched for zonecuts.
+
 1443.	[func]		Masters lists can now be specified and referenced
 			in zone masters clauses and other masters lists.
 
