@@ -2737,10 +2737,13 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 					 *
 					 * Only one SOA is allowed.
 					 */
-					if (soa_name != NULL &&
-					    name != soa_name)
-						return (DNS_R_FORMERR);
-					soa_name = name;
+					if (rdataset->type == dns_rdatatype_soa)
+					{
+						if (soa_name != NULL &&
+						    name != soa_name)
+							return (DNS_R_FORMERR);
+						soa_name = name;
+					}
 					negative_response = ISC_TRUE;
 					name->attributes |=
 						DNS_NAMEATTR_NCACHE;
@@ -2760,7 +2763,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 			}
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
-		if (result != ISC_R_NOMORE)
+		if (result == ISC_R_NOMORE)
+			break;
+		else if (result != ISC_R_SUCCESS)
 			return (result);
 	}
 
