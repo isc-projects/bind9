@@ -106,15 +106,10 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h.in,v 1.8 2000/01/27 08:08:00 marka Exp $
+ *	$Id: netdb.h.in,v 1.9 2000/01/27 12:19:57 marka Exp $
  */
 
-#include <sys/param.h>
-#if (!defined(BSD)) || (BSD < 199306)
-# include <sys/bitypes.h>
-#endif
-#include <sys/cdefs.h>
-#include <netinet/in.h>
+#include <isc/net.h>
 #include <stdio.h>
 
 #ifndef _PATH_HEQUIV
