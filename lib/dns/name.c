@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: name.c,v 1.96 2000/07/20 01:14:48 gson Exp $ */
+/* $Id: name.c,v 1.97 2000/07/20 01:15:25 gson Exp $ */
 
 #include <config.h>
 
@@ -468,14 +468,14 @@ dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive) {
 	s = name->ndata;
 	if (case_sensitive) {
 		while (length > 0) {
-			h += ( h << 4 ) + *s;
+			h += ( h << 3 ) + *s;
 			s++;
 			length--;
 		}
 	} else {
 		while (length > 0) {
 			c = maptolower[*s];
-			h += ( h << 4 ) + c;
+			h += ( h << 3 ) + c;
 			s++;
 			length--;
 		}
