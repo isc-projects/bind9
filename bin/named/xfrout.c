@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.85 2000/12/11 23:09:39 marka Exp $ */
+/* $Id: xfrout.c,v 1.86 2000/12/22 01:38:16 gson Exp $ */
 
 #include <config.h>
 
@@ -1446,9 +1446,9 @@ sendstream(xfrout_ctx_t *xfr) {
 		xfr->client->message = msg;
 		msg = NULL;
 		ns_client_send(xfr->client);
+		xfr->stream->methods->pause(xfr->stream);
 		xfrout_ctx_destroy(&xfr);
-		result = ISC_R_SUCCESS;
-		goto done;
+		return;
 	}
 
 	/* Advance lasttsig to be the last TSIG generated */
@@ -1478,16 +1478,12 @@ sendstream(xfrout_ctx_t *xfr) {
 		dns_message_destroy(&msg);
 	}
 
- done:
 	/*
 	 * Make sure to release any locks held by database
 	 * iterators before returning from the event handler.
 	 */
 	xfr->stream->methods->pause(xfr->stream);
 	
-	if (result == ISC_R_SUCCESS)
-		return;
-
 	xfrout_fail(xfr, result, "sending zone data");
 }
 
