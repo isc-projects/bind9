@@ -7,8 +7,8 @@
 #include <isc/result.h>
 
 typedef HANDLE isc_thread_t;
-typedef DWORD isc_threadresult_t;
-typedef LPVOID isc_threadarg_t;
+typedef unsigned int isc_threadresult_t;
+typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (WINAPI *isc_threadfunc_t)(isc_threadarg_t);
 
 isc_result_t isc_thread_create(isc_threadfunc_t, isc_threadarg_t, 
