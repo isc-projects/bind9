@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.16 2000/07/11 00:37:56 tale Exp $ */
+/* $Id: rndc.c,v 1.17 2000/07/11 01:30:56 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -40,7 +40,8 @@
 #include <named/omapi.h>
 
 static const char *progname;
-static const char *conffile = "/etc/rndc.conf";
+static const char *conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *version = VERSION;
 
 static isc_boolean_t verbose;
 static isc_mem_t *mctx;
@@ -241,8 +242,9 @@ command is one of the following for named:\n\
   *stop		Stop the server.\n\
   *restart	Restart the server.\n\
 \n\
-* == not yet implemented\n",
-		progname);
+* == not yet implemented\n\
+Version: %s\n",
+		progname, version);
 }
 
 #undef DO

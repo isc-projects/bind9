@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2000/06/28 16:27:17 tale Exp $
+# $Id: Makefile.in,v 1.9 2000/07/11 01:30:55 tale Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -48,6 +48,10 @@ OBJS =		rndc.@O@
 SRCS =		rndc.c
 
 @BIND9_MAKE_RULES@
+
+rndc.@O@ rndc.c:
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+		-DRNDC_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/rndc.c
 
 rndc: ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
