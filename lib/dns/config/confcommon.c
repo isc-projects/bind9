@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.20 2000/03/28 22:58:14 brister Exp $ */
+/* $Id: confcommon.c,v 1.21 2000/04/06 09:35:36 brister Exp $ */
 
 #include <config.h>
 
@@ -195,7 +195,7 @@ dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass)
 	isc_buffer_init(&sourceb, buffer, sizeof buffer,
 			ISC_BUFFERTYPE_GENERIC);
 	
-	if (dns_rdataclass_totext(rclass, &sourceb) == DNS_R_SUCCESS) {
+	if (dns_rdataclass_totext(rclass, &sourceb) == ISC_R_SUCCESS) {
 		INSIST(sourceb.used + 1 < sizeof buffer);
 		buffer[sourceb.used] = '\0';
 		fputs(buffer, fp);
@@ -214,7 +214,7 @@ dns_c_datatype_tostream(FILE *fp, dns_rdatatype_t rtype)
 	isc_buffer_init(&sourceb, buffer, sizeof buffer,
 			ISC_BUFFERTYPE_GENERIC);
 
-	if (dns_rdatatype_totext(rtype, &sourceb) == DNS_R_SUCCESS) {
+	if (dns_rdatatype_totext(rtype, &sourceb) == ISC_R_SUCCESS) {
 		INSIST(sourceb.used + 1 < sizeof buffer);
 		buffer[sourceb.used] = '\0';
 		fputs(buffer, fp);
