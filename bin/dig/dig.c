@@ -289,7 +289,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	isc_result_t result;
 	dns_messagetextflag_t flags;
-	isc_buffer_t *buf;
+	isc_buffer_t *buf = NULL;
 
 	UNUSED (query);
 
