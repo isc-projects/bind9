@@ -1,3 +1,6 @@
+1486.	[bug]		isc_print_snprintf() '%%' consumed one too many format
+			characters. [RT# 8230]
+
 1485.	[bug]		gen failed to handle high type values. [RT #6225]
 
 1484.	[bug]		The number of records reported after a AXFR was wrong.

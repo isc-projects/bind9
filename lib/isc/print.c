@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.22.2.1 2003/05/13 04:02:26 marka Exp $ */
+/* $Id: print.c,v 1.22.2.2 2003/07/18 02:43:30 marka Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,6 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				*str++ = *format;
 				size--;
 			}
-			format++;
 			count++;
 			break;
 		case 'q':
