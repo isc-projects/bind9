@@ -1823,7 +1823,8 @@ ns_update_start(ns_client_t *client)
 		FAILC(DNS_R_FORMERR,
 		      "update zone section contains multiple RRs");
 
-	result = dns_zt_find(client->view->zonetable, zonename, NULL, &zone);
+	result = dns_zt_find(client->view->zonetable, zonename, 0, NULL,
+			     &zone);
 	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_NOTAUTH,
 		      "not authoritative for update zone");

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.57 2000/04/17 19:22:00 explorer Exp $ */
+/* $Id: xfrout.c,v 1.58 2000/04/19 18:26:22 halley Exp $ */
 
 #include <config.h>
 
@@ -857,7 +857,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	if (result != ISC_R_NOMORE)
 		FAILC(DNS_R_FORMERR, "multiple questions");
 
-	result = dns_zt_find(client->view->zonetable, question_name, NULL, &zone);
+	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
+			     &zone);
 	if (result != ISC_R_SUCCESS)
 		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
 	switch(dns_zone_gettype(zone)) {

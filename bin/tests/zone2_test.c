@@ -127,8 +127,8 @@ query(dns_view_t *view) {
 		if (reload) {
 			dns_zone_t *zone = NULL;
 			result = dns_zt_find(view->zonetable,
-					     dns_fixedname_name(&name), NULL,
-					     &zone);
+					     dns_fixedname_name(&name), 0,
+					     NULL, &zone);
 			if (result != ISC_R_SUCCESS) {
 				if (result == DNS_R_PARTIALMATCH)
 					dns_zone_detach(&zone);

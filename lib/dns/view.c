@@ -547,7 +547,7 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	result = dns_zt_find(view->zonetable, name, NULL, zonep);
+	result = dns_zt_find(view->zonetable, name, 0, NULL, zonep);
 	if (result == DNS_R_PARTIALMATCH) {
 		dns_zone_detach(zonep);
 		result = ISC_R_NOTFOUND;
@@ -589,7 +589,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	 */
 	zone = NULL;
 	db = NULL;
-	result = dns_zt_find(view->zonetable, name, NULL, &zone);
+	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
 		if (result != ISC_R_SUCCESS && view->cachedb != NULL)
@@ -794,7 +794,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 	/*
 	 * Find the right database.
 	 */
-	result = dns_zt_find(view->zonetable, name, NULL, &zone);
+	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 	if (result == ISC_R_NOTFOUND) {

@@ -473,7 +473,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	 */
 	zone = NULL;
 	db = NULL;
-	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
+	result = dns_zt_find(client->view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
@@ -685,7 +685,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	/*
 	 * Find a database to answer the query.
 	 */
-	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
+	result = dns_zt_find(client->view->zonetable, name, 0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		isc_result_t tresult;
 		tresult = dns_zone_getdb(zone, &db);
@@ -1488,7 +1488,7 @@ query_addbestns(ns_client_t *client) {
 	 * Find the right database.
 	 */
 	result = dns_zt_find(client->view->zonetable, client->query.qname,
-			     NULL, &zone);
+			     0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 	if (result == ISC_R_NOTFOUND) {
@@ -1892,7 +1892,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	 * First we must find the right database.
 	 */
 	result = dns_zt_find(client->view->zonetable, client->query.qname,
-			     NULL, &zone);
+			     0, NULL, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
