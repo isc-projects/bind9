@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.5 1999/09/27 16:55:44 bwelling Exp $
+ * $Id: dst_parse.c,v 1.6 1999/09/30 17:41:36 bwelling Exp $
  */
 
 #include <config.h>
@@ -82,13 +82,14 @@ static struct parse_map map[] = {
 };
 
 static int
-find_value(const char *s) {
+find_value(const char *s, const int alg) {
 	int i;
 
 	for (i = 0; ; i++) {
 		if (map[i].tag == NULL)
 			return (-1);
-		else if (strcasecmp(s, map[i].tag) == 0)
+		else if (strcasecmp(s, map[i].tag) == 0 &&
+			 TAG_ALG(map[i].value) == alg)
 			return (map[i].value);
 	}
 }
@@ -279,7 +280,7 @@ dst_s_parse_private_key_file(const char *name, const int alg, const int id,
 			goto fail;
 
 		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
-		tag = find_value(token.value.as_pointer);
+		tag = find_value(token.value.as_pointer, alg);
 		if (tag < 0 || TAG_ALG(tag) != alg)
 			goto fail;
 		priv->elements[n].tag = tag;
