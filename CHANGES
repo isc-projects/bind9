@@ -1,3 +1,5 @@
+1577.	[placeholder]	rt10331
+
 1576.	[bug]		Race condition in dns_dispatch_addresponse().
 			[RT# 10272]
 
