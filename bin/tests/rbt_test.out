@@ -157,12 +157,12 @@ checking chain information for vix.com.
   name from dns_rbt_findnode: vix.com.
   name from dns_rbtnodechain_current: vix.com.
       (foundname = vix.com, origin = .)
-  level_matches = -1, level_count = 0
+  level_matches = 0, level_count = 0
 checking chain information for zzz.com.
   name not found.  no data at node.
   name from dns_rbtnodechain_current: g.h.vix.com.
       (foundname = g.h, origin = vix.com.)
-  level_matches = -2, level_count = 1
+  level_matches = 0, level_count = 1
 checking chain information for 0.vix.com.
   found parent.  no data at node.
   name from dns_rbt_findnode: vix.com.
