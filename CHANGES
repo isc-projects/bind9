@@ -1,5 +1,5 @@
 1121.	[bug]		The server could attempt to access a NULL zone
-			table if shutting down while resolving.
+			table if shut down while resolving.
 			[RT #1587, #2054]
 
 1120.	[bug]		Errors in options were not fatal. [RT #2002]
