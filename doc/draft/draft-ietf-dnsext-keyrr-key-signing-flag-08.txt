@@ -1,19 +1,16 @@
 
 
-
-
 DNS Extensions                                                O. Kolkman
 Internet-Draft                                                  RIPE NCC
-Expires: July 2, 2003                                        J. Schlyter
-                                                    Carlstedt Research &
-                                                              Technology
+Expires: January 16, 2004                                    J. Schlyter
+
                                                                 E. Lewis
                                                                     ARIN
-                                                            January 2003
+                                                           July 18, 2003
 
 
                   KEY RR Secure Entry Point (SEP) Flag
-              draft-ietf-dnsext-keyrr-key-signing-flag-07
+              draft-ietf-dnsext-keyrr-key-signing-flag-08
 
 Status of this Memo
 
@@ -36,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 2, 2003.
+   This Internet-Draft will expire on January 16, 2004.
 
 Copyright Notice
 
@@ -54,9 +51,10 @@ Abstract
 
 
 
-Kolkman, et al.           Expires July 2, 2003                  [Page 1]
+
+Kolkman, et al.         Expires January 16, 2004                [Page 1]
 
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
 
 
 Table of Contents
@@ -66,20 +64,21 @@ Table of Contents
    3.  DNSSEC Protocol Changes  . . . . . . . . . . . . . . . . . . .  4
    4.  Operational Guidelines . . . . . . . . . . . . . . . . . . . .  4
    5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  5
-   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  5
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  6
    7.  Internationalization Considerations  . . . . . . . . . . . . .  6
    8.  Document Changes . . . . . . . . . . . . . . . . . . . . . . .  6
    8.1 draft version 00 -> 01 . . . . . . . . . . . . . . . . . . . .  6
    8.2 draft version 01 -> 02 . . . . . . . . . . . . . . . . . . . .  6
    8.3 draft version 02 -> 03 . . . . . . . . . . . . . . . . . . . .  6
-   8.4 draft version 03 -> 04 . . . . . . . . . . . . . . . . . . . .  6
+   8.4 draft version 03 -> 04 . . . . . . . . . . . . . . . . . . . .  7
    8.5 draft version 04 -> 05 . . . . . . . . . . . . . . . . . . . .  7
    8.6 draft version 05 -> 06 . . . . . . . . . . . . . . . . . . . .  7
    8.7 draft version 06 -> 07 . . . . . . . . . . . . . . . . . . . .  7
-   9.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . .  7
-       Normative References . . . . . . . . . . . . . . . . . . . . .  7
+   8.8 draft version 07 -> 08 . . . . . . . . . . . . . . . . . . . .  7
+   9.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . .  8
+       Normative References . . . . . . . . . . . . . . . . . . . . .  8
        Informative References . . . . . . . . . . . . . . . . . . . .  8
-       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  8
+       Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  9
        Full Copyright Statement . . . . . . . . . . . . . . . . . . . 10
 
 
@@ -109,10 +108,9 @@ Table of Contents
 
 
 
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 2]
+Kolkman, et al.         Expires January 16, 2004                [Page 2]
 
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
 
 
 1. Introduction
@@ -142,6 +140,11 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
    schemes.  Given that the distinction has proven helpful, the labels
    KSK and ZSK have begun to stick.
 
+   There is a need to differentiate between a KSK and a ZSK by the zone
+   administrator.  This need is driven by knowing which keys are to be
+   sent for DS RRs, which keys are to be distributed to resolvers, and
+   which keys are fed to the signer application at the appropriate time.
+
    The reason for the term "SEP" is a result of the observation that the
    distinction between KSK and ZSK is only significant to the signer
    element of the DNS.  Servers, resolvers and verifiers do not need to
@@ -152,24 +155,23 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
    generate DS RRs, or to indicate what keys are intended for static
    configuration.
 
+   In the flow between signer and (parental) key-collector and in the
+   flow between the signer and the resolver configuration it is
+   important to be able to differentiate the SEP keys from the other
+   keys in a KEY RR set.  The SEP flag is to be of no interest to the
+   flow between the verifier and the authoritative data store.
+
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 3]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
    The key words "MAY","MAY NOT", "MUST", "MUST NOT", "REQUIRED",
    "RECOMMENDED", "SHOULD", and "SHOULD NOT" in this document are to be
    interpreted as described in RFC2119.
-
-
-
-
-
-
-
-
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 3]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
-
 
 2. The Secure Entry Point (SEP) Flag
 
@@ -215,17 +217,18 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
    change the identity of the key within DNS.
 
    When a key pair is created, the operator needs to indicate whether
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 4]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
    the SEP bit is to be set in the KEY RR.  The SEP bit is recommended
    whenever the public key of the key pair will be distributed to the
    parent zone to build the authentication chain or if the public key is
    to be distributed for static configuration in verifiers.
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 4]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
-
 
    When signing a zone, it is intended that the key(s) with the SEP bit
    set (if such keys exist) are used to sign the KEY RR set of the zone.
@@ -269,19 +272,21 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
    generate DS RRs during the most recent roll over.  These same
    considerations apply to entities that configure keys in resolvers.
 
+
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 5]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
 6. IANA Considerations
 
    draft-ietf-dnsext-restrict-key-for-dnssec [4] eliminates all flags
    field except for the zone key flag in the KEY RR.  We propose to use
    the 15'th bit as the SEP bit; the decimal representation of the
    flagfield will then be odd for key-signing keys.
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 5]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
-
 
 7. Internationalization Considerations
 
@@ -323,20 +328,21 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
       Spelling and style corrections.
 
 
+
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 6]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
 8.4 draft version 03 -> 04
 
       Text has been made consistent with the statement: ' No special
       meaning should be assigned to the bit not being set.'
 
       Made explicit that the key tag changes in SIG RR.
-
-
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 6]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
 
 
 8.5 draft version 04 -> 05
@@ -374,6 +380,24 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
       is not relevant to the signer process.
 
 
+8.8 draft version 07 -> 08
+
+      During the edit of version 07, a paragraph got dropped from the
+      introduction (See message by Lewis dd June 19, subject " Fwd: Re:
+      NOTIFY + SIG(0) + DS => secure parent update?" (http://
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 7]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
+      ops.ietf.org/lists/nhamedroppers/namedroppers.2003/msg01336.html).
+      This version re-introduces the paragraph, which caused some
+      reordering and style changes in the introduction.
+
+
 9. Acknowledgments
 
    The ideas documented in this document are inspired by communications
@@ -386,14 +410,6 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
    hosted by USC/ISI.
 
 Normative References
-
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 7]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
-
 
    [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
@@ -416,6 +432,23 @@ Informative References
         Story"", ISBN 0151002177 (50th anniversery edition), April 1996.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.         Expires January 16, 2004                [Page 8]
+
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
+
+
 Authors' Addresses
 
    Olaf M. Kolkman
@@ -430,25 +463,11 @@ Authors' Addresses
 
 
    Jakob Schlyter
-   Carlstedt Research & Technology
-   Stora Badhusgatan 18-20
-   Goteborg  SE-411 21
+   Karl Gustavsgatan 15
+   Goteborg  SE-411 25
    Sweden
 
-   EMail: jakob@crt.se
-   URI:   http://www.crt.se/~jakob/
-
-
-
-
-
-
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 8]
-
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
+   EMail: jakob@schlyter.se
 
 
    Edward P. Lewis
@@ -481,30 +500,9 @@ Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Kolkman, et al.           Expires July 2, 2003                  [Page 9]
+Kolkman, et al.         Expires January 16, 2004                [Page 9]
 
-Internet-Draft    KEY RR Secure Entry Point (SEP) Flag      January 2003
+Internet-Draft    KEY RR Secure Entry Point (SEP) Flag         July 2003
 
 
 Full Copyright Statement
@@ -558,5 +556,5 @@ Acknowledgement
 
 
 
-Kolkman, et al.           Expires July 2, 2003                 [Page 10]
+Kolkman, et al.         Expires January 16, 2004               [Page 10]
 
