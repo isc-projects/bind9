@@ -744,6 +744,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t nextname;
 	isc_boolean_t firstname = ISC_TRUE;
 
+	validator_log(val, ISC_LOG_DEBUG(3), "in nxtvalidate()");
+	
 	if (!resume) {
 		val->attributes |= VALATTR_NEGATIVE;
 		result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
