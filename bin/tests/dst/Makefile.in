@@ -32,6 +32,8 @@ LIBS =		../../../lib/dns/libdns.@A@ \
 
 TARGETS =	dst_test
 
+SRCS =		dst_test.c
+
 @BIND9_MAKE_RULES@
 
 dst_test: dst_test.o

@@ -40,6 +40,9 @@ TARGETS =	named
 OBJS =		server.o udpclient.o tcpclient.o printmsg.o \
 		interfacemgr.o
 
+SRCS =		server.c udpclient.c tcpclient.c \
+		interfacemgr.c
+
 @BIND9_MAKE_RULES@
 
 printmsg.o: ${srcdir}/../tests/printmsg.c

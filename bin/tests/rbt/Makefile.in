@@ -34,6 +34,8 @@ LIBS =		../../../lib/dns/libdns.@A@ \
 
 TARGETS =	t_rbt
 
+SRCS =		t_rbt.c
+
 @BIND9_MAKE_RULES@
 
 t_rbt: t_rbt.o

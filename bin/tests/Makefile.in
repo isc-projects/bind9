@@ -54,6 +54,25 @@ TARGETS =	res_test \
 		dispatch_test \
 		dispatch_tcp_test
 
+SRCS =		res_test.c \
+		lex_test.c \
+		name_test.c \
+		sock_test.c \
+		sym_test.c \
+		task_test.c \
+		shutdown_test.c \
+		timer_test.c \
+		rbt_test.c \
+		rdata_test.c \
+		rwlock_test.c \
+		wire_test.c \
+		master_test.c \
+		db_test.c \
+		compress_test.c \
+		mempool_test.c \
+		dispatch_test.c \
+		dispatch_tcp_test.c
+
 @BIND9_MAKE_RULES@
 
 res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
