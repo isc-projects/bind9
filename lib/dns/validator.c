@@ -1218,7 +1218,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORSTART);
-	vevent = (dns_validatorevent_t *) event;
+	vevent = (dns_validatorevent_t *)event;
 	val = vevent->validator;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "starting");
@@ -1452,7 +1452,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		isc_buffer_usedregion(&b, &r);
 		isc_log_write(dns_lctx, category, module, level,
 			      "validating %s %.*s: %s", namebuf,
-			      (int) r.length, (char *) r.base, msgbuf);
+			      (int)r.length, (char *)r.base, msgbuf);
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "validator @%p: %s", val, msgbuf);
