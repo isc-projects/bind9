@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.28 2001/02/09 02:13:07 bwelling Exp $ */
+/* $Id: compress.h,v 1.29 2001/02/12 18:07:52 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -137,8 +137,7 @@ dns_compress_getedns(dns_compress_t *cctx);
 
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
-			dns_name_t *prefix, dns_name_t *suffix,
-			isc_uint16_t *offset);
+			dns_name_t *prefix, isc_uint16_t *offset);
 /*
  *	Finds longest possible match of 'name' in the global compression table.
  *
@@ -146,12 +145,10 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  *		'cctx' to be initialized.
  *		'name' to be a absolute name.
  *		'prefix' to be initialized.
- *		'suffix' to be initialized.
  *		'offset' to point to an isc_uint16_t.
  *
  *	Ensures:
- *		'prefix', 'suffix' and 'offset' are valid if ISC_TRUE is
- *		returned.
+ *		'prefix' and 'offset' are valid if ISC_TRUE is 	returned.
  *
  *	Returns:
  *		ISC_TRUE / ISC_FALSE

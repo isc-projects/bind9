@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.119 2001/02/12 05:22:34 bwelling Exp $ */
+/* $Id: name.c,v 1.120 2001/02/12 18:07:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2359,7 +2359,6 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 	unsigned int methods;
 	isc_uint16_t offset;
 	dns_name_t gp;	/* Global compression prefix */
-	dns_name_t gs; 	/* Global compression suffix */
 	isc_boolean_t gf;	/* Global compression target found */
 	isc_uint16_t go;	/* Global compression offset */
 	dns_offsets_t clo;
@@ -2383,14 +2382,13 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
 		name = &clname;
 	}
 	DNS_NAME_INIT(&gp, NULL);
-	DNS_NAME_INIT(&gs, NULL);
 
 	offset = target->used;	/*XXX*/
 
 	methods = dns_compress_getmethods(cctx);
 
 	if ((methods & DNS_COMPRESS_GLOBAL14) != 0)
-		gf = dns_compress_findglobal(cctx, name, &gp, &gs, &go);
+		gf = dns_compress_findglobal(cctx, name, &gp, &go);
 	else
 		gf = ISC_FALSE;
 

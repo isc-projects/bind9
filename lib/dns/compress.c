@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.47 2001/02/10 02:55:05 bwelling Exp $ */
+/* $Id: compress.c,v 1.48 2001/02/12 18:07:50 bwelling Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -114,8 +114,7 @@ do { \
  */
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
-			dns_name_t *prefix, dns_name_t *suffix,
-			isc_uint16_t *offset)
+			dns_name_t *prefix, isc_uint16_t *offset)
 {
 	dns_name_t tname, nname;
 	dns_compressnode_t *node = NULL;
@@ -154,13 +153,11 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 	if (node == NULL)
 		return (ISC_FALSE);
 
-	if (n == 0) {
-		dns_name_clone(name, suffix);
+	if (n == 0)
 		dns_name_reset(prefix);
-	} else {
-		dns_name_clone(&tname, suffix);
+	else
 		dns_name_getlabelsequence(name, 0, n, prefix);
-	}
+
 	*offset = node->offset;
 	return (ISC_TRUE);
 }
