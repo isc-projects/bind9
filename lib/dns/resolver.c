@@ -1122,7 +1122,19 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 						    rdataset,
 						    ISC_FALSE,
 						    addedrdataset);
-			if (result != ISC_R_SUCCESS)
+			if (result == DNS_R_UNCHANGED) {
+				if (ANSWER(rdataset) &&
+				    ardataset != NULL) {
+					/*
+					 * Deal with the case where
+					 * addedrdataset is an NXDOMAIN
+					 * or NXRRSET negative cache
+					 * rdataset; i.e. set eresult
+					 * correctly
+					 */
+					INSIST(0);
+				}
+			} else if (result != ISC_R_SUCCESS)
 				break;
 		}
 	}
