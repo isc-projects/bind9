@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.113 2000/10/13 22:55:49 bwelling Exp $ */
+/* $Id: dig.c,v 1.114 2000/10/16 19:00:01 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -910,9 +910,8 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		show_usage();
 		exit(0);
 		break;
-	case 'm':
-		memdebugging = ISC_TRUE;
-		isc_mem_debugging = ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD;
+	case 'm': /* memdebug */
+		/* memdebug is handled in preparse_args() */
 		return (ISC_FALSE);
 	case 'n':
 		nibble = ISC_TRUE;
@@ -1043,6 +1042,32 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	}
 	return (ISC_FALSE);
 }
+
+/*
+ * Because we may be trying to do memory allocation recording, we're going
+ * to need to parse the arguments for the -m *before* we start the main
+ * argument parsing routine.
+ * I'd prefer not to have to do this, but I am not quite sure how else to
+ * fix the problem.  Argument parsing in dig involves memory allocation
+ * by its nature, so it can't be done in the main argument parser.
+ */
+static void
+preparse_args(int argc, char **argv) {
+	int rc;
+	char **rv;
+
+	rc = argc;
+	rv = argv;
+	for (rc--, rv++; rc > 0; rc--, rv++) {
+		if (strcasecmp(rv[0], "-m") == 0) {
+			memdebugging = ISC_TRUE;
+			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
+				ISC_MEM_DEBUGRECORD;
+			return;
+		}
+	}
+}
+
 
 static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
@@ -1302,6 +1327,7 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	debug("main()");
+	preparse_args(argc, argv);
 	progname = argv[0];
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
