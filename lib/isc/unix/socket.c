@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.162 2000/08/31 13:38:55 marka Exp $ */
+/* $Id: socket.c,v 1.163 2000/08/31 17:10:58 gson Exp $ */
 
 #include <config.h>
 
@@ -353,7 +353,7 @@ select_poke(isc_socketmgr_t *mgr, int msg) {
 }
 
 /*
- * read a message on the internal fd.
+ * Read a message on the internal fd.
  */
 static int
 select_readmsg(isc_socketmgr_t *mgr) {
@@ -389,7 +389,7 @@ select_poke(isc_socketmgr_t *manager, int msg) {
 #endif
 
 /*
- * Make a fd non-blocking
+ * Make a fd non-blocking.
  */
 static isc_result_t
 make_nonblock(int fd) {
@@ -926,7 +926,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		return (DOIO_SOFT);
 
 	/*
-	 * full reads are posted, or partials if partials are ok.
+	 * Full reads are posted, or partials if partials are ok.
 	 */
 	send_recvdone_event(sock, &dev, ISC_R_SUCCESS);
 	return (DOIO_SUCCESS);
@@ -958,7 +958,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
 	/*
-	 * check for error or block condition
+	 * Check for error or block condition.
 	 */
 	if (cc < 0) {
 		if (SOFT_ERROR(errno))
@@ -1016,8 +1016,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 				 "internal_send: send() returned 0");
 
 	/*
-	 * if we write less than we expected, update counters,
-	 * poke.
+	 * If we write less than we expected, update counters, poke.
 	 */
 	dev->n += cc;
 	if ((size_t)cc != write_count)
@@ -2350,7 +2349,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	}
 
 	/*
-	 * UDP sockets are always partial read
+	 * UDP sockets are always partial read.
 	 */
 	if (sock->type == isc_sockettype_udp)
 		dev->minimum = 1;
@@ -2400,7 +2399,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	 * We couldn't read all or part of the request right now, so queue
 	 * it.
 	 *
-	 * Attach to socket and to task
+	 * Attach to socket and to task.
 	 */
 	isc_task_attach(task, &ntask);
 	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
@@ -2425,7 +2424,7 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 		isc_task_t *task, isc_taskaction_t action, const void *arg)
 {
 	/*
-	 * REQUIRE() checking performed in isc_socket_sendto()
+	 * REQUIRE() checking is performed in isc_socket_sendto().
 	 */
 	return (isc_socket_sendto(sock, region, task, action, arg, NULL,
 				  NULL));
@@ -2563,11 +2562,11 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		return (ISC_R_NOMEMORY);
 	}
 
-	/***
-	 *** From here down, only ISC_R_SUCCESS can be returned.  Any further
-	 *** error information will result in the done event being posted
-	 *** to the task rather than this function failing.
-	 ***/
+	/*
+	 * From here down, only ISC_R_SUCCESS can be returned.  Any further
+	 * error information will result in the done event being posted
+	 * to the task rather than this function failing.
+	 */
 
 	dev->ev_sender = task;
 
@@ -2757,7 +2756,7 @@ isc_socket_accept(isc_socket_t *sock,
 	}
 
 	/*
-	 * Attach to socket and to task
+	 * Attach to socket and to task.
 	 */
 	isc_task_attach(task, &ntask);
 	nsock->references++;
@@ -2766,7 +2765,7 @@ isc_socket_accept(isc_socket_t *sock,
 	dev->newsocket = nsock;
 
 	/*
-	 * poke watcher here.  We still have the socket locked, so there
+	 * Poke watcher here.  We still have the socket locked, so there
 	 * is no race condition.  We will keep the lock for such a short
 	 * bit of time waking it up now or later won't matter all that much.
 	 */
@@ -2854,7 +2853,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	}
 
 	/*
-	 * If connect completed, fire off the done event
+	 * If connect completed, fire off the done event.
 	 */
 	if (cc == 0) {
 		sock->connected = 1;
@@ -2869,7 +2868,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
  queue:
 
 	/*
-	 * Attach to to task
+	 * Attach to task.
 	 */
 	isc_task_attach(task, &ntask);
 
@@ -2878,7 +2877,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	dev->ev_sender = ntask;
 
 	/*
-	 * poke watcher here.  We still have the socket locked, so there
+	 * Poke watcher here.  We still have the socket locked, so there
 	 * is no race condition.  We will keep the lock for such a short
 	 * bit of time waking it up now or later won't matter all that much.
 	 */
