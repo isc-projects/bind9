@@ -428,8 +428,12 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	INSIST((rdtype == dns_rdatatype_a) || (rdtype == dns_rdatatype_aaaa));
 	if (rdtype == dns_rdatatype_a)
 		findoptions = DNS_ADBFIND_INET;
-	else
+	else {
 		findoptions = DNS_ADBFIND_INET6;
+#if !defined(ISC_PLATFORM_HAVEIPV6)
+		INSIST(0);
+#endif
+	}
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 	new_addresses_added = ISC_FALSE;
@@ -448,11 +452,13 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 			isc_sockaddr_fromin6(&sockaddr, &in6a, 53);
 		}
 
+#if defined(ISC_PLATFORM_HAVEIPV6) /* XXXMLG Should use isc_net_() function? */
 		if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
 		    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
 			DP(1, "Ignoring IPv6 mapped IPv4 address");
 			goto next;
 		}
+#endif
 
 		INSIST(nh == NULL);
 		nh = new_adbnamehook(adb, NULL);
@@ -557,11 +563,13 @@ import_a6(dns_a6context_t *a6ctx)
 
 	isc_sockaddr_fromin6(&sockaddr, &a6ctx->in6addr, 53);
 
+#if defined(ISC_PLATFORM_HAVEIPV6) /* XXXMLG Should use isc_net_() function? */
 	if (IN6_IS_ADDR_V4MAPPED(&sockaddr.type.sin6.sin6_addr)
 	    || IN6_IS_ADDR_V4COMPAT(&sockaddr.type.sin6.sin6_addr)) {
 		DP(1, "Ignoring IPv6 mapped IPv4 address");
 		goto fail;
 	}
+#endif
 
 	foundentry = find_entry_and_lock(adb, &sockaddr, &addr_bucket);
 	if (foundentry == NULL) {
