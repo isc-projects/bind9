@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.61 2000/06/22 21:56:48 tale Exp $
+# $Id: Makefile.in,v 1.62 2000/07/17 17:33:31 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -50,7 +50,8 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 # Alphabetically
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
-		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ heap.@O@ \
+		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ \
+		heap.@O@ hmacmd5.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md5.@O@ mem.@O@ mutexblock.@O@ netaddr.@O@ ondestroy.@O@ \
 		quota.@O@ random.@O@ \
@@ -62,7 +63,8 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ \
 		assertions.c base64.c bitstring.c buffer.c \
-		bufferlist.c commandline.c error.c event.c heap.c \
+		bufferlist.c commandline.c error.c event.c \
+		heap.c hmacmd5.c \
 		lex.c lfsr.c lib.c log.c \
 		md5.c mem.c mutexblock.c netaddr.c ondestroy.c \
 		quota.c random.c \

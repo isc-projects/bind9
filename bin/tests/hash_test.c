@@ -15,12 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.4 2000/06/23 16:18:56 tale Exp $ */
+/* $Id: hash_test.c,v 1.5 2000/07/17 17:33:39 bwelling Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <string.h>
 
+#include <isc/hmacmd5.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
@@ -45,9 +47,11 @@ int
 main(int argc, char **argv) {
 	isc_sha1_t sha1;
 	isc_md5_t md5;
+	isc_hmacmd5_t hmacmd5;
 	unsigned char digest[20];
 	unsigned char buffer[1024];
 	const unsigned char *s;
+	unsigned char key[20];
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -72,6 +76,37 @@ main(int argc, char **argv) {
 	isc_md5_update(&md5, buffer, strlen(s));
 	isc_md5_final(&md5, digest);
 	print_digest(buffer, "md5", digest, 4);
+
+	/*
+	 * The 3 HMAC-MD5 examples from RFC 2104
+	 */
+	s = "Hi There";
+	memset(key, 0x0b, 16);
+	isc_hmacmd5_init(&hmacmd5, key, 16);
+	strcpy(buffer, s);
+	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+	isc_hmacmd5_sign(&hmacmd5, digest);
+	print_digest(buffer, "hmacmd5", digest, 4);
+
+	s = "what do ya want for nothing?";
+	strcpy(key, "Jefe");
+	isc_hmacmd5_init(&hmacmd5, key, 4);
+	strcpy(buffer, s);
+	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+	isc_hmacmd5_sign(&hmacmd5, digest);
+	print_digest(buffer, "hmacmd5", digest, 4);
+
+	s = "\335\335\335\335\335\335\335\335\335\335"
+	    "\335\335\335\335\335\335\335\335\335\335"
+	    "\335\335\335\335\335\335\335\335\335\335"
+	    "\335\335\335\335\335\335\335\335\335\335"
+	    "\335\335\335\335\335\335\335\335\335\335";
+	memset(key, 0xaa, 16);
+	isc_hmacmd5_init(&hmacmd5, key, 16);
+	strcpy(buffer, s);
+	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+	isc_hmacmd5_sign(&hmacmd5, digest);
+	print_digest(buffer, "hmacmd5", digest, 4);
 
 	return (0);
 }
