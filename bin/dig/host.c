@@ -15,13 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.66 2001/03/14 18:08:17 bwelling Exp $ */
+/* $Id: host.c,v 1.67 2001/07/22 06:03:05 mayer Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
 #include <limits.h>
 
+#ifndef HAVE_H_ERRNO
+#define HAVE_H_ERRNO
 extern int h_errno;
+#endif
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -240,7 +243,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
 		isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 		result = isc_time_now(&now);
 		check_result(result, "isc_time_now");
-		diff = isc_time_microdiff(&now, &query->time_sent);
+		diff = (int) isc_time_microdiff(&now, &query->time_sent);
 		printf("Received %u bytes from %s in %d ms\n",
 		       bytes, fromtext, diff/1000);
 	}

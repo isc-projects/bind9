@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.206 2001/07/09 22:02:12 gson Exp $ */
+/* $Id: dighost.c,v 1.207 2001/07/22 06:03:04 mayer Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -70,11 +70,13 @@
 #ifdef HAVE_GETADDRINFO
 #ifdef HAVE_GAISTRERROR
 #define USE_GETADDRINFO
+#define HAVE_H_ERRNO
 #endif
 #endif
 #endif
 
-#ifndef USE_GETADDRINFO
+#ifndef HAVE_H_ERRNO
+#define HAVE_H_ERRNO
 extern int h_errno;
 #endif
 
@@ -2257,6 +2259,12 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
  doexit:
+	/*
+	 * XXXPDM. This needs to be reviewed as the variable b is not
+	 * used anywhere in this function.  set the value of used to 0
+	 * for now to stop the compiler complaining about unused variables.
+	 */
+	b.used = 0;
 	received(b.used, &sevent->address, query);
 	return (ISC_TRUE);
 }

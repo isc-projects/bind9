@@ -15,13 +15,16 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.82 2001/03/16 22:13:41 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.83 2001/07/22 06:03:06 mayer Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
+#ifndef HAVE_H_ERRNO
+#define HAVE_H_ERRNO
 extern int h_errno;
+#endif
 
 #include <isc/app.h>
 #include <isc/buffer.h>
