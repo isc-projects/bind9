@@ -806,6 +806,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Configure the zone manager.
 	 */
 	{
+ 		isc_int32_t transfersin = 10;
+		(void) dns_c_ctx_gettransfersin(configctx, &transfersin);
+		dns_zonemgr_settransfersin(server->zonemgr, transfersin);
+	}
+	{
  		isc_int32_t transfersperns = 2;
 		(void) dns_c_ctx_gettransfersperns(configctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.50 2000/02/25 00:50:36 gson Exp $ */
+ /* $Id: xfrin.c,v 1.51 2000/02/25 17:34:04 gson Exp $ */
 
 #include <config.h>
 
@@ -508,9 +508,9 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	dns_tsigkey_t *key = NULL;
 	isc_netaddr_t masterip;
 	dns_peer_t *peer = NULL;
-	int maxtransfers;
+	int maxtransfersin, maxtransfersperns;
+	int nxfrsin, nxfrsperns;
 	dns_xfrinlist_t *transferlist;
-	int nxfrs;
 		
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
@@ -573,25 +573,29 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	 * and we don't want to create the transfer object until we
 	 * know there is quota available.
 	 */
-	maxtransfers = dns_zonemgr_getttransfersperns(dns_zone_getmgr(zone));
+	maxtransfersin = 
+	    dns_zonemgr_getttransfersin(dns_zone_getmgr(zone));
+	maxtransfersperns =
+	    dns_zonemgr_getttransfersperns(dns_zone_getmgr(zone));
 	if (peer != NULL) {
-		(void) dns_peer_gettransfers(peer, &maxtransfers);
+		(void) dns_peer_gettransfers(peer, &maxtransfersperns);
 	}
 	
 	transferlist = dns_zonemgr_gettransferlist(dns_zone_getmgr(zone));
 	LOCK(&transferlist->lock);
-	nxfrs = 0;
+	nxfrsin = nxfrsperns = 0;
 	for (x = ISC_LIST_HEAD(transferlist->transfers);
 	     x != NULL;
 	     x = ISC_LIST_NEXT(x, link))
 	{
 		isc_netaddr_t xip;
 		isc_netaddr_fromsockaddr(&xip, &x->masteraddr);
+		nxfrsin++;
 		if (isc_netaddr_equal(&xip, &masterip))
-			nxfrs++;
+			nxfrsperns++;
 	}
 	
-	if (nxfrs >= maxtransfers) {
+	if (nxfrsin >= maxtransfersin || nxfrsperns >= maxtransfersperns) {
 		result = ISC_R_QUOTA;
 		xfrin_log1(ISC_LOG_INFO, zonename, masteraddr,
 			   "deferred: %s", isc_result_totext(result));

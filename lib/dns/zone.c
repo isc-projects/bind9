@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.83 2000/02/25 00:50:38 gson Exp $ */
+ /* $Id: zone.c,v 1.84 2000/02/25 17:34:05 gson Exp $ */
 
 #include <config.h>
 
@@ -26,7 +26,6 @@
 #include <isc/magic.h>
 #include <isc/mktemplate.h>
 #include <isc/print.h>
-#include <isc/quota.h>
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
@@ -199,9 +198,10 @@ struct dns_zonemgr {
 	isc_rwlock_t		conflock;
 	/* Locked by rwlock. */
 	ISC_LIST(dns_zone_t)	zones;
-	/* Maximum locked by conflock. */
-	isc_quota_t		transfersin;
+	/* Locked by conflock. */
+	int			transfersin;
 	int			transfersperns;
+	/* Contains its own lock. */
 	dns_xfrinlist_t		transferlist;
 };
 
@@ -3147,22 +3147,16 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto free_rwlock;
 	}
 
-	result = isc_quota_init(&zmgr->transfersin, 10);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_quota_init() failed: %s",
-				 isc_result_totext(result));
-		result = DNS_R_UNEXPECTED;
-		goto free_conflock;
-	}
+	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
+	
 	result = dns_xfrinlist_init(&zmgr->transferlist);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_transferlist_init() failed: %s",
 				 isc_result_totext(result));
 		result = DNS_R_UNEXPECTED;
-		goto free_transfersin;
+		goto free_conflock;
 	}
 
 	/* Create the zone task pool. */
@@ -3184,8 +3178,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	dns_xfrinlist_destroy(&zmgr->transferlist);
  free_taskpool:
 	isc_taskpool_destroy(&zmgr->zonetasks);	
- free_transfersin:
-	isc_quota_destroy(&zmgr->transfersin);
  free_conflock:
 	isc_rwlock_destroy(&zmgr->conflock);
  free_rwlock:
@@ -3313,12 +3305,12 @@ dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
 
 void
 dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, int value) {
-	zmgr->transfersin.max = value;
+	zmgr->transfersin = value;
 }
 
 int
 dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr) {
-	return (zmgr->transfersin.max);
+	return (zmgr->transfersin);
 }
 
 void

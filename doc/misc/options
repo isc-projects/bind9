@@ -69,7 +69,7 @@ options {
   [ min-roots number; ]					    No
   [ serial-queries number; ]				    No
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
-  [ transfers-in  number; ]				    No
+  [ transfers-in  number; ]				    Yes
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    Yes
   [ transfer-source ip_addr; ]				    Yes
