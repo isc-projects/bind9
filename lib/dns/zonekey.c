@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonekey.c,v 1.2 2001/01/18 02:00:52 bwelling Exp $ */
+/* $Id: zonekey.c,v 1.3 2001/02/26 02:49:19 bwelling Exp $ */
+
+#include <config.h>
 
 #include <isc/result.h>
 #include <isc/types.h>
