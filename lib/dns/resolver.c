@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.37 2004/05/14 05:06:39 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.38 2004/06/07 03:24:57 marka Exp $ */
 
 #include <config.h>
 
@@ -4716,6 +4716,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	isc_boolean_t locked = ISC_FALSE;
 	unsigned int bucketnum;
+	dns_rdataset_t nameservers;
+	dns_fixedname_t fixed;
+	dns_name_t *domain;
 
 	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
@@ -4731,15 +4734,17 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	if (fevent->db != NULL)
 		dns_db_detach(&fevent->db);
 
-	dns_resolver_destroyfetch(&fctx->nsfetch);
+	dns_rdataset_init(&nameservers);
 
 	bucketnum = fctx->bucketnum;
-	if (fevent->result == ISC_R_CANCELED)
+	if (fevent->result == ISC_R_CANCELED) {
+		dns_resolver_destroyfetch(&fctx->nsfetch);
 		fctx_done(fctx, ISC_R_CANCELED);
-	else if (fevent->result == ISC_R_SUCCESS) {
+	} else if (fevent->result == ISC_R_SUCCESS) {
 
 		FCTXTRACE("resuming DS lookup");
 
+		dns_resolver_destroyfetch(&fctx->nsfetch);
 		if (dns_rdataset_isassociated(&fctx->nameservers))
 			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_rdataset_clone(fevent->rdataset, &fctx->nameservers);
@@ -4758,22 +4763,29 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	} else {
 		unsigned int n;
 
+		/*
+		 * Retrieve state from fctx->nsfetch before we destroy it.
+		 */
+		dns_fixedname_init(&fixed);
+		domain = dns_fixedname_name(&fixed);
+		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
+		dns_rdataset_clone(&fctx->nsfetch->private->nameservers,
+				   &nameservers);
+		dns_resolver_destroyfetch(&fctx->nsfetch);
+		if (dns_name_equal(&fctx->nsname, domain)) {
+			fctx_done(fctx, DNS_R_SERVFAIL);
+			goto cleanup;
+		}
 		n = dns_name_countlabels(&fctx->nsname);
 		dns_name_getlabelsequence(&fctx->nsname, 1, n - 1,
 					  &fctx->nsname);
 
-		if (dns_name_equal(&fctx->nsname, &fctx->domain)) {
-			fctx_done(fctx, DNS_R_SERVFAIL);
-			goto cleanup;
-		}
 		if (dns_rdataset_isassociated(fevent->rdataset))
 			dns_rdataset_disassociate(fevent->rdataset);
 		FCTXTRACE("continuing to look for parent's NS records");
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
-						  dns_rdatatype_ns,
-						  &fctx->domain,
-						  &fctx->nameservers, NULL,
-						  0, task,
+						  dns_rdatatype_ns, domain,
+						  &nameservers, NULL, 0, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -4787,6 +4799,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	}
 
  cleanup:
+	if (dns_rdataset_isassociated(&nameservers))
+		dns_rdataset_disassociate(&nameservers);
 	if (dns_rdataset_isassociated(fevent->rdataset))
 		dns_rdataset_disassociate(fevent->rdataset);
 	INSIST(fevent->sigrdataset == NULL);
