@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.81 2000/05/19 05:58:48 tale Exp $ */
+/* $Id: rbt.c,v 1.82 2000/06/06 23:25:29 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -151,7 +151,7 @@ Name(dns_rbtnode_t *node) {
 static void dns_rbt_printnodename(dns_rbtnode_t *node);
 #endif
 
-#if defined(ISC_MEM_DEBUG) || defined(RBT_MEM_TEST)
+#ifdef RBT_MEM_TEST
 #undef DNS_RBT_ANCESTORBLOCK
 #define DNS_RBT_ANCESTORBLOCK 1	/* To give the reallocation code a workout. */
 #endif
