@@ -1,4 +1,6 @@
 
+ 412.	[bug]		named -v didn't print the version.
+
  411.	[bug]		A typo in the HS A code caused an assertion failure.
 
  410.	[bug]		lwres_gethostbyname() and company set lwres_h_errno
