@@ -1793,7 +1793,7 @@ t_tasks11(int purgable) {
 	unsigned int	workers;
 	isc_result_t	isc_result;
 	isc_event_t	*event1;
-	isc_event_t	*event2;
+	isc_event_t	*event2, *event2_clone;
 	isc_time_t	now;
 	isc_interval_t	interval;
 	int		result;
@@ -1884,7 +1884,7 @@ t_tasks11(int purgable) {
 					t11_event2,
 					NULL,
 					sizeof(*event2));
-				
+	event2_clone = event2;
 	if (purgable)
 		event2->attributes &= ~ISC_EVENTATTR_NOPURGE;
 	else
@@ -1892,7 +1892,7 @@ t_tasks11(int purgable) {
 
 	isc_task_send(task, &event2);
 
-	rval = isc_task_purgeevent(task, event2);
+	rval = isc_task_purgeevent(task, event2_clone);
 	if (rval != (purgable ? ISC_TRUE : ISC_FALSE)) {
 		t_info("isc_task_purgeevent returned %s, expected %s\n",
 			(rval ? "ISC_TRUE" : "ISC_FALSE"),
