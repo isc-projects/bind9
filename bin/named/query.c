@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.152 2000/11/16 19:20:08 tale Exp $ */
+/* $Id: query.c,v 1.153 2000/11/20 17:53:35 halley Exp $ */
 
 #include <config.h>
 
@@ -3418,12 +3418,14 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Set AD.  We need only clear it if we add "pending" data to
 	 * a response.
+	 *
+	 * XXX  Note: the way AD is set will be changing in the near
+	 *      future.
 	 */
-	message->flags |= DNS_MESSAGEFLAG_AD;
+	if (WANTDNSSEC(client))
+		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
 	ns_client_attach(client, &qclient);
 	query_find(qclient, NULL);
 }
-
-

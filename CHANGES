@@ -1,3 +1,6 @@
+ 569.	[func]		The DNSSEC AD bit will not be set on queries which
+			have not requested a DNSSEC response.
+
  568.	[func]		Add sample simple database drivers in contrib/sdb.
 
  567.	[bug]		Setting the zone transfer timeout to zero caused an
