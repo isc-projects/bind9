@@ -71,7 +71,7 @@ options {
         max-cache-ttl <integer>;
         transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
-        check-names <string> <string>; // not implemented
+        check-names ( master | slave | response ) ( fail | warn | ignore );
         cache-file <quoted_string>;
         suppress-initial-notify <boolean>; // not yet implemented
         preferred-glue <string>;
@@ -80,6 +80,7 @@ options {
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
+        enable-dnssec <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -166,7 +167,7 @@ view <string> <optional_class> {
                     subdomain | wildcard | self ) <string> <rrtypelist>; ... };
                 database <string>;
                 delegation-only <boolean>;
-                check-names <string>; // not implemented
+                check-names ( fail | warn | ignore );
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
@@ -248,7 +249,7 @@ view <string> <optional_class> {
         max-cache-ttl <integer>;
         transfer-format ( many-answers | one-answer );
         max-cache-size <size_no_default>;
-        check-names <string> <string>; // not implemented
+        check-names ( master | slave | response ) ( fail | warn | ignore );
         cache-file <quoted_string>;
         suppress-initial-notify <boolean>; // not yet implemented
         preferred-glue <string>;
@@ -257,6 +258,7 @@ view <string> <optional_class> {
         edns-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
+        enable-dnssec <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
@@ -321,7 +323,7 @@ zone <string> <optional_class> {
             wildcard | self ) <string> <rrtypelist>; ... };
         database <string>;
         delegation-only <boolean>;
-        check-names <string>; // not implemented
+        check-names ( fail | warn | ignore );
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };

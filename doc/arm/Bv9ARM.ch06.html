@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3969"
+HREF="Bv9ARM.ch06.html#AEN3986"
 >Zone File</A
 ></DT
 ></DL
@@ -1191,6 +1191,32 @@ VALIGN="MIDDLE"
 ><P
 ><B
 CLASS="command"
+>lwres</B
+></P
+></TD
+><TD
+WIDTH="363"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>configures <B
+CLASS="command"
+>named</B
+> to
+also act as a light weight resolver daemon (<B
+CLASS="command"
+>lwresd</B
+>).</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="128"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
 >masters</B
 ></P
 ></TD
@@ -1320,7 +1346,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1409"
+NAME="AEN1417"
 >6.2.1. <B
 CLASS="command"
 >acl</B
@@ -1367,7 +1393,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1422"
+NAME="AEN1430"
 ></A
 ><P
 ></P
@@ -1476,7 +1502,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1453"
+NAME="AEN1461"
 >6.2.3. <B
 CLASS="command"
 >controls</B
@@ -1798,7 +1824,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1532"
+NAME="AEN1540"
 >6.2.5. <B
 CLASS="command"
 >include</B
@@ -1818,7 +1844,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1537"
+NAME="AEN1545"
 >6.2.6. <B
 CLASS="command"
 >include</B
@@ -1847,7 +1873,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1544"
+NAME="AEN1552"
 >6.2.7. <B
 CLASS="command"
 >key</B
@@ -1881,7 +1907,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1551"
+NAME="AEN1559"
 >6.2.8. <B
 CLASS="command"
 >key</B
@@ -1969,7 +1995,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1571"
+NAME="AEN1579"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -2129,7 +2155,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1611"
+NAME="AEN1619"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -2192,7 +2218,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1627"
+NAME="AEN1635"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2706,7 +2732,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1751"
+NAME="AEN1759"
 ></A
 ><P
 ></P
@@ -3105,7 +3131,7 @@ been forced to NXDOMAIN as the result of a delegation-only zone or
 a <B
 CLASS="command"
 >delegation-only</B
-> in a hint or stub zone declartation.
+> in a hint or stub zone declaration.
 </P
 ></TD
 ></TR
@@ -3121,7 +3147,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1875"
+NAME="AEN1883"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -3218,7 +3244,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1899"
+NAME="AEN1907"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3292,7 +3318,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1918"
+NAME="AEN1926"
 >6.2.13. <B
 CLASS="command"
 >masters</B
@@ -3353,7 +3379,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1933"
+NAME="AEN1941"
 >6.2.14. <B
 CLASS="command"
 >masters</B
@@ -3371,7 +3397,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1938"
+NAME="AEN1946"
 >6.2.15. <B
 CLASS="command"
 >options</B
@@ -3645,6 +3671,15 @@ CLASS="replaceable"
     [<SPAN
 CLASS="optional"
 > maintain-ixfr-base <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+>; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> enable-dnssec <TT
 CLASS="replaceable"
 ><I
 >yes_or_no</I
@@ -4871,7 +4906,7 @@ CLASS="command"
 ></DT
 ><DD
 ><P
->&#13;Turn on enforcment of delegation-only in TLDs and root zones with an optional
+>&#13;Turn on enforcement of delegation-only in TLDs and root zones with an optional
 exclude list.
 </P
 ><P
@@ -5068,7 +5103,7 @@ processing.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2367"
+NAME="AEN2377"
 ></A
 ><P
 ></P
@@ -5947,6 +5982,28 @@ CLASS="userinput"
 >.
 </P
 ></DD
+><DT
+><B
+CLASS="command"
+>enable-dnssec</B
+></DT
+><DD
+><P
+>&#13;Enable DNSSEC support in named.  Unless set to <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+>
+named behaves as if it does not support DNSSEC.
+The default is <TT
+CLASS="userinput"
+><B
+>no</B
+></TT
+>.
+</P
+></DD
 ></DL
 ></DIV
 ></DIV
@@ -5955,7 +6012,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2632"
+NAME="AEN2649"
 >6.2.16.2. Forwarding</A
 ></H3
 ><P
@@ -6023,7 +6080,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2651"
+NAME="AEN2668"
 >6.2.16.3. 6 to 4 Servers</A
 ></H3
 ><P
@@ -6245,7 +6302,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2718"
+NAME="AEN2735"
 >6.2.16.5. Interfaces</A
 ></H3
 ><P
@@ -6324,7 +6381,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2739"
+NAME="AEN2756"
 >6.2.16.6. Query Address</A
 ></H3
 ><P
@@ -6364,7 +6421,7 @@ and <B
 CLASS="command"
 >avoid-v6-udp-ports</B
 > can be used to prevent named
-from selecting certian ports. The defaults are</P
+from selecting certain ports. The defaults are</P
 ><PRE
 CLASS="programlisting"
 >query-source address * port *;
@@ -6815,7 +6872,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2901"
+NAME="AEN2918"
 >6.2.16.8. Bad UDP Port Lists</A
 ></H3
 ><P
@@ -6827,10 +6884,11 @@ CLASS="command"
 >avoid-v6-udp-ports</B
 >
 specify a list of IPv4 and IPv6 UDP ports that will not be used as system
-assigned source ports for UDP sockets.  These lists are expected to be
-used to prevent named using "well known" ports in the system assigned range
-that have become unusable due to wide spread use of acls containing these
-ports.
+assigned source ports for UDP sockets.  These lists prevent named
+from choosing as its random source port a port that is blocked by
+your firewall.  If a query went out with such a source port, the
+answer would not get by the firewall and the name server would have
+to query again.
 </P
 ></DIV
 ><DIV
@@ -6838,7 +6896,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2906"
+NAME="AEN2923"
 >6.2.16.9. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6958,7 +7016,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2943"
+NAME="AEN2960"
 >6.2.16.10. Server  Resource Limits</A
 ></H3
 ><P
@@ -6997,7 +7055,7 @@ CLASS="command"
 (<A
 HREF="Bv9ARM.ch04.html#journal"
 >Section 4.2.1</A
->).  When the journal file approches
+>).  When the journal file approaches
 the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
 <TT
@@ -7081,7 +7139,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2984"
+NAME="AEN3001"
 >6.2.16.11. Periodic Task Intervals</A
 ></H3
 ><P
@@ -7452,7 +7510,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3072"
+NAME="AEN3089"
 ></A
 ><P
 ></P
@@ -7934,7 +7992,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3216"
+NAME="AEN3233"
 ></A
 ><P
 ></P
@@ -8468,7 +8526,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3355"
+NAME="AEN3372"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -8543,7 +8601,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3371"
+NAME="AEN3388"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -8645,7 +8703,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3393"
+NAME="AEN3410"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -9399,7 +9457,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3567"
+NAME="AEN3584"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -9410,13 +9468,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3570"
+NAME="AEN3587"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3572"
+NAME="AEN3589"
 ></A
 ><P
 ></P
@@ -9617,7 +9675,7 @@ CLASS="command"
 >forward</B
 > option (that is, "forward first
 to", then "forward only", or vice versa, but want to use the same
-servers as set globally) you need to respecify the global forwarders.</P
+servers as set globally) you need to re-specify the global forwarders.</P
 >
 </TD
 ></TR
@@ -9663,7 +9721,7 @@ VALIGN="MIDDLE"
 ><P
 >This is used to enforce the delegation only
 status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
-is received without a explicit or implict delegation in the authority
+is received without a explicit or implicit delegation in the authority
 section will be treated as NXDOMAIN.  This does not apply to the zone
 apex.  This SHOULD NOT be applied to leaf zones.</P
 >
@@ -9686,7 +9744,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3635"
+NAME="AEN3652"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -9724,7 +9782,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3645"
+NAME="AEN3662"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -10482,7 +10540,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3928"
+NAME="AEN3945"
 ></A
 ><P
 ></P
@@ -10649,7 +10707,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3969"
+NAME="AEN3986"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -10670,7 +10728,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3974"
+NAME="AEN3991"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -10693,7 +10751,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3980"
+NAME="AEN3997"
 ></A
 ><P
 ></P
@@ -10804,7 +10862,7 @@ CLASS="emphasis"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4012"
+NAME="AEN4029"
 ></A
 ><P
 ></P
@@ -11329,7 +11387,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4164"
+NAME="AEN4181"
 ></A
 ><P
 ></P
@@ -11431,7 +11489,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4188"
+NAME="AEN4205"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -11461,7 +11519,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4195"
+NAME="AEN4212"
 ></A
 ><P
 ></P
@@ -11670,7 +11728,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4261"
+NAME="AEN4278"
 ></A
 ><P
 ></P
@@ -11761,7 +11819,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4289"
+NAME="AEN4306"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -11797,7 +11855,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4295"
+NAME="AEN4312"
 ></A
 ><P
 ></P
@@ -12093,7 +12151,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4387"
+NAME="AEN4404"
 ></A
 ><P
 ></P
@@ -12176,7 +12234,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4410"
+NAME="AEN4427"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -12203,7 +12261,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4415"
+NAME="AEN4432"
 ></A
 ><P
 ></P
@@ -12283,7 +12341,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4437"
+NAME="AEN4454"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -12308,7 +12366,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4444"
+NAME="AEN4461"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -12378,7 +12436,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4464"
+NAME="AEN4481"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -12460,7 +12518,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4484"
+NAME="AEN4501"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -12500,7 +12558,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4495"
+NAME="AEN4512"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -12595,7 +12653,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4519"
+NAME="AEN4536"
 ></A
 ><P
 ></P
@@ -12669,7 +12727,7 @@ CLASS="command"
 CLASS="command"
 >$</B
 > may optionally be followed
-by modifiers which change the offset from the interator, field width and base. 
+by modifiers which change the offset from the iterator, field width and base. 
 Modifiers are introduced by a <B
 CLASS="command"
 >{</B
@@ -12719,7 +12777,7 @@ the name.</P
 CLASS="command"
 >$$</B
 > is still
-recognised a indicating a literal $ in the output.</P
+recognized a indicating a literal $ in the output.</P
 ></TD
 ></TR
 ><TR
@@ -12743,7 +12801,7 @@ CLASS="command"
 >ttl</B
 > specifies the
 	  ttl of the generated records. If not specified this will be
-	  inherited using the normal ttl inhertance rules.</P
+	  inherited using the normal ttl inheritance rules.</P
 >
 	  <P
 ><B
