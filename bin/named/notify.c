@@ -28,7 +28,6 @@
 #include <isc/result.h>
 #include <isc/taskpool.h>
 
-#include <dns/confip.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dbtable.h>

@@ -30,7 +30,6 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
-#include <dns/confip.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dbtable.h>
