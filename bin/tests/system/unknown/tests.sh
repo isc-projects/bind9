@@ -14,7 +14,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2000/11/10 03:05:52 bwelling Exp $
+# $Id: tests.sh,v 1.2 2000/11/15 23:55:07 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -106,7 +106,7 @@ do
 done
 
 echo "I:querying for SOAs of zone that should have failed to load"
-for i in 1 2 3
+for i in 1 2 3 4
 do
 	ret=0
 	$DIG $DIGOPTS broken$i. soa in > dig.out || ret=1
