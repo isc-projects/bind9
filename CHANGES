@@ -1,4 +1,9 @@
- 204.   [cleanup]       On HP/UX, Pass +vnocompatwarnings to the linker
+ 205.   [cleanup]       On IRIX, turn off warning 1692 ("prototyped function
+                        redeclared without prototype") when compiling in
+                        the lib/dns/sec/{dnssafe,openssl} directories, which
+                        are code imported from outside sources.
+
+ 204.   [cleanup]       On HP/UX, pass +vnocompatwarnings to the linker
                         to quiet the warnings that "The linked output may not
                         run on a PA 1.x system."
 

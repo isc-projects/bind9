@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.139 $)
+AC_REVISION($Revision: 1.140 $)
 
 AC_PREREQ(2.13)
 
@@ -331,6 +331,7 @@ esac
 
 MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
+IRIX_DNSSEC_WARNINGS_HACK=""
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes"
 	case "$host" in
@@ -360,11 +361,16 @@ else
 			MKDEPCFLAGS="-xM"
 			;;
 		*-hp-hpux*)
-			CC="$CC -Ae -z +w1 -Wl,+vnocompatwarnings"
+			CC="$CC -Ae -z +w1"
+                        LIBS="-Wl,+vnocompatwarnings $LIBS"
 			MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 			;;
                 *-sgi-irix*)
 			STD_CWARNINGS="-fullwarn -woff 1209"
+                        # Silence more than 250 instances of
+                        # "prototyped function redeclared without prototype"
+                        # from lib/dns/sec/{dnssafe,openssl}.
+                        IRIX_DNSSEC_WARNINGS_HACK="-woff 1692"
                         ;;
 		*-ibm-aix*)
 			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
@@ -379,6 +385,7 @@ fi
 AC_SUBST(MKDEPCC)
 AC_SUBST(MKDEPCFLAGS)
 AC_SUBST(MKDEPPROG)
+AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 
 #
 # Networking specifics.
