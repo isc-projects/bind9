@@ -114,3 +114,16 @@ Q: I installed BIND 9 and restarted named, but it's still BIND 8.  Why?
 
 A: BIND 9 is installed under /usr/local by default.  BIND 8 is often
 installed under /usr.  Check that the correct named is running.
+
+
+Q: I'm trying to install on AIX and compilation is failing with
+errors like
+
+  "confparser.c", line 8244.1: 1506-343 (S) Redeclaration of
+  token_to_keyword differs from previous declaration on line 348 of
+  "confparser.c".
+
+A: You probably have a buggy version of GNU bison installed on your
+system.  Remove bison it from your path, remove the config.cache file,
+and rerun configure so that it picks up the AIX yacc instead.
+
