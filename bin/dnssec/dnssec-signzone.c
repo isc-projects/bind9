@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.89 2000/08/03 20:10:05 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.90 2000/08/10 22:08:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1269,7 +1269,7 @@ usage(void) {
 
 	fprintf(stderr, "Signing Keys: ");
 	fprintf(stderr, "(default: all zone keys that have private keys)\n");
-	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
 	exit(0);
 }
 

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.31 2000/08/01 01:11:22 tale Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.32 2000/08/10 22:08:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,7 @@ usage(void) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "keys:\n");
-	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
 	exit(0);
 }
 

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.31 2000/08/01 01:11:23 tale Exp $ */
+/* $Id: dnssec-signkey.c,v 1.32 2000/08/10 22:08:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ usage(void) {
 	fprintf(stderr, "keyset:\n");
 	fprintf(stderr, "\tfile name of key set to be signed\n");
 	fprintf(stderr, "keys:\n");
-	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
 	exit(0);
 }
 
