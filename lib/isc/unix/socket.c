@@ -157,7 +157,6 @@ struct isc_socket {
 	rwintev_t		       *wiev; /* allocated send intev */
 	cnintev_t		       *ciev; /* allocated accept intev */
 	isc_sockaddr_t			address;  /* remote address */
-	int				addrlength; /* remote addrlen */
 };
 
 #define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
@@ -394,8 +393,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->ciev = NULL;
 
 	ISC_LIST_INIT(sock->accept_list);
-
-	sock->addrlength = 0;
 
 	sock->recv_result = ISC_R_SUCCESS;
 	sock->send_result = ISC_R_SUCCESS;
@@ -778,7 +775,6 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	isc_socketmgr_t *manager;
 	isc_socket_newconnev_t *dev;
 	intev_t *iev = (intev_t *)ev;
-	struct sockaddr addr;
 	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -828,8 +824,9 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 	 * EAGAIN or EINTR, simply poke the watcher to watch this socket
 	 * again.
 	 */
-	addrlen = sizeof(addr);
-	fd = accept(sock->fd, &addr, &addrlen);
+	addrlen = sizeof dev->newsocket->address.type;
+	fd = accept(sock->fd, &dev->newsocket->address.type.sa, &addrlen);
+	dev->newsocket->address.length = addrlen;
 	if (fd < 0) {
 		if (SOFT_ERROR(errno)) {
 			select_poke(sock->manager, sock->fd);
@@ -886,10 +883,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		/*
 		 * Save away the remote address
 		 */
-		dev->newsocket->addrlength = addrlen;
-		memcpy(&dev->newsocket->address, &addr, addrlen);
-		dev->addrlength = addrlen;
-		memcpy(&dev->address, &addr, addrlen);
+		dev->address = dev->newsocket->address;
 
 		LOCK(&manager->lock);
 		manager->fds[fd] = dev->newsocket;
@@ -923,7 +917,6 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 	isc_socket_t *sock;
 	int cc;
 	size_t read_count;
-	struct sockaddr addr;
 	ISC_SOCKADDR_LEN_T addrlen;
 
 	/*
@@ -981,26 +974,18 @@ internal_recv(isc_task_t *task, isc_event_t *ev)
 		 */
 		read_count = dev->region.length - dev->n;
 		if (sock->type == isc_socket_udp) {
-			addrlen = sizeof(addr);
+			addrlen = sizeof dev->address.type;
 			cc = recvfrom(sock->fd,
 				      ISC_SOCKDATA_CAST(dev->region.base
 							+ dev->n),
 				      read_count, 0,
-				      (struct sockaddr *)&addr,
-				      &addrlen);
-			if (cc >= 0) {
-				memcpy(&dev->address, &addr, addrlen);
-				dev->addrlength = addrlen;
-			}
+				      &dev->address.type.sa, &addrlen);
+			dev->address.length = addrlen;
 		} else {
 			cc = recv(sock->fd,
 				  ISC_SOCKDATA_CAST(dev->region.base + dev->n),
 				  read_count, 0);
-			if (cc >= 0) {
-				memcpy(&dev->address, &sock->address,
-				       (size_t)sock->addrlength);
-				dev->addrlength = sock->addrlength;
-			}
+			dev->address = sock->address;
 		}			
 
 		XTRACE(TRACE_RECV,
@@ -1182,8 +1167,8 @@ internal_send(isc_task_t *task, isc_event_t *ev)
 				    ISC_SOCKDATA_CAST(dev->region.base
 						      + dev->n),
 				    write_count, 0,
-				    (struct sockaddr *)&dev->address,
-				    (int)dev->addrlength);
+				    &dev->address.type.sa,
+				    (int)dev->address.length);
 
 		else
 			cc = send(sock->fd,
@@ -1731,14 +1716,14 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	if (EMPTY(sock->recv_list)) {
 		if (sock->type == isc_socket_udp) {
 			ISC_SOCKADDR_LEN_T addrlen;
-			dev->addrlength = sizeof(isc_sockaddr_t);
-			addrlen = (ISC_SOCKADDR_LEN_T)dev->addrlength;
+
+			addrlen = (ISC_SOCKADDR_LEN_T)
+				(sizeof dev->address.type);
 			cc = recvfrom(sock->fd,
 				      ISC_SOCKDATA_CAST(dev->region.base),
 				      dev->region.length, 0,
-				      (struct sockaddr *)&dev->address,
-				      &addrlen);
-			dev->addrlength = (unsigned int)addrlen;
+				      &dev->address.type.sa, &addrlen);
+			dev->address.length = (unsigned int)addrlen;
 		} else {
 			/*
 			 * recv() is used on TCP sockets, since some OSs
@@ -1750,7 +1735,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 				  ISC_SOCKDATA_CAST(dev->region.base),
 				  dev->region.length, 0);
 			dev->address = sock->address;
-			dev->addrlength = sock->addrlength;
 		}
 
 		if (cc < 0) {
@@ -1861,20 +1845,19 @@ isc_result_t
 isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
-	return (isc_socket_sendto(sock, region, task, action, arg, NULL, 0));
+	return (isc_socket_sendto(sock, region, task, action, arg, NULL));
 }
 
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address, unsigned int addrlen)
+		  isc_sockaddr_t *address)
 {
 	isc_socketevent_t *dev;
 	rwintev_t *iev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
 	int cc;
-	ISC_SOCKADDR_LEN_T addrlength = (ISC_SOCKADDR_LEN_T)addrlen;
 
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -1919,19 +1902,13 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	 * If the write queue is empty, try to do the I/O right now.
 	 */
 	if (sock->type == isc_socket_udp) {
-		INSIST(addrlength > 0 || sock->addrlength > 0);
-		if (addrlength > 0) {
+		if (address != NULL)
 			dev->address = *address;
-			dev->addrlength = addrlength;
-		} else if (sock->addrlength > 0) {
+		else
 			dev->address = sock->address;
-			dev->addrlength = sock->addrlength;
-		}
 	} else if (sock->type == isc_socket_tcp) {
 		INSIST(address == NULL);
-		INSIST(addrlength == 0);
 		dev->address = sock->address;
-		dev->addrlength = sock->addrlength;
 	}
 
 	if (EMPTY(sock->send_list)) {
@@ -1939,8 +1916,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 			cc = sendto(sock->fd,
 				    ISC_SOCKDATA_CAST(dev->region.base),
 				    dev->region.length, 0,
-				    (struct sockaddr *)&dev->address,
-				    (int)dev->addrlength);
+				    &dev->address.type.sa,
+				    (int)dev->address.length);
 		else if (sock->type == isc_socket_tcp)
 			cc = send(sock->fd,
 				  ISC_SOCKDATA_CAST(dev->region.base),
@@ -2043,8 +2020,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
-		int addrlen)
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 {
 	int on = 1;
 
@@ -2056,7 +2032,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
 				 sock->fd);
 		/* Press on... */
 	}
-	if (bind(sock->fd, (struct sockaddr *)sockaddr, addrlen) < 0) {
+	if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
 		UNLOCK(&sock->lock);
 		switch (errno) {
 		case EACCES:
@@ -2194,7 +2170,7 @@ isc_socket_accept(isc_socket_t *sock,
 }
 
 isc_result_t
-isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
+isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 		   isc_task_t *task, isc_taskaction_t action, void *arg)
 {
 	isc_socket_connev_t *dev;
@@ -2244,8 +2220,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 	 * outstanding, and it might happen to complete.
 	 */
 	sock->address = *addr;
-	sock->addrlength = addrlen;
-	cc = connect(sock->fd, (struct sockaddr *)addr, addrlen);
+	cc = connect(sock->fd, &addr->type.sa, addr->length);
 	if (cc < 0) {
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS)
 			goto queue;
@@ -2400,7 +2375,8 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 					 strerror(errno));
 			break;
 		}
-	}
+	} else
+		dev->result = ISC_R_SUCCESS;
 
 
 	UNLOCK(&sock->lock);
@@ -2412,22 +2388,14 @@ internal_connect(isc_task_t *task, isc_event_t *ev)
 }
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		       int *lengthp)
+isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp)
 {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
-	REQUIRE(lengthp != NULL);
 
 	LOCK(&sock->lock);
 
-	if (*lengthp < sock->addrlength) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOSPACE);
-	}
-
-	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
-	*lengthp = sock->addrlength;
+	*addressp = sock->address;
 
 	UNLOCK(&sock->lock);
 
@@ -2435,33 +2403,23 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
 }
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
-		       int *lengthp)
+isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
 {
-	isc_sockaddr_t addr;
 	ISC_SOCKADDR_LEN_T len;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
-	REQUIRE(lengthp != NULL);
 
 	LOCK(&sock->lock);
 
-	len = sizeof(addr);
-	if (getsockname(sock->fd, (struct sockaddr *)&addr, &len) < 0) {
+	len = sizeof addressp->type;
+	if (getsockname(sock->fd, &addressp->type.sa, &len) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "getsockname: %s", strerror(errno));
 		UNLOCK(&sock->lock);
 		return (ISC_R_UNEXPECTED);
 	}
-
-	if ((unsigned int)*lengthp < (unsigned int)len) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOSPACE);
-	}
-
-	memcpy(addressp, &sock->address, (size_t)len);
-	*lengthp = (unsigned int)len;
+	addressp->length = (unsigned int)len;
 
 	UNLOCK(&sock->lock);
 
