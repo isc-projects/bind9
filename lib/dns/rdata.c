@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.57 1999/08/05 22:11:52 halley Exp $ */
+ /* $Id: rdata.c,v 1.58 1999/08/16 06:45:13 gson Exp $ */
 
 #include <config.h>
 
@@ -117,7 +117,7 @@ static const char octdigits[] = "01234567";
 #define RESERVED 0x0002
 
 #define METATYPES \
-	{ 0, "NONE", META }, \
+	{ 0, "RESERVED0", META }, \
 	{ 31, "EID", RESERVED }, \
 	{ 32, "NIMLOC", RESERVED }, \
 	{ 34, "ATMA", RESERVED }, \
@@ -139,7 +139,8 @@ static const char octdigits[] = "01234567";
 	{ 3, "CHAOS", 0 },
 
 #define METACLASSES \
-	{ 0, "NONE", META }, \
+	{ 0, "RESERVED0", META }, \
+	{ 254, "NONE", META }, \
 	{ 255, "ANY", META },
 
 #define RCODENAMES \
@@ -1392,13 +1393,22 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	}
 }
 
-isc_boolean_t
-dns_rdatatype_ismeta(dns_rdatatype_t type) {
+static isc_boolean_t ismeta(unsigned int code, struct tbl *table) {
 	struct tbl *t;
-	REQUIRE(type < 65536);
-	for (t = types; t->name != NULL; t++) {
-		if (type == t->value)
+	REQUIRE(code < 65536);
+	for (t = table; t->name != NULL; t++) {
+		if (code == t->value)
 			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
 	}
-	return (ISC_FALSE); /* Unknown type, assume non-meta. */
+	return (ISC_FALSE); /* Unknown, assume non-meta. */
+}
+
+isc_boolean_t
+dns_rdatatype_ismeta(dns_rdatatype_t type) {
+	return (ismeta(type, types));
+}	
+
+isc_boolean_t
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass) {
+	return (ismeta(rdclass, classes));
 }
