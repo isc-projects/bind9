@@ -30,13 +30,13 @@ CWARNINGS =
 OBJS =		@ISC_IPV6_O@ \
 		app.@O@ dir.@O@ entropy.@O@ errno2result.@O@ file.@O@ \
 		fsaccess.@O@ interfaceiter.@O@ keyboard.@O@ net.@O@ \
-		socket.@O@ stdio.@O@ stdtime.@O@ time.@O@
+		os.@O@ socket.@O@ stdio.@O@ stdtime.@O@ time.@O@
 
 # Alphabetically
 SRCS =		@ISC_IPV6_C@ \
 		app.c dir.c entropy.c errno2result.c file.c \
 		fsaccess.c interfaceiter.c keyboard.c net.c \
-		socket.c stdio.c stdtime.c time.c
+		os.c socket.c stdio.c stdtime.c time.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
