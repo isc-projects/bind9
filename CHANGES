@@ -1,3 +1,5 @@
+ 866.	[func]		Close debug only file channels when debug is set to
+			zero. [RT #1246]
 
  865.	[bug]		The new configuration parser did not allow
 			the optional debug level in a "severity debug"

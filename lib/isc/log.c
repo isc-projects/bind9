@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.65 2001/06/04 19:33:24 tale Exp $ */
+/* $Id: log.c,v 1.66 2001/06/08 02:57:13 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -931,9 +931,24 @@ isc_log_setcontext(isc_log_t *lctx) {
 
 void
 isc_log_setdebuglevel(isc_log_t *lctx, unsigned int level) {
+	isc_logchannel_t *channel;
+
 	REQUIRE(VALID_CONTEXT(lctx));
 
 	lctx->debug_level = level;
+	/*
+	 * Close ISC_LOG_DEBUGONLY channels if level is zero.
+	 */
+	if (lctx->debug_level == 0)
+		for (channel = ISC_LIST_HEAD(lctx->logconfig->channels);
+		     channel != NULL;
+		     channel = ISC_LIST_NEXT(channel, link))
+			if (channel->type == ISC_LOG_TOFILE &&
+			    (channel->flags & ISC_LOG_DEBUGONLY) != 0 &&
+			    FILE_STREAM(channel) != NULL) {
+				(void)fclose(FILE_STREAM(channel));
+				FILE_STREAM(channel) = NULL;
+			}
 }
 
 unsigned int
