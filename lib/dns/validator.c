@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.105 2002/06/17 04:01:26 marka Exp $ */
+/* $Id: validator.c,v 1.106 2002/06/19 04:15:12 marka Exp $ */
 
 #include <config.h>
 
@@ -505,7 +505,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_boolean_t want_destroy;
 	isc_result_t result;
-	isc_result_t eresult;
 
 	UNUSED(task);
 	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
@@ -514,17 +513,17 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	rdataset = devent->rdataset;
 	sigrdataset = devent->sigrdataset;
 	val = devent->ev_arg;
-	eresult = devent->result;
+	result = devent->result;
 	dns_validator_destroy(&val->subvalidator);
 
 	INSIST(val->event != NULL);
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
-	if (eresult != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "authvalidated: got %s",
-			      isc_result_totext(eresult));
+			      isc_result_totext(result));
 		if (result == ISC_R_CANCELED)
 			validator_done(val, result);
 		else {
