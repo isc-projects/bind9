@@ -62,3 +62,11 @@ named: ${OBJS} ${UOBJS} ${DEPLIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
+
+installdirs:
+	if [ ! -d ${sbindir} ]; then \
+		mkdir ${sbindir}; \
+	fi
+
+install:: named installdirs
+	${LIBTOOL} ${INSTALL_PROGRAM} named ${sbindir}
