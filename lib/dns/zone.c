@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.154 2000/07/04 01:32:40 bwelling Exp $ */
+/* $Id: zone.c,v 1.155 2000/07/04 04:21:38 marka Exp $ */
 
 #include <config.h>
 
@@ -920,8 +920,9 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
 		 isc_uint32_t *expire, isc_uint32_t *minimum)
 {
-	dns_dbversion_t *version = NULL;
+	dns_dbversion_t *version;
 	isc_result_t result;
+	isc_result_t answer = ISC_R_SUCCESS;
 	dns_dbnode_t *node;
 
 	REQUIRE(db != NULL);
@@ -932,13 +933,15 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 
 	node = NULL;
 	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		answer = result;
 		goto closeversion;
+	}
 
 	if (nscount != NULL) {
 		result = zone_count_ns_rr(db, node, version, nscount);
 		if (result != ISC_R_SUCCESS)
-			goto detachnode;
+			answer = result;
 	}
 
 	if (soacount != NULL || serial != NULL || refresh != NULL
@@ -947,15 +950,14 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 					  serial, refresh, retry, expire,
 					  minimum);
 		if (result != ISC_R_SUCCESS)
-			goto detachnode;
+			answer = result;
 	}
 
- detachnode:
 	dns_db_detachnode(db, &node);
  closeversion:
 	dns_db_closeversion(db, &version, ISC_FALSE);
 
-	return (result);
+	return (answer);
 }
 
 void
