@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.217 $)
+AC_REVISION($Revision: 1.218 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -344,7 +344,7 @@ AC_TRY_COMPILE([
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		AC_MSG_ERROR(["need either working unistd.h or sys/select.h"])
+		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
 		;;
 	esac
 	])
@@ -356,7 +356,7 @@ no)
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
-		AC_MSG_ERROR(["need either unistd.h or sys/select.h"])
+		AC_MSG_ERROR([need either unistd.h or sys/select.h])
 		;;
 	esac
 	;;
@@ -381,7 +381,7 @@ case "$enable_threads" in
 		use_threads=false
 		;;
 	*)
-	    	AC_MSG_ERROR(["--enable-threads takes yes or no"])
+	    	AC_MSG_ERROR([--enable-threads takes yes or no])
 		;;
 esac
 
