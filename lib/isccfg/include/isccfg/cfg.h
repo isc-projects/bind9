@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.23 2001/04/04 01:41:06 gson Exp $ */
+/* $Id: cfg.h,v 1.24 2001/04/19 23:28:17 gson Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -88,6 +88,10 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
 /*
  * Create a configuration file parser.  Any warning and error
  * messages will be logged to 'lctx'.
+ *
+ * The parser object returned can be used for a single call
+ * to cfg_parse_file() or cfg_parse_buffer().  It must not
+ * be reused for parsing multiple files or buffers.
  */
 
 void
