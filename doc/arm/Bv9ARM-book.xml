@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.83 2001/01/15 00:43:51 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.84 2001/01/15 19:50:53 bwelling Exp $ -->
 
 <book>
 
@@ -2463,7 +2463,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 <programlisting><command>lwres</command> {
     <optional> listen-on { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> view <replaceable>view_name</replaceable>; </optional>
-    <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>ip_addr</replaceable> ; ... </optional> }; </optional>
+    <optional> search { <replaceable>domain_name</replaceable> ; <optional> <replaceable>domain_name</replaceable> ; ... </optional> }; </optional>
     <optional> ndots <replaceable>number</replaceable>; </optional>
 };
 </programlisting>
@@ -2479,8 +2479,9 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 
       <para>The <command>listen-on</command> statement specifies a list of
       addresses (and ports) that this instance of a lightweight resolver daemon
-      should accept requests on.  If this statement is omitted, requests
-      will be accepted on 127.0.0.1, port 53.</para>
+      should accept requests on.  If no port is specified, port 921 is used.
+      If this statement is omitted, requests will be accepted on 127.0.0.1,
+      port 921.</para>
 
       <para>The <command>view</command> statement binds this instance of a
       lightweight resolver daemon to a view in the DNS namespace, so that the
