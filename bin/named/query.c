@@ -2080,9 +2080,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * Add NXT record if we found one.
 		 */
-		if (dns_rdataset_isassociated(rdataset))
+		if (dns_rdataset_isassociated(rdataset)) {
 			query_addrrset(client, &tname, &rdataset, &sigrdataset,
 				       NULL, DNS_SECTION_AUTHORITY);
+			if (tname != NULL)
+				dns_message_puttempname(client->message,
+							&tname);
+		}
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
@@ -2124,9 +2128,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		/*
 		 * Add NXT record if we found one.
 		 */
-		if (dns_rdataset_isassociated(rdataset))
+		if (dns_rdataset_isassociated(rdataset)) {
 			query_addrrset(client, &tname, &rdataset, &sigrdataset,
 				       NULL, DNS_SECTION_AUTHORITY);
+			if (tname != NULL)
+				dns_message_puttempname(client->message,
+							&tname);
+		}
 		/*
 		 * Set message rcode.
 		 */
