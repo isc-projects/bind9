@@ -50,6 +50,8 @@
 2672:	Non-Terminal DNS Name Redirection
 2673:	Binary Labels in the Domain Name System
 2782:	A DNS RR for specifying the location of services (DNS SRV)
+2825:	A Tangled Web: Issues of I18N, Domain Names, and the
+	 Other Internet protocols
 2845:	Secret Key Transaction Authentication for DNS (TSIG)
 2874:	DNS Extensions to Support IPv6 Address Aggregation and Renumbering
 2929:	Domain Name System (DNS) IANA Considerations
