@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.193 2001/11/14 02:03:43 gson Exp $ */
+/* $Id: client.c,v 1.194 2001/11/14 19:11:06 gson Exp $ */
 
 #include <config.h>
 
@@ -406,9 +406,9 @@ exit_check(ns_client_t *client) {
 			isc_quota_detach(&client->tcpquota);
 
 		if (client->timerset) {
-			(void) isc_timer_reset(client->timer,
-					       isc_timertype_inactive,
-					       NULL, NULL, ISC_TRUE);
+			(void)isc_timer_reset(client->timer,
+					      isc_timertype_inactive,
+					      NULL, NULL, ISC_TRUE);
 			client->timerset = ISC_FALSE;
 		}
 
@@ -626,7 +626,7 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	if (client->newstate > newstate)
 		client->newstate = newstate;
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 
@@ -1476,7 +1476,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 
 	if (client->newstate > NS_CLIENTSTATE_READY)
 		client->newstate = NS_CLIENTSTATE_READY;
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 static isc_result_t
@@ -1696,8 +1696,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		client->state = NS_CLIENTSTATE_READING;
 		INSIST(client->recursionquota == NULL);
 
-		(void) isc_socket_getpeername(client->tcpsocket,
-					      &client->peeraddr);
+		(void)isc_socket_getpeername(client->tcpsocket,
+					     &client->peeraddr);
 		client->peeraddr_valid = ISC_TRUE;
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			   NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
@@ -1847,7 +1847,7 @@ ns_client_detach(ns_client_t **clientp) {
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
 		      "ns_client_detach: ref = %d", client->references);
-	(void) exit_check(client);
+	(void)exit_check(client);
 }
 
 isc_boolean_t
