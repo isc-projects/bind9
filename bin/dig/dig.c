@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.85 2000/08/03 17:43:01 mws Exp $ */
+/* $Id: dig.c,v 1.86 2000/08/10 15:45:54 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -165,8 +165,6 @@ show_usage(void) {
 "                                      form of answer)\n"
 "                 +[no]all            (Set or clear all display flags)\n"
 "                 +qr                 (Print question before sending)\n"
-"                 +[no]cdflag         (Set or clear CD flag in query)\n"
-"                 +[no]adflag         (Set or clear AD flag in query)\n"
 "                 +[no]nssearch       (Search all authorative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
