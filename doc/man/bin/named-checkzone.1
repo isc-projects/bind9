@@ -1,0 +1,61 @@
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+.\" $Id: named-checkzone.1,v 1.1 2000/12/14 00:52:44 marka Exp $
+
+.Dd Jun 13, 2000
+.Dt CHECK-ZONE 1
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm check-zone
+.Nd Zone validity checking tool.
+.Sh SYNOPSIS
+.Nm check-zone
+.Op Fl dq
+.Op Fl c Ar class
+.Ar zone
+.Op filename
+.Sh DESCRIPTION
+.Pp
+.Nm check-zone
+is a tool for performing integrity checks on a zones contents.
+It uses the same integrity checks as
+.Nm named .
+.Pp
+The options to
+.Nm check-zone
+are as follows:
+.Bl -tag -width Ds
+.It Fl d
+enable debugging.
+.It Fl q
+quiet mode - exit code only.
+.It Fl c Ar class
+specify the class of the zone.
+If not specified "IN" is assumed.
+.It Ar zone
+the name of the zone being loaded.
+.It Op filename
+the name of the file containing the zone.
+If not specified it defaults to the zone name.
+.Sh RETURN VALUES
+.Pp
+.Nm check-zone
+return a zero exit value if no errors were detected,
+otherwise it returns 1.
+.Sh SEE ALSO
+.Xr named 8 ,
+.Xr RFC1035 .
