@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.114 2001/05/11 02:35:37 marka Exp $ */
+/* $Id: master.c,v 1.115 2001/05/14 06:22:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1111,6 +1111,8 @@ load(dns_loadctx_t *lctx) {
 				} else if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				ictx = lctx->inc;
+				line = isc_lex_getsourceline(lctx->lex);
+				source = isc_lex_getsourcename(lctx->lex);
 				continue;
 			}
 
@@ -1582,6 +1584,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 		dns_name_toregion((ictx->glue != NULL) ?
 				   ictx->glue : ictx->current, &r);
 		dns_name_fromregion(new->current, &r);
+		new->drop = ictx->drop;
 	}
 
 	result = isc_lex_openfile(lctx->lex, master_file);
