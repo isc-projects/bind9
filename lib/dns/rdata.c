@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.53 1999/07/06 19:05:24 halley Exp $ */
+ /* $Id: rdata.c,v 1.54 1999/07/09 12:48:51 gson Exp $ */
 
 #include <config.h>
 
@@ -442,6 +442,10 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_TEXT);
 	if (tctx->origin != NULL)
 		REQUIRE(dns_name_isabsolute(tctx->origin) == ISC_TRUE);
+
+	/* Some DynDNS meta-RRs have empty rdata. */
+	if (rdata->length == 0)
+		return (DNS_R_SUCCESS);
 
 	TOTEXTSWITCH
 
@@ -1354,3 +1358,13 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, char *, ...),
 	}
 }
 
+isc_boolean_t
+dns_rdatatype_ismeta(dns_rdatatype_t type) {
+	struct tbl *t;
+	REQUIRE(type < 65536);
+	for (t = types; t->name != NULL; t++) {
+		if (type == t->value)
+			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
+	}
+	return (ISC_FALSE); /* Unknown type, assume non-meta. */
+}
