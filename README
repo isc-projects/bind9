@@ -47,9 +47,8 @@ BIND 9
 
 BIND 9.2
 
-	This is a snapshot of the development source tree that
-	will become BIND 9.2.  Bind 9.2 will have a number of 
-	new features over 9.1, including:
+	BIND 9.2.0a1 is the first alpha release of BIND 9.2.0.
+	It includes a number of new features over 9.1, including:
 
 	  - The size of the cache can now be limited using the
             "max-cache-size" option.
@@ -75,10 +74,11 @@ BIND 9.2
 
           - The "rndc status" command is now implemented.
 
-	An IPv6 capable stub resolver based on the BIND 8 resolver
-	code base and fully backwards compatible with existing BIND 8
-	based resolvers is being developed and will be integrated into
-	the BIND 9 distribution when completed.
+	  - rndc can now be configured automatically.
+
+	  - A BIND 8 compatible stub resolver library is now included
+	    in lib/bind.  It is not built by default, and may not build
+	    on all supported platforms yet.
 
 	This distribution already includes a new lightweight stub
 	resolver library and associated resolver daemon that fully
