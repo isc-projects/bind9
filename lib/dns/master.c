@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.15 1999/03/23 00:04:01 marka Exp $ */
+ /* $Id: master.c,v 1.16 1999/03/24 00:29:54 halley Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,7 @@
 #define MAXWIRESZ 255
 
 /*
- * Target buffer size and minimum target size.
+ * Target buffer size and minimum target size.
  * MINTSIZ must be big enougth to hold the largest rdata record.
  * 
  * TSIZ >= MINTSIZ
@@ -641,7 +641,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 				ISC_LIST_PREPEND(current_list, this, link);
 		} else if (this->ttl != ttl) {
 			(*callbacks->warn)(callbacks,
-				   "%s: %s:%d: TTL set to ealier TTL (%lu)\n",
+				   "%s: %s:%d: TTL set to prior TTL (%lu)\n",
 					   "dns_load_master", master_file,
 					   isc_lex_getsourceline(lex),
 					   this->ttl);
@@ -874,7 +874,6 @@ commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
 	dns_result_t result;
 
 	while ((this = ISC_LIST_HEAD(*head)) != NULL) {
-		
 		dns_rdataset_init(&dataset);
 		dns_rdatalist_tordataset(this, &dataset);
 		result = ((*callbacks->commit)(callbacks, owner, &dataset));
