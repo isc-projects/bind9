@@ -1,0 +1,342 @@
+
+Telephone Number Mapping                                       A. Brown
+Internet Draft                                          Nortel Networks
+Document: <draft-ietf-enum-rqmts-01.txt>                      June 2000
+Category: Informational 
+ 
+ 
+                           ENUM Requirements 
+ 
+ 
+Status of this Memo 
+    
+   This document is an Internet-Draft and is in full conformance with 
+   all provisions of Section 10 of RFC2026 [1].  
+    
+   Internet-Drafts are working documents of the Internet Engineering 
+   Task Force (IETF), its areas, and its working groups.  Note that 
+   other groups may also distribute working documents as Internet-
+   Drafts.  Internet-Drafts are draft documents valid for a maximum of 
+   six months and may be updated, replaced, or obsoleted by other 
+   documents at any time.  It is inappropriate to use Internet- Drafts 
+   as reference material or to cite them other than as "work in 
+   progress."  
+    
+   The list of current Internet-Drafts can be accessed at 
+   http://www.ietf.org/ietf/1id-abstracts.txt  
+   The list of Internet-Draft Shadow Directories can be accessed at 
+   http://www.ietf.org/shadow.html. 
+    
+1.      Abstract 
+    
+   This paper defines the requirements for a DNS-based architecture and 
+   protocols for mapping a telephone number to a set of attributes 
+   (e.g., URLs) that can be used to contact a resource associated with 
+   that number.  There are many possible protocols that can be 
+   considered for a telephone number mapping service.  The purpose of 
+   this document is to focus discussion on a DNS-based solution.  The 
+   intention is to enumerate the expectations of such a solution and to 
+   clarify the scope. 
+    
+2.      Conventions used in this document 
+    
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", 
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in 
+   this document are to be interpreted as described in RFC-2119 [2]. 
+    
+3.      Requirements 
+    
+3.1     Endpoint Address Lookup 
+    
+   The system SHALL provide a service for the retrieval of service 
+   specific endpoint addresses (e.g., email address, IP address, SIP 
+   address, URL, etc.) or the retrieval of the addresses of servers, if 
+   available, which may contain this endpoint information. 
+    
+  
+                          ENUM Requirements                  June 2000 
+ 
+ 
+3.2     Capabilities Retrieval/Negotiation 
+    
+   The retrieval or negotiation of capabilities is beyond the scope of 
+   the system.   
+    
+3.3     Retrieval of Additional Information and Capabilities 
+    
+   The retrieval of additional, application-specific information (e.g., 
+   spoken name for verification purposes) is beyond the scope of the 
+   system.  The system MUST provide a service for the retrieval of 
+   protocol and service information if available. 
+    
+   The system SHOULD provide access to capabilities relevant to the 
+   telephone number in question.  The retrieval or negotiation of 
+   capabilities will depend on the outcome of the rescap work or work 
+   done in other groups. 
+    
+3.4     Qualification of the Request 
+    
+   The system is not required to enable the qualification of a request 
+   by a user, for the purposes of filtering for reducing returned 
+   information or for traffic reduction.  
+    
+3.5     Provisioning 
+    
+   The architecture and protocol MAY support at least the existing 
+   administrative model as the current E.164 telephone number 
+   delegation system.  The protocol SHOULD also provide the ability to 
+   support corporate numbering plan or competitive directory service 
+   providers under separate root domains.  It SHOULD NOT require an 
+   additional centralized administrator beyond that required for the 
+   existing telephone number system. 
+    
+   The distribution of telephone numbers is a national affair by ITU 
+   treaty and different telephone number distribution schemes may 
+   require different delegation models.  How nations choose to 
+   administer the ENUM space within their borders is a national issue.  
+   In any case, the subscriber or enterprise is the ultimate authority 
+   for service provisioning. 
+    
+   Further, it must be possible for the authority to which a telephone 
+   number has been delegated to redirect the query to a different 
+   entity that provides service-specific information for that number. 
+    
+3.6     Propagation of Changes 
+    
+   Propagation of Changes If multiple copies of the data are 
+   distributed in different areas, their update should be incorporated 
+   almost simultaneously depending on the application of DNS to 
+   services. 
+    
+
+
+  
+                          ENUM Requirements                  June 2000 
+ 
+ 
+   When a numbering plan change is made in a country or network, the 
+   update of relevant E.164 number data in DNS needs to be coordinated 
+   with the change. 
+    
+3.7     Response Timeout 
+    
+   The system SHALL have a defined timeout mechanism. 
+    
+3.8     Global Number Portability 
+    
+   The system MUST support existing local number portability 
+   mechanisms, where applicable.  It is RECOMMENDED that the system not 
+   be designed in such as way as to impede future global number 
+   portability.  
+    
+3.9     Scalability 
+    
+   The system MUST scale to handle quantities of telephone numbers and 
+   queries comparable to current and expected future PSTN usage.   
+    
+   It must be possible to operate the system based on telephone number 
+   blocks defined at the digit boundaries as well as explicit per-
+   number configuration. 
+    
+3.10    Query Performance 
+    
+   It SHOULD be possible to administer the ENUM service using the 
+   selected protocols and structures such that the current user 
+   expectations for latency in telecommunications services can be met.  
+   In particular, it SHOULD be possible to operate the system in such a 
+   manner that an ENUM query for a service-specific record can be 
+   satisfied within one second 95% of the time and that within two 
+   seconds, the query can be satisfied 99% of the time. 
+    
+3.11    Other PSTN Numbering Services 
+    
+   E.164 numbers, short codes, service codes and prefixes are 
+   categorized in dialing plans.  A prefix is an indicator consisting 
+   of one or more digits that allows the selection of different types 
+   of number formats, networks and/or services.  Prefixes are not part 
+   of the number and are part of a dialing plan.  The uses and the 
+   formats of prefixes are a national matter.  Short codes, e.g. 
+   emergency, or service codes may be used based on the national 
+   numbering plan.  Those codes are not universal and typically valid 
+   only within a numbering domain identified with the same country code 
+   or country code + network identification code. 
+    
+   PSTN type numbering services such as Emergency 911, directory 
+   assistance 411, and other carrier codes for services accessible via 
+   non-E164 (or subset) telephone number service access codes are 
+   outside the scope of ENUM. 
+    
+3.12    Privacy 
+  
+                          ENUM Requirements                  June 2000 
+ 
+ 
+    
+   The system MUST allow the owner of the telephone number to control 
+   the information which prospective callers may receive. 
+    
+3.13    Competition 
+    
+   The solution MUST permit competing service providers to offer 
+   telecommunications service for a given number.  Competing 
+   telecommunications services MUST be enabled where the ENUM entry is 
+   administered by the single entity to which the number is delegated.  
+   Who that single entity is, is beyond the scope of ENUM. 
+    
+3.14    Authorization of Requests and Responses 
+    
+   The system SHALL enable the authorization of requests and responses. 
+    
+3.15    Privacy and Integrity of Requests and Responses 
+    
+   The system SHALL enable the privacy and integrity of requests and 
+   responses. 
+    
+3.16    Call Routing 
+    
+   The system is not required to provide a service for routing calls or 
+   locating gateways to a specific service. 
+    
+3.17    Service Logic 
+    
+   The system is not responsible for employing service logic for the 
+   intelligent retrieval of information. 
+    
+3.18    E.164 Numbers 
+    
+   The system is not responsible for returning information on private 
+   numbering plans and non-E.164 numbers.  The system is responsible 
+   for returning information on 1-800 and other legitimate E.164 
+   numbers.   
+    
+3.19    Application Specific Use of ENUM 
+    
+   The ENUM service MUST be application agnostic.  It is expected that 
+   various other IETF work groups will develop ENUM specific usage 
+   profiles for their specific application.  ENUM will not mandate the 
+   use of any specific DNS Resource Record for any particular 
+   application.  
+ 
+4.      Security Considerations 
+ 
+   This document specifies several security requirements including 
+   privacy of information, and authorization, privacy and integrity or 
+   requests and responses.  
+    
+
+  
+                          ENUM Requirements                  June 2000 
+ 
+ 
+   The system will be designed to retrieve information required to 
+   initiate an Internet telephony session.  Each of these session types 
+   will have their own security threats, which should be addressed in 
+   the groups responsible for those services. 
+ 
+5.      References 
+    
+ 
+   1  Bradner, S., "The Internet Standards Process -- Revision 3", BCP 
+      9, RFC 2026, October 1996. 
+    
+   2  Bradner, S., "Key words for use in RFCs to Indicate Requirement 
+      Levels", BCP 14, RFC 2119, March 1997 
+    
+6.      Acknowledgements         
+    
+   This document is based on discussions from the ENUM working group. 
+    
+7.      Author's Addresses 
+    
+   Anne Brown 
+   Nortel Networks 
+   P.O. Box 3511, Station C 
+   K1Y 4H7 
+   Phone: +1 613 765 5274 
+   Email: arbrown@nortelnetworks.com 
+    
+8.      Changes From draft-enum-rqmts-00.txt 
+    
+   Based on WG discussions and input documents from the SG2 workshop, 
+   the following changes have been made since the previous version of 
+   this draft: 
+    
+        3.1 Endpoint Address Lookup 
+                Major - URLs are not the only response 
+        3.3 Retrieval of Additional Information and Capabilities 
+                Renamed from "Retrieval of Additional Information" 
+                Minor - Added paragraph on capabilities 
+        3.5 Provisioning 
+                Major - New text involving change of ENUM scope 
+        3.6 Propagation of Changes 
+                New section 
+                Major - New section based on nnar-e164-dns-iw-info.txt 
+        3.9 Scalability 
+                Renumbered from 3.8 
+                Major - New paragraph on handling of both blocks and 
+                individual telephone numbers. 
+        3.10 Query Performance 
+                Renumbered from 3.9 
+                Major - Upgraded to support PSTN performance  
+                expectations 
+        3.11 Other PSTN Numbering Services 
+                Renumbered from 3.10 
+  
+                          ENUM Requirements                  June 2000 
+ 
+ 
+                Renamed from "Other PSTN Services" 
+                Minor - Changes for clarification based on WG  
+                discussions and nnar-e164-dns-iw-info.txt 
+    
+        3.13 Competition 
+                Renumbered from 3.12 
+                Major - Telephone number MUST be able to be  
+                administered by a single entity 
+                 
+        3.19 Application Specific Use of ENUM 
+                New Section 
+                Major - For clarification  
+    
+Full Copyright Statement 
+    
+   "Copyright (C) The Internet Society (date). All Rights Reserved. 
+   This document and translations of it may be copied and furnished to 
+   others, and derivative works that comment on or otherwise explain it 
+   or assist in its implmentation may be prepared, copied, published 
+   and distributed, in whole or in part, without restriction of any 
+   kind, provided that the above copyright notice and this paragraph 
+   are included on all such copies and derivative works. However, this 
+   document itself may not be modified in any way, such as by removing 
+   the copyright notice or references to the Internet Society or other 
+   Internet organizations, except as needed for the purpose of 
+   developing Internet standards in which case the procedures for 
+   copyrights defined in the Internet Standards process must be 
+   followed, or as required to translate it into 
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+

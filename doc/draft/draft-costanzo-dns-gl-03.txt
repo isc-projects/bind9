@@ -1,6 +1,6 @@
 INTERNET-DRAFT                                                A. Costanzo
-draft-costanzo-dns-gl-02.txt                   AKC Computer Services Corp.
-Expires: November 2000                                       May 21, 2000
+draft-costanzo-dns-gl-03.txt                   AKC Computer Services Corp.
+Expires: December 2000                                       June    2000
 
 
 
@@ -45,11 +45,11 @@ Distribution of this memo is unlimited.
 
 2. Abstract
 
-This document defines the format of a new Resource Record (RR) namely
-GL for the Domain Naming System (DNS), and reserves a corresponding
-DNS type mnemonic and numerical code. This definition deals with
-associating geographical host location mappings to host names within a
-domain.
+This document defines the format of a new Experimental Resource Record (RR)
+namely GL for the Domain Naming System (DNS), and reserves a corresponding
+DNS type mnemonic and numerical code XX (decimal). This definition deals
+with associating geographical host location mappings to host names within
+a domain.
 
 
 The key words "MUST", "MUST  NOT", "REQUIRED", "SHALL", "SHALL  NOT",
@@ -58,15 +58,9 @@ document are to be interpreted as described in RFC-2119.
 
 
 
-
-
-
-
-
 Costanzo                                                          [Page  1]
 
-
-EXPIRES IN SIX MONTHS                                              May 2000
+EXPIRES IN SIX MONTHS                                             June 2000
 
 3. Introduction
 
@@ -75,15 +69,12 @@ EXPIRES IN SIX MONTHS                                              May 2000
    to local domain administrators.
 
    This document resolves the problem of relating host information within
-the
-   DNS to geographical locations. This definition has been designed to be
-easy
-   for the person who administrates DNS for a domain. The author hopes that
-the
-   lack of requiring longitude, latitude and elevation information and
-merely
-   being able to enter address information, as you would address a postal
-   letter, will mean broad acceptance and use of the GL resource record.
+   the DNS to geographical locations. This definition has been designed to 
+   be easy for the person who administrates DNS for a domain. The author 
+   hopes that the lack of requiring longitude, latitude and elevation 
+   information and merely being able to enter address information, as you 
+   would address a postal letter, will mean broad acceptance and use of the
+   GL resource record.
 
    The availability of geographical location information will immediately be
    able to benefit applications in network management, which would enhance
@@ -91,17 +82,13 @@ merely
 
    The Domain Name System is ideally suited to provide geographic location
    information.  The information we desire to make available globally needs
-to
-   be maintained and updated locally (perfect for DNS).
+   to be maintained and updated locally (perfect for DNS).
 
    Although several other attempts by various authors have attempted to
-created
-   resource records that would allow location information on host to be
-stored
-   and distributed, none, to the authors knowledge, have either gained
-   acceptance on a wide scale or made allowance for location information
-that
-   is not with the confines of the planet Earth.
+   created resource records that would allow location information on host to
+   be stored and distributed, none, to the authors knowledge, have either 
+   gained acceptance on a wide scale or made allowance for location information
+   that is not within the confines of the planet Earth.
 
 4. The GL format
 
@@ -116,11 +103,11 @@ that
 
    <string> <string>
 
-   The format of the RDATA field is two character varying length
-   strings seperated by a space character. The first, the hierarchical
-   locator, then an address string. Each is quoted (like all strings)
-   only when it has spaces in it, which will never be true for the first
-   string, and almost always for the second.
+   The format of the RDATA field is two varying length strings separated by
+   a space character. The first, the hierarchical locator, then an address 
+   string. Each is quoted (like all strings) only when it has spaces in it,
+   which will never be true for the first string, and almost always for the
+   second.
 
 
 
@@ -131,9 +118,7 @@ that
 
 Costanzo                                                          [Page  2]
 
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
+EXPIRES IN SIX MONTHS                                             June 2000
 
 
 4.1.1 The Hierarchical Locator
@@ -143,20 +128,23 @@ by a period "."):
 
   Astronomical Location -                          (Required)
            A coded field defining the heavenly body within
-           the known Universe, where the machine resides.  A complete list
-may
-           be referenceable at a later date.
-
-           The most common entry, "S3" is the planet Earth and is the only
-currently
+           the known Universe, where the machine resides.  The most common 
+           entry, "S3" is the planet Earth and is the only currently
            defined location.
 
-  Country Code -                                   (Required)
+           Man-made devices (Space Stations, Rockets, Probes, etc.) not residing
+           on planet Earth may have Astronimical Locations defined as well.
+
+           New locations MUST be registered with the Internet Assigned Numbers
+           Authority (IANA).  Refer to section 6 for additional information.
+
+  Country Code -                                    (Required)
 
           The country code specifies the country the host computer resides
-          in. The code is a two character fixed length string.  These codes
+          in. The code is a two character fixed length string and may only 
+          be included within the Astronimical Location 'S3'.  These codes
           are defined in document ISO 3166-1 and are listed in Appendix A
-          for easy reference.
+          for easy reference. 
 
    Postal Zone -                                    (Optional)
 
@@ -168,9 +156,9 @@ currently
           This field may be omitted only if the country in which the host
           machine resides does not use a postal coding system.
 
-   When all three Hierarchical Locator components exist for an DNS entry,
-the
-   position being defined is considered to be a "precise position".
+          When all three Hierarchical Locator components exist for an DNS 
+          entry, the position being defined is considered to be a "precise 
+          position".
 
 
  4.2 The Quoted String
@@ -183,25 +171,24 @@ the
 
   The quoted string may be used for both visual reference of the
   physical address as well as by a software application to help
-  determine a more precise location of the host machine, if the
-  Hierarchical Locator lacks sufficient precision.
+  determine a more precise location of the host machine (if the
+  Hierarchical Locator lacks sufficient precision).
+
+
+
+Costanzo                                                          [Page  3]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
 
   The only instance in which any application should attempt to
   interpret the quoted string is in a case where the country
   code defines a country that does not use, or has not implemented
   a postal code system.
 
-
-Costanzo                                                          [Page  3]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
-
   No software or application should attempt to override a precise
   position defined by the Hierarchical Locator with information
   defined within the quoted string data.
-
 
 
  5. Example(s)
@@ -246,19 +233,20 @@ uspring         IN      A       192.188.192.2
                 IN      GL S3.US.45420.1910 "1425 Arbor Avenue, Dayton OH"
 ftp             IN      CNAME   uspring
 
+
+
+Costanzo                                                          [Page  4]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
+
+
 diana           IN      A       192.188.192.3
                 IN      MX      5       mail
                 IN      HINFO   Vax VMS
                 IN      GL S3.US.07204.1367 "808 Chestnut Street, Roselle
 Park, NJ"
 www             IN      CNAME   diana
-
-
-Costanzo                                                          [Page  4]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
 
 martha          IN      A       192.188.192.4
                 IN      MX      5       mail
@@ -271,7 +259,114 @@ lorinda         IN      A       129.122.1.1
 Parimaribo"
 
 
-5. Appendix A: ISO 3166-1 Country Codes
+6. Registering New Astronomical Location(s)
+
+   New Astronomical Locations (ALs)  MUST be registered with the Internet
+   Assigned Numbers Authority (IANA).  IANA acts as a central registry for
+   these values. IANA may reject or modify the Astronomical Location 
+   registration request if it does not meet the criteria as specified in 
+   section 4.1.1.  
+
+   Registration requests should be sent via electronic mail to IANA as
+   follows:
+
+             To:  IANA@iana.org
+             Subject:  Registration of a new Astronomical Location
+
+   The mail message must specify the proposed AL. Documentation defining 
+   the AL and its proposed purpose must be included.  The documentation must
+   either reference an external non-Internet standards document or an existing
+   or soon to be RFC.  If applicable, the documentation should contain a
+   draft version of the future RFC.  The draft must be submitted as a
+   RFC according to the normal procedure within a reasonable amount of
+   time after the AL registration has been approved.
+
+   IANA will not register a new Astronmical Location until an actual 
+   computer requiring GL data in the DNS resides or will soon reside on a 
+   heavenly body other than Earth.
+
+
+
+
+
+
+
+
+
+
+Costanzo                                                          [Page  5]
+
+EXPIRES IN SIX MONTHS                                              May 2000
+
+
+
+7. Notes To Implementors:
+
+7.1 Defining New Astronimical Locations
+
+  The astronomical location 'S3' is intended to be Sol-Three (i.e. the Earth).
+  The Earth is the 3rd large planet in the solar system. The Sun would be S0 
+  (not that we'd have a computer there), but a solar observatory in orbit might 
+  be S0-001. Our moon would be S3-1. Other letters and such for catalogued
+  objects. Additionally, the ISS and Mir space stations could use S3-001 (Mir),
+  S3-002 (ISS) now,   if they get connected on IP.
+
+  This document only defines 'S3' however the authors strongly suggest that the
+  above nomenclature be followed.
+
+
+7.2 Other possible uses for GL
+
+  The use of postal codes also is exactly what is needed for credit card address
+  authentication. Sites could (quietly) compare GL info provided on entries from 
+  ISPs to what someone enters for additional verification purposes.
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Costanzo                                                          [Page  6]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
+
+8. Appendix A: ISO 3166-1 Country Codes
+
+   The ISO country codes are merely listed here for easy reference and may
+   become out-of-date in this document.  Any changes in the ISO specification
+   supercede this appendix and the ISO specification must be followed.
 
 
 AFGHANISTAN                                     AF
@@ -310,15 +405,6 @@ BULGARIA                                        BG
 BURKINA FASO                                    BF
 BURUNDI                                         BI
 CAMBODIA                                        KH
-
-Costanzo                                                          [Page  5]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
-
-
-
 CAMEROON                                        CM
 CANADA                                          CA
 CAPE VERDE                                      CV
@@ -328,6 +414,12 @@ CHAD                                            TD
 CHILE                                           CL
 CHINA                                           CN
 CHRISTMAS ISLAND                                CX
+
+
+Costanzo                                                          [Page  7]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
 COCOS (KEELING) ISLANDS                         CC
 COLOMBIA                                        CO
 COMOROS                                         KM
@@ -374,18 +466,19 @@ GUAM                                            GU
 GUATEMALA                                       GT
 GUINEA                                          GN
 GUINEA-BISSAU                                   GW
-
-Costanzo                                                          [Page  6]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
 GUYANA                                          GY
 HAITI                                           HT
 HEARD AND MC DONALD ISLANDS                     HM
 HONDURAS                                        HN
 HONG KONG                                       HK
 HUNGARY                                         HU
+
+
+Costanzo                                                          [Page  8]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
+
 ICELAND                                         IS
 INDIA                                           IN
 INDONESIA                                       ID
@@ -441,18 +534,18 @@ NEPAL                                           NP
 NETHERLANDS                                     NL
 NETHERLANDS ANTILLES                            AN
 NEW CALEDONIA                                   NC
+
+
+Costanzo                                                          [Page  9]
+
+EXPIRES IN SIX MONTHS                                             June 2000
+
 NEW ZEALAND                                     NZ
 NICARAGUA                                       NI
 NIGER                                           NE
 NIGERIA                                         NG
 NIUE                                            NU
 NORFOLK ISLAND                                  NF
-
-Costanzo                                                          [Page  8]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
 NORTHERN MARIANA ISLANDS                        MP
 NORWAY                                          NO
 OMAN                                            OM
@@ -500,6 +593,12 @@ SWAZILAND                                       SZ
 SWEDEN                                          SE
 SWITZERLAND                                     CH
 SYRIAN ARAB REPUBLIC                            SY
+
+
+Costanzo                                                          [Page  10]
+
+EXPIRES IN SIX MONTHS                                             June  2000
+
 TAIWAN, PROVINCE OF CHINA                       TW
 TAJIKISTAN                                      TJ
 TANZANIA, UNITED REPUBLIC OF                    TZ
@@ -509,12 +608,6 @@ TOKELAU                                         TK
 TONGA                                           TO
 TRINIDAD AND TOBAGO                             TT
 TUNISIA                                         TN
-
-Costanzo                                                          [Page  8]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
 TURKEY                                          TR
 TURKMENISTAN                                    TM
 TURKS AND CAICOS ISLANDS                        TC
@@ -542,53 +635,23 @@ ZAMBIA                                          ZM
 ZIMBABWE                                        ZW
 
 
-6. Acknowledgments
+9. Acknowledgments
 
  The author would like to thank
 
-James Sears - for his continual editing effort
+James Sears -    for his continual editing effort
 Robert Ullmann - for his input
 
 and the members of the namedroppers mailing list for both their support and
 criticism of this document.
 
-7. Author's Address
+10. Author's Address
 
 Al Costanzo
 AKC Computer Services Corp.
- P.O. Box 4031
-Roselle Park, NJ 07204-0531
+ P.O. Box 4031, Roselle Park, NJ 07204-0531
+ www.AKC.com
 Phone: +1 908 298 9000
 Email: AL@AKC.COM
 
-
-
-
-
-
-
-
-
-
-
-
-
-Costanzo                                                          [Page  9]
-
-
-EXPIRES IN SIX MONTHS                                              May 2000
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Costanzo                                                          [Page 11]
