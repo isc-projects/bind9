@@ -74,7 +74,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"invalid time",				/* 44 */
 	"expected a TSIG",			/* 45 */
 	"did not expect a TSIG",		/* 46 */
-	"glue does not exist",			/* 47 */
+	"<available code 47>",			/* 47 */
 	"hint",					/* 48 */
 	"drop",					/* 49 */
 	"zone not loaded",			/* 50 */
