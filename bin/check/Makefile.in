@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.10 2001/03/03 23:11:32 bwelling Exp $
+# $Id: Makefile.in,v 1.11 2001/03/30 00:08:32 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -46,6 +46,10 @@ SRCS =		named-checkconf.c named-checkzone.c check-tool.c
 
 MANPAGES =	named-checkconf.8 named-checkzone.8
 
+HTMLPAGES =	named-checkconf.html named-checkzone.html
+
+MANOBJS =	${MANPAGES} ${HTMLPAGES}
+
 @BIND9_MAKE_RULES@
 
 named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} ${ISCCFGDEPLIBS}
@@ -56,8 +60,10 @@ named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \
 	check-tool.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-clean distclean::
-	rm -f ${TARGETS}
+doc man:: ${MANOBJS}
+
+docclean manclean maintainer-clean::
+	rm -f ${MANOBJS}
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
@@ -67,3 +73,6 @@ install:: named-checkconf named-checkzone installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} named-checkconf ${DESTDIR}${sbindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} named-checkzone ${DESTDIR}${sbindir}
 	for m in ${MANPAGES}; do ${INSTALL_DATA} $$m ${DESTDIR}${mandir}/man8; done
+
+clean distclean::
+	rm -f ${TARGETS}

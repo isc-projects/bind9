@@ -12,44 +12,34 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: named-checkconf.8,v 1.4 2001/01/29 18:38:11 gson Exp $
-
-.Dd Jun 14, 2000
-.Dt NAMED-CHECKCONF 1
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm named-checkconf
-.Nd named configuration file syntax checking tool.
-.Sh SYNOPSIS
-.Nm named-checkconf
-.Op Fl t Ar directory
-.Ar filename
-.Sh DESCRIPTION
-.Pp
-.Nm named-checkconf
-checks the syntax, but not sematics, of the configuration file
-for named.
-.Pp
-The options to
-.Nm named-checkconf
-are as follows:
-.Bl -tag -width Ds
-.It Ar filename
-the name of the configuration file to be checked.
-If not specified it defaults /etc/named.conf.
-.It Fl t
-chroot to
-.Ar directory
-so that include directives in the configuration
-file are processed as if run by a similarly chrooted
-named.
-.El
-.Sh RETURN VALUES
-.Pp
-.Nm named-checkconf
-return a an exit status of 1 if errors were detected,
-0 otherwise.
-.Sh SEE ALSO
-.Xr named 8 .
+.TH "NAMED-CHECKCONF" "8" "June 14, 2000" "BIND9" ""
+.SH NAME
+named-checkconf \- named configuration file syntax checking tool
+.SH SYNOPSIS
+.sp
+\fBnamed-checkconf\fR [ \fB-t \fIdirectory\fB\fR ]  \fBfilename\fR
+.SH "DESCRIPTION"
+.PP
+\fBnamed-checkconf\fR checks the syntax, but not
+the semantics, of a named configuration file.
+.SH "OPTIONS"
+.TP
+\fB-t \fIdirectory\fB\fR
+chroot to \fIdirectory\fR so that include
+directives in the configuration file are processed as if
+run by a similarly chrooted named.
+.TP
+\fBfilename\fR
+The name of the configuration file to be checked. If not
+specified, it defaults to \fI/etc/named.conf\fR.
+.SH "RETURN VALUES"
+.PP
+\fBnamed-checkconf\fR returns an exit status of 1 if
+errors were detected and 0 otherwise.
+.SH "SEE ALSO"
+.PP
+\fBnamed\fR(8),
+\fIBIND 9 Administrator Reference Manual\fR.
+.SH "AUTHOR"
+.PP
+Internet Software Consortium

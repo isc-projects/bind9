@@ -12,53 +12,44 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: named-checkzone.8,v 1.4 2001/01/24 00:56:56 gson Exp $
-
-.Dd Jun 13, 2000
-.Dt NAMED-CHECKZONE 1
-.Os BIND9 9
-.ds vT BIND9 Programmer's Manual
-.Sh NAME
-.Nm named-checkzone
-.Nd Zone validity checking tool.
-.Sh SYNOPSIS
-.Nm named-checkzone
-.Op Fl dq
-.Op Fl c Ar class
-.Ar zonename
-.Ar filename
-.Sh DESCRIPTION
-.Pp
-.Nm named-checkzone
-checks the syntax and integrity of a zone file.
-It performs the same checks as
-.Nm named
-does when loading a zone.  This makes
-.Nm named-checkzone
-useful for checking zone files before
-configuring them into a name server.
-.Pp
-The options to
-.Nm named-checkzone
-are as follows:
-.Bl -tag -width Ds
-.It Fl d
-enable debugging.
-.It Fl q
-quiet mode - exit code only.
-.It Fl c Ar class
-specify the class of the zone.
-If not specified "IN" is assumed.
-.It Ar zonename
-the domain name of the zone being checked.
-.It Ar filename
-the name of the zone file.
-.Sh RETURN VALUES
-.Pp
-.Nm named-checkzone
-return a an exit status of 1 if errors were detected,
-0 otherwise.
-.Sh SEE ALSO
-.Xr named 8 ,
-.Xr RFC1035 .
+.TH "NAMED-CHECKZONE" "8" "June 13, 2000" "BIND9" ""
+.SH NAME
+named-checkzone \- zone file validity checking tool
+.SH SYNOPSIS
+.sp
+\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-q\fR ]  [ \fB-c \fIclass\fB\fR ]  \fBzonename\fR \fBfilename\fR
+.SH "DESCRIPTION"
+.PP
+\fBnamed-checkzone\fR checks the syntax and integrity of
+a zone file. It performs the same checks as \fBnamed\fR
+does when loading a zone. This makes
+\fBnamed-checkzone\fR useful for checking zone
+files before configuring them into a name server.
+.SH "OPTIONS"
+.TP
+\fB-d\fR
+Enable debugging.
+.TP
+\fB-q\fR
+Quiet mode - exit code only.
+.TP
+\fB-c \fIclass\fB\fR
+Specify the class of the zone. If not specified "IN" is assumed.
+.TP
+\fBzonename\fR
+The domain name of the zone being checked.
+.TP
+\fBfilename\fR
+The name of the zone file.
+.SH "RETURN VALUES"
+.PP
+\fBnamed-checkzone\fR returns an exit status of 1 if
+errors were detected and 0 otherwise.
+.SH "SEE ALSO"
+.PP
+\fBnamed\fR(8),
+\fIRFC 1035\fR,
+\fIBIND 9 Administrator Reference Manual\fR.
+.SH "AUTHOR"
+.PP
+Internet Software Consortium
