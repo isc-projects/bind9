@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.15 $)
+AC_REVISION($Revision: 1.16 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1390,7 +1390,7 @@ AC_TRY_COMPILE(
 [
 #include <netdb.h>
 struct hostent  *gethostbyname_r
-        (const char *, struct hostent *, char *, int, int *h_errnop) {}
+(const char *name, struct hostent *hp, char *buf, int len, int *h_errnop) {}
 ],
 [return (0);],
 [
@@ -1457,7 +1457,7 @@ AC_CHECK_FUNC(getnetgrent_r,
 AC_TRY_COMPILE(
 [
 #include <netdb.h>
-int getnetgrent_r(char **, char **, char **, char *, int) {}
+int getnetgrent_r(char **m, char **u, char **d, char *b, int l) {}
 ]
 ,
 [return (0);],

@@ -1,7 +1,7 @@
 #! /bin/sh
 
 
-# From configure.in Revision: 1.14 
+# From configure.in Revision: 1.15 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.13 
@@ -5130,7 +5130,7 @@ if eval "test \"`echo '$ac_cv_func_'gethostbyname_r`\" = yes"; then
 
 #include <netdb.h>
 struct hostent  *gethostbyname_r
-        (const char *, struct hostent *, char *, int, int *h_errnop) {}
+(const char *name, struct hostent *hp, char *buf, int len, int *h_errnop) {}
 
 int main() {
 return (0);
@@ -5360,7 +5360,7 @@ if eval "test \"`echo '$ac_cv_func_'getnetgrent_r`\" = yes"; then
 #include "confdefs.h"
 
 #include <netdb.h>
-int getnetgrent_r(char **, char **, char **, char *, int) {}
+int getnetgrent_r(char **m, char **u, char **d, char *b, int l) {}
 
 
 int main() {
