@@ -52,6 +52,7 @@
 #include <dns/master.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
+#include <dns/resolver.h>
 #include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/tkeyconf.h>
@@ -129,8 +130,16 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	isc_result_t result;
 	isc_int32_t cleaning_interval;
 	dns_tsig_keyring_t *ring;
+	dns_c_forw_t forward;
+	dns_c_iplist_t *forwarders;
+	dns_fwdpolicy_t fwdpolicy;
+	isc_sockaddrlist_t addresses;
+	isc_sockaddr_t *sa, *next_sa;
+	unsigned int i;
 
 	REQUIRE(DNS_VIEW_VALID(view));
+
+	ISC_LIST_INIT(addresses);
 
 	RWLOCK(&view->conflock, isc_rwlocktype_write);
 	
@@ -167,6 +176,40 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 				      0, dispatch, NULL));
 
 	/*
+	 * Set resolver forwarding policy.
+	 */
+	if (dns_c_ctx_getforwarders(cctx, &forwarders) == ISC_R_SUCCESS) {
+		fwdpolicy = dns_fwdpolicy_first;
+		/*
+		 * Ugh.  Convert between list formats.
+		 */
+		for (i = 0; i < forwarders->nextidx; i++) {
+			sa = isc_mem_get(view->mctx, sizeof *sa);
+			if (sa == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto cleanup;
+			}
+			*sa = forwarders->ips[i];
+			isc_sockaddr_setport(sa, 53);
+			ISC_LINK_INIT(sa, link);
+			ISC_LIST_APPEND(addresses, sa, link);
+		}
+		INSIST(!ISC_LIST_EMPTY(addresses));
+		CHECK(dns_resolver_setforwarders(view->resolver, &addresses));
+		/*
+		 * XXXRTH  The configuration type 'dns_c_forw_t' should be
+		 *         elminated.
+		 */
+		if (dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS) {
+			INSIST(forward == dns_c_forw_first ||
+			       forward == dns_c_forw_only);
+			if (forward == dns_c_forw_only)
+				fwdpolicy = dns_fwdpolicy_only;
+		}
+		CHECK(dns_resolver_setfwdpolicy(view->resolver, fwdpolicy));
+	}
+
+	/*
 	 * We have default hints for class IN if we need them.
 	 */
 	if (view->rdclass == dns_rdataclass_in && view->hints == NULL)
@@ -181,7 +224,14 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
-	
+
+	for (sa = ISC_LIST_HEAD(addresses);
+	     sa != NULL;
+	     sa = next_sa) {
+		next_sa = ISC_LIST_NEXT(sa, link);
+		isc_mem_put(view->mctx, sa, sizeof *sa);
+	}
+
 	return (result);
 }
 
@@ -573,8 +623,29 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 	    ISC_R_SUCCESS) {
 		/*
 		 * The interface manager doesn't have a matching dispatcher.
-		 * Create one.
 		 */
+		if (server->querysrc_dispatch != NULL) {
+			/*
+			 * We've already got a custom dispatcher.  If it is
+			 * compatible with the new configuration, use it.
+			 */
+			if (isc_sockaddr_equal(&server->querysrc_address,
+					       &sa)) {
+				dns_dispatch_attach(server->querysrc_dispatch,
+						    dispatchp);
+				return (ISC_R_SUCCESS);
+			}
+			/*
+			 * The existing custom dispatcher is not compatible.
+			 * We don't need it anymore.
+			 */
+			dns_dispatch_detach(&server->querysrc_dispatch);
+		}
+		/*
+		 * Create a custom dispatcher.
+		 */
+		INSIST(server->querysrc_dispatch == NULL);
+		server->querysrc_address = sa;
 		socket = NULL;
 		result = isc_socket_create(ns_g_socketmgr, AF_INET,
 					   isc_sockettype_udp,
@@ -589,7 +660,7 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 		result = dns_dispatch_create(ns_g_mctx, socket,
 					     server->task, 4096,
 					     1000, 32768, 16411, 16433, NULL,
-					     dispatchp);
+					     &server->querysrc_dispatch);
 		/*
 		 * Regardless of whether dns_dispatch_create() succeeded or
 		 * failed, we don't need to keep the reference to the socket.
@@ -597,6 +668,14 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 		isc_socket_detach(&socket);
 		if (result != ISC_R_SUCCESS)
 			return (result);
+		dns_dispatch_attach(server->querysrc_dispatch, dispatchp);
+	} else {
+		/*
+		 * We're sharing a UDP dispatcher with the interface manager
+		 * now.  Any prior custom dispatcher can be discarded.
+		 */
+		if (server->querysrc_dispatch != NULL)
+			dns_dispatch_detach(&server->querysrc_dispatch);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -888,6 +967,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		dns_view_detach(&view);
 	}
 
+	if (server->querysrc_dispatch != NULL)
+		dns_dispatch_detach(&server->querysrc_dispatch);
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
@@ -956,6 +1037,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->tkeyctx = NULL;
 	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, &server->tkeyctx),
 		   "creating TKEY context");
+	server->querysrc_dispatch = NULL;
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -982,6 +1064,7 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
+	REQUIRE(server->querysrc_dispatch == NULL);
 	if (server->tkeyctx != NULL)
 		dns_tkeyctx_destroy(&server->tkeyctx);
 
