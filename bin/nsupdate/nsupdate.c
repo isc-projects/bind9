@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.14 2000/06/30 03:24:27 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.15 2000/06/30 03:45:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -572,7 +572,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	 * Read the owner name
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		puts("failed to read owner name");
 		return (STATUS_SYNTAX);
 	}
@@ -598,7 +598,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	 */
 	if (isrrset) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (word == NULL) {
+		if (*word == 0) {
 			puts("failed to read class or type");
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
@@ -611,7 +611,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			 * Now read the type.
 			 */
 			word = nsu_strsep(&cmdline, " \t\r\n");
-			if (word == NULL) {
+			if (*word == 0) {
 				puts("failed to read type");
 				dns_message_puttempname(updatemsg, &name);
 				return (STATUS_SYNTAX);
@@ -664,7 +664,7 @@ evaluate_prereq(char *cmdline) {
 
 	ddebug ("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		puts ("failed to read operation code");
 		return (STATUS_SYNTAX);
 	}
@@ -708,7 +708,7 @@ evaluate_zone(char *cmdline) {
 
 	ddebug ("evaluate_zone()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		printf("failed to read zone name");
 		return (STATUS_SYNTAX);
 	} else if (zonename != NULL)
@@ -764,7 +764,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 * Read the owner name
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		puts ("failed to read owner name");
 		return (STATUS_SYNTAX);
 	}
@@ -798,7 +798,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 */
 	if (!isdelete) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (word == NULL) {
+		if (*word == 0) {
 			puts ("failed to read owner ttl");
 			dns_message_puttempname(updatemsg, &name);
 			return (STATUS_SYNTAX);
@@ -816,7 +816,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	 * Read the class or type.
 	 */
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
 			rdatatype = dns_rdatatype_any;
@@ -835,7 +835,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		 * Now read the type.
 		 */
 		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (word == NULL) {
+		if (*word == 0) {
 			if (isdelete) {
 				rdataclass = dns_rdataclass_any;
 				rdatatype = dns_rdatatype_any;
@@ -886,8 +886,12 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 				    lex, current_zone, ISC_FALSE, buf,
 				    &callbacks);
 	dns_message_takebuffer(updatemsg, &buf);
-	check_result(result, "dns_rdata_fromtext");
 	isc_lex_destroy(&lex);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttempname(updatemsg, &name);
+		dns_message_puttemprdata(updatemsg, &rdata);
+		return (STATUS_MORE);
+	}
 
 	if (isdelete)
 		rdataclass = dns_rdataclass_none;
@@ -920,7 +924,7 @@ evaluate_update(char *cmdline) {
 
 	ddebug ("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
-	if (word == NULL) {
+	if (*word == 0) {
 		puts ("failed to read operation code");
 		return (STATUS_SYNTAX);
 	}
@@ -968,7 +972,7 @@ get_next_command(void) {
 
 	if (feof(stdin))
 		return (STATUS_QUIT);
-	if (word == NULL)
+	if (*word == 0)
 		return (STATUS_SEND);
 	if (strcasecmp(word, "quit") == 0)
 		return (STATUS_QUIT);
