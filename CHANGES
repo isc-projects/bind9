@@ -1,3 +1,6 @@
+1241.	[bug]		Drop received UDP messsages with a zero source port
+			as these are invariably forged. [RT #2621]
+
 1240.	[bug]		It was possible to leak zone references by
 			specifying an incorrect zone to rndc.
 

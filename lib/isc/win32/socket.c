@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.16 2002/02/18 22:20:13 mayer Exp $ */
+/* $Id: socket.c,v 1.17 2002/04/02 04:36:52 marka Exp $ */
 
 #define MAKE_EXTERNAL 1
 #include <config.h>
@@ -1056,8 +1056,18 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	if ((sock->type == isc_sockettype_tcp) && (cc == 0))
 		return (DOIO_EOF);
 
-	if (sock->type == isc_sockettype_udp)
+	if (sock->type == isc_sockettype_udp) {
 		dev->address.length = msghdr.msg_namelen;
+		if (isc_sockaddr_getport(&dev->address) == 0) {
+			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
+				socket_log(sock, &dev->address, IOEVENT,
+					   isc_msgcat, ISC_MSGSET_SOCKET,
+					   ISC_MSG_ZEROPORT, 
+					   "dropping source port zero packet");
+			}
+			return (DOIO_SOFT);
+		}
+	}
 
 	socket_log(sock, &dev->address, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_PKTRECV,
