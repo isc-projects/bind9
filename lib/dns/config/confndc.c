@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.25.4.2 2001/01/22 20:12:32 bwelling Exp $ */
+/* $Id: confndc.c,v 1.25.4.3 2001/06/28 00:44:45 gson Exp $ */
 
 /*
 **	options {
@@ -1148,6 +1148,7 @@ parse_keystmt(ndcpcontext *pctx, dns_c_kdeflist_t *keys) {
 
 	REQUIRE(DNS_C_NDCCTX_VALID(ctx));
 	REQUIRE(DNS_C_KDEFLIST_VALID(keys));
+	UNUSED(ctx);
 
 	if (!eat(pctx, L_KEY))
 		return (ISC_R_FAILURE);

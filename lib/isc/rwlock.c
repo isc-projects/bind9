@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.26.4.1 2001/01/09 22:49:18 bwelling Exp $ */
+/* $Id: rwlock.c,v 1.26.4.2 2001/06/28 00:42:53 gson Exp $ */
 
 #include <config.h>
 
@@ -300,6 +300,8 @@ isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	REQUIRE(VALID_RWLOCK(rwl));
 	REQUIRE(rwl->type == type);
+
+	UNUSED(type);
 
 	INSIST(rwl->active > 0);
 	rwl->active--;
