@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.28 2001/01/22 03:59:18 gson Exp $ */
+/* $Id: confndc.c,v 1.29 2001/01/23 13:15:12 brister Exp $ */
 
 /*
 **	options {
@@ -110,6 +110,7 @@ struct keywordtoken {
 #define L_SERVER                                           18
 #define L_STRING                                           20
 #define L_INTEGER					   21
+#define L_INCLUDE					   22
 
 static struct keywordtoken keyword_tokens[] = {
         { "{",                          L_LBRACE },
@@ -123,6 +124,7 @@ static struct keywordtoken keyword_tokens[] = {
 	{ "secret",			L_SECRET },
 	{ "options", 			L_OPTIONS },
 	{ "server", 			L_SERVER },
+	{ "include", 			L_INCLUDE },
         { NULL, 0 }
 };
 
@@ -145,6 +147,7 @@ static struct keywordtoken misc_tokens[] = {
 
 static isc_result_t parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context);
 
+static isc_result_t parse_includestmt(ndcpcontext *pctx);
 static isc_result_t parse_statement(ndcpcontext *pctx);
 static isc_result_t parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts);
 static isc_result_t parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server);
@@ -834,6 +837,16 @@ parse_file(ndcpcontext *pctx, dns_c_ndcctx_t **context) {
 			done = ISC_TRUE;
 			break;
 
+		case L_END_INCLUDE:
+			eat(pctx, L_END_INCLUDE);
+			break;
+
+		case L_INCLUDE:
+			result = parse_includestmt(pctx);
+			if (result != ISC_R_SUCCESS)
+				done = ISC_TRUE;
+			break;
+
 		default:
 			result = parse_statement(pctx);
 			if (result != ISC_R_SUCCESS) {
@@ -988,6 +1001,40 @@ parse_options(ndcpcontext *pctx, dns_c_ndcopts_t **opts) {
 	return (result);
 }
 
+
+static isc_result_t
+parse_includestmt(ndcpcontext *pctx) {
+	isc_result_t result;
+	char filename [ISC_DIR_PATHMAX + 100];
+	
+	if (!eat(pctx, L_INCLUDE))
+		return (ISC_R_FAILURE);
+
+	if (!looking_at(pctx, L_QSTRING))
+		return (ISC_R_FAILURE);
+
+	strncpy(filename, pctx->tokstr, sizeof(filename) - 1);
+	
+	eat(pctx, L_QSTRING);
+
+	if (!looking_at(pctx, L_EOS))
+		return (ISC_R_FAILURE);
+	
+	printf("processing include file: %s\n", filename);
+        result = isc_lex_openfile(pctx->thelexer, filename);
+	if (result != ISC_R_SUCCESS) {
+		parser_error(pctx, ISC_TRUE,
+			     "cannot open include file %s: %s\n",
+			     filename, isc_result_totext(result));
+		return (result);
+	}
+
+	eat(pctx, L_EOS);
+
+	return (result);
+}
+
+		
 
 static isc_result_t
 parse_serverstmt(ndcpcontext *pctx, dns_c_ndcserver_t **server) {
@@ -1665,7 +1712,6 @@ getnexttoken(ndcpcontext *pctx) {
 				 * main file and not an included file.
 				 */
 				pctx->currtok = L_END_INPUT;
-
 			} else {
 				pctx->currtok = L_END_INCLUDE;
 			}
