@@ -1960,6 +1960,9 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 				goto out;
 			}
 
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_socket_sendto: "
+					 "errno: %s", strerror(errno));
 			sock->send_result = ISC_R_UNEXPECTED;
 			send_senddone_event(sock, &task, NULL, &dev,
 					    ISC_R_UNEXPECTED);
