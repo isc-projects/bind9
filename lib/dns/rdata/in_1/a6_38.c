@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.15 1999/09/15 23:03:34 explorer Exp $ */
+ /* $Id: a6_38.c,v 1.16 1999/10/08 22:46:28 tale Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -47,7 +47,7 @@ fromtext_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (token.value.as_ulong > 128)
 		return (DNS_R_RANGE);
 
-	prefixlen = token.value.as_ulong;
+	prefixlen = token.value.as_char;
 	RETERR(mem_tobuffer(target, &prefixlen, 1));
 
 	/* suffix */
