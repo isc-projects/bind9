@@ -43,12 +43,20 @@ typedef void (*isc_memfree_t)(void *, void *);
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
+#define isc_mem_allocate(c, p, s)	__isc_mem_allocatedebug(c, s, \
+							    __FILE__, __LINE__)
+#define isc_mem_free(c, p)	__isc_mem_freedebug(c, p, __FILE__, __LINE__)
+#define isc_mem_strdup(c, p)	__isc_mem_strdupdebug(c, p, \
+						      __FILE__, __LINE__)
 #define isc_mempool_get(c)	__isc_mempool_getdebug(c, __FILE__, __LINE__)
 #define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, \
 						       __FILE__, __LINE__)
 #else
 #define isc_mem_get		__isc_mem_get
 #define isc_mem_put		__isc_mem_put
+#define isc_mem_allocate	__isc_mem_allocate
+#define isc_mem_free		__isc_mem_free
+#define isc_mem_strdup		__isc_mem_strdup
 #define isc_mempool_get		__isc_mempool_get
 #define isc_mempool_put		__isc_mempool_put
 #endif /* ISC_MEM_DEBUG */
@@ -66,9 +74,16 @@ void 				__isc_mem_putdebug(isc_mem_t *, void *,
 						   size_t, const char *, int);
 void 				isc_mem_stats(isc_mem_t *, FILE *);
 isc_boolean_t			isc_mem_valid(isc_mem_t *, void *);
-void *				isc_mem_allocate(isc_mem_t *, size_t);
-void				isc_mem_free(isc_mem_t *, void *);
-char *				isc_mem_strdup(isc_mem_t *, const char *);
+void *				__isc_mem_allocate(isc_mem_t *, size_t);
+void *				__isc_mem_allocatedebug(isc_mem_t *, size_t,
+							const char *, int);
+void				__isc_mem_free(isc_mem_t *, void *);
+void				__isc_mem_freedebug(isc_mem_t *, void *,
+						    const char *, int);
+char *				__isc_mem_strdup(isc_mem_t *, const char *);
+char *				__isc_mem_strdupdebug(isc_mem_t *,
+						      const char *,
+						      const char *, int);
 isc_boolean_t			isc_mem_destroy_check(isc_mem_t *, isc_boolean_t);
 void				isc_mem_setquota(isc_mem_t *, size_t);
 size_t				isc_mem_getquota(isc_mem_t *);

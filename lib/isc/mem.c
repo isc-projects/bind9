@@ -568,8 +568,7 @@ __isc_mem_putdebug(isc_mem_t *ctx, void *ptr, size_t size, const char *file,
  * Print the stats[] on the stream "out" with suitable formatting.
  */
 void
-isc_mem_stats(isc_mem_t *ctx, FILE *out)
-{
+isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	size_t i;
 	const struct stats *s;
 	const isc_mempool_t *pool;
@@ -636,27 +635,51 @@ isc_mem_valid(isc_mem_t *ctx, void *ptr) {
 }
 
 /*
- * Replacements for malloc() and free().
+ * Replacements for malloc() and free() -- they implicitly remember the
+ * size of the object allocated (with some additional overhead).
  */
 
 void *
-isc_mem_allocate(isc_mem_t *ctx, size_t size) {
+__isc_mem_allocate(isc_mem_t *ctx, size_t size) {
 	size_info *si;
 
 	size += ALIGNMENT_SIZE;
-	si = isc_mem_get(ctx, size);
+	si = __isc_mem_get(ctx, size);
 	if (si == NULL)
 		return (NULL);
 	si->u.size = size;
 	return (&si[1]);
 }
 
+void *
+__isc_mem_allocatedebug(isc_mem_t *ctx, size_t size, const char *file,
+			int line) {
+	size_info *si;
+
+	si = __isc_mem_allocate(ctx, size);
+	if (si == NULL)
+		return (NULL);
+	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
+		ctx, (unsigned long)si[-1].u.size, si);
+	return (si);
+}
+
 void
-isc_mem_free(isc_mem_t *ctx, void *ptr) {
+__isc_mem_free(isc_mem_t *ctx, void *ptr) {
 	size_info *si;
 
 	si = &(((size_info *)ptr)[-1]);
-	isc_mem_put(ctx, si, si->u.size);
+	__isc_mem_put(ctx, si, si->u.size);
+}
+
+void
+__isc_mem_freedebug(isc_mem_t *ctx, void *ptr, const char *file, int line) {
+	size_info *si;
+
+	si = &(((size_info *)ptr)[-1]);
+	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
+		ctx, ptr, (unsigned long)si->u.size);
+	__isc_mem_put(ctx, si, si->u.size);
 }
 
 /*
@@ -664,17 +687,30 @@ isc_mem_free(isc_mem_t *ctx, void *ptr) {
  */
 
 char *
-isc_mem_strdup(isc_mem_t *mctx, const char *s) {
+__isc_mem_strdup(isc_mem_t *mctx, const char *s) {
 	size_t len;
 	char *ns;
 
 	len = strlen(s);
-	ns = isc_mem_allocate(mctx, len + 1);
+	ns = __isc_mem_allocate(mctx, len + 1);
 	if (ns == NULL)
 		return (NULL);
 	strncpy(ns, s, len + 1);
 	
 	return (ns);
+}
+
+char *
+__isc_mem_strdupdebug(isc_mem_t *mctx, const char *s, const char *file,
+		      int line) {
+	char *ptr;
+	size_info *si;
+
+	ptr = __isc_mem_strdup(mctx, s);
+	si = &(((size_info *)ptr)[-1]);
+	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
+		mctx, (unsigned long)si->u.size, ptr);
+	return (ptr);
 }
 
 isc_boolean_t
