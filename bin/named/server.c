@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.405 2003/09/30 05:56:01 marka Exp $ */
+/* $Id: server.c,v 1.406 2003/10/26 21:33:44 marka Exp $ */
 
 #include <config.h>
 
@@ -1740,7 +1740,7 @@ interface_timer_tick(isc_task_t *task, isc_event_t *event) {
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	scan_interfaces(server, ISC_FALSE);
-	isc_task_endexclusive(server->task);	
+	isc_task_endexclusive(server->task);
 }
 
 static void

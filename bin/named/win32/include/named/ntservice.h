@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.h,v 1.2 2002/08/03 01:31:48 mayer Exp $ */
+/* $Id: ntservice.h,v 1.3 2003/10/26 21:33:45 marka Exp $ */
 
 #ifndef NTSERVICE_H
 #define NTSERVICE_H

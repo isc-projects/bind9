@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.271 2003/10/25 00:31:11 jinmei Exp $ */
+/* $Id: resolver.c,v 1.272 2003/10/26 21:33:47 marka Exp $ */
 
 #include <config.h>
 
@@ -531,7 +531,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 						   0, factor);
 
 	if (finish != NULL && TRIEDFIND(fctx))
-                for (find = ISC_LIST_HEAD(fctx->finds);
+		for (find = ISC_LIST_HEAD(fctx->finds);
 		     find != NULL;
 		     find = ISC_LIST_NEXT(find, publink))
 			for (addrinfo = ISC_LIST_HEAD(find->list);
@@ -1249,7 +1249,7 @@ resquery_send(resquery_t *query) {
 
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
-	 *         prune out these addresses when we get them from the ADB.
+	 *	   prune out these addresses when we get them from the ADB.
 	 */
 	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
 				   query, address, NULL);
@@ -2599,8 +2599,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->attributes = 0;
 
 	dns_name_init(&fctx->nsname, NULL);
-        fctx->nsfetch = NULL;
-        dns_rdataset_init(&fctx->nsrrset);
+	fctx->nsfetch = NULL;
+	dns_rdataset_init(&fctx->nsrrset);
 
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;
@@ -3379,7 +3379,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 			if (rdataset->trust == dns_trust_glue &&
 			    (rdataset->type == dns_rdatatype_ns ||
-		             (rdataset->type == dns_rdatatype_rrsig &&
+			     (rdataset->type == dns_rdatatype_rrsig &&
 			      rdataset->covers == dns_rdatatype_ns))) {
 				/*
 				 * If the trust level is 'dns_trust_glue'
@@ -3970,7 +3970,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 				type = rdataset->type;
 				if (type == dns_rdatatype_rrsig)
 					type = rdataset->covers;
-			        if (((type == dns_rdatatype_ns ||
+				if (((type == dns_rdatatype_ns ||
 				      type == dns_rdatatype_soa) &&
 				     !dns_name_issubdomain(qname, name)))
 					return (DNS_R_FORMERR);
@@ -4157,7 +4157,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 * Set the current query domain to the referral name.
 		 *
 		 * XXXRTH  We should check if we're in forward-only mode, and
-		 *         if so we should bail out.
+		 *	   if so we should bail out.
 		 */
 		INSIST(dns_name_countlabels(&fctx->domain) > 0);
 		dns_name_free(&fctx->domain, fctx->res->mctx);
@@ -4721,7 +4721,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * XXXRTH  We should really get the current time just once.  We
-	 *         need a routine to convert from an isc_time_t to an
+	 *	   need a routine to convert from an isc_time_t to an
 	 *	   isc_stdtime_t.
 	 */
 	TIME_NOW(&tnow);
@@ -4906,8 +4906,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * It's very likely they don't like EDNS0.
 			 *
 			 * XXXRTH  We should check if the question
-			 *         we're asking requires EDNS0, and
-			 *         if so, we should bail out.
+			 *	   we're asking requires EDNS0, and
+			 *	   if so, we should bail out.
 			 */
 			options |= DNS_FETCHOPT_NOEDNS0;
 			resend = ISC_TRUE;
@@ -5240,7 +5240,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						  dns_rdatatype_ns,
 						  NULL, NULL, NULL, 0, task,
 						  resume_dslookup, fctx,
-					          &fctx->nsrrset, NULL,
+						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result);
