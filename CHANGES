@@ -13,7 +13,8 @@
 1733.	[bug]		Return non-zero exit status on initial load failure.
 			[RT #12658]
 
-1732.	[placeholder]	rt12467
+1732.	[bug]		'rrset-order name "*"' wasn't being applied to ".".
+			[RT #12467]
 
 1731.	[port]		darwin: relax version test in ifconfig.sh.
 			[RT #12581]

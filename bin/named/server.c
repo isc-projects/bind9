@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.429 2004/09/29 06:45:37 marka Exp $ */
+/* $Id: server.c,v 1.430 2004/10/05 04:38:17 marka Exp $ */
 
 #include <config.h>
 
@@ -522,6 +522,7 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 	const char *str;
 	isc_buffer_t b;
 	isc_result_t result;
+	isc_boolean_t addroot;
 
 	result = ns_config_getclass(cfg_tuple_get(ent, "class"),
 				    dns_rdataclass_any, &rdclass);
@@ -538,11 +539,12 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 		str = cfg_obj_asstring(obj);
 	else
 		str = "*";
+	addroot = ISC_TF(strcmp(str, "*") == 0);
 	isc_buffer_init(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
 	dns_fixedname_init(&fixed);
 	result = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-				  dns_rootname, ISC_FALSE, NULL);
+				   dns_rootname, ISC_FALSE, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -557,6 +559,18 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 		mode = 0;
 	else
 		INSIST(0);
+
+	/*
+	 * "*" should match everything including the root (BIND 8 compat).
+	 * As dns_name_matcheswildcard(".", "*.") returns FALSE add a
+	 * explict entry for "." when the name is "*".
+	 */
+	if (addroot) {
+		result = dns_order_add(order, dns_rootname,
+				       rdtype, rdclass, mode);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	return (dns_order_add(order, dns_fixedname_name(&fixed),
 			      rdtype, rdclass, mode));
