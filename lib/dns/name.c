@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.130 2001/12/04 01:32:41 bwelling Exp $ */
+/* $Id: name.c,v 1.131 2001/12/28 20:59:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3308,8 +3308,7 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 
 isc_result_t
 dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
-	unsigned char *ndata, *offsets;
-	dns_offsets_t odata;
+	unsigned char *ndata;
 
 	/*
 	 * Make dest a copy of source.
@@ -3346,8 +3345,10 @@ dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) {
 		dest->attributes = 0;
 
 	if (dest->labels > 0 && dest->offsets != NULL) {
-		INIT_OFFSETS(dest, offsets, odata);
-		set_offsets(dest, offsets, NULL);
+		if (source->offsets != NULL)
+			memcpy(dest->offsets, source->offsets, source->labels);
+		else
+			set_offsets(dest, dest->offsets, NULL);
 	}
 
 	isc_buffer_add(target, dest->length);
