@@ -15,13 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.39 2000/08/01 01:13:14 tale Exp $ */
+/* $Id: rbt_test.c,v 1.40 2000/11/20 22:01:53 gson Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
+#ifndef ISC_MEM_TRACKLINES
 #define ISC_MEM_TRACKLINES
+#endif
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
