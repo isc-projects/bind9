@@ -1,10 +1,9 @@
 INTERNET-DRAFT                                    John C. Klensin
-Expires May 2001
-November 10, 2000
+December 13, 2000
+Expires June 2000
 
 	 Reflections on the DNS, RFC 1591, and Categories of Domains
-
-				draft-klensin-1591-reflections-01.txt
+				draft-klensin-1591-reflections-02.txt
 
 Status of this Memo
 
@@ -47,22 +46,25 @@ bodies to update it or adjust its provisions, sometimes under
 pressures that have arguably produced policies that are less well
 thought out than the original.  Some of those efforts have begun from
 misconceptions about the provisions of 1591 or the motivation for
-those provisions.  This memo includes some thoughts about how 1591
-might be interpreted and adjusted by the IANA and ICANN to better
-reflect today's world while retaining characteristics and policies
-that have proven to be effective in supporting Internet growth and
-stability.  An earlier variation of this memo was submitted to ICANN
-as a comment on its evolving TLD policies.
-
+those provisions.  The current directions of ICANN and other groups
+who now determine DNS policy directions appear to be drifting away
+from policies and philosophy of 1591.  This document is being
+published primarily for historical context and comparative purposes,
+essentially to document some thoughts about how 1591 might have been
+interpreted and adjusted by the IANA and ICANN to better reflect
+today's world while retaining characteristics and policies that have
+proven to be effective in supporting Internet growth and stability.
+An earlier variation of this memo was submitted to ICANN as a comment
+on its evolving TLD policies.
 
 
 1.  Introduction
 
-RFC1591 has been heavily discussed and referenced in recent months,
-especially in discussions within ICANN and its predecessors about the
-creation, delegation, and management of top-level domains.  In
-particular, the ICANN Domain Name Supporting Organization (DNSO), and
-especially its ccTLD constituency, have been the home of many
+RFC1591 has been heavily discussed and referenced in the last year or
+two, especially in discussions within ICANN and its predecessors
+about the creation, delegation, and management of top-level domains.
+In particular, the ICANN Domain Name Supporting Organization (DNSO),
+and especially its ccTLD constituency, have been the home of many
 discussions in which 1591 and interpretations of it have been cited
 in support of a variety of sometimes-contradictory positions.  During
 that period, other discussions have gone on to try to reconstruct the
@@ -84,7 +86,7 @@ within the broad contexts of "public service on behalf of the
 Internet community" and "trustee... for the global Internet
 community"-- was considered a design feature and a safeguard against
 a variety of potential abuses.  Obviously the world has changed in
-many ways in the five or six years since 1591 was written.  In
+many ways in the six or seven years since 1591 was written.  In
 particular, the Internet has become more heavily used and, because
 the design of the world wide web has put domain names in front of
 users, top-level domain names and registrations in them have been
@@ -93,32 +95,33 @@ dramatically during that time, but the ratio between registered
 domain names and physical hosts has increased very significantly.
 
 The issues 1591 attempted to address when it was written and those we
-face today have not changed significantly in principle. But we should
-take a step back to refine it into a model that can function
-effectively today.  Therefore, it may be useful to try to reconstruct
-1591's principles and think about their applicability today as a
-model that can continue to be applied: not because it is historically
-significant, but because many of its elements have proven to work
-reasonably well, even in difficult situations.  In particular, for
-many domains (some in 1591's "generic" list and others in its
-"country code" category) the notion of "public service" --expected
-then to imply being carried out at no or minimal cost to the users,
-not merely on a non-profit basis-- has yielded to profitability
-calculations.  And, in most of the rest, considerations of at least
-calculating and recovering costs have crept in.  While many of us
-feel some nostalgia for the old system, it is clear that its days are
-waning if not gone: perhaps the public service notions as understood
-when 1591 was written just don't scale to rapid internet growth and
-very large numbers of registrations.
+face today have not changed significantly in principle. But one
+alternative to present trends would be to take a step back to refine
+it into a model that can function effectively today.  Therefore, it
+may be useful to try to reconstruct 1591's principles and think about
+their applicability today as a model that could continue to be
+applied: not because it is historically significant, but because many
+of its elements have proven to work reasonably well, even in
+difficult situations.  In particular, for many domains (some in
+1591's "generic" list and others in its "country code" category) the
+notion of "public service" --expected then to imply being carried out
+at no or minimal cost to the users, not merely on a non-profit
+basis-- has yielded to profitability calculations.  And, in most of
+the rest, considerations of at least calculating and recovering costs
+have crept in.  While many of us feel some nostalgia for the old
+system, it is clear that its days are waning if not gone: perhaps the
+public service notions as understood when 1591 was written just don't
+scale to rapid internet growth and very large numbers of
+registrations.
 
 In particular, some ccTLDs have advertised for registrations outside
 the designated countries (or other entities), while others have made
-clear decisions to allow registrations by non-nationals (e.g., the UK
-or Australia).  These decisions and others have produced protests
-from many sides, suggesting, in turn, that a recategorization is in
-order. For example, we have heard concerns by governments and
-managers of traditional, "public service", in-country, ccTLDs about
-excessive ICANN interference and fears of being forced to conform to
+clear decisions to allow registrations by non-nationals.  These
+decisions and others have produced protests from many sides,
+suggesting, in turn, that a recategorization is in order. For
+example, we have heard concerns by governments and managers of
+traditional, "public service", in-country, ccTLDs about excessive
+ICANN interference and fears of being forced to conform to
 internationally-set policies for dispute resolution when their
 domestic ones are considered more appropriate.  We have also heard
 concerns from registrars and operators of externally-marketed ccTLDs
@@ -146,9 +149,8 @@ ccTLDs but among:
    Government TLDs MIL and GOV.  There have been proposals from
    time to time for other international TLDs of this variety, e.g.,
    for medical entities such as physicians and hospitals and for
-   museums.  Some of these proposals are in front of ICANN as this
-   document is being written; ICANN describes them as "sponsored"
-   TLDs.
+   museums.  ICANN has recently approved several TLDs of this type
+   and describes them as "sponsored" TLDs.
 
    (iii) Country domains, operated according to the original
    underlying assumptions of 1591, i.e., registrants are largely
@@ -171,15 +173,16 @@ registered 3166-1 two letter codes should be used as two-letter TLDs.
 
 2. Implications of the Categories
 
-If we adopt this type of three-way categorization and can make it
-work, I believe it presents several opportunities for ICANN and the
-community more generally to reduce controversies and move forward. Of
-course, there will be cases where the categorization of a particular
-domain and its operating style will not be completely clear-cut (see
-section 3, below).  But having ICANN work out procedures for dealing
-with those (probably few) situations appears preferable to strategies
-that would tend to propel ICANN into areas that are beyond its
-competence or that might require significant expansion of its mandate.
+If we had adopted this type of three-way categorization and could
+make it work, I believe it would have presented several opportunities
+for ICANN and the community more generally to reduce controversies
+and move forward. Of course, there will be cases where the
+categorization of a particular domain and its operating style will
+not be completely clear-cut (see section 3, below).  But having ICANN
+work out procedures for dealing with those (probably few) situations
+appears preferable to strategies that would tend to propel ICANN into
+areas that are beyond its competence or that might require
+significant expansion of its mandate.
 
 First, the internally-operated ccTLDs (category iii above) should not
 be required to have much interaction with ICANN or vice versa.  Once
@@ -250,7 +253,7 @@ Internet interoperability and stability.
 
 ICANN's avoiding such involvement strengthens it: the desirability of
 avoiding collisions with national sovereignty, determinations about
-government legitimacy, and the authority of someone proportedly
+government legitimacy, and the authority of someone purportedly
 writing on behalf of a government, is as important today as it was
 when 1591 was written.  The alternatives take us quickly from
 "administration" into "internet governance" or, in the case of
@@ -293,38 +296,39 @@ This, obviously, is also the argument against use of the "reserved"
 list, at least without explicit agreement with 3166/MA: since IANA
 (or ICANN) can ask that a name be placed on that list, there is no
 rule of an absolute determination by an external organization.
-Proported countries can come to ICANN, insist on having delegations
+Purported countries can come to ICANN, insist on having delegations
 made and persuade ICANN to ask that the names be reserved.  Then,
-since the reserved name would exist, insist that the domain be
-delegated.  Worse, someone could use another organization to request
-reservation of the name by 3166/MA; once it was reserved, ICANN might
-be hard-pressed not to do the delegation.  Of course, ICANN could
-(and probably would be forced to) adopt additional criteria other
-than appearance on the "reserved list" in order to delegate such
-domains.  But those criteria would almost certainly be nearly
-equivalent to determining which applicants were legitimate and stable
-enough to be considered a country, the exact decision process that
-1591 strove to avoid.
+since the reserved name would exist, they could insist that the
+domain be delegated.  Worse, someone could use another organization
+to request reservation of the name by 3166/MA; once it was reserved,
+ICANN might be hard-pressed not to do the delegation.  Of course,
+ICANN could (and probably would be forced to) adopt additional
+criteria other than appearance on the "reserved list" in order to
+delegate such domains.  But those criteria would almost certainly be
+nearly equivalent to determining which applicants were legitimate and
+stable enough to be considered a country, the exact decision process
+that 1591 strove to avoid.
 
 The other two considerations were more subtle and not always
 successful: from time to time, both before and after the formal
 policy shifted toward "governments could have their way", IANA
-received letters from people proporting to be competent government
+received letters from people purporting to be competent government
 authorities asking for changes.  Some of them turned out later to not
-have that authority or those qualifications.  The assumption of 1591
-itself was that, if the "administrative contact in country" rule was
-strictly observed, as was the rule that delegation changes requested
-by the administrative contact would be honored, then, if a government
-_really_ wanted to assert itself, it could pressure the
+have that authority or appropriate qualifications.  The assumption of
+1591 itself was that, if the "administrative contact in country" rule
+was strictly observed, as was the rule that delegation changes
+requested by the administrative contact would be honored, then, if a
+government _really_ wanted to assert itself, it could pressure the
 administrative contact into requesting the changes it wanted, using
 whatever would pass for due process in that country.  And the ability
 to apply that process and pressure would effectively determine who
 was the government and who wasn't, and would do so far more
 effectively than any IANA evaluation of, e.g., whether the letterhead
 on a request looked authentic (and far more safely for ICANN than
-asking the opinion of any particular other government).
+asking the opinion of any particular other government or selection of
+governments).
 
-Specific language in 1591 permitted IANA to adopt a "work it our
+Specific language in 1591 permitted IANA to adopt a "work it out
 yourselves; if we have to decide, we will strive for a solution that
 is not satisfactory to any party" stance.  That approach was used
 successfully, along with large doses of education, on many occasions
@@ -342,7 +346,8 @@ make a change, the best mechanism for doing so is not to involve
 ICANN in a potential determination of legitimacy (or even to have the
 GAC try to formally make that decision for individual countries) but
 for the relevant government to use its own procedures to persuade the
-administrative contact to request the change.
+administrative contact to request the change and for IANA to promptly
+and efficiently carry out requests made by administrative contacts.
 
 
 6. Implications for the current DNSO structure.
@@ -351,15 +356,15 @@ The arguments by some of the ccTLD administrators that they are
 different from the rest of the ICANN and DNSO structures are (in this
 model) correct: they are different.  The ccTLDs that are operating as
 generic TLDs should be separated from the ccTLD constituency and
-joined to the gTLD constituency (which could use a few more members).
-The country ccTLDs should be separated from ICANN's immediate
-Supporting Organization structure, and operate in a parallel and
-advisory capacity to ICANN, similar to the arrangements used with the
-GAC. The DNSO and country TLDs should not be required to interact
-with each other except on a mutually voluntary basis and, if ICANN
-needs interaction or advice from some of all of those TLDs, it would
-be more appropriate to get it in the form of an advisory body like
-the GAC rather than as DNSO constituency.
+joined to the gTLD constituency.  The country ccTLDs should be
+separated from ICANN's immediate Supporting Organization structure,
+and operate in a parallel and advisory capacity to ICANN, similar to
+the arrangements used with the GAC. The DNSO and country TLDs should
+not be required to interact with each other except on a mutually
+voluntary basis and, if ICANN needs interaction or advice from some
+of all of those TLDs, it would be more appropriate to get it in the
+form of an advisory body like the GAC rather than as DNSO
+constituency.
 
 7. References
 
@@ -372,12 +377,13 @@ the GAC rather than as DNSO constituency.
 
 These reflections have been prepared in my individual capacity and do
 not necessarily reflect the views of my past or present employers.
-Several people, including Randy Bush, Theresa Swinehart, Zita Wenzel
-and several anonymous reviewers, made suggestions about earlier
-versions of this document.  Those comments contributed significantly
-to whatever clarity the document has, but the author bears
-responsibility for the selection of comments which were ultimately
-incorporated and the way in which the conclusions were presented.
+Several people, including Randy Bush, Theresa Swinehart, Zita Wenzel,
+Geoff Huston, Havard Eidnes, and several anonymous reviewers, made
+suggestions or offered editorial comments about earlier versions of
+this document.  Those comments contributed significantly to whatever
+clarity the document has, but the author bears responsibility for the
+selection of comments which were ultimately incorporated and the way
+in which the conclusions were presented.
 
 9.  Security Considerations
 

@@ -1,7 +1,7 @@
 Internet Draft                                      Naomasa Maruyama 
-draft-ietf-idn-aceid-00.txt                           Yoshiro Yoneya 
-November 17, 2000                                              JPNIC 
-Expires May 17, 2001
+draft-ietf-idn-aceid-01.txt                           Yoshiro Yoneya 
+Dec 11, 2000                                              JPNIC 
+Expires June 11, 2001
 
            Proposal for a determining process of ACE identifier
 
@@ -75,17 +75,16 @@ identifiers and a method for assigning them.
 
     All strings starting with a combination of two alpha-numericals,
 followed by two hyphens, are defined to be ACE prefix identifier
-candidates.  All strings starting with one hyphen followed by three
-alpha-numericals, and strings starting with two hyphens followed by
-two alpha-numericals are defined as ACE suffix identifier candidates.
-ACE prefix identifier candidates and ACE suffix identifier candidates
-are collectively called ACE identifier candidates.
+candidates.  All strings starting with two hyphens followed by two
+alpha-numericals are defined as ACE suffix identifier candidates.  ACE
+prefix identifier candidates and ACE suffix identifier candidates are
+collectively called ACE identifier candidates.
 
     All the domain name registries recognized by ICANN SHOULD
 tentatively suspend registration of domain names which have an ACE
-prefix identifier candidate at the heads of one of the labels of the
+prefix identifier candidate at the head of at least one label of the
 domain name and those which have an ACE suffix identifier candidate at
-the tail of one of the labels of the name.  These domain names are
+the tail of at least one label of the name.  These domain names are
 collectively called "relevant domain names".
 
     This suspension should be continued until March 1, 2001 00:00:00 UTC.
@@ -102,14 +101,14 @@ candidates which are used by relevant domain names.
 2.3 Selection of ACE identifiers and permanent blocking of
      relevant domain names
 
-    The IDN WG MUST summarize the reports and list ACE identifier
-candidates that are not reported to be used in registered domain names
-by February 17, 2001 00:00:00 UTC, and select ten to twenty ACE prefix
-identifier candidates and ten to twenty ACE suffix identifier
-candidates for ACE identifiers.  Among these twenty to forty ACE
-identifiers, one prefix identifier and one suffix identifier will be
-used for experiments.  Others will be used, one by one as ACE standard
-evolves.
+    The IDN WG or other organ of IETF or ICANN MUST summarize the
+reports and list ACE identifier candidates that are not reported to be
+used in registered domain names by February 17, 2001 00:00:00 UTC, and
+select ten to twenty ACE prefix identifier candidates and ten to
+twenty ACE suffix identifier candidates for ACE identifiers.  Among
+these twenty to forty ACE identifiers, one prefix identifier and one
+suffix identifier will be used for experiments.  Others will be used,
+one by one as ACE standard evolves.
 
     The list of ACE identifiers will be sent to IANA, and will be
 maintained by IANA from February 24, 2001 00:00:00 UTC.  Domain names
@@ -160,10 +159,24 @@ number, with one of the ACE identifiers.
 
 5. Security considerations
 
-None in particular.
+    None in particular.
 
 
-6. References
+6. Changes from the previous version
+
+    We excluded suffixes of one hyphen followed by three alpha-
+numericals from the candidates.  This is because we found that, as of
+Nov. 29, 2000, there were 23,921 domain names registered in the .JP
+space relevant to these suffixes.  This was more than 10% of 227,852
+total registrations in the JPNIC database at the moment, and hence we
+felt these suffixes are not good candidates.
+
+    In addition to this and some minor linguistic corrections, we
+changed "The IDN WG" in section 2.3 to "The IDN WG or other organ of
+IETF or ICANN".
+
+
+7. References
 
 [IDNREQ]        Z Wenzel, J Seng, "Requirements of Internationalized Domain
                 Names", draft-ietf-idn-requirements-03.txt, Jun 2000.
@@ -181,12 +194,15 @@ None in particular.
                 names protocols", draft-ietf-idn-version-00.txt, Nov 2000.
 
 
-7. Acknowledgements
+8. Acknowledgements
 
-JPNIC IDN-TF members,
-Dave Crocker.
+    We would like to express our hearty thanks to members of JPNIC IDN
+Task Force for valuable discussions about this issue.  We also would
+like to express our appreciation to Mr. Dave Crocker for checking and
+correcting the preliminary version of this draft.
 
-8. Author's Address
+
+9. Author's Address
 
 Naomasa Maruyama
 Japan Network Information Center
