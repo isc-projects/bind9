@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.257 2003/01/14 00:28:49 marka Exp $ */
+/* $Id: resolver.c,v 1.258 2003/01/15 05:05:13 marka Exp $ */
 
 #include <config.h>
 
@@ -4856,9 +4856,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns,
-						  &fctx->domain,
-						  &fctx->nameservers, NULL,
-						  0, task,
+						  NULL, NULL, NULL, 0, task,
 						  resume_dslookup, fctx,
 					          &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
