@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-AC_REVISION($Revision: 1.103 $)
+AC_REVISION($Revision: 1.104 $)
 
 AC_PREREQ(2.13)
 
@@ -256,18 +256,31 @@ AC_CHECK_LIB(c, sigwait,
 )
 
 #
-# Additional OS-specific searching for sigwait.
+# Additional OS-specific issues related to pthreads.
 #
 case "$host" in
+        #
+        # One more place to look for sigwait.
+        #
 	*-freebsd*)
 		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 		;;
-esac
-
-#
-# Make sure we get the right sigwait() semantics...
-#
-case "$host" in
+        #
+        # BSDI 3.1 through 4.0.1 needs pthread_init() to be called before
+        # certain pthreads calls.  This is deprecated in BSD/OS 4.1.
+        #
+	*-bsdi3.1*|*-bsdi4.0*)
+		AC_DEFINE(NEED_PTHREAD_INIT)
+		;;
+        #
+        # LinuxThreads requires some changes to the way we deal with signals.
+        #
+	*-linux*)
+		AC_DEFINE(HAVE_LINUXTHREADS)
+		;;
+        #
+        # Ensure the right sigwait() semantics on Solaris.
+        #
 	*-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		;;
@@ -277,20 +290,6 @@ esac
 # NLS
 #
 AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
-
-#
-# BSDI 3.1 through 4.0.1 needs pthread_init() to be called before certain
-# pthreads calls.  LinuxThreads requires some changes to the way we deal with
-# signals.
-#
-case "$host" in
-	*-bsdi3.1*|*-bsdi4.0*)
-		AC_DEFINE(NEED_PTHREAD_INIT)
-		;;
-	*-linux*)
-		AC_DEFINE(HAVE_LINUXTHREADS)
-		;;
-esac
 
 #
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
