@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.31 2001/01/09 21:59:49 bwelling Exp $ */
+/* $Id: netdb.h.in,v 1.32 2001/03/06 21:46:03 bwelling Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
@@ -445,7 +445,6 @@ void		lwres_herror(const char *);
 const char	*lwres_hstrerror(int);
 
 
-#ifdef _REENTRANT
 struct hostent	*lwres_gethostbyaddr_r(const char *, int, int, struct hostent *,
 					char *, int, int *);
 struct hostent	*lwres_gethostbyname_r(const char *, struct hostent *,
@@ -479,7 +478,6 @@ struct servent	*lwres_getservent_r(struct servent *, char *, int);
 void		lwres_setservent_r(int);
 void		lwres_endservent_r(void);
 #endif	/* notyet */
-#endif	/* _REENTRANT */
 
 LWRES_LANG_ENDDECLS
 
