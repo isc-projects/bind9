@@ -1,3 +1,5 @@
+1103.	[port]		OpenUNIX 8 support (ifconfig.sh).  [RT #1970]
+
 1102.	[doc]		Note that query logging is enabled by directing the
 			queries category to a channel.
 
