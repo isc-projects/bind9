@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.15 2001/01/09 21:40:00 bwelling Exp $ */
+/* $Id: omapiconf.c,v 1.16 2001/03/04 21:21:24 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -31,11 +31,22 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <dst/result.h>
+#include <isccfg/cfg.h>
+
+#include <dns/result.h>
 
 #include <named/log.h>
 #include <named/omapi.h>
 #include <named/server.h>
+
+typedef struct ns_omapikey ns_omapikey_t;
+
+typedef ISC_LIST(ns_omapikey_t) ns_omapikeylist_t;
+
+struct ns_omapikey {
+	char *keyname;
+	ISC_LINK(ns_omapikey_t)		link;
+};
 
 typedef struct ns_omapilistener ns_omapilistener_t;
 
@@ -47,8 +58,8 @@ struct ns_omapilistener {
 	omapi_object_t *		manager;
 	isc_sockaddr_t			address;
 	dns_acl_t *			acl;
-	dns_c_kidlist_t *		keyids;
-	LINK(ns_omapilistener_t)	link;
+	ns_omapikeylist_t		keyids;
+	ISC_LINK(ns_omapilistener_t)	link;
 };
 
 static ns_omapilistenerlist_t listeners;
@@ -62,9 +73,18 @@ initialize_mutex(void) {
 }
 
 static void
+free_omapikeylist(ns_omapikeylist_t *keylist, isc_mem_t *mctx) {
+	while (!ISC_LIST_EMPTY(*keylist)) {
+		ns_omapikey_t *key = ISC_LIST_HEAD(*keylist);
+		ISC_LIST_UNLINK(*keylist, key, link);
+		isc_mem_free(mctx, key->keyname);
+		isc_mem_put(mctx, key, sizeof(*key));
+	}
+}
+
+static void
 free_listener(ns_omapilistener_t *listener) {
-	if (listener->keyids != NULL)
-		dns_c_kidlist_delete(&listener->keyids);
+	free_omapikeylist(&listener->keyids, listener->mctx);
 
 	if (listener->acl != NULL)
 		dns_acl_detach(&listener->acl);
@@ -148,9 +168,83 @@ verify_connection(isc_sockaddr_t *sockaddr, void *arg) {
 }
 
 static isc_boolean_t
+omapikeylist_find(ns_omapikeylist_t *keylist, const char *keyname) {
+	ns_omapikey_t *key;
+
+	for (key = ISC_LIST_HEAD(*keylist);
+	     key != NULL;
+	     key = ISC_LIST_NEXT(key, link))
+	{
+		if (strcasecmp(keyname, key->keyname) == 0)
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
+static isc_result_t
+cfgkeylist_find(cfg_obj_t *keylist, const char *keyname, cfg_obj_t **objp) {
+	cfg_listelt_t *element;
+	const char *str;
+	cfg_obj_t *obj;
+
+	for (element = cfg_list_first(keylist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(cfg_map_getname(obj));
+		if (strcasecmp(str, keyname) == 0)
+			break;
+	}
+	if (element == NULL)
+		return (ISC_R_NOTFOUND);
+	obj = cfg_listelt_value(element);
+	*objp = obj;
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+omapikeylist_fromcfg(cfg_obj_t *keylist, isc_mem_t *mctx,
+		     ns_omapikeylist_t *keyids)
+{
+	cfg_listelt_t *element;
+	char *newstr = NULL;
+	const char *str;
+	cfg_obj_t *obj;
+	ns_omapikey_t *key = NULL;
+
+	for (element = cfg_list_first(keylist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(obj);
+		newstr = isc_mem_strdup(mctx, str);
+		if (newstr == NULL)
+			goto cleanup;
+		key = isc_mem_get(mctx, sizeof(*key));
+		if (key == NULL)
+			goto cleanup;
+		key->keyname = newstr;
+		ISC_LINK_INIT(key, link);
+		ISC_LIST_APPEND(*keyids, key, link);
+		key = NULL;
+		newstr = NULL;
+	}
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (newstr != NULL)
+		isc_mem_free(mctx, newstr);
+	if (key != NULL)
+		isc_mem_put(mctx, key, sizeof(*key));
+	free_omapikeylist(keyids, mctx);
+	return (ISC_R_NOMEMORY);
+}
+
+static isc_boolean_t
 verify_key(const char *name, unsigned int algorithm, void *arg) {
 	ns_omapilistener_t *listener;
-	dns_c_kid_t *keyid = NULL;
 
 	/*
 	 * XXXDCL Ideally algorithm would be checked, too, but the current
@@ -161,11 +255,7 @@ verify_key(const char *name, unsigned int algorithm, void *arg) {
 
 	listener = arg;
 
-	(void)dns_c_kidlist_find(listener->keyids, name, &keyid);
-	if (keyid != NULL)
-		return (ISC_TRUE);
-	else
-		return (ISC_FALSE);
+	return (omapikeylist_find(&listener->keyids, name));
 }
 
 static isc_result_t
@@ -196,11 +286,11 @@ ns_omapi_listen(ns_omapilistener_t *listener) {
 }
 
 static void
-register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
-	      char *socktext)
-{
-	dns_c_kid_t *keyid;
-	dns_c_kdef_t *keydef;
+register_keys(cfg_obj_t *control, cfg_obj_t *keylist, char *socktext) {
+	char *keyid;
+	cfg_obj_t *key;
+	cfg_obj_t *keydef;
+	cfg_listelt_t *element;
 	char secret[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -218,125 +308,131 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 	 * from the controls statement in a reconfiguration are not deleted
 	 * until the server shuts down.
 	 */
-	for (keyid = ISC_LIST_HEAD(control->keyidlist->keyids);
-	     keyid != NULL;
-	     keyid = ISC_LIST_NEXT(keyid, next)) {
-		     omapi_auth_deregister(keyid->keyid);
+	for (element = cfg_list_first(keylist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		key = cfg_listelt_value(element);
+		keyid = cfg_obj_asstring(cfg_map_getname(key));
 
-		     /*
-		      * XXXDCL confparser.y apparently allows any keyid
-		      * in the list even if it has not been defined with
-		      * the keys statement.
-		      */
-		     keydef = NULL;
-		     result = dns_c_kdeflist_find(keydeflist, keyid->keyid,
-						  &keydef);
-		     if (result != ISC_R_SUCCESS)
-			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-					   "couldn't find key %s for "
-					   "use with command channel %s",
-					   keyid->keyid, socktext);
-		     else if (strcasecmp(keydef->algorithm, "hmac-md5") != 0) {
-			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-					   "unsupported algorithm %s in "
-					   "key %s for use with "
-					   "command channel %s",
-					   keydef->algorithm, keydef->keyid,
-					   socktext);
-			     result = DST_R_UNSUPPORTEDALG;
-			     keydef = NULL; /* Prevent more error messages. */
-		     }
+		omapi_auth_deregister(keyid);
 
-		     if (result == ISC_R_SUCCESS) {
-			     isc_buffer_init(&b, secret, sizeof(secret));
-			     result = isc_base64_decodestring(ns_g_mctx,
-							      keydef->secret,
-							      &b);
-		     }
+		/*
+		 * XXXDCL confparser.y apparently allows any keyid
+		 * in the list even if it has not been defined with
+		 * the keys statement.
+		 */
+		keydef = NULL;
+		result = cfgkeylist_find(keylist, keyid, &keydef);
+		if (result != ISC_R_SUCCESS)
+			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+				    "couldn't find key %s for use with "
+				    "command channel %s", keyid, socktext);
+		else {
+			cfg_obj_t *algobj = NULL;
+			cfg_obj_t *secretobj = NULL;
+			char *algstr = NULL;
+			char *secretstr = NULL;
 
-		     if (keydef != NULL && result != ISC_R_SUCCESS) {
-			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-					   "can't use secret for key %s on "
-					   "command channel %s: %s",
-					   keydef->keyid, socktext,
-					   isc_result_totext(result));
-			     keydef = NULL; /* Prevent more error messages. */
+			(void)cfg_map_get(keydef, "algorithm", &algobj);
+			(void)cfg_map_get(keydef, "secret", &secretobj);
+			INSIST(algobj != NULL && secretobj != NULL);
 
-		     } else if (result == ISC_R_SUCCESS)
-			     result = omapi_auth_register(keydef->keyid,
+			algstr = cfg_obj_asstring(algobj);
+			secretstr = cfg_obj_asstring(secretobj);
+
+			if (strcasecmp(algstr, "hmac-md5") != 0) {
+				cfg_obj_log(control, ns_g_lctx,
+					    ISC_LOG_WARNING,
+					    "unsupported algorithm '%s' in "
+					    "key '%s' for use with command "
+					    "channel %s",
+					    algstr, keyid, socktext);
+				continue;
+			}
+
+			isc_buffer_init(&b, secret, sizeof(secret));
+			result = isc_base64_decodestring(ns_g_mctx,
+							 secretstr, &b);
+
+			if (result != ISC_R_SUCCESS) {
+				cfg_obj_log(keydef, ns_g_lctx, ISC_LOG_WARNING,
+					    "secret for key '%s' on "
+					    "command channel %s: %s",
+					    keyid, socktext,
+					    isc_result_totext(result));
+				continue;
+			}
+
+			result = omapi_auth_register(keyid,
 						    OMAPI_AUTH_HMACMD5,
 						    isc_buffer_base(&b),
 						    isc_buffer_usedlength(&b));
 
-		     if (keydef != NULL && result != ISC_R_SUCCESS)
-			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-					   "couldn't register key %s for"
+			if (result != ISC_R_SUCCESS)
+				cfg_obj_log(keydef, ns_g_lctx, ISC_LOG_WARNING,
+					   "couldn't register key '%s' for"
 					   "use with command channel %s: %s",
-					   keydef->keyid, socktext,
+					   keyid, socktext,
 					   isc_result_totext(result));
+		}
 	}
 }
 
 static void
-update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
-		dns_c_ctx_t *cctx, ns_aclconfctx_t *aclconfctx,
-		char *socktext)
+update_listener(ns_omapilistener_t **listenerp, cfg_obj_t *control,
+		cfg_obj_t *config, isc_sockaddr_t *addr,
+		ns_aclconfctx_t *aclconfctx, char *socktext)
 {
 	ns_omapilistener_t *listener;
+	cfg_obj_t *allow;
+	cfg_obj_t *keys;
 	dns_acl_t *new_acl = NULL;
+	ns_omapikeylist_t keyids;
 	isc_result_t result;
 
-	for (listener = ISC_LIST_HEAD(listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link)) {
-
-		if (isc_sockaddr_equal(&control->u.inet_v.addr,
-				       &listener->address)) {
-			/*
-			 * There is already a listener for this sockaddr.
-			 * Update the access list and key information.
-			 *
-			 * First, keep the old access list unless
-			 * a new one can be made.
-			 */
-			result = ns_acl_fromconfig(control->
-						    u.inet_v.matchlist,
-						    cctx, aclconfctx,
-						    listener->mctx, &new_acl);
-			if (result == ISC_R_SUCCESS) {
-				dns_acl_detach(&listener->acl);
-				dns_acl_attach(new_acl,
-					       &listener->acl);
-				dns_acl_detach(&new_acl);
-			} else
-				/* XXXDCL say the old acl is still used? */
-				isc_log_write(ns_g_lctx,
-					      ISC_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_OMAPI,
-					      ISC_LOG_WARNING,
-					      "couldn't install new acl for "
-					      "command channel %s: %s",
-					      socktext,
-					      isc_result_totext(result));
-
-			/*
-			 * Now update the key id list.
-			 * XXXDCL the API for this seems incomplete.  For now,
-			 * I just reassign the pointer and set the control
-			 * keyidlist to NULL so dns_c_ctrl_delete will not
-			 * free it.
-			 */
-			if (listener->keyids != NULL)
-				dns_c_kidlist_delete(&listener->keyids);
-			listener->keyids = control->keyidlist;
-			control->keyidlist = NULL;
-
+	for (listener = ISC_LIST_HEAD(listeners);
+	     listener != NULL;
+	     listener = ISC_LIST_NEXT(listener, link))
+		if (isc_sockaddr_equal(addr, &listener->address))
 			break;
-		}
 
+	if (listener == NULL) {
+		*listenerp = NULL;
+		return;
+	}
+		
+	/*
+	 * There is already a listener for this sockaddr.
+	 * Update the access list and key information.
+	 *
+	 * First, keep the old access list unless a new one can be made.
+	 */
+	allow = cfg_tuple_get(control, "allow");
+	result = ns_acl_fromconfig(allow, config, aclconfctx,
+				   listener->mctx, &new_acl);
+	if (result == ISC_R_SUCCESS) {
+		dns_acl_detach(&listener->acl);
+		dns_acl_attach(new_acl, &listener->acl);
+		dns_acl_detach(&new_acl);
+	} else
+		/* XXXDCL say the old acl is still used? */
+		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			    "couldn't install new acl for "
+			    "command channel %s: %s",
+			    socktext, isc_result_totext(result));
+
+	keys = cfg_tuple_get(control, "keys");
+	ISC_LIST_INIT(keyids);
+	result = omapikeylist_fromcfg(keys, listener->mctx, &keyids);
+	if (result != ISC_R_SUCCESS)
+		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			    "couldn't install new keys for "
+			    "command channel %s: %s",
+			    socktext, isc_result_totext(result));
+	else {
+		free_omapikeylist(&listener->keyids, listener->mctx);
+		listener->keyids = keyids;
 	}
 
 	*listenerp = listener;
@@ -344,10 +440,12 @@ update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
 
 static void
 add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
-	     dns_c_ctrl_t *control, dns_c_ctx_t *cctx,
+	     cfg_obj_t *control, cfg_obj_t *config, isc_sockaddr_t *addr,
 	     ns_aclconfctx_t *aclconfctx, char *socktext)
 {
 	ns_omapilistener_t *listener;
+	cfg_obj_t *allow;
+	cfg_obj_t *keys;
 	dns_acl_t *new_acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -358,31 +456,34 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 	if (result == ISC_R_SUCCESS) {
 		listener->mctx = mctx;
 		listener->manager = NULL;
-		listener->address = control->u.inet_v.addr;
+		listener->address = *addr;
 		ISC_LINK_INIT(listener, link);
+		ISC_LIST_INIT(listener->keyids);
 
 		/*
 		 * Make the acl.
 		 */
-		result = ns_acl_fromconfig(control->u.inet_v.matchlist,
-					    cctx, aclconfctx, mctx, &new_acl);
+		allow = cfg_tuple_get(control, "allow");
+		result = ns_acl_fromconfig(allow, config, aclconfctx, mctx,
+					   &new_acl);
 	}
 
 	if (result == ISC_R_SUCCESS) {
 		dns_acl_attach(new_acl, &listener->acl);
 		dns_acl_detach(&new_acl);
 
-		/*
-		 * Now update the key id list.
-		 * XXXDCL the API for this seems incomplete.  For now,
-		 * I just reassign the pointer and set it to NULL so
-		 * dns_c_ctrl_delete will not free it.
-		 */
-		listener->keyids = control->keyidlist;
-		control->keyidlist = NULL;
-
-		result = ns_omapi_listen(listener);
+		keys = cfg_tuple_get(control, "keys");
+		result = omapikeylist_fromcfg(keys, listener->mctx,
+					      &listener->keyids);
+		if (result != ISC_R_SUCCESS)
+			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+				    "couldn't install new keys for "
+				    "command channel %s: %s",
+				    socktext, isc_result_totext(result));
 	}
+
+	if (result == ISC_R_SUCCESS)
+		result = ns_omapi_listen(listener);
 
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -394,10 +495,9 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 		if (listener != NULL)
 			free_listener(listener);
 
-		isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-			      "couldn't add command channel %s: %s",
-			      socktext, isc_result_totext(result));
+		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			    "couldn't add command channel %s: %s",
+			    socktext, isc_result_totext(result));
 
 		*listenerp = NULL;
 	}
@@ -406,25 +506,24 @@ add_listener(isc_mem_t *mctx, ns_omapilistener_t **listenerp,
 }
 
 isc_result_t
-ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
+ns_omapi_configure(isc_mem_t *mctx, cfg_obj_t *config,
 		   ns_aclconfctx_t *aclconfctx)
 {
 	ns_omapilistener_t *listener;
 	ns_omapilistenerlist_t new_listeners;
-	dns_c_ctrllist_t *controls = NULL;
-	dns_c_ctrl_t *control;
-	dns_c_kdeflist_t *keydeflist = NULL;
+	cfg_obj_t *controlslist = NULL;
+	cfg_obj_t *keylist = NULL;
+	cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
-	isc_result_t result;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 
 	ISC_LIST_INIT(new_listeners);
 
 	/*
-	 * Get a pointer to the named.conf ``controls'' statement information.
+	 * Get te list of named.conf 'controls' statements.
 	 */
-	result = dns_c_ctx_getcontrols(cctx, &controls);
+	(void)cfg_map_get(config, "controls", &controlslist);
 
 	LOCK(&listeners_lock);
 	/*
@@ -435,59 +534,109 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 	 * the underlying config code, or to the bind attempt getting an
 	 * address-in-use error.
 	 */
-	if (result == ISC_R_SUCCESS) {
-		(void)dns_c_ctx_getkdeflist(cctx, &keydeflist);
-		if (keydeflist == NULL)
-			isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-				      "no key statements for use by "
-				      "control channels");
+	if (controlslist != NULL) {
+		(void)cfg_map_get(config, "key", &keylist);
+		if (keylist == NULL)
+			cfg_obj_log(controlslist, ns_g_lctx, ISC_LOG_WARNING,
+				    "no key statements for use by "
+				    "control channels");
 
-		for (control = dns_c_ctrllist_head(controls);
-		     control != NULL;
-		     control = dns_c_ctrl_next(control)) {
-			/*
-			 * The parser handles BIND 8 configuration file syntax,
-			 * so it allows a control_type of dns_c_unix_control,
-			 * as well as an inet phrase with no keys{} clause.
-			 * However, it already warned that those were
-			 * unsupported, so there is no need to do so again.
-			 * The keydeflist == NULL case was already warned
-			 * about a few lines above.
-			 */
-			if (control->control_type != dns_c_inet_control ||
-			    keydeflist == NULL || control->keyidlist == NULL)
+		for (element = cfg_list_first(controlslist);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			cfg_obj_t *controls;
+			cfg_obj_t *inetcontrols = NULL;
+
+			controls = cfg_listelt_value(element);
+			(void)cfg_map_get(controls, "inet", &inetcontrols);
+			if (inetcontrols == NULL)
 				continue;
 
-			isc_sockaddr_format(&control->u.inet_v.addr,
-					    socktext, sizeof(socktext));
+			for (element2 = cfg_list_first(inetcontrols);
+			     element2 != NULL;
+			     element2 = cfg_list_next(element2))
+			{
+				cfg_obj_t *control;
+				cfg_obj_t *obj;
+				isc_sockaddr_t *addr;
 
-			isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_OMAPI, ISC_LOG_DEBUG(9),
-				      "processing control channel %s",
-				      socktext);
-
-			register_keys(control, keydeflist, socktext);
-
-			update_listener(&listener, control, cctx, aclconfctx,
-					socktext);
-
-			if (listener != NULL)
 				/*
-				 * Remove the listener from the old list,
-				 * so it won't be shut down.
+				 * The parser handles BIND 8 configuration file
+				 * syntax, so it allows unix phrases as well
+				 * inet phrases with no keys{} clause.
+				 *
+				 * "unix" phrases have been reported as
+				 * unsupported by the parser.
+				 *
+				 * The keylist == NULL case was already warned
+				 * about a few lines above.
 				 */
-				ISC_LIST_UNLINK(listeners, listener, link);
-			else
-				/*
-				 * This is a new listener.
-				 */
-				add_listener(mctx, &listener, control, cctx,
-					     aclconfctx, socktext);
+				control = cfg_listelt_value(element2);
 
-			if (listener != NULL)
-				ISC_LIST_APPEND(new_listeners, listener, link);
+				obj = cfg_tuple_get(control, "address");
+				addr = cfg_obj_assockaddr(obj);
+				if (isc_sockaddr_getport(addr) == 0)
+					isc_sockaddr_setport(addr,
+							     NS_OMAPI_PORT);
 
+				isc_sockaddr_format(addr, socktext,
+						    sizeof(socktext));
+
+				obj = cfg_tuple_get(control, "keys");
+
+				if (cfg_obj_isvoid(obj)) {
+					cfg_obj_log(obj, ns_g_lctx,
+						    ISC_LOG_ERROR,
+						    "no keys clause in "
+						    "control channel %s",
+						    socktext);
+					continue;
+				}
+
+				if (cfg_list_first(obj) == NULL) {
+					cfg_obj_log(obj, ns_g_lctx,
+						    ISC_LOG_ERROR,
+						    "no keys specified in "
+						    "control channel %s",
+						    socktext);
+					continue;
+				}
+
+				if (keylist == NULL)
+					continue;
+
+				isc_log_write(ns_g_lctx,
+					      ISC_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_OMAPI,
+					      ISC_LOG_DEBUG(9),
+					      "processing control channel %s",
+					      socktext);
+
+				register_keys(control, keylist, socktext);
+
+				update_listener(&listener, control, config,
+						addr, aclconfctx, socktext);
+
+				if (listener != NULL)
+					/*
+					 * Remove the listener from the old
+					 * list, so it won't be shut down.
+					 */
+					ISC_LIST_UNLINK(listeners, listener,
+							link);
+				else
+					/*
+					 * This is a new listener.
+					 */
+					add_listener(mctx, &listener, control,
+						     config, addr, aclconfctx,
+						     socktext);
+	
+				if (listener != NULL)
+					ISC_LIST_APPEND(new_listeners,
+							listener, link);
+			}
 		}
 	}
 

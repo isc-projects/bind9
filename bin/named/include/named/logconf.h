@@ -15,20 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.h,v 1.9 2001/01/09 21:40:18 bwelling Exp $ */
+/* $Id: logconf.h,v 1.10 2001/03/04 21:21:33 bwelling Exp $ */
 
 #ifndef NAMED_LOGCONF_H
 #define NAMED_LOGCONF_H 1
 
 #include <isc/log.h>
 
-#include <dns/conflog.h>
-
 isc_result_t
-ns_log_configure(isc_logconfig_t *logconf, dns_c_logginglist_t *clog);
+ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt);
 /*
  * Set up the logging configuration in '*logconf' according to
- * the named.conf data in 'clog'.
+ * the named.conf data in 'logstmt'.
  */
 
 #endif /* NAMED_LOGCONF_H */

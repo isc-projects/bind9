@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.52 2001/01/09 21:40:13 bwelling Exp $ */
+/* $Id: globals.h,v 1.53 2001/03/04 21:21:32 bwelling Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -23,6 +23,8 @@
 #include <isc/rwlock.h>
 #include <isc/log.h>
 #include <isc/net.h>
+
+#include <isccfg/cfg.h>
 
 #include <dns/zone.h>
 
@@ -53,6 +55,7 @@ EXTERN isc_entropy_t *		ns_g_entropy		INIT(NULL);
 EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
 EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
 EXTERN omapi_object_t *		ns_g_omapimgr		INIT(NULL);
+EXTERN cfg_parser_t *		ns_g_parser		INIT(NULL);
 EXTERN const char *		ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(0);
 EXTERN in_port_t		lwresd_g_listenport	INIT(0);
@@ -72,6 +75,8 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 /*
  * Current configuration information.
  */
+EXTERN cfg_obj_t *		ns_g_config		INIT(NULL);
+EXTERN cfg_obj_t *		ns_g_defaults		INIT(NULL);
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
 EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR

@@ -15,12 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi.h,v 1.19 2001/02/06 23:57:15 bwelling Exp $ */
+/* $Id: omapi.h,v 1.20 2001/03/04 21:21:35 bwelling Exp $ */
 
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
-
-#include <dns/confctx.h>
 
 #include <omapi/omapi.h>
 
@@ -50,7 +48,7 @@ isc_result_t
 ns_omapi_init(void);
 
 isc_result_t
-ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
+ns_omapi_configure(isc_mem_t *mctx, cfg_obj_t *config,
 		   ns_aclconfctx_t *aclconfctx);
 
 void

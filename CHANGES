@@ -1,4 +1,6 @@
 
+ 762.	[feature]	named now uses the new configuration parser.
+
  761.	[bug]		_REENTRANT was still defined when building with
 			--disable-threads.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.30 2001/01/25 02:33:39 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.31 2001/03/04 21:21:23 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -37,12 +37,15 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <isccfg/cfg.h>
+
 #include <dns/confctx.h>
 #include <dns/conflwres.h>
 #include <dns/log.h>
 #include <dns/result.h>
 #include <dns/view.h>
 
+#include <named/config.h>
 #include <named/globals.h>
 #include <named/log.h>
 #include <named/lwaddr.h>
@@ -96,88 +99,32 @@ ns__lwresd_memfree(void *arg, void *mem, size_t size) {
 	} while (0)
 
 static isc_result_t
-parse_sortlist(lwres_conf_t *lwc, isc_mem_t *mctx,
-	       dns_c_ipmatchlist_t **sortlist)
-{
-	dns_c_ipmatchlist_t *inner = NULL, *middle = NULL, *outer = NULL;
-	dns_c_ipmatchelement_t *element = NULL;
-	int i;
-	isc_result_t result;
-
-	REQUIRE(sortlist != NULL && *sortlist == NULL);
-
-	REQUIRE (lwc->sortlistnxt > 0);
-
-	CHECK(dns_c_ipmatchlist_new(mctx, &middle));
-
-	CHECK(dns_c_ipmatchany_new(mctx, &element));
-	ISC_LIST_APPEND(middle->elements, element, next);
-	element = NULL;
-
-	CHECK(dns_c_ipmatchlist_new(mctx, &inner));
-	for (i = 0; i < lwc->sortlistnxt; i++) {
-		isc_sockaddr_t sa;
-		isc_netaddr_t ma;
-		unsigned int mask;
-
-		CHECK(lwaddr_sockaddr_fromlwresaddr(&sa,
-						    &lwc->sortlist[i].addr,
-						    0));
-		CHECK(lwaddr_netaddr_fromlwresaddr(&ma,
-						   &lwc->sortlist[i].mask));
-		CHECK(isc_netaddr_masktoprefixlen(&ma, &mask));
-		CHECK(dns_c_ipmatchpattern_new(mctx, &element, sa, mask));
-		ISC_LIST_APPEND(inner->elements, element, next);
-		element = NULL;
-	}
-
-	CHECK(dns_c_ipmatchindirect_new(mctx, &element, inner, NULL));
-	dns_c_ipmatchlist_detach(&inner);
-	ISC_LIST_APPEND(middle->elements, element, next);
-	element = NULL;
-
-	CHECK(dns_c_ipmatchlist_new(mctx, &outer));
-	CHECK(dns_c_ipmatchindirect_new(mctx, &element, middle, NULL));
-	dns_c_ipmatchlist_detach(&middle);
-	ISC_LIST_APPEND(outer->elements, element, next);
-
-	*sortlist = outer;
-
+buffer_putstr(isc_buffer_t *b, const char *s) {
+	unsigned int len = strlen(s);
+	if (isc_buffer_availablelength(b) <= len)
+		return (ISC_R_NOSPACE);
+	isc_buffer_putmem(b, s, len);
 	return (ISC_R_SUCCESS);
- cleanup:
-	if (inner != NULL)
-		dns_c_ipmatchlist_detach(&inner);
-	if (outer != NULL)
-		dns_c_ipmatchlist_detach(&outer);
-	if (element != NULL)
-		dns_c_ipmatchelement_delete(mctx, &element);
-	return (result);
 }
 
 /*
  * Convert a resolv.conf file into a config structure.
  */
 isc_result_t
-ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
-	dns_c_ctx_t *ctx = NULL;
+ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
+			   cfg_obj_t **configp)
+{
+	char text[4096];
+	char str[16];
+	isc_buffer_t b;
 	lwres_context_t *lwctx = NULL;
 	lwres_conf_t *lwc = NULL;
 	isc_sockaddr_t sa;
+	isc_netaddr_t na;
 	int i;
-	in_port_t port;
-	dns_c_iplist_t *forwarders = NULL;
-	dns_c_iplist_t *locallist = NULL;
-	dns_c_lwreslist_t *lwreslist = NULL;
-	dns_c_lwres_t *lwres = NULL;
-	dns_c_search_t *search = NULL;
-	dns_c_searchlist_t *searchlist = NULL;
-	dns_c_ipmatchlist_t *sortlist = NULL;
 	isc_result_t result;
 	lwres_result_t lwresult;
-	struct in_addr localhost;
 
-	CHECK(dns_c_ctx_new(mctx, &ctx));
-	
 	lwctx = NULL;
 	lwresult = lwres_context_create(&lwctx, mctx, ns__lwresd_memalloc,
 					ns__lwresd_memfree,
@@ -196,107 +143,133 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
 	lwc = lwres_conf_get(lwctx);
 	INSIST(lwc != NULL);
 
+	isc_buffer_init(&b, text, sizeof(text));
+
 	/*
 	 * Build the list of forwarders.
 	 */
 	if (lwc->nsnext > 0) {
-		CHECK(dns_c_iplist_new(mctx, lwc->nsnext, &forwarders));
-
-		if (ns_g_port != 0)
-			port = ns_g_port;
-		else
-			port = 53;
+		CHECK(buffer_putstr(&b, "options {\n"));
+		CHECK(buffer_putstr(&b, "\tforwarders {\n"));
 
 		for (i = 0 ; i < lwc->nsnext ; i++) {
 			CHECK(lwaddr_sockaddr_fromlwresaddr(
 							&sa,
 							&lwc->nameservers[i],
-							port));
-			if (result != ISC_R_SUCCESS)
-				continue;
-			CHECK(dns_c_iplist_append(forwarders, sa, NULL));
+							ns_g_port));
+			isc_netaddr_fromsockaddr(&na, &sa);
+			CHECK(buffer_putstr(&b, "\t\t"));
+			CHECK(isc_netaddr_totext(&na, &b));
+			CHECK(buffer_putstr(&b, ";\n"));
 		}
-	
-		if (forwarders->nextidx != 0) {
-			CHECK(dns_c_ctx_setforwarders(ctx, forwarders));
-			dns_c_iplist_detach(&forwarders);
-			CHECK(dns_c_ctx_setforward(ctx, dns_c_forw_first));
-		}
+		CHECK(buffer_putstr(&b, "\t};\n"));
+		CHECK(buffer_putstr(&b, "};\n\n"));
 	}
+
+	CHECK(buffer_putstr(&b, "lwres {\n"));
 
 	/*
 	 * Build the search path
 	 */
 	if (lwc->searchnxt > 0) {
-		CHECK(dns_c_searchlist_new(mctx, &searchlist));
-		for (i = 0; i < lwc->searchnxt; i++) {
-			search = NULL;
-			CHECK(dns_c_search_new(mctx, lwc->search[i], &search));
-			dns_c_searchlist_append(searchlist, search);
+		if (lwc->searchnxt > 0) {
+			CHECK(buffer_putstr(&b, "\tsearch {\n"));
+			for (i = 0; i < lwc->searchnxt; i++) {
+				CHECK(buffer_putstr(&b, "\t\t"));
+				CHECK(buffer_putstr(&b, lwc->search[i]));
+			        CHECK(buffer_putstr(&b, ";\n"));
+			}
+			CHECK(buffer_putstr(&b, "\t};\n"));
 		}
+	}
+
+	/*
+	 * Build the ndots line
+	 */
+	if (lwc->ndots != 1) {
+		CHECK(buffer_putstr(&b, "\tndots "));
+		snprintf(str, sizeof(str), "%u", lwc->ndots);
+		CHECK(buffer_putstr(&b, str));
+		CHECK(buffer_putstr(&b, ";\n"));
+	}
+
+	/*
+	 * Build the listen-on line
+	 */
+	if (lwc->lwnext > 0) {
+		CHECK(buffer_putstr(&b, "\tlisten-on {\n"));
+
+		for (i = 0 ; i < lwc->lwnext ; i++) {
+			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa,
+							    &lwc->lwservers[i],
+							    0));
+			isc_netaddr_fromsockaddr(&na, &sa);
+			CHECK(buffer_putstr(&b, "\t\t"));
+			CHECK(isc_netaddr_totext(&na, &b));
+			CHECK(buffer_putstr(&b, ";\n"));
+		}
+		CHECK(buffer_putstr(&b, "\t};\n"));
 	}
 
 	/*
 	 * Build the sortlist
 	 */
 	if (lwc->sortlistnxt > 0) {
-		CHECK(parse_sortlist(lwc, mctx, &sortlist));
-		CHECK(dns_c_ctx_setsortlist(ctx, sortlist));
-		dns_c_ipmatchlist_detach(&sortlist);
+		CHECK(buffer_putstr(&b, "\tsortlist {\n"));
+		CHECK(buffer_putstr(&b, "\t{\n"));
+		CHECK(buffer_putstr(&b, "\t\tany;\n"));
+		CHECK(buffer_putstr(&b, "\t\t{;\n"));
+		for (i = 0 ; i < lwc->sortlistnxt; i++) {
+			lwres_addr_t *lwaddr = &lwc->sortlist[i].addr;
+			lwres_addr_t *lwmask = &lwc->sortlist[i].mask;
+			unsigned int mask;
+
+			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwmask, 0));
+			isc_netaddr_fromsockaddr(&na, &sa);
+			result = isc_netaddr_masktoprefixlen(&na, &mask);
+			if (result != ISC_R_SUCCESS) {
+				char addrtext[ISC_NETADDR_FORMATSIZE];
+				isc_netaddr_format(&na, addrtext,
+						   sizeof(addrtext));
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_LWRESD,
+					      ISC_LOG_ERROR,
+					      "processing sortlist: '%s' is "
+					      "not a valid netmask",
+					      addrtext);
+				goto cleanup;
+			}
+
+			CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, lwaddr, 0));
+			isc_netaddr_fromsockaddr(&na, &sa);
+
+			CHECK(buffer_putstr(&b, "\t\t\t"));
+			CHECK(isc_netaddr_totext(&na, &b));
+			snprintf(str, sizeof(str), "%u", mask);
+			CHECK(buffer_putstr(&b, "/"));
+			CHECK(buffer_putstr(&b, str));
+			CHECK(buffer_putstr(&b, ";\n"));
+		}
+		CHECK(buffer_putstr(&b, "\t\t}\n"));
+		CHECK(buffer_putstr(&b, "\t}\n"));
+		CHECK(buffer_putstr(&b, "};\n"));
 	}
 
-	CHECK(dns_c_lwreslist_new(mctx, &lwreslist));
-	CHECK(dns_c_lwres_new(mctx, &lwres));
+	CHECK(buffer_putstr(&b, "};\n"));
 
-	port = lwresd_g_listenport;
-	if (port == 0)
-		port = LWRES_UDP_PORT;
+#if 0
+	printf("%.*s\n",
+	       (int)isc_buffer_usedlength(&b),
+	       (char *)isc_buffer_base(&b));
+#endif
 
-	if (lwc->lwnext == 0) {
-		localhost.s_addr = htonl(INADDR_LOOPBACK);
-		isc_sockaddr_fromin(&sa, &localhost, port);
-	} else {
-		CHECK(lwaddr_sockaddr_fromlwresaddr(&sa, &lwc->lwservers[0],
-						    port));
-	}
+	lwres_conf_clear(lwctx);
+	lwres_context_destroy(&lwctx);
 
-	CHECK(dns_c_iplist_new(mctx, 1, &locallist));
-	CHECK(dns_c_iplist_append(locallist, sa, NULL));
-
-	CHECK(dns_c_lwres_setlistenon(lwres, locallist));
-	dns_c_iplist_detach(&locallist);
-
-	CHECK(dns_c_lwres_setsearchlist(lwres, searchlist));
-	searchlist = NULL;
-
-	CHECK(dns_c_lwres_setndots(lwres, lwc->ndots));
-
-	CHECK(dns_c_lwreslist_append(lwreslist, lwres));
-	lwres = NULL;
-
-	CHECK(dns_c_ctx_setlwres(ctx, lwreslist));
-	lwreslist = NULL;
-
-	*ctxp = ctx;
-
-	result = ISC_R_SUCCESS;
+	return (cfg_parse_buffer(pctx, &b, &cfg_type_namedconf, configp));
 
  cleanup:
-	if (result != ISC_R_SUCCESS) {
-		if (forwarders != NULL)
-			dns_c_iplist_detach(&forwarders);
-		if (locallist != NULL)
-			dns_c_iplist_detach(&locallist);
-		if (searchlist != NULL)
-			dns_c_searchlist_delete(&searchlist);
-		if (sortlist != NULL)
-			dns_c_ipmatchlist_detach(&sortlist);
-		if (lwres != NULL)
-			dns_c_lwres_delete(&lwres);
-		if (lwreslist != NULL)
-			dns_c_lwreslist_delete(&lwreslist);
-		dns_c_ctx_delete(&ctx);
-	}
 
 	if (lwctx != NULL) {
 		lwres_conf_clear(lwctx);
@@ -311,12 +284,14 @@ ns_lwresd_parseresolvconf(isc_mem_t *mctx, dns_c_ctx_t **ctxp) {
  * Handle lwresd manager objects
  */
 isc_result_t
-ns_lwdmanager_create(isc_mem_t *mctx, dns_c_lwres_t *lwres,
+ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 		     ns_lwresd_t **lwresdp)
 {
 	ns_lwresd_t *lwresd;
 	const char *vname;
-	dns_c_search_t *search;
+	dns_rdataclass_t vclass;
+	cfg_obj_t *obj, *viewobj, *searchobj;
+	cfg_listelt_t *element;
 	isc_result_t result;
 
 	INSIST(lwresdp != NULL && *lwresdp == NULL);
@@ -328,29 +303,45 @@ ns_lwdmanager_create(isc_mem_t *mctx, dns_c_lwres_t *lwres,
 	lwresd->mctx = NULL;
 	isc_mem_attach(mctx, &lwresd->mctx);
 	lwresd->view = NULL;
-	lwresd->ndots = lwres->ndots;
 	lwresd->search = NULL;
 	lwresd->refs = 1;
+
+	obj = NULL;
+	(void)cfg_map_get(lwres, "ndots", &obj);
+	if (obj != NULL)
+		lwresd->ndots = cfg_obj_asuint32(obj);
+	else
+		lwresd->ndots = 1;
 
 	RUNTIME_CHECK(isc_mutex_init(&lwresd->lock) == ISC_R_SUCCESS);
 
 	lwresd->shutting_down = ISC_FALSE;
 
-	if (lwres->view == NULL)
+	viewobj = NULL;
+	(void)cfg_map_get(lwres, "view", &viewobj);
+	if (viewobj != NULL) {
+		vname = cfg_obj_asstring(cfg_tuple_get(viewobj, "name"));
+		obj = cfg_tuple_get(viewobj, "class");
+		result = ns_config_getclass(obj, &vclass);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	} else {
 		vname = "_default";
-	else
-		vname = lwres->view;
+		vclass = dns_rdataclass_in;
+	}
 
-	result = dns_viewlist_find(&ns_g_server->viewlist, vname,
-				   lwres->viewclass, &lwresd->view);
+	result = dns_viewlist_find(&ns_g_server->viewlist, vname, vclass,
+				   &lwresd->view);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_LWRESD, ISC_LOG_WARNING,
-			      "couldn't find view %s", lwres->view);
+			      "couldn't find view %s", vname);
 		goto fail;
 	}
 
-	if (lwres->searchlist != NULL) {
+	searchobj = NULL;
+	cfg_map_get(lwres, "search", &searchobj);
+	if (searchobj != NULL) {
 		lwresd->search = NULL;
 		result = ns_lwsearchlist_create(lwresd->mctx,
 						&lwresd->search);
@@ -360,19 +351,24 @@ ns_lwdmanager_create(isc_mem_t *mctx, dns_c_lwres_t *lwres,
 				      "couldn't create searchlist");
 			goto fail;
 		}
-		for (search = ISC_LIST_HEAD(lwres->searchlist->searches);
-		     search != NULL;
-		     search = ISC_LIST_NEXT(search, next))
+		for (element = cfg_list_first(searchobj);
+		     element != NULL;
+		     element = cfg_list_next(element))
 		{
+			cfg_obj_t *search;
+			char *searchstr;
 			isc_buffer_t namebuf;
 			dns_fixedname_t fname;
 			dns_name_t *name;
 
+			search = cfg_listelt_value(element);
+			searchstr = cfg_obj_asstring(search);
+
 			dns_fixedname_init(&fname);
 			name = dns_fixedname_name(&fname);
-			isc_buffer_init(&namebuf, search->search,
-					strlen(search->search));
-			isc_buffer_add(&namebuf, strlen(search->search));
+			isc_buffer_init(&namebuf, searchstr,
+					strlen(searchstr));
+			isc_buffer_add(&namebuf, strlen(searchstr));
 			result = dns_name_fromtext(name, &namebuf,
 						   dns_rootname, ISC_FALSE,
 						   NULL);
@@ -382,7 +378,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, dns_c_lwres_t *lwres,
 					      NS_LOGMODULE_LWRESD,
 					      ISC_LOG_WARNING,
 					      "invalid name %s in searchlist",
-					      search->search);
+					      searchstr);
 				continue;
 			}
 
@@ -731,22 +727,24 @@ configure_listener(isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 }
 
 isc_result_t
-ns_lwresd_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx) {
-	dns_c_lwres_t *lwres = NULL;
-	dns_c_lwreslist_t *list = NULL;
+ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config) {
+	cfg_obj_t *lwreslist = NULL;
+	cfg_obj_t *lwres = NULL;
+	cfg_obj_t *listenerslist = NULL;
+	cfg_listelt_t *element = NULL;
 	ns_lwreslistener_t *listener;
 	ns_lwreslistenerlist_t newlisteners;
 	isc_result_t result;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(cctx != NULL);
+	REQUIRE(config != NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 
 	ISC_LIST_INIT(newlisteners);
 
-	result = dns_c_ctx_getlwres(cctx, &list);
+	result = cfg_map_get(config, "lwres", &lwreslist);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_SUCCESS);
 
@@ -759,41 +757,56 @@ ns_lwresd_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx) {
 	 * the underlying config code, or to the bind attempt getting an
 	 * address-in-use error.
 	 */
-	for (lwres = dns_c_lwreslist_head(list);
-	     lwres != NULL;
-	     lwres = dns_c_lwreslist_next(lwres))
+	for (element = cfg_list_first(lwreslist);
+	     element != NULL;
+	     element = cfg_list_next(element))
 	{
-		unsigned int i;
 		ns_lwresd_t *lwresd;
+		in_port_t port;
+		isc_sockaddr_t *addrs = NULL;
+		isc_uint32_t count;
 
+		lwres = cfg_listelt_value(element);
 		lwresd = NULL;
 		result = ns_lwdmanager_create(mctx, lwres, &lwresd);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		if (lwres->listeners == NULL) {
+		port = lwresd_g_listenport;
+		if (port == 0)
+			port = LWRES_UDP_PORT;
+
+		listenerslist = NULL;
+		cfg_map_get(lwres, "listen-on", &listenerslist);
+		if (listenerslist == NULL) {
 			struct in_addr localhost;
-			in_port_t port;
 			isc_sockaddr_t address;
 
-			port = lwresd_g_listenport;
-			if (port == 0)
-				port = LWRES_UDP_PORT;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
 			isc_sockaddr_fromin(&address, &localhost, port);
 			result = configure_listener(&address, lwresd,
 						    mctx, &newlisteners);
 		} else {
-			isc_sockaddr_t *address;
-			for (i = 0; i < lwres->listeners->nextidx; i++) {
-				address = &lwres->listeners->ips[i];
-				result = configure_listener(address, lwresd,
+			isc_uint32_t i;
+
+			result = ns_config_getiplist(config, listenerslist,
+						     port, mctx,
+						     &addrs, &count);
+			if (result != ISC_R_SUCCESS)
+				goto failure;
+			
+			for (i = 0; i < count; i++) {
+				result = configure_listener(&addrs[i], lwresd,
 							    mctx,
 							    &newlisteners);
 				if (result != ISC_R_SUCCESS)
-					break;
+					goto failure;
 			}
 		}
+
+	failure:
+		if (addrs != NULL)
+			ns_config_putiplist(mctx, &addrs, count);
 
 		ns_lwdmanager_detach(&lwresd);
 		if (result != ISC_R_SUCCESS)

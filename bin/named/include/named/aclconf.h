@@ -15,14 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.11 2001/01/09 21:40:11 bwelling Exp $ */
+/* $Id: aclconf.h,v 1.12 2001/03/04 21:21:31 bwelling Exp $ */
 
 #ifndef NS_ACLCONF_H
 #define NS_ACLCONF_H 1
 
 #include <isc/lang.h>
 
-#include <dns/confctx.h>
+#include <isccfg/cfg.h>
+
 #include <dns/types.h>
 
 typedef struct ns_aclconfctx {
@@ -48,8 +49,8 @@ ns_aclconfctx_destroy(ns_aclconfctx_t *ctx);
  */
 
 isc_result_t
-ns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
-		  dns_c_ctx_t *cctx,
+ns_acl_fromconfig(cfg_obj_t *caml,
+		  cfg_obj_t *cctx,
 		  ns_aclconfctx_t *ctx,
 		  isc_mem_t *mctx,
 		  dns_acl_t **target);

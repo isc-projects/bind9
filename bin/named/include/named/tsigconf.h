@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.8 2001/01/09 21:40:31 bwelling Exp $ */
+/* $Id: tsigconf.h,v 1.9 2001/03/04 21:21:37 bwelling Exp $ */
 
 #ifndef NS_TSIGCONF_H
 #define NS_TSIGCONF_H 1
@@ -23,19 +23,17 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 
-#include <dns/confctx.h>
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
-			   isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
+ns_tsigkeyring_fromconfig(cfg_obj_t *config, cfg_obj_t *vconfig,
+			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
  * Create a TSIG key ring and configure it according to the 'key'
- * statements in 'confview' and 'confctx'.
+ * statements in the global and view configuration objects.
  *
  *	Requires:
- *		'confctx' is a valid configuration context.
+ *		'config' is not NULL.
  *		'mctx' is not NULL
  *		'ring' is not NULL, and '*ring' is NULL
  *

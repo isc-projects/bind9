@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.67 2001/02/04 15:52:39 bwelling Exp $
+# $Id: Makefile.in,v 1.68 2001/03/04 21:21:19 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,34 +32,37 @@ DBDRIVER_INCLUDES =
 DBDRIVER_LIBS =
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
-		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		${OMAPI_INCLUDES} ${DBDRIVER_INCLUDES}
+		${LWRES_INCLUDES} ${OMAPI_INCLUDES} ${DNS_INCLUDES} \
+		${ISCCFG_INCLUDES} ${ISC_INCLUDES} ${DBDRIVER_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
 OMAPILIBS =	../../lib/omapi/libomapi.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
-DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+DEPLIBS =	${LWRESDEPLIBS} ${OMAPIDEPLIBS} ${DNSDEPLIBS} \
+		${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} \
-		${DBDRIVER_LIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} \
+		${ISCCFGLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix
 
 TARGETS =	named lwresd
 
-OBJS =		aclconf.@O@ client.@O@ interfacemgr.@O@ listenlist.@O@ \
-		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
-		omapiconf.@O@ query.@O@ server.@O@ sortlist.@O@ \
+OBJS =		aclconf.@O@ client.@O@ config.@O@ interfacemgr.@O@ \
+		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
+		omapi.@O@ omapiconf.@O@ query.@O@ server.@O@ sortlist.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
 		zoneconf.@O@ \
 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
@@ -68,9 +71,9 @@ OBJS =		aclconf.@O@ client.@O@ interfacemgr.@O@ listenlist.@O@ \
 
 UOBJS =		unix/os.@O@
 
-SRCS =		aclconf.c client.c interfacemgr.c listenlist.c \
-		log.c logconf.c main.c notify.c omapi.c \
-		omapiconf.c query.c server.c sortlist.c \
+SRCS =		aclconf.c client.c config.c interfacemgr.c \
+		listenlist.c log.c logconf.c main.c notify.c \
+		omapi.c omapiconf.c query.c server.c sortlist.c \
 		tkeyconf.c tsigconf.c update.c xfrout.c \
 		zoneconf.c \
 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
@@ -85,6 +88,11 @@ main.@O@: main.c
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
+
+config.@O@: config.c
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+		-c ${srcdir}/config.c
 
 named: ${OBJS} ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.h,v 1.8 2001/01/09 21:40:30 bwelling Exp $ */
+/* $Id: tkeyconf.h,v 1.9 2001/03/04 21:21:36 bwelling Exp $ */
 
 #ifndef NS_TKEYCONF_H
 #define NS_TKEYCONF_H 1
@@ -23,19 +23,19 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 
-#include <dns/confctx.h>
+#include <isccfg/cfg.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
-		       dns_tkeyctx_t **tctxp);
+ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
+		      dns_tkeyctx_t **tctxp);
 /*
  * 	Create a TKEY context and configure it, including the default DH key
- *	and default domain, according to 'cfg'.
+ *	and default domain, according to 'options'.
  *
  *	Requires:
- *		'cfg' is a valid configuration context.
+ *		'cfg' is a valid configuration options object.
  *		'mctx' is not NULL
  *		'ectx' is not NULL
  *		'tctx' is not NULL

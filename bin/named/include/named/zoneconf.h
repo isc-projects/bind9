@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.15 2001/01/09 21:40:36 bwelling Exp $ */
+/* $Id: zoneconf.h,v 1.16 2001/03/04 21:21:39 bwelling Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
@@ -23,13 +23,15 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
+#include <isccfg/cfg.h>
+
 #include <named/aclconf.h>
 
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
-		   ns_aclconfctx_t *ac, dns_zone_t *zone);
+ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
+		  ns_aclconfctx_t *ac, dns_zone_t *zone);
 /*
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.
@@ -46,20 +48,14 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, dns_c_zone_t *czone,
  */
 
 isc_boolean_t
-ns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone);
+ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig);
 /*
  * If 'zone' can be safely reconfigured according to the configuration
- * data in 'czone', return ISC_TRUE.  If the configuration data is so
+ * data in 'zconfig', return ISC_TRUE.  If the configuration data is so
  * different from the current zone state that the zone needs to be destroyed
  * and recreated, return ISC_FALSE.
  */
 
-isc_result_t
-ns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zonemgr);
-/*
- * Configure the zone manager according to the named.conf data
- * in 'cctx'.
- */
 ISC_LANG_ENDDECLS
 
 #endif /* NS_ZONECONF_H */

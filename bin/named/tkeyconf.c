@@ -15,13 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.17 2001/01/09 21:40:05 bwelling Exp $ */
+/* $Id: tkeyconf.c,v 1.18 2001/03/04 21:21:27 bwelling Exp $ */
 
 #include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/mem.h>
+
+#include <isccfg/cfg.h>
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -40,7 +42,7 @@
 
 
 isc_result_t
-ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
+ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
 		       dns_tkeyctx_t **tctxp)
 {
 	isc_result_t result;
@@ -50,14 +52,17 @@ ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_buffer_t b;
+	cfg_obj_t *obj;
 
 	result = dns_tkeyctx_create(mctx, ectx, &tctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	s = NULL;
-	result = dns_c_ctx_gettkeydhkey(cfg, &s, &n);
+	obj = NULL;
+	result = cfg_map_get(options, "tkey-dhkey", &obj);
 	if (result == ISC_R_SUCCESS) {
+		s = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		n = cfg_obj_asuint32(cfg_tuple_get(obj, "keyid"));
 		isc_buffer_init(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		dns_fixedname_init(&fname);
@@ -67,12 +72,12 @@ ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 		RETERR(dst_key_fromfile(name, n, DNS_KEYALG_DH,
 					DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					NULL, mctx, &tctx->dhkey));
-	} else if (result != ISC_R_NOTFOUND)
-		goto failure;
+	}
 
-	s = NULL;
-	result = dns_c_ctx_gettkeydomain(cfg, &s);
+	obj = NULL;
+	result = cfg_map_get(options, "tkey-domain", &obj);
 	if (result == ISC_R_SUCCESS) {
+		s = cfg_obj_asstring(obj);
 		isc_buffer_init(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		dns_fixedname_init(&fname);
@@ -86,11 +91,12 @@ ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 		}
 		dns_name_init(tctx->domain, NULL);
 		RETERR(dns_name_dup(name, mctx, tctx->domain));
-	} else if (result != ISC_R_NOTFOUND)
-		goto failure;
+	}
 
-	result = dns_c_ctx_gettkeygsscred(cfg, &s);
+	obj = NULL;
+	result = cfg_map_get(options, "tkey-gssapi-credential", &obj);
 	if (result == ISC_R_SUCCESS) {
+		s = cfg_obj_asstring(obj);
 		isc_buffer_init(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		dns_fixedname_init(&fname);
@@ -99,8 +105,7 @@ ns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
 					 NULL));
 		RETERR(dst_gssapi_acquirecred(name, ISC_FALSE,
 					      &tctx->gsscred));
-	} else if (result != ISC_R_NOTFOUND)
-		goto failure;
+	}
 
 	*tctxp = tctx;
 	return (ISC_R_SUCCESS);
