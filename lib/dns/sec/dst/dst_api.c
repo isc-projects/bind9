@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.58 2000/08/01 01:27:45 tale Exp $
+ * $Id: dst_api.c,v 1.59 2000/08/17 02:04:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -95,7 +95,15 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	REQUIRE(mctx != NULL && ectx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-	isc_mem_attach(mctx, &dst_memory_pool);
+	dst_memory_pool = NULL;
+	/*
+	 * When using --with-openssl, there seems to be no good way of not
+	 * leaking memory due to the openssl error handling mechanism.
+	 * Avoid assertions by using a local memory context and not checking
+	 * for leaks on exit.
+	 */
+	RETERR(isc_mem_create(0, 0, &dst_memory_pool));
+	isc_mem_setdestroycheck(dst_memory_pool, ISC_FALSE);
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;
 
@@ -110,6 +118,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	RETERR(dst__openssl_init());
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
+#endif
+#ifdef GSSAPI
+	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
 
 	dst_initialized = ISC_TRUE;
@@ -133,6 +144,9 @@ dst_lib_destroy(void) {
 	dst__openssldsa_destroy();
 	dst__openssldh_destroy();
 	dst__openssl_destroy();
+#endif
+#ifdef GSSAPI
+	dst__gssapi_destroy();
 #endif
 	if (dst_memory_pool != NULL)
 		isc_mem_detach(&dst_memory_pool);
@@ -494,6 +508,24 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 }
 
 isc_result_t
+dst_key_fromgssapi(dns_name_t *name, void *opaque, isc_mem_t *mctx,
+		   dst_key_t **keyp)
+{
+	dst_key_t *key;
+
+	REQUIRE(opaque != NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
+
+	key = get_key_struct(name, DST_ALG_GSSAPI, 0, DNS_KEYPROTO_DNSSEC,
+			     0, mctx);
+	if (key == NULL)
+		return (ISC_R_NOMEMORY);
+	key->opaque = opaque;
+	*keyp = key;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 dst_key_generate(dns_name_t *name, const unsigned int alg,
 		 const unsigned int bits, const unsigned int param,
 		 const unsigned int flags, const unsigned int protocol,
@@ -693,6 +725,9 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 			break;
 		case DST_ALG_HMACMD5:
 			*n = 16;
+			break;
+		case DST_ALG_GSSAPI:
+			*n = 128; /* XXX */
 			break;
 		case DST_ALG_DH:
 		default:

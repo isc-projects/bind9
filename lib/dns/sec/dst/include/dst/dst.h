@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.34 2000/08/01 01:27:58 tale Exp $ */
+/* $Id: dst.h,v 1.35 2000/08/17 02:04:22 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -45,9 +45,10 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
 #define DST_ALG_HMACMD5		157
+#define DST_ALG_GSSAPI		160
 #define DST_ALG_PRIVATE		254
 #define DST_ALG_EXPAND		255
-#define DST_MAX_ALGS		(DST_ALG_HMACMD5 + 1)
+#define DST_MAX_ALGS		255
 
 /* A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE		1024
@@ -334,6 +335,27 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  *
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced.
+ */
+
+isc_result_t
+dst_key_fromgssapi(dns_name_t *name, void *opaque, isc_mem_t *mctx,
+		                   dst_key_t **keyp);
+/*
+ * Converts a GSSAPI opaque context id into a DST key.
+ *
+ * Requires:
+ *	"name" is a valid absolute dns name.
+ *	"opaque" is a GSSAPI context id.
+ *	"mctx" is a valid memory context.
+ *	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
+ * Ensures:
+ *	If successful, *keyp will contain a valid key and be responsible for
+ *	the context id.
  */
 
 isc_result_t

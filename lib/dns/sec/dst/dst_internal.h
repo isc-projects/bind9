@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.27 2000/08/01 01:27:46 tale Exp $ */
+/* $Id: dst_internal.h,v 1.28 2000/08/17 02:04:21 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -99,6 +99,7 @@ isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
 isc_result_t dst__dnssafersa_init(struct dst_func **funcp);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
+isc_result_t dst__gssapi_init(struct dst_func **funcp);
 
 /*
  * Destructors
@@ -109,6 +110,7 @@ void dst__hmacmd5_destroy(void);
 void dst__dnssafersa_destroy(void);
 void dst__openssldsa_destroy(void);
 void dst__openssldh_destroy(void);
+void dst__gssapi_destroy(void);
 
 /*
  * Memory allocators using the DST memory pool.
