@@ -17,19 +17,12 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-CINCLUDES =	-I../../lib/isc/unix/include \
-		-I${srcdir}/../../lib/isc/unix/include \
-		-I${srcdir}/../../lib/isc/pthreads/include \
-		-I${srcdir}/include \
-		-I../../lib/dns/include \
-		-I${top_srcdir}/lib/dns/include \
-		-I${top_srcdir}/lib/isc/include \
-		-I../dns/include \
-		-I../isc/include
+@BIND9_INCLUDES@
+
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${TEST_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-# Note: we are not using libtool with this library.
 OBJS =		t_api.@O@
 
 SRCS =		t_api.c
@@ -39,9 +32,14 @@ TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
 
-libt_api.@A@: ${OBJS}
+libt_api.a: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
+
+libt_api.la: ${OBJS}
+	${LIBTOOL} --mode=link \
+		${CC} ${ALL_CFLAGS} -o libt_api.la -rpath ${libdir} \
+		${OBJS} ${LIBS}
 
 timestamp: libt_api.@A@
 	touch timestamp
