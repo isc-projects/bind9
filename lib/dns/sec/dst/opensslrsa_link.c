@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.19 2001/12/12 17:09:39 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.20 2002/01/15 22:09:45 bwelling Exp $
  */
 #ifdef OPENSSL
 
@@ -38,6 +38,13 @@
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x0090601fL
+#define SET_FLAGS(rsa) \
+	(rsa)->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+#else
+#define SET_FLAGS(rsa) do { } while (0);
+#endif
 
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -229,9 +236,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 		ERR_clear_error();
 		return (DST_R_OPENSSLFAILURE);
 	}
-
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
-
+	SET_FLAGS(rsa);
 	key->opaque = rsa;
 
 	return (ISC_R_SUCCESS);
@@ -304,7 +309,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		return (ISC_R_NOMEMORY);
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	SET_FLAGS(rsa);
 
 	if (r.length < 1) {
 		RSA_free(rsa);
@@ -443,7 +448,7 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 	rsa = RSA_new();
 	if (rsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
+	SET_FLAGS(rsa);
 	key->opaque = rsa;
 
 	for (i = 0; i < priv.nelements; i++) {
