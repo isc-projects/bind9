@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.27 2000/04/27 00:08:44 tale Exp $ */
+/* $Id: compress.c,v 1.28 2000/04/27 21:46:31 halley Exp $ */
+
+#define DNS_NAME_USEINLINE 1
 
 #include <config.h>
 #include <string.h>
@@ -271,7 +273,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 	dns_label_t label;
 	unsigned int count;
 	unsigned int start;
-	unsigned int limit;
+	unsigned int n;
 	isc_uint16_t *data;
 	isc_result_t result;
 	unsigned char buffer[255];
@@ -279,23 +281,25 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 	dns_offsets_t offsets;
 
 	count = dns_name_countlabels(prefix);
-	limit = dns_name_isabsolute(prefix) ? 1 : 0;
+	if (dns_name_isabsolute(prefix))
+		count--;
 	start = 0;
 	dns_name_init(&full, offsets);
 	dns_name_init(&name, NULL);
-	while (count > limit) {
+	isc_buffer_init(&target, buffer, sizeof(buffer));
+	result = dns_name_concatenate(prefix, suffix, &full, &target);
+	if (result != ISC_R_SUCCESS)
+		return;
+	n = dns_name_countlabels(&full);
+	while (count > 0) {
 		if (offset >= 16384 && !global16)
 			break;
-		dns_name_getlabelsequence(prefix, start, count, &name);
-		isc_buffer_init(&target, buffer, sizeof(buffer));
-		result = dns_name_concatenate(&name, suffix, &full, &target);
-		if (result != ISC_R_SUCCESS)
-			return;
+		dns_name_getlabelsequence(&full, start, n, &name);
 		data = isc_mem_get(mctx, sizeof *data);
 		if (data == NULL)
 			return;
 		*data = offset;
-		result = dns_rbt_addname(root, &full, data);
+		result = dns_rbt_addname(root, &name, data);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(mctx, data, sizeof *data);
 			return;
@@ -303,6 +307,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 		dns_name_getlabel(&name, 0, &label);
 		offset += label.length;
 		start++;
+		n--;
 		count--;
 	}
 }
@@ -340,6 +345,12 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 
 	dns_fixedname_init(&found);
 	foundname = dns_fixedname_name(&found);
+	/*
+	 * Getting rid of the offsets table for foundname improves
+	 * perfomance, since the offsets table is not needed and maintaining
+	 * it has costs.
+	 */
+	foundname->offsets = NULL;
 	result = dns_rbt_findname(root, name, 0, foundname, (void *)&data);
 	if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
 		return (ISC_FALSE);
