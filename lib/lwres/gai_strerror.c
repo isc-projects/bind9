@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.7 2000/06/08 18:36:52 gson Exp $ */
+/* $Id: gai_strerror.c,v 1.8 2000/06/08 18:37:29 gson Exp $ */
 
 #include <lwres/netdb.h>
 
@@ -34,7 +34,7 @@ static const char *gai_messages[] = {
 	"system error returned in errno"
 };
 
-char*
+char *
 gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;
