@@ -27,6 +27,7 @@
 
 #include <dst/dst.h>
 
+#define MAXKEYS 10
 #define is_zone_key(key) ((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) \
 			  == DNS_KEYOWNER_ZONE)
 
@@ -131,18 +132,18 @@ build_nxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 static void
 generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	     dns_name_t *name, dst_key_t *key)
+	     dns_name_t *name, dst_key_t **keys, int nkeys)
 {
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata, rdatas[MAXKEYS];
 	dns_rdataset_t rdataset, sigrdataset;
 	dns_rdatalist_t sigrdatalist;
-	isc_region_t data;
+	isc_region_t data[MAXKEYS];
 	dns_rdatasetiter_t *rdsiter;
 	isc_buffer_t buffer;
-	unsigned char array[1024];
-
-	ISC_LIST_INIT(sigrdatalist.rdata);
+	isc_stdtime_t now, later;
+	unsigned char array[MAXKEYS][1024];
+	int i;
 
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
@@ -153,6 +154,16 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type > 127)
 			fatal("rdataset type too large");
+
+		if (rdataset.type == dns_rdatatype_sig ||
+		    (rdataset.type == dns_rdatatype_key &&
+		     dns_name_compare(name, dns_db_origin(db)) == 0))
+		{
+			dns_rdataset_disassociate(&rdataset);
+			result = dns_rdatasetiter_next(rdsiter);
+			continue;
+		}
+
 		if (rdataset.type == dns_rdatatype_nxt) {
 			unsigned char *nxt_bits;
 			dns_name_t nxtname;
@@ -169,45 +180,43 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			set_bit(nxt_bits, dns_rdatatype_sig, 1);
 			
 		}
-		if (rdataset.type != dns_rdatatype_sig &&
-		    !(rdataset.type == dns_rdatatype_key &&
-		      dns_name_compare(name, dns_db_origin(db)) == 0))
-		{
-			isc_stdtime_t now, later;
-			isc_stdtime_get(&now);
-			later = 100000 + now;
-			data.base = array;
-			data.length = sizeof(array);
-			memset(data.base, 0, data.length);
 
-			dns_rdata_init(&rdata);
-			isc_buffer_init(&buffer, data.base, data.length,
+		isc_stdtime_get(&now);
+		later = 100000 + now;
+		ISC_LIST_INIT(sigrdatalist.rdata);
+
+		for (i = 0; i < nkeys; i++) {
+			data[i].base = array[i];
+			data[i].length = sizeof(array[i]);
+			memset(data[i].base, 0, data[i].length);
+
+			dns_rdata_init(&rdatas[i]);
+			isc_buffer_init(&buffer, data[i].base, data[i].length,
 					ISC_BUFFERTYPE_BINARY);
-			result = dns_dnssec_sign(name, &rdataset, key,
+			result = dns_dnssec_sign(name, &rdataset, keys[i],
 						 &now, &later,
-						 mctx, &buffer, &rdata);
+						 mctx, &buffer, &rdatas[i]);
 			check_result(result, "dns_dnssec_sign()");
-			result = dns_dnssec_verify(name, &rdataset, key,
-						   mctx, &rdata);
+			result = dns_dnssec_verify(name, &rdataset, keys[i],
+						   mctx, &rdatas[i]);
 			check_result(result, "dns_dnssec_verify()");
-			ISC_LIST_APPEND(sigrdatalist.rdata, &rdata, link);
-
-			sigrdatalist.rdclass = rdataset.rdclass;
-			sigrdatalist.type = dns_rdatatype_sig;
-			sigrdatalist.covers = rdataset.type;
-			sigrdatalist.ttl = rdataset.ttl;
-			dns_rdataset_init(&sigrdataset);
-			result = dns_rdatalist_tordataset(&sigrdatalist,
-							  &sigrdataset);
-			check_result(result, "dns_rdatalist_tordataset");
-			result = dns_db_addrdataset(db, node, version, 0,
-						    &sigrdataset,
-						    ISC_FALSE, NULL);
-			if (result == DNS_R_UNCHANGED)
-				result = ISC_R_SUCCESS;
-			check_result(result, "dns_db_addrdataset");
-			dns_rdataset_disassociate(&sigrdataset);
+			ISC_LIST_APPEND(sigrdatalist.rdata, &rdatas[i], link);
 		}
+
+		sigrdatalist.rdclass = rdataset.rdclass;
+		sigrdatalist.type = dns_rdatatype_sig;
+		sigrdatalist.covers = rdataset.type;
+		sigrdatalist.ttl = rdataset.ttl;
+		dns_rdataset_init(&sigrdataset);
+		result = dns_rdatalist_tordataset(&sigrdatalist, &sigrdataset);
+		check_result(result, "dns_rdatalist_tordataset");
+		result = dns_db_addrdataset(db, node, version, 0, &sigrdataset,
+					    ISC_FALSE, NULL);
+		if (result == DNS_R_UNCHANGED)
+			result = ISC_R_SUCCESS;
+		check_result(result, "dns_db_addrdataset");
+		dns_rdataset_disassociate(&sigrdataset);
+
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
@@ -217,20 +226,23 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 }
 
 static void
-find_key(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name, dst_key_t **key) {
+find_keys(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name,
+	  dst_key_t **keys, int *nkeys)
+{
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 	isc_result_t result;
 	dst_key_t *pubkey;
+	int count = 0;
 
-	*key = NULL;
+	*nkeys = 0;
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_key, 0, 0,
 				     &rdataset);
 	check_result(result, "dns_db_findrdataset()");
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first()");
-	while (result == ISC_R_SUCCESS) {
+	while (result == ISC_R_SUCCESS && count < MAXKEYS) {
 		pubkey = NULL;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
@@ -243,14 +255,15 @@ find_key(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name, dst_key_t **key) {
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PRIVATE,
-					  mctx, key);
+					  mctx, &keys[count++]);
 		check_result(result, "dst_key_fromfile()");
 		dst_key_free(pubkey);
-		break;
+		result = dns_rdataset_next(&rdataset);
 	}
 	dns_rdataset_disassociate(&rdataset);
-	if (*key == NULL)
+	if (count == 0)
 		check_result(ISC_R_FAILURE, "no key found");
+	*nkeys = count;
 }
 
 static inline isc_boolean_t
@@ -328,9 +341,10 @@ sign(char *filename) {
 	size_t len;
 	dns_dbiterator_t *dbiter;
 	char newfilename[1024];
-	dst_key_t *key = NULL;
+	dst_key_t *keys[MAXKEYS];
 	unsigned char curdata[1024];
 	isc_buffer_t curbuf;
+	int nkeys = 0, i;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -357,7 +371,7 @@ sign(char *filename) {
 	node = NULL;
 	result = dns_db_findnode(db, name, ISC_FALSE, &node);
 	check_result(result, "dns_db_findnode()");
-	find_key(db, node, name, &key);
+	find_keys(db, node, name, keys, &nkeys);
 	dns_db_detachnode(db, &node);
 
 	wversion = NULL;
@@ -391,7 +405,7 @@ sign(char *filename) {
 			fatal("db iteration failed");
 		}
 		build_nxt(db, wversion, node, target);
-		generate_sig(db, wversion, node, &curname, key);
+		generate_sig(db, wversion, node, &curname, keys, nkeys);
 		dns_name_invalidate(&curname);
 		dns_db_detachnode(db, &node);
 		dns_db_detachnode(db, &curnode);
@@ -411,7 +425,8 @@ sign(char *filename) {
 	result = dns_db_dump(db, NULL, newfilename);
 	check_result(result, "dns_db_dump");
 	dns_db_detach(&db);
-	dst_key_free(key);
+	for (i = 0; i < nkeys; i++)
+		dst_key_free(keys[i]);
 }
 
 int
