@@ -127,3 +127,10 @@ A: You probably have a buggy version of GNU bison installed on your
 system.  Remove bison it from your path, remove the config.cache file,
 and rerun configure so that it picks up the AIX yacc instead.
 
+
+Q: I'm trying to use TSIG to authenticate dynamic updates or zone
+transfers.  I'm sure I have the keys set up correctly, but the server
+is rejecting the TSIG.  Why?
+
+A: This may be a clock skew problem.  Check that the the clocks on
+the client and server are properly synchronized (e.g., using ntp).
