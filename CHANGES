@@ -1,7 +1,10 @@
-1555.	[func]		'rrset-order cyclic' no longer has a random starting
+1561.	[bug]		It was possible to release the same name twice if
+			named ran out of memory. [RT #10197]
+
 1560.	[port]		FreeBSD: work around FreeBSD 5.2 mapping EAI_NODATA
 			and EAI_NONAME to the same value.
 
+1555.	[func]		'rrset-order cyclic' no longer has a random starting
 			point. [RT #7572]
 
 1554.	[bug]		dig, host, nsloolup failed when no nameservers
