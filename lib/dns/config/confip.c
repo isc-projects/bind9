@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.33 2000/08/01 13:53:38 explorer Exp $ */
+/* $Id: confip.c,v 1.34 2000/08/01 14:12:58 mws Exp $ */
 
 #include <config.h>
 
@@ -796,8 +796,8 @@ dns_c_iplist_new(isc_mem_t *mem, int length, dns_c_iplist_t **newlist) {
 	memset(list->ips, 0x0, bytes);
 
 
-	bytes = sizeof (dns_name_t *) * length;
 #ifndef NOMINUM_PUBLIC
+	bytes = sizeof (dns_name_t *) * length;
 	list->keys = isc_mem_get(mem, bytes);
 	if (list->keys == NULL) {
 		isc_mem_put(mem, list->ips, sizeof (isc_sockaddr_t) * length);
