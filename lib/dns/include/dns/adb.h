@@ -222,6 +222,34 @@ dns_adb_detach(dns_adb_t **adb);
  *	dns_adb_create().
  */
 
+void
+dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp);
+/*
+ * Send '*eventp' to 'task' when 'adb' has shutdown.
+ *
+ * Requires:
+ *
+ *	'*adb' is a valid dns_adb_t.
+ *
+ *	eventp != NULL && *eventp is a valid event.
+ *
+ * Ensures:
+ *
+ *	*eventp == NULL
+ *
+ *	The event's sender field is set to the value of adb when the event
+ *	is sent.
+ */
+
+void
+dns_adb_shutdown(dns_adb_t *adb);
+/*
+ * Shutdown 'adb'.
+ *
+ * Requires:
+ *
+ * 	'*adb' is a valid dns_adb_t.
+ */
 
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,

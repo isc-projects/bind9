@@ -82,6 +82,13 @@ dns_resolver_create(dns_view_t *view,
 		    dns_dispatch_t *dispatch, dns_resolver_t **resp);
 
 void
+dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
+			  isc_event_t **eventp);
+
+void
+dns_resolver_shutdown(dns_resolver_t *res);
+
+void
 dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp);
 
 void
