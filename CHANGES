@@ -27,6 +27,8 @@
  705.	[port]		Work out resource limit type for use where rlim_t is
 			not available. [RT #695]
 
+ 704.	[port]		RLIMIT_NOFILE is not available on all platforms.
+
 	--- 9.1.3rc1 released ---
 
  831.	[bug]		The configure script tried to determine
