@@ -206,9 +206,21 @@ isc_result_t	dns_c_ctx_new(isc_log_t *lctx,
 			      isc_mem_t *mem, dns_c_ctx_t **cfg);
 isc_result_t	dns_c_ctx_delete(isc_log_t *lctx,
 				 dns_c_ctx_t **cfg);
+
+void		dns_c_ctx_print(isc_log_t *lctx,
+				FILE *fp, int indent, dns_c_ctx_t *cfg);
+void		dns_c_ctx_optionsprint(isc_log_t *lctx,
+				       FILE *fp, int indent,
+				       dns_c_options_t *options);
+void		dns_c_ctx_forwarderprint(isc_log_t *lctx,
+					 FILE *fp, int indent,
+					 dns_c_options_t *options);
+
+
 isc_result_t	dns_c_ctx_getoptions(isc_log_t *lctx,
 				     dns_c_ctx_t *cfg,
 				     dns_c_options_t **options);
+
 isc_result_t	dns_c_ctx_setlogging(isc_log_t *lctx,
 				     dns_c_ctx_t *cfg,
 				     dns_c_logginglist_t *newval,
@@ -216,6 +228,16 @@ isc_result_t	dns_c_ctx_setlogging(isc_log_t *lctx,
 isc_result_t	dns_c_ctx_getlogging(isc_log_t *lctx,
 				     dns_c_ctx_t *cfg,
 				     dns_c_logginglist_t **retval);
+
+isc_result_t	dns_c_ctx_getkdeflist(isc_log_t *lctx,
+                                      dns_c_ctx_t *cfg,
+                                      dns_c_kdeflist_t **retval);
+isc_result_t	dns_c_ctx_setkdeflist(isc_log_t *lctx,
+                                      dns_c_ctx_t *cfg,
+                                      dns_c_kdeflist_t *newval,
+                                      isc_boolean_t deepcopy);
+
+
 isc_result_t	dns_c_ctx_addfile_channel(isc_log_t *lctx,
 					  dns_c_ctx_t *cfg, const char *name,
 					  dns_c_logchan_t **chan);
@@ -251,14 +273,6 @@ isc_result_t	dns_c_ctx_optionsdelete(isc_log_t *lctx,
 					dns_c_options_t **options);
 isc_result_t	dns_c_ctx_erase_options(isc_log_t *lctx,
 					dns_c_ctx_t *cfg);
-void		dns_c_ctx_print(isc_log_t *lctx,
-				FILE *fp, int indent, dns_c_ctx_t *cfg);
-void		dns_c_ctx_optionsprint(isc_log_t *lctx,
-				       FILE *fp, int indent,
-				       dns_c_options_t *options);
-void		dns_c_ctx_forwarderprint(isc_log_t *lctx,
-					 FILE *fp, int indent,
-					 dns_c_options_t *options);
 
 
 

@@ -192,6 +192,13 @@ isc_result_t	dns_c_kdeflist_new(isc_log_t *lctx,
 				   dns_c_kdeflist_t **list);
 isc_result_t	dns_c_kdeflist_delete(isc_log_t *lctx,
 				      dns_c_kdeflist_t **list);
+isc_result_t	dns_c_kdeflist_copy(isc_log_t *lctx,
+				    isc_mem_t *mem,
+				    dns_c_kdeflist_t **dest,
+				    dns_c_kdeflist_t *src);
+isc_result_t	dns_c_kdeflist_append(isc_log_t *lctx, dns_c_kdeflist_t *list,
+				      dns_c_kdef_t *key, isc_boolean_t copy);
+
 isc_result_t	dns_c_kdeflist_undef(isc_log_t *lctx,
 				     dns_c_kdeflist_t *list,
 				     const char *keyid);
@@ -202,15 +209,22 @@ isc_result_t	dns_c_kdeflist_find(isc_log_t *lctx,
 void		dns_c_kdeflist_print(isc_log_t *lctx,
 				     FILE *fp, int indent,
 				     dns_c_kdeflist_t *list);
+
 isc_result_t	dns_c_kdef_new(isc_log_t *lctx,
 			       dns_c_kdeflist_t *list, const char *name,
 			       dns_c_kdef_t **keyid);
+isc_result_t	dns_c_kdef_delete(isc_log_t *lctx, dns_c_kdef_t **keydef);
+isc_result_t	dns_c_kdef_copy(isc_log_t *lctx, isc_mem_t *mem,
+				dns_c_kdef_t **dest, dns_c_kdef_t *src);
+
 void		dns_c_kdef_print(isc_log_t *lctx,
 				 FILE *fp, int indent, dns_c_kdef_t *keydef);
-isc_result_t	dns_c_kdefset_algorithm(isc_log_t *lctx,
+
+
+isc_result_t	dns_c_kdef_setalgorithm(isc_log_t *lctx,
 					dns_c_kdef_t *elem,
 					const char *algorithm);
-isc_result_t	dns_c_kdefset_secret(isc_log_t *lctx,
+isc_result_t	dns_c_kdef_setsecret(isc_log_t *lctx,
 				     dns_c_kdef_t *elem,
 				     const char *secret);
 
