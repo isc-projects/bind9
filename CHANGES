@@ -1,3 +1,6 @@
+1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
+			were being sent for the zone. [RT# 9442]
+
 1525.	[bug]		dns_cache_create() could trigger a REQUIRE
 			failure in isc_mem_put() during error cleanup.
 
