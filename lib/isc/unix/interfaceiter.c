@@ -102,13 +102,11 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 	iter->pos = 0;
 	for (;;) {
 		result = internal_current(iter);
-		if (result == ISC_R_SUCCESS)
+		if (result != ISC_R_IGNORE) 
 			break;
-		INSIST(result == ISC_R_FAILURE);		
 		result = internal_next(iter);
-		if (result == ISC_R_NOMORE)
+		if (result != ISC_R_SUCCESS)
 			break;
-		INSIST(result == ISC_R_SUCCESS);
 	}
 	iter->result = result;
 	return (result);
@@ -123,13 +121,11 @@ isc_interfaceiter_next(isc_interfaceiter_t *iter) {
 
 	for (;;) {
 		result = internal_next(iter);
-		if (result == ISC_R_NOMORE)
+		if (result != ISC_R_SUCCESS)
 			break;
-		INSIST(result == ISC_R_SUCCESS);
 		result = internal_current(iter);
-		if (result == ISC_R_SUCCESS)
+		if (result != ISC_R_IGNORE)
 			break;
-		INSIST(result == ISC_R_FAILURE);
 	}
 	iter->result = result;
 	return (result);

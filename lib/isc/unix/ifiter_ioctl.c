@@ -175,9 +175,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
 /*
  * Get information about the current interface to iter->current.
  * If successful, return ISC_R_SUCCESS.
- * If the interface has an unsupported address family,
- * return ISC_R_FAILURE.  In case of other failure,
- * return ISC_R_UNEXPECTED.
+ * If the interface has an unsupported address family, or if
+ * some operation on it fails, return ISC_R_IGNORE to make
+ * the higher-level iterator code ignore it.
  */
 
 static isc_result_t
@@ -196,7 +196,7 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	family = lifreq.lifr_addr.ss_family;
 	if (family != AF_INET && family != AF_INET6)
-		return (ISC_R_FAILURE); 
+		return (ISC_R_IGNORE); 
 	
 	memset(&iter->current, 0, sizeof(iter->current));
 	iter->current.af = family;
@@ -216,7 +216,7 @@ internal_current(isc_interfaceiter_t *iter) {
 				 "%s: getting interface flags: %s",
 				 lifreq.lifr_name,
 				 strerror(errno));
-		return (ISC_R_UNEXPECTED);
+		return (ISC_R_IGNORE);
 	}
 	
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
@@ -235,7 +235,7 @@ internal_current(isc_interfaceiter_t *iter) {
 					 "%s: getting destination address: %s",
 					 lifreq.lifr_name,
 					 strerror(errno));
-			return (ISC_R_UNEXPECTED);
+			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.dstaddress,
 			 (struct sockaddr *)&lifreq.lifr_dstaddr);
@@ -251,7 +251,7 @@ internal_current(isc_interfaceiter_t *iter) {
 					 "%s: getting netmask: %s",
 					 lifreq.lifr_name,
 					 strerror(errno));
-			return (ISC_R_UNEXPECTED);
+			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.netmask,
 			 (struct sockaddr *)&lifreq.lifr_addr);		

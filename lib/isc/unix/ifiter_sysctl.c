@@ -129,7 +129,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
  * Get information about the current interface to iter->current.
  * If successful, return ISC_R_SUCCESS.
  * If the interface has an unsupported address family,
- * return ISC_R_FAILURE.  In case of other failure,
+ * return ISC_R_IGNORE.  In case of other failure,
  * return ISC_R_UNEXPECTED.
  */
 
@@ -171,7 +171,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		 * This is not an interface address.
 		 * Force another iteration.
 		 */
-		return (ISC_R_FAILURE);
+		return (ISC_R_IGNORE);
 	} else if (ifam->ifam_type == RTM_NEWADDR) {
 		int i;
 		int family;
@@ -217,11 +217,11 @@ internal_current(isc_interfaceiter_t *iter) {
 		}
 
 		if (addr_sa == NULL)
-			return (ISC_R_FAILURE);
+			return (ISC_R_IGNORE);
 		
 		family = addr_sa->sa_family;
 		if (family != AF_INET) /* XXX IP6 */
-			return (ISC_R_FAILURE);
+			return (ISC_R_IGNORE);
 
 		iter->current.af = family;
 		
@@ -237,7 +237,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		return (ISC_R_SUCCESS);
 	} else {
 		printf("warning: unexpected interface list message type\n");
-		return (ISC_R_FAILURE);
+		return (ISC_R_IGNORE);
 	}
 }
 
