@@ -385,7 +385,7 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  *	system via the context's free function.
  */
 
-int
+lwres_result_t
 lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
 /*
  * parses a resolv.conf-format file and puts the results into *confdata;
@@ -395,8 +395,8 @@ lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
  *	filename != NULL && strlen(filename) > 0
  *
  * Returns:
- *	0 on a succesfull parse.
- *	-1 on failure (errno will be != 0 on failure like file not found.
+ *	LWRES_R_SUCCESS on a succesfull parse.
+ *	Anything else on error.
  */
 
 void
@@ -409,7 +409,7 @@ lwres_conf_free(lwres_conf_t *confdata);
  *	that confdata had been previously passed to lwres_conf_parse()
  */
 
-int
+lwres_result_t
 lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
 /*
  * Prints a resolv.conf-format of confdata output to fp.

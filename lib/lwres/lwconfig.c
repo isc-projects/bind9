@@ -69,20 +69,31 @@ extern int lwres_net_pton(int af, const char *src, void *dst);
 extern const char *lwres_net_ntop(int af, const void *src, char *dst,
 				  size_t size);
 
-static int lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
-				      lwres_conf_t *confdata);
-static int lwres_conf_parsedomain(lwres_context_t *ctx, FILE *fp,
-				  lwres_conf_t *confdata);
-static int lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
-				  lwres_conf_t *confdata);
-static int lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
-				    lwres_conf_t *confdata);
-static int lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
-				  lwres_conf_t *confdata);
-static void lwres_resetaddr(lwres_context_t *ctx, lwres_addr_t *addr,
-			    int freeit);
-static int lwres_create_addr(lwres_context_t *ctx, const char *buff,
-			     lwres_addr_t *addr);
+static lwres_result_t
+lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
+			   lwres_conf_t *confdata);
+
+static lwres_result_t
+lwres_conf_parsedomain(lwres_context_t *ctx, FILE *fp, lwres_conf_t *confdata);
+
+static lwres_result_t
+lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
+		       lwres_conf_t *confdata);
+
+static lwres_result_t
+lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
+			 lwres_conf_t *confdata);
+
+static lwres_result_t
+lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
+		       lwres_conf_t *confdata);
+
+static void
+lwres_resetaddr(lwres_context_t *ctx, lwres_addr_t *addr, int freeit);
+
+static lwres_result_t
+lwres_create_addr(lwres_context_t *ctx, const char *buff,
+		  lwres_addr_t *addr);
 
 /*
  * Skip over any leading whitespace and then read in the next sequence of
@@ -218,7 +229,7 @@ lwres_conf_clear(lwres_conf_t *confdata)
 	confdata->no_tld_query = 0;
 }
 
-static int
+static lwres_result_t
 lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
 			   lwres_conf_t *confdata)
 {
@@ -242,7 +253,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
 	return (LWRES_R_SUCCESS);
 }
 
-static int
+static lwres_result_t
 lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp, lwres_conf_t *confdata)
 {
 	char word[LWRES_CONFMAXLINELEN];
@@ -276,7 +287,7 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp, lwres_conf_t *confdata)
 	return (LWRES_R_SUCCESS);
 }
 
-static int
+static lwres_result_t
 lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
 		       lwres_conf_t *confdata)
 {
@@ -324,7 +335,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
 	return (LWRES_R_SUCCESS);
 }
 
-static int
+static lwres_result_t
 lwres_create_addr(lwres_context_t *ctx, const char *buffer, lwres_addr_t *addr)
 {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
@@ -348,7 +359,7 @@ lwres_create_addr(lwres_context_t *ctx, const char *buffer, lwres_addr_t *addr)
 	return (LWRES_R_SUCCESS);
 }
 
-static int
+static lwres_result_t
 lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
 			 lwres_conf_t *confdata)
 {
@@ -392,7 +403,7 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
 	return (LWRES_R_SUCCESS);
 }
 
-static int
+static lwres_result_t
 lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
 		       lwres_conf_t *confdata)
 {
@@ -430,12 +441,13 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
 	return (LWRES_R_SUCCESS);
 }
 
-int
+lwres_result_t
 lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
 {
 	FILE *fp = NULL;
 	char word[256];
-	int rval, delim;
+	int delim;
+	lwres_result_t rval;
 	lwres_context_t *ctx;
 
 	REQUIRE(filename != NULL);
@@ -473,7 +485,7 @@ lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
 	return (rval);
 }
 
-int
+lwres_result_t
 lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
 {
 	int i;
