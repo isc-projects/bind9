@@ -1,5 +1,7 @@
-Copyright (C) 2000, 2001  Internet Software Consortium.
+Copyright (C) 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: migration-4to9,v 1.2 2001/04/10 21:51:08 bwelling Exp $
 
 		   BIND 4 to BIND 9 Migration Notes
 

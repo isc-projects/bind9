@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2001  Nominum Inc
+# Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: mandoc2docbook.pl,v 1.2 2001/04/02 21:48:31 gson Exp $
+# $Id: mandoc2docbook.pl,v 1.3 2001/04/10 21:52:17 bwelling Exp $
 
 #
 # Do a quick-and-dirty conversion of .mandoc man pages to
@@ -46,7 +46,7 @@ print <<\END;
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: mandoc2docbook.pl,v 1.2 2001/04/02 21:48:31 gson Exp $ -->
+<!-- $Id: mandoc2docbook.pl,v 1.3 2001/04/10 21:52:17 bwelling Exp $ -->
 
 <refentry>
 <refentryinfo>
