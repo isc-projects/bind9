@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.7 2000/07/25 00:44:18 mws Exp $
+# $Id: tests.sh,v 1.8 2000/07/25 17:48:51 mws Exp $
 
 #
 # Perform tests
@@ -82,6 +82,7 @@ rm named.pid
 sleep 2
 $NAMED -c named.conf -d 99 -g >> named.run 2>&1 &
 cd ..
+sleep 10
 
 echo "I:fetching ns1 after hard restart"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
