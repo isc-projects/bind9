@@ -166,10 +166,8 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 	dns_name_t *zonename;
-	dns_rdataclass_t zoneclass;
 	
 	zonename = dns_db_origin(db);
-	zoneclass = dns_db_class(db);
 	
 	node = NULL;
 	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);
@@ -178,7 +176,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0,
-				     (isc_stdtime_t) 0, &rdataset, NULL);
+				     (isc_stdtime_t)0, &rdataset, NULL);
  	if (result != ISC_R_SUCCESS)
 		goto freenode;
 	
@@ -267,15 +265,13 @@ dns_difftuple_free(dns_difftuple_t **tp) {
 }
 
 isc_result_t
-dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp)
-{
+dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp) {
 	return (dns_difftuple_create(orig->mctx, orig->op, &orig->name,
 				     orig->ttl, &orig->rdata, copyp));
 }
 
 void
-dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff)
-{
+dns_diff_init(isc_mem_t *mctx, dns_diff_t *diff) {
 	diff->mctx = mctx;
 	ISC_LIST_INIT(diff->tuples);
 	diff->magic = DNS_DIFF_MAGIC;
