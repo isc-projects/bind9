@@ -36,12 +36,20 @@ int main (int argc, char **argv) {
 	isc_mem_t *mem = NULL;
 	isc_log_t *log = NULL;
 	isc_logconfig_t *logcfg = NULL;
+	const char *program = NULL;
 
+	program = strrchr(argv[0], '/');
+	if (program == NULL) {
+		program = argv[0];
+	} else {
+		program++;
+	}
+	
 	argc--;
 	argv++;
 	
 	if (argc == 0) {
-		fprintf(stderr, "usage: %s file\n", argv[0]);
+		fprintf(stderr, "usage: %s file\n", program);
 		exit (1);
 	}
 	
