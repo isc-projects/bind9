@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.411 2004/01/27 02:13:22 marka Exp $ */
+/* $Id: server.c,v 1.412 2004/02/17 03:40:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1061,13 +1061,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "provide-ixfr", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->provideixfr = cfg_obj_asboolean(obj);
+			
+	obj = NULL;
+	result = ns_config_get(maps, "enable-dnssec", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablednssec = cfg_obj_asboolean(obj);
 
 	/*
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
-				  &view->secroots));
+	if (view->enablednssec)
+		CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
+					        &view->secroots));
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-ttl", &obj);
@@ -1122,7 +1128,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		}
 	} else
 		dns_view_setrootdelonly(view, ISC_FALSE);
-			
+
 	result = ISC_R_SUCCESS;
 
  cleanup:

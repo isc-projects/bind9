@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.253 2004/02/03 00:59:03 marka Exp $ */
+/* $Id: query.c,v 1.254 2004/02/17 03:40:20 marka Exp $ */
 
 #include <config.h>
 
@@ -3342,6 +3342,14 @@ ns_query_start(ns_client_t *client) {
 	 */
 	client->next = query_next_callback;
 
+	/*
+	 * Behave as if we don't support DNSSEC if not enabled.
+	 */
+	if (!client->view->enablednssec) {
+		message->flags &= ~DNS_MESSAGEFLAG_CD;
+		client->extflags &= ~DNS_MESSAGEEXTFLAG_DO;
+	}
+
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
 	
@@ -3477,7 +3485,8 @@ ns_query_start(ns_client_t *client) {
 	 * Set AD.  We must clear it if we add non-validated data to a
 	 * response.
 	 */
-	message->flags |= DNS_MESSAGEFLAG_AD;
+	if (client->view->enablednssec)
+		message->flags |= DNS_MESSAGEFLAG_AD;
 
 	qclient = NULL;
 	ns_client_attach(client, &qclient);

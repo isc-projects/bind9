@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.123 2003/10/03 02:19:31 marka Exp $ */
+/* $Id: view.c,v 1.124 2004/02/17 03:40:23 marka Exp $ */
 
 #include <config.h>
 
@@ -155,6 +155,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->additionalfromcache = ISC_TRUE;
 	view->additionalfromauth = ISC_TRUE;
+	view->enablednssec = ISC_TRUE;
 	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;

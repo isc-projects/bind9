@@ -1,3 +1,6 @@
+1581.	[func]		Disable DNSSEC support by default.  To enable
+			DNSSEC specify "enable-dnssec yes;" in named.conf.
+
 1580.	[placeholder]	rt3746a
 
 1579.	[placeholder]	rt3746a

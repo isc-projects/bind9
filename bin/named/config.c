@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.42 2003/04/17 12:11:39 marka Exp $ */
+/* $Id: config.c,v 1.43 2004/02/17 03:40:19 marka Exp $ */
 
 #include <config.h>
 
@@ -123,6 +123,7 @@ options {\n\
 	check-names master ignore;\n\
 	check-names slave ignore;\n\
 	check-names response ignore;\n\
+	enable-dnssec no; /* Make yes for 9.4. */ \n\
 \n\
 	/* zone */\n\
 	allow-query {any;};\n\

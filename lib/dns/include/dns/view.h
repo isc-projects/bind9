@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.87 2003/09/30 05:56:17 marka Exp $ */
+/* $Id: view.h,v 1.88 2004/02/17 03:40:23 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -107,6 +107,7 @@ struct dns_view {
 	isc_boolean_t			additionalfromcache;
 	isc_boolean_t			additionalfromauth;
 	isc_boolean_t			minimalresponses;
+	isc_boolean_t			enablednssec;
 	dns_transfer_format_t		transfer_format;
 	dns_acl_t *			queryacl;
 	dns_acl_t *			recursionacl;

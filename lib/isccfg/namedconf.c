@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.25 2004/01/14 02:06:51 marka Exp $ */
+/* $Id: namedconf.c,v 1.26 2004/02/17 03:40:23 marka Exp $ */
 
 #include <config.h>
 
@@ -678,6 +678,7 @@ view_clauses[] = {
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
+	{ "enable-dnssec", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

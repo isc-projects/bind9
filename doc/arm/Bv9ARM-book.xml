@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.232 2004/01/14 02:06:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.233 2004/02/17 03:40:22 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2744,6 +2744,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> rfc2308-type1 <replaceable>yes_or_no</replaceable>; </optional>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> enable-dnssec <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
@@ -3322,6 +3323,14 @@ This should be set when you have multiple masters for a zone and the
 addresses refer to different machines.  If 'yes' named will not log
 when the serial number on the master is less than what named currently
 has.  The default is <userinput>no</userinput>.
+</para></listitem></varlistentry>
+
+<varlistentry><term><command>enable-dnssec</command></term>
+<listitem>
+<para>
+Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
+named behaves as if it does not support DNSSEC.
+The default is <userinput>no</userinput>.
 </para></listitem></varlistentry>
 
 </variablelist>
