@@ -12,7 +12,7 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o rdata.o rdatalist.o rdataset.o \
+OBJS =		name.o rbt.o rdata.o rdatalist.o rdataset.o \
 		redblack.o result.o version.o
 
 SUBDIRS =	include
