@@ -1,3 +1,24 @@
+ 179.	[func]		options named.conf statement *must* now come
+			before any zone or view statements.
+
+ 178.	[func]		Post-load of named.conf check verifies a slave zone
+			has non-empty list of masters defined.
+
+ 177.	[func]		New per-zone boolean:
+
+				enable-zone yes | no ;
+
+			intended to let a zone be disabled without having
+			to comment out the entire zone statement.
+
+ 176.   [func]		New global and per-view option:
+				
+				max-cache-ttl number
+
+ 175.	[func]		New global and per-view option:
+
+				addition-data internal | minimal | maximal;
+
  174.   [func]		New public function isc_sockaddr_format(), for
 			formatting socket addresses in log messages.
 
