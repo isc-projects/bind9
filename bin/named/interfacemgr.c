@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.44 2000/06/22 21:49:19 tale Exp $ */
+/* $Id: interfacemgr.c,v 1.44.2.1 2000/06/30 02:50:04 gson Exp $ */
 
 #include <config.h>
 
@@ -159,7 +159,6 @@ void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
-	LOCK(&mgr->lock);
 	/*
 	 * Shut down and detach all interfaces.
 	 * By incrementing the generation count, we make purge_old_interfaces()
@@ -167,8 +166,6 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	 */
 	mgr->generation++;
 	purge_old_interfaces(mgr);
-	INSIST(ISC_LIST_EMPTY(mgr->interfaces));
-	UNLOCK(&mgr->lock);	
 }
 
 
@@ -372,7 +369,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	if (ifp->udpdispatch != NULL)
 		dns_dispatch_detach(&ifp->udpdispatch);
 	if (ifp->tcpsocket != NULL) {
-		isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
+		/* isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL); */
 		isc_socket_detach(&ifp->tcpsocket);
 	}
 
