@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.3 2000/06/22 21:49:24 tale Exp $ */
+/* $Id: lwdclient.c,v 1.4 2000/06/26 20:49:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,55 +31,14 @@
 #include <named/lwdclient.h>
 
 void
-DP(int level, const char *format, ...) {
+ns_lwdclient_log(int level, const char *format, ...) {
 	va_list args;
 
-level = 1;
 	va_start(args, format);
 	isc_log_vwrite(dns_lctx,
 		       DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
 		       ISC_LOG_DEBUG(level), format, args);
 	va_end(args);
-}
-
-void
-hexdump(char *msg, void *base, size_t len) {
-	unsigned char *p;
-	unsigned int cnt;
-	char buffer[180];
-	char *n;
-
-	p = base;
-	cnt = 0;
-	n = buffer;
-	*n = 0;
-
-	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
-
-	while (cnt < len) {
-		if (cnt % 16 == 0) {
-			n = buffer;
-			n += sprintf(buffer, "%p: ", p);
-		} else if (cnt % 8 == 0) {
-			*n++ = ' ';
-			*n++ = '|';
-			*n = 0;
-		}
-		n += sprintf(n, " %02x", *p++);
-		cnt++;
-
-		if (cnt % 16 == 0) {
-			DP(80, buffer);
-			n = buffer;
-			*n = 0;
-		}
-	}
-
-	if (n != buffer) {
-		DP(80, buffer);
-		n = buffer;
-		*n = 0;
-	}
 }
 
 static void
@@ -106,11 +65,11 @@ process_request(ns_lwdclient_t *client) {
 
 	result = lwres_lwpacket_parseheader(&b, &client->pkt);
 	if (result != ISC_R_SUCCESS) {
-		DP(50, "invalid packet header received");
+		ns_lwdclient_log(50, "invalid packet header received");
 		goto restart;
 	}
 
-	DP(50, "opcode %08x", client->pkt.opcode);
+	ns_lwdclient_log(50, "opcode %08x", client->pkt.opcode);
 
 	switch (client->pkt.opcode) {
 	case LWRES_OPCODE_GETADDRSBYNAME:
@@ -123,7 +82,7 @@ process_request(ns_lwdclient_t *client) {
 		ns_lwdclient_processnoop(client, &b);
 		return;
 	default:
-		DP(50, "unknown opcode %08x", client->pkt.opcode);
+		ns_lwdclient_log(50, "unknown opcode %08x", client->pkt.opcode);
 		goto restart;
 	}
 
@@ -131,7 +90,7 @@ process_request(ns_lwdclient_t *client) {
 	 * Drop the packet.
 	 */
  restart:
-	DP(50, "restarting client %p...", client);
+	ns_lwdclient_log(50, "restarting client %p...", client);
 	ns_lwdclient_stateidle(client);
 }
 
@@ -149,8 +108,10 @@ ns_lwdclient_recv(isc_task_t *task, isc_event_t *ev) {
 	INSIST((cm->flags & NS_LWDCLIENTMGR_FLAGRECVPENDING) != 0);
 	cm->flags &= ~NS_LWDCLIENTMGR_FLAGRECVPENDING;
 
-	DP(50, "event received: task %p, length %u, result %u (%s)",
-	       task, dev->n, dev->result, isc_result_totext(dev->result));
+	ns_lwdclient_log(50,
+			 "event received: task %p, length %u, result %u (%s)",
+			 task, dev->n, dev->result,
+			 isc_result_totext(dev->result));
 
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_event_free(&ev);
@@ -236,7 +197,7 @@ ns_lwdclient_shutdown(isc_task_t *task, isc_event_t *ev) {
 
 	REQUIRE((cm->flags & NS_LWDCLIENTMGR_FLAGSHUTTINGDOWN) == 0);
 
-	DP(50, "got shutdown event, task %p", task);
+	ns_lwdclient_log(50, "got shutdown event, task %p", task);
 
 	/*
 	 * Cancel any pending I/O.
@@ -293,7 +254,8 @@ ns_lwdclient_send(isc_task_t *task, isc_event_t *ev) {
 	INSIST(NS_LWDCLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 
-	DP(50, "task %p for client %p got send-done event", task, client);
+	ns_lwdclient_log(50, "task %p for client %p got send-done event",
+			 task, client);
 
 	if (client->sendbuf != client->buffer)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,

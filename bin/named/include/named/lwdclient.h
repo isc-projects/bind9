@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwdclient.h,v 1.2 2000/06/22 21:49:45 tale Exp $ */
+/* $Id: lwdclient.h,v 1.3 2000/06/26 20:50:00 bwelling Exp $ */
 
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
@@ -201,7 +201,6 @@ void ns_lwdclient_processnoop(ns_lwdclient_t *, lwres_buffer_t *);
 
 void ns_lwdclient_errorpktsend(ns_lwdclient_t *, isc_uint32_t);
 
-void DP(int level, const char *format, ...);
-void hexdump(char *msg, void *base, size_t len);
+void ns_lwdclient_log(int level, const char *format, ...);
 
 #endif /* NAMED_LWDCLIENT_H */
