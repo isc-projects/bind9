@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.58 2001/10/11 22:53:44 gson Exp $ */
+/* $Id: dnssec-keygen.c,v 1.59 2001/11/15 19:44:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -198,9 +198,7 @@ main(int argc, char **argv) {
 
 	if (algname == NULL)
 		fatal("no algorithm was specified");
-	if (strcasecmp(algname, "RSA") == 0)
-		alg = DNS_KEYALG_RSAMD5;
-	else if (strcasecmp(algname, "HMAC-MD5") == 0)
+	if (strcasecmp(algname, "HMAC-MD5") == 0)
 		alg = DST_ALG_HMACMD5;
 	else {
 		r.base = algname;

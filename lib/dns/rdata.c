@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.153 2001/11/12 19:05:28 gson Exp $ */
+/* $Id: rdata.c,v 1.154 2001/11/15 19:44:50 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -274,6 +274,7 @@ static const char decdigits[] = "0123456789";
 
 #define SECALGNAMES \
 	{ DNS_KEYALG_RSAMD5, "RSAMD5", 0 }, \
+	{ DNS_KEYALG_RSAMD5, "RSA", 0 }, \
 	{ DNS_KEYALG_DH, "DH", 0 }, \
 	{ DNS_KEYALG_DSA, "DSA", 0 }, \
 	{ DNS_KEYALG_ECC, "ECC", 0 }, \
