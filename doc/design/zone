@@ -1,7 +1,7 @@
 
 			Zones
 
-	$Id: zone,v 1.2 1999/02/26 21:32:10 marka Exp $
+	$Id: zone,v 1.3 1999/03/03 12:20:05 marka Exp $
 
 Overview
 	 
@@ -40,16 +40,27 @@ Overview
 		* dynamically leared sites (soa queries)
 
 
-	Zones also have versions associated with them, each of which, with
-	the exception of the current zone, has an expiry date.
+	Zones have two types of versions associated with them.
 
-        "How long are we going to keep them operationally?"
+	Type 1.
+		The image of the "current" zone when a AXFR out is in progress.
+		There may be several of these at once but they cease to need
+		to exist once the AXFR's on this version has completed.
+
+	Type 2.
+		These are virtual versions of the zone and are required to
+		support IXFR requests.  While the entire contents of the old
+		version does not need to be kept, a change log needs to be
+		kept.  An index into this log would be useful in speeding
+		up replies. These versions have an explict expiry date.
+
+		"How long are we going to keep them operationally?"
                 While there are expriry dates based on last update /
                 change time + expire.  In practice holding the deltas
                 for a few refresh periods should be enough.  If the network
                 and servers are up one is enough.
 
-        "How are we going to generate them from a master file?"
+		"How are we going to generate them from a master file?"
                 UPDATE should not be the only answer to this question.
                 We need a tool that takes the current zone & new zone.
                 Verifies the new zone, generates a delta and feeds this
@@ -71,7 +82,7 @@ Overview
 	* signed / resigned
 	* maintaince
 		validate current soa
-		remove old deltas
+		remove old deltas / consolidation
 		purge stale rrsets (cache)
 	* notification
 		responding to
@@ -88,6 +99,16 @@ Types:
 		dns_zone_cache,
 		dns_zone_forward
 	} dns_zonetypes_t;
+
+	typedef struct dns_ixfr	dns_ixfr_t;
+
+	struct dns_ixfr {
+		unsigned int		magic;	/*IXFR*/
+		isc_uint32_t		serial;
+		time_t			expire;
+		unsigned int		offset;
+		ISC_LINK(dns_ixfr_t)	link;
+	};
 
 	struct dns_zone {
 		unsigned int		magic;	/* ZONE */
@@ -108,6 +129,7 @@ Types:
 			dns_scl_t	*scl;		/* tsig based acl */
 		}			update;
 		char			*database;
+		ISC_LIST(dns_ixfr_t)	ixfr;
 		...
 	};
 
@@ -116,7 +138,16 @@ Loading:
 
 Functions:
 	void
-	dns_zone_init(dns_zone_t *, dns_rdataclass_t class, isc_mem_t *mxtc);
+	dns_zone_init(dns_zone_t * zone, dns_rdataclass_t class,
+			isc_mem_t *mxtc);
 
 	void
-	dns_zone_invalidate(dns_zone_t *);
+	dns_zone_invalidate(dns_zone_t *zone);
+	
+	void
+	dns_ixfr_init(dns_ixfr_t *ixfr, unsigned long serial, time_t expire);
+
+	void
+	dns_ixfr_invalidate(dns_ixfr_t *ixfr);
+
+	dns_zone_axfrout(dns_zone_t *zone);
