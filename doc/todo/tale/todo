@@ -10,5 +10,4 @@ Clean dead nodes from rbtdb
 
 Generate secret for rndc automatically
 
-Write documentation for the "stderr" channel type and send to 
-Mary for inclusion in the ARM.
+Document the "stderr" channel type in doc/arm/Bv9ARM-book.xml
