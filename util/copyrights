@@ -160,7 +160,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2003,2004
 ./bin/nsupdate/nsupdate.8			X	2000,2001
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004
-./bin/nsupdate/nsupdate.docbook			SGML	2001,2003
+./bin/nsupdate/nsupdate.docbook			SGML	2001,2003,2004
 ./bin/nsupdate/nsupdate.html			X	2001,2003
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
@@ -1653,7 +1653,7 @@
 ./lib/dns/order.c				C	2003
 ./lib/dns/peer.c				C	2000,2001,2003
 ./lib/dns/portlist.c				C	2003
-./lib/dns/rbt.c					C	1999,2000,2001,2003
+./lib/dns/rbt.c					C	1999,2000,2001,2003,2004
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/rbtdb.h				C	1999,2000,2001
 ./lib/dns/rbtdb64.c				C	1999,2000,2001
