@@ -1,4 +1,7 @@
 
+ 825.	[bug]		zone.c:ns_query() detached from the wrong zone
+			reference.  [RT #1263] 
+
  822.	[bug]		Sending nxrrset prerequisites would crash nsupdate.
  			[RT #1248]
 

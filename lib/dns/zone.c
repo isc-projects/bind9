@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.9 2001/03/01 20:58:17 bwelling Exp $ */
+/* $Id: zone.c,v 1.283.2.10 2001/05/10 21:52:01 gson Exp $ */
 
 #include <config.h>
 
@@ -3562,8 +3562,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 					    ISC_FALSE);
 		if (stub->db != NULL)
 			dns_db_detach(&stub->db);
+		if (stub->zone != NULL)
+			zone_idetach(&stub->zone);
 		isc_mem_put(stub->mctx, stub, sizeof(*stub));
-		zone_idetach(&zone);
 	}
 	if (message != NULL)
 		dns_message_destroy(&message);
