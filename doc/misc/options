@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.55 2001/01/09 21:50:29 bwelling Exp $
+$Id: options,v 1.56 2001/01/11 23:52:34 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -113,6 +113,7 @@ options {
   [ sig-validity-interval number; ]			    Yes*
   [ additional-from-auth yes_or_no; ]			    Yes*
   [ additional-from-cache yes_or_no; ]			    Yes*
+  [ random-device path_name; ]				    Yes*
 };
 
 acl							    Yes@
