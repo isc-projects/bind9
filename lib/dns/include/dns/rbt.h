@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.48 2000/08/07 19:30:58 gson Exp $ */
+/* $Id: rbt.h,v 1.49 2000/08/24 01:19:58 gson Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -44,7 +44,7 @@ ISC_LANG_BEGINDECLS
 /*
  * This is the structure that is used for each node in the red/black
  * tree of trees.  NOTE WELL:  the implementation manages this as a variable
- * length structure, with the actual wire-format name and other data appended
+ * length structure, with the actual wire-format name and other data
  * appended to this structure.  Allocating a contiguous block of memory for
  * multiple dns_rbtnode structures will not work.
  */
