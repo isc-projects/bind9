@@ -95,22 +95,22 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	ret = dst_context_create(key, mctx, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_create(%d) returned (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret));
+		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_adddata(%d) returned (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret));
+		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 	ret = dst_context_sign(ctx, &sigbuf);
 	if (ret != exp_result) {
 		t_info("dst_context_sign(%d) returned (%s) expected (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret),
-				dst_result_totext(exp_result));
+		       dst_key_alg(key), dst_result_totext(ret),
+		       dst_result_totext(exp_result));
 		++*nfails;
 		return;
 	}
@@ -120,22 +120,22 @@ use(dst_key_t *key, isc_mem_t *mctx, isc_result_t exp_result, int *nfails) {
 	ret = dst_context_create(key, mctx, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_create(%d) returned (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret));
+		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
 		t_info("dst_context_adddata(%d) returned (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret));
+		       dst_key_alg(key), dst_result_totext(ret));
 		++*nfails;
 		return;
 	}
 	ret = dst_context_verify(ctx, &sigreg);
 	if (ret != exp_result) {
 		t_info("dst_context_verify(%d) returned (%s) expected (%s)\n",
-				dst_key_alg(key), dst_result_totext(ret),
-				dst_result_totext(exp_result));
+		       dst_key_alg(key), dst_result_totext(ret),
+		       dst_result_totext(exp_result));
 		++*nfails;
 		return;
 	}
@@ -376,7 +376,9 @@ get_random(int *nfails) {
 		return;
 	}
 
-	/* weak test, but better than nought */
+	/*
+	 * Weak test, but better than nought.
+	 */
 	if (memcmp(data1, data2, DBUFSIZ) == 0) {
 		t_info("data not random\n");
 		++*nfails;
