@@ -40,6 +40,7 @@ SUBDIRS = master names rbt tasks db timers mem dst
 TARGETS =	sdig \
 		nxtify \
 		signer \
+		keygen \
 		res_test \
 		lex_test \
 		name_test \
@@ -64,6 +65,7 @@ TARGETS =	sdig \
 SRCS =		sdig.c \
 		nxtify.c \
 		signer.c \
+		keygen.c \
 		res_test.c \
 		lex_test.c \
 		name_test.c \
@@ -98,6 +100,10 @@ nxtify: nxtify.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 signer: signer.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ signer.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+keygen: keygen.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.o \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
