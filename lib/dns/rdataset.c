@@ -122,11 +122,17 @@ question_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	REQUIRE(0);
 }
 
+static void
+question_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	*target = *source;
+}
+
 static dns_rdatasetmethods_t question_methods = {
 	question_disassociate,
 	question_cursor,
 	question_cursor,
-	question_current
+	question_current,
+	question_clone
 };
 
 void
@@ -146,6 +152,21 @@ dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
 	rdataset->rdclass = rdclass;
 	rdataset->type = type;
 	rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
+}
+
+void
+dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+
+	/*
+	 * Make 'target' refer to the same rdataset as 'source'.
+	 */
+
+	REQUIRE(DNS_RDATASET_VALID(source));
+	REQUIRE(source->methods != NULL);
+	REQUIRE(DNS_RDATASET_VALID(target));
+	REQUIRE(target->methods == NULL);
+	
+	(source->methods->clone)(source, target);
 }
 
 dns_result_t

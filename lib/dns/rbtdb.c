@@ -171,16 +171,18 @@ typedef struct {
 	isc_stdtime_t		now;
 } rbtdb_load_t;
 
-static void rdataset_disassociate(dns_rdataset_t *rdatasetp);
+static void rdataset_disassociate(dns_rdataset_t *rdataset);
 static dns_result_t rdataset_first(dns_rdataset_t *rdataset);
 static dns_result_t rdataset_next(dns_rdataset_t *rdataset);
 static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
 	rdataset_first,
 	rdataset_next,
-	rdataset_current
+	rdataset_current,
+	rdataset_clone
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -3103,6 +3105,22 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	raw += 2;
 	r.base = raw;
 	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+}
+
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	dns_db_t *db = source->private1;
+	dns_dbnode_t *node = source->private2;
+	dns_dbnode_t *cloned_node;
+
+	attachnode(db, &node, &cloned_node);
+	*target = *source;
+
+	/*
+	 * Reset iterator state.
+	 */
+	target->private4 = NULL;
+	target->private5 = NULL;
 }
 
 

@@ -27,12 +27,14 @@ static void disassociate(dns_rdataset_t *rdatasetp);
 static dns_result_t first(dns_rdataset_t *rdataset);
 static dns_result_t next(dns_rdataset_t *rdataset);
 static void current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+static void clone(dns_rdataset_t *source, dns_rdataset_t *target);
 
 static dns_rdatasetmethods_t methods = {
 	disassociate,
 	first,
 	next,
-	current
+	current,
+	clone
 };
 
 dns_result_t
@@ -103,4 +105,14 @@ current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 
 	*rdata = *list_rdata;
 	ISC_LINK_INIT(rdata, link);
+}
+
+static void
+clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	*target = *source;
+
+	/*
+	 * Reset iterator state.
+	 */
+	target->private2 = NULL;
 }

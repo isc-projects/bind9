@@ -65,6 +65,8 @@ typedef struct dns_rdatasetmethods {
 	dns_result_t		(*next)(dns_rdataset_t *rdataset);
 	void			(*current)(dns_rdataset_t *rdataset,
 					   dns_rdata_t *rdata);
+	void			(*clone)(dns_rdataset_t *source,
+					 dns_rdataset_t *target);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC		0x444E5352U	/* DNSR. */
@@ -165,6 +167,20 @@ dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
  *
  * Ensures:
  *	'rdataset' is a valid, associated, question rdataset.
+ */
+
+void
+dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+/*
+ * Make 'target' refer to the same rdataset as 'source'.
+ *
+ * Requires:
+ *	'source' is a valid, associated rdataset.
+ *
+ *	'target' is a valid, dissociated rdataset.
+ *
+ * Ensures:
+ *	'target' references the same rdataset as 'source.
  */
 
 dns_result_t
