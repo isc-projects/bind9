@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.9 2000/08/07 23:50:13 gson Exp $ */
+/* $Id: dighost.c,v 1.58.2.10 2000/08/18 20:00:11 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -484,7 +484,7 @@ setup_system(void) {
 		isc_buffer_putstr(namebuf, keynametext);
 		secretsize = strlen(keysecret) * 3 / 4;
 		debug("secretstore");
-		secretstore = isc_mem_get(mctx, secretsize);
+               secretstore = isc_mem_allocate(mctx, secretsize);
 		if (secretstore == NULL)
 			fatal("Memory allocation failure in %s:%d",
 			      __FILE__, __LINE__);
@@ -528,12 +528,12 @@ setup_system(void) {
 			printf(";; Couldn't create key %s: %s\n",
 			       keynametext, dns_result_totext(result));
 		}
-		isc_mem_put(mctx, secretstore, secretsize);
+               isc_mem_free(mctx, secretstore);
 		dns_name_invalidate(&keyname);
 		isc_buffer_free(&namebuf);
 		return;
 	SYSSETUP_FAIL:
-		isc_mem_put(mctx, secretstore, secretsize);
+               isc_mem_free(mctx, secretstore);
 		dns_name_invalidate(&keyname);
 		isc_buffer_free(&namebuf);
 		dns_tsigkeyring_destroy(&keyring);
