@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.118 2000/08/28 05:06:18 marka Exp $ */
+/* $Id: dighost.c,v 1.119 2000/09/11 19:38:22 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1973,7 +1973,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		debug("before parse starts");
 		result = dns_message_parse(msg, b, ISC_TRUE);
 		if (result != ISC_R_SUCCESS) {
-			printf(";; Got bad packet:\n");
+			printf(";; Got bad packet: %s\n",
+			       dns_result_totext(result));
 			hex_dump(b);
 			query->waiting_connect = ISC_FALSE;
 			if (!l->tcp_mode) {
@@ -1989,6 +1990,19 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_LOOKUP;
 			return;
 		}
+		if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
+			printf(";; Truncated, retrying in TCP mode.\n");
+			n = requeue_lookup(l, ISC_TRUE);
+			n->tcp_mode = ISC_TRUE;
+			dns_message_destroy(&msg);
+			isc_event_free(&event);
+			clear_query(query);
+			cancel_lookup(l);
+			check_next_lookup(l);
+			UNLOCK_LOOKUP;
+			return;
+		}			
+
 		if (key != NULL) {
 			result = dns_tsig_verify(&query->recvbuf, msg,
 						 NULL, NULL);
