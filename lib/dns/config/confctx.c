@@ -3203,10 +3203,10 @@ dns_c_ctx_getforward(dns_c_ctx_t *cfg, dns_c_forw_t *forw)
 	REQUIRE(forw != NULL);
 
 	if (DNS_C_CHECKBIT(FORWARD_BIT, &cfg->options->setflags1)) {
-		return (ISC_R_NOTFOUND);
-	} else {
 		*forw = cfg->options->forward;
 		res = ISC_R_SUCCESS;
+	} else {
+		return (ISC_R_NOTFOUND);
 	}
 
 	return (res);
