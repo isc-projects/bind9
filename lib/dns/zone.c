@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.124 2000/05/24 05:09:19 tale Exp $ */
+/* $Id: zone.c,v 1.125 2000/05/24 17:30:38 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1753,6 +1753,10 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = NULL;
+	isc_netaddr_t dstip;
+	dns_peer_t *peer = NULL;
+	dns_name_t *keyname = NULL;
+	dns_tsigkey_t *key = NULL;
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -1770,8 +1774,23 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	result = notify_createmessage(notify->zone, &message);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
+	isc_netaddr_fromsockaddr(&dstip, &notify->dst);
+	result = dns_peerlist_peerbyaddr(zone->view->peers,
+					 &dstip, &peer);
+	if (result == ISC_R_SUCCESS &&
+	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
+	{
+		result = dns_tsigkey_find(&key, keyname, NULL,
+					  zone->view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			(void) dns_tsigkey_find(&key, keyname, NULL,
+						zone->view->dynamickeys);
+	}
+
 	result = dns_request_create(notify->zone->view->requestmgr, message,
-				    &notify->dst, 0, 15, notify->zone->task,
+				    &notify->dst, 0, key, 15,
+				    notify->zone->task,
 				    notify_done, notify,
 				    &notify->request);
 	dns_message_destroy(&message);
@@ -2223,6 +2242,10 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	dns_name_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 	dns_zone_t *zone = event->ev_arg;
+	isc_netaddr_t masterip;
+	dns_peer_t *peer = NULL;
+	dns_name_t *keyname = NULL;
+	dns_tsigkey_t *key = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2278,8 +2301,22 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 
 	if (isc_sockaddr_getport(&zone->masteraddr) == 0)
 		isc_sockaddr_setport(&zone->masteraddr, 53); /* XXX */
+
+	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
+	result = dns_peerlist_peerbyaddr(zone->view->peers,
+					 &masterip, &peer);
+	if (result == ISC_R_SUCCESS &&
+	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
+	{
+		result = dns_tsigkey_find(&key, keyname, NULL,
+					  zone->view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			(void) dns_tsigkey_find(&key, keyname, NULL,
+						zone->view->dynamickeys);
+	}
+
 	result = dns_request_create(zone->view->requestmgr, message,
-				    &zone->masteraddr, 0,
+				    &zone->masteraddr, 0, key,
 				    15 /* XXX */, zone->task,
 				    refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {

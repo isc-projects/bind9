@@ -161,6 +161,7 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   isc_sockaddr_t *address, unsigned int options,
+		   dns_tsigkey_t *key,
 		   unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp);

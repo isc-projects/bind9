@@ -1,3 +1,6 @@
+ 203.   [func]		notify and zone soa queries are now tsig signed when
+			appropriate.
+
  202.   [func]          isc_lex_getsourceline() changed from returning int
                         to returning unsigned long, the type of its underlying
                         counter.

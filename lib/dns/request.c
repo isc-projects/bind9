@@ -26,8 +26,11 @@
 #include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/rdata.h>
+#include <dns/rdatastruct.h>
 #include <dns/request.h>
 #include <dns/result.h>
+#include <dns/tsig.h>
 
 #define REQUESTMGR_MAGIC 0x5271754dU		/* RquM */
 #define VALID_REQUESTMGR(mgr) ((mgr) != NULL && \
@@ -75,6 +78,9 @@ struct dns_request {
 	dns_dispentry_t		       *dispentry;
 	isc_timer_t		       *timer;
 	dns_requestmgr_t	       *requestmgr;
+	dns_rdata_any_tsig_t	       *tsig;
+	dns_tsigkey_t		       *tsigkey;
+
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
@@ -415,6 +421,7 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   isc_sockaddr_t *address, unsigned int options,
+		   dns_tsigkey_t *key,
 		   unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp)
@@ -459,6 +466,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->dispentry = NULL;
 	request->timer = NULL;
 	request->requestmgr = NULL;
+	request->tsig = NULL;
+	request->tsigkey = NULL;
 
 	/*
 	 * Create timer now.  We will set it below once.
@@ -480,6 +489,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->event->ev_sender = task;
 	request->event->request = request;
 	request->event->result = ISC_R_FAILURE;
+	request->tsigkey = key;
 	
  use_tcp:
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
@@ -527,7 +537,11 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
+	message->tsigkey = request->tsigkey;
 	result = req_render(message, &request->query, mctx);
+	request->tsig = message->tsig;
+	message->tsig = NULL;
+	message->tsigkey = NULL;
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
 		/*
@@ -709,6 +723,9 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	req_log(ISC_LOG_DEBUG(3), "dns_request_getresponse: request %p",
 		request);
 
+	message->querytsig = request->tsig;
+	request->tsig = NULL;
+	message->tsigkey = request->tsigkey;
 	return (dns_message_parse(message, request->answer, preserve_order));
 }
 
@@ -884,6 +901,11 @@ req_destroy(dns_request_t *request) {
 		dns_dispatch_detach(&request->dispatch);
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
+	if (request->tsig != NULL) {
+		dns_rdata_freestruct(request->tsig);
+		isc_mem_put(request->mctx, request->tsig,
+			    sizeof(*request->tsig));
+	}
 	requestmgr_detach(&request->requestmgr);
 	mctx = request->mctx;
 	isc_mem_put(mctx, request, sizeof(*request));
