@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.13 2004/03/10 00:50:02 marka Exp $ */
+/* $Id: message.c,v 1.194.2.14 2005/03/15 01:31:25 marka Exp $ */
 
 /***
  *** Imports
@@ -1758,6 +1758,55 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	total = 0;
 	if (msg->reserved == 0 && (options & DNS_MESSAGERENDER_PARTIAL) != 0)
 		partial = ISC_TRUE;
+
+	/*
+	 * Render required glue first.  Set TC if it won't fit.
+	 */
+	name = ISC_LIST_HEAD(*section);
+	if (name != NULL) {
+		rdataset = ISC_LIST_HEAD(name->list);
+		if (rdataset != NULL &&
+		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) != 0 &&
+		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0) {
+			void *order_arg = msg->order_arg;
+			st = *(msg->buffer);
+			count = 0;
+			if (partial)
+				result = dns_rdataset_towirepartial(rdataset,
+								    name,
+								    msg->cctx,
+								    msg->buffer,
+								    msg->order,
+								    order_arg,
+								    &count,
+								    NULL);
+			else
+				result = dns_rdataset_towiresorted(rdataset,
+								   name,
+								   msg->cctx,
+								   msg->buffer,
+								   msg->order,
+								   order_arg,
+								   &count);
+			total += count;
+			if (partial && result == ISC_R_NOSPACE) {
+				msg->flags |= DNS_MESSAGEFLAG_TC;
+				msg->buffer->length += msg->reserved;
+				msg->counts[sectionid] += total;
+				return (result);
+			}
+			if (result != ISC_R_SUCCESS) {
+				INSIST(st.used < 65536);
+				dns_compress_rollback(msg->cctx,
+						      (isc_uint16_t)st.used);
+				*(msg->buffer) = st;  /* rollback */
+				msg->buffer->length += msg->reserved;
+				msg->counts[sectionid] += total;
+				return (result);
+			}
+			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+		}
+	}
 
 	do {
 		name = ISC_LIST_HEAD(*section);

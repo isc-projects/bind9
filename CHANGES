@@ -14,6 +14,10 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1804.	[bug]		Ensure that if we are queried for glue that it fits
+			in the additional section or TC is set to tell the
+			client to retry using TCP. [RT #10114]
+
 	--- 9.2.5 released ---
 
 	--- 9.2.5rc1 released ---
