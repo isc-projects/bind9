@@ -42,7 +42,7 @@ static void
 cleanup_gabn(client_t *client) {
 	dns_adbfind_t *v4;
 
-	DP(50, "Cleaning up client %p", client);
+	DP(50, "cleaning up client %p", client);
 
 	v4 = client->v4find;
 
@@ -95,7 +95,7 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at) {
 			goto next;
 		}
 
-		DP(50, "Adding address %p, family %d, length %d",
+		DP(50, "adding address %p, family %d, length %d",
 		   addr->address, addr->family, addr->length);
 
 		client->gabn.naddrs++;
@@ -118,7 +118,7 @@ generate_reply(client_t *client) {
 	cm = client->clientmgr;
 	lwb.base = NULL;
 
-	DP(50, "Generating gabn reply for client %p", client);
+	DP(50, "generating gabn reply for client %p", client);
 
 	/*
 	 * We must make certain the client->find is not still active.
@@ -267,7 +267,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 	isc_eventtype_t evtype;
 	isc_boolean_t claimed;
 
-	DP(50, "Find done for task %p, client %p", task, client);
+	DP(50, "find done for task %p, client %p", task, client);
 
 	evtype = ev->ev_type;
 	isc_event_free(&ev);
@@ -331,7 +331,7 @@ start_find(client_t *client) {
 	isc_result_t result;
 	isc_boolean_t claimed;
 
-	DP(50, "Starting find for client %p", client);
+	DP(50, "starting find for client %p", client);
 
 	/*
 	 * Issue a find for the name contained in the request.  We won't
@@ -363,26 +363,23 @@ start_find(client_t *client) {
 				    client->clientmgr->view->dstport,
 				    &client->find);
 
-	if (client->find != NULL)
-		dns_adb_dumpfind(client->find, stderr);
-
 	/*
 	 * Did we get an alias?  If so, save it and re-issue the query.
 	 */
 	if (result == DNS_R_ALIAS) {
-		DP(50, "Found alias, restarting query.");
+		DP(50, "found alias, restarting query.");
 		dns_adb_destroyfind(&client->find);
 		cleanup_gabn(client);
 		result = add_alias(client);
 		if (result != ISC_R_SUCCESS) {
-			DP(50, "Out of buffer space adding alias");
+			DP(50, "out of buffer space adding alias");
 			error_pkt_send(client, LWRES_R_FAILURE);
 			return;
 		}
 		goto find_again;
 	}
 
-	DP(50, "Find returned %d (%s)", result, isc_result_totext(result));
+	DP(50, "find returned %d (%s)", result, isc_result_totext(result));
 
 	/*
 	 * Did we get an error?
@@ -429,11 +426,11 @@ start_find(client_t *client) {
 	 * we have a programming error, so die hard.
 	 */
 	if ((client->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		DP(50, "Event will be sent.");
+		DP(50, "event will be sent");
 		INSIST(client->v4find == NULL || client->v6find == NULL);
 		return;
 	}
-	DP(50, "No event will be sent.");
+	DP(50, "no event will be sent");
 	if (claimed)
 		client->find = NULL;
 	else
@@ -491,7 +488,7 @@ process_gabn(client_t *client, lwres_buffer_t *b) {
 		goto out;
 
 	client->find_wanted = req->addrtypes;
-	DP(50, "Client %p looking for addrtypes %08x",
+	DP(50, "client %p looking for addrtypes %08x",
 	   client, client->find_wanted);
 
 	/*
