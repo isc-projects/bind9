@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2 2003/07/22 04:03:43 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.2.2.1 2003/08/13 01:56:02 marka Exp $ */
 
 #include <config.h>
 
@@ -273,8 +273,8 @@ static isc_result_t
 towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	     dns_compress_t *cctx, isc_buffer_t *target,
 	     dns_rdatasetorderfunc_t order, void *order_arg,
-	     isc_boolean_t partial, unsigned int *countp,
-	     void **state)
+	     isc_boolean_t partial, unsigned int options,
+	     unsigned int *countp, void **state)
 {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
@@ -308,7 +308,10 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 		/*
 		 * This is a negative caching rdataset.
 		 */
-		return (dns_ncache_towire(rdataset, cctx, target, countp));
+		isc_boolean_t omit_dnssec;
+		omit_dnssec = ISC_TF(DNS_RDATASETTOWIRE_OMITDNSSEC != 0);
+		return (dns_ncache_towire(rdataset, cctx, target, omit_dnssec,
+					  countp));
 	} else {
 		count = (rdataset->methods->count)(rdataset);
 		result = dns_rdataset_first(rdataset);
@@ -469,10 +472,12 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  isc_buffer_t *target,
 			  dns_rdatasetorderfunc_t order,
 			  void *order_arg,
+			  unsigned int options,
 			  unsigned int *countp)
 {
 	return (towiresorted(rdataset, owner_name, cctx, target,
-			     order, order_arg, ISC_FALSE, countp, NULL));
+			     order, order_arg, ISC_FALSE, options,
+			     countp, NULL));
 }
 
 isc_result_t
@@ -482,12 +487,14 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
 			   void *order_arg,
+			   unsigned int options,
 			   unsigned int *countp,
 			   void **state)
 {
 	REQUIRE(state == NULL);	/* XXX remove when implemented */
 	return (towiresorted(rdataset, owner_name, cctx, target,
-			     order, order_arg, ISC_TRUE, countp, state));
+			     order, order_arg, ISC_TRUE, options,
+			     countp, state));
 }
 
 isc_result_t
@@ -495,10 +502,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
+		    unsigned int options,
 		    unsigned int *countp)
 {
 	return (towiresorted(rdataset, owner_name, cctx, target,
-			     NULL, NULL, ISC_FALSE, countp, NULL));
+			     NULL, NULL, ISC_FALSE, options, countp, NULL));
 }
 
 isc_result_t

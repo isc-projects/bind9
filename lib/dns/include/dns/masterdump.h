@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22.12.1 2003/08/01 23:19:13 marka Exp $ */
+/* $Id: masterdump.h,v 1.22.12.2 2003/08/13 01:56:03 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -217,22 +217,6 @@ dns_master_questiontotext(dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
 			  isc_buffer_t *target);
-/*
- * Print a text representation of 'rdataset', a pseudo-rdataset
- * representing a questino.
- *
- * Requires:
- *	'rdataset' is a valid question rdataset.
- *
- *	'rdataset' is not empty.
- */
-
-isc_result_t
-dns_rdataset_towire(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
-		    dns_compress_t *cctx,
-		    isc_buffer_t *target,
-		    unsigned int *countp);
 
 isc_result_t
 dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
