@@ -497,6 +497,10 @@ SOURCE=..\include\isc\timer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\win32os.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\types.h
 # End Source File
 # Begin Source File
@@ -666,6 +670,10 @@ SOURCE=..\taskpool.c
 # Begin Source File
 
 SOURCE=..\timer.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\win32os.c
 # End Source File
 # End Group
 # Begin Source File

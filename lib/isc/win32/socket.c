@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.10 2003/04/13 10:15:03 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.11 2003/06/24 07:26:34 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -51,6 +51,7 @@
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/win32os.h>
 
 #include "errno2result.h"
 
@@ -683,6 +684,35 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 
 #endif /* ISC_NET_BSD44MSGHDR */
 
+}
+
+/*
+ * Windows 2000 systems incorrectly cause UDP sockets using WASRecvFrom
+ * to not work correctly, returning a WSACONNRESET error when a WSASendTo
+ * fails with an "ICMP port unreachable" response and preventing the
+ * socket from using the WSARecvFrom in subsequent operations.
+ * The function below fixes this, but requires that Windows 2000
+ * Service Pack 2 or later be installed on the system.  NT 4.0
+ * systems are not affected by this and work correctly.
+ * See Microsoft Knowledge Base Article Q263823 for details of this.
+ */
+isc_result_t
+connection_reset_fix(SOCKET fd) {
+	DWORD dwBytesReturned = 0;
+	BOOL  bNewBehavior = FALSE;
+	DWORD status;
+
+	if(isc_win32os_majorversion() < 5)
+		return (ISC_R_SUCCESS); /*  NT 4.0 has no problem */
+
+	/* disable bad behavior using IOCTL: SIO_UDP_CONNRESET */
+	status = WSAIoctl(fd, SIO_UDP_CONNRESET, &bNewBehavior,
+			  sizeof(bNewBehavior), NULL, 0,
+			  &dwBytesReturned, NULL, NULL);
+	if (status != SOCKET_ERROR)
+		return (ISC_R_SUCCESS);
+	else
+		return (ISC_R_FAILURE);
 }
 
 /*
@@ -1420,6 +1450,21 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	switch (type) {
 	case isc_sockettype_udp:
 		sock->fd = socket(pf, SOCK_DGRAM, IPPROTO_UDP);
+		if (sock->fd > 0 &&
+		    connection_reset_fix(sock->fd) != ISC_R_SUCCESS) {
+			socket_errno = WSAGetLastError();
+			(void)closesocket(sock->fd);
+			free_socket(&sock);
+			isc__strerror(socket_errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "WSAioctl(SIO_UDP_CONNRESET) %s: %s",
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
+					 strbuf);
+			return (ISC_R_UNEXPECTED);
+		}
 		break;
 	case isc_sockettype_tcp:
 		sock->fd = socket(pf, SOCK_STREAM, IPPROTO_TCP);

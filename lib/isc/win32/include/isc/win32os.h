@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: win32os.h,v 1.2 2002/08/03 01:36:24 mayer Exp $ */
+/* $Id: win32os.h,v 1.2.176.1 2003/06/24 07:26:35 marka Exp $ */
 
 #ifndef ISC_WIN32OS_H
 #define ISC_WIN32OS_H 1

@@ -96,6 +96,7 @@ CLEAN :
 	-@erase "$(INTDIR)\timer.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\version.obj"
+	-@erase "$(INTDIR)\win32os.obj"
 	-@erase "$(OUTDIR)\libisc.exp"
 	-@erase "$(OUTDIR)\libisc.lib"
 	-@erase "..\..\..\Build\Release\libisc.dll"
@@ -208,7 +209,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj"
+	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\win32obj.obj"
 
 "..\..\..\Build\Release\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -351,6 +353,8 @@ CLEAN :
 	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(INTDIR)\version.obj"
 	-@erase "$(INTDIR)\version.sbr"
+	-@erase "$(INTDIR)\win32os.obj"
+	-@erase "$(INTDIR)\win32os.sbr"
 	-@erase "$(OUTDIR)\libisc.bsc"
 	-@erase "$(OUTDIR)\libisc.exp"
 	-@erase "$(OUTDIR)\libisc.lib"
@@ -461,7 +465,8 @@ BSC32_SBRS= \
 	"$(INTDIR)\symtab.sbr" \
 	"$(INTDIR)\task.sbr" \
 	"$(INTDIR)\taskpool.sbr" \
-	"$(INTDIR)\timer.sbr"
+	"$(INTDIR)\timer.sbr" \
+	"$(INTDIR)\win32os.sbr" \
 
 "$(OUTDIR)\libisc.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -533,7 +538,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj"
+	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\win32os.obj"
 
 "..\..\..\Build\Debug\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -1598,6 +1604,24 @@ SOURCE=..\timer.c
 
 
 "$(INTDIR)\timer.obj"	"$(INTDIR)\timer.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\win32os.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\win32os.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\win32os.obj"	"$(INTDIR)\win32os.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
