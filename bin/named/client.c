@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.119 2000/10/12 21:51:42 mws Exp $ */
+/* $Id: client.c,v 1.120 2000/10/13 23:38:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -793,8 +793,7 @@ ns_client_send(ns_client_t *client) {
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
 
 	/*
-	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
-	 *         or ENDS1 more data packets.
+	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
 	 */
 	result = client_allocsendbuf(client, &buffer, &tcpbuffer, 0, &data);
 	if (result != ISC_R_SUCCESS)
