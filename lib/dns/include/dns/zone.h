@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.84 2000/11/03 18:43:53 gson Exp $ */
+/* $Id: zone.h,v 1.85 2000/11/06 08:11:11 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -592,6 +592,16 @@ dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl);
  */
 
 void
+dns_zone_setforwardacl(dns_zone_t *zone, dns_acl_t *acl);
+/*
+ *	Sets the forward unsigned updates acl list for the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *	'acl' to be valid acl.
+ */
+
+void
 dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
 /*
  *	Sets the transfer acl list for the zone.
@@ -643,6 +653,19 @@ dns_zone_getupdateacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
+dns_zone_getforwardacl(dns_zone_t *zone);
+/*
+ * 	Returns the current forward unsigned updates acl or NULL.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	acl a pointer to the acl.
+ *	NULL
+ */
+
+dns_acl_t *
 dns_zone_getxfracl(dns_zone_t *zone);
 /*
  * 	Returns the current transfer acl or NULL.
@@ -659,6 +682,15 @@ void
 dns_zone_clearupdateacl(dns_zone_t *zone);
 /*
  *	Clear the current update acl.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_clearforwardacl(dns_zone_t *zone);
+/*
+ *	Clear the current forward unsigned updates acl.
  *
  * Require:
  *	'zone' to be a valid zone.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.245 2000/11/03 07:15:50 marka Exp $ */
+/* $Id: zone.c,v 1.246 2000/11/06 08:11:07 marka Exp $ */
 
 #include <config.h>
 
@@ -160,6 +160,7 @@ struct dns_zone {
 	dns_xfrin_ctx_t		*xfr;
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
+	dns_acl_t		*forward_acl;
 #ifndef NOMINUM_PUBLIC
 	dns_acl_t		*notify_acl;
 #endif /* NOMINUM_PUBLIC */
@@ -490,6 +491,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->notifycnt = 0;
 	zone->task = NULL;
 	zone->update_acl = NULL;
+	zone->forward_acl = NULL;
 #ifndef NOMINUM_PUBLIC
 	zone->notify_acl = NULL;
 #endif /* NOMINUM_PUBLIC */
@@ -583,6 +585,8 @@ zone_free(dns_zone_t *zone) {
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
+	if (zone->forward_acl != NULL)
+		dns_acl_detach(&zone->forward_acl);
 #ifndef NOMINUM_PUBLIC
 	if (zone->notify_acl != NULL)
 		dns_acl_detach(&zone->notify_acl);
@@ -3912,6 +3916,18 @@ dns_zone_setupdateacl(dns_zone_t *zone, dns_acl_t *acl) {
 }
 
 void
+dns_zone_setforwardacl(dns_zone_t *zone, dns_acl_t *acl) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	if (zone->forward_acl != NULL)
+		dns_acl_detach(&zone->forward_acl);
+	dns_acl_attach(acl, &zone->forward_acl);
+	UNLOCK(&zone->lock);
+}
+
+void
 dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3950,6 +3966,14 @@ dns_zone_getupdateacl(dns_zone_t *zone) {
 }
 
 dns_acl_t *
+dns_zone_getforwardacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->forward_acl);
+}
+
+dns_acl_t *
 dns_zone_getxfracl(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3965,6 +3989,17 @@ dns_zone_clearupdateacl(dns_zone_t *zone) {
 	LOCK(&zone->lock);
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
+	UNLOCK(&zone->lock);
+}
+
+void
+dns_zone_clearforwardacl(dns_zone_t *zone) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	if (zone->forward_acl != NULL)
+		dns_acl_detach(&zone->forward_acl);
 	UNLOCK(&zone->lock);
 }
 

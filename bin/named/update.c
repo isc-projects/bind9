@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.71 2000/10/31 03:21:45 marka Exp $ */
+/* $Id: update.c,v 1.72 2000/11/06 08:11:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1891,9 +1891,27 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		CHECK(send_update_event(client, zone));
 		break;	/* OK. */
 	case dns_zone_slave:
-		if (dns_message_gettsig(client->message, NULL) == NULL)
-			FAILS(DNS_R_NOTIMP,
-			      "unsigned updates not forwarded");
+		if (dns_message_gettsig(client->message, NULL) == NULL) {
+			dns_acl_t *forwardacl;
+
+			/*
+			 * We only REFUSE if policy is explicitly set and
+			 * we fail to match.
+			 */
+			forwardacl = dns_zone_getforwardacl(zone);
+			if (forwardacl == NULL) {
+				FAILS(DNS_R_NOTIMP,
+				      "unsigned updates not forwarded (noacl)");
+			} else {
+				result = ns_client_checkacl(client,
+							    "update-forward",
+							    forwardacl,
+							    ISC_FALSE,
+							    ISC_LOG_INFO);
+				if (result != ISC_R_SUCCESS)
+					FAIL(DNS_R_REFUSED);
+			}
+		}
 		CHECK(send_forward_event(client, zone));
 		break;	/* OK. */
 	default:

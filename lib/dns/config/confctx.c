@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.96 2000/11/03 07:15:57 marka Exp $ */
+/* $Id: confctx.c,v 1.97 2000/11/06 08:11:10 marka Exp $ */
 
 #include <config.h>
 
@@ -531,14 +531,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'rrset-order' is not yet implemented");
-	}
-
-	if (dns_c_ctx_getallowupdateforwarding(cfg, &ipml) != ISC_R_NOTFOUND) {
-		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'allow-update-forwarding' is not "
-			      "yet implemented");
 	}
 
 	if (cfg->zlist != NULL) {

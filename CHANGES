@@ -1,3 +1,5 @@
+ 542.	[func]		Add allow-update-forwarding support.
+
  541.	[func]		Add bogus server support.
 
  540.	[func]		Add dialup support.

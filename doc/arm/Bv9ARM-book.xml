@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.25 2000/11/05 00:29:15 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.26 2000/11/06 08:11:05 marka Exp $ -->
 
 <book>
 
@@ -3670,9 +3670,13 @@ updates from all hosts.</para></entry>
                 <entry colname = "1"><para><command>allow-update-forwarding</command></para></entry>
                 <entry colname = "2"><para>Specifies which hosts are allowed to
 submit Dynamic DNS updates to slave zones to be forwarded to the
-master. The default is to deny update forwarding from all hosts.</para><note>
-                    <simpara>Update
-forwarding is not yet implemented.</simpara></note></entry>
+master.
+This applies only to unsigned updates.
+Signed updates are always forwarded.
+If there is no acl defined then the server will return NOTIMPL, causing the
+client to skip to the next server.  If an acl is defined and there is no
+match then the default is to deny update forwarding.</para>
+</entry>
               </row>
               <row rowsep = "0">
                 <entry colname = "1"><para><command>also-notify</command></para></entry>

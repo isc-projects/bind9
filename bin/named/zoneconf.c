@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.65 2000/11/03 07:15:52 marka Exp $ */
+/* $Id: zoneconf.c,v 1.66 2000/11/06 08:11:08 marka Exp $ */
 
 #include <config.h>
 
@@ -361,6 +361,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			uintval = 30 * 24 * 3600;
 		dns_zone_setsigvalidityinterval(zone, uintval);
+	} else if (czone->ztype == dns_c_zone_slave) {
+		RETERR(configure_zone_acl(czone, cctx, NULL, ac, zone,
+					  dns_c_zone_getallowupdateforwarding,
+					  dns_c_view_getallowupdateforwarding,
+					  dns_c_ctx_getallowupdateforwarding,
+					  dns_zone_setforwardacl,
+					  dns_zone_clearforwardacl));
 	}
 
 	result = dns_c_zone_gettransfersource(czone, &sockaddr);
