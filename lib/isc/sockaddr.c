@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48 2001/01/09 21:56:29 bwelling Exp $ */
+/* $Id: sockaddr.c,v 1.49 2001/09/17 06:58:18 marka Exp $ */
 
 #include <config.h>
 
@@ -179,6 +179,7 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned int g;
+	const struct in6_addr *in6;
 
 	REQUIRE(sockaddr != NULL);
 
@@ -187,6 +188,14 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		case AF_INET:
 			return (ntohl(sockaddr->type.sin.sin_addr.s_addr));
 		case AF_INET6:
+			in6 = &sockaddr->type.sin6.sin6_addr;
+			if (IN6_IS_ADDR_V4MAPPED(in6)) {
+				g = (in6->s6_addr[12] << 24) |
+				    (in6->s6_addr[13] << 16) |
+				    (in6->s6_addr[14] << 8) |
+				    in6->s6_addr[15];
+				return (g);
+			}
 			s = (const unsigned char *)&sockaddr->
 							   type.sin6.sin6_addr;
 			length = sizeof sockaddr->type.sin6.sin6_addr;
