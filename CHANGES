@@ -1,3 +1,11 @@
+ 468.	[bug]		dns_master_load*() failed to report file and line
+			number in certain error conditions.
+
+ 467.	[bug]		dns_master_load*() failed to log an error if
+			pushfile() failed.
+
+ 466.	[bug]		dns_master_load*() could return success when it failed.
+
  465.	[cleanup]	Allow 0 to be set as an omapi_value_t value by
 			omapi_value_storeint().
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.65 2000/09/12 18:10:24 gson Exp $ */
+/* $Id: master.c,v 1.66 2000/09/17 12:38:47 marka Exp $ */
 
 #include <config.h>
 
@@ -198,8 +198,10 @@ loadmgr_destroy(dns_loadmgr_t *mgr);
 		default: \
 			goto error_cleanup; \
 		} \
-		if ((token)->type == isc_tokentype_special) \
+		if ((token)->type == isc_tokentype_special) { \
+			result = DNS_R_SYNTAX; \
 			goto error_cleanup; \
+		} \
 	} while (0)
 
 #define COMMITALL \
@@ -610,7 +612,7 @@ load(dns_loadctx_t **ctxp) {
 							  ctx->origin,
 							  ctxp);
 					if (result != ISC_R_SUCCESS)
-						goto cleanup;
+						goto error_cleanup;
 					ctx = *ctxp;
 					continue;
 				}
@@ -702,7 +704,7 @@ load(dns_loadctx_t **ctxp) {
 				finish_include = ISC_FALSE;
 				result = pushfile(include_file, new_name, ctxp);
 				if (result != ISC_R_SUCCESS)
-					goto cleanup;
+					goto error_cleanup;
 				ctx = *ctxp;
 				continue;
 			}
@@ -1079,8 +1081,15 @@ load(dns_loadctx_t **ctxp) {
 	goto cleanup;
 
  error_cleanup:
-	(*callbacks->error)(callbacks, "dns_master_load: %s",
-			    dns_result_totext(result));
+	if (result == ISC_R_NOMEMORY)
+		(*callbacks->error)(callbacks, "dns_master_load: %s",
+				    dns_result_totext(result));
+	else
+		(*callbacks->error)(callbacks, "%s: %s:%s: %s",
+				    isc_lex_getsourcename(ctx->lex),
+				    isc_lex_getsourceline(ctx->lex),
+				    "dns_master_load",
+				    dns_result_totext(result));
 
  cleanup:
 	while ((this = ISC_LIST_HEAD(current_list)) != NULL) 
