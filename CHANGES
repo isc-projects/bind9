@@ -1,3 +1,5 @@
+ 760.	[contrib]	Significant enhancements to the pgsql sdb driver.
+
  759.	[bug]		The resolver didn't turn off "avoid fetches" mode
 			when restarting, possibly causing resolution
 			to fail when it should not.  This bug only affected
