@@ -1,3 +1,7 @@
+1708.	[cleanup]	Replaced dns_fullname_hash() with dns_name_fullhash()
+			for conformance to the name space convention.  Binary
+			backward compatibility to the old function name is
+			provided. [RT #12376]
 
 	--- 9.3.0 released ---
 
