@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.7 2001/01/09 21:58:27 bwelling Exp $ */
+/* $Id: resource.c,v 1.8 2001/01/23 03:14:28 marka Exp $ */
 
 #include <config.h>
 
@@ -62,7 +62,11 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 #endif
 		break;
 	case isc_resource_openfiles:
+#ifdef RLIMIT_NOFILE
 		*rlim_resource = RLIMIT_NOFILE;
+#else
+		result = ISC_R_NOTIMPLEMENTED;
+#endif
 		break;
 	case isc_resource_processes:
 #ifdef RLIMIT_NPROC
