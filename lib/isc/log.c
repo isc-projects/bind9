@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.3 1999/10/07 02:10:10 tale Exp $ */
+/* $Id: log.c,v 1.4 1999/10/11 13:28:49 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -745,7 +745,7 @@ isc_log_open(isc_logchannel_t *channel) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
+void
 isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *format,
 	       va_list args)
