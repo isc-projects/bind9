@@ -1,4 +1,4 @@
-# makeversion.pl
+#!/usr/bin/perl
 #
 # Copyright (C) 2001  Internet Software Consortium.
 #
@@ -15,14 +15,14 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makeversion.pl,v 1.3 2001/07/27 05:20:29 mayer Exp $ 
+# $Id: makeversion.pl,v 1.4 2001/07/27 17:25:23 gson Exp $ 
 
 # This script takes the version information from the version file located
 # at the root of the source tree and the api files in each library directory
 # and writes the resulting information into a version.h file that the build
 # process uses to build the executable code.
 # This program was written by PDM. danny.mayer@nominum.com 1-Jul-2001.
-#
+
 # List of directories with version files
 @dirlist = ("isc","dns","isccc","isccfg","lwres");
 $LibMacros{"isc"} = "LIBISC_EXPORTS";
@@ -34,6 +34,7 @@ $LibMacros{"lwres"} = "LIBLWRES_EXPORTS";
 @VersionNames = ("LIBINTERFACE", "LIBREVISION", "LIBAGE");
 $versionfile = "versions.h";
 $versionpath = "../$versionfile";
+
 #
 # First get the version information
 #
@@ -114,7 +115,6 @@ foreach $dir (@dirlist) {
 		print OUTVERSIONFILE "#define $name\t$ApiVersions{$name}\n";
 	}
 	print OUTVERSIONFILE "#endif\n\n";
-
 }
 
 print OUTVERSIONFILE "#endif /* VERSIONS_H */\n";
