@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.49 2001/02/09 19:19:17 gson Exp $ */
+/* $Id: mem.h,v 1.50 2001/03/05 18:20:24 mayer Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -154,10 +154,12 @@ extern unsigned int isc_mem_debugging;
 #define isc_mempool_put(c, p)	isc__mempool_put((c), (p) _ISC_MEM_FILELINE)
 #endif
 
-isc_result_t isc_mem_create(size_t max_size, size_t target_size,
+isc_result_t 
+isc_mem_create(size_t max_size, size_t target_size,
 			    isc_mem_t **mctxp);
 
-isc_result_t isc_mem_createx(size_t max_size, size_t target_size,
+isc_result_t 
+isc_mem_createx(size_t max_size, size_t target_size,
 			     isc_memalloc_t memalloc, isc_memfree_t memfree,
 			     void *arg, isc_mem_t **mctxp);
 /*
@@ -181,8 +183,10 @@ isc_result_t isc_mem_createx(size_t max_size, size_t target_size,
  * Requires:
  * mctxp != NULL && *mctxp == NULL */
 
-void isc_mem_attach(isc_mem_t *, isc_mem_t **);
-void isc_mem_detach(isc_mem_t **);
+void 
+isc_mem_attach(isc_mem_t *, isc_mem_t **);
+void 
+isc_mem_detach(isc_mem_t **);
 /*
  * Attach to / detach from a memory context.
  *
@@ -196,12 +200,14 @@ void isc_mem_detach(isc_mem_t **);
  * is not destroyed while there are outstanding allocations.
  */
 
-void isc_mem_destroy(isc_mem_t **);
+void 
+isc_mem_destroy(isc_mem_t **);
 /*
  * Destroy a memory context.
  */
 
-isc_result_t isc_mem_ondestroy(isc_mem_t *ctx,
+isc_result_t 
+isc_mem_ondestroy(isc_mem_t *ctx,
 			       isc_task_t *task,
 			       isc_event_t **event);
 /*
@@ -209,27 +215,32 @@ isc_result_t isc_mem_ondestroy(isc_mem_t *ctx,
  * been successfully destroyed.
  */
 
-void isc_mem_stats(isc_mem_t *mctx, FILE *out);
+void 
+isc_mem_stats(isc_mem_t *mctx, FILE *out);
 /*
  * Print memory usage statistics for 'mctx' on the stream 'out'.
  */
 
-void isc_mem_setdestroycheck(isc_mem_t *mctx,
+void 
+isc_mem_setdestroycheck(isc_mem_t *mctx,
 			     isc_boolean_t on);
 /*
  * Iff 'on' is ISC_TRUE, 'mctx' will check for memory leaks when
  * destroyed and abort the program if any are present.
  */
 
-void isc_mem_setquota(isc_mem_t *, size_t);
-size_t isc_mem_getquota(isc_mem_t *);
+void 
+isc_mem_setquota(isc_mem_t *, size_t);
+size_t 
+isc_mem_getquota(isc_mem_t *);
 /*
  * Set/get the memory quota of 'mctx'.  This is a hard limit
  * on the amount of memory that may be allocated from mctx;
  * if it is exceeded, allocations will fail.
  */
 
-size_t isc_mem_inuse(isc_mem_t *mctx);
+size_t 
+isc_mem_inuse(isc_mem_t *mctx);
 /*
  * Get an estimate of the number of memory in use in 'mctx', in bytes.
  * This includes quantization overhead, but does not include memory
@@ -399,15 +410,23 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit);
 /*
  * Pseudo-private functions for use via macros.  Do not call directly.
  */
-void *		isc__mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
-void 		isc__mem_putanddetach(isc_mem_t **, void *,
+void *		
+isc__mem_get(isc_mem_t *, size_t _ISC_MEM_FLARG);
+void 		
+isc__mem_putanddetach(isc_mem_t **, void *,
 				      size_t _ISC_MEM_FLARG);
-void 		isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
-void *		isc__mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
-void		isc__mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
-char *		isc__mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
-void *		isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
-void 		isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
+void 		
+isc__mem_put(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
+void *		
+isc__mem_allocate(isc_mem_t *, size_t _ISC_MEM_FLARG);
+void		
+isc__mem_free(isc_mem_t *, void * _ISC_MEM_FLARG);
+char *		
+isc__mem_strdup(isc_mem_t *, const char *_ISC_MEM_FLARG);
+void *		
+isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
+void 		
+isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
 
 ISC_LANG_ENDDECLS
 

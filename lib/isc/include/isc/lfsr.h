@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.h,v 1.9 2001/01/09 21:57:05 bwelling Exp $ */
+/* $Id: lfsr.h,v 1.10 2001/03/05 18:18:16 mayer Exp $ */
 
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1
@@ -57,7 +57,8 @@ ISC_LANG_BEGINDECLS
  * bit length 32 will have 2^32 unique states before repeating.
  */
 
-void isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
+void 
+isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 		   isc_uint32_t tap, unsigned int count,
 		   isc_lfsrreseed_t reseed, void *arg);
 /*
@@ -77,7 +78,8 @@ void isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
  *	tap != 0
  */
 
-void isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
+void 
+isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
 /*
  * Returns "count" bytes of data from the LFSR.
  *
@@ -90,7 +92,8 @@ void isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
  *	count > 0.
  */
 
-void isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
+void 
+isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
 /*
  * Skip "skip" states.
  *
@@ -99,7 +102,8 @@ void isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
  *	lfsr be valid.
  */
 
-isc_uint32_t isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2);
+isc_uint32_t 
+isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2);
 /*
  * Given two LFSRs, use the current state from each to skip entries in the
  * other.  The next states are then xor'd together and returned.
