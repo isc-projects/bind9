@@ -3,9 +3,8 @@
 			of the configuration file to return a failure
 			status even though they were logged. [RT #1847]
 
-1028.	[bug]		RESOLVCONF defined in dig.h and dighost.c instead of
-			RESOLV_CONF, preventing win32 from overriding the
-			location of the resolv.conf file. [RT #1833]
+1028.	[bug]		On Win32, dig/host/nslookup looked for resolv.conf
+			in the wrong directory. [RT #1833]
 
 1027.	[bug]		RRs having the reserved type 0 should be rejected.
 			[RT #1471]
