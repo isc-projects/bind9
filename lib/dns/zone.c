@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.51 1999/12/22 19:09:29 gson Exp $ */
+ /* $Id: zone.c,v 1.52 1999/12/22 20:52:32 gson Exp $ */
 
 #include <config.h>
 
@@ -705,7 +705,7 @@ dns_zone_load(dns_zone_t *zone) {
 			goto cleanup;
 		}
 		if (zone->top != NULL) {
-			if (!isc_serial_gt(soa.serial, zone->serial)) {
+			if (!isc_serial_ge(soa.serial, zone->serial)) {
 				zone_log(zone, me, ISC_LOG_ERROR,
 					"zone serial has gone backwards");
 			}
