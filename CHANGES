@@ -33,7 +33,7 @@
                         the server to crash while loading.
 
  691.	[bug]		Configuring per-view forwarders caused an assertion
-			failure. [RT #675]
+			failure. [RT #675, #734]
 
 	--- 9.1.0 released ---
 
