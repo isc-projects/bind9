@@ -8,6 +8,9 @@
 1603.	[bug]		nsupdate: set interactive based on isatty().
 			[RT# 10929]
 
+1602.	[bug]		Logging to a file failed unless a size was specified.
+			[RT# 10925]
+
 1594.	[bug]		'rndc dumpdb' could prevent named from answering
 			queries while the dump was in progress.  [RT #10565]
 
