@@ -24,16 +24,7 @@
 #include <isc/boolean.h>
 #include <isc/rwlock.h>
 
-#define LOCK(lp) \
-	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS);
-#define UNLOCK(lp) \
-	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
-#define BROADCAST(cvp) \
-	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
-#define SIGNAL(cvp) \
-	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
-#define WAIT(cvp, lp) \
-	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
+#include "util.h"
 
 #define RWLOCK_MAGIC			0x52574C6BU	/* RWLk. */
 #define VALID_RWLOCK(rwl)		((rwl) != NULL && \

@@ -34,27 +34,11 @@
 #include <isc/condition.h>
 #include <isc/socket.h>
 
+#include "util.h"
+
 #ifndef _WIN32
 #define WINAPI /* we're not windows */
 #endif
-
-/*
- * We use macros instead of calling the routines directly because
- * the capital letters make the locking stand out.
- *
- * We INSIST that they succeed since there's no way for us to continue
- * if they fail.
- */
-
-#define LOCK(lp) 	do { \
-	INSIST(isc_mutex_lock((lp)) == ISC_R_SUCCESS); \
-	XTRACE(TRACE_LOCK, ("%d locked socket %p\n", __LINE__, lp)); \
-} while (0)
-
-#define UNLOCK(lp) 	do { \
-	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS); \
-	XTRACE(TRACE_LOCK, ("%d unlocked socket %p\n", __LINE__, lp)); \
-} while (0)
 
 #define ISC_TASK_SEND(a, b) do { \
 	INSIST(isc_task_send(a, b) == ISC_R_SUCCESS); \
