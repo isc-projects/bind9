@@ -530,7 +530,7 @@ temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata)
 	dns_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	
-	REQUIRE(VALID_DIFF(diff));
+	REQUIRE(DNS_DIFF_VALID(diff));
 	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_EXISTS,
 				      name, 0, rdata, &tuple));
 	ISC_LIST_APPEND(diff->tuples, tuple, link);
