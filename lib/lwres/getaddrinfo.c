@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.8 2000/01/28 01:56:36 marka Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.9 2000/02/01 06:55:36 marka Exp $
  */
 
 
@@ -391,7 +391,7 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 		SIN6(ai->ai_addr)->sin6_port = port;
 		memcpy(&SIN6(ai->ai_addr)->sin6_addr, v6_loop, 16);
 	} else if (lwres_getaddrsbyname(lwrctx, hostname,
-					LWRES_ADDRTYPE_V4, &by) == 0) {
+					LWRES_ADDRTYPE_V6, &by) == 0) {
 		for (i = 0; i < by->naddrs; i++) {
 			if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
 				freeaddrinfo(*aip);
