@@ -7,7 +7,8 @@
  456.	[bug]		Stub zones were not resetting the refresh and expire
 			counters, loadtime or clearing the DNS_ZONE_REFRESH
 			(refresh in progress) flag upon successful update.
-			[RT #300]
+			This disabled further refreshing of the stub zone,
+			causing it to eventually expire. [RT #300]
 
  455.	[doc]		Document IPv4 prefix notation does not require a
 			dotted decimal quad but may be just dotted decimal.
