@@ -9,7 +9,7 @@
 
 1586.	[func]		"check-names" is now implemented.
 
-1584.	[bug]		"make test" failed with a readonly source tree.
+1584.	[bug]		"make test" failed with a read only source tree.
 			[RT #10461]
 
 1583.	[bug]		Records add via UPDATE failed to get the correct trust
@@ -21,7 +21,7 @@
 1581.	[func]		Disable DNSSEC support by default.  To enable
 			DNSSEC specify "dnssec-enable yes;" in named.conf.
 
-1580.	[bug]		Zone destuction on final detach takes a long time.
+1580.	[bug]		Zone destruction on final detach takes a long time.
 			[RT #3746]
 
 1579.	[bug]		Multiple task managers could not be created.
@@ -48,7 +48,7 @@
 			zone if the server is specified. [RT #10148]
 
 1571.	[bug]		rbt:hash_node() could fail leaving the hash table
-			in an inconsistant state.  [RT #10208]
+			in an inconsistent state.  [RT #10208]
 
 1570.	[bug]		nsupdate failed to handle classes other than IN.
 			New keyword 'class' which sets the default class.
@@ -58,7 +58,7 @@
 			complete answer message to the last update.
 
 1568.	[bug]		nsupdate now reports that the update failed in
-			interative mode. [RT# 10236]
+			interactive mode. [RT# 10236]
 
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
@@ -105,7 +105,7 @@
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
 			point. [RT #7572]
 
-1554.	[bug]		dig, host, nsloolup failed when no nameservers
+1554.	[bug]		dig, host, nslookup failed when no nameservers
 			were specified in /etc/resolv.conf. [RT #8232]
 
 1553.	[bug]		The windows socket code could stop accepting
@@ -155,7 +155,7 @@
 
 1534.	[bug]		Race condition when priming cache. [RT# 9940]
 
-1533.	[func]		Warn if both "recusion no;" and "allow-recursion"
+1533.	[func]		Warn if both "recursion no;" and "allow-recursion"
 			are active. [RT# 4389]
 
 1532.	[port]		netbsd: the configure test for <sys/sysctl.h>
@@ -167,7 +167,7 @@
 			slave master file was removed at just the correct
 			moment. [RT #9462]
 
-1529.	[bug]		"notify explict;" failed to log that NOTIFY messages
+1529.	[bug]		"notify explicit;" failed to log that NOTIFY messages
 			were being sent for the zone. [RT# 9442]
 
 1528.	[cleanup]	Simplify some dns_name_ functions based on the
@@ -211,7 +211,7 @@
 1514.	[bug]		named: isc_hash_destroy() was being called too early.
 			[RT #9160]
 
-1513.	[doc]		Add "US" to root-delgation-only exclude list.
+1513.	[doc]		Add "US" to root-delegation-only exclude list.
 
 1512.	[bug]		Extend the delegation-only logging to return query
 			type, class and responding nameserver.
@@ -240,7 +240,7 @@
 
 1506.	[bug]		Wrong return type for dns_view_isdelegationonly().
 
-1505.	[bug]		Uninitialised rdataset in sdb. [RT #8750]
+1505.	[bug]		Uninitialized rdataset in sdb. [RT #8750]
 
 1504.	[func]		New zone type "delegation-only".
 
@@ -412,7 +412,7 @@
 1371.	[bug]		notify-source-v6, transfer-source-v6 and
 			query-source-v6 with explicit addresses and using the
 			same ports as named was listening on could interfere
-			with nameds ability to answer queries sent to those
+			with named's ability to answer queries sent to those
 			addresses.
 
 1368.	[func]		remove support for bitstring labels.
@@ -515,7 +515,7 @@
 
 1278.	[func]		dig: now supports +[no]cl +[no]ttlid.
 
-1277.	[func]		You can now create your own customised printing
+1277.	[func]		You can now create your own customized printing
 			styles: dns_master_stylecreate() and
 			dns_master_styledestroy().
 
@@ -663,7 +663,7 @@
 1135.	[func]		You can now override the default syslog() facility for
 			named/lwresd at compile time. [RT #1982]
 
-1132.	[func]		Improve UPDATE prerequisite failure diagnotic messages.
+1132.	[func]		Improve UPDATE prerequisite failure diagnostic messages.
 
 1128.	[func]		sdb drivers can now provide RR data in either text
 			or wire format, the latter using the new functions
@@ -887,7 +887,7 @@
 			on syntax errors.
 
 1478.	[port]		ifconfig.sh didn't account for other virtual
-			interfaces.  It now takes a optional arguement
+			interfaces.  It now takes a optional argument
 			to specify the first interface number. [RT #3907]
 
 1477.	[bug]		memory leak using stub zones and TSIG.
@@ -977,7 +977,7 @@
 
 1423.	[contrib]	queryperf: added A6 and SRV.
 
-1420.	[port]		solaris: work around gcc optimiser bug.
+1420.	[port]		solaris: work around gcc optimizer bug.
 
 1419.	[port]		openbsd: use /dev/arandom. [RT #4950]
 
@@ -988,12 +988,12 @@
 
 1411.	[bug]		empty nodes should stop wildcard matches. [RT #4802]
 
-1408.	[bug]		distclean was not complete. [RT #4700]
+1408.	[bug]		"make distclean" was not complete. [RT #4700]
 
 1407.	[bug]		lfsr incorrectly implements the shift register.
 			[RT #4617]
 
-1406.	[bug]		dispatch initialises one of the LFSR's with a incorrect
+1406.	[bug]		dispatch initializes one of the LFSR's with a incorrect
 			polynomial.  [RT #4617]
 
 1405.	[func]		Use arc4random() if available.
@@ -1203,7 +1203,7 @@
 1284.	[bug]		The RTT estimate on unused servers was not aged.
 			[RT #2569]
 
-1282.	[port]		libbind: hpux 11.11 interface scaning.
+1282.	[port]		libbind: hpux 11.11 interface scanning.
 
 1280.	[bug]		libbind: escape '(' and ')' when converting to
 			presentation form.
@@ -1503,7 +1503,7 @@
 1140.	[bug]		rndc-confgen did not accept IPv6 addresses as arguments
 			to the -s option. [RT #2138]
 
-1136.	[bug]		CNAME records synthesised from DNAMEs did not
+1136.	[bug]		CNAME records synthesized from DNAMEs did not
 			have a TTL of zero as required by RFC2672.
 			[RT #2129]
 
@@ -1582,7 +1582,7 @@
 
 1117.	[port]		The configure check for in6addr_loopback incorrectly
 			succeeded on AIX 4.3 when compiling with -O2
-			because the test code was optimised away.
+			because the test code was optimized away.
 			[RT #2016]
 
 1116.	[bug]		Setting transfers in a server clause, transfers-in,
