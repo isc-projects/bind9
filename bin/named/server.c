@@ -378,6 +378,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		view->provideixfr = ISC_TRUE;
 
+	result = ISC_R_SUCCESS;
+
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
 
