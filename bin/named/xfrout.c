@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.1 1999/08/20 05:35:16 gson Exp $ */
+ /* $Id: xfrout.c,v 1.2 1999/08/23 11:07:53 gson Exp $ */
 
 #include <config.h>
 
@@ -688,7 +688,7 @@ static rrstream_methods_t compound_rrstream_methods =
 
 /**************************************************************************/
 /*
- * An 'xferout_ctx_t' contains the state of an outgoing AXFR or IXFR
+ * An 'xfrout_ctx_t' contains the state of an outgoing AXFR or IXFR
  * in progress.
  */
 
@@ -893,8 +893,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 
  have_stream:
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
-				reqtype, db, ver, stream,
-				&xfr));
+				reqtype, db, ver, stream, &xfr));
 	stream = NULL;
 	
 	CHECK(xfr->stream->methods->first(xfr->stream));
