@@ -44,9 +44,9 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.1rc1
+BIND 9.0.1rc2
 
-	BIND 9.0.1rc1 is a release candidate for BIND 9.0.1.  BIND 9.0.1
+	BIND 9.0.1rc2 is a release candidate for BIND 9.0.1.  BIND 9.0.1
 	will be a maintenance release, containing fixes for a number of
 	bugs in BIND 9.0.0 but no new features (with the exception of
 	a few minor features added to dig, host, and nslookup).
