@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.10 2000/03/18 02:38:20 tale Exp $ */
+/* $Id: omapi.c,v 1.11 2000/04/04 20:06:53 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -25,6 +25,7 @@
 #include <stdarg.h>
 
 #include <isc/assertions.h>
+#include <isc/event.h>
 #include <isc/util.h>
 
 #include <named/globals.h>
