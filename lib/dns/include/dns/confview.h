@@ -136,6 +136,7 @@ struct dns_c_view {
         isc_uint32_t            *max_ncache_ttl;
         isc_uint32_t            *max_cache_ttl;
         isc_uint32_t            *sig_valid_interval;
+        isc_uint32_t            *cache_size;
 
         dns_c_addata_t         *additional_data;
         dns_transfer_format_t  *transfer_format;
@@ -436,6 +437,14 @@ isc_result_t dns_c_view_getsigvalidityinterval(dns_c_view_t *view,
 isc_result_t dns_c_view_setsigvalidityinterval(dns_c_view_t *view,
 					    isc_uint32_t newval);
 isc_result_t dns_c_view_unsetsigvalidityinterval(dns_c_view_t *view);
+
+
+
+isc_result_t dns_c_view_getcachesize(dns_c_view_t *view,
+					    isc_uint32_t *retval);
+isc_result_t dns_c_view_setcachesize(dns_c_view_t *view,
+					    isc_uint32_t newval);
+isc_result_t dns_c_view_unsetcachesize(dns_c_view_t *view);
 
 
 

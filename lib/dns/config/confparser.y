@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.93 2000/06/08 12:04:54 brister Exp $ */
+/* $Id: confparser.y,v 1.94 2000/06/09 08:48:39 brister Exp $ */
 
 #include <config.h>
 
@@ -242,7 +242,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
-%token		L_CACHESIZE
+%token		L_CACHE_SIZE
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
@@ -1919,14 +1919,14 @@ size_clause: L_DATASIZE size_spec
 			YYABORT;
 		}
 	}
-	| L_CACHESIZE size_spec
+	| L_CACHE_SIZE size_spec
 	{
 		tmpres = dns_c_ctx_setcachesize(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE, "cannot redefine cachesize");
+			parser_error(ISC_FALSE, "cannot redefine cache-size");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE, "failed to set cachesize");
+			parser_error(ISC_FALSE, "failed to set cache-size");
 			YYABORT;
 		}
 	}
@@ -3782,6 +3782,23 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_CACHE_SIZE size_spec
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setcachesize(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view cache-size");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view cache-size");
+			YYABORT;
+		}
+	}
 	| key_stmt
 	| zone_stmt
 	| server_stmt
@@ -5001,7 +5018,7 @@ static struct token keyword_tokens [] = {
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
 	{ "bogus",			L_BOGUS },
-	{ "cachesize",			L_CACHESIZE },
+	{ "cache-size",			L_CACHE_SIZE },
 	{ "category",			L_CATEGORY },
 	{ "class",			L_CLASS },
 	{ "channel",			L_CHANNEL },

@@ -1,3 +1,6 @@
+ 256.	[func]		Rename global option cachesize to cache-size and
+			add corresponding option  to view statement.
+
  245.	[bug]		If an uncompressed name will take more than 255
 			characters and the buffer is sufficiently long,
 			dns_name_fromwire should return DNS_R_FORMERR,

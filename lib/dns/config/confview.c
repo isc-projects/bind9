@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.33 2000/06/05 09:17:08 brister Exp $ */
+/* $Id: confview.c,v 1.34 2000/06/09 08:48:41 brister Exp $ */
 
 #include <config.h>
 
@@ -483,6 +483,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->max_ncache_ttl = NULL;
 	view->max_cache_ttl = NULL;
 	view->sig_valid_interval = NULL;
+	view->cache_size = NULL;
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -578,6 +579,19 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			(unsigned long)(*view->FIELD / 60));	\
 	}
 
+#define PRINT_AS_SIZE_CLAUSE(FIELD, NAME)				\
+	if (view->FIELD != NULL) {					\
+		dns_c_printtabs(fp, indent + 1);			\
+		fprintf(fp, "%s ",NAME);				\
+		if (*view->FIELD == DNS_C_SIZE_SPEC_DEFAULT) {	\
+			fprintf(fp, "default");				\
+		} else {						\
+			dns_c_printinunits(fp, *view->FIELD);	\
+		}							\
+		fprintf(fp, ";\n");					\
+	}
+
+	
 	if (view->forward != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "forward %s;\n",
@@ -663,6 +677,8 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_ncache_ttl, "max-ncache-ttl");
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
 	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
+
+	PRINT_AS_SIZE_CLAUSE(cache_size, "cache-size");
 
 	if (view->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -795,6 +811,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(max_ncache_ttl);
 	FREEFIELD(max_cache_ttl);
 	FREEFIELD(sig_valid_interval);
+	FREEFIELD(cache_size);
 
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
@@ -1496,7 +1513,12 @@ SETUINT32(sigvalidityinterval, sig_valid_interval)
 GETUINT32(sigvalidityinterval, sig_valid_interval)
 UNSETUINT32(sigvalidityinterval, sig_valid_interval)
 
+	
+GETUINT32(cachesize, cache_size)
+SETUINT32(cachesize, cache_size)
+UNSETUINT32(cachesize, cache_size)
 
+	
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
@@ -1504,7 +1526,6 @@ UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
-
 
 #if 0
 
