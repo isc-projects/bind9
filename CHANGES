@@ -1,4 +1,7 @@
 
+ 572.	[bug]		Quoted strings were not accepted as key names in
+			address match lists.
+
  554.	[bug]		In some cases, not all of the dnssec tools were
 			properly installed.
 

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.99.2.5 2000/09/13 23:13:25 explorer Exp $ */
+/* $Id: confparser.y,v 1.99.2.6 2000/11/22 20:18:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2942,7 +2942,7 @@ address_match_element: address_match_simple
 		}
 		$$ = $2;
 	}
-	| L_SEC_KEY L_STRING
+	| L_SEC_KEY any_string
 	{
 		dns_c_ipmatchelement_t *ime = NULL;
 
