@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.2 2000/07/10 21:50:52 gson Exp $ */
+/* $Id: resolver.c,v 1.137.2.3 2000/07/11 00:06:07 gson Exp $ */
 
 #include <config.h>
 
@@ -90,6 +90,12 @@
  * Maximum EDNS0 input packet size.
  */
 #define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
+
+/*
+ * This defines the maximum number of restarts we will permit before we
+ * disable EDNS0 on the query.
+ */
+#define NOEDNS0_RESTARTS		3
 
 typedef struct fetchctx fetchctx_t;
 
@@ -865,6 +871,11 @@ resquery_send(resquery_t *query) {
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
 	qname = NULL;
 	qrdataset = NULL;
+	if (fctx->restarts > NOEDNS0_RESTARTS) {
+		query->options |= DNS_FETCHOPT_NOEDNS0;
+		FCTXTRACE("too many restarts, disabling EDNS0");
+	}
+
 
 	/*
 	 * Set RD if the client has requested that we do a recursive query,
@@ -1538,12 +1549,12 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("Ignoring IPv6 mapped IPV4 address: ", buf);
+		FCTXTRACE2("ignoring IPv6 mapped IPV4 address: ", buf);
 	} else if (IN6_IS_ADDR_V4COMPAT(&sa->type.sin6.sin6_addr)) {
 		isc_netaddr_fromsockaddr(&na, sa);
 		isc_netaddr_format(&na, buf, sizeof buf);
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		FCTXTRACE2("Ignoring IPv6 compatibility IPV4 address: ", buf);
+		FCTXTRACE2("ignoring IPv6 compatibility IPV4 address: ", buf);
 	}
 }
 
