@@ -1,7 +1,7 @@
  371.	[doc]		document that dns_journal_rollforward can return
 			ISC_R_RANGE.
 
- 370.	[bug]		The error message for roll forward failures was
+ 370.	[bug]		The error messages for rollforward failures were
 			overly terse.
 
  369.	[func]		Support new named.conf options, view and zone 
