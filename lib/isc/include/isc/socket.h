@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.53 2001/02/12 21:43:17 bwelling Exp $ */
+/* $Id: socket.h,v 1.54 2001/03/06 01:23:02 bwelling Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -167,6 +167,7 @@ typedef enum {
  * Flags for isc_socket_send() and isc_socket_recv() calls.
  */
 #define ISC_SOCKFLAG_IMMEDIATE	0x00000001	/* send event only if needed */
+#define ISC_SOCKFLAG_NORETRY	0x00000002	/* drop failed UDP sends */
 
 /***
  *** Socket and Socket Manager Functions
@@ -569,12 +570,20 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
  *	expected to be initialized.
  *
  *	For isc_socket_sendto2():
- *	The only defined value for 'flags' is ISC_SOCKFLAG_IMMEDIATE.  If
- *	set and the operation completes, the return value will be
- *	ISC_R_SUCCESS and the event will be filled in and not sent.  If the
- *	operation does not complete, the return value will be
- *	ISC_R_INPROGRESS and the event will be sent when the operation
- *	completes.
+ *	The only defined values for 'flags' are ISC_SOCKFLAG_IMMEDIATE
+ *	and ISC_SOCKFLAG_NORETRY.
+ *
+ *	If ISC_SOCKFLAG_IMMEDIATE is set and the operation completes, the
+ *	return value will be ISC_R_SUCCESS and the event will be filled
+ *	in and not sent.  If the operation does not complete, the return
+ *	value will be ISC_R_INPROGRESS and the event will be sent when
+ *	the operation completes.
+ *
+ *	ISC_SOCKFLAG_NORETRY can only be set for UDP sockets.  If set
+ *	and the send operation fails due to a transient error, the send
+ *	will not be retried and the error will be indicated in the event.
+ *	Using this option along with ISC_SOCKFLAG_IMMEDIATE allows the caller
+ *	to specify a region that is allocated on the stack.
  *
  * Requires:
  *

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.193 2001/02/24 23:51:09 gson Exp $ */
+/* $Id: socket.c,v 1.194 2001/03/06 01:23:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -150,6 +150,11 @@ typedef isc_event_t intev_t;
 #define CMSG_BUF_SIZE (CMSG_BUF_V6_SIZE + CMSG_BUF_TS_SIZE)
 
 #endif /* USE_CMSG */
+
+/*
+ * The number of times a send operation is repeated if the result is EINTR.
+ */
+#define NRETRIES 10
 
 struct isc_socket {
 	/* Not locked. */
@@ -1002,15 +1007,20 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 #else
 	char *cmsg = NULL;
 #endif
+	int attempts = 0;
 
 	build_msghdr_send(sock, dev, &msghdr, cmsg, iov, &write_count);
 
+ resend:
 	cc = sendmsg(sock->fd, &msghdr, 0);
 
 	/*
 	 * Check for error or block condition.
 	 */
 	if (cc < 0) {
+		if (errno == EINTR && ++attempts < NRETRIES)
+			goto resend;
+
 		if (SOFT_ERROR(errno))
 			return (DOIO_SOFT);
 
@@ -2476,32 +2486,35 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 	case DOIO_SOFT:
 		/*
 		 * We couldn't send all or part of the request right now, so
-		 * queue it.
+		 * queue it unless ISC_SOCKFLAG_NORETRY is set.
 		 */
-		isc_task_attach(task, &ntask);
-		dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
+		if ((flags & ISC_SOCKFLAG_NORETRY) == 0) {
+			isc_task_attach(task, &ntask);
+			dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 
-		if (!have_lock) {
-			LOCK(&sock->lock);
-			have_lock = ISC_TRUE;
+			if (!have_lock) {
+				LOCK(&sock->lock);
+				have_lock = ISC_TRUE;
+			}
+
+			/*
+			 * Enqueue the request.  If the socket was previously
+			 * not being watched, poke the watcher to start
+			 * paying attention to it.
+			 */
+			if (ISC_LIST_EMPTY(sock->send_list))
+				select_poke(sock->manager, sock->fd,
+					    SELECT_POKE_WRITE);
+			ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
+
+			socket_log(sock, NULL, EVENT, NULL, 0, 0,
+				   "socket_send: event %p -> task %p",
+				   dev, ntask);
+
+			if ((flags & ISC_SOCKFLAG_IMMEDIATE) != 0)
+				result = ISC_R_INPROGRESS;
+			break;
 		}
-
-		/*
-		 * Enqueue the request.  If the socket was previously not being
-		 * watched, poke the watcher to start paying attention to it.
-		 */
-		if (ISC_LIST_EMPTY(sock->send_list))
-			select_poke(sock->manager, sock->fd,
-				    SELECT_POKE_WRITE);
-		ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
-
-		socket_log(sock, NULL, EVENT, NULL, 0, 0,
-			   "socket_send: event %p -> task %p",
-			   dev, ntask);
-
-		if ((flags & ISC_SOCKFLAG_IMMEDIATE) != 0)
-			result = ISC_R_INPROGRESS;
-		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
@@ -2609,6 +2622,9 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		   isc_socketevent_t *event, unsigned int flags)
 {
+	REQUIRE((flags & ~(ISC_SOCKFLAG_IMMEDIATE|ISC_SOCKFLAG_NORETRY)) == 0);
+	if ((flags & ISC_SOCKFLAG_NORETRY) != 0)
+		REQUIRE(sock->type == isc_sockettype_udp);
 	event->ev_sender = sock;
 	event->result = ISC_R_UNEXPECTED;
 	ISC_LIST_INIT(event->bufferlist);
