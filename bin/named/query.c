@@ -37,7 +37,6 @@
 #include <dns/rdatasetiter.h>
 
 #include <named/client.h>
-#include <named/events.h>
 #include <named/globals.h>
 #include <named/query.h>
 
