@@ -2267,3 +2267,270 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 
 	return (DNS_R_SUCCESS);
 }
+
+dns_result_t
+dns_name_split(dns_name_t *name,
+	       unsigned int suffixlabels, unsigned int nbits,
+	       dns_name_t *prefix, dns_name_t *suffix)
+
+{
+	dns_offsets_t name_odata, split_odata;
+	unsigned char *offsets, *splitoffsets;
+	dns_result_t result = DNS_R_SUCCESS;
+	unsigned int splitlabel, bitbytes, mod, len;
+	unsigned char *p, *src, *dst;
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE((nbits == 0 &&
+		 suffixlabels > 0 && suffixlabels < name->labels) ||
+		(nbits != 0 &&
+		 suffixlabels <= name->labels));
+	REQUIRE(prefix != NULL || suffix != NULL);
+	REQUIRE(prefix == NULL ||
+		(VALID_NAME(prefix) &&
+		 prefix->buffer != NULL &&
+		 isc_buffer_type(prefix->buffer) == ISC_BUFFERTYPE_BINARY &&
+		 (prefix->attributes & DNS_NAMEATTR_READONLY) == 0));
+	REQUIRE(suffix == NULL ||
+		(VALID_NAME(suffix) &&
+		 suffix->buffer != NULL &&
+		 isc_buffer_type(suffix->buffer) == ISC_BUFFERTYPE_BINARY &&
+		 (suffix->attributes & DNS_NAMEATTR_READONLY) == 0));
+
+	/*
+	 * When splitting bitstring labels, if prefix and suffix have the same
+	 * buffer, suffix will overwrite the ndata of prefix, corrupting it.
+	 * If prefix has the ndata of name, then it modifies the bitstring
+	 * label and suffix doesn't have the original available.  This latter
+	 * problem could be worked around if it is ever deemed desirable.
+	 */
+	REQUIRE(nbits == 0 || prefix == NULL || suffix == NULL ||
+		(prefix->buffer->base != suffix->buffer->base &&
+		 prefix->buffer->base != name->ndata));
+
+	SETUP_OFFSETS(name, offsets, name_odata);
+
+	splitlabel = name->labels - suffixlabels;
+	p = &name->ndata[offsets[splitlabel] + 1];
+
+	/*
+	 * When a bit count is specified, ensure that the label is a bitstring
+	 * label and it has more bits than the requested slice.
+	 */
+	REQUIRE(nbits == 0 ||
+		(*(p - 1) == DNS_LABELTYPE_BITSTRING && nbits < 256 &&
+		 (*p == 0 || *p > nbits)));
+
+	mod = nbits % 8;
+
+	if (prefix != NULL) {
+		if (nbits > 0) {
+			isc_buffer_clear(prefix->buffer);
+
+			/*
+			 * '2' is for the DNS_LABELTYPE_BITSTRING id
+			 * plus the existing number of bits byte.
+			 */
+			len = offsets[splitlabel] + 2;
+			src = name->ndata;
+			dst = prefix->buffer->base;
+
+			if (src != dst) {
+				/*
+				 * If these are overlapping names ...
+				 * wow.  How bizarre could that be?
+				 */
+				INSIST(! (src <= dst && src + len > dst) ||
+				         (dst <= src && dst + len > src));
+
+				memcpy(dst, src, len);
+
+				p = dst + len - 1;
+			}
+
+			/*
+			 * Set the new bit count.
+			 */
+			if (*p == 0)
+				*p = 256 - nbits;
+			else
+				*p = *p - nbits;
+
+			/*
+			 * Really one less than the bytes for the bits.
+			 */
+			bitbytes = (*p - 1) / 8 + 1;
+
+			prefix->length = len + bitbytes;
+
+			if (prefix->length > prefix->buffer->length ) {
+				dns_name_invalidate(prefix);
+				return(DNS_R_NOSPACE);
+			}
+
+			/*
+			 * All of the bits now need to be shifted to the left
+			 * to fill in the space taken by the removed bits.
+			 * This is wonderfully easy when the number of removed
+			 * bits is an integral multiple of 8, but of course
+			 * life isn't always that easy.
+			 */
+			src += len + nbits / 8;
+			dst = p + 1;
+			len = bitbytes;
+
+			if (mod == 0) {
+				if (name->ndata == prefix->buffer->base &&
+				    len > (unsigned int)(src - dst))
+					memmove(dst, src, len);
+				else
+					memcpy(dst, src, len);
+
+			} else {
+				while (len--) {
+					*dst = *src++ << mod;
+					/*
+					 * The 0xff subexpression guards
+					 * against arithmetic sign extension
+					 * by the right shift.
+					 */
+					if (len > 0)
+						*dst++ &=
+							(*src >> (8 - mod)) &
+							~(0xFF << mod);
+				}
+
+				/*
+				 * Et voila, the very last byte has
+				 * automatically already had its padding
+				 * fixed by the left shift.
+				 */
+			}
+
+			prefix->buffer->used = prefix->length;
+			prefix->ndata = prefix->buffer->base;
+
+			/*
+			 * Yes, = is meant here, not ==.  The intent is
+			 * to have it set only when INSISTs are turned on,
+			 * to doublecheck the result of set_offsets.
+			 */
+			INSIST(len = prefix->length);
+
+			INIT_OFFSETS(prefix, splitoffsets, split_odata);
+			set_offsets(prefix, splitoffsets,
+				    ISC_TRUE, ISC_TRUE, ISC_TRUE);
+
+			INSIST(prefix->labels == splitlabel + 1 &&
+			       prefix->length == len);
+
+		} else
+			dns_name_getlabelsequence(name, 0, splitlabel,
+						  prefix);
+
+	}
+
+	if (suffix != NULL && result == DNS_R_SUCCESS) {
+		if (nbits > 0) {
+			bitbytes = (nbits - 1) / 8 + 1;
+
+			isc_buffer_clear(suffix->buffer);
+
+			/*
+			 * The existing bitcount is in src.
+			 * Set len to the number of bytes to be removed,
+			 * and the suffix length to the number of bytes in
+			 * the new name.
+			 */
+			src = &name->ndata[offsets[splitlabel] + 1];
+			len = (*src++ - 1) / 8 - (bitbytes - 1);
+
+			suffix->length = name->length -
+				offsets[splitlabel] - len;
+
+			INSIST(suffix->length > 0);
+			if (suffix->length > suffix->buffer->length) {
+				dns_name_invalidate(suffix);
+				return (DNS_R_NOSPACE);
+			}
+
+			/*
+			 * First set up the bitstring label.
+			 */
+			dst = suffix->buffer->base;
+			*dst++ = DNS_LABELTYPE_BITSTRING;
+			*dst++ = nbits;
+
+			if (len > 0) {
+				/*
+				 * Remember where the next label starts.
+				 */
+				p = src + bitbytes + len;
+
+				/*
+				 * Some bytes are being removed from the
+				 * middle of the name because of the truncation
+				 * of bits in the bitstring label.  Copy
+				 * the bytes (whether full with 8 bits or not)
+				 * that are being kept.
+				 */
+				for (len = bitbytes; len > 0; len--)
+					*dst++ = *src++;
+
+				/*
+				 * Now just copy the rest of the labels of
+				 * the name by adjusting src to point to
+				 * the next label.
+				 *
+				 * 2 == label type byte + bitcount byte.
+				 */
+				len = suffix->length - bitbytes - 2;
+				src = p;
+			} else
+				len = suffix->length - 2;
+
+			/*
+			 * XXX DCL better way to decide memcpy vs memmove?
+			 */
+			if (len > 0)
+				if ((dst <= src && dst + len > src) ||
+				    (src <= dst && src + len > dst))
+					memmove(dst, src, len);
+				else
+					memcpy(dst, src, len);
+
+			suffix->buffer->used = suffix->length;
+			suffix->ndata = suffix->buffer->base;
+
+			/*
+			 * The byte that contains the end of the
+			 * bitstring has its pad bytes (if any) masked
+			 * to zero.
+			 */
+			if (mod)
+				suffix->ndata[bitbytes + 1] &=
+					0xFF << (8 - mod);
+
+			/*
+			 * Yes, = is meant here, not ==.  The intent is
+			 * to have it set only when INSISTs are turned on,
+			 * to doublecheck the result of set_offsets.
+			 */
+			INSIST(len = suffix->length);
+
+			INIT_OFFSETS(suffix, splitoffsets, split_odata);
+			set_offsets(suffix, splitoffsets,
+				    ISC_TRUE, ISC_TRUE, ISC_TRUE);
+
+			INSIST(suffix->labels == suffixlabels &&
+			       suffix->length == len);
+
+
+		} else
+			dns_name_getlabelsequence(name, splitlabel,
+						  suffixlabels, suffix);
+
+	}
+
+	return (result);
+}

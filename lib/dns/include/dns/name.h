@@ -746,6 +746,72 @@ dns_result_t dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *	DNS_R_NOSPACE
  */
 
+dns_result_t
+dns_name_split(dns_name_t *name,
+	       unsigned int suffixlabels, unsigned int nbits,
+	       dns_name_t *prefix, dns_name_t *suffix);
+/*
+ *
+ * Split 'name' into two pieces on a label or bitlabel boundary.
+ *
+ * Notes:
+ *	Copying name data is avoided as much as possible, so 'prefix'
+ *	and 'suffix' will usually end up pointing at the data for 'name',
+ *	except when 'nbits' > 0.  The name data is copied to the
+ *	the dedicated buffers when splitting on bitlabel boundaries
+ *	because of the bit fiddling that must be done.
+ *
+ *	It is legitimate to pass a 'prefix' or 'suffix' that has
+ *	its name data stored someplace other than the dedicate buffer.
+ *	This is useful to avoid name copying in the calling function.
+ *
+ *	It is also legitimate to pass a 'prefix' or 'suffix' that is
+ *	the same dns_name_t as 'name', but note well the requirement
+ *	below if splitting on a bitlabel boundary.
+ *
+ * Requires:
+ *	'name' is a valid name.
+ *
+ * 	'suffixlabels' cannot exceed the number of labels in 'name'.
+ *
+ *	'nbits' can be greater than zero only when the least significant
+ *	label of 'suffixlabels' is a bitstring label.
+ *
+ *	'nbits' cannot exceed the number of bits in the bitstring label.
+ *
+ *	'prefix' is a valid name or NULL, and cannot be read-only.
+ *
+ *	'suffix' is a valid name or NULL, and cannot be read-only.
+ *
+ *	If non-NULL, 'prefix' and 'suffix' must have dedicated buffers.
+ *
+ *	'prefix' and 'suffix' cannot point to the same buffer.
+ *
+ *	If 'nbits' > 0 and 'prefix' and 'suffix' are both non-NULL,
+ *	the buffer for 'prefix' cannot be storing the labels for 'name'.
+ *
+ * Ensures:
+ *
+ *	On success:
+ *		If 'prefix' is not NULL it will contain the least significcant
+ *		labels and bits.  dns_name_countlabels(name) - suffixlabels
+ *		will be equal to dns_name_countlabels(prefix).
+ *
+ *		If 'suffix' is not NULL it will contain the most significant
+ *		labels and bits.  dns_name_countlabels(suffix) will be
+ *		equal to suffixlabels.
+ *
+ *	On failure:
+ *		Either 'prefix' or 'suffix' is invalidated (depending
+ *		on which one the problem was encountered with).
+ *
+ * Returns:
+ *	DNS_R_SUCCESS	No worries.
+ *	DNS_R_NOSPACE	An attempt was made to split a name on a bitlabel
+ *			boundary but either 'prefix' or 'suffix' did not
+ *			have enough room to receive the split name.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */
