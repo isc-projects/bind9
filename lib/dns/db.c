@@ -321,6 +321,20 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	ENSURE(*nodep == NULL);
 }
 
+dns_result_t
+dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
+
+	/*
+	 * Mark as stale all records at 'node' which expire at or before 'now'.
+	 */
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+	REQUIRE(node != NULL);
+
+	return ((db->methods->expirenode)(db, node, now));
+}
+
 void
 dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 	/*

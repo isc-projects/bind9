@@ -1991,6 +1991,42 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	*targetp = NULL;
 }
 
+static dns_result_t
+expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = node;
+	rdatasetheader_t *header;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
+		/*
+		 * We don't need to call UNEXPECTED_ERROR() because
+		 * isc_stdtime_get() will already have done so.
+		 */
+		return (DNS_R_UNEXPECTED);
+	}
+
+	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	for (header = rbtnode->data; header != NULL; header = header->next) {
+		if (header->ttl <= now) {
+			/*
+			 * We don't check if rbtnode->references == 0 and try
+			 * to free like we do in cache_find(), because
+			 * rbtnode->references must be non-zero.  This is so
+			 * because 'node' is an argument to the function.
+			 */
+			header->attributes |= RDATASET_ATTR_STALE;
+			rbtnode->dirty = 1;
+		}
+	}
+
+	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
+
+	return (DNS_R_SUCCESS);
+}
+
 static void
 printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -2604,6 +2640,7 @@ static dns_dbmethods_t zone_methods = {
 	zone_find,
 	attachnode,
 	detachnode,
+	expirenode,
 	printnode,
 	createiterator,
 	zone_findrdataset,
@@ -2624,6 +2661,7 @@ static dns_dbmethods_t cache_methods = {
 	cache_find,
 	attachnode,
 	detachnode,
+	expirenode,
 	printnode,
 	createiterator,
 	cache_findrdataset,

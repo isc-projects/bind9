@@ -97,6 +97,8 @@ typedef struct dns_dbmethods {
 				      dns_dbnode_t **targetp);
 	void		(*detachnode)(dns_db_t *db,
 				      dns_dbnode_t **targetp);
+	dns_result_t	(*expirenode)(dns_db_t *db, dns_dbnode_t *node,
+				      isc_stdtime_t now);
 	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
 				     FILE *out);
 	dns_result_t 	(*createiterator)(dns_db_t *db,
@@ -617,6 +619,20 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  * Ensures:
  *
  *	*nodep is NULL.
+ */
+
+dns_result_t
+dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now);
+/*
+ * Mark as stale all records at 'node' which expire at or before 'now'.
+ *
+ * Note: if 'now' is zero, then the current time will be used.
+ *
+ * Requires:
+ *
+ *	'db' is a valid cache database.
+ *
+ *	'node' is a valid node.
  */
 
 void
