@@ -1465,7 +1465,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 		client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 
-		qtype = event->type;
+		qtype = event->qtype;
 		if (qtype == dns_rdatatype_sig)
 			type = dns_rdatatype_any;
 		else
