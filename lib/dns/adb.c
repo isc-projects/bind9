@@ -2922,20 +2922,21 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	bucket = name->lock_bucket;
 	LOCK(&adb->namelocks[bucket]);
 
-	INSIST(name->fetch_a != NULL || name->fetch_aaaa != NULL);
+	INSIST(NAME_FETCH_A(name) || NAME_FETCH_AAAA(name));
 	address_type = 0;
-	if (NAME_FETCH_A(name)) {
-		if (name->fetch_a->fetch == dev->fetch) {
-			address_type = DNS_ADBFIND_INET;
-			fetch = name->fetch_a;
-			name->fetch_a = NULL;
-		}
-	} else if (NAME_FETCH_AAAA(name)) {
-		if (name->fetch_aaaa->fetch == dev->fetch) {
-			address_type = DNS_ADBFIND_INET6;
-			fetch = name->fetch_aaaa;
-			name->fetch_aaaa = NULL;
-		}
+	if (NAME_FETCH_A(name) && (name->fetch_a->fetch == dev->fetch)) {
+		address_type = DNS_ADBFIND_INET;
+		fetch = name->fetch_a;
+		name->fetch_a = NULL;
+	} else if (NAME_FETCH_AAAA(name)
+		   && (name->fetch_aaaa->fetch == dev->fetch)) {
+		address_type = DNS_ADBFIND_INET6;
+		fetch = name->fetch_aaaa;
+		name->fetch_aaaa = NULL;
+	}
+	if (address_type == 0) {
+		DP(1, "fetch %p, _a %p, _aaaa %p, name %p",
+		   dev->fetch, name->fetch_a, name->fetch_aaaa, name);
 	}
 	INSIST(address_type != 0);
 
