@@ -105,7 +105,7 @@ ISC_LANG_BEGINDECLS
  *** TYPES
  ***/
 
-typedef struct dns_adbname	dns_adbname_t;
+typedef struct dns_adbname		dns_adbname_t;
 
 /* dns_adbfind_t
  *
@@ -120,7 +120,7 @@ typedef struct dns_adbname	dns_adbname_t;
 struct dns_adbfind {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
-	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
+	dns_adbaddrinfolist_t		list;		/* RO: list of addrs */
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
 	unsigned int			options;	/* RO: options */

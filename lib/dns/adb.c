@@ -151,7 +151,7 @@ struct dns_adbname {
 	dns_adbfetch_t		       *fetch_a;
 	dns_adbfetch_t		       *fetch_aaaa;
 	ISC_LIST(dns_adbfetch6_t)	fetches_a6;
-	ISC_LIST(dns_adbfind_t)		finds;
+	dns_adbfindlist_t		finds;
 	ISC_LINK(dns_adbname_t)		plink;
 };
 
