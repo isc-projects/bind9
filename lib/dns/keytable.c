@@ -222,6 +222,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 		node->data = knode;
 		*keyp = NULL;
 		knode = NULL;
+		result = ISC_R_SUCCESS;
 	}
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
