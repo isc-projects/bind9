@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.24 2002/12/13 02:37:35 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.25 2002/12/13 02:51:41 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -521,17 +521,8 @@ dst__opensslrsa_init(dst_func_t **funcp) {
 
 #else /* OPENSSL */
 
-#include <config.h>
-#include <stdlib.h>
 #include <isc/util.h>
-#include "dst_internal.h"
 
-isc_result_t
-dst__opensslrsa_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL);
-	UNUSED(funcp);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
+EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.11 2002/12/13 02:37:34 marka Exp $
+ * $Id: gssapi_link.c,v 1.12 2002/12/13 02:51:40 marka Exp $
  */
 
 #ifdef GSSAPI
@@ -216,17 +216,5 @@ dst__gssapi_init(dst_func_t **funcp) {
 }
 
 #else
-
-#include <config.h>
-#include <stdlib.h>
-#include <isc/util.h>
-#include "dst_internal.h"
-
-isc_result_t
-dst__gssapi_init(dst_func_t **funcp) {
-	REQUIRE(funcp != NULL);
-	UNUSED(funcp);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
+int  gssapi_link_unneeded = 1;
 #endif
