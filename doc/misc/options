@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.45 2000/11/28 03:20:20 marka Exp $
+$Id: options,v 1.46 2000/11/28 21:27:45 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -41,7 +41,7 @@ options {
   [ dump-file path_name; ]				    No
   [ memstatistics-file path_name; ]			    No
   [ pid-file path_name; ]				    Yes
-  [ statistics-file path_name; ]			    No
+  [ statistics-file path_name; ]			    Yes
   [ auth-nxdomain yes_or_no; ]				    Yes%
   [ deallocate-on-exit yes_or_no; ]			    Obsolete+
   [ dialup yes_or_no | notify | notify-passive |
@@ -97,7 +97,7 @@ options {
   [ interface-interval number; ]			    Yes
   [ statistics-interval number; ]			    No
   [ topology { address_match_list }; ]			    No
-  [ sortlist { address_match_list }; ]			    No
+  [ sortlist { address_match_list }; ]			    Yes
   [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
   [ recursive-clients number; ]				    Yes*
   [ tcp-clients number; ]				    Yes*
@@ -105,6 +105,8 @@ options {
   [ tkey-dhkey ... ]					    Yes*
   [ port number; ]					    Yes*
   [ sig-validity-interval number; ]			    Yes*
+  [ additional-from-auth yes_or_no; ]		            Yes*
+  [ additional-from-cache yes_or_no; ]			    Yes*
 };
 
 acl							    Yes@
