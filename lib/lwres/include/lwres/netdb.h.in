@@ -86,6 +86,8 @@ struct  addrinfo {
 #ifndef AI_PASSIVE
 #define AI_PASSIVE      0x00000001
 #define AI_CANONNAME    0x00000002
+#endif
+#ifndef AI_NUMERICHOST
 #define AI_NUMERICHOST  0x00000004
 #endif
 
