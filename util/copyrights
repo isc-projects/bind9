@@ -34,7 +34,7 @@
 ./bin/dig/dig.html				HTML	2000,2001,2002,2003,2004
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004
 ./bin/dig/host.1				MAN	2000,2001,2002,2004
-./bin/dig/host.c				C	2000,2001,2002,2003,2004
+./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004
 ./bin/dig/host.html				HTML	2000,2001,2002,2004
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004
@@ -142,7 +142,7 @@
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004
 ./bin/named/named.html				HTML	2000,2001,2003,2004
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004
-./bin/named/query.c				C	1999,2000,2001,2002,2003,2004
+./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/sortlist.c				C	2000,2001,2004
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004
@@ -158,7 +158,7 @@
 ./bin/named/win32/named.dsw			X	2001
 ./bin/named/win32/named.mak			X	2001
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004
-./bin/named/win32/os.c				C	1999,2000,2001,2002,2004
+./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/nsupdate/.cvsignore			X	2000,2001
@@ -822,6 +822,7 @@
 ./config.h.in					X	1999,2000,2001
 ./config.h.win32				C	1999,2000,2001,2004
 ./config.sub					X	1999,2000,2001
+./config.threads.in				X	2005
 ./configure					X	1998,1999,2000,2001
 ./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004
@@ -1184,7 +1185,7 @@
 ./lib/bind/bsd/writev.c				X	2001
 ./lib/bind/config.h.in				X	2001
 ./lib/bind/configure				X	2001
-./lib/bind/configure.in				SH	2001,2004
+./lib/bind/configure.in				SH	2001,2004,2005
 ./lib/bind/dst/.cvsignore			X	2001
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
 ./lib/bind/dst/dst_api.c			X	2001
@@ -1559,7 +1560,7 @@
 ./lib/bind/port/unknown/.cvsignore		X	2001
 ./lib/bind/port/unknown/Makefile.in		MAKE	2001,2004
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
-./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004
+./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005
 ./lib/bind/port_after.h.in			X	2001
 ./lib/bind/port_before.h.in			X	2001
 ./lib/bind/resolv/.cvsignore			X	2001
@@ -1605,7 +1606,7 @@
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004
 ./lib/dns/api					X	1999,2000,2001
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004
-./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004
 ./lib/dns/compress.c				C	1999,2000,2001,2004,2005
 ./lib/dns/db.c					C	1999,2000,2001,2003,2004
@@ -1674,7 +1675,7 @@
 ./lib/dns/include/dns/rdata.h			C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/rdataclass.h		C	1998,1999,2000,2001,2004
 ./lib/dns/include/dns/rdatalist.h		C	1999,2000,2001,2004
-./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004
+./lib/dns/include/dns/rdataset.h		C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/include/dns/rdatasetiter.h		C	1999,2000,2001,2004
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001,2002,2004
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004
@@ -1716,7 +1717,7 @@
 ./lib/dns/lookup.c				C	2000,2001,2003,2004
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004
-./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004
@@ -1728,7 +1729,7 @@
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005
 ./lib/dns/portlist.c				C	2003,2004
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004
-./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
@@ -1792,7 +1793,7 @@
 ./lib/dns/rdata/generic/rp_17.h			C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/rrsig_46.c		C	2003,2004
 ./lib/dns/rdata/generic/rrsig_46.h		C	2003,2004
-./lib/dns/rdata/generic/rt_21.c			C	1999,2000,2001,2003,2004
+./lib/dns/rdata/generic/rt_21.c			C	1999,2000,2001,2003,2004,2005
 ./lib/dns/rdata/generic/rt_21.h			C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/sig_24.c		C	1999,2000,2001,2002,2003,2004
 ./lib/dns/rdata/generic/sig_24.h		C	1999,2000,2001,2004
@@ -1961,7 +1962,7 @@
 ./lib/isc/lib.c					C	1999,2000,2001,2004
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004
 ./lib/isc/md5.c					C	2000,2001,2004
-./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004
+./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isc/netscope.c				C	2002,2004
@@ -2002,7 +2003,7 @@
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004
 ./lib/isc/region.c				C	2002,2004
 ./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004
-./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004
+./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/serial.c				C	1999,2000,2001,2004
 ./lib/isc/sha1.c				C	2000,2001,2003,2004
 ./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005
@@ -2025,7 +2026,7 @@
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004
-./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004
+./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/include/.cvsignore		X	1999,2000,2001
 ./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004
 ./lib/isc/unix/include/isc/.cvsignore		X	1999,2000,2001
