@@ -40,6 +40,7 @@
 #include <dns/db.h>
 #include <dns/master.h>
 #include <dns/name.h>
+#include <dns/log.h>
 
 typedef struct client client_t;
 struct client {
