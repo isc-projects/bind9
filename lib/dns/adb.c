@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.192 2001/11/14 22:32:10 gson Exp $ */
+/* $Id: adb.c,v 1.193 2001/11/14 23:15:44 gson Exp $ */
 
 /*
  * Implementation notes
@@ -303,7 +303,6 @@ static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void dec_adb_irefcnt(dns_adb_t *);
 static inline void inc_adb_erefcnt(dns_adb_t *);
-static inline void dec_adb_erefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
