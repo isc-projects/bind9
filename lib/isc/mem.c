@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.86 2001/02/13 06:21:32 marka Exp $ */
+/* $Id: mem.c,v 1.87 2001/02/13 13:20:37 marka Exp $ */
 
 #include <config.h>
 
@@ -926,7 +926,7 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	if (ctx->references != 1)
 		print_active(ctx, stderr);
 #endif
@@ -1011,7 +1011,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 	}
 }
 
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 static void
 print_active(isc_mem_t *ctx, FILE *out) {
 	if (isc_mem_debugging > 1) {
@@ -1113,7 +1113,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 		pool = ISC_LIST_NEXT(pool, link);
 	}
 
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	print_active(ctx, out);
 #endif
 
