@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.14 1999/10/27 16:52:55 bwelling Exp $
+ * $Id: hmac_link.c,v 1.15 1999/10/29 05:25:57 marka Exp $
  */
 
 #include <config.h>
@@ -46,7 +46,7 @@
 #define MD5Update MD5_Update
 #define MD5Final MD5_Final
 
-#define RETERR(x) { \
+#define RETERR(x) do { \
 	ret = (x); \
 	if (ret != ISC_R_SUCCESS) \
 		return (ret); \
