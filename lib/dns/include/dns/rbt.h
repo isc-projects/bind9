@@ -36,13 +36,20 @@
 
 typedef struct dns_rbt dns_rbt_t;
 
+/* These should add up to 31 XXX change to 30 after color fix */
+
+#define DNS_RBT_LOCKLENGTH			10
+#define DNS_RBT_REFLENGTH			21
+
 typedef struct dns_rbt_node {
 	struct dns_rbt_node *left;
 	struct dns_rbt_node *right;
 	struct dns_rbt_node *down;
 	enum { red, black } color;
+	/* XXX should make color one of the following bits */
 	unsigned int dirty:1;
-	unsigned int references:31;
+	unsigned int locknum:DNS_RBT_LOCKLENGTH;
+	unsigned int references:DNS_RBT_REFLENGTH;
 	void *data;
 	unsigned int name_length;
 } dns_rbtnode_t;
