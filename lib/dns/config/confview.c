@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.44 2000/08/11 21:51:00 gson Exp $ */
+/* $Id: confview.c,v 1.45 2000/08/17 13:13:31 marka Exp $ */
 
 #include <config.h>
 
@@ -529,6 +529,8 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 #ifndef NOMINUM_PUBLIC
 	view->max_names = NULL;
+	view->notify_any = NULL;
+	view->notify_relay = NULL;
 #endif /* NOMINMUM_PUBLIC */
 
 	view->additional_data = NULL;
@@ -722,7 +724,10 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_AS_BOOLEAN(rfc2308_type1, "rfc2308-type1");
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
-
+#ifndef NOMINUM_PUBLIC
+	PRINT_AS_BOOLEAN(notify_any, "notify-any");
+	PRINT_AS_BOOLEAN(notify_relay, "notify-relay");
+#endif /* NOMINUM_PUBLIC */
 
 	PRINT_IP(transfer_source, "transfer-source");
 	PRINT_IP(transfer_source_v6, "transfer-source-v6");
@@ -893,6 +898,8 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
+	FREEFIELD(notify_any);
+	FREEFIELD(notify_relay);
 #endif /* NOMINMUM_PUBLIC */
 
 	FREEFIELD(additional_data);
@@ -1505,6 +1512,11 @@ BOOL_FUNCS(fetchglue, fetch_glue)
 
 NOTIFYTYPE_FUNCS(notify, notify)
 
+#ifndef NOMINUM_PUBLIC
+BOOL_FUNCS(notifyany, notify_any)
+BOOL_FUNCS(notifyrelay, notify_relay)
+#endif /* NOMINUM_PUBLIC */
+
 BOOL_FUNCS(rfc2308type1, rfc2308_type1)
 BOOL_FUNCS(additionalfromcache, additional_from_cache)
 BOOL_FUNCS(additionalfromauth, additional_from_auth)
@@ -1531,7 +1543,7 @@ UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
 #ifndef NOMINUM_PUBLIC	
 UINT32_FUNCS(maxnames, max_names)
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 
 BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)

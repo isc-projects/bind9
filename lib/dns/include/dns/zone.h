@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.70 2000/08/16 02:16:49 marka Exp $ */
+/* $Id: zone.h,v 1.71 2000/08/17 13:13:28 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -43,6 +43,13 @@ typedef enum {
 #define DNS_ZONEOPT_CHILDREN	0x00000004U	/* perform child checks */
 #define DNS_ZONEOPT_DIALUP	0x00000008U	/* zone xfr over dialup link */
 #define DNS_ZONEOPT_NOTIFY	0x00000010U	/* perform NOTIFY */
+#ifndef NOMINUM_PUBLIC
+/*
+ * Nominum specific options build down.
+ */
+#define DNS_ZONEOPT_NOTIFYRELAY	0x40000000U	/* relay notify to master */
+#define DNS_ZONEOPT_NOTIFYANY	0x80000000U	/* accept all notifies */
+#endif /* NOMINUM_PUBLIC */
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/* 5 minutes */

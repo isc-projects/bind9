@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.49 2000/08/02 20:44:25 brister Exp $ */
+/* $Id: confctx.h,v 1.50 2000/08/17 13:13:24 marka Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -155,8 +155,9 @@ struct dns_c_options {
 	isc_uint32_t	       *min_refresh_time;
 	isc_uint32_t	       *max_refresh_time;
 
+#ifndef NOMINUM_PUBLIC
 	isc_uint32_t	       *max_names;
-	
+#endif /* NOMINUM_PUBLIC */
 
 	isc_boolean_t	       *expert_mode;
 	isc_boolean_t	       *fake_iquery;
@@ -177,6 +178,10 @@ struct dns_c_options {
 	isc_boolean_t	       *treat_cr_as_space;
 	isc_boolean_t	       *additional_from_cache;
 	isc_boolean_t	       *additional_from_auth;
+#ifndef NOMINUM_PUBLIC
+	isc_boolean_t	       *notify_any;
+	isc_boolean_t	       *notify_relay;
+#endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
@@ -503,11 +508,11 @@ isc_result_t dns_c_ctx_getmaxrefreshtime(dns_c_ctx_t *cfg,
 					 isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxrefreshtime(dns_c_ctx_t *cfg);
 
-
+#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_ctx_setmaxnames(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxnames(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t dns_c_ctx_unsetmaxnames(dns_c_ctx_t *cfg);
-
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
 isc_result_t dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval);
@@ -528,6 +533,15 @@ isc_result_t dns_c_ctx_setfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t newval);
 isc_result_t dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t dns_c_ctx_unsetfakeiquery(dns_c_ctx_t *cfg);
 
+#ifndef NOMINUM_PUBLIC
+isc_result_t dns_c_ctx_setnotifyany(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t dns_c_ctx_getnotifyany(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t dns_c_ctx_unsetnotifyany(dns_c_ctx_t *cfg);
+
+isc_result_t dns_c_ctx_setnotifyrelay(dns_c_ctx_t *cfg, isc_boolean_t newval);
+isc_result_t dns_c_ctx_getnotifyrelay(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t dns_c_ctx_unsetnotifyrelay(dns_c_ctx_t *cfg);
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_ctx_setrecursion(dns_c_ctx_t *cfg, isc_boolean_t newval);
 isc_result_t dns_c_ctx_getrecursion(dns_c_ctx_t *cfg, isc_boolean_t *retval);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.38 2000/08/11 21:51:02 gson Exp $ */
+/* $Id: confview.h,v 1.39 2000/08/17 13:13:25 marka Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -124,6 +124,10 @@ struct dns_c_view {
 	isc_boolean_t	       *rfc2308_type1;
 	isc_boolean_t	       *additional_from_auth;
 	isc_boolean_t	       *additional_from_cache;
+#ifndef NOMINUM_PUBLIC
+	isc_boolean_t	       *notify_any;
+	isc_boolean_t	       *notify_relay;
+#endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t	       *query_source;
 	isc_sockaddr_t	       *query_source_v6;
@@ -351,7 +355,20 @@ isc_result_t dns_c_view_setnotify(dns_c_view_t *view,
 				  dns_notifytype_t newval);
 isc_result_t dns_c_view_unsetnotify(dns_c_view_t *view);
 
+#ifndef NOMINUM_PUBLIC
+isc_result_t dns_c_view_getnotifyany(dns_c_view_t *view,
+				     isc_boolean_t *retval);
+isc_result_t dns_c_view_setnotifyany(dns_c_view_t *view,
+				     isc_boolean_t newval);
+isc_result_t dns_c_view_unsetnotifyany(dns_c_view_t *view);
 
+
+isc_result_t dns_c_view_getnotifyrelay(dns_c_view_t *view,
+				       isc_boolean_t *retval);
+isc_result_t dns_c_view_setnotifyrelay(dns_c_view_t *view,
+				       isc_boolean_t newval);
+isc_result_t dns_c_view_unsetnotifyrelay(dns_c_view_t *view);
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_view_getrfc2308type1(dns_c_view_t *view,
 					isc_boolean_t *retval);
@@ -501,13 +518,13 @@ isc_result_t dns_c_view_setmaxrefreshtime(dns_c_view_t *view,
 					  isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxrefreshtime(dns_c_view_t *view);
 
-
+#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_view_getmaxnames(dns_c_view_t *view,
 				    isc_uint32_t *retval);
 isc_result_t dns_c_view_setmaxnames(dns_c_view_t *view,
 				    isc_uint32_t newval);
 isc_result_t dns_c_view_unsetmaxnames(dns_c_view_t *view);
-
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_view_setadditionaldata(dns_c_view_t *view,
 					  dns_c_addata_t newval);

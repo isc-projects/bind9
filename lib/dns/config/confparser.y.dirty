@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.9 2000/08/11 00:20:59 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.10 2000/08/17 13:13:32 marka Exp $ */
 
 #include <config.h>
 
@@ -333,6 +333,10 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_NAMED_XFER
 %token		L_NO
 %token		L_NOTIFY
+#ifndef NOMINUM_PUBLIC
+%token		L_NOTIFY_RELAY
+%token		L_NOTIFY_ANY
+#endif /* NOMINUM_PUBLIC */
 %token		L_NULL_OUTPUT
 %token		L_ONE_ANSWER
 %token		L_ONLY
@@ -753,6 +757,27 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
+	| L_NOTIFY_RELAY yea_or_nay
+	{
+		tmpres = dns_c_ctx_setnotifyrelay(currcfg, ISC_FALSE);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-relay");
+			YYABORT;
+		}
+	}
+	|
+	| L_NOTIFY_ANY yea_or_nay
+	{
+		tmpres = dns_c_ctx_setnotifyany(currcfg, ISC_FALSE);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine notify-any");
+			YYABORT;
+		}
+	}
+#endif /* NOMINUM_PUBLIC */
 	| L_RECURSION yea_or_nay
 	{
 		tmpres = dns_c_ctx_setrecursion(currcfg, $2);
@@ -3684,6 +3709,42 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
+	| L_NOTIFY_ANY yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setnotifyany(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view notify-any");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-any");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_RELAY yea_or_nay
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setnotifyrelay(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view notify-relay");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view notify-relay");
+			YYABORT;
+		}
+	}
+#endif /* NOMINUM_PUBLIC */
 	| L_RECURSION yea_or_nay
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -5169,6 +5230,42 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
+#ifndef NOMINUM_PUBLIC
+	| L_NOTIFY_ANY yea_or_nay
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setnotifyany(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone notify-any");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-any");
+			YYABORT;
+		}
+	}
+	| L_NOTIFY_RELAY yea_or_nay
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setnotifyrelay(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone notify-relay");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone notify-relay");
+			YYABORT;
+		}
+	}
+#endif /* NOMINUM_PUBLIC */
 	| L_PUBKEY L_INTEGER L_INTEGER L_INTEGER L_QSTRING
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
@@ -5613,6 +5710,10 @@ static struct token keyword_tokens [] = {
 	{ "named-xfer",			L_NAMED_XFER },
 	{ "no",				L_NO },
 	{ "notify",			L_NOTIFY },
+#ifndef NOMINUM_PUBLIC
+	{ "notify-any",			L_NOTIFY_ANY },
+	{ "notify-relay",		L_NOTIFY_RELAY },
+#endif /* NOMINUM_PUBLIC */
 	{ "null",			L_NULL_OUTPUT },
 	{ "one-answer",			L_ONE_ANSWER },
 	{ "only",			L_ONLY },

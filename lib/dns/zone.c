@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.186 2000/08/17 00:18:10 gson Exp $ */
+/* $Id: zone.c,v 1.187 2000/08/17 13:13:37 marka Exp $ */
 
 #include <config.h>
 
@@ -213,6 +213,9 @@ struct dns_zonemgr {
  */
 struct dns_notify {
 	isc_int32_t		magic;
+#ifndef NOMINUM_PUBLIC
+	unsigned int		flags;
+#endif /* NOMINUM_PUBLIC */
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_adbfind_t		*find;
@@ -221,6 +224,10 @@ struct dns_notify {
 	isc_sockaddr_t		dst;
 	ISC_LINK(dns_notify_t)	link;
 };
+
+#ifndef NOMINUM_PUBLIC
+#define DNS_NOTIFY_NOSOA	0x0001U
+#endif /* NOMINUM_PUBLIC */
 
 /*
  *	dns_stub holds state while performing a 'stub' transfer.
@@ -268,8 +275,15 @@ static int message_count(dns_message_t *msg, dns_section_t section,
 			 dns_rdatatype_t type);
 static void notify_find_address(dns_notify_t *notify);
 static void notify_send(dns_notify_t *notify);
+#ifdef NOMINUM_PUBLIC
 static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 dns_message_t **messagep);
+#else /* NOMINUM_PUBLIC */
+static isc_result_t notify_createmessage(dns_zone_t *zone,
+					 unsigned int flags,
+					 dns_message_t **messagep);
+static void zone_notifyrelay(dns_zone_t *zone);
+#endif /* NOMINUM_PUBLIC */
 static void notify_done(isc_task_t *task, isc_event_t *event);
 static void notify_send_toaddr(isc_task_t *task, isc_event_t *event);
 static isc_result_t zone_dump(dns_zone_t *);
@@ -1509,6 +1523,9 @@ zone_expire(dns_zone_t *zone) {
 	/*
 	 * 'zone' locked by caller.
 	 */
+
+	REQUIRE(ISLOCKED(&zone->lock));
+
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
 		result = zone_dump(zone);
 		if (result != ISC_R_SUCCESS)
@@ -1592,6 +1609,8 @@ zone_dump(dns_zone_t *zone) {
 	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 
+	REQUIRE(ISLOCKED(&zone->lock));
+
 	buflen = strlen(zone->dbname) + 20;
 	buf = isc_mem_get(zone->mctx, buflen);
 	if (buf == NULL)
@@ -1663,7 +1682,13 @@ dns_zone_unload(dns_zone_t *zone) {
 
 static void
 zone_unload(dns_zone_t *zone) {
-	/* caller to lock */
+
+	/*
+	 * Locked by caller.
+	 */ 
+
+	REQUIRE(ISLOCKED(&zone->lock));
+
 	dns_db_detach(&zone->db);
 	zone->flags &= ~DNS_ZONEFLG_LOADED;
 }
@@ -1678,7 +1703,12 @@ static void
 zone_deletefile(dns_zone_t *zone) {
 	const char me[] = "zone_deletefile";
 	isc_result_t result;
-	/* caller to lock */
+
+	/*
+	 * Locked by caller.
+	 */
+	REQUIRE(ISLOCKED(&zone->lock));
+
 	if (zone->dbname == NULL)
 		return;
 	result = isc_file_remove(zone->dbname);
@@ -1805,6 +1835,9 @@ notify_create(isc_mem_t *mctx, dns_notify_t **notifyp) {
 
 	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
+#ifndef NOMINUM_PUBLIC
+	notify->flags = 0;
+#endif /* NOMINUM_PUBLIC */
 	notify->zone = NULL;
 	notify->find = NULL;
 	notify->request = NULL;
@@ -1941,7 +1974,11 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
+#ifdef NOMINUM_PUBLIC
 	result = notify_createmessage(notify->zone, &message);
+#else /* NOMINUM_PUBLIC */
+	result = notify_createmessage(notify->zone, notify->flags, &message);
+#endif /* NOMINUM_PUBLIC */
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -1977,7 +2014,13 @@ notify_send(dns_notify_t *notify) {
 	 */
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
+	REQUIRE(ISLOCKED(&notify->zone->lock));
+
+#ifdef NOMINUM_PUBLIC
 	result = notify_createmessage(notify->zone, &message);
+#else /* NOMINUM_PUBLIC */
+	result = notify_createmessage(notify->zone, notify->flags, &message);
+#endif /* NOMINUM_PUBLIC */
 	if (result != ISC_R_SUCCESS)
 		return;
 
@@ -2006,6 +2049,50 @@ notify_send(dns_notify_t *notify) {
 	notify_destroy(notify);
 	dns_message_destroy(&message);
 }
+
+#ifndef NOMINUM_PUBLIC
+static void
+zone_notifyrelay(dns_zone_t *zone) {
+	isc_result_t result;
+	const char me[] = "zone_notifyrelay";
+	dns_notify_t *notify = NULL;
+	unsigned int i;
+	isc_sockaddr_t dst;
+	
+	/*
+	 * Locked by caller.
+	 */
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	REQUIRE(ISLOCKED(&zone->lock));
+
+	DNS_ENTER;
+
+	/*
+	 * Enqueue notify requests for 'also-notify' servers.
+	 */
+	for (i = 0; i < zone->masterscnt; i++) {
+		dst = zone->masters[i];
+		if (notify_isqueued(zone, NULL, &dst))
+			continue;
+		result = notify_create(zone->mctx, &notify);
+		if (result != ISC_R_SUCCESS) {
+			return;
+		}
+		dns_zone_iattach(zone, &notify->zone);
+		notify->dst = dst;
+		notify->flags |= DNS_NOTIFY_NOSOA;
+		ISC_LIST_APPEND(zone->notifies, notify, link);
+		result = notify_send_queue(notify);
+		if (result != ISC_R_SUCCESS) {
+			notify_destroy(notify);
+			return;
+		}
+		notify = NULL;
+	}
+}
+#endif /* NOMINUM_PUBLIC */
 
 void
 dns_zone_notify(dns_zone_t *zone) {
@@ -3090,11 +3177,14 @@ static void
 cancel_refresh(dns_zone_t *zone) {
 	const char me[] = "cancel_refresh";
 	isc_stdtime_t now;
+
 	/*
-	 * caller to lock.
+	 * Locked by caller.
 	 */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
+
+	REQUIRE(ISLOCKED(&zone->lock));
 
 	DNS_ENTER;
 
@@ -3105,7 +3195,12 @@ cancel_refresh(dns_zone_t *zone) {
 }
 
 static isc_result_t
+#ifdef NOMINUM_PUBLIC
 notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
+#else /* NOMINUM_PUBLIC */
+notify_createmessage(dns_zone_t *zone, unsigned int flags,
+		     dns_message_t **messagep)
+#endif /* NOMINUM_PUBLIC */
 {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
@@ -3156,6 +3251,10 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 	tempname = NULL;
 	temprdataset = NULL;
 
+#ifndef NOMINUM_PUBLIC
+	if ((flags & DNS_NOTIFY_NOSOA) != 0)
+		goto done;
+#endif /* NOMINUM_PUBLIC */
 	/*
 	 * If the zone is dialup we are done as we don't want to send
 	 * the current soa so as to force a refresh query.
@@ -3317,6 +3416,18 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		if (isc_sockaddr_eqaddr(from, &zone->masters[i]))
 			break;
 
+#ifndef	NOMINUM_PUBLIC
+	if ((DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYRELAY) ||
+	     DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYANY)) &&
+	    (i >= zone->masterscnt)) {
+		
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYRELAY)) {
+			zone_notifyrelay(zone);
+			UNLOCK(&zone->lock);
+			return (ISC_R_SUCCESS);
+		}
+	} else
+#endif
 	if (i >= zone->masterscnt) {
 		UNLOCK(&zone->lock);
 		zone_log(zone, me, ISC_LOG_DEBUG(3),

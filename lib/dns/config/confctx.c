@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.81 2000/08/11 21:50:58 gson Exp $ */
+/* $Id: confctx.c,v 1.82 2000/08/17 13:13:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1102,6 +1102,10 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(treat_cr_as_space, "treat-cr-as-space");
 	PRINT_AS_BOOLEAN(additional_from_auth, "additional-from-auth");
 	PRINT_AS_BOOLEAN(additional_from_cache, "additional-from-cache");
+#ifndef NOMINUM_PUBLIC
+	PRINT_AS_BOOLEAN(notify_any, "notify-any");
+	PRINT_AS_BOOLEAN(notify_relay, "notify-relay");
+#endif /* NOMINUM_PUBLIC */
 
 	if (options->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -1628,6 +1632,10 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->treat_cr_as_space = NULL;
 	opts->additional_from_auth = NULL;
 	opts->additional_from_cache = NULL;
+#ifndef NOMINUM_PUBLIC
+	opts->notify_any = NULL;
+	opts->notify_relay = NULL;
+#endif /* NOMINUM_PUBLIC */
 
 	opts->transfer_source = NULL;
 	opts->transfer_source_v6 = NULL;
@@ -1774,6 +1782,8 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
+	FREEFIELD(notify_any);
+	FREEFIELD(notify_relay);
 #endif /* NOMINMUM_PUBLIC */
 
 	FREEFIELD(transfer_source);
@@ -1897,6 +1907,11 @@ BOOL_FUNCS(recursion, recursion)
 BOOL_FUNCS(fetchglue, fetch_glue)
 
 NOTIFYTYPE_FUNCS(notify, notify)
+
+#ifndef NOMINUM_PUBLIC
+BOOL_FUNCS(notifyany, notify_any)
+BOOL_FUNCS(notifyrelay, notify_relay)
+#endif /* NOMINMUM_PUBLIC */
 
 BOOL_FUNCS(hoststatistics, host_statistics)
 BOOL_FUNCS(dealloconexit, dealloc_on_exit)

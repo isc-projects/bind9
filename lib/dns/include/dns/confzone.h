@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.41 2000/08/11 21:51:04 gson Exp $ */
+/* $Id: confzone.h,v 1.42 2000/08/17 13:13:27 marka Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -105,6 +105,10 @@ struct dns_c_master_zone {
 	dns_c_ipmatchlist_t    *allow_transfer;
 	isc_boolean_t		dialup;
 	dns_notifytype_t	notify;
+#ifndef NOMINUM_PUBLIC
+	isc_boolean_t		notify_any;
+	isc_boolean_t		notify_relay;
+#endif /* NOMINUM_PUBLIC */
 	dns_c_iplist_t	       *also_notify;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
@@ -117,7 +121,7 @@ struct dns_c_master_zone {
 
 #ifndef NOMINUM_PUBLIC
 	isc_uint32_t		max_names;
-#endif /* NOMINMUM_PUBLIC */
+#endif /* NOMINUM_PUBLIC */
 	
 	isc_uint32_t		min_retry_time;
 	isc_uint32_t		max_retry_time;
@@ -140,6 +144,10 @@ struct dns_c_slave_zone {
 	dns_c_ipmatchlist_t    *allow_transfer;
 	dns_c_iplist_t	       *also_notify;
 	dns_notifytype_t	notify;
+#ifndef NOMINUM_PUBLIC
+	isc_boolean_t		notify_any;
+	isc_boolean_t		notify_relay;
+#endif /* NOMINUM_PUBLIC */
 	isc_boolean_t		dialup;
 	char		       *ixfr_base;
 	char		       *ixfr_tmp;
@@ -335,6 +343,18 @@ isc_result_t dns_c_zone_setdialup(dns_c_zone_t *zone,
 				  isc_boolean_t newval);
 isc_result_t dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval);
 
+#ifndef NOMINUM_PUBLIC
+isc_result_t dns_c_zone_setnotifyany(dns_c_zone_t *zone,
+				     isc_boolean_t newval);
+isc_result_t dns_c_zone_getnotifyany(dns_c_zone_t *zone,
+				     isc_boolean_t *retval);
+
+
+isc_result_t dns_c_zone_setnotifyrelay(dns_c_zone_t *zone,
+				       isc_boolean_t newval);
+isc_result_t dns_c_zone_getnotifyrelay(dns_c_zone_t *zone,
+				       isc_boolean_t *retval);
+#endif /* NOMINUM_PUBLIC */
 
 isc_result_t dns_c_zone_setnotify(dns_c_zone_t *zone,
 				  dns_notifytype_t newval);
@@ -445,10 +465,12 @@ isc_result_t dns_c_zone_getmaxrefreshtime(dns_c_zone_t *zone,
 					  isc_uint32_t *retval);
 
 
+#ifndef NOMINUM_PUBLIC
 isc_result_t dns_c_zone_setmaxnames(dns_c_zone_t *zone,
 					  isc_uint32_t newval);
 isc_result_t dns_c_zone_getmaxnames(dns_c_zone_t *zone,
 					  isc_uint32_t *retval);
+#endif /* NOMINUM_PUBLIC */
 
 
 

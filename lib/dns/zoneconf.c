@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.58 2000/08/14 21:47:42 gson Exp $ */
+/* $Id: zoneconf.c,v 1.59 2000/08/17 13:13:35 marka Exp $ */
 
 #include <config.h>
 
@@ -242,6 +242,28 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		if (result != ISC_R_SUCCESS)
 			uintval = 0;
 		dns_zone_setmaxnames(zone, uintval);
+	}
+
+	if (czone->ztype != dns_c_zone_stub) {
+		result = dns_c_zone_getnotifyany(czone, &boolean);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getnotifyany(cview, &boolean);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getnotifyany(cctx, &boolean);
+		if (result != ISC_R_SUCCESS)
+			boolean = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYANY, boolean);
+	}
+
+	if (czone->ztype != dns_c_zone_stub) {
+		result = dns_c_zone_getnotifyrelay(czone, &boolean);
+		if (result != ISC_R_SUCCESS && cview != NULL)
+			result = dns_c_view_getnotifyrelay(cview, &boolean);
+		if (result != ISC_R_SUCCESS)
+			result = dns_c_ctx_getnotifyrelay(cctx, &boolean);
+		if (result != ISC_R_SUCCESS)
+			boolean = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYRELAY, boolean);
 	}
 #endif /* NOMINUM_PUBLIC */
 
