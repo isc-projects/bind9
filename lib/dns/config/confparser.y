@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.73 2000/05/08 14:35:33 tale Exp $ */
+/* $Id: confparser.y,v 1.74 2000/05/08 19:52:03 brister Exp $ */
 
 #include <config.h>
 
@@ -2290,12 +2290,6 @@ channel_list: channel L_EOS
 
 category_name: any_string
 	{
-		tmpres = dns_c_checkcategory($1);
-		if (tmpres != ISC_R_SUCCESS) {
-			parser_warning(ISC_FALSE,
-				       "unknown category '%s'", $1);
-		}
-
 		$$ = $1;
 	}
 	| L_DEFAULT
