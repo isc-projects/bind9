@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.258 2000/11/28 01:59:24 mws Exp $ */
+/* $Id: server.c,v 1.259 2000/11/28 19:58:14 mws Exp $ */
 
 #include <config.h>
 
@@ -1759,10 +1759,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
 
-	server->statsfile = NULL;
-	server->statsfp = NULL;
-	ns_server_zeroglobal(server);
-
 	if (dns_c_ctx_getstatsfilename(cctx, &statsfilename) != ISC_R_NOTFOUND)
 		ns_server_setstatsfile(statsfilename, server);
 
@@ -2008,6 +2004,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   "dns_zonemgr_create");
 	CHECKFATAL(dns_loadmgr_create(ns_g_mctx, &server->loadmgr),
 		   "dns_loadmgr_create");
+
+	server->statsfile = NULL;
+	server->statsfp = NULL;
+	ns_server_zeroglobal(server);
 
 	server->flushonshutdown = ISC_FALSE;
 	server->magic = NS_SERVER_MAGIC;
