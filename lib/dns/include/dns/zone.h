@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.114 2002/04/02 06:53:59 marka Exp $ */
+/* $Id: zone.h,v 1.115 2002/06/13 07:05:47 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1355,6 +1355,16 @@ dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
 /*
  * Log the message 'msg...' at 'level', including text that identifies
  * the message as applying to 'zone'.
+ */
+
+void
+dns_zone_name(dns_zone_t *zone, char *buf, size_t len);
+/*
+ * Return the name of the zone with class and view.
+ * 
+ * Requires:
+ *	'zone' to be valid.
+ *	'buf' to be non NULL.
  */
 
 ISC_LANG_ENDDECLS

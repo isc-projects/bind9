@@ -1,3 +1,5 @@
+1324.	[func]		New function: dns_zone_name().
+
 1323.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.
 
 1322.	[func]		Extended rndc dumpdb to support dumping of zones and

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.368 2002/05/08 06:51:49 marka Exp $ */
+/* $Id: zone.c,v 1.369 2002/06/13 07:05:46 marka Exp $ */
 
 #include <config.h>
 
@@ -4699,6 +4699,13 @@ zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	}
 
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
+}
+
+void
+dns_zone_name(dns_zone_t *zone, char *buf, size_t length) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(buf != NULL);
+	zone_tostr(zone, buf, length);
 }
 
 static void
