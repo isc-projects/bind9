@@ -31,9 +31,9 @@ typedef struct dns_rdatacommon {
 	ISC_LINK(struct dns_rdatacommon)	link;
 } dns_rdatacommon_t;
 
-#define DNS_RDATACOMMON_INIT(data, rdtype, rdclass) \
+#define DNS_RDATACOMMON_INIT(_data, _rdtype, _rdclass) \
 	do { \
-		(data)->common.rdtype = (rdtype); \
-		(data)->common.rdclass = (rdclass); \
-		ISC_LINK_INIT(&(data)->common, link); \
+		(_data)->common.rdtype = (_rdtype); \
+		(_data)->common.rdclass = (_rdclass); \
+		ISC_LINK_INIT(&(_data)->common, link); \
 	} while (0)
