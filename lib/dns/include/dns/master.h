@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.40 2005/01/10 23:43:24 marka Exp $ */
+/* $Id: master.h,v 1.41 2005/02/17 05:49:01 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -45,7 +45,7 @@
 						 * matches as fatal */
 #define DNS_MASTER_CHECKNAMES   0x00000100
 #define DNS_MASTER_CHECKNAMESFAIL 0x00000200
-#define DNS_MASTER_CHECKWILDCARD 0x00000400	/* Check for internal wilcards. */
+#define DNS_MASTER_CHECKWILDCARD 0x00000400	/* Check for internal wildcards. */
 
 ISC_LANG_BEGINDECLS
 
