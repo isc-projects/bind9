@@ -218,8 +218,6 @@ destroy(dns_dispatch_t *disp)
 
 	XDEBUG(("dispatch::destroy:  detaching from sock %p and task %p\n",
 		disp->socket, disp->task));
-	isc_socket_detach(&disp->socket);
-	isc_task_detach(&disp->task);
 
 	/*
 	 * Final cleanup of packets on the request list.
@@ -235,6 +233,9 @@ destroy(dns_dispatch_t *disp)
 	INSIST(disp->buffers == 0);
 	INSIST(disp->requests == 0);
 	INSIST(disp->recvs == 0);
+
+	isc_socket_detach(&disp->socket);
+	isc_task_detach(&disp->task);
 
 	isc_mempool_put(disp->epool, disp->failsafe_ev);
 	disp->failsafe_ev = NULL;
