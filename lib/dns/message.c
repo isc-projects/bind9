@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.c,v 1.131.2.2 2000/07/03 17:20:43 gson Exp $ */
+/* $Id: message.c,v 1.131.2.3 2000/07/25 23:51:16 gson Exp $ */
 
 /***
  *** Imports
@@ -440,9 +440,10 @@ msgresetsigs(dns_message_t *msg, isc_boolean_t replying) {
 		isc_mempool_put(msg->namepool, msg->tsigname);
 		msg->tsig = NULL;
 		msg->tsigname = NULL;
-	} else if (msg->querytsig != NULL) {
+	} else if (msg->querytsig != NULL && !replying) {
 		dns_rdataset_disassociate(msg->querytsig);
 		isc_mempool_put(msg->rdspool, msg->querytsig);
+		msg->querytsig = NULL;
 	}
 	if (msg->sig0 != NULL) {
 		INSIST(dns_rdataset_isassociated(msg->sig0));
