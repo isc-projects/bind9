@@ -1,243 +1,243 @@
-1345.	[bug]		When performing a nonexistence proof, the validator
+1335.	[bug]		When performing a nonexistence proof, the validator
 			should discard parent NXTs from higher in the DNS.
 
-1344.	[bug]		When signing/verifying rdatasets, duplicate rdatas
+1334.	[bug]		When signing/verifying rdatasets, duplicate rdatas
 			need to be suppressed.
 
-1343.	[contrib]	queryperf now reports a summary of returned
+1333.	[contrib]	queryperf now reports a summary of returned
 		        rcodes (-c), rcodes are printed in mnemonic form (-v).
 			
-1342.	[func]		Report the current serial with periodic commits when
+1332.	[func]		Report the current serial with periodic commits when
 			rolling forward the journal.
 
-1341.	[func]		Generate DNSSEC wildcard proofs.
+1331.	[func]		Generate DNSSEC wildcard proofs.
 
-1340.	[bug]		When processing events (non-threaded) only allow
+1330.	[bug]		When processing events (non-threaded) only allow
 			the task one chance to use to use its quantum.
 
-1339.	[func]		named-checkzone will now check if nameservers that
+1329.	[func]		named-checkzone will now check if nameservers that
 			appear to be IP addresses.  Available modes "fail",
 			"warn" (default) and "ignore" the results of the
 			check.
 
-1338.	[bug]		The validator could incorrectly verify an invalid
+1328.	[bug]		The validator could incorrectly verify an invalid
 			negative proof.
 
-1337.	[bug]		The validator would incorrectly mark data as insecure
+1327.	[bug]		The validator would incorrectly mark data as insecure
 			when seeing a bogus signature before a correct
 			signature.
 
-1336.	[bug]		DNAME/CNAME signatures were not being cached when
+1326.	[bug]		DNAME/CNAME signatures were not being cached when
 			validation was not being performed. [RT #3284]
 
-1335.	[bug]		If the tcpquota was exhausted it was possible to
+1325.	[bug]		If the tcpquota was exhausted it was possible to
 			to trigger a INSIST() failure.
 
-1334.	[port]		darwin: ifconfig.sh now supports darwin.
+1324.	[port]		darwin: ifconfig.sh now supports darwin.
 
-1333.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
+1323.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
 
-1332.	[bug]		dnssec-signzone usage message was misleading.
+1322.	[bug]		dnssec-signzone usage message was misleading.
 
-1331.	[bug]		If the last RRset in a zone is glue, dnssec-signzone
+1321.	[bug]		If the last RRset in a zone is glue, dnssec-signzone
 			would incorrectly duplicate its output and sign it.
 
-1330.	[doc]		query-source-v6 was missing from options section.
+1320.	[doc]		query-source-v6 was missing from options section.
 			[RT #3218]
 
-1329.	[func]		libbind: log attempts to exploit #1328.
+1319.	[func]		libbind: log attempts to exploit #1318.
 
-1328.	[bug]		libbind: Remote buffer overrun.
+1318.	[bug]		libbind: Remote buffer overrun.
 
-1327.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
+1317.	[port]		libbind: TrueUNIX 5.1 does not like __align as a
 			element name.
 
-1326.	[bug]		libbind: gethostans() could get out of sync parsing
+1316.	[bug]		libbind: gethostans() could get out of sync parsing
 			the response if there was a very long CNAME chain.
 
-1325.	[bug]		Options should apply to the internal _bind view.
+1315.	[bug]		Options should apply to the internal _bind view.
 
-1324.	[port]		Handle ECONNRESET from sendmsg() [unix].
+1314.	[port]		Handle ECONNRESET from sendmsg() [unix].
 
-1323.	[func]		Query log now says if the query was signed (S) or
+1313.	[func]		Query log now says if the query was signed (S) or
 			if EDNS was used (E).
 
-1322.	[func]		Log TSIG key used w/ outgoing zone transfers.
+1312.	[func]		Log TSIG key used w/ outgoing zone transfers.
 
-1321.	[bug]		lwres_getrrsetbyname leaked memory.  [RT #3159]
+1311.	[bug]		lwres_getrrsetbyname leaked memory.  [RT #3159]
 
-1320.	[bug]		'rndc stop' failed to cause zones to be flushed
+1310.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 
-1319.	[func]		Log that a zone transfer was covered by a TSIG.
+1309.	[func]		Log that a zone transfer was covered by a TSIG.
  
-1318.	[func]		DS (delegation signer) support.
+1308.	[func]		DS (delegation signer) support.
 
-1317.	[bug]		nsupdate: allow white space base64 key data.
+1307.	[bug]		nsupdate: allow white space base64 key data.
 
-1316.	[bug]		Badly encoded LOC record when the size, horizontal
+1306.	[bug]		Badly encoded LOC record when the size, horizontal
 			precision or vertical precision was 0.1m.
 
-1315.	[bug]		Document that internal zones are included in the
+1305.	[bug]		Document that internal zones are included in the
 			rndc status results.
 
-1314.	[func]		New function: dns_zone_name().
+1304.	[func]		New function: dns_zone_name().
 
-1313.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.
+1303.	[func]		Option 'flush-zones-on-shutdown <boolean>;'.
 
-1312.	[func]		Extended rndc dumpdb to support dumping of zones and
+1302.	[func]		Extended rndc dumpdb to support dumping of zones and
 			view selection: 'dumpdb [-all|-zones|-cache] [view]'.
 
-1311.	[func]		New category 'update-security'.
+1301.	[func]		New category 'update-security'.
 
-1310.	[port]		Compaq Trucluster support.
+1300.	[port]		Compaq Trucluster support.
 
-1309.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+1299.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
 			via getaddrinfo() (affects dig, host, nslookup, rndc
 			and nsupdate).
 
-1308.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
+1298.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
 			could be left with a trailing "\" after configure
 			has been run.
 
-1307.	[port]		linux: make handling EINVAL from socket() no longer
+1297.	[port]		linux: make handling EINVAL from socket() no longer
 			conditional on #ifdef LINUX.
 
-1306.	[bug]		isc_log_closefilelogs() needed to lock the log
+1296.	[bug]		isc_log_closefilelogs() needed to lock the log
 			context.
 
-1305.	[bug]		isc_log_setdebuglevel() needed to lock the log
+1295.	[bug]		isc_log_setdebuglevel() needed to lock the log
 			context.
 
-1304.	[func]		libbind: no longer attempts bit string labels for
+1294.	[func]		libbind: no longer attempts bit string labels for
 			IPv6 reverse resolution.  Try IP6.ARPA then IP6.INT
 			for nibble style resolution.
 
-1303.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
+1293.	[func]		Entropy can now be retrieved from EGDs. [RT #2438]
 
-1302.	[func]		Enable IPv6 support when using ioctl style interface
+1292.	[func]		Enable IPv6 support when using ioctl style interface
 			scanning and OS supports SIOCGLIFADDR using struct
 			if_laddrreq.
 
-1301.	[func]		Enable IPv6 support when using sysctl style interface
+1291.	[func]		Enable IPv6 support when using sysctl style interface
 			scanning.
 
-1300.	[func]		"dig axfr" now reports the number of messages
+1290.	[func]		"dig axfr" now reports the number of messages
 			as well as the number of records.
 
-1299.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
+1289.	[port]		See if -ldl is required for OpenSSL? [RT #2672]
 
-1298.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
+1288.	[bug]		Adjusted REQUIRE's in lib/dns/name.c to better
 			reflect written requirements.
 
-1297.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
+1287.	[bug]		REQUIRE that DNS_DBADD_MERGE only be set when adding
 			a rdataset to a zone db in the rbtdb implementation of
 			addrdataset.
 
-1296.	[bug]		dns_name_downcase() enforce requirement that
+1286.	[bug]		dns_name_downcase() enforce requirement that
 			target != NULL or name->buffer != NULL.
 
-1295.	[func]		lwres: probe the system to see what address families
+1285.	[func]		lwres: probe the system to see what address families
 			are currently in use.
 
-1294.	[bug]		The RTT estimate on unused servers was not aged.
+1284.	[bug]		The RTT estimate on unused servers was not aged.
 			[RT #2569]
 
-1293.	[func]		Use "dataready" accept filter if available.
+1283.	[func]		Use "dataready" accept filter if available.
 
-1292.	[port]		libbind: hpux 11.11 interface scaning.
+1282.	[port]		libbind: hpux 11.11 interface scaning.
 
-1291.	[func]		Log zone when unable to get private keys to update
+1281.	[func]		Log zone when unable to get private keys to update
 			zone.  Log zone when NXT records are missing from
 			secure zone.
 
-1290.	[bug]		libbind: escape '(' and ')' when coverting to
+1280.	[bug]		libbind: escape '(' and ')' when coverting to
 			presentation form.
 
-1289.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
+1279.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
 
-1288.	[func]		dig: now supports +[no]cl +[no]ttlid.
+1278.	[func]		dig: now supports +[no]cl +[no]ttlid.
 
-1287.	[func]		You can now create your own customised printing
+1277.	[func]		You can now create your own customised printing
 			styles: dns_master_stylecreate() and
 			dns_master_styledestroy().
 
-1286.	[bug]		libbind: const pointer conficts in res_debug.c.
+1276.	[bug]		libbind: const pointer conficts in res_debug.c.
 
-1285.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
+1275.	[port]		libbind: hpux: treat all hpux systems as BIG_ENDIAN.
 
-1284.	[bug]		Memory leak in lwres_gnbarequest_parse().
+1274.	[bug]		Memory leak in lwres_gnbarequest_parse().
 
-1283.	[port]		libbind: solaris: 64 bit binary compatability.
+1273.	[port]		libbind: solaris: 64 bit binary compatability.
 
-1282.	[contrib]	Berkeley DB 4.0 sdb implementation from
+1272.	[contrib]	Berkeley DB 4.0 sdb implementation from
 			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
 
-1281.	[bug]		"recursion available: {denied,approved}" was too
+1271.	[bug]		"recursion available: {denied,approved}" was too
 			confusing.
 
-1280.	[bug]		Check that system inet_pton() and inet_ntop() support
+1270.	[bug]		Check that system inet_pton() and inet_ntop() support
 			AF_INET6.
 
-1279.	[port]		Openserver: ifconfig.sh support.
+1269.	[port]		Openserver: ifconfig.sh support.
 
-1278.	[port]		Openserver: the value FD_SETSIZE depends on whether
+1268.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
-1277.	[func]		isc_file_openunique() now creates file using mode
+1267.	[func]		isc_file_openunique() now creates file using mode
 			0666 rather than 0600.
 
-1276.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
+1266.	[bug]		ISC_LINK_INIT, ISC_LINK_UNLINK, ISC_LIST_DEQUEUE,
 			__ISC_LINK_UNLINKUNSAFE and __ISC_LIST_DEQUEUEUNSAFE
 			are not C++ compatible, use *_TYPE versions instead.
 
-1275.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
+1265.	[bug]		libbind: LINK_INIT and UNLINK were not compatible with
 			C++, use LINK_INIT_TYPE and UNLINK_TYPE instead.
 
-1274.	[placeholder]
+1264.	[placeholder]
 
-1273.	[bug]		Reference after free error if dns_dispatchmgr_create()
+1263.	[bug]		Reference after free error if dns_dispatchmgr_create()
 			failed.
 
-1272.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
+1262.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
-1271.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
+1261.	[func]		libbind: ns_sign2() and ns_sign_tcp() now provide
 			support for compressed TSIG owner names.
 
-1270.	[func]		libbind: res_update can now update IPv6 servers,
+1260.	[func]		libbind: res_update can now update IPv6 servers,
 			new function res_findzonecut2().
 
-1269.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
+1259.	[bug]		libbind: get_salen() IPv6 support was broken for OSs
 			w/o sa_len.
 
-1268.	[bug]		libbind: res_nametotype() and res_nametoclass() were
+1258.	[bug]		libbind: res_nametotype() and res_nametoclass() were
 			broken.
 
-1267.	[bug]		Failure to write pid-file should not be fatal on
+1257.	[bug]		Failure to write pid-file should not be fatal on
 			reload. [RT #2861]
 
-1266.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
+1256.	[contrib]	'queryperf' now has EDNS (-e) + DNSSEC DO (-D) support.
 
-1265.	[bug]		When verifying that an NXT proves nonexistence, check
+1255.	[bug]		When verifying that an NXT proves nonexistence, check
 			the rcode of the message and only do the matching NXT
 			check.  That is, for NXDOMAIN responses, check that
 			the name is in the range between the NXT owner and
 			next name, and for NOERROR NODATA responses, check
 			that the type is not present in the NXT bitmap.
 
-1264.	[func]		preferred-glue option from BIND 8.3.
+1254.	[func]		preferred-glue option from BIND 8.3.
 
-1263.	[bug]		The dnssec system test failed to remove the correct
+1253.	[bug]		The dnssec system test failed to remove the correct
 			files.
 
-1262.	[bug]		Dig, host and nslookup were not checking the address
+1252.	[bug]		Dig, host and nslookup were not checking the address
 			the answer was coming from against the address it was
 			sent to. [RT# 2692]
 
-1261.   [port]          win32: a make file contained absolute version specific
+1251.   [port]          win32: a make file contained absolute version specific
                         references.
 
-1260.	[func]		Nsupdate will report the address the update was
+1250.	[func]		Nsupdate will report the address the update was
 			sent to.
 
 1249.	[bug]		Missing masters clause was not handled gracefully.
