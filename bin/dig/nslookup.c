@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.14 2000/06/15 00:22:21 mws Exp $ */
+/* $Id: nslookup.c,v 1.15 2000/06/15 18:24:08 mws Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ extern int exitcode;
 
 isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
 	filter = ISC_FALSE, showallsoa = ISC_FALSE,
-	tcpmode = ISC_FALSE, deprication_msg = ISC_TRUE;
+	tcpmode = ISC_FALSE, deprecation_msg = ISC_TRUE;
 
 isc_uint16_t bufsize = 0;
 isc_boolean_t identify = ISC_FALSE,
@@ -621,7 +621,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
 		short_form = ISC_TRUE;
 	} else if (strncasecmp(opt, "sil",3) == 0) {
-		deprication_msg = ISC_FALSE;
+		deprecation_msg = ISC_FALSE;
 	}
 }
 
@@ -826,10 +826,10 @@ main(int argc, char **argv) {
 
 	parse_args(argc, argv);
 
-	if (deprication_msg) {
+	if (deprecation_msg) {
 		puts (
-"Note:  nslookup is depricated and may be removed from future releases.\n"
-"Consider using the `dig' program instead.  Run nslookup with `-sil[ence]'\n"
+"Note:  nslookup is deprecated and may be removed from future releases.\n"
+"Consider using the `dig' program instead.  Run nslookup with `-sil[ent]'\n"
 "option to prevent this message from appearing.\n");
 	}
 	setup_system();
