@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.165 2001/01/04 00:24:23 bwelling Exp $ */
+/* $Id: query.c,v 1.166 2001/01/07 22:06:12 gson Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 		      dns_rdataset_t *sigrdataset);
 
 static void
-query_find(ns_client_t *client, dns_fetchevent_t *event);
+query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
 
 /*
  * Increment query statistics counters.
@@ -199,7 +199,6 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.restarts = 0;
 	client->query.origqname = NULL;
 	client->query.qname = NULL;
-	client->query.qrdataset = NULL;
 	client->query.dboptions = 0;
 	client->query.fetchoptions = 0;
 	client->query.gluedb = NULL;
@@ -1469,8 +1468,6 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	CTRACE("query_addrdataset: done");
 }
 
-#define ANSWERED(rds)	(((rds)->attributes & DNS_RDATASETATTR_ANSWERED) != 0)
-
 static void
 query_addrrset(ns_client_t *client, dns_name_t **namep,
 	       dns_rdataset_t **rdatasetp, dns_rdataset_t **sigrdatasetp,
@@ -1935,30 +1932,6 @@ query_addbestns(ns_client_t *client) {
 	}
 }
 
-static inline isc_result_t
-query_checktype(dns_rdatatype_t type) {
-
-	/*
-	 * XXXRTH  OPT still needs to be added.
-	 *	   Should get help with this from rdata.c
-	 */
-	switch (type) {
-	case dns_rdatatype_tkey:
-		return (DNS_R_NOTIMP);
-	case dns_rdatatype_tsig:
-		return (DNS_R_FORMERR);
-	case dns_rdatatype_ixfr:
-	case dns_rdatatype_axfr:
-	case dns_rdatatype_mailb:
-	case dns_rdatatype_maila:
-		return (DNS_R_REFUSED);
-	default:
-		break;
-	}
-
-	return (ISC_R_SUCCESS);
-}
-
 static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
@@ -2026,7 +1999,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		dns_view_attach(client->view, &client->lockview);
 		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 
-		query_find(client, devent);
+		query_find(client, devent, 0);
 
 		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 		dns_view_detach(&client->lockview);
@@ -2292,11 +2265,16 @@ setup_query_sortlist(ns_client_t *client) {
 	dns_message_setsortorder(client->message, order, order_arg);
 }
 
+/*
+ * Do the bulk of query processing for the current query of 'client'.
+ * If 'event' is non-NULL, we are returning from recursion and 'qtype'
+ * is ignored.  Otherwise, 'qtype' is the query type.
+ */
 static void
-query_find(ns_client_t *client, dns_fetchevent_t *event) {
+query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) {
 	dns_db_t *db, *zdb;
 	dns_dbnode_t *node;
-	dns_rdatatype_t qtype, type;
+	dns_rdatatype_t type;
 	dns_name_t *fname, *zfname, *tname, *prefix;
 	dns_rdataset_t *rdataset, *trdataset;
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
@@ -2304,7 +2282,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t want_restart, authoritative, is_zone;
-	unsigned int qcount, n, nlabels, nbits;
+	unsigned int n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
 	isc_buffer_t *dbuf;
@@ -2370,7 +2348,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		fname = query_newname(client, dbuf, &b);
 		if (fname == NULL) {
 			count_query(zone, is_zone,
-					     dns_statscounter_failure);
+				    dns_statscounter_failure);
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
@@ -2385,8 +2363,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		result = event->result;
 
 		goto resume;
-	} else
-		client->query.qrdataset = NULL;
+	}
+	
+	/*
+	 * Not returning from recursion.
+	 */
+
+	/*
+	 * If it's a SIG query, we'll iterate the node.
+	 */
+	if (qtype == dns_rdatatype_sig)
+		type = dns_rdatatype_any;
+	else
+		type = qtype;
 
  restart:
 	CTRACE("query_find: restart");
@@ -2410,59 +2399,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 	if (is_zone)
 		authoritative = ISC_TRUE;
-
-	/*
-	 * Find the first unanswered type in the question section.
-	 */
-	qtype = 0;
-	qcount = 0;
-	client->query.qrdataset = NULL;
-	for (trdataset = ISC_LIST_HEAD(client->query.origqname->list);
-	     trdataset != NULL;
-	     trdataset = ISC_LIST_NEXT(trdataset, link)) {
-		if (!ANSWERED(trdataset)) {
-			if (client->query.qrdataset == NULL) {
-				client->query.qrdataset = trdataset;
-				qtype = trdataset->type;
-			}
-			qcount++;
-		}
-	}
-	/*
-	 * We had better have found something!
-	 */
-	INSIST(client->query.qrdataset != NULL && qcount > 0);
-
-	/*
-	 * If there's more than one question, we'll eventually retrieve the
-	 * node and iterate it, trying to find answers.  For now, we simply
-	 * refuse requests with more than one question.
-	 */
-	if (qcount == 1)
-		type = qtype;
-	else {
-		CTRACE("find_query: REFUSED: qcount != 1");
-		count_query(zone, is_zone, dns_statscounter_failure);
-		QUERY_ERROR(DNS_R_REFUSED);
-		goto cleanup;
-	}
-
-	/*
-	 * See if the type is OK.
-	 */
-	result = query_checktype(qtype);
-	if (result != ISC_R_SUCCESS) {
-		CTRACE("find_query: non supported query type");
-		count_query(zone, is_zone, dns_statscounter_failure);
-		QUERY_ERROR(result);
-		goto cleanup;
-	}
-
-	/*
-	 * If it's a SIG query, we'll iterate the node.
-	 */
-	if (qtype == dns_rdatatype_sig)
-		type = dns_rdatatype_any;
 
  db_find:
 	CTRACE("query_find: db_find");
@@ -3161,11 +3097,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * because it's already in the answer.
 		 */
 		INSIST(rdataset == NULL);
-		/*
-		 * Remember that we've answered this question.
-		 */
-		client->query.qrdataset->attributes |=
-			DNS_RDATASETATTR_ANSWERED;
 	}
 
  addauth:
@@ -3288,6 +3219,7 @@ ns_query_start(ns_client_t *client) {
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	ns_client_t *qclient;
+	dns_rdatatype_t qtype;
 
 	CTRACE("ns_query_start");
 
@@ -3362,8 +3294,9 @@ ns_query_start(ns_client_t *client) {
 	 */
 	rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	INSIST(rdataset != NULL);
-	if (dns_rdatatype_ismeta(rdataset->type)) {
-		switch (rdataset->type) {
+	qtype = rdataset->type;
+	if (dns_rdatatype_ismeta(qtype)) {
+		switch (qtype) {
 		case dns_rdatatype_any:
 			break; /* Let query_find handle it. */
 		case dns_rdatatype_ixfr:
@@ -3420,9 +3353,8 @@ ns_query_start(ns_client_t *client) {
 	 */
 	if (WANTDNSSEC(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
-
+	
 	qclient = NULL;
 	ns_client_attach(client, &qclient);
-	query_find(qclient, NULL);
+	query_find(qclient, NULL, qtype);
 }
-

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.23 2000/11/13 21:33:58 bwelling Exp $ */
+/* $Id: query.h,v 1.24 2001/01/07 22:06:14 gson Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -40,7 +40,6 @@ struct ns_query {
 	unsigned int			restarts;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
-	dns_rdataset_t *		qrdataset;
 	unsigned int			dboptions;
 	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
