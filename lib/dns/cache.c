@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.6 1999/12/22 17:37:31 gson Exp $ */
+ /* $Id: cache.c,v 1.7 2000/01/04 23:24:13 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -23,6 +23,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mutex.h>
+#include <isc/util.h>
 
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -31,11 +32,6 @@
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
-
-#define LOCK(lp) \
-	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS)
-#define UNLOCK(lp) \
-	RUNTIME_CHECK(isc_mutex_unlock((lp)) == ISC_R_SUCCESS)
 
 #define CACHE_MAGIC	0x24242424U 	/* $$$$. */
 #define VALID_CACHE(cache) ((cache) != NULL && (cache)->magic == CACHE_MAGIC)
@@ -83,8 +79,8 @@ struct dns_cache {
 	isc_mem_t		*mctx;
 
 	/* Locked by 'lock'. */
-	unsigned int		references;
-	unsigned int		live_tasks;	
+	int			references;
+	int			live_tasks;	
 	dns_rdataclass_t	rdclass;
 	dns_db_t		*db;
 	cache_cleaner_t		cleaner;
@@ -154,7 +150,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	cache->magic = CACHE_MAGIC;
 
 	result = cache_cleaner_init(cache, taskmgr, timermgr,
-				     &cache->cleaner);
+				    &cache->cleaner);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	*cachep = cache;
@@ -169,6 +165,9 @@ cache_free(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(cache->references == 0);
 
+	if (cache->cleaner.task != NULL)
+		isc_task_detach(&cache->cleaner.task);
+
 	if (cache->cleaner.resched_event != NULL)
 		isc_event_free(&cache->cleaner.resched_event);
 
@@ -179,9 +178,8 @@ cache_free(dns_cache_t *cache) {
 		cache->filename = NULL;
 	}
 
-	if (cache->db) {	
+	if (cache->db)
 		dns_db_detach(&cache->db);
-	}
 
 	isc_mutex_destroy(&cache->lock);
 	cache->magic = 0;	
@@ -212,23 +210,18 @@ dns_cache_detach(dns_cache_t **cachep) {
 	REQUIRE(VALID_CACHE(cache));
 
 	LOCK(&cache->lock);
-	
 	REQUIRE(cache->references > 0);
 	cache->references--;
-	if (cache->references == 0) {
-		if (cache->live_tasks == 0)
-			free_cache = ISC_TRUE;
-		if (cache->cleaner.cleaning_timer != NULL)
-			isc_timer_detach(&cache->cleaner.cleaning_timer);
-		if (cache->cleaner.task != NULL)
-			isc_task_destroy(&cache->cleaner.task);
-	}
+	if (cache->references == 0)
+		free_cache = ISC_TRUE;
 	UNLOCK(&cache->lock);
-
-	if (free_cache)
-		cache_free(cache);
-
 	*cachep = NULL;
+	if (free_cache) {
+		if (cache->live_tasks > 0)
+			isc_task_shutdown(cache->cleaner.task);
+		else
+			cache_free(cache);
+	}
 }
 
 void
@@ -553,15 +546,29 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->arg;
-	isc_boolean_t should_free = ISC_FALSE;
-	INSIST(event->type == ISC_TASKEVENT_SHUTDOWN);
-	task = task; /* Unused. */
+	isc_boolean_t should_free = ISC_FALSE;	
+	UNUSED(task);
 	LOCK(&cache->lock);
+
+	INSIST(event->type == ISC_TASKEVENT_SHUTDOWN);
+	isc_event_free(&event);
+	
 	cache->live_tasks--;
-	if (cache->references == 0 && cache->live_tasks == 0)
-		should_free = ISC_TRUE;
+	INSIST(cache->live_tasks == 0);
+
+	if (cache->references == 0)
+		should_free = ISC_TRUE;		
+
+	/*
+	 * By detaching the timer in the context of its task,
+	 * we are guaranteed that there will be no further timer
+	 * events.
+	 */
+	if (cache->cleaner.cleaning_timer != NULL)
+		isc_timer_detach(&cache->cleaner.cleaning_timer);
+
 	UNLOCK(&cache->lock);
+
 	if (should_free)
 		cache_free(cache);
-	isc_event_free(&event);
 }
