@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.13 2000/08/01 01:29:39 tale Exp $ */
+/* $Id: print.c,v 1.14 2000/11/14 23:42:29 tale Exp $ */
 
 #include <config.h>
 
@@ -233,11 +233,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
-#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
-				sprintf(buf, "%lu", tmpui);
-#else
-				sprintf(buf, "%llu", tmpui);
-#endif
+				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u",
+					tmpui);
 				goto printint;
 			case 'o':
 				if (q)
@@ -246,11 +243,10 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, long int);
 				else
 					tmpui = va_arg(ap, int);
-#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
-				sprintf(buf, alt ? "%#lo" : "%lo", tmpui);
-#else
-				sprintf(buf, alt ? "%#llo" : "%llo", tmpui);
-#endif
+				sprintf(buf,
+					alt ? "%#" ISC_PRINT_QUADFORMAT "o"
+					    : "%" ISC_PRINT_QUADFORMAT "o",
+					tmpui);
 				goto printint;
 			case 'u':
 				if (q)
@@ -259,11 +255,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
-#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
-				sprintf(buf, "%lu", tmpui);
-#else
-				sprintf(buf, "%llu", tmpui);
-#endif
+				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "u",
+					tmpui);
 				goto printint;
 			case 'x':
 				if (q)
@@ -277,11 +270,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
-#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
-				sprintf(buf, "%lx", tmpui);
-#else
-				sprintf(buf, "%llx", tmpui);
-#endif
+				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "x",
+					tmpui);
 				goto printint;
 			case 'X':
 				if (q)
@@ -295,11 +285,8 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2)
 						precision -= 2;
 				}
-#ifdef ISC_PLATFORM_LONGLONGEQUALLONG
-				sprintf(buf, "%lX", tmpui);
-#else
-				sprintf(buf, "%llX", tmpui);
-#endif
+				sprintf(buf, "%" ISC_PRINT_QUADFORMAT "X",
+					tmpui);
 				goto printint;
 			printint:
 				if (precision != 0 || width != 0) {
