@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.104 2001/01/09 21:40:47 bwelling Exp $
+# $Id: Makefile.in,v 1.105 2001/01/18 02:35:50 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -84,7 +84,8 @@ XTARGETS =	adb_test \
 		task_test \
 		timer_test \
 		tkey_test \
-		wire_test
+		wire_test \
+		zone_test
 
 # Alphabetically
 SRCS =		adb_test.c \
@@ -298,7 +299,7 @@ gxba_test: gxba_test.@O@ ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ gxba_test.@O@ \
 		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
-sig0_test: sig0_test.@O@ ${DNSDEPLIBS}
+sig0_test: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sig0_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
