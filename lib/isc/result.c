@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.55 2001/02/12 20:03:15 bwelling Exp $ */
+/* $Id: result.c,v 1.56 2001/06/15 22:07:50 gson Exp $ */
 
 #include <config.h>
 
@@ -91,7 +91,8 @@ static const char *text[ISC_R_NRESULTS] = {
 	"too many open files",			/* 50 */
 	"not blocking",				/* 51 */
 	"unbalanced quotes",			/* 52 */
-	"operation in progress"			/* 53 */
+	"operation in progress",		/* 53 */
+	"connection reset"			/* 54 */
 };
 
 #define ISC_RESULT_RESULTSET			2

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.7 2001/01/09 21:58:15 bwelling Exp $ */
+/* $Id: errno2result.c,v 1.8 2001/06/15 22:07:49 gson Exp $ */
 
 #include <config.h>
 
@@ -49,9 +49,53 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_IOERROR);
 	case ENOMEM:
 		return (ISC_R_NOMEMORY);
-	case ENFILE:
+	case ENFILE:	
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
+	case EPIPE:
+#ifdef ECONNRESET
+	case ECONNRESET:
+#endif
+#ifdef ECONNABORTED
+	case ECONNABORTED:
+#endif
+		return (ISC_R_CONNECTIONRESET);
+#ifdef ENOTCONN
+	case ENOTCONN:
+		return (ISC_R_NOTCONNECTED);
+#endif
+#ifdef ETIMEDOUT
+	case ETIMEDOUT:
+		return (ISC_R_TIMEDOUT);
+#endif
+#ifdef ENOBUFS
+	case ENOBUFS:
+		return (ISC_R_NORESOURCES);
+#endif
+#ifdef EAFNOSUPPORT
+	case EAFNOSUPPORT:
+		return (ISC_R_FAMILYNOSUPPORT);
+#endif
+#ifdef ENETDOWN
+	case ENETDOWN:
+		return (ISC_R_NETDOWN);
+#endif
+#ifdef EHOSTDOWN
+	case EHOSTDOWN:
+		return (ISC_R_HOSTDOWN);
+#endif
+#ifdef ENETUNREACH
+	case ENETUNREACH:
+		return (ISC_R_NETUNREACH);
+#endif
+#ifdef EHOSTUNREACH
+	case EHOSTUNREACH:
+		return (ISC_R_HOSTUNREACH);
+#endif
+#ifdef EADDRINUSE
+	case EADDRINUSE:
+		return (ISC_R_ADDRINUSE);
+#endif
 	default:
 		/*
 		 * XXXDCL would be nice if perhaps this function could
