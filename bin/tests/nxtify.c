@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxtify.c,v 1.17 2000/10/17 07:22:26 marka Exp $ */
+/* $Id: nxtify.c,v 1.18 2000/11/10 03:14:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -147,7 +147,7 @@ nxtify(char *filename) {
 	check_result(result, "dns_db_create()");
 	result = dns_db_load(db, filename);
 	if (result == DNS_R_SEENINCLUDE)
-		result = ISC_R_SUCCCESS;
+		result = ISC_R_SUCCESS;
 	check_result(result, "dns_db_load()");
 	wversion = NULL;
 	result = dns_db_newversion(db, &wversion);
