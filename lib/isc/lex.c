@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.41 2000/11/09 02:23:40 bwelling Exp $ */
+/* $Id: lex.c,v 1.42 2000/11/10 01:41:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -347,8 +347,6 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 		source->pushback = tbuf;
 	}
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
-	if (c == '\n')
-		source->line--;
 	return (ISC_R_SUCCESS);
 }
 	
