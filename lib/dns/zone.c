@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.141 2000/06/05 03:44:17 marka Exp $ */
+/* $Id: zone.c,v 1.142 2000/06/05 21:54:28 gson Exp $ */
 
 #include <config.h>
 
@@ -1831,8 +1831,6 @@ dns_zone_notify(dns_zone_t *zone) {
 	LOCK(&zone->lock);
 	for (i = 0; i < zone->notifycnt; i++) {
 		dst = zone->notify[i];
-		if (isc_sockaddr_getport(&dst) == 0)
-			isc_sockaddr_setport(&dst, 53); /* XXX */
 		if (notify_isqueued(zone, NULL, &dst))
 			continue;
 		result = notify_create(zone->mctx, &notify);
