@@ -404,6 +404,7 @@ isc_ntfile_fread
 isc_ntfile_fseek
 isc_ntfile_flush
 isc_ntfile_sync
+isc_ntfile_printf
 isc_ntfile_fprintf
 isc_ntfile_vfprintf
 isc_ntfile_getaddress
