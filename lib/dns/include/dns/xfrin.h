@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.13 2000/06/23 03:00:01 tale Exp $ */
+/* $Id: xfrin.h,v 1.14 2000/07/08 17:27:28 gson Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -64,7 +64,13 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  *
  * Iff ISC_R_SUCCESS is returned, '*done' is guaranteed to be
  * called in the context of 'task', with 'zone' and a result
- * code as arguments when the transfer finishes. 
+ * code as arguments when the transfer finishes.
+ *
+ * Requires:
+ *	'xfrtype' is dns_rdatatype_axfr or dns_rdatatype_ixfr.
+ *
+ *	If 'xfrtype' is dns_rdatatype_ixfr, the zone has a
+ * 	database.
  */
 
 void
