@@ -15,7 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.h,v 1.4 2000/06/07 02:28:43 bwelling Exp $ */
+#ifndef ISC_SHA1_H
+#define ISC_SHA1_H 1
+
+/* $Id: sha1.h,v 1.5 2000/06/23 03:02:58 tale Exp $ */
 
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
@@ -25,9 +28,7 @@
  * 100% Public Domain
  */
 
-#ifndef ISC_SHA1_H
-#define	ISC_SHA1_H
-
+#include <isc/lang.h>
 #include <isc/types.h>
 
 #define ISC_SHA1_DIGESTLENGTH 20
@@ -38,10 +39,20 @@ typedef struct {
 	unsigned char buffer[64];
 } isc_sha1_t;
   
-void isc_sha1_init(isc_sha1_t *ctx);
-void isc_sha1_invalidate(isc_sha1_t *ctx);
-void isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data,
-		     unsigned int len);
-void isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest);
+ISC_LANG_BEGINDECLS
+
+void
+isc_sha1_init(isc_sha1_t *ctx);
+
+void
+isc_sha1_invalidate(isc_sha1_t *ctx);
+
+void
+isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data, unsigned int len);
+
+void
+isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest);
+
+ISC_LANG_ENDDECLS
 
 #endif /* ISC_SHA1_H */
