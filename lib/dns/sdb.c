@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.22 2000/12/11 19:24:23 bwelling Exp $ */
+/* $Id: sdb.c,v 1.23 2000/12/21 01:58:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1349,7 +1349,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
 	return (dns_name_concatenate(dns_rootname, NULL, name, NULL));
