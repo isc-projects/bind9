@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.35 1999/04/09 22:49:46 tale Exp $ */
+/* $Id: rbt.c,v 1.36 1999/04/09 22:55:20 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1854,9 +1854,17 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		if (predecessor != NULL) {
 			chain->end = predecessor;
 
-			result = chain_name(chain, name, ISC_TRUE);
+			/* XXX DCL are full names desired, or just the
+			 * name relative to the origin?
 
-			if (result == DNS_R_SUCCESS && new_origin)
+			 result = chain_name(chain, name, ISC_TRUE);
+			 
+			 *
+			 */
+
+			NODENAME(chain->end, name);
+
+			if (new_origin)
 				result = DNS_R_NEWORIGIN;
 		} else
 			result = DNS_R_NOMORE;
@@ -1952,10 +1960,17 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		if (successor != NULL) {
 			chain->end = successor;
 
-			if (result == DNS_R_SUCCESS)
-				result = chain_name(chain, name, ISC_TRUE);
+			/* XXX DCL are full names desired, or just the
+			 * name relative to the origin?
 
-			if (result == DNS_R_SUCCESS && new_origin)
+			 result = chain_name(chain, name, ISC_TRUE);
+			 
+			 *
+			 */
+
+			NODENAME(chain->end, name);
+
+			if (new_origin)
 				result = DNS_R_NEWORIGIN;
 
 		} else
