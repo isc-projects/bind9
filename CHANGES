@@ -1,6 +1,8 @@
 1649.	[placeholder]	rt11206
 
-1648.	[placeholder]	rt11439
+1648.	[func]		Update dnssec-lookaside named.conf syntax to support
+			multiple dnssec-lookaside namespaces (not yet
+			implemented).  
 
 1647.	[placeholder]	rt11445
 

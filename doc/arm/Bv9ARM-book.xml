@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.246 2004/05/19 23:42:05 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.247 2004/06/04 02:31:42 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2758,7 +2758,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> dnssec-lookaside <replaceable>domain</replaceable>; </optional>
+    <optional> dnssec-lookaside <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable>; </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -2985,10 +2985,12 @@ Only the most specific will be applied.
 <listitem><para>
 When set <command>dnssec-lookaside</command> provides the
 validator with an alternate method to validate DNSKEY records at the
-top of a zone.  When set the domain specified by
-<command>dnssec-lookaside</command> is appended to DNSKEY's
-name and a DLV record is looked up.  If the DLV record validates
-a DNSKEY (similarly to the way a DS record does) the DNSKEY RRset is deemed to be trusted.
+top of a zone.  When a DNSKEY is at or below a domain specified by the
+deepest <command>dnssec-lookaside</command>, and the normal dnssec validation
+has left the key untrusted, the trust-anchor will be append to the key
+name and a DLV record will be looked up to see if it can validate the
+key.  If the DLV record validates a DNSKEY (similarly to the way a DS
+record does) the DNSKEY RRset is deemed to be trusted.
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>dnssec-must-be-secure</command></term>
