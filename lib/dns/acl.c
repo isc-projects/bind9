@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.15 2000/11/10 03:16:16 gson Exp $ */
+/* $Id: acl.c,v 1.16 2000/11/15 22:59:55 tale Exp $ */
 
 #include <config.h>
 
@@ -138,7 +138,8 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 	for (i = 0; i < acl->length; i++) {
 		dns_aclelement_t *e = &acl->elements[i];
 
-		if (dns_aclelement_match(reqaddr, reqsigner, e, env, matchelt)) {
+		if (dns_aclelement_match(reqaddr, reqsigner,
+					 e, env, matchelt)) {
 			*match = e->negative ? -(i+1) : (i+1);
 			return (ISC_R_SUCCESS);
 		}
@@ -180,8 +181,8 @@ dns_aclelement_match(isc_netaddr_t *reqaddr,
 				       inner,
 				       env,
 				       &indirectmatch, matchelt);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		INSIST(result == ISC_R_SUCCESS);
+
 		/*
 		 * Treat negative matches in indirect ACLs as
 		 * "no match".
