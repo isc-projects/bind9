@@ -1,3 +1,6 @@
+1747.	[bug]		BIND 8 compatability: named/named-checkconf failed
+			to parse "host-statistics-max" in named.conf.
+
 1746.	[func]		Make public the function to read a key file,
 			dst_key_read_public(). [RT #12450]
 

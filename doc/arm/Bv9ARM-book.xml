@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.256 2004/10/14 00:49:34 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.257 2004/10/17 23:11:29 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2712,6 +2712,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> flush-zones-on-shutdown <replaceable>yes_or_no</replaceable>; </optional>
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> host-statistics-max <replaceable>number</replaceable>; </optional>
     <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
@@ -3853,6 +3854,12 @@ the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
 <literal>unlimited</literal>.</para>
 </listitem></varlistentry>
+
+<varlistentry><term><command>host-statistics-max</command></term>
+<listitem><para>In BIND 8, specifies the maximum number of host statistic
+entries to be kept.
+Not implemented in BIND 9.
+</para></listitem></varlistentry>
 
 <varlistentry><term><command>recursive-clients</command></term>
 <listitem><para>The maximum number of simultaneous recursive lookups
