@@ -15,10 +15,12 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_T_API_H
-#define ISC_T_API_H 1
+#ifndef TESTS_T_API_H
+#define TESTS_T_API_H 1
 
 #include <stdio.h>
+
+#include <isc/result.h>
 
 /*
  *
@@ -85,5 +87,5 @@ t_bustline(char *line, char **toks);
 int
 t_eval(char *filename, int (*func)(char **), int nargs);
 
-#endif /* ISC_T_API_H */
+#endif /* TESTS_T_API_H */
 
