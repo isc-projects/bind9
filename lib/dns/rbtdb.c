@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.154 2001/03/30 00:34:52 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.155 2001/04/11 22:17:38 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -270,8 +270,7 @@ static dns_dbiteratormethods_t dbiterator_methods = {
 #define DELETION_BATCH_MAX 64
 
 /*
- * If 'paused' is ISC_TRUE, we are holding a reference to 'node',
- * and we are not holding any locks.
+ * If 'paused' is ISC_TRUE, then the tree lock is not being held.
  */
 typedef struct rbtdb_dbiterator {
 	dns_dbiterator_t		common;
@@ -2978,7 +2977,7 @@ createiterator(dns_db_t *db, isc_boolean_t relative_names,
 	rbtdbiter->common.relative_names = relative_names;
 	rbtdbiter->common.magic = DNS_DBITERATOR_MAGIC;
 	rbtdbiter->common.cleaning = ISC_FALSE;
-	rbtdbiter->paused = ISC_FALSE;
+	rbtdbiter->paused = ISC_TRUE;
 	rbtdbiter->tree_locked = isc_rwlocktype_none;
 	rbtdbiter->result = ISC_R_SUCCESS;
 	dns_fixedname_init(&rbtdbiter->name);
@@ -4580,21 +4579,35 @@ rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
  */
 
 static inline void
-unpause(rbtdb_dbiterator_t *rbtdbiter) {
+reference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 	dns_rbtnode_t *node = rbtdbiter->node;
 
-	if (rbtdbiter->paused) {
-		LOCK(&rbtdb->node_locks[node->locknum].lock);
-		INSIST(node->references > 0);
-		node->references--;
-		if (node->references == 0)
-			no_references(rbtdb, node, 0,
-				      rbtdbiter->tree_locked);
-		else
-			UNLOCK(&rbtdb->node_locks[node->locknum].lock);
-		rbtdbiter->paused = ISC_FALSE;
-	}
+	if (node == NULL)
+		return;
+
+	INSIST(rbtdbiter->tree_locked != isc_rwlocktype_none);
+	LOCK(&rbtdb->node_locks[node->locknum].lock);
+	new_reference(rbtdb, node);
+	UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+}
+
+static inline void
+dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
+	dns_rbtnode_t *node = rbtdbiter->node;
+
+	if (node == NULL)
+		return;
+
+	LOCK(&rbtdb->node_locks[node->locknum].lock);
+	INSIST(rbtdbiter->node->references > 0);
+	if (--node->references == 0)
+		no_references(rbtdb, node, 0, rbtdbiter->tree_locked);
+	else
+		UNLOCK(&rbtdb->node_locks[node->locknum].lock);
+
+	rbtdbiter->node = NULL;
 }
 
 static void
@@ -4605,9 +4618,17 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 	int i;
 
 	if (rbtdbiter->delete != 0) {
+		/*
+		 * Note that "%d node of %d in tree" can report things like
+		 * "flush_deletions: 59 nodes of 41 in tree".  This means
+		 * That some nodes appear on the deletions list more than
+		 * once.  Only the last occurence will actually be deleted.
+		 */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-			      "flush_deletions: %d nodes", rbtdbiter->delete);
+			      "flush_deletions: %d nodes of %d in tree",
+			      rbtdbiter->delete,
+			      dns_rbt_nodecount(rbtdb->tree));
 
 		if (rbtdbiter->tree_locked == isc_rwlocktype_read) {
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
@@ -4652,7 +4673,7 @@ resume_iteration(rbtdb_dbiterator_t *rbtdbiter) {
 	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	rbtdbiter->tree_locked = isc_rwlocktype_read;
 
-	unpause(rbtdbiter);
+	rbtdbiter->paused = ISC_FALSE;
 }
 
 static void
@@ -4666,7 +4687,7 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	} else
 		INSIST(rbtdbiter->tree_locked == isc_rwlocktype_none);
 
-	unpause(rbtdbiter);
+	dereference_iter_node(rbtdbiter);
 
 	flush_deletions(rbtdbiter);
 
@@ -4689,35 +4710,30 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
-	unpause(rbtdbiter);
+	if (rbtdbiter->paused)
+		resume_iteration(rbtdbiter);
 
-	if (rbtdbiter->tree_locked == isc_rwlocktype_none) {
-		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-		rbtdbiter->tree_locked = isc_rwlocktype_read;
-	}
+	dereference_iter_node(rbtdbiter);
 
 	name = dns_fixedname_name(&rbtdbiter->name);
 	origin = dns_fixedname_name(&rbtdbiter->origin);
 	dns_rbtnodechain_reset(&rbtdbiter->chain);
+
 	result = dns_rbtnodechain_first(&rbtdbiter->chain, rbtdb->tree, name,
 					origin);
-	if (result != DNS_R_NEWORIGIN) {
-		INSIST(result != ISC_R_SUCCESS);
-		if (result == ISC_R_NOTFOUND) {
-			/*
-			 * The tree is empty.
-			 */
-			result = ISC_R_NOMORE;
-		}
-		rbtdbiter->node = NULL;
-	} else {
+
+	if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
 						  NULL, &rbtdbiter->node);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			rbtdbiter->new_origin = ISC_TRUE;
-		else
-			rbtdbiter->node = NULL;
+			reference_iter_node(rbtdbiter);
+		}
+	} else {
+		INSIST(result == ISC_R_NOTFOUND);
+		result = ISC_R_NOMORE; /* The tree is empty. */
 	}
+
 	rbtdbiter->result = result;
 
 	return (result);
@@ -4734,35 +4750,29 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
-	unpause(rbtdbiter);
+	if (rbtdbiter->paused)
+		resume_iteration(rbtdbiter);
 
-	if (rbtdbiter->tree_locked == isc_rwlocktype_none) {
-		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-		rbtdbiter->tree_locked = isc_rwlocktype_read;
-	}
+	dereference_iter_node(rbtdbiter);
 
 	name = dns_fixedname_name(&rbtdbiter->name);
 	origin = dns_fixedname_name(&rbtdbiter->origin);
 	dns_rbtnodechain_reset(&rbtdbiter->chain);
+
 	result = dns_rbtnodechain_last(&rbtdbiter->chain, rbtdb->tree, name,
 				       origin);
-	if (result != DNS_R_NEWORIGIN) {
-		INSIST(result != ISC_R_SUCCESS);
-		if (result == ISC_R_NOTFOUND) {
-			/*
-			 * The tree is empty.
-			 */
-			result = ISC_R_NOMORE;
-		}
-		rbtdbiter->node = NULL;
-	} else {
+	if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
 						  NULL, &rbtdbiter->node);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			rbtdbiter->new_origin = ISC_TRUE;
-		else
-			rbtdbiter->node = NULL;
+			reference_iter_node(rbtdbiter);
+		}
+	} else {
+		INSIST(result == ISC_R_NOTFOUND);
+		result = ISC_R_NOMORE; /* The tree is empty. */
 	}
+
 	rbtdbiter->result = result;
 
 	return (result);
@@ -4779,32 +4789,29 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
-	unpause(rbtdbiter);
+	if (rbtdbiter->paused)
+		resume_iteration(rbtdbiter);
 
-	if (rbtdbiter->tree_locked == isc_rwlocktype_none) {
-		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-		rbtdbiter->tree_locked = isc_rwlocktype_read;
-	}
+	dereference_iter_node(rbtdbiter);
 
 	iname = dns_fixedname_name(&rbtdbiter->name);
 	origin = dns_fixedname_name(&rbtdbiter->origin);
 	dns_rbtnodechain_reset(&rbtdbiter->chain);
-	rbtdbiter->node = NULL;
+
 	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &rbtdbiter->node,
 				  &rbtdbiter->chain, DNS_RBTFIND_EMPTYDATA,
 				  NULL, NULL);
-	if (result != ISC_R_SUCCESS) {
-		if (result == DNS_R_PARTIALMATCH)
-			result = ISC_R_NOTFOUND;
-		rbtdbiter->node = NULL;
-	} else {
+	if (result == ISC_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, iname,
 						  origin, NULL);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			rbtdbiter->new_origin = ISC_TRUE;
-		else
-			rbtdbiter->node = NULL;
-	}
+			reference_iter_node(rbtdbiter);
+		}
+
+	} else if (result == DNS_R_PARTIALMATCH)
+		result = ISC_R_NOTFOUND;
+
 	rbtdbiter->result = result;
 
 	return (result);
@@ -4827,19 +4834,19 @@ dbiterator_prev(dns_dbiterator_t *iterator) {
 	name = dns_fixedname_name(&rbtdbiter->name);
 	origin = dns_fixedname_name(&rbtdbiter->origin);
 	result = dns_rbtnodechain_prev(&rbtdbiter->chain, name, origin);
+
+	dereference_iter_node(rbtdbiter);
+
 	if (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		if (result == DNS_R_NEWORIGIN)
-			rbtdbiter->new_origin = ISC_TRUE;
-		else
-			rbtdbiter->new_origin = ISC_FALSE;
+		rbtdbiter->new_origin = ISC_TF(result == DNS_R_NEWORIGIN);
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
 						  NULL, &rbtdbiter->node);
-		if (result != ISC_R_SUCCESS) {
-			rbtdbiter->result = result;
-			rbtdbiter->node = NULL;
-		}
-	} else
-		rbtdbiter->result = result;
+	}
+
+	if (result == ISC_R_SUCCESS)
+		reference_iter_node(rbtdbiter);
+
+	rbtdbiter->result = result;
 
 	return (result);
 }
@@ -4861,19 +4868,18 @@ dbiterator_next(dns_dbiterator_t *iterator) {
 	name = dns_fixedname_name(&rbtdbiter->name);
 	origin = dns_fixedname_name(&rbtdbiter->origin);
 	result = dns_rbtnodechain_next(&rbtdbiter->chain, name, origin);
+
+	dereference_iter_node(rbtdbiter);
+
 	if (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		if (result == DNS_R_NEWORIGIN)
-			rbtdbiter->new_origin = ISC_TRUE;
-		else
-			rbtdbiter->new_origin = ISC_FALSE;
+		rbtdbiter->new_origin = ISC_TF(result == DNS_R_NEWORIGIN);
 		result = dns_rbtnodechain_current(&rbtdbiter->chain, NULL,
 						  NULL, &rbtdbiter->node);
-		if (result != ISC_R_SUCCESS) {
-			rbtdbiter->result = result;
-			rbtdbiter->node = NULL;
-		}
-	} else
-		rbtdbiter->result = result;
+	}
+	if (result == ISC_R_SUCCESS)
+		reference_iter_node(rbtdbiter);
+
+	rbtdbiter->result = result;
 
 	return (result);
 }
@@ -4929,8 +4935,9 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		 * expirenode() currently always returns success.
 		 */
 		if (expire_result == ISC_R_SUCCESS && node->down == NULL) {
-			LOCK(&rbtdb->node_locks[node->locknum].lock);
 			rbtdbiter->deletions[rbtdbiter->delete++] = node;
+			LOCK(&rbtdb->node_locks[node->locknum].lock);
+			node->references++;
 			UNLOCK(&rbtdb->node_locks[node->locknum].lock);
 		}
 	}
@@ -4942,7 +4949,6 @@ static isc_result_t
 dbiterator_pause(dns_dbiterator_t *iterator) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
-	dns_rbtnode_t *node = rbtdbiter->node;
 
 	if (rbtdbiter->result != ISC_R_SUCCESS &&
 	    rbtdbiter->result != ISC_R_NOMORE)
@@ -4951,14 +4957,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 	if (rbtdbiter->paused)
 		return (ISC_R_SUCCESS);
 
-	if (node != NULL) {
-		INSIST(rbtdbiter->tree_locked != isc_rwlocktype_none);
-		LOCK(&rbtdb->node_locks[node->locknum].lock);
-		new_reference(rbtdb, node);
-		UNLOCK(&rbtdb->node_locks[node->locknum].lock);
-
-		rbtdbiter->paused = ISC_TRUE;
-	}
+	rbtdbiter->paused = ISC_TRUE;
 
 	if (rbtdbiter->tree_locked != isc_rwlocktype_none) {
 		INSIST(rbtdbiter->tree_locked == isc_rwlocktype_read);
