@@ -72,8 +72,8 @@ struct ns_clientmgr {
 	isc_mutex_t			lock;
 	/* Locked by lock. */
 	isc_boolean_t			exiting;
-	unsigned int			nclients;
-	ISC_LIST(ns_client_t)		clients;
+	client_list_t			active; 	/* Active clients */
+	client_list_t 			inactive;	/* Recycling center */
 };
 
 #define MANAGER_MAGIC			0x4E53436DU	/* NSCm */
@@ -81,6 +81,8 @@ struct ns_clientmgr {
 					 (m)->magic == MANAGER_MAGIC)
 
 
+static void client_read(ns_client_t *client);
+static void client_accept(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 
 
@@ -105,6 +107,46 @@ release_quotas(ns_client_t *client) {
 		isc_quota_detach(&client->tcpquota);
 	if (client->recursionquota != NULL)
 		isc_quota_detach(&client->recursionquota);
+}
+
+/*
+ * Enter an inactive state identical to that of a newly created client.
+ */
+static void
+deactivate(ns_client_t *client)
+{
+	CTRACE("deactivate");
+	
+	if (client->interface)
+		ns_interface_detach(&client->interface);
+
+	if (client->dispentry != NULL) {
+		dns_dispatchevent_t **deventp;
+		if (client->dispevent != NULL)
+			deventp = &client->dispevent;
+		else
+			deventp = NULL;
+		dns_dispatch_removerequest(client->dispatch,
+					   &client->dispentry,
+					   deventp);
+	}
+
+	if (client->dispatch != NULL)
+		dns_dispatch_detach(&client->dispatch);
+
+	INSIST(client->naccepts == 0);	
+	if (client->tcplistener != NULL)
+		isc_socket_detach(&client->tcplistener);
+
+	if (client->tcpmsg_valid) {
+		dns_tcpmsg_invalidate(&client->tcpmsg);
+		client->tcpmsg_valid = ISC_FALSE;
+	}
+	if (client->tcpsocket != NULL)
+		isc_socket_detach(&client->tcpsocket);
+	
+	client->attributes = 0;	
+	client->mortal = ISC_FALSE;
 }
 
 /*
@@ -156,47 +198,29 @@ maybe_free(ns_client_t *client) {
 	
 	/* We have received our last event. */
 
-	ns_interface_detach(&client->interface);
+	deactivate(client);
+	
 	ns_query_free(client);
-	isc_mempool_destroy(&client->sendbufs);
+	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 	isc_timer_detach(&client->timer);
 	
-	if (client->dispentry != NULL) {
-		dns_dispatchevent_t **deventp;
-		if (client->dispevent != NULL)
-			deventp = &client->dispevent;
-		else
-			deventp = NULL;
-		dns_dispatch_removerequest(client->dispatch,
-					   &client->dispentry,
-					   deventp);
-	}
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
 	dns_message_destroy(&client->message);
-	if (client->tcpmsg_valid)
-		dns_tcpmsg_invalidate(&client->tcpmsg);		
-	if (client->dispatch != NULL)
-		dns_dispatch_detach(&client->dispatch);
-	if (client->tcpsocket != NULL)
-		isc_socket_detach(&client->tcpsocket);
-	if (client->tcplistener != NULL)
-		isc_socket_detach(&client->tcplistener);
 	if (client->task != NULL)
 		isc_task_detach(&client->task);
 	if (client->manager != NULL) {
 		manager = client->manager;
 		LOCK(&manager->lock);
-		
-		INSIST(manager->nclients > 0);
-		manager->nclients--;
-		if (manager->nclients == 0 && manager->exiting)
-				need_clientmgr_destroy = ISC_TRUE;
-		ISC_LIST_UNLINK(manager->clients, client, link);
-		
+		ISC_LIST_UNLINK(*client->list, client, link);
+		client->list = NULL;
+		if (manager->exiting &&
+		    (ISC_LIST_EMPTY(manager->active) &&
+		     ISC_LIST_EMPTY(manager->inactive))) 
+		    need_clientmgr_destroy = ISC_TRUE;
 		UNLOCK(&manager->lock);
 	}
 
@@ -235,15 +259,21 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static void client_read(ns_client_t *client);
-static void client_accept(ns_client_t *client);
-
+/*
+ * Wrap up after a finished client request and prepare for
+ * handling the next one.
+ */
 void
 ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	CTRACE("next");
+	INSIST(client->naccepts == 0);
+	INSIST(client->nreads == 0);
+	INSIST(client->nsends == 0);
+	INSIST(client->nwaiting == 0);
+	INSIST(client->lockview == NULL);
 
 	if (client->next != NULL) {
 		(client->next)(client, result);
@@ -290,8 +320,15 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 			 */
 		}
 		if (! need_another_client) {
-			/* XXX should put in "idle client pool" instead. */
-			isc_task_shutdown(client->task);		
+			/*
+			 * We don't need this client object.  Recycle it.
+			 */
+			LOCK(&client->manager->lock);
+			ISC_LIST_UNLINK(client->manager->active, client, link);
+			deactivate(client);
+			ISC_LIST_APPEND(client->manager->inactive, client, link);
+			client->list = &client->manager->inactive;
+			UNLOCK(&client->manager->lock);			
 			return;
 		}
 		client->mortal = ISC_FALSE;
@@ -335,7 +372,7 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 static void
 client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
-	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	isc_socketevent_t *sevent = (isc_socketevent_t *) event;
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->type == ISC_SOCKEVENT_SENDDONE);
@@ -347,7 +384,6 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->nsends > 0);
 	client->nsends--;
-	isc_mempool_put(client->sendbufs, sevent->region.base);
 
 	isc_event_free(&event);
 
@@ -356,32 +392,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	/*
-	 * If all of its sendbufs buffers were busy, the client might be
-	 * waiting for one to become available.
-	 */
-	if (client->waiting_for_bufs == ISC_TRUE) {
-		client->waiting_for_bufs = ISC_FALSE;
-
-		/*
-		 * Must lock the view here because ns_client_send()
-		 * uses view configuration for TSIGs and stuff.
-		 */
-		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
-		dns_view_attach(client->view, &client->lockview);
-		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-		
-		ns_client_send(client);
-		
-		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-		dns_view_detach(&client->lockview);
-		dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
-		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-
-		return;
-	}
-	/* XXXRTH need to add exit draining mode. */
+	ns_client_next(client, ISC_R_SUCCESS);
 }
 
 void
@@ -402,22 +413,7 @@ ns_client_send(ns_client_t *client) {
 	if ((client->attributes & NS_CLIENTATTR_RA) != 0)
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
 	
-	data = isc_mempool_get(client->sendbufs);
-	if (data == NULL) {
-		CTRACE("no buffers available");
-		if (client->nsends > 0) {
-			/*
-			 * We couldn't get memory, but there is at least one
-			 * send outstanding.  We arrange to be restarted when a
-			 * send completes.
-			 */
-			CTRACE("waiting");
-			client->waiting_for_bufs = ISC_TRUE;
-		} else
-			ns_client_next(client, ISC_R_NOMEMORY);
-		return;
-	}
-
+	data = client->sendbuf;
 	/*
 	 * XXXRTH  The following doesn't deal with TSIGs, TCP buffer resizing,
 	 *         or ENDS1 more data packets.
@@ -494,13 +490,11 @@ ns_client_send(ns_client_t *client) {
 	CTRACE("sendto");
 	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
 				   client, address, NULL);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		client->nsends++;
-
+		return;
+	}
  done:
-	if (result != ISC_R_SUCCESS)
-		isc_mempool_put(client->sendbufs, data);
-
 	ns_client_next(client, result);
 }
 	
@@ -856,8 +850,7 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-client_create(ns_clientmgr_t *manager, 
-	      ns_interface_t *ifp, ns_client_t **clientp)
+client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 {
 	ns_client_t *client;
 	isc_result_t result;
@@ -900,19 +893,14 @@ client_create(ns_clientmgr_t *manager,
 		goto cleanup_timer;
 
 	/* XXXRTH  Hardwired constants */
-	client->sendbufs = NULL;
-	result = isc_mempool_create(manager->mctx, SEND_BUFFER_SIZE,
-				    &client->sendbufs);
-	if (result != ISC_R_SUCCESS)
+	client->sendbuf = isc_mem_get(manager->mctx, SEND_BUFFER_SIZE);
+	if  (client->sendbuf == NULL)
 		goto cleanup_message;
-	isc_mempool_setfreemax(client->sendbufs, 3);
-	isc_mempool_setmaxalloc(client->sendbufs, 3);
 
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
 	client->manager = NULL;
 	client->shuttingdown = ISC_FALSE;
-	client->waiting_for_bufs = ISC_FALSE;
 	client->naccepts = 0;
 	client->nreads = 0;
 	client->nsends = 0;
@@ -937,6 +925,7 @@ client_create(ns_clientmgr_t *manager,
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	ISC_LINK_INIT(client, link);
+	client->list = NULL;
 
 	/*
 	 * We call the init routines for the various kinds of client here,
@@ -945,18 +934,16 @@ client_create(ns_clientmgr_t *manager,
 	 */
 	result = ns_query_init(client);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_sendbufs;
+		goto cleanup_sendbuf;
 
-	ns_interface_attach(ifp, &client->interface);
-	
 	CTRACE("create");
 
 	*clientp = client;
 
 	return (ISC_R_SUCCESS);
 
- cleanup_sendbufs:
-	isc_mempool_destroy(&client->sendbufs);
+ cleanup_sendbuf:
+	isc_mem_put(manager->mctx, client->sendbuf, SEND_BUFFER_SIZE);
 
 	client->magic = 0;
 
@@ -1124,8 +1111,8 @@ ns_client_replace(ns_client_t *client) {
 
 static void
 clientmgr_destroy(ns_clientmgr_t *manager) {
-	REQUIRE(manager->nclients == 0);
-	REQUIRE(ISC_LIST_EMPTY(manager->clients));
+	REQUIRE(ISC_LIST_EMPTY(manager->active));
+	REQUIRE(ISC_LIST_EMPTY(manager->inactive));
 
 	MTRACE("clientmgr_destroy");
 
@@ -1152,8 +1139,8 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	manager->taskmgr = taskmgr;
 	manager->timermgr = timermgr;
 	manager->exiting = ISC_FALSE;
-	manager->nclients = 0;
-	ISC_LIST_INIT(manager->clients);
+	ISC_LIST_INIT(manager->active);
+	ISC_LIST_INIT(manager->inactive);
 	manager->magic = MANAGER_MAGIC;
 
 	MTRACE("create");
@@ -1184,12 +1171,18 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	manager->exiting = ISC_TRUE;
 
-	for (client = ISC_LIST_HEAD(manager->clients);
+	for (client = ISC_LIST_HEAD(manager->active);
 	     client != NULL;
 	     client = ISC_LIST_NEXT(client, link))
 		isc_task_shutdown(client->task);
 
-	if (ISC_LIST_EMPTY(manager->clients))
+	for (client = ISC_LIST_HEAD(manager->inactive);
+	     client != NULL;
+	     client = ISC_LIST_NEXT(client, link))
+		isc_task_shutdown(client->task);
+
+	if (ISC_LIST_EMPTY(manager->active) &&
+	    ISC_LIST_EMPTY(manager->inactive))
 		need_destroy = ISC_TRUE;
 
 	UNLOCK(&manager->lock);
@@ -1222,10 +1215,24 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 	LOCK(&manager->lock);
 
 	for (i = 0; i < n; i++) {
-		client = NULL;
-		result = client_create(manager, ifp, &client);
-		if (result != ISC_R_SUCCESS)
-			break;
+		/*
+		 * Allocate a client.  First try to get a recycled one;
+		 * if that fails, make a new one.
+		 */
+		client = ISC_LIST_HEAD(manager->inactive);
+		if (client != NULL) {
+			MTRACE("recycle");
+			ISC_LIST_UNLINK(manager->inactive, client, link);
+			client->list = NULL;
+		} else {
+			MTRACE("create new");
+			result = client_create(manager, &client);
+			if (result != ISC_R_SUCCESS)
+				break;
+		}
+
+		ns_interface_attach(ifp, &client->interface);
+
 		if (tcp) {
 			client->attributes |= NS_CLIENTATTR_TCP;
 			isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
@@ -1246,8 +1253,8 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			}
 		}
 		client->manager = manager;
-		ISC_LIST_APPEND(manager->clients, client, link);
-		manager->nclients++;
+		ISC_LIST_APPEND(manager->active, client, link);
+		client->list = &manager->active;
 	}
 	if (i != 0) {
 		/*

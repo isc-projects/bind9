@@ -76,12 +76,13 @@
  *** Types
  ***/
 
+typedef ISC_LIST(ns_client_t) client_list_t;
+     
 struct ns_client {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	ns_clientmgr_t *		manager;
 	isc_boolean_t			shuttingdown;
-	isc_boolean_t			waiting_for_bufs;
 	int				naccepts;
 	int				nreads;
 	int				nsends;
@@ -99,7 +100,7 @@ struct ns_client {
 	isc_boolean_t			tcpmsg_valid;
 	isc_timer_t *			timer;
 	dns_message_t *			message;
-	isc_mempool_t *			sendbufs;
+	unsigned char *			sendbuf;
 	dns_rdataset_t *		opt;
 	isc_uint16_t			udpsize;
 	void				(*next)(ns_client_t *, isc_result_t);
@@ -114,7 +115,9 @@ struct ns_client {
 	isc_quota_t			*tcpquota;
 	isc_quota_t			*recursionquota;
 	ns_interface_t			*interface;
-	ISC_LINK(struct ns_client)	link;
+	ISC_LINK(ns_client_t)		link;
+	client_list_t			*list;	/* The list 'link' is part of,
+					   or NULL if not on any list. */
 };
 
 #define NS_CLIENT_MAGIC			0x4E534363U	/* NSCc */
