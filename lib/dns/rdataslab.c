@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.4 1999/06/16 21:03:07 halley Exp $ */
+/* $Id: rdataslab.c,v 1.5 1999/06/17 00:31:32 halley Exp $ */
 
 #include <config.h>
 
@@ -282,6 +282,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	unsigned int mcount, scount, count, tlength, tcount;
 	isc_region_t mregion, sregion;
 	dns_rdata_t srdata, mrdata;
+	isc_boolean_t removed_something = ISC_FALSE;
 
 	/*
 	 * Subtract 'sslab' from 'mslab'.
@@ -335,7 +336,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			 */
 			tlength += mregion.length + 2;
 			tcount++;
-		}
+		} else
+			removed_something = ISC_TRUE;
 		mcurrent += mregion.length;
 		mcount--;
 	} while (mcount > 0);
@@ -345,6 +347,12 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 */
 	if (tcount == 0)
 		return (DNS_R_NXRDATASET);
+
+	/*
+	 * If nothing is going to change, we can stop.
+	 */
+	if (!removed_something)
+		return (DNS_R_UNCHANGED);
 
 	/*
 	 * Copy the reserved area from the mslab.
