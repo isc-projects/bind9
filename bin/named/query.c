@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.247 2003/09/30 05:56:01 marka Exp $ */
+/* $Id: query.c,v 1.248 2003/10/25 00:31:06 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1829,7 +1829,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	dns_name_t *tname;
 	dns_dbnode_t *node;
 	unsigned int options;
-	unsigned int odepth, ndepth, i;
+	unsigned int olabels, nlabels, i;
 	isc_boolean_t done;
 	isc_result_t result;
 
@@ -1870,11 +1870,11 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			query_releasename(client, &fname);
 	}
 
-	odepth = dns_name_depth(dns_db_origin(db));
-	ndepth = dns_name_depth(name);
+	olabels = dns_name_countlabels(dns_db_origin(db));
+	nlabels = dns_name_countlabels(name);
 	done = ISC_FALSE;
 
-	for (i = ndepth - 1; i >= odepth && !done; i--) {
+	for (i = nlabels - 1; i >= olabels && !done; i--) {
 		/*
 		 * We'll need some resources...
 		 */
@@ -1889,9 +1889,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 
 		dns_fixedname_init(&tfixed);
 		tname = dns_fixedname_name(&tfixed);
-		result = dns_name_splitatdepth(name, i, NULL, tname);
-		if (result != ISC_R_SUCCESS)
-			continue;
+		dns_name_split(name, i, NULL, tname);
 		result = dns_name_concatenate(dns_wildcardname, tname, tname,
 					      NULL);
 		if (result != ISC_R_SUCCESS)
@@ -1983,8 +1981,7 @@ query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db, dns_name_t **namep,
 	fname = query_newname(client, dbuf, &b);
 	if (fname == NULL)
 		return;
-	RUNTIME_CHECK(dns_name_splitatdepth(name, sig.labels + 1, NULL,
-					    fname) == ISC_R_SUCCESS);
+	dns_name_split(name, sig.labels + 1, NULL, fname);
 	/* This will succeed, since we've stripped labels. */
 	RUNTIME_CHECK(dns_name_concatenate(dns_wildcardname, fname, fname,
 					   NULL) == ISC_R_SUCCESS);
@@ -2265,7 +2262,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t want_restart, authoritative, is_zone, need_wildcardproof;
-	unsigned int n, nlabels, nbits;
+	unsigned int n, nlabels;
 	dns_namereln_t namereln;
 	int order;
 	isc_buffer_t *dbuf;
@@ -2901,7 +2898,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 * we're going to have to split qname later on.
 		 */
 		namereln = dns_name_fullcompare(client->query.qname, fname,
-						&order, &nlabels, &nbits);
+						&order, &nlabels);
 		INSIST(namereln == dns_namereln_subdomain);
 		/*
 		 * Keep a copy of the rdataset.  We have to do this because
@@ -2958,12 +2955,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 */
 		dns_fixedname_init(&fixed);
 		prefix = dns_fixedname_name(&fixed);
-		result = dns_name_split(client->query.qname, nlabels, nbits,
-					prefix, NULL);
-		if (result != ISC_R_SUCCESS) {
-			dns_message_puttempname(client->message, &tname);
-			goto cleanup;
-		}
+		dns_name_split(client->query.qname, nlabels, prefix, NULL);
 		INSIST(fname == NULL);
 		dbuf = query_getnamebuf(client);
 		if (dbuf == NULL) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.11 2003/09/30 05:56:10 marka Exp $ */
+/* $Id: lookup.c,v 1.12 2003/10/25 00:31:09 jinmei Exp $ */
 
 #include <config.h>
 
@@ -188,7 +188,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 	dns_name_t *name, *fname, *prefix;
 	dns_fixedname_t foundname, fixed;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned int nlabels, nbits;
+	unsigned int nlabels;
 	int order;
 	dns_namereln_t namereln;
 	dns_rdata_cname_t cname;
@@ -276,7 +276,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			break;
 		case DNS_R_DNAME:
 			namereln = dns_name_fullcompare(name, fname, &order,
-							&nlabels, &nbits);
+							&nlabels);
 			INSIST(namereln == dns_namereln_subdomain);
 			/*
 			 * Get the target name of the DNAME.
@@ -294,12 +294,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			 */
 			dns_fixedname_init(&fixed);
 			prefix = dns_fixedname_name(&fixed);
-			result = dns_name_split(name, nlabels, nbits, prefix,
-						NULL);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdata_freestruct(&dname);
-				break;
-			}
+			dns_name_split(name, nlabels, prefix, NULL);
 			result = dns_name_concatenate(prefix, &dname.dname,
 						      name, NULL);
 			dns_rdata_freestruct(&dname);

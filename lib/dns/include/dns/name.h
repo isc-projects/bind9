@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.103 2003/07/25 02:22:25 marka Exp $ */
+/* $Id: name.h,v 1.104 2003/10/25 00:31:12 jinmei Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -291,21 +291,6 @@ dns_name_iswildcard(const dns_name_t *name);
  *	FALSE		The least significant label of 'name' is not '*'.
  */
 
-isc_boolean_t
-dns_name_requiresedns(const dns_name_t *name);
-/*
- * Does 'name' require EDNS for transmission?
- *
- * Requires:
- *	'name' is a valid name
- *
- *	dns_name_countlabels(name) > 0
- *
- * Returns:
- *	TRUE		The name requires EDNS to be transmitted.
- *	FALSE		The name does not require EDNS to be transmitted.
- */
-
 unsigned int
 dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
@@ -359,8 +344,7 @@ dns_name_hashbylabel(dns_name_t *name, isc_boolean_t case_sensitive);
 
 dns_namereln_t
 dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
-		     int *orderp,
-		     unsigned int *nlabelsp, unsigned int *nbitsp);
+		     int *orderp, unsigned int *nlabelsp);
 /*
  * Determine the relative ordering under the DNSSEC order relation of
  * 'name1' and 'name2', and also determine the hierarchical
@@ -380,7 +364,7 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
  *
  *	dns_name_countlabels(name2) > 0
  *
- *	orderp, nlabelsp, and nbitsp are valid pointers.
+ *	orderp and nlabelsp are valid pointers.
  *
  *	Either name1 is absolute and name2 is absolute, or neither is.
  *
@@ -390,9 +374,6 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
  *	name1 > name2.
  *
  *	*nlabelsp is the number of common significant labels.
- *
- *	Since we dropped the support of bitstring labels, *nbitsp is always
- *	set to 0.
  *
  * Returns:
  *	dns_namereln_none		There's no hierarchical relationship
@@ -535,25 +516,6 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname);
  * Returns:
  *	TRUE		'name' matches the wildcard specified in 'wname'
  *	FALSE		'name' does not match the wildcard specified in 'wname'
- */
-
-unsigned int
-dns_name_depth(const dns_name_t *name);
-/*
- * The depth of 'name'.
- *
- * Notes:
- *	The "depth" of a name represents how far down the DNS tree of trees
- *	the name is.  For each wire-encoding label in name, the depth is
- *	increased by 1 for an ordinary label.
- *
- *	Depth is used when creating or validating DNSSEC signatures.
- *
- * Requires:
- *	'name' is a valid name
- *
- * Returns:
- *	The depth of 'name'.
  */
 
 /***
@@ -960,18 +922,16 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix,
  *	DNS_R_NAMETOOLONG
  */
 
-isc_result_t
-dns_name_split(dns_name_t *name,
-	       unsigned int suffixlabels, unsigned int nbits,
+void
+dns_name_split(dns_name_t *name, unsigned int suffixlabels,
 	       dns_name_t *prefix, dns_name_t *suffix);
 /*
  *
- * Split 'name' into two pieces on a label or bitlabel boundary.
+ * Split 'name' into two pieces on a label boundary.
  *
  * Notes:
  *      'name' is split such that 'suffix' holds the most significant
- *      'suffixlabels' labels.  All other labels and bits are stored
- *	in 'prefix'. 
+ *      'suffixlabels' labels.  All other labels are stored in 'prefix'. 
  *
  *	Copying name data is avoided as much as possible, so 'prefix'
  *	and 'suffix' will end up pointing at the data for 'name'.
@@ -987,8 +947,6 @@ dns_name_split(dns_name_t *name,
  *	'name' is a valid name.
  *
  * 	'suffixlabels' cannot exceed the number of labels in 'name'.
- *
- *	'nbits' must be 0, since we dropped the support of bitstring labels.
  *
  *	'prefix' is a valid name or NULL, and cannot be read-only.
  *
@@ -1014,39 +972,6 @@ dns_name_split(dns_name_t *name,
  *
  * Returns:
  *	ISC_R_SUCCESS	No worries.  (This function should always success).
- */
-
-isc_result_t
-dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
-		      dns_name_t *prefix, dns_name_t *suffix);
-/*
- * Split 'name' into two pieces at a certain depth.
- *
- * Requires:
- *	'name' is a valid non-empty name.
- *
- *	depth > 0
- *
- *	depth <= dns_name_depth(name)
- *
- *	The preconditions of dns_name_split() apply to 'prefix' and 'suffix'.
- *
- * Ensures:
- *
- *	On success:
- *		If 'prefix' is not NULL it will contain the least significant
- *		labels.
- *
- *		If 'suffix' is not NULL it will contain the most significant
- *		labels.  dns_name_countlabels(suffix) will be equal to
- *		suffixlabels.
- *
- *	On failure:
- *		Either 'prefix' or 'suffix' is invalidated (depending
- *		on which one the problem was encountered with).
- *
- * Returns:
- *	The possible result codes are the same as those of dns_name_split().
  */
 
 isc_result_t
@@ -1264,6 +1189,13 @@ do { \
 	(r)->length = (n)->length; \
 } while (0);
 
+#define DNS_NAME_SPLIT(n, l, p, s) \
+do { \
+	if ((p) != NULL) \
+		dns_name_getlabelsequence((n), 0, (n)->labels - (l), (p)); \
+	if ((s) != NULL) \
+		dns_name_getlabelsequence((n), (n)->labels - (l), (l), (s)); \
+} while (0);
 
 #ifdef DNS_NAME_USEINLINE
 
@@ -1273,6 +1205,7 @@ do { \
 #define dns_name_countlabels(n)		DNS_NAME_COUNTLABELS(n)
 #define dns_name_isabsolute(n)		DNS_NAME_ISABSOLUTE(n)
 #define dns_name_toregion(n, r)		DNS_NAME_TOREGION(n, r)
+#define dns_name_split(n, l, p, s)	DNS_NAME_SPLIT(n, l, p, s)
 
 #endif /* DNS_NAME_USEINLINE */
 

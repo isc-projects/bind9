@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.23 2001/01/09 21:42:11 bwelling Exp $ */
+/* $Id: t_rbt.c,v 1.24 2003/10/25 00:31:08 jinmei Exp $ */
 
 #include <config.h>
 
@@ -581,7 +581,6 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 	int		cnt;
 	int		order;
 	unsigned int	nlabels;
-	unsigned int	nbits;
 	int		nprobs;
 	isc_result_t	dns_result;
 
@@ -668,7 +667,7 @@ t9_walkchain(dns_rbtnodechain_t *chain, dns_rbt_t *rbt) {
 			(void)dns_name_fullcompare(
 						dns_fixedname_name(&fullname1),
 						dns_fixedname_name(&fullname2),
-						&order, &nlabels, &nbits);
+						&order, &nlabels);
 
 			if (order >= 0) {
 			    t_info("unexpected order %s %s %s\n",

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.77 2003/09/30 05:56:10 marka Exp $
+ * $Id: dnssec.c,v 1.78 2003/10/25 00:31:09 jinmei Exp $
  */
 
 
@@ -182,7 +182,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_fixedname_t fnewname;
 
 	REQUIRE(name != NULL);
-	REQUIRE(dns_name_depth(name) <= 255);
+	REQUIRE(dns_name_countlabels(name) <= 255);
 	REQUIRE(set != NULL);
 	REQUIRE(key != NULL);
 	REQUIRE(inception != NULL);
@@ -212,7 +212,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 	sig.covered = set->type;
 	sig.algorithm = dst_key_alg(key);
-	sig.labels = dns_name_depth(name) - 1;
+	sig.labels = dns_name_countlabels(name) - 1;
 	if (dns_name_iswildcard(name))
 		sig.labels--;
 	sig.originalttl = set->ttl;
@@ -403,11 +403,10 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * If the name is an expanded wildcard, use the wildcard name.
 	 */
 	dns_fixedname_init(&fnewname);
-	labels = dns_name_depth(name) - 1;
+	labels = dns_name_countlabels(name) - 1;
 	if (labels - sig.labels > 0) {
-		RUNTIME_CHECK(dns_name_splitatdepth(name, sig.labels + 1, NULL,
-					    dns_fixedname_name(&fnewname))
-			      == ISC_R_SUCCESS);
+		dns_name_split(name, sig.labels + 1, NULL,
+			       dns_fixedname_name(&fnewname));
 		RUNTIME_CHECK(dns_name_downcase(dns_fixedname_name(&fnewname),
 						dns_fixedname_name(&fnewname),
 						NULL)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.124 2003/05/08 04:03:25 marka Exp $ */
+/* $Id: rbt.c,v 1.125 2003/10/25 00:31:10 jinmei Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -352,7 +352,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_namereln_t compared;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rbtnodechain_t chain;
-	unsigned int common_labels, common_bits;
+	unsigned int common_labels;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -398,13 +398,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(add_name, &current_name,
-						&order,
-						&common_labels, &common_bits);
-		/*
-		 * since we dropped the support of bitstring labels,
-		 * common_bits should always be set to 0.
-		 */
-		INSIST(common_bits == 0);
+						&order, &common_labels);
 
 		if (compared == dns_namereln_equal) {
 			*nodep = current;
@@ -445,13 +439,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * not-in-common part to be searched for
 				 * in the next level.
 				 */
-				result = dns_name_split(add_name,
-							common_labels,
-							common_bits,
-							add_name, NULL);
-
-				if (result != ISC_R_SUCCESS)
-					break;
+				dns_name_split(add_name, common_labels,
+					       add_name, NULL);
 
 				/*
 				 * Follow the down pointer (possibly NULL).
@@ -505,14 +494,10 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * two names and a suffix that is the common
 				 * parts of them.
 				 */
-				result = dns_name_split(&current_name,
-							common_labels,
-							common_bits,
-							prefix, suffix);
-
-				if (result == ISC_R_SUCCESS)
-					result = create_node(rbt->mctx, suffix,
-							     &new_current);
+				dns_name_split(&current_name, common_labels,
+					       prefix, suffix);
+				result = create_node(rbt->mctx, suffix,
+						     &new_current);
 
 				if (result != ISC_R_SUCCESS)
 					break;
@@ -602,12 +587,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * result != ISC_R_SUCCESS, which
 					 * is tested after the loop ends).
 					 */
-					result = dns_name_split(add_name,
-								common_labels,
-								common_bits,
-								add_name,
-								NULL);
-
+					dns_name_split(add_name, common_labels,
+						       add_name, NULL);
 
 					break;
 				}
@@ -687,7 +668,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	dns_fixedname_t fixedcallbackname, fixedsearchname;
 	dns_namereln_t compared;
 	isc_result_t result, saved_result;
-	unsigned int common_labels, common_bits;
+	unsigned int common_labels;
 	int order;
 
 	REQUIRE(VALID_RBT(rbt));
@@ -725,9 +706,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	/*
 	 * search_name is the name segment being sought in each tree level.
 	 * By using a fixedname, the search_name will definitely have offsets
-	 * and a buffer for use by any splitting that happens in the middle
-	 * of a bitstring label.  (XXXJT: this can be skipped since we dropped
-	 * bitstring labels).
+	 * for use by any splitting.
 	 * By using dns_name_clone, no name data should be copied thanks to
 	 * the lack of bitstring labels.
 	 */
@@ -744,8 +723,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	while (current != NULL) {
 		NODENAME(current, &current_name);
 		compared = dns_name_fullcompare(search_name, &current_name,
-						&order,
-						&common_labels, &common_bits);
+						&order, &common_labels);
 		last_compared = current;
 
 		if (compared == dns_namereln_equal)
@@ -825,7 +803,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					break;
 				} else {
 					common_labels = tlabels;
-					common_bits = 0;
 					compared = dns_namereln_subdomain;
 					goto subdomain;
 				}
@@ -866,15 +843,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * Whack off the current node's common parts
 				 * for the name to search in the next level.
 				 */
-				result = dns_name_split(search_name,
-							common_labels,
-							common_bits,
-							search_name, NULL);
-				if (result != ISC_R_SUCCESS) {
-					dns_rbtnodechain_reset(chain);
-					return (result);
-				}
-
+				dns_name_split(search_name, common_labels,
+					       search_name, NULL);
 				/*
 				 * This might be the closest enclosing name.
 				 */
@@ -1086,8 +1056,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 								search_name,
 								&current_name,
 								&order,
-								&common_labels,
-								&common_bits);
+								&common_labels);
 
 					last_compared = current;
 

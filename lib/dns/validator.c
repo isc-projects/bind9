@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.113 2003/09/30 05:56:14 marka Exp $ */
+/* $Id: validator.c,v 1.114 2003/10/25 00:31:11 jinmei Exp $ */
 
 #include <config.h>
 
@@ -441,7 +441,7 @@ nsecprovesnonexistence(dns_validator_t *val, dns_name_t *nsecname,
 	isc_boolean_t isnxdomain;
 	isc_result_t result;
 	dns_namereln_t relation;
-	unsigned int olabels, nlabels, labels, bits;
+	unsigned int olabels, nlabels, labels;
 
 	INSIST(DNS_MESSAGE_VALID(val->event->message));
 
@@ -460,7 +460,7 @@ nsecprovesnonexistence(dns_validator_t *val, dns_name_t *nsecname,
 
 	validator_log(val, ISC_LOG_DEBUG(3), "looking for relevant nsec");
 	relation = dns_name_fullcompare(val->event->name, nsecname,
-					&order, &olabels, &bits);
+					&order, &olabels);
 	if (order == 0) {
 		/*
 		 * The names are the same.  Look for the type present bit.
@@ -496,8 +496,7 @@ nsecprovesnonexistence(dns_validator_t *val, dns_name_t *nsecname,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			relation = dns_name_fullcompare(&nsec.next,
 						        val->event->name,
-							&order, &nlabels,
-							&bits);
+							&order, &nlabels);
 			if (order > 0 && relation == dns_namereln_subdomain) {
 				dns_rdata_freestruct(&nsec);
 				validator_log(val, ISC_LOG_DEBUG(3),
@@ -548,7 +547,7 @@ nsecprovesnonexistence(dns_validator_t *val, dns_name_t *nsecname,
 			return (ISC_FALSE);
 		dns_rdata_reset(&rdata);
 		relation = dns_name_fullcompare(&nsec.next, val->event->name,
-						&order, &nlabels, &bits);
+						&order, &nlabels);
 		if (order <= 0) {
 			/*
 			 * The NSEC next name is less than the nonexistent
@@ -820,7 +819,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 static isc_result_t
 get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	isc_result_t result;
-	unsigned int nbits, nlabels;
+	unsigned int nlabels;
 	int order;
 	dns_namereln_t namereln;
 
@@ -831,7 +830,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	 * or closer to the the DNS root.
 	 */
 	namereln = dns_name_fullcompare(val->event->name, &siginfo->signer,
-					&order, &nlabels, &nbits);
+					&order, &nlabels);
 	if (namereln != dns_namereln_subdomain &&
 	    namereln != dns_namereln_equal)
 		return (DNS_R_CONTINUE);
@@ -1548,29 +1547,27 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	else if (result != ISC_R_SUCCESS)
 		return (result);
 
-	if (!resume)
-		val->labels = dns_name_depth(dns_fixedname_name(&secroot)) + 1;
-	else {
+	if (!resume) {
+		val->labels =
+			dns_name_countlabels(dns_fixedname_name(&secroot)) + 1;
+	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming proveunsecure");
 		val->labels++;
 	}
 
 	for (;
-	     val->labels <= dns_name_depth(val->event->name);
+	     val->labels <= dns_name_countlabels(val->event->name);
 	     val->labels++)
 	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 
-		if (val->labels == dns_name_depth(val->event->name)) {
+		if (val->labels == dns_name_countlabels(val->event->name)) {
 			tname = val->event->name;
 		} else {
 			dns_fixedname_init(&val->fname);
 			tname = dns_fixedname_name(&val->fname);
-			result = dns_name_splitatdepth(val->event->name,
-						       val->labels,
-						       NULL, tname);
-			if (result != ISC_R_SUCCESS)
-				return (result);
+			dns_name_split(val->event->name, val->labels,
+				       NULL, tname);
 		}
 
 		dns_name_format(tname, namebuf, sizeof(namebuf));

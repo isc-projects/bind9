@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.210 2003/10/17 03:46:43 marka Exp $ */
+/* $Id: adb.c,v 1.211 2003/10/25 00:31:08 jinmei Exp $ */
 
 /*
  * Implementation notes
@@ -958,7 +958,7 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 {
 	isc_result_t result;
 	dns_namereln_t namereln;
-	unsigned int nlabels, nbits;
+	unsigned int nlabels;
 	int order;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_fixedname_t fixed1, fixed2;
@@ -987,8 +987,7 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		dns_rdata_dname_t dname;
 
 		INSIST(rdataset->type == dns_rdatatype_dname);
-		namereln = dns_name_fullcompare(name, fname, &order,
-						&nlabels, &nbits);
+		namereln = dns_name_fullcompare(name, fname, &order, &nlabels);
 		INSIST(namereln == dns_namereln_subdomain);
 		/*
 		 * Get the target name of the DNAME.
@@ -1007,13 +1006,7 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		prefix = dns_fixedname_name(&fixed1);
 		dns_fixedname_init(&fixed2);
 		new_target = dns_fixedname_name(&fixed2);
-		result = dns_name_split(name, nlabels, nbits, prefix, NULL);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdata_freestruct(&dname);
-			return (result);
-		}
-		result = dns_name_concatenate(prefix, &dname.dname, new_target,
-					      NULL);
+		dns_name_split(name, nlabels, prefix, NULL);
 		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS)
 			return (result);

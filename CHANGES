@@ -1,4 +1,5 @@
-1528.	[placeholder]
+1528.	[cleanup]	Simplify some dns_name_ functions based on the
+			deprecation of bitstring labels.
 
 1527.	[cleanup]	Reduce the number of gettimeofday() calls without
 			losing necessary timer granularity.

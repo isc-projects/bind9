@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.34 2002/08/27 04:53:39 marka Exp $ */
+/* $Id: t_names.c,v 1.35 2003/10/25 00:31:08 jinmei Exp $ */
 
 #include <config.h>
 
@@ -710,7 +710,7 @@ t_dns_name_hash(void) {
 }
 
 static const char *a10 =
-		"dns_name_fullcompare(name1, name2, orderp, nlabelsp, nbitsp) "
+		"dns_name_fullcompare(name1, name2, orderp, nlabelsp) "
 		"returns the DNSSEC ordering relationship between name1 and "
 		"name2, sets orderp to -1 if name1 < name2, to 0 if "
 		"name1 == name2, or to 1 if name1 > name2, sets nlabelsp "
@@ -744,13 +744,12 @@ dns_namereln_to_text(dns_namereln_t reln) {
 static int
 test_dns_name_fullcompare(char *name1, char *name2,
 			  dns_namereln_t exp_dns_reln,
-			  int exp_order, int exp_nlabels, int exp_nbits)
+			  int exp_order, int exp_nlabels)
 {
 	int		result;
 	int		nfails;
 	int		order;
 	unsigned int	nlabels;
-	unsigned int	nbits;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
 	isc_result_t	dns_result;
@@ -768,7 +767,7 @@ test_dns_name_fullcompare(char *name1, char *name2,
 		dns_result = dname_from_tname(name2, &dns_name2);
 		if (dns_result == ISC_R_SUCCESS) {
 			dns_reln = dns_name_fullcompare(&dns_name1, &dns_name2,
-					&order, &nlabels, &nbits);
+					&order, &nlabels);
 
 			if (dns_reln != exp_dns_reln) {
 				++nfails;
@@ -793,12 +792,6 @@ test_dns_name_fullcompare(char *name1, char *name2,
 				++nfails;
 				t_info("expecting %d labels, got %d\n",
 				       exp_nlabels, nlabels);
-			}
-			if ((exp_nbits >= 0) &&
-			    (nbits != (unsigned int)exp_nbits)) {
-				++nfails;
-				t_info("expecting %d bits, got %d\n",
-				       exp_nbits, nbits);
 			}
 			if (nfails == 0)
 				result = T_PASS;
@@ -845,7 +838,7 @@ t_dns_name_fullcompare(void) {
 			if (cnt == 6) {
 				/*
 				 * name1, name2, exp_reln, exp_order,
-				 * exp_nlabels, exp_nbits
+				 * exp_nlabels
 				 */
 				if (!strcmp(Tokens[2], "none"))
 					reln = dns_namereln_none;
@@ -867,8 +860,7 @@ t_dns_name_fullcompare(void) {
 						Tokens[1],
 						reln,
 						atoi(Tokens[3]),
-						atoi(Tokens[4]),
-						atoi(Tokens[5]));
+						atoi(Tokens[4]));
 			} else {
 				t_info("bad format at line %d\n", line);
 			}
@@ -1509,7 +1501,6 @@ test_dns_name_fromregion(char *test_name) {
 	int		result;
 	int		order;
 	unsigned int	nlabels;
-	unsigned int	nbits;
 	isc_result_t	dns_result;
 	dns_name_t	dns_name1;
 	dns_name_t	dns_name2;
@@ -1528,7 +1519,7 @@ test_dns_name_fromregion(char *test_name) {
 		dns_name_init(&dns_name2, NULL);
 		dns_name_fromregion(&dns_name2, &region);
 		dns_namereln = dns_name_fullcompare(&dns_name1, &dns_name2,
-						    &order, &nlabels, &nbits);
+						    &order, &nlabels);
 		if (dns_namereln == dns_namereln_equal)
 			result = T_PASS;
 		else
@@ -1647,7 +1638,6 @@ test_dns_name_fromtext(char *test_name1, char *test_name2, char *test_origin,
 	int		result;
 	int		order;
 	unsigned int	nlabels;
-	unsigned int	nbits;
 	unsigned char	junk1[BUFLEN];
 	unsigned char	junk2[BUFLEN];
 	unsigned char	junk3[BUFLEN];
@@ -1711,7 +1701,7 @@ test_dns_name_fromtext(char *test_name1, char *test_name2, char *test_origin,
 	}
 
 	dns_namereln = dns_name_fullcompare(&dns_name1, &dns_name2, &order,
-					    &nlabels, &nbits);
+					    &nlabels);
 
 	if (dns_namereln == dns_namereln_equal)
 		result = T_PASS;
@@ -1787,7 +1777,6 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	int		len;
 	int		order;
 	unsigned int	nlabels;
-	unsigned int	nbits;
 	unsigned char	junk1[BUFLEN];
 	unsigned char	junk2[BUFLEN];
 	unsigned char	junk3[BUFLEN];
@@ -1847,7 +1836,7 @@ test_dns_name_totext(char *test_name, isc_boolean_t omit_final) {
 	}
 
 	dns_namereln = dns_name_fullcompare(&dns_name1, &dns_name2,
-					    &order, &nlabels, &nbits);
+					    &order, &nlabels);
 	if (dns_namereln == dns_namereln_equal)
 		result = T_PASS;
 	else {
@@ -1960,7 +1949,6 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 	int			result;
 	int			order;
 	unsigned int		nlabels;
-	unsigned int		nbits;
 	int			len;
 	unsigned char		buf1[BIGBUFLEN];
 	char			buf2[BUFLEN];
@@ -1994,8 +1982,7 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 		if (dns_result == ISC_R_SUCCESS) {
 			dns_namereln = dns_name_fullcompare(&dns_name1,
 							    &dns_name2,
-							    &order, &nlabels,
-							    &nbits);
+							    &order, &nlabels);
 			if (dns_namereln != dns_namereln_equal) {
 				t_info("dns_name_fullcompare  returned %s\n",
 				       dns_namereln_to_text(dns_namereln));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.34 2001/11/27 01:55:19 gson Exp $ */
+/* $Id: name_test.c,v 1.35 2003/10/25 00:31:07 jinmei Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t test_downcase = ISC_FALSE;
 	isc_boolean_t inplace = ISC_FALSE;
 	isc_boolean_t want_split = ISC_FALSE;
-	unsigned int depth, split_depth = 0;
+	unsigned int labels, split_label = 0;
 	dns_fixedname_t fprefix, fsuffix;
 	dns_name_t *prefix, *suffix;
 	int ch;
@@ -107,7 +107,7 @@ main(int argc, char *argv[]) {
 			break;
 		case 's':
 			want_split = ISC_TRUE;
-			split_depth = atoi(isc_commandline_argument);
+			split_label = atoi(isc_commandline_argument);
 			break;
 		case 'w':
 			check_wildcard = ISC_TRUE;
@@ -292,11 +292,11 @@ main(int argc, char *argv[]) {
 
 		if (comp != NULL && dns_name_countlabels(name) > 0) {
 			int order;
-			unsigned int nlabels, nbits;
+			unsigned int nlabels;
 			dns_namereln_t namereln;
 
 			namereln = dns_name_fullcompare(name, comp, &order,
-							&nlabels, &nbits);
+							&nlabels);
 			if (!quiet) {
 				if (order < 0)
 					printf("<");
@@ -327,24 +327,18 @@ main(int argc, char *argv[]) {
 			       dns_name_equal(name, comp) ? "TRUE" : "FALSE");
 		}
 
-		depth = dns_name_depth(name);
-		if (want_split && split_depth < depth) {
+		labels = dns_name_countlabels(name);
+		if (want_split && split_label < labels) {
 			dns_fixedname_init(&fprefix);
 			prefix = dns_fixedname_name(&fprefix);
 			dns_fixedname_init(&fsuffix);
 			suffix = dns_fixedname_name(&fsuffix);
-			printf("splitting at depth %u: ", split_depth);
-			result = dns_name_splitatdepth(name, split_depth,
-						       prefix, suffix);
-			if (result == ISC_R_SUCCESS) {
-				printf("\n    prefix = ");
-				print_name(prefix);
-				printf("    suffix = ");
-				print_name(suffix);
-			} else {
-				printf("failed: %s\n",
-				       isc_result_totext(result));
-			}
+			printf("splitting at label %u: ", split_label);
+			dns_name_split(name, split_label, prefix, suffix);
+			printf("\n    prefix = ");
+			print_name(prefix);
+			printf("    suffix = ");
+			print_name(suffix);
 		}
 
 		if (concatenate) {
