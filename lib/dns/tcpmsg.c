@@ -68,7 +68,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 		tcpmsg->result = DNS_R_UNEXPECTEDEND;
 		goto send_and_free;
 	}
-	if (tcpmsg->size > 65536) {
+	if (tcpmsg->size > tcpmsg->maxsize) {
 		tcpmsg->result = DNS_R_RANGE;
 		goto send_and_free;
 	}
@@ -139,7 +139,7 @@ dns_tcpmsg_initialize(isc_mem_t *mctx, isc_socket_t *sock,
 	tcpmsg->size = 0;
 	tcpmsg->buffer.base = NULL;
 	tcpmsg->buffer.length = 0;
-	tcpmsg->maxsize = 65536;  /* largest message possible */
+	tcpmsg->maxsize = 65535;  /* largest message possible */
 	tcpmsg->mctx = mctx;
 	tcpmsg->sock = sock;
 	tcpmsg->task = NULL;  /* none yet */
@@ -201,7 +201,7 @@ dns_tcpmsg_cancelread(dns_tcpmsg_t *tcpmsg)
 {
 	REQUIRE(VALID_TCPMSG(tcpmsg));
 
-	isc_socket_cancel(tcpmsg->sock, tcpmsg->task, ISC_SOCKCANCEL_RECV);
+	isc_socket_cancel(tcpmsg->sock, NULL, ISC_SOCKCANCEL_RECV);
 }
 
 void
