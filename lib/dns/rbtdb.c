@@ -719,7 +719,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 
 	dns_name_init(&foundname, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
-	result = dns_rbt_findnode(rbtdb->tree, name, &node, NULL);
+	result = dns_rbt_findnode(rbtdb->tree, name, NULL, &node, NULL);
  again:
 	if (result == DNS_R_SUCCESS) {
 		locknum = node->locknum;
