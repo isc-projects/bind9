@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.1 1999/09/01 20:50:49 bwelling Exp $
+ * $Id: dnssec.c,v 1.2 1999/09/02 00:00:22 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -208,7 +208,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_result_t ret;
 	unsigned char data[300];
 	digestctx_t dctx;
-	u_int32_t flags;
+	isc_uint32_t flags;
 
 	REQUIRE(name != NULL);
 	REQUIRE(set != NULL);
@@ -359,7 +359,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dst_context_t ctx;
 	digestctx_t dctx;
 	int labels;
-	u_int32_t flags;
+	isc_uint32_t flags;
 
 	REQUIRE(name != NULL);
 	REQUIRE(set != NULL);
