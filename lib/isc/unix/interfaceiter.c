@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.31 2003/02/24 01:46:11 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.32 2003/03/03 01:42:59 marka Exp $ */
 
 #include <config.h>
 
@@ -73,7 +73,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		       &((struct sockaddr_in *) src)->sin_addr,
 		       sizeof(struct in_addr));
 		break;
-	case	AF_INET6:
+	case AF_INET6:
 		sa6 = (struct sockaddr_in6 *)src;
 		memcpy(&dst->type.in6, &sa6->sin6_addr,
 		       sizeof(struct in6_addr));
