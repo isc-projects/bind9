@@ -3414,3 +3414,20 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	UNLOCK(&adb->entrylocks[bucket]);
 }
+
+void
+dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		    unsigned int bits, unsigned int mask)
+{
+	int bucket;
+
+	REQUIRE(DNS_ADB_VALID(adb));
+	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
+
+	bucket = addr->entry->lock_bucket;
+	LOCK(&adb->entrylocks[bucket]);
+
+	addr->flags = (addr->flags & ~mask) | (bits | mask);
+
+	UNLOCK(&adb->entrylocks[bucket]);
+}

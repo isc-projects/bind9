@@ -469,14 +469,26 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *	srtt value.  This may include changes made by others.
  */
 
+void
+dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		    unsigned int bits, unsigned int mask);
+/*
+ * Set the flags as given by:
+ *
+ *	newflags = (oldflags & ~mask) | (bits & mask);
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
+ */
 
 /*
  * XXX Need functions/macros to:
  *
  *	Remove an address from a find's linked list.  This is needed
  *	because the data pointed to by a dns_adbaddr_t is reference counted.
- *
- *	set/clear various flags.  (Which flags?)
  */
 
 ISC_LANG_ENDDECLS
