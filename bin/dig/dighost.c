@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.195 2001/03/05 21:15:32 bwelling Exp $ */
+/* $Id: dighost.c,v 1.196 2001/03/14 23:13:57 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2599,9 +2599,11 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					 &sevent->address,
 					 query);
 			}
-			if (!(query->lookup->ns_search_only || query->lookup->ns_search_only_leafnode))
+			if (!(query->lookup->ns_search_only ||
+			      query->lookup->ns_search_only_leafnode))
 				query->lookup->pending = ISC_FALSE;
-			if (!(query->lookup->ns_search_only || query->lookup->ns_search_only_leafnode) ||
+			if (!(query->lookup->ns_search_only ||
+			      query->lookup->ns_search_only_leafnode) ||
 			    query->lookup->trace_root || docancel) {
 				dns_message_destroy(&msg);
 				cancel_lookup(l);
