@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11 2003/07/22 04:03:43 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.1 2003/08/18 07:35:53 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2286,7 +2286,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		/*
 		 * An ordinary successful query!
 		 */
-		result = ISC_R_SUCCESS;
+		if (wild && (search.options & DNS_DBFIND_INDICATEWILD) != 0)
+			result = DNS_R_WILDCARD;
+		else
+			result = ISC_R_SUCCESS;
 	}
 
 	if (nodep != NULL) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.9.2.1 2003/08/18 05:56:56 marka Exp $ */
+/* $Id: result.c,v 1.90.2.9.2.2 2003/08/18 07:35:53 marka Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"<unused 84>",
 
 	"NS is an address",		       /* 85 DNS_R_NSISADDRESS	     */
-	"<unused 86>",
+	"wildcard",			       /* 86 DNS_R_WILDCARD	     */
 	"<unused 87>",
 	"<unused 88>",
 	"<unused 89>",

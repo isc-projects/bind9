@@ -125,8 +125,8 @@ BIND 9.2.0
 
 	BIND 9.2 is capable of acting as an authoritative server
 	for DNSSEC secured zones.  This functionality is believed to
-	be stable and complete except for lacking support for wildcard
-	records in secure zones.
+	be stable and complete except for lacking support for
+	verifications involving wildcard records in secure zones.
 
 	When acting as a caching server, BIND 9.2 can be configured
 	to perform DNSSEC secure resolution on behalf of its clients.

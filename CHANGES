@@ -1,6 +1,8 @@
 1332.	[func]		Report the current serial with periodic commits when
 			rolling forward the journal.
 
+1331.	[func]		Generate DNSSEC wildcard proofs.
+
 1329.	[func]		named-checkzone will now check if nameservers that
 			appear to be IP addresses.  Available modes "fail",
 			"warn" (default) and "ignore" the results of the
