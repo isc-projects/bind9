@@ -48,6 +48,8 @@ struct client {
 };
 
 isc_mem_t *mctx;
+isc_mempool_t *cmp;
+isc_log_t *lctx;
 isc_taskmgr_t *taskmgr;
 isc_socketmgr_t *socketmgr;
 isc_timermgr_t *timermgr;
@@ -55,7 +57,6 @@ isc_task_t *t1, *t2;
 dns_view_t *view;
 dns_db_t *rootdb;
 ISC_LIST(client_t) clients;
-ISC_LIST(client_t) dead_clients;
 isc_mutex_t client_lock;
 isc_stdtime_t now;
 dns_adb_t *adb;
@@ -76,7 +77,6 @@ client_t *new_client(void);
 void free_client(client_t **);
 static inline void CLOCK(void);
 static inline void CUNLOCK(void);
-void clean_dead_client_list(void);
 
 void lookup(char *);
 void insert(char *, char *, dns_ttl_t, isc_stdtime_t);
@@ -187,7 +187,7 @@ new_client(void)
 {
 	client_t *client;
 
-	client = isc_mem_get(mctx, sizeof(client_t));
+	client = isc_mempool_get(cmp);
 	INSIST(client != NULL);
 	dns_name_init(&client->name, NULL);
 	ISC_LINK_INIT(client, link);
@@ -209,7 +209,7 @@ free_client(client_t **c)
 	INSIST(!ISC_LINK_LINKED(client, link));
 	INSIST(client->handle == NULL);
 
-	isc_mem_put(mctx, client, sizeof(client_t));
+	isc_mempool_put(cmp, client);
 }
 
 static inline void
@@ -227,21 +227,27 @@ CUNLOCK(void)
 static void
 lookup_callback(isc_task_t *task, isc_event_t *ev)
 {
-	dns_name_t *name;
+	client_t *client;
 	dns_adbhandle_t *handle;
 
-	printf("Task %p got event %p type %08x from %p, arg %p\n",
-	       task, ev, ev->type, ev->sender, ev->arg);
-
-	name = ev->arg;
+	client = ev->arg;
 	handle = ev->sender;
+
+	printf("Task %p got event %p type %08x from %p, client %p\n",
+	       task, ev, ev->type, handle, client);
 
 	CLOCK();
 
-	isc_event_free(&ev);
-	isc_app_shutdown();
+	dns_adb_dumphandle(client->handle, stderr);
+	dns_adb_done(&client->handle);
+	handle = NULL;
+
+	ISC_LIST_UNLINK(clients, client, link);
+	free_client(&client);
 
 	CUNLOCK();
+
+	isc_event_free(&ev);
 }
 
 void
@@ -374,25 +380,15 @@ lookup(char *target)
 		printf("Name %s not found\n", target);
 		break;
 	case ISC_R_SUCCESS:
-		dns_adb_dumphandle(adb, client->handle, stderr);
+		dns_adb_dumphandle(client->handle, stderr);
 		break;
 	}
-	ISC_LIST_APPEND(dead_clients, client, link);
-}
 
-void
-clean_dead_client_list(void)
-{
-	client_t *c;
-
-	c = ISC_LIST_HEAD(dead_clients);
-	while (c != NULL) {
-		fprintf(stderr, "client %p, handle %p\n", c, c->handle);
-		if (c->handle != NULL)
-			dns_adb_done(&c->handle);
-		ISC_LIST_UNLINK(dead_clients, c, link);
-		free_client(&c);
-		c = ISC_LIST_HEAD(dead_clients);
+	if (client->handle->query_pending)
+		ISC_LIST_APPEND(clients, client, link);
+	else {
+		dns_adb_done(&client->handle);
+		free_client(&client);
 	}
 }
 
@@ -414,13 +410,23 @@ main(int argc, char **argv)
 	result = isc_mutex_init(&client_lock);
 	check_result(result, "isc_mutex_init(&client_lock)");
 	ISC_LIST_INIT(clients);
-	ISC_LIST_INIT(dead_clients);
 
 	/*
 	 * EVERYTHING needs a memory context.
 	 */
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+
+	cmp = NULL;
+	RUNTIME_CHECK(isc_mempool_create(mctx, sizeof(client_t), &cmp)
+		      == ISC_R_SUCCESS);
+	isc_mempool_setname(cmp, "adb test clients");
+
+	result = isc_log_create(mctx, &lctx);
+	check_result(result, "isc_log_create()");
+
+	result = dns_log_init(lctx);
+	check_result(result, "dns_log_init()");
 
 	create_managers();
 
@@ -475,11 +481,8 @@ main(int argc, char **argv)
 
 	isc_app_run();
 
+	dns_adb_dump(adb, stderr);
 	dns_adb_detach(&adb);
-
-	CLOCK();
-	clean_dead_client_list();
-	CUNLOCK();
 
 	destroy_view();
 
@@ -489,6 +492,9 @@ main(int argc, char **argv)
 	fprintf(stderr, "Destroying task manager\n");
 	isc_taskmgr_destroy(&taskmgr);
 
+	isc_log_destroy(&lctx);
+
+	isc_mempool_destroy(&cmp);
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 

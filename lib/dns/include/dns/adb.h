@@ -127,7 +127,6 @@ struct dns_adbhandle {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
-	ISC_LINK(dns_adbhandle_t)	next;		/* RW: next handle */
 	isc_boolean_t			query_pending;	/* RO: partial list */
 	isc_boolean_t			partial_result;	/* RO: addrs missing */
 	isc_result_t			result;		/* RO: extra result */
@@ -367,7 +366,7 @@ dns_adb_dump(dns_adb_t *adb, FILE *f);
  */
 
 void
-dns_adb_dumphandle(dns_adb_t *adb, dns_adbhandle_t *handle, FILE *f);
+dns_adb_dumphandle(dns_adbhandle_t *handle, FILE *f);
 /*
  * Dump the data associated with a handle.
  *
