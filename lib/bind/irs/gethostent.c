@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gethostent.c,v 1.2 2002/05/24 06:52:39 marka Exp $";
+static const char rcsid[] = "$Id: gethostent.c,v 1.3 2002/05/27 07:54:35 marka Exp $";
 #endif
 
 /* Imports */
@@ -461,19 +461,16 @@ freehostent(struct hostent *he) {
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR) && \
     !defined(IRIX_EMUL_IOCTL_SIOCGIFCONF) 
 
-/* #ifdef HAVEIF_LADDRCONF */
 #ifdef __hpux
 #define lifc_len iflc_len
 #define lifc_buf iflc_buf
 #define lifc_req iflc_req
 #define LIFCONF if_laddrconf
 #else
-#define ISC_HAVE_LIFC_FAMILY 1
-#define ISC_HAVE_LIFC_FLAGS 1
+#define SETFAMILYFLAGS
 #define LIFCONF lifconf
 #endif
  
-/* #ifdef HAVEIF_LADDRREQ */
 #ifdef __hpux
 #define lifr_addr iflr_addr
 #define lifr_name iflr_name
