@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.23 2000/10/31 22:39:27 bwelling Exp $ */
+/* $Id: lwresd.c,v 1.24 2000/11/01 23:56:29 bwelling Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -483,7 +483,8 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	if (listener->manager != NULL)
 		ns_lwdmanager_detach(&listener->manager);
 
-	isc_socket_detach(&listener->sock);
+	if (listener->sock != 0)
+		isc_socket_detach(&listener->sock);
 
 	listener->magic = 0;
 	mctx = listener->mctx;
@@ -506,13 +507,22 @@ listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 	if (listener == NULL)
 		return (ISC_R_NOMEMORY);
 	RUNTIME_CHECK(isc_mutex_init(&listener->lock) == ISC_R_SUCCESS);
+
+	listener->magic = LWRESLISTENER_MAGIC;
+	listener->refs = 1;
+
 	listener->sock = NULL;
-	listener->mctx = NULL;
-	isc_mem_attach(mctx, &listener->mctx);
-	listener->address = *address;
-	ISC_LINK_INIT(listener, link);
+
 	listener->manager = NULL;
 	ns_lwdmanager_attach(lwresd, &listener->manager);
+
+	listener->mctx = NULL;
+	isc_mem_attach(mctx, &listener->mctx);
+
+	listener->address = *address;
+
+	ISC_LINK_INIT(listener, link);
+	ISC_LIST_INIT(listener->cmgrs);
 
 	if (isc_sockaddr_getport(&listener->address) == 0) {
 		in_port_t port;
@@ -547,17 +557,11 @@ listener_create(isc_mem_t *mctx, isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 		isc_socket_detach(&listener->sock);
 	listener->sock = sock;
 
-	ISC_LIST_INIT(listener->cmgrs);
-
-	listener->magic = LWRESLISTENER_MAGIC;
-	listener->refs = 1;
-
 	*listenerp = listener;
 	return (ISC_R_SUCCESS);
 
  fail:
 	DESTROYLOCK(&listener->lock);
-	ns_lwdmanager_detach(&lwresd);
 	if (listener != NULL)
 		ns_lwreslistener_detach(&listener);
 	listener->magic = 0;
