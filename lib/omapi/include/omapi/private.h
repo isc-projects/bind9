@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.25.4.1 2001/01/09 22:53:15 bwelling Exp $ */
+/* $Id: private.h,v 1.25.4.1.4.1 2003/09/01 05:19:21 marka Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -243,6 +243,7 @@ struct omapi_protocol {
 	isc_region_t			signature_in;
 	isc_buffer_t			*signature_out;
 	isc_result_t			verify_result;
+	isc_uint32_t			authid;
 	/*
 	 * A callback to find out whether a requested key is valid on
 	 * the connection, and the arg the caller wants to help it decide.
@@ -438,12 +439,12 @@ send_intro(omapi_object_t *object, unsigned int version);
 #define send_status omapi__send_status
 isc_result_t
 send_status(omapi_object_t *protcol, isc_result_t waitstatus,
-	    unsigned int response_id, const char *message);
+	    unsigned int response_id, unsigned int authid, const char *message);
 
 #define send_update omapi__send_update
 isc_result_t
 send_update(omapi_object_t *protocol, unsigned int response_id,
-	    omapi_object_t *object);
+	    unsigned int authid, omapi_object_t *object);
 
 ISC_LANG_ENDDECLS
 

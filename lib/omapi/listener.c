@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.31.4.2 2001/03/27 00:14:54 bwelling Exp $ */
+/* $Id: listener.c,v 1.31.4.2.4.1 2003/09/01 05:19:21 marka Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -219,6 +219,8 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 */
 	protocol->verify_key = listener->verify_key;
 	protocol->verify_key_arg = listener->callback_arg;
+	while (protocol->authid == 0)
+		isc_random_get(&protocol->authid);
 
 	/*
 	 * Tie the protocol object bidirectionally to the connection

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.14.2.1 2001/01/09 22:49:14 bwelling Exp $ */
+/* $Id: random.c,v 1.14.2.1.4.1 2003/09/01 05:19:20 marka Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,14 @@ static isc_once_t once = ISC_ONCE_INIT;
 static void
 initialize_rand(void)
 {
-	srand(time(NULL));
+	unsigned int pid = getpid();
+
+	/*
+	 * The low bits of pid generally change faster.
+	 * Xor them with the high bits of time which change slowly.
+	 */
+	pid = ((pid << 16) & 0xffff0000) | ((pid >> 16) & 0xffff);
+	srand(time(NULL) ^ pid);
 }
 
 static void

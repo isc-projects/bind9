@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.28.4.1 2001/01/09 22:53:00 bwelling Exp $ */
+/* $Id: message.c,v 1.28.4.1.4.1 2003/09/01 05:19:21 marka Exp $ */
 
 /*
  * Subroutines for dealing with message objects.
@@ -26,6 +26,7 @@
 #include <stddef.h>
 
 #include <isc/buffer.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -180,7 +181,7 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 
 	if (result == ISC_R_SUCCESS)
 		/* XXXTL Write the ID of the authentication key we're using. */
-		result = omapi_connection_putuint32(connection, 0);
+		result = omapi_connection_putuint32(connection, p->authid);
 
 	if (result == ISC_R_SUCCESS)
 		result = omapi_connection_putuint32(connection, authlen);
@@ -209,6 +210,8 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 		 * Set and write the transaction ID.
 		 */
 		m->id = p->next_xid++;
+		if (m->id == 0)
+			m->id = p->next_xid++;
 		result = omapi_connection_putuint32(connection, m->id);
 	}
 
@@ -385,6 +388,11 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			dst_context_destroy(&protocol->dstctx);
 		}
 
+		if (protocol->verify_result == ISC_R_SUCCESS &&
+		    protocol->authid != 0)
+			if (protocol->authid != message->authid)
+				result = OMAPI_R_BADAUTHID;
+
 		if (protocol->verify_result != ISC_R_SUCCESS) {
 			if (connection->is_client) {
 				INSIST(m != NULL);
@@ -422,6 +430,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 				return (send_status(po,
 						    protocol->verify_result,
 						    message->id,
+						    protocol->authid,
 						    "failed to verify "
 						    "signature"));
 		}
@@ -434,7 +443,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (m != NULL) {
 			return (send_status(po, OMAPI_R_INVALIDARG,
-					    message->id,
+					    message->id, protocol->authid,
 					    "OPEN can't be a response"));
 		}
 
@@ -456,7 +465,8 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		} else if (result == ISC_R_NOTFOUND)
 			type = NULL;
 		else
-			return (send_status(po, result, message->id,
+			return (send_status(po, result, message->id, 
+					    protocol->authid,
 					    isc_result_totext(result)));
 
 		/*
@@ -470,6 +480,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			create = 0;
 		else
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    isc_result_totext(result)));
 
 		/*
@@ -483,6 +494,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			update = 0;
 		else
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    isc_result_totext(result)));
 
 		/*
@@ -496,6 +508,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			exclusive = 0;
 		else
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    isc_result_totext(result)));
 
 		/*
@@ -505,6 +518,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 #ifdef notyet /* not for 9.0.0 */
 		if (type != omapi_type_protocol && protocol->key == NULL)
 			return (send_status(po, ISC_R_NOPERM, message->id,
+					    protocol->authid,
 					    "unauthorized access"));
 #endif /* notyet */
 
@@ -516,6 +530,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			if (create != 0)
 				return (send_status(po, OMAPI_R_INVALIDARG,
 						   message->id,
+						    protocol->authid,
 						   "type required on create"));
 
 			goto refresh;
@@ -523,6 +538,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (message->object == NULL)
 			return (send_status(po, ISC_R_NOTFOUND, message->id,
+					    protocol->authid,
 					    "no lookup key specified"));
 
 		/*
@@ -551,12 +567,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (result == ISC_R_NOTIMPLEMENTED)
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    "unsearchable object type"));
 
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_NOTFOUND &&
 		    result != OMAPI_R_NOKEYS)
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    "object lookup failed"));
 
 		/*
@@ -565,6 +583,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 */
 		if (result == ISC_R_NOTFOUND && create == 0) {
 			return (send_status(po, ISC_R_NOTFOUND, message->id,
+					    protocol->authid,
 					   "no object matches specification"));
 		}
 
@@ -576,6 +595,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (result == ISC_R_SUCCESS && create != 0 && exclusive != 0) {
 			OBJECT_DEREF(&object);
 			return (send_status(po, ISC_R_EXISTS, message->id,
+					    protocol->authid,
 					   "specified object already exists"));
 		}
 
@@ -586,6 +606,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			result = object_methodcreate(type, &object);
 			if (result != ISC_R_SUCCESS)
 				return (send_status(po, result, message->id,
+						    protocol->authid,
 						   "can't create new object"));
 		}
 
@@ -598,6 +619,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			if (result != ISC_R_SUCCESS) {
 				OBJECT_DEREF(&object);
 				return (send_status(po, result, message->id,
+						    protocol->authid,
 						    "can't update object"));
 			}
 		}
@@ -614,6 +636,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 #ifdef notyet /* not for 9.0.0 */
 		if (protocol->key == NULL)
 			return (send_status(po, ISC_R_NOPERM, message->id,
+					    protocol->authid,
 					    "unauthorized access"));
 #endif /* notyet */
 
@@ -621,10 +644,11 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		result = handle_lookup(&object, message->h);
 		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    "no matching handle"));
 
 	send:
-		result = send_update(po, message->id, object);
+		result = send_update(po, message->id, protocol->authid, object);
 		OBJECT_DEREF(&object);
 		return (result);
 
@@ -632,6 +656,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (! connection->is_client)
 			return (send_status(po, OMAPI_R_INVALIDARG,
 					    message->id,
+					    protocol->authid,
 					    "OMAPI_OP_UPDATE is not a "
 					    "valid server operation"));
 
@@ -642,6 +667,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			result = handle_lookup(&object, message->h);
 			if (result != ISC_R_SUCCESS)
 				return (send_status(po, result, message->id,
+						    protocol->authid,
 						    "no matching handle"));
 		}
 
@@ -656,6 +682,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (result != ISC_R_SUCCESS) {
 			if (message->rid == 0)
 				return (send_status(po, result, message->id,
+						    protocol->authid,
 						    "can't update object"));
 			if (m != NULL)
 				object_signal((omapi_object_t *)m,
@@ -665,6 +692,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (message->rid == 0)
 			result = send_status(po, ISC_R_SUCCESS, message->id,
+					    protocol->authid,
 					     NULL);
 
 		if (m != NULL)
@@ -675,12 +703,14 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 	case OMAPI_OP_NOTIFY:
 		return (send_status(po, ISC_R_NOTIMPLEMENTED, message->id,
+				    protocol->authid,
 				    "notify not implemented yet"));
 
 	case OMAPI_OP_STATUS:
 		if (! connection->is_client)
 			return (send_status(po, OMAPI_R_INVALIDARG,
 					    message->id,
+					    protocol->authid,
 					    "OMAPI_OP_STATUS is not a "
 					    "valid server operation"));
 
@@ -720,22 +750,26 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 
 		if (protocol->key == NULL)
 			return (send_status(po, ISC_R_NOPERM, message->id,
+					    protocol->authid,
 					    "unauthorized delete"));
 
 		result = handle_lookup(&object, message->h);
 		if (result != ISC_R_SUCCESS)
 			return (send_status(po, result, message->id,
+					    protocol->authid,
 					    "no matching handle"));
 
 		result = object_methodexpunge(object->type, object);
 		if (result == ISC_R_NOTIMPLEMENTED)
 			return (send_status(po, ISC_R_NOTIMPLEMENTED,
 					    message->id,
+					    protocol->authid,
 					    "no remove method for object"));
 
 		OBJECT_DEREF(&object);
 
-		return (send_status(po, result, message->id, NULL));
+		return (send_status(po, result, message->id,
+				    protocol->authid, NULL));
 	}
 
 	return (ISC_R_NOTIMPLEMENTED);
