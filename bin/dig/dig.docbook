@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.8 2004/03/09 06:09:12 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.9 2004/08/26 01:33:50 marka Exp $ -->
 
 <refentry>
 
@@ -101,7 +101,7 @@ NS query for "." (the root).
 <para>
 It is possible to set per user defaults for <command>dig</command> via
 <filename>${HOME}/.digrc</filename>.  This file is read and any options in it
-are applied before the command line arguements.
+are applied before the command line arguments.
 </para>
 
 </refsect1>
