@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.142 2001/06/18 22:34:37 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.143 2001/06/25 23:50:33 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3081,7 +3081,7 @@ query is being answered from authoratitive data (a zone
 configured into the server), the additional data section of the
 reply will be filled in using data from other authoratitive zones
 and from the cache.  In some situations this is undesirable, such
-as when there is concern over the correctness of the cache, or in
+as when there is concern over the correctness of the cache, or
 in servers where slave zones may be added and modified by
 untrusted third parties.  Also, avoiding
 the search for this additional data will speed up server operations
