@@ -56,7 +56,7 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "logging channel %s: %s", channelname,
+				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
 			return (result);
 		}
