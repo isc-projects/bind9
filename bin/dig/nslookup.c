@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.32 2000/08/03 17:43:06 mws Exp $ */
+/* $Id: nslookup.c,v 1.33 2000/08/07 23:54:46 gson Exp $ */
 
 #include <config.h>
 
@@ -148,35 +148,33 @@ static const char *rtypetext[] = {
 
 static void
 show_usage(void) {
-	fputs (
-"Usage:\n"
-, stderr);
+	fputs("Usage:\n", stderr);
 }
 
 void
 dighost_shutdown(void) {
 
-	debug ("dighost_dhutdown()");
+	debug("dighost_dhutdown()");
 	isc_mutex_lock(&lock);
 	busy = ISC_FALSE;
-	debug ("signalling out");
+	debug("signalling out");
 	isc_condition_signal(&cond);
 	isc_mutex_unlock(&lock);
 
 }
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
-	UNUSED (bytes);
-	UNUSED (frmsize);
-	UNUSED (frm);
-	UNUSED (query);
+	UNUSED(bytes);
+	UNUSED(frmsize);
+	UNUSED(frm);
+	UNUSED(query);
 }
 
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup) {
-	UNUSED (frmsize);
-	UNUSED (frm);
-	UNUSED (lookup);
+	UNUSED(frmsize);
+	UNUSED(frm);
+	UNUSED(lookup);
 
 }
 
@@ -191,8 +189,8 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_rdata_t rdata;
 	char *ptr;
 
-	UNUSED (query);
-	UNUSED (headers);
+	UNUSED(query);
+	UNUSED(headers);
 
 	debug("printsection()");
 
@@ -212,7 +210,8 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
-				dns_rdataset_current(rdataset, &rdata);				switch (rdata.type) {
+				dns_rdataset_current(rdataset, &rdata);
+				switch (rdata.type) {
 				case dns_rdatatype_a:
 					if (section != DNS_SECTION_ANSWER)
 						goto def_short_section;
@@ -301,12 +300,12 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					check_result(result,
 						     "dns_name_totext");
 					if (rdata.type <= 41)
-						printf ("%.*s\t%s",
+						printf("%.*s\t%s",
 						(int)isc_buffer_usedlength(b),
 						(char*)isc_buffer_base(b),
 						rtypetext[rdata.type]);
 					else
-						printf ("%.*s\trdata_%d = ",
+						printf("%.*s\trdata_%d = ",
 						(int)isc_buffer_usedlength(b),
 						(char*)isc_buffer_base(b),
 						 rdata.type);
@@ -344,23 +343,23 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_rdata_t rdata;
 	char *ptr;
 
-	UNUSED (query);
+	UNUSED(query);
 
 	debug("detailsection()");
 
 	if (headers) {
 		switch (section) {
 		case DNS_SECTION_QUESTION:
-			puts ("    QUESTIONS:");
+			puts("    QUESTIONS:");
 			break;
 		case DNS_SECTION_ANSWER:
-			puts ("    ANSWERS:");
+			puts("    ANSWERS:");
 			break;
 		case DNS_SECTION_AUTHORITY:
-			puts ("    AUTHORITY RECORDS:");
+			puts("    AUTHORITY RECORDS:");
 			break;
 		case DNS_SECTION_ADDITIONAL:
-			puts ("    ADDITIONAL RECORDS:");
+			puts("    ADDITIONAL RECORDS:");
 			break;
 		}
 	}
@@ -443,10 +442,10 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 				default:
 					isc_buffer_clear(b);
 					if (rdata.type <= 41)
-						printf ("\t%s",
+						printf("\t%s",
 						rtypetext[rdata.type]);
 					else
-						printf ("\trdata_%d = ",
+						printf("\trdata_%d = ",
 						 rdata.type);
 					isc_buffer_clear(b);
 					result = dns_rdata_totext(&rdata,
@@ -478,7 +477,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_region_t r;
 	isc_result_t result;
 
-	debug ("printmessage()");
+	debug("printmessage()");
 
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
@@ -491,10 +490,10 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		       (int)r.length, (char*)r.base,
 		       rcodetext[msg->rcode]);
 		isc_buffer_free(&b);
-		debug ("returning with rcode == 0");
+		debug("returning with rcode == 0");
 		return (ISC_R_SUCCESS);
 	}
-	debug ("continuing on with rcode != 0");
+	debug("continuing on with rcode != 0");
 	result = isc_buffer_allocate(mctx, &b, MXNAME);
 	check_result(result, "isc_buffer_allocate");
 	printf("Server:\t\t%s\n", query->servname);
@@ -505,22 +504,22 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_buffer_free(&b);
 	puts("");
 	if (!short_form){
-		puts ("------------");
+		puts("------------");
 		/*		detailheader(query, msg);*/
 		detailsection(query, msg, headers, DNS_SECTION_QUESTION);
 		detailsection(query, msg, headers, DNS_SECTION_ANSWER);
 		detailsection(query, msg, headers, DNS_SECTION_AUTHORITY);
 		detailsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
-		puts ("------------");
+		puts("------------");
 	}
 
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)
-		puts ("Non-authorative answer:");
+		puts("Non-authorative answer:");
 	printsection(query, msg, headers, DNS_SECTION_ANSWER);
 
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (query->lookup->rdtype != dns_rdatatype_a)) {
-		puts ("\nAuthorative answers can be found from:");
+		puts("\nAuthorative answers can be found from:");
 		printsection(query, msg, headers,
 			     DNS_SECTION_AUTHORITY);
 		printsection(query, msg, headers,
@@ -544,7 +543,7 @@ show_settings(isc_boolean_t full) {
 		get_address(srv->servername, 53, &sockaddr);
 		result = isc_sockaddr_totext(&sockaddr, b);
 		check_result(result, "isc_sockaddr_totext");
-		printf ("Default server: %s\nAddress: %.*s\n",
+		printf("Default server: %s\nAddress: %.*s\n",
 			srv->servername, (int)isc_buffer_usedlength(b),
 			(char*)isc_buffer_base(b));
 		isc_buffer_free(&b);
@@ -552,19 +551,19 @@ show_settings(isc_boolean_t full) {
 			return;
 		srv = ISC_LIST_NEXT(srv, link);
 	}
-	printf ("\n\tSet options:\n");
-	printf ("\t  %s\t\t\t%s\t\t%s\n",
+	printf("\n\tSet options:\n");
+	printf("\t  %s\t\t\t%s\t\t%s\n",
 		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
 		debugging?"d2":"nod2");
-	printf ("\t  %s\t\t%s\t%s\n",
+	printf("\t  %s\t\t%s\t%s\n",
 		defname?"defname":"nodefname",
 		usesearch?"search  ":"nosearch",
 		recurse?"recurse":"norecurse");
-	printf ("\t  timeout = %d\t\tretry = %d\tport = %d\n",
+	printf("\t  timeout = %d\t\tretry = %d\tport = %d\n",
 		timeout, tries, port);
-	printf ("\t  querytype = %-8s\tclass = %s\n",deftype, defclass);
+	printf("\t  querytype = %-8s\tclass = %s\n",deftype, defclass);
 #if 0
-	printf ("\t  domain = %s\n", fixeddomain);
+	printf("\t  domain = %s\n", fixeddomain);
 #endif
 
 }
@@ -664,7 +663,7 @@ addlookup(char *opt) {
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 
-	debug ("addlookup()");
+	debug("addlookup()");
 	tr.base = deftype;
 	tr.length = strlen(deftype);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
@@ -705,7 +704,7 @@ static void
 flush_server_list(void) {
 	dig_server_t *s, *ps;
 
-	debug ("flush_lookup_list()");
+	debug("flush_lookup_list()");
 	s = ISC_LIST_HEAD(server_list);
 	while (s != NULL) {
 		ps = s;
@@ -766,7 +765,7 @@ parse_args(int argc, char **argv) {
 	isc_boolean_t have_lookup = ISC_FALSE;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
-		debug ("main parsing %s", argv[0]);
+		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
 			if ((argv[0][1] == 'h') &&
 			    (argv[0][2] == 0)) {
@@ -857,7 +856,7 @@ main(int argc, char **argv) {
 	parse_args(argc, argv);
 
 	if (deprecation_msg) {
-		puts (
+		puts(
 "Note:  nslookup is deprecated and may be removed from future releases.\n"
 "Consider using the `dig' or `host' programs instead.  Run nslookup with\n"
 "the `-sil[ent]' option to prevent this message from appearing.\n");
@@ -887,18 +886,18 @@ main(int argc, char **argv) {
 				result = isc_condition_wait(&cond, &lock);
 				check_result(result, "isc_condition_wait");
 			}
-			debug ("out of the condition wait");
+			debug("out of the condition wait");
 			flush_lookup_list();
 		}
 	}
 
-	puts ("");
-	debug ("done, and starting to shut down");
+	puts("");
+	debug("done, and starting to shut down");
 	destroy_libs();
 	isc_mutex_destroy(&lock);
 	isc_condition_destroy(&cond);
 	if (taskmgr != NULL) {
-		debug ("freeing taskmgr");
+		debug("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
         }
 	if (isc_mem_debugging != 0)
