@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.55 2000/08/10 00:53:34 gson Exp $ */
+/* $Id: zoneconf.c,v 1.56 2000/08/10 16:57:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		result = dns_c_ctx_getmaxnames(cctx, &uintval);
 	if (result != ISC_R_SUCCESS)
-		uintval = DNS_ZONE_MINRETRY;
+		uintval = 0;
 	dns_zone_setmaxnames(zone, uintval);
 #endif /* NOMINUM_PUBLIC */
 
