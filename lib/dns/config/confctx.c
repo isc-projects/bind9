@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.88 2000/09/13 20:51:54 gson Exp $ */
+/* $Id: confctx.c,v 1.89 2000/09/13 22:47:05 gson Exp $ */
 
 #include <config.h>
 
@@ -476,6 +476,12 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'serial-queries' is not yet "
 			      "implemented");
+	}
+
+	if (dns_c_ctx_getmaintainixfrbase(cfg, &uintval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'maintain-ixfr-base' is obsolete");
 	}
 
 	if (dns_c_ctx_getmaxlogsizeixfr(cfg, &uintval) != ISC_R_NOTFOUND) {

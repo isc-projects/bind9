@@ -1,3 +1,6 @@
+ 453.	[bug]		Warn if the obsolete option "maintain-ixfr-base"
+			is specified in named.conf. [RT #306]
+
  452.	[bug]		Warn if the unimplemented option "statistics-file"
 			is specified in named.conf. [RT #301]
 
