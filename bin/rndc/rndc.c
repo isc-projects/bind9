@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.3 2000/02/01 15:17:25 tale Exp $ */
+/* $Id: rndc.c,v 1.4 2000/02/01 19:01:02 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -169,9 +169,11 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 				progname, isc_result_totext(ndc->waitresult));
 
 			tv = va_arg(ap, omapi_value_t *);
-			if (tv != NULL)
+			if (tv != NULL) {
+				omapi_value_getregion(tv, &region);
 				fprintf(stderr, " (%.*s)",
 					(int)region.length, region.base);
+			}
 			fprintf(stderr, "\n");
 		}
 
