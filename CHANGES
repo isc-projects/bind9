@@ -1,3 +1,8 @@
+  72.   [func]          DNS_RBTFIND_NOPREDECESSOR and DNS_RBTFIND_NOOPTIONS
+                        added for dns_rbt_findnode, the former to disable the
+                        setting of the chain to the predecessor, and the
+                        latter to make clear when no options are set.
+
   71.   [cleanup]       Made explicit the implicit REQUIREs of
                         isc_time_seconds, isc_time_nanoseconds, and
                         isc_time_subtract.
