@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294 $)
+AC_REVISION($Revision: 1.294.2.1 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -434,11 +434,11 @@ AC_MSG_CHECKING(whether to build with thread support)
 case $host in
 *-dec-osf*)
 	use_threads=true ;;
-[*-solaris-2[0-6]])
+[*-solaris2.[0-6]])
 	# Thread signals are broken on Solaris 2.6; they are sometimes
 	# delivered to the wrong thread.
 	use_threads=false ;;
-*-solaris-2*)
+*-solaris*)
 	use_threads=true ;;
 *-ibm-aix*)
 	use_threads=true ;;
