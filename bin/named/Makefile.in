@@ -51,7 +51,7 @@ SRCS =		client.c interfacemgr.c listenlist.c \
 @BIND9_MAKE_RULES@
 
 main.@O@: main.c
-	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 
