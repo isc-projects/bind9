@@ -83,7 +83,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 		type = ISC_LOG_TOFILE;
 		{
 			const char *path = NULL;
-			int versions = ISC_LOG_ROLLNEVER; 
+			isc_uint32_t versions = ISC_LOG_ROLLNEVER; 
 			isc_uint32_t size = 0;
 			(void) dns_c_logchan_getpath(cchan, &path);
 			if (path == NULL) {
@@ -99,7 +99,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx)
 			(void) dns_c_logchan_getsize(cchan, &size);
 			dest.file.stream = NULL;
 			dest.file.name = cchan->u.filec.path;
-			dest.file.versions = versions;
+			dest.file.versions = (int)versions;
 			dest.file.maximum_size = size;
 		}
 		break;
