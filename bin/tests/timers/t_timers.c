@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_timers.c,v 1.15 2000/08/30 01:35:42 bwelling Exp $ */
+/* $Id: t_timers.c,v 1.15.4.1 2001/01/08 21:01:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 
 #include <isc/condition.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -353,6 +354,12 @@ t1(void) {
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+#endif
+	
 	t_assert("isc_timer_create", 1, T_REQUIRED, a1);
 
 	Tx_nfails	= 0;
@@ -391,6 +398,12 @@ t2(void) {
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+#endif
+	
 	t_assert("isc_timer_create", 2, T_REQUIRED, a2);
 
 	Tx_nfails	= 0;
@@ -513,6 +526,12 @@ t3(void) {
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+#endif
+	
 	t_assert("isc_timer_create", 3, T_REQUIRED, a3);
 
 	Tx_nfails	= 0;
@@ -672,6 +691,12 @@ t4(void) {
 	isc_time_t	expires;
 	isc_interval_t	interval;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	t_result(T_UNTESTED);
+	return;
+#endif
+	
 	Tx_nfails = 0;
 	Tx_nprobs = 0;
 	Tx_nevents = 3;
@@ -860,6 +885,11 @@ t_timers5(void) {
 	isc_event_t	*event;
 	isc_time_t	expires;
 	isc_interval_t	interval;
+
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
 
 	T5_startflag = 0;
 	T5_shutdownflag = 0;

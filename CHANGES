@@ -4,6 +4,10 @@
  666.	[bug]		If a request sent by dig is longer than 512 bytes,
 			use TCP.
 
+ 664.	[bug]		The t_tasks and t_timers module tests are now skipped
+			when building without threads, since they require
+			threads.
+
  661.	[bug]		Certain UDP IXFR requests caused an assertion failure
 			(mpctx->allocated == 0). [RT #355, #394, #623]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.19 2000/08/30 01:35:41 bwelling Exp $ */
+/* $Id: t_tasks.c,v 1.19.4.1 2001/01/08 21:01:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 
 #include <isc/condition.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -466,7 +467,11 @@ t_tasks2(void) {
 	unsigned int		workers;
 	isc_result_t		isc_result;
 
-
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
+	
 	T2_manager = NULL;
 	T2_done = 0;
 	T2_nprobs = 0;
@@ -653,6 +658,11 @@ t_tasks3(void) {
 	isc_result_t	isc_result;
 	void		*sender;
 	isc_eventtype_t	event_type;
+
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
 
 	T3_flag = 0;
 	T3_nevents = 0;
@@ -875,6 +885,11 @@ t_tasks4(void) {
 	isc_eventtype_t	event_type;
 	isc_event_t	*event;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
+	
 	T4_nprobs = 0;
 	T4_nfails = 0;
 	T4_flag = 0;
@@ -1074,7 +1089,11 @@ t_tasks7(void) {
 	isc_time_t	now;
 	isc_interval_t	interval;
 
-
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
+	
 	T7_nprobs = 0;
 	T7_nfails = 0;
 	T7_sdflag = 0;
@@ -1639,6 +1658,11 @@ static int
 t_tasks10(void) {
 	int	result;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
+	
 	T10_nprobs = 0;
 	T10_nfails = 0;
 
@@ -1796,6 +1820,10 @@ t_tasks11(int purgable) {
 	isc_interval_t	interval;
 	int		result;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
 
 	T11_startflag = 0;
 	T11_shutdownflag = 0;
@@ -2010,6 +2038,11 @@ static int
 t_tasks13(void) {
 	int	result;
 
+#if ! ISC_PLATFORM_USETHREADS
+	t_info("This test requires threads\n");
+	return (T_UNTESTED);
+#endif
+	
 	T13_nfails = 0;
 	T13_nprobs = 0;
 
