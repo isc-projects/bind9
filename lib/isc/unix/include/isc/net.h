@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.24.4.4 2001/06/25 22:17:02 gson Exp $ */
+/* $Id: net.h,v 1.24.4.5 2001/06/26 21:55:52 tale Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -82,6 +82,10 @@
 #endif
 #ifdef ISC_PLATFORM_NEEDNETINET6IN6H
 #include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
+#endif
+
+#ifndef ISC_PLATFORM_HAVEIPV6
+#include <isc/ipv6.h>		/* Contractual promise. */
 #endif
 
 #include <isc/lang.h>
