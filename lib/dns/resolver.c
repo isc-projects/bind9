@@ -747,7 +747,7 @@ static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
 	isc_result_t result;
-	dns_rdataset_t *qrdataset, *trdataset;
+	dns_rdataset_t *qrdataset;
 	dns_name_t *qname;
 	isc_region_t r;
 	dns_resolver_t *res;
@@ -848,7 +848,6 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
-			trdataset = NULL;
 			result = fctx_addopt(fctx->qmessage);
 			if (result != ISC_R_SUCCESS) {
 				/*
@@ -1672,9 +1671,10 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(VALID_FCTX(fctx));
 
+	UNUSED(task);
+
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
-	UNUSED(task);
 	
 	FCTXTRACE("doshutdown");
 
@@ -1755,7 +1755,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		 * Reset the control event for later use in shutting down
 		 * the fctx.
 		 */
-		ISC_EVENT_INIT(event, sizeof *event, 0, NULL,
+		ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 			       DNS_EVENT_FETCHCONTROL, fctx_doshutdown, fctx,
 			       (void *)fctx_doshutdown, NULL, NULL);
 	}
@@ -2175,6 +2175,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 		goto respond;
 	}
 
+	isc_stdtime_get(&now);
+
 	if (vevent->rdataset == NULL) {
 		dns_rdatatype_t covers;
 		FCTXTRACE("nonexistence validation OK");
@@ -2208,12 +2210,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * event list.
 	 */
 	result = dns_db_findnode(fctx->res->view->cachedb,
-				 vevent->name, 
-				 ISC_TRUE, &node);
+				 vevent->name, ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto respond;
 
-	isc_stdtime_get(&now);
 	result = dns_db_addrdataset(fctx->res->view->cachedb,
 				    node, NULL, now,
 				    vevent->rdataset, 0,
@@ -3040,7 +3040,7 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t done, external, chaining, aa, found, want_chaining;
-	isc_boolean_t have_sig, have_answer;
+	isc_boolean_t have_answer;
 	unsigned int aflag;
 	dns_rdatatype_t type;
 	dns_fixedname_t dname;
@@ -3057,7 +3057,6 @@ answer_response(fetchctx_t *fctx) {
 	done = ISC_FALSE;
 	chaining = ISC_FALSE;
 	have_answer = ISC_FALSE;
-	have_sig = ISC_FALSE;
 	want_chaining = ISC_FALSE;
 	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
 		aa = ISC_TRUE;
@@ -3146,8 +3145,6 @@ answer_response(fetchctx_t *fctx) {
 						if (aflag ==
 						    DNS_RDATASETATTR_ANSWER)
 							have_answer = ISC_TRUE;
-						else
-							have_sig = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_ANSWER;
 						rdataset->attributes |= aflag;
@@ -4505,7 +4502,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 * Launch this fctx.
 			 */
 			event = &fctx->control_event;
-			ISC_EVENT_INIT(event, sizeof *event, 0, NULL,
+			ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 				       DNS_EVENT_FETCHCONTROL,
 				       fctx_start, fctx, (void *)fctx_create,
 				       NULL, NULL);
