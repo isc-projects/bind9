@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.59 2000/01/21 19:20:56 gson Exp $ */
+ /* $Id: zone.c,v 1.60 2000/01/21 19:52:00 gson Exp $ */
 
 #include <config.h>
 
@@ -1766,7 +1766,10 @@ dns_zone_unmount(dns_zone_t *zone) {
 	/*XXX MPA*/
 }
 
-isc_result_t
+/*
+ * For reference only.  Use dns_zonemanager_managezone() instead.
+ */
+static isc_result_t
 dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr) {
 #if 1
 	REQUIRE(DNS_ZONE_VALID(zone));

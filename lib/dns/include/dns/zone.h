@@ -373,19 +373,6 @@ void dns_zone_unload(dns_zone_t *zone);
  *	'zone' to be a valid initalised zone.
  */
 
-isc_result_t dns_zone_manage(dns_zone_t *zone, isc_taskmgr_t *tmgr);
-/*
- *	Bring the zone under control of a task manger.
- *
- * Require:
- *	'zone' to be a valid initalised zone.
- *	'tmgr' to be a valid initalised task manager.
- *
- * Returns:
- *	DNS_R_UNEXPECTED
- *	DNS_R_SUCCESS
- */
-
 void dns_zone_setoption(dns_zone_t *zone, unsigned int option,
 		        isc_boolean_t value);
 /*
@@ -796,7 +783,11 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 isc_result_t
 dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 /*
- * Start managing the zone 'zone' with zone manager 'zmgr'.
+ *	Bring the zone under control of a zone manager.
+ *
+ * Require:
+ *	'zmgr' to be a valid zone manager.
+ *	'zone' to be a valid initalised zone.
  */
 
 isc_result_t
