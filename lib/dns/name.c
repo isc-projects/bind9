@@ -1550,7 +1550,7 @@ compact(dns_name_t *name, unsigned char *offsets) {
 				n--;
 				curr = &name->ndata[offsets[n]];
 				if (curr[0] != DNS_LABELTYPE_BITSTRING)
-					break;
+					continue;
 				/*
 				 * We have consecutive bitstrings labels, and
 				 * the more significant label ('head') has
@@ -1657,6 +1657,11 @@ compact(dns_name_t *name, unsigned char *offsets) {
 				while (head != last)
 					*curr++ = *head++;
 				name->length = (curr - name->ndata);
+				/*
+				 * The offsets table may now be invalid.
+				 */
+				set_offsets(name, offsets, ISC_FALSE,
+					    ISC_FALSE, ISC_FALSE);
 				goto again;
 			}
 		}
@@ -2058,7 +2063,6 @@ dns_name_concatenate(dns_name_t *prefix, dns_name_t *suffix, dns_name_t *name,
 	unsigned int nrem;
 	unsigned int labels;
 	unsigned int count;
-	isc_boolean_t absolute = ISC_FALSE;
 	dns_name_t tmp_name;
 
 	REQUIRE(VALID_NAME(prefix));
