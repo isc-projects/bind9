@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.3 2000/02/02 02:16:59 halley Exp $ */
+/* $Id: omapi.c,v 1.4 2000/02/17 20:06:31 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -69,7 +69,7 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_OMAPI, ISC_LOG_DEBUG(1),
-		      "control_setvalue: '%.*s' control command received\n",
+		      "control_setvalue: '%.*s' control command received",
 		      REGION_FMT(&region));
 
 	/*
@@ -87,14 +87,14 @@ control_setvalue(omapi_object_t *handle, omapi_string_t *name,
 				       NS_OMAPI_COMMAND_RELOADZONES) == 0) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-			      "control_setvalue: '%.*s' not yet implemented\n",
+			      "control_setvalue: '%.*s' not yet implemented",
 			      REGION_FMT(&region));
 		result = ISC_R_NOTIMPLEMENTED;
 
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
-			      "control_setvalue: unknown name: '%.*s'\n",
+			      "control_setvalue: unknown name: '%.*s'",
 			      REGION_FMT(&region));
 		result = omapi_object_passsetvalue(handle, name, value);
 	}

@@ -149,7 +149,7 @@ dns_c_viewtable_clear(dns_c_viewtable_t *table)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_CRITICAL,
-				      "Failed to delete view.\n");
+				      "failed to delete view");
 			return (r);
 		}
 
