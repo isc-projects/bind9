@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confrrset.c,v 1.10 2000/03/28 22:58:24 brister Exp $ */
+/* $Id: confrrset.c,v 1.11 2000/04/06 09:45:39 brister Exp $ */
 
 #include <config.h>
 
@@ -221,14 +221,14 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 	REQUIRE(dest != NULL);
 	
 	res = dns_c_rrsolist_new(mem, &nlist);
-	if (res != DNS_R_SUCCESS) {
+	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
 	
 	elem = ISC_LIST_HEAD(source->elements);
 	while (elem != NULL) {
 		res = dns_c_rrso_copy(mem, &newe, elem);
-		if (res != DNS_R_SUCCESS) {
+		if (res != ISC_R_SUCCESS) {
 			dns_c_rrsolist_delete(&nlist);
 			return (res);
 		}
