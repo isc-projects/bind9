@@ -189,12 +189,17 @@ dns_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_buffer_t *target);
+		    isc_buffer_t *target,
+		    isc_boolean_t no_rdata_or_ttl);
 /*
  * Convert 'rdataset' to text format, storing the result in 'target'.
  *
  * Notes:
  *	The rdata cursor position will be changed.
+ *
+ *	The no_rdata_or_ttl should normally be ISC_FALSE.  If it is ISC_TRUE
+ *	the ttl and rdata fields are not printed.  This is mainly for use
+ *	in the question section.
  *
  *	XXX may need to add 'origin' parameter if we go with that in rdata.
  *

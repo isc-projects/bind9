@@ -160,7 +160,8 @@ dns_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
-		    isc_buffer_t *target)
+		    isc_buffer_t *target,
+		    isc_boolean_t no_rdata_or_ttl)
 {
 	dns_result_t result;
 	unsigned int common_start, common_length, length, ntabs, ttabs;
@@ -176,7 +177,11 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	result = dns_rdataset_first(rdataset);
-	REQUIRE(result == DNS_R_SUCCESS);
+	if (no_rdata_or_ttl) {
+		REQUIRE(result == DNS_R_NOMORE);
+	} else {
+		REQUIRE(result == DNS_R_SUCCESS);
+	}
 
 	/*
 	 * XXX Explicit buffer structure references here.  Improve buffer
@@ -209,13 +214,15 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	 * XXX The following sprintf() is safe, but it
 	 * would still be good to use snprintf if we had it.
 	 */
-	length = sprintf(ttl, "%u ", rdataset->ttl);
-	INSIST(length <= sizeof ttl);
-	isc_buffer_available(target, &r);
-	if (r.length < length)
-		return (DNS_R_NOSPACE);
-	memcpy(r.base, ttl, length);
-	isc_buffer_add(target, length);
+	if (!no_rdata_or_ttl) {
+		length = sprintf(ttl, "%u ", rdataset->ttl);
+		INSIST(length <= sizeof ttl);
+		isc_buffer_available(target, &r);
+		if (r.length < length)
+			return (DNS_R_NOSPACE);
+		memcpy(r.base, ttl, length);
+		isc_buffer_add(target, length);
+	}
 	result = dns_rdataclass_totext(rdataset->rdclass, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
@@ -230,12 +237,16 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	common_length = target->used - common_start;
 	ntabs = tabs_needed(common_length + ttabs * 7, 40);
 	ttabs += ntabs;
+	
 	isc_buffer_available(target, &r);
 	if (r.length < ntabs)
 		return (DNS_R_NOSPACE);
 	memcpy(r.base, tabs, ntabs);
 	isc_buffer_add(target, ntabs);
 	common_length = target->used - common_start;
+
+	if (no_rdata_or_ttl)
+		return (DNS_R_SUCCESS);
 
 	do {
 		if (!first) {
