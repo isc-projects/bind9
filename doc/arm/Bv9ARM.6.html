@@ -5,21 +5,21 @@
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
 <TITLE> Section 6.	Security Considerations</TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
-<OL>
+
 <H1 CLASS="1Level">
 <A NAME="pgfId=997350">
  </A>
 Section 6.	Security Considerations</H1>
-</OL>
+
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997352">
  </A>
 6.1	<A NAME="32222">
  </A>
 Access Control Lists</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997353">
  </A>
@@ -51,51 +51,54 @@ Here is an example of how to properly apply ACLs:</P>
  </A>
 // Set up an ACL named &quot;bogusnets&quot; that will block RFC1918 space,<BR>
 // which is commonly used in spoofing attacks.</P>
- 
-<PRE>
-<CODE>acl bogusnets{ 0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24; 224.0.0.0/3; 10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; };
-</CODE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997358"></A>
+<CODE CLASS="grammar_literal">acl</CODE> <KBD CLASS="Literal-user-input">bogusnets</KBD> <CODE CLASS="grammar_literal">{</CODE> 0.0.0.0/8<CODE CLASS="grammar_literal">;</CODE> 1.0.0.0/8<CODE CLASS="grammar_literal">;</CODE> 2.0.0.0/8<CODE CLASS="grammar_literal">;</CODE> 192.0.2.0/24<CODE CLASS="grammar_literal">;</CODE>
+ 224.0.0.0/3<CODE CLASS="grammar_literal">;</CODE> 10.0.0.0/8<CODE CLASS="grammar_literal">;</CODE> 172.16.0.0/12<CODE CLASS="grammar_literal">;</CODE> 192.168.0.0/16<CODE CLASS="grammar_literal">; };</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997359">
- </A>
+</A>
 // Set up an ACL called our-nets. Replace this with the real IP numbers.</P>
- 
-<PRE>
-<CODE>acl our-nets { x.x.x.x/24; x.x.x.x/21; };  
-options {
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997360"></A>
+<CODE CLASS="grammar_literal">acl</CODE> <EM CLASS="variable">our-nets</EM> <CODE CLASS="grammar_literal">{ </CODE>x.x.x.x/24<CODE CLASS="grammar_literal">;</CODE> x.x.x.x/21; <CODE CLASS="grammar_literal">};</CODE> </PRE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997361"></A>
+<CODE CLASS="grammar_literal">options {
+</CODE>
+  <EM CLASS="Optional-meta-syntax">...
   ...
-  ...
-  allow-query { <VAR>our-nets</VAR>; };
-  allow-recursion { <VAR>our-nets</VAR>; };
-  ...
-  blackhole { bogusnets; };
-  ...
-};
-
-zone &quot;<EM>example.com</EM>&quot; {
-  type <VAR>master</VAR>;
-  file &quot;<EM>m/example.com</EM>&quot;;
-  allow-query { <VAR>any</VAR>; };
+</EM>
+  <CODE CLASS="grammar_literal">allow-query { </CODE><EM CLASS="variable">our-nets</EM><CODE CLASS="grammar_literal">; };</CODE>
+  <CODE CLASS="grammar_literal">allow-recursion {</CODE> <EM CLASS="variable">our-nets</EM><CODE CLASS="grammar_literal">; };</CODE>
+  <EM CLASS="Optional-meta-syntax">...
+</EM>
+  <CODE CLASS="grammar_literal">blackhole {</CODE> <KBD CLASS="Literal-user-input">bogusnets</KBD><CODE CLASS="grammar_literal">; };</CODE>
+  <EM CLASS="Optional-meta-syntax">...
+</EM>
+<CODE CLASS="grammar_literal">};</CODE>
+</PRE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"></A>
+<CODE CLASS="grammar_literal">zone</CODE> &quot;<EM CLASS="pathname">example.com</EM>&quot; <CODE CLASS="grammar_literal">{</CODE>
+  <CODE CLASS="grammar_literal">type</CODE> <EM CLASS="variable">master</EM><CODE CLASS="grammar_literal">;</CODE>
+  <CODE CLASS="grammar_literal">file</CODE> <KBD CLASS="Literal-user-input">&quot;m/example.com&quot;</KBD><CODE CLASS="grammar_literal">;</CODE>
+  <CODE CLASS="grammar_literal">allow-query</CODE> <CODE CLASS="grammar_literal">{</CODE> <EM CLASS="variable">any</EM><CODE CLASS="grammar_literal">; };
 };</CODE>
 </PRE>
-
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997363">
  </A>
 This allows recursive queries of the server from the outside unless recursion has been previously disabled.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997364">
+<A NAME="pgfId=1028031">
  </A>
 For more information on how to use ACLs to protect your server, see the <EM CLASS="Emphasis">
 AUSCERT</EM>
  advisory at<BR>
-<EM CLASS="URL">
-ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos</EM>
+<EM CLASS="hypertext">
+<A HREF="ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos">ftp://ftp.auscert.org.au/pub/auscert/advisory/AL-1999.004.dns_dos</A></EM>
 </P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997365">
  </A>
@@ -104,7 +107,7 @@ chroot</CODE>
  and <CODE CLASS="Program-Process">
 setuid</CODE>
  (for UNIX servers)</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997366">
  </A>
@@ -112,12 +115,12 @@ On UNIX servers, it is possible to run BIND in a <EM CLASS="Emphasis">
 chrooted</EM>
  environment (<CODE CLASS="Program-Process">
 chroot()</CODE>
-) by specifying the &quot;<CODE CLASS="Program-Process">
+) by specifying the '<CODE CLASS="Program-Process">
 -t</CODE>
-&quot; option. This can help improve system security by placing BIND in a &quot;sandbox,&quot; which will limit the damage done if a server is compromised.</P>
+' option. This can help improve system security by placing BIND in a &quot;sandbox,&quot; which will limit the damage done if a server is compromised.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997367">
- </A>
+</A>
 Another useful feature in the UNIX version of BIND is the ability to run the daemon as a nonprivileged user ( <CODE CLASS="Program-Process">
 -u</CODE>
  &lt;<EM CLASS="variable">
@@ -126,8 +129,7 @@ user</EM>
 chroot</CODE>
  feature.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997368">
- </A>
+<A NAME="pgfId=997368"></A>
 Here is an example command line to load BIND in a <CODE CLASS="Program-Process">
 chroot()</CODE>
  sandbox, <BR>
@@ -142,20 +144,20 @@ setuid</CODE>
 <KBD CLASS="Literal-user-input">/usr/local/bin/named -u 202 -t /var/named</KBD>
 </PRE>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997370">
- </A>
+</A>
 6.2.1	The <CODE CLASS="Program-Process">
 chroot</CODE>
  Environment</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997371">
- </A>
+</A>
 In order for a <CODE CLASS="Program-Process">
 chroot()</CODE>
- environment to work properly in a particular directory (e.g., <EM CLASS="pathname">
+ environment to work properly in a particular directory (for example, <EM CLASS="pathname">
 /var/named</EM>
 ), you will need to set up an environment that includes everything BIND needs to run. From BIND's point of view, <EM CLASS="pathname">
 /var/named</EM>
@@ -166,23 +168,23 @@ chroot()</CODE>
  sandbox.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997372">
- </A>
+</A>
 If you are running an operating system that supports static binaries, you can also compile BIND statically and avoid the need to copy system libraries over to your <CODE CLASS="Program-Process">
 chroot()</CODE>
  sandbox.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997373">
- </A>
+</A>
 6.2.2	Using the <CODE CLASS="Program-Process">
 setuid</CODE>
  Function </H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997374">
- </A>
+</A>
 Prior to running the <CODE CLASS="Program-Process">
 named</CODE>
  daemon, use the <CODE CLASS="Program-Process">
@@ -193,21 +195,23 @@ chown</CODE>
 </DIV>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997375">
- </A>
+</A>
 6.3	Dynamic Updates</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997376">
- </A>
+</A>
 Access to the dynamic update facility should be strictly limited. In earlier versions of BIND the only way to do this was based on the IP address of the host requesting the update. BINDv9 also supports authenticating updates cryptographically by means of transaction signatures (TSIG). The use of TSIG is strongly recommended.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=1006806">
  </A>
 Some sites choose to keep all dynamically updated DNS data in a subdomain and delegate that subdomain to a separate zone. This way, the top-level zone containing critical data such as the IP addresses of public web and mail servers need not allow dynamic update at all.</P>
 </DIV>
+<DIV>
 <p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
+</DIV>
 </BODY>
 </HTML>

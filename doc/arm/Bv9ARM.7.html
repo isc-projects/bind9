@@ -25,18 +25,18 @@ Section 7.	Troubleshooting</H1>
  </A>
 lame server</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997353"> </A>
-<EM CLASS="grammar_literal">ns named[111]: Lame server on 'www.foo.com' (in 'foo.com'?): [192.168.0.2].53 'ns2.foo.com'</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997353"></A>
+<CODE CLASS="grammar_literal">ns named[111]: Lame server on 'www.example.com' (in 'example.com'?): [192.168.0.2].53 'ns2.example.com'</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997354">
  </A>
 This is a harmless error message. It means that the server at 192.168.0.2 (<EM CLASS="pathname">
-ns2.foo.com</EM>
+ns2.example.com</EM>
 ) is listed as a nameserver for &quot;<EM CLASS="pathname">
-foo.com</EM>
+example.com</EM>
 &quot;, but it doesn't really know anything about <EM CLASS="pathname">
-foo.com</EM>
+example.com</EM>
 .</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997355">
@@ -54,36 +54,36 @@ If it's a zone out on the Internet, it would be nice to notify the owners of the
  </A>
 bad referral</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997358"> </A>
-<EM CLASS="grammar_literal">ns named[111]: bad referral (other.com !&lt; subdomain.other.com)</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997358"></A>
+<CODE CLASS="grammar_literal">ns named[111]: bad referral (other.com !&lt; subdomain.other.com)</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997359">
  </A>
 This indicates that your nameserver (<EM CLASS="pathname">
-ns.foo.com</EM>
+ns.example.com</EM>
 ) queried the nameserver for <EM CLASS="pathname">
-foo2.com</EM>
+example2.com</EM>
  to find out how to get to <EM CLASS="pathname">
-subdomain.foo2.com</EM>
-. <EM CLASS="pathname">
-foo2.com</EM>
+subdomain.example2.com</EM>
+. The name server <EM CLASS="pathname">
+example2.com</EM>
  told your nameserver that <EM CLASS="pathname">
-subdomain.foo2.com</EM>
+subdomain.example2.com</EM>
  was delegated to some <EM CLASS="pathname">
-other.foo2.com</EM>
+other.example2.com</EM>
 , so your nameserver queried that.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997360">
  </A>
 <EM CLASS="pathname">
-someother.foo2.com</EM>
+someother.example2.com</EM>
  didn't think that <EM CLASS="pathname">
-subdomain.foo2.com</EM>
+subdomain.example2.com</EM>
  had been delegated to it, so it referred your server (<EM CLASS="pathname">
-ns.foo.com</EM>
+ns.example.com</EM>
 ) back to the <EM CLASS="pathname">
-foo2.com</EM>
+example2.com</EM>
  nameserver.</P>
 </DIV>
 <DIV>
@@ -93,13 +93,15 @@ foo2.com</EM>
  </A>
 not authoritative for</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"> </A>
-<EM CLASS="grammar_literal">ns named-xfer[111]: [192.168.0.1] not authoritative for foo.com, SOA query got rcode 0, aa 0, ancount 1, aucount 0</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997362"></A>
+<CODE CLASS="grammar_literal">ns named-xfer[111]: [192.168.0.1] not authoritative for example.com, SOA query got rcode 0, aa 0, ancount 1, aucount 0</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997363">
  </A>
-This error usually shows up on a slave server. It indicates that the master server is not answering authoritatively for the zone. This usually happens when the zone is rejected (while named is loading) on the master server. Check the logs on the master server. If ancount -- 0, you may be pointing at the wrong master server for the zone.</P>
+This error usually shows up on a slave server. It indicates that the master server is not answering authoritatively for the zone. This usually happens when the zone is rejected (while <CODE CLASS="Program-Process">
+named</CODE>
+ is loading) on the master server. Check the logs on the master server. If ancount -- 0, you may be pointing at the wrong master server for the zone.</P>
 </DIV>
 <DIV>
 <UL>
@@ -108,14 +110,14 @@ This error usually shows up on a slave server. It indicates that the master serv
  </A>
 rejected zone</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997365"> </A>
-<EM CLASS="grammar_literal">ns named[111]: master zone &quot;foo.com&quot; (IN) rejected due to errors (serial111)</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997365"></A>
+<CODE CLASS="grammar_literal">ns named[111]: master zone &quot;example.com&quot; (IN) rejected due to errors (serial111)</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997366">
  </A>
 This indicates that the <EM CLASS="pathname">
-foo.com</EM>
+example.com</EM>
  zone was rejected because of an error in the zone file. Check the lines above this error. <CODE CLASS="Program-Process">
 named</CODE>
  will usually tell you what it didn't like and where to find it in the zone file.</P>
@@ -127,14 +129,14 @@ named</CODE>
  </A>
 no NS RRs found</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997368"> </A>
-<EM CLASS="grammar_literal">ns named[111]: Zone &quot;foo.com&quot; (file foo.com.db): no NS RRs found at zonetop</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997368"></A>
+<CODE CLASS="grammar_literal">ns named[111]: Zone &quot;example.com&quot; (file example.com.db): no NS RRs found at zonetop</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997369">
  </A>
 The <EM CLASS="pathname">
-foo.com.db</EM>
+example.com.db</EM>
  file is missing NS records at the top of the zone (in the SOA section). Check to make sure they exist and that there is white space (spaces or tabs) in front of them. White spaces matter here.</P>
 </DIV>
 <DIV>
@@ -144,17 +146,21 @@ foo.com.db</EM>
  </A>
 no default TTL set</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997371"> </A>
-<EM CLASS="grammar_literal">ns named[111]: Zone &quot;foo.com&quot; (file foo.com.db): No default TTL set using SOA minimum instead</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997371"></A>
+<CODE CLASS="grammar_literal">ns named[111]: Zone &quot;example.com&quot; (file example.com.db): No default TTL set using SOA minimum instead</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997372">
  </A>
-You need to add a $TTL to the top of the <EM CLASS="pathname">
-foo.com.db</EM>
- zone file. See RFC2308, or <A HREF="Bv9ARM.5.html#19693" CLASS="XRef">
+You will need to add a <KBD CLASS="Literal-user-input">
+$TTL</KBD>
+ to the top of the <EM CLASS="pathname">
+example.com.db</EM>
+ zone file. See RFC 2308, or <A HREF="Bv9ARM.5.html#19693" CLASS="XRef">
 Setting TTLs</A>
- in this document, for information on how to use $TTL.</P>
+ for information on how to use <CODE CLASS="grammar_literal">
+$TTL</CODE>
+.</P>
 </DIV>
 <DIV>
 <UL>
@@ -163,8 +169,8 @@ Setting TTLs</A>
  </A>
 no root nameserver for class</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997374"> </A>
-<EM CLASS="grammar_literal">findns: No root nameservers for class IN?</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997374"></A>
+<CODE CLASS="grammar_literal">findns: No root nameservers for class IN?</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997375">
@@ -182,8 +188,8 @@ If you are running an internal root nameserver, make sure it is configured prope
  </A>
 address already in use</H6>
 </UL>
-<PRE CLASS="2Level-fixed"><A NAME="pgfId=997378"> </A>
-<EM CLASS="grammar_literal">ctl_server: bind: Address already in use</EM>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=997378"></A>
+<CODE CLASS="grammar_literal">ctl_server: bind: Address already in use</CODE>
 </PRE>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997379">
@@ -221,7 +227,7 @@ This means that the regular user wouldn't be able to delete it, so it would thin
 <A NAME="pgfId=997384">
  </A>
 The best solution to solving installation and configuration issues is to take preventative measures by setting up logging files beforehand (see the sample configurations in <A HREF="Bv9ARM.3.html#30164" CLASS="XRef">
-Sample Configuration and Logging</A>
+Sample Configuration and Logging.</A>
 ). The log files provide a source of hints and information that can be used to figure out what went wrong and how to fix the problem.</P>
 </DIV>
 </DIV>
@@ -255,23 +261,19 @@ The solution to this is to add 2147483647 (2^31-1) to the number, reload the zon
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=1001264">
  </A>
-The Internet Software Consortium (ISC) offers a wide range of support and service agreements for BIND, DHCP and INN servers. Four levels of premium support are available and each level includes support for all ISC programs, significant discounts on products and training, and a recognized priority on bug fixes and non-funded feature requests. In addition, ISC offers a standard support agreement package which includes services ranging from bug fix announcements to remote support. It also includes training in BIND, DHCP or INN.</P>
+The Internet Software Consortium (ISC) offers a wide range of support and service agreements for BIND and DHCP servers. Four levels of premium support are available and each level includes support for all ISC programs, significant discounts on products and training, and a recognized priority on bug fixes and non-funded feature requests. In addition, ISC offers a standard support agreement package which includes services ranging from bug fix announcements to remote support. It also includes training in BIND and DHCP.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997394">
  </A>
-To discuss arrangements for support, contact <EM CLASS="pathname">
-info@isc.org</EM>
-<CODE CLASS="Program-Process">
- </CODE>
+To discuss arrangements for support, contact 
+<A HREF="mailto:info@isc.org">info@isc.org</A>
 or visit the ISC web page at<BR>
 <EM CLASS="URL">
-http://www.isc.org/services/support/</EM>
+<A HREF="http://www.isc.org/services/support/">http://www.isc.org/services/support/</A></EM>
  to read more.</P>
+</DIV>
 <DIV>
 <p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
-</DIV>
-</DIV>
-</DIV>
 </DIV>
 </BODY>
 </HTML>

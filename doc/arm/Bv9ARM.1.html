@@ -5,69 +5,66 @@
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
 <TITLE> Section 1.	Introduction </TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
-<OL>
 <H1 CLASS="1Level">
 <A NAME="pgfId=1007883">
  </A>
 Section 1.	Introduction </H1>
-</OL>
 <P CLASS="1LevelContinued">
 <A NAME="pgfId=1007884">
  </A>
 The Internet Domain Name System (DNS) consists of the syntax to specify the names of entities in the Internet in a hierarchical manner, the rules used for delegating authority over names, and the system implementation that actually maps names to Internet addresses. DNS data is maintained in a group of distributed hierarchical databases.</P>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997352">
  </A>
 1.1	Scope of Document</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997353">
  </A>
 The Berkeley Internet Name Domain (BIND) implements an Internet nameserver for a number of operating systems. This document provides basic information about the installation and care of the Internet Software Consortium (ISC) BIND version 9 software package for system administrators.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997354">
  </A>
 1.2	Organization of This Document</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997355">
  </A>
-In this document, <EM CLASS="EquationVariables">
-Section 1</EM>
- introduces the basic DNS and BIND concepts. <EM CLASS="EquationVariables">
-Section 2</EM>
- describes resource requirements for running BIND in various environments. Information in <EM CLASS="EquationVariables">
-Section 3</EM>
- is <EM CLASS="EquationVariables">
+In this document, <A HREF="Bv9ARM.2.html"><EM CLASS="Emphasis">
+Section 1</EM></A>
+ introduces the basic DNS and BIND concepts. <A HREF="Bv9ARM.2.html"><EM CLASS="Emphasis">
+Section 2</EM></A>
+ describes resource requirements for running BIND in various environments. Information in <A HREF="Bv9ARM.3.html"><EM CLASS="Emphasis">
+Section 3</EM></A>
+ is <EM CLASS="Emphasis">
 task-oriented</EM>
- in its presentation and is organized functionally, to aid in the process of installing the BINDv9 software. The task-oriented section is followed by <EM CLASS="EquationVariables">
-Section 4</EM>
-, which contains more advanced concepts that the system administrator may need for implementing certain options. The contents of <EM CLASS="EquationVariables">
-Section 5</EM>
- are organized as in a reference manual to aid in the ongoing maintenance of the software. <EM CLASS="EquationVariables">
-Section 6</EM>
- addresses security considerations, and <EM CLASS="EquationVariables">
-Section 7</EM>
- contains troubleshooting help. The main body of the document is followed by several <EM CLASS="EquationVariables">
-Appendices</EM>
- which contain useful reference information, such as a <EM CLASS="EquationVariables">
+ in its presentation and is organized functionally, to aid in the process of installing the BINDv9 software. The task-oriented section is followed by <A HREF="Bv9ARM.4.html"><EM CLASS="Emphasis">
+Section 4</EM></A>
+, which contains more advanced concepts that the system administrator may need for implementing certain options. The contents of <A HREF="Bv9ARM.5.html"><EM CLASS="Emphasis">
+Section 5</EM></A>
+ are organized as in a reference manual to aid in the ongoing maintenance of the software. <A HREF="Bv9ARM.6.html"><EM CLASS="Emphasis">
+Section 6</EM></A>
+ addresses security considerations, and <A HREF="Bv9ARM.7.html"><EM CLASS="Emphasis">
+Section 7</EM></A>
+ contains troubleshooting help. The main body of the document is followed by several <A HREF="Bv9ARM.8.html"><EM CLASS="Emphasis">
+Appendices</EM></A>
+ which contain useful reference information, such as a <EM CLASS="Emphasis">
 Glossary</EM>
- and a <EM CLASS="EquationVariables">
+ and a <EM CLASS="Emphasis">
 Bibliography</EM>
 , as well as historic information related to BIND and the Domain Name System.</P>
 </DIV>
 <DIV>
-<OL>
 <H3 CLASS="2Level">
 <A NAME="pgfId=997356">
  </A>
 1.3	Conventions Used in This Document</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997382">
  </A>
@@ -78,7 +75,7 @@ In this document, we use the following general typographic conventions:</P>
 <P CLASS="CellBody3">
 <A NAME="pgfId=997359">
  </A>
-<EM CLASS="EquationVariables">
+<EM CLASS="Emphasis">
 To describe:</EM>
 </P>
 </TD>
@@ -86,8 +83,8 @@ To describe:</EM>
 <P CLASS="CellBody3">
 <A NAME="pgfId=997361">
  </A>
-<EM CLASS="EquationVariables">
-Style:</EM>
+<EM CLASS="Emphasis">
+We use the style:</EM>
 </P>
 </TD>
 </TR>
@@ -96,13 +93,14 @@ Style:</EM>
 <P CLASS="CellBody">
 <A NAME="pgfId=997363">
  </A>
-a pathname, filename, URL, hostname, mailing list name, or new term or concept</P>
+a pathname, filename, URL, hostname,<BR>
+mailing list name, or new term or concept</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody5">
 <A NAME="pgfId=997365">
  </A>
-<EM CLASS="EquationVariables">
+<EM CLASS="pathname">
 Italic</EM>
 </P>
 </TD>
@@ -166,16 +164,16 @@ The following conventions are used in descriptions of the BIND configuration fil
 <P CLASS="CellBody3">
 <A NAME="pgfId=997385">
  </A>
-<EM CLASS="EquationVariables">
-When describing:</EM>
+<EM CLASS="Emphasis">
+To describe:</EM>
 </P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody3">
 <A NAME="pgfId=997387">
  </A>
-<EM CLASS="EquationVariables">
-Style Used:</EM>
+<EM CLASS="Emphasis">
+We use the style:</EM>
 </P>
 </TD>
 </TR>
@@ -190,8 +188,8 @@ keywords</P>
 <P CLASS="CellBody6">
 <A NAME="pgfId=997391">
  </A>
-<EM CLASS="production_target">
-Sans Serif Bold</EM>
+<CODE CLASS="production_target">
+Sans Serif Bold</CODE>
 </P>
 </TD>
 </TR>
@@ -276,93 +274,93 @@ Text is enclosed in square brackets</P>
 </TABLE>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997413">
  </A>
 1.4	Discussion of Domain Name System (DNS) Basics and BIND</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997414">
  </A>
-The purpose of this document is to explain the installation and basic upkeep of the BIND software package, and we begin by reviewing the fundamentals of the domain naming system as they relate to BIND. BIND consists of a <EM CLASS="EquationVariables">
+The purpose of this document is to explain the installation and basic upkeep of the BIND software package, and we begin by reviewing the fundamentals of the domain naming system as they relate to BIND. BIND consists of a <EM CLASS="Emphasis">
 nameserver</EM>
  (or &quot;daemon&quot;) called <CODE CLASS="Program-Process">
 named</CODE>
  and a <CODE CLASS="Program-Process">
 resolver</CODE>
- library. The BIND server runs in the background, servicing queries on a well known network port. The standard port for UDP and TCP, usually port 53, is specified in<CODE CLASS="Program-Process">
- /etc/services</CODE>
-. The <EM CLASS="EquationVariables">
+ library. The BIND server runs in the background, servicing queries on a well known network port. The standard port for the User Datagram Protocol (UDP) and Transmission Control Protocol (TCP), usually port 53, is specified in<CODE CLASS="Program-Process">
+ </CODE>
+<EM CLASS="pathname">
+/etc/services</EM>
+. The <EM CLASS="Emphasis">
 resolver</EM>
  is a set of routines residing in a system library that provides the interface that programs can use to access the domain name services.</P>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997415">
  </A>
 1.4.1	Nameservers</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997416">
  </A>
-A nameserver (NS) is a program that stores information about named resources and responds to queries from programs called <EM CLASS="EquationVariables">
+A nameserver (NS) is a program that stores information about named resources and responds to queries from programs called <EM CLASS="Emphasis">
 resolvers</EM>
  which act as client processes. The basic function of an NS is to provide information about network objects by answering queries.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997417">
  </A>
-With the nameserver, the network can be broken into a hierarchy of domains. The name space is organized as a tree according to organizational or administrative boundaries. Each node of the tree, called a domain, is given a label. The name of the domain is the concatenation of all the labels of the domains from the root to the current domain. This is represented in written form as a string of labels listed from right to left and separated by dots. A label need only be unique within its domain. The whole name space is partitioned into areas called <EM CLASS="EquationVariables">
+With the nameserver, the network can be broken into a hierarchy of domains. The name space is organized as a tree according to organizational or administrative boundaries. Each node of the tree, called a domain, is given a label. The name of the domain is the concatenation of all the labels of the domains from the root to the current domain. This is represented in written form as a string of labels listed from right to left and separated by dots. A label need only be unique within its domain. The whole name space is partitioned into areas called <EM CLASS="Emphasis">
 zones</EM>
-, each starting at a domain and extending down to the leaf domains or to domains where other zones start. Zones usually represent administrative boundaries. For example, a domain name for a host at the company <EM CLASS="EquationVariables">
+, each starting at a domain and extending down to the leaf domains or to domains where other zones start. Zones usually represent administrative boundaries. For example, a domain name for a host at the company <EM CLASS="Emphasis">
 Example, Inc.</EM>
  would be:</P>
 <P CLASS="3LevelContinued1">
 <A NAME="pgfId=997418">
  </A>
-<EM CLASS="EquationVariables">
+<EM CLASS="URL">
 ourhost.example.com</EM>
 </P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997419">
  </A>
-The top level domain for corporate organizations is <EM CLASS="EquationVariables">
+where <EM CLASS="URL">
 com</EM>
-; <EM CLASS="EquationVariables">
+ is the top level domain to which <EM CLASS="URL">
+ourhost.example.com</EM>
+ belongs, <EM CLASS="URL">
 example</EM>
- is a subdomain of <EM CLASS="EquationVariables">
-.com</EM>
-; and <EM CLASS="EquationVariables">
+ is a subdomain of <EM CLASS="URL">
+com</EM>
+, and <EM CLASS="URL">
 ourhost</EM>
  is the name of the host.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997420">
  </A>
-The specifications for the domain nameserver are defined in RFC1034, RFC1035 and RFC974. These documents can be found in<BR>
+The specifications for the domain nameserver are defined in the RFC 1034, RFC 1035 and RFC 974. These documents can be found in<BR>
 <EM CLASS="pathname">
 /usr/src/etc/named/doc</EM>
- in 4.4BSD or are available via <CODE CLASS="Program-Process">
-FTP</CODE>
- from<BR>
+ in 4.4BSD or are available via File Transfer Protocol (FTP) from<BR>
 <EM CLASS="URL">
 ftp://www.isi.edu/in-notes/</EM>
  or via the Web at <EM CLASS="URL">
 http://www.ietf.org/rfc/</EM>
-. (See Appendix C for complete information on finding and retrieving RFCs.) It is also recommended that you read the related <CODE CLASS="Program-Process">
-man</CODE>
- pages: <CODE CLASS="Program-Process">
+. (See Appendix C for complete information on finding and retrieving RFCs.) It is also recommended that you read the related man pages: <CODE CLASS="Program-Process">
 named</CODE>
  and <CODE CLASS="Program-Process">
 resolver</CODE>
 .</P>
 </DIV>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997421">
  </A>
 1.4.2	Types of Zones</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997422">
  </A>
@@ -370,57 +368,59 @@ As we stated previously, a zone is a point of delegation in the DNS tree. A zone
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997423">
  </A>
-To properly operate a nameserver, it is important to understand the difference between a <EM CLASS="EquationVariables">
+To properly operate a nameserver, it is important to understand the difference between a <EM CLASS="Emphasis">
 zone</EM>
- and a <EM CLASS="EquationVariables">
+ and a <EM CLASS="Emphasis">
 domain</EM>
 .</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997424">
  </A>
-As an example, consider the <EM CLASS="EquationVariables">
+For instance, consider the <EM CLASS="URL">
 example.com</EM>
- domain, which includes names such as <EM CLASS="EquationVariables">
+ domain which includes names such as <EM CLASS="URL">
 host.aaa.example.com </EM>
-and <EM CLASS="EquationVariables">
+and <EM CLASS="URL">
 host.bbb.example.com</EM>
- even though the <EM CLASS="EquationVariables">
+ even though the <EM CLASS="URL">
 example.com</EM>
- zone includes only delegations for the <EM CLASS="EquationVariables">
+ zone includes only delegations for the <EM CLASS="URL">
 aaa.example.com</EM>
- and <EM CLASS="EquationVariables">
+ and <EM CLASS="URL">
 bbb.example.com</EM>
- zones. A zone can map exactly to a single domain, but could also include only part of a domain, the rest of which could be delegated to other nameservers. Every name in the DNS tree is a <EM CLASS="EquationVariables">
+ zones. A zone can map exactly to a single domain, but could also include only part of a domain, the rest of which could be delegated to other nameservers. Every name in the DNS tree is a <EM CLASS="Emphasis">
 domain</EM>
-, even if it is <EM CLASS="EquationVariables">
+, even if it is <EM CLASS="Emphasis">
 terminal</EM>
-, that is, has no <EM CLASS="EquationVariables">
+, that is, has no <EM CLASS="Emphasis">
 subdomains</EM>
-. Every subdomain is a domain and every domain except the root is also a subdomain. The terminology is not intuitive and it is suggested that you read RFCs 1033, 1034, and 1035 to gain a complete understanding of this difficult and subtle topic.</P>
+. Every subdomain is a domain and every domain except the root is also a subdomain. The terminology is not intuitive and we suggest that you read RFCs 1033, 1034 and 1035 to gain a complete understanding of this difficult and subtle topic.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=1007878">
  </A>
 Though BIND is a Domain Nameserver, it deals primarily in terms of zones. The primary and secondary declarations in the <CODE CLASS="Program-Process">
 named.conf</CODE>
- file specify zones, not domains. When you ask some other site if it is willing to be a secondary server for your <EM CLASS="EquationVariables">
+ file specify zones, not domains. When you ask some other site if it is willing to be a secondary server for your <EM CLASS="Emphasis">
 domain</EM>
 , you are actually asking for secondary service for some collection of zones.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997426">
  </A>
-Each zone will have one <EM CLASS="EquationVariables">
+Each zone will have one <EM CLASS="Emphasis">
 primary master</EM>
- (also called <EM CLASS="EquationVariables">
+ (also called <EM CLASS="Emphasis">
 primary</EM>
-) server which loads the zone contents from some local file edited by humans or perhaps generated mechanically from some other local file which is edited by humans. There there will be some number of <EM CLASS="EquationVariables">
-secondary master </EM>
-servers, which load the zone contents using the DNS protocol (that is, the secondary servers will contact the primary and fetch the zone data using TCP). This set of servers--the primary and all of its secondaries--should be listed in the NS records in the parent zone and will constitute a <EM CLASS="EquationVariables">
+) server which loads the zone contents from some local file edited by humans or perhaps generated mechanically from some other local file which is edited by humans. There there will be some number of <EM CLASS="Emphasis">
+slave</EM>
+ (also called <EM CLASS="Emphasis">
+secondary) </EM>
+servers, which load the zone contents using the DNS protocol (that is, the secondary servers will contact the primary and fetch the zone data using TCP). This set of servers--the primary and all of its secondaries--should be listed in the NS records in the parent zone and will constitute a <EM CLASS="Emphasis">
 delegation</EM>
 . This set of servers must also be listed in the zone file itself, usually under the <CODE CLASS="Program-Process">
 @</CODE>
- name which indicates the <EM CLASS="EquationVariables">
+ name which indicates the <EM CLASS="Emphasis">
 top level</EM>
- or <EM CLASS="EquationVariables">
+ or <EM CLASS="Emphasis">
 root</EM>
  of the current zone. You can list servers in the zone's top-level <CODE CLASS="Program-Process">
 @</CODE>
@@ -430,115 +430,117 @@ root</EM>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997428">
  </A>
-Any servers listed in the NS records must be configured as <A NAME="marker=997427">
- </A>
-authoritative for the zone. A server is authoritative for a zone when it has been configured to answer questions for that zone with authority, which it does by setting the &quot;authoritative answer&quot; (AA) bit in reply packets. A server may be authoritative for more than one zone. The authoritative data for a zone is composed of all of the Resource Records (RRs)--the data associated with names in a tree-structured name space--attached to all of the nodes from the top node of the zone down to leaf nodes or nodes above <A NAME="marker=997429">
- </A>
-cuts around the bottom edge of the zone.</P>
+Any servers listed in the NS records must be configured as <EM CLASS="Emphasis">
+authoritative</EM>
+ for the zone. A server is authoritative for a zone when it has been configured to answer questions for that zone with authority, which it does by setting the &quot;authoritative answer&quot; (AA) bit in reply packets. A server may be authoritative for more than one zone. The authoritative data for a zone is composed of all of the Resource Records (RRs)--the data associated with names in a tree-structured name space--attached to all of the nodes from the top node of the zone down to leaf nodes or nodes above cuts around the bottom edge of the zone.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997430">
  </A>
 Adding a zone as a type master or type slave will tell the server to answer questions for the zone authoritatively. If the server is able to load the zone into memory without any errors it will set the AA bit when it replies to queries for the zone. See RFCs 1034 and 1035 for more information about the AA bit.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997431">
  </A>
 1.4.3	Servers</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997432">
  </A>
-A DNS server can be master for some zones and slave for others or can be only a master, or only a slave, or can serve no zones and just answer queries via its <EM CLASS="EquationVariables">
+A DNS server can be master for some zones and slave for others or can be only a master, or only a slave, or can serve no zones and just answer queries via its <EM CLASS="Emphasis">
 cache</EM>
-. Master servers are often also called <EM CLASS="EquationVariables">
+. Master servers are often also called <EM CLASS="Emphasis">
 primaries</EM>
- and slave servers are often also called <EM CLASS="EquationVariables">
+ and slave servers are often also called <EM CLASS="Emphasis">
 secondaries</EM>
 . Both master/primary and slave/secondary servers are authoritative for a zone.</P>
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997433">
  </A>
-All servers keep data in their cache until the data expires, based on a TTL (Time To Live) field which is maintained for all resource records.</P>
+All servers keep data in their cache until the data expires, based on a Time To Live (TTL) field which is maintained for all resource records.</P>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997434">
  </A>
 1.4.3.1	Master Server</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997435">
  </A>
-The <EM CLASS="EquationVariables">
-primary master</EM>
- server is the ultimate source of information about a domain. The primary master is an authoritative server configured to be the source of zone transfer for one or more secondary servers. The primary master server obtains data for the zone from a file on disk.</P>
+The <EM CLASS="Emphasis">
+primary master server</EM>
+ is the ultimate source of information about a domain. The primary master is an authoritative server configured to be the source of zone transfer for one or more secondary servers. The primary master server obtains data for the zone from a file on disk.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997436">
  </A>
 1.4.3.2	Slave Server </H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997437">
  </A>
-A <EM CLASS="EquationVariables">
+A <EM CLASS="Emphasis">
 slave server</EM>
-, also called a <EM CLASS="EquationVariables">
+, also called a <EM CLASS="Emphasis">
 secondary server</EM>
-, is an authoritative server that uses zone transfers from the primary master server to retrieve the zone data. Optionally, the slave server obtains zone data from a cache on disk. Slave servers provide necessary redundancy. All secondary/slave servers are named in the NS resource records (RRs) for the zone.</P>
+, is an authoritative server that uses zone transfers from the primary master server to retrieve the zone data. Optionally, the slave server obtains zone data from a cache on disk. Slave servers provide necessary redundancy. All secondary/slave servers are named in the NS RRs for the zone.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997438">
  </A>
 1.4.3.3	Caching Only Server</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997439">
  </A>
-Some servers are <EM CLASS="EquationVariables">
+Some servers are <EM CLASS="Emphasis">
 caching only servers</EM>
 . This means that the server caches the information that it receives and uses it until the data expires. A caching only server is a server that is not authoritative for any zone. This server services queries and asks other servers, who have the authority, for the information it needs.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997440">
  </A>
 1.4.3.4	Forwarding Server</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997441">
  </A>
-Instead of interacting with the nameservers for the root and other domains, a <EM CLASS="EquationVariables">
+Instead of interacting with the nameservers for the root and other domains, a <EM CLASS="Emphasis">
 forwarding server</EM>
- always forwards queries it cannot satisfy from its authoritative data or cache to a fixed list of other servers. The forwarded queries are also known as <EM CLASS="EquationVariables">
-recursive queries, </EM>
-the same type as a client would send to a server. There may be one or more servers forwarded to, and they are queried in turn until the list is exhausted or an answer is found. A forwarding server is typically used when you do not wish all the servers at a given site to interact with the rest of the Internet servers. A typical scenario would involve a number of internal DNS servers, and an internet firewall. The servers which cannot pass packets through the firewall would forward to the server which can, which would ask the internet DNS servers on the internal server's behalf. An added benefit of using the forwarding feature is that the central machine develops a much more complete cache of information that all the workstations can take advantage of. </P>
+ always forwards queries it cannot satisfy from its authoritative data or cache to a fixed list of other servers. The forwarded queries are also known as <EM CLASS="Emphasis">
+recursive queries</EM>
+, the same type as a client would send to a server. There may be one or more servers forwarded to, and they are queried in turn until the list is exhausted or an answer is found. A forwarding server is typically used when you do not wish all the servers at a given site to interact with the rest of the Internet servers. A typical scenario would involve a number of internal DNS servers and an Internet firewall. Servers unable to pass packets through the firewall would forward to the server that can do it, and that server would query the Internet DNS servers on the internal server's behalf. An added benefit of using the forwarding feature is that the central machine develops a much more complete cache of information that all the workstations can take advantage of.</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997442">
  </A>
 There is no prohibition against declaring a server to be a forwarder even though it has master and/or slave zones as well; the effect will still be that anything in the local server's cache or zones will be answered, and anything else will be forwarded using the forwarders list.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997443">
  </A>
 1.4.3.5	Stealth Server</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=1014846">
  </A>
-A stealth server is a server that answers authoritatively for a zone, but is not listed in that zone's NS records. Stealth servers can be used as a way to centralize distribution of a zone, without having to edit the zone on a remote nameserver. Where the master file for a zone resides on a stealth server in this way, it is often referred to as a &quot;hidden primary&quot; configuration. Stealth servers can also be a way to keep a local copy of a zone for rapid access to the zone's records, even if all &quot;official&quot; nameservers for the zone are inaccessible.</P>
+A <EM CLASS="Emphasis">
+stealth server</EM>
+ is a server that answers authoritatively for a zone, but is not listed in that zone's NS records. Stealth servers can be used as a way to centralize distribution of a zone, without having to edit the zone on a remote nameserver. Where the master file for a zone resides on a stealth server in this way, it is often referred to as a &quot;hidden primary&quot; configuration. Stealth servers can also be a way to keep a local copy of a zone for rapid access to the zone's records, even if all &quot;official&quot; nameservers for the zone are inaccessible.</P>
 </DIV>
 </DIV>
 </DIV>
+<DIV>
 <p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
+</DIV>
 </BODY>
 </HTML>

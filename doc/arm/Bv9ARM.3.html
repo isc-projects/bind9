@@ -5,251 +5,260 @@
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
 <TITLE> Section 3.	Nameserver Configuration</TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
-<OL>
+
 <H1 CLASS="1Level">
 <A NAME="pgfId=997350">
- </A>
+</A>
 Section 3.	Nameserver Configuration</H1>
-</OL>
+
 <P CLASS="1LevelContinued">
 <A NAME="pgfId=997351">
- </A>
+</A>
 In this section we provide some suggested configurations along with guidelines for their use. We also address the topic of reasonable option setting.</P>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997353">
- </A>
+</A>
 3.1	<A NAME="30164">
  </A>
 Sample Configuration and Logging</H3>
-</OL>
+
 <PRE CLASS="2Level-fixed"><A NAME="pgfId=997354"></A>
-
-<CODE>logging {
-        channel <VAR>named_log</VAR> {
-             file &quot;<EM>logs/named.log</EM>&quot;;
-             print-time <VAR>yes</VAR>;
-             print-category <VAR>yes</VAR>;
-             print-severity <VAR>yes</VAR>;
-             severity <VAR>info</VAR>;
+<CODE CLASS="grammar_literal">logging {
+       channel </CODE><EM CLASS="variable">named_log</EM><CODE CLASS="grammar_literal"> {
+           file </CODE><CODE CLASS="Program-Process">&quot;</CODE><KBD CLASS="Literal-user-input">logs/named.log</KBD><CODE CLASS="Program-Process">&quot;</CODE><CODE CLASS="grammar_literal">;
+           print-time </CODE><EM CLASS="variable">yes</EM><CODE CLASS="grammar_literal">;
+           print-category </CODE><EM CLASS="variable">yes</EM><CODE CLASS="grammar_literal">;
+           print-severity </CODE><EM CLASS="variable">yes</EM<CODE CLASS="grammar_literal">;
+           severity </CODE><EM CLASS="variable">info</EM><CODE CLASS="grammar_literal">;
 };
-       channel <VAR>security_log</VAR> {
-             file &quot;<EM>logs/security.log</EM> &quot; <VAR>versions 7</VAR> ;
-             print-time <VAR>yes</VAR> ;
+       <CODE CLASS="grammar_literal">channel</CODE> <EMCLASS="variable">security_log</EM><CODE CLASS="grammar_literal"> {
+           file </CODE><CODE CLASS="Program-Process">&quot;</CODE><KBD CLASS="Literal-user-input">logs/security.log</KBD><CODE CLASS="Program-Process">&quot;</CODE><CODE CLASS="grammar_literal"> versions</CODE> <EM CLASS="variable">7</EM><CODE CLASS="grammar_literal"> ;
+           print-time </CODE><EM CLASS="variable">yes</EM><CODE CLASS="grammar_literal">;
 };
-       category <VAR>default</VAR> { named_log; default_debug; };
-             category security { security_log };
+       category </CODE><EM CLASS="variable">default</EM><CODE CLASS="grammar_literal"> { named_log; default_debug; };
+       category </CODE><EM CLASS="variable">security</EM><CODE CLASS="grammar_literal"> { security_log };
 };
-                                                    // The two corporate subnets.
-                                                    // Use real IP numbers
-                                                    // here in the real world.
-acl corpnet { 192.168.4.0/24; 192.168.7.0/24; };
-                              // The options statement.
-options {
-   directory &quot;<EM>/etc/namedb</EM>&quot;;      // Directory
-   pid-file &quot;<EM>named.pid</EM>&quot;;         // Put .pid file in named directory.
-   check-names master <VAR>fail</VAR>;              // Fail on db errors in master zones.
-   check-names slave <VAR>warn</VAR>;               // Warn about db errors
-                                                    // in slave zones.
-   check-names response <VAR>warn</VAR>;            // Warn about invalid responses
-   use-id-pool <VAR>yes</VAR>;                      // Help prevent spoofing
-   host-statistics <VAR>yes</VAR>;                  // Keep track of hosts/servers
-                                                    // we've talked to.
-   listen-on { 192.168.7.20; };                     // Listen on this address.
+							// The two corporate subnets.
+							// Use real IP numbers
+							// here in the real world.
+acl </CODE><EM CLASS="variable">corpnet</EM><CODE CLASS="grammar_literal"> { 192.168.4.0/24; 192.168.7.0/24; };
+							// The options statement.
+options {	
+   directory &quot;</CODE><KBD CLASS="Literal-user-input">/etc/namedb</KBD><CODE CLASS="grammar_literal">&quot;;				// Directory
+   pid-file &quot;</CODE><KBD CLASS="Literal-user-input">named.pid</KBD><CODE CLASS="grammar_literal">&quot;;				// Put .pid file in named directory.
+   check-names master </CODE><EM CLASS="variable">fail</EM><CODE CLASS="grammar_literal">;				// Fail on db errors in master zones.
+   check-names slave </CODE><EM CLASS="variable">warn</EM><CODE CLASS="grammar_literal">;				// Warn about db errors
+							// in slave zones.
+   check-names response </CODE><EM CLASS="variable">warn</EM><CODE CLASS="grammar_literal">;				// Warn about invalid responses
+   use-id-pool </CODE><EM CLASS="variable">yes</EM><CODE CLASS="grammar_literal">;					// Help prevent spoofing
+   host-statistics </CODE><EM CLASS="variable">yes</EM><CODE CLASS="grammar_literal">;					// Keep track of hosts/servers
+							// we've talked to.
+   listen-on { 192.168.7.20; };				// Listen on this address.
    query-source address 192.168.7.20 port 53 ;
-                                                    // Source queries from port 53
-                                                    // to get past firewall.
-   allow-transfer { <VAR>none</VAR>; };             // Don't allow anyone to
-                                                    // transfer zones.
-   allow-query { corpnet; };                        // Allow only corpnets to query server.
-                                                    // Helps prevent DoS, spoofing.
-   allow-recursion { corpnet; };                    // Same, except this is for recursion.
+							// Source queries from port 53
+							// to get past firewall.
+   allow-transfer { </CODEz<EM CLASS="variable">none</EM><CODE CLASS="grammar_literal">; };				// Don't allow anyone to
+							// transfer zones.
+   allow-query { corpnet; };				// Allow only corpnets to query server.
+							// Helps prevent DoS, spoofing.
+   allow-recursion { corpnet; };			// Same, except this is for recursion.
 };
-
-   include &quot;<EM>keys.conf</EM>&quot;;                   // Include a keys.conf with
-                                                     // TSIG/DNSSEC keys.
-                                                     // Shouldn't be readable to anyone
-                                                     // except BIND user.
-   zone &quot;<EM>.</EM>&quot;{ type <VAR>hint</VAR>; file &quot;<EM>local/named.root</EM>&quot;;
-};                                                    // root hints
-
-   zone &quot;<EM>0.0.127.IN-ADDR.ARPA</EM>&quot; {
-   type <VAR>master</VAR>; file &quot;<EM>local/localhost.db</EM>&quot;; notify <VAR>no</VAR>;
-                                                     // localhost
-};
-
-   zone &quot;example.com&quot; {                      // Example zone for &quot;<EM>example.com</EM>&quot;.
-   type <VAR>master</VAR>;                             // It's a master zone.
-   file &quot;<EM>m/example.com.db</EM>&quot;;                 // The file is here.
-   allow-query { <VAR>any</VAR>; };                      // Allow anyone to query.
-   allow-transfer { corpnet; };                         // Only allow corp nets to transfer zone.
-}; 
- 
-   zone &quot;<EM>offsite.example.com</EM>&quot; {              // Example zone for an off-site corp zone.
-   type <VAR>slave</VAR>;                                        // It's a slave zone.
-   masters { 192.168.4.12; };                                // The master is at this address.
-   file &quot;<EM>s/offsite.example.com.db</EM>&quot;;             // The file is here.
-   notify <VAR>no</VAR>;                                             // Don't worry about NOTIFYing.
-allow-query { <VAR>any</VAR>; };                                 // Allow anyone to query.
+</CODE>
+</PRE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=1007322"></A>
+<CODE CLASS="grammar_literal">include &quot;</CODE><KBD CLASS="Literal-user-input">keys.conf</KBD><CODE CLASS="grammar_literal">&quot;;					// Include a keys.conf with
+								// TSIG/DNSSEC keys.
+								// Shouldn't be readable to anyone
+								// except BIND user.
+zone &quot;.&quot;{ type </CODE><EM CLASS="variable">hint</EM><CODE CLASS="grammar_literal">; file &quot;</CODE><KBD CLASS="Literal-user-input">local/named.root</KBD><CODE CLASS="grammar_literal">&quot;; };
+								// root hints</CODE></PRE<PRE CLASS="2Level-fixed"><A NAME="pgfId=997391"></A>
+<CODE CLASS="grammar_literal">zone &quot;0.0.127.IN-ADDR.ARPA&quot; {</CODE>
+</PRE>
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=1079048"></A>
+<CODE CLASS="grammar_literal">        type </CODE><EM CLASS="variable">master</EM><CODE CLASS="grammar_literal">; file &quot;</CODE><KBD CLASS="Literal-user-input">local/localhost.db</KBD><CODE CLASS="grammar_literal">&quot;; notify </CODE><EM CLASS="variable">no</EM><CODE CLASS="grammar_literal">;
+								// localhost
+};</CODE>
+</PRE><PRE CLASS="2Level-fixed"><A NAME="pgfId=1078744"></A><CODE CLASS="grammar_literal">zone &quot;</CODE><KBD CLASS="Literal-user-input">example.com</KBD><CODE CLASS="grammar_literal">&quot; {			// Example zone for &quot;example.com&quot;.
+type </CODE><EM CLASS="variable">master</EM><CODE CLASS="grammar_literal">;				// It's a master zone.
+file &quot;</CODE><KBD CLASS="Literal-user-input">m/example.com.db</KBD><CODE CLASS="grammar_literal">&quot;;		// The file is here.
+allow-query { </CODE><EM CLASS="variable">any</EM><CODE CLASS="grammar_literal">; };			// Allow anyone to query.
+allow-transfer { corpnet; };		// Only allow corp nets to transfer zone.
 };</CODE>
 
+<PRE CLASS="2Level-fixed"><A NAME="pgfId=1079157"></A>
+<CODE CLASS="grammar_literal">zone &quot;</CODE><KBD CLASS="Literal-user-input">offsite.example.com</KBD><CODE CLASS="grammar_literal">&quot; {		// Example zone for an off-site corp zone.
+type </CODE><EM CLASS="variable">slave</EM><CODE CLASS="grammar_literal">;					// It's a slave zone.
+masters { 192.168.4.12; };			// The master is at this address.
+file &quot;</CODE><KBD CLASS="Literal-user-input">s/offsite.example.com.db</KBD><CODE CLASS="grammar_literal">&quot;;		// The file is here.
+notify </CODE><EM CLASS="variable">no</EM><CODE CLASS="grammar_literal">;				// Don't worry about NOTIFYing.
+allow-query { </CODE><EM CLASS="variable">any</EM><CODE CLASS="grammar_literal">; };				// Allow anyone to query.
+};</CODE>
 </PRE>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997410">
- </A>
+</A>
 3.2	Load Balancing and Round Robin</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997411">
- </A>
+</A>
 Primitive load balancing can be achieved in DNS using multiple A records for one name.</P>
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997412">
- </A>
-For example, if you have three WWW servers with network addresses of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a record like the following means that clients will connect to each machine one third of the time:</P>
-<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997454"> </A>
+</A>
+For example, if you have three WWW servers with network addresses of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records like the following means that clients will connect to each machine one third of the time:</P>
+<PRE CLASS="2Level-fixed1"><A NAME="pgfId=997454"></A>
 &nbsp;</PRE>
 <TABLE>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997415">
- </A>
+<A NAME="pgfId=997415"></A>
 Name</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997417">
- </A>
+<A NAME="pgfId=997417"></A>
 TTL</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997419">
- </A>
+<A NAME="pgfId=997419"></A>
 CLASS</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997421">
- </A>
+<A NAME="pgfId=997421"></A>
 TYPE</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997423">
- </A>
+<A NAME="pgfId=997423"></A>
 Resource Record (RR) Data</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997425">
- </A>
-www</P>
+<A NAME="pgfId=997425"></A>
+<CODE CLASS="grammar_literal">
+www</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997427">
- </A>
-10m</P>
+<A NAME="pgfId=997427"></A>
+<CODE CLASS="grammar_literal">
+600</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997429">
- </A>
-IN</P>
+<A NAME="pgfId=997429"></A>
+<CODE CLASS="grammar_literal">
+IN</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997431">
- </A>
-A</P>
+<A NAME="pgfId=997431"></A>
+<CODE CLASS="grammar_literal">
+A</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997433">
- </A>
-10.0.0.1</P>
-</TD>
-</TR>
-<TR>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=997435">
- </A>
-&nbsp;</P>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=997437">
- </A>
-10m</P>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=997439">
- </A>
-IN</P>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=997441">
- </A>
-A</P>
-</TD>
-<TD ROWSPAN="1" COLSPAN="1">
-<P CLASS="CellBody">
-<A NAME="pgfId=997443">
- </A>
-10.0.0.2</P>
+<A NAME="pgfId=997433"></A>
+<CODE CLASS="grammar_literal">
+10.0.0.1</CODE>
+</P>
 </TD>
 </TR>
 <TR>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997445">
- </A>
+<A NAME="pgfId=997435"></A>
+<CODE CLASS="grammar_literal">
+</CODE>
 &nbsp;</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997447">
- </A>
-10m</P>
+<A NAME="pgfId=997437"></A>
+<CODE CLASS="grammar_literal">
+600</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997449">
- </A>
-IN</P>
+<A NAME="pgfId=997439"></A>
+<CODE CLASS="grammar_literal">
+IN</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997451">
- </A>
-A</P>
+<A NAME="pgfId=997441"></A>
+<CODE CLASS="grammar_literal">
+A</CODE>
+</P>
 </TD>
 <TD ROWSPAN="1" COLSPAN="1">
 <P CLASS="CellBody">
-<A NAME="pgfId=997453">
- </A>
-10.0.0.3</P>
+<A NAME="pgfId=997443"></A>
+<CODE CLASS="grammar_literal">
+10.0.0.2</CODE>
+</P>
+</TD>
+</TR>
+<TR>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997445"></A>
+<CODE CLASS="grammar_literal">
+</CODE>
+&nbsp;</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997447"></A>
+<CODE CLASS="grammar_literal">
+600</CODE>
+</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997449"></A>
+<CODE CLASS="grammar_literal">
+IN</CODE>
+</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997451"></A>
+<CODE CLASS="grammar_literal">
+A</CODE>
+</P>
+</TD>
+<TD ROWSPAN="1" COLSPAN="1">
+<P CLASS="CellBody">
+<A NAME="pgfId=997453"></A>
+<CODE CLASS="grammar_literal">
+10.0.0.3</CODE>
+</P>
 </TD>
 </TR>
 </TABLE>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997455">
- </A>
-When a resolver queries for these records, BIND will rotate them and respond to the query with the records in a different order. This is known as cyclic or round-robin ordering.In the example above, the first client will receive the records in the order 1,2,3; the second client will receive them in the order 2,3,1; and the third 3,1,2. Most clients will use the first record returned, and discard the rest.</P>
+<A NAME="pgfId=997455"></A>
+When a resolver queries for these records, BIND will rotate them and respond to the query with the records in a different order. This is known as cyclic or round-robin ordering. In the example above, the first client will receive the records in the order 1, 2, 3; the second client will receive them in the order 2, 3, 1; and the third 3, 1, 2. Most clients will use the first record returned and discard the rest.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997456">
- </A>
+<A NAME="pgfId=997456"></A>
 For more detail on ordering responses, check the <CODE CLASS="Program-Process">
 rrset-order</CODE>
  substatement in the <CODE CLASS="Program-Process">
@@ -259,50 +268,52 @@ RRset Ordering</A>
 .</P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
-<A NAME="pgfId=997460">
- </A>
-3.3	Notify</H3>
-</OL>
+<A NAME="pgfId=997460"></A>
+3.3	<A NAME="35205"></A>
+Notify</H3>
+
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=997461">
- </A>
-DNS Notify is a mechanism that allows master nameservers to notify their slave servers of changes to a zone's data and that a query should be initiated to discover the new data. DNS Notify is turned on by default.</P>
+<A NAME="pgfId=997461"></A>
+DNS Notify is a mechanism that allows master nameservers to notify their slave servers of changes to a zone's data and that a query should be initiated to discover the new data.</P>
 <P CLASS="2LevelContinued">
-<A NAME="pgfId=1016466">
+<A NAME="pgfId=1078896">
  </A>
 DNS Notify is fully documented in RFC 1996. See also the description of the zone option <CODE CLASS="Program-Process">
 also-notify</CODE>
- on <A HREF="Bv9ARM.5.html#32057" CLASS="XRef">
+ in <A HREF="Bv9ARM.5.html#32057" CLASS="XRef">
 Zone Transfers</A>
+. More information about <CODE CLASS="Program-Process">
+notify</CODE>
+ can be found in <A HREF="Bv9ARM.5.html#12205" CLASS="XRef">Boolean Options</A>
 .</P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
-<A NAME="pgfId=1016467">
+<A NAME="pgfId=1078903">
  </A>
 3.4	Nameserver Operations</H3>
-</OL>
+
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997464">
  </A>
 3.4.1	Tools for Use With the Nameserver Daemon</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997465">
  </A>
 There are several indispensable diagnostic, administrative and monitoring tools available to the system administrator for controlling and debugging the nameserver daemon. We describe several in this section </P>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997466">
  </A>
 3.4.1.1	Diagnostic Tools</H5>
-</OL>
+
 </DIV>
 <DIV>
 <H5 CLASS="Subhead4">
@@ -406,12 +417,12 @@ nslookup</CODE>
  man page.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997487">
  </A>
 3.4.1.2	Administrative Tools</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997488">
  </A>
@@ -427,7 +438,9 @@ rndc</H5>
  </A>
 The remote name daemon control (<CODE CLASS="Program-Process">
 rndc</CODE>
-) program is a program that allows the system administrator to control the operation of a nameserver. If you run rndc without any options it will display a usage message.</P>
+) program is a program that allows the system administrator to control the operation of a nameserver. If you run <CODE CLASS="Program-Process">
+rndc</CODE>
+ without any options it will display a usage message.</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=1012780">
  </A>
@@ -438,30 +451,14 @@ Usage:</P>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997493">
  </A>
-For more information and a list of available commands and options, see the rndc man page.</P>
+For more information and a list of available commands and options, see the <CODE CLASS="Program-Process">
+rndc</CODE>
+ man page.</P>
+</DIV>
+</DIV>
 </DIV>
 <DIV>
-<OL>
-<H5 CLASS="4Level">
-<A NAME="pgfId=997494">
- </A>
-3.4.1.3	Monitoring Tools</H5>
-</OL>
-</DIV>
-<DIV>
-<H5 CLASS="Subhead4">
-<A NAME="pgfId=997495">
- </A>
-MRTG</H5>
-<P CLASS="4LevelContinued">
-<A NAME="pgfId=997496">
- </A>
-<CODE CLASS="Program-Process">
-MRTG</CODE>
- is primarily a router traffic grapher, but can be used to monitor BIND DNS servers, as well. The `stat' script, supplied with MRTG in the MRTG `contrib/stat' directory, can be used to monitor numbers of queries, and counts of various sorts of responses.</P>
-</DIV>
-</DIV>
-</DIV>
 <p>Return to <A href="Bv9ARM.html">BINDv9 Administrator Reference Manual</A> 
+</DIV>
 </BODY>
 </HTML>
