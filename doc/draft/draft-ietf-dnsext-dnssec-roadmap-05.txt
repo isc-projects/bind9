@@ -6,7 +6,7 @@
 
 DNEXT Working Group                                             S. Rose
 Internet Draft                                                     NIST
-Expires: January 2001                                         July 2001
+Expires: May 2001                                         November 2001
 Category: Informational
 
 
@@ -14,7 +14,7 @@ Category: Informational
 
                      DNS Security Document Roadmap
                      ------------------------------
-               <draft-ietf-dnsext-dnssec-roadmap-04.txt>
+               <draft-ietf-dnsext-dnssec-roadmap-05.txt>
 
 
 Status of this Document
@@ -61,7 +61,7 @@ Rose                                                            [Page 1]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
 
@@ -120,7 +120,7 @@ Rose                                                            [Page 2]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
 1. Introduction
@@ -180,7 +180,7 @@ Rose                                                            [Page 3]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
    possible that some documents fall into more than one of these
@@ -205,15 +205,16 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
       |  Security  | <------->|  protocol |<-------->|  Security   |
       |  RRs       |          |           |          |  Uses       |
       | [RFC2538,  |          | [RFC2535, |          |  [SSH-DNS]  |
-      |  RFC2931,  |          |  RFC3007, |          +-------------+
-      |  NO, DSIG] |          |  RFC3008, |
+      |  RFC2931,  |                |  RFC3007, |          +-------------+
+      |  DSIG]     |          |  RFC3008, |
       +------------+          |  RFC3090, |
-                              |  SIZE ]   |
+                              |  SIZE,    |
                               |  OKBIT,   |
                               |  ADBIT,   |
                               |  OPTIN,   |
                               |  PARSIG,  |
-                              |  PARKEY ] |
+                                      |    PARKEY,  |
+                                      |  LIMIT ]  |
                               +-----------+
                                     |
                                     |
@@ -225,12 +226,11 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
        |  Algorithm |       |  Transactions |      * Notes           *
        |  Impl.     |       |               |      |                 |
        | [RFC2536,  |       |  [RFC2845,    |      *  [CAIRN,        *
-       |  RFC2537   |       |   RFC2930]    |      |   ROLLOVER,     |
-       |  RFC2539   |       |               |      *   RESROLLOVER ] *
+       |  RFC2537   |       |   RFC2930,    |      |   ROLLOVER,     |
+       |  RFC2539   |       |   RENEW ]     |      *   RESROLLOVER ] *
        |  GSS-TSIG, |       |               |      +-*-*-*-*-*-*-*-*-+
-       |  RFC3110]  |       +---------------+
-       +------------+
-                     Figure 1  DNSSEC Document Roadmap
+       |  RFC3110,  |       +---------------+
+       |  ECC, DH ] |
 
 
 
@@ -240,7 +240,11 @@ Rose                                                            [Page 4]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
+
+
+       +------------+
+                     Figure 1  DNSSEC Document Roadmap
 
 
    The "DNSSEC protocol" document set refers to the document that makes
@@ -258,22 +262,21 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    lines of RFC/Internet Draft author guidelines).  Also, the portions
    of the specification to be modified SHOULD be synopsized in the new
    document for the benefit of the reader.  The "DNSSEC protocol" set
-   includes the documents [RFC2535], [RFC3007], [RFC3008], [RFC3090],
-   [SIZE], [OKBIT], [ADBIT], [OPTIN], [PARSIG], [PARKEY] and their
-   derivative documents.
+   includes the documents [RFC2535], [RFC3007], [RFC3008], [RFC3090] and
+   their derivative documents.
 
    The "New Security RRs" set refers to the group of documents that seek
    to add additional Resource Records to the set of base DNS Record
    types.  These new records can be related to securing the DNS protocol
-   [RFC2535], [RFC2931], [NO] or using DNS security for other purposes
-   such as storing certificates [RFC2538].
+   [RFC2535], [RFC2931], or using DNS security for other purposes such
+   as storing certificates [RFC2538].
 
    The "DS Algorithm Impl" document set refers to the group of documents
    that describe how a specific digital signature algorithm is imple-
    mented to fit the DNSSEC Resource Record format.  Each one of these
    documents deals with one specific digital signature algorithm. Exam-
-   ples of this set include [RFC2536], [RFC2537], [RFC2539], [RFC3110]
-   and [GSS-TSIG].
+   ples of this set include [RFC2536], [RFC2537], [RFC2539] and
+   [RFC3110].
 
    The "Transactions" document set refers to the group of documents that
    deal with the message transaction sequence of security-related DNS
@@ -288,9 +291,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    related purposes.  Documents that fall in this category include the
    use of DNS in the storage and distribution of certificates and indi-
    vidual user public keys (PGP, e-mail, etc.)  Some documents in this
-   group may fall beyond the DNSEXT WG scope, but they are included
-   because of their use of the security extensions.  The documents in
-   this group should not propose any changes to the DNS protocol to
 
 
 
@@ -300,10 +300,13 @@ Rose                                                            [Page 5]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
-   support other protocols; only how existing DNS security records and
+   group may fall beyond the DNSEXT WG scope, but they are included
+   because of their use of the security extensions.  The documents in
+   this group should not propose any changes to the DNS protocol to sup-
+   port other protocols; only how existing DNS security records and
    transactions can be used to support other protocols.  One such docu-
    ment is [SSH-DNS] which deals with storing SSH keys in the DNS using
    the security records.
@@ -348,9 +351,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    required content and structure.  It is the purpose of this document
    roadmap to establish criteria for content that any new DNS security
    protocol specifications document SHOULD contain.  These criteria
-   SHOULD be interpreted as a minimum set of information required/needed
-   in a document, any additional information regarding the specific
-   extension should also be included in the document.  These criteria
 
 
 
@@ -360,9 +360,12 @@ Rose                                                            [Page 6]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
+   SHOULD be interpreted as a minimum set of information required/needed
+   in a document, any additional information regarding the specific
+   extension should also be included in the document.  These criteria
    are not officially part of the IETF guidelines regarding RFC/Internet
    Drafts, but should be considered as guidance to promote uniformity to
    Working Group documents.
@@ -408,9 +411,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    *    the current known status of the algorithm (as one of REQUIRED,
    RECOMMENDED, or OPTIONAL).
 
-   In addition, authors are encouraged to include any necessary descrip-
-   tion of the algorithm itself, as well as any know/suspected
-   weaknesses as an appendix to the document.  This is for reference
 
 
 
@@ -420,9 +420,12 @@ Rose                                                            [Page 7]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
+   In addition, authors are encouraged to include any necessary descrip-
+   tion of the algorithm itself, as well as any know/suspected
+   weaknesses as an appendix to the document.  This is for reference
    only, as the goals of the DNSEXT working group is to propose exten-
    sions to the DNS protocol, not cryptographic research.
 
@@ -469,9 +472,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    document [RFC2535].
 
 
-6. Acknowledgements
-
-
 
 
 Rose                                                            [Page 8]
@@ -480,8 +480,10 @@ Rose                                                            [Page 8]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
+
+6. Acknowledgements
 
    In addition to the RFCs mentioned in this document, there are also
    numerous Internet drafts that fall in one or more of the categories
@@ -502,8 +504,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    message size requirements". <draft-ietf-dnsext-message-size-NN.txt>
    *   GSS-TSIG:  S. Kwan, P. Garg, J. Gilroy, and L. Esibov.  "GSS
    Algorithm for TSIG (GSS-TSIG)".  <draft-ietf-dnsext-gss-tsig-NN.txt>
-   *   NO:  S. A. Josefsson.  "Authenticating Denial of Existence in DNS
-   with Minimum Disclosure".  <draft-ietf-dnsext-not-existing-rr-NN.txt>
    *   OKBIT: D. Conrad.  "Indicting Resolver Support of DNSSEC".
    <draft-ietf-dnsext-dnssec-okbit-NN.txt>
    *   ROLLOVER:  M. Andrews, D. Eastlake.  "Domain Name System (DNS)
@@ -523,14 +523,14 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    *   RESROLLOVER: O. Kolkman, M. Gieben, R. Arends.  "Rollover of
    statically configured resolver keys". <draft-ietf-dnsop-resolver-
    rollover-NN.txt>
-
-
-7. References
-
-   [RFC2535] D. Eastlake, "Domain Name System Security Extensions", RFC
-   2535, March 1999.
-
-   [RFC2537] D. Eastlake, "RSA/MD5 KEYs and SIGs in the Domain Name
+   *   ECC:  D. Eastlake and R. Schroeppel.  "Elliptic Curve KEYs in the
+   DNS".  <draft-ietf-dnsext-ecc-key-NN.txt>
+   *   RENEW:  Y. Kamite, M. Nakayama.  "TKEY Secret Key Renewal Mode".
+   <draft-ietf-dnsext-tkey-renewal-mode-NN.txt>
+   *   LIMIT:  D. Massey and S. Rose.  "Limiting the Scope of the KEY
+   Resource Record".  <draft-ietf-dnsext-restrict-key-for-dnssec-NN.txt>
+   *   DH:  D. Eastlake.  "Storage of Diffie-Hellman Keys in the Domain
+   Name System (DNS)".  <draft-ietf-dnsext-rfc2539bis-dhk-NN.txt>
 
 
 
@@ -540,10 +540,16 @@ Rose                                                            [Page 9]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
-   System (DNS)", RFC 2537, March 1999.
+7. References
+
+   [RFC2535] D. Eastlake, "Domain Name System Security Extensions", RFC
+   2535, March 1999.
+
+   [RFC2537] D. Eastlake, "RSA/MD5 KEYs and SIGs in the Domain Name Sys-
+   tem (DNS)", RFC 2537, March 1999.
 
    [RFC2536] D. Eastlake, "DSA KEYs and SIGs in the Domain Name System
    (DNS)", RFC 2536, March 1999.
@@ -585,12 +591,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    [RFC2119] S. Bradner, "Key words for use in RFCs to Indicate Require-
    ment Levels", RFC-2119, March 1997.
 
-   [RFC3007] B. Wellington, "Secure Domain Name System (DNS) Dynamic
-   Update".  RFC 3007, November 2000.
-
-   [RFC3008] B. Wellington, "Domain Name System Security (DNSSEC) Sign-
-   ing Authority".  RFC 3008, November 2000.
-
 
 
 
@@ -600,7 +600,16 @@ Rose                                                           [Page 10]
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
+
+
+   [RFC3007] B. Wellington, "Secure Domain Name System (DNS) Dynamic
+   Update".  RFC 3007, November 2000.
+
+   [RFC3008] B. Wellington, "Domain Name System Security (DNSSEC) Sign-
+   ing Authority".  RFC 3008, November 2000.
+
+
 
 
 8. Author's Addresses
@@ -614,7 +623,7 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
 
 Expiration and File Name:
 
-   This draft, titled <draft-ietf-dnsext-dnssec-roadmap-04.txt> expires January 2001.
+   This draft, titled <draft-ietf-dnsext-dnssec-roadmap-05.txt> expires May 2001.
 
 
 
@@ -645,24 +654,21 @@ Expiration and File Name:
 
 
 
-Full Copyright Statement
-
-   Copyright (C) The Internet Society (1999).  All Rights Reserved.
-
-   This document and translations of it may be copied and furnished to
-   others, and derivative works that comment on or otherwise explain it
-
-
-
 Rose                                                           [Page 11]
 
 
 
 
 
-INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
+INTERNET-DRAFT       DNS Security Document Roadmap         November 2001
 
 
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (1999).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
    or assist in its implementation may be prepared, copied, published
    and distributed, in whole or in part, without restriction of any
    kind, provided that the above copyright notice and this paragraph are
@@ -683,12 +689,6 @@ INTERNET-DRAFT       DNS Security Document Roadmap            April 2001
    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MER-
    CHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
-
-
-
-
-
-
 
 
 
