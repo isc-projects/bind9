@@ -1467,7 +1467,7 @@
 			reload.	 [RT #410]
 	
  528.	[func]		The ISC_LIST_XXXX macros now perform sanity checks
-			on their arguements.  ISC_LIST_XXXXUNSAFE can be use
+			on their arguments.  ISC_LIST_XXXXUNSAFE can be use
 			to skip the checks however use with caution.
 
  527.	[func]		New function dns_rdata_clone().
@@ -2478,7 +2478,7 @@
  242.	[cleanup]	fixed incorrect warning about auth-nxdomain usage.
 
  241.	[cleanup]	nscount and soacount have been removed from the
-			dns_master_*() arguement lists.
+			dns_master_*() argument lists.
 
  240.	[func]		databases now come in three flavours: zone, cache
 			and stub.
@@ -2694,10 +2694,10 @@
  188.	[func]		Log a warning message when an incoming zone transfer
 			contains out-of-zone data.
 
- 187.	[func]		isc_ratelimter_enqueue() has an additional arguement
+ 187.	[func]		isc_ratelimter_enqueue() has an additional argument
 			'task'.
 
- 186.	[func]		dns_request_getresponse() has an additional arguement
+ 186.	[func]		dns_request_getresponse() has an additional argument
 			'preserve_order'.
 
  185.	[bug]		Fixed up handling of ISC_MEMCLUSTER_LEGACY.  Several
