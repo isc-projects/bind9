@@ -23,24 +23,33 @@
 #include <isc/list.h>
 #include <isc/symtab.h>
 
+#include "util.h"
+
 typedef struct elt {
 	char *				key;
 	unsigned int			type;
-	isc_symvalue_t		value;
+	isc_symvalue_t			value;
 	LINK(struct elt)		link;
 } elt_t;
 
 typedef LIST(elt_t)			eltlist_t;
 
+#define SYMTAB_MAGIC			0x53796D54U	/* SymT. */
+#define VALID_SYMTAB(st)		((st) != NULL && \
+					 (st)->magic == SYMTAB_MAGIC)
+
 struct isc_symtab {
+	/* Unlocked. */
+	unsigned int			magic;
 	isc_mem_t *			mctx;
 	unsigned int			size;
 	eltlist_t *			table;
-	LIST(isc_symtabaction_t)	undefine_actions;
+	isc_symtabaction_t		undefine_action;
 };
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
+		  isc_symtabaction_t undefine_action,
 		  isc_symtab_t **symtabp)
 {
 	isc_symtab_t *symtab;
@@ -63,20 +72,10 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		INIT_LIST(symtab->table[i]);
 	symtab->mctx = mctx;
 	symtab->size = size;
-	INIT_LIST(symtab->undefine_actions);
+	symtab->undefine_action = undefine_action;
+	symtab->magic = SYMTAB_MAGIC;
 
 	*symtabp = symtab;
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_symtab_onundefine(isc_symtab_t *symtab, unsigned int type,
-		      isc_symtabaction_t action) {
-	
-	/* REQUIRE(VALID_SYMTAB(symtab)); */
-
-	/* malloc structure, link onto action list */
 
 	return (ISC_R_SUCCESS);
 }
@@ -87,18 +86,23 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 	unsigned int i;
 	elt_t *elt, *nelt;
 
-	/* XXX REQUIRE XXX */
+	REQUIRE(symtabp != NULL);
 	symtab = *symtabp;
+	REQUIRE(VALID_SYMTAB(symtab));
 
 	for (i = 0; i < symtab->size; i++) {
 		for (elt = HEAD(symtab->table[i]); elt != NULL; elt = nelt) {
 			nelt = NEXT(elt, link);
-			/* XXX call undefine action here */
+			if (symtab->undefine_action != NULL)
+				(symtab->undefine_action)(elt->key,
+							  elt->type,
+							  elt->value);
 			isc_mem_put(symtab->mctx, elt, sizeof *elt);
 		}
 	}
 	isc_mem_put(symtab->mctx, symtab->table,
 		    symtab->size * sizeof (eltlist_t));
+	symtab->magic = 0;
 	isc_mem_put(symtab->mctx, symtab, sizeof *symtab);
 
 	*symtabp = NULL;
@@ -146,6 +150,9 @@ isc_symtab_lookup(isc_symtab_t *symtab, const char *key, unsigned int type,
 	unsigned int bucket;
 	elt_t *elt;
 
+	REQUIRE(VALID_SYMTAB(symtab));
+	REQUIRE(key != NULL);
+
 	FIND(symtab, key, type, bucket, elt);
 
 	if (elt == NULL)
@@ -164,6 +171,9 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 	unsigned int bucket;
 	elt_t *elt;
 
+	REQUIRE(VALID_SYMTAB(symtab));
+	REQUIRE(key != NULL);
+
 	FIND(symtab, key, type, bucket, elt);
 
 	if (elt != NULL)
@@ -175,6 +185,7 @@ isc_symtab_define(isc_symtab_t *symtab, char *key, unsigned int type,
 	elt->key = key;
 	elt->type = type;
 	elt->value = value;
+
 	APPEND(symtab->table[bucket], elt, link);
 
 	return (ISC_R_SUCCESS);
@@ -185,13 +196,16 @@ isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type) {
 	unsigned int bucket;
 	elt_t *elt;
 
+	REQUIRE(VALID_SYMTAB(symtab));
+	REQUIRE(key != NULL);
+
 	FIND(symtab, key, type, bucket, elt);
 
 	if (elt == NULL)
 		return (ISC_R_NOTFOUND);
 
-	/* XXX call undefine routines here */
-
+	if (symtab->undefine_action != NULL)
+		(symtab->undefine_action)(elt->key, elt->type, elt->value);
 	UNLINK(symtab->table[bucket], elt, link);
 	isc_mem_put(symtab->mctx, elt, sizeof *elt);
 
