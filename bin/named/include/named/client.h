@@ -27,14 +27,14 @@
  *
  * This module defines two objects, ns_client_t and ns_clientmgr_t.
  *
- * An ns_client_t object handles incoming DNS requests from clients.
- * It waits for UDP requests from a given dispatcher, or TCP requests
- * from a given socket.
+ * An ns_client_t object handles incoming DNS requests from clients
+ * on a given network interface.
  *
  * Each ns_client_t object can handle only one TCP connection or UDP
  * request at a time.  Therefore, several ns_client_t objects are
- * typically created to serve a single socket or dispatcher,
- * e.g., one per available CPU.
+ * typically created to serve each network interface, e.g., one
+ * for handling TCP requests and a few (one per CPU) for handling 
+ * UDP requests.
  *
  * Incoming requests are classified as queries, zone transfer
  * requests, update requests, notify requests, etc, and handed off 
@@ -135,14 +135,28 @@ struct ns_client {
  * Note!  These ns_client_ routines MUST be called ONLY from the client's
  * task in order to ensure synchronization.
  */
-void
-ns_client_error(ns_client_t *client, isc_result_t result);
-
-void
-ns_client_next(ns_client_t *client, isc_result_t result);
 
 void
 ns_client_send(ns_client_t *client);
+/*
+ * Finish processing the current client request and
+ * send client->message as a response.
+ */
+
+void
+ns_client_error(ns_client_t *client, isc_result_t result);
+/*
+ * Finish processing the current client request and return
+ * an error response to the client.  The error response
+ * will have an RCODE determined by 'result'.
+ */
+
+void
+ns_client_next(ns_client_t *client, isc_result_t result);
+/*
+ * Finish processing the current client request, 
+ * return no response to the client.
+ */
 
 isc_boolean_t
 ns_client_shuttingdown(ns_client_t *client);
@@ -153,7 +167,8 @@ ns_client_shuttingdown(ns_client_t *client);
 void
 ns_client_wait(ns_client_t *client);
 /*
- * Increment reference count.
+ * Increment reference count.  The client object will
+ * not be destroyed while the reference count is nonzero.
  */
 
 void
@@ -173,9 +188,16 @@ ns_client_replace(ns_client_t *client);
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		    isc_timermgr_t *timermgr, ns_clientmgr_t **managerp);
+/*
+ * Create a client manager.
+ */
 
 void
 ns_clientmgr_destroy(ns_clientmgr_t **managerp);
+/*
+ * Destroy a client manager and all ns_client_t objects
+ * managed by it.
+ */
 
 isc_result_t
 ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
@@ -188,5 +210,9 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client);
+/*
+ * Get the socket address of the client whose request is
+ * currently being processed.
+ */
 
 #endif /* NS_CLIENT_H */

@@ -22,7 +22,7 @@
 #include <named/client.h>
 
 /***
- ***	Modual Info
+ ***	Module Info
  ***/
 
 /*
@@ -40,7 +40,7 @@ ns_notify_start(ns_client_t *client);
 /*
  *	Examines the incoming message to determine apporiate zone.
  *	Returns FORMERR if there is not exactly one question.
- *	Returns REFUSED if we do not server the listed zone.
+ *	Returns REFUSED if we do not serve the listed zone.
  *	Pass the message to the zone module for processing
  *	and returns the return status.
  *
