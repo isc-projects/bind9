@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.15 2004/01/08 05:40:44 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.16 2004/01/08 08:12:19 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2167,7 +2167,7 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	if (fd != INVALID_SOCKET) {
 		isc_result_t tresult;
 		tresult = make_nonblock(fd);
-		if (tresult != ISC_R_SUCCESS)) {
+		if (tresult != ISC_R_SUCCESS) {
 			closesocket(fd);
 			fd = INVALID_SOCKET;
 			result = tresult;
