@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.95 2001/11/27 01:55:52 gson Exp $
+ * $Id: dst_api.c,v 1.96 2001/11/28 02:35:02 bwelling Exp $
  */
 
 #include <config.h>
@@ -1059,7 +1059,11 @@ frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
 		return (ISC_R_NOMEMORY);
 
 	if (isc_buffer_remaininglength(source) > 0) {
-		CHECKALG(alg);
+		ret = algorithm_status(alg);
+		if (ret != ISC_R_SUCCESS) {
+			dst_key_free(&key);
+			return (ret);
+		}
 		if (key->func->fromdns == NULL) {
 			dst_key_free(&key);
 			return (DST_R_UNSUPPORTEDALG);
