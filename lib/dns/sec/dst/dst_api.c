@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.48 2000/06/07 17:22:23 bwelling Exp $
+ * $Id: dst_api.c,v 1.49 2000/06/07 19:05:45 bwelling Exp $
  */
 
 #include <config.h>
@@ -927,18 +927,13 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
 
-	isc_lex_close(lex);
-	isc_lex_destroy(&lex);
-	isc_mem_put(mctx, newfilename, strlen(filename) + 5);
-
-	return (ISC_R_SUCCESS);
-
-cleanup:
-        if (lex != NULL) {
+ cleanup:
+	if (lex != NULL) {
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
-        }
+	}
 	isc_mem_put(mctx, newfilename, strlen(filename) + 5);
+
 	return (ret);
 }
 
@@ -972,8 +967,6 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	dnsret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
 	if (dnsret != ISC_R_SUCCESS)
 		return (DST_R_INVALIDPUBLICKEY);
-
-	dns_rdata_freestruct(&rdata);
 
 	isc_buffer_usedregion(&textb, &r);
 	
