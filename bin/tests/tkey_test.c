@@ -61,7 +61,7 @@ static void buildquery2(void);
 
 isc_mutex_t lock;
 isc_taskmgr_t *taskmgr;
-isc_task_t *task1, *task2;
+isc_task_t *task1;
 dst_key_t *ourkey;
 isc_socket_t *s;
 isc_sockaddr_t address;
@@ -144,7 +144,7 @@ senddone2(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_SENDDONE);
-	REQUIRE(task == task2);
+	REQUIRE(task == task1);
 
 	printf("senddone2\n");
 
@@ -160,7 +160,7 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(sevent != NULL);
 	REQUIRE(sevent->ev_type == ISC_SOCKEVENT_RECVDONE);
-	REQUIRE(task == task2);
+	REQUIRE(task == task1);
 
 	printf("recvdone2\n");
 	if (sevent->result != ISC_R_SUCCESS) {
@@ -331,12 +331,12 @@ buildquery2(void) {
 	       (char *)isc_buffer_base(&outbuf));
 
 	isc_buffer_usedregion(&qbuffer, &r);
-	result = isc_socket_sendto(s, &r, task2, senddone2, NULL, &address,
+	result = isc_socket_sendto(s, &r, task1, senddone2, NULL, &address,
 				   NULL);
 	CHECK("isc_socket_sendto", result);
 	inr.base = rdata;
 	inr.length = sizeof(rdata);
-	result = isc_socket_recv(s, &inr, 1, task2, recvdone2, NULL);
+	result = isc_socket_recv(s, &inr, 1, task1, recvdone2, NULL);
 	CHECK("isc_socket_recv", result);
 }
 
@@ -386,9 +386,6 @@ main(int argc, char *argv[]) {
 	task1 = NULL;
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task1) ==
 		      ISC_R_SUCCESS);
-	task2 = NULL;
-	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task2) ==
-		      ISC_R_SUCCESS);
 	timermgr = NULL;
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) == ISC_R_SUCCESS);
 	socketmgr = NULL;
@@ -422,7 +419,7 @@ main(int argc, char *argv[]) {
 
 	ourkey = NULL;
 	result = dst_key_fromfile(name, 2982, DNS_KEYALG_DH,
-				  DST_TYPE_PRIVATE, mctx, &ourkey);
+				  DST_TYPE_PRIVATE, NULL, mctx, &ourkey);
 	CHECK("dst_key_fromfile", result);
 
 
@@ -438,8 +435,6 @@ main(int argc, char *argv[]) {
 
 	isc_task_shutdown(task1);
 	isc_task_detach(&task1);
-	isc_task_shutdown(task2);
-	isc_task_detach(&task2);
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_socket_detach(&s);
