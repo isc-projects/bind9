@@ -366,6 +366,12 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
 #endif
 
+	/*
+	 * Check for multicast.
+	 */
+	if (isc_sockaddr_ismulticast(&dev->address))
+		dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;
+
 #ifndef USE_CMSG
 	return;
 #else
@@ -1171,6 +1177,15 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 					 "setsockopt(%d) failed: %s",
 					 sock->fd, strerror(errno));
 		}
+
+#ifdef IPV6_USE_MIN_MTU        /*2292bis, not too common yet*/
+		/* use minimum MTU */
+		if (pf == AF_INET6) {
+			(void)setsockopt(sock->fd, IPPROTO_IPV6,
+					 IPV6_USE_MIN_MTU,
+					 (void *)&on, sizeof (on));
+		}
+#endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 
 	}
@@ -2666,6 +2681,9 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(addr != NULL);
+
+	if (isc_sockaddr_ismulticast(addr))
+		return (ISC_R_MULTICAST);
 
 	LOCK(&sock->lock);
 
