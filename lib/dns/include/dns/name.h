@@ -292,6 +292,17 @@ dns_name_fullcompare(dns_name_t *name1, dns_name_t *name2,
  *
  *	Either name1 is absolute and name2 is absolute, or neither is.
  *
+ * Ensures:
+ *
+ *	*orderp is -1 if name1 < name2, 0 if name1 = name2, 1 if
+ *	name1 > name2.
+ *
+ *	*nlabelsp is the number of common significant labels.
+ *
+ *	If *nbitsp is non-zero, then the least-signficant of the
+ *	common significant labels is a bitstring label, and the
+ *	two names have *nbitsp significant bits in common.
+ *
  * Returns:
  *	dns_namerel_none		There's no hierarchical relationship
  *					between name1 and name2.
