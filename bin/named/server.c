@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.397 2003/02/26 05:05:14 marka Exp $ */
+/* $Id: server.c,v 1.398 2003/04/22 04:14:14 marka Exp $ */
 
 #include <config.h>
 
@@ -3105,7 +3105,7 @@ ns_server_dumpstats(ns_server_t *server) {
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 	
 	for (i = 0; i < ncounters; i++)
-		fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT "d\n",
+		fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT "u\n",
 			dns_statscounter_names[i],
 			server->querystats[i]);
 	
@@ -3126,7 +3126,7 @@ ns_server_dumpstats(ns_server_t *server) {
 			viewname = view->name;
 			for (i = 0; i < ncounters; i++) {
 				fprintf(fp, "%s %" ISC_PRINT_QUADFORMAT
-					"d %s",
+					"u %s",
 					dns_statscounter_names[i],
 					zonestats[i],
 					zonename);
@@ -3377,11 +3377,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 					  DNS_ZONESTATE_SOAQUERY);
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
-		     "number of zones: %d\n"
+		     "number of zones: %u\n"
 		     "debug level: %d\n"
-		     "xfers running: %d\n"
-		     "xfers deferred: %d\n"
-		     "soa queries in progress: %d\n"
+		     "xfers running: %u\n"
+		     "xfers deferred: %u\n"
+		     "soa queries in progress: %u\n"
 		     "query logging is %s\n"
 		     "recursive clients: %d/%d\n"
 		     "tcp clients: %d/%d\n"
