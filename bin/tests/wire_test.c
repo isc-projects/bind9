@@ -65,6 +65,10 @@ dns_name_t names[MAX_PREALLOCATED];
 dns_rdata_t rdatas[MAX_PREALLOCATED];
 dns_rdatalist_t lists[MAX_PREALLOCATED];
 
+void getmessage(dns_message_t *message, isc_buffer_t *source,
+		isc_buffer_t *target);
+dns_result_t printmessage(dns_message_t *message);
+
 #ifdef NOISY
 static void
 print_wirename(isc_region_t *name) {

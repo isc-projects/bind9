@@ -103,6 +103,13 @@ typedef struct dns_message {
 	dns_namelist_t		additional;
 } dns_message_t; /* XXX Should be common? */
 
+/*
+ * XXX These is in wire_test.c right now.
+ */
+void getmessage(dns_message_t *message, isc_buffer_t *source,
+		isc_buffer_t *target);
+dns_result_t printmessage(dns_message_t *message);
+
 static void
 dump_packet(char *buf, u_int len)
 {
@@ -131,7 +138,6 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 {
 	isc_socket_t *sock;
 	isc_socketevent_t *dev;
-	isc_region_t region;
 	client_ctx_t *ctx;
 
 	sock = event->sender;
