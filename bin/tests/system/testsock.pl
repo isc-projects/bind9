@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.12 2001/04/24 01:23:28 gson Exp $
+# $Id: testsock.pl,v 1.13 2001/04/24 01:52:16 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
@@ -35,12 +35,14 @@ if ($id != 0) {
 } else {
 	@ids = (1..5);
 }
-  
+
 foreach $id (@ids) {
         my $addr = pack("C4", 10, 53, 0, $id);
 	my $sa = pack_sockaddr_in($port, $addr);
 	socket(SOCK, PF_INET, SOCK_STREAM, getprotobyname("tcp"))
       		or die "$0: socket: $!\n";
+	setsockopt(SOCK, SOL_SOCKET, SO_REUSEADDR, pack("l", 1));
+
 	bind(SOCK, $sa)
 	    	or die sprintf("$0: bind(%s, %d): $!\n",
 			       inet_ntoa($addr), $port);
