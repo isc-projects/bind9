@@ -1432,6 +1432,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			debug("Still pending.");
 #endif
 		if (query->lookup->doing_xfr) {
+			if (query != query->lookup->xfr_q) {
+				dns_message_destroy (&msg);
+				isc_event_free (&event);
+				query->working = ISC_FALSE;
+				query->waiting_connect = ISC_FALSE;
+				return;
+			}
 			if (!query->first_soa_rcvd) {
 				debug("Not yet got first SOA");
 				if (!msg_contains_soa(msg, query)) {
