@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.20 2001/08/03 18:12:06 bwelling Exp $ */
+/* $Id: tsigconf.c,v 1.21 2001/08/03 18:39:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 
 #include <named/log.h>
 
+#include <named/config.h>
 #include <named/tsigconf.h>
 
 static isc_result_t
