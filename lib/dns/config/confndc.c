@@ -474,7 +474,7 @@ dns_c_ndcserverlist_destroy(dns_c_ndcserverlist_t **servers)
 	dns_c_ndcserver_t *p;
 	isc_mem_t *mem;
 
-	REQUIRE(server != NULL);
+	REQUIRE(servers != NULL);
 
 	slist = *servers;
 
@@ -1425,9 +1425,7 @@ eat_eos(ndcpcontext *pctx)
 }
 
 
-
-
-
+#if 0
 // 
 // static isc_boolean_t
 // match_token(ndcpcontext *pctx, isc_uint32_t token, isc_boolean_t advance) {
@@ -1513,8 +1511,7 @@ eat_eos(ndcpcontext *pctx)
 // 	return (rval);
 // }
 // #endif
-	
-
+#endif
 
 
 /* ************************************************** */
