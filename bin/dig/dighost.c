@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.80 2000/07/13 01:49:44 mws Exp $ */
+/* $Id: dighost.c,v 1.81 2000/07/13 02:14:17 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -146,7 +146,7 @@ void
 fatal(const char *format, ...) {
 	va_list args;
 
-	fprintf (stderr, "%s: ", progname);
+	fprintf(stderr, "%s: ", progname);
 	va_start(args, format);	
 	vfprintf(stderr, format, args);
 	va_end(args);
@@ -495,7 +495,7 @@ setup_system(void) {
 					   dns_rootname, ISC_FALSE,
 					   namebuf);
 		if (result != ISC_R_SUCCESS) {
-			printf (";; Couldn't create key %s: %s\n",
+			printf(";; Couldn't create key %s: %s\n",
 				keynametext, dns_result_totext(result));
 			goto SYSSETUP_FAIL;
 		}
@@ -773,7 +773,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 			isc_result_totext(result));
 		if ((section == DNS_SECTION_ANSWER) &&
 		    (query->lookup->trace || query->lookup->ns_search_only))
-			followup_lookup (msg, query, DNS_SECTION_AUTHORITY);
+			followup_lookup(msg, query, DNS_SECTION_AUTHORITY);
                 return;
 	}
 
@@ -860,7 +860,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
-		result = dns_message_nextname (msg, section);
+		result = dns_message_nextname(msg, section);
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
@@ -2137,7 +2137,7 @@ cancel_all(void) {
 	dig_lookup_t *l;
 	dig_query_t *q;
 
-	debug ("cancel_all()");
+	debug("cancel_all()");
 
 	l = ISC_LIST_HEAD(lookup_list);
 	while (l != NULL) {
