@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.399 2003/07/17 07:22:21 marka Exp $ */
+/* $Id: server.c,v 1.400 2003/07/25 02:22:23 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
+#include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/print.h>
 #include <isc/resource.h>
@@ -2510,6 +2511,8 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	else
 		CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
 			   "loading configuration");
+
+	isc_hash_init();
 
 	CHECKFATAL(load_zones(server, ISC_FALSE),
 		   "loading zones");

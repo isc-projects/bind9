@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.102 2002/08/27 04:53:43 marka Exp $ */
+/* $Id: name.h,v 1.103 2003/07/25 02:22:25 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -310,6 +310,22 @@ unsigned int
 dns_name_hash(dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * Provide a hash value for 'name'.
+ *
+ * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
+ * case will have the same hash value.
+ *
+ * Requires:
+ *	'name' is a valid name
+ *
+ * Returns:
+ *	A hash value
+ */
+
+unsigned int
+dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
+/*
+ * Provide a hash value for 'name'.  Unlike dns_name_hash(), this function
+ * always takes into account of the entire name to calculate the hash value.
  *
  * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
  * case will have the same hash value.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.61 2003/02/26 02:03:58 marka Exp $ */
+/* $Id: globals.h,v 1.62 2003/07/25 02:22:23 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1

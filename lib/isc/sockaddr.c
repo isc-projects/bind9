@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.56 2003/04/11 07:25:28 marka Exp $ */
+/* $Id: sockaddr.c,v 1.57 2003/07/25 02:22:26 marka Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
 
 #include <isc/buffer.h>
+#include <isc/hash.h>
 #include <isc/msgs.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -186,19 +187,17 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 
 	switch (sockaddr->type.sa.sa_family) {
 	case AF_INET:
-		h = ntohl(sockaddr->type.sin.sin_addr.s_addr);
+		s = (const unsigned char *)&sockaddr->type.sin.sin_addr;
 		p = ntohs(sockaddr->type.sin.sin_port);
+		length = sizeof(sockaddr->type.sin.sin_addr.s_addr);
 		break;
 	case AF_INET6:
 		in6 = &sockaddr->type.sin6.sin6_addr;
 		if (IN6_IS_ADDR_V4MAPPED(in6)) {
-			h = (in6->s6_addr[12] << 24) |
-			    (in6->s6_addr[13] << 16) |
-			    (in6->s6_addr[14] << 8) |
-			    in6->s6_addr[15];
+			s = (const unsigned char *)&in6[12];
+			length = sizeof(sockaddr->type.sin.sin_addr.s_addr);
 		} else {
-			s = (const unsigned char *)&sockaddr->
-						   type.sin6.sin6_addr;
+			s = (const unsigned char *)in6;
 			length = sizeof(sockaddr->type.sin6.sin6_addr);
 		}
 		p = ntohs(sockaddr->type.sin6.sin6_port);
@@ -214,22 +213,14 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 		length = sockaddr->length;
 		p = 0;
 	}
-	while (length > 0) {
-		h = ( h << 4 ) + *s;
-		if ((g = ( h & 0xf0000000 )) != 0) {
-			h = h ^ (g >> 24);
-			h = h ^ g;
-		}
-		s++;
-		length--;
-	}
+
+	h = isc_hash_calc(s, length, ISC_TRUE);
 	if (!address_only) {
-		h = h ^ (p << 4);
-		if ((g = ( h & 0xf0000000 )) != 0) {
-			h = h ^ (g >> 24);
-			h = h ^ g;
-		}
+		g = isc_hash_calc((const unsigned char *)&p, sizeof(p),
+				  ISC_TRUE);
+		h = h ^ g; /* XXX: we should concatenate h and p first */
 	}
+
 	return (h);
 }
 

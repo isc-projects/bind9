@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.81 2003/02/26 22:54:29 marka Exp $ */
+/* $Id: view.h,v 1.82 2003/07/25 02:22:25 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1

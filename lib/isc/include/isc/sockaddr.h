@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.39 2002/04/03 06:38:36 marka Exp $ */
+/* $Id: sockaddr.h,v 1.40 2003/07/25 02:22:26 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
