@@ -15,7 +15,7 @@
 			only (e.g. DE, LV and MUSEUM) these can be excluded
 			from the checks by using exclude.
 
-			root-delegation-only exclude { "DE"; "LV: "MUSEUM"; };
+			root-delegation-only exclude { "DE"; "LV"; "MUSEUM"; };
 
 1509.	[bug]		Hint zones should accept delegation-only.  Forward
 			zone should not accept delegation-only.
