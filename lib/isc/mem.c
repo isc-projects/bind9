@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.67 2000/12/01 00:32:00 gson Exp $ */
+/* $Id: mem.c,v 1.68 2000/12/01 00:52:38 gson Exp $ */
 
 #include <config.h>
 
@@ -679,7 +679,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->magic = MEM_MAGIC;
 	isc_ondestroy_init(&ctx->ondestroy);
 	ISC_LIST_INIT(ctx->pools);
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	ISC_LIST_INIT(ctx->debuglist);
 #endif
 
@@ -704,7 +704,7 @@ destroy(isc_mem_t *ctx) {
 	ctx->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	if (ctx->checkfree)
 		INSIST(ISC_LIST_EMPTY(ctx->debuglist));
 	else {
@@ -1019,7 +1019,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 		pool = ISC_LIST_NEXT(pool, link);
 	}
 
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	if (isc_mem_debugging > 1) {
 		debuglink_t *dl;
 		unsigned int i;
@@ -1084,7 +1084,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 
 	LOCK(&ctx->lock);
 	si = isc__mem_allocateunlocked(ctx, size);
-#ifdef ISC_MEM_TRACKLINES
+#if ISC_MEM_TRACKLINES
 	if (si != NULL)
 		ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
