@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.14 2003/08/15 02:49:33 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.15 2003/08/15 03:09:13 marka Exp $ */
 
 #include <config.h>
 
@@ -179,6 +179,7 @@ struct dns_zone {
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
 	dns_xfrin_ctx_t		*xfr;		/* task locked */
+	dns_tsigkey_t		*tsigkey;	/* key used for xfr */
 	/* Access Control Lists */
 	dns_acl_t		*update_acl;
 	dns_acl_t		*forward_acl;
@@ -529,6 +530,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_sockaddr_any(&zone->xfrsource4);
 	isc_sockaddr_any6(&zone->xfrsource6);
 	zone->xfr = NULL;
+	zone->tsigkey = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->ssutable = NULL;
@@ -5185,9 +5187,20 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			isc_interval_set(&i, zone->expire, 0);
 			isc_time_add(&now, &i, &zone->expiretime);
 		}
-		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS) {
+			char buf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
+			if (zone->tsigkey != NULL) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				dns_name_format(&zone->tsigkey->name, namebuf,
+						sizeof(namebuf));
+				snprintf(buf, sizeof(buf), ": TSIG '%s'",
+					 namebuf);
+			} else
+				buf[0] = '\0';
 			dns_zone_log(zone, ISC_LOG_INFO,
-				     "transferred serial %u", zone->serial);
+				     "transfered serial %u%s",
+				     zone->serial, buf);
+		}
 
 		break;
 
@@ -5218,6 +5231,9 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 */
 	if (zone->xfr != NULL)
 		dns_xfrin_detach(&zone->xfr);
+
+	if (zone->tsigkey != NULL)
+		dns_tsigkey_detach(&zone->tsigkey);
 
 	/*
 	 * This transfer finishing freed up a transfer quota slot.
@@ -5350,7 +5366,6 @@ static void
 got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_peer_t *peer = NULL;
-	dns_tsigkey_t *tsigkey = NULL;
 	char mastertext[256];
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
@@ -5428,10 +5443,11 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	    (zone->masterkeynames[zone->curmaster] != NULL)) {
 		dns_view_t *view = dns_zone_getview(zone);
 		dns_name_t *keyname = zone->masterkeynames[zone->curmaster];
-		result = dns_view_gettsig(view, keyname, &tsigkey);
+		result = dns_view_gettsig(view, keyname, &zone->tsigkey);
 	}
-	if (tsigkey == NULL)
-		result = dns_view_getpeertsig(zone->view, &masterip, &tsigkey);
+	if (zone->tsigkey == NULL)
+		result = dns_view_getpeertsig(zone->view, &masterip,
+					      &zone->tsigkey);
 
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -5441,7 +5457,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	}
 
 	result = dns_xfrin_create(zone, xfrtype, &zone->masteraddr,
-				  tsigkey, zone->mctx,
+				  zone->tsigkey, zone->mctx,
 				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
 				  zone->task, zone_xfrdone, &zone->xfr);
  cleanup:
@@ -5452,9 +5468,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (result != ISC_R_SUCCESS)
 		zone_xfrdone(zone, result);
-
-	if (tsigkey != NULL)
-		dns_tsigkey_detach(&tsigkey);
 
 	isc_event_free(&event);
 }
