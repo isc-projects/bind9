@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.82 2000/07/05 20:28:34 gson Exp $ */
+/* $Id: xfrin.c,v 1.83 2000/07/13 00:27:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1215,6 +1215,9 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 {
         va_list ap;
 
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
+
 	va_start(ap, fmt);
 	xfrin_logv(level, zonename, masteraddr, fmt, ap);
 	va_end(ap);
@@ -1228,6 +1231,9 @@ static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 {
         va_list ap;
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
 
 	va_start(ap, fmt);
 	xfrin_logv(level, &xfr->name, &xfr->masteraddr, fmt, ap);
