@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.6 2002/02/08 03:57:00 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.7 2002/03/12 03:55:57 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -137,7 +137,7 @@ print_usage(FILE *fp) {
 }
 
 static void
-usage() {
+usage(void) {
 	print_usage(stderr);
 	fputs("\nUse \"dig -h\" (or \"dig -h | more\") "
 	      "for complete list of options\n", stderr);
