@@ -1679,7 +1679,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 		ns_client_next(client, ISC_R_CANCELED);
 		/* This may destroy the client. */
-		ns_client_unwait(client);
+		ns_client_detach(&client);
 	} else {
 		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 		dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
@@ -2597,7 +2597,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client)) {
 		ns_client_error(client, eresult);
-		ns_client_unwait(client);
+		ns_client_detach(&client);
 	} else if (!RECURSING(client)) {
 		/*
 		 * We are done.  Make a final tweak to the AA bit if the
@@ -2609,7 +2609,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			client->message->flags |= DNS_MESSAGEFLAG_AA;
 		
 		ns_client_send(client);
-		ns_client_unwait(client);		
+		ns_client_detach(&client);		
 	}
 	CTRACE("query_find: done");
 }
@@ -2672,7 +2672,8 @@ ns_query_start(ns_client_t *client) {
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t set_ra = ISC_TRUE;
-
+	ns_client_t *qclient;
+	
 	CTRACE("ns_query_start");
 
 	/*
@@ -2802,6 +2803,7 @@ ns_query_start(ns_client_t *client) {
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
 
-	ns_client_wait(client);
-	query_find(client, NULL);
+	qclient = NULL;
+	ns_client_attach(client, &qclient);
+	query_find(qclient, NULL);
 }

@@ -273,8 +273,8 @@ exit_check(ns_client_t *client) {
 	 *
 	 *  - The resolver will not shut down until the view refcount is zero
 	 *  - The view refcount does not go to zero until all clients detach
-	 *  - The client does not detach from the view until nwaiting is zero
-	 *  - nwaiting does not go to zero until the resolver has shut down
+	 *  - The client does not detach from the view until references is zero
+	 *  - references does not go to zero until the resolver has shut down
 	 *
 	 */
 	if (client->newstate == NS_CLIENTSTATE_FREED && client->view != NULL)
@@ -295,7 +295,7 @@ exit_check(ns_client_t *client) {
 			isc_socket_cancel(socket, client->task,
 					  ISC_SOCKCANCEL_SEND);
 		}
-		if (! (client->nsends == 0 && client->nwaiting == 0)) {
+		if (! (client->nsends == 0 && client->references == 0)) {
 			/*
 			 * Still waiting for I/O cancel completion.
 			 * or lingering references.
@@ -1045,7 +1045,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->naccepts = 0;
 	client->nreads = 0;
 	client->nsends = 0;
-	client->nwaiting = 0;
+	client->references = 0;
 	client->attributes = 0;
 	client->view = NULL;
 	client->lockview = NULL;
@@ -1236,20 +1236,25 @@ client_accept(ns_client_t *client) {
 }
 
 void
-ns_client_wait(ns_client_t *client) {
-	client->nwaiting++;
+ns_client_attach(ns_client_t *source, ns_client_t **targetp) {
+	REQUIRE(NS_CLIENT_VALID(source));
+	REQUIRE(targetp != NULL && *targetp == NULL);
+	source->references++;
+	*targetp = source;
+}
+
+void
+ns_client_detach(ns_client_t **clientp) {
+	ns_client_t *client = *clientp;
+	client->references--;
+	INSIST(client->references >= 0);
+	*clientp = NULL;
+	(void) exit_check(client);
 }
 
 isc_boolean_t
 ns_client_shuttingdown(ns_client_t *client) {
 	return (client->newstate == NS_CLIENTSTATE_FREED);
-}
-
-void
-ns_client_unwait(ns_client_t *client) {
-	client->nwaiting--;
-	INSIST(client->nwaiting >= 0);
-	(void) exit_check(client);
 }
 
 isc_result_t

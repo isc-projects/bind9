@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.42 2000/02/09 22:58:45 gson Exp $ */
+ /* $Id: xfrout.c,v 1.43 2000/02/11 20:56:18 gson Exp $ */
 
 #include <config.h>
 
@@ -1052,8 +1052,8 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	if (xfr == NULL)
 		return (DNS_R_NOMEMORY);
 	xfr->mctx = mctx;
-	xfr->client = client;
-	ns_client_wait(client);
+	xfr->client = NULL;
+	ns_client_attach(client, &xfr->client);
 	xfr->id = id;
 	xfr->qname = qname;
 	xfr->qtype = qtype;
@@ -1397,7 +1397,7 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
 
-	ns_client_unwait(xfr->client);
+	ns_client_detach(&xfr->client);
 
 	isc_mem_put(xfr->mctx, xfr, sizeof(*xfr));
 

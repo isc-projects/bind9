@@ -88,7 +88,7 @@ struct ns_client {
 	int				naccepts;
 	int				nreads;
 	int				nsends;
-	int				nwaiting;
+	int				references;
 	unsigned int			attributes;
 	isc_task_t *			task;
 	dns_view_t *			view;
@@ -167,16 +167,15 @@ ns_client_shuttingdown(ns_client_t *client);
  */
 
 void
-ns_client_wait(ns_client_t *client);
+ns_client_attach(ns_client_t *source, ns_client_t **target);
 /*
- * Increment reference count.  The client object will
- * not be destroyed while the reference count is nonzero.
+ * Attach '*targetp' to 'source'.
  */
 
 void
-ns_client_unwait(ns_client_t *client);
+ns_client_detach(ns_client_t **clientp);
 /*
- * Decrement reference count.
+ * Detach '*clientp' from its client.
  */
 
 isc_result_t
