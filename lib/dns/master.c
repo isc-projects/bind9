@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.56 2000/07/09 12:52:34 marka Exp $ */
+/* $Id: master.c,v 1.57 2000/07/10 05:15:04 marka Exp $ */
 
 #include <config.h>
 
@@ -120,7 +120,16 @@ on_list(dns_rdatalist_t *this, dns_rdata_t *rdata);
 		default: \
 			goto error_cleanup; \
 		} \
-	} while (0) \
+	} while (0)
+
+#define WARNUNEXPECTEDEOF(lexer) \
+	do { \
+		if (isc_lex_isfile(lexer)) \
+			(*callbacks->warn)(callbacks, \
+			    "dns_master_load: %s:%lu: unexpected end of file", \
+					    isc_lex_getsourcename(lexer), \
+					    isc_lex_getsourceline(lexer)); \
+	} while (0)
 
 static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
@@ -258,14 +267,8 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		GETTOKEN(lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
 
 		if (token.type == isc_tokentype_eof) {
-			if (read_till_eol) {
-				(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%lu: unexpected end of file",
-					    isc_lex_getsourcename(lex),
-					    isc_lex_getsourceline(lex));
-				result = ISC_R_UNEXPECTEDEND;
-				goto cleanup;
-			}
+			if (read_till_eol)
+				WARNUNEXPECTEDEOF(lex);
 			done = ISC_TRUE;
 			continue;
 		}
@@ -342,8 +345,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					goto error_cleanup;
 				}
 				GETTOKEN(lex, 0, &token, ISC_TRUE);
+
 				if (token.type == isc_tokentype_eol ||
 				    token.type == isc_tokentype_eof) {
+					if (token.type == isc_tokentype_eof)
+						WARNUNEXPECTEDEOF(lex);
 					/*
 					 * No origin field.
 					 */
@@ -556,12 +562,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			}
 
 			if (token.type == isc_tokentype_eof) {
-				(*callbacks->error)(callbacks,
-			    "dns_master_load: %s:%lu: unexpected end of file",
-					    isc_lex_getsourcename(lex),
-					    isc_lex_getsourceline(lex));
-				result = ISC_R_UNEXPECTEDEND;
-				goto cleanup;
+				WARNUNEXPECTEDEOF(lex);
+				done = ISC_TRUE;
+				continue;
 			}
 
 			if (!current_known) {
