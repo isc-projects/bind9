@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.27 2004/03/05 05:10:56 marka Exp $ */
+/* $Id: event.h,v 1.28 2004/04/15 01:58:25 marka Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
@@ -81,6 +81,8 @@ struct isc_event {
 
 #define ISC_EVENTTYPE_FIRSTEVENT	0x00000000
 #define ISC_EVENTTYPE_LASTEVENT		0xffffffff
+
+#define ISC_EVENT_PTR(p) ((isc_event_t **)(void *)(p))
 
 ISC_LANG_BEGINDECLS
 
