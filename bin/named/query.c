@@ -2745,7 +2745,7 @@ ns_query_start(ns_client_t *client) {
 				return;
 			case dns_rdatatype_tkey:
 				result = dns_tkey_processquery(client->message,
-							       ns_g_tkeyctx,
+							       ns_g_server->tkeyctx,
 							       client->view->dynamickeys);
 				if (result == ISC_R_SUCCESS)
 					ns_client_send(client);

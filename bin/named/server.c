@@ -562,12 +562,16 @@ load_configuration(const char *filename, ns_server_t *server) {
 	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
 	/*
-	 * Load the TKEY information from the configuration
+	 * Load the TKEY information from the configuration.
 	 */
-	if (ns_g_tkeyctx != NULL)
-		dns_tkeyctx_destroy(&ns_g_tkeyctx);
-	CHECKM(dns_tkeyctx_fromconfig(configctx, ns_g_mctx, &ns_g_tkeyctx),
-	       "setting up TKEY");
+	{
+		dns_tkey_ctx_t *t = NULL;
+		CHECKM(dns_tkeyctx_fromconfig(configctx, ns_g_mctx, &t),
+		       "configuring TKEY");
+		if (server->tkeyctx != NULL)
+			dns_tkeyctx_destroy(&server->tkeyctx);
+		server->tkeyctx = t;
+	}
 	/*
 	 * Rescan the interface list to pick up changes in the
 	 * listen-on option.
@@ -668,7 +672,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
-	dns_tkeyctx_destroy(&ns_g_tkeyctx);
 
 	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
@@ -730,7 +733,11 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ?
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
-	
+
+	server->tkeyctx = NULL;
+	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, &server->tkeyctx),
+		   "creating TKEY context");
+
 	/*
 	 * Setup the server task, which is responsible for coordinating
 	 * startup and shutdown of the server.
@@ -754,6 +761,9 @@ void
 ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
+
+	if (server->tkeyctx != NULL)
+		dns_tkeyctx_destroy(&server->tkeyctx);
 
 	isc_event_free(&server->reload_event);
 	

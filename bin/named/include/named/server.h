@@ -54,6 +54,7 @@ struct ns_server {
 	isc_rwlock_t		viewlock;
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		roothints;
+	dns_tkey_ctx_t *	tkeyctx;
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;

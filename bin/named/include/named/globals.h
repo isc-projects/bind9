@@ -67,11 +67,6 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
 
 /*
- * Current TKEY context
- */
-EXTERN dns_tkey_ctx_t *		ns_g_tkeyctx		INIT(NULL);
-
-/*
  * Misc.
  */
 EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
