@@ -294,7 +294,9 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 		fatal("failed to create socket", result);
 
 	lh_addr.s_addr = htonl(INADDR_LOOPBACK);
-	isc_sockaddr_fromin(&localhost, &lh_addr, LWRES_UDP_PORT);
+	if (ns_g_port != 0)
+		lwres_udp_port = ns_g_port;
+	isc_sockaddr_fromin(&localhost, &lh_addr, lwres_udp_port);
 
 	result = isc_socket_bind(sock, &localhost);
 	if (result != ISC_R_SUCCESS) {
