@@ -1,3 +1,5 @@
+ 495.	[bug]		nsupdate was unable to handle large records [RT #368]
+
  494.	[func]		Do not cache NXDOMAIN responses for SOA queries.
 
  493.	[func]		Return non-cachable (ttl = 0) NXDOMAIN responses

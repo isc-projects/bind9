@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.50 2000/09/18 23:23:12 gson Exp $ */
+/* $Id: nsupdate.c,v 1.51 2000/09/28 16:39:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -68,12 +68,12 @@ extern int h_errno;
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 
-#define MXNAME 256
-#define MAXCMD 1024
+#define MAXCMD (4 * 1024)
+#define MAXDATA (4 * 1024)
 #define NAMEBUF 512
 #define WORDLEN 512
-#define PACKETSIZE 2048
-#define MSGTEXT 4096
+#define PACKETSIZE (16 * 1024)
+#define MSGTEXT (16 * 1024)
 #define FIND_TIMEOUT 5
 #define TTL_MAX 2147483647	/* Maximum signed 32 bit integer. */
 
@@ -602,7 +602,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		result = isc_lex_openbuffer(lex, &source);
 		check_result(result, "isc_lex_openbuffer");
 
-		result = isc_buffer_allocate(mctx, &buf, MXNAME);
+		result = isc_buffer_allocate(mctx, &buf, MAXDATA);
 		check_result(result, "isc_buffer_allocate");
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		if (userzone != NULL)
@@ -1261,7 +1261,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	if (userserver != NULL)
 		serveraddr = userserver;
 	else {
-		char serverstr[MXNAME];
+		char serverstr[DNS_NAME_MAXTEXT+1];
 		isc_buffer_t buf;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
