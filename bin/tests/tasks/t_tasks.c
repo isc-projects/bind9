@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.26 2001/04/13 02:19:35 tale Exp $ */
+/* $Id: t_tasks.c,v 1.27 2001/04/24 22:57:36 gson Exp $ */
 
 #include <config.h>
 
@@ -2008,11 +2008,12 @@ t_tasks12(void) {
 
 static void
 t12(void) {
-	int	result;
-
 	t_assert("tasks", 12, T_REQUIRED, a12);
-	result = t_tasks12();
-	t_result(result);
+
+	if (threaded)
+		t_result(t_tasks12());
+	else
+		require_threads();
 }
 
 static int	T13_nfails;
