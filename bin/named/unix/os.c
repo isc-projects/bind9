@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.35 2000/11/14 23:57:45 tale Exp $ */
+/* $Id: os.c,v 1.36 2000/12/14 18:29:57 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -209,6 +209,15 @@ linux_minprivs(void) {
 
 	caps = 0;
 	caps |= (1 << CAP_NET_BIND_SERVICE);
+
+	/*
+	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
+	 *      clear it would work right given the way linuxthreads work.
+	 * XXXDCL But since we need to be able to set the maximum number
+	 * of files, the stack size, data size, and core dump size to
+	 * support named.conf options, this is now being added to test.
+	 */
+	caps |= (1 << CAP_SYS_RESOURCE);
 
 	linux_setcaps(caps);
 }
