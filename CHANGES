@@ -1,4 +1,8 @@
 
+ 738.	[bug]		If a non-threadsafe sdb driver supported AXFR and
+			received an AXFR request, it would deadlock or die
+			with an assertion failure. [RT #852]
+
 	--- 9.1.1rc2 released ---
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be
