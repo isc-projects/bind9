@@ -3,7 +3,8 @@
 			using views, even though they were accepted
 			in 9.1. [RT #1368]
 
- 913.	[bug]		More max-cache-size tuning.
+ 913.	[bug]		Cache cleaning was not sufficiently aggressive.
+			[RT #1441, #1444]
 
  912.	[bug]		Attempts to set the 'additional-from-cache' or
 			'additional-from-auth' option to 'no' in a
