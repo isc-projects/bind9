@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.18 2005/02/07 00:53:46 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.19 2005/02/09 00:00:35 marka Exp $ */
 
 #include <config.h>
 
@@ -3586,6 +3586,14 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 						ISC_LIST_APPEND(
 							fctx->validators,
 							validator, link);
+				}
+			} else if (CHAINING(rdataset)) {
+				if (rdataset->type == dns_rdatatype_cname)
+					eresult = DNS_R_CNAME;
+				else {
+					INSIST(rdataset->type ==
+					       dns_rdatatype_dname);
+					eresult = DNS_R_DNAME;
 				}
 			}
 		} else if (!EXTERNAL(rdataset)) {
