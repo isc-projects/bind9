@@ -1,3 +1,6 @@
+
+	--- 9.3.0rc1 released ---
+
 1659.	[cleanup]	Cleanup some messages that were referring to KEY vs
 			DNSKEY, NXT vs NSEC and SIG vs RRSIG.
 
