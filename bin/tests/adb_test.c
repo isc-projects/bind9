@@ -283,7 +283,7 @@ create_view(void)
 	 */
 	result = dns_view_createresolver(view, taskmgr, 16, socketmgr,
 					 timermgr, NULL);
-	check_result(result, "dns_view_createresolver");
+	check_result(result, "dns_view_createresolver()");
 
 	result = ns_rootns_init();
 	check_result(result, "ns_rootns_init()");
@@ -348,16 +348,10 @@ lookup(char *target)
 
 	result = dns_adb_lookup(adb, t2, lookup_callback, client,
 				&client->name, dns_rootname,
-				DNS_ADBFAMILY_INET, now, &client->handle);
-
-	switch (result) {
-	case ISC_R_NOTFOUND:
-		printf("Name %s not found\n", target);
-		break;
-	case ISC_R_SUCCESS:
-		dns_adb_dumphandle(client->handle, stderr);
-		break;
-	}
+				(DNS_ADBFIND_INET | DNS_ADBFIND_WANTEVENT),
+				now, &client->handle);
+	check_result(result, "dns_adb_lookup()");
+	dns_adb_dumphandle(client->handle, stderr);
 
 	if (client->handle->query_pending)
 		ISC_LIST_APPEND(clients, client, link);
@@ -371,6 +365,7 @@ int
 main(int argc, char **argv)
 {
 	isc_result_t result;
+	isc_logdestination_t destination;
 
 	(void)argc;
 	(void)argv;
@@ -403,6 +398,26 @@ main(int argc, char **argv)
 	result = dns_log_init(lctx);
 	check_result(result, "dns_log_init()");
 
+	/*
+	 * Create and install the default channel.
+	 */
+	destination.file.stream = stderr;
+	destination.file.name = NULL;
+	destination.file.versions = ISC_LOG_ROLLNEVER;
+	destination.file.maximum_size = 0;
+	result = isc_log_createchannel(lctx, "_default",
+				       ISC_LOG_TOFILEDESC,
+				       ISC_LOG_DYNAMIC,
+				       &destination, ISC_LOG_PRINTTIME);
+	check_result(result, "isc_log_createchannel()");
+	result = isc_log_usechannel(lctx, "_default", NULL, NULL);
+	check_result(result, "isc_log_usechannel()");
+
+	/*
+	 * Set the initial debug level.
+	 */
+	isc_log_setdebuglevel(lctx, 99);
+
 	create_managers();
 
 	t1 = NULL;
@@ -417,12 +432,7 @@ main(int argc, char **argv)
 
 	create_view();
 
-	/*
-	 * Create the address database.
-	 */
-	adb = NULL;
-	result = dns_adb_create(mctx, view, timermgr, taskmgr, &adb);
-	check_result(result, "dns_adb_create");
+	adb = view->adb;
 
 	/*
 	 * Store this address for this name.
@@ -457,9 +467,9 @@ main(int argc, char **argv)
 	isc_app_run();
 
 	dns_adb_dump(adb, stderr);
-	dns_adb_detach(&adb);
 
 	dns_view_detach(&view);
+	adb = NULL;
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);

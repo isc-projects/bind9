@@ -119,10 +119,9 @@ struct dns_adbhandle {
 	/* Public */
 	unsigned int			magic;		/* RO: magic */
 	ISC_LIST(dns_adbaddrinfo_t)	list;		/* RO: list of addrs */
-	isc_result_t			result;		/* RO: extra result */
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
-	unsigned int			families;	/* RO: addr families */
+	unsigned int			options;	/* RO: options */
 	ISC_LINK(dns_adbhandle_t)	plink;		/* RW: client use */
 
 	/* Private */
@@ -134,8 +133,12 @@ struct dns_adbhandle {
 	ISC_LINK(dns_adbhandle_t)	link;
 };
 
-#define DNS_ADBFAMILY_INET		0x0001
-#define DNS_ADBFAMILY_INET6		0x0002
+#define DNS_ADBFIND_INET		0x00000001
+#define DNS_ADBFIND_INET6		0x00000002
+#define DNS_ADBFIND_ADDRESSMASK		0x00000003
+
+#define DNS_ADBFIND_EMPTYEVENT		0x40000000
+#define DNS_ADBFIND_WANTEVENT		0x80000000
 
 /* dns_adbaddr_t
  *
