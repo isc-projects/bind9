@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.168 2001/01/05 00:17:29 bwelling Exp $ */
+/* $Id: message.c,v 1.169 2001/01/08 20:36:11 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1882,7 +1882,8 @@ dns_message_renderend(dns_message_t *msg) {
 	/*
 	 * If we're adding a TSIG or SIG(0) to a truncated message,
 	 * clear all rdatasets from the message except for the question
-	 * before adding the TSIG or SIG(0).
+	 * before adding the TSIG or SIG(0).  If the question doesn't fit,
+	 * don't include it.
 	 */
 	if ((msg->tsigkey != NULL || msg->sig0key != NULL) &&
 	    (msg->flags & DNS_MESSAGEFLAG_TC) != 0)
@@ -1898,7 +1899,7 @@ dns_message_renderend(dns_message_t *msg) {
 		dns_compress_rollback(&msg->cctx, 0);
 		result = dns_message_rendersection(msg, DNS_SECTION_QUESTION,
 						   0);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 			return (result);
 	}
 

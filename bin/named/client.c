@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136 2000/12/19 19:21:39 gson Exp $ */
+/* $Id: client.c,v 1.137 2001/01/08 20:36:10 bwelling Exp $ */
 
 #include <config.h>
 
@@ -835,6 +835,10 @@ ns_client_send(ns_client_t *client) {
 	}
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_QUESTION, 0);
+	if (result == ISC_R_NOSPACE) {
+		client->message->flags |= DNS_MESSAGEFLAG_TC;
+		goto renderend;
+	}
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	result = dns_message_rendersection(client->message,

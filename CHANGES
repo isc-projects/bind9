@@ -1,3 +1,6 @@
+ 665.	[bug]		Signed responses were not sent when the size of the
+			TSIG + question exceeded the maximum message size.
+			[RT #628]
 
  664.	[bug]		The t_tasks and t_timers module tests are now skipped
 			when building without threads, since they require
