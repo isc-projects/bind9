@@ -117,7 +117,7 @@
 ./bin/named/interfacemgr.c			C	1999,2000,2001,2002
 ./bin/named/listenlist.c			C	2000,2001
 ./bin/named/log.c				C	1999,2000,2001
-./bin/named/logconf.c				C	1999,2000,2001
+./bin/named/logconf.c				C	1999,2000,2001,2004
 ./bin/named/lwaddr.c				C	2000,2001
 ./bin/named/lwdclient.c				C	2000,2001
 ./bin/named/lwderror.c				C	2000,2001
@@ -1816,7 +1816,7 @@
 ./lib/isc/include/isc/refcount.h		C	2001,2003
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001
 ./lib/isc/include/isc/resource.h		C	2000,2001
-./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2002
+./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2002,2004
 ./lib/isc/include/isc/resultclass.h		C	1999,2000,2001
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001
@@ -1837,7 +1837,7 @@
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003
 ./lib/isc/lfsr.c				C	1999,2000,2001,2003
 ./lib/isc/lib.c					C	1999,2000,2001
-./lib/isc/log.c					C	1999,2000,2001,2002,2003
+./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004
 ./lib/isc/md5.c					C	2000,2001
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003
 ./lib/isc/mutexblock.c				C	1999,2000,2001
@@ -1876,7 +1876,7 @@
 ./lib/isc/quota.c				C	2000,2001
 ./lib/isc/random.c				C	1999,2000,2001,2003
 ./lib/isc/ratelimiter.c				C	1999,2000,2001
-./lib/isc/result.c				C	1998,1999,2000,2001,2002
+./lib/isc/result.c				C	1998,1999,2000,2001,2002,2004
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003
 ./lib/isc/serial.c				C	1999,2000,2001
 ./lib/isc/sha1.c				C	2000,2001,2003
