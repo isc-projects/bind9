@@ -136,7 +136,6 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_zone_t *zone, *tzone;
 	dns_name_t *origin;
 	isc_result_t result;
-	isc_boolean_t need_load;
 
 	/*
 	 * Load (or reload) a zone.
@@ -147,7 +146,6 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	tzone = NULL;
 	zone = NULL;
 	pview = NULL;
-	need_load = ISC_TRUE;
 
 	/*
 	 * Find the view.
@@ -227,29 +225,15 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			 * the same as the new zone's, we can use the
 			 * production zone.
 			 */
-			if (dns_zone_equal(zone, tzone)) {
+			if (dns_zone_equal(zone, tzone))
 				result = dns_view_addzone(view, tzone);
-				need_load = ISC_FALSE;
-			} else
+			else
 				result = dns_view_addzone(view, zone);
 		} else if (result == ISC_R_NOTFOUND) {
 			/*
 			 * This is a new zone.
 			 */
 			result = dns_view_addzone(view, zone);
-		}
-	}
-
-	if (need_load) {
-		/*
-		 * XXXRTH  What should we do about errors?  We don't
-		 *         want to fail the whole config file load just
-		 *	   because we couldn't get a zone.
-		 */
-		result = dns_zone_load(zone);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "dns_zone_load failed: %s\n",
-				isc_result_totext(result));
 		}
 	}
 
@@ -327,14 +311,12 @@ load_configuration(const char *filename) {
 	 * Load zones.		(???)
 	 */
 
-#ifdef notyet
 	for (view = ISC_LIST_HEAD(lctx.viewlist);
 	     view != NULL;
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
 		dns_view_load(view);
 	}
-#endif
 
 	/*
 	 * Put the configuration into production.
