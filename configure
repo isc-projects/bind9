@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.57 
+# From configure.in Revision: 1.58 
 
 
 
@@ -2176,7 +2176,7 @@ else
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   echo "$ac_t""no" 1>&6
-	ISC_NET_PORTDEF="#define ISC_NET_NEEDPORTT 1"
+	ISC_NET_NEEDPORTT="#define ISC_NET_NEEDPORTT 1"
 fi
 rm -f conftest*
 
