@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.17 1999/10/25 22:20:50 gson Exp $ */
+ /* $Id: xfrin.c,v 1.18 1999/10/28 00:02:08 gson Exp $ */
 
 #include <config.h>
 
@@ -691,6 +691,7 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	dns_rdatalist_t soardl;
 	dns_rdataset_t soards;
 	dns_difftuple_t *soatuple = NULL;
+	dns_name_t *qname = NULL;
 	
 	dns_rdataset_init(&qrdataset);
 	dns_rdataset_makequestion(&qrdataset, xfr->rdclass, xfr->reqtype);
@@ -699,7 +700,10 @@ xfrin_send_request(xfrin_ctx_t *xfr) {
 	
 	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
 	msg->tsigkey = xfr->tsigkey;
-	dns_message_addname(msg, &xfr->name, DNS_SECTION_QUESTION);
+	dns_message_gettempname(msg, &qname);
+	dns_name_init(qname, NULL);
+	dns_name_clone(&xfr->name, qname);
+	dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
 
 	if (xfr->reqtype == dns_rdatatype_ixfr) {
 		/* Get the SOA. */
