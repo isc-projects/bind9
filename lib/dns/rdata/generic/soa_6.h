@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.h,v 1.4 1999/01/19 06:49:32 marka Exp $ */
+ /* $Id: soa_6.h,v 1.5 1999/01/20 02:41:11 halley Exp $ */
 
 #ifndef RDATA_GENERIC_SOA_6_H
 #define RDATA_GENERIC_SOA_6_H
@@ -155,7 +155,7 @@ fromwire_soa(dns_rdataclass_t class, dns_rdatatype_t type,
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
-	isc_buffer_remaining(source, &sregion);
+	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 
 	if (sregion.length != 20)

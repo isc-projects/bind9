@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.3 1999/01/19 06:49:33 marka Exp $ */
+ /* $Id: a_1.c,v 1.4 1999/01/20 02:41:11 halley Exp $ */
 
 #ifndef RDATA_IN_1_A_1_H
 #define RDATA_IN_1_A_1_H
@@ -88,7 +88,7 @@ fromwire_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 	downcase = downcase;	/* unused */
 
 
-	isc_buffer_remaining(source, &sregion);
+	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (sregion.length != 4)
 		return (DNS_R_WIRE);

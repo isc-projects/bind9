@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.3 1999/01/19 05:38:31 marka Exp $ */
+ /* $Id: rdata.c,v 1.4 1999/01/20 02:41:10 halley Exp $ */
 
 #include <isc/buffer.h>
 #include <isc/lex.h>
@@ -327,7 +327,7 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	isc_buffer_remaining(source, &sregion);
+	isc_buffer_active(source, &sregion);
 	n = *sregion.base + 1;
 	if (n > sregion.length)
 		return (DNS_R_UNKNOWN);
@@ -387,7 +387,7 @@ str_totext(char *source, isc_buffer_t *target) {
 
 static isc_boolean_t
 buffer_empty(isc_buffer_t *source) {
-	return((source->current == source->used) ? ISC_TRUE : ISC_FALSE);
+	return((source->current == source->active) ? ISC_TRUE : ISC_FALSE);
 }
 
 static void

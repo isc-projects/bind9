@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.h,v 1.4 1999/01/19 06:49:31 marka Exp $ */
+ /* $Id: mx_15.h,v 1.5 1999/01/20 02:41:10 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MX_15_H
 #define RDATA_GENERIC_MX_15_H
@@ -99,7 +99,7 @@ fromwire_mx(dns_rdataclass_t class, dns_rdatatype_t type,
         
         dns_name_init(&name, NULL);
 
-	isc_buffer_remaining(source, &sregion);
+	isc_buffer_active(source, &sregion);
 	isc_buffer_available(target, &tregion);
 	if (tregion.length < 2)
 		return (DNS_R_NOSPACE);
