@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.171 2000/11/17 21:04:12 gson Exp $ */
+/* $Id: socket.c,v 1.172 2000/11/22 23:48:14 gson Exp $ */
 
 #include <config.h>
 
@@ -3013,7 +3013,6 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
  */
 void
 isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
-	isc_boolean_t poke_needed;
 
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -3023,8 +3022,6 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	 */
 	if (how == 0)
 		return;
-
-	poke_needed = ISC_FALSE;
 
 	LOCK(&sock->lock);
 
