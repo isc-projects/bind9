@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130 2004/03/05 04:58:15 marka Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.1 2004/04/10 04:09:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1952,6 +1952,8 @@ main(int argc, char **argv) {
 	style = &dns_master_style_debug;
 
 	input = stdin;
+
+	interactive = ISC_TF(isatty(0));
 
 	isc_app_start();
 
