@@ -177,8 +177,8 @@ struct isc_socketmgr {
 
 static void send_recvdone_event(isc_socket_t *, isc_socketevent_t **,
 				isc_result_t);
-static void send_senddone_event(isc_socket_t *, isc_task_t **,
-				isc_socketevent_t **, isc_result_t, int);
+static void send_senddone_event(isc_socket_t *, isc_socketevent_t **,
+				isc_result_t);
 static void free_socket(isc_socket_t **);
 static isc_result_t allocate_socket(isc_socketmgr_t *, isc_sockettype_t,
 				    isc_socket_t **);
@@ -188,12 +188,12 @@ static void internal_connect(isc_task_t *, isc_event_t *);
 static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
-static int build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
-			     struct msghdr *, struct iovec *, unsigned int,
-			     size_t *);
-static int build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
-			     struct msghdr *, struct iovec *, unsigned int,
-			     size_t *);
+static void build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
+			      struct msghdr *, struct iovec *, unsigned int,
+			      size_t *);
+static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
+			      struct msghdr *, struct iovec *, unsigned int,
+			      size_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -307,7 +307,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
  * If write_countp != NULL, *write_countp will hold the number of bytes
  * this transaction can send.
  */
-static int
+static void
 build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
 		  size_t *write_countp)
@@ -358,8 +358,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	}
 
 	while (buffer != NULL) {
-		if (iovcount == maxiov)
-			return (-1);
+		INSIST(iovcount < maxiov);
 
 		isc_buffer_used(buffer, &used);
 
@@ -391,8 +390,6 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	if (write_countp != NULL)
 		*write_countp = write_count;
-
-	return (0);
 }
 
 /*
@@ -407,7 +404,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
  * If read_countp != NULL, *read_countp will hold the number of bytes
  * this transaction can receive.
  */
-static int
+static void
 build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, unsigned int maxiov,
 		  size_t *read_countp)
@@ -458,8 +455,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	iovcount = 0;
 	while (buffer != NULL) {
-		if (iovcount == maxiov)
-			return (-1);
+		INSIST(iovcount < maxiov);
 
 		isc_buffer_available(buffer, &available);
 
@@ -487,8 +483,6 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	if (read_countp != NULL)
 		*read_countp = read_count;
-
-	return (0);
 }
 
 static void
@@ -530,11 +524,12 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	return (ev);
 }
 
-#define DOIO_SUCCESS		0
-#define DOIO_SOFT		1
-#define DOIO_HARD		2
-#define DOIO_EOF		3
-#define DOIO_UNEXPECTED		(-1)
+#define DOIO_SUCCESS		0	/* i/o ok, event sent */
+#define DOIO_SOFT		1	/* i/o ok, soft error, no event sent */
+#define DOIO_HARD		2	/* i/o error, event sent */
+#define DOIO_EOF		3	/* EOF, no event sent */
+#define DOIO_UNEXPECTED		(-1)	/* bad stuff, no event sent */
+
 static int
 doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 {
@@ -543,10 +538,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	size_t read_count;
 	struct msghdr msghdr;
 
-	if (build_msghdr_recv(sock, dev, &msghdr, iov,
-			      ISC_SOCKET_MAXSCATTERGATHER, &read_count)
-	    != 0)
-		return (DOIO_UNEXPECTED); /* XXX Need better errors! */
+	build_msghdr_recv(sock, dev, &msghdr, iov,
+			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
 	if (sock->type == isc_sockettype_udp)
@@ -567,9 +560,9 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 			if (sock->type == isc_sockettype_tcp) \
 				sock->recv_result = _isc; \
 			send_recvdone_event(sock, &dev, _isc); \
+			return (DOIO_HARD); \
 		} \
-		select_poke(sock->manager, sock->fd); \
-		return (DOIO_HARD); \
+		return (DOIO_SOFT); \
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
@@ -582,7 +575,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 		 */
 		if (errno == ENOBUFS) {
 			send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
-			return (DOIO_SOFT);
+			return (DOIO_HARD);
 		}
 
 		sock->recv_result = ISC_R_UNEXPECTED;
@@ -622,7 +615,87 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	 * full reads are posted, or partials if partials are ok.
 	 */
 	send_recvdone_event(sock, &dev, ISC_R_SUCCESS);
+	return (DOIO_SUCCESS);
+}
 
+static int
+doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
+{
+	int cc;
+	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	size_t write_count;
+	struct msghdr msghdr;
+
+	build_msghdr_send(sock, dev, &msghdr, iov,
+			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
+
+	cc = sendmsg(sock->fd, &msghdr, 0);
+
+	/*
+	 * check for error or block condition
+	 */
+	if (cc < 0) {
+		if (SOFT_ERROR(errno))
+			return (DOIO_SOFT);
+
+#define SOFT_OR_HARD(_system, _isc) \
+	if (errno == _system) { \
+		if (sock->connected) { \
+			if (sock->type == isc_sockettype_tcp) \
+				sock->send_result = _isc; \
+			send_senddone_event(sock, &dev, _isc); \
+			return (DOIO_HARD); \
+		} \
+		return (DOIO_SOFT); \
+	}
+
+		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
+		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+#undef SOFT_OR_HARD
+
+		/*
+		 * This might not be a permanent error.
+		 */
+		if (errno == ENOBUFS) {
+			send_senddone_event(sock, &dev, ISC_R_NORESOURCES);
+			return (DOIO_HARD);
+		}
+
+		/*
+		 * The other error types depend on whether or not the
+		 * socket is UDP or TCP.  If it is UDP, some errors
+		 * that we expect to be fatal under TCP are merely
+		 * annoying, and are really soft errors.
+		 *
+		 * However, these soft errors are still returned as
+		 * a status.
+		 */
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "internal_send: %s",
+				 strerror(errno));
+		sock->send_result = ISC_R_UNEXPECTED;
+		send_senddone_event(sock, &dev, ISC_R_UNEXPECTED);
+		return (DOIO_HARD);
+	}
+
+	if (cc == 0)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "internal_send: send() returned 0");
+
+	/*
+	 * if we write less than we expected, update counters,
+	 * poke.
+	 */
+	dev->n += cc;
+	if ((size_t)cc != write_count)
+		return (DOIO_SOFT);
+
+	/*
+	 * Exactly what we wanted to write.  We're done with this
+	 * entry.  Post its completion event.
+	 */
+	send_senddone_event(sock, &dev, ISC_R_SUCCESS);
 	return (DOIO_SUCCESS);
 }
 
@@ -1047,18 +1120,24 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
  * Caller must have the socket locked.
  */
 static void
-send_senddone_event(isc_socket_t *sock, isc_task_t **taskp,
-		    isc_socketevent_t **dev, isc_result_t resultcode,
-		    int detach)
+send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
+		    isc_result_t resultcode)
 {
+	isc_task_t *task;
+
+	task = (*dev)->sender;
+
 	(*dev)->result = resultcode;
 	(*dev)->sender = sock;
+
 	if (ISC_LINK_LINKED(*dev, link))
 		ISC_LIST_DEQUEUE(sock->send_list, *dev, link);
-	if (detach)
-		ISC_TASK_SENDANDDETACH(taskp, (isc_event_t **)dev);
+
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
+	    == ISC_SOCKEVENTATTR_ATTACHED)
+		ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)dev);
 	else
-		ISC_TASK_SEND(*taskp, (isc_event_t **)dev);
+		ISC_TASK_SEND(task, (isc_event_t **)dev);
 }
 
 /*
@@ -1255,9 +1334,13 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 			goto next;
 		}
 
+		if (sock->recv_result != ISC_R_SUCCESS) {
+			send_recvdone_event(sock, &dev, sock->recv_result);
+			goto next;
+		}
+
 		switch (doio_recv(sock, dev)) {
 		case DOIO_SOFT:
-		case DOIO_HARD:
 			goto poke;
 			break;
 
@@ -1278,6 +1361,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 
 		case DOIO_UNEXPECTED:
 		case DOIO_SUCCESS:
+		case DOIO_HARD:
 			break;
 		}
 
@@ -1298,10 +1382,6 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	isc_socketevent_t *dev;
 	isc_socket_t *sock;
 	isc_task_t *task;
-	int cc;
-	size_t write_count;
-	struct msghdr msghdr;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
 
 	(void)me;
 
@@ -1344,91 +1424,24 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 		 * continue the loop.
 		 */
 		if (dev->type == ISC_SOCKEVENT_SENDMARK) {
-			send_senddone_event(sock, &task, &dev,
-					    sock->send_result, 1);
+			send_senddone_event(sock, &dev, sock->send_result);
 			goto next;
 		}
 
-		/*
-		 * It must be a write request.  Try to satisfy it as best
-		 * we can.
-		 */
-		build_msghdr_send(sock, dev, &msghdr, iov,
-				  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
-
-		cc = sendmsg(sock->fd, &msghdr, 0);
-
-		/*
-		 * check for error or block condition
-		 */
-		if (cc < 0) {
-			if (SOFT_ERROR(errno))
-				goto poke;
-
-#define SOFT_OR_HARD(_system, _isc) \
-	if (errno == _system) { \
-		if (sock->connected) { \
-			if (sock->type == isc_sockettype_tcp) \
-				sock->send_result = _isc; \
-			send_senddone_event(sock, &task, &dev, _isc, 1); \
-		} \
-		goto next; \
-	}
-
-			SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-			SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-			SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
-
-			/*
-			 * This might not be a permanent error.
-			 */
-			if (errno == ENOBUFS) {
-				send_senddone_event(sock, &task, &dev,
-						    ISC_R_NORESOURCES, 1);
-				goto next;
-			}
-
-			/*
-			 * The other error types depend on whether or not the
-			 * socket is UDP or TCP.  If it is UDP, some errors
-			 * that we expect to be fatal under TCP are merely
-			 * annoying, and are really soft errors.
-			 *
-			 * However, these soft errors are still returned as
-			 * a status.
-			 */
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_send: %s",
-					 strerror(errno));
-			sock->send_result = ISC_R_UNEXPECTED;
-			send_senddone_event(sock, &task, &dev,
-					    ISC_R_UNEXPECTED, 1);
+		if (sock->send_result != ISC_R_SUCCESS) {
+			send_senddone_event(sock, &dev, sock->send_result);
 			goto next;
 		}
 
-		if (cc == 0)
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_send: send() returned 0");
-
-		/*
-		 * if we write less than we expected, update counters,
-		 * poke.
-		 */
-		if ((size_t)cc < write_count) {
-			dev->n += cc;
+		switch (doio_send(sock, dev)) {
+		case DOIO_SOFT:
 			goto poke;
-		}
+			break;
 
-		/*
-		 * Exactly what we wanted to write.  We're done with this
-		 * entry.  Post its completion event.
-		 */
-		if ((size_t)cc == write_count) {
-			dev->n += write_count;
-			send_senddone_event(sock, &task, &dev,
-					    ISC_R_SUCCESS, 1);
-			goto next;
+		case DOIO_HARD:
+		case DOIO_UNEXPECTED:
+		case DOIO_SUCCESS:
+			break;
 		}
 
 	next:
@@ -1890,13 +1903,15 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
+	if (sock->recv_result != ISC_R_SUCCESS) {
+		send_recvdone_event(sock, &dev, sock->recv_result);
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+	}
+
 	switch (doio_recv(sock, dev)) {
 	case DOIO_SOFT:
 		goto queue;
-		break;
-
-	case DOIO_HARD:
-		goto out;
 		break;
 
 	case DOIO_EOF:
@@ -1905,6 +1920,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		return (ISC_R_SUCCESS);
 		break;
 
+	case DOIO_HARD:
 	case DOIO_UNEXPECTED:
 	case DOIO_SUCCESS:
 		UNLOCK(&sock->lock);
@@ -1920,7 +1936,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	 * Attach to socket and to task
 	 */
 	isc_task_attach(task, &ntask);
-	dev->sender = ntask;
 	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 
 	/*
@@ -1934,7 +1949,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	XTRACE(TRACE_RECV,
 	       ("isc_socket_recv: queued event %p, task %p\n", dev, ntask));
 
- out:
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
@@ -1957,11 +1971,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	int cc;
 	isc_boolean_t was_empty;
-	struct msghdr msghdr;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
-	size_t write_count;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1982,6 +1992,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	}
 
 	dev->region = *region;
+	dev->sender = task;
 
 	set_dev_address(address, sock, dev);
 
@@ -1992,73 +2003,24 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	if (!was_empty)
 		goto queue;
 
-	build_msghdr_send(sock, dev, &msghdr, iov,
-			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
-
-	cc = sendmsg(sock->fd, &msghdr, 0);
-
-	if (cc < 0) {
-		if (SOFT_ERROR(errno))
-			goto queue;
-
-#define SOFT_OR_HARD(_system, _isc) \
-	if (errno == _system) { \
-		if (sock->connected) { \
-			if (sock->type == isc_sockettype_tcp) \
-				sock->send_result = _isc; \
-			send_senddone_event(sock, &task, &dev, _isc, 0); \
-		} \
-		select_poke(sock->manager, sock->fd); \
-		goto out; \
-	}
-
-		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
-		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
-		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
-#undef SOFT_OR_HARD
-
-		/*
-		 * This might not be a permanent error.
-		 */
-		switch (errno) {
-		case ENOBUFS:
-			send_senddone_event(sock, &task, &dev,
-					    ISC_R_NORESOURCES, 0);
-			goto out;
-			break;
-
-		case EINVAL:
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "isc_socket_sendto: EINVAL");
-			break;
-		default:
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_socket_sendto: errno: %s",
-					 strerror(errno));
-			sock->send_result = ISC_R_UNEXPECTED;
-			send_senddone_event(sock, &task, &dev,
-					    ISC_R_UNEXPECTED, 0);
-		}
-
+	if (sock->send_result != ISC_R_SUCCESS) {
+		send_senddone_event(sock, &dev, sock->send_result);
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
 	}
 
-	dev->n = cc;
-
-	/*
-	 * Partial writes need to be queued
-	 */
-	if ((size_t)cc != write_count)
+	switch (doio_send(sock, dev)) {
+	case DOIO_SOFT:
 		goto queue;
+		break;
 
-	/*
-	 * full writes are posted.
-	 */
-	send_senddone_event(sock, &task, &dev, ISC_R_SUCCESS, 0);
-
-	UNLOCK(&sock->lock);
-	return (ISC_R_SUCCESS);
+	case DOIO_HARD:
+	case DOIO_UNEXPECTED:
+	case DOIO_SUCCESS:
+		UNLOCK(&sock->lock);
+		return (ISC_R_SUCCESS);
+		break;
+	}
 
  queue:
 	/*
@@ -2066,7 +2028,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	 * it.
 	 */
 	isc_task_attach(task, &ntask);
-	dev->sender = ntask;
+	dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 
 	/*
 	 * Enqueue the request.  If the socket was previously not being
@@ -2079,7 +2041,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	XTRACE(TRACE_SEND,
 	       ("isc_socket_send: queued event %p, task %p\n", dev, ntask));
 
- out:
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
 }
@@ -2543,8 +2504,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 			next = ISC_LIST_NEXT(dev, link);
 
 			if ((task == NULL) || (task == current_task))
-				send_senddone_event(sock, &current_task, &dev,
-						    ISC_R_CANCELED, 1);
+				send_senddone_event(sock, &dev,
+						    ISC_R_CANCELED);
 			dev = next;
 		}
 	}
