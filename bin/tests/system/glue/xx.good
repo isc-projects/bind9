@@ -1,0 +1,6 @@
+;; AUTHORITY SECTION:
+xx.			172800	IN	NS	b.root-servers.nil.
+
+;; ADDITIONAL SECTION:
+b.root-servers.nil.	300	IN	A	10.53.0.2
+
