@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.39 2001/03/03 00:52:39 gson Exp $ */
+/* $Id: parser.c,v 1.40 2001/03/03 01:08:02 gson Exp $ */
 
 #include <config.h>
 
@@ -1034,17 +1034,14 @@ static cfg_clausedef_t
 channel_clauses[] = {
 	/* Destinations.  We no longer require these to be first. */
 	{ "file", &cfg_type_logfile, 0 },
-	{ "syslog", &cfg_type_optional_facility, 0 }, /* XXX enum? */
+	{ "syslog", &cfg_type_optional_facility, 0 },
 	{ "null", &cfg_type_void, 0 },
 	{ "stderr", &cfg_type_void, 0 },
 	/* Options.  We now accept these for the null channel, too. */
-	{ "severity", &cfg_type_logseverity, 0 }, /* XXX enum? */
+	{ "severity", &cfg_type_logseverity, 0 },
 	{ "print-time", &cfg_type_boolean, 0 },
 	{ "print-severity", &cfg_type_boolean, 0 },
 	{ "print-category", &cfg_type_boolean, 0 },
-	/* File options. */
-	{ "versions", &cfg_type_ustring, 0 }, /* integer or "unlimited" */
-	{ "size", &cfg_type_size, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_clausedef_t *
