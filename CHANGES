@@ -1,3 +1,6 @@
+1300.	[bug]		libbind: escape '(' and ')' when coverting to
+			presentation form.
+
 1299.	[port]		Darwin uses (unsigned long) for size_t. [RT #2590]
 
 1298.	[func]		dig: now supports +[no]cl +[no]ttlid.
