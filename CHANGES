@@ -2,7 +2,7 @@
 	--- 9.1.0b2 released ---
 
  629.	[bug]		9.1.0b1 dereferenced a null pointer and crashed
-			when responding to a UDP IXFR response.
+			when responding to a UDP IXFR request.
 
  628.	[bug]		If the root hints contained only AAAA addresses,
 			named would be unable to perform resolution.
