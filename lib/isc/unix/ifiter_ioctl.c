@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.46 2004/05/06 03:16:07 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.47 2004/06/19 00:48:15 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -99,6 +99,16 @@ struct isc_interfaceiter {
  */
 #define IFCONF_BUFSIZE_INITIAL	4096
 #define IFCONF_BUFSIZE_MAX	1048576
+
+#ifdef __linux
+#ifndef IF_NAMESIZE
+# ifdef IFNAMSIZ
+#  define IF_NAMESIZE  IFNAMSIZ  
+# else
+#  define IF_NAMESIZE 16
+# endif
+#endif
+#endif
 
 static isc_result_t
 getbuf4(isc_interfaceiter_t *iter) {
