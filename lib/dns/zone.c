@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.27 2003/09/02 01:19:45 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.28 2003/09/02 01:24:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1110,14 +1110,14 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED)
 		goto fail;
 
-	LOCK(&zone->lock);
+	LOCK_ZONE(zone);
 	dns_db_currentversion(zone->db, &version);
 	result = dns_master_dumpinc(zone->mctx, zone->db, version,
 				    &dns_master_style_default,
 				    zone->masterfile, zone->task,
 				    dump_done, zone, &zone->dctx);
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
-	UNLOCK(&zone->lock);
+	UNLOCK_ZONE(zone);
 	if (result != DNS_R_CONTINUE)
 		goto fail;
 	return;
@@ -3372,6 +3372,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "refresh: retry limit for "
 				     "master %s exceeded (source %s)",
 				     master, source);
+			/* Try with TCP. */
+			goto tcp_transfer;
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: failure trying master "
@@ -3419,6 +3421,11 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			     "refresh: unexpected rcode (%.*s) from "
 			     "master %s (source %s)", (int)rb.used, rcode,
 			     master, source);
+		/*
+		 * Perhaps AXFR/IXFR is allowed even if SOA queries arn't.
+		 */
+		if (msg->rcode == dns_rcode_refused)
+			goto tcp_transfer;
 		goto next_master;
 	}
 
