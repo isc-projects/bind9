@@ -81,6 +81,19 @@ static void	t_sighandler();
 
 static int	T_int;
 
+/*
+ * XXXMLG NetBSD's "default" pthreads implementation has a broken signal
+ * interface.
+ *
+ * Here, if using NetBSD, define SIGACTION() as pthread_sigaction(),
+ * otherwise make it sigaction().
+ */
+#if defined(__NetBSD__)
+#define SIGACTION(a, b, c)	pthread_sigaction((a), (b), (c))
+#else
+#define SIGACTION(a, b, c)	sigaction((a), (b), (c))
+#endif
+
 static void
 t_sighandler(int sig) {
 	T_int = sig;
@@ -202,8 +215,8 @@ main(int argc, char **argv)
 	sa.sa_flags = 0;
 	sigfillset(&sa.sa_mask);
 	sa.sa_handler = t_sighandler;
-	(void) sigaction(SIGALRM, &sa, NULL);
-	(void) sigaction(SIGINT,  &sa, NULL);
+	(void)SIGACTION(SIGALRM, &sa, NULL);
+	(void)SIGACTION(SIGINT,  &sa, NULL);
 
 	/* output start stanza to journal */
 
@@ -237,7 +250,7 @@ main(int argc, char **argv)
 
 					T_int = 0;
 					sa.sa_handler = t_sighandler;
-					(void) sigaction(SIGALRM, &sa, NULL);
+					(void)SIGACTION(SIGALRM, &sa, NULL);
 					alarm(T_timeout);
 
 					deadpid = (pid_t) -1;
@@ -261,9 +274,9 @@ main(int argc, char **argv)
 							break;
 					}
 
-					sa.sa_handler = SIG_IGN;
-					(void) sigaction(SIGALRM, &sa, NULL);
 					alarm(0);
+					sa.sa_handler = SIG_IGN;
+					(void)SIGACTION(SIGALRM, &sa, NULL);
 				}
 				else {
 					t_info("fork failed, errno == %d\n", errno);
