@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.26 2001/03/02 19:25:18 bwelling Exp $
+# $Id: Makefile.in,v 1.27 2001/07/06 22:11:41 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	app.h dir.h int.h net.h netdb.h offset.h stdtime.h \
+HEADERS =	dir.h int.h net.h netdb.h offset.h stdtime.h \
 		syslog.h time.h
 
 SUBDIRS =
