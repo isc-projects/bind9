@@ -40,7 +40,7 @@ typedef unsigned int isc_result_t;
 #define ISC_R_NORESOURCES		13	/* not enough resources */
 #define ISC_R_EOF			14	/* end of file */
 #define ISC_R_BOUND			15	/* already bound */
-#define ISC_R_TASKSHUTDOWN		16	/* task was shut down */
+#define ISC_R_TASKDONE			16	/* task is done */
 #define ISC_R_LOCKBUSY			17
 #define ISC_R_EXISTS			18
 #define ISC_R_NOSPACE			19	/* ran out of space */
