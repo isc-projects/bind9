@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.79 2001/11/29 01:08:43 gson Exp $ */
+/* $Id: host.c,v 1.80 2001/11/29 01:14:35 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
