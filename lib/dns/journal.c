@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.80 2001/09/12 18:45:02 gson Exp $ */
+/* $Id: journal.c,v 1.81 2001/09/15 07:16:39 marka Exp $ */
 
 #include <config.h>
 
@@ -71,6 +71,8 @@ static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
      	do { result = (op); 					\
 		if (result != ISC_R_SUCCESS) goto failure; 	\
 	} while (0)
+
+static isc_result_t index_to_disk(dns_journal_t *);
 
 static inline isc_uint32_t
 decode_uint32(unsigned char *p) {
@@ -1111,24 +1113,7 @@ dns_journal_commit(dns_journal_t *j) {
 	 * Convert the index into on-disk format and write
 	 * it to disk.
 	 */
-	if (j->header.index_size != 0) {
-		unsigned int i;
-		unsigned char *p;
-		unsigned int rawbytes;
-
-		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
-
-		p = j->rawindex;
-		for (i = 0; i < j->header.index_size; i++) {
-			encode_uint32(j->index[i].serial, p);
-			p += 4;
-			encode_uint32(j->index[i].offset, p);
-			p += 4;
-		}
-		INSIST(p == j->rawindex + rawbytes);
-
-		CHECK(journal_write(j, j->rawindex, rawbytes));
-	}
+	CHECK(index_to_disk(j));
 
 	/*
 	 * Commit the header to stable storage.
@@ -1914,8 +1899,6 @@ dns_db_diff(isc_mem_t *mctx,
 	return (result);
 }
 
-static isc_result_t index_to_disk(dns_journal_t *) ;
-
 isc_result_t
 dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 		    isc_uint32_t target_size)
@@ -2043,7 +2026,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 
 	if (copy_length != 0) {
 		/*
-		 * Copy best_guess to end to space just freed.
+		 * Copy best_guess to end into space just freed.
 		 */
 		size = 64*1024;
 		if (copy_length < size)
@@ -2063,11 +2046,6 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 			CHECK(journal_write(j, buf, len));
 		}
 
-		/*
-		 * Convert the index into on-disk format and write
-		 * it to disk.
-		 */
-		CHECK(index_to_disk(j));
 		CHECK(journal_fsync(j));
 
 		/*
