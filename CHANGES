@@ -1,3 +1,5 @@
+1353.	[contrib]	sdb/ldap to version 0.9.
+
 1350.	[bug]		dns_name_fromtext() failed to handle too many labels
 			gracefully.
 

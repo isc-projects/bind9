@@ -1,4 +1,4 @@
-This is the INSTALL file for 0.4. See
+This is the INSTALL file for 0.9. See
 http://www.venaas.no/ldap/bind-sdb/ for updates or other information.
 
 BUILDING
@@ -22,7 +22,10 @@ Finally you need to edit bin/named/main.c. Below where it says
 it says "xxdb_init();" add the line "ldapdb_init();", and finally
 below where it says "xxdb_clear();", add "ldapdb_clear();".
 
-Now you should hopefully be able to build it.
+Now you should hopefully be able to build it. If you get an error
+message about ldap_memfree() not being defined, you're probably
+using an LDAP library with the interface defined in RFC 1823. To
+build, uncomment the #define RFC1823API line near the top of ldapdb.c.
 
 
 CONFIGURING
@@ -50,6 +53,7 @@ zone "venaas.com" {
 
 When doing lookups BIND will do a sub-tree search below the base in the
 URL. The number 172800 is the TTL which will be used for all entries that
-haven't got the dNSTTL attribute.
+haven't got the dNSTTL attribute. It is also possible to add an filter to
+the URL, say ldap://host/base???(o=internal)
 
-Stig Venaas <venaas@uninett.no> 2001-04-12
+Stig Venaas <venaas@uninett.no> 2002-04-17
