@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.86 2001/01/27 02:08:04 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.87 2001/01/31 17:21:11 gson Exp $ */
 
 #include <config.h>
 
@@ -341,6 +341,7 @@ linear_next(dns_qid_t *qid, dns_dispentry_t *resp) {
 		return (ret);
 
 	bucket = resp->bucket;
+	bucket++;
 	while (bucket < qid->qid_nbuckets) {
 		ret = ISC_LIST_HEAD(qid->qid_table[bucket]);
 		if (ret != NULL)

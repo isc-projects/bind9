@@ -1,3 +1,7 @@
+
+ 720.	[bug]		Server could enter infinite loop in
+			dispatch.c:do_cancel(). [RT #733]
+
  719.	[bug]		Rapid reloads could trigger an assertion failure.
 			[RT #743]
 
