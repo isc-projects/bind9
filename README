@@ -102,11 +102,14 @@ BIND 9.0.0b3
 		Bug fixes.  Most bugs reported against beta 2 have been
 		fixed.
 
-	There are still some known bugs, including:
+	There are a few known bugs:
 
 		The option "query-source * port 53;" will not work as
 		expected.  Instead of the wildcard address "*", you need 
 		to use an explicit source IP address.
+
+		On some systems, IPv6 and IPv4 sockets interact in
+		unexpected ways.  For details, see doc/misc/ipv6.
 
 	For a detailed list of user-visible changes since beta 2, see
 	the CHANGES file.	
