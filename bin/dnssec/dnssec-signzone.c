@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.103 2000/10/25 04:26:18 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.104 2000/10/27 18:48:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -79,6 +79,8 @@ static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zonettl;
 static FILE *fp;
 static const dns_master_style_t *masterstyle = &dns_master_style_explicitttl;
+static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
+static unsigned int nverified = 0, nverifyfailed = 0;
 
 static inline void
 set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
@@ -91,6 +93,20 @@ set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 		array[index / 8] |= mask;
 	else
 		array[index / 8] &= (~mask & 0xFF);
+}
+
+static signer_key_t *
+newkeystruct(dst_key_t *dstkey, isc_boolean_t isdefault) {
+	signer_key_t *key;
+
+	key = isc_mem_get(mctx, sizeof(signer_key_t));
+	if (key == NULL)
+		fatal("out of memory");
+	key->key = dstkey;
+	key->isdefault = isdefault;
+	key->position = keycount++;
+	ISC_LINK_INIT(key, link);
+	return (key);
 }
 
 static void
@@ -108,14 +124,18 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 		fatal("key '%s' failed to sign data: %s",
 		      keystr, isc_result_totext(result));
 	}
+	nsigned++;
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
 					   ISC_TRUE, mctx, rdata);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			vbprintf(3, "\tsignature verified\n");
-		else
+			nverified++;
+		} else {
 			vbprintf(3, "\tsignature failed to verify\n");
+			nverifyfailed++;
+		}
 	}
 }
 
@@ -162,15 +182,12 @@ keythatsigned(dns_rdata_sig_t *sig) {
 	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
 				  DST_TYPE_PRIVATE, NULL, mctx, &privkey);
 	if (result == ISC_R_SUCCESS) {
-		key->key = privkey;
 		dst_key_free(&pubkey);
-	}
-	else
-		key->key = pubkey;
-	key->isdefault = ISC_FALSE;
-	key->position = keycount++;
-	ISC_LIST_APPENDUNSAFE(keylist, key, link);
-	return key;
+		key = newkeystruct(privkey, ISC_FALSE);
+	} else
+		key = newkeystruct(pubkey, ISC_FALSE);
+	ISC_LIST_APPEND(keylist, key, link);
+	return (key);
 }
 
 /*
@@ -210,7 +227,13 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 {
 	isc_result_t result;
 	result = dns_dnssec_verify(name, set, key->key, ISC_FALSE, mctx, sig);
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	if (result == ISC_R_SUCCESS) {
+		nverified++;
+		return (ISC_TRUE);
+	} else {
+		nverifyfailed++;
+		return (ISC_FALSE);
+	}
 }
 
 /*
@@ -341,15 +364,17 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 			vbprintf(2, "\tsig by %s expired\n", sigstr);
 		}
 
-		if (keep)
+		if (keep) {
 			nowsignedby[key->position] = ISC_TRUE;
-		else {
+			nretained++;
+		} else {
 			tuple = NULL;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_DEL,
 						      name, 0, &sigrdata,
 						      &tuple);
 			check_result(result, "dns_difftuple_create");
 			dns_diff_append(diff, &tuple);
+			ndropped++;
 		}
 
 		if (resign) {
@@ -1173,14 +1198,62 @@ loadzonekeys(dns_db_t *db) {
 	for (i = 0; i < nkeys; i++) {
 		signer_key_t *key;
 
-		key = isc_mem_get(mctx, sizeof(signer_key_t));
-		if (key == NULL)
-			fatal("out of memory");
-		key->key = keys[i];
-		key->isdefault = ISC_FALSE;
-		key->position = keycount++;
-		ISC_LIST_APPENDUNSAFE(keylist, key, link);
+		key = newkeystruct(keys[i], ISC_FALSE);
+		ISC_LIST_APPEND(keylist, key, link);
 	}
+	dns_db_detachnode(db, &node);
+	dns_db_closeversion(db, &currentversion, ISC_FALSE);
+}
+
+/*
+ * Finds all public zone keys in the zone.
+ */
+static void
+loadzonepubkeys(dns_db_t *db) {
+	dns_name_t *origin;
+	dns_dbversion_t *currentversion = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata;
+	dst_key_t *pubkey;
+	signer_key_t *key;
+	isc_result_t result;
+
+	origin = dns_db_origin(db);
+	dns_db_currentversion(db, &currentversion);
+
+	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find the zone's origin: %s",
+		      isc_result_totext(result));
+
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, currentversion,
+				     dns_rdatatype_key, 0, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find keys at the zone apex: %s",
+		      isc_result_totext(result));
+	result = dns_rdataset_first(&rdataset);
+	check_result(result, "dns_rdataset_first");
+	while (result == ISC_R_SUCCESS) {
+		pubkey = NULL;
+		dns_rdata_init(&rdata);
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_dnssec_keyfromrdata(origin, &rdata, mctx,
+						 &pubkey);
+		if (result != ISC_R_SUCCESS)
+			goto next;
+		if (!dst_key_iszonekey(pubkey)) {
+			dst_key_free(&pubkey);
+			goto next;
+		}
+
+		key = newkeystruct(pubkey, ISC_FALSE);
+		ISC_LIST_APPEND(keylist, key, link);
+ next:
+		result = dns_rdataset_next(&rdataset);
+	}
+	dns_rdataset_disassociate(&rdataset);
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &currentversion, ISC_FALSE);
 }
@@ -1202,19 +1275,20 @@ usage(void) {
 	fprintf(stderr, "\t-i interval:\n");
 	fprintf(stderr, "\t\tcycle interval - resign "
 				"if < interval from end ( (end-start)/4 )\n");
-	fprintf(stderr, "\t-v level:\n");
-	fprintf(stderr, "\t\tverbose level (0)\n");
+	fprintf(stderr, "\t-v debuglevel (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
 	fprintf(stderr, "\t\tfile the signed zone is written in "
 				"(zonefile + .signed)\n");
-	fprintf(stderr, "\t-a\n");
-	fprintf(stderr, "\t\tverify generated signatures\n");
-	fprintf(stderr, "\t-p\n");
-	fprintf(stderr, "\t\tuse pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr,	"\t\ta file containing random data\n");
+	fprintf(stderr, "\t-a:\t");
+	fprintf(stderr, "verify generated signatures\n");
+	fprintf(stderr, "\t-p:\t");
+	fprintf(stderr, "use pseudorandom data (faster but less secure)\n");
+	fprintf(stderr, "\t-t:\t");
+	fprintf(stderr, "print statistics\n");
 
 	fprintf(stderr, "\n");
 
@@ -1237,6 +1311,7 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_log_t *log = NULL;
 	isc_boolean_t pseudorandom = ISC_FALSE;
+	isc_boolean_t printstats = ISC_FALSE;
 	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
 	dns_rdataclass_t rdclass;
@@ -1248,7 +1323,7 @@ main(int argc, char *argv[]) {
 
 	dns_result_register();
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:i:v:o:f:ahpr:"))
+	while ((ch = isc_commandline_parse(argc, argv, "c:s:e:i:v:o:f:ahpr:t"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -1296,6 +1371,10 @@ main(int argc, char *argv[]) {
 
 		case 'a':
 			tryverify = ISC_TRUE;
+			break;
+
+		case 't':
+			printstats = ISC_TRUE;
 			break;
 
 		case 'h':
@@ -1367,7 +1446,6 @@ main(int argc, char *argv[]) {
 	loadzone(file, origin, rdclass, &db);
 
 	ISC_LIST_INIT(keylist);
-	loadzonekeys(db);
 
 	if (argc == 0) {
 		signer_key_t *key;
@@ -1405,17 +1483,18 @@ main(int argc, char *argv[]) {
 				key = ISC_LIST_NEXT(key, link);
 			}
 			if (key == NULL) {
-				key = isc_mem_get(mctx, sizeof(signer_key_t));
-				if (key == NULL)
-					fatal("out of memory");
-				key->key = newkey;
-				key->isdefault = ISC_TRUE;
-				key->position = keycount++;
+				key = newkeystruct(newkey, ISC_TRUE);
 				ISC_LIST_APPEND(keylist, key, link);
 			} else
 				dst_key_free(&newkey);
 		}
 	}
+
+	if (ISC_LIST_EMPTY(keylist))
+		loadzonekeys(db);
+	else
+		loadzonepubkeys(db);
+
 	if (ISC_LIST_EMPTY(keylist))
 		fprintf(stderr, "%s: warning: No keys specified or found\n",
 			program);
@@ -1455,6 +1534,14 @@ main(int argc, char *argv[]) {
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
+
+	if (printstats) {
+		printf("Number of signatures generated:  %d\n", nsigned);
+		printf("Number of signatures retained:   %d\n", nretained);
+		printf("Number of signatures dropped:    %d\n", ndropped);
+		printf("Number of signatures verified:   %d\n", nverified);
+		printf("Number of signatures unverified: %d\n", nverifyfailed);
+	}
 
 	return (0);
 }
