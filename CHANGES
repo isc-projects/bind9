@@ -1,5 +1,7 @@
- 463.	[bug]		nsupdate didn't work when it had to use the second
-			server in resolv.conf for the soa
+
+ 463.	[bug]		nsupdate sent malformed SOA queries to the second
+			and subsequent name servers in resolv.conf if the
+			query sent to the first one failed.
 
  462.	[bug]		--disable-ipv6 should work now.
 
