@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.238 2002/11/27 09:52:45 marka Exp $ */
+/* $Id: query.c,v 1.239 2003/01/14 00:28:49 marka Exp $ */
 
 #include <config.h>
 
@@ -88,6 +88,7 @@
 
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
+#define DNS_GETDB_PARTIAL 0x04U
 
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
@@ -544,6 +545,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	unsigned int ztoptions;
 	dns_zone_t *zone = NULL;
 	dns_db_t *db = NULL;
+	isc_boolean_t partial = ISC_FALSE;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(dbp != NULL && *dbp == NULL);
@@ -556,6 +558,8 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     &zone);
+	if (result == DNS_R_PARTIALMATCH)
+		partial = ISC_TRUE;
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
@@ -687,6 +691,8 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	*dbp = db;
 	*versionp = dbversion->version;
 
+	if (partial && (options & DNS_GETDB_PARTIAL) != 0)
+		return (DNS_R_PARTIALMATCH);
 	return (ISC_R_SUCCESS);
 
  refuse:
@@ -2266,6 +2272,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	version = NULL;
 	zone = NULL;
 	need_wildcardproof = ISC_FALSE;
+	options = 0;
 
 	if (event != NULL) {
 		/*
@@ -2340,6 +2347,39 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		options |= DNS_GETDB_NOEXACT;
 	result = query_getdb(client, client->query.qname, options, &zone, &db,
 			     &version, &is_zone);
+	if ((result != ISC_R_SUCCESS || !is_zone) && !RECURSIONOK(client) &&
+	    (options & DNS_GETDB_NOEXACT) != 0 && qtype == dns_rdatatype_ds) {
+		/*
+		 * Look to see if we are authoritative for the
+		 * child zone if the query type is DS.
+		 */
+		dns_db_t *tdb = NULL;
+		dns_zone_t *tzone = NULL;
+		dns_dbversion_t *tversion = NULL;
+		isc_result_t tresult;
+
+		tresult = query_getzonedb(client, client->query.qname,
+					 DNS_GETDB_PARTIAL, &tzone, &tdb,
+					 &tversion);
+		if (tresult == ISC_R_SUCCESS) {
+			options &= ~DNS_GETDB_NOEXACT;
+			query_putrdataset(client, &rdataset);
+			if (db != NULL)
+				dns_db_detach(&db);
+			if (zone != NULL)
+				dns_zone_detach(&zone);
+			version = tversion;
+			db = tdb;
+			zone = tzone;
+			is_zone = ISC_TRUE;
+			result = ISC_R_SUCCESS;
+		} else {
+			if (tdb != NULL)
+				dns_db_detach(&tdb);
+			if (tzone != NULL)
+				dns_zone_detach(&tzone);
+		}
+	}
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED)
 			QUERY_ERROR(DNS_R_REFUSED);
@@ -2466,6 +2506,47 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	case DNS_R_DELEGATION:
 		authoritative = ISC_FALSE;
 		if (is_zone) {
+			/*
+			 * Look to see if we are authoritative for the
+			 * child zone if the query type is DS.
+			 */
+			if (!RECURSIONOK(client) &&
+			    (options & DNS_GETDB_NOEXACT) != 0 &&
+			    qtype == dns_rdatatype_ds) {
+				dns_db_t *tdb = NULL;
+				dns_zone_t *tzone = NULL;
+				dns_dbversion_t *tversion = NULL;
+				result = query_getzonedb(client,
+							 client->query.qname,
+							 DNS_GETDB_PARTIAL,
+							 &tzone, &tdb,
+							 &tversion);
+				if (result == ISC_R_SUCCESS) {
+					options &= ~DNS_GETDB_NOEXACT;
+					query_putrdataset(client, &rdataset);
+					if (sigrdataset != NULL)
+						query_putrdataset(client,
+								  &sigrdataset);
+					if (fname != NULL)
+						query_releasename(client,
+								  &fname);
+					if (node != NULL)
+						dns_db_detachnode(db, &node);
+					if (db != NULL)
+						dns_db_detach(&db);
+					if (zone != NULL)
+						dns_zone_detach(&zone);
+					version = tversion;
+					db = tdb;
+					zone = tzone;
+					authoritative = ISC_TRUE;
+					goto db_find;
+				}
+				if (tdb != NULL)
+					dns_db_detach(&tdb);
+				if (tzone != NULL)
+					dns_zone_detach(&tzone);
+			}
 			/*
 			 * We're authoritative for an ancestor of QNAME.
 			 */

@@ -1,3 +1,5 @@
+1410.	[func]		handle records that live in the parent zone, e.g. DS.
+
 1409.	[bug]		DS should have attibute DNS_RDATATYPEATTR_DNSSEC.
 
 1408.	[bug]		distclean was not complete. [RT #4700]
