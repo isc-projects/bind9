@@ -19,7 +19,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <unistd.h>		/* Required for mkstemp on NetBSD. */
+#include <unistd.h>            /* Required for mkstemp on NetBSD. */
 
 #include <sys/stat.h>
 
@@ -27,6 +27,36 @@
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
+
+/*
+ * Convert a POSIX errno value into an isc_result_t.  The
+ * list of supported errno values is not complete; new users
+ * of this function should add any expected errors that are
+ * not already there.
+ */
+static isc_result_t
+posix_result(int posixerrno) {
+	switch (posixerrno) {
+	case ENOTDIR:
+	case ELOOP:
+	case EINVAL:
+	case ENAMETOOLONG:
+	case EBADF:
+		return (ISC_R_INVALIDFILE);
+	case ENOENT:
+		return (ISC_R_FILENOTFOUND);
+	case EACCES:
+		return (ISC_R_NOPERM);
+	case EEXIST:
+		return (ISC_R_FILEEXISTS);
+	case EIO:
+		return (ISC_R_IOERROR);
+	case ENOMEM:
+		return (ISC_R_NOMEMORY);
+	default:
+		return (ISC_R_UNEXPECTED);
+	}
+}
 
 /*
  * XXXDCL As the API for accessing file statistics undoubtedly gets expanded,
@@ -39,31 +69,10 @@
 static isc_result_t
 file_stats(const char *file, struct stat *stats) {
 	isc_result_t result = ISC_R_SUCCESS;
-
-	if (stat(file, stats) != 0) {
-		switch (errno) {
-		case ENOTDIR:
-		case ENOENT:
-			result = ISC_R_NOTFOUND;
-			break;
-		case ELOOP:
-		case EINVAL:
-		case ENAMETOOLONG:
-			result = ISC_R_INVALIDFILE;
-			break;
-		case EACCES:
-			result = ISC_R_NOPERM;
-			break;
-		case EIO:
-			result = ISC_R_IOERROR;
-			break;
-		case EFAULT:
-		default:
-			result = ISC_R_UNEXPECTED;
-			break;
-		}
-	}
-
+	
+	if (stat(file, stats) != 0)
+		result = posix_result(errno);
+		
 	return (result);
 }
 
@@ -100,21 +109,20 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen) {
 	if (s != NULL) {
 		if ((s - path + 1 + sizeof(TEMPLATE)) > buflen)
 			return (ISC_R_NOSPACE);
-
+		
 		strncpy(buf, path, s - path + 1);
 		buf[s - path + 1] = '\0';
 		strcat(buf, TEMPLATE);
-
 	} else {
 		if (sizeof(TEMPLATE) > buflen)
 			return (ISC_R_NOSPACE);
-
+		
 		strcpy(buf, TEMPLATE);
 	}
-
+	
 	return (ISC_R_SUCCESS);
 }
-
+ 
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
 	int fd;
@@ -130,34 +138,11 @@ isc_file_openunique(char *templet, FILE **fp) {
 	fd = mkstemp(templet);
 
 	if (fd == -1)
-		switch (errno) {
-		case ENOTDIR:
-		case ELOOP:
-		case EINVAL:
-		case ENAMETOOLONG:
-			result = ISC_R_INVALIDFILE;
-			break;
-		case EACCES:
-			result = ISC_R_NOPERM;
-			break;
-		case EEXIST:
-			result = ISC_R_EXISTS;
-			break;
-		case EIO:
-			result = ISC_R_IOERROR;
-			break;
-		default:
-			result = ISC_R_UNEXPECTED;
-		}
-
+		result = posix_result(errno);
 	if (result == ISC_R_SUCCESS) {
 		f = fdopen(fd, "w+");
 		if (f == NULL) {
-			if (errno == ENOMEM)
-				result = ISC_R_NOMEMORY;
-			else
-				result = ISC_R_UNEXPECTED;
-
+			result = posix_result(errno);
 			(void)remove(templet);
 			(void)close(fd);
 
@@ -166,4 +151,102 @@ isc_file_openunique(char *templet, FILE **fp) {
 	}
 
 	return (result);
+}
+
+isc_result_t
+isc_file_fopen(const char *filename, const char *mode, FILE **fp) {
+	FILE *f;
+	
+	f = fopen(filename, mode);
+	if (f == NULL)
+		return (posix_result(errno));
+	*fp = f;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_fclose(FILE *f) {
+	int r;
+
+	r = fclose(f);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (posix_result(errno));
+}
+
+isc_result_t
+isc_file_fseek(FILE *f, long offset, int whence) {
+	int r;
+
+	r = fseek(f, offset, whence);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (posix_result(errno));
+}
+
+isc_result_t
+isc_file_fread(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret) {
+	isc_result_t result = ISC_R_SUCCESS;
+	size_t r;
+	
+	clearerr(f);
+	r = fread(ptr, size, nmemb, f);
+	if (r != nmemb) {
+		if (feof(f))
+			result = ISC_R_EOF;
+		else
+			result = posix_result(errno);
+	}
+	if (nret != NULL)
+		*nret = r;
+	return (result);
+}
+
+isc_result_t
+isc_file_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret) {
+	isc_result_t result = ISC_R_SUCCESS;
+	size_t r;
+	
+	clearerr(f);
+	r = fwrite(ptr, size, nmemb, f);
+	if (r != nmemb)
+		result = posix_result(errno);
+	if (nret != NULL)
+		*nret = r;
+	return (result);
+}
+
+isc_result_t
+isc_file_fflush(FILE *f) {
+	int r;
+	
+	r = fflush(f);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (posix_result(errno));
+}
+
+isc_result_t
+isc_file_ffsync(FILE *f) {
+	int r;
+	
+	r = fsync(fileno(f));
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (posix_result(errno));
+}
+
+isc_result_t
+isc_file_remove(const char *filename) {
+	int r;
+	
+	r = unlink(filename);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (posix_result(errno));
 }

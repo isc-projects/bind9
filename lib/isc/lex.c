@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -210,7 +211,8 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 
 isc_result_t
 isc_lex_openfile(isc_lex_t *lex, const char *filename) {
-	FILE *stream;
+	isc_result_t result;
+	FILE *stream = NULL;
 
 	/*
 	 * Open 'filename' and make it the current input source for 'lex'.
@@ -218,17 +220,10 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 
 	REQUIRE(VALID_LEX(lex));
 
-	/*
-	 * XXX we should really call something like isc_file_open() to
-	 * get maximally safe file opening.
-	 */
-	stream = fopen(filename, "r");
-	/*
-	 * The C standard doesn't say that errno is set by fopen(), so
-	 * we just return a generic error.
-	 */
-	if (stream == NULL)
-		return (ISC_R_FAILURE);
+	result = isc_file_fopen(filename, "r", &stream);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	flockfile(stream);
 	
 	return (new_source(lex, ISC_TRUE, ISC_TRUE, stream, filename));

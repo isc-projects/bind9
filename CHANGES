@@ -1,4 +1,9 @@
 
+ 164.   [cleanup]	Added functions isc_file_fopen(), isc_file_fclose(),
+			isc_file_fseek(), isc_file_fread(), isc_file_fwrite(),
+			isc_file_fflush(), isc_file_ffsync(), isc_file_remove()
+			to encapsulate nonportable usage of errno and fflush().
+
  163.   [func]		Added result codes ISC_R_FILENOTFOUND and ISC_R_FILEEXISTS.
 
  162.   [bug]           Ensure proper range for arguments to ctype.h functions.
