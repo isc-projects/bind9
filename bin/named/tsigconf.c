@@ -144,14 +144,16 @@ dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
-	keylist = NULL;	
-	result = dns_c_view_getkeydefs(confview, &keylist);
-	if (result == ISC_R_SUCCESS)
-		result = add_initial_keys(keylist, ring, mctx);
-	else if (result == ISC_R_NOTFOUND)
-		result = ISC_R_SUCCESS;
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	if (confview != NULL) {
+		keylist = NULL;	
+		result = dns_c_view_getkeydefs(confview, &keylist);
+		if (result == ISC_R_SUCCESS)
+			result = add_initial_keys(keylist, ring, mctx);
+		else if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
+		if (result != ISC_R_SUCCESS)
+			goto failure;
+	}
 
 	*ringp = ring;
 	return (ISC_R_SUCCESS);
