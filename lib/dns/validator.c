@@ -487,46 +487,6 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 	event = val->event;
 
 	/*
-	 * Is the key used for the signature a security root?
-	 */
-	INSIST(val->keynode == NULL);
-	val->keytable = val->view->secroots;
-	result = dns_keytable_findkeynode(val->view->secroots,
-					  &siginfo->signer,
-					  siginfo->algorithm, siginfo->tag,
-					  &val->keynode);
-	if (result == ISC_R_NOTFOUND) {
-		/*
-		 * Is it a trusted key that is not a security root?
-		 */
-		val->keytable = val->view->trustedkeys;
-		result = dns_keytable_findkeynode(val->view->trustedkeys,
-						  &siginfo->signer,
-						  siginfo->algorithm,
-						  siginfo->tag,
-						  &val->keynode);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * The key is trusted.
-			 */
-			val->key = dns_keynode_key(val->keynode);
-			return (ISC_R_SUCCESS);
-		} else if (result != ISC_R_NOTFOUND)
-			return (result);
-	} else if (result == ISC_R_SUCCESS) {
-		/*
-		 * The key is a security root.
-		 */
-		val->key = dns_keynode_key(val->keynode);
-		return (ISC_R_SUCCESS);
-	} else
-		return (result);
-
-	/*
-	 * The signature was not made with a security root or trusted key.
-	 */
-
-	/*
 	 * Is the key name appropriate for this signature?
 	 */
 	namereln = dns_name_fullcompare(event->name, &siginfo->signer,
@@ -547,6 +507,23 @@ get_key(dns_validator_t *val, dns_siginfo_t *siginfo) {
 		 * DNS root.
 		 */
 		return (DNS_R_CONTINUE);
+	}
+
+	/*
+	 * Is the key used for the signature a security root?
+	 */
+	INSIST(val->keynode == NULL);
+	val->keytable = val->view->secroots;
+	result = dns_keytable_findkeynode(val->view->secroots,
+					  &siginfo->signer,
+					  siginfo->algorithm, siginfo->tag,
+					  &val->keynode);
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * The key is a security root.
+		 */
+		val->key = dns_keynode_key(val->keynode);
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -683,11 +660,14 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 	 * Caller must be holding the validator lock.
 	 */
 
+	validator_log(val, ISC_LOG_DEBUG(3),
+		      "attempting positive response validation");
+	
 	event = val->event;
 
 	if (resume) {
 		/*
-		 * We alraedy have a sigrdataset.
+		 * We already have a sigrdataset.
 		 */
 		result = ISC_R_SUCCESS;
 	} else {
@@ -761,7 +741,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t nextname;
 	isc_boolean_t firstname = ISC_TRUE;
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in nxtvalidate()");
+	validator_log(val, ISC_LOG_DEBUG(3),
+		      "attempting negative response validation");
 	
 	if (!resume) {
 		val->attributes |= VALATTR_NEGATIVE;
@@ -1041,6 +1022,8 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	vevent = (dns_validatorevent_t *) event;
 	val = vevent->validator;
 
+	validator_log(val, ISC_LOG_DEBUG(3), "starting");
+	
 	LOCK(&val->lock);
 
 	if (val->event->rdataset != NULL && val->event->sigrdataset != NULL) {
