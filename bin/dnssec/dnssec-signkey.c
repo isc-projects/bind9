@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.48 2001/03/27 22:08:37 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.49 2001/03/27 22:57:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
@@ -37,6 +38,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 #include <dns/secalg.h>
@@ -161,6 +163,8 @@ main(int argc, char *argv[]) {
 	dns_db_t *db;
 	dns_dbnode_t *node;
 	dns_dbversion_t *version;
+	dns_dbiterator_t *dbiter;
+	dns_rdatasetiter_t *rdsiter;
 	dst_key_t *key = NULL;
 	dns_rdata_t *rdata;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
@@ -169,7 +173,6 @@ main(int argc, char *argv[]) {
 	dns_rdata_sig_t sig;
 	isc_result_t result;
 	isc_buffer_t b;
-	isc_region_t r;
 	isc_textregion_t tr;
 	isc_log_t *log = NULL;
 	keynode_t *keynode;
@@ -257,27 +260,6 @@ main(int argc, char *argv[]) {
 	if (strlen(argv[0]) < 8 || strncmp(argv[0], "keyset-", 7) != 0)
 		fatal("keyset file '%s' must start with keyset-", argv[0]);
 
-	dns_fixedname_init(&fdomain);
-	domain = dns_fixedname_name(&fdomain);
-	isc_buffer_init(&b, argv[0] + strlen("keyset-"),
-			strlen(argv[0]) - strlen("keyset-"));
-	isc_buffer_add(&b, strlen(argv[0]) - strlen("keyset-"));
-	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_TRUE, NULL);
-	if (result != ISC_R_SUCCESS)
-		fatal("'%s' does not contain a valid domain name", argv[0]);
-	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);
-	result = dns_name_totext(domain, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	tdomain[r.length] = 0;
-
-	output = isc_mem_allocate(mctx,
-				  strlen("signedkey-") + strlen(tdomain) + 1);
-	if (output == NULL)
-		fatal("out of memory");
-	strcpy(output, "signedkey-");
-	strcat(output, tdomain);
-
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       rdclass, 0, NULL, &db);
@@ -288,17 +270,46 @@ main(int argc, char *argv[]) {
 		fatal("failed to load database from '%s': %s", argv[0],
 		      isc_result_totext(result));
 
+	dns_fixedname_init(&fdomain);
+	domain = dns_fixedname_name(&fdomain);
+
+	dbiter = NULL;
+	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
+	check_result(result, "dns_db_createiterator()");
+
+	result = dns_dbiterator_first(dbiter);
+	check_result(result, "dns_dbiterator_first()");
+	while (result == ISC_R_SUCCESS) {
+		node = NULL;
+		dns_dbiterator_current(dbiter, &node, domain);
+		rdsiter = NULL;
+		result = dns_db_allrdatasets(db, node, NULL, 0, &rdsiter);
+		check_result(result, "dns_db_allrdatasets()");
+		result = dns_rdatasetiter_first(rdsiter);
+		dns_rdatasetiter_destroy(&rdsiter);
+		if (result == ISC_R_SUCCESS)
+			break;
+		dns_db_detachnode(db, &node);
+		result = dns_dbiterator_next(dbiter);
+	}
+	dns_dbiterator_destroy(&dbiter);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find data in keyset file");
+
+	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);
+	result = dns_name_tofilenametext(domain, ISC_FALSE, &b);
+	check_result(result, "dns_name_tofilenametext()");
+	isc_buffer_putuint8(&b, 0);
+
+	output = isc_mem_allocate(mctx,
+				  strlen("signedkey-") + strlen(tdomain) + 1);
+	if (output == NULL)
+		fatal("out of memory");
+	strcpy(output, "signedkey-");
+	strcat(output, tdomain);
+
 	version = NULL;
 	dns_db_newversion(db, &version);
-
-	node = NULL;
-	result = dns_db_findnode(db, domain, ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS) {
-		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
-		fatal("failed to find database node '%s': %s",
-		      domainstr, isc_result_totext(result));
-	}
 
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);

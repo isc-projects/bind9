@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.121 2001/02/13 00:07:25 bwelling Exp $ */
+/* $Id: name.c,v 1.122 2001/03/27 22:57:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1854,6 +1854,157 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		return (ISC_R_NOSPACE);
 
 	if (!saw_root || omit_final_dot)
+		trem++;
+
+	isc_buffer_add(target, tlen - trem);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
+			isc_buffer_t *target)
+{
+	unsigned char *ndata;
+	char *tdata;
+	unsigned int nlen, tlen;
+	unsigned char c;
+	unsigned int trem, count;
+	unsigned int bytes, nibbles;
+	size_t i, len;
+	unsigned int labels;
+	char num[4];
+
+	/*
+	 * This function assumes the name is in proper uncompressed
+	 * wire format.
+	 */
+	REQUIRE(VALID_NAME(name));
+	REQUIRE((name->attributes & DNS_NAMEATTR_ABSOLUTE) != 0);
+	REQUIRE(ISC_BUFFER_VALID(target));
+
+	ndata = name->ndata;
+	nlen = name->length;
+	labels = name->labels;
+	tdata = isc_buffer_used(target);
+	tlen = isc_buffer_availablelength(target);
+
+	trem = tlen;
+
+	if (nlen == 1 && labels == 1 && *ndata == '\0') {
+		/*
+		 * Special handling for the root label.
+		 */
+		if (trem == 0)
+			return (ISC_R_NOSPACE);
+
+		omit_final_dot = ISC_FALSE;
+		*tdata++ = '.';
+		trem--;
+
+		/*
+		 * Skip the while() loop.
+		 */
+		nlen = 0;
+	}
+
+	while (labels > 0 && nlen > 0 && trem > 0) {
+		labels--;
+		count = *ndata++;
+		nlen--;
+		if (count == 0)
+			break;
+		if (count < 64) {
+			INSIST(nlen >= count);
+			while (count > 0) {
+				c = *ndata;
+				if ((c >= 0x30 && c <= 0x39) || /* digit */
+				    (c >= 0x41 && c <= 0x5A) ||	/* uppercase */
+				    (c >= 0x61 && c <= 0x7A) || /* lowercase */
+				    c == 0x2D ||		/* hyphen */
+				    c == 0x5F)			/* underscore */
+				{
+					if (trem == 0)
+						return (ISC_R_NOSPACE);
+					CONVERTFROMASCII(c);
+					*tdata++ = c;
+					ndata++;
+					trem--;
+					nlen--;
+				} else {
+					if (trem < 3)
+						return (ISC_R_NOSPACE);
+					sprintf(tdata, "%%%02X", c);
+					tdata += 3;
+					trem -= 3;
+					ndata++;
+					nlen--;
+				}
+				count--;
+			}
+		} else if (count == DNS_LABELTYPE_BITSTRING) {
+			if (trem < 3)
+				return (ISC_R_NOSPACE);
+			*tdata++ = '%';
+			*tdata++ = 'x';
+			trem -= 2;
+			INSIST(nlen > 0);
+			count = *ndata++;
+			if (count == 0)
+				count = 256;
+			nlen--;
+			len = sprintf(num, "%u", count);	/* XXX */
+			INSIST(len <= 4);
+			bytes = count / 8;
+			if (count % 8 != 0)
+				bytes++;
+			INSIST(nlen >= bytes);
+			nibbles = count / 4;
+			if (count % 4 != 0)
+				nibbles++;
+			if (trem < nibbles)
+				return (ISC_R_NOSPACE);
+			trem -= nibbles;
+			nlen -= bytes;
+			while (nibbles > 0) {
+				c = *ndata++;
+				*tdata++ = hexdigits[(c >> 4)];
+				nibbles--;
+				if (nibbles != 0) {
+					*tdata++ = hexdigits[c & 0xf];
+					i++;
+					nibbles--;
+				}
+			}
+			if (trem < 2 + len)
+				return (ISC_R_NOSPACE);
+			*tdata++ = '%';
+			for (i = 0; i < len; i++)
+				*tdata++ = num[i];
+			*tdata++ = '%';
+			trem -= 2 + len;
+		} else {
+			FATAL_ERROR(__FILE__, __LINE__,
+				    "Unexpected label type %02x", count);
+			/* NOTREACHED */
+		}
+
+		/*
+		 * The following assumes names are absolute.  If not, we
+		 * fix things up later.  Note that this means that in some
+		 * cases one more byte of text buffer is required than is
+		 * needed in the final output.
+		 */
+		if (trem == 0)
+			return (ISC_R_NOSPACE);
+		*tdata++ = '.';
+		trem--;
+	}
+
+	if (nlen != 0 && trem == 0)
+		return (ISC_R_NOSPACE);
+
+	if (omit_final_dot)
 		trem++;
 
 	isc_buffer_add(target, tlen - trem);

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.74 2001/02/14 20:26:46 bwelling Exp $
+ * $Id: dst_api.c,v 1.75 2001/03/27 22:57:48 bwelling Exp $
  */
 
 #include <config.h>
@@ -937,6 +937,7 @@ buildfilename(dns_name_t *name, const dns_keytag_t id,
 	const char *suffix = "";
 	unsigned int len;
 	isc_result_t result;
+	dns_fixedname_t fname;
 
 	REQUIRE(out != NULL);
 	if ((type & DST_TYPE_PRIVATE) != 0)
@@ -953,8 +954,11 @@ buildfilename(dns_name_t *name, const dns_keytag_t id,
 	}
 	if (isc_buffer_availablelength(out) < 1)
 		return (ISC_R_NOSPACE);
+	dns_fixedname_init(&fname);
+	(void)dns_name_downcase(name, dns_fixedname_name(&fname), NULL);
 	isc_buffer_putstr(out, "K");
-	result = dns_name_totext(name, ISC_FALSE, out);
+	result = dns_name_tofilenametext(dns_fixedname_name(&fname),
+					 ISC_FALSE, out);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	len = 1 + 3 + 1 + 5 + strlen(suffix) + 1;

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.49 2001/03/27 22:08:36 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.50 2001/03/27 22:57:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -262,10 +262,10 @@ main(int argc, char *argv[]) {
 		dns_name_downcase(dst_key_name(key),
 				  dns_fixedname_name(&fname),
 				  NULL);
-		result = dns_name_totext(dns_fixedname_name(&fname),
-					 ISC_FALSE,
-					 &namebuf);
-		check_result(result, "dns_name_totext");
+		result = dns_name_tofilenametext(dns_fixedname_name(&fname),
+						 ISC_FALSE,
+						 &namebuf);
+		check_result(result, "dns_name_tofilenametext");
 		isc_buffer_putuint8(&namebuf, 0);
 		
 		if (savedname == NULL) {
@@ -298,13 +298,7 @@ main(int argc, char *argv[]) {
 		if (domain == NULL) {
 			dns_fixedname_init(&fdomain);
 			domain = dns_fixedname_name(&fdomain);
-			isc_buffer_init(&b, namestr, strlen(namestr));
-			isc_buffer_add(&b, strlen(namestr));
-			result = dns_name_fromtext(domain, &b, dns_rootname,
-						   ISC_FALSE, NULL);
-			if (result != ISC_R_SUCCESS)
-				fatal("%s is not a valid name: %s",
-				      namestr, isc_result_totext(result));
+			dns_name_copy(dst_key_name(key), domain, NULL);
 		}
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;

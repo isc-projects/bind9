@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.91 2001/02/19 08:54:54 halley Exp $ */
+/* $Id: name.h,v 1.92 2001/03/27 22:57:47 bwelling Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -912,6 +912,36 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
  *   When printed, this is (3 * 63 + 61) * 4
  *   bytes for the escaped label data + 4 bytes for the
  *   dot terminating each label = 1004 bytes total.
+ */
+
+isc_result_t
+dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
+			isc_buffer_t *target);
+/*
+ * Convert 'name' into an alternate text format appropriate for filenames,
+ * storing the result in 'target'.
+ *
+ * Notes:
+ *	If 'omit_final_dot' is true, then the final '.' in absolute
+ *	names other than the root name will be omitted.
+ *
+ *	The name is not NUL terminated.
+ *
+ * Requires:
+ *
+ *	'name' is a valid absolute name
+ *
+ *	'target' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *	If the result is success:
+ *
+ *		The used space in target is updated.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOSPACE
  */
 
 isc_result_t
