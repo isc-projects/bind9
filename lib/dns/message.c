@@ -37,7 +37,7 @@
 #include <dns/rdatalist.h>
 #include <dns/compress.h>
 
-#define DNS_MESSAGE_OPCODE_MASK		0x7000U
+#define DNS_MESSAGE_OPCODE_MASK		0x7800U
 #define DNS_MESSAGE_OPCODE_SHIFT	    11
 #define DNS_MESSAGE_RCODE_MASK		0x000fU
 #define DNS_MESSAGE_FLAG_MASK		0x8ff0U
