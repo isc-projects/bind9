@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.18 2000/09/01 16:39:07 gson Exp $ */
+/* $Id: rdataslab.c,v 1.19 2000/09/01 19:59:35 gson Exp $ */
 
 #include <config.h>
 
@@ -115,8 +115,8 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 */
 	rawbuf = isc_mem_get(mctx, buflen);
 	if (rawbuf == NULL) {
-		isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto free_rdatas;
 	}
 
 	region->base = rawbuf;
@@ -134,9 +134,11 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		memcpy(rawbuf, rdatas[i].data, rdatas[i].length);
 		rawbuf += rdatas[i].length;
 	}
+	result = ISC_R_SUCCESS;
 
+ free_rdatas:
 	isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 unsigned int
@@ -159,34 +161,12 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 	return ((unsigned int)(current - slab));
 }
 
-static inline isc_boolean_t
-rdata_in_slab(unsigned char *slab, unsigned int reservelen,
-	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      dns_rdata_t *rdata)
-{
-	unsigned int count, i;
-	isc_region_t region;
-	unsigned char *current;
-	dns_rdata_t trdata;
-
-	current = slab + reservelen;
-	count = *current++ * 256;
-	count += *current++;
-
-	dns_rdata_init(&trdata);
-
-	for (i = 0; i < count; i++) {
-		region.length = *current++ * 256;
-		region.length += *current++;
-		region.base = current;
-		dns_rdata_fromregion(&trdata, rdclass, type, &region);
-		current += region.length;
-		if (dns_rdata_compare(&trdata, rdata) == 0)
-			return (ISC_TRUE);
-	}
-	return (ISC_FALSE);
-}
-
+/*
+ * Make the dns_rdata_t 'rdata' refer to the slab item
+ * beginning at '*current', which is part of a slab of type
+ * 'type' and class 'rdclass', and advance '*current' to
+ * point to the next item in the slab.
+ */
 static inline void
 rdata_from_slab(unsigned char **current,
 	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -203,6 +183,34 @@ rdata_from_slab(unsigned char **current,
 	*current = tcurrent;
 }
 
+/*
+ * Return true iff 'slab' (slab data of type 'type' and class 'rdclass')
+ * contains an rdata identical to 'rdata'.  This does case insensitive
+ * comparisons per DNSSEC.
+ */
+static inline isc_boolean_t
+rdata_in_slab(unsigned char *slab, unsigned int reservelen,
+	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	      dns_rdata_t *rdata)
+{
+	unsigned int count, i;
+	unsigned char *current;
+	dns_rdata_t trdata;
+
+	current = slab + reservelen;
+	count = *current++ * 256;
+	count += *current++;
+
+	dns_rdata_init(&trdata);
+
+	for (i = 0; i < count; i++) {
+		rdata_from_slab(&current, rdclass, type, &trdata);
+		if (dns_rdata_compare(&trdata, rdata) == 0)
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
 isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
@@ -217,10 +225,6 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	unsigned int oadded = 0;
 	unsigned int nadded = 0;
 	unsigned int nncount = 0;
-
-	/*
-	 * Merge 'oslab' and 'nslab'.
-	 */
 
 	/*
 	 * XXX  Need parameter to allow "delete rdatasets in nslab" merge,
@@ -306,8 +310,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	 * Merge the two slabs.
 	 */
 	ocurrent = ostart;
-	if (ocount > 0)
-       		rdata_from_slab(&ocurrent, rdclass, type, &ordata);
+	INSIST(ocount != 0);
+	rdata_from_slab(&ocurrent, rdclass, type, &ordata);
 
 	ncurrent = nslab + reservelen + 2;
 	if (ncount > 0) {
@@ -354,6 +358,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		}
 	}
 
+	INSIST(tcurrent == tstart + tlength);
+
 	*tslabp = tstart;
 
 	return (ISC_R_SUCCESS);
@@ -367,13 +373,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 {
 	unsigned char *mcurrent, *sstart, *scurrent, *tstart, *tcurrent;
 	unsigned int mcount, scount, count, tlength, tcount;
-	isc_region_t mregion, sregion;
 	dns_rdata_t srdata, mrdata;
 	isc_boolean_t removed_something = ISC_FALSE;
-
-	/*
-	 * Subtract 'sslab' from 'mslab'.
-	 */
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(mslab != NULL && sslab != NULL);
@@ -402,17 +403,11 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 * the sslab.
 	 */
 	do {
-		mregion.length = *mcurrent++ * 256;
-		mregion.length += *mcurrent++;
-		mregion.base = mcurrent;
-		dns_rdata_fromregion(&mrdata, rdclass, type, &mregion);
+		unsigned char *mrdatabegin = mcurrent;
+		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
-			sregion.length = *scurrent++ * 256;
-			sregion.length += *scurrent++;
-			sregion.base = scurrent;
-			dns_rdata_fromregion(&srdata, rdclass, type, &sregion);
-			scurrent += sregion.length;
+			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
 		}
@@ -421,11 +416,10 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			 * This rdata isn't in the sslab, and thus isn't
 			 * being subtracted.
 			 */
-			tlength += mregion.length + 2;
+			tlength += mcurrent - mrdatabegin;
 			tcount++;
 		} else
 			removed_something = ISC_TRUE;
-		mcurrent += mregion.length;
 		mcount--;
 	} while (mcount > 0);
 
@@ -463,17 +457,11 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	mcount = *mcurrent++ * 256;
 	mcount += *mcurrent++;
 	do {
-		mregion.length = *mcurrent++ * 256;
-		mregion.length += *mcurrent++;
-		mregion.base = mcurrent;
-		dns_rdata_fromregion(&mrdata, rdclass, type, &mregion);
+		unsigned char *mrdatabegin = mcurrent;
+		rdata_from_slab(&mcurrent, rdclass, type, &mrdata);
 		scurrent = sstart;
 		for (count = 0; count < scount; count++) {
-			sregion.length = *scurrent++ * 256;
-			sregion.length += *scurrent++;
-			sregion.base = scurrent;
-			dns_rdata_fromregion(&srdata, rdclass, type, &sregion);
-			scurrent += sregion.length;
+			rdata_from_slab(&scurrent, rdclass, type, &srdata);
 			if (dns_rdata_compare(&mrdata, &srdata) == 0)
 				break;
 		}
@@ -482,14 +470,14 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			 * This rdata isn't in the sslab, and thus should be
 			 * copied to the tslab.
 			 */
-			*tcurrent++ = (mregion.length & 0xff00) >> 8;
-			*tcurrent++ = (mregion.length & 0x00ff);
-			memcpy(tcurrent, mregion.base, mregion.length);
-			tcurrent += mregion.length;
+			unsigned int length = mcurrent - mrdatabegin;
+			memcpy(tcurrent, mrdatabegin, length);
+			tcurrent += length;
 		}
-		mcurrent += mregion.length;
 		mcount--;
 	} while (mcount > 0);
+
+	INSIST(tcurrent == tstart + tlength);
 
 	*tslabp = tstart;
 
