@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.396 2003/07/25 00:01:06 marka Exp $ */
+/* $Id: zone.c,v 1.397 2003/09/11 01:49:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1882,12 +1882,12 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		zone->notifycnt = 0;
 	}
 	if (count != 0) {
-		new = isc_mem_get(zone->mctx, count * sizeof *new);
+		new = isc_mem_get(zone->mctx, count * sizeof(*new));
 		if (new == NULL) {
 			UNLOCK_ZONE(zone);
 			return (ISC_R_NOMEMORY);
 		}
-		memcpy(new, notify, count * sizeof *new);
+		memcpy(new, notify, count * sizeof(*new));
 		zone->notify = new;
 		zone->notifycnt = count;
         }

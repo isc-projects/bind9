@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.178 2003/07/30 00:54:26 marka Exp $ */
+/* $Id: rdata.c,v 1.179 2003/09/11 01:49:16 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1037,7 +1037,7 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 		}
 		i++;
 	}
-	snprintf(buf, sizeof buf, "%u", value);
+	snprintf(buf, sizeof(buf), "%u", value);
 	return (str_totext(buf, target));
 }
 
@@ -1198,7 +1198,7 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 
 	if (type < (sizeof(typeattr)/sizeof(typeattr[0])))
 		return (str_totext(typeattr[type].name, target));
-	snprintf(buf, sizeof buf, "TYPE%u", type);
+	snprintf(buf, sizeof(buf), "TYPE%u", type);
 	return (str_totext(buf, target));
 }
 

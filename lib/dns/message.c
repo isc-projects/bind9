@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.217 2003/04/11 07:25:25 marka Exp $ */
+/* $Id: message.c,v 1.218 2003/09/11 01:49:16 marka Exp $ */
 
 /***
  *** Imports
@@ -3065,7 +3065,7 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 			msg->counts[DNS_SECTION_AUTHORITY]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, ", ADDITIONAL: ");
-		snprintf(buf, sizeof buf, "%1u",
+		snprintf(buf, sizeof(buf), "%1u",
 			msg->counts[DNS_SECTION_ADDITIONAL]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");
