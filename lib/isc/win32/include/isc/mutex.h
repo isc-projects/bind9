@@ -14,6 +14,8 @@ typedef CRITICAL_SECTION isc_mutex_t;
 	(EnterCriticalSection((mp)), ISC_R_SUCCESS)
 #define isc_mutex_unlock(mp) \
 	(LeaveCriticalSection((mp)), ISC_R_SUCCESS)
+#define isc_mutex_trylock(mp) \
+	(TryEnterCriticalSection((mp)) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 #define isc_mutex_destroy(mp) \
 	(DeleteCriticalSection((mp)), ISC_R_SUCCESS)
 
