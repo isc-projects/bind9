@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.20 2001/02/22 18:03:11 gson Exp $ */
+/* $Id: print.c,v 1.21 2001/02/22 19:12:56 gson Exp $ */
 
 #include <config.h>
 
@@ -455,29 +455,17 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			}
 			break;
 		case 'D':	/*deprecated*/
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_USELD,
-					      "use %ld instead of %D")
-			       == NULL);
+			INSIST("use %ld instead of %D" == NULL);
 		case 'O':	/*deprecated*/
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_USELO,
-					      "use %lo instead of %O")
-			       == NULL);
+			INSIST("use %lo instead of %O" == NULL);
 		case 'U':	/*deprecated*/
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_USELU,
-					      "use %lu instead of %U")
-			       == NULL);
+			INSIST("use %lu instead of %U" == NULL);
 
 		case 'L':
 #ifdef HAVE_LONG_DOUBLE
 			l = 1;
 #else
-			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
-					      ISC_MSG_NOLONGDBL,
-					      "long doubles are not supported")
-			       == NULL);
+			INSIST("long doubles are not supported" == NULL);
 #endif
 			/*FALLTHROUGH*/
 		case 'e':
