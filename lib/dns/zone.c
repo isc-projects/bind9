@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.26 2003/11/04 06:01:47 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.27 2004/01/05 04:29:32 marka Exp $ */
 
 #include <config.h>
 
@@ -3557,11 +3557,11 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 			      dns_result_totext(result));
 		goto cleanup;
 	}
-	if (key != NULL)
-		dns_tsigkey_detach(&key);
 	cancel = ISC_FALSE;
 
  cleanup:
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	if (cancel)

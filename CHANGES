@@ -1,3 +1,7 @@
+1545.	[bug]		It was possible to leak memory if named was unable to
+			bind to the specified transfer source and TSIG was
+			being used. [RT #10120]
+
 1542.	[bug]		Reversed timestamp sanity test on SIG. [RT #10095]
 
 1535.	[bug]		dig -x of a partial IPv4 address broken. [RT# 9949]
