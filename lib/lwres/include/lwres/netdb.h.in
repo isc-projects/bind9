@@ -106,11 +106,12 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h.in,v 1.9 2000/01/27 12:19:57 marka Exp $
+ *	$Id: netdb.h.in,v 1.10 2000/01/27 13:04:15 marka Exp $
  */
 
-#include <isc/net.h>
 #include <stdio.h>
+#include <isc/net.h>
+#include <isc/lang.h>
 
 #ifndef _PATH_HEQUIV
 #define _PATH_HEQUIV	"/etc/hosts.equiv"
@@ -316,7 +317,10 @@ struct	addrinfo {
 
 extern int h_errno;
 
-__BEGIN_DECLS
+ISC_LANG_BEGINDECLS
+#ifndef __P
+#define __P(x) x
+#endif
 void		endhostent __P((void));
 void		endnetent __P((void));
 void		endprotoent __P((void));
@@ -385,7 +389,7 @@ struct servent	*getservent_r __P((struct servent *, char *, int));
 void		setservent_r __P((int));
 void		endservent_r __P((void));
 #endif
-__END_DECLS
+ISC_LANG_BEGINDECLS
 
 /* This is nec'y to make this include file properly replace the sun version. */
 #ifdef sun

@@ -1,7 +1,7 @@
 #include <isc/net.h>
 #include <lwres/netdb.h>
 #include <stdio.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/param.h>	/* ALIGN */
 
 static struct hostent *he = NULL;

@@ -198,7 +198,7 @@ getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	if ((af == AF_INET6 && IN6_IS_ADDR_V4COMPAT((struct in6_addr *)src)) ||
 	    (af == AF_INET6 && IN6_IS_ADDR_V4MAPPED((struct in6_addr *)src)) ||
 	    (af == AF_INET)) {
-		const char *cp = src;
+		const unsigned char *cp = src;
 
 		if (af == AF_INET6)
 			cp += 12;
