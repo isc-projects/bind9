@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: Bv9ARM.txt,v 1.11 2000/08/09 04:37:10 tale Exp $
+$Id: Bv9ARM.txt,v 1.12 2000/08/10 22:10:51 bwelling Exp $
 
 BIND 9 Administrator Reference Manual
 July 2000
@@ -1214,14 +1214,14 @@ dnssec-keygen -a DSA -b 768 -n ZONE child.example.
 
 Two output files will be produced: Kchild.example.+003+12345.key and
 Kchild.example.+003+12345.private (where 12345 is an example of a key
-identifier). The key file names contain the key name ( child.example.),
-algorithm (3 is DSA, 1 is RSA, etc.), and the key identifier (12345 in this
+tag). The key file names contain the key name ( child.example.),
+algorithm (3 is DSA, 1 is RSA, etc.), and the key tag (12345 in this
 case). The private key (in the .private file) is used to generate
 signatures, and the public key (in the .key file) is used for signature
 verification.
 
 To generate another key with the same properties (but with a different key
-identifier), repeat the above command.
+tag), repeat the above command.
 
 The public keys should be inserted into the zone file with $INCLUDE
 statements, including the .key files.
@@ -2083,7 +2083,7 @@ options {
     [ directory path_name; ]
     [ named-xfer path_name; ]
     [ tkey-domain domainname; ]
-    [ tkey-dhkey keyname keyid; ]
+    [ tkey-dhkey key_name key_tag; ]
     [ dump-file path_name; ]
     [ memstatistics-file path_name; ]
     [ pid-file path_name; ]
