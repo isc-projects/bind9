@@ -26,6 +26,8 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include <isc/assertions.h>
 #include <isc/boolean.h>
 #include <isc/thread.h>
@@ -35,6 +37,8 @@
 #include <isc/event.h>
 #include <isc/task.h>
 #include <isc/util.h>
+
+#define ISC_TASK_NAMES 1
 
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		printf("task %p thread %lu: %s\n", \
@@ -75,6 +79,10 @@ struct isc_task {
 	isc_eventlist_t			on_shutdown;
 	unsigned int			quantum;
 	unsigned int			flags;
+#ifdef ISC_TASK_NAMES
+	char				name[16];
+	void *				tag;
+#endif
 	/* Locked by task manager lock. */
 	LINK(isc_task_t)		link;
 	LINK(isc_task_t)		ready_link;
@@ -170,6 +178,10 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	INIT_LIST(task->on_shutdown);
 	task->quantum = quantum;
 	task->flags = 0;
+#ifdef ISC_TASK_NAMES
+	task->name[0] = '\0';
+	task->tag = NULL;
+#endif
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
@@ -664,7 +676,27 @@ isc_task_destroy(isc_task_t **taskp) {
 	isc_task_detach(taskp);
 }
 
+void
+isc_task_setname(isc_task_t *task, char *name, void *tag) {
 
+	/*
+	 * Name 'task'.
+	 */
+
+	REQUIRE(VALID_TASK(task));
+
+#ifdef ISC_TASK_NAMES
+	LOCK(&task->lock);
+	memset(task->name, 0, sizeof(task->name));
+	strncpy(task->name, name, sizeof(task->name) - 1);
+	task->tag = tag;
+	UNLOCK(&task->lock);
+#else
+	(void)name;
+	(void)tag;
+#endif
+
+}
 
 /***
  *** Task Manager.

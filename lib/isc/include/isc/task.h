@@ -453,6 +453,21 @@ isc_task_destroy(isc_task_t **taskp);
  *		All resources used by the task will be freed.
  */
 
+void
+isc_task_setname(isc_task_t *task, char *name, void *tag);
+/*
+ * Name 'task'.
+ *
+ * Notes:
+ *
+ *	Only the first 15 characters of 'name' will be copied.
+ *
+ *	Naming a task is currently only useful for debugging purposes.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ */
 
 /*****
  ***** Task Manager.
