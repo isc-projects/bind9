@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.9 2000/01/08 02:12:57 gson Exp $ */
+ /* $Id: cache.c,v 1.10 2000/01/21 02:49:07 halley Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -226,6 +226,7 @@ dns_cache_detach(dns_cache_t **cachep) {
 	UNLOCK(&cache->lock);
 	*cachep = NULL;
 	if (free_cache) {
+		/* XXXRTH  This is not locked! */
 		if (cache->live_tasks > 0)
 			isc_task_shutdown(cache->cleaner.task);
 		else
