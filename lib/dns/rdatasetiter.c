@@ -21,6 +21,7 @@
 
 #include <isc/assertions.h>
 
+#include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 
 void
@@ -59,7 +60,7 @@ dns_rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	return (iterator->methods->next(iterator));
 }
 
-dns_result_t
+void
 dns_rdatasetiter_current(dns_rdatasetiter_t *iterator, 
 			 dns_rdataset_t *rdataset)
 {
@@ -71,5 +72,5 @@ dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods == NULL);
 
-	return (iterator->methods->current(iterator, rdataset));
+	iterator->methods->current(iterator, rdataset);
 }

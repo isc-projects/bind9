@@ -77,7 +77,7 @@ typedef struct dns_rdatasetitermethods {
 	void		(*destroy)(dns_rdatasetiter_t **iteratorp);
 	dns_result_t	(*first)(dns_rdatasetiter_t *iterator);
 	dns_result_t	(*next)(dns_rdatasetiter_t *iterator);
-	dns_result_t	(*current)(dns_rdatasetiter_t *iterator,
+	void		(*current)(dns_rdatasetiter_t *iterator,
 				   dns_rdataset_t *rdataset);
 } dns_rdatasetitermethods_t;
 
@@ -151,7 +151,7 @@ dns_rdatasetiter_next(dns_rdatasetiter_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-dns_result_t
+void
 dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
 			 dns_rdataset_t *rdataset);
 /*
@@ -164,12 +164,6 @@ dns_rdatasetiter_current(dns_rdatasetiter_t *iterator,
  *
  *	The rdataset cursor of 'iterator' is at a valid location (i.e. the
  *	result of last call to a cursor movement command was DNS_R_SUCCESS).
- *
- * Returns:
- *
- *	DNS_R_SUCCESS
- *
- *	Other results are possible, depending on the DB implementation.
  */
 
 ISC_LANG_ENDDECLS
