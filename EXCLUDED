@@ -5,3 +5,9 @@
 1159.	[bug]		MD and MF are not permitted to be loaded by RFC1123
 			[ Could cause zones that loaded in 9.2.0 to fail
 			to load.  Leave such breakages to 9.3.0. ]
+
+1187.	[bug]		named was incorrectly returning DNSSEC records
+			in negative responses when the DO bit was not set.
+			[ Requires API change (new arguement) to
+			dns_rdataset_towire(), dns_rdataset_towirepartial()
+			and dns_rdataset_towirepartial() ]
