@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.24.2.1 2001/09/05 00:38:12 gson Exp $ */
+/* $Id: time.c,v 1.24.2.2 2001/09/05 17:32:05 gson Exp $ */
 
 #include <config.h>
 
@@ -216,6 +216,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	FILETIME localft;
 	SYSTEMTIME st;
 
+	static const char badtime[] = "Bad 00 99:99:99.999";
 	static const char *months[] = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -229,6 +230,6 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		months[st.wMonth], st.wDay, st.wHour, st.wMinute,
 		st.wSecond, st.wMilliseconds);
 	} else {
-		snprintf(buf, len, "<bad time>");
+		snprintf(buf, len, badtime);
 	}
 }
