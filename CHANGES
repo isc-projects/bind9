@@ -23,7 +23,8 @@
 
 1536.	[placeholder]	rt9998
 
-1535.	[placeholder]
+1535.	[bug]		When parsing APL records it was possible to silently
+			accept out of range ADDRESSFAMILY values. [RT# 9979]
 
 1534.	[placeholder]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.4 2002/08/01 03:31:44 mayer Exp $ */
+/* $Id: apl_42.c,v 1.5 2004/01/05 06:11:39 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -28,11 +28,12 @@ static inline isc_result_t
 fromtext_in_apl(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned char addr[16];
-	isc_uint16_t afi;
+	unsigned long afi;
 	isc_uint8_t prefix;
 	isc_uint8_t len;
 	isc_boolean_t neg;
 	char *cp, *ap, *slash;
+	int n;
 
 	REQUIRE(type == 42);
 	REQUIRE(rdclass == 1);
@@ -53,7 +54,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		neg = ISC_TF(*cp == '!');
 		if (neg)
 			cp++;
-		afi = (isc_uint16_t) strtoul(cp, &ap, 10);
+		afi = strtoul(cp, &ap, 10);
 		if (*ap++ != ':' || cp == ap)
 			RETTOK(DNS_R_SYNTAX);
 		if (afi > 0xffff)
@@ -61,13 +62,13 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 		slash = strchr(ap, '/');
 		if (slash == NULL || slash == ap)
 			RETTOK(DNS_R_SYNTAX);
-		*slash++ = '\0';
-		prefix = (isc_uint8_t) strtoul(slash, &cp, 10);
-		if (*cp != '\0' || slash == cp)
-			RETTOK(DNS_R_SYNTAX);
+		RETTOK(isc_parse_uint8(&prefix, slash + 1, 10));
 		switch (afi) {
 		case 1:
-			if (inet_pton(AF_INET, ap, addr) != 1)
+			*slash = '\0';
+			n = inet_pton(AF_INET, ap, addr);
+			*slash = '/';
+			if (n != 1)
 				RETTOK(DNS_R_BADDOTTEDQUAD);
 			if (prefix > 32)
 				RETTOK(ISC_R_RANGE);
@@ -77,7 +78,10 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 			break;
 
 		case 2:
-			if (inet_pton(AF_INET6, ap, addr) != 1)
+			*slash = '\0';
+			n = inet_pton(AF_INET6, ap, addr);
+			*slash = '/';
+			if (n != 1)
 				RETTOK(DNS_R_BADAAAA);
 			if (prefix > 128)
 				RETTOK(ISC_R_RANGE);
