@@ -20,8 +20,8 @@ top_srcdir =	@top_srcdir@
 @BIND9_VERSION@
 
 HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
-		error.h event.h \
-		eventclass.h heap.h int.h interfaceiter.h lang.h lex.h lib.h \
+		commandline.h error.h event.h eventclass.h \
+		heap.h int.h interfaceiter.h lang.h lex.h lib.h \
 		list.h magic.h mem.h msgcat.h mutexblock.h netaddr.h \
 		print.h rbtgen.h region.h result.h \
 		resultclass.h rwlock.h serial.h sockaddr.h socket.h str.h \
