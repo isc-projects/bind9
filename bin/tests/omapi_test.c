@@ -34,11 +34,20 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
+
+#include <dst/result.h>
+
 #include <omapi/omapi.h>
 
 char *progname;
 isc_mem_t *mctx;
-isc_boolean_t force_error = ISC_FALSE;
+
+isc_boolean_t error_noobject = ISC_FALSE;
+isc_boolean_t error_nosig = ISC_FALSE;
+isc_boolean_t error_badsig = ISC_FALSE;
+isc_boolean_t error_unknownsig = ISC_FALSE;
+isc_boolean_t error_denyall = ISC_FALSE;
 
 /*
  * Two different structures are used in this program to store the
@@ -49,16 +58,11 @@ isc_boolean_t force_error = ISC_FALSE;
 typedef struct server_object {
 	OMAPI_OBJECT_PREAMBLE;
 	unsigned long value;
-	struct {
-		isc_boolean_t finished;
-		isc_mutex_t lock;
-		isc_condition_t wait;
-	} listen;
+	isc_boolean_t target_reached;
 } server_object_t;
 
 typedef struct client_object {
 	OMAPI_OBJECT_PREAMBLE;
-	int waitresult;
 	unsigned long value;
 } client_object_t;
 
@@ -66,6 +70,9 @@ static server_object_t master_data;
 
 static omapi_objecttype_t *server_type;
 static omapi_objecttype_t *client_type;
+
+static isc_condition_t waiter;
+static isc_mutex_t mutex;
 
 /*
  * This is a string that names the registry of objects of type server_object_t.
@@ -79,6 +86,9 @@ static omapi_objecttype_t *client_type;
  * programming).
  */
 #define MASTER_VALUE "amount"
+
+#define KEY1_NAME "test-key"
+#define KEY2_NAME "another-key"
 
 /*
  * Create an OMAPI message on the client that requests an object on the
@@ -99,24 +109,26 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * Create a new message object to store the information that will
 	 * be sent to the server.
 	 */
-	INSIST(omapi_message_create(&message) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_message_create(&message) == ISC_R_SUCCESS);
 
 	/*
 	 * Specify the OPEN operation, and the UPDATE option if requested.
 	 */
-	INSIST(omapi_object_setinteger(message, "op", OMAPI_OP_OPEN)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_setinteger(message, "op", OMAPI_OP_OPEN)
+		      == ISC_R_SUCCESS);
 	if (update)
-		INSIST(omapi_object_setboolean(message, "update", ISC_TRUE)
-		       == ISC_R_SUCCESS);
+		RUNTIME_CHECK(omapi_object_setboolean(message, "update",
+						      ISC_TRUE)
+			      == ISC_R_SUCCESS);
 
 	/*
 	 * Tell the server the type of the object being opened; it needs
 	 * to know this so that it can apply the proper object methods
 	 * for lookup/setvalue.
 	 */
-	INSIST(omapi_object_setstring(message, "type", SERVER_OBJECT_TYPE)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_setstring(message, "type",
+					     SERVER_OBJECT_TYPE)
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Associate the client object with the message, so that it
@@ -125,9 +137,9 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * pair to use as a key for looking up the desired object at
 	 * the server.
 	 */
-	if (! force_error)
-		INSIST(omapi_object_setobject(message, "object", handle)
-		       == ISC_R_SUCCESS);
+	if (! error_noobject)
+		RUNTIME_CHECK(omapi_object_setobject(message, "object", handle)
+			      == ISC_R_SUCCESS);
 
 	/*
 	 * Set up an object that will receive the "status" signal in its
@@ -135,7 +147,7 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * This is not needed as a general rule, because normally the
 	 * the object associated with the name "object" in the message
 	 * is what gets that message.  However, in this case the
-	 * particular error that is being tested when force_error is true
+	 * particular error that is being tested when error_noobject is true
 	 * is one where no item named "object" has been set, so not only
 	 * can it not be used as a key when the server gets the message,
 	 * it can't be used to get the "status" signal on the client
@@ -146,8 +158,8 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * the other way 'round).  In this particular case it hardly matters,
 	 * as both "object" and "notify-object" are the same object.
 	 */
-	INSIST(omapi_object_setobject(message, "notify-object", handle)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_setobject(message, "notify-object", handle)
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Add the new message to the list of known messages.  When the
@@ -160,7 +172,7 @@ open_object(omapi_object_t *handle, omapi_object_t *manager,
 	 * Deliver the message to the server.  The manager's outer object
 	 * is the connection object to the server.
 	 */
-	INSIST(omapi_message_send(message, manager) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_message_send(message, manager) == ISC_R_SUCCESS);
 
 	/*
 	 * Free the message.
@@ -233,14 +245,15 @@ client_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 	 * Write the MASTER_VALUE name, followed by the value length,
 	 * follwed by its value.
 	 */
-	INSIST(omapi_connection_putname(connection, MASTER_VALUE)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putname(connection, MASTER_VALUE)
+		      == ISC_R_SUCCESS);
 
-	INSIST(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putuint32(connection,
+						 sizeof(isc_uint32_t))
+		      == ISC_R_SUCCESS);
 
-	INSIST(omapi_connection_putuint32(connection, client->value)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putuint32(connection, client->value)
+		      == ISC_R_SUCCESS);
 
 	return (ISC_R_SUCCESS);
 }
@@ -250,6 +263,7 @@ client_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	client_object_t *client;
 	omapi_value_t *tv;
 	isc_region_t region;
+	isc_boolean_t expected;
 
 	REQUIRE(handle->type == client_type);
 
@@ -265,12 +279,19 @@ client_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 		 */
 		client->waitresult = va_arg(ap, isc_result_t);
 
+		expected = ISC_TF((error_noobject &&
+				   client->waitresult == ISC_R_NOTFOUND) ||
+				  (error_nosig &&
+				   client->waitresult == ISC_R_NOPERM) ||
+				  (error_badsig &&
+				   client->waitresult ==
+				   DST_R_VERIFYFINALFAILURE));
+
 		if (client->waitresult != ISC_R_SUCCESS)
-			fprintf(stderr, "%s: message status: %s%s\n",
+			fprintf(stderr, "%s: message status: %s (%s)\n",
 				progname,
 				isc_result_totext(client->waitresult),
-				(client->waitresult == ISC_R_NOTFOUND &&
-				 force_error) ? " (expected)" : "");
+				expected ? "expected" : "UNEXPECTED");
 
 		tv = va_arg(ap, omapi_value_t *);
 		if (tv != NULL) {
@@ -307,7 +328,7 @@ server_setvalue(omapi_object_t *handle, omapi_string_t *name,
 {
 	isc_region_t region;
 
-	INSIST(handle == (omapi_object_t *)&master_data);
+	RUNTIME_CHECK(handle == (omapi_object_t *)&master_data);
 
 	/*
 	 * Only one name is supported for this object, MASTER_VALUE.
@@ -322,8 +343,8 @@ server_setvalue(omapi_object_t *handle, omapi_string_t *name,
 		 * 32 is an arbitrary disconnect point.
 		 */
 		if (master_data.value >= 32) {
-			master_data.listen.finished = ISC_TRUE;
-			SIGNAL(&master_data.listen.wait);
+			master_data.target_reached = ISC_TRUE;
+			SIGNAL(&waiter);
 		}
 
 		return (ISC_R_SUCCESS);
@@ -371,14 +392,15 @@ server_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 	 * Write the MASTER_VALUE name, followed by the value length,
 	 * follwed by its value.
 	 */
-	INSIST(omapi_connection_putname(connection, MASTER_VALUE)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putname(connection, MASTER_VALUE)
+		      == ISC_R_SUCCESS);
 
-	INSIST(omapi_connection_putuint32(connection, sizeof(isc_uint32_t))
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putuint32(connection,
+						 sizeof(isc_uint32_t))
+		      == ISC_R_SUCCESS);
 
-	INSIST(omapi_connection_putuint32(connection, master->value)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_connection_putuint32(connection, master->value)
+		      == ISC_R_SUCCESS);
 
 	return (ISC_R_SUCCESS);
 }
@@ -386,28 +408,29 @@ server_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 static void
 do_connect(const char *host, int port) {
 	omapi_object_t *manager;
-	omapi_object_t *omapi_client;
-	client_object_t *client;
+	omapi_object_t *omapi_client = NULL;
+	client_object_t *client = NULL;
 	isc_result_t result;
+	char *key;
 
-	INSIST(omapi_object_register(&client_type, "client",
-				     client_setvalue,
-				     NULL,	/* getvalue */
-				     NULL,	/* destroy */
-				     client_signalhandler,
-				     client_stuffvalues,
-				     NULL,	/* lookup */
-				     NULL,	/* create */
-				     NULL)	/* remove */
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_register(&client_type, "client",
+					    client_setvalue,
+					    NULL,	/* getvalue */
+					    NULL,	/* destroy */
+					    client_signalhandler,
+					    client_stuffvalues,
+					    NULL,	/* lookup */
+					    NULL,	/* create */
+					    NULL)	/* remove */
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Create the top level object which will manage the
 	 * connection to the server.
 	 */
 	manager = NULL;
-	INSIST(omapi_object_create(&manager, NULL, 0)
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_create(&manager, NULL, 0)
+		      == ISC_R_SUCCESS);
 
 	result = omapi_protocol_connect(manager, host, port, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -418,44 +441,76 @@ do_connect(const char *host, int port) {
 	}
 
 	/*
-	 * Create the client's object.
+	 * Authenticate to the server.
 	 */
-	client = NULL;
-	omapi_object_create((omapi_object_t **)&client, client_type,
-			    sizeof(client_object_t));
-	omapi_client = (omapi_object_t *)client;
+	key = KEY1_NAME;
 
-	/*
-	 * The object needs to have a name/value pair created for it
-	 * even before it contacts the server so the server will know
-	 * that there is an object that needs values filled in.  This
-	 * name/value is created with the value of 0, but any interger
-	 * value would work.
-	 */
-	INSIST(omapi_object_setinteger(omapi_client, MASTER_VALUE, 0)
-	       == ISC_R_SUCCESS);
+	if (error_badsig) {
+		omapi_auth_deregister(KEY1_NAME);
 
-	INSIST(open_object(omapi_client, manager, ISC_FALSE)
-	       == ISC_R_SUCCESS);
+		RUNTIME_CHECK(omapi_auth_register(KEY1_NAME,
+						  "this secret is wrong",
+						  OMAPI_AUTH_HMACMD5)
+			      == ISC_R_SUCCESS);
+	} else if (error_unknownsig) {
+		RUNTIME_CHECK(omapi_auth_register(KEY2_NAME,
+						  "Yet Another Secret",
+						  OMAPI_AUTH_HMACMD5)
+			      == ISC_R_SUCCESS);
 
-	INSIST(client->waitresult == ISC_R_SUCCESS ||
-	       client->waitresult == ISC_R_NOTFOUND);
+		key = KEY2_NAME;
+	}
 
-	if (client->waitresult == ISC_R_SUCCESS) {
+	if (! error_nosig) {
+		result = omapi_auth_use(manager, key, OMAPI_AUTH_HMACMD5);
+
+		if (result != ISC_R_SUCCESS)
+			fprintf(stderr, "%s: omapi_auth_use: %s (%s)\n",
+				progname, isc_result_totext(result),
+				(error_unknownsig && result == ISC_R_NOTFOUND)
+				? "expected" : "UNEXPECTED");
+	}
+
+	if (result == ISC_R_SUCCESS) {
 		/*
-		 * Set the new value to be stored at the server and reopen the
-		 * server object with an UPDATE operation.
+		 * Create the client's object.
 		 */
-		fprintf(stderr, "existing value: %lu\n", client->value);
-		client->value *= 2;
-		if (client->value == 0)		/* Check overflow. */
-			client->value = 1;
-		fprintf(stderr, "new value: %lu\n", client->value);
+		omapi_object_create((omapi_object_t **)&client, client_type,
+				    sizeof(client_object_t));
+		omapi_client = (omapi_object_t *)client;
 
-		INSIST(open_object(omapi_client, manager, ISC_TRUE)
-		       == ISC_R_SUCCESS);
+		/*
+		 * The object needs to have a name/value pair created for it
+		 * even before it contacts the server so the server will know
+		 * that there is an object that needs values filled in.  This
+		 * name/value is created with the value of 0, but any interger
+		 * value would work.
+		 */
+		RUNTIME_CHECK(omapi_object_setinteger(omapi_client,
+						      MASTER_VALUE, 0)
+			      == ISC_R_SUCCESS);
 
-		INSIST(client->waitresult == ISC_R_SUCCESS);
+		RUNTIME_CHECK(open_object(omapi_client, manager, ISC_FALSE)
+			      == ISC_R_SUCCESS);
+
+		if (client->waitresult == ISC_R_SUCCESS) {
+			/*
+			 * Set the new value to be stored at the server and
+			 * reopen the server object with an UPDATE operation.
+			 */
+			fprintf(stderr, "existing value: %lu\n",
+				client->value);
+			client->value *= 2;
+			if (client->value == 0)		/* Check overflow. */
+				client->value = 1;
+			fprintf(stderr, "new value: %lu\n", client->value);
+
+			RUNTIME_CHECK(open_object(omapi_client, manager,
+						  ISC_TRUE)
+				      == ISC_R_SUCCESS);
+
+			RUNTIME_CHECK(client->waitresult == ISC_R_SUCCESS);
+		}
 	}
 
 	/*
@@ -467,7 +522,21 @@ do_connect(const char *host, int port) {
 	 * Free the protocol manager and client object.
 	 */
 	omapi_object_dereference(&manager);
-	omapi_object_dereference(&omapi_client);
+
+	if (omapi_client != NULL)
+		omapi_object_dereference(&omapi_client);
+}
+
+static void
+listen_done(void *l) {
+	omapi_object_t *listener = l;
+
+	fprintf(stderr, "SERVER STOPPED\n");
+	omapi_object_dereference(&listener);
+	
+	LOCK(&mutex);
+	SIGNAL(&waiter);
+	UNLOCK(&mutex);
 }
 
 static void
@@ -475,11 +544,13 @@ do_listen(int port) {
 	omapi_object_t *listener = NULL;
 	isc_sockaddr_t sockaddr;
 	struct in_addr inaddr;
+	dns_acl_t *acl;
 
 	/*
 	 * Create the manager for handling incoming server connections.
 	 */
-	INSIST(omapi_object_create(&listener, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_create(&listener, NULL, 0)
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Register the server_object.  The SERVER_OBJECT_TYPE is what
@@ -487,16 +558,16 @@ do_listen(int port) {
 	 * when contacting the server in order to be able to find objects
 	 * server_type.
 	 */
-	INSIST(omapi_object_register(&server_type, SERVER_OBJECT_TYPE,
-				     server_setvalue,
-				     NULL, 	/* getvalue */
-				     NULL,	/* destroy */
-				     NULL,	/* signalhandler */
-				     server_stuffvalues,
-				     server_lookup,
-				     NULL,	/* create */
-				     NULL)	/* remove */
-	       == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_object_register(&server_type, SERVER_OBJECT_TYPE,
+					    server_setvalue,
+					    NULL, 	/* getvalue */
+					    NULL,	/* destroy */
+					    NULL,	/* signalhandler */
+					    server_stuffvalues,
+					    server_lookup,
+					    NULL,	/* create */
+					    NULL)	/* remove */
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Initialize the server_object data.
@@ -504,39 +575,51 @@ do_listen(int port) {
 	master_data.type = server_type;
 	master_data.refcnt = 1;
 	master_data.value = 2;
-	master_data.listen.finished = ISC_FALSE;
+	master_data.target_reached = ISC_FALSE;
  
-	INSIST(isc_mutex_init(&master_data.listen.lock) == ISC_R_SUCCESS);
-	INSIST(isc_condition_init(&master_data.listen.wait) == ISC_R_SUCCESS);
+	LOCK(&mutex);
 
-	LOCK(&master_data.listen.lock);
+	/*
+	 * Set the access control list for valid connections.
+	 */
+	if (error_denyall)
+		RUNTIME_CHECK(dns_acl_none(mctx, &acl) == ISC_R_SUCCESS);
+	else
+		RUNTIME_CHECK(dns_acl_any(mctx, &acl) == ISC_R_SUCCESS);
 
 	/*
 	 * Start listening for connections.
 	 */
 	inaddr.s_addr = INADDR_ANY;
 	isc_sockaddr_fromin(&sockaddr, &inaddr, port);
-	INSIST(omapi_protocol_listen(listener, &sockaddr, 1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_protocol_listen(listener, &sockaddr, acl, 1,
+					    listen_done, listener)
+		      == ISC_R_SUCCESS);
 
 	fprintf(stderr, "SERVER STARTED\n");
+
+	/*
+	 * Lose one reference to the acl; the omapi library holds another
+	 * reference and should free it when it is done.
+	 */
+	dns_acl_detach(&acl);
 
 	/*
 	 * Block until done.  "Done" is when server_setvalue has reached
 	 * its trigger value.
 	 */
 	do {
-		WAIT(&master_data.listen.wait, &master_data.listen.lock);
-	} while (! master_data.listen.finished);
-
-	UNLOCK(&master_data.listen.lock);
-
-	INSIST(isc_mutex_destroy(&master_data.listen.lock) == ISC_R_SUCCESS);
-	INSIST(isc_condition_destroy(&master_data.listen.wait) ==
-				     ISC_R_SUCCESS);
+		WAIT(&waiter, &mutex);
+	} while (! master_data.target_reached);
 
 	omapi_listener_shutdown(listener);
-	omapi_object_dereference(&listener);
+
+	WAIT(&waiter, &mutex);
+	UNLOCK(&mutex);
 }
+
+#undef ARG_IS
+#define ARG_IS(s) (strcmp(isc_commandline_argument, (s)) == 0)
 
 int
 main(int argc, char **argv) {
@@ -549,10 +632,31 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "em")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "e:m")) != -1) {
 		switch (ch) {
 		case 'e':
-			force_error = ISC_TRUE;
+			if (ARG_IS("noobject"))
+				error_noobject = ISC_TRUE;
+
+			else if (ARG_IS("nosig"))
+				error_nosig = ISC_TRUE;
+
+			else if (ARG_IS("badsig"))
+				error_badsig = ISC_TRUE;
+				    
+			else if (ARG_IS("unknownsig"))
+				error_unknownsig = ISC_TRUE;
+				    
+			else if (ARG_IS("denyall"))
+				error_denyall = ISC_TRUE;
+			else {
+				fprintf(stderr, "Unknown forced error: %s\n",
+					isc_commandline_argument);
+				fprintf(stderr, "Valid forced errors: "
+					"noobject nosig badsig unknownsig\n");
+				exit(1);
+			}
+
 			break;
 		case 'm':
 			show_final_mem = ISC_TRUE;
@@ -563,12 +667,24 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	INSIST(omapi_lib_init(mctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(omapi_lib_init(mctx) == ISC_R_SUCCESS);
+
+	RUNTIME_CHECK(isc_mutex_init(&mutex)
+		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_condition_init(&waiter)
+		      == ISC_R_SUCCESS);
+
+	/*
+	 * The secret key is shared on both the client and server side.
+	 */
+	RUNTIME_CHECK(omapi_auth_register(KEY1_NAME, "shhh, this is a secret",
+					  OMAPI_AUTH_HMACMD5)
+		      == ISC_R_SUCCESS);
 
 	if (argc > 1 && strcmp(argv[0], "listen") == 0) {
-		if (argc < 2) {
+		if (argc != 2) {
 			fprintf(stderr, "Usage: %s listen port\n", progname);
 			exit (1);
 		}
@@ -576,7 +692,7 @@ main(int argc, char **argv) {
 		do_listen(atoi(argv[1]));
 
 	} else if (argc > 1 && !strcmp (argv[0], "connect")) {
-		if (argc < 3) {
+		if (argc != 3) {
 			fprintf(stderr, "Usage: %s connect address port\n",
 				progname);
 			exit (1);
