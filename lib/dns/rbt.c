@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.7 2004/10/25 01:45:26 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.8 2004/11/05 00:33:00 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -177,27 +177,6 @@ find_up(dns_rbtnode_t *node) {
 		; /* Nothing. */
 
 	return(PARENT(root));
-}
-
-static inline unsigned int
-name_hash(dns_name_t *name) {
-	unsigned int nlabels;
-	unsigned int hash;
-	dns_name_t tname;
-
-	if (dns_name_countlabels(name) == 1)
-		return (dns_name_hash(name, ISC_FALSE));
-
-	dns_name_init(&tname, NULL);
-	nlabels = dns_name_countlabels(name);
-	hash = 0;
-
-	for ( ; nlabels > 0; nlabels--) {
-		dns_name_getlabelsequence(name, nlabels - 1, 1, &tname);
-		hash += dns_name_hash(&tname, ISC_FALSE);
-	}
-
-	return (hash);
 }
 
 /*
@@ -724,8 +703,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 								common_bits,
 								add_name,
 								NULL);
-
-
 					break;
 				}
 
@@ -889,7 +866,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			dns_name_init(&hash_name, NULL);
 
 		hashagain:
-			dns_name_getlabelsequence(search_name,
+			dns_name_getlabelsequence(name,
 						  nlabels - tlabels,
 						  hlabels + tlabels,
 						  &hash_name);
