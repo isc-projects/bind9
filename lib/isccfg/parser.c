@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.13 2001/02/22 01:40:51 bwelling Exp $ */
+/* $Id: parser.c,v 1.14 2001/02/22 02:38:23 gson Exp $ */
 
 #include <config.h>
 
@@ -33,11 +33,11 @@
 #include <isc/symtab.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/log.h>
 
-/* XXX create a <cfg/log.h> file and a corresponding .c file */
-
-#define CAT ISC_LOGCATEGORY_GENERAL
-#define MOD ISC_LOGMODULE_SOCKET /* XXX */
+/* Shorthand */
+#define CAT ISCCFG_LOGCATEGORY_CONFIG
+#define MOD ISCCFG_LOGMODULE_PARSER
 
 /*
  * Pass one of these flags to parser_error() to include the

@@ -1319,12 +1319,14 @@
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			C	2001
 ./lib/isccfg/api				C	2001
+./lib/isccfg/log.c				C	2001
 ./lib/isccfg/parser.c				C	2000,2001
 ./lib/isccfg/include/.cvsignore			C	2001
 ./lib/isccfg/include/Makefile.in		C	2001
 ./lib/isccfg/include/isccfg/.cvsignore		C	2001
 ./lib/isccfg/include/isccfg/Makefile.in		C	2001
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001
+./lib/isccfg/include/isccfg/log.h		C	2001
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001
 ./lib/lwres/api					X	2000,2001
