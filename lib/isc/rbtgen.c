@@ -73,7 +73,7 @@ rotate_right(RBT_NODE_T node, RBT_NODE_T parent, RBT_NODE_T *rootp) {
 }
 
 RBT_NODE_T
-RBT_FIND(RBT_NODE_T current, RBT_KEY_T key) {
+RBT_SEARCH(RBT_NODE_T current, RBT_KEY_T key) {
 	int i;
 
 	while (current != NULL) {
