@@ -1,25 +1,25 @@
-1220.	[func]		Extended rndc dumpdb to support dumping of zones and
+1322.	[func]		Extended rndc dumpdb to support dumping of zones and
 			view selection: 'dumpdb [-all|-zones|-cache] [view]'.
 
-1219.	[func]		New category 'update-security'.
+1321.	[func]		New category 'update-security'.
 
-1218.	[port]		Compaq Trucluster support.
+1320.	[port]		Compaq Trucluster support.
 
-1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+1319.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
 			via getaddrinfo() (affects dig, host, nslookup, rndc
 			and nsupdate).
 
-1218.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
+1318.	[bug]		The CINCLUDES macro in lib/dns/sec/dst/Makefile
 			could be left with a trailing "\" after configure
 			has been run.
 
-1217.	[port]		linux: make handling EINVAL from socket() no longer
+1317.	[port]		linux: make handling EINVAL from socket() no longer
 			conditional on #ifdef LINUX.
 
-1216.	[bug]		isc_log_closefilelogs() needed to lock the log
+1316.	[bug]		isc_log_closefilelogs() needed to lock the log
 			context.
 
-1215.	[bug]		isc_log_setdebuglevel() needed to lock the log
+1315.	[bug]		isc_log_setdebuglevel() needed to lock the log
 			context.
 
 1314.	[func]		libbind: no longer attempts bit string labels for
