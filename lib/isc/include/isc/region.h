@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.h,v 1.16 2001/01/09 21:57:25 bwelling Exp $ */
+/* $Id: region.h,v 1.17 2002/01/05 07:28:42 bwelling Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
@@ -76,5 +76,20 @@ struct isc_consttextregion {
 		_r->base += _l; \
 		_r->length -= _l; \
 	} while (0)
+
+int
+isc_region_compare(isc_region_t *r1, isc_region_t *r2);
+/*
+ * Compares the contents of two regions 
+ *
+ * Requires: 
+ *	'r1' is a valid region
+ *	'r2' is a valid region
+ *
+ * Returns:
+ *	 < 0 if r1 is lexicographically less than r2
+ *	 = 0 if r1 is lexicographically identical to r2
+ *	 > 0 if r1 is lexicographically greater than r2
+ */
 
 #endif /* ISC_REGION_H */

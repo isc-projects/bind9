@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.40 2002/01/05 07:05:04 ogud Exp $ */
+/* $Id: buffer.h,v 1.41 2002/01/05 07:28:41 bwelling Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -569,20 +569,6 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
  *	ISC_R_SUCCESS
  *	ISC_R_NOSPACE			The available region of 'b' is not
  *					big enough.
- */
-int
-isc_region_compare(isc_region_t *r1, isc_region_t *r2);
-/*
- * Compares the contents of two regions 
- *
- * Requires: 
- *	'r1' is a valid region
- *	'r2' is a valid region
- *
- * Returns:
- *	 < 0 if r1 is lexicographicly less than r2
- *	 = 0 if r1 is lexicographicly identical to r2
- *	 > 0 if r1 is lexicographicly greater than r2
  */
 
 ISC_LANG_ENDDECLS
