@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.146 2000/07/14 00:33:09 gson Exp $ */
+/* $Id: resolver.c,v 1.147 2000/07/14 00:37:27 gson Exp $ */
 
 #include <config.h>
 
@@ -504,8 +504,12 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		event->ev_sender = fctx;
 		if (!HAVE_ANSWER(fctx))
 			event->result = result;
-		if (result == ISC_R_SUCCESS)
-			INSIST(dns_rdataset_isassociated(event->rdataset));
+
+		INSIST(result != ISC_R_SUCCESS ||
+		       dns_rdataset_isassociated(event->rdataset) ||
+		       fctx->type == dns_rdatatype_any ||
+		       fctx->type == dns_rdatatype_sig);
+
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
 	ISC_LIST_INIT(fctx->events);
@@ -2025,6 +2029,9 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			goto cleanup_name;
 		dns_rdataset_clone(nameservers, &fctx->nameservers);
 	}
+
+	INSIST(dns_name_issubdomain(&fctx->name, &fctx->domain));
+	
 	fctx->type = type;
 	fctx->options = options;
 	/*
