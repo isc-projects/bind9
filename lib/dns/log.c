@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.23 2000/05/09 23:31:10 gson Exp $ */
+/* $Id: log.c,v 1.24 2000/06/23 01:51:17 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -67,6 +67,8 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/dispatch",	0 },
 	{ "dns/request",	0 },
 	{ "dns/masterdump",	0 },
+	{ "dns/tsig",		0 },
+	{ "dns/tkey",		0 },
 	{ NULL, 		0 }
 };
 
