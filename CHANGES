@@ -9,7 +9,8 @@
 1662.	[bug]		Change #1658 failed to change one use of 'type'
 			to 'keytype'.
 
-1661.	[placeholder]	rt11582
+1661.	[bug]		Restore dns_name_concatenate() call in
+			adb.c:set_target().  [RT #11582]
 
 1660.	[bug]		win32: connection_reset_fix() was being called
 			unconditionally.  [RT #11595]
