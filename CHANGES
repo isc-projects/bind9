@@ -1,3 +1,5 @@
+ 380.	[bug]		nsupdate didn't work with IPv6.
+
  379.	[func]		New library function isc_sockaddr_anyofpf().
 
  378.	[func]		named and lwresd will log the command line arguments
