@@ -1,19 +1,19 @@
-dnl Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
-dnl 
-dnl Permission to use, copy, modify, and distribute this software for any
-dnl purpose with or without fee is hereby granted, provided that the above
-dnl copyright notice and this permission notice appear in all copies.
-dnl 
-dnl THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
-dnl ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
-dnl OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
-dnl CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
-dnl DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
-dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
-dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
-dnl SOFTWARE.
+# Copyright (C) 1998, 1999, 2000  Internet Software Consortium.
+# 
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+# ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+# CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+# DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+# ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+# SOFTWARE.
 
-AC_REVISION($Revision: 1.98 $)
+AC_REVISION($Revision: 1.99 $)
 
 AC_PREREQ(2.13)
 
@@ -38,26 +38,26 @@ ARFLAGS="cruv"
 AC_SUBST(AR)
 AC_SUBST(ARFLAGS)
 
-dnl
-dnl Special processing of paths depending on whether --prefix,
-dnl --sysconfdir or --localstatedir arguments were given.  What's
-dnl desired is some compatability with the way previous versions
-dnl of BIND built; they defaulted to /usr/local for most parts of
-dnl the installation, but named.boot/named.conf was in /etc
-dnl and named.pid was in /var/run.
-dnl
-dnl So ... if none of --prefix, --sysconfdir or --localstatedir are
-dnl specified, set things up that way.  If --prefix is given, use
-dnl it for sysconfdir and localstatedir the way configure normally
-dnl would.  To change the prefix for everything but leave named.conf
-dnl in /etc or named.pid in /var/run, then do this the usual configure way:
-dnl ./configure --prefix=/somewhere --sysconfdir=/etc
-dnl ./configure --prefix=/somewhere --localstatedir=/var
-dnl
-dnl To put named.conf and named.pid in /usr/local with everything else,
-dnl set the prefix explicitly to /usr/local even though that's the default:
-dnl ./configure --prefix=/usr/local
-dnl
+#
+# Special processing of paths depending on whether --prefix,
+# --sysconfdir or --localstatedir arguments were given.  What's
+# desired is some compatability with the way previous versions
+# of BIND built; they defaulted to /usr/local for most parts of
+# the installation, but named.boot/named.conf was in /etc
+# and named.pid was in /var/run.
+#
+# So ... if none of --prefix, --sysconfdir or --localstatedir are
+# specified, set things up that way.  If --prefix is given, use
+# it for sysconfdir and localstatedir the way configure normally
+# would.  To change the prefix for everything but leave named.conf
+# in /etc or named.pid in /var/run, then do this the usual configure way:
+# ./configure --prefix=/somewhere --sysconfdir=/etc
+# ./configure --prefix=/somewhere --localstatedir=/var
+#
+# To put named.conf and named.pid in /usr/local with everything else,
+# set the prefix explicitly to /usr/local even though that's the default:
+# ./configure --prefix=/usr/local
+#
 case "$prefix" in
         NONE)
                 case "$sysconfdir" in
@@ -73,21 +73,21 @@ case "$prefix" in
                 ;;
 esac
 
-dnl
-dnl Make sure INSTALL uses an absolute path, else it will be wrong in all
-dnl Makefiles, since they use make/rules.in and INSTALL will be adjusted by
-dnl configure based on the location of the file where it is substituted.
-dnl Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
-dnl subdirectory of install-sh, This relative path will be wrong for all
-dnl directories more than one level down from install-sh.
-dnl
+#
+# Make sure INSTALL uses an absolute path, else it will be wrong in all
+# Makefiles, since they use make/rules.in and INSTALL will be adjusted by
+# configure based on the location of the file where it is substituted.
+# Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
+# subdirectory of install-sh, This relative path will be wrong for all
+# directories more than one level down from install-sh.
+#
 case "$INSTALL" in
 	/*)
                 ;;
         *)
-                dnl
-                dnl Not all systems have dirname.
-                dnl
+                #
+                # Not all systems have dirname.
+                #
                 changequote({, })
                 ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
                 changequote([, ])
@@ -99,20 +99,26 @@ case "$INSTALL" in
                 ;;
 esac
 
-dnl
-dnl On these hosts, we really want to use cc, not gcc, even if it is
-dnl found.  The gcc that these systems have will not correctly handle
-dnl pthreads.
-dnl
-dnl However, if the user sets $CC to be something, let that override
-dnl our change.
-dnl
+#
+# On these hosts, we really want to use cc, not gcc, even if it is
+# found.  The gcc that these systems have will not correctly handle
+# pthreads.
+#
+# However, if the user sets $CC to be something, let that override
+# our change.
+#
 if test "X$CC" = "X" ; then
 	case "$host" in
 		*-dec-osf*)
 			CC="cc"
 			;;
 		*-sun-solaris*)
+                        # Use Sun's cc if it is available, but watch
+                        # out for /usr/ucb/cc; it will never be the right
+                        # compiler to use.
+                        #
+                        # If setting CC here fails, the AC_PROG_CC done
+                        # below might still find gcc.
 			IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=":"
 			for ac_dir in $PATH; do
 				test -z "$ac_dir" && ac_dir=.
@@ -139,12 +145,11 @@ if test "X$CC" = "X" ; then
 	esac
 fi
 
-dnl
-dnl NetBSD has two alternative pthreads implementations.  Make the 
-dnl user choose one by saying --with-mit-pthreads or --with-ptl2
-dnl if necessary.
-dnl
-
+#
+# NetBSD has two alternative pthreads implementations.  Make the 
+# user choose one by saying --with-mit-pthreads or --with-ptl2
+# if necessary.
+#
 case "$host" in
   *-netbsd*)
 	CC="gcc"
@@ -158,9 +163,9 @@ case "$host" in
 	    [  --with-ptl2		use the ptl2 thread library],
 	    use_ptl2="$withval", use_ptl2="no")
 
-        dnl If user did not choose a thread library explicitly,
-        dnl try to choose one automatically.  This will work when
-	dnl exactly one library is installed.
+        # If user did not choose a thread library explicitly,
+        # try to choose one automatically.  This will work when
+	# exactly one library is installed.
 
 	case "$use_mit_pthreads+$use_ptl2" in
 		no+no)
@@ -187,9 +192,9 @@ case "$host" in
 			;;
 		no+yes)
 			AC_MSG_RESULT(PTL2)
-dnl			pkg="/usr/pkg/PTL"
-dnl			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
-dnl			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
+#			pkg="/usr/pkg/PTL"
+#			LIBS="-L/usr/pkg/lib -lPTL $LIBS"
+#			STD_CINCLUDES="-nostdinc -idirafter $pkg/include"
 			CC=ptlgcc
 			;;
 		*)
@@ -211,9 +216,9 @@ AC_PROG_YACC
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h netinet6/in6.h)
 
-dnl
-dnl HAVE_NETINET6_IN6_H needs to go in platform.h.
-dnl
+#
+# HAVE_NETINET6_IN6_H needs to go in platform.h.
+#
 case "$ac_cv_header_netinet6_in6_h" in
 yes)
 	ISC_PLATFORM_HAVENETINET6IN6H="#define ISC_PLATFORM_HAVENETINET6IN6H 1"
@@ -237,9 +242,9 @@ AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create_system)
 )
 
-dnl
-dnl We'd like to use sigwait() too
-dnl
+#
+# We'd like to use sigwait() too
+#
 AC_CHECK_LIB(c, sigwait,
 	     AC_DEFINE(HAVE_SIGWAIT),
              AC_CHECK_LIB(pthread, sigwait,
@@ -248,34 +253,34 @@ AC_CHECK_LIB(c, sigwait,
 				       AC_DEFINE(HAVE_SIGWAIT),))
 )
 
-dnl
-dnl Additional OS-specific searching for sigwait.
-dnl
+#
+# Additional OS-specific searching for sigwait.
+#
 case "$host" in
 	*-freebsd*)
 		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 		;;
 esac
 
-dnl
-dnl Make sure we get the right sigwait() semantics...
-dnl
+#
+# Make sure we get the right sigwait() semantics...
+#
 case "$host" in
 	*-sun-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		;;
 esac
 
-dnl
-dnl NLS
-dnl
+#
+# NLS
+#
 AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 
-dnl
-dnl BSDI 3.1 through 4.0.1 needs pthread_init() to be called before certain
-dnl pthreads calls.  LinuxThreads requires some changes to the way we deal with
-dnl signals.
-dnl
+#
+# BSDI 3.1 through 4.0.1 needs pthread_init() to be called before certain
+# pthreads calls.  LinuxThreads requires some changes to the way we deal with
+# signals.
+#
 case "$host" in
 	*-bsdi3.1*|*-bsdi4.0*)
 		AC_DEFINE(NEED_PTHREAD_INIT)
@@ -285,17 +290,16 @@ case "$host" in
 		;;
 esac
 
-dnl
-
-dnl -lxnet buys us one big porting headache...  standards, gotta love 'em.
-dnl
-dnl AC_CHECK_LIB(xnet, socket, ,
-dnl    AC_CHECK_LIB(socket, socket)
-dnl    AC_CHECK_LIB(nsl, inet_ntoa)
-dnl )
-dnl
-dnl Use this for now, instead:
-dnl
+#
+# -lxnet buys us one big porting headache...  standards, gotta love 'em.
+#
+# AC_CHECK_LIB(xnet, socket, ,
+#    AC_CHECK_LIB(socket, socket)
+#    AC_CHECK_LIB(nsl, inet_ntoa)
+# )
+#
+# Use this for now, instead:
+#
 case "$host" in
 	mips-sgi-irix*)
 		;;
@@ -342,20 +346,19 @@ AC_SUBST(MKDEPCC)
 AC_SUBST(MKDEPCFLAGS)
 AC_SUBST(MKDEPPROG)
 
-dnl
-dnl Networking specifics.
-dnl
+#
+# Networking specifics.
+#
 case "$host" in
 	*-dec-osf*)
-		dnl Turn on 4.4BSD style sa_len support.
+		# Turn on 4.4BSD style sa_len support.
 		AC_DEFINE(_SOCKADDR_LEN)
 		;;
 esac
 
-dnl
-dnl Look for a 4.4BSD-style sa_len member in struct sockaddr.
-dnl
-
+#
+# Look for a 4.4BSD-style sa_len member in struct sockaddr.
+#
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
 AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -370,10 +373,9 @@ AC_TRY_COMPILE([
 AC_SUBST(ISC_PLATFORM_HAVESALEN)
 AC_SUBST(LWRES_PLATFORM_HAVESALEN)
 
-dnl
-dnl Look for a 4.4BSD or 4.3BSD struct msghdr
-dnl
-
+#
+# Look for a 4.4BSD or 4.3BSD struct msghdr
+#
 AC_MSG_CHECKING(for struct msghdr flavor)
 AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -385,9 +387,9 @@ AC_TRY_COMPILE([
 	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
 AC_SUBST(ISC_PLATFORM_MSGHDRFLAVOR)
 
-dnl
-dnl Look for in_port_t.
-dnl
+#
+# Look for in_port_t.
+#
 AC_MSG_CHECKING(for type in_port_t)
 AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -399,9 +401,9 @@ AC_TRY_COMPILE([
 	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"])
 AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
-dnl
-dnl Check for addrinfo
-dnl
+#
+# Check for addrinfo
+#
 AC_MSG_CHECKING(for struct addrinfo)
 AC_TRY_COMPILE([
 #include <netdb.h>],
@@ -497,10 +499,9 @@ AC_SUBST(ISC_LWRES_GETIPNODEPROTO)
 AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
 AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 
-dnl
-dnl Look for a sysctl call to get the list of network interfaces.
-dnl
-
+#
+# Look for a sysctl call to get the list of network interfaces.
+#
 AC_MSG_CHECKING(for interface list sysctl)
 AC_EGREP_CPP(found_rt_iflist, [
 #include <sys/param.h>
@@ -514,9 +515,9 @@ found_rt_iflist
 	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
 	[AC_MSG_RESULT(no)])
 
-dnl
-dnl GNU libtool support
-dnl
+#
+# GNU libtool support
+#
 AC_ARG_WITH(libtool,
 	    [  --with-libtool	use GNU libtool],
 	    use_libtool="$withval", use_libtool="no")
@@ -537,16 +538,16 @@ esac
 AC_SUBST(O)
 AC_SUBST(A)
 
-dnl
-dnl IPv6
-dnl
+#
+# IPv6
+#
 AC_ARG_ENABLE(ipv6,
 	[  --enable-ipv6		use IPv6 [default=autodetect]])
 
-dnl
-dnl We do the IPv6 compilation checking after libtool so that we can put
-dnl the right suffix on the files.
-dnl
+#
+# We do the IPv6 compilation checking after libtool so that we can put
+# the right suffix on the files.
+#
 case "$enable_ipv6" in
 	yes|''|autodetect)
 		AC_MSG_CHECKING(for IPv6 structures)
@@ -587,9 +588,9 @@ AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
 
-dnl
-dnl IPv6 support provided via Kame
-dnl
+#
+# IPv6 support provided via Kame
+#
 AC_MSG_CHECKING(for Kame IPv6 support)
 AC_ARG_WITH(kame,
 	[  --with-kame[=PATH]	use Kame IPv6 [default path /usr/local/v6]],
@@ -626,11 +627,11 @@ Please choose the proper path with the following command:
 esac
 
 
-dnl
-dnl Check for network functions that are often missing.  We do this
-dnl after the libtool checking, so we can put the right suffix on
-dnl the files.
-dnl
+#
+# Check for network functions that are often missing.  We do this
+# after the libtool checking, so we can put the right suffix on
+# the files.
+#
 AC_CHECK_FUNC(inet_ntop,
 	      [ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
@@ -676,18 +677,16 @@ AC_TRY_RUN([main() { exit(!(sizeof(long long int) == sizeof(long int))); }],
 	ISC_PLATFORM_LONGLONGEQUALLONG="#define ISC_PLATFORM_LONGLONGEQUALLONG 1"])
 AC_SUBST(ISC_PLATFORM_LONGLONGEQUALLONG)
 
-dnl
-dnl Security Stuff
-dnl
-
+#
+# Security Stuff
+#
 AC_CHECK_FUNC(chroot, AC_DEFINE(HAVE_CHROOT))
 AC_CHECK_HEADERS(linux/capability.h)
 
 
-dnl
-dnl Substitutions
-dnl
-
+#
+# Substitutions
+#
 AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
 
