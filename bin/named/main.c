@@ -230,11 +230,6 @@ setup() {
 		early_fatal("isc_rwlock_init() failed: %s",
 			    isc_result_totext(result));
 
-	result = isc_rwlock_init(&ns_g_confctxlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		early_fatal("isc_rwlock_init() failed: %s",
-			    isc_result_totext(result));
-
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
 		early_fatal("create_managers() failed: %s",
