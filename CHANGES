@@ -1,3 +1,6 @@
+1211.	[bug]		dns_name_fromtext() incorrectly handled certian
+			valid octal bitlabels. [RT #2483]
+
 1210.	[bug]		libbind: getnameinfo() failed to lookup IPv4 mapped /
 			compatible addresses. [RT #2461]
 

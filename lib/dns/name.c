@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.131 2001/12/28 20:59:27 bwelling Exp $ */
+/* $Id: name.c,v 1.132 2002/02/26 12:43:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1524,8 +1524,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 						 * addition of another byte
 						 * below.
 						 */
-						n1 = bitlength - 1 / 8;
-						n2 = tbcount - 1 / 8;
+						n1 = (bitlength - 1) / 8;
+						n2 = (tbcount - 1) / 8;
 						if (n1 != n2) {
 						    if (value != 0)
 						       return
