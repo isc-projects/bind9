@@ -37,13 +37,6 @@
 
 #include "../isc/util.h"
 
-/*
- * If we cannot send to this task, the application is broken.
- */
-#define ISC_TASK_SEND(a, b) do { \
-	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
-} while (0)
-
 #ifdef DISPATCH_DEBUG
 #define XDEBUG(x) printf x
 #else
@@ -538,7 +531,7 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in)
 			rev, rev->buffer.base, rev->buffer.length,
 			resp->task, resp));
 		resp->item_out = ISC_TRUE;
-		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
+		isc_task_send(resp->task, (isc_event_t **)&rev);
 	}
 
 	/*
@@ -711,7 +704,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in)
 			rev, rev->buffer.base, rev->buffer.length,
 			resp->task, resp));
 		resp->item_out = ISC_TRUE;
-		ISC_TASK_SEND(resp->task, (isc_event_t **)&rev);
+		isc_task_send(resp->task, (isc_event_t **)&rev);
 	}
 
 	/*
@@ -1345,7 +1338,7 @@ do_next_response(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	resp->item_out = ISC_TRUE;
 	XDEBUG(("Sent event %p for buffer %p (len %d) to task %p, resp %p\n",
 		ev, ev->buffer.base, ev->buffer.length, resp->task, resp));
-	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
+	isc_task_send(resp->task, (isc_event_t **)&ev);
 }
 
 static void
@@ -1369,7 +1362,7 @@ do_next_request(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	resp->item_out = ISC_TRUE;
 	XDEBUG(("Sent event %p for buffer %p (len %d) to task %p, resp %p\n",
 		ev, ev->buffer.base, ev->buffer.length, resp->task, resp));
-	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
+	isc_task_send(resp->task, (isc_event_t **)&ev);
 }
 
 static void
@@ -1438,7 +1431,7 @@ do_cancel(dns_dispatch_t *disp, dns_dispentry_t *resp)
 	XDEBUG(("Sending failsafe event %p to task %p, resp %p\n",
 		ev, resp->task, resp));
 	resp->item_out = ISC_TRUE;
-	ISC_TASK_SEND(resp->task, (isc_event_t **)&ev);
+	isc_task_send(resp->task, (isc_event_t **)&ev);
 }
 
 isc_socket_t *

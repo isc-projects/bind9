@@ -59,7 +59,6 @@ t1_shutdown(isc_task_t *task, isc_event_t *event) {
 	t_info *info = event->arg;
 	
 	printf("task %s (%p) t1_shutdown\n", info->name, task);
-	isc_task_allowdone(info->task, ISC_TRUE);
 	isc_task_detach(&info->task);
 	isc_event_free(&event);
 }
@@ -115,7 +114,6 @@ tick(isc_task_t *task, isc_event_t *event)
 			RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
 		} else if (info->ticks >= 15 && info->exiting) {
 			isc_timer_detach(&info->timer);
-			isc_task_allowdone(info->task, ISC_TRUE);
 			isc_task_detach(&info->task);
 			nevent = isc_event_allocate(info->mctx, info,
 						    T2_SHUTDOWNDONE,
@@ -200,8 +198,6 @@ main(int argc, char *argv[]) {
 	t2 = new_task(mctx2, NULL);
 	isc_task_attach(t2->task, &t1->peer);
 	isc_task_attach(t1->task, &t2->peer);
-	isc_task_allowdone(t1->task, ISC_FALSE);
-	isc_task_allowdone(t2->task, ISC_FALSE);
 
 	/*
 	 * Test run-triggered shutdown.
@@ -221,7 +217,6 @@ main(int argc, char *argv[]) {
 	 */
 	RUNTIME_CHECK(isc_task_create(task_manager, mctx, 0, &task) ==
 		      ISC_R_SUCCESS);
-	isc_task_allowdone(task, ISC_FALSE);
 	isc_task_detach(&task);
 
 	RUNTIME_CHECK(isc_app_run() == ISC_R_SUCCESS);

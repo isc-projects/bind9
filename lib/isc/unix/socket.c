@@ -49,17 +49,6 @@
 #endif
 
 /*
- * If we cannot send to this task, the application is broken.
- */
-#define ISC_TASK_SEND(a, b) do { \
-	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
-} while (0)
-
-#define ISC_TASK_SENDANDDETACH(a, b) do { \
-	RUNTIME_CHECK(isc_task_sendanddetach(a, b) == ISC_R_SUCCESS); \
-} while (0)
-
-/*
  * Define what the possible "soft" errors can be.  These are non-fatal returns
  * of various network related functions, like recv() and so on.
  *
@@ -1097,7 +1086,7 @@ dispatch_read(isc_socket_t *sock)
 	iev->action = internal_recv;
 	iev->arg = sock;
 
-	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -1121,7 +1110,7 @@ dispatch_write(isc_socket_t *sock)
 	iev->action = internal_send;
 	iev->arg = sock;
 
-	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->sender, (isc_event_t **)&iev);
 }
 
 /*
@@ -1145,7 +1134,7 @@ dispatch_accept(isc_socket_t *sock)
 	iev->action = internal_accept;
 	iev->arg = sock;
 
-	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -1166,7 +1155,7 @@ dispatch_connect(isc_socket_t *sock)
 	iev->action = internal_connect;
 	iev->arg = sock;
 
-	ISC_TASK_SEND(ev->sender, (isc_event_t **)&iev);
+	isc_task_send(ev->sender, (isc_event_t **)&iev);
 }
 
 /*
@@ -1195,9 +1184,9 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)dev);
+		isc_task_sendanddetach(&task, (isc_event_t **)dev);
 	else
-		ISC_TASK_SEND(task, (isc_event_t **)dev);
+		isc_task_send(task, (isc_event_t **)dev);
 }
 
 /*
@@ -1221,9 +1210,9 @@ send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)dev);
+		isc_task_sendanddetach(&task, (isc_event_t **)dev);
 	else
-		ISC_TASK_SEND(task, (isc_event_t **)dev);
+		isc_task_send(task, (isc_event_t **)dev);
 }
 
 /*
@@ -1368,7 +1357,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	task = dev->sender;
 	dev->sender = sock;
 
-	ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)&dev);
+	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
 }
 
 static void
@@ -2561,7 +2550,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 
 	err_exit:
 		sock->connected = 0;
-		ISC_TASK_SEND(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2573,7 +2562,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	if (cc == 0) {
 		sock->connected = 1;
 		dev->result = ISC_R_SUCCESS;
-		ISC_TASK_SEND(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2703,7 +2692,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 
 	task = dev->sender;
 	dev->sender = sock;
-	ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)&dev);
+	isc_task_sendanddetach(&task, (isc_event_t **)&dev);
 }
 
 isc_result_t
@@ -2834,7 +2823,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 
 				dev->result = ISC_R_CANCELED;
 				dev->sender = sock;
-				ISC_TASK_SENDANDDETACH(&current_task,
+				isc_task_sendanddetach(&current_task,
 						       (isc_event_t **)&dev);
 			}
 
@@ -2858,7 +2847,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 
 			dev->result = ISC_R_CANCELED;
 			dev->sender = sock;
-			ISC_TASK_SENDANDDETACH(&current_task,
+			isc_task_sendanddetach(&current_task,
 					       (isc_event_t **)&dev);
 		}
 	}
@@ -2908,7 +2897,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 	if (EMPTY(sock->recv_list)) {
 		dev->result = sock->recv_result;
 
-		ISC_TASK_SEND(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
@@ -2969,7 +2958,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 	if (EMPTY(sock->send_list)) {
 		dev->result = sock->send_result;
 
-		ISC_TASK_SEND(task, (isc_event_t **)&dev);
+		isc_task_send(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);

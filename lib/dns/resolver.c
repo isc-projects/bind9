@@ -187,7 +187,6 @@ static void
 fctx_done(fetchctx_t *fctx, dns_result_t result) {
 	dns_fetchdoneevent_t *event, *next_event;
 	isc_task_t *task;
-	isc_result_t iresult;
 
 	/*
 	 * The caller must be holding the proper lock.
@@ -206,14 +205,7 @@ fctx_done(fetchctx_t *fctx, dns_result_t result) {
 		task = event->sender;
 		event->sender = fctx;
 		event->result = result;
-		iresult = isc_task_send(task, (isc_event_t **)&event);
-		if (iresult != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_task_send(): %s",
-					 isc_result_totext(iresult));
-			isc_event_free((isc_event_t **)&event);
-		}
-		isc_task_detach(&task);
+		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
 	ISC_LIST_INIT(fctx->events);
 }
@@ -720,14 +712,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	event = &fctx->start_event;
 	ISC_EVENT_INIT(event, sizeof *event, 0, NULL, DNS_EVENT_FETCH,
 		       fctx_start, fctx, (void *)fctx_create, NULL, NULL);
-	iresult = isc_task_send(worker, &event);
-	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_task_send: %s",
-				 isc_result_totext(iresult));
-		result = DNS_R_UNEXPECTED;
-		goto cleanup_timer;
-	}
+	isc_task_send(worker, &event);
 
 	return (DNS_R_SUCCESS);
 

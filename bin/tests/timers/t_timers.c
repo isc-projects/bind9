@@ -266,34 +266,6 @@ t_timers_x(isc_timertype_t timertype, isc_time_t *expires,
 		return;
 	}
 
-	isc_result = isc_task_allowdone(task, ISC_TRUE);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_allowdone failed %s\n",
-				isc_result_totext(isc_result));
-		isc_timermgr_destroy(&timermgr);
-		isc_task_destroy(&task);
-		isc_taskmgr_destroy(&tmgr);
-		isc_mutex_destroy(&Tx_mx);
-		isc_condition_destroy(&Tx_cv);
-		isc_mem_destroy(&mctx);
-		++Tx_nprobs;
-		return;
-	}
-
-	isc_result = isc_task_allowsend(task, ISC_TRUE);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_allowsend failed %s\n",
-				isc_result_totext(isc_result));
-		isc_timermgr_destroy(&timermgr);
-		isc_task_destroy(&task);
-		isc_taskmgr_destroy(&tmgr);
-		isc_mutex_destroy(&Tx_mx);
-		isc_condition_destroy(&Tx_cv);
-		isc_mem_destroy(&mctx);
-		++Tx_nprobs;
-		return;
-	}
-
 	isc_result = isc_time_now(&Tx_lasttime);
 	if (isc_result != ISC_R_SUCCESS) {
 		isc_timermgr_destroy(&timermgr);
@@ -921,19 +893,7 @@ t_timers5() {
 	}
 
 	event = isc_event_allocate(mctx, (void *) 1 , (isc_eventtype_t) 1, t5_start_event, NULL, sizeof(*event));
-	isc_result = isc_task_send(T5_task1, &event);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_task_send failed %s\n",
-				isc_result_totext(isc_result));
-		isc_timermgr_destroy(&timermgr);
-		(void) isc_mutex_unlock(&T5_mx);
-		isc_task_destroy(&T5_task1);
-		isc_taskmgr_destroy(&tmgr);
-		isc_mutex_destroy(&T5_mx);
-		isc_condition_destroy(&T5_cv);
-		isc_mem_destroy(&mctx);
-		return(T_UNRESOLVED);
-	}
+	isc_task_send(T5_task1, &event);
 
 	isc_time_settoepoch(&expires);
 	isc_interval_set(&interval, T5_SECONDS, 0);

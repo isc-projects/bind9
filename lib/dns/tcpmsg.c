@@ -35,13 +35,6 @@
 
 #include "../isc/util.h"
 
-/*
- * If we cannot send to this task, the application is broken.
- */
-#define ISC_TASK_SEND(a, b) do { \
-	RUNTIME_CHECK(isc_task_send(a, b) == ISC_R_SUCCESS); \
-} while (0)
-
 #ifdef TCPMSG_DEBUG
 #define XDEBUG(x) printf x
 #else
@@ -108,7 +101,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 	return;
 
  send_and_free:
-	ISC_TASK_SEND(tcpmsg->task, &dev);
+	isc_task_send(tcpmsg->task, &dev);
 	tcpmsg->task = NULL;
 	isc_event_free(&ev_in);
 	return;
@@ -139,7 +132,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in)
 	XDEBUG(("Received %d bytes (of %d)\n", ev->n, tcpmsg->size));
 
  send_and_free:
-	ISC_TASK_SEND(tcpmsg->task, &dev);
+	isc_task_send(tcpmsg->task, &dev);
 	tcpmsg->task = NULL;
 	isc_event_free(&ev_in);
 }

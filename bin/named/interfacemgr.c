@@ -120,13 +120,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 				 isc_result_totext(result));
 		goto task_create_failure;
 	}
-	result = isc_task_allowdone(ifp->task, ISC_FALSE);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_task_allowdone() failed: %s",
-				 isc_result_totext(result));
-		goto task_create_failure;
-	}
 
 	/*
 	 * Open a UDP socket.
