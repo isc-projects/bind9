@@ -70,3 +70,21 @@ Q: How do I produce a useful core file on Linux?
 A: Apply the kernel patch found in bind9/linux/coredump-patch and rebuild
 the kernel.  This patch causes multithreaded programs to dump the correct
 thread.
+
+Q: How do I restrict / prevent lookups of the version string remotely.
+
+A: The following view statement will intercept lookups as the internal
+view that holds the information will be matched last.  Note doing this
+will not prevent attacks and may impeed people trying to diagnose problems
+with your server.  Also it is possible to "fingerprint" nameservers to
+determine there version.
+
+view "chaos" chaos {
+	match-clients { <those to be refused>; };
+	allow-query { none; };
+
+	zone "." {
+		type hint;
+		file "/dev/null";  // or any empty file
+	};
+};
