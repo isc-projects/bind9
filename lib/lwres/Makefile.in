@@ -29,17 +29,16 @@ CWARNINGS =
 
 # Alphabetically
 OBJS =		context.@O@ gai_strerror.@O@ getaddrinfo.@O@ gethost.@O@ \
-		getipnode.@O@ getnameinfo.@O@ getnet.@O@ herror.@O@ \
+		getipnode.@O@ getnameinfo.@O@ herror.@O@ \
 		lwbuffer.@O@ lwconfig.@O@ lwpacket.@O@ lwresutil.@O@ \
-		lwres_gabn.@O@ \
-		lwres_gnba.@O@ lwres_noop.@O@ \
+		lwres_gabn.@O@ lwres_gnba.@O@ lwres_noop.@O@ \
 		lwinetaton.@O@ lwinetpton.@O@ lwinetntop.@O@
 
 # Alphabetically
-SRCS =		context.c gai_strerror.c getaddrinfo.c gethost.c getipnode.c \
-		getnameinfo.c getnet.c herror.c lwbuffer.c lwpacket.c \
-		lwconfig.c \
-		lwresutil.c lwres_gabn.c lwres_gnba.c lwres_noop.c \
+SRCS =		context.c gai_strerror.c getaddrinfo.c gethost.c \
+		getipnode.c getnameinfo.c herror.c \
+		lwbuffer.c lwconfig.c lwpacket.c lwresutil.c \
+		lwres_gabn.c lwres_gnba.c lwres_noop.c \
 		lwinetaton.c lwinetpton.c lwinetntop.c
 
 LIBS =		@LIBS@
