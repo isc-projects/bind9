@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.12 2001/06/28 21:58:54 gson Exp $ */
+/* $Id: check.c,v 1.13 2001/07/19 16:29:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -219,7 +219,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 	if (ztype == SLAVEZONE || ztype == STUBZONE) {
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
 				    "zone '%s': missing 'masters' entry",
 				    zname);
 			result = ISC_R_FAILURE;

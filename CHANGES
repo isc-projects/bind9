@@ -1,3 +1,6 @@
+ 941.	[bug]		The configuration checker crashed if a slave
+ 			zone didn't contain a masters statement. [RT #1514]
+
  940.	[bug]		Double zone locking failure on error path. [RT #1510]
 
 	--- 9.2.0b1 released ---
