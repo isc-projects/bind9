@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.35 2000/10/20 13:29:36 marka Exp $ */
+/* $Id: connection.c,v 1.36 2000/11/29 00:10:29 gson Exp $ */
 
 /* Principal Author: DCL */
 
@@ -143,7 +143,7 @@ end_connection(omapi_connection_t *connection) {
 		/*
 		 * The client connection will be waiting if the error was
 		 * triggered in one of the socket event handlers.  It will
-		 * not be waiting an error happened in omapi_meesgae_send
+		 * not be waiting an error happened in omapi_message_send
 		 * or send_intro.
 		 *
 		 * The server connection will never be waiting.
