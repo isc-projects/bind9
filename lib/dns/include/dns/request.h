@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.15 2000/10/06 18:58:25 bwelling Exp $ */
+/* $Id: request.h,v 1.16 2000/10/31 01:17:19 marka Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -193,6 +193,42 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  */
 
 isc_result_t
+dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
+		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		      unsigned int options, dns_tsigkey_t *key,
+		      unsigned int timeout, isc_task_t *task,
+		      isc_taskaction_t action, void *arg,
+		      dns_request_t **requestp);
+/*
+ * Create and send a request.
+ *
+ * Notes:
+ *
+ *	'message' will be rendered and sent to 'address'.  If the
+ *	DNS_REQUESTOPT_TCP option is set, TCP will be used.  The request
+ *	will timeout after 'timeout' seconds.
+ *
+ *	When the request completes, successfully, due to a timeout, or
+ *	because it was canceled, a completion event will be sent to 'task'.
+ *
+ * Requires:
+ *
+ *	'message' is a valid DNS message.
+ *
+ *	'dstaddr' is a valid sockaddr.
+ *
+ *	'srcaddr' is a valid sockaddr or NULL.
+ *
+ *	'srcaddr' and 'dstaddr' are the same protocol family.
+ *
+ *	'timeout' > 0
+ *
+ *	'task' is a valid task.
+ *
+ *	requestp != NULL && *requestp == NULL
+ */
+
+isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 		      unsigned int options, unsigned int timeout,
@@ -217,7 +253,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *	'destaddr' is a valid sockaddr.
  *
  *	'srcaddr' is a valid sockaddr or NULL.
- *	This is currently not implememted, use NULL. 
+ *
+ *	'srcaddr' and 'dstaddr' are the same protocol family.
  *
  *	'timeout' > 0
  *

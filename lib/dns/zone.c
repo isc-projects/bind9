@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.241 2000/10/30 05:08:07 marka Exp $ */
+/* $Id: zone.c,v 1.242 2000/10/31 01:17:17 marka Exp $ */
 
 #include <config.h>
 
@@ -3183,6 +3183,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
 	isc_uint32_t options;
+	isc_sockaddr_t src;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3218,13 +3219,24 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
 		  DNS_REQUESTOPT_TCP : 0;
-	result = dns_request_create(zone->view->requestmgr, message,
-				    &zone->masteraddr, options, key,
-				    15 /* XXX */, zone->task,
-				    refresh_callback, zone, &zone->request);
+	switch (isc_sockaddr_pf(&zone->masteraddr)) {
+	case PF_INET:
+		src = zone->xfrsource4;
+		break;
+	case PF_INET6:
+		src = zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
+	result = dns_request_createvia(zone->view->requestmgr, message,
+				       &src, &zone->masteraddr, options, key,
+				       15 /* XXX */, zone->task,
+				       refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
-			 "dns_request_create failed: %s",
+			 "dns_request_createvia failed: %s",
 			 dns_result_totext(result));
 		goto cleanup;
 	}
@@ -3252,6 +3264,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
+	isc_sockaddr_t src;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((soardataset != NULL && stub == NULL) ||
@@ -3341,13 +3354,25 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	/*
 	 * Always use TCP so that we shouldn't truncate in additional section.
 	 */
-	result = dns_request_create(zone->view->requestmgr, message,
-				    &zone->masteraddr, DNS_REQUESTOPT_TCP, key,
-				    15 /* XXX */, zone->task,
-				    stub_callback, stub, &zone->request);
+	switch (isc_sockaddr_pf(&zone->masteraddr)) {
+	case PF_INET:
+		src = zone->xfrsource4;
+		break;
+	case PF_INET6:
+		src = zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
+	result = dns_request_createvia(zone->view->requestmgr, message,
+				       &src, &zone->masteraddr,
+				       DNS_REQUESTOPT_TCP, key, 15 /* XXX */,
+				       zone->task, stub_callback, stub,
+				       &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_DEBUG(1),
-			 "dns_request_create failed: %s",
+			 "dns_request_createvia failed: %s",
 			 dns_result_totext(result));
 		goto cleanup;
 	}

@@ -17,7 +17,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.23 2000/10/20 19:32:47 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.24 2000/10/31 01:17:18 marka Exp $ */
 
 #include <config.h>
 
@@ -1063,8 +1063,36 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+	| L_TRANSFER_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_ctx_settransfersource(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine transfer-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set transfer-source");
+			YYABORT;
+		}
+	}
 	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr
 	{
+		tmpres = dns_c_ctx_settransfersourcev6(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine transfer-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		isc_sockaddr_setport(&$2, $4);
 		tmpres = dns_c_ctx_settransfersourcev6(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -3993,12 +4021,49 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_TRANSFER_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_view_settransfersource(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view transfer-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view transfer-source");
+			YYABORT;
+		}
+	}
 	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
+		tmpres = dns_c_view_settransfersourcev6(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view "
+				     "transfer-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
 		tmpres = dns_c_view_settransfersourcev6(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -4875,12 +4940,49 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
+	| L_TRANSFER_SOURCE maybe_wild_ip4_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
+		tmpres = dns_c_zone_settransfersource(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone transfer-source");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone transfer-source");
+			YYABORT;
+		}
+	}
 	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
 		INSIST(zone != NULL);
 
+		tmpres = dns_c_zone_settransfersourcev6(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine zone "
+				     "transfer-source-v6");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone transfer-source-v6");
+			YYABORT;
+		}
+	}
+	| L_TRANSFER_SOURCE_V6 maybe_wild_ip6_only_addr L_PORT maybe_wild_port
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		isc_sockaddr_setport(&$2, $4);
 		tmpres = dns_c_zone_settransfersourcev6(zone, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.19 2000/10/19 17:22:53 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.20 2000/10/31 01:17:14 marka Exp $ -->
 
 <book>
 
@@ -2390,8 +2390,8 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> transfers-in  <replaceable>number</replaceable>; </optional>
     <optional> transfers-out <replaceable>number</replaceable>; </optional>
     <optional> transfers-per-ns <replaceable>number</replaceable>; </optional>
-    <optional> transfer-source <replaceable>ip4_addr</replaceable>; </optional>
-    <optional> transfer-source-v6 <replaceable>ip6_addr</replaceable>; </optional>
+    <optional> transfer-source <replaceable>ip4_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> transfer-source-v6 <replaceable>ip6_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> max-ixfr-log-size <replaceable>number</replaceable>; </optional>
     <optional> coresize <replaceable>size_spec</replaceable> ; </optional>
@@ -2967,7 +2967,10 @@ of the <command>server</command> statement.</para></entry>
 <entry colname = "1"><para><command>transfer-source</command></para></entry>
 <entry colname = "2"><para><command>transfer-source</command> determines
 which local address will be bound to IPv4 TCP connections used to
-fetch zones transferred inbound by the server. If not set, it defaults
+fetch zones transferred inbound by the server.  It also determines
+the IPv4 address, and optionaly the UDP port, used for the refresh queries.
+It also determines the IPv4 address used when updates are forwarded.
+If not set, it defaults
 to a system controlled value which will usually be the address of
 the interface "closest to" the remote end. This address must appear
 in the remote end's <command>allow-transfer</command> option for
@@ -3518,8 +3521,8 @@ Statement Grammar</title>
     <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
     <optional> notify <replaceable>true_or_false</replaceable> ; </optional>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
-    <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) ; </optional>
-    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) ; </optional>
+    <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
 }</optional>;
 </programlisting>
@@ -3745,7 +3748,9 @@ on loading and ignores the option.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>transfer-source</command></para></entry>
 <entry colname = "2"><para>Determines which local address will be bound
-to the IPv4 TCP connection used to fetch this zone. If not set,
+to the IPv4 TCP connection used to fetch this zone.  It also determines
+the IPv4 address, and optionaly the UDP port, used for the refresh queries.
+It also determines the IPv4 address used when updates are forwarded. If not set,
 it defaults to a system controlled value which will usually be the
 address of the interface "closest to" the remote end. If the remote
 end user is an <command>allow-transfer</command> option for this

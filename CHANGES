@@ -1,4 +1,10 @@
- 535.	[func]		Use xfrsource[46] when forwarding update requests.
+ 536.	[func]		Use transfer-source{-v6} when sending refresh queries.
+			Transfer-source{-v6} now take a optional port
+			parameter for setting the UDP source port.  The port
+			parameter is ignored for TCP.
+
+ 535.	[func]		Use transfer-source{-v6} when forwarding update
+			requests.
 
  534.	[func]		Ancestors have been removed from RBT chains.  Ancestor
 			information can be discerned via node parent pointers.
