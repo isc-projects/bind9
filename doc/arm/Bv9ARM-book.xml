@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
+               "/usr/local/share/xml/dtd/docbook/docbookx.dtd" [
+<!ENTITY ch01_intro SYSTEM "1intro.xml">
+<!ENTITY ch02_res-req SYSTEM "2res-req.xml">
+<!ENTITY ch03_config SYSTEM "3config.xml">
+<!ENTITY ch04_adv SYSTEM "4adv.xml">
+<!ENTITY ch05_lwresd SYSTEM "5lwresd.xml">
+<!ENTITY ch06_configref SYSTEM "6configref.xml">
+<!ENTITY ch07_security SYSTEM "7security.xml">
+<!ENTITY ch08_trouble SYSTEM "8trouble.xml">
+<!ENTITY ch09_appendices SYSTEM "9appendices.xml">
+]>
+<book>
+&ch01_intro;
+&ch02_res-req;
+&ch03_config;
+&ch04_adv;
+&ch05_lwresd;
+&ch06_configref;
+&ch07_security;
+&ch08_trouble;
+&ch09_appendices;
+</book>
+
+
+<!-- Validate with: nsgmls -sv /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
+<!-- Generate html doc with: jade -d /usr/local/share/sgml/docbook/dsssl/modular/html/docbook.dsl -t sgml  -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
+<!-- Generate tex doc with: jade -d /usr/local/share/sgml/docbook/dsssl/modular/print/docbook.dsl -t tex  -v /usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/xml.dcl Bv9ARM-book.xml -->
+<!-- You can substitute "rtf" for "tex" as well. -->
+

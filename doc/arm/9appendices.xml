@@ -1,0 +1,825 @@
+<appendix>
+  <title>Appendices</title>
+  <sect1>
+    <title>Acknowledgements</title>
+    <sect2>
+      <title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title>
+
+      <para>Although the "official" beginning of the Domain Name
+      System occurred in 1984 with the publication of RFC 920, the
+      core of the new system was described in 1983 in RFCs 882 and
+      883. From 1984 to 1987, the ARPAnet (the precursor to today's
+      Internet) became a testbed of experimentation for developing the
+      new naming/addressing scheme in an rapidly expanding,
+      operational network environment.  New RFCs were written and
+      published in 1987 that modified the original documents to
+      incorporate improvements based on the working model. RFC 1034,
+      "Domain Names-Concepts and Facilities," and RFC 1035, "Domain
+      Names-Implementation and Specification" were published and
+      became the standards upon which all <acronym>DNS</acronym> implementations are
+      built.
+</para>
+
+      <para>The first working domain name server, called "Jeeves," was
+written in 1983-84 by Paul Mockapetris for operation on DEC Tops-20
+machines located at the University of Southern California's Information
+Sciences Institute (USC-ISI) and SRI International's Network Information
+Center (SRI-NIC). A <acronym>DNS</acronym> server for Unix machines, the Berkeley Internet
+Name Domain (<acronym>BIND</acronym>) package, was written soon after by a group of
+graduate students at the University of California at Berkeley under
+a grant from the US Defense Advanced Research Projects Administration
+(DARPA). Versions of <acronym>BIND</acronym> through 4.8.3 were maintained by the Computer
+Systems Research Group (CSRG) at UC Berkeley. Douglas Terry, Mark
+Painter, David Riggle and Songnian Zhou made up the initial <acronym>BIND</acronym>
+project team. After that, additional work on the software package
+was done by Ralph Campbell. Kevin Dunlap, a Digital Equipment Corporation
+employee on loan to the CSRG, worked on <acronym>BIND</acronym> for 2 years, from 1985
+to 1987. Many other people also contributed to <acronym>BIND</acronym> development
+during that time: Doug Kingston, Craig Partridge, Smoot Carl-Mitchell,
+Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was subsequently
+handled by Mike Karels and O. Kure.</para>
+      <para><acronym>BIND</acronym> versions 4.9 and 4.9.1 were released by Digital Equipment
+Corporation (now Compaq Computer Corporation). Paul Vixie, then
+a DEC employee, became <acronym>BIND</acronym>'s primary caretaker. Paul was assisted
+by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan Beecher, Andrew
+Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
+Baran, Anant Kumar, Art Harkin, Win Treese, Don Lewis, Christophe
+Wolfhugel, and others.</para>
+      <para><acronym>BIND</acronym> Version 4.9.2 was sponsored by Vixie Enterprises. Paul
+Vixie became <acronym>BIND</acronym>'s principal architect/programmer.</para>
+      <para><acronym>BIND</acronym> versions from 4.9.3 onward have been developed and maintained
+by the Internet Software Consortium with support being provided
+by ISC's sponsors. As co-architects/programmers, Bob Halley and
+Paul Vixie released the first production-ready version of <acronym>BIND</acronym> version
+8 in May 1997.</para>
+      <para><acronym>BIND</acronym> development work is made possible today by the sponsorship
+of several corporations, and by the tireless work efforts of numerous
+individuals.</para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title id="historical_dns_information">Historical <acronym>DNS</acronym> Information</title>
+    <sect2>
+      <title id="classes_of_resource_records">Classes of Resource Records</title>
+      <sect3>
+        <title>HS = hesiod</title>
+        <para>The <optional>hesiod</optional> class is an information service
+developed by MIT's Project Athena. It is used to share information
+about various systems databases, such as users, groups, printers
+and so on. The keyword <command>hs</command> is a synonym for
+hesiod.</para>
+      </sect3>
+      <sect3>
+        <title>CH = chaos</title>
+        <para>The <command>chaos</command> class is used to specify zone
+data for the MIT-developed CHAOSnet, a LAN protocol created in the
+mid-1970s.</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>General <acronym>DNS</acronym> Reference Information</title>
+    <sect2>
+      <title>IPv6 addresses (A6)</title>
+      <para>IPv6 addresses are 128-bit identifiers for interfaces and
+sets of interfaces which were introduced in the <acronym>DNS</acronym> to facilitate
+scalable Internet routing. There are three types of addresses: <emphasis>Unicast</emphasis>,
+an identifier for a single interface; <emphasis>Anycast</emphasis>,
+an identifier for a set of interfaces; and <emphasis>Multicast</emphasis>,
+an identifier for a set of interfaces. Here we describe the global
+Unicast address scheme. For more information, see RFC 2374.</para>
+<para>The aggregatable global Unicast address format is as follows:</para>
+<informaltable colsep = "0" rowsep = "0"><tgroup cols = "6"
+    colsep = "0" rowsep = "0" tgroupstyle = "1Level-table">
+<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.477in"/>
+<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "0.501in"/>
+<colspec colname = "3" colnum = "3" colsep = "0" colwidth = "0.523in"/>
+<colspec colname = "4" colnum = "4" colsep = "0" colwidth = "0.731in"/>
+<colspec colname = "5" colnum = "5" colsep = "0" colwidth = "1.339in"/>
+<colspec colname = "6" colnum = "6" colsep = "0" colwidth = "2.529in"/>
+<tbody>
+<row rowsep = "0">
+<entry colname = "1" colsep = "1" rowsep = "1"><para>3</para></entry>
+<entry colname = "2" colsep = "1" rowsep = "1"><para>13</para></entry>
+<entry colname = "3" colsep = "1" rowsep = "1"><para>8</para></entry>
+<entry colname = "4" colsep = "1" rowsep = "1"><para>24</para></entry>
+<entry colname = "5" colsep = "1" rowsep = "1"><para>16</para></entry>
+<entry colname = "6" rowsep = "1"><para>64 bits</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1" colsep = "1"><para>FP</para></entry>
+<entry colname = "2" colsep = "1"><para>TLA ID</para></entry>
+<entry colname = "3" colsep = "1"><para>RES</para></entry>
+<entry colname = "4" colsep = "1"><para>NLA ID</para></entry>
+<entry colname = "5" colsep = "1"><para>SLA ID</para></entry>
+<entry colname = "6"><para>Interface ID</para></entry>
+</row>
+<row rowsep = "0">
+<entry nameend = "4" namest = "1"><para>&#60;------ Public Topology
+------></para></entry>
+<entry colname = "5"><para></para></entry>
+<entry colname = "6"><para></para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para></para></entry>
+<entry colname = "2"><para></para></entry>
+<entry colname = "3"><para></para></entry>
+<entry colname = "4"><para></para></entry>
+<entry colname = "5"><para>&#60;-Site Topology-></para></entry>
+<entry colname = "6"><para></para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para></para></entry>
+<entry colname = "2"><para></para></entry>
+<entry colname = "3"><para></para></entry>
+<entry colname = "4"><para></para></entry>
+<entry colname = "5"><para></para></entry>
+<entry colname = "6"><para>&#60;------ Interface Identifier ------></para></entry>
+</row>
+</tbody>
+</tgroup></informaltable>
+      <para>Where
+<informaltable colsep = "0"  rowsep = "0"><tgroup
+    cols = "3" colsep = "0" rowsep = "0" tgroupstyle = "2Level-table">
+<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "1.375in"/>
+<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "0.250in"/>
+<colspec colname = "3" colnum = "3" colsep = "0" colwidth = "3.500in"/>
+<tbody>
+<row rowsep = "0">
+<entry colname = "1"><para>FP</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Format Prefix (001)</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>TLA ID</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Top-Level Aggregation Identifier</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>RES</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Reserved for future use</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>NLA ID</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Next-Level Aggregation Identifier</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>SLA ID</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Site-Level Aggregation Identifier</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>INTERFACE ID</para></entry>
+<entry colname = "2"><para>=</para></entry>
+<entry colname = "3"><para>Interface Identifier</para></entry>
+</row>
+</tbody>
+</tgroup></informaltable></para>
+      <para>The <emphasis>Public Topology</emphasis> is provided by the
+upstream provider or ISP, and (roughly) corresponds to the IPv4 <emphasis>network</emphasis> section
+of the address range. The <emphasis>Site Topology</emphasis> is
+where you can subnet this space, much the same as subnetting an
+IPv4 /16 network into /24 subnets. The <emphasis>Interface Identifier</emphasis> is
+the address of an individual interface on a given network. (With
+IPv6, addresses belong to interfaces rather than machines.)</para>
+      <para>The subnetting capability of IPv6 is much more flexible than
+that of IPv4: subnetting can now be carried out on bit boundaries,
+in much the same way as Classless InterDomain Routing (CIDR).</para>
+<para>The internal structure of the Public Topology for an A6 global
+unicast address consists of:</para>
+<informaltable colsep = "0"  rowsep = "0"><tgroup cols = "4"
+    colsep = "0" rowsep = "0" tgroupstyle = "2Level-table">
+<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.506in"/>
+<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "0.662in"/>
+<colspec colname = "3" colnum = "3" colsep = "0" colwidth = "0.556in"/>
+<colspec colname = "4" colnum = "4" colsep = "0" colwidth = "0.825in"/>
+<tbody>
+<row rowsep = "0">
+<entry colname = "1" colsep = "1" rowsep = "1"><para>3</para></entry>
+<entry colname = "2" colsep = "1" rowsep = "1"><para>13</para></entry>
+<entry colname = "3" colsep = "1" rowsep = "1"><para>8</para></entry>
+<entry colname = "4" rowsep = "1"><para>24</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1" colsep = "1"><para>FP</para></entry>
+<entry colname = "2" colsep = "1"><para>TLA ID</para></entry>
+<entry colname = "3" colsep = "1"><para>RES</para></entry>
+<entry colname = "4"><para>NLA ID</para></entry>
+</row>
+</tbody>
+</tgroup></informaltable>
+<para>A 3 bit FP (Format Prefix) of 001 indicates this is a global
+Unicast address. FP lengths for other types of addresses may vary.</para>
+<para>13 TLA (Top Level Aggregator) bits give the prefix of your
+top-level IP backbone carrier.</para>
+<para>8 Reserved bits</para>
+<para>24 bits for Next Level Aggregators. This allows organizations
+with a TLA to hand out portions of their IP space to client organizations,
+so that the client can then split up the network further by filling
+in more NLA bits, and hand out IPv6 prefixes to their clients, and
+so forth.</para>
+<para>There is no particular structure for the Site topology section.
+Organizations can allocate these bits in any way they desire.</para>
+<para>The Interface Identifier must be unique on that network. On
+ethernet networks, one way to ensure this is to set the address
+to the first three bytes of the hardware address, "FFFE", then the
+last three bytes of the hardware address. The lowest significant
+bit of the first byte should then be complemented. Addresses are
+written as 32-bit blocks separated with a colon, and leading zeros
+of a block may be omitted, for example:</para>
+<para><command>3ffe:8050:201:9:a00:20ff:fe81:2b32</command></para>
+<para>IPv6 address specifications are likely to contain long strings
+of zeros, so the architects have included a shorthand for specifying
+them. The double colon (`::') indicates the longest possible string
+of zeros that can fit, and can be used only once in an address.</para>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title id="Bibliography">Bibliography (and Suggested Reading)</title>
+    <sect2>
+      <title id="RFCs">Request for Comments (RFCs)</title>
+      <para>Specification documents for the Internet protocol suite, including
+the <acronym>DNS</acronym>, are published as part of the Request for Comments (RFCs)
+series of technical notes. The standards themselves are defined
+by the Internet Engineering Task Force (IETF) and the Internet Engineering
+Steering Group (IESG). RFCs can be obtained online via FTP at 
+<ulink url="ftp://www.isi.edu/in-notes/">ftp://www.isi.edu/in-notes/RFC<replaceable>xxx</replaceable>.txt</ulink> (where <replaceable>xxx</replaceable> is
+the number of the RFC). RFCs are also available via the Web at <ulink
+                                                                      url="http://www.ietf.org/rfc/">http://www.ietf.org/rfc/</ulink>.</para>
+      <bibliography>
+        <bibliodiv>
+          <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
+          <title>Standards</title>
+          <biblioentry>
+            <abbrev>RFC974</abbrev>
+            <author>
+              <surname>Partridge</surname>
+              <firstname>C.</firstname>
+            </author>
+            <title>Mail Routing and the Domain System</title>
+            <pubdate>January 1986</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1034</abbrev>
+            <author>
+              <surname>Mockapetris</surname>
+              <firstname>P.V.</firstname>
+            </author> 
+            <title>Domain Names - Concepts and Facilities</title>
+            <pubdate>November 1987</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1035</abbrev>
+            <author>
+              <surname>Mockapetris</surname>
+              <firstname>P. V.</firstname>
+            </author> <title>Domain Names - Implementation and
+Specification</title>
+            <pubdate>November 1987</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title id="proposed_standards">Proposed Standards</title>
+          <!-- one of (BIBLIOENTRY BIBLIOMIXED) -->
+          <biblioentry>
+            <abbrev>RFC2181</abbrev>
+            <author>
+              <surname>Elz</surname>
+              <firstname>R., R. Bush</firstname>
+            </author>
+            <title>Clarifications to the <acronym>DNS</acronym> Specification</title>
+            <pubdate>July 1997</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2308</abbrev>
+            <author>
+              <surname>Andrews</surname>
+              <firstname>M.</firstname>
+            </author>
+            <title>Negative Caching of <acronym>DNS</acronym> Queries</title>
+            <pubdate>March 1998</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1995</abbrev>
+            <author>
+              <surname>Ohta</surname>
+              <firstname>M.</firstname>
+            </author>
+            <title>Incremental Zone Transfer in <acronym>DNS</acronym></title>
+            <pubdate>August 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1996</abbrev>
+            <author>
+              <surname>Vixie</surname>
+              <firstname>P.</firstname>
+            </author>
+            <title>A Mechanism for Prompt Notification of Zone Changes</title>
+            <pubdate>August 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2136</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Vixie</surname>
+                <firstname>P.</firstname>
+              </author>
+              <author>
+                <firstname>S.</firstname>
+                <surname>Thomson</surname>
+              </author>
+              <author>
+                <firstname>Y.</firstname>
+                <surname>Rekhter</surname>
+              </author>
+              <author>
+                <firstname>J.</firstname>
+                <surname>Bound</surname>
+              </author>
+            </authorgroup> 
+            <title>Dynamic Updates in the Domain Name System</title>
+            <pubdate>April 1997</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2845</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Vixie</surname>
+                <firstname>P.</firstname>
+              </author>
+              <author>
+                <firstname>O.</firstname>
+                <surname>Gudmundsson</surname>
+              </author>
+              <author>
+                <firstname>D.</firstname>
+                <surname>Eastlake</surname>
+                <lineage>3rd</lineage></author>
+              <author>
+                <firstname>B.</firstname>
+                <surname>Wellington</surname>
+              </author></authorgroup>
+            <title>Secret Key Transaction Authentication for <acronym>DNS</acronym> (TSIG)</title>
+            <pubdate>May 2000</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title>Proposed Standards Still Under Development</title>
+          <note>
+            <para><emphasis>Note:</emphasis> the following list of
+RFCs are undergoing major revision by the IETF.</para>
+          </note>
+          <biblioentry>
+            <abbrev>RFC1886</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Thomson</surname>
+                <firstname>S.</firstname>
+              </author>
+              <author>
+                <firstname>C.</firstname>
+                <surname>Huitema</surname>
+              </author>
+            </authorgroup>
+            <title><acronym>DNS</acronym> Extensions to support IP version 6</title>
+            <pubdate>December 1995</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2065</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Eastlake</surname>
+                <lineage>3rd</lineage>
+                <firstname>D.</firstname>
+              </author>
+              <author>
+                <firstname>C.</firstname>
+                <surname>Kaufman</surname>
+              </author>
+            </authorgroup>
+            <title>Domain Name System Security Extensions</title>
+            <pubdate>January 1997</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2137</abbrev>
+            <author>
+              <surname>Eastlake</surname>
+              <lineage>3rd</lineage>
+              <firstname>D.</firstname>
+            </author>
+            <title>Secure Domain Name System Dynamic Update</title>
+            <pubdate>April 1997</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title>Other Important RFCs About <acronym>DNS</acronym> Implementation</title>
+          <biblioentry>
+            <abbrev>RFC1535</abbrev>
+            <author>
+              <surname>Gavron</surname>
+              <firstname>E.</firstname>
+            </author>
+            <title>A Security Problem and Proposed Correction With Widely Deployed <acronym>DNS</acronym> Software.</title>
+            <pubdate>October 1993</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1536</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Kumar</surname>
+                <firstname>A.</firstname>
+              </author>
+              <author>
+                <firstname>J.</firstname>
+                <surname>Postel</surname>
+              </author>
+              <author>
+                <firstname>C.</firstname>
+                <surname>Neuman</surname></author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Danzig</surname>
+              </author>
+              <author>
+                <firstname>S.</firstname>
+                <surname>Miller</surname>
+              </author>
+            </authorgroup>
+            <title>Common <acronym>DNS</acronym> Implementation Errors and Suggested Fixes</title>
+            <pubdate>October 1993</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1982</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Elz</surname>
+                <firstname>R.</firstname>
+              </author>
+              <author>
+                <firstname>R.</firstname>
+                <surname>Bush</surname>
+              </author>
+            </authorgroup>
+            <title>Serial Number Arithmetic</title>
+            <pubdate>August 1996</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title>Resource Record Types</title>
+          <biblioentry>
+            <abbrev>RFC1183</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Everhart</surname>
+                <firstname>C.F.</firstname>
+              </author>
+              <author>
+                <firstname>L. A.</firstname>
+                <surname>Mamakos</surname>
+              </author>
+              <author>
+                <firstname>R.</firstname>
+                <surname>Ullmann</surname>
+              </author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Mockapetris</surname>
+              </author>
+            </authorgroup>
+            <title>New <acronym>DNS</acronym> RR Definitions</title>
+            <pubdate>October 1990</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1706</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Manning</surname>
+                <firstname>B.</firstname>
+              </author>
+              <author>
+                <firstname>R.</firstname>
+                <surname>Colella</surname>
+              </author>
+            </authorgroup>
+            <title><acronym>DNS</acronym> NSAP Resource Records</title>
+            <pubdate>October 1994</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2168</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Daniel</surname>
+                <firstname>R.</firstname>
+              </author>
+              <author>
+                <firstname>M.</firstname>
+                <surname>Mealling</surname>
+              </author>
+            </authorgroup>
+            <title>Resolution of Uniform Resource Identifiers using
+the Domain Name System</title>
+            <pubdate>June 1997</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1876</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Davis</surname>
+                <firstname>C.</firstname>
+              </author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Vixie</surname>
+              </author>
+              <author>
+                <firstname>T.</firstname>
+                <firstname>Goodwin</firstname>
+              </author>
+              <author>
+                <firstname>I.</firstname>
+                <surname>Dickinson</surname>
+              </author>
+            </authorgroup> 
+            <title>A Means for Expressing Location Information in the Domain
+Name System</title>
+            <pubdate>January 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2052</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Gulbrandsen</surname>
+                <firstname>A.</firstname>
+              </author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Vixie</surname>
+              </author>
+            </authorgroup>
+            <title>A <acronym>DNS</acronym> RR for Specifying the Location of
+Services.</title>
+            <pubdate>October 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2163</abbrev>
+            <author>
+              <surname>Allocchio</surname>
+              <firstname>A.</firstname>
+            </author>
+            <title>Using the Internet <acronym>DNS</acronym> to Distribute MIXER
+Conformant Global Address Mapping</title>
+            <pubdate>January 1998</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2230</abbrev>
+            <author>
+              <surname>Atkinson</surname>
+              <firstname>R.</firstname>
+            </author>
+            <title>Key Exchange Delegation Record for the <acronym>DNS</acronym></title>
+            <pubdate>October 1997</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title><acronym>DNS</acronym> and the Internet</title>
+          <biblioentry>
+            <abbrev>RFC1101</abbrev>
+            <author>
+              <surname>Mockapetris</surname>
+              <firstname>P. V.</firstname>
+            </author>
+            <title><acronym>DNS</acronym> Encoding of Network Names and Other Types</title>
+            <pubdate>April 1989</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1123</abbrev>
+            <author>
+              <surname>Braden</surname>
+              <surname>R.</surname>
+            </author>
+            <title>Requirements for Internet Hosts - Application and Support</title>
+            <pubdate>October 1989</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1591</abbrev>
+            <author>
+              <surname>Postel</surname>
+              <firstname>J.</firstname></author>
+            <title>Domain Name System Structure and Delegation</title>
+            <pubdate>March 1994</pubdate></biblioentry>
+          <biblioentry>
+            <abbrev>RFC2317</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Eidnes</surname>
+                <firstname>H.</firstname>
+              </author>
+              <author>
+                <firstname>G.</firstname>
+                <surname>de Groot</surname>
+              </author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Vixie</surname>
+              </author>
+            </authorgroup>
+            <title>Classless IN-ADDR.ARPA Delegation</title>
+            <pubdate>March 1998</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title><acronym>DNS</acronym> Operations</title>
+          <biblioentry>
+            <abbrev>RFC1537</abbrev>
+            <author>
+              <surname>Beertema</surname>
+              <firstname>P.</firstname>
+            </author>
+            <title>Common <acronym>DNS</acronym> Data File Configuration Errors</title>
+            <pubdate>October 1993</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1912</abbrev>
+            <author>
+              <surname>Barr</surname>
+              <firstname>D.</firstname>
+            </author>
+            <title>Common <acronym>DNS</acronym> Operational and Configuration Errors</title>
+            <pubdate>February 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1912</abbrev>
+            <author>
+              <surname>Barr</surname>
+              <firstname>D.</firstname>
+            </author>
+            <title>Common <acronym>DNS</acronym> Operational and Configuration Errors</title>
+            <pubdate>February 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2010</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Manning</surname>
+                <firstname>B.</firstname>
+              </author>
+              <author>
+                <firstname>P.</firstname>
+                <surname>Vixie</surname>
+              </author>
+            </authorgroup>
+            <title>Operational Criteria for Root Name Servers.</title>
+            <pubdate>October 1996</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2219</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Hamilton</surname>
+                <firstname>M.</firstname>
+              </author>
+              <author>
+                <firstname>R.</firstname>
+                <surname>Wright</surname>
+              </author>
+            </authorgroup>
+            <title>Use of <acronym>DNS</acronym> Aliases for Network Services.</title>
+            <pubdate>October 1997</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title>Other <acronym>DNS</acronym>-related RFCs</title>
+          <note>
+            <para>Note: the following list of RFCs, although
+<acronym>DNS</acronym>-related, are not concerned with implementing software.</para>
+          </note>
+          <biblioentry>
+            <abbrev>RFC1464</abbrev>
+            <author>
+              <surname>Rosenbaum</surname>
+              <firstname>R.</firstname>
+            </author>
+            <title>Using the Domain Name System To Store Arbitrary String Attributes</title>
+            <pubdate>May 1993</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC1713</abbrev>
+            <author>
+              <surname>Romao</surname>
+              <firstname>A.</firstname>
+            </author>
+            <title>Tools for <acronym>DNS</acronym> Debugging</title>
+            <pubdate>November 1994</pubdate></biblioentry>
+          <biblioentry>
+            <abbrev>RFC1794</abbrev>
+            <author>
+              <surname>Brisco</surname>
+              <firstname>T.</firstname>
+            </author>
+            <title><acronym>DNS</acronym> Support for Load Balancing</title>
+            <pubdate>April 1995</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2240</abbrev>
+            <author>
+              <surname>Vaughan</surname>
+              <firstname>O.</firstname></author>
+            <title>A Legal Basis for Domain Name Allocation</title>
+            <pubdate>November 1997</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2345</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Klensin</surname>
+                <firstname>J.</firstname>
+              </author>
+              <author>
+                <firstname>T.</firstname>
+                <surname>Wolf</surname>
+              </author>
+              <author>
+                <firstname>G.</firstname>
+                <surname>Oglesby</surname>
+              </author>
+            </authorgroup>
+            <title>Domain Names and Company Name Retrieval</title>
+            <pubdate>May 1998</pubdate>
+          </biblioentry>
+          <biblioentry>
+            <abbrev>RFC2352</abbrev>
+            <author>
+              <surname>Vaughan</surname>
+              <firstname>O.</firstname>
+            </author>
+            <title>A Convention For Using Legal Names as Domain Names</title>
+            <pubdate>May 1998</pubdate>
+          </biblioentry>
+        </bibliodiv>
+        <bibliodiv>
+          <title>Obsolete and Unimplemented Experimental RRs</title>
+          <biblioentry>
+            <abbrev>RFC1712</abbrev>
+            <authorgroup>
+              <author>
+                <surname>Farrell</surname>
+                <firstname>C.</firstname>
+              </author>
+              <author>
+                <firstname>M.</firstname>
+                <surname>Schulze</surname>
+              </author>
+              <author>
+                <firstname>S.</firstname>
+                <surname>Pleitner</surname>
+              </author>
+              <author>
+                <firstname>D.</firstname>
+                <surname>Baldoni</surname>
+              </author>
+            </authorgroup>
+            <title><acronym>DNS</acronym> Encoding of Geographical
+Location</title>
+            <pubdate>November 1994</pubdate>
+          </biblioentry>
+        </bibliodiv>
+      </bibliography>
+    </sect2>
+    <sect2>
+      <title id="Internet_Drafts">Internet Drafts</title>
+      <para>Internet Drafts (IDs) are rough-draft working documents of
+the Internet Engineering Task Force. They are, in essence, RFCs
+in the preliminary stages of development. Implementors are cautioned not
+to regard IDs as archival, and they should not be quoted or cited
+in any formal documents unless accompanied by the disclaimer that
+they are "works in progress." IDs have a lifespan of six months
+after which they are deleted unless updated by their authors.
+</para>
+    </sect2>
+    <sect2>
+      <title>Other Documents About <acronym>BIND</acronym></title>
+      <para></para>
+      <bibliography>
+        <biblioentry>
+          <authorgroup>
+            <author>
+              <surname>Albitz</surname>
+              <firstname>Paul</firstname>
+            </author>
+            <author>
+              <firstname>Cricket</firstname>
+              <surname>Liu</surname>
+            </author>
+          </authorgroup>
+          <title><acronym>DNS</acronym> and <acronym>BIND</acronym></title>
+          <copyright>
+            <year>1998</year>
+            <holder>Sebastopol, CA: O'Reilly and Associates</holder>
+          </copyright>
+        </biblioentry>
+      </bibliography>
+    </sect2>
+  </sect1>
+</appendix>

@@ -1,0 +1,69 @@
+<chapter><title><acronym>BIND</acronym> Resource Requirements</title>
+<sect1><title>Hardware requirements</title>
+<para><acronym>DNS</acronym> hardware requirements have traditionally been quite modest.
+For many installations, servers that have been pensioned off from
+active duty have performed admirably as <acronym>DNS</acronym> servers.</para>
+<para>The DNSSEC and IPv6 features of <acronym>BIND</acronym> 9 may prove to be quite
+CPU intensive however, so organizations that make heavy use of these
+features may wish to consider larger systems for these applications.
+<acronym>BIND</acronym> 9 is now fully multithreaded, allowing full utilization of
+multiprocessor systems for installations that need it.</para></sect1>
+<sect1><title>CPU Requirements</title>
+<para>CPU requirements for <acronym>BIND</acronym> 9 range from i486-class machines
+for serving of static zones without caching, to enterprise-class
+machines if you intend to process many dynamic updates and DNSSEC
+signed zones, serving many thousands of queries per second.</para></sect1>
+<sect1><title>Memory Requirements </title>
+<para>The memory of the server has to be large enough to fit the
+cache and zones loaded off disk. Future releases of <acronym>BIND</acronym> 9 will
+provide methods to limit the amount of memory used by the cache,
+at the expense of reducing cache hit rates and causing more <acronym>DNS</acronym>
+traffic. It is still good practice to have enough memory to load
+all zone and cache data into memory-unfortunately, the best way
+to determine this for a given installation is to watch the nameserver
+in operation. After a few weeks the server process should reach
+a relatively stable size where entries are expiring from the cache as
+fast as they are being inserted. Ideally, the resource limits should
+be set higher than this stable size.</para></sect1>
+<sect1><title>Nameserver Intensive Environment Issues</title>
+<para>For nameserver intensive environments, there are two alternative
+configurations that may be used. The first is where clients and
+any second-level internal nameservers query a main nameserver, which
+has enough memory to build a large cache. This approach minimizes
+the bandwidth used by external name lookups. The second alternative
+is to set up second-level internal nameservers to make queries independently.
+In this configuration, none of the individual machines needs to
+have as much memory or CPU power as in the first alternative, but
+this has the disadvantage of making many more external queries,
+as none of the nameservers share their cached data.</para></sect1>
+<sect1><title>Supported Operating Systems</title>
+<para>ISC <acronym>BIND</acronym> 9 compiles and runs on the following operating
+systems:</para>
+    <itemizedlist>
+      <listitem>
+        <simpara>IBM AIX 4.3</simpara>
+      </listitem>
+      <listitem>
+        <simpara>Compaq Digital/Tru64 UNIX 4.0D</simpara>
+      </listitem>
+      <listitem>
+        <simpara>HP HP-UX 11</simpara>
+      </listitem>
+      <listitem>
+        <simpara>IRIX64 6.5</simpara>
+      </listitem>
+      <listitem>
+        <simpara>Red Hat Linux 6.0, 6.1</simpara>
+      </listitem>
+      <listitem>
+        <simpara>Sun Solaris 2.6, 7, 8 (beta)</simpara>
+      </listitem>
+      <listitem>
+        <simpara>FreeBSD 3.4-STABLE</simpara>
+      </listitem>
+      <listitem>
+        <simpara>NetBSD-current with "unproven" pthreads</simpara>
+      </listitem>
+    </itemizedlist>
+  </sect1>
+</chapter>

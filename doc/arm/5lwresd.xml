@@ -1,0 +1,32 @@
+<chapter><title id="lightweight_resolver">The <acronym>BIND</acronym> 9 Lightweight Resolver</title>
+<sect1><title>The Lightweight Resolver Library</title>
+<para>Traditionally applications have been linked with a stub resolver
+library that sends recursive DNS queries to a local caching name
+server.</para>
+<para>IPv6 introduces new complexity into the resolution process,
+such as following A6 chains and DNAME records, and simultaneous
+lookup of IPv4 and IPv6 addresses.  These are hard or impossible
+to implement in a traditional stub resolver.</para>
+<para>Instead, <acronym>BIND</acronym> 9 provides resolution services to local clients
+using a combination of a lightweight resolver library and a resolver
+daemon process running on the local host.  These communicate using
+a simple UDP-based protocol, the "lightweight resolver protocol"
+that is distinct from and simpler than the full DNS protocol.</para></sect1>
+<sect1><title>Running a Resolver Daemon</title>
+<para>To use the lightweight resolver interface, the system must
+run the resolver daemon <command>lwresd</command>.</para>
+<para>Applications using the lightweight resolver library will make
+UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
+ The daemon will try to find the answer to the questions "what are the
+addresses for host <systemitem class="systemname">foo.example.com</systemitem>?" and "what are
+the names for IPv4 address 204.152.184.79?"</para>
+<para>The daemon currently only looks in the DNS, but in the future
+it may use other sources such as <literal>/etc/hosts</literal>,
+NIS, etc.</para>
+<para>The <command>lwresd</command> daemon is essentially a stripped-down,
+caching-only name server that answers requests using the lightweight
+resolver protocol rather than the DNS protocol.  Because it needs
+to run on each host, it is designed to require no or minimal configuration.
+ It uses the name servers listed on <command>nameserver</command> lines
+in <filename>/etc/resolv.conf</filename> as forwarders, but is also
+capable of doing the resolution autonomously if none are specified.</para></sect1></chapter>
