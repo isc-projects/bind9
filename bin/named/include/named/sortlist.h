@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.h,v 1.1 2000/11/14 03:22:53 gson Exp $ */
+/* $Id: sortlist.h,v 1.2 2000/11/15 02:47:29 gson Exp $ */
 
 #ifndef NAMED_SORTLIST_H
 #define NAMED_SORTLIST_H 1
@@ -74,10 +74,11 @@ ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, isc_netaddr_t *client_addr,
 			dns_addressorderfunc_t *orderp,
 			void **argp);
 /*
- * Find the sortlist statement in 'acl' that applies to 'clientaddr', if any,
- * and return in '*orderp' a pointer to a function for ranking network addresses
- * based on that sortlist statement, and in '*argp' an argument to pass
- * to said function.
+ * Find the sortlist statement in 'acl' that applies to 'clientaddr', if any.
+ * If a sortlist statement applies, return in '*orderp' a pointer to a function
+ * for ranking network addresses based on that sortlist statement, and in
+ * '*argp' an argument to pass to said function.  If no sortlist statement
+ * applies, set '*orderp' and '*argp' to NULL.
  */
 
 #endif /* NAMED_SORTLIST_H */
