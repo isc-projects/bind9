@@ -187,6 +187,10 @@ SOURCE=.\time.c
 
 SOURCE=.\version.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\win32os.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -297,7 +301,7 @@ SOURCE=..\include\isc\interfaceiter.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\isc\ipv6.h
+SOURCE=.\include\isc\ipv6.h
 # End Source File
 # Begin Source File
 
@@ -386,6 +390,10 @@ SOURCE=..\include\isc\ondestroy.h
 # Begin Source File
 
 SOURCE=..\include\isc\os.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isc\parseint.h
 # End Source File
 # Begin Source File
 
@@ -511,6 +519,10 @@ SOURCE=..\include\isc\util.h
 
 SOURCE=..\..\..\versions.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\include\isc\win32os.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
@@ -617,6 +629,10 @@ SOURCE=..\ondestroy.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\parseint.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\quota.c
 # End Source File
 # Begin Source File
@@ -626,6 +642,10 @@ SOURCE=..\random.c
 # Begin Source File
 
 SOURCE=..\ratelimiter.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\region.c
 # End Source File
 # Begin Source File
 

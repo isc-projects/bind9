@@ -102,6 +102,10 @@ SOURCE=..\log.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\namedconf.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\parser.c
 # End Source File
 # Begin Source File
@@ -122,7 +126,15 @@ SOURCE=..\include\isccfg\check.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isccfg\grammar.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isccfg\log.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\isccfg\namedconf.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

@@ -77,9 +77,11 @@ CLEAN :
 	-@erase "$(INTDIR)\once.obj"
 	-@erase "$(INTDIR)\ondestroy.obj"
 	-@erase "$(INTDIR)\os.obj"
+	-@erase "$(INTDIR)\parseint.obj"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
+	-@erase "$(INTDIR)\region.obj"
 	-@erase "$(INTDIR)\resource.obj"
 	-@erase "$(INTDIR)\result.obj"
 	-@erase "$(INTDIR)\rwlock.obj"
@@ -100,6 +102,7 @@ CLEAN :
 	-@erase "$(INTDIR)\timer.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\version.obj"
+	-@erase "$(INTDIR)\win32os.obj"
 	-@erase "$(OUTDIR)\libisc.exp"
 	-@erase "$(OUTDIR)\libisc.lib"
 	-@erase "..\..\..\Build\Release\libisc.dll"
@@ -142,6 +145,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\thread.obj" \
 	"$(INTDIR)\time.obj" \
 	"$(INTDIR)\version.obj" \
+	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
@@ -178,7 +182,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj"
+	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\parseint.obj" \
+	"$(INTDIR)\region.obj"
 
 "..\..\..\Build\Release\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -275,12 +281,16 @@ CLEAN :
 	-@erase "$(INTDIR)\ondestroy.sbr"
 	-@erase "$(INTDIR)\os.obj"
 	-@erase "$(INTDIR)\os.sbr"
+	-@erase "$(INTDIR)\parseint.obj"
+	-@erase "$(INTDIR)\parseint.sbr"
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\quota.sbr"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\random.sbr"
 	-@erase "$(INTDIR)\ratelimiter.obj"
 	-@erase "$(INTDIR)\ratelimiter.sbr"
+	-@erase "$(INTDIR)\region.obj"
+	-@erase "$(INTDIR)\region.sbr"
 	-@erase "$(INTDIR)\resource.obj"
 	-@erase "$(INTDIR)\resource.sbr"
 	-@erase "$(INTDIR)\result.obj"
@@ -321,6 +331,8 @@ CLEAN :
 	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(INTDIR)\version.obj"
 	-@erase "$(INTDIR)\version.sbr"
+	-@erase "$(INTDIR)\win32os.obj"
+	-@erase "$(INTDIR)\win32os.sbr"
 	-@erase "$(OUTDIR)\libisc.bsc"
 	-@erase "$(OUTDIR)\libisc.exp"
 	-@erase "$(OUTDIR)\libisc.lib"
@@ -361,6 +373,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\thread.sbr" \
 	"$(INTDIR)\time.sbr" \
 	"$(INTDIR)\version.sbr" \
+	"$(INTDIR)\win32os.sbr" \
 	"$(INTDIR)\assertions.sbr" \
 	"$(INTDIR)\base64.sbr" \
 	"$(INTDIR)\bitstring.sbr" \
@@ -397,7 +410,9 @@ BSC32_SBRS= \
 	"$(INTDIR)\symtab.sbr" \
 	"$(INTDIR)\task.sbr" \
 	"$(INTDIR)\taskpool.sbr" \
-	"$(INTDIR)\timer.sbr"
+	"$(INTDIR)\timer.sbr" \
+	"$(INTDIR)\parseint.sbr" \
+	"$(INTDIR)\region.sbr"
 
 "$(OUTDIR)\libisc.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -433,6 +448,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\thread.obj" \
 	"$(INTDIR)\time.obj" \
 	"$(INTDIR)\version.obj" \
+	"$(INTDIR)\win32os.obj" \
 	"$(INTDIR)\assertions.obj" \
 	"$(INTDIR)\base64.obj" \
 	"$(INTDIR)\bitstring.obj" \
@@ -469,7 +485,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj"
+	"$(INTDIR)\timer.obj" \
+	"$(INTDIR)\parseint.obj" \
+	"$(INTDIR)\region.obj"
 
 "..\..\..\Build\Debug\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -899,6 +917,22 @@ SOURCE=.\version.c
 
 
 "$(INTDIR)\version.obj"	"$(INTDIR)\version.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=.\win32os.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\win32os.obj" : $(SOURCE) "$(INTDIR)"
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\win32os.obj"	"$(INTDIR)\win32os.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
@@ -1335,6 +1369,24 @@ SOURCE=..\ondestroy.c
 
 !ENDIF 
 
+SOURCE=..\parseint.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\parseint.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\parseint.obj"	"$(INTDIR)\parseint.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\quota.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
@@ -1384,6 +1436,24 @@ SOURCE=..\ratelimiter.c
 
 
 "$(INTDIR)\ratelimiter.obj"	"$(INTDIR)\ratelimiter.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\region.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\region.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\region.obj"	"$(INTDIR)\region.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

@@ -83,6 +83,7 @@ isc_file_absolutepath
 isc_fsaccess_add
 isc_fsaccess_remove
 isc_fsaccess_set
+isc_fsaccess_changeowner
 isc_hex_totext
 isc_hex_decodestring
 isc_hex_tobuffer
@@ -396,9 +397,20 @@ openlog
 syslog
 closelog
 isc_syslog_facilityfromstring
+NTReportError
 
 isc_file_truncate
 isc__strerror
+isc_parse_uint32
+isc_parse_uint16
+isc_parse_uint8
+isc_win32os_majorversion
+isc_win32os_minorversion
+isc_win32os_servicepackmajor
+isc_win32os_servicepackminor
+isc_socket_ipv6only
+isc_region_compare
+isc_socket_filter
 
 ; Exported Data
 

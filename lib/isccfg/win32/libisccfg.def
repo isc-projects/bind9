@@ -34,6 +34,8 @@ cfg_obj_istype
 cfg_obj_destroy
 cfg_obj_log
 cfg_log_init
+cfg_obj_line
+cfg_obj_file
 
 
 

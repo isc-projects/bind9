@@ -51,6 +51,7 @@ CLEAN :
 !ENDIF 
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\log.obj"
+	-@erase "$(INTDIR)\namedconf.obj"
 	-@erase "$(INTDIR)\parser.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\version.obj"
@@ -76,6 +77,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\log.obj" \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
+	"$(INTDIR)\namedconf.obj" \
 	"..\..\isc\win32\Release\libisc.lib"
 
 "..\..\..\Build\Release\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -110,6 +112,8 @@ CLEAN :
 	-@erase "$(INTDIR)\DLLMain.sbr"
 	-@erase "$(INTDIR)\log.obj"
 	-@erase "$(INTDIR)\log.sbr"
+	-@erase "$(INTDIR)\namedconf.obj"
+	-@erase "$(INTDIR)\namedconf.sbr"
 	-@erase "$(INTDIR)\parser.obj"
 	-@erase "$(INTDIR)\parser.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
@@ -134,7 +138,8 @@ BSC32_SBRS= \
 	"$(INTDIR)\DLLMain.sbr" \
 	"$(INTDIR)\log.sbr" \
 	"$(INTDIR)\parser.sbr" \
-	"$(INTDIR)\version.sbr"
+	"$(INTDIR)\version.sbr" \
+	"$(INTDIR)\namedconf.sbr"
 
 "$(OUTDIR)\libisccfg.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -150,6 +155,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\log.obj" \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
+	"$(INTDIR)\namedconf.obj" \
 	"..\..\isc\win32\Debug\libisc.lib"
 
 "..\..\..\Build\Debug\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -234,6 +240,24 @@ SOURCE=..\log.c
 
 !ENDIF 
 
+SOURCE=..\namedconf.c
+
+!IF  "$(CFG)" == "libisccfg - Win32 Release"
+
+
+"$(INTDIR)\namedconf.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
+
+
+"$(INTDIR)\namedconf.obj"	"$(INTDIR)\namedconf.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\parser.c
 
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
@@ -271,24 +295,24 @@ SOURCE=.\version.c
 !IF  "$(CFG)" == "libisccfg - Win32 Release"
 
 "libisc - Win32 Release" : 
-   cd "..\..\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" 
    cd "..\..\isccfg\win32"
 
 "libisc - Win32 ReleaseCLEAN" : 
-   cd "..\..\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Release" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
 !ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
 
 "libisc - Win32 Debug" : 
-   cd "..\..\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" 
    cd "..\..\isccfg\win32"
 
 "libisc - Win32 DebugCLEAN" : 
-   cd "..\..\isc\win32"
+   cd "\bind-9.3.0a04\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - Win32 Debug" RECURSE=1 CLEAN 
    cd "..\..\isccfg\win32"
 
