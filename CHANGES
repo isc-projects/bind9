@@ -1,4 +1,8 @@
 
+ 906.	[port]		Separated the system independent portion of
+			lib/isc/unix/entropy.c into lib/isc/entropy.c
+			and added lib/isc/win32/entropy.c.
+
  905.	[bug]		Configuring a forward "zone" for the root domain
 			did not work. [RT #1418]
 
