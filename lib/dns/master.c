@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.16 1999/03/24 00:29:54 halley Exp $ */
+ /* $Id: master.c,v 1.17 1999/04/25 22:18:11 marka Exp $ */
 
 #include <config.h>
 
@@ -575,7 +575,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 			len1 = region.length;
 			isc_buffer_init(&buffer, buf2, sizeof buf2,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_rdataclass_totext(rdclass, &buffer);
+			result = dns_rdataclass_totext(zclass, &buffer);
 			if (result != DNS_R_SUCCESS) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"dns_rdataclass_totext() failed: %s",
@@ -666,7 +666,7 @@ dns_master_load(char *master_file, dns_name_t *top, dns_name_t *origin,
 		/*
 		 * Read rdata contents.
 		 */
-		result = dns_rdata_fromtext(&rdata[rdcount], rdclass, type,
+		result = dns_rdata_fromtext(&rdata[rdcount], zclass, type,
 				   lex, &origin_name, ISC_FALSE, &target,
 				   callbacks);
 		if (result != DNS_R_SUCCESS)
