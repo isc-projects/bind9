@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: tests,v 1.13 2001/01/09 21:47:06 bwelling Exp $
+$Id: tests,v 1.14 2001/01/22 22:32:43 gson Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.
@@ -105,15 +105,23 @@ tree keep it from being completely deleted when the next test runs.
 The .nfs* files cannot be deleted, but they can be moved, so one way
 of fixing this is to move them to ~wpk.
 
+On aix, the tests routinely fail with an assertion failure related
+to omapi socket handling - see RT #507.
+
 
 * Failure locking
 
 When a test fails, further testing on that host is disabled in order
-to preserve evidence.  To remove the lockout and allow more tests to
-be run, log in to bb, su, su wpk, and remove the "failed" files:
+to preserve evidence. Also, tests don't start if they are already
+running.  Both of these rules are enforce through "lockout files"
+craeted in /proj/build-reports/bind9/hosts/*/.
+
+To remove the lockout and allow more tests to be run, log in to bb,
+su, su wpk, and remove any "failed" and "running" files:
 
    rm /proj/build-reports/bind9/hosts/*/failed
+   rm /proj/build-reports/bind9/hosts/*/running
 
-The failed file itself contains an exit code, which is not particularly
-useful.  The more useful information is in the various log files under
-the build report.
+The "failed" file contains the time of failure, which is not
+particularly useful.  The more useful information is in the various
+log files under the build report.
