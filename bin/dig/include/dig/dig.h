@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.43 2000/08/14 19:11:05 bwelling Exp $ */
+/* $Id: dig.h,v 1.44 2000/09/13 00:03:28 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -76,6 +76,7 @@ struct dig_lookup {
 		doing_xfr,
 		ns_search_only,
 		identify,
+		ignore,
 		recurse,
 		aaonly,
 		adflag,

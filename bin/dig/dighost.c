@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.120 2000/09/12 22:42:17 mws Exp $ */
+/* $Id: dighost.c,v 1.121 2000/09/13 00:03:27 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -281,6 +281,7 @@ make_empty_lookup(void) {
 	looknew->trace = ISC_FALSE;
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
+	looknew->ignore = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
@@ -331,6 +332,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->trace = lookold->trace;
 	looknew->trace_root = lookold->trace_root;
 	looknew->identify = lookold->identify;
+	looknew->ignore = lookold->ignore;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
         looknew->aaonly = lookold->aaonly;
@@ -1990,7 +1992,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_LOOKUP;
 			return;
 		}
-		if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
+		if (((msg->flags & DNS_MESSAGEFLAG_TC) != 0) 
+		    && ! l->ignore) {
 			printf(";; Truncated, retrying in TCP mode.\n");
 			n = requeue_lookup(l, ISC_TRUE);
 			n->tcp_mode = ISC_TRUE;
@@ -2286,7 +2289,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 		    (isc_sockaddr_pf(&query->sockaddr) !=
 		     isc_sockaddr_pf(&bind_address))) {
 			printf (";; Skipping server %s, incompatable "
-				"address family\n", &query->servname);
+				"address family\n", query->servname);
 			continue;
 			query->waiting_connect = ISC_FALSE;
 		}

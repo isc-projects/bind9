@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.90 2000/09/12 23:23:49 gson Exp $ */
+/* $Id: dig.c,v 1.91 2000/09/13 00:03:25 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -156,6 +156,8 @@ show_usage(void) {
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Set whether to use default domain)\n"
 "                 +[no]recursive      (Recursive mode)\n"
+"                 +[no]ignore         (Don't revert to TCP for TC responses.)"
+"\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
@@ -785,6 +787,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			lookup->identify = ISC_TRUE;
 		} else if (strncmp(rv[0], "+noid", 5) == 0) {
 			lookup->identify = ISC_FALSE;
+		} else if (strncmp(rv[0], "+i", 2) == 0) {
+			lookup->ignore = ISC_TRUE;
+		} else if (strncmp(rv[0], "+noi", 4) == 0) {
+			lookup->ignore = ISC_FALSE;
 		} else if (strncmp(rv[0], "+com", 4) == 0) {
 			lookup->comments = ISC_TRUE;
 			forcecomment = ISC_TRUE;
