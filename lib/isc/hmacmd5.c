@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: hmacmd5.c,v 1.1 2000/07/17 17:33:31 bwelling Exp $ */
+/* $Id: hmacmd5.c,v 1.2 2000/07/26 22:36:34 tale Exp $ */
 
 /*
  * This code implements the HMAC-MD5 keyed hash algorithm
@@ -27,6 +27,7 @@
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
 #include <isc/md5.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
