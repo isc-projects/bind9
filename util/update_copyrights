@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26 2001/07/30 23:45:03 gson Exp $
+# $Id: update_copyrights,v 1.26.206.1 2004/03/04 03:21:41 marka Exp $
 
 require 5.002;
 
@@ -221,10 +221,18 @@ while (<>) {
         print TARGET $before_copyright if $before_copyright;
         print TARGET $start_comment if $start_comment;
 
-        $years = "";
+        $sysyears = "";
+        $sftyears = "";
+        $nomyears = "";
+
+	#
+	# Internet Software Consortium: up to 2003
+	#
         $last_year = 0;
         $anchor_year = 0;
+	$years = "";
         foreach $year (@years) {
+		if ($year >= 2004) { next; }
                 if ($last_year != 0 && $year == $last_year + 1) {
                         if ($year > $anchor_year + 1) {
                                 substr($years, $anchor_end) = "-$year";
@@ -243,15 +251,78 @@ while (<>) {
 
                 $last_year = $year;
         }
+	$sftyears = $years;
 
-        ($firstline, $secondline, @otherlines) = @$textp;
+	#
+	# Nominum: up to 2001.
+	#
+        $last_year = 0;
+        $anchor_year = 0;
+	$years = "";
+        foreach $year (@years) {
+		if ($year >= 2002) { next; }
+                if ($last_year != 0 && $year == $last_year + 1) {
+                        if ($year > $anchor_year + 1) {
+                                substr($years, $anchor_end) = "-$year";
+                        } else {
+                                $years .= ", $year";
+                        }
+                } else {
+                        $years .= $last_year == 0 ? "$year" : ", $year";
+                        if ($anchor_year != 0) {
+                                print "$file: noncontiguous year: ",
+                                      "$year != $last_year + 1\n";
+                        }
+                        $anchor_year = $year;
+                        $anchor_end = length($years);
+                }
 
-        $firstline =~ s/\@YEARS\@/$years/;
-        $secondline =~ s/\@YEARS\@/$years/;
+                $last_year = $year;
+        }
+	$nomyears = $years;
+
+	#
+	# Internet Systems Consortium: 2004 onwards.
+	#
+        $last_year = 2004;
+        $anchor_year = 2004;
+	$years = "2004";
+	$anchor_end = length($years);
+        foreach $year (@years) {
+		if ($year < 2005) { next; }
+                if ($last_year != 0 && $year == $last_year + 1) {
+                        if ($year > $anchor_year + 1) {
+                                substr($years, $anchor_end) = "-$year";
+                        } else {
+                                $years .= ", $year";
+                        }
+                } else {
+                        $years .= $last_year == 0 ? "$year" : ", $year";
+                        if ($anchor_year != 0) {
+                                print "$file: noncontiguous year: ",
+                                      "$year != $last_year + 1\n";
+                        }
+                        $anchor_year = $year;
+                        $anchor_end = length($years);
+                }
+
+                $last_year = $year;
+        }
+	$sysyears = $years;
+
+        ($firstline, $secondline, $thirdline, @otherlines) = @$textp;
+
+        $firstline =~ s/\@SYSYEARS\@/$sysyears/;
+        $secondline =~ s/\@SFTYEARS\@/$sftyears/;
+        $thirdline =~ s/\@NOMYEARS\@/$nomyears/;
 
         print TARGET "$prefix$firstline";
-        print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
-	print TARGET "$secondline";
+	if ($sftyears ne "" ) {
+		print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
+		print TARGET "$secondline";
+	}
+        print TARGET $thirdline =~ /^$/ ? $nonspaceprefix : $prefix;
+	print TARGET "$thirdline";
 
         foreach $_ (@otherlines) {
                 print TARGET (/^$/ ? $nonspaceprefix : $prefix);
