@@ -278,6 +278,7 @@ msginitprivate(dns_message_t *m)
 	}
 	m->opt = NULL;
 	m->state = DNS_SECTION_ANY;  /* indicate nothing parsed or rendered */
+	m->opt_reserved = 0;
 	m->reserved = 0;
 	m->buffer = NULL;
 	m->need_cctx_cleanup = 0;
@@ -344,6 +345,21 @@ msgresetnames(dns_message_t *msg, unsigned int first_section) {
 	}
 }
 
+static void
+msgresetopt(dns_message_t *msg)
+{
+	if (msg->opt != NULL) {
+		if (msg->opt_reserved > 0) {
+			dns_message_renderrelease(msg, msg->opt_reserved);
+			msg->opt_reserved = 0;
+		}
+		INSIST(dns_rdataset_isassociated(msg->opt));
+		dns_rdataset_disassociate(msg->opt);
+		isc_mempool_put(msg->rdspool, msg->opt);
+		msg->opt = NULL;
+	}
+}
+
 /*
  * Free all but one (or everything) for this message.  This is used by
  * both dns_message_reset() and dns_message_parse().
@@ -357,13 +373,7 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 	dns_rdatalist_t *rdatalist;
 
 	msgresetnames(msg, 0);
-
-	if (msg->opt != NULL) {
-		INSIST(dns_rdataset_isassociated(msg->opt));
-		dns_rdataset_disassociate(msg->opt);
-		isc_mempool_put(msg->rdspool, msg->opt);
-		msg->opt = NULL;
-	}
+	msgresetopt(msg);
 
 	/*
 	 * Clean up linked lists.
@@ -1400,18 +1410,14 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer)
 	return (DNS_R_SUCCESS);
 }
 
-dns_result_t
+void
 dns_message_renderrelease(dns_message_t *msg, unsigned int space)
 {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
-
-	if (msg->reserved < space)
-		return (DNS_R_NOSPACE);
+	REQUIRE(space <= msg->reserved);
 
 	msg->reserved -= space;
-
-	return (DNS_R_SUCCESS);
 }
 
 dns_result_t
@@ -1573,7 +1579,6 @@ dns_message_renderend(dns_message_t *msg)
 	isc_buffer_t tmpbuf;
 	isc_region_t r;
 	int result;
-	dns_rdata_t rdata;
 	unsigned int count;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1590,13 +1595,8 @@ dns_message_renderend(dns_message_t *msg)
 	 * If we've got an OPT record, render it.
 	 */
 	if (msg->opt != NULL) {
-		result = dns_rdataset_first(msg->opt);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		dns_rdataset_current(msg->opt, &rdata);
-		result = dns_message_renderrelease(msg, 11 + rdata.length);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		dns_message_renderrelease(msg, msg->opt_reserved);
+		msg->opt_reserved = 0;
 		/*
 		 * Set the extended rcode.
 		 */
@@ -1927,6 +1927,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 		first_section = DNS_SECTION_QUESTION;
 	msg->from_to_wire = DNS_MESSAGE_INTENTRENDER;
 	msgresetnames(msg, first_section);
+	msgresetopt(msg);
 	msginitprivate(msg);
 	/*
 	 * We now clear most flags and then set QR, ensuring that the
@@ -1995,25 +1996,18 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 	REQUIRE(msg->buffer != NULL);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 
-	if (msg->opt != NULL) {
-		result = dns_rdataset_first(msg->opt);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		dns_rdataset_current(msg->opt, &rdata);
-		result = dns_message_renderrelease(msg, 11 + rdata.length);
-		INSIST(dns_rdataset_isassociated(msg->opt));
-		dns_rdataset_disassociate(msg->opt);
-		isc_mempool_put(msg->rdspool, msg->opt);
-		msg->opt = NULL;
-	}
+	msgresetopt(msg);
 
 	result = dns_rdataset_first(opt);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_rdataset_current(opt, &rdata);
-	result = dns_message_renderreserve(msg, 11 + rdata.length);
-	if (result != ISC_R_SUCCESS)
+	msg->opt_reserved = 11 + rdata.length;
+	result = dns_message_renderreserve(msg, msg->opt_reserved);
+	if (result != ISC_R_SUCCESS) {
+		msg->opt_reserved = 0;
 		return (result);
+	}
 
 	msg->opt = opt;
 
