@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9 2001/08/27 23:55:16 gson Exp $ */
+/* $Id: rndc-confgen.c,v 1.10 2001/09/05 22:32:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -230,6 +230,10 @@ main(int argc, char **argv) {
 
 	DO("create entropy context", isc_entropy_create(mctx, &ectx));
 
+	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
+		randomfile = NULL;
+		open_keyboard = ISC_ENTROPY_KEYBOARDYES;
+	}
 	DO("start entropy source", isc_entropy_usebestsource(ectx,
 							     &entropy_source,
 							     randomfile,
