@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.42 2001/03/06 18:17:52 bwelling Exp $ */
+/* $Id: parser.c,v 1.43 2001/03/06 19:13:01 gson Exp $ */
 
 #include <config.h>
 
@@ -3046,7 +3046,8 @@ parse_sockaddrsub(cfg_parser_t *pctx, cfg_type_t *type,
 	CHECK(create_cfgobj(pctx, type, &obj));
 	CHECK(get_addr(pctx, flags, &netaddr));
 	CHECK(cfg_peektoken(pctx, 0));
-	if (strcasecmp(pctx->token.value.as_pointer, "port") == 0) {
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(pctx->token.value.as_pointer, "port") == 0) {
 		CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 		CHECK(get_port(pctx, flags, &port));
 	}
@@ -3264,12 +3265,16 @@ parse_logfile(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
 			CHECK(cfg_gettoken(pctx, 0));		
-			if (strcasecmp(pctx->token.value.as_pointer, "versions") == 0 &&
+			if (strcasecmp(pctx->token.value.as_pointer,
+				       "versions") == 0 &&
 			    obj->value.tuple[1] == NULL) {
-				CHECK(parse(pctx, fields[1].type, &obj->value.tuple[1]));
-			} else if (strcasecmp(pctx->token.value.as_pointer, "size") == 0 &&
+				CHECK(parse(pctx, fields[1].type,
+					    &obj->value.tuple[1]));
+			} else if (strcasecmp(pctx->token.value.as_pointer,
+					      "size") == 0 &&
 				   obj->value.tuple[2] == NULL) {
-				CHECK(parse(pctx, fields[2].type, &obj->value.tuple[2]));
+				CHECK(parse(pctx, fields[2].type,
+					    &obj->value.tuple[2]));
 			} else {
 				break;
 			}
