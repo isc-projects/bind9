@@ -15,10 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.13 2000/06/22 21:57:37 tale Exp $ */
+/* $Id: ipv6.h,v 1.14 2000/07/01 01:41:53 tale Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
+
+/*
+ * Also define LWRES_IPV6_H to keep it from being included if liblwres is
+ * being used, or redefinition errors will occur.
+ */
+#define LWRES_IPV6_H 1
 
 /*****
  ***** Module Info
