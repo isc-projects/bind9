@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parseint.h,v 1.2.202.1 2003/08/11 04:48:07 marka Exp $ */
+/* $Id: parseint.h,v 1.2.202.2 2003/08/14 00:38:32 marka Exp $ */
 
 #ifndef ISC_PARSEINT_H
 #define ISC_PARSEINT_H 1
@@ -35,6 +35,12 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_parse_uint32(isc_uint32_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_uint16(isc_uint16_t *uip, const char *string, int base);
+
+isc_result_t
+isc_parse_uint8(isc_uint8_t *uip, const char *string, int base);
 /*
  * Parse the null-terminated string 'string' containing a base 'base'
  * integer, storing the result in '*uip'.  The base is interpreted
@@ -49,7 +55,7 @@ isc_parse_uint32(isc_uint32_t *uip, const char *string, int base);
  * Returns:
  *	ISC_R_SUCCESS
  *	ISC_R_BADNUMBER   The string is not numeric (in the given base)
- *	ISC_R_RANGE	  The number is not representable as an isc_uint32_t
+ *	ISC_R_RANGE	  The number is not representable as the requested type.
  */
 
 ISC_LANG_ENDDECLS
