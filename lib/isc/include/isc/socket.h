@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.9 1998/12/01 23:59:39 explorer Exp $ */
+/* $Id: socket.h,v 1.10 1998/12/04 11:21:11 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -155,7 +155,7 @@ isc_socket_create(isc_socketmgr_t manager,
 
 int
 isc_socket_cancel(isc_socket_t socket, isc_task_t task,
-		  int how);
+		  unsigned int how);
 /*
  * Cancel pending I/O of the type specified by "how".
  *
