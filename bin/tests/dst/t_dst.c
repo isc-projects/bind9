@@ -654,7 +654,7 @@ t2_vfy(char **av) {
 static void
 t2() {
 	int	result;
-	t_assert("dst", 3, T_REQUIRED, a2);
+	t_assert("dst", 2, T_REQUIRED, a2);
 	result = t_eval("dst_2_data", t2_vfy, 6);
 	t_result(result);
 }
