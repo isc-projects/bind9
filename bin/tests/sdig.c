@@ -67,12 +67,6 @@ check_result(isc_result_t result, char *msg) {
 }
 
 static void
-panic(char *where) {
-	perror(where);
-	exit(1);
-}
-
-static void
 usage() {
 	fprintf(stderr,
 		"usage: sdig [@server] [-p port] [+vc] name [type] [class]\n");
@@ -137,7 +131,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		result = printmessage(message);
 		check_result(result, "printmessage()");
 	} else if (sevent->result != ISC_R_CANCELED)
-		fatal("recv_done(): %s", isc_result_totext(result));
+		fatal("recv_done(): %s", isc_result_totext(sevent->result));
 	
 	isc_event_free(&event);
 	isc_app_shutdown();
@@ -151,7 +145,6 @@ send_done(isc_task_t *task, isc_event_t *event) {
 
 int
 main(int argc, char *argv[]) {
-	struct sockaddr_in sin;
 	char *server;
 	unsigned int port;
 	isc_boolean_t vc, have_name, have_type;
