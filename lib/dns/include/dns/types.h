@@ -27,17 +27,9 @@
  */
 
 #include <isc/region.h>
-#include <isc/boolean.h>
 
-#define DNS_TRUE				ISC_TRUE
-#define DNS_FALSE				ISC_FALSE
-
-typedef isc_boolean_t				dns_boolean_t;
-typedef isc_region_t				dns_region_t;
-typedef isc_textregion_t			dns_textregion_t;
-typedef dns_region_t				dns_label_t;
+typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
-typedef struct dns_lex				dns_lex_t;
 typedef struct dns_compression			dns_compression_t;
 typedef struct dns_decompression		dns_decompression_t;
 typedef unsigned int				dns_rdataclass_t;

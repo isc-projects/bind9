@@ -50,8 +50,8 @@ main(int argc, char *argv[]) {
 	unsigned int tbytes;
 	dns_result_t result;
 	dns_name_t name, oname, compname;
-	dns_textregion_t source, ttarget;
-	dns_region_t target, r;
+	isc_textregion_t source, ttarget;
+	isc_region_t target, r;
 	dns_name_t *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 

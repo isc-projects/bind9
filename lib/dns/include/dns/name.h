@@ -72,6 +72,8 @@
  *** Imports
  ***/
 
+#include <isc/boolean.h>
+
 #include <dns/types.h>
 #include <dns/result.h>
 
@@ -197,7 +199,7 @@ void dns_name_init(dns_name_t *name);
  *** Properties
  ***/
 
-dns_boolean_t dns_name_isabsolute(dns_name_t *name);
+isc_boolean_t dns_name_isabsolute(dns_name_t *name);
 /*
  * Does 'name' end in the root label?
  *
@@ -236,7 +238,7 @@ int dns_name_compare(dns_name_t *name1, dns_name_t *name2);
  *	1		'name1' is greater than 'name2'
  */
 
-dns_boolean_t
+isc_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2);
 /*
  * Is 'name1' a subdomain of 'name2'?
@@ -328,7 +330,7 @@ void dns_name_getlabelsequence(dns_name_t *source,
  *** Conversions
  ***/
 
-void dns_name_fromregion(dns_name_t *name, dns_region_t *r);
+void dns_name_fromregion(dns_name_t *name, isc_region_t *r);
 /*
  * Make 'name' refer to region 'r'.
  *
@@ -343,7 +345,7 @@ void dns_name_fromregion(dns_name_t *name, dns_region_t *r);
  *	The length of 'r' is <= 255.
  */
 
-void dns_name_toregion(dns_name_t *name, dns_region_t *r);
+void dns_name_toregion(dns_name_t *name, isc_region_t *r);
 /*
  * Make 'r' refer to 'name'.
  *
@@ -355,10 +357,10 @@ void dns_name_toregion(dns_name_t *name, dns_region_t *r);
  */
 
 dns_result_t dns_name_fromwire(dns_name_t *name,
-			       dns_region_t *source,
+			       isc_region_t *source,
 			       dns_decompression_t *dctx,
-			       dns_boolean_t downcase,
-			       dns_region_t *target);
+			       isc_boolean_t downcase,
+			       isc_region_t *target);
 /*
  * Copy the possibly-compressed name at source into target, decompressing it.
  *
@@ -407,7 +409,7 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
 
 dns_result_t dns_name_towire(dns_name_t *name,
 			     dns_compression_t *cctx,
-			     dns_region_t *target, unsigned int *bytesp);
+			     isc_region_t *target, unsigned int *bytesp);
 /*
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -441,10 +443,10 @@ dns_result_t dns_name_towire(dns_name_t *name,
  */
 
 dns_result_t dns_name_fromtext(dns_name_t *name,
-			       dns_textregion_t *source,
+			       isc_textregion_t *source,
 			       dns_name_t *origin,
-			       dns_boolean_t downcase,
-			       dns_region_t *target);
+			       isc_boolean_t downcase,
+			       isc_region_t *target);
 /*
  * Convert the textual representation of a DNS name at source
  * into uncompressed wire form stored in target.
@@ -488,8 +490,8 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  */
 
 dns_result_t dns_name_totext(dns_name_t *name,
-			     dns_boolean_t omit_final_dot,
-			     dns_textregion_t *target, unsigned int *bytesp);
+			     isc_boolean_t omit_final_dot,
+			     isc_textregion_t *target, unsigned int *bytesp);
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	
