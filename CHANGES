@@ -1,3 +1,5 @@
+1019.	[bug]		The value of the lame-ttl option was limited to 18000
+			seconds, not 1800 seconds as documented. [RT #1803]
 
 1016.	[bug]		Slave zones with no backup file were re-transferred
 			on every server reload.
