@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.c,v 1.1 1999/05/18 17:46:58 bwelling Exp $ */
+ /* $Id: base64.c,v 1.2 1999/05/19 01:17:14 marka Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,6 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 		options |= ISC_LEXOPT_QSTRING;
 	else if (expect == isc_tokentype_number)
 		options |= ISC_LEXOPT_NUMBER;
-	result = isc_lex_gettoken(lexer, options, token);
 	result = isc_lex_gettoken(lexer, options, token);
 	switch (result) {
 	case ISC_R_SUCCESS:
