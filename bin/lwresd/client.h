@@ -23,17 +23,20 @@
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netaddr.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 
 #include <dns/adb.h>
+#include <dns/byaddr.h>
 #include <dns/cache.h>
 #include <dns/db.h>
-#include <dns/master.h>
 #include <dns/fixedname.h>
-#include <dns/name.h>
 #include <dns/log.h>
+#include <dns/master.h>
+#include <dns/name.h>
+#include <dns/view.h>
 
 #define LWRD_EVENTCLASS		ISC_EVENTCLASS(4242)
 
@@ -78,6 +81,9 @@ struct client_s {
 	 * gnba (get name by address) state info.
 	 */
 	lwres_gnbaresponse_t	gnba;
+	dns_byaddr_t	       *byaddr;
+	unsigned int		options;
+	isc_netaddr_t		na;
 
 	/*
 	 * Alias and address info.  This is copied up to the gabn/gnba
@@ -153,6 +159,7 @@ struct client_s {
 #define CLIENT_SETSENDDONE(c)	((c)->state = CLIENT_STATE_SENDDONE)
 
 struct clientmgr_s {
+	isc_mem_t	       *mctx;
 	isc_task_t	       *task;		/* owning task */
 	isc_socket_t	       *sock;		/* socket to use */
 	dns_view_t	       *view;

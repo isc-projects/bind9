@@ -25,29 +25,29 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/app.h>
 #include <isc/assertions.h>
+#include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
+#include <isc/mutex.h>
+#include <isc/net.h>
+#include <isc/netaddr.h>
+#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
-#include <isc/app.h>
-#include <isc/mutex.h>
-#include <isc/boolean.h>
-#include <isc/net.h>
-#include <isc/socket.h>
 #include <isc/util.h>
-#include <isc/netaddr.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/cache.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
-#include <dns/resolver.h>
-#include <dns/events.h>
-#include <dns/dispatch.h>
 #include <dns/byaddr.h>
+#include <dns/cache.h>
+#include <dns/dispatch.h>
+#include <dns/events.h>
+#include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/resolver.h>
+#include <dns/result.h>
+#include <dns/types.h>
 #include <dns/view.h>
 
 static void

@@ -272,7 +272,7 @@ add_alias(client_t *client)
 	/*
 	 * Save this name away as the current real name.
 	 */
-	client->gabn.realname = (char *) b.base + b.used;
+	client->gabn.realname = (char *)(b.base) + b.used;
 	client->gabn.realnamelen = client->recv_buffer.used - b.used;
 
 	return (ISC_R_SUCCESS);
@@ -533,7 +533,8 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 		goto out;
 
 	client->find_wanted = req->addrtypes;
-	DP(50, "Client %p looking for addrtypes %08x", client, client->find_wanted);
+	DP(50, "Client %p looking for addrtypes %08x",
+	   client, client->find_wanted);
 
 	/*
 	 * We no longer need to keep this around.

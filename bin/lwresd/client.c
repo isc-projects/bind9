@@ -350,4 +350,7 @@ client_init_gnba(client_t *client)
 	client->gnba.aliaslen = client->aliaslen;
 	client->gnba.base = NULL;
 	client->gnba.baselen = NULL;
+
+	isc_buffer_init(&client->recv_buffer, client->buffer,
+			LWRES_RECVLENGTH, ISC_BUFFERTYPE_TEXT);
 }
