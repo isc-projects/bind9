@@ -119,6 +119,28 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	(rdataset->methods->current)(rdataset, rdata);
 }
 
+static char *tabs = "\t\t\t\t\t\t\t\t\t\t";
+
+static inline int
+tabs_needed(unsigned int current_offset, unsigned int desired_offset) {
+	unsigned int needed;
+	unsigned int spaces;
+
+	/*
+	 * Assumes tabs are 8 characters.
+	 */
+
+	if (current_offset >= desired_offset)
+		return (1);
+	spaces = desired_offset - current_offset;
+	needed = spaces / 8;
+	if (spaces % 8 != 0)
+		needed++;
+	if (needed > 10)
+		needed = 10;
+	return (needed);
+}
+
 dns_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
@@ -126,8 +148,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    isc_buffer_t *target)
 {
 	dns_result_t result;
-	unsigned int common_start, common_length, length;
-	char *common, *tabs;
+	unsigned int common_start, common_length, length, ntabs;
+	char *common;
 	dns_rdata_t rdata;
 	isc_boolean_t first = ISC_TRUE;
 	isc_region_t r;
@@ -147,8 +169,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	common_start = 0;
 	common_length = 0;
 	common = NULL;
-	tabs = NULL;
 	length = 0;
+	ntabs = 0;
 
 	/*
 	 * XXX Explicit buffer structure references here.  Improve buffer
@@ -172,22 +194,13 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 			}
 			common_length = target->used - common_start;
 			common = (char *)target->base + common_start;
-			if (common_length >= 16) {
-				tabs = "\t";
-				length = 1;
-			} else if (common_length >= 8) {
-				tabs = "\t\t";
-				length = 2;
-			} else {
-				tabs = "\t\t\t";
-				length = 3;
-			}
+			ntabs = tabs_needed(common_length, 24);
 			isc_buffer_available(target, &r);
-			if (r.length < length)
+			if (r.length < ntabs)
 				return (DNS_R_NOSPACE);
-			memcpy(r.base, tabs, length);
-			isc_buffer_add(target, length);
-			common_length += length;
+			memcpy(r.base, tabs, ntabs);
+			isc_buffer_add(target, ntabs);
+			common_length += ntabs;
 			/*
 			 * XXX We print the class and type as numbers
 			 * for now, but we'll convert to the mnemonics when
@@ -196,14 +209,18 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 			 * XXX The following sprintf() is safe, but it
 			 * would still be good to use snprintf if we had it.
 			 */
-			length = sprintf(classtypettl, "%u %u %u  ",
+			length = sprintf(classtypettl, "%u %u %u",
 					 rdataset->class, rdataset->type,
 					 rdataset->ttl);
 			INSIST(length <= sizeof classtypettl);
+			ntabs = tabs_needed(common_length, 40);
 			isc_buffer_available(target, &r);
-			if (r.length < length)
+			if (r.length < length + ntabs)
 				return (DNS_R_NOSPACE);
 			memcpy(r.base, classtypettl, length);
+			r.base += length;
+			memcpy(r.base, tabs, ntabs);
+			length += ntabs;
 			isc_buffer_add(target, length);
 			common_length += length;
 			first = ISC_FALSE;
@@ -216,10 +233,12 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		}
 
 		dns_rdataset_current(rdataset, &rdata);
-		/*
-		 * XXX Call dns_rdata_towire() here.
-		 */
-
+/* XXX */
+#if 0
+		result = dns_rdata_totext(&rdata, NULL, target);
+		if (result != DNS_R_SUCCESS)
+			return (result);
+#endif
 		isc_buffer_available(target, &r);
 		if (r.length < 1)
 			return (DNS_R_NOSPACE);
