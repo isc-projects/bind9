@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.2 2000/07/10 19:11:34 bwelling Exp $ */
+/* $Id: dig.c,v 1.51.2.3 2000/07/12 00:21:56 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -644,6 +644,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			timeout = atoi(&rv[0][6]);
 			if (timeout <= 0)
 				timeout = 1;
+			debug ("timeout set to %d", timeout);
+		} else if (strncmp(rv[0], "+timeout=", 9) == 0) {
+			/* Global option always */
+			timeout = atoi(&rv[0][9]);
+			if (timeout <= 0)
+				timeout = 1;
+			debug ("timeout set to %d", timeout);
 		} else if (strncmp(rv[0], "+tries=", 7) == 0) {
 			if (have_host) {
 				lookup->retries = atoi(&rv[0][7]);
