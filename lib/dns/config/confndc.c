@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.23 2000/07/27 09:47:07 tale Exp $ */
+/* $Id: confndc.c,v 1.24 2000/07/28 19:33:29 gson Exp $ */
 
 /*
 **	options {
@@ -68,7 +68,6 @@ typedef struct  {
 	isc_symtab_t	       *thekeywords;
 	int			errors;
 	int			warnings;
-	isc_boolean_t		debug_lexer;
 
 	dns_c_ndcctx_t	       *thecontext;
 
@@ -1381,7 +1380,6 @@ parser_setup(ndcpcontext *pctx, isc_mem_t *mem, const char *filename) {
 	pctx->thecontext = NULL;
 	pctx->errors = 0;
 	pctx->warnings = 0;
-	pctx->debug_lexer = ISC_FALSE;
 
 	pctx->prevtok = pctx->currtok = 0;
 
