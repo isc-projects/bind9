@@ -24,7 +24,9 @@
 			address when a nameserver was specified by name.
 			[RT #12286]
 
-1713.	[placeholder]	rt12375
+1713.	[port]		linux: extend capset failure message to say:
+			please ensure that the capset kernel module is
+			loaded.  see insmod(8)
 
 1712.	[bug]		Missing FULLCHECK for "trusted-key" in dig.
 
