@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.162.2.5 2001/05/01 23:38:54 gson Exp $ */
+/* $Id: adb.c,v 1.162.2.6 2001/05/02 17:52:14 gson Exp $ */
 
 /*
  * Implementation notes
@@ -345,6 +345,7 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define NAME_IS_DEAD		0x40000000
 #define NAME_HINT_OK		DNS_ADBFIND_HINTOK
 #define NAME_GLUE_OK		DNS_ADBFIND_GLUEOK
+#define NAME_STARTATROOT	DNS_ADBFIND_STARTATROOT
 #define NAME_DEAD(n)		(((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n)	(((n)->flags & NAME_NEEDS_POKE) != 0)
 #define NAME_GLUEOK(n)		(((n)->flags & NAME_GLUE_OK) != 0)
@@ -409,6 +410,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define GLUE_OK(nf, o) (!NAME_GLUEOK(nf) || (((o) & DNS_ADBFIND_GLUEOK) != 0))
 #define HINT_OK(nf, o) (!NAME_HINTOK(nf) || (((o) & DNS_ADBFIND_HINTOK) != 0))
 #define GLUEHINT_OK(nf, o) (GLUE_OK(nf, o) || HINT_OK(nf, o))
+#define STARTATROOT_MATCHES(nf, o) (((nf)->flags & NAME_STARTATROOT) == \
+				    ((o) & DNS_ADBFIND_STARTATROOT))
 
 #define ENTER_LEVEL		50
 #define EXIT_LEVEL		ENTER_LEVEL
@@ -1769,7 +1772,8 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name,
 	while (adbname != NULL) {
 		if (!NAME_DEAD(adbname)) {
 			if (dns_name_equal(name, &adbname->name)
-			    && GLUEHINT_OK(adbname, options))
+			    && GLUEHINT_OK(adbname, options)
+			    && STARTATROOT_MATCHES(adbname, options))
 				return (adbname);
 		}
 		adbname = ISC_LIST_NEXT(adbname, plink);
@@ -2528,6 +2532,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			adbname->flags |= NAME_HINT_OK;
 		if (FIND_GLUEOK(find))
 			adbname->flags |= NAME_GLUE_OK;
+		if (FIND_STARTATROOT(find))
+			adbname->flags |= NAME_STARTATROOT;
 	}
 
 	/*
@@ -3738,6 +3744,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t *nameservers;
+	unsigned int options;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3751,6 +3758,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	nameservers = NULL;
 	dns_rdataset_init(&rdataset);
 
+	options = 0;
 	if (start_at_root) {
 		DP(50, "fetch_name_v4: starting at DNS root for name %p",
 		   adbname);
@@ -3760,6 +3768,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;
+		options |= DNS_FETCHOPT_UNSHARED;
 	}
 
 	fetch = new_adbfetch(adb);
@@ -3770,7 +3779,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a,
-					  name, nameservers, NULL, 0,
+					  name, nameservers, NULL, options,
 					  adb->task, fetch_callback,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
@@ -3837,6 +3846,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
 	dns_rdataset_t *nameservers;
+	unsigned int options;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3850,6 +3860,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	nameservers = NULL;
 	dns_rdataset_init(&rdataset);
 
+	options = 0;
 	if (start_at_root) {
 		DP(50, "fetch_name_a6: starting at DNS root for name %p",
 		   adbname);
@@ -3859,6 +3870,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;
+		options |= DNS_FETCHOPT_UNSHARED;
 	}
 
 	fetch = new_adbfetch6(adb, adbname, NULL);
@@ -3870,7 +3882,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  dns_rdatatype_a6,
-					  name, nameservers, NULL, 0,
+					  name, nameservers, NULL, options,
 					  adb->task, fetch_callback_a6,
 					  adbname, &fetch->rdataset, NULL,
 					  &fetch->fetch);
