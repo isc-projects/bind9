@@ -1,6 +1,10 @@
 
+ 932.	[bug]		Use INSTALL_SCRIPT, not INSTALL_PROGRAM,
+			when installing isc-config.sh.
+			[RT #198, #1466]
+
  931.	[bug]		The controls statement only attempted to verify
- 			messages using the first key in the key list.
+			messages using the first key in the key list.
 			(9.2.0a1/a2 only).
 
  930.	[func]		Query performance testing tool added as
@@ -9,7 +13,7 @@
  929.	[placeholder]
 
  928.	[bug]		nsupdate would send empty update packets if the
- 			send (or empty line) command was run after
+			send (or empty line) command was run after
 			another send but before any new updates or
 			prerequisites were specified.  It should simply
 			ignore this command.
