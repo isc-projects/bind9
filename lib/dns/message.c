@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.158 2000/11/14 23:29:51 bwelling Exp $ */
+/* $Id: message.c,v 1.159 2000/11/22 23:09:58 gson Exp $ */
 
 /***
  *** Imports
@@ -1458,14 +1458,12 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	isc_result_t ret;
 	isc_uint16_t tmpflags;
 	isc_buffer_t origsource;
-	isc_boolean_t best_effort;
 	isc_boolean_t seen_problem;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(source != NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
-	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
 	seen_problem = ISC_FALSE;
 
 	origsource = *source;
@@ -1532,16 +1530,10 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 	isc_buffer_remainingregion(source, &r);
 	if (r.length != 0) {
-		if (r.length == 2 && r.base[0] == 'M' && r.base[1] == 'S') {
-			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MESSAGE, ISC_LOG_INFO,
-				      "message has nonstandard Microsoft tag");
-		} else {
-			if (best_effort)
-				seen_problem = ISC_TRUE;
-			else
-				return (DNS_R_FORMERR);
-		}
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MESSAGE, ISC_LOG_DEBUG(1),
+			      "message has %u byte(s) of trailing garbage",
+			      r.length);
 	}
 
 	msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
