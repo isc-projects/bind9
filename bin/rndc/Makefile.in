@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.27 2001/06/27 06:32:20 bwelling Exp $
+# $Id: Makefile.in,v 1.28 2001/07/26 20:08:03 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -61,7 +61,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 rndc.@O@: rndc.c
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} ${RNDCINCLUDES} \
 		-DVERSION=\"${VERSION}\" \
-		-DRNDC_SYSCONFDIR=\"${sysconfdir}\" \
+		-DRNDC_CONFFILE=\"${sysconfdir}/rndc.conf\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" -c ${srcdir}/rndc.c
 
 rndc-confgen.@O@: rndc-confgen.c
