@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.3 2001/07/09 21:06:12 gson Exp $ */
+/* $Id: net.c,v 1.4 2001/11/21 05:07:25 mayer Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/once.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -41,10 +42,13 @@ static isc_result_t
 try_proto(int domain) {
 	int s;
 	isc_result_t result = ISC_R_SUCCESS;
+	char strbuf[ISC_STRERRORSIZE];
+	int errval;
 
 	s = socket(domain, SOCK_STREAM, 0);
 	if (s == -1) {
-		switch (WSAGetLastError()) {
+		errval = WSAGetLastError();
+		switch (errval) {
 		case WSAEAFNOSUPPORT:
 		case WSAEPROTONOSUPPORT:
 #ifdef EINVAL
@@ -52,13 +56,14 @@ try_proto(int domain) {
 #endif
 			return (ISC_R_NOTFOUND);
 		default:
+			isc__strerror(errval, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_GENERAL,
 							ISC_MSG_FAILED,
 							"failed"),
-					 strerror(errno));
+					 strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 	}

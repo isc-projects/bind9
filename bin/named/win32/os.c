@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.10 2001/11/18 03:03:42 mayer Exp $ */
+/* $Id: os.c,v 1.11 2001/11/21 05:07:23 mayer Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -33,6 +33,7 @@
 
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/ntpaths.h>
 
@@ -164,6 +165,7 @@ ns_os_writepidfile(const char *filename) {
 	FILE *lockfile;
 	size_t len;
 	pid_t pid;
+	char strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * The caller must ensure any required synchronization.
@@ -176,19 +178,22 @@ ns_os_writepidfile(const char *filename) {
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
 	if (pidfile == NULL)
+		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't malloc '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
 	/* This is safe. */
 	strcpy(pidfile, filename);
 
         fd = safe_open(filename, ISC_FALSE);
         if (fd < 0)
+		isc__strerror(errno, strbuf, sizeof(strbuf));
                 ns_main_earlyfatal("couldn't open pid file '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
         lockfile = fdopen(fd, "w");
         if (lockfile == NULL)
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
-				   filename, strerror(errno));
+				   filename, strbuf);
 
 		pid = getpid();
         if (fprintf(lockfile, "%ld\n", (long)pid) < 0)
