@@ -29,7 +29,7 @@
 #include <dns/db.h>
 
 dns_result_t
-dns_rbtdb_create(isc_mem_t *mctx, isc_boolean_t is_cache,
+dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t is_cache,
 		 dns_rdataclass_t class, unsigned int argc, char *argv[],
 		 dns_db_t **dbp);
 
