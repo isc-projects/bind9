@@ -267,7 +267,8 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 		next_event = ISC_LIST_NEXT(event, link);
 		task = event->sender;
 		event->sender = fctx;
-		event->result = result;
+		if (result != ISC_R_SUCCESS)
+			event->result = result;
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
 	ISC_LIST_INIT(fctx->events);
@@ -995,12 +996,500 @@ same_question(fetchctx_t *fctx) {
 	return (ISC_R_SUCCESS);
 }
 
+#define CACHE(r)	(((r)->attributes & DNS_RDATASETATTR_CACHE) != 0)
+#define ANSWER(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWER) != 0)
+#define ANSWERSIG(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
+#define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
+
+static inline isc_result_t
+cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
+	dns_rdataset_t *rdataset, *addedrdataset, *ardataset, *asigrdataset;
+	dns_dbnode_t *node, **anodep;
+	dns_db_t **adbp;
+	dns_fixedname_t foundname;
+	dns_name_t *fname, *aname;
+	dns_resolver_t *res;
+	void *data;
+	isc_boolean_t need_validation;
+	isc_result_t result;
+	dns_fetchevent_t *event;
+
+	/*
+	 * The appropriate bucket lock must be held.
+	 */
+
+	res = fctx->res;
+	need_validation = ISC_FALSE;
+
+	/*
+	 * Is DNSSEC validation required for this name?
+	 */
+	dns_fixedname_init(&foundname);
+	fname = dns_fixedname_name(&foundname);
+	data = NULL;
+	result = dns_rbt_findname(res->view->secroots, name, fname, &data);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		/*
+		 * This name is at or below one of the view's security roots,
+		 * so DNSSEC validation is required.
+		 */
+		need_validation = ISC_TRUE;
+	} else if (result != ISC_R_NOTFOUND) {
+		/*
+		 * Something bad happened.
+		 */
+		return (result);
+	}
+
+	adbp = NULL;
+	aname = NULL;
+	anodep = NULL;
+	ardataset = NULL;
+	asigrdataset = NULL;
+	if ((name->attributes & DNS_NAMEATTR_ANSWER) != 0) {
+		event = ISC_LIST_HEAD(fctx->events);
+		if (event != NULL) {
+			adbp = &event->db;
+			aname = dns_fixedname_name(&event->foundname);
+			result = dns_name_concatenate(name, NULL, aname, NULL);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+			anodep = &event->node;
+			if (fctx->type != dns_rdatatype_any &&
+			    fctx->type != dns_rdatatype_sig) {
+				ardataset = event->rdataset;
+				asigrdataset = event->sigrdataset;
+			}
+		}
+	}
+
+	/*
+	 * Find or create the cache node.
+	 */
+	node = NULL;
+	result = dns_db_findnode(res->view->cachedb,
+				 name, ISC_TRUE,
+				 &node);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * Cache or validate each cacheable rdataset.
+	 */
+	for (rdataset = ISC_LIST_HEAD(name->list);
+	     rdataset != NULL;
+	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		if (!CACHE(rdataset))
+			continue;
+		if (need_validation) {
+			INSIST(0);
+		} else if (!EXTERNAL(rdataset)) {
+			/*
+			 * It's OK to cache this rdataset now.
+			 */
+			if (ANSWER(rdataset))
+				addedrdataset = ardataset;
+			else
+				addedrdataset = NULL;
+			result = dns_db_addrdataset(res->view->cachedb,
+						    node, NULL, now,
+						    rdataset,
+						    ISC_FALSE,
+						    addedrdataset);
+			if (result != ISC_R_SUCCESS)
+				break;
+		}
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		if (adbp != NULL) {
+			dns_db_attach(res->view->cachedb, adbp);
+			*anodep = node;
+		}
+		/*
+		 * XXXRTH  clone rdatasets to other events.
+		 */
+	} else
+		dns_db_detachnode(res->view->cachedb, &node);
+
+	return (result);
+}
+
+static inline isc_result_t
+cache_message(fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_section_t section;
+	dns_name_t *name;
+	isc_stdtime_t now;
+
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+
+	for (section = DNS_SECTION_ANSWER;
+	     section <= DNS_SECTION_ADDITIONAL;
+	     section++) {
+		result = dns_message_firstname(fctx->rmessage, section);
+		while (result == ISC_R_SUCCESS) {
+			name = NULL;
+			dns_message_currentname(fctx->rmessage, section,
+						&name);
+			if ((name->attributes & DNS_NAMEATTR_CACHE) != 0) {
+				result = cache_name(fctx, name, now);
+				if (result != ISC_R_SUCCESS)
+					break;
+			}
+			result = dns_message_nextname(fctx->rmessage, section);
+		}
+		if (result != ISC_R_NOMORE)
+			break;
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+
+	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+
+	return (result);
+}
+
+static inline void
+mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
+	     isc_boolean_t external)
+{
+	name->attributes |= DNS_NAMEATTR_CACHE;
+	rdataset->trust = dns_trust_additional;
+	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
+	if (external)
+		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
+}
+
+static isc_result_t
+check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
+	fetchctx_t *fctx = arg;
+	isc_result_t result;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	isc_boolean_t external;
+	dns_rdatatype_t rtype;
+
+	REQUIRE(VALID_FCTX(fctx));
+
+	name = NULL;
+	rdataset = NULL;
+	result = dns_message_findname(fctx->rmessage, DNS_SECTION_ADDITIONAL,
+				      addname, dns_rdatatype_any, 0, &name,
+				      NULL);
+	if (result == ISC_R_SUCCESS) {
+		external = !dns_name_issubdomain(name, &fctx->domain);
+		if (type == dns_rdatatype_a) {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if (rdataset->type == dns_rdatatype_sig)
+					rtype = rdataset->covers;
+				else
+					rtype = rdataset->type;
+				if (rtype == dns_rdatatype_a ||
+				    rtype == dns_rdatatype_aaaa ||
+				    rtype == dns_rdatatype_a6)
+					mark_related(name, rdataset, external);
+				/*
+				 * XXXRTH  Need to do a controlled recursion
+				 *	   on the A6 prefix names to mark
+				 *	   any additional data related to them.
+				 *
+				 *	   Ick.
+				 */
+			}
+		} else {
+			result = dns_message_findtype(name, type, 0,
+						      &rdataset);
+			if (result == ISC_R_SUCCESS) {
+				mark_related(name, rdataset, external);
+				/*
+				 * Do we have its SIG too?
+				 */
+				result = dns_message_findtype(name,
+						      dns_rdatatype_sig,
+						      type, &rdataset);
+				if (result == ISC_R_SUCCESS)
+					mark_related(name, rdataset, external);
+			}
+		}
+		/*
+		 * XXXRTH  Some other stuff still needs to be marked.
+		 *         See query.c.
+		 */
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
+answer_response(fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_message_t *message;
+	dns_name_t *name, *qname;
+	dns_rdataset_t *rdataset;
+	isc_boolean_t done, external, chaining, aa, found;
+	unsigned int aflag;
+
+	message = fctx->rmessage;
+
+	/*
+	 * Examine the answer section, marking those rdatasets which are
+	 * part of the answer and should be cached.
+	 */
+
+	done = ISC_FALSE;
+	chaining = ISC_FALSE;
+	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
+		aa = ISC_TRUE;
+	else
+		aa = ISC_FALSE;
+	qname = &fctx->name;
+	result = dns_message_firstname(message, DNS_SECTION_ANSWER);
+	while (!done && result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
+		external = !dns_name_issubdomain(name, &fctx->domain);
+		if (dns_name_equal(name, qname)) {
+
+			/*
+			 * XXXRTH  CNAME check.
+			 */
+#if 0
+			if (cname) {
+				qname = name;
+				chaining = ISC_TRUE;
+			}
+#endif
+
+			aflag = 0;
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				found = ISC_FALSE;
+				if (rdataset->type == fctx->type ||
+				    fctx->type == dns_rdatatype_any) {
+					/*
+					 * We've found an ordinary answer.
+					 */
+					found = ISC_TRUE;
+					done = ISC_TRUE;
+					aflag = DNS_RDATASETATTR_ANSWER;
+				} else if (rdataset->type == dns_rdatatype_sig
+					   && rdataset->covers == fctx->type) {
+					/*
+					 * We've found a signature that
+					 * covers the type we're looking for.
+					 */
+					found = ISC_TRUE;
+					aflag = DNS_RDATASETATTR_ANSWERSIG;
+				}
+
+				if (found) {
+					/*
+					 * We've found an answer to our
+					 * question.
+					 */
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+					rdataset->trust = dns_trust_answer;
+					if (!chaining) {
+						/*
+						 * This data is "the" answer
+						 * to our question only if
+						 * we're not chaining (i.e.
+						 * if we haven't followed
+						 * a CNAME or DNAME).
+						 */
+						INSIST(!external);
+						name->attributes |=
+							DNS_NAMEATTR_ANSWER;
+						rdataset->attributes |= aflag;
+						if (aa)
+							rdataset->trust =
+							  dns_trust_authanswer;
+					} else if (external) {
+						/*
+						 * This data is outside of
+						 * our query domain, and
+						 * may only be cached if it
+						 * comes from a secure zone
+						 * and validates.
+						 */
+						rdataset->attributes |=
+						    DNS_RDATASETATTR_EXTERNAL;
+					}
+
+					/*
+					 * Mark any additional data related
+					 * to this rdataset.
+					 */
+					(void)dns_rdataset_additionaldata(
+							rdataset,
+							check_related,
+							fctx);
+					/*
+					 * A6 special cases...
+					 */
+					if (rdataset->type ==
+					    dns_rdatatype_a6) {
+						check_related(fctx, name,
+						      dns_rdatatype_a);
+						check_related(fctx, name,
+						      dns_rdatatype_aaaa);
+					}
+				}
+				/*
+				 * We could add an "else" clause here and
+				 * log that we're ignoring this rdataset.
+				 */
+			}
+		} else {
+			/*
+			 * Either this is a DNAME or we've got junk.
+			 */
+		}
+		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
+	}
+	if (result != ISC_R_NOMORE)
+		return (result);
+
+	/*
+	 * Examine the authority section (if there is one).
+	 *
+	 * We expect there to be only one owner name for all the rdatasets
+	 * in this section, and we expect that it is not external.
+	 */
+
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	while (!done && result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		external = !dns_name_issubdomain(name, &fctx->domain);
+		if (!external) {
+			/*
+			 * We expect to find NS or SIG NS rdatasets, and
+			 * nothing else.
+			 */
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if (rdataset->type == dns_rdatatype_ns ||
+				    (rdataset->type == dns_rdatatype_sig &&
+				     rdataset->covers == dns_rdatatype_ns)) {
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+					if (aa)
+						rdataset->trust =
+						    dns_trust_authauthority;
+					else
+						rdataset->trust =
+						    dns_trust_additional;
+
+					/*
+					 * Mark any additional data related
+					 * to this rdataset.
+					 */
+					(void)dns_rdataset_additionaldata(
+							rdataset,
+							check_related,
+							fctx);
+				}
+			}
+			/*
+			 * Since we've found a non-external name in the
+			 * authority section, we should stop looking, even
+			 * if we didn't find any NS or SIG NS.
+			 */
+			done = ISC_TRUE;
+		}
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
+	}
+	if (result != ISC_R_NOMORE)
+		return (result);
+
+	return (ISC_R_SUCCESS);
+}
+
+#if 0
+static inline isc_result_t
+noanswer_response(fetchctx_t *fctx) {
+	isc_result_t result;
+	dns_message_t *message;
+	dns_name_t *name, *qname;
+	dns_rdataset_t *rdataset;
+	isc_boolean_t done, external, aa, found, negative_response;
+	unsigned int aflag;
+
+	message = fctx->rmessage;
+	negative->response = ISC_FALSE;
+
+	/*
+	 * We have to figure out if this is a negative response, or a
+	 * referral.  We start by examining the rcode.
+	 */
+	if (message->rcode == dns_rcode_nxdomain)
+		negative->response = ISC_TRUE;
+
+	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
+		aa = ISC_TRUE;
+	else
+		aa = ISC_FALSE;
+	qname = &fctx->name;
+
+	if (message->counts[DNS_SECTION_ANSWER] != 0) {
+		if (!negative->response)
+			return (DNS_R_FORMERR);
+		done = ISC_FALSE;
+		chaining = ISC_FALSE;
+		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
+		while (!done && result == ISC_R_SUCCESS) {
+			name = NULL;
+			dns_message_currentname(message, DNS_SECTION_ANSWER,
+						&name);
+			external = !dns_name_issubdomain(name, &fctx->domain);
+			/*
+			 * The only valid records are CNAME, DNAME, and
+			 * their corresponding sigs.
+			 */
+			if (dns_name_equal(name, qname)) {
+				/*
+				 * XXXRTH  CNAME check.
+				 */
+			} else {
+				/*
+				 * XXXRTH  DNAME check.
+				 */
+			}
+			result = dns_message_nextname(message,
+						      DNS_SECTION_ANSWER);
+		}
+		if (result != ISC_R_NOMORE)
+			return (result);
+	}
+
+	/*
+	 * XXXRTH  Authority section.
+	 */
+
+	return (ISC_R_SUCCESS);
+}
+#endif
+
 static void
 query_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	resquery_t *query = event->arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	isc_boolean_t bad_sender = ISC_FALSE;
+	isc_boolean_t keep_trying = ISC_FALSE;
+	isc_boolean_t broken_server = ISC_FALSE;
 	dns_message_t *message;
 	fetchctx_t *fctx;
 
@@ -1023,7 +1512,8 @@ query_response(isc_task_t *task, isc_event_t *event) {
 		switch (result) {
 		case DNS_R_FORMERR:
 		case DNS_R_UNEXPECTEDEND:
-			bad_sender = ISC_TRUE;
+			broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
 			break;
 		case DNS_R_MOREDATA:
 			result = DNS_R_NOTIMPLEMENTED;
@@ -1046,7 +1536,8 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->opcode != dns_opcode_query) {
 		/* XXXRTH Log */
-		bad_sender = ISC_TRUE;
+		broken_server = ISC_TRUE;
+		keep_trying = ISC_TRUE;
 		goto done;
 	}
 
@@ -1055,7 +1546,8 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		bad_sender = ISC_TRUE;
+		broken_server = ISC_TRUE;
+		keep_trying = ISC_TRUE;
 		/*
 		 * XXXRTH If we want to catch a FORMERR caused by an EDNS0
 		 *        OPT RR, this is the place to do it.
@@ -1069,52 +1561,71 @@ query_response(isc_task_t *task, isc_event_t *event) {
 	result = same_question(fctx);
 	if (result != ISC_R_SUCCESS) {
 		/* XXXRTH Log */
-		if (result == DNS_R_FORMERR)
-			bad_sender = ISC_TRUE;
+		if (result == DNS_R_FORMERR) {
+			broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+		}
 		goto done;
 	}
 
 	/*
 	 * Did we get any answers?
 	 */
-	if (message->counts[DNS_SECTION_ANSWER] > 0) {
+	if (message->counts[DNS_SECTION_ANSWER] > 0 &&
+	    message->rcode == dns_rcode_noerror) {
 		/*
 		 * We've got answers.
 		 */
-		result = DNS_R_NOTIMPLEMENTED;
-		goto foo;
-	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0) {
+		result = answer_response(fctx);
+		if (result != ISC_R_SUCCESS) {
+			if (result == DNS_R_FORMERR)
+				broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+			goto done;
+		}
+	} else if (message->counts[DNS_SECTION_AUTHORITY] > 0 ||
+		   message->rcode == dns_rcode_nxdomain) {
 		/*
 		 * NXDOMAIN, NXRDATASET, or referral.
 		 */
-		result = DNS_R_NOTIMPLEMENTED;
-		goto foo;
+#if 0
+		result = noanswer_response(fctx);
+#else
+		result = ISC_R_NOTIMPLEMENTED;
+#endif
+		if (result != ISC_R_SUCCESS) {
+			if (result == DNS_R_FORMERR)
+				broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+			goto done;
+		}
 	} else {
 		/*
-		 * The sender is insane.
+		 * The server is insane.
 		 */
 		/* XXXRTH Log */
-		bad_sender = ISC_TRUE;
+		broken_server = ISC_TRUE;
+		keep_trying = ISC_TRUE;
 		goto done;
 	}
 
- foo:
 	query->tsig = NULL;
 	fctx_stoptimer(fctx);
 	fctx_cancelquery(query, &devent);
 
-	result = DNS_R_SERVFAIL;
+	result = cache_message(fctx);
 
  done:
 	/*
 	 * XXXRTH  Record round-trip statistics here.
 	 */
-	if (bad_sender) {
+	if (keep_trying) {
 		/*
 		 * XXXRTH  We will mark the sender as bad here instead
 		 *         of doing the printf().
 		 */
-		printf("bad sender\n");
+		if (broken_server)
+			printf("broken sender\n");
 		dns_dispatch_freeevent(query->dispatch, query->dispentry,
 				       &devent);
 		/*
