@@ -97,9 +97,14 @@ lwres_contextfree(lwres_context_t **contextp)
 
 unsigned int
 lwres_getaddrsbyname(lwres_context_t *contextp,
-		     char *name, unsigned int addrtypes,
+		     char *name, isc_uint32_t addrtypes,
 		     lwres_getaddrsbyname_t **structp)
 {
+	lwres_lwpacket_t pkt;
+	unsigned char *buf;
+	unsigned char buflen;
+
+	buflen = sizeof(lwres_lwpacket_t) + strlen(name) + 1 + 1 + 4;
 }
 
 void
@@ -109,7 +114,7 @@ lwres_freegetaddrsbyname(lwres_context_t *contextp,
 }
 
 unsigned int
-lwres_getnamebyaddr(lwres_context_t *contextp, unsigned int addrtype,
+lwres_getnamebyaddr(lwres_context_t *contextp, isc_uint32_t addrtype,
 		    unsigned int addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp)
 {
@@ -131,7 +136,10 @@ lwres_malloc(void *arg, size_t len)
 	mem = malloc(len);
 	if (mem == NULL)
 		return (NULL);
+
 	memset(mem, 0xe5, len);
+
+	return (mem);
 }
 
 static void

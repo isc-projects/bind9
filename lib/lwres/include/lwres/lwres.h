@@ -32,14 +32,18 @@ typedef struct lwres_context lwres_context_t;
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
-	unsigned int		buflen;
-	void		       *buffer;  /* must be last to keep alignment */
+	isc_uint32_t		buflen;
+	void		       *buffer;
 } lwres_noop_t;
 
+/*
+ * These are the structure versions of the data passed around via the
+ * various functions.  For the wire format of these, see doc/design/lwres
+ */
 
 typedef struct {
-	unsigned int		family;
-	unsigned int		length;
+	isc_uint32_t		family;
+	isc_uint16_t		length;
 	unsigned char	       *address;
 } lwres_addr_t;
 
@@ -47,13 +51,13 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
+	isc_uint16_t		naliases;
+	isc_uint16_t		naddrs;
 	char		       *real_name;
-	unsigned int		naliases;
 	char		      **aliases;
-	unsigned int		naddrs;
 	lwres_addr_t	      **addrs;
 	/* private */
-	unsigned int		buflen;
+	isc_uint32_t		buflen;
 	void		       *buffer;  /* must be last to keep alignment */
 	/* variable length data follows */
 } lwres_getaddrsbyname_t;
@@ -62,11 +66,11 @@ typedef struct {
 typedef struct {
 	/* public */
 	isc_uint32_t		result;
+	isc_uint16_t		naliases;
 	char		       *real_name;
-	unsigned int		naliases;
 	char		      **aliases;
 	/* private */
-	unsigned int		buflen;
+	isc_uint32_t		buflen;
 	void		       *buffer;  /* must be last to keep alignment */
 	/* variable length data follows */
 } lwres_getnamebyaddr_t;
@@ -81,7 +85,7 @@ typedef void (*lwres_free_t)(void *arg, unsigned int length, void *mem);
 
 unsigned int
 lwres_getaddrsbyname(lwres_context_t *context,
-		     char *name, unsigned int addrtypes,
+		     char *name, isc_uint32_t addrtypes,
 		     lwres_getaddrsbyname_t **structp);
 /*
  * Makes a lwres call to look up all addresses associated with "name".
@@ -128,7 +132,7 @@ lwres_freegetaddrsbyname(lwres_context_t *context,
  */
 
 unsigned int
-lwres_getnamebyaddr(lwres_context_t *context, unsigned int addrtype,
+lwres_getnamebyaddr(lwres_context_t *context, isc_uint32_t addrtype,
 		    unsigned int addrlen, unsigned char *addr,
 		    lwres_getnamebyaddr_t **structp);
 /*
@@ -173,6 +177,9 @@ lwres_freegetnamebyaddr(lwres_context_t *context,
  *	All memory allocated by this structure will be returned to the
  *	system via free().
  */
+
+lwres_noop(lwres_context_t *context, isc_uint16_t datalength, void *data,
+	   lwres_noop_t **structp);
 
 unsigned int
 lwres_contextcreate(lwres_context_t **contextp, void *arg,
