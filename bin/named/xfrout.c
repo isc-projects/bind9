@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.37 2000/01/15 00:37:00 gson Exp $ */
+ /* $Id: xfrout.c,v 1.38 2000/01/18 22:21:57 gson Exp $ */
 
 #include <config.h>
 
@@ -743,6 +743,7 @@ typedef struct {
 	unsigned int		nmsg;		/* Number of messages sent */
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
+	isc_boolean_t		many_answers;
 	isc_timer_t		*timer;
 	int			sends;		/* Send in progress */
 	isc_boolean_t		shuttingdown;
@@ -1065,6 +1066,9 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
 	xfr->timer = NULL;
+	xfr->many_answers =
+		(ns_g_server->transfer_format == dns_many_answers) ?
+		ISC_TRUE : ISC_FALSE;
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
 	
@@ -1105,7 +1109,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	isc_interval_set(&maxinterval, maxtime, 0);
 	CHECK(isc_time_nowplusinterval(&expires, &maxinterval));
 	isc_interval_set(&idleinterval, idletime, 0);
-	
+
 	CHECK(isc_timer_create(ns_g_timermgr, isc_timertype_once,
 			       &expires, &idleinterval, 
 			       xfr->client->task,
@@ -1301,8 +1305,7 @@ sendstream(xfrout_ctx_t *xfr)
 		}
 		CHECK(result);
 
-		/* XXX per-server, too */
-		if (ns_g_server->transfer_format == dns_one_answer)
+		if (! xfr->many_answers)
 			break;
 	}
 
