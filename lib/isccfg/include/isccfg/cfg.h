@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.10 2001/02/22 20:41:43 gson Exp $ */
+/* $Id: cfg.h,v 1.11 2001/02/22 23:59:28 bwelling Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -214,6 +214,19 @@ cfg_obj_asboolean(cfg_obj_t *obj);
  *
  * Returns:
  *      A boolean value.
+ */
+
+isc_sockaddr_t *
+cfg_obj_assockaddr(cfg_obj_t *obj);
+/*
+ * Returns the value of a configuration object of a socket address type.
+ *
+ * Requires:
+ *      'obj' points to a valid configuration object of a socket address type.
+ *
+ * Returns:
+ *      A pointer to a sockaddr.  The sockaddr must be copied by the caller
+ *      if necessary.
  */
 
 cfg_listelt_t *
