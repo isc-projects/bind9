@@ -499,7 +499,7 @@
 ./bin/tests/system/glue/tests.sh		SH	2000,2001
 ./bin/tests/system/glue/xx.good			X	2000,2001
 ./bin/tests/system/glue/yy.good			X	2000,2001
-./bin/tests/system/ifconfig.sh			SH	2000,2001
+./bin/tests/system/ifconfig.sh			SH	2000,2001,2002
 ./bin/tests/system/ixfr/ans2/.cvsignore		X	2001
 ./bin/tests/system/ixfr/ans2/ans.pl		PERL	2001
 ./bin/tests/system/ixfr/clean.sh		SH	2001
@@ -1585,12 +1585,12 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001
 ./lib/dns/dbtable.c				C	1999,2000,2001
 ./lib/dns/diff.c				C	2000,2001
-./lib/dns/dispatch.c				C	1999,2000,2001
+./lib/dns/dispatch.c				C	1999,2000,2001,2002
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002
 ./lib/dns/forward.c				C	2000,2001
 ./lib/dns/gen-unix.h				C	1999,2000,2001
 ./lib/dns/gen-win32.h				C	1999,2000,2001
-./lib/dns/gen.c					C	1998,1999,2000,2001
+./lib/dns/gen.c					C	1998,1999,2000,2001,2002
 ./lib/dns/include/.cvsignore			X	1999,2000,2001
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001
 ./lib/dns/include/dns/.cvsignore		X	1999,2000,2001
@@ -1638,7 +1638,7 @@
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001
 ./lib/dns/include/dns/request.h			C	2000,2001
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001
-./lib/dns/include/dns/result.h			C	1998,1999,2000,2001
+./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001
 ./lib/dns/include/dns/sdb.h			C	2000,2001
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001
@@ -1650,7 +1650,7 @@
 ./lib/dns/include/dns/time.h			C	1999,2000,2001
 ./lib/dns/include/dns/timer.h			C	2000,2001
 ./lib/dns/include/dns/tkey.h			C	1999,2000,2001
-./lib/dns/include/dns/tsig.h			C	1999,2000,2001
+./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001
 ./lib/dns/include/dns/validator.h		C	2000,2001
@@ -1667,7 +1667,7 @@
 ./lib/dns/master.c				C	1999,2000,2001,2002
 ./lib/dns/masterdump.c				C	1999,2000,2001
 ./lib/dns/message.c				C	1999,2000,2001,2002
-./lib/dns/name.c				C	1998,1999,2000,2001
+./lib/dns/name.c				C	1998,1999,2000,2001,2002
 ./lib/dns/ncache.c				C	1999,2000,2001,2002
 ./lib/dns/nxt.c					C	1999,2000,2001
 ./lib/dns/peer.c				C	2000,2001
@@ -1769,8 +1769,8 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001
 ./lib/dns/rdataslab.c				C	1999,2000,2001
 ./lib/dns/request.c				C	2000,2001
-./lib/dns/resolver.c				C	1999,2000,2001
-./lib/dns/result.c				C	1998,1999,2000,2001
+./lib/dns/resolver.c				C	1999,2000,2001,2002
+./lib/dns/result.c				C	1998,1999,2000,2001,2002
 ./lib/dns/rootns.c				C	1999,2000,2001
 ./lib/dns/sdb.c					C	2000,2001
 ./lib/dns/sec/.cvsignore			X	1999,2000,2001
@@ -1806,7 +1806,7 @@
 ./lib/dns/time.c				C	1998,1999,2000,2001
 ./lib/dns/timer.c				C	2000,2001
 ./lib/dns/tkey.c				C	1999,2000,2001
-./lib/dns/tsig.c				C	1999,2000,2001
+./lib/dns/tsig.c				C	1999,2000,2001,2002
 ./lib/dns/ttl.c					C	1999,2000,2001
 ./lib/dns/validator.c				C	2000,2001
 ./lib/dns/version.c				C	1998,1999,2000,2001
@@ -1887,7 +1887,7 @@
 ./lib/isc/include/isc/refcount.h		C	2001
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001
 ./lib/isc/include/isc/resource.h		C	2000,2001
-./lib/isc/include/isc/result.h			C	1998,1999,2000,2001
+./lib/isc/include/isc/result.h			C	1998,1999,2000,2001,2002
 ./lib/isc/include/isc/resultclass.h		C	1999,2000,2001
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001
@@ -1904,8 +1904,8 @@
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001
-./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001
-./lib/isc/lex.c					C	1998,1999,2000,2001
+./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002
+./lib/isc/lex.c					C	1998,1999,2000,2001,2002
 ./lib/isc/lfsr.c				C	1999,2000,2001
 ./lib/isc/lib.c					C	1999,2000,2001
 ./lib/isc/log.c					C	1999,2000,2001,2002
@@ -1947,7 +1947,7 @@
 ./lib/isc/quota.c				C	2000,2001
 ./lib/isc/random.c				C	1999,2000,2001
 ./lib/isc/ratelimiter.c				C	1999,2000,2001
-./lib/isc/result.c				C	1998,1999,2000,2001
+./lib/isc/result.c				C	1998,1999,2000,2001,2002
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001
 ./lib/isc/serial.c				C	1999,2000,2001
 ./lib/isc/sha1.c				C	2000,2001
@@ -2007,7 +2007,7 @@
 ./lib/isc/win32/entropy.c			C	2000,2001
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002
 ./lib/isc/win32/errno2result.h			C	2000,2001
-./lib/isc/win32/file.c				C	2000,2001
+./lib/isc/win32/file.c				C	2000,2001,2002
 ./lib/isc/win32/fsaccess.c			C	2000,2001
 ./lib/isc/win32/include/.cvsignore		X	1999,2000,2001
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001
@@ -2030,6 +2030,7 @@
 ./lib/isc/win32/include/isc/platform.h		C	2001
 ./lib/isc/win32/include/isc/stat.h		C	2000,2001
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001
+./lib/isc/win32/include/isc/strerror.h		C	2002
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001
@@ -2061,7 +2062,7 @@
 ./lib/isccc/alist.c				C.NOM	2001
 ./lib/isccc/api					X	2001
 ./lib/isccc/base64.c				C.NOM	2001
-./lib/isccc/cc.c				C.NOM	2001
+./lib/isccc/cc.c				C.NOM	2001,2002
 ./lib/isccc/ccmsg.c				C.NOM	2001
 ./lib/isccc/include/.cvsignore			X	2001
 ./lib/isccc/include/Makefile.in			MAKE	2001
@@ -2246,7 +2247,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001
 ./make/includes.in				MAKE	1999,2000,2001
 ./make/mkdep.in					X	1999,2000,2001
-./make/rules.in					MAKE	1998,1999,2000,2001
+./make/rules.in					MAKE	1998,1999,2000,2001,2002
 ./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001
