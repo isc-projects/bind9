@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/error.h>
