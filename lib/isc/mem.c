@@ -459,8 +459,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 }
 
 void *
-isc__mem_get(isc_mem_t *ctx, size_t size)
-{
+isc__mem_get(isc_mem_t *ctx, size_t size) {
 	void *ret;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -472,6 +471,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size)
 	return (ret);
 }
 
+#if ISC_MEM_FILL != 0 && ISC_MEM_CHECKOVERRUN != 0
 static inline void
 check_overrun(void *mem, size_t size, size_t new_size) {
 	unsigned char *cp;
@@ -484,6 +484,7 @@ check_overrun(void *mem, size_t size, size_t new_size) {
 		size++;
 	}
 }
+#endif
 
 static inline void
 split(isc_mem_t *ctx, size_t size, size_t new_size) {
@@ -606,13 +607,14 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 }
 
 static inline void *
-mem_getunlocked(isc_mem_t *ctx, size_t size)
-{
+mem_getunlocked(isc_mem_t *ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
 
 	if (size >= ctx->max_size || new_size >= ctx->max_size) {
-		/* memget() was called on something beyond our upper limit. */
+		/*
+		 * memget() was called on something beyond our upper limit.
+		 */
 		if (ctx->quota != 0 && ctx->total + size > ctx->quota) {
 			ret = NULL;
 			goto done;
@@ -669,8 +671,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 }
 
 void
-isc__mem_put(isc_mem_t *ctx, void *mem, size_t size)
-{
+isc__mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
@@ -679,12 +680,13 @@ isc__mem_put(isc_mem_t *ctx, void *mem, size_t size)
 }
 
 static inline void
-mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
-{
+mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
-		/* memput() called on something beyond our upper limit */
+		/*
+		 * memput() called on something beyond our upper limit.
+		 */
 #if ISC_MEM_FILL
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 #endif
@@ -704,7 +706,9 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
 #endif
 
-	/* The free list uses the "rounded-up" size "new_size": */
+	/*
+	 * The free list uses the "rounded-up" size "new_size".
+	 */
 	((element *)mem)->next = ctx->freelists[new_size];
 	ctx->freelists[new_size] = (element *)mem;
 
@@ -985,7 +989,9 @@ static isc_mem_t *default_context = NULL;
 
 int
 meminit(size_t init_max_size, size_t target_size) {
-	/* need default_context lock here */
+	/*
+	 * Need default_context lock here.
+	 */
 	if (default_context != NULL)
 		return (-1);
 	return (isc_mem_create(init_max_size, target_size, &default_context));
@@ -993,55 +999,65 @@ meminit(size_t init_max_size, size_t target_size) {
 
 isc_mem_t *
 mem_default_context(void) {
-	/* need default_context lock here */
+	/*
+	 * Need default_context lock here.
+	 */
 	if (default_context == NULL && meminit(0, 0) == -1)
 		return (NULL);
 	return (default_context);
 }
 
 void *
-__memget(size_t size) {
-	/* need default_context lock here */
+isc__legacy_memget(size_t size) {
+	/*
+	 * Need default_context lock here.
+	 */
 	if (default_context == NULL && meminit(0, 0) == -1)
 		return (NULL);
-	return (__mem_get(default_context, size));
+	return (isc__mem_get(default_context, size));
 }
 
 void
-__memput(void *mem, size_t size) {
-	/* need default_context lock here */
+isc__legacy_memput(void *mem, size_t size) {
+	/*
+	 * Need default_context lock here.
+	 */
 	REQUIRE(default_context != NULL);
-	__mem_put(default_context, mem, size);
+	isc__mem_put(default_context, mem, size);
 }
 
 void *
-__memget_debug(size_t size, const char *file, int line) {
+isc__legacy_memget_debug(size_t size, const char *file, int line) {
 	void *ptr;
-	ptr = __memget(size);
+	ptr = isc__legacy_memget(size);
 	fprintf(stderr, "%s:%d: memget(%lu) -> %p\n", file, line,
 		(unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
-__memput_debug(void *ptr, size_t size, const char *file, int line) {
+isc__legacy_memput_debug(void *ptr, size_t size, const char *file, int line) {
 	fprintf(stderr, "%s:%d: memput(%p, %lu)\n", file, line, 
 		ptr, (unsigned long)size);
-	__memput(ptr, size);
+	isc__legacy_memput(ptr, size);
 }
 
 int
 memvalid(void *ptr) {
-	/* need default_context lock here */
+	/*
+	 * Need default_context lock here.
+	 */
 	REQUIRE(default_context != NULL);
-	return (mem_valid(default_context, ptr));
+	return (isc_mem_valid(default_context, ptr));
 }
 
 void
 memstats(FILE *out) {
-	/* need default_context lock here */
+	/*
+	 * Need default_context lock here.
+	 */
 	REQUIRE(default_context != NULL);
-	mem_stats(default_context, out);
+	isc_mem_stats(default_context, out);
 }
 
 #endif /* ISC_MEMCLUSTER_LEGACY */
@@ -1058,8 +1074,7 @@ memstats(FILE *out) {
  * will be returned to the mctx.
  */
 static void
-mempool_release(isc_mempool_t *mpctx, unsigned int n)
-{
+mempool_release(isc_mempool_t *mpctx, unsigned int n) {
 	isc_mem_t *mctx;
 	element *item;
 	element *next;
@@ -1098,8 +1113,7 @@ mempool_release(isc_mempool_t *mpctx, unsigned int n)
  * context must be locked, and the pool if needed.
  */
 static void
-mempool_releaseall(isc_mempool_t *mpctx)
-{
+mempool_releaseall(isc_mempool_t *mpctx) {
 	isc_mem_t *mctx;
 	element *item;
 	element *next;
@@ -1122,8 +1136,7 @@ mempool_releaseall(isc_mempool_t *mpctx)
 }
 
 isc_result_t
-isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp)
-{
+isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp) {
 	isc_mempool_t *mpctx;
 
 	REQUIRE(VALID_CONTEXT(mctx));
@@ -1167,8 +1180,7 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp)
 }
 
 void
-isc_mempool_setname(isc_mempool_t *mpctx, char *name)
-{
+isc_mempool_setname(isc_mempool_t *mpctx, char *name) {
 	REQUIRE(name != NULL);
 
 #if ISC_MEMPOOL_NAMES
@@ -1187,8 +1199,7 @@ isc_mempool_setname(isc_mempool_t *mpctx, char *name)
 }
 
 void
-isc_mempool_destroy(isc_mempool_t **mpctxp)
-{
+isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	isc_mempool_t *mpctx;
 	isc_mem_t *mctx;
 	isc_mutex_t *lock;
@@ -1230,8 +1241,7 @@ isc_mempool_destroy(isc_mempool_t **mpctxp)
 }
 
 void
-isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock)
-{
+isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 	REQUIRE(mpctx->lock == NULL);
 	REQUIRE(lock != NULL);
@@ -1240,8 +1250,7 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock)
 }
 
 void *
-isc__mempool_get(isc_mempool_t *mpctx)
-{
+isc__mempool_get(isc_mempool_t *mpctx) {
 	element *item;
 	isc_mem_t *mctx;
 	unsigned int i;
@@ -1309,8 +1318,7 @@ isc__mempool_get(isc_mempool_t *mpctx)
 }
 
 void
-isc__mempool_put(isc_mempool_t *mpctx, void *mem)
-{
+isc__mempool_put(isc_mempool_t *mpctx, void *mem) {
 	isc_mem_t *mctx;
 	element *item;
 
@@ -1348,9 +1356,7 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem)
 }
 
 void *
-isc__mempool_getdebug(isc_mempool_t *mpctx,
-		       const char *file, int line)
-{
+isc__mempool_getdebug(isc_mempool_t *mpctx, const char *file, int line) {
 	void *ptr;
 
 	ptr = isc__mempool_get(mpctx);
@@ -1361,8 +1367,8 @@ isc__mempool_getdebug(isc_mempool_t *mpctx,
 }
 
 void
-isc__mempool_putdebug(isc_mempool_t *mpctx, void *ptr,
-		       const char *file, int line)
+isc__mempool_putdebug(isc_mempool_t *mpctx, void *ptr, const char *file,
+		      int line)
 {
 	fprintf(stderr, "%s:%d: mempool_put(%p, %p)\n", file, line, 
 		mpctx, ptr);
@@ -1374,8 +1380,7 @@ isc__mempool_putdebug(isc_mempool_t *mpctx, void *ptr,
  */
 
 void
-isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit)
-{
+isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
 	if (mpctx->lock != NULL)
@@ -1388,8 +1393,7 @@ isc_mempool_setfreemax(isc_mempool_t *mpctx, unsigned int limit)
 }
 
 unsigned int
-isc_mempool_getfreemax(isc_mempool_t *mpctx)
-{
+isc_mempool_getfreemax(isc_mempool_t *mpctx) {
 	unsigned int freemax;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
@@ -1406,8 +1410,7 @@ isc_mempool_getfreemax(isc_mempool_t *mpctx)
 }
 
 unsigned int
-isc_mempool_getfreecount(isc_mempool_t *mpctx)
-{
+isc_mempool_getfreecount(isc_mempool_t *mpctx) {
 	unsigned int freecount;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
@@ -1424,8 +1427,7 @@ isc_mempool_getfreecount(isc_mempool_t *mpctx)
 }
 
 void
-isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit)
-{
+isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(limit > 0);
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
@@ -1440,8 +1442,7 @@ isc_mempool_setmaxalloc(isc_mempool_t *mpctx, unsigned int limit)
 }
 
 unsigned int
-isc_mempool_getmaxalloc(isc_mempool_t *mpctx)
-{
+isc_mempool_getmaxalloc(isc_mempool_t *mpctx) {
 	unsigned int maxalloc;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
@@ -1458,8 +1459,7 @@ isc_mempool_getmaxalloc(isc_mempool_t *mpctx)
 }
 
 unsigned int
-isc_mempool_getallocated(isc_mempool_t *mpctx)
-{
+isc_mempool_getallocated(isc_mempool_t *mpctx) {
 	unsigned int allocated;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));
@@ -1476,8 +1476,7 @@ isc_mempool_getallocated(isc_mempool_t *mpctx)
 }
 
 void
-isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit)
-{
+isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit) {
 	REQUIRE(limit > 0);
 	REQUIRE(VALID_MEMPOOL(mpctx));
 
@@ -1491,8 +1490,7 @@ isc_mempool_setfillcount(isc_mempool_t *mpctx, unsigned int limit)
 }
 
 unsigned int
-isc_mempool_getfillcount(isc_mempool_t *mpctx)
-{
+isc_mempool_getfillcount(isc_mempool_t *mpctx) {
 	unsigned int fillcount;
 
 	REQUIRE(VALID_MEMPOOL(mpctx));

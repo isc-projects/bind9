@@ -95,25 +95,27 @@ isc_result_t			isc_mem_restore(isc_mem_t *);
  * Legacy.
  */
 
-#define meminit			__meminit
-#define mem_default_context	__mem_default_context
+#define meminit			isc__legacy_meminit
+#define mem_default_context	isc__legacy_mem_default_context
 #ifdef MEMCLUSTER_DEBUG
-#define memget(s)		__memget_debug(s, __FILE__, __LINE__)
-#define memput(p, s)		__memput_debug(p, s, __FILE__, __LINE__)
+#define memget(s)		isc__legacy_memget_debug(s, __FILE__, __LINE__)
+#define memput(p, s)		isc__legacy_memput_debug(p, s, \
+							 __FILE__, __LINE__)
 #else
-#define memget			__memget
-#define memput			__memput
+#define memget			isc__legacy_memget
+#define memput			isc__legacy_memput
 #endif
-#define memvalid		__memvalid
-#define memstats		__memstats
+#define memvalid		isc__legacy_memvalid
+#define memstats		isc__legacy_memstats
 
 int				meminit(size_t, size_t);
 isc_mem_t *			mem_default_context(void);
-void *				__memget(size_t);
-void 				__memput(void *, size_t);
-void *				__memget_debug(size_t, const char *, int);
-void				__memput_debug(void *, size_t, const char *,
-					       int);
+void *				isc__legacy_memget(size_t);
+void 				isc__legacy_memput(void *, size_t);
+void *				isc__legacy_memget_debug(size_t, const char *,
+							 int);
+void				isc__legacy_memput_debug(void *, size_t,
+							 const char *, int);
 int				memvalid(void *);
 void 				memstats(FILE *);
 
