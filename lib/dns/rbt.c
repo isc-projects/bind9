@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2 2003/07/22 04:03:42 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.3 2004/03/03 22:38:20 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -138,6 +138,11 @@ do { \
 	(name)->attributes |= DNS_NAMEATTR_READONLY; \
 } while (0)
 
+#ifdef DNS_RBT_USEHASH
+static isc_result_t
+inithash(dns_rbt_t *rbt);
+#endif
+
 #ifdef DEBUG
 #define inline
 /*
@@ -220,7 +225,7 @@ static isc_result_t
 create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep);
 
 #ifdef DNS_RBT_USEHASH
-static inline isc_result_t
+static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
@@ -251,7 +256,11 @@ isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	       void *deleter_arg, dns_rbt_t **rbtp)
 {
+#ifdef DNS_RBT_USEHASH
+	isc_result_t result;
+#endif
 	dns_rbt_t *rbt;
+	
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
@@ -268,6 +277,13 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	rbt->nodecount = 0;
 	rbt->hashtable = NULL;
 	rbt->hashsize = 0;
+#ifdef DNS_RBT_USEHASH
+	result = inithash(rbt);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, rbt, sizeof(*rbt));
+		return (result);
+	}
+#endif
 	rbt->magic = RBT_MAGIC;
 
 	*rbtp = rbt;
@@ -396,7 +412,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			new_current->is_root = 1;
 			rbt->root = new_current;
 			*nodep = new_current;
-			result = hash_node(rbt, new_current);
+			hash_node(rbt, new_current);
 		}
 		return (result);
 	}
@@ -672,9 +688,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
 				rbt->nodecount++;
-				result = hash_node(rbt, new_current);
-				if (result != ISC_R_SUCCESS)
-					break;
+				hash_node(rbt, new_current);
 
 				if (common_labels ==
 				    dns_name_countlabels(add_name) &&
@@ -726,18 +740,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		dns_rbt_addonlevel(new_current, current, order, root);
 		rbt->nodecount++;
 		*nodep = new_current;
-		result = hash_node(rbt, new_current);
-		/*
-		 * XXXDCL Ugh.  If hash_node failed, it was because
-		 * there is not enough memory.  The node is now unfindable,
-		 * and ideally should be removed.  This is kind of tricky,
-		 * and all hell is probably going to break loose throughout
-		 * the rest of the library because of the lack of memory,
-		 * so fixing up the tree as though no addition had been
-		 * made is skipped.  (Actually, this hash_node failing is
-		 * not the only situation in this file where an unexpected
-		 * error can leave things in an incorrect state.)
-		 */
+		hash_node(rbt, new_current);
 	}
 
 	return (result);
@@ -1625,7 +1628,7 @@ inithash(dns_rbt_t *rbt) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 rehash(dns_rbt_t *rbt) {
 	unsigned int oldsize;
 	dns_rbtnode_t **oldtable;
@@ -1634,12 +1637,15 @@ rehash(dns_rbt_t *rbt) {
 	unsigned int i;
 
 	oldsize = rbt->hashsize;
-	rbt->hashsize *= 2;
 	oldtable = rbt->hashtable;
+	rbt->hashsize *= 2 + 1;
 	rbt->hashtable = isc_mem_get(rbt->mctx,
 				     rbt->hashsize * sizeof(dns_rbtnode_t *));
-	if (rbt->hashtable == NULL)
-		return (ISC_R_NOMEMORY);
+	if (rbt->hashtable == NULL) {
+		rbt->hashtable = oldtable;
+		rbt->hashsize = oldsize;
+		return;
+	}
 
 	for (i = 0; i < rbt->hashsize; i++)
 		rbt->hashtable[i] = NULL;
@@ -1654,26 +1660,17 @@ rehash(dns_rbt_t *rbt) {
 			node = oldtable[i];
 		}
 	}
-
-	isc_mem_put(rbt->mctx, oldtable,
-		    rbt->hashsize * sizeof(dns_rbtnode_t *) / 2);
-
-	return (ISC_R_SUCCESS);
+	
+	isc_mem_put(rbt->mctx, oldtable, oldsize * sizeof(dns_rbtnode_t *));
 }
 
-static inline isc_result_t
+static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
-	isc_result_t result = ISC_R_SUCCESS;
 
-	if (rbt->hashtable == NULL)
-		result = inithash(rbt);
-	else if (rbt->nodecount >= rbt->hashsize)
-		result = rehash(rbt);
+	if (rbt->nodecount >= rbt->hashsize)
+		rehash(rbt);
 
-	if (result == ISC_R_SUCCESS)
-		hash_add_node(rbt, node);
-
-	return (result);
+	hash_add_node(rbt, node);
 }
 
 static inline void
