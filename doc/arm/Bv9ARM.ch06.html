@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3565"
+HREF="Bv9ARM.ch06.html#AEN3572"
 >Zone File</A
 ></DT
 ></DL
@@ -7003,6 +7003,34 @@ failure response other than those above.</P
 ><P
 ></P
 ></DIV
+><P
+>&#13;Each query received by the server will cause exactly one of
+<B
+CLASS="command"
+>success</B
+>,
+<B
+CLASS="command"
+>referral</B
+>,
+<B
+CLASS="command"
+>nxrrset</B
+>,
+<B
+CLASS="command"
+>nxdomain</B
+>, or
+<B
+CLASS="command"
+>failure</B
+>
+to be incremented, and may additionally cause the
+<B
+CLASS="command"
+>recursion</B
+> counter to be incremented.
+</P
 ></DIV
 ></DIV
 ><DIV
@@ -7303,7 +7331,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3040"
+NAME="AEN3047"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7378,7 +7406,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3056"
+NAME="AEN3063"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7413,7 +7441,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3064"
+NAME="AEN3071"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7488,7 +7516,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3080"
+NAME="AEN3087"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -8139,7 +8167,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3231"
+NAME="AEN3238"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8150,13 +8178,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3234"
+NAME="AEN3241"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3236"
+NAME="AEN3243"
 ></A
 ><P
 ></P
@@ -8294,7 +8322,7 @@ configured.</P
 >Stub zones can also be used as a way of forcing the resolution
 of a given domain to use a particular set of authoritative servers.
 For example, the caching name servers on a private network using
-RFC2157 addressing may be configured with stub zones for
+RFC1981 addressing may be configured with stub zones for
 <TT
 CLASS="literal"
 >10.in-addr.arpa</TT
@@ -8394,7 +8422,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3291"
+NAME="AEN3298"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8432,7 +8460,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3301"
+NAME="AEN3308"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -9073,7 +9101,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3535"
+NAME="AEN3542"
 ></A
 ><P
 ></P
@@ -9180,7 +9208,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3565"
+NAME="AEN3572"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9201,7 +9229,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3570"
+NAME="AEN3577"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9224,7 +9252,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3576"
+NAME="AEN3583"
 ></A
 ><P
 ></P
@@ -9338,7 +9366,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3608"
+NAME="AEN3615"
 ></A
 ><P
 ></P
@@ -9832,7 +9860,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3755"
+NAME="AEN3762"
 ></A
 ><P
 ></P
@@ -9887,7 +9915,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3771"
+NAME="AEN3778"
 ></A
 ><P
 ></P
@@ -10064,7 +10092,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3819"
+NAME="AEN3826"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10094,7 +10122,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3826"
+NAME="AEN3833"
 ></A
 ><P
 ></P
@@ -10303,7 +10331,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3892"
+NAME="AEN3899"
 ></A
 ><P
 ></P
@@ -10394,7 +10422,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3920"
+NAME="AEN3927"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10430,7 +10458,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3926"
+NAME="AEN3933"
 ></A
 ><P
 ></P
@@ -10726,7 +10754,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4018"
+NAME="AEN4025"
 ></A
 ><P
 ></P
@@ -10809,7 +10837,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4041"
+NAME="AEN4048"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10836,7 +10864,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4046"
+NAME="AEN4053"
 ></A
 ><P
 ></P
@@ -10916,7 +10944,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4068"
+NAME="AEN4075"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10941,7 +10969,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4075"
+NAME="AEN4082"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11011,7 +11039,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4095"
+NAME="AEN4102"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11093,7 +11121,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4115"
+NAME="AEN4122"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11133,7 +11161,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4126"
+NAME="AEN4133"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11202,17 +11230,17 @@ CLASS="programlisting"
 ><TT
 CLASS="literal"
 >0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
-0.0.0.192.IN-ADDR.ARPA NS SERVER2.EXAMPLE.
-1.0.0.192.IN-ADDR.ARPA CNAME 1.0.0.0.192.IN-ADDR.ARPA
-2.0.0.192.IN-ADDR.ARPA CNAME 2.0.0.0.192.IN-ADDR.ARPA
+0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
+1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
+2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
-127.0.0.192.IN-ADDR.ARPA CNAME 127.0.0.0.192.IN-ADDR.ARPA
-.</TT
+127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
+</TT
 ></PRE
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4146"
+NAME="AEN4153"
 ></A
 ><P
 ></P
