@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1 2004/08/20 21:33:14 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.6.1 2004/08/21 06:44:31 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -73,16 +73,6 @@ acl <replaceable>string</replaceable> { <replaceable>address_match_element</repl
 key <replaceable>domain_name</replaceable> {
 	algorithm <replaceable>string</replaceable>;
 	secret <replaceable>string</replaceable>;
-};
-</LITERALLAYOUT>
-</refsect1>
-
-<refsect1>
-<title>MASTERS</title>
-<LITERALLAYOUT>
-masters <replaceable>string</replaceable> <optional> port <replaceable>integer</replaceable> </optional> {
-	( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
-	<replaceable>ipv6_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> ) <optional> key <replaceable>string</replaceable> </optional>; ...
 };
 </LITERALLAYOUT>
 </refsect1>
@@ -167,8 +157,6 @@ lwres {
 <title>OPTIONS</title>
 <LITERALLAYOUT>
 options {
-	avoid-v4-udp-ports { <replaceable>port</replaceable>; ... };
-	avoid-v6-udp-ports { <replaceable>port</replaceable>; ... };
 	blackhole { <replaceable>address_match_element</replaceable>; ... };
 	coresize <replaceable>size</replaceable>;
 	datasize <replaceable>size</replaceable>;
@@ -177,25 +165,20 @@ options {
 	files <replaceable>size</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
 	host-statistics <replaceable>boolean</replaceable>; // not implemented
-	hostname ( <replaceable>quoted_string</replaceable> | none );
 	interface-interval <replaceable>integer</replaceable>;
 	listen-on <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
 	listen-on-v6 <optional> port <replaceable>integer</replaceable> </optional> { <replaceable>address_match_element</replaceable>; ... };
 	match-mapped-addresses <replaceable>boolean</replaceable>;
-	memstatistics-file <replaceable>quoted_string</replaceable>;
-	pid-file ( <replaceable>quoted_string</replaceable> | none );
+	memstatistics-file <replaceable>quoted_string</replaceable>; // not implemented
+	pid-file <replaceable>quoted_string</replaceable>;
 	port <replaceable>integer</replaceable>;
-	querylog <replaceable>boolean</replaceable>;
-	recursing-file <replaceable>quoted_string</replaceable>;
 	random-device <replaceable>quoted_string</replaceable>;
 	recursive-clients <replaceable>integer</replaceable>;
 	serial-query-rate <replaceable>integer</replaceable>;
-	server-id ( <replaceable>quoted_string</replaceable> | none |;
 	stacksize <replaceable>size</replaceable>;
 	statistics-file <replaceable>quoted_string</replaceable>;
 	statistics-interval <replaceable>integer</replaceable>; // not yet implemented
 	tcp-clients <replaceable>integer</replaceable>;
-	tcp-listen-queue <replaceable>integer</replaceable>;
 	tkey-dhkey <replaceable>quoted_string</replaceable> <replaceable>integer</replaceable>;
 	tkey-gssapi-credential <replaceable>quoted_string</replaceable>;
 	tkey-domain <replaceable>quoted_string</replaceable>;
@@ -203,7 +186,7 @@ options {
 	transfers-in <replaceable>integer</replaceable>;
 	transfers-out <replaceable>integer</replaceable>;
 	use-ixfr <replaceable>boolean</replaceable>;
-	version ( <replaceable>quoted_string</replaceable> | none );
+	version <replaceable>quoted_string</replaceable>;
 	allow-recursion { <replaceable>address_match_element</replaceable>; ... };
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	topology { <replaceable>address_match_element</replaceable>; ... }; // not implemented
@@ -213,7 +196,7 @@ options {
 	rrset-order {
 		<optional> class <replaceable>string</replaceable> </optional> <optional> type <replaceable>string</replaceable> </optional>
 		<optional> name <replaceable>quoted_string</replaceable> </optional> <replaceable>string</replaceable> <replaceable>string</replaceable>; ...
-	};
+	}; // not implemented
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
@@ -229,24 +212,11 @@ options {
 	transfer-format ( many-answers | one-answer );
 	max-cache-size <replaceable>size_no_default</replaceable>;
 	check-names ( master | slave | response )
-		( fail | warn | ignore );
+		( fail | warn | ignore ); // not implemented
 	cache-file <replaceable>quoted_string</replaceable>;
-	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
-	preferred-glue <replaceable>string</replaceable>;
-	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> {
-		( <replaceable>quoted_string</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
-		<replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
-		<replaceable>ipv6_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> ); ...
-	}
-	edns-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
-	dnssec-enable <replaceable>boolean</replaceable>;
-	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
-	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 
 	dialup <replaceable>dialuptype</replaceable>;
-	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
@@ -264,7 +234,6 @@ options {
 		( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional>; ...
 	};
 
-	max-journal-size <replaceable>size_no_default</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
@@ -273,7 +242,6 @@ options {
 	min-retry-time <replaceable>integer</replaceable>;
 	max-refresh-time <replaceable>integer</replaceable>;
 	min-refresh-time <replaceable>integer</replaceable>;
-	multi-master <replaceable>boolean</replaceable>;
 	sig-validity-interval <replaceable>integer</replaceable>;
 
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * )
@@ -281,16 +249,9 @@ options {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
 		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	use-alt-transfer-source <replaceable>boolean</replaceable>;
-
 	zone-statistics <replaceable>boolean</replaceable>;
-	key-directory <replaceable>quoted_string</replaceable>;
 
-	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
+	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... };
 	deallocate-on-exit <replaceable>boolean</replaceable>; // obsolete
 	fake-iquery <replaceable>boolean</replaceable>; // obsolete
 	fetch-glue <replaceable>boolean</replaceable>; // obsolete
@@ -340,7 +301,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	rrset-order {
 		<optional> class <replaceable>string</replaceable> </optional> <optional> type <replaceable>string</replaceable> </optional>
 		<optional> name <replaceable>quoted_string</replaceable> </optional> <replaceable>string</replaceable> <replaceable>string</replaceable>; ...
-	};
+	}; // not implemented
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
@@ -359,21 +320,9 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		( fail | warn | ignore );
 	cache-file <replaceable>quoted_string</replaceable>;
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
-	preferred-glue <replaceable>string</replaceable>;
-	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> {
-		( <replaceable>quoted_string</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
-		<replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
-		<replaceable>ipv6_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> ); ...
-	};
-	edns-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
-	dnssec-enable <replaceable>boolean</replaceable>;
-	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 
-	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dialup <replaceable>dialuptype</replaceable>;
-	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
@@ -391,7 +340,6 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional>; ...
 	};
 
-	max-journal-size <replaceable>size_no_default</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
@@ -400,7 +348,6 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	min-retry-time <replaceable>integer</replaceable>;
 	max-refresh-time <replaceable>integer</replaceable>;
 	min-refresh-time <replaceable>integer</replaceable>;
-	multi-master <replaceable>boolean</replaceable>;
 	sig-validity-interval <replaceable>integer</replaceable>;
 
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * )
@@ -408,14 +355,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
 		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	use-alt-transfer-source <replaceable>boolean</replaceable>;
-
 	zone-statistics <replaceable>boolean</replaceable>;
-	key-directory <replaceable>quoted_string</replaceable>;
 
 	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
 	fetch-glue <replaceable>boolean</replaceable>; // obsolete
@@ -434,8 +374,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	file <replaceable>quoted_string</replaceable>;
 
 	masters <optional> port <replaceable>integer</replaceable> </optional> {
-		( <replaceable>masters</replaceable> |
-		<replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
+		( <replaceable>ipv4_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> |
 		<replaceable>ipv6_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ...
 	};
 
@@ -443,7 +382,6 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	delegation-only <replaceable>boolean</replaceable>;
 	check-names ( fail | warn | ignore );
 	dialup <replaceable>dialuptype</replaceable>;
-	ixfr-from-differences <replaceable>boolean</replaceable>;
 
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
@@ -467,7 +405,6 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional>; ...
 	};
 
-	max-journal-size <replaceable>size_no_default</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
@@ -476,7 +413,6 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	min-retry-time <replaceable>integer</replaceable>;
 	max-refresh-time <replaceable>integer</replaceable>;
 	min-refresh-time <replaceable>integer</replaceable>;
-	multi-master <replaceable>boolean</replaceable>;
 	sig-validity-interval <replaceable>integer</replaceable>;
 
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * )
@@ -484,14 +420,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
 		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * )
-		<optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
-	use-alt-transfer-source <replaceable>boolean</replaceable>;
-
 	zone-statistics <replaceable>boolean</replaceable>;
-	key-directory <replaceable>quoted_string</replaceable>;
 
 	ixfr-base <replaceable>quoted_string</replaceable>; // obsolete
 	ixfr-tmp-file <replaceable>quoted_string</replaceable>; // obsolete
