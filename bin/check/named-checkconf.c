@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.25 2002/07/11 04:49:24 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.26 2002/07/11 04:50:34 marka Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ isc_log_t *logc = NULL;
 
 static void
 usage(void) {
-        fprintf(stderr, "usage: named-checkconf [-m] [-v] [-z] [-t directory] "
+        fprintf(stderr, "usage: named-checkconf [-j] [-v] [-z] [-t directory] "
 		"[named.conf]\n");
         exit(1);
 }
