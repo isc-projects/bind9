@@ -6,23 +6,13 @@ v6source
 peter		private		peter		(hostname.bind for 9.2.x)
 openssl_stub	open		marka
 chroot		open		marka
-slavefix	review		explorer
-rt5033		review		explorer
-rt5042		review		explorer
-rt5044		review		explorer
-rt5041		review		explorer
-ipl		review		explorer	(rt5021)
-rt5066		review		explorer
-rt5084		review		explorer
-rt5127		review		explorer
-rt5124		review		explorer
-rt4796		review		explorer
 
 a6_remove	closed
 adb_race	closed		explorer
 blabel-cleanup	closed
 ds_12		closed
 edns_size	closed
+ipl		closed
 ipv6-improvements closed
 ipv6-scope	closed
 ipv6_6to4	closed
@@ -52,6 +42,16 @@ rt4675		closed
 rt4687		closed
 rt4715		closed
 rt4764		closed
+rt4796		closed
 rt4802		closed
 rt4898		closed
+rt5033		closed
+rt5041		closed
+rt5042		closed
+rt5044		closed
+rt5066		closed
+rt5084		closed
 rt5099		closed
+rt5124		closed
+rt5127		closed
+slavefix	closed
