@@ -1,4 +1,7 @@
- 642.	[bug]		#622 needed more work.
+
+ 645.	[port]		BSD/OS 3.0 needs pthread_init(). [RT #603]
+
+ 644.	[bug]		#622 needed more work. [RT #562]
 
  643.	[bug]		xfrin error messages made more verbose, added class
 			of the zone.  [RT# 599]
