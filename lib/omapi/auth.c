@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.17 2001/02/15 19:44:41 bwelling Exp $ */
+/* $Id: auth.c,v 1.18 2001/02/15 20:10:03 bwelling Exp $ */
 
 /* Principal Author: DCL */
 
@@ -105,12 +105,13 @@ auth_find(const char *name, unsigned int algorithm, auth_t **ap) {
 
 
 isc_result_t
-auth_makekey(const char *name, unsigned int algorithm, isc_region_t **key) {
+auth_makekey(const char *name, unsigned int algorithm, isc_region_t **keyp) {
 	isc_result_t result;
 	auth_t *auth = NULL;
+	isc_region_t *key;
 
 	REQUIRE(name != NULL && algorithm != 0);
-	REQUIRE(key != NULL && *key == NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_mutex) == ISC_R_SUCCESS);
 	LOCK(&mutex);
@@ -127,13 +128,14 @@ auth_makekey(const char *name, unsigned int algorithm, isc_region_t **key) {
 			return (ISC_R_UNEXPECTED);
 		}
 
-		*key = isc_mem_get(omapi_mctx, sizeof(isc_region_t));
-		if (*key == NULL)
+		key = isc_mem_get(omapi_mctx, sizeof(isc_region_t));
+		if (key == NULL)
 			result = ISC_R_NOMEMORY;
 
 		if (result == ISC_R_SUCCESS) {
-			(*key)->base = auth->secret;
-			(*key)->length = auth->secretlen;
+			key->base = auth->secret;
+			key->length = auth->secretlen;
+			*keyp = key;
 		}
 	}
 

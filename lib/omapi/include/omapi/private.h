@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: private.h,v 1.27 2001/02/15 19:44:46 bwelling Exp $ */
+/* $Id: private.h,v 1.28 2001/02/15 20:10:04 bwelling Exp $ */
 
 /*****
  ***** Private master include file for the OMAPI library.
@@ -307,7 +307,7 @@ auth_destroy(void);
 
 #define auth_makekey omapi__auth_makekey
 isc_result_t
-auth_makekey(const char *name, unsigned int algorithm, isc_region_t **key);
+auth_makekey(const char *name, unsigned int algorithm, isc_region_t **keyp);
 
 /*
  * Private library functions defined in connection.c.
