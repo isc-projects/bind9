@@ -1,0 +1,728 @@
+
+
+DNSEXT (Independent submission)                               O. Kolkman
+Internet-Draft                                                  RIPE NCC
+Expires: March 2, 2003                                          J. Ihren
+                                                              Autonomica
+                                                               R. Arends
+                                                            A.R.E.N.D.S.
+                                                          September 2002
+
+
+                     DNSSEC Wildcard  Optimization
+         draft-olaf-dnsext-dnssec-wildcard-optimization-01.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at http://
+   www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on March 2, 2003.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   Secure denial of the existence of wildcards may lead to a large
+   number of NXT RRs and associated SIG RRs in DNS responses, even in
+   the common case when wildcards are not present in the zone.  This
+   optimization uses one bit from the NXT type array to signal that
+   there is no closer wildcard in the zone for a given query name.  This
+   reduces the packet size and the need for executing slow, and
+   complicated, code paths in common queries.  In cases where there are
+   no wildcard RRs in the zone (i.e.  the root zone) only one NXT RR and
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 1]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+   corresponding SIG is needed for denial of existence of the wildcard.
+
+   The key words "MAY","MAY NOT", "MUST", "MUST NOT", "REQUIRED",
+   "RECOMMENDED", "SHOULD", and "SHOULD NOT" in this document are to be
+   interpreted as described in RFC2119.
+
+Table of Contents
+
+   1.    Introduction . . . . . . . . . . . . . . . . . . . . . . . .  3
+   1.1   RFC2535 Wildcard Processing  . . . . . . . . . . . . . . . .  3
+   1.2   Signalling the Existence of a Wildcard . . . . . . . . . . .  3
+   2.    DNSSEC Protocol Changes  . . . . . . . . . . . . . . . . . .  4
+   2.1   Server Side  . . . . . . . . . . . . . . . . . . . . . . . .  4
+   2.1.1 Zone Signing . . . . . . . . . . . . . . . . . . . . . . . .  4
+   2.1.2 Server Responses . . . . . . . . . . . . . . . . . . . . . .  4
+   2.1.3 Dynamic DNS  . . . . . . . . . . . . . . . . . . . . . . . .  5
+   2.2   Resolver Side  . . . . . . . . . . . . . . . . . . . . . . .  5
+   3.    IANA Considerations  . . . . . . . . . . . . . . . . . . . .  6
+   4.    Security Considerations  . . . . . . . . . . . . . . . . . .  6
+   5.    Internationalization Considerations  . . . . . . . . . . . .  6
+   6.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  6
+   7.    Document Changes . . . . . . . . . . . . . . . . . . . . . .  6
+   7.1   draft 00->01 . . . . . . . . . . . . . . . . . . . . . . . .  6
+         Normative References . . . . . . . . . . . . . . . . . . . .  7
+         Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  7
+   A.    Examples . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+   A.1   Zone without wildcards . . . . . . . . . . . . . . . . . . .  8
+   A.1.1 Optimized proof  . . . . . . . . . . . . . . . . . . . . . .  8
+   A.1.2 RFC2535 proof  . . . . . . . . . . . . . . . . . . . . . . .  8
+   A.2   Zone with wildcards  . . . . . . . . . . . . . . . . . . . .  9
+   A.2.1 Optimized proof  . . . . . . . . . . . . . . . . . . . . . . 10
+   A.2.2 NXDOMAIN with additional proof for no wildcard . . . . . . . 10
+   A.2.3 Another Optimized Proof  . . . . . . . . . . . . . . . . . . 11
+   A.2.4 Denial of Existence of Closer Match  . . . . . . . . . . . . 11
+   A.2.5 The NXT 'next name' Proving Existence of a Wildcard  . . . . 12
+         Full Copyright Statement . . . . . . . . . . . . . . . . . . 13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 2]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+1. Introduction
+
+   Wildcards make authenticated denial of existence complex.  Many zones
+   do not contain wildcards but still incur a penalty.  If the NXT RR
+   contains an indication that a wildcard match can not exist then less
+   DNSSEC related RRs and less computation are needed to authoritatively
+   deny the existence of a name in the zone.
+
+1.1 RFC2535 Wildcard Processing
+
+   RFC2535 [1] specifies that the non-existence of a match against a
+   wildcard is proven by a set of relevant NXT records.  In practice
+   this will result to at least 2 NXT RRs and corresponding SIGs being
+   returned.  There are cases where the denial of the existence of
+   wildcards will need many more than 2 NXT RRs.  Even in zones that do
+   not use wildcards this will lead to complex answers for which the
+   resolvers will need to follow NXT chains and which are hard to
+   troubleshoot by operators.
+
+1.2 Signalling the Existence of a Wildcard
+
+   The NXT RR, used to the prove the non-existence of data, uses a type
+   bit-map to track which types are available for a given name.  We
+   propose to use one bit (see section Section 3) in the type bitmap to
+   signal if a wildcard is available in a zone.  We refer to this bit as
+   the "NOWILD-bit".
+
+   If the NOWILD-bit is set to 1 then the NXT RR signals that there is
+   no wildcard match possible against the query name, only if the bit is
+   set to 0 further processing needs to be done.  For zones without
+   wildcards the NOWILD-bit MAY always be set to 1.
+
+   The following optimizations are realized:
+
+   o  Servers and resolvers will only have to execute a slow and
+      somewhat complicated code paths if wildcard are present in the
+      zone.
+
+   o  Packet size of answers reduce in most common cases; for the root
+      zone the authority section only contains one NXT RR with
+      associated SIGs instead of two NXT RRs with associated SIGs.
+
+   o  In case of absence of wildcards-matches answers will be easier to
+      interpret by human operators troubleshooting responses;
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 3]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+2. DNSSEC Protocol Changes
+
+   This is an update to the RFC2535 protocol.  Resolvers MUST implement
+   these changes.  Servers MAY implement these changes.
+
+2.1 Server Side
+
+2.1.1 Zone Signing
+
+   Servers that implement the optimization MAY perform the following
+   actions at zone signing time.
+
+   At zone signing time, when the NXT RRs are generated, the NOWILD-bit
+   MUST be set to 0 if for an ownername 'label(j).label(j-1).label(j-2)
+   ...  label(0).' there is no wildcard name '*.label(i).label(i-1) ...
+   label(0).' in the zone for all i < j.  In other words the label is
+   set to 0 if there  exists a wildcard that would match QNAME=ownername
+   while ignoring the possible existence of a domain name between the
+   ownername and the wildcard domain.  For all other ownernames the bit
+   MUST be set to 1.
+
+   If, because of implementation or policy issues, the algorithm in the
+   previous paragraph is not applied then the bit MUST be set to 0 for
+   all NXT RRs in the zone.  Servers that do do not implement the
+   optimization have already set their NOWILD bit to 0 by virtue of the
+   requirements of RFC2535 section 5.2.
+
+   When the algorithm is applied a NXT RR that proves the non-existence
+   of a full match of the QNAME will also prove, when it's NOWILD-bit is
+   set to 1, that there is no match of the QNAME to any wildcard that
+   may exist in the zone
+
+2.1.2 Server Responses
+
+   When queried for a name for which there is no match, i.e.  no full
+   and no wildcard match, in the zone:
+
+   o  Servers MUST return the NXT RR that proves the non-existence of
+      the query name in the NXDOMAIN response.  If there is no match for
+      a wildcard and the NOWILD-bit is set to 1 at signing time and the
+      one NXT RR is sufficient.  If the NOWILD-bit for the NXT RR that
+      proves non-existence of the query name is set to 0 then NXT RRs
+      that prove the non-existence of possible wildcard matches MUST be
+      returned as well.
+
+   When queried for a name for which there is a match in the zone:
+
+   o  If the match is an exact match than no NXT RRs are returned in the
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 4]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+      additional section.
+
+   o  Servers for zones that contain one or more wildcards MUST return
+      the NXT RRs that prove the non-existence of the exact match.  They
+      must also provide proof that there is no closer match for the
+      QNAME than the match returned in the answer section.
+
+   The proof algorithm for non-existence of wildcards, an exact match or
+   closer matches conforms to RFC2535.
+
+2.1.3 Dynamic DNS
+
+   When dynamically adding or removing a name that does not contains
+   wildcards, the 'next name' for the name immediately above the
+   inserted, or deleted name needs to be updated.  The NOWILD bit of the
+   inserted name is to be set according to the procedure as described in
+   Section 2.1.1.  Except for setting the NOWILD bit this is similar to
+   the RFC2535 procedure.
+
+   If a name containing a wildcard is deleted from a zone one has to
+   verify if, for all names in the zone with the bit set to 0, the
+   NOWILD bit can be toggled.  If a name containing a wildcard is added
+   one has to verify if, for all the names in the zone, the bit needs to
+   be set to 0.
+
+   The NOWILD bit is not to be modified during an update of a name that
+   already exists in the zone.
+
+   Dynamic updates of names that contain wildcards may lead to
+   performance penalties for large dynamic zones and one MAY therefore
+   choose not to perform the NOWILD optimization for dynamic zones.
+
+2.2 Resolver Side
+
+   When receiving an answer to a query a resolver MUST assess if the
+   answer is a result of a wildcard match.  If the result is an exact
+   match then there will be no NXT RRs in the authority section.
+
+   If the answer is a wildcard match then the resolver will need to
+   verify that the exact name does not exist.  The NXT RRs in the
+   additional section, which per definition have their NOWILD-bit set to
+   0, will need to prove that there is no closer match.  ( conforming to
+   RFC2535).
+
+   If the response is NXDOMAIN (i.e.  no match at all) then the resolver
+   MUST verify if the NXT RR proves the non-existence of the exact match
+   in the zone.  No further NXT RRs are needed if the NXT RR has it's
+   NOWILD-bit set to 1.  A DNS packet containing an NXDOMAIN response
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 5]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+   accompanied by a NXT RR that has it's NOWILD-bit set to 0 will need
+   to contain proof that there are no wildcard matches against the QNAME
+   (conforming to RFC2535 ).
+
+   The NXT data and the NOWILD-bit together supply the proof on the non-
+   existence of a wildcard.  There is one situation where the NOWILD-bit
+   is set to 1 but the NXT's 'next name' proves that there is a
+   wildcard.  This is when the 'next name' itself contains a wildcard.
+   Resolvers that verify NXDOMAIN replies MUST verify the NXT 'next
+   name' first before the NOWILD-bit.  Also see example Appendix A.2.5.
+
+   The fact that resolvers that obtain an answer with a NXT RR's NOWILD
+   set to 1 do not receive additional proof for the non-existence of
+   wildcards is incompatible with RFC2535.
+
+3. IANA Considerations
+
+   Although there is no RR record associated the NOWILD-bit.  The value
+   of the bit must be registered as a DNS RR-type.  To not cause the NXT
+   type bitmap to grow beyond 4 octets unnecessary we propose to reuse
+   type code 31 (the EID type code is undocumented).
+
+4. Security Considerations
+
+   The draft provides an optimization for wildcard handling.  Resolvers
+   MUST verify for the denial of existence of matches or the denial of
+   existence of closer matches when an answer is returned and the
+   NOWILD-bit is set to 0.
+
+5. Internationalization Considerations
+
+   There are no internationalization considerations.
+
+6. Acknowledgements
+
+   Olafur Gudmundsson, Daniel Karrenberg and Ed Lewis for providing
+   critique and input on earlier versions of this document.
+
+7. Document Changes
+
+7.1 draft 00->01
+
+      Reordered and reworded the 'protocol changes' section.  We tried
+      to make the fact that resolvers must and servers may implement
+      this optimization more explicit.
+
+      Change from using the SIG bit to another bit in the NXT type-
+      bitmap, changed the name of the bit and added IANA considerations.
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 6]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+      Note that the meaning of the bit being set and unset are changed
+      because of the default setting.  Because of the fact that we want
+      to maintain backward compatibility with servers that do not
+      implement this bit and the bit in the typemap is currently set to
+      0 the default behaviour should be follow old-style NXT proof.
+
+      Corrected mistakes in the examples.
+
+      Various style and spelling corrections.
+
+Normative References
+
+   [1]  Eastlake, D., "Domain Name System Security Extensions", RFC
+        2535, March 1999.
+
+
+Authors' Addresses
+
+   Olaf M. Kolkman
+   RIPE NCC
+   Singel 256
+   1016 AB Amsterdam
+   NL
+
+   Phone: +31 20 535 4444
+   EMail: olaf@ripe.net
+   URI:   http://www.ripe.net/
+
+
+   Johan Ihren
+   Autonomica
+   Bellmansgatan 30
+   SE-118 47 Stockholm
+   SE
+
+   EMail: johani@autonomica.se
+
+
+   Roy Arends
+   A.R.E.N.D.S.
+   Bankastraat 41-e
+   1094 EB Amsterdam
+   NL
+
+   Phone: +31206931681
+   EMail: Roy@logmess.com
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 7]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+Appendix A. Examples
+
+A.1 Zone without wildcards
+
+   In the following example zone file there are no wildcards.  All
+   NOWILD bits are set to 1.  The actual SIG RRs and the KEY RRs are
+   left out from the zone data and type bitmaps for clarity only.
+
+    $ORIGIN example.
+    @ IN   SOA
+    @      NXT a     SOA NXT NOWILD     ; NOWILD-bit set to 1
+    a      A         10.0.0.1
+    a      NXT a.b   A NXT NOWILD       ; NOWILD-bit set to 1
+    a.b    A         10.0.0.2
+    a.b    NXT a.c   A NXT NOWILD       ; NOWILD-bit set to 1
+    a.c    A         10.0.0.4
+    a.c    NXT a.b.c A NXT NOWILD       ; NOWILD-bit set to 1
+    a.b.c  A         10.0.0.5
+    a.b.c  NXT f     A NXT NOWILD       ; NOWILD-bit set to 1
+    f      A         10.0.0.6
+    f      NXT @     A NXT NOWILD       ; NOWILD-bit set to 1
+
+
+A.1.1 Optimized proof
+
+   A query for any existing name will return a signed answer without NXT
+   RRs in the authority section.  A query for any non existing name will
+   only return 1 NXT RR proving the non-existence of the QNAME in the
+   zone and, by virtue of the NOWILD-bit being 1, this is sufficient
+   proof there is no wildcard.
+
+    QNAME= d.b.c.example. QTYPE=A
+
+    RCODE=NXDOMAIN
+    ;; Authority
+    example.         SOA
+                     SIG SOA
+    a.b.c.example.   NXT f.example.    A NXT NOWILD
+                     SIG NXT
+    ;; Additional
+    (... skipped ... )
+
+
+A.1.2 RFC2535 proof
+
+   For comparison we supply the same answer without the optimization
+   applied i.e.  NOWILD set to 0 for all NXT RRs in the zone.  The
+   answer needs to contain prove that *.b.c.example, *.c.example and
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 8]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+   *.example do not exist, unless a name that exists in the zone
+   terminates the possible match of those wildcards against the QNAME.
+
+    QNAME= d.b.c.example. QTYPE=A
+
+    RCODE=NXDOMAIN
+    ;; Authority
+    example.         SOA
+                     SIG SOA
+    a.b.c.example.   NXT f.example. A NXT
+                     SIG NXT
+                     ; proofs non-existence of exact match.
+
+    a.c.example.     NXT a.b.c.example. A NXT
+                     SIG NXT
+                     ; proofs non-existence of  *.b.c.example.
+
+
+    ;; Additional
+    (... skipped ... )
+
+   Note that the existence of 'a.b.c.example NXT' RR terminates a
+   wildcard match of QNAME against *.c.example.  and *.example.  So the
+   answer packet does not need to contain further proof for the non-
+   existence of those wildcards.  However, a resolver will have to
+   execute logic to verify that the existence of 'a.b.c.example.'
+   terminates the possible match of the QNAME against the possible
+   wildcards and that the answer is therefore complete.
+
+A.2 Zone with wildcards
+
+   In the following example zone file there is a wildcard.  Some NOWILD
+   bits are set to 1, others for which there is no wildcard in the zone
+   if the leftmost labels are chopped off, have there NOWILD-bit set to
+   0.  The actual SIG RRs and the KEY RRs at the apex are left out for
+   clarity.  The queries for which a wildcard match is returned will
+   have the NOWILD-bit set to 0, there proof for the non-existing closer
+   match is to be supplied and checked by the resolver.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                  [Page 9]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+    $ORIGIN example.
+    @ IN   SOA
+    @      NXT a      SOA NXT NOWILD     ; NOWILD-bit set to 1
+    a      A          10.0.0.1
+    a      NXT a.b    A NXT NOWILD       ; NOWILD-bit set to 1
+    a.b    A          10.0.0.2
+    a.b    NXT *.c    A NXT NOWILD       ; NOWILD-bit set to 1
+    *.c    A          10.0.0.3
+    *.c    NXT a.c    A NXT SIG          ; NOWILD-bit set to 0
+    a.c    A          10.0.0.4
+    a.c    NXT a.b.c  A NXT SIG          ; NOWILD-bit set to 0
+    a.b.c  A          10.0.0.5
+    a.b.c  NXT f      A NXT SIG          ; NOWILD-bit set to 0
+    f      A          10.0.0.6
+    f      NXT @      A NXT NOWILD       ; NOWILD-bit set to 1
+
+
+A.2.1 Optimized proof
+
+    QNAME= c.a.a.example. QTYPE=A
+
+    RCODE=NXDOMAIN
+    ;; Authority
+    example.       SOA
+                   SIG SOA
+    a.example.     NXT a.b.example.    A NXT SIG NOWILD
+                                      ; NOWILD-bit set to 1 proves no full
+                                      ; match and no wildcards that match
+                                      ; QNAME
+                   SIG NXT
+
+
+    ;; Additional
+    (... skipped ... )
+
+
+A.2.2 NXDOMAIN with additional proof for no wildcard
+
+   The following example contains a NXDOMAIN answer and the proof that
+   there is no wildcard match.
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                 [Page 10]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+    QNAME= e.example. QTYPE=A
+
+    RCODE=NXDOMAIN
+    ;; Authority
+    example.example  SOA
+                     SIG SOA
+    a.b.c.example.   NXT f.example.    A NXT SIG      ; NOWILD-bit set to 0,
+                                                      ; proves no full match
+                     SIG NXT
+    example.         NXT a.example A NXT SIG NOWILD   ; NOWILD-bit set to 1,
+                                                      ; proves no *.example.
+
+
+    ;; Additional
+    (... skipped ... )
+
+
+A.2.3 Another Optimized Proof
+
+   The following example contains a NXDOMAIN answer and the proof that
+   there is no wildcard match.  In this particular case the proof is
+   optimized because of the NOWILD-bit on the f NXT RR being set to
+   zero.
+
+    QNAME= g.example. QTYPE=A
+
+    RCODE=NXDOMAIN
+    ;; Authority
+    example.example  SOA
+                     SIG SOA
+    f.example.       NXT example.   A NXT NOWILD    ; NOWILD-bit set to 1
+                                                    ; proves no full match
+
+    ;; Additional
+    (... skipped ... )
+
+
+A.2.4 Denial of Existence of Closer Match
+
+   The following example contains an answer with wildcard expansion and
+   the proof that there is no closer match.  This is similar to a
+   RFC2535 proof of non-existence.
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                 [Page 11]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+    QNAME= d.b.c.example. QTYPE=A
+
+    RCODE=ANSWER
+    ;; Answer
+    d.b.c.example.   A    10.0.0.3                  ; expansion of *.c
+                     SIG A  (labelcount=2)          ; labelcount proofs wildcard
+                                                    ; example
+    ;; Authority
+    example.example. SOA
+                     SIG SOA
+    a.b.c.example.   NXT f.example.    A NXT SIG    ; NOWILD-bit set to 0,
+                                                    ; proves no exact match,
+                     SIG  NXT
+    a.c.example.     NXT a.b.c.example. A NXT SIG   ; NOWILD-bit set to 0
+                                                    ; proves non-existence of
+                                                    ; *.b.c.example.
+                                                    ; No further proofs needed
+
+    ;; Additional
+    (... skipped ... )
+
+
+A.2.5 The NXT 'next name' Proving Existence of a Wildcard
+
+   In the zone above the a.b NXT RR has it's NOWILD-bit set to 1.  If
+   one would query for '#.c' which canonically orders between a.b and
+   *.c one would get back "a.b NXT *.c".  A attacker can use the this
+   NXT RR in a malformed NXDOMAIN response.
+
+    QNAME= #.c.example. QTYPE=A
+
+    RCODE=NXDOMAIN                                       ; Black hat answer !!!!
+    ;; Authority
+    example.example  SOA
+                     SIG SOA
+    a.b.example.     NXT *.c.example.       A NXT NOWILD ; NOWILD-bit set to 1
+                                                         ; but *.c exists
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                 [Page 12]
+
+Internet-Draft       DNSSEC Wildcard  Optimization        September 2002
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman, et al.          Expires March 2, 2003                 [Page 13]
+
