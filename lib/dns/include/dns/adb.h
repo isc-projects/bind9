@@ -112,17 +112,21 @@ typedef struct dns_adbhandle dns_adbhandle_t;
  */
 typedef struct dns_adbentry dns_adbentry_t;
 
-/* The answers to queries come back as a list of these. */
-typedef struct dns_adbaddr dns_adbaddr_t;
-typedef ISC_LIST(dns_adbaddr_t) dns_adbaddrlist_t;
-struct dns_adbaddr {
-	ISC_LINK(dns_adbaddr_t)		link;
-	isc_sockaddr_t		       *sockaddr;
+/* dns_adbaddr_t
+ *
+ * The answers to queries come back as a list of these.
+ */
+typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
+typedef ISC_LIST(dns_adbaddrinfo_t) dns_adbaddrlist_t;
+struct dns_adbaddrinfo {
+	unsigned int			magic;		/* private */
+
+	isc_sockaddr_t		       *sockaddr;	/* read only */
 	int				goodness;
-	unsigned int			srtt; /* microseconds */
+	unsigned int			srtt;		/* microseconds */
 	unsigned int			flags;
-	unsigned int			hostid;
-	dns_adbentry_t		       *entry;
+	dns_adbentry_t		       *entry;		/* private */
+	dns_adbaddrlist_t		link;
 };
 
 /*
@@ -145,6 +149,9 @@ struct dns_adbaddr {
  **** FUNCTIONS
  ****/
 
+
+isc_result_t
+dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
 /*
  * Create a new ADB.
  *
@@ -160,10 +167,10 @@ struct dns_adbaddr {
  *	ISC_R_NOMEMORY	after resource allocation failure.
  *
  */
-isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
 
 
+void
+dns_adb_destroy(dns_adb_t **adb);
 /*
  * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.
  *
@@ -173,10 +180,12 @@ dns_adb_create(isc_mem_t *mem, dns_adb_t **newadb);
  *	dns_adb_create().
  *
  */
-void
-dns_adb_destroy(dns_adb_t **adb);
 
 
+isc_result_t
+dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
+	       void *arg, dns_rdataset_t *nsrdataset, dns_name_t *zone,
+	       dns_adbhandle_t **handle);
 /*
  * Main interface for clients. The adb will iterate over the rdata items in
  * NSDATASET and will build up a list of found addresses, and perhaps start
@@ -211,7 +220,7 @@ dns_adb_destroy(dns_adb_t **adb);
  *	*nsdataset be a valid dns_rdataset_t with a non-zero number of NS
  *	 records in it.
  *
- *	addrlist != NULL && *addrlist == NULL.
+ *	zone != NULL and *zone be a valid dns_name_t.
  *
  *	handle != NULL && *handle == NULL.
  *
@@ -229,11 +238,10 @@ dns_adb_destroy(dns_adb_t **adb);
  *	No internal reference to "nsrdataset" exists after this function
  *	returns.
  */
-isc_result_t
-dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
-	       void *arg, dns_rdataset_t *nsdataset, dns_name_t *zone,
-	       dns_adbhandle_t **handle);
 
+
+void
+dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t **handle);
 /*
  * Cancels any outstanding lookups for this handle.
  *
@@ -241,7 +249,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *
  *	'adb' be a valid dns_adb_t pointer.
  *
- *	'adbhandle' be valid dns_adbhandle_t pointer.
+ *	'handle' != NULL && *handle be a valid dns_adbhandle_t.
  *
  * Ensures:
  *
@@ -249,9 +257,10 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *	after this function returns, and all internal uses of that task
  *	will be quickly shut down.
  */
-void
-dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t *adbhandle);
 
+
+void
+dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handle);
 /*
  * Stops any internal lookups for this handle.
  *
@@ -259,7 +268,7 @@ dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t *adbhandle);
  *
  *	'adb' be a valid dns_adb_t pointer.
  *
- *	'adbhandle' be valid dns_adbhandle_t pointer.
+ *	'handle' != NULL and *handle be valid dns_adbhandle_t pointer.
  *
  * Ensures:
  *
@@ -271,12 +280,10 @@ dns_adb_cancel(dns_adb_t *adb, dns_adbhandle_t *adbhandle);
  *	The task used to launch this handle can be used internally for
  *	a short time after this function returns.
  */
-void
-dns_adb_done(dns_adb_t *adb, dns_adbhandle_t *adbhandle);
 
 
 /*
- * Need functions/macros to:
+ * XXX Need functions/macros to:
  *
  *	Remove an address from a handle's linked list.  This is needed
  *	because the data pointed to by a dns_adbaddr_t is reference counted.
