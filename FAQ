@@ -31,3 +31,9 @@ like the "84600" in this example:
    example.com. 86400 IN SOA ns hostmaster ( 1 3600 1800 1814400 3600 )
 
 BIND 8 incorrectly accepted files that had neither.
+
+
+Q: Why do I see 5 (or more) copies of named on Linux?
+
+A: Linux threads each show up as a process under ps.  The approximate
+number of threads running is n+4, where n is the number of CPUs.
