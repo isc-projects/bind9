@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.89 2000/05/14 02:02:24 tale Exp $ */
+/* $Id: rdata.c,v 1.90 2000/05/15 21:14:07 tale Exp $ */
 
 #include <config.h>
 
@@ -696,7 +696,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		n = strtoul(buffer, &e, 10);
 		if (*e == 0) {
 			if (n > max)
-				return (DNS_R_RANGE);
+				return (ISC_R_RANGE);
 			*valuep = n;
 			return (ISC_R_SUCCESS);
 		}
@@ -923,7 +923,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 		n = strtoul(buffer, &e, 0); /* Allow hex/octal. */
 		if (*e == 0) {
 			if (n > 0xffff)
-				return (DNS_R_RANGE);
+				return (ISC_R_RANGE);
 			*flagsp = n;
 			return (ISC_R_SUCCESS);
 		}
@@ -1180,7 +1180,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	if (value > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 2)
 		return (ISC_R_NOSPACE);
@@ -1193,7 +1193,7 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_region_t region;
 
 	if (value > 0xff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 1)
 		return (ISC_R_NOSPACE);

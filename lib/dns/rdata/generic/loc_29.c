@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.18 2000/05/13 21:24:37 tale Exp $ */
+/* $Id: loc_29.c,v 1.19 2000/05/15 21:14:22 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -74,7 +74,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 90)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	d1 = (int)token.value.as_ulong;
 	/*
 	 * Minutes.
@@ -88,9 +88,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if (m1 < 0 || m1 > 59)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (d1 == 90 && m1 != 0)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 
 	/*
 	 * Seconds.
@@ -104,7 +104,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.')
 		return (DNS_R_SYNTAX);
 	if (s1 < 0 || s1 > 59)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 3 ; i++) {
@@ -122,7 +122,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	} else
 		s1 *= 1000;
 	if (d1 == 90 && s1 != 0)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 
 	/*
 	 * Direction.
@@ -139,7 +139,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 180)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	d2 = (int)token.value.as_ulong;
 
 	/*
@@ -154,9 +154,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if (m2 < 0 || m2 > 59)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (d2 == 180 && m2 != 0)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 		
 	/*
 	 * Seconds.
@@ -170,7 +170,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.')
 		return (DNS_R_SYNTAX);
 	if (s2 < 0 || s2 > 59)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (*e == '.') {
 		e++;
 		for (i = 0; i < 3 ; i++) {
@@ -188,7 +188,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	} else
 		s2 *= 1000;
 	if (d2 == 180 && s2 != 0)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 
 	/*
 	 * Direction.
@@ -208,7 +208,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.' && *e != 'm')
 		return (DNS_R_SYNTAX);
 	if (m < -100000 || m > 42849672)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -231,9 +231,9 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if (m == -100000 && cm != 0)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (m == 42849672 && cm > 95)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	/*
 	 * Adjust base.
 	 */
@@ -254,7 +254,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.' && *e != 'm')
 		return (DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -306,7 +306,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.' && *e != 'm')
 		return (DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -356,7 +356,7 @@ fromtext_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (*e != 0 && *e != '.' && *e != 'm')
 		return (DNS_R_SYNTAX);
 	if (m < 0 || m > 90000000)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	cm = 0;
 	if (*e == '.') {
 		e++;
@@ -542,7 +542,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	c = sr.base[1];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 
 	/*
 	 * Horizontal precision.
@@ -550,7 +550,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	c = sr.base[2];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 
 	/*
 	 * Vertical precision.
@@ -558,7 +558,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	c = sr.base[3];
 	if (c != 0)
 		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 	isc_region_consume(&sr, 4);
 
 	/*
@@ -567,7 +567,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	latitude = uint32_fromregion(&sr);
 	if (latitude < (0x80000000UL - 90 * 3600000) ||
 	    latitude > (0x80000000UL + 90 * 3600000))
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	isc_region_consume(&sr, 4);
 
 	/*
@@ -576,7 +576,7 @@ fromwire_loc(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	longitude = uint32_fromregion(&sr);
 	if (longitude < (0x80000000UL - 180 * 3600000) ||
 	    longitude > (0x80000000UL + 180 * 3600000))
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 
 	/*
 	 * Altitiude.

@@ -432,10 +432,10 @@ dns_journal_iter_init(dns_journal_t *j,
  *
  * Returns:
  *	ISC_R_SUCCESS	
+ *	ISC_R_RANGE	begin_serial is outside the addressable range.
  *	ISC_R_NOTFOUND	begin_serial is within the range of adressable
  *			serial numbers covered by the journal, but
  *			this particular serial number does not exist.
- *	DNS_R_RANGE	begin_serial is outside the addressable range.
  */
 
 isc_result_t

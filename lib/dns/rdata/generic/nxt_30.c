@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.33 2000/05/13 22:05:39 tale Exp $ */
+/* $Id: nxt_30.c,v 1.34 2000/05/15 21:14:25 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -49,7 +49,9 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	UNUSED(rdclass);
 	
-	/* next domain */
+	/*
+	 * Next domain.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
@@ -72,7 +74,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		 * NXT is only specified for types 1..127.
 		 */
 		if (covered < 1 || covered > 127)
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 		if (first || covered > maxcovered)
 			maxcovered = covered;
 		first = ISC_FALSE;

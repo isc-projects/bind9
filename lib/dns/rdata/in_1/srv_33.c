@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.23 2000/05/12 12:59:35 marka Exp $ */
+/* $Id: srv_33.c,v 1.24 2000/05/15 21:14:35 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -38,25 +38,33 @@ fromtext_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
 
-	/* priority */
+	/*
+	 * Priority.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* weight */
+	/*
+	 * Weight.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* port */
+	/*
+	 * Port.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* target */
+	/*
+	 * Target.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
@@ -81,7 +89,9 @@ totext_in_srv(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 
-	/* priority */
+	/*
+	 * Priority.
+	 */
 	dns_rdata_toregion(rdata, &region);
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
@@ -89,21 +99,27 @@ totext_in_srv(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
-	/* weight */
+	/*
+	 * Weight.
+	 */
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
-	/* port */
+	/*
+	 * Port.
+	 */
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	sprintf(buf, "%u", num);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
-	/* target */
+	/*
+	 * Target.
+	 */
 	dns_name_fromregion(&name, &region);
 	sub = name_prefix(&name, tctx->origin, &prefix);
 	return (dns_name_totext(&prefix, sub, target));
@@ -124,14 +140,18 @@ fromwire_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         
         dns_name_init(&name, NULL);
 
-	/* priority, weight, port */
+	/*
+	 * Priority, weight, port.
+	 */
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 6)
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_buffer_forward(source, 6);
 
-	/* target */
+	/*
+	 * Target.
+	 */
 	return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
@@ -143,12 +163,16 @@ towire_in_srv(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	REQUIRE(rdata->type == 33);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
-	/* priority, weight, port */
+	/*
+	 * Priority, weight, port.
+	 */
 	dns_rdata_toregion(rdata, &sr);
 	RETERR(mem_tobuffer(target, sr.base, 6));
 	isc_region_consume(&sr, 6);
 
-	/* target */
+	/*
+	 * Target.
+	 */
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	return (dns_name_towire(&name, cctx, target));
@@ -167,12 +191,16 @@ compare_in_srv(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	REQUIRE(rdata1->type == 33);
 	REQUIRE(rdata1->rdclass == 1);
 
-	/* priority, weight, port */
+	/*
+	 * Priority, weight, port.
+	 */
 	order = memcmp(rdata1->data, rdata2->data, 6);
 	if (order != 0)
 		return (order < 0 ? -1 : 1);
 
-	/* target */
+	/*
+	 * Target.
+	 */
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
 

@@ -93,7 +93,8 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 	{
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type > 127)
-			return DNS_R_RANGE; /* XXX "rdataset type too large" */
+			/* XXX "rdataset type too large" */
+			return (ISC_R_RANGE);
 		if (rdataset.type != dns_rdatatype_nxt) {
 			if (rdataset.type > max_type)
 				max_type = rdataset.type;
@@ -102,7 +103,9 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	/* At zone cuts, deny the existence of glue in the parent zone. */
+	/*
+	 * At zone cuts, deny the existence of glue in the parent zone.
+	 */
 	if (bit_isset(nxt_bits, dns_rdatatype_ns) &&
 	    ! bit_isset(nxt_bits, dns_rdatatype_soa)) {
 		for (i = 0; i < 128; i++) {

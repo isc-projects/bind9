@@ -65,7 +65,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in) {
 		goto send_and_free;
 	}
 	if (tcpmsg->size > tcpmsg->maxsize) {
-		tcpmsg->result = DNS_R_RANGE;
+		tcpmsg->result = ISC_R_RANGE;
 		goto send_and_free;
 	}
 

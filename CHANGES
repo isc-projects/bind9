@@ -1,3 +1,5 @@
+ 180.   [func]          New isc_result_t ISC_R_RANGE.  Supersedes DNS_R_RANGE.
+
  179.	[func]		options named.conf statement *must* now come
 			before any zone or view statements.
 
@@ -30,7 +32,7 @@
 			master files because totext_ctx_init() failed to
 			initialize ctx->current_ttl_valid.
 
- 171.  [cleanup] 	On NetBSD systems, the mit-pthreads or
+ 171.   [cleanup] 	On NetBSD systems, the mit-pthreads or
 			unproven-pthreads library is now always used
 			unless --with-ptl2 is explicitly specified on
 			the configure command line.  The

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: time.c,v 1.12 2000/05/08 19:23:17 tale Exp $ */
+/* $Id: time.c,v 1.13 2000/05/15 21:14:10 tale Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ dns_time64_totext(isc_int64_t t, isc_buffer_t *target) {
 		t -= secs;
 		tm.tm_year++;
 		if (tm.tm_year + 1900 > 9999)
-			return DNS_R_RANGE;
+			return (ISC_R_RANGE);
 	}
 	tm.tm_mon = 0;
 	while ((secs = month_secs(tm.tm_mon, tm.tm_year + 1900)) <= t) {
@@ -118,7 +118,7 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 #define RANGE(min, max, value) \
 	do { \
 		if (value < (min) || value > (max)) \
-			return (DNS_R_RANGE); \
+			return (ISC_R_RANGE); \
 	} while (0)
 
 	if (strlen(source) != 14)
@@ -162,8 +162,8 @@ dns_time32_fromtext(char *source, isc_uint32_t *target) {
 		return (result);
 	value32 = (isc_uint32_t)value64;
 	if (value32 != value64)
-		return DNS_R_RANGE;
+		return (ISC_R_RANGE);
 	*target = value32;
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.32 2000/05/13 22:46:07 tale Exp $ */
+/* $Id: tkey_249.c,v 1.33 2000/05/15 21:14:28 tale Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -71,7 +71,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -84,7 +84,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		if (*e != 0)
 			return (DNS_R_UNKNOWN);
 		if (i < 0 || i > 0xffff)
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 		rcode = (dns_rcode_t)i;
 	}
 	RETERR(uint16_tobuffer(rcode, target));
@@ -94,7 +94,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
@@ -107,7 +107,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*

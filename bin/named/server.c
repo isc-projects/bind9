@@ -219,11 +219,11 @@ configure_view_dnsseckeys(dns_c_ctx_t *cctx,
 			proto = ckey->pubkey->protocol;
 			alg = ckey->pubkey->algorithm;
 			if (flags < 0 || flags > 0xffff)
-				CHECKM(DNS_R_RANGE, "key flags");
+				CHECKM(ISC_R_RANGE, "key flags");
 			if (proto < 0 || proto > 0xff)
-				CHECKM(DNS_R_RANGE, "key protocol");
+				CHECKM(ISC_R_RANGE, "key protocol");
 			if (alg < 0 || alg > 0xff)
-				CHECKM(DNS_R_RANGE, "key algorithm");
+				CHECKM(ISC_R_RANGE, "key algorithm");
 			keystruct.flags = flags;
 			keystruct.protocol = proto;
 			keystruct.algorithm = alg;

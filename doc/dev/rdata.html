@@ -483,7 +483,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target);</CODE></DT>
 <P>
 Write them 16 bit <CODE>value</CODE> in network order to <CODE>target</CODE>.
 <P>
-Returns <CODE>DNS_R_RANGE</CODE>, <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
+Returns <CODE>ISC_R_RANGE</CODE>, <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
 <P>
 <DT><CODE>static isc_uint32_t<BR>
 uint32_fromregion(isc_region_t *region);</CODE></DT>
@@ -583,7 +583,7 @@ Take the date in <CODE>source</CODE> and convert it seconds since January 1,
 1970 (ignoring leap seconds) and place the least significant 32 bits into
 <CODE>target</CODE>.
 <P>
-Returns <CODE>DNS_R_RANGE</CODE>, <CODE>DNS_R_SYNTAX</CODE>,
+Returns <CODE>ISC_R_RANGE</CODE>, <CODE>DNS_R_SYNTAX</CODE>,
 <CODE>DNS_R_NOSPACE</CODE> and <CODE>DNS_R_SUCCESS</CODE>.
 </DL>
 <H2><A NAME="macros">Support Macros<A></H2>

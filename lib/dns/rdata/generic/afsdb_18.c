@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.26 2000/05/12 12:59:22 marka Exp $ */
+/* $Id: afsdb_18.c,v 1.27 2000/05/15 21:14:20 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -39,13 +39,17 @@ fromtext_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 18);
 
-	/* subtype */
+	/*
+	 * Subtype.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 	
-	/* hostname */
+	/*
+	 * Hostname.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
@@ -109,8 +113,7 @@ fromwire_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t tr;
 	isc_region_t sr;
 	dns_name_t name;
@@ -133,8 +136,7 @@ towire_afsdb(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_afsdb(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 	dns_name_t name1;
 	dns_name_t name2;
@@ -178,8 +180,7 @@ fromstruct_afsdb(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_afsdb_t *afsdb = target;
 	dns_name_t name;
@@ -207,8 +208,7 @@ tostruct_afsdb(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_afsdb(void *source)
-{
+freestruct_afsdb(void *source) {
 	dns_rdata_afsdb_t *afsdb = source;
 
 	REQUIRE(source != NULL);
@@ -239,8 +239,7 @@ additionaldata_afsdb(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_afsdb(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r1, r2;
 	dns_name_t name;
 

@@ -24,8 +24,8 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
-				   isc_textregion_t *source);
+isc_result_t
+dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC KEY flags value.
  * The text may contain either a set of flag mnemonics separated by
@@ -41,8 +41,8 @@ isc_result_t dns_keyflags_fromtext(dns_keyflags_t *flagsp,
  *
  * Returns:
  *	ISC_R_SUCCESS			on success
+ *	ISC_R_RANGE			numeric flag value is out of range
  *	DNS_R_UNKNOWN			mnemonic flag is unknown
- *	DNS_R_RANGE			numeric flag value is out of range
  */
 
 ISC_LANG_ENDDECLS

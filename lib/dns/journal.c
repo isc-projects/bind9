@@ -1389,7 +1389,7 @@ index_invalidate(dns_journal_t *j, isc_uint32_t serial) {
  * (from the journal, not just from the index), return ISC_R_NOTFOUND.
  *
  * If 'serial' is outside the range of addressable serial numbers
- * covered by the journal, return DNS_R_RANGE.
+ * covered by the journal, return ISC_R_RANGE.
  * 
  */
 static isc_result_t
@@ -1399,9 +1399,9 @@ journal_find(dns_journal_t *j, isc_uint32_t serial, journal_pos_t *pos) {
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	
 	if (DNS_SERIAL_GT(j->header.begin.serial, serial))
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (DNS_SERIAL_GT(serial, j->header.end.serial))
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	if (serial == j->header.end.serial) {
 		*pos = j->header.end;
 		return (ISC_R_SUCCESS);

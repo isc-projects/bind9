@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.25 2000/05/12 12:59:30 marka Exp $ */
+/* $Id: kx_36.c,v 1.26 2000/05/15 21:14:32 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -40,7 +40,7 @@ fromtext_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -104,8 +104,7 @@ fromwire_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_kx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_in_kx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
 
@@ -124,8 +123,7 @@ towire_in_kx(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_in_kx(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_in_kx(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -175,8 +173,7 @@ fromstruct_in_kx(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_t region;
 	dns_rdata_in_kx_t *kx = target;
 	dns_name_t name;
@@ -203,8 +200,7 @@ tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_in_kx(void *source)
-{
+freestruct_in_kx(void *source) {
 	dns_rdata_in_kx_t *kx = source;
 
 	REQUIRE(source != NULL);
@@ -237,8 +233,7 @@ additionaldata_in_kx(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_in_kx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_in_kx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r1, r2;
 	dns_name_t name;
 
@@ -255,4 +250,4 @@ digest_in_kx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	return (dns_name_digest(&name, digest, arg));
 }
 
-#endif	/* RDATA_GENERIC_KX_15_C */
+#endif	/* RDATA_GENERIC_KX_36_C */

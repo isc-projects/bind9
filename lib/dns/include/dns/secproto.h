@@ -24,8 +24,8 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
-				   isc_textregion_t *source);
+isc_result_t
+dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNSSEC security protocol value.
  * The text may contain either a mnemonic protocol name or a decimal protocol
@@ -38,8 +38,8 @@ isc_result_t dns_secproto_fromtext(dns_secproto_t *secprotop,
  *
  * Returns:
  *	ISC_R_SUCCESS			on success
+ *	ISC_R_RANGE			numeric type is out of range
  *	DNS_R_UNKNOWN			mnemonic type is unknown
- *	DNS_R_RANGE			numeric type is out of range
  */
 
 isc_result_t

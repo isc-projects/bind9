@@ -39,7 +39,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"extra input text",			/* 12 */
 	"extra input data",			/* 13 */
 	"text too long",			/* 14 */
-	"out of range",				/* 15 */
+	"UNUSED15",				/* 15 */
 	"syntax error",				/* 16 */
 	"bad checksum",				/* 17 */
 	"bad IPv6 address",			/* 18 */
@@ -164,27 +164,27 @@ dns_result_torcode(isc_result_t result) {
 	case ISC_R_SUCCESS:
 		rcode = dns_rcode_noerror;
 		break;
-	case ISC_R_NOSPACE:
-	case ISC_R_UNEXPECTEDEND:
 	case ISC_R_BADBASE64:
-	case DNS_R_LABELTOOLONG:
+	case ISC_R_NOSPACE:
+	case ISC_R_RANGE:
+	case ISC_R_UNEXPECTEDEND:
+	case DNS_R_BADAAAA:
 	case DNS_R_BADBITSTRING:
-	case DNS_R_BITSTRINGTOOLONG:
-	case DNS_R_UNKNOWN:
+	case DNS_R_BADCKSUM:
+	case DNS_R_BADCLASS:
 	case DNS_R_BADLABELTYPE:
 	case DNS_R_BADPOINTER:
-	case DNS_R_TOOMANYHOPS:
-	case DNS_R_EXTRADATA:
-	case DNS_R_TEXTTOOLONG:
-	case DNS_R_RANGE:
-	case DNS_R_SYNTAX:
-	case DNS_R_BADCKSUM:
-	case DNS_R_BADAAAA:
-	case DNS_R_BADCLASS:
 	case DNS_R_BADTTL:
-	case DNS_R_NOREDATA:
 	case DNS_R_BADZONE:
+	case DNS_R_BITSTRINGTOOLONG:
+	case DNS_R_EXTRADATA:
+	case DNS_R_LABELTOOLONG:
+	case DNS_R_NOREDATA:
+	case DNS_R_SYNTAX:
+	case DNS_R_TEXTTOOLONG:
+	case DNS_R_TOOMANYHOPS:
 	case DNS_R_TSIGERRORSET:
+	case DNS_R_UNKNOWN:
 		rcode = dns_rcode_formerr;
 		break;
 	case DNS_R_DISALLOWED:

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.26 2000/05/12 12:59:26 marka Exp $ */
+/* $Id: cert_37.c,v 1.27 2000/05/15 21:14:21 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -41,18 +41,24 @@ fromtext_cert(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	UNUSED(origin);
 	UNUSED(downcase);
 
-	/* cert type */
+	/*
+	 * Cert type.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(cert, target));
 	
-	/* key tag */
+	/*
+	 * Key tag.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* algorithm */
+	/*
+	 * Algorithm.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	RETERR(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &secalg, 1));
@@ -74,23 +80,31 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	dns_rdata_toregion(rdata, &sr);
 
-	/* type */
+	/*
+	 * Type.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	RETERR(dns_cert_totext((dns_cert_t)n, target));
 	RETERR(str_totext(" ", target));
 
-	/* key tag */
+	/*
+	 * Key tag.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
 
-	/* algorithm */
+	/*
+	 * Algorithm.
+	 */
 	RETERR(dns_secalg_totext(sr.base[0], target));
 	isc_region_consume(&sr, 1);
 
-	/* cert */
+	/*
+	 * Cert.
+	 */
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));

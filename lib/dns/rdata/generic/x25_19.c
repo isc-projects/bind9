@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.17 2000/05/05 05:50:12 marka Exp $ */
+/* $Id: x25_19.c,v 1.18 2000/05/15 21:14:30 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -47,7 +47,7 @@ fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_SYNTAX);
 	for (i = 0; i < token.value.as_textregion.length; i++)
 		if (!isdigit(token.value.as_textregion.base[i] & 0xff))
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
 

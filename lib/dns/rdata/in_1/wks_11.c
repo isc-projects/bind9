@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.28 2000/05/08 16:12:30 tale Exp $ */
+/* $Id: wks_11.c,v 1.29 2000/05/15 21:14:36 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -54,7 +54,9 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
 	
-	/* IPv4 dotted quad */
+	/*
+	 * IPv4 dotted quad.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	isc_buffer_availableregion(target, &region);
@@ -65,7 +67,9 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	memcpy(region.base, &addr, 4);
 	isc_buffer_add(target, 4);
 
-	/* protocol */
+	/*
+	 * Protocol.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	proto = strtol(token.value.as_pointer, &e, 10);
@@ -76,7 +80,7 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	else
 		return (ISC_R_UNEXPECTED);
 	if (proto < 0 || proto > 0xff)
-		return (DNS_R_RANGE);
+		return (ISC_R_RANGE);
 
 	if (proto == IPPROTO_TCP)
 		ps = "tcp";
@@ -100,13 +104,15 @@ fromtext_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		else
 			return (ISC_R_UNEXPECTED);
 		if (port < 0 || port > 0xffff)
-			return (DNS_R_RANGE);
+			return (ISC_R_RANGE);
 		if (port > maxport)
 			maxport = port;
 		bm[port / 8] |= (0x80 >> (port % 8));
 	} while (1);
 
-	/* Let upper layer handle eol/eof. */
+	/*
+	 * Let upper layer handle eol/eof.
+	 */
 	isc_lex_ungettoken(lexer, &token);
 
 	n = (maxport + 8) / 8;
@@ -188,8 +194,7 @@ fromwire_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_in_wks(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
-{
+towire_in_wks(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 
 	UNUSED(cctx);
@@ -202,8 +207,7 @@ towire_in_wks(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 }
 
 static inline int
-compare_in_wks(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
-{
+compare_in_wks(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
 
@@ -231,8 +235,7 @@ fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 }
 
 static inline isc_result_t
-tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
-{
+tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	dns_rdata_in_wks_t *wks = target;
 	isc_uint32_t n;
 	isc_region_t region;
@@ -262,8 +265,7 @@ tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 }
 
 static inline void
-freestruct_in_wks(void *source)
-{
+freestruct_in_wks(void *source) {
 	dns_rdata_in_wks_t *wks = source;
 
 	REQUIRE(source != NULL);
@@ -293,8 +295,7 @@ additionaldata_in_wks(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_in_wks(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
-{
+digest_in_wks(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == 11);

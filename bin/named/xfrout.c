@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.61 2000/05/10 03:33:52 tale Exp $ */
+/* $Id: xfrout.c,v 1.62 2000/05/15 21:14:01 tale Exp $ */
 
 #include <config.h>
 
@@ -999,7 +999,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 					      current_serial,
 					      &data_stream);
 		if (result == ISC_R_NOTFOUND ||
-		    result == DNS_R_RANGE) {
+		    result == ISC_R_RANGE) {
 			xfrout_log1(client, question_name, ISC_LOG_DEBUG(4), 
 				    "IXFR version not in journal, "
 				    "falling back to AXFR");
