@@ -51,7 +51,7 @@
 #define	T_ARG(n)	(*(av + (n)))
 
 
-typedef	void (*PFV)();
+typedef	void (*PFV)(void);
 
 typedef struct {
 	PFV	pfv;
