@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.145 2001/07/16 03:05:57 marka Exp $ */
+/* $Id: rdata.c,v 1.146 2001/07/16 09:48:05 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -379,6 +379,8 @@ dns_rdata_init(dns_rdata_t *rdata) {
 void
 dns_rdata_reset(dns_rdata_t *rdata) {
 
+	REQUIRE(rdata != NULL);
+
 	REQUIRE(!ISC_LINK_LINKED(rdata, link));
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
@@ -395,6 +397,9 @@ dns_rdata_reset(dns_rdata_t *rdata) {
 
 void
 dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target) {
+
+	REQUIRE(src != NULL);
+	REQUIRE(target != NULL);
 
 	REQUIRE(DNS_RDATA_INITIALIZED(target));
 
