@@ -141,7 +141,8 @@ static unsigned char maptolower[] = {
 static struct dns_name root = {
 	NAME_MAGIC,
 	(unsigned char *)"", 1, 1, NULL,
-	{(void *)-1, (void *)-1}
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
 };
 
 dns_name_t *dns_rootname = &root;
@@ -254,6 +255,7 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	name->labels = 0;
 	name->offsets = offsets;
 	ISC_LINK_INIT(name, link);
+	ISC_LIST_INIT(name->list);
 }
 
 void
@@ -568,7 +570,6 @@ dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 
 	INIT_OFFSETS(name, offsets, odata);
 
-	name->magic = NAME_MAGIC;
 	name->ndata = r->base;
 	name->length = r->length;
 
@@ -602,7 +603,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	char c;
 	ft_state state, kind;
 	unsigned int value, count, tbcount, bitlength, maxlength;
-	unsigned int n1, n2, vlen, tlen, nrem, digits, labels, tused;
+	unsigned int n1, n2, vlen, tlen, nrem, nused, digits, labels, tused;
 	isc_boolean_t done, saw_bitstring;
 	unsigned char dqchars[4];
 	unsigned char *offsets;
@@ -657,6 +658,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	nrem = target->length - target->used;
 	if (nrem > 255)
 		nrem = 255;
+	nused = 0;
 	labels = 0;
 	done = ISC_FALSE;
 	saw_bitstring = ISC_FALSE;
@@ -679,6 +681,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				labels++;
 				*ndata++ = 0;
 				nrem--;
+				nused++;
 				done = ISC_TRUE;
 				break;
 			}
@@ -687,6 +690,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			label = ndata;
 			ndata++;
 			nrem--;
+			nused++;
 			count = 0;
 			if (c == '\\') {
 				state = ft_initialescape;
@@ -705,6 +709,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					labels++;
 					*ndata++ = 0;
 					nrem--;
+					nused++;
 					done = ISC_TRUE;
 				}
 				state = ft_start;
@@ -719,6 +724,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					c = maptolower[(int)c];
 				*ndata++ = c;
 				nrem--;
+				nused++;
 			}
 			break;
 		case ft_initialescape:
@@ -730,6 +736,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				label = ndata;
 				ndata++;
 				nrem--;
+				nused++;
 				break;
 			}
 			kind = ft_ordinary;
@@ -745,6 +752,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					c = maptolower[(int)c];
 				*ndata++ = c;
 				nrem--;
+				nused++;
 				state = ft_ordinary;
 				break;
 			}
@@ -768,6 +776,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					value = maptolower[value];
 				*ndata++ = value;
 				nrem--;
+				nused++;
 				state = ft_ordinary;
 			}
 			break;
@@ -817,6 +826,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (count == 8) {
 				*ndata++ = value;
 				nrem--;
+				nused++;
 				count = 0;
 			}
 			break;
@@ -834,15 +844,18 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (count == 8) {
 				*ndata++ = value;
 				nrem--;
+				nused++;
 				count = 0;
 			} else if (count == 9) {
 				*ndata++ = (value >> 1);
 				nrem--;
+				nused++;
 				value &= 1;
 				count = 1;
 			} else if (count == 10) {
 				*ndata++ = (value >> 2);
 				nrem--;
+				nused++;
 				value &= 3;
 				count = 2;
 			}
@@ -861,6 +874,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (count == 8) {
 				*ndata++ = value;
 				nrem--;
+				nused++;
 				count = 0;
 			}
 			break;
@@ -911,6 +925,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 						value <<= (8 - n1);
 					*ndata++ = value;
 					nrem--;
+					nused++;
 				}
 				if (bitlength != 0) {
 					if (bitlength > tbcount)
@@ -970,6 +985,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					for (n2 = 0; n2 < n1; n2++) {
 						*ndata++ = dqchars[n2];
 						nrem--;
+						nused++;
 					}
 				}
 				if (bitlength == 256)
@@ -1000,6 +1016,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				labels++;
 				*ndata++ = 0;
 				nrem--;
+				nused++;
 				done = ISC_TRUE;
 			}
 			state = ft_start;
@@ -1028,6 +1045,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			label = origin->ndata;
 			n1 = origin->length;
 			nrem -= n1;
+			nused += n1;
 			labels += origin->labels;
 			while (n1 > 0) {
 				c = *label++;
@@ -1043,7 +1061,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	name->magic = NAME_MAGIC;
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
-	name->length = target->length - target->used - nrem;
+	name->length = nused;
 
 	/*
 	 * We should build the offsets table directly.
@@ -1412,7 +1430,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  isc_buffer_t *target)
 {
 	unsigned char *cdata, *ndata;
-	unsigned int cused, hops, nrem, labels, n;
+	unsigned int cused, hops, nrem, nused, labels, n;
 	unsigned int current, new_current, biggest_pointer;
 	isc_boolean_t saw_bitstring, done;
 	fw_state state = fw_start;
@@ -1457,6 +1475,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	nrem = target->length - target->used;
 	if (nrem > 255)
 		nrem = 255;
+	nused = 0;
 	cdata = (unsigned char *)source->base + source->current;
 	cused = 0;
 	current = source->current;
@@ -1480,6 +1499,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				if (nrem < c + 1)
 					return (DNS_R_NOSPACE);
 				nrem -= c + 1;
+				nused += c + 1;
 				*ndata++ = c;
 				if (c == 0)
 					done = ISC_TRUE;
@@ -1500,6 +1520,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				if (nrem == 0)
 					return (DNS_R_NOSPACE);
 				nrem--;
+				nused++;
 				*ndata++ = c;
 				saw_bitstring = ISC_TRUE;
 				state = fw_bitstring;
@@ -1540,6 +1561,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			if (nrem < c + 1)
 				return (DNS_R_NOSPACE);
 			nrem -= c + 1;
+			nused += c + 1;
 			*ndata++ = c;
 			if (c == 0)
 				c = 256;
@@ -1578,7 +1600,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	name->magic = NAME_MAGIC;
 	name->ndata = (unsigned char *)target->base + target->used;
 	name->labels = labels;
-	name->length = target->length - target->used - nrem;
+	name->length = nused;
 
 	/*
 	 * We should build the offsets table directly.
