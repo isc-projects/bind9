@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.43 2000/06/06 22:00:47 bwelling Exp $
+ * $Id: dnssec.c,v 1.43.2.1 2000/07/27 22:15:21 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -322,7 +322,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	REQUIRE(mctx != NULL);
 	REQUIRE(sigrdata != NULL && sigrdata->type == dns_rdatatype_sig);
 
-	ret = dns_rdata_tostruct(sigrdata, &sig, mctx);
+	ret = dns_rdata_tostruct(sigrdata, &sig, NULL);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -599,6 +599,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	RETERR(dst_context_sign(ctx, &sigbuf));
+	dst_context_destroy(&ctx);
 
 	rdata = NULL;
 	RETERR(dns_message_gettemprdata(msg, &rdata));
@@ -671,7 +672,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	RETERR(dns_rdataset_first(msg->sig0));
 	dns_rdataset_current(msg->sig0, &rdata);
 
-	RETERR(dns_rdata_tostruct(&rdata, &sig, mctx));
+	RETERR(dns_rdata_tostruct(&rdata, &sig, NULL));
 	signeedsfree = ISC_TRUE;
 
 	if (sig.labels != 0) {
@@ -691,7 +692,11 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
-	/* XXXBEW ensure that sig.signer refers to this key */
+	if (!dns_name_equal(dst_key_name(key), &sig.signer)) {
+		result = DNS_R_SIGINVALID;
+		msg->sig0status = dns_tsigerror_badkey;
+		goto failure;
+	}
 
 	RETERR(dst_context_create(key, mctx, &ctx));
 
@@ -751,6 +756,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->verified_sig = 1;
 
+	dst_context_destroy(&ctx);
 	dns_rdata_freestruct(&sig);
 
 	return (ISC_R_SUCCESS);
