@@ -35,5 +35,7 @@ isc_stdtime_get(isc_stdtime_t *t) {
 	
 	RUNTIME_CHECK(gettimeofday(&tv, NULL) != -1);
 
+	INSIST(tv.tv_usec >= 0 && tv.tv_usec < 1000000);
+
 	*t = (unsigned int)tv.tv_sec;
 }
