@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.6 2001/01/09 21:58:01 bwelling Exp $ */
+/* $Id: mutex.c,v 1.7 2002/09/08 18:32:38 explorer Exp $ */
 
 #include <config.h>
 
@@ -213,6 +213,25 @@ isc_mutex_statsprofile(FILE *fp) {
 }
 
 #endif /* ISC_MUTEX_PROFILE */
+
+#if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
+isc_result_t
+isc_mutex_init_errcheck(isc_mutex_t *mp)
+{
+	pthread_mutexattr_t attr;
+
+	if (pthread_mutexattr_init(&attr) != 0)
+		return ISC_R_UNEXPECTED;
+
+	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK) != 0)
+		return ISC_R_UNEXPECTED;
+  
+	if (pthread_mutex_init(mp, &attr) != 0)
+		return ISC_R_UNEXPECTED;
+
+	return ISC_R_SUCCESS;
+}
+#endif
 
 #if ISC_MUTEX_DEBUG && defined(__NetBSD__) && defined(PTHREAD_MUTEX_ERRORCHECK)
 pthread_mutexattr_t isc__mutex_attrs = {
