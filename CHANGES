@@ -6,9 +6,10 @@
 			zones. [RT #611]
 
  654.	[bug]		Origin was being forgotten in TCP retries in dig.
-			[RT574]
+			[RT #574]
 
- 653.	[bug]		+defname option in dig was reversed in sense.  [RT549]
+ 653.	[bug]		+defname option in dig was reversed in sense.  
+			[RT #549]
 
  652.	[bug]		zone_saveunique() did not report the new name.
 
