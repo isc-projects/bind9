@@ -142,3 +142,12 @@ being found.  Why?
 A: Using a parallel or distributed "make" to build BIND 9 is not
 supported, and doesn't work.  If you are using one of these, use
 normal make or gmake instead.
+
+
+Q: I have a BIND 9 master and a BIND 8.2.3 slave, and the master is
+logging error messages like "notify to 10.0.0.1#53 failed: unexpected
+end of input".  What's wrong?
+
+A: This error message is caused by a known bug in BIND 8.2.3 and will
+be fixed in 8.2.4.  It can be safely ignored - the notify has been
+acted on by the slave despite the error message.
