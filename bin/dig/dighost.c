@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.129 2000/09/21 12:25:41 marka Exp $ */
+/* $Id: dighost.c,v 1.130 2000/09/21 22:46:36 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -75,7 +75,8 @@ isc_boolean_t
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
-	have_domain = ISC_FALSE;
+	have_domain = ISC_FALSE,
+	is_blocking =ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -269,7 +270,7 @@ dig_lookup_t *
 make_empty_lookup(void) {
 	dig_lookup_t *looknew;
 
-	debug("make_lookup()");
+	debug("make_empty_lookup()");
 
 	INSIST(!free_now);
 
@@ -287,6 +288,7 @@ make_empty_lookup(void) {
 	looknew->oname = NULL;
 	looknew->timer = NULL;
 	looknew->xfr_q = NULL;
+	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
 	looknew->ixfr_serial = ISC_FALSE;
 	looknew->defname = ISC_FALSE;
@@ -358,6 +360,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_answer = lookold->section_answer;
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
+	looknew->retries = lookold->retries;
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -775,6 +778,9 @@ clear_query(dig_query_t *query) {
 	debug("clear_query(%p)",query);
 
 	lookup = query->lookup;
+
+	if (lookup->current_query == query)
+		lookup->current_query = NULL;
 
 	ISC_LIST_UNLINK(lookup->q, query, link);
 	if (ISC_LINK_LINKED(&query->recvbuf, link))
@@ -1337,6 +1343,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		       query, lookup);
 		query->lookup = lookup;
 		query->waiting_connect = ISC_FALSE;
+		query->recv_made = ISC_FALSE;
 		query->first_pass = ISC_TRUE;
 		query->first_soa_rcvd = ISC_FALSE;
 		query->second_rr_rcvd = ISC_FALSE;
@@ -1393,20 +1400,132 @@ send_done(isc_task_t *_task, isc_event_t *event) {
  */
 void
 cancel_lookup(dig_lookup_t *lookup) {
-	dig_query_t *query = NULL;
+	dig_query_t *query, *next;
 
 	debug("cancel_lookup()");
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
+	query = ISC_LIST_HEAD(lookup->q);
+	while (query != NULL) {
+		next = ISC_LIST_NEXT(query, link);
 		if (query->sock != NULL) {
 			isc_socket_cancel(query->sock, global_task,
 					  ISC_SOCKCANCEL_ALL);
 			check_if_done();
+		} else {
+			clear_query(query);
 		}
+		query = next;
 	}
+	if (lookup->timer != NULL)
+		isc_timer_detach(&lookup->timer);
 	lookup->pending = ISC_FALSE;
 	lookup->retries = 0;
+}
+
+static void
+bringup_timer(dig_query_t *query, unsigned int default_timeout) {
+	dig_lookup_t *l;
+	unsigned int local_timeout;
+	isc_result_t result;
+
+	debug("bringup_timer()");
+	/*
+	 * If the timer already exists, that means we're calling this
+	 * a second time (for a retry).  Don't need to recreate it,
+	 * just reset it.
+	 */
+	l = query->lookup;
+	if (ISC_LIST_NEXT(query, link) != NULL)
+		local_timeout = SERVER_TIMEOUT;
+	else {
+		if (timeout == 0) {
+			local_timeout = default_timeout;
+		} else
+			local_timeout = timeout;
+	}
+	debug("have local timeout of %d", local_timeout);
+	isc_interval_set(&l->interval, local_timeout, 0);
+	if (l->timer != NULL)
+		isc_timer_detach(&l->timer);
+	result = isc_timer_create(timermgr,
+				  isc_timertype_once,
+				  NULL,
+				  &l->interval,
+				  global_task,
+				  connect_timeout,
+				  l, &l->timer);
+	check_result(result, "isc_timer_create");
+}	
+
+static void
+connect_done(isc_task_t *task, isc_event_t *event);
+
+/*
+ * Unlike send_udp, this can't be called multiple times with the same
+ * query.  When we retry TCP, we requeue the whole lookup, which should
+ * start anew.
+ */
+static void
+send_tcp_connect(dig_query_t *query) {
+	isc_result_t result;
+	dig_query_t *next;
+	dig_lookup_t *l;
+
+	debug("send_tcp_connect(%lx)", query);
+
+	l = query->lookup;
+	query->waiting_connect = ISC_TRUE;
+	query->lookup->current_query = query;
+	get_address(query->servname, port, &query->sockaddr,
+		    ISC_TRUE);
+	
+	if (specified_source &&
+	    (isc_sockaddr_pf(&query->sockaddr) !=
+	     isc_sockaddr_pf(&bind_address))) {
+		printf(";; Skipping server %s, incompatible "
+		       "address family\n", query->servname);
+		query->waiting_connect = ISC_FALSE;
+		next = ISC_LIST_NEXT(query, link);
+		l = query->lookup;
+		clear_query(query);
+		if (next == NULL) {
+			printf(";; No acceptable nameservers\n");
+			check_next_lookup(l);
+			return;
+		}
+		send_tcp_connect(next);
+		return;
+	}
+	INSIST(query->sock == NULL);
+	result = isc_socket_create(socketmgr,
+				   isc_sockaddr_pf(&query->sockaddr),
+				   isc_sockettype_tcp, &query->sock) ;
+	check_result(result, "isc_socket_create");
+	sockcount++;
+	debug("sockcount=%d",sockcount);
+	if (specified_source)
+		result = isc_socket_bind(query->sock, &bind_address);
+	else {
+		if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
+			isc_sockaddr_any(&bind_any);
+		else
+			isc_sockaddr_any6(&bind_any);
+		result = isc_socket_bind(query->sock, &bind_any);
+	}
+	check_result(result, "isc_socket_bind");
+	bringup_timer(query, TCP_TIMEOUT);
+	result = isc_socket_connect(query->sock, &query->sockaddr,
+				    global_task, connect_done, query);
+	check_result(result, "isc_socket_connect");
+	/*
+	 * If we're doing a nameserver search, we need to immediately
+	 * bring up all the queries.  Do it here.
+	 */
+	if (l->ns_search_only) {
+		debug("sending next, since searching");
+		next = ISC_LIST_NEXT(query, link);
+		if (next != NULL)
+			send_tcp_connect(next);
+	}
 }
 
 /*
@@ -1415,71 +1534,74 @@ cancel_lookup(dig_lookup_t *lookup) {
  * is properly reset.
  */
 static void
-send_udp(dig_lookup_t *lookup, isc_boolean_t make_recv) {
-	dig_query_t *query;
+send_udp(dig_query_t *query) {
+	dig_lookup_t *l = NULL;
+	dig_query_t *next;
 	isc_result_t result;
-	unsigned int local_timeout;
 
-	debug("send_udp()");
+	debug("send_udp(%lx)", query);
 
-	/*
-	 * If the timer already exists, that means we're calling this
-	 * a second time (for a retry).  Don't need to recreate it,
-	 * just reset it.
-	 */
-	if (lookup->timer == NULL) {
-		if (timeout != INT_MAX) {
-			if (timeout == 0) {
-				local_timeout = UDP_TIMEOUT;
-			} else
-				local_timeout = timeout;
-			debug("have local timeout of %d", local_timeout);
-			isc_interval_set(&lookup->interval, local_timeout, 0);
-			result = isc_timer_create(timermgr,
-						  isc_timertype_once, NULL,
-						  &lookup->interval,
-						  global_task,
-						  connect_timeout, lookup,
-						  &lookup->timer);
-			check_result(result, "isc_timer_create");
+	l = query->lookup;
+	bringup_timer(query, UDP_TIMEOUT);
+	l->current_query = query;
+	debug("working on lookup %p, query %p",
+	      query->lookup, query);
+	if (!query->recv_made) {
+		/* XXX Check the sense of this, need assertion? */
+		query->waiting_connect = ISC_FALSE;
+		get_address(query->servname, port, &query->sockaddr,
+			    ISC_TRUE);
+
+		result = isc_socket_create(socketmgr,
+					   isc_sockaddr_pf(&query->sockaddr),
+					   isc_sockettype_udp, &query->sock);
+		check_result(result, "isc_socket_create");
+		sockcount++;
+		debug("sockcount=%d", sockcount);
+		if (specified_source) {
+			result = isc_socket_bind(query->sock, &bind_address);
+		} else {
+			isc_sockaddr_anyofpf(&bind_any,
+					isc_sockaddr_pf(&query->sockaddr));
+			result = isc_socket_bind(query->sock, &bind_any);
 		}
-	} else {
-		result = isc_timer_reset(lookup->timer, isc_timertype_once,
-					 NULL, &lookup->interval,
-					 ISC_TRUE);
-		check_result(result, "isc_timer_reset");
-	}
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		debug("working on lookup %p, query %p",
-		       query->lookup, query);
-		if (make_recv) {
-			ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf,
-					 link);
-			debug("recving with lookup=%p, query=%p, sock=%p",
-			      query->lookup, query,
-			      query->sock);
-			result = isc_socket_recvv(query->sock,
-						  &query->recvlist, 1,
-						  global_task, recv_done,
-						  query);
-			check_result(result, "isc_socket_recvv");
-			recvcount++;
-			debug("recvcount=%d", recvcount);
-		}
-		ISC_LIST_INIT(query->sendlist);
-		ISC_LIST_ENQUEUE(query->sendlist, &lookup->sendbuf,
+		check_result(result, "isc_socket_bind");
+
+		query->recv_made = ISC_TRUE;
+		ISC_LIST_ENQUEUE(query->recvlist, &query->recvbuf,
 				 link);
-		debug("sending a request");
-		result = isc_time_now(&query->time_sent);
-		check_result(result, "isc_time_now");
-		INSIST(query->sock != NULL);
-		result = isc_socket_sendtov(query->sock, &query->sendlist,
-					    global_task, send_done, query,
-					    &query->sockaddr, NULL);
-		check_result(result, "isc_socket_sendtov");
-		sendcount++;
+		debug("recving with lookup=%p, query=%p, sock=%p",
+		      query->lookup, query,
+		      query->sock);
+		result = isc_socket_recvv(query->sock,
+					  &query->recvlist, 1,
+					  global_task, recv_done,
+					  query);
+		check_result(result, "isc_socket_recvv");
+		recvcount++;
+		debug("recvcount=%d", recvcount);
+	}
+	ISC_LIST_INIT(query->sendlist);
+	ISC_LIST_ENQUEUE(query->sendlist, &l->sendbuf,
+			 link);
+	debug("sending a request");
+	result = isc_time_now(&query->time_sent);
+	check_result(result, "isc_time_now");
+	INSIST(query->sock != NULL);
+	result = isc_socket_sendtov(query->sock, &query->sendlist,
+				    global_task, send_done, query,
+				    &query->sockaddr, NULL);
+	check_result(result, "isc_socket_sendtov");
+	sendcount++;
+	/*
+	 * If we're doing a nameserver search, we need to immediately
+	 * bring up all the queries.  Do it here.
+	 */
+	if (l->ns_search_only) {
+		debug("sending next, since searching");
+		next = ISC_LIST_NEXT(query, link);
+		if (next != NULL)
+			send_udp(next);
 	}
 }
 
@@ -1490,7 +1612,8 @@ send_udp(dig_lookup_t *lookup, isc_boolean_t make_recv) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *lookup=NULL;
+	dig_lookup_t *l=NULL;
+	dig_query_t *query=NULL, *cq;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
@@ -1498,26 +1621,41 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 	debug("connect_timeout()");
 
 	LOCK_LOOKUP;
-	lookup = event->ev_arg;
+	l = event->ev_arg;
+	query = l->current_query;
 	isc_event_free(&event);
 
 	INSIST(!free_now);
-	if (lookup->retries > 1) {
-		if (!lookup->tcp_mode) {
-			lookup->retries--;
-			debug("resending UDP request");
-			send_udp(lookup, ISC_FALSE);
+
+	if ((query != NULL) && (query->lookup->current_query != NULL) &&
+	    (ISC_LIST_NEXT(query->lookup->current_query, link) != NULL)) {
+		debug("trying next server...");
+		cq = query->lookup->current_query;
+		if (!l->tcp_mode)
+			send_udp(ISC_LIST_NEXT(cq, link));
+		else
+			send_tcp_connect(ISC_LIST_NEXT(cq, link));
+		UNLOCK_LOOKUP;
+		return;
+	}
+
+	if (l->retries > 1) {
+		if (!l->tcp_mode) {
+			l->retries--;
+			debug("resending UDP request to first server");
+			send_udp(ISC_LIST_HEAD(l->q));
 		} else {
-			debug("making new TCP request");
-			cancel_lookup(lookup);
-			lookup->retries--;
-			requeue_lookup(lookup, ISC_TRUE);
+			debug("making new TCP request, %d tries left",
+			      l->retries);
+			cancel_lookup(l);
+			l->retries--;
+			requeue_lookup(l, ISC_TRUE);
 		}
 	}
 	else {
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
-		cancel_lookup(lookup);
+		cancel_lookup(l);
 	}
 	UNLOCK_LOOKUP;
 }
@@ -1675,7 +1813,7 @@ static void
 connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_socketevent_t *sevent = NULL;
-	dig_query_t *query = NULL;
+	dig_query_t *query = NULL, *next;
 	dig_lookup_t *l;
 	isc_buffer_t *b = NULL;
 	isc_region_t r;
@@ -1734,8 +1872,17 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		query->waiting_connect = ISC_FALSE;
 		isc_event_free(&event);
 		l = query->lookup;
+		if (l->current_query != NULL)
+			next = ISC_LIST_NEXT(l->current_query, link);
+		else
+			next = NULL;
 		clear_query(query);
-		check_next_lookup(l);
+		if (next != NULL) {
+			bringup_timer(next, TCP_TIMEOUT);
+			send_tcp_connect(next);
+		} else {
+			check_next_lookup(l);
+		}
 		UNLOCK_LOOKUP;
 		return;
 	}
@@ -2255,9 +2402,11 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 		debug ("before getaddrinfo()");
 		if (running)
 			isc_app_block();
+		is_blocking = ISC_TRUE;
 		result = getaddrinfo(host, NULL, NULL, &res);
 		if (running) 
 			isc_app_unblock();
+		is_blocking = ISC_FALSE;
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
@@ -2270,9 +2419,11 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 		debug ("before gethostbyname()");
 		if (running)
 			isc_app_block();
+		is_blocking = ISC_TRUE;
 		he = gethostbyname(host);
 		if (running)
 			isc_app_unblock();
+		is_blocking = ISC_FALSE;
 		if (he == NULL)
 		     fatal("Couldn't find server '%s' (h_errno=%d)",
 			   host, h_errno);
@@ -2285,108 +2436,6 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 }
 
 /*
- * Initiate a TCP lookup, starting all of the queries running
- */
-static void
-do_lookup_tcp(dig_lookup_t *lookup) {
-	dig_query_t *query;
-	isc_result_t result;
-	unsigned int local_timeout;
-
-	debug("do_lookup_tcp()");
-	lookup->pending = ISC_TRUE;
-	if (timeout != INT_MAX) {
-		if (timeout == 0)
-			local_timeout = TCP_TIMEOUT;
-		else
-			local_timeout = timeout;
-		debug("have local timeout of %d", local_timeout);
-		isc_interval_set(&lookup->interval, local_timeout, 0);
-		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-					  &lookup->interval, global_task,
-					  connect_timeout, lookup,
-					  &lookup->timer);
-		check_result(result, "isc_timer_create");
-	}
-
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		query->waiting_connect = ISC_TRUE;
-		get_address(query->servname, port, &query->sockaddr,
-			    ISC_TRUE);
-
-		if (specified_source &&
-		    (isc_sockaddr_pf(&query->sockaddr) !=
-		     isc_sockaddr_pf(&bind_address))) {
-			printf(";; Skipping server %s, incompatible "
-			       "address family\n", query->servname);
-			query->waiting_connect = ISC_FALSE;
-			continue;
-		}
-		INSIST(query->sock == NULL);
-		result = isc_socket_create(socketmgr,
-					   isc_sockaddr_pf(&query->sockaddr),
-					   isc_sockettype_tcp, &query->sock) ;
-		check_result(result, "isc_socket_create");
-		sockcount++;
-		debug("sockcount=%d",sockcount);
-		if (specified_source)
-			result = isc_socket_bind(query->sock, &bind_address);
-		else {
-			if (isc_sockaddr_pf(&query->sockaddr) == AF_INET)
-				isc_sockaddr_any(&bind_any);
-			else
-				isc_sockaddr_any6(&bind_any);
-			result = isc_socket_bind(query->sock, &bind_any);
-		}
-		check_result(result, "isc_socket_bind");
-		result = isc_socket_connect(query->sock, &query->sockaddr,
-					    global_task, connect_done, query);
-		check_result(result, "isc_socket_connect");
-	}
-}
-
-/*
- * Initiate a UDP lookup, starting all of the queries running
- */
-static void
-do_lookup_udp(dig_lookup_t *lookup) {
-	dig_query_t *query;
-	isc_result_t result;
-
-	debug("do_lookup_udp()");
-	INSIST(!lookup->tcp_mode);
-	lookup->pending = ISC_TRUE;
-
-	for (query = ISC_LIST_HEAD(lookup->q);
-	     query != NULL;
-	     query = ISC_LIST_NEXT(query, link)) {
-		/* XXX Check the sense of this, need assertion? */
-		query->waiting_connect = ISC_FALSE;
-		get_address(query->servname, port, &query->sockaddr,
-			    ISC_TRUE);
-
-		result = isc_socket_create(socketmgr,
-					   isc_sockaddr_pf(&query->sockaddr),
-					   isc_sockettype_udp, &query->sock);
-		check_result(result, "isc_socket_create");
-		sockcount++;
-		debug("sockcount=%d", sockcount);
-		if (specified_source) {
-			result = isc_socket_bind(query->sock, &bind_address);
-		} else {
-			isc_sockaddr_anyofpf(&bind_any,
-					isc_sockaddr_pf(&query->sockaddr));
-			result = isc_socket_bind(query->sock, &bind_any);
-		}
-		check_result(result, "isc_socket_bind");
-	}
-
-	send_udp(lookup, ISC_TRUE);
-}
-
-/*
  * Initiate either a TCP or UDP lookup
  */
 void
@@ -2395,10 +2444,11 @@ do_lookup(dig_lookup_t *lookup) {
 	REQUIRE(lookup != NULL);
 
 	debug("do_lookup()");
+	lookup->pending = ISC_TRUE;
 	if (lookup->tcp_mode)
-		do_lookup_tcp(lookup);
+		send_tcp_connect(ISC_LIST_HEAD(lookup->q));
 	else
-		do_lookup_udp(lookup);
+		send_udp(ISC_LIST_HEAD(lookup->q));
 }
 
 /*
@@ -2425,6 +2475,17 @@ cancel_all(void) {
 
 	debug("cancel_all()");
 
+	if (is_blocking) {
+		/*
+		 * If we get here while another thread is blocking, there's
+		 * really nothing we can do to make a clean shutdown
+		 * without waiting for the block to complete.  The only
+		 * way to get the system down now is to just exit out,
+		 * and trust the OS to clean up for us.
+		 */
+		fputs ("Abort.\n",stderr);
+		exit(1);
+	}
 	LOCK_LOOKUP;
 	if (free_now) {
 		UNLOCK_LOOKUP;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.94 2000/09/21 12:25:40 marka Exp $ */
+/* $Id: dig.c,v 1.95 2000/09/21 22:46:34 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -345,8 +345,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
-
-	UNUSED(query);
 
 	debug("printmessage(%s)", headers ? "headers" : "noheaders");
 

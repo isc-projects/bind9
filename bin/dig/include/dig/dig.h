@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.45 2000/09/13 00:27:27 mws Exp $ */
+/* $Id: dig.h,v 1.46 2000/09/21 22:46:39 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -45,6 +45,8 @@
  */
 #define TCP_TIMEOUT 10
 #define UDP_TIMEOUT 5
+
+#define SERVER_TIMEOUT 1
 
 #define LOOKUP_LIMIT 64
 /*
@@ -109,6 +111,7 @@ struct dig_lookup {
 	dns_name_t *oname;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
+	dig_query_t *current_query;
 	dig_serverlist_t my_server_list;
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
@@ -129,7 +132,8 @@ struct dig_query {
 		first_pass,
 		first_soa_rcvd,
 		second_rr_rcvd,
-		first_repeat_rcvd;
+		first_repeat_rcvd,
+		recv_made;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
 	isc_uint32_t rr_count;

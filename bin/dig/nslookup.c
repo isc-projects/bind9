@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.48 2000/09/21 12:45:39 marka Exp $ */
+/* $Id: nslookup.c,v 1.49 2000/09/21 22:46:37 mws Exp $ */
 
 #include <config.h>
 
@@ -551,7 +551,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 }
 
 static void
-show_settings(isc_boolean_t full) {
+show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	dig_server_t *srv;
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *b = NULL;
@@ -573,6 +573,8 @@ show_settings(isc_boolean_t full) {
 			return;
 		srv = ISC_LIST_NEXT(srv, link);
 	}
+	if (serv_only)
+		return;
 	printf("\n\tSet options:\n");
 	printf("\t  %s\t\t\t%s\t\t%s\n",
 		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
@@ -628,7 +630,7 @@ testclass(char *typetext) {
 static void
 setoption(char *opt) {
 	if (strncasecmp(opt,"all",4) == 0) {
-		show_settings(ISC_TRUE);
+		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
 			strncpy(defclass, &opt[6], MXRD);
@@ -765,6 +767,9 @@ static void
 setsrv(char *opt) {
 	dig_server_t *srv;
 
+	if (opt == NULL) {
+		return;
+	}
 	flush_server_list();
 	srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
 	if (srv == NULL)
@@ -796,10 +801,10 @@ get_next_command(void) {
 	if ((strcasecmp(ptr, "set") == 0) &&
 	    (arg != NULL))
 		setoption(arg);
-	else if (((strcasecmp(ptr, "server") == 0) ||
-		 (strcasecmp(ptr, "lserver") == 0)) && arg != NULL) {
-		printf("Server:\t%s\n", arg);
+	else if ((strcasecmp(ptr, "server") == 0) ||
+		 (strcasecmp(ptr, "lserver") == 0)) {
 		setsrv(arg);
+		show_settings(ISC_TRUE, ISC_TRUE);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = ISC_FALSE;
 		goto cleanup;
