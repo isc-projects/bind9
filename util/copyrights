@@ -1667,7 +1667,7 @@
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004
 ./lib/dns/include/dns/opcode.h			C	2002,2004
 ./lib/dns/include/dns/order.h			C	2002,2004
-./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004
+./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005
 ./lib/dns/include/dns/portlist.h		C	2003,2004
 ./lib/dns/include/dns/rbt.h			C	1999,2000,2001,2002,2004
 ./lib/dns/include/dns/rcode.h			C	1999,2000,2001,2004
@@ -1725,7 +1725,7 @@
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004
 ./lib/dns/order.c				C	2002,2004
-./lib/dns/peer.c				C	2000,2001,2003,2004
+./lib/dns/peer.c				C	2000,2001,2003,2004,2005
 ./lib/dns/portlist.c				C	2003,2004
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004
@@ -1923,7 +1923,7 @@
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004
-./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004
+./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/netscope.h		C	2002,2004
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004
 ./lib/isc/include/isc/os.h			C	2000,2001,2004
@@ -1963,7 +1963,7 @@
 ./lib/isc/md5.c					C	2000,2001,2004
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004
-./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004
+./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isc/netscope.c				C	2002,2004
 ./lib/isc/nls/.cvsignore			X	1999,2000,2001
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000,2001,2004
@@ -2162,13 +2162,13 @@
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005
 ./lib/isccfg/include/isccfg/aclconf.h		C	1999,2000,2001,2004,2005
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001,2002,2004
-./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004
+./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005
 ./lib/isccfg/include/isccfg/log.h		C	2001,2004
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004
 ./lib/isccfg/log.c				C	2001,2004
 ./lib/isccfg/namedconf.c			C	2002,2003,2004,2005
-./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004
+./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004
 ./lib/isccfg/win32/libisccfg.def		X	2001
