@@ -15,15 +15,6 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #undef TIME_WITH_SYS_TIME
 
-/* define if you need inet_aton() */
-#undef NEED_INET_ATON
-
-/* define if you need inet_ntop() */
-#undef NEED_INET_NTOP
-
-/* define if you need inet_pton() */
-#undef NEED_INET_PTON
-
 /* define if your system needs pthread_init() before using pthreads */
 #undef NEED_PTHREAD_INIT
 
