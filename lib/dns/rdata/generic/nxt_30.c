@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.47 2001/03/06 22:10:56 marka Exp $ */
+/* $Id: nxt_30.c,v 1.48 2001/03/16 22:52:56 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -44,6 +44,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 30);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -131,6 +132,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 30);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -204,6 +206,7 @@ fromstruct_nxt(ARGS_FROMSTRUCT) {
 	REQUIRE(nxt->common.rdclass == rdclass);
 	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&nxt->next, &region);

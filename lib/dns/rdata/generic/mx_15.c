@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.46 2001/03/06 22:10:53 marka Exp $ */
+/* $Id: mx_15.c,v 1.47 2001/03/16 22:52:52 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -32,6 +32,7 @@ fromtext_mx(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 15);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
@@ -84,6 +85,7 @@ fromwire_mx(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 15);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
@@ -162,6 +164,7 @@ fromstruct_mx(ARGS_FROMSTRUCT) {
 	REQUIRE(mx->common.rdtype == type);
 	REQUIRE(mx->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(mx->pref, target));

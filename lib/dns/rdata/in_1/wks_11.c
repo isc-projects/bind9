@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.41 2001/03/06 22:11:18 marka Exp $ */
+/* $Id: wks_11.c,v 1.42 2001/03/16 22:53:20 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -50,6 +50,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -178,6 +179,7 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -241,6 +243,7 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	REQUIRE(wks->common.rdtype == type);
 	REQUIRE(wks->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	a = ntohl(wks->in_addr.s_addr);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.37 2001/03/06 22:10:50 marka Exp $ */
+/* $Id: mg_8.c,v 1.38 2001/03/16 22:52:47 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -32,6 +32,7 @@ fromtext_mg(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 8);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -71,6 +72,7 @@ fromwire_mg(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 8);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
@@ -132,6 +134,7 @@ fromstruct_mg(ARGS_FROMSTRUCT) {
 	REQUIRE(mg->common.rdtype == type);
 	REQUIRE(mg->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&mg->mg, &region);

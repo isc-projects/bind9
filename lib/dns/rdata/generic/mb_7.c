@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.39 2001/03/06 22:10:47 marka Exp $ */
+/* $Id: mb_7.c,v 1.40 2001/03/16 22:52:44 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -30,9 +30,10 @@ fromtext_mb(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 7);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
@@ -69,9 +70,10 @@ static inline isc_result_t
 fromwire_mb(ARGS_FROMWIRE) {
         dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 7);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
@@ -132,6 +134,7 @@ fromstruct_mb(ARGS_FROMSTRUCT) {
 	REQUIRE(mb->common.rdtype == type);
 	REQUIRE(mb->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&mb->mb, &region);

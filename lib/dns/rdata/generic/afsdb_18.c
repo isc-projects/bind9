@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.37 2001/03/06 22:10:37 marka Exp $ */
+/* $Id: afsdb_18.c,v 1.38 2001/03/16 22:52:33 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -32,9 +32,10 @@ fromtext_afsdb(ARGS_FROMTEXT) {
 	isc_buffer_t buffer;
 	dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 18);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	/*
 	 * Subtype.
@@ -88,9 +89,10 @@ fromwire_afsdb(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	isc_region_t tr;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 18);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -176,6 +178,7 @@ fromstruct_afsdb(ARGS_FROMSTRUCT) {
 	REQUIRE(afsdb->common.rdclass == rdclass);
 	REQUIRE(afsdb->common.rdtype == type);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(afsdb->subtype, target));

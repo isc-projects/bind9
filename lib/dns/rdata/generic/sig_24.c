@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.51 2001/03/06 22:11:01 marka Exp $ */
+/* $Id: sig_24.c,v 1.52 2001/03/16 22:53:01 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -40,6 +40,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 24);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -240,9 +241,10 @@ fromwire_sig(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 24);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
-
+	UNUSED(type);
 	UNUSED(rdclass);
+
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	isc_buffer_activeregion(source, &sr);
 	/*
@@ -365,6 +367,7 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 	REQUIRE((sig->signature != NULL && sig->siglen != 0) ||
 		(sig->signature == NULL && sig->siglen == 0));
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*

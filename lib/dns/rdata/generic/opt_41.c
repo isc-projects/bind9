@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.22 2001/03/06 22:10:57 marka Exp $ */
+/* $Id: opt_41.c,v 1.23 2001/03/16 22:52:57 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -36,6 +36,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 41);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(lexer);
 	UNUSED(origin);
@@ -96,6 +97,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 41);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
@@ -167,6 +169,7 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	REQUIRE((opt->options != NULL && opt->length != 0) ||
 		(opt->options == NULL && opt->length == 0));
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	region.base = opt->options;

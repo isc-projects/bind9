@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.37 2001/03/06 22:10:38 marka Exp $ */
+/* $Id: cert_37.c,v 1.38 2001/03/16 22:52:35 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -34,6 +34,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 37);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
@@ -120,6 +121,7 @@ fromwire_cert(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 37);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
@@ -170,6 +172,7 @@ fromstruct_cert(ARGS_FROMSTRUCT) {
 	REQUIRE(cert->common.rdtype == type);
 	REQUIRE(cert->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(cert->type, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.34 2001/03/06 22:11:10 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.35 2001/03/16 22:53:12 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -37,6 +37,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -76,6 +77,7 @@ fromwire_in_aaaa(ARGS_FROMWIRE) {
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -138,6 +140,7 @@ fromstruct_in_aaaa(ARGS_FROMSTRUCT) {
 	REQUIRE(aaaa->common.rdtype == type);
 	REQUIRE(aaaa->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	return (mem_tobuffer(target, aaaa->in6_addr.s6_addr, 16));

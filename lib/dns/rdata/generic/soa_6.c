@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.50 2001/03/06 22:11:02 marka Exp $ */
+/* $Id: soa_6.c,v 1.51 2001/03/16 22:53:02 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -32,9 +32,10 @@ fromtext_soa(ARGS_FROMTEXT) {
 	int i;
 	isc_uint32_t n;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 6);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 
@@ -146,9 +147,10 @@ fromwire_soa(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 6);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
@@ -265,6 +267,7 @@ fromstruct_soa(ARGS_FROMSTRUCT) {
 	REQUIRE(soa->common.rdtype == type);
 	REQUIRE(soa->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&soa->origin, &region);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.49 2001/03/06 22:10:35 marka Exp $ */
+/* $Id: tsig_250.c,v 1.50 2001/03/16 22:52:32 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -38,6 +38,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -249,6 +250,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -361,6 +363,7 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 	REQUIRE(tsig->common.rdclass == rdclass);
 	REQUIRE(tsig->common.rdtype == type);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*

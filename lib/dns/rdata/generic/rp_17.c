@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.33 2001/03/06 22:10:59 marka Exp $ */
+/* $Id: rp_17.c,v 1.34 2001/03/16 22:52:59 bwelling Exp $ */
 
 /* RFC 1183 */
 
@@ -31,9 +31,10 @@ fromtext_rp(ARGS_FROMTEXT) {
 	isc_buffer_t buffer;
 	int i;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 17);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	origin = (origin != NULL) ? origin : dns_rootname;
 
@@ -86,9 +87,10 @@ fromwire_rp(ARGS_FROMWIRE) {
         dns_name_t rmail;
         dns_name_t email;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 17);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -176,6 +178,7 @@ fromstruct_rp(ARGS_FROMSTRUCT) {
 	REQUIRE(rp->common.rdtype == type);
 	REQUIRE(rp->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&rp->mail, &region);

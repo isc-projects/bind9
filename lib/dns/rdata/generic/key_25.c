@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.37 2001/03/06 22:10:44 marka Exp $ */
+/* $Id: key_25.c,v 1.38 2001/03/16 22:52:42 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -39,6 +39,7 @@ fromtext_key(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 25);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
@@ -127,11 +128,12 @@ static inline isc_result_t
 fromwire_key(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
+	REQUIRE(type == 25);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
-
-	REQUIRE(type == 25);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4)
@@ -179,6 +181,7 @@ fromstruct_key(ARGS_FROMSTRUCT) {
 	REQUIRE(key->common.rdtype == type);
 	REQUIRE(key->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/* Flags */

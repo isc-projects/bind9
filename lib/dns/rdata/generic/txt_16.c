@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.34 2001/03/06 22:11:05 marka Exp $ */
+/* $Id: txt_16.c,v 1.35 2001/03/16 22:53:05 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -28,11 +28,12 @@ static inline isc_result_t
 fromtext_txt(ARGS_FROMTEXT) {
 	isc_token_t token;
 
+	REQUIRE(type == 16);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-
-	REQUIRE(type == 16);
 
 	for(;;) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
@@ -71,11 +72,12 @@ static inline isc_result_t
 fromwire_txt(ARGS_FROMWIRE) {
 	isc_result_t result;
 
+	REQUIRE(type == 16);
+
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
 	UNUSED(downcase);
-
-	REQUIRE(type == 16);
 
 	while (!buffer_empty(source)) {
 		result = txt_fromwire(source, target);
@@ -129,6 +131,7 @@ fromstruct_txt(ARGS_FROMSTRUCT) {
 	REQUIRE((txt->txt == NULL && txt->txt_len == 0) ||
 		(txt->txt != NULL && txt->txt_len != 0));
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	region.base = txt->txt;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.40 2001/03/06 22:10:55 marka Exp $ */
+/* $Id: ns_2.c,v 1.41 2001/03/16 22:52:53 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -30,9 +30,10 @@ fromtext_ns(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 2);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token,isc_tokentype_string,
 				      ISC_FALSE));
@@ -69,9 +70,10 @@ static inline isc_result_t
 fromwire_ns(ARGS_FROMWIRE) {
         dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 2);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
@@ -132,6 +134,7 @@ fromstruct_ns(ARGS_FROMSTRUCT) {
 	REQUIRE(ns->common.rdtype == type);
 	REQUIRE(ns->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&ns->name, &region);

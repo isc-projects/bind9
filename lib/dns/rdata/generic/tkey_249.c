@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.45 2001/03/06 22:11:04 marka Exp $ */
+/* $Id: tkey_249.c,v 1.46 2001/03/16 22:53:04 bwelling Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -37,9 +37,10 @@ fromtext_tkey(ARGS_FROMTEXT) {
 	long i;
 	char *e;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 249);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	/*
 	 * Algorithm.
@@ -239,9 +240,10 @@ fromwire_tkey(ARGS_FROMWIRE) {
 	unsigned long n;
 	dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 249);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -349,6 +351,7 @@ fromstruct_tkey(ARGS_FROMSTRUCT) {
 	REQUIRE(tkey->common.rdtype == type);
 	REQUIRE(tkey->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.23 2001/03/06 22:11:07 marka Exp $ */
+/* $Id: a_1.c,v 1.24 2001/03/16 22:53:08 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -35,6 +35,7 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 4);
 
+	UNUSED(type);
 	UNUSED(origin);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -74,6 +75,7 @@ fromwire_hs_a(ARGS_FROMWIRE) {
 	REQUIRE(type == 1);
 	REQUIRE(rdclass == 4);
 
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(downcase);
 	UNUSED(rdclass);
@@ -138,6 +140,7 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 	REQUIRE(a->common.rdtype == type);
 	REQUIRE(a->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	n = ntohl(a->in_addr.s_addr);

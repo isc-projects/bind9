@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.37 2001/03/06 22:10:58 marka Exp $ */
+/* $Id: ptr_12.c,v 1.38 2001/03/16 22:52:58 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -30,9 +30,10 @@ fromtext_ptr(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 12);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
@@ -69,9 +70,10 @@ static inline isc_result_t
 fromwire_ptr(ARGS_FROMWIRE) {
         dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 12);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
@@ -132,6 +134,7 @@ fromstruct_ptr(ARGS_FROMSTRUCT) {
 	REQUIRE(ptr->common.rdtype == type);
 	REQUIRE(ptr->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&ptr->ptr, &region);

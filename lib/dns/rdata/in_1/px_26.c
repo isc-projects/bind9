@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.32 2001/03/06 22:11:16 marka Exp $ */
+/* $Id: px_26.c,v 1.33 2001/03/16 22:53:17 bwelling Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -35,6 +35,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	REQUIRE(type == 26);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -119,6 +120,7 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	REQUIRE(type == 26);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -234,6 +236,7 @@ fromstruct_in_px(ARGS_FROMSTRUCT) {
 	REQUIRE(px->common.rdtype == type);
 	REQUIRE(px->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(px->preference, target));

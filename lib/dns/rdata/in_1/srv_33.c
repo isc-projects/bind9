@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.34 2001/03/06 22:11:17 marka Exp $ */
+/* $Id: srv_33.c,v 1.35 2001/03/16 22:53:18 bwelling Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -35,6 +35,7 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -136,6 +137,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -233,6 +235,7 @@ fromstruct_in_srv(ARGS_FROMSTRUCT) {
 	REQUIRE(srv->common.rdtype == type);
 	REQUIRE(srv->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(srv->priority, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.34 2001/03/06 22:10:42 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.35 2001/03/16 22:52:39 bwelling Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -31,6 +31,7 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 	isc_token_t token;
 	int i;
 
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
@@ -64,11 +65,12 @@ totext_hinfo(ARGS_TOTEXT) {
 static inline isc_result_t
 fromwire_hinfo(ARGS_FROMWIRE) {
 
+	REQUIRE(type == 13);
+
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
 	UNUSED(downcase);
-
-	REQUIRE(type == 13);
 
 	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));
@@ -110,6 +112,7 @@ fromstruct_hinfo(ARGS_FROMSTRUCT) {
 	REQUIRE(hinfo->common.rdtype == type);
 	REQUIRE(hinfo->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint8_tobuffer(hinfo->cpu_len, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.43 2001/03/06 22:11:08 marka Exp $ */
+/* $Id: a6_38.c,v 1.44 2001/03/16 22:53:10 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -39,6 +39,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -143,6 +144,7 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -278,6 +280,7 @@ fromstruct_in_a6(ARGS_FROMSTRUCT) {
 	REQUIRE(a6->common.rdtype == type);
 	REQUIRE(a6->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	if (a6->prefixlen > 128)

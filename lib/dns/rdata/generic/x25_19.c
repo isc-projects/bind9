@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.28 2001/03/06 22:11:06 marka Exp $ */
+/* $Id: x25_19.c,v 1.29 2001/03/16 22:53:07 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -31,11 +31,12 @@ fromtext_x25(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned int i;
 
+	REQUIRE(type == 19);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-
-	REQUIRE(type == 19);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      ISC_FALSE));
@@ -65,11 +66,12 @@ static inline isc_result_t
 fromwire_x25(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
+	REQUIRE(type == 19);
+
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
 	UNUSED(downcase);
-
-	REQUIRE(type == 19);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5)
@@ -115,6 +117,7 @@ fromstruct_x25(ARGS_FROMSTRUCT) {
 	REQUIRE((x25->x25 == NULL && x25->x25_len == 0) ||
 		(x25->x25 != NULL && x25->x25_len != 0));
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	for (i = 0; i < x25->x25_len; i++)

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.27 2001/03/06 22:10:43 marka Exp $ */
+/* $Id: isdn_20.c,v 1.28 2001/03/16 22:52:41 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -30,11 +30,12 @@ static inline isc_result_t
 fromtext_isdn(ARGS_FROMTEXT) {
 	isc_token_t token;
 
+	REQUIRE(type == 20);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-
-	REQUIRE(type == 20);
 
 	/* ISDN-address */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
@@ -57,10 +58,10 @@ static inline isc_result_t
 totext_isdn(ARGS_TOTEXT) {
 	isc_region_t region;
 
-	UNUSED(tctx);
-
 	REQUIRE(rdata->type == 20);
 	REQUIRE(rdata->length != 0);
+
+	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
@@ -72,11 +73,12 @@ totext_isdn(ARGS_TOTEXT) {
 
 static inline isc_result_t
 fromwire_isdn(ARGS_FROMWIRE) {
+	REQUIRE(type == 20);
+
+	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
 	UNUSED(downcase);
-
-	REQUIRE(type == 20);
 
 	RETERR(txt_fromwire(source, target));
 	if (buffer_empty(source))
@@ -119,6 +121,7 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 	REQUIRE(isdn->common.rdtype == type);
 	REQUIRE(isdn->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint8_tobuffer(isdn->isdn_len, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.38 2001/03/06 22:10:51 marka Exp $ */
+/* $Id: minfo_14.c,v 1.39 2001/03/16 22:52:49 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -33,6 +33,7 @@ fromtext_minfo(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 14);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	for (i = 0; i < 2 ; i++) {
@@ -88,9 +89,10 @@ fromwire_minfo(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 14);
 
-	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-
+	UNUSED(type);
 	UNUSED(rdclass);
+
+	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);
@@ -178,6 +180,7 @@ fromstruct_minfo(ARGS_FROMSTRUCT) {
 	REQUIRE(minfo->common.rdtype == type);
 	REQUIRE(minfo->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&minfo->rmailbox, &region);

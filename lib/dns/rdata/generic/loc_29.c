@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.28 2001/03/06 22:10:45 marka Exp $ */
+/* $Id: loc_29.c,v 1.29 2001/03/16 22:52:43 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -50,11 +50,12 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned long longitude;
 	unsigned long altitude;
 
+	REQUIRE(type == 29);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-
-	REQUIRE(type == 29);
 
 	/*
 	 * Defaults.
@@ -527,11 +528,12 @@ fromwire_loc(ARGS_FROMWIRE) {
 	unsigned long latitude;
 	unsigned long longitude;
 
+	REQUIRE(type == 29);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
-
-	REQUIRE(type == 29);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1)
@@ -629,6 +631,7 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 	REQUIRE(loc->common.rdtype == type);
 	REQUIRE(loc->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	if (loc->v.v0.version != 0)

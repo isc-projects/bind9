@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.31 2001/03/06 22:10:40 marka Exp $ */
+/* $Id: dname_39.c,v 1.32 2001/03/16 22:52:37 bwelling Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -32,9 +32,10 @@ fromtext_dname(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 39);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
@@ -71,9 +72,10 @@ static inline isc_result_t
 fromwire_dname(ARGS_FROMWIRE) {
 	dns_name_t name;
 
-	UNUSED(rdclass);
-
 	REQUIRE(type == 39);
+
+	UNUSED(type);
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -133,6 +135,7 @@ fromstruct_dname(ARGS_FROMSTRUCT) {
 	REQUIRE(dname->common.rdtype == type);
 	REQUIRE(dname->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_name_toregion(&dname->dname, &region);

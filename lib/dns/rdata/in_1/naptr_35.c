@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.40 2001/03/06 22:11:13 marka Exp $ */
+/* $Id: naptr_35.c,v 1.41 2001/03/16 22:53:14 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -35,6 +35,7 @@ fromtext_in_naptr(ARGS_FROMTEXT) {
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	/*
@@ -158,6 +159,7 @@ fromwire_in_naptr(ARGS_FROMWIRE) {
 	REQUIRE(type == 35);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -324,6 +326,7 @@ fromstruct_in_naptr(ARGS_FROMSTRUCT) {
 	REQUIRE((naptr->regexp == NULL && naptr->regexp_len == 0) ||
 		(naptr->regexp != NULL && naptr->regexp_len != 0));
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(naptr->order, target));

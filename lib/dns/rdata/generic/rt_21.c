@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.35 2001/03/06 22:11:00 marka Exp $ */
+/* $Id: rt_21.c,v 1.36 2001/03/16 22:53:00 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -34,6 +34,7 @@ fromtext_rt(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 21);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
@@ -85,6 +86,8 @@ fromwire_rt(ARGS_FROMWIRE) {
 	isc_region_t tregion;
 
 	REQUIRE(type == 21);
+
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
@@ -171,6 +174,7 @@ fromstruct_rt(ARGS_FROMSTRUCT) {
 	REQUIRE(rt->common.rdtype == type);
 	REQUIRE(rt->common.rdclass == rdclass);
 
+	UNUSED(type);
 	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(rt->preference, target));
