@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.23 1999/11/02 19:17:39 gson Exp $ */
+ /* $Id: xfrout.c,v 1.24 1999/12/01 00:27:13 gson Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 
+#include <dns/aml.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/fixedname.h>
@@ -783,6 +784,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	isc_mem_t *mctx = client->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
+	dns_c_ipmatchlist_t *aml;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -850,7 +852,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		soa_name = NULL;
 		dns_message_currentname(request, DNS_SECTION_AUTHORITY,
 					&soa_name);
-		
+
 		/* Ignore data whose owner name is not the zone apex. */
 		if (! dns_name_equal(soa_name, question_name))
 			continue;
@@ -883,6 +885,18 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	isc_log_write(XFROUT_DEBUG_LOGARGS(6), "%s authority section OK",
 		      mnemonic);
 
+	/* Decide whether to allow this transfer. */
+	aml = dns_zone_getxfracl(zone);
+	if (aml == NULL)
+		aml = ns_g_confctx->options->transferacl;
+	if (aml != NULL) {
+		CHECK(dns_aml_checkrequest(request,
+					   ns_client_getsockaddr(client),
+					   aml, ns_g_confctx->acls,
+					   "zone transfer", ISC_FALSE));
+	}
+
+	/* AXFR over UDP is not possible. */
 	if (reqtype == dns_rdatatype_axfr &&
 	    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
