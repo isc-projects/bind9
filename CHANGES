@@ -1,5 +1,6 @@
- 461.	[bug]		Specifying an unknown key in the keys clause of the
-			controls statement caused a NULL pointer dereference.
+ 461.	[bug]		Specifying an unknown key in the "keys" clause of the
+			"controls" statement caused a NULL pointer dereference.
+			[RT #316]
 
  460.	[bug]		Much of the DNSSEC code only worked with class IN.
 
