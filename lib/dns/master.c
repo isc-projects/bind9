@@ -41,11 +41,13 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	dns_name_t current_name;
 	dns_name_t glue_name;
 	dns_name_t new_name;
+	dns_name_t origin_name;
 	isc_boolean_t ttl_known = ISC_FALSE;
 	isc_boolean_t current_known = ISC_FALSE;
 	isc_boolean_t in_glue = ISC_FALSE;
 	isc_boolean_t current_has_delegation = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
+	isc_boolean_t finish_origin = ISC_FALSE;
 	isc_token_t token;
 	isc_lex_t *lex = NULL;
 	dns_result_t result = DNS_R_UNEXPECTED; 
@@ -73,6 +75,7 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	isc_boolean_t name_in_use[5];
 	int glue_in_use = -1;
 	int current_in_use = -1;
+	int origin_in_use = -1;
 	int new_in_use;
 	isc_buffer_t name;
 	isc_lexspecials_t specials;
@@ -132,6 +135,16 @@ dns_load_master(char *master_file, dns_name_t *origin,
 		} else if (token.type == isc_tokentype_string) {
 
 			/* XXX "$" Support */
+			if (strcasecmp(token.value.as_pointer,
+				       "$ORIGIN") == 0) {
+				options = ISC_LEXOPT_DNSMULTILINE;
+				lexres = isc_lex_gettoken(lex, options, &token);
+				if (lexres != ISC_R_SUCCESS) {
+					result = DNS_R_UNEXPECTED;
+					goto cleanup;
+				}
+				finish_origin = ISC_TRUE;
+			}
 
 			for (new_in_use = 0; new_in_use < 5 ; new_in_use++)
 				if (!name_in_use[new_in_use])
@@ -151,6 +164,16 @@ dns_load_master(char *master_file, dns_name_t *origin,
 
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
+			if (finish_origin) {
+				if (origin_in_use != -1)
+					name_in_use[origin_in_use] = ISC_FALSE;
+				origin_in_use = new_in_use;
+				name_in_use[origin_in_use] = ISC_TRUE;
+				origin_name = new_name;
+				origin = &origin_name;
+				finish_origin =ISC_FALSE;
+				continue;
+			}
 			/*
 			 * commit glue and pop stacks
 			 */
