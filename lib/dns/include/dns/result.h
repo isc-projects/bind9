@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.69 2000/10/17 07:22:38 marka Exp $ */
+/* $Id: result.h,v 1.70 2000/10/18 23:53:31 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -71,7 +71,7 @@
 #define DNS_R_CNAME			(ISC_RESULTCLASS_DNS + 32)
 #define DNS_R_BADDB			(ISC_RESULTCLASS_DNS + 33)
 #define DNS_R_ZONECUT			(ISC_RESULTCLASS_DNS + 34)
-#define DNS_R_BADZONE			(ISC_RESULTCLASS_DNS + 35) /* XXX MPA*/
+#define DNS_R_BADZONE			(ISC_RESULTCLASS_DNS + 35)
 #define DNS_R_MOREDATA			(ISC_RESULTCLASS_DNS + 36)
 #define DNS_R_UPTODATE			(ISC_RESULTCLASS_DNS + 37)
 #define DNS_R_TSIGVERIFYFAILURE		(ISC_RESULTCLASS_DNS + 38)
@@ -103,8 +103,9 @@
 #define DNS_R_UNKNOWNOPT		(ISC_RESULTCLASS_DNS + 64)
 #define DNS_R_UNEXPECTEDID		(ISC_RESULTCLASS_DNS + 65)
 #define DNS_R_SEENINCLUDE		(ISC_RESULTCLASS_DNS + 66)
+#define DNS_R_NOTEXACT			(ISC_RESULTCLASS_DNS + 67)
 
-#define DNS_R_NRESULTS			67	/* Number of results */
+#define DNS_R_NRESULTS			68	/* Number of results */
 
 /*
  * DNS wire format rcodes.

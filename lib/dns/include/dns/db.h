@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.58 2000/08/31 13:00:57 marka Exp $ */
+/* $Id: db.h,v 1.59 2000/10/18 23:53:29 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -134,6 +134,7 @@ typedef struct dns_dbmethods {
 	isc_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					    dns_dbversion_t *version,
 					    dns_rdataset_t *rdataset,
+					    isc_boolean_t exact,
 					    dns_rdataset_t *newrdataset);
 	isc_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
@@ -1047,7 +1048,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			dns_rdataset_t *newrdataset);
+			isc_boolean_t exact, dns_rdataset_t *newrdataset);
 /*
  * Remove any rdata in 'rdataset' from 'node' in version 'version' of
  * 'db'.
@@ -1067,6 +1068,9 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	'rdataset' is a valid, associated rdataset with the same class
  *	as 'db'.
  *
+ *	'exact' if ISC_TRUE then all rdata in 'rdataset' must exist
+ *	at 'node'.
+ *
  *	'newrdataset' is NULL, or a valid, unassociated rdataset.
  *
  *	The database has zone semantics and 'version' is a valid
@@ -1078,6 +1082,8 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	DNS_R_UNCHANGED			The operation did not change anything.
  *	DNS_R_NXRRSET			All rdata of the same type as those
  *					in 'rdataset' have been deleted.
+ *	DNS_R_NOTEXACT			Some part of 'rdataset' did not
+ *					exist and 'exact' was ISC_TRUE.
  *
  *	Other results are possible, depending upon the database
  *	implementation used.

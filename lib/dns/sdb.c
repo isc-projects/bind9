@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.11 2000/10/06 21:20:59 bwelling Exp $ */
+/* $Id: sdb.c,v 1.12 2000/10/18 23:53:27 marka Exp $ */
 
 /* NOMINUM_PUBLIC_DELETE */
 
@@ -1031,12 +1031,14 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *newrdataset)
+		 dns_rdataset_t *rdataset, isc_boolean_t exact,
+		 dns_rdataset_t *newrdataset)
 {
 	UNUSED(db);
 	UNUSED(node);
 	UNUSED(version);
 	UNUSED(rdataset);
+	UNUSED(exact);
 	UNUSED(newrdataset);
 
 	return (ISC_R_NOTIMPLEMENTED);

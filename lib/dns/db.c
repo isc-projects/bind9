@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.57 2000/10/17 07:22:29 marka Exp $ */
+/* $Id: db.c,v 1.58 2000/10/18 23:53:21 marka Exp $ */
 
 /***
  *** Imports
@@ -589,7 +589,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			dns_rdataset_t *newrdataset)
+			isc_boolean_t exact, dns_rdataset_t *newrdataset)
 {
 	/*
 	 * Remove any rdata in 'rdataset' from 'node' in version 'version' of
@@ -607,7 +607,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 		 ! dns_rdataset_isassociated(newrdataset)));
 
 	return ((db->methods->subtractrdataset)(db, node, version, rdataset,
-						newrdataset));
+						exact, newrdataset));
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.127 2000/10/13 18:55:10 halley Exp $ */
+/* $Id: rbtdb.c,v 1.128 2000/10/18 23:53:23 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3397,7 +3397,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *newrdataset)
+		 dns_rdataset_t *rdataset, isc_boolean_t exact,
+		 dns_rdataset_t *newrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
@@ -3456,7 +3457,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type,
-					&subresult);
+					exact, &subresult);
 		if (result == ISC_R_SUCCESS) {
 			free_rdataset(rbtdb->common.mctx, newheader);
 			newheader = (rdatasetheader_t *)subresult;

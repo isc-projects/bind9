@@ -1,3 +1,7 @@
+ 525.	[func]		New arguement 'exact' for dns_db_subtractrdataset(),
+			and dns_rdataslab_subtract() requesting that the RR's
+			must exist prior to deletion.  DNS_R_NOTEXACT is
+			returned if the condition is not met.
 
  524.	[func]		The 'forward' and 'forwarders' statement in
 			non-forward zones should work now.

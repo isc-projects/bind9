@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.75 2000/10/17 07:22:31 marka Exp $ */
+/* $Id: result.c,v 1.76 2000/10/18 23:53:26 marka Exp $ */
 
 #include <config.h>
 
@@ -105,7 +105,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unknown opt attribute record",	       /* 64 DNS_R_UNKNOWNOPT        */
 
 	"unexpected message id",	       /* 65 DNS_R_UNEXPECTEDID      */
-	"seen include file"		       /* 66 DNS_R_SEENINCLUDE       */
+	"seen include file",		       /* 66 DNS_R_SEENINCLUDE       */
+	"not exact"		       	       /* 67 DNS_R_NOTEXACT	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

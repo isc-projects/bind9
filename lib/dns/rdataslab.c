@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.20 2000/09/23 01:05:03 bwelling Exp $ */
+/* $Id: rdataslab.c,v 1.21 2000/10/18 23:53:24 marka Exp $ */
 
 #include <config.h>
 
@@ -363,12 +363,11 @@ isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       unsigned char **tslabp)
+		       isc_boolean_t exact, unsigned char **tslabp)
 {
 	unsigned char *mcurrent, *sstart, *scurrent, *tstart, *tcurrent;
-	unsigned int mcount, scount, count, tlength, tcount;
+	unsigned int mcount, scount, rcount ,count, tlength, tcount;
 	dns_rdata_t srdata, mrdata;
-	isc_boolean_t removed_something = ISC_FALSE;
 
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(mslab != NULL && sslab != NULL);
@@ -391,6 +390,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	 */
 	tlength = reservelen + 2;
 	tcount = 0;
+	rcount = 0;
 
 	/*
 	 * Add in the length of rdata in the mslab that aren't in
@@ -413,9 +413,16 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 			tlength += mcurrent - mrdatabegin;
 			tcount++;
 		} else
-			removed_something = ISC_TRUE;
+			rcount++;
 		mcount--;
 	} while (mcount > 0);
+
+	/*
+	 * Check that all the records originally existed.  The numeric
+ 	 * check only works as rdataslabs do not contain duplicates.
+	 */
+	if (exact && (rcount != scount))
+		return (DNS_R_NOTEXACT);
 
 	/*
 	 * Don't continue if the new rdataslab would be empty.
@@ -426,7 +433,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	/*
 	 * If nothing is going to change, we can stop.
 	 */
-	if (!removed_something)
+	if (rcount == 0)
 		return (DNS_R_UNCHANGED);
 
 	/*

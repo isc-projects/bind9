@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.57 2000/08/01 01:22:25 tale Exp $ */
+/* $Id: journal.c,v 1.58 2000/10/18 23:53:22 marka Exp $ */
 
 #include <config.h>
 
@@ -402,6 +402,7 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 			} else if (op == DNS_DIFFOP_DEL) {
 				result = dns_db_subtractrdataset(db, node, ver,
 								 &rds,
+								 ISC_TRUE,
 								 NULL);
 			} else {
 				INSIST(0);

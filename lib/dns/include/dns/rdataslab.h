@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.15 2000/09/01 01:35:21 bwelling Exp $ */
+/* $Id: rdataslab.h,v 1.16 2000/10/18 23:53:30 marka Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
@@ -107,9 +107,10 @@ isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       unsigned char **tslabp);
+		       isc_boolean_t exact, unsigned char **tslabp);
 /*
- * Subtract 'sslab' from 'mslab'.
+ * Subtract 'sslab' from 'mslab'.  If 'exact' is true then all elements
+ * of 'sslab' must exist in 'mslab'.
  *
  * XXX
  */
