@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.234 2004/02/27 02:08:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.235 2004/02/27 02:33:13 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2021,6 +2021,11 @@ authentication and authorization using TSIG.</para></entry>
             <entry colname = "1"><para><command>logging</command></para></entry>
             <entry colname = "2"><para>specifies what the server logs, and where
 the log messages are sent.</para></entry>
+          </row>
+          <row rowsep = "0">
+            <entry colname = "1"><para><command>lwres</command></para></entry>
+            <entry colname = "2"><para>configures <command>named</command> to
+also act as a light weight resolver daemon (<command>lwresd</command>).</para></entry>
           </row>
           <row rowsep = "0">
             <entry colname = "1"><para><command>masters</command></para></entry>
