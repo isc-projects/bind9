@@ -209,7 +209,7 @@ destroy(isc_timer_t *timer) {
 	isc_task_detach(&timer->task);
 	(void)isc_mutex_destroy(&timer->lock);
 	timer->magic = 0;
-	isc_mem_put(timer->mctx, timer, sizeof *timer);
+	isc_mem_put(manager->mctx, timer, sizeof *timer);
 }
 
 isc_result_t
@@ -221,7 +221,6 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	isc_timer_t *timer;
 	isc_result_t result;
 	isc_time_t now;
-	isc_mem_t *mctx;
 
 	/*
 	 * Create a new 'type' timer managed by 'manager'.  The timers
@@ -263,13 +262,11 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	}
 
 
-	mctx = isc_task_mem(task);
-	timer = isc_mem_get(mctx, sizeof *timer);
+	timer = isc_mem_get(manager->mctx, sizeof *timer);
 	if (timer == NULL)
 		return (ISC_R_NOMEMORY);
 
 	timer->manager = manager;
-	timer->mctx = mctx;
 	timer->references = 1;
 	if (type == isc_timertype_once && !isc_interval_iszero(interval))
 		isc_time_add(&now, interval, &timer->idle);
@@ -285,7 +282,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	timer->index = 0;
 	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);
-		isc_mem_put(mctx, timer, sizeof *timer);
+		isc_mem_put(manager->mctx, timer, sizeof *timer);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -312,7 +309,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		timer->magic = 0;
 		(void)isc_mutex_destroy(&timer->lock);
 		isc_task_detach(&timer->task);
-		isc_mem_put(mctx, timer, sizeof *timer);
+		isc_mem_put(manager->mctx, timer, sizeof *timer);
 		return (result);
 	}
 
@@ -520,7 +517,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				/*
 				 * XXX We could preallocate this event.
 				 */
-				event = isc_event_allocate(timer->mctx,
+				event = isc_event_allocate(manager->mctx,
 							   timer,
 							   type,
 							   timer->action,
@@ -626,7 +623,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		return (ISC_R_NOMEMORY);
 	
 	manager->magic = TIMER_MANAGER_MAGIC;
-	manager->mctx = mctx;
+	manager->mctx = NULL;
 	manager->done = ISC_FALSE;
 	INIT_LIST(manager->timers);
 	manager->nscheduled = 0;
@@ -653,8 +650,10 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 				 "isc_condition_init() failed");
 		return (ISC_R_UNEXPECTED);
 	}
+	isc_mem_attach(mctx, &manager->mctx);
 	if (isc_thread_create(run, manager, &manager->thread) !=
 	    ISC_R_SUCCESS) {
+		isc_mem_detach(&manager->mctx);
 		(void)isc_condition_destroy(&manager->wakeup);
 		(void)isc_mutex_destroy(&manager->lock);
 		isc_heap_destroy(&manager->heap);
@@ -672,6 +671,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 void
 isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
+	isc_mem_t *mctx;
 
 	/*
 	 * Destroy a timer manager.
@@ -705,7 +705,9 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	(void)isc_mutex_destroy(&manager->lock);
 	isc_heap_destroy(&manager->heap);
 	manager->magic = 0;
-	isc_mem_put(manager->mctx, manager, sizeof *manager);
+	mctx = manager->mctx;
+	isc_mem_put(mctx, manager, sizeof *manager);
+	isc_mem_detach(&mctx);
 
 	*managerp = NULL;
 }
