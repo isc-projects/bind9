@@ -1,3 +1,6 @@
+1741.	[bug]		Deleting all records at a node in a secure zone
+			using a update-policy grant failed. [RT #12787]
+
 1739.	[bug]		dns_rbt_deletetree() could incorrectly return
 			ISC_R_QUOTA.  [RT #12695]
 
