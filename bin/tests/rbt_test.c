@@ -104,44 +104,44 @@ print_name(dns_name_t *name) {
 }
 
 static void
-iterate(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t forward) {
+iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 	dns_name_t *foundname, *origin;
-	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
 	dns_fixedname_t fixedfoundname, fixedorigin;
 	dns_result_t result;
 	dns_result_t (*move)(dns_rbtnodechain_t *chain, dns_name_t *name,
 			     dns_name_t *origin);
 
+	dns_rbtnodechain_init(&chain, mctx);
+
+	dns_fixedname_init(&fixedfoundname);
+	dns_fixedname_init(&fixedorigin);
+	foundname = dns_fixedname_name(&fixedfoundname);
+	origin    = dns_fixedname_name(&fixedorigin);
+
 	if (forward) {
 		printf("iterating forward\n" );
 		move = dns_rbtnodechain_next;
 		
+		result = dns_rbtnodechain_first(&chain, rbt, foundname, origin);
+
 	} else {
 		printf("iterating backward\n" );
 		move = dns_rbtnodechain_prev;
+
+		result = dns_rbtnodechain_last(&chain, rbt, foundname, origin);
+
 	}
 
-	dns_rbtnodechain_init(&chain, mctx);
-
-	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain,
-				  ISC_FALSE, NULL, NULL);
-	if (result != DNS_R_SUCCESS)
+	if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
 		printf("start not found!\n");
 
 	else {
-		dns_fixedname_init(&fixedfoundname);
-		dns_fixedname_init(&fixedorigin);
-		foundname = dns_fixedname_name(&fixedfoundname);
-		origin    = dns_fixedname_name(&fixedorigin);
-
 		while (1) {
-			result = move(&chain, foundname, origin);
 			if (result == DNS_R_NEWORIGIN) {
 				printf("  new origin: ");
 				print_name(origin);
 				printf("\n");
-				dns_fixedname_init(&fixedorigin);
 			}
 
 			if (result == DNS_R_SUCCESS ||
@@ -155,7 +155,8 @@ iterate(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t forward) {
 					      dns_result_totext(result));
 				break;
 			}
-			dns_fixedname_init(&fixedfoundname);
+
+			result = move(&chain, foundname, origin);
 		}
 	}
 }
@@ -307,20 +308,10 @@ main (int argc, char **argv) {
 				}
 
 			} else if (CMDCHECK("forward")) {
-				name = create_name(arg);
-				if (name != NULL) {
-					iterate(rbt, name, ISC_TRUE);
-
-					delete_name(name, NULL);
-				}
+				iterate(rbt, ISC_TRUE);
 
 			} else if (CMDCHECK("backward")) {
-				name = create_name(arg);
-				if (name != NULL) {
-					iterate(rbt, name, ISC_FALSE);
-
-					delete_name(name, NULL);
-				}
+				iterate(rbt, ISC_FALSE);
 
 			} else if (CMDCHECK("print")) {
 				if (arg == NULL || *arg == '\0')

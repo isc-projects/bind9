@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.36 1999/04/09 22:55:20 tale Exp $ */
+/* $Id: rbt.c,v 1.37 1999/04/14 12:03:18 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1721,7 +1721,12 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	dns_name_init(&nodename, NULL);
 
-	result = DNS_R_SUCCESS;
+	/*
+	 * XXX Is this too devilish, initializing name like this?
+	 */
+	result = dns_name_concatenate(NULL, NULL, name, NULL);
+	if (result != DNS_R_SUCCESS)
+		return result;
 
 	for (i = 0; i < chain->level_count; i++) {
 		NODENAME(chain->levels[i], &nodename);
@@ -1827,48 +1832,69 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 			} while (DOWN(predecessor) != NULL);
 
 			/* XXX DCL probably needs work on the concept */
-			/* XXX origin needs to include itself */
-			if (origin != NULL) {
-				result = chain_name(chain, origin, ISC_FALSE);
+			if (origin != NULL)
 				new_origin = ISC_TRUE;
-			}
-
 		}
 
 	} else if (chain->level_count > 0) {
 		/*
-		 * Got to the root of the tree without having traversed
-		 * any right links. Ascend the tree one level.
+		 * Got to the root of this level without having traversed
+		 * any right links.  Ascend the tree one level.
 		 */
 		predecessor = chain->levels[--chain->level_count];
 		chain->ancestor_count--;
 
 		/* XXX DCL probably needs work on the concept */
-		if (origin && chain->level_count > 0) {
-			result = chain_name(chain, origin, ISC_FALSE);
+		/*
+		 * Don't declare an origin change when the new origin is "."
+		 * at the top level tree, because "." is declared as the origin
+		 * for the second level tree.
+		 */
+		if (origin &&
+		    (chain->level_count > 0 ||
+		     OFFSETLEN(predecessor) > 1))
 			new_origin = ISC_TRUE;
-		}
 	}
 
-	if (result == DNS_R_SUCCESS) {
-		if (predecessor != NULL) {
-			chain->end = predecessor;
+	if (predecessor != NULL) {
+		chain->end = predecessor;
 
-			/* XXX DCL are full names desired, or just the
-			 * name relative to the origin?
+		NODENAME(chain->end, name);
 
-			 result = chain_name(chain, name, ISC_TRUE);
-			 
-			 *
+		if (chain->level_count == 0) {
+			/*
+			 * Eliminate the root name (except when the name is ".").
 			 */
+			if (FAST_COUNTLABELS(name) > 1) {
+				INSIST(FAST_ISABSOLUTE(name));
 
-			NODENAME(chain->end, name);
+				/*
+				 * XXX EVIL.  But what _should_ I do?
+				 */
+				name->labels--;
+				name->length--;
+				name &= ~DNS_NAMEATTR_ABSOLUTE;
+			}
+		}
 
-			if (new_origin)
+		if (new_origin) {
+			if (origin != NULL)
+				if (chain->level_count > 0)
+					result = chain_name(chain, origin,
+							    ISC_FALSE);
+				else
+					result = dns_name_concatenate(NULL,
+								   dns_rootname,
+								   origin, NULL);
+
+			if (result == DNS_R_SUCCESS)
 				result = DNS_R_NEWORIGIN;
+
 		} else
-			result = DNS_R_NOMORE;
-	}
+			result = DNS_R_SUCCESS;
+
+	} else
+		result = DNS_R_NOMORE;
 
 	return (result);
 }
@@ -1892,10 +1918,14 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	 * to go down, and if so whether it is a new origin.
 	 */
 	if (DOWN(current) != NULL) {
-		if (origin != NULL) {
-			result = chain_name(chain, origin, ISC_TRUE);
+		/*
+		 * Don't declare an origin change when the new origin is "."
+		 * at the second level tree, because "." is already declared
+		 * as the origin for the top level tree.
+		 */
+		if (chain->level_count > 0 ||
+		    OFFSETLEN(current) > 1)
 			new_origin = ISC_TRUE;
-		}
 
 		ADD_ANCESTOR(chain, NULL);
 		ADD_LEVEL(chain, current);
@@ -1936,10 +1966,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 			} while (RIGHT(current) == NULL &&
 				 chain->level_count > 0);
 
-			if (origin != NULL) {
-				result = chain_name(chain, origin, ISC_FALSE);
-				new_origin = ISC_TRUE;
-			}
+			new_origin = ISC_TRUE;
 		}
 	}
 
@@ -1956,26 +1983,23 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		successor = current;
 	}
 
-	if (result == DNS_R_SUCCESS) {
-		if (successor != NULL) {
-			chain->end = successor;
+	if (successor != NULL) {
+		chain->end = successor;
 
-			/* XXX DCL are full names desired, or just the
-			 * name relative to the origin?
+		NODENAME(chain->end, name);
 
-			 result = chain_name(chain, name, ISC_TRUE);
-			 
-			 *
-			 */
+		if (new_origin) {
+			if (origin != NULL)
+				result = chain_name(chain, origin, ISC_FALSE);
 
-			NODENAME(chain->end, name);
-
-			if (new_origin)
+			if (result == DNS_R_SUCCESS)
 				result = DNS_R_NEWORIGIN;
 
 		} else
-			result = DNS_R_NOMORE;
-	}
+			result = DNS_R_SUCCESS;
+
+	} else
+		result = DNS_R_NOMORE;
 
 	return (result);
 }
@@ -1985,12 +2009,39 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin)
 
 {
-	(void)chain;
-	(void)rbt;
-	(void)name;
-	(void)origin;
+	dns_result_t result;
 
-	return (DNS_R_SUCCESS);
+	REQUIRE(name != NULL && origin != NULL);
+	REQUIRE(VALID_RBT(rbt));
+	REQUIRE(VALID_CHAIN(chain));
+
+	dns_rbtnodechain_reset(chain);
+
+	ADD_ANCESTOR(chain, NULL);
+
+	chain->end = rbt->root;
+
+	NODENAME(rbt->root, name);
+
+
+	if (FAST_COUNTLABELS(name) > 1) {
+		INSIST(FAST_ISABSOLUTE(name));
+
+		/*
+		 * Remove the final "." from any name except "." itself.
+		 */
+		/* XXX Evil.  (?) */
+		name->labels--;
+		name->length--;
+		name &= ~DNS_NAMEATTR_ABSOLUTE;
+	}
+
+	result = dns_name_concatenate(NULL, dns_rootname, origin, NULL);
+
+	if (result == DNS_R_SUCCESS)
+		result = DNS_R_NEWORIGIN;
+
+	return (result);
 }
 
 dns_result_t
@@ -1998,12 +2049,71 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		       dns_name_t *name, dns_name_t *origin)
 
 {
-	(void)chain;
-	(void)rbt;
-	(void)name;
-	(void)origin;
+	dns_result_t result;
+	dns_rbtnode_t *current;
 
-	return (DNS_R_SUCCESS);
+	REQUIRE(name != NULL && origin != NULL);
+	REQUIRE(VALID_RBT(rbt));
+	REQUIRE(VALID_CHAIN(chain));
+
+	dns_rbtnodechain_reset(chain);
+
+	ADD_ANCESTOR(chain, NULL);
+
+	current = rbt->root;
+
+	while (1) {
+		/*
+		 * Go as far right and then down as much as possible,
+		 * as long as the rightmost node has a down pointer.
+		 */
+		while (RIGHT(current) != NULL) {
+			ADD_ANCESTOR(chain, current);
+			current = RIGHT(current);
+		}
+
+		if (DOWN(current) == NULL)
+			break;
+
+		ADD_ANCESTOR(chain, NULL);
+		ADD_LEVEL(chain, current);
+		current = DOWN(current);
+	}
+
+	chain->end = current;
+	NODENAME(chain->end, name);
+
+	if (chain->level_count == 0) {
+		/*
+		 * The end is in the top level tree.  Make origin "." and
+		 * force name to be relative to ".".
+		 */
+		if (FAST_COUNTLABELS(name) > 1) {
+			INSIST(FAST_ISABSOLUTE(name));
+
+			/*
+			 * Remove the final "." from any name except "." itself.
+			 */
+			/* XXX Evil.  (?) */
+			name->labels--;
+			name->length--;
+			name &= ~DNS_NAMEATTR_ABSOLUTE;
+		}
+
+		/* XXX sleazy way to initialize? */
+		result = dns_name_concatenate(NULL, NULL, origin, NULL);
+		if (result == DNS_R_SUCCESS)
+			result = dns_name_concatenate(NULL, dns_rootname,
+						      origin, NULL);
+
+	} else
+		result = chain_name(chain, origin, ISC_FALSE);
+
+
+	if (result == DNS_R_SUCCESS)
+		result = DNS_R_NEWORIGIN;
+
+	return (result);
 }
 
 
