@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.99 2000/06/01 21:42:39 tale Exp $ */
+/* $Id: rdata.c,v 1.100 2000/06/06 17:43:21 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -415,7 +415,7 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	if (result == ISC_R_SUCCESS && !buffer_empty(source))
 		result = DNS_R_EXTRADATA;
 
-	if (rdata && result == ISC_R_SUCCESS) {
+	if (rdata != NULL && result == ISC_R_SUCCESS) {
 		region.length = target->used - st.used;
 		dns_rdata_fromregion(rdata, rdclass, type, &region);
 	}
