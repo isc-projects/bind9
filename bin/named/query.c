@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.241 2003/01/21 06:11:45 marka Exp $ */
+/* $Id: query.c,v 1.242 2003/01/31 12:07:56 marka Exp $ */
 
 #include <config.h>
 
@@ -535,8 +535,8 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 }
 
 static inline isc_result_t
-query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
-		dns_rdatatype_t qtype, dns_zone_t **zonep, dns_db_t **dbp,
+query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
+		unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
 		dns_dbversion_t **versionp)
 {
 	isc_result_t result;
