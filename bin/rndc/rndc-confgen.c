@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.7 2004/03/09 06:09:26 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.8 2004/09/28 07:18:28 marka Exp $ */
 
 #include <config.h>
 
@@ -272,7 +272,8 @@ main(int argc, char **argv) {
 			buf = isc_mem_get(mctx, len);
 			if (buf == NULL)
 				fatal("isc_mem_get(%d) failed\n", len);
-			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
+			snprintf(buf, len, "%s%s%s", chrootdir,
+				 (*keyfile != '/') ? "/" : "", keyfile);
 			
 			write_key_file(buf, user, keyname, &key_txtbuffer);
 			isc_mem_put(mctx, buf, len);
