@@ -195,8 +195,8 @@ isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
 		   dns_decompress_t *dctx,
-				isc_boolean_t downcase,
-				isc_buffer_t *target);
+		   isc_boolean_t downcase,
+		   isc_buffer_t *target);
 /*
  * Copy the possibly-compressed rdata at source into the target region.
  *
@@ -210,10 +210,10 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *
  *	'rdclass' and 'type' are valid.
  *
- *	'source' is a valid binary buffer, and the active region of 'source'
+ *	'source' is a valid buffer, and the active region of 'source'
  *	references the rdata to be processed.
  *
- *	'target' is a valid binary buffer.
+ *	'target' is a valid buffer.
  *
  *	'dctx' is a valid decompression context.
  *
@@ -250,7 +250,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
  * Requires:
  *	'rdata' is a valid, non-empty rdata
  *
- *	target is a valid binary buffer
+ *	target is a valid buffer
  *
  *	Any offsets specified in a global compression table are valid
  *	for target.
@@ -383,7 +383,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *
  *	'source' points to a valid C struct for the class and type.
  *
- *	'target' is a valid binary buffer.
+ *	'target' is a valid buffer.
  *
  *	All structure pointers to memory blocks should be NULL if their
  *	corresponding length values are zero.

@@ -384,7 +384,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * Requires:
  *	"msg" be valid.
  *
- *	"buffer" be a wire format binary buffer.
+ *	"buffer" be a wire format buffer.
  *
  * Ensures:
  *	The buffer's data format is correct.
@@ -413,7 +413,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  *
  *	'msg' be valid.
  *
- *	buffer is a valid binary buffer.
+ *	'buffer' is a valid buffer.
  *
  * Side Effects:
  *

@@ -261,7 +261,7 @@ dns_name_invalidate(dns_name_t *name);
 void
 dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer);
 /*
- * Dedicate a binary buffer for use with 'name'.
+ * Dedicate a buffer for use with 'name'.
  *
  * Notes:
  *	Specification of a target buffer in dns_name_fromwire(),

@@ -619,7 +619,7 @@ t_dns_name_invalidate(void) {
 	t_result(result);
 }
 
-static const char *a5 =	"dns_name_setbuffer dedicates a binary buffer for use "
+static const char *a5 =	"dns_name_setbuffer dedicates a buffer for use "
 			"with 'name'";
 
 static void

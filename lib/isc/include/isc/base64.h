@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.7 2000/06/01 17:20:35 tale Exp $ */
+/* $Id: base64.h,v 1.8 2000/06/06 17:47:54 gson Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -56,7 +56,7 @@ isc_base64_totext(isc_region_t *source, int wordlength,
  *
  * Requires:
  *	"lex" is a valid lexer context
- *	"target" is a binary buffer containing binary data
+ *	"target" is a buffer containing binary data
  *	"length" is an integer
  *
  * Ensures:
