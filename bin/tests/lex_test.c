@@ -62,6 +62,9 @@ print_token(isc_token_t *tokenp, FILE *stream) {
 	case isc_tokentype_special:
 		fprintf(stream, "SPECIAL %c", tokenp->value.as_char);
 		break;
+	case isc_tokentype_nomore:
+		fprintf(stream, "NOMORE");
+		break;
 	default:
 		FATAL_ERROR(__FILE__, __LINE__, "Unexpected type %d",
 			    tokenp->type);
@@ -77,6 +80,7 @@ main(int argc, char *argv[]) {
 	int masterfile = 1;
 	int stats = 0;
 	unsigned int options = 0;
+	int done = 0;
 
 	while ((c = getopt(argc, argv, "qmcs")) != -1) {
 		switch (c) {
@@ -107,7 +111,7 @@ main(int argc, char *argv[]) {
 		isc_lex_setspecials(lex, specials);
 		options = ISC_LEXOPT_DNSMULTILINE |
 			ISC_LEXOPT_EOF |
-			ISC_LEXOPT_QSTRING;
+			ISC_LEXOPT_QSTRING | ISC_LEXOPT_NOMORE;
 		isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	} else {
 		/* Set up to lex DNS config file. */
@@ -122,7 +126,7 @@ main(int argc, char *argv[]) {
 		isc_lex_setspecials(lex, specials);
 		options = ISC_LEXOPT_EOF |
 			ISC_LEXOPT_QSTRING |
-			ISC_LEXOPT_NUMBER;
+			ISC_LEXOPT_NUMBER | ISC_LEXOPT_NOMORE;
 		isc_lex_setcomments(lex, (ISC_LEXCOMMENT_C|
 					  ISC_LEXCOMMENT_CPLUSPLUS|
 					  ISC_LEXCOMMENT_SHELL));
@@ -131,13 +135,17 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
 
 	while ((result = isc_lex_gettoken(lex, options, &token)) ==
-	       ISC_R_SUCCESS) {
+	       ISC_R_SUCCESS && !done) {
 		if (!quiet) {
 			print_token(&token, stdout);
 			printf("\n");
 		}
+		if (token.type == isc_tokentype_eof)
+			isc_lex_close(lex);
+		if (token.type == isc_tokentype_nomore)
+			done = 1;
 	}
-	if (result != ISC_R_EOF)
+	if (result != ISC_R_SUCCESS)
 		printf("Result: %s\n", isc_result_totext(result));
 
 	isc_lex_close(lex);
