@@ -1,6 +1,6 @@
 %{
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.2 1999/04/23 05:08:44 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.3 1999/06/08 13:14:44 brister Exp $";
 #endif /* not lint */
 
 /*
@@ -2128,7 +2128,7 @@ symtable_init(void)
 	struct token *tok;
 	
 	RUNTIME_CHECK(isc_symtab_create(memctx, SYMTAB_SIZE,
-					undef_symtab_entry,
+					undef_symtab_entry, NULL,
 					ISC_FALSE, &keywords) ==
 		      ISC_R_SUCCESS);
 
