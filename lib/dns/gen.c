@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.60 2001/01/09 21:50:54 bwelling Exp $ */
+/* $Id: gen.c,v 1.61 2001/07/06 02:56:47 mayer Exp $ */
 
 #include <config.h>
 
@@ -469,6 +469,10 @@ main(int argc, char **argv) {
 	char *file = NULL;
 	isc_dir_t dir;
 
+	isc_commandline_index = 1;
+	isc_commandline_errprint = 1;
+	isc_commandline_reset = ISC_TRUE;
+
 	for (i = 0 ; i <= 255 ; i++)
 		memset(&typenames[i], 0, sizeof(typenames[i]));
 
@@ -621,11 +625,11 @@ main(int argc, char **argv) {
 		insert_into_typenames(254, "maila", METAQUESTIONONLY);
 		insert_into_typenames(255, "any", METAQUESTIONONLY);
 
-		printf("\ntypedef struct {\n");
-		printf("\tconst char *name;\n");
-		printf("\tunsigned int flags;\n");
-		printf("} typeattr_t;\n");
-		printf("static typeattr_t typeattr[] = {\n");
+		fprintf(stdout,"\ntypedef struct {\n");
+		fprintf(stdout,"\tconst char *name;\n");
+		fprintf(stdout,"\tunsigned int flags;\n");
+		fprintf(stdout,"} typeattr_t;\n");
+		fprintf(stdout,"static typeattr_t typeattr[] = {\n");
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
 			if (ttn->typename[0] == 0) {
@@ -635,16 +639,16 @@ main(int argc, char **argv) {
 						"DNS_RDATATYPEATTR_META";
 				else
 					attrs = "DNS_RDATATYPEATTR_UNKNOWN";
-				printf("\t{ \"TYPE%d\", %s}%s\n",
+				fprintf(stdout,"\t{ \"TYPE%d\", %s}%s\n",
 				       i, attrs, PRINT_COMMA(i));
 			} else {
-				printf("\t{ \"%s\", %s }%s\n",
+				fprintf(stdout,"\t{ \"%s\", %s }%s\n",
 				       upper(ttn->typename),
 				       upper(ttn->attr),
 				       PRINT_COMMA(i));
 			}
 		}
-		printf("};\n");
+		fprintf(stdout,"};\n");
 
 		/*
 		 * Run through the list of types and pre-mark the unused
@@ -666,20 +670,20 @@ main(int argc, char **argv) {
 		 * Here, walk the list from top to bottom, calculating
 		 * the hash (mod 256) for each name.
 		 */
-		printf("#define RDATATYPE_COMPARE(_s, _d, _tn, _tp) \\\n");
-		printf("\tdo { \\\n");
-		printf("\t\tif (strcasecmp(_s,(_tn)) == 0) { \\\n");
-		printf("\t\t\tif ((typeattr[_d].flags & "
+		fprintf(stdout,"#define RDATATYPE_COMPARE(_s, _d, _tn, _tp) \\\n");
+		fprintf(stdout,"\tdo { \\\n");
+		fprintf(stdout,"\t\tif (strcasecmp(_s,(_tn)) == 0) { \\\n");
+		fprintf(stdout,"\t\t\tif ((typeattr[_d].flags & "
 		       		  "DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
-		printf("\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
-		printf("\t\t\t*(_tp) = _d; \\\n");
-		printf("\t\t\treturn (ISC_R_SUCCESS); \\\n");
-		printf("\t\t} \\\n");
-		printf("\t} while (0)\n\n");
+		fprintf(stdout,"\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
+		fprintf(stdout,"\t\t\t*(_tp) = _d; \\\n");
+		fprintf(stdout,"\t\t\treturn (ISC_R_SUCCESS); \\\n");
+		fprintf(stdout,"\t\t} \\\n");
+		fprintf(stdout,"\t} while (0)\n\n");
 
-		printf("#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) "
+		fprintf(stdout,"#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) "
 		       "\\\n");
-		printf("\tswitch (_hash) { \\\n");
+		fprintf(stdout,"\tswitch (_hash) { \\\n");
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
 
@@ -690,7 +694,7 @@ main(int argc, char **argv) {
 				continue;
 
 			hash = HASH(ttn->typename);
-			printf("\t\tcase %u: \\\n", hash);
+			fprintf(stdout,"\t\tcase %u: \\\n", hash);
 
 			/*
 			 * Find all other entries that happen to match
@@ -701,16 +705,16 @@ main(int argc, char **argv) {
 				if (ttn2->sorted != 0)
 					continue;
 				if (hash == HASH(ttn2->typename)) {
-					printf("\t\t\tRDATATYPE_COMPARE"
+					fprintf(stdout,"\t\t\tRDATATYPE_COMPARE"
 					       "(\"%s\", %u, "
 					       "_typename, _typep); \\\n",
 					       ttn2->typename, j);
 					ttn2->sorted = 1;
 				}
 			}
-			printf("\t\t\tbreak; \\\n");
+			fprintf(stdout,"\t\t\tbreak; \\\n");
 		}
-		printf("\t}\n");
+		fprintf(stdout,"\t}\n");
 
 		fputs("#endif /* DNS_CODE_H */\n", stdout);
 	} else if (type_enum) {
@@ -769,22 +773,22 @@ main(int argc, char **argv) {
 		char *s;
 		int classnum;
 
-		printf("#ifndef DNS_ENUMCLASS_H\n");
-		printf("#define DNS_ENUMCLASS_H 1\n\n");
+		fprintf(stdout,"#ifndef DNS_ENUMCLASS_H\n");
+		fprintf(stdout,"#define DNS_ENUMCLASS_H 1\n\n");
 
-		printf("enum {\n");
+		fprintf(stdout,"enum {\n");
 
-		printf("\tdns_rdataclass_reserved0 = 0,\n");
-		printf("#define dns_rdataclass_reserved0 \\\n\t\t\t\t"
+		fprintf(stdout,"\tdns_rdataclass_reserved0 = 0,\n");
+		fprintf(stdout,"#define dns_rdataclass_reserved0 \\\n\t\t\t\t"
 			"((dns_rdataclass_t)dns_rdataclass_reserved0)\n");
 
 #define PRINTCLASS(name, num) \
 	do { \
 		s = funname(name, buf1); \
 		classnum = num; \
-		printf("\tdns_rdataclass_%s = %d%s\n", s, classnum, \
+		fprintf(stdout,"\tdns_rdataclass_%s = %d%s\n", s, classnum, \
 		       classnum != 255 ? "," : ""); \
-		printf("#define dns_rdataclass_%s\t" \
+		fprintf(stdout,"#define dns_rdataclass_%s\t" \
 		       "((dns_rdataclass_t)dns_rdataclass_%s)\n", s, s); \
 	} while (0)
 
@@ -801,8 +805,8 @@ main(int argc, char **argv) {
 
 #undef PRINTCLASS
 
-		printf("};\n\n");
-		printf("#endif /* DNS_ENUMCLASS_H */\n");
+		fprintf(stdout,"};\n\n");
+		fprintf(stdout,"#endif /* DNS_ENUMCLASS_H */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
 			if ((fd = fopen(prefix,"r")) != NULL) {
