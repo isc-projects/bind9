@@ -206,6 +206,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	INIT_LINK(task, ready_link);
 
 	LOCK(&manager->lock);
+	/* XXX Should disallow if task manager is exiting. */
 	if (task->quantum == 0)
 		task->quantum = manager->default_quantum;
 	APPEND(manager->tasks, task, link);
