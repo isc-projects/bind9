@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.8 2001/01/09 21:55:39 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.9 2001/01/24 02:23:01 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -424,7 +424,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_fromfile(dst_key_t *key, const isc_uint16_t id,
+opensslrsa_fromfile(dst_key_t *key, const dns_keytag_t id,
 		    const char *filename)
 {
 	dst_private_t priv;

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.33 2001/01/17 01:08:07 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.34 2001/01/24 02:22:53 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -94,7 +94,7 @@ struct dst_func {
 	isc_result_t (*todns)(const dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*fromdns)(dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*tofile)(const dst_key_t *key, const char *directory);
-	isc_result_t (*fromfile)(dst_key_t *key, const isc_uint16_t id,
+	isc_result_t (*fromfile)(dst_key_t *key, const dns_keytag_t id,
 				 const char *filename);
 };
 

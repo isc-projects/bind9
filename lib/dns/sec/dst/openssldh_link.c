@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.34 2001/01/09 21:55:38 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.35 2001/01/24 02:22:59 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -429,7 +429,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldh_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
+openssldh_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 {
 	dst_private_t priv;
 	isc_result_t ret;

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.41 2001/01/09 21:55:37 bwelling Exp $
+ * $Id: openssl_link.c,v 1.42 2001/01/24 02:22:58 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -378,7 +378,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
+openssldsa_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 {
 	dst_private_t priv;
 	isc_result_t ret;

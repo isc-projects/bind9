@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.71 2001/01/17 01:08:06 bwelling Exp $
+ * $Id: dst_api.c,v 1.72 2001/01/24 02:22:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -73,7 +73,7 @@ static isc_result_t	read_public_key(const char *filename,
 static isc_result_t	write_public_key(const dst_key_t *key,
 					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
-				      const unsigned int id,
+				      const dns_keytag_t id,
 				      const unsigned int alg,
 				      const unsigned int type,
 				      const char *directory,
@@ -296,7 +296,7 @@ dst_key_tofile(const dst_key_t *key, const int type, const char *directory) {
 }
 
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
+dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
 		 const unsigned int alg, const int type, const char *directory,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
@@ -341,7 +341,7 @@ dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
 {
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
-	isc_uint16_t id;
+	dns_keytag_t id;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(filename != NULL);
@@ -928,7 +928,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-buildfilename(dns_name_t *name, const unsigned int id,
+buildfilename(dns_name_t *name, const dns_keytag_t id,
 	      const unsigned int alg, const unsigned int type,
 	      const char *directory, isc_buffer_t *out)
 {

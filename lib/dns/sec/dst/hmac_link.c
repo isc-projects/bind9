@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.47 2001/01/09 21:55:36 bwelling Exp $
+ * $Id: hmac_link.c,v 1.48 2001/01/24 02:22:56 bwelling Exp $
  */
 
 #include <config.h>
@@ -245,7 +245,7 @@ hmacmd5_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename) {
+hmacmd5_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename) {
 	dst_private_t priv;
 	isc_result_t ret;
 	isc_buffer_t b;

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.27 2001/01/09 21:55:30 bwelling Exp $
+ * $Id: dst_parse.c,v 1.28 2001/01/24 02:22:54 bwelling Exp $
  */
 
 #include <config.h>
@@ -185,7 +185,7 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
+dst__privstruct_parsefile(dst_key_t *key, const dns_keytag_t id,
 			  const char *filename, isc_mem_t *mctx,
 			  dst_private_t *priv)
 {

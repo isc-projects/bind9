@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.24 2001/01/09 21:50:56 bwelling Exp $ */
+/* $Id: keytable.c,v 1.25 2001/01/24 02:22:50 bwelling Exp $ */
 
 #include <config.h>
 
@@ -251,8 +251,8 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 	if (result == ISC_R_SUCCESS) {
 		INSIST(data != NULL);
 		for (knode = data; knode != NULL; knode = knode->next) {
-			if (algorithm == (dns_secalg_t)dst_key_alg(knode->key)
-			    && tag == (dns_keytag_t)dst_key_id(knode->key))
+			if (algorithm == dst_key_alg(knode->key)
+			    && tag == dst_key_id(knode->key))
 				break;
 		}
 		if (knode != NULL) {

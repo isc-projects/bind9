@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.39 2001/01/09 21:55:43 bwelling Exp $ */
+/* $Id: dst.h,v 1.40 2001/01/24 02:23:02 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -196,7 +196,7 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  */
 
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
+dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
 		 const unsigned int alg, const int type,
 		 const char *directory, isc_mem_t *mctx, dst_key_t **keyp);
 /*
@@ -454,7 +454,7 @@ dst_key_alg(const dst_key_t *key);
 isc_uint32_t
 dst_key_flags(const dst_key_t *key);
 
-isc_uint16_t
+dns_keytag_t
 dst_key_id(const dst_key_t *key);
 
 dns_rdataclass_t

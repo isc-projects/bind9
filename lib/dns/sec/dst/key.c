@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.2 2001/01/18 02:00:56 bwelling Exp $ */
+/* $Id: key.c,v 1.3 2001/01/24 02:22:57 bwelling Exp $ */
 
 #include <stdlib.h>
 
@@ -85,7 +85,7 @@ dst_key_flags(const dst_key_t *key) {
 	return (key->key_flags);
 }
 
-isc_uint16_t
+dns_keytag_t
 dst_key_id(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_id);
