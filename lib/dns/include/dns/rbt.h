@@ -28,18 +28,18 @@
 ISC_LANG_BEGINDECLS
 
 /*
+ * These should add up to 30.
+ */
+#define DNS_RBT_LOCKLENGTH			10
+#define DNS_RBT_REFLENGTH			20
+
+/*
  * This is the structure that is used for each node in the red/black
  * tree of trees.  NOTE WELL:  the implementation manages this as a variable
  * length structure, with the actual wire-format name and other data appended
  * appended to this structure.  Allocating a contiguous block of memory for
  * multiple dns_rbtnode structures will not work.
  */
-
-/* These should add up to 30 */
-
-#define DNS_RBT_LOCKLENGTH			10
-#define DNS_RBT_REFLENGTH			20
-
 typedef struct dns_rbtnode {
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
@@ -93,16 +93,18 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
  * because additions or removals can change the path from the root to the node
  * the chain has targetted.
  *
- * XXX add _current
  * The dns_rbtnodechain_ functions _first, _last, _prev and _next all take
- * dns_name_t parameters for the name and the origin.  'name' will end up
- * pointing to the name data and offsets that are stored at the node (and thus
- * it will be read-only), so it should be a regular dns_name_t that has been
- * initialized with dns_name_init.  'origin' will get the name of the origin
- * stored in it, so it needs to have its own buffer space and offsets, which
- * is most easily accomplished with a dns_fixedname_t.  It is _not_ necessary
- * to reinitialize either 'name' or 'origin' between calls to the chain
- * functions.
+ * dns_name_t parameters for the name and the origin, which can be NULL.  If
+ * non-NULL, 'name' will end up pointing to the name data and offsets that are
+ * stored at the node (and thus it will be read-only), so it should be a
+ * regular dns_name_t that has been initialized with dns_name_init.  When
+ * 'origin' is non-NULL, it will get the name of the origin stored in it, so it
+ * needs to have its own buffer space and offsets, which is most easily
+ * accomplished with a dns_fixedname_t.  It is _not_ necessary to reinitialize
+ * either 'name' or 'origin' between calls to the chain functions.
+ *
+ * dns_rbtnodechain_current is similar to the _first, _last, _prev and _next
+ * functions but additionally can provide the node to which the chain points.
  */
 
 /*
@@ -129,6 +131,12 @@ typedef dns_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 typedef struct dns_rbtnodechain {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
+	/*
+	 * The terminal node of the chain.  It is not in levels[] or
+	 * ancestors[].  This is ostensibly private ... but in a pinch
+	 * it could be used tell that the chain points nowhere without
+	 * needing to call dns_rbtnodechain_current().
+	 */
 	dns_rbtnode_t *		end;
 	dns_rbtnode_t **	ancestors;
 	/*
@@ -148,23 +156,20 @@ typedef struct dns_rbtnodechain {
 	 */
 	dns_rbtnode_t *		levels[DNS_RBT_LEVELBLOCK];
 	/*
-	 * level_count is how deep the node returned by dns_rbt_findnode()
-	 * is within the tree.  In a typical Internet DNS cache, the root
-	 * name has a level_count of 0, com, net and org have a level_count
-	 * of 1, and so on.  level_count can exceed the number of labels
-	 * in the found name when a partial match is returned, because
-	 * the search might have gone down to a lower level to determine that
-	 * no complete match could be made.
+	 * level_count indicates how deep the chain points into the
+	 * tree of trees, and is the index into the levels[] array.
+	 * Thus, levels[level_count - 1] is the last level node stored.
+	 * A chain that points to the top level of the tree of trees has
+	 * a level_count of 0, the first level has a level_count of 1, and
+	 * so on.
 	 */
 	unsigned int		level_count;
 	/*
-	 * level_matches indicates the number of levels above the node
-	 * found by dns_rbt_findnode(), both when it was a complete match
-	 * and when it was a partial match.  This is used by the rbtdb to
-	 * set the start point for a recursive search of superdomains until
-	 * the RR it is looking for is found.  Its value represents depth
-	 * the same way as level_count, but it is guaranteed to be <=
-	 * level_count, and to count fewer labels than the searched name.
+	 * level_matches tells how many levels matched above the node
+	 * returned by dns_rbt_findnode().  A match (partial or exact) found
+	 * in the first level thus results in level_matches being set to 1.
+	 * This is used by the rbtdb to set the start point for a recursive
+	 * search of superdomains until the RR it is looking for is found.
 	 */
 	unsigned int		level_matches;
 } dns_rbtnodechain_t;
@@ -323,23 +328,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Find the node for 'name'.
  *
  * Notes:
- *
- *	XXXRTH Changes I have made have made some of these notes inaccurate.
- *	They need to be fixed.
- *
  *	It is _not_ required that the node associated with 'name' has a
  *	non-NULL data pointer for an exact match.  A partial match must
  *	have associated data, unless the empty_data_ok flag is true.
  *
- *	If the chain parameter is non-NULL, then the path to the found
- *	node is maintained.  More accurately, if the name is found then
- *	the chain will store the path to it, but if only a partial match
- *	is found then name points to the predecessor name in the tree,
- *	or to nothing if there is no predecessor.  Note that in a normal
- *	Internet DNS RBT there will always be a predecessor, because '.'
- *	will exist and '.' is the predecessor of everything.  But you can
- *	certainly construct a trivial tree and a search for it that has
- *	no predecessor.
+ *	If the chain parameter is non-NULL, then the path through the tree
+ *	to the DNSSEC predecessor of the searched for name is maintained.
+ *	If there is no predecessor, then the chain will point to nowhere, as
+ *	indicated by chain->end being NULL or dns_rbtnodechain_current
+ *	returning DNS_R_NOTFOUND.  Note that in a normal Internet DNS RBT
+ *	there will always be a predecessor for all names except the root
+ *	name, because '.' will exist and '.' is the predecessor of
+ *	everything.  But you can certainly construct a trivial tree and a
+ *	search for it that has no predecessor.
  *
  *	Within the chain structure, 'ancestors' will point
  *	to each successive node encountered in the search, with the root
@@ -352,6 +353,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	the down pointer to the next level.  That node is not stored
  *	at all in the 'ancestors' list.
  *
+ *	The 'level_count' of the chain indicates how deep the chain to the
+ *	predecessor name is, as an index into the 'levels[]' array.  It does
+ *	not count name elements, per se, but only levels of the tree of trees,
+ *	the distinction arrising because multiple labels from a name can be
+ *	stored on only one level.  It is also does not include the level
+ *	that has the node, since that level is not stored in levels[].
+ *
+ *	The chain's 'level_matches' is not directly related to the predecessor.
+ *	It is the number of levels above the level of the found 'node',
+ *	regardless of whether it was a partial match or exact match.  When
+ *	the node is found in the top level tree, or no node is found at all,
+ *	level_matches is 0.
+ *
  *	If any space was allocated to hold 'ancestors' in the chain,
  *	the 'ancestor_maxitems' member will be greater than
  *	DNS_RBT_ANCESTORBLOCK and will indicate how many ancestors
@@ -361,7 +375,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  * Requires:
  *	rbt is a valid rbt manager.
  *	dns_name_isabsolute(name) == TRUE
- *	node != NULL && *NULL == NULL
+ *	node != NULL && *node == NULL
  *
  * Ensures:
  *	'name' and the tree are not altered in any way.
@@ -369,33 +383,28 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	If result is DNS_R_SUCCESS:
  *		*node is the terminal node for 'name'.
  *
- *		chain's level_matches points to the level above the found
- *		node, and its level_count points to the level of the found
- *		node.
+ *		'foundname' and 'name' represent the same name (though not
+ *		the same memory).
+ *
+ *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
+ *
+ *		chain->level_matches and chain->level_count are equal.
  *
  * 	If result is DNS_R_PARTIALMATCH:
  *		*node is the data associated with the deepest superdomain
  * 		of 'name' which has data.
  *
- *		foundname is the name of deepest superdomain.
- *		
- *		chain points to the DNSSEC predecessor of the searched name,
- *		or nothing if there is no predecessor.  Its level_count is the
- *		depth of the predecessor, or -1 if there is no predecessor.
- *		level_matches points to the level above the found node,
- *		not the one above the predecessor.
+ *		'foundname' is the name of deepest superdomain (which has
+ *		data, unless 'empty_data_ok').
+ *
+ *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
  *
  *	If result is DNS_R_NOTFOUND:
- *		Neither the name nor a superdomain was found.  *node
- *		is NULL.
+ *		Neither the name nor a superdomain was found.  *node is NULL.
  *
- *		chain points to the DNSSEC predecessor of the searched name,
- *		or to nothing if there is no precedessor.  chain->level_matches
- *		is -2 because no node was found, since level_matches is -1
- *		when the node is found on the top tree level (eg, the root
- *		name) and it is 0 when a node is found in the first subtree.
- *		chain's level_count is the depth of the predecessor, or -1
- *		if no predecessor was found.
+ *		'chain' points to the DNSSEC predecessor, if any, of 'name'.
+ *
+ *		chain->level_matches is 0.
  *
  *	If result is DNS_R_NOMEMORY:
  *		The function could not complete because memory could not
@@ -409,7 +418,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	DNS_R_PARTIALMATCH	Superdomain found with data
  *	DNS_R_NOTFOUND		No match, or superdomain with no data
  *	DNS_R_NOMEMORY		Resource Limit: Out of Memory building chain
- *	DNS_R_NOSPACE		Concatenating nodes to form foundname failed
+ *	DNS_R_NOSPACE 		Concatenating nodes to form foundname failed
  */
 
 dns_result_t
@@ -554,21 +563,40 @@ dns_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			 dns_name_t *origin, dns_rbtnode_t **node);
 /*
- * XXX update docs
- * Return the node to which the chain is currently pointed.
+ * Provide the name, origin and node to which the chain is currently pointed.
  *
  * Notes:
- *	This does not have any dependence on the tree having been locked
- *	since the chain to the node was established.
+ *	The tree need not have be locked against additions for the chain
+ *	to remain valid, however there are no guarantees if any deletion
+ *	has been made since the chain was established.
  *
  * Requires:
  *	'chain' is a valid chain.
  *
  * Ensures:
- *	The returned node is the node that was found with a prior
- *	dns_rbt_findnode, dns_rbtnodechain_first or dns_rbtnodechain_last call.
- *	If none of those functions have been called on this chain since it
- *	was initialized or rest, the return value is NULL.
+ *	'node', if non-NULL, is the node to which the chain was pointed
+ *	by dns_rbt_findnode, dns_rbtnodechain_first or dns_rbtnodechain_last.
+ *	If none were called for the chain since it was initialized or reset,
+ *	or if the was no predecessor to the name searched for with
+ *	dns_rbt_findnode, then '*node' is NULL and DNS_R_NOTFOUND is returned.
+ *
+ *	'name', if non-NULL, is the name stored at the terminal level of
+ *	the chain.  This is typically a single label, like the "www" of
+ *	"www.isc.org", but need not be so.  At the root of the tree of trees,
+ *	if the node is "." then 'name' is ".", otherwise it is relative to ".".
+ *	(Minimalist and atypical case:  if the tree has just the name
+ *	"isc.org." then the root node's stored name is "isc.org." but 'name'
+ *	will be "isc.org".)
+ *
+ *	'origin', if non-NULL, is the sequence of labels in the levels
+ *	above the terminal level, such as "isc.org." in the above example.
+ *	'origin' is always "." for the root node.
+ *	
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		name, origin & node were successfully set.
+ *	DNS_R_NOTFOUND		The chain does not point to any node.
+ *	<something_else>	Any error return from dns_name_concatenate.
  */
 
 dns_result_t
@@ -579,23 +607,22 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *
  * Notes:
  *	By the definition of ordering for DNS names, the root of the tree of
- *	trees is the very first node, since everything else in the megatree uses
- *	it as a common suffix.
+ *	trees is the very first node, since everything else in the megatree
+ *	uses it as a common suffix.
  *
  * Requires:
  *	'chain' is a valid chain.
- *	'name' and 'origin' are not NULL.
  *	'rbt' is a valid rbt manager.
  *
  * Ensures:
- *	'name' points to the name at the root of the tree, relative to ".".
- *	'origin' is ".".
+ *	The chain points to the very first node of the tree.
+ *
+ *	'name' and 'origin', if non-NULL, are set as described for
+ *	dns_rbtnodechain_current.  Thus 'origin' will always be ".".
  *
  * Returns:
- *	DNS_R_NEWORIGIN		The name & origin were successfully established.
- *	<something_else>	dns_name_concatenate failed while setting
- *				'origin' to the root name; this is its result
- *				code.
+ *	DNS_R_NEWORIGIN		The name & origin were successfully set.
+ *	<something_else>	Any error result from dns_rbtnodechain_current.
  */
 
 dns_result_t
@@ -606,34 +633,79 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *
  * Requires:
  *	'chain' is a valid chain.
- *	'name' and 'origin' are not NULL.
  *	'rbt' is a valid rbt manager.
  *
  * Ensures:
- *	'name' points to the very last node of the megatree, and 'origin'
- *	is the name of the level above it.
+ *	The chain points to the very last node of the tree.
+ *
+ *	'name' and 'origin', if non-NULL, are set as described for
+ *	dns_rbtnodechain_current.
  *
  * Returns:
- *	DNS_R_NEWORIGIN		The name & origin were successfully established.
- *	<something_else>	dns_name_concatenate failed while setting
- *				'origin' to the root name; this is its result
- *				code.
+ *	DNS_R_NEWORIGIN		The name & origin were successfully set.
+ *	DNS_R_NOMEMORY		Resource Limit: Out of Memory building chain.
+ *	<something_else>	Any error result from dns_name_concatenate.
  */
 
 dns_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
 /*
+ * Adjusts chain to point the DNSSEC predecessor of the name to which it
+ * is currently pointed.
  *
+ * Requires:
+ *	'chain' is a valid chain.
+ *	'chain' has been pointed somewhere in the tree with dns_rbt_findnode,
+ *	dns_rbtnodechain_first or dns_rbtnodechain_last -- and remember that
+ *	dns_rbt_findnode is not guaranteed to point the chain somewhere,
+ *	since there may have been no predecessor to the searched for name.
+ *
+ * Ensures:
+ *	The chain is pointed to the predecessor of its current target.
+ *
+ *	'name' and 'origin', if non-NULL, are set as described for
+ *	dns_rbtnodechain_current.
+ *
+ *	'origin' is only if a new origin was found.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		The predecessor was found and 'name' was set.
+ *	DNS_R_NEWORIGIN		The predecessor was found with a different
+ *				origin and 'name' and 'origin' were set.
+ *	DNS_R_NOMORE		There was no predecessor.
+ *	<something_else>	Any error result from dns_rbtnodechain_current.
  */
 
 dns_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		      dns_name_t *origin);
 /*
+ * Adjusts chain to point the DNSSEC successor of the name to which it
+ * is currently pointed.
  *
+ * Requires:
+ *	'chain' is a valid chain.
+ *	'chain' has been pointed somewhere in the tree with dns_rbt_findnode,
+ *	dns_rbtnodechain_first or dns_rbtnodechain_last -- and remember that
+ *	dns_rbt_findnode is not guaranteed to point the chain somewhere,
+ *	since there may have been no predecessor to the searched for name.
+ *
+ * Ensures:
+ *	The chain is pointed to the successor of its current target.
+ *
+ *	'name' and 'origin', if non-NULL, are set as described for
+ *	dns_rbtnodechain_current.
+ *
+ *	'origin' is only if a new origin was found.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		The successor was found and 'name' was set.
+ *	DNS_R_NEWORIGIN		The successor was found with a different
+ *				origin and 'name' and 'origin' were set.
+ *	DNS_R_NOMORE		There was no successor.
+ *	<something_else>	Any error result from dns_name_concatenate.
  */
-
 
 ISC_LANG_ENDDECLS
 
