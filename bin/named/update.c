@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.60 2000/08/01 01:12:00 tale Exp $ */
+/* $Id: update.c,v 1.61 2000/09/12 10:38:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1358,7 +1358,7 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	 */
 	CHECK(dns_db_findnode(db, name, ISC_FALSE, &node));
 	dns_rdata_init(&rdata);
-	CHECK(dns_buildnxtrdata(db, ver, node, target, buffer, &rdata));
+	CHECK(dns_nxt_buildrdata(db, ver, node, target, buffer, &rdata));
 	dns_db_detachnode(db, &node);
 
 	/*
