@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.17 2003/07/02 04:37:35 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.18 2003/07/03 00:50:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1778,7 +1778,7 @@ create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
 	obj->value.string.length = len;
 	obj->value.string.base = isc_mem_get(pctx->mctx, len + 1);
 	if (obj->value.string.base == 0) {
-		CLEANUP_OBJ(obj);
+		isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 		return (ISC_R_NOMEMORY);
 	}
 	memcpy(obj->value.string.base, contents, len);
@@ -1905,9 +1905,8 @@ print_qstring(cfg_printer_t *pctx, cfg_obj_t *obj) {
 
 static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	if (obj->value.string.base != NULL)
-		isc_mem_put(pctx->mctx, obj->value.string.base,
-			    obj->value.string.length + 1);
+	isc_mem_put(pctx->mctx, obj->value.string.base,
+		    obj->value.string.length + 1);
 }
 
 isc_boolean_t
@@ -3761,14 +3760,14 @@ create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	CLEANUP_OBJ(obj);
+	if (obj != NULL)
+		isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 	return (result);
 }
 
 static void
 free_map(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	if (obj->value.map.id != NULL)
-		CLEANUP_OBJ(obj->value.map.id);
+	CLEANUP_OBJ(obj->value.map.id);
 	isc_symtab_destroy(&obj->value.map.symtab);
 }
 
