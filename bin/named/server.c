@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.337 2001/07/31 19:22:51 gson Exp $ */
+/* $Id: server.c,v 1.338 2001/08/03 17:58:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -985,6 +985,7 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 		"\022Andreas Gustafsson",
 		"\012Bob Halley",
 		"\016David Lawrence",
+		"\013Danny Mayer",
 		"\013Damien Neil",
 		"\013Matt Nelson",
 		"\016Michael Sawyer",
