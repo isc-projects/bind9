@@ -23,12 +23,9 @@
  ***/
 
 #include <isc/lang.h>
-#include <isc/mem.h>
-#include <isc/mutex.h>
 #include <isc/rwlock.h>
-#include <isc/time.h>
-#include <isc/stdtime.h>
-#include <isc/socket.h>
+#include <isc/sockaddr.h>
+#include <isc/types.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
