@@ -48,8 +48,8 @@ BIND 9
 BIND 9.1.2rc1
 
 	BIND 9.1.2rc1 is a release candidate for BIND 9.1.2.
-        It contains fixes for a number of bugs in BIND 9.1.1
-        but no new features.
+	It contains fixes for a number of bugs in BIND 9.1.1
+	but no new features.
 
 	Features introduced in 9.1.0 included:
 
