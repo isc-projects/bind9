@@ -89,7 +89,7 @@ test_noop(void)
 	pkt.result = 0;
 
 	nooprequest.datalength = strlen(TESTSTRING);
-	nooprequest.data = TESTSTRING;
+	nooprequest.data = (unsigned char *) TESTSTRING;
 	ret = lwres_nooprequest_render(ctx, &nooprequest, &pkt, &b);
 	CHECK(ret, "lwres_nooprequest_render");
 
@@ -124,7 +124,7 @@ test_noop(void)
 	pkt.result = 0xdeadbeef;
 
 	noopresponse.datalength = strlen(TESTSTRING);
-	noopresponse.data = TESTSTRING;
+	noopresponse.data = (unsigned char *) TESTSTRING;
 	ret = lwres_noopresponse_render(ctx, &noopresponse, &pkt, &b);
 	CHECK(ret, "lwres_noopresponse_render");
 
