@@ -1,3 +1,5 @@
+1506.	[bug]		Wrong return type for dns_view_isdelegationonly().
+
 	--- 9.2.3rc2 released ---
 
 1505.	[bug]		Uninitaliased rdataset is sdb. [RT #8750]

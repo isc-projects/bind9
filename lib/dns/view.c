@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.6 2003/09/17 05:20:03 marka Exp $ */
+/* $Id: view.c,v 1.103.2.7 2003/09/18 00:56:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1203,7 +1203,7 @@ dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name) {
 	return (result);
 }
 
-isc_result_t
+isc_boolean_t
 dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 	dns_name_t *new;
 	isc_uint32_t hash;
