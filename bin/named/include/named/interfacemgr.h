@@ -123,6 +123,14 @@ ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
  * The previous listen-on list is freed.
  */
 
+isc_result_t
+ns_interfacemgr_findudpdispatcher(ns_interfacemgr_t *mgr,
+				  isc_sockaddr_t *address,
+				  dns_dispatch_t **dispatchp);
+/*
+ * Find a UDP dispatcher matching 'address', if it exists.
+ */
+
 void
 ns_interface_attach(ns_interface_t *source,
 		    ns_interface_t **target);

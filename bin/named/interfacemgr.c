@@ -253,13 +253,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto udp_bind_failure;
 	}
-	/* 
-	 * XXXRTH hardwired constants.  We're going to need to determine if
-	 * this UDP socket will be shared with the resolver, and if so, we
-	 * need to set the hashsize to be be something bigger than 17.
-	 */
 	result = dns_dispatch_create(ifp->mgr->mctx, ifp->udpsocket, ifp->task,
-				     4096, 50, 50, 17, 19, NULL,
+				     4096, 1000, 32768, 8219, 8237, NULL,
 				     &ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -268,8 +263,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 		goto udp_dispatch_failure;
 	}
 
-	result = ns_clientmgr_createclients(ifp->mgr->clientmgr, ns_g_cpus, ifp,
-					    ISC_FALSE);
+	result = ns_clientmgr_createclients(ifp->mgr->clientmgr, ns_g_cpus,
+					    ifp, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "UDP ns_clientmgr_createclients(): %s",
@@ -627,4 +622,23 @@ ns_interfacemgr_setlistenon(ns_interfacemgr_t *mgr,
 	ns_listenlist_detach(&mgr->listenon);
 	ns_listenlist_attach(value, &mgr->listenon);
 	UNLOCK(&mgr->lock);
+}
+
+isc_result_t
+ns_interfacemgr_findudpdispatcher(ns_interfacemgr_t *mgr,
+				  isc_sockaddr_t *address,
+				  dns_dispatch_t **dispatchp)
+{
+	ns_interface_t *ifp;
+
+	/*
+	 * Find a UDP dispatcher matching 'address', if it exists.
+	 */
+
+	ifp = find_matching_interface(mgr, address);
+	if (ifp == NULL || ifp->udpdispatch == NULL)
+		return (ISC_R_NOTFOUND);
+	dns_dispatch_attach(ifp->udpdispatch, dispatchp);
+
+	return (ISC_R_SUCCESS);
 }
