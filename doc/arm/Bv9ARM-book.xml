@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.84 2001/01/15 19:50:53 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.85 2001/01/16 21:11:32 gson Exp $ -->
 
 <book>
 
@@ -3866,18 +3866,32 @@ behave very slowly if you put 100K files into a single directory.)</para></entry
 <entry colname = "2"><para>A stub zone is similar to a slave zone,
 except that it replicates only the NS records of a master zone instead
 of the entire zone. Stub zones are not a standard part of the DNS;
-they are a peculiarity of <acronym>BIND</acronym> 4 and <acronym>BIND</acronym> 8 that relies heavily
-on the particular way the zone data is structured in those servers.
-<acronym>BIND</acronym> 9 attempts to emulate the <acronym>BIND</acronym> 4/8 stub zone feature for backwards compatibility,
-but we do not recommend its use in new configurations.</para><para>In
-<acronym>BIND</acronym> 4/8, zone transfers of a parent zone included the NS records
-from stub children of that zone. This meant that, in some cases,
-users could get away with configuring child stubs only in the master
-server for the parent zone. <acronym>BIND</acronym> 9 never mixes together zone data
-from different zones in this way. Therefore, if a <acronym>BIND</acronym> 9 master
-serving a parent zone has child stub zones configured, all the slave
-servers for the parent zone also need to have the same child stub
-zones configured.</para></entry>
+they are a feature specific to the <acronym>BIND</acronym> implementation.
+</para>
+
+<para>Stub zones can be used to eliminate the need for glue NS record
+in a parent zone at the expense of maintaining a stub zone entry and
+a set of name server addresses in <filename>named.conf</filename>.
+This usage is not recommended for new configurations, and BIND 9
+supports it only in a limited way.
+In <acronym>BIND</acronym> 4/8, zone transfers of a parent zone
+included the NS records from stub children of that zone. This meant
+that, in some cases, users could get away with configuring child stubs
+only in the master server for the parent zone. <acronym>BIND</acronym>
+9 never mixes together zone data from different zones in this
+way. Therefore, if a <acronym>BIND</acronym> 9 master serving a parent
+zone has child stub zones configured, all the slave servers for the
+parent zone also need to have the same child stub zones
+configured.</para>
+
+<para>Stub zones can also be used as a way of forcing the resolution
+of a given domain to use a particular set of authoritative servers.
+For example, the caching name servers on a private network using
+RFC2157 addressing may be configured with stub zones for
+<literal>10.in-addr.arpa</literal>
+to use a set of internal name servers as the authoritative
+servers for that domain.</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>forward</varname></para></entry>
