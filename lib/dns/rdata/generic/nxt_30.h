@@ -15,11 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.h,v 1.12 2000/03/20 22:57:14 gson Exp $ */
+/* $Id: nxt_30.h,v 1.13 2000/04/28 21:48:52 marka Exp $ */
 
 /* RFC 2065 */
 
 typedef struct dns_rdata_nxt {
 	dns_rdatacommon_t	common;
-	/*XXX*/
+	isc_mem_t		*mctx;
+	isc_uint16_t		len;
+	unsigned char		*nxt;
 } dns_rdata_nxt_t;

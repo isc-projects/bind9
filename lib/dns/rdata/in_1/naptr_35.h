@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.h,v 1.11 2000/03/20 22:57:15 gson Exp $ */
+/* $Id: naptr_35.h,v 1.12 2000/04/28 21:49:01 marka Exp $ */
 
 /* RFC 2168 */
 
@@ -25,7 +25,10 @@ typedef struct dns_rdata_in_naptr {
 	isc_uint16_t		order;
 	isc_uint16_t		preference;
 	char			*flags;
+	isc_uint16_t		flags_len;
 	char			*service;
+	isc_uint16_t		service_len;
 	char			*regexp;
+	isc_uint16_t		regexp_len;
 	dns_name_t		replacement;
 } dns_rdata_in_naptr_t;

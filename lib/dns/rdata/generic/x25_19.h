@@ -15,7 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: x25_19.h,v 1.7 2000/03/20 22:57:14 gson Exp $ */
+/* $Id: x25_19.h,v 1.8 2000/04/28 21:48:59 marka Exp $ */
 
 /* RFC 1183 */
 
+typedef struct dns_rdata_x25 {
+        dns_rdatacommon_t       common;
+        isc_mem_t               *mctx;
+        unsigned char           *x25;
+        isc_uint16_t            x25_len;
+} dns_rdata_x25_t;

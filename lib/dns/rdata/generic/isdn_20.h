@@ -15,7 +15,15 @@
  * SOFTWARE.
  */
 
-/* $Id: isdn_20.h,v 1.7 2000/03/20 22:57:12 gson Exp $ */
+/* $Id: isdn_20.h,v 1.8 2000/04/28 21:48:41 marka Exp $ */
 
 /* RFC 1183 */
 
+typedef struct dns_rdata_isdn {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	char			*isdn;
+	char			*sa;
+	isc_int8_t		isdn_len;
+	isc_int8_t		sa_len;
+} dns_rdata_isdn_t;

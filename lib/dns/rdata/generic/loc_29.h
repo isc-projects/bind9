@@ -15,7 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: loc_29.h,v 1.7 2000/03/16 02:18:16 explorer Exp $ */
+/* $Id: loc_29.h,v 1.8 2000/04/28 21:48:43 marka Exp $ */
 
 /* RFC 1876 */
 
+typedef struct dns_rdata_loc {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		loc;
+} dns_rdata_loc_t;

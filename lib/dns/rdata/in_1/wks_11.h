@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.h,v 1.14 2000/03/20 22:57:15 gson Exp $ */
+/* $Id: wks_11.h,v 1.15 2000/04/28 21:49:03 marka Exp $ */
 
 typedef	struct dns_rdata_in_wks {
 	dns_rdatacommon_t	common;
@@ -23,5 +23,5 @@ typedef	struct dns_rdata_in_wks {
 	struct in_addr		in_addr;
 	isc_uint16_t		protocol;
 	unsigned char		*map;
-	isc_uint16_t		length;
+	isc_uint16_t		map_len;
 } dns_rdata_in_wks_t;

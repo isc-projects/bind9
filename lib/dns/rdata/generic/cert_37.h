@@ -15,7 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: cert_37.h,v 1.10 2000/03/20 22:48:58 gson Exp $ */
+/* $Id: cert_37.h,v 1.11 2000/04/28 21:48:38 marka Exp $ */
 
-/* draft-ietf-dnssec-certs-04.txt */
+/* RFC 2538 */
 
+typedef struct dns_rdata_cert {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	isc_uint16_t		type;
+	isc_uint16_t		key_tag;
+	isc_uint8_t		algorithm;
+	isc_uint16_t		length;
+	unsigned char		*certificate;
+} dns_rdata_cert_t;

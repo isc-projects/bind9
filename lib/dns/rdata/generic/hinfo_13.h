@@ -15,5 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: hinfo_13.h,v 1.15 2000/03/20 22:57:12 gson Exp $ */
+/* $Id: hinfo_13.h,v 1.16 2000/04/28 21:48:40 marka Exp $ */
 
+typedef struct dns_rdata_hinfo {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	char			*cpu;
+	char			*os;
+	isc_int8_t		cpu_len;
+	isc_int8_t		os_len;
+} dns_rdata_hinfo_t;

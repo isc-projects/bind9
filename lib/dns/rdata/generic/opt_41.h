@@ -15,12 +15,31 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.h,v 1.4 2000/03/16 22:42:31 gson Exp $ */
+/* $Id: opt_41.h,v 1.5 2000/04/28 21:48:53 marka Exp $ */
 
 /* RFC 2671 */
 
+typedef struct dns_rdata_opt_opcode {
+		isc_uint16_t	opcode;
+		isc_uint16_t	length;
+		unsigned char	*data;
+} dns_rdata_opt_opcode_t;
+
 typedef struct dns_rdata_opt {
 	dns_rdatacommon_t	common;
-	isc_mem_t		*mctx;	/* if required */
-	/* XXXRTH Not implemented. */
+	isc_mem_t		*mctx;
+	unsigned char		*options;
+	isc_uint16_t		length;
+	/* private */
+	isc_uint16_t		offset;
 } dns_rdata_opt_t;
+
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
+isc_result_t dns_rdata_opt_first(dns_rdata_opt_t *);
+isc_result_t dns_rdata_opt_next(dns_rdata_opt_t *);
+isc_result_t dns_rdata_opt_current(dns_rdata_opt_t *, dns_rdata_opt_opcode_t *);
+
+ISC_LANG_ENDDECLS

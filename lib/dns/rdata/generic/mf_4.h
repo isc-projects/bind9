@@ -15,5 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: mf_4.h,v 1.14 2000/03/20 22:57:12 gson Exp $ */
+/* $Id: mf_4.h,v 1.15 2000/04/28 21:48:45 marka Exp $ */
 
+#include <dns/name.h>
+
+typedef struct dns_rdata_mf {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	dns_name_t		mf;
+} dns_rdata_mf_t;

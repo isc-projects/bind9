@@ -15,5 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: mx_15.h,v 1.17 2000/03/20 22:57:13 gson Exp $ */
+/* $Id: mx_15.h,v 1.18 2000/04/28 21:48:49 marka Exp $ */
 
+#include <dns/name.h>
+
+typedef struct dns_rdata_mx {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	isc_uint16_t		pref;
+	dns_name_t		mx;
+} dns_rdata_mx_t;

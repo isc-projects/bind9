@@ -15,11 +15,13 @@
  * SOFTWARE.
  */
 
-/* $Id: afsdb_18.h,v 1.10 2000/03/16 00:52:59 explorer Exp $ */
+/* $Id: afsdb_18.h,v 1.11 2000/04/28 21:48:37 marka Exp $ */
 
 /* RFC 1183 */
 
 typedef struct dns_rdata_afsdb {
 	dns_rdatacommon_t	common;
-	/*XXX*/
+	isc_mem_t		*mctx;
+	isc_uint16_t		subtype;
+	dns_name_t		server;
 } dns_rdata_afsdb_t;

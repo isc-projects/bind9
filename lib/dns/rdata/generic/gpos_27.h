@@ -15,7 +15,17 @@
  * SOFTWARE.
  */
 
-/* $Id: gpos_27.h,v 1.7 2000/03/20 22:57:11 gson Exp $ */
+/* $Id: gpos_27.h,v 1.8 2000/04/28 21:48:39 marka Exp $ */
 
 /* RFC 1712 */
 
+typedef struct dns_rdata_gpos {
+	dns_rdatacommon_t	common;
+	isc_mem_t		*mctx;
+	char			*longitude;
+	char			*latitude;
+	char			*altitude;
+	isc_uint8_t		long_len;
+	isc_uint8_t		lat_len;
+	isc_uint8_t		alt_len;
+} dns_rdata_gpos_t;

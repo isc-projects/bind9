@@ -15,7 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: rp_17.h,v 1.10 2000/03/20 22:57:14 gson Exp $ */
+/* $Id: rp_17.h,v 1.11 2000/04/28 21:48:56 marka Exp $ */
 
 /* RFC 1183 */
+
+#include <dns/name.h>
+
+typedef struct dns_rdata_rp {
+        dns_rdatacommon_t       common;
+        isc_mem_t               *mctx;
+        dns_name_t              mail;
+        dns_name_t              text;
+} dns_rdata_rp_t;
 
