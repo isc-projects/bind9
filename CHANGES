@@ -1,3 +1,7 @@
+1487.	[bug]		A REQUIRE() failure could be triggered if a zone was
+			queued for transfer and the zone was then removed.
+			[RT #6189]
+
 1486.	[bug]		isc_print_snprintf() '%%' consumed one too many format
 			characters. [RT# 8230]
 

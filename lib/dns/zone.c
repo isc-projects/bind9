@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.393 2003/07/17 07:05:12 marka Exp $ */
+/* $Id: zone.c,v 1.394 2003/07/18 02:54:23 marka Exp $ */
 
 #include <config.h>
 
@@ -4155,7 +4155,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone = (dns_zone_t *) event->ev_arg;
-	isc_boolean_t free_needed;
+	isc_boolean_t free_needed, linked = ISC_FALSE;
 
 	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -4181,6 +4181,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
 			ISC_LIST_UNLINK(zone->zmgr->waiting_for_xfrin, zone,
 					statelink);
+			linked = ISC_TRUE;
 			zone->statelist = NULL;
 		}
 		RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
@@ -4193,6 +4194,10 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 		dns_xfrin_shutdown(zone->xfr);
 
 	LOCK_ZONE(zone);
+	if (linked) {
+		INSIST(zone->irefs > 0);
+		zone->irefs--;
+	}
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
 	}
@@ -5226,6 +5231,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	unsigned int nscount;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_result_t xfrresult = result;
+	isc_boolean_t free_needed;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -5389,7 +5395,13 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 */
 	if (again && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		queue_soa_query(zone);
+
+	INSIST(zone->irefs > 0);
+	zone->irefs--;
+	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
+	if (free_needed)
+		zone_free(zone);
 }
 
 static void
@@ -5473,6 +5485,9 @@ queue_xfrin(dns_zone_t *zone) {
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_APPEND(zmgr->waiting_for_xfrin, zone, statelink);
+	LOCK_ZONE(zone);
+	zone->irefs++;
+	UNLOCK_ZONE(zone);
 	zone->statelist = &zmgr->waiting_for_xfrin;
 	result = zmgr_start_xfrin_ifquota(zmgr, zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
@@ -5607,9 +5622,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		zone_xfrdone(zone, result);
 
 	isc_event_free(&event);
-
-	dns_zone_detach(&zone); /* XXXAG */
-	return;
 }
 
 /*
@@ -6265,14 +6277,6 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	ISC_LIST_UNLINK(zmgr->waiting_for_xfrin, zone, statelink);
 	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = &zmgr->xfrin_in_progress;
-	/*
-	 * Make sure the zone does not go away before it has processed
-	 * the event; in effect, the event is attached to the zone.
-	 *
-	 * XXXAG This should be done as soon as the zone goes on the
-	 * queue, using irefs.
-	 */
-	isc_refcount_increment(&zone->erefs, NULL);
 	isc_task_send(zone->task, &e);
 	dns_zone_log(zone, ISC_LOG_INFO, "Transfer started.");
 	UNLOCK_ZONE(zone);
