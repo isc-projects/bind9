@@ -91,15 +91,18 @@ typedef enum {
  */
 
 enum {
-	dns_rdatatype_none = 0,
 	TYPEENUM
+	dns_rdatatype_ixfr = 251,
+	dns_rdatatype_axfr = 252,
+	dns_rdatatype_mailb = 253,
+	dns_rdatatype_maila = 254,
 	dns_rdatatype_any = 255
 };
 
 #include <dns/enumclass.h>
 enum {
 	CLASSENUM
-	dns_rdataclass_none = 0
+	dns_rdataclass_none = 254	/* RFC2136 */
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
 };
 
