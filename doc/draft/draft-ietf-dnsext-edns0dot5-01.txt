@@ -5,10 +5,10 @@
 
 
 Network Working Group                                         R. Austein
-draft-ietf-dnsext-edns0dot5-00.txt               InterNetShare.com, Inc.
+draft-ietf-dnsext-edns0dot5-01.txt               InterNetShare.com, Inc.
                                                            H. Alvestrand
                                                           EDB MaXware AS
-                                                           February 2000
+                                                               July 2000
 
 
          A Proposed Enhancement to the EDNS0 Version Mechanism
@@ -55,9 +55,9 @@ Motivation and Scope
 
 
 
-Austein & Alvestrand     Expires 28 August 2000                 [Page 1]
+Austein & Alvestrand     Expires 15 January 2001                [Page 1]
 
-draft-ietf-dnsext-edns0dot5-00.txt                         February 2000
+draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
 
 
    This note proposes to replace the monolithic version numbering
@@ -85,9 +85,10 @@ Model
    of the TTL field of the OPT RR, and a variable-length list of
    FEATURES, stored in the variable part of the OPT RR.
 
-   All FEATUREs are extensions of the DNS.  We reserve FEATURE numbers 1
-   to 100 for describing features of the original RFC 1034/1035 DNS
-   specification that we might eventually chose to deprecate.
+   All FEATUREs are extensions of the DNS.  We reserve the range of
+   FEATURE numbers from 1 to 100 for describing features of the original
+   RFC 1034/1035 DNS specification that we might eventually choose to
+   deprecate.
 
    Any query/response pair can be described as using a set of DNS
    FEATUREs.  Such features might for instance be:
@@ -105,18 +106,18 @@ Model
    - SIG record parsing and checking;
 
    FEATURE numbers are handed out by IANA on a first-come-first-served
-   basis.  Any revised specification of a format or function should have
-   its own FEATURE number; in the IETF process, any significantly
-   changed Internet-Draft should have a new FEATURE number assigned for
+   basis within their appropriate ranges.  Any revised specification of
+   a format or function should have its own FEATURE number; in the IETF
 
 
 
-Austein & Alvestrand     Expires 28 August 2000                 [Page 2]
+Austein & Alvestrand     Expires 15 January 2001                [Page 2]
 
-draft-ietf-dnsext-edns0dot5-00.txt                         February 2000
+draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
 
 
-   experimentation.
+   process, any significantly changed Internet-Draft should have a new
+   FEATURE number assigned for experimentation.
 
    An assigned VERSION number names a set of FEATUREs.  VERSION numbers
    are assigned by the IETF through a standards action.
@@ -148,35 +149,46 @@ Mechanism
 
 Usage
 
-   When composing a query message, the client includes an OPT record
-   indicating the set of FEATUREs that:
+   In most respects, the FEATURE mechanism is used symmetrically by
+   clients and servers; exceptions to this rule are stated after the
+   general explanation.
 
-   - Allows the client to express this query;
+   When composing a DNS message, a client or server includes an OPT
+   record indicating a set of FEATUREs that:
 
-   - Allows the server to express all responses that the client is
-     prepared to accept for this query.
+   - MUST include all FEATUREs that the client or server believes are
+     relevant to this message;
+
+   - MAY include all FEATURES that the client or server is prepared to
+     receive.
 
    This set is expressed as a VERSION and any additional FEATURES
    required.
 
-   The server will include an OPT pseudo-RR that indicates:
-
-   - The highest VERSION numbers supported by the responder (for
-     information only -- the client takes no action based on this);
 
 
-
-
-Austein & Alvestrand     Expires 28 August 2000                 [Page 3]
+Austein & Alvestrand     Expires 15 January 2001                [Page 3]
 
-draft-ietf-dnsext-edns0dot5-00.txt                         February 2000
+draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
 
 
-   - The set of FEATUREs not encompassed by the VERSION that are
-     necessary to express the response.
+   In general, we expect that a client or server will include an OPT
+   pseudo-RR that indicates:
 
-   No FEATURE may be included or used that is not within the set of
-   FEATUREs that the query originator indicated.
+   - The highest VERSION number that the entity generating the message
+     supports; and
+
+   - A small (possibly empty) set of additional FEATUREs not encompassed
+     by the VERSION that the entity deems necessary or desirable.
+
+   The above symmetry notwithstanding, we impose one important
+   constraint on the server: while a server is allowed to indicate
+   whatever FEATUREs it believes are relevant or useful, a server MUST
+   NOT make use of any FEATURE in a response that is not within the set
+   of FEATUREs indicated by the client that generated the corresponding
+   request.  That is, a response may say "I support FEATURE FOO"
+   regardless of what the client supports, but the rest of the response
+   must not use FEATURE FOO unless the client also supports it.
 
    As a special case, if a client explicitly queries for the OPT RR of
    the root zone, the server returns an OPT record including all
@@ -190,8 +202,8 @@ Life Cycle
    - VERSION X is defined and deployed.
 
    - A new FEATURE is defined and experimentally implemented.  All
-     clients and servers part of the experiment use FEATURE to indicate
-     support.
+     clients and servers taking part in the experiment use FEATURE to
+     indicate support.
 
    - Community consensus is reached that this FEATURE is genuinely
      useful.
@@ -209,30 +221,41 @@ Risks
    all, since by any realistic estimate it takes years (decades?)  to
    upgrade all the DNS implementations already in the field.
 
+
+
+Austein & Alvestrand     Expires 15 January 2001                [Page 4]
+
+draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+
+
    A flexible extension mechanism of this type increases the risk that
    some implementors might chose to deploy features designed to hinder
    interoperability (so-called "labeled noninteroperability").
 
 Security Considerations
 
-   We do not believe that this protocol enhancement adds any new
+   We do not believe that this protocol enhancement adds any major new
    security risks, but we do believe that it would be helpful in getting
    complicated DNS extensions such as [DNSSEC] deployed more quickly.
 
-
-
-
-
-Austein & Alvestrand     Expires 28 August 2000                 [Page 4]
-
-draft-ietf-dnsext-edns0dot5-00.txt                         February 2000
-
+   As with any enhancement to or complication of the DNS protocol, this
+   enhancement offers attackers yet another way to increase the load on
+   a name server.  Root, TLD and other "major" name servers should view
+   excessively complicated FEATURE sets with suspicion, and should not
+   allow themselves to be tricked into performing more work than is
+   really necessary.
 
 IANA Considerations
 
    IANA will need to allocate an EDNS0 option code for FEATURES.
 
    IANA will need to create a new registry of feature numbers.
+
+Acknowledgments
+
+   The authors would like to thank the following people for their help
+   in improving this document: Randy Bush, Patrik Faltstrom, Olafur
+   Gudmundsson, Bob Halley, and XXX.
 
 References
 
@@ -250,6 +273,16 @@ References
 
    [BINARY-LABELS]  Crawford, M., "Binary Labels in the Domain Name
         System", RFC 2673 August 1999.
+
+
+
+
+
+
+Austein & Alvestrand     Expires 15 January 2001                [Page 5]
+
+draft-ietf-dnsext-edns0dot5-01.txt                             July 2000
+
 
 Author's addresses:
 
@@ -279,4 +312,27 @@ Author's addresses:
 
 
 
-Austein & Alvestrand     Expires 28 August 2000                 [Page 5]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein & Alvestrand     Expires 15 January 2001                [Page 6]
