@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.87 $)
+AC_REVISION($Revision: 1.88 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1033,9 +1033,7 @@ AC_SUBST(HAVE_SA_LEN)
 # HAVE_MINIMUM_IFREQ
 
 case "$host" in
-	*-bsdi4*)	have_minimum_ifreq=yes;;
-	*-bsdi3*)	have_minimum_ifreq=yes;;
-	*-bsdi2*)	have_minimum_ifreq=yes;;
+	*-bsdi[2345]*)	have_minimum_ifreq=yes;;
 	*-darwin*)	have_minimum_ifreq=yes;;
 	*-freebsd*)	have_minimum_ifreq=yes;;
 	*-lynxos*)	have_minimum_ifreq=yes;;

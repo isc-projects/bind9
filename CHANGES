@@ -1,3 +1,5 @@
+1498.	[port]		bsdos: 5.x support.
+
 1497.	[placeholder]
 
 1496.	[port]		test for pthread_attr_setstacksize().

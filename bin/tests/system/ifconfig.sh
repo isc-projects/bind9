@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.41 2002/11/12 23:42:37 explorer Exp $
+# $Id: ifconfig.sh,v 1.42 2003/07/30 01:38:47 marka Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -85,7 +85,7 @@ case "$1" in
 		    *-unknown-netbsd*)
 			ifconfig lo0 10.53.0.$ns alias netmask 255.255.255.0
 			;;
-		    *-pc-bsdi[3-4].*)
+		    *-*-bsdi[3-5].*)
 			ifconfig lo0 add 10.53.0.$ns netmask 255.255.255.0
 			;;
 		    *-dec-osf[4-5].*)
@@ -145,7 +145,7 @@ case "$1" in
 		    *-unknown-netbsd*)
 			ifconfig lo0 10.53.0.$ns delete
 			;;
-		    *-pc-bsdi[3-4].*)
+		    *-*-bsdi[3-5].*)
 			ifconfig lo0 remove 10.53.0.$ns
 			;;
 		    *-dec-osf[4-5].*)

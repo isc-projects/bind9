@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.346 $)
+AC_REVISION($Revision: 1.347 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -582,9 +582,11 @@ case $host in
 	use_threads=false ;;
 *-freebsd*)
 	use_threads=false ;;
-*-bsdi*)
-	# Thread signals do not appear to work reliably on BSDI.
+*-bsdi[234]*)
+	# Thread signals do not work reliably on some versions of BSD/OS.
 	use_threads=false ;;
+*-bsdi5*)
+	use_threads=true ;;
 *-linux*)
    	# Threads are disabled on Linux by default because most
 	# Linux kernels produce unusable core dumps from multithreaded
