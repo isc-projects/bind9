@@ -441,7 +441,7 @@ printmessage(dns_message_t *message) {
 		printf("%sra", did_flag ? " " : "");
 		did_flag = ISC_TRUE;
 	}
-	printf("; QUERY: %u ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
+	printf("; QUERY: %u, ANSWER: %u, AUTHORITY: %u, ADDITIONAL: %u\n",
 	       message->qcount, message->ancount, message->aucount,
 	       message->adcount);
 	printquestions(&message->question);
