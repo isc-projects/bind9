@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.2.68.1 2003/08/27 03:16:22 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.2.68.2 2003/10/07 04:27:42 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the getifaddrs(3) library.
@@ -134,14 +134,16 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	iter->current.af = family;
 
-	get_addr(family, &iter->current.address, ifa->ifa_addr);
+	get_addr(family, &iter->current.address, ifa->ifa_addr, ifa->ifa_name);
 
 	if (ifa->ifa_netmask != NULL)
-		get_addr(family, &iter->current.netmask, ifa->ifa_netmask);
+		get_addr(family, &iter->current.netmask, ifa->ifa_netmask,
+			 ifa->ifa_name);
 
 	if (ifa->ifa_dstaddr != NULL &&
 	    (iter->current.flags & IFF_POINTOPOINT) != 0)
-		get_addr(family, &iter->current.dstaddress, ifa->ifa_dstaddr);
+		get_addr(family, &iter->current.dstaddress, ifa->ifa_dstaddr,
+			 ifa->ifa_name);
 
 	return (ISC_R_SUCCESS);
 }
