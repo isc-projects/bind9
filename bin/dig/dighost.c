@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.252 2002/08/28 07:04:48 marka Exp $ */
+/* $Id: dighost.c,v 1.253 2002/09/10 05:08:53 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -415,7 +415,7 @@ set_nameserver(char *opt) {
 }
 
 static isc_result_t
-add_nameserver(lwres_conf_t *confdata, char *addr, int af) {
+add_nameserver(lwres_conf_t *confdata, const char *addr, int af) {
 
 	int i = confdata->nsnext;
 
