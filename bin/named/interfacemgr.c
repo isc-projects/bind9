@@ -248,6 +248,7 @@ ns_interface_destroy(ns_interface_t **ifpret) {
 	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
 
 	dns_dispatch_detach(&ifp->udpdispatch);
+	isc_socket_cancel(ifp->udpsocket, NULL, ISC_SOCKCANCEL_ALL);
 	isc_socket_detach(&ifp->udpsocket);
 
 	if (ifp->tcpsocket != NULL) {
