@@ -1,4 +1,6 @@
 
+	--- 9.2.0-P1 released ---
+
 1243.	[bug]		It was possible to trigger a REQUIRE() in
 			dns_message_findtype(). [RT #2659]
 
