@@ -216,6 +216,7 @@ machines.  Why?
 A: This is usually the result of the firewall configuration stopping
 the queries and / or the replies.
 
+
 Q: When using views I get the wrong version of the zone.
 
 A: You will need to give the master and slave multiple IP addresses and
