@@ -30,6 +30,7 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/fixedname.h>
 
 static void
 print_wirename(isc_region_t *name) {
@@ -45,17 +46,13 @@ print_wirename(isc_region_t *name) {
 int
 main(int argc, char *argv[]) {
 	char s[1000];
-	unsigned char b[255];
-	unsigned char o[255];
-	unsigned char c[255];
 	dns_result_t result;
-	dns_name_t name, oname, compname;
-	isc_buffer_t source, target;
+	dns_fixedname_t wname, oname, compname;
+	isc_buffer_t source;
 	isc_region_t r;
-	dns_name_t *origin, *comp;
+	dns_name_t *name, *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 	size_t len;
-	dns_offsets_t offsets, compoffsets;
 	isc_boolean_t quiet = ISC_FALSE;
 	int ch;
 
@@ -78,19 +75,17 @@ main(int argc, char *argv[]) {
 			isc_buffer_init(&source, argv[0], len,
 					ISC_BUFFERTYPE_TEXT);
 			isc_buffer_add(&source, len);
-			isc_buffer_init(&target, o, 255,
-					ISC_BUFFERTYPE_BINARY);
-			dns_name_init(&oname, NULL);
-			result = dns_name_fromtext(&oname, &source,
+			dns_fixedname_init(&oname);
+			origin = &oname.name;
+			result = dns_name_fromtext(origin, &source,
 						   dns_rootname, ISC_FALSE,
-						   &target);
+						   NULL);
 			if (result != 0) {
 				fprintf(stderr,
 					"dns_name_fromtext() failed: %d\n",
 					result);
 				exit(1);
 			}
-			origin = &oname;
 		}
 	} else
 		origin = dns_rootname;
@@ -103,37 +98,34 @@ main(int argc, char *argv[]) {
 			isc_buffer_init(&source, argv[1], len,
 					ISC_BUFFERTYPE_TEXT);
 			isc_buffer_add(&source, len);
-			isc_buffer_init(&target, c, 255,
-					ISC_BUFFERTYPE_BINARY);
-			dns_name_init(&compname, compoffsets);
-			result = dns_name_fromtext(&compname, &source,
-						   origin, ISC_FALSE,
-						   &target);
+			dns_fixedname_init(&compname);
+			comp = &compname.name;
+			result = dns_name_fromtext(comp, &source,
+						   origin, ISC_FALSE, NULL);
 			if (result != 0) {
 				fprintf(stderr,
 					"dns_name_fromtext() failed: %d\n",
 					result);
 				exit(1);
 			}
-			comp = &compname;
 		}
 	} else
 		comp = NULL;
 
-	dns_name_init(&name, offsets);
+	dns_fixedname_init(&wname);
+	name = &wname.name;
 	while (gets(s) != NULL) {
 		len = strlen(s);
 		isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
 		isc_buffer_add(&source, len);
-		isc_buffer_init(&target, b, 255, ISC_BUFFERTYPE_BINARY);
-		result = dns_name_fromtext(&name, &source, origin, downcase,
-					   &target);
+		result = dns_name_fromtext(name, &source, origin, downcase,
+					   NULL);
 		if (result == DNS_R_SUCCESS) {
-			dns_name_toregion(&name, &r);
+			dns_name_toregion(name, &r);
 			if (!quiet) {
 				print_wirename(&r);
 				printf("%u labels, %u bytes.\n",
-				       dns_name_countlabels(&name),
+				       dns_name_countlabels(name),
 				       r.length);
 			}
 		} else
@@ -142,7 +134,7 @@ main(int argc, char *argv[]) {
 		if (result == DNS_R_SUCCESS) {
 			isc_buffer_init(&source, s, sizeof s,
 					ISC_BUFFERTYPE_TEXT);
-			result = dns_name_totext(&name, ISC_FALSE, &source);
+			result = dns_name_totext(name, ISC_FALSE, &source);
 			if (result == DNS_R_SUCCESS) {
 				isc_buffer_used(&source, &r);
 				printf("%.*s\n", (int)r.length, r.base);
@@ -158,7 +150,7 @@ main(int argc, char *argv[]) {
 			unsigned int nlabels, nbits;
 			dns_namereln_t namereln;
 
-			namereln = dns_name_fullcompare(&name, comp, &order,
+			namereln = dns_name_fullcompare(name, comp, &order,
 							&nlabels, &nbits);
 			if (!quiet) {
 				if (order < 0)
