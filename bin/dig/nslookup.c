@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.55 2000/09/27 00:02:02 mws Exp $ */
+/* $Id: nslookup.c,v 1.56 2000/10/04 17:14:44 mws Exp $ */
 
 #include <config.h>
 
@@ -31,13 +31,16 @@ extern int h_errno;
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/task.h>
+#include <isc/netaddr.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/fixedname.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/byaddr.h>
 
 #include <dig/dig.h>
 
@@ -707,8 +710,51 @@ addlookup(char *opt) {
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
-	strncpy(lookup->textname, opt, MXNAME-1);
-	lookup->rdtype = rdtype;
+	if (strspn(opt, "0123456789.") == strlen(opt)) {
+		int n, i, adrs[4];
+		char store[MXNAME];
+
+		lookup->textname[0] = 0;
+		n = sscanf(opt, "%d.%d.%d.%d", &adrs[0], &adrs[1],
+				   &adrs[2], &adrs[3]);
+		if (n == 0) {
+			show_usage();
+		}
+		for (i = n - 1; i >= 0; i--) {
+			snprintf(store, MXNAME/8, "%d.",
+				 adrs[i]);
+			strncat(lookup->textname, store, MXNAME);
+		}
+		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
+		lookup->rdtype = dns_rdatatype_ptr;
+	} else if (strspn(opt, "0123456789abcdef.:") == strlen(opt))
+	{
+		isc_netaddr_t addr;
+		dns_fixedname_t fname;
+		isc_buffer_t b;
+		int n;
+
+		addr.family = AF_INET6;
+		n = inet_pton(AF_INET6, opt, &addr.type.in6);
+		if (n <= 0)
+			goto notv6;
+		dns_fixedname_init(&fname);
+		result = dns_byaddr_createptrname(&addr, lookup->nibble,
+						  dns_fixedname_name(&fname));
+		if (result != ISC_R_SUCCESS)
+			show_usage();
+		isc_buffer_init(&b, lookup->textname, sizeof lookup->textname);
+		result = dns_name_totext(dns_fixedname_name(&fname),
+					 ISC_FALSE, &b);
+		isc_buffer_putuint8(&b, 0);
+		if (result != ISC_R_SUCCESS)
+			show_usage();
+		lookup->rdtype = dns_rdatatype_ptr;
+	} else {
+	notv6:
+		strncpy(lookup->textname, opt, MXNAME-1);
+		lookup->rdtype = rdtype;
+	}
 	lookup->rdclass = rdclass;
 	lookup->trace = ISC_TF(trace || ns_search_only);
 	lookup->trace_root = trace;

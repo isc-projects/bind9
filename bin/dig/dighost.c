@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.140 2000/10/02 16:43:25 mws Exp $ */
+/* $Id: dighost.c,v 1.141 2000/10/04 17:14:43 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -76,7 +76,7 @@ isc_boolean_t
 	is_dst_up = ISC_FALSE,
 	have_domain = ISC_FALSE,
 	is_blocking =ISC_FALSE,
-	show_packets = ISC_TRUE;
+	show_packets = ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
