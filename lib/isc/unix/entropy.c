@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60.2.3.8.1 2003/08/11 05:28:22 marka Exp $ */
+/* $Id: entropy.c,v 1.60.2.3.8.2 2003/08/14 00:50:20 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -69,20 +69,21 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		if (n < 0) {
 			if (errno == EAGAIN || errno == EINTR)
 				goto out;
-			(void)close(fd);
-			source->bad = ISC_TRUE;
-			goto out;
+			goto err;
 		}
-		if (n == 0) {
-			(void)close(fd);
-			source->bad = ISC_TRUE;
-			goto out;
-		}
+		if (n == 0)
+			goto err;
 
 		entropypool_adddata(ent, buf, n, n * 8);
 		added += n * 8;
 		desired -= n;
 	}
+	goto out;
+
+ err:
+	(void)close(fd);
+	source->sources.file.handle = -1;
+	source->bad = ISC_TRUE;
 
  out:
 	return (added);
