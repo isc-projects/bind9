@@ -320,7 +320,7 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 		return (DNS_R_NOMEMORY);
 	}
 
-	memcpy(txr.base + reslen, t + reslen, txr.length);
+	memcpy(txr.base + reslen, t, txr.length);
 	rxr->base = txr.base;
 	rxr->length = txr.length + reslen;
 
