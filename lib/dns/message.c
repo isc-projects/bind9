@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.176 2001/02/13 01:29:33 bwelling Exp $ */
+/* $Id: message.c,v 1.177 2001/02/14 02:51:11 gson Exp $ */
 
 /***
  *** Imports
@@ -2411,18 +2411,23 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 
 	result = dns_rdataset_first(opt);
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto cleanup;
 	dns_rdataset_current(opt, &rdata);
 	msg->opt_reserved = 11 + rdata.length;
 	result = dns_message_renderreserve(msg, msg->opt_reserved);
 	if (result != ISC_R_SUCCESS) {
 		msg->opt_reserved = 0;
-		return (result);
+		goto cleanup;
 	}
 
 	msg->opt = opt;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup:
+	dns_message_puttemprdataset(msg, &opt);
+	return (result);
+
 }
 
 dns_rdataset_t *

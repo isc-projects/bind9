@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.91 2001/02/13 01:02:59 bwelling Exp $ */
+/* $Id: message.h,v 1.92 2001/02/14 02:51:09 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -960,8 +960,11 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  *
  * Ensures:
  *
- *	The OPT record will be rendered when dns_message_renderend() is
- *	called.
+ *	The OPT record has either been freed or ownership of it has
+ *	been transferred to the message.
+ *
+ *	If ISC_R_SUCCESS was returned, the OPT record will be rendered 
+ *	when dns_message_renderend() is called.
  *
  * Returns:
  *

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.149 2001/02/14 01:46:59 bwelling Exp $ */
+/* $Id: client.c,v 1.150 2001/02/14 02:51:12 gson Exp $ */
 
 #include <config.h>
 
@@ -823,12 +823,12 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	if (client->opt != NULL) {
 		result = dns_message_setopt(client->message, client->opt);
-		if (result != ISC_R_SUCCESS)
-			goto done;
 		/*
 		 * XXXRTH dns_message_setopt() should probably do this...
 		 */
 		client->opt = NULL;
+		if (result != ISC_R_SUCCESS)
+			goto done;
 	}
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_QUESTION, 0);
