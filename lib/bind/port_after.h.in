@@ -228,4 +228,10 @@ PASS_R_RETURN getpwent_r(struct passwd *pwptr, PASS_R_ARGS);
 void endpwent_r(void);
 #endif
 
+#ifdef NEED_SETPASSENT
+int setpassent(int stayopen);
+#endif
+
+#endif
+
 #endif

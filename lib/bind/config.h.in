@@ -27,4 +27,6 @@
 #undef NEED_GETPWENT_R
 #undef NEED_ENDPWENT_R
 
+#undef NEED_SETPASSENT
+
 #undef HAS_PW_CLASS
