@@ -1,3 +1,5 @@
+ 258.	[bug]		Fixed printing of lwres_addr_t.address field.
+
  257.	[bug]		The server detached the last zone manager reference
 			too early, while it could still be in use by queries.
 			This manifested itself as assertion failures during the 
