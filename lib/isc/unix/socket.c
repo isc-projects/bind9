@@ -2480,11 +2480,14 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr)
 
 	LOCK(&sock->lock);
 
-	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR,
-		       (void *)&on, sizeof on) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
-				 sock->fd);
-		/* Press on... */
+	if (sock->type == isc_sockettype_tcp) {
+		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR,
+			       (void *)&on, sizeof on) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d) failed",
+					 sock->fd);
+			/* Press on... */
+		}
 	}
 	if (bind(sock->fd, &sockaddr->type.sa, sockaddr->length) < 0) {
 		UNLOCK(&sock->lock);
