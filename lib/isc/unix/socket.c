@@ -1084,7 +1084,6 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
-#if 0
 #ifdef SO_TIMESTAMP
 	if (type == isc_sockettype_udp
 	    && setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
@@ -1093,7 +1092,6 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 				 sock->fd);
 		/* Press on... */
 	}
-#endif
 #endif
 
 	sock->references = 1;
@@ -1292,6 +1290,9 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 	if (ISC_LINK_LINKED(*dev, link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, link);
 
+	if (sock->recv_result != ISC_R_SUCCESS)
+		(*dev)->attributes |= ISC_SOCKEVENTATTR_FATALERROR;
+
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
 		isc_task_sendanddetach(&task, (isc_event_t **)dev);
@@ -1317,6 +1318,9 @@ send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
 
 	if (ISC_LINK_LINKED(*dev, link))
 		ISC_LIST_DEQUEUE(sock->send_list, *dev, link);
+
+	if (sock->send_result != ISC_R_SUCCESS)
+		(*dev)->attributes |= ISC_SOCKEVENTATTR_FATALERROR;
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
@@ -2972,23 +2976,16 @@ isc_socket_recvmark(isc_socket_t *sock,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
-	ISC_LIST_INIT(dev->bufferlist);
 
 	dev->result = ISC_R_SUCCESS;
-	dev->attributes = 0;
 	dev->minimum = 0;
-	dev->n = 0;
 
 	/*
 	 * If the queue is empty, simply return the last error we got on
 	 * this socket as the result code, and send off the done event.
 	 */
 	if (EMPTY(sock->recv_list)) {
-		dev->result = sock->recv_result;
-
-		isc_task_send(task, (isc_event_t **)&dev);
-
+		send_recvdone_event(sock, &dev, sock->recv_result);
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
 	}
@@ -3033,23 +3030,16 @@ isc_socket_sendmark(isc_socket_t *sock,
 		UNLOCK(&sock->lock);
 		return (ISC_R_NOMEMORY);
 	}
-	ISC_LINK_INIT(dev, link);
-	ISC_LIST_INIT(dev->bufferlist);
 
 	dev->result = ISC_R_SUCCESS;
-	dev->attributes = 0;
 	dev->minimum = 0;
-	dev->n = 0;
 
 	/*
 	 * If the queue is empty, simply return the last error we got on
 	 * this socket as the result code, and send off the done event.
 	 */
 	if (EMPTY(sock->send_list)) {
-		dev->result = sock->send_result;
-
-		isc_task_send(task, (isc_event_t **)&dev);
-
+		send_senddone_event(sock, &dev, sock->send_result);
 		UNLOCK(&sock->lock);
 		return (ISC_R_SUCCESS);
 	}

@@ -118,6 +118,9 @@ struct isc_socket_connev {
 
 /*
  * _ATTACHED:	Internal use only.
+ * _FATALERROR:	The socket result code is "sticky" -- that is, any
+ *		further i/o activity of the same type (read or write)
+ *		will return the same code; retrying is pointless.
  * _TRUNC:	Packet was truncated on receive.
  * _CTRUNC:	Packet control information was truncated.  This can
  *		indicate that the packet is not complete, even though
@@ -126,6 +129,7 @@ struct isc_socket_connev {
  * _PKTINFO:	The pktinfo member is valid.
  */
 #define ISC_SOCKEVENTATTR_ATTACHED		0x8000000U /* internal */
+#define ISC_SOCKEVENTATTR_FATALERROR		0x4000000U /* sock is dead */
 #define ISC_SOCKEVENTATTR_TRUNC			0x0080000U /* public */
 #define ISC_SOCKEVENTATTR_CTRUNC		0x0040000U /* public */
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x0020000U /* public */
