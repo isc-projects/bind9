@@ -16,13 +16,14 @@
  */
 
 /*
- * $Id: tkey.c,v 1.44 2000/06/08 06:16:09 marka Exp $
+ * $Id: tkey.c,v 1.45 2000/06/09 22:33:03 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
 
 #include <isc/buffer.h>
+#include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -50,38 +51,48 @@
 
 
 isc_result_t
-dns_tkeyctx_create(isc_mem_t *mctx, dns_tkey_ctx_t **tctx) {
+dns_tkeyctx_create(isc_mem_t *mctx, isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
+{
+	dns_tkeyctx_t *tctx;
+
 	REQUIRE(mctx != NULL);
-	REQUIRE(tctx != NULL);
-	REQUIRE(*tctx == NULL);
+	REQUIRE(ectx != NULL);
+	REQUIRE(tctxp != NULL && *tctxp == NULL);
 
-	*tctx = isc_mem_get(mctx, sizeof(dns_tkey_ctx_t));
-	if (*tctx == NULL)
+	tctx = isc_mem_get(mctx, sizeof(dns_tkeyctx_t));
+	if (tctx == NULL)
 		return (ISC_R_NOMEMORY);
-	(*tctx)->mctx = mctx;
-	(*tctx)->dhkey = NULL;
-	(*tctx)->domain = NULL;
+	tctx->mctx = NULL;
+	isc_mem_attach(mctx, &tctx->mctx);
+	tctx->ectx = NULL;
+	isc_entropy_attach(ectx, &tctx->ectx);
+	tctx->dhkey = NULL;
+	tctx->domain = NULL;
 
+	*tctxp = tctx;
 	return (ISC_R_SUCCESS);
 }
 
 void
-dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx) {
+dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 	isc_mem_t *mctx;
+	dns_tkeyctx_t *tctx;
 
-	REQUIRE(tctx != NULL);
-	REQUIRE(*tctx != NULL);
+	REQUIRE(tctxp != NULL && *tctxp != NULL);
 
-	if ((*tctx)->dhkey != NULL)
-		dst_key_free(&(*tctx)->dhkey);
-	if ((*tctx)->domain != NULL) {
-		dns_name_free((*tctx)->domain, (*tctx)->mctx);
-		isc_mem_put((*tctx)->mctx, (*tctx)->domain,
-			    sizeof(dns_name_t));
+	tctx = *tctxp;
+	mctx = tctx->mctx;
+
+	if (tctx->dhkey != NULL)
+		dst_key_free(&tctx->dhkey);
+	if (tctx->domain != NULL) {
+		dns_name_free(tctx->domain, mctx);
+		isc_mem_put(mctx, tctx->domain, sizeof(dns_name_t));
 	}
-
-	mctx = (*tctx)->mctx;
-	isc_mem_put(mctx, *tctx, sizeof(dns_tkey_ctx_t));
+	isc_entropy_detach(&tctx->ectx);
+	isc_mem_put(mctx, tctx, sizeof(dns_tkeyctx_t));
+	isc_mem_detach(&mctx);
+	*tctxp = NULL;
 }
 
 static isc_result_t
@@ -200,7 +211,7 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 
 static isc_result_t
 process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
-	       dns_rdata_tkey_t *tkeyin, dns_tkey_ctx_t *tctx,
+	       dns_rdata_tkey_t *tkeyin, dns_tkeyctx_t *tctx,
 	       dns_rdata_tkey_t *tkeyout,
 	       dns_tsig_keyring_t *ring, dns_namelist_t *namelist)
 {
@@ -215,7 +226,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_uint32_t ourttl;
 	unsigned char keydata[DST_KEY_MAXSIZE];
 	unsigned int sharedsize;
-	isc_buffer_t randombuf, secret;
+	isc_buffer_t secret;
 	unsigned char *randomdata = NULL, secretdata[256];
 	isc_stdtime_t now;
 
@@ -318,10 +329,11 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		result = ISC_R_NOMEMORY;
 		goto failure;
 	}
-	isc_buffer_init(&randombuf, randomdata, TKEY_RANDOM_AMOUNT);
-	RETERR(dst_random_get(TKEY_RANDOM_AMOUNT, &randombuf));
+	RETERR(isc_entropy_getdata(tctx->ectx, randomdata, TKEY_RANDOM_AMOUNT,
+				   NULL, 0));
 
-	isc_buffer_usedregion(&randombuf, &r);
+	r.base = randomdata;
+	r.length = TKEY_RANDOM_AMOUNT;
 	r2.base = tkeyin->key;
 	r2.length = tkeyin->keylen;
 	RETERR(compute_secret(shared, &r2, &r, &secret));
@@ -411,7 +423,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 }
 
 isc_result_t
-dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
+dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		      dns_tsig_keyring_t *ring)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -525,8 +537,10 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
 			isc_buffer_t b, b2;
 			int i;
 
-			isc_buffer_init(&b, randomtext, sizeof(randomtext));
-			result = dst_random_get(sizeof(randomtext)/2, &b);
+			result = isc_entropy_getdata(tctx->ectx,
+						     randomtext,
+						     sizeof(randomtext),
+						     NULL, 0);
 			if (result != ISC_R_SUCCESS) {
 				dns_message_takebuffer(msg, &buf);
 				goto failure;

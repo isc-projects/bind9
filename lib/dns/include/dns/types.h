@@ -88,7 +88,7 @@ typedef isc_uint8_t				dns_secproto_t;
 typedef struct dns_signature			dns_signature_t;
 typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_ssutable			dns_ssutable_t;
-typedef struct dns_tkey_ctx			dns_tkey_ctx_t;
+typedef struct dns_tkeyctx			dns_tkeyctx_t;
 typedef isc_uint16_t				dns_trust_t;
 typedef struct dns_tsig_keyring			dns_tsig_keyring_t;
 typedef struct dns_tsigkey			dns_tsigkey_t;

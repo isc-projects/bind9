@@ -26,8 +26,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
-		       dns_tkey_ctx_t **tctxp);
+dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx, isc_entropy_t *ectx,
+		       dns_tkeyctx_t **tctxp);
 /*
  * 	Create a TKEY context and configure it, including the default DH key
  *	and default domain, according to 'cfg'.
@@ -35,6 +35,7 @@ dns_tkeyctx_fromconfig(dns_c_ctx_t *cfg, isc_mem_t *mctx,
  *	Requires:
  *		'cfg' is a valid configuration context.
  *		'mctx' is not NULL
+ *		'ectx' is not NULL
  *		'tctx' is not NULL
  *		'*tctx' is NULL
  *

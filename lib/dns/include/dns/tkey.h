@@ -19,6 +19,7 @@
 #define DNS_TKEY_H 1
 
 #include <isc/lang.h>
+#include <isc/types.h>
 
 #include <dns/types.h>
 
@@ -33,14 +34,15 @@ ISC_LANG_BEGINDECLS
 #define DNS_TKEYMODE_RESOLVERASSIGNED		4
 #define DNS_TKEYMODE_DELETE			5
 
-struct dns_tkey_ctx {
+struct dns_tkeyctx {
 	dst_key_t *dhkey;
 	dns_name_t *domain;
 	isc_mem_t *mctx;
+	isc_entropy_t *ectx;
 };
 
 isc_result_t
-dns_tkeyctx_create(isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
+dns_tkeyctx_create(isc_mem_t *mctx, isc_entropy_t *ectx, dns_tkeyctx_t **tctxp);
 /*
  *	Create an empty TKEY context.
  *
@@ -56,7 +58,7 @@ dns_tkeyctx_create(isc_mem_t *mctx, dns_tkey_ctx_t **tctx);
  */
 
 void
-dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx);
+dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp);
 /*
  *      Frees all data associated with the TKEY context
  *
@@ -66,7 +68,7 @@ dns_tkeyctx_destroy(dns_tkey_ctx_t **tctx);
  */
 
 isc_result_t
-dns_tkey_processquery(dns_message_t *msg, dns_tkey_ctx_t *tctx,
+dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		      dns_tsig_keyring_t *ring);
 /*
  *	Processes a query containing a TKEY record, adding or deleting TSIG
