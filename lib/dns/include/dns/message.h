@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: message.h,v 1.72 2000/06/22 21:55:48 tale Exp $ */
+/* $Id: message.h,v 1.73 2000/06/29 16:48:53 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -327,12 +327,12 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
  * Convert all sections of message 'msg' to a cleartext representation
  *
  * Notes:
- *      In flags, If DNS_MESSAGETEXTFLAG_OMITDOT is set, then the *
+ *      In flags, If DNS_MESSAGETEXTFLAG_OMITDOT is set, then the
  *      final '.' in absolute names will not be emitted.  If
- *      DNS_MESSAGETEXTFLAG_NOCOMMENTS is cleared, * lines * beginning
+ *      DNS_MESSAGETEXTFLAG_NOCOMMENTS is cleared, lines beginning
  *      with ";;" will be emitted indicating section name.  If
  *      DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will
- *      be emmitted.
+ *      be emitted.
  *
  * Requires:
  *
@@ -354,7 +354,8 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
  *	ISC_R_NOSPACE
  *	ISC_R_NOMORE
  *
- *	Note: On error return, *target may be partially filled with data.  */
+ *	Note: On error return, *target may be partially filled with data.
+ */
 
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
