@@ -25,6 +25,22 @@ warning message.  A message is also logged about each option whose
 default has changed unless the option is set explicitly in named.conf.
 
 
+1.2. Logging
+
+The set of logging categories in BIND 9 is different from that
+in BIND 8.  If you have customized your logging on a per-category
+basis, you need to modify your logging statement to use the
+new categories.
+
+Another difference is that the "logging" statement only takes effect
+after the entire named.conf file has been read.  This means that when
+the server starts up, any messages about errors in the configuration
+file are always logged to the default destination (syslog) when the
+server first starts up, regardless of the contents of the "logging"
+statement.  In BIND 8, the new logging configuration took effect
+immediately after the "logging" statement was read.
+
+
 2. Zone File Compatibility
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
@@ -79,4 +95,4 @@ completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
 
-$Id: migration,v 1.1.2.1 2000/07/12 05:05:10 gson Exp $
+$Id: migration,v 1.1.2.2 2000/07/27 01:39:11 gson Exp $
