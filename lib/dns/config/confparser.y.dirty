@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.37 2000/12/05 22:19:35 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.38 2000/12/05 22:42:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -6604,36 +6604,13 @@ yylex(void)
 		res = 0;
 		break;
 
-	case ISC_R_UNBALANCED:
-		parser_error(ISC_TRUE,
-			     "%s: %lu: unbalanced parentheses",
-			     isc_lex_getsourcename(mylexer),
-			     isc_lex_getsourceline(mylexer));
-		res = -1;
-		break;
-
 	case ISC_R_NOSPACE:
-		parser_error(ISC_TRUE,
-			     "%s: %lu: token too big",
-			     isc_lex_getsourcename(mylexer),
-			     isc_lex_getsourceline(mylexer));
-		res = -1;
-		break;
-
-	case ISC_R_UNEXPECTEDEND:
-		parser_error(ISC_TRUE,
-			     "%s: %lu: unexpected EOF",
-			     isc_lex_getsourcename(mylexer),
-			     isc_lex_getsourceline(mylexer));
+		parser_error(ISC_TRUE, "token too big");
 		res = -1;
 		break;
 
 	default:
-		parser_error(ISC_TRUE,
-			     "%s: %lu unknown lexer error (%d)",
-			     isc_lex_getsourcename(mylexer),
-			     isc_lex_getsourceline(mylexer),
-			     (int)res);
+		parser_error(ISC_TRUE, "%s", isc_result_totext(res));
 		res = -1;
 		break;
 	}
