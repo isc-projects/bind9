@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.1 1999/09/23 17:31:58 tale Exp $ */
+/* $Id: dir.c,v 1.2 1999/09/23 21:35:19 tale Exp $ */
 
 /* Principal Authors: DCL */
 
+#include <stdlib.h>
 #include <errno.h>
 
 #include <isc/dir.h>
@@ -94,7 +95,11 @@ isc_dir_read(isc_dir_t *dir) {
 	INSIST(sizeof(dir->entry.name) > strlen(entry->d_name));
 
 	strcpy(dir->entry.name, entry->d_name);
-	dir->entry.length = entry->d_namlen;
+
+	/*
+	 * Some dirents have d_namlen, but it is not portable.
+	 */
+	dir->entry.length = strlen(entry->d_name);
 
 	return (ISC_R_SUCCESS);
 }
