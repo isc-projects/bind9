@@ -13,6 +13,7 @@ openssl_stub	open		marka
 chroot		open		marka
 edns_size	open		marka
 rt4347		open		marka
+rt4675		open		marka
 
 a6_remove	closed
 adb_race	closed		explorer
