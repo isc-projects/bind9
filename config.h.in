@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.2 2003/05/12 03:34:30 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.3 2003/07/25 07:39:45 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -126,6 +126,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if pthread_attr_getstacksize() is available */
 #undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* define if pthread_attr_setstacksize() is available */
+#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
 
 /* define if you have strerror in the C library. */
 #undef HAVE_STRERROR
