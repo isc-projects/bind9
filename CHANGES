@@ -1,3 +1,4 @@
+ 851.	[cleanup]	support-ixfr is obsolete, use request-ixfr.
 
  850.	[bug]		dns_rbt_findnode() would not find nodes that were
 			split on a bitstring label somewhere other than in
