@@ -20,7 +20,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.24 2000/06/26 22:30:32 gson Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.25 2000/06/26 22:50:20 gson Exp $
  */
 
 #include <config.h>
@@ -463,8 +463,11 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy(&SIN(ai->ai_addr)->sin_addr,
 			       addr->address, 4);
-			if (flags & AI_CANONNAME)
+			if (flags & AI_CANONNAME) {
 				ai->ai_canonname = strdup(by->realname);
+				if (ai->ai_canonname == NULL)
+					ERR(EAI_MEMORY);
+			}
 			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
@@ -516,8 +519,11 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 			SIN6(ai->ai_addr)->sin6_port = port;
 			memcpy(&SIN6(ai->ai_addr)->sin6_addr,
 			       addr->address, 16);
-			if (flags & AI_CANONNAME)
+			if (flags & AI_CANONNAME) {
 				ai->ai_canonname = strdup(by->realname);
+				if (ai->ai_canonname == NULL)
+					ERR(EAI_MEMORY);
+			}
 			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
