@@ -66,6 +66,7 @@
 #include <named/interfacemgr.h>
 #include <named/listenlist.h>
 #include <named/log.h>
+#include <named/os.h>
 #include <named/server.h>
 #include <named/types.h>
 
@@ -850,6 +851,13 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	CHECKFATAL(load_zones(server, ISC_TRUE),
 		   "loading zones");
+
+	/*
+	 * XXXRTH  Currently ns_os_changeuser() will call ns_main_earlyfatal()
+	 *         if it fails.  Perhaps it should be changed to return an
+	 *         error code?
+	 */
+	ns_os_changeuser(ns_g_username);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");
