@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.c,v 1.4 2001/07/16 03:52:12 mayer Exp $ */
+/* $Id: ntfile.c,v 1.5 2001/07/16 04:09:45 gson Exp $ */
 
 /*
  * This file has been necessitated by the fact that the iov array is local
@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include <io.h>
+
 #include <isc/ntfile.h>
 
 FILE *

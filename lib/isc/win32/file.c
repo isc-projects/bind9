@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.16 2001/07/16 03:52:09 mayer Exp $ */
+/* $Id: file.c,v 1.17 2001/07/16 04:09:44 gson Exp $ */
 
 #include <config.h>
 
@@ -389,9 +389,9 @@ isc_file_isabsolute(const char *filename) {
 	 */
 	if ((filename[0] == '\\') && (filename[1] == '\\'))
 		return (ISC_TRUE);
-	if (isalpha(filename[0]) != 0 && filename[1] == ':' && filename[2] == '\\')
+	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '\\')
 		return (ISC_TRUE);
-	if (isalpha(filename[0]) != 0 && filename[1] == ':' && filename[2] == '/')
+	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '/')
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -471,5 +471,5 @@ isc_file_getabsolutepath(const char *filename, char *path, size_t pathlen) {
 	/* Caller needs to provide a larger buffer to contain the string */
 	if (retval >= pathlen)
 		return (ISC_R_NOSPACE);
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
