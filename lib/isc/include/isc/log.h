@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.19 2000/05/03 21:09:34 explorer Exp $ */
+/* $Id: log.h,v 1.20 2000/05/16 03:37:39 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -58,8 +58,9 @@ ISC_LANG_BEGINDECLS
 #define ISC_LOG_PRINTLEVEL	0x0002
 #define ISC_LOG_PRINTCATEGORY	0x0004
 #define ISC_LOG_PRINTMODULE	0x0008
-#define ISC_LOG_PRINTALL	0x000F
-#define ISC_LOG_DEBUGONLY	0x0010
+#define ISC_LOG_PRINTTAG	0x0010
+#define ISC_LOG_PRINTALL	0x001F
+#define ISC_LOG_DEBUGONLY	0x1000
 
 /*
  * Other options.
@@ -390,8 +391,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
  *	call by defining a new channel and then calling isc_log_usechannel()
  *	for ISC_LOGCATEGORY_DEFAULT.)
  *
- *	Specifying ISC_LOG_PRINTTIME for syslog is allowed, but probably
- *	not what you wanted to do.
+ *	Specifying ISC_LOG_PRINTTIME or ISC_LOG_PRINTTAG for syslog is allowed,
+ *	but probably not what you wanted to do.
  *
  *	ISC_LOG_DEBUGONLY will mark the channel as usable only when the
  *	debug level of the logging context (see isc_log_setdebuglevel)
@@ -637,9 +638,6 @@ isc_log_setduplicateinterval(isc_logconfig_t *lcfg, unsigned int interval);
  *
  * Requires:
  *	lctx is a valid logging context.
- *
- * Ensures:
- *	The duplicate interval is set to the current	
  */
 
 unsigned int
@@ -650,8 +648,54 @@ isc_log_getduplicateinterval(isc_logconfig_t *lcfg);
  * Requires:
  *	lctx is a valid logging context.
  *
- * Ensures:
- *	The current duplicate filtering interval is returned.
+ * Returns:
+ *	The current duplicate filtering interval.
+ */
+
+void
+isc_log_settag(isc_logconfig_t *lcfg, char *tag);
+/*
+ * Set the program name or other identifier for ISC_LOG_PRINTTAG.
+ *
+ * Requires:
+ *	lcfg is a valid logging configuration.
+ *
+ * Notes:
+ *	If this function has not set the tag to a non-NULL, non-empty value,
+ *	then the ISC_LOG_PRINTTAG channel flag will not print anything.
+ *	Unlike some implementations of syslog on Unix systems, you *must* set
+ *	the tag in order to get it logged.  It is not implicitly derived from
+ *	the program name (which is pretty impossible to infer portably).
+ *
+ *	Setting the tag to NULL or the empty string will also cause the
+ *	ISC_LOG_PRINTTAG channel flag to not print anything.  If tag equals the
+ *	empty string, calls to isc_log_gettag will return NULL.
+ *
+ *	Because the name is used by ISC_LOG_PRINTTAG, it should not be
+ *	altered or destroyed after isc_log_settag().
+ *
+ * XXXDCL when creating a new isc_logconfig_t, it might be nice if the tag
+ * of the currently active isc_logconfig_t was inherited.  this does not
+ * currently happen.
+ */
+
+char *
+isc_log_gettag(isc_logconfig_t *lcfg);
+/*
+ * Get the current identifier printed with ISC_LOG_PRINTTAG.
+ *
+ * Requires:
+ *	lcfg is a valid logging configuration.
+ *
+ * Notes:
+ *	Since isc_log_settag() will not associate a zero-length string
+ *	with the logging configuration, attempts to do so will cause
+ *	this function to return NULL.  However, a determined programmer
+ *	will observe that (currently) a tag of length greater than zero
+ *	could be set, and then modified to be zero length.
+ *
+ * Returns:
+ *	A pointer to the current identifier, or NULL if none has been set.
  */
 
 void

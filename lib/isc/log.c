@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.30 2000/05/08 14:37:26 tale Exp $ */
+/* $Id: log.c,v 1.31 2000/05/16 03:37:37 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -29,6 +29,7 @@
 
 #include <isc/dir.h>
 #include <isc/log.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -36,9 +37,9 @@
 #include <isc/util.h>
 
 #define LCTX_MAGIC		0x4C637478U	/* Lctx. */
-#define VALID_CONTEXT(lctx)	((lctx) != NULL && (lctx)->magic == LCTX_MAGIC)
+#define VALID_CONTEXT(lctx)	ISC_MAGIC_VALID(lctx, LCTX_MAGIC)
 #define LCFG_MAGIC		0x4C636667U	/* Lcfg. */
-#define VALID_CONFIG(lcfg)	((lcfg) != NULL && (lcfg)->magic == LCFG_MAGIC)
+#define VALID_CONFIG(lcfg)	ISC_MAGIC_VALID(lcfg, LCFG_MAGIC)
 
 /*
  * XXXDCL make dynamic?
@@ -108,6 +109,7 @@ struct isc_logconfig {
 	unsigned int			channellist_count;
 	unsigned int			duplicate_interval;
 	int				highest_level;
+	char *				tag;
 	isc_boolean_t			dynamic;
 };
 
@@ -310,6 +312,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		lcfg->channellist_count = 0;
 		lcfg->duplicate_interval = 0;
 		lcfg->highest_level = ISC_LOG_CRITICAL;
+		lcfg->tag = NULL;
 		lcfg->dynamic = ISC_FALSE;
 
 		ISC_LIST_INIT(lcfg->channels);
@@ -507,6 +510,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 		    sizeof(ISC_LIST(isc_logchannellist_t)));
 
 	lcfg->dynamic = ISC_FALSE;
+	lcfg->tag = NULL;
 	lcfg->highest_level = 0;
 	lcfg->duplicate_interval = 0;
 	lcfg->magic = 0;
@@ -840,6 +844,23 @@ isc_log_getduplicateinterval(isc_logconfig_t *lcfg) {
 	return (lcfg->duplicate_interval);
 }
 
+void
+isc_log_settag(isc_logconfig_t *lcfg, char *tag) {
+	REQUIRE(VALID_CONFIG(lcfg));
+	
+	if (tag != NULL && *tag != '\0')
+		lcfg->tag = tag;
+	else
+		lcfg->tag = NULL;
+}
+
+char *
+isc_log_gettag(isc_logconfig_t *lcfg) {
+	REQUIRE(VALID_CONFIG(lcfg));
+
+	return (lcfg->tag);
+}
+
 /* XXXDCL NT  -- This interface will assuredly be changing. */
 void
 isc_log_opensyslog(const char *tag, int options, int facility) {
@@ -1126,8 +1147,11 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	int syslog_level;
 	char time_string[64];
 	char level_string[24];
+	char pid_string[sizeof("[99999]")];
 	struct stat statbuf;
 	isc_boolean_t matched = ISC_FALSE;
+	isc_boolean_t printtime, printtag;
+	isc_boolean_t printcategory, printmodule, printlevel;
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
@@ -1169,8 +1193,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
 
-	time_string[0] = '\0';
+	time_string[0]  = '\0';
 	level_string[0] = '\0';
+	pid_string[0]   = '\0';
 	lctx->buffer[0] = '\0';
 
 	LOCK(&lctx->lock);
@@ -1220,7 +1245,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		channel = category_channels->channel;
 		category_channels = ISC_LIST_NEXT(category_channels, link);
 
-		if (((channel->flags & ISC_LOG_DEBUGONLY) > 0) &&
+		if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) &&
 		    lctx->debug_level == 0)
 			continue;
 
@@ -1230,7 +1255,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		} else if (channel->level < level)
 			continue;
 
-		if ((channel->flags & ISC_LOG_PRINTTIME) &&
+		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
 		    time_string[0] == '\0') {
 			result = isc_time_now(&time);
 
@@ -1269,7 +1294,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		}
 
-		if ((channel->flags & ISC_LOG_PRINTLEVEL) &&
+		if ((channel->flags & ISC_LOG_PRINTLEVEL) != 0 &&
 		    level_string[0] == '\0') {
 			if (level < ISC_LOG_CRITICAL)
 				sprintf(level_string, "level %d: ", level);
@@ -1391,6 +1416,17 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			}
 		}
 
+		printtime     = ISC_TF((channel->flags & ISC_LOG_PRINTTIME)
+				       != 0);
+		printtag      = ISC_TF((channel->flags & ISC_LOG_PRINTTAG)
+				       != 0 && lcfg->tag != NULL);
+		printcategory = ISC_TF((channel->flags & ISC_LOG_PRINTCATEGORY)
+				       != 0);
+		printmodule   = ISC_TF((channel->flags & ISC_LOG_PRINTMODULE)
+				       != 0);
+		printlevel    = ISC_TF((channel->flags & ISC_LOG_PRINTLEVEL)
+				       != 0);
+
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
 			if (FILE_STREAM(channel) == NULL) {
@@ -1405,21 +1441,17 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s\n",
-				(channel->flags & ISC_LOG_PRINTTIME) ?
-					time_string : "",
-				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
-					category->name : "",
-				(channel->flags & ISC_LOG_PRINTCATEGORY) ?
-					": " : "",
-				(channel->flags & ISC_LOG_PRINTMODULE) ?
-					(module != NULL ? module->name :
-					                  "no_module")
-					: "",
-				(channel->flags & ISC_LOG_PRINTMODULE) ?
-					": " : "",
-				(channel->flags & ISC_LOG_PRINTLEVEL) ?
-					level_string : "",
+			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s\n",
+				printtime     ? time_string	: "",
+				printtag      ? lcfg->tag	: "",
+				printtag      ? ": "		: "",
+				printcategory ? category->name	: "",
+				printcategory ? ": "		: "",
+				printmodule   ? (module != NULL ? module->name
+						 		: "no_module")
+					      			: "",
+				printmodule   ? ": "		: "",
+				printlevel    ? level_string	: "",
 				lctx->buffer);
 
 			fflush(FILE_STREAM(channel));
@@ -1453,21 +1485,17 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				syslog_level = syslog_map[-level];
 
 			syslog(FACILITY(channel) | syslog_level,
-			       "%s%s%s%s%s%s%s",
-			       (channel->flags & ISC_LOG_PRINTTIME) ?
-			       		time_string : "",
-			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
-			       		category->name : "",
-			       (channel->flags & ISC_LOG_PRINTCATEGORY) ?
-			       		": " : "",
-			       (channel->flags & ISC_LOG_PRINTMODULE) ?
-					(module != NULL ? module->name :
-					                  "no_module")
-			       		: "",
-			       (channel->flags & ISC_LOG_PRINTMODULE) ?
-			       		": " : "",
-			       (channel->flags & ISC_LOG_PRINTLEVEL) ?
-			       		level_string : "",
+			       "%s%s%s%s%s%s%s%s%s",
+			       printtime     ? time_string	: "",
+			       printtag      ? lcfg->tag	: "",
+			       printtag      ? ": "		: "",
+			       printcategory ? category->name	: "",
+			       printcategory ? ": "		: "",
+			       printmodule   ? (module != NULL	? module->name
+						 		: "no_module")
+					      			: "",
+			       printmodule   ? ": "		: "",
+			       printlevel    ? level_string	: "",
 			       lctx->buffer);
 			break;
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.15 2000/05/08 20:12:42 tale Exp $ */
+/* $Id: log_test.c,v 1.16 2000/05/16 03:33:51 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -36,7 +36,7 @@
 
 char usage[] = "Usage: %s [-m] [-s syslog_logfile] [-r file_versions]\n";
 
-#define CHECK_ISC(expr) result = expr; \
+#define CHECK(expr) result = expr; \
 	if (result != ISC_R_SUCCESS) { \
 		fprintf(stderr, "%s: " #expr "%s: exiting\n", \
 			progname, isc_result_totext(result)); \
@@ -113,8 +113,10 @@ main (int argc, char **argv) {
 	mctx = NULL;
 	lctx = NULL;
 
-	CHECK_ISC(isc_mem_create(0, 0, &mctx));
-	CHECK_ISC(isc_log_create(mctx, &lctx, &lcfg));
+	CHECK(isc_mem_create(0, 0, &mctx));
+	CHECK(isc_log_create(mctx, &lctx, &lcfg));
+
+	isc_log_settag(lcfg, progname);
 
 	isc_log_setcontext(lctx);
 	dns_log_init(lctx);
@@ -125,13 +127,14 @@ main (int argc, char **argv) {
 	 */
 	category = isc_log_categorybyname(lctx, "xfer-in");
 	if (category != NULL)
-		fprintf(stderr, "%s category found.\n", category->name);
+		fprintf(stderr, "%s category found. (expected)\n",
+			category->name);
 	else
 		fprintf(stderr, "xfer-in category not found!\n");
 
 	module = isc_log_modulebyname(lctx, "xyzzy");
 	if (module != NULL)
-		fprintf(stderr, "%s module found! (error)\n", module->name);
+		fprintf(stderr, "%s module found!\n", module->name);
 	else
 		fprintf(stderr, "xyzzy module not found. (expected)\n");
 
@@ -144,50 +147,51 @@ main (int argc, char **argv) {
 	destination.file.maximum_size = 1;
 	destination.file.versions = file_versions;
 
-	CHECK_ISC(isc_log_createchannel(lcfg, "file_test", ISC_LOG_TOFILE,
-					ISC_LOG_INFO, &destination,
-					ISC_LOG_PRINTTIME|
-					ISC_LOG_PRINTLEVEL|
-					ISC_LOG_PRINTCATEGORY|
-					ISC_LOG_PRINTMODULE));
+	CHECK(isc_log_createchannel(lcfg, "file_test", ISC_LOG_TOFILE,
+				    ISC_LOG_INFO, &destination,
+				    ISC_LOG_PRINTTIME|
+				    ISC_LOG_PRINTTAG|
+				    ISC_LOG_PRINTLEVEL|
+				    ISC_LOG_PRINTCATEGORY|
+				    ISC_LOG_PRINTMODULE));
 
 	/*
 	 * Create a dynamic debugging channel to a file descriptor.
 	 */
 	destination.file.stream = stderr;
 
-	CHECK_ISC(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
-					ISC_LOG_DYNAMIC, &destination,
-					ISC_LOG_PRINTTIME|
-					ISC_LOG_PRINTLEVEL|
-					ISC_LOG_DEBUGONLY));
+	CHECK(isc_log_createchannel(lcfg, "debug_test", ISC_LOG_TOFILEDESC,
+				    ISC_LOG_DYNAMIC, &destination,
+				    ISC_LOG_PRINTTIME|
+				    ISC_LOG_PRINTLEVEL|
+				    ISC_LOG_DEBUGONLY));
 
 	/*
 	 * Test the usability of the four predefined logging channels.
 	 */
-	CHECK_ISC(isc_log_usechannel(lcfg, "default_syslog",
-				     DNS_LOGCATEGORY_DATABASE,
-				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lcfg, "default_stderr",
-				     DNS_LOGCATEGORY_DATABASE,
-				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lcfg, "default_debug",
-				     DNS_LOGCATEGORY_DATABASE,
-				     DNS_LOGMODULE_CACHE));
-	CHECK_ISC(isc_log_usechannel(lcfg, "null",
-				     DNS_LOGCATEGORY_DATABASE,
-				     NULL));
+	CHECK(isc_log_usechannel(lcfg, "default_syslog",
+				 DNS_LOGCATEGORY_DATABASE,
+				 DNS_LOGMODULE_CACHE));
+	CHECK(isc_log_usechannel(lcfg, "default_stderr",
+				 DNS_LOGCATEGORY_DATABASE,
+				 DNS_LOGMODULE_CACHE));
+	CHECK(isc_log_usechannel(lcfg, "default_debug",
+				 DNS_LOGCATEGORY_DATABASE,
+				 DNS_LOGMODULE_CACHE));
+	CHECK(isc_log_usechannel(lcfg, "null",
+				 DNS_LOGCATEGORY_DATABASE,
+				 NULL));
 
 	/*
 	 * Use the custom channels.
 	 */
-	CHECK_ISC(isc_log_usechannel(lcfg, "file_test",
-				     DNS_LOGCATEGORY_GENERAL,
-				     DNS_LOGMODULE_DB));
+	CHECK(isc_log_usechannel(lcfg, "file_test",
+				 DNS_LOGCATEGORY_GENERAL,
+				 DNS_LOGMODULE_DB));
 
-	CHECK_ISC(isc_log_usechannel(lcfg, "debug_test",
-				     DNS_LOGCATEGORY_GENERAL,
-				     DNS_LOGMODULE_RBTDB));
+	CHECK(isc_log_usechannel(lcfg, "debug_test",
+				 DNS_LOGCATEGORY_GENERAL,
+				 DNS_LOGMODULE_RBTDB));
 
 	fprintf(stderr, "\n==> stderr begin\n");
 
@@ -225,9 +229,8 @@ main (int argc, char **argv) {
 	 * Reset the internal default to use syslog instead of stderr,
 	 * and test it.
 	 */
-	CHECK_ISC(isc_log_usechannel(lcfg, "default_syslog",
-				     ISC_LOGCATEGORY_DEFAULT,
-				     NULL));
+	CHECK(isc_log_usechannel(lcfg, "default_syslog",
+				 ISC_LOGCATEGORY_DEFAULT, NULL));
 	isc_log_write(lctx, DNS_LOGCATEGORY_SECURITY, DNS_LOGMODULE_RBT,
 		      ISC_LOG_ERROR, "%s%s",
 		      "This message to the redefined default category should ",
@@ -254,12 +257,12 @@ main (int argc, char **argv) {
 		for (i = file_versions - 1; i >= 0; i--)
 			isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
-				      "This should be in file %d/%d", i,
+				      "should be in file %d/%d", i,
 				      file_versions - 1);
 
 		isc_log_write(lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_DB, ISC_LOG_NOTICE,
-			      "This should be in the base file");
+			      "should be in base file");
 
 	} else {
 		file_versions = FILE_VERSIONS;
