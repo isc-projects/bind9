@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.7 2000/03/23 19:48:19 halley Exp $
+ * $Id: ssu.c,v 1.8 2000/04/04 20:10:57 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -28,6 +28,7 @@
 #include <isc/error.h>
 #include <isc/list.h>
 #include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/mutex.h>
