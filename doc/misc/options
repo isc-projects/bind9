@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.54.2.2 2001/01/16 20:45:42 gson Exp $
+$Id: options,v 1.54.2.3 2001/02/07 19:13:14 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -89,8 +89,10 @@ options {
   [ transfers-in  number; ]				    Yes
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    Yes
-  [ transfer-source ip_addr; ]				    Yes
-  [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ transfer-source ...; ]				    Yes
+  [ transfer-source-v6 ...; ]			            Yes*
+  [ notify-source ...; ]				    Yes*
+  [ notify-source-v6 ...; ]				    Yes*
   [ request-ixfr yes_or_no; ]				    Yes*
   [ provide-ixfr yes_or_no; ]				    Yes*
   [ maintain-ixfr-base yes_or_no; ]			    Obsolete
@@ -155,6 +157,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ update-policy ... ]					    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
+  [ notify-source ...; ]				    Yes*
+  [ notify-source-v6 ...; ]				    Yes*
   [ dialup yes_or_no | notify; ]			    Yes&
   [ max-transfer-time-out number; ]			    Yes*
   [ max-transfer-idle-out number; ]			    Yes*
@@ -183,8 +187,10 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ allow-update-forwarding { address_match_list }; ]	    No*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
-  [ transfer-source ip_addr; ]				    Yes
-  [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ transfer-source ...; ]				    Yes
+  [ transfer-source-v6 ...; ]			  	    Yes*
+  [ notify-source ...; ]				    Yes*
+  [ notify-source-v6 ...; ]				    Yes*
   [ dialup yes_or_no | notify | notify-passive |
 		       refresh | passive; ]		    Yes&
   [ max-transfer-time-in number; ]			    Yes
@@ -211,8 +217,8 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ allow-update-forwarding { address_match_list }; ]	    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
-  [ transfer-source ip_addr; ]				    Yes
-  [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ transfer-source ...; ]				    Yes
+  [ transfer-source-v6 ...; ]				    Yes*
   [ dialup yes_or_no | passive | refresh; ]		    Yes%
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
@@ -263,8 +269,10 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    Obsolete
   [ transfer-format ( one-answer | many-answers ); ]	    Yes
-  [ transfer-source ip_addr; ]				    Yes
-  [ transfer-source-v6 ip_addr; ]			    Yes*
+  [ transfer-source ...; ]				    Yes
+  [ transfer-source-v6 ...; ]				    Yes*
+  [ notify-source ...; ]				    Yes*
+  [ notify-source-v6 ...; ]				    Yes*
   [ request-ixfr yes_or_no; ]				    Yes*
   [ provide-ixfr yes_or_no;]				    Yes*
   [ cleaning-interval number; ]				    Yes
