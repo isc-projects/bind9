@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.217 2001/07/28 00:55:14 bwelling Exp $ */
+/* $Id: dighost.c,v 1.218 2001/07/29 23:23:42 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1052,7 +1052,11 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				lookup = requeue_lookup(query->lookup,
 							ISC_FALSE);
 				lookup->doing_xfr = ISC_FALSE;
-				lookup->trace = query->lookup->trace;
+				if (!lookup->trace_root &&
+				    section == DNS_SECTION_ANSWER)
+					lookup->trace = ISC_FALSE;
+				else
+					lookup->trace = query->lookup->trace;
 				lookup->ns_search_only =
 					query->lookup->ns_search_only;
 				lookup->trace_root = ISC_FALSE;
@@ -2366,10 +2370,30 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
 			}
-		}
-		else if (!l->trace && !l->ns_search_only) {
+		} else if (!l->trace && !l->ns_search_only) {
 			printmessage(query, msg, ISC_TRUE);
-		} else if (l->ns_search_only) {
+		} else if (l->trace) {
+			int n = 0;
+			int count = msg->counts[DNS_SECTION_ANSWER];
+
+			debug("in TRACE code");
+			if (!l->ns_search_only)
+				printmessage(query, msg, ISC_TRUE);
+
+			l->rdtype = l->qrdtype;
+			if (l->trace_root || (l->ns_search_only && count > 0))
+			{
+				if (!l->trace_root)
+					l->rdtype = dns_rdatatype_soa;
+				n = followup_lookup(msg, query,
+						    DNS_SECTION_ANSWER);
+				l->trace_root = ISC_FALSE;
+			} else if (count == 0)
+				n = followup_lookup(msg, query,
+						    DNS_SECTION_AUTHORITY);
+			if (n == 0)
+				docancel = ISC_TRUE;
+		} else {
 			debug("in NSSEARCH code");
 
 			if (l->trace_root) {
@@ -2378,36 +2402,16 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				 */
 				int n;
 
-				l->trace_root = ISC_FALSE;
 				l->rdtype = dns_rdatatype_soa;
 				n = followup_lookup(msg, query,
 						    DNS_SECTION_ANSWER);
 				if (n == 0)
 					docancel = ISC_TRUE;
+				l->trace_root = ISC_FALSE;
 			} else
 				printmessage(query, msg, ISC_TRUE);
-		} else {
-			int n = 0;
-			int count = msg->counts[DNS_SECTION_ANSWER];
-
-			debug("in TRACE code");
-			printmessage(query, msg, ISC_TRUE);
-
-			l->rdtype = l->qrdtype;
-			if (l->trace_root) {
-				l->trace_root = ISC_FALSE;
-				n = followup_lookup(msg, query,
-						    DNS_SECTION_ANSWER);
-			} else if (count == 0)
-				n = followup_lookup(msg, query,
-						    DNS_SECTION_AUTHORITY);
-			if (n == 0)
-				docancel = ISC_TRUE;
 		} 
-	} else if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
-		   l->ns_search_only &&
-		   !l->trace_root)
-		printmessage(query, msg, ISC_TRUE);
+	}
 
 	if (l->pending)
 		debug("still pending.");
