@@ -688,12 +688,32 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 	return (result);
 }
 
+static inline isc_result_t
+next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
+	    dns_name_t *name, dns_dbnode_t **nodep, dns_name_t *lastcut)
+{
+	isc_result_t result;
+
+	if (lastcut == NULL)
+		return next_active(db, version, dbiter, name, nodep);
+	do {
+		result = next_active(db, version, dbiter, name, nodep);
+		if (result == ISC_R_SUCCESS) {
+			if (!dns_name_issubdomain(name, lastcut))
+				return (ISC_R_SUCCESS);
+			dns_db_detachnode(db, nodep);
+			result = dns_dbiterator_next(dbiter);
+		}
+	} while (result == ISC_R_SUCCESS);
+	return (result);
+}
+
 static void
 signzone(dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result, nxtresult;
 	dns_dbnode_t *node, *nextnode, *curnode;
 	dns_fixedname_t fname, fnextname, fcurname;
-	dns_name_t *name, *nextname, *target, *curname;
+	dns_name_t *name, *nextname, *target, *curname, *lastcut;
 	dns_dbiterator_t *dbiter;
 	isc_boolean_t atorigin = ISC_TRUE;
 
@@ -704,6 +724,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_fixedname_init(&fcurname);
 	curname = dns_fixedname_name(&fcurname);
 
+	lastcut = NULL;
 	dbiter = NULL;
 	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
 	check_result(result, "dns_db_createiterator()");
@@ -715,10 +736,45 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		nextnode = NULL;
 		curnode = NULL;
 		dns_dbiterator_current(dbiter, &curnode, curname);
+		if (!atorigin) {
+			dns_rdatasetiter_t *rdsiter = NULL;
+			dns_rdataset_t set;
+
+			dns_rdataset_init(&set);
+			result = dns_db_allrdatasets(db, curnode, version,
+						     0, &rdsiter);
+			check_result(result, "dns_db_allrdatasets");
+			result = dns_rdatasetiter_first(rdsiter);
+			while (result == ISC_R_SUCCESS) {
+				dns_rdatasetiter_current(rdsiter, &set);
+				if (set.type == dns_rdatatype_ns) {
+					dns_rdataset_disassociate(&set);
+					break;
+				}
+				dns_rdataset_disassociate(&set);
+				result = dns_rdatasetiter_next(rdsiter);
+			}
+			if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
+				fatal("rdataset iteration failed");
+			if (result == ISC_R_SUCCESS) {
+				if (lastcut != NULL)
+					dns_name_free(lastcut, mctx);
+				else {
+					lastcut = isc_mem_get(mctx,
+							sizeof(dns_name_t));
+					if (lastcut == NULL)
+						fatal("allocation failure");
+				}
+				dns_name_init(lastcut, NULL);
+				result = dns_name_dup(curname, mctx, lastcut);
+				check_result(result, "dns_name_dup");
+			}
+			dns_rdatasetiter_destroy(&rdsiter);
+		}
 		result = dns_dbiterator_next(dbiter);
 		if (result == ISC_R_SUCCESS)
-			result = next_active(db, version, dbiter, nextname,
-					     &nextnode);
+			result = next_nonglue(db, version, dbiter, nextname,
+					      &nextnode, lastcut);
 		if (result == ISC_R_SUCCESS)
 			target = nextname;
 		else if (result == DNS_R_NOMORE)
@@ -730,12 +786,17 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		nxtresult = dns_buildnxt(db, version, node, target);
 		check_result(nxtresult, "dns_buildnxt()");
 		signname(db, version, node, curname, atorigin);
+		atorigin = ISC_FALSE;
 		dns_db_detachnode(db, &node);
 		dns_db_detachnode(db, &curnode);
 		node = nextnode;
 	}
 	if (result != DNS_R_NOMORE)
 		fatal("db iteration failed");
+	if (lastcut != NULL) {
+		dns_name_free(lastcut, mctx);
+		isc_mem_put(mctx, lastcut, sizeof(dns_name_t));
+	}
 	dns_dbiterator_destroy(&dbiter);
 }
 
