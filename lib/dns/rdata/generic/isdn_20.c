@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: isdn_20.c,v 1.7 1999/08/02 22:17:59 halley Exp $ */
+ /* $Id: isdn_20.c,v 1.8 1999/08/12 01:32:30 halley Exp $ */
 
  /* RFC 1183 */
 
 #ifndef RDATA_GENERIC_ISDN_20_C
 #define RDATA_GENERIC_ISDN_20_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -49,7 +49,7 @@ fromtext_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
@@ -67,7 +67,7 @@ totext_isdn(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (txt_totext(&region, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -85,7 +85,7 @@ fromwire_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (txt_fromwire(source, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_isdn(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 20);
@@ -95,7 +95,7 @@ towire_isdn(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static int
+static inline int
 compare_isdn(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -109,7 +109,7 @@ compare_isdn(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		isc_buffer_t *target)
 {
@@ -124,7 +124,7 @@ fromstruct_isdn(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 20);
@@ -135,13 +135,13 @@ tostruct_isdn(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_isdn(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_isdn(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {

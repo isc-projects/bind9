@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.17 1999/08/02 22:18:01 halley Exp $ */
+ /* $Id: a_1.c,v 1.18 1999/08/12 01:32:32 halley Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C
@@ -24,7 +24,7 @@
 
 #include <isc/net.h>
 
-static dns_result_t
+static inline dns_result_t
 fromtext_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_lex_t *lexer, dns_name_t *origin,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -51,7 +51,7 @@ fromtext_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
@@ -72,7 +72,7 @@ totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      isc_buffer_t *source, dns_decompress_t *dctx,
 	      isc_boolean_t downcase, isc_buffer_t *target)
@@ -100,7 +100,7 @@ fromwire_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t region;
 
@@ -117,7 +117,7 @@ towire_in_a(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (DNS_R_SUCCESS);
 }
 
-static int
+static inline int
 compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int result;
 	
@@ -133,7 +133,7 @@ compare_in_a(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (result);
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	        isc_buffer_t *target)
 {
@@ -147,7 +147,7 @@ fromstruct_in_a(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 1);
@@ -159,14 +159,14 @@ tostruct_in_a(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_in_a(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_in_a(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {

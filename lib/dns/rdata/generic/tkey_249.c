@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.13 1999/08/02 22:18:01 halley Exp $ */
+ /* $Id: tkey_249.c,v 1.14 1999/08/12 01:32:32 halley Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
 #ifndef RDATA_GENERIC_TKEY_249_C
 #define RDATA_GENERIC_TKEY_249_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_lex_t *lexer, dns_name_t *origin,
 		  isc_boolean_t downcase, isc_buffer_t *target)
@@ -92,7 +92,7 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (isc_base64_tobuffer(lexer, target, token.value.as_ulong));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	    isc_buffer_t *target) 
 {
@@ -176,7 +176,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (isc_base64_totext(&sr, 60, " ", target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_buffer_t *source, dns_decompress_t *dctx,
 		  isc_boolean_t downcase, isc_buffer_t *target)
@@ -231,7 +231,7 @@ fromwire_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (mem_tobuffer(target, sr.base, n + 2));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
@@ -253,7 +253,7 @@ towire_tkey(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static int
+static inline int
 compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -279,7 +279,7 @@ compare_tkey(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target) {
 
@@ -293,7 +293,7 @@ fromstruct_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 249);
@@ -304,13 +304,13 @@ tostruct_tkey(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_tkey(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_tkey(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		    void *arg)
 {

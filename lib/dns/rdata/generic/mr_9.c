@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: mr_9.c,v 1.14 1999/08/02 22:18:00 halley Exp $ */
+ /* $Id: mr_9.c,v 1.15 1999/08/12 01:32:31 halley Exp $ */
 
 #ifndef RDATA_GENERIC_MR_9_C
 #define RDATA_GENERIC_MR_9_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	    isc_lex_t *lexer, dns_name_t *origin,
 	    isc_boolean_t downcase, isc_buffer_t *target)
@@ -42,7 +42,7 @@ fromtext_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	  isc_buffer_t *target) 
 {
@@ -64,7 +64,7 @@ totext_mr(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (dns_name_totext(&prefix, sub, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	    isc_buffer_t *source, dns_decompress_t *dctx,
 	    isc_boolean_t downcase, isc_buffer_t *target)
@@ -84,7 +84,7 @@ fromwire_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_mr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_name_t name;
 	isc_region_t region;
@@ -103,7 +103,7 @@ towire_mr(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (dns_name_towire(&name, cctx, target));
 }
 
-static int
+static inline int
 compare_mr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name1;
 	dns_name_t name2;
@@ -126,7 +126,7 @@ compare_mr(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	      isc_buffer_t *target)
 {
@@ -141,7 +141,7 @@ fromstruct_mr(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 9);
@@ -152,13 +152,13 @@ tostruct_mr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_mr(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_mr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		  void *arg)
 {

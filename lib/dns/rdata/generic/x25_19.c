@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.6 1999/08/02 22:18:01 halley Exp $ */
+ /* $Id: x25_19.c,v 1.7 1999/08/12 01:32:32 halley Exp $ */
 
  /* RFC 1183 */
 
@@ -24,7 +24,7 @@
 
 #include <ctype.h>
 
-static dns_result_t
+static inline dns_result_t
 fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -46,7 +46,7 @@ fromtext_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (txt_fromtext(&token.value.as_textregion, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	   isc_buffer_t *target) 
 {
@@ -60,7 +60,7 @@ totext_x25(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (txt_totext(&region, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -75,7 +75,7 @@ fromwire_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (txt_fromwire(source, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 19);
@@ -85,7 +85,7 @@ towire_x25(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static int
+static inline int
 compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	int l;
 	int result;
@@ -105,7 +105,7 @@ compare_x25(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (result);
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
@@ -120,7 +120,7 @@ fromstruct_x25(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 19);
@@ -131,13 +131,13 @@ tostruct_x25(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_x25(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_x25(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {

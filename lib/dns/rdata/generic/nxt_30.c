@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.12 1999/08/02 22:18:00 halley Exp $ */
+ /* $Id: nxt_30.c,v 1.13 1999/08/12 01:32:31 halley Exp $ */
 
  /* RFC 2065 */
 
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_lex_t *lexer, dns_name_t *origin,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -73,7 +73,7 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (mem_tobuffer(target, bm, n));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	   isc_buffer_t *target) 
 {
@@ -118,7 +118,7 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (str_totext(")", target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	     isc_buffer_t *source, dns_decompress_t *dctx,
 	     isc_boolean_t downcase, isc_buffer_t *target)
@@ -146,7 +146,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
@@ -167,7 +167,7 @@ towire_nxt(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static int
+static inline int
 compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -192,7 +192,7 @@ compare_nxt(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	       isc_buffer_t *target)
 {
@@ -207,7 +207,7 @@ fromstruct_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 30);
@@ -218,7 +218,7 @@ tostruct_nxt(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_nxt(void *source) {
 	dns_rdata_nxt_t *nxt = source;
 
@@ -227,7 +227,7 @@ freestruct_nxt(void *source) {
 	REQUIRE(ISC_FALSE);
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_nxt(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		   void *arg)
 {

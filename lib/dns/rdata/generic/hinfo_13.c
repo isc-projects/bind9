@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.14 1999/08/02 22:17:59 halley Exp $ */
+ /* $Id: hinfo_13.c,v 1.15 1999/08/12 01:32:30 halley Exp $ */
 
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_lex_t *lexer, dns_name_t *origin,
 	       isc_boolean_t downcase, isc_buffer_t *target)
@@ -42,7 +42,7 @@ fromtext_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_SUCCESS);
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_hinfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	     isc_buffer_t *target) 
 {
@@ -58,7 +58,7 @@ totext_hinfo(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (txt_totext(&region, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	       isc_buffer_t *source, dns_decompress_t *dctx,
 	       isc_boolean_t downcase, isc_buffer_t *target)
@@ -74,7 +74,7 @@ fromwire_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (txt_fromwire(source, target));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 13);
@@ -84,7 +84,7 @@ towire_hinfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
-static int
+static inline int
 compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -98,7 +98,7 @@ compare_hinfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
@@ -113,7 +113,7 @@ fromstruct_hinfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 13);
@@ -124,13 +124,13 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_hinfo(void *source) {
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE); /* XXX */
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_hinfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {

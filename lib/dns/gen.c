@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.22 1999/08/02 22:18:30 halley Exp $ */
+ /* $Id: gen.c,v 1.23 1999/08/12 01:32:42 halley Exp $ */
 
 #include <config.h>
 
@@ -235,13 +235,13 @@ dodecl(char *type, char *function, char *args) {
 	for (tt = types; tt ; tt = tt->next)
 		if (tt->rdclass)
 			fprintf(stdout,
-				"static %s %s_%s_%s(%s);\n",
+				"static inline %s %s_%s_%s(%s);\n",
 				type, function,
 				funname(tt->classname, buf1),
 				funname(tt->typename, buf2), args);
 		else
 			fprintf(stdout,
-				"static %s %s_%s(%s);\n",
+				"static inline %s %s_%s(%s);\n",
 				type, function, 
 				funname(tt->typename, buf1), args);
 }

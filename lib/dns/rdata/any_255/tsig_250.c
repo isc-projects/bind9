@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.13 1999/08/02 22:17:58 halley Exp $ */
+ /* $Id: tsig_250.c,v 1.14 1999/08/12 01:32:29 halley Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -23,7 +23,7 @@
 #define RDATA_ANY_255_TSIG_250_C
 #include <isc/str.h>
 
-static dns_result_t
+static inline dns_result_t
 fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_lex_t *lexer, dns_name_t *origin,
 		  isc_boolean_t downcase, isc_buffer_t *target)
@@ -92,7 +92,7 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (isc_base64_tobuffer(lexer, target, token.value.as_ulong));
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 		isc_buffer_t *target) 
 {
@@ -184,7 +184,7 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (isc_base64_totext(&sr, 60, " ", target));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		  isc_buffer_t *source, dns_decompress_t *dctx,
 		  isc_boolean_t downcase, isc_buffer_t *target)
@@ -240,7 +240,7 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (mem_tobuffer(target, sr.base, n + 2));
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	isc_region_t sr;
 	dns_name_t name;
@@ -261,7 +261,7 @@ towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) 
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
 
-static int
+static inline int
 compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -288,7 +288,7 @@ compare_any_tsig(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		    void *source, isc_buffer_t *target)
 {
@@ -302,7 +302,7 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == 250);
@@ -314,7 +314,7 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_any_tsig(void *source) {
 	dns_rdata_any_tsig_t *tsig = source;
 
@@ -325,7 +325,7 @@ freestruct_any_tsig(void *source) {
 
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_any_tsig(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			void *arg)
 {

@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.12 1999/08/02 22:18:00 halley Exp $ */
+ /* $Id: proforma.c,v 1.13 1999/08/12 01:32:31 halley Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
 
-static dns_result_t
+static inline dns_result_t
 fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	   isc_lex_t *lexer, dns_name_t *origin,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
@@ -34,7 +34,7 @@ fromtext_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	 isc_buffer_t *target) 
 {
@@ -45,7 +45,7 @@ totext_#(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	   isc_buffer_t *source, dns_decompress_t *dctx,
 	   isc_boolean_t downcase, isc_buffer_t *target) {
@@ -61,7 +61,7 @@ fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == #);
@@ -75,7 +75,7 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static int
+static inline int
 compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	isc_region_t r1;
 	isc_region_t r2;
@@ -90,7 +90,7 @@ compare_#(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	return (compare_region(&r1, &r2));
 }
 
-static dns_result_t
+static inline dns_result_t
 fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	     isc_buffer_t *target) {
 
@@ -100,7 +100,7 @@ fromstruct_#(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static dns_result_t
+static inline dns_result_t
 tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 
 	REQUIRE(rdata->type == #);
@@ -109,7 +109,7 @@ tostruct_#(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
-static void
+static inline void
 freestruct_#(void *source) {
 	dns_rdata_#_t *# = source;
 
@@ -119,7 +119,7 @@ freestruct_#(void *source) {
 	
 }
 
-static dns_result_t
+static inline dns_result_t
 additionaldata_#(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		 void *arg)
 {
