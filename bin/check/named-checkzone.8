@@ -19,7 +19,7 @@
 named-checkzone \- zone file validity checking tool
 .SH SYNOPSIS
 .sp
-\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-j\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-n \fImode\fB\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-w \fIdirectory\fB\fR ]  \fBzonename\fR \fBfilename\fR
+\fBnamed-checkzone\fR [ \fB-d\fR ]  [ \fB-j\fR ]  [ \fB-q\fR ]  [ \fB-v\fR ]  [ \fB-c \fIclass\fB\fR ]  [ \fB-n \fImode\fB\fR ]  [ \fB-o \fIfilename\fB\fR ]  [ \fB-t \fIdirectory\fB\fR ]  [ \fB-w \fIdirectory\fB\fR ]  [ \fB-D\fR ]  \fBzonename\fR \fBfilename\fR
 .SH "DESCRIPTION"
 .PP
 \fBnamed-checkzone\fR checks the syntax and integrity of
@@ -51,6 +51,9 @@ are addresses. Possible modes are \fB"fail"\fR,
 \fB"warn"\fR (default) and
 \fB"ignore"\fR.
 .TP
+\fB-o \fIfilename\fB\fR
+Write zone output to \fIdirectory\fR.
+.TP
 \fB-t \fIdirectory\fB\fR
 chroot to \fIdirectory\fR so that include
 directives in the configuration file are processed as if
@@ -61,6 +64,9 @@ chdir to \fIdirectory\fR so that relative
 filenames in master file $INCLUDE directives work. This
 is similar to the directory clause in
 \fInamed.conf\fR.
+.TP
+\fB-D\fR
+Dump zone file in canonical format.
 .TP
 \fBzonename\fR
 The domain name of the zone being checked.
