@@ -32,9 +32,7 @@ void isc_error_unexpected(char *, int, char *, ...);
 void isc_error_fatal(char *, int, char *, ...);
 void isc_error_runtimecheck(char *, int, char *);
 
-#define UNEXPECTED_ERROR	isc_error_unexpected
-#define FATAL_ERROR		isc_error_fatal
-#define RUNTIME_CHECK(cond) \
+#define ISC_ERROR_RUNTIMECHECK(cond) \
 	((void) ((cond) || \
 		 ((isc_error_runtimecheck)(__FILE__, __LINE__, #cond), 0)))
 

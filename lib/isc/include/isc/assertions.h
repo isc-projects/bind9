@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.7 2000/02/03 23:07:47 halley Exp $
+ * $Id: assertions.h,v 1.8 2000/04/28 01:03:24 halley Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
@@ -41,75 +41,75 @@ extern isc_assertioncallback_t isc_assertion_failed;
 void isc_assertion_setcallback(isc_assertioncallback_t);
 char *isc_assertion_typetotext(isc_assertiontype_t type);
 
-#ifdef CHECK_ALL
-#define CHECK_REQUIRE		1
-#define CHECK_ENSURE		1
-#define CHECK_INSIST		1
-#define CHECK_INVARIANT		1
+#ifdef ISC_CHECK_ALL
+#define ISC_CHECK_REQUIRE		1
+#define ISC_CHECK_ENSURE		1
+#define ISC_CHECK_INSIST		1
+#define ISC_CHECK_INVARIANT		1
 #endif
 
-#ifdef CHECK_NONE
-#define CHECK_REQUIRE		0
-#define CHECK_ENSURE		0
-#define CHECK_INSIST		0
-#define CHECK_INVARIANT		0
+#ifdef ISC_CHECK_NONE
+#define ISC_CHECK_REQUIRE		0
+#define ISC_CHECK_ENSURE		0
+#define ISC_CHECK_INSIST		0
+#define ISC_CHECK_INVARIANT		0
 #endif
 
-#ifndef CHECK_REQUIRE
-#define CHECK_REQUIRE		1
+#ifndef ISC_CHECK_REQUIRE
+#define ISC_CHECK_REQUIRE		1
 #endif
 
-#ifndef CHECK_ENSURE
-#define CHECK_ENSURE		1
+#ifndef ISC_CHECK_ENSURE
+#define ISC_CHECK_ENSURE		1
 #endif
 
-#ifndef CHECK_INSIST
-#define CHECK_INSIST		1
+#ifndef ISC_CHECK_INSIST
+#define ISC_CHECK_INSIST		1
 #endif
 
-#ifndef CHECK_INVARIANT
-#define CHECK_INVARIANT		1
+#ifndef ISC_CHECK_INVARIANT
+#define ISC_CHECK_INVARIANT		1
 #endif
 
-#if CHECK_REQUIRE != 0
-#define REQUIRE(cond) \
+#if ISC_CHECK_REQUIRE != 0
+#define ISC_REQUIRE(cond) \
 	((void) ((cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_require, \
 					 #cond), 0)))
 #else
-#define REQUIRE(cond)		((void) 0)
-#endif /* CHECK_REQUIRE */
+#define ISC_REQUIRE(cond)	((void) 0)
+#endif /* ISC_CHECK_REQUIRE */
 
-#if CHECK_ENSURE != 0
-#define ENSURE(cond) \
+#if ISC_CHECK_ENSURE != 0
+#define ISC_ENSURE(cond) \
 	((void) ((cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_ensure, \
 					 #cond), 0)))
 #else
-#define ENSURE(cond)		((void) 0)
-#endif /* CHECK_ENSURE */
+#define ISC_ENSURE(cond)	((void) 0)
+#endif /* ISC_CHECK_ENSURE */
 
-#if CHECK_INSIST != 0
-#define INSIST(cond) \
+#if ISC_CHECK_INSIST != 0
+#define ISC_INSIST(cond) \
 	((void) ((cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_insist, \
 					 #cond), 0)))
 #else
-#define INSIST(cond)		((void) 0)
-#endif /* CHECK_INSIST */
+#define ISC_INSIST(cond)	((void) 0)
+#endif /* ISC_CHECK_INSIST */
 
-#if CHECK_INVARIANT != 0
-#define INVARIANT(cond) \
+#if ISC_CHECK_INVARIANT != 0
+#define ISC_INVARIANT(cond) \
 	((void) ((cond) || \
 		 ((isc_assertion_failed)(__FILE__, __LINE__, \
 					 isc_assertiontype_invariant, \
 					 #cond), 0)))
 #else
-#define INVARIANT(cond)		((void) 0)
-#endif /* CHECK_INVARIANT */
+#define ISC_INVARIANT(cond)	((void) 0)
+#endif /* ISC_CHECK_INVARIANT */
 
 ISC_LANG_ENDDECLS
 
