@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.39 $)
+AC_REVISION($Revision: 1.40 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1696,6 +1696,16 @@ AC_SUBST(PASS_R_OK)
 AC_SUBST(PASS_R_RETURN)
 
 AC_CHECK_FUNC(endpwent_r,
+AC_TRY_COMPILE(
+[
+#include <pwd.h>
+void endpwent_r(FILE **pwfp);
+], ,
+PASS_R_END_RESULT="#define PASS_R_END_RESULT(x) /*empty*/"
+PASS_R_END_RETURN="#define PASS_R_END_RETURN void"
+PASS_R_ENT_ARGS="#define PASS_R_ENT_ARGS FILE **pwptr)"
+,
+)
 ,
 PASS_R_END_RESULT="#define PASS_R_END_RESULT(x) /*empty*/"
 PASS_R_END_RETURN="#define PASS_R_END_RETURN void"
