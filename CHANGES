@@ -1,3 +1,6 @@
+1127.	[func]		rndc: If the server to contact has multiple addresses,
+			try all of them.
+
 1126.	[bug]		The server could access a freed event if shut
 			down while a client start event was pending
 			delivery. [RT #2061]
