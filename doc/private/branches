@@ -1,0 +1,17 @@
+Name		Status		Responsible
+-------------------------------------------
+a6_remove
+blabel-cleanup
+ipv6-improvements
+ipv6-scope
+ipv6_6to4	review		jinmei
+libbind_clean
+rt3445
+rt3536
+rt3588
+rt3598
+rt3625
+rt3653
+rt3666		review		jinmei
+v6source
+marka_google	closed
