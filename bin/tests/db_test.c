@@ -726,6 +726,8 @@ main(int argc, char *argv[]) {
 			found_as = ISC_TRUE;
 			break;
 		case DNS_R_NXRDATASET:
+			if (dns_rdataset_isassociated(&rdataset))
+				break;
 			if (dbi != NULL) {
 				if (holdmode) {
 					RUNTIME_CHECK(dbi->hold_count <

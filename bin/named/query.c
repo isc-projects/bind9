@@ -527,9 +527,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		 * There's nothing else to do;
 		 */
 		return;
-	}
-
-	if (result == DNS_R_NXDOMAIN) {
+	} else if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The name doesn't exist.
 		 */
@@ -844,18 +842,41 @@ query_find(ns_client_t *client) {
 		break;
 	case DNS_R_NXRDATASET:
 		INSIST(is_zone);
+		if (dns_rdataset_isassociated(rdataset)) {
+			/*
+			 * If we've got a NXT record, we need to save the
+			 * name now because we're going call query_addsoa()
+			 * below, and it needs to use the name buffer.
+			 */
+			query_keepname(client, fname, dbuf);
+			/*
+			 * We don't want the cleanup code to try to release
+			 * fname if we fail below, so we set it to NULL.
+			 */
+			tname = fname;
+			fname = NULL;
+		} else {
+			/*
+			 * We're not going to use fname, and need to release
+			 * our hold on the name buffer so query_addsoa()
+			 * may use it.
+			 */
+			query_releasename(client, &fname);
+		}
 		/*
 		 * Add SOA.
 		 */
-		query_releasename(client, &fname);
 		result = query_addsoa(client, db);
 		if (result != ISC_R_SUCCESS) {
 			QUERY_ERROR(result);
 			goto cleanup;
 		}
 		/*
-		 * XXXRTH  Add NXT record here.
+		 * Add NXT record if we found one.
 		 */
+		if (dns_rdataset_isassociated(rdataset))
+			query_addrrset(client, &tname, &rdataset, NULL,
+				       DNS_SECTION_AUTHORITY);
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		if (restarts > 0) {
