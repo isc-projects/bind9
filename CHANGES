@@ -1,5 +1,6 @@
- 936.	[func]		Warn when non dotted decimal quad's are used.
-			[RT #1084]
+
+ 936.	[func]		Warn about IPv4 addresses that are not complete
+			dotted quads. [RT #1084]
 
  935.	[bug]		inet_pton failed to reject leading zeros.
 
