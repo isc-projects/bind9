@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.11 2001/01/09 21:52:57 bwelling Exp $ */
+/* $Id: keyvalues.h,v 1.12 2001/09/19 00:14:48 bwelling Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -62,7 +62,10 @@
 #define DNS_KEYALG_DH		2       /* Diffie Hellman KEY */
 #define DNS_KEYALG_DSA		3       /* DSA KEY */
 #define DNS_KEYALG_DSS		NS_ALG_DSA
-#define DNS_KEYALG_EXPIREONLY	253     /* No alg, no security */
+#define DNS_KEYALG_ECC		4
+#define DNS_KEYALG_RSASHA1	5
+#define DNS_KEYALG_INDIRECT	252
+#define DNS_KEYALG_PRIVATEDNS	253
 #define DNS_KEYALG_PRIVATEOID	254     /* Key begins with OID giving alg */
 
 /* Protocol values  */
