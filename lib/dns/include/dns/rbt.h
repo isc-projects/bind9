@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.47 2000/08/03 19:46:37 bwelling Exp $ */
+/* $Id: rbt.h,v 1.48 2000/08/07 19:30:58 gson Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -573,7 +573,7 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
 unsigned int
 dns_rbt_nodecount(dns_rbt_t *rbt);
 /*
- * Obtain the number of nodes tree of trees.
+ * Obtain the number of nodes in the tree of trees.
  *
  * Requires:
  *	rbt is a valid rbt manager.
