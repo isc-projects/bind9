@@ -6,6 +6,8 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1405.	[func]		Use arc4random() if available.
+
 1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
 			dnssec-signkey now report their version in the
 			usage message.
@@ -431,6 +433,9 @@
 			"dig -x 10.0.0.0-127". [RT #827, #1576, #1598]
 
 	--- 9.2.3rc1 released ---
+
+1499.	[bug]		isc_random need to be seeded better if arc4random()
+			is not used.
 
 1498.	[port]		bsdos: 5.x support.
 

@@ -4619,6 +4619,99 @@ echo "${ECHO_T}using \"$use_randomdev\"" >&6
 esac
 
 #
+# Do we have arc4random() ?
+#
+echo "$as_me:$LINENO: checking for arc4random" >&5
+echo $ECHO_N "checking for arc4random... $ECHO_C" >&6
+if test "${ac_cv_func_arc4random+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+#include "confdefs.h"
+/* From autoconf 2.57 */
+/* Define arc4random to an innocuous variant, in case <limits.h> declares arc4random.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define arc4random innocuous_arc4random
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char arc4random (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef arc4random
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char arc4random ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined (__stub_arc4random) || defined (__stub___arc4random)
+choke me
+#else
+char (*f) () = arc4random;
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef F77_DUMMY_MAIN
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int F77_DUMMY_MAIN() { return 1; }
+#endif
+int
+main ()
+{
+return f != arc4random;
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_func_arc4random=yes
+else
+  echo "$as_me: failed program was:" >&5
+cat conftest.$ac_ext >&5
+ac_cv_func_arc4random=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_func_arc4random" >&5
+echo "${ECHO_T}$ac_cv_func_arc4random" >&6
+if test $ac_cv_func_arc4random = yes; then
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_ARC4RANDOM 1
+_ACEOF
+
+fi
+
+
+#
 # Begin pthreads checking.
 #
 # First, decide whether to use multithreading or not.
@@ -7543,7 +7636,7 @@ test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 case $host in
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7546 "configure"' > conftest.$ac_ext
+  echo '#line 7639 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8093,7 +8186,7 @@ chmod -w .
 save_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
 compiler_c_o=no
-if { (eval echo configure:8096: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+if { (eval echo configure:8189: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
   # The compiler can only warn and ignore the option if not recognized
   # So say no if there are warnings
   if test -s out/conftest.err; then
@@ -9960,7 +10053,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 9963 "configure"
+#line 10056 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -10058,7 +10151,7 @@ else
     lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 10061 "configure"
+#line 10154 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
