@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.20 2001/01/09 21:53:19 bwelling Exp $ */
+/* $Id: rdataslab.h,v 1.21 2002/02/19 23:46:32 bwelling Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
@@ -79,7 +79,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *
  * Returns:
  *	ISC_R_SUCCESS		- successful completion
- *	DNS_R_NOMEM		- no memory.
+ *	ISC_R_NOMEMORY		- no memory.
  *	<XXX others>
  */
 
