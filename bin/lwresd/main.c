@@ -237,7 +237,7 @@ main(int argc, char **argv)
 		ISC_EVENT_INIT(&cmgr[i].sdev, sizeof(isc_event_t),
 			       ISC_EVENTATTR_NOPURGE,
 			       0, LWRD_SHUTDOWN,
-			       client_shutdown, &cmgr[i], main,
+			       client_shutdown, &cmgr[i], (void *)main,
 			       NULL, NULL);
 		ISC_LIST_INIT(cmgr[i].idle);
 		ISC_LIST_INIT(cmgr[i].running);
