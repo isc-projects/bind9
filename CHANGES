@@ -18,6 +18,8 @@
 			in the additional section or TC is set to tell the
 			client to retry using TCP. [RT #10114]
 
+1802.	[bug]		Handle connection resets better. [RT #11280]
+
 	--- 9.2.5 released ---
 
 	--- 9.2.5rc1 released ---
