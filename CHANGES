@@ -1,4 +1,7 @@
 
+ 675.	[func]		TKEY queries could cause the server to leak
+			memory.
+
  672.	[bug]		The wrong time was in the "time signed" field when
 			replying with BADTIME error.
 

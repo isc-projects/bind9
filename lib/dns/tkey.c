@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.57.2.2 2001/01/11 18:28:13 gson Exp $
+ * $Id: tkey.c,v 1.57.2.3 2001/01/11 18:32:58 gson Exp $
  */
 
 #include <config.h>
@@ -154,17 +154,37 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	return (ISC_R_SUCCESS);
 
  failure:
-	if (newrdata != NULL)
+	if (newrdata != NULL) {
+		if (ISC_LINK_LINKED(newrdata, link))
+			ISC_LIST_UNLINK(newlist->rdata, newrdata, link);
 		dns_message_puttemprdata(msg, &newrdata);
+	}
 	if (newname != NULL)
 		dns_message_puttempname(msg, &newname);
-	if (newlist != NULL)
-		dns_message_puttemprdatalist(msg, &newlist);
 	if (newset != NULL) {
 		dns_rdataset_disassociate(newset);
 		dns_message_puttemprdataset(msg, &newset);
 	}
+	if (newlist != NULL)
+		dns_message_puttemprdatalist(msg, &newlist);
 	return (result);
+}
+
+static void
+free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
+	dns_name_t *name;
+	dns_rdataset_t *set;
+
+	while (!ISC_LIST_EMPTY(*namelist)) {
+		name = ISC_LIST_HEAD(*namelist);
+		ISC_LIST_UNLINK(*namelist, name, link);
+		while (!ISC_LIST_EMPTY(name->list)) {
+			set = ISC_LIST_HEAD(name->list);
+			ISC_LIST_UNLINK(name->list, set, link);
+			dns_message_puttemprdataset(msg, &set);
+		}
+		dns_message_puttempname(msg, &name);
+	}
 }
 
 static isc_result_t
@@ -688,6 +708,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		}
 		if (tctx->domain == NULL) {
 			tkey_log("dns_tkey_processquery: tkey-domain not set");
+			dns_message_takebuffer(msg, &buf);
 			result = DNS_R_REFUSED;
 			goto failure;
 		}
@@ -777,6 +798,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 		dns_message_puttemprdata(msg, &rdata);
 	if (dynbuf != NULL)
 		isc_buffer_free(&dynbuf);
+	if (!ISC_LIST_EMPTY(namelist))
+		free_namelist(msg, &namelist);
 	return (result);
 }
 
