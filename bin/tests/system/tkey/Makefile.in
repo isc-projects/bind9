@@ -1,0 +1,43 @@
+srcdir =	@srcdir@
+VPATH =		@srcdir@
+top_srcdir =	@top_srcdir@
+
+@BIND9_VERSION@
+
+@BIND9_INCLUDES@
+
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
+
+CDEFINES =
+CWARNINGS =
+
+DNSLIBS =	../../../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@ @DNS_GSSAPI_LIBS@
+ISCLIBS =	../../../../lib/isc/libisc.@A@
+
+DNSDEPLIBS =	../../../../lib/dns/libdns.@A@
+ISCDEPLIBS =	../../../../lib/isc/libisc.@A@
+
+DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
+
+LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
+
+TARGETS =	keycreate keydelete
+
+CREATEOBJS =	keycreate.@O@
+DELETEOBJS =	keydelete.@O@
+
+SRCS =		keycreate.c keydelete.c
+
+@BIND9_MAKE_RULES@
+
+all: keycreate keydelete
+
+keycreate: ${CREATEOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${CREATEOBJS} ${LIBS}
+
+keydelete: ${DELETEOBJS} ${DEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${DELETEOBJS} ${LIBS}
+
+clean distclean::
+	rm -f ${TARGETS}
+

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.23 2001/01/09 21:42:15 bwelling Exp $
+# $Id: Makefile.in,v 1.24 2001/01/11 20:45:49 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-SUBDIRS =	lwresd
+SUBDIRS =	lwresd tkey
 TARGETS =
 
 @BIND9_MAKE_RULES@
