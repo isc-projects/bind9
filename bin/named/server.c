@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.290 2001/02/08 18:01:33 halley Exp $ */
+/* $Id: server.c,v 1.291 2001/02/14 03:54:53 gson Exp $ */
 
 #include <config.h>
 
@@ -424,8 +424,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	cmctx = NULL;
 
-	RWLOCK(&view->conflock, isc_rwlocktype_write);
-
 	/*
 	 * Set the view's port number for outgoing queries.
 	 */
@@ -728,8 +726,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
-
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
 
@@ -1311,12 +1307,19 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
  */
 static void
 interface_timer_tick(isc_task_t *task, isc_event_t *event) {
+        isc_result_t result;
 	ns_server_t *server = (ns_server_t *) event->ev_arg;
+	INSIST(task == server->task);
 	UNUSED(task);
 	isc_event_free(&event);
-	RWLOCK(&server->conflock, isc_rwlocktype_write);
+	/*
+	 * XXX should scan interfaces unlocked and get exclusive access
+	 * only to replace ACLs.
+	 */
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	scan_interfaces(server, ISC_FALSE);
-	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
+	isc_task_endexclusive(server->task);	
 }
 
 static void
@@ -1326,13 +1329,11 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	isc_event_free(&event);
-	RWLOCK(&server->conflock, isc_rwlocktype_read);
 	view = ISC_LIST_HEAD(server->viewlist);
 	while (view != NULL) {
 		dns_view_dialup(view);
 		view = ISC_LIST_NEXT(view, link);
 	}
-	RWUNLOCK(&server->conflock, isc_rwlocktype_read);
 }
 
 static isc_result_t
@@ -1426,8 +1427,9 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	ns_aclconfctx_init(&aclconfctx);
 
-	RWLOCK(&server->conflock, isc_rwlocktype_write);
-	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_write);
+	/* Ensure exclusive access to configuration data. */
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);	
 
 	lctx.mctx = ns_g_mctx;
 	lctx.aclconf = &aclconfctx;
@@ -1856,8 +1858,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (dispatchv6 != NULL)
 		dns_dispatch_detach(&dispatchv6);
 
-	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_write);
-	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
+	/* Relinquish exclusive access to configuration data. */
+	isc_task_endexclusive(server->task);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_DEBUG(1), "load_configuration: %s",
@@ -1871,7 +1873,8 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	isc_result_t result;
 	dns_view_t *view;
 
-	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/*
 	 * Load zone data from disk.
@@ -1890,7 +1893,7 @@ load_zones(ns_server_t *server, isc_boolean_t stop) {
 	 */
 	CHECK(dns_zonemgr_forcemaint(server->zonemgr));
  cleanup:
-	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
+	isc_task_endexclusive(server->task);	
 	return (result);
 }
 
@@ -1949,13 +1952,16 @@ ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush) {
 
 static void
 shutdown_server(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
 	dns_view_t *view, *view_next;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 	isc_boolean_t flush = server->flushonshutdown;
 
 	UNUSED(task);
+	INSIST(task == server->task);
 
-	RWLOCK(&server->conflock, isc_rwlocktype_write);
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "shutting down%s",
@@ -1985,11 +1991,11 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	if (server->blackholeacl != NULL)
 		dns_acl_detach(&server->blackholeacl);
 
+	isc_task_endexclusive(server->task);
+
 	isc_task_detach(&server->task);
 
 	isc_event_free(&event);
-
-	RWUNLOCK(&server->conflock, isc_rwlocktype_write);
 }
 
 void
@@ -2002,9 +2008,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->mctx = mctx;
 	server->task = NULL;
-
-	CHECKFATAL(isc_rwlock_init(&server->conflock, 1, 1),
-		   "initializing server configuration lock");
 
 	/* Initialize configuration data with default values. */
 
@@ -2117,7 +2120,6 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_quota_destroy(&server->recursionquota);
 	isc_quota_destroy(&server->tcpquota);
 	isc_quota_destroy(&server->xfroutquota);
-	isc_rwlock_destroy(&server->conflock);
 
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
@@ -2137,6 +2139,8 @@ static void
 ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
+
+	INSIST(task = server->task);
 	UNUSED(task);
 
 	if (ns_g_lwresdonly)
@@ -2396,7 +2400,6 @@ ns_server_dumpstats(ns_server_t *server) {
 			dns_statscounter_names[i],
 			server->querystats[i]);
 	
-	dns_zonemgr_lockconf(server->zonemgr, isc_rwlocktype_read);
 	zone = NULL;
 	for (result = dns_zone_first(server->zonemgr, &zone);
 	     result == ISC_R_SUCCESS;
@@ -2429,7 +2432,6 @@ ns_server_dumpstats(ns_server_t *server) {
 	CHECK(result);
 	
 	fprintf(fp, "--- Statistics Dump --- (%lu)\n", (unsigned long)now);
-	dns_zonemgr_unlockconf(server->zonemgr, isc_rwlocktype_read);
 
  cleanup:
 	if (fp != NULL)

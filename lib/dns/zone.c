@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.306 2001/02/12 03:03:40 marka Exp $ */
+/* $Id: zone.c,v 1.307 2001/02/14 03:50:11 gson Exp $ */
 
 #include <config.h>
 
@@ -265,7 +265,6 @@ struct dns_zonemgr {
 	isc_task_t *		task;
 	isc_ratelimiter_t *	rl;
 	isc_rwlock_t		rwlock;
-	isc_rwlock_t		conflock;
 	isc_mutex_t		iolock;
 
 	/* Locked by rwlock. */
@@ -273,7 +272,7 @@ struct dns_zonemgr {
 	dns_zonelist_t		waiting_for_xfrin;
 	dns_zonelist_t		xfrin_in_progress;
 
-	/* Locked by conflock. */
+	/* Configuration data. */
 	int			transfersin;
 	int			transfersperns;
 
@@ -3684,10 +3683,7 @@ zone_timer(isc_task_t *task, isc_event_t *event) {
 
 	ENTER;
 
-	dns_zonemgr_lockconf(zone->zmgr, isc_rwlocktype_read);
-	/* XXX if we use a view, we need to lock its configuration, too. */
 	zone_maintenance(zone);
-	dns_zonemgr_unlockconf(zone->zmgr, isc_rwlocktype_read);
 
 	isc_event_free(&event);
 }
@@ -5245,15 +5241,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		result = ISC_R_UNEXPECTED;
 		goto free_mem;
 	}
-	result = isc_rwlock_init(&zmgr->conflock, 1, 1);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto free_rwlock;
-	}
-
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 
@@ -5261,7 +5248,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = isc_taskpool_create(taskmgr, mctx,
 				     8 /* XXX */, 0, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
-		goto free_conflock;
+		goto free_rwlock;
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
@@ -5305,8 +5292,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_task_detach(&zmgr->task);
  free_taskpool:
 	isc_taskpool_destroy(&zmgr->zonetasks);
- free_conflock:
-	isc_rwlock_destroy(&zmgr->conflock);
  free_rwlock:
 	isc_rwlock_destroy(&zmgr->rwlock);
  free_mem:
@@ -5469,25 +5454,10 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	DESTROYLOCK(&zmgr->iolock);
 	isc_ratelimiter_detach(&zmgr->rl);
 
-	isc_rwlock_destroy(&zmgr->conflock);
 	isc_rwlock_destroy(&zmgr->rwlock);
 	mctx = zmgr->mctx;
 	isc_mem_put(zmgr->mctx, zmgr, sizeof *zmgr);
 	isc_mem_detach(&mctx);
-}
-
-void
-dns_zonemgr_lockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWLOCK(&zmgr->conflock, type);
-}
-
-void
-dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	RWUNLOCK(&zmgr->conflock, type);
 }
 
 void

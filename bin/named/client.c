@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.150 2001/02/14 02:51:12 gson Exp $ */
+/* $Id: client.c,v 1.151 2001/02/14 03:50:04 gson Exp $ */
 
 #include <config.h>
 
@@ -1156,9 +1156,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	       NS_CLIENTSTATE_READING :
 	       NS_CLIENTSTATE_READY);
 
-	RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-	dns_zonemgr_lockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
-
 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
 		sevent = (isc_socketevent_t *)event;
@@ -1195,7 +1192,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		      TCP_CLIENT(client) ? "TCP" : "UDP");
 
 	if (exit_check(client))
-		goto cleanup_serverlock;
+		goto cleanup;
 	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
 
 	isc_stdtime_get(&client->requesttime);
@@ -1206,7 +1203,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			ns_client_next(client, result);
 		else
 			isc_task_shutdown(client->task);
-		goto cleanup_serverlock;
+		goto cleanup;
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_MULTICAST) != 0) {
@@ -1221,7 +1218,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_parse(client->message, buffer, 0);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_error(client, result);
-		goto cleanup_serverlock;
+		goto cleanup;
 	}
 
 	/*
@@ -1233,11 +1230,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (TCP_CLIENT(client)) {
 			CTRACE("unexpected response");
 			ns_client_next(client, DNS_R_FORMERR);
-			goto cleanup_serverlock;
+			goto cleanup;
 		} else {
 			dns_dispatch_importrecv(client->dispatch, event);
 			ns_client_next(client, ISC_R_SUCCESS);
-			goto cleanup_serverlock;
+			goto cleanup;
 		}
 	}
 
@@ -1282,7 +1279,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		result = client_addopt(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_error(client, result);
-			goto cleanup_serverlock;
+			goto cleanup;
 		}
 
 		/*
@@ -1293,7 +1290,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		version = (opt->ttl & 0x00FF0000) >> 16;
 		if (version != 0) {
 			ns_client_error(client, DNS_R_BADVERS);
-			goto cleanup_serverlock;
+			goto cleanup;
 		}
 	}
 
@@ -1302,7 +1299,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "message class could not be determined");
 		ns_client_error(client, DNS_R_FORMERR);
-		goto cleanup_serverlock;
+		goto cleanup;
 	}
 
 	/*
@@ -1350,24 +1347,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
 			      "no matching view in class '%s'", classname);
 		ns_client_error(client, DNS_R_REFUSED);
-		goto cleanup_serverlock;
+		goto cleanup;
 	}
 
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(5),
 		      "using view '%s'", view->name);
-
-	/*
-	 * Lock the view's configuration data for reading.
-	 * We must attach a separate view reference for this
-	 * purpose instad of using client->view, because
-	 * client->view may or may not be detached at the point
-	 * when we return from this event handler depending
-	 * on whether the request handler causes ns_client_next()
-	 * to be called or not.
-	 */
-	dns_view_attach(client->view, &client->lockview);
-	RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 
 	/*
 	 * Check for a signature.  We log bad signatures regardless of
@@ -1400,7 +1385,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (!(client->message->tsigstatus == dns_tsigerror_badkey &&
 		      client->message->opcode == dns_opcode_update)) {
 			ns_client_error(client, sigresult);
-			goto cleanup_viewlock;
+			goto cleanup;
 		}
 	} else {
 		/* There is a signature, but it is bad. */
@@ -1411,7 +1396,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (!(client->message->tsigstatus == dns_tsigerror_badkey &&
 		      client->message->opcode == dns_opcode_update)) {
 			ns_client_error(client, sigresult);
-			goto cleanup_viewlock;
+			goto cleanup;
 		}
 	}
 
@@ -1460,12 +1445,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_NOTIMP);
 	}
 
- cleanup_viewlock:
-	RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-	dns_view_detach(&client->lockview);
- cleanup_serverlock:
-	dns_zonemgr_unlockconf(ns_g_server->zonemgr, isc_rwlocktype_read);
-	RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
+ cleanup:
+	return;
 }
 
 static void
@@ -1577,7 +1558,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->references = 0;
 	client->attributes = 0;
 	client->view = NULL;
-	client->lockview = NULL;
 	client->dispatch = NULL;
 	client->udpsocket = NULL;
 	client->tcplistener = NULL;

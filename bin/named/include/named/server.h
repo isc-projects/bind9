@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.51 2001/02/07 00:50:43 bwelling Exp $ */
+/* $Id: server.h,v 1.52 2001/02/14 03:50:08 gson Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -41,16 +41,17 @@ struct ns_server {
 
 	isc_task_t *		task;
 
-	/* Common rwlock for the server's configurable data. */
-	isc_rwlock_t		conflock;
-
 	/* Configurable data. */
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
 	dns_acl_t		*blackholeacl;
 
-	/* Not really configurable, but covered by conflock. */
+        /*
+	 * Current ACL environment.  This defines the
+	 * current values of the localhost and localnets
+	 * ACLs.
+	 */
 	dns_aclenv_t		aclenv;
 
 	/* Server data structures. */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.66 2001/02/01 21:29:34 marka Exp $ */
+/* $Id: view.h,v 1.67 2001/02/14 03:50:13 gson Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -90,13 +90,12 @@ struct dns_view {
 	dns_keytable_t *		secroots;
 	dns_keytable_t *		trustedkeys;
 	isc_mutex_t			lock;
-	isc_rwlock_t			conflock;
 	isc_boolean_t			frozen;
 	isc_task_t *			task;
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
-	/* Configurable data, locked by conflock. */
+	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	dns_peerlist_t *		peers;

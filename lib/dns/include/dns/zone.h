@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.98 2001/01/18 23:29:31 gson Exp $ */
+/* $Id: zone.h,v 1.99 2001/02/14 03:50:14 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1171,26 +1171,6 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
  *
  * Ensures:
  *	'zone->zmgr' == NULL;
- */
-
-void
-dns_zonemgr_lockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
-/*
- *	Lock the zone manager lock.
- *	'type' specifies if this is a read or write lock.
- *
- * Requires:
- *	'zmgr' to be a valid zone manager.
- */
-
-void
-dns_zonemgr_unlockconf(dns_zonemgr_t *zmgr, isc_rwlocktype_t type);
-/*
- *	Unlock the zone manager lock. 'type' must be the same as the
- *	preceeding call to dns_zonemgr_lockconf() for this 'zmgr'.
- *
- * Requires:
- *	'zmgr' to be a valid zone manager.
  */
 
 void

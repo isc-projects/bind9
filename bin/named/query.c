@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.179 2001/02/14 03:01:12 bwelling Exp $ */
+/* $Id: query.c,v 1.180 2001/02/14 03:50:05 gson Exp $ */
 
 #include <config.h>
 
@@ -2036,19 +2036,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		 */
 		ns_client_detach(&client);
 	} else {
-		RWLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
-		dns_zonemgr_lockconf(ns_g_server->zonemgr,
-				     isc_rwlocktype_read);
-		dns_view_attach(client->view, &client->lockview);
-		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-
 		query_find(client, devent, 0);
-
-		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-		dns_view_detach(&client->lockview);
-		dns_zonemgr_unlockconf(ns_g_server->zonemgr,
-				       isc_rwlocktype_read);
-		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
 	}
 }
 

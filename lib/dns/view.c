@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.95 2001/02/05 19:47:05 bwelling Exp $ */
+/* $Id: view.c,v 1.96 2001/02/14 03:50:10 gson Exp $ */
 
 #include <config.h>
 
@@ -79,14 +79,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_name;
 	}
-	result = isc_rwlock_init(&view->conflock, 1, 1);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_mutex;
-	}
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
@@ -94,7 +86,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 				 "dns_zt_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
-		goto cleanup_rwlock;
+		goto cleanup_mutex;
 	}
 	view->secroots = NULL;
 	result = dns_keytable_create(mctx, &view->secroots);
@@ -198,9 +190,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  cleanup_zt:
 	dns_zt_detach(&view->zonetable);
 
- cleanup_rwlock:
-	isc_rwlock_destroy(&view->conflock);
-
  cleanup_mutex:
 	DESTROYLOCK(&view->lock);
 
@@ -255,7 +244,6 @@ destroy(dns_view_t *view) {
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
-	isc_rwlock_destroy(&view->conflock);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->name);
