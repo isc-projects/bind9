@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.163 2000/07/21 23:13:58 mws Exp $ */
+/* $Id: zone.c,v 1.164 2000/07/22 00:27:40 mws Exp $ */
 
 #include <config.h>
 
@@ -1270,7 +1270,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE((masters == NULL && count == 0) ||
+	REQUIRE((count == 0) ||
 		(masters != NULL && count != 0));
 	if (keynames != NULL) {
 		REQUIRE(count != 0);
@@ -1298,9 +1298,16 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 		zone->masterkeynames = NULL;
 	}
 	zone->masterscnt = 0;
-	if (masters == NULL)
+	/*
+	 * If count == 0, don't allocate any space for masters or keynames
+	 * so internally, those pointers are NULL if count == 0
+	 */
+	if (count == 0)
 		goto unlock;
 
+	/*
+	 * masters must countain count elements!
+	 */
 	new = isc_mem_get(zone->mctx,
 			  count * sizeof(isc_sockaddr_t));
 	if (new == NULL) {
@@ -1312,6 +1319,9 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	zone->masterscnt = count;
 	zone->flags &= ~DNS_ZONEFLG_NOMASTERS;
 
+	/*
+	 * if keynames is non-NULL, it must contain count elements!
+	 */
 	if (keynames != NULL) {
 		newname = isc_mem_get(zone->mctx,
 				      count * sizeof(dns_name_t *));
