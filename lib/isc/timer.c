@@ -83,31 +83,6 @@ struct timer_manager_t {
 	heap_t				heap;
 };
 
-
-static boolean_t
-sooner(void *v1, void *v2) {
-	timer_t t1, t2;
-
-	t1 = v1;
-	t2 = v2;
-	REQUIRE(VALID_TIMER(t1));
-	REQUIRE(VALID_TIMER(t2));
-
-	if (os_time_compare(&t1->due, &t2->due) < 0)
-		return (TRUE);
-	return (FALSE);
-}
-
-static void
-set_index(void *what, unsigned int index) {
-	timer_t timer;
-
-	timer = what;
-	REQUIRE(VALID_TIMER(timer));
-
-	timer->index = index;
-}
-
 static inline isc_result
 schedule(timer_t timer, os_time_t *nowp, boolean_t broadcast_ok) {
 	isc_result result;
@@ -555,6 +530,30 @@ run(void *uap) {
 	UNLOCK(&manager->lock);
 
 	return (NULL);
+}
+
+static boolean_t
+sooner(void *v1, void *v2) {
+	timer_t t1, t2;
+
+	t1 = v1;
+	t2 = v2;
+	REQUIRE(VALID_TIMER(t1));
+	REQUIRE(VALID_TIMER(t2));
+
+	if (os_time_compare(&t1->due, &t2->due) < 0)
+		return (TRUE);
+	return (FALSE);
+}
+
+static void
+set_index(void *what, unsigned int index) {
+	timer_t timer;
+
+	timer = what;
+	REQUIRE(VALID_TIMER(timer));
+
+	timer->index = index;
 }
 
 isc_result
