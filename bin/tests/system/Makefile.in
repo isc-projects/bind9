@@ -18,10 +18,10 @@ TARGETS =
 
 @BIND9_MAKE_RULES@
 
+test: xfer_test dnssec_test xferquota_test notify_test views_test
+
 clean distclean:: xfer_test_clean dnssec_test_clean xferquota_test_clean \
 	notify_test_clean views_test_clean
-
-test: xfer_test dnssec_test xferquota_test notify_test views_test
 
 installdirs:
 
@@ -41,6 +41,9 @@ notify_test:
 
 views_test:
 	sh ./run.sh views
+
+distclean::
+	rm -f conf.sh
 
 xfer_test_clean:
 	sh ./clean.sh xfer
