@@ -91,7 +91,10 @@ fi
 sh stop.sh $test
 
 # Cleanup
-( cd $test ; sh clean.sh )
+if test -f $test/clean.sh
+then
+   ( cd $test && sh clean.sh "$@" )
+fi
 
 echo "E:$test:`date`"
 
