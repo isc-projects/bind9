@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.142 
+# From configure.in Revision: 1.143 
 
 
 
@@ -3876,6 +3876,15 @@ case "$host" in
 EOF
 
 		;;
+        *-bsdi4.1*)
+                #
+                # Shut up a -Wcast-qual warning from va_start().
+                #
+                cat >> confdefs.h <<\EOF
+#define SHUTUP_STDARG_CAST 1
+EOF
+
+                ;;
 esac
 
 #
