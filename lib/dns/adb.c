@@ -72,10 +72,10 @@
 #define DNS_ADBFETCH_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH_MAGIC)
 
 /*
- * Lengths of lists needs to be powers of two.
+ * Lengths of lists needs to be small primes.
  */
-#define DNS_ADBNAMELIST_LENGTH	32	/* how many buckets for names */
-#define DNS_ADBENTRYLIST_LENGTH	32	/* how many buckets for addresses */
+#define DNS_ADBNAMELIST_LENGTH	31	/* how many buckets for names */
+#define DNS_ADBENTRYLIST_LENGTH	31	/* how many buckets for addresses */
 
 #define CLEAN_SECONDS		20	/* clean this many seconds initially */
 
@@ -146,9 +146,9 @@ struct dns_adbname {
 	unsigned int			partial_result;
 	unsigned int			query_pending;
 	isc_boolean_t			dead;
+	int				lock_bucket;
 	isc_stdtime_t			expire_v4;
 	isc_stdtime_t			expire_v6;
-	int				lock_bucket;
 	dns_adbnamehooklist_t		v4;
 	dns_adbnamehooklist_t		v6;
 	dns_adbfetch_t		       *fetch_a;
@@ -164,7 +164,6 @@ struct dns_adbfetch {
 	dns_adbentry_t		       *entry;
 	dns_fetch_t		       *fetch;
 	dns_rdataset_t			rdataset;
-	ISC_LINK(dns_adbfetch_t)	plink;
 };
 
 /*
@@ -1038,7 +1037,6 @@ new_adbfetch(dns_adb_t *adb)
 		goto err;
 
 	dns_rdataset_init(&f->rdataset);
-	ISC_LINK_INIT(f, plink);
 
 	f->magic = DNS_ADBFETCH_MAGIC;
 
@@ -1061,8 +1059,6 @@ free_adbfetch(dns_adb_t *adb, dns_adbfetch_t **fetch)
 	INSIST(fetch != NULL && DNS_ADBFETCH_VALID(*fetch));
 	f = *fetch;
 	*fetch = NULL;
-
-	INSIST(!ISC_LINK_LINKED(f, plink));
 
 	f->magic = 0;
 
@@ -1154,8 +1150,7 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
 	dns_adbname_t *adbname;
 	int bucket;
 
-	bucket = dns_name_hash(name, ISC_FALSE);
-	bucket &= (DNS_ADBNAMELIST_LENGTH - 1);
+	bucket = dns_name_hash(name, ISC_FALSE) % DNS_ADBNAMELIST_LENGTH;
 
 	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
 		LOCK(&adb->namelocks[bucket]);
@@ -1194,8 +1189,7 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 	dns_adbentry_t *entry;
 	int bucket;
 
-	bucket = isc_sockaddr_hash(addr, ISC_TRUE);
-	bucket &= (DNS_ADBENTRYLIST_LENGTH - 1);
+	bucket = isc_sockaddr_hash(addr, ISC_TRUE) % DNS_ADBENTRYLIST_LENGTH;
 
 	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
 		LOCK(&adb->entrylocks[bucket]);
