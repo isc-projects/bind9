@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.42 2004/03/17 05:29:54 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.43 2004/04/28 04:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1430,7 +1430,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone_settimer(zone, &now);
 
 	if (! dns_db_ispersistent(db))
-		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", zone->serial);
+		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s",
+			     zone->serial,
+			     dns_db_issecure(db) ? " (signed)" : "");
 
 	return (result);
 
