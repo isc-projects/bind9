@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.1 1999/09/27 16:55:44 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.2 1999/10/05 15:06:37 bwelling Exp $
  */
 
 #include <config.h>
@@ -466,13 +466,13 @@ dst_openssldh_from_file(dst_key_t *key, const int id, isc_mem_t *mctx) {
 	if ((key->key_size == 768 || key->key_size == 1024) &&
 	    BN_cmp(dh->g, bn2) == 0)
 	{
-		if (key->key_size == 768 && BN_cmp(dh->p, bn768)) {
+		if (key->key_size == 768 && BN_cmp(dh->p, bn768) == 0) {
 			BN_free(dh->p);
 			BN_free(dh->g);
 			dh->p = bn768;
 			dh->g = bn2;
 		}
-		else if (key->key_size == 1024 && BN_cmp(dh->p, bn1024)) {
+		else if (key->key_size == 1024 && BN_cmp(dh->p, bn1024) == 0) {
 			BN_free(dh->p);
 			BN_free(dh->g);
 			dh->p = bn1024;
@@ -610,7 +610,7 @@ dst_openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (dh1->priv_key != NULL || dh2->priv_key != NULL) {
 		if (dh1->priv_key == NULL || dh2->priv_key == NULL)
 			return (ISC_FALSE);
-		if (BN_cmp(dh1->priv_key, dh2->priv_key))
+		if (BN_cmp(dh1->priv_key, dh2->priv_key) != 0)
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
