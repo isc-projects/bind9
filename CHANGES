@@ -1,4 +1,10 @@
 
+  15.	[func]		Add dns_name_dupwithoffsets().  This function is
+			improves comparison performance for duped names.
+
+  14.	[bug]		free_rbtdb() could have 'put' unallocated memory in
+			an unlikely error path.
+
   13.	[bug]		lib/dns/master.c and lib/dns/xfrin.c didn't ignore
 			out-of-zone data.
 
