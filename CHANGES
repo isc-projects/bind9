@@ -1,3 +1,5 @@
+ 274.	[bug]		TSIG AXFR verify failed when talking to a BIND 8 server.
+
  273.	[func]		The default for the 'transfer-format' option is
 			now 'many-answers'.  This will break zone transfers
 			to BIND 4.9.5 and older unless there is an explicit
