@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.54 
+# From configure.in Revision: 1.55 
 
 
 
@@ -2799,12 +2799,12 @@ fi
 
 if eval "test \"`echo '$ac_cv_func_'vsnprintf`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  ISC_NEED_VSNPRINTF="#undef ISC_NEED_VSNPRINTF"
+  ISC_PRINT_NEEDVSNPRINTF="#undef ISC_PRINT_NEEDVSNPRINTF"
 else
   echo "$ac_t""no" 1>&6
-ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS vsnprintf.$O"
-	 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS vsnprintf.c"
-	 ISC_NEEDVSNPRINTF="#define ISC_NEED_VSNPRINTF 1"
+ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS print.$O"
+	 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS print.c"
+	 ISC_PRINT_NEEDVSNPRINTF="#define ISC_PRINT_NEEDVSNPRINTF 1"
 fi
 
 
@@ -2938,6 +2938,7 @@ trap 'rm -fr `echo "make/rules
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
+	lib/isc/include/isc/print.h
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
@@ -3044,7 +3045,7 @@ s%@ISC_IPV6_C@%$ISC_IPV6_C%g
 s%@ISC_NET_NEEDNTOP@%$ISC_NET_NEEDNTOP%g
 s%@ISC_NET_NEEDPTON@%$ISC_NET_NEEDPTON%g
 s%@ISC_NET_NEEDATON@%$ISC_NET_NEEDATON%g
-s%@ISC_NEED_VSNPRINTF@%$ISC_NEED_VSNPRINTF%g
+s%@ISC_PRINT_NEEDVSNPRINTF@%$ISC_PRINT_NEEDVSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
@@ -3105,6 +3106,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
+	lib/isc/include/isc/print.h
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
