@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.37 2004/02/27 20:41:50 marka Exp $ */
+/* $Id: px_26.c,v 1.38 2004/03/02 01:40:44 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -347,8 +347,8 @@ digest_in_px(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_in_px(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 250);
-	REQUIRE(rdclass == 255);
+	REQUIRE(type == 26);
+	REQUIRE(rdclass == 1);
 
 	UNUSED(name);
 	UNUSED(type);
