@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.15 2004/03/09 06:09:12 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.16 2004/06/07 03:59:08 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1330,6 +1330,7 @@ dighost_shutdown(void) {
 		return;
 	}
 
+	fflush(stdout);
 	if (feof(batchfp)) {
 		batchname = NULL;
 		isc_app_shutdown();
