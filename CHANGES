@@ -35,7 +35,8 @@
 
 1726.	[port]		aix5: add support for aix5
 
-1725.	[placeholder]	rt12541
+1725.	[port]		linux: update error message on interaction of threads,
+			capabilities and setuid support (named -u). [RT #12541]
 
 1724.	[bug]		Look for DNSKEY records with "dig +sigtrace".
 			[RT #12557]
