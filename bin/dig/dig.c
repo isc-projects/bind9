@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.87 2000/08/14 20:23:39 bwelling Exp $ */
+/* $Id: dig.c,v 1.88 2000/08/26 01:51:37 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
