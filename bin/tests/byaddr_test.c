@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/task.h>
@@ -52,6 +53,12 @@
 static void
 done(isc_task_t *task, isc_event_t *event) {
 	dns_byaddrevent_t *bevent;
+	dns_byaddr_t *byaddr;
+	dns_name_t *name;
+	char textname[1024];
+	isc_buffer_t buffer;
+	isc_result_t result;
+	isc_region_t r;
 
 	REQUIRE(event->type == DNS_EVENT_BYADDRDONE);
 	bevent = (dns_byaddrevent_t *)event;
@@ -61,7 +68,26 @@ done(isc_task_t *task, isc_event_t *event) {
 	printf("byaddr event result = %s\n",
 	       isc_result_totext(bevent->result));
 
-	dns_byaddr_destroy(&bevent->byaddr);
+	if (bevent->result == ISC_R_SUCCESS) {
+		isc_buffer_init(&buffer, textname, sizeof textname,
+				ISC_BUFFERTYPE_TEXT);
+		for (name = ISC_LIST_HEAD(bevent->names);
+		     name != NULL;
+		     name = ISC_LIST_NEXT(name, link)) {
+			isc_buffer_clear(&buffer);
+			result = dns_name_totext(name, ISC_TRUE, &buffer);
+			if (result != ISC_R_SUCCESS) {
+				printf("dns_name_totext() returned %s\n",
+				       isc_result_totext(result));
+				break;
+			}
+			isc_buffer_used(&buffer, &r);
+			printf("%.*s\n", (int)r.length, r.base);
+		}
+	}
+
+	byaddr = event->sender;
+	dns_byaddr_destroy(&byaddr);
 	isc_event_free(&event);
 
 	isc_app_shutdown();
@@ -123,12 +149,6 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
-	argc -= isc_commandline_index;
-	argv += isc_commandline_index;
-
-	if (argc != 0)
-		printf("ignoring trailing arguments\n");
-
 	cache = NULL;
 	RUNTIME_CHECK(dns_cache_create(mctx, taskmgr, timermgr,
 				       dns_rdataclass_in, "rbt", 0, NULL,
@@ -148,7 +168,7 @@ main(int argc, char *argv[]) {
 		isc_sockaddrlist_t sal;
 
 		ISC_LIST_INIT(sal);
-		ina.s_addr = inet_addr("204.152.187.11");
+		ina.s_addr = inet_addr("127.0.0.1");
 		isc_sockaddr_fromin(&sa, &ina, 53);
 		ISC_LIST_APPEND(sal, &sa, link);
 
@@ -161,14 +181,17 @@ main(int argc, char *argv[]) {
 
 	dns_cache_detach(&cache);
 
-#if 1
+	printf("address = %s\n", argv[isc_commandline_index]);
 	na.family = AF_INET;
-	na.type.in.s_addr = inet_addr("204.152.187.11");
-#else
-	na.family = AF_INET6;
-	INSIST(inet_pton(AF_INET6, "fe80::210:4bff:fefe:f18d",
-			 (char *)&na.type.in6) == 1);
-#endif
+	if (inet_pton(AF_INET, argv[isc_commandline_index],
+		      (char *)&na.type.in) != 1) {
+		na.family = AF_INET6;
+		if (inet_pton(AF_INET6, argv[isc_commandline_index],
+			      (char *)&na.type.in6) != 1) {
+			printf("unknown address format\n");
+			exit(1);
+		}
+	}
 
 	result = dns_byaddr_create(mctx, &na, view, options, task,
 				   done, NULL, &byaddr);
