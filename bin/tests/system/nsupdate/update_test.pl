@@ -37,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.1 2000/07/24 22:53:36 mws Exp $
+# $Id: update_test.pl,v 1.2 2000/07/26 01:19:43 gson Exp $
 #
 
 use Getopt::Std;
@@ -391,8 +391,8 @@ test("NOERROR", ["update", rr_add("u.$zone 300 NS ns.u.$zone")]);
 test("NOERROR", ["update", rr_del("u.$zone 300 NS ns.u.$zone")]);
 
 if ($failures) {
-    print "$failures tests failed.\n";
+    print "I:$failures tests failed.\n";
 } else {
-    print "All tests successful.\n";
+    print "I:All tests successful.\n";
 }
 exit $failures;
