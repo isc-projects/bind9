@@ -286,7 +286,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  
 
 void
-dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch);
+dns_resolver_cancelfetch(dns_fetch_t *fetch);
 /*
  * Cancel 'fetch'.
  *
@@ -297,19 +297,15 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch);
  *
  * Requires:
  *
- *	'res' is a valid resolver that has been frozen.
- *
  *	'fetch' is a valid fetch.
  */
 
 void
-dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp);
+dns_resolver_destroyfetch(dns_fetch_t **fetchp);
 /*
  * Destroy 'fetch'.
  *
  * Requires:
- *
- *	'res' is a valid resolver that has been frozen.
  *
  *	'*fetchp' is a valid fetch.
  *
