@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.6 2001/09/13 01:49:56 gson Exp $ -->
+<!-- $Id: dig.docbook,v 1.7 2001/09/18 18:25:14 bwelling Exp $ -->
 
 <refentry>
 
@@ -422,10 +422,18 @@ in a query timeout of 1 second being applied.
 
 <varlistentry><term><option>+tries=A</option></term>
 <listitem><para>
-Sets the number of times to retry UDP queries to server to
+Sets the number of times to try UDP queries to server to
 <parameter>T</parameter> instead of the default, 3.  If
 <parameter>T</parameter> is less than or equal to zero, the number of
 retries is silently rounded up to 1.
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+retries=A</option></term>
+<listitem><para>
+Sets the number of times to retry UDP queries to server to
+<parameter>T</parameter> instead of the default, 2.  Unlike
+<parameter>+tries</parameter>, this does not include the initial
+query.
 </para></listitem></varlistentry>
 
 <varlistentry><term><option>+ndots=D</option></term>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.163 2001/09/14 04:54:56 bwelling Exp $ */
+/* $Id: dig.c,v 1.164 2001/09/18 18:25:13 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -62,7 +62,6 @@ extern isc_mem_t *mctx;
 extern dns_messageid_t id;
 extern int sendcount;
 extern int ndots;
-extern int tries;
 extern int lookup_counter;
 extern int exitcode;
 extern isc_sockaddr_t bind_address;
@@ -170,6 +169,7 @@ help(void) {
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
 "                 +time=###           (Set query timeout) [5]\n"
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
+"                 +retries=###        (Set number of UDP retries) [2]\n"
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
@@ -787,8 +787,29 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			goto invalid_option;
 		}
 		break;
-	case 'r': /* recurse */
-		lookup->recurse = state;
+	case 'r':
+		switch (cmd[1]) {
+		case 'e':
+			switch (cmd[2]) {
+			case 'c': /* recurse */
+				lookup->recurse = state;
+				break;
+			case 't': /* retries */
+				if (value == NULL)
+					goto need_value;
+				if (!state)
+					goto invalid_option;
+				lookup->retries = parse_uint(value, "retries",
+						       MAXTRIES - 1);
+				lookup->retries++;
+				break;
+			default:
+				goto invalid_option;
+			break;
+			}
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 's':
 		switch (cmd[1]) {
@@ -849,7 +870,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					goto need_value;
 				if (!state)
 					goto invalid_option;
-				lookup->retries = parse_uint(value, "retries",
+				lookup->retries = parse_uint(value, "tries",
 						       MAXTRIES);
 				if (lookup->retries == 0)
 					lookup->retries = 1;
