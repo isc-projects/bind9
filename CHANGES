@@ -1,3 +1,7 @@
+1604.	[bug]		A xfrout_ctx_create() failure would result in
+			xfrout_ctx_destroy() being called with a
+			partially initialized structure.
+			
 1600.	[placeholder]	rt10861.
 
 1599.	[placeholder]	rt10861.
