@@ -15,11 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: fsaccess_test.c,v 1.4 2000/06/23 16:18:55 tale Exp $ */
+/* $Id: fsaccess_test.c,v 1.5 2000/07/26 22:46:07 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+
+#include <sys/types.h>		/* Non-portable. */
+#include <sys/stat.h>		/* Non-portable. */
 
 #include <isc/fsaccess.h>
 #include <isc/result.h>
