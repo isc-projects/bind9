@@ -15,8 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef ISC_SYMBOL_H
-#define ISC_SYMBOL_H 1
+#ifndef ISC_SYMTAB_H
+#define ISC_SYMTAB_H 1
 
 /*****
  ***** Module Info
@@ -77,11 +77,8 @@
  *** Imports.
  ***/
 
-#include <isc/mem.h>
-#include <isc/result.h>
 #include <isc/lang.h>
-
-ISC_LANG_BEGINDECLS
+#include <isc/types.h>
 
 /***
  *** Symbol Tables.
@@ -102,14 +99,12 @@ typedef enum {
 	isc_symexists_add = 2
 } isc_symexists_t;
 
-typedef struct isc_symtab		isc_symtab_t;
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
-		  isc_symtabaction_t undefine_action,
-		  void *undefine_arg,
-		  isc_boolean_t case_sensitive,
-		  isc_symtab_t **symtabp);
+		  isc_symtabaction_t undefine_action, void *undefine_arg,
+		  isc_boolean_t case_sensitive, isc_symtab_t **symtabp);
 
 void
 isc_symtab_destroy(isc_symtab_t **symtabp);
@@ -127,4 +122,4 @@ isc_symtab_undefine(isc_symtab_t *symtab, char *key, unsigned int type);
 
 ISC_LANG_ENDDECLS
 
-#endif /* ISC_SYMBOL_H */
+#endif /* ISC_SYMTAB_H */

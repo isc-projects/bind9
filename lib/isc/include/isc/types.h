@@ -67,6 +67,7 @@ typedef struct isc_sockaddr		isc_sockaddr_t;
 typedef struct isc_socket		isc_socket_t;
 typedef struct isc_socketevent		isc_socketevent_t;
 typedef struct isc_socketmgr		isc_socketmgr_t;
+typedef struct isc_symtab		isc_symtab_t;
 typedef struct isc_task			isc_task_t;
 typedef struct isc_taskmgr		isc_taskmgr_t;
 typedef struct isc_textregion		isc_textregion_t;

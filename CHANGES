@@ -1,3 +1,8 @@
+ 121.   [cleanup]       <isc/symtab.h> does not need <isc/mem.h> or
+                        <isc/result.h>.  Multiple inclusion protection
+                        symbol fixed from ISC_SYMBOL_H to ISC_SYMTAB_H.
+                        isc_symtab_t moved to <isc/types.h>.
+
  120.   [cleanup]       <isc/socket.h> does not need <isc/boolean.h>,
                         <isc/bufferlist.h>, <isc/task.h>, <isc/mem.h> or
                         <isc/net.h>.
