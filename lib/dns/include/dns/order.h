@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.h,v 1.2 2002/03/07 07:48:47 bwelling Exp $ */
+/* $Id: order.h,v 1.2.202.1 2003/08/14 02:34:17 marka Exp $ */
 
 #ifndef DNS_ORDER_H
 #define DNS_ORDER_H 1

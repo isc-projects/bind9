@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.6 2003/08/13 03:58:09 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.7 2003/08/14 02:34:12 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 #include <dns/tsig.h>
 #include <dns/zone.h>
 
@@ -216,6 +217,27 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	if (result != ISC_R_SUCCESS)
 		cfg_obj_log(classobj, ns_g_lctx, ISC_LOG_ERROR,
 			    "unknown class '%s'", str);
+	return (result);
+}
+
+isc_result_t
+ns_config_gettype(cfg_obj_t *typeobj, dns_rdatatype_t deftype,
+		   dns_rdatatype_t *typep) {
+	char *str;
+	isc_textregion_t r;
+	isc_result_t result;
+
+	if (!cfg_obj_isstring(typeobj)) {
+		*typep = deftype;
+		return (ISC_R_SUCCESS);
+	}
+	str = cfg_obj_asstring(typeobj);
+	r.base = str;
+	r.length = strlen(str);
+	result = dns_rdatatype_fromtext(typep, &r);
+	if (result != ISC_R_SUCCESS)
+		cfg_obj_log(typeobj, ns_g_lctx, ISC_LOG_ERROR,
+			    "unknown type '%s'", str);
 	return (result);
 }
 

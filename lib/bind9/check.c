@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.9 2003/08/14 00:40:39 marka Exp $ */
+/* $Id: check.c,v 1.37.6.10 2003/08/14 02:34:15 marka Exp $ */
 
 #include <config.h>
 
@@ -34,10 +34,115 @@
 
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatatype.h>
 
 #include <isccfg/cfg.h>
 
 #include <bind9/check.h>
+
+static isc_result_t
+check_orderent(cfg_obj_t *ent, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	isc_textregion_t r;
+	dns_fixedname_t fixed;
+	cfg_obj_t *obj;
+	dns_rdataclass_t rdclass;
+	dns_rdatatype_t rdtype;
+	isc_buffer_t b;
+	const char *str;
+
+	dns_fixedname_init(&fixed);
+	obj = cfg_tuple_get(ent, "class");
+	if (cfg_obj_isstring(obj)) {
+
+		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.length = strlen(r.base);
+		tresult = dns_rdataclass_fromtext(&rdclass, &r);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "rrset-order: invalid class '%s'",
+				    r.base);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	obj = cfg_tuple_get(ent, "type");
+	if (cfg_obj_isstring(obj)) {
+
+		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.length = strlen(r.base);
+		tresult = dns_rdatatype_fromtext(&rdtype, &r);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "rrset-order: invalid type '%s'",
+				    r.base);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	obj = cfg_tuple_get(ent, "name");
+	if (cfg_obj_isstring(obj)) {
+		str = cfg_obj_asstring(obj);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+					    dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "rrset-order: invalid name '%s'", str);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	obj = cfg_tuple_get(ent, "order");
+	if (!cfg_obj_isstring(obj) ||
+	    strcasecmp("order", cfg_obj_asstring(obj)) != 0) {
+		cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
+			    "rrset-order: keyword 'order' missing");
+		result = ISC_R_FAILURE;
+	}
+
+	obj = cfg_tuple_get(ent, "ordering");
+	if (!cfg_obj_isstring(obj)) {
+	    cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
+			"rrset-order: missing ordering");
+		result = ISC_R_FAILURE;
+	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
+		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+			    "rrset-order: order 'fixed' not implemented",
+			    cfg_obj_asstring(obj));
+	} else if (/* strcasecmp(cfg_obj_asstring(obj), "fixed") != 0 && */
+		   strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
+		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "rrset-order: invalid order '%s'",
+			    cfg_obj_asstring(obj));
+		result = ISC_R_FAILURE;
+	}
+	return (result);
+}
+
+static isc_result_t
+check_order(cfg_obj_t *options, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	cfg_listelt_t *element;
+	cfg_obj_t *obj = NULL;
+
+	if (cfg_map_get(options, "rrset-order", &obj) != ISC_R_SUCCESS)
+		return (result);
+
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		tresult = check_orderent(cfg_listelt_value(element), logctx);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+	}
+	return (result);
+}
 
 static isc_result_t
 check_forward(cfg_obj_t *options, isc_log_t *logctx) {
@@ -581,6 +686,13 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
 			result = ISC_R_FAILURE;
 	}
 
+	/*
+	 * Check that rrset-order is reasonable.
+	 */
+	if (vconfig != NULL) {
+		if (check_order(vconfig, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
 
 	if (vconfig != NULL) {
 		(void)cfg_map_get(vconfig, "server", &servers);
@@ -623,6 +735,10 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "server", &servers);
 	if (servers != NULL &&
 	    check_servers(servers, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
+
+	if (options != NULL && 
+	    check_order(options, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);

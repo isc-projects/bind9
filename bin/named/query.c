@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.4 2003/08/13 02:18:17 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.5 2003/08/14 02:34:13 marka Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/order.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -1521,6 +1522,10 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
 
+	if (client->view->order != NULL)
+		rdataset->attributes |= dns_order_find(client->view->order,
+						       fname, rdataset->type,
+						       rdataset->rdclass);
 	if (NOADDITIONAL(client))
 		return;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.12 2003/08/13 04:35:05 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.13 2003/08/14 02:34:13 marka Exp $ */
 
 #include <config.h>
 
@@ -48,8 +48,10 @@
 #include <dns/journal.h>
 #include <dns/keytable.h>
 #include <dns/master.h>
+#include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/rdataclass.h>
+#include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
 #include <dns/rootns.h>
@@ -429,6 +431,56 @@ get_view_querysource_dispatch(cfg_obj_t **maps,
 }
 
 static isc_result_t
+configure_order(dns_order_t *order, cfg_obj_t *ent) {
+	dns_rdataclass_t rdclass;
+	dns_rdatatype_t rdtype;
+	cfg_obj_t *obj;
+	dns_fixedname_t fixed;
+	unsigned int mode = 0;
+	const char *str;
+	isc_buffer_t b;
+	isc_result_t result;
+
+	result = ns_config_getclass(cfg_tuple_get(ent, "class"),
+				    dns_rdataclass_any, &rdclass);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = ns_config_gettype(cfg_tuple_get(ent, "type"),
+				   dns_rdatatype_any, &rdtype);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	obj = cfg_tuple_get(ent, "name");
+	if (cfg_obj_isstring(obj)) 
+		str = cfg_obj_asstring(obj);
+	else
+		str = "*";
+	isc_buffer_init(&b, str, strlen(str));
+	isc_buffer_add(&b, strlen(str));
+	dns_fixedname_init(&fixed);
+	result = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+				  dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	obj = cfg_tuple_get(ent, "ordering");
+	INSIST(cfg_obj_isstring(obj));
+	str = cfg_obj_asstring(obj);
+	if (!strcasecmp(str, "fixed"))
+		mode = DNS_RDATASETATTR_FIXEDORDER;
+	else if (!strcasecmp(str, "random"))
+		mode = DNS_RDATASETATTR_RANDOMIZE;
+	else if (!strcasecmp(str, "cyclic"))
+		mode = 0;
+	else
+		INSIST(0);
+
+	return (dns_order_add(order, dns_fixedname_name(&fixed),
+			      rdtype, rdclass, mode));
+}
+
+static isc_result_t
 configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	isc_sockaddr_t *sa;
 	isc_netaddr_t na;
@@ -534,6 +586,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	isc_boolean_t reused_cache = ISC_FALSE;
 	int i;
 	char *str;
+	dns_order_t *order = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -786,6 +839,28 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	/*
+	 *	Configure the views rrset-order.
+	 */
+	{
+		cfg_obj_t *rrsetorder = NULL;
+		cfg_listelt_t *element;
+
+		(void)ns_config_get(maps, "rrset-order", &rrsetorder);
+		CHECK(dns_order_create(mctx, &order));
+		for (element = cfg_list_first(rrsetorder);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			cfg_obj_t *ent = cfg_listelt_value(element);
+
+			CHECK(configure_order(order, ent));
+		}
+		if (view->order != NULL)
+			dns_order_detach(&view->order);
+		dns_order_attach(order, &view->order);
+		dns_order_detach(&order);
+	}
+	/*
 	 * Copy the aclenv object.
 	 */
 	dns_aclenv_copy(&view->aclenv, &ns_g_server->aclenv);
@@ -907,6 +982,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (order != NULL)
+		dns_order_detach(&order);
 	if (cmctx != NULL)
 		isc_mem_detach(&cmctx);
 

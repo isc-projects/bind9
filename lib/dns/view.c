@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.2 2003/08/08 05:32:35 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.3 2003/08/14 02:34:16 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/keytable.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/rdataset.h>
 #include <dns/request.h>
@@ -140,6 +141,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_fwdtable;
 	view->peers = NULL;
+	view->order = NULL;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -161,9 +163,13 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dstport = 53;
 	view->flush = ISC_FALSE;
 
-	result = dns_peerlist_new(view->mctx, &view->peers);
+	result = dns_order_create(view->mctx, &view->order);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
+
+	result = dns_peerlist_new(view->mctx, &view->peers);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_order;
 
 	result = dns_aclenv_init(view->mctx, &view->aclenv);
 	if (result != ISC_R_SUCCESS)
@@ -187,6 +193,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_peerlist:
 	dns_peerlist_detach(&view->peers);
+
+ cleanup_order:
+	dns_order_detach(&view->order);
 
  cleanup_dynkeys:
 	dns_tsigkeyring_destroy(&view->dynamickeys);
@@ -224,6 +233,8 @@ destroy(dns_view_t *view) {
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
 
+	if (view->order != NULL)
+		dns_order_detach(&view->order);
 	if (view->peers != NULL)
 		dns_peerlist_detach(&view->peers);
 	if (view->dynamickeys != NULL)

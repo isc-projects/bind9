@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.3 2003/08/13 01:59:19 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.4 2003/08/14 02:34:17 marka Exp $ */
 
 #include <config.h>
 
@@ -501,7 +501,6 @@ options_clauses[] = {
 	{ "port", &cfg_type_uint32, 0 },
 	{ "random-device", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
-	{ "rrset-order", &cfg_type_rrsetorder, CFG_CLAUSEFLAG_NOTIMP },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "stacksize", &cfg_type_size, 0 },
@@ -535,6 +534,7 @@ view_clauses[] = {
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
+	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "fetch-glue", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
