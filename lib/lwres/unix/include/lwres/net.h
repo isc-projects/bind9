@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.3 2001/07/10 23:38:44 bwelling Exp $ */
+/* $Id: net.h,v 1.3.12.1 2003/08/15 01:48:24 marka Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -52,8 +52,10 @@
 
 #include <lwres/platform.h>	/* Required for LWRES_PLATFORM_*. */
 
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>		/* Contractual promise. */
+#include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/un.h>
 
@@ -65,6 +67,7 @@
 #ifdef LWRES_PLATFORM_NEEDNETINET6IN6H
 #include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
 #endif
+#include <net/if.h>	
 
 #include <lwres/lang.h>
 

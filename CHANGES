@@ -1,3 +1,6 @@
+1285.	[func]		lwres: probe the system to see what address families
+			are currently in use.
+
 1283.	[func]		Use "dataready" accept filter if available.
 
 1281.	[func]		Log zone when unable to get private keys to update
