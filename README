@@ -242,6 +242,9 @@ Building
 		  -DDIG_SIGCHASE=1 (sets -DDIG_SIGCHASE_TD=1 and
 				    -DDIG_SIGCHASE_BU=1)
 
+	    LDFLAGS
+		Linker flags. Defaults to empty string.
+
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
 

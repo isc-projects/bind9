@@ -1,3 +1,4 @@
+1688.	[bug]		LDFLAGS was not supported.
 
 	--- 9.3.0rc2 released ---
 
