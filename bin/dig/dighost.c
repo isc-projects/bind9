@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.79 2000/07/13 01:22:34 mws Exp $ */
+/* $Id: dighost.c,v 1.80 2000/07/13 01:49:44 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -103,7 +103,7 @@ isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
-
+isc_mempool_t *commctx = NULL;
 extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t debugging = ISC_FALSE;
 char *progname = NULL;
@@ -141,7 +141,6 @@ hex_dump(isc_buffer_t *b) {
 	if (len % 16 != 0)
 		printf("\n");
 }
-
 
 void
 fatal(const char *format, ...) {
@@ -566,6 +565,16 @@ setup_libs(void) {
 	result = dst_lib_init(mctx, entp, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
+
+	result = isc_mempool_create(mctx, COMMSIZE, &commctx);
+	check_result(result, "isc_mempool_create");
+	isc_mempool_setname(commctx, "COMMPOOL");
+	/*
+	 * 6 and 2 set as reasonable parameters for 3 or 4 nameserver
+	 * systems.
+	 */
+	isc_mempool_setfreemax(commctx, 6);
+	isc_mempool_setfillcount(commctx, 2);
 }
 
 static void
@@ -646,7 +655,7 @@ clear_query(dig_query_t *query) {
 		ISC_LIST_DEQUEUE(query->lengthlist, &query->lengthbuf,
 				 link);
 	INSIST(query->recvspace != NULL);
-	isc_mem_put(mctx, query->recvspace, COMMSIZE);
+	isc_mempool_put(commctx, query->recvspace);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
 	isc_mem_free(mctx, query);
@@ -686,7 +695,7 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	if (lookup->timer != NULL)
 		isc_timer_detach(&lookup->timer);
 	INSIST(lookup->sendspace != NULL);
-	isc_mem_put(mctx, lookup->sendspace, COMMSIZE);
+	isc_mempool_put(commctx, lookup->sendspace);
 	
 	ptr = lookup;
 	lookup = ISC_LIST_NEXT(lookup, link);
@@ -1133,7 +1142,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup->querysig = NULL;
 	}
 
-	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
+	lookup->sendspace = isc_mempool_get(commctx);
 	if (lookup->sendspace == NULL)
 		fatal("memory allocation failure");
 
@@ -1180,7 +1189,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
 		query->sock = NULL;
-		query->recvspace = isc_mem_get(mctx, COMMSIZE);
+		query->recvspace = isc_mempool_get(commctx);
 		if (query->recvspace == NULL)
 			fatal("memory allocation failure");
 
@@ -2186,6 +2195,10 @@ free_lists(void) {
 		ptr = o;
 		o = ISC_LIST_NEXT(o, link);
 		isc_mem_free(mctx, ptr);
+	}
+	if (commctx != NULL) {
+		debug("freeing commctx");
+		isc_mempool_destroy(&commctx);
 	}
 	if (socketmgr != NULL) {
 		debug("freeing socketmgr");
