@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.1 2001/05/21 23:56:32 gson Exp $ */
+/* $Id: soa.c,v 1.2 2001/05/30 20:31:06 bwelling Exp $ */
 
 #include <config.h>
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: send.pl,v 1.1 2001/05/10 18:29:08 gson Exp $
+# $Id: send.pl,v 1.2 2001/05/30 20:30:22 bwelling Exp $
 
 #
 # Send a file to a given address and port using TCP.  Used for
