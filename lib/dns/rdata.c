@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.50 1999/06/09 07:12:50 gson Exp $ */
+ /* $Id: rdata.c,v 1.51 1999/07/03 20:57:45 halley Exp $ */
 
 #include <config.h>
 
@@ -100,9 +100,9 @@ static void		fromtext_error(void (*callback)(dns_rdatacallbacks_t *,
 				       isc_token_t *token,
 				       dns_result_t result);
 
-static dns_result_t	 __dns_rdata_totext(dns_rdata_t *rdata,
-					    dns_rdata_textctx_t *tctx,
-					    isc_buffer_t *target);
+static dns_result_t	 rdata_totext(dns_rdata_t *rdata,
+				      dns_rdata_textctx_t *tctx,
+				      isc_buffer_t *target);
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
@@ -428,9 +428,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
 	return (result);
 }
 
-dns_result_t
-__dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-		   isc_buffer_t *target)
+static dns_result_t
+rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
+	     isc_buffer_t *target)
 {
 	dns_result_t result = DNS_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
@@ -458,7 +458,7 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 	tctx.flags = 0;
 	tctx.width = 60;
 	tctx.linebreak = " ";
-	return (__dns_rdata_totext(rdata, &tctx, target));
+	return (rdata_totext(rdata, &tctx, target));
 }
 
 dns_result_t
@@ -477,7 +477,7 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
 		tctx.width = 60; /* Used for base64 word length only. */
 		tctx.linebreak = " ";
 	}
-	return (__dns_rdata_totext(rdata, &tctx, target));
+	return (rdata_totext(rdata, &tctx, target));
 }
 
 dns_result_t
