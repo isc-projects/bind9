@@ -28,7 +28,7 @@
  * The "lex" module provides a lightweight tokenizer.  It can operate
  * on files or buffers, and can handle "include".  It is designed for
  * parsing of DNS master files and the BIND configuration file, but
- * should be general enough to tokeninze other things, e.g. HTTP.
+ * should be general enough to tokenize other things, e.g. HTTP.
  *
  * MP:
  *	No synchronization is provided.  Clients must ensure exclusive

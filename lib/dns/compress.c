@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.18 1999/12/23 00:08:27 explorer Exp $ */
+ /* $Id: compress.c,v 1.19 2000/02/02 00:36:18 gson Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -487,7 +487,7 @@ compress_add(dns_rbt_t *root, dns_name_t *prefix, dns_name_t *suffix,
 }
 
 /*
- *	Find the loggest match of name in root.
+ *	Find the longest match of name in root.
  *	If match is found return ISC_TRUE. prefix, suffix and offset
  *	are updated.
  *	If no match is found return ISC_FALSE.

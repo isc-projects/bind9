@@ -316,7 +316,7 @@ dns_message_renderbegin(dns_message_t *msg, isc_buffer_t *buffer);
  * Begin rendering on a message.  Only one call can be made to this function
  * per message.
  *
- * The buffer is "owned" buy the message library until dns_message_renderend()
+ * The buffer is "owned" by the message library until dns_message_renderend()
  * is called.
  *
  * Requires:
