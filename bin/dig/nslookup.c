@@ -59,7 +59,7 @@ extern int lookup_counter;
 extern char fixeddomain[MXNAME];
 extern int exitcode;
 
-isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
+isc_boolean_t short_form = ISC_TRUE, printcmd = ISC_TRUE,
 	filter = ISC_FALSE, showallsoa = ISC_FALSE,
 	tcpmode = ISC_FALSE;
 
@@ -336,6 +336,152 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
+	     dns_section_t section) {
+	isc_result_t result, loopresult;
+	isc_buffer_t *b = NULL;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdata_t rdata;
+	char *ptr;
+
+	UNUSED (query);
+
+	debug("printsection()");
+
+	/*
+	 * Exitcode 9 means we timed out, but if we're printing a message,
+	 * we much have recovered.  Go ahead and reset it to code 0, and
+	 * call this a success.
+	 */
+	if (exitcode == 9)
+		exitcode = 0;
+
+	if (headers) {
+		switch (section) {
+		case DNS_SECTION_QUESTION:
+			puts ("    QUESTIONS:");
+			break;
+		case DNS_SECTION_ANSWER:
+			puts ("    ANSWERS:");
+			break;
+		case DNS_SECTION_AUTHORITY:
+			puts ("    AUTHORITY RECORDS:");
+			break;
+		case DNS_SECTION_ADDITIONAL:
+			puts ("    ADDITIONAL RECORDS:");
+			break;
+		}
+	}
+
+	result = dns_message_firstname(msg, section);
+	if (result == ISC_R_NOMORE)
+		return (ISC_R_SUCCESS);
+	else if (result != ISC_R_SUCCESS)
+		return (result);
+	result = isc_buffer_allocate(mctx, &b, MXNAME);
+	check_result(result, "isc_buffer_allocate");
+	for (;;) {
+		name = NULL;
+		dns_message_currentname(msg, section, 
+					&name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			loopresult = dns_rdataset_first(rdataset);
+			while (loopresult == ISC_R_SUCCESS) {
+				dns_rdataset_current(rdataset, &rdata);
+				isc_buffer_clear(b);
+				result = dns_name_totext(name,
+							 ISC_TRUE,
+							 b);
+				check_result(result,
+					     "dns_name_totext");
+				printf("    ->  %.*s\n",
+				       (int)isc_buffer_usedlength(b),
+				       (char*)isc_buffer_base(b));
+				switch (rdata.type) {
+				case dns_rdatatype_soa:
+					isc_buffer_clear(b);
+					result = dns_rdata_totext(&rdata,
+								  NULL,
+								  b);
+					check_result(result,
+						     "dns_rdata_totext");
+					isc_buffer_used(b)[0]=0;
+					ptr = strtok(isc_buffer_base(b),
+						     " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\torigin = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\tmail addr = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\tserial = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\trefresh = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\tretry = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\texpire = %s\n",
+					       ptr);
+					ptr = strtok(NULL, " \t\r\n");
+					if (ptr == NULL)
+						break;
+					printf("\tminimum = %s\n",
+					       ptr);
+					break;
+				default:
+					isc_buffer_clear(b);
+					if (rdata.type <= 41)
+						printf ("\t%s",
+						rtypetext[rdata.type]);
+					else
+						printf ("\trdata_%d = ",
+						 rdata.type);
+					isc_buffer_clear(b);
+					result = dns_rdata_totext(&rdata, 
+								  NULL, b);
+					check_result(result,
+						     "dns_rdata_totext");
+					printf("%.*s\n",
+					       (int)isc_buffer_usedlength(b),
+					       (char*)isc_buffer_base(b));
+				}	
+				loopresult = dns_rdataset_next(rdataset);
+			}
+		}
+		result = dns_message_nextname(msg, section);
+		if (result == ISC_R_NOMORE)
+			break;
+		else if (result != ISC_R_SUCCESS) {
+			isc_buffer_free (&b);
+			return (result);
+		}
+	}
+	isc_buffer_free(&b);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_buffer_t *b = NULL;
@@ -366,29 +512,54 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	check_result(result, "isc_sockaddr_totext");
 	printf("Address:\t%.*s\n", (int)isc_buffer_usedlength(b),
 	       (char*)isc_buffer_base(b));
+	isc_buffer_free(&b);
 	puts("");
+	if (!short_form){
+		puts ("------------");
+		/*		detailheader(query, msg);*/
+		detailsection(query, msg, headers, DNS_SECTION_QUESTION);
+		detailsection(query, msg, headers, DNS_SECTION_ANSWER);
+		detailsection(query, msg, headers, DNS_SECTION_AUTHORITY);
+		detailsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
+		puts ("------------");
+	}
+	
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)
 		puts ("Non-authorative answer:");
-	isc_buffer_free(&b);
 	printsection(query, msg, headers, DNS_SECTION_ANSWER);
-
+	
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (strcasecmp(query->lookup->rttext,"a") != 0)) {
 		puts ("\nAuthorative answers can be found from:");
-		printsection(query, msg, headers, DNS_SECTION_AUTHORITY);
-		printsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
+		printsection(query, msg, headers,
+			     DNS_SECTION_AUTHORITY);
+		printsection(query, msg, headers,
+			     DNS_SECTION_ADDITIONAL);
 	}
 	return (ISC_R_SUCCESS);
 }
 
 static void
-showsettings() {
+show_settings(isc_boolean_t full) {
 	dig_server_t *srv;
-
+	isc_sockaddr_t sockaddr;
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+	
 	srv = ISC_LIST_HEAD(server_list);
+
 	while (srv != NULL) {
-		printf ("Default server: %s\n",
-			srv->servername);
+		result = isc_buffer_allocate(mctx, &b, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		get_address(srv->servername, 53, &sockaddr);
+		result = isc_sockaddr_totext(&sockaddr, b);
+		check_result(result, "isc_sockaddr_totext");
+		printf ("Default server: %s\nAddress: %.*s\n",
+			srv->servername, (int)isc_buffer_usedlength(b),
+			(char*)isc_buffer_base(b));
+		isc_buffer_free(&b);
+		if (!full)
+			return;
 		srv = ISC_LIST_NEXT(srv, link);
 	}
 	printf ("\n\tSet options:\n");
@@ -396,7 +567,8 @@ showsettings() {
 		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
 		recurse?"recurse":"norecurse");
 	printf ("\t  %s\t\t%s\t\tport = %d\n",
-		defname?"defname":"nodefname", usesearch?"search":"nosearch",
+		defname?"defname":"nodefname",
+		usesearch?"search":"nosearch",
 		port);
 	printf ("\t  timeout = %d\t\tretry = %d\n",
 		timeout, tries);
@@ -409,7 +581,7 @@ static void
 setoption(char *opt) {
 
 	if (strncasecmp(opt,"all",4) == 0) {
-		showsettings() ;
+		show_settings(ISC_TRUE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		strncpy(defclass, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "cl=", 3) == 0) {
@@ -562,6 +734,7 @@ get_next_command() {
 static void
 parse_args(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
+	isc_boolean_t have_host = ISC_FALSE;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug ("Main parsing %s", argv[0]);
@@ -573,6 +746,8 @@ parse_args(int argc, char **argv) {
 			}
 			if (argv[0][1] != 0)
 				setoption(&argv[0][1]);
+			else {
+				
 		} else {
 			if (lookup == NULL) {
 				in_use = ISC_TRUE;
@@ -663,6 +838,7 @@ main(int argc, char **argv) {
 		flush_lookup_list();
 		in_use = ISC_FALSE;
 	} else {
+		show_settings(ISC_FALSE);
 		in_use = ISC_TRUE;
 	}
 

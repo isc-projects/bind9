@@ -24,6 +24,7 @@
  * functions in most applications.
  */
 
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -1450,7 +1451,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	      isc_result_totext(sevent->result));
 }
 
-static void
+void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	struct in_addr in4;
 	struct in6_addr in6;
@@ -1557,7 +1558,7 @@ start_lookup(void) {
 }
      
 void
-free_lists(int exitcode) {
+free_lists(int _exitcode) {
 	void *ptr;
 	dig_lookup_t *l;
 	dig_query_t *q;
@@ -1637,6 +1638,7 @@ free_lists(int exitcode) {
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 
-	if (exitcode != 0)
-		exit(exitcode);
+	debug("Getting ready to exit, code=%d",_exitcode);
+	if (_exitcode != 0)
+		exit(_exitcode);
 }

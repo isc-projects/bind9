@@ -358,7 +358,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	result = ISC_R_SUCCESS;
 
-	if (query->lookup->comments && !short_form) {
+	if (query->lookup->comments && !short_form &&
+	    !query->lookup->doing_xfr) {
 		if (msg == query->lookup->sendmsg)
 			printf (";; Sending:\n");
 		else
@@ -1146,6 +1147,6 @@ main(int argc, char **argv) {
 	start_lookup();
 	isc_app_run();
 	free_lists(0);
-	return (0);
+	return (exitcode);
 }
 

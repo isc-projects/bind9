@@ -133,6 +133,8 @@ struct dig_searchlist {
 
 /* Routines in dighost.c */
 void
+get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
+void
 fatal(char *format, ...) ;
 void
 debug(char *format, ...) ;
