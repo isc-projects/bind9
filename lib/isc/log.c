@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.39 2000/07/13 00:18:51 gson Exp $ */
+/* $Id: log.c,v 1.40 2000/07/13 02:28:18 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1216,6 +1216,9 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	 * dynamically changed.
 	 */
 
+	if (lctx == NULL)
+		return (ISC_FALSE);
+	
 	return (ISC_TF(level <= lctx->logconfig->highest_level ||
 		       (lctx->logconfig->dynamic &&
 			level <= lctx->debug_level)));
