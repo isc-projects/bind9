@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.5 2002/05/24 05:21:42 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.6 2002/12/03 05:39:10 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -341,6 +341,10 @@ ns_name_ntol(const u_char *src, u_char *dst, size_t dstsiz)
 	dn = dst;
 	eom = dst + dstsiz;
 
+	if (dn >= eom) {
+		errno = EMSGSIZE;
+		return (-1);
+	}
 	while ((n = *cp++) != 0) {
 		if ((n & NS_CMPRSFLGS) == NS_CMPRSFLGS) {
 			/* Some kind of compression pointer. */

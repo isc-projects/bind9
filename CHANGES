@@ -1,3 +1,6 @@
+1404.	[bug]		libbind: ns_name_ntol() could overwite a zero length
+			buffer.
+
 1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
 			dnssec-signkey now report their version in the
 			usage message.
