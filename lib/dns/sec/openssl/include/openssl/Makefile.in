@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	bio.h bn.h buffer.h crypto.h dsa.h e_os.h e_os2.h err.h \
+HEADERS =	bio.h bn.h buffer.h crypto.h dh.h dsa.h e_os.h e_os2.h err.h \
 		lhash.h md5.h opensslconf.h opensslv.h rand.h sha.h stack.h
 
 SUBDIRS =

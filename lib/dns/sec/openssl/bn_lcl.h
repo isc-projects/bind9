@@ -233,6 +233,7 @@ extern "C" {
 
 /* BEW */
 #define OPENSSL_EXTERN extern
+#define NO_BIO
 
 OPENSSL_EXTERN int bn_limit_bits;
 OPENSSL_EXTERN int bn_limit_num;        /* (1<<bn_limit_bits) */
