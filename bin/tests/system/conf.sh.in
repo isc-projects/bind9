@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: conf.sh.in,v 1.7 2000/07/06 19:37:47 mws Exp $
+# $Id: conf.sh.in,v 1.8 2000/07/10 11:38:48 tale Exp $
 
 # 
 # Common configuration data for system tests, to be sourced into
@@ -31,6 +31,7 @@ TOP=`cd $TOP && pwd`
 NAMED=$TOP/bin/named/named
 LWRESD=$TOP/bin/named/lwresd
 DIG=$TOP/bin/dig/dig
+RNDC=$TOP/bin/rndc/rndc
 NSUPDATE=$TOP/bin/nsupdate/nsupdate
 KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
