@@ -1,8 +1,6 @@
---- README.mdnkit.orig	Fri Feb  8 23:22:13 2002
-+++ README.mdnkit	Tue Feb 12 17:06:01 2002
-@@ -123,2 +123,126 @@
- 
- ; $Id: bind-9.2.0-patch,v 1.1.2.1 2002/02/08 12:15:13 marka Exp $
+--- README.mdnkit.orig	Tue Mar 26 15:20:34 2002
++++ README.mdnkit	Tue Mar 26 15:20:34 2002
+@@ -0,0 +1,124 @@
 +
 +			BIND-9 MDN patch
 +
@@ -127,8 +125,8 @@
 +
 +
 +; $Id: bind-9.2.0-patch,v 1.1.2.1 2002/02/08 12:15:13 marka Exp $
---- config.h.in.orig	Tue Feb 12 11:41:27 2002
-+++ config.h.in	Tue Feb 12 17:06:01 2002
+--- config.h.in.orig	Tue Feb 12 20:18:50 2002
++++ config.h.in	Tue Mar 26 15:18:22 2002
 @@ -142,4 +142,7 @@
  #undef HAVE_STRERROR
  
@@ -152,8 +150,8 @@
 +/* define if mDNkit support is to be included. */
 +#undef WITH_MDN
 +
---- configure.in.orig	Tue Feb 12 11:42:15 2002
-+++ configure.in	Tue Feb 12 17:06:01 2002
+--- configure.in.orig	Tue Feb 12 20:20:00 2002
++++ configure.in	Tue Mar 26 15:18:23 2002
 @@ -1615,4 +1615,77 @@
  
  #
@@ -232,8 +230,8 @@
 +#
  # Substitutions
  #
---- bin/dig/dig.1.orig	Tue Feb 12 11:42:17 2002
-+++ bin/dig/dig.1	Tue Feb 12 17:06:01 2002
+--- bin/dig/dig.1.orig	Tue Feb 12 17:42:49 2002
++++ bin/dig/dig.1	Tue Mar 26 15:18:23 2002
 @@ -74,5 +74,5 @@
  .TP
  \fBtype\fR
@@ -257,8 +255,8 @@
 +\fBdig\fR runs.
  .SH "FILES"
  .PP
---- bin/dig/dig.c.orig	Tue Feb 12 11:42:22 2002
-+++ bin/dig/dig.c	Tue Feb 12 17:06:01 2002
+--- bin/dig/dig.c.orig	Tue Mar 12 14:55:57 2002
++++ bin/dig/dig.c	Tue Mar 26 15:18:23 2002
 @@ -1308,4 +1308,9 @@
  		ISC_LIST_APPEND(lookup_list, lookup, link);
  	}
@@ -269,8 +267,8 @@
 +#endif
  }
  
---- bin/dig/dig.docbook.orig	Tue Feb 12 11:42:24 2002
-+++ bin/dig/dig.docbook	Tue Feb 12 17:06:02 2002
+--- bin/dig/dig.docbook.orig	Tue Feb 12 17:42:57 2002
++++ bin/dig/dig.docbook	Tue Mar 26 15:18:23 2002
 @@ -524,4 +524,19 @@
  
  <refsect1>
@@ -291,8 +289,8 @@
 +<refsect1>
  <title>FILES</title>
  <para>
---- bin/dig/dighost.c.orig	Tue Feb 12 11:42:34 2002
-+++ bin/dig/dighost.c	Tue Feb 12 17:06:02 2002
+--- bin/dig/dighost.c.orig	Wed Feb 20 10:02:43 2002
++++ bin/dig/dighost.c	Tue Mar 26 15:18:23 2002
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -447,7 +445,7 @@
 +#endif
  		else {
  			len = strlen(lookup->textname);
-@@ -2590,2 +2693,115 @@
+@@ -2592,2 +2695,115 @@
  		isc_mem_destroy(&mctx);
  }
 +
@@ -563,8 +561,8 @@
 +}
 +
 +#endif /* WITH_MDN */
---- bin/dig/host.1.orig	Tue Feb 12 11:42:35 2002
-+++ bin/dig/host.1	Tue Feb 12 17:06:02 2002
+--- bin/dig/host.1.orig	Tue Feb 12 17:43:07 2002
++++ bin/dig/host.1	Tue Mar 26 15:18:23 2002
 @@ -88,6 +88,6 @@
  .PP
  Non-recursive queries can be made via the \fB-r\fR option.
@@ -590,8 +588,8 @@
 +\fBhost\fR runs.
  .SH "FILES"
  .PP
---- bin/dig/host.c.orig	Tue Feb 12 11:42:37 2002
-+++ bin/dig/host.c	Tue Feb 12 17:06:02 2002
+--- bin/dig/host.c.orig	Tue Feb 12 17:43:09 2002
++++ bin/dig/host.c	Tue Mar 26 15:18:23 2002
 @@ -667,4 +667,9 @@
  	ISC_LIST_APPEND(lookup_list, lookup, link);
  
@@ -602,8 +600,8 @@
 +
  	usesearch = ISC_TRUE;
  }
---- bin/dig/host.docbook.orig	Tue Feb 12 11:42:38 2002
-+++ bin/dig/host.docbook	Tue Feb 12 17:06:02 2002
+--- bin/dig/host.docbook.orig	Tue Feb 12 17:43:10 2002
++++ bin/dig/host.docbook	Tue Mar 26 15:18:24 2002
 @@ -182,4 +182,19 @@
  
  <refsect1>
@@ -624,9 +622,9 @@
 +<refsect1>
  <title>FILES</title>
  <para>
---- bin/dig/nslookup.c.orig	Tue Feb 12 11:42:41 2002
-+++ bin/dig/nslookup.c	Tue Feb 12 17:06:02 2002
-@@ -657,4 +657,8 @@
+--- bin/dig/nslookup.c.orig	Thu Mar 21 09:45:11 2002
++++ bin/dig/nslookup.c	Tue Mar 26 15:18:24 2002
+@@ -660,4 +660,8 @@
  	lookup->origin = NULL;
  	ISC_LIST_INIT(lookup->my_server_list);
 +#ifdef WITH_MDN
@@ -635,8 +633,8 @@
 +#endif
  	debug("looking up %s", lookup->textname);
  }
---- bin/dig/include/dig/dig.h.orig	Thu Nov 15 12:24:13 2001
-+++ bin/dig/include/dig/dig.h	Tue Feb 12 17:06:03 2002
+--- bin/dig/include/dig/dig.h.orig	Tue Feb 12 17:43:14 2002
++++ bin/dig/include/dig/dig.h	Tue Mar 26 15:18:24 2002
 @@ -75,4 +75,11 @@
   */
  
@@ -657,8 +655,8 @@
 +#endif
  		dnssec;
  	char textname[MXNAME]; /* Name we're going to be looking up */
---- lib/dns/name.c.orig	Tue Feb 12 11:43:36 2002
-+++ lib/dns/name.c	Tue Feb 12 17:06:03 2002
+--- lib/dns/name.c.orig	Tue Mar 26 14:57:49 2002
++++ lib/dns/name.c	Tue Mar 26 15:18:24 2002
 @@ -195,4 +195,11 @@
  dns_name_t *dns_wildcardname = &wild;
  
@@ -697,8 +695,8 @@
 +	totext_filter_proc = proc;
 +}
 +#endif
---- lib/dns/include/dns/name.h.orig	Tue Feb 12 11:43:41 2002
-+++ lib/dns/include/dns/name.h	Tue Feb 12 17:06:03 2002
+--- lib/dns/include/dns/name.h.orig	Tue Feb 12 20:23:10 2002
++++ lib/dns/include/dns/name.h	Tue Mar 26 15:18:24 2002
 @@ -219,4 +219,15 @@
  #define DNS_NAME_MAXWIRE 255
  

@@ -4,7 +4,7 @@ RCS file: /proj/cvs/isc/bind9/configure,v
 retrieving revision 1.284.2.8
 diff -u -u -2 -r1.284.2.8 configure
 --- configure	2001/12/05 02:30:08	1.284.2.8
-+++ configure	2002/02/12 06:30:39
++++ configure	2002/03/26 04:43:33
 @@ -370,4 +370,12 @@
  ac_help="$ac_help
    --disable-linux-caps	disable linux capabilities"
