@@ -1,3 +1,7 @@
+ 138.   [cleanup]       isc_strtouq moved from str.[ch] to string.[ch] and
+                        renamed isc_string_touint64.  isc_strsep moved from
+                        strsep.c to string.c and renamed isc_string_separate.
+
  137.   [cleanup]       <isc/commandline.h>, <isc/mem.h>, <isc/print.h>
                         <isc/serial.h>, <isc/string.h> and <isc/offset.h>
                         made to conform to the same style for multiple

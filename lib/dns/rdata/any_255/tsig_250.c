@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.30 2000/04/28 01:23:58 gson Exp $ */
+/* $Id: tsig_250.c,v 1.31 2000/04/28 22:40:08 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -24,9 +24,10 @@
 #ifndef RDATA_ANY_255_TSIG_250_C
 #define RDATA_ANY_255_TSIG_250_C
 
-#include <isc/str.h>
+#include <isc/string.h>
 
-#define RRTYPE_TSIG_ATTRIBUTES (DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION)
+#define RRTYPE_TSIG_ATTRIBUTES \
+	(DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
 fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
@@ -51,7 +52,7 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	/* Time Signed: 48 bits */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	sigtime = isc_strtouq(token.value.as_pointer, &e, 10);
+	sigtime = isc_string_touint64(token.value.as_pointer, &e, 10);
 	if (*e != 0)
 		return (DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
@@ -245,7 +246,9 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_any_tsig(dns_rdata_t *rdata, dns_compress_t *cctx,
+		isc_buffer_t *target)
+{
 	isc_region_t sr;
 	dns_name_t name;
 
