@@ -1,3 +1,5 @@
+1748.	[placeholder]	rt12838
+
 1747.	[bug]		BIND 8 compatability: named/named-checkconf failed
 			to parse "host-statistics-max" in named.conf.
 
