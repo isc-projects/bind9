@@ -1,5 +1,16 @@
 
- 762.	[feature]	named now uses the new configuration parser.
+ 765.	[func]		ACL names are once again case insensitive, like
+			in BIND 8. [RT #252]
+
+ 764.	[func]		Configuration files now allow "include" directives
+			in more places, such as inside the "view" statement.
+			[RT #377, #728, #860]
+
+ 763.	[func]		Configuration files no longer have reserved words.
+			[RT #731, #753]
+
+ 762.	[cleanup]	The named.conf and rndc.conf file parsers have
+			been completely rewritten.
 
  761.	[bug]		_REENTRANT was still defined when building with
 			--disable-threads.
