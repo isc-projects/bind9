@@ -68,7 +68,6 @@ typedef struct {
 	node_lock *		       	node_locks;
 	/* Locked by lock */
 	unsigned int			references;
-	isc_boolean_t			shutting_down;
 	/* Locked by tree_lock */
 	dns_rbt_t *			tree;
 } dns_rbtdb_t;
@@ -108,7 +107,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
 	isc_region_t r;
 
-	dns_name_toregion(&rbtdb->common.base, &r);
+	dns_name_toregion(&rbtdb->common.origin, &r);
 	if (r.base != NULL)
 		isc_mem_put(rbtdb->common.mctx, r.base, r.length);
 	if (rbtdb->tree != NULL)
@@ -163,18 +162,7 @@ detach(dns_db_t **dbp) {
 	if (maybe_free)
 		maybe_free_rbtdb(rbtdb);
 
-	dbp = NULL;
-}
-
-static void
-shutdown(dns_db_t *db) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	LOCK(&rbtdb->lock);
-	rbtdb->shutting_down = ISC_TRUE;
-	UNLOCK(&rbtdb->lock);
+	*dbp = NULL;
 }
 
 static void
@@ -182,7 +170,6 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(versionp != NULL && *versionp == NULL);
 
 	*versionp = NULL;
 }
@@ -191,18 +178,20 @@ static dns_result_t
 newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 
+	(void)versionp;
+
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(versionp != NULL && *versionp == NULL);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static void
-closeversion(dns_db_t *db, dns_dbversion_t **versionp) {
+closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 
+	(void)commit;
+
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(versionp != NULL && *versionp != NULL);
 
 	*versionp = NULL;
 }
@@ -218,7 +207,6 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(dns_name_issubdomain(name, &rbtdb->common.base));
 
 	dns_name_init(&foundname, NULL);
 	RWLOCK(&rbtdb->tree_lock, locktype);
@@ -309,8 +297,6 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	(void)version;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods == NULL);
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 	for (header = rbtnode->data; header != NULL; header = header->next) {
@@ -357,7 +343,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static dns_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    dns_rdataset_t *rdataset, dns_addmode_t mode)
+	    dns_rdataset_t *rdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
@@ -366,7 +352,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_result_t result;
 
 	(void)version;
-	(void)mode;
 	
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -399,6 +384,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	node = NULL;
 	version = NULL;
 	type = 0;
+
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
@@ -424,6 +410,9 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 
 	/*
 	 * The following is basically addrdataset(), with no locking.
+	 *
+	 * XXX We should look for an rdataset of this type and merge if
+	 * we find it.
 	 */
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
@@ -470,8 +459,8 @@ load(dns_db_t *db, char *filename) {
 	callbacks.commit = add_rdataset_callback;
 	callbacks.commit_private = rbtdb;
 
-	return (dns_master_load(filename, &rbtdb->common.base,
-				&rbtdb->common.base, rbtdb->common.class,
+	return (dns_master_load(filename, &rbtdb->common.origin,
+				&rbtdb->common.origin, rbtdb->common.class,
 				&soacount, &nscount, &callbacks,
 				rbtdb->common.mctx));
 }
@@ -493,7 +482,6 @@ delete_callback(void *data, void *arg) {
 static dns_dbmethods_t methods = {
 	attach,
 	detach,
-	shutdown,
 	load,
 	currentversion,
 	newversion,
@@ -507,7 +495,7 @@ static dns_dbmethods_t methods = {
 };
 
 dns_result_t
-dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
+dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *origin, isc_boolean_t cache,
 		 dns_rdataclass_t class, unsigned int argc, char *argv[],
 		 dns_db_t **dbp)
 {
@@ -517,6 +505,7 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 	int i;
 	isc_region_t r1, r2;
 
+	/* Keep the compiler happy. */
 	(void)argc;
 	(void)argv;
 
@@ -525,7 +514,9 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 		return (DNS_R_NOMEMORY);
 	memset(rbtdb, '\0', sizeof *rbtdb);
 	rbtdb->common.methods = &methods;
-	rbtdb->common.cache = cache;
+	rbtdb->common.attributes = 0;
+	if (cache)
+		rbtdb->common.attributes |= DNS_DBATTR_CACHE;
 	rbtdb->common.class = class;
 	rbtdb->common.mctx = mctx;
 
@@ -577,10 +568,10 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 	}
 
 	/*
-	 * Make a copy of the base name.
+	 * Make a copy of the origin name.
 	 */
-	dns_name_init(&rbtdb->common.base, NULL);
-	dns_name_toregion(base, &r1);
+	dns_name_init(&rbtdb->common.origin, NULL);
+	dns_name_toregion(origin, &r1);
 	r2.base = isc_mem_get(mctx, r1.length);
 	if (r2.base == NULL) {
 		free_rbtdb(rbtdb);
@@ -588,7 +579,7 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 	}
 	r2.length = r1.length;
 	memcpy(r2.base, r1.base, r1.length);
-	dns_name_fromregion(&rbtdb->common.base, &r2);
+	dns_name_fromregion(&rbtdb->common.origin, &r2);
 
 	/*
 	 * Make the Red-Black Tree.
@@ -599,7 +590,6 @@ dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, isc_boolean_t cache,
 		return (dresult);
 	}
 
-	rbtdb->shutting_down = ISC_FALSE;
 	rbtdb->references = 1;
 
 	/* XXX Version init here */
