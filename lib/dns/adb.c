@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.207 2003/10/10 00:19:01 marka Exp $ */
+/* $Id: adb.c,v 1.208 2003/10/10 00:39:09 marka Exp $ */
 
 /*
  * Implementation notes
@@ -2347,7 +2347,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (adb->name_sd[bucket]) {
 		DP(DEF_LEVEL,
 		   "dns_adb_createfind: returning ISC_R_SHUTTINGDOWN");
-		INSIST(free_adbfind(adb, &find) == ISC_FALSE);
+		RUNTIME_CHECK(free_adbfind(adb, &find) == ISC_FALSE);
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
 	}
@@ -2358,7 +2358,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (adbname == NULL) {
 		adbname = new_adbname(adb, name);
 		if (adbname == NULL) {
-			INSIST(free_adbfind(adb, &find) == ISC_FALSE);
+			RUNTIME_CHECK(free_adbfind(adb, &find) == ISC_FALSE);
 			result = ISC_R_NOMEMORY;
 			goto out;
 		}
@@ -2374,7 +2374,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	/*
 	 * Expire old entries, etc.
 	 */
-	INSIST(check_expire_namehooks(adbname, now, adb->overmem) == ISC_FALSE);
+	RUNTIME_CHECK(check_expire_namehooks(adbname, now, adb->overmem) ==
+		      ISC_FALSE);
 
 	/*
 	 * Do we know that the name is an alias?
@@ -2632,7 +2633,8 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 		entry = ai->entry;
 		ai->entry = NULL;
 		INSIST(DNS_ADBENTRY_VALID(entry));
-		INSIST(dec_entry_refcnt(adb, entry, ISC_TRUE) == ISC_FALSE);
+		RUNTIME_CHECK(dec_entry_refcnt(adb, entry, ISC_TRUE) ==
+			      ISC_FALSE);
 		free_adbaddrinfo(adb, &ai);
 		ai = ISC_LIST_HEAD(find->list);
 	}
