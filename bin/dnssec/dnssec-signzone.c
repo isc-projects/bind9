@@ -99,7 +99,7 @@ vbprintf(int level, const char *fmt, ...) {
 	if (level > verbose)
 		return;
 	va_start(ap, fmt);
-	vprintf(fmt, ap);
+	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 }
 
@@ -196,6 +196,10 @@ iszonekey(signer_key_t *key, dns_db_t *db) {
 		 DNS_KEYOWNER_ZONE));
 }
 
+/*
+ * Finds the key that generated a SIG, if possible.  First look at the keys
+ * that we've loaded already, and then see if there's a key on disk.
+ */
 static signer_key_t *
 keythatsigned(dns_rdata_generic_sig_t *sig) {
 	char *keyname;
@@ -236,6 +240,11 @@ keythatsigned(dns_rdata_generic_sig_t *sig) {
 	return key;
 }
 
+/*
+ * Check to see if we expect to find a key at this name.  If we see a SIG
+ * and can't find the signing key that we expect to find, we drop the sig.
+ * I'm not sure if this is completely correct, but it seems to work.
+ */
 static isc_boolean_t
 expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 	unsigned int options = DNS_DBFIND_NOWILD;
@@ -260,7 +269,7 @@ expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 	}
 }
 
-static isc_boolean_t
+static inline isc_boolean_t
 setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	    dns_rdata_t *sig)
 {
@@ -278,6 +287,11 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	isc_buffer_init(&b, tdata->array, sizeof(tdata->array), \
 			ISC_BUFFERTYPE_BINARY);
 
+/*
+ * Signs a set.  Goes through contortions to decide if each SIG should
+ * be dropped or retained, and then determines if any new SIGs need to
+ * be generated.
+ */
 static void
 signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	 dns_name_t *name, dns_rdataset_t *set)
@@ -493,13 +507,18 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&sigset);
 	}
 	else if (!nosigs) {
-	/*
+#if 0
+		/*
+		 * If this is compiled in, running a signed set through the
+		 * signer with no private keys causes DNS_R_BADDB to occur
+		 * later.  This is bad.
+		 */
 		result = dns_db_deleterdataset(db, node, version,
 					       dns_rdatatype_sig, set->type);
 		if (result == ISC_R_NOTFOUND)
 			result = ISC_R_SUCCESS;
 		check_result(result, "dns_db_deleterdataset");
-	*/
+#endif
 	}
 
 	trdata = ISC_LIST_HEAD(siglist.rdata);
@@ -517,6 +536,7 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	}
 }
 
+/* Determine if a KEY set contains a null key */
 static isc_boolean_t
 hasnullkey(dns_rdataset_t rdataset) {
 	isc_result_t result;
@@ -543,6 +563,11 @@ hasnullkey(dns_rdataset_t rdataset) {
 	return (ISC_FALSE);
 }
 
+/*
+ * Signs all records at a name.  This mostly just signs each set individually,
+ * but also handles exceptional cases and adds the SIG bit to any NXTs
+ * generated earlier.
+ */
 static void
 signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	 dns_name_t *name, isc_boolean_t atorigin)
@@ -713,6 +738,9 @@ next_nonglue(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 	return (result);
 }
 
+/*
+ * Generates NXTs and SIGs for each non-glue name in the zone.
+ */
 static void
 signzone(dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result, nxtresult;
@@ -876,6 +904,10 @@ getdb(dns_zone_t *zone, dns_db_t **db, dns_dbversion_t **version) {
 	check_result(result, "dns_db_newversion()");
 }
 
+/*
+ * Finds all public zone keys in the zone, and attempts to load the
+ * private keys from disk.
+ */
 static void
 loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 	dns_name_t *origin;
@@ -965,8 +997,6 @@ usage() {
 	fprintf(stderr, "\t\tcycle period - regenerate if < cycle from end ( (end-start)/4 )\n");
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
-	fprintf(stderr, "\t-l\n");
-	fprintf(stderr, "\t\tturn on logging to standard output\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
@@ -1004,7 +1034,7 @@ main(int argc, char *argv[]) {
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:hl")) != -1)
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h")) != -1)
 	{
 		switch (ch) {
 		case 's':
@@ -1033,17 +1063,6 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
-			break;
-
-		case 'l':
-			RUNTIME_CHECK(isc_log_create(mctx, &log) == 
-				      ISC_R_SUCCESS);
-			RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
-	
-			RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr",
-							 NULL, NULL)
-				      == ISC_R_SUCCESS);
-			dns_lctx = log;
 			break;
 
 		case 'o':
@@ -1085,6 +1104,14 @@ main(int argc, char *argv[]) {
 
 	if (cycle == -1) {
 		cycle = (endtime - starttime) / 4;
+	}
+
+	if (verbose > 0) {
+		RUNTIME_CHECK(isc_log_create(mctx, &log) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr",
+						 NULL, NULL) == ISC_R_SUCCESS);
+		dns_lctx = log;
 	}
 
 	argc -= isc_commandline_index;
