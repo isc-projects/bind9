@@ -289,15 +289,6 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 		goto out;
 
 	/*
-	 * Pull off the addresses.
-	 */
-	for (x = 0 ; x < gabn->naddrs ; x++) {
-		ret = lwres_addr_parse(b, &gabn->addrs[x]);
-		if (ret != LWRES_R_SUCCESS)
-			goto out;
-	}
-
-	/*
 	 * Parse off the aliases.
 	 */
 	for (x = 0 ; x < gabn->naliases ; x++) {
@@ -307,8 +298,17 @@ lwres_gabnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			goto out;
 	}
 
+	/*
+	 * Pull off the addresses.
+	 */
+	for (x = 0 ; x < gabn->naddrs ; x++) {
+		ret = lwres_addr_parse(b, &gabn->addrs[x]);
+		if (ret != LWRES_R_SUCCESS)
+			goto out;
+	}
+
 	if (LWRES_BUFFER_REMAINING(b) != 0) {
-		ret = LWRES_R_UNEXPECTEDEND;
+		ret = LWRES_R_TRAILINGDATA;
 		goto out;
 	}
 

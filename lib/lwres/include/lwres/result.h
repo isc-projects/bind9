@@ -27,5 +27,6 @@
 #define LWRES_R_IOERROR		       -6
 #define LWRES_R_NOTIMPLEMENTED	       -7
 #define LWRES_R_UNEXPECTED	       -8
+#define LWRES_R_TRAILINGDATA	       -9
 
 #endif /* LWRES_RESULT_H */

@@ -57,19 +57,32 @@ lwres_string_parse(lwres_buffer_t *b, char **c, isc_uint16_t *len)
 
 	REQUIRE(b != NULL);
 
+	/*
+	 * Pull off the length (2 bytes)
+	 */
 	if (!SPACE_REMAINING(b, sizeof(isc_uint16_t)))
 		return (LWRES_R_UNEXPECTEDEND);
 	datalen = lwres_buffer_getuint16(b);
-	datalen++;
+
+	/*
+	 * Set the pointer to this string to the right place, then
+	 * advance the buffer pointer.
+	 */
 	if (!SPACE_REMAINING(b, datalen))
 		return (LWRES_R_UNEXPECTEDEND);
-
 	string = b->base + b->current;
-
 	lwres_buffer_forward(b, datalen);
 
+	/*
+	 * Skip the "must be zero" byte.
+	 */
+	if (!SPACE_REMAINING(b, 1))
+		return (LWRES_R_UNEXPECTEDEND);
+	if (0 != lwres_buffer_getuint8(b))
+		return (LWRES_R_FAILURE);
+
 	if (len != NULL)
-		*len = datalen - 1;
+		*len = datalen;
 	if (c != NULL)
 		*c = string;
 
