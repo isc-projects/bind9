@@ -49,7 +49,7 @@ number of threads running is n+4, where n is the number of CPUs.
 
 
 Q: Why does BIND 9 log "permission denied" errors accessing its
-configuration files on my Linux sysetm even though it is running as
+configuration files on my Linux system even though it is running as
 root?
 
 A: On Linux, BIND 9 drops most of its root privileges on startup.
