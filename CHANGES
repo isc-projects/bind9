@@ -1,3 +1,7 @@
+1381.	[bug]		named failed to correctly process answers that
+			contained DNAME records where the resulting CNAME
+			resulted in a negative answer.
+
 1380.	[func]		'rndc recursing' dump recursing queries to
 			'recursing-file = "named.recursing";'.
 
