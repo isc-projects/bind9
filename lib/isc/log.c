@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.45 2000/08/26 01:23:11 bwelling Exp $ */
+/* $Id: log.c,v 1.46 2000/08/31 20:58:14 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1068,6 +1068,7 @@ greatest_version(isc_logchannel_t *channel) {
 				greatest = version;
 		}
 	}
+	isc_dir_close(&dir);
 
 	if (basename != FILE_NAME(channel))
 		*--basename = '/';

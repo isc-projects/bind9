@@ -1,3 +1,6 @@
+
+ 415.	[bug]		The logging code leaked file descriptors.
+
  414.	[bug]		Server did not shut down until all incoming zone 
 			transfers were finished.
 
